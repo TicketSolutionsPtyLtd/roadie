@@ -19,6 +19,10 @@ type CategorizedComponents = {
 }
 
 export async function generateStaticParams() {
+  return []
+}
+
+export default async function ComponentsPage() {
   const componentsDir = join(process.cwd(), 'src/app/components')
   const entries = await readdir(componentsDir, { withFileTypes: true })
 
@@ -76,109 +80,75 @@ export async function generateStaticParams() {
     return acc
   }, {} as CategorizedComponents)
 
-  return { components: categorizedComponents }
-}
-
-export default async function ComponentsPage() {
-  const { components } = await generateStaticParams()
-
   return (
-    <View as='main' gap='600'>
-      {/* Hero Section */}
-      <View as='header' gap='200'>
-        <Heading as='h1' textStyle='display.prose.1'>
-          Components
-        </Heading>
-        <Text textStyle='prose.lead' color='fg.subtle' fontSize='xl'>
-          Our component library provides a set of reusable UI components built with React, designed
-          for consistency and flexibility.
+    <View gap='600'>
+      <View>
+        <Heading as='h1'>Components</Heading>
+        <Text color='fg.subtle'>
+          A collection of components built with React Aria Components and styled with PandaCSS.
         </Text>
       </View>
 
-      {/* Components by Category */}
-      <View gap='800'>
-        {Object.entries(components).map(([category, categoryComponents]) => (
-          <View key={category} gap='200'>
-            <Heading as='h2' textStyle='display.prose.2'>
-              {category}
-            </Heading>
-            <View
-              display='grid'
-              gridTemplateColumns='repeat(auto-fill, minmax(300px, 1fr))'
-              gap='400'
-            >
-              {categoryComponents.map((component) => (
-                <Link
-                  key={component.name}
-                  href={`/components/${component.name}`}
-                  className={css({
-                    display: 'block',
-                    p: '400',
-                    borderRadius: '200',
-                    border: '1px solid',
-                    borderColor: 'border.subtle',
-                    bg: 'bg',
-                    transition: 'all 0.2s',
-                    _hover: {
-                      bg: 'bg.subtlest',
-                      borderColor: 'border',
-                      transform: 'translateY(-2px)'
-                    }
-                  })}
+      {Object.entries(categorizedComponents).map(([category, components]) => (
+        <View key={category} gap='300'>
+          <Heading as='h2' textStyle='display.prose.2'>
+            {category}
+          </Heading>
+          <View
+            display='grid'
+            gridTemplateColumns={{
+              base: '1fr',
+              sm: 'repeat(2, 1fr)',
+              md: 'repeat(3, 1fr)'
+            }}
+            gap='300'
+          >
+            {components.map((component) => (
+              <Link
+                key={component.name}
+                href={`/components/${component.name}`}
+                className={css({
+                  textDecoration: 'none',
+                  color: 'fg',
+                  _hover: {
+                    textDecoration: 'none'
+                  }
+                })}
+              >
+                <View
+                  backgroundColor='bg.subtle'
+                  padding='300'
+                  borderRadius='100'
+                  gap='200'
+                  borderWidth='1px'
+                  borderStyle='solid'
+                  borderColor='border.subtle'
+                  _hover={{
+                    backgroundColor: 'bg.subtle.hovered'
+                  }}
                 >
-                  <View display='flex' flexDirection='row' alignItems='center' gap='200' mb='200'>
-                    <Heading as='h3' textStyle='display.prose.4'>
-                      {component.title}
-                    </Heading>
-                    {component.status && (
-                      <span
-                        data-status={component.status}
-                        className={css({
-                          fontSize: 'xs',
-                          px: '100',
-                          py: '050',
-                          borderRadius: '100',
-                          border: '1px solid',
-                          borderColor: 'border.subtle',
-                          bg: 'bg.subtle',
-                          color: 'fg.subtle',
-                          fontWeight: 'medium',
-                          '&[data-status="stable"]': {
-                            borderColor: 'border.success',
-                            bg: 'bg.success',
-                            color: 'fg.success'
-                          },
-                          '&[data-status="beta"]': {
-                            borderColor: 'border.warning',
-                            bg: 'bg.warning',
-                            color: 'fg.warning'
-                          },
-                          '&[data-status="experimental"]': {
-                            borderColor: 'border.information',
-                            bg: 'bg.information',
-                            color: 'fg.information'
-                          }
-                        })}
-                      >
-                        {component.status}
-                      </span>
-                    )}
-                  </View>
+                  <Heading as='h3' textStyle='display.prose.3'>
+                    {component.title}
+                  </Heading>
+                  <Text color='fg.subtle'>{component.description}</Text>
                   <Text
-                    className={css({
-                      color: 'fg.subtle',
-                      fontSize: 'md',
-                      lineHeight: 'normal'
-                    })}
+                    textStyle='ui.small'
+                    color={
+                      component.status === 'stable'
+                        ? 'fg.success'
+                        : component.status === 'beta'
+                          ? 'fg.warning'
+                          : 'fg.subtle'
+                    }
                   >
-                    {component.description}
+                    {component.status}
                   </Text>
-                </Link>
-              ))}
-            </View>
+                </View>
+              </Link>
+            ))}
           </View>
-        ))}
-      </View>
+        </View>
+      ))}
     </View>
   )
 }

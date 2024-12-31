@@ -35,10 +35,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Build docs
+      - name: Build with Turbo
+        run: pnpm build
+
+      - name: Prepare docs
         run: |
           cd docs
-          pnpm build
           touch out/.nojekyll
 
       - name: Upload artifact

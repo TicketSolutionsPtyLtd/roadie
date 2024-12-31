@@ -86,7 +86,7 @@ function PropsList({ props, title }: { props: Record<string, ComponentProp>; tit
           borderBottom='1px solid'
           borderBottomColor='border.subtlest'
         >
-          <Text fontSize='md' fontWeight='bold' color='subtle'>
+          <Text fontSize='md' fontWeight='bold' color='fg.subtle'>
             {title}
           </Text>
         </View>
@@ -107,9 +107,9 @@ function PropsList({ props, title }: { props: Record<string, ComponentProp>; tit
             <View flexDirection={{ base: 'column', md: 'row' }} alignItems='baseline' gap='100'>
               <Text fontFamily='mono' fontSize='sm' fontWeight='600' flexShrink={0}>
                 {name}
-                {!prop.required && <Text color='subtle'>?</Text>}
+                {!prop.required && <Text color='fg.subtle'>?</Text>}
               </Text>
-              <Text fontFamily='mono' fontSize='sm' color='information'>
+              <Text fontFamily='mono' fontSize='sm' color='fg.information'>
                 {formatTypeValues(prop)}
               </Text>
             </View>
@@ -117,12 +117,12 @@ function PropsList({ props, title }: { props: Record<string, ComponentProp>; tit
           <View as='dd'>
             <View gap='200'>
               {prop.description && (
-                <Text color='subtle' fontSize='md' lineHeight='ui'>
+                <Text color='fg.subtle' fontSize='md' lineHeight='ui'>
                   {prop.description}
                 </Text>
               )}
               {prop.defaultValue && (
-                <Text as='p' color='subtle' fontSize='sm' fontFamily='prose'>
+                <Text as='p' color='fg.subtle' fontSize='sm' fontFamily='prose'>
                   Defaults to <Code>{prop.defaultValue.value}</Code>.
                 </Text>
               )}
@@ -199,7 +199,7 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
             <Text as='h3' fontSize='xl' fontWeight='bold'>
               {interfaceName}
             </Text>
-            <Text color='subtle' fontSize='md' lineHeight='ui'>
+            <Text color='fg.subtle' fontSize='md' lineHeight='ui'>
               {componentInfo.description}
             </Text>
           </View>
