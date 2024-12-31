@@ -10,7 +10,8 @@ export default defineConfig({
   dts: true,
   clean: true,
   bundle: true,
-  external: ['@pandacss/dev'],
+  external: ['@pandacss/dev', 'react', 'react-dom'],
+  noExternal: ['@pandacss/dev'],
   onSuccess: 'pnpm run build:panda',
   ignoreWatch: ['src/tokens/tokens.json', 'src/tokens/semantic-tokens.json'],
   outExtension: ({ format }) => ({

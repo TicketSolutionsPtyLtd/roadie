@@ -5,29 +5,8 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// Read the input files
-const tokensPath = path.join(__dirname, '../src/tokens/tokens.json')
-const semanticTokensPath = path.join(
-  __dirname,
-  '../src/tokens/semantic-tokens.json'
-)
-
-const semanticTokens = JSON.parse(fs.readFileSync(semanticTokensPath, 'utf8'))
-
-// Ensure the figma directory exists
-const figmaDir = path.join(__dirname, '../src/tokens/figma')
-if (!fs.existsSync(figmaDir)) {
-  fs.mkdirSync(figmaDir, { recursive: true })
-}
-
-// Copy tokens.json to figma directory
-fs.writeFileSync(
-  path.join(figmaDir, 'tokens.json'),
-  fs.readFileSync(tokensPath, 'utf8')
-)
-
 // Helper function to process semantic tokens for light/dark mode
-function processSemanticTokens(tokens, mode = 'light') {
+export function processSemanticTokens(tokens, mode = 'light') {
   const result = {}
 
   for (const [tokenType, tokenGroup] of Object.entries(tokens)) {
@@ -77,18 +56,42 @@ function processSemanticTokens(tokens, mode = 'light') {
   return result
 }
 
-// Generate light and dark semantic tokens
-const lightTokens = processSemanticTokens(semanticTokens, 'light')
-const darkTokens = processSemanticTokens(semanticTokens, 'dark')
+// Only run this code if this is the main module
+if (import.meta.url === `file://${__filename}`) {
+  // Read the input files
+  const tokensPath = path.join(__dirname, '../src/tokens/tokens.json')
+  const semanticTokensPath = path.join(
+    __dirname,
+    '../src/tokens/semantic-tokens.json'
+  )
 
-// Write the semantic token files
-fs.writeFileSync(
-  path.join(figmaDir, 'mode-tokens-light.json'),
-  JSON.stringify(lightTokens, null, 2)
-)
-fs.writeFileSync(
-  path.join(figmaDir, 'mode-tokens-dark.json'),
-  JSON.stringify(darkTokens, null, 2)
-)
+  const semanticTokens = JSON.parse(fs.readFileSync(semanticTokensPath, 'utf8'))
 
-console.log('Figma tokens built successfully! Files written to:', figmaDir)
+  // Ensure the figma directory exists
+  const figmaDir = path.join(__dirname, '../src/tokens/figma')
+  if (!fs.existsSync(figmaDir)) {
+    fs.mkdirSync(figmaDir, { recursive: true })
+  }
+
+  // Copy tokens.json to figma directory
+  fs.writeFileSync(
+    path.join(figmaDir, 'tokens.json'),
+    fs.readFileSync(tokensPath, 'utf8')
+  )
+
+  // Generate light and dark semantic tokens
+  const lightTokens = processSemanticTokens(semanticTokens, 'light')
+  const darkTokens = processSemanticTokens(semanticTokens, 'dark')
+
+  // Write the semantic token files
+  fs.writeFileSync(
+    path.join(figmaDir, 'mode-tokens-light.json'),
+    JSON.stringify(lightTokens, null, 2)
+  )
+  fs.writeFileSync(
+    path.join(figmaDir, 'mode-tokens-dark.json'),
+    JSON.stringify(darkTokens, null, 2)
+  )
+
+  console.log('Figma tokens built successfully! Files written to:', figmaDir)
+}
