@@ -70,7 +70,7 @@ const button = cva({
       solid: {
         backgroundColor: 'bg.subtle',
         borderColor: 'border.subtle',
-        color: 'fg',
+        color: 'fg.subtle',
         _hover: {
           backgroundColor: 'bg.subtle.hovered'
         },
@@ -150,12 +150,26 @@ const button = cva({
   compoundVariants: [
     {
       appearance: 'solid',
+      emphasis: 'subtle',
+      css: {
+        color: 'fg.subtle',
+        _hover: {
+          color: 'fg'
+        },
+        _active: {
+          color: 'fg.subtle'
+        }
+      }
+    },
+    {
+      appearance: 'solid',
       emphasis: 'accent',
       css: {
         backgroundColor: 'bg.accent.bold',
         color: 'fg.accent.inverse',
         borderColor: 'border.accent',
         _hover: {
+          color: 'fg.inverse',
           backgroundColor: 'bg.accent.bold.hovered'
         },
         _active: {
@@ -246,12 +260,12 @@ const button = cva({
         borderColor: 'border.bold',
         color: 'fg',
         _hover: {
-          color: 'fg.hovered',
+          color: 'fg.inverse.hovered',
           borderColor: 'border.bold.hovered',
           backgroundColor: 'bg.hovered'
         },
         _active: {
-          color: 'fg.pressed',
+          color: 'fg.inverse.pressed',
           borderColor: 'border.bold.pressed',
           backgroundColor: 'bg.pressed'
         }
@@ -328,11 +342,11 @@ const button = cva({
       css: {
         color: 'fg',
         _hover: {
-          color: 'fg.hovered',
+          color: 'fg.inverse.hovered',
           backgroundColor: 'bg.hovered'
         },
         _active: {
-          color: 'fg.pressed',
+          color: 'fg.inverse.pressed',
           backgroundColor: 'bg.pressed'
         }
       }
