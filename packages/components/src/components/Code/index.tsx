@@ -1,3 +1,5 @@
+import type { ElementType, PropsWithChildren } from 'react'
+
 import type { TextProps } from '../Text'
 import { Text } from '../Text'
 
@@ -5,7 +7,7 @@ import { Text } from '../Text'
  * Props for the Code component
  * @extends {TextProps}
  */
-export interface CodeProps extends TextProps {
+export interface CodeProps<C extends ElementType = 'code'> extends TextProps<C> {
   /**
    * The visual style of the code block
    * @default 'outline'
@@ -16,7 +18,11 @@ export interface CodeProps extends TextProps {
 /**
  * Code component for displaying code in a monospace font.
  */
-export const Code = ({ children, appearance = 'outline', ...props }: CodeProps) => {
+export const Code = <C extends ElementType = 'code'>({
+  children,
+  appearance = 'outline',
+  ...props
+}: PropsWithChildren<CodeProps<C>>) => {
   return (
     <Text
       as='code'
