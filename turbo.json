@@ -6,24 +6,32 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
+    "clean": {
+      "cache": false
+    },
     "dev": {
       "persistent": true,
       "cache": false,
       "dependsOn": ["^build"]
     },
     "prepare": {
-      "cache": false
+      "cache": false,
+      "dependsOn": ["^build"]
     },
     "format": {
+      "cache": false,
       "outputs": []
     },
     "format:check": {
+      "cache": false,
       "outputs": []
     },
     "lint": {
+      "cache": false,
       "outputs": []
     },
     "lint:fix": {
+      "cache": false,
       "outputs": []
     },
     "test": {

@@ -17,17 +17,48 @@
   "tabWidth": 2,
   "trailingComma": "none",
   "useTabs": false,
-  "plugins": [
-    "@trivago/prettier-plugin-sort-imports",
-    "prettier-plugin-tailwindcss"
-  ],
+  "plugins": ["@trivago/prettier-plugin-sort-imports"],
   "importOrder": [
     "^react$",
     "^next(.*)$",
     "<THIRD_PARTY_MODULES>",
     "^@/(.*)$",
+    "^@oztix/(.*)$",
     "^[./]"
   ],
   "importOrderSeparation": true,
-  "importOrderSortSpecifiers": true
+  "importOrderSortSpecifiers": true,
+  "overrides": [
+    {
+      "files": "*.mdx",
+      "options": {
+        "proseWrap": "always",
+        "printWidth": 70
+      }
+    },
+    {
+      "files": ["*.json", "*.yaml", "*.yml"],
+      "options": {
+        "tabWidth": 2
+      }
+    },
+    {
+      "files": ["packages/components/**/*.tsx", "packages/components/**/*.ts"],
+      "options": {
+        "printWidth": 100
+      }
+    },
+    {
+      "files": ["packages/core/**/*.ts"],
+      "options": {
+        "printWidth": 100
+      }
+    },
+    {
+      "files": ["docs/**/*.tsx", "docs/**/*.ts"],
+      "options": {
+        "printWidth": 100
+      }
+    }
+  ]
 }

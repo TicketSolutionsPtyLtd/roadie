@@ -1,4 +1,49 @@
+# Build outputs
 .next
 .next/**
 dist
-node_modules 
+**/dist/**
+roadie-core
+.turbo
+build
+**/build/**
+
+# Test coverage
+coverage
+**/coverage/**
+
+# Dependencies
+node_modules
+**/node_modules/**
+pnpm-lock.yaml
+
+# Generated files
+**/roadie-core/**
+.tsbuildinfo
+**/.tsbuildinfo
+*.d.ts
+*.js.map
+
+# Cache
+.dccache
+.pnpm-debug.log*
+.eslintcache
+.cache
+**/.cache/**
+
+# Environment
+.env*
+!.env.example
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea
+*.swp
+*.swo
+
+# Misc
+.DS_Store
+*.pem
+.vercel
