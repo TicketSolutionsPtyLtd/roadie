@@ -1,6 +1,8 @@
+import type { ElementType } from 'react'
+
 import type { HTMLStyledProps } from '@oztix/roadie-core/jsx'
 import { styled } from '@oztix/roadie-core/jsx'
-import type { JsxElement, JsxStyleProps } from '@oztix/roadie-core/types'
+import type { JsxStyleProps } from '@oztix/roadie-core/types'
 
 type TextElements =
   | 'span'
@@ -23,16 +25,16 @@ type TextElements =
   | 'sub'
   | 'sup'
   | 'li'
-  | JsxElement<any, any>
+  | ElementType
 
-export interface TextProps
-  extends HTMLStyledProps<TextElements>,
+export interface TextProps<C extends ElementType = TextElements>
+  extends HTMLStyledProps<C>,
     JsxStyleProps {
   /**
-   * The HTML element to render the Text as
+   * The HTML element or React component to render the Text as
    * @default 'span'
    */
-  as?: TextElements
+  as?: C
   /**
    * Controls the font family, line height, and letter spacing of the text.
    * @default 'ui'
@@ -56,8 +58,7 @@ export interface TextProps
  */
 export const Text = styled('span', {
   base: {
-    textStyle: 'ui',
-    lineClamp: 'none'
+    textStyle: 'ui'
   }
 }) as React.ForwardRefExoticComponent<TextProps>
 

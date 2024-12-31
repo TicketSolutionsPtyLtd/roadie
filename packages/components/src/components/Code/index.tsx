@@ -16,16 +16,11 @@ export interface CodeProps extends TextProps {
 /**
  * Code component for displaying code in a monospace font.
  */
-export const Code = ({
-  children,
-  appearance = 'outline',
-  fontSize = 'sm',
-  ...props
-}: CodeProps) => {
+export const Code = ({ children, appearance = 'outline', ...props }: CodeProps) => {
   return (
     <Text
       as='code'
-      fontSize={fontSize}
+      fontSize='sm'
       backgroundColor='bg.subtle'
       textStyle='code'
       px='050'

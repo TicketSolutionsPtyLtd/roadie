@@ -41,12 +41,7 @@ describe('Code', () => {
 
   it('inherits Text props', () => {
     render(
-      <Code
-        color='fg.subtle'
-        data-testid='code'
-        title='tooltip'
-        aria-label='Accessible code'
-      >
+      <Code color='fg.subtle' data-testid='code' title='tooltip' aria-label='Accessible code'>
         styled code
       </Code>
     )
@@ -59,8 +54,7 @@ describe('Code', () => {
   it('applies line clamp', () => {
     render(
       <Code lineClamp={2}>
-        const multiLine = ` This is a long piece of code that should be clamped
-        `;
+        const multiLine = ` This is a long piece of code that should be clamped `;
       </Code>
     )
     const code = screen.getByText(/const multiLine/)
@@ -69,12 +63,7 @@ describe('Code', () => {
 
   it('combines multiple props', () => {
     render(
-      <Code
-        appearance='ghost'
-        fontSize='lg'
-        color='fg.accent'
-        className='custom-class'
-      >
+      <Code appearance='ghost' fontSize='lg' color='fg.accent' className='custom-class'>
         Combined styles
       </Code>
     )

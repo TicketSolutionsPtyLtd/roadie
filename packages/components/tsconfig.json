@@ -1,6 +1,8 @@
 {
   "extends": "../../tsconfig.react.json",
   "compilerOptions": {
+    "allowJs": true,
+    "jsx": "react-jsx",
     "outDir": "dist",
     "rootDir": "src",
     "tsBuildInfoFile": "./.tsbuildinfo"

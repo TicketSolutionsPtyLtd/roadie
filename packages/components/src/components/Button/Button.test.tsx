@@ -35,8 +35,6 @@ describe('Button', () => {
       'active:bg-c_bg.subtle.pressed',
       'min-h_500',
       'fs_md',
-      'md:fs_bpmd.md',
-      'lg:fs_bplg.md',
       'px_200',
       'py_100'
     )
@@ -56,26 +54,67 @@ describe('Button', () => {
     rerender(<Button appearance='outline'>Outline</Button>)
     button = screen.getByText('Outline')
     expect(button).toHaveClass(
+      'd_inline-flex',
+      'ai_center',
+      'jc_center',
+      'bg-c_transparent',
+      'bdr_050',
+      'fw_semibold',
+      'ff_ui',
+      'cursor_pointer',
       'bd_1px_solid',
+      'trs_all_0.2s',
+      'disabled:op_0.4',
+      'disabled:cursor_not-allowed',
+      'disabled:bg-c_bg.disabled',
+      'disabled:c_fg.disabled',
+      'focus:ring_none',
+      'focusVisible:ring_2px_solid',
+      'focusVisible:ring-c_border.focused',
       'bd-c_border.subtle',
       'c_fg.subtle',
-      'hover:c_fg.default',
+      'hover:c_fg',
       'hover:bd-c_border.hovered',
       'hover:bg-c_bg.hovered',
-      'active:c_fg.default',
+      'active:c_fg',
       'active:bd-c_border.pressed',
-      'active:bg-c_bg.pressed'
+      'active:bg-c_bg.pressed',
+      'min-h_500',
+      'fs_md',
+      'px_200',
+      'py_100'
     )
 
     rerender(<Button appearance='ghost'>Ghost</Button>)
     button = screen.getByText('Ghost')
     expect(button).toHaveClass(
+      'd_inline-flex',
+      'ai_center',
+      'jc_center',
+      'bg-c_transparent',
+      'bdr_050',
+      'fw_semibold',
+      'ff_ui',
+      'cursor_pointer',
+      'bd_1px_solid',
+      'trs_all_0.2s',
+      'disabled:op_0.4',
+      'disabled:cursor_not-allowed',
+      'disabled:bg-c_bg.disabled',
+      'disabled:c_fg.disabled',
+      'focus:ring_none',
+      'focusVisible:ring_2px_solid',
+      'focusVisible:ring-c_border.focused',
       'c_fg.subtle',
       'bd-c_transparent',
-      'hover:c_fg.default',
+      'hover:c_fg',
       'hover:bg-c_bg.hovered',
-      'active:c_fg.default',
-      'active:bg-c_bg.pressed'
+      'active:c_fg',
+      'active:bg-c_bg.pressed',
+      'min-h_500',
+      'fs_md',
+      'px_200',
+      'py_100'
     )
   })
 
@@ -83,10 +122,29 @@ describe('Button', () => {
     const { rerender } = render(<Button size='sm'>Small</Button>)
     let button = screen.getByText('Small')
     expect(button).toHaveClass(
+      'd_inline-flex',
+      'ai_center',
+      'jc_center',
+      'bg-c_bg.subtle',
+      'bdr_050',
+      'fw_semibold',
+      'ff_ui',
+      'cursor_pointer',
+      'bd_1px_solid',
+      'trs_all_0.2s',
+      'disabled:op_0.4',
+      'disabled:cursor_not-allowed',
+      'disabled:bg-c_bg.disabled',
+      'disabled:c_fg.disabled',
+      'focus:ring_none',
+      'focusVisible:ring_2px_solid',
+      'focusVisible:ring-c_border.focused',
+      'bd-c_border.subtle',
+      'c_fg.subtle',
+      'hover:bg-c_bg.subtle.hovered',
+      'active:bg-c_bg.subtle.pressed',
       'min-h_400',
       'fs_sm',
-      'md:fs_bpmd.sm',
-      'lg:fs_bplg.sm',
       'px_200',
       'py_075'
     )
@@ -94,10 +152,29 @@ describe('Button', () => {
     rerender(<Button size='md'>Medium</Button>)
     button = screen.getByText('Medium')
     expect(button).toHaveClass(
+      'd_inline-flex',
+      'ai_center',
+      'jc_center',
+      'bg-c_bg.subtle',
+      'bdr_050',
+      'fw_semibold',
+      'ff_ui',
+      'cursor_pointer',
+      'bd_1px_solid',
+      'trs_all_0.2s',
+      'disabled:op_0.4',
+      'disabled:cursor_not-allowed',
+      'disabled:bg-c_bg.disabled',
+      'disabled:c_fg.disabled',
+      'focus:ring_none',
+      'focusVisible:ring_2px_solid',
+      'focusVisible:ring-c_border.focused',
+      'bd-c_border.subtle',
+      'c_fg.subtle',
+      'hover:bg-c_bg.subtle.hovered',
+      'active:bg-c_bg.subtle.pressed',
       'min-h_500',
       'fs_md',
-      'md:fs_bpmd.md',
-      'lg:fs_bplg.md',
       'px_200',
       'py_100'
     )
@@ -105,36 +182,75 @@ describe('Button', () => {
     rerender(<Button size='lg'>Large</Button>)
     button = screen.getByText('Large')
     expect(button).toHaveClass(
+      'd_inline-flex',
+      'ai_center',
+      'jc_center',
+      'bg-c_bg.subtle',
+      'bdr_050',
+      'fw_semibold',
+      'ff_ui',
+      'cursor_pointer',
+      'bd_1px_solid',
+      'trs_all_0.2s',
+      'disabled:op_0.4',
+      'disabled:cursor_not-allowed',
+      'disabled:bg-c_bg.disabled',
+      'disabled:c_fg.disabled',
+      'focus:ring_none',
+      'focusVisible:ring_2px_solid',
+      'focusVisible:ring-c_border.focused',
+      'bd-c_border.subtle',
+      'c_fg.subtle',
+      'hover:bg-c_bg.subtle.hovered',
+      'active:bg-c_bg.subtle.pressed',
       'min-h_600',
       'fs_lg',
-      'md:fs_bpmd.lg',
-      'lg:fs_bplg.lg',
       'px_300',
       'py_150'
     )
   })
 
-  it('renders with different colors', () => {
-    const { rerender } = render(<Button color='subtle'>Subtle</Button>)
+  it('renders with different emphasis', () => {
+    const { rerender } = render(<Button emphasis='subtle'>Subtle</Button>)
     let button = screen.getByText('Subtle')
     expect(button).toHaveClass('c_fg.subtle')
 
     rerender(
-      <Button color='accent' appearance='solid'>
+      <Button emphasis='accent' appearance='solid'>
         Accent
       </Button>
     )
     button = screen.getByText('Accent')
     expect(button).toHaveClass(
+      'd_inline-flex',
+      'ai_center',
+      'jc_center',
       'bg-c_bg.accent.bold',
-      'c_fg.accent.inverse',
+      'bdr_050',
+      'fw_semibold',
+      'ff_ui',
+      'cursor_pointer',
+      'bd_1px_solid',
+      'trs_all_0.2s',
+      'disabled:op_0.4',
+      'disabled:cursor_not-allowed',
+      'disabled:bg-c_bg.disabled',
+      'disabled:c_fg.disabled',
+      'focus:ring_none',
+      'focusVisible:ring_2px_solid',
+      'focusVisible:ring-c_border.focused',
       'bd-c_border.accent',
+      'c_fg.accent.inverse',
       'hover:bg-c_bg.accent.bold.hovered',
-      'active:bg-c_bg.accent.bold.pressed'
+      'active:bg-c_bg.accent.bold.pressed',
+      'min-h_500',
+      'fs_md',
+      'px_200',
+      'py_100'
     )
 
     rerender(
-      <Button color='success' appearance='solid'>
+      <Button emphasis='success' appearance='solid'>
         Success
       </Button>
     )
@@ -148,7 +264,7 @@ describe('Button', () => {
     )
 
     rerender(
-      <Button color='warning' appearance='solid'>
+      <Button emphasis='warning' appearance='solid'>
         Warning
       </Button>
     )
@@ -162,7 +278,7 @@ describe('Button', () => {
     )
 
     rerender(
-      <Button color='danger' appearance='solid'>
+      <Button emphasis='danger' appearance='solid'>
         Danger
       </Button>
     )
@@ -222,12 +338,7 @@ describe('Button', () => {
 
   it('combines multiple props', () => {
     render(
-      <Button
-        appearance='solid'
-        size='lg'
-        color='accent'
-        className='custom-class'
-      >
+      <Button appearance='solid' size='lg' emphasis='accent' className='custom-class'>
         Combined
       </Button>
     )
@@ -237,25 +348,30 @@ describe('Button', () => {
       'd_inline-flex',
       'ai_center',
       'jc_center',
+      'bg-c_bg.accent.bold',
       'bdr_050',
       'fw_semibold',
       'ff_ui',
       'cursor_pointer',
       'bd_1px_solid',
       'trs_all_0.2s',
+      'disabled:op_0.4',
+      'disabled:cursor_not-allowed',
+      'disabled:bg-c_bg.disabled',
+      'disabled:c_fg.disabled',
+      'focus:ring_none',
+      'focusVisible:ring_2px_solid',
+      'focusVisible:ring-c_border.focused',
+      // Color + Appearance classes
+      'bd-c_border.accent',
+      'c_fg.accent.inverse',
+      'hover:bg-c_bg.accent.bold.hovered',
+      'active:bg-c_bg.accent.bold.pressed',
       // Size classes
       'min-h_600',
       'fs_lg',
-      'md:fs_bpmd.lg',
-      'lg:fs_bplg.lg',
       'px_300',
       'py_150',
-      // Color + Appearance classes
-      'bg-c_bg.accent.bold',
-      'c_fg.accent.inverse',
-      'bd-c_border.accent',
-      'hover:bg-c_bg.accent.bold.hovered',
-      'active:bg-c_bg.accent.bold.pressed',
       // Custom class
       'custom-class'
     )

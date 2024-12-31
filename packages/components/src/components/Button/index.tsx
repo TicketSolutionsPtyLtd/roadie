@@ -1,7 +1,8 @@
 import { type ReactNode } from 'react'
 
-import { cva, cx } from '@oztix/roadie-core/css'
 import { Button as AriaButton } from 'react-aria-components'
+
+import { cva, cx } from '@oztix/roadie-core/css'
 
 /**
  * Button appearance variants
@@ -16,12 +17,12 @@ type ButtonSize = 'sm' | 'md' | 'lg'
 /**
  * Button color variants
  */
-type ButtonColor = 'subtle' | 'accent' | 'success' | 'warning' | 'danger'
+type Emphasis = 'subtle' | 'accent' | 'inverse' | 'success' | 'warning' | 'danger'
 
 /**
  * Props for the Button component
  */
-interface ButtonProps {
+export interface ButtonProps {
   /** The content to be rendered inside the button */
   children: ReactNode
   /** The visual style of the button */
@@ -29,7 +30,7 @@ interface ButtonProps {
   /** The size of the button */
   size?: ButtonSize
   /** The color of the button */
-  color?: ButtonColor
+  emphasis?: Emphasis
   /** Whether the button is disabled */
   isDisabled?: boolean
   /** Callback function when the button is pressed */
@@ -69,7 +70,7 @@ const button = cva({
       solid: {
         backgroundColor: 'bg.subtle',
         borderColor: 'border.subtle',
-        color: 'fg.default',
+        color: 'fg',
         _hover: {
           backgroundColor: 'bg.subtle.hovered'
         },
@@ -82,12 +83,12 @@ const button = cva({
         borderColor: 'border.subtle',
         color: 'fg.subtle',
         _hover: {
-          color: 'fg.default',
+          color: 'fg',
           borderColor: 'border.hovered',
           backgroundColor: 'bg.hovered'
         },
         _active: {
-          color: 'fg.default',
+          color: 'fg',
           borderColor: 'border.pressed',
           backgroundColor: 'bg.pressed'
         }
@@ -96,11 +97,11 @@ const button = cva({
         color: 'fg.subtle',
         borderColor: 'transparent',
         _hover: {
-          color: 'fg.default',
+          color: 'fg',
           backgroundColor: 'bg.hovered'
         },
         _active: {
-          color: 'fg.default',
+          color: 'fg',
           backgroundColor: 'bg.pressed'
         }
       }
@@ -108,36 +109,24 @@ const button = cva({
     size: {
       sm: {
         minHeight: '400',
-        fontSize: {
-          base: 'sm',
-          md: 'bpmd.sm',
-          lg: 'bplg.sm'
-        },
+        fontSize: 'sm',
         px: '200',
         py: '075'
       },
       md: {
         minHeight: '500',
-        fontSize: {
-          base: 'md',
-          md: 'bpmd.md',
-          lg: 'bplg.md'
-        },
+        fontSize: 'md',
         px: '200',
         py: '100'
       },
       lg: {
         minHeight: '600',
-        fontSize: {
-          base: 'lg',
-          md: 'bpmd.lg',
-          lg: 'bplg.lg'
-        },
+        fontSize: 'lg',
         px: '300',
         py: '150'
       }
     },
-    color: {
+    emphasis: {
       subtle: {
         color: 'fg.subtle'
       },
@@ -161,7 +150,7 @@ const button = cva({
   compoundVariants: [
     {
       appearance: 'solid',
-      color: 'accent',
+      emphasis: 'accent',
       css: {
         backgroundColor: 'bg.accent.bold',
         color: 'fg.accent.inverse',
@@ -176,7 +165,7 @@ const button = cva({
     },
     {
       appearance: 'solid',
-      color: 'inverse',
+      emphasis: 'inverse',
       css: {
         backgroundColor: 'bg.inverse',
         color: 'fg.inverse',
@@ -190,7 +179,7 @@ const button = cva({
     },
     {
       appearance: 'solid',
-      color: 'success',
+      emphasis: 'success',
       css: {
         backgroundColor: 'bg.success.bold',
         color: 'fg.success.inverse',
@@ -205,7 +194,7 @@ const button = cva({
     },
     {
       appearance: 'solid',
-      color: 'warning',
+      emphasis: 'warning',
       css: {
         backgroundColor: 'bg.warning.bold',
         color: 'fg.warning.inverse',
@@ -220,7 +209,7 @@ const button = cva({
     },
     {
       appearance: 'solid',
-      color: 'danger',
+      emphasis: 'danger',
       css: {
         backgroundColor: 'bg.danger.bold',
         color: 'fg.danger.inverse',
@@ -235,7 +224,7 @@ const button = cva({
     },
     {
       appearance: 'outline',
-      color: 'accent',
+      emphasis: 'accent',
       css: {
         borderColor: 'border.accent',
         _hover: {
@@ -252,7 +241,7 @@ const button = cva({
     },
     {
       appearance: 'outline',
-      color: 'inverse',
+      emphasis: 'inverse',
       css: {
         borderColor: 'border.bold',
         color: 'fg',
@@ -270,7 +259,7 @@ const button = cva({
     },
     {
       appearance: 'outline',
-      color: 'success',
+      emphasis: 'success',
       css: {
         borderColor: 'border.success',
         _hover: {
@@ -287,7 +276,7 @@ const button = cva({
     },
     {
       appearance: 'outline',
-      color: 'warning',
+      emphasis: 'warning',
       css: {
         borderColor: 'border.warning',
         _hover: {
@@ -304,7 +293,7 @@ const button = cva({
     },
     {
       appearance: 'outline',
-      color: 'danger',
+      emphasis: 'danger',
       css: {
         borderColor: 'border.danger',
         _hover: {
@@ -321,7 +310,7 @@ const button = cva({
     },
     {
       appearance: 'ghost',
-      color: 'accent',
+      emphasis: 'accent',
       css: {
         _hover: {
           color: 'fg.accent.hovered',
@@ -335,7 +324,7 @@ const button = cva({
     },
     {
       appearance: 'ghost',
-      color: 'inverse',
+      emphasis: 'inverse',
       css: {
         color: 'fg',
         _hover: {
@@ -350,7 +339,7 @@ const button = cva({
     },
     {
       appearance: 'ghost',
-      color: 'success',
+      emphasis: 'success',
       css: {
         _hover: {
           color: 'fg.success.hovered',
@@ -364,7 +353,7 @@ const button = cva({
     },
     {
       appearance: 'ghost',
-      color: 'warning',
+      emphasis: 'warning',
       css: {
         _hover: {
           color: 'fg.warning.hovered',
@@ -378,7 +367,7 @@ const button = cva({
     },
     {
       appearance: 'ghost',
-      color: 'danger',
+      emphasis: 'danger',
       css: {
         _hover: {
           color: 'fg.danger.hovered',
@@ -394,7 +383,7 @@ const button = cva({
   defaultVariants: {
     appearance: 'solid',
     size: 'md',
-    color: 'subtle'
+    emphasis: 'subtle'
   }
 })
 
@@ -402,7 +391,7 @@ export function Button({
   children,
   appearance = 'solid',
   size = 'md',
-  color = 'subtle',
+  emphasis = 'subtle',
   isDisabled = false,
   onPress,
   className,
@@ -410,9 +399,9 @@ export function Button({
 }: ButtonProps) {
   return (
     <AriaButton
-      className={cx(button({ appearance, size, color }), className)}
-      isDisabled={isDisabled}
       onPress={onPress}
+      isDisabled={isDisabled}
+      className={cx(button({ appearance, size, emphasis }), className)}
       {...props}
     >
       {children}

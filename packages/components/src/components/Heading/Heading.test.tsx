@@ -57,23 +57,14 @@ describe('Heading', () => {
   })
 
   it('applies line clamp', () => {
-    render(
-      <Heading lineClamp={2}>Multi-line heading that should be clamped</Heading>
-    )
-    const heading = screen.getByText(
-      'Multi-line heading that should be clamped'
-    )
+    render(<Heading lineClamp={2}>Multi-line heading that should be clamped</Heading>)
+    const heading = screen.getByText('Multi-line heading that should be clamped')
     expect(heading).toHaveClass('lc_2')
   })
 
   it('combines multiple props', () => {
     render(
-      <Heading
-        as='h1'
-        textStyle='display.ui.1'
-        color='fg.accent'
-        className='custom-class'
-      >
+      <Heading as='h1' textStyle='display.ui.1' color='fg.accent' className='custom-class'>
         Combined styles
       </Heading>
     )

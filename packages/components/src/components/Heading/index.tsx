@@ -15,20 +15,13 @@ export interface HeadingProps extends TextProps {
    * The text style to use for the heading
    * @default 'display'
    */
-  textStyle?: Extract<
-    JsxStyleProps['textStyle'],
-    'display' | `display${string}`
-  >
+  textStyle?: Extract<JsxStyleProps['textStyle'], 'display' | `display${string}`>
 }
 
 /**
  * A heading component that uses display styles for titles and section headers
  */
-export const Heading = ({
-  as = 'h2',
-  textStyle = 'display.ui',
-  ...props
-}: HeadingProps) => {
+export const Heading = ({ as = 'h2', textStyle = 'display.ui', ...props }: HeadingProps) => {
   return <Text as={as} textStyle={textStyle} {...props} />
 }
 

@@ -1,8 +1,8 @@
-import React from 'react'
+import type { ElementType } from 'react'
 
 import type { HTMLStyledProps } from '@oztix/roadie-core/jsx'
 import { styled } from '@oztix/roadie-core/jsx'
-import type { JsxElement, JsxStyleProps } from '@oztix/roadie-core/types'
+import type { JsxStyleProps } from '@oztix/roadie-core/types'
 
 type ViewElements =
   | 'div'
@@ -57,9 +57,7 @@ type ViewElements =
   | 'output'
   | 'slot'
   | 'template'
-  | 'slot'
-  | 'template'
-  | JsxElement<any, any>
+  | ElementType
 
 export interface ViewProps extends HTMLStyledProps<'div'>, JsxStyleProps {
   /**
