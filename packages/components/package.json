@@ -1,0 +1,53 @@
+{
+  "name": "@oztix/roadie-components",
+  "version": "1.0.0",
+  "description": "The components for Roadie Design System at Oztix",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --watch",
+    "test": "jest",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "dependencies": {
+    "@oztix/roadie-core": "workspace:*",
+    "react-aria-components": "^1.0.0"
+  },
+  "devDependencies": {
+    "@pandacss/dev": "^0.48.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "author": {
+    "name": "Luke Brooker",
+    "email": "mail@lukebrooker.com"
+  },
+  "license": "ISC",
+  "turbo": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
+    }
+  }
+}
