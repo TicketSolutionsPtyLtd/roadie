@@ -109,10 +109,8 @@ const TokenRow = ({ name }: { name: Token }) => {
 const tokenDescriptions: Record<string, string> = {
   colors:
     'Used with color, backgroundColor, borderColor, fill, stroke, outlineColor, accentColor, and other color-related properties',
-  spacing:
-    'Used with margin, padding, gap, inset, space, and other spacing-related properties',
-  sizes:
-    'Used with width, height, maxWidth, maxHeight, flexBasis, and other dimension properties',
+  spacing: 'Used with margin, padding, gap, inset, space, and other spacing-related properties',
+  sizes: 'Used with width, height, maxWidth, maxHeight, flexBasis, and other dimension properties',
   radii: 'Used with borderRadius property',
   shadows: 'Used with boxShadow and textShadow properties',
   blurs: 'Used with backdropBlur and blur properties',
@@ -123,8 +121,7 @@ const tokenDescriptions: Record<string, string> = {
   letterSpacings: 'Used with letterSpacing property',
   breakpoints: 'Used with responsive styles and container queries',
   durations: 'Used with transitionDuration and animationDuration properties',
-  easings:
-    'Used with transitionTimingFunction and animationTimingFunction properties'
+  easings: 'Used with transitionTimingFunction and animationTimingFunction properties'
 }
 
 const getTokenDescription = (name: string) => tokenDescriptions[name] || ''
@@ -170,14 +167,7 @@ const TokenGroup = ({ name, tokens }: TokenGroup) => {
 
   return (
     <View gap='200'>
-      <View
-        position='sticky'
-        top='0'
-        backgroundColor='bg'
-        paddingY='200'
-        zIndex='1'
-        gap='100'
-      >
+      <View position='sticky' top='0' backgroundColor='bg' paddingY='200' zIndex='1' gap='100'>
         <Heading as='h3' textStyle='display.ui.3'>
           {name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()}
         </Heading>
@@ -213,50 +203,35 @@ const TokenGroup = ({ name, tokens }: TokenGroup) => {
   )
 }
 
-function flattenTokens(
-  obj: Record<string, any>,
-  prefix = ''
-): Array<[string, any]> {
-  if (!obj || typeof obj !== 'object') return []
+type SimpleTokenValue = {
+  value: string | number
+}
 
-  // If it's a token value object, return it
-  if ('value' in obj) {
-    return [[prefix, obj]]
-  }
+type TokenMap = {
+  [key: string]: SimpleTokenValue | TokenMap | string | number
+}
 
-  // Special handling for breakpoints which are direct values
-  if (prefix === 'breakpoints') {
-    return Object.entries(obj).map(([key, value]) => [
-      `breakpoints.${key}`,
-      { value }
-    ])
-  }
+function flattenTokens(obj: TokenMap, prefix = ''): Array<[string, SimpleTokenValue]> {
+  const result: Array<[string, SimpleTokenValue]> = []
 
-  // Get all keys except prototype
-  const keys = Object.keys(obj).filter(
-    (key) => key !== '[Prototype]' && key !== 'prototype'
-  )
+  for (const [key, value] of Object.entries(obj)) {
+    if (key === '[Prototype]' || key === 'prototype') continue
 
-  // Process each key in order
-  return keys.flatMap((key): Array<[string, any]> => {
-    const value = obj[key]
     const newKey = prefix ? `${prefix}.${key}` : key
     const finalKey = newKey.endsWith('.DEFAULT') ? newKey.slice(0, -8) : newKey
 
-    // Handle breakpoints at the top level
-    if (
-      key === 'breakpoints' &&
-      typeof value === 'object' &&
-      !('value' in value)
-    ) {
-      return Object.entries(value).map(([bKey, bValue]): [string, any] => [
-        `breakpoints.${bKey}`,
-        { value: bValue }
-      ])
+    if (value && typeof value === 'object') {
+      if ('value' in value) {
+        result.push([finalKey, value as SimpleTokenValue])
+      } else {
+        result.push(...flattenTokens(value as TokenMap, finalKey))
+      }
+    } else if (value !== undefined) {
+      result.push([finalKey, { value: String(value) }])
     }
+  }
 
-    return flattenTokens(value, finalKey)
-  })
+  return result
 }
 
 export default function TokensReference() {
@@ -307,14 +282,10 @@ export default function TokensReference() {
     .filter((type) => tokenType === 'all' || type === tokenType)
     .map((type) => {
       const semanticTokens = (semanticTokenGroups[type] || []).filter(
-        (token) =>
-          search === '' ||
-          token.name.toLowerCase().includes(search.toLowerCase())
+        (token) => search === '' || token.name.toLowerCase().includes(search.toLowerCase())
       )
       const baseTokens = (baseTokenGroups[type] || []).filter(
-        (token) =>
-          search === '' ||
-          token.name.toLowerCase().includes(search.toLowerCase())
+        (token) => search === '' || token.name.toLowerCase().includes(search.toLowerCase())
       )
 
       return {
@@ -334,9 +305,7 @@ export default function TokensReference() {
           as='input'
           placeholder='Search tokens...'
           value={search}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setSearch(e.target.value)
-          }
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
           color='fg'
           padding='150'
           borderRadius='100'

@@ -11,9 +11,8 @@ export default function Home() {
           Roadie design system
         </Heading>
         <Text textStyle='prose.lead' fontSize='xl'>
-          A comprehensive collection of reusable components and design
-          guidelines for building consistent, beautiful user interfaces across
-          Oztix applications.
+          A comprehensive collection of reusable components and design guidelines for building
+          consistent, beautiful user interfaces across Oztix applications.
         </Text>
       </View>
 
@@ -47,11 +46,7 @@ export default function Home() {
         <Heading as='h2' textStyle='display.prose.2'>
           Featured components
         </Heading>
-        <View
-          display='grid'
-          gridTemplateColumns='repeat(auto-fit, minmax(250px, 1fr))'
-          gap='400'
-        >
+        <View display='grid' gridTemplateColumns='repeat(auto-fit, minmax(250px, 1fr))' gap='400'>
           <ComponentCard
             title='Text'
             description='Typography components for consistent text styling across applications.'

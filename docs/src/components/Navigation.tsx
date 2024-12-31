@@ -5,9 +5,9 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-import { Button, Text, View } from '@oztix/roadie-components'
-import { css } from '@oztix/roadie-core/css'
 import { Moon, Speaker, Sun } from 'lucide-react'
+
+import { Button, Text, View } from '@oztix/roadie-components'
 
 interface NavigationItem {
   title: string
@@ -21,21 +21,20 @@ interface NavigationProps {
 
 function Logo() {
   return (
-    <Link
+    <View
+      as={Link}
       href='/'
-      className={css({
-        display: 'flex',
-        alignItems: 'center',
-        gap: '050',
-        color: 'fg.default',
-        textDecoration: 'none',
-        fontWeight: 'semibold',
-        fontSize: 'lg'
-      })}
+      flexDirection='row'
+      alignItems='center'
+      gap='050'
+      color='fg'
+      textDecoration='none'
+      fontWeight='semibold'
+      fontSize='lg'
     >
-      <Speaker size={24} className={css({ color: 'accent.default' })} />
+      <Speaker size={24} />
       Roadie
-    </Link>
+    </View>
   )
 }
 
@@ -72,22 +71,21 @@ function NavigationGroup({ item }: { item: NavigationItem }) {
 
   return (
     <View gap='100'>
-      <Link
+      <Text
+        as={Link}
         href={item.href || '#'}
-        className={css({
-          px: '100',
-          fontSize: 'sm',
-          fontWeight: 'semibold',
-          color: isActiveParent ? 'fg.accent' : 'fg.default',
-          textDecoration: 'none',
-          transition: 'colors',
-          _hover: {
-            color: 'accent.default'
-          }
-        })}
+        px='100'
+        fontSize='sm'
+        fontWeight='semibold'
+        color={isActiveParent ? 'fg.accent' : 'fg'}
+        textDecoration='none'
+        transition='colors'
+        _hover={{
+          color: 'fg.accent'
+        }}
       >
         {item.title}
-      </Link>
+      </Text>
       {item.items && (
         <View as='ul' gap='025'>
           {item.items.map((subItem) => {
@@ -102,18 +100,25 @@ function NavigationGroup({ item }: { item: NavigationItem }) {
                   px='100'
                   py='050'
                   fontSize='sm'
-                  color={isActive ? 'fg.accent' : 'fg.subtle'}
-                  fontWeight={isActive ? 'semibold' : 'normal'}
+                  color='fg.subtle'
+                  fontWeight='normal'
                   textDecoration='none'
                   transition='all 0.2s'
                   borderRadius='050'
+                  data-current={isActive}
                   _hover={{
                     bg: 'bg.accent.hovered',
-                    color: isActive ? 'fg.accent.pressed' : 'fg.accent.hovered'
+                    color: 'fg.accent.hovered'
                   }}
                   _active={{
                     bg: 'bg.accent.pressed',
                     color: 'fg.accent.pressed'
+                  }}
+                  css={{
+                    '&[data-current=true]': {
+                      color: 'fg.accent',
+                      fontWeight: 'semibold'
+                    }
                   }}
                 >
                   {subItem.title}
@@ -129,42 +134,40 @@ function NavigationGroup({ item }: { item: NavigationItem }) {
 
 export function Navigation({ items }: NavigationProps) {
   return (
-    <nav
-      className={css({
-        position: 'sticky',
-        top: '0',
-        height: '100vh',
-        width: '220px',
-        flexShrink: 0,
-        overflowY: 'auto',
-        px: '200',
-        py: '400',
-        borderRight: '1px solid',
-        borderColor: 'border.subtlest',
-        bg: 'bg.sunken',
-        display: { base: 'none', md: 'block' }
-      })}
+    <View
+      as='nav'
+      position='sticky'
+      top='0'
+      height='100vh'
+      width='220px'
+      flexShrink={0}
+      overflowY='auto'
+      px='200'
+      py='400'
+      borderRight='1px solid'
+      borderColor='border.subtlest'
+      bg='bg.sunken'
+      display={{ base: 'none', md: 'block' }}
     >
       <View gap='300'>
-        <div
-          className={css({
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            px: '100',
-            borderBottomWidth: '1px',
-            borderColor: 'border.subtlest'
-          })}
+        <View
+          display='flex'
+          flexDirection='row'
+          alignItems='center'
+          justifyContent='space-between'
+          px='100'
+          borderBottomWidth='1px'
+          borderColor='border.subtlest'
         >
           <Logo />
           <ThemeToggle />
-        </div>
+        </View>
         <View gap='300'>
           {items.map((item, index) => (
             <NavigationGroup key={index} item={item} />
           ))}
         </View>
       </View>
-    </nav>
+    </View>
   )
 }

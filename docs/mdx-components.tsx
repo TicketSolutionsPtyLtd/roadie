@@ -2,6 +2,8 @@ import { ComponentPropsWithoutRef } from 'react'
 
 import { Link } from 'next-view-transitions'
 
+import { CodePreview } from '@/components/CodePreview'
+
 import {
   Code,
   type CodeProps,
@@ -12,8 +14,6 @@ import {
   View
 } from '@oztix/roadie-components'
 import { css } from '@oztix/roadie-core/css'
-
-import { CodePreview } from '@/components/CodePreview'
 
 type ListProps = ComponentPropsWithoutRef<'ul'>
 type AnchorProps = ComponentPropsWithoutRef<'a'>
@@ -38,35 +38,22 @@ const components = {
   h6: (props: HeadingProps) => (
     <Heading as='h6' textStyle='display.prose.6' mb='200' mt='400' {...props} />
   ),
-  p: (props: TextProps) => (
-    <Text as='p' textStyle='prose' fontSize='lg' mb='200' {...props} />
-  ),
+  p: (props: TextProps) => <Text as='p' textStyle='prose' fontSize='lg' mb='200' {...props} />,
   ol: (props: ListProps) => (
-    <View
-      as='ol'
-      listStyleType='decimal'
-      gap='200'
-      mb='400'
-      pl='400'
-      {...props}
-    />
+    <View as='ol' listStyleType='decimal' gap='200' mb='400' pl='400' {...props} />
   ),
   ul: (props: ListProps) => (
     <View as='ul' listStyleType='disc' gap='200' mb='400' pl='400' {...props} />
   ),
-  li: (props: TextProps) => (
-    <Text as='li' pl='100' fontSize='lg' textStyle='prose' {...props} />
-  ),
-  em: (props: TextProps) => (
-    <Text {...props} as='em' fontStyle='italic' fontSize='inherit' />
-  ),
+  li: (props: TextProps) => <Text as='li' pl='100' fontSize='lg' textStyle='prose' {...props} />,
+  em: (props: TextProps) => <Text {...props} as='em' fontStyle='italic' fontSize='inherit' />,
   strong: (props: TextProps) => (
     <Text {...props} as='strong' fontWeight='bold' fontSize='inherit' />
   ),
   a: ({ href, children, ...props }: AnchorProps) => {
     const className = css({
-      color: 'fg.link',
-      _hover: { color: 'fg.link.hovered' }
+      color: 'fg.accent',
+      _hover: { color: 'fg.accent.hovered' }
     })
     if (href?.startsWith('/')) {
       return (
@@ -83,13 +70,7 @@ const components = {
       )
     }
     return (
-      <a
-        href={href}
-        target='_blank'
-        rel='noopener noreferrer'
-        className={className}
-        {...props}
-      >
+      <a href={href} target='_blank' rel='noopener noreferrer' className={className} {...props}>
         {children}
       </a>
     )

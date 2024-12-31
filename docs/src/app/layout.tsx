@@ -1,10 +1,11 @@
-import { View } from '@oztix/roadie-components'
-import { css } from '@oztix/roadie-core/css'
 import { readFile, readdir } from 'fs/promises'
 import { join } from 'path'
 
 import { FooterNav } from '@/components/FooterNav'
 import { Navigation } from '@/components/Navigation'
+
+import { View } from '@oztix/roadie-components'
+import { css } from '@oztix/roadie-core/css'
 
 import './globals.css'
 
@@ -29,20 +30,18 @@ async function getNavigationItems() {
   ): Promise<{ title: string; description: string } | null> {
     try {
       const content = await readFile(filePath, 'utf-8')
-      const metadataMatch = content.match(
-        /export const metadata = ({[\s\S]*?})/m
-      )
+      const metadataMatch = content.match(/export const metadata = ({[\s\S]*?})/m)
 
       if (metadataMatch) {
         try {
           // eslint-disable-next-line no-eval
           return eval(`(${metadataMatch[1]})`)
-        } catch (e) {
-          console.error(`Error parsing metadata for ${filePath}:`, e)
+        } catch {
+          console.error(`Error parsing metadata for ${filePath}`)
         }
       }
       return { title: defaultTitle, description: '' }
-    } catch (e) {
+    } catch {
       return null
     }
   }
@@ -107,9 +106,7 @@ async function getNavigationItems() {
             }
           }
 
-          const metadataMatch = content.match(
-            /export const metadata = ({[\s\S]*?})/m
-          )
+          const metadataMatch = content.match(/export const metadata = ({[\s\S]*?})/m)
           let metadata: ComponentMetadata = {
             name: dir.name,
             title: dir.name,
@@ -123,21 +120,19 @@ async function getNavigationItems() {
               // eslint-disable-next-line no-eval
               const evalMetadata = eval(`(${metadataMatch[1]})`)
               metadata = { ...metadata, ...evalMetadata }
-            } catch (e) {
-              console.error(`Error parsing metadata for ${dir.name}:`, e)
+            } catch {
+              console.error(`Error parsing metadata for ${dir.name}`)
             }
           }
 
           return metadata
-        } catch (e) {
+        } catch {
           return null
         }
       })
   )
 
-  const validComponents = components.filter(
-    (comp): comp is ComponentMetadata => comp !== null
-  )
+  const validComponents = components.filter((comp): comp is ComponentMetadata => comp !== null)
 
   // Get index page metadata
   const indexMetadata = await getMetadataFromFile(
@@ -146,10 +141,7 @@ async function getNavigationItems() {
   )
 
   // Get tokens pages metadata
-  const tokensMetadata = await getMetadataFromFile(
-    join(tokensDir, 'page.mdx'),
-    'Design Tokens'
-  )
+  const tokensMetadata = await getMetadataFromFile(join(tokensDir, 'page.mdx'), 'Design Tokens')
   const tokensReferenceMetadata = await getMetadataFromFile(
     join(tokensDir, 'reference/page.tsx'),
     'Reference'
@@ -229,11 +221,7 @@ export const metadata = {
     'A comprehensive collection of reusable components for building consistent user interfaces across Oztix applications.'
 }
 
-export default async function RootLayout({
-  children
-}: {
-  children: React.ReactNode
-}) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const items = await getNavigationItems()
 
   return (

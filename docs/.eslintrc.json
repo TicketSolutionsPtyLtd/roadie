@@ -1,6 +1,6 @@
 {
   "extends": [
-    "../.eslintrc.js",
+    "../.eslintrc.cjs",
     "next/core-web-vitals",
     "plugin:mdx/recommended"
   ],

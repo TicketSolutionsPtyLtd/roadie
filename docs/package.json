@@ -5,15 +5,15 @@
   "scripts": {
     "prepare": "panda codegen",
     "build": "next build",
-    "clean": "rm -rf roadie-core .next",
+    "clean": "rm -rf node_modules roadie-core .next",
     "dev": "run-p dev:*",
     "dev:panda": "panda -w",
     "dev:next": "next dev",
     "start": "next start",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "lint": "next lint",
-    "lint:fix": "next lint --fix"
+    "format": "prettier --ignore-path ../.prettierignore --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "format:check": "prettier --ignore-path ../.prettierignore --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "lint": "eslint --ignore-path ../.eslintignore . --ext .ts,.tsx",
+    "lint:fix": "eslint --ignore-path ../.eslintignore . --ext .ts,.tsx --fix"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.0",
@@ -26,16 +26,16 @@
     "next": "15.0.3",
     "next-view-transitions": "^0.3.4",
     "prism-react-renderer": "^2.4.0",
-    "react": "19.0.0-rc-66855b96-20241106",
+    "react": "^19.0.0",
     "react-aria": "^3.36.0",
-    "react-dom": "19.0.0-rc-66855b96-20241106",
+    "react-dom": "^19.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "react-live": "^4.1.8"
   },
   "devDependencies": {
     "@pandacss/dev": "^0.48.1",
     "@types/node": "^20.17.9",
-    "@types/react": "^18.3.14",
-    "@types/react-dom": "^18.3.2",
     "eslint": "^8.57.1",
     "eslint-config-next": "15.0.3",
     "eslint-plugin-mdx": "^3.1.5",

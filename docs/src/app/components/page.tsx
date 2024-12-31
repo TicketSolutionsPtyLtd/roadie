@@ -1,9 +1,10 @@
 import Link from 'next/link'
 
-import { Heading, Text, View } from '@oztix/roadie-components'
-import { css } from '@oztix/roadie-core/css'
 import { readFile, readdir } from 'fs/promises'
 import { join } from 'path'
+
+import { Heading, Text, View } from '@oztix/roadie-components'
+import { css } from '@oztix/roadie-core/css'
 
 type ComponentMetadata = {
   name: string
@@ -30,9 +31,7 @@ export async function generateStaticParams() {
           const content = await readFile(mdxPath, 'utf-8')
 
           // Extract metadata from the file
-          const metadataMatch = content.match(
-            /export const metadata = ({[\s\S]*?})/m
-          )
+          const metadataMatch = content.match(/export const metadata = ({[\s\S]*?})/m)
           let metadata = {
             title: dir.name,
             description: '',
@@ -83,29 +82,6 @@ export async function generateStaticParams() {
 export default async function ComponentsPage() {
   const { components } = await generateStaticParams()
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'stable':
-        return {
-          bg: 'bg.success',
-          text: 'fg.success',
-          border: 'border.success'
-        }
-      case 'beta':
-        return {
-          bg: 'bg.warning',
-          text: 'fg.warning',
-          border: 'border.warning'
-        }
-      default:
-        return {
-          bg: 'bg.information',
-          text: 'fg.information',
-          border: 'border.information'
-        }
-    }
-  }
-
   return (
     <View as='main' gap='600'>
       {/* Hero Section */}
@@ -114,8 +90,8 @@ export default async function ComponentsPage() {
           Components
         </Heading>
         <Text textStyle='prose.lead' color='fg.subtle' fontSize='xl'>
-          Our component library provides a set of reusable UI components built
-          with React, designed for consistency and flexibility.
+          Our component library provides a set of reusable UI components built with React, designed
+          for consistency and flexibility.
         </Text>
       </View>
 
@@ -150,28 +126,38 @@ export default async function ComponentsPage() {
                     }
                   })}
                 >
-                  <View
-                    display='flex'
-                    flexDirection='row'
-                    alignItems='center'
-                    gap='200'
-                    mb='200'
-                  >
+                  <View display='flex' flexDirection='row' alignItems='center' gap='200' mb='200'>
                     <Heading as='h3' textStyle='display.prose.4'>
                       {component.title}
                     </Heading>
                     {component.status && (
                       <span
+                        data-status={component.status}
                         className={css({
                           fontSize: 'xs',
                           px: '100',
                           py: '050',
                           borderRadius: '100',
                           border: '1px solid',
-                          borderColor: getStatusColor(component.status).border,
-                          bg: getStatusColor(component.status).bg,
-                          color: getStatusColor(component.status).text,
-                          fontWeight: 'medium'
+                          borderColor: 'border.subtle',
+                          bg: 'bg.subtle',
+                          color: 'fg.subtle',
+                          fontWeight: 'medium',
+                          '&[data-status="stable"]': {
+                            borderColor: 'border.success',
+                            bg: 'bg.success',
+                            color: 'fg.success'
+                          },
+                          '&[data-status="beta"]': {
+                            borderColor: 'border.warning',
+                            bg: 'bg.warning',
+                            color: 'fg.warning'
+                          },
+                          '&[data-status="experimental"]': {
+                            borderColor: 'border.information',
+                            bg: 'bg.information',
+                            color: 'fg.information'
+                          }
                         })}
                       >
                         {component.status}

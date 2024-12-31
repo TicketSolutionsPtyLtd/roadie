@@ -1,7 +1,8 @@
-import { Code, Text, View } from '@oztix/roadie-components'
 import path from 'path'
 import type { PropItem } from 'react-docgen-typescript'
 import { withCustomConfig } from 'react-docgen-typescript'
+
+import { Code, Text, View } from '@oztix/roadie-components'
 
 interface ComponentProp {
   required: boolean
@@ -21,10 +22,7 @@ interface ComponentProp {
 
 interface GroupedProps {
   ownProps: Record<string, ComponentProp>
-  inheritedProps: Record<
-    string,
-    { props: Record<string, ComponentProp>; from: string }
-  >
+  inheritedProps: Record<string, { props: Record<string, ComponentProp>; from: string }>
 }
 
 interface PropsDefinitionsProps {
@@ -33,9 +31,7 @@ interface PropsDefinitionsProps {
 
 function formatTypeValues(prop: ComponentProp): string {
   if (prop.type.value) {
-    return prop.type.value
-      .map((v) => `"${v.value.replace(/['"]/g, '')}"`)
-      .join(' | ')
+    return prop.type.value.map((v) => `"${v.value.replace(/['"]/g, '')}"`).join(' | ')
   }
 
   if (prop.type.name.includes('|')) {
@@ -79,13 +75,7 @@ function groupPropsBySource(
   return result
 }
 
-function PropsList({
-  props,
-  title
-}: {
-  props: Record<string, ComponentProp>
-  title?: string
-}) {
+function PropsList({ props, title }: { props: Record<string, ComponentProp>; title?: string }) {
   return (
     <View flexDirection='column' gap='200'>
       {title && (
@@ -114,17 +104,8 @@ function PropsList({
           }}
         >
           <View as='dt' alignItems='baseline' gap='100'>
-            <View
-              flexDirection={{ base: 'column', md: 'row' }}
-              alignItems='baseline'
-              gap='100'
-            >
-              <Text
-                fontFamily='mono'
-                fontSize='sm'
-                fontWeight='600'
-                flexShrink={0}
-              >
+            <View flexDirection={{ base: 'column', md: 'row' }} alignItems='baseline' gap='100'>
+              <Text fontFamily='mono' fontSize='sm' fontWeight='600' flexShrink={0}>
                 {name}
                 {!prop.required && <Text color='subtle'>?</Text>}
               </Text>
@@ -158,59 +139,44 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
   const absolutePath = path.join(workspaceRoot, componentPath)
 
   try {
-    const parser = withCustomConfig(
-      path.resolve(workspaceRoot, 'tsconfig.react.json'),
-      {
-        savePropValueAsString: true,
-        shouldExtractLiteralValuesFromEnum: true,
-        shouldRemoveUndefinedFromOptional: true,
-        propFilter: (prop: PropItem): boolean => {
-          // Include props that are:
-          // 1. Directly defined in the component (no declarations)
-          // 2. From our own components directory
-          // 3. Have a parent interface from our components
-          if (!prop.declarations?.length) {
-            return true
-          }
+    const parser = withCustomConfig(path.resolve(workspaceRoot, 'tsconfig.react.json'), {
+      savePropValueAsString: true,
+      shouldExtractLiteralValuesFromEnum: true,
+      shouldRemoveUndefinedFromOptional: true,
+      propFilter: (prop: PropItem): boolean => {
+        // Include props that are:
+        // 1. Directly defined in the component (no declarations)
+        // 2. From our own components directory
+        // 3. Have a parent interface from our components
+        if (!prop.declarations?.length) {
+          return true
+        }
 
-          const isFromOurComponents = prop.declarations.some(
-            (d) =>
-              d.fileName.includes('/components/') &&
-              !d.fileName.includes('node_modules')
-          )
+        const isFromOurComponents = prop.declarations.some(
+          (d) => d.fileName.includes('/components/') && !d.fileName.includes('node_modules')
+        )
 
-          const isFromParentComponent =
-            prop.parent?.fileName.includes('/components/') &&
-            !prop.parent.fileName.includes('node_modules')
+        const isFromParentComponent =
+          prop.parent?.fileName.includes('/components/') &&
+          !prop.parent.fileName.includes('node_modules')
 
-          return Boolean(isFromOurComponents || isFromParentComponent)
-        },
-        skipChildrenPropWithoutDoc: true
-      }
-    )
+        return Boolean(isFromOurComponents || isFromParentComponent)
+      },
+      skipChildrenPropWithoutDoc: true
+    })
 
     const result = parser.parse(absolutePath)
     const componentInfo = result[0]
     if (!componentInfo) return null
 
-    const groupedProps = groupPropsBySource(
-      componentInfo.props,
-      componentInfo.displayName
-    )
+    const groupedProps = groupPropsBySource(componentInfo.props, componentInfo.displayName)
 
     // Get the interface name from the first prop's parent type
     const interfaceName =
-      Object.values(componentInfo.props)[0]?.parent?.name ||
-      `${componentInfo.displayName}Props`
+      Object.values(componentInfo.props)[0]?.parent?.name || `${componentInfo.displayName}Props`
 
     return (
-      <View
-        gap='300'
-        pt='800'
-        mt='800'
-        borderTop='1px solid'
-        borderColor='border.subtle'
-      >
+      <View gap='300' pt='800' mt='800' borderTop='1px solid' borderColor='border.subtle'>
         <Text as='h2' fontSize='xl' fontWeight='bold'>
           Props
         </Text>
@@ -244,15 +210,9 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
           )}
 
           {/* Inherited props */}
-          {Object.entries(groupedProps.inheritedProps).map(
-            ([source, { props }]) => (
-              <PropsList
-                key={source}
-                props={props}
-                title={`Inherited from ${source}`}
-              />
-            )
-          )}
+          {Object.entries(groupedProps.inheritedProps).map(([source, { props }]) => (
+            <PropsList key={source} props={props} title={`Inherited from ${source}`} />
+          ))}
         </View>
       </View>
     )

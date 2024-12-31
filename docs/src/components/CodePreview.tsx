@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react'
 
-import * as RoadieComponents from '@oztix/roadie-components'
-import { css } from '@oztix/roadie-core/css'
-import * as PandaComponents from '@oztix/roadie-core/jsx'
 import { Copy } from 'lucide-react'
 import { Highlight, themes } from 'prism-react-renderer'
 import { LiveEditor, LiveError, LivePreview, LiveProvider } from 'react-live'
+
+import * as RoadieComponents from '@oztix/roadie-components'
+import { css } from '@oztix/roadie-core/css'
+import * as PandaComponents from '@oztix/roadie-core/jsx'
 
 const scope = {
   css,
@@ -56,12 +57,7 @@ function CopyButton({ code }: { code: string }) {
 
   return (
     <div className={css({ position: 'absolute', top: '150', right: '150' })}>
-      <Button
-        onPress={handleCopy}
-        size='sm'
-        appearance='ghost'
-        className={css({ gap: '050' })}
-      >
+      <Button onPress={handleCopy} size='sm' appearance='ghost' className={css({ gap: '050' })}>
         {copied && 'Copied!'}
         <Copy size={16} />
       </Button>
@@ -99,11 +95,8 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
   }, [])
 
   const theme = isDark ? customDarkTheme : customLightTheme
-  const isLive =
-    children.startsWith('live') && (language === 'tsx' || language === 'jsx')
-  const trimmedCode = isLive
-    ? children.replace('live', '').trim()
-    : children.trim()
+  const isLive = children.startsWith('live') && (language === 'tsx' || language === 'jsx')
+  const trimmedCode = isLive ? children.replace('live', '').trim() : children.trim()
 
   if (!isLive) {
     return (
@@ -112,20 +105,13 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
         <Highlight code={trimmedCode} language={language} theme={theme}>
           {({ style, tokens, getLineProps, getTokenProps }) => (
             <pre className={css(editorStyles)} style={style}>
-              {tokens.map((line, i) => {
-                const { key: _, ...lineProps } = getLineProps({ line, key: i })
-                return (
-                  <div key={i} {...lineProps}>
-                    {line.map((token, key) => {
-                      const { key: _, ...tokenProps } = getTokenProps({
-                        token,
-                        key
-                      })
-                      return <span key={key} {...tokenProps} />
-                    })}
-                  </div>
-                )
-              })}
+              {tokens.map((line, i) => (
+                <div key={i} {...getLineProps({ line, key: i })}>
+                  {line.map((token, key) => (
+                    <span key={key} {...getTokenProps({ token, key })} />
+                  ))}
+                </div>
+              ))}
             </pre>
           )}
         </Highlight>
