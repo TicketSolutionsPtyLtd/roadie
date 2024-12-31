@@ -1,0 +1,16 @@
+{
+  "name": "Roadie Design Tokens",
+  "collections": {
+    "base": {
+      "modes": {
+        "default": ["tokens.json"]
+      }
+    },
+    "mode": {
+      "modes": {
+        "light": ["mode-tokens-light.json"],
+        "dark": ["mode-tokens-dark.json"]
+      }
+    }
+  }
+}
