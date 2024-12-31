@@ -29,11 +29,12 @@
     "react": "^19.0.0",
     "react-aria": "^3.36.0",
     "react-dom": "^19.0.0",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "react-live": "^4.1.8"
+    "react-live": "^4.1.8",
+    "remark-gfm": "^4.0.0"
   },
   "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "@pandacss/dev": "^0.48.1",
     "@types/node": "^20.17.9",
     "eslint": "^8.57.1",
