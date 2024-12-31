@@ -1,0 +1,10 @@
+{
+  "extends": [
+    "../.eslintrc.js",
+    "next/core-web-vitals",
+    "plugin:mdx/recommended"
+  ],
+  "settings": {
+    "mdx/code-blocks": true
+  }
+}

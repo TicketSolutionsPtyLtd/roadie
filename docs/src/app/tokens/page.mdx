@@ -1,0 +1,108 @@
+export const metadata = {
+  title: 'Overview',
+  description: 'Design tokens are the foundation of our design system, providing a single source of truth for values like colors, spacing, typography, and more.'
+}
+
+# Tokens
+
+Design tokens are the foundation of our design system, providing a single source of truth for values like colors, spacing, typography, and more. They help maintain consistency across our products while making it easier to scale and maintain our design language.
+
+## Why Design Tokens?
+
+Design tokens serve several crucial purposes:
+
+1. **Consistency**: They ensure visual consistency across all products and platforms
+2. **Maintainability**: Changes can be made in one place and propagate throughout the system
+3. **Theme Support**: They enable seamless theme switching (like dark mode)
+4. **Platform Agnostic**: The same tokens can be used across web, mobile, and other platforms
+
+## Token Types
+
+Our design system includes two main categories of tokens:
+
+### Base Tokens
+
+Base tokens (found in `tokens.json`) are the raw values that define our design primitives. These include:
+
+- **Colors**: Raw color values in various scales (e.g., `neutralSlate.1`, `neutralSand.1`)
+- **Spacing**: Base spacing units (e.g., `100 = 8px`, `200 = 16px`)
+- **Breakpoints**: Screen size breakpoints for responsive design
+- **Blurs**: Blur values for depth effects
+- **Typography**: Font sizes, weights, and line heights
+
+### Semantic Tokens
+
+Semantic tokens (found in `semantic-tokens.json`) are contextual aliases that map to base tokens. They provide meaningful, context-specific names for design values. For example:
+
+- **Background colors**: `bg` for default backgrounds, `bg.subtle` for subtle backgrounds
+- **Foreground colors**: `fg` for primary text, `fg.subtle` for secondary text
+- **Border colors**: `border` for standard borders, `border.subtle` for subtle borders
+
+## Using Tokens in Code
+
+### With PandaCSS
+
+```tsx
+import { css } from '@oztix/roadie-core/css'
+
+const styles = css({
+  // Using semantic color tokens
+  color: 'fg',
+  bg: 'bg',
+  borderColor: 'border',
+  
+  // Using spacing tokens
+  padding: '100', // 8px
+  margin: '200',  // 16px
+  gap: '300',     // 24px
+  
+  // Using breakpoint tokens
+  sm: {
+    padding: '400' // 32px
+  }
+})
+```
+
+### With React Components
+
+```tsx
+import { View } from '@oztix/roadie-components'
+
+function MyComponent() {
+  return (
+    <View
+      padding="100"
+      backgroundColor="bg"
+      color="fg"
+      borderColor="border"
+    >
+      Content
+    </View>
+  )
+}
+```
+
+## Best Practices
+
+1. **Always use semantic tokens** when available instead of base tokens
+2. **Use semantic color tokens appropriately**:
+   - `bg` for default backgrounds, `bg.subtle` for subtle variations
+   - `fg` for default text, `fg.subtle` for subtle text
+   - `border` for default borders, `border.subtle` for subtle borders
+3. **Maintain dark mode compatibility** by using semantic tokens that automatically adapt
+4. **Use spacing tokens consistently**:
+   - `100` = 8px
+   - `200` = 16px
+   - `300` = 24px
+   - `400` = 32px
+5. **Follow responsive design patterns** using PandaCSS breakpoint syntax
+
+## Token Structure
+
+Each token includes:
+- A unique name
+- A value or reference to another token
+- A type (color, space, etc.)
+- A description of its intended use
+
+For a complete reference of all available tokens, see the [Token Reference](/tokens/reference) page.

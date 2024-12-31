@@ -1,0 +1,147 @@
+export const metadata = {
+  title: "Typography",
+  description: "Typography",
+};
+
+# Typography
+
+Typography in the Roadie Design System is implemented using PandaCSS with semantic tokens and components. Our system provides a set of components and utilities that ensure consistent typography across all applications.
+
+## Font family
+
+We use two primary font families:
+
+- **Inter Variable** - Our primary font for UI elements and content
+- **IBM Plex Mono** - Our monospace font for code elements
+
+Both fonts are loaded via CDN using `@fontsource` and configured in our PandaCSS preset.
+
+## Components
+
+### Text component
+
+The `Text` component is our foundational text component that handles most typography needs:
+
+```tsx
+import { Text } from '@oztix/roadie-components'
+
+// Basic usage
+<Text>Regular text content</Text>
+
+// With different semantic elements
+<Text as="p">Paragraph text</Text>
+<Text as="span">Inline text</Text>
+
+// With different text styles
+<Text textStyle="ui">UI text</Text>
+<Text textStyle="body">Body text</Text>
+```
+
+### Heading component
+
+The `Heading` component is used for all heading levels and automatically applies the correct styles:
+
+```tsx
+import { Heading } from '@oztix/roadie-components'
+
+// Default (h2)
+<Heading>Section Title</Heading>
+
+// Specific heading level with prose styles
+<Heading as="h1" textStyle="display.prose.1">Page Title</Heading>
+<Heading as="h2" textStyle="display.prose.2">Section Title</Heading>
+<Heading as="h3" textStyle="display.prose.3">Subsection Title</Heading>
+
+// UI-specific heading styles
+<Heading as="h2" textStyle="display.ui.2">UI Section Title</Heading>
+<Heading as="h3" textStyle="display.ui.3">UI Subsection Title</Heading>
+```
+
+### Code component
+
+For code and technical content, we provide a `Code` component that uses our monospace font:
+
+```tsx
+import { Code } from '@oztix/roadie-components'
+
+<Code>console.log('Hello World')</Code>
+```
+
+## Text styles
+
+Our text styles are defined using PandaCSS's `defineTextStyles` and are available through the `textStyle` prop on our components:
+
+- **display.prose.[1-6]** - For content and article headings
+- **display.ui.[1-6]** - For UI and interface headings
+- **ui** - For UI elements and general interface text
+- **ui.meta** - For meta text in UI elements
+- **prose** - For main content and paragraphs
+- **prose.lead** - For lead text in content
+- **code** - For code blocks and technical content
+
+## Responsive typography
+
+Our typography system uses CSS `clamp()` for fluid typography, allowing text to scale smoothly between breakpoints. This is handled automatically by our PandaCSS configuration:
+
+```tsx
+// Example of responsive heading
+<Heading as="h1" textStyle="display.prose.1">
+  This text will scale smoothly between breakpoints
+</Heading>
+```
+
+## Global styles
+
+Our PandaCSS preset includes global typography styles that:
+
+- Enable proper text wrapping with `text-wrap: balance` for headings
+- Use `text-wrap: pretty` for paragraphs
+- Set base font size and line height
+- Enable font smoothing
+- Handle proper overflow wrapping
+
+## Best practices
+
+1. **Use semantic components**
+   - Use `Text` for general content
+   - Use `Heading` for titles and section headers
+   - Use `Code` for technical content
+
+2. **Responsive considerations**
+   - Let the built-in fluid typography handle responsive scaling
+   - Avoid manual font-size adjustments
+   - Test text readability across all breakpoints
+
+3. **Accessibility**
+   - Use proper heading hierarchy (h1 through h6)
+   - Maintain sufficient color contrast
+   - Ensure text remains readable when zoomed
+
+4. **Performance**
+   - Our fonts are loaded with `font-display: swap`
+   - Variable fonts are used where possible
+   - Font files are served via CDN
+
+## Implementation example
+
+```tsx
+import { Heading, Text } from '@oztix/roadie-components'
+
+export const ArticleSection = () => (
+  <article>
+    <Heading as="h1" textStyle="display.prose.1">
+      Article Title
+    </Heading>
+    <Text as="p" textStyle="body">
+      Article content using our body text style for optimal readability.
+    </Text>
+    <Heading as="h2" textStyle="display.prose.2">
+      Section Title
+    </Heading>
+    <Text as="p" textStyle="ui">
+      UI-styled text for interface elements.
+    </Text>
+  </article>
+)
+```
+

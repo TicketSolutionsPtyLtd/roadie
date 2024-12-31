@@ -1,0 +1,50 @@
+export const metadata = {
+  title: 'Text',
+  description: 'A fundamental typography component for displaying text content',
+  status: 'beta',
+  category: 'Typography'
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Text
+
+The Text component is a fundamental building block for user interactions. It supports multiple appearances and sizes to accommodate different design contexts.
+
+## Import
+
+```tsx
+import { Text } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Default
+
+```tsx
+live
+<Text>Hello World</Text>
+```
+
+### Sizes
+
+Sizes are responsive and will scale based on the screen size.
+
+```tsx
+live
+<View gap='100'>
+  <Text fontSize='xs'>XSmall</Text>
+  <Text fontSize='sm'>Small</Text>
+  <Text fontSize='md'>Medium</Text>
+  <Text fontSize='lg'>Large</Text>
+  <Text fontSize='xl'>XLarge</Text>
+  <Text fontSize='2xl'>2XLarge</Text>
+  <Text fontSize='3xl'>3XLarge</Text>
+  <Text fontSize='4xl'>4XLarge</Text>
+  <Text fontSize='5xl'>5XLarge</Text>
+  <Text fontSize='6xl'>6XLarge</Text>
+  <Text fontSize='7xl'>7XLarge</Text>
+</View>
+```
+
+<PropsDefinitions componentPath='packages/components/src/components/Text/index.tsx' />

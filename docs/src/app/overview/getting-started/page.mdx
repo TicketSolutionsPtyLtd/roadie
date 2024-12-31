@@ -1,0 +1,127 @@
+export const metadata = {
+  title: 'Getting started',
+  description: 'Learn how to set up and start using the Roadie Design System in your project'
+}
+
+# Getting started
+
+This guide will help you set up and start using the Roadie Design System in your project.
+
+## Installation
+
+Install the core package and its peer dependencies:
+
+```bash
+pnpm add @oztix/roadie-core @oztix/roadie-components
+```
+
+## Setup
+
+### 1. Configure PandaCSS
+
+Create a `panda.config.ts` file in your project root:
+
+```ts
+import { roadie } from '@oztix/roadie-core/presets'
+import { defineConfig } from '@pandacss/dev'
+
+export default defineConfig({
+  presets: [roadie],
+  include: [
+    './node_modules/@oztix/roadie-components/src/**/*.tsx',
+    './src/**/*.{js,jsx,ts,tsx}'
+  ],
+  importMap: '@oztix/roadie-core',
+  outdir: 'roadie-core'
+})
+```
+
+### 2. Add build scripts
+
+Add the following scripts to your `package.json`:
+
+```json
+{
+  "scripts": {
+    "prepare": "panda codegen",
+    "dev": "panda -w & next dev", // Adjust based on your framework
+    "build": "panda codegen && next build" // Adjust based on your framework
+  }
+}
+```
+
+## Usage
+
+### Using components
+
+Import and use components from `@oztix/roadie-components`:
+
+```tsx
+import { Button, Text, View } from '@oztix/roadie-components'
+
+function MyComponent() {
+  return (
+    <View>
+      <Text>Hello World</Text>
+      <Button>Click me</Button>
+    </View>
+  )
+}
+```
+
+### Using styles
+
+You can use the CSS utility functions from `@oztix/roadie-core`:
+
+```tsx
+import { css } from '@oztix/roadie-core/css'
+
+function MyComponent() {
+  return (
+    <div
+      className={css({
+        display: 'flex',
+        gap: '400',
+        padding: '400',
+        color: 'fg',
+        backgroundColor: 'bg'
+      })}
+    >
+      Content
+    </div>
+  )
+}
+```
+
+### Using layout components
+
+Roadie provides common layout patterns through layout components:
+
+```tsx
+import { View } from '@oztix/roadie-core/jsx'
+
+function MyComponent() {
+  return (
+    <View gap="400" flexDirection="column">
+      <div>Item 1</div>
+      <div>Item 2</div>
+    </View>
+  )
+}
+```
+
+## Features
+
+The Roadie Design System includes:
+
+- 🎨 Design tokens for colors, spacing, typography, and more
+- 📦 Pre-built React components
+- 🎯 Type-safe styling with PandaCSS
+- 🌗 Built-in dark mode support
+- 📱 Responsive design utilities
+- 🔍 Semantic tokens for consistent theming
+
+## Next steps
+
+- Browse our [Components](/components) to see what's available
+- Learn about our [Design Tokens](/foundations/tokens) and how to use them

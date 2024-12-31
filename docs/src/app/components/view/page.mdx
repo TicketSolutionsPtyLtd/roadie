@@ -1,0 +1,129 @@
+import { View } from '@oztix/roadie-components'
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+export const metadata = {
+  title: 'View',
+  description: 'A layout component for arranging elements vertically or horizontally with consistent spacing',
+  status: 'beta',
+  category: 'Layout'
+}
+
+# View
+
+The View component is a layout primitive that makes it easy to arrange elements in a vertical or horizontal View with consistent spacing. It's built on top of flexbox and provides a simple API for common layout patterns.
+
+## Import
+
+```tsx
+import { View } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Basic View
+
+By default, View arranges items vertically with no gap:
+
+```tsx
+live
+<View>
+  <View p='100' bg='bg.subtle'>
+    Item 1
+  </View>
+  <View p='100' bg='bg.subtle'>
+    Item 2
+  </View>
+  <View p='100' bg='bg.subtle'>
+    Item 3
+  </View>
+</View>
+```
+
+### Horizontal View
+
+Use `flexDirection='row'` to arrange items horizontally:
+
+```tsx
+live
+<View flexDirection='row' gap='200'>
+  <View p='100' bg='bg.subtle'>Item 1</View>
+  <View p='100' bg='bg.subtle'>Item 2</View>
+  <View p='100' bg='bg.subtle'>Item 3</View>
+</View>
+```
+
+### Spacing Between Items
+
+Control the gap between items using the `gap` prop:
+
+```tsx
+live
+<View gap='300'>
+  <View p='100' bg='bg.subtle'>Item 1</View>
+  <View p='100' bg='bg.subtle'>Item 2</View>
+  <View p='100' bg='bg.subtle'>Item 3</View>
+</View>
+```
+
+### Alignment
+
+Control alignment using `alignItems` and `justifyContent` props:
+
+```tsx
+live
+<View
+  flexDirection='row'
+  alignItems='center'
+  justifyContent='space-between'
+  height='1000'
+  bg='bg.subtlest'
+>
+  <View p='100' bg='bg.subtle'>Start</View>
+  <View p='100' bg='bg.subtle'>Center</View>
+  <View p='100' bg='bg.subtle'>End</View>
+</View>
+```
+
+### Responsive Props
+
+View supports responsive props for different screen sizes:
+
+```tsx
+live
+<View
+  flexDirection={{ base: 'column', md: 'row' }}
+  gap={{ base: '100', md: '200' }}
+  alignItems={{ base: 'stretch', md: 'center' }}
+>
+  <View p='100' bg='bg.subtle'>
+    Item 1
+  </View>
+  <View p='100' bg='bg.subtle'>
+    Item 2
+  </View>
+  <View p='100' bg='bg.subtle'>
+    Item 3
+  </View>
+</View>
+```
+
+### Nested Views
+
+Views can be nested to create complex layouts:
+
+```tsx
+live
+<View gap='200'>
+  <View flexDirection='row' gap='200' justifyContent='center'>
+    <View p='100' bg='bg.subtle'>Top Left</View>
+    <View p='100' bg='bg.subtle'>Top Right</View>
+  </View>
+  <View flexDirection='row' gap='200' justifyContent='space-between'>
+    <View p='100' bg='bg.subtle'>Bottom Left</View>
+    <View p='100' bg='bg.subtle'>Bottom Right</View>
+  </View>
+</View>
+```
+
+<PropsDefinitions componentPath='packages/components/src/components/View/index.tsx' />
