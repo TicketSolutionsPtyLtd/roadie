@@ -6,6 +6,6 @@
     "rootDir": "src",
     "tsBuildInfoFile": "./.tsbuildinfo"
   },
-  "include": ["src/**/*"],
-  "exclude": ["dist", "node_modules", "roadie-core"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.json"],
+  "exclude": ["dist", "node_modules"]
 }

@@ -1,7 +1,7 @@
 /* eslint-disable @pandacss/no-config-function-in-source */
 import { definePreset } from '@pandacss/dev'
 
-import { pandaTokens } from '../index.ts'
+import { pandaTokens } from '../index'
 
 const { breakpoints = {}, ...tokens } = pandaTokens?.tokens ?? {}
 const { textStyles = {}, ...semanticTokens } = pandaTokens?.semanticTokens ?? {}

@@ -1,7 +1,7 @@
 'use client'
 
-export * from './components/Button/index.tsx'
-export * from './components/Code/index.tsx'
-export * from './components/Heading/index.tsx'
-export * from './components/Text/index.tsx'
-export * from './components/View/index.tsx'
+export * from './components/Button'
+export * from './components/Code'
+export * from './components/Heading'
+export * from './components/Text'
+export * from './components/View'
