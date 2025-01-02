@@ -38,6 +38,7 @@
       "outputs": ["coverage/**"]
     },
     "typecheck": {
+      "dependsOn": ["^build"],
       "outputs": [],
       "cache": false
     }
