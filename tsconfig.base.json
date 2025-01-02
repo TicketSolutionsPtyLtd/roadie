@@ -21,5 +21,6 @@
     "strict": true,
     "target": "ES2022"
   },
-  "exclude": ["**/dist/*", "**/node_modules/*", "**/.next/*"]
+  "exclude": ["**/dist/*", "**/node_modules/*", "**/.next/*"],
+  "include": ["src/**/*"]
 }

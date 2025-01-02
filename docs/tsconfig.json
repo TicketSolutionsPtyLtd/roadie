@@ -19,5 +19,5 @@
     ".next/types/**/*.ts",
     "roadie-core"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "out", ".next", "roadie-core"]
 }

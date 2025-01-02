@@ -2,11 +2,10 @@
   "extends": "../../tsconfig.react.json",
   "compilerOptions": {
     "allowJs": true,
-    "jsx": "react-jsx",
     "outDir": "dist",
     "rootDir": "src",
     "tsBuildInfoFile": "./.tsbuildinfo"
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["dist", "node_modules", "roadie-core"]
 }
