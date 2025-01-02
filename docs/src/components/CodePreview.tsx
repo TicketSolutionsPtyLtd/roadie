@@ -106,12 +106,16 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
           {({ style, tokens, getLineProps, getTokenProps }) => (
             <pre className={css(editorStyles)} style={style}>
               {tokens.map((line, i) => {
-                const { ...lineProps } = getLineProps({ line, key: i })
+                const lineProps = getLineProps({ line, key: i })
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const { key, ...linePropsWithoutKey } = lineProps
                 return (
-                  <div key={i} {...lineProps}>
+                  <div key={i} {...linePropsWithoutKey}>
                     {line.map((token, key) => {
-                      const { ...tokenProps } = getTokenProps({ token, key })
-                      return <span key={key} {...tokenProps} />
+                      const tokenProps = getTokenProps({ token, key })
+                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                      const { key: tokenKey, ...tokenPropsWithoutKey } = tokenProps
+                      return <span key={key} {...tokenPropsWithoutKey} />
                     })}
                   </div>
                 )
