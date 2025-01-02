@@ -247,8 +247,6 @@ export default function TokensReference() {
     return null
   }
 
-  console.log('spacing tokens:', pandaTokens.tokens.spacing)
-
   // Group all tokens by their category
   const baseTokenGroups = flattenTokens(pandaTokens.tokens).reduce(
     (groups, [tokenName]) => {

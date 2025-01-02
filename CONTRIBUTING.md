@@ -18,14 +18,18 @@ roadie/
 ## Development Process
 
 1. Ensure you have the correct Node.js version installed (see `.nvmrc`)
-2. Install dependencies:
+2. Enable corepack to ensure the correct pnpm version:
+   ```bash
+   corepack enable
+   ```
+3. Install dependencies:
    ```bash
    pnpm install
    ```
-3. Create a feature branch from `main` using the format: `feature/[ticket-number]-description`
-4. Make your changes following our component guidelines
-5. Test your changes locally using the Turborepo pipeline
-6. Create a pull request with the ticket number in the title
+4. Create a feature branch from `main` using the format: `feature/[ticket-number]-description`
+5. Make your changes following our component guidelines
+6. Test your changes locally using the Turborepo pipeline
+7. Create a pull request with the ticket number in the title
 
 ## Component Development Standards
 

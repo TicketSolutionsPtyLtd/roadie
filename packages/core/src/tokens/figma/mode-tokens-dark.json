@@ -1536,31 +1536,19 @@
     "$type": "fontFamily",
     "ui": {
       "$type": "fontFamily",
-      "$value": [
-        "'Inter Variable'",
-        "{fonts.sans}"
-      ]
+      "$value": ["'Inter Variable'", "{fonts.sans}"]
     },
     "prose": {
       "$type": "fontFamily",
-      "$value": [
-        "'Inter Variable'",
-        "{fonts.sans}"
-      ]
+      "$value": ["'Inter Variable'", "{fonts.sans}"]
     },
     "display": {
       "$type": "fontFamily",
-      "$value": [
-        "'Inter Variable'",
-        "{fonts.sans}"
-      ]
+      "$value": ["'Inter Variable'", "{fonts.sans}"]
     },
     "code": {
       "$type": "fontFamily",
-      "$value": [
-        "'IBM Plex Mono'",
-        "{fonts.mono}"
-      ]
+      "$value": ["'IBM Plex Mono'", "{fonts.mono}"]
     }
   },
   "letterSpacings": {

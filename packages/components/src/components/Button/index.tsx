@@ -1,6 +1,4 @@
-import { type ReactNode } from 'react'
-
-import { Button as AriaButton } from 'react-aria-components'
+import { Button as AriaButton, type ButtonProps as AriaButtonProps } from 'react-aria-components'
 
 import { cva, cx } from '@oztix/roadie-core/css'
 
@@ -22,19 +20,13 @@ type Emphasis = 'subtle' | 'accent' | 'inverse' | 'success' | 'warning' | 'dange
 /**
  * Props for the Button component
  */
-export interface ButtonProps {
-  /** The content to be rendered inside the button */
-  children: ReactNode
+export interface ButtonProps extends Omit<AriaButtonProps, 'className'> {
   /** The visual style of the button */
   appearance?: ButtonAppearance
   /** The size of the button */
   size?: ButtonSize
   /** The color of the button */
   emphasis?: Emphasis
-  /** Whether the button is disabled */
-  isDisabled?: boolean
-  /** Callback function when the button is pressed */
-  onPress?: () => void
   /** Additional class names to be applied to the button */
   className?: string
 }

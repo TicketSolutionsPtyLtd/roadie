@@ -1,5 +1,3 @@
-import type { PropsWithChildren } from 'react'
-
 import type { TextProps } from '../Text'
 import { Text } from '../Text'
 
@@ -20,11 +18,7 @@ export interface CodeProps extends TextProps<CodeElement> {
 /**
  * Code component for displaying code in a monospace font.
  */
-export const Code = ({
-  children,
-  appearance = 'outline',
-  ...props
-}: PropsWithChildren<CodeProps>) => {
+export const Code = ({ appearance = 'outline', ...props }: CodeProps) => {
   return (
     <Text
       as='code'
@@ -36,9 +30,7 @@ export const Code = ({
       border='1px solid'
       borderColor={appearance === 'outline' ? 'border.subtlest' : 'transparent'}
       {...props}
-    >
-      {children}
-    </Text>
+    />
   )
 }
 

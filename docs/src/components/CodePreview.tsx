@@ -105,13 +105,17 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
         <Highlight code={trimmedCode} language={language} theme={theme}>
           {({ style, tokens, getLineProps, getTokenProps }) => (
             <pre className={css(editorStyles)} style={style}>
-              {tokens.map((line, i) => (
-                <div key={i} {...getLineProps({ line, key: i })}>
-                  {line.map((token, key) => (
-                    <span key={key} {...getTokenProps({ token, key })} />
-                  ))}
-                </div>
-              ))}
+              {tokens.map((line, i) => {
+                const { ...lineProps } = getLineProps({ line, key: i })
+                return (
+                  <div key={i} {...lineProps}>
+                    {line.map((token, key) => {
+                      const { ...tokenProps } = getTokenProps({ token, key })
+                      return <span key={key} {...tokenProps} />
+                    })}
+                  </div>
+                )
+              })}
             </pre>
           )}
         </Highlight>
