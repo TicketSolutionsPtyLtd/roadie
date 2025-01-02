@@ -25,152 +25,82 @@ env:
   NODE_OPTIONS: --max-old-space-size=4096
 
 jobs:
-  setup:
+  validate:
     runs-on: ubuntu-latest
-    outputs:
-      cache-key: ${{ steps.get-cache-key.outputs.key }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            pnpm-lock.yaml
-            package.json
-            .nvmrc
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v2
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
         with:
           version: 9
-          run_install: false
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-          cache: 'pnpm'
 
-      - id: get-cache-key
-        run: |
-          echo "key=${{ runner.os }}-node-${{ hashFiles('**/pnpm-lock.yaml', '**/package.json') }}" >> $GITHUB_OUTPUT
-
-      - uses: actions/cache@v3
-        id: deps-cache
-        with:
-          path: |
-            node_modules
-            packages/*/node_modules
-            docs/node_modules
-            ~/.cache/Cypress
-          key: ${{ steps.get-cache-key.outputs.key }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - if: steps.deps-cache.outputs.cache-hit != 'true'
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-  validate:
-    needs: setup
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        task: ['lint', 'typecheck', 'test']
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@v4
+      - name: Run lint
+        run: pnpm lint
 
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 9
-          run_install: false
+      - name: Run typecheck
+        run: pnpm typecheck
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-
-      - uses: actions/cache/restore@v3
-        with:
-          path: |
-            node_modules
-            packages/*/node_modules
-            docs/node_modules
-            ~/.cache/Cypress
-          key: ${{ needs.setup.outputs.cache-key }}
-          fail-on-cache-miss: true
-
-      - uses: actions/cache/restore@v3
-        with:
-          path: .turbo
-          key: turbo-${{ matrix.task }}-${{ needs.setup.outputs.cache-key }}
-
-      - run: pnpm ${{ matrix.task }}
-
-      - if: always()
-        uses: actions/cache/save@v3
-        with:
-          path: .turbo
-          key: turbo-${{ matrix.task }}-${{ needs.setup.outputs.cache-key }}
+      - name: Run tests
+        run: pnpm test
 
   build-packages:
-    needs: setup
+    needs: [validate]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v2
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
         with:
           version: 9
-          run_install: false
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-          cache: 'pnpm'
 
-      - uses: actions/cache/restore@v3
-        with:
-          path: |
-            node_modules
-            packages/*/node_modules
-            docs/node_modules
-            ~/.cache/Cypress
-          key: ${{ needs.setup.outputs.cache-key }}
-          fail-on-cache-miss: true
-
-      - uses: actions/cache/restore@v3
-        with:
-          path: .turbo
-          key: turbo-build-${{ needs.setup.outputs.cache-key }}
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Build packages
         run: pnpm build
 
-      - name: Save Turbo cache
-        uses: actions/cache/save@v3
-        if: always()
-        with:
-          path: .turbo
-          key: turbo-${{ needs.setup.outputs.cache-key }}
-
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
+        if: success()
         with:
-          name: dist
+          name: build-output
           path: |
             packages/*/dist
             docs/out
-          retention-days: 1
+          if-no-files-found: error
 
   deploy-docs:
-    needs: [setup, build-packages]
+    needs: [build-packages]
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Download build artifacts
         uses: actions/download-artifact@v3
         with:
-          name: dist
-          path: .
+          name: build-output
+          path: build-output
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -178,7 +108,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/out
+          path: build-output/docs/out
 
       - name: Deploy to GitHub Pages
         id: deployment
