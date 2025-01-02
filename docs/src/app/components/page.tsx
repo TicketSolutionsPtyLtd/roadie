@@ -82,9 +82,11 @@ export default async function ComponentsPage() {
 
   return (
     <View gap='600'>
-      <View>
-        <Heading as='h1'>Components</Heading>
-        <Text color='fg.subtle'>
+      <View gap='300'>
+        <Heading as='h1' textStyle='display.prose.1'>
+          Components
+        </Heading>
+        <Text color='fg.subtle' textStyle='prose.lead' fontSize='xl'>
           A collection of components built with React Aria Components and styled with PandaCSS.
         </Text>
       </View>

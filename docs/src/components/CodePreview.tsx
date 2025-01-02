@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 
+import Link from 'next/link'
+
 import { Copy } from 'lucide-react'
 import { Highlight, themes } from 'prism-react-renderer'
 import { LiveEditor, LiveError, LivePreview, LiveProvider } from 'react-live'
@@ -13,7 +15,8 @@ import * as PandaComponents from '@oztix/roadie-core/jsx'
 const scope = {
   css,
   ...RoadieComponents,
-  ...PandaComponents
+  ...PandaComponents,
+  Link
 }
 
 const { Button, View } = RoadieComponents

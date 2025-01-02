@@ -1,6 +1,7 @@
 export const metadata = {
   title: 'Text',
-  description: 'A fundamental typography component for displaying text content',
+  description:
+    'A fundamental typography component for displaying text content',
   status: 'beta',
   category: 'Typography'
 }
@@ -9,7 +10,9 @@ import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # Text
 
-The Text component is a fundamental building block for user interactions. It supports multiple appearances and sizes to accommodate different design contexts.
+The Text component is a fundamental building block for user
+interactions. It supports multiple appearances and sizes to
+accommodate different design contexts.
 
 ## Import
 
@@ -45,6 +48,25 @@ live
   <Text fontSize='6xl'>6XLarge</Text>
   <Text fontSize='7xl'>7XLarge</Text>
 </View>
+```
+
+### Custom elements
+
+Text can be rendered as any HTML element or component (like `p` or
+`Link`) using the `as` prop:
+
+```tsx
+live
+<Text as='p' color='fg.muted'>Muted</Text>
+```
+
+### Custom attributes
+
+Text can be rendered with custom attributes like `data-testid`:
+
+```tsx
+live
+<Text as='p' data-testid='text'>Testable text</Text>
 ```
 
 <PropsDefinitions componentPath='packages/components/src/components/Text/index.tsx' />

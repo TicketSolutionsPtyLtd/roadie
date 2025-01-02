@@ -4,14 +4,18 @@ import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 export const metadata = {
   title: 'View',
-  description: 'A layout component for arranging elements vertically or horizontally with consistent spacing',
+  description:
+    'A layout component for arranging elements vertically or horizontally with consistent spacing',
   status: 'beta',
   category: 'Layout'
 }
 
 # View
 
-The View component is a layout primitive that makes it easy to arrange elements in a vertical or horizontal View with consistent spacing. It's built on top of flexbox and provides a simple API for common layout patterns.
+The View component is a layout primitive that makes it easy to arrange
+elements in a vertical or horizontal View with consistent spacing.
+It's built on top of flexbox and provides a simple API for common
+layout patterns.
 
 ## Import
 
@@ -123,6 +127,30 @@ live
     <View p='100' bg='bg.subtle'>Bottom Left</View>
     <View p='100' bg='bg.subtle'>Bottom Right</View>
   </View>
+</View>
+```
+
+### Custom elements
+
+View can be rendered as any HTML element or component (like `section`
+or `Link`) using the `as` prop:
+
+```tsx
+live
+<View as='section' bg='bg.subtlest'>
+  <View p='100' bg='bg.subtle'>Section</View>
+  <View as={Link} href='/'>Link</View>
+</View>
+```
+
+### Custom attributes
+
+View can be rendered with custom attributes like `data-testid`:
+
+```tsx
+live
+<View as='section' data-testid='section'>
+  <View p='100' bg='bg.subtle'>Section</View>
 </View>
 ```
 
