@@ -1,48 +1,67 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": ["**/.env.*local"],
+  "globalDependencies": [
+    "**/.env.*local",
+    "pnpm-lock.yaml"
+  ],
   "tasks": {
-    "build:tokens": {
-      "outputs": ["src/tokens/**"]
-    },
-    "build:panda": {
-      "dependsOn": ["build:tokens", "build"],
-      "outputs": ["dist/**"]
+    "prepare": {
+      "dependsOn": ["^build"],
+      "inputs": ["package.json"]
     },
     "build": {
-      "dependsOn": ["^build:tokens", "^build:panda"],
-      "outputs": ["dist/**", "out/**"]
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**/*.{js,jsx,ts,tsx,css,json}",
+        "package.json",
+        "tsconfig.json"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**",
+        "out/**",
+        "!.next/cache/**",
+        ".turbo/**"
+      ]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**/*.{ts,tsx}", "tsconfig.json"]
+    },
+    "lint": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**/*.{js,jsx,ts,tsx}", ".eslintrc.*", "package.json"],
+      "outputs": [".turbo/**"]
+    },
+    "lint:fix": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**/*.{js,jsx,ts,tsx}", ".eslintrc.*", "package.json"],
+      "outputs": ["src/**/*"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**/*.{js,jsx,ts,tsx}",
+        "**/*.test.{js,jsx,ts,tsx}",
+        "jest.config.*",
+        "package.json"
+      ],
+      "outputs": ["coverage/**", ".turbo/**"]
     },
     "clean": {
       "cache": false
     },
     "dev": {
-      "dependsOn": ["^build"],
-      "cache": false
+      "cache": false,
+      "persistent": true
     },
     "format": {
-      "cache": false,
-      "outputs": []
+      "inputs": ["**/*.{js,jsx,ts,tsx,md,mdx,json}"],
+      "outputs": ["**/*.{js,jsx,ts,tsx,md,mdx,json}"]
     },
     "format:check": {
-      "cache": false,
-      "outputs": []
-    },
-    "lint": {
-      "cache": false,
-      "outputs": []
-    },
-    "lint:fix": {
-      "cache": false,
-      "outputs": []
-    },
-    "test": {
-      "outputs": ["coverage/**"]
-    },
-    "typecheck": {
-      "dependsOn": ["^build"],
-      "outputs": [],
-      "cache": false
+      "inputs": ["**/*.{js,jsx,ts,tsx,md,mdx,json}"],
+      "outputs": [".turbo/**"]
     }
   }
 }

@@ -16,7 +16,7 @@
     "changeset": "changeset",
     "changeset:version": "changeset version",
     "changeset:publish": "changeset publish",
-    "prepare": "turbo run build:tokens build:panda --filter=@oztix/roadie-core",
+    "prepare": "turbo run prepare",
     "postinstall": "husky",
     "typecheck": "turbo typecheck"
   },

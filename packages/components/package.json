@@ -11,6 +11,7 @@
     "dist"
   ],
   "scripts": {
+    "prepare": "panda codegen",
     "build": "tsup",
     "clean": "rm -rf node_modules dist",
     "dev": "tsup --watch",
