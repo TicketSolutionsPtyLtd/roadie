@@ -12,6 +12,7 @@ export default defineConfig({
   preflight: true,
   // The output directory for your css system
   outdir: 'dist',
+  outExtension: 'js',
   // Whether to clean the output directory before building
   clean: true
 })

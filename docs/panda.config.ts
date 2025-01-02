@@ -32,6 +32,7 @@ export default defineConfig({
     }
   },
   outdir: 'roadie-core',
+  outExtension: 'js',
   clean: true,
   jsxFramework: 'react'
 })
