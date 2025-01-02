@@ -32,14 +32,15 @@
   },
   "license": "ISC",
   "devDependencies": {
-    "@pandacss/dev": "^0.48.0",
-    "@vitejs/plugin-react": "^4.3.4",
-    "@vitest/coverage-v8": "^1.6.0",
-    "chokidar-cli": "^3.0.0",
-    "npm-run-all": "^4.1.5",
-    "tsup": "^8.0.0",
-    "typescript": ">=5.0.0 <6.0.0",
-    "vitest": "^1.6.0"
+    "@pandacss/dev": "0.48.1",
+    "@types/node": "22.10.2",
+    "@vitejs/plugin-react": "4.3.4",
+    "@vitest/coverage-v8": "1.6.0",
+    "chokidar-cli": "3.0.0",
+    "npm-run-all": "4.1.5",
+    "tsup": "8.0.0",
+    "typescript": "5.7.2",
+    "vitest": "1.6.0"
   },
   "exports": {
     ".": {
@@ -83,9 +84,5 @@
       "require": "./dist/recipes/index.mjs",
       "import": "./dist/recipes/index.mjs"
     }
-  },
-  "dependencies": {
-    "@fontsource-variable/plus-jakarta-sans": "^5.1.0",
-    "@pandacss/studio": "^0.49.0"
   }
 }
