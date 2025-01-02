@@ -7,7 +7,7 @@ type CodeElement = 'code'
  * Props for the Code component
  * @extends {TextProps}
  */
-export interface CodeProps extends TextProps<CodeElement> {
+export interface CodeProps extends Omit<TextProps<CodeElement>, 'as'> {
   /**
    * The visual style of the code block
    * @default 'outline'
