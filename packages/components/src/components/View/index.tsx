@@ -1,70 +1,24 @@
 import type { ElementType } from 'react'
+import React from 'react'
 
-import type { HTMLStyledProps } from '@oztix/roadie-core/jsx'
 import { styled } from '@oztix/roadie-core/jsx'
 import type { JsxStyleProps } from '@oztix/roadie-core/types'
 
-type ViewElements =
-  | 'div'
-  | 'section'
-  | 'article'
-  | 'aside'
-  | 'main'
-  | 'header'
-  | 'footer'
-  | 'nav'
-  | 'form'
-  | 'figure'
-  | 'figcaption'
-  | 'ul'
-  | 'ol'
-  | 'li'
-  | 'dl'
-  | 'dt'
-  | 'dd'
-  | 'table'
-  | 'thead'
-  | 'tbody'
-  | 'tfoot'
-  | 'tr'
-  | 'th'
-  | 'td'
-  | 'input'
-  | 'select'
-  | 'caption'
-  | 'video'
-  | 'audio'
-  | 'canvas'
-  | 'iframe'
-  | 'embed'
-  | 'object'
-  | 'param'
-  | 'source'
-  | 'track'
-  | 'map'
-  | 'area'
-  | 'summary'
-  | 'details'
-  | 'dialog'
-  | 'menu'
-  | 'menuitem'
-  | 'menuitemcheckbox'
-  | 'menuitemradio'
-  | 'menuitemseparator'
-  | 'menuitembutton'
-  | 'progress'
-  | 'meter'
-  | 'output'
-  | 'slot'
-  | 'template'
-  | ElementType
+type AsProp<C extends ElementType> = {
+  as?: C
+}
 
-export interface ViewProps extends HTMLStyledProps<'div'>, JsxStyleProps {
+type PropsToOmit<C extends ElementType, P> = keyof (AsProp<C> & P)
+
+/**
+ * A foundational layout component that provides a flexible container with sensible defaults.
+ */
+export interface ViewProps<C extends ElementType = 'div'> {
   /**
-   * The HTML element to render the View as
+   * The HTML element or React component to render the View as
    * @default 'div'
    */
-  as?: ViewElements
+  as?: C
   /**
    * The display property of the View
    * @default 'flex'
@@ -117,11 +71,16 @@ export interface ViewProps extends HTMLStyledProps<'div'>, JsxStyleProps {
   minWidth?: JsxStyleProps['minWidth']
 }
 
-/**
- * A foundational layout component that provides a flexible container with sensible defaults
- * Core style props are shown here. But you can pass any style props  available in Panda CSS to the View component.
- */
-export const View = styled('div', {
+export type PolymorphicViewProps<C extends ElementType> = ViewProps<C> &
+  Omit<React.ComponentPropsWithRef<C>, PropsToOmit<C, ViewProps>> &
+  JsxStyleProps
+
+type ViewComponent = {
+  <C extends ElementType = 'div'>(props: PolymorphicViewProps<C>): React.ReactElement | null
+  displayName?: string
+}
+
+const StyledView = styled('div', {
   base: {
     display: 'flex',
     position: 'relative',
@@ -133,6 +92,8 @@ export const View = styled('div', {
     minHeight: 0,
     minWidth: 0
   }
-}) as React.ForwardRefExoticComponent<ViewProps>
+})
+
+export const View = StyledView as ViewComponent
 
 View.displayName = 'View'
