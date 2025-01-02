@@ -7,5 +7,6 @@ export default defineConfig({
   include: ['./src/**/*.{js,jsx,ts,tsx}'],
   importMap: '@oztix/roadie-core',
   outdir: 'roadie-core',
+  jsxFramework: 'react',
   outExtension: 'js'
 })

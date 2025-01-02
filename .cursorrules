@@ -63,6 +63,14 @@ This is a monorepo using pnpm workspaces and Turborepo with the following struct
 - Use `View` as the root component for most components.
 - Prefer gap over margin for spacing
 
+## Component creation guidelines
+
+- Use `View` as the root component for most components.
+- Prefer gap over margin for spacing
+- Prefer `Text` over `span` for text content
+- Prefer `Heading` over `h1`-`h6` for headings
+- Document all props and variants in the component file for use with the docs site
+
 ## Content writing guidelines
 
 - Use sentence case for headings, titles, and other content

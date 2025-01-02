@@ -15,12 +15,12 @@
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "preserveSymlinks": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
     "target": "ES2022"
   },
-  "exclude": ["**/dist/*", "**/node_modules/*", "**/.next/*"],
-  "include": ["src/**/*"]
+  "exclude": ["**/dist", "**/.next", "**/coverage", "**/roadie-core"]
 }

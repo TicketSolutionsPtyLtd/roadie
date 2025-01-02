@@ -9,7 +9,9 @@
     ],
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "preserveSymlinks": true,
+    "skipLibCheck": true
   },
   "include": [
     "next-env.d.ts",
@@ -19,5 +21,5 @@
     ".next/types/**/*.ts",
     "roadie-core"
   ],
-  "exclude": ["node_modules", "out", ".next", "roadie-core"]
+  "exclude": ["node_modules", "out", ".next", "dist"]
 }
