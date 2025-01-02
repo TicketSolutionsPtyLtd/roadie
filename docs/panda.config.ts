@@ -2,6 +2,11 @@ import { defineConfig } from '@pandacss/dev'
 
 import { roadie } from '@oztix/roadie-core/presets'
 
+interface ParserHookParams {
+  content: string
+  filePath: string | undefined
+}
+
 export default defineConfig({
   presets: [roadie],
   importMap: '@oztix/roadie-core',
@@ -13,14 +18,14 @@ export default defineConfig({
     './mdx-components.tsx'
   ],
   hooks: {
-    'parser:before': ({ content, filePath }) => {
+    'parser:before': ({ content, filePath }: ParserHookParams) => {
       if (!filePath?.endsWith('.mdx')) return content
       // this is needed to extract the code blocks from the mdx file
       // so that the Panda CSS parser will process them
       const codeBlockRegex = /```tsx\s*live\s*([\s\S]*?)```/g
       const matches = content.matchAll(codeBlockRegex)
       const codeBlocks = Array.from(matches)
-        .map((match) => match[1])
+        .map((match: RegExpMatchArray) => match[1])
         .join('\n')
       // Return both the original content and the extracted code blocks
       return `${content}\n${codeBlocks}`
