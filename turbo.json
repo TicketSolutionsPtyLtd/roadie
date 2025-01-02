@@ -2,9 +2,16 @@
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": ["**/.env.*local"],
   "tasks": {
-    "build": {
-      "dependsOn": ["^build"],
+    "build:tokens": {
+      "outputs": ["src/tokens/**"]
+    },
+    "build:panda": {
+      "dependsOn": ["build:tokens", "build"],
       "outputs": ["dist/**"]
+    },
+    "build": {
+      "dependsOn": ["^build:tokens", "^build:panda"],
+      "outputs": ["dist/**", "out/**"]
     },
     "clean": {
       "cache": false
@@ -12,10 +19,6 @@
     "dev": {
       "dependsOn": ["^build"],
       "cache": false
-    },
-    "prepare": {
-      "cache": false,
-      "dependsOn": ["^build"]
     },
     "format": {
       "cache": false,
@@ -34,7 +37,6 @@
       "outputs": []
     },
     "test": {
-      "dependsOn": ["^build"],
       "outputs": ["coverage/**"]
     },
     "typecheck": {

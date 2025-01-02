@@ -10,7 +10,6 @@
     "dist"
   ],
   "scripts": {
-    "prepare": "pnpm build:tokens",
     "clean": "rm -rf node_modules dist",
     "build": "tsup",
     "build:panda": "panda codegen --c panda.config.js && panda emit-pkg --base dist",
