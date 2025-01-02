@@ -15,7 +15,7 @@ export interface CodeProps extends HTMLStyledProps<'code'>, JsxStyleProps {
   appearance?: 'outline' | 'ghost'
 }
 
-const StyledCode = styled('code', {
+export const Code = styled('code', {
   base: {
     backgroundColor: 'bg.subtle',
     textStyle: 'code',
@@ -36,8 +36,6 @@ const StyledCode = styled('code', {
   defaultVariants: {
     appearance: 'outline'
   }
-})
-
-export const Code = StyledCode as React.ForwardRefExoticComponent<CodeProps>
+}) as React.ForwardRefExoticComponent<CodeProps>
 
 Code.displayName = 'Code'
