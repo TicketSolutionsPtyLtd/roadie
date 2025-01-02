@@ -25,6 +25,8 @@ pnpm-lock.yaml
 **/.tsbuildinfo
 *.d.ts
 *.js.map
+**/tokens/figma/mode-tokens-*.json
+**/tokens/panda/default.json
 
 # Cache
 .dccache

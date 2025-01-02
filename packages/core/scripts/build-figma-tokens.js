@@ -86,11 +86,11 @@ if (import.meta.url === `file://${__filename}`) {
   // Write the semantic token files
   fs.writeFileSync(
     path.join(figmaDir, 'mode-tokens-light.json'),
-    JSON.stringify(lightTokens, null, 2)
+    JSON.stringify(lightTokens, null, 2) + '\n'
   )
   fs.writeFileSync(
     path.join(figmaDir, 'mode-tokens-dark.json'),
-    JSON.stringify(darkTokens, null, 2)
+    JSON.stringify(darkTokens, null, 2) + '\n'
   )
 
   console.log('Figma tokens built successfully! Files written to:', figmaDir)

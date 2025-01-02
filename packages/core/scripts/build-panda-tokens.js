@@ -191,7 +191,7 @@ if (import.meta.url === `file://${__filename}`) {
     fs.mkdirSync(outputDir, { recursive: true })
   }
   const outputPath = path.join(outputDir, 'default.json')
-  fs.writeFileSync(outputPath, JSON.stringify(finalTokens, null, 2))
+  fs.writeFileSync(outputPath, JSON.stringify(finalTokens, null, 2) + '\n')
 
   console.log(
     'Panda tokens transformed successfully! Output written to:',
