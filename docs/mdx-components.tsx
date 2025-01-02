@@ -1,4 +1,4 @@
-import { ComponentPropsWithoutRef } from 'react'
+import type { ComponentPropsWithoutRef } from 'react'
 
 import { Link } from 'next-view-transitions'
 
@@ -11,11 +11,12 @@ import {
   type HeadingProps,
   Text,
   type TextProps,
-  View
+  View,
+  type ViewProps
 } from '@oztix/roadie-components'
 import { css } from '@oztix/roadie-core/css'
 
-type ListProps = ComponentPropsWithoutRef<'ul'>
+type ListProps = ViewProps
 type AnchorProps = ComponentPropsWithoutRef<'a'>
 type BlockquoteProps = ComponentPropsWithoutRef<'blockquote'>
 

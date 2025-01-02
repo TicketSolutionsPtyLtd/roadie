@@ -1,8 +1,9 @@
 'use client'
 
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-import { Footer } from './Footer'
+import { Text, View } from '@oztix/roadie-components'
 
 interface NavItem {
   title: string
@@ -33,5 +34,48 @@ export function FooterNav({ items }: FooterNavProps) {
   const prev = currentIndex > 0 ? flatNav[currentIndex - 1] : undefined
   const next = currentIndex < flatNav.length - 1 ? flatNav[currentIndex + 1] : undefined
 
-  return <Footer prev={prev} next={next} />
+  if (!prev && !next) return null
+
+  return (
+    <View
+      pt='600'
+      borderTopWidth='1px'
+      borderColor='border'
+      display='flex'
+      justifyContent='space-between'
+      flexDirection='row'
+      width='full'
+    >
+      {prev && (
+        <View
+          as={Link}
+          href={prev.href}
+          gap='100'
+          textDecoration='none'
+          _hover={{ textDecoration: 'underline' }}
+        >
+          <Text fontSize='sm' color='fg.subtle'>
+            Previous page
+          </Text>
+          <Text color='fg.accent'>← {prev.title}</Text>
+        </View>
+      )}
+      {next && (
+        <View
+          as={Link}
+          href={next.href}
+          gap='100'
+          textDecoration='none'
+          marginLeft='auto'
+          textAlign='right'
+          _hover={{ textDecoration: 'underline' }}
+        >
+          <Text fontSize='sm' color='fg.subtle'>
+            Next page
+          </Text>
+          <Text color='fg.accent'>{next.title} →</Text>
+        </View>
+      )}
+    </View>
+  )
 }

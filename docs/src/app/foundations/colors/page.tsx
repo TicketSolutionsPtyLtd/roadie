@@ -49,7 +49,6 @@ function ColorSwatch({
   description?: string
   appearance?: 'semantic' | 'base'
 }) {
-  const colorVarName = '--color-swatch'
   return (
     <View
       gap={appearance === 'semantic' ? '200' : '100'}
@@ -57,10 +56,12 @@ function ColorSwatch({
       flexDirection={appearance === 'semantic' ? 'row' : 'column'}
     >
       <View
-        style={{
-          [colorVarName]: `var(--colors-${colorValueConformed(color)})`
-        }}
-        backgroundColor={`var(${colorVarName})`}
+        style={
+          {
+            '--color-swatch': `var(--colors-${colorValueConformed(color)})`
+          } as React.CSSProperties
+        }
+        backgroundColor='var(--color-swatch)'
         height={appearance === 'semantic' ? '1000' : '600'}
         width={appearance === 'semantic' ? '1000' : '600'}
         borderRadius='100'
@@ -187,7 +188,7 @@ function ColorPalette({
       </View>
       <View gap='200'>
         {opaqueColors.length > 0 && (
-          <View gap='100' flexDirection='row' wrap='wrap'>
+          <View gap='100' flexDirection='row' flexWrap='wrap'>
             {opaqueColors.map(([shade, value]) => {
               const isNestedColors = (v: unknown): v is { [key: string]: TokenValue } =>
                 typeof v === 'object' && v !== null && !('$value' in v)
@@ -215,7 +216,7 @@ function ColorPalette({
 
         {/* Only render transparent colors if they exist */}
         {transparentColors.length > 0 && (
-          <View gap='100' flexDirection='row' wrap='wrap'>
+          <View gap='100' flexDirection='row' flexWrap='wrap'>
             {transparentColors.map(([shade]) => {
               const path = parentPath ? `${parentPath}.${title}.${shade}` : `${title}.${shade}`
               const colorValue = path.endsWith('.default') ? path.slice(0, -8) : path
