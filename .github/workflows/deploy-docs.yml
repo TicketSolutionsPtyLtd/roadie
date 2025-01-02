@@ -35,6 +35,9 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
+      - name: Build core package
+        run: pnpm --filter @oztix/roadie-core build
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
