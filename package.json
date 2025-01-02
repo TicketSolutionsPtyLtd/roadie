@@ -17,7 +17,8 @@
     "changeset:version": "changeset version",
     "changeset:publish": "changeset publish",
     "prepare": "turbo run prepare",
-    "postinstall": "turbo run build --filter=@oztix/roadie-core && husky"
+    "postinstall": "turbo run build --filter=@oztix/roadie-core && husky",
+    "typecheck": "turbo typecheck"
   },
   "devDependencies": {
     "@changesets/cli": "2.27.11",
