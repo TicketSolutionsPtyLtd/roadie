@@ -1,12 +1,12 @@
-import { render, screen } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { View } from './index'
 
 describe('View', () => {
   it('renders with default props', () => {
-    render(<View data-testid='view'>Content</View>)
-    const view = screen.getByTestId('view')
+    const { getByTestId } = render(<View data-testid='view'>Content</View>)
+    const view = getByTestId('view')
     expect(view).toBeInTheDocument()
     expect(view.tagName.toLowerCase()).toBe('div')
     expect(view).toHaveClass(
@@ -31,12 +31,12 @@ describe('View', () => {
     ]
 
     elements.forEach((element) => {
-      const { rerender } = render(
+      const { rerender, getByTestId } = render(
         <View as={element} data-testid='view'>
           {element} content
         </View>
       )
-      const view = screen.getByTestId('view')
+      const view = getByTestId('view')
       expect(view.tagName.toLowerCase()).toBe(element)
       expect(view).toHaveClass(
         'd_flex',
@@ -54,7 +54,7 @@ describe('View', () => {
   })
 
   it('applies layout properties', () => {
-    render(
+    const { getByTestId } = render(
       <View
         data-testid='view'
         display='inline-flex'
@@ -68,7 +68,7 @@ describe('View', () => {
         Styled View
       </View>
     )
-    const view = screen.getByTestId('view')
+    const view = getByTestId('view')
     expect(view).toHaveClass(
       'd_inline-flex',
       'pos_absolute',
@@ -83,7 +83,7 @@ describe('View', () => {
   })
 
   it('applies custom styles and attributes', () => {
-    render(
+    const { getByTestId } = render(
       <View
         data-testid='view'
         backgroundColor='bg.subtle'
@@ -94,20 +94,20 @@ describe('View', () => {
         Custom View
       </View>
     )
-    const view = screen.getByTestId('view')
+    const view = getByTestId('view')
     expect(view).toHaveClass('bg-c_bg.subtle', 'p_200')
     expect(view).toHaveAttribute('title', 'tooltip')
     expect(view).toHaveAttribute('aria-label', 'Accessible view')
   })
 
   it('renders nested views', () => {
-    render(
+    const { getByTestId } = render(
       <View data-testid='parent'>
         <View data-testid='child'>Nested Content</View>
       </View>
     )
-    const parent = screen.getByTestId('parent')
-    const child = screen.getByTestId('child')
+    const parent = getByTestId('parent')
+    const child = getByTestId('child')
     expect(parent).toContainElement(child)
     expect(child).toHaveTextContent('Nested Content')
     expect(parent).toHaveClass(
@@ -135,7 +135,7 @@ describe('View', () => {
   })
 
   it('combines multiple props', () => {
-    render(
+    const { getByTestId } = render(
       <View
         as='section'
         display='grid'
@@ -148,7 +148,7 @@ describe('View', () => {
         Combined styles
       </View>
     )
-    const view = screen.getByTestId('view')
+    const view = getByTestId('view')
     expect(view.tagName.toLowerCase()).toBe('section')
     expect(view).toHaveClass('d_grid', 'gap_200', 'p_400', 'bg-c_bg.subtle', 'custom-class')
   })

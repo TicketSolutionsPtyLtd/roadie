@@ -1,12 +1,12 @@
-import { render, screen } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { Heading } from './index'
 
 describe('Heading', () => {
   it('renders with default props', () => {
-    render(<Heading>Hello World</Heading>)
-    const heading = screen.getByText('Hello World')
+    const { getByText } = render(<Heading>Hello World</Heading>)
+    const heading = getByText('Hello World')
     expect(heading).toBeInTheDocument()
     expect(heading.tagName.toLowerCase()).toBe('h2')
     expect(heading).toHaveClass('textStyle_display.ui')
@@ -23,8 +23,8 @@ describe('Heading', () => {
     ]
 
     levels.forEach((level) => {
-      const { rerender } = render(<Heading as={level}>{level} Heading</Heading>)
-      const heading = screen.getByText(`${level} Heading`)
+      const { rerender, getByText } = render(<Heading as={level}>{level} Heading</Heading>)
+      const heading = getByText(`${level} Heading`)
       expect(heading).toBeInTheDocument()
       expect(heading.tagName.toLowerCase()).toBe(level)
       expect(heading).toHaveClass('textStyle_display.ui')
@@ -33,13 +33,13 @@ describe('Heading', () => {
   })
 
   it('applies text style', () => {
-    render(<Heading textStyle='display.ui.1'>Large Heading</Heading>)
-    const heading = screen.getByText('Large Heading')
+    const { getByText } = render(<Heading textStyle='display.ui.1'>Large Heading</Heading>)
+    const heading = getByText('Large Heading')
     expect(heading).toHaveClass('textStyle_display.ui.1')
   })
 
   it('inherits Text props', () => {
-    render(
+    const { getByTestId } = render(
       <Heading
         color='fg.subtle'
         data-testid='heading'
@@ -49,33 +49,28 @@ describe('Heading', () => {
         Styled Heading
       </Heading>
     )
-    const heading = screen.getByTestId('heading')
+    const heading = getByTestId('heading')
     expect(heading).toHaveClass('textStyle_display.ui', 'c_fg.subtle')
     expect(heading).toHaveAttribute('title', 'tooltip')
     expect(heading).toHaveAttribute('aria-label', 'Accessible heading')
   })
 
   it('applies line clamp', () => {
-    render(<Heading lineClamp={2}>Multi-line heading that should be clamped</Heading>)
-    const heading = screen.getByText('Multi-line heading that should be clamped')
+    const { getByText } = render(
+      <Heading lineClamp={2}>Multi-line heading that should be clamped</Heading>
+    )
+    const heading = getByText('Multi-line heading that should be clamped')
     expect(heading).toHaveClass('lc_2')
   })
 
   it('combines multiple props', () => {
-    render(
+    const { getByText } = render(
       <Heading as='h1' textStyle='display.ui.1' color='fg.accent' className='custom-class'>
         Combined styles
       </Heading>
     )
-    const heading = screen.getByText('Combined styles')
+    const heading = getByText('Combined styles')
     expect(heading.tagName.toLowerCase()).toBe('h1')
-    expect(heading).toHaveClass(
-      // Text style
-      'textStyle_display.ui.1',
-      // Color
-      'c_fg.accent',
-      // Custom class
-      'custom-class'
-    )
+    expect(heading).toHaveClass('textStyle_display.ui.1', 'c_fg.accent', 'custom-class')
   })
 })

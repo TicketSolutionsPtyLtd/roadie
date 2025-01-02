@@ -1,13 +1,13 @@
-import { render, screen } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { Button } from './index'
+import { Button } from '.'
 
 describe('Button', () => {
   it('renders with default props', () => {
-    render(<Button>Click me</Button>)
-    const button = screen.getByText('Click me')
+    const { getByText } = render(<Button>Click me</Button>)
+    const button = getByText('Click me')
     expect(button).toBeInTheDocument()
     expect(button.tagName.toLowerCase()).toBe('button')
     expect(button).toHaveClass(
@@ -40,8 +40,8 @@ describe('Button', () => {
   })
 
   it('renders with different appearances', () => {
-    const { rerender } = render(<Button appearance='solid'>Solid</Button>)
-    let button = screen.getByText('Solid')
+    const { rerender, getByText } = render(<Button appearance='solid'>Solid</Button>)
+    let button = getByText('Solid')
     expect(button).toHaveClass(
       'c_fg.subtle',
       'bd-c_border.subtle',
@@ -51,7 +51,7 @@ describe('Button', () => {
     )
 
     rerender(<Button appearance='outline'>Outline</Button>)
-    button = screen.getByText('Outline')
+    button = getByText('Outline')
     expect(button).toHaveClass(
       'd_inline-flex',
       'ai_center',
@@ -85,7 +85,7 @@ describe('Button', () => {
     )
 
     rerender(<Button appearance='ghost'>Ghost</Button>)
-    button = screen.getByText('Ghost')
+    button = getByText('Ghost')
     expect(button).toHaveClass(
       'd_inline-flex',
       'ai_center',
@@ -118,8 +118,8 @@ describe('Button', () => {
   })
 
   it('renders with different sizes', () => {
-    const { rerender } = render(<Button size='sm'>Small</Button>)
-    let button = screen.getByText('Small')
+    const { rerender, getByText } = render(<Button size='sm'>Small</Button>)
+    let button = getByText('Small')
     expect(button).toHaveClass(
       'd_inline-flex',
       'ai_center',
@@ -149,7 +149,7 @@ describe('Button', () => {
     )
 
     rerender(<Button size='md'>Medium</Button>)
-    button = screen.getByText('Medium')
+    button = getByText('Medium')
     expect(button).toHaveClass(
       'd_inline-flex',
       'ai_center',
@@ -179,7 +179,7 @@ describe('Button', () => {
     )
 
     rerender(<Button size='lg'>Large</Button>)
-    button = screen.getByText('Large')
+    button = getByText('Large')
     expect(button).toHaveClass(
       'd_inline-flex',
       'ai_center',
@@ -210,8 +210,8 @@ describe('Button', () => {
   })
 
   it('renders with different emphasis', () => {
-    const { rerender } = render(<Button emphasis='subtle'>Subtle</Button>)
-    let button = screen.getByText('Subtle')
+    const { rerender, getByText } = render(<Button emphasis='subtle'>Subtle</Button>)
+    let button = getByText('Subtle')
     expect(button).toHaveClass('c_fg.subtle')
 
     rerender(
@@ -219,7 +219,7 @@ describe('Button', () => {
         Accent
       </Button>
     )
-    button = screen.getByText('Accent')
+    button = getByText('Accent')
     expect(button).toHaveClass(
       'd_inline-flex',
       'ai_center',
@@ -253,7 +253,7 @@ describe('Button', () => {
         Success
       </Button>
     )
-    button = screen.getByText('Success')
+    button = getByText('Success')
     expect(button).toHaveClass(
       'bg-c_bg.success.bold',
       'c_fg.success.inverse',
@@ -267,7 +267,7 @@ describe('Button', () => {
         Warning
       </Button>
     )
-    button = screen.getByText('Warning')
+    button = getByText('Warning')
     expect(button).toHaveClass(
       'bg-c_bg.warning.bold',
       'c_fg.warning.inverse',
@@ -281,7 +281,7 @@ describe('Button', () => {
         Danger
       </Button>
     )
-    button = screen.getByText('Danger')
+    button = getByText('Danger')
     expect(button).toHaveClass(
       'bg-c_bg.danger.bold',
       'c_fg.danger.inverse',
@@ -292,8 +292,8 @@ describe('Button', () => {
   })
 
   it('handles disabled state', () => {
-    render(<Button isDisabled>Disabled</Button>)
-    const button = screen.getByText('Disabled')
+    const { getByText } = render(<Button isDisabled>Disabled</Button>)
+    const button = getByText('Disabled')
     expect(button).toBeDisabled()
     expect(button).toHaveClass(
       'disabled:op_0.4',
@@ -307,8 +307,8 @@ describe('Button', () => {
     const handlePress = vi.fn()
     const user = userEvent.setup()
 
-    render(<Button onPress={handlePress}>Click me</Button>)
-    const button = screen.getByText('Click me')
+    const { getByText } = render(<Button onPress={handlePress}>Click me</Button>)
+    const button = getByText('Click me')
 
     await user.click(button)
     expect(handlePress).toHaveBeenCalledTimes(1)
@@ -318,30 +318,30 @@ describe('Button', () => {
     const handlePress = vi.fn()
     const user = userEvent.setup()
 
-    render(
+    const { getByText } = render(
       <Button isDisabled onPress={handlePress}>
         Click me
       </Button>
     )
-    const button = screen.getByText('Click me')
+    const button = getByText('Click me')
 
     await user.click(button)
     expect(handlePress).not.toHaveBeenCalled()
   })
 
   it('applies custom className', () => {
-    render(<Button className='custom-class'>Custom</Button>)
-    const button = screen.getByText('Custom')
+    const { getByText } = render(<Button className='custom-class'>Custom</Button>)
+    const button = getByText('Custom')
     expect(button).toHaveClass('custom-class')
   })
 
   it('combines multiple props', () => {
-    render(
+    const { getByText } = render(
       <Button appearance='solid' size='lg' emphasis='accent' className='custom-class'>
         Combined
       </Button>
     )
-    const button = screen.getByText('Combined')
+    const button = getByText('Combined')
     expect(button).toHaveClass(
       // Base classes
       'd_inline-flex',
