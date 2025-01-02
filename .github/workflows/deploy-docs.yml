@@ -3,6 +3,10 @@ name: Deploy Docs to GitHub Pages
 on:
   push:
     branches: ['main']
+    paths:
+      - 'packages/**'
+      - 'docs/**'
+      - 'pnpm-lock.yaml'
   workflow_dispatch:
 
 permissions:
@@ -12,18 +16,28 @@ permissions:
 
 concurrency:
   group: 'pages'
-  cancel-in-progress: false
+  cancel-in-progress: true
+
+env:
+  NEXT_TELEMETRY_DISABLED: 1
+  NODE_ENV: production
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '22.12.0'
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
 
       - name: Enable Corepack
         run: corepack enable
@@ -31,18 +45,41 @@ jobs:
       - uses: pnpm/action-setup@v2
         with:
           version: 9.15.0
+          run_install: false
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Build core package
-        run: pnpm --filter @oztix/roadie-core build
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: $(pnpm store path)
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build with Turbo
+      - name: Setup Turbo cache
+        uses: actions/cache@v3
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type check
+        run: pnpm type-check
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Build packages
         run: pnpm build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
 
       - name: Prepare docs
         run: |
@@ -54,6 +91,13 @@ jobs:
         with:
           path: docs/out
 
+      - name: Upload Turbo cache
+        uses: actions/cache/save@v3
+        if: always()
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+
   deploy:
     environment:
       name: github-pages
@@ -61,6 +105,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     name: Deploy
+    timeout-minutes: 5
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
