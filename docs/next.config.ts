@@ -3,7 +3,7 @@ import type { NextConfig } from 'next'
 import createMDX from '@next/mdx'
 
 const isGithubPages = process.env.GITHUB_ACTIONS === 'true'
-const repoName = 'Roadie'
+const repoName = 'roadie'
 
 const nextConfig: NextConfig = {
   pageExtensions: ['mdx', 'ts', 'tsx'],
