@@ -1,4 +1,26 @@
+# Dependencies
 node_modules
+**/node_modules/**
+
+# Build outputs
 .next
+**/.next/**
+dist
 **/dist/**
-packages/*/dist/ 
+build
+**/build/**
+out
+**/out/**
+.turbo
+
+# Generated files
+*.d.ts
+*.js.map
+.tsbuildinfo
+**/.tsbuildinfo
+
+# Cache
+.cache
+**/.cache/**
+
+packages/*/dist/
