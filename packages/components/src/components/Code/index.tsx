@@ -1,37 +1,43 @@
-import type { TextProps } from '../Text'
-import { Text } from '../Text'
+import React from 'react'
 
-type CodeElement = 'code'
+import type { HTMLStyledProps } from '@oztix/roadie-core/jsx'
+import { styled } from '@oztix/roadie-core/jsx'
+import type { JsxStyleProps } from '@oztix/roadie-core/types'
 
 /**
- * Props for the Code component
- * @extends {TextProps}
+ * A code component that inherits from Text and renders as a code element
  */
-export interface CodeProps extends Omit<TextProps<CodeElement>, 'as'> {
+export interface CodeProps extends HTMLStyledProps<'code'>, JsxStyleProps {
   /**
-   * The visual style of the code block
+   * The appearance of the code block
    * @default 'outline'
    */
   appearance?: 'outline' | 'ghost'
 }
 
-/**
- * Code component for displaying code in a monospace font.
- */
-export const Code = ({ appearance = 'outline', ...props }: CodeProps) => {
-  return (
-    <Text
-      as='code'
-      fontSize='sm'
-      backgroundColor='bg.subtle'
-      textStyle='code'
-      px='050'
-      borderRadius='050'
-      border='1px solid'
-      borderColor={appearance === 'outline' ? 'border.subtlest' : 'transparent'}
-      {...props}
-    />
-  )
-}
+const StyledCode = styled('code', {
+  base: {
+    backgroundColor: 'bg.subtle',
+    textStyle: 'code',
+    px: '050',
+    borderRadius: '050',
+    border: '1px solid'
+  },
+  variants: {
+    appearance: {
+      outline: {
+        borderColor: 'border.subtlest'
+      },
+      ghost: {
+        borderColor: 'transparent'
+      }
+    }
+  },
+  defaultVariants: {
+    appearance: 'outline'
+  }
+})
+
+export const Code = StyledCode as React.ForwardRefExoticComponent<CodeProps>
 
 Code.displayName = 'Code'

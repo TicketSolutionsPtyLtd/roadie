@@ -1,11 +1,15 @@
-import type { JsxStyleProps } from '@oztix/roadie-core/types'
+import React from 'react'
 
-import type { TextProps } from '../Text'
-import { Text } from '../Text'
+import type { HTMLStyledProps } from '@oztix/roadie-core/jsx'
+import { styled } from '@oztix/roadie-core/jsx'
+import type { JsxStyleProps } from '@oztix/roadie-core/types'
 
 type HeadingLevel = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
 
-export interface HeadingProps extends TextProps {
+/**
+ * A heading component that uses display styles for titles and section headers
+ */
+export interface HeadingProps extends HTMLStyledProps<'h2'>, JsxStyleProps {
   /**
    * The heading level to render
    * @default 'h2'
@@ -13,16 +17,17 @@ export interface HeadingProps extends TextProps {
   as?: HeadingLevel
   /**
    * The text style to use for the heading
-   * @default 'display'
+   * @default 'display.ui'
    */
   textStyle?: Extract<JsxStyleProps['textStyle'], 'display' | `display${string}`>
 }
 
-/**
- * A heading component that uses display styles for titles and section headers
- */
-export const Heading = ({ as = 'h2', textStyle = 'display.ui', ...props }: HeadingProps) => {
-  return <Text as={as} textStyle={textStyle} {...props} />
-}
+const StyledHeading = styled('h2', {
+  base: {
+    textStyle: 'display.ui'
+  }
+})
+
+export const Heading = StyledHeading as React.ForwardRefExoticComponent<HeadingProps>
 
 Heading.displayName = 'Heading'
