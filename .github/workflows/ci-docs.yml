@@ -4,9 +4,11 @@ on:
   push:
     branches: ['main']
     paths:
-      - 'packages/**'
+      - 'packages/core/**'
+      - 'packages/components/**'
       - 'docs/**'
       - 'pnpm-lock.yaml'
+      - '.github/workflows/**'
   workflow_dispatch:
 
 permissions:
@@ -20,7 +22,6 @@ concurrency:
 
 env:
   NEXT_TELEMETRY_DISABLED: 1
-  PNPM_HOME: /root/setup-pnpm/node_modules/.bin
   NODE_OPTIONS: --max-old-space-size=4096
 
 jobs:
@@ -29,132 +30,115 @@ jobs:
     outputs:
       cache-key: ${{ steps.get-cache-key.outputs.key }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          sparse-checkout: |
+            pnpm-lock.yaml
+            package.json
+            .nvmrc
 
       - uses: pnpm/action-setup@v2
-        name: Install pnpm
         with:
+          version: 9
           run_install: false
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
 
-      - name: Get cache key
-        id: get-cache-key
-        run: echo "key=${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}" >> $GITHUB_OUTPUT
+      - id: get-cache-key
+        run: |
+          echo "key=${{ runner.os }}-node-${{ hashFiles('**/pnpm-lock.yaml', '**/package.json') }}" >> $GITHUB_OUTPUT
 
-      - name: Cache workspace
-        id: workspace-cache
-        uses: actions/cache@v3
+      - uses: actions/cache@v3
+        id: deps-cache
         with:
           path: |
-            ./*
+            node_modules
+            packages/*/node_modules
+            docs/node_modules
             ~/.cache/Cypress
-            ~/.pnpm-store
-          key: workspace-${{ steps.get-cache-key.outputs.key }}
-
-      - name: Install dependencies
-        if: steps.workspace-cache.outputs.cache-hit != 'true'
-        run: pnpm install --frozen-lockfile --include-workspace-root
-
-      - name: Setup Turbo cache
-        uses: actions/cache@v3
-        with:
-          path: .turbo
-          key: turbo-${{ steps.get-cache-key.outputs.key }}
+          key: ${{ steps.get-cache-key.outputs.key }}
           restore-keys: |
-            turbo-${{ runner.os }}-
+            ${{ runner.os }}-node-
+
+      - if: steps.deps-cache.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile
 
   validate:
     needs: setup
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        task: ['lint', 'typecheck', 'test']
+      fail-fast: false
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
+      - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v2
-        name: Install pnpm
         with:
+          version: 9
           run_install: false
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
 
-      - name: Restore workspace
-        uses: actions/cache/restore@v3
+      - uses: actions/cache/restore@v3
         with:
           path: |
+            node_modules
+            packages/*/node_modules
+            docs/node_modules
             ~/.cache/Cypress
-            ~/.pnpm-store
-          key: workspace-${{ needs.setup.outputs.cache-key }}
+          key: ${{ needs.setup.outputs.cache-key }}
           fail-on-cache-miss: true
 
-      - name: Restore Turbo cache
-        uses: actions/cache/restore@v3
+      - uses: actions/cache/restore@v3
         with:
           path: .turbo
-          key: turbo-${{ needs.setup.outputs.cache-key }}
+          key: turbo-${{ matrix.task }}-${{ needs.setup.outputs.cache-key }}
 
-      - name: Link workspace
-        run: pnpm install --frozen-lockfile --offline
+      - run: pnpm ${{ matrix.task }}
 
-      - name: Lint
-        run: pnpm lint
-
-      - name: Type check
-        run: pnpm typecheck
-
-      - name: Run tests
-        run: pnpm test
+      - if: always()
+        uses: actions/cache/save@v3
+        with:
+          path: .turbo
+          key: turbo-${{ matrix.task }}-${{ needs.setup.outputs.cache-key }}
 
   build-packages:
-    needs: [setup, validate]
+    needs: setup
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
+      - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v2
-        name: Install pnpm
         with:
+          version: 9
           run_install: false
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
 
-      - name: Restore workspace
-        uses: actions/cache/restore@v3
+      - uses: actions/cache/restore@v3
         with:
           path: |
+            node_modules
+            packages/*/node_modules
+            docs/node_modules
             ~/.cache/Cypress
-            ~/.pnpm-store
-          key: workspace-${{ needs.setup.outputs.cache-key }}
+          key: ${{ needs.setup.outputs.cache-key }}
           fail-on-cache-miss: true
 
-      - name: Restore Turbo cache
-        uses: actions/cache/restore@v3
+      - uses: actions/cache/restore@v3
         with:
           path: .turbo
-          key: turbo-${{ needs.setup.outputs.cache-key }}
-
-      - name: Link workspace
-        run: pnpm install --frozen-lockfile --offline
+          key: turbo-build-${{ needs.setup.outputs.cache-key }}
 
       - name: Build packages
         run: pnpm build
@@ -166,6 +150,15 @@ jobs:
           path: .turbo
           key: turbo-${{ needs.setup.outputs.cache-key }}
 
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: |
+            packages/*/dist
+            docs/out
+          retention-days: 1
+
   deploy-docs:
     needs: [setup, build-packages]
     environment:
@@ -173,33 +166,11 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
         with:
-          fetch-depth: 2
-
-      - uses: pnpm/action-setup@v2
-        name: Install pnpm
-        with:
-          run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-
-      - name: Restore workspace
-        uses: actions/cache/restore@v3
-        with:
-          path: |
-            ~/.cache/Cypress
-            ~/.pnpm-store
-          key: workspace-${{ needs.setup.outputs.cache-key }}
-          fail-on-cache-miss: true
-
-      - name: Link workspace
-        run: pnpm install --frozen-lockfile --offline
+          name: dist
+          path: .
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
