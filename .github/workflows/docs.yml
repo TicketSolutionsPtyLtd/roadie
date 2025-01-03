@@ -1,26 +1,28 @@
-name: Documentation
+name: Docs
 
 on:
   push:
-    branches: ['main']
+    branches:
+      - main
     paths:
       - 'docs/**'
-    paths-ignore:
-      - 'packages/**'
+      - 'packages/core/**'
+      - 'packages/components/src/**'
 
 # Allow only one docs deployment at a time
 concurrency:
   group: 'pages'
   cancel-in-progress: true
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 jobs:
-  build-docs:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -39,8 +41,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build docs
-        run: pnpm --filter docs build
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Build packages and docs
+        run: pnpm build
         env:
           NEXT_PUBLIC_BASE_PATH: /roadie
 
@@ -48,16 +53,6 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: docs/out
-
-  deploy-docs:
-    needs: [build-docs]
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
 
       - name: Deploy to GitHub Pages
         id: deployment
