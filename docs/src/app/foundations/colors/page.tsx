@@ -1,4 +1,4 @@
-import { Code, Text, View } from '@oztix/roadie-components'
+import { Code, Heading, Text, View } from '@oztix/roadie-components'
 import { semanticTokens, tokens } from '@oztix/roadie-core'
 
 export const metadata = {
@@ -96,7 +96,8 @@ function SemanticColorList({
   const colorEntries = Object.entries(colors).filter(([key]) => !key.startsWith('$'))
 
   const headingElement = `h${Math.min(depth, 6)}` as 'h3' | 'h4' | 'h5' | 'h6'
-  const fontSize = depth === 3 ? '2xl' : depth === 4 ? 'xl' : 'lg'
+  const textStyle =
+    depth === 3 ? 'display.prose.3' : depth === 4 ? 'display.prose.4' : 'display.prose.5'
   const ViewGap = depth === 3 ? '800' : depth === 4 ? '600' : '300'
 
   const hasOnlyTokenValues = colorEntries.every(
@@ -108,11 +109,11 @@ function SemanticColorList({
   return (
     <View gap='200'>
       <View gap='100'>
-        <Text as={headingElement} fontSize={fontSize} fontWeight='semibold'>
+        <Heading as={headingElement} textStyle={textStyle}>
           {convertToTitle(title)}
-        </Text>
+        </Heading>
         {description && (
-          <Text fontSize='lg' color='fg.subtle'>
+          <Text textStyle='prose.lead' color='fg.subtle'>
             {description}
           </Text>
         )}

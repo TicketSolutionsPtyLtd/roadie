@@ -1,11 +1,13 @@
 export const metadata = {
   title: 'Getting started',
-  description: 'Learn how to set up and start using the Roadie Design System in your project'
+  description:
+    'Learn how to set up and start using the Roadie Design System in your project'
 }
 
 # Getting started
 
-This guide will help you set up and start using the Roadie Design System in your project.
+This guide will help you set up and start using the Roadie Design
+System in your project.
 
 ## Installation
 
@@ -22,8 +24,9 @@ pnpm add @oztix/roadie-core @oztix/roadie-components
 Create a `panda.config.ts` file in your project root:
 
 ```ts
-import { roadie } from '@oztix/roadie-core/presets'
 import { defineConfig } from '@pandacss/dev'
+
+import { roadie } from '@oztix/roadie-core/presets'
 
 export default defineConfig({
   presets: [roadie],
@@ -102,7 +105,7 @@ import { View } from '@oztix/roadie-core/jsx'
 
 function MyComponent() {
   return (
-    <View gap="400" flexDirection="column">
+    <View gap='400'>
       <div>Item 1</div>
       <div>Item 2</div>
     </View>
@@ -124,4 +127,4 @@ The Roadie Design System includes:
 ## Next steps
 
 - Browse our [Components](/components) to see what's available
-- Learn about our [Design Tokens](/foundations/tokens) and how to use them
+- Learn about our [Design Tokens](/tokens) and how to use them

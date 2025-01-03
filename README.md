@@ -65,3 +65,20 @@ If you're making changes, please read our [contributing guidelines](CONTRIBUTING
 ## License
 
 ISC © Ticket Solutions Pty Ltd
+
+## Tech Stack
+
+- Package Manager: pnpm@9.15.0
+- Build System: Turborepo
+- Framework: React (using react-aria-components)
+- Styling: PandaCSS
+- Language: TypeScript
+- Documentation: Next.js with MDX
+
+## Key Dependencies
+
+- React v19.0.0
+- Next.js v15.0.0
+- PandaCSS v0.48+
+- react-aria-components v1.0.0
+- TypeScript v5.x
