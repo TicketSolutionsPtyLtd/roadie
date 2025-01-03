@@ -119,37 +119,53 @@ Ensure your changes pass:
 
 ## Versioning and Releases
 
-We use [changesets](https://github.com/changesets/changesets) to manage versioning and releases. Follow these steps when making changes:
+We use [changesets](https://github.com/changesets/changesets) to manage versioning and releases. The process is automated through GitHub Actions:
 
-1. Make your changes in a feature branch
-2. Run `pnpm changeset` to create a changeset
-3. Follow the prompts to:
-   - Select which packages are affected
-   - Choose the type of change (major/minor/patch)
+1. Create a changeset in your feature branch:
+
+   ```bash
+   pnpm changeset
+   ```
+
+   - Select affected packages
+   - Choose change type (major/minor/patch)
    - Write a description of your changes
-4. Commit the generated changeset file with your changes
-5. Create your pull request
 
-The changeset should include:
+2. Commit the changeset with your changes:
 
-- What changes were made
-- Why the changes were made
-- Any migration steps required
+   ```bash
+   git add .
+   git commit -m "feat: your feature description"
+   ```
+
+3. Create and merge your pull request
+   - CI will validate your changes
+   - Get required reviews
+   - When merged to main:
+     - Packages are automatically versioned
+     - GitHub release is created
+     - Packages are published to npm
+     - Documentation is rebuilt and deployed
+
+### Documentation Updates
+
+Documentation updates follow two paths:
+
+1. Package-related changes:
+
+   - Docs are automatically rebuilt and deployed after a release
+   - Ensures docs match the latest published version
+
+2. Doc-only changes:
+   - Push changes to main
+   - Docs are automatically deployed
+   - No release process needed
 
 ### Types of Changes
 
-- `major`: Breaking changes that require user action
-- `minor`: New features, non-breaking API additions
-- `patch`: Bug fixes, documentation updates, internal changes
-
-### Release Process
-
-Releases are managed by the maintainers. When changes are ready to be released:
-
-1. Changesets are accumulated on the main branch
-2. Maintainers run the release workflow
-3. Changesets automatically update versions and changelogs
-4. New versions are published to the registry
+- `major` (1.0.0): Breaking changes that require user action
+- `minor` (0.1.0): New features, non-breaking API additions
+- `patch` (0.0.1): Bug fixes, documentation updates, internal changes
 
 ## Style Guide
 
