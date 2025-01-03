@@ -150,7 +150,7 @@ async function getNavigationItems() {
   const navigationItems = [
     {
       title: 'Overview',
-      href: '/overview',
+      href: '/',
       items: [
         indexMetadata
           ? { title: indexMetadata.title, href: '/' }
