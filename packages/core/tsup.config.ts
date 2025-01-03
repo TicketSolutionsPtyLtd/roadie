@@ -1,6 +1,6 @@
 import { defineConfig } from 'tsup'
 
-export default defineConfig({
+export default defineConfig(({ watch }) => ({
   entry: {
     index: './src/index.ts',
     'presets/index': './src/presets/index.ts'
@@ -8,7 +8,7 @@ export default defineConfig({
   splitting: false,
   format: ['esm', 'cjs'],
   dts: true,
-  clean: true,
+  clean: !watch,
   bundle: true,
   external: ['@pandacss/dev', 'react', 'react-dom'],
   noExternal: ['@pandacss/dev'],
@@ -16,4 +16,4 @@ export default defineConfig({
   outExtension: ({ format }) => ({
     js: format === 'esm' ? '.mjs' : '.js'
   })
-})
+}))
