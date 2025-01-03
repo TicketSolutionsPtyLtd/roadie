@@ -1,6 +1,6 @@
 {
   "name": "@oztix/roadie-components",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The components for Roadie Design System at Oztix",
   "type": "module",
   "main": "./dist/index.js",
