@@ -1,6 +1,6 @@
 {
   "name": "@oztix/roadie-core",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "The design tokens and styled system for Roadie Design System at Oztix",
   "type": "module",
   "main": "./dist/index.js",
@@ -9,6 +9,9 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "clean": "rm -rf node_modules dist",
     "build": "tsup && pnpm build:panda",

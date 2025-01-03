@@ -1,6 +1,6 @@
 {
   "name": "@oztix/roadie-components",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "The components for Roadie Design System at Oztix",
   "type": "module",
   "main": "./dist/index.js",
@@ -10,6 +10,9 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "prepare": "panda codegen",
     "build": "tsup",
@@ -31,7 +34,7 @@
     "react-dom": "^19.0.0"
   },
   "dependencies": {
-    "@oztix/roadie-core": "workspace:*",
+    "@oztix/roadie-core": "workspace:^0.1.0",
     "react-aria-components": "1.0.0"
   },
   "devDependencies": {
