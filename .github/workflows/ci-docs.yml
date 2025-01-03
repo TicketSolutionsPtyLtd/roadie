@@ -119,8 +119,10 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            **/.tsbuildinfo
-            **/dist
+            packages/core/.tsbuildinfo
+            packages/components/.tsbuildinfo
+            packages/core/dist
+            packages/components/dist
           key: ${{ runner.os }}-typescript-${{ hashFiles('packages/core/src/**', 'packages/components/src/**') }}
           restore-keys: |
             ${{ runner.os }}-typescript-
@@ -129,7 +131,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            **/roadie-core
+            packages/core/roadie-core
+            docs/roadie-core
           key: ${{ runner.os }}-pandacss-${{ hashFiles('**/panda.config.{js,ts}') }}
           restore-keys: |
             ${{ runner.os }}-pandacss-
