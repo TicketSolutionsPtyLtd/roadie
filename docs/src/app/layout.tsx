@@ -163,7 +163,7 @@ async function getNavigationItems() {
           : { title: 'Getting Started', href: '/overview/getting-started' },
         {
           title: 'Changelog',
-          href: 'https://github.com/ticketsolutionsptyltd/roadie/blob/main/CHANGELOG.md'
+          href: 'https://github.com/ticketsolutionsptyltd/roadie/blob/main/packages/components/CHANGELOG.md'
         }
       ]
     }
