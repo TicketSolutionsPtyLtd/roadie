@@ -4,8 +4,46 @@
   "description": "The design tokens and styled system for Roadie Design System at Oztix",
   "type": "module",
   "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./presets": {
+      "types": "./dist/presets/index.d.ts",
+      "import": "./dist/presets/index.js",
+      "require": "./dist/presets/index.js"
+    },
+    "./css": {
+      "types": "./dist/css/index.d.ts",
+      "require": "./dist/css/index.js",
+      "import": "./dist/css/index.js"
+    },
+    "./tokens": {
+      "types": "./dist/tokens/index.d.ts",
+      "require": "./dist/tokens/index.js",
+      "import": "./dist/tokens/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "require": "./dist/types/index.js",
+      "import": "./dist/types/index.js"
+    },
+    "./patterns": {
+      "types": "./dist/patterns/index.d.ts",
+      "require": "./dist/patterns/index.js",
+      "import": "./dist/patterns/index.js"
+    },
+    "./jsx": {
+      "types": "./dist/jsx/index.d.ts",
+      "require": "./dist/jsx/index.js",
+      "import": "./dist/jsx/index.js"
+    },
+    "./styles.css": "./dist/styles.css"
+  },
   "files": [
     "dist"
   ],
@@ -44,48 +82,5 @@
     "tsup": "8.0.0",
     "typescript": "5.7.2",
     "vitest": "1.6.0"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
-    },
-    "./presets": {
-      "types": "./dist/presets/index.d.ts",
-      "import": "./dist/presets/index.mjs",
-      "require": "./dist/presets/index.js"
-    },
-    "./css": {
-      "types": "./dist/css/index.d.ts",
-      "require": "./dist/css/index.js",
-      "import": "./dist/css/index.js"
-    },
-    "./tokens": {
-      "types": "./dist/tokens/index.d.ts",
-      "require": "./dist/tokens/index.js",
-      "import": "./dist/tokens/index.js"
-    },
-    "./types": {
-      "types": "./dist/types/index.d.ts",
-      "require": "./dist/types/index.js",
-      "import": "./dist/types/index.js"
-    },
-    "./patterns": {
-      "types": "./dist/patterns/index.d.ts",
-      "require": "./dist/patterns/index.js",
-      "import": "./dist/patterns/index.js"
-    },
-    "./jsx": {
-      "types": "./dist/jsx/index.d.ts",
-      "require": "./dist/jsx/index.js",
-      "import": "./dist/jsx/index.js"
-    },
-    "./styles.css": "./dist/styles.css",
-    "./recipes": {
-      "types": "./dist/recipes/index.d.ts",
-      "require": "./dist/recipes/index.mjs",
-      "import": "./dist/recipes/index.mjs"
-    }
   }
 }

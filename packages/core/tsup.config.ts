@@ -6,14 +6,14 @@ export default defineConfig(({ watch }) => ({
     'presets/index': './src/presets/index.ts'
   },
   splitting: false,
-  format: ['esm', 'cjs'],
+  format: ['esm'],
   dts: true,
   clean: !watch,
   bundle: true,
   external: ['@pandacss/dev', 'react', 'react-dom'],
   noExternal: ['@pandacss/dev'],
   ignoreWatch: ['src/tokens/tokens.json', 'src/tokens/semantic-tokens.json'],
-  outExtension: ({ format }) => ({
-    js: format === 'esm' ? '.mjs' : '.js'
+  outExtension: () => ({
+    js: '.js'
   })
 }))
