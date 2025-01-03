@@ -1,8 +1,7 @@
-name: CI & Documentation
+name: CI
 
 on:
   push:
-    branches: ['main']
     paths:
       - 'packages/core/**'
       - 'packages/components/**'
@@ -13,11 +12,9 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: 'pages'
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -141,40 +138,3 @@ jobs:
         run: pnpm build
         env:
           NEXT_PUBLIC_BASE_PATH: /roadie
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        if: success()
-        with:
-          name: build-output
-          path: |
-            packages/*/dist
-            docs/out
-
-  deploy-docs:
-    needs: [build-packages]
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-output
-          path: build-output
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: build-output/docs/out
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
