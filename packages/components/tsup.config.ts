@@ -6,5 +6,8 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  external: ['react', 'react-aria', 'react-dom', '@oztix/roadie-core']
+  target: 'es2022',
+  external: ['react', '@oztix/roadie-core'],
+  splitting: true,
+  treeshake: true
 })
