@@ -8,7 +8,7 @@ package-lock.json
 .env.local
 .env.*.local
 .turbo
-.tsbuildinfo
+*.tsbuildinfo
 **/roadie-core
 
 # Add coverage ignores
