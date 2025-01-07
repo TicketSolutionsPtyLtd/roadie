@@ -31,7 +31,9 @@ describe('Text', () => {
   })
 
   it('applies line clamp prop', () => {
-    const { getByText } = render(<Text lineClamp={2}>Multi-line text that should be clamped</Text>)
+    const { getByText } = render(
+      <Text lineClamp={2}>Multi-line text that should be clamped</Text>
+    )
     const text = getByText('Multi-line text that should be clamped')
     expect(text).toHaveClass('lc_2')
   })
@@ -61,6 +63,10 @@ describe('Text', () => {
       </Text>
     )
     const text = getByText('Styled Text')
-    expect(text).toHaveClass('textStyle_heading.2', 'c_fg.accent', 'custom-class')
+    expect(text).toHaveClass(
+      'textStyle_heading.2',
+      'c_fg.accent',
+      'custom-class'
+    )
   })
 })

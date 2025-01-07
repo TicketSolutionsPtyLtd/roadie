@@ -150,6 +150,12 @@ describe('View', () => {
     )
     const view = getByTestId('view')
     expect(view.tagName.toLowerCase()).toBe('section')
-    expect(view).toHaveClass('d_grid', 'gap_200', 'p_400', 'bg-c_bg.subtle', 'custom-class')
+    expect(view).toHaveClass(
+      'd_grid',
+      'gap_200',
+      'p_400',
+      'bg-c_bg.subtle',
+      'custom-class'
+    )
   })
 })

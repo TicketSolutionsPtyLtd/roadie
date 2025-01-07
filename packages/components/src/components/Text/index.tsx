@@ -26,9 +26,30 @@ export interface TextProps<C extends ElementType = 'span'> {
   textStyle?: JsxStyleProps['textStyle']
   /**
    * The color of the text
-   * @default 'fg'
+   * @default 'neutral'
    */
-  color?: Extract<JsxStyleProps['color'], `fg${string}` | 'fg'>
+  colorPalette?:
+    | 'neutral'
+    | 'accent'
+    | 'brand'
+    | 'information'
+    | 'success'
+    | 'warning'
+    | 'danger'
+  /**
+   * The emphasis of the text
+   * - default: For standard body text and general content
+   * - strong: For text that needs visual emphasis or importance, like headings, key terms or warnings
+   * - subtle: For secondary or supplementary text that should be visually de-emphasized
+   * - muted: For text that should be visually muted, like placeholder text or disabled text
+   * @default 'default'
+   */
+  emphasis?: 'default' | 'strong' | 'subtle' | 'muted'
+  /**
+   * Whether the text is interactive. Adds hover, focus, and active styles. Includes group styles.
+   * @default false
+   */
+  interactive?: boolean
   /**
    * The line clamp of the text. Useful for limiting the number of lines of text in a component.
    * @default 'none'
@@ -41,13 +62,60 @@ export type PolymorphicTextProps<C extends ElementType> = TextProps<C> &
   JsxStyleProps
 
 type TextComponent = {
-  <C extends ElementType = 'span'>(props: PolymorphicTextProps<C>): React.ReactElement | null
+  <C extends ElementType = 'span'>(
+    props: PolymorphicTextProps<C>
+  ): React.ReactElement | null
   displayName?: string
 }
 
 const StyledText = styled('span', {
   base: {
-    textStyle: 'ui'
+    textStyle: 'ui',
+    color: 'colorPalette.fg'
+  },
+  variants: {
+    emphasis: {
+      default: {
+        color: 'colorPalette.fg'
+      },
+      strong: {
+        color: 'colorPalette.fg.strong',
+        fontWeight: 'semibold'
+      },
+      subtle: {
+        color: 'colorPalette.fg.subtle'
+      },
+      muted: {
+        color: 'colorPalette.fg.muted'
+      }
+    },
+    interactive: {
+      true: {
+        cursor: 'pointer',
+        _hover: {
+          color: 'colorPalette.fg.hover'
+        },
+        _focus: {
+          color: 'colorPalette.fg.hover'
+        },
+        _active: {
+          color: 'colorPalette.fg.active'
+        },
+        _groupHover: {
+          color: 'colorPalette.fg.hover'
+        },
+        _groupFocus: {
+          color: 'colorPalette.fg.hover'
+        },
+        _groupActive: {
+          color: 'colorPalette.fg.active'
+        }
+      }
+    }
+  },
+  defaultVariants: {
+    emphasis: 'default',
+    interactive: false
   }
 })
 

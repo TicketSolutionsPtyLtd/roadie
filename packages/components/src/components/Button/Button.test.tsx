@@ -40,7 +40,9 @@ describe('Button', () => {
   })
 
   it('renders with different appearances', () => {
-    const { rerender, getByText } = render(<Button appearance='solid'>Solid</Button>)
+    const { rerender, getByText } = render(
+      <Button appearance='solid'>Solid</Button>
+    )
     let button = getByText('Solid')
     expect(button).toHaveClass(
       'c_fg.subtle',
@@ -210,7 +212,9 @@ describe('Button', () => {
   })
 
   it('renders with different emphasis', () => {
-    const { rerender, getByText } = render(<Button emphasis='subtle'>Subtle</Button>)
+    const { rerender, getByText } = render(
+      <Button emphasis='subtle'>Subtle</Button>
+    )
     let button = getByText('Subtle')
     expect(button).toHaveClass('c_fg.subtle')
 
@@ -307,7 +311,9 @@ describe('Button', () => {
     const handlePress = vi.fn()
     const user = userEvent.setup()
 
-    const { getByText } = render(<Button onPress={handlePress}>Click me</Button>)
+    const { getByText } = render(
+      <Button onPress={handlePress}>Click me</Button>
+    )
     const button = getByText('Click me')
 
     await user.click(button)
@@ -330,14 +336,21 @@ describe('Button', () => {
   })
 
   it('applies custom className', () => {
-    const { getByText } = render(<Button className='custom-class'>Custom</Button>)
+    const { getByText } = render(
+      <Button className='custom-class'>Custom</Button>
+    )
     const button = getByText('Custom')
     expect(button).toHaveClass('custom-class')
   })
 
   it('combines multiple props', () => {
     const { getByText } = render(
-      <Button appearance='solid' size='lg' emphasis='accent' className='custom-class'>
+      <Button
+        appearance='solid'
+        size='lg'
+        emphasis='accent'
+        className='custom-class'
+      >
         Combined
       </Button>
     )

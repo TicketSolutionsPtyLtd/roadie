@@ -76,7 +76,9 @@ export type PolymorphicViewProps<C extends ElementType> = ViewProps<C> &
   JsxStyleProps
 
 type ViewComponent = {
-  <C extends ElementType = 'div'>(props: PolymorphicViewProps<C>): React.ReactElement | null
+  <C extends ElementType = 'div'>(
+    props: PolymorphicViewProps<C>
+  ): React.ReactElement | null
   displayName?: string
 }
 

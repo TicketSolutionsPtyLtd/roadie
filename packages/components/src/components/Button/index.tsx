@@ -1,11 +1,14 @@
-import { Button as AriaButton, type ButtonProps as AriaButtonProps } from 'react-aria-components'
+import {
+  Button as AriaButton,
+  type ButtonProps as AriaButtonProps
+} from 'react-aria-components'
 
 import { cva, cx } from '@oztix/roadie-core/css'
 
 /**
- * Button appearance variants
+ * Button emphasis variants
  */
-type ButtonAppearance = 'solid' | 'outline' | 'ghost'
+type ButtonEmphasis = 'strong' | 'default' | 'subtle' | 'muted'
 
 /**
  * Button size variants
@@ -13,89 +16,125 @@ type ButtonAppearance = 'solid' | 'outline' | 'ghost'
 type ButtonSize = 'sm' | 'md' | 'lg'
 
 /**
- * Button color variants
- */
-type Emphasis = 'subtle' | 'accent' | 'inverse' | 'success' | 'warning' | 'danger'
-
-/**
  * Props for the Button component
  */
 export interface ButtonProps extends Omit<AriaButtonProps, 'className'> {
   /** The visual style of the button */
-  appearance?: ButtonAppearance
+  emphasis?: ButtonEmphasis
   /** The size of the button */
   size?: ButtonSize
-  /** The color of the button */
-  emphasis?: Emphasis
+  /** The color palette to use for the button */
+  colorPalette?:
+    | 'neutral'
+    | 'accent'
+    | 'brand'
+    | 'information'
+    | 'success'
+    | 'warning'
+    | 'danger'
   /** Additional class names to be applied to the button */
   className?: string
 }
 
-const button = cva({
+export const buttonRecipe = cva({
   base: {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'transparent',
     borderRadius: '050',
-    fontWeight: 'semibold',
+    fontWeight: 'medium',
     fontFamily: 'ui',
     cursor: 'pointer',
-    border: '1px solid',
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: 'transparent',
     transition: 'all 0.2s',
+    color: 'colorPalette.fg',
+    _hover: {
+      color: 'colorPalette.fg.hover'
+    },
+    _active: {
+      color: 'colorPalette.fg.active'
+    },
     _disabled: {
       opacity: 0.4,
       cursor: 'not-allowed',
-      backgroundColor: 'bg.disabled',
-      color: 'fg.disabled'
-    },
-    _focus: {
-      outline: 'none'
+      color: 'colorPalette.fg.subtle'
     },
     _focusVisible: {
-      outline: '2px solid',
-      outlineColor: 'border.focused'
+      outlineColor: 'colorPalette.border.strong',
+      outlineWidth: '2px',
+      outlineStyle: 'solid',
+      outlineOffset: '2px'
     }
   },
   variants: {
-    appearance: {
-      solid: {
-        backgroundColor: 'bg.subtle',
-        borderColor: 'border.subtle',
-        color: 'fg.subtle',
+    emphasis: {
+      strong: {
+        color: 'colorPalette.fg.inverted',
+        backgroundColor: 'colorPalette.solid.strong',
         _hover: {
-          backgroundColor: 'bg.subtle.hovered'
+          color: 'colorPalette.fg.inverted.hover',
+          backgroundColor: 'colorPalette.solid.strong.hover'
         },
         _active: {
-          backgroundColor: 'bg.subtle.pressed'
+          color: 'colorPalette.fg.inverted.active',
+          backgroundColor: 'colorPalette.solid.strong.active'
         }
       },
-      outline: {
-        border: '1px solid',
-        borderColor: 'border.subtle',
-        color: 'fg.subtle',
+      default: {
+        borderColor: 'colorPalette.border',
+        backgroundColor: 'colorPalette.surface.subtle',
         _hover: {
-          color: 'fg',
-          borderColor: 'border.hovered',
-          backgroundColor: 'bg.hovered'
+          borderColor: 'colorPalette.border.hover',
+          backgroundColor: 'colorPalette.surface.subtle.hover'
         },
         _active: {
-          color: 'fg',
-          borderColor: 'border.pressed',
-          backgroundColor: 'bg.pressed'
+          borderColor: 'colorPalette.border.active',
+          backgroundColor: 'colorPalette.surface.subtle.active'
         }
       },
-      ghost: {
-        color: 'fg.subtle',
-        borderColor: 'transparent',
+      subtle: {
+        backgroundColor: 'colorPalette.solid.subtle',
+
         _hover: {
-          color: 'fg',
-          backgroundColor: 'bg.hovered'
+          backgroundColor: 'colorPalette.solid.subtle.hover'
         },
         _active: {
-          color: 'fg',
-          backgroundColor: 'bg.pressed'
+          backgroundColor: 'colorPalette.solid.subtle.active'
         }
+      },
+      muted: {
+        _hover: {
+          backgroundColor: 'colorPalette.solid.subtle.hover'
+        },
+        _active: {
+          backgroundColor: 'colorPalette.solid.subtle.active'
+        }
+      }
+    },
+    colorPalette: {
+      neutral: {
+        colorPalette: 'neutral'
+      },
+      accent: {
+        colorPalette: 'accent'
+      },
+      brand: {
+        colorPalette: 'brand'
+      },
+      information: {
+        colorPalette: 'information'
+      },
+      success: {
+        colorPalette: 'success'
+      },
+      warning: {
+        colorPalette: 'warning'
+      },
+      danger: {
+        colorPalette: 'danger'
       }
     },
     size: {
@@ -117,287 +156,20 @@ const button = cva({
         px: '300',
         py: '150'
       }
-    },
-    emphasis: {
-      subtle: {
-        color: 'fg.subtle'
-      },
-      accent: {
-        color: 'fg.accent'
-      },
-      inverse: {
-        color: 'fg.inverse'
-      },
-      success: {
-        color: 'fg.success'
-      },
-      warning: {
-        color: 'fg.warning'
-      },
-      danger: {
-        color: 'fg.danger'
-      }
     }
   },
-  compoundVariants: [
-    {
-      appearance: 'solid',
-      emphasis: 'subtle',
-      css: {
-        color: 'fg.subtle',
-        _hover: {
-          color: 'fg'
-        },
-        _active: {
-          color: 'fg.subtle'
-        }
-      }
-    },
-    {
-      appearance: 'solid',
-      emphasis: 'accent',
-      css: {
-        backgroundColor: 'bg.accent.bold',
-        color: 'fg.accent.inverse',
-        borderColor: 'border.accent',
-        _hover: {
-          color: 'fg.inverse',
-          backgroundColor: 'bg.accent.bold.hovered'
-        },
-        _active: {
-          backgroundColor: 'bg.accent.bold.pressed'
-        }
-      }
-    },
-    {
-      appearance: 'solid',
-      emphasis: 'inverse',
-      css: {
-        backgroundColor: 'bg.inverse',
-        color: 'fg.inverse',
-        _hover: {
-          backgroundColor: 'bg.inverse.hovered'
-        },
-        _active: {
-          backgroundColor: 'bg.inverse.pressed'
-        }
-      }
-    },
-    {
-      appearance: 'solid',
-      emphasis: 'success',
-      css: {
-        backgroundColor: 'bg.success.bold',
-        color: 'fg.success.inverse',
-        borderColor: 'border.success',
-        _hover: {
-          backgroundColor: 'bg.success.bold.hovered'
-        },
-        _active: {
-          backgroundColor: 'bg.success.bold.pressed'
-        }
-      }
-    },
-    {
-      appearance: 'solid',
-      emphasis: 'warning',
-      css: {
-        backgroundColor: 'bg.warning.bold',
-        color: 'fg.warning.inverse',
-        borderColor: 'border.warning',
-        _hover: {
-          backgroundColor: 'bg.warning.bold.hovered'
-        },
-        _active: {
-          backgroundColor: 'bg.warning.bold.pressed'
-        }
-      }
-    },
-    {
-      appearance: 'solid',
-      emphasis: 'danger',
-      css: {
-        backgroundColor: 'bg.danger.bold',
-        color: 'fg.danger.inverse',
-        borderColor: 'border.danger',
-        _hover: {
-          backgroundColor: 'bg.danger.bold.hovered'
-        },
-        _active: {
-          backgroundColor: 'bg.danger.bold.pressed'
-        }
-      }
-    },
-    {
-      appearance: 'outline',
-      emphasis: 'accent',
-      css: {
-        borderColor: 'border.accent',
-        _hover: {
-          color: 'fg.accent.hovered',
-          borderColor: 'border.accent.hovered',
-          backgroundColor: 'bg.accent.hovered'
-        },
-        _active: {
-          color: 'fg.accent.pressed',
-          borderColor: 'border.accent.pressed',
-          backgroundColor: 'bg.accent.pressed'
-        }
-      }
-    },
-    {
-      appearance: 'outline',
-      emphasis: 'inverse',
-      css: {
-        borderColor: 'border.bold',
-        color: 'fg',
-        _hover: {
-          color: 'fg.inverse.hovered',
-          borderColor: 'border.bold.hovered',
-          backgroundColor: 'bg.hovered'
-        },
-        _active: {
-          color: 'fg.inverse.pressed',
-          borderColor: 'border.bold.pressed',
-          backgroundColor: 'bg.pressed'
-        }
-      }
-    },
-    {
-      appearance: 'outline',
-      emphasis: 'success',
-      css: {
-        borderColor: 'border.success',
-        _hover: {
-          color: 'fg.success.hovered',
-          borderColor: 'border.success.hovered',
-          backgroundColor: 'bg.success.hovered'
-        },
-        _active: {
-          color: 'fg.success.pressed',
-          borderColor: 'border.success.pressed',
-          backgroundColor: 'bg.success.pressed'
-        }
-      }
-    },
-    {
-      appearance: 'outline',
-      emphasis: 'warning',
-      css: {
-        borderColor: 'border.warning',
-        _hover: {
-          color: 'fg.warning.hovered',
-          borderColor: 'border.warning.hovered',
-          backgroundColor: 'bg.warning.hovered'
-        },
-        _active: {
-          color: 'fg.warning.pressed',
-          borderColor: 'border.warning.pressed',
-          backgroundColor: 'bg.warning.pressed'
-        }
-      }
-    },
-    {
-      appearance: 'outline',
-      emphasis: 'danger',
-      css: {
-        borderColor: 'border.danger',
-        _hover: {
-          color: 'fg.danger.hovered',
-          borderColor: 'border.danger.hovered',
-          backgroundColor: 'bg.danger.hovered'
-        },
-        _active: {
-          color: 'fg.danger.pressed',
-          borderColor: 'border.danger.pressed',
-          backgroundColor: 'bg.danger.pressed'
-        }
-      }
-    },
-    {
-      appearance: 'ghost',
-      emphasis: 'accent',
-      css: {
-        _hover: {
-          color: 'fg.accent.hovered',
-          backgroundColor: 'bg.accent.hovered'
-        },
-        _active: {
-          color: 'fg.accent.pressed',
-          backgroundColor: 'bg.accent.pressed'
-        }
-      }
-    },
-    {
-      appearance: 'ghost',
-      emphasis: 'inverse',
-      css: {
-        color: 'fg',
-        _hover: {
-          color: 'fg.inverse.hovered',
-          backgroundColor: 'bg.hovered'
-        },
-        _active: {
-          color: 'fg.inverse.pressed',
-          backgroundColor: 'bg.pressed'
-        }
-      }
-    },
-    {
-      appearance: 'ghost',
-      emphasis: 'success',
-      css: {
-        _hover: {
-          color: 'fg.success.hovered',
-          backgroundColor: 'bg.success.hovered'
-        },
-        _active: {
-          color: 'fg.success.pressed',
-          backgroundColor: 'bg.success.pressed'
-        }
-      }
-    },
-    {
-      appearance: 'ghost',
-      emphasis: 'warning',
-      css: {
-        _hover: {
-          color: 'fg.warning.hovered',
-          backgroundColor: 'bg.warning.hovered'
-        },
-        _active: {
-          color: 'fg.warning.pressed',
-          backgroundColor: 'bg.warning.pressed'
-        }
-      }
-    },
-    {
-      appearance: 'ghost',
-      emphasis: 'danger',
-      css: {
-        _hover: {
-          color: 'fg.danger.hovered',
-          backgroundColor: 'bg.danger.hovered'
-        },
-        _active: {
-          color: 'fg.danger.pressed',
-          backgroundColor: 'bg.danger.pressed'
-        }
-      }
-    }
-  ],
   defaultVariants: {
-    appearance: 'solid',
-    size: 'md',
-    emphasis: 'subtle'
+    emphasis: 'default',
+    colorPalette: 'neutral',
+    size: 'md'
   }
 })
 
 export function Button({
   children,
-  appearance = 'solid',
+  emphasis = 'default',
   size = 'md',
-  emphasis = 'subtle',
+  colorPalette = 'neutral',
   isDisabled = false,
   onPress,
   className,
@@ -407,7 +179,7 @@ export function Button({
     <AriaButton
       onPress={onPress}
       isDisabled={isDisabled}
-      className={cx(button({ appearance, size, emphasis }), className)}
+      className={cx(buttonRecipe({ emphasis, size, colorPalette }), className)}
       {...props}
     >
       {children}

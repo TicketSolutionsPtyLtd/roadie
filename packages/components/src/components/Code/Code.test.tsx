@@ -20,7 +20,9 @@ describe('Code', () => {
   })
 
   it('renders with different appearances', () => {
-    const { rerender, getByText } = render(<Code appearance='outline'>outline code</Code>)
+    const { rerender, getByText } = render(
+      <Code appearance='outline'>outline code</Code>
+    )
     let code = getByText('outline code')
     expect(code).toHaveClass('bd-c_border.subtlest')
 
@@ -49,7 +51,12 @@ describe('Code', () => {
 
   it('combines multiple props', () => {
     const { getByText } = render(
-      <Code appearance='ghost' fontSize='lg' color='fg.accent' className='custom-class'>
+      <Code
+        appearance='ghost'
+        fontSize='lg'
+        color='fg.accent'
+        className='custom-class'
+      >
         Combined styles
       </Code>
     )
