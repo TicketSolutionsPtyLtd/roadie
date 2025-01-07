@@ -56,7 +56,9 @@ jobs:
             pnpm install --no-frozen-lockfile
           commit: 'chore: update versions and changelogs'
           title: 'chore: version packages'
-          publish: pnpm build && pnpm release
+          publish: |
+            pnpm build
+            pnpm release
           createGithubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
