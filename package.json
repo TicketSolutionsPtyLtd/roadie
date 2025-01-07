@@ -19,7 +19,7 @@
     "prepare": "turbo run prepare",
     "postinstall": "husky",
     "typecheck": "turbo typecheck",
-    "release": "pnpm changeset version && pnpm install && pnpm changeset publish"
+    "release": "pnpm changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "2.27.11",

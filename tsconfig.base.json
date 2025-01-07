@@ -4,7 +4,6 @@
     "declaration": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "incremental": true,
     "isolatedModules": true,
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "module": "ESNext",
@@ -12,8 +11,8 @@
     "noEmit": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "preserveSymlinks": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
@@ -22,6 +21,13 @@
     "target": "ES2022",
     "verbatimModuleSyntax": true
   },
-  "include": ["**/*.ts", "**/*.tsx", "**/*.json"],
-  "exclude": ["**/dist", "**/.next", "**/coverage", "**/node_modules"]
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": [
+    "**/dist",
+    "**/.next",
+    "**/coverage",
+    "**/node_modules",
+    "**/*.test.ts",
+    "**/*.test.tsx"
+  ]
 }

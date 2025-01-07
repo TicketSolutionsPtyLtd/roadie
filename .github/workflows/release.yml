@@ -51,8 +51,11 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
+          version: pnpm changeset version
+          commit: 'chore: update versions and changelogs'
+          title: 'chore: version packages'
+          publish: pnpm build && pnpm release
           createGithubReleases: true
-          publish: pnpm run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
