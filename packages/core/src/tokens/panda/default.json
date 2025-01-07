@@ -39,6 +39,10 @@
     },
     "colors": {
       "neutralSlate": {
+        "0": {
+          "value": "#FFFFFF",
+          "description": "White"
+        },
         "1": {
           "value": "#FBFCFF",
           "description": "App background, solid backgrounds"
@@ -85,7 +89,11 @@
         },
         "12": {
           "value": "#1A1F2B",
-          "description": "High-contrast text, icons"
+          "description": "Default text, icons"
+        },
+        "13": {
+          "value": "#0F1219",
+          "description": "Highest-contrast text, icons"
         },
         "A1": {
           "value": "#0040ff04",
@@ -137,6 +145,10 @@
         }
       },
       "neutralSand": {
+        "0": {
+          "value": "#FFFFFF",
+          "description": "White"
+        },
         "1": {
           "value": "#fdfdfc",
           "description": "App background, solid backgrounds"
@@ -183,7 +195,11 @@
         },
         "12": {
           "value": "#21201c",
-          "description": "High-contrast text, icons"
+          "description": "Default text, icons"
+        },
+        "13": {
+          "value": "#0F1219",
+          "description": "Highest-contrast text, icons"
         },
         "A1": {
           "value": "#55550003",
@@ -823,6 +839,10 @@
         }
       },
       "neutralSlateDark": {
+        "0": {
+          "value": "#0F1116",
+          "description": "App background, solid backgrounds"
+        },
         "1": {
           "value": "#0F1116",
           "description": "App background, solid backgrounds"
@@ -869,7 +889,11 @@
         },
         "12": {
           "value": "#ECEEF3",
-          "description": "High-contrast text, icons"
+          "description": "Default text, icons"
+        },
+        "13": {
+          "value": "#0F1116",
+          "description": "Highest-contrast text, icons"
         },
         "A1": {
           "value": "#00000000",
@@ -921,6 +945,10 @@
         }
       },
       "neutralSandDark": {
+        "0": {
+          "value": "#0A0A09",
+          "description": "App background, solid backgrounds"
+        },
         "1": {
           "value": "#111110",
           "description": "App background, solid backgrounds"
@@ -967,7 +995,11 @@
         },
         "12": {
           "value": "#eeeeec",
-          "description": "High-contrast text, icons"
+          "description": "Default text, icons"
+        },
+        "13": {
+          "value": "#fafaf8",
+          "description": "Highest-contrast text, icons"
         },
         "A1": {
           "value": "#00000000",
@@ -2146,1360 +2178,2507 @@
   "semanticTokens": {
     "colors": {
       "neutral": {
-        "1": {
-          "value": "{colors.neutralSlate.1}",
-          "description": "Default color for text and icons"
-        },
-        "2": {
-          "value": "{colors.neutralSlate.2}",
-          "description": "Subtle background for blue surfaces"
-        },
-        "3": {
-          "value": "{colors.neutralSlate.3}",
-          "description": "UI element background with blue tint"
-        },
-        "4": {
-          "value": "{colors.neutralSlate.4}",
-          "description": "Hovered UI element background"
-        },
-        "5": {
-          "value": "{colors.neutralSlate.5}",
-          "description": "Active / selected UI element background"
-        },
-        "6": {
-          "value": "{colors.neutralSlate.6}",
-          "description": "Subtle borders and separators"
-        },
-        "7": {
-          "value": "{colors.neutralSlate.7}",
-          "description": "UI element border and focus rings"
-        },
-        "8": {
-          "value": "{colors.neutralSlate.8}",
-          "description": "Hovered UI element border"
-        },
-        "9": {
-          "value": "{colors.neutralSlate.9}",
-          "description": "Solid backgrounds, contrast with white"
-        },
-        "10": {
-          "value": "{colors.neutralSlate.10}",
-          "description": "Hovered solid backgrounds"
-        },
-        "11": {
-          "value": "{colors.neutralSlate.11}",
-          "description": "Low-contrast text and icons"
-        },
-        "12": {
-          "value": "{colors.neutralSlate.12}",
-          "description": "High-contrast text and icons"
-        },
-        "A1": {
-          "value": "{colors.neutralSlate.A1}",
-          "description": "Subtle alpha for light mode"
-        },
-        "A2": {
-          "value": "{colors.neutralSlate.A2}",
-          "description": "Delicate transparency for surface distinction"
-        },
-        "A3": {
-          "value": "{colors.neutralSlate.A3}",
-          "description": "Soft translucent for UI backgrounds"
-        },
-        "A4": {
-          "value": "{colors.neutralSlate.A4}",
-          "description": "Transparent for interactive elements"
-        },
-        "A5": {
-          "value": "{colors.neutralSlate.A5}",
-          "description": "Translucent glow for selected states"
-        },
-        "A6": {
-          "value": "{colors.neutralSlate.A6}",
-          "description": "Radiant transparency for borders and focus"
-        },
-        "A7": {
-          "value": "{colors.neutralSlate.A7}",
-          "description": "Rich transparent for interactive indicators"
-        },
-        "A8": {
-          "value": "{colors.neutralSlate.A8}",
-          "description": "Vivid translucent for emphasis states"
-        },
-        "A9": {
-          "value": "{colors.neutralSlate.A9}",
-          "description": "Prominent alpha for key UI elements"
-        },
-        "A10": {
-          "value": "{colors.neutralSlate.A10}",
-          "description": "Deep transparent for hover interactions"
-        },
-        "A11": {
-          "value": "{colors.neutralSlate.A11}",
-          "description": "Brilliant blue for dark mode text emphasis"
-        },
-        "A12": {
-          "value": "{colors.neutralSlate.A12}",
-          "description": "Luminous light neutral for maximum dark contrast"
-        }
-      },
-      "neutralDark": {
-        "1": {
-          "value": "{colors.neutralSandDark.1}",
-          "description": "App background, solid backgrounds"
-        },
-        "2": {
-          "value": "{colors.neutralSandDark.2}",
-          "description": "Subtle background for blue surfaces"
-        },
-        "3": {
-          "value": "{colors.neutralSandDark.3}",
-          "description": "UI element background with blue tint"
-        },
-        "4": {
-          "value": "{colors.neutralSandDark.4}",
-          "description": "Hovered UI element background"
-        },
-        "5": {
-          "value": "{colors.neutralSandDark.5}",
-          "description": "Active / selected UI element background"
-        },
-        "6": {
-          "value": "{colors.neutralSandDark.6}",
-          "description": "Subtle borders and separators"
-        },
-        "7": {
-          "value": "{colors.neutralSandDark.7}",
-          "description": "UI element border and focus rings"
-        },
-        "8": {
-          "value": "{colors.neutralSandDark.8}",
-          "description": "Hovered UI element border"
-        },
-        "9": {
-          "value": "{colors.neutralSandDark.9}",
-          "description": "Solid backgrounds, contrast with white"
-        },
-        "10": {
-          "value": "{colors.neutralSandDark.10}",
-          "description": "Hovered solid backgrounds"
-        },
-        "11": {
-          "value": "{colors.neutralSandDark.11}",
-          "description": "Low-contrast text and icons"
-        },
-        "12": {
-          "value": "{colors.neutralSandDark.12}",
-          "description": "High-contrast text and icons"
-        },
-        "A1": {
-          "value": "{colors.neutralSandDark.A1}",
-          "description": "Subtle alpha for light mode"
-        },
-        "A2": {
-          "value": "{colors.neutralSandDark.A2}",
-          "description": "Delicate transparency for surface distinction"
-        },
-        "A3": {
-          "value": "{colors.neutralSandDark.A3}",
-          "description": "Soft translucent for UI backgrounds"
-        },
-        "A4": {
-          "value": "{colors.neutralSandDark.A4}",
-          "description": "Transparent for interactive elements"
-        },
-        "A5": {
-          "value": "{colors.neutralSandDark.A5}",
-          "description": "Translucent glow for selected states"
-        },
-        "A6": {
-          "value": "{colors.neutralSandDark.A6}",
-          "description": "Radiant transparency for borders and focus"
-        },
-        "A7": {
-          "value": "{colors.neutralSandDark.A7}",
-          "description": "Rich transparent for interactive indicators"
-        },
-        "A8": {
-          "value": "{colors.neutralSandDark.A8}",
-          "description": "Vivid translucent for emphasis states"
-        },
-        "A9": {
-          "value": "{colors.neutralSandDark.A9}",
-          "description": "Prominent alpha for key UI elements"
-        },
-        "A10": {
-          "value": "{colors.neutralSandDark.A10}",
-          "description": "Deep transparent for hover interactions"
-        },
-        "A11": {
-          "value": "{colors.neutralSandDark.A11}",
-          "description": "Brilliant blue for dark mode text emphasis"
-        },
-        "A12": {
-          "value": "{colors.neutralSandDark.A12}",
-          "description": "Luminous light neutral for maximum dark contrast"
-        }
-      },
-      "accent": {
-        "1": {
-          "value": {
-            "base": "{colors.blue.1}",
-            "_dark": "{colors.orangeDark.1}"
-          },
-          "description": "App background subtle accent tint"
-        },
-        "2": {
-          "value": {
-            "base": "{colors.blue.2}",
-            "_dark": "{colors.orangeDark.2}"
-          },
-          "description": "Subtle background for accent surfaces"
-        },
-        "3": {
-          "value": {
-            "base": "{colors.blue.3}",
-            "_dark": "{colors.orangeDark.3}"
-          },
-          "description": "UI element background with accent tint"
-        },
-        "4": {
-          "value": {
-            "base": "{colors.blue.4}",
-            "_dark": "{colors.orangeDark.4}"
-          },
-          "description": "Hovered UI element background"
-        },
-        "5": {
-          "value": {
-            "base": "{colors.blue.5}",
-            "_dark": "{colors.orangeDark.5}"
-          },
-          "description": "Active / selected UI element background"
-        },
-        "6": {
-          "value": {
-            "base": "{colors.blue.6}",
-            "_dark": "{colors.orangeDark.6}"
-          },
-          "description": "Subtle borders and separators"
-        },
-        "7": {
-          "value": {
-            "base": "{colors.blue.7}",
-            "_dark": "{colors.orangeDark.7}"
-          },
-          "description": "UI element border and focus rings"
-        },
-        "8": {
-          "value": {
-            "base": "{colors.blue.8}",
-            "_dark": "{colors.orangeDark.8}"
-          },
-          "description": "Hovered UI element border"
-        },
-        "9": {
-          "value": {
-            "base": "{colors.blue.9}",
-            "_dark": "{colors.orangeDark.9}"
-          },
-          "description": "Solid backgrounds, contrast with white"
-        },
-        "10": {
-          "value": {
-            "base": "{colors.blue.10}",
-            "_dark": "{colors.orangeDark.10}"
-          },
-          "description": "Hovered solid backgrounds"
-        },
-        "11": {
-          "value": {
-            "base": "{colors.blue.11}",
-            "_dark": "{colors.orangeDark.11}"
-          },
-          "description": "Low-contrast text and icons"
-        },
-        "12": {
-          "value": {
-            "base": "{colors.blue.12}",
-            "_dark": "{colors.orangeDark.12}"
-          },
-          "description": "High-contrast text and icons"
-        },
-        "A1": {
-          "value": {
-            "base": "{colors.blue.A1}",
-            "_dark": "{colors.orangeDark.A1}"
-          },
-          "description": "Subtle alpha for light mode"
-        },
-        "A2": {
-          "value": {
-            "base": "{colors.blue.A2}",
-            "_dark": "{colors.orangeDark.A2}"
-          },
-          "description": "Delicate transparency for surface distinction"
-        },
-        "A3": {
-          "value": {
-            "base": "{colors.blue.A3}",
-            "_dark": "{colors.orangeDark.A3}"
-          },
-          "description": "Soft translucent for UI backgrounds"
-        },
-        "A4": {
-          "value": {
-            "base": "{colors.blue.A4}",
-            "_dark": "{colors.orangeDark.A4}"
-          },
-          "description": "Transparent for interactive elements"
-        },
-        "A5": {
-          "value": {
-            "base": "{colors.blue.A5}",
-            "_dark": "{colors.orangeDark.A5}"
-          },
-          "description": "Translucent glow for selected states"
-        },
-        "A6": {
-          "value": {
-            "base": "{colors.blue.A6}",
-            "_dark": "{colors.orangeDark.A6}"
-          },
-          "description": "Radiant transparency for borders and focus"
-        },
-        "A7": {
-          "value": {
-            "base": "{colors.blue.A7}",
-            "_dark": "{colors.orangeDark.A7}"
-          },
-          "description": "Rich transparent for interactive indicators"
-        },
-        "A8": {
-          "value": {
-            "base": "{colors.blue.A8}",
-            "_dark": "{colors.orangeDark.A8}"
-          },
-          "description": "Vivid translucent for emphasis states"
-        },
-        "A9": {
-          "value": {
-            "base": "{colors.blue.A9}",
-            "_dark": "{colors.orangeDark.A9}"
-          },
-          "description": "Prominent alpha for key UI elements"
-        },
-        "A10": {
-          "value": {
-            "base": "{colors.blue.A10}",
-            "_dark": "{colors.orangeDark.A10}"
-          },
-          "description": "Deep transparent for hover interactions"
-        },
-        "A11": {
-          "value": {
-            "base": "{colors.blue.A11}",
-            "_dark": "{colors.orangeDark.A11}"
-          },
-          "description": "Solid for critical interface elements"
-        },
-        "A12": {
-          "value": {
-            "base": "{colors.blue.A12}",
-            "_dark": "{colors.orangeDark.A12}"
-          },
-          "description": "Near-opaque for maximum contrast"
-        }
-      },
-      "fg": {
-        "DEFAULT": {
-          "value": {
-            "base": "{colors.neutral.12}",
-            "_dark": "{colors.neutralDark.12}"
-          },
-          "description": "Default color for text and icons."
-        },
-        "subtle": {
-          "value": {
-            "base": "{colors.neutral.11}",
-            "_dark": "{colors.neutralDark.11}"
-          },
-          "description": "Secondary color for text and icons with lower emphasis."
-        },
-        "subtlest": {
-          "value": {
-            "base": "{colors.neutral.10}",
-            "_dark": "{colors.neutralDark.10}"
-          },
-          "description": "Tertiary color for text and icons with minimal emphasis."
-        },
-        "inverse": {
+        "surface": {
           "DEFAULT": {
             "value": {
-              "base": "{colors.neutral.1}",
-              "_dark": "{colors.neutralDark.1}"
+              "base": "{colors.neutralSlate.1}",
+              "_dark": "{colors.neutralSandDark.2}"
+            },
+            "description": "Base background color for primary surfaces"
+          },
+          "hover": {
+            "value": {
+              "base": "{colors.neutralSlate.2}",
+              "_dark": "{colors.neutralSandDark.3}"
+            },
+            "description": "Hover state for default surface"
+          },
+          "active": {
+            "value": {
+              "base": "{colors.neutralSlate.3}",
+              "_dark": "{colors.neutralSandDark.4}"
+            },
+            "description": "Active/pressed state for default surface"
+          },
+          "subtle": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.neutralSlate.A2}",
+                "_dark": "{colors.neutralSandDark.A3}"
+              },
+              "description": "Base color for subtle surfaces"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.neutralSlate.A3}",
+                "_dark": "{colors.neutralSandDark.A4}"
+              },
+              "description": "Hover state for subtle surfaces"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.neutralSlate.A4}",
+                "_dark": "{colors.neutralSandDark.A5}"
+              },
+              "description": "Active/pressed state for subtle surfaces"
             }
           },
-          "hovered": {
-            "value": {
-              "base": "{colors.neutral.2}",
-              "_dark": "{colors.neutralDark.2}"
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.neutralSlate.A3}",
+                "_dark": "{colors.neutralSandDark.A4}"
+              },
+              "description": "Base color for strong surfaces"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.neutralSlate.A4}",
+                "_dark": "{colors.neutralSandDark.A5}"
+              },
+              "description": "Hover state for strong surfaces"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.neutralSlate.A5}",
+                "_dark": "{colors.neutralSandDark.A6}"
+              },
+              "description": "Active/pressed state for strong surfaces"
             }
           },
-          "pressed": {
+          "raised": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.neutralSlate.1}",
+                "_dark": "{colors.neutralSandDark.1}"
+              },
+              "description": "Base color for raised surfaces"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.neutralSlate.2}",
+                "_dark": "{colors.neutralSandDark.2}"
+              },
+              "description": "Hover state for raised surfaces"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.neutralSlate.3}",
+                "_dark": "{colors.neutralSandDark.3}"
+              },
+              "description": "Active/pressed state for raised surfaces"
+            }
+          },
+          "sunken": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.neutralSlate.0}",
+                "_dark": "{colors.neutralSandDark.0}"
+              },
+              "description": "Base color for sunken surfaces"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.neutralSlate.1}",
+                "_dark": "{colors.neutralSandDark.1}"
+              },
+              "description": "Hover state for sunken surfaces"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.neutralSlate.2}",
+                "_dark": "{colors.neutralSandDark.2}"
+              },
+              "description": "Active/pressed state for sunken surfaces"
+            }
+          },
+          "overlay": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.neutralSlate.1}",
+                "_dark": "{colors.neutralSandDark.1}"
+              },
+              "description": "Base color for overlay surfaces"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.neutralSlate.2}",
+                "_dark": "{colors.neutralSandDark.2}"
+              },
+              "description": "Hover state for overlay surfaces"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.neutralSlate.3}",
+                "_dark": "{colors.neutralSandDark.3}"
+              },
+              "description": "Active/pressed state for overlay surfaces"
+            }
+          },
+          "backdrop": {
             "value": {
-              "base": "{colors.neutral.3}",
-              "_dark": "{colors.neutralDark.3}"
+              "base": "{colors.neutralSlate.1}",
+              "_dark": "{colors.neutralSandDark.1}"
+            },
+            "description": "Semi-transparent background color for modal backdrops and overlays"
+          }
+        },
+        "border": {
+          "DEFAULT": {
+            "value": {
+              "base": "{colors.neutralSlate.7}",
+              "_dark": "{colors.neutralSandDark.7}"
+            },
+            "description": "Standard border color for common UI elements"
+          },
+          "hover": {
+            "value": {
+              "base": "{colors.neutralSlate.8}",
+              "_dark": "{colors.neutralSandDark.8}"
+            },
+            "description": "Hover state for default borders"
+          },
+          "active": {
+            "value": {
+              "base": "{colors.neutralSlate.9}",
+              "_dark": "{colors.neutralSandDark.9}"
+            },
+            "description": "Active/pressed state for default borders"
+          },
+          "muted": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.neutralSlate.A5}",
+                "_dark": "{colors.neutralSandDark.A5}"
+              },
+              "description": "Base color for muted borders"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.neutralSlate.A6}",
+                "_dark": "{colors.neutralSandDark.A6}"
+              },
+              "description": "Hover state for muted borders"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.neutralSlate.A7}",
+                "_dark": "{colors.neutralSandDark.A7}"
+              },
+              "description": "Active/pressed state for muted borders"
+            }
+          },
+          "subtle": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.neutralSlate.A6}",
+                "_dark": "{colors.neutralSandDark.A6}"
+              },
+              "description": "Base color for subtle borders"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.neutralSlate.A7}",
+                "_dark": "{colors.neutralSandDark.A7}"
+              },
+              "description": "Hover state for subtle borders"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.neutralSlate.A8}",
+                "_dark": "{colors.neutralSandDark.A8}"
+              },
+              "description": "Active/pressed state for subtle borders"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.neutralSlate.A8}",
+                "_dark": "{colors.neutralSandDark.A8}"
+              },
+              "description": "Base color for strong borders"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.neutralSlate.A9}",
+                "_dark": "{colors.neutralSandDark.A9}"
+              },
+              "description": "Hover state for strong borders"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.neutralSlate.A10}",
+                "_dark": "{colors.neutralSandDark.A10}"
+              },
+              "description": "Active/pressed state for strong borders"
             }
           }
         },
-        "brand": {
+        "solid": {
+          "DEFAULT": {
+            "value": {
+              "base": "{colors.neutralSlate.9}",
+              "_dark": "{colors.neutralSandDark.9}"
+            },
+            "description": "Standard solid fill color for interactive elements"
+          },
+          "hover": {
+            "value": {
+              "base": "{colors.neutralSlate.10}",
+              "_dark": "{colors.neutralSandDark.10}"
+            },
+            "description": "Hover state for default solid fills"
+          },
+          "active": {
+            "value": {
+              "base": "{colors.neutralSlate.11}",
+              "_dark": "{colors.neutralSandDark.11}"
+            },
+            "description": "Active/pressed state for default solid fills"
+          },
+          "subtle": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.neutralSlate.3}",
+                "_dark": "{colors.neutralSandDark.4}"
+              },
+              "description": "Base color for subtle solid fills"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.neutralSlate.4}",
+                "_dark": "{colors.neutralSandDark.5}"
+              },
+              "description": "Hover state for subtle solid fills"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.neutralSlate.5}",
+                "_dark": "{colors.neutralSandDark.6}"
+              },
+              "description": "Active/pressed state for subtle solid fills"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.neutralSlate.10}",
+                "_dark": "{colors.neutralSandDark.11}"
+              },
+              "description": "Base color for strong solid fills"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.neutralSlate.11}",
+                "_dark": "{colors.neutralSandDark.12}"
+              },
+              "description": "Hover state for strong solid fills"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.neutralSlate.12}",
+                "_dark": "{colors.neutralSandDark.13}"
+              },
+              "description": "Active/pressed state for strong solid fills"
+            }
+          }
+        },
+        "fg": {
+          "DEFAULT": {
+            "value": {
+              "base": "{colors.neutralSlate.12}",
+              "_dark": "{colors.neutralSandDark.12}"
+            },
+            "description": "Primary text color for body content and labels"
+          },
+          "hover": {
+            "value": {
+              "base": "{colors.neutralSlate.13}",
+              "_dark": "{colors.neutralSandDark.13}"
+            },
+            "description": "Hover state for default text"
+          },
+          "active": {
+            "value": {
+              "base": "{colors.neutralSlate.13}",
+              "_dark": "{colors.neutralSandDark.13}"
+            },
+            "description": "Active/pressed state for default text"
+          },
+          "muted": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.neutralSlate.10}",
+                "_dark": "{colors.neutralSandDark.10}"
+              },
+              "description": "Base color for muted text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.neutralSlate.11}",
+                "_dark": "{colors.neutralSandDark.11}"
+              },
+              "description": "Hover state for muted text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.neutralSlate.12}",
+                "_dark": "{colors.neutralSandDark.12}"
+              },
+              "description": "Active/pressed state for muted text"
+            }
+          },
+          "subtle": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.neutralSlate.11}",
+                "_dark": "{colors.neutralSandDark.11}"
+              },
+              "description": "Base color for subtle text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.neutralSlate.12}",
+                "_dark": "{colors.neutralSandDark.12}"
+              },
+              "description": "Hover state for subtle text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.neutralSlate.13}",
+                "_dark": "{colors.neutralSandDark.13}"
+              },
+              "description": "Active/pressed state for subtle text"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.neutralSlate.13}",
+                "_dark": "{colors.neutralSandDark.13}"
+              },
+              "description": "Base color for strong text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.neutralSlate.12}",
+                "_dark": "{colors.neutralSandDark.12}"
+              },
+              "description": "Hover state for strong text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.neutralSlate.13}",
+                "_dark": "{colors.neutralSandDark.13}"
+              },
+              "description": "Active/pressed state for strong text"
+            }
+          },
+          "inverted": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.neutralSlate.1}",
+                "_dark": "{colors.neutralSandDark.1}"
+              },
+              "description": "Base color for inverted text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.neutralSlate.2}",
+                "_dark": "{colors.neutralSandDark.2}"
+              },
+              "description": "Hover state for inverted text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.neutralSlate.1}",
+                "_dark": "{colors.neutralSandDark.1}"
+              },
+              "description": "Active/pressed state for inverted text"
+            }
+          }
+        }
+      },
+      "accent": {
+        "surface": {
+          "DEFAULT": {
+            "value": {
+              "base": "{colors.blue.3}",
+              "_dark": "{colors.orangeDark.3}"
+            },
+            "description": "Base color for default accent background"
+          },
+          "hover": {
+            "value": {
+              "base": "{colors.blue.4}",
+              "_dark": "{colors.orangeDark.4}"
+            },
+            "description": "Hover state for default accent background"
+          },
+          "active": {
+            "value": {
+              "base": "{colors.blue.5}",
+              "_dark": "{colors.orangeDark.5}"
+            },
+            "description": "Active/pressed state for default accent background"
+          },
+          "subtle": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.blue.2}",
+                "_dark": "{colors.orangeDark.2}"
+              },
+              "description": "Base color for subtle accent background"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.blue.3}",
+                "_dark": "{colors.orangeDark.3}"
+              },
+              "description": "Hover state for subtle accent background"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.blue.4}",
+                "_dark": "{colors.orangeDark.4}"
+              },
+              "description": "Active/pressed state for subtle accent background"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.blue.4}",
+                "_dark": "{colors.orangeDark.4}"
+              },
+              "description": "Base color for strong accent background"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.blue.5}",
+                "_dark": "{colors.orangeDark.5}"
+              },
+              "description": "Hover state for strong accent background"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.blue.6}",
+                "_dark": "{colors.orangeDark.6}"
+              },
+              "description": "Active/pressed state for strong accent background"
+            }
+          }
+        },
+        "border": {
+          "DEFAULT": {
+            "value": {
+              "base": "{colors.blue.7}",
+              "_dark": "{colors.orangeDark.7}"
+            },
+            "description": "Default accent border color"
+          },
+          "hover": {
+            "value": {
+              "base": "{colors.blue.8}",
+              "_dark": "{colors.orangeDark.8}"
+            },
+            "description": "Hover state for default accent border"
+          },
+          "active": {
+            "value": {
+              "base": "{colors.blue.9}",
+              "_dark": "{colors.orangeDark.9}"
+            },
+            "description": "Active/pressed state for default accent border"
+          },
+          "muted": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.blue.6}",
+                "_dark": "{colors.orangeDark.6}"
+              },
+              "description": "Base color for muted accent border"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.blue.7}",
+                "_dark": "{colors.orangeDark.7}"
+              },
+              "description": "Hover state for muted accent border"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.blue.8}",
+                "_dark": "{colors.orangeDark.8}"
+              },
+              "description": "Active/pressed state for muted accent border"
+            }
+          },
+          "subtle": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.blue.6}",
+                "_dark": "{colors.orangeDark.6}"
+              },
+              "description": "Base color for subtle accent border"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.blue.7}",
+                "_dark": "{colors.orangeDark.7}"
+              },
+              "description": "Hover state for subtle accent border"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.blue.8}",
+                "_dark": "{colors.orangeDark.8}"
+              },
+              "description": "Active/pressed state for subtle accent border"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.blue.8}",
+                "_dark": "{colors.orangeDark.8}"
+              },
+              "description": "Base color for strong accent border"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.blue.9}",
+                "_dark": "{colors.orangeDark.9}"
+              },
+              "description": "Hover state for strong accent border"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.blue.10}",
+                "_dark": "{colors.orangeDark.10}"
+              },
+              "description": "Active/pressed state for strong accent border"
+            }
+          }
+        },
+        "solid": {
+          "DEFAULT": {
+            "value": {
+              "base": "{colors.blue.9}",
+              "_dark": "{colors.orangeDark.9}"
+            },
+            "description": "Default solid accent color"
+          },
+          "hover": {
+            "value": {
+              "base": "{colors.blue.10}",
+              "_dark": "{colors.orangeDark.10}"
+            },
+            "description": "Hover state for default solid accent"
+          },
+          "active": {
+            "value": {
+              "base": "{colors.blue.11}",
+              "_dark": "{colors.orangeDark.11}"
+            },
+            "description": "Active/pressed state for default solid accent"
+          },
+          "subtle": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.blue.3}",
+                "_dark": "{colors.orangeDark.3}"
+              },
+              "description": "Base color for subtle solid accent"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.blue.4}",
+                "_dark": "{colors.orangeDark.4}"
+              },
+              "description": "Hover state for subtle solid accent"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.blue.5}",
+                "_dark": "{colors.orangeDark.5}"
+              },
+              "description": "Active/pressed state for subtle solid accent"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.blue.10}",
+                "_dark": "{colors.orangeDark.10}"
+              },
+              "description": "Base color for strong solid accent"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.blue.11}",
+                "_dark": "{colors.orangeDark.11}"
+              },
+              "description": "Hover state for strong solid accent"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.blue.12}",
+                "_dark": "{colors.orangeDark.12}"
+              },
+              "description": "Active/pressed state for strong solid accent"
+            }
+          }
+        },
+        "fg": {
+          "DEFAULT": {
+            "value": {
+              "base": "{colors.blue.11}",
+              "_dark": "{colors.orangeDark.11}"
+            },
+            "description": "Default accent text color"
+          },
+          "hover": {
+            "value": {
+              "base": "{colors.blue.12}",
+              "_dark": "{colors.orangeDark.12}"
+            },
+            "description": "Hover state for default accent text"
+          },
+          "active": {
+            "value": {
+              "base": "{colors.blue.12}",
+              "_dark": "{colors.orangeDark.12}"
+            },
+            "description": "Active/pressed state for default accent text"
+          },
+          "muted": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.blue.9}",
+                "_dark": "{colors.orangeDark.9}"
+              },
+              "description": "Base color for muted accent text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.blue.10}",
+                "_dark": "{colors.orangeDark.10}"
+              },
+              "description": "Hover state for muted accent text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.blue.11}",
+                "_dark": "{colors.orangeDark.11}"
+              },
+              "description": "Active/pressed state for muted accent text"
+            }
+          },
+          "subtle": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.blue.10}",
+                "_dark": "{colors.orangeDark.10}"
+              },
+              "description": "Base color for subtle accent text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.blue.11}",
+                "_dark": "{colors.orangeDark.11}"
+              },
+              "description": "Hover state for subtle accent text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.blue.12}",
+                "_dark": "{colors.orangeDark.12}"
+              },
+              "description": "Active/pressed state for subtle accent text"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.blue.12}",
+                "_dark": "{colors.orangeDark.12}"
+              },
+              "description": "Base color for strong accent text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.blue.11}",
+                "_dark": "{colors.orangeDark.11}"
+              },
+              "description": "Hover state for strong accent text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.blue.12}",
+                "_dark": "{colors.orangeDark.12}"
+              },
+              "description": "Active/pressed state for strong accent text"
+            }
+          },
+          "inverted": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.blue.1}",
+                "_dark": "{colors.orangeDark.1}"
+              },
+              "description": "Base color for inverted text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.blue.2}",
+                "_dark": "{colors.orangeDark.2}"
+              },
+              "description": "Hover state for inverted text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.blue.1}",
+                "_dark": "{colors.orangeDark.1}"
+              },
+              "description": "Active/pressed state for inverted text"
+            }
+          }
+        }
+      },
+      "brand": {
+        "surface": {
+          "DEFAULT": {
+            "value": {
+              "base": "{colors.blue.3}",
+              "_dark": "{colors.blueDark.3}"
+            },
+            "description": "Base color for default brand background"
+          },
+          "hover": {
+            "value": {
+              "base": "{colors.blue.4}",
+              "_dark": "{colors.blueDark.4}"
+            },
+            "description": "Hover state for default brand background"
+          },
+          "active": {
+            "value": {
+              "base": "{colors.blue.5}",
+              "_dark": "{colors.blueDark.5}"
+            },
+            "description": "Active/pressed state for default brand background"
+          },
+          "subtle": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.blue.2}",
+                "_dark": "{colors.blueDark.2}"
+              },
+              "description": "Base color for subtle brand background"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.blue.3}",
+                "_dark": "{colors.blueDark.3}"
+              },
+              "description": "Hover state for subtle brand background"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.blue.4}",
+                "_dark": "{colors.blueDark.4}"
+              },
+              "description": "Active/pressed state for subtle brand background"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.blue.4}",
+                "_dark": "{colors.blueDark.4}"
+              },
+              "description": "Base color for strong brand background"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.blue.5}",
+                "_dark": "{colors.blueDark.5}"
+              },
+              "description": "Hover state for strong brand background"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.blue.6}",
+                "_dark": "{colors.blueDark.6}"
+              },
+              "description": "Active/pressed state for strong brand background"
+            }
+          }
+        },
+        "border": {
+          "DEFAULT": {
+            "value": {
+              "base": "{colors.blue.7}",
+              "_dark": "{colors.blueDark.7}"
+            },
+            "description": "Default border color for brand elements"
+          },
+          "hover": {
+            "value": {
+              "base": "{colors.blue.8}",
+              "_dark": "{colors.blueDark.8}"
+            },
+            "description": "Hover state for brand borders"
+          },
+          "active": {
+            "value": {
+              "base": "{colors.blue.9}",
+              "_dark": "{colors.blueDark.9}"
+            },
+            "description": "Active/pressed state for brand borders"
+          },
+          "muted": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.blue.6}",
+                "_dark": "{colors.blueDark.6}"
+              },
+              "description": "Base color for muted borders"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.blue.7}",
+                "_dark": "{colors.blueDark.7}"
+              },
+              "description": "Hover state for muted borders"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.blue.8}",
+                "_dark": "{colors.blueDark.8}"
+              },
+              "description": "Active/pressed state for muted borders"
+            }
+          },
+          "subtle": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.blue.6}",
+                "_dark": "{colors.blueDark.6}"
+              },
+              "description": "Base color for subtle brand borders"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.blue.7}",
+                "_dark": "{colors.blueDark.7}"
+              },
+              "description": "Hover state for subtle brand borders"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.blue.8}",
+                "_dark": "{colors.blueDark.8}"
+              },
+              "description": "Active/pressed state for subtle brand borders"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.blue.8}",
+                "_dark": "{colors.blueDark.8}"
+              },
+              "description": "Base color for strong brand borders"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.blue.9}",
+                "_dark": "{colors.blueDark.9}"
+              },
+              "description": "Hover state for strong brand borders"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.blue.10}",
+                "_dark": "{colors.blueDark.10}"
+              },
+              "description": "Active/pressed state for strong brand borders"
+            }
+          }
+        },
+        "solid": {
           "DEFAULT": {
             "value": {
               "base": "{colors.blue.9}",
               "_dark": "{colors.blueDark.9}"
-            }
+            },
+            "description": "Default solid brand color"
           },
-          "hovered": {
+          "hover": {
             "value": {
               "base": "{colors.blue.10}",
               "_dark": "{colors.blueDark.10}"
-            }
+            },
+            "description": "Hover state for solid brand elements"
           },
-          "pressed": {
+          "active": {
             "value": {
               "base": "{colors.blue.11}",
               "_dark": "{colors.blueDark.11}"
             },
-            "description": "Color for text and icons in brand state when pressed."
+            "description": "Active/pressed state for solid brand elements"
           },
-          "inverse": {
-            "value": {
-              "base": "{colors.blue.1}",
-              "_dark": "{colors.blueDark.1}"
+          "subtle": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.blue.3}",
+                "_dark": "{colors.blueDark.3}"
+              },
+              "description": "Base color for subtle solid brand elements"
             },
-            "description": "Color for text and icons on dark or contrasting backgrounds."
-          }
-        },
-        "accent": {
-          "DEFAULT": {
-            "value": "{colors.accent.10}",
-            "description": "Color for text and icons in accent state."
-          },
-          "hovered": {
-            "value": "{colors.accent.11}",
-            "description": "Color for text and icons in accent state when hovered."
-          },
-          "pressed": {
-            "value": "{colors.accent.12}",
-            "description": "Color for text and icons in accent state when pressed."
-          },
-          "inverse": {
-            "value": "{colors.accent.1}",
-            "description": "Color for text and icons on dark or contrasting backgrounds."
-          },
-          "bold": {
-            "value": "{colors.accent.12}",
-            "description": "Color for text and icons in accent state with high contrast."
-          }
-        },
-        "disabled": {
-          "value": {
-            "base": "{colors.neutral.A8}",
-            "_dark": "{colors.neutralDark.A8}"
-          },
-          "description": "Color for text and icons in disabled state."
-        },
-        "information": {
-          "DEFAULT": {
-            "value": {
-              "base": "{colors.blue.10}",
-              "_dark": "{colors.blueDark.10}"
+            "hover": {
+              "value": {
+                "base": "{colors.blue.4}",
+                "_dark": "{colors.blueDark.4}"
+              },
+              "description": "Hover state for subtle solid brand elements"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.blue.5}",
+                "_dark": "{colors.blueDark.5}"
+              },
+              "description": "Active/pressed state for subtle solid brand elements"
             }
           },
-          "hovered": {
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.blue.10}",
+                "_dark": "{colors.blueDark.10}"
+              },
+              "description": "Base color for strong solid brand elements"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.blue.11}",
+                "_dark": "{colors.blueDark.11}"
+              },
+              "description": "Hover state for strong solid brand elements"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.blue.12}",
+                "_dark": "{colors.blueDark.12}"
+              },
+              "description": "Active/pressed state for strong solid brand elements"
+            }
+          }
+        },
+        "fg": {
+          "DEFAULT": {
             "value": {
               "base": "{colors.blue.11}",
               "_dark": "{colors.blueDark.11}"
             },
-            "description": "Color for informational text and icons when hovered."
+            "description": "Default text color for brand elements"
           },
-          "pressed": {
+          "hover": {
             "value": {
               "base": "{colors.blue.12}",
               "_dark": "{colors.blueDark.12}"
             },
-            "description": "Color for informational text and icons when pressed."
+            "description": "Hover state for brand text"
           },
-          "inverse": {
+          "active": {
             "value": {
-              "base": "{colors.blue.1}",
-              "_dark": "{colors.blueDark.1}"
+              "base": "{colors.blue.12}",
+              "_dark": "{colors.blueDark.12}"
             },
-            "description": "Color for text and icons on dark or contrasting backgrounds."
-          }
-        },
-        "success": {
-          "DEFAULT": {
-            "value": {
-              "base": "{colors.green.10}",
-              "_dark": "{colors.greenDark.10}"
+            "description": "Active/pressed state for brand text"
+          },
+          "muted": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.blue.10}",
+                "_dark": "{colors.blueDark.10}"
+              },
+              "description": "Base color for muted text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.blue.11}",
+                "_dark": "{colors.blueDark.11}"
+              },
+              "description": "Hover state for muted text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.blue.12}",
+                "_dark": "{colors.blueDark.12}"
+              },
+              "description": "Active/pressed state for muted text"
             }
           },
-          "hovered": {
-            "value": {
-              "base": "{colors.green.11}",
-              "_dark": "{colors.greenDark.11}"
+          "subtle": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.blue.10}",
+                "_dark": "{colors.blueDark.10}"
+              },
+              "description": "Base color for subtle brand text"
             },
-            "description": "Color for success text and icons when hovered."
-          },
-          "pressed": {
-            "value": {
-              "base": "{colors.green.12}",
-              "_dark": "{colors.greenDark.12}"
+            "hover": {
+              "value": {
+                "base": "{colors.blue.11}",
+                "_dark": "{colors.blueDark.11}"
+              },
+              "description": "Hover state for subtle brand text"
             },
-            "description": "Color for success text and icons when pressed."
-          },
-          "inverse": {
-            "value": {
-              "base": "{colors.green.1}",
-              "_dark": "{colors.greenDark.1}"
-            },
-            "description": "Color for text and icons on dark or contrasting backgrounds."
-          }
-        },
-        "warning": {
-          "DEFAULT": {
-            "value": {
-              "base": "{colors.yellow.10}",
-              "_dark": "{colors.yellowDark.10}"
+            "active": {
+              "value": {
+                "base": "{colors.blue.12}",
+                "_dark": "{colors.blueDark.12}"
+              },
+              "description": "Active/pressed state for subtle brand text"
             }
           },
-          "hovered": {
-            "value": {
-              "base": "{colors.yellow.11}",
-              "_dark": "{colors.yellowDark.11}"
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.blue.12}",
+                "_dark": "{colors.blueDark.12}"
+              },
+              "description": "Base color for strong brand text"
             },
-            "description": "Color for warning text and icons when hovered."
-          },
-          "pressed": {
-            "value": {
-              "base": "{colors.yellow.12}",
-              "_dark": "{colors.yellowDark.12}"
+            "hover": {
+              "value": {
+                "base": "{colors.blue.11}",
+                "_dark": "{colors.blueDark.11}"
+              },
+              "description": "Hover state for strong brand text"
             },
-            "description": "Color for warning text and icons when pressed."
-          },
-          "inverse": {
-            "value": {
-              "base": "{colors.yellow.1}",
-              "_dark": "{colors.yellowDark.1}"
-            },
-            "description": "Color for text and icons on dark or contrasting backgrounds."
-          }
-        },
-        "danger": {
-          "DEFAULT": {
-            "value": {
-              "base": "{colors.red.10}",
-              "_dark": "{colors.redDark.10}"
+            "active": {
+              "value": {
+                "base": "{colors.blue.12}",
+                "_dark": "{colors.blueDark.12}"
+              },
+              "description": "Active/pressed state for strong brand text"
             }
           },
-          "hovered": {
-            "value": {
-              "base": "{colors.red.11}",
-              "_dark": "{colors.redDark.11}"
+          "inverted": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.blue.1}",
+                "_dark": "{colors.blueDark.1}"
+              },
+              "description": "Base color for inverted text"
             },
-            "description": "Color for error text and icons when hovered."
-          },
-          "pressed": {
-            "value": {
-              "base": "{colors.red.12}",
-              "_dark": "{colors.redDark.12}"
+            "hover": {
+              "value": {
+                "base": "{colors.blue.2}",
+                "_dark": "{colors.blueDark.2}"
+              },
+              "description": "Hover state for inverted text"
             },
-            "description": "Color for error text and icons when pressed."
-          },
-          "inverse": {
-            "value": {
-              "base": "{colors.red.1}",
-              "_dark": "{colors.redDark.1}"
-            },
-            "description": "Color for text and icons on dark or contrasting backgrounds."
+            "active": {
+              "value": {
+                "base": "{colors.blue.1}",
+                "_dark": "{colors.blueDark.1}"
+              },
+              "description": "Active/pressed state for inverted text"
+            }
           }
         }
       },
-      "bg": {
-        "DEFAULT": {
-          "value": {
-            "base": "{colors.neutral.1}",
-            "_dark": "{colors.neutralDark.2}"
-          },
-          "description": "Base background color for the main page or app surface."
-        },
-        "hovered": {
-          "value": {
-            "base": "{colors.neutral.A2}",
-            "_dark": "{colors.neutralDark.A3}"
-          },
-          "description": "Background color when the default surface is hovered."
-        },
-        "pressed": {
-          "value": {
-            "base": "{colors.neutral.A3}",
-            "_dark": "{colors.neutralDark.A4}"
-          },
-          "description": "Background color when the default surface is pressed."
-        },
-        "focused": {
-          "value": {
-            "base": "{colors.neutral.1}",
-            "_dark": "{colors.neutralDark.1}"
-          },
-          "description": "Background color for focused input fields or similar elements that are focused"
-        },
-        "disabled": {
-          "value": {
-            "base": "{colors.neutral.A2}",
-            "_dark": "{colors.neutralDark.A3}"
-          },
-          "description": "Background color for disabled or read-only input fields or similar elements that are disabled"
-        },
-        "subtle": {
+      "information": {
+        "surface": {
           "DEFAULT": {
             "value": {
-              "base": "{colors.neutral.A3}",
-              "_dark": "{colors.neutralDark.A4}"
+              "base": "{colors.purple.3}",
+              "_dark": "{colors.purpleDark.3}"
             },
-            "description": "Background color for subtle surfaces"
+            "description": "Base color for default information background"
           },
-          "hovered": {
+          "hover": {
             "value": {
-              "base": "{colors.neutral.A4}",
-              "_dark": "{colors.neutralDark.A5}"
+              "base": "{colors.purple.4}",
+              "_dark": "{colors.purpleDark.4}"
             },
-            "description": "Background color when subtle surfaces are hovered."
+            "description": "Hover state for default information background"
           },
-          "pressed": {
+          "active": {
             "value": {
-              "base": "{colors.neutral.A5}",
-              "_dark": "{colors.neutralDark.A6}"
+              "base": "{colors.purple.5}",
+              "_dark": "{colors.purpleDark.5}"
             },
-            "description": "Background color when subtle surfaces are pressed."
-          }
-        },
-        "subtlest": {
-          "DEFAULT": {
-            "value": {
-              "base": "{colors.neutral.A2}",
-              "_dark": "{colors.neutralDark.A3}"
-            },
-            "description": "Background color for subtle surfaces"
-          },
-          "hovered": {
-            "value": {
-              "base": "{colors.neutral.A3}",
-              "_dark": "{colors.neutralDark.A4}"
-            },
-            "description": "Background color when subtle surfaces are hovered."
-          },
-          "pressed": {
-            "value": {
-              "base": "{colors.neutral.A4}",
-              "_dark": "{colors.neutralDark.A5}"
-            },
-            "description": "Background color when subtle surfaces are pressed."
-          }
-        },
-        "inverse": {
-          "DEFAULT": {
-            "value": {
-              "base": "{colors.neutral.12}",
-              "_dark": "{colors.neutralDark.12}"
-            },
-            "description": "Background color for inverted surfaces"
-          },
-          "hovered": {
-            "value": {
-              "base": "{colors.neutral.11}",
-              "_dark": "{colors.neutralDark.11}"
-            },
-            "description": "Background color when inverted surfaces are hovered."
-          },
-          "pressed": {
-            "value": {
-              "base": "{colors.neutral.12}",
-              "_dark": "{colors.neutralDark.12}"
-            },
-            "description": "Background color when inverted surfaces are pressed."
-          }
-        },
-        "raised": {
-          "DEFAULT": {
-            "value": {
-              "base": "{colors.neutral.1}",
-              "_dark": "{colors.neutralDark.3}"
-            },
-            "description": "Background color for elevated surfaces"
-          },
-          "hovered": {
-            "value": {
-              "base": "{colors.neutral.2}",
-              "_dark": "{colors.neutralDark.4}"
-            },
-            "description": "Background color when raised surfaces are hovered"
-          },
-          "pressed": {
-            "value": {
-              "base": "{colors.neutral.1}",
-              "_dark": "{colors.neutralDark.5}"
-            },
-            "description": "Background color when raised surfaces are pressed"
-          }
-        },
-        "overlay": {
-          "default": {},
-          "hovered": {
-            "value": {
-              "base": "{colors.neutral.2}",
-              "_dark": "{colors.neutralDark.5}"
-            },
-            "description": "Background color when modal surfaces are hovered"
-          },
-          "pressed": {
-            "value": {
-              "base": "{colors.neutral.3}",
-              "_dark": "{colors.neutralDark.6}"
-            },
-            "description": "Background color when modal surfaces are pressed"
-          }
-        },
-        "sunken": {
-          "value": {
-            "base": "{colors.neutral.2}",
-            "_dark": "{colors.neutralDark.1}"
-          },
-          "description": "Background color for surfaces that appear pressed into the page, like input fields or selected tabs. Use this over 'subtle' or 'subtlest' when you need to create visual depth by making elements appear recessed."
-        },
-        "backdrop": {
-          "default": {},
-          "selected": {
-            "value": "{colors.accent.A5}",
-            "description": "Use as backdrop to communicate selected states when a simple background color change isn't possible."
-          },
-          "danger": {}
-        },
-        "skeleton": {
-          "DEFAULT": {
-            "value": {
-              "base": "{colors.neutral.A3}",
-              "_dark": "{colors.neutralDark.A3}"
-            },
-            "description": "Color for skeleton loading states"
+            "description": "Active/pressed state for default information background"
           },
           "subtle": {
-            "value": {
-              "base": "{colors.neutral.A2}",
-              "_dark": "{colors.neutralDark.A2}"
-            },
-            "description": "Use for the pulse or shimmer effect in skeleton loading states"
-          }
-        },
-        "brand": {
-          "DEFAULT": {
-            "value": {
-              "base": "{colors.blue.3}",
-              "_dark": "{colors.blueDark.3}"
-            },
-            "description": "Background color for branded surfaces."
-          },
-          "hovered": {
-            "value": {
-              "base": "{colors.blue.4}",
-              "_dark": "{colors.blueDark.4}"
-            },
-            "description": "Background color when branded surfaces are hovered"
-          },
-          "pressed": {
-            "value": {
-              "base": "{colors.blue.5}",
-              "_dark": "{colors.blueDark.5}"
-            },
-            "description": "Background color when branded surfaces are pressed"
-          },
-          "selected": {
-            "value": {
-              "base": "{colors.blue.A5}",
-              "_dark": "{colors.blueDark.A5}"
-            },
-            "description": "Background color for selected branded surfaces"
-          },
-          "subtle": {
-            "value": {
-              "base": "{colors.blue.A2}",
-              "_dark": "{colors.blueDark.A2}"
-            },
-            "description": "Subtle branded background for secondary content or hover states"
-          },
-          "bold": {
             "DEFAULT": {
               "value": {
-                "base": "{colors.blue.9}",
-                "_dark": "{colors.blueDark.9}"
-              }
+                "base": "{colors.purple.2}",
+                "_dark": "{colors.purpleDark.2}"
+              },
+              "description": "Base color for subtle information background"
             },
-            "hovered": {
+            "hover": {
               "value": {
-                "base": "{colors.blue.10}",
-                "_dark": "{colors.blueDark.10}"
-              }
+                "base": "{colors.purple.3}",
+                "_dark": "{colors.purpleDark.3}"
+              },
+              "description": "Hover state for subtle information background"
             },
-            "pressed": {
+            "active": {
               "value": {
-                "base": "{colors.blue.11}",
-                "_dark": "{colors.blueDark.11}"
-              }
+                "base": "{colors.purple.4}",
+                "_dark": "{colors.purpleDark.4}"
+              },
+              "description": "Active/pressed state for subtle information background"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.purple.4}",
+                "_dark": "{colors.purpleDark.4}"
+              },
+              "description": "Base color for strong information background"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.purple.5}",
+                "_dark": "{colors.purpleDark.5}"
+              },
+              "description": "Hover state for strong information background"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.purple.6}",
+                "_dark": "{colors.purpleDark.6}"
+              },
+              "description": "Active/pressed state for strong information background"
             }
           }
         },
-        "accent": {
+        "border": {
           "DEFAULT": {
-            "value": "{colors.accent.3}",
-            "description": "Primary action color used for action like interactive elements."
+            "value": {
+              "base": "{colors.purple.7}",
+              "_dark": "{colors.purpleDark.7}"
+            },
+            "description": "Default information border color"
           },
-          "hovered": {
-            "value": "{colors.accent.4}",
-            "description": "Color used for action like interactive elements when hovered."
+          "hover": {
+            "value": {
+              "base": "{colors.purple.8}",
+              "_dark": "{colors.purpleDark.8}"
+            },
+            "description": "Hover state for information border"
           },
-          "pressed": {
-            "value": "{colors.accent.5}",
-            "description": "Color used for action like interactive elements when pressed."
+          "active": {
+            "value": {
+              "base": "{colors.purple.9}",
+              "_dark": "{colors.purpleDark.9}"
+            },
+            "description": "Active/pressed state for information border"
           },
-          "selected": {
-            "value": "{colors.accent.A5}",
-            "description": "Background color for selected interactive elements. Use to highlight active/selected interactive states."
+          "muted": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.purple.5}",
+                "_dark": "{colors.purpleDark.5}"
+              },
+              "description": "Base color for muted information border"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.purple.6}",
+                "_dark": "{colors.purpleDark.6}"
+              },
+              "description": "Hover state for muted information border"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.purple.7}",
+                "_dark": "{colors.purpleDark.7}"
+              },
+              "description": "Active/pressed state for muted information border"
+            }
           },
           "subtle": {
-            "value": "{colors.accent.A2}",
-            "description": "Color used for subtle accent backgrounds."
-          },
-          "bold": {
             "DEFAULT": {
-              "value": "{colors.accent.9}",
-              "description": "Color used for bold actions like bold interactive elements."
+              "value": {
+                "base": "{colors.purple.6}",
+                "_dark": "{colors.purpleDark.6}"
+              },
+              "description": "Base color for subtle information border"
             },
-            "hovered": {
-              "value": "{colors.accent.10}",
-              "description": "Color used for bold actions like bold interactive elements when hovered."
+            "hover": {
+              "value": {
+                "base": "{colors.purple.7}",
+                "_dark": "{colors.purpleDark.7}"
+              },
+              "description": "Hover state for subtle information border"
             },
-            "pressed": {
-              "value": "{colors.accent.11}",
-              "description": "Color used for bold actions like bold interactive elements when pressed."
+            "active": {
+              "value": {
+                "base": "{colors.purple.8}",
+                "_dark": "{colors.purpleDark.8}"
+              },
+              "description": "Active/pressed state for subtle information border"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.purple.8}",
+                "_dark": "{colors.purpleDark.8}"
+              },
+              "description": "Base color for strong information border"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.purple.9}",
+                "_dark": "{colors.purpleDark.9}"
+              },
+              "description": "Hover state for strong information border"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.purple.10}",
+                "_dark": "{colors.purpleDark.10}"
+              },
+              "description": "Active/pressed state for strong information border"
             }
           }
         },
-        "information": {
+        "solid": {
           "DEFAULT": {
             "value": {
-              "base": "{colors.blue.3}",
-              "_dark": "{colors.blueDark.3}"
+              "base": "{colors.purple.9}",
+              "_dark": "{colors.purpleDark.9}"
             },
-            "description": "Default background color for informational messages and content"
+            "description": "Default solid information color"
           },
-          "hovered": {
+          "hover": {
             "value": {
-              "base": "{colors.blue.4}",
-              "_dark": "{colors.blueDark.4}"
+              "base": "{colors.purple.10}",
+              "_dark": "{colors.purpleDark.10}"
             },
-            "description": "Background color when informational surfaces are hovered"
+            "description": "Hover state for solid information color"
           },
-          "pressed": {
+          "active": {
             "value": {
-              "base": "{colors.blue.5}",
-              "_dark": "{colors.blueDark.5}"
+              "base": "{colors.purple.11}",
+              "_dark": "{colors.purpleDark.11}"
             },
-            "description": "Background color when informational surfaces are pressed"
-          },
-          "selected": {
-            "value": {
-              "base": "{colors.blue.A5}",
-              "_dark": "{colors.blueDark.A5}"
-            },
-            "description": "Background color for selected informational surfaces"
+            "description": "Active/pressed state for solid information color"
           },
           "subtle": {
-            "value": {
-              "base": "{colors.blue.A2}",
-              "_dark": "{colors.blueDark.A2}"
-            },
-            "description": "Subtle background for secondary informational content"
-          },
-          "bold": {
             "DEFAULT": {
               "value": {
-                "base": "{colors.blue.9}",
-                "_dark": "{colors.blueDark.9}"
+                "base": "{colors.purple.3}",
+                "_dark": "{colors.purpleDark.3}"
               },
-              "description": "High contrast background for important informational content"
+              "description": "Base color for subtle solid information"
             },
-            "hovered": {
+            "hover": {
               "value": {
-                "base": "{colors.blue.10}",
-                "_dark": "{colors.blueDark.10}"
+                "base": "{colors.purple.4}",
+                "_dark": "{colors.purpleDark.4}"
               },
-              "description": "High contrast background for important informational content when hovered"
+              "description": "Hover state for subtle solid information"
             },
-            "pressed": {
+            "active": {
               "value": {
-                "base": "{colors.blue.11}",
-                "_dark": "{colors.blueDark.11}"
+                "base": "{colors.purple.5}",
+                "_dark": "{colors.purpleDark.5}"
               },
-              "description": "High contrast background for important informational content when pressed"
+              "description": "Active/pressed state for subtle solid information"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.purple.10}",
+                "_dark": "{colors.purpleDark.10}"
+              },
+              "description": "Base color for strong solid information"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.purple.11}",
+                "_dark": "{colors.purpleDark.11}"
+              },
+              "description": "Hover state for strong solid information"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.purple.12}",
+                "_dark": "{colors.purpleDark.12}"
+              },
+              "description": "Active/pressed state for strong solid information"
             }
           }
         },
-        "success": {
+        "fg": {
+          "DEFAULT": {
+            "value": {
+              "base": "{colors.purple.11}",
+              "_dark": "{colors.purpleDark.11}"
+            },
+            "description": "Default information text color"
+          },
+          "hover": {
+            "value": {
+              "base": "{colors.purple.12}",
+              "_dark": "{colors.purpleDark.12}"
+            },
+            "description": "Hover state for information text"
+          },
+          "active": {
+            "value": {
+              "base": "{colors.purple.12}",
+              "_dark": "{colors.purpleDark.12}"
+            },
+            "description": "Active/pressed state for information text"
+          },
+          "muted": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.purple.9}",
+                "_dark": "{colors.purpleDark.9}"
+              },
+              "description": "Base color for muted information text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.purple.10}",
+                "_dark": "{colors.purpleDark.10}"
+              },
+              "description": "Hover state for muted information text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.purple.11}",
+                "_dark": "{colors.purpleDark.11}"
+              },
+              "description": "Active/pressed state for muted information text"
+            }
+          },
+          "subtle": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.purple.10}",
+                "_dark": "{colors.purpleDark.10}"
+              },
+              "description": "Base color for subtle information text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.purple.11}",
+                "_dark": "{colors.purpleDark.11}"
+              },
+              "description": "Hover state for subtle information text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.purple.12}",
+                "_dark": "{colors.purpleDark.12}"
+              },
+              "description": "Active/pressed state for subtle information text"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.purple.12}",
+                "_dark": "{colors.purpleDark.12}"
+              },
+              "description": "Base color for strong information text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.purple.11}",
+                "_dark": "{colors.purpleDark.11}"
+              },
+              "description": "Hover state for strong information text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.purple.12}",
+                "_dark": "{colors.purpleDark.12}"
+              },
+              "description": "Active/pressed state for strong information text"
+            }
+          },
+          "inverted": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.purple.1}",
+                "_dark": "{colors.purpleDark.1}"
+              },
+              "description": "Base color for inverted text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.purple.2}",
+                "_dark": "{colors.purpleDark.2}"
+              },
+              "description": "Hover state for inverted text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.purple.1}",
+                "_dark": "{colors.purpleDark.1}"
+              },
+              "description": "Active/pressed state for inverted text"
+            }
+          }
+        }
+      },
+      "success": {
+        "surface": {
           "DEFAULT": {
             "value": {
               "base": "{colors.green.3}",
               "_dark": "{colors.greenDark.3}"
             },
-            "description": "Default background color for success messages and positive states"
+            "description": "Base color for default success background"
           },
-          "hovered": {
+          "hover": {
             "value": {
               "base": "{colors.green.4}",
               "_dark": "{colors.greenDark.4}"
             },
-            "description": "Background color when success surfaces are hovered"
+            "description": "Hover state for default success background"
           },
-          "pressed": {
+          "active": {
             "value": {
               "base": "{colors.green.5}",
               "_dark": "{colors.greenDark.5}"
             },
-            "description": "Background color when success surfaces are pressed"
-          },
-          "selected": {
-            "value": {
-              "base": "{colors.green.A5}",
-              "_dark": "{colors.greenDark.A5}"
-            },
-            "description": "Background color for selected success surfaces"
+            "description": "Active/pressed state for default success background"
           },
           "subtle": {
-            "value": {
-              "base": "{colors.green.A2}",
-              "_dark": "{colors.greenDark.A2}"
-            },
-            "description": "Subtle background for secondary success content"
-          },
-          "bold": {
             "DEFAULT": {
               "value": {
-                "base": "{colors.green.9}",
-                "_dark": "{colors.greenDark.9}"
+                "base": "{colors.green.2}",
+                "_dark": "{colors.greenDark.2}"
               },
-              "description": "High contrast background for important success content"
+              "description": "Base color for subtle success background"
             },
-            "hovered": {
+            "hover": {
               "value": {
-                "base": "{colors.green.10}",
-                "_dark": "{colors.greenDark.10}"
+                "base": "{colors.green.3}",
+                "_dark": "{colors.greenDark.3}"
               },
-              "description": "High contrast background for important success content when hovered"
+              "description": "Hover state for subtle success background"
             },
-            "pressed": {
+            "active": {
               "value": {
-                "base": "{colors.green.11}",
-                "_dark": "{colors.greenDark.11}"
+                "base": "{colors.green.4}",
+                "_dark": "{colors.greenDark.4}"
               },
-              "description": "High contrast background for important success content when pressed"
+              "description": "Active/pressed state for subtle success background"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.green.4}",
+                "_dark": "{colors.greenDark.4}"
+              },
+              "description": "Base color for strong success background"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.green.5}",
+                "_dark": "{colors.greenDark.5}"
+              },
+              "description": "Hover state for strong success background"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.green.6}",
+                "_dark": "{colors.greenDark.6}"
+              },
+              "description": "Active/pressed state for strong success background"
             }
           }
         },
-        "warning": {
-          "DEFAULT": {
-            "value": {
-              "base": "{colors.yellow.3}",
-              "_dark": "{colors.yellowDark.3}"
-            },
-            "description": "Default background color for warning messages and cautionary states"
-          },
-          "hovered": {
-            "value": {
-              "base": "{colors.yellow.4}",
-              "_dark": "{colors.yellowDark.4}"
-            },
-            "description": "Background color when warning surfaces are hovered"
-          },
-          "pressed": {
-            "value": {
-              "base": "{colors.yellow.5}",
-              "_dark": "{colors.yellowDark.5}"
-            },
-            "description": "Background color when warning surfaces are pressed"
-          },
-          "selected": {
-            "value": {
-              "base": "{colors.yellow.A5}",
-              "_dark": "{colors.yellowDark.A5}"
-            },
-            "description": "Background color for selected warning surfaces"
-          },
-          "subtle": {
-            "value": {
-              "base": "{colors.yellow.A2}",
-              "_dark": "{colors.yellowDark.A2}"
-            },
-            "description": "Subtle background for secondary warning content"
-          },
-          "bold": {
-            "DEFAULT": {
-              "value": {
-                "base": "{colors.yellow.9}",
-                "_dark": "{colors.yellowDark.9}"
-              },
-              "description": "High contrast background for important warning content"
-            },
-            "hovered": {
-              "value": {
-                "base": "{colors.yellow.10}",
-                "_dark": "{colors.yellowDark.10}"
-              },
-              "description": "High contrast background for important warning content when hovered"
-            },
-            "pressed": {
-              "value": {
-                "base": "{colors.yellow.11}",
-                "_dark": "{colors.yellowDark.11}"
-              },
-              "description": "High contrast background for important warning content when pressed"
-            }
-          }
-        },
-        "danger": {
-          "DEFAULT": {
-            "value": {
-              "base": "{colors.red.3}",
-              "_dark": "{colors.redDark.3}"
-            },
-            "description": "Default background color for error messages and dangerous states"
-          },
-          "hovered": {
-            "value": {
-              "base": "{colors.red.4}",
-              "_dark": "{colors.redDark.4}"
-            },
-            "description": "Background color when error surfaces are hovered"
-          },
-          "pressed": {
-            "value": {
-              "base": "{colors.red.5}",
-              "_dark": "{colors.redDark.5}"
-            },
-            "description": "Background color when error surfaces are pressed"
-          },
-          "selected": {
-            "value": {
-              "base": "{colors.red.A5}",
-              "_dark": "{colors.redDark.A5}"
-            },
-            "description": "Background color for selected error surfaces"
-          },
-          "subtle": {
-            "value": {
-              "base": "{colors.red.A2}",
-              "_dark": "{colors.redDark.A2}"
-            },
-            "description": "Subtle background for secondary error content"
-          },
-          "bold": {
-            "DEFAULT": {
-              "value": {
-                "base": "{colors.red.9}",
-                "_dark": "{colors.redDark.9}"
-              },
-              "description": "High contrast background for important error content"
-            },
-            "hovered": {
-              "value": {
-                "base": "{colors.red.10}",
-                "_dark": "{colors.redDark.10}"
-              },
-              "description": "High contrast background for important error content when hovered"
-            },
-            "pressed": {
-              "value": {
-                "base": "{colors.red.11}",
-                "_dark": "{colors.redDark.11}"
-              },
-              "description": "High contrast background for important error content when pressed"
-            }
-          }
-        }
-      },
-      "border": {
-        "DEFAULT": {
-          "value": {
-            "base": "{colors.neutral.7}",
-            "_dark": "{colors.neutralDark.7}"
-          },
-          "description": "Default border color for non-interactive elements like dividers, separators, and layout containers."
-        },
-        "hovered": {
-          "value": {
-            "base": "{colors.neutral.8}",
-            "_dark": "{colors.neutralDark.8}"
-          },
-          "description": "Border color when non-interactive elements are hovered"
-        },
-        "pressed": {
-          "value": {
-            "base": "{colors.neutral.9}",
-            "_dark": "{colors.neutralDark.9}"
-          },
-          "description": "Border color when non-interactive elements are pressed"
-        },
-        "focused": {
-          "value": "{colors.accent.8}",
-          "description": "Border color for focus rings on interactive elements. Critical for keyboard navigation and accessibility."
-        },
-        "selected": {
-          "value": "{colors.accent.A8}",
-          "description": "Border color for selected interactive elements. Use to highlight active/selected interactive states."
-        },
-        "disabled": {
-          "value": {
-            "base": "{colors.neutral.A6}",
-            "_dark": "{colors.neutralDark.A6}"
-          },
-          "description": "Border color for disabled interactive elements. Shows that interaction is not available."
-        },
-        "subtle": {
-          "value": {
-            "base": "{colors.neutral.6}",
-            "_dark": "{colors.neutralDark.6}"
-          },
-          "description": "Border color for non-interactive components like sidebars, headers, cards, and alerts. Provides visual structure without drawing attention."
-        },
-        "subtlest": {
-          "value": {
-            "base": "{colors.neutral.5}",
-            "_dark": "{colors.neutralDark.5}"
-          },
-          "description": "Most subtle border color for non-interactive elements like separators within cards or panels."
-        },
-        "bold": {
-          "DEFAULT": {
-            "value": {
-              "base": "{colors.neutral.8}",
-              "_dark": "{colors.neutralDark.8}"
-            },
-            "description": "High contrast border color for strong visual boundaries on non-interactive containers."
-          },
-          "hovered": {
-            "value": {
-              "base": "{colors.neutral.9}",
-              "_dark": "{colors.neutralDark.9}"
-            },
-            "description": "High contrast border color for strong visual boundaries on non-interactive containers when hovered"
-          },
-          "pressed": {
-            "value": {
-              "base": "{colors.neutral.10}",
-              "_dark": "{colors.neutralDark.10}"
-            },
-            "description": "High contrast border color for strong visual boundaries on non-interactive containers when pressed"
-          }
-        },
-        "inverse": {
-          "DEFAULT": {
-            "value": {
-              "base": "{colors.neutral.12}",
-              "_dark": "{colors.neutralDark.12}"
-            },
-            "description": "Border color for use on dark/inverse backgrounds. Maintains visual hierarchy when the background color is inverted."
-          },
-          "hovered": {
-            "value": {
-              "base": "{colors.neutral.11}",
-              "_dark": "{colors.neutralDark.11}"
-            },
-            "description": "Border color for use on dark/inverse backgrounds when hovered"
-          },
-          "pressed": {
-            "value": {
-              "base": "{colors.neutral.12}",
-              "_dark": "{colors.neutralDark.12}"
-            },
-            "description": "Border color for use on dark/inverse backgrounds when pressed"
-          }
-        },
-        "brand": {
-          "DEFAULT": {
-            "value": {
-              "base": "{colors.blue.7}",
-              "_dark": "{colors.blueDark.7}"
-            },
-            "description": "Border color for interactive branded elements."
-          },
-          "hovered": {
-            "value": {
-              "base": "{colors.blue.8}",
-              "_dark": "{colors.blueDark.8}"
-            },
-            "description": "Border color for interactive branded elements when hovered"
-          },
-          "pressed": {
-            "value": {
-              "base": "{colors.blue.9}",
-              "_dark": "{colors.blueDark.9}"
-            },
-            "description": "Border color for interactive branded elements when pressed"
-          },
-          "subtle": {
-            "value": {
-              "base": "{colors.blue.6}",
-              "_dark": "{colors.blueDark.6}"
-            },
-            "description": "Subtle border color for interactive branded elements"
-          }
-        },
-        "accent": {
-          "DEFAULT": {
-            "value": "{colors.accent.7}",
-            "description": "Border color for interactive accent elements."
-          },
-          "hovered": {
-            "value": "{colors.accent.8}",
-            "description": "Border color for interactive accent elements when hovered"
-          },
-          "pressed": {
-            "value": "{colors.accent.9}",
-            "description": "Border color for interactive accent elements when pressed"
-          },
-          "subtle": {
-            "value": "{colors.accent.6}",
-            "description": "Subtle border color for interactive accent elements"
-          }
-        },
-        "information": {
-          "DEFAULT": {
-            "value": {
-              "base": "{colors.blue.7}",
-              "_dark": "{colors.blueDark.7}"
-            },
-            "description": "Border color for interactive informational elements."
-          },
-          "hovered": {
-            "value": {
-              "base": "{colors.blue.8}",
-              "_dark": "{colors.blueDark.8}"
-            },
-            "description": "Border color for interactive informational elements when hovered"
-          },
-          "pressed": {
-            "value": {
-              "base": "{colors.blue.9}",
-              "_dark": "{colors.blueDark.9}"
-            },
-            "description": "Border color for interactive informational elements when pressed"
-          },
-          "subtle": {
-            "value": {
-              "base": "{colors.blue.6}",
-              "_dark": "{colors.blueDark.6}"
-            },
-            "description": "Subtle border color for interactive informational elements"
-          }
-        },
-        "success": {
+        "border": {
           "DEFAULT": {
             "value": {
               "base": "{colors.green.7}",
               "_dark": "{colors.greenDark.7}"
             },
-            "description": "Border color for interactive success elements."
+            "description": "Default success border color"
           },
-          "hovered": {
+          "hover": {
             "value": {
               "base": "{colors.green.8}",
               "_dark": "{colors.greenDark.8}"
             },
-            "description": "Border color for interactive success elements when hovered"
+            "description": "Hover state for default success border"
           },
-          "pressed": {
+          "active": {
             "value": {
               "base": "{colors.green.9}",
               "_dark": "{colors.greenDark.9}"
             },
-            "description": "Border color for interactive success elements when pressed"
+            "description": "Active/pressed state for default success border"
+          },
+          "muted": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.green.5}",
+                "_dark": "{colors.greenDark.5}"
+              },
+              "description": "Base color for muted success border"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.green.6}",
+                "_dark": "{colors.greenDark.6}"
+              },
+              "description": "Hover state for muted success border"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.green.7}",
+                "_dark": "{colors.greenDark.7}"
+              },
+              "description": "Active/pressed state for muted success border"
+            }
           },
           "subtle": {
-            "value": {
-              "base": "{colors.green.6}",
-              "_dark": "{colors.greenDark.6}"
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.green.6}",
+                "_dark": "{colors.greenDark.6}"
+              },
+              "description": "Base color for subtle success border"
             },
-            "description": "Subtle border color for interactive success elements"
+            "hover": {
+              "value": {
+                "base": "{colors.green.7}",
+                "_dark": "{colors.greenDark.7}"
+              },
+              "description": "Hover state for subtle success border"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.green.8}",
+                "_dark": "{colors.greenDark.8}"
+              },
+              "description": "Active/pressed state for subtle success border"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.green.8}",
+                "_dark": "{colors.greenDark.8}"
+              },
+              "description": "Base color for strong success border"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.green.9}",
+                "_dark": "{colors.greenDark.9}"
+              },
+              "description": "Hover state for strong success border"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.green.10}",
+                "_dark": "{colors.greenDark.10}"
+              },
+              "description": "Active/pressed state for strong success border"
+            }
           }
         },
-        "warning": {
+        "solid": {
+          "DEFAULT": {
+            "value": {
+              "base": "{colors.green.9}",
+              "_dark": "{colors.greenDark.9}"
+            },
+            "description": "Default solid success color"
+          },
+          "hover": {
+            "value": {
+              "base": "{colors.green.10}",
+              "_dark": "{colors.greenDark.10}"
+            },
+            "description": "Hover state for default solid success color"
+          },
+          "active": {
+            "value": {
+              "base": "{colors.green.11}",
+              "_dark": "{colors.greenDark.11}"
+            },
+            "description": "Active/pressed state for default solid success color"
+          },
+          "subtle": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.green.3}",
+                "_dark": "{colors.greenDark.3}"
+              },
+              "description": "Base color for subtle solid success"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.green.4}",
+                "_dark": "{colors.greenDark.4}"
+              },
+              "description": "Hover state for subtle solid success"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.green.5}",
+                "_dark": "{colors.greenDark.5}"
+              },
+              "description": "Active/pressed state for subtle solid success"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.green.10}",
+                "_dark": "{colors.greenDark.10}"
+              },
+              "description": "Base color for strong solid success"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.green.11}",
+                "_dark": "{colors.greenDark.11}"
+              },
+              "description": "Hover state for strong solid success"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.green.12}",
+                "_dark": "{colors.greenDark.12}"
+              },
+              "description": "Active/pressed state for strong solid success"
+            }
+          }
+        },
+        "fg": {
+          "DEFAULT": {
+            "value": {
+              "base": "{colors.green.11}",
+              "_dark": "{colors.greenDark.11}"
+            },
+            "description": "Default success text color"
+          },
+          "hover": {
+            "value": {
+              "base": "{colors.green.12}",
+              "_dark": "{colors.greenDark.12}"
+            },
+            "description": "Hover state for default success text"
+          },
+          "active": {
+            "value": {
+              "base": "{colors.green.12}",
+              "_dark": "{colors.greenDark.12}"
+            },
+            "description": "Active/pressed state for default success text"
+          },
+          "muted": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.green.9}",
+                "_dark": "{colors.greenDark.9}"
+              },
+              "description": "Base color for muted success text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.green.10}",
+                "_dark": "{colors.greenDark.10}"
+              },
+              "description": "Hover state for muted success text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.green.11}",
+                "_dark": "{colors.greenDark.11}"
+              },
+              "description": "Active/pressed state for muted success text"
+            }
+          },
+          "subtle": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.green.10}",
+                "_dark": "{colors.greenDark.10}"
+              },
+              "description": "Base color for subtle success text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.green.11}",
+                "_dark": "{colors.greenDark.11}"
+              },
+              "description": "Hover state for subtle success text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.green.12}",
+                "_dark": "{colors.greenDark.12}"
+              },
+              "description": "Active/pressed state for subtle success text"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.green.12}",
+                "_dark": "{colors.greenDark.12}"
+              },
+              "description": "Base color for strong success text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.green.11}",
+                "_dark": "{colors.greenDark.11}"
+              },
+              "description": "Hover state for strong success text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.green.12}",
+                "_dark": "{colors.greenDark.12}"
+              },
+              "description": "Active/pressed state for strong success text"
+            }
+          },
+          "inverted": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.green.1}",
+                "_dark": "{colors.greenDark.1}"
+              },
+              "description": "Base color for inverted text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.green.2}",
+                "_dark": "{colors.greenDark.2}"
+              },
+              "description": "Hover state for inverted text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.green.1}",
+                "_dark": "{colors.greenDark.1}"
+              },
+              "description": "Active/pressed state for inverted text"
+            }
+          }
+        }
+      },
+      "warning": {
+        "surface": {
+          "DEFAULT": {
+            "value": {
+              "base": "{colors.yellow.3}",
+              "_dark": "{colors.yellowDark.3}"
+            },
+            "description": "Base color for default warning background"
+          },
+          "hover": {
+            "value": {
+              "base": "{colors.yellow.4}",
+              "_dark": "{colors.yellowDark.4}"
+            },
+            "description": "Hover state for default warning background"
+          },
+          "active": {
+            "value": {
+              "base": "{colors.yellow.5}",
+              "_dark": "{colors.yellowDark.5}"
+            },
+            "description": "Active/pressed state for default warning background"
+          },
+          "subtle": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.yellow.2}",
+                "_dark": "{colors.yellowDark.2}"
+              },
+              "description": "Base color for subtle warning background"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.yellow.3}",
+                "_dark": "{colors.yellowDark.3}"
+              },
+              "description": "Hover state for subtle warning background"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.yellow.4}",
+                "_dark": "{colors.yellowDark.4}"
+              },
+              "description": "Active/pressed state for subtle warning background"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.yellow.4}",
+                "_dark": "{colors.yellowDark.4}"
+              },
+              "description": "Base color for strong warning background"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.yellow.5}",
+                "_dark": "{colors.yellowDark.5}"
+              },
+              "description": "Hover state for strong warning background"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.yellow.6}",
+                "_dark": "{colors.yellowDark.6}"
+              },
+              "description": "Active/pressed state for strong warning background"
+            }
+          }
+        },
+        "border": {
           "DEFAULT": {
             "value": {
               "base": "{colors.yellow.7}",
               "_dark": "{colors.yellowDark.7}"
             },
-            "description": "Border color for interactive warning elements."
+            "description": "Default warning border color"
           },
-          "hovered": {
+          "hover": {
             "value": {
               "base": "{colors.yellow.8}",
               "_dark": "{colors.yellowDark.8}"
             },
-            "description": "Border color for interactive warning elements when hovered"
+            "description": "Hover state for warning border"
           },
-          "pressed": {
+          "active": {
             "value": {
               "base": "{colors.yellow.9}",
               "_dark": "{colors.yellowDark.9}"
             },
-            "description": "Border color for interactive warning elements when pressed"
+            "description": "Active/pressed state for warning border"
+          },
+          "muted": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.yellow.5}",
+                "_dark": "{colors.yellowDark.5}"
+              },
+              "description": "Base color for muted warning border"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.yellow.6}",
+                "_dark": "{colors.yellowDark.6}"
+              },
+              "description": "Hover state for muted warning border"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.yellow.7}",
+                "_dark": "{colors.yellowDark.7}"
+              },
+              "description": "Active/pressed state for muted warning border"
+            }
           },
           "subtle": {
-            "value": {
-              "base": "{colors.yellow.6}",
-              "_dark": "{colors.yellowDark.6}"
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.yellow.6}",
+                "_dark": "{colors.yellowDark.6}"
+              },
+              "description": "Base color for subtle warning border"
             },
-            "description": "Subtle border color for interactive warning elements"
+            "hover": {
+              "value": {
+                "base": "{colors.yellow.7}",
+                "_dark": "{colors.yellowDark.7}"
+              },
+              "description": "Hover state for subtle warning border"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.yellow.8}",
+                "_dark": "{colors.yellowDark.8}"
+              },
+              "description": "Active/pressed state for subtle warning border"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.yellow.8}",
+                "_dark": "{colors.yellowDark.8}"
+              },
+              "description": "Base color for strong warning border"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.yellow.9}",
+                "_dark": "{colors.yellowDark.9}"
+              },
+              "description": "Hover state for strong warning border"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.yellow.10}",
+                "_dark": "{colors.yellowDark.10}"
+              },
+              "description": "Active/pressed state for strong warning border"
+            }
           }
         },
-        "danger": {
+        "solid": {
+          "DEFAULT": {
+            "value": {
+              "base": "{colors.yellow.9}",
+              "_dark": "{colors.yellowDark.9}"
+            },
+            "description": "Default solid warning color"
+          },
+          "hover": {
+            "value": {
+              "base": "{colors.yellow.10}",
+              "_dark": "{colors.yellowDark.10}"
+            },
+            "description": "Hover state for solid warning color"
+          },
+          "active": {
+            "value": {
+              "base": "{colors.yellow.11}",
+              "_dark": "{colors.yellowDark.11}"
+            },
+            "description": "Active/pressed state for solid warning color"
+          },
+          "subtle": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.yellow.3}",
+                "_dark": "{colors.yellowDark.3}"
+              },
+              "description": "Base color for subtle solid warning"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.yellow.4}",
+                "_dark": "{colors.yellowDark.4}"
+              },
+              "description": "Hover state for subtle solid warning"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.yellow.5}",
+                "_dark": "{colors.yellowDark.5}"
+              },
+              "description": "Active/pressed state for subtle solid warning"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.yellow.10}",
+                "_dark": "{colors.yellowDark.10}"
+              },
+              "description": "Base color for strong solid warning"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.yellow.11}",
+                "_dark": "{colors.yellowDark.11}"
+              },
+              "description": "Hover state for strong solid warning"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.yellow.12}",
+                "_dark": "{colors.yellowDark.12}"
+              },
+              "description": "Active/pressed state for strong solid warning"
+            }
+          }
+        },
+        "fg": {
+          "DEFAULT": {
+            "value": {
+              "base": "{colors.yellow.11}",
+              "_dark": "{colors.yellowDark.11}"
+            },
+            "description": "Default warning text color"
+          },
+          "hover": {
+            "value": {
+              "base": "{colors.yellow.12}",
+              "_dark": "{colors.yellowDark.12}"
+            },
+            "description": "Hover state for warning text"
+          },
+          "active": {
+            "value": {
+              "base": "{colors.yellow.12}",
+              "_dark": "{colors.yellowDark.12}"
+            },
+            "description": "Active/pressed state for warning text"
+          },
+          "muted": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.yellow.9}",
+                "_dark": "{colors.yellowDark.9}"
+              },
+              "description": "Base color for muted warning text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.yellow.10}",
+                "_dark": "{colors.yellowDark.10}"
+              },
+              "description": "Hover state for muted warning text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.yellow.11}",
+                "_dark": "{colors.yellowDark.11}"
+              },
+              "description": "Active/pressed state for muted warning text"
+            }
+          },
+          "subtle": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.yellow.10}",
+                "_dark": "{colors.yellowDark.10}"
+              },
+              "description": "Base color for subtle warning text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.yellow.11}",
+                "_dark": "{colors.yellowDark.11}"
+              },
+              "description": "Hover state for subtle warning text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.yellow.12}",
+                "_dark": "{colors.yellowDark.12}"
+              },
+              "description": "Active/pressed state for subtle warning text"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.yellow.12}",
+                "_dark": "{colors.yellowDark.12}"
+              },
+              "description": "Base color for strong warning text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.yellow.11}",
+                "_dark": "{colors.yellowDark.11}"
+              },
+              "description": "Hover state for strong warning text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.yellow.12}",
+                "_dark": "{colors.yellowDark.12}"
+              },
+              "description": "Active/pressed state for strong warning text"
+            }
+          },
+          "inverted": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.yellow.1}",
+                "_dark": "{colors.yellowDark.1}"
+              },
+              "description": "Base color for inverted text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.yellow.2}",
+                "_dark": "{colors.yellowDark.2}"
+              },
+              "description": "Hover state for inverted text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.yellow.1}",
+                "_dark": "{colors.yellowDark.1}"
+              },
+              "description": "Active/pressed state for inverted text"
+            }
+          }
+        }
+      },
+      "danger": {
+        "surface": {
+          "DEFAULT": {
+            "value": {
+              "base": "{colors.red.3}",
+              "_dark": "{colors.redDark.3}"
+            },
+            "description": "Base color for default danger background"
+          },
+          "hover": {
+            "value": {
+              "base": "{colors.red.4}",
+              "_dark": "{colors.redDark.4}"
+            },
+            "description": "Hover state for default danger background"
+          },
+          "active": {
+            "value": {
+              "base": "{colors.red.5}",
+              "_dark": "{colors.redDark.5}"
+            },
+            "description": "Active/pressed state for default danger background"
+          },
+          "subtle": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.red.2}",
+                "_dark": "{colors.redDark.2}"
+              },
+              "description": "Base color for subtle danger background"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.red.3}",
+                "_dark": "{colors.redDark.3}"
+              },
+              "description": "Hover state for subtle danger background"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.red.4}",
+                "_dark": "{colors.redDark.4}"
+              },
+              "description": "Active/pressed state for subtle danger background"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.red.4}",
+                "_dark": "{colors.redDark.4}"
+              },
+              "description": "Base color for strong danger background"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.red.5}",
+                "_dark": "{colors.redDark.5}"
+              },
+              "description": "Hover state for strong danger background"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.red.6}",
+                "_dark": "{colors.redDark.6}"
+              },
+              "description": "Active/pressed state for strong danger background"
+            }
+          }
+        },
+        "border": {
           "DEFAULT": {
             "value": {
               "base": "{colors.red.7}",
               "_dark": "{colors.redDark.7}"
             },
-            "description": "Border color for interactive error elements."
+            "description": "Base color for default danger border"
           },
-          "hovered": {
+          "hover": {
             "value": {
               "base": "{colors.red.8}",
               "_dark": "{colors.redDark.8}"
             },
-            "description": "Border color for interactive error elements when hovered"
+            "description": "Hover state for default danger border"
           },
-          "pressed": {
+          "active": {
             "value": {
               "base": "{colors.red.9}",
               "_dark": "{colors.redDark.9}"
             },
-            "description": "Border color for interactive error elements when pressed"
+            "description": "Active/pressed state for default danger border"
+          },
+          "muted": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.red.5}",
+                "_dark": "{colors.redDark.5}"
+              },
+              "description": "Base color for muted danger border"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.red.6}",
+                "_dark": "{colors.redDark.6}"
+              },
+              "description": "Hover state for muted danger border"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.red.7}",
+                "_dark": "{colors.redDark.7}"
+              },
+              "description": "Active/pressed state for muted danger border"
+            }
           },
           "subtle": {
-            "value": {
-              "base": "{colors.red.6}",
-              "_dark": "{colors.redDark.6}"
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.red.6}",
+                "_dark": "{colors.redDark.6}"
+              },
+              "description": "Base color for subtle danger border"
             },
-            "description": "Subtle border color for interactive error elements"
+            "hover": {
+              "value": {
+                "base": "{colors.red.7}",
+                "_dark": "{colors.redDark.7}"
+              },
+              "description": "Hover state for subtle danger border"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.red.8}",
+                "_dark": "{colors.redDark.8}"
+              },
+              "description": "Active/pressed state for subtle danger border"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.red.8}",
+                "_dark": "{colors.redDark.8}"
+              },
+              "description": "Base color for strong danger border"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.red.9}",
+                "_dark": "{colors.redDark.9}"
+              },
+              "description": "Hover state for strong danger border"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.red.10}",
+                "_dark": "{colors.redDark.10}"
+              },
+              "description": "Active/pressed state for strong danger border"
+            }
+          }
+        },
+        "solid": {
+          "DEFAULT": {
+            "value": {
+              "base": "{colors.red.9}",
+              "_dark": "{colors.redDark.9}"
+            },
+            "description": "Base color for default solid danger background"
+          },
+          "hover": {
+            "value": {
+              "base": "{colors.red.10}",
+              "_dark": "{colors.redDark.10}"
+            },
+            "description": "Hover state for default solid danger background"
+          },
+          "active": {
+            "value": {
+              "base": "{colors.red.11}",
+              "_dark": "{colors.redDark.11}"
+            },
+            "description": "Active/pressed state for default solid danger background"
+          },
+          "subtle": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.red.3}",
+                "_dark": "{colors.redDark.3}"
+              },
+              "description": "Base color for subtle solid danger background"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.red.4}",
+                "_dark": "{colors.redDark.4}"
+              },
+              "description": "Hover state for subtle solid danger background"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.red.5}",
+                "_dark": "{colors.redDark.5}"
+              },
+              "description": "Active/pressed state for subtle solid danger background"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.red.10}",
+                "_dark": "{colors.redDark.10}"
+              },
+              "description": "Base color for strong solid danger background"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.red.11}",
+                "_dark": "{colors.redDark.11}"
+              },
+              "description": "Hover state for strong solid danger background"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.red.12}",
+                "_dark": "{colors.redDark.12}"
+              },
+              "description": "Active/pressed state for strong solid danger background"
+            }
+          }
+        },
+        "fg": {
+          "DEFAULT": {
+            "value": {
+              "base": "{colors.red.11}",
+              "_dark": "{colors.redDark.11}"
+            },
+            "description": "Base color for default danger text"
+          },
+          "hover": {
+            "value": {
+              "base": "{colors.red.12}",
+              "_dark": "{colors.redDark.12}"
+            },
+            "description": "Hover state for default danger text"
+          },
+          "active": {
+            "value": {
+              "base": "{colors.red.12}",
+              "_dark": "{colors.redDark.12}"
+            },
+            "description": "Active/pressed state for default danger text"
+          },
+          "muted": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.red.9}",
+                "_dark": "{colors.redDark.9}"
+              },
+              "description": "Base color for muted danger text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.red.10}",
+                "_dark": "{colors.redDark.10}"
+              },
+              "description": "Hover state for muted danger text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.red.11}",
+                "_dark": "{colors.redDark.11}"
+              },
+              "description": "Active/pressed state for muted danger text"
+            }
+          },
+          "subtle": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.red.10}",
+                "_dark": "{colors.redDark.10}"
+              },
+              "description": "Base color for subtle danger text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.red.11}",
+                "_dark": "{colors.redDark.11}"
+              },
+              "description": "Hover state for subtle danger text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.red.12}",
+                "_dark": "{colors.redDark.12}"
+              },
+              "description": "Active/pressed state for subtle danger text"
+            }
+          },
+          "strong": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.red.12}",
+                "_dark": "{colors.redDark.12}"
+              },
+              "description": "Base color for strong danger text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.red.11}",
+                "_dark": "{colors.redDark.11}"
+              },
+              "description": "Hover state for strong danger text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.red.12}",
+                "_dark": "{colors.redDark.12}"
+              },
+              "description": "Active/pressed state for strong danger text"
+            }
+          },
+          "inverted": {
+            "DEFAULT": {
+              "value": {
+                "base": "{colors.red.1}",
+                "_dark": "{colors.redDark.1}"
+              },
+              "description": "Base color for inverted text"
+            },
+            "hover": {
+              "value": {
+                "base": "{colors.red.2}",
+                "_dark": "{colors.redDark.2}"
+              },
+              "description": "Hover state for inverted text"
+            },
+            "active": {
+              "value": {
+                "base": "{colors.red.1}",
+                "_dark": "{colors.redDark.1}"
+              },
+              "description": "Active/pressed state for inverted text"
+            }
           }
         }
       },
@@ -3507,13 +4686,13 @@
         "categorical": {
           "1": {
             "default": {},
-            "hovered": {
+            "hover": {
               "value": {
                 "base": "{colors.blue.10}",
                 "_dark": "{colors.blueDark.10}"
               }
             },
-            "pressed": {
+            "active": {
               "value": {
                 "base": "{colors.blue.11}",
                 "_dark": "{colors.blueDark.9}"
@@ -3527,13 +4706,13 @@
                 "_dark": "{colors.greenDark.11}"
               }
             },
-            "hovered": {
+            "hover": {
               "value": {
                 "base": "{colors.green.10}",
                 "_dark": "{colors.greenDark.10}"
               }
             },
-            "pressed": {
+            "active": {
               "value": {
                 "base": "{colors.green.11}",
                 "_dark": "{colors.greenDark.9}"
@@ -3547,13 +4726,13 @@
                 "_dark": "{colors.purpleDark.11}"
               }
             },
-            "hovered": {
+            "hover": {
               "value": {
                 "base": "{colors.purple.10}",
                 "_dark": "{colors.purpleDark.10}"
               }
             },
-            "pressed": {
+            "active": {
               "value": {
                 "base": "{colors.purple.11}",
                 "_dark": "{colors.purpleDark.9}"
@@ -3567,13 +4746,13 @@
                 "_dark": "{colors.orangeDark.9}"
               }
             },
-            "hovered": {
+            "hover": {
               "value": {
                 "base": "{colors.orange.10}",
                 "_dark": "{colors.orangeDark.10}"
               }
             },
-            "pressed": {
+            "active": {
               "value": {
                 "base": "{colors.orange.11}",
                 "_dark": "{colors.orangeDark.11}"
@@ -3587,13 +4766,13 @@
                 "_dark": "{colors.redDark.11}"
               }
             },
-            "hovered": {
+            "hover": {
               "value": {
                 "base": "{colors.red.10}",
                 "_dark": "{colors.redDark.10}"
               }
             },
-            "pressed": {
+            "active": {
               "value": {
                 "base": "{colors.red.11}",
                 "_dark": "{colors.redDark.9}"
@@ -3607,13 +4786,13 @@
                 "_dark": "{colors.blueDark.8}"
               }
             },
-            "hovered": {
+            "hover": {
               "value": {
                 "base": "{colors.blue.8}",
                 "_dark": "{colors.blueDark.9}"
               }
             },
-            "pressed": {
+            "active": {
               "value": {
                 "base": "{colors.blue.9}",
                 "_dark": "{colors.blueDark.10}"
@@ -3627,13 +4806,13 @@
                 "_dark": "{colors.greenDark.8}"
               }
             },
-            "hovered": {
+            "hover": {
               "value": {
                 "base": "{colors.green.8}",
                 "_dark": "{colors.greenDark.9}"
               }
             },
-            "pressed": {
+            "active": {
               "value": {
                 "base": "{colors.green.9}",
                 "_dark": "{colors.greenDark.10}"
@@ -3647,13 +4826,13 @@
                 "_dark": "{colors.purpleDark.8}"
               }
             },
-            "hovered": {
+            "hover": {
               "value": {
                 "base": "{colors.purple.8}",
                 "_dark": "{colors.purpleDark.9}"
               }
             },
-            "pressed": {
+            "active": {
               "value": {
                 "base": "{colors.purple.9}",
                 "_dark": "{colors.purpleDark.10}"
@@ -3669,13 +4848,13 @@
                 "_dark": "{colors.blueDark.11}"
               }
             },
-            "hovered": {
+            "hover": {
               "value": {
                 "base": "{colors.blue.10}",
                 "_dark": "{colors.blueDark.10}"
               }
             },
-            "pressed": {
+            "active": {
               "value": {
                 "base": "{colors.blue.11}",
                 "_dark": "{colors.blueDark.9}"
@@ -3689,13 +4868,13 @@
                 "_dark": "{colors.blueDark.9}"
               }
             },
-            "hovered": {
+            "hover": {
               "value": {
                 "base": "{colors.blue.9}",
                 "_dark": "{colors.blueDark.10}"
               }
             },
-            "pressed": {
+            "active": {
               "value": {
                 "base": "{colors.blue.10}",
                 "_dark": "{colors.blueDark.11}"
@@ -3709,13 +4888,13 @@
                 "_dark": "{colors.blueDark.8}"
               }
             },
-            "hovered": {
+            "hover": {
               "value": {
                 "base": "{colors.blue.8}",
                 "_dark": "{colors.blueDark.9}"
               }
             },
-            "pressed": {
+            "active": {
               "value": {
                 "base": "{colors.blue.9}",
                 "_dark": "{colors.blueDark.10}"
@@ -3729,13 +4908,13 @@
                 "_dark": "{colors.blueDark.7}"
               }
             },
-            "hovered": {
+            "hover": {
               "value": {
                 "base": "{colors.blue.7}",
                 "_dark": "{colors.blueDark.8}"
               }
             },
-            "pressed": {
+            "active": {
               "value": {
                 "base": "{colors.blue.8}",
                 "_dark": "{colors.blueDark.9}"
@@ -3749,13 +4928,13 @@
                 "_dark": "{colors.blueDark.6}"
               }
             },
-            "hovered": {
+            "hover": {
               "value": {
                 "base": "{colors.blue.6}",
                 "_dark": "{colors.blueDark.7}"
               }
             },
-            "pressed": {
+            "active": {
               "value": {
                 "base": "{colors.blue.7}",
                 "_dark": "{colors.blueDark.8}"
@@ -3772,13 +4951,13 @@
                   "_dark": "{colors.redDark.7}"
                 }
               },
-              "hovered": {
+              "hover": {
                 "value": {
                   "base": "{colors.red.7}",
                   "_dark": "{colors.redDark.8}"
                 }
               },
-              "pressed": {
+              "active": {
                 "value": {
                   "base": "{colors.red.8}",
                   "_dark": "{colors.redDark.9}"
@@ -3792,13 +4971,13 @@
                   "_dark": "{colors.redDark.8}"
                 }
               },
-              "hovered": {
+              "hover": {
                 "value": {
                   "base": "{colors.red.8}",
                   "_dark": "{colors.redDark.9}"
                 }
               },
-              "pressed": {
+              "active": {
                 "value": {
                   "base": "{colors.red.9}",
                   "_dark": "{colors.redDark.10}"
@@ -3812,13 +4991,13 @@
                   "_dark": "{colors.redDark.9}"
                 }
               },
-              "hovered": {
+              "hover": {
                 "value": {
                   "base": "{colors.red.9}",
                   "_dark": "{colors.redDark.10}"
                 }
               },
-              "pressed": {
+              "active": {
                 "value": {
                   "base": "{colors.red.10}",
                   "_dark": "{colors.redDark.11}"
@@ -3832,13 +5011,13 @@
                   "_dark": "{colors.redDark.11}"
                 }
               },
-              "hovered": {
+              "hover": {
                 "value": {
                   "base": "{colors.red.10}",
                   "_dark": "{colors.redDark.10}"
                 }
               },
-              "pressed": {
+              "active": {
                 "value": {
                   "base": "{colors.red.11}",
                   "_dark": "{colors.redDark.9}"
@@ -3849,20 +5028,20 @@
           "neutral": {
             "DEFAULT": {
               "value": {
-                "base": "{colors.neutral.5}",
-                "_dark": "{colors.neutralDark.6}"
+                "base": "{colors.neutralSlate.5}",
+                "_dark": "{colors.neutralSandDark.6}"
               }
             },
-            "hovered": {
+            "hover": {
               "value": {
-                "base": "{colors.neutral.6}",
-                "_dark": "{colors.neutralDark.7}"
+                "base": "{colors.neutralSlate.6}",
+                "_dark": "{colors.neutralSandDark.7}"
               }
             },
-            "pressed": {
+            "active": {
               "value": {
-                "base": "{colors.neutral.7}",
-                "_dark": "{colors.neutralDark.8}"
+                "base": "{colors.neutralSlate.7}",
+                "_dark": "{colors.neutralSandDark.8}"
               }
             }
           },
@@ -3874,13 +5053,13 @@
                   "_dark": "{colors.greenDark.7}"
                 }
               },
-              "hovered": {
+              "hover": {
                 "value": {
                   "base": "{colors.green.7}",
                   "_dark": "{colors.greenDark.8}"
                 }
               },
-              "pressed": {
+              "active": {
                 "value": {
                   "base": "{colors.green.8}",
                   "_dark": "{colors.greenDark.9}"
@@ -3894,13 +5073,13 @@
                   "_dark": "{colors.greenDark.8}"
                 }
               },
-              "hovered": {
+              "hover": {
                 "value": {
                   "base": "{colors.green.8}",
                   "_dark": "{colors.greenDark.9}"
                 }
               },
-              "pressed": {
+              "active": {
                 "value": {
                   "base": "{colors.green.9}",
                   "_dark": "{colors.greenDark.10}"
@@ -3914,13 +5093,13 @@
                   "_dark": "{colors.greenDark.9}"
                 }
               },
-              "hovered": {
+              "hover": {
                 "value": {
                   "base": "{colors.green.9}",
                   "_dark": "{colors.greenDark.10}"
                 }
               },
-              "pressed": {
+              "active": {
                 "value": {
                   "base": "{colors.green.10}",
                   "_dark": "{colors.greenDark.11}"
@@ -3934,13 +5113,13 @@
                   "_dark": "{colors.greenDark.11}"
                 }
               },
-              "hovered": {
+              "hover": {
                 "value": {
                   "base": "{colors.green.10}",
                   "_dark": "{colors.greenDark.10}"
                 }
               },
-              "pressed": {
+              "active": {
                 "value": {
                   "base": "{colors.green.11}",
                   "_dark": "{colors.greenDark.9}"
@@ -3952,15 +5131,15 @@
         "grid": {
           "line": {
             "value": {
-              "base": "{colors.neutral.A3}",
-              "_dark": "{colors.neutralDark.A3}"
+              "base": "{colors.neutralSlate.A3}",
+              "_dark": "{colors.neutralSandDark.A3}"
             },
             "description": "Color for grid lines"
           },
           "axis": {
             "value": {
-              "base": "{colors.neutral.12}",
-              "_dark": "{colors.neutralDark.11}"
+              "base": "{colors.neutralSlate.12}",
+              "_dark": "{colors.neutralSandDark.11}"
             },
             "description": "Color for axis lines and labels"
           }
@@ -4269,8 +5448,7 @@
             "fontSize": "{fontSizes.sm}",
             "lineHeight": "{lineHeights.ui}",
             "letterSpacing": "{letterSpacings.ui}",
-            "fontFamily": "{fonts.ui}",
-            "color": "{colors.fg.subtle}"
+            "fontFamily": "{fonts.ui}"
           },
           "description": "The text style for meta text"
         }
@@ -4290,8 +5468,7 @@
             "fontSize": "{fontSizes.lg}",
             "lineHeight": "{lineHeights.prose}",
             "letterSpacing": "{letterSpacings.prose}",
-            "fontFamily": "{fonts.prose}",
-            "color": "{colors.fg.subtle}"
+            "fontFamily": "{fonts.prose}"
           },
           "description": "The text style for lead text"
         }
