@@ -29,13 +29,12 @@ describe('core exports', () => {
   describe('semantic tokens', () => {
     it('exports semantic tokens', () => {
       expect(semanticTokens).toBeDefined()
-      expect(semanticTokens.colors).toBeDefined()
     })
 
     it('has correct semantic token structure', () => {
+      expect(semanticTokens.colors).toBeDefined()
       expect(semanticTokens.colors).toHaveProperty('$type', 'color')
       expect(semanticTokens.colors).toHaveProperty('neutral')
-      expect(semanticTokens.colors).toHaveProperty('neutralDark')
       expect(semanticTokens.colors).toHaveProperty('$extensions.modes')
     })
 
@@ -43,15 +42,14 @@ describe('core exports', () => {
       const colorTokens = semanticTokens.colors
       expect(colorTokens).toBeDefined()
       expect(colorTokens.neutral).toBeDefined()
-      expect(colorTokens.neutral['1']).toBeDefined()
-      expect(colorTokens.neutral['1'].$value).toBeDefined()
-      expect(colorTokens.neutral['1'].$description).toBeDefined()
+      expect(colorTokens.neutral.surface).toBeDefined()
+      expect(colorTokens.neutral.surface.default).toBeDefined()
+      expect(colorTokens.neutral.surface.default.$value).toBeDefined()
     })
 
     it('has correct mode configuration', () => {
-      const { $extensions } = semanticTokens.colors
-      expect($extensions).toBeDefined()
-      expect($extensions.modes).toEqual(['light', 'dark'])
+      expect(semanticTokens.colors.$extensions.modes).toContain('light')
+      expect(semanticTokens.colors.$extensions.modes).toContain('dark')
     })
   })
 

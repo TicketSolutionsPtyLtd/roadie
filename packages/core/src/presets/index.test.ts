@@ -78,9 +78,11 @@ describe('roadie preset', () => {
         expect(globalCss.body).toEqual({
           lineHeight: 1.5,
           WebkitFontSmoothing: 'antialiased',
-          fontFamily: 'ui',
-          color: 'fg',
-          backgroundColor: 'bg'
+          backgroundColor: 'neutral.surface',
+          borderColor: 'neutral.border',
+          color: 'neutral.fg',
+          colorPalette: 'neutral',
+          fontFamily: 'ui'
         })
       })
 

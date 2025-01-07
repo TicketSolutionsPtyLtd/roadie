@@ -1,29 +1,45 @@
 import { describe, expect, it } from 'vitest'
 
-import { semanticTokens } from '../index'
+import semanticTokens from './semantic-tokens.json'
+
+type SemanticToken = {
+  $type: string
+  $description?: string
+  $value?: string
+  $extensions?: {
+    mode?: {
+      light: string
+      dark: string
+    }
+  }
+}
 
 describe('semantic tokens', () => {
   it('has colors with expected structure', () => {
     expect(semanticTokens.colors).toBeDefined()
-    expect(semanticTokens.colors.$type).toBe('color')
-    expect(semanticTokens.colors.$extensions).toBeDefined()
-    expect(semanticTokens.colors.$extensions.modes).toEqual(['light', 'dark'])
+    expect((semanticTokens.colors as SemanticToken).$type).toBe('color')
     expect(semanticTokens.colors.neutral).toBeDefined()
-    expect(semanticTokens.colors.neutral.$type).toBe('color')
-    expect(semanticTokens.colors.neutral.$description).toBeDefined()
-    expect(semanticTokens.colors.neutral['1'].$value).toBeDefined()
-    expect(semanticTokens.colors.neutral['12'].$value).toBeDefined()
-    expect(semanticTokens.colors.neutral['A1'].$value).toBeDefined()
-    expect(semanticTokens.colors.neutral['A12'].$value).toBeDefined()
+    expect((semanticTokens.colors.neutral as SemanticToken).$type).toBe('color')
+    expect(semanticTokens.colors.neutral.surface).toBeDefined()
+    expect(semanticTokens.colors.neutral.border).toBeDefined()
+    expect(semanticTokens.colors.neutral.solid).toBeDefined()
+    expect(semanticTokens.colors.neutral.fg).toBeDefined()
   })
 
-  it('has neutral dark colors with expected structure', () => {
-    expect(semanticTokens.colors.neutralDark).toBeDefined()
-    expect(semanticTokens.colors.neutralDark.$type).toBe('color')
-    expect(semanticTokens.colors.neutralDark.$description).toBeDefined()
-    expect(semanticTokens.colors.neutralDark['1'].$value).toBeDefined()
-    expect(semanticTokens.colors.neutralDark['12'].$value).toBeDefined()
-    expect(semanticTokens.colors.neutralDark['A1'].$value).toBeDefined()
-    expect(semanticTokens.colors.neutralDark['A12'].$value).toBeDefined()
+  it('has color states with expected structure', () => {
+    const surface = semanticTokens.colors.neutral.surface
+    expect(surface.default).toBeDefined()
+    expect((surface.default as SemanticToken).$type).toBe('color')
+    expect((surface.default as SemanticToken).$value).toBeDefined()
+    expect((surface.default as SemanticToken).$extensions?.mode).toBeDefined()
+    expect(surface.hover).toBeDefined()
+    expect(surface.active).toBeDefined()
+  })
+
+  it('has color modes configured correctly', () => {
+    const defaultState = semanticTokens.colors.neutral.surface
+      .default as SemanticToken
+    expect(defaultState.$extensions?.mode?.light).toBeDefined()
+    expect(defaultState.$extensions?.mode?.dark).toBeDefined()
   })
 })

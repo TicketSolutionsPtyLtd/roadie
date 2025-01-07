@@ -14,6 +14,11 @@ export const roadie = definePreset({
     semanticTokens,
     textStyles
   },
+  conditions: {
+    extend: {
+      hoverFocusVisible: ['&:hover', '&:focus-visible']
+    }
+  },
   globalCss: {
     '*, *::before, *::after': {
       boxSizing: 'border-box'
@@ -25,16 +30,19 @@ export const roadie = definePreset({
       font: 'inherit'
     },
     ':focus-visible': {
-      outline: '2px solid',
-      outlineColor: 'border.focused',
+      outlineStyle: 'solid',
+      outlineWidth: '2px',
+      outlineColor: 'accent.border.strong',
       outlineOffset: '2px'
     },
     body: {
       lineHeight: 1.5,
       WebkitFontSmoothing: 'antialiased',
       fontFamily: 'ui',
-      color: 'fg',
-      backgroundColor: 'bg'
+      color: 'neutral.fg',
+      backgroundColor: 'neutral.surface',
+      borderColor: 'neutral.border',
+      colorPalette: 'neutral'
     },
     'img, picture, video, canvas, svg': {
       display: 'block',
