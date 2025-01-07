@@ -121,7 +121,14 @@ Ensure your changes pass:
 
 We use [changesets](https://github.com/changesets/changesets) to manage versioning and releases. The process is automated through GitHub Actions:
 
-1. Create a changeset in your feature branch:
+1. Make your changes in a feature branch and commit them first:
+
+   ```bash
+   git add .
+   git commit -m "feat: your feature description"
+   ```
+
+2. Create a changeset (after your changes are complete):
 
    ```bash
    pnpm changeset
@@ -131,14 +138,14 @@ We use [changesets](https://github.com/changesets/changesets) to manage versioni
    - Choose change type (major/minor/patch)
    - Write a description of your changes
 
-2. Commit the changeset with your changes:
+3. Commit the changeset file:
 
    ```bash
-   git add .
-   git commit -m "feat: your feature description"
+   git add .changeset/*.md
+   git commit -m "chore: add changeset"
    ```
 
-3. Create and merge your pull request
+4. Create and merge your pull request
    - CI will validate your changes
    - Get required reviews
    - When merged to main:
