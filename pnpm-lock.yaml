@@ -29,6 +29,9 @@ importers:
       eslint-plugin-prettier:
         specifier: 5.2.1
         version: 5.2.1(eslint-config-prettier@9.1.0(eslint@8.57.1))(eslint@8.57.1)(prettier@3.4.2)
+      eslint-plugin-react:
+        specifier: ^7.37.3
+        version: 7.37.3(eslint@8.57.1)
       husky:
         specifier: 9.1.7
         version: 9.1.7

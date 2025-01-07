@@ -1,11 +1,12 @@
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint', 'prettier', '@pandacss'],
+  plugins: ['@typescript-eslint', 'prettier', '@pandacss', 'react'],
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:@pandacss/recommended',
+    'plugin:react/jsx-runtime',
     'prettier'
   ],
   rules: {
