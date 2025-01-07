@@ -31,6 +31,23 @@ export default defineConfig({
       return `${content}\n${codeBlocks}`
     }
   },
+  staticCss: {
+    css: [
+      {
+        properties: {
+          colorPalette: [
+            'neutral',
+            'accent',
+            'brand',
+            'information',
+            'success',
+            'warning',
+            'danger'
+          ]
+        }
+      }
+    ]
+  },
   outdir: 'roadie-core',
   outExtension: 'js',
   clean: true,

@@ -27,7 +27,7 @@ function Logo() {
       flexDirection='row'
       alignItems='center'
       gap='050'
-      color='fg'
+      color='accent.fg.strong'
       textDecoration='none'
       fontWeight='semibold'
       fontSize='lg'
@@ -54,7 +54,7 @@ function ThemeToggle() {
 
   return (
     <Button
-      appearance='ghost'
+      appearance='muted'
       size='sm'
       onPress={toggleTheme}
       aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
@@ -67,7 +67,11 @@ function ThemeToggle() {
 function NavigationGroup({ item }: { item: NavigationItem }) {
   const pathname = usePathname()
 
-  const isActiveParent = item.href ? pathname.startsWith(item.href) : false
+  const isActiveParent = item.href
+    ? item.href === '/'
+      ? pathname === '/'
+      : pathname.startsWith(item.href)
+    : false
 
   return (
     <View gap='100'>
@@ -77,11 +81,11 @@ function NavigationGroup({ item }: { item: NavigationItem }) {
         px='100'
         fontSize='sm'
         fontWeight='semibold'
-        color={isActiveParent ? 'fg.accent' : 'fg'}
+        colorPalette={isActiveParent ? 'accent' : 'neutral'}
         textDecoration='none'
         transition='colors'
         _hover={{
-          color: 'fg.accent'
+          color: 'colorPalette.fg.hover'
         }}
       >
         {item.title}
@@ -100,23 +104,23 @@ function NavigationGroup({ item }: { item: NavigationItem }) {
                   px='100'
                   py='050'
                   fontSize='sm'
-                  color='fg.subtle'
+                  emphasis='subtle'
                   fontWeight='normal'
                   textDecoration='none'
                   transition='all 0.2s'
                   borderRadius='050'
                   data-current={isActive}
                   _hover={{
-                    bg: 'bg.accent.hovered',
-                    color: 'fg.accent.hovered'
+                    bg: 'accent.surface.hover',
+                    color: 'accent.fg.hover'
                   }}
                   _active={{
-                    bg: 'bg.accent.pressed',
-                    color: 'fg.accent.pressed'
+                    bg: 'accent.surface.active',
+                    color: 'accent.fg.active'
                   }}
                   css={{
                     '&[data-current=true]': {
-                      color: 'fg.accent',
+                      color: 'accent.fg',
                       fontWeight: 'semibold'
                     }
                   }}
@@ -145,8 +149,9 @@ export function Navigation({ items }: NavigationProps) {
       px='200'
       py='400'
       borderRight='1px solid'
-      borderColor='border.subtlest'
-      bg='bg.sunken'
+      borderColor='neutral.border.muted'
+      bg='neutral.surface.sunken'
+      shadow='sunken'
       display={{ base: 'none', md: 'block' }}
     >
       <View gap='300'>
@@ -157,7 +162,7 @@ export function Navigation({ items }: NavigationProps) {
           justifyContent='space-between'
           px='100'
           borderBottomWidth='1px'
-          borderColor='border.subtlest'
+          borderColor='neutral.border.subtle'
         >
           <Logo />
           <ThemeToggle />

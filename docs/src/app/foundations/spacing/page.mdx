@@ -1,17 +1,22 @@
 import { Text, View } from '@oztix/roadie-components'
+import { pandaTokens } from '@oztix/roadie-core'
 
 export const metadata = {
   title: 'Spacing',
-  description: 'Learn how to use spacing tokens and the View component for consistent layouts'
+  description:
+    'Learn how to use spacing tokens and the View component for consistent layouts'
 }
 
 # Spacing
 
-The Roadie Design System uses a consistent spacing scale through PandaCSS tokens. These tokens help maintain visual rhythm and consistency across your application.
+The Roadie Design System uses a consistent spacing scale through PandaCSS
+tokens. These tokens help maintain visual rhythm and consistency across your
+application.
 
 ## Spacing scale
 
-Our spacing scale follows an 8px base unit (where 100 = 8px), providing a predictable and harmonious spacing system:
+Our spacing scale follows an 8px base unit (where 100 = 8px), providing a
+predictable and harmonious spacing system:
 
 ```ts
 {
@@ -34,110 +39,42 @@ Our spacing scale follows an 8px base unit (where 100 = 8px), providing a predic
 
 ### Visual scale
 
-
-<View gap='050' mb='800' bg='bg.subtlest' border='1px solid' borderColor='border.subtlest' p='200' borderRadius='100'>
-  <View display='flex' flexDirection='row' gap='100'>
-    <Text width='500' fontWeight='semibold'>025</Text>
-    <View width='025' height='400' bg='blue.9' />
-    <Text color='fg.subtle'>2px</Text>
-  </View>
-
-  <View display='flex' flexDirection='row' gap='100'>
-    <Text width='500' fontWeight='semibold'>050</Text>
-    <View width='050' height='400' bg='blue.9' />
-    <Text color='fg.subtle'>4px</Text>
-  </View>
-
-  <View alignItems='center' flexDirection='row' gap='100'>
-    <Text width='500' fontWeight='semibold'>075</Text>
-    <View width='075' height='400' bg='blue.9' />
-    <Text color='fg.subtle'>6px</Text>
-  </View>
-
-  <View alignItems='center' flexDirection='row' gap='100'>
-    <Text width='500' fontWeight='semibold'>100</Text>
-    <View width='100' height='400' bg='blue.9' />
-    <Text color='fg.subtle'>8px</Text>
-  </View>
-
-  <View alignItems='center' flexDirection='row' gap='100'>
-    <Text width='500' fontWeight='semibold'>150</Text>
-    <View width='150' height='400' bg='blue.9' />
-    <Text color='fg.subtle'>12px</Text>
-  </View>
-
-  <View alignItems='center' flexDirection='row' gap='100'>
-    <Text width='500' fontWeight='semibold'>200</Text>
-    <View width='200' height='400' bg='blue.9' />
-    <Text color='fg.subtle'>16px</Text>
-  </View>
-
-  <View alignItems='center' flexDirection='row' gap='100'>
-    <Text width='500' fontWeight='semibold'>300</Text>
-    <View width='300' height='400' bg='blue.9' />
-    <Text color='fg.subtle'>24px</Text>
-  </View>
-
-  <View alignItems='center' flexDirection='row' gap='100'>
-    <Text width='500' fontWeight='semibold'>400</Text>
-    <View width='400' height='400' bg='blue.9' />
-    <Text color='fg.subtle'>32px</Text>
-  </View>
-
-  <View alignItems='center' flexDirection='row' gap='100'>
-    <Text width='500' fontWeight='semibold'>500</Text>
-    <View width='500' height='400' bg='blue.9' />
-    <Text color='fg.subtle'>40px</Text>
-  </View>
-
-  <View alignItems='center' flexDirection='row' gap='100'>
-    <Text width='500' fontWeight='semibold'>600</Text>
-    <View width='600' height='400' bg='blue.9' />
-    <Text color='fg.subtle'>48px</Text>
-  </View>
-
-  <View alignItems='center' flexDirection='row' gap='100'>
-    <Text width='500' fontWeight='semibold'>800</Text>
-    <View width='800' height='400' bg='blue.9' />
-    <Text color='fg.subtle'>64px</Text>
-  </View>
-
-  <View alignItems='center' flexDirection='row' gap='100'>
-    <Text width='500' fontWeight='semibold'>1000</Text>
-    <View width='1000' height='400' bg='blue.9' />
-    <Text color='fg.subtle'>80px</Text>
-  </View>
-
-  <View alignItems='center' flexDirection='row' gap='100'>
-    <Text width='500' fontWeight='semibold'>1200</Text>
-    <View width='1200' height='400' bg='blue.9' />
-    <Text color='fg.subtle'>96px</Text>
-  </View>
-
-  <View alignItems='center' flexDirection='row' gap='100'>
-    <Text width='500' fontWeight='semibold'>1600</Text>
-    <View width='1600' height='400' bg='blue.9' />
-    <Text color='fg.subtle'>128px</Text>
-  </View>
+<View
+  gap='050'
+  mb='800'
+  bg='neutral.surface.subtle'
+  borderWidth='1px'
+  borderStyle='solid'
+  borderColor='neutral.border.subtle'
+  p='200'
+  borderRadius='100'
+>
+  {Object.entries(pandaTokens?.tokens?.spacing)
+    .sort(([a], [b]) => Number(a) - Number(b))
+    .map(([token, { value }]) => (
+      <View key={token} alignItems='center' flexDirection='row' gap='100'>
+        <Text width='600' emphasis='strong'>
+          {token}
+        </Text>
+        <View
+          height='400'
+          bg='blue.9'
+          style={{ width: `var(--spacing-${token})` }}
+        />
+        <Text emphasis='subtle'>{value}</Text>
+      </View>
+    ))}
 </View>
 
 ## Using spacing with View
 
-The `View` component is our primary layout component and accepts all spacing-related style props from PandaCSS. Here are the most commonly used spacing properties:
+The `View` component is our primary layout component and accepts all
+spacing-related style props from PandaCSS. Here are the most commonly used
+spacing properties:
 
-### Margin and padding
+### Padding and margin
 
 ```tsx
-// Using individual margin properties
-<View mt='100' mb='200' mx='100'>
-  Content
-</View>
-
-// Using shorthand margin
-<View m='100'>
-  Content
-</View>
-
 // Using individual padding properties
 <View pt='100' pb='200' px='100'>
   Content
@@ -147,11 +84,23 @@ The `View` component is our primary layout component and accepts all spacing-rel
 <View p='100'>
   Content
 </View>
+
+// Note: Avoid margins, use gap instead
+// Using individual margin properties
+<View mt='100' mb='200' mx='100'>
+  Content
+</View>
+
+// Using shorthand margin
+<View m='100'>
+  Content
+</View>
 ```
 
 ### Gap
 
-When using View as a flex container, you can control the space between items using the `gap` property:
+When using View as a flex container, you can control the space between items
+using the `gap` property:
 
 ```tsx
 live
@@ -167,10 +116,10 @@ You can also set different horizontal and vertical gaps:
 ```tsx
 live
 <View display='grid' gridTemplateColumns='repeat(2, 1fr)' rowGap='200' columnGap='400'>
-  <View bg='bg.subtle' p='100'>Item 1</View>
-  <View bg='bg.subtle' p='100'>Item 2</View>
-  <View bg='bg.subtle' p='100'>Item 3</View>
-  <View bg='bg.subtle' p='100'>Item 4</View>
+  <View bg='neutral.surface.subtle' p='100'>Item 1</View>
+  <View bg='neutral.surface.subtle' p='100'>Item 2</View>
+  <View bg='neutral.surface.subtle' p='100'>Item 3</View>
+  <View bg='neutral.surface.subtle' p='100'>Item 4</View>
 </View>
 ```
 
@@ -180,10 +129,10 @@ live
 
 ```tsx
 // ✅ Good
-<View mt='100'>
+<View pt='100'>
 
 // ❌ Bad
-<View mt='17px'>
+<View pt='17px'>
 ```
 
 ### 2. Consistent spacing patterns
@@ -196,7 +145,7 @@ live
 
 ```tsx
 live
-<View 
+<View
   mt={{ base: '100', md: '200', lg: '300' }}
   px={{ base: '100', md: '200' }}
 >
@@ -224,6 +173,7 @@ live
 ## Common patterns
 
 ### Card layout
+
 ```tsx
 live
 <View p='200' gap='100'>
@@ -234,6 +184,7 @@ live
 ```
 
 ### List layout
+
 ```tsx
 live
 <View as='ul' gap='050'>
@@ -244,10 +195,11 @@ live
 ```
 
 ### Grid layout
+
 ```tsx
 live
-<View 
-  display='grid' 
+<View
+  display='grid'
   gap='100'
   gridTemplateColumns='repeat(auto-fit, minmax(200px, 1fr))'
 >
@@ -264,4 +216,6 @@ live
 3. Consider content density at different screen sizes
 4. Use consistent spacing patterns within components
 
-Remember that consistent spacing is key to creating a polished, professional interface. Always use the spacing scale tokens rather than arbitrary values to maintain visual harmony across your application.
+Remember that consistent spacing is key to creating a polished, professional
+interface. Always use the spacing scale tokens rather than arbitrary values to
+maintain visual harmony across your application.

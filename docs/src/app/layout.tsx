@@ -30,7 +30,9 @@ async function getNavigationItems() {
   ): Promise<{ title: string; description: string } | null> {
     try {
       const content = await readFile(filePath, 'utf-8')
-      const metadataMatch = content.match(/export const metadata = ({[\s\S]*?})/m)
+      const metadataMatch = content.match(
+        /export const metadata = ({[\s\S]*?})/m
+      )
 
       if (metadataMatch) {
         try {
@@ -106,7 +108,9 @@ async function getNavigationItems() {
             }
           }
 
-          const metadataMatch = content.match(/export const metadata = ({[\s\S]*?})/m)
+          const metadataMatch = content.match(
+            /export const metadata = ({[\s\S]*?})/m
+          )
           let metadata: ComponentMetadata = {
             name: dir.name,
             title: dir.name,
@@ -132,7 +136,9 @@ async function getNavigationItems() {
       })
   )
 
-  const validComponents = components.filter((comp): comp is ComponentMetadata => comp !== null)
+  const validComponents = components.filter(
+    (comp): comp is ComponentMetadata => comp !== null
+  )
 
   // Get index page metadata
   const indexMetadata = await getMetadataFromFile(
@@ -141,7 +147,10 @@ async function getNavigationItems() {
   )
 
   // Get tokens pages metadata
-  const tokensMetadata = await getMetadataFromFile(join(tokensDir, 'page.mdx'), 'Design Tokens')
+  const tokensMetadata = await getMetadataFromFile(
+    join(tokensDir, 'page.mdx'),
+    'Design Tokens'
+  )
   const tokensReferenceMetadata = await getMetadataFromFile(
     join(tokensDir, 'reference/page.tsx'),
     'Reference'
@@ -221,7 +230,11 @@ export const metadata = {
     'A comprehensive collection of reusable components for building consistent user interfaces across Oztix applications.'
 }
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({
+  children
+}: {
+  children: React.ReactNode
+}) {
   const items = await getNavigationItems()
 
   return (

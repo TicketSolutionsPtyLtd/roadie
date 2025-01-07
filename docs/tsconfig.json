@@ -2,11 +2,13 @@
   "extends": "../tsconfig.react.json",
   "compilerOptions": {
     "jsx": "preserve",
+    "composite": false,
     "plugins": [
       {
         "name": "next"
       }
     ],
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },

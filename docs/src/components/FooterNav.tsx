@@ -32,7 +32,8 @@ export function FooterNav({ items }: FooterNavProps) {
   const currentIndex = flatNav.findIndex((item) => item.href === pathname)
 
   const prev = currentIndex > 0 ? flatNav[currentIndex - 1] : undefined
-  const next = currentIndex < flatNav.length - 1 ? flatNav[currentIndex + 1] : undefined
+  const next =
+    currentIndex < flatNav.length - 1 ? flatNav[currentIndex + 1] : undefined
 
   if (!prev && !next) return null
 
@@ -40,24 +41,20 @@ export function FooterNav({ items }: FooterNavProps) {
     <View
       pt='600'
       borderTopWidth='1px'
-      borderColor='border'
+      borderColor='neutral.border'
       display='flex'
       justifyContent='space-between'
       flexDirection='row'
       width='full'
     >
       {prev && (
-        <View
-          as={Link}
-          href={prev.href}
-          gap='100'
-          textDecoration='none'
-          _hover={{ textDecoration: 'underline' }}
-        >
-          <Text fontSize='sm' color='fg.subtle'>
+        <View as={Link} href={prev.href} gap='100' className='group'>
+          <Text textStyle='ui.meta' emphasis='subtle'>
             Previous page
           </Text>
-          <Text color='fg.accent'>← {prev.title}</Text>
+          <Text colorPalette='accent' interactive={true}>
+            ← {prev.title}
+          </Text>
         </View>
       )}
       {next && (
@@ -65,15 +62,16 @@ export function FooterNav({ items }: FooterNavProps) {
           as={Link}
           href={next.href}
           gap='100'
-          textDecoration='none'
           marginLeft='auto'
           textAlign='right'
-          _hover={{ textDecoration: 'underline' }}
+          className='group'
         >
-          <Text fontSize='sm' color='fg.subtle'>
+          <Text textStyle='ui.meta' emphasis='subtle'>
             Next page
           </Text>
-          <Text color='fg.accent'>{next.title} →</Text>
+          <Text colorPalette='accent' interactive={true}>
+            {next.title} →
+          </Text>
         </View>
       )}
     </View>
