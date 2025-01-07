@@ -3,10 +3,5 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "react"
-  },
-  "include": [
-    "packages/components/src/**/*",
-    "packages/core/src/**/*",
-    "docs/src/**/*"
-  ]
+  }
 }

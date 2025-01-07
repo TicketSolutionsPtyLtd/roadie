@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "allowJs": true,
+    "composite": true,
     "declaration": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -19,8 +20,15 @@
     "sourceMap": true,
     "strict": true,
     "target": "ES2022",
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "rootDir": ".",
+    "baseUrl": "."
   },
+  "references": [
+    { "path": "packages/core" },
+    { "path": "packages/components" },
+    { "path": "docs" }
+  ],
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": [
     "**/dist",

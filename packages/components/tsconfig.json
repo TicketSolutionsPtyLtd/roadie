@@ -1,12 +1,16 @@
 {
   "extends": "../../tsconfig.react.json",
   "compilerOptions": {
-    "allowJs": true,
     "outDir": "dist",
     "rootDir": "src",
-    "isolatedModules": true,
-    "skipLibCheck": true
+    "composite": true,
+    "declarationMap": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/components/**/*.ts",
+    "src/components/**/*.tsx"
+  ],
   "exclude": ["dist", "node_modules", "**/*.test.ts", "**/*.test.tsx"]
 }

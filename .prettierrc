@@ -27,38 +27,5 @@
     "^[./]"
   ],
   "importOrderSeparation": true,
-  "importOrderSortSpecifiers": true,
-  "overrides": [
-    {
-      "files": "*.mdx",
-      "options": {
-        "proseWrap": "always",
-        "printWidth": 70
-      }
-    },
-    {
-      "files": ["*.json", "*.yaml", "*.yml"],
-      "options": {
-        "tabWidth": 2
-      }
-    },
-    {
-      "files": ["packages/components/**/*.tsx", "packages/components/**/*.ts"],
-      "options": {
-        "printWidth": 100
-      }
-    },
-    {
-      "files": ["packages/core/**/*.ts"],
-      "options": {
-        "printWidth": 100
-      }
-    },
-    {
-      "files": ["docs/**/*.tsx", "docs/**/*.ts"],
-      "options": {
-        "printWidth": 100
-      }
-    }
-  ]
+  "importOrderSortSpecifiers": true
 }
