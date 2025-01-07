@@ -4,7 +4,6 @@ import { readFile, readdir } from 'fs/promises'
 import { join } from 'path'
 
 import { Heading, Text, View } from '@oztix/roadie-components'
-import { css } from '@oztix/roadie-core/css'
 
 type ComponentMetadata = {
   name: string
@@ -35,7 +34,9 @@ export default async function ComponentsPage() {
           const content = await readFile(mdxPath, 'utf-8')
 
           // Extract metadata from the file
-          const metadataMatch = content.match(/export const metadata = ({[\s\S]*?})/m)
+          const metadataMatch = content.match(
+            /export const metadata = ({[\s\S]*?})/m
+          )
           let metadata = {
             title: dir.name,
             description: '',
@@ -86,8 +87,9 @@ export default async function ComponentsPage() {
         <Heading as='h1' textStyle='display.prose.1'>
           Components
         </Heading>
-        <Text color='fg.subtle' textStyle='prose.lead' fontSize='xl'>
-          A collection of components built with React Aria Components and styled with PandaCSS.
+        <Text emphasis='subtle' textStyle='prose.lead' fontSize='xl'>
+          A collection of components built with React Aria Components and styled
+          with PandaCSS.
         </Text>
       </View>
 
@@ -106,47 +108,39 @@ export default async function ComponentsPage() {
             gap='300'
           >
             {components.map((component) => (
-              <Link
+              <View
                 key={component.name}
+                as={Link}
                 href={`/components/${component.name}`}
-                className={css({
-                  textDecoration: 'none',
-                  color: 'fg',
-                  _hover: {
-                    textDecoration: 'none'
-                  }
-                })}
+                padding='300'
+                borderRadius='100'
+                gap='200'
+                backgroundColor='neutral.surface.subtle'
+                borderWidth='1px'
+                borderStyle='solid'
+                borderColor='neutral.border.subtle'
+                _hover={{
+                  backgroundColor: 'neutral.surface.subtle.hover'
+                }}
               >
-                <View
-                  backgroundColor='bg.subtle'
-                  padding='300'
-                  borderRadius='100'
-                  gap='200'
-                  borderWidth='1px'
-                  borderStyle='solid'
-                  borderColor='border.subtle'
-                  _hover={{
-                    backgroundColor: 'bg.subtle.hovered'
-                  }}
+                <Heading as='h3' textStyle='display.prose.3'>
+                  {component.title}
+                </Heading>
+                <Text emphasis='subtle'>{component.description}</Text>
+                <Text
+                  textStyle='ui.meta'
+                  emphasis='subtle'
+                  colorPalette={
+                    component.status === 'stable'
+                      ? 'success'
+                      : component.status === 'beta'
+                        ? 'warning'
+                        : 'neutral'
+                  }
                 >
-                  <Heading as='h3' textStyle='display.prose.3'>
-                    {component.title}
-                  </Heading>
-                  <Text color='fg.subtle'>{component.description}</Text>
-                  <Text
-                    textStyle='ui.small'
-                    color={
-                      component.status === 'stable'
-                        ? 'fg.success'
-                        : component.status === 'beta'
-                          ? 'fg.warning'
-                          : 'fg.subtle'
-                    }
-                  >
-                    {component.status}
-                  </Text>
-                </View>
-              </Link>
+                  {component.status}
+                </Text>
+              </View>
             ))}
           </View>
         </View>

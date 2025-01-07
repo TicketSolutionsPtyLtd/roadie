@@ -11,8 +11,9 @@ export default function Home() {
           Roadie design system
         </Heading>
         <Text textStyle='prose.lead' fontSize='xl'>
-          A comprehensive collection of reusable components and design guidelines for building
-          consistent, beautiful user interfaces across Oztix applications.
+          A comprehensive collection of reusable components and design
+          guidelines for building consistent, beautiful user interfaces across
+          Oztix applications.
         </Text>
       </View>
 
@@ -46,7 +47,11 @@ export default function Home() {
         <Heading as='h2' textStyle='display.prose.2'>
           Featured components
         </Heading>
-        <View display='grid' gridTemplateColumns='repeat(auto-fit, minmax(250px, 1fr))' gap='400'>
+        <View
+          display='grid'
+          gridTemplateColumns='repeat(auto-fit, minmax(250px, 1fr))'
+          gap='400'
+        >
           <ComponentCard
             title='Text'
             description='Typography components for consistent text styling across applications.'
@@ -85,19 +90,19 @@ function ComponentCard({
       gap='200'
       borderRadius='200'
       border='1px solid'
-      borderColor='border.subtle'
-      bg='bg'
+      borderColor='neutral.border.subtle'
+      bg='neutral.surface'
       transition='all 0.2s'
       _hover={{
-        bg: 'bg.subtlest',
-        borderColor: 'border',
+        bg: 'neutral.surface.subtle',
+        borderColor: 'neutral.border',
         transform: 'translateY(-2px)'
       }}
     >
       <Heading as='h3' textStyle='display.ui.4'>
         {title}
       </Heading>
-      <Text color='fg.subtle' fontSize='md' lineHeight='normal'>
+      <Text emphasis='subtle' fontSize='md' lineHeight='normal'>
         {description}
       </Text>
     </View>
@@ -120,17 +125,17 @@ function QuickLinkCard({
       p='400'
       gap='200'
       borderRadius='200'
-      bg='bg.subtlest'
+      bg='neutral.surface.subtle'
       transition='all 0.2s'
       _hover={{
-        bg: 'bg.subtle',
+        bg: 'neutral.surface.subtle',
         transform: 'translateY(-2px)'
       }}
     >
       <Heading as='h3' textStyle='display.ui.4'>
         {title}
       </Heading>
-      <Text color='fg.subtle' fontSize='sm' lineHeight='normal'>
+      <Text emphasis='subtle' fontSize='sm' lineHeight='normal'>
         {description}
       </Text>
     </View>

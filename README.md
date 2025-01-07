@@ -43,12 +43,14 @@ import { Button, Heading, Text, View } from '@oztix/roadie-components'
 
 function MyApp() {
   return (
-    <View gap='400' bg='bg.subtle'>
+    <View gap='400' bg='neutral.surface.subtle'>
       <Heading as='h1' textStyle='display.ui.1'>
         My sweet heading
       </Heading>
       <Text>Some cool content</Text>
-      <Button emphasis='accent'>Submit</Button>
+      <Button colorPalette='accent' emphasis='strong'>
+        Submit
+      </Button>
     </View>
   )
 }

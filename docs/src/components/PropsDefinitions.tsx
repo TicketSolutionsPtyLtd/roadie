@@ -22,7 +22,10 @@ interface ComponentProp {
 
 interface GroupedProps {
   ownProps: Record<string, ComponentProp>
-  inheritedProps: Record<string, { props: Record<string, ComponentProp>; from: string }>
+  inheritedProps: Record<
+    string,
+    { props: Record<string, ComponentProp>; from: string }
+  >
 }
 
 interface PropsDefinitionsProps {
@@ -31,7 +34,9 @@ interface PropsDefinitionsProps {
 
 function formatTypeValues(prop: ComponentProp): string {
   if (prop.type.value) {
-    return prop.type.value.map((v) => `"${v.value.replace(/['"]/g, '')}"`).join(' | ')
+    return prop.type.value
+      .map((v) => `"${v.value.replace(/['"]/g, '')}"`)
+      .join(' | ')
   }
 
   if (prop.type.name.includes('|')) {
@@ -75,18 +80,24 @@ function groupPropsBySource(
   return result
 }
 
-function PropsList({ props, title }: { props: Record<string, ComponentProp>; title?: string }) {
+function PropsList({
+  props,
+  title
+}: {
+  props: Record<string, ComponentProp>
+  title?: string
+}) {
   return (
     <View flexDirection='column' gap='200'>
       {title && (
         <View
           px='300'
           py='200'
-          bg='bg.subtlest'
+          bg='neutral.surface.subtle'
           borderBottom='1px solid'
-          borderBottomColor='border.subtlest'
+          borderBottomColor='neutral.border.subtle'
         >
-          <Text fontSize='md' fontWeight='bold' color='fg.subtle'>
+          <Text fontSize='md' fontWeight='bold' emphasis='subtle'>
             {title}
           </Text>
         </View>
@@ -95,7 +106,7 @@ function PropsList({ props, title }: { props: Record<string, ComponentProp>; tit
         <View
           key={name}
           borderBottom='1px solid'
-          borderColor='border.subtle'
+          borderColor='neutral.border.subtle'
           px='300'
           py='200'
           gap='100'
@@ -104,12 +115,21 @@ function PropsList({ props, title }: { props: Record<string, ComponentProp>; tit
           }}
         >
           <View as='dt' alignItems='baseline' gap='100'>
-            <View flexDirection={{ base: 'column', md: 'row' }} alignItems='baseline' gap='100'>
-              <Text fontFamily='mono' fontSize='sm' fontWeight='600' flexShrink={0}>
+            <View
+              flexDirection={{ base: 'column', md: 'row' }}
+              alignItems='baseline'
+              gap='100'
+            >
+              <Text
+                fontFamily='mono'
+                fontSize='sm'
+                fontWeight='600'
+                flexShrink={0}
+              >
                 {name}
-                {!prop.required && <Text color='fg.subtle'>?</Text>}
+                {!prop.required && <Text emphasis='subtle'>?</Text>}
               </Text>
-              <Text fontFamily='mono' fontSize='sm' color='fg.information'>
+              <Text fontFamily='mono' fontSize='sm' color='information.fg'>
                 {formatTypeValues(prop)}
               </Text>
             </View>
@@ -117,12 +137,15 @@ function PropsList({ props, title }: { props: Record<string, ComponentProp>; tit
           <View as='dd'>
             <View gap='200'>
               {prop.description && (
-                <Text color='fg.subtle' fontSize='md' lineHeight='ui'>
-                  {prop.description}
-                </Text>
+                <Text emphasis='subtle'>{prop.description}</Text>
               )}
               {prop.defaultValue && (
-                <Text as='p' color='fg.subtle' fontSize='sm' fontFamily='prose'>
+                <Text
+                  as='p'
+                  emphasis='subtle'
+                  fontSize='sm'
+                  textStyle='prose.body'
+                >
                   Defaults to <Code>{prop.defaultValue.value}</Code>.
                 </Text>
               )}
@@ -139,44 +162,59 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
   const absolutePath = path.join(workspaceRoot, componentPath)
 
   try {
-    const parser = withCustomConfig(path.resolve(workspaceRoot, 'tsconfig.react.json'), {
-      savePropValueAsString: true,
-      shouldExtractLiteralValuesFromEnum: true,
-      shouldRemoveUndefinedFromOptional: true,
-      propFilter: (prop: PropItem): boolean => {
-        // Include props that are:
-        // 1. Directly defined in the component (no declarations)
-        // 2. From our own components directory
-        // 3. Have a parent interface from our components
-        if (!prop.declarations?.length) {
-          return true
-        }
+    const parser = withCustomConfig(
+      path.resolve(workspaceRoot, 'tsconfig.react.json'),
+      {
+        savePropValueAsString: true,
+        shouldExtractLiteralValuesFromEnum: true,
+        shouldRemoveUndefinedFromOptional: true,
+        propFilter: (prop: PropItem): boolean => {
+          // Include props that are:
+          // 1. Directly defined in the component (no declarations)
+          // 2. From our own components directory
+          // 3. Have a parent interface from our components
+          if (!prop.declarations?.length) {
+            return true
+          }
 
-        const isFromOurComponents = prop.declarations.some(
-          (d) => d.fileName.includes('/components/') && !d.fileName.includes('node_modules')
-        )
+          const isFromOurComponents = prop.declarations.some(
+            (d) =>
+              d.fileName.includes('/components/') &&
+              !d.fileName.includes('node_modules')
+          )
 
-        const isFromParentComponent =
-          prop.parent?.fileName.includes('/components/') &&
-          !prop.parent.fileName.includes('node_modules')
+          const isFromParentComponent =
+            prop.parent?.fileName.includes('/components/') &&
+            !prop.parent.fileName.includes('node_modules')
 
-        return Boolean(isFromOurComponents || isFromParentComponent)
-      },
-      skipChildrenPropWithoutDoc: true
-    })
+          return Boolean(isFromOurComponents || isFromParentComponent)
+        },
+        skipChildrenPropWithoutDoc: true
+      }
+    )
 
     const result = parser.parse(absolutePath)
     const componentInfo = result[0]
     if (!componentInfo) return null
 
-    const groupedProps = groupPropsBySource(componentInfo.props, componentInfo.displayName)
+    const groupedProps = groupPropsBySource(
+      componentInfo.props,
+      componentInfo.displayName
+    )
 
     // Get the interface name from the first prop's parent type
     const interfaceName =
-      Object.values(componentInfo.props)[0]?.parent?.name || `${componentInfo.displayName}Props`
+      Object.values(componentInfo.props)[0]?.parent?.name ||
+      `${componentInfo.displayName}Props`
 
     return (
-      <View gap='300' pt='800' mt='800' borderTop='1px solid' borderColor='border.subtle'>
+      <View
+        gap='300'
+        pt='800'
+        mt='800'
+        borderTop='1px solid'
+        borderColor='neutral.border.subtle'
+      >
         <Text as='h2' fontSize='xl' fontWeight='bold'>
           Props
         </Text>
@@ -184,24 +222,22 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
           as='dl'
           flexDirection='column'
           border='1px solid'
-          borderColor='border.subtle'
+          borderColor='neutral.border.subtle'
           borderRadius='100'
         >
           <View
             borderBottom='1px solid'
-            borderColor='border.subtle'
+            borderColor='neutral.border.subtle'
             alignSelf='stretch'
             gap='100'
             px='300'
             py='200'
-            bg='bg.subtle'
+            bg='neutral.surface.subtle'
           >
             <Text as='h3' fontSize='xl' fontWeight='bold'>
               {interfaceName}
             </Text>
-            <Text color='fg.subtle' fontSize='md' lineHeight='ui'>
-              {componentInfo.description}
-            </Text>
+            <Text emphasis='subtle'>{componentInfo.description}</Text>
           </View>
 
           {/* Component's own props */}
@@ -210,9 +246,15 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
           )}
 
           {/* Inherited props */}
-          {Object.entries(groupedProps.inheritedProps).map(([source, { props }]) => (
-            <PropsList key={source} props={props} title={`Inherited from ${source}`} />
-          ))}
+          {Object.entries(groupedProps.inheritedProps).map(
+            ([source, { props }]) => (
+              <PropsList
+                key={source}
+                props={props}
+                title={`Inherited from ${source}`}
+              />
+            )
+          )}
         </View>
       </View>
     )

@@ -12,29 +12,37 @@ export interface CodeProps extends HTMLStyledProps<'code'>, JsxStyleProps {
    * The appearance of the code block
    * @default 'outline'
    */
-  appearance?: 'outline' | 'ghost'
+  emphasis?: 'default' | 'strong' | 'subtle' | 'muted'
 }
 
 export const Code = styled('code', {
   base: {
-    backgroundColor: 'bg.subtle',
+    backgroundColor: 'neutral.surface.subtle',
     textStyle: 'code',
     px: '050',
     borderRadius: '050',
     border: '1px solid'
   },
   variants: {
-    appearance: {
-      outline: {
-        borderColor: 'border.subtlest'
+    emphasis: {
+      default: {
+        borderColor: 'neutral.border',
+        backgroundColor: 'neutral.surface.subtle'
       },
-      ghost: {
+      strong: {
+        borderColor: 'neutral.border.strong',
+        backgroundColor: 'neutral.surface.strong'
+      },
+      subtle: {
+        borderColor: 'neutral.border.subtle'
+      },
+      muted: {
         borderColor: 'transparent'
       }
     }
   },
   defaultVariants: {
-    appearance: 'outline'
+    emphasis: 'default'
   }
 }) as React.ForwardRefExoticComponent<CodeProps>
 

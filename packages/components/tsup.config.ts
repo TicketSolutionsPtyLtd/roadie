@@ -25,7 +25,13 @@ const getComponentEntries = () => {
 export default defineConfig({
   entry: getComponentEntries(),
   format: ['esm'],
-  dts: true,
+  dts: {
+    resolve: true,
+    compilerOptions: {
+      composite: false,
+      incremental: false
+    }
+  },
   sourcemap: true,
   clean: true,
   target: 'es2022',

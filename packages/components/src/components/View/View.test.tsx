@@ -86,7 +86,7 @@ describe('View', () => {
     const { getByTestId } = render(
       <View
         data-testid='view'
-        backgroundColor='bg.subtle'
+        backgroundColor='neutral.bg.subtle'
         padding='200'
         title='tooltip'
         aria-label='Accessible view'
@@ -95,7 +95,7 @@ describe('View', () => {
       </View>
     )
     const view = getByTestId('view')
-    expect(view).toHaveClass('bg-c_bg.subtle', 'p_200')
+    expect(view).toHaveClass('bg-c_neutral.bg.subtle', 'p_200')
     expect(view).toHaveAttribute('title', 'tooltip')
     expect(view).toHaveAttribute('aria-label', 'Accessible view')
   })
@@ -141,7 +141,7 @@ describe('View', () => {
         display='grid'
         gap='200'
         padding='400'
-        backgroundColor='bg.subtle'
+        backgroundColor='neutral.bg.subtle'
         className='custom-class'
         data-testid='view'
       >
@@ -150,6 +150,12 @@ describe('View', () => {
     )
     const view = getByTestId('view')
     expect(view.tagName.toLowerCase()).toBe('section')
-    expect(view).toHaveClass('d_grid', 'gap_200', 'p_400', 'bg-c_bg.subtle', 'custom-class')
+    expect(view).toHaveClass(
+      'd_grid',
+      'gap_200',
+      'p_400',
+      'bg-c_neutral.bg.subtle',
+      'custom-class'
+    )
   })
 })

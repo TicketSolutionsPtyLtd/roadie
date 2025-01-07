@@ -22,14 +22,14 @@ const scope = {
 const { Button, View } = RoadieComponents
 
 const editorStyles = {
-  bg: 'bg.sunken',
+  bg: 'neutral.surface.sunken',
   overflow: 'auto',
   fontSize: 'md',
   p: '200',
   boxShadow: 'sunken',
   borderRadius: '100',
   border: '1px solid',
-  borderColor: 'border.subtlest'
+  borderColor: 'neutral.border.subtle'
 }
 
 // Custom themes that inherit from nightOwl but override the background
@@ -37,7 +37,7 @@ const customDarkTheme = {
   ...themes.nightOwl,
   plain: {
     ...themes.nightOwl.plain,
-    backgroundColor: 'var(--colors-bg-sunken)'
+    backgroundColor: 'var(--colors-neutral-surface-sunken)'
   }
 }
 
@@ -45,7 +45,7 @@ const customLightTheme = {
   ...themes.nightOwlLight,
   plain: {
     ...themes.nightOwlLight.plain,
-    backgroundColor: 'var(--colors-bg-sunken)'
+    backgroundColor: 'var(--colors-neutral-surface-sunken)'
   }
 }
 
@@ -60,7 +60,12 @@ function CopyButton({ code }: { code: string }) {
 
   return (
     <div className={css({ position: 'absolute', top: '150', right: '150' })}>
-      <Button onPress={handleCopy} size='sm' appearance='ghost' className={css({ gap: '050' })}>
+      <Button
+        onPress={handleCopy}
+        size='sm'
+        emphasis='muted'
+        className={css({ gap: '050' })}
+      >
         {copied && 'Copied!'}
         <Copy size={16} />
       </Button>
@@ -98,8 +103,11 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
   }, [])
 
   const theme = isDark ? customDarkTheme : customLightTheme
-  const isLive = children.startsWith('live') && (language === 'tsx' || language === 'jsx')
-  const trimmedCode = isLive ? children.replace('live', '').trim() : children.trim()
+  const isLive =
+    children.startsWith('live') && (language === 'tsx' || language === 'jsx')
+  const trimmedCode = isLive
+    ? children.replace('live', '').trim()
+    : children.trim()
 
   if (!isLive) {
     return (
@@ -117,7 +125,8 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
                     {line.map((token, key) => {
                       const tokenProps = getTokenProps({ token, key })
                       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                      const { key: tokenKey, ...tokenPropsWithoutKey } = tokenProps
+                      const { key: tokenKey, ...tokenPropsWithoutKey } =
+                        tokenProps
                       return <span key={key} {...tokenPropsWithoutKey} />
                     })}
                   </div>
@@ -141,11 +150,11 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
           className={css({
             px: 300,
             py: 300,
-            bg: 'bg.subtlest',
+            bg: 'neutral.surface',
             borderTopRadius: '100',
             fontFamily: 'ui',
             border: '1px solid',
-            borderColor: 'border.subtlest',
+            borderColor: 'neutral.border.subtle',
             borderBottom: 'none'
           })}
         />

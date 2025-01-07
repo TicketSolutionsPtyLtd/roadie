@@ -7,12 +7,16 @@ export default defineConfig(({ watch }) => ({
   },
   splitting: false,
   format: ['esm'],
-  dts: true,
+  dts: {
+    compilerOptions: {
+      composite: false,
+      incremental: false
+    }
+  },
   clean: !watch,
   bundle: true,
   external: ['@pandacss/dev', 'react', 'react-dom'],
   noExternal: ['@pandacss/dev'],
-  ignoreWatch: ['src/tokens/tokens.json', 'src/tokens/semantic-tokens.json'],
   outExtension: () => ({
     js: '.js'
   })

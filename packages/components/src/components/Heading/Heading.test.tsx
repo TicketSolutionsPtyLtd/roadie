@@ -23,7 +23,9 @@ describe('Heading', () => {
     ]
 
     levels.forEach((level) => {
-      const { rerender, getByText } = render(<Heading as={level}>{level} Heading</Heading>)
+      const { rerender, getByText } = render(
+        <Heading as={level}>{level} Heading</Heading>
+      )
       const heading = getByText(`${level} Heading`)
       expect(heading).toBeInTheDocument()
       expect(heading.tagName.toLowerCase()).toBe(level)
@@ -33,7 +35,9 @@ describe('Heading', () => {
   })
 
   it('applies text style', () => {
-    const { getByText } = render(<Heading textStyle='display.ui.1'>Large Heading</Heading>)
+    const { getByText } = render(
+      <Heading textStyle='display.ui.1'>Large Heading</Heading>
+    )
     const heading = getByText('Large Heading')
     expect(heading).toHaveClass('textStyle_display.ui.1')
   })
@@ -41,7 +45,7 @@ describe('Heading', () => {
   it('inherits Text props', () => {
     const { getByTestId } = render(
       <Heading
-        color='fg.subtle'
+        color='neutral.fg.subtle'
         data-testid='heading'
         title='tooltip'
         aria-label='Accessible heading'
@@ -50,7 +54,7 @@ describe('Heading', () => {
       </Heading>
     )
     const heading = getByTestId('heading')
-    expect(heading).toHaveClass('textStyle_display.ui', 'c_fg.subtle')
+    expect(heading).toHaveClass('textStyle_display.ui', 'c_neutral.fg.subtle')
     expect(heading).toHaveAttribute('title', 'tooltip')
     expect(heading).toHaveAttribute('aria-label', 'Accessible heading')
   })
@@ -65,12 +69,21 @@ describe('Heading', () => {
 
   it('combines multiple props', () => {
     const { getByText } = render(
-      <Heading as='h1' textStyle='display.ui.1' color='fg.accent' className='custom-class'>
+      <Heading
+        as='h1'
+        textStyle='display.ui.1'
+        color='accent.fg'
+        className='custom-class'
+      >
         Combined styles
       </Heading>
     )
     const heading = getByText('Combined styles')
     expect(heading.tagName.toLowerCase()).toBe('h1')
-    expect(heading).toHaveClass('textStyle_display.ui.1', 'c_fg.accent', 'custom-class')
+    expect(heading).toHaveClass(
+      'textStyle_display.ui.1',
+      'c_accent.fg',
+      'custom-class'
+    )
   })
 })

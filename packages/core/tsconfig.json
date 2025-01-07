@@ -4,8 +4,11 @@
     "outDir": "dist",
     "rootDir": "src",
     "isolatedModules": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "composite": true,
+    "declarationMap": true,
+    "resolveJsonModule": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.json"],
   "exclude": ["dist", "node_modules", "**/*.test.ts", "**/*.test.tsx"]
 }

@@ -14,280 +14,170 @@ describe('Button', () => {
       'd_inline-flex',
       'ai_center',
       'jc_center',
-      'bg-c_bg.subtle',
+      'bg-c_colorPalette.surface.subtle',
       'bdr_050',
-      'fw_semibold',
+      'fw_medium',
       'ff_ui',
       'cursor_pointer',
-      'bd_1px_solid',
+      'bd-w_1px',
+      'border-style_solid',
       'trs_all_0.2s',
       'disabled:op_0.4',
       'disabled:cursor_not-allowed',
-      'disabled:bg-c_bg.disabled',
-      'disabled:c_fg.disabled',
-      'focus:ring_none',
-      'focusVisible:ring_2px_solid',
-      'focusVisible:ring-c_border.focused',
-      'bd-c_border.subtle',
-      'c_fg.subtle',
-      'hover:bg-c_bg.subtle.hovered',
-      'active:bg-c_bg.subtle.pressed',
+      'disabled:c_colorPalette.fg.subtle',
+      'focusVisible:ring-c_colorPalette.border.strong',
+      'focusVisible:ring-w_2px',
+      'focusVisible:outline-style_solid',
+      'focusVisible:ring-o_2px',
+      'bd-c_colorPalette.border',
+      'c_colorPalette.fg',
+      'hover:c_colorPalette.fg.hover',
+      'hover:bd-c_colorPalette.border.hover',
+      'hover:bg-c_colorPalette.surface.subtle.hover',
+      'active:c_colorPalette.fg.active',
+      'active:bd-c_colorPalette.border.active',
+      'active:bg-c_colorPalette.surface.subtle.active',
       'min-h_500',
       'fs_md',
       'px_200',
-      'py_100'
+      'py_100',
+      'color-palette_neutral'
     )
   })
 
-  it('renders with different appearances', () => {
-    const { rerender, getByText } = render(<Button appearance='solid'>Solid</Button>)
-    let button = getByText('Solid')
+  it('renders with different emphasis', () => {
+    const { rerender, getByText } = render(
+      <Button emphasis='strong' colorPalette='accent'>
+        Strong
+      </Button>
+    )
+    let button = getByText('Strong')
     expect(button).toHaveClass(
-      'c_fg.subtle',
-      'bd-c_border.subtle',
-      'bg-c_bg.subtle',
-      'hover:bg-c_bg.subtle.hovered',
-      'active:bg-c_bg.subtle.pressed'
+      'c_colorPalette.fg.inverted',
+      'bg-c_colorPalette.solid.strong',
+      'hover:c_colorPalette.fg.inverted.hover',
+      'hover:bg-c_colorPalette.solid.strong.hover',
+      'active:c_colorPalette.fg.inverted.active',
+      'active:bg-c_colorPalette.solid.strong.active',
+      'color-palette_accent'
     )
 
-    rerender(<Button appearance='outline'>Outline</Button>)
-    button = getByText('Outline')
+    rerender(<Button emphasis='default'>Default</Button>)
+    button = getByText('Default')
     expect(button).toHaveClass(
-      'd_inline-flex',
-      'ai_center',
-      'jc_center',
-      'bg-c_transparent',
-      'bdr_050',
-      'fw_semibold',
-      'ff_ui',
-      'cursor_pointer',
-      'bd_1px_solid',
-      'trs_all_0.2s',
-      'disabled:op_0.4',
-      'disabled:cursor_not-allowed',
-      'disabled:bg-c_bg.disabled',
-      'disabled:c_fg.disabled',
-      'focus:ring_none',
-      'focusVisible:ring_2px_solid',
-      'focusVisible:ring-c_border.focused',
-      'bd-c_border.subtle',
-      'c_fg.subtle',
-      'hover:c_fg',
-      'hover:bd-c_border.hovered',
-      'hover:bg-c_bg.hovered',
-      'active:c_fg',
-      'active:bd-c_border.pressed',
-      'active:bg-c_bg.pressed',
-      'min-h_500',
-      'fs_md',
-      'px_200',
-      'py_100'
+      'bd-c_colorPalette.border',
+      'bg-c_colorPalette.surface.subtle',
+      'c_colorPalette.fg',
+      'hover:c_colorPalette.fg.hover',
+      'hover:bd-c_colorPalette.border.hover',
+      'hover:bg-c_colorPalette.surface.subtle.hover',
+      'active:c_colorPalette.fg.active',
+      'active:bd-c_colorPalette.border.active',
+      'active:bg-c_colorPalette.surface.subtle.active',
+      'color-palette_neutral'
     )
 
-    rerender(<Button appearance='ghost'>Ghost</Button>)
-    button = getByText('Ghost')
+    rerender(<Button emphasis='subtle'>Subtle</Button>)
+    button = getByText('Subtle')
     expect(button).toHaveClass(
-      'd_inline-flex',
-      'ai_center',
-      'jc_center',
-      'bg-c_transparent',
-      'bdr_050',
-      'fw_semibold',
-      'ff_ui',
-      'cursor_pointer',
-      'bd_1px_solid',
-      'trs_all_0.2s',
-      'disabled:op_0.4',
-      'disabled:cursor_not-allowed',
-      'disabled:bg-c_bg.disabled',
-      'disabled:c_fg.disabled',
-      'focus:ring_none',
-      'focusVisible:ring_2px_solid',
-      'focusVisible:ring-c_border.focused',
-      'c_fg.subtle',
-      'bd-c_transparent',
-      'hover:c_fg',
-      'hover:bg-c_bg.hovered',
-      'active:c_fg',
-      'active:bg-c_bg.pressed',
-      'min-h_500',
-      'fs_md',
-      'px_200',
-      'py_100'
+      'bg-c_colorPalette.solid.subtle',
+      'c_colorPalette.fg',
+      'hover:c_colorPalette.fg.hover',
+      'hover:bg-c_colorPalette.solid.subtle.hover',
+      'active:c_colorPalette.fg.active',
+      'active:bg-c_colorPalette.solid.subtle.active',
+      'color-palette_neutral'
+    )
+
+    rerender(<Button emphasis='muted'>Muted</Button>)
+    button = getByText('Muted')
+    expect(button).toHaveClass(
+      'c_colorPalette.fg',
+      'hover:c_colorPalette.fg.hover',
+      'hover:bg-c_colorPalette.solid.subtle.hover',
+      'active:c_colorPalette.fg.active',
+      'active:bg-c_colorPalette.solid.subtle.active',
+      'color-palette_neutral'
     )
   })
 
   it('renders with different sizes', () => {
     const { rerender, getByText } = render(<Button size='sm'>Small</Button>)
     let button = getByText('Small')
-    expect(button).toHaveClass(
-      'd_inline-flex',
-      'ai_center',
-      'jc_center',
-      'bg-c_bg.subtle',
-      'bdr_050',
-      'fw_semibold',
-      'ff_ui',
-      'cursor_pointer',
-      'bd_1px_solid',
-      'trs_all_0.2s',
-      'disabled:op_0.4',
-      'disabled:cursor_not-allowed',
-      'disabled:bg-c_bg.disabled',
-      'disabled:c_fg.disabled',
-      'focus:ring_none',
-      'focusVisible:ring_2px_solid',
-      'focusVisible:ring-c_border.focused',
-      'bd-c_border.subtle',
-      'c_fg.subtle',
-      'hover:bg-c_bg.subtle.hovered',
-      'active:bg-c_bg.subtle.pressed',
-      'min-h_400',
-      'fs_sm',
-      'px_200',
-      'py_075'
-    )
+    expect(button).toHaveClass('min-h_400', 'fs_sm', 'px_200', 'py_075')
 
     rerender(<Button size='md'>Medium</Button>)
     button = getByText('Medium')
-    expect(button).toHaveClass(
-      'd_inline-flex',
-      'ai_center',
-      'jc_center',
-      'bg-c_bg.subtle',
-      'bdr_050',
-      'fw_semibold',
-      'ff_ui',
-      'cursor_pointer',
-      'bd_1px_solid',
-      'trs_all_0.2s',
-      'disabled:op_0.4',
-      'disabled:cursor_not-allowed',
-      'disabled:bg-c_bg.disabled',
-      'disabled:c_fg.disabled',
-      'focus:ring_none',
-      'focusVisible:ring_2px_solid',
-      'focusVisible:ring-c_border.focused',
-      'bd-c_border.subtle',
-      'c_fg.subtle',
-      'hover:bg-c_bg.subtle.hovered',
-      'active:bg-c_bg.subtle.pressed',
-      'min-h_500',
-      'fs_md',
-      'px_200',
-      'py_100'
-    )
+    expect(button).toHaveClass('min-h_500', 'fs_md', 'px_200', 'py_100')
 
     rerender(<Button size='lg'>Large</Button>)
     button = getByText('Large')
-    expect(button).toHaveClass(
-      'd_inline-flex',
-      'ai_center',
-      'jc_center',
-      'bg-c_bg.subtle',
-      'bdr_050',
-      'fw_semibold',
-      'ff_ui',
-      'cursor_pointer',
-      'bd_1px_solid',
-      'trs_all_0.2s',
-      'disabled:op_0.4',
-      'disabled:cursor_not-allowed',
-      'disabled:bg-c_bg.disabled',
-      'disabled:c_fg.disabled',
-      'focus:ring_none',
-      'focusVisible:ring_2px_solid',
-      'focusVisible:ring-c_border.focused',
-      'bd-c_border.subtle',
-      'c_fg.subtle',
-      'hover:bg-c_bg.subtle.hovered',
-      'active:bg-c_bg.subtle.pressed',
-      'min-h_600',
-      'fs_lg',
-      'px_300',
-      'py_150'
-    )
+    expect(button).toHaveClass('min-h_600', 'fs_lg', 'px_300', 'py_150')
   })
 
-  it('renders with different emphasis', () => {
-    const { rerender, getByText } = render(<Button emphasis='subtle'>Subtle</Button>)
-    let button = getByText('Subtle')
-    expect(button).toHaveClass('c_fg.subtle')
-
-    rerender(
-      <Button emphasis='accent' appearance='solid'>
+  it('renders with different color palettes', () => {
+    const { rerender, getByText } = render(
+      <Button emphasis='strong' colorPalette='accent'>
         Accent
       </Button>
     )
-    button = getByText('Accent')
+    let button = getByText('Accent')
     expect(button).toHaveClass(
-      'd_inline-flex',
-      'ai_center',
-      'jc_center',
-      'bg-c_bg.accent.bold',
-      'bdr_050',
-      'fw_semibold',
-      'ff_ui',
-      'cursor_pointer',
-      'bd_1px_solid',
-      'trs_all_0.2s',
-      'disabled:op_0.4',
-      'disabled:cursor_not-allowed',
-      'disabled:bg-c_bg.disabled',
-      'disabled:c_fg.disabled',
-      'focus:ring_none',
-      'focusVisible:ring_2px_solid',
-      'focusVisible:ring-c_border.focused',
-      'bd-c_border.accent',
-      'c_fg.accent.inverse',
-      'hover:bg-c_bg.accent.bold.hovered',
-      'active:bg-c_bg.accent.bold.pressed',
-      'min-h_500',
-      'fs_md',
-      'px_200',
-      'py_100'
+      'c_colorPalette.fg.inverted',
+      'bg-c_colorPalette.solid.strong',
+      'hover:c_colorPalette.fg.inverted.hover',
+      'hover:bg-c_colorPalette.solid.strong.hover',
+      'active:c_colorPalette.fg.inverted.active',
+      'active:bg-c_colorPalette.solid.strong.active',
+      'color-palette_accent'
     )
 
     rerender(
-      <Button emphasis='success' appearance='solid'>
+      <Button emphasis='strong' colorPalette='success'>
         Success
       </Button>
     )
     button = getByText('Success')
     expect(button).toHaveClass(
-      'bg-c_bg.success.bold',
-      'c_fg.success.inverse',
-      'bd-c_border.success',
-      'hover:bg-c_bg.success.bold.hovered',
-      'active:bg-c_bg.success.bold.pressed'
+      'c_colorPalette.fg.inverted',
+      'bg-c_colorPalette.solid.strong',
+      'hover:c_colorPalette.fg.inverted.hover',
+      'hover:bg-c_colorPalette.solid.strong.hover',
+      'active:c_colorPalette.fg.inverted.active',
+      'active:bg-c_colorPalette.solid.strong.active',
+      'color-palette_success'
     )
 
     rerender(
-      <Button emphasis='warning' appearance='solid'>
+      <Button emphasis='strong' colorPalette='warning'>
         Warning
       </Button>
     )
     button = getByText('Warning')
     expect(button).toHaveClass(
-      'bg-c_bg.warning.bold',
-      'c_fg.warning.inverse',
-      'bd-c_border.warning',
-      'hover:bg-c_bg.warning.bold.hovered',
-      'active:bg-c_bg.warning.bold.pressed'
+      'c_colorPalette.fg.inverted',
+      'bg-c_colorPalette.solid.strong',
+      'hover:c_colorPalette.fg.inverted.hover',
+      'hover:bg-c_colorPalette.solid.strong.hover',
+      'active:c_colorPalette.fg.inverted.active',
+      'active:bg-c_colorPalette.solid.strong.active',
+      'color-palette_warning'
     )
 
     rerender(
-      <Button emphasis='danger' appearance='solid'>
+      <Button emphasis='strong' colorPalette='danger'>
         Danger
       </Button>
     )
     button = getByText('Danger')
     expect(button).toHaveClass(
-      'bg-c_bg.danger.bold',
-      'c_fg.danger.inverse',
-      'bd-c_border.danger',
-      'hover:bg-c_bg.danger.bold.hovered',
-      'active:bg-c_bg.danger.bold.pressed'
+      'c_colorPalette.fg.inverted',
+      'bg-c_colorPalette.solid.strong',
+      'hover:c_colorPalette.fg.inverted.hover',
+      'hover:bg-c_colorPalette.solid.strong.hover',
+      'active:c_colorPalette.fg.inverted.active',
+      'active:bg-c_colorPalette.solid.strong.active',
+      'color-palette_danger'
     )
   })
 
@@ -298,8 +188,7 @@ describe('Button', () => {
     expect(button).toHaveClass(
       'disabled:op_0.4',
       'disabled:cursor_not-allowed',
-      'disabled:bg-c_bg.disabled',
-      'disabled:c_fg.disabled'
+      'disabled:c_colorPalette.fg.subtle'
     )
   })
 
@@ -307,7 +196,9 @@ describe('Button', () => {
     const handlePress = vi.fn()
     const user = userEvent.setup()
 
-    const { getByText } = render(<Button onPress={handlePress}>Click me</Button>)
+    const { getByText } = render(
+      <Button onPress={handlePress}>Click me</Button>
+    )
     const button = getByText('Click me')
 
     await user.click(button)
@@ -330,48 +221,55 @@ describe('Button', () => {
   })
 
   it('applies custom className', () => {
-    const { getByText } = render(<Button className='custom-class'>Custom</Button>)
+    const { getByText } = render(
+      <Button className='custom-class'>Custom</Button>
+    )
     const button = getByText('Custom')
     expect(button).toHaveClass('custom-class')
   })
 
   it('combines multiple props', () => {
     const { getByText } = render(
-      <Button appearance='solid' size='lg' emphasis='accent' className='custom-class'>
+      <Button
+        emphasis='strong'
+        size='lg'
+        colorPalette='accent'
+        className='custom-class'
+      >
         Combined
       </Button>
     )
     const button = getByText('Combined')
     expect(button).toHaveClass(
-      // Base classes
       'd_inline-flex',
       'ai_center',
       'jc_center',
-      'bg-c_bg.accent.bold',
+      'bg-c_colorPalette.solid.strong',
       'bdr_050',
-      'fw_semibold',
+      'fw_medium',
       'ff_ui',
       'cursor_pointer',
-      'bd_1px_solid',
+      'bd-w_1px',
+      'border-style_solid',
+      'bd-c_transparent',
       'trs_all_0.2s',
+      'c_colorPalette.fg.inverted',
+      'hover:c_colorPalette.fg.inverted.hover',
+      'hover:bg-c_colorPalette.solid.strong.hover',
+      'active:c_colorPalette.fg.inverted.active',
+      'active:bg-c_colorPalette.solid.strong.active',
       'disabled:op_0.4',
       'disabled:cursor_not-allowed',
-      'disabled:bg-c_bg.disabled',
-      'disabled:c_fg.disabled',
-      'focus:ring_none',
-      'focusVisible:ring_2px_solid',
-      'focusVisible:ring-c_border.focused',
-      // Color + Appearance classes
-      'bd-c_border.accent',
-      'c_fg.accent.inverse',
-      'hover:bg-c_bg.accent.bold.hovered',
-      'active:bg-c_bg.accent.bold.pressed',
-      // Size classes
+      'disabled:c_colorPalette.fg.subtle',
+      'focusVisible:ring-c_colorPalette.border.strong',
+      'focusVisible:ring-w_2px',
+      'focusVisible:outline-style_solid',
+      'focusVisible:ring-o_2px',
+      'color-palette_accent',
       'min-h_600',
       'fs_lg',
       'px_300',
       'py_150',
-      // Custom class
       'custom-class'
     )
   })
