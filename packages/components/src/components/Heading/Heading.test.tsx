@@ -45,7 +45,7 @@ describe('Heading', () => {
   it('inherits Text props', () => {
     const { getByTestId } = render(
       <Heading
-        color='fg.subtle'
+        color='neutral.fg.subtle'
         data-testid='heading'
         title='tooltip'
         aria-label='Accessible heading'
@@ -54,7 +54,7 @@ describe('Heading', () => {
       </Heading>
     )
     const heading = getByTestId('heading')
-    expect(heading).toHaveClass('textStyle_display.ui', 'c_fg.subtle')
+    expect(heading).toHaveClass('textStyle_display.ui', 'c_neutral.fg.subtle')
     expect(heading).toHaveAttribute('title', 'tooltip')
     expect(heading).toHaveAttribute('aria-label', 'Accessible heading')
   })
@@ -72,7 +72,7 @@ describe('Heading', () => {
       <Heading
         as='h1'
         textStyle='display.ui.1'
-        color='fg.accent'
+        color='accent.fg'
         className='custom-class'
       >
         Combined styles
@@ -82,7 +82,7 @@ describe('Heading', () => {
     expect(heading.tagName.toLowerCase()).toBe('h1')
     expect(heading).toHaveClass(
       'textStyle_display.ui.1',
-      'c_fg.accent',
+      'c_accent.fg',
       'custom-class'
     )
   })

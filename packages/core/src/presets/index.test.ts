@@ -66,8 +66,9 @@ describe('roadie preset', () => {
     describe('focus styles', () => {
       it('has focus-visible styles', () => {
         expect(globalCss[':focus-visible']).toEqual({
-          outline: '2px solid',
-          outlineColor: 'border.focused',
+          outlineWidth: '2px',
+          outlineStyle: 'solid',
+          outlineColor: 'accent.border.strong',
           outlineOffset: '2px'
         })
       })

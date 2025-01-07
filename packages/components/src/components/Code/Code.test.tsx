@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { Code } from '.'
+import { Code } from './index'
 
 describe('Code', () => {
   it('renders with default props', () => {
@@ -10,24 +10,31 @@ describe('Code', () => {
     expect(code).toBeInTheDocument()
     expect(code.tagName.toLowerCase()).toBe('code')
     expect(code).toHaveClass(
+      'bg-c_neutral.surface.subtle',
       'textStyle_code',
-      'bg-c_bg.subtle',
       'px_050',
       'bdr_050',
       'bd_1px_solid',
-      'bd-c_border.subtlest'
+      'bd-c_neutral.border'
     )
   })
 
-  it('renders with different appearances', () => {
+  it('renders with different emphasis', () => {
     const { rerender, getByText } = render(
-      <Code appearance='outline'>outline code</Code>
+      <Code emphasis='strong'>strong code</Code>
     )
-    let code = getByText('outline code')
-    expect(code).toHaveClass('bd-c_border.subtlest')
+    let code = getByText('strong code')
+    expect(code).toHaveClass(
+      'bd-c_neutral.border.strong',
+      'bg-c_neutral.surface.strong'
+    )
 
-    rerender(<Code appearance='ghost'>ghost code</Code>)
-    code = getByText('ghost code')
+    rerender(<Code emphasis='subtle'>subtle code</Code>)
+    code = getByText('subtle code')
+    expect(code).toHaveClass('bd-c_neutral.border.subtle')
+
+    rerender(<Code emphasis='muted'>muted code</Code>)
+    code = getByText('muted code')
     expect(code).toHaveClass('bd-c_transparent')
   })
 
@@ -38,9 +45,9 @@ describe('Code', () => {
   })
 
   it('inherits Text props', () => {
-    const { getByText } = render(<Code color='fg.accent'>Colored code</Code>)
+    const { getByText } = render(<Code color='accent.fg'>Colored code</Code>)
     const code = getByText('Colored code')
-    expect(code).toHaveClass('c_fg.accent')
+    expect(code).toHaveClass('c_accent.fg')
   })
 
   it('applies line clamp', () => {
@@ -52,9 +59,9 @@ describe('Code', () => {
   it('combines multiple props', () => {
     const { getByText } = render(
       <Code
-        appearance='ghost'
+        emphasis='muted'
         fontSize='lg'
-        color='fg.accent'
+        color='accent.fg'
         className='custom-class'
       >
         Combined styles
@@ -62,14 +69,14 @@ describe('Code', () => {
     )
     const code = getByText('Combined styles')
     expect(code).toHaveClass(
+      'bg-c_neutral.surface.subtle',
       'textStyle_code',
-      'bg-c_bg.subtle',
       'px_050',
       'bdr_050',
       'bd_1px_solid',
       'bd-c_transparent',
       'fs_lg',
-      'c_fg.accent',
+      'c_accent.fg',
       'custom-class'
     )
   })
