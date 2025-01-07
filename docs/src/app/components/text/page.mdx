@@ -72,6 +72,93 @@ live
 </View>
 ```
 
+### Emphasis
+
+Use emphasis to create a subtle or strong text color:
+
+```tsx
+live
+<View gap='200'>
+  <Text>Default text</Text>
+  <Text emphasis='muted'>Muted text</Text>
+  <Text emphasis='subtle'>Subtle text</Text>
+  <Text emphasis='strong'>Strong text</Text>
+</View>
+```
+
+Use in conjunction with `colorPalette` to create a subtle or strong
+text color:
+
+```tsx
+live
+<View
+  display='grid'
+  gap='200'
+  gridTemplateColumns={{ base: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }}
+>
+  <View gap='100'>
+    <Text colorPalette='accent' emphasis='muted'>Muted accent text</Text>
+    <Text colorPalette='accent' emphasis='subtle'>Subtle accent text</Text>
+    <Text colorPalette='accent'>Accent text</Text>
+    <Text colorPalette='accent' emphasis='strong'>Strong accent text</Text>
+  </View>
+  <View gap='100'>
+    <Text colorPalette='brand' emphasis='muted'>Muted brand text</Text>
+    <Text colorPalette='brand' emphasis='subtle'>Subtle brand text</Text>
+    <Text colorPalette='brand'>Brand text</Text>
+    <Text colorPalette='brand' emphasis='strong'>Strong brand text</Text>
+  </View>
+  <View gap='100'>
+    <Text colorPalette='information' emphasis='muted'>Muted information text</Text>
+    <Text colorPalette='information' emphasis='subtle'>Subtle information text</Text>
+    <Text colorPalette='information'>Information text</Text>
+    <Text colorPalette='information' emphasis='strong'>Strong information text</Text>
+  </View>
+  <View gap='100'>
+    <Text colorPalette='success' emphasis='muted'>Muted success text</Text>
+    <Text colorPalette='success' emphasis='subtle'>Subtle success text</Text>
+    <Text colorPalette='success'>Success text</Text>
+    <Text colorPalette='success' emphasis='strong'>Strong success text</Text>
+  </View>
+  <View gap='100'>
+    <Text colorPalette='warning' emphasis='muted'>Muted warning text</Text>
+    <Text colorPalette='warning' emphasis='subtle'>Subtle warning text</Text>
+    <Text colorPalette='warning'>Warning text</Text>
+    <Text colorPalette='warning' emphasis='strong'>Strong warning text</Text>
+  </View>
+  <View gap='100'>
+    <Text colorPalette='danger' emphasis='muted'>Muted danger text</Text>
+    <Text colorPalette='danger' emphasis='subtle'>Subtle danger text</Text>
+    <Text colorPalette='danger'>Danger text</Text>
+    <Text colorPalette='danger' emphasis='strong'>Strong danger text</Text>
+  </View>
+</View>
+```
+
+### Colors
+
+Use semantic color tokens for consistent text colors:
+
+```tsx
+live
+<View gap="200">
+  <Text colorPalette="neutral">Default text</Text>
+  <Text colorPalette="accent">Accent text</Text>
+  <Text colorPalette="success">Success text</Text>
+  <Text colorPalette="warning">Warning text</Text>
+  <Text colorPalette="danger">Error text</Text>
+</View>
+```
+
+### Interactive
+
+Text can be rendered as interactive using the `interactive` prop:
+
+```tsx
+live
+<Text colorPalette='accent' interactive={true}>Interactive text</Text>
+```
+
 ### Custom elements
 
 Text can be rendered as any HTML element or component using the `as`
@@ -83,22 +170,6 @@ live
   <Text as="span">Inline text (default)</Text>
   <Text as="p">Paragraph text</Text>
   <Text as="label">Label text</Text>
-</View>
-```
-
-### Colors
-
-Use semantic color tokens for consistent text colors:
-
-```tsx
-live
-<View gap="200">
-  <Text color="fg">Default text</Text>
-  <Text color="fg.subtle">Subtle text</Text>
-  <Text color="fg.accent">Accent text</Text>
-  <Text color="fg.success">Success text</Text>
-  <Text color="fg.warning">Warning text</Text>
-  <Text color="fg.danger">Error text</Text>
 </View>
 ```
 

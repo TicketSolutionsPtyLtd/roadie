@@ -12,7 +12,9 @@ import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # Button
 
-The Button component is a fundamental building block for user interactions. It supports multiple appearances and sizes to accommodate different design contexts.
+The Button component is a fundamental building block for user
+interactions. It supports multiple emphasiss and sizes to accommodate
+different design contexts.
 
 ## Import
 
@@ -22,21 +24,24 @@ import { Button } from '@oztix/roadie-components'
 
 ## Examples
 
-### Appearances
+### Emphasis
 
-Different button appearances for various contexts:
+Different button emphasiss for various contexts:
 
 ```tsx
 live
 <View gap='200' flexDirection='row'>
-  <Button appearance='solid'>
-    Solid Button
+  <Button emphasis='strong'>
+    Strong Button
   </Button>
-  <Button appearance='outline'>
-    Outline Button
+  <Button emphasis='default'>
+    Default Button
   </Button>
-  <Button appearance='ghost'>
-    Ghost Button
+  <Button emphasis='subtle'>
+    Subtle Button
+  </Button>
+  <Button emphasis='muted'>
+    Muted Button
   </Button>
 </View>
 ```
@@ -54,72 +59,110 @@ live
 
 ### Colors
 
-Subtle is the default color for all buttons.
+Neutral is the default color palette for all buttons.
 
-Use subtle for the majority of buttons. Use accent for the primary action in a set of buttons.
+Each color palette is designed for specific use cases:
 
-Use success, warning, and danger for specific situations. e.g. danger for destructive actions.
+- `neutral`: Default for most actions
+- `accent`: Primary or highlighted actions
+- `brand`: Brand-specific actions
+- `information`: Informational or help-related actions
+- `success`: Positive or completion actions
+- `warning`: Cautionary actions
+- `danger`: Destructive or high-risk actions
 
 ```tsx
 live
 <View gap='200'>
   <View flexDirection='row' gap='200'>
-    <Button appearance='solid' emphasis='subtle'>
-      Subtle
+    <Button emphasis='strong' colorPalette='neutral'>
+      Neutral
     </Button>
-    <Button appearance='solid' emphasis='accent'>
+    <Button emphasis='strong' colorPalette='accent'>
       Accent
     </Button>
-    <Button appearance='solid' emphasis='inverse'>
-      Inverse
+    <Button emphasis='strong' colorPalette='brand'>
+      Brand
     </Button>
-    <Button appearance='solid' emphasis='success'>
+    <Button emphasis='strong' colorPalette='information'>
+      Information
+    </Button>
+    <Button emphasis='strong' colorPalette='success'>
       Success
     </Button>
-    <Button appearance='solid' emphasis='warning'>
+    <Button emphasis='strong' colorPalette='warning'>
       Warning
     </Button>
-    <Button appearance='solid' emphasis='danger'>
+    <Button emphasis='strong' colorPalette='danger'>
       Danger
     </Button>
   </View>
   <View flexDirection='row' gap='200'>
-    <Button appearance='outline' emphasis='subtle'>
-      Subtle
+    <Button emphasis='default' colorPalette='neutral'>
+      Neutral
     </Button>
-    <Button appearance='outline' emphasis='accent'>
+    <Button emphasis='default' colorPalette='accent'>
       Accent
     </Button>
-    <Button appearance='outline' emphasis='inverse'>
-      Inverse
+    <Button emphasis='default' colorPalette='brand'>
+      Brand
     </Button>
-    <Button appearance='outline' emphasis='success'>
+    <Button emphasis='default' colorPalette='information'>
+      Information
+    </Button>
+    <Button emphasis='default' colorPalette='success'>
       Success
     </Button>
-    <Button appearance='outline' emphasis='warning'>
+    <Button emphasis='default' colorPalette='warning'>
       Warning
     </Button>
-    <Button appearance='outline' emphasis='danger'>
+    <Button emphasis='default' colorPalette='danger'>
       Danger
     </Button>
   </View>
   <View flexDirection='row' gap='200'>
-    <Button appearance='ghost' emphasis='subtle'>
-      Subtle
+    <Button emphasis='subtle' colorPalette='neutral'>
+      Neutral
     </Button>
-    <Button appearance='ghost' emphasis='accent'>
+    <Button emphasis='subtle' colorPalette='accent'>
       Accent
     </Button>
-    <Button appearance='ghost' emphasis='inverse'>
-      Inverse
+    <Button emphasis='subtle' colorPalette='brand'>
+      Brand
     </Button>
-    <Button appearance='ghost' emphasis='success'>
+    <Button emphasis='subtle' colorPalette='information'>
+      Information
+    </Button>
+    <Button emphasis='subtle' colorPalette='success'>
       Success
     </Button>
-    <Button appearance='ghost' emphasis='warning'>
+    <Button emphasis='subtle' colorPalette='warning'>
       Warning
     </Button>
-    <Button appearance='ghost' emphasis='danger'>
+    <Button emphasis='subtle' colorPalette='danger'>
+      Danger
+    </Button>
+  </View>
+  <View flexDirection='row' gap='200'>
+    <Button emphasis='muted' colorPalette='neutral'>
+      Neutral
+    </Button>
+    <Button emphasis='muted' colorPalette='accent'>
+      Accent
+    </Button>
+    <Button emphasis='muted' colorPalette='brand'>
+      Brand
+    </Button>
+    <Button emphasis='muted' colorPalette='information'>
+      Information
+    </Button>
+    <Button emphasis='muted' colorPalette='success'>
+      Success
+    </Button>
+    <Button emphasis='muted' colorPalette='warning'>
+      Warning
+    </Button>
+    <Button emphasis='muted' colorPalette='danger'>
       Danger
     </Button>
   </View>

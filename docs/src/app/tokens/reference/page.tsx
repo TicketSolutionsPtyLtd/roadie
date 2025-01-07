@@ -33,13 +33,14 @@ const TokenPreview = ({
       .toLowerCase()
 
     return (
-      <div
+      <View
+        width='300'
+        height='300'
+        borderRadius='050'
+        border='1px solid'
+        borderColor='neutral.border.muted'
         style={{
-          width: '24px',
-          height: '24px',
-          borderRadius: '4px',
-          backgroundColor: `var(--${cssName})`,
-          border: '1px solid var(--colors-border)'
+          backgroundColor: `var(--${cssName})`
         }}
       />
     )
@@ -56,7 +57,7 @@ const TokenPreview = ({
       <View
         height='200'
         borderRadius='050'
-        backgroundColor='bg.accent.bold'
+        backgroundColor='accent.surface.strong'
         order={order}
         style={{
           width: `var(--${cssName})`
@@ -85,7 +86,7 @@ const TokenRow = ({ name }: { name: Token }) => {
       columnGap='100'
       paddingY='150'
       borderTop='1px solid'
-      borderColor='border.subtlest'
+      borderColor='neutral.border.subtle'
       alignItems='center'
     >
       <Code justifySelf='start' fontSize={{ base: 'sm', md: 'md' }}>
@@ -109,8 +110,10 @@ const TokenRow = ({ name }: { name: Token }) => {
 const tokenDescriptions: Record<string, string> = {
   colors:
     'Used with color, backgroundColor, borderColor, fill, stroke, outlineColor, accentColor, and other color-related properties',
-  spacing: 'Used with margin, padding, gap, inset, space, and other spacing-related properties',
-  sizes: 'Used with width, height, maxWidth, maxHeight, flexBasis, and other dimension properties',
+  spacing:
+    'Used with margin, padding, gap, inset, space, and other spacing-related properties',
+  sizes:
+    'Used with width, height, maxWidth, maxHeight, flexBasis, and other dimension properties',
   radii: 'Used with borderRadius property',
   shadows: 'Used with boxShadow and textShadow properties',
   blurs: 'Used with backdropBlur and blur properties',
@@ -121,7 +124,8 @@ const tokenDescriptions: Record<string, string> = {
   letterSpacings: 'Used with letterSpacing property',
   breakpoints: 'Used with responsive styles and container queries',
   durations: 'Used with transitionDuration and animationDuration properties',
-  easings: 'Used with transitionTimingFunction and animationTimingFunction properties'
+  easings:
+    'Used with transitionTimingFunction and animationTimingFunction properties'
 }
 
 const getTokenDescription = (name: string) => tokenDescriptions[name] || ''
@@ -167,11 +171,18 @@ const TokenGroup = ({ name, tokens }: TokenGroup) => {
 
   return (
     <View gap='200'>
-      <View position='sticky' top='0' backgroundColor='bg' paddingY='200' zIndex='1' gap='100'>
+      <View
+        position='sticky'
+        top='0'
+        backgroundColor='neutral.surface'
+        paddingY='200'
+        zIndex='1'
+        gap='100'
+      >
         <Heading as='h3' textStyle='display.ui.3'>
           {name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()}
         </Heading>
-        {description && <Text color='fg.subtle'>{description}</Text>}
+        {description && <Text emphasis='subtle'>{description}</Text>}
       </View>
       <View gap='400'>
         {semanticTokens.length > 0 && (
@@ -211,7 +222,10 @@ type TokenMap = {
   [key: string]: SimpleTokenValue | TokenMap | string | number
 }
 
-function flattenTokens(obj: TokenMap, prefix = ''): Array<[string, SimpleTokenValue]> {
+function flattenTokens(
+  obj: TokenMap,
+  prefix = ''
+): Array<[string, SimpleTokenValue]> {
   const result: Array<[string, SimpleTokenValue]> = []
 
   for (const [key, value] of Object.entries(obj)) {
@@ -280,10 +294,14 @@ export default function TokensReference() {
     .filter((type) => tokenType === 'all' || type === tokenType)
     .map((type) => {
       const semanticTokens = (semanticTokenGroups[type] || []).filter(
-        (token) => search === '' || token.name.toLowerCase().includes(search.toLowerCase())
+        (token) =>
+          search === '' ||
+          token.name.toLowerCase().includes(search.toLowerCase())
       )
       const baseTokens = (baseTokenGroups[type] || []).filter(
-        (token) => search === '' || token.name.toLowerCase().includes(search.toLowerCase())
+        (token) =>
+          search === '' ||
+          token.name.toLowerCase().includes(search.toLowerCase())
       )
 
       return {
@@ -303,24 +321,26 @@ export default function TokensReference() {
           as='input'
           placeholder='Search tokens...'
           value={search}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-          color='fg'
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setSearch(e.target.value)
+          }
+          color='neutral.fg'
           padding='150'
           borderRadius='100'
           border='2px solid'
-          borderColor='border'
-          bg='bg.sunken'
+          borderColor='neutral.border'
+          bg='neutral.surface.sunken'
           flex='1'
           _hover={{
-            borderColor: 'border.hovered',
-            bg: 'bg.hovered'
+            borderColor: 'neutral.border.hover',
+            bg: 'neutral.surface.hover'
           }}
           _focus={{
-            borderColor: 'border.focused',
-            bg: 'bg.focused',
+            borderColor: 'accent.border.strong',
+            bg: 'neutral.surface.sunken',
             _hover: {
-              borderColor: 'border.focused',
-              bg: 'bg.focused'
+              borderColor: 'accent.border.strong',
+              bg: 'neutral.surface.sunken'
             }
           }}
           _focusVisible={{
@@ -334,19 +354,29 @@ export default function TokensReference() {
             setTokenType(e.target.value as TokenCategory | 'all')
           }
           padding='150'
+          flexDirection='row'
+          alignItems='center'
           borderRadius='100'
           border='1px solid'
-          borderColor='border'
-          bg='bg.raised'
-          color='fg'
+          borderColor='neutral.border'
+          bg='neutral.surface.raised'
+          color='neutral.fg'
           width='200px'
           _hover={{
-            borderColor: 'border.hovered',
-            bg: 'bg.hovered'
+            borderColor: 'neutral.border.hover',
+            bg: 'neutral.surface.hover'
+          }}
+          _focus={{
+            borderColor: 'neutral.border.focus',
+            bg: 'neutral.surface.focus',
+            _hover: {
+              borderColor: 'neutral.border.focus',
+              bg: 'neutral.surface.focus'
+            }
           }}
           _focusVisible={{
-            borderColor: 'border.focused',
-            bg: 'bg.focused'
+            borderColor: 'neutral.border.focus',
+            bg: 'neutral.surface.focus'
           }}
         >
           <option value='all'>All Types</option>

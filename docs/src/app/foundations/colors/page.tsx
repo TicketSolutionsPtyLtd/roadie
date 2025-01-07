@@ -25,13 +25,16 @@ interface ColorToken {
 const baseColors = tokens.colors
 const semanticColors = semanticTokens.colors
 
-const toSentenceCase = (str: string) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
+const toSentenceCase = (str: string) =>
+  str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
 
-const formatColorKey = (str: string) => str.replace('fg', 'Foreground').replace('bg', 'Background')
+const formatColorKey = (str: string) =>
+  str.replace('fg', 'Foreground').replace('bg', 'Background')
 
 const convertToTitle = (str: string) => toSentenceCase(formatColorKey(str))
 
-const camelCaseToKebabCase = (str: string) => str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
+const camelCaseToKebabCase = (str: string) =>
+  str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
 
 const colorValueConformed = (str: string) =>
   camelCaseToKebabCase(str)
@@ -66,14 +69,14 @@ function ColorSwatch({
         width={appearance === 'semantic' ? '1000' : '600'}
         borderRadius='100'
         border='1px solid'
-        borderColor='border.subtlest'
+        borderColor='neutral.border.muted'
         flexShrink={0}
       />
       <View gap='100' alignItems='flex-start'>
         <Text fontWeight='semibold'>{convertToTitle(name)}</Text>
         {appearance === 'semantic' && <Code>{color}</Code>}
         {appearance === 'semantic' && description && (
-          <Text fontSize='sm' color='fg.subtle'>
+          <Text textStyle='ui.meta' emphasis='subtle'>
             {description}
           </Text>
         )}
@@ -93,11 +96,17 @@ function SemanticColorList({
   parentPath?: string
   depth?: number
 }) {
-  const colorEntries = Object.entries(colors).filter(([key]) => !key.startsWith('$'))
+  const colorEntries = Object.entries(colors).filter(
+    ([key]) => !key.startsWith('$')
+  )
 
   const headingElement = `h${Math.min(depth, 6)}` as 'h3' | 'h4' | 'h5' | 'h6'
   const textStyle =
-    depth === 3 ? 'display.prose.3' : depth === 4 ? 'display.prose.4' : 'display.prose.5'
+    depth === 3
+      ? 'display.prose.3'
+      : depth === 4
+        ? 'display.prose.4'
+        : 'display.prose.5'
   const ViewGap = depth === 3 ? '800' : depth === 4 ? '600' : '300'
 
   const hasOnlyTokenValues = colorEntries.every(
@@ -113,7 +122,7 @@ function SemanticColorList({
           {convertToTitle(title)}
         </Heading>
         {description && (
-          <Text textStyle='prose.lead' color='fg.subtle'>
+          <Text textStyle='prose.lead' emphasis='subtle'>
             {description}
           </Text>
         )}
@@ -123,7 +132,9 @@ function SemanticColorList({
           const isTokenValue = (v: unknown): v is TokenValue =>
             typeof v === 'object' && v !== null && '$value' in v
 
-          const isNestedColors = (v: unknown): v is { [key: string]: TokenValue } =>
+          const isNestedColors = (
+            v: unknown
+          ): v is { [key: string]: TokenValue } =>
             typeof v === 'object' && v !== null && !('$value' in v)
 
           if (isNestedColors(value)) {
@@ -139,8 +150,12 @@ function SemanticColorList({
           }
 
           if (isTokenValue(value)) {
-            const path = parentPath ? `${parentPath}.${title}.${shade}` : `${title}.${shade}`
-            const colorValue = path.endsWith('.default') ? path.slice(0, -8) : path
+            const path = parentPath
+              ? `${parentPath}.${title}.${shade}`
+              : `${title}.${shade}`
+            const colorValue = path.endsWith('.default')
+              ? path.slice(0, -8)
+              : path
             return (
               <ColorSwatch
                 key={shade}
@@ -167,7 +182,9 @@ function ColorPalette({
   colors: ColorToken
   parentPath?: string
 }) {
-  const colorEntries = Object.entries(colors).filter(([key]) => !key.startsWith('$'))
+  const colorEntries = Object.entries(colors).filter(
+    ([key]) => !key.startsWith('$')
+  )
 
   // Separate opaque and transparent colors
   const opaqueColors = colorEntries.filter(([key]) => !key.includes('A'))
@@ -178,11 +195,11 @@ function ColorPalette({
   return (
     <View gap='200'>
       <View gap='100'>
-        <Text as='h3' fontSize='lg' fontWeight='semibold'>
+        <Heading as='h3' textStyle='display.prose.3'>
           {convertToTitle(title)}
-        </Text>
+        </Heading>
         {description && (
-          <Text fontSize='sm' color='fg.subtle'>
+          <Text textStyle='ui.meta' emphasis='subtle'>
             {description}
           </Text>
         )}
@@ -191,7 +208,9 @@ function ColorPalette({
         {opaqueColors.length > 0 && (
           <View gap='100' flexDirection='row' flexWrap='wrap'>
             {opaqueColors.map(([shade, value]) => {
-              const isNestedColors = (v: unknown): v is { [key: string]: TokenValue } =>
+              const isNestedColors = (
+                v: unknown
+              ): v is { [key: string]: TokenValue } =>
                 typeof v === 'object' && v !== null && !('$value' in v)
 
               if (isNestedColors(value)) {
@@ -205,11 +224,20 @@ function ColorPalette({
                 )
               }
 
-              const path = parentPath ? `${parentPath}.${title}.${shade}` : `${title}.${shade}`
-              const colorValue = path.endsWith('.default') ? path.slice(0, -8) : path
+              const path = parentPath
+                ? `${parentPath}.${title}.${shade}`
+                : `${title}.${shade}`
+              const colorValue = path.endsWith('.default')
+                ? path.slice(0, -8)
+                : path
 
               return (
-                <ColorSwatch key={shade} name={`${shade}`} color={colorValue} appearance='base' />
+                <ColorSwatch
+                  key={shade}
+                  name={`${shade}`}
+                  color={colorValue}
+                  appearance='base'
+                />
               )
             })}
           </View>
@@ -219,11 +247,20 @@ function ColorPalette({
         {transparentColors.length > 0 && (
           <View gap='100' flexDirection='row' flexWrap='wrap'>
             {transparentColors.map(([shade]) => {
-              const path = parentPath ? `${parentPath}.${title}.${shade}` : `${title}.${shade}`
-              const colorValue = path.endsWith('.default') ? path.slice(0, -8) : path
+              const path = parentPath
+                ? `${parentPath}.${title}.${shade}`
+                : `${title}.${shade}`
+              const colorValue = path.endsWith('.default')
+                ? path.slice(0, -8)
+                : path
 
               return (
-                <ColorSwatch key={shade} name={`${shade}`} color={colorValue} appearance='base' />
+                <ColorSwatch
+                  key={shade}
+                  name={`${shade}`}
+                  color={colorValue}
+                  appearance='base'
+                />
               )
             })}
           </View>
@@ -246,43 +283,53 @@ export default function ColorsPage() {
     <View>
       <View gap='1000'>
         <View gap='100'>
-          <Text as='h1' fontSize='5xl' fontWeight='black'>
+          <Heading as='h1' textStyle='display.prose.1'>
             Colors
-          </Text>
-          <Text fontSize='xl' color='fg.subtle'>
-            Our color system is built on semantic tokens for consistent, meaningful usage across our
-            products.
+          </Heading>
+          <Text textStyle='prose.lead' emphasis='subtle'>
+            Our color system is built on semantic tokens for consistent,
+            meaningful usage across our products.
           </Text>
         </View>
 
         <View gap='600'>
           <View gap='200'>
-            <Text as='h2' fontSize='4xl' fontWeight='semibold'>
+            <Heading as='h2' textStyle='display.prose.2'>
               Semantic colors
-            </Text>
-            <Text fontSize='lg' color='fg.subtle'>
-              Semantic colors provide meaning and consistency across our interface.
+            </Heading>
+            <Text textStyle='prose.lead' emphasis='subtle'>
+              Semantic colors provide meaning and consistency across our
+              interface.
             </Text>
           </View>
           <View gap='800'>
             {semanticColorGroups.map(([name, colors]) => (
-              <SemanticColorList key={name} title={name} colors={colors as ColorToken} />
+              <SemanticColorList
+                key={name}
+                title={name}
+                colors={colors as ColorToken}
+              />
             ))}
           </View>
         </View>
 
         <View gap='600'>
           <View gap='200'>
-            <Text as='h2' fontSize='4xl' fontWeight='semibold'>
+            <Heading as='h2' textStyle='display.prose.2'>
               Base colors
-            </Text>
-            <Text color='fg.subtle' fontSize='lg'>
-              Our foundational color palette that powers our semantic color system.
+            </Heading>
+            <Text textStyle='prose.lead' emphasis='subtle'>
+              Our foundational color palette that powers our semantic color
+              system.
             </Text>
           </View>
           <View gap='600'>
             {baseColorGroups.map(([name, colors]) => (
-              <ColorPalette key={name} title={name} colors={colors as ColorToken} />
+              <ColorPalette
+                key={name}
+                title={name}
+                colors={colors as ColorToken}
+              />
             ))}
           </View>
         </View>
