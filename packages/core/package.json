@@ -52,7 +52,7 @@
   },
   "scripts": {
     "clean": "rm -rf node_modules dist",
-    "build": "tsup && pnpm build:panda",
+    "build": "pnpm build:tokens && tsup && pnpm build:panda",
     "build:panda": "panda codegen --c panda.config.js && panda emit-pkg --base dist",
     "build:tokens": "node scripts/build-panda-tokens.js && node scripts/build-figma-tokens.js",
     "dev": "run-p dev:*",

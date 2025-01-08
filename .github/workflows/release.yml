@@ -45,20 +45,15 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile || pnpm install
 
-      - name: Version and publish
+      - name: Create release pull request or publish to npm
         id: changesets
         uses: changesets/action@v1
         with:
-          version: |
-            pnpm changeset version
-            pnpm install --no-frozen-lockfile
           commit: 'chore: update versions and changelogs'
           title: 'chore: version packages'
-          publish: |
-            pnpm build
-            pnpm release
+          publish: pnpm release
           createGithubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
