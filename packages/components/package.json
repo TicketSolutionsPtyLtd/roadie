@@ -11,11 +11,16 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.js"
+    },
+    "./src/*": {
+      "types": "./src/*",
+      "import": "./src/*"
     }
   },
   "sideEffects": false,
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "publishConfig": {
     "access": "public"
