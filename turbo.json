@@ -49,6 +49,7 @@
       "cache": false
     },
     "dev": {
+      "dependsOn": ["@oztix/roadie-core#build", "@oztix/roadie-components#build"],
       "cache": false,
       "persistent": true
     },
