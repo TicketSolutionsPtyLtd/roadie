@@ -60,17 +60,17 @@
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.neutralSandDark.1}",
+            "$value": "{colors.neutralSandDark.2}",
             "$description": "Base color for raised surfaces"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.neutralSandDark.2}",
+            "$value": "{colors.neutralSandDark.3}",
             "$description": "Hover state for raised surfaces"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.neutralSandDark.3}",
+            "$value": "{colors.neutralSandDark.4}",
             "$description": "Active/pressed state for raised surfaces"
           }
         },
@@ -112,7 +112,7 @@
         },
         "backdrop": {
           "$type": "color",
-          "$value": "{colors.neutralSandDark.1}",
+          "$value": "{colors.black.A7}",
           "$description": "Semi-transparent background color for modal backdrops and overlays"
         }
       },
@@ -192,17 +192,17 @@
         "$type": "color",
         "default": {
           "$type": "color",
-          "$value": "{colors.neutralSandDark.9}",
+          "$value": "{colors.neutralSandDark.10}",
           "$description": "Standard solid fill color for interactive elements"
         },
         "hover": {
           "$type": "color",
-          "$value": "{colors.neutralSandDark.10}",
+          "$value": "{colors.neutralSandDark.11}",
           "$description": "Hover state for default solid fills"
         },
         "active": {
           "$type": "color",
-          "$value": "{colors.neutralSandDark.11}",
+          "$value": "{colors.neutralSandDark.12}",
           "$description": "Active/pressed state for default solid fills"
         },
         "subtle": {

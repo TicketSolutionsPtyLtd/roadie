@@ -122,34 +122,34 @@
           "$description": "Background color for elevated elements like popovers and dropdowns",
           "default": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.1}",
+            "$value": "{colors.neutralSlate.0}",
             "$description": "Base color for raised surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.neutralSlate.1}",
-                "dark": "{colors.neutralSandDark.1}"
+                "light": "{colors.neutralSlate.0}",
+                "dark": "{colors.neutralSandDark.2}"
               }
             }
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.2}",
+            "$value": "{colors.neutralSlate.1}",
             "$description": "Hover state for raised surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.neutralSlate.2}",
-                "dark": "{colors.neutralSandDark.2}"
+                "light": "{colors.neutralSlate.1}",
+                "dark": "{colors.neutralSandDark.3}"
               }
             }
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.3}",
+            "$value": "{colors.neutralSlate.2}",
             "$description": "Active/pressed state for raised surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.neutralSlate.3}",
-                "dark": "{colors.neutralSandDark.3}"
+                "light": "{colors.neutralSlate.2}",
+                "dark": "{colors.neutralSandDark.4}"
               }
             }
           }
@@ -231,11 +231,11 @@
         "backdrop": {
           "$description": "Semi-transparent background color for modal backdrops and overlays",
           "$type": "color",
-          "$value": "{colors.neutralSlate.1}",
+          "$value": "{colors.black.A7}",
           "$extensions": {
             "mode": {
-              "light": "{colors.neutralSlate.1}",
-              "dark": "{colors.neutralSandDark.1}"
+              "light": "{colors.black.A7}",
+              "dark": "{colors.black.A7}"
             }
           }
         }
@@ -393,19 +393,8 @@
         "$description": "Solid fill colors for interactive elements like buttons and indicators",
         "default": {
           "$type": "color",
-          "$value": "{colors.neutralSlate.9}",
-          "$description": "Standard solid fill color for interactive elements",
-          "$extensions": {
-            "mode": {
-              "light": "{colors.neutralSlate.9}",
-              "dark": "{colors.neutralSandDark.9}"
-            }
-          }
-        },
-        "hover": {
-          "$type": "color",
           "$value": "{colors.neutralSlate.10}",
-          "$description": "Hover state for default solid fills",
+          "$description": "Standard solid fill color for interactive elements",
           "$extensions": {
             "mode": {
               "light": "{colors.neutralSlate.10}",
@@ -413,14 +402,25 @@
             }
           }
         },
-        "active": {
+        "hover": {
           "$type": "color",
           "$value": "{colors.neutralSlate.11}",
-          "$description": "Active/pressed state for default solid fills",
+          "$description": "Hover state for default solid fills",
           "$extensions": {
             "mode": {
               "light": "{colors.neutralSlate.11}",
               "dark": "{colors.neutralSandDark.11}"
+            }
+          }
+        },
+        "active": {
+          "$type": "color",
+          "$value": "{colors.neutralSlate.12}",
+          "$description": "Active/pressed state for default solid fills",
+          "$extensions": {
+            "mode": {
+              "light": "{colors.neutralSlate.12}",
+              "dark": "{colors.neutralSandDark.12}"
             }
           }
         },
@@ -466,33 +466,33 @@
           "$description": "Darker solid fill color for primary or emphasized interactive elements",
           "default": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.10}",
+            "$value": "{colors.neutralSlate.11}",
             "$description": "Base color for strong solid fills",
             "$extensions": {
               "mode": {
-                "light": "{colors.neutralSlate.10}",
+                "light": "{colors.neutralSlate.11}",
                 "dark": "{colors.neutralSandDark.11}"
               }
             }
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.11}",
+            "$value": "{colors.neutralSlate.12}",
             "$description": "Hover state for strong solid fills",
             "$extensions": {
               "mode": {
-                "light": "{colors.neutralSlate.11}",
+                "light": "{colors.neutralSlate.12}",
                 "dark": "{colors.neutralSandDark.12}"
               }
             }
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.12}",
+            "$value": "{colors.neutralSlate.13}",
             "$description": "Active/pressed state for strong solid fills",
             "$extensions": {
               "mode": {
-                "light": "{colors.neutralSlate.12}",
+                "light": "{colors.neutralSlate.13}",
                 "dark": "{colors.neutralSandDark.13}"
               }
             }

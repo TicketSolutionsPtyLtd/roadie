@@ -60,17 +60,17 @@
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.1}",
+            "$value": "{colors.neutralSlate.0}",
             "$description": "Base color for raised surfaces"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.2}",
+            "$value": "{colors.neutralSlate.1}",
             "$description": "Hover state for raised surfaces"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.3}",
+            "$value": "{colors.neutralSlate.2}",
             "$description": "Active/pressed state for raised surfaces"
           }
         },
@@ -112,7 +112,7 @@
         },
         "backdrop": {
           "$type": "color",
-          "$value": "{colors.neutralSlate.1}",
+          "$value": "{colors.black.A7}",
           "$description": "Semi-transparent background color for modal backdrops and overlays"
         }
       },
@@ -192,17 +192,17 @@
         "$type": "color",
         "default": {
           "$type": "color",
-          "$value": "{colors.neutralSlate.9}",
+          "$value": "{colors.neutralSlate.10}",
           "$description": "Standard solid fill color for interactive elements"
         },
         "hover": {
           "$type": "color",
-          "$value": "{colors.neutralSlate.10}",
+          "$value": "{colors.neutralSlate.11}",
           "$description": "Hover state for default solid fills"
         },
         "active": {
           "$type": "color",
-          "$value": "{colors.neutralSlate.11}",
+          "$value": "{colors.neutralSlate.12}",
           "$description": "Active/pressed state for default solid fills"
         },
         "subtle": {
@@ -227,17 +227,17 @@
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.10}",
+            "$value": "{colors.neutralSlate.11}",
             "$description": "Base color for strong solid fills"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.11}",
+            "$value": "{colors.neutralSlate.12}",
             "$description": "Hover state for strong solid fills"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.12}",
+            "$value": "{colors.neutralSlate.13}",
             "$description": "Active/pressed state for strong solid fills"
           }
         }

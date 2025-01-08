@@ -2249,22 +2249,22 @@
           "raised": {
             "DEFAULT": {
               "value": {
-                "base": "{colors.neutralSlate.1}",
-                "_dark": "{colors.neutralSandDark.1}"
+                "base": "{colors.neutralSlate.0}",
+                "_dark": "{colors.neutralSandDark.2}"
               },
               "description": "Base color for raised surfaces"
             },
             "hover": {
               "value": {
-                "base": "{colors.neutralSlate.2}",
-                "_dark": "{colors.neutralSandDark.2}"
+                "base": "{colors.neutralSlate.1}",
+                "_dark": "{colors.neutralSandDark.3}"
               },
               "description": "Hover state for raised surfaces"
             },
             "active": {
               "value": {
-                "base": "{colors.neutralSlate.3}",
-                "_dark": "{colors.neutralSandDark.3}"
+                "base": "{colors.neutralSlate.2}",
+                "_dark": "{colors.neutralSandDark.4}"
               },
               "description": "Active/pressed state for raised surfaces"
             }
@@ -2317,8 +2317,8 @@
           },
           "backdrop": {
             "value": {
-              "base": "{colors.neutralSlate.1}",
-              "_dark": "{colors.neutralSandDark.1}"
+              "base": "{colors.black.A7}",
+              "_dark": "{colors.black.A7}"
             },
             "description": "Semi-transparent background color for modal backdrops and overlays"
           }
@@ -2418,22 +2418,22 @@
         "solid": {
           "DEFAULT": {
             "value": {
-              "base": "{colors.neutralSlate.9}",
-              "_dark": "{colors.neutralSandDark.9}"
+              "base": "{colors.neutralSlate.10}",
+              "_dark": "{colors.neutralSandDark.10}"
             },
             "description": "Standard solid fill color for interactive elements"
           },
           "hover": {
             "value": {
-              "base": "{colors.neutralSlate.10}",
-              "_dark": "{colors.neutralSandDark.10}"
+              "base": "{colors.neutralSlate.11}",
+              "_dark": "{colors.neutralSandDark.11}"
             },
             "description": "Hover state for default solid fills"
           },
           "active": {
             "value": {
-              "base": "{colors.neutralSlate.11}",
-              "_dark": "{colors.neutralSandDark.11}"
+              "base": "{colors.neutralSlate.12}",
+              "_dark": "{colors.neutralSandDark.12}"
             },
             "description": "Active/pressed state for default solid fills"
           },
@@ -2463,21 +2463,21 @@
           "strong": {
             "DEFAULT": {
               "value": {
-                "base": "{colors.neutralSlate.10}",
+                "base": "{colors.neutralSlate.11}",
                 "_dark": "{colors.neutralSandDark.11}"
               },
               "description": "Base color for strong solid fills"
             },
             "hover": {
               "value": {
-                "base": "{colors.neutralSlate.11}",
+                "base": "{colors.neutralSlate.12}",
                 "_dark": "{colors.neutralSandDark.12}"
               },
               "description": "Hover state for strong solid fills"
             },
             "active": {
               "value": {
-                "base": "{colors.neutralSlate.12}",
+                "base": "{colors.neutralSlate.13}",
                 "_dark": "{colors.neutralSandDark.13}"
               },
               "description": "Active/pressed state for strong solid fills"
