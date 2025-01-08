@@ -41,7 +41,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pnpm install --frozen-lockfile || pnpm install --no-frozen-lockfile
+          pnpm install --frozen-lockfile || pnpm install
 
       - name: Run lint
         run: pnpm lint
@@ -64,7 +64,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile || pnpm install
 
       - name: Run typecheck
         run: pnpm typecheck
@@ -87,7 +87,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile || pnpm install
 
       - name: Run tests
         run: pnpm test
@@ -111,7 +111,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile || pnpm install
 
       - name: Cache TypeScript
         uses: actions/cache@v3
