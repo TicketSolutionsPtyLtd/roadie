@@ -1,5 +1,13 @@
 # @oztix/roadie-components
 
+## 0.2.1
+
+### Patch Changes
+
+- f2aa279: Update neutral solid colors to work better with default button
+- Updated dependencies [f2aa279]
+  - @oztix/roadie-core@0.2.1
+
 ## 0.2.0
 
 ### Minor Changes
