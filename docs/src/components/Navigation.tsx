@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 import { Moon, Sun } from 'lucide-react'
+
+import { Image } from '@/components/Image'
 
 import { Button, Text, View } from '@oztix/roadie-components'
 import { css } from '@oztix/roadie-core/css'

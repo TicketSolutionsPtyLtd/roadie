@@ -5,6 +5,7 @@ import { join } from 'path'
 
 import { FooterNav } from '@/components/FooterNav'
 import { Navigation } from '@/components/Navigation'
+import { getAssetPath } from '@/utils/getAssetPath'
 
 import { View } from '@oztix/roadie-components'
 import { css } from '@oztix/roadie-core/css'
@@ -231,8 +232,8 @@ export const metadata: Metadata = {
   description:
     'A comprehensive collection of reusable components for building consistent user interfaces across Oztix applications.',
   icons: {
-    icon: '/favicon.png',
-    apple: '/favicon.png'
+    icon: getAssetPath('/favicon.png'),
+    apple: getAssetPath('/favicon.png')
   }
 }
 
