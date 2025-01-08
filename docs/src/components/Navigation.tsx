@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from 'react'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-import { Moon, Speaker, Sun } from 'lucide-react'
+import { Moon, Sun } from 'lucide-react'
 
 import { Button, Text, View } from '@oztix/roadie-components'
+import { css } from '@oztix/roadie-core/css'
 
 interface NavigationItem {
   title: string
@@ -26,14 +28,26 @@ function Logo() {
       href='/'
       flexDirection='row'
       alignItems='center'
-      gap='050'
-      color='accent.fg.strong'
       textDecoration='none'
-      fontWeight='semibold'
-      fontSize='lg'
+      maxWidth='100%'
+      width='100%'
+      aspectRatio='1/1'
+      aria-label='Go to Roadie home page'
+      role='banner'
+      _focus={{
+        outline: '2px solid',
+        outlineColor: 'accent.border.focus',
+        outlineOffset: '2px',
+        borderRadius: '050'
+      }}
     >
-      <Speaker size={24} />
-      Roadie
+      <Image
+        src='/roadie-logo.png'
+        alt='Roadie Design System'
+        fill
+        priority
+        style={{ objectFit: 'contain' }}
+      />
     </View>
   )
 }
@@ -42,13 +56,24 @@ function ThemeToggle() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
 
   useEffect(() => {
-    const isDark = document.documentElement.classList.contains('dark')
-    setTheme(isDark ? 'dark' : 'light')
+    // Check localStorage first, then fallback to system preference
+    const savedTheme = localStorage.getItem('theme')
+    const prefersDark = window.matchMedia(
+      '(prefers-color-scheme: dark)'
+    ).matches
+
+    const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light')
+    setTheme(initialTheme as 'light' | 'dark')
+
+    if (initialTheme === 'dark') {
+      document.documentElement.classList.add('dark')
+    }
   }, [])
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light'
     setTheme(newTheme)
+    localStorage.setItem('theme', newTheme)
     document.documentElement.classList.toggle('dark')
   }
 
@@ -58,8 +83,10 @@ function ThemeToggle() {
       size='sm'
       onPress={toggleTheme}
       aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+      className={css({ gap: '050' })}
     >
       {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+      <Text>{theme === 'light' ? 'Dark' : 'Light'} mode</Text>
     </Button>
   )
 }
@@ -146,31 +173,34 @@ export function Navigation({ items }: NavigationProps) {
       width='220px'
       flexShrink={0}
       overflowY='auto'
-      px='200'
-      py='400'
       borderRight='1px solid'
       borderColor='neutral.border.muted'
       bg='neutral.surface.sunken'
       shadow='sunken'
       display={{ base: 'none', md: 'block' }}
     >
-      <View gap='300'>
-        <View
-          display='flex'
-          flexDirection='row'
-          alignItems='center'
-          justifyContent='space-between'
-          px='100'
-          borderBottomWidth='1px'
-          borderColor='neutral.border.subtle'
-        >
+      <View gap='300' height='100%' pt='300'>
+        <View flexDirection='row' alignItems='center' px='200' flexShrink={0}>
           <Logo />
-          <ThemeToggle />
         </View>
-        <View gap='300'>
+        <View px='200' gap='300' flexGrow={1} flexShrink={0}>
           {items.map((item, index) => (
             <NavigationGroup key={index} item={item} />
           ))}
+        </View>
+        <View
+          p='200'
+          mt='auto'
+          position='sticky'
+          bottom='0'
+          bg='neutral.surface.raised'
+          flexShrink={0}
+          shadow='raised'
+          borderTopWidth='1px'
+          borderTopStyle='solid'
+          borderColor='neutral.border.muted'
+        >
+          <ThemeToggle />
         </View>
       </View>
     </View>

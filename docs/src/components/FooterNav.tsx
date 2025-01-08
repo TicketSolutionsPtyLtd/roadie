@@ -23,6 +23,9 @@ interface FooterNavProps {
 export function FooterNav({ items }: FooterNavProps) {
   const pathname = usePathname()
 
+  // Don't show navigation on home page
+  if (pathname === '/') return null
+
   // Flatten the navigation structure
   const flatNav = items.reduce<NavItem[]>((acc, section) => {
     return [...acc, ...section.items]

@@ -1,3 +1,5 @@
+import type { Metadata } from 'next'
+
 import { readFile, readdir } from 'fs/promises'
 import { join } from 'path'
 
@@ -224,10 +226,14 @@ async function getNavigationItems() {
   return navigationItems
 }
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Roadie Design System',
   description:
-    'A comprehensive collection of reusable components for building consistent user interfaces across Oztix applications.'
+    'A comprehensive collection of reusable components for building consistent user interfaces across Oztix applications.',
+  icons: {
+    icon: '/favicon.png',
+    apple: '/favicon.png'
+  }
 }
 
 export default async function RootLayout({
