@@ -12,6 +12,12 @@ import { Image } from '@/components/Image'
 import { Button, Text, View } from '@oztix/roadie-components'
 import { css } from '@oztix/roadie-core/css'
 
+declare global {
+  interface Window {
+    __theme: 'light' | 'dark'
+  }
+}
+
 interface NavigationItem {
   title: string
   href?: string
@@ -57,25 +63,29 @@ function ThemeToggle() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
 
   useEffect(() => {
-    // Check localStorage first, then fallback to system preference
-    const savedTheme = localStorage.getItem('theme')
-    const prefersDark = window.matchMedia(
-      '(prefers-color-scheme: dark)'
-    ).matches
+    // Initialize from window.__theme set by our script
+    setTheme(window.__theme || 'light')
 
-    const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light')
-    setTheme(initialTheme as 'light' | 'dark')
-
-    if (initialTheme === 'dark') {
-      document.documentElement.classList.add('dark')
+    // Listen for system theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const handleChange = () => {
+      const newTheme = mediaQuery.matches ? 'dark' : 'light'
+      setTheme(newTheme)
+      document.documentElement.classList.toggle('dark', mediaQuery.matches)
+      localStorage.setItem('theme', newTheme)
+      window.__theme = newTheme
     }
+
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
   }, [])
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light'
     setTheme(newTheme)
+    document.documentElement.classList.toggle('dark', newTheme === 'dark')
     localStorage.setItem('theme', newTheme)
-    document.documentElement.classList.toggle('dark')
+    window.__theme = newTheme
   }
 
   return (

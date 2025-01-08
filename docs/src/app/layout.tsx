@@ -245,7 +245,29 @@ export default async function RootLayout({
   const items = await getNavigationItems()
 
   return (
-    <html lang='en'>
+    <html lang='en' suppressHydrationWarning>
+      <head>
+        {/*
+          Inline theme script must run synchronously before any content loads
+          to prevent flash of wrong theme. This script:
+          1. Checks localStorage for saved theme preference
+          2. Falls back to system color scheme preference
+          3. Sets theme before any content is painted
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const theme =
+                  localStorage.getItem('theme') ||
+                  (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+                document.documentElement.classList.toggle('dark', theme === 'dark')
+                window.__theme = theme
+              } catch {}
+            `
+          }}
+        />
+      </head>
       <body
         className={css({
           overflowX: 'hidden'
