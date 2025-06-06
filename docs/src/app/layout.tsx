@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-import { readFile, readdir } from 'fs/promises'
+import { access, readFile, readdir } from 'fs/promises'
 import { join } from 'path'
 
 import { FooterNav } from '@/components/FooterNav'
@@ -20,36 +20,139 @@ interface ComponentMetadata {
   category: string
 }
 
-async function getNavigationItems() {
+interface NavItem {
+  title: string
+  href: string
+}
+
+interface NavSection {
+  title: string
+  href: string
+  items: NavItem[]
+}
+
+// Helper function to check if a file exists
+async function fileExists(filePath: string): Promise<boolean> {
+  try {
+    await access(filePath)
+    return true
+  } catch {
+    return false
+  }
+}
+
+// Helper function to extract metadata object from file content
+function extractMetadataObject(content: string): Record<string, string> | null {
+  const metadataStart = content.indexOf('export const metadata = {')
+  if (metadataStart === -1) return null
+
+  let braceCount = 0
+  let metadataEnd = -1
+  for (
+    let i = metadataStart + 'export const metadata = {'.length;
+    i < content.length;
+    i++
+  ) {
+    if (content[i] === '{') braceCount++
+    else if (content[i] === '}') {
+      if (braceCount === 0) {
+        metadataEnd = i
+        break
+      }
+      braceCount--
+    }
+  }
+
+  if (metadataEnd === -1) return null
+
+  try {
+    const metadataString = content.substring(
+      metadataStart + 'export const metadata = '.length,
+      metadataEnd + 1
+    )
+
+    // Validate the metadata string before evaluation
+    if (!/^\{[\s\S]*\}$/.test(metadataString)) {
+      console.error('Invalid metadata object structure')
+      return null
+    }
+
+    // Only allow specific properties in the metadata object
+    const allowedProperties = ['title', 'description', 'status', 'category']
+    const metadata = new Function('return ' + metadataString)()
+
+    // Validate that all properties are strings
+    for (const [key, value] of Object.entries(metadata)) {
+      if (!allowedProperties.includes(key) || typeof value !== 'string') {
+        console.error(`Invalid metadata property: ${key}`)
+        return null
+      }
+    }
+
+    return metadata
+  } catch {
+    return null
+  }
+}
+
+// Helper function to read metadata from MDX/TSX files
+async function getMetadataFromFile(
+  filePath: string,
+  defaultTitle: string,
+  isComponent: boolean = false
+): Promise<{
+  title: string
+  description: string
+  status?: string
+  category?: string
+} | null> {
+  if (!(await fileExists(filePath))) return null
+
+  try {
+    const content = await readFile(filePath, 'utf-8')
+    const metadata = extractMetadataObject(content)
+
+    if (!metadata) return { title: defaultTitle, description: '' }
+
+    return {
+      title: metadata.title || defaultTitle,
+      description: metadata.description || '',
+      ...(isComponent && {
+        status: metadata.status || 'unknown',
+        category: metadata.category || 'Other'
+      })
+    }
+  } catch (e) {
+    console.error(`Error reading file ${filePath}:`, e)
+    return null
+  }
+}
+
+// Helper function to get metadata from either MDX or TSX file
+async function getMetadataFromFiles(
+  mdxPath: string,
+  tsxPath: string,
+  defaultTitle: string,
+  isComponent: boolean = false
+) {
+  const metadata = await getMetadataFromFile(mdxPath, defaultTitle, isComponent)
+  if (metadata?.title) return metadata
+
+  const tsxMetadata = await getMetadataFromFile(
+    tsxPath,
+    defaultTitle,
+    isComponent
+  )
+  if (tsxMetadata?.title) return tsxMetadata
+
+  return null
+}
+
+async function getNavigationItems(): Promise<NavSection[]> {
   const componentsDir = join(process.cwd(), 'src/app/components')
   const foundationsDir = join(process.cwd(), 'src/app/foundations')
   const overviewDir = join(process.cwd(), 'src/app/overview')
   const tokensDir = join(process.cwd(), 'src/app/tokens')
-
-  // Helper function to read metadata from MDX files
-  async function getMetadataFromFile(
-    filePath: string,
-    defaultTitle: string
-  ): Promise<{ title: string; description: string } | null> {
-    try {
-      const content = await readFile(filePath, 'utf-8')
-      const metadataMatch = content.match(
-        /export const metadata = ({[\s\S]*?})/m
-      )
-
-      if (metadataMatch) {
-        try {
-          // eslint-disable-next-line no-eval
-          return eval(`(${metadataMatch[1]})`)
-        } catch {
-          console.error(`Error parsing metadata for ${filePath}`)
-        }
-      }
-      return { title: defaultTitle, description: '' }
-    } catch {
-      return null
-    }
-  }
 
   // Get overview pages metadata
   const gettingStartedMetadata = await getMetadataFromFile(
@@ -66,29 +169,19 @@ async function getNavigationItems() {
       foundationEntries
         .filter((entry) => entry.isDirectory())
         .map(async (dir) => {
-          const metadata = await getMetadataFromFile(
+          const metadata = await getMetadataFromFiles(
             join(foundationsDir, dir.name, 'page.mdx'),
+            join(foundationsDir, dir.name, 'page.tsx'),
             dir.name
           )
-          // If MDX file doesn't exist or has no metadata, try TSX file
-          if (!metadata) {
-            const tsxMetadata = await getMetadataFromFile(
-              join(foundationsDir, dir.name, 'page.tsx'),
-              dir.name
-            )
-            if (!tsxMetadata) return null
-            return {
-              title: tsxMetadata.title,
-              href: `/foundations/${dir.name}`
-            }
-          }
+          if (!metadata?.title) return null
           return {
             title: metadata.title,
             href: `/foundations/${dir.name}`
           }
         })
     )
-  ).filter((page): page is { title: string; href: string } => page !== null)
+  ).filter((page): page is NavItem => page !== null)
 
   // Get component pages metadata
   const entries = await readdir(componentsDir, { withFileTypes: true })
@@ -96,46 +189,24 @@ async function getNavigationItems() {
     entries
       .filter((entry) => entry.isDirectory())
       .map(async (dir) => {
-        try {
-          const mdxPath = join(componentsDir, dir.name, 'page.mdx')
-          const tsxPath = join(componentsDir, dir.name, 'page.tsx')
+        const metadata = await getMetadataFromFiles(
+          join(componentsDir, dir.name, 'page.mdx'),
+          join(componentsDir, dir.name, 'page.tsx'),
+          dir.name,
+          true
+        )
 
-          let content: string
-          try {
-            content = await readFile(mdxPath, 'utf-8')
-          } catch {
-            try {
-              content = await readFile(tsxPath, 'utf-8')
-            } catch {
-              return null
-            }
-          }
-
-          const metadataMatch = content.match(
-            /export const metadata = ({[\s\S]*?})/m
-          )
-          let metadata: ComponentMetadata = {
+        if (!metadata?.title) {
+          return {
             name: dir.name,
             title: dir.name,
             description: '',
             status: 'unknown',
             category: 'Other'
-          }
-
-          if (metadataMatch) {
-            try {
-              // eslint-disable-next-line no-eval
-              const evalMetadata = eval(`(${metadataMatch[1]})`)
-              metadata = { ...metadata, ...evalMetadata }
-            } catch {
-              console.error(`Error parsing metadata for ${dir.name}`)
-            }
-          }
-
-          return metadata
-        } catch {
-          return null
+          } as ComponentMetadata
         }
+
+        return { ...metadata, name: dir.name } as ComponentMetadata
       })
   )
 
@@ -159,7 +230,7 @@ async function getNavigationItems() {
     'Reference'
   )
 
-  const navigationItems = [
+  const navigationItems: NavSection[] = [
     {
       title: 'Overview',
       href: '/',
