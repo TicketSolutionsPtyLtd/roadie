@@ -22,7 +22,7 @@ export default defineConfig({
       if (!filePath?.endsWith('.mdx')) return content
       // this is needed to extract the code blocks from the mdx file
       // so that the Panda CSS parser will process them
-      const codeBlockRegex = /```tsx\s*live\s*([\s\S]*?)```/g
+      const codeBlockRegex = /```tsx\s*live\s*((?:(?!```)[\s\S])*?)```/g
       const matches = content.matchAll(codeBlockRegex)
       const codeBlocks = Array.from(matches)
         .map((match: RegExpMatchArray) => match[1])
