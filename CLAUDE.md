@@ -9,10 +9,22 @@ Roadie is a comprehensive design system for Oztix's applications, built as a mon
 **Tech Stack:**
 - Package Manager: pnpm@9.15.0 (use `corepack enable` to ensure correct version)
 - Build System: Turborepo
-- Framework: React v19.0.0 with react-aria-components
-- Styling: PandaCSS v0.48+
+- Framework: React v19.0.0
+- Component Primitives: @ark-ui/react (for complex components requiring accessibility)
+- Styling: PandaCSS v1.4.3
 - Language: TypeScript v5.7
 - Documentation: Next.js v15 with MDX
+
+**External Documentation:**
+- PandaCSS: https://panda-css.com/llms-full.txt (comprehensive API and usage docs)
+- Ark UI: https://ark-ui.com/llms-react.txt (React-specific component docs)
+
+**Recommended MCP Servers:**
+To enable AI-assisted component building with Ark UI, install the Ark UI MCP server:
+```bash
+npx -y @ark-ui/mcp
+```
+This provides tools for listing components, getting examples, and styling guidelines.
 
 ## Monorepo Structure
 
@@ -91,7 +103,8 @@ pnpm changeset:publish     # Publish packages to npm (automated via CI)
 ### Component Architecture
 
 **Component Pattern:**
-- Built on react-aria-components for accessibility
+- Simple components use native HTML elements (button, div, etc.)
+- Complex components requiring accessibility use @ark-ui/react primitives
 - Styled using PandaCSS `cva()` (class variance authority) pattern
 - Each component exports typed props and recipe for styling
 
@@ -203,7 +216,7 @@ feature/[ticket-number]-description
 - @testing-library/react - Component testing utilities
 
 **Component Foundation:**
-- react-aria-components - Accessible React component primitives
+- @ark-ui/react - Accessible React component primitives (for complex components)
 - React 19 - Latest React with compiler support
 
 ## Notes
