@@ -90,9 +90,9 @@ function ThemeToggle() {
 
   return (
     <Button
-      appearance='muted'
+      emphasis='muted'
       size='sm'
-      onPress={toggleTheme}
+      onClick={toggleTheme}
       aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
       className={css({ gap: '050' })}
     >

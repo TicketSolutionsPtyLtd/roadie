@@ -35,6 +35,10 @@ export const roadie = definePreset({
       outlineColor: 'accent.border.strong',
       outlineOffset: '2px'
     },
+    '::selection': {
+      backgroundColor: 'accent.solid.strong',
+      color: 'accent.fg.inverted'
+    },
     body: {
       lineHeight: 1.5,
       WebkitFontSmoothing: 'antialiased',

@@ -1,7 +1,4 @@
-import {
-  Button as AriaButton,
-  type ButtonProps as AriaButtonProps
-} from 'react-aria-components'
+import type { ComponentPropsWithoutRef } from 'react'
 
 import { cva, cx } from '@oztix/roadie-core/css'
 
@@ -18,7 +15,8 @@ type ButtonSize = 'sm' | 'md' | 'lg'
 /**
  * Props for the Button component
  */
-export interface ButtonProps extends Omit<AriaButtonProps, 'className'> {
+export interface ButtonProps
+  extends Omit<ComponentPropsWithoutRef<'button'>, 'className'> {
   /** The visual style of the button */
   emphasis?: ButtonEmphasis
   /** The size of the button */
@@ -170,19 +168,15 @@ export function Button({
   emphasis = 'default',
   size = 'md',
   colorPalette = 'neutral',
-  isDisabled = false,
-  onPress,
   className,
   ...props
 }: ButtonProps) {
   return (
-    <AriaButton
-      onPress={onPress}
-      isDisabled={isDisabled}
+    <button
       className={cx(buttonRecipe({ emphasis, size, colorPalette }), className)}
       {...props}
     >
       {children}
-    </AriaButton>
+    </button>
   )
 }

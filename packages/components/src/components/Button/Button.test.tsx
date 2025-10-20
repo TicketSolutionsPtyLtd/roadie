@@ -182,7 +182,7 @@ describe('Button', () => {
   })
 
   it('handles disabled state', () => {
-    const { getByText } = render(<Button isDisabled>Disabled</Button>)
+    const { getByText } = render(<Button disabled>Disabled</Button>)
     const button = getByText('Disabled')
     expect(button).toBeDisabled()
     expect(button).toHaveClass(
@@ -192,32 +192,32 @@ describe('Button', () => {
     )
   })
 
-  it('calls onPress when clicked', async () => {
-    const handlePress = vi.fn()
+  it('calls onClick when clicked', async () => {
+    const handleClick = vi.fn()
     const user = userEvent.setup()
 
     const { getByText } = render(
-      <Button onPress={handlePress}>Click me</Button>
+      <Button onClick={handleClick}>Click me</Button>
     )
     const button = getByText('Click me')
 
     await user.click(button)
-    expect(handlePress).toHaveBeenCalledTimes(1)
+    expect(handleClick).toHaveBeenCalledTimes(1)
   })
 
-  it('does not call onPress when disabled', async () => {
-    const handlePress = vi.fn()
+  it('does not call onClick when disabled', async () => {
+    const handleClick = vi.fn()
     const user = userEvent.setup()
 
     const { getByText } = render(
-      <Button isDisabled onPress={handlePress}>
+      <Button disabled onClick={handleClick}>
         Click me
       </Button>
     )
     const button = getByText('Click me')
 
     await user.click(button)
-    expect(handlePress).not.toHaveBeenCalled()
+    expect(handleClick).not.toHaveBeenCalled()
   })
 
   it('applies custom className', () => {
