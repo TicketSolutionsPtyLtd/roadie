@@ -25,9 +25,11 @@ export const roadie = definePreset({
     },
     '*': {
       margin: 0,
-      padding: 0,
-      fontSize: '100%',
-      font: 'inherit'
+      padding: 0
+    },
+    ':root': {
+      '--font-intermission': `"Intermission", sans-serif`,
+      '--font-ibm-plex-mono': `"IBMPlexMono", monospace`
     },
     ':focus-visible': {
       outlineStyle: 'solid',
@@ -36,8 +38,7 @@ export const roadie = definePreset({
       outlineOffset: '2px'
     },
     '::selection': {
-      backgroundColor: 'accent.solid.strong',
-      color: 'accent.fg.inverted'
+      backgroundColor: 'information.surface'
     },
     body: {
       lineHeight: 1.5,
@@ -79,25 +80,21 @@ export const roadie = definePreset({
     }
   },
   globalFontface: {
-    'Inter Variable': [
+    Intermission: [
       {
         fontStyle: 'normal',
         fontDisplay: 'swap',
         fontWeight: '100 900',
-        src: 'url(https://cdn.jsdelivr.net/fontsource/fonts/inter:vf@latest/latin-wght-normal.woff2) format("woff2-variations")',
-        unicodeRange:
-          'U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD'
+        src: 'url(/fonts/Intermission.woff2) format("woff2")'
       },
       {
         fontStyle: 'italic',
         fontDisplay: 'swap',
         fontWeight: '100 900',
-        src: 'url(https://cdn.jsdelivr.net/fontsource/fonts/inter:vf@latest/latin-wght-italic.woff2) format("woff2-variations")',
-        unicodeRange:
-          'U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD'
+        src: 'url(/fonts/Intermission-Italic.woff2) format("woff2")'
       }
     ],
-    'IBM Plex Mono': {
+    IBMPlexMono: {
       fontStyle: 'normal',
       fontDisplay: 'swap',
       fontWeight: '400',
