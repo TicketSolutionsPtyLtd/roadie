@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "prepare": "panda codegen",
+    "prepare": "mkdir -p public/fonts && cp -r ../packages/core/dist/fonts/* public/fonts/ && panda codegen",
     "build": "next build",
     "clean": "rm -rf node_modules roadie-core .next out",
     "dev": "run-p dev:*",
@@ -43,6 +43,6 @@
     "npm-run-all": "4.1.5",
     "react-docgen-typescript": "2.2.2",
     "typescript": "5.7.2",
-    "unist-util-visit": "^5.0.0"
+    "unist-util-visit": "5.0.0"
   }
 }
