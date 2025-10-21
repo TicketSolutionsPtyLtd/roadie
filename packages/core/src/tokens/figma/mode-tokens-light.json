@@ -20,7 +20,7 @@
           "$value": "{colors.neutralSlate.3}",
           "$description": "Active/pressed state for default surface"
         },
-        "subtle": {
+        "subtler": {
           "$type": "color",
           "default": {
             "$type": "color",
@@ -38,22 +38,58 @@
             "$description": "Active/pressed state for subtle surfaces"
           }
         },
-        "strong": {
+        "subtle": {
           "$type": "color",
           "default": {
             "$type": "color",
             "$value": "{colors.neutralSlate.A3}",
-            "$description": "Base color for strong surfaces"
+            "$description": "Base color for subtle surfaces"
           },
           "hover": {
             "$type": "color",
             "$value": "{colors.neutralSlate.A4}",
-            "$description": "Hover state for strong surfaces"
+            "$description": "Hover state for subtle surfaces"
           },
           "active": {
             "$type": "color",
             "$value": "{colors.neutralSlate.A5}",
+            "$description": "Active/pressed state for subtle surfaces"
+          }
+        },
+        "strong": {
+          "$type": "color",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.neutralSlate.9}",
+            "$description": "Base color for strong surfaces"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.neutralSlate.10}",
+            "$description": "Hover state for strong surfaces"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.neutralSlate.11}",
             "$description": "Active/pressed state for strong surfaces"
+          }
+        },
+        "inverted": {
+          "$type": "color",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.neutralSlateDark.1}",
+            "$description": "Base color for inverted surfaces"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.neutralSlateDark.2}",
+            "$description": "Hover state for inverted surfaces"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.neutralSlateDark.3}",
+            "$description": "Active/pressed state for inverted surfaces"
           }
         },
         "raised": {
@@ -120,52 +156,52 @@
         "$type": "color",
         "default": {
           "$type": "color",
-          "$value": "{colors.neutralSlate.7}",
+          "$value": "{colors.neutralSlate.6}",
           "$description": "Standard border color for common UI elements"
         },
         "hover": {
           "$type": "color",
-          "$value": "{colors.neutralSlate.8}",
+          "$value": "{colors.neutralSlate.7}",
           "$description": "Hover state for default borders"
         },
         "active": {
           "$type": "color",
-          "$value": "{colors.neutralSlate.9}",
+          "$value": "{colors.neutralSlate.8}",
           "$description": "Active/pressed state for default borders"
         },
-        "muted": {
+        "subtler": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.A5}",
-            "$description": "Base color for muted borders"
+            "$value": "{colors.neutralSlate.A4}",
+            "$description": "Base color for subtler borders"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.A6}",
-            "$description": "Hover state for muted borders"
+            "$value": "{colors.neutralSlate.A5}",
+            "$description": "Hover state for subtler borders"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.A7}",
-            "$description": "Active/pressed state for muted borders"
+            "$value": "{colors.neutralSlate.A6}",
+            "$description": "Active/pressed state for subtler borders"
           }
         },
         "subtle": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.A6}",
+            "$value": "{colors.neutralSlate.A5}",
             "$description": "Base color for subtle borders"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.A7}",
+            "$value": "{colors.neutralSlate.A6}",
             "$description": "Hover state for subtle borders"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.A8}",
+            "$value": "{colors.neutralSlate.A7}",
             "$description": "Active/pressed state for subtle borders"
           }
         },
@@ -173,72 +209,36 @@
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.A8}",
+            "$value": "{colors.neutralSlate.A7}",
             "$description": "Base color for strong borders"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.A9}",
+            "$value": "{colors.neutralSlate.A8}",
             "$description": "Hover state for strong borders"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.A10}",
+            "$value": "{colors.neutralSlate.A9}",
             "$description": "Active/pressed state for strong borders"
           }
-        }
-      },
-      "solid": {
-        "$type": "color",
-        "default": {
-          "$type": "color",
-          "$value": "{colors.neutralSlate.10}",
-          "$description": "Standard solid fill color for interactive elements"
         },
-        "hover": {
-          "$type": "color",
-          "$value": "{colors.neutralSlate.11}",
-          "$description": "Hover state for default solid fills"
-        },
-        "active": {
-          "$type": "color",
-          "$value": "{colors.neutralSlate.12}",
-          "$description": "Active/pressed state for default solid fills"
-        },
-        "subtle": {
+        "inverted": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.3}",
-            "$description": "Base color for subtle solid fills"
+            "$value": "{colors.neutralSlateDark.1}",
+            "$description": "Base color for inverted borders"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.4}",
-            "$description": "Hover state for subtle solid fills"
+            "$value": "{colors.neutralSlateDark.2}",
+            "$description": "Hover state for inverted borders"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.5}",
-            "$description": "Active/pressed state for subtle solid fills"
-          }
-        },
-        "strong": {
-          "$type": "color",
-          "default": {
-            "$type": "color",
-            "$value": "{colors.neutralSlate.11}",
-            "$description": "Base color for strong solid fills"
-          },
-          "hover": {
-            "$type": "color",
-            "$value": "{colors.neutralSlate.12}",
-            "$description": "Hover state for strong solid fills"
-          },
-          "active": {
-            "$type": "color",
-            "$value": "{colors.neutralSlate.13}",
-            "$description": "Active/pressed state for strong solid fills"
+            "$value": "{colors.neutralSlateDark.3}",
+            "$description": "Active/pressed state for inverted borders"
           }
         }
       },
@@ -259,22 +259,22 @@
           "$value": "{colors.neutralSlate.13}",
           "$description": "Active/pressed state for default text"
         },
-        "muted": {
+        "subtler": {
           "$type": "color",
           "default": {
             "$type": "color",
             "$value": "{colors.neutralSlate.10}",
-            "$description": "Base color for muted text"
+            "$description": "Base color for subtler text"
           },
           "hover": {
             "$type": "color",
             "$value": "{colors.neutralSlate.11}",
-            "$description": "Hover state for muted text"
+            "$description": "Hover state for subtler text"
           },
           "active": {
             "$type": "color",
             "$value": "{colors.neutralSlate.12}",
-            "$description": "Active/pressed state for muted text"
+            "$description": "Active/pressed state for subtler text"
           }
         },
         "subtle": {
@@ -317,17 +317,17 @@
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.1}",
+            "$value": "{colors.neutralSlate.0}",
             "$description": "Base color for inverted text"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.2}",
+            "$value": "{colors.neutralSlate.1}",
             "$description": "Hover state for inverted text"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.1}",
+            "$value": "{colors.neutralSlate.2}",
             "$description": "Active/pressed state for inverted text"
           }
         }
@@ -339,72 +339,180 @@
         "$type": "color",
         "default": {
           "$type": "color",
-          "$value": "{colors.blue.3}",
-          "$description": "Base color for default accent background"
+          "$value": "{colors.blue.5}",
+          "$description": "Base background color for primary accent surfaces"
         },
         "hover": {
           "$type": "color",
-          "$value": "{colors.blue.4}",
-          "$description": "Hover state for default accent background"
+          "$value": "{colors.blue.6}",
+          "$description": "Hover state for default accent surface"
         },
         "active": {
           "$type": "color",
-          "$value": "{colors.blue.5}",
-          "$description": "Active/pressed state for default accent background"
+          "$value": "{colors.blue.7}",
+          "$description": "Active/pressed state for default accent surface"
+        },
+        "subtler": {
+          "$type": "color",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.blue.A2}",
+            "$description": "Base color for subtler accent surfaces"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.blue.A3}",
+            "$description": "Hover state for subtler accent surfaces"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.blue.A4}",
+            "$description": "Active/pressed state for subtler accent surfaces"
+          }
+        },
+        "subtle": {
+          "$type": "color",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.blue.A3}",
+            "$description": "Base color for subtle accent surfaces"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.blue.A4}",
+            "$description": "Hover state for subtle accent surfaces"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.blue.A5}",
+            "$description": "Active/pressed state for subtle accent surfaces"
+          }
+        },
+        "strong": {
+          "$type": "color",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.blue.9}",
+            "$description": "Base color for strong accent surfaces"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.blue.10}",
+            "$description": "Hover state for strong accent surfaces"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.blue.11}",
+            "$description": "Active/pressed state for strong accent surfaces"
+          }
+        },
+        "inverted": {
+          "$type": "color",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.blueDark.1}",
+            "$description": "Base color for inverted accent surfaces"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.blueDark.2}",
+            "$description": "Hover state for inverted accent surfaces"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.blueDark.3}",
+            "$description": "Active/pressed state for inverted accent surfaces"
+          }
         }
       },
       "border": {
         "$type": "color",
         "default": {
           "$type": "color",
-          "$value": "{colors.blue.7}",
-          "$description": "Default accent border color"
+          "$value": "{colors.blue.6}",
+          "$description": "Standard border color for common accent UI elements"
         },
         "hover": {
           "$type": "color",
-          "$value": "{colors.blue.8}",
-          "$description": "Hover state for default accent border"
+          "$value": "{colors.blue.7}",
+          "$description": "Hover state for default accent borders"
         },
         "active": {
           "$type": "color",
-          "$value": "{colors.blue.9}",
-          "$description": "Active/pressed state for default accent border"
+          "$value": "{colors.blue.8}",
+          "$description": "Active/pressed state for default accent borders"
         },
-        "muted": {
+        "subtler": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.blue.6}",
-            "$description": "Base color for muted accent border"
+            "$value": "{colors.blue.A4}",
+            "$description": "Base color for subtler accent borders"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.blue.7}",
-            "$description": "Hover state for muted accent border"
+            "$value": "{colors.blue.A5}",
+            "$description": "Hover state for subtler accent borders"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.blue.8}",
-            "$description": "Active/pressed state for muted accent border"
+            "$value": "{colors.blue.A6}",
+            "$description": "Active/pressed state for subtler accent borders"
           }
-        }
-      },
-      "solid": {
-        "$type": "color",
-        "default": {
-          "$type": "color",
-          "$value": "{colors.blue.9}",
-          "$description": "Default solid accent color"
         },
-        "hover": {
+        "subtle": {
           "$type": "color",
-          "$value": "{colors.blue.10}",
-          "$description": "Hover state for default solid accent"
+          "default": {
+            "$type": "color",
+            "$value": "{colors.blue.A5}",
+            "$description": "Base color for subtle accent borders"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.blue.A6}",
+            "$description": "Hover state for subtle accent borders"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.blue.A7}",
+            "$description": "Active/pressed state for subtle accent borders"
+          }
         },
-        "active": {
+        "strong": {
           "$type": "color",
-          "$value": "{colors.blue.11}",
-          "$description": "Active/pressed state for default solid accent"
+          "default": {
+            "$type": "color",
+            "$value": "{colors.blue.A7}",
+            "$description": "Base color for strong accent borders"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.blue.A8}",
+            "$description": "Hover state for strong accent borders"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.blue.A9}",
+            "$description": "Active/pressed state for strong accent borders"
+          }
+        },
+        "inverted": {
+          "$type": "color",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.blueDark.1}",
+            "$description": "Base color for inverted accent borders"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.blueDark.2}",
+            "$description": "Hover state for inverted accent borders"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.blueDark.3}",
+            "$description": "Active/pressed state for inverted accent borders"
+          }
         }
       },
       "fg": {
@@ -412,7 +520,7 @@
         "default": {
           "$type": "color",
           "$value": "{colors.blue.11}",
-          "$description": "Default accent text color"
+          "$description": "Primary text color for accent body content and labels"
         },
         "hover": {
           "$type": "color",
@@ -424,40 +532,76 @@
           "$value": "{colors.blue.12}",
           "$description": "Active/pressed state for default accent text"
         },
-        "muted": {
+        "subtler": {
           "$type": "color",
           "default": {
             "$type": "color",
             "$value": "{colors.blue.9}",
-            "$description": "Base color for muted accent text"
+            "$description": "Base color for subtler accent text"
           },
           "hover": {
             "$type": "color",
             "$value": "{colors.blue.10}",
-            "$description": "Hover state for muted accent text"
+            "$description": "Hover state for subtler accent text"
           },
           "active": {
             "$type": "color",
             "$value": "{colors.blue.11}",
-            "$description": "Active/pressed state for muted accent text"
+            "$description": "Active/pressed state for subtler accent text"
+          }
+        },
+        "subtle": {
+          "$type": "color",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.blue.10}",
+            "$description": "Base color for subtle accent text"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.blue.11}",
+            "$description": "Hover state for subtle accent text"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.blue.12}",
+            "$description": "Active/pressed state for subtle accent text"
+          }
+        },
+        "strong": {
+          "$type": "color",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.blue.12}",
+            "$description": "Base color for strong accent text"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.blue.11}",
+            "$description": "Hover state for strong accent text"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.blue.12}",
+            "$description": "Active/pressed state for strong accent text"
           }
         },
         "inverted": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.blue.1}",
-            "$description": "Base color for inverted text"
+            "$value": "{colors.blue.2}",
+            "$description": "Base color for inverted accent text"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.blue.2}",
-            "$description": "Hover state for inverted text"
+            "$value": "{colors.blue.1}",
+            "$description": "Hover state for inverted accent text"
           },
           "active": {
             "$type": "color",
             "$value": "{colors.blue.1}",
-            "$description": "Active/pressed state for inverted text"
+            "$description": "Active/pressed state for inverted accent text"
           }
         }
       }
@@ -468,53 +612,89 @@
         "$type": "color",
         "default": {
           "$type": "color",
-          "$value": "{colors.blue.3}",
-          "$description": "Base color for default brand background"
+          "$value": "{colors.blue.5}",
+          "$description": "Base background color for primary brand surfaces"
         },
         "hover": {
           "$type": "color",
-          "$value": "{colors.blue.4}",
-          "$description": "Hover state for default brand background"
+          "$value": "{colors.blue.6}",
+          "$description": "Hover state for default brand surface"
         },
         "active": {
           "$type": "color",
-          "$value": "{colors.blue.5}",
-          "$description": "Active/pressed state for default brand background"
+          "$value": "{colors.blue.7}",
+          "$description": "Active/pressed state for default brand surface"
+        },
+        "subtler": {
+          "$type": "color",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.blue.A2}",
+            "$description": "Base color for subtler brand surfaces"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.blue.A3}",
+            "$description": "Hover state for subtler brand surfaces"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.blue.A4}",
+            "$description": "Active/pressed state for subtler brand surfaces"
+          }
         },
         "subtle": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.blue.2}",
-            "$description": "Base color for subtle brand background"
+            "$value": "{colors.blue.A3}",
+            "$description": "Base color for subtle brand surfaces"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.blue.3}",
-            "$description": "Hover state for subtle brand background"
+            "$value": "{colors.blue.A4}",
+            "$description": "Hover state for subtle brand surfaces"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.blue.4}",
-            "$description": "Active/pressed state for subtle brand background"
+            "$value": "{colors.blue.A5}",
+            "$description": "Active/pressed state for subtle brand surfaces"
           }
         },
         "strong": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.blue.4}",
-            "$description": "Base color for strong brand background"
+            "$value": "{colors.blue.9}",
+            "$description": "Base color for strong brand surfaces"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.blue.5}",
-            "$description": "Hover state for strong brand background"
+            "$value": "{colors.blue.10}",
+            "$description": "Hover state for strong brand surfaces"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.blue.6}",
-            "$description": "Active/pressed state for strong brand background"
+            "$value": "{colors.blue.11}",
+            "$description": "Active/pressed state for strong brand surfaces"
+          }
+        },
+        "inverted": {
+          "$type": "color",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.blueDark.1}",
+            "$description": "Base color for inverted brand surfaces"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.blueDark.2}",
+            "$description": "Hover state for inverted brand surfaces"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.blueDark.3}",
+            "$description": "Active/pressed state for inverted brand surfaces"
           }
         }
       },
@@ -535,39 +715,39 @@
           "$value": "{colors.blue.9}",
           "$description": "Active/pressed state for brand borders"
         },
-        "muted": {
+        "subtler": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.blue.6}",
-            "$description": "Base color for muted borders"
+            "$value": "{colors.blue.A4}",
+            "$description": "Base color for subtler brand borders"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.blue.7}",
-            "$description": "Hover state for muted borders"
+            "$value": "{colors.blue.A5}",
+            "$description": "Hover state for subtler brand borders"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.blue.8}",
-            "$description": "Active/pressed state for muted borders"
+            "$value": "{colors.blue.A6}",
+            "$description": "Active/pressed state for subtler brand borders"
           }
         },
         "subtle": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.blue.6}",
+            "$value": "{colors.blue.A5}",
             "$description": "Base color for subtle brand borders"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.blue.7}",
+            "$value": "{colors.blue.A6}",
             "$description": "Hover state for subtle brand borders"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.blue.8}",
+            "$value": "{colors.blue.A7}",
             "$description": "Active/pressed state for subtle brand borders"
           }
         },
@@ -575,72 +755,36 @@
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.blue.8}",
+            "$value": "{colors.blue.A7}",
             "$description": "Base color for strong brand borders"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.blue.9}",
+            "$value": "{colors.blue.A8}",
             "$description": "Hover state for strong brand borders"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.blue.10}",
+            "$value": "{colors.blue.A9}",
             "$description": "Active/pressed state for strong brand borders"
           }
-        }
-      },
-      "solid": {
-        "$type": "color",
-        "default": {
-          "$type": "color",
-          "$value": "{colors.blue.9}",
-          "$description": "Default solid brand color"
         },
-        "hover": {
-          "$type": "color",
-          "$value": "{colors.blue.10}",
-          "$description": "Hover state for solid brand elements"
-        },
-        "active": {
-          "$type": "color",
-          "$value": "{colors.blue.11}",
-          "$description": "Active/pressed state for solid brand elements"
-        },
-        "subtle": {
+        "inverted": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.blue.3}",
-            "$description": "Base color for subtle solid brand elements"
+            "$value": "{colors.blueDark.1}",
+            "$description": "Base color for inverted brand borders"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.blue.4}",
-            "$description": "Hover state for subtle solid brand elements"
+            "$value": "{colors.blueDark.2}",
+            "$description": "Hover state for inverted brand borders"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.blue.5}",
-            "$description": "Active/pressed state for subtle solid brand elements"
-          }
-        },
-        "strong": {
-          "$type": "color",
-          "default": {
-            "$type": "color",
-            "$value": "{colors.blue.10}",
-            "$description": "Base color for strong solid brand elements"
-          },
-          "hover": {
-            "$type": "color",
-            "$value": "{colors.blue.11}",
-            "$description": "Hover state for strong solid brand elements"
-          },
-          "active": {
-            "$type": "color",
-            "$value": "{colors.blue.12}",
-            "$description": "Active/pressed state for strong solid brand elements"
+            "$value": "{colors.blueDark.3}",
+            "$description": "Active/pressed state for inverted brand borders"
           }
         }
       },
@@ -661,22 +805,22 @@
           "$value": "{colors.blue.12}",
           "$description": "Active/pressed state for brand text"
         },
-        "muted": {
+        "subtler": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.blue.10}",
-            "$description": "Base color for muted text"
+            "$value": "{colors.blue.9}",
+            "$description": "Base color for subtler brand text"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.blue.11}",
-            "$description": "Hover state for muted text"
+            "$value": "{colors.blue.10}",
+            "$description": "Hover state for subtler brand text"
           },
           "active": {
             "$type": "color",
             "$value": "{colors.blue.12}",
-            "$description": "Active/pressed state for muted text"
+            "$description": "Active/pressed state for subtler brand text"
           }
         },
         "subtle": {
@@ -719,12 +863,12 @@
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.blue.1}",
+            "$value": "{colors.blue.2}",
             "$description": "Base color for inverted text"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.blue.2}",
+            "$value": "{colors.blue.1}",
             "$description": "Hover state for inverted text"
           },
           "active": {
@@ -741,53 +885,89 @@
         "$type": "color",
         "default": {
           "$type": "color",
-          "$value": "{colors.purple.3}",
+          "$value": "{colors.purple.5}",
           "$description": "Base color for default information background"
         },
         "hover": {
           "$type": "color",
-          "$value": "{colors.purple.4}",
+          "$value": "{colors.purple.6}",
           "$description": "Hover state for default information background"
         },
         "active": {
           "$type": "color",
-          "$value": "{colors.purple.5}",
+          "$value": "{colors.purple.7}",
           "$description": "Active/pressed state for default information background"
+        },
+        "subtler": {
+          "$type": "color",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.purple.A2}",
+            "$description": "Base color for subtler information surfaces"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.purple.A3}",
+            "$description": "Hover state for subtler information surfaces"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.purple.A4}",
+            "$description": "Active/pressed state for subtler information surfaces"
+          }
         },
         "subtle": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.purple.2}",
-            "$description": "Base color for subtle information background"
+            "$value": "{colors.purple.A3}",
+            "$description": "Base color for subtle information surfaces"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.purple.3}",
-            "$description": "Hover state for subtle information background"
+            "$value": "{colors.purple.A4}",
+            "$description": "Hover state for subtle information surfaces"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.purple.4}",
-            "$description": "Active/pressed state for subtle information background"
+            "$value": "{colors.purple.A5}",
+            "$description": "Active/pressed state for subtle information surfaces"
           }
         },
         "strong": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.purple.4}",
+            "$value": "{colors.purple.9}",
             "$description": "Base color for strong information background"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.purple.5}",
+            "$value": "{colors.purple.10}",
             "$description": "Hover state for strong information background"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.purple.6}",
+            "$value": "{colors.purple.11}",
             "$description": "Active/pressed state for strong information background"
+          }
+        },
+        "inverted": {
+          "$type": "color",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.purpleDark.1}",
+            "$description": "Base color for inverted information surfaces"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.purpleDark.2}",
+            "$description": "Hover state for inverted information surfaces"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.purpleDark.3}",
+            "$description": "Active/pressed state for inverted information surfaces"
           }
         }
       },
@@ -795,52 +975,52 @@
         "$type": "color",
         "default": {
           "$type": "color",
-          "$value": "{colors.purple.7}",
+          "$value": "{colors.purple.6}",
           "$description": "Default information border color"
         },
         "hover": {
           "$type": "color",
-          "$value": "{colors.purple.8}",
+          "$value": "{colors.purple.7}",
           "$description": "Hover state for information border"
         },
         "active": {
           "$type": "color",
-          "$value": "{colors.purple.9}",
+          "$value": "{colors.purple.8}",
           "$description": "Active/pressed state for information border"
         },
-        "muted": {
+        "subtler": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.purple.5}",
-            "$description": "Base color for muted information border"
+            "$value": "{colors.purple.A4}",
+            "$description": "Base color for subtler information border"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.purple.6}",
-            "$description": "Hover state for muted information border"
+            "$value": "{colors.purple.A5}",
+            "$description": "Hover state for subtler information border"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.purple.7}",
-            "$description": "Active/pressed state for muted information border"
+            "$value": "{colors.purple.A6}",
+            "$description": "Active/pressed state for subtler information border"
           }
         },
         "subtle": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.purple.6}",
+            "$value": "{colors.purple.A5}",
             "$description": "Base color for subtle information border"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.purple.7}",
+            "$value": "{colors.purple.A6}",
             "$description": "Hover state for subtle information border"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.purple.8}",
+            "$value": "{colors.purple.A7}",
             "$description": "Active/pressed state for subtle information border"
           }
         },
@@ -848,72 +1028,36 @@
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.purple.8}",
+            "$value": "{colors.purple.A7}",
             "$description": "Base color for strong information border"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.purple.9}",
+            "$value": "{colors.purple.A8}",
             "$description": "Hover state for strong information border"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.purple.10}",
+            "$value": "{colors.purple.A9}",
             "$description": "Active/pressed state for strong information border"
           }
-        }
-      },
-      "solid": {
-        "$type": "color",
-        "default": {
-          "$type": "color",
-          "$value": "{colors.purple.9}",
-          "$description": "Default solid information color"
         },
-        "hover": {
-          "$type": "color",
-          "$value": "{colors.purple.10}",
-          "$description": "Hover state for solid information color"
-        },
-        "active": {
-          "$type": "color",
-          "$value": "{colors.purple.11}",
-          "$description": "Active/pressed state for solid information color"
-        },
-        "subtle": {
+        "inverted": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.purple.3}",
-            "$description": "Base color for subtle solid information"
+            "$value": "{colors.purpleDark.1}",
+            "$description": "Base color for inverted information borders"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.purple.4}",
-            "$description": "Hover state for subtle solid information"
+            "$value": "{colors.purpleDark.2}",
+            "$description": "Hover state for inverted information borders"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.purple.5}",
-            "$description": "Active/pressed state for subtle solid information"
-          }
-        },
-        "strong": {
-          "$type": "color",
-          "default": {
-            "$type": "color",
-            "$value": "{colors.purple.10}",
-            "$description": "Base color for strong solid information"
-          },
-          "hover": {
-            "$type": "color",
-            "$value": "{colors.purple.11}",
-            "$description": "Hover state for strong solid information"
-          },
-          "active": {
-            "$type": "color",
-            "$value": "{colors.purple.12}",
-            "$description": "Active/pressed state for strong solid information"
+            "$value": "{colors.purpleDark.3}",
+            "$description": "Active/pressed state for inverted information borders"
           }
         }
       },
@@ -922,34 +1066,34 @@
         "default": {
           "$type": "color",
           "$value": "{colors.purple.11}",
-          "$description": "Default information text color"
+          "$description": "Primary text color for information body content and labels"
         },
         "hover": {
           "$type": "color",
           "$value": "{colors.purple.12}",
-          "$description": "Hover state for information text"
+          "$description": "Hover state for default information text"
         },
         "active": {
           "$type": "color",
           "$value": "{colors.purple.12}",
-          "$description": "Active/pressed state for information text"
+          "$description": "Active/pressed state for default information text"
         },
-        "muted": {
+        "subtler": {
           "$type": "color",
           "default": {
             "$type": "color",
             "$value": "{colors.purple.9}",
-            "$description": "Base color for muted information text"
+            "$description": "Base color for subtler information text"
           },
           "hover": {
             "$type": "color",
             "$value": "{colors.purple.10}",
-            "$description": "Hover state for muted information text"
+            "$description": "Hover state for subtler information text"
           },
           "active": {
             "$type": "color",
             "$value": "{colors.purple.11}",
-            "$description": "Active/pressed state for muted information text"
+            "$description": "Active/pressed state for subtler information text"
           }
         },
         "subtle": {
@@ -992,18 +1136,18 @@
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.purple.1}",
-            "$description": "Base color for inverted text"
+            "$value": "{colors.purple.2}",
+            "$description": "Base color for inverted information text"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.purple.2}",
-            "$description": "Hover state for inverted text"
+            "$value": "{colors.purple.1}",
+            "$description": "Hover state for inverted information text"
           },
           "active": {
             "$type": "color",
             "$value": "{colors.purple.1}",
-            "$description": "Active/pressed state for inverted text"
+            "$description": "Active/pressed state for inverted information text"
           }
         }
       }
@@ -1014,53 +1158,89 @@
         "$type": "color",
         "default": {
           "$type": "color",
-          "$value": "{colors.green.3}",
+          "$value": "{colors.green.5}",
           "$description": "Base color for default success background"
         },
         "hover": {
           "$type": "color",
-          "$value": "{colors.green.4}",
+          "$value": "{colors.green.6}",
           "$description": "Hover state for default success background"
         },
         "active": {
           "$type": "color",
-          "$value": "{colors.green.5}",
+          "$value": "{colors.green.7}",
           "$description": "Active/pressed state for default success background"
+        },
+        "subtler": {
+          "$type": "color",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.green.A2}",
+            "$description": "Base color for subtler success surfaces"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.green.A3}",
+            "$description": "Hover state for subtler success surfaces"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.green.A4}",
+            "$description": "Active/pressed state for subtler success surfaces"
+          }
         },
         "subtle": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.green.2}",
-            "$description": "Base color for subtle success background"
+            "$value": "{colors.green.A3}",
+            "$description": "Base color for subtle success surfaces"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.green.3}",
-            "$description": "Hover state for subtle success background"
+            "$value": "{colors.green.A4}",
+            "$description": "Hover state for subtle success surfaces"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.green.4}",
-            "$description": "Active/pressed state for subtle success background"
+            "$value": "{colors.green.A5}",
+            "$description": "Active/pressed state for subtle success surfaces"
           }
         },
         "strong": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.green.4}",
-            "$description": "Base color for strong success background"
+            "$value": "{colors.green.9}",
+            "$description": "Base color for strong success surfaces"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.green.5}",
-            "$description": "Hover state for strong success background"
+            "$value": "{colors.green.10}",
+            "$description": "Hover state for strong success surfaces"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.green.6}",
-            "$description": "Active/pressed state for strong success background"
+            "$value": "{colors.green.11}",
+            "$description": "Active/pressed state for strong success surfaces"
+          }
+        },
+        "inverted": {
+          "$type": "color",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.greenDark.1}",
+            "$description": "Base color for inverted success surfaces"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.greenDark.2}",
+            "$description": "Hover state for inverted success surfaces"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.greenDark.3}",
+            "$description": "Active/pressed state for inverted success surfaces"
           }
         }
       },
@@ -1068,125 +1248,89 @@
         "$type": "color",
         "default": {
           "$type": "color",
-          "$value": "{colors.green.7}",
-          "$description": "Default success border color"
+          "$value": "{colors.green.6}",
+          "$description": "Standard border color for common success UI elements"
         },
         "hover": {
+          "$type": "color",
+          "$value": "{colors.green.7}",
+          "$description": "Hover state for default success borders"
+        },
+        "active": {
           "$type": "color",
           "$value": "{colors.green.8}",
-          "$description": "Hover state for default success border"
+          "$description": "Active/pressed state for default success borders"
         },
-        "active": {
-          "$type": "color",
-          "$value": "{colors.green.9}",
-          "$description": "Active/pressed state for default success border"
-        },
-        "muted": {
+        "subtler": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.green.5}",
-            "$description": "Base color for muted success border"
+            "$value": "{colors.green.A4}",
+            "$description": "Base color for subtler success borders"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.green.6}",
-            "$description": "Hover state for muted success border"
+            "$value": "{colors.green.A5}",
+            "$description": "Hover state for subtler success borders"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.green.7}",
-            "$description": "Active/pressed state for muted success border"
+            "$value": "{colors.green.A6}",
+            "$description": "Active/pressed state for subtler success borders"
           }
         },
         "subtle": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.green.6}",
-            "$description": "Base color for subtle success border"
+            "$value": "{colors.green.A5}",
+            "$description": "Base color for subtle success borders"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.green.7}",
-            "$description": "Hover state for subtle success border"
+            "$value": "{colors.green.A6}",
+            "$description": "Hover state for subtle success borders"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.green.8}",
-            "$description": "Active/pressed state for subtle success border"
+            "$value": "{colors.green.A7}",
+            "$description": "Active/pressed state for subtle success borders"
           }
         },
         "strong": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.green.8}",
-            "$description": "Base color for strong success border"
+            "$value": "{colors.green.A7}",
+            "$description": "Base color for strong success borders"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.green.9}",
-            "$description": "Hover state for strong success border"
+            "$value": "{colors.green.A8}",
+            "$description": "Hover state for strong success borders"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.green.10}",
-            "$description": "Active/pressed state for strong success border"
+            "$value": "{colors.green.A9}",
+            "$description": "Active/pressed state for strong success borders"
           }
-        }
-      },
-      "solid": {
-        "$type": "color",
-        "default": {
-          "$type": "color",
-          "$value": "{colors.green.9}",
-          "$description": "Default solid success color"
         },
-        "hover": {
-          "$type": "color",
-          "$value": "{colors.green.10}",
-          "$description": "Hover state for default solid success color"
-        },
-        "active": {
-          "$type": "color",
-          "$value": "{colors.green.11}",
-          "$description": "Active/pressed state for default solid success color"
-        },
-        "subtle": {
+        "inverted": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.green.3}",
-            "$description": "Base color for subtle solid success"
+            "$value": "{colors.greenDark.1}",
+            "$description": "Base color for inverted success borders"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.green.4}",
-            "$description": "Hover state for subtle solid success"
+            "$value": "{colors.greenDark.2}",
+            "$description": "Hover state for inverted success borders"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.green.5}",
-            "$description": "Active/pressed state for subtle solid success"
-          }
-        },
-        "strong": {
-          "$type": "color",
-          "default": {
-            "$type": "color",
-            "$value": "{colors.green.10}",
-            "$description": "Base color for strong solid success"
-          },
-          "hover": {
-            "$type": "color",
-            "$value": "{colors.green.11}",
-            "$description": "Hover state for strong solid success"
-          },
-          "active": {
-            "$type": "color",
-            "$value": "{colors.green.12}",
-            "$description": "Active/pressed state for strong solid success"
+            "$value": "{colors.greenDark.3}",
+            "$description": "Active/pressed state for inverted success borders"
           }
         }
       },
@@ -1195,7 +1339,7 @@
         "default": {
           "$type": "color",
           "$value": "{colors.green.11}",
-          "$description": "Default success text color"
+          "$description": "Primary text color for success body content and labels"
         },
         "hover": {
           "$type": "color",
@@ -1207,22 +1351,22 @@
           "$value": "{colors.green.12}",
           "$description": "Active/pressed state for default success text"
         },
-        "muted": {
+        "subtler": {
           "$type": "color",
           "default": {
             "$type": "color",
             "$value": "{colors.green.9}",
-            "$description": "Base color for muted success text"
+            "$description": "Base color for subtler success text"
           },
           "hover": {
             "$type": "color",
             "$value": "{colors.green.10}",
-            "$description": "Hover state for muted success text"
+            "$description": "Hover state for subtler success text"
           },
           "active": {
             "$type": "color",
             "$value": "{colors.green.11}",
-            "$description": "Active/pressed state for muted success text"
+            "$description": "Active/pressed state for subtler success text"
           }
         },
         "subtle": {
@@ -1265,18 +1409,18 @@
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.green.1}",
-            "$description": "Base color for inverted text"
+            "$value": "{colors.green.2}",
+            "$description": "Base color for inverted success text"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.green.2}",
-            "$description": "Hover state for inverted text"
+            "$value": "{colors.green.1}",
+            "$description": "Hover state for inverted success text"
           },
           "active": {
             "$type": "color",
             "$value": "{colors.green.1}",
-            "$description": "Active/pressed state for inverted text"
+            "$description": "Active/pressed state for inverted success text"
           }
         }
       }
@@ -1287,53 +1431,89 @@
         "$type": "color",
         "default": {
           "$type": "color",
-          "$value": "{colors.yellow.3}",
+          "$value": "{colors.yellow.5}",
           "$description": "Base color for default warning background"
         },
         "hover": {
           "$type": "color",
-          "$value": "{colors.yellow.4}",
+          "$value": "{colors.yellow.6}",
           "$description": "Hover state for default warning background"
         },
         "active": {
           "$type": "color",
-          "$value": "{colors.yellow.5}",
+          "$value": "{colors.yellow.7}",
           "$description": "Active/pressed state for default warning background"
+        },
+        "subtler": {
+          "$type": "color",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.yellow.A2}",
+            "$description": "Base color for subtler warning surfaces"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.yellow.A3}",
+            "$description": "Hover state for subtler warning surfaces"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.yellow.A4}",
+            "$description": "Active/pressed state for subtler warning surfaces"
+          }
         },
         "subtle": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.yellow.2}",
-            "$description": "Base color for subtle warning background"
+            "$value": "{colors.yellow.A3}",
+            "$description": "Base color for subtle warning surfaces"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.yellow.3}",
-            "$description": "Hover state for subtle warning background"
+            "$value": "{colors.yellow.A4}",
+            "$description": "Hover state for subtle warning surfaces"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.yellow.4}",
-            "$description": "Active/pressed state for subtle warning background"
+            "$value": "{colors.yellow.A5}",
+            "$description": "Active/pressed state for subtle warning surfaces"
           }
         },
         "strong": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.yellow.4}",
-            "$description": "Base color for strong warning background"
+            "$value": "{colors.yellow.9}",
+            "$description": "Base color for strong warning surfaces"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.yellow.5}",
-            "$description": "Hover state for strong warning background"
+            "$value": "{colors.yellow.10}",
+            "$description": "Hover state for strong warning surfaces"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.yellow.6}",
-            "$description": "Active/pressed state for strong warning background"
+            "$value": "{colors.yellow.11}",
+            "$description": "Active/pressed state for strong warning surfaces"
+          }
+        },
+        "inverted": {
+          "$type": "color",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.yellowDark.1}",
+            "$description": "Base color for inverted warning surfaces"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.yellowDark.2}",
+            "$description": "Hover state for inverted warning surfaces"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.yellowDark.3}",
+            "$description": "Active/pressed state for inverted warning surfaces"
           }
         }
       },
@@ -1341,125 +1521,89 @@
         "$type": "color",
         "default": {
           "$type": "color",
-          "$value": "{colors.yellow.7}",
-          "$description": "Default warning border color"
+          "$value": "{colors.yellow.6}",
+          "$description": "Standard border color for common warning UI elements"
         },
         "hover": {
+          "$type": "color",
+          "$value": "{colors.yellow.7}",
+          "$description": "Hover state for default warning borders"
+        },
+        "active": {
           "$type": "color",
           "$value": "{colors.yellow.8}",
-          "$description": "Hover state for warning border"
+          "$description": "Active/pressed state for default warning borders"
         },
-        "active": {
-          "$type": "color",
-          "$value": "{colors.yellow.9}",
-          "$description": "Active/pressed state for warning border"
-        },
-        "muted": {
+        "subtler": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.yellow.5}",
-            "$description": "Base color for muted warning border"
+            "$value": "{colors.yellow.A4}",
+            "$description": "Base color for subtler warning borders"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.yellow.6}",
-            "$description": "Hover state for muted warning border"
+            "$value": "{colors.yellow.A5}",
+            "$description": "Hover state for subtler warning borders"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.yellow.7}",
-            "$description": "Active/pressed state for muted warning border"
+            "$value": "{colors.yellow.A6}",
+            "$description": "Active/pressed state for subtler warning borders"
           }
         },
         "subtle": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.yellow.6}",
-            "$description": "Base color for subtle warning border"
+            "$value": "{colors.yellow.A5}",
+            "$description": "Base color for subtle warning borders"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.yellow.7}",
-            "$description": "Hover state for subtle warning border"
+            "$value": "{colors.yellow.A6}",
+            "$description": "Hover state for subtle warning borders"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.yellow.8}",
-            "$description": "Active/pressed state for subtle warning border"
+            "$value": "{colors.yellow.A7}",
+            "$description": "Active/pressed state for subtle warning borders"
           }
         },
         "strong": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.yellow.8}",
-            "$description": "Base color for strong warning border"
+            "$value": "{colors.yellow.A7}",
+            "$description": "Base color for strong warning borders"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.yellow.9}",
-            "$description": "Hover state for strong warning border"
+            "$value": "{colors.yellow.A8}",
+            "$description": "Hover state for strong warning borders"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.yellow.10}",
-            "$description": "Active/pressed state for strong warning border"
+            "$value": "{colors.yellow.A9}",
+            "$description": "Active/pressed state for strong warning borders"
           }
-        }
-      },
-      "solid": {
-        "$type": "color",
-        "default": {
-          "$type": "color",
-          "$value": "{colors.yellow.9}",
-          "$description": "Default solid warning color"
         },
-        "hover": {
-          "$type": "color",
-          "$value": "{colors.yellow.10}",
-          "$description": "Hover state for solid warning color"
-        },
-        "active": {
-          "$type": "color",
-          "$value": "{colors.yellow.11}",
-          "$description": "Active/pressed state for solid warning color"
-        },
-        "subtle": {
+        "inverted": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.yellow.3}",
-            "$description": "Base color for subtle solid warning"
+            "$value": "{colors.yellowDark.1}",
+            "$description": "Base color for inverted warning borders"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.yellow.4}",
-            "$description": "Hover state for subtle solid warning"
+            "$value": "{colors.yellowDark.2}",
+            "$description": "Hover state for inverted warning borders"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.yellow.5}",
-            "$description": "Active/pressed state for subtle solid warning"
-          }
-        },
-        "strong": {
-          "$type": "color",
-          "default": {
-            "$type": "color",
-            "$value": "{colors.yellow.10}",
-            "$description": "Base color for strong solid warning"
-          },
-          "hover": {
-            "$type": "color",
-            "$value": "{colors.yellow.11}",
-            "$description": "Hover state for strong solid warning"
-          },
-          "active": {
-            "$type": "color",
-            "$value": "{colors.yellow.12}",
-            "$description": "Active/pressed state for strong solid warning"
+            "$value": "{colors.yellowDark.3}",
+            "$description": "Active/pressed state for inverted warning borders"
           }
         }
       },
@@ -1468,7 +1612,7 @@
         "default": {
           "$type": "color",
           "$value": "{colors.yellow.11}",
-          "$description": "Default warning text color"
+          "$description": "Default text color for warning elements"
         },
         "hover": {
           "$type": "color",
@@ -1480,22 +1624,22 @@
           "$value": "{colors.yellow.12}",
           "$description": "Active/pressed state for warning text"
         },
-        "muted": {
+        "subtler": {
           "$type": "color",
           "default": {
             "$type": "color",
             "$value": "{colors.yellow.9}",
-            "$description": "Base color for muted warning text"
+            "$description": "Base color for subtler warning text"
           },
           "hover": {
             "$type": "color",
             "$value": "{colors.yellow.10}",
-            "$description": "Hover state for muted warning text"
+            "$description": "Hover state for subtler warning text"
           },
           "active": {
             "$type": "color",
             "$value": "{colors.yellow.11}",
-            "$description": "Active/pressed state for muted warning text"
+            "$description": "Active/pressed state for subtler warning text"
           }
         },
         "subtle": {
@@ -1539,17 +1683,17 @@
           "default": {
             "$type": "color",
             "$value": "{colors.yellow.1}",
-            "$description": "Base color for inverted text"
+            "$description": "Base color for inverted warning text"
           },
           "hover": {
             "$type": "color",
             "$value": "{colors.yellow.2}",
-            "$description": "Hover state for inverted text"
+            "$description": "Hover state for inverted warning text"
           },
           "active": {
             "$type": "color",
             "$value": "{colors.yellow.1}",
-            "$description": "Active/pressed state for inverted text"
+            "$description": "Active/pressed state for inverted warning text"
           }
         }
       }
@@ -1560,53 +1704,89 @@
         "$type": "color",
         "default": {
           "$type": "color",
-          "$value": "{colors.red.3}",
-          "$description": "Base color for default danger background"
+          "$value": "{colors.red.5}",
+          "$description": "Base background color for primary danger surfaces"
         },
         "hover": {
           "$type": "color",
-          "$value": "{colors.red.4}",
-          "$description": "Hover state for default danger background"
+          "$value": "{colors.red.6}",
+          "$description": "Hover state for default danger surface"
         },
         "active": {
           "$type": "color",
-          "$value": "{colors.red.5}",
-          "$description": "Active/pressed state for default danger background"
+          "$value": "{colors.red.7}",
+          "$description": "Active/pressed state for default danger surface"
+        },
+        "subtler": {
+          "$type": "color",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.red.A2}",
+            "$description": "Base color for subtler danger surfaces"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.red.A3}",
+            "$description": "Hover state for subtler danger surfaces"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.red.A4}",
+            "$description": "Active/pressed state for subtler danger surfaces"
+          }
         },
         "subtle": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.red.2}",
-            "$description": "Base color for subtle danger background"
+            "$value": "{colors.red.A3}",
+            "$description": "Base color for subtle danger surfaces"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.red.3}",
-            "$description": "Hover state for subtle danger background"
+            "$value": "{colors.red.A4}",
+            "$description": "Hover state for subtle danger surfaces"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.red.4}",
-            "$description": "Active/pressed state for subtle danger background"
+            "$value": "{colors.red.A5}",
+            "$description": "Active/pressed state for subtle danger surfaces"
           }
         },
         "strong": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.red.4}",
-            "$description": "Base color for strong danger background"
+            "$value": "{colors.red.9}",
+            "$description": "Base color for strong danger surfaces"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.red.5}",
-            "$description": "Hover state for strong danger background"
+            "$value": "{colors.red.10}",
+            "$description": "Hover state for strong danger surfaces"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.red.6}",
-            "$description": "Active/pressed state for strong danger background"
+            "$value": "{colors.red.11}",
+            "$description": "Active/pressed state for strong danger surfaces"
+          }
+        },
+        "inverted": {
+          "$type": "color",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.redDark.1}",
+            "$description": "Base color for inverted danger surfaces"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.redDark.2}",
+            "$description": "Hover state for inverted danger surfaces"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.redDark.3}",
+            "$description": "Active/pressed state for inverted danger surfaces"
           }
         }
       },
@@ -1614,125 +1794,89 @@
         "$type": "color",
         "default": {
           "$type": "color",
-          "$value": "{colors.red.7}",
-          "$description": "Base color for default danger border"
+          "$value": "{colors.red.6}",
+          "$description": "Standard border color for common danger UI elements"
         },
         "hover": {
+          "$type": "color",
+          "$value": "{colors.red.7}",
+          "$description": "Hover state for default danger borders"
+        },
+        "active": {
           "$type": "color",
           "$value": "{colors.red.8}",
-          "$description": "Hover state for default danger border"
+          "$description": "Active/pressed state for default danger borders"
         },
-        "active": {
-          "$type": "color",
-          "$value": "{colors.red.9}",
-          "$description": "Active/pressed state for default danger border"
-        },
-        "muted": {
+        "subtler": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.red.5}",
-            "$description": "Base color for muted danger border"
+            "$value": "{colors.red.A4}",
+            "$description": "Base color for subtler danger borders"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.red.6}",
-            "$description": "Hover state for muted danger border"
+            "$value": "{colors.red.A5}",
+            "$description": "Hover state for subtler danger borders"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.red.7}",
-            "$description": "Active/pressed state for muted danger border"
+            "$value": "{colors.red.A6}",
+            "$description": "Active/pressed state for subtler danger borders"
           }
         },
         "subtle": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.red.6}",
-            "$description": "Base color for subtle danger border"
+            "$value": "{colors.red.A5}",
+            "$description": "Base color for subtle danger borders"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.red.7}",
-            "$description": "Hover state for subtle danger border"
+            "$value": "{colors.red.A6}",
+            "$description": "Hover state for subtle danger borders"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.red.8}",
-            "$description": "Active/pressed state for subtle danger border"
+            "$value": "{colors.red.A7}",
+            "$description": "Active/pressed state for subtle danger borders"
           }
         },
         "strong": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.red.8}",
-            "$description": "Base color for strong danger border"
+            "$value": "{colors.red.A7}",
+            "$description": "Base color for strong danger borders"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.red.9}",
-            "$description": "Hover state for strong danger border"
+            "$value": "{colors.red.A8}",
+            "$description": "Hover state for strong danger borders"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.red.10}",
-            "$description": "Active/pressed state for strong danger border"
+            "$value": "{colors.red.A9}",
+            "$description": "Active/pressed state for strong danger borders"
           }
-        }
-      },
-      "solid": {
-        "$type": "color",
-        "default": {
-          "$type": "color",
-          "$value": "{colors.red.9}",
-          "$description": "Base color for default solid danger background"
         },
-        "hover": {
-          "$type": "color",
-          "$value": "{colors.red.10}",
-          "$description": "Hover state for default solid danger background"
-        },
-        "active": {
-          "$type": "color",
-          "$value": "{colors.red.11}",
-          "$description": "Active/pressed state for default solid danger background"
-        },
-        "subtle": {
+        "inverted": {
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.red.3}",
-            "$description": "Base color for subtle solid danger background"
+            "$value": "{colors.redDark.1}",
+            "$description": "Base color for inverted danger borders"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.red.4}",
-            "$description": "Hover state for subtle solid danger background"
+            "$value": "{colors.redDark.2}",
+            "$description": "Hover state for inverted danger borders"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.red.5}",
-            "$description": "Active/pressed state for subtle solid danger background"
-          }
-        },
-        "strong": {
-          "$type": "color",
-          "default": {
-            "$type": "color",
-            "$value": "{colors.red.10}",
-            "$description": "Base color for strong solid danger background"
-          },
-          "hover": {
-            "$type": "color",
-            "$value": "{colors.red.11}",
-            "$description": "Hover state for strong solid danger background"
-          },
-          "active": {
-            "$type": "color",
-            "$value": "{colors.red.12}",
-            "$description": "Active/pressed state for strong solid danger background"
+            "$value": "{colors.redDark.3}",
+            "$description": "Active/pressed state for inverted danger borders"
           }
         }
       },
@@ -1741,34 +1885,34 @@
         "default": {
           "$type": "color",
           "$value": "{colors.red.11}",
-          "$description": "Base color for default danger text"
+          "$description": "Default text color for danger elements"
         },
         "hover": {
           "$type": "color",
           "$value": "{colors.red.12}",
-          "$description": "Hover state for default danger text"
+          "$description": "Hover state for danger text"
         },
         "active": {
           "$type": "color",
           "$value": "{colors.red.12}",
-          "$description": "Active/pressed state for default danger text"
+          "$description": "Active/pressed state for danger text"
         },
-        "muted": {
+        "subtler": {
           "$type": "color",
           "default": {
             "$type": "color",
             "$value": "{colors.red.9}",
-            "$description": "Base color for muted danger text"
+            "$description": "Base color for subtler danger text"
           },
           "hover": {
             "$type": "color",
             "$value": "{colors.red.10}",
-            "$description": "Hover state for muted danger text"
+            "$description": "Hover state for subtler danger text"
           },
           "active": {
             "$type": "color",
             "$value": "{colors.red.11}",
-            "$description": "Active/pressed state for muted danger text"
+            "$description": "Active/pressed state for subtler danger text"
           }
         },
         "subtle": {
@@ -1812,17 +1956,17 @@
           "default": {
             "$type": "color",
             "$value": "{colors.red.1}",
-            "$description": "Base color for inverted text"
+            "$description": "Base color for inverted danger text"
           },
           "hover": {
             "$type": "color",
             "$value": "{colors.red.2}",
-            "$description": "Hover state for inverted text"
+            "$description": "Hover state for inverted danger text"
           },
           "active": {
             "$type": "color",
             "$value": "{colors.red.1}",
-            "$description": "Active/pressed state for inverted text"
+            "$description": "Active/pressed state for inverted danger text"
           }
         }
       }
@@ -1832,6 +1976,10 @@
       "categorical": {
         "1": {
           "$type": "color",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.blue.9}"
+          },
           "hover": {
             "$type": "color",
             "$value": "{colors.blue.10}"
@@ -2190,30 +2338,49 @@
     "ui": {
       "$type": "fontFamily",
       "$value": [
-        "'Inter Variable'",
+        "var(--font-inter-variable)",
         "{fonts.sans}"
       ]
     },
     "prose": {
       "$type": "fontFamily",
       "$value": [
-        "'Inter Variable'",
+        "var(--font-inter-variable)",
         "{fonts.sans}"
       ]
     },
     "display": {
       "$type": "fontFamily",
       "$value": [
-        "'Inter Variable'",
+        "var(--font-inter-variable)",
         "{fonts.sans}"
       ]
     },
     "code": {
       "$type": "fontFamily",
       "$value": [
-        "'IBM Plex Mono'",
+        "var(--font-ibm-plex-mono)",
         "{fonts.mono}"
       ]
+    }
+  },
+  "fontFeatureSettings": {
+    "$type": "fontFeatureSettings",
+    "ui": {
+      "$type": "fontFeatureSettings",
+      "$value": "'case' 1, 'salt' 1, 'ss08' 1"
+    },
+    "prose": {
+      "$type": "fontFeatureSettings",
+      "$value": "'case' 1, 'salt' 1, 'ss08' 1"
+    },
+    "display": {
+      "$type": "fontFeatureSettings",
+      "$value": "'case' 1, 'salt' 1, 'ss08' 1"
+    },
+    "code": {
+      "$type": "fontFeatureSettings",
+      "$value": "'calt' 1, 'clig' 1, 'liga' 1"
     }
   },
   "letterSpacings": {
@@ -2260,6 +2427,29 @@
       "$type": "lineHeight",
       "$value": "{lineHeights.loose}",
       "$description": "Loose line height for code text"
+    }
+  },
+  "radii": {
+    "$type": "dimension",
+    "sm": {
+      "$type": "borderRadius",
+      "$value": "{radii.100}",
+      "$description": "Subtle border radius for subtler emphasis"
+    },
+    "md": {
+      "$type": "borderRadius",
+      "$value": "{radii.200}",
+      "$description": "subtler border radius for subtle emphasis"
+    },
+    "lg": {
+      "$type": "borderRadius",
+      "$value": "{radii.300}",
+      "$description": "Default border radius for general use"
+    },
+    "full": {
+      "$type": "borderRadius",
+      "$value": "{radii.round}",
+      "$description": "Strong border radius for prominent emphasis"
     }
   },
   "shadows": {
@@ -2444,7 +2634,8 @@
             "fontWeight": "{fontWeights.black}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}"
+            "fontFamily": "{fonts.display}",
+            "fontFeatureSettings": "{fontFeatureSettings.display}"
           },
           "$description": "The style for page titles in prose"
         },
@@ -2455,7 +2646,8 @@
             "fontWeight": "{fontWeights.extrabold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}"
+            "fontFamily": "{fonts.display}",
+            "fontFeatureSettings": "{fontFeatureSettings.display}"
           },
           "$description": "The style for 2nd level headings in prose"
         },
@@ -2466,7 +2658,8 @@
             "fontWeight": "{fontWeights.bold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}"
+            "fontFamily": "{fonts.display}",
+            "fontFeatureSettings": "{fontFeatureSettings.display}"
           },
           "$description": "The style for 3rd level headings in prose"
         },
@@ -2477,7 +2670,8 @@
             "fontWeight": "{fontWeights.bold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}"
+            "fontFamily": "{fonts.display}",
+            "fontFeatureSettings": "{fontFeatureSettings.display}"
           },
           "$description": "The style for 4th level headings in prose"
         },
@@ -2488,7 +2682,8 @@
             "fontWeight": "{fontWeights.bold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}"
+            "fontFamily": "{fonts.display}",
+            "fontFeatureSettings": "{fontFeatureSettings.display}"
           },
           "$description": "The style for 5th level headings in prose"
         },
@@ -2499,7 +2694,8 @@
             "fontWeight": "{fontWeights.bold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}"
+            "fontFamily": "{fonts.display}",
+            "fontFeatureSettings": "{fontFeatureSettings.display}"
           },
           "$description": "The style for 6th level headings in prose"
         },
@@ -2511,7 +2707,8 @@
             "fontWeight": "{fontWeights.bold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}"
+            "fontFamily": "{fonts.display}",
+            "fontFeatureSettings": "{fontFeatureSettings.display}"
           },
           "$description": "The default text style for display text"
         }
@@ -2524,7 +2721,8 @@
             "fontWeight": "{fontWeights.bold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}"
+            "fontFamily": "{fonts.display}",
+            "fontFeatureSettings": "{fontFeatureSettings.display}"
           },
           "$description": "The style for page titles in UI"
         },
@@ -2535,7 +2733,8 @@
             "fontWeight": "{fontWeights.bold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}"
+            "fontFamily": "{fonts.display}",
+            "fontFeatureSettings": "{fontFeatureSettings.display}"
           },
           "$description": "The style for 2nd level headings in UI. Used for major section headers, modal titles, and primary content areas within a page"
         },
@@ -2546,7 +2745,8 @@
             "fontWeight": "{fontWeights.bold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}"
+            "fontFamily": "{fonts.display}",
+            "fontFeatureSettings": "{fontFeatureSettings.display}"
           },
           "$description": "The style for 3rd level headings in UI. Used for subsection headers, card titles, and group headings within major sections"
         },
@@ -2557,7 +2757,8 @@
             "fontWeight": "{fontWeights.bold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}"
+            "fontFamily": "{fonts.display}",
+            "fontFeatureSettings": "{fontFeatureSettings.display}"
           },
           "$description": "The style for 4th level headings in UI. Used for form section labels, sidebar navigation categories, and minor content divisions"
         },
@@ -2568,7 +2769,8 @@
             "fontWeight": "{fontWeights.semibold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}"
+            "fontFamily": "{fonts.display}",
+            "fontFeatureSettings": "{fontFeatureSettings.display}"
           },
           "$description": "The style for 5th level headings in UI. Used for list group headers, dropdown section labels, and nested navigation items"
         },
@@ -2579,7 +2781,8 @@
             "fontWeight": "{fontWeights.semibold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}"
+            "fontFamily": "{fonts.display}",
+            "fontFeatureSettings": "{fontFeatureSettings.display}"
           },
           "$description": "The style for 6th level headings in UI. Used for small widget titles, inline section labels, and minor UI element headers"
         },
@@ -2591,7 +2794,8 @@
             "fontWeight": "{fontWeights.bold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}"
+            "fontFamily": "{fonts.display}",
+            "fontFeatureSettings": "{fontFeatureSettings.display}"
           },
           "$description": "The default text style for display text in UI"
         }
@@ -2606,7 +2810,8 @@
           "fontWeight": "{fontWeights.normal}",
           "lineHeight": "{lineHeights.ui}",
           "letterSpacing": "{letterSpacings.ui}",
-          "fontFamily": "{fonts.ui}"
+          "fontFamily": "{fonts.ui}",
+          "fontFeatureSettings": "{fontFeatureSettings.ui}"
         },
         "$description": "The default text style for UI text"
       },
@@ -2616,7 +2821,8 @@
           "fontSize": "{fontSizes.sm}",
           "lineHeight": "{lineHeights.ui}",
           "letterSpacing": "{letterSpacings.ui}",
-          "fontFamily": "{fonts.ui}"
+          "fontFamily": "{fonts.ui}",
+          "fontFeatureSettings": "{fontFeatureSettings.ui}"
         },
         "$description": "The text style for meta text"
       }
@@ -2629,7 +2835,8 @@
           "fontSize": "{fontSizes.md}",
           "lineHeight": "{lineHeights.prose}",
           "letterSpacing": "{letterSpacings.prose}",
-          "fontFamily": "{fonts.prose}"
+          "fontFamily": "{fonts.prose}",
+          "fontFeatureSettings": "{fontFeatureSettings.prose}"
         },
         "$description": "The default text style for prose text"
       },
@@ -2639,7 +2846,8 @@
           "fontSize": "{fontSizes.lg}",
           "lineHeight": "{lineHeights.prose}",
           "letterSpacing": "{letterSpacings.prose}",
-          "fontFamily": "{fonts.prose}"
+          "fontFamily": "{fonts.prose}",
+          "fontFeatureSettings": "{fontFeatureSettings.prose}"
         },
         "$description": "The text style for lead text"
       }
@@ -2649,10 +2857,12 @@
       "default": {
         "$type": "textStyle",
         "$value": {
-          "fontSize": "{fontSizes.md}",
+          "fontSize": "{fontSizes.sm}",
+          "fontWeight": "{fontWeights.medium}",
           "lineHeight": "{lineHeights.code}",
           "letterSpacing": "{letterSpacings.code}",
-          "fontFamily": "{fonts.code}"
+          "fontFamily": "{fonts.code}",
+          "fontFeatureSettings": "{fontFeatureSettings.code}"
         },
         "$description": "The default text style for code text"
       }
