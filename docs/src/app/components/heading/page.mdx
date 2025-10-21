@@ -84,11 +84,31 @@ live
 </View>
 ```
 
-### Custom color
+### Color palettes
+
+Neutral is the default color palette for general purpose headings, while accent is the default for UI headings.
+
+Each color palette is designed for specific use cases:
+
+- `neutral`: Default for general content
+- `accent`: Default for UI headings and highlighted sections
+- `brand`: Brand-specific headings
+- `information`: Informational headings
+- `success`: Positive or completion headings
+- `warning`: Cautionary headings
+- `danger`: Error or critical headings
 
 ```tsx
 live
-<Heading color='accent.fg'>Colored heading</Heading>
+<View gap='200'>
+  <Heading colorPalette='neutral'>Neutral heading</Heading>
+  <Heading colorPalette='accent'>Accent heading</Heading>
+  <Heading colorPalette='brand'>Brand heading</Heading>
+  <Heading colorPalette='information'>Information heading</Heading>
+  <Heading colorPalette='success'>Success heading</Heading>
+  <Heading colorPalette='warning'>Warning heading</Heading>
+  <Heading colorPalette='danger'>Danger heading</Heading>
+</View>
 ```
 
 <PropsDefinitions componentPath='packages/components/src/components/Heading/index.tsx' />

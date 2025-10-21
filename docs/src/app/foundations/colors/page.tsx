@@ -69,7 +69,7 @@ function ColorSwatch({
         width={appearance === 'semantic' ? '1000' : '600'}
         borderRadius='100'
         border='1px solid'
-        borderColor='neutral.border.muted'
+        borderColor='neutral.border.subtler'
         flexShrink={0}
       />
       <View gap='100' alignItems='flex-start'>

@@ -63,7 +63,7 @@ function CopyButton({ code }: { code: string }) {
       <Button
         onClick={handleCopy}
         size='sm'
-        emphasis='muted'
+        emphasis='subtler'
         className={css({ gap: '050' })}
       >
         {copied && 'Copied!'}

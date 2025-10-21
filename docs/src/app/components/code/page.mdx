@@ -5,8 +5,7 @@ import { css } from '@oztix/roadie-core/css'
 
 export const metadata = {
   title: 'Code',
-  description:
-    'The Code component is used to display inline code snippets.',
+  description: 'The Code component is used to display inline code snippets.',
   status: 'beta',
   category: 'Typography'
 }
@@ -23,6 +22,49 @@ of code.
 ```tsx
 live
 <Code>npm install @oztix/roadie-components</Code>
+```
+
+## Examples
+
+### Emphasis
+
+Different emphasis levels for various contexts:
+
+```tsx
+live
+<View gap='200' flexDirection='row' flexWrap='wrap'>
+  <Code emphasis='default'>default code</Code>
+  <Code emphasis='strong'>strong code</Code>
+  <Code emphasis='subtle'>subtle code</Code>
+  <Code emphasis='subtler'>subtler code</Code>
+</View>
+```
+
+### Color palettes
+
+Neutral is the default color palette for code elements.
+
+Each color palette is designed for specific use cases:
+
+- `neutral`: Default for general code snippets
+- `accent`: Highlighted code
+- `brand`: Brand-specific code examples
+- `information`: Informational code snippets
+- `success`: Successful operations or correct code
+- `warning`: Warning-related code
+- `danger`: Error or problematic code
+
+```tsx
+live
+<View gap='200' flexDirection='row' flexWrap='wrap'>
+  <Code colorPalette='neutral'>neutral</Code>
+  <Code colorPalette='accent'>accent</Code>
+  <Code colorPalette='brand'>brand</Code>
+  <Code colorPalette='information'>information</Code>
+  <Code colorPalette='success'>success</Code>
+  <Code colorPalette='warning'>warning</Code>
+  <Code colorPalette='danger'>danger</Code>
+</View>
 ```
 
 <PropsDefinitions componentPath='packages/components/src/components/Code/index.tsx' />

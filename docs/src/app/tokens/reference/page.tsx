@@ -38,7 +38,7 @@ const TokenPreview = ({
         height='300'
         borderRadius='050'
         border='1px solid'
-        borderColor='neutral.border.muted'
+        borderColor='neutral.border.subtler'
         style={{
           backgroundColor: `var(--${cssName})`
         }}

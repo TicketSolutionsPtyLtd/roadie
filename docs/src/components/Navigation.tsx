@@ -90,7 +90,7 @@ function ThemeToggle() {
 
   return (
     <Button
-      emphasis='muted'
+      emphasis='subtler'
       size='sm'
       onClick={toggleTheme}
       aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
@@ -185,7 +185,7 @@ export function Navigation({ items }: NavigationProps) {
       flexShrink={0}
       overflowY='auto'
       borderRight='1px solid'
-      borderColor='neutral.border.muted'
+      borderColor='neutral.border.subtler'
       bg='neutral.surface.sunken'
       shadow='sunken'
       display={{ base: 'none', md: 'block' }}
@@ -209,7 +209,7 @@ export function Navigation({ items }: NavigationProps) {
           shadow='raised'
           borderTopWidth='1px'
           borderTopStyle='solid'
-          borderColor='neutral.border.muted'
+          borderColor='neutral.border.subtler'
         >
           <ThemeToggle />
         </View>
