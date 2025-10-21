@@ -4842,15 +4842,15 @@
     "$type": "fontFamily",
     "ui": {
       "$type": "fontFamily",
-      "$value": ["var(--font-inter-variable)", "{fonts.sans}"]
+      "$value": ["var(--font-intermission)", "{fonts.sans}"]
     },
     "prose": {
       "$type": "fontFamily",
-      "$value": ["var(--font-inter-variable)", "{fonts.sans}"]
+      "$value": ["var(--font-intermission)", "{fonts.sans}"]
     },
     "display": {
       "$type": "fontFamily",
-      "$value": ["var(--font-inter-variable)", "{fonts.sans}"]
+      "$value": ["var(--font-intermission)", "{fonts.sans}"]
     },
     "code": {
       "$type": "fontFamily",
@@ -4861,19 +4861,19 @@
     "$type": "fontFeatureSettings",
     "ui": {
       "$type": "fontFeatureSettings",
-      "$value": "'case' 1, 'salt' 1, 'ss08' 1"
+      "$value": "'case' 1, 'ss02' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1"
     },
     "prose": {
       "$type": "fontFeatureSettings",
-      "$value": "'case' 1, 'salt' 1, 'ss08' 1"
+      "$value": "'case' 1, 'ss02' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1"
     },
     "display": {
       "$type": "fontFeatureSettings",
-      "$value": "'case' 1, 'salt' 1, 'ss08' 1"
+      "$value": "'case' 1, 'ss02' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1"
     },
     "code": {
       "$type": "fontFeatureSettings",
-      "$value": "'calt' 1, 'clig' 1, 'liga' 1"
+      "$value": "'case' 1, 'ss02' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1"
     }
   },
   "letterSpacings": {
