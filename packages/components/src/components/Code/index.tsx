@@ -21,6 +21,8 @@ export const Code = styled('code', {
     backgroundColor: 'colorPalette.surface.subtle',
     textStyle: 'code',
     px: '100',
+    py: '025',
+    display: 'inline-block',
     borderRadius: 'sm',
     border: '1px solid'
   },
