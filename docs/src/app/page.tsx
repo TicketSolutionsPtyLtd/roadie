@@ -151,7 +151,7 @@ export default function Home() {
         alignItems='flex-start'
         bg='neutral.surface.subtle'
         p='400'
-        borderRadius='200'
+        borderRadius='lg'
       >
         <View gap='200'>
           <Heading as='h2' textStyle='display.prose.3'>
@@ -211,7 +211,7 @@ function SectionCard({
     <View
       pt='400'
       pb='200'
-      borderRadius='200'
+      borderRadius='lg'
       border='1px solid'
       borderColor='neutral.border.subtle'
       bg='neutral.surface'
@@ -246,16 +246,16 @@ function SectionCard({
               flexDirection='column'
               gap='050'
               p='200'
-              borderRadius='100'
+              borderRadius='md'
               height='full'
               transition='all 0.2s'
               _hover={{
                 bg: 'neutral.surface.subtle'
               }}
             >
-              <Text color='accent.fg' fontWeight='medium'>
+              <Heading colorPalette='accent' textStyle='display.ui.6'>
                 {item.label}
-              </Text>
+              </Heading>
               <Text fontSize='sm' emphasis='subtle'>
                 {item.description}
               </Text>

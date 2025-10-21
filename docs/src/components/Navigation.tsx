@@ -146,7 +146,7 @@ function NavigationGroup({ item }: { item: NavigationItem }) {
                   fontWeight='normal'
                   textDecoration='none'
                   transition='all 0.2s'
-                  borderRadius='050'
+                  borderRadius='sm'
                   data-current={isActive}
                   _hover={{
                     bg: 'accent.surface.hover',

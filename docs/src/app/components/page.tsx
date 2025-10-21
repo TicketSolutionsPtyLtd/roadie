@@ -88,8 +88,7 @@ export default async function ComponentsPage() {
           Components
         </Heading>
         <Text emphasis='subtle' textStyle='prose.lead' fontSize='xl'>
-          A collection of components built with React Aria Components and styled
-          with PandaCSS.
+          A collection of components built with Ark UI and styled with PandaCSS.
         </Text>
       </View>
 
@@ -113,23 +112,23 @@ export default async function ComponentsPage() {
                 as={Link}
                 href={`/components/${component.name}`}
                 padding='300'
-                borderRadius='100'
+                borderRadius='md'
                 gap='200'
-                backgroundColor='neutral.surface.subtle'
+                backgroundColor='neutral.surface.raised'
                 borderWidth='1px'
                 borderStyle='solid'
                 borderColor='neutral.border.subtle'
                 _hover={{
-                  backgroundColor: 'neutral.surface.subtle.hover'
+                  backgroundColor: 'neutral.surface.raised.hover'
                 }}
               >
-                <Heading as='h3' textStyle='display.prose.3'>
+                <Heading as='h3' textStyle='display.prose.4'>
                   {component.title}
                 </Heading>
                 <Text emphasis='subtle'>{component.description}</Text>
                 <Text
                   textStyle='ui.meta'
-                  emphasis='subtle'
+                  emphasis='strong'
                   colorPalette={
                     component.status === 'stable'
                       ? 'success'

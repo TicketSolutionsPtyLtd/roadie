@@ -47,7 +47,7 @@ predictable and harmonious spacing system:
   borderStyle='solid'
   borderColor='neutral.border.subtle'
   p='200'
-  borderRadius='100'
+  borderRadius='md'
 >
   {Object.entries(pandaTokens?.tokens?.spacing)
     .sort(([a], [b]) => Number(a) - Number(b))
@@ -176,7 +176,7 @@ live
 
 ```tsx
 live
-<View p='200' gap='100'>
+<View p='200' gap='200'>
   <Heading>Card Title</Heading>
   <Text>Card content goes here</Text>
   <Button>Action</Button>
