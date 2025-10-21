@@ -89,8 +89,8 @@ describe('Button', () => {
       'color-palette_neutral'
     )
 
-    rerender(<Button emphasis='muted'>Muted</Button>)
-    button = getByText('Muted')
+    rerender(<Button emphasis='subtler'>subtler</Button>)
+    button = getByText('subtler')
     expect(button).toHaveClass(
       'c_colorPalette.fg',
       'hover:c_colorPalette.fg.hover',

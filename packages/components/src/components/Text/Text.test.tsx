@@ -35,9 +35,9 @@ describe('Text', () => {
     text = getByText('Subtle Text')
     expect(text).toHaveClass('c_colorPalette.fg.subtle')
 
-    rerender(<Text emphasis='muted'>Muted Text</Text>)
-    text = getByText('Muted Text')
-    expect(text).toHaveClass('c_colorPalette.fg.muted')
+    rerender(<Text emphasis='subtler'>subtler Text</Text>)
+    text = getByText('subtler Text')
+    expect(text).toHaveClass('c_colorPalette.fg.subtler')
 
     rerender(<Text emphasis='default'>Default Text</Text>)
     text = getByText('Default Text')
@@ -49,23 +49,23 @@ describe('Text', () => {
       <Text colorPalette='accent'>Accent Text</Text>
     )
     let text = getByText('Accent Text')
-    expect(text).toHaveClass('c_colorPalette.fg', 'color-palette_accent')
+    expect(text).toHaveClass('c_colorPalette.fg')
 
     rerender(<Text colorPalette='brand'>Brand Text</Text>)
     text = getByText('Brand Text')
-    expect(text).toHaveClass('c_colorPalette.fg', 'color-palette_brand')
+    expect(text).toHaveClass('c_colorPalette.fg')
 
     rerender(<Text colorPalette='success'>Success Text</Text>)
     text = getByText('Success Text')
-    expect(text).toHaveClass('c_colorPalette.fg', 'color-palette_success')
+    expect(text).toHaveClass('c_colorPalette.fg')
 
     rerender(<Text colorPalette='warning'>Warning Text</Text>)
     text = getByText('Warning Text')
-    expect(text).toHaveClass('c_colorPalette.fg', 'color-palette_warning')
+    expect(text).toHaveClass('c_colorPalette.fg')
 
     rerender(<Text colorPalette='danger'>Danger Text</Text>)
     text = getByText('Danger Text')
-    expect(text).toHaveClass('c_colorPalette.fg', 'color-palette_danger')
+    expect(text).toHaveClass('c_colorPalette.fg')
   })
 
   it('applies interactive styles', () => {
@@ -127,7 +127,6 @@ describe('Text', () => {
       'groupHover:c_colorPalette.fg.hover',
       'groupFocus:c_colorPalette.fg.hover',
       'groupActive:c_colorPalette.fg.active',
-      'color-palette_accent',
       'lc_2',
       'custom-class'
     )

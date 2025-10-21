@@ -41,10 +41,10 @@ export interface TextProps<C extends ElementType = 'span'> {
    * - default: For standard body text and general content
    * - strong: For text that needs visual emphasis or importance, like headings, key terms or warnings
    * - subtle: For secondary or supplementary text that should be visually de-emphasized
-   * - muted: For text that should be visually muted, like placeholder text or disabled text
+   * - subtler: For text that should be visually subtler, like placeholder text or disabled text
    * @default 'default'
    */
-  emphasis?: 'default' | 'strong' | 'subtle' | 'muted'
+  emphasis?: 'default' | 'strong' | 'subtle' | 'subtler'
   /**
    * Whether the text is interactive. Adds hover, focus, and active styles. Includes group styles.
    * @default false
@@ -85,8 +85,8 @@ const StyledText = styled('span', {
       subtle: {
         color: 'colorPalette.fg.subtle'
       },
-      muted: {
-        color: 'colorPalette.fg.muted'
+      subtler: {
+        color: 'colorPalette.fg.subtler'
       }
     },
     interactive: {

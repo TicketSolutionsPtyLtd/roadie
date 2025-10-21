@@ -28,7 +28,8 @@ export interface HeadingProps extends HTMLStyledProps<'h2'>, JsxStyleProps {
 export const Heading = styled('h2', {
   base: {
     textStyle: 'display.ui',
-    color: 'accent.fg.strong'
+    color: 'colorPalette.fg.strong',
+    colorPalette: 'neutral'
   }
 }) as React.ForwardRefExoticComponent<HeadingProps>
 

@@ -67,12 +67,28 @@ describe('Heading', () => {
     expect(heading).toHaveClass('lc_2')
   })
 
+  it('renders with different color palettes', () => {
+    const { rerender, getByText } = render(
+      <Heading colorPalette='neutral'>Neutral Heading</Heading>
+    )
+    let heading = getByText('Neutral Heading')
+    expect(heading).toBeInTheDocument()
+
+    rerender(<Heading colorPalette='brand'>Brand Heading</Heading>)
+    heading = getByText('Brand Heading')
+    expect(heading).toBeInTheDocument()
+
+    rerender(<Heading colorPalette='success'>Success Heading</Heading>)
+    heading = getByText('Success Heading')
+    expect(heading).toBeInTheDocument()
+  })
+
   it('combines multiple props', () => {
     const { getByText } = render(
       <Heading
         as='h1'
         textStyle='display.ui.1'
-        color='accent.fg'
+        colorPalette='brand'
         className='custom-class'
       >
         Combined styles
@@ -80,10 +96,6 @@ describe('Heading', () => {
     )
     const heading = getByText('Combined styles')
     expect(heading.tagName.toLowerCase()).toBe('h1')
-    expect(heading).toHaveClass(
-      'textStyle_display.ui.1',
-      'c_accent.fg',
-      'custom-class'
-    )
+    expect(heading).toHaveClass('textStyle_display.ui.1', 'custom-class')
   })
 })

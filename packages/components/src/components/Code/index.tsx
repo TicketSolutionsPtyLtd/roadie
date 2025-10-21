@@ -1,7 +1,7 @@
 import React from 'react'
 
-import type { HTMLStyledProps } from '@oztix/roadie-core/jsx'
 import { styled } from '@oztix/roadie-core/jsx'
+import type { HTMLStyledProps } from '@oztix/roadie-core/jsx'
 import type { JsxStyleProps } from '@oztix/roadie-core/types'
 
 /**
@@ -10,33 +10,35 @@ import type { JsxStyleProps } from '@oztix/roadie-core/types'
 export interface CodeProps extends HTMLStyledProps<'code'>, JsxStyleProps {
   /**
    * The appearance of the code block
-   * @default 'outline'
+   * @default 'default'
    */
-  emphasis?: 'default' | 'strong' | 'subtle' | 'muted'
+  emphasis?: 'default' | 'strong' | 'subtle' | 'subtler'
 }
 
 export const Code = styled('code', {
   base: {
-    backgroundColor: 'neutral.surface.subtle',
+    color: 'colorPalette.fg',
+    backgroundColor: 'colorPalette.surface.subtle',
     textStyle: 'code',
-    px: '050',
-    borderRadius: '050',
+    px: '100',
+    borderRadius: 'sm',
     border: '1px solid'
   },
   variants: {
     emphasis: {
       default: {
-        borderColor: 'neutral.border',
-        backgroundColor: 'neutral.surface.subtle'
+        borderColor: 'colorPalette.border',
+        backgroundColor: 'colorPalette.surface.subtle'
       },
       strong: {
-        borderColor: 'neutral.border.strong',
-        backgroundColor: 'neutral.surface.strong'
+        color: 'colorPalette.fg.inverted',
+        borderColor: 'colorPalette.border.strong',
+        backgroundColor: 'colorPalette.surface.strong'
       },
       subtle: {
-        borderColor: 'neutral.border.subtle'
+        borderColor: 'colorPalette.border.subtle'
       },
-      muted: {
+      subtler: {
         borderColor: 'transparent'
       }
     }

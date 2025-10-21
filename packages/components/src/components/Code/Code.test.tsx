@@ -10,12 +10,12 @@ describe('Code', () => {
     expect(code).toBeInTheDocument()
     expect(code.tagName.toLowerCase()).toBe('code')
     expect(code).toHaveClass(
-      'bg-c_neutral.surface.subtle',
+      'bg-c_colorPalette.surface.subtle',
       'textStyle_code',
       'px_050',
       'bdr_050',
       'bd_1px_solid',
-      'bd-c_neutral.border'
+      'bd-c_colorPalette.border'
     )
   })
 
@@ -25,17 +25,33 @@ describe('Code', () => {
     )
     let code = getByText('strong code')
     expect(code).toHaveClass(
-      'bd-c_neutral.border.strong',
-      'bg-c_neutral.surface.strong'
+      'bd-c_colorPalette.border.strong',
+      'bg-c_colorPalette.surface.strong'
     )
 
     rerender(<Code emphasis='subtle'>subtle code</Code>)
     code = getByText('subtle code')
-    expect(code).toHaveClass('bd-c_neutral.border.subtle')
+    expect(code).toHaveClass('bd-c_colorPalette.border.subtle')
 
-    rerender(<Code emphasis='muted'>muted code</Code>)
-    code = getByText('muted code')
+    rerender(<Code emphasis='subtler'>subtler code</Code>)
+    code = getByText('subtler code')
     expect(code).toHaveClass('bd-c_transparent')
+  })
+
+  it('renders with different color palettes', () => {
+    const { rerender, getByText } = render(
+      <Code colorPalette='accent'>accent code</Code>
+    )
+    let code = getByText('accent code')
+    expect(code).toBeInTheDocument()
+
+    rerender(<Code colorPalette='success'>success code</Code>)
+    code = getByText('success code')
+    expect(code).toBeInTheDocument()
+
+    rerender(<Code colorPalette='danger'>danger code</Code>)
+    code = getByText('danger code')
+    expect(code).toBeInTheDocument()
   })
 
   it('applies custom font size', () => {
@@ -59,9 +75,9 @@ describe('Code', () => {
   it('combines multiple props', () => {
     const { getByText } = render(
       <Code
-        emphasis='muted'
+        emphasis='subtler'
+        colorPalette='accent'
         fontSize='lg'
-        color='accent.fg'
         className='custom-class'
       >
         Combined styles
@@ -69,14 +85,13 @@ describe('Code', () => {
     )
     const code = getByText('Combined styles')
     expect(code).toHaveClass(
-      'bg-c_neutral.surface.subtle',
+      'bg-c_colorPalette.surface.subtle',
       'textStyle_code',
       'px_050',
       'bdr_050',
       'bd_1px_solid',
       'bd-c_transparent',
       'fs_lg',
-      'c_accent.fg',
       'custom-class'
     )
   })
