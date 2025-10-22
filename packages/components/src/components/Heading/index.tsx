@@ -1,36 +1,42 @@
-import React from 'react'
+import type { ReactNode } from 'react'
 
-import type { HTMLStyledProps } from '@oztix/roadie-core/jsx'
+import { ark } from '@ark-ui/react/factory'
+
+import type { ColorPalette } from '@oztix/roadie-core'
 import { styled } from '@oztix/roadie-core/jsx'
-import type { JsxStyleProps } from '@oztix/roadie-core/types'
+import type { HTMLStyledProps } from '@oztix/roadie-core/jsx'
+import { type HeadingVariantProps, heading } from '@oztix/roadie-core/recipes'
 
+// Create a type alias for the heading level from the recipe
 type HeadingLevel = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
 
 /**
  * A heading component that uses display styles for titles and section headers
  */
-export interface HeadingProps extends HTMLStyledProps<'h2'>, JsxStyleProps {
+export interface HeadingProps
+  extends HTMLStyledProps<'h2'>,
+    HeadingVariantProps {
   /**
    * The heading level to render
    * @default 'h2'
    */
   as?: HeadingLevel
+
   /**
-   * The text style to use for the heading
-   * @default 'display.ui'
+   * The color palette to use for the heading
+   * @default 'neutral'
    */
-  textStyle?: Extract<
-    JsxStyleProps['textStyle'],
-    'display' | `display${string}`
-  >
+  colorPalette?: ColorPalette
+
+  /**
+   * The content to display
+   */
+  children?: ReactNode
 }
 
-export const Heading = styled('h2', {
-  base: {
-    textStyle: 'display.ui',
-    color: 'colorPalette.fg.strong',
-    colorPalette: 'neutral'
-  }
-}) as React.ForwardRefExoticComponent<HeadingProps>
+export const Heading = styled(
+  ark.h2,
+  heading
+) as React.ForwardRefExoticComponent<HeadingProps>
 
 Heading.displayName = 'Heading'

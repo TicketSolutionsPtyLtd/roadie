@@ -1,53 +1,37 @@
-import React from 'react'
+import type { ReactNode } from 'react'
 
+import { ark } from '@ark-ui/react/factory'
+
+import type { ColorPalette } from '@oztix/roadie-core'
 import { styled } from '@oztix/roadie-core/jsx'
 import type { HTMLStyledProps } from '@oztix/roadie-core/jsx'
-import type { JsxStyleProps } from '@oztix/roadie-core/types'
+import { type CodeVariantProps, code } from '@oztix/roadie-core/recipes'
 
 /**
  * A code component that inherits from Text and renders as a code element
  */
-export interface CodeProps extends HTMLStyledProps<'code'>, JsxStyleProps {
+export interface CodeProps extends HTMLStyledProps<'code'>, CodeVariantProps {
   /**
    * The appearance of the code block
    * @default 'default'
    */
-  emphasis?: 'default' | 'strong' | 'subtle' | 'subtler'
+  emphasis?: CodeVariantProps['emphasis']
+
+  /**
+   * The color palette to use for the code
+   * @default 'neutral'
+   */
+  colorPalette?: ColorPalette
+
+  /**
+   * The content to display
+   */
+  children?: ReactNode
 }
 
-export const Code = styled('code', {
-  base: {
-    color: 'colorPalette.fg',
-    backgroundColor: 'colorPalette.surface.subtle',
-    textStyle: 'code',
-    px: '100',
-    py: '025',
-    display: 'inline-block',
-    borderRadius: 'sm',
-    border: '1px solid'
-  },
-  variants: {
-    emphasis: {
-      default: {
-        borderColor: 'colorPalette.border',
-        backgroundColor: 'colorPalette.surface.subtle'
-      },
-      strong: {
-        color: 'colorPalette.fg.inverted',
-        borderColor: 'colorPalette.border.strong',
-        backgroundColor: 'colorPalette.surface.strong'
-      },
-      subtle: {
-        borderColor: 'colorPalette.border.subtle'
-      },
-      subtler: {
-        borderColor: 'transparent'
-      }
-    }
-  },
-  defaultVariants: {
-    emphasis: 'default'
-  }
-}) as React.ForwardRefExoticComponent<CodeProps>
+export const Code = styled(
+  ark.code,
+  code
+) as React.ForwardRefExoticComponent<CodeProps>
 
 Code.displayName = 'Code'
