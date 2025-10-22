@@ -46,6 +46,7 @@
     "react-dom": "^19.0.0"
   },
   "dependencies": {
+    "@ark-ui/react": "^5.26.2",
     "@oztix/roadie-core": "workspace:^0.2.1"
   },
   "devDependencies": {

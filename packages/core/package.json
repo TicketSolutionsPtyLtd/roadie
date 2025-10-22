@@ -43,7 +43,12 @@
       "import": "./dist/jsx/index.js"
     },
     "./styles.css": "./dist/styles.css",
-    "./fonts/*": "./dist/fonts/*"
+    "./fonts/*": "./dist/fonts/*",
+    "./recipes": {
+      "types": "./dist/recipes/index.d.ts",
+      "require": "./dist/recipes/index.js",
+      "import": "./dist/recipes/index.js"
+    }
   },
   "files": [
     "dist"
