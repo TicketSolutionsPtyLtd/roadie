@@ -15,6 +15,8 @@ module.exports = {
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'error',
-    '@pandacss/no-margin-properties': 'warn'
+    '@pandacss/no-margin-properties': 'warn',
+    // Allow defineRecipe in preset packages since they export recipes for other projects
+    '@pandacss/no-config-function-in-source': 'off'
   }
 }

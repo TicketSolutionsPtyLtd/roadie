@@ -15,6 +15,15 @@ roadie/
 └── package.json      # Root workspace configuration
 ```
 
+## AI Coding Agents
+
+This project uses `AGENTS.md` as the single source of truth for AI coding agent instructions. This file provides context and guidelines to AI tools like Claude Code, Cursor, GitHub Copilot, and others.
+
+- **Source file:** `AGENTS.md` (edit this file when updating agent instructions)
+- **Legacy compatibility:** `CLAUDE.md` is a symlink to `AGENTS.md` for backwards compatibility
+
+When making changes to project structure, conventions, or workflows, consider updating `AGENTS.md` to help AI tools provide better assistance to contributors.
+
 ## Development Process
 
 1. Ensure you have the correct Node.js version installed (see `.nvmrc`)
