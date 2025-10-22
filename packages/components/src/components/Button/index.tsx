@@ -1,111 +1,50 @@
+import React from 'react'
+
+import { ark } from '@ark-ui/react/factory'
+
+import type { ColorPalette } from '@oztix/roadie-core'
 import { styled } from '@oztix/roadie-core/jsx'
+import type { HTMLStyledProps } from '@oztix/roadie-core/jsx'
+import { type ButtonVariantProps, button } from '@oztix/roadie-core/recipes'
 
-export const Button = styled('button', {
-  base: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
-    borderRadius: 'full',
-    fontWeight: 'bold',
-    fontFamily: 'ui',
-    cursor: 'pointer',
-    borderWidth: '1px',
-    borderStyle: 'solid',
-    borderColor: 'transparent',
-    transition: 'all 0.2s',
-    color: 'colorPalette.fg',
-    _hover: {
-      color: 'colorPalette.fg.hover'
-    },
-    _active: {
-      color: 'colorPalette.fg.active'
-    },
-    _disabled: {
-      opacity: 0.4,
-      cursor: 'not-allowed',
-      color: 'colorPalette.fg.subtle'
-    },
-    _focusVisible: {
-      outlineColor: 'colorPalette.border.strong',
-      outlineWidth: '2px',
-      outlineStyle: 'solid',
-      outlineOffset: '2px'
-    }
-  },
-  variants: {
-    emphasis: {
-      strong: {
-        color: 'colorPalette.fg.inverted',
-        backgroundColor: 'colorPalette.surface.strong',
-        _hover: {
-          color: 'colorPalette.fg.inverted.hover',
-          backgroundColor: 'colorPalette.surface.strong.hover'
-        },
-        _active: {
-          color: 'colorPalette.fg.inverted.active',
-          backgroundColor: 'colorPalette.surface.strong.active'
-        }
-      },
-      default: {
-        borderColor: 'colorPalette.border.subtle',
-        _hover: {
-          borderColor: 'colorPalette.border.subtle.hover',
-          backgroundColor: 'colorPalette.surface.subtle.hover'
-        },
-        _active: {
-          borderColor: 'colorPalette.border.active',
-          backgroundColor: 'colorPalette.surface.subtle.active'
-        }
-      },
-      subtle: {
-        backgroundColor: 'colorPalette.surface.subtle',
-        _hover: {
-          backgroundColor: 'colorPalette.surface.subtle.hover'
-        },
-        _active: {
-          backgroundColor: 'colorPalette.surface.subtle.active'
-        }
-      },
-      subtler: {
-        _hover: {
-          backgroundColor: 'colorPalette.surface.subtler.hover'
-        },
-        _active: {
-          backgroundColor: 'colorPalette.surface.subtler.active'
-        }
-      }
-    },
+/**
+ * A button component with various emphasis levels and sizes
+ */
+export interface ButtonProps
+  extends HTMLStyledProps<'button'>,
+    ButtonVariantProps {
+  /**
+   * The visual emphasis of the button
+   * @default 'default'
+   */
+  emphasis?: ButtonVariantProps['emphasis']
 
-    size: {
-      xs: {
-        minHeight: '300',
-        fontSize: 'xs',
-        px: '150',
-        py: '050'
-      },
-      sm: {
-        minHeight: '400',
-        fontSize: 'sm',
-        px: '200',
-        py: '075'
-      },
-      md: {
-        minHeight: '500',
-        fontSize: 'md',
-        px: '250',
-        py: '100'
-      },
-      lg: {
-        minHeight: '600',
-        fontSize: 'lg',
-        px: '250',
-        py: '100'
-      }
-    }
-  },
-  defaultVariants: {
-    emphasis: 'default',
-    size: 'md'
-  }
-})
+  /**
+   * The size of the button
+   * @default 'md'
+   */
+  size?: ButtonVariantProps['size']
+
+  /**
+   * The color palette to use for the button
+   * @default 'neutral'
+   */
+  colorPalette?: ColorPalette
+
+  /**
+   * When true, the component will pass props to its child component
+   */
+  asChild?: boolean
+
+  /**
+   * The content to display
+   */
+  children?: React.ReactNode
+}
+
+export const Button = styled(
+  ark.button,
+  button
+) as React.ForwardRefExoticComponent<ButtonProps>
+
+Button.displayName = 'Button'
