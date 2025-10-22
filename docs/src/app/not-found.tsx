@@ -23,8 +23,8 @@ export default function NotFound() {
       <Text textStyle='prose.lead' emphasis='subtle'>
         The page you&apos;re looking for doesn&apos;t exist or has been moved.
       </Text>
-      <Button as={Link} href='/' size='lg'>
-        Return home
+      <Button asChild size='lg'>
+        <Link href='/'>Return home</Link>
       </Button>
     </View>
   )

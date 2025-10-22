@@ -10,7 +10,6 @@ import { Moon, Sun } from 'lucide-react'
 import { Image } from '@/components/Image'
 
 import { Button, Text, View } from '@oztix/roadie-components'
-import { css } from '@oztix/roadie-core/css'
 
 declare global {
   interface Window {
@@ -92,9 +91,9 @@ function ThemeToggle() {
     <Button
       emphasis='subtler'
       size='sm'
+      gap='050'
       onClick={toggleTheme}
       aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
-      className={css({ gap: '050' })}
     >
       {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
       <Text>{theme === 'light' ? 'Dark' : 'Light'} mode</Text>
@@ -114,8 +113,7 @@ function NavigationGroup({ item }: { item: NavigationItem }) {
   return (
     <View gap='100'>
       <Text
-        as={Link}
-        href={item.href || '#'}
+        asChild
         px='100'
         fontSize='sm'
         fontWeight='semibold'
@@ -126,7 +124,7 @@ function NavigationGroup({ item }: { item: NavigationItem }) {
           color: 'colorPalette.fg.hover'
         }}
       >
-        {item.title}
+        <Link href={item.href || '#'}>{item.title}</Link>
       </Text>
       {item.items && (
         <View as='ul' gap='025'>
@@ -136,8 +134,7 @@ function NavigationGroup({ item }: { item: NavigationItem }) {
             return (
               <View as='li' key={subItem.href} listStyleType='none' p='0' m='0'>
                 <Text
-                  as={Link}
-                  href={subItem.href || '#'}
+                  asChild
                   display='block'
                   px='100'
                   py='050'
@@ -163,7 +160,7 @@ function NavigationGroup({ item }: { item: NavigationItem }) {
                     }
                   }}
                 >
-                  {subItem.title}
+                  <Link href={subItem.href || '#'}>{subItem.title}</Link>
                 </Text>
               </View>
             )
