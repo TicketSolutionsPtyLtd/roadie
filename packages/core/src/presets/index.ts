@@ -2,6 +2,8 @@
 import { definePreset } from '@pandacss/dev'
 
 import { pandaTokens } from '../index'
+import { patterns } from '../patterns'
+import { recipes } from '../recipes'
 
 const { breakpoints = {}, ...tokens } = pandaTokens?.tokens ?? {}
 const { textStyles = {}, ...semanticTokens } = pandaTokens?.semanticTokens ?? {}
@@ -12,7 +14,13 @@ export const roadie = definePreset({
     breakpoints,
     tokens,
     semanticTokens,
+    recipes,
     textStyles
+  },
+  patterns: {
+    extend: {
+      ...patterns
+    }
   },
   conditions: {
     extend: {
@@ -28,8 +36,8 @@ export const roadie = definePreset({
       padding: 0
     },
     ':root': {
-      '--font-intermission': `"Intermission", sans-serif`,
-      '--font-ibm-plex-mono': `"IBMPlexMono", monospace`
+      '--font-intermission': 'Intermission',
+      '--font-ibm-plex-mono': 'IBMPlexMono'
     },
     ':focus-visible': {
       outlineStyle: 'solid',
