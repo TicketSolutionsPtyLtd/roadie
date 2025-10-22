@@ -56,9 +56,7 @@ describe('roadie preset', () => {
       it('has base reset', () => {
         expect(globalCss['*']).toEqual({
           margin: 0,
-          padding: 0,
-          fontSize: '100%',
-          font: 'inherit'
+          padding: 0
         })
       })
     })
@@ -147,47 +145,41 @@ describe('roadie preset', () => {
   describe('font configuration', () => {
     const globalFontface = roadie.globalFontface!
 
-    it('has Inter Variable font configuration', () => {
-      const interFont = globalFontface['Inter Variable'] as FontRule[]
-      expect(Array.isArray(interFont)).toBe(true)
-      expect(interFont).toHaveLength(2)
+    it('has Intermission font configuration', () => {
+      const intermissionFont = globalFontface.Intermission as FontRule[]
+      expect(Array.isArray(intermissionFont)).toBe(true)
+      expect(intermissionFont).toHaveLength(2)
 
       // Type assertion to ensure array has elements
-      expect(interFont[0]).toBeDefined()
-      expect(interFont[1]).toBeDefined()
+      expect(intermissionFont[0]).toBeDefined()
+      expect(intermissionFont[1]).toBeDefined()
 
-      const normal = interFont[0]!
-      const italic = interFont[1]!
+      const normal = intermissionFont[0]!
+      const italic = intermissionFont[1]!
 
       expect(normal.fontStyle).toBe('normal')
       expect(normal.fontWeight).toBe('100 900')
-      expect(normal.src).toContain('latin-wght-normal.woff2')
+      expect(normal.src).toContain('Intermission.woff')
 
       expect(italic.fontStyle).toBe('italic')
       expect(italic.fontWeight).toBe('100 900')
-      expect(italic.src).toContain('latin-wght-italic.woff2')
+      expect(italic.src).toContain('Intermission-Italic.woff')
     })
 
-    it('has IBM Plex Mono font configuration', () => {
-      const monoFont = globalFontface['IBM Plex Mono'] as FontRule
+    it('has IBMPlexMono font configuration', () => {
+      const monoFont = globalFontface.IBMPlexMono as FontRule
       expect(monoFont).toBeDefined()
       expect(monoFont.fontStyle).toBe('normal')
       expect(monoFont.fontWeight).toBe('400')
       expect(Array.isArray(monoFont.src)).toBe(true)
       expect(monoFont.src[0]).toContain('latin-400-normal.woff2')
-      expect(monoFont.src[1]).toContain('latin-400-normal.woff')
     })
 
-    it('has correct unicode ranges', () => {
+    it('has correct unicode range for IBMPlexMono', () => {
       const expectedRange =
         'U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD'
 
-      const interFont = globalFontface['Inter Variable'] as FontRule[]
-      expect(interFont[0]).toBeDefined()
-      const normal = interFont[0]!
-      expect(normal.unicodeRange).toBe(expectedRange)
-
-      const monoFont = globalFontface['IBM Plex Mono'] as FontRule
+      const monoFont = globalFontface.IBMPlexMono as FontRule
       expect(monoFont.unicodeRange).toBe(expectedRange)
     })
   })
