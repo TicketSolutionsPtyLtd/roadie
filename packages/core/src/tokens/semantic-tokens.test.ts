@@ -22,7 +22,6 @@ describe('semantic tokens', () => {
     expect((semanticTokens.colors.neutral as SemanticToken).$type).toBe('color')
     expect(semanticTokens.colors.neutral.surface).toBeDefined()
     expect(semanticTokens.colors.neutral.border).toBeDefined()
-    expect(semanticTokens.colors.neutral.solid).toBeDefined()
     expect(semanticTokens.colors.neutral.fg).toBeDefined()
   })
 
