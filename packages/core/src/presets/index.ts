@@ -85,13 +85,13 @@ export const roadie = definePreset({
         fontStyle: 'normal',
         fontDisplay: 'swap',
         fontWeight: '100 900',
-        src: 'url(/fonts/Intermission.woff2) format("woff2")'
+        src: 'url(https://assets.oztix.com.au/file/a676ef0f-099f-4383-8db8-a93b7c404af6=Intermission.woff) format("woff2")'
       },
       {
         fontStyle: 'italic',
         fontDisplay: 'swap',
         fontWeight: '100 900',
-        src: 'url(/fonts/Intermission-Italic.woff2) format("woff2")'
+        src: 'url(https://assets.oztix.com.au/file/097e749a-a48c-4882-8987-065175facf7d=Intermission-Italic.woff) format("woff2")'
       }
     ],
     IBMPlexMono: {
