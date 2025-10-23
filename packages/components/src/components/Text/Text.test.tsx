@@ -9,7 +9,7 @@ describe('Text', () => {
     const text = getByText('Hello World')
     expect(text).toBeInTheDocument()
     expect(text.tagName.toLowerCase()).toBe('span')
-    expect(text).toHaveClass('textStyle_ui', 'c_colorPalette.fg')
+    expect(text).toHaveClass('text', 'text--emphasis_default')
   })
 
   it('applies textStyle prop', () => {
@@ -29,19 +29,19 @@ describe('Text', () => {
       <Text emphasis='strong'>Strong Text</Text>
     )
     let text = getByText('Strong Text')
-    expect(text).toHaveClass('c_colorPalette.fg.strong', 'fw_semibold')
+    expect(text).toHaveClass('text--emphasis_strong')
 
     rerender(<Text emphasis='subtle'>Subtle Text</Text>)
     text = getByText('Subtle Text')
-    expect(text).toHaveClass('c_colorPalette.fg.subtle')
+    expect(text).toHaveClass('text--emphasis_subtle')
 
     rerender(<Text emphasis='subtler'>subtler Text</Text>)
     text = getByText('subtler Text')
-    expect(text).toHaveClass('c_colorPalette.fg.subtler')
+    expect(text).toHaveClass('text--emphasis_subtler')
 
     rerender(<Text emphasis='default'>Default Text</Text>)
     text = getByText('Default Text')
-    expect(text).toHaveClass('c_colorPalette.fg')
+    expect(text).toHaveClass('text--emphasis_default')
   })
 
   it('renders with different color palettes', () => {
@@ -49,37 +49,29 @@ describe('Text', () => {
       <Text colorPalette='accent'>Accent Text</Text>
     )
     let text = getByText('Accent Text')
-    expect(text).toHaveClass('c_colorPalette.fg')
+    expect(text).toHaveClass('color-palette_accent')
 
     rerender(<Text colorPalette='brand'>Brand Text</Text>)
     text = getByText('Brand Text')
-    expect(text).toHaveClass('c_colorPalette.fg')
+    expect(text).toHaveClass('color-palette_brand')
 
     rerender(<Text colorPalette='success'>Success Text</Text>)
     text = getByText('Success Text')
-    expect(text).toHaveClass('c_colorPalette.fg')
+    expect(text).toHaveClass('color-palette_success')
 
     rerender(<Text colorPalette='warning'>Warning Text</Text>)
     text = getByText('Warning Text')
-    expect(text).toHaveClass('c_colorPalette.fg')
+    expect(text).toHaveClass('color-palette_warning')
 
     rerender(<Text colorPalette='danger'>Danger Text</Text>)
     text = getByText('Danger Text')
-    expect(text).toHaveClass('c_colorPalette.fg')
+    expect(text).toHaveClass('color-palette_danger')
   })
 
   it('applies interactive styles', () => {
     const { getByText } = render(<Text interactive>Interactive Text</Text>)
     const text = getByText('Interactive Text')
-    expect(text).toHaveClass(
-      'cursor_pointer',
-      'hover:c_colorPalette.fg.hover',
-      'focus:c_colorPalette.fg.hover',
-      'active:c_colorPalette.fg.active',
-      'groupHover:c_colorPalette.fg.hover',
-      'groupFocus:c_colorPalette.fg.hover',
-      'groupActive:c_colorPalette.fg.active'
-    )
+    expect(text).toHaveClass('text--interactive_true')
   })
 
   it('applies line clamp prop', () => {
@@ -97,7 +89,7 @@ describe('Text', () => {
       </Text>
     )
     const text = getByTestId('text')
-    expect(text).toHaveClass('textStyle_ui', 'c_colorPalette.fg')
+    expect(text).toHaveClass('text')
     expect(text).toHaveAttribute('title', 'tooltip')
     expect(text).toHaveAttribute('aria-label', 'Accessible text')
   })
@@ -117,16 +109,11 @@ describe('Text', () => {
     )
     const text = getByText('Styled Text')
     expect(text).toHaveClass(
+      'text',
+      'text--emphasis_strong',
+      'text--interactive_true',
       'textStyle_heading.2',
-      'c_colorPalette.fg.strong',
-      'fw_semibold',
-      'cursor_pointer',
-      'hover:c_colorPalette.fg.hover',
-      'focus:c_colorPalette.fg.hover',
-      'active:c_colorPalette.fg.active',
-      'groupHover:c_colorPalette.fg.hover',
-      'groupFocus:c_colorPalette.fg.hover',
-      'groupActive:c_colorPalette.fg.active',
+      'color-palette_accent',
       'lc_2',
       'custom-class'
     )

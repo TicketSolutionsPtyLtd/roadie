@@ -8,17 +8,26 @@ export const headingRecipe = defineRecipe({
     color: 'colorPalette.fg.strong'
   },
   variants: {
-    as: {
-      h1: { textStyle: 'display.xl' },
-      h2: { textStyle: 'display.ui' },
-      h3: { textStyle: 'display.sm' },
-      h4: { textStyle: 'display.xs' },
-      h5: { textStyle: 'heading.lg' },
-      h6: { textStyle: 'heading.md' }
+    emphasis: {
+      default: {
+        color: 'colorPalette.fg.strong'
+      },
+      strong: {
+        color: 'colorPalette.fg.strong',
+        fontWeight: 'black'
+      },
+      subtle: {
+        color: 'colorPalette.fg.subtle',
+        fontWeight: 'medium'
+      },
+      subtler: {
+        color: 'colorPalette.fg.subtler',
+        fontWeight: 'normal'
+      }
     }
   },
   defaultVariants: {
-    as: 'h2'
+    emphasis: 'default'
   }
 })
 

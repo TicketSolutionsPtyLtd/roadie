@@ -9,7 +9,7 @@ describe('Heading', () => {
     const heading = getByText('Hello World')
     expect(heading).toBeInTheDocument()
     expect(heading.tagName.toLowerCase()).toBe('h2')
-    expect(heading).toHaveClass('textStyle_display.ui')
+    expect(heading).toHaveClass('heading', 'heading--emphasis_default')
   })
 
   it('renders with different heading levels', () => {
@@ -29,17 +29,17 @@ describe('Heading', () => {
       const heading = getByText(`${level} Heading`)
       expect(heading).toBeInTheDocument()
       expect(heading.tagName.toLowerCase()).toBe(level)
-      expect(heading).toHaveClass('textStyle_display.ui')
+      expect(heading).toHaveClass('heading')
       rerender(<></>)
     })
   })
 
   it('applies text style', () => {
     const { getByText } = render(
-      <Heading textStyle='display.ui.1'>Large Heading</Heading>
+      <Heading textStyle='display.xl'>Large Heading</Heading>
     )
     const heading = getByText('Large Heading')
-    expect(heading).toHaveClass('textStyle_display.ui.1')
+    expect(heading).toHaveClass('textStyle_display.xl')
   })
 
   it('inherits Text props', () => {
@@ -54,7 +54,7 @@ describe('Heading', () => {
       </Heading>
     )
     const heading = getByTestId('heading')
-    expect(heading).toHaveClass('textStyle_display.ui', 'c_neutral.fg.subtle')
+    expect(heading).toHaveClass('heading', 'c_neutral.fg.subtle')
     expect(heading).toHaveAttribute('title', 'tooltip')
     expect(heading).toHaveAttribute('aria-label', 'Accessible heading')
   })
@@ -65,6 +65,26 @@ describe('Heading', () => {
     )
     const heading = getByText('Multi-line heading that should be clamped')
     expect(heading).toHaveClass('lc_2')
+  })
+
+  it('renders with different emphasis', () => {
+    const { rerender, getByText } = render(
+      <Heading emphasis='default'>Default Heading</Heading>
+    )
+    let heading = getByText('Default Heading')
+    expect(heading).toHaveClass('heading--emphasis_default')
+
+    rerender(<Heading emphasis='strong'>Strong Heading</Heading>)
+    heading = getByText('Strong Heading')
+    expect(heading).toHaveClass('heading--emphasis_strong')
+
+    rerender(<Heading emphasis='subtle'>Subtle Heading</Heading>)
+    heading = getByText('Subtle Heading')
+    expect(heading).toHaveClass('heading--emphasis_subtle')
+
+    rerender(<Heading emphasis='subtler'>Subtler Heading</Heading>)
+    heading = getByText('Subtler Heading')
+    expect(heading).toHaveClass('heading--emphasis_subtler')
   })
 
   it('renders with different color palettes', () => {
@@ -87,7 +107,8 @@ describe('Heading', () => {
     const { getByText } = render(
       <Heading
         as='h1'
-        textStyle='display.ui.1'
+        textStyle='display.xl'
+        emphasis='strong'
         colorPalette='brand'
         className='custom-class'
       >
@@ -96,6 +117,12 @@ describe('Heading', () => {
     )
     const heading = getByText('Combined styles')
     expect(heading.tagName.toLowerCase()).toBe('h1')
-    expect(heading).toHaveClass('textStyle_display.ui.1', 'custom-class')
+    expect(heading).toHaveClass(
+      'heading',
+      'heading--emphasis_strong',
+      'textStyle_display.xl',
+      'color-palette_brand',
+      'custom-class'
+    )
   })
 })

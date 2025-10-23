@@ -111,4 +111,20 @@ live
 </View>
 ```
 
+### Emphasis levels
+
+If you need to customize the emphasis of a heading, you can use the `emphasis` prop to adjust its visual weight.
+
+But only use this for special cases, try to use textStyles that already have the desired emphasis level built in.
+
+```tsx
+live
+<View gap='200'>
+  <Heading emphasis='strong'>Strong emphasis heading</Heading>
+  <Heading emphasis='default'>Default emphasis heading</Heading>
+  <Heading emphasis='subtle'>Subtle emphasis heading</Heading>
+  <Heading emphasis='subtler'>Subtler emphasis heading</Heading>
+</View>
+```
+
 <PropsDefinitions componentPath='packages/components/src/components/Heading/index.tsx' />

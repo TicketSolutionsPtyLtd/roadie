@@ -9,14 +9,7 @@ describe('Code', () => {
     const code = getByText('const x = 42;')
     expect(code).toBeInTheDocument()
     expect(code.tagName.toLowerCase()).toBe('code')
-    expect(code).toHaveClass(
-      'bg-c_colorPalette.surface.subtle',
-      'textStyle_code',
-      'px_050',
-      'bdr_050',
-      'bd_1px_solid',
-      'bd-c_colorPalette.border'
-    )
+    expect(code).toHaveClass('code', 'code--emphasis_default')
   })
 
   it('renders with different emphasis', () => {
@@ -24,18 +17,15 @@ describe('Code', () => {
       <Code emphasis='strong'>strong code</Code>
     )
     let code = getByText('strong code')
-    expect(code).toHaveClass(
-      'bd-c_colorPalette.border.strong',
-      'bg-c_colorPalette.surface.strong'
-    )
+    expect(code).toHaveClass('code--emphasis_strong')
 
     rerender(<Code emphasis='subtle'>subtle code</Code>)
     code = getByText('subtle code')
-    expect(code).toHaveClass('bd-c_colorPalette.border.subtle')
+    expect(code).toHaveClass('code--emphasis_subtle')
 
     rerender(<Code emphasis='subtler'>subtler code</Code>)
     code = getByText('subtler code')
-    expect(code).toHaveClass('bd-c_transparent')
+    expect(code).toHaveClass('code--emphasis_subtler')
   })
 
   it('renders with different color palettes', () => {
@@ -85,12 +75,9 @@ describe('Code', () => {
     )
     const code = getByText('Combined styles')
     expect(code).toHaveClass(
-      'bg-c_colorPalette.surface.subtle',
-      'textStyle_code',
-      'px_050',
-      'bdr_050',
-      'bd_1px_solid',
-      'bd-c_transparent',
+      'code',
+      'code--emphasis_subtler',
+      'color-palette_accent',
       'fs_lg',
       'custom-class'
     )
