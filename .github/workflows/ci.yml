@@ -24,9 +24,12 @@ env:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
@@ -39,18 +42,28 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
 
+      - name: Cache Turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
       - name: Install dependencies
-        run: |
-          pnpm install --frozen-lockfile || pnpm install
+        run: pnpm install --frozen-lockfile || pnpm install
 
       - name: Run lint
         run: pnpm lint
 
   typecheck:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
@@ -62,6 +75,14 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
+
+      - name: Cache Turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile || pnpm install
@@ -71,9 +92,12 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
@@ -85,6 +109,14 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
+
+      - name: Cache Turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile || pnpm install
@@ -95,9 +127,12 @@ jobs:
   build-packages:
     needs: [lint, typecheck, test]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
@@ -110,30 +145,16 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
 
+      - name: Cache Turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile || pnpm install
-
-      - name: Cache TypeScript
-        uses: actions/cache@v3
-        with:
-          path: |
-            packages/core/.tsbuildinfo
-            packages/components/.tsbuildinfo
-            packages/core/dist
-            packages/components/dist
-          key: ${{ runner.os }}-typescript-${{ hashFiles('packages/core/src/**', 'packages/components/src/**') }}
-          restore-keys: |
-            ${{ runner.os }}-typescript-
-
-      - name: Cache PandaCSS
-        uses: actions/cache@v3
-        with:
-          path: |
-            packages/core/roadie-core
-            docs/roadie-core
-          key: ${{ runner.os }}-pandacss-${{ hashFiles('**/panda.config.{js,ts}') }}
-          restore-keys: |
-            ${{ runner.os }}-pandacss-
 
       - name: Build packages
         run: pnpm build
