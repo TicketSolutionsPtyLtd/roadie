@@ -10,7 +10,7 @@ import { type TextVariantProps, text } from '@oztix/roadie-core/recipes'
 /**
  * Text component for displaying content with various styling options
  */
-export interface TextProps extends HTMLStyledProps<'span'>, TextVariantProps {
+export interface TextProps extends HTMLStyledProps<'span'> {
   /**
    * The visual emphasis of the text
    * @default 'default'

@@ -4,6 +4,7 @@ import { roadie } from '@oztix/roadie-core/presets'
 
 export default defineConfig({
   presets: [roadie],
+  lightningcss: true,
   include: ['./src/**/*.{js,jsx,ts,tsx}'],
   importMap: '@oztix/roadie-core',
   outdir: 'roadie-core',

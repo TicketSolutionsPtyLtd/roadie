@@ -4,6 +4,7 @@ import { roadie } from './src/presets'
 
 export default defineConfig({
   presets: [roadie],
+  lightningcss: true,
   // Where to look for your css declarations
   include: ['./src/**/*.{js,jsx,ts,tsx}'],
   // The framework to use for jsx

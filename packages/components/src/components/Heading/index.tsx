@@ -13,9 +13,7 @@ type HeadingStyle = Extract<JsxStyleProps['textStyle'], `display.${string}`>
 /**
  * A heading component that uses display styles for titles and section headers
  */
-export interface HeadingProps
-  extends HTMLStyledProps<'h2'>,
-    HeadingVariantProps {
+export interface HeadingProps extends HTMLStyledProps<'h2'> {
   /**
    * The heading element to render
    * @default 'h2'

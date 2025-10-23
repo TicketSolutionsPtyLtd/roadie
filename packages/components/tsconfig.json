@@ -5,6 +5,7 @@
     "rootDir": "src",
     "composite": true,
     "declarationMap": true,
+    "noEmit": false,
     "jsx": "react-jsx",
     "jsxImportSource": "react",
     "types": ["vitest/globals", "@testing-library/jest-dom"]

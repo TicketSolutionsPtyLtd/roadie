@@ -10,9 +10,7 @@ import { type ButtonVariantProps, button } from '@oztix/roadie-core/recipes'
 /**
  * A button component with various emphasis levels and sizes
  */
-export interface ButtonProps
-  extends HTMLStyledProps<'button'>,
-    ButtonVariantProps {
+export interface ButtonProps extends HTMLStyledProps<'button'> {
   /**
    * The visual emphasis of the button
    * @default 'default'

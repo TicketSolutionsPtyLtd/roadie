@@ -2,7 +2,8 @@
   "extends": "../tsconfig.react.json",
   "compilerOptions": {
     "jsx": "preserve",
-    "composite": false,
+    "composite": true,
+    "noEmit": false,
     "plugins": [
       {
         "name": "next"

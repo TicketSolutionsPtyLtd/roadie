@@ -50,6 +50,7 @@
       "import": "./dist/recipes/index.js"
     }
   },
+  "sideEffects": false,
   "files": [
     "dist"
   ],

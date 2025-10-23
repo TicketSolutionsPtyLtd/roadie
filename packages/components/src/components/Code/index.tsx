@@ -10,7 +10,7 @@ import { type CodeVariantProps, code } from '@oztix/roadie-core/recipes'
 /**
  * A code component that inherits from Text and renders as a code element
  */
-export interface CodeProps extends HTMLStyledProps<'code'>, CodeVariantProps {
+export interface CodeProps extends HTMLStyledProps<'code'> {
   /**
    * The appearance of the code block
    * @default 'default'
