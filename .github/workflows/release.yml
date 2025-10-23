@@ -1,99 +1,50 @@
 name: Release
 
 on:
-  workflow_run:
-    workflows: ['CI']
-    types:
-      - completed
+  push:
     branches:
       - main
+    paths:
+      - '.changeset/**'
+      - 'packages/**'
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   release:
     name: Release
-    # Only run if the CI workflow succeeded
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     outputs:
       published: ${{ steps.changesets.outputs.published }}
-    environment:
-      name: production
-      url: ${{ steps.changesets.outputs.publishedPackages }}
+      publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}
     permissions:
       contents: write
+      pull-requests: write
       id-token: write
-    env:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
+      - name: Setup
+        uses: ./.github/composite-actions/setup
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile || pnpm install
-
-      - name: Version packages
-        id: version
-        run: |
-          # Check if there are changesets to process
-          if [ -n "$(ls .changeset/*.md 2>/dev/null | grep -v README)" ]; then
-            echo "has_changesets=true" >> "$GITHUB_OUTPUT"
-
-            # Configure git
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git config user.name "github-actions[bot]"
-
-            # Version packages
-            pnpm changeset version
-
-            # Commit version changes
-            git add .
-            git commit -m "chore: version packages" || echo "No changes to commit"
-            git push
-          else
-            echo "has_changesets=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Build packages
-        if: steps.version.outputs.has_changesets == 'true'
-        run: pnpm build
-
-      - name: Publish to npm
+      - name: Create release PR or publish
         id: changesets
-        if: steps.version.outputs.has_changesets == 'true'
-        run: |
-          pnpm changeset publish
-          echo "published=true" >> "$GITHUB_OUTPUT"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Create GitHub Releases
-        if: steps.version.outputs.has_changesets == 'true'
         uses: changesets/action@v1
         with:
-          createGithubReleases: true
-          publish: echo "Already published"
+          publish: pnpm release
+          title: 'chore: version packages'
+          commit: 'chore: version packages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
 
-      - name: Build packages and docs
+      - name: Build docs
         if: steps.changesets.outputs.published == 'true'
-        run: pnpm build
+        run: pnpm --filter @oztix/roadie-docs build
         env:
           NEXT_PUBLIC_BASE_PATH: /roadie
 
