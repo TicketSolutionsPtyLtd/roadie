@@ -36,10 +36,10 @@ describe('Heading', () => {
 
   it('applies text style', () => {
     const { getByText } = render(
-      <Heading textStyle='display.xl'>Large Heading</Heading>
+      <Heading textStyle='display.ui.1'>Large Heading</Heading>
     )
     const heading = getByText('Large Heading')
-    expect(heading).toHaveClass('textStyle_display.xl')
+    expect(heading).toHaveClass('textStyle_display.ui.1')
   })
 
   it('inherits Text props', () => {
@@ -107,7 +107,7 @@ describe('Heading', () => {
     const { getByText } = render(
       <Heading
         as='h1'
-        textStyle='display.xl'
+        textStyle='display.ui.1'
         emphasis='strong'
         colorPalette='brand'
         className='custom-class'
@@ -120,7 +120,7 @@ describe('Heading', () => {
     expect(heading).toHaveClass(
       'heading',
       'heading--emphasis_strong',
-      'textStyle_display.xl',
+      'textStyle_display.ui.1',
       'color-palette_brand',
       'custom-class'
     )

@@ -8,6 +8,7 @@ import { type HeadingVariantProps, heading } from '@oztix/roadie-core/recipes'
 import type { JsxStyleProps } from '@oztix/roadie-core/types'
 
 type HeadingElement = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'label'
+type HeadingStyle = Extract<JsxStyleProps['textStyle'], `display.${string}`>
 
 /**
  * A heading component that uses display styles for titles and section headers
@@ -25,7 +26,7 @@ export interface HeadingProps
    * The text style to use for the heading
    * @default 'display.ui'
    */
-  textStyle?: JsxStyleProps['textStyle']
+  textStyle?: HeadingStyle
 
   /**
    * The color palette to use for the heading
