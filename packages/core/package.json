@@ -1,6 +1,6 @@
 {
   "name": "@oztix/roadie-core",
-  "version": "0.2.1",
+  "version": "1.0.0",
   "description": "The design tokens and styled system for Roadie Design System at Oztix",
   "type": "module",
   "main": "./dist/index.js",
