@@ -7,4 +7,6 @@ import { View as ViewPattern } from '@oztix/roadie-core/jsx'
  */
 export const View = ViewPattern
 
+export type ViewProps = React.ComponentProps<typeof ViewPattern>
+
 View.displayName = 'View'
