@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "prepare": "mkdir -p public/fonts && cp -r ../packages/core/dist/fonts/* public/fonts/ && panda codegen",
+    "prepare": "panda codegen",
     "build": "next build",
     "clean": "rm -rf node_modules roadie-core .next out",
     "dev": "run-p dev:*",
