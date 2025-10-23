@@ -2,12 +2,11 @@ name: CI
 
 on:
   push:
-    paths:
-      - 'packages/core/**'
-      - 'packages/components/**'
-      - 'docs/**'
-      - 'pnpm-lock.yaml'
-      - '.github/workflows/**'
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -15,7 +14,7 @@ permissions:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
   NEXT_TELEMETRY_DISABLED: 1
@@ -24,70 +23,45 @@ env:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: actions/checkout@v5
         with:
-          version: 9
+          fetch-depth: 2
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: |
-          pnpm install --frozen-lockfile || pnpm install
+      - name: Setup
+        uses: ./.github/composite-actions/setup
 
       - name: Run lint
         run: pnpm lint
 
   typecheck:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: actions/checkout@v5
         with:
-          version: 9
+          fetch-depth: 2
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile || pnpm install
+      - name: Setup
+        uses: ./.github/composite-actions/setup
 
       - name: Run typecheck
         run: pnpm typecheck
 
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: actions/checkout@v5
         with:
-          version: 9
+          fetch-depth: 2
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile || pnpm install
+      - name: Setup
+        uses: ./.github/composite-actions/setup
 
       - name: Run tests
         run: pnpm test
@@ -95,45 +69,15 @@ jobs:
   build-packages:
     needs: [lint, typecheck, test]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: actions/checkout@v5
         with:
-          version: 9
+          fetch-depth: 2
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile || pnpm install
-
-      - name: Cache TypeScript
-        uses: actions/cache@v3
-        with:
-          path: |
-            packages/core/.tsbuildinfo
-            packages/components/.tsbuildinfo
-            packages/core/dist
-            packages/components/dist
-          key: ${{ runner.os }}-typescript-${{ hashFiles('packages/core/src/**', 'packages/components/src/**') }}
-          restore-keys: |
-            ${{ runner.os }}-typescript-
-
-      - name: Cache PandaCSS
-        uses: actions/cache@v3
-        with:
-          path: |
-            packages/core/roadie-core
-            docs/roadie-core
-          key: ${{ runner.os }}-pandacss-${{ hashFiles('**/panda.config.{js,ts}') }}
-          restore-keys: |
-            ${{ runner.os }}-pandacss-
+      - name: Setup
+        uses: ./.github/composite-actions/setup
 
       - name: Build packages
         run: pnpm build

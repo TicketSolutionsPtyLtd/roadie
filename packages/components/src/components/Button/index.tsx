@@ -1,188 +1,48 @@
-import {
-  Button as AriaButton,
-  type ButtonProps as AriaButtonProps
-} from 'react-aria-components'
+import React from 'react'
 
-import { cva, cx } from '@oztix/roadie-core/css'
+import { ark } from '@ark-ui/react/factory'
 
-/**
- * Button emphasis variants
- */
-type ButtonEmphasis = 'strong' | 'default' | 'subtle' | 'muted'
+import type { ColorPalette } from '@oztix/roadie-core'
+import { styled } from '@oztix/roadie-core/jsx'
+import type { HTMLStyledProps } from '@oztix/roadie-core/jsx'
+import { type ButtonVariantProps, button } from '@oztix/roadie-core/recipes'
 
 /**
- * Button size variants
+ * A button component with various emphasis levels and sizes
  */
-type ButtonSize = 'sm' | 'md' | 'lg'
+export interface ButtonProps extends HTMLStyledProps<'button'> {
+  /**
+   * The visual emphasis of the button
+   * @default 'default'
+   */
+  emphasis?: ButtonVariantProps['emphasis']
 
-/**
- * Props for the Button component
- */
-export interface ButtonProps extends Omit<AriaButtonProps, 'className'> {
-  /** The visual style of the button */
-  emphasis?: ButtonEmphasis
-  /** The size of the button */
-  size?: ButtonSize
-  /** The color palette to use for the button */
-  colorPalette?:
-    | 'neutral'
-    | 'accent'
-    | 'brand'
-    | 'information'
-    | 'success'
-    | 'warning'
-    | 'danger'
-  /** Additional class names to be applied to the button */
-  className?: string
+  /**
+   * The size of the button
+   * @default 'md'
+   */
+  size?: ButtonVariantProps['size']
+
+  /**
+   * The color palette to use for the button
+   * @default 'neutral'
+   */
+  colorPalette?: ColorPalette
+
+  /**
+   * When true, the component will pass props to its child component
+   */
+  asChild?: boolean
+
+  /**
+   * The content to display
+   */
+  children?: React.ReactNode
 }
 
-export const buttonRecipe = cva({
-  base: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
-    borderRadius: '050',
-    fontWeight: 'medium',
-    fontFamily: 'ui',
-    cursor: 'pointer',
-    borderWidth: '1px',
-    borderStyle: 'solid',
-    borderColor: 'transparent',
-    transition: 'all 0.2s',
-    color: 'colorPalette.fg',
-    _hover: {
-      color: 'colorPalette.fg.hover'
-    },
-    _active: {
-      color: 'colorPalette.fg.active'
-    },
-    _disabled: {
-      opacity: 0.4,
-      cursor: 'not-allowed',
-      color: 'colorPalette.fg.subtle'
-    },
-    _focusVisible: {
-      outlineColor: 'colorPalette.border.strong',
-      outlineWidth: '2px',
-      outlineStyle: 'solid',
-      outlineOffset: '2px'
-    }
-  },
-  variants: {
-    emphasis: {
-      strong: {
-        color: 'colorPalette.fg.inverted',
-        backgroundColor: 'colorPalette.solid.strong',
-        _hover: {
-          color: 'colorPalette.fg.inverted.hover',
-          backgroundColor: 'colorPalette.solid.strong.hover'
-        },
-        _active: {
-          color: 'colorPalette.fg.inverted.active',
-          backgroundColor: 'colorPalette.solid.strong.active'
-        }
-      },
-      default: {
-        borderColor: 'colorPalette.border',
-        backgroundColor: 'colorPalette.surface.subtle',
-        _hover: {
-          borderColor: 'colorPalette.border.hover',
-          backgroundColor: 'colorPalette.surface.subtle.hover'
-        },
-        _active: {
-          borderColor: 'colorPalette.border.active',
-          backgroundColor: 'colorPalette.surface.subtle.active'
-        }
-      },
-      subtle: {
-        backgroundColor: 'colorPalette.solid.subtle',
+export const Button = styled(
+  ark.button,
+  button
+) as React.ForwardRefExoticComponent<ButtonProps>
 
-        _hover: {
-          backgroundColor: 'colorPalette.solid.subtle.hover'
-        },
-        _active: {
-          backgroundColor: 'colorPalette.solid.subtle.active'
-        }
-      },
-      muted: {
-        _hover: {
-          backgroundColor: 'colorPalette.solid.subtle.hover'
-        },
-        _active: {
-          backgroundColor: 'colorPalette.solid.subtle.active'
-        }
-      }
-    },
-    colorPalette: {
-      neutral: {
-        colorPalette: 'neutral'
-      },
-      accent: {
-        colorPalette: 'accent'
-      },
-      brand: {
-        colorPalette: 'brand'
-      },
-      information: {
-        colorPalette: 'information'
-      },
-      success: {
-        colorPalette: 'success'
-      },
-      warning: {
-        colorPalette: 'warning'
-      },
-      danger: {
-        colorPalette: 'danger'
-      }
-    },
-    size: {
-      sm: {
-        minHeight: '400',
-        fontSize: 'sm',
-        px: '200',
-        py: '075'
-      },
-      md: {
-        minHeight: '500',
-        fontSize: 'md',
-        px: '200',
-        py: '100'
-      },
-      lg: {
-        minHeight: '600',
-        fontSize: 'lg',
-        px: '300',
-        py: '150'
-      }
-    }
-  },
-  defaultVariants: {
-    emphasis: 'default',
-    colorPalette: 'neutral',
-    size: 'md'
-  }
-})
-
-export function Button({
-  children,
-  emphasis = 'default',
-  size = 'md',
-  colorPalette = 'neutral',
-  isDisabled = false,
-  onPress,
-  className,
-  ...props
-}: ButtonProps) {
-  return (
-    <AriaButton
-      onPress={onPress}
-      isDisabled={isDisabled}
-      className={cx(buttonRecipe({ emphasis, size, colorPalette }), className)}
-      {...props}
-    >
-      {children}
-    </AriaButton>
-  )
-}
+Button.displayName = 'Button'

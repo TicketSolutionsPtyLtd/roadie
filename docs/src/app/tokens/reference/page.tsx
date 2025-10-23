@@ -36,9 +36,9 @@ const TokenPreview = ({
       <View
         width='300'
         height='300'
-        borderRadius='050'
+        borderRadius='sm'
         border='1px solid'
-        borderColor='neutral.border.muted'
+        borderColor='neutral.border.subtler'
         style={{
           backgroundColor: `var(--${cssName})`
         }}
@@ -56,7 +56,7 @@ const TokenPreview = ({
     return (
       <View
         height='200'
-        borderRadius='050'
+        borderRadius='sm'
         backgroundColor='accent.surface.strong'
         order={order}
         style={{
@@ -326,7 +326,7 @@ export default function TokensReference() {
           }
           color='neutral.fg'
           padding='150'
-          borderRadius='100'
+          borderRadius='md'
           border='2px solid'
           borderColor='neutral.border'
           bg='neutral.surface.sunken'
@@ -356,7 +356,7 @@ export default function TokensReference() {
           padding='150'
           flexDirection='row'
           alignItems='center'
-          borderRadius='100'
+          borderRadius='md'
           border='1px solid'
           borderColor='neutral.border'
           bg='neutral.surface.raised'

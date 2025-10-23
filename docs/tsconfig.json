@@ -2,7 +2,8 @@
   "extends": "../tsconfig.react.json",
   "compilerOptions": {
     "jsx": "preserve",
-    "composite": false,
+    "composite": true,
+    "noEmit": false,
     "plugins": [
       {
         "name": "next"
@@ -21,8 +22,7 @@
     "**/*.ts",
     "**/*.tsx",
     "**/*.mdx",
-    ".next/types/**/*.ts",
-    "roadie-core"
+    ".next/types/**/*.ts"
   ],
   "exclude": ["node_modules", "out", ".next", "dist"]
 }

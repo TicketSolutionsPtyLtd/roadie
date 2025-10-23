@@ -111,17 +111,19 @@ export function processSemanticTokenGroup(group, result) {
   for (const [key, value] of Object.entries(group)) {
     if (key.startsWith('$')) continue
 
+    // Always normalize the key, regardless of whether it's a token or a group
+    const tokenKey = key.toLowerCase() === 'default' ? 'DEFAULT' : key
+
     if (typeof value !== 'object') continue
 
     if (!value.$type || value.$value === undefined) {
       // This is a nested group
-      result[key] = {}
-      processSemanticTokenGroup(value, result[key])
+      result[tokenKey] = {} // Use normalized tokenKey here
+      processSemanticTokenGroup(value, result[tokenKey])
       continue
     }
 
     // This is a semantic token
-    const tokenKey = key.toLowerCase() === 'default' ? 'DEFAULT' : key
     const hasMode = !!value.$extensions?.mode
 
     result[tokenKey] = {

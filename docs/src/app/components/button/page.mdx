@@ -40,8 +40,8 @@ live
   <Button emphasis='subtle'>
     Subtle Button
   </Button>
-  <Button emphasis='muted'>
-    Muted Button
+  <Button emphasis='subtler'>
+    Subtler Button
   </Button>
 </View>
 ```
@@ -51,8 +51,9 @@ live
 ```tsx
 live
 <View gap='200' flexDirection='row' alignItems='center'>
+  <Button size='xs'>Extra Small</Button>
   <Button size='sm'>Small</Button>
-  <Button size='md'>Medium</Button>
+  <Button size='md'>Medium (Default)</Button>
   <Button size='lg'>Large</Button>
 </View>
 ```
@@ -144,25 +145,25 @@ live
     </Button>
   </View>
   <View flexDirection='row' gap='200'>
-    <Button emphasis='muted' colorPalette='neutral'>
+    <Button emphasis='subtler' colorPalette='neutral'>
       Neutral
     </Button>
-    <Button emphasis='muted' colorPalette='accent'>
+    <Button emphasis='subtler' colorPalette='accent'>
       Accent
     </Button>
-    <Button emphasis='muted' colorPalette='brand'>
+    <Button emphasis='subtler' colorPalette='brand'>
       Brand
     </Button>
-    <Button emphasis='muted' colorPalette='information'>
+    <Button emphasis='subtler' colorPalette='information'>
       Information
     </Button>
-    <Button emphasis='muted' colorPalette='success'>
+    <Button emphasis='subtler' colorPalette='success'>
       Success
     </Button>
-    <Button emphasis='muted' colorPalette='warning'>
+    <Button emphasis='subtler' colorPalette='warning'>
       Warning
     </Button>
-    <Button emphasis='muted' colorPalette='danger'>
+    <Button emphasis='subtler' colorPalette='danger'>
       Danger
     </Button>
   </View>
@@ -173,7 +174,7 @@ live
 
 ```tsx
 live
-<Button onPress={() => alert('Button pressed')}>
+<Button onClick={() => alert('Button pressed')}>
   Click me
 </Button>
 ```

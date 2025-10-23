@@ -46,11 +46,11 @@
     "react-dom": "^19.0.0"
   },
   "dependencies": {
-    "@oztix/roadie-core": "workspace:^0.2.1",
-    "react-aria-components": "1.0.0"
+    "@ark-ui/react": "5.26.2",
+    "@oztix/roadie-core": "workspace:*"
   },
   "devDependencies": {
-    "@pandacss/dev": "0.48.1",
+    "@pandacss/dev": "1.4.3",
     "@testing-library/jest-dom": "6.1.6",
     "@testing-library/react": "15.0.0",
     "@testing-library/user-event": "14.5.1",

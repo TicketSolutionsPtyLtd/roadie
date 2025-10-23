@@ -7,6 +7,7 @@ export default defineConfig(({ watch }) => ({
   },
   splitting: false,
   format: ['esm'],
+  minify: !watch,
   dts: {
     compilerOptions: {
       composite: false,

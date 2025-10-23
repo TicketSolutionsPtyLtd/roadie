@@ -93,9 +93,9 @@ function PropsList({
         <View
           px='300'
           py='200'
-          bg='neutral.surface.subtle'
+          bg='neutral.surface.subtler'
           borderBottom='1px solid'
-          borderBottomColor='neutral.border.subtle'
+          borderBottomColor='neutral.border.subtler'
         >
           <Text fontSize='md' fontWeight='bold' emphasis='subtle'>
             {title}
@@ -106,7 +106,7 @@ function PropsList({
         <View
           key={name}
           borderBottom='1px solid'
-          borderColor='neutral.border.subtle'
+          borderBottomColor='neutral.border.subtler'
           px='300'
           py='200'
           gap='100'
@@ -213,7 +213,7 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
         pt='800'
         mt='800'
         borderTop='1px solid'
-        borderColor='neutral.border.subtle'
+        borderTopColor='neutral.border.subtle'
       >
         <Text as='h2' fontSize='xl' fontWeight='bold'>
           Props
@@ -223,16 +223,16 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
           flexDirection='column'
           border='1px solid'
           borderColor='neutral.border.subtle'
-          borderRadius='100'
+          borderRadius='md'
         >
           <View
             borderBottom='1px solid'
-            borderColor='neutral.border.subtle'
+            borderBottomColor='neutral.border.subtle'
             alignSelf='stretch'
             gap='100'
             px='300'
             py='200'
-            bg='neutral.surface.subtle'
+            bg='neutral.surface.subtler'
           >
             <Text as='h3' fontSize='xl' fontWeight='bold'>
               {interfaceName}

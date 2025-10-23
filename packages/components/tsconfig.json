@@ -5,6 +5,7 @@
     "rootDir": "src",
     "composite": true,
     "declarationMap": true,
+    "noEmit": false,
     "jsx": "react-jsx",
     "jsxImportSource": "react",
     "types": ["vitest/globals", "@testing-library/jest-dom"]
@@ -15,5 +16,6 @@
     "src/components/**/*.ts",
     "src/components/**/*.tsx"
   ],
-  "exclude": ["dist", "node_modules"]
+  "exclude": ["dist", "node_modules"],
+  "references": [{ "path": "../core" }]
 }

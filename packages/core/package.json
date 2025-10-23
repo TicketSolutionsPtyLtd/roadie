@@ -42,8 +42,15 @@
       "require": "./dist/jsx/index.js",
       "import": "./dist/jsx/index.js"
     },
-    "./styles.css": "./dist/styles.css"
+    "./styles.css": "./dist/styles.css",
+    "./fonts/*": "./dist/fonts/*",
+    "./recipes": {
+      "types": "./dist/recipes/index.d.ts",
+      "require": "./dist/recipes/index.js",
+      "import": "./dist/recipes/index.js"
+    }
   },
+  "sideEffects": false,
   "files": [
     "dist"
   ],
@@ -52,7 +59,8 @@
   },
   "scripts": {
     "clean": "rm -rf node_modules dist",
-    "build": "pnpm build:tokens && tsup && pnpm build:panda",
+    "build": "pnpm build:tokens && tsup && pnpm build:fonts && pnpm build:panda",
+    "build:fonts": "mkdir -p dist/fonts && cp -r src/fonts/* dist/fonts/",
     "build:panda": "panda codegen --c panda.config.js && panda emit-pkg --base dist",
     "build:tokens": "node scripts/build-panda-tokens.js && node scripts/build-figma-tokens.js",
     "dev": "run-p dev:*",
@@ -73,7 +81,7 @@
   },
   "license": "ISC",
   "devDependencies": {
-    "@pandacss/dev": "0.48.1",
+    "@pandacss/dev": "1.4.3",
     "@types/node": "22.10.2",
     "@vitejs/plugin-react": "4.3.4",
     "@vitest/coverage-v8": "1.6.0",

@@ -98,7 +98,7 @@ const components = {
   },
   code: ({ children, className }: CodeProps) => {
     if (className === undefined) {
-      return <Code fontSize='md'>{children}</Code>
+      return <Code>{children}</Code>
     }
 
     return (

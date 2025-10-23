@@ -1,12 +1,12 @@
 name: Docs
 
 on:
-  workflow_run:
-    workflows: ['CI']
-    types:
-      - completed
+  push:
     branches:
       - main
+    paths:
+      - 'docs/**'
+      - 'packages/**'
 
 # Allow only one docs deployment at a time
 concurrency:
@@ -15,10 +15,7 @@ concurrency:
 
 jobs:
   build-and-deploy:
-    # Only run if CI workflow succeeded and it's a docs change
-    if: |
-      github.event.workflow_run.conclusion == 'success' &&
-      !contains(github.event.workflow_run.head_commit.message, 'chore: update versions and changelogs')
+    name: Build and deploy docs
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -29,25 +26,11 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/checkout@v5
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
+      - name: Setup
+        uses: ./.github/composite-actions/setup
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: |
-          pnpm install --frozen-lockfile || pnpm install
       - name: Setup Pages
         uses: actions/configure-pages@v4
 

@@ -61,10 +61,11 @@ function CopyButton({ code }: { code: string }) {
   return (
     <div className={css({ position: 'absolute', top: '150', right: '150' })}>
       <Button
-        onPress={handleCopy}
+        onClick={handleCopy}
         size='sm'
-        emphasis='muted'
-        className={css({ gap: '050' })}
+        emphasis='subtler'
+        gap='50'
+        aria-label='Copy code to clipboard'
       >
         {copied && 'Copied!'}
         <Copy size={16} />
