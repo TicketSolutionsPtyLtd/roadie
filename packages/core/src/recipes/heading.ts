@@ -5,7 +5,8 @@ export const headingRecipe = defineRecipe({
   jsx: ['Heading'],
   base: {
     textStyle: 'display.ui',
-    color: 'colorPalette.fg.strong'
+    color: 'colorPalette.fg.strong',
+    colorPalette: 'neutral'
   },
   variants: {
     emphasis: {
