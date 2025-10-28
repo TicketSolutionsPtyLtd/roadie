@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(git checkout:*)",
+      "Bash(git pull:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:panda-css.com)",
+      "WebFetch(domain:ark-ui.com)",
+      "Bash(pnpm test)",
+      "WebFetch(domain:chakra-ui.com)",
+      "Bash(pnpm run:*)",
+      "WebSearch",
+      "WebFetch(domain:rsms.me)",
+      "WebFetch(domain:fontsource.org)",
+      "mcp__chrome-devtools__navigate_page",
+      "mcp__chrome-devtools__list_console_messages",
+      "mcp__chrome-devtools__list_network_requests",
+      "mcp__chrome-devtools__get_network_request",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__evaluate_script",
+      "Bash(pnpm lint:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
