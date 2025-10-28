@@ -7,7 +7,6 @@
 - 8481943: Upgrade to PandaCSS 1.4.3 and Ark UI with modernized component system
 
   **Breaking Changes:**
-
   - Upgraded PandaCSS from 0.48.1 to 1.4.3
   - Migrated from React Aria Components to Ark UI factory pattern
   - Button component now uses native HTML props: `disabled` instead of `isDisabled`, `onClick` instead of `onPress`
@@ -21,7 +20,6 @@
   - Component props standardized across all components
 
   **New Features:**
-
   - All components now support `colorPalette` prop for flexible theming
   - Button component rewritten with `styled()` API and new `xs` size variant
   - Components modernized to use semantic `colorPalette.*` tokens
@@ -65,7 +63,6 @@
 ### Minor Changes
 
 - 94d8153: Add new semantic color token system
-
   - Introduce new color palette structure with semantic tokens
   - Update components to use new color token system
   - Add emphasis and colorPalette props to components

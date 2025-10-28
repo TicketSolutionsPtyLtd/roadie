@@ -39,7 +39,6 @@ async function getNavigationItems() {
 
       if (metadataMatch) {
         try {
-          // eslint-disable-next-line no-eval
           return eval(`(${metadataMatch[1]})`)
         } catch {
           console.error(`Error parsing metadata for ${filePath}`)
@@ -124,7 +123,6 @@ async function getNavigationItems() {
 
           if (metadataMatch) {
             try {
-              // eslint-disable-next-line no-eval
               const evalMetadata = eval(`(${metadataMatch[1]})`)
               metadata = { ...metadata, ...evalMetadata }
             } catch {

@@ -1,4 +1,5 @@
-import { SystemStyleObject, definePattern } from '@pandacss/dev'
+import { definePattern } from '@pandacss/dev'
+import type { SystemStyleObject } from '@pandacss/types'
 
 export const view = definePattern({
   description:
@@ -14,7 +15,6 @@ export const view = definePattern({
     minHeight: '0',
     minWidth: '0'
   },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transform(props: SystemStyleObject) {
     return props
   }

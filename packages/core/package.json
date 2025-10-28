@@ -68,8 +68,8 @@
     "dev:tokens": "chokidar \"src/tokens/{tokens,semantic-tokens}.json\" -i \"**/panda/**\" -i \"**/figma/**\" -c \"pnpm build:tokens\"",
     "format:check": "prettier --ignore-path ../../.prettierignore --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format": "prettier --ignore-path ../../.prettierignore --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "lint:fix": "eslint --ignore-path ../../.eslintignore . --ext .ts,.tsx --fix",
-    "lint": "eslint --ignore-path ../../.eslintignore . --ext .ts,.tsx",
+    "lint:fix": "eslint . --fix",
+    "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -82,13 +82,13 @@
   "license": "ISC",
   "devDependencies": {
     "@pandacss/dev": "1.4.3",
-    "@types/node": "22.10.2",
-    "@vitejs/plugin-react": "4.3.4",
-    "@vitest/coverage-v8": "1.6.0",
+    "@pandacss/types": "^1.4.3",
+    "@types/node": "24.9.1",
+    "@vitejs/plugin-react": "5.1.0",
+    "@vitest/coverage-v8": "4.0.4",
     "chokidar-cli": "3.0.0",
     "npm-run-all": "4.1.5",
-    "tsup": "8.0.0",
-    "typescript": "5.7.2",
-    "vitest": "1.6.0"
+    "tsup": "8.5.0",
+    "vitest": "4.0.4"
   }
 }

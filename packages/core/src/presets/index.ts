@@ -1,4 +1,3 @@
-/* eslint-disable @pandacss/no-config-function-in-source */
 import { definePreset } from '@pandacss/dev'
 
 import { pandaTokens } from '../index'
