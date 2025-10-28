@@ -15,7 +15,6 @@ export const view = definePattern({
     minHeight: '0',
     minWidth: '0'
   },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transform(props: SystemStyleObject) {
     return props
   }

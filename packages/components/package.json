@@ -37,8 +37,8 @@
     "test:ui": "vitest --ui",
     "format": "prettier --ignore-path ../../.prettierignore --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format:check": "prettier --ignore-path ../../.prettierignore --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "lint": "eslint --ignore-path ../../.eslintignore . --ext .ts,.tsx",
-    "lint:fix": "eslint --ignore-path ../../.eslintignore . --ext .ts,.tsx --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
