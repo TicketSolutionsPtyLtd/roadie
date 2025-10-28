@@ -122,33 +122,33 @@
           "$description": "Darker background color for emphasized or prominent surfaces",
           "default": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.9}",
+            "$value": "{colors.neutralSlate.12}",
             "$description": "Base color for strong surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.neutralSlate.9}",
-                "dark": "{colors.neutralSlateDark.9}"
+                "light": "{colors.neutralSlate.12}",
+                "dark": "{colors.neutralSlateDark.11}"
               }
             }
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.10}",
+            "$value": "{colors.neutralSlate.11}",
             "$description": "Hover state for strong surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.neutralSlate.10}",
-                "dark": "{colors.neutralSlateDark.10}"
+                "light": "{colors.neutralSlate.11}",
+                "dark": "{colors.neutralSlateDark.12}"
               }
             }
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.neutralSlate.11}",
+            "$value": "{colors.neutralSlate.12}",
             "$description": "Active/pressed state for strong surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.neutralSlate.11}",
+                "light": "{colors.neutralSlate.12}",
                 "dark": "{colors.neutralSlateDark.11}"
               }
             }
@@ -803,33 +803,33 @@
           "$description": "Darker background color for emphasized or prominent accent surfaces",
           "default": {
             "$type": "color",
-            "$value": "{colors.blue.9}",
+            "$value": "{colors.blue.10}",
             "$description": "Base color for strong accent surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.blue.9}",
-                "dark": "{colors.blueDark.9}"
+                "light": "{colors.blue.10}",
+                "dark": "{colors.blueDark.11}"
               }
             }
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.blue.10}",
+            "$value": "{colors.blue.9}",
             "$description": "Hover state for strong accent surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.blue.10}",
-                "dark": "{colors.blueDark.10}"
+                "light": "{colors.blue.9}",
+                "dark": "{colors.blueDark.12}"
               }
             }
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.blue.11}",
+            "$value": "{colors.blue.10}",
             "$description": "Active/pressed state for strong accent surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.blue.11}",
+                "light": "{colors.blue.10}",
                 "dark": "{colors.blueDark.11}"
               }
             }
@@ -1359,36 +1359,36 @@
         },
         "strong": {
           "$type": "color",
-          "$description": "Darker background color for emphasized or prominent brand surfaces",
+          "$description": "Darker background color for emphasized or prominent accent surfaces",
           "default": {
             "$type": "color",
-            "$value": "{colors.blue.9}",
-            "$description": "Base color for strong brand surfaces",
+            "$value": "{colors.blue.10}",
+            "$description": "Base color for strong accent surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.blue.9}",
-                "dark": "{colors.blueDark.9}"
+                "light": "{colors.blue.10}",
+                "dark": "{colors.blueDark.11}"
               }
             }
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.blue.10}",
-            "$description": "Hover state for strong brand surfaces",
+            "$value": "{colors.blue.9}",
+            "$description": "Hover state for strong accent surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.blue.10}",
-                "dark": "{colors.blueDark.10}"
+                "light": "{colors.blue.9}",
+                "dark": "{colors.blueDark.12}"
               }
             }
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.blue.11}",
-            "$description": "Active/pressed state for strong brand surfaces",
+            "$value": "{colors.blue.10}",
+            "$description": "Active/pressed state for strong accent surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.blue.11}",
+                "light": "{colors.blue.10}",
                 "dark": "{colors.blueDark.11}"
               }
             }
@@ -1921,33 +1921,33 @@
           "$description": "Strong information background color for high emphasis",
           "default": {
             "$type": "color",
-            "$value": "{colors.purple.9}",
+            "$value": "{colors.purple.10}",
             "$description": "Base color for strong information background",
             "$extensions": {
               "mode": {
-                "light": "{colors.purple.9}",
-                "dark": "{colors.purpleDark.9}"
+                "light": "{colors.purple.10}",
+                "dark": "{colors.purpleDark.11}"
               }
             }
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.purple.10}",
+            "$value": "{colors.purple.9}",
             "$description": "Hover state for strong information background",
             "$extensions": {
               "mode": {
-                "light": "{colors.purple.10}",
-                "dark": "{colors.purpleDark.10}"
+                "light": "{colors.purple.9}",
+                "dark": "{colors.purpleDark.12}"
               }
             }
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.purple.11}",
+            "$value": "{colors.purple.10}",
             "$description": "Active/pressed state for strong information background",
             "$extensions": {
               "mode": {
-                "light": "{colors.purple.11}",
+                "light": "{colors.purple.10}",
                 "dark": "{colors.purpleDark.11}"
               }
             }
@@ -2480,33 +2480,33 @@
           "$description": "Darker background color for emphasized or prominent success surfaces",
           "default": {
             "$type": "color",
-            "$value": "{colors.green.9}",
+            "$value": "{colors.green.10}",
             "$description": "Base color for strong success surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.green.9}",
-                "dark": "{colors.greenDark.9}"
+                "light": "{colors.green.10}",
+                "dark": "{colors.greenDark.11}"
               }
             }
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.green.10}",
+            "$value": "{colors.green.9}",
             "$description": "Hover state for strong success surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.green.10}",
-                "dark": "{colors.greenDark.10}"
+                "light": "{colors.green.9}",
+                "dark": "{colors.greenDark.12}"
               }
             }
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.green.11}",
+            "$value": "{colors.green.10}",
             "$description": "Active/pressed state for strong success surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.green.11}",
+                "light": "{colors.green.10}",
                 "dark": "{colors.greenDark.11}"
               }
             }
@@ -3039,33 +3039,33 @@
           "$description": "Darker background color for emphasized or prominent warning surfaces",
           "default": {
             "$type": "color",
-            "$value": "{colors.yellow.9}",
+            "$value": "{colors.yellow.10}",
             "$description": "Base color for strong warning surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.yellow.9}",
-                "dark": "{colors.yellowDark.9}"
+                "light": "{colors.yellow.10}",
+                "dark": "{colors.yellowDark.11}"
               }
             }
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.yellow.10}",
+            "$value": "{colors.yellow.9}",
             "$description": "Hover state for strong warning surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.yellow.10}",
-                "dark": "{colors.yellowDark.10}"
+                "light": "{colors.yellow.9}",
+                "dark": "{colors.yellowDark.12}"
               }
             }
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.yellow.11}",
+            "$value": "{colors.yellow.10}",
             "$description": "Active/pressed state for strong warning surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.yellow.11}",
+                "light": "{colors.yellow.10}",
                 "dark": "{colors.yellowDark.11}"
               }
             }
@@ -3598,33 +3598,33 @@
           "$description": "Darker background color for emphasized or prominent danger surfaces",
           "default": {
             "$type": "color",
-            "$value": "{colors.red.9}",
+            "$value": "{colors.red.10}",
             "$description": "Base color for strong danger surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.red.9}",
-                "dark": "{colors.redDark.9}"
+                "light": "{colors.red.10}",
+                "dark": "{colors.redDark.11}"
               }
             }
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.red.10}",
+            "$value": "{colors.red.9}",
             "$description": "Hover state for strong danger surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.red.10}",
-                "dark": "{colors.redDark.10}"
+                "light": "{colors.red.9}",
+                "dark": "{colors.redDark.12}"
               }
             }
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.red.11}",
+            "$value": "{colors.red.10}",
             "$description": "Active/pressed state for strong danger surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.red.11}",
+                "light": "{colors.red.10}",
                 "dark": "{colors.redDark.11}"
               }
             }
@@ -4861,19 +4861,19 @@
     "$type": "fontFeatureSettings",
     "ui": {
       "$type": "fontFeatureSettings",
-      "$value": "'case' 1, 'ss02' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1"
+      "$value": "'case' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1"
     },
     "prose": {
       "$type": "fontFeatureSettings",
-      "$value": "'case' 1, 'ss02' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1"
+      "$value": "'case' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1"
     },
     "display": {
       "$type": "fontFeatureSettings",
-      "$value": "'case' 1, 'ss02' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1"
+      "$value": "'case' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1"
     },
     "code": {
       "$type": "fontFeatureSettings",
-      "$value": "'case' 1, 'ss02' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1"
+      "$value": "'case' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1"
     }
   },
   "letterSpacings": {
