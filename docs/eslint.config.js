@@ -1,25 +1,33 @@
-import { FlatCompat } from '@eslint/eslintrc'
-import { dirname } from 'path'
-import { fileURLToPath } from 'url'
+import pandacssPlugin from '@pandacss/eslint-plugin'
+import { flatCodeBlocks, flat as mdxFlat } from 'eslint-plugin-mdx'
+import { createRequire } from 'module'
 
-import rootConfig from '../eslint.config.js'
+const require = createRequire(import.meta.url)
+const nextConfig = require('eslint-config-next')
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const config = [
+  // Ignore generated files
+  {
+    ignores: ['**/roadie-core/**']
+  },
 
-const compat = new FlatCompat({
-  baseDirectory: __dirname
-})
+  // Next.js config (native flat config)
+  ...nextConfig,
 
-export default [
-  // Extend root config
-  ...rootConfig,
+  // MDX plugin config
+  mdxFlat,
+  flatCodeBlocks,
 
-  // Next.js config (converted from eslintrc format)
-  ...compat.extends('next/core-web-vitals'),
-
-  // MDX plugin config (converted from eslintrc format)
-  ...compat.extends('plugin:mdx/recommended'),
+  // Panda CSS rules
+  {
+    plugins: {
+      '@pandacss': pandacssPlugin
+    },
+    rules: {
+      '@pandacss/no-margin-properties': 'warn',
+      '@pandacss/no-config-function-in-source': 'off'
+    }
+  },
 
   // MDX settings and rules
   {
@@ -61,3 +69,5 @@ export default [
     }
   }
 ]
+
+export default config

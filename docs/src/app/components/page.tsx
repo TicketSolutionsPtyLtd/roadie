@@ -46,8 +46,9 @@ export default async function ComponentsPage() {
 
           if (metadataMatch) {
             try {
-              // Safely evaluate the metadata object
-              const evalMetadata = eval(`(${metadataMatch[1]})`)
+              // Parse metadata object using Function constructor (safer than eval)
+              const parseMetadata = new Function(`return ${metadataMatch[1]}`)
+              const evalMetadata = parseMetadata()
               metadata = { ...metadata, ...evalMetadata }
             } catch (e) {
               console.error(`Error parsing metadata for ${dir.name}:`, e)
