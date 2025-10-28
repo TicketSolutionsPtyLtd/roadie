@@ -48,6 +48,23 @@ This document tracks the progress of upgrading dependencies in the Roadie Design
 
 **Result:** All typechecks, tests, and builds passing ✅
 
+### Phase 3d: ESLint 9 Migration ✅
+**Commit:** `chore: upgrade ESLint to 9.38.0 with flat config`
+- eslint → 9.38.0
+- Installed @eslint/js, @eslint/eslintrc, @eslint/compat, globals
+
+**Migration Work Completed:**
+- Migrated `.eslintrc.cjs` and `docs/.eslintrc.json` to flat config format (`eslint.config.js`)
+- Created root flat config with TypeScript, React, Prettier, and PandaCSS plugins
+- Created docs-specific config extending root with Next.js and MDX support
+- Used FlatCompat to integrate eslintrc-based plugins (Next.js, MDX)
+- Updated all lint commands to remove deprecated `--ignore-path` and `--ext` flags
+- Added appropriate globals for Node.js, browser, Vitest, and React
+- Configured MDX files to ignore unused import warnings
+- Removed unused eslint-disable directives
+
+**Result:** All linting, tests, typechecks, and builds passing ✅
+
 ## Remaining Work
 
 ### Phase 3c: Next.js Ecosystem ⚠️ BLOCKED
@@ -81,90 +98,7 @@ Caused by:
 - Monitor Next.js 16.x releases for Turbopack + MDX compatibility fixes
 - Consider waiting for Next.js 16.1+ or official MDX integration updates
 - Alternative: Keep Next.js 15.x until Turbopack issues are resolved
-
-### Phase 3d: ESLint 9 Migration ⚠️ HIGH RISK
-
-**Current Version:** eslint@8.57.1 (in docs package)
-**Latest Version:** eslint@9.38.0
-
-**Status:** Not started - requires significant configuration migration
-
-**Requirements:**
-
-1. **Node.js Version:** Requires Node.js >= 18.18.0 (currently met)
-
-2. **Configuration Migration:**
-   - Migrate `.eslintrc.cjs` (root) to `eslint.config.js` (flat config format)
-   - Migrate `docs/.eslintrc.json` to flat config format
-   - Convert `extends` arrays to flat config imports
-   - Convert `plugins` to flat config plugin objects
-   - Convert `parserOptions` to `languageOptions`
-   - Convert `env` settings to appropriate `languageOptions.globals`
-
-3. **Config Format Changes:**
-   ```js
-   // Old (.eslintrc.cjs)
-   module.exports = {
-     parser: '@typescript-eslint/parser',
-     plugins: ['@typescript-eslint', 'prettier'],
-     extends: ['eslint:recommended'],
-     parserOptions: { ecmaVersion: 2022 }
-   }
-
-   // New (eslint.config.js)
-   import js from '@eslint/js';
-   import typescript from '@typescript-eslint/eslint-plugin';
-   import parser from '@typescript-eslint/parser';
-
-   export default [
-     js.configs.recommended,
-     {
-       files: ['**/*.ts', '**/*.tsx'],
-       plugins: { '@typescript-eslint': typescript },
-       languageOptions: {
-         parser: parser,
-         ecmaVersion: 2022,
-         sourceType: 'module'
-       }
-     }
-   ];
-   ```
-
-4. **Plugin Updates:**
-   - Install `@eslint/js` package (provides `eslint:recommended` config)
-   - Verify all plugins support ESLint 9 flat config:
-     - `@typescript-eslint/eslint-plugin@8.46.2` ✅ (already compatible)
-     - `@typescript-eslint/parser@8.46.2` ✅ (already compatible)
-     - `eslint-plugin-prettier@5.5.4` ✅ (check compatibility)
-     - `eslint-plugin-react@7.37.5` ✅ (check compatibility)
-     - `@pandacss/eslint-plugin@0.2.14` ⚠️ (verify flat config support)
-     - `eslint-plugin-mdx@3.6.2` ⚠️ (verify flat config support)
-     - `eslint-config-next@16.0.0` (requires ESLint 9+)
-
-5. **Breaking Changes to Address:**
-   - `eslint:recommended` has 4 new rules enabled
-   - `no-unused-vars` now defaults `caughtErrors` to `"all"`
-   - `no-inner-declarations` has new default behavior
-   - Rules removed from `eslint:recommended`: `no-extra-semi`, `no-mixed-spaces-and-tabs`, `no-new-symbol`
-   - `--quiet` flag behavior changed (won't run rules set to "warn")
-
-6. **Testing Requirements:**
-   - Run `pnpm lint` and verify all files pass
-   - Test with `--quiet` flag if used in CI
-   - Verify editor integrations still work
-   - Test all custom rule configurations
-   - Ensure pre-commit hooks still function
-
-**Dependencies:**
-- Blocked by Next.js 16 upgrade (needs `eslint-config-next@16.0.0`)
-- Can be done independently if staying on Next.js 15.x
-
-**Recommendation:**
-- Perform as a separate PR with thorough testing
-- Use ESLint's official migration guide: https://eslint.org/docs/latest/use/migrate-to-9.0.0
-- Consider using automated migration tools if available
-- Budget 4-6 hours for migration and testing
-- Can be done before Next.js 16 if desired (just skip `eslint-config-next` upgrade)
+- `eslint-config-next@16.0.0` can be upgraded once Next.js 16 is ready
 
 ## Current State
 
@@ -175,7 +109,7 @@ Caused by:
   "vitest": "4.0.4",
   "react": "19.2.0",
   "next": "15.5.6",
-  "eslint": "8.57.1"
+  "eslint": "9.38.0"
 }
 ```
 
@@ -190,10 +124,10 @@ Caused by:
    - Impact: Minor, package still works
    - Action: Monitor for updates to `next-view-transitions`
 
-2. **ESLint Version Warning:** TypeScript ESLint reports TypeScript version mismatch
+2. **TypeScript ESLint Version Warning:** TypeScript ESLint reports TypeScript version mismatch
    - TypeScript 5.9.3 is newer than officially supported by @typescript-eslint/typescript-estree@8.17.0
    - Impact: Minimal, linting still works
-   - Will be resolved when upgrading ESLint ecosystem
+   - Note: Warning persists but functionality is unaffected
 
 ## Next Steps
 
@@ -201,15 +135,15 @@ Caused by:
    - Watch Next.js 16.x releases for Turbopack + MDX fixes
    - Check `@next/mdx` updates for serialization compatibility
 
-2. **When Unblocked:**
+2. **When Next.js 16 Unblocked:**
    - Retry Next.js 16 upgrade once Turbopack issues are resolved
+   - Upgrade `eslint-config-next` to 16.x at the same time
    - Test docs build thoroughly
-   - Proceed with ESLint 9 migration
 
 3. **Alternative Path:**
-   - Keep Next.js 15.x for now (stable, working)
-   - Upgrade ESLint 9 separately if needed
-   - Revisit Next.js 16 in Q2 2025
+   - Keep Next.js 15.x for stable production use
+   - All other dependencies are now fully up-to-date
+   - Revisit Next.js 16 in Q2 2025 or when Turbopack stabilizes
 
 ## Testing Checklist
 
@@ -217,14 +151,23 @@ Before considering upgrades complete:
 - [x] `pnpm typecheck` passes
 - [x] `pnpm test` passes all tests
 - [x] `pnpm build` succeeds for all packages
+- [x] `pnpm lint` passes
 - [ ] `pnpm --filter docs dev` runs without errors
-- [ ] `pnpm lint` passes (will have warnings until ESLint 9)
 - [ ] Manual smoke test of docs site
 
 ## Notes
 
 - All changes are on the `chore/upgrade-dependencies` branch
-- Three commits completed: redundancy cleanup, Phase 2, Phase 3a, Phase 3b
+- Eight commits completed:
+  1. Phase 1: Low-risk updates
+  2. Redundancy cleanup (TypeScript hoisting)
+  3. Phase 2: Medium-risk updates
+  4. Phase 3a: Testing stack (Vitest 4)
+  5. Phase 3b: TypeScript 5.9.3
+  6. Documentation: Initial upgrade status
+  7. Documentation: ESLint 9 migration requirements
+  8. Phase 3d: ESLint 9 migration complete
 - Turborepo cache has been used effectively throughout
 - No breaking changes to component APIs
 - All existing tests continue to pass
+- ~99% of dependencies now fully up-to-date
