@@ -90,17 +90,81 @@ Caused by:
 **Status:** Not started - requires significant configuration migration
 
 **Requirements:**
-- Migrate from `.eslintrc.json` to flat config (`eslint.config.js`)
-- Update ESLint plugin configurations for ESLint 9 compatibility
-- Update `eslint-config-next` to 16.x (which requires ESLint 9+)
-- Test all linting rules and fix any breaking changes
 
-**Note:** `eslint-config-next@16.0.0` requires `eslint@>=9.0.0` (peer dependency warning present)
+1. **Node.js Version:** Requires Node.js >= 18.18.0 (currently met)
+
+2. **Configuration Migration:**
+   - Migrate `.eslintrc.cjs` (root) to `eslint.config.js` (flat config format)
+   - Migrate `docs/.eslintrc.json` to flat config format
+   - Convert `extends` arrays to flat config imports
+   - Convert `plugins` to flat config plugin objects
+   - Convert `parserOptions` to `languageOptions`
+   - Convert `env` settings to appropriate `languageOptions.globals`
+
+3. **Config Format Changes:**
+   ```js
+   // Old (.eslintrc.cjs)
+   module.exports = {
+     parser: '@typescript-eslint/parser',
+     plugins: ['@typescript-eslint', 'prettier'],
+     extends: ['eslint:recommended'],
+     parserOptions: { ecmaVersion: 2022 }
+   }
+
+   // New (eslint.config.js)
+   import js from '@eslint/js';
+   import typescript from '@typescript-eslint/eslint-plugin';
+   import parser from '@typescript-eslint/parser';
+
+   export default [
+     js.configs.recommended,
+     {
+       files: ['**/*.ts', '**/*.tsx'],
+       plugins: { '@typescript-eslint': typescript },
+       languageOptions: {
+         parser: parser,
+         ecmaVersion: 2022,
+         sourceType: 'module'
+       }
+     }
+   ];
+   ```
+
+4. **Plugin Updates:**
+   - Install `@eslint/js` package (provides `eslint:recommended` config)
+   - Verify all plugins support ESLint 9 flat config:
+     - `@typescript-eslint/eslint-plugin@8.46.2` ✅ (already compatible)
+     - `@typescript-eslint/parser@8.46.2` ✅ (already compatible)
+     - `eslint-plugin-prettier@5.5.4` ✅ (check compatibility)
+     - `eslint-plugin-react@7.37.5` ✅ (check compatibility)
+     - `@pandacss/eslint-plugin@0.2.14` ⚠️ (verify flat config support)
+     - `eslint-plugin-mdx@3.6.2` ⚠️ (verify flat config support)
+     - `eslint-config-next@16.0.0` (requires ESLint 9+)
+
+5. **Breaking Changes to Address:**
+   - `eslint:recommended` has 4 new rules enabled
+   - `no-unused-vars` now defaults `caughtErrors` to `"all"`
+   - `no-inner-declarations` has new default behavior
+   - Rules removed from `eslint:recommended`: `no-extra-semi`, `no-mixed-spaces-and-tabs`, `no-new-symbol`
+   - `--quiet` flag behavior changed (won't run rules set to "warn")
+
+6. **Testing Requirements:**
+   - Run `pnpm lint` and verify all files pass
+   - Test with `--quiet` flag if used in CI
+   - Verify editor integrations still work
+   - Test all custom rule configurations
+   - Ensure pre-commit hooks still function
+
+**Dependencies:**
+- Blocked by Next.js 16 upgrade (needs `eslint-config-next@16.0.0`)
+- Can be done independently if staying on Next.js 15.x
 
 **Recommendation:**
-- Perform as a separate PR after Next.js 16 is unblocked
-- Allow time for thorough testing of linting rules
-- Update all ESLint plugins to versions compatible with ESLint 9
+- Perform as a separate PR with thorough testing
+- Use ESLint's official migration guide: https://eslint.org/docs/latest/use/migrate-to-9.0.0
+- Consider using automated migration tools if available
+- Budget 4-6 hours for migration and testing
+- Can be done before Next.js 16 if desired (just skip `eslint-config-next` upgrade)
 
 ## Current State
 
