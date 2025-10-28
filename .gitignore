@@ -21,3 +21,6 @@ coverage
 
 # Build artifacts
 **/trace-output/
+
+# Python virtual environments
+scripts/venv/
