@@ -237,7 +237,9 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
             <Text as='h3' fontSize='xl' fontWeight='bold'>
               {interfaceName}
             </Text>
-            <Text emphasis='subtle'>{componentInfo.description}</Text>
+            {!!componentInfo.description && (
+              <Text emphasis='subtle'>{componentInfo.description}</Text>
+            )}
           </View>
 
           {/* Component's own props */}

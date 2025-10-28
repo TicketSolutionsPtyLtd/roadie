@@ -24,12 +24,12 @@ const { Button, View } = RoadieComponents
 const editorStyles = {
   bg: 'neutral.surface.sunken',
   overflow: 'auto',
-  fontSize: 'md',
+  fontSize: 'sm',
   p: '200',
   boxShadow: 'sunken',
-  borderRadius: '100',
+  borderRadius: 'md',
   border: '1px solid',
-  borderColor: 'neutral.border.subtle'
+  borderColor: 'neutral.border.subtler'
 }
 
 // Custom themes that inherit from nightOwl but override the background
@@ -142,11 +142,13 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
             px: 300,
             py: 300,
             bg: 'neutral.surface',
-            borderTopRadius: '100',
+            borderTopRadius: 'md',
             fontFamily: 'ui',
             border: '1px solid',
-            borderColor: 'neutral.border.subtle',
-            borderBottom: 'none'
+            borderColor: 'neutral.border.subtler',
+            borderBottom: 'none',
+            overflow: 'hidden',
+            overflowX: 'auto'
           })}
         />
         <LiveError />
