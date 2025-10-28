@@ -82,12 +82,13 @@
   "license": "ISC",
   "devDependencies": {
     "@pandacss/dev": "1.4.3",
-    "@types/node": "22.10.2",
-    "@vitejs/plugin-react": "4.3.4",
-    "@vitest/coverage-v8": "1.6.0",
+    "@pandacss/types": "^1.4.3",
+    "@types/node": "24.9.1",
+    "@vitejs/plugin-react": "5.1.0",
+    "@vitest/coverage-v8": "4.0.4",
     "chokidar-cli": "3.0.0",
     "npm-run-all": "4.1.5",
     "tsup": "8.5.0",
-    "vitest": "1.6.0"
+    "vitest": "4.0.4"
   }
 }

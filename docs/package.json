@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "@pandacss/dev": "1.4.3",
-    "@types/node": "22.10.2",
+    "@types/node": "24.9.1",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
     "eslint": "8.57.1",
