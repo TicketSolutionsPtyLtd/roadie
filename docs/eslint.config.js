@@ -18,12 +18,15 @@ const config = [
   mdxFlat,
   flatCodeBlocks,
 
-  // Panda CSS rules
+  // Panda CSS rules - only apply to source files, not MDX
   {
+    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
+    ignores: ['**/*.mdx', '**/*.mdx/**'],
     plugins: {
       '@pandacss': pandacssPlugin
     },
     rules: {
+      ...pandacssPlugin.configs.recommended.rules,
       '@pandacss/no-margin-properties': 'warn',
       '@pandacss/no-config-function-in-source': 'off'
     }
