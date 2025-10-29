@@ -42,13 +42,14 @@
       "require": "./dist/jsx/index.js",
       "import": "./dist/jsx/index.js"
     },
-    "./styles.css": "./dist/styles.css",
-    "./fonts/*": "./dist/fonts/*",
     "./recipes": {
       "types": "./dist/recipes/index.d.ts",
       "require": "./dist/recipes/index.js",
       "import": "./dist/recipes/index.js"
-    }
+    },
+    "./tokens.css": "./dist/tokens.css",
+    "./utilities.css": "./dist/utilities.css",
+    "./styles.css": "./dist/styles.css"
   },
   "sideEffects": false,
   "files": [
@@ -59,12 +60,13 @@
   },
   "scripts": {
     "clean": "rm -rf node_modules dist",
-    "build": "pnpm build:tokens && tsup && pnpm build:panda",
+    "build": "pnpm build:tokens && tsup && pnpm build:panda && pnpm build:copy-css",
+    "build:copy-css": "cp src/tokens/css/tokens.css dist/tokens.css && cp src/tokens/css/utilities.css dist/utilities.css",
     "build:panda": "panda codegen --c panda.config.js && panda emit-pkg --base dist && prettier --write package.json",
-    "build:tokens": "node scripts/build-panda-tokens.js && node scripts/build-figma-tokens.js",
+    "build:tokens": "node scripts/build-panda-tokens.js && node scripts/build-css-tokens.js && node scripts/build-figma-tokens.js",
     "dev": "run-p dev:*",
     "dev:tsup": "tsup --watch",
-    "dev:tokens": "chokidar \"src/tokens/{tokens,semantic-tokens}.json\" -i \"**/panda/**\" -i \"**/figma/**\" -c \"pnpm build:tokens\"",
+    "dev:tokens": "chokidar \"src/tokens/{tokens,semantic-tokens}.json\" -i \"**/panda/**\" -i \"**/css/**\" -i \"**/figma/**\" -c \"pnpm build:tokens\"",
     "format:check": "prettier --ignore-path ../../.prettierignore --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format": "prettier --ignore-path ../../.prettierignore --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "lint:fix": "eslint . --fix",
