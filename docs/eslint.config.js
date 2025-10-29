@@ -1,14 +1,15 @@
 import pandacssPlugin from '@pandacss/eslint-plugin'
+import prettierConfig from 'eslint-config-prettier'
 import { flatCodeBlocks, flat as mdxFlat } from 'eslint-plugin-mdx'
 import { createRequire } from 'module'
 
 const require = createRequire(import.meta.url)
-const nextConfig = require('eslint-config-next')
+const nextConfig = require('eslint-config-next/core-web-vitals')
 
 const config = [
-  // Ignore generated files
+  // Ignore generated files and Next.js build artifacts
   {
-    ignores: ['**/roadie-core/**']
+    ignores: ['**/roadie-core/**', '.next/**', 'out/**', 'next-env.d.ts']
   },
 
   // Next.js config (native flat config)
@@ -70,7 +71,10 @@ const config = [
       // Allow any types in docs examples
       '@typescript-eslint/no-explicit-any': 'off'
     }
-  }
+  },
+
+  // Prettier config (must be last to override conflicting rules)
+  prettierConfig
 ]
 
 export default config
