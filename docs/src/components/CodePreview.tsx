@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 
 import Link from 'next/link'
 
@@ -80,28 +80,18 @@ type CodePreviewProps = {
 }
 
 export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
-  const [isDark, setIsDark] = useState(false)
-
-  useEffect(() => {
-    // Initial check
-    setIsDark(document.documentElement.classList.contains('dark'))
-
-    // Set up observer for theme changes
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.attributeName === 'class') {
-          setIsDark(document.documentElement.classList.contains('dark'))
-        }
+  const isDark = useSyncExternalStore(
+    (callback) => {
+      const observer = new MutationObserver(callback)
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class']
       })
-    })
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class']
-    })
-
-    return () => observer.disconnect()
-  }, [])
+      return () => observer.disconnect()
+    },
+    () => document.documentElement.classList.contains('dark'),
+    () => false // Server snapshot
+  )
 
   const theme = isDark ? customDarkTheme : customLightTheme
   const isLive =
@@ -119,13 +109,13 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
             <pre className={css(editorStyles)} style={style}>
               {tokens.map((line, i) => {
                 const lineProps = getLineProps({ line, key: i })
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
                 const { key, ...linePropsWithoutKey } = lineProps
                 return (
                   <div key={i} {...linePropsWithoutKey}>
                     {line.map((token, key) => {
                       const tokenProps = getTokenProps({ token, key })
-                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
                       const { key: tokenKey, ...tokenPropsWithoutKey } =
                         tokenProps
                       return <span key={key} {...tokenPropsWithoutKey} />

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { Code, Heading, Text, View } from '@oztix/roadie-components'
 import { pandaTokens } from '@oztix/roadie-core'
@@ -249,17 +249,8 @@ function flattenTokens(
 }
 
 export default function TokensReference() {
-  const [mounted, setMounted] = useState(false)
   const [search, setSearch] = useState('')
   const [tokenType, setTokenType] = useState<TokenCategory | 'all'>('all')
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
-    return null
-  }
 
   // Group all tokens by their category
   const baseTokenGroups = flattenTokens(pandaTokens.tokens).reduce(

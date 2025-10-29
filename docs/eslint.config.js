@@ -1,25 +1,37 @@
-import { FlatCompat } from '@eslint/eslintrc'
-import { dirname } from 'path'
-import { fileURLToPath } from 'url'
+import pandacssPlugin from '@pandacss/eslint-plugin'
+import prettierConfig from 'eslint-config-prettier'
+import { flatCodeBlocks, flat as mdxFlat } from 'eslint-plugin-mdx'
+import { createRequire } from 'module'
 
-import rootConfig from '../eslint.config.js'
+const require = createRequire(import.meta.url)
+const nextConfig = require('eslint-config-next/core-web-vitals')
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const config = [
+  // Ignore generated files and Next.js build artifacts
+  {
+    ignores: ['**/roadie-core/**', '.next/**', 'out/**', 'next-env.d.ts']
+  },
 
-const compat = new FlatCompat({
-  baseDirectory: __dirname
-})
+  // Next.js config (native flat config)
+  ...nextConfig,
 
-export default [
-  // Extend root config
-  ...rootConfig,
+  // MDX plugin config
+  mdxFlat,
+  flatCodeBlocks,
 
-  // Next.js config (converted from eslintrc format)
-  ...compat.extends('next/core-web-vitals'),
-
-  // MDX plugin config (converted from eslintrc format)
-  ...compat.extends('plugin:mdx/recommended'),
+  // Panda CSS rules - only apply to source files, not MDX
+  {
+    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
+    ignores: ['**/*.mdx', '**/*.mdx/**'],
+    plugins: {
+      '@pandacss': pandacssPlugin
+    },
+    rules: {
+      ...pandacssPlugin.configs.recommended.rules,
+      '@pandacss/no-margin-properties': 'warn',
+      '@pandacss/no-config-function-in-source': 'off'
+    }
+  },
 
   // MDX settings and rules
   {
@@ -59,5 +71,10 @@ export default [
       // Allow any types in docs examples
       '@typescript-eslint/no-explicit-any': 'off'
     }
-  }
+  },
+
+  // Prettier config (must be last to override conflicting rules)
+  prettierConfig
 ]
+
+export default config

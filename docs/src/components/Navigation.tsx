@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -59,32 +59,30 @@ function Logo() {
 }
 
 function ThemeToggle() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
-
-  useEffect(() => {
-    // Initialize from window.__theme set by our script
-    setTheme(window.__theme || 'light')
-
-    // Listen for system theme changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const handleChange = () => {
-      const newTheme = mediaQuery.matches ? 'dark' : 'light'
-      setTheme(newTheme)
-      document.documentElement.classList.toggle('dark', mediaQuery.matches)
-      localStorage.setItem('theme', newTheme)
-      window.__theme = newTheme
-    }
-
-    mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [])
+  const theme = useSyncExternalStore(
+    (callback) => {
+      // Listen for both storage events and custom theme change events
+      window.addEventListener('storage', callback)
+      window.addEventListener('themechange', callback)
+      return () => {
+        window.removeEventListener('storage', callback)
+        window.removeEventListener('themechange', callback)
+      }
+    },
+    () => {
+      if (typeof window === 'undefined') return 'light'
+      return window.__theme || 'light'
+    },
+    () => 'light' // Server snapshot
+  )
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light'
-    setTheme(newTheme)
     document.documentElement.classList.toggle('dark', newTheme === 'dark')
     localStorage.setItem('theme', newTheme)
     window.__theme = newTheme
+    // Dispatch custom event to notify useSyncExternalStore
+    window.dispatchEvent(new Event('themechange'))
   }
 
   return (
@@ -181,7 +179,8 @@ export function Navigation({ items }: NavigationProps) {
       width='220px'
       flexShrink={0}
       overflowY='auto'
-      borderRight='1px solid'
+      borderRightWidth='1px'
+      borderRightStyle='solid'
       borderColor='neutral.border.subtler'
       bg='neutral.surface.sunken'
       shadow='sunken'
