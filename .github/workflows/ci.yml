@@ -32,13 +32,15 @@ jobs:
           fetch-depth: 2
 
       - name: Fetch base branch
-        run: git fetch origin main --depth=1
+        run: git fetch origin main:refs/remotes/origin/main --depth=1
 
       - name: Setup
         uses: ./.github/composite-actions/setup
 
       - name: Run lint
         run: pnpm turbo lint --affected --framework-inference=false
+        env:
+          TURBO_SCM_BASE: origin/main
 
   typecheck:
     runs-on: ubuntu-latest
@@ -50,13 +52,15 @@ jobs:
           fetch-depth: 2
 
       - name: Fetch base branch
-        run: git fetch origin main --depth=1
+        run: git fetch origin main:refs/remotes/origin/main --depth=1
 
       - name: Setup
         uses: ./.github/composite-actions/setup
 
       - name: Run typecheck
         run: pnpm turbo typecheck --affected --framework-inference=false
+        env:
+          TURBO_SCM_BASE: origin/main
 
   test:
     runs-on: ubuntu-latest
@@ -68,13 +72,15 @@ jobs:
           fetch-depth: 2
 
       - name: Fetch base branch
-        run: git fetch origin main --depth=1
+        run: git fetch origin main:refs/remotes/origin/main --depth=1
 
       - name: Setup
         uses: ./.github/composite-actions/setup
 
       - name: Run tests
         run: pnpm turbo test --affected --framework-inference=false
+        env:
+          TURBO_SCM_BASE: origin/main
 
   build-packages:
     needs: [lint, typecheck, test]
