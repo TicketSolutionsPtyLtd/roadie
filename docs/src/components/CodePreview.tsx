@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useSyncExternalStore } from 'react'
+import { useState } from 'react'
 
 import Link from 'next/link'
 
@@ -9,6 +9,7 @@ import { Highlight, themes } from 'prism-react-renderer'
 import { LiveEditor, LiveError, LivePreview, LiveProvider } from 'react-live'
 
 import * as RoadieComponents from '@oztix/roadie-components'
+import { useColorMode } from '@oztix/roadie-components/hooks'
 import { css } from '@oztix/roadie-core/css'
 import * as PandaComponents from '@oztix/roadie-core/jsx'
 
@@ -80,20 +81,8 @@ type CodePreviewProps = {
 }
 
 export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
-  const isDark = useSyncExternalStore(
-    (callback) => {
-      const observer = new MutationObserver(callback)
-      observer.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ['class']
-      })
-      return () => observer.disconnect()
-    },
-    () => document.documentElement.classList.contains('dark'),
-    () => false // Server snapshot
-  )
-
-  const theme = isDark ? customDarkTheme : customLightTheme
+  const colorMode = useColorMode()
+  const theme = colorMode === 'dark' ? customDarkTheme : customLightTheme
   const isLive =
     children.startsWith('live') && (language === 'tsx' || language === 'jsx')
   const trimmedCode = isLive

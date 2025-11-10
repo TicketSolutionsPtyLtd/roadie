@@ -18,6 +18,7 @@ const getComponentEntries = () => {
 
   return {
     index: 'src/index.tsx',
+    'hooks/index': 'src/hooks/index.ts',
     ...components
   }
 }

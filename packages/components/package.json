@@ -12,6 +12,11 @@
       "import": "./dist/index.js",
       "require": "./dist/index.js"
     },
+    "./hooks": {
+      "types": "./dist/hooks/index.d.ts",
+      "import": "./dist/hooks/index.js",
+      "require": "./dist/hooks/index.js"
+    },
     "./src/*": {
       "types": "./src/*",
       "import": "./src/*"

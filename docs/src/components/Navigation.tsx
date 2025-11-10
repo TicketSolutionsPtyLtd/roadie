@@ -1,7 +1,5 @@
 'use client'
 
-import { useSyncExternalStore } from 'react'
-
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -10,12 +8,8 @@ import { Moon, Sun } from 'lucide-react'
 import { Image } from '@/components/Image'
 
 import { Button, Text, View } from '@oztix/roadie-components'
-
-declare global {
-  interface Window {
-    __theme: 'light' | 'dark'
-  }
-}
+import { useColorMode } from '@oztix/roadie-components/hooks'
+import { toggleColorMode } from '@oztix/roadie-core'
 
 interface NavigationItem {
   title: string
@@ -59,42 +53,18 @@ function Logo() {
 }
 
 function ThemeToggle() {
-  const theme = useSyncExternalStore(
-    (callback) => {
-      // Listen for both storage events and custom theme change events
-      window.addEventListener('storage', callback)
-      window.addEventListener('themechange', callback)
-      return () => {
-        window.removeEventListener('storage', callback)
-        window.removeEventListener('themechange', callback)
-      }
-    },
-    () => {
-      if (typeof window === 'undefined') return 'light'
-      return window.__theme || 'light'
-    },
-    () => 'light' // Server snapshot
-  )
-
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light'
-    document.documentElement.classList.toggle('dark', newTheme === 'dark')
-    localStorage.setItem('theme', newTheme)
-    window.__theme = newTheme
-    // Dispatch custom event to notify useSyncExternalStore
-    window.dispatchEvent(new Event('themechange'))
-  }
+  const colorMode = useColorMode()
 
   return (
     <Button
       emphasis='subtler'
       size='sm'
       gap='050'
-      onClick={toggleTheme}
-      aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+      onClick={() => toggleColorMode()}
+      aria-label={`Switch to ${colorMode === 'light' ? 'dark' : 'light'} mode`}
     >
-      {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
-      <Text>{theme === 'light' ? 'Dark' : 'Light'} mode</Text>
+      {colorMode === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+      <Text>{colorMode === 'light' ? 'Dark' : 'Light'} mode</Text>
     </Button>
   )
 }
