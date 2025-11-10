@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    "composite": true,
     "declaration": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -27,11 +26,6 @@
     "baseUrl": ".",
     "assumeChangesOnlyAffectDirectDependencies": true
   },
-  "references": [
-    { "path": "packages/core" },
-    { "path": "packages/components" },
-    { "path": "docs" }
-  ],
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": [
     "**/dist",

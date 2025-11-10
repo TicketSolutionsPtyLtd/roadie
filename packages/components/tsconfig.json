@@ -3,7 +3,6 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "composite": true,
     "declarationMap": true,
     "noEmit": false,
     "jsx": "react-jsx",
@@ -19,6 +18,5 @@
     "src/components/**/*.ts",
     "src/components/**/*.tsx"
   ],
-  "exclude": ["dist", "node_modules", "roadie-core"],
-  "references": [{ "path": "../core" }]
+  "exclude": ["dist", "node_modules", "roadie-core"]
 }

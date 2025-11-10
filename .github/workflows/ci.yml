@@ -19,6 +19,7 @@ concurrency:
 env:
   NEXT_TELEMETRY_DISABLED: 1
   NODE_OPTIONS: --max-old-space-size=4096
+  TURBO_FORCE: false
 
 jobs:
   lint:
@@ -34,7 +35,7 @@ jobs:
         uses: ./.github/composite-actions/setup
 
       - name: Run lint
-        run: pnpm lint
+        run: pnpm turbo lint --affected --no-framework-inference
 
   typecheck:
     runs-on: ubuntu-latest
@@ -49,7 +50,7 @@ jobs:
         uses: ./.github/composite-actions/setup
 
       - name: Run typecheck
-        run: pnpm typecheck
+        run: pnpm turbo typecheck --affected --no-framework-inference
 
   test:
     runs-on: ubuntu-latest
@@ -64,7 +65,7 @@ jobs:
         uses: ./.github/composite-actions/setup
 
       - name: Run tests
-        run: pnpm test
+        run: pnpm turbo test --affected --no-framework-inference
 
   build-packages:
     needs: [lint, typecheck, test]
@@ -80,6 +81,6 @@ jobs:
         uses: ./.github/composite-actions/setup
 
       - name: Build packages
-        run: pnpm build
+        run: pnpm turbo build --no-framework-inference
         env:
           NEXT_PUBLIC_BASE_PATH: /roadie
