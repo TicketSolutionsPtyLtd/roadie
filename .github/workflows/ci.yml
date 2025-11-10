@@ -31,6 +31,9 @@ jobs:
         with:
           fetch-depth: 2
 
+      - name: Fetch base branch
+        run: git fetch origin main --depth=1
+
       - name: Setup
         uses: ./.github/composite-actions/setup
 
@@ -45,6 +48,9 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 2
+
+      - name: Fetch base branch
+        run: git fetch origin main --depth=1
 
       - name: Setup
         uses: ./.github/composite-actions/setup
@@ -61,6 +67,9 @@ jobs:
         with:
           fetch-depth: 2
 
+      - name: Fetch base branch
+        run: git fetch origin main --depth=1
+
       - name: Setup
         uses: ./.github/composite-actions/setup
 
@@ -76,6 +85,9 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 2
+
+      - name: Fetch base branch
+        run: git fetch origin main --depth=1
 
       - name: Setup
         uses: ./.github/composite-actions/setup
