@@ -9,7 +9,6 @@ import { getAssetPath } from '@/utils/getAssetPath'
 
 import { View } from '@oztix/roadie-components'
 import { css } from '@oztix/roadie-core/css'
-import '@oztix/roadie-core/tokens.css'
 
 import './globals.css'
 
