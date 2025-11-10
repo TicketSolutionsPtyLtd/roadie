@@ -333,7 +333,7 @@ function buildCssTokens() {
   // Format with Prettier
   try {
     execSync(`npx prettier --write "${outputPath}"`, { stdio: 'ignore' })
-  } catch (error) {
+  } catch {
     console.warn('Warning: Could not format tokens.css with Prettier')
   }
 
@@ -348,7 +348,7 @@ function buildCssTokens() {
   // Format dist file with Prettier
   try {
     execSync(`npx prettier --write "${distTokensPath}"`, { stdio: 'ignore' })
-  } catch (error) {
+  } catch {
     console.warn('Warning: Could not format dist/tokens.css with Prettier')
   }
 
@@ -399,7 +399,7 @@ function buildCssTokens() {
     // Format with Prettier
     try {
       execSync(`npx prettier --write "${utilitiesPath}"`, { stdio: 'ignore' })
-    } catch (error) {
+    } catch {
       console.warn('Warning: Could not format utilities.css with Prettier')
     }
 
