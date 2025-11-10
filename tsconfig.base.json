@@ -19,12 +19,13 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "incremental": true,
-    "sourceMap": true,
+    "sourceMap": false,
     "strict": true,
     "target": "ES2022",
     "verbatimModuleSyntax": true,
     "rootDir": ".",
-    "baseUrl": "."
+    "baseUrl": ".",
+    "assumeChangesOnlyAffectDirectDependencies": true
   },
   "references": [
     { "path": "packages/core" },
@@ -40,6 +41,7 @@
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/roadie-core",
-    "**/styled-system"
+    "**/styled-system",
+    "**/.turbo"
   ]
 }
