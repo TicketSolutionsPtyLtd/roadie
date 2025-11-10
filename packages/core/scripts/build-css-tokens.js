@@ -1,3 +1,4 @@
+import { execSync } from 'child_process'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -50,7 +51,7 @@ function tokenRefToCssVar(reference) {
     // Convert camelCase to kebab-case
     return segment.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`)
   })
-  return `var(--${kebabSegments.join('-')})`
+  return normalizeHexColor(`var(--${kebabSegments.join('-')})`)
 }
 
 // Helper to resolve token references to CSS variables
@@ -66,17 +67,17 @@ function resolveTokenReferenceToCssVar(value) {
     resolvedValue = resolvedValue.replace(match[0], cssVar)
   }
 
-  return resolvedValue
+  return normalizeHexColor(resolvedValue)
 }
 
 // Convert shadow object to CSS shadow string
 function shadowObjectToCss(shadowObj) {
   if (typeof shadowObj === 'string') {
-    return resolveTokenReferenceToCssVar(shadowObj)
+    return normalizeHexColor(resolveTokenReferenceToCssVar(shadowObj))
   }
 
   if (typeof shadowObj !== 'object' || shadowObj === null) {
-    return String(shadowObj)
+    return normalizeHexColor(String(shadowObj))
   }
 
   const inset = shadowObj.inset ? 'inset ' : ''
@@ -96,7 +97,9 @@ function shadowObjectToCss(shadowObj) {
     shadowObj.color ? String(shadowObj.color) : 'transparent'
   )
 
-  return `${inset}${offsetX} ${offsetY} ${blurRadius}${spreadRadius} ${color}`
+  return normalizeHexColor(
+    `${inset}${offsetX} ${offsetY} ${blurRadius}${spreadRadius} ${color}`
+  )
 }
 
 // Process a mode-specific value (could be string reference or complex value like shadow array)
@@ -164,7 +167,20 @@ function processTokenValue(token) {
   }
 
   // Resolve any token references to CSS variables
-  return resolveTokenReferenceToCssVar(String(value))
+  const resolved = resolveTokenReferenceToCssVar(String(value))
+  return normalizeHexColor(resolved)
+}
+
+// Normalize hex color codes to lowercase and add spacing to CSS functions
+function normalizeHexColor(value) {
+  if (typeof value !== 'string') return value
+  // Match hex colors and convert to lowercase
+  let result = value.replace(/#[0-9A-Fa-f]{3,8}/g, (match) =>
+    match.toLowerCase()
+  )
+  // Add space after commas in CSS functions (rgba, cubic-bezier, etc.)
+  result = result.replace(/,(?!\s)/g, ', ')
+  return result
 }
 
 // Generate CSS variable name from token path
@@ -314,6 +330,13 @@ function buildCssTokens() {
   const outputPath = path.join(outputDir, 'tokens.css')
   fs.writeFileSync(outputPath, css)
 
+  // Format with Prettier
+  try {
+    execSync(`npx prettier --write "${outputPath}"`, { stdio: 'ignore' })
+  } catch (error) {
+    console.warn('Warning: Could not format tokens.css with Prettier')
+  }
+
   // Copy tokens.css to dist directory
   const distDir = path.join(__dirname, '../dist')
   if (!fs.existsSync(distDir)) {
@@ -321,6 +344,13 @@ function buildCssTokens() {
   }
   const distTokensPath = path.join(distDir, 'tokens.css')
   fs.writeFileSync(distTokensPath, css)
+
+  // Format dist file with Prettier
+  try {
+    execSync(`npx prettier --write "${distTokensPath}"`, { stdio: 'ignore' })
+  } catch (error) {
+    console.warn('Warning: Could not format dist/tokens.css with Prettier')
+  }
 
   // Generate utilities.css for composite tokens
   if (textStyleUtilities.length > 0) {
@@ -365,6 +395,14 @@ function buildCssTokens() {
 
     const utilitiesPath = path.join(outputDir, 'utilities.css')
     fs.writeFileSync(utilitiesPath, utilitiesCss)
+
+    // Format with Prettier
+    try {
+      execSync(`npx prettier --write "${utilitiesPath}"`, { stdio: 'ignore' })
+    } catch (error) {
+      console.warn('Warning: Could not format utilities.css with Prettier')
+    }
+
     console.log(
       'Utilities built successfully! Output written to:',
       utilitiesPath

@@ -17,20 +17,20 @@
   --breakpoints-lg: 1024px;
   --breakpoints-xl: 1280px;
   --breakpoints-2xl: 1536px;
-  --colors-neutral-slate-0: #FFFFFF;
-  --colors-neutral-slate-1: #FBFCFF;
-  --colors-neutral-slate-2: #F7F9FE;
-  --colors-neutral-slate-3: #EDF0F8;
-  --colors-neutral-slate-4: #E4E8F2;
-  --colors-neutral-slate-5: #DBE1EE;
-  --colors-neutral-slate-6: #D3DAE9;
-  --colors-neutral-slate-7: #C6CFE2;
-  --colors-neutral-slate-8: #B0BCD5;
-  --colors-neutral-slate-9: #828EA6;
-  --colors-neutral-slate-10: #78839A;
-  --colors-neutral-slate-11: #5B6477;
-  --colors-neutral-slate-12: #1A1F2B;
-  --colors-neutral-slate-13: #0F1219;
+  --colors-neutral-slate-0: #ffffff;
+  --colors-neutral-slate-1: #fbfcff;
+  --colors-neutral-slate-2: #f7f9fe;
+  --colors-neutral-slate-3: #edf0f8;
+  --colors-neutral-slate-4: #e4e8f2;
+  --colors-neutral-slate-5: #dbe1ee;
+  --colors-neutral-slate-6: #d3dae9;
+  --colors-neutral-slate-7: #c6cfe2;
+  --colors-neutral-slate-8: #b0bcd5;
+  --colors-neutral-slate-9: #828ea6;
+  --colors-neutral-slate-10: #78839a;
+  --colors-neutral-slate-11: #5b6477;
+  --colors-neutral-slate-12: #1a1f2b;
+  --colors-neutral-slate-13: #0f1219;
   --colors-neutral-slate-a0: #ffffffcc;
   --colors-neutral-slate-a1: #00409902;
   --colors-neutral-slate-a2: #0040e008;
@@ -45,7 +45,7 @@
   --colors-neutral-slate-a11: #000e2ca4;
   --colors-neutral-slate-a12: #000613e5;
   --colors-neutral-slate-a13: #030407f2;
-  --colors-neutral-sand-0: #FFFFFF;
+  --colors-neutral-sand-0: #ffffff;
   --colors-neutral-sand-1: #fdfdfc;
   --colors-neutral-sand-2: #f9f9f8;
   --colors-neutral-sand-3: #f1f0ef;
@@ -58,7 +58,7 @@
   --colors-neutral-sand-10: #82827c;
   --colors-neutral-sand-11: #63635e;
   --colors-neutral-sand-12: #21201c;
-  --colors-neutral-sand-13: #0F1219;
+  --colors-neutral-sand-13: #0f1219;
   --colors-neutral-sand-a0: #ffffffcc;
   --colors-neutral-sand-a1: #55550003;
   --colors-neutral-sand-a2: #25250007;
@@ -217,22 +217,22 @@
   --colors-yellow-a10: #ffc100e0;
   --colors-yellow-a11: #946d00;
   --colors-yellow-a12: #2f2200e3;
-  --colors-neutral-slate-dark-0: #04080B;
-  --colors-neutral-slate-dark-1: #0F1116;
-  --colors-neutral-slate-dark-2: #17191E;
-  --colors-neutral-slate-dark-3: #1F222A;
-  --colors-neutral-slate-dark-4: #252A33;
-  --colors-neutral-slate-dark-5: #2B313C;
-  --colors-neutral-slate-dark-6: #333A47;
-  --colors-neutral-slate-dark-7: #3F4758;
+  --colors-neutral-slate-dark-0: #04080b;
+  --colors-neutral-slate-dark-1: #0f1116;
+  --colors-neutral-slate-dark-2: #17191e;
+  --colors-neutral-slate-dark-3: #1f222a;
+  --colors-neutral-slate-dark-4: #252a33;
+  --colors-neutral-slate-dark-5: #2b313c;
+  --colors-neutral-slate-dark-6: #333a47;
+  --colors-neutral-slate-dark-7: #3f4758;
   --colors-neutral-slate-dark-8: #556078;
-  --colors-neutral-slate-dark-9: #636E86;
-  --colors-neutral-slate-dark-10: #707B92;
-  --colors-neutral-slate-dark-11: #ABB4C6;
-  --colors-neutral-slate-dark-12: #ECEEF3;
-  --colors-neutral-slate-dark-13: #FBFCFF;
+  --colors-neutral-slate-dark-9: #636e86;
+  --colors-neutral-slate-dark-10: #707b92;
+  --colors-neutral-slate-dark-11: #abb4c6;
+  --colors-neutral-slate-dark-12: #eceef3;
+  --colors-neutral-slate-dark-13: #fbfcff;
   --colors-neutral-slate-dark-a0: #00000080;
-  --colors-neutral-slate-dark-a1: #0F1116;
+  --colors-neutral-slate-dark-a1: #0f1116;
   --colors-neutral-slate-dark-a2: #f2f4f909;
   --colors-neutral-slate-dark-a3: #c9d6fe16;
   --colors-neutral-slate-dark-a4: #bfd9fe20;
@@ -245,7 +245,7 @@
   --colors-neutral-slate-dark-a11: #dde9ffc1;
   --colors-neutral-slate-dark-a12: #f8fafff2;
   --colors-neutral-slate-dark-a13: #fffffff2;
-  --colors-neutral-sand-dark-0: #0A0A09;
+  --colors-neutral-sand-dark-0: #0a0a09;
   --colors-neutral-sand-dark-1: #111110;
   --colors-neutral-sand-dark-2: #191918;
   --colors-neutral-sand-dark-3: #222221;
@@ -441,17 +441,22 @@
   --colors-white-a10: rgba(255, 255, 255, 0.8);
   --colors-white-a11: rgba(255, 255, 255, 0.9);
   --colors-white-a12: rgba(255, 255, 255, 0.95);
-  --colors-transparent: rgba(255,255,255,0);
+  --colors-transparent: rgba(255, 255, 255, 0);
   --durations-short: 150ms;
   --durations-base: 200ms;
   --durations-long: 300ms;
   --durations-extra-long: 500ms;
   --easings-ease-in: cubic-bezier(0.8, 0, 0.8, 1);
   --easings-ease-out: cubic-bezier(0.2, 0, 0, 1);
-  --easings-ease-in-out: cubic-bezier(0.15, 1, 0.3,1);
-  --fonts-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+  --easings-ease-in-out: cubic-bezier(0.15, 1, 0.3, 1);
+  --fonts-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI,
+    Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji,
+    Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
   --fonts-serif: ui-serif, Georgia, Cambria, Times New Roman, Times, serif;
-  --fonts-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+  --fonts-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono,
+    Courier New, monospace;
   --font-sizes-xs: 0.75rem;
   --font-sizes-sm: 0.875rem;
   --font-sizes-md: 1rem;
@@ -951,9 +956,12 @@
   --fonts-display: var(--font-intermission), var(--fonts-sans);
   --fonts-code: var(--font-ibm-plex-mono), var(--fonts-mono);
   --font-feature-settings-ui: 'case' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1;
-  --font-feature-settings-prose: 'case' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1;
-  --font-feature-settings-display: 'case' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1;
-  --font-feature-settings-code: 'case' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1;
+  --font-feature-settings-prose:
+    'case' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1;
+  --font-feature-settings-display:
+    'case' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1;
+  --font-feature-settings-code:
+    'case' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1;
   --letter-spacings-display: var(--letter-spacings-tighter);
   --letter-spacings-ui: var(--letter-spacings-tight);
   --letter-spacings-prose: var(--letter-spacings-tight);
@@ -966,9 +974,17 @@
   --radii-md: var(--radii-200);
   --radii-lg: var(--radii-300);
   --radii-full: var(--radii-round);
-  --shadows-raised: 0px 1px 3px -1px var(--colors-black-a4), 0px 2px 4px -2px var(--colors-black-a2);
-  --shadows-overlay: 0px 1px 3px -1px var(--colors-black-a4), 0px 4px 8px -2px var(--colors-black-a3), 0px 8px 16px -4px var(--colors-black-a2);
-  --shadows-modal: 0px 1px 3px -1px var(--colors-black-a4), 0px 4px 8px -2px var(--colors-black-a3), 0px 8px 16px -4px var(--colors-black-a2);
+  --shadows-raised:
+    0px 1px 3px -1px var(--colors-black-a4),
+    0px 2px 4px -2px var(--colors-black-a2);
+  --shadows-overlay:
+    0px 1px 3px -1px var(--colors-black-a4),
+    0px 4px 8px -2px var(--colors-black-a3),
+    0px 8px 16px -4px var(--colors-black-a2);
+  --shadows-modal:
+    0px 1px 3px -1px var(--colors-black-a4),
+    0px 4px 8px -2px var(--colors-black-a3),
+    0px 8px 16px -4px var(--colors-black-a2);
   --shadows-sunken: inset 0px 1px 3px -1px var(--colors-black-a4);
   --sizes-100: var(--spacing-100);
   --sizes-150: var(--spacing-150);
@@ -991,7 +1007,7 @@
   --sizes-prose: 65ch;
 }
 
-:root[data-color-mode="dark"] {
+:root[data-color-mode='dark'] {
   --colors-neutral-surface: var(--colors-neutral-slate-dark-2);
   --colors-neutral-surface-hover: var(--colors-neutral-slate-dark-3);
   --colors-neutral-surface-active: var(--colors-neutral-slate-dark-4);
