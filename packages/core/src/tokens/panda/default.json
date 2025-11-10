@@ -40,59 +40,59 @@
     "colors": {
       "neutralSlate": {
         "0": {
-          "value": "#FFFFFF",
+          "value": "#ffffff",
           "description": "Pure white"
         },
         "1": {
-          "value": "#FBFCFF",
+          "value": "#fbfcff",
           "description": "Near white with subtle cool undertone"
         },
         "2": {
-          "value": "#F7F9FE",
+          "value": "#f7f9fe",
           "description": "Very light neutral with cool undertone"
         },
         "3": {
-          "value": "#EDF0F8",
+          "value": "#edf0f8",
           "description": "Light neutral for surfaces and backgrounds"
         },
         "4": {
-          "value": "#E4E8F2",
+          "value": "#e4e8f2",
           "description": "Light-medium neutral for interactive states"
         },
         "5": {
-          "value": "#DBE1EE",
+          "value": "#dbe1ee",
           "description": "Medium-light neutral for active states"
         },
         "6": {
-          "value": "#D3DAE9",
+          "value": "#d3dae9",
           "description": "Medium neutral for borders and dividers"
         },
         "7": {
-          "value": "#C6CFE2",
+          "value": "#c6cfe2",
           "description": "Medium neutral for emphasis and focus"
         },
         "8": {
-          "value": "#B0BCD5",
+          "value": "#b0bcd5",
           "description": "Medium-dark neutral for interactive elements"
         },
         "9": {
-          "value": "#828EA6",
+          "value": "#828ea6",
           "description": "Dark neutral for solid elements"
         },
         "10": {
-          "value": "#78839A",
+          "value": "#78839a",
           "description": "Dark neutral for interactive states"
         },
         "11": {
-          "value": "#5B6477",
+          "value": "#5b6477",
           "description": "Very dark neutral for secondary content"
         },
         "12": {
-          "value": "#1A1F2B",
+          "value": "#1a1f2b",
           "description": "Deep neutral for primary content"
         },
         "13": {
-          "value": "#0F1219",
+          "value": "#0f1219",
           "description": "Deepest neutral for maximum contrast"
         },
         "A0": {
@@ -154,7 +154,7 @@
       },
       "neutralSand": {
         "0": {
-          "value": "#FFFFFF",
+          "value": "#ffffff",
           "description": "White"
         },
         "1": {
@@ -206,7 +206,7 @@
           "description": "Default text, icons"
         },
         "13": {
-          "value": "#0F1219",
+          "value": "#0f1219",
           "description": "Highest-contrast text, icons"
         },
         "A0": {
@@ -856,35 +856,35 @@
       },
       "neutralSlateDark": {
         "0": {
-          "value": "#04080B",
+          "value": "#04080b",
           "description": "Deepest neutral for maximum contrast"
         },
         "1": {
-          "value": "#0F1116",
+          "value": "#0f1116",
           "description": "Deep neutral for primary surfaces"
         },
         "2": {
-          "value": "#17191E",
+          "value": "#17191e",
           "description": "Deep neutral for secondary surfaces"
         },
         "3": {
-          "value": "#1F222A",
+          "value": "#1f222a",
           "description": "Dark neutral for interactive surfaces"
         },
         "4": {
-          "value": "#252A33",
+          "value": "#252a33",
           "description": "Dark neutral for active states"
         },
         "5": {
-          "value": "#2B313C",
+          "value": "#2b313c",
           "description": "Medium-dark neutral for emphasis"
         },
         "6": {
-          "value": "#333A47",
+          "value": "#333a47",
           "description": "Medium-dark neutral for borders"
         },
         "7": {
-          "value": "#3F4758",
+          "value": "#3f4758",
           "description": "Medium neutral for strong borders"
         },
         "8": {
@@ -892,23 +892,23 @@
           "description": "Medium neutral for subtle text"
         },
         "9": {
-          "value": "#636E86",
+          "value": "#636e86",
           "description": "Medium-light neutral for primary text"
         },
         "10": {
-          "value": "#707B92",
+          "value": "#707b92",
           "description": "Light-medium neutral for strong text"
         },
         "11": {
-          "value": "#ABB4C6",
+          "value": "#abb4c6",
           "description": "Light neutral for high contrast"
         },
         "12": {
-          "value": "#ECEEF3",
+          "value": "#eceef3",
           "description": "Very light neutral for maximum contrast"
         },
         "13": {
-          "value": "#FBFCFF",
+          "value": "#fbfcff",
           "description": "Pure light neutral for extreme contrast"
         },
         "A0": {
@@ -916,7 +916,7 @@
           "description": "Subtle blue glow for dark surface layering"
         },
         "A1": {
-          "value": "#0F1116",
+          "value": "#0f1116",
           "description": "Subtle neutral glow for dark surface layering"
         },
         "A2": {
@@ -970,7 +970,7 @@
       },
       "neutralSandDark": {
         "0": {
-          "value": "#0A0A09",
+          "value": "#0a0a09",
           "description": "App background, solid backgrounds"
         },
         "1": {
