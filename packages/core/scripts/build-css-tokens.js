@@ -360,6 +360,9 @@ function buildCssTokens() {
       utilitiesCss += '}\n\n'
     }
 
+    // Remove trailing newline and add it back to ensure consistent formatting
+    utilitiesCss = utilitiesCss.trimEnd() + '\n'
+
     const utilitiesPath = path.join(outputDir, 'utilities.css')
     fs.writeFileSync(utilitiesPath, utilitiesCss)
     console.log(
