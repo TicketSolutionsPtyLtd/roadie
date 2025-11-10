@@ -35,7 +35,7 @@ jobs:
         uses: ./.github/composite-actions/setup
 
       - name: Run lint
-        run: pnpm turbo lint --affected --no-framework-inference
+        run: pnpm turbo lint --affected --framework-inference=false
 
   typecheck:
     runs-on: ubuntu-latest
@@ -50,7 +50,7 @@ jobs:
         uses: ./.github/composite-actions/setup
 
       - name: Run typecheck
-        run: pnpm turbo typecheck --affected --no-framework-inference
+        run: pnpm turbo typecheck --affected --framework-inference=false
 
   test:
     runs-on: ubuntu-latest
@@ -65,7 +65,7 @@ jobs:
         uses: ./.github/composite-actions/setup
 
       - name: Run tests
-        run: pnpm turbo test --affected --no-framework-inference
+        run: pnpm turbo test --affected --framework-inference=false
 
   build-packages:
     needs: [lint, typecheck, test]
@@ -81,6 +81,6 @@ jobs:
         uses: ./.github/composite-actions/setup
 
       - name: Build packages
-        run: pnpm turbo build --no-framework-inference
+        run: pnpm turbo build --framework-inference=false
         env:
           NEXT_PUBLIC_BASE_PATH: /roadie
