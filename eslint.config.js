@@ -20,6 +20,7 @@ export default [
       '**/.turbo/**',
       '**/roadie-core/**',
       '**/trace-output/**',
+      '**/.tsup/**',
       '**/*.config.js',
       '**/*.config.ts',
       '**/*.config.mjs',

@@ -17,6 +17,8 @@
     "preserveSymlinks": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "incremental": true,
     "sourceMap": true,
     "strict": true,
     "target": "ES2022",
@@ -36,6 +38,8 @@
     "**/coverage",
     "**/node_modules",
     "**/*.test.ts",
-    "**/*.test.tsx"
+    "**/*.test.tsx",
+    "**/roadie-core",
+    "**/styled-system"
   ]
 }

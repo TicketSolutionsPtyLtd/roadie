@@ -8,7 +8,10 @@
     "noEmit": false,
     "jsx": "react-jsx",
     "jsxImportSource": "react",
-    "types": ["vitest/globals", "@testing-library/jest-dom"]
+    "types": ["vitest/globals", "@testing-library/jest-dom"],
+    "skipLibCheck": true,
+    "incremental": true,
+    "tsBuildInfoFile": "./tsconfig.components.tsbuildinfo"
   },
   "include": [
     "src/**/*.ts",
@@ -16,6 +19,6 @@
     "src/components/**/*.ts",
     "src/components/**/*.tsx"
   ],
-  "exclude": ["dist", "node_modules"],
+  "exclude": ["dist", "node_modules", "roadie-core"],
   "references": [{ "path": "../core" }]
 }

@@ -31,11 +31,9 @@
     "access": "public"
   },
   "scripts": {
-    "prepare": "panda codegen",
     "build": "tsup",
     "clean": "rm -rf node_modules dist",
     "dev": "tsup --watch",
-    "pretest": "panda codegen",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

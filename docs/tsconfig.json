@@ -15,7 +15,8 @@
     },
     "preserveSymlinks": true,
     "skipLibCheck": true,
-    "incremental": true
+    "incremental": true,
+    "tsBuildInfoFile": "./tsconfig.docs.tsbuildinfo"
   },
   "include": [
     "next-env.d.ts",
@@ -24,5 +25,5 @@
     "**/*.mdx",
     ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "out", ".next", "dist"]
+  "exclude": ["node_modules", "out", ".next", "dist", "roadie-core"]
 }
