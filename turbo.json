@@ -1,7 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": ["**/.env.*local", "pnpm-lock.yaml"],
-  "globalEnv": ["CI", "NODE_ENV"],
   "tasks": {
     "prepare": {
       "dependsOn": ["^build"],
@@ -19,10 +18,8 @@
         ".next/**",
         "out/**",
         "!.next/cache/**",
-        ".turbo/**",
-        "*.tsbuildinfo"
-      ],
-      "outputLogs": "hash-only"
+        ".turbo/**"
+      ]
     },
     "typecheck": {
       "dependsOn": ["@oztix/roadie-core#build"],
@@ -33,20 +30,17 @@
         "!**/roadie-core/**",
         "!**/styled-system/**"
       ],
-      "outputs": [".turbo/**", "*.tsbuildinfo"],
-      "outputLogs": "hash-only"
+      "outputs": [".turbo/**", "*.tsbuildinfo"]
     },
     "lint": {
       "dependsOn": ["^build"],
       "inputs": ["src/**/*.{js,jsx,ts,tsx}", ".eslintrc.*", "package.json"],
-      "outputs": [".turbo/**"],
-      "outputLogs": "hash-only"
+      "outputs": [".turbo/**"]
     },
     "lint:fix": {
       "dependsOn": ["^build"],
       "inputs": ["src/**/*.{js,jsx,ts,tsx}", ".eslintrc.*", "package.json"],
-      "outputs": ["src/**/*"],
-      "outputLogs": "errors-only"
+      "outputs": ["src/**/*"]
     },
     "test": {
       "dependsOn": ["^build"],
@@ -56,8 +50,7 @@
         "jest.config.*",
         "package.json"
       ],
-      "outputs": ["coverage/**", ".turbo/**"],
-      "outputLogs": "hash-only"
+      "outputs": ["coverage/**", ".turbo/**"]
     },
     "clean": {
       "cache": false
@@ -72,13 +65,11 @@
     },
     "format": {
       "inputs": ["**/*.{js,jsx,ts,tsx,md,mdx,json}"],
-      "outputs": ["**/*.{js,jsx,ts,tsx,md,mdx,json}"],
-      "outputLogs": "errors-only"
+      "outputs": ["**/*.{js,jsx,ts,tsx,md,mdx,json}"]
     },
     "format:check": {
       "inputs": ["**/*.{js,jsx,ts,tsx,md,mdx,json}"],
-      "outputs": [".turbo/**"],
-      "outputLogs": "hash-only"
+      "outputs": [".turbo/**"]
     }
   }
 }

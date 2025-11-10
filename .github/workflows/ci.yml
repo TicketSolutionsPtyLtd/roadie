@@ -21,184 +21,65 @@ env:
   NODE_OPTIONS: --max-old-space-size=4096
 
 jobs:
-  # Build core package once and cache it for all jobs
-  build-core:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Setup
-        uses: ./.github/composite-actions/setup
-
-      - name: Build core package
-        run: pnpm --filter @oztix/roadie-core build
-
-      - name: Cache core dist
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            packages/core/dist
-            packages/core/roadie-core
-            packages/core/tsconfig.core.tsbuildinfo
-          key: core-dist-${{ github.sha }}
-
-  # Build components package once and cache it for jobs that need it
-  build-components:
-    needs: build-core
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Setup
-        uses: ./.github/composite-actions/setup
-
-      - name: Restore core dist
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            packages/core/dist
-            packages/core/roadie-core
-            packages/core/tsconfig.core.tsbuildinfo
-          key: core-dist-${{ github.sha }}
-          fail-on-cache-miss: true
-
-      - name: Build components package
-        run: pnpm --filter @oztix/roadie-components build
-
-      - name: Cache components dist
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            packages/components/dist
-            packages/components/tsconfig.components.tsbuildinfo
-          key: components-dist-${{ github.sha }}
-
   lint:
-    needs: build-core
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Setup
-        uses: ./.github/composite-actions/setup
-
-      - name: Restore core dist
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            packages/core/dist
-            packages/core/roadie-core
-            packages/core/tsconfig.core.tsbuildinfo
-          key: core-dist-${{ github.sha }}
-          fail-on-cache-miss: true
-
-      - name: Run lint
-        run: pnpm lint
-
-  typecheck:
-    needs: build-core
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Setup
-        uses: ./.github/composite-actions/setup
-
-      - name: Restore core dist
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            packages/core/dist
-            packages/core/roadie-core
-            packages/core/tsconfig.core.tsbuildinfo
-          key: core-dist-${{ github.sha }}
-          fail-on-cache-miss: true
-
-      - name: Run typecheck
-        run: pnpm typecheck
-
-  test:
-    needs: build-core
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Setup
-        uses: ./.github/composite-actions/setup
-
-      - name: Restore core dist
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            packages/core/dist
-            packages/core/roadie-core
-            packages/core/tsconfig.core.tsbuildinfo
-          key: core-dist-${{ github.sha }}
-          fail-on-cache-miss: true
-
-      - name: Run tests
-        run: pnpm test
-
-  build-docs:
-    needs: [build-core, build-components]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
 
       - name: Setup
         uses: ./.github/composite-actions/setup
 
-      - name: Restore core dist
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            packages/core/dist
-            packages/core/roadie-core
-            packages/core/tsconfig.core.tsbuildinfo
-          key: core-dist-${{ github.sha }}
-          fail-on-cache-miss: true
+      - name: Run lint
+        run: pnpm lint
 
-      - name: Restore components dist
-        uses: actions/cache/restore@v4
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
         with:
-          path: |
-            packages/components/dist
-            packages/components/tsconfig.components.tsbuildinfo
-          key: components-dist-${{ github.sha }}
-          fail-on-cache-miss: true
+          fetch-depth: 2
 
-      - name: Build documentation
-        run: pnpm --filter docs build
+      - name: Setup
+        uses: ./.github/composite-actions/setup
+
+      - name: Run typecheck
+        run: pnpm typecheck
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+
+      - name: Setup
+        uses: ./.github/composite-actions/setup
+
+      - name: Run tests
+        run: pnpm test
+
+  build-packages:
+    needs: [lint, typecheck, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+
+      - name: Setup
+        uses: ./.github/composite-actions/setup
+
+      - name: Build packages
+        run: pnpm build
         env:
           NEXT_PUBLIC_BASE_PATH: /roadie
-
-  # Summary job that all branch protection rules should depend on
-  ci-success:
-    name: CI Success
-    needs: [lint, typecheck, test, build-docs]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check all jobs succeeded
-        run: |
-          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
-            echo "One or more jobs failed"
-            exit 1
-          elif [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
-            echo "One or more jobs were cancelled"
-            exit 1
-          else
-            echo "All jobs succeeded"
-          fi
