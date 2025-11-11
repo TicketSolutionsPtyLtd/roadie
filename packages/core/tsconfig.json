@@ -7,8 +7,7 @@
     "skipLibCheck": true,
     "declarationMap": true,
     "resolveJsonModule": true,
-    "noEmit": false,
-    "tsBuildInfoFile": "./tsconfig.core.tsbuildinfo"
+    "noEmit": false
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.json"],
   "exclude": ["dist", "node_modules", "**/*.test.ts", "**/*.test.tsx"]

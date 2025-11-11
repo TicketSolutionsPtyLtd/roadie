@@ -9,8 +9,7 @@
     "jsxImportSource": "react",
     "types": ["vitest/globals", "@testing-library/jest-dom"],
     "skipLibCheck": true,
-    "incremental": true,
-    "tsBuildInfoFile": "./tsconfig.components.tsbuildinfo"
+    "incremental": true
   },
   "include": [
     "src/**/*.ts",

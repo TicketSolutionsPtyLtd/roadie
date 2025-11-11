@@ -14,8 +14,7 @@
     },
     "preserveSymlinks": true,
     "skipLibCheck": true,
-    "incremental": true,
-    "tsBuildInfoFile": "./tsconfig.docs.tsbuildinfo"
+    "incremental": true
   },
   "include": [
     "next-env.d.ts",
