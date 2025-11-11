@@ -22,8 +22,15 @@
       ]
     },
     "typecheck": {
-      "dependsOn": ["^build"],
-      "inputs": ["src/**/*.{ts,tsx}", "tsconfig.json"]
+      "dependsOn": ["@oztix/roadie-core#build"],
+      "inputs": [
+        "src/**/*.{ts,tsx}",
+        "tsconfig.json",
+        "!**/*.test.{ts,tsx}",
+        "!**/roadie-core/**",
+        "!**/styled-system/**"
+      ],
+      "outputs": []
     },
     "lint": {
       "dependsOn": ["^build"],
@@ -49,7 +56,10 @@
       "cache": false
     },
     "dev": {
-      "dependsOn": ["@oztix/roadie-core#build", "@oztix/roadie-components#build"],
+      "dependsOn": [
+        "@oztix/roadie-core#build",
+        "@oztix/roadie-components#build"
+      ],
       "cache": false,
       "persistent": true
     },

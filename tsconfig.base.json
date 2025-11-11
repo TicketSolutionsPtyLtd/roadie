@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    "composite": true,
     "declaration": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -17,18 +16,15 @@
     "preserveSymlinks": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "sourceMap": true,
+    "skipDefaultLibCheck": true,
+    "sourceMap": false,
     "strict": true,
     "target": "ES2022",
     "verbatimModuleSyntax": true,
     "rootDir": ".",
-    "baseUrl": "."
+    "baseUrl": ".",
+    "assumeChangesOnlyAffectDirectDependencies": true
   },
-  "references": [
-    { "path": "packages/core" },
-    { "path": "packages/components" },
-    { "path": "docs" }
-  ],
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": [
     "**/dist",
@@ -36,6 +32,9 @@
     "**/coverage",
     "**/node_modules",
     "**/*.test.ts",
-    "**/*.test.tsx"
+    "**/*.test.tsx",
+    "**/roadie-core",
+    "**/styled-system",
+    "**/.turbo"
   ]
 }

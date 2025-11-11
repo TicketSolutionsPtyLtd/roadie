@@ -22,6 +22,7 @@ export const roadie = definePreset({
     }
   },
   conditions: {
+    dark: '[data-color-mode=dark] &',
     extend: {
       hoverFocusVisible: ['&:hover', '&:focus-visible']
     }

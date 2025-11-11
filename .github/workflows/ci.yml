@@ -19,52 +19,68 @@ concurrency:
 env:
   NEXT_TELEMETRY_DISABLED: 1
   NODE_OPTIONS: --max-old-space-size=4096
+  TURBO_FORCE: false
 
 jobs:
   lint:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
           fetch-depth: 2
+
+      - name: Fetch base branch
+        run: git fetch origin main:refs/remotes/origin/main --depth=1
 
       - name: Setup
         uses: ./.github/composite-actions/setup
 
       - name: Run lint
-        run: pnpm lint
+        run: pnpm turbo lint --affected --framework-inference=false
+        env:
+          TURBO_SCM_BASE: origin/main
 
   typecheck:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
           fetch-depth: 2
+
+      - name: Fetch base branch
+        run: git fetch origin main:refs/remotes/origin/main --depth=1
 
       - name: Setup
         uses: ./.github/composite-actions/setup
 
       - name: Run typecheck
-        run: pnpm typecheck
+        run: pnpm turbo typecheck --affected --framework-inference=false
+        env:
+          TURBO_SCM_BASE: origin/main
 
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
           fetch-depth: 2
 
+      - name: Fetch base branch
+        run: git fetch origin main:refs/remotes/origin/main --depth=1
+
       - name: Setup
         uses: ./.github/composite-actions/setup
 
       - name: Run tests
-        run: pnpm test
+        run: pnpm turbo test --affected --framework-inference=false
+        env:
+          TURBO_SCM_BASE: origin/main
 
   build-packages:
     needs: [lint, typecheck, test]
@@ -76,10 +92,13 @@ jobs:
         with:
           fetch-depth: 2
 
+      - name: Fetch base branch
+        run: git fetch origin main --depth=1
+
       - name: Setup
         uses: ./.github/composite-actions/setup
 
       - name: Build packages
-        run: pnpm build
+        run: pnpm turbo build --framework-inference=false
         env:
           NEXT_PUBLIC_BASE_PATH: /roadie

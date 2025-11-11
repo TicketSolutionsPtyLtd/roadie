@@ -3,12 +3,13 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "composite": true,
     "declarationMap": true,
     "noEmit": false,
     "jsx": "react-jsx",
     "jsxImportSource": "react",
-    "types": ["vitest/globals", "@testing-library/jest-dom"]
+    "types": ["vitest/globals", "@testing-library/jest-dom"],
+    "skipLibCheck": true,
+    "incremental": true
   },
   "include": [
     "src/**/*.ts",
@@ -16,6 +17,5 @@
     "src/components/**/*.ts",
     "src/components/**/*.tsx"
   ],
-  "exclude": ["dist", "node_modules"],
-  "references": [{ "path": "../core" }]
+  "exclude": ["dist", "node_modules", "roadie-core"]
 }

@@ -9,3 +9,6 @@ export * from './types'
 
 // Export patterns
 export * from './patterns'
+
+// Export utilities
+export * from './utils/colorMode'
