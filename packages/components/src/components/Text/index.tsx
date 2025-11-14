@@ -46,9 +46,6 @@ export interface TextProps extends HTMLStyledProps<'span'> {
   children?: ReactNode
 }
 
-export const Text = styled(
-  ark.span,
-  text
-) as React.ForwardRefExoticComponent<TextProps>
+export const Text = styled(ark.span, text)
 
 Text.displayName = 'Text'
