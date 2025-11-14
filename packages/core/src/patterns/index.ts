@@ -1,5 +1,7 @@
+import { container } from './container'
 import { view } from './view'
 
 export const patterns = {
-  view
+  view,
+  container
 }

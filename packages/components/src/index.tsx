@@ -1,5 +1,6 @@
 export * from './components/Button'
 export * from './components/Code'
+export * from './components/Container'
 export * from './components/Heading'
 export * from './components/Text'
 export * from './components/View'
