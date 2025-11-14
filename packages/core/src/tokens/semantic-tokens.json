@@ -127,7 +127,7 @@
             "$extensions": {
               "mode": {
                 "light": "{colors.neutralSlate.12}",
-                "dark": "{colors.neutralSlateDark.11}"
+                "dark": "{colors.neutralSlateDark.12}"
               }
             }
           },
@@ -138,7 +138,7 @@
             "$extensions": {
               "mode": {
                 "light": "{colors.neutralSlate.11}",
-                "dark": "{colors.neutralSlateDark.12}"
+                "dark": "{colors.neutralSlateDark.13}"
               }
             }
           },
@@ -149,7 +149,7 @@
             "$extensions": {
               "mode": {
                 "light": "{colors.neutralSlate.12}",
-                "dark": "{colors.neutralSlateDark.11}"
+                "dark": "{colors.neutralSlateDark.12}"
               }
             }
           }
@@ -808,29 +808,29 @@
             "$extensions": {
               "mode": {
                 "light": "{colors.blue.10}",
-                "dark": "{colors.blueDark.11}"
+                "dark": "{colors.blueDark.9}"
               }
             }
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.blue.9}",
+            "$value": "{colors.blue.11}",
             "$description": "Hover state for strong accent surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.blue.9}",
-                "dark": "{colors.blueDark.12}"
+                "light": "{colors.blue.11}",
+                "dark": "{colors.blueDark.11}"
               }
             }
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.blue.10}",
+            "$value": "{colors.blue.12}",
             "$description": "Active/pressed state for strong accent surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.blue.10}",
-                "dark": "{colors.blueDark.11}"
+                "light": "{colors.blue.12}",
+                "dark": "{colors.blueDark.9}"
               }
             }
           }
@@ -1367,29 +1367,29 @@
             "$extensions": {
               "mode": {
                 "light": "{colors.blue.10}",
-                "dark": "{colors.blueDark.11}"
+                "dark": "{colors.blueDark.9}"
               }
             }
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.blue.9}",
+            "$value": "{colors.blue.11}",
             "$description": "Hover state for strong accent surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.blue.9}",
-                "dark": "{colors.blueDark.12}"
+                "light": "{colors.blue.11}",
+                "dark": "{colors.blueDark.11}"
               }
             }
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.blue.10}",
+            "$value": "{colors.blue.12}",
             "$description": "Active/pressed state for strong accent surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.blue.10}",
-                "dark": "{colors.blueDark.11}"
+                "light": "{colors.blue.12}",
+                "dark": "{colors.blueDark.9}"
               }
             }
           }
@@ -1932,22 +1932,22 @@
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.purple.9}",
+            "$value": "{colors.purple.11}",
             "$description": "Hover state for strong information background",
             "$extensions": {
               "mode": {
-                "light": "{colors.purple.9}",
+                "light": "{colors.purple.11}",
                 "dark": "{colors.purpleDark.12}"
               }
             }
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.purple.10}",
+            "$value": "{colors.purple.12}",
             "$description": "Active/pressed state for strong information background",
             "$extensions": {
               "mode": {
-                "light": "{colors.purple.10}",
+                "light": "{colors.purple.12}",
                 "dark": "{colors.purpleDark.11}"
               }
             }
@@ -2491,22 +2491,22 @@
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.green.9}",
+            "$value": "{colors.green.11}",
             "$description": "Hover state for strong success surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.green.9}",
+                "light": "{colors.green.11}",
                 "dark": "{colors.greenDark.12}"
               }
             }
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.green.10}",
+            "$value": "{colors.green.12}",
             "$description": "Active/pressed state for strong success surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.green.10}",
+                "light": "{colors.green.12}",
                 "dark": "{colors.greenDark.11}"
               }
             }
@@ -3050,22 +3050,22 @@
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.yellow.9}",
+            "$value": "{colors.yellow.11}",
             "$description": "Hover state for strong warning surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.yellow.9}",
+                "light": "{colors.yellow.11}",
                 "dark": "{colors.yellowDark.12}"
               }
             }
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.yellow.10}",
+            "$value": "{colors.yellow.12}",
             "$description": "Active/pressed state for strong warning surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.yellow.10}",
+                "light": "{colors.yellow.12}",
                 "dark": "{colors.yellowDark.11}"
               }
             }
@@ -3609,22 +3609,22 @@
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.red.9}",
+            "$value": "{colors.red.11}",
             "$description": "Hover state for strong danger surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.red.9}",
+                "light": "{colors.red.11}",
                 "dark": "{colors.redDark.12}"
               }
             }
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.red.10}",
+            "$value": "{colors.red.12}",
             "$description": "Active/pressed state for strong danger surfaces",
             "$extensions": {
               "mode": {
-                "light": "{colors.red.10}",
+                "light": "{colors.red.12}",
                 "dark": "{colors.redDark.11}"
               }
             }
@@ -5225,6 +5225,10 @@
     "200": {
       "$type": "dimension",
       "$value": "{spacing.200}"
+    },
+    "250": {
+      "$type": "dimension",
+      "$value": "{spacing.250}"
     },
     "300": {
       "$type": "dimension",

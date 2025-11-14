@@ -17,5 +17,6 @@ export const view = definePattern({
   },
   transform(props: SystemStyleObject) {
     return props
-  }
+  },
+  jsx: ['View']
 })

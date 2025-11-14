@@ -16,15 +16,12 @@ export const roadie = definePreset({
     recipes,
     textStyles
   },
-  patterns: {
-    extend: {
-      ...patterns
-    }
-  },
+  patterns,
   conditions: {
     dark: '[data-color-mode=dark] &',
     extend: {
-      hoverFocusVisible: ['&:hover', '&:focus-visible']
+      hoverFocusVisible:
+        '&:is(:hover, [data-hover], :focus-visible, [data-focus-visible])'
     }
   },
   globalCss: {

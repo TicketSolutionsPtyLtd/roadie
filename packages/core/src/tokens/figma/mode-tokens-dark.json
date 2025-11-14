@@ -60,17 +60,17 @@
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.neutralSlateDark.11}",
+            "$value": "{colors.neutralSlateDark.12}",
             "$description": "Base color for strong surfaces"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.neutralSlateDark.12}",
+            "$value": "{colors.neutralSlateDark.13}",
             "$description": "Hover state for strong surfaces"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.neutralSlateDark.11}",
+            "$value": "{colors.neutralSlateDark.12}",
             "$description": "Active/pressed state for strong surfaces"
           }
         },
@@ -392,17 +392,17 @@
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.blueDark.11}",
+            "$value": "{colors.blueDark.9}",
             "$description": "Base color for strong accent surfaces"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.blueDark.12}",
+            "$value": "{colors.blueDark.11}",
             "$description": "Hover state for strong accent surfaces"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.blueDark.11}",
+            "$value": "{colors.blueDark.9}",
             "$description": "Active/pressed state for strong accent surfaces"
           }
         },
@@ -665,17 +665,17 @@
           "$type": "color",
           "default": {
             "$type": "color",
-            "$value": "{colors.blueDark.11}",
+            "$value": "{colors.blueDark.9}",
             "$description": "Base color for strong accent surfaces"
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.blueDark.12}",
+            "$value": "{colors.blueDark.11}",
             "$description": "Hover state for strong accent surfaces"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.blueDark.11}",
+            "$value": "{colors.blueDark.9}",
             "$description": "Active/pressed state for strong accent surfaces"
           }
         },
@@ -2555,6 +2555,10 @@
     "200": {
       "$type": "dimension",
       "$value": "{spacing.200}"
+    },
+    "250": {
+      "$type": "dimension",
+      "$value": "{spacing.250}"
     },
     "300": {
       "$type": "dimension",

@@ -397,12 +397,12 @@
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.blue.9}",
+            "$value": "{colors.blue.11}",
             "$description": "Hover state for strong accent surfaces"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.blue.10}",
+            "$value": "{colors.blue.12}",
             "$description": "Active/pressed state for strong accent surfaces"
           }
         },
@@ -670,12 +670,12 @@
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.blue.9}",
+            "$value": "{colors.blue.11}",
             "$description": "Hover state for strong accent surfaces"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.blue.10}",
+            "$value": "{colors.blue.12}",
             "$description": "Active/pressed state for strong accent surfaces"
           }
         },
@@ -943,12 +943,12 @@
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.purple.9}",
+            "$value": "{colors.purple.11}",
             "$description": "Hover state for strong information background"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.purple.10}",
+            "$value": "{colors.purple.12}",
             "$description": "Active/pressed state for strong information background"
           }
         },
@@ -1216,12 +1216,12 @@
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.green.9}",
+            "$value": "{colors.green.11}",
             "$description": "Hover state for strong success surfaces"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.green.10}",
+            "$value": "{colors.green.12}",
             "$description": "Active/pressed state for strong success surfaces"
           }
         },
@@ -1489,12 +1489,12 @@
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.yellow.9}",
+            "$value": "{colors.yellow.11}",
             "$description": "Hover state for strong warning surfaces"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.yellow.10}",
+            "$value": "{colors.yellow.12}",
             "$description": "Active/pressed state for strong warning surfaces"
           }
         },
@@ -1762,12 +1762,12 @@
           },
           "hover": {
             "$type": "color",
-            "$value": "{colors.red.9}",
+            "$value": "{colors.red.11}",
             "$description": "Hover state for strong danger surfaces"
           },
           "active": {
             "$type": "color",
-            "$value": "{colors.red.10}",
+            "$value": "{colors.red.12}",
             "$description": "Active/pressed state for strong danger surfaces"
           }
         },
@@ -2555,6 +2555,10 @@
     "200": {
       "$type": "dimension",
       "$value": "{spacing.200}"
+    },
+    "250": {
+      "$type": "dimension",
+      "$value": "{spacing.250}"
     },
     "300": {
       "$type": "dimension",

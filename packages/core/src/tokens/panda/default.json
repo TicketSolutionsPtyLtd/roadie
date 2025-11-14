@@ -758,99 +758,99 @@
       },
       "yellow": {
         "1": {
-          "value": "#fbfaf7",
+          "value": "#fefdf9",
           "description": "App background subtle yellow tint"
         },
         "2": {
-          "value": "#fff7e4",
+          "value": "#fffae6",
           "description": "Subtle background for yellow surfaces"
         },
         "3": {
-          "value": "#fff0b4",
+          "value": "#fff4ba",
           "description": "UI element background with yellow tint"
         },
         "4": {
-          "value": "#ffe68c",
+          "value": "#ffeb9e",
           "description": "Hovered UI element background"
         },
         "5": {
-          "value": "#ffdb63",
+          "value": "#ffe077",
           "description": "Active / selected UI element background"
         },
         "6": {
-          "value": "#f9ce60",
+          "value": "#ffd04f",
           "description": "Subtle borders and separators"
         },
         "7": {
-          "value": "#e6be57",
+          "value": "#f0c251",
           "description": "UI element border and focus rings"
         },
         "8": {
-          "value": "#d4a61a",
+          "value": "#deaa00",
           "description": "Hovered UI element border"
         },
         "9": {
-          "value": "#ffca00",
+          "value": "#e0ac00",
           "description": "Solid backgrounds, contrast with white"
         },
         "10": {
-          "value": "#fcc100",
+          "value": "#d5a100",
           "description": "Hovered solid backgrounds"
         },
         "11": {
-          "value": "#946d00",
+          "value": "#9b7100",
           "description": "Low-contrast text and icons"
         },
         "12": {
-          "value": "#463a1c",
+          "value": "#483a1a",
           "description": "High-contrast text and icons"
         },
         "A1": {
-          "value": "#fcbd0008",
+          "value": "#d5aa0006",
           "description": "Ethereal golden transparency for subtle highlights"
         },
         "A2": {
-          "value": "#fff7e4",
+          "value": "#ffcc0019",
           "description": "Delicate yellow transparency for surface distinction"
         },
         "A3": {
-          "value": "#fff0b4",
+          "value": "#ffd70045",
           "description": "Soft luminous yellow for subtle UI backgrounds"
         },
         "A4": {
-          "value": "#ffe68c",
+          "value": "#ffcb0061",
           "description": "Warm transparent yellow for interactive elements"
         },
         "A5": {
-          "value": "#ffdb63",
+          "value": "#ffc50088",
           "description": "Golden translucent glow for selected states"
         },
         "A6": {
-          "value": "#f8b2009f",
+          "value": "#ffbb00b0",
           "description": "Radiant yellow transparency for borders and focus"
         },
         "A7": {
-          "value": "#db9e00a8",
+          "value": "#e9a600ae",
           "description": "Rich transparent yellow for interactive indicators"
         },
         "A8": {
-          "value": "#cf9c00e5",
+          "value": "#deaa00",
           "description": "Vivid translucent yellow for emphasis states"
         },
         "A9": {
-          "value": "#ffca00",
+          "value": "#e0ac00",
           "description": "Prominent golden yellow for key UI elements"
         },
         "A10": {
-          "value": "#ffc100e0",
+          "value": "#d5a100",
           "description": "Deep transparent yellow for hover interactions"
         },
         "A11": {
-          "value": "#946d00",
+          "value": "#9b7100",
           "description": "Solid amber for critical interface elements"
         },
         "A12": {
-          "value": "#2f2200e3",
+          "value": "#332400e5",
           "description": "Near-opaque yellow for maximum contrast text"
         }
       },
@@ -1574,99 +1574,99 @@
       },
       "yellowDark": {
         "1": {
-          "value": "#13110c",
+          "value": "#13110b",
           "description": "App background subtle yellow tint"
         },
         "2": {
-          "value": "#1b1811",
+          "value": "#1c180f",
           "description": "Subtle background for yellow surfaces"
         },
         "3": {
-          "value": "#2b220e",
+          "value": "#2c2208",
           "description": "UI element background with yellow tint"
         },
         "4": {
-          "value": "#382a05",
+          "value": "#3c2900",
           "description": "Hovered UI element background"
         },
         "5": {
-          "value": "#443407",
+          "value": "#493300",
           "description": "Active / selected UI element background"
         },
         "6": {
-          "value": "#524219",
+          "value": "#564106",
           "description": "Subtle borders and separators"
         },
         "7": {
-          "value": "#655429",
+          "value": "#69531a",
           "description": "UI element border and focus rings"
         },
         "8": {
-          "value": "#806b36",
+          "value": "#856924",
           "description": "Hovered UI element border"
         },
         "9": {
-          "value": "#ffd466",
+          "value": "#fcc100",
           "description": "Solid backgrounds, contrast with white"
         },
         "10": {
-          "value": "#f5ca5b",
+          "value": "#f1b700",
           "description": "Hovered solid backgrounds"
         },
         "11": {
-          "value": "#fdd264",
+          "value": "#ffcb2c",
           "description": "Low-contrast text and icons"
         },
         "12": {
-          "value": "#fae9bf",
+          "value": "#fee7b5",
           "description": "High-contrast text and icons"
         },
         "A1": {
-          "value": "#dc120005",
+          "value": "#bb110003",
           "description": "Subtle golden glow for dark surface layering"
         },
         "A2": {
-          "value": "#fb9b000d",
+          "value": "#fba6000c",
           "description": "Warm luminous tint for dark mode elevation"
         },
         "A3": {
-          "value": "#fda2001e",
+          "value": "#ffa7001d",
           "description": "Soft glowing yellow for dark UI elements"
         },
         "A4": {
-          "value": "#fda2002c",
+          "value": "#fb94002f",
           "description": "Warm translucent yellow for dark mode states"
         },
         "A5": {
-          "value": "#fcae0039",
+          "value": "#ffa2003c",
           "description": "Radiant yellow for dark mode selection"
         },
         "A6": {
-          "value": "#fdbf2148",
+          "value": "#ffb7004a",
           "description": "Luminous yellow edges on dark backgrounds"
         },
         "A7": {
-          "value": "#fdcb4b5c",
+          "value": "#fdc2295f",
           "description": "Vibrant golden glow for dark mode focus"
         },
         "A8": {
-          "value": "#fdcf5979",
+          "value": "#fdc4387d",
           "description": "Rich luminous yellow for dark interactive elements"
         },
         "A9": {
-          "value": "#ffd466",
+          "value": "#ffc300fc",
           "description": "Bright yellow accents for dark mode emphasis"
         },
         "A10": {
-          "value": "#fed15ef5",
+          "value": "#ffc100f0",
           "description": "Intense golden yellow for dark mode hover"
         },
         "A11": {
-          "value": "#ffd465fd",
+          "value": "#ffcb2c",
           "description": "Brilliant yellow for dark mode text emphasis"
         },
         "A12": {
-          "value": "#ffeec3fa",
+          "value": "#ffe8b6fe",
           "description": "Luminous warm yellow for maximum dark contrast"
         }
       },
@@ -2285,21 +2285,21 @@
             "DEFAULT": {
               "value": {
                 "base": "{colors.neutralSlate.12}",
-                "_dark": "{colors.neutralSlateDark.11}"
+                "_dark": "{colors.neutralSlateDark.12}"
               },
               "description": "Base color for strong surfaces"
             },
             "hover": {
               "value": {
                 "base": "{colors.neutralSlate.11}",
-                "_dark": "{colors.neutralSlateDark.12}"
+                "_dark": "{colors.neutralSlateDark.13}"
               },
               "description": "Hover state for strong surfaces"
             },
             "active": {
               "value": {
                 "base": "{colors.neutralSlate.12}",
-                "_dark": "{colors.neutralSlateDark.11}"
+                "_dark": "{colors.neutralSlateDark.12}"
               },
               "description": "Active/pressed state for strong surfaces"
             }
@@ -2708,21 +2708,21 @@
             "DEFAULT": {
               "value": {
                 "base": "{colors.blue.10}",
-                "_dark": "{colors.blueDark.11}"
+                "_dark": "{colors.blueDark.9}"
               },
               "description": "Base color for strong accent surfaces"
             },
             "hover": {
               "value": {
-                "base": "{colors.blue.9}",
-                "_dark": "{colors.blueDark.12}"
+                "base": "{colors.blue.11}",
+                "_dark": "{colors.blueDark.11}"
               },
               "description": "Hover state for strong accent surfaces"
             },
             "active": {
               "value": {
-                "base": "{colors.blue.10}",
-                "_dark": "{colors.blueDark.11}"
+                "base": "{colors.blue.12}",
+                "_dark": "{colors.blueDark.9}"
               },
               "description": "Active/pressed state for strong accent surfaces"
             }
@@ -3055,21 +3055,21 @@
             "DEFAULT": {
               "value": {
                 "base": "{colors.blue.10}",
-                "_dark": "{colors.blueDark.11}"
+                "_dark": "{colors.blueDark.9}"
               },
               "description": "Base color for strong accent surfaces"
             },
             "hover": {
               "value": {
-                "base": "{colors.blue.9}",
-                "_dark": "{colors.blueDark.12}"
+                "base": "{colors.blue.11}",
+                "_dark": "{colors.blueDark.11}"
               },
               "description": "Hover state for strong accent surfaces"
             },
             "active": {
               "value": {
-                "base": "{colors.blue.10}",
-                "_dark": "{colors.blueDark.11}"
+                "base": "{colors.blue.12}",
+                "_dark": "{colors.blueDark.9}"
               },
               "description": "Active/pressed state for strong accent surfaces"
             }
@@ -3408,14 +3408,14 @@
             },
             "hover": {
               "value": {
-                "base": "{colors.purple.9}",
+                "base": "{colors.purple.11}",
                 "_dark": "{colors.purpleDark.12}"
               },
               "description": "Hover state for strong information background"
             },
             "active": {
               "value": {
-                "base": "{colors.purple.10}",
+                "base": "{colors.purple.12}",
                 "_dark": "{colors.purpleDark.11}"
               },
               "description": "Active/pressed state for strong information background"
@@ -3755,14 +3755,14 @@
             },
             "hover": {
               "value": {
-                "base": "{colors.green.9}",
+                "base": "{colors.green.11}",
                 "_dark": "{colors.greenDark.12}"
               },
               "description": "Hover state for strong success surfaces"
             },
             "active": {
               "value": {
-                "base": "{colors.green.10}",
+                "base": "{colors.green.12}",
                 "_dark": "{colors.greenDark.11}"
               },
               "description": "Active/pressed state for strong success surfaces"
@@ -4102,14 +4102,14 @@
             },
             "hover": {
               "value": {
-                "base": "{colors.yellow.9}",
+                "base": "{colors.yellow.11}",
                 "_dark": "{colors.yellowDark.12}"
               },
               "description": "Hover state for strong warning surfaces"
             },
             "active": {
               "value": {
-                "base": "{colors.yellow.10}",
+                "base": "{colors.yellow.12}",
                 "_dark": "{colors.yellowDark.11}"
               },
               "description": "Active/pressed state for strong warning surfaces"
@@ -4449,14 +4449,14 @@
             },
             "hover": {
               "value": {
-                "base": "{colors.red.9}",
+                "base": "{colors.red.11}",
                 "_dark": "{colors.redDark.12}"
               },
               "description": "Hover state for strong danger surfaces"
             },
             "active": {
               "value": {
-                "base": "{colors.red.10}",
+                "base": "{colors.red.12}",
                 "_dark": "{colors.redDark.11}"
               },
               "description": "Active/pressed state for strong danger surfaces"
@@ -5307,6 +5307,9 @@
       },
       "200": {
         "value": "{spacing.200}"
+      },
+      "250": {
+        "value": "{spacing.250}"
       },
       "300": {
         "value": "{spacing.300}"
