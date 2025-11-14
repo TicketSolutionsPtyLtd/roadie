@@ -65,8 +65,8 @@ function CopyButton({ code }: { code: string }) {
         onClick={handleCopy}
         size='sm'
         emphasis='subtler'
-        gap='50'
         aria-label='Copy code to clipboard'
+        px='150'
       >
         {copied && 'Copied!'}
         <Copy size={16} />
