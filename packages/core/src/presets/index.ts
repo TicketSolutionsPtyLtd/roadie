@@ -24,6 +24,18 @@ export const roadie = definePreset({
         '&:is(:hover, [data-hover], :focus-visible, [data-focus-visible])'
     }
   },
+  staticCss: {
+    css: [
+      {
+        properties: {
+          boxSize: ['*']
+        }
+      }
+    ],
+    recipes: {
+      button: ['*']
+    }
+  },
   globalCss: {
     '*, *::before, *::after': {
       boxSizing: 'border-box'

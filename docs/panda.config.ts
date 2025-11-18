@@ -31,6 +31,15 @@ export default defineConfig({
       return `${content}\n${codeBlocks}`
     }
   },
+  staticCss: {
+    css: [
+      {
+        properties: {
+          boxSize: ['*']
+        }
+      }
+    ]
+  },
   outdir: 'roadie-core',
   outExtension: 'js',
   clean: true,

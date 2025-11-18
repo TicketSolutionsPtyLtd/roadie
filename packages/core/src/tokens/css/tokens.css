@@ -951,6 +951,12 @@
   --colors-chart-grid-line: var(--colors-neutral-slate-a3);
   --colors-chart-grid-axis: var(--colors-neutral-slate-12);
 
+  --colors-illustrations-face: var(--colors-purple-5);
+  --colors-illustrations-detail: var(--colors-orange-5);
+  --colors-illustrations-shadow: var(--colors-blue-9);
+  --colors-illustrations-highlight: var(--colors-blue-5);
+  --colors-illustrations-stroke: var(--colors-neutral-slate-12);
+  --colors-illustrations-outline: var(--colors-neutral-slate-0);
   --fonts-ui: var(--font-intermission), var(--fonts-sans);
   --fonts-prose: var(--font-intermission), var(--fonts-sans);
   --fonts-display: var(--font-intermission), var(--fonts-sans);

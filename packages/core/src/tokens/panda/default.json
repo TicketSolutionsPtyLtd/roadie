@@ -5184,6 +5184,32 @@
             "description": "Color for axis lines and labels"
           }
         }
+      },
+      "illustrations": {
+        "face": {
+          "value": "{colors.purple.5}",
+          "description": "Face color for spot illustrations"
+        },
+        "detail": {
+          "value": "{colors.orange.5}",
+          "description": "Detail color for spot illustrations"
+        },
+        "shadow": {
+          "value": "{colors.blue.9}",
+          "description": "Shadow color for spot illustrations"
+        },
+        "highlight": {
+          "value": "{colors.blue.5}",
+          "description": "Highlight color for spot illustrations"
+        },
+        "stroke": {
+          "value": "{colors.neutralSlate.12}",
+          "description": "Stroke color for spot illustrations"
+        },
+        "outline": {
+          "value": "{colors.neutralSlate.0}",
+          "description": "Outline color for spot illustrations to make them look like stickers"
+        }
       }
     },
     "fonts": {
