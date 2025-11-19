@@ -37,17 +37,28 @@ export default defineConfig({
   clean: true,
   target: 'es2022',
   external: ['react', '@oztix/roadie-core'],
-  splitting: true,
-  treeshake: {
-    preset: 'recommended'
-  },
-  minify: true,
+  splitting: false,
+  treeshake: true,
+  minify: false,
   outDir: 'dist',
   outExtension: () => ({
     js: '.js'
   }),
-  esbuildOptions(options) {
-    options.chunkNames = '_chunks/[name]-[hash]'
-    options.assetNames = '_assets/[name]-[hash]'
+  async onSuccess() {
+    const { readFileSync, writeFileSync, readdirSync } = await import('fs')
+    const { join } = await import('path')
+
+    const distDir = join(__dirname, 'dist')
+    const files = readdirSync(distDir).filter(
+      (file) => file.endsWith('.js') && file !== 'index.js'
+    )
+
+    files.forEach((file) => {
+      const filePath = join(distDir, file)
+      const content = readFileSync(filePath, 'utf-8')
+      if (!content.startsWith('"use client"')) {
+        writeFileSync(filePath, `"use client";\n${content}`)
+      }
+    })
   }
 })
