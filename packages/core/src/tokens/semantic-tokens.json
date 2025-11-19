@@ -117,6 +117,43 @@
             }
           }
         },
+        "highlight": {
+          "$type": "color",
+          "$description": "Highlighted neutral background color for high emphasis",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.neutralSlate.12}",
+            "$description": "Base color for highlighted neutral backgrounds",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.neutralSlate.12}",
+                "dark": "{colors.neutralSlateDark.12}"
+              }
+            }
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.neutralSlate.11}",
+            "$description": "Hover state for highlighted neutral backgrounds",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.neutralSlate.11}",
+                "dark": "{colors.neutralSlateDark.11}"
+              }
+            }
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.neutralSlate.12}",
+            "$description": "Active/pressed state for highlighted neutral backgrounds",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.neutralSlate.12}",
+                "dark": "{colors.neutralSlateDark.12}"
+              }
+            }
+          }
+        },
         "strong": {
           "$type": "color",
           "$description": "Darker background color for emphasized or prominent surfaces",
@@ -798,6 +835,25 @@
             }
           }
         },
+        "highlight": {
+          "$type": "color",
+          "$description": "Highlighted accent background color for high emphasis",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.blue.5}",
+            "$description": "Base color for highlighted accent backgrounds"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.blue.6}",
+            "$description": "Hover state for highlighted accent backgrounds"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.blue.7}",
+            "$description": "Active/pressed state for highlighted accent backgrounds"
+          }
+        },
         "strong": {
           "$type": "color",
           "$description": "Darker background color for emphasized or prominent accent surfaces",
@@ -1357,13 +1413,32 @@
             }
           }
         },
+        "highlight": {
+          "$type": "color",
+          "$description": "Highlighted brand background color for high emphasis",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.blue.5}",
+            "$description": "Base color for highlighted brand backgrounds"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.blue.6}",
+            "$description": "Hover state for highlighted brand backgrounds"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.blue.7}",
+            "$description": "Active/pressed state for highlighted brand backgrounds"
+          }
+        },
         "strong": {
           "$type": "color",
-          "$description": "Darker background color for emphasized or prominent accent surfaces",
+          "$description": "Darker background color for emphasized or prominent brand surfaces",
           "default": {
             "$type": "color",
             "$value": "{colors.blue.10}",
-            "$description": "Base color for strong accent surfaces",
+            "$description": "Base color for strong brand surfaces",
             "$extensions": {
               "mode": {
                 "light": "{colors.blue.10}",
@@ -1374,7 +1449,7 @@
           "hover": {
             "$type": "color",
             "$value": "{colors.blue.11}",
-            "$description": "Hover state for strong accent surfaces",
+            "$description": "Hover state for strong brand surfaces",
             "$extensions": {
               "mode": {
                 "light": "{colors.blue.11}",
@@ -1385,7 +1460,7 @@
           "active": {
             "$type": "color",
             "$value": "{colors.blue.12}",
-            "$description": "Active/pressed state for strong accent surfaces",
+            "$description": "Active/pressed state for strong brand surfaces",
             "$extensions": {
               "mode": {
                 "light": "{colors.blue.12}",
@@ -1816,7 +1891,7 @@
           "$extensions": {
             "mode": {
               "light": "{colors.purple.5}",
-              "dark": "{colors.purpleDark.4}"
+              "dark": "{colors.purpleDark.5}"
             }
           }
         },
@@ -1914,6 +1989,25 @@
                 "dark": "{colors.purpleDark.A5}"
               }
             }
+          }
+        },
+        "highlight": {
+          "$type": "color",
+          "$description": "Highlighted information background color for high emphasis",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.purple.5}",
+            "$description": "Base color for highlighted information backgrounds"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.purple.6}",
+            "$description": "Hover state for highlighted information backgrounds"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.purple.7}",
+            "$description": "Active/pressed state for highlighted information backgrounds"
           }
         },
         "strong": {
@@ -2475,6 +2569,25 @@
             }
           }
         },
+        "highlight": {
+          "$type": "color",
+          "$description": "Highlighted success background color for high emphasis",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.green.5}",
+            "$description": "Base color for highlighted success backgrounds"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.green.6}",
+            "$description": "Hover state for highlighted success backgrounds"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.green.7}",
+            "$description": "Active/pressed state for highlighted success backgrounds"
+          }
+        },
         "strong": {
           "$type": "color",
           "$description": "Darker background color for emphasized or prominent success surfaces",
@@ -3034,6 +3147,25 @@
             }
           }
         },
+        "highlight": {
+          "$type": "color",
+          "$description": "Highlighted warning background color for high emphasis",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.yellow.5}",
+            "$description": "Base color for highlighted warning backgrounds"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.yellow.6}",
+            "$description": "Hover state for highlighted warning backgrounds"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.yellow.7}",
+            "$description": "Active/pressed state for highlighted warning backgrounds"
+          }
+        },
         "strong": {
           "$type": "color",
           "$description": "Darker background color for emphasized or prominent warning surfaces",
@@ -3591,6 +3723,25 @@
                 "dark": "{colors.redDark.A5}"
               }
             }
+          }
+        },
+        "highlight": {
+          "$type": "color",
+          "$description": "Highlighted danger background color for high emphasis",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.red.5}",
+            "$description": "Base color for highlighted danger backgrounds"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.red.6}",
+            "$description": "Hover state for highlighted danger backgrounds"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.red.7}",
+            "$description": "Active/pressed state for highlighted danger backgrounds"
           }
         },
         "strong": {

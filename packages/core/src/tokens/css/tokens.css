@@ -566,6 +566,9 @@
   --colors-neutral-surface-subtle: var(--colors-neutral-slate-a3);
   --colors-neutral-surface-subtle-hover: var(--colors-neutral-slate-a4);
   --colors-neutral-surface-subtle-active: var(--colors-neutral-slate-a5);
+  --colors-neutral-surface-highlight: var(--colors-neutral-slate-12);
+  --colors-neutral-surface-highlight-hover: var(--colors-neutral-slate-11);
+  --colors-neutral-surface-highlight-active: var(--colors-neutral-slate-12);
   --colors-neutral-surface-strong: var(--colors-neutral-slate-12);
   --colors-neutral-surface-strong-hover: var(--colors-neutral-slate-11);
   --colors-neutral-surface-strong-active: var(--colors-neutral-slate-12);
@@ -951,6 +954,24 @@
   --colors-chart-grid-line: var(--colors-neutral-slate-a3);
   --colors-chart-grid-axis: var(--colors-neutral-slate-12);
 
+  --colors-accent-surface-highlight: var(--colors-blue-5);
+  --colors-accent-surface-highlight-hover: var(--colors-blue-6);
+  --colors-accent-surface-highlight-active: var(--colors-blue-7);
+  --colors-brand-surface-highlight: var(--colors-blue-5);
+  --colors-brand-surface-highlight-hover: var(--colors-blue-6);
+  --colors-brand-surface-highlight-active: var(--colors-blue-7);
+  --colors-information-surface-highlight: var(--colors-purple-5);
+  --colors-information-surface-highlight-hover: var(--colors-purple-6);
+  --colors-information-surface-highlight-active: var(--colors-purple-7);
+  --colors-success-surface-highlight: var(--colors-green-5);
+  --colors-success-surface-highlight-hover: var(--colors-green-6);
+  --colors-success-surface-highlight-active: var(--colors-green-7);
+  --colors-warning-surface-highlight: var(--colors-yellow-5);
+  --colors-warning-surface-highlight-hover: var(--colors-yellow-6);
+  --colors-warning-surface-highlight-active: var(--colors-yellow-7);
+  --colors-danger-surface-highlight: var(--colors-red-5);
+  --colors-danger-surface-highlight-hover: var(--colors-red-6);
+  --colors-danger-surface-highlight-active: var(--colors-red-7);
   --colors-illustrations-face: var(--colors-purple-5);
   --colors-illustrations-detail: var(--colors-orange-5);
   --colors-illustrations-shadow: var(--colors-blue-9);
@@ -1024,6 +1045,11 @@
   --colors-neutral-surface-subtle: var(--colors-neutral-slate-dark-a4);
   --colors-neutral-surface-subtle-hover: var(--colors-neutral-slate-dark-a5);
   --colors-neutral-surface-subtle-active: var(--colors-neutral-slate-dark-a6);
+  --colors-neutral-surface-highlight: var(--colors-neutral-slate-dark-12);
+  --colors-neutral-surface-highlight-hover: var(--colors-neutral-slate-dark-11);
+  --colors-neutral-surface-highlight-active: var(
+    --colors-neutral-slate-dark-12
+  );
   --colors-neutral-surface-strong: var(--colors-neutral-slate-dark-12);
   --colors-neutral-surface-strong-hover: var(--colors-neutral-slate-dark-13);
   --colors-neutral-surface-strong-active: var(--colors-neutral-slate-dark-12);
@@ -1160,7 +1186,7 @@
   --colors-brand-fg-inverted: var(--colors-blue-dark-2);
   --colors-brand-fg-inverted-hover: var(--colors-blue-dark-1);
   --colors-brand-fg-inverted-active: var(--colors-blue-dark-1);
-  --colors-information-surface: var(--colors-purple-dark-4);
+  --colors-information-surface: var(--colors-purple-dark-5);
   --colors-information-surface-hover: var(--colors-purple-dark-5);
   --colors-information-surface-active: var(--colors-purple-dark-6);
   --colors-information-surface-subtler: var(--colors-purple-dark-a2);

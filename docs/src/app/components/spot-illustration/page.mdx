@@ -65,7 +65,7 @@ Use the `outline` prop to show or hide the white outline layer. By default, the 
 
 ```tsx
 live
-<View flexDirection='row' gap='400' alignItems='center' bg='neutral.surface.strong' p='400' borderRadius='200'>
+<View flexDirection='row' gap='400' bg='neutral.surface.strong' p='400' borderRadius='md'>
   <NoteMusic />
   <NoteMusic outline />
 </View>
@@ -77,9 +77,7 @@ Spot illustrations accept all PandaCSS style props for layout and positioning.
 
 ```tsx
 live
-<View flexDirection='row' gap='400'>
-  <NoteMusic boxSize='800' bg='surface.subtle' p='300' borderRadius='200' />
-</View>
+<NoteMusic outline boxSize='1000' background='accent.surface' p='200' borderRadius='md' />
 ```
 
 ## Available illustrations

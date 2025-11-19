@@ -28,7 +28,8 @@ export const roadie = definePreset({
     css: [
       {
         properties: {
-          boxSize: ['*']
+          boxSize: ['*'],
+          colorPalette: ['*']
         }
       }
     ],
@@ -56,6 +57,7 @@ export const roadie = definePreset({
     },
     '::selection': {
       backgroundColor: 'information.surface'
+      // color: 'neutralSlate.12'
     },
     body: {
       lineHeight: 1.5,

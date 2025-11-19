@@ -141,3 +141,5 @@ export const buttonRecipe = defineRecipe({
     size: 'md'
   }
 })
+
+export const button = buttonRecipe
