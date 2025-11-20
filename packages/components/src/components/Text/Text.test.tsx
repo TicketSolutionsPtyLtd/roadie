@@ -8,7 +8,7 @@ describe('Text', () => {
     const { getByText } = render(<Text>Hello World</Text>)
     const text = getByText('Hello World')
     expect(text).toBeInTheDocument()
-    expect(text.tagName.toLowerCase()).toBe('span')
+    expect(text.tagName.toLowerCase()).toBe('p')
     expect(text).toHaveClass('text', 'text--emphasis_default')
   })
 

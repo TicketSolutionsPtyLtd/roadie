@@ -23,7 +23,7 @@ describe('Container', () => {
       'min-w_0',
       'w_full',
       'mx_auto',
-      'max-w_7xl'
+      'max-w_8xl'
     )
   })
 
@@ -41,7 +41,7 @@ describe('Container', () => {
       <Container data-testid='container'>Constrained Content</Container>
     )
     const container = getByTestId('container')
-    expect(container).toHaveClass('max-w_7xl')
+    expect(container).toHaveClass('max-w_8xl')
   })
 
   it('renders with contain=false (full width)', () => {
@@ -61,7 +61,7 @@ describe('Container', () => {
       </Container>
     )
     const container = getByTestId('container')
-    expect(container).toHaveClass('max-w_7xl')
+    expect(container).toHaveClass('max-w_8xl')
   })
 
   it('renders with different HTML elements', () => {
@@ -204,7 +204,7 @@ describe('Container', () => {
       'gap_200',
       'p_400',
       'bg-c_neutral.bg.subtle',
-      'max-w_7xl',
+      'max-w_8xl',
       'custom-class'
     )
   })
