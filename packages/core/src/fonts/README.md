@@ -11,6 +11,7 @@ It's also a subset of Inter that only includes the weights and character sets we
    - Features to freeze: `case,ss03,cv01,cv02,cv03,cv04,cv05,cv08,cv09,cv10,cv11`
    - Output format: `ttf`
 3. Use fonttools to subset the fonts to Basic Latin (U+0020-007F) and convert to WOFF2:
+
    ```bash
    # Install fonttools (one-time setup)
    brew install fonttools

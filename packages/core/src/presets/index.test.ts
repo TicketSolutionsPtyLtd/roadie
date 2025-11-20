@@ -56,7 +56,8 @@ describe('roadie preset', () => {
       it('has base reset', () => {
         expect(globalCss['*']).toEqual({
           margin: 0,
-          padding: 0
+          padding: 0,
+          fontStyle: 'normal'
         })
       })
     })

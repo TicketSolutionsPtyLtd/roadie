@@ -2021,15 +2021,15 @@
     },
     "letterSpacings": {
       "tightest": {
-        "value": "-0.1em",
+        "value": "-0.03em",
         "description": "Tighter letter spacing"
       },
       "tighter": {
-        "value": "-0.05em",
+        "value": "-0.02em",
         "description": "Tighter letter spacing"
       },
       "tight": {
-        "value": "-0.025em",
+        "value": "-0.01em",
         "description": "Tight letter spacing"
       },
       "normal": {
@@ -2037,15 +2037,15 @@
         "description": "Normal letter spacing"
       },
       "loose": {
-        "value": "0.025em",
+        "value": "0.01em",
         "description": "Loose letter spacing"
       },
       "looser": {
-        "value": "0.05em",
+        "value": "0.02em",
         "description": "Looser letter spacing"
       },
       "loosest": {
-        "value": "0.1em",
+        "value": "0.03em",
         "description": "Loosest letter spacing"
       }
     },

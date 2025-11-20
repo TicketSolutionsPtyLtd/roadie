@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(pyftsubset:*)"
-    ],
-    "deny": [],
-    "ask": []
-  }
-}

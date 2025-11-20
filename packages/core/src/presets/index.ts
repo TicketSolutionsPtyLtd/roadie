@@ -44,7 +44,8 @@ export const roadie = definePreset({
     },
     '*': {
       margin: 0,
-      padding: 0
+      padding: 0,
+      fontStyle: 'normal'
     },
     ':root': {
       '--font-intermission': 'Intermission',
