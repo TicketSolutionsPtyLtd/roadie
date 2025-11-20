@@ -1878,6 +1878,584 @@
         }
       }
     },
+    "brandSecondary": {
+      "$type": "color",
+      "$description": "Seceondary brand color scale for interactive elements and highlights",
+      "surface": {
+        "$type": "color",
+        "$description": "Surface colors for secondary brand UI backgrounds like cards, modals, and panels",
+        "default": {
+          "$type": "color",
+          "$value": "{colors.orange.5}",
+          "$description": "Base background color for secondary brand surfaces",
+          "$extensions": {
+            "mode": {
+              "light": "{colors.orange.5}",
+              "dark": "{colors.orangeDark.4}"
+            }
+          }
+        },
+        "hover": {
+          "$type": "color",
+          "$value": "{colors.orange.6}",
+          "$description": "Hover state for default secondary brand surface",
+          "$extensions": {
+            "mode": {
+              "light": "{colors.orange.6}",
+              "dark": "{colors.orangeDark.5}"
+            }
+          }
+        },
+        "active": {
+          "$type": "color",
+          "$value": "{colors.orange.7}",
+          "$description": "Active/pressed state for default secondary brand surface",
+          "$extensions": {
+            "mode": {
+              "light": "{colors.orange.7}",
+              "dark": "{colors.orangeDark.6}"
+            }
+          }
+        },
+        "subtler": {
+          "$type": "color",
+          "$description": "Lighter background color for secondary or less prominent secondary brand surfaces",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.orange.A2}",
+            "$description": "Base color for subtler secondary brand surfaces",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.A2}",
+                "dark": "{colors.orangeDark.A2}"
+              }
+            }
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.orange.A3}",
+            "$description": "Hover state for subtler secondary brand surfaces",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.A3}",
+                "dark": "{colors.orangeDark.A3}"
+              }
+            }
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.orange.A4}",
+            "$description": "Active/pressed state for subtler secondary brand surfaces",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.A4}",
+                "dark": "{colors.orangeDark.A4}"
+              }
+            }
+          }
+        },
+        "subtle": {
+          "$type": "color",
+          "$description": "Lighter background color for secondary or less prominent secondary brand surfaces",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.orange.A3}",
+            "$description": "Base color for subtle secondary brand surfaces",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.A3}",
+                "dark": "{colors.orangeDark.A3}"
+              }
+            }
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.orange.A4}",
+            "$description": "Hover state for subtle secondary brand surfaces",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.A4}",
+                "dark": "{colors.orangeDark.A4}"
+              }
+            }
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.orange.A5}",
+            "$description": "Active/pressed state for subtle secondary brand surfaces",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.A5}",
+                "dark": "{colors.orangeDark.A5}"
+              }
+            }
+          }
+        },
+        "highlight": {
+          "$type": "color",
+          "$description": "Highlighted secondary brand background color for high emphasis",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.orange.5}",
+            "$description": "Base color for highlighted secondary brand backgrounds"
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.orange.6}",
+            "$description": "Hover state for highlighted secondary brand backgrounds"
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.orange.7}",
+            "$description": "Active/pressed state for highlighted secondary brand backgrounds"
+          }
+        },
+        "strong": {
+          "$type": "color",
+          "$description": "Darker background color for emphasized or prominent secondary brand surfaces",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.orange.10}",
+            "$description": "Base color for strong secondary brand surfaces",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.10}",
+                "dark": "{colors.orangeDark.9}"
+              }
+            }
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.orange.11}",
+            "$description": "Hover state for strong secondary brand surfaces",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.11}",
+                "dark": "{colors.orangeDark.11}"
+              }
+            }
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.orange.12}",
+            "$description": "Active/pressed state for strong secondary brand surfaces",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.12}",
+                "dark": "{colors.orangeDark.9}"
+              }
+            }
+          }
+        },
+        "inverted": {
+          "$type": "color",
+          "$description": "Inverted background color for high secondary brand emphasis",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.orangeDark.1}",
+            "$description": "Base color for inverted secondary brand surfaces",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orangeDark.1}",
+                "dark": "{colors.orange.1}"
+              }
+            }
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.orangeDark.2}",
+            "$description": "Hover state for inverted secondary brand surfaces",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orangeDark.2}",
+                "dark": "{colors.orange.2}"
+              }
+            }
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.orangeDark.3}",
+            "$description": "Active/pressed state for inverted secondary brand surfaces",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orangeDark.3}",
+                "dark": "{colors.orange.3}"
+              }
+            }
+          }
+        }
+      },
+      "border": {
+        "$type": "color",
+        "$description": "Border colors for secondary brand elements",
+        "default": {
+          "$type": "color",
+          "$value": "{colors.orange.7}",
+          "$description": "Default border color for secondary brand elements",
+          "$extensions": {
+            "mode": {
+              "light": "{colors.orange.7}",
+              "dark": "{colors.orangeDark.7}"
+            }
+          }
+        },
+        "hover": {
+          "$type": "color",
+          "$value": "{colors.orange.8}",
+          "$description": "Hover state for secondary brand borders",
+          "$extensions": {
+            "mode": {
+              "light": "{colors.orange.8}",
+              "dark": "{colors.orangeDark.8}"
+            }
+          }
+        },
+        "active": {
+          "$type": "color",
+          "$value": "{colors.orange.9}",
+          "$description": "Active/pressed state for secondary brand borders",
+          "$extensions": {
+            "mode": {
+              "light": "{colors.orange.9}",
+              "dark": "{colors.orangeDark.9}"
+            }
+          }
+        },
+        "subtler": {
+          "$type": "color",
+          "$description": "Subtler secondary brand border color for less prominent boundaries and dividers",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.orange.A4}",
+            "$description": "Base color for subtler secondary brand borders",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.A4}",
+                "dark": "{colors.orangeDark.A4}"
+              }
+            }
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.orange.A5}",
+            "$description": "Hover state for subtler secondary brand borders",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.A5}",
+                "dark": "{colors.orangeDark.A5}"
+              }
+            }
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.orange.A6}",
+            "$description": "Active/pressed state for subtler secondary brand borders",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.A6}",
+                "dark": "{colors.orangeDark.A6}"
+              }
+            }
+          }
+        },
+        "subtle": {
+          "$type": "color",
+          "$description": "Lighter secondary brand border color for less prominent boundaries and dividers",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.orange.A5}",
+            "$description": "Base color for subtle secondary brand borders",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.A5}",
+                "dark": "{colors.orangeDark.A5}"
+              }
+            }
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.orange.A6}",
+            "$description": "Hover state for subtle secondary brand borders",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.A6}",
+                "dark": "{colors.orangeDark.A6}"
+              }
+            }
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.orange.A7}",
+            "$description": "Active/pressed state for subtle secondary brand borders",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.A7}",
+                "dark": "{colors.orangeDark.A7}"
+              }
+            }
+          }
+        },
+        "strong": {
+          "$type": "color",
+          "$description": "Darker secondary brand border color for emphasized boundaries and focused states",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.orange.A7}",
+            "$description": "Base color for strong secondary brand borders",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.A7}",
+                "dark": "{colors.orangeDark.A7}"
+              }
+            }
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.orange.A8}",
+            "$description": "Hover state for strong secondary brand borders",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.A8}",
+                "dark": "{colors.orangeDark.A8}"
+              }
+            }
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.orange.A9}",
+            "$description": "Active/pressed state for strong secondary brand borders",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.A9}",
+                "dark": "{colors.orangeDark.A9}"
+              }
+            }
+          }
+        },
+        "inverted": {
+          "$type": "color",
+          "$description": "Inverted secondary brand border color for high emphasis",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.orangeDark.1}",
+            "$description": "Base color for inverted secondary brand borders",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orangeDark.1}",
+                "dark": "{colors.orange.1}"
+              }
+            }
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.orangeDark.2}",
+            "$description": "Hover state for inverted secondary brand borders",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orangeDark.2}",
+                "dark": "{colors.orange.2}"
+              }
+            }
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.orangeDark.3}",
+            "$description": "Active/pressed state for inverted secondary brand borders",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orangeDark.3}",
+                "dark": "{colors.orange.3}"
+              }
+            }
+          }
+        }
+      },
+      "fg": {
+        "$type": "color",
+        "$description": "Text colors for secondary brand elements",
+        "default": {
+          "$type": "color",
+          "$value": "{colors.orange.11}",
+          "$description": "Default text color for secondary brand elements",
+          "$extensions": {
+            "mode": {
+              "light": "{colors.orange.11}",
+              "dark": "{colors.orangeDark.11}"
+            }
+          }
+        },
+        "hover": {
+          "$type": "color",
+          "$value": "{colors.orange.12}",
+          "$description": "Hover state for secondary brand text",
+          "$extensions": {
+            "mode": {
+              "light": "{colors.orange.12}",
+              "dark": "{colors.orangeDark.12}"
+            }
+          }
+        },
+        "active": {
+          "$type": "color",
+          "$value": "{colors.orange.12}",
+          "$description": "Active/pressed state for secondary brand text",
+          "$extensions": {
+            "mode": {
+              "light": "{colors.orange.12}",
+              "dark": "{colors.orangeDark.12}"
+            }
+          }
+        },
+        "subtler": {
+          "$type": "color",
+          "$description": "Subtler secondary brand text color for less prominent content",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.orange.9}",
+            "$description": "Base color for subtler secondary brand text",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.9}",
+                "dark": "{colors.orangeDark.9}"
+              }
+            }
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.orange.10}",
+            "$description": "Hover state for subtler secondary brand text",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.10}",
+                "dark": "{colors.orangeDark.10}"
+              }
+            }
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.orange.12}",
+            "$description": "Active/pressed state for subtler secondary brand text",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.12}",
+                "dark": "{colors.orangeDark.12}"
+              }
+            }
+          }
+        },
+        "subtle": {
+          "$type": "color",
+          "$description": "Subtle text color for softer secondary brand emphasis",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.orange.10}",
+            "$description": "Base color for subtle secondary brand text",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.10}",
+                "dark": "{colors.orangeDark.10}"
+              }
+            }
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.orange.11}",
+            "$description": "Hover state for subtle secondary brand text",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.11}",
+                "dark": "{colors.orangeDark.11}"
+              }
+            }
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.orange.12}",
+            "$description": "Active/pressed state for subtle secondary brand text",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.12}",
+                "dark": "{colors.orangeDark.12}"
+              }
+            }
+          }
+        },
+        "strong": {
+          "$type": "color",
+          "$description": "Strong text color for high secondary brand emphasis",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.orange.12}",
+            "$description": "Base color for strong secondary brand text",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.12}",
+                "dark": "{colors.orangeDark.12}"
+              }
+            }
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.orange.11}",
+            "$description": "Hover state for strong secondary brand text",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.11}",
+                "dark": "{colors.orangeDark.11}"
+              }
+            }
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.orange.12}",
+            "$description": "Active/pressed state for strong secondary brand text",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.12}",
+                "dark": "{colors.orangeDark.12}"
+              }
+            }
+          }
+        },
+        "inverted": {
+          "$type": "color",
+          "$description": "Inverted text color for high emphasis",
+          "default": {
+            "$type": "color",
+            "$value": "{colors.orange.2}",
+            "$description": "Base color for inverted text",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.2}",
+                "dark": "{colors.orangeDark.2}"
+              }
+            }
+          },
+          "hover": {
+            "$type": "color",
+            "$value": "{colors.orange.1}",
+            "$description": "Hover state for inverted text",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.1}",
+                "dark": "{colors.orangeDark.1}"
+              }
+            }
+          },
+          "active": {
+            "$type": "color",
+            "$value": "{colors.orange.1}",
+            "$description": "Active/pressed state for inverted text",
+            "$extensions": {
+              "mode": {
+                "light": "{colors.orange.1}",
+                "dark": "{colors.orangeDark.1}"
+              }
+            }
+          }
+        }
+      }
+    },
     "information": {
       "$type": "color",
       "$description": "Information color scale for interactive elements and highlights",
@@ -5042,25 +5620,6 @@
       "$value": ["var(--font-ibm-plex-mono)", "{fonts.mono}"]
     }
   },
-  "fontFeatureSettings": {
-    "$type": "fontFeatureSettings",
-    "ui": {
-      "$type": "fontFeatureSettings",
-      "$value": "'case' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1"
-    },
-    "prose": {
-      "$type": "fontFeatureSettings",
-      "$value": "'case' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1"
-    },
-    "display": {
-      "$type": "fontFeatureSettings",
-      "$value": "'case' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1"
-    },
-    "code": {
-      "$type": "fontFeatureSettings",
-      "$value": "'case' 1, 'ss03' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1"
-    }
-  },
   "letterSpacings": {
     "$type": "letterSpacing",
     "$description": "Letter spacing tokens for controlling text spacing",
@@ -5485,8 +6044,7 @@
             "fontWeight": "{fontWeights.bold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}",
-            "fontFeatureSettings": "{fontFeatureSettings.display}"
+            "fontFamily": "{fonts.display}"
           }
         },
         "1": {
@@ -5497,8 +6055,7 @@
             "fontWeight": "{fontWeights.black}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}",
-            "fontFeatureSettings": "{fontFeatureSettings.display}"
+            "fontFamily": "{fonts.display}"
           }
         },
         "2": {
@@ -5509,8 +6066,7 @@
             "fontWeight": "{fontWeights.extrabold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}",
-            "fontFeatureSettings": "{fontFeatureSettings.display}"
+            "fontFamily": "{fonts.display}"
           }
         },
         "3": {
@@ -5521,8 +6077,7 @@
             "fontWeight": "{fontWeights.bold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}",
-            "fontFeatureSettings": "{fontFeatureSettings.display}"
+            "fontFamily": "{fonts.display}"
           }
         },
         "4": {
@@ -5533,8 +6088,7 @@
             "fontWeight": "{fontWeights.bold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}",
-            "fontFeatureSettings": "{fontFeatureSettings.display}"
+            "fontFamily": "{fonts.display}"
           }
         },
         "5": {
@@ -5545,8 +6099,7 @@
             "fontWeight": "{fontWeights.bold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}",
-            "fontFeatureSettings": "{fontFeatureSettings.display}"
+            "fontFamily": "{fonts.display}"
           }
         },
         "6": {
@@ -5557,8 +6110,7 @@
             "fontWeight": "{fontWeights.bold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}",
-            "fontFeatureSettings": "{fontFeatureSettings.display}"
+            "fontFamily": "{fonts.display}"
           }
         }
       },
@@ -5573,8 +6125,7 @@
             "fontWeight": "{fontWeights.bold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}",
-            "fontFeatureSettings": "{fontFeatureSettings.display}"
+            "fontFamily": "{fonts.display}"
           }
         },
         "1": {
@@ -5585,8 +6136,7 @@
             "fontWeight": "{fontWeights.bold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}",
-            "fontFeatureSettings": "{fontFeatureSettings.display}"
+            "fontFamily": "{fonts.display}"
           }
         },
         "2": {
@@ -5597,8 +6147,7 @@
             "fontWeight": "{fontWeights.bold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}",
-            "fontFeatureSettings": "{fontFeatureSettings.display}"
+            "fontFamily": "{fonts.display}"
           }
         },
         "3": {
@@ -5609,8 +6158,7 @@
             "fontWeight": "{fontWeights.bold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}",
-            "fontFeatureSettings": "{fontFeatureSettings.display}"
+            "fontFamily": "{fonts.display}"
           }
         },
         "4": {
@@ -5621,8 +6169,7 @@
             "fontWeight": "{fontWeights.bold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}",
-            "fontFeatureSettings": "{fontFeatureSettings.display}"
+            "fontFamily": "{fonts.display}"
           }
         },
         "5": {
@@ -5633,8 +6180,7 @@
             "fontWeight": "{fontWeights.semibold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}",
-            "fontFeatureSettings": "{fontFeatureSettings.display}"
+            "fontFamily": "{fonts.display}"
           }
         },
         "6": {
@@ -5645,8 +6191,7 @@
             "fontWeight": "{fontWeights.semibold}",
             "lineHeight": "{lineHeights.display}",
             "letterSpacing": "{letterSpacings.display}",
-            "fontFamily": "{fonts.display}",
-            "fontFeatureSettings": "{fontFeatureSettings.display}"
+            "fontFamily": "{fonts.display}"
           }
         }
       }
@@ -5662,8 +6207,7 @@
           "fontWeight": "{fontWeights.normal}",
           "lineHeight": "{lineHeights.ui}",
           "letterSpacing": "{letterSpacings.ui}",
-          "fontFamily": "{fonts.ui}",
-          "fontFeatureSettings": "{fontFeatureSettings.ui}"
+          "fontFamily": "{fonts.ui}"
         }
       },
       "meta": {
@@ -5673,8 +6217,7 @@
           "fontSize": "{fontSizes.sm}",
           "lineHeight": "{lineHeights.ui}",
           "letterSpacing": "{letterSpacings.ui}",
-          "fontFamily": "{fonts.ui}",
-          "fontFeatureSettings": "{fontFeatureSettings.ui}"
+          "fontFamily": "{fonts.ui}"
         }
       }
     },
@@ -5688,8 +6231,7 @@
           "fontSize": "{fontSizes.md}",
           "lineHeight": "{lineHeights.prose}",
           "letterSpacing": "{letterSpacings.prose}",
-          "fontFamily": "{fonts.prose}",
-          "fontFeatureSettings": "{fontFeatureSettings.prose}"
+          "fontFamily": "{fonts.prose}"
         }
       },
       "lead": {
@@ -5699,8 +6241,7 @@
           "fontSize": "{fontSizes.lg}",
           "lineHeight": "{lineHeights.prose}",
           "letterSpacing": "{letterSpacings.prose}",
-          "fontFamily": "{fonts.prose}",
-          "fontFeatureSettings": "{fontFeatureSettings.prose}"
+          "fontFamily": "{fonts.prose}"
         }
       }
     },
@@ -5715,8 +6256,7 @@
           "fontWeight": "{fontWeights.medium}",
           "lineHeight": "{lineHeights.code}",
           "letterSpacing": "{letterSpacings.code}",
-          "fontFamily": "{fonts.code}",
-          "fontFeatureSettings": "{fontFeatureSettings.code}"
+          "fontFamily": "{fonts.code}"
         }
       }
     }
