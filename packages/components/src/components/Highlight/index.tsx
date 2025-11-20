@@ -1,3 +1,5 @@
+'use client'
+
 import { Fragment, type ReactElement } from 'react'
 
 import { useHighlight } from '@ark-ui/react/highlight'
