@@ -1,0 +1,123 @@
+export const metadata = {
+  title: 'SpotIllustration',
+  description: 'Themed SVG illustrations with automatic color theming',
+  status: 'beta',
+  category: 'Media'
+}
+
+import { css } from '@oztix/roadie-core/css'
+
+import { IllustrationGallery } from '@/components/IllustrationGallery'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# SpotIllustration
+
+Spot illustrations are themed SVG graphics that automatically adapt to the design system's illustration color palette. They preserve exact SVG path ordering for correct visual layering while providing color customization through semantic tokens.
+
+## Import
+
+```tsx
+import { Heart, HighFive, NoteMusic } from '@oztix/roadie-components'
+```
+
+```tsx
+// Import specific illustrations
+import { HighFive, NoteMusic } from '@oztix/roadie-components'
+// Import the base component to create custom illustrations
+import { SpotIllustration } from '@oztix/roadie-components'
+// Import the factory function for creating new illustrations
+import { createSpotIllustration } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Basic usage
+
+All spot illustrations default to 48px (token: `sizes.600`) and use semantic color tokens from the illustration palette.
+
+```tsx
+live
+<View flexDirection='row' gap='400'>
+  <NoteMusic />
+  <HighFive />
+</View>
+```
+
+### Custom size
+
+Use the `boxSize` prop to change the illustration size. You should mostly only use sizes between 32px (`sizes.400`) and 128px (`sizes.1600`). Default is 48px (`sizes.600`). If needing smaller sizes in UI you should use iconography instead.
+
+```tsx
+live
+<View flexDirection='row' gap='400' alignItems='center'>
+  <NoteMusic boxSize='400' />
+  <NoteMusic />
+  <NoteMusic boxSize='800' />
+  <NoteMusic boxSize='1000' />
+  <NoteMusic boxSize='1200' />
+  <NoteMusic boxSize='1600' />
+</View>
+```
+
+### With outline
+
+Use the `outline` prop to show or hide the white outline layer. By default, the outline is hidden.
+
+```tsx
+live
+<View flexDirection='row' gap='400' bg='neutral.surface.strong' p='400' borderRadius='md'>
+  <NoteMusic />
+  <NoteMusic outline />
+</View>
+```
+
+### With CSS props
+
+Spot illustrations accept all PandaCSS style props for layout and positioning.
+
+```tsx
+live
+<NoteMusic outline boxSize='1000' background='accent.surface' p='200' borderRadius='md' />
+```
+
+## Available illustrations
+
+<IllustrationGallery />
+
+More illustrations can be added using the creation workflow below.
+
+## Creating new illustrations
+
+The build system automatically generates components from SVG files during development:
+
+```bash
+# Start dev mode (includes watch mode for SVG changes)
+pnpm dev
+```
+
+**Quick workflow:**
+
+1. Export your illustration from Figma as SVG
+2. Save to `packages/components/src/components/SpotIllustration/svgs/your-name.svg`
+3. The component is automatically generated and ready to use
+
+**Design requirements:**
+
+- 48x48 frame size
+- Use semantic illustration colors: `neutralSlate.0` (outline), `purple.5` (face), `orange.5` (detail), `blue.9` (shadow), `blue.5` (highlight), `neutralSlate.12` (stroke)
+
+For detailed information about the build system, color matching, and troubleshooting, see the [SpotIllustration README](https://github.com/TicketSolutionsPtyLtd/roadie/tree/main/packages/components/src/components/SpotIllustration).
+
+## Accessibility
+
+Spot illustrations are decorative by default and include `aria-hidden="true"` implicitly through the SVG element. If an illustration conveys meaningful information, add appropriate ARIA attributes:
+
+```tsx
+<NoteMusic role='img' aria-label='Musical note representing audio content' />
+```
+
+<PropsDefinitions componentPath='packages/components/src/components/SpotIllustration/index.tsx' />
+
+### Additional props
+
+Individual illustration components (`NoteMusic`, `HighFive`, etc.) accept all the same props as `SpotIllustration` except `illustration` (which is provided automatically).

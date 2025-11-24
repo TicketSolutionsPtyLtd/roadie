@@ -13,9 +13,23 @@ export const headingRecipe = defineRecipe({
       default: {
         color: 'colorPalette.fg.strong'
       },
+      highlight: {
+        colorPalette: 'information',
+        backgroundColor: 'colorPalette.surface.highlight',
+        color: 'neutralSlate.13',
+        px: '0.4em',
+        py: '0.2em',
+        alignSelf: 'flex-start',
+        '&.color-palette_neutral': {
+          color: 'neutral.fg.inverted'
+        },
+        '&::selection': {
+          backgroundColor: 'colorPalette.surface.highlight.active'
+        }
+      },
       strong: {
         color: 'colorPalette.fg.strong',
-        fontWeight: 'black'
+        fontWeight: 'black !important'
       },
       subtle: {
         color: 'colorPalette.fg.subtle',

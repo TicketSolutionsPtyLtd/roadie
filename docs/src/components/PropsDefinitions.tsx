@@ -127,7 +127,11 @@ function PropsList({
                 flexShrink={0}
               >
                 {name}
-                {!prop.required && <Text emphasis='subtle'>?</Text>}
+                {!prop.required && (
+                  <Text as='span' emphasis='subtle'>
+                    ?
+                  </Text>
+                )}
               </Text>
               <Text fontFamily='mono' fontSize='sm' color='information.fg'>
                 {formatTypeValues(prop)}

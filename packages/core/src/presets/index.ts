@@ -16,15 +16,26 @@ export const roadie = definePreset({
     recipes,
     textStyles
   },
-  patterns: {
-    extend: {
-      ...patterns
-    }
-  },
+  patterns,
   conditions: {
     dark: '[data-color-mode=dark] &',
     extend: {
-      hoverFocusVisible: ['&:hover', '&:focus-visible']
+      hoverFocusVisible:
+        '&:is(:hover, [data-hover], :focus-visible, [data-focus-visible])'
+    }
+  },
+  staticCss: {
+    css: [
+      {
+        properties: {
+          boxSize: ['*'],
+          colorPalette: ['*']
+        }
+      }
+    ],
+    recipes: {
+      button: ['*'],
+      mark: ['*']
     }
   },
   globalCss: {
@@ -33,7 +44,8 @@ export const roadie = definePreset({
     },
     '*': {
       margin: 0,
-      padding: 0
+      padding: 0,
+      fontStyle: 'normal'
     },
     ':root': {
       '--font-intermission': 'Intermission',
@@ -93,13 +105,13 @@ export const roadie = definePreset({
         fontStyle: 'normal',
         fontDisplay: 'swap',
         fontWeight: '100 900',
-        src: 'url(https://assets.oztix.com.au/file/a676ef0f-099f-4383-8db8-a93b7c404af6=Intermission.woff) format("woff2")'
+        src: 'url(https://assets.oztix.com.au/file/69a82222-e2b5-48d9-8d58-66ba77568ee3=Intermission.woff) format("woff2")'
       },
       {
         fontStyle: 'italic',
         fontDisplay: 'swap',
         fontWeight: '100 900',
-        src: 'url(https://assets.oztix.com.au/file/097e749a-a48c-4882-8987-065175facf7d=Intermission-Italic.woff) format("woff2")'
+        src: 'url(https://assets.oztix.com.au/file/ee7b4254-1cfc-4d03-9898-c3c94cb251de=Intermission-Italic.woff) format("woff2")'
       }
     ],
     IBMPlexMono: {

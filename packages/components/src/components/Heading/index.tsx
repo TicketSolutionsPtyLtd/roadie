@@ -44,9 +44,6 @@ export interface HeadingProps extends HTMLStyledProps<'h2'> {
   children?: ReactNode
 }
 
-export const Heading = styled(
-  ark.h2,
-  heading
-) as React.ForwardRefExoticComponent<HeadingProps>
+export const Heading = styled(ark.h2, heading)
 
 Heading.displayName = 'Heading'

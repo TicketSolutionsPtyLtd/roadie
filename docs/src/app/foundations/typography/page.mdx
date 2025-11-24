@@ -1,7 +1,7 @@
 export const metadata = {
-  title: "Typography",
-  description: "Typography",
-};
+  title: 'Typography',
+  description: 'Typography'
+}
 
 # Typography
 
@@ -11,10 +11,28 @@ Typography in the Roadie Design System is implemented using PandaCSS with semant
 
 We use two primary font families:
 
-- **Inter Variable** - Our primary font for UI elements and content
+- **Intermission** - Our primary font for UI elements and content. Intermission is Oztix's customized version of Inter with specific OpenType features enabled by default to improve legibility and aesthetics. It's also a subset that only includes the weights and character sets we use, reducing file size.
 - **IBM Plex Mono** - Our monospace font for code elements
 
-Both fonts are loaded via CDN using `@fontsource` and configured in our PandaCSS preset.
+Both fonts are loaded via CDN and configured in our PandaCSS preset.
+
+### Intermission features
+
+Intermission has the following OpenType features permanently enabled:
+
+- **case**: Case-Sensitive Forms
+- **ss03**: Round quotes & commas
+- **cv01**: Alternate one
+- **cv02**: Open four
+- **cv03**: Open six
+- **cv04**: Open nine
+- **cv05**: Lower case L with tail
+- **cv08**: Upper-case i with serif
+- **cv09**: Flat top three
+- **cv10**: Capital G with spur
+- **cv11**: Single-storey a
+
+For more details on creating and updating Intermission, see the [font documentation](https://github.com/ticketsolutionsptyltd/roadie/blob/main/packages/core/src/fonts/README.md).
 
 ## Components
 
@@ -64,7 +82,7 @@ For code and technical content, we provide a `Code` component that uses our mono
 ```tsx
 import { Code } from '@oztix/roadie-components'
 
-<Code>console.log('Hello World')</Code>
+;<Code>console.log('Hello World')</Code>
 ```
 
 ## Text styles
@@ -85,7 +103,7 @@ Our typography system uses CSS `clamp()` for fluid typography, allowing text to 
 
 ```tsx
 // Example of responsive heading
-<Heading as="h1" textStyle="display.prose.1">
+<Heading as='h1' textStyle='display.prose.1'>
   This text will scale smoothly between breakpoints
 </Heading>
 ```
@@ -129,19 +147,18 @@ import { Heading, Text } from '@oztix/roadie-components'
 
 export const ArticleSection = () => (
   <article>
-    <Heading as="h1" textStyle="display.prose.1">
+    <Heading as='h1' textStyle='display.prose.1'>
       Article Title
     </Heading>
-    <Text as="p" textStyle="body">
+    <Text as='p' textStyle='body'>
       Article content using our body text style for optimal readability.
     </Text>
-    <Heading as="h2" textStyle="display.prose.2">
+    <Heading as='h2' textStyle='display.prose.2'>
       Section Title
     </Heading>
-    <Text as="p" textStyle="ui">
+    <Text as='p' textStyle='ui'>
       UI-styled text for interface elements.
     </Text>
   </article>
 )
 ```
-

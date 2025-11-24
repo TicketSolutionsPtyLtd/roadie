@@ -5,6 +5,7 @@ export type ColorPalette =
   | 'neutral'
   | 'accent'
   | 'brand'
+  | 'brandSecondary'
   | 'success'
   | 'warning'
   | 'danger'

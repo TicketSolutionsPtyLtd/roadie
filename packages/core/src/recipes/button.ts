@@ -9,15 +9,20 @@ export const buttonRecipe = defineRecipe({
     justifyContent: 'center',
     backgroundColor: 'transparent',
     borderRadius: 'full',
+    textStyle: 'ui',
     fontWeight: 'bold',
-    fontFamily: 'ui',
     cursor: 'pointer',
     borderWidth: '1px',
     borderStyle: 'solid',
     borderColor: 'transparent',
     transition: 'all 0.2s',
     color: 'colorPalette.fg',
-    _hover: {
+    whiteSpace: 'nowrap',
+    gap: '075',
+    _icon: {
+      flexShrink: 0
+    },
+    _hoverFocusVisible: {
       color: 'colorPalette.fg.hover'
     },
     _active: {
@@ -39,19 +44,22 @@ export const buttonRecipe = defineRecipe({
     emphasis: {
       strong: {
         color: 'colorPalette.fg.inverted',
+        textShadow: '0 1px 1px rgba(0, 0, 0, 0.15)',
         backgroundColor: 'colorPalette.surface.strong',
-        _hover: {
-          color: 'colorPalette.fg.inverted.hover',
+        _hoverFocusVisible: {
           backgroundColor: 'colorPalette.surface.strong.hover'
         },
         _active: {
-          color: 'colorPalette.fg.inverted.active',
           backgroundColor: 'colorPalette.surface.strong.active'
+        },
+        _dark: {
+          textShadow: '0 1px 1px rgba(255, 255, 255, 0.15)'
         }
       },
       default: {
         borderColor: 'colorPalette.border.subtle',
-        _hover: {
+        backdropFilter: 'blur(4px)',
+        _hoverFocusVisible: {
           borderColor: 'colorPalette.border.subtle.hover',
           backgroundColor: 'colorPalette.surface.subtle.hover'
         },
@@ -62,7 +70,8 @@ export const buttonRecipe = defineRecipe({
       },
       subtle: {
         backgroundColor: 'colorPalette.surface.subtle',
-        _hover: {
+        backdropFilter: 'blur(4px)',
+        _hoverFocusVisible: {
           backgroundColor: 'colorPalette.surface.subtle.hover'
         },
         _active: {
@@ -70,38 +79,60 @@ export const buttonRecipe = defineRecipe({
         }
       },
       subtler: {
-        _hover: {
-          backgroundColor: 'colorPalette.surface.subtler.hover'
+        _hoverFocusVisible: {
+          backgroundColor: 'colorPalette.surface.subtler.hover',
+          backdropFilter: 'blur(4px)'
         },
         _active: {
-          backgroundColor: 'colorPalette.surface.subtler.active'
+          backgroundColor: 'colorPalette.surface.subtler.active',
+          backdropFilter: 'blur(4px)'
         }
       }
     },
     size: {
       xs: {
-        minHeight: '300',
+        height: '300',
+        minW: '300',
         fontSize: 'xs',
         px: '150',
-        py: '050'
+        py: '050',
+        _icon: {
+          width: '200',
+          height: '200'
+        }
       },
       sm: {
-        minHeight: '400',
+        height: '400',
+        minW: '400',
         fontSize: 'sm',
         px: '200',
-        py: '075'
+        py: '075',
+        _icon: {
+          width: '250',
+          height: '250'
+        }
       },
       md: {
-        minHeight: '500',
+        height: '500',
+        minW: '500',
         fontSize: 'md',
         px: '250',
-        py: '100'
+        py: '100',
+        _icon: {
+          width: '300',
+          height: '300'
+        }
       },
       lg: {
-        minHeight: '600',
+        height: '600',
+        minW: '600',
         fontSize: 'lg',
-        px: '250',
-        py: '100'
+        px: '400',
+        py: '100',
+        _icon: {
+          width: '300',
+          height: '300'
+        }
       }
     }
   },
@@ -110,3 +141,5 @@ export const buttonRecipe = defineRecipe({
     size: 'md'
   }
 })
+
+export const button = buttonRecipe

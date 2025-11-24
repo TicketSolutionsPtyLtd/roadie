@@ -1,0 +1,190 @@
+import { Container, Heading, Text, View } from '@oztix/roadie-components'
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+export const metadata = {
+  title: 'Container',
+  description:
+    'A layout component that provides a centered container with responsive padding and optional max-width constraint',
+  status: 'beta',
+  category: 'Layout'
+}
+
+# Container
+
+The Container component is a layout primitive that provides a centered container with responsive horizontal padding and a constrained max-width by default. It's ideal for creating consistent page layouts and content sections with proper spacing on different screen sizes.
+
+## Import
+
+```tsx
+import { Container } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Basic Container
+
+By default, Container provides a centered container with a max-width of 7xl and responsive padding:
+
+```tsx
+live
+<Container bg='neutral.surface.subtle'>
+  <Heading>Welcome to our site</Heading>
+  <Text>
+    This content has a maximum width of 7xl (80rem) and responsive padding,
+    making it ideal for readable content.
+  </Text>
+</Container>
+```
+
+### Full Width
+
+Set `contain={false}` to remove the max-width constraint:
+
+```tsx
+live
+<Container contain={false} bg='neutral.surface.subtle'>
+  <Heading>Full Width Content</Heading>
+  <Text>
+    This content spans the full width of its parent, useful for hero sections
+    or full-bleed layouts.
+  </Text>
+</Container>
+```
+
+### Multiple Sections
+
+Containers can be stacked to create distinct sections:
+
+```tsx
+live
+<View gap='400'>
+  <Container bg='neutral.surface.subtle' py='600'>
+    <Heading>Section One</Heading>
+    <Text>Constrained width section with responsive padding.</Text>
+  </Container>
+  <Container contain={false} bg='accent.surface' py='600'>
+    <Heading>Section Two</Heading>
+    <Text>Full width section for visual impact.</Text>
+  </Container>
+  <Container bg='neutral.surface.subtle' py='600'>
+    <Heading>Section Three</Heading>
+    <Text>Another constrained width section.</Text>
+  </Container>
+</View>
+```
+
+### Custom Padding
+
+Override the default responsive padding:
+
+```tsx
+live
+<Container px='800' py='600' bg='neutral.surface.subtle'>
+  <Heading>Custom Padding</Heading>
+  <Text>This container has custom horizontal and vertical padding.</Text>
+</Container>
+```
+
+### Responsive Padding
+
+Container automatically applies responsive padding by default (300 on mobile, 400 on tablet, 600 on desktop), but you can customize it:
+
+```tsx
+live
+<Container
+  px={{ base: '200', md: '600', lg: '1000' }}
+  bg='neutral.surface.subtle'
+>
+  <Heading>Custom Responsive Padding</Heading>
+  <Text>Padding changes at different breakpoints.</Text>
+</Container>
+```
+
+### Nested Layout
+
+Combine Container with other layout components:
+
+```tsx
+live
+<Container contain bg='neutral.surface.subtle' py='600'>
+  <View gap='300'>
+    <Heading>Product Features</Heading>
+    <View
+      flexDirection={{ base: 'column', md: 'row' }}
+      gap='300'
+      justifyContent='space-between'
+    >
+      <View flex='1' p='300' bg='neutral.surface'>
+        <Heading as='h3' size='300'>
+          Feature One
+        </Heading>
+        <Text>Description of the first feature.</Text>
+      </View>
+      <View flex='1' p='300' bg='neutral.surface'>
+        <Heading as='h3' size='300'>
+          Feature Two
+        </Heading>
+        <Text>Description of the second feature.</Text>
+      </View>
+      <View flex='1' p='300' bg='neutral.surface'>
+        <Heading as='h3' size='300'>
+          Feature Three
+        </Heading>
+        <Text>Description of the third feature.</Text>
+      </View>
+    </View>
+  </View>
+</Container>
+```
+
+### Custom Element
+
+Container can be rendered as any HTML element using the `as` prop:
+
+```tsx
+live
+<Container as='section' contain bg='neutral.surface.subtle' py='600'>
+  <Heading>About Section</Heading>
+  <Text>This container is rendered as a semantic section element.</Text>
+</Container>
+```
+
+### Full Page Layout Example
+
+Create a typical page layout with header, main content, and footer:
+
+```tsx
+live
+<View>
+  <Container as='header' bg='neutral.surface.subtle' py='400'>
+    <Heading>Site Header</Heading>
+  </Container>
+  <Container as='main' contain py='800'>
+    <View gap='400'>
+      <Heading>Main Content</Heading>
+      <Text>
+        This is the main content area with constrained width for better
+        readability.
+      </Text>
+      <Text>
+        The container ensures consistent spacing and alignment across all
+        screen sizes.
+      </Text>
+    </View>
+  </Container>
+  <Container as='footer' bg='neutral.surface.subtle' py='400'>
+    <Text>© 2024 Your Company</Text>
+  </Container>
+</View>
+```
+
+## Usage Guidelines
+
+- Use Container for page-level layouts and major content sections
+- Container has a max-width constraint by default - perfect for readable content
+- Set `contain={false}` for full-width sections like heroes or full-bleed images
+- Container provides horizontal padding by default - add vertical padding as needed
+- For smaller UI components, use View instead of Container
+
+<PropsDefinitions componentPath='packages/components/src/components/Container/index.tsx' />

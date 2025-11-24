@@ -21,6 +21,11 @@
       "import": "./dist/hooks/index.js",
       "require": "./dist/hooks/index.js"
     },
+    "./spot-illustrations": {
+      "types": "./dist/SpotIllustration.d.ts",
+      "import": "./dist/SpotIllustration.js",
+      "require": "./dist/SpotIllustration.js"
+    },
     "./src/*": {
       "types": "./src/*",
       "import": "./src/*"
@@ -36,8 +41,9 @@
   },
   "scripts": {
     "build": "tsup",
+    "build:spotillustration": "node scripts/svg-to-spot-illustration.cjs",
     "clean": "rm -rf node_modules dist",
-    "dev": "tsup --watch",
+    "dev": "node scripts/svg-to-spot-illustration.cjs --watch & tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -68,6 +74,7 @@
     "@vitest/coverage-v8": "4.0.4",
     "@vitest/ui": "4.0.4",
     "jsdom": "27.0.1",
+    "svgo": "4.0.0",
     "tsup": "8.5.0",
     "vitest": "4.0.4"
   },

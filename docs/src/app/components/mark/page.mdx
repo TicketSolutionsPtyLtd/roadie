@@ -1,0 +1,128 @@
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+export const metadata = {
+  title: 'Mark',
+  description:
+    'The Mark component is used to highlight or emphasize text content.',
+  status: 'beta',
+  category: 'Typography'
+}
+
+# Mark
+
+The Mark component is used to highlight or emphasize specific text content within your application. It renders the HTML `<mark>` element with consistent styling.
+
+## Import
+
+```tsx
+import { Mark } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Default
+
+```tsx
+live
+<Text>
+  The Mark component is used to <Mark>highlight text</Mark> within content.
+</Text>
+```
+
+### Color palettes
+
+The default color palette is `information`. Each color palette is designed for specific use cases:
+
+- `neutral`: Default for general highlights
+- `accent`: Accent highlights
+- `brand`: Brand-specific highlights
+- `information`: Informational highlights
+- `success`: Successful or positive highlights
+- `warning`: Warning-related highlights
+- `danger`: Error or critical highlights
+
+```tsx
+live
+<View gap='200'>
+  <Text>
+    This is <Mark colorPalette='neutral'>neutral</Mark> highlighted text.
+  </Text>
+  <Text>
+    This is <Mark colorPalette='accent'>accent</Mark> highlighted text.
+  </Text>
+  <Text>
+    This is <Mark colorPalette='brand'>brand</Mark> highlighted text.
+  </Text>
+  <Text>
+    This is <Mark colorPalette='information'>information</Mark> highlighted text.
+  </Text>
+  <Text>
+    This is <Mark colorPalette='success'>success</Mark> highlighted text.
+  </Text>
+  <Text>
+    This is <Mark colorPalette='warning'>warning</Mark> highlighted text.
+  </Text>
+  <Text>
+    This is <Mark colorPalette='danger'>danger</Mark> highlighted text.
+  </Text>
+</View>
+```
+
+### Nested content
+
+Mark supports nested content including other components:
+
+```tsx
+live
+<Text>
+  You can mark text with <Mark>nested <strong>formatting</strong></Mark> inside.
+</Text>
+```
+
+### In headings
+
+Mark works great in headings for creating eye-catching titles:
+
+```tsx
+live
+<View gap='200' textAlign='center'>
+  <Heading as='h1' textStyle='display.prose.2'>
+    Great events need great <Mark colorPalette='accent'>partners</Mark>
+  </Heading>
+  <Heading as='h2' textStyle='display.prose.4' color='neutral.fg.subtle'>
+    Not just <Mark backgroundColor='orange.5' color='orange.12'>great</Mark> ticketing software. Why?
+  </Heading>
+</View>
+```
+
+### Use cases
+
+Mark is useful for highlighting important information in various contexts:
+
+```tsx
+live
+<View gap='300'>
+  <View gap='100'>
+    <Heading as='h3' textStyle='display.ui.4'>Search results</Heading>
+    <Text>
+      Found <Mark colorPalette='accent'>5 matches</Mark> for your search query.
+    </Text>
+  </View>
+
+  <View gap='100'>
+    <Heading as='h3' textStyle='display.ui.4'>Status updates</Heading>
+    <Text>
+      Your order is <Mark colorPalette='success'>confirmed</Mark> and will ship soon.
+    </Text>
+  </View>
+
+  <View gap='100'>
+    <Heading as='h3' textStyle='display.ui.4'>Warnings</Heading>
+    <Text>
+      This action is <Mark colorPalette='warning'>irreversible</Mark>.
+    </Text>
+  </View>
+</View>
+```
+
+<PropsDefinitions componentPath='packages/components/src/components/Mark/index.tsx' />

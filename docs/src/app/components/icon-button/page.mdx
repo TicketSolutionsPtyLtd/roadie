@@ -1,0 +1,195 @@
+export const metadata = {
+  title: 'IconButton',
+  description: 'A square button component optimized for displaying icons',
+  status: 'beta',
+  category: 'Actions'
+}
+
+import { IconButton } from '@oztix/roadie-components'
+import { css } from '@oztix/roadie-core/css'
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# IconButton
+
+The IconButton component is a square button optimized for displaying icons. It maintains equal width and height across all sizes, making it perfect for icon-only actions.
+
+## Import
+
+```tsx
+import { IconButton } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Basic usage
+
+IconButton requires an `aria-label` for accessibility since it typically doesn't contain visible text.
+
+```tsx
+live
+<View gap='200' flexDirection='row'>
+  <IconButton aria-label='Add item' emphasis='strong' colorPalette='accent'>
+    +
+  </IconButton>
+  <IconButton aria-label='Edit item' emphasis='default'>
+    ✏️
+  </IconButton>
+  <IconButton aria-label='Delete item' emphasis='subtle' colorPalette='danger'>
+    ×
+  </IconButton>
+</View>
+```
+
+### Emphasis
+
+Different button emphasis levels for various contexts:
+
+```tsx
+live
+<View gap='200' flexDirection='row'>
+  <IconButton aria-label='Strong' emphasis='strong'>
+    ★
+  </IconButton>
+  <IconButton aria-label='Default' emphasis='default'>
+    ★
+  </IconButton>
+  <IconButton aria-label='Subtle' emphasis='subtle'>
+    ★
+  </IconButton>
+  <IconButton aria-label='Subtler' emphasis='subtler'>
+    ★
+  </IconButton>
+</View>
+```
+
+### Sizes
+
+IconButton maintains square proportions across all sizes:
+
+```tsx
+live
+<View gap='200' flexDirection='row' alignItems='center'>
+  <IconButton aria-label='Extra small' size='xs'>
+    ✓
+  </IconButton>
+  <IconButton aria-label='Small' size='sm'>
+    ✓
+  </IconButton>
+  <IconButton aria-label='Medium' size='md'>
+    ✓
+  </IconButton>
+  <IconButton aria-label='Large' size='lg'>
+    ✓
+  </IconButton>
+</View>
+```
+
+### Colors
+
+Each color palette is designed for specific use cases:
+
+- `neutral`: Default for most actions
+- `accent`: Primary or highlighted actions
+- `brand`: Brand-specific actions
+- `information`: Informational or help-related actions
+- `success`: Positive or completion actions
+- `warning`: Cautionary actions
+- `danger`: Destructive or high-risk actions
+
+```tsx
+live
+<View gap='200'>
+  <View flexDirection='row' gap='200'>
+    <IconButton aria-label='Neutral' emphasis='strong' colorPalette='neutral'>
+      ✓
+    </IconButton>
+    <IconButton aria-label='Accent' emphasis='strong' colorPalette='accent'>
+      ✓
+    </IconButton>
+    <IconButton aria-label='Brand' emphasis='strong' colorPalette='brand'>
+      ✓
+    </IconButton>
+    <IconButton aria-label='Information' emphasis='strong' colorPalette='information'>
+      ✓
+    </IconButton>
+    <IconButton aria-label='Success' emphasis='strong' colorPalette='success'>
+      ✓
+    </IconButton>
+    <IconButton aria-label='Warning' emphasis='strong' colorPalette='warning'>
+      ✓
+    </IconButton>
+    <IconButton aria-label='Danger' emphasis='strong' colorPalette='danger'>
+      ✓
+    </IconButton>
+  </View>
+  <View flexDirection='row' gap='200'>
+    <IconButton aria-label='Neutral' emphasis='default' colorPalette='neutral'>
+      ✓
+    </IconButton>
+    <IconButton aria-label='Accent' emphasis='default' colorPalette='accent'>
+      ✓
+    </IconButton>
+    <IconButton aria-label='Brand' emphasis='default' colorPalette='brand'>
+      ✓
+    </IconButton>
+    <IconButton aria-label='Information' emphasis='default' colorPalette='information'>
+      ✓
+    </IconButton>
+    <IconButton aria-label='Success' emphasis='default' colorPalette='success'>
+      ✓
+    </IconButton>
+    <IconButton aria-label='Warning' emphasis='default' colorPalette='warning'>
+      ✓
+    </IconButton>
+    <IconButton aria-label='Danger' emphasis='default' colorPalette='danger'>
+      ✓
+    </IconButton>
+  </View>
+</View>
+```
+
+### Disabled state
+
+```tsx
+live
+<View gap='200' flexDirection='row'>
+  <IconButton aria-label='Disabled' disabled emphasis='strong' colorPalette='accent'>
+    ✓
+  </IconButton>
+  <IconButton aria-label='Disabled' disabled emphasis='default'>
+    ✓
+  </IconButton>
+  <IconButton aria-label='Disabled' disabled emphasis='subtle'>
+    ✓
+  </IconButton>
+</View>
+```
+
+## Usage
+
+```tsx
+live
+<IconButton
+  aria-label='Add to favorites'
+  emphasis='strong'
+  colorPalette='accent'
+  onClick={() => alert('Added to favorites')}
+>
+  ♥
+</IconButton>
+```
+
+## Accessibility
+
+Always provide an `aria-label` prop to describe the button's action, since icon buttons typically don't contain visible text labels.
+
+```tsx
+// Good
+<IconButton aria-label='Close dialog'>×</IconButton>
+
+// Bad - missing aria-label
+<IconButton>×</IconButton>
+```
+
+<PropsDefinitions componentPath='packages/components/src/components/Button/IconButton.tsx' />
