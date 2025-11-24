@@ -32,7 +32,7 @@
 
 const fs = require('fs')
 const path = require('path')
-const { execSync } = require('child_process')
+const { execFileSync } = require('child_process')
 const { optimize } = require('svgo')
 
 // Path to tokens files
@@ -346,15 +346,17 @@ function formatGeneratedFiles(componentDir) {
     if (files.length === 0) return
 
     // Build file paths
-    const filePaths = files
-      .map((file) => path.join(componentDir, file))
-      .join(' ')
+    const filePaths = files.map((file) => path.join(componentDir, file))
 
     // Run prettier on all generated files
-    execSync(`npx prettier --write ${filePaths}`, {
-      cwd: path.join(__dirname, '..'),
-      stdio: 'ignore'
-    })
+    execFileSync(
+      'npx',
+      ['prettier', '--write', ...filePaths],
+      {
+        cwd: path.join(__dirname, '..'),
+        stdio: 'ignore',
+      },
+    )
 
     return true
   } catch (error) {
