@@ -76,7 +76,8 @@ export const SpotIllustration = forwardRef<
   SVGSVGElement,
   SpotIllustrationProps
 >(({ illustration, ...props }, ref) => {
-  const { viewBox, paths } = illustration
+  // Fallback to default viewBox if not provided
+  const { viewBox = '0 0 48 48', paths } = illustration
 
   return (
     <StyledSvg

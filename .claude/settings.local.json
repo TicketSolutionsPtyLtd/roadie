@@ -19,7 +19,9 @@
       "mcp__chrome-devtools__get_network_request",
       "mcp__chrome-devtools__take_screenshot",
       "mcp__chrome-devtools__evaluate_script",
-      "Bash(pnpm lint:*)"
+      "Bash(pnpm lint:*)",
+      "Bash(git log:*)",
+      "Bash(pnpm typecheck:*)"
     ],
     "deny": [],
     "ask": []

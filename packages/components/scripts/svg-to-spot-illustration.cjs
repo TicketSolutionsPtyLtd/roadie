@@ -349,14 +349,10 @@ function formatGeneratedFiles(componentDir) {
     const filePaths = files.map((file) => path.join(componentDir, file))
 
     // Run prettier on all generated files
-    execFileSync(
-      'npx',
-      ['prettier', '--write', ...filePaths],
-      {
-        cwd: path.join(__dirname, '..'),
-        stdio: 'ignore',
-      },
-    )
+    execFileSync('npx', ['prettier', '--write', ...filePaths], {
+      cwd: path.join(__dirname, '..'),
+      stdio: 'ignore'
+    })
 
     return true
   } catch (error) {
