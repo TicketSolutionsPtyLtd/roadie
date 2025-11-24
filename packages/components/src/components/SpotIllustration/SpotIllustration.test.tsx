@@ -52,7 +52,7 @@ describe('SpotIllustration', () => {
       const { container } = render(<Ticket />)
       const paths = container.querySelectorAll('path')
       const outlinePaths = Array.from(paths).filter(
-        (path) => path.getAttribute('data-part') === 'outline'
+        (path) => (path as Element).getAttribute('data-part') === 'outline'
       )
       expect(outlinePaths.length).toBeGreaterThan(0)
     })
@@ -113,7 +113,8 @@ describe('SpotIllustration', () => {
           }}
         />
       )
-      expect(svgRef?.viewBox).toBeDefined()
+      expect(svgRef).not.toBeNull()
+      expect(svgRef!.getAttribute('viewBox')).toBeDefined()
     })
   })
 
@@ -155,7 +156,7 @@ describe('SpotIllustration', () => {
 
       // Check that paths have data-part attributes for styling
       const dataParts = Array.from(paths)
-        .map((path) => path.getAttribute('data-part'))
+        .map((path) => (path as Element).getAttribute('data-part'))
         .filter(Boolean)
 
       expect(dataParts.length).toBeGreaterThan(0)
