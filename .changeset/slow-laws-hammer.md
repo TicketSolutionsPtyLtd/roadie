@@ -23,7 +23,7 @@ Add essential components and design tokens for B2B website development (INNO-170
 
 - Rename from Inter Variable to Intermission (Oztix's customized version)
 - Enable OpenType features: case, ss03, cv01-cv05, cv08-cv11
-- Subset to Basic Latin and typographic quotes for optimized file size
+- Subset to Basic Latin (U+0020-007F) and typographic quotes (U+2018-201F) for optimized file size
 
 **Build System:**
 

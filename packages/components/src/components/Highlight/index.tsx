@@ -62,6 +62,14 @@ export const Highlight = ({
   colorPalette = 'information',
   ...props
 }: HighlightProps): ReactElement => {
+  // Fast path: if query is empty, just return the text
+  const isQueryEmpty =
+    !query || (Array.isArray(query) && query.length === 0) || query === ''
+
+  if (isQueryEmpty) {
+    return <>{text}</>
+  }
+
   const chunks = useHighlight({
     query,
     text,

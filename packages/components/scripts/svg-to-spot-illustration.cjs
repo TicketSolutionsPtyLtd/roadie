@@ -340,7 +340,8 @@ function formatGeneratedFiles(componentDir) {
           file.endsWith('.tsx') &&
           file !== 'index.tsx' &&
           file !== 'SpotIllustration.tsx' &&
-          file !== 'createSpotIllustration.tsx'
+          file !== 'createSpotIllustration.tsx' &&
+          !file.endsWith('.test.tsx')
       )
 
     if (files.length === 0) return
@@ -349,14 +350,10 @@ function formatGeneratedFiles(componentDir) {
     const filePaths = files.map((file) => path.join(componentDir, file))
 
     // Run prettier on all generated files
-    execFileSync(
-      'npx',
-      ['prettier', '--write', ...filePaths],
-      {
-        cwd: path.join(__dirname, '..'),
-        stdio: 'ignore',
-      },
-    )
+    execFileSync('npx', ['prettier', '--write', ...filePaths], {
+      cwd: path.join(__dirname, '..'),
+      stdio: 'ignore'
+    })
 
     return true
   } catch (error) {
@@ -376,7 +373,7 @@ function updateIndexExports(componentDir) {
   // Read current index file
   let indexContent = fs.readFileSync(indexPath, 'utf-8')
 
-  // Find all component files (excluding base components)
+  // Find all component files (excluding base components and test files)
   const componentFiles = fs
     .readdirSync(componentDir)
     .filter(
@@ -384,7 +381,8 @@ function updateIndexExports(componentDir) {
         file.endsWith('.tsx') &&
         file !== 'index.tsx' &&
         file !== 'SpotIllustration.tsx' &&
-        file !== 'createSpotIllustration.tsx'
+        file !== 'createSpotIllustration.tsx' &&
+        !file.endsWith('.test.tsx')
     )
     .sort()
 
@@ -424,7 +422,11 @@ function updateIndexExports(componentDir) {
 
   // Only write if content changed
   if (newContent !== indexContent) {
-    fs.writeFileSync(indexPath, newContent)
+    // Ensure trailing newline
+    const contentWithNewline = newContent.endsWith('\n')
+      ? newContent
+      : newContent + '\n'
+    fs.writeFileSync(indexPath, contentWithNewline)
     return true
   }
 
