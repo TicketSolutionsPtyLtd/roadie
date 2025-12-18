@@ -24,3 +24,4 @@ coverage
 
 # Python virtual environments
 scripts/venv/
+.gemini/
