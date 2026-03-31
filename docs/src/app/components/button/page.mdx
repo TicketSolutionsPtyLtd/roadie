@@ -26,7 +26,7 @@ import { Button } from '@oztix/roadie-components'
 Different button emphasis levels for various contexts:
 
 ```tsx-live
-<div className='flex flex-row gap-2'>
+<div className='flex flex-row flex-wrap gap-2'>
   <Button emphasis='strong'>
     Strong Button
   </Button>
@@ -45,7 +45,7 @@ Different button emphasis levels for various contexts:
 ### Sizes
 
 ```tsx-live
-<div className='flex flex-row items-center gap-2'>
+<div className='flex flex-row flex-wrap items-center gap-2'>
   <Button size='xs'>Extra Small</Button>
   <Button size='sm'>Small</Button>
   <Button size='md'>Medium (Default)</Button>
@@ -58,7 +58,7 @@ Different button emphasis levels for various contexts:
 Use icon sizes for square icon-only buttons via the Button component:
 
 ```tsx-live
-<div className='flex flex-row items-center gap-2'>
+<div className='flex flex-row flex-wrap items-center gap-2'>
   <Button size='icon-xs' aria-label='Extra small'>+</Button>
   <Button size='icon-sm' aria-label='Small'>+</Button>
   <Button size='icon-md' aria-label='Medium'>+</Button>
@@ -82,7 +82,7 @@ Each intent is designed for specific use cases:
 
 ```tsx-live
 <div className='flex flex-col gap-2'>
-  <div className='flex flex-row gap-2'>
+  <div className='flex flex-row flex-wrap gap-2'>
     <Button emphasis='strong' intent='neutral'>Neutral</Button>
     <Button emphasis='strong' intent='accent'>Accent</Button>
     <Button emphasis='strong' intent='brand'>Brand</Button>
@@ -91,7 +91,7 @@ Each intent is designed for specific use cases:
     <Button emphasis='strong' intent='warning'>Warning</Button>
     <Button emphasis='strong' intent='danger'>Danger</Button>
   </div>
-  <div className='flex flex-row gap-2'>
+  <div className='flex flex-row flex-wrap gap-2'>
     <Button emphasis='default' intent='neutral'>Neutral</Button>
     <Button emphasis='default' intent='accent'>Accent</Button>
     <Button emphasis='default' intent='brand'>Brand</Button>
@@ -100,7 +100,7 @@ Each intent is designed for specific use cases:
     <Button emphasis='default' intent='warning'>Warning</Button>
     <Button emphasis='default' intent='danger'>Danger</Button>
   </div>
-  <div className='flex flex-row gap-2'>
+  <div className='flex flex-row flex-wrap gap-2'>
     <Button emphasis='subtle' intent='neutral'>Neutral</Button>
     <Button emphasis='subtle' intent='accent'>Accent</Button>
     <Button emphasis='subtle' intent='brand'>Brand</Button>
@@ -109,7 +109,7 @@ Each intent is designed for specific use cases:
     <Button emphasis='subtle' intent='warning'>Warning</Button>
     <Button emphasis='subtle' intent='danger'>Danger</Button>
   </div>
-  <div className='flex flex-row gap-2'>
+  <div className='flex flex-row flex-wrap gap-2'>
     <Button emphasis='subtler' intent='neutral'>Neutral</Button>
     <Button emphasis='subtler' intent='accent'>Accent</Button>
     <Button emphasis='subtler' intent='brand'>Brand</Button>

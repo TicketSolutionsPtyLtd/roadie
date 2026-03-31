@@ -25,7 +25,7 @@ IconButton requires an `aria-label` for accessibility since it typically does no
 
 ```tsx-live
 
-<div className='flex flex-row gap-2'>
+<div className='flex flex-row flex-wrap gap-2'>
   <IconButton aria-label='Add item' emphasis='strong' intent='accent'>
     +
   </IconButton>
@@ -44,7 +44,7 @@ Different button emphasis levels for various contexts:
 
 ```tsx-live
 
-<div className='flex flex-row gap-2'>
+<div className='flex flex-row flex-wrap gap-2'>
   <IconButton aria-label='Strong' emphasis='strong'>
     ★
   </IconButton>
@@ -66,7 +66,7 @@ IconButton maintains square proportions across all sizes. The default size is `i
 
 ```tsx-live
 
-<div className='flex flex-row items-center gap-2'>
+<div className='flex flex-row flex-wrap items-center gap-2'>
   <IconButton aria-label='Extra small' size='icon-xs'>
     ✓
   </IconButton>
@@ -97,7 +97,7 @@ Each intent is designed for specific use cases:
 ```tsx-live
 
 <div className='flex flex-col gap-2'>
-  <div className='flex flex-row gap-2'>
+  <div className='flex flex-row flex-wrap gap-2'>
     <IconButton aria-label='Neutral' emphasis='strong' intent='neutral'>✓</IconButton>
     <IconButton aria-label='Accent' emphasis='strong' intent='accent'>✓</IconButton>
     <IconButton aria-label='Brand' emphasis='strong' intent='brand'>✓</IconButton>
@@ -106,7 +106,7 @@ Each intent is designed for specific use cases:
     <IconButton aria-label='Warning' emphasis='strong' intent='warning'>✓</IconButton>
     <IconButton aria-label='Danger' emphasis='strong' intent='danger'>✓</IconButton>
   </div>
-  <div className='flex flex-row gap-2'>
+  <div className='flex flex-row flex-wrap gap-2'>
     <IconButton aria-label='Neutral' emphasis='default' intent='neutral'>✓</IconButton>
     <IconButton aria-label='Accent' emphasis='default' intent='accent'>✓</IconButton>
     <IconButton aria-label='Brand' emphasis='default' intent='brand'>✓</IconButton>
@@ -122,7 +122,7 @@ Each intent is designed for specific use cases:
 
 ```tsx-live
 
-<div className='flex flex-row gap-2'>
+<div className='flex flex-row flex-wrap gap-2'>
   <IconButton aria-label='Disabled' disabled emphasis='strong' intent='accent'>
     ✓
   </IconButton>
