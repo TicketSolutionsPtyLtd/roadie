@@ -31,7 +31,7 @@ export const badgeVariants = cva(
     defaultVariants: {
       intent: 'neutral',
       emphasis: 'default',
-      size: 'sm',
+      size: 'md',
     },
   }
 )
