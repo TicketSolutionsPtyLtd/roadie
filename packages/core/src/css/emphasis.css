@@ -97,14 +97,14 @@
   background-color: var(--intent-surface-strong);
   color: var(--intent-fg-inverted);
 
-  /* Strong: hover → step 10, active → step 11, with lift effect */
+  /* Strong: hover lifts + darkens, active presses */
   &.is-interactive:hover {
-    background-color: var(--intent-surface-strong-hover);
+    filter: brightness(0.9);
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 8px -2px rgba(0, 0, 0, 0.08);
   }
   &.is-interactive:active {
-    background-color: var(--intent-surface-strong-active);
+    filter: brightness(0.8);
     transform: translateY(0) scale(0.98);
     box-shadow: none;
   }
