@@ -9,112 +9,73 @@ describe('Text', () => {
     const text = getByText('Hello World')
     expect(text).toBeInTheDocument()
     expect(text.tagName.toLowerCase()).toBe('p')
-    expect(text).toHaveClass('text', 'text--emphasis_default')
-  })
-
-  it('applies textStyle prop', () => {
-    const { getByText } = render(<Text textStyle='heading.1'>Large Text</Text>)
-    const text = getByText('Large Text')
-    expect(text).toHaveClass('textStyle_heading.1')
+    expect(text).toHaveClass('emphasis-default-fg')
   })
 
   it('renders with custom element type', () => {
-    const { getByText } = render(<Text as='p'>Paragraph Text</Text>)
-    const element = getByText('Paragraph Text')
-    expect(element.tagName.toLowerCase()).toBe('p')
+    const { getByText } = render(<Text as="span">Span Text</Text>)
+    expect(getByText('Span Text').tagName.toLowerCase()).toBe('span')
   })
 
   it('renders with different emphasis', () => {
     const { rerender, getByText } = render(
-      <Text emphasis='strong'>Strong Text</Text>
+      <Text emphasis="strong">Strong Text</Text>
     )
-    let text = getByText('Strong Text')
-    expect(text).toHaveClass('text--emphasis_strong')
+    expect(getByText('Strong Text')).toHaveClass('emphasis-strong-fg')
 
-    rerender(<Text emphasis='subtle'>Subtle Text</Text>)
-    text = getByText('Subtle Text')
-    expect(text).toHaveClass('text--emphasis_subtle')
+    rerender(<Text emphasis="subtle">Subtle Text</Text>)
+    expect(getByText('Subtle Text')).toHaveClass('emphasis-subtle-fg')
 
-    rerender(<Text emphasis='subtler'>subtler Text</Text>)
-    text = getByText('subtler Text')
-    expect(text).toHaveClass('text--emphasis_subtler')
+    rerender(<Text emphasis="subtler">Subtler Text</Text>)
+    expect(getByText('Subtler Text')).toHaveClass('emphasis-subtler-fg')
 
-    rerender(<Text emphasis='default'>Default Text</Text>)
-    text = getByText('Default Text')
-    expect(text).toHaveClass('text--emphasis_default')
+    rerender(<Text emphasis="default">Default Text</Text>)
+    expect(getByText('Default Text')).toHaveClass('emphasis-default-fg')
   })
 
-  it('renders with different color palettes', () => {
+  it('renders with different intents', () => {
     const { rerender, getByText } = render(
-      <Text colorPalette='accent'>Accent Text</Text>
+      <Text intent="accent">Accent Text</Text>
     )
-    let text = getByText('Accent Text')
-    expect(text).toHaveClass('color-palette_accent')
+    expect(getByText('Accent Text')).toHaveClass('intent-accent')
 
-    rerender(<Text colorPalette='brand'>Brand Text</Text>)
-    text = getByText('Brand Text')
-    expect(text).toHaveClass('color-palette_brand')
+    rerender(<Text intent="brand">Brand Text</Text>)
+    expect(getByText('Brand Text')).toHaveClass('intent-brand')
 
-    rerender(<Text colorPalette='success'>Success Text</Text>)
-    text = getByText('Success Text')
-    expect(text).toHaveClass('color-palette_success')
-
-    rerender(<Text colorPalette='warning'>Warning Text</Text>)
-    text = getByText('Warning Text')
-    expect(text).toHaveClass('color-palette_warning')
-
-    rerender(<Text colorPalette='danger'>Danger Text</Text>)
-    text = getByText('Danger Text')
-    expect(text).toHaveClass('color-palette_danger')
+    rerender(<Text intent="danger">Danger Text</Text>)
+    expect(getByText('Danger Text')).toHaveClass('intent-danger')
   })
 
-  it('applies interactive styles', () => {
-    const { getByText } = render(<Text interactive>Interactive Text</Text>)
-    const text = getByText('Interactive Text')
-    expect(text).toHaveClass('text--interactive_true')
-  })
+  it('renders with different sizes', () => {
+    const { rerender, getByText } = render(<Text size="sm">Small</Text>)
+    expect(getByText('Small')).toHaveClass('text-sm')
 
-  it('applies line clamp prop', () => {
-    const { getByText } = render(
-      <Text lineClamp={2}>Multi-line text that should be clamped</Text>
-    )
-    const text = getByText('Multi-line text that should be clamped')
-    expect(text).toHaveClass('lc_2')
+    rerender(<Text size="lg">Large</Text>)
+    expect(getByText('Large')).toHaveClass('text-lg')
   })
 
   it('forwards additional HTML attributes', () => {
     const { getByTestId } = render(
-      <Text data-testid='text' title='tooltip' aria-label='Accessible text'>
+      <Text data-testid="text" title="tooltip" aria-label="Accessible text">
         Text with attributes
       </Text>
     )
     const text = getByTestId('text')
-    expect(text).toHaveClass('text')
     expect(text).toHaveAttribute('title', 'tooltip')
     expect(text).toHaveAttribute('aria-label', 'Accessible text')
   })
 
   it('combines multiple props', () => {
     const { getByText } = render(
-      <Text
-        textStyle='heading.2'
-        emphasis='strong'
-        colorPalette='accent'
-        interactive
-        lineClamp={2}
-        className='custom-class'
-      >
+      <Text emphasis="strong" intent="accent" size="lg" className="custom-class">
         Styled Text
       </Text>
     )
     const text = getByText('Styled Text')
     expect(text).toHaveClass(
-      'text',
-      'text--emphasis_strong',
-      'text--interactive_true',
-      'textStyle_heading.2',
-      'color-palette_accent',
-      'lc_2',
+      'emphasis-strong-fg',
+      'intent-accent',
+      'text-lg',
       'custom-class'
     )
   })
