@@ -23,9 +23,9 @@ export const buttonVariants = cva(
       emphasis: {
         strong: 'emphasis-strong',
         default:
-          'emphasis-default-surface emphasis-default-fg emphasis-subtle-border hover:emphasis-subtle-surface',
-        subtle: 'emphasis-subtle hover:brightness-95',
-        subtler: 'emphasis-default-fg hover:emphasis-subtler-surface'
+          'emphasis-default-surface emphasis-subtle-fg emphasis-subtle-border hover:emphasis-subtle-surface',
+        subtle: 'emphasis-subtle-surface emphasis-subtle-fg hover:brightness-95',
+        subtler: 'emphasis-subtle-fg hover:emphasis-subtler-surface',
       },
       size: {
         xs: 'h-6 min-w-6 text-xs px-2.5 py-0.5 [&_svg:not([class*="size-"])]:size-3',

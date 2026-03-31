@@ -25,15 +25,15 @@ describe('Button', () => {
 
     rerender(<Button emphasis='default'>Default</Button>)
     button = getByText('Default')
-    expect(button).toHaveClass('emphasis-default-surface')
+    expect(button).toHaveClass('emphasis-subtle-fg')
 
     rerender(<Button emphasis='subtle'>Subtle</Button>)
     button = getByText('Subtle')
-    expect(button).toHaveClass('emphasis-subtle')
+    expect(button).toHaveClass('emphasis-subtle-surface')
 
     rerender(<Button emphasis='subtler'>Subtler</Button>)
     button = getByText('Subtler')
-    expect(button).toHaveClass('emphasis-default-fg')
+    expect(button).toHaveClass('emphasis-subtle-fg')
   })
 
   it('renders with different sizes', () => {

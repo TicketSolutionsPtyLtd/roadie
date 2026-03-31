@@ -1,6 +1,7 @@
 /* ═══════════════════════════════════════════════════════════
    Interaction Utility
    Provides sensible defaults for interactive elements.
+   Uses intent color scale for hover/focus/active states.
    Omit for custom interaction handling.
    ═══════════════════════════════════════════════════════════ */
 
@@ -14,18 +15,20 @@
     box-shadow 0.15s ease,
     outline-color 0.15s ease,
     outline-width 0.15s ease,
-    transform 0.1s ease;
+    transform 0.1s ease,
+    filter 0.15s ease;
 
   &:hover {
     filter: brightness(0.93);
   }
 
   &:active {
+    filter: brightness(0.88);
     transform: scale(0.97);
   }
 
   &:focus-visible {
-    outline: 3px solid var(--intent-border-default);
+    outline: 3px solid var(--intent-border-subtle);
     outline-offset: 2px;
   }
 
