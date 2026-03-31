@@ -4,224 +4,228 @@ This file provides guidance to AI coding agents when working with code in this r
 
 ## Repository Overview
 
-Roadie is a comprehensive design system for Oztix's applications, built as a monorepo using pnpm workspaces and Turborepo. The system provides design tokens, React components, and documentation.
+Roadie is a design system for Oztix's applications, built as a monorepo using pnpm workspaces and Turborepo. It provides CSS design tokens, a React component library, and documentation.
 
 **Tech Stack:**
-- Package Manager: pnpm@9.15.0 (use `corepack enable` to ensure correct version)
+- Package Manager: pnpm (use `corepack enable`)
 - Build System: Turborepo
-- Framework: React v19.0.0
-- Component Primitives: @ark-ui/react (for complex components requiring accessibility)
-- Styling: PandaCSS v1.4.3
-- Language: TypeScript v5.7
-- Documentation: Next.js v15 with MDX
+- Framework: React v19
+- Component Primitives: @base-ui/react (for accessible interactive components)
+- Styling: Tailwind CSS v4 with custom `@utility` directives
+- Language: TypeScript v5 (strict mode)
+- Documentation: Next.js v16 with MDX
 
 **External Documentation:**
-- PandaCSS: https://panda-css.com/llms-full.txt (comprehensive API and usage docs)
-- Ark UI: https://ark-ui.com/llms-react.txt (React-specific component docs)
-
-**Recommended MCP Servers:**
-To enable AI-assisted component building with Ark UI, install the Ark UI MCP server:
-```bash
-npx -y @ark-ui/mcp
-```
-This provides tools for listing components, getting examples, and styling guidelines.
+- Tailwind CSS v4: https://tailwindcss.com/docs
+- Base UI: https://base-ui.com/
 
 ## Monorepo Structure
 
 ```
-/packages/core/         - Design tokens, themes, PandaCSS preset (@oztix/roadie-core)
+/packages/core/         - CSS foundation, color generator, utilities (@oztix/roadie-core)
 /packages/components/   - React component library (@oztix/roadie-components)
-/packages/icons/        - Icon package (Coming soon)
+/packages/icons/        - Icon package (coming soon)
 /docs/                  - Documentation site (Next.js + MDX)
+```
+
+### Core Package (`packages/core/`)
+
+```
+src/
+├── css/
+│   ├── roadie.css          # Main entry (imports all below + tailwindcss)
+│   ├── reset.css           # CSS reset and global defaults
+│   ├── tokens.css          # Color scales (OKLCH), typography, elevation
+│   ├── intents.css         # @utility intent-* (set color context)
+│   ├── emphasis.css        # @utility emphasis-* (visual presentation)
+│   ├── typography.css      # @utility text-display-*, text-ui, text-prose
+│   ├── layout.css          # @utility view (flex column layout primitive)
+│   ├── interactions.css    # @utility is-interactive (hover/focus/disabled)
+│   ├── fonts.css           # @font-face declarations
+│   └── safelist.html       # Ensures all utilities in compiled CSS output
+├── colors/
+│   ├── radix-generator.ts  # Dynamic 0-13 OKLCH scale from hex input
+│   └── contrast.ts         # WCAG contrast check
+├── utils/
+│   └── cn.ts               # clsx + tailwind-merge helper
+└── index.ts                # JS re-exports
+```
+
+### Components Package (`packages/components/`)
+
+```
+src/
+├── components/
+│   ├── Button/             # Base UI Button + CVA
+│   ├── Text/               # Semantic <p> with emphasis/size
+│   ├── Heading/            # Semantic h1-h6 with level/emphasis/size
+│   ├── Code/               # Inline code with emphasis
+│   ├── Mark/               # Highlighted text with intent
+│   ├── Highlight/          # String highlighting (in-house useHighlight)
+│   └── SpotIllustration/   # Themed SVG illustrations
+├── providers/
+│   └── ThemeProvider.tsx    # Dynamic accent color + dark mode
+└── index.tsx               # Component re-exports
 ```
 
 ## Common Commands
 
-### Development
 ```bash
-pnpm dev                    # Start development for all packages (docs runs on localhost:3000)
+pnpm dev                    # Start all packages in dev mode
 pnpm build                  # Build all packages
 pnpm test                   # Run tests across all packages
-pnpm typecheck              # Run TypeScript type checking
-```
+pnpm typecheck              # TypeScript type checking
+pnpm lint                   # ESLint
+pnpm format                 # Prettier
 
-### Code Quality
-```bash
-pnpm lint                   # Run ESLint
-pnpm lint:fix              # Fix ESLint issues
-pnpm format                 # Format code with Prettier
-pnpm format:check          # Check formatting without changes
-```
-
-### Package-Specific Commands
-```bash
-# Run command in specific package
+# Package-specific
 pnpm --filter @oztix/roadie-core build
 pnpm --filter @oztix/roadie-components test
-
-# Core package token building
-cd packages/core
-pnpm build:tokens          # Build token files from JSON sources
-pnpm build:panda           # Generate PandaCSS artifacts
-
-# Components package
-cd packages/components
-pnpm test:watch            # Run tests in watch mode
-pnpm test:ui               # Open Vitest UI
-
-# Documentation
-cd docs
-pnpm dev                   # Start docs dev server
+pnpm --filter docs dev
 ```
 
-### Versioning and Releases
-```bash
-pnpm changeset             # Create a changeset for version management
-pnpm changeset:version     # Bump versions based on changesets
-pnpm changeset:publish     # Publish packages to npm (automated via CI)
+## Architecture: Intent/Emphasis System
+
+The styling system has two layers, both defined as Tailwind `@utility` directives:
+
+### Intent (color context)
+
+Sets `--intent-*` CSS custom properties. Children inherit via cascade.
+
+```html
+<!-- Set intent on a container or directly on the element -->
+<div class="intent-accent">
+  <button class="emphasis-strong is-interactive rounded-full px-4 py-2">
+    Accent button
+  </button>
+</div>
 ```
 
-## Architecture
+**Available intents:** `neutral` (default on :root), `brand`, `accent`, `danger`, `success`, `warning`, `info`
 
-### Design Tokens System
+Each intent exposes:
+- Semantic vars: `--intent-surface-*`, `--intent-border-*`, `--intent-fg-*`
+- Raw scale steps: `--intent-0` through `--intent-13`
 
-**Token Sources:**
-- `packages/core/src/tokens/tokens.json` - Base design tokens (colors, spacing, typography, etc.)
-- `packages/core/src/tokens/semantic-tokens.json` - Semantic tokens that reference base tokens
+### Emphasis (visual presentation)
 
-**Token Build Process:**
-1. JSON token files are processed by `build-panda-tokens.js` script
-2. Generates Panda-compatible token files in `packages/core/src/tokens/panda/`
-3. Also generates Figma-compatible tokens in `packages/core/src/tokens/figma/`
-4. PandaCSS preset is exported from `packages/core/src/presets/index.ts`
+Consumes `--intent-*` vars. Two forms:
 
-**Token Usage:**
-- Core package exports tokens, PandaCSS preset, and utilities
-- Components consume tokens through PandaCSS utilities (`@oztix/roadie-core/css`)
-- Preset includes global styles, font-face declarations, and custom conditions
+**Shortcuts** (surface + fg): `emphasis-strong`, `emphasis-subtle`, `emphasis-subtler`, `emphasis-default`, `emphasis-raised`, `emphasis-sunken`
 
-### Component Architecture
+**Property-specific** (composable): `emphasis-strong-surface`, `emphasis-subtle-fg`, `emphasis-default-border`
 
-**Component Pattern:**
-- Simple components use native HTML elements (button, div, etc.)
-- Complex components requiring accessibility use @ark-ui/react primitives
-- Styled using PandaCSS `cva()` (class variance authority) pattern
-- Each component exports typed props and recipe for styling
+Naming convention: `emphasis-{level}` (shortcut) or `emphasis-{level}-{property}` (specific). Drop the last segment = shortcut.
 
-**Component Structure:**
+### Interaction states
+
+Emphasis shortcuts include hover/active/focus-visible states using intent color scale steps:
+- `emphasis-strong`: hover → step 10, active → step 11
+- `emphasis-subtle`: hover → step 4, active → step 5
+- `emphasis-subtler`: transparent by default when interactive, hover → step 2
+
+`is-interactive` provides: cursor, transitions, active scale, focus ring (semi-transparent via color-mix), disabled state.
+
+### Color Scale
+
+Extended Radix 0-13 OKLCH per intent (7 intents + brand-secondary):
+- Steps 1-12: Radix scale
+- Step 0: lightest extreme
+- Step 13: darkest extreme
+- Neutral strong uses step 12 (near-black/white)
+
+### Dark Mode
+
+`.dark` class on `<html>` swaps OKLCH values. No `dark:` Tailwind variants needed for colors. Intent/emphasis utilities automatically adapt.
+
+Focus rings use `color-mix(in oklch, var(--intent-9) 30%, transparent)` in light, 20% in dark.
+
+## Component Patterns
+
+### Creating a component with CVA
+
+```tsx
+import { cva, type VariantProps } from 'class-variance-authority'
+import { cn } from '@oztix/roadie-core/utils'
+
+export const buttonVariants = cva('base-classes is-interactive', {
+  variants: {
+    intent: {
+      neutral: 'intent-neutral',
+      brand: 'intent-brand',
+      accent: 'intent-accent',
+      // ... all 7 intents
+    },
+    emphasis: {
+      strong: 'emphasis-strong',
+      default: 'emphasis-default-surface emphasis-subtle-fg emphasis-subtle-border',
+      subtle: 'emphasis-subtle emphasis-subtle-fg',
+      subtler: 'emphasis-subtler emphasis-subtle-fg',
+    },
+    size: { sm: 'h-8 px-3', md: 'h-10 px-4', lg: 'h-12 px-6' },
+  },
+  defaultVariants: { intent: 'neutral', emphasis: 'default', size: 'md' },
+})
 ```
-packages/components/src/components/ComponentName/
-├── index.tsx              # Component implementation
-└── ComponentName.test.tsx # Tests using Vitest + Testing Library
+
+### Consumer setup
+
+```css
+/* app/globals.css */
+@import '@oztix/roadie-core/css';
+
+/* For docs/apps using components, scan dist for class strings: */
+@source "../../node_modules/@oztix/roadie-components/dist";
 ```
 
-**Component Export Strategy:**
-- Main entry (`packages/components/src/index.tsx`) re-exports all components
-- Build system (tsup) creates separate entry points for tree-shaking
-- Each component gets its own chunk for optimal bundle sizes
+### Key rules
 
-**Styling Approach:**
-- Use semantic tokens via `colorPalette` system (e.g., `colorPalette.fg`, `colorPalette.surface.subtle`)
-- Pseudo-classes via `_hover`, `_active`, `_disabled`, `_focusVisible`
-- Spacing uses design tokens (e.g., `gap='400'`, `px='200'`)
-- Components default to `View` as root element for layout
+1. **Intent = which color palette.** Only sets CSS custom properties. No visual presentation.
+2. **Emphasis = how colors are applied.** Consumes intent vars for bg, fg, border, hover states.
+3. **Default intent is neutral.** No class needed — set on `:root`.
+4. **Button default intent is neutral** (not brand).
+5. **Button text uses `emphasis-subtle-fg`** (step 11) for visible intent color on non-strong buttons.
+6. **No layout wrapper components.** View/Container/Grid are deprecated. Use `<div class="view gap-4">` or raw Tailwind classes.
+7. **`view` utility** = flex column with min-h/w 0 (flexbox overflow fix). Migration helper for `<View>`.
+8. **SpotIllustration colors are fixed** — they don't change in dark mode. Defined as `--color-illustration-*` tokens.
+9. **`@source` directive required** in consumer CSS to scan component dist files for Tailwind class strings.
 
-### Documentation Site
+## Styling Rules
 
-**Structure:**
-- Next.js app router in `docs/src/app/`
-- MDX content for component documentation
-- Live code examples using react-live
-- Automatic component prop extraction via react-docgen-typescript
+1. Use Tailwind utilities for layout and spacing (`flex`, `gap-4`, `p-2`, `grid`)
+2. Use intent/emphasis for colors — not raw scale steps
+3. Never hardcode colors — use tokens
+4. Prefer `gap` over `margin`
+5. Use `Text` for body text, `Heading` for headings, `Code` for code
+6. Use sentence case for content
 
-**PandaCSS Integration:**
-- Docs site consumes the roadie preset from core package
-- Has its own `panda.config.ts` that includes the preset
-- Generates styles during development and build
+## Testing
 
-## Development Standards
-
-### TypeScript
-- Strict mode enabled
-- No explicit `any` types
-- No unused variables/parameters
-- Consistent file naming (PascalCase for components)
-
-### Styling Rules
-1. Use PandaCSS exclusively (no CSS-in-JS)
-2. Use semantic tokens, never hardcode colors
-3. Don't append `.default` to color tokens (it's redundant)
-4. Prefer `gap` over `margin` for spacing
-5. Use `View` as root component for layout
-6. Use `Text` instead of `span`, `Heading` instead of `h1-h6`
-
-### Component Guidelines
-- Components must be fully accessible (ARIA attributes)
-- Document all props and variants in the component file
-- Use sentence case for content and documentation
-- Keyboard navigation must work
-- Include loading and error states where applicable
-
-### Code Quality
-- ESLint with TypeScript, React, and Prettier plugins
-- Prettier configuration:
-  - Single quotes
-  - No semicolons
-  - 2 space indentation
-  - 80 character line limit
-  - Sorted imports via @trivago/prettier-plugin-sort-imports
-
-### Testing
-- Vitest for unit testing (Jest-compatible)
-- React Testing Library for component tests
+- Vitest + React Testing Library
 - Tests co-located with components
-- Run with coverage tracking
+- Assert CVA class names (e.g., `intent-brand`, `emphasis-strong`)
+- Behaviour assertions preferred over class snapshots
 
-## Git and Release Workflow
+## Code Quality
 
-### Branch Naming
+- ESLint with TypeScript + React + Prettier
+- Prettier: single quotes, no semicolons, 2 spaces, 80 chars
+- TypeScript strict mode, no `any`
+
+## Build Pipeline
+
 ```
-feature/[ticket-number]-description
+core:build → components:build → docs:build
 ```
 
-### Release Process
-1. Make changes and commit them
-2. Create changeset: `pnpm changeset`
-   - Select affected packages
-   - Choose type: major (breaking), minor (feature), patch (fix)
-   - Write description
-3. Commit changeset file
-4. Create PR with:
-   - Ticket number in title
-   - Screenshots for visual changes
-   - Dev and design approvals required
-5. On merge to main:
-   - CI automatically versions packages
-   - Publishes to npm
-   - Deploys documentation site
+- Core: `tsup` (JS) + `tailwindcss` CLI (compiled CSS)
+- Components: `tsup` (ESM, code-splitting, tree-shaking)
+- Docs: Next.js static build
 
-### Documentation Updates
-- Package-related docs: Auto-deployed after release
-- Doc-only changes: Auto-deployed on push to main
+## Documentation Site
 
-## Key Dependencies
-
-**Build Tools:**
-- tsup - TypeScript bundler for library builds
-- Turborepo - Monorepo task orchestration
-- PandaCSS - Zero-runtime CSS-in-JS
-
-**Testing:**
-- Vitest - Fast unit test runner
-- @testing-library/react - Component testing utilities
-
-**Component Foundation:**
-- @ark-ui/react - Accessible React component primitives (for complex components)
-- React 19 - Latest React with compiler support
-
-## Notes
-
-- The build depends on `packages/core` being built before `packages/components`
-- PandaCSS codegen must run before building or testing components
-- Token changes require rebuilding the core package
-- Documentation site links: https://ticketsolutionsptyltd.github.io/roadie/
+- Docs at: https://ticketsolutionsptyltd.github.io/roadie/
+- Live code examples use `tsx-live` code fence language tag
+- CodePreview scope includes all components + SpotIllustrations
+- MDX tables wrapped in overflow-x-auto container
+- Body uses `bg-neutral-1 text-neutral-12` for dark mode support
