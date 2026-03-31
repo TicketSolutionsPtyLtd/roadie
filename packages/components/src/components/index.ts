@@ -15,3 +15,18 @@ export type { MarkProps } from './Mark'
 
 export { Text, textVariants } from './Text'
 export type { TextProps } from './Text'
+
+export { Accordion, accordionVariants } from './Accordion'
+export type { AccordionProps } from './Accordion'
+
+export { Badge, badgeVariants } from './Badge'
+export type { BadgeProps } from './Badge'
+
+export { Breadcrumb } from './Breadcrumb'
+export type { BreadcrumbSeparatorProps } from './Breadcrumb'
+
+export { Card, cardVariants } from './Card'
+export type { CardProps } from './Card'
+
+export { Separator, separatorVariants } from './Separator'
+export type { SeparatorProps } from './Separator'
