@@ -10,6 +10,8 @@
   --intent-surface-subtler: var(--color-neutral-2);
   --intent-surface-subtle: var(--color-neutral-3);
   --intent-surface-strong: var(--color-neutral-12);
+  --intent-surface-strong-hover: var(--color-neutral-11);
+  --intent-surface-strong-active: var(--color-neutral-13);
   --intent-surface-inverted: var(--color-neutral-12);
   --intent-surface-raised: var(--color-neutral-0);
   --intent-surface-sunken: var(--color-neutral-2);
@@ -39,6 +41,8 @@
   --intent-surface-subtler: var(--color-neutral-2);
   --intent-surface-subtle: var(--color-neutral-3);
   --intent-surface-strong: var(--color-neutral-12);
+  --intent-surface-strong-hover: var(--color-neutral-11);
+  --intent-surface-strong-active: var(--color-neutral-13);
   --intent-surface-inverted: var(--color-neutral-12);
   --intent-surface-raised: var(--color-neutral-0);
   --intent-surface-sunken: var(--color-neutral-2);
@@ -67,6 +71,8 @@
   --intent-surface-subtler: var(--color-brand-2);
   --intent-surface-subtle: var(--color-brand-3);
   --intent-surface-strong: var(--color-brand-9);
+  --intent-surface-strong-hover: var(--color-brand-10);
+  --intent-surface-strong-active: var(--color-brand-11);
   --intent-surface-inverted: var(--color-brand-12);
   --intent-surface-raised: var(--color-brand-0);
   --intent-surface-sunken: var(--color-brand-2);
@@ -95,6 +101,8 @@
   --intent-surface-subtler: var(--color-accent-2);
   --intent-surface-subtle: var(--color-accent-3);
   --intent-surface-strong: var(--color-accent-9);
+  --intent-surface-strong-hover: var(--color-accent-10);
+  --intent-surface-strong-active: var(--color-accent-11);
   --intent-surface-inverted: var(--color-accent-12);
   --intent-surface-raised: var(--color-accent-0);
   --intent-surface-sunken: var(--color-accent-2);
@@ -123,6 +131,8 @@
   --intent-surface-subtler: var(--color-danger-2);
   --intent-surface-subtle: var(--color-danger-3);
   --intent-surface-strong: var(--color-danger-9);
+  --intent-surface-strong-hover: var(--color-danger-10);
+  --intent-surface-strong-active: var(--color-danger-11);
   --intent-surface-inverted: var(--color-danger-12);
   --intent-surface-raised: var(--color-danger-0);
   --intent-surface-sunken: var(--color-danger-2);
@@ -151,6 +161,8 @@
   --intent-surface-subtler: var(--color-success-2);
   --intent-surface-subtle: var(--color-success-3);
   --intent-surface-strong: var(--color-success-9);
+  --intent-surface-strong-hover: var(--color-success-10);
+  --intent-surface-strong-active: var(--color-success-11);
   --intent-surface-inverted: var(--color-success-12);
   --intent-surface-raised: var(--color-success-0);
   --intent-surface-sunken: var(--color-success-2);
@@ -179,6 +191,8 @@
   --intent-surface-subtler: var(--color-warning-2);
   --intent-surface-subtle: var(--color-warning-3);
   --intent-surface-strong: var(--color-warning-9);
+  --intent-surface-strong-hover: var(--color-warning-10);
+  --intent-surface-strong-active: var(--color-warning-11);
   --intent-surface-inverted: var(--color-warning-12);
   --intent-surface-raised: var(--color-warning-0);
   --intent-surface-sunken: var(--color-warning-2);
@@ -207,6 +221,8 @@
   --intent-surface-subtler: var(--color-info-2);
   --intent-surface-subtle: var(--color-info-3);
   --intent-surface-strong: var(--color-info-9);
+  --intent-surface-strong-hover: var(--color-info-10);
+  --intent-surface-strong-active: var(--color-info-11);
   --intent-surface-inverted: var(--color-info-12);
   --intent-surface-raised: var(--color-info-0);
   --intent-surface-sunken: var(--color-info-2);

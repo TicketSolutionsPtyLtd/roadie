@@ -97,14 +97,14 @@
   background-color: var(--intent-surface-strong);
   color: var(--intent-fg-inverted);
 
-  /* Strong: hover lifts slightly + lighter bg, active presses + darker */
+  /* Strong: hover → step 10, active → step 11, with lift effect */
   &.is-interactive:hover {
-    background-color: var(--intent-border-strong);
+    background-color: var(--intent-surface-strong-hover);
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 8px -2px rgba(0, 0, 0, 0.08);
   }
   &.is-interactive:active {
-    background-color: var(--intent-surface-inverted);
+    background-color: var(--intent-surface-strong-active);
     transform: translateY(0) scale(0.98);
     box-shadow: none;
   }
@@ -139,12 +139,15 @@
   background-color: var(--intent-surface-subtler);
   color: var(--intent-fg-default);
 
-  /* Subtler: hover shows a barely-there tint */
+  /* Subtler + interactive: transparent bg by default, tint on hover */
+  &.is-interactive {
+    background-color: transparent;
+  }
   &.is-interactive:hover {
-    background-color: var(--intent-surface-subtle);
+    background-color: var(--intent-surface-subtler);
   }
   &.is-interactive:active {
-    background-color: var(--intent-border-subtler);
+    background-color: var(--intent-surface-subtle);
   }
 }
 
