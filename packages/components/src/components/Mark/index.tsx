@@ -1,7 +1,8 @@
 'use client'
 
-import { cva, type VariantProps } from 'class-variance-authority'
 import type { ComponentProps } from 'react'
+
+import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -14,12 +15,12 @@ export const markVariants = cva('rounded-sm px-[0.2em] py-[0.05em]', {
       danger: 'intent-danger',
       success: 'intent-success',
       warning: 'intent-warning',
-      info: 'intent-info',
-    },
+      info: 'intent-info'
+    }
   },
   defaultVariants: {
-    intent: 'info',
-  },
+    intent: 'info'
+  }
 })
 
 export interface MarkProps

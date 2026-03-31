@@ -5,7 +5,7 @@ import { Highlight } from './index'
 
 describe('Highlight', () => {
   it('renders with text prop', () => {
-    const { container } = render(<Highlight text="Hello World" query="World" />)
+    const { container } = render(<Highlight text='Hello World' query='World' />)
     expect(container).toHaveTextContent('Hello World')
     const mark = container.querySelector('mark')
     expect(mark).toBeInTheDocument()
@@ -14,7 +14,7 @@ describe('Highlight', () => {
 
   it('highlights only matching text', () => {
     const { container } = render(
-      <Highlight text="The quick brown fox" query="quick" />
+      <Highlight text='The quick brown fox' query='quick' />
     )
     expect(container).toHaveTextContent('The quick brown fox')
     const mark = container.querySelector('mark')
@@ -23,7 +23,7 @@ describe('Highlight', () => {
 
   it('highlights multiple matches when matchAll is true', () => {
     const { container } = render(
-      <Highlight text="foo bar foo baz" query="foo" matchAll />
+      <Highlight text='foo bar foo baz' query='foo' matchAll />
     )
     const marks = container.querySelectorAll('mark')
     expect(marks).toHaveLength(2)
@@ -33,16 +33,14 @@ describe('Highlight', () => {
   })
 
   it('highlights with case insensitive matching by default', () => {
-    const { container } = render(
-      <Highlight text="Hello World" query="hello" />
-    )
+    const { container } = render(<Highlight text='Hello World' query='hello' />)
     const mark = container.querySelector('mark')
     expect(mark).toHaveTextContent('Hello')
   })
 
   it('respects case when ignoreCase is false', () => {
     const { container } = render(
-      <Highlight text="Hello World" query="hello" ignoreCase={false} />
+      <Highlight text='Hello World' query='hello' ignoreCase={false} />
     )
     const mark = container.querySelector('mark')
     expect(mark).toBeNull()
@@ -50,7 +48,7 @@ describe('Highlight', () => {
 
   it('highlights multiple queries', () => {
     const { container } = render(
-      <Highlight text="The quick brown fox" query={['quick', 'fox']} />
+      <Highlight text='The quick brown fox' query={['quick', 'fox']} />
     )
     const marks = container.querySelectorAll('mark')
     expect(marks).toHaveLength(2)
@@ -60,7 +58,7 @@ describe('Highlight', () => {
 
   it('applies default info intent to marks', () => {
     const { container } = render(
-      <Highlight text="Highlighted text" query="Highlighted" />
+      <Highlight text='Highlighted text' query='Highlighted' />
     )
     const mark = container.querySelector('mark')
     expect(mark).toHaveClass('intent-info')
@@ -68,20 +66,20 @@ describe('Highlight', () => {
 
   it('applies custom intent', () => {
     const { container } = render(
-      <Highlight text="Highlighted text" query="Highlighted" intent="success" />
+      <Highlight text='Highlighted text' query='Highlighted' intent='success' />
     )
     const mark = container.querySelector('mark')
     expect(mark).toHaveClass('intent-success')
   })
 
   it('returns plain text when query is empty', () => {
-    const { container } = render(<Highlight text="Hello" query="" />)
+    const { container } = render(<Highlight text='Hello' query='' />)
     expect(container).toHaveTextContent('Hello')
     expect(container.querySelector('mark')).toBeNull()
   })
 
   it('returns plain text when query array is empty', () => {
-    const { container } = render(<Highlight text="Hello" query={[]} />)
+    const { container } = render(<Highlight text='Hello' query={[]} />)
     expect(container).toHaveTextContent('Hello')
     expect(container.querySelector('mark')).toBeNull()
   })
@@ -89,10 +87,10 @@ describe('Highlight', () => {
   it('forwards additional HTML attributes', () => {
     const { container } = render(
       <Highlight
-        text="Hello"
-        query="Hello"
-        data-testid="highlight"
-        title="tooltip"
+        text='Hello'
+        query='Hello'
+        data-testid='highlight'
+        title='tooltip'
       />
     )
     const mark = container.querySelector('mark')
@@ -103,9 +101,9 @@ describe('Highlight', () => {
   it('applies custom className', () => {
     const { container } = render(
       <Highlight
-        text="Highlighted text"
-        query="Highlighted"
-        className="custom-class"
+        text='Highlighted text'
+        query='Highlighted'
+        className='custom-class'
       />
     )
     const mark = container.querySelector('mark')

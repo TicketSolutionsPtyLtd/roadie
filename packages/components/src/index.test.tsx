@@ -37,7 +37,7 @@ describe('Component exports', () => {
 
   it('exports Highlight component', () => {
     expect(Highlight).toBeDefined()
-    const { container } = render(<Highlight text="Test" query="Te" />)
+    const { container } = render(<Highlight text='Test' query='Te' />)
     expect(container).toBeInTheDocument()
   })
 })

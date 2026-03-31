@@ -1,7 +1,8 @@
 'use client'
 
-import { cva, type VariantProps } from 'class-variance-authority'
 import type { ComponentProps } from 'react'
+
+import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -13,7 +14,7 @@ const levelTag = {
   3: 'h3',
   4: 'h4',
   5: 'h5',
-  6: 'h6',
+  6: 'h6'
 } as const
 
 export const headingVariants = cva('font-bold', {
@@ -25,14 +26,14 @@ export const headingVariants = cva('font-bold', {
       danger: 'intent-danger',
       success: 'intent-success',
       warning: 'intent-warning',
-      info: 'intent-info',
+      info: 'intent-info'
     },
     emphasis: {
       default: 'emphasis-strong-fg',
       strong: 'emphasis-strong-fg font-black',
       subtle: 'emphasis-subtle-fg font-medium',
       subtler: 'emphasis-subtler-fg font-normal',
-      inverted: 'emphasis-inverted-fg',
+      inverted: 'emphasis-inverted-fg'
     },
     size: {
       xs: 'text-xs',
@@ -42,13 +43,13 @@ export const headingVariants = cva('font-bold', {
       xl: 'text-xl',
       '2xl': 'text-2xl',
       '3xl': 'text-3xl',
-      '4xl': 'text-4xl',
-    },
+      '4xl': 'text-4xl'
+    }
   },
   defaultVariants: {
     emphasis: 'default',
-    size: 'xl',
-  },
+    size: 'xl'
+  }
 })
 
 type HeadingElement = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'

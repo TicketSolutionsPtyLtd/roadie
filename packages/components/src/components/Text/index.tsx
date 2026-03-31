@@ -1,7 +1,8 @@
 'use client'
 
-import { cva, type VariantProps } from 'class-variance-authority'
 import type { ComponentProps, ElementType } from 'react'
+
+import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -14,27 +15,27 @@ export const textVariants = cva('', {
       danger: 'intent-danger',
       success: 'intent-success',
       warning: 'intent-warning',
-      info: 'intent-info',
+      info: 'intent-info'
     },
     emphasis: {
       default: 'emphasis-default-fg',
       strong: 'emphasis-strong-fg',
       subtle: 'emphasis-subtle-fg',
       subtler: 'emphasis-subtler-fg',
-      inverted: 'emphasis-inverted-fg',
+      inverted: 'emphasis-inverted-fg'
     },
     size: {
       xs: 'text-xs',
       sm: 'text-sm',
       base: 'text-base',
       lg: 'text-lg',
-      xl: 'text-xl',
-    },
+      xl: 'text-xl'
+    }
   },
   defaultVariants: {
     emphasis: 'default',
-    size: 'base',
-  },
+    size: 'base'
+  }
 })
 
 export interface TextProps

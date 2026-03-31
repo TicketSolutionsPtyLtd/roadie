@@ -1,13 +1,13 @@
 export { Button, buttonVariants, type ButtonProps } from './components/Button'
 export {
   IconButton,
-  type IconButtonProps,
+  type IconButtonProps
 } from './components/Button/IconButton'
 export { Code, codeVariants, type CodeProps } from './components/Code'
 export {
   Heading,
   headingVariants,
-  type HeadingProps,
+  type HeadingProps
 } from './components/Heading'
 export { Highlight, type HighlightProps } from './components/Highlight'
 export { Mark, markVariants, type MarkProps } from './components/Mark'
@@ -18,5 +18,5 @@ export {
   ThemeProvider,
   useAccent,
   getAccentStyleTag,
-  type ThemeProviderProps,
+  type ThemeProviderProps
 } from './providers/ThemeProvider'

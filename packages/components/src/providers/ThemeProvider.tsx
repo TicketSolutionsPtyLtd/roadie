@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 
-import { generateRadixScale, type ScaleResult } from '@oztix/roadie-core/colors'
+import { type ScaleResult, generateRadixScale } from '@oztix/roadie-core/colors'
 
 const DEFAULT_ACCENT = '#0091EB' // Oztix Blue
 
@@ -51,7 +51,7 @@ export function getAccentStyleTag(
 
 export function ThemeProvider({
   children,
-  defaultAccentColor = DEFAULT_ACCENT,
+  defaultAccentColor = DEFAULT_ACCENT
 }: ThemeProviderProps) {
   const [accentColor, setAccentColor] = React.useState(defaultAccentColor)
   const [scaleResult, setScaleResult] = React.useState<ScaleResult | null>(null)
@@ -86,7 +86,9 @@ export function ThemeProvider({
   }, [accentColor])
 
   return (
-    <AccentContext.Provider value={{ accentColor, setAccentColor, scaleResult }}>
+    <AccentContext.Provider
+      value={{ accentColor, setAccentColor, scaleResult }}
+    >
       {children}
     </AccentContext.Provider>
   )

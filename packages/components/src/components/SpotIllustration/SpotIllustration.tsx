@@ -1,4 +1,4 @@
-import { forwardRef, type ComponentProps } from 'react'
+import { type ComponentProps, forwardRef } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -27,7 +27,7 @@ export const SpotIllustration = forwardRef<
   return (
     <svg
       ref={ref}
-      xmlns="http://www.w3.org/2000/svg"
+      xmlns='http://www.w3.org/2000/svg'
       viewBox={viewBox}
       className={cn('size-12 fill-none', className)}
       {...props}
@@ -40,7 +40,7 @@ export const SpotIllustration = forwardRef<
           className={cn(
             path.layer === 'outline' && [
               'fill-neutral-12',
-              !outline && 'opacity-0',
+              !outline && 'opacity-0'
             ],
             path.layer === 'face' && 'fill-neutral-3',
             path.layer === 'detail' && 'fill-neutral-9',

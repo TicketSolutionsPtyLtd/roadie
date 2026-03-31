@@ -1,5 +1,4 @@
 import js from '@eslint/js'
-import pandacssPlugin from '@pandacss/eslint-plugin'
 import typescript from '@typescript-eslint/eslint-plugin'
 import typescriptParser from '@typescript-eslint/parser'
 import prettierConfig from 'eslint-config-prettier'
@@ -37,7 +36,6 @@ export default [
     plugins: {
       '@typescript-eslint': typescript,
       prettier: prettierPlugin,
-      '@pandacss': pandacssPlugin,
       react: reactPlugin
     },
     languageOptions: {
@@ -56,7 +54,6 @@ export default [
     },
     rules: {
       ...typescript.configs.recommended.rules,
-      ...pandacssPlugin.configs.recommended.rules,
       ...reactPlugin.configs['jsx-runtime'].rules,
       ...prettierConfig.rules,
 
@@ -71,11 +68,7 @@ export default [
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-empty-object-type': 'off',
-
-      // Panda CSS rules
-      '@pandacss/no-margin-properties': 'warn',
-      '@pandacss/no-config-function-in-source': 'off'
+      '@typescript-eslint/no-empty-object-type': 'off'
     }
   },
 

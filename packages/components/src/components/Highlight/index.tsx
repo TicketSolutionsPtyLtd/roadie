@@ -44,7 +44,7 @@ function highlight(
     .filter((part) => part.length > 0)
     .map((part) => ({
       text: part,
-      match: regex.test(part),
+      match: regex.test(part)
     }))
 }
 

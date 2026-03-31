@@ -16,52 +16,52 @@ describe('Button', () => {
 
   it('renders with different emphasis', () => {
     const { rerender, getByText } = render(
-      <Button emphasis="strong" intent="accent">
+      <Button emphasis='strong' intent='accent'>
         Strong
       </Button>
     )
     let button = getByText('Strong')
     expect(button).toHaveClass('emphasis-strong', 'intent-accent')
 
-    rerender(<Button emphasis="default">Default</Button>)
+    rerender(<Button emphasis='default'>Default</Button>)
     button = getByText('Default')
     expect(button).toHaveClass('emphasis-default-surface')
 
-    rerender(<Button emphasis="subtle">Subtle</Button>)
+    rerender(<Button emphasis='subtle'>Subtle</Button>)
     button = getByText('Subtle')
     expect(button).toHaveClass('emphasis-subtle')
 
-    rerender(<Button emphasis="subtler">Subtler</Button>)
+    rerender(<Button emphasis='subtler'>Subtler</Button>)
     button = getByText('Subtler')
     expect(button).toHaveClass('emphasis-default-fg')
   })
 
   it('renders with different sizes', () => {
-    const { rerender, getByText } = render(<Button size="sm">Small</Button>)
+    const { rerender, getByText } = render(<Button size='sm'>Small</Button>)
     let button = getByText('Small')
     expect(button).toHaveClass('h-8')
 
-    rerender(<Button size="md">Medium</Button>)
+    rerender(<Button size='md'>Medium</Button>)
     button = getByText('Medium')
     expect(button).toHaveClass('h-10')
 
-    rerender(<Button size="lg">Large</Button>)
+    rerender(<Button size='lg'>Large</Button>)
     button = getByText('Large')
     expect(button).toHaveClass('h-12')
   })
 
   it('renders with different intents', () => {
     const { rerender, getByText } = render(
-      <Button intent="accent">Accent</Button>
+      <Button intent='accent'>Accent</Button>
     )
     let button = getByText('Accent')
     expect(button).toHaveClass('intent-accent')
 
-    rerender(<Button intent="success">Success</Button>)
+    rerender(<Button intent='success'>Success</Button>)
     button = getByText('Success')
     expect(button).toHaveClass('intent-success')
 
-    rerender(<Button intent="danger">Danger</Button>)
+    rerender(<Button intent='danger'>Danger</Button>)
     button = getByText('Danger')
     expect(button).toHaveClass('intent-danger')
   })
@@ -98,7 +98,7 @@ describe('Button', () => {
 
   it('applies custom className', () => {
     const { getByText } = render(
-      <Button className="custom-class">Custom</Button>
+      <Button className='custom-class'>Custom</Button>
     )
     expect(getByText('Custom')).toHaveClass('custom-class')
   })
@@ -106,10 +106,10 @@ describe('Button', () => {
   it('combines multiple props', () => {
     const { getByText } = render(
       <Button
-        emphasis="strong"
-        size="lg"
-        intent="accent"
-        className="custom-class"
+        emphasis='strong'
+        size='lg'
+        intent='accent'
+        className='custom-class'
       >
         Combined
       </Button>

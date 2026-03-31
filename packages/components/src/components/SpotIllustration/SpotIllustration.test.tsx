@@ -42,13 +42,13 @@ describe('SpotIllustration', () => {
 
   describe('className prop', () => {
     it('should accept custom className', () => {
-      const { container } = render(<Heart className="custom-class" />)
+      const { container } = render(<Heart className='custom-class' />)
       const svg = container.querySelector('svg')
       expect(svg).toHaveClass('custom-class')
     })
 
     it('should merge custom className with default classes', () => {
-      const { container } = render(<Heart className="size-24" />)
+      const { container } = render(<Heart className='size-24' />)
       const svg = container.querySelector('svg')
       expect(svg).toBeInTheDocument()
       expect(svg).toHaveClass('size-24')
@@ -90,7 +90,7 @@ describe('SpotIllustration', () => {
     it('should use data-part attributes for styling', () => {
       const { container } = render(<Heart />)
       const paths = container.querySelectorAll('path')
-      const dataParts = Array.from(paths)
+      const dataParts = Array.from<Element>(paths)
         .map((path) => path.getAttribute('data-part'))
         .filter(Boolean)
       expect(dataParts.length).toBeGreaterThan(0)
@@ -99,7 +99,7 @@ describe('SpotIllustration', () => {
 
   describe('accessibility', () => {
     it('should accept aria attributes', () => {
-      const { container } = render(<Heart aria-label="Heart icon" />)
+      const { container } = render(<Heart aria-label='Heart icon' />)
       const svg = container.querySelector('svg')
       expect(svg).toHaveAttribute('aria-label', 'Heart icon')
     })

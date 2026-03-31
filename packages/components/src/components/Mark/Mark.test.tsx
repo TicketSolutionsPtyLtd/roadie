@@ -13,17 +13,15 @@ describe('Mark', () => {
   })
 
   it('renders with different intents', () => {
-    const { rerender, container } = render(
-      <Mark intent="accent">Accent</Mark>
-    )
+    const { rerender, container } = render(<Mark intent='accent'>Accent</Mark>)
     let mark = container.querySelector('mark')
     expect(mark).toHaveClass('intent-accent')
 
-    rerender(<Mark intent="success">Success</Mark>)
+    rerender(<Mark intent='success'>Success</Mark>)
     mark = container.querySelector('mark')
     expect(mark).toHaveClass('intent-success')
 
-    rerender(<Mark intent="danger">Danger</Mark>)
+    rerender(<Mark intent='danger'>Danger</Mark>)
     mark = container.querySelector('mark')
     expect(mark).toHaveClass('intent-danger')
   })
@@ -36,7 +34,7 @@ describe('Mark', () => {
 
   it('applies custom className', () => {
     const { container } = render(
-      <Mark className="custom-class">Marked text</Mark>
+      <Mark className='custom-class'>Marked text</Mark>
     )
     const mark = container.querySelector('mark')
     expect(mark).toHaveClass('custom-class')
@@ -44,7 +42,7 @@ describe('Mark', () => {
 
   it('forwards additional HTML attributes', () => {
     const { container } = render(
-      <Mark data-testid="mark" title="tooltip">
+      <Mark data-testid='mark' title='tooltip'>
         Marked text
       </Mark>
     )

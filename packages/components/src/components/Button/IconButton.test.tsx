@@ -6,7 +6,7 @@ import { IconButton } from './IconButton'
 
 describe('IconButton', () => {
   it('renders with default icon size', () => {
-    const { getByRole } = render(<IconButton aria-label="Icon">+</IconButton>)
+    const { getByRole } = render(<IconButton aria-label='Icon'>+</IconButton>)
     const button = getByRole('button')
     expect(button).toBeInTheDocument()
     expect(button.tagName.toLowerCase()).toBe('button')
@@ -15,7 +15,7 @@ describe('IconButton', () => {
 
   it('renders with different emphasis', () => {
     const { rerender, getByRole } = render(
-      <IconButton emphasis="strong" intent="accent" aria-label="Strong">
+      <IconButton emphasis='strong' intent='accent' aria-label='Strong'>
         +
       </IconButton>
     )
@@ -23,7 +23,7 @@ describe('IconButton', () => {
     expect(button).toHaveClass('emphasis-strong', 'intent-accent')
 
     rerender(
-      <IconButton emphasis="subtle" aria-label="Subtle">
+      <IconButton emphasis='subtle' aria-label='Subtle'>
         +
       </IconButton>
     )
@@ -33,14 +33,14 @@ describe('IconButton', () => {
 
   it('renders with different intents', () => {
     const { rerender, getByRole } = render(
-      <IconButton intent="accent" aria-label="Accent">
+      <IconButton intent='accent' aria-label='Accent'>
         +
       </IconButton>
     )
     expect(getByRole('button')).toHaveClass('intent-accent')
 
     rerender(
-      <IconButton intent="danger" aria-label="Danger">
+      <IconButton intent='danger' aria-label='Danger'>
         +
       </IconButton>
     )
@@ -49,7 +49,7 @@ describe('IconButton', () => {
 
   it('handles disabled state', () => {
     const { getByRole } = render(
-      <IconButton disabled aria-label="Disabled">
+      <IconButton disabled aria-label='Disabled'>
         +
       </IconButton>
     )
@@ -61,7 +61,7 @@ describe('IconButton', () => {
     const user = userEvent.setup()
 
     const { getByRole } = render(
-      <IconButton onClick={handleClick} aria-label="Click me">
+      <IconButton onClick={handleClick} aria-label='Click me'>
         +
       </IconButton>
     )
@@ -74,7 +74,7 @@ describe('IconButton', () => {
     const user = userEvent.setup()
 
     const { getByRole } = render(
-      <IconButton disabled onClick={handleClick} aria-label="Disabled">
+      <IconButton disabled onClick={handleClick} aria-label='Disabled'>
         +
       </IconButton>
     )
@@ -84,9 +84,9 @@ describe('IconButton', () => {
 
   it('renders icon content correctly', () => {
     const { getByRole } = render(
-      <IconButton aria-label="Add item">
-        <svg data-testid="icon" viewBox="0 0 16 16">
-          <path d="M8 0L8 16M0 8L16 8" />
+      <IconButton aria-label='Add item'>
+        <svg data-testid='icon' viewBox='0 0 16 16'>
+          <path d='M8 0L8 16M0 8L16 8' />
         </svg>
       </IconButton>
     )
@@ -96,7 +96,7 @@ describe('IconButton', () => {
 
   it('applies custom className', () => {
     const { getByRole } = render(
-      <IconButton className="custom-class" aria-label="Custom">
+      <IconButton className='custom-class' aria-label='Custom'>
         +
       </IconButton>
     )
