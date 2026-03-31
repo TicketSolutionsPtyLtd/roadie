@@ -30,7 +30,7 @@ export const badgeVariants = cva(
     },
     defaultVariants: {
       intent: 'neutral',
-      emphasis: 'subtle',
+      emphasis: 'default',
       size: 'sm',
     },
   }
