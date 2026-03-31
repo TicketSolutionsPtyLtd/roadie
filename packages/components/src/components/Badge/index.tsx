@@ -1,11 +1,11 @@
-import type { ComponentProps } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 
 import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
 export const badgeVariants = cva(
-  'inline-flex items-center justify-center rounded-full font-semibold whitespace-nowrap',
+  'inline-flex items-center justify-center rounded-full font-semibold whitespace-nowrap gap-1 [&_svg]:size-[1em]',
   {
     variants: {
       intent: {
@@ -15,42 +15,70 @@ export const badgeVariants = cva(
         danger: 'intent-danger',
         success: 'intent-success',
         warning: 'intent-warning',
-        info: 'intent-info'
+        info: 'intent-info',
       },
       emphasis: {
         strong: 'emphasis-strong',
         subtle: 'emphasis-subtle',
-        subtler: 'emphasis-subtler-surface emphasis-subtle-fg emphasis-subtle-border'
+        subtler:
+          'emphasis-subtler-surface emphasis-subtle-fg emphasis-subtle-border',
       },
       size: {
         sm: 'px-2 py-0.5 text-xs',
-        md: 'px-2.5 py-0.5 text-sm'
-      }
+        md: 'px-2.5 py-0.5 text-sm',
+      },
     },
     defaultVariants: {
       intent: 'neutral',
       emphasis: 'subtle',
-      size: 'sm'
-    }
+      size: 'sm',
+    },
   }
 )
 
 export interface BadgeProps
   extends ComponentProps<'span'>,
-    VariantProps<typeof badgeVariants> {}
+    VariantProps<typeof badgeVariants> {
+  /** Icon element rendered before the text (use Phosphor Bold icons) */
+  icon?: ReactNode
+  /** Show a dot indicator before the text */
+  indicator?: boolean
+  /** Animate the indicator with a slow pulse */
+  indicatorPulse?: boolean
+}
 
 export function Badge({
   className,
   intent,
   emphasis,
   size,
+  icon,
+  indicator,
+  indicatorPulse,
+  children,
   ...props
 }: BadgeProps) {
   return (
     <span
       className={cn(badgeVariants({ intent, emphasis, size, className }))}
       {...props}
-    />
+    >
+      {indicator && (
+        <span
+          className={cn(
+            'size-1.5 rounded-full emphasis-strong-surface shrink-0',
+            indicatorPulse && 'animate-pulse'
+          )}
+          aria-hidden="true"
+        />
+      )}
+      {icon && (
+        <span className="shrink-0" aria-hidden="true">
+          {icon}
+        </span>
+      )}
+      {children}
+    </span>
   )
 }
 
