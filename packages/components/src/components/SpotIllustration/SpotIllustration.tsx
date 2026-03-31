@@ -1,3 +1,4 @@
+/* Tailwind safelist: fill-neutral-0 fill-info-5 fill-brand-secondary-5 fill-brand-9 fill-brand-5 fill-neutral-12 stroke-neutral-12 fill-none opacity-0 */
 import { type ComponentProps, forwardRef } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
@@ -39,15 +40,15 @@ export const SpotIllustration = forwardRef<
           data-part={path.layer}
           className={cn(
             path.layer === 'outline' && [
-              'fill-neutral-12',
-              !outline && 'opacity-0'
+              'fill-neutral-0',
+              !outline && 'opacity-0',
             ],
-            path.layer === 'face' && 'fill-neutral-3',
-            path.layer === 'detail' && 'fill-neutral-9',
-            path.layer === 'shadow' && 'fill-neutral-6',
-            path.layer === 'highlight' && 'fill-neutral-1',
+            path.layer === 'face' && 'fill-info-5',
+            path.layer === 'detail' && 'fill-brand-secondary-5',
+            path.layer === 'shadow' && 'fill-brand-9',
+            path.layer === 'highlight' && 'fill-brand-5',
             path.layer === 'stroke' &&
-              'fill-none stroke-neutral-11 [stroke-width:0.5] [stroke-linecap:round] [stroke-linejoin:round]'
+              'fill-none stroke-neutral-12 [stroke-width:0.5] [stroke-linecap:round] [stroke-linejoin:round]',
           )}
         />
       ))}

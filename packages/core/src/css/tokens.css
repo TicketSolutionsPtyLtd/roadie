@@ -61,6 +61,21 @@
   --color-brand-12: var(--color-brand-12);
   --color-brand-13: var(--color-brand-13);
 
+  --color-brand-secondary-0: var(--color-brand-secondary-0);
+  --color-brand-secondary-1: var(--color-brand-secondary-1);
+  --color-brand-secondary-2: var(--color-brand-secondary-2);
+  --color-brand-secondary-3: var(--color-brand-secondary-3);
+  --color-brand-secondary-4: var(--color-brand-secondary-4);
+  --color-brand-secondary-5: var(--color-brand-secondary-5);
+  --color-brand-secondary-6: var(--color-brand-secondary-6);
+  --color-brand-secondary-7: var(--color-brand-secondary-7);
+  --color-brand-secondary-8: var(--color-brand-secondary-8);
+  --color-brand-secondary-9: var(--color-brand-secondary-9);
+  --color-brand-secondary-10: var(--color-brand-secondary-10);
+  --color-brand-secondary-11: var(--color-brand-secondary-11);
+  --color-brand-secondary-12: var(--color-brand-secondary-12);
+  --color-brand-secondary-13: var(--color-brand-secondary-13);
+
   --color-accent-0: var(--color-accent-0);
   --color-accent-1: var(--color-accent-1);
   --color-accent-2: var(--color-accent-2);
@@ -232,6 +247,22 @@
   --color-brand-12: oklch(0.324 0.082 247.264);
   --color-brand-13: oklch(0.2 0.055 247);
 
+  /* ═══ Brand Secondary (Orange — hue ~41, Oztix secondary color) ═══ */
+  --color-brand-secondary-0: oklch(1 0 0);
+  --color-brand-secondary-1: oklch(0.984 0.003 39.484);
+  --color-brand-secondary-2: oklch(0.969 0.014 39.42);
+  --color-brand-secondary-3: oklch(0.942 0.031 45.283);
+  --color-brand-secondary-4: oklch(0.899 0.058 48.055);
+  --color-brand-secondary-5: oklch(0.865 0.078 45.355);
+  --color-brand-secondary-6: oklch(0.829 0.102 44.688);
+  --color-brand-secondary-7: oklch(0.79 0.127 42.007);
+  --color-brand-secondary-8: oklch(0.729 0.155 41.182);
+  --color-brand-secondary-9: oklch(0.753 0.155 41.643);
+  --color-brand-secondary-10: oklch(0.719 0.155 41.637);
+  --color-brand-secondary-11: oklch(0.569 0.155 41.549);
+  --color-brand-secondary-12: oklch(0.349 0.089 41.857);
+  --color-brand-secondary-13: oklch(0.2 0.06 42);
+
   /* ═══ Accent (customizable — defaults to Brand, overridden by ThemeProvider) ═══ */
   --color-accent-0: oklch(1 0 0);
   --color-accent-1: oklch(0.984 0.003 247.858);
@@ -350,6 +381,22 @@
   --color-brand-11: oklch(0.771 0.122 247.38);
   --color-brand-12: oklch(0.906 0.048 246.444);
   --color-brand-13: oklch(0.96 0.02 247);
+
+  /* ═══ Brand Secondary (Dark) ═══ */
+  --color-brand-secondary-0: oklch(0.08 0 0);
+  --color-brand-secondary-1: oklch(0.178 0.01 52.781);
+  --color-brand-secondary-2: oklch(0.206 0.016 39.236);
+  --color-brand-secondary-3: oklch(0.255 0.048 40.203);
+  --color-brand-secondary-4: oklch(0.29 0.078 41.503);
+  --color-brand-secondary-5: oklch(0.331 0.087 41.553);
+  --color-brand-secondary-6: oklch(0.382 0.089 41.595);
+  --color-brand-secondary-7: oklch(0.449 0.097 41.129);
+  --color-brand-secondary-8: oklch(0.538 0.119 41.581);
+  --color-brand-secondary-9: oklch(0.753 0.155 41.643);
+  --color-brand-secondary-10: oklch(0.719 0.155 41.637);
+  --color-brand-secondary-11: oklch(0.774 0.14 43.902);
+  --color-brand-secondary-12: oklch(0.906 0.044 40.87);
+  --color-brand-secondary-13: oklch(0.96 0.02 41);
 
   /* ═══ Accent (Dark — defaults to Brand, overridden by ThemeProvider) ═══ */
   --color-accent-0: oklch(0.08 0 0);
