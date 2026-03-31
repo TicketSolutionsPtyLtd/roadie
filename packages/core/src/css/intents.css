@@ -25,6 +25,38 @@
   --intent-fg-default: var(--color-neutral-12);
   --intent-fg-strong: var(--color-neutral-13);
   --intent-fg-inverted: var(--color-neutral-0);
+
+  /* Raw scale steps */
+  --intent-0: var(--color-neutral-0);
+  --intent-1: var(--color-neutral-1);
+  --intent-2: var(--color-neutral-2);
+  --intent-3: var(--color-neutral-3);
+  --intent-4: var(--color-neutral-4);
+  --intent-5: var(--color-neutral-5);
+  --intent-6: var(--color-neutral-6);
+  --intent-7: var(--color-neutral-7);
+  --intent-8: var(--color-neutral-8);
+  --intent-9: var(--color-neutral-9);
+  --intent-10: var(--color-neutral-10);
+  --intent-11: var(--color-neutral-11);
+  --intent-12: var(--color-neutral-12);
+  --intent-13: var(--color-neutral-13);
+
+  /* Raw scale steps */
+  --intent-0: var(--color-neutral-0);
+  --intent-1: var(--color-neutral-1);
+  --intent-2: var(--color-neutral-2);
+  --intent-3: var(--color-neutral-3);
+  --intent-4: var(--color-neutral-4);
+  --intent-5: var(--color-neutral-5);
+  --intent-6: var(--color-neutral-6);
+  --intent-7: var(--color-neutral-7);
+  --intent-8: var(--color-neutral-8);
+  --intent-9: var(--color-neutral-9);
+  --intent-10: var(--color-neutral-10);
+  --intent-11: var(--color-neutral-11);
+  --intent-12: var(--color-neutral-12);
+  --intent-13: var(--color-neutral-13);
 }
 
 /* Dark mode: swap raised/sunken for default intent */
@@ -83,6 +115,22 @@
   --intent-fg-strong: var(--color-brand-13);
   --intent-fg-inverted: var(--color-brand-0);
 
+  /* Raw scale steps */
+  --intent-0: var(--color-brand-0);
+  --intent-1: var(--color-brand-1);
+  --intent-2: var(--color-brand-2);
+  --intent-3: var(--color-brand-3);
+  --intent-4: var(--color-brand-4);
+  --intent-5: var(--color-brand-5);
+  --intent-6: var(--color-brand-6);
+  --intent-7: var(--color-brand-7);
+  --intent-8: var(--color-brand-8);
+  --intent-9: var(--color-brand-9);
+  --intent-10: var(--color-brand-10);
+  --intent-11: var(--color-brand-11);
+  --intent-12: var(--color-brand-12);
+  --intent-13: var(--color-brand-13);
+
   .dark & {
     --intent-surface-raised: var(--color-brand-2);
     --intent-surface-sunken: var(--color-brand-0);
@@ -110,6 +158,22 @@
   --intent-fg-default: var(--color-accent-12);
   --intent-fg-strong: var(--color-accent-13);
   --intent-fg-inverted: var(--color-accent-0);
+
+  /* Raw scale steps */
+  --intent-0: var(--color-accent-0);
+  --intent-1: var(--color-accent-1);
+  --intent-2: var(--color-accent-2);
+  --intent-3: var(--color-accent-3);
+  --intent-4: var(--color-accent-4);
+  --intent-5: var(--color-accent-5);
+  --intent-6: var(--color-accent-6);
+  --intent-7: var(--color-accent-7);
+  --intent-8: var(--color-accent-8);
+  --intent-9: var(--color-accent-9);
+  --intent-10: var(--color-accent-10);
+  --intent-11: var(--color-accent-11);
+  --intent-12: var(--color-accent-12);
+  --intent-13: var(--color-accent-13);
 
   .dark & {
     --intent-surface-raised: var(--color-accent-2);
@@ -139,6 +203,22 @@
   --intent-fg-strong: var(--color-danger-13);
   --intent-fg-inverted: var(--color-danger-0);
 
+  /* Raw scale steps */
+  --intent-0: var(--color-danger-0);
+  --intent-1: var(--color-danger-1);
+  --intent-2: var(--color-danger-2);
+  --intent-3: var(--color-danger-3);
+  --intent-4: var(--color-danger-4);
+  --intent-5: var(--color-danger-5);
+  --intent-6: var(--color-danger-6);
+  --intent-7: var(--color-danger-7);
+  --intent-8: var(--color-danger-8);
+  --intent-9: var(--color-danger-9);
+  --intent-10: var(--color-danger-10);
+  --intent-11: var(--color-danger-11);
+  --intent-12: var(--color-danger-12);
+  --intent-13: var(--color-danger-13);
+
   .dark & {
     --intent-surface-raised: var(--color-danger-2);
     --intent-surface-sunken: var(--color-danger-0);
@@ -166,6 +246,22 @@
   --intent-fg-default: var(--color-success-12);
   --intent-fg-strong: var(--color-success-13);
   --intent-fg-inverted: var(--color-success-0);
+
+  /* Raw scale steps */
+  --intent-0: var(--color-success-0);
+  --intent-1: var(--color-success-1);
+  --intent-2: var(--color-success-2);
+  --intent-3: var(--color-success-3);
+  --intent-4: var(--color-success-4);
+  --intent-5: var(--color-success-5);
+  --intent-6: var(--color-success-6);
+  --intent-7: var(--color-success-7);
+  --intent-8: var(--color-success-8);
+  --intent-9: var(--color-success-9);
+  --intent-10: var(--color-success-10);
+  --intent-11: var(--color-success-11);
+  --intent-12: var(--color-success-12);
+  --intent-13: var(--color-success-13);
 
   .dark & {
     --intent-surface-raised: var(--color-success-2);
@@ -195,6 +291,22 @@
   --intent-fg-strong: var(--color-warning-13);
   --intent-fg-inverted: var(--color-warning-0);
 
+  /* Raw scale steps */
+  --intent-0: var(--color-warning-0);
+  --intent-1: var(--color-warning-1);
+  --intent-2: var(--color-warning-2);
+  --intent-3: var(--color-warning-3);
+  --intent-4: var(--color-warning-4);
+  --intent-5: var(--color-warning-5);
+  --intent-6: var(--color-warning-6);
+  --intent-7: var(--color-warning-7);
+  --intent-8: var(--color-warning-8);
+  --intent-9: var(--color-warning-9);
+  --intent-10: var(--color-warning-10);
+  --intent-11: var(--color-warning-11);
+  --intent-12: var(--color-warning-12);
+  --intent-13: var(--color-warning-13);
+
   .dark & {
     --intent-surface-raised: var(--color-warning-2);
     --intent-surface-sunken: var(--color-warning-0);
@@ -222,6 +334,22 @@
   --intent-fg-default: var(--color-info-12);
   --intent-fg-strong: var(--color-info-13);
   --intent-fg-inverted: var(--color-info-0);
+
+  /* Raw scale steps */
+  --intent-0: var(--color-info-0);
+  --intent-1: var(--color-info-1);
+  --intent-2: var(--color-info-2);
+  --intent-3: var(--color-info-3);
+  --intent-4: var(--color-info-4);
+  --intent-5: var(--color-info-5);
+  --intent-6: var(--color-info-6);
+  --intent-7: var(--color-info-7);
+  --intent-8: var(--color-info-8);
+  --intent-9: var(--color-info-9);
+  --intent-10: var(--color-info-10);
+  --intent-11: var(--color-info-11);
+  --intent-12: var(--color-info-12);
+  --intent-13: var(--color-info-13);
 
   .dark & {
     --intent-surface-raised: var(--color-info-2);

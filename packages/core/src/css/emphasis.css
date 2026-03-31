@@ -97,14 +97,14 @@
   background-color: var(--intent-surface-strong);
   color: var(--intent-fg-inverted);
 
-  /* Strong: hover lifts + darkens, active presses */
+  /* Strong: hover → scale step 10, active → step 11 */
   &.is-interactive:hover {
-    filter: brightness(0.9);
+    background-color: var(--intent-10);
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 8px -2px rgba(0, 0, 0, 0.08);
   }
   &.is-interactive:active {
-    filter: brightness(0.8);
+    background-color: var(--intent-11);
     transform: translateY(0) scale(0.98);
     box-shadow: none;
   }
@@ -115,10 +115,10 @@
   color: var(--intent-fg-default);
 
   &.is-interactive:hover {
-    background-color: var(--intent-surface-subtler);
+    background-color: var(--intent-2);
   }
   &.is-interactive:active {
-    background-color: var(--intent-surface-subtle);
+    background-color: var(--intent-3);
   }
 }
 
@@ -126,12 +126,12 @@
   background-color: var(--intent-surface-subtle);
   color: var(--intent-fg-default);
 
-  /* Subtle: hover goes one step more tinted */
+  /* Subtle: hover → step 4, active → step 5 */
   &.is-interactive:hover {
-    background-color: var(--intent-border-subtler);
+    background-color: var(--intent-4);
   }
   &.is-interactive:active {
-    background-color: var(--intent-border-subtle);
+    background-color: var(--intent-5);
   }
 }
 
@@ -144,10 +144,10 @@
     background-color: transparent;
   }
   &.is-interactive:hover {
-    background-color: var(--intent-surface-subtler);
+    background-color: var(--intent-2);
   }
   &.is-interactive:active {
-    background-color: var(--intent-surface-subtle);
+    background-color: var(--intent-3);
   }
 }
 
