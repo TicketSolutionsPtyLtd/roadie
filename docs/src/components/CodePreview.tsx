@@ -9,9 +9,11 @@ import { Highlight, themes } from 'prism-react-renderer'
 import { LiveEditor, LiveError, LivePreview, LiveProvider } from 'react-live'
 
 import * as RoadieComponents from '@oztix/roadie-components'
+import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
 
 const scope = {
   ...RoadieComponents,
+  ...SpotIllustrations,
   Link,
 }
 

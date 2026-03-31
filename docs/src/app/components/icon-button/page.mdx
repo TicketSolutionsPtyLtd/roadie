@@ -154,11 +154,16 @@ Each intent is designed for specific use cases:
 Always provide an `aria-label` prop to describe the button's action, since icon buttons typically do not contain visible text labels.
 
 ```tsx-live
-// Good
-<IconButton aria-label='Close dialog'>×</IconButton>
-
-// Bad - missing aria-label
-<IconButton>×</IconButton>
+<div className='flex flex-row flex-wrap gap-4 items-center'>
+  <div className='flex flex-col gap-1 items-center'>
+    <IconButton aria-label='Close dialog'>×</IconButton>
+    <Text size='xs' emphasis='subtle'>With aria-label</Text>
+  </div>
+  <div className='flex flex-col gap-1 items-center'>
+    <IconButton aria-label=''>×</IconButton>
+    <Text size='xs' intent='danger' emphasis='subtle'>Missing label</Text>
+  </div>
+</div>
 ```
 
 <PropsDefinitions componentPath='packages/components/src/components/Button/IconButton.tsx' />

@@ -202,32 +202,25 @@ Highlight works great in headings for creating eye-catching titles:
 A practical example of highlighting search results:
 
 ```tsx-live
-live(() => {
-  const results = [
-    'JavaScript is a programming language',
-    'TypeScript is a typed superset of JavaScript',
-    'React is a JavaScript library for building user interfaces'
-  ]
-  const searchTerm = 'JavaScript'
-
-  return (
-    <div className='flex flex-col gap-4'>
-      <div className='flex flex-col gap-1'>
-        <Heading level={3} size='sm'>
-          Search results for "{searchTerm}"
-        </Heading>
-        <Text size='xs' emphasis='subtle'>{results.length} results found</Text>
-      </div>
-      <div className='flex flex-col gap-1'>
-        {results.map((result, index) => (
-          <Text key={index}>
-            <Highlight text={result} query={searchTerm} intent='accent' />
-          </Text>
-        ))}
-      </div>
-    </div>
-  )
-})()
+<div className='flex flex-col gap-4'>
+  <div className='flex flex-col gap-1'>
+    <Heading level={3} size='sm'>
+      Search results for "JavaScript"
+    </Heading>
+    <Text size='xs' emphasis='subtle'>3 results found</Text>
+  </div>
+  <div className='flex flex-col gap-1'>
+    <Text>
+      <Highlight text='JavaScript is a programming language' query='JavaScript' intent='accent' />
+    </Text>
+    <Text>
+      <Highlight text='TypeScript is a typed superset of JavaScript' query='JavaScript' intent='accent' />
+    </Text>
+    <Text>
+      <Highlight text='React is a JavaScript library for building user interfaces' query='JavaScript' intent='accent' />
+    </Text>
+  </div>
+</div>
 ```
 
 <PropsDefinitions componentPath='packages/components/src/components/Highlight/index.tsx' />
