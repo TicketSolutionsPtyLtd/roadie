@@ -113,7 +113,7 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
         theme={theme}
         language={language.replace('-live', '')}
       >
-        <LivePreview className="px-6 py-6 bg-neutral-3 rounded-t-md font-sans border border-neutral-6 border-b-0 overflow-hidden overflow-x-auto" />
+        <LivePreview className="px-6 py-6 bg-neutral-1 rounded-t-md font-sans border border-neutral-6 border-b-0 overflow-hidden overflow-x-auto" />
         <LiveError />
         <div className="relative">
           <CopyButton code={trimmedCode} />
