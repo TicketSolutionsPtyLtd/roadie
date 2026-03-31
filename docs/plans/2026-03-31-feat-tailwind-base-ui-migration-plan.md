@@ -46,27 +46,15 @@ Work on branch `feature/v2-tailwind-migration` from `main`.
 - [x] All 74 tests rewritten and passing
 - [x] Build, typecheck, lint all clean
 
-### Phase 3: Documentation Site — IN PROGRESS
+### Phase 3: Documentation Site — COMPLETE
 
-**Goal:** Migrate docs site from PandaCSS to Tailwind v4.
-
-**Tasks:**
-
-- [ ] Remove PandaCSS from docs:
-  - Remove `panda.config.ts`, `prepare` script, generated `roadie-core/` artifacts
-  - Remove `@pandacss/dev` from devDependencies
-- [ ] Add Tailwind v4 + PostCSS to docs:
-  - Add `tailwindcss`, `@tailwindcss/postcss` as devDependencies
-  - Create `postcss.config.mjs`
-  - Create `src/app/globals.css` with `@import "@oztix/roadie-core/css"`
-- [ ] Migrate docs layout:
-  - Replace `css()` utility imports with Tailwind classes
-  - Replace PandaCSS JSX patterns (View, Container) with `<div>` + Tailwind
-  - Update `layout.tsx` to use Tailwind classes
-- [ ] Update component pages/examples:
-  - Update MDX code examples to show v2 API (intent/emphasis props)
-  - Verify react-docgen-typescript extracts new prop types
-- [ ] Verify docs build: `pnpm --filter docs build`
+- [x] Removed PandaCSS (config, generated artifacts, dep)
+- [x] Added Tailwind v4 + PostCSS, globals.css imports roadie.css
+- [x] Migrated layout.tsx, mdx-components.tsx, all shared components
+- [x] Migrated all page files (TSX + MDX), removed View/Container references
+- [x] Removed deprecated View/Container component pages
+- [x] Created placeholder pages for token reference and colors (need v2 content)
+- [x] All 16 pages build successfully as static content
 
 ### Phase 4: New Components — DEFERRED
 
