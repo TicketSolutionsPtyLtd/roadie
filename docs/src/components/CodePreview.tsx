@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import Link from 'next/link'
 
@@ -9,45 +9,28 @@ import { Highlight, themes } from 'prism-react-renderer'
 import { LiveEditor, LiveError, LivePreview, LiveProvider } from 'react-live'
 
 import * as RoadieComponents from '@oztix/roadie-components'
-import { useColorMode } from '@oztix/roadie-components/hooks'
-import { css } from '@oztix/roadie-core/css'
-import * as PandaComponents from '@oztix/roadie-core/jsx'
 
 const scope = {
-  css,
   ...RoadieComponents,
-  ...PandaComponents,
-  Link
+  Link,
 }
 
-const { Button, View } = RoadieComponents
+const { Button } = RoadieComponents
 
-const editorStyles = {
-  bg: 'neutral.surface.sunken',
-  overflow: 'auto',
-  fontSize: 'sm',
-  p: '200',
-  boxShadow: 'sunken',
-  borderRadius: 'md',
-  border: '1px solid',
-  borderColor: 'neutral.border.subtler'
-}
-
-// Custom themes that inherit from nightOwl but override the background
 const customDarkTheme = {
   ...themes.nightOwl,
   plain: {
     ...themes.nightOwl.plain,
-    backgroundColor: 'var(--colors-neutral-surface-sunken)'
-  }
+    backgroundColor: 'var(--color-neutral-2)',
+  },
 }
 
 const customLightTheme = {
   ...themes.nightOwlLight,
   plain: {
     ...themes.nightOwlLight.plain,
-    backgroundColor: 'var(--colors-neutral-surface-sunken)'
-  }
+    backgroundColor: 'var(--color-neutral-2)',
+  },
 }
 
 function CopyButton({ code }: { code: string }) {
@@ -60,14 +43,8 @@ function CopyButton({ code }: { code: string }) {
   }
 
   return (
-    <div className={css({ position: 'absolute', top: '150', right: '150' })}>
-      <Button
-        onClick={handleCopy}
-        size='sm'
-        emphasis='subtler'
-        aria-label='Copy code to clipboard'
-        px='150'
-      >
+    <div className="absolute top-3 right-3">
+      <Button onClick={handleCopy} size="sm" emphasis="subtler" aria-label="Copy code to clipboard">
         {copied && 'Copied!'}
         <Copy size={16} />
       </Button>
@@ -81,7 +58,17 @@ type CodePreviewProps = {
 }
 
 export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
-  const colorMode = useColorMode()
+  const [colorMode, setColorMode] = useState<'light' | 'dark'>('light')
+
+  useEffect(() => {
+    setColorMode(document.documentElement.classList.contains('dark') ? 'dark' : 'light')
+    const observer = new MutationObserver(() => {
+      setColorMode(document.documentElement.classList.contains('dark') ? 'dark' : 'light')
+    })
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    return () => observer.disconnect()
+  }, [])
+
   const theme = colorMode === 'dark' ? customDarkTheme : customLightTheme
   const isLive =
     children.startsWith('live') && (language === 'tsx' || language === 'jsx')
@@ -91,22 +78,20 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
 
   if (!isLive) {
     return (
-      <View mb='800'>
+      <div className="mb-16 relative">
         <CopyButton code={trimmedCode} />
         <Highlight code={trimmedCode} language={language} theme={theme}>
           {({ style, tokens, getLineProps, getTokenProps }) => (
-            <pre className={css(editorStyles)} style={style}>
+            <pre
+              className="bg-neutral-2 overflow-auto text-sm p-4 rounded-md border border-neutral-6"
+              style={style}
+            >
               {tokens.map((line, i) => {
-                const lineProps = getLineProps({ line, key: i })
-
-                const { key, ...linePropsWithoutKey } = lineProps
+                const { key: _key, ...linePropsWithoutKey } = getLineProps({ line, key: i })
                 return (
                   <div key={i} {...linePropsWithoutKey}>
                     {line.map((token, key) => {
-                      const tokenProps = getTokenProps({ token, key })
-
-                      const { key: tokenKey, ...tokenPropsWithoutKey } =
-                        tokenProps
+                      const { key: _tokenKey, ...tokenPropsWithoutKey } = getTokenProps({ token, key })
                       return <span key={key} {...tokenPropsWithoutKey} />
                     })}
                   </div>
@@ -115,43 +100,25 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
             </pre>
           )}
         </Highlight>
-      </View>
+      </div>
     )
   }
+
   return (
-    <View mb='800'>
+    <div className="mb-16 relative">
       <LiveProvider
         code={trimmedCode}
         scope={scope}
         theme={theme}
         language={language.replace('-live', '')}
       >
-        <LivePreview
-          className={css({
-            px: 300,
-            py: 300,
-            bg: 'neutral.surface',
-            borderTopRadius: 'md',
-            fontFamily: 'ui',
-            border: '1px solid',
-            borderColor: 'neutral.border.subtler',
-            borderBottom: 'none',
-            overflow: 'hidden',
-            overflowX: 'auto'
-          })}
-        />
+        <LivePreview className="px-6 py-6 bg-neutral-3 rounded-t-md font-sans border border-neutral-6 border-b-0 overflow-hidden overflow-x-auto" />
         <LiveError />
-        <View>
+        <div className="relative">
           <CopyButton code={trimmedCode} />
-          <LiveEditor
-            className={css({
-              ...editorStyles,
-              borderTopRadius: '0',
-              borderTop: 'none'
-            })}
-          />
-        </View>
+          <LiveEditor className="bg-neutral-2 overflow-auto text-sm p-4 rounded-b-md border border-neutral-6 border-t-0" />
+        </div>
       </LiveProvider>
-    </View>
+    </div>
   )
 }

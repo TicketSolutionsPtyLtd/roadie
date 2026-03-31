@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { readFile, readdir } from 'fs/promises'
 import { join } from 'path'
 
-import { Heading, Text, View } from '@oztix/roadie-components'
+import { Heading, Text } from '@oztix/roadie-components'
 
 type ComponentMetadata = {
   name: string
@@ -33,7 +33,6 @@ export default async function ComponentsPage() {
           const mdxPath = join(componentsDir, dir.name, 'page.mdx')
           const content = await readFile(mdxPath, 'utf-8')
 
-          // Extract metadata from the file
           const metadataMatch = content.match(
             /export const metadata = ({[\s\S]*?})/m
           )
@@ -41,12 +40,11 @@ export default async function ComponentsPage() {
             title: dir.name,
             description: '',
             status: 'unknown',
-            category: 'Other'
+            category: 'Other',
           }
 
           if (metadataMatch) {
             try {
-              // Parse metadata object using Function constructor (safer than eval)
               const parseMetadata = new Function(`return ${metadataMatch[1]}`)
               const evalMetadata = parseMetadata()
               metadata = { ...metadata, ...evalMetadata }
@@ -55,10 +53,7 @@ export default async function ComponentsPage() {
             }
           }
 
-          return {
-            name: dir.name,
-            ...metadata
-          }
+          return { name: dir.name, ...metadata }
         } catch (e) {
           console.error(`Error processing ${dir.name}:`, e)
           return {
@@ -66,13 +61,12 @@ export default async function ComponentsPage() {
             title: dir.name,
             description: '',
             status: 'unknown',
-            category: 'Other'
+            category: 'Other',
           }
         }
       })
   )
 
-  // Group components by category
   const categorizedComponents = components.reduce((acc, component) => {
     const category = component.category || 'Other'
     if (!acc[category]) {
@@ -83,54 +77,30 @@ export default async function ComponentsPage() {
   }, {} as CategorizedComponents)
 
   return (
-    <View gap='600'>
-      <View gap='300'>
-        <Heading as='h1' textStyle='display.prose.1'>
-          Components
-        </Heading>
-        <Text emphasis='subtle' textStyle='prose.lead' fontSize='xl'>
-          A collection of components built with Ark UI and styled with PandaCSS.
+    <div className="flex flex-col gap-12">
+      <div className="flex flex-col gap-4">
+        <Heading as="h1" size="4xl">Components</Heading>
+        <Text emphasis="subtle" size="xl">
+          A collection of components built with Base UI and styled with Tailwind CSS.
         </Text>
-      </View>
+      </div>
 
       {Object.entries(categorizedComponents).map(([category, components]) => (
-        <View key={category} gap='300'>
-          <Heading as='h2' textStyle='display.prose.2'>
-            {category}
-          </Heading>
-          <View
-            display='grid'
-            gridTemplateColumns={{
-              base: '1fr',
-              sm: 'repeat(2, 1fr)',
-              md: 'repeat(3, 1fr)'
-            }}
-            gap='300'
-          >
+        <div key={category} className="flex flex-col gap-4">
+          <Heading as="h2" size="2xl">{category}</Heading>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {components.map((component) => (
-              <View
+              <Link
                 key={component.name}
-                as={Link}
                 href={`/components/${component.name}`}
-                padding='300'
-                borderRadius='md'
-                gap='200'
-                backgroundColor='neutral.surface.raised'
-                borderWidth='1px'
-                borderStyle='solid'
-                borderColor='neutral.border.subtle'
-                _hover={{
-                  backgroundColor: 'neutral.surface.raised.hover'
-                }}
+                className="p-4 rounded-md flex flex-col gap-2 bg-neutral-1 border border-neutral-7 hover:bg-neutral-3 transition-colors no-underline"
               >
-                <Heading as='h3' textStyle='display.prose.4'>
-                  {component.title}
-                </Heading>
-                <Text emphasis='subtle'>{component.description}</Text>
+                <Heading as="h3" size="lg">{component.title}</Heading>
+                <Text emphasis="subtle">{component.description}</Text>
                 <Text
-                  textStyle='ui.meta'
-                  emphasis='strong'
-                  colorPalette={
+                  size="sm"
+                  emphasis="strong"
+                  intent={
                     component.status === 'stable'
                       ? 'success'
                       : component.status === 'beta'
@@ -140,11 +110,11 @@ export default async function ComponentsPage() {
                 >
                   {component.status}
                 </Text>
-              </View>
+              </Link>
             ))}
-          </View>
-        </View>
+          </div>
+        </div>
       ))}
-    </View>
+    </div>
   )
 }

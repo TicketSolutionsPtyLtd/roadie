@@ -1,4 +1,3 @@
-/* eslint-disable @pandacss/no-margin-properties */
 import type { ComponentPropsWithoutRef } from 'react'
 
 import { Link } from 'next-view-transitions'
@@ -12,64 +11,50 @@ import {
   type HeadingProps,
   Text,
   type TextProps,
-  View,
-  type ViewProps
 } from '@oztix/roadie-components'
-import { css } from '@oztix/roadie-core/css'
 
-type ListProps = ViewProps
 type AnchorProps = ComponentPropsWithoutRef<'a'>
 type BlockquoteProps = ComponentPropsWithoutRef<'blockquote'>
 
 const components = {
   h1: (props: HeadingProps) => (
-    <Heading as='h1' textStyle='display.prose.1' mb='200' pt='400' {...props} />
+    <Heading as="h1" size="4xl" className="mb-4 pt-8" {...props} />
   ),
   h2: (props: HeadingProps) => (
-    <Heading as='h2' textStyle='display.prose.2' mb='200' mt='600' {...props} />
+    <Heading as="h2" size="3xl" className="mb-4 mt-12" {...props} />
   ),
   h3: (props: HeadingProps) => (
-    <Heading as='h3' textStyle='display.prose.3' mb='200' mt='600' {...props} />
+    <Heading as="h3" size="2xl" className="mb-4 mt-12" {...props} />
   ),
   h4: (props: HeadingProps) => (
-    <Heading as='h4' textStyle='display.prose.4' mb='200' mt='400' {...props} />
+    <Heading as="h4" size="xl" className="mb-4 mt-8" {...props} />
   ),
   h5: (props: HeadingProps) => (
-    <Heading as='h5' textStyle='display.prose.5' mb='200' mt='400' {...props} />
+    <Heading as="h5" size="lg" className="mb-4 mt-8" {...props} />
   ),
   h6: (props: HeadingProps) => (
-    <Heading as='h6' textStyle='display.prose.6' mb='200' mt='400' {...props} />
+    <Heading as="h6" size="base" className="mb-4 mt-8" {...props} />
   ),
   p: (props: TextProps) => (
-    <Text as='p' textStyle='prose' fontSize='lg' mb='200' {...props} />
+    <Text as="p" size="lg" className="mb-4 leading-relaxed" {...props} />
   ),
-  ol: (props: ListProps) => (
-    <View
-      as='ol'
-      listStyleType='decimal'
-      gap='200'
-      mb='400'
-      pl='400'
-      {...props}
-    />
+  ol: (props: ComponentPropsWithoutRef<'ol'>) => (
+    <ol className="list-decimal flex flex-col gap-2 mb-8 pl-8" {...props} />
   ),
-  ul: (props: ListProps) => (
-    <View as='ul' listStyleType='disc' gap='200' mb='400' pl='400' {...props} />
+  ul: (props: ComponentPropsWithoutRef<'ul'>) => (
+    <ul className="list-disc flex flex-col gap-2 mb-8 pl-8" {...props} />
   ),
   li: (props: TextProps) => (
-    <Text as='li' pl='100' fontSize='lg' textStyle='prose' {...props} />
+    <Text as="li" size="lg" className="pl-1 leading-relaxed" {...props} />
   ),
   em: (props: TextProps) => (
-    <Text {...props} as='em' fontStyle='italic' fontSize='inherit' />
+    <Text {...props} as="em" className="italic text-[inherit]" />
   ),
   strong: (props: TextProps) => (
-    <Text {...props} as='strong' emphasis='strong' fontSize='inherit' />
+    <Text {...props} as="strong" emphasis="strong" className="text-[inherit]" />
   ),
   a: ({ href, children, ...props }: AnchorProps) => {
-    const className = css({
-      color: 'accent.fg',
-      _hover: { color: 'accent.fg.hover' }
-    })
+    const className = 'text-accent-11 hover:text-accent-9'
     if (href?.startsWith('/')) {
       return (
         <Link href={href} className={className} {...props}>
@@ -87,8 +72,8 @@ const components = {
     return (
       <a
         href={href}
-        target='_blank'
-        rel='noopener noreferrer'
+        target="_blank"
+        rel="noopener noreferrer"
         className={className}
         {...props}
       >
@@ -129,15 +114,10 @@ const components = {
   ),
   blockquote: (props: BlockquoteProps) => (
     <blockquote
-      className={css({
-        borderLeft: '3px solid',
-        ml: '0.075em',
-        pl: '200',
-        color: 'neutral.fg.subtle'
-      })}
+      className="border-l-[3px] border-neutral-7 ml-[0.075em] pl-4 emphasis-subtle-fg"
       {...props}
     />
-  )
+  ),
 }
 
 declare global {

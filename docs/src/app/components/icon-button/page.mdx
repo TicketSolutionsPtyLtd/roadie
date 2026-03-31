@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 import { IconButton } from '@oztix/roadie-components'
-import { css } from '@oztix/roadie-core/css'
+
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
@@ -27,8 +27,8 @@ import { IconButton } from '@oztix/roadie-components'
 IconButton requires an `aria-label` for accessibility since it typically doesn't contain visible text.
 
 ```tsx
-live
-<View gap='200' flexDirection='row'>
+
+<div gap='200' flexDirection='row'>
   <IconButton aria-label='Add item' emphasis='strong' colorPalette='accent'>
     +
   </IconButton>
@@ -38,7 +38,7 @@ live
   <IconButton aria-label='Delete item' emphasis='subtle' colorPalette='danger'>
     ×
   </IconButton>
-</View>
+</div>
 ```
 
 ### Emphasis
@@ -46,8 +46,8 @@ live
 Different button emphasis levels for various contexts:
 
 ```tsx
-live
-<View gap='200' flexDirection='row'>
+
+<div gap='200' flexDirection='row'>
   <IconButton aria-label='Strong' emphasis='strong'>
     ★
   </IconButton>
@@ -60,7 +60,7 @@ live
   <IconButton aria-label='Subtler' emphasis='subtler'>
     ★
   </IconButton>
-</View>
+</div>
 ```
 
 ### Sizes
@@ -68,8 +68,8 @@ live
 IconButton maintains square proportions across all sizes:
 
 ```tsx
-live
-<View gap='200' flexDirection='row' alignItems='center'>
+
+<div gap='200' flexDirection='row' alignItems='center'>
   <IconButton aria-label='Extra small' size='xs'>
     ✓
   </IconButton>
@@ -82,7 +82,7 @@ live
   <IconButton aria-label='Large' size='lg'>
     ✓
   </IconButton>
-</View>
+</div>
 ```
 
 ### Colors
@@ -98,9 +98,9 @@ Each color palette is designed for specific use cases:
 - `danger`: Destructive or high-risk actions
 
 ```tsx
-live
-<View gap='200'>
-  <View flexDirection='row' gap='200'>
+
+<div gap='200'>
+  <div flexDirection='row' gap='200'>
     <IconButton aria-label='Neutral' emphasis='strong' colorPalette='neutral'>
       ✓
     </IconButton>
@@ -122,8 +122,8 @@ live
     <IconButton aria-label='Danger' emphasis='strong' colorPalette='danger'>
       ✓
     </IconButton>
-  </View>
-  <View flexDirection='row' gap='200'>
+  </div>
+  <div flexDirection='row' gap='200'>
     <IconButton aria-label='Neutral' emphasis='default' colorPalette='neutral'>
       ✓
     </IconButton>
@@ -145,15 +145,15 @@ live
     <IconButton aria-label='Danger' emphasis='default' colorPalette='danger'>
       ✓
     </IconButton>
-  </View>
-</View>
+  </div>
+</div>
 ```
 
 ### Disabled state
 
 ```tsx
-live
-<View gap='200' flexDirection='row'>
+
+<div gap='200' flexDirection='row'>
   <IconButton aria-label='Disabled' disabled emphasis='strong' colorPalette='accent'>
     ✓
   </IconButton>
@@ -163,13 +163,13 @@ live
   <IconButton aria-label='Disabled' disabled emphasis='subtle'>
     ✓
   </IconButton>
-</View>
+</div>
 ```
 
 ## Usage
 
 ```tsx
-live
+
 <IconButton
   aria-label='Add to favorites'
   emphasis='strong'

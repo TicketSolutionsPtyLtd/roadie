@@ -3,8 +3,6 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-import { Text, View } from '@oztix/roadie-components'
-
 interface NavItem {
   title: string
   href: string
@@ -23,15 +21,12 @@ interface FooterNavProps {
 export function FooterNav({ items }: FooterNavProps) {
   const pathname = usePathname()
 
-  // Don't show navigation on home page
   if (pathname === '/') return null
 
-  // Flatten the navigation structure
   const flatNav = items.reduce<NavItem[]>((acc, section) => {
     return [...acc, ...section.items]
   }, [])
 
-  // Find the current page index
   const currentIndex = flatNav.findIndex((item) => item.href === pathname)
 
   const prev = currentIndex > 0 ? flatNav[currentIndex - 1] : undefined
@@ -41,42 +36,23 @@ export function FooterNav({ items }: FooterNavProps) {
   if (!prev && !next) return null
 
   return (
-    <View
-      pt='600'
-      borderTopWidth='1px'
-      borderColor='neutral.border'
-      display='flex'
-      justifyContent='space-between'
-      flexDirection='row'
-      width='full'
-    >
+    <div className="pt-12 border-t border-neutral-7 flex justify-between flex-row w-full">
       {prev && (
-        <View as={Link} href={prev.href} gap='100' className='group'>
-          <Text textStyle='ui.meta' emphasis='subtle'>
-            Previous page
-          </Text>
-          <Text colorPalette='accent' interactive={true}>
-            ← {prev.title}
-          </Text>
-        </View>
+        <Link href={prev.href} className="flex flex-col gap-1 group no-underline">
+          <span className="text-sm emphasis-subtle-fg">Previous page</span>
+          <span className="intent-accent emphasis-default-fg group-hover:text-accent-11">
+            &larr; {prev.title}
+          </span>
+        </Link>
       )}
       {next && (
-        <View
-          as={Link}
-          href={next.href}
-          gap='100'
-          marginLeft='auto'
-          textAlign='right'
-          className='group'
-        >
-          <Text textStyle='ui.meta' emphasis='subtle'>
-            Next page
-          </Text>
-          <Text colorPalette='accent' interactive={true}>
-            {next.title} →
-          </Text>
-        </View>
+        <Link href={next.href} className="flex flex-col gap-1 ml-auto text-right group no-underline">
+          <span className="text-sm emphasis-subtle-fg">Next page</span>
+          <span className="intent-accent emphasis-default-fg group-hover:text-accent-11">
+            {next.title} &rarr;
+          </span>
+        </Link>
       )}
-    </View>
+    </div>
   )
 }

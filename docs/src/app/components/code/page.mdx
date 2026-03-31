@@ -1,7 +1,6 @@
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 import { Code, Text } from '@oztix/roadie-components'
-import { css } from '@oztix/roadie-core/css'
 
 export const metadata = {
   title: 'Code',
@@ -20,7 +19,7 @@ of code.
 ### Inline code
 
 ```tsx
-live
+
 <Code>npm install @oztix/roadie-components</Code>
 ```
 
@@ -31,13 +30,13 @@ live
 Different emphasis levels for various contexts:
 
 ```tsx
-live
-<View gap='200' flexDirection='row' flexWrap='wrap'>
+
+<div gap='200' flexDirection='row' flexWrap='wrap'>
   <Code emphasis='default'>default code</Code>
   <Code emphasis='strong'>strong code</Code>
   <Code emphasis='subtle'>subtle code</Code>
   <Code emphasis='subtler'>subtler code</Code>
-</View>
+</div>
 ```
 
 ### Color palettes
@@ -55,8 +54,8 @@ Each color palette is designed for specific use cases:
 - `danger`: Error or problematic code
 
 ```tsx
-live
-<View gap='200' flexDirection='row' flexWrap='wrap'>
+
+<div gap='200' flexDirection='row' flexWrap='wrap'>
   <Code colorPalette='neutral'>neutral</Code>
   <Code colorPalette='accent'>accent</Code>
   <Code colorPalette='brand'>brand</Code>
@@ -64,7 +63,7 @@ live
   <Code colorPalette='success'>success</Code>
   <Code colorPalette='warning'>warning</Code>
   <Code colorPalette='danger'>danger</Code>
-</View>
+</div>
 ```
 
 <PropsDefinitions componentPath='packages/components/src/components/Code/index.tsx' />

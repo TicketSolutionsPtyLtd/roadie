@@ -2,7 +2,7 @@ import path from 'path'
 import type { PropItem } from 'react-docgen-typescript'
 import { withCustomConfig } from 'react-docgen-typescript'
 
-import { Code, Text, View } from '@oztix/roadie-components'
+import { Code } from '@oztix/roadie-components'
 
 interface ComponentProp {
   required: boolean
@@ -56,24 +56,22 @@ function groupPropsBySource(
 ): GroupedProps {
   const result: GroupedProps = {
     ownProps: {},
-    inheritedProps: {}
+    inheritedProps: {},
   }
 
   Object.entries(props).forEach(([name, prop]) => {
-    // If the prop has a parent interface that's not from the current component, it's inherited
     if (prop.parent?.name && !prop.parent.name.startsWith(componentName)) {
       const parentName = prop.parent.name
       if (!result.inheritedProps[parentName]) {
         result.inheritedProps[parentName] = {
           props: {},
-          from: parentName
+          from: parentName,
         }
       }
       result.inheritedProps[parentName]!.props[name] = prop
       return
     }
 
-    // Otherwise, it's an own prop
     result.ownProps[name] = prop
   })
 
@@ -82,82 +80,51 @@ function groupPropsBySource(
 
 function PropsList({
   props,
-  title
+  title,
 }: {
   props: Record<string, ComponentProp>
   title?: string
 }) {
   return (
-    <View flexDirection='column' gap='200'>
+    <div className="flex flex-col gap-3">
       {title && (
-        <View
-          px='300'
-          py='200'
-          bg='neutral.surface.subtler'
-          borderBottom='1px solid'
-          borderBottomColor='neutral.border.subtler'
-        >
-          <Text fontSize='md' fontWeight='bold' emphasis='subtle'>
-            {title}
-          </Text>
-        </View>
+        <div className="px-4 py-3 bg-neutral-2 border-b border-neutral-6">
+          <p className="text-base font-bold emphasis-subtle-fg">{title}</p>
+        </div>
       )}
       {Object.entries(props).map(([name, prop]) => (
-        <View
+        <div
           key={name}
-          borderBottom='1px solid'
-          borderBottomColor='neutral.border.subtler'
-          px='300'
-          py='200'
-          gap='100'
-          _last={{
-            borderBottom: 'none'
-          }}
+          className="border-b border-neutral-6 px-4 py-3 flex flex-col gap-1 last:border-b-0"
         >
-          <View as='dt' alignItems='baseline' gap='100'>
-            <View
-              flexDirection={{ base: 'column', md: 'row' }}
-              alignItems='baseline'
-              gap='100'
-            >
-              <Text
-                fontFamily='mono'
-                fontSize='sm'
-                fontWeight='600'
-                flexShrink={0}
-              >
+          <dt className="flex items-baseline gap-1">
+            <div className="flex flex-col md:flex-row items-baseline gap-1">
+              <span className="font-mono text-sm font-semibold shrink-0">
                 {name}
                 {!prop.required && (
-                  <Text as='span' emphasis='subtle'>
-                    ?
-                  </Text>
+                  <span className="emphasis-subtle-fg">?</span>
                 )}
-              </Text>
-              <Text fontFamily='mono' fontSize='sm' color='information.fg'>
+              </span>
+              <span className="font-mono text-sm text-info-11">
                 {formatTypeValues(prop)}
-              </Text>
-            </View>
-          </View>
-          <View as='dd'>
-            <View gap='200'>
+              </span>
+            </div>
+          </dt>
+          <dd>
+            <div className="flex flex-col gap-2">
               {prop.description && (
-                <Text emphasis='subtle'>{prop.description}</Text>
+                <p className="emphasis-subtle-fg">{prop.description}</p>
               )}
               {prop.defaultValue && (
-                <Text
-                  as='p'
-                  emphasis='subtle'
-                  fontSize='sm'
-                  textStyle='prose.body'
-                >
+                <p className="emphasis-subtle-fg text-sm">
                   Defaults to <Code>{prop.defaultValue.value}</Code>.
-                </Text>
+                </p>
               )}
-            </View>
-          </View>
-        </View>
+            </div>
+          </dd>
+        </div>
       ))}
-    </View>
+    </div>
   )
 }
 
@@ -173,10 +140,6 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
         shouldExtractLiteralValuesFromEnum: true,
         shouldRemoveUndefinedFromOptional: true,
         propFilter: (prop: PropItem): boolean => {
-          // Include props that are:
-          // 1. Directly defined in the component (no declarations)
-          // 2. From our own components directory
-          // 3. Have a parent interface from our components
           if (!prop.declarations?.length) {
             return true
           }
@@ -193,7 +156,7 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
 
           return Boolean(isFromOurComponents || isFromParentComponent)
         },
-        skipChildrenPropWithoutDoc: true
+        skipChildrenPropWithoutDoc: true,
       }
     )
 
@@ -206,52 +169,27 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
       componentInfo.displayName
     )
 
-    // Get the interface name from the first prop's parent type
     const interfaceName =
       Object.values(componentInfo.props)[0]?.parent?.name ||
       `${componentInfo.displayName}Props`
 
     return (
-      <View
-        gap='300'
-        pt='800'
-        mt='800'
-        borderTop='1px solid'
-        borderTopColor='neutral.border.subtle'
-      >
-        <Text as='h2' fontSize='xl' fontWeight='bold'>
-          Props
-        </Text>
-        <View
-          as='dl'
-          flexDirection='column'
-          border='1px solid'
-          borderColor='neutral.border.subtle'
-          borderRadius='md'
-        >
-          <View
-            borderBottom='1px solid'
-            borderBottomColor='neutral.border.subtle'
-            alignSelf='stretch'
-            gap='100'
-            px='300'
-            py='200'
-            bg='neutral.surface.subtler'
-          >
-            <Text as='h3' fontSize='xl' fontWeight='bold'>
-              {interfaceName}
-            </Text>
+      <div className="flex flex-col gap-4 pt-16 mt-16 border-t border-neutral-7">
+        <h2 className="text-xl font-bold">Props</h2>
+        <dl className="flex flex-col border border-neutral-7 rounded-md">
+          <div className="border-b border-neutral-7 self-stretch flex flex-col gap-1 px-4 py-3 bg-neutral-2">
+            <h3 className="text-xl font-bold">{interfaceName}</h3>
             {!!componentInfo.description && (
-              <Text emphasis='subtle'>{componentInfo.description}</Text>
+              <p className="emphasis-subtle-fg">
+                {componentInfo.description}
+              </p>
             )}
-          </View>
+          </div>
 
-          {/* Component's own props */}
           {Object.keys(groupedProps.ownProps).length > 0 && (
             <PropsList props={groupedProps.ownProps} />
           )}
 
-          {/* Inherited props */}
           {Object.entries(groupedProps.inheritedProps).map(
             ([source, { props }]) => (
               <PropsList
@@ -261,8 +199,8 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
               />
             )
           )}
-        </View>
-      </View>
+        </dl>
+      </div>
     )
   } catch (error) {
     console.error('Error parsing component:', error)

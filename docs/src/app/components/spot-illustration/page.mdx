@@ -5,7 +5,7 @@ export const metadata = {
   category: 'Media'
 }
 
-import { css } from '@oztix/roadie-core/css'
+
 
 import { IllustrationGallery } from '@/components/IllustrationGallery'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
@@ -36,11 +36,11 @@ import { createSpotIllustration } from '@oztix/roadie-components'
 All spot illustrations default to 48px (token: `sizes.600`) and use semantic color tokens from the illustration palette.
 
 ```tsx
-live
-<View flexDirection='row' gap='400'>
+
+<div flexDirection='row' gap='400'>
   <NoteMusic />
   <HighFive />
-</View>
+</div>
 ```
 
 ### Custom size
@@ -48,15 +48,15 @@ live
 Use the `boxSize` prop to change the illustration size. You should mostly only use sizes between 32px (`sizes.400`) and 128px (`sizes.1600`). Default is 48px (`sizes.600`). If needing smaller sizes in UI you should use iconography instead.
 
 ```tsx
-live
-<View flexDirection='row' gap='400' alignItems='center'>
+
+<div flexDirection='row' gap='400' alignItems='center'>
   <NoteMusic boxSize='400' />
   <NoteMusic />
   <NoteMusic boxSize='800' />
   <NoteMusic boxSize='1000' />
   <NoteMusic boxSize='1200' />
   <NoteMusic boxSize='1600' />
-</View>
+</div>
 ```
 
 ### With outline
@@ -64,11 +64,11 @@ live
 Use the `outline` prop to show or hide the white outline layer. By default, the outline is hidden.
 
 ```tsx
-live
-<View flexDirection='row' gap='400' bg='neutral.surface.strong' p='400' borderRadius='md'>
+
+<div flexDirection='row' gap='400' bg='neutral.surface.strong' p='400' borderRadius='md'>
   <NoteMusic />
   <NoteMusic outline />
-</View>
+</div>
 ```
 
 ### With CSS props
@@ -76,7 +76,7 @@ live
 Spot illustrations accept all PandaCSS style props for layout and positioning.
 
 ```tsx
-live
+
 <NoteMusic outline boxSize='1000' background='accent.surface' p='200' borderRadius='md' />
 ```
 

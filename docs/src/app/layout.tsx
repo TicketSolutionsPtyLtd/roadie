@@ -7,9 +7,6 @@ import { FooterNav } from '@/components/FooterNav'
 import { Navigation } from '@/components/Navigation'
 import { getAssetPath } from '@/utils/getAssetPath'
 
-import { View } from '@oztix/roadie-components'
-import { css } from '@oztix/roadie-core/css'
-
 import './globals.css'
 
 interface ComponentMetadata {
@@ -26,7 +23,6 @@ async function getNavigationItems() {
   const overviewDir = join(process.cwd(), 'src/app/overview')
   const tokensDir = join(process.cwd(), 'src/app/tokens')
 
-  // Helper function to read metadata from MDX files
   async function getMetadataFromFile(
     filePath: string,
     defaultTitle: string
@@ -50,15 +46,13 @@ async function getNavigationItems() {
     }
   }
 
-  // Get overview pages metadata
   const gettingStartedMetadata = await getMetadataFromFile(
     join(overviewDir, 'getting-started/page.mdx'),
     'Getting Started'
   )
 
-  // Get foundations pages metadata
   const foundationEntries = await readdir(foundationsDir, {
-    withFileTypes: true
+    withFileTypes: true,
   })
   const foundationPages = (
     await Promise.all(
@@ -69,7 +63,6 @@ async function getNavigationItems() {
             join(foundationsDir, dir.name, 'page.mdx'),
             dir.name
           )
-          // If MDX file doesn't exist or has no metadata, try TSX file
           if (!metadata) {
             const tsxMetadata = await getMetadataFromFile(
               join(foundationsDir, dir.name, 'page.tsx'),
@@ -78,18 +71,17 @@ async function getNavigationItems() {
             if (!tsxMetadata) return null
             return {
               title: tsxMetadata.title,
-              href: `/foundations/${dir.name}`
+              href: `/foundations/${dir.name}`,
             }
           }
           return {
             title: metadata.title,
-            href: `/foundations/${dir.name}`
+            href: `/foundations/${dir.name}`,
           }
         })
     )
   ).filter((page): page is { title: string; href: string } => page !== null)
 
-  // Get component pages metadata
   const entries = await readdir(componentsDir, { withFileTypes: true })
   const components = await Promise.all(
     entries
@@ -118,7 +110,7 @@ async function getNavigationItems() {
             title: dir.name,
             description: '',
             status: 'unknown',
-            category: 'Other'
+            category: 'Other',
           }
 
           if (metadataMatch) {
@@ -141,13 +133,11 @@ async function getNavigationItems() {
     (comp): comp is ComponentMetadata => comp !== null
   )
 
-  // Get index page metadata
   const indexMetadata = await getMetadataFromFile(
     join(process.cwd(), 'src/app/page.mdx'),
     'Introduction'
   )
 
-  // Get tokens pages metadata
   const tokensMetadata = await getMetadataFromFile(
     join(tokensDir, 'page.mdx'),
     'Design Tokens'
@@ -168,39 +158,38 @@ async function getNavigationItems() {
         gettingStartedMetadata
           ? {
               title: gettingStartedMetadata.title,
-              href: '/overview/getting-started'
+              href: '/overview/getting-started',
             }
           : { title: 'Getting Started', href: '/overview/getting-started' },
         {
           title: 'Changelog',
-          href: 'https://github.com/ticketsolutionsptyltd/roadie/blob/main/packages/components/CHANGELOG.md'
-        }
-      ]
-    }
+          href: 'https://github.com/ticketsolutionsptyltd/roadie/blob/main/packages/components/CHANGELOG.md',
+        },
+      ],
+    },
   ]
 
   if (foundationPages.length > 0) {
     navigationItems.push({
       title: 'Foundations',
       href: '/foundations',
-      items: foundationPages
+      items: foundationPages,
     })
   }
 
-  // Add tokens section
   navigationItems.push({
     title: 'Tokens',
     href: '/tokens',
     items: [
       {
         title: tokensMetadata?.title || 'Overview',
-        href: '/tokens'
+        href: '/tokens',
       },
       {
         title: tokensReferenceMetadata?.title || 'Reference',
-        href: '/tokens/reference'
-      }
-    ]
+        href: '/tokens/reference',
+      },
+    ],
   })
 
   if (validComponents.length > 0) {
@@ -210,15 +199,15 @@ async function getNavigationItems() {
       items: [
         {
           title: 'Overview',
-          href: '/components'
+          href: '/components',
         },
         ...validComponents
           .sort((a, b) => a.title.localeCompare(b.title))
           .map((comp) => ({
             title: comp.title,
-            href: `/components/${comp.name}`
-          }))
-      ]
+            href: `/components/${comp.name}`,
+          })),
+      ],
     })
   }
 
@@ -231,27 +220,20 @@ export const metadata: Metadata = {
     'A comprehensive collection of reusable components for building consistent user interfaces across Oztix applications.',
   icons: {
     icon: getAssetPath('/favicon.png'),
-    apple: getAssetPath('/favicon.png')
-  }
+    apple: getAssetPath('/favicon.png'),
+  },
 }
 
 export default async function RootLayout({
-  children
+  children,
 }: {
   children: React.ReactNode
 }) {
   const items = await getNavigationItems()
 
   return (
-    <html lang='en' suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
-        {/*
-          Inline theme script must run synchronously before any content loads
-          to prevent flash of wrong theme. This script:
-          1. Checks localStorage for saved theme preference
-          2. Falls back to system color scheme preference
-          3. Sets theme before any content is painted
-        */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -262,29 +244,18 @@ export default async function RootLayout({
                 document.documentElement.classList.toggle('dark', theme === 'dark')
                 window.__theme = theme
               } catch {}
-            `
+            `,
           }}
         />
       </head>
-      <body
-        className={css({
-          overflowX: 'hidden'
-        })}
-      >
-        <View minH='screen' maxW='100vw' flexDirection='row'>
+      <body className="overflow-x-hidden">
+        <div className="min-h-screen max-w-[100vw] flex flex-row">
           <Navigation items={items} />
-          <View
-            as='main'
-            flex='1'
-            px={{ base: '300', md: '500', lg: '600' }}
-            py={{ base: '300', md: '600', lg: '1000' }}
-            maxW='breakpoint-lg'
-            mx='auto'
-          >
+          <main className="flex-1 px-4 md:px-8 lg:px-12 py-4 md:py-12 lg:py-20 max-w-4xl mx-auto">
             {children}
             <FooterNav items={items} />
-          </View>
-        </View>
+          </main>
+        </div>
       </body>
     </html>
   )

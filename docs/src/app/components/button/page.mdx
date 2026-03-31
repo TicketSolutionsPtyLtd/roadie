@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 import { Button } from '@oztix/roadie-components'
-import { css } from '@oztix/roadie-core/css'
+
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
@@ -29,8 +29,8 @@ import { Button } from '@oztix/roadie-components'
 Different button emphasiss for various contexts:
 
 ```tsx
-live
-<View gap='200' flexDirection='row'>
+
+<div gap='200' flexDirection='row'>
   <Button emphasis='strong'>
     Strong Button
   </Button>
@@ -43,19 +43,19 @@ live
   <Button emphasis='subtler'>
     Subtler Button
   </Button>
-</View>
+</div>
 ```
 
 ### Sizes
 
 ```tsx
-live
-<View gap='200' flexDirection='row' alignItems='center'>
+
+<div gap='200' flexDirection='row' alignItems='center'>
   <Button size='xs'>Extra Small</Button>
   <Button size='sm'>Small</Button>
   <Button size='md'>Medium (Default)</Button>
   <Button size='lg'>Large</Button>
-</View>
+</div>
 ```
 
 ### Colors
@@ -73,9 +73,9 @@ Each color palette is designed for specific use cases:
 - `danger`: Destructive or high-risk actions
 
 ```tsx
-live
-<View gap='200'>
-  <View flexDirection='row' gap='200'>
+
+<div gap='200'>
+  <div flexDirection='row' gap='200'>
     <Button emphasis='strong' colorPalette='neutral'>
       Neutral
     </Button>
@@ -97,8 +97,8 @@ live
     <Button emphasis='strong' colorPalette='danger'>
       Danger
     </Button>
-  </View>
-  <View flexDirection='row' gap='200'>
+  </div>
+  <div flexDirection='row' gap='200'>
     <Button emphasis='default' colorPalette='neutral'>
       Neutral
     </Button>
@@ -120,8 +120,8 @@ live
     <Button emphasis='default' colorPalette='danger'>
       Danger
     </Button>
-  </View>
-  <View flexDirection='row' gap='200'>
+  </div>
+  <div flexDirection='row' gap='200'>
     <Button emphasis='subtle' colorPalette='neutral'>
       Neutral
     </Button>
@@ -143,8 +143,8 @@ live
     <Button emphasis='subtle' colorPalette='danger'>
       Danger
     </Button>
-  </View>
-  <View flexDirection='row' gap='200'>
+  </div>
+  <div flexDirection='row' gap='200'>
     <Button emphasis='subtler' colorPalette='neutral'>
       Neutral
     </Button>
@@ -166,14 +166,14 @@ live
     <Button emphasis='subtler' colorPalette='danger'>
       Danger
     </Button>
-  </View>
-</View>
+  </div>
+</div>
 ```
 
 ## Usage
 
 ```tsx
-live
+
 <Button onClick={() => alert('Button pressed')}>
   Click me
 </Button>

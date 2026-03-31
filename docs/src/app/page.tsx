@@ -2,267 +2,126 @@ import Link from 'next/link'
 
 import { Accessibility, Box, Moon, Palette, Shapes, Wand2 } from 'lucide-react'
 
-import { Button, Heading, Text, View } from '@oztix/roadie-components'
+import { Button, Heading, Text } from '@oztix/roadie-components'
 
 export default function Home() {
   return (
-    <View as='main' maxW='breakpoint.lg' mx='auto' py='400' gap='1000'>
+    <main className="max-w-4xl mx-auto py-8 flex flex-col gap-20">
       {/* Hero Section */}
-      <View as='section' gap='200'>
-        <Heading as='h1' textStyle='display.prose.1'>
+      <section className="flex flex-col gap-3">
+        <Heading as="h1" size="4xl">
           Roadie design system
         </Heading>
-        <Text textStyle='prose.lead'>
+        <Text size="lg" emphasis="subtle">
           A comprehensive design system for building consistent, accessible, and
           beautiful user interfaces across Oztix applications.
         </Text>
-      </View>
+      </section>
 
       {/* Core Sections */}
-      <View as='section' display='flex' flexDirection='column' gap='400'>
-        {/* Foundations and Tokens row */}
-        <View
-          display='grid'
-          gridTemplateColumns={{
-            base: '1fr',
-            lg: 'repeat(2, 1fr)'
-          }}
-          gap='400'
-        >
+      <section className="flex flex-col gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <SectionCard
             icon={<Palette size={24} />}
-            title='Foundations'
-            description='Essential design foundations including typography, spacing, and color systems.'
+            title="Foundations"
+            description="Essential design foundations including typography, spacing, and color systems."
             items={[
-              {
-                label: 'Colors',
-                href: '/foundations/colors',
-                description: 'Color palette and usage'
-              },
-              {
-                label: 'Spacing',
-                href: '/foundations/spacing',
-                description: 'Layout and spacing scale'
-              },
-              {
-                label: 'Typography',
-                href: '/foundations/typography',
-                description: 'Text styles and font system'
-              }
+              { label: 'Colors', href: '/foundations/colors', description: 'Color palette and usage' },
+              { label: 'Spacing', href: '/foundations/spacing', description: 'Layout and spacing scale' },
+              { label: 'Typography', href: '/foundations/typography', description: 'Text styles and font system' },
             ]}
           />
           <SectionCard
             icon={<Shapes size={24} />}
-            title='Design tokens'
-            description='Semantic design tokens for consistent theming and styling.'
+            title="Design tokens"
+            description="Semantic design tokens for consistent theming and styling."
             items={[
-              {
-                label: 'Overview',
-                href: '/tokens',
-                description: 'Introduction and usage guide'
-              },
-              {
-                label: 'Reference',
-                href: '/tokens/reference',
-                description: 'Complete token documentation'
-              }
+              { label: 'Overview', href: '/tokens', description: 'Introduction and usage guide' },
+              { label: 'Reference', href: '/tokens/reference', description: 'Complete token documentation' },
             ]}
           />
-        </View>
+        </div>
 
-        {/* Components row */}
         <SectionCard
           icon={<Box size={24} />}
-          title='Components'
-          description='A comprehensive library of accessible, customizable React components.'
+          title="Components"
+          description="A comprehensive library of accessible, customizable React components."
           items={[
-            {
-              label: 'View',
-              href: '/components/view',
-              description: 'Flexible layout primitive'
-            },
-            {
-              label: 'Text',
-              href: '/components/text',
-              description: 'Typography component'
-            },
-            {
-              label: 'Heading',
-              href: '/components/heading',
-              description: 'Heading component'
-            },
-            {
-              label: 'Code',
-              href: '/components/code',
-              description: 'Code and syntax highlighting'
-            },
-            {
-              label: 'Button',
-              href: '/components/button',
-              description: 'Interactive button styles'
-            },
-            {
-              label: 'View all',
-              href: '/components',
-              description: 'All components'
-            }
+            { label: 'Text', href: '/components/text', description: 'Typography component' },
+            { label: 'Heading', href: '/components/heading', description: 'Heading component' },
+            { label: 'Code', href: '/components/code', description: 'Code and syntax highlighting' },
+            { label: 'Button', href: '/components/button', description: 'Interactive button styles' },
+            { label: 'View all', href: '/components', description: 'All components' },
           ]}
         />
-      </View>
+      </section>
 
       {/* Key Features */}
-      <View as='section' gap='400'>
-        <View gap='200'>
-          <Heading as='h2' textStyle='display.prose.4'>
-            Key features
-          </Heading>
-          <Text textStyle='prose.lead' emphasis='subtle'>
-            Discover the powerful features that make Roadie a complete design
-            system solution
+      <section className="flex flex-col gap-8">
+        <div className="flex flex-col gap-3">
+          <Heading as="h2" size="2xl">Key features</Heading>
+          <Text size="lg" emphasis="subtle">
+            Discover the powerful features that make Roadie a complete design system solution
           </Text>
-        </View>
-        <View
-          display='grid'
-          gridTemplateColumns='repeat(auto-fit, minmax(250px, 1fr))'
-          gap='400'
-        >
-          <FeatureCard
-            icon={<Wand2 size={24} />}
-            title='Type-safe styling'
-            description='Built with PandaCSS for type-safe, performant styling with semantic tokens.'
-          />
-          <FeatureCard
-            icon={<Accessibility size={24} />}
-            title='Accessible by default'
-            description='Components built on react-aria-components for robust accessibility support.'
-          />
-          <FeatureCard
-            icon={<Moon size={24} />}
-            title='Dark mode ready'
-            description='Semantic tokens and themes support light and dark modes out of the box.'
-          />
-        </View>
-      </View>
+        </div>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-8">
+          <FeatureCard icon={<Wand2 size={24} />} title="Tailwind-native styling" description="Built with Tailwind CSS v4 and custom @utility directives for intent/emphasis theming." />
+          <FeatureCard icon={<Accessibility size={24} />} title="Accessible by default" description="Components built on Base UI for robust accessibility support." />
+          <FeatureCard icon={<Moon size={24} />} title="Dark mode ready" description="OKLCH color scales with automatic dark mode via CSS custom properties." />
+        </div>
+      </section>
 
       {/* Getting Started */}
-      <View
-        as='section'
-        gap='200'
-        alignItems='flex-start'
-        bg='neutral.surface.subtle'
-        p='400'
-        borderRadius='lg'
-      >
-        <View gap='200'>
-          <Heading as='h2' textStyle='display.prose.3'>
-            Get started
-          </Heading>
-          <Text textStyle='prose.lead' emphasis='subtle'>
-            Ready to build? Follow our guide to start using Roadie in your
-            project.
-          </Text>
-        </View>
-        <Link href='/overview/getting-started'>
-          <Button colorPalette='accent' emphasis='strong'>
-            Getting started guide
-          </Button>
-        </Link>
-      </View>
-    </View>
+      <section className="flex flex-col gap-3 items-start emphasis-subtle-surface p-8 rounded-lg">
+        <Heading as="h2" size="2xl">Get started</Heading>
+        <Text size="lg" emphasis="subtle">
+          Ready to build? Follow our guide to start using Roadie in your project.
+        </Text>
+        <Button intent="accent" emphasis="strong" render={<Link href="/overview/getting-started" />}>
+          Getting started guide
+        </Button>
+      </section>
+    </main>
   )
 }
 
-function FeatureCard({
-  icon,
-  title,
-  description
-}: {
-  icon: React.ReactNode
-  title: string
-  description: string
-}) {
+function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
   return (
-    <View gap='200'>
-      <View display='flex' gap='200' color='accent.fg'>
+    <div className="flex flex-col gap-3">
+      <div className="flex gap-3 text-accent-11">
         {icon}
-        <Heading as='h3' textStyle='display.ui.4'>
-          {title}
-        </Heading>
-      </View>
-      <Text emphasis='subtle' fontSize='md' lineHeight='normal'>
-        {description}
-      </Text>
-    </View>
+        <Heading as="h3" size="lg">{title}</Heading>
+      </div>
+      <Text emphasis="subtle">{description}</Text>
+    </div>
   )
 }
 
-function SectionCard({
-  icon,
-  title,
-  description,
-  items
-}: {
+function SectionCard({ icon, title, description, items }: {
   icon: React.ReactNode
   title: string
   description: string
   items: Array<{ label: string; href: string; description: string }>
 }) {
   return (
-    <View
-      pt='400'
-      pb='200'
-      borderRadius='lg'
-      border='1px solid'
-      borderColor='neutral.border.subtle'
-      bg='neutral.surface'
-    >
-      <View gap='100' px='400'>
-        <View display='flex' gap='200'>
+    <div className="pt-8 pb-4 rounded-lg border border-neutral-7 bg-neutral-3">
+      <div className="flex flex-col gap-1 px-8">
+        <div className="flex gap-3">
           {icon}
-          <Heading as='h3' textStyle='display.ui.4'>
-            {title}
-          </Heading>
-        </View>
-        <Text emphasis='subtle' fontSize='sm' lineHeight='normal'>
-          {description}
-        </Text>
-      </View>
-      <View
-        as='ul'
-        pt='200'
-        px='200'
-        display='grid'
-        gridTemplateColumns={{
-          base: '1fr',
-          md: items.length > 2 ? 'repeat(auto-fit, minmax(250px, 1fr))' : '1fr'
-        }}
-      >
+          <Heading as="h3" size="lg">{title}</Heading>
+        </div>
+        <Text emphasis="subtle" size="sm">{description}</Text>
+      </div>
+      <ul className={`pt-4 px-4 grid grid-cols-1 ${items.length > 2 ? 'md:grid-cols-[repeat(auto-fit,minmax(250px,1fr))]' : ''}`}>
         {items.map((item) => (
-          <View key={item.href} as='li'>
-            <View
-              as={Link}
-              href={item.href}
-              display='flex'
-              flexDirection='column'
-              gap='050'
-              p='200'
-              borderRadius='md'
-              height='full'
-              transition='all 0.2s'
-              _hover={{
-                bg: 'neutral.surface.subtle'
-              }}
-            >
-              <Heading colorPalette='accent' textStyle='display.ui.6'>
-                {item.label}
-              </Heading>
-              <Text fontSize='sm' emphasis='subtle'>
-                {item.description}
-              </Text>
-            </View>
-          </View>
+          <li key={item.href}>
+            <Link href={item.href} className="flex flex-col gap-0.5 p-4 rounded-md h-full transition-all hover:bg-neutral-4 no-underline">
+              <Heading as="h4" size="base" intent="accent">{item.label}</Heading>
+              <Text size="sm" emphasis="subtle">{item.description}</Text>
+            </Link>
+          </li>
         ))}
-      </View>
-    </View>
+      </ul>
+    </div>
   )
 }

@@ -60,14 +60,14 @@ Add the following scripts to your `package.json`:
 Import and use components from `@oztix/roadie-components`:
 
 ```tsx
-import { Button, Text, View } from '@oztix/roadie-components'
+import { Button, Text } from '@oztix/roadie-components'
 
 function MyComponent() {
   return (
-    <View>
+    <div>
       <Text>Hello World</Text>
       <Button>Click me</Button>
-    </View>
+    </div>
   )
 }
 ```
@@ -77,7 +77,7 @@ function MyComponent() {
 You can use the CSS utility functions from `@oztix/roadie-core`:
 
 ```tsx
-import { css } from '@oztix/roadie-core/css'
+
 
 function MyComponent() {
   return (
@@ -101,14 +101,14 @@ function MyComponent() {
 Roadie provides common layout patterns through layout components:
 
 ```tsx
-import { View } from '@oztix/roadie-core/jsx'
+
 
 function MyComponent() {
   return (
-    <View gap='400'>
+    <div gap='400'>
       <div>Item 1</div>
       <div>Item 2</div>
-    </View>
+    </div>
   )
 }
 ```

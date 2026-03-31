@@ -1,31 +1,24 @@
 import Link from 'next/link'
 
-import { Button, Heading, Text, View } from '@oztix/roadie-components'
+import { Button, Heading, Text } from '@oztix/roadie-components'
 
 export default function NotFound() {
   return (
-    <View
-      as='main'
-      gap='400'
-      textAlign='center'
-      alignItems='center'
-      justifyContent='center'
-      minHeight='70vh'
-    >
-      <View as='header' gap='200'>
-        <Heading as='h1' textStyle='display.prose.1' color='neutral.fg.subtle'>
+    <main className="flex flex-col gap-8 text-center items-center justify-center min-h-[70vh]">
+      <header className="flex flex-col gap-3">
+        <Heading as="h1" size="4xl" emphasis="subtle">
           404
         </Heading>
-        <Heading as='h2' textStyle='display.prose.2'>
+        <Heading as="h2" size="3xl">
           Page Not Found
         </Heading>
-      </View>
-      <Text textStyle='prose.lead' emphasis='subtle'>
+      </header>
+      <Text emphasis="subtle" size="lg">
         The page you&apos;re looking for doesn&apos;t exist or has been moved.
       </Text>
-      <Button asChild size='lg'>
-        <Link href='/'>Return home</Link>
+      <Button size="lg" render={<Link href="/" />}>
+        Return home
       </Button>
-    </View>
+    </main>
   )
 }
