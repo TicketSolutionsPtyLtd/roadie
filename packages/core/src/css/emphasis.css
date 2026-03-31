@@ -113,6 +113,7 @@
 @utility emphasis-default {
   background-color: var(--intent-surface-default);
   color: var(--intent-fg-default);
+  border: 1px solid var(--intent-border-subtle);
 
   &.is-interactive:hover,
   &.is-interactive:focus-visible {

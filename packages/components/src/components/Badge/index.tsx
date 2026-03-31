@@ -19,8 +19,7 @@ export const badgeVariants = cva(
       },
       emphasis: {
         strong: 'emphasis-strong',
-        default:
-          'emphasis-default-surface emphasis-subtle-fg emphasis-subtle-border',
+        default: 'emphasis-default emphasis-subtle-fg',
         subtle: 'emphasis-subtle emphasis-subtle-fg',
         subtler: 'emphasis-subtler-surface emphasis-subtle-fg',
       },
