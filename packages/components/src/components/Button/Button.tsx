@@ -39,7 +39,7 @@ export const buttonVariants = cva(
       }
     },
     defaultVariants: {
-      intent: 'brand',
+      intent: 'neutral',
       emphasis: 'default',
       size: 'md'
     }

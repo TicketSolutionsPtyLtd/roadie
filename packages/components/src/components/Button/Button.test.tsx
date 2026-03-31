@@ -10,7 +10,7 @@ describe('Button', () => {
     const button = getByText('Click me')
     expect(button).toBeInTheDocument()
     expect(button.tagName.toLowerCase()).toBe('button')
-    expect(button).toHaveClass('intent-brand')
+    expect(button).toHaveClass('intent-neutral')
     expect(button).toHaveClass('is-interactive')
   })
 
