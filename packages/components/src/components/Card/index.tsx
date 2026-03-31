@@ -22,7 +22,7 @@ export const cardVariants = cva('rounded-lg', {
     }
   },
   defaultVariants: {
-    emphasis: 'raised'
+    emphasis: 'default'
   }
 })
 
