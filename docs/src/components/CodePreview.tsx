@@ -4,13 +4,13 @@ import { useEffect, useState } from 'react'
 
 import Link from 'next/link'
 
-import { Copy } from 'lucide-react'
+import { CheckCircle, Copy, XCircle, Info, Warning, Star, Plus, Minus, CaretDown, CaretUp, ArrowRight, ArrowLeft, Heart, MagnifyingGlass, Gear, Trash, PencilSimple, Eye, EyeSlash } from '@phosphor-icons/react'
 import { Highlight, themes } from 'prism-react-renderer'
 import { LiveEditor, LiveError, LivePreview, LiveProvider } from 'react-live'
-
-import * as PhosphorIcons from '@phosphor-icons/react/bold'
 import * as RoadieComponents from '@oztix/roadie-components'
 import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
+
+const PhosphorIcons = { CheckCircle, XCircle, Info, Warning, Star, Plus, Minus, CaretDown, CaretUp, ArrowRight, ArrowLeft, Heart, MagnifyingGlass, Gear, Trash, PencilSimple, Eye, EyeSlash }
 
 const scope = {
   ...RoadieComponents,
@@ -55,7 +55,7 @@ function CopyButton({ code }: { code: string }) {
         aria-label="Copy code to clipboard"
       >
         {copied && 'Copied!'}
-        <Copy size={16} />
+        <Copy size={16} weight='bold' />
       </Button>
     </div>
   )

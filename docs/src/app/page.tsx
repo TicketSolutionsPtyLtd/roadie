@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-import { Accessibility, Box, Moon, Palette, Shapes, Wand2 } from 'lucide-react'
+import { Cube, MagicWand, Moon, Palette, Shapes, WheelchairMotion } from '@phosphor-icons/react'
 
 import { Button, Heading, Text } from '@oztix/roadie-components'
 
@@ -22,7 +22,7 @@ export default function Home() {
       <section className="flex flex-col gap-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <SectionCard
-            icon={<Palette size={24} />}
+            icon={<Palette size={24} weight='bold' />}
             title="Foundations"
             description="Essential design foundations including typography, spacing, and color systems."
             items={[
@@ -32,7 +32,7 @@ export default function Home() {
             ]}
           />
           <SectionCard
-            icon={<Shapes size={24} />}
+            icon={<Shapes size={24} weight='bold' />}
             title="Design tokens"
             description="Semantic design tokens for consistent theming and styling."
             items={[
@@ -43,7 +43,7 @@ export default function Home() {
         </div>
 
         <SectionCard
-          icon={<Box size={24} />}
+          icon={<Cube size={24} weight='bold' />}
           title="Components"
           description="A comprehensive library of accessible, customizable React components."
           items={[
@@ -65,9 +65,9 @@ export default function Home() {
           </Text>
         </div>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-8">
-          <FeatureCard icon={<Wand2 size={24} />} title="Tailwind-native styling" description="Built with Tailwind CSS v4 and custom @utility directives for intent/emphasis theming." />
-          <FeatureCard icon={<Accessibility size={24} />} title="Accessible by default" description="Components built on Base UI for robust accessibility support." />
-          <FeatureCard icon={<Moon size={24} />} title="Dark mode ready" description="OKLCH color scales with automatic dark mode via CSS custom properties." />
+          <FeatureCard icon={<MagicWand size={24} weight='bold' />} title="Tailwind-native styling" description="Built with Tailwind CSS v4 and custom @utility directives for intent/emphasis theming." />
+          <FeatureCard icon={<WheelchairMotion size={24} weight='bold' />} title="Accessible by default" description="Components built on Base UI for robust accessibility support." />
+          <FeatureCard icon={<Moon size={24} weight='bold' />} title="Dark mode ready" description="OKLCH color scales with automatic dark mode via CSS custom properties." />
         </div>
       </section>
 

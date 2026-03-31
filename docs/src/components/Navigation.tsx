@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 
-import { Moon, Sun } from 'lucide-react'
+import { Moon, Sun } from '@phosphor-icons/react'
 
 import { Image } from '@/components/Image'
 
@@ -58,7 +58,7 @@ function ThemeToggle() {
     <Button emphasis="subtler" size="sm" onClick={toggle}
       aria-label={`Switch to ${colorMode === 'light' ? 'dark' : 'light'} mode`}
     >
-      {colorMode === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+      {colorMode === 'light' ? <Moon size={16} weight='bold' /> : <Sun size={16} weight='bold' />}
       <Text as="span" size="sm">{colorMode === 'light' ? 'Dark' : 'Light'} mode</Text>
     </Button>
   )

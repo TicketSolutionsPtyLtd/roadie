@@ -24,38 +24,34 @@ import { IconButton } from '@oztix/roadie-components'
 IconButton requires an `aria-label` for accessibility since it typically does not contain visible text.
 
 ```tsx-live
-
 <div className='flex flex-row flex-wrap gap-2'>
   <IconButton aria-label='Add item' emphasis='strong' intent='accent'>
-    +
+    <Plus weight='bold' />
   </IconButton>
   <IconButton aria-label='Edit item' emphasis='default'>
-    ✏️
+    <PencilSimple weight='bold' />
   </IconButton>
   <IconButton aria-label='Delete item' emphasis='subtle' intent='danger'>
-    ×
+    <Trash weight='bold' />
   </IconButton>
 </div>
 ```
 
 ### Emphasis
 
-Different button emphasis levels for various contexts:
-
 ```tsx-live
-
 <div className='flex flex-row flex-wrap gap-2'>
   <IconButton aria-label='Strong' emphasis='strong'>
-    ★
+    <Star weight='bold' />
   </IconButton>
   <IconButton aria-label='Default' emphasis='default'>
-    ★
+    <Star weight='bold' />
   </IconButton>
   <IconButton aria-label='Subtle' emphasis='subtle'>
-    ★
+    <Star weight='bold' />
   </IconButton>
   <IconButton aria-label='Subtler' emphasis='subtler'>
-    ★
+    <Star weight='bold' />
   </IconButton>
 </div>
 ```
@@ -65,55 +61,43 @@ Different button emphasis levels for various contexts:
 IconButton maintains square proportions across all sizes. The default size is `icon-md`.
 
 ```tsx-live
-
 <div className='flex flex-row flex-wrap items-center gap-2'>
   <IconButton aria-label='Extra small' size='icon-xs'>
-    ✓
+    <Heart weight='bold' />
   </IconButton>
   <IconButton aria-label='Small' size='icon-sm'>
-    ✓
+    <Heart weight='bold' />
   </IconButton>
   <IconButton aria-label='Medium' size='icon-md'>
-    ✓
+    <Heart weight='bold' />
   </IconButton>
   <IconButton aria-label='Large' size='icon-lg'>
-    ✓
+    <Heart weight='bold' />
   </IconButton>
 </div>
 ```
 
 ### Intents
 
-Each intent is designed for specific use cases:
-
-- `neutral`: Default for most actions
-- `accent`: Primary or highlighted actions
-- `brand`: Brand-specific actions
-- `info`: Informational or help-related actions
-- `success`: Positive or completion actions
-- `warning`: Cautionary actions
-- `danger`: Destructive or high-risk actions
-
 ```tsx-live
-
 <div className='flex flex-col gap-2'>
   <div className='flex flex-row flex-wrap gap-2'>
-    <IconButton aria-label='Neutral' emphasis='strong' intent='neutral'>✓</IconButton>
-    <IconButton aria-label='Accent' emphasis='strong' intent='accent'>✓</IconButton>
-    <IconButton aria-label='Brand' emphasis='strong' intent='brand'>✓</IconButton>
-    <IconButton aria-label='Info' emphasis='strong' intent='info'>✓</IconButton>
-    <IconButton aria-label='Success' emphasis='strong' intent='success'>✓</IconButton>
-    <IconButton aria-label='Warning' emphasis='strong' intent='warning'>✓</IconButton>
-    <IconButton aria-label='Danger' emphasis='strong' intent='danger'>✓</IconButton>
+    <IconButton aria-label='Neutral' emphasis='strong' intent='neutral'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Accent' emphasis='strong' intent='accent'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Brand' emphasis='strong' intent='brand'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Info' emphasis='strong' intent='info'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Success' emphasis='strong' intent='success'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Warning' emphasis='strong' intent='warning'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Danger' emphasis='strong' intent='danger'><CheckCircle weight='bold' /></IconButton>
   </div>
   <div className='flex flex-row flex-wrap gap-2'>
-    <IconButton aria-label='Neutral' emphasis='default' intent='neutral'>✓</IconButton>
-    <IconButton aria-label='Accent' emphasis='default' intent='accent'>✓</IconButton>
-    <IconButton aria-label='Brand' emphasis='default' intent='brand'>✓</IconButton>
-    <IconButton aria-label='Info' emphasis='default' intent='info'>✓</IconButton>
-    <IconButton aria-label='Success' emphasis='default' intent='success'>✓</IconButton>
-    <IconButton aria-label='Warning' emphasis='default' intent='warning'>✓</IconButton>
-    <IconButton aria-label='Danger' emphasis='default' intent='danger'>✓</IconButton>
+    <IconButton aria-label='Neutral' emphasis='default' intent='neutral'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Accent' emphasis='default' intent='accent'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Brand' emphasis='default' intent='brand'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Info' emphasis='default' intent='info'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Success' emphasis='default' intent='success'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Warning' emphasis='default' intent='warning'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Danger' emphasis='default' intent='danger'><CheckCircle weight='bold' /></IconButton>
   </div>
 </div>
 ```
@@ -121,16 +105,15 @@ Each intent is designed for specific use cases:
 ### Disabled state
 
 ```tsx-live
-
 <div className='flex flex-row flex-wrap gap-2'>
   <IconButton aria-label='Disabled' disabled emphasis='strong' intent='accent'>
-    ✓
+    <Heart weight='bold' />
   </IconButton>
   <IconButton aria-label='Disabled' disabled emphasis='default'>
-    ✓
+    <Heart weight='bold' />
   </IconButton>
   <IconButton aria-label='Disabled' disabled emphasis='subtle'>
-    ✓
+    <Heart weight='bold' />
   </IconButton>
 </div>
 ```
@@ -138,14 +121,13 @@ Each intent is designed for specific use cases:
 ## Usage
 
 ```tsx-live
-
 <IconButton
   aria-label='Add to favorites'
   emphasis='strong'
   intent='accent'
   onClick={() => alert('Added to favorites')}
 >
-  ♥
+  <Heart weight='bold' />
 </IconButton>
 ```
 
@@ -156,11 +138,11 @@ Always provide an `aria-label` prop to describe the button's action, since icon 
 ```tsx-live
 <div className='flex flex-row flex-wrap gap-4 items-center'>
   <div className='flex flex-col gap-1 items-center'>
-    <IconButton aria-label='Close dialog'>×</IconButton>
+    <IconButton aria-label='Close dialog'><XCircle weight='bold' /></IconButton>
     <Text size='xs' emphasis='subtle'>With aria-label</Text>
   </div>
   <div className='flex flex-col gap-1 items-center'>
-    <IconButton aria-label=''>×</IconButton>
+    <IconButton aria-label=''><XCircle weight='bold' /></IconButton>
     <Text size='xs' intent='danger' emphasis='subtle'>Missing label</Text>
   </div>
 </div>
