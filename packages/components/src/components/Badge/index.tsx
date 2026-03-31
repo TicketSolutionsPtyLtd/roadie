@@ -1,11 +1,11 @@
-import type { ComponentProps, ReactNode } from 'react'
+import type { ComponentProps } from 'react'
 
 import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
 export const badgeVariants = cva(
-  'inline-flex items-center justify-center rounded-full font-semibold whitespace-nowrap gap-1 [&_svg]:size-[1em]',
+  'inline-flex items-center justify-center rounded-full font-semibold whitespace-nowrap gap-1 [&_svg]:size-[1em] [&_svg]:shrink-0',
   {
     variants: {
       intent: {
@@ -39,8 +39,6 @@ export const badgeVariants = cva(
 export interface BadgeProps
   extends ComponentProps<'span'>,
     VariantProps<typeof badgeVariants> {
-  /** Icon element rendered before the text (use Phosphor Bold icons) */
-  icon?: ReactNode
   /** Show a dot indicator before the text */
   indicator?: boolean
   /** Animate the indicator with a slow pulse */
@@ -52,7 +50,6 @@ export function Badge({
   intent,
   emphasis,
   size,
-  icon,
   indicator,
   indicatorPulse,
   children,
@@ -71,11 +68,6 @@ export function Badge({
           )}
           aria-hidden="true"
         />
-      )}
-      {icon && (
-        <span className="shrink-0 [&_svg]:fill-current" aria-hidden="true">
-          {icon}
-        </span>
       )}
       {children}
     </span>

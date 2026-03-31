@@ -68,16 +68,16 @@ Use the `indicator` prop to show a dot before the text. Add `indicatorPulse` for
 </div>
 ```
 
-### With icon
+### With icons
 
-Pass any React element as the `icon` prop. Use Phosphor Bold icons for consistency.
+Place icons directly as children. SVGs are automatically sized to match the text.
 
 ```tsx-live
 <div className='flex flex-row flex-wrap gap-2'>
-  <Badge intent='success' icon={<CheckCircle weight='bold' />}>Verified</Badge>
-  <Badge intent='danger' icon={<XCircle weight='bold' />}>Failed</Badge>
-  <Badge intent='info' icon={<Info weight='bold' />}>Info</Badge>
-  <Badge intent='warning' icon={<Warning weight='bold' />}>Caution</Badge>
+  <Badge intent='success'><CheckCircle weight='bold' /> Verified</Badge>
+  <Badge intent='danger'><XCircle weight='bold' /> Failed</Badge>
+  <Badge intent='info'><Info weight='bold' /> Info</Badge>
+  <Badge intent='warning'><Warning weight='bold' /> Caution</Badge>
 </div>
 ```
 
@@ -85,10 +85,10 @@ Pass any React element as the `icon` prop. Use Phosphor Bold icons for consisten
 
 ```tsx-live
 <div className='flex flex-row flex-wrap gap-2'>
-  <Badge emphasis='strong' intent='success' indicator icon={<CheckCircle weight='bold' />}>Published</Badge>
+  <Badge emphasis='strong' intent='success' indicator><CheckCircle weight='bold' /> Published</Badge>
   <Badge emphasis='strong' intent='danger' indicator indicatorPulse>Urgent</Badge>
-  <Badge emphasis='subtle' intent='accent' icon={<Star weight='bold' />}>Featured</Badge>
-  <Badge emphasis='subtler' intent='neutral' size='md'>Draft</Badge>
+  <Badge emphasis='subtle' intent='accent'><Star weight='bold' /> Featured</Badge>
+  <Badge emphasis='subtler' intent='neutral'>Draft</Badge>
 </div>
 ```
 
