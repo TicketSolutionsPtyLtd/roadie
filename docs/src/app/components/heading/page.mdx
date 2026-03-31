@@ -25,7 +25,7 @@ import { Heading } from '@oztix/roadie-components'
 
 Use the `level` prop to set the semantic heading level (renders the corresponding h1-h6 element):
 
-```tsx
+```tsx-live
 
 <div className='flex flex-col gap-2'>
   <Heading level={1}>Heading level 1</Heading>
@@ -41,7 +41,7 @@ Use the `level` prop to set the semantic heading level (renders the correspondin
 
 Use the `size` prop to control the visual size independently from the semantic level:
 
-```tsx
+```tsx-live
 
 <div className='flex flex-col gap-2'>
   <Heading size='xs'>Extra small heading</Heading>
@@ -67,7 +67,7 @@ Each intent is designed for specific use cases:
 - `warning`: Cautionary headings
 - `danger`: Error or critical headings
 
-```tsx
+```tsx-live
 
 <div className='flex flex-col gap-2'>
   <Heading intent='neutral'>Neutral heading</Heading>
@@ -84,7 +84,7 @@ Each intent is designed for specific use cases:
 
 Use the `emphasis` prop to adjust the visual weight of a heading:
 
-```tsx
+```tsx-live
 
 <div className='flex flex-col gap-2'>
   <Heading emphasis='strong'>Strong emphasis heading</Heading>
@@ -99,7 +99,7 @@ Use the `emphasis` prop to adjust the visual weight of a heading:
 
 Use the `as` prop to override the rendered HTML element:
 
-```tsx
+```tsx-live
 
 <Heading as='h1' size='2xl'>Page title rendered as h1</Heading>
 ```

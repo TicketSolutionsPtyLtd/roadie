@@ -70,9 +70,10 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
   }, [])
 
   const theme = colorMode === 'dark' ? customDarkTheme : customLightTheme
-  const isLive =
-    children.startsWith('live') && (language === 'tsx' || language === 'jsx')
-  const trimmedCode = isLive
+  const isLiveLang = language === 'tsx-live' || language === 'jsx-live'
+  const isLivePrefix = children.startsWith('live') && (language === 'tsx' || language === 'jsx')
+  const isLive = isLiveLang || isLivePrefix
+  const trimmedCode = isLivePrefix
     ? children.replace('live', '').trim()
     : children.trim()
 

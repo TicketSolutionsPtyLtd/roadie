@@ -23,7 +23,7 @@ import { IconButton } from '@oztix/roadie-components'
 
 IconButton requires an `aria-label` for accessibility since it typically does not contain visible text.
 
-```tsx
+```tsx-live
 
 <div className='flex flex-row gap-2'>
   <IconButton aria-label='Add item' emphasis='strong' intent='accent'>
@@ -42,7 +42,7 @@ IconButton requires an `aria-label` for accessibility since it typically does no
 
 Different button emphasis levels for various contexts:
 
-```tsx
+```tsx-live
 
 <div className='flex flex-row gap-2'>
   <IconButton aria-label='Strong' emphasis='strong'>
@@ -64,7 +64,7 @@ Different button emphasis levels for various contexts:
 
 IconButton maintains square proportions across all sizes. The default size is `icon-md`.
 
-```tsx
+```tsx-live
 
 <div className='flex flex-row items-center gap-2'>
   <IconButton aria-label='Extra small' size='icon-xs'>
@@ -94,7 +94,7 @@ Each intent is designed for specific use cases:
 - `warning`: Cautionary actions
 - `danger`: Destructive or high-risk actions
 
-```tsx
+```tsx-live
 
 <div className='flex flex-col gap-2'>
   <div className='flex flex-row gap-2'>
@@ -120,7 +120,7 @@ Each intent is designed for specific use cases:
 
 ### Disabled state
 
-```tsx
+```tsx-live
 
 <div className='flex flex-row gap-2'>
   <IconButton aria-label='Disabled' disabled emphasis='strong' intent='accent'>
@@ -137,7 +137,7 @@ Each intent is designed for specific use cases:
 
 ## Usage
 
-```tsx
+```tsx-live
 
 <IconButton
   aria-label='Add to favorites'
@@ -153,7 +153,7 @@ Each intent is designed for specific use cases:
 
 Always provide an `aria-label` prop to describe the button's action, since icon buttons typically do not contain visible text labels.
 
-```tsx
+```tsx-live
 // Good
 <IconButton aria-label='Close dialog'>×</IconButton>
 
