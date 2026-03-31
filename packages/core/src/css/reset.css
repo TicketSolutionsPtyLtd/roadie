@@ -98,6 +98,12 @@
     font-family: var(--font-mono);
   }
 
+  /* Inline code wrapping — prevents long paths from breaking mobile */
+  :not(pre) > code {
+    overflow-wrap: break-word;
+    word-break: break-all;
+  }
+
   /* Isolation for root elements */
   #root,
   #__next {
