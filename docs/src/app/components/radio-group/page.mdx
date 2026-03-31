@@ -1,0 +1,54 @@
+export const metadata = {
+  title: 'Radio group',
+  description: 'A group of radio buttons for selecting a single option from a set',
+  status: 'beta',
+  category: 'Forms',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Radio group
+
+The RadioGroup component provides accessible radio button selection. It
+supports vertical and horizontal layouts, and a card-style appearance for
+richer option displays.
+
+## Import
+
+```tsx
+import { RadioGroup } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Basic radio group
+
+```tsx-live
+<RadioGroup>
+  <RadioGroup.Item value='email' label='Email' />
+  <RadioGroup.Item value='phone' label='Phone' />
+  <RadioGroup.Item value='post' label='Post' />
+</RadioGroup>
+```
+
+### Horizontal direction
+
+```tsx-live
+<RadioGroup direction='horizontal'>
+  <RadioGroup.Item value='small' label='Small' />
+  <RadioGroup.Item value='medium' label='Medium' />
+  <RadioGroup.Item value='large' label='Large' />
+</RadioGroup>
+```
+
+### Card appearance
+
+```tsx-live
+<RadioGroup>
+  <RadioGroup.Item value='standard' appearance='card' label='Standard delivery' />
+  <RadioGroup.Item value='express' appearance='card' label='Express delivery' />
+  <RadioGroup.Item value='overnight' appearance='card' label='Overnight delivery' />
+</RadioGroup>
+```
+
+<PropsDefinitions componentPath='packages/components/src/components/RadioGroup/index.tsx' />

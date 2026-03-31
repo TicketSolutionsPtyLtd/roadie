@@ -1,0 +1,59 @@
+export const metadata = {
+  title: 'Input',
+  description: 'A text input field for collecting user data',
+  status: 'beta',
+  category: 'Forms',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Input
+
+The Input component is a styled text input for collecting user data. It
+supports multiple sizes, emphasis levels, and intent colours.
+
+## Import
+
+```tsx
+import { Input } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Sizes
+
+```tsx-live
+<div className='flex flex-col gap-2'>
+  <Input size='sm' placeholder='Small input' />
+  <Input size='md' placeholder='Medium input (default)' />
+  <Input size='lg' placeholder='Large input' />
+</div>
+```
+
+### Emphasis
+
+```tsx-live
+<div className='flex flex-col gap-2'>
+  <Input emphasis='default' placeholder='Default emphasis' />
+  <Input emphasis='subtle' placeholder='Subtle emphasis' />
+</div>
+```
+
+### Intents
+
+```tsx-live
+<div className='flex flex-col gap-2'>
+  <Input intent='neutral' placeholder='Neutral' />
+  <Input intent='accent' placeholder='Accent' />
+  <Input intent='danger' placeholder='Danger' />
+  <Input intent='success' placeholder='Success' />
+</div>
+```
+
+### Disabled
+
+```tsx-live
+<Input disabled placeholder='Disabled input' />
+```
+
+<PropsDefinitions componentPath='packages/components/src/components/Input/index.tsx' />

@@ -1,0 +1,72 @@
+export const metadata = {
+  title: 'Card',
+  description: 'A container for grouping related content with header, content, and footer sections',
+  status: 'beta',
+  category: 'Data Display',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Card
+
+The Card component is a versatile container for grouping related content. It
+provides header, content, and footer sub-components for structured layouts.
+
+## Import
+
+```tsx
+import { Card } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Basic card
+
+```tsx-live
+<Card>
+  <Card.Header>
+    <Heading size='sm'>Card title</Heading>
+    <Text size='sm'>A short description of the card content.</Text>
+  </Card.Header>
+  <Card.Content>
+    <Text>This is the main content area of the card.</Text>
+  </Card.Content>
+  <Card.Footer>
+    <Button size='sm'>Action</Button>
+  </Card.Footer>
+</Card>
+```
+
+### Emphasis
+
+```tsx-live
+<div className='flex flex-col gap-4'>
+  <Card emphasis='raised'>
+    <Card.Content><Text>Raised (default)</Text></Card.Content>
+  </Card>
+  <Card emphasis='default'>
+    <Card.Content><Text>Default</Text></Card.Content>
+  </Card>
+  <Card emphasis='subtle'>
+    <Card.Content><Text>Subtle</Text></Card.Content>
+  </Card>
+</div>
+```
+
+### Intents
+
+```tsx-live
+<div className='flex flex-col gap-4'>
+  <Card intent='accent'>
+    <Card.Content><Text>Accent card</Text></Card.Content>
+  </Card>
+  <Card intent='success'>
+    <Card.Content><Text>Success card</Text></Card.Content>
+  </Card>
+  <Card intent='danger'>
+    <Card.Content><Text>Danger card</Text></Card.Content>
+  </Card>
+</div>
+```
+
+<PropsDefinitions componentPath='packages/components/src/components/Card/index.tsx' />

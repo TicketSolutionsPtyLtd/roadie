@@ -1,0 +1,64 @@
+export const metadata = {
+  title: 'Breadcrumb',
+  description: 'A navigation aid showing the current page location within a hierarchy',
+  status: 'beta',
+  category: 'Navigation',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Breadcrumb
+
+The Breadcrumb component provides a navigation trail showing the user's
+current location within a hierarchy. It is built with semantic HTML and
+accessible ARIA attributes.
+
+## Import
+
+```tsx
+import { Breadcrumb } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Basic breadcrumb
+
+```tsx-live
+<Breadcrumb>
+  <Breadcrumb.List>
+    <Breadcrumb.Item>
+      <Breadcrumb.Link href='#'>Home</Breadcrumb.Link>
+      <Breadcrumb.Separator />
+    </Breadcrumb.Item>
+    <Breadcrumb.Item>
+      <Breadcrumb.Link href='#'>Components</Breadcrumb.Link>
+      <Breadcrumb.Separator />
+    </Breadcrumb.Item>
+    <Breadcrumb.Item>
+      <Breadcrumb.Current>Breadcrumb</Breadcrumb.Current>
+    </Breadcrumb.Item>
+  </Breadcrumb.List>
+</Breadcrumb>
+```
+
+### Custom separator
+
+```tsx-live
+<Breadcrumb>
+  <Breadcrumb.List>
+    <Breadcrumb.Item>
+      <Breadcrumb.Link href='#'>Home</Breadcrumb.Link>
+      <Breadcrumb.Separator>{'>'}</Breadcrumb.Separator>
+    </Breadcrumb.Item>
+    <Breadcrumb.Item>
+      <Breadcrumb.Link href='#'>Settings</Breadcrumb.Link>
+      <Breadcrumb.Separator>{'>'}</Breadcrumb.Separator>
+    </Breadcrumb.Item>
+    <Breadcrumb.Item>
+      <Breadcrumb.Current>Profile</Breadcrumb.Current>
+    </Breadcrumb.Item>
+  </Breadcrumb.List>
+</Breadcrumb>
+```
+
+<PropsDefinitions componentPath='packages/components/src/components/Breadcrumb/index.tsx' />

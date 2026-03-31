@@ -1,0 +1,62 @@
+export const metadata = {
+  title: 'Field',
+  description: 'A compound component for labelled form fields with helper and error text',
+  status: 'beta',
+  category: 'Forms',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Field
+
+The Field component is a compound component that groups a label, input, and
+helper or error text into a cohesive form field.
+
+## Import
+
+```tsx
+import { Field } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Basic field
+
+```tsx-live
+<Field>
+  <Field.Label htmlFor='name'>Name</Field.Label>
+  <Field.Input id='name' placeholder='Enter your name' />
+</Field>
+```
+
+### With helper text
+
+```tsx-live
+<Field>
+  <Field.Label htmlFor='email'>Email</Field.Label>
+  <Field.Input id='email' type='email' placeholder='you@example.com' />
+  <Field.HelperText>We will never share your email.</Field.HelperText>
+</Field>
+```
+
+### With error text
+
+```tsx-live
+<Field>
+  <Field.Label htmlFor='password'>Password</Field.Label>
+  <Field.Input id='password' type='password' aria-invalid='true' />
+  <Field.ErrorText>Password must be at least 8 characters.</Field.ErrorText>
+</Field>
+```
+
+### With textarea
+
+```tsx-live
+<Field>
+  <Field.Label htmlFor='bio'>Bio</Field.Label>
+  <Field.Textarea id='bio' placeholder='Tell us about yourself' />
+  <Field.HelperText>Maximum 200 characters.</Field.HelperText>
+</Field>
+```
+
+<PropsDefinitions componentPath='packages/components/src/components/Field/index.tsx' />

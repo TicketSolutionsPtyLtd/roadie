@@ -1,0 +1,51 @@
+export const metadata = {
+  title: 'Fieldset',
+  description: 'A compound component for grouping related form fields with a legend',
+  status: 'beta',
+  category: 'Forms',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Fieldset
+
+The Fieldset component groups related form controls under a shared legend. It
+provides helper and error text slots for group-level messaging.
+
+## Import
+
+```tsx
+import { Fieldset } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Basic fieldset
+
+```tsx-live
+<Fieldset>
+  <Fieldset.Legend>Contact information</Fieldset.Legend>
+  <Fieldset.HelperText>Provide your preferred contact details.</Fieldset.HelperText>
+  <div className='flex flex-col gap-3 mt-3'>
+    <Field>
+      <Field.Label htmlFor='fs-name'>Name</Field.Label>
+      <Field.Input id='fs-name' placeholder='Your name' />
+    </Field>
+    <Field>
+      <Field.Label htmlFor='fs-email'>Email</Field.Label>
+      <Field.Input id='fs-email' type='email' placeholder='you@example.com' />
+    </Field>
+  </div>
+</Fieldset>
+```
+
+### With error text
+
+```tsx-live
+<Fieldset>
+  <Fieldset.Legend>Preferences</Fieldset.Legend>
+  <Fieldset.ErrorText>Please select at least one option.</Fieldset.ErrorText>
+</Fieldset>
+```
+
+<PropsDefinitions componentPath='packages/components/src/components/Fieldset/index.tsx' />

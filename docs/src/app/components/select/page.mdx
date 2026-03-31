@@ -1,0 +1,81 @@
+export const metadata = {
+  title: 'Select',
+  description: 'A dropdown select component for choosing from a list of options',
+  status: 'beta',
+  category: 'Forms',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Select
+
+The Select component provides an accessible dropdown for choosing from a list
+of options. It is built on Base UI primitives and supports multiple sizes,
+emphasis levels, and intents.
+
+## Import
+
+```tsx
+import { Select } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Basic select
+
+```tsx-live
+<Select defaultValue='apple'>
+  <Select.Trigger />
+  <Select.Popup>
+    <Select.Item value='apple'>Apple</Select.Item>
+    <Select.Item value='banana'>Banana</Select.Item>
+    <Select.Item value='cherry'>Cherry</Select.Item>
+  </Select.Popup>
+</Select>
+```
+
+### Sizes
+
+```tsx-live
+<div className='flex flex-col gap-2'>
+  <Select defaultValue='sm'>
+    <Select.Trigger size='sm' />
+    <Select.Popup>
+      <Select.Item value='sm'>Small</Select.Item>
+    </Select.Popup>
+  </Select>
+  <Select defaultValue='md'>
+    <Select.Trigger size='md' />
+    <Select.Popup>
+      <Select.Item value='md'>Medium (default)</Select.Item>
+    </Select.Popup>
+  </Select>
+  <Select defaultValue='lg'>
+    <Select.Trigger size='lg' />
+    <Select.Popup>
+      <Select.Item value='lg'>Large</Select.Item>
+    </Select.Popup>
+  </Select>
+</div>
+```
+
+### Emphasis
+
+```tsx-live
+<div className='flex flex-col gap-2'>
+  <Select defaultValue='default'>
+    <Select.Trigger emphasis='default' />
+    <Select.Popup>
+      <Select.Item value='default'>Default emphasis</Select.Item>
+    </Select.Popup>
+  </Select>
+  <Select defaultValue='subtle'>
+    <Select.Trigger emphasis='subtle' />
+    <Select.Popup>
+      <Select.Item value='subtle'>Subtle emphasis</Select.Item>
+    </Select.Popup>
+  </Select>
+</div>
+```
+
+<PropsDefinitions componentPath='packages/components/src/components/Select/index.tsx' />

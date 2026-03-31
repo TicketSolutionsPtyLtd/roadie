@@ -1,0 +1,48 @@
+export const metadata = {
+  title: 'Textarea',
+  description: 'A multi-line text input for longer form content',
+  status: 'beta',
+  category: 'Forms',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Textarea
+
+The Textarea component is a multi-line text input for collecting longer form
+content. It shares the same variant system as Input for consistency.
+
+## Import
+
+```tsx
+import { Textarea } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Sizes
+
+```tsx-live
+<div className='flex flex-col gap-2'>
+  <Textarea size='sm' placeholder='Small textarea' />
+  <Textarea size='md' placeholder='Medium textarea (default)' />
+  <Textarea size='lg' placeholder='Large textarea' />
+</div>
+```
+
+### Emphasis
+
+```tsx-live
+<div className='flex flex-col gap-2'>
+  <Textarea emphasis='default' placeholder='Default emphasis' />
+  <Textarea emphasis='subtle' placeholder='Subtle emphasis' />
+</div>
+```
+
+### Disabled
+
+```tsx-live
+<Textarea disabled placeholder='Disabled textarea' />
+```
+
+<PropsDefinitions componentPath='packages/components/src/components/Textarea/index.tsx' />

@@ -1,0 +1,90 @@
+export const metadata = {
+  title: 'Accordion',
+  description: 'A vertically stacked set of collapsible content sections',
+  status: 'beta',
+  category: 'Data Display',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Accordion
+
+The Accordion component displays vertically stacked sections of content that
+can be expanded and collapsed. It supports single and multiple expansion modes.
+
+## Import
+
+```tsx
+import { Accordion } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Single mode (default)
+
+Only one item can be open at a time:
+
+```tsx-live
+<Accordion type='single'>
+  <Accordion.Item value='item-1'>
+    <Accordion.Trigger>What is Roadie?</Accordion.Trigger>
+    <Accordion.Content>
+      <Text className='pb-3'>Roadie is a comprehensive design system for building consistent user interfaces.</Text>
+    </Accordion.Content>
+  </Accordion.Item>
+  <Accordion.Item value='item-2'>
+    <Accordion.Trigger>How do I install it?</Accordion.Trigger>
+    <Accordion.Content>
+      <Text className='pb-3'>Install via npm or pnpm from the @oztix/roadie-components package.</Text>
+    </Accordion.Content>
+  </Accordion.Item>
+  <Accordion.Item value='item-3'>
+    <Accordion.Trigger>Is it accessible?</Accordion.Trigger>
+    <Accordion.Content>
+      <Text className='pb-3'>Yes, all components follow WAI-ARIA guidelines for accessibility.</Text>
+    </Accordion.Content>
+  </Accordion.Item>
+</Accordion>
+```
+
+### Multiple mode
+
+Multiple items can be open simultaneously:
+
+```tsx-live
+<Accordion type='multiple'>
+  <Accordion.Item value='a'>
+    <Accordion.Trigger>Section A</Accordion.Trigger>
+    <Accordion.Content>
+      <Text className='pb-3'>Content for section A.</Text>
+    </Accordion.Content>
+  </Accordion.Item>
+  <Accordion.Item value='b'>
+    <Accordion.Trigger>Section B</Accordion.Trigger>
+    <Accordion.Content>
+      <Text className='pb-3'>Content for section B.</Text>
+    </Accordion.Content>
+  </Accordion.Item>
+</Accordion>
+```
+
+### Contained appearance
+
+```tsx-live
+<Accordion type='single' appearance='contained'>
+  <Accordion.Item value='q1'>
+    <Accordion.Trigger>First question</Accordion.Trigger>
+    <Accordion.Content>
+      <Text className='pb-3'>Answer to the first question.</Text>
+    </Accordion.Content>
+  </Accordion.Item>
+  <Accordion.Item value='q2'>
+    <Accordion.Trigger>Second question</Accordion.Trigger>
+    <Accordion.Content>
+      <Text className='pb-3'>Answer to the second question.</Text>
+    </Accordion.Content>
+  </Accordion.Item>
+</Accordion>
+```
+
+<PropsDefinitions componentPath='packages/components/src/components/Accordion/index.tsx' />
