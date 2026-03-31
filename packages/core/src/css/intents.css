@@ -9,7 +9,7 @@
   --intent-surface-default: var(--color-neutral-1);
   --intent-surface-subtler: var(--color-neutral-2);
   --intent-surface-subtle: var(--color-neutral-3);
-  --intent-surface-strong: var(--color-neutral-9);
+  --intent-surface-strong: var(--color-neutral-12);
   --intent-surface-inverted: var(--color-neutral-12);
   --intent-surface-raised: var(--color-neutral-0);
   --intent-surface-sunken: var(--color-neutral-2);
@@ -38,7 +38,7 @@
   --intent-surface-default: var(--color-neutral-1);
   --intent-surface-subtler: var(--color-neutral-2);
   --intent-surface-subtle: var(--color-neutral-3);
-  --intent-surface-strong: var(--color-neutral-9);
+  --intent-surface-strong: var(--color-neutral-12);
   --intent-surface-inverted: var(--color-neutral-12);
   --intent-surface-raised: var(--color-neutral-0);
   --intent-surface-sunken: var(--color-neutral-2);
