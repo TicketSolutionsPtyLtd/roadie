@@ -22,6 +22,8 @@ import { Mark } from '@oztix/roadie-components'
 
 ### Default
 
+The default intent is `info`.
+
 ```tsx
 
 <Text>
@@ -29,41 +31,41 @@ import { Mark } from '@oztix/roadie-components'
 </Text>
 ```
 
-### Color palettes
+### Intents
 
-The default color palette is `information`. Each color palette is designed for specific use cases:
+Each intent is designed for specific use cases:
 
-- `neutral`: Default for general highlights
+- `neutral`: General highlights
 - `accent`: Accent highlights
 - `brand`: Brand-specific highlights
-- `information`: Informational highlights
+- `info`: Informational highlights (default)
 - `success`: Successful or positive highlights
 - `warning`: Warning-related highlights
 - `danger`: Error or critical highlights
 
 ```tsx
 
-<div gap='200'>
+<div className='flex flex-col gap-2'>
   <Text>
-    This is <Mark colorPalette='neutral'>neutral</Mark> highlighted text.
+    This is <Mark intent='neutral'>neutral</Mark> highlighted text.
   </Text>
   <Text>
-    This is <Mark colorPalette='accent'>accent</Mark> highlighted text.
+    This is <Mark intent='accent'>accent</Mark> highlighted text.
   </Text>
   <Text>
-    This is <Mark colorPalette='brand'>brand</Mark> highlighted text.
+    This is <Mark intent='brand'>brand</Mark> highlighted text.
   </Text>
   <Text>
-    This is <Mark colorPalette='information'>information</Mark> highlighted text.
+    This is <Mark intent='info'>info</Mark> highlighted text.
   </Text>
   <Text>
-    This is <Mark colorPalette='success'>success</Mark> highlighted text.
+    This is <Mark intent='success'>success</Mark> highlighted text.
   </Text>
   <Text>
-    This is <Mark colorPalette='warning'>warning</Mark> highlighted text.
+    This is <Mark intent='warning'>warning</Mark> highlighted text.
   </Text>
   <Text>
-    This is <Mark colorPalette='danger'>danger</Mark> highlighted text.
+    This is <Mark intent='danger'>danger</Mark> highlighted text.
   </Text>
 </div>
 ```
@@ -85,12 +87,12 @@ Mark works great in headings for creating eye-catching titles:
 
 ```tsx
 
-<div gap='200' textAlign='center'>
-  <Heading as='h1' textStyle='display.prose.2'>
-    Great events need great <Mark colorPalette='accent'>partners</Mark>
+<div className='flex flex-col gap-2 text-center'>
+  <Heading as='h1' size='2xl'>
+    Great events need great <Mark intent='accent'>partners</Mark>
   </Heading>
-  <Heading as='h2' textStyle='display.prose.4' color='neutral.fg.subtle'>
-    Not just <Mark backgroundColor='orange.5' color='orange.12'>great</Mark> ticketing software. Why?
+  <Heading as='h2' size='lg' emphasis='subtle'>
+    Not just <Mark intent='warning'>great</Mark> ticketing software. Why?
   </Heading>
 </div>
 ```
@@ -101,25 +103,25 @@ Mark is useful for highlighting important information in various contexts:
 
 ```tsx
 
-<div gap='300'>
-  <div gap='100'>
-    <Heading as='h3' textStyle='display.ui.4'>Search results</Heading>
+<div className='flex flex-col gap-4'>
+  <div className='flex flex-col gap-1'>
+    <Heading level={3} size='sm'>Search results</Heading>
     <Text>
-      Found <Mark colorPalette='accent'>5 matches</Mark> for your search query.
+      Found <Mark intent='accent'>5 matches</Mark> for your search query.
     </Text>
   </div>
 
-  <div gap='100'>
-    <Heading as='h3' textStyle='display.ui.4'>Status updates</Heading>
+  <div className='flex flex-col gap-1'>
+    <Heading level={3} size='sm'>Status updates</Heading>
     <Text>
-      Your order is <Mark colorPalette='success'>confirmed</Mark> and will ship soon.
+      Your order is <Mark intent='success'>confirmed</Mark> and will ship soon.
     </Text>
   </div>
 
-  <div gap='100'>
-    <Heading as='h3' textStyle='display.ui.4'>Warnings</Heading>
+  <div className='flex flex-col gap-1'>
+    <Heading level={3} size='sm'>Warnings</Heading>
     <Text>
-      This action is <Mark colorPalette='warning'>irreversible</Mark>.
+      This action is <Mark intent='warning'>irreversible</Mark>.
     </Text>
   </div>
 </div>

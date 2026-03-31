@@ -5,9 +5,6 @@ export const metadata = {
   category: 'Actions'
 }
 
-import { IconButton } from '@oztix/roadie-components'
-
-
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # IconButton
@@ -24,18 +21,18 @@ import { IconButton } from '@oztix/roadie-components'
 
 ### Basic usage
 
-IconButton requires an `aria-label` for accessibility since it typically doesn't contain visible text.
+IconButton requires an `aria-label` for accessibility since it typically does not contain visible text.
 
 ```tsx
 
-<div gap='200' flexDirection='row'>
-  <IconButton aria-label='Add item' emphasis='strong' colorPalette='accent'>
+<div className='flex flex-row gap-2'>
+  <IconButton aria-label='Add item' emphasis='strong' intent='accent'>
     +
   </IconButton>
   <IconButton aria-label='Edit item' emphasis='default'>
     ✏️
   </IconButton>
-  <IconButton aria-label='Delete item' emphasis='subtle' colorPalette='danger'>
+  <IconButton aria-label='Delete item' emphasis='subtle' intent='danger'>
     ×
   </IconButton>
 </div>
@@ -47,7 +44,7 @@ Different button emphasis levels for various contexts:
 
 ```tsx
 
-<div gap='200' flexDirection='row'>
+<div className='flex flex-row gap-2'>
   <IconButton aria-label='Strong' emphasis='strong'>
     ★
   </IconButton>
@@ -65,86 +62,58 @@ Different button emphasis levels for various contexts:
 
 ### Sizes
 
-IconButton maintains square proportions across all sizes:
+IconButton maintains square proportions across all sizes. The default size is `icon-md`.
 
 ```tsx
 
-<div gap='200' flexDirection='row' alignItems='center'>
-  <IconButton aria-label='Extra small' size='xs'>
+<div className='flex flex-row items-center gap-2'>
+  <IconButton aria-label='Extra small' size='icon-xs'>
     ✓
   </IconButton>
-  <IconButton aria-label='Small' size='sm'>
+  <IconButton aria-label='Small' size='icon-sm'>
     ✓
   </IconButton>
-  <IconButton aria-label='Medium' size='md'>
+  <IconButton aria-label='Medium' size='icon-md'>
     ✓
   </IconButton>
-  <IconButton aria-label='Large' size='lg'>
+  <IconButton aria-label='Large' size='icon-lg'>
     ✓
   </IconButton>
 </div>
 ```
 
-### Colors
+### Intents
 
-Each color palette is designed for specific use cases:
+Each intent is designed for specific use cases:
 
 - `neutral`: Default for most actions
 - `accent`: Primary or highlighted actions
 - `brand`: Brand-specific actions
-- `information`: Informational or help-related actions
+- `info`: Informational or help-related actions
 - `success`: Positive or completion actions
 - `warning`: Cautionary actions
 - `danger`: Destructive or high-risk actions
 
 ```tsx
 
-<div gap='200'>
-  <div flexDirection='row' gap='200'>
-    <IconButton aria-label='Neutral' emphasis='strong' colorPalette='neutral'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Accent' emphasis='strong' colorPalette='accent'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Brand' emphasis='strong' colorPalette='brand'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Information' emphasis='strong' colorPalette='information'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Success' emphasis='strong' colorPalette='success'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Warning' emphasis='strong' colorPalette='warning'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Danger' emphasis='strong' colorPalette='danger'>
-      ✓
-    </IconButton>
+<div className='flex flex-col gap-2'>
+  <div className='flex flex-row gap-2'>
+    <IconButton aria-label='Neutral' emphasis='strong' intent='neutral'>✓</IconButton>
+    <IconButton aria-label='Accent' emphasis='strong' intent='accent'>✓</IconButton>
+    <IconButton aria-label='Brand' emphasis='strong' intent='brand'>✓</IconButton>
+    <IconButton aria-label='Info' emphasis='strong' intent='info'>✓</IconButton>
+    <IconButton aria-label='Success' emphasis='strong' intent='success'>✓</IconButton>
+    <IconButton aria-label='Warning' emphasis='strong' intent='warning'>✓</IconButton>
+    <IconButton aria-label='Danger' emphasis='strong' intent='danger'>✓</IconButton>
   </div>
-  <div flexDirection='row' gap='200'>
-    <IconButton aria-label='Neutral' emphasis='default' colorPalette='neutral'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Accent' emphasis='default' colorPalette='accent'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Brand' emphasis='default' colorPalette='brand'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Information' emphasis='default' colorPalette='information'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Success' emphasis='default' colorPalette='success'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Warning' emphasis='default' colorPalette='warning'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Danger' emphasis='default' colorPalette='danger'>
-      ✓
-    </IconButton>
+  <div className='flex flex-row gap-2'>
+    <IconButton aria-label='Neutral' emphasis='default' intent='neutral'>✓</IconButton>
+    <IconButton aria-label='Accent' emphasis='default' intent='accent'>✓</IconButton>
+    <IconButton aria-label='Brand' emphasis='default' intent='brand'>✓</IconButton>
+    <IconButton aria-label='Info' emphasis='default' intent='info'>✓</IconButton>
+    <IconButton aria-label='Success' emphasis='default' intent='success'>✓</IconButton>
+    <IconButton aria-label='Warning' emphasis='default' intent='warning'>✓</IconButton>
+    <IconButton aria-label='Danger' emphasis='default' intent='danger'>✓</IconButton>
   </div>
 </div>
 ```
@@ -153,8 +122,8 @@ Each color palette is designed for specific use cases:
 
 ```tsx
 
-<div gap='200' flexDirection='row'>
-  <IconButton aria-label='Disabled' disabled emphasis='strong' colorPalette='accent'>
+<div className='flex flex-row gap-2'>
+  <IconButton aria-label='Disabled' disabled emphasis='strong' intent='accent'>
     ✓
   </IconButton>
   <IconButton aria-label='Disabled' disabled emphasis='default'>
@@ -173,7 +142,7 @@ Each color palette is designed for specific use cases:
 <IconButton
   aria-label='Add to favorites'
   emphasis='strong'
-  colorPalette='accent'
+  intent='accent'
   onClick={() => alert('Added to favorites')}
 >
   ♥
@@ -182,7 +151,7 @@ Each color palette is designed for specific use cases:
 
 ## Accessibility
 
-Always provide an `aria-label` prop to describe the button's action, since icon buttons typically don't contain visible text labels.
+Always provide an `aria-label` prop to describe the button's action, since icon buttons typically do not contain visible text labels.
 
 ```tsx
 // Good

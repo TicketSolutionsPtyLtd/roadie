@@ -10,18 +10,12 @@ export const metadata = {
 
 # Highlight
 
-The Highlight component highlights substrings of text based on a search query. It's useful for search results, filtering, and drawing attention to specific text patterns.
+The Highlight component highlights substrings of text based on a search query. It is useful for search results, filtering, and drawing attention to specific text patterns.
 
 ## Import
 
 ```tsx
 import { Highlight } from '@oztix/roadie-components'
-// For advanced use cases, you can also import the hook and types:
-import {
-  HighlightChunk,
-  UseHighlightProps,
-  useHighlight
-} from '@oztix/roadie-components/Highlight'
 ```
 
 ## Examples
@@ -32,7 +26,7 @@ Highlight specific text based on a query:
 
 ```tsx
 
-<div gap='200'>
+<div className='flex flex-col gap-2'>
   <Text>
     <Highlight
       text='The quick brown fox jumps over the lazy dog'
@@ -74,9 +68,9 @@ By default, matching is case-insensitive. You can make it case-sensitive:
 
 ```tsx
 
-<div gap='200'>
-  <div gap='100'>
-    <Text textStyle='ui.meta'>Case insensitive (default)</Text>
+<div className='flex flex-col gap-2'>
+  <div className='flex flex-col gap-1'>
+    <Text size='xs' emphasis='subtle'>Case insensitive (default)</Text>
     <Text>
       <Highlight
         text='Hello World'
@@ -84,8 +78,8 @@ By default, matching is case-insensitive. You can make it case-sensitive:
       />
     </Text>
   </div>
-  <div gap='100'>
-    <Text textStyle='ui.meta'>Case sensitive</Text>
+  <div className='flex flex-col gap-1'>
+    <Text size='xs' emphasis='subtle'>Case sensitive</Text>
     <Text>
       <Highlight
         text='Hello World'
@@ -103,9 +97,9 @@ By default, all matches are highlighted. You can disable this:
 
 ```tsx
 
-<div gap='200'>
-  <div gap='100'>
-    <Text textStyle='ui.meta'>Match all (default)</Text>
+<div className='flex flex-col gap-2'>
+  <div className='flex flex-col gap-1'>
+    <Text size='xs' emphasis='subtle'>Match all (default)</Text>
     <Text>
       <Highlight
         text='foo bar foo baz foo'
@@ -114,8 +108,8 @@ By default, all matches are highlighted. You can disable this:
       />
     </Text>
   </div>
-  <div gap='100'>
-    <Text textStyle='ui.meta'>Match first only</Text>
+  <div className='flex flex-col gap-1'>
+    <Text size='xs' emphasis='subtle'>Match first only</Text>
     <Text>
       <Highlight
         text='foo bar foo baz foo'
@@ -127,96 +121,60 @@ By default, all matches are highlighted. You can disable this:
 </div>
 ```
 
-### Exact match
+### Intents
 
-Match whole words only:
-
-```tsx
-
-<div gap='200'>
-  <div gap='100'>
-    <Text textStyle='ui.meta'>Partial match (default)</Text>
-    <Text>
-      <Highlight
-        text='foo foobar barfoo'
-        query='foo'
-      />
-    </Text>
-  </div>
-  <div gap='100'>
-    <Text textStyle='ui.meta'>Exact match</Text>
-    <Text>
-      <Highlight
-        text='foo foobar barfoo'
-        query='foo'
-        exactMatch={true}
-      />
-    </Text>
-  </div>
-</div>
-```
-
-### Color palettes
-
-Customize the highlight color using color palettes. Information is the default.
+Customize the highlight color using intents. The default intent is `info`.
 
 ```tsx
 
-<div gap='200'>
+<div className='flex flex-col gap-2'>
   <Text>
     <Highlight
-      text='This text uses the neutral palette'
+      text='This text uses the neutral intent'
       query='neutral'
-      colorPalette='neutral'
+      intent='neutral'
     />
   </Text>
   <Text>
     <Highlight
-      text='This text uses the accent palette'
+      text='This text uses the accent intent'
       query='accent'
-      colorPalette='accent'
+      intent='accent'
     />
   </Text>
   <Text>
     <Highlight
-      text='This text uses the brand palette'
+      text='This text uses the brand intent'
       query='brand'
-      colorPalette='brand'
+      intent='brand'
     />
   </Text>
   <Text>
     <Highlight
-      text='This text uses the brand secondary palette'
-      query='brand secondary'
-      colorPalette='brandSecondary'
+      text='This text uses the info intent'
+      query='info'
+      intent='info'
     />
   </Text>
   <Text>
     <Highlight
-      text='This text uses the information palette'
-      query='information'
-      colorPalette='information'
-    />
-  </Text>
-  <Text>
-    <Highlight
-      text='This text uses the success palette'
+      text='This text uses the success intent'
       query='success'
-      colorPalette='success'
+      intent='success'
     />
   </Text>
   <Text>
     <Highlight
-      text='This text uses the warning palette'
+      text='This text uses the warning intent'
       query='warning'
-      colorPalette='warning'
+      intent='warning'
     />
   </Text>
   <Text>
     <Highlight
-      text='This text uses the danger palette'
+      text='This text uses the danger intent'
       query='danger'
-      colorPalette='danger'
+      intent='danger'
     />
   </Text>
 </div>
@@ -228,19 +186,12 @@ Highlight works great in headings for creating eye-catching titles:
 
 ```tsx
 
-<div gap='200' textAlign='center'>
-  <Heading as='h1' textStyle='display.prose.2'>
+<div className='flex flex-col gap-2 text-center'>
+  <Heading as='h1' size='2xl'>
     <Highlight
       text='Great events need great partners'
       query='great'
-      colorPalette='accent'
-    />
-  </Heading>
-  <Heading as='h2' color='neutral.fg.subtle' textStyle='display.prose.4'>
-    <Highlight
-      text='Not just great ticketing software. Why?'
-      query='great'
-      backgroundColor='orange.5'
+      intent='accent'
     />
   </Heading>
 </div>
@@ -260,17 +211,17 @@ live(() => {
   const searchTerm = 'JavaScript'
 
   return (
-    <div gap='300'>
-      <div gap='100'>
-        <Heading as='h3' textStyle='display.ui.4'>
+    <div className='flex flex-col gap-4'>
+      <div className='flex flex-col gap-1'>
+        <Heading level={3} size='sm'>
           Search results for "{searchTerm}"
         </Heading>
-        <Text textStyle='ui.meta'>{results.length} results found</Text>
+        <Text size='xs' emphasis='subtle'>{results.length} results found</Text>
       </div>
-      <div gap='100'>
+      <div className='flex flex-col gap-1'>
         {results.map((result, index) => (
           <Text key={index}>
-            <Highlight text={result} query={searchTerm} colorPalette='accent' />
+            <Highlight text={result} query={searchTerm} intent='accent' />
           </Text>
         ))}
       </div>

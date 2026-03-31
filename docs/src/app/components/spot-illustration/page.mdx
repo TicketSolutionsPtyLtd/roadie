@@ -5,8 +5,6 @@ export const metadata = {
   category: 'Media'
 }
 
-
-
 import { IllustrationGallery } from '@/components/IllustrationGallery'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
@@ -33,11 +31,11 @@ import { createSpotIllustration } from '@oztix/roadie-components'
 
 ### Basic usage
 
-All spot illustrations default to 48px (token: `sizes.600`) and use semantic color tokens from the illustration palette.
+All spot illustrations default to 48px and use semantic color tokens from the illustration palette.
 
 ```tsx
 
-<div flexDirection='row' gap='400'>
+<div className='flex flex-row gap-4'>
   <NoteMusic />
   <HighFive />
 </div>
@@ -45,17 +43,17 @@ All spot illustrations default to 48px (token: `sizes.600`) and use semantic col
 
 ### Custom size
 
-Use the `boxSize` prop to change the illustration size. You should mostly only use sizes between 32px (`sizes.400`) and 128px (`sizes.1600`). Default is 48px (`sizes.600`). If needing smaller sizes in UI you should use iconography instead.
+Use the `className` prop with Tailwind size utilities to change the illustration size. Default is 48px. If needing smaller sizes in UI you should use iconography instead.
 
 ```tsx
 
-<div flexDirection='row' gap='400' alignItems='center'>
-  <NoteMusic boxSize='400' />
+<div className='flex flex-row items-center gap-4'>
+  <NoteMusic className='size-8' />
   <NoteMusic />
-  <NoteMusic boxSize='800' />
-  <NoteMusic boxSize='1000' />
-  <NoteMusic boxSize='1200' />
-  <NoteMusic boxSize='1600' />
+  <NoteMusic className='size-16' />
+  <NoteMusic className='size-20' />
+  <NoteMusic className='size-24' />
+  <NoteMusic className='size-32' />
 </div>
 ```
 
@@ -65,19 +63,10 @@ Use the `outline` prop to show or hide the white outline layer. By default, the 
 
 ```tsx
 
-<div flexDirection='row' gap='400' bg='neutral.surface.strong' p='400' borderRadius='md'>
+<div className='flex flex-row gap-4 rounded-lg bg-neutral-900 p-4'>
   <NoteMusic />
   <NoteMusic outline />
 </div>
-```
-
-### With CSS props
-
-Spot illustrations accept all PandaCSS style props for layout and positioning.
-
-```tsx
-
-<NoteMusic outline boxSize='1000' background='accent.surface' p='200' borderRadius='md' />
 ```
 
 ## Available illustrations

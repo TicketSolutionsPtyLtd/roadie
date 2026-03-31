@@ -1,7 +1,5 @@
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
-import { Code, Text } from '@oztix/roadie-components'
-
 export const metadata = {
   title: 'Code',
   description: 'The Code component is used to display inline code snippets.',
@@ -14,7 +12,13 @@ export const metadata = {
 The Code component is used to display inline code snippets and blocks
 of code.
 
-## Usage
+## Import
+
+```tsx
+import { Code } from '@oztix/roadie-components'
+```
+
+## Examples
 
 ### Inline code
 
@@ -23,15 +27,13 @@ of code.
 <Code>npm install @oztix/roadie-components</Code>
 ```
 
-## Examples
-
 ### Emphasis
 
 Different emphasis levels for various contexts:
 
 ```tsx
 
-<div gap='200' flexDirection='row' flexWrap='wrap'>
+<div className='flex flex-row flex-wrap gap-2'>
   <Code emphasis='default'>default code</Code>
   <Code emphasis='strong'>strong code</Code>
   <Code emphasis='subtle'>subtle code</Code>
@@ -39,30 +41,28 @@ Different emphasis levels for various contexts:
 </div>
 ```
 
-### Color palettes
+### Intents
 
-Neutral is the default color palette for code elements.
-
-Each color palette is designed for specific use cases:
+Each intent is designed for specific use cases:
 
 - `neutral`: Default for general code snippets
 - `accent`: Highlighted code
 - `brand`: Brand-specific code examples
-- `information`: Informational code snippets
+- `info`: Informational code snippets
 - `success`: Successful operations or correct code
 - `warning`: Warning-related code
 - `danger`: Error or problematic code
 
 ```tsx
 
-<div gap='200' flexDirection='row' flexWrap='wrap'>
-  <Code colorPalette='neutral'>neutral</Code>
-  <Code colorPalette='accent'>accent</Code>
-  <Code colorPalette='brand'>brand</Code>
-  <Code colorPalette='information'>information</Code>
-  <Code colorPalette='success'>success</Code>
-  <Code colorPalette='warning'>warning</Code>
-  <Code colorPalette='danger'>danger</Code>
+<div className='flex flex-row flex-wrap gap-2'>
+  <Code intent='neutral'>neutral</Code>
+  <Code intent='accent'>accent</Code>
+  <Code intent='brand'>brand</Code>
+  <Code intent='info'>info</Code>
+  <Code intent='success'>success</Code>
+  <Code intent='warning'>warning</Code>
+  <Code intent='danger'>danger</Code>
 </div>
 ```
 
