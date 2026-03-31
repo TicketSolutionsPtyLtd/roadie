@@ -22,9 +22,7 @@ export const badgeVariants = cva(
         default:
           'emphasis-default-surface emphasis-subtle-fg emphasis-subtle-border',
         subtle: 'emphasis-subtle emphasis-subtle-fg',
-        subtler:
-          'emphasis-subtler-surface emphasis-subtle-fg emphasis-subtle-border',
-        inverted: 'emphasis-inverted',
+        subtler: 'emphasis-subtler-surface emphasis-subtle-fg',
       },
       size: {
         sm: 'px-2 py-0.5 text-xs',
