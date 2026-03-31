@@ -66,14 +66,14 @@ export function Badge({
       {indicator && (
         <span
           className={cn(
-            'size-1.5 rounded-full emphasis-strong-surface shrink-0',
+            'size-1.5 rounded-full bg-current shrink-0',
             indicatorPulse && 'animate-pulse'
           )}
           aria-hidden="true"
         />
       )}
       {icon && (
-        <span className="shrink-0" aria-hidden="true">
+        <span className="shrink-0 [&_svg]:fill-current" aria-hidden="true">
           {icon}
         </span>
       )}
