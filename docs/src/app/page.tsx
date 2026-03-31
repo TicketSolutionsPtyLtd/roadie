@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-import { Cube, MagicWand, Moon, Palette, Shapes, WheelchairMotion } from '@phosphor-icons/react'
+import { Cube, MagicWand, Moon, Palette, Shapes, WheelchairMotion } from '@phosphor-icons/react/ssr'
 
 import { Button, Heading, Text } from '@oztix/roadie-components'
 
