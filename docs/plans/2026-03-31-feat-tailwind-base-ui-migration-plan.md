@@ -164,7 +164,7 @@ Combined shortcuts (set surface + fg together for common combos):
   - Validated: intent cascade, same-element composition, emphasis primitives, is-interactive pseudo-selectors all work
   - Validated: dark mode raised/sunken swap works via `.dark &` nesting inside intent utilities
   - Spike files: `packages/core/spike/` (spike.css, index.html, output.css)
-- [ ] `packages/core/src/css/tokens.css` — Define all color scales in OKLCH (0-13 per intent, light + dark)
+- [x] `packages/core/src/css/tokens.css` — Define all color scales in OKLCH (0-13 per intent, light + dark)
   - Port neutral, brand, danger, success, warning, info scales from prototype
   - Add step 0 and step 13 to all scales
   - Define dark mode overrides in `.dark` selector

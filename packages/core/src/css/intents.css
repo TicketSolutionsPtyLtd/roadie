@@ -1,1 +1,230 @@
-/* Intent utilities - to be populated in Task 4 */
+/* ═══════════════════════════════════════════════════════════
+   Intent Utilities
+   Each @utility sets --intent-* CSS custom properties.
+   Children inherit via CSS cascade.
+   ═══════════════════════════════════════════════════════════ */
+
+/* --- Default intent (neutral) on :root --- */
+:root {
+  --intent-surface-default: var(--color-neutral-1);
+  --intent-surface-subtler: var(--color-neutral-2);
+  --intent-surface-subtle: var(--color-neutral-3);
+  --intent-surface-strong: var(--color-neutral-9);
+  --intent-surface-inverted: var(--color-neutral-12);
+  --intent-surface-raised: var(--color-neutral-0);
+  --intent-surface-sunken: var(--color-neutral-2);
+
+  --intent-border-subtler: var(--color-neutral-5);
+  --intent-border-subtle: var(--color-neutral-6);
+  --intent-border-default: var(--color-neutral-7);
+  --intent-border-strong: var(--color-neutral-9);
+  --intent-border-inverted: var(--color-neutral-12);
+
+  --intent-fg-subtler: var(--color-neutral-10);
+  --intent-fg-subtle: var(--color-neutral-11);
+  --intent-fg-default: var(--color-neutral-12);
+  --intent-fg-strong: var(--color-neutral-13);
+  --intent-fg-inverted: var(--color-neutral-0);
+}
+
+/* Dark mode: swap raised/sunken for default intent */
+.dark {
+  --intent-surface-raised: var(--color-neutral-2);
+  --intent-surface-sunken: var(--color-neutral-0);
+}
+
+/* ═══ Intent: neutral ═══ */
+@utility intent-neutral {
+  --intent-surface-default: var(--color-neutral-1);
+  --intent-surface-subtler: var(--color-neutral-2);
+  --intent-surface-subtle: var(--color-neutral-3);
+  --intent-surface-strong: var(--color-neutral-9);
+  --intent-surface-inverted: var(--color-neutral-12);
+  --intent-surface-raised: var(--color-neutral-0);
+  --intent-surface-sunken: var(--color-neutral-2);
+
+  --intent-border-subtler: var(--color-neutral-5);
+  --intent-border-subtle: var(--color-neutral-6);
+  --intent-border-default: var(--color-neutral-7);
+  --intent-border-strong: var(--color-neutral-9);
+  --intent-border-inverted: var(--color-neutral-12);
+
+  --intent-fg-subtler: var(--color-neutral-10);
+  --intent-fg-subtle: var(--color-neutral-11);
+  --intent-fg-default: var(--color-neutral-12);
+  --intent-fg-strong: var(--color-neutral-13);
+  --intent-fg-inverted: var(--color-neutral-0);
+
+  .dark & {
+    --intent-surface-raised: var(--color-neutral-2);
+    --intent-surface-sunken: var(--color-neutral-0);
+  }
+}
+
+/* ═══ Intent: brand ═══ */
+@utility intent-brand {
+  --intent-surface-default: var(--color-brand-1);
+  --intent-surface-subtler: var(--color-brand-2);
+  --intent-surface-subtle: var(--color-brand-3);
+  --intent-surface-strong: var(--color-brand-9);
+  --intent-surface-inverted: var(--color-brand-12);
+  --intent-surface-raised: var(--color-brand-0);
+  --intent-surface-sunken: var(--color-brand-2);
+
+  --intent-border-subtler: var(--color-brand-5);
+  --intent-border-subtle: var(--color-brand-6);
+  --intent-border-default: var(--color-brand-7);
+  --intent-border-strong: var(--color-brand-9);
+  --intent-border-inverted: var(--color-brand-12);
+
+  --intent-fg-subtler: var(--color-brand-10);
+  --intent-fg-subtle: var(--color-brand-11);
+  --intent-fg-default: var(--color-brand-12);
+  --intent-fg-strong: var(--color-brand-13);
+  --intent-fg-inverted: var(--color-brand-0);
+
+  .dark & {
+    --intent-surface-raised: var(--color-brand-2);
+    --intent-surface-sunken: var(--color-brand-0);
+  }
+}
+
+/* ═══ Intent: accent ═══ */
+@utility intent-accent {
+  --intent-surface-default: var(--color-accent-1);
+  --intent-surface-subtler: var(--color-accent-2);
+  --intent-surface-subtle: var(--color-accent-3);
+  --intent-surface-strong: var(--color-accent-9);
+  --intent-surface-inverted: var(--color-accent-12);
+  --intent-surface-raised: var(--color-accent-0);
+  --intent-surface-sunken: var(--color-accent-2);
+
+  --intent-border-subtler: var(--color-accent-5);
+  --intent-border-subtle: var(--color-accent-6);
+  --intent-border-default: var(--color-accent-7);
+  --intent-border-strong: var(--color-accent-9);
+  --intent-border-inverted: var(--color-accent-12);
+
+  --intent-fg-subtler: var(--color-accent-10);
+  --intent-fg-subtle: var(--color-accent-11);
+  --intent-fg-default: var(--color-accent-12);
+  --intent-fg-strong: var(--color-accent-13);
+  --intent-fg-inverted: var(--color-accent-0);
+
+  .dark & {
+    --intent-surface-raised: var(--color-accent-2);
+    --intent-surface-sunken: var(--color-accent-0);
+  }
+}
+
+/* ═══ Intent: danger ═══ */
+@utility intent-danger {
+  --intent-surface-default: var(--color-danger-1);
+  --intent-surface-subtler: var(--color-danger-2);
+  --intent-surface-subtle: var(--color-danger-3);
+  --intent-surface-strong: var(--color-danger-9);
+  --intent-surface-inverted: var(--color-danger-12);
+  --intent-surface-raised: var(--color-danger-0);
+  --intent-surface-sunken: var(--color-danger-2);
+
+  --intent-border-subtler: var(--color-danger-5);
+  --intent-border-subtle: var(--color-danger-6);
+  --intent-border-default: var(--color-danger-7);
+  --intent-border-strong: var(--color-danger-9);
+  --intent-border-inverted: var(--color-danger-12);
+
+  --intent-fg-subtler: var(--color-danger-10);
+  --intent-fg-subtle: var(--color-danger-11);
+  --intent-fg-default: var(--color-danger-12);
+  --intent-fg-strong: var(--color-danger-13);
+  --intent-fg-inverted: var(--color-danger-0);
+
+  .dark & {
+    --intent-surface-raised: var(--color-danger-2);
+    --intent-surface-sunken: var(--color-danger-0);
+  }
+}
+
+/* ═══ Intent: success ═══ */
+@utility intent-success {
+  --intent-surface-default: var(--color-success-1);
+  --intent-surface-subtler: var(--color-success-2);
+  --intent-surface-subtle: var(--color-success-3);
+  --intent-surface-strong: var(--color-success-9);
+  --intent-surface-inverted: var(--color-success-12);
+  --intent-surface-raised: var(--color-success-0);
+  --intent-surface-sunken: var(--color-success-2);
+
+  --intent-border-subtler: var(--color-success-5);
+  --intent-border-subtle: var(--color-success-6);
+  --intent-border-default: var(--color-success-7);
+  --intent-border-strong: var(--color-success-9);
+  --intent-border-inverted: var(--color-success-12);
+
+  --intent-fg-subtler: var(--color-success-10);
+  --intent-fg-subtle: var(--color-success-11);
+  --intent-fg-default: var(--color-success-12);
+  --intent-fg-strong: var(--color-success-13);
+  --intent-fg-inverted: var(--color-success-0);
+
+  .dark & {
+    --intent-surface-raised: var(--color-success-2);
+    --intent-surface-sunken: var(--color-success-0);
+  }
+}
+
+/* ═══ Intent: warning ═══ */
+@utility intent-warning {
+  --intent-surface-default: var(--color-warning-1);
+  --intent-surface-subtler: var(--color-warning-2);
+  --intent-surface-subtle: var(--color-warning-3);
+  --intent-surface-strong: var(--color-warning-9);
+  --intent-surface-inverted: var(--color-warning-12);
+  --intent-surface-raised: var(--color-warning-0);
+  --intent-surface-sunken: var(--color-warning-2);
+
+  --intent-border-subtler: var(--color-warning-5);
+  --intent-border-subtle: var(--color-warning-6);
+  --intent-border-default: var(--color-warning-7);
+  --intent-border-strong: var(--color-warning-9);
+  --intent-border-inverted: var(--color-warning-12);
+
+  --intent-fg-subtler: var(--color-warning-10);
+  --intent-fg-subtle: var(--color-warning-11);
+  --intent-fg-default: var(--color-warning-12);
+  --intent-fg-strong: var(--color-warning-13);
+  --intent-fg-inverted: var(--color-warning-0);
+
+  .dark & {
+    --intent-surface-raised: var(--color-warning-2);
+    --intent-surface-sunken: var(--color-warning-0);
+  }
+}
+
+/* ═══ Intent: info ═══ */
+@utility intent-info {
+  --intent-surface-default: var(--color-info-1);
+  --intent-surface-subtler: var(--color-info-2);
+  --intent-surface-subtle: var(--color-info-3);
+  --intent-surface-strong: var(--color-info-9);
+  --intent-surface-inverted: var(--color-info-12);
+  --intent-surface-raised: var(--color-info-0);
+  --intent-surface-sunken: var(--color-info-2);
+
+  --intent-border-subtler: var(--color-info-5);
+  --intent-border-subtle: var(--color-info-6);
+  --intent-border-default: var(--color-info-7);
+  --intent-border-strong: var(--color-info-9);
+  --intent-border-inverted: var(--color-info-12);
+
+  --intent-fg-subtler: var(--color-info-10);
+  --intent-fg-subtle: var(--color-info-11);
+  --intent-fg-default: var(--color-info-12);
+  --intent-fg-strong: var(--color-info-13);
+  --intent-fg-inverted: var(--color-info-0);
+
+  .dark & {
+    --intent-surface-raised: var(--color-info-2);
+    --intent-surface-sunken: var(--color-info-0);
+  }
+}

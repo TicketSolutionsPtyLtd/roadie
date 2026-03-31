@@ -199,9 +199,15 @@ importers:
 
   packages/core:
     dependencies:
+      '@radix-ui/colors':
+        specifier: ^3.0.0
+        version: 3.0.0
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      colorjs.io:
+        specifier: ^0.6.1
+        version: 0.6.1
       tailwind-merge:
         specifier: ^3.4.0
         version: 3.5.0

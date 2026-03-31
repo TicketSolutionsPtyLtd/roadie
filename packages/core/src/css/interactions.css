@@ -1,1 +1,38 @@
-/* Interaction utilities - to be populated in Task 6 */
+/* ═══════════════════════════════════════════════════════════
+   Interaction Utility
+   Provides sensible defaults for interactive elements.
+   Omit for custom interaction handling.
+   ═══════════════════════════════════════════════════════════ */
+
+@utility is-interactive {
+  cursor: pointer;
+  outline: 0 solid transparent;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease,
+    outline-color 0.15s ease,
+    outline-width 0.15s ease,
+    transform 0.1s ease;
+
+  &:hover {
+    filter: brightness(0.93);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--intent-border-default);
+    outline-offset: 2px;
+  }
+
+  &:disabled,
+  &[data-disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+    filter: grayscale(0.3);
+  }
+}

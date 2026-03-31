@@ -1,1 +1,136 @@
-/* Emphasis utilities - to be populated in Task 5 */
+/* ═══════════════════════════════════════════════════════════
+   Emphasis Utilities
+   Property-specific primitives: emphasis-{level}-{property}
+   Combined shortcuts: emphasis-{level}
+   All consume --intent-* CSS custom properties
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Surface Emphasis Primitives ─── */
+
+@utility emphasis-subtler-surface {
+  background-color: var(--intent-surface-subtler);
+}
+
+@utility emphasis-subtle-surface {
+  background-color: var(--intent-surface-subtle);
+}
+
+@utility emphasis-default-surface {
+  background-color: var(--intent-surface-default);
+}
+
+@utility emphasis-strong-surface {
+  background-color: var(--intent-surface-strong);
+}
+
+@utility emphasis-inverted-surface {
+  background-color: var(--intent-surface-inverted);
+}
+
+@utility emphasis-raised-surface {
+  background-color: var(--intent-surface-raised);
+  box-shadow: var(--elevation-raised);
+}
+
+@utility emphasis-sunken-surface {
+  background-color: var(--intent-surface-sunken);
+  box-shadow: var(--elevation-sunken);
+}
+
+@utility emphasis-overlay-surface {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+}
+
+/* ─── Foreground Emphasis Primitives ─── */
+
+@utility emphasis-subtler-fg {
+  color: var(--intent-fg-subtler);
+}
+
+@utility emphasis-subtle-fg {
+  color: var(--intent-fg-subtle);
+}
+
+@utility emphasis-default-fg {
+  color: var(--intent-fg-default);
+}
+
+@utility emphasis-strong-fg {
+  color: var(--intent-fg-strong);
+  font-weight: 700;
+}
+
+@utility emphasis-inverted-fg {
+  color: var(--intent-fg-inverted);
+}
+
+/* ─── Border Emphasis Primitives ─── */
+
+@utility emphasis-subtler-border {
+  border: 1px solid var(--intent-border-subtler);
+}
+
+@utility emphasis-subtle-border {
+  border: 1px solid var(--intent-border-subtle);
+}
+
+@utility emphasis-default-border {
+  border: 1px solid var(--intent-border-default);
+}
+
+@utility emphasis-strong-border {
+  border: 1px solid var(--intent-border-strong);
+}
+
+@utility emphasis-inverted-border {
+  border: 1px solid var(--intent-border-inverted);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Combined Shortcuts (surface + fg)
+   Common pairings for convenience
+   ═══════════════════════════════════════════════════════════ */
+
+@utility emphasis-subtler {
+  background-color: var(--intent-surface-subtler);
+  color: var(--intent-fg-default);
+}
+
+@utility emphasis-subtle {
+  background-color: var(--intent-surface-subtle);
+  color: var(--intent-fg-default);
+}
+
+@utility emphasis-default {
+  background-color: var(--intent-surface-default);
+  color: var(--intent-fg-default);
+}
+
+@utility emphasis-strong {
+  background-color: var(--intent-surface-strong);
+  color: var(--intent-fg-inverted);
+}
+
+@utility emphasis-inverted {
+  background-color: var(--intent-surface-inverted);
+  color: var(--intent-fg-inverted);
+}
+
+@utility emphasis-raised {
+  background-color: var(--intent-surface-raised);
+  box-shadow: var(--elevation-raised);
+  color: var(--intent-fg-default);
+}
+
+@utility emphasis-sunken {
+  background-color: var(--intent-surface-sunken);
+  box-shadow: var(--elevation-sunken);
+  color: var(--intent-fg-default);
+}
+
+@utility emphasis-overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  color: var(--intent-fg-inverted);
+}
