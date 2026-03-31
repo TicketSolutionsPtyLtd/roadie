@@ -92,25 +92,61 @@ const components = {
       </CodePreview>
     )
   },
+  table: (props: ComponentPropsWithoutRef<'table'>) => (
+    <div className="overflow-x-auto mb-8 -mx-4 px-4 sm:mx-0 sm:px-0">
+      <table
+        className="w-full text-sm border-collapse min-w-[400px]"
+        {...props}
+      />
+    </div>
+  ),
+  thead: (props: ComponentPropsWithoutRef<'thead'>) => (
+    <thead {...props} />
+  ),
+  th: (props: ComponentPropsWithoutRef<'th'>) => (
+    <th
+      className="py-2 pr-4 text-left font-semibold border-b border-neutral-7 whitespace-nowrap"
+      {...props}
+    />
+  ),
+  td: (props: ComponentPropsWithoutRef<'td'>) => (
+    <td
+      className="py-2 pr-4 border-b border-neutral-6 emphasis-subtle-fg"
+      {...props}
+    />
+  ),
+  tr: (props: ComponentPropsWithoutRef<'tr'>) => <tr {...props} />,
   Table: ({ data }: { data: { headers: string[]; rows: string[][] } }) => (
-    <table>
-      <thead>
-        <tr>
-          {data.headers.map((header, index) => (
-            <th key={index}>{header}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {data.rows.map((row, index) => (
-          <tr key={index}>
-            {row.map((cell, cellIndex) => (
-              <td key={cellIndex}>{cell}</td>
+    <div className="overflow-x-auto mb-8">
+      <table className="w-full text-sm border-collapse">
+        <thead>
+          <tr>
+            {data.headers.map((header, index) => (
+              <th
+                key={index}
+                className="py-2 pr-4 text-left font-semibold border-b border-neutral-7"
+              >
+                {header}
+              </th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {data.rows.map((row, index) => (
+            <tr key={index}>
+              {row.map((cell, cellIndex) => (
+                <td
+                  key={cellIndex}
+                  className="py-2 pr-4 border-b border-neutral-6"
+                >
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   ),
   blockquote: (props: BlockquoteProps) => (
     <blockquote
