@@ -88,28 +88,64 @@
 }
 
 /* ═══════════════════════════════════════════════════════════
-   Combined Shortcuts (surface + fg)
-   Common pairings for convenience
+   Combined Shortcuts (surface + fg + interactive states)
+   Each shortcut includes hover/active/focus states that
+   use the intent color scale via --intent-* vars.
    ═══════════════════════════════════════════════════════════ */
 
-@utility emphasis-subtler {
-  background-color: var(--intent-surface-subtler);
-  color: var(--intent-fg-default);
-}
+@utility emphasis-strong {
+  background-color: var(--intent-surface-strong);
+  color: var(--intent-fg-inverted);
 
-@utility emphasis-subtle {
-  background-color: var(--intent-surface-subtle);
-  color: var(--intent-fg-default);
+  /* Strong: hover lifts slightly + lighter bg, active presses + darker */
+  &.is-interactive:hover {
+    background-color: var(--intent-border-strong);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 8px -2px rgba(0, 0, 0, 0.08);
+  }
+  &.is-interactive:active {
+    background-color: var(--intent-surface-inverted);
+    transform: translateY(0) scale(0.98);
+    box-shadow: none;
+  }
 }
 
 @utility emphasis-default {
   background-color: var(--intent-surface-default);
   color: var(--intent-fg-default);
+
+  &.is-interactive:hover {
+    background-color: var(--intent-surface-subtler);
+  }
+  &.is-interactive:active {
+    background-color: var(--intent-surface-subtle);
+  }
 }
 
-@utility emphasis-strong {
-  background-color: var(--intent-surface-strong);
-  color: var(--intent-fg-inverted);
+@utility emphasis-subtle {
+  background-color: var(--intent-surface-subtle);
+  color: var(--intent-fg-default);
+
+  /* Subtle: hover goes one step more tinted */
+  &.is-interactive:hover {
+    background-color: var(--intent-border-subtler);
+  }
+  &.is-interactive:active {
+    background-color: var(--intent-border-subtle);
+  }
+}
+
+@utility emphasis-subtler {
+  background-color: var(--intent-surface-subtler);
+  color: var(--intent-fg-default);
+
+  /* Subtler: hover shows a barely-there tint */
+  &.is-interactive:hover {
+    background-color: var(--intent-surface-subtle);
+  }
+  &.is-interactive:active {
+    background-color: var(--intent-border-subtler);
+  }
 }
 
 @utility emphasis-inverted {
@@ -121,6 +157,15 @@
   background-color: var(--intent-surface-raised);
   box-shadow: var(--elevation-raised);
   color: var(--intent-fg-default);
+
+  &.is-interactive:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 8px 16px -4px rgba(0, 0, 0, 0.1);
+  }
+  &.is-interactive:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: var(--elevation-raised);
+  }
 }
 
 @utility emphasis-sunken {

@@ -28,7 +28,7 @@ describe('IconButton', () => {
       </IconButton>
     )
     button = getByRole('button')
-    expect(button).toHaveClass('emphasis-subtle-surface')
+    expect(button).toHaveClass('emphasis-subtle')
   })
 
   it('renders with different intents', () => {

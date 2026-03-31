@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './reset.css';
 @import './tokens.css';
 @import './intents.css';
 @import './emphasis.css';

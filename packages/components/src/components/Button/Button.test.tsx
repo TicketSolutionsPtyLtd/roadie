@@ -29,7 +29,7 @@ describe('Button', () => {
 
     rerender(<Button emphasis='subtle'>Subtle</Button>)
     button = getByText('Subtle')
-    expect(button).toHaveClass('emphasis-subtle-surface')
+    expect(button).toHaveClass('emphasis-subtle')
 
     rerender(<Button emphasis='subtler'>Subtler</Button>)
     button = getByText('Subtler')

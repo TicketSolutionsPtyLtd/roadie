@@ -1,0 +1,110 @@
+/* ═══════════════════════════════════════════════════════════
+   Roadie CSS Reset & Defaults
+   Modern reset with sensible typography defaults.
+   Ported from v1 globalCss + enhanced.
+   ═══════════════════════════════════════════════════════════ */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    font-style: normal;
+  }
+
+  :focus-visible {
+    outline-style: solid;
+    outline-width: 2px;
+    outline-color: var(--intent-border-subtle);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: var(--intent-surface-subtle);
+  }
+
+  body {
+    line-height: var(--leading-ui);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: var(--font-sans);
+    color: var(--intent-fg-default);
+    background-color: var(--intent-surface-default);
+    border-color: var(--intent-border-default);
+  }
+
+  /* Media elements */
+  img,
+  picture,
+  video,
+  canvas,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  /* Form elements inherit font */
+  input,
+  button,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  /* Typography wrapping */
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    overflow-wrap: break-word;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-wrap: balance;
+  }
+
+  /* Links */
+  a {
+    text-decoration: none;
+    color: currentColor;
+  }
+
+  a:visited {
+    color: inherit;
+  }
+
+  /* Code */
+  code,
+  pre {
+    font-family: var(--font-mono);
+  }
+
+  /* Isolation for root elements */
+  #root,
+  #__next {
+    isolation: isolate;
+  }
+
+  /* List style reset */
+  ul,
+  ol {
+    list-style: none;
+  }
+}

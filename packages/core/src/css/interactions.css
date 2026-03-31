@@ -1,34 +1,27 @@
 /* ═══════════════════════════════════════════════════════════
    Interaction Utility
-   Provides sensible defaults for interactive elements.
-   Uses intent color scale for hover/focus/active states.
-   Omit for custom interaction handling.
+   Base transitions and disabled state.
+   Hover/active states are per-emphasis in emphasis.css.
    ═══════════════════════════════════════════════════════════ */
 
 @utility is-interactive {
   cursor: pointer;
   outline: 0 solid transparent;
   transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease,
-    box-shadow 0.15s ease,
-    outline-color 0.15s ease,
-    outline-width 0.15s ease,
-    transform 0.1s ease,
-    filter 0.15s ease;
-
-  &:hover {
-    filter: brightness(0.93);
-  }
+    background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    outline-width 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+    outline-color 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:active {
-    filter: brightness(0.88);
-    transform: scale(0.97);
+    transform: scale(0.98);
   }
 
   &:focus-visible {
-    outline: 3px solid var(--intent-border-subtle);
+    outline: 3px solid var(--intent-border-subtler);
     outline-offset: 2px;
   }
 
