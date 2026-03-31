@@ -1,17 +1,17 @@
-export { Button, IconButton } from './Button'
-export type { ButtonProps } from './Button'
+export { Button, IconButton, buttonVariants } from './Button'
+export type { ButtonProps, IconButtonProps } from './Button'
 
-export { Container } from './Container'
-export type { ContainerProps } from './Container'
-
-export { Code } from './Code'
+export { Code, codeVariants } from './Code'
 export type { CodeProps } from './Code'
 
-export { Heading } from './Heading'
+export { Heading, headingVariants } from './Heading'
 export type { HeadingProps } from './Heading'
 
-export { Text } from './Text'
-export type { TextProps } from './Text'
+export { Highlight } from './Highlight'
+export type { HighlightProps } from './Highlight'
 
-export { View } from './View'
-export type { ViewProps } from './View'
+export { Mark, markVariants } from './Mark'
+export type { MarkProps } from './Mark'
+
+export { Text, textVariants } from './Text'
+export type { TextProps } from './Text'

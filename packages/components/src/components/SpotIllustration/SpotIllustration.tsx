@@ -1,7 +1,6 @@
-import { forwardRef } from 'react'
+import { forwardRef, type ComponentProps } from 'react'
 
-import { styled } from '@oztix/roadie-core/jsx'
-import type { HTMLStyledProps } from '@oztix/roadie-core/jsx'
+import { cn } from '@oztix/roadie-core/utils'
 
 interface PathData {
   d: string
@@ -13,83 +12,46 @@ interface IllustrationData {
   paths: PathData[]
 }
 
-const StyledSvg = styled('svg', {
-  base: {
-    boxSize: '600',
-    fill: 'none',
-    '& [data-part="outline"]': {
-      fill: 'illustrations.outline'
-    },
-    '& [data-part="face"]': {
-      fill: 'illustrations.face'
-    },
-    '& [data-part="detail"]': {
-      fill: 'illustrations.detail'
-    },
-    '& [data-part="shadow"]': {
-      fill: 'illustrations.shadow'
-    },
-    '& [data-part="highlight"]': {
-      fill: 'illustrations.highlight'
-    },
-    '& [data-part="stroke"]': {
-      stroke: 'illustrations.stroke',
-      strokeWidth: '0.5',
-      strokeLinecap: 'round',
-      strokeLinejoin: 'round',
-      fill: 'none'
-    }
-  },
-  variants: {
-    outline: {
-      true: {
-        '& [data-part="outline"]': {
-          opacity: 1
-        }
-      },
-      false: {
-        '& [data-part="outline"]': {
-          opacity: 0
-        }
-      }
-    }
-  },
-  defaultVariants: {
-    outline: false
-  }
-})
-
 export interface SpotIllustrationProps
-  extends Omit<HTMLStyledProps<'svg'>, 'outline'> {
-  /**
-   * Illustration definition containing viewBox and paths
-   */
+  extends Omit<ComponentProps<'svg'>, 'outline'> {
   illustration: IllustrationData
-  /**
-   * Whether to show the outline layer
-   * @default false
-   */
   outline?: boolean
 }
 
 export const SpotIllustration = forwardRef<
   SVGSVGElement,
   SpotIllustrationProps
->(({ illustration, ...props }, ref) => {
-  // Fallback to default viewBox if not provided
+>(({ illustration, outline = false, className, ...props }, ref) => {
   const { viewBox = '0 0 48 48', paths } = illustration
 
   return (
-    <StyledSvg
+    <svg
       ref={ref}
-      xmlns='http://www.w3.org/2000/svg'
+      xmlns="http://www.w3.org/2000/svg"
       viewBox={viewBox}
+      className={cn('size-12 fill-none', className)}
       {...props}
     >
       {paths.map((path: PathData, index: number) => (
-        <path key={index} d={path.d} data-part={path.layer} />
+        <path
+          key={index}
+          d={path.d}
+          data-part={path.layer}
+          className={cn(
+            path.layer === 'outline' && [
+              'fill-neutral-12',
+              !outline && 'opacity-0',
+            ],
+            path.layer === 'face' && 'fill-neutral-3',
+            path.layer === 'detail' && 'fill-neutral-9',
+            path.layer === 'shadow' && 'fill-neutral-6',
+            path.layer === 'highlight' && 'fill-neutral-1',
+            path.layer === 'stroke' &&
+              'fill-none stroke-neutral-11 [stroke-width:0.5] [stroke-linecap:round] [stroke-linejoin:round]'
+          )}
+        />
       ))}
-    </StyledSvg>
+    </svg>
   )
 })
 

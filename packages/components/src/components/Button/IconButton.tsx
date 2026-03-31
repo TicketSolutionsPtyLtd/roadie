@@ -1,3 +1,5 @@
+'use client'
+
 import type { ComponentProps } from 'react'
 
 import { Button } from './Button'
@@ -7,8 +9,8 @@ export interface IconButtonProps
   'aria-label': string
 }
 
-export const IconButton = (props: IconButtonProps) => {
-  return <Button px='0' py='0' _icon={{ fontSize: '1.2em' }} {...props} />
+export function IconButton({ size = 'icon-md', ...props }: IconButtonProps) {
+  return <Button size={size} {...props} />
 }
 
 IconButton.displayName = 'IconButton'

@@ -11,15 +11,14 @@ const getComponentEntries = () => {
     .reduce(
       (acc, dirent) => ({
         ...acc,
-        [dirent.name]: `src/components/${dirent.name}/index.tsx`
+        [dirent.name]: `src/components/${dirent.name}/index.tsx`,
       }),
       {}
     )
 
   return {
     index: 'src/index.tsx',
-    'hooks/index': 'src/hooks/index.ts',
-    ...components
+    ...components,
   }
 }
 
@@ -30,21 +29,21 @@ export default defineConfig({
     resolve: true,
     compilerOptions: {
       composite: false,
-      incremental: false
-    }
+      incremental: false,
+    },
   },
   sourcemap: true,
   clean: true,
   target: 'es2022',
-  external: ['react', '@oztix/roadie-core'],
+  external: ['react', 'react-dom', '@oztix/roadie-core', '@base-ui/react'],
   splitting: true,
   treeshake: {
-    preset: 'recommended'
+    preset: 'recommended',
   },
   minify: true,
   outDir: 'dist',
   outExtension: () => ({
-    js: '.js'
+    js: '.js',
   }),
   esbuildOptions(options) {
     options.chunkNames = '_chunks/[name]-[hash]'
@@ -54,7 +53,6 @@ export default defineConfig({
     const { writeFileSync, readFileSync, readdirSync } = await import('fs')
     const { join } = await import('path')
 
-    // Helper to add 'use client' to a file and its dependencies recursively
     const addUseClientToFile = (
       filePath: string,
       visited = new Set<string>()
@@ -65,12 +63,10 @@ export default defineConfig({
       try {
         const content = readFileSync(filePath, 'utf-8')
 
-        // Add directive if not present
         if (!content.startsWith('"use client"')) {
           writeFileSync(filePath, `"use client";\n${content}`)
         }
 
-        // Find all chunk imports and process them recursively
         const chunkMatches = content.matchAll(
           /(?:from|import)'\.\/(_chunks\/[^']+)'/g
         )
@@ -78,12 +74,11 @@ export default defineConfig({
           const chunkPath = join(__dirname, 'dist', match[1])
           addUseClientToFile(chunkPath, visited)
         }
-      } catch (e) {
+      } catch {
         // File might not exist
       }
     }
 
-    // Find all source files with 'use client' directive
     const srcDir = join(__dirname, 'src/components')
     const components = readdirSync(srcDir, { withFileTypes: true })
       .filter((dirent) => dirent.isDirectory())
@@ -97,9 +92,9 @@ export default defineConfig({
           const distPath = join(__dirname, 'dist', `${component}.js`)
           addUseClientToFile(distPath)
         }
-      } catch (e) {
+      } catch {
         // File might not exist
       }
     }
-  }
+  },
 })

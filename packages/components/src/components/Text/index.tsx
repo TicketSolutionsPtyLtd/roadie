@@ -1,51 +1,62 @@
-import type { ReactNode } from 'react'
+'use client'
 
-import { ark } from '@ark-ui/react/factory'
+import { cva, type VariantProps } from 'class-variance-authority'
+import type { ComponentProps, ElementType } from 'react'
 
-import type { ColorPalette } from '@oztix/roadie-core'
-import { styled } from '@oztix/roadie-core/jsx'
-import type { HTMLStyledProps } from '@oztix/roadie-core/jsx'
-import { type TextVariantProps, text } from '@oztix/roadie-core/recipes'
+import { cn } from '@oztix/roadie-core/utils'
 
-/**
- * Text component for displaying content with various styling options
- */
-export interface TextProps extends HTMLStyledProps<'p'> {
-  /**
-   * The visual emphasis of the text
-   * @default 'default'
-   */
-  emphasis?: TextVariantProps['emphasis']
+export const textVariants = cva('', {
+  variants: {
+    intent: {
+      neutral: 'intent-neutral',
+      brand: 'intent-brand',
+      accent: 'intent-accent',
+      danger: 'intent-danger',
+      success: 'intent-success',
+      warning: 'intent-warning',
+      info: 'intent-info',
+    },
+    emphasis: {
+      default: 'emphasis-default-fg',
+      strong: 'emphasis-strong-fg',
+      subtle: 'emphasis-subtle-fg',
+      subtler: 'emphasis-subtler-fg',
+      inverted: 'emphasis-inverted-fg',
+    },
+    size: {
+      xs: 'text-xs',
+      sm: 'text-sm',
+      base: 'text-base',
+      lg: 'text-lg',
+      xl: 'text-xl',
+    },
+  },
+  defaultVariants: {
+    emphasis: 'default',
+    size: 'base',
+  },
+})
 
-  /**
-   * Whether the text is interactive
-   * @default false
-   */
-  interactive?: TextVariantProps['interactive']
-
-  /**
-   * The HTML element to render the text as
-   * @default 'p'
-   */
-  as?: HTMLStyledProps<'p'>['as']
-
-  /**
-   * The color palette to use for the text
-   * @default 'neutral'
-   */
-  colorPalette?: ColorPalette
-
-  /**
-   * When true, the component will pass props to its child component
-   */
-  asChild?: boolean
-
-  /**
-   * The content to display
-   */
-  children?: ReactNode
+export interface TextProps
+  extends ComponentProps<'p'>,
+    VariantProps<typeof textVariants> {
+  as?: ElementType
 }
 
-export const Text = styled(ark.p, text)
+export function Text({
+  as: Component = 'p',
+  className,
+  intent,
+  emphasis,
+  size,
+  ...props
+}: TextProps) {
+  return (
+    <Component
+      className={cn(textVariants({ intent, emphasis, size, className }))}
+      {...props}
+    />
+  )
+}
 
 Text.displayName = 'Text'

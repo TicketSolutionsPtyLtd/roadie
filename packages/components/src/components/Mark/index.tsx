@@ -1,33 +1,41 @@
-import type { ReactNode } from 'react'
+'use client'
 
-import { ark } from '@ark-ui/react/factory'
+import { cva, type VariantProps } from 'class-variance-authority'
+import type { ComponentProps } from 'react'
 
-import type { ColorPalette } from '@oztix/roadie-core'
-import { styled } from '@oztix/roadie-core/jsx'
-import type { HTMLStyledProps } from '@oztix/roadie-core/jsx'
-import { mark } from '@oztix/roadie-core/recipes'
+import { cn } from '@oztix/roadie-core/utils'
 
-/**
- * Mark component for highlighting text content
- */
-export interface MarkProps extends HTMLStyledProps<'mark'> {
-  /**
-   * The color palette to use for the mark
-   * @default 'information'
-   */
-  colorPalette?: ColorPalette
+export const markVariants = cva('rounded-sm px-[0.2em] py-[0.05em]', {
+  variants: {
+    intent: {
+      neutral: 'intent-neutral',
+      brand: 'intent-brand',
+      accent: 'intent-accent',
+      danger: 'intent-danger',
+      success: 'intent-success',
+      warning: 'intent-warning',
+      info: 'intent-info',
+    },
+  },
+  defaultVariants: {
+    intent: 'info',
+  },
+})
 
-  /**
-   * When true, the component will pass props to its child component
-   */
-  asChild?: boolean
+export interface MarkProps
+  extends ComponentProps<'mark'>,
+    VariantProps<typeof markVariants> {}
 
-  /**
-   * The content to mark
-   */
-  children?: ReactNode
+export function Mark({ className, intent, ...props }: MarkProps) {
+  return (
+    <mark
+      className={cn(
+        markVariants({ intent, className }),
+        'emphasis-subtle-surface emphasis-default-fg'
+      )}
+      {...props}
+    />
+  )
 }
-
-export const Mark = styled(ark.mark, mark)
 
 Mark.displayName = 'Mark'

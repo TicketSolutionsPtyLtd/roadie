@@ -1,49 +1,81 @@
-import type { ReactNode } from 'react'
+'use client'
 
-import { ark } from '@ark-ui/react/factory'
+import { cva, type VariantProps } from 'class-variance-authority'
+import type { ComponentProps } from 'react'
 
-import type { ColorPalette } from '@oztix/roadie-core'
-import { type HTMLStyledProps, styled } from '@oztix/roadie-core/jsx'
-import { type HeadingVariantProps, heading } from '@oztix/roadie-core/recipes'
-import type { JsxStyleProps } from '@oztix/roadie-core/types'
+import { cn } from '@oztix/roadie-core/utils'
 
-type HeadingElement = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'label'
-type HeadingStyle = Extract<JsxStyleProps['textStyle'], `display.${string}`>
+type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6
 
-/**
- * A heading component that uses display styles for titles and section headers
- */
-export interface HeadingProps extends HTMLStyledProps<'h2'> {
-  /**
-   * The heading element to render
-   * @default 'h2'
-   */
+const levelTag = {
+  1: 'h1',
+  2: 'h2',
+  3: 'h3',
+  4: 'h4',
+  5: 'h5',
+  6: 'h6',
+} as const
+
+export const headingVariants = cva('font-bold', {
+  variants: {
+    intent: {
+      neutral: 'intent-neutral',
+      brand: 'intent-brand',
+      accent: 'intent-accent',
+      danger: 'intent-danger',
+      success: 'intent-success',
+      warning: 'intent-warning',
+      info: 'intent-info',
+    },
+    emphasis: {
+      default: 'emphasis-strong-fg',
+      strong: 'emphasis-strong-fg font-black',
+      subtle: 'emphasis-subtle-fg font-medium',
+      subtler: 'emphasis-subtler-fg font-normal',
+      inverted: 'emphasis-inverted-fg',
+    },
+    size: {
+      xs: 'text-xs',
+      sm: 'text-sm',
+      base: 'text-base',
+      lg: 'text-lg',
+      xl: 'text-xl',
+      '2xl': 'text-2xl',
+      '3xl': 'text-3xl',
+      '4xl': 'text-4xl',
+    },
+  },
+  defaultVariants: {
+    emphasis: 'default',
+    size: 'xl',
+  },
+})
+
+type HeadingElement = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+
+export interface HeadingProps
+  extends ComponentProps<'h2'>,
+    VariantProps<typeof headingVariants> {
+  level?: HeadingLevel
   as?: HeadingElement
-
-  /**
-   * The text style to use for the heading
-   * @default 'display.ui'
-   */
-  textStyle?: HeadingStyle
-
-  /**
-   * The color palette to use for the heading
-   * @default 'neutral'
-   */
-  colorPalette?: ColorPalette
-
-  /**
-   * Set a sepecific empahasis level for differen fonts like subtitles
-   * @default 'default'
-   */
-  emphasis?: HeadingVariantProps['emphasis']
-
-  /**
-   * The content to display
-   */
-  children?: ReactNode
 }
 
-export const Heading = styled(ark.h2, heading)
+export function Heading({
+  level = 2,
+  as,
+  className,
+  intent,
+  emphasis,
+  size,
+  ...props
+}: HeadingProps) {
+  const Component: HeadingElement = as ?? levelTag[level]
+  return (
+    <Component
+      className={cn(headingVariants({ intent, emphasis, size, className }))}
+      {...props}
+    />
+  )
+}
 
 Heading.displayName = 'Heading'
