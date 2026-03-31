@@ -21,7 +21,7 @@ const grayScaleNames = [
   'slate',
   'sage',
   'olive',
-  'sand',
+  'sand'
 ] as const
 const scaleNames = [
   ...grayScaleNames,
@@ -47,7 +47,7 @@ const scaleNames = [
   'mint',
   'lime',
   'yellow',
-  'amber',
+  'amber'
 ] as const
 
 // DATA PROCESSING
@@ -59,7 +59,7 @@ const lightColors = Object.fromEntries(
         string,
         string
       >
-    ).map((str) => new Color(str).to('oklch')),
+    ).map((str) => new Color(str).to('oklch'))
   ])
 ) as Record<string, ArrayOf12<Color>>
 
@@ -67,10 +67,11 @@ const darkColors = Object.fromEntries(
   scaleNames.map((scaleName) => [
     scaleName,
     Object.values(
-      RadixColors[
-        `${scaleName}DarkP3` as keyof typeof RadixColors
-      ] as Record<string, string>
-    ).map((str) => new Color(str).to('oklch')),
+      RadixColors[`${scaleName}DarkP3` as keyof typeof RadixColors] as Record<
+        string,
+        string
+      >
+    ).map((str) => new Color(str).to('oklch'))
   ])
 ) as Record<string, ArrayOf12<Color>>
 
@@ -96,7 +97,7 @@ export function generateRadixScale(accentHex: string): ScaleResult {
   return {
     light: lightFull,
     dark: darkFull,
-    fgOnStrong,
+    fgOnStrong
   }
 }
 
@@ -112,11 +113,7 @@ function extendScale(scale12: string[], mode: 'light' | 'dark'): string[] {
     const step0 = '#ffffff'
     const step12Color = new Color(step12Hex).to('oklch')
     const [L, C, H] = getCoords(step12Color)
-    const step13Color = new Color('oklch', [
-      Math.max(0.1, L - 0.12),
-      C,
-      H,
-    ])
+    const step13Color = new Color('oklch', [Math.max(0.1, L - 0.12), C, H])
     const step13 = step13Color.to('srgb').toString({ format: 'hex' })
     return [step0, ...scale12, step13]
   } else {
@@ -126,7 +123,7 @@ function extendScale(scale12: string[], mode: 'light' | 'dark'): string[] {
     const step13Color = new Color('oklch', [
       Math.min(0.98, L + 0.05),
       Math.max(0, C - 0.01),
-      H,
+      H
     ])
     const step13 = step13Color.to('srgb').toString({ format: 'hex' })
     return [step0, ...scale12, step13]
@@ -216,8 +213,8 @@ function getScaleFromColor(
   const scaleB = scales[colorB.scale]!
 
   // Mix the two closest scales
-  const scale = arrayOf12.map(
-    (i) => new Color(Color.mix(scaleA[i], scaleB[i], ratio)).to('oklch')
+  const scale = arrayOf12.map((i) =>
+    new Color(Color.mix(scaleA[i], scaleB[i], ratio)).to('oklch')
   ) as ArrayOf12<Color>
 
   // Pick Closest from Mixed
