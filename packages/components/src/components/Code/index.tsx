@@ -20,7 +20,7 @@ export const codeVariants = cva(
         info: 'intent-info'
       },
       emphasis: {
-        default: 'emphasis-subtle',
+        default: 'emphasis-default',
         strong: 'emphasis-strong',
         subtle: 'emphasis-subtle',
         subtler: 'emphasis-subtler'
