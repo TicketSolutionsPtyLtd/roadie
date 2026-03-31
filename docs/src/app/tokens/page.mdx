@@ -18,9 +18,9 @@ Tokens are defined in `packages/core/src/css/tokens.css` and consumed via Tailwi
 ```
 
 ```tsx
-{/* Use via Tailwind utilities */}
-<div className="bg-neutral-3 text-neutral-12 p-4 rounded-lg">
-  Content using token-backed utilities
+{/* Use via intent + emphasis utilities */}
+<div className="intent-accent emphasis-subtle emphasis-default-fg p-4 rounded-lg">
+  Content using the intent/emphasis system
 </div>
 ```
 
@@ -99,10 +99,15 @@ Fluid font sizes with `clamp()` from `lg` upward, plus pre-composed text style u
 All tokens automatically adapt via the `.dark` class on `<html>`. The OKLCH color values swap — step numbers stay the same but perceptual weight inverts. No `dark:` Tailwind variants needed for colors.
 
 ```tsx
-{/* This works in both light and dark mode automatically */}
-<div className="bg-neutral-1 text-neutral-12 border border-neutral-7">
+{/* Semantic classes adapt to dark mode automatically */}
+<div className="emphasis-default-surface emphasis-default-fg emphasis-subtle-border p-4 rounded-lg">
   Adapts to light/dark automatically
 </div>
+
+{/* Intent + emphasis on a button */}
+<button className="intent-accent emphasis-strong is-interactive rounded-full px-4 py-2">
+  Always uses the right colors
+</button>
 ```
 
 ## Dynamic accent color
