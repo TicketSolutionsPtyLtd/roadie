@@ -115,6 +115,10 @@
   color: var(--intent-fg-default);
   border: 1px solid var(--intent-border-subtle);
 
+  .dark & {
+    border-color: var(--intent-border-default);
+  }
+
   &.is-interactive:hover,
   &.is-interactive:focus-visible {
     background-color: var(--intent-2);
