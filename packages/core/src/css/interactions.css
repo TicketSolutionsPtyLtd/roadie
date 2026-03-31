@@ -20,14 +20,14 @@
     transform: scale(0.98);
   }
 
-  /* Focus ring uses intent color — soft tint in light, muted in dark */
+  /* Focus ring — intent-colored with transparency for a soft glow */
   &:focus-visible {
-    outline: 4px solid var(--intent-3);
+    outline: 4px solid color-mix(in oklch, var(--intent-9) 30%, transparent);
     outline-offset: 0;
   }
 
   .dark &:focus-visible {
-    outline-color: var(--intent-8);
+    outline-color: color-mix(in oklch, var(--intent-9) 20%, transparent);
   }
 
   &:disabled,
