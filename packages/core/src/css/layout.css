@@ -1,0 +1,20 @@
+/* ═══════════════════════════════════════════════════════════
+   Layout Utilities
+   Migration helpers for transitioning from View/Container
+   components to utility-first Tailwind classes.
+   ═══════════════════════════════════════════════════════════ */
+
+/* View: flex column container with sensible defaults.
+   Replaces the v1 <View> component.
+   Usage: <div className="view gap-4 p-2">...</div> */
+@utility view {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  align-content: flex-start;
+  justify-content: flex-start;
+  min-height: 0;
+  min-width: 0;
+}
