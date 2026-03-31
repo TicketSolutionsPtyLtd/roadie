@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════
    Interaction Utility
-   Base transitions and disabled state.
-   Hover/active states are per-emphasis in emphasis.css.
+   Base transitions, focus ring, and disabled state.
+   Hover/active bg changes are per-emphasis in emphasis.css.
    ═══════════════════════════════════════════════════════════ */
 
 @utility is-interactive {
@@ -20,9 +20,14 @@
     transform: scale(0.98);
   }
 
+  /* Focus ring uses intent color — soft tint in light, muted in dark */
   &:focus-visible {
-    outline: 3px solid var(--intent-border-subtler);
-    outline-offset: 2px;
+    outline: 4px solid var(--intent-3);
+    outline-offset: 0;
+  }
+
+  .dark &:focus-visible {
+    outline-color: var(--intent-8);
   }
 
   &:disabled,

@@ -97,8 +97,8 @@
   background-color: var(--intent-surface-strong);
   color: var(--intent-fg-inverted);
 
-  /* Strong: hover → scale step 10, active → step 11 */
-  &.is-interactive:hover {
+  &.is-interactive:hover,
+  &.is-interactive:focus-visible {
     background-color: var(--intent-10);
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 8px -2px rgba(0, 0, 0, 0.08);
@@ -114,7 +114,8 @@
   background-color: var(--intent-surface-default);
   color: var(--intent-fg-default);
 
-  &.is-interactive:hover {
+  &.is-interactive:hover,
+  &.is-interactive:focus-visible {
     background-color: var(--intent-2);
   }
   &.is-interactive:active {
@@ -126,8 +127,8 @@
   background-color: var(--intent-surface-subtle);
   color: var(--intent-fg-default);
 
-  /* Subtle: hover → step 4, active → step 5 */
-  &.is-interactive:hover {
+  &.is-interactive:hover,
+  &.is-interactive:focus-visible {
     background-color: var(--intent-4);
   }
   &.is-interactive:active {
@@ -139,11 +140,11 @@
   background-color: var(--intent-surface-subtler);
   color: var(--intent-fg-default);
 
-  /* Subtler + interactive: transparent bg by default, tint on hover */
   &.is-interactive {
     background-color: transparent;
   }
-  &.is-interactive:hover {
+  &.is-interactive:hover,
+  &.is-interactive:focus-visible {
     background-color: var(--intent-2);
   }
   &.is-interactive:active {
@@ -161,7 +162,8 @@
   box-shadow: var(--elevation-raised);
   color: var(--intent-fg-default);
 
-  &.is-interactive:hover {
+  &.is-interactive:hover,
+  &.is-interactive:focus-visible {
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 8px 16px -4px rgba(0, 0, 0, 0.1);
   }
