@@ -74,9 +74,10 @@ Pass any React element as the `icon` prop. Use Phosphor Bold icons for consisten
 
 ```tsx-live
 <div className='flex flex-row flex-wrap gap-2'>
-  <Badge intent='success' icon={<span>✓</span>}>Verified</Badge>
-  <Badge intent='danger' icon={<span>✕</span>}>Failed</Badge>
-  <Badge intent='info' icon={<span>ℹ</span>}>Info</Badge>
+  <Badge intent='success' icon={<CheckCircle />}>Verified</Badge>
+  <Badge intent='danger' icon={<XCircle />}>Failed</Badge>
+  <Badge intent='info' icon={<Info />}>Info</Badge>
+  <Badge intent='warning' icon={<Warning />}>Caution</Badge>
 </div>
 ```
 
@@ -84,10 +85,10 @@ Pass any React element as the `icon` prop. Use Phosphor Bold icons for consisten
 
 ```tsx-live
 <div className='flex flex-row flex-wrap gap-2'>
-  <Badge emphasis='strong' intent='success' indicator>Published</Badge>
+  <Badge emphasis='strong' intent='success' indicator icon={<CheckCircle />}>Published</Badge>
   <Badge emphasis='strong' intent='danger' indicator indicatorPulse>Urgent</Badge>
+  <Badge emphasis='subtle' intent='accent' icon={<Star />}>Featured</Badge>
   <Badge emphasis='subtler' intent='neutral' size='md'>Draft</Badge>
-  <Badge emphasis='subtle' intent='accent' icon={<span>★</span>}>Featured</Badge>
 </div>
 ```
 
