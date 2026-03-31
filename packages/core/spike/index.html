@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roadie v2 Spike: @utility validation</title>
+  <link rel="stylesheet" href="output.css">
+</head>
+<body class="p-8 bg-neutral-1 text-neutral-12">
+  <div class="max-w-3xl mx-auto space-y-8">
+    <h1 class="text-2xl font-bold">Roadie v2 Spike: @utility Validation</h1>
+    <button id="toggleDark" class="px-3 py-1 border border-neutral-7 rounded cursor-pointer">Toggle dark mode</button>
+
+    <!-- TEST 1: Intent scoping on same element -->
+    <section class="space-y-4">
+      <h2 class="text-xl font-semibold">Test 1: Intent + Emphasis on same element</h2>
+      <div class="flex gap-3">
+        <button class="intent-accent emphasis-strong is-interactive rounded-lg px-4 py-2">
+          Accent Strong
+        </button>
+        <button class="intent-danger emphasis-strong is-interactive rounded-lg px-4 py-2">
+          Danger Strong
+        </button>
+        <button class="intent-accent emphasis-subtle is-interactive rounded-lg px-4 py-2">
+          Accent Subtle
+        </button>
+        <button class="intent-danger emphasis-subtle is-interactive rounded-lg px-4 py-2">
+          Danger Subtle
+        </button>
+      </div>
+    </section>
+
+    <!-- TEST 2: Intent cascade (parent scopes children) -->
+    <section class="space-y-4">
+      <h2 class="text-xl font-semibold">Test 2: Intent cascade (parent scopes children)</h2>
+      <div class="intent-accent space-y-3 p-4 emphasis-subtle-surface rounded-lg">
+        <p class="emphasis-default-fg">This text inherits accent intent from parent</p>
+        <button class="emphasis-strong is-interactive rounded-lg px-4 py-2">
+          Inherits accent (no intent class on button)
+        </button>
+        <div class="intent-danger p-3 emphasis-subtle-surface rounded">
+          <p class="emphasis-default-fg">Nested danger overrides accent</p>
+          <button class="emphasis-strong is-interactive rounded px-3 py-1">
+            Danger button (nested)
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TEST 3: Property-specific emphasis (composable) -->
+    <section class="space-y-4">
+      <h2 class="text-xl font-semibold">Test 3: Property-specific emphasis (composable)</h2>
+      <div class="flex gap-3">
+        <div class="intent-accent emphasis-strong-surface emphasis-inverted-fg rounded-lg px-4 py-2">
+          Strong surface + Inverted fg
+        </div>
+        <div class="intent-accent emphasis-subtle-surface emphasis-strong-fg rounded-lg px-4 py-2">
+          Subtle surface + Strong fg
+        </div>
+        <div class="intent-accent emphasis-raised-surface emphasis-default-fg emphasis-default-border rounded-lg px-4 py-2">
+          Raised + Default fg + Default border
+        </div>
+      </div>
+    </section>
+
+    <!-- TEST 4: Elevation (raised/sunken) -->
+    <section class="space-y-4">
+      <h2 class="text-xl font-semibold">Test 4: Elevation (raised/sunken)</h2>
+      <div class="flex gap-4">
+        <div class="intent-accent emphasis-raised rounded-lg p-6 w-48">
+          <p class="font-medium">Raised card</p>
+          <p class="text-sm opacity-70">Should have shadow</p>
+        </div>
+        <div class="intent-accent emphasis-sunken-surface emphasis-default-fg rounded-lg p-6 w-48">
+          <p class="font-medium">Sunken area</p>
+          <p class="text-sm opacity-70">Should have inset shadow</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TEST 5: is-interactive states -->
+    <section class="space-y-4">
+      <h2 class="text-xl font-semibold">Test 5: is-interactive states</h2>
+      <div class="flex gap-3 items-center">
+        <button class="intent-accent emphasis-strong is-interactive rounded-lg px-4 py-2">
+          Hover me
+        </button>
+        <button class="intent-accent emphasis-strong is-interactive rounded-lg px-4 py-2" disabled>
+          Disabled
+        </button>
+        <button class="intent-accent emphasis-subtle is-interactive rounded-lg px-4 py-2">
+          Focus me (tab)
+        </button>
+      </div>
+    </section>
+
+    <!-- TEST 6: Dark mode validation -->
+    <section class="space-y-4">
+      <h2 class="text-xl font-semibold">Test 6: Toggle dark mode above to verify</h2>
+      <ul class="list-disc pl-6 space-y-1 text-sm">
+        <li>All colors should adapt</li>
+        <li>Raised should become <em>lighter</em> than default surface</li>
+        <li>Sunken should become <em>darker</em> than default surface</li>
+        <li>No flash or layout shift</li>
+      </ul>
+    </section>
+  </div>
+
+  <script>
+    document.getElementById('toggleDark').addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+    });
+  </script>
+</body>
+</html>

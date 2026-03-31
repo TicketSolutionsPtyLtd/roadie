@@ -1,7 +1,7 @@
 {
   "name": "@oztix/roadie-core",
-  "version": "1.2.0",
-  "description": "The design tokens and styled system for Roadie Design System at Oztix",
+  "version": "2.0.0",
+  "description": "Design tokens, CSS foundation, and utilities for the Roadie Design System",
   "type": "module",
   "repository": {
     "type": "git",
@@ -13,64 +13,35 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.js"
+      "import": "./dist/index.js"
     },
-    "./presets": {
-      "types": "./dist/presets/index.d.ts",
-      "import": "./dist/presets/index.js",
-      "require": "./dist/presets/index.js"
+    "./css": "./src/css/roadie.css",
+    "./css/compiled": "./dist/roadie.compiled.css",
+    "./colors": {
+      "types": "./dist/colors/index.d.ts",
+      "import": "./dist/colors/index.js"
     },
-    "./css": {
-      "types": "./dist/css/index.d.ts",
-      "require": "./dist/css/index.js",
-      "import": "./dist/css/index.js"
-    },
-    "./tokens": {
-      "types": "./dist/tokens/index.d.ts",
-      "require": "./dist/tokens/index.js",
-      "import": "./dist/tokens/index.js"
-    },
-    "./types": {
-      "types": "./dist/types/index.d.ts",
-      "require": "./dist/types/index.js",
-      "import": "./dist/types/index.js"
-    },
-    "./patterns": {
-      "types": "./dist/patterns/index.d.ts",
-      "require": "./dist/patterns/index.js",
-      "import": "./dist/patterns/index.js"
-    },
-    "./jsx": {
-      "types": "./dist/jsx/index.d.ts",
-      "require": "./dist/jsx/index.js",
-      "import": "./dist/jsx/index.js"
-    },
-    "./recipes": {
-      "types": "./dist/recipes/index.d.ts",
-      "require": "./dist/recipes/index.js",
-      "import": "./dist/recipes/index.js"
-    },
-    "./tokens.css": "./dist/tokens.css",
-    "./utilities.css": "./dist/utilities.css",
-    "./styles.css": "./dist/styles.css"
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.js"
+    }
   },
-  "sideEffects": false,
+  "sideEffects": [
+    "*.css"
+  ],
   "files": [
-    "dist"
+    "dist",
+    "src/css"
   ],
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
     "clean": "rm -rf node_modules dist",
-    "build": "pnpm build:tokens && tsup && pnpm build:panda && pnpm build:copy-css",
-    "build:copy-css": "cp src/tokens/css/tokens.css dist/tokens.css && cp src/tokens/css/utilities.css dist/utilities.css",
-    "build:panda": "panda codegen --c panda.config.js && panda emit-pkg --base dist && prettier --write package.json",
-    "build:tokens": "node scripts/build-panda-tokens.js && node scripts/build-css-tokens.js && node scripts/build-figma-tokens.js",
+    "build": "tsup && pnpm build:css",
+    "build:css": "npx @tailwindcss/cli -i src/css/roadie.css -o dist/roadie.compiled.css --content 'src/css/safelist.html'",
     "dev": "run-p dev:*",
     "dev:tsup": "tsup --watch",
-    "dev:tokens": "chokidar \"src/tokens/{tokens,semantic-tokens}.json\" -i \"**/panda/**\" -i \"**/css/**\" -i \"**/figma/**\" -c \"pnpm build:tokens\"",
     "format:check": "prettier --ignore-path ../../.prettierignore --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format": "prettier --ignore-path ../../.prettierignore --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "lint:fix": "eslint . --fix",
@@ -85,14 +56,18 @@
     "email": "mail@lukebrooker.com"
   },
   "license": "ISC",
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.4.0"
+  },
   "devDependencies": {
-    "@pandacss/dev": "1.4.3",
-    "@pandacss/types": "1.4.3",
+    "@tailwindcss/cli": "^4.2.2",
     "@types/node": "24.9.2",
     "@vitejs/plugin-react": "5.1.0",
     "@vitest/coverage-v8": "4.0.4",
     "chokidar-cli": "3.0.0",
     "npm-run-all": "4.1.5",
+    "tailwindcss": "^4.2.2",
     "tsup": "8.5.0",
     "vitest": "4.0.4"
   }
