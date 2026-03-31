@@ -263,9 +263,10 @@ Combined shortcuts (set surface + fg together for common combos):
 
 **Estimated effort:** Large — 9 components to migrate, 6+ new components.
 
-#### Phase 3: Documentation + Migration Guide
+#### Phase 3: Documentation + Migration Guide (DEFERRED — separate PR)
 
 **Goal:** Update docs site and provide migration guide for consumers.
+**Status:** Deferred to a follow-up phase. Core and components packages are complete.
 
 **Tasks:**
 
@@ -315,7 +316,7 @@ Combined shortcuts (set surface + fg together for common combos):
 
 **Estimated effort:** Medium
 
-#### Phase 4: Polish + Release
+#### Phase 4: Polish + Release (DEFERRED — separate PR)
 
 **Goal:** Finalize, test, and release v2.0.0.
 
