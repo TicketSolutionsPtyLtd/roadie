@@ -1,4 +1,3 @@
-/* Tailwind safelist: fill-neutral-0 fill-info-5 fill-brand-secondary-5 fill-brand-9 fill-brand-5 fill-neutral-12 stroke-neutral-12 fill-none opacity-0 */
 import { type ComponentProps, forwardRef } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
@@ -19,6 +18,22 @@ export interface SpotIllustrationProps
   outline?: boolean
 }
 
+/**
+ * Illustration colors reference CSS tokens defined in tokens.css.
+ * These are fixed and do NOT change in dark mode.
+ */
+const layerColors: Record<
+  PathData['layer'],
+  { fill?: string; stroke?: string }
+> = {
+  outline: { fill: 'var(--color-illustration-outline)' },
+  face: { fill: 'var(--color-illustration-face)' },
+  detail: { fill: 'var(--color-illustration-detail)' },
+  shadow: { fill: 'var(--color-illustration-shadow)' },
+  highlight: { fill: 'var(--color-illustration-highlight)' },
+  stroke: { fill: 'none', stroke: 'var(--color-illustration-stroke)' },
+}
+
 export const SpotIllustration = forwardRef<
   SVGSVGElement,
   SpotIllustrationProps
@@ -28,30 +43,30 @@ export const SpotIllustration = forwardRef<
   return (
     <svg
       ref={ref}
-      xmlns='http://www.w3.org/2000/svg'
+      xmlns="http://www.w3.org/2000/svg"
       viewBox={viewBox}
-      className={cn('size-12 fill-none', className)}
+      className={cn('size-12', className)}
+      style={{ fill: 'none' }}
       {...props}
     >
-      {paths.map((path: PathData, index: number) => (
-        <path
-          key={index}
-          d={path.d}
-          data-part={path.layer}
-          className={cn(
-            path.layer === 'outline' && [
-              'fill-neutral-0',
-              !outline && 'opacity-0',
-            ],
-            path.layer === 'face' && 'fill-info-5',
-            path.layer === 'detail' && 'fill-brand-secondary-5',
-            path.layer === 'shadow' && 'fill-brand-9',
-            path.layer === 'highlight' && 'fill-brand-5',
-            path.layer === 'stroke' &&
-              'fill-none stroke-neutral-12 [stroke-width:0.5] [stroke-linecap:round] [stroke-linejoin:round]',
-          )}
-        />
-      ))}
+      {paths.map((path: PathData, index: number) => {
+        const colors = layerColors[path.layer]
+        return (
+          <path
+            key={index}
+            d={path.d}
+            data-part={path.layer}
+            style={{
+              fill: colors.fill,
+              stroke: colors.stroke,
+              strokeWidth: path.layer === 'stroke' ? 0.5 : undefined,
+              strokeLinecap: path.layer === 'stroke' ? 'round' : undefined,
+              strokeLinejoin: path.layer === 'stroke' ? 'round' : undefined,
+              opacity: path.layer === 'outline' && !outline ? 0 : undefined,
+            }}
+          />
+        )
+      })}
     </svg>
   )
 })

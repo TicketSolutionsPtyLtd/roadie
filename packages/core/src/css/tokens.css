@@ -161,6 +161,17 @@
   --elevation-overlay: 0 8px 24px rgba(0, 20, 40, 0.16),
     0 2px 8px rgba(0, 20, 40, 0.08);
 
+  /* ═══ Illustration colors (fixed — do NOT change in dark mode) ═══
+     Hardcoded to light mode values from core color scales:
+     outline=neutral-0, face=info-5, detail=brand-secondary-5,
+     shadow=brand-9, highlight=brand-5, stroke=neutral-12 */
+  --color-illustration-outline: oklch(1 0 0);
+  --color-illustration-face: oklch(0.887 0.059 302.54);
+  --color-illustration-detail: oklch(0.865 0.078 45.355);
+  --color-illustration-shadow: oklch(0.639 0.168 247.062);
+  --color-illustration-highlight: oklch(0.891 0.049 247.447);
+  --color-illustration-stroke: oklch(0.231 0.018 240);
+
   /* ═══ Font families ═══ */
   --font-sans: 'Intermission', 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
