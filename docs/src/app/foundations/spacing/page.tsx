@@ -60,7 +60,7 @@ export default function SpacingPage() {
                 {token}
               </Text>
               <div
-                className='h-6 rounded-sm bg-brand-9 shrink-0'
+                className='h-6 rounded-sm emphasis-strong-surface intent-brand shrink-0'
                 style={{ width: rem }}
               />
               <Text size='xs' emphasis='subtler' className='shrink-0'>
@@ -85,7 +85,7 @@ export default function SpacingPage() {
             <div className='overflow-x-auto'>
               <table className='w-full text-sm'>
                 <thead>
-                  <tr className='border-b border-neutral-7'>
+                  <tr className='border-b border-emphasis-subtle'>
                     <th className='py-2 pr-4 text-left font-semibold'>
                       Utility
                     </th>
@@ -95,8 +95,8 @@ export default function SpacingPage() {
                     <th className='py-2 text-left font-semibold'>Example</th>
                   </tr>
                 </thead>
-                <tbody className='emphasis-subtle-fg'>
-                  <tr className='border-b border-neutral-6'>
+                <tbody className='emphasis-subtle-fg divide-y divide-emphasis-subtler'>
+                  <tr>
                     <td className='py-2 pr-4'>
                       <Code>p-4</Code>
                     </td>
@@ -105,7 +105,7 @@ export default function SpacingPage() {
                       <Code>className=&quot;p-4&quot;</Code>
                     </td>
                   </tr>
-                  <tr className='border-b border-neutral-6'>
+                  <tr>
                     <td className='py-2 pr-4'>
                       <Code>px-6 py-2</Code>
                     </td>
@@ -114,7 +114,7 @@ export default function SpacingPage() {
                       <Code>className=&quot;px-6 py-2&quot;</Code>
                     </td>
                   </tr>
-                  <tr className='border-b border-neutral-6'>
+                  <tr>
                     <td className='py-2 pr-4'>
                       <Code>gap-4</Code>
                     </td>
@@ -123,7 +123,7 @@ export default function SpacingPage() {
                       <Code>className=&quot;flex gap-4&quot;</Code>
                     </td>
                   </tr>
-                  <tr className='border-b border-neutral-6'>
+                  <tr>
                     <td className='py-2 pr-4'>
                       <Code>gap-x-8 gap-y-4</Code>
                     </td>

@@ -112,33 +112,33 @@ export default function ColorsPage() {
         <div className='overflow-x-auto'>
           <table className='w-full text-sm'>
             <thead>
-              <tr className='border-b border-neutral-7'>
+              <tr className='border-b border-emphasis-subtle'>
                 <th className='text-left py-2 pr-4 font-semibold'>Level</th>
                 <th className='text-left py-2 pr-4 font-semibold'>Surface</th>
                 <th className='text-left py-2 pr-4 font-semibold'>Border</th>
                 <th className='text-left py-2 font-semibold'>Foreground</th>
               </tr>
             </thead>
-            <tbody className='emphasis-subtle-fg'>
-              <tr className='border-b border-neutral-6'>
+            <tbody className='emphasis-subtle-fg divide-y divide-emphasis-subtler'>
+              <tr>
                 <td className='py-2 pr-4'>subtler</td>
                 <td className='py-2 pr-4'>step 2</td>
                 <td className='py-2 pr-4'>step 5</td>
                 <td className='py-2'>step 10</td>
               </tr>
-              <tr className='border-b border-neutral-6'>
+              <tr>
                 <td className='py-2 pr-4'>subtle</td>
                 <td className='py-2 pr-4'>step 3</td>
                 <td className='py-2 pr-4'>step 6</td>
                 <td className='py-2'>step 11</td>
               </tr>
-              <tr className='border-b border-neutral-6'>
+              <tr>
                 <td className='py-2 pr-4'>default</td>
                 <td className='py-2 pr-4'>step 1</td>
                 <td className='py-2 pr-4'>step 7</td>
                 <td className='py-2'>step 12</td>
               </tr>
-              <tr className='border-b border-neutral-6'>
+              <tr>
                 <td className='py-2 pr-4'>strong</td>
                 <td className='py-2 pr-4'>step 9</td>
                 <td className='py-2 pr-4'>step 9</td>
@@ -162,11 +162,11 @@ export default function ColorsPage() {
         </Heading>
         <Text emphasis='subtle'>
           Each intent works with the emphasis scale. Use{' '}
-          <code className='font-mono text-sm bg-neutral-3 px-1 py-0.5 rounded'>
+          <code className='font-mono text-sm emphasis-subtler-surface px-1 py-0.5 rounded'>
             intent-&#123;name&#125;
           </code>{' '}
           to set the color context, then{' '}
-          <code className='font-mono text-sm bg-neutral-3 px-1 py-0.5 rounded'>
+          <code className='font-mono text-sm emphasis-subtler-surface px-1 py-0.5 rounded'>
             emphasis-&#123;level&#125;
           </code>{' '}
           for the visual weight.
@@ -190,15 +190,15 @@ export default function ColorsPage() {
         </Heading>
         <Text emphasis='subtle'>
           Dark mode is automatic. The{' '}
-          <code className='font-mono text-sm bg-neutral-3 px-1 py-0.5 rounded'>
+          <code className='font-mono text-sm emphasis-subtler-surface px-1 py-0.5 rounded'>
             .dark
           </code>{' '}
           class on{' '}
-          <code className='font-mono text-sm bg-neutral-3 px-1 py-0.5 rounded'>
+          <code className='font-mono text-sm emphasis-subtler-surface px-1 py-0.5 rounded'>
             &lt;html&gt;
           </code>{' '}
           swaps all OKLCH values. No{' '}
-          <code className='font-mono text-sm bg-neutral-3 px-1 py-0.5 rounded'>
+          <code className='font-mono text-sm emphasis-subtler-surface px-1 py-0.5 rounded'>
             dark:
           </code>{' '}
           Tailwind variants needed for colors.
@@ -212,11 +212,11 @@ export default function ColorsPage() {
         </Heading>
         <Text emphasis='subtle'>
           The accent scale can be overridden at runtime using the{' '}
-          <code className='font-mono text-sm bg-neutral-3 px-1 py-0.5 rounded'>
+          <code className='font-mono text-sm emphasis-subtler-surface px-1 py-0.5 rounded'>
             ThemeProvider
           </code>{' '}
           component or{' '}
-          <code className='font-mono text-sm bg-neutral-3 px-1 py-0.5 rounded'>
+          <code className='font-mono text-sm emphasis-subtler-surface px-1 py-0.5 rounded'>
             generateAccentScale()
           </code>{' '}
           function. Pass any hex color and the system generates a full 14-step

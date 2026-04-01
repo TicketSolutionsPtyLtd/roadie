@@ -65,7 +65,7 @@ const customDarkTheme = {
   ...themes.nightOwl,
   plain: {
     ...themes.nightOwl.plain,
-    backgroundColor: 'var(--color-neutral-2)'
+    backgroundColor: 'var(--intent-surface-sunken)'
   }
 }
 
@@ -73,7 +73,7 @@ const customLightTheme = {
   ...themes.nightOwlLight,
   plain: {
     ...themes.nightOwlLight.plain,
-    backgroundColor: 'var(--color-neutral-2)'
+    backgroundColor: 'var(--intent-surface-sunken)'
   }
 }
 
@@ -142,7 +142,7 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
         <Highlight code={trimmedCode} language={language} theme={theme}>
           {({ style, tokens, getLineProps, getTokenProps }) => (
             <pre
-              className='bg-neutral-2 overflow-x-auto text-xs sm:text-sm p-3 sm:p-4 rounded-md border border-neutral-6 min-w-0'
+              className='emphasis-sunken overflow-x-auto text-xs sm:text-sm p-3 sm:p-4 rounded-md min-w-0'
               style={style}
             >
               {tokens.map((line, i) => {
@@ -168,18 +168,18 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
   }
 
   return (
-    <div className='mb-8 relative min-w-0'>
+    <div className='mb-8 relative min-w-0 emphasis-subtle-border rounded-md overflow-hidden'>
       <LiveProvider
         code={trimmedCode}
         scope={scope}
         theme={theme}
         language={language.replace('-live', '')}
       >
-        <LivePreview className='px-4 py-4 sm:px-6 sm:py-6 bg-neutral-1 rounded-t-md font-sans border border-neutral-6 border-b-0 overflow-x-auto min-w-0' />
-        <LiveError className='px-4 py-3 text-sm text-danger-11 bg-danger-2 border-x border-neutral-6' />
+        <LivePreview className='px-4 py-4 sm:px-6 sm:py-6 emphasis-default-surface font-sans overflow-x-auto min-w-0' />
+        <LiveError className='px-4 py-3 text-sm intent-danger emphasis-subtle-fg emphasis-subtler-surface' />
         <div className='relative min-w-0'>
           <CopyButton code={trimmedCode} />
-          <LiveEditor className='bg-neutral-2 overflow-x-auto text-xs sm:text-sm p-3 sm:p-4 rounded-b-md border border-neutral-6 border-t-0 min-w-0' />
+          <LiveEditor className='emphasis-sunken overflow-x-auto text-xs sm:text-sm p-3 sm:p-4 min-w-0' />
         </div>
       </LiveProvider>
     </div>

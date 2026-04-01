@@ -212,7 +212,7 @@ function SectionCard({
           <li key={item.href}>
             <Link
               href={item.href}
-              className='flex flex-col gap-0.5 p-4 rounded-md h-full transition-all hover:bg-neutral-4 no-underline'
+              className='flex flex-col gap-0.5 p-4 rounded-md h-full is-interactive emphasis-subtler no-underline'
             >
               <Heading as='h4' className='text-display-ui-6' intent='accent'>
                 {item.label}

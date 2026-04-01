@@ -37,7 +37,7 @@
     font-family: var(--font-sans);
     color: var(--intent-fg-default);
     background-color: var(--intent-surface-default);
-    border-color: var(--intent-border-default);
+    border-color: var(--intent-border-subtle);
   }
 
   /* Media elements */
@@ -80,6 +80,12 @@
   h5,
   h6 {
     text-wrap: balance;
+  }
+
+  /* Horizontal rule */
+  hr {
+    border: none;
+    border-top: 1px solid var(--intent-border-subtle);
   }
 
   /* Links */

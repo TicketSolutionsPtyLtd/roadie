@@ -100,13 +100,13 @@ const components = {
   thead: (props: ComponentPropsWithoutRef<'thead'>) => <thead {...props} />,
   th: (props: ComponentPropsWithoutRef<'th'>) => (
     <th
-      className='py-2 pr-4 text-left font-semibold border-b border-neutral-7 whitespace-nowrap'
+      className='py-2 pr-4 text-left font-semibold border-b border-emphasis-subtle whitespace-nowrap'
       {...props}
     />
   ),
   td: (props: ComponentPropsWithoutRef<'td'>) => (
     <td
-      className='py-2 pr-4 border-b border-neutral-6 emphasis-subtle-fg'
+      className='py-2 pr-4 border-b border-emphasis-subtler emphasis-subtle-fg'
       {...props}
     />
   ),
@@ -119,21 +119,18 @@ const components = {
             {data.headers.map((header, index) => (
               <th
                 key={index}
-                className='py-2 pr-4 text-left font-semibold border-b border-neutral-7'
+                className='py-2 pr-4 text-left font-semibold border-b border-emphasis-subtle'
               >
                 {header}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody className='divide-y divide-emphasis-subtler'>
           {data.rows.map((row, index) => (
             <tr key={index}>
               {row.map((cell, cellIndex) => (
-                <td
-                  key={cellIndex}
-                  className='py-2 pr-4 border-b border-neutral-6'
-                >
+                <td key={cellIndex} className='py-2 pr-4'>
                   {cell}
                 </td>
               ))}
@@ -145,7 +142,7 @@ const components = {
   ),
   blockquote: (props: BlockquoteProps) => (
     <blockquote
-      className='border-l-[3px] border-neutral-7 ml-[0.075em] pl-4 emphasis-subtle-fg'
+      className='border-l-[3px] border-emphasis-default ml-[0.075em] pl-4 emphasis-subtle-fg'
       {...props}
     />
   )

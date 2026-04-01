@@ -36,7 +36,7 @@ export function FooterNav({ items }: FooterNavProps) {
   if (!prev && !next) return null
 
   return (
-    <div className='pt-12 border-t border-neutral-7 flex justify-between flex-row w-full'>
+    <div className='pt-12 mt-12 border-t border-emphasis-subtle flex justify-between flex-row w-full'>
       {prev && (
         <Link
           href={prev.href}

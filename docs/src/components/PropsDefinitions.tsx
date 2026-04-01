@@ -86,17 +86,14 @@ function PropsList({
   title?: string
 }) {
   return (
-    <div className='flex flex-col gap-3'>
+    <div className='flex flex-col divide-y divide-emphasis-subtler'>
       {title && (
-        <div className='px-4 py-3 bg-neutral-2 border-b border-neutral-6'>
+        <div className='px-4 py-3 emphasis-subtler-surface'>
           <p className='text-base font-bold emphasis-subtle-fg'>{title}</p>
         </div>
       )}
       {Object.entries(props).map(([name, prop]) => (
-        <div
-          key={name}
-          className='border-b border-neutral-6 px-4 py-3 flex flex-col gap-1 last:border-b-0'
-        >
+        <div key={name} className='px-4 py-3 flex flex-col gap-1'>
           <dt className='flex items-baseline gap-1'>
             <div className='flex flex-col md:flex-row items-baseline gap-1'>
               <span className='font-mono text-sm font-semibold shrink-0'>
@@ -174,10 +171,10 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
       `${componentInfo.displayName}Props`
 
     return (
-      <div className='flex flex-col gap-4 pt-16 mt-16 border-t border-neutral-7'>
+      <div className='flex flex-col gap-4 pt-8 mt-8'>
         <h2 className='text-xl font-bold'>Props</h2>
-        <dl className='flex flex-col border border-neutral-7 rounded-md'>
-          <div className='border-b border-neutral-7 self-stretch flex flex-col gap-1 px-4 py-3 bg-neutral-2'>
+        <dl className='flex flex-col emphasis-subtler-border rounded-md overflow-hidden'>
+          <div className='self-stretch flex flex-col gap-1 px-4 py-3 emphasis-subtler-surface'>
             <h3 className='text-xl font-bold'>{interfaceName}</h3>
             {!!componentInfo.description && (
               <p className='emphasis-subtle-fg'>{componentInfo.description}</p>

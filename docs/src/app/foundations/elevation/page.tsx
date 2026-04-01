@@ -115,7 +115,7 @@ export default function ElevationPage() {
           {shadowScale.map(({ name, description, className }) => (
             <div key={name} className='view gap-2'>
               <div
-                className={`${className} rounded-lg bg-intent-surface-raised p-6`}
+                className={`${className} rounded-lg emphasis-raised-surface p-6`}
               >
                 <Text size='sm' emphasis='strong' className='font-mono'>
                   {name}
@@ -143,7 +143,7 @@ export default function ElevationPage() {
           {insetScale.map(({ name, description, className }) => (
             <div key={name} className='view gap-2'>
               <div
-                className={`${className} rounded-lg bg-intent-surface-default p-6`}
+                className={`${className} rounded-lg emphasis-default-surface p-6`}
               >
                 <Text size='sm' emphasis='strong' className='font-mono'>
                   {name}
@@ -170,7 +170,7 @@ export default function ElevationPage() {
 
         <div className='grid gap-6 sm:grid-cols-2'>
           <div className='view gap-2'>
-            <div className='rim-light shadow-md rounded-lg bg-intent-surface-raised p-6'>
+            <div className='rim-light shadow-md rounded-lg emphasis-raised-surface p-6'>
               <Text size='sm' emphasis='strong' className='font-mono'>
                 rim-light + shadow-md
               </Text>
@@ -220,14 +220,14 @@ export default function ElevationPage() {
         <div className='overflow-x-auto'>
           <table className='w-full text-sm'>
             <thead>
-              <tr className='border-b border-neutral-6 text-left'>
+              <tr className='border-b border-emphasis-subtle text-left'>
                 <th className='py-2 pr-4 font-semibold'>Preset</th>
                 <th className='py-2 pr-4 font-semibold'>Shadow</th>
                 <th className='py-2 pr-4 font-semibold'>Hover</th>
                 <th className='py-2 font-semibold'>Active</th>
               </tr>
             </thead>
-            <tbody className='divide-y divide-neutral-4'>
+            <tbody className='divide-y divide-emphasis-subtler'>
               <tr>
                 <td className='py-2 pr-4 font-mono'>emphasis-raised</td>
                 <td className='py-2 pr-4'>rim-light + shadow-md</td>
@@ -296,13 +296,13 @@ export default function ElevationPage() {
           <div className='overflow-x-auto'>
             <table className='w-full text-sm'>
               <thead>
-                <tr className='border-b border-neutral-6 text-left'>
+                <tr className='border-b border-emphasis-subtle text-left'>
                   <th className='py-2 pr-4 font-semibold'>Level</th>
                   <th className='py-2 pr-4 font-semibold'>Use for</th>
                   <th className='py-2 font-semibold'>Example</th>
                 </tr>
               </thead>
-              <tbody className='divide-y divide-neutral-4'>
+              <tbody className='divide-y divide-emphasis-subtler'>
                 <tr>
                   <td className='py-2 pr-4 font-mono'>shadow-xs</td>
                   <td className='py-2 pr-4'>Micro-separation, badges, tags</td>
