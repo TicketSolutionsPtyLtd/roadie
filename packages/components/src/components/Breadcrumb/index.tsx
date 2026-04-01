@@ -29,7 +29,7 @@ function BreadcrumbLink({ className, ...props }: ComponentProps<'a'>) {
   return (
     <a
       className={cn(
-        'emphasis-subtle-fg hover:emphasis-default-fg transition-colors',
+        'text-subtle hover:text-default transition-colors',
         className
       )}
       {...props}
@@ -51,7 +51,7 @@ function BreadcrumbSeparator({
   return (
     <span
       role='presentation'
-      className={cn('emphasis-subtler-fg', className)}
+      className={cn('text-subtler', className)}
       {...props}
     >
       {children}
@@ -65,7 +65,7 @@ function BreadcrumbCurrent({ className, ...props }: ComponentProps<'span'>) {
   return (
     <span
       aria-current='page'
-      className={cn('emphasis-default-fg font-medium', className)}
+      className={cn('text-default font-medium', className)}
       {...props}
     />
   )

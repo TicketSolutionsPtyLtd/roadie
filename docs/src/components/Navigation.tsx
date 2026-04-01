@@ -97,9 +97,7 @@ function NavigationGroup({
         href={item.href || '#'}
         onClick={onNavigate}
         className={`px-2 text-sm font-semibold no-underline transition-colors hover:text-accent-11 ${
-          isActiveParent
-            ? 'intent-accent emphasis-default-fg'
-            : 'emphasis-default-fg'
+          isActiveParent ? 'intent-accent text-default' : 'text-default'
         }`}
       >
         {item.title}
@@ -117,7 +115,7 @@ function NavigationGroup({
                   className={`block px-2 py-1 text-sm no-underline transition-all rounded-sm hover:bg-accent-3 hover:text-accent-11 ${
                     isActive
                       ? 'text-accent-11 font-semibold'
-                      : 'emphasis-subtle-fg font-normal'
+                      : 'text-subtle font-normal'
                   }`}
                 >
                   {subItem.title}
@@ -148,7 +146,7 @@ function NavigationContent({
           <NavigationGroup key={index} item={item} onNavigate={onNavigate} />
         ))}
       </div>
-      <div className='p-4 mt-auto sticky bottom-0 emphasis-sunken-surface shrink-0'>
+      <div className='p-4 mt-auto sticky bottom-0 bg-sunken shrink-0'>
         <ThemeToggle />
       </div>
     </div>

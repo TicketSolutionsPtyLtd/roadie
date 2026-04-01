@@ -16,11 +16,11 @@ export const headingVariants = cva('text-display-ui', {
       info: 'intent-info'
     },
     emphasis: {
-      default: 'emphasis-strong-fg',
-      strong: 'emphasis-strong-fg',
-      subtle: 'emphasis-subtle-fg',
-      subtler: 'emphasis-subtler-fg',
-      inverted: 'emphasis-inverted-fg'
+      default: 'text-strong',
+      strong: 'text-strong',
+      subtle: 'text-subtle',
+      subtler: 'text-subtler',
+      inverted: 'text-inverted'
     }
   },
   defaultVariants: {

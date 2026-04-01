@@ -20,7 +20,7 @@ describe('Fieldset', () => {
     const legend = getByText('Personal details')
     expect(legend).toBeInTheDocument()
     expect(legend.tagName.toLowerCase()).toBe('legend')
-    expect(legend).toHaveClass('text-lg', 'font-semibold', 'emphasis-strong-fg')
+    expect(legend).toHaveClass('text-lg', 'font-semibold', 'text-strong')
   })
 
   it('renders HelperText sub-component', () => {
@@ -32,7 +32,7 @@ describe('Fieldset', () => {
     const helperText = getByText('Fill in all fields')
     expect(helperText).toBeInTheDocument()
     expect(helperText.tagName.toLowerCase()).toBe('p')
-    expect(helperText).toHaveClass('text-sm', 'emphasis-subtle-fg')
+    expect(helperText).toHaveClass('text-sm', 'text-subtle')
   })
 
   it('renders ErrorText sub-component', () => {

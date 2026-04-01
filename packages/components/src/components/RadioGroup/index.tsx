@@ -77,7 +77,7 @@ function RadioGroupItem({
 }: RadioGroupItemProps) {
   const radio = (
     <Radio.Root
-      className='flex size-6 shrink-0 items-center justify-center rounded-full emphasis-sunken emphasis-subtle-border transition-all data-[checked]:bg-[var(--color-accent-3)] data-[checked]:border-[var(--color-accent-9)] outline-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] outline-offset-0 focus-visible:outline-[length:var(--focus-ring-width)]'
+      className='flex size-6 shrink-0 items-center justify-center rounded-full emphasis-sunken border border-subtle transition-all data-[checked]:bg-[var(--color-accent-3)] data-[checked]:border-[var(--color-accent-9)] outline-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] outline-offset-0 focus-visible:outline-[length:var(--focus-ring-width)]'
       {...props}
     >
       <Radio.Indicator className='size-2.5 rounded-full bg-[var(--color-accent-9)]' />
@@ -90,7 +90,7 @@ function RadioGroupItem({
         <>
           <div className='flex flex-col gap-0.5'>
             {label && (
-              <span className='text-base font-medium emphasis-default-fg'>
+              <span className='text-base font-medium text-default'>
                 {label}
               </span>
             )}
@@ -101,9 +101,7 @@ function RadioGroupItem({
       ) : (
         <>
           {radio}
-          {label && (
-            <span className='text-sm emphasis-default-fg'>{label}</span>
-          )}
+          {label && <span className='text-sm text-default'>{label}</span>}
           {children}
         </>
       )}

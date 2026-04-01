@@ -34,7 +34,7 @@ describe('Input', () => {
 
     rerender(<Input emphasis='subtle' />)
     input = container.querySelector('input')!
-    expect(input).toHaveClass('emphasis-subtle-surface')
+    expect(input).toHaveClass('bg-subtle')
   })
 
   it('renders with different sizes', () => {

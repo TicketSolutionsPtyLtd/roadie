@@ -29,7 +29,7 @@ describe('Mark', () => {
   it('applies emphasis classes', () => {
     const { container } = render(<Mark>Styled</Mark>)
     const mark = container.querySelector('mark')
-    expect(mark).toHaveClass('emphasis-subtle-surface', 'emphasis-default-fg')
+    expect(mark).toHaveClass('bg-subtle', 'text-default')
   })
 
   it('applies custom className', () => {

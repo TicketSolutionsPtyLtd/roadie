@@ -45,7 +45,7 @@ export const accordionVariants = cva('flex flex-col w-full', {
   variants: {
     appearance: {
       default: '',
-      contained: '[&>*+*]:border-t [&>*+*]:emphasis-subtle-border'
+      contained: '[&>*+*]:border-t [&>*+*]:border-subtle'
     }
   },
   defaultVariants: {
@@ -127,7 +127,7 @@ function AccordionTrigger({
   return (
     <Collapsible.Trigger
       className={cn(
-        'flex items-center w-full text-left cursor-pointer font-medium emphasis-default-fg hover:emphasis-subtle-surface transition-all py-3',
+        'flex items-center w-full text-left cursor-pointer font-medium text-default hover:bg-subtle transition-all py-3',
         className
       )}
       {...props}

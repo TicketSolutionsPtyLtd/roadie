@@ -9,7 +9,7 @@ describe('Text', () => {
     const text = getByText('Hello World')
     expect(text).toBeInTheDocument()
     expect(text.tagName.toLowerCase()).toBe('p')
-    expect(text).toHaveClass('emphasis-default-fg')
+    expect(text).toHaveClass('text-default')
   })
 
   it('renders with custom element type', () => {
@@ -21,16 +21,16 @@ describe('Text', () => {
     const { rerender, getByText } = render(
       <Text emphasis='strong'>Strong Text</Text>
     )
-    expect(getByText('Strong Text')).toHaveClass('emphasis-strong-fg')
+    expect(getByText('Strong Text')).toHaveClass('text-strong')
 
     rerender(<Text emphasis='subtle'>Subtle Text</Text>)
-    expect(getByText('Subtle Text')).toHaveClass('emphasis-subtle-fg')
+    expect(getByText('Subtle Text')).toHaveClass('text-subtle')
 
     rerender(<Text emphasis='subtler'>Subtler Text</Text>)
-    expect(getByText('Subtler Text')).toHaveClass('emphasis-subtler-fg')
+    expect(getByText('Subtler Text')).toHaveClass('text-subtler')
 
     rerender(<Text emphasis='default'>Default Text</Text>)
-    expect(getByText('Default Text')).toHaveClass('emphasis-default-fg')
+    expect(getByText('Default Text')).toHaveClass('text-default')
   })
 
   it('renders with different intents', () => {
@@ -78,7 +78,7 @@ describe('Text', () => {
     )
     const text = getByText('Styled Text')
     expect(text).toHaveClass(
-      'emphasis-strong-fg',
+      'text-strong',
       'intent-accent',
       'text-lg',
       'custom-class'

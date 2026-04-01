@@ -32,7 +32,7 @@ export function Mark({ className, intent, ...props }: MarkProps) {
     <mark
       className={cn(
         markVariants({ intent, className }),
-        'emphasis-subtle-surface emphasis-default-fg'
+        'bg-subtle text-default'
       )}
       {...props}
     />

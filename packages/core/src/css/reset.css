@@ -27,7 +27,7 @@
   }
 
   ::selection {
-    background-color: var(--intent-surface-subtle);
+    background-color: var(--intent-bg-subtle);
   }
 
   body {
@@ -35,8 +35,8 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     font-family: var(--font-sans);
-    color: var(--intent-fg-default);
-    background-color: var(--intent-surface-default);
+    color: var(--intent-text-default);
+    background-color: var(--intent-bg-default);
     border-color: var(--intent-border-subtle);
   }
 

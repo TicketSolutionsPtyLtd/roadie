@@ -9,7 +9,7 @@ describe('Heading', () => {
     const heading = getByText('Hello World')
     expect(heading).toBeInTheDocument()
     expect(heading.tagName.toLowerCase()).toBe('h2')
-    expect(heading).toHaveClass('emphasis-strong-fg')
+    expect(heading).toHaveClass('text-strong')
     expect(heading).toHaveClass('text-display-ui')
   })
 
@@ -29,16 +29,16 @@ describe('Heading', () => {
     const { rerender, getByText } = render(
       <Heading emphasis='default'>Default</Heading>
     )
-    expect(getByText('Default')).toHaveClass('emphasis-strong-fg')
+    expect(getByText('Default')).toHaveClass('text-strong')
 
     rerender(<Heading emphasis='strong'>Strong</Heading>)
-    expect(getByText('Strong')).toHaveClass('emphasis-strong-fg')
+    expect(getByText('Strong')).toHaveClass('text-strong')
 
     rerender(<Heading emphasis='subtle'>Subtle</Heading>)
-    expect(getByText('Subtle')).toHaveClass('emphasis-subtle-fg')
+    expect(getByText('Subtle')).toHaveClass('text-subtle')
 
     rerender(<Heading emphasis='subtler'>Subtler</Heading>)
-    expect(getByText('Subtler')).toHaveClass('emphasis-subtler-fg')
+    expect(getByText('Subtler')).toHaveClass('text-subtler')
   })
 
   it('renders with different intents', () => {
@@ -83,7 +83,7 @@ describe('Heading', () => {
     const heading = getByText('Combined styles')
     expect(heading.tagName.toLowerCase()).toBe('h1')
     expect(heading).toHaveClass(
-      'emphasis-strong-fg',
+      'text-strong',
       'intent-brand',
       'text-display-ui-1',
       'custom-class'

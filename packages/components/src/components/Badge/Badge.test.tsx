@@ -39,7 +39,7 @@ describe('Badge', () => {
     expect(getByText('Subtle')).toHaveClass('emphasis-subtle')
 
     rerender(<Badge emphasis='subtler'>Subtler</Badge>)
-    expect(getByText('Subtler')).toHaveClass('emphasis-subtler-surface')
+    expect(getByText('Subtler')).toHaveClass('bg-subtler')
   })
 
   it('renders with different sizes', () => {

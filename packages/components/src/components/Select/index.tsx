@@ -23,9 +23,9 @@ export const selectTriggerVariants = cva(
         info: 'intent-info'
       },
       emphasis: {
-        default: 'emphasis-raised emphasis-default-border is-field-interactive',
+        default: 'emphasis-raised border border-default is-field-interactive',
         subtle:
-          'emphasis-subtle-surface emphasis-default-fg border border-transparent is-field-interactive'
+          'bg-subtle text-default border border-transparent is-field-interactive'
       },
       size: {
         sm: 'h-8 px-1.5 text-base',
@@ -108,7 +108,7 @@ function SelectPopup({ className, ...props }: SelectPopupProps) {
       <SelectPrimitive.Positioner>
         <SelectPrimitive.Popup
           className={cn(
-            'intent-neutral emphasis-raised-surface rounded-lg border border-[var(--intent-border-subtle)] py-1 z-50',
+            'intent-neutral bg-raised rounded-lg border border-[var(--intent-border-subtle)] py-1 z-50',
             className
           )}
           {...props}
@@ -129,7 +129,7 @@ function SelectItem({ className, children, ...props }: SelectItemProps) {
   return (
     <SelectPrimitive.Item
       className={cn(
-        'flex cursor-pointer select-none items-center px-3 py-1.5 text-sm emphasis-default-fg outline-none hover:emphasis-subtle-surface data-[highlighted]:emphasis-subtle-surface',
+        'flex cursor-pointer select-none items-center px-3 py-1.5 text-sm text-default outline-none hover:bg-subtle data-[highlighted]:bg-subtle',
         className
       )}
       {...props}
@@ -149,7 +149,7 @@ export interface SelectLabelProps
 function SelectLabel({ className, ...props }: SelectLabelProps) {
   return (
     <SelectPrimitive.Label
-      className={cn('text-sm font-medium emphasis-default-fg', className)}
+      className={cn('text-sm font-medium text-default', className)}
       {...props}
     />
   )

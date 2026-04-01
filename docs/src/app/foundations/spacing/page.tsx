@@ -49,7 +49,7 @@ export default function SpacingPage() {
           <Code>h-</Code>, etc.).
         </Text>
 
-        <div className='view gap-1 emphasis-subtle-surface emphasis-subtle-border rounded-lg p-4 overflow-x-auto'>
+        <div className='view gap-1 bg-subtle border border-subtle rounded-lg p-4 overflow-x-auto'>
           {spacingScale.map(({ token, value, rem }) => (
             <div key={token} className='flex items-center gap-3'>
               <Text
@@ -85,7 +85,7 @@ export default function SpacingPage() {
             <div className='overflow-x-auto'>
               <table className='w-full text-sm'>
                 <thead>
-                  <tr className='border-b border-emphasis-subtle'>
+                  <tr className='border-b border-subtle'>
                     <th className='py-2 pr-4 text-left font-semibold'>
                       Utility
                     </th>
@@ -95,7 +95,7 @@ export default function SpacingPage() {
                     <th className='py-2 text-left font-semibold'>Example</th>
                   </tr>
                 </thead>
-                <tbody className='emphasis-subtle-fg divide-y divide-emphasis-subtler'>
+                <tbody className='text-subtle divide-y divide-subtler'>
                   <tr>
                     <td className='py-2 pr-4'>
                       <Code>p-4</Code>
@@ -145,7 +145,7 @@ export default function SpacingPage() {
               Use breakpoint prefixes to adjust spacing at different screen
               sizes. Always start mobile-first.
             </Text>
-            <div className='emphasis-subtle-surface emphasis-subtle-border rounded-lg p-4'>
+            <div className='bg-subtle border border-subtle rounded-lg p-4'>
               <Code>
                 className=&quot;mt-2 md:mt-4 lg:mt-8 px-4 md:px-6&quot;
               </Code>

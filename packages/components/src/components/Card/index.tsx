@@ -17,8 +17,8 @@ export const cardVariants = cva('rounded-lg', {
     },
     emphasis: {
       raised: 'emphasis-raised',
-      subtle: 'emphasis-subtle-surface emphasis-subtle-border',
-      default: 'emphasis-default-surface emphasis-subtle-border'
+      subtle: 'bg-subtle border border-subtle',
+      default: 'bg-default border border-subtle'
     }
   },
   defaultVariants: {

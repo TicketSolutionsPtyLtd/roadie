@@ -65,13 +65,13 @@ function TokenTable({
       <div className='overflow-x-auto'>
         <table className='w-full text-sm'>
           <thead>
-            <tr className='border-b border-emphasis-subtle'>
+            <tr className='border-b border-subtle'>
               <th className='py-1.5 pr-4 text-left font-medium'>Token</th>
               <th className='py-1.5 pr-4 text-left font-medium'>Step</th>
               <th className='py-1.5 text-left font-medium'>Usage</th>
             </tr>
           </thead>
-          <tbody className='emphasis-subtle-fg divide-y divide-emphasis-subtler'>
+          <tbody className='text-subtle divide-y divide-subtler'>
             {tokens.map((t) => (
               <tr key={t.name}>
                 <td className='py-1.5 pr-4'>
@@ -345,7 +345,7 @@ export default function TokenReferencePage() {
       </section>
 
       {/* Source */}
-      <div className='rounded-lg emphasis-default-border p-6'>
+      <div className='rounded-lg border border-default p-6'>
         <Text emphasis='subtle'>
           All tokens are defined in{' '}
           <Code>packages/core/src/css/tokens.css</Code>. Intent mappings are in{' '}

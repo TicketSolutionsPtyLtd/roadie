@@ -18,11 +18,11 @@ export const textVariants = cva('', {
       info: 'intent-info'
     },
     emphasis: {
-      default: 'emphasis-default-fg',
-      strong: 'emphasis-strong-fg',
-      subtle: 'emphasis-subtle-fg',
-      subtler: 'emphasis-subtler-fg',
-      inverted: 'emphasis-inverted-fg'
+      default: 'text-default',
+      strong: 'text-strong',
+      subtle: 'text-subtle',
+      subtler: 'text-subtler',
+      inverted: 'text-inverted'
     },
     size: {
       xs: 'text-xs',

@@ -56,13 +56,13 @@ function EmphasisDemo({ intent }: { intent: string }) {
         <div className='emphasis-strong rounded-md px-3 py-1.5 text-sm'>
           strong
         </div>
-        <div className='emphasis-subtle rounded-md px-3 py-1.5 text-sm emphasis-default-fg'>
+        <div className='emphasis-subtle rounded-md px-3 py-1.5 text-sm text-default'>
           subtle
         </div>
-        <div className='emphasis-subtler rounded-md px-3 py-1.5 text-sm emphasis-default-fg'>
+        <div className='emphasis-subtler rounded-md px-3 py-1.5 text-sm text-default'>
           subtler
         </div>
-        <div className='emphasis-default-surface emphasis-default-border emphasis-default-fg rounded-md px-3 py-1.5 text-sm'>
+        <div className='bg-default border border-default text-default rounded-md px-3 py-1.5 text-sm'>
           default + border
         </div>
       </div>
@@ -112,14 +112,14 @@ export default function ColorsPage() {
         <div className='overflow-x-auto'>
           <table className='w-full text-sm'>
             <thead>
-              <tr className='border-b border-emphasis-subtle'>
+              <tr className='border-b border-subtle'>
                 <th className='text-left py-2 pr-4 font-semibold'>Level</th>
                 <th className='text-left py-2 pr-4 font-semibold'>Surface</th>
                 <th className='text-left py-2 pr-4 font-semibold'>Border</th>
                 <th className='text-left py-2 font-semibold'>Foreground</th>
               </tr>
             </thead>
-            <tbody className='emphasis-subtle-fg divide-y divide-emphasis-subtler'>
+            <tbody className='text-subtle divide-y divide-subtler'>
               <tr>
                 <td className='py-2 pr-4'>subtler</td>
                 <td className='py-2 pr-4'>step 2</td>
@@ -162,11 +162,11 @@ export default function ColorsPage() {
         </Heading>
         <Text emphasis='subtle'>
           Each intent works with the emphasis scale. Use{' '}
-          <code className='font-mono text-sm emphasis-subtler-surface px-1 py-0.5 rounded'>
+          <code className='font-mono text-sm bg-subtler px-1 py-0.5 rounded'>
             intent-&#123;name&#125;
           </code>{' '}
           to set the color context, then{' '}
-          <code className='font-mono text-sm emphasis-subtler-surface px-1 py-0.5 rounded'>
+          <code className='font-mono text-sm bg-subtler px-1 py-0.5 rounded'>
             emphasis-&#123;level&#125;
           </code>{' '}
           for the visual weight.
@@ -190,15 +190,15 @@ export default function ColorsPage() {
         </Heading>
         <Text emphasis='subtle'>
           Dark mode is automatic. The{' '}
-          <code className='font-mono text-sm emphasis-subtler-surface px-1 py-0.5 rounded'>
+          <code className='font-mono text-sm bg-subtler px-1 py-0.5 rounded'>
             .dark
           </code>{' '}
           class on{' '}
-          <code className='font-mono text-sm emphasis-subtler-surface px-1 py-0.5 rounded'>
+          <code className='font-mono text-sm bg-subtler px-1 py-0.5 rounded'>
             &lt;html&gt;
           </code>{' '}
           swaps all OKLCH values. No{' '}
-          <code className='font-mono text-sm emphasis-subtler-surface px-1 py-0.5 rounded'>
+          <code className='font-mono text-sm bg-subtler px-1 py-0.5 rounded'>
             dark:
           </code>{' '}
           Tailwind variants needed for colors.
@@ -212,11 +212,11 @@ export default function ColorsPage() {
         </Heading>
         <Text emphasis='subtle'>
           The accent scale can be overridden at runtime using the{' '}
-          <code className='font-mono text-sm emphasis-subtler-surface px-1 py-0.5 rounded'>
+          <code className='font-mono text-sm bg-subtler px-1 py-0.5 rounded'>
             ThemeProvider
           </code>{' '}
           component or{' '}
-          <code className='font-mono text-sm emphasis-subtler-surface px-1 py-0.5 rounded'>
+          <code className='font-mono text-sm bg-subtler px-1 py-0.5 rounded'>
             generateAccentScale()
           </code>{' '}
           function. Pass any hex color and the system generates a full 14-step

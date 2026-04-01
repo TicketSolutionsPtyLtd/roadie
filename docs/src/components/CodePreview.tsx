@@ -65,7 +65,7 @@ const customDarkTheme = {
   ...themes.nightOwl,
   plain: {
     ...themes.nightOwl.plain,
-    backgroundColor: 'var(--intent-surface-sunken)'
+    backgroundColor: 'var(--intent-bg-sunken)'
   }
 }
 
@@ -73,7 +73,7 @@ const customLightTheme = {
   ...themes.nightOwlLight,
   plain: {
     ...themes.nightOwlLight.plain,
-    backgroundColor: 'var(--intent-surface-sunken)'
+    backgroundColor: 'var(--intent-bg-sunken)'
   }
 }
 
@@ -168,15 +168,15 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
   }
 
   return (
-    <div className='mb-8 relative min-w-0 emphasis-subtle-border rounded-md overflow-hidden'>
+    <div className='mb-8 relative min-w-0 border border-subtle rounded-md overflow-hidden'>
       <LiveProvider
         code={trimmedCode}
         scope={scope}
         theme={theme}
         language={language.replace('-live', '')}
       >
-        <LivePreview className='px-4 py-4 sm:px-6 sm:py-6 emphasis-default-surface font-sans overflow-x-auto min-w-0' />
-        <LiveError className='px-4 py-3 text-sm intent-danger emphasis-subtle-fg emphasis-subtler-surface' />
+        <LivePreview className='px-4 py-4 sm:px-6 sm:py-6 bg-default font-sans overflow-x-auto min-w-0' />
+        <LiveError className='px-4 py-3 text-sm intent-danger text-subtle bg-subtler' />
         <div className='relative min-w-0'>
           <CopyButton code={trimmedCode} />
           <LiveEditor className='emphasis-sunken overflow-x-auto text-xs sm:text-sm p-3 sm:p-4 min-w-0' />

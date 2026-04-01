@@ -55,7 +55,7 @@ describe('Field', () => {
     const helperText = getByText('We will never share your email')
     expect(helperText).toBeInTheDocument()
     expect(helperText.tagName.toLowerCase()).toBe('p')
-    expect(helperText).toHaveClass('text-sm', 'emphasis-subtle-fg')
+    expect(helperText).toHaveClass('text-sm', 'text-subtle')
   })
 
   it('renders ErrorText sub-component', () => {

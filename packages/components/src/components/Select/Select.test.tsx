@@ -34,9 +34,7 @@ describe('Select', () => {
     expect(selectTriggerVariants({ emphasis: 'default' })).toContain(
       'emphasis-raised'
     )
-    expect(selectTriggerVariants({ emphasis: 'subtle' })).toContain(
-      'emphasis-subtle-surface'
-    )
+    expect(selectTriggerVariants({ emphasis: 'subtle' })).toContain('bg-subtle')
   })
 
   it('renders Trigger with different sizes', () => {

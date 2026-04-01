@@ -63,7 +63,7 @@ describe('Breadcrumb', () => {
     expect(link).toBeInTheDocument()
     expect(link.tagName.toLowerCase()).toBe('a')
     expect(link).toHaveAttribute('href', '/home')
-    expect(link).toHaveClass('emphasis-subtle-fg')
+    expect(link).toHaveClass('text-subtle')
   })
 
   it('renders Separator with default slash', () => {
@@ -80,7 +80,7 @@ describe('Breadcrumb', () => {
     const separator = getByText('/')
     expect(separator).toBeInTheDocument()
     expect(separator).toHaveAttribute('role', 'presentation')
-    expect(separator).toHaveClass('emphasis-subtler-fg')
+    expect(separator).toHaveClass('text-subtler')
   })
 
   it('renders Separator with custom children', () => {
@@ -109,7 +109,7 @@ describe('Breadcrumb', () => {
     const current = getByText('Current Page')
     expect(current).toBeInTheDocument()
     expect(current).toHaveAttribute('aria-current', 'page')
-    expect(current).toHaveClass('emphasis-default-fg', 'font-medium')
+    expect(current).toHaveClass('text-default', 'font-medium')
   })
 
   it('applies custom className to sub-components', () => {

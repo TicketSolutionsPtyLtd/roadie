@@ -33,7 +33,7 @@ describe('Textarea', () => {
 
     rerender(<Textarea emphasis='subtle' />)
     textarea = container.querySelector('textarea')!
-    expect(textarea).toHaveClass('emphasis-subtle-surface')
+    expect(textarea).toHaveClass('bg-subtle')
   })
 
   it('renders with different sizes', () => {

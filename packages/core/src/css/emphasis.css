@@ -1,105 +1,19 @@
 /* ═══════════════════════════════════════════════════════════
    Emphasis Utilities
-   Property-specific primitives: emphasis-{level}-{property}
    Combined shortcuts: emphasis-{level}
-   All consume --intent-* CSS custom properties
-   ═══════════════════════════════════════════════════════════ */
-
-/* ─── Surface Emphasis Primitives ─── */
-
-@utility emphasis-subtler-surface {
-  background-color: var(--intent-surface-subtler);
-}
-
-@utility emphasis-subtle-surface {
-  background-color: var(--intent-surface-subtle);
-}
-
-@utility emphasis-default-surface {
-  background-color: var(--intent-surface-default);
-}
-
-@utility emphasis-strong-surface {
-  background-color: var(--intent-surface-strong);
-}
-
-@utility emphasis-inverted-surface {
-  background-color: var(--intent-surface-inverted);
-}
-
-@utility emphasis-raised-surface {
-  background-color: var(--intent-surface-raised);
-  box-shadow: var(--rim-light), var(--shadow-md);
-}
-
-@utility emphasis-sunken-surface {
-  background-color: var(--intent-surface-sunken);
-  box-shadow: var(--inset-shadow-sm);
-}
-
-@utility emphasis-floating-surface {
-  background-color: var(--intent-surface-raised);
-  box-shadow: var(--rim-light), var(--shadow-xl);
-}
-
-@utility emphasis-overlay-surface {
-  background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(8px);
-}
-
-/* ─── Foreground Emphasis Primitives ─── */
-
-@utility emphasis-subtler-fg {
-  color: var(--intent-fg-subtler);
-}
-
-@utility emphasis-subtle-fg {
-  color: var(--intent-fg-subtle);
-}
-
-@utility emphasis-default-fg {
-  color: var(--intent-fg-default);
-}
-
-@utility emphasis-strong-fg {
-  color: var(--intent-fg-strong);
-}
-
-@utility emphasis-inverted-fg {
-  color: var(--intent-fg-inverted);
-}
-
-/* ─── Border Emphasis Primitives ─── */
-
-@utility emphasis-subtler-border {
-  border: 1px solid var(--intent-border-subtler);
-}
-
-@utility emphasis-subtle-border {
-  border: 1px solid var(--intent-border-subtle);
-}
-
-@utility emphasis-default-border {
-  border: 1px solid var(--intent-border-default);
-}
-
-@utility emphasis-strong-border {
-  border: 1px solid var(--intent-border-strong);
-}
-
-@utility emphasis-inverted-border {
-  border: 1px solid var(--intent-border-inverted);
-}
+   Consume --intent-* CSS custom properties.
+   For individual properties, use bg-*, text-*, border-* utilities.
+   ═══════════════════════════════════════════════════════════
 
 /* ═══════════════════════════════════════════════════════════
-   Combined Shortcuts (surface + fg + interactive states)
+   Combined Shortcuts (bg + text + interactive states)
    Each shortcut includes hover/active/focus states that
    use the intent color scale via --intent-* vars.
    ═══════════════════════════════════════════════════════════ */
 
 @utility emphasis-strong {
-  background-color: var(--intent-surface-strong);
-  color: var(--intent-fg-inverted);
+  background-color: var(--intent-bg-strong);
+  color: var(--intent-text-inverted);
 
   &.is-interactive:hover,
   &.is-interactive:focus-visible {
@@ -115,8 +29,8 @@
 }
 
 @utility emphasis-default {
-  background-color: var(--intent-surface-default);
-  color: var(--intent-fg-default);
+  background-color: var(--intent-bg-default);
+  color: var(--intent-text-default);
   border: 1px solid var(--intent-border-default);
 
   &.is-interactive:hover,
@@ -133,8 +47,8 @@
 }
 
 @utility emphasis-subtle {
-  background-color: var(--intent-surface-subtle);
-  color: var(--intent-fg-default);
+  background-color: var(--intent-bg-subtle);
+  color: var(--intent-text-default);
 
   &.is-interactive:hover,
   &.is-interactive:focus-visible {
@@ -146,8 +60,8 @@
 }
 
 @utility emphasis-subtler {
-  background-color: var(--intent-surface-subtler);
-  color: var(--intent-fg-default);
+  background-color: var(--intent-bg-subtler);
+  color: var(--intent-text-default);
 
   &.is-interactive {
     background-color: transparent;
@@ -162,14 +76,14 @@
 }
 
 @utility emphasis-inverted {
-  background-color: var(--intent-surface-inverted);
-  color: var(--intent-fg-inverted);
+  background-color: var(--intent-bg-inverted);
+  color: var(--intent-text-inverted);
 }
 
 @utility emphasis-raised {
-  background-color: var(--intent-surface-raised);
+  background-color: var(--intent-bg-raised);
   box-shadow: var(--rim-light), var(--shadow-md);
-  color: var(--intent-fg-default);
+  color: var(--intent-text-default);
 
   &.is-interactive:hover,
   &.is-interactive:focus-visible {
@@ -183,19 +97,19 @@
 }
 
 @utility emphasis-sunken {
-  background-color: var(--intent-surface-sunken);
+  background-color: var(--intent-bg-sunken);
   box-shadow: var(--inset-shadow-sm);
-  color: var(--intent-fg-default);
+  color: var(--intent-text-default);
 }
 
 @utility emphasis-floating {
-  background-color: var(--intent-surface-raised);
+  background-color: var(--intent-bg-raised);
   box-shadow: var(--rim-light), var(--shadow-xl);
-  color: var(--intent-fg-default);
+  color: var(--intent-text-default);
 }
 
 @utility emphasis-overlay {
   background-color: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(8px);
-  color: var(--intent-fg-inverted);
+  color: var(--intent-text-inverted);
 }

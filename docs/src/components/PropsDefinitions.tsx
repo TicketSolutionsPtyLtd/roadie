@@ -86,10 +86,10 @@ function PropsList({
   title?: string
 }) {
   return (
-    <div className='flex flex-col divide-y divide-emphasis-subtler'>
+    <div className='flex flex-col divide-y divide-subtler'>
       {title && (
-        <div className='px-4 py-3 emphasis-subtler-surface'>
-          <p className='text-base font-bold emphasis-subtle-fg'>{title}</p>
+        <div className='px-4 py-3 bg-subtler'>
+          <p className='text-base font-bold text-subtle'>{title}</p>
         </div>
       )}
       {Object.entries(props).map(([name, prop]) => (
@@ -98,9 +98,7 @@ function PropsList({
             <div className='flex flex-col md:flex-row items-baseline gap-1'>
               <span className='font-mono text-sm font-semibold shrink-0'>
                 {name}
-                {!prop.required && (
-                  <span className='emphasis-subtle-fg'>?</span>
-                )}
+                {!prop.required && <span className='text-subtle'>?</span>}
               </span>
               <span className='font-mono text-sm text-info-11'>
                 {formatTypeValues(prop)}
@@ -110,10 +108,10 @@ function PropsList({
           <dd>
             <div className='flex flex-col gap-2'>
               {prop.description && (
-                <p className='emphasis-subtle-fg'>{prop.description}</p>
+                <p className='text-subtle'>{prop.description}</p>
               )}
               {prop.defaultValue && (
-                <p className='emphasis-subtle-fg text-sm'>
+                <p className='text-subtle text-sm'>
                   Defaults to <Code>{prop.defaultValue.value}</Code>.
                 </p>
               )}
@@ -173,11 +171,11 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
     return (
       <div className='flex flex-col gap-4 pt-8 mt-8'>
         <h2 className='text-xl font-bold'>Props</h2>
-        <dl className='flex flex-col emphasis-subtler-border rounded-md overflow-hidden'>
-          <div className='self-stretch flex flex-col gap-1 px-4 py-3 emphasis-subtler-surface'>
+        <dl className='flex flex-col border border-subtler rounded-md overflow-hidden'>
+          <div className='self-stretch flex flex-col gap-1 px-4 py-3 bg-subtler'>
             <h3 className='text-xl font-bold'>{interfaceName}</h3>
             {!!componentInfo.description && (
-              <p className='emphasis-subtle-fg'>{componentInfo.description}</p>
+              <p className='text-subtle'>{componentInfo.description}</p>
             )}
           </div>
 

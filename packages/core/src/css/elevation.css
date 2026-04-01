@@ -18,7 +18,8 @@
   --shadow-2xl:
     0 16px 32px rgba(0, 20, 40, 0.12), 0 32px 64px -8px rgba(0, 20, 40, 0.15);
 
-  --inset-shadow-xs: inset 0 1px 1px rgba(0, 20, 40, 0.05),
+  --inset-shadow-xs:
+    inset 0 1px 1px rgba(0, 20, 40, 0.05),
     inset -0.5px -0.5px 0 0 rgba(255, 255, 255, 0.15);
   --inset-shadow-sm:
     inset 0 2px 4px rgba(0, 20, 40, 0.06),
@@ -41,11 +42,11 @@
   --shadow-2xl:
     0 16px 32px rgba(0, 0, 0, 0.4), 0 32px 64px -8px rgba(0, 0, 0, 0.45);
 
-  --inset-shadow-xs: inset 0 1px 3px rgba(0, 0, 0, 0.6),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.2),
+  --inset-shadow-xs:
+    inset 0 1px 3px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(0, 0, 0, 0.2),
     inset -0.5px -0.5px 0 0 rgba(255, 255, 255, 0.12);
-  --inset-shadow-sm: inset 0 2px 8px rgba(0, 0, 0, 0.7),
-    inset 0 1px 3px rgba(0, 0, 0, 0.6),
+  --inset-shadow-sm:
+    inset 0 2px 8px rgba(0, 0, 0, 0.7), inset 0 1px 3px rgba(0, 0, 0, 0.6),
     inset 0 0 0 1px rgba(0, 0, 0, 0.25),
     inset -1px -1px 0 0 rgba(255, 255, 255, 0.15);
 
@@ -72,7 +73,8 @@
       0 16px 32px oklch(0.1 0.04 var(--intent-hue) / 0.12),
       0 32px 64px -8px oklch(0.1 0.04 var(--intent-hue) / 0.15);
 
-    --inset-shadow-xs: inset 0 1px 1px oklch(0.1 0.04 var(--intent-hue) / 0.05),
+    --inset-shadow-xs:
+      inset 0 1px 1px oklch(0.1 0.04 var(--intent-hue) / 0.05),
       inset -0.5px -0.5px 0 0 rgba(255, 255, 255, 0.15);
     --inset-shadow-sm:
       inset 0 2px 4px oklch(0.2 0.02 var(--intent-hue) / 0.08),
@@ -98,10 +100,12 @@
       0 16px 32px oklch(0.05 0.02 var(--intent-hue) / 0.4),
       0 32px 64px -8px oklch(0.05 0.02 var(--intent-hue) / 0.45);
 
-    --inset-shadow-xs: inset 0 1px 3px oklch(0.05 0.02 var(--intent-hue) / 0.6),
+    --inset-shadow-xs:
+      inset 0 1px 3px oklch(0.05 0.02 var(--intent-hue) / 0.6),
       inset 0 0 0 1px oklch(0.05 0.02 var(--intent-hue) / 0.2),
       inset -0.5px -0.5px 0 0 rgba(255, 255, 255, 0.12);
-    --inset-shadow-sm: inset 0 2px 8px oklch(0.05 0.02 var(--intent-hue) / 0.7),
+    --inset-shadow-sm:
+      inset 0 2px 8px oklch(0.05 0.02 var(--intent-hue) / 0.7),
       inset 0 1px 3px oklch(0.05 0.02 var(--intent-hue) / 0.6),
       inset 0 0 0 1px oklch(0.05 0.02 var(--intent-hue) / 0.25),
       inset -1px -1px 0 0 rgba(255, 255, 255, 0.15);

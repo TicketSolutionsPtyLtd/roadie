@@ -27,7 +27,7 @@ describe('Separator', () => {
 
   it('applies emphasis class', () => {
     const { container } = render(<Separator />)
-    expect(container.firstElementChild).toHaveClass('emphasis-subtle-border')
+    expect(container.firstElementChild).toHaveClass('border-subtle')
   })
 
   it('applies custom className', () => {

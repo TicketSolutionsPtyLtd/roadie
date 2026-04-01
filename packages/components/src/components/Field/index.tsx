@@ -24,7 +24,7 @@ export interface FieldLabelProps extends ComponentProps<'label'> {}
 function FieldLabel({ className, ...props }: FieldLabelProps) {
   return (
     <label
-      className={cn('text-sm font-medium emphasis-default-fg', className)}
+      className={cn('text-sm font-medium text-default', className)}
       {...props}
     />
   )
@@ -53,9 +53,7 @@ FieldTextarea.displayName = 'Field.Textarea'
 export interface FieldHelperTextProps extends ComponentProps<'p'> {}
 
 function FieldHelperText({ className, ...props }: FieldHelperTextProps) {
-  return (
-    <p className={cn('text-sm emphasis-subtle-fg', className)} {...props} />
-  )
+  return <p className={cn('text-sm text-subtle', className)} {...props} />
 }
 
 FieldHelperText.displayName = 'Field.HelperText'
@@ -67,7 +65,7 @@ export interface FieldErrorTextProps extends ComponentProps<'p'> {}
 function FieldErrorText({ className, ...props }: FieldErrorTextProps) {
   return (
     <p
-      className={cn('text-sm intent-danger emphasis-subtle-fg', className)}
+      className={cn('text-sm intent-danger text-subtle', className)}
       {...props}
     />
   )
