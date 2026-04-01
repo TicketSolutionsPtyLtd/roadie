@@ -4,19 +4,59 @@ import { useEffect, useState } from 'react'
 
 import Link from 'next/link'
 
-import { CheckCircle, Copy, XCircle, Info, Warning, Star, Plus, Minus, CaretDown, CaretUp, ArrowRight, ArrowLeft, Heart, MagnifyingGlass, Gear, Trash, PencilSimple, Eye, EyeSlash } from '@phosphor-icons/react'
+import {
+  ArrowLeft,
+  ArrowRight,
+  CaretDown,
+  CaretUp,
+  CheckCircle,
+  Copy,
+  Eye,
+  EyeSlash,
+  Gear,
+  Heart,
+  Info,
+  MagnifyingGlass,
+  Minus,
+  PencilSimple,
+  Plus,
+  Star,
+  Trash,
+  Warning,
+  XCircle
+} from '@phosphor-icons/react'
 import { Highlight, themes } from 'prism-react-renderer'
 import { LiveEditor, LiveError, LivePreview, LiveProvider } from 'react-live'
+
 import * as RoadieComponents from '@oztix/roadie-components'
 import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
 
-const PhosphorIcons = { CheckCircle, XCircle, Info, Warning, Star, Plus, Minus, CaretDown, CaretUp, ArrowRight, ArrowLeft, Heart, MagnifyingGlass, Gear, Trash, PencilSimple, Eye, EyeSlash }
+const PhosphorIcons = {
+  CheckCircle,
+  XCircle,
+  Info,
+  Warning,
+  Star,
+  Plus,
+  Minus,
+  CaretDown,
+  CaretUp,
+  ArrowRight,
+  ArrowLeft,
+  Heart,
+  MagnifyingGlass,
+  Gear,
+  Trash,
+  PencilSimple,
+  Eye,
+  EyeSlash
+}
 
 const scope = {
   ...RoadieComponents,
   ...SpotIllustrations,
   ...PhosphorIcons,
-  Link,
+  Link
 }
 
 const { Button } = RoadieComponents
@@ -25,16 +65,16 @@ const customDarkTheme = {
   ...themes.nightOwl,
   plain: {
     ...themes.nightOwl.plain,
-    backgroundColor: 'var(--color-neutral-2)',
-  },
+    backgroundColor: 'var(--color-neutral-2)'
+  }
 }
 
 const customLightTheme = {
   ...themes.nightOwlLight,
   plain: {
     ...themes.nightOwlLight.plain,
-    backgroundColor: 'var(--color-neutral-2)',
-  },
+    backgroundColor: 'var(--color-neutral-2)'
+  }
 }
 
 function CopyButton({ code }: { code: string }) {
@@ -47,12 +87,12 @@ function CopyButton({ code }: { code: string }) {
   }
 
   return (
-    <div className="absolute top-2 right-2 z-10">
+    <div className='absolute top-2 right-2 z-10'>
       <Button
         onClick={handleCopy}
-        size="sm"
-        emphasis="subtler"
-        aria-label="Copy code to clipboard"
+        size='sm'
+        emphasis='subtler'
+        aria-label='Copy code to clipboard'
       >
         {copied && 'Copied!'}
         <Copy size={16} weight='bold' />
@@ -70,6 +110,7 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
   const [colorMode, setColorMode] = useState<'light' | 'dark'>('light')
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reading DOM state on mount
     setColorMode(
       document.documentElement.classList.contains('dark') ? 'dark' : 'light'
     )
@@ -80,7 +121,7 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
     })
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class'],
+      attributeFilter: ['class']
     })
     return () => observer.disconnect()
   }, [])
@@ -96,18 +137,18 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
 
   if (!isLive) {
     return (
-      <div className="mb-8 relative min-w-0">
+      <div className='mb-8 relative min-w-0'>
         <CopyButton code={trimmedCode} />
         <Highlight code={trimmedCode} language={language} theme={theme}>
           {({ style, tokens, getLineProps, getTokenProps }) => (
             <pre
-              className="bg-neutral-2 overflow-x-auto text-xs sm:text-sm p-3 sm:p-4 rounded-md border border-neutral-6 min-w-0"
+              className='bg-neutral-2 overflow-x-auto text-xs sm:text-sm p-3 sm:p-4 rounded-md border border-neutral-6 min-w-0'
               style={style}
             >
               {tokens.map((line, i) => {
                 const { key: _key, ...linePropsWithoutKey } = getLineProps({
                   line,
-                  key: i,
+                  key: i
                 })
                 return (
                   <div key={i} {...linePropsWithoutKey}>
@@ -127,18 +168,18 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
   }
 
   return (
-    <div className="mb-8 relative min-w-0">
+    <div className='mb-8 relative min-w-0'>
       <LiveProvider
         code={trimmedCode}
         scope={scope}
         theme={theme}
         language={language.replace('-live', '')}
       >
-        <LivePreview className="px-4 py-4 sm:px-6 sm:py-6 bg-neutral-1 rounded-t-md font-sans border border-neutral-6 border-b-0 overflow-x-auto min-w-0" />
-        <LiveError className="px-4 py-3 text-sm text-danger-11 bg-danger-2 border-x border-neutral-6" />
-        <div className="relative min-w-0">
+        <LivePreview className='px-4 py-4 sm:px-6 sm:py-6 bg-neutral-1 rounded-t-md font-sans border border-neutral-6 border-b-0 overflow-x-auto min-w-0' />
+        <LiveError className='px-4 py-3 text-sm text-danger-11 bg-danger-2 border-x border-neutral-6' />
+        <div className='relative min-w-0'>
           <CopyButton code={trimmedCode} />
-          <LiveEditor className="bg-neutral-2 overflow-x-auto text-xs sm:text-sm p-3 sm:p-4 rounded-b-md border border-neutral-6 border-t-0 min-w-0" />
+          <LiveEditor className='bg-neutral-2 overflow-x-auto text-xs sm:text-sm p-3 sm:p-4 rounded-b-md border border-neutral-6 border-t-0 min-w-0' />
         </div>
       </LiveProvider>
     </div>

@@ -187,7 +187,7 @@ Highlight works great in headings for creating eye-catching titles:
 ```tsx-live
 
 <div className='flex flex-col gap-2 text-center'>
-  <Heading as='h1' size='2xl'>
+  <Heading as='h1' className='text-display-ui-3'>
     <Highlight
       text='Great events need great partners'
       query='great'
@@ -204,7 +204,7 @@ A practical example of highlighting search results:
 ```tsx-live
 <div className='flex flex-col gap-4'>
   <div className='flex flex-col gap-1'>
-    <Heading level={3} size='sm'>
+    <Heading as='h3' className='text-display-ui-6'>
       Search results for "JavaScript"
     </Heading>
     <Text size='xs' emphasis='subtle'>3 results found</Text>

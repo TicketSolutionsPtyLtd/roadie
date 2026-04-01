@@ -20,25 +20,25 @@ export const selectTriggerVariants = cva(
         danger: 'intent-danger',
         success: 'intent-success',
         warning: 'intent-warning',
-        info: 'intent-info',
+        info: 'intent-info'
       },
       emphasis: {
         default:
           'emphasis-default-surface emphasis-subtle-border emphasis-default-fg hover:emphasis-subtle-surface focus:outline-4 focus:outline-[color-mix(in_oklch,var(--intent-9)_30%,transparent)] focus:outline-offset-0',
         subtle:
-          'emphasis-subtle-surface emphasis-default-fg border border-transparent focus:outline-4 focus:outline-[color-mix(in_oklch,var(--intent-9)_30%,transparent)] focus:outline-offset-0',
+          'emphasis-subtle-surface emphasis-default-fg border border-transparent focus:outline-4 focus:outline-[color-mix(in_oklch,var(--intent-9)_30%,transparent)] focus:outline-offset-0'
       },
       size: {
         sm: 'h-8 px-3 text-sm',
         md: 'h-10 px-4 text-sm',
-        lg: 'h-12 px-4 text-base',
-      },
+        lg: 'h-12 px-4 text-base'
+      }
     },
     defaultVariants: {
       intent: 'neutral',
       emphasis: 'default',
-      size: 'md',
-    },
+      size: 'md'
+    }
   }
 )
 
@@ -64,7 +64,7 @@ function SelectTrigger({
   intent,
   emphasis,
   size,
-  children,
+  children: _children,
   ...props
 }: SelectTriggerProps) {
   return (
@@ -164,7 +164,7 @@ export const Select = Object.assign(SelectRoot, {
   Trigger: SelectTrigger,
   Popup: SelectPopup,
   Item: SelectItem,
-  Label: SelectLabel,
+  Label: SelectLabel
 })
 
 export type SelectProps = SelectRootProps

@@ -13,6 +13,14 @@
 
 /* ─── Display: UI headings (compact, app context) ─── */
 
+@utility text-display-ui {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  font-family: var(--font-sans);
+}
+
 @utility text-display-ui-1 {
   font-size: var(--text-4xl);
   font-weight: 700;
@@ -62,6 +70,14 @@
 }
 
 /* ─── Display: Prose headings (larger, content context) ─── */
+
+@utility text-display-prose {
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  font-family: var(--font-sans);
+}
 
 @utility text-display-prose-1 {
   font-size: var(--text-5xl);

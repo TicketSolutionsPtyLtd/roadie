@@ -40,7 +40,7 @@ export default async function ComponentsPage() {
             title: dir.name,
             description: '',
             status: 'unknown',
-            category: 'Other',
+            category: 'Other'
           }
 
           if (metadataMatch) {
@@ -61,7 +61,7 @@ export default async function ComponentsPage() {
             title: dir.name,
             description: '',
             status: 'unknown',
-            category: 'Other',
+            category: 'Other'
           }
         }
       })
@@ -77,29 +77,36 @@ export default async function ComponentsPage() {
   }, {} as CategorizedComponents)
 
   return (
-    <div className="flex flex-col gap-12">
-      <div className="flex flex-col gap-4">
-        <Heading as="h1" size="4xl">Components</Heading>
-        <Text emphasis="subtle" size="xl">
-          A collection of components built with Base UI and styled with Tailwind CSS.
+    <div className='flex flex-col gap-12'>
+      <div className='flex flex-col gap-4'>
+        <Heading as='h1' className='text-display-prose-1'>
+          Components
+        </Heading>
+        <Text emphasis='subtle' size='xl'>
+          A collection of components built with Base UI and styled with Tailwind
+          CSS.
         </Text>
       </div>
 
       {Object.entries(categorizedComponents).map(([category, components]) => (
-        <div key={category} className="flex flex-col gap-4">
-          <Heading as="h2" size="2xl">{category}</Heading>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div key={category} className='flex flex-col gap-4'>
+          <Heading as='h2' className='text-display-ui-3'>
+            {category}
+          </Heading>
+          <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>
             {components.map((component) => (
               <Link
                 key={component.name}
                 href={`/components/${component.name}`}
-                className="p-4 rounded-md flex flex-col gap-2 bg-neutral-1 border border-neutral-7 hover:bg-neutral-3 transition-colors no-underline"
+                className='p-4 rounded-md flex flex-col gap-2 bg-neutral-1 border border-neutral-7 hover:bg-neutral-3 transition-colors no-underline'
               >
-                <Heading as="h3" size="lg">{component.title}</Heading>
-                <Text emphasis="subtle">{component.description}</Text>
+                <Heading as='h3' className='text-display-ui-5'>
+                  {component.title}
+                </Heading>
+                <Text emphasis='subtle'>{component.description}</Text>
                 <Text
-                  size="sm"
-                  emphasis="strong"
+                  size='sm'
+                  emphasis='strong'
                   intent={
                     component.status === 'stable'
                       ? 'success'

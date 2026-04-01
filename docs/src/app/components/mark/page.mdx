@@ -88,10 +88,10 @@ Mark works great in headings for creating eye-catching titles:
 ```tsx-live
 
 <div className='flex flex-col gap-2 text-center'>
-  <Heading as='h1' size='2xl'>
+  <Heading as='h1' className='text-display-ui-3'>
     Great events need great <Mark intent='accent'>partners</Mark>
   </Heading>
-  <Heading as='h2' size='lg' emphasis='subtle'>
+  <Heading as='h2' className='text-display-ui-5' emphasis='subtle'>
     Not just <Mark intent='warning'>great</Mark> ticketing software. Why?
   </Heading>
 </div>
@@ -105,21 +105,21 @@ Mark is useful for highlighting important information in various contexts:
 
 <div className='flex flex-col gap-4'>
   <div className='flex flex-col gap-1'>
-    <Heading level={3} size='sm'>Search results</Heading>
+    <Heading as='h3' className='text-display-ui-6'>Search results</Heading>
     <Text>
       Found <Mark intent='accent'>5 matches</Mark> for your search query.
     </Text>
   </div>
 
   <div className='flex flex-col gap-1'>
-    <Heading level={3} size='sm'>Status updates</Heading>
+    <Heading as='h3' className='text-display-ui-6'>Status updates</Heading>
     <Text>
       Your order is <Mark intent='success'>confirmed</Mark> and will ship soon.
     </Text>
   </div>
 
   <div className='flex flex-col gap-1'>
-    <Heading level={3} size='sm'>Warnings</Heading>
+    <Heading as='h3' className='text-display-ui-6'>Warnings</Heading>
     <Text>
       This action is <Mark intent='warning'>irreversible</Mark>.
     </Text>

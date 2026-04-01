@@ -106,10 +106,10 @@ import { Text } from '@oztix/roadie-components'
 ```tsx
 import { Heading } from '@oztix/roadie-components'
 
-<Heading level={1} size="4xl">Page title</Heading>
-<Heading level={2} size="2xl">Section heading</Heading>
-<Heading level={3} size="xl">Subsection</Heading>
-<Heading emphasis="subtle" size="lg">Subtitle</Heading>
+<Heading as="h1" className="text-display-prose-1">Page title</Heading>
+<Heading as="h2" className="text-display-ui-3">Section heading</Heading>
+<Heading as="h3" className="text-display-ui-4">Subsection</Heading>
+<Heading emphasis="subtle" className="text-display-ui-5">Subtitle</Heading>
 ```
 
 Or use the text style utilities directly on any element:

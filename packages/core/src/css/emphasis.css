@@ -58,7 +58,6 @@
 
 @utility emphasis-strong-fg {
   color: var(--intent-fg-strong);
-  font-weight: 700;
 }
 
 @utility emphasis-inverted-fg {
@@ -101,7 +100,9 @@
   &.is-interactive:focus-visible {
     background-color: var(--intent-10);
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 8px -2px rgba(0, 0, 0, 0.08);
+    box-shadow:
+      0 2px 4px rgba(0, 0, 0, 0.1),
+      0 4px 8px -2px rgba(0, 0, 0, 0.08);
   }
   &.is-interactive:active {
     background-color: var(--intent-11);
@@ -113,11 +114,7 @@
 @utility emphasis-default {
   background-color: var(--intent-surface-default);
   color: var(--intent-fg-default);
-  border: 1px solid var(--intent-border-subtle);
-
-  .dark & {
-    border-color: var(--intent-border-default);
-  }
+  border: 1px solid var(--intent-border-default);
 
   &.is-interactive:hover,
   &.is-interactive:focus-visible {
@@ -170,7 +167,9 @@
   &.is-interactive:hover,
   &.is-interactive:focus-visible {
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 8px 16px -4px rgba(0, 0, 0, 0.1);
+    box-shadow:
+      0 2px 4px rgba(0, 0, 0, 0.1),
+      0 8px 16px -4px rgba(0, 0, 0, 0.1);
   }
   &.is-interactive:active {
     transform: translateY(0) scale(0.98);

@@ -10,7 +10,7 @@ import {
   Heading,
   type HeadingProps,
   Text,
-  type TextProps,
+  type TextProps
 } from '@oztix/roadie-components'
 
 type AnchorProps = ComponentPropsWithoutRef<'a'>
@@ -18,40 +18,40 @@ type BlockquoteProps = ComponentPropsWithoutRef<'blockquote'>
 
 const components = {
   h1: (props: HeadingProps) => (
-    <Heading as="h1" size="4xl" className="mb-4 pt-8" {...props} />
+    <Heading as='h1' className='text-display-prose-1 mb-4 pt-8' {...props} />
   ),
   h2: (props: HeadingProps) => (
-    <Heading as="h2" size="3xl" className="mb-4 mt-12" {...props} />
+    <Heading as='h2' className='text-display-prose-2 mb-4 mt-12' {...props} />
   ),
   h3: (props: HeadingProps) => (
-    <Heading as="h3" size="2xl" className="mb-4 mt-12" {...props} />
+    <Heading as='h3' className='text-display-prose-3 mb-4 mt-12' {...props} />
   ),
   h4: (props: HeadingProps) => (
-    <Heading as="h4" size="xl" className="mb-4 mt-8" {...props} />
+    <Heading as='h4' className='text-display-prose-4 mb-4 mt-8' {...props} />
   ),
   h5: (props: HeadingProps) => (
-    <Heading as="h5" size="lg" className="mb-4 mt-8" {...props} />
+    <Heading as='h5' className='text-display-prose-5 mb-4 mt-8' {...props} />
   ),
   h6: (props: HeadingProps) => (
-    <Heading as="h6" size="base" className="mb-4 mt-8" {...props} />
+    <Heading as='h6' className='text-display-prose-6 mb-4 mt-8' {...props} />
   ),
   p: (props: TextProps) => (
-    <Text as="p" size="lg" className="mb-4 leading-relaxed" {...props} />
+    <Text as='p' size='lg' className='mb-4 leading-relaxed' {...props} />
   ),
   ol: (props: ComponentPropsWithoutRef<'ol'>) => (
-    <ol className="list-decimal flex flex-col gap-2 mb-8 pl-8" {...props} />
+    <ol className='list-decimal flex flex-col gap-2 mb-8 pl-8' {...props} />
   ),
   ul: (props: ComponentPropsWithoutRef<'ul'>) => (
-    <ul className="list-disc flex flex-col gap-2 mb-8 pl-8" {...props} />
+    <ul className='list-disc flex flex-col gap-2 mb-8 pl-8' {...props} />
   ),
   li: (props: TextProps) => (
-    <Text as="li" size="lg" className="pl-1 leading-relaxed" {...props} />
+    <Text as='li' size='lg' className='pl-1 leading-relaxed' {...props} />
   ),
   em: (props: TextProps) => (
-    <Text {...props} as="em" className="italic text-[inherit]" />
+    <Text {...props} as='em' className='italic text-[inherit]' />
   ),
   strong: (props: TextProps) => (
-    <Text {...props} as="strong" emphasis="strong" className="text-[inherit]" />
+    <Text {...props} as='strong' emphasis='strong' className='text-[inherit]' />
   ),
   a: ({ href, children, ...props }: AnchorProps) => {
     const className = 'text-accent-11 hover:text-accent-9'
@@ -72,8 +72,8 @@ const components = {
     return (
       <a
         href={href}
-        target="_blank"
-        rel="noopener noreferrer"
+        target='_blank'
+        rel='noopener noreferrer'
         className={className}
         {...props}
       >
@@ -93,38 +93,33 @@ const components = {
     )
   },
   table: (props: ComponentPropsWithoutRef<'table'>) => (
-    <div className="overflow-x-auto mb-8 -mx-4 px-4 sm:mx-0 sm:px-0">
-      <table
-        className="w-full text-sm border-collapse min-w-[400px]"
-        {...props}
-      />
+    <div className='overflow-x-auto mb-8 -mx-4 px-4 sm:mx-0 sm:px-0'>
+      <table className='w-full text-sm border-collapse min-w-100' {...props} />
     </div>
   ),
-  thead: (props: ComponentPropsWithoutRef<'thead'>) => (
-    <thead {...props} />
-  ),
+  thead: (props: ComponentPropsWithoutRef<'thead'>) => <thead {...props} />,
   th: (props: ComponentPropsWithoutRef<'th'>) => (
     <th
-      className="py-2 pr-4 text-left font-semibold border-b border-neutral-7 whitespace-nowrap"
+      className='py-2 pr-4 text-left font-semibold border-b border-neutral-7 whitespace-nowrap'
       {...props}
     />
   ),
   td: (props: ComponentPropsWithoutRef<'td'>) => (
     <td
-      className="py-2 pr-4 border-b border-neutral-6 emphasis-subtle-fg"
+      className='py-2 pr-4 border-b border-neutral-6 emphasis-subtle-fg'
       {...props}
     />
   ),
   tr: (props: ComponentPropsWithoutRef<'tr'>) => <tr {...props} />,
   Table: ({ data }: { data: { headers: string[]; rows: string[][] } }) => (
-    <div className="overflow-x-auto mb-8">
-      <table className="w-full text-sm border-collapse">
+    <div className='overflow-x-auto mb-8'>
+      <table className='w-full text-sm border-collapse'>
         <thead>
           <tr>
             {data.headers.map((header, index) => (
               <th
                 key={index}
-                className="py-2 pr-4 text-left font-semibold border-b border-neutral-7"
+                className='py-2 pr-4 text-left font-semibold border-b border-neutral-7'
               >
                 {header}
               </th>
@@ -137,7 +132,7 @@ const components = {
               {row.map((cell, cellIndex) => (
                 <td
                   key={cellIndex}
-                  className="py-2 pr-4 border-b border-neutral-6"
+                  className='py-2 pr-4 border-b border-neutral-6'
                 >
                   {cell}
                 </td>
@@ -150,10 +145,10 @@ const components = {
   ),
   blockquote: (props: BlockquoteProps) => (
     <blockquote
-      className="border-l-[3px] border-neutral-7 ml-[0.075em] pl-4 emphasis-subtle-fg"
+      className='border-l-[3px] border-neutral-7 ml-[0.075em] pl-4 emphasis-subtle-fg'
       {...props}
     />
-  ),
+  )
 }
 
 declare global {

@@ -10,23 +10,19 @@ describe('Heading', () => {
     expect(heading).toBeInTheDocument()
     expect(heading.tagName.toLowerCase()).toBe('h2')
     expect(heading).toHaveClass('emphasis-strong-fg')
+    expect(heading).toHaveClass('text-display-ui')
   })
 
-  it('renders with different heading levels', () => {
-    const levels = [1, 2, 3, 4, 5, 6] as const
-    levels.forEach((level) => {
+  it('renders with as prop', () => {
+    const elements = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const
+    elements.forEach((el) => {
       const { getByText, unmount } = render(
-        <Heading level={level}>{`h${level} Heading`}</Heading>
+        <Heading as={el}>{`${el} Heading`}</Heading>
       )
-      const heading = getByText(`h${level} Heading`)
-      expect(heading.tagName.toLowerCase()).toBe(`h${level}`)
+      const heading = getByText(`${el} Heading`)
+      expect(heading.tagName.toLowerCase()).toBe(el)
       unmount()
     })
-  })
-
-  it('renders with as prop override', () => {
-    const { getByText } = render(<Heading as='h1'>H1 Heading</Heading>)
-    expect(getByText('H1 Heading').tagName.toLowerCase()).toBe('h1')
   })
 
   it('renders with different emphasis', () => {
@@ -36,7 +32,7 @@ describe('Heading', () => {
     expect(getByText('Default')).toHaveClass('emphasis-strong-fg')
 
     rerender(<Heading emphasis='strong'>Strong</Heading>)
-    expect(getByText('Strong')).toHaveClass('font-black')
+    expect(getByText('Strong')).toHaveClass('emphasis-strong-fg')
 
     rerender(<Heading emphasis='subtle'>Subtle</Heading>)
     expect(getByText('Subtle')).toHaveClass('emphasis-subtle-fg')
@@ -55,12 +51,11 @@ describe('Heading', () => {
     expect(getByText('Accent')).toHaveClass('intent-accent')
   })
 
-  it('renders with different sizes', () => {
-    const { rerender, getByText } = render(<Heading size='3xl'>Big</Heading>)
-    expect(getByText('Big')).toHaveClass('text-3xl')
-
-    rerender(<Heading size='lg'>Medium</Heading>)
-    expect(getByText('Medium')).toHaveClass('text-lg')
+  it('applies text style via className', () => {
+    const { getByText } = render(
+      <Heading className='text-display-prose-1'>Big</Heading>
+    )
+    expect(getByText('Big')).toHaveClass('text-display-prose-1')
   })
 
   it('forwards additional HTML attributes', () => {
@@ -80,8 +75,7 @@ describe('Heading', () => {
         as='h1'
         emphasis='strong'
         intent='brand'
-        size='3xl'
-        className='custom-class'
+        className='text-display-ui-1 custom-class'
       >
         Combined styles
       </Heading>
@@ -89,9 +83,9 @@ describe('Heading', () => {
     const heading = getByText('Combined styles')
     expect(heading.tagName.toLowerCase()).toBe('h1')
     expect(heading).toHaveClass(
-      'font-black',
+      'emphasis-strong-fg',
       'intent-brand',
-      'text-3xl',
+      'text-display-ui-1',
       'custom-class'
     )
   })

@@ -2,7 +2,7 @@ import { Code, Heading, Text } from '@oztix/roadie-components'
 
 export const metadata = {
   title: 'Token reference',
-  description: 'Complete reference for all design tokens.',
+  description: 'Complete reference for all design tokens.'
 }
 
 const colorScales = [
@@ -13,34 +13,34 @@ const colorScales = [
   'danger',
   'success',
   'warning',
-  'info',
+  'info'
 ] as const
 
 const steps = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] as const
 
 function ColorScaleVisual({ scale }: { scale: string }) {
   return (
-    <div className="flex flex-col gap-1">
-      <Text size="sm" emphasis="strong" className="capitalize">
+    <div className='flex flex-col gap-1'>
+      <Text size='sm' emphasis='strong' className='capitalize'>
         {scale}
       </Text>
-      <div className="flex gap-0.5">
+      <div className='flex gap-0.5'>
         {steps.map((step) => (
           <div
             key={step}
-            className="h-8 flex-1 rounded-sm first:rounded-l-md last:rounded-r-md"
+            className='h-8 flex-1 rounded-sm first:rounded-l-md last:rounded-r-md'
             style={{ backgroundColor: `var(--color-${scale}-${step})` }}
             title={`--color-${scale}-${step}`}
           />
         ))}
       </div>
-      <div className="flex gap-0.5">
+      <div className='flex gap-0.5'>
         {steps.map((step) => (
           <Text
             key={step}
-            size="xs"
-            emphasis="subtler"
-            className="flex-1 text-center"
+            size='xs'
+            emphasis='subtler'
+            className='flex-1 text-center'
           >
             {step}
           </Text>
@@ -52,33 +52,33 @@ function ColorScaleVisual({ scale }: { scale: string }) {
 
 function TokenTable({
   title,
-  tokens,
+  tokens
 }: {
   title: string
   tokens: { name: string; step: string; usage: string }[]
 }) {
   return (
-    <div className="flex flex-col gap-2">
-      <Text emphasis="strong" size="sm">
+    <div className='flex flex-col gap-2'>
+      <Text emphasis='strong' size='sm'>
         {title}
       </Text>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+      <div className='overflow-x-auto'>
+        <table className='w-full text-sm'>
           <thead>
-            <tr className="border-b border-neutral-7">
-              <th className="py-1.5 pr-4 text-left font-medium">Token</th>
-              <th className="py-1.5 pr-4 text-left font-medium">Step</th>
-              <th className="py-1.5 text-left font-medium">Usage</th>
+            <tr className='border-b border-neutral-7'>
+              <th className='py-1.5 pr-4 text-left font-medium'>Token</th>
+              <th className='py-1.5 pr-4 text-left font-medium'>Step</th>
+              <th className='py-1.5 text-left font-medium'>Usage</th>
             </tr>
           </thead>
-          <tbody className="emphasis-subtle-fg">
+          <tbody className='emphasis-subtle-fg'>
             {tokens.map((t) => (
-              <tr key={t.name} className="border-b border-neutral-6">
-                <td className="py-1.5 pr-4">
+              <tr key={t.name} className='border-b border-neutral-6'>
+                <td className='py-1.5 pr-4'>
                   <Code>{t.name}</Code>
                 </td>
-                <td className="py-1.5 pr-4">{t.step}</td>
-                <td className="py-1.5">{t.usage}</td>
+                <td className='py-1.5 pr-4'>{t.step}</td>
+                <td className='py-1.5'>{t.usage}</td>
               </tr>
             ))}
           </tbody>
@@ -90,28 +90,28 @@ function TokenTable({
 
 export default function TokenReferencePage() {
   return (
-    <div className="view gap-12">
-      <div className="view gap-3">
-        <Heading as="h1" size="3xl">
+    <div className='view gap-12'>
+      <div className='view gap-3'>
+        <Heading as='h1' className='text-display-prose-1'>
           Token reference
         </Heading>
-        <Text emphasis="subtle" size="lg">
+        <Text emphasis='subtle' size='lg'>
           Complete reference for the v2 design token system. All tokens are CSS
           custom properties defined via Tailwind v4&apos;s @theme directive.
         </Text>
       </div>
 
       {/* Color Scales */}
-      <section className="view gap-6">
-        <Heading as="h2" size="2xl">
+      <section className='view gap-6'>
+        <Heading as='h2' className='text-display-ui-3'>
           Color scales
         </Heading>
-        <Text emphasis="subtle">
+        <Text emphasis='subtle'>
           Each scale provides 14 OKLCH steps (0-13). Step 0 is the lightest
-          extreme, step 13 the darkest. Dark mode swaps the underlying values
-          — step numbers stay the same.
+          extreme, step 13 the darkest. Dark mode swaps the underlying values —
+          step numbers stay the same.
         </Text>
-        <div className="view gap-4">
+        <div className='view gap-4'>
           {colorScales.map((scale) => (
             <ColorScaleVisual key={scale} scale={scale} />
           ))}
@@ -119,139 +119,138 @@ export default function TokenReferencePage() {
       </section>
 
       {/* Intent semantic tokens */}
-      <section className="view gap-6">
-        <Heading as="h2" size="2xl">
+      <section className='view gap-6'>
+        <Heading as='h2' className='text-display-ui-3'>
           Intent semantic tokens
         </Heading>
-        <Text emphasis="subtle">
-          Set by intent utilities (e.g. <Code>intent-accent</Code>). Each
-          intent maps scale steps to semantic roles.
+        <Text emphasis='subtle'>
+          Set by intent utilities (e.g. <Code>intent-accent</Code>). Each intent
+          maps scale steps to semantic roles.
         </Text>
 
         <TokenTable
-          title="Surface"
+          title='Surface'
           tokens={[
             {
               name: '--intent-surface-default',
               step: '1',
-              usage: 'Page/canvas background',
+              usage: 'Page/canvas background'
             },
             {
               name: '--intent-surface-subtler',
               step: '2',
-              usage: 'Barely tinted background',
+              usage: 'Barely tinted background'
             },
             {
               name: '--intent-surface-subtle',
               step: '3',
-              usage: 'Noticeable tint, button hover bg',
+              usage: 'Noticeable tint, button hover bg'
             },
             {
               name: '--intent-surface-strong',
               step: '9 (neutral: 12)',
-              usage: 'Solid color, primary buttons',
+              usage: 'Solid color, primary buttons'
             },
             {
               name: '--intent-surface-inverted',
               step: '12',
-              usage: 'Inverted surface',
+              usage: 'Inverted surface'
             },
             {
               name: '--intent-surface-raised',
               step: '0 (dark: 2)',
-              usage: 'Elevated card with shadow',
+              usage: 'Elevated card with shadow'
             },
             {
               name: '--intent-surface-sunken',
               step: '2 (dark: 0)',
-              usage: 'Inset area with shadow',
-            },
+              usage: 'Inset area with shadow'
+            }
           ]}
         />
 
         <TokenTable
-          title="Border"
+          title='Border'
           tokens={[
             {
               name: '--intent-border-subtler',
               step: '5',
-              usage: 'Card edges, very faint',
+              usage: 'Card edges, very faint'
             },
             {
               name: '--intent-border-subtle',
               step: '6',
-              usage: 'Dividers, hr',
+              usage: 'Dividers, hr'
             },
             {
               name: '--intent-border-default',
               step: '7',
-              usage: 'Standard borders',
+              usage: 'Standard borders'
             },
             {
               name: '--intent-border-strong',
               step: '9',
-              usage: 'Bold borders',
+              usage: 'Bold borders'
             },
             {
               name: '--intent-border-inverted',
               step: '12',
-              usage: 'Inverted borders',
-            },
+              usage: 'Inverted borders'
+            }
           ]}
         />
 
         <TokenTable
-          title="Foreground"
+          title='Foreground'
           tokens={[
             {
               name: '--intent-fg-subtler',
               step: '10',
-              usage: 'Placeholder, hint text',
+              usage: 'Placeholder, hint text'
             },
             {
               name: '--intent-fg-subtle',
               step: '11',
-              usage: 'Secondary text, button text',
+              usage: 'Secondary text, button text'
             },
             {
               name: '--intent-fg-default',
               step: '12',
-              usage: 'Body text',
+              usage: 'Body text'
             },
             {
               name: '--intent-fg-strong',
               step: '13',
-              usage: 'Bold headings',
+              usage: 'Bold headings'
             },
             {
               name: '--intent-fg-inverted',
               step: '0',
-              usage: 'White/black text on strong surfaces',
-            },
+              usage: 'White/black text on strong surfaces'
+            }
           ]}
         />
 
         <TokenTable
-          title="Raw steps"
+          title='Raw steps'
           tokens={[
             {
               name: '--intent-0 … --intent-13',
               step: '0–13',
-              usage:
-                'Direct access to any scale step for hover/active states',
-            },
+              usage: 'Direct access to any scale step for hover/active states'
+            }
           ]}
         />
       </section>
 
       {/* Typography */}
-      <section className="view gap-6">
-        <Heading as="h2" size="2xl">
+      <section className='view gap-6'>
+        <Heading as='h2' className='text-display-ui-3'>
           Typography
         </Heading>
 
         <TokenTable
-          title="Font sizes (fluid from lg)"
+          title='Font sizes (fluid from lg)'
           tokens={[
             { name: '--text-xs', step: '0.75rem', usage: '12px' },
             { name: '--text-sm', step: '0.875rem', usage: '14px' },
@@ -259,98 +258,98 @@ export default function TokenReferencePage() {
             {
               name: '--text-lg',
               step: 'clamp(1.125rem…1.25rem)',
-              usage: '18–20px fluid',
+              usage: '18–20px fluid'
             },
             {
               name: '--text-xl',
               step: 'clamp(1.25rem…1.5rem)',
-              usage: '20–24px fluid',
+              usage: '20–24px fluid'
             },
             {
               name: '--text-2xl',
               step: 'clamp(1.5rem…2rem)',
-              usage: '24–32px fluid',
+              usage: '24–32px fluid'
             },
             {
               name: '--text-3xl',
               step: 'clamp(1.75rem…2.5rem)',
-              usage: '28–40px fluid',
+              usage: '28–40px fluid'
             },
             {
               name: '--text-4xl',
               step: 'clamp(2rem…3rem)',
-              usage: '32–48px fluid',
+              usage: '32–48px fluid'
             },
             {
               name: '--text-5xl',
               step: 'clamp(2.25rem…4rem)',
-              usage: '36–64px fluid',
-            },
+              usage: '36–64px fluid'
+            }
           ]}
         />
 
         <TokenTable
-          title="Semantic line heights"
+          title='Semantic line heights'
           tokens={[
             { name: '--leading-display', step: '1.2', usage: 'Headings' },
             { name: '--leading-ui', step: '1.35', usage: 'App interface' },
             { name: '--leading-prose', step: '1.5', usage: 'Long-form' },
-            { name: '--leading-code', step: '1.625', usage: 'Code blocks' },
+            { name: '--leading-code', step: '1.625', usage: 'Code blocks' }
           ]}
         />
 
         <TokenTable
-          title="Semantic letter spacing"
+          title='Semantic letter spacing'
           tokens={[
             {
               name: '--tracking-display',
               step: '-0.02em',
-              usage: 'Headings',
+              usage: 'Headings'
             },
             { name: '--tracking-ui', step: '-0.01em', usage: 'App interface' },
             {
               name: '--tracking-prose',
               step: '-0.01em',
-              usage: 'Long-form',
+              usage: 'Long-form'
             },
-            { name: '--tracking-code', step: '0em', usage: 'Code blocks' },
+            { name: '--tracking-code', step: '0em', usage: 'Code blocks' }
           ]}
         />
       </section>
 
       {/* Elevation */}
-      <section className="view gap-6">
-        <Heading as="h2" size="2xl">
+      <section className='view gap-6'>
+        <Heading as='h2' className='text-display-ui-3'>
           Elevation
         </Heading>
         <TokenTable
-          title="Box shadows"
+          title='Box shadows'
           tokens={[
             {
               name: '--elevation-raised',
               step: 'drop shadow',
-              usage: 'Cards, floating elements',
+              usage: 'Cards, floating elements'
             },
             {
               name: '--elevation-sunken',
               step: 'inset shadow',
-              usage: 'Recessed areas, inputs',
+              usage: 'Recessed areas, inputs'
             },
             {
               name: '--elevation-overlay',
               step: 'large shadow',
-              usage: 'Modals, popovers',
-            },
+              usage: 'Modals, popovers'
+            }
           ]}
         />
       </section>
 
       {/* Source */}
-      <div className="rounded-lg border border-neutral-7 p-6">
-        <Text emphasis="subtle">
+      <div className='rounded-lg border border-neutral-7 p-6'>
+        <Text emphasis='subtle'>
           All tokens are defined in{' '}
-          <Code>packages/core/src/css/tokens.css</Code>. Intent mappings are
-          in <Code>intents.css</Code>. Emphasis utilities are in{' '}
+          <Code>packages/core/src/css/tokens.css</Code>. Intent mappings are in{' '}
+          <Code>intents.css</Code>. Emphasis utilities are in{' '}
           <Code>emphasis.css</Code>.
         </Text>
       </div>
