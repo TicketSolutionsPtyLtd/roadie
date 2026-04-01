@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Select',
-  description: 'A dropdown select component for choosing from a list of options',
+  description: 'A dropdown for choosing from a list of options',
   status: 'beta',
   category: 'Forms',
 }
@@ -9,9 +9,7 @@ import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # Select
 
-The Select component provides an accessible dropdown for choosing from a list
-of options. It is built on Base UI primitives and supports multiple sizes,
-emphasis levels, and intents.
+A dropdown for choosing from a list of options.
 
 ## Import
 
@@ -21,7 +19,7 @@ import { Select } from '@oztix/roadie-components'
 
 ## Examples
 
-### Basic select
+### Default
 
 ```tsx-live
 <Select defaultValue='apple'>
@@ -32,6 +30,25 @@ import { Select } from '@oztix/roadie-components'
     <Select.Item value='cherry'>Cherry</Select.Item>
   </Select.Popup>
 </Select>
+```
+
+### Emphasis
+
+```tsx-live
+<div className='flex flex-col gap-2'>
+  <Select defaultValue='default'>
+    <Select.Trigger emphasis='default' />
+    <Select.Popup>
+      <Select.Item value='default'>Default emphasis</Select.Item>
+    </Select.Popup>
+  </Select>
+  <Select defaultValue='subtle'>
+    <Select.Trigger emphasis='subtle' />
+    <Select.Popup>
+      <Select.Item value='subtle'>Subtle emphasis</Select.Item>
+    </Select.Popup>
+  </Select>
+</div>
 ```
 
 ### Sizes
@@ -59,20 +76,48 @@ import { Select } from '@oztix/roadie-components'
 </div>
 ```
 
-### Emphasis
+### States
+
+The select trigger uses a raised surface with the same interaction states
+as other form controls. Focus shows accent colouring, disabled reduces
+opacity.
 
 ```tsx-live
-<div className='flex flex-col gap-2'>
-  <Select defaultValue='default'>
-    <Select.Trigger emphasis='default' />
+<div className='flex flex-col gap-4'>
+  <div className='flex flex-col gap-1'>
+    <Text size='sm' emphasis='subtle'>Default</Text>
+    <Select defaultValue='option'>
+      <Select.Trigger />
+      <Select.Popup>
+        <Select.Item value='option'>Select an option</Select.Item>
+      </Select.Popup>
+    </Select>
+  </div>
+  <div className='flex flex-col gap-1'>
+    <Text size='sm' emphasis='subtle'>Disabled</Text>
+    <Select defaultValue='disabled'>
+      <Select.Trigger disabled />
+      <Select.Popup>
+        <Select.Item value='disabled'>Cannot change</Select.Item>
+      </Select.Popup>
+    </Select>
+  </div>
+</div>
+```
+
+### Composition
+
+Select exposes sub-components for trigger, popup, item, and label.
+
+```tsx-live
+<div className='flex flex-col gap-1.5'>
+  <Select.Label>Favourite fruit</Select.Label>
+  <Select defaultValue='apple'>
+    <Select.Trigger />
     <Select.Popup>
-      <Select.Item value='default'>Default emphasis</Select.Item>
-    </Select.Popup>
-  </Select>
-  <Select defaultValue='subtle'>
-    <Select.Trigger emphasis='subtle' />
-    <Select.Popup>
-      <Select.Item value='subtle'>Subtle emphasis</Select.Item>
+      <Select.Item value='apple'>Apple</Select.Item>
+      <Select.Item value='banana'>Banana</Select.Item>
+      <Select.Item value='cherry'>Cherry</Select.Item>
     </Select.Popup>
   </Select>
 </div>

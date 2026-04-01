@@ -6,38 +6,34 @@ import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-export const inputVariants = cva(
-  'w-full rounded-md font-sans transition-all outline-none disabled:opacity-50 disabled:pointer-events-none aria-[invalid=true]:emphasis-default-border aria-[invalid=true]:border-[var(--intent-danger-9)]',
-  {
-    variants: {
-      intent: {
-        neutral: 'intent-neutral',
-        brand: 'intent-brand',
-        accent: 'intent-accent',
-        danger: 'intent-danger',
-        success: 'intent-success',
-        warning: 'intent-warning',
-        info: 'intent-info'
-      },
-      emphasis: {
-        default:
-          'emphasis-default-surface emphasis-subtle-border emphasis-default-fg hover:emphasis-subtle-surface focus:outline-4 focus:outline-[color-mix(in_oklch,var(--intent-9)_30%,transparent)] focus:outline-offset-0',
-        subtle:
-          'emphasis-subtle-surface emphasis-default-fg border border-transparent focus:outline-4 focus:outline-[color-mix(in_oklch,var(--intent-9)_30%,transparent)] focus:outline-offset-0'
-      },
-      size: {
-        sm: 'h-8 px-3 text-sm',
-        md: 'h-10 px-4 text-sm',
-        lg: 'h-12 px-4 text-base'
-      }
+export const inputVariants = cva('w-full rounded-md font-sans', {
+  variants: {
+    intent: {
+      neutral: 'intent-neutral',
+      brand: 'intent-brand',
+      accent: 'intent-accent',
+      danger: 'intent-danger',
+      success: 'intent-success',
+      warning: 'intent-warning',
+      info: 'intent-info'
     },
-    defaultVariants: {
-      intent: 'neutral',
-      emphasis: 'default',
-      size: 'md'
+    emphasis: {
+      default: 'emphasis-sunken emphasis-subtle-border is-field-interactive',
+      subtle:
+        'emphasis-subtle-surface emphasis-default-fg border border-transparent is-field-interactive'
+    },
+    size: {
+      sm: 'h-8 px-1.5 text-base',
+      md: 'h-10 px-2 text-base',
+      lg: 'h-12 px-2 text-base'
     }
+  },
+  defaultVariants: {
+    intent: 'neutral',
+    emphasis: 'default',
+    size: 'md'
   }
-)
+})
 
 export interface InputProps
   extends Omit<ComponentProps<'input'>, 'size'>,

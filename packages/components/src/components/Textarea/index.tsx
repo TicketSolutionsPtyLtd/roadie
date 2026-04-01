@@ -7,7 +7,7 @@ import { type VariantProps, cva } from 'class-variance-authority'
 import { cn } from '@oztix/roadie-core/utils'
 
 export const textareaVariants = cva(
-  'w-full rounded-md font-sans transition-all outline-none min-h-20 resize-y disabled:opacity-50 disabled:pointer-events-none aria-[invalid=true]:emphasis-default-border aria-[invalid=true]:border-[var(--intent-danger-9)]',
+  'w-full rounded-md font-sans min-h-20 resize-y',
   {
     variants: {
       intent: {
@@ -20,15 +20,14 @@ export const textareaVariants = cva(
         info: 'intent-info'
       },
       emphasis: {
-        default:
-          'emphasis-default-surface emphasis-subtle-border emphasis-default-fg hover:emphasis-subtle-surface focus:outline-4 focus:outline-[color-mix(in_oklch,var(--intent-9)_30%,transparent)] focus:outline-offset-0',
+        default: 'emphasis-sunken emphasis-subtle-border is-field-interactive',
         subtle:
-          'emphasis-subtle-surface emphasis-default-fg border border-transparent focus:outline-4 focus:outline-[color-mix(in_oklch,var(--intent-9)_30%,transparent)] focus:outline-offset-0'
+          'emphasis-subtle-surface emphasis-default-fg border border-transparent is-field-interactive'
       },
       size: {
-        sm: 'px-3 py-2 text-sm',
-        md: 'px-4 py-2.5 text-sm',
-        lg: 'px-4 py-3 text-base'
+        sm: 'px-1.5 py-2 text-base',
+        md: 'px-2 py-2.5 text-base',
+        lg: 'px-2 py-3 text-base'
       }
     },
     defaultVariants: {

@@ -10,7 +10,7 @@ import { cn } from '@oztix/roadie-core/utils'
 /* ─── Trigger variants (matches Input) ─── */
 
 export const selectTriggerVariants = cva(
-  'inline-flex w-full items-center justify-between rounded-md font-sans transition-all outline-none select-none cursor-pointer disabled:opacity-50 disabled:pointer-events-none',
+  'inline-flex w-full items-center justify-between rounded-md font-sans select-none cursor-pointer',
   {
     variants: {
       intent: {
@@ -23,15 +23,14 @@ export const selectTriggerVariants = cva(
         info: 'intent-info'
       },
       emphasis: {
-        default:
-          'emphasis-default-surface emphasis-subtle-border emphasis-default-fg hover:emphasis-subtle-surface focus:outline-4 focus:outline-[color-mix(in_oklch,var(--intent-9)_30%,transparent)] focus:outline-offset-0',
+        default: 'emphasis-raised emphasis-default-border is-field-interactive',
         subtle:
-          'emphasis-subtle-surface emphasis-default-fg border border-transparent focus:outline-4 focus:outline-[color-mix(in_oklch,var(--intent-9)_30%,transparent)] focus:outline-offset-0'
+          'emphasis-subtle-surface emphasis-default-fg border border-transparent is-field-interactive'
       },
       size: {
-        sm: 'h-8 px-3 text-sm',
-        md: 'h-10 px-4 text-sm',
-        lg: 'h-12 px-4 text-base'
+        sm: 'h-8 px-1.5 text-base',
+        md: 'h-10 px-2 text-base',
+        lg: 'h-12 px-2 text-base'
       }
     },
     defaultVariants: {

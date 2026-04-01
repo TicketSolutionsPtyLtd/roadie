@@ -109,7 +109,7 @@
   }
   &.is-interactive:active {
     background-color: var(--intent-11);
-    transform: translateY(0) scale(0.98);
+    transform: translateY(0) scale(0.99);
     box-shadow: none;
   }
 }
@@ -122,9 +122,13 @@
   &.is-interactive:hover,
   &.is-interactive:focus-visible {
     background-color: var(--intent-2);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
   }
   &.is-interactive:active {
     background-color: var(--intent-3);
+    transform: translateY(0) scale(0.99);
+    box-shadow: none;
   }
 }
 
@@ -150,10 +154,10 @@
   }
   &.is-interactive:hover,
   &.is-interactive:focus-visible {
-    background-color: var(--intent-2);
+    background-color: var(--intent-3);
   }
   &.is-interactive:active {
-    background-color: var(--intent-3);
+    background-color: var(--intent-4);
   }
 }
 
@@ -173,7 +177,7 @@
     box-shadow: var(--rim-light), var(--shadow-lg);
   }
   &.is-interactive:active {
-    transform: translateY(0) scale(0.98);
+    transform: translateY(0) scale(0.99);
     box-shadow: var(--rim-light), var(--shadow-sm);
   }
 }

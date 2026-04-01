@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Breadcrumb',
-  description: 'A navigation aid showing the current page location within a hierarchy',
+  description: 'A navigation trail showing the current page location within a hierarchy',
   status: 'beta',
   category: 'Navigation',
 }
@@ -9,9 +9,7 @@ import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # Breadcrumb
 
-The Breadcrumb component provides a navigation trail showing the user's
-current location within a hierarchy. It is built with semantic HTML and
-accessible ARIA attributes.
+A navigation trail showing the current page location within a hierarchy.
 
 ## Import
 
@@ -21,7 +19,7 @@ import { Breadcrumb } from '@oztix/roadie-components'
 
 ## Examples
 
-### Basic breadcrumb
+### Default
 
 ```tsx-live
 <Breadcrumb>
@@ -41,7 +39,13 @@ import { Breadcrumb } from '@oztix/roadie-components'
 </Breadcrumb>
 ```
 
-### Custom separator
+### Composition
+
+Use `Breadcrumb.List`, `Breadcrumb.Item`, `Breadcrumb.Link`, `Breadcrumb.Separator`, and `Breadcrumb.Current` to build the trail. The last item uses `Breadcrumb.Current` instead of a link.
+
+#### With custom separator
+
+Pass a custom character or element to `Breadcrumb.Separator`.
 
 ```tsx-live
 <Breadcrumb>

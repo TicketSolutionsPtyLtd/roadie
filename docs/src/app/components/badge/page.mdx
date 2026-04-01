@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Badge',
-  description: 'A small label for status, counts, or categorical information',
+  description: 'A compact label for status, counts, or categories',
   status: 'beta',
   category: 'Data Display',
 }
@@ -9,9 +9,7 @@ import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # Badge
 
-The Badge component is a compact label used to display status, counts, or
-categorical information. It supports intents, emphasis levels, sizes,
-icons, and animated indicators.
+A compact label for status, counts, or categories.
 
 ## Import
 
@@ -21,6 +19,12 @@ import { Badge } from '@oztix/roadie-components'
 
 ## Examples
 
+### Default
+
+```tsx-live
+<Badge>Badge</Badge>
+```
+
 ### Emphasis
 
 ```tsx-live
@@ -29,6 +33,15 @@ import { Badge } from '@oztix/roadie-components'
   <Badge emphasis='default'>Default</Badge>
   <Badge emphasis='subtle'>Subtle</Badge>
   <Badge emphasis='subtler'>Subtler</Badge>
+</div>
+```
+
+### Sizes
+
+```tsx-live
+<div className='flex flex-row flex-wrap items-center gap-2'>
+  <Badge size='sm'>Small</Badge>
+  <Badge size='md'>Medium</Badge>
 </div>
 ```
 
@@ -43,15 +56,6 @@ import { Badge } from '@oztix/roadie-components'
   <Badge intent='success'>Success</Badge>
   <Badge intent='warning'>Warning</Badge>
   <Badge intent='danger'>Danger</Badge>
-</div>
-```
-
-### Sizes
-
-```tsx-live
-<div className='flex flex-row flex-wrap items-center gap-2'>
-  <Badge size='sm'>Small</Badge>
-  <Badge size='md'>Medium</Badge>
 </div>
 ```
 
@@ -78,17 +82,6 @@ Place icons directly as children. SVGs are automatically sized to match the text
   <Badge intent='danger'><XCircle weight='bold' /> Failed</Badge>
   <Badge intent='info'><Info weight='bold' /> Info</Badge>
   <Badge intent='warning'><Warning weight='bold' /> Caution</Badge>
-</div>
-```
-
-### Combined
-
-```tsx-live
-<div className='flex flex-row flex-wrap gap-2'>
-  <Badge emphasis='strong' intent='success' indicator><CheckCircle weight='bold' /> Published</Badge>
-  <Badge emphasis='strong' intent='danger' indicator indicatorPulse>Urgent</Badge>
-  <Badge emphasis='subtle' intent='accent'><Star weight='bold' /> Featured</Badge>
-  <Badge emphasis='subtler' intent='neutral'>Draft</Badge>
 </div>
 ```
 

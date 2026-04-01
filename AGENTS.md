@@ -229,3 +229,20 @@ core:build → components:build → docs:build
 - CodePreview scope includes all components + SpotIllustrations
 - MDX tables wrapped in overflow-x-auto container
 - Body uses `bg-neutral-1 text-neutral-12` for dark mode support
+
+### Component doc structure
+
+Follow `docs/COMPONENT_DOC_TEMPLATE.md` for all component documentation. Key rules:
+
+1. One-line description — say what it *is*, not "The X component is..."
+2. Section order: Import → Examples (Default → Variants → Emphasis → Sizes → Intents → States → Composition → With [Feature]) → Guidelines → PropsDefinitions
+3. Only include sections that apply to the component
+4. **No Intents section on form controls** (Input, Textarea, Select, Field, RadioGroup) — `is-field-interactive` manages state colours (neutral→accent→danger)
+5. States section for interactive components — show all states in one example with `<Text size='sm' emphasis='subtle'>` labels
+6. Default example first — simplest usage, no props
+7. No duplicate examples — if disabled is in States, don't add a separate Disabled section
+
+### Interaction utilities
+
+- `is-interactive` — for buttons, cards, clickable elements. Provides cursor, transitions, active scale, focus ring, disabled state. Pair with emphasis shortcuts.
+- `is-field-interactive` — for form inputs. Provides state-based colour transitions: neutral at rest → accent on focus → danger when invalid. Uses `--focus-ring-width`, `--focus-ring-opacity`, `--focus-ring-opacity-dark` tokens.

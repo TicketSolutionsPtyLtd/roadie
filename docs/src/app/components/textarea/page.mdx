@@ -9,8 +9,7 @@ import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # Textarea
 
-The Textarea component is a multi-line text input for collecting longer form
-content. It shares the same variant system as Input for consistency.
+A multi-line text input for longer form content.
 
 ## Import
 
@@ -20,14 +19,10 @@ import { Textarea } from '@oztix/roadie-components'
 
 ## Examples
 
-### Sizes
+### Default
 
 ```tsx-live
-<div className='flex flex-col gap-2'>
-  <Textarea size='sm' placeholder='Small textarea' />
-  <Textarea size='md' placeholder='Medium textarea (default)' />
-  <Textarea size='lg' placeholder='Large textarea' />
-</div>
+<Textarea placeholder='Enter text' />
 ```
 
 ### Emphasis
@@ -39,10 +34,36 @@ import { Textarea } from '@oztix/roadie-components'
 </div>
 ```
 
-### Disabled
+### Sizes
 
 ```tsx-live
-<Textarea disabled placeholder='Disabled textarea' />
+<div className='flex flex-col gap-2'>
+  <Textarea size='sm' placeholder='Small' />
+  <Textarea size='md' placeholder='Medium (default)' />
+  <Textarea size='lg' placeholder='Large' />
+</div>
+```
+
+### States
+
+Textareas start neutral, gain an accent-coloured border and ring on focus,
+and switch to danger colouring when invalid.
+
+```tsx-live
+<div className='flex flex-col gap-4'>
+  <div className='flex flex-col gap-1'>
+    <Text size='sm' emphasis='subtle'>Default</Text>
+    <Textarea placeholder='Click to focus' />
+  </div>
+  <div className='flex flex-col gap-1'>
+    <Text size='sm' emphasis='subtle'>Invalid</Text>
+    <Textarea aria-invalid='true' defaultValue='Invalid content' />
+  </div>
+  <div className='flex flex-col gap-1'>
+    <Text size='sm' emphasis='subtle'>Disabled</Text>
+    <Textarea disabled placeholder='Disabled' />
+  </div>
+</div>
 ```
 
 <PropsDefinitions componentPath='packages/components/src/components/Textarea/index.tsx' />

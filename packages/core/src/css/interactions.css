@@ -1,8 +1,88 @@
 /* ═══════════════════════════════════════════════════════════
-   Interaction Utility
+   Interaction Utilities
    Base transitions, focus ring, and disabled state.
    Hover/active bg changes are per-emphasis in emphasis.css.
    ═══════════════════════════════════════════════════════════ */
+
+@utility is-field-interactive {
+  transition:
+    background-color 0.2s ease-out,
+    border-color 0.2s ease-out,
+    box-shadow 0.2s ease-out,
+    outline-width 0.15s ease-out,
+    outline-color 0.15s ease-out;
+
+  outline: 0 solid
+    color-mix(
+      in oklch,
+      var(--color-accent-9) var(--focus-ring-opacity),
+      transparent
+    );
+  outline-offset: 0;
+
+  /* Hover — neutral tint */
+  &:hover {
+    background-color: var(--color-neutral-2);
+    border-color: var(--color-neutral-7);
+  }
+
+  /* Focus — accent border + outline ring */
+  &:focus {
+    background-color: var(--color-accent-2);
+    border-color: var(--color-accent-9);
+    outline-width: var(--focus-ring-width);
+  }
+
+  &:hover:focus {
+    background-color: var(--color-accent-2);
+    border-color: var(--color-accent-9);
+  }
+
+  /* Invalid — danger border + outline ring */
+  &[aria-invalid='true'] {
+    background-color: var(--color-danger-2);
+    border-color: var(--color-danger-9);
+    outline-color: color-mix(
+      in oklch,
+      var(--color-danger-9) var(--focus-ring-opacity),
+      transparent
+    );
+  }
+
+  &[aria-invalid='true']:hover {
+    background-color: var(--color-danger-3);
+    border-color: var(--color-danger-9);
+  }
+
+  &[aria-invalid='true']:focus {
+    background-color: var(--color-danger-2);
+    border-color: var(--color-danger-9);
+    outline-width: var(--focus-ring-width);
+  }
+
+  &:disabled,
+  &[data-disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+    filter: grayscale(0.3);
+  }
+
+  .dark & {
+    outline-color: color-mix(
+      in oklch,
+      var(--color-accent-9) var(--focus-ring-opacity-dark),
+      transparent
+    );
+  }
+
+  .dark &[aria-invalid='true'] {
+    outline-color: color-mix(
+      in oklch,
+      var(--color-danger-9) var(--focus-ring-opacity-dark),
+      transparent
+    );
+  }
+}
 
 @utility is-interactive {
   cursor: pointer;
@@ -17,17 +97,26 @@
     transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:active {
-    transform: scale(0.98);
+    transform: scale(0.99);
   }
 
   /* Focus ring — intent-colored with transparency for a soft glow */
   &:focus-visible {
-    outline: 4px solid color-mix(in oklch, var(--intent-9) 30%, transparent);
+    outline: var(--focus-ring-width) solid
+      color-mix(
+        in oklch,
+        var(--intent-9) var(--focus-ring-opacity),
+        transparent
+      );
     outline-offset: 0;
   }
 
   .dark &:focus-visible {
-    outline-color: color-mix(in oklch, var(--intent-9) 20%, transparent);
+    outline-color: color-mix(
+      in oklch,
+      var(--intent-9) var(--focus-ring-opacity-dark),
+      transparent
+    );
   }
 
   &:disabled,

@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Button',
-  description: 'A fundamental building block for user interactions',
+  description: 'An interactive control that triggers an action when pressed',
   status: 'beta',
   category: 'Actions'
 }
@@ -9,9 +9,7 @@ import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # Button
 
-The Button component is a fundamental building block for user
-interactions. It supports multiple emphasis levels and sizes to accommodate
-different design contexts.
+An interactive control that triggers an action when pressed.
 
 ## Import
 
@@ -21,24 +19,20 @@ import { Button } from '@oztix/roadie-components'
 
 ## Examples
 
-### Emphasis
+### Default
 
-Different button emphasis levels for various contexts:
+```tsx-live
+<Button>Button</Button>
+```
+
+### Emphasis
 
 ```tsx-live
 <div className='flex flex-row flex-wrap gap-2'>
-  <Button emphasis='strong'>
-    Strong Button
-  </Button>
-  <Button emphasis='default'>
-    Default Button
-  </Button>
-  <Button emphasis='subtle'>
-    Subtle Button
-  </Button>
-  <Button emphasis='subtler'>
-    Subtler Button
-  </Button>
+  <Button emphasis='strong'>Strong</Button>
+  <Button emphasis='default'>Default</Button>
+  <Button emphasis='subtle'>Subtle</Button>
+  <Button emphasis='subtler'>Subtler</Button>
 </div>
 ```
 
@@ -46,39 +40,16 @@ Different button emphasis levels for various contexts:
 
 ```tsx-live
 <div className='flex flex-row flex-wrap items-center gap-2'>
-  <Button size='xs'>Extra Small</Button>
+  <Button size='xs'>Extra small</Button>
   <Button size='sm'>Small</Button>
-  <Button size='md'>Medium (Default)</Button>
+  <Button size='md'>Medium</Button>
   <Button size='lg'>Large</Button>
-</div>
-```
-
-### Icon sizes
-
-Use icon sizes for square icon-only buttons via the Button component:
-
-```tsx-live
-<div className='flex flex-row flex-wrap items-center gap-2'>
-  <Button size='icon-xs' aria-label='Extra small'>+</Button>
-  <Button size='icon-sm' aria-label='Small'>+</Button>
-  <Button size='icon-md' aria-label='Medium'>+</Button>
-  <Button size='icon-lg' aria-label='Large'>+</Button>
 </div>
 ```
 
 ### Intents
 
-Neutral is the default intent for all buttons.
-
-Each intent is designed for specific use cases:
-
-- `neutral`: Default for most actions
-- `accent`: Primary or highlighted actions
-- `brand`: Brand-specific actions
-- `info`: Informational or help-related actions
-- `success`: Positive or completion actions
-- `warning`: Cautionary actions
-- `danger`: Destructive or high-risk actions
+Neutral is the default intent. Each intent communicates a different purpose: accent for primary actions, danger for destructive actions, and so on. Hover and focus states adapt automatically.
 
 ```tsx-live
 <div className='flex flex-col gap-2'>
@@ -121,12 +92,21 @@ Each intent is designed for specific use cases:
 </div>
 ```
 
-## Usage
+### States
+
+Hover and focus states use the intent color scale automatically via `is-interactive`.
 
 ```tsx-live
-<Button onClick={() => alert('Button pressed')}>
-  Click me
-</Button>
+<div className='flex flex-col gap-4'>
+  <div className='flex flex-col gap-1'>
+    <Text size='sm' emphasis='subtle'>Default</Text>
+    <div><Button>Button</Button></div>
+  </div>
+  <div className='flex flex-col gap-1'>
+    <Text size='sm' emphasis='subtle'>Disabled</Text>
+    <div><Button disabled>Button</Button></div>
+  </div>
+</div>
 ```
 
 <PropsDefinitions componentPath='packages/components/src/components/Button/index.tsx' />

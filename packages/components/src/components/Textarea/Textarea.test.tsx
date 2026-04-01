@@ -29,7 +29,7 @@ describe('Textarea', () => {
   it('renders with different emphasis', () => {
     const { container, rerender } = render(<Textarea emphasis='default' />)
     let textarea = container.querySelector('textarea')!
-    expect(textarea).toHaveClass('emphasis-default-surface')
+    expect(textarea).toHaveClass('emphasis-sunken')
 
     rerender(<Textarea emphasis='subtle' />)
     textarea = container.querySelector('textarea')!
@@ -39,11 +39,11 @@ describe('Textarea', () => {
   it('renders with different sizes', () => {
     const { container, rerender } = render(<Textarea size='sm' />)
     let textarea = container.querySelector('textarea')!
-    expect(textarea).toHaveClass('text-sm')
+    expect(textarea).toHaveClass('text-base')
 
     rerender(<Textarea size='md' />)
     textarea = container.querySelector('textarea')!
-    expect(textarea).toHaveClass('text-sm')
+    expect(textarea).toHaveClass('text-base')
 
     rerender(<Textarea size='lg' />)
     textarea = container.querySelector('textarea')!

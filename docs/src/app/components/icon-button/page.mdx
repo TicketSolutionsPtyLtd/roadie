@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'IconButton',
-  description: 'A square button component optimized for displaying icons',
+  description: 'A square button for icon-only actions',
   status: 'beta',
   category: 'Actions'
 }
@@ -9,7 +9,7 @@ import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # IconButton
 
-The IconButton component is a square button optimized for displaying icons. It maintains equal width and height across all sizes, making it perfect for icon-only actions.
+A square button for icon-only actions.
 
 ## Import
 
@@ -19,22 +19,14 @@ import { IconButton } from '@oztix/roadie-components'
 
 ## Examples
 
-### Basic usage
+### Default
 
-IconButton requires an `aria-label` for accessibility since it typically does not contain visible text.
+Always provide an `aria-label` since there is no visible text.
 
 ```tsx-live
-<div className='flex flex-row flex-wrap gap-2'>
-  <IconButton aria-label='Add item' emphasis='strong' intent='accent'>
-    <Plus weight='bold' />
-  </IconButton>
-  <IconButton aria-label='Edit item' emphasis='default'>
-    <PencilSimple weight='bold' />
-  </IconButton>
-  <IconButton aria-label='Delete item' emphasis='subtle' intent='danger'>
-    <Trash weight='bold' />
-  </IconButton>
-</div>
+<IconButton aria-label='Add item'>
+  <Plus weight='bold' />
+</IconButton>
 ```
 
 ### Emphasis
@@ -58,7 +50,7 @@ IconButton requires an `aria-label` for accessibility since it typically does no
 
 ### Sizes
 
-IconButton maintains square proportions across all sizes. The default size is `icon-md`.
+The default size is `icon-md`. All sizes maintain square proportions.
 
 ```tsx-live
 <div className='flex flex-row flex-wrap items-center gap-2'>
@@ -102,50 +94,23 @@ IconButton maintains square proportions across all sizes. The default size is `i
 </div>
 ```
 
-### Disabled state
+### States
 
 ```tsx-live
-<div className='flex flex-row flex-wrap gap-2'>
-  <IconButton aria-label='Disabled' disabled emphasis='strong' intent='accent'>
-    <Heart weight='bold' />
-  </IconButton>
-  <IconButton aria-label='Disabled' disabled emphasis='default'>
-    <Heart weight='bold' />
-  </IconButton>
-  <IconButton aria-label='Disabled' disabled emphasis='subtle'>
-    <Heart weight='bold' />
-  </IconButton>
-</div>
-```
-
-## Usage
-
-```tsx-live
-<IconButton
-  aria-label='Add to favorites'
-  emphasis='strong'
-  intent='accent'
-  onClick={() => alert('Added to favorites')}
->
-  <Heart weight='bold' />
-</IconButton>
-```
-
-## Accessibility
-
-Always provide an `aria-label` prop to describe the button's action, since icon buttons typically do not contain visible text labels.
-
-```tsx-live
-<div className='flex flex-row flex-wrap gap-4 items-center'>
-  <div className='flex flex-col gap-1 items-center'>
-    <IconButton aria-label='Close dialog'><XCircle weight='bold' /></IconButton>
-    <Text size='xs' emphasis='subtle'>With aria-label</Text>
+<div className='flex flex-col gap-4'>
+  <div className='flex flex-col gap-1'>
+    <Text size='sm' emphasis='subtle'>Default</Text>
+    <div><IconButton aria-label='Favorite'><Heart weight='bold' /></IconButton></div>
   </div>
-  <div className='flex flex-col gap-1 items-center'>
-    <IconButton aria-label=''><XCircle weight='bold' /></IconButton>
-    <Text size='xs' intent='danger' emphasis='subtle'>Missing label</Text>
+  <div className='flex flex-col gap-1'>
+    <Text size='sm' emphasis='subtle'>Disabled</Text>
+    <div><IconButton aria-label='Favorite' disabled><Heart weight='bold' /></IconButton></div>
   </div>
 </div>
 ```
+
+## Guidelines
+
+- Always provide an `aria-label` to describe the action since there is no visible text.
 
 <PropsDefinitions componentPath='packages/components/src/components/Button/IconButton.tsx' />

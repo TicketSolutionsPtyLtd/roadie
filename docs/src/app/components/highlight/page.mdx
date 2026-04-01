@@ -1,16 +1,15 @@
-import { PropsDefinitions } from '@/components/PropsDefinitions'
-
 export const metadata = {
   title: 'Highlight',
-  description:
-    'The Highlight component is used to highlight query matches within text.',
+  description: 'Query-based substring highlighting using Mark.',
   status: 'beta',
   category: 'Typography'
 }
 
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
 # Highlight
 
-The Highlight component highlights substrings of text based on a search query. It is useful for search results, filtering, and drawing attention to specific text patterns.
+Query-based substring highlighting using Mark.
 
 ## Import
 
@@ -20,37 +19,50 @@ import { Highlight } from '@oztix/roadie-components'
 
 ## Examples
 
-### Basic usage
+### Default
 
-Highlight specific text based on a query:
+```tsx-live
+
+<Text>
+  <Highlight
+    text='The quick brown fox jumps over the lazy dog'
+    query='quick'
+  />
+</Text>
+```
+
+### Intents
+
+The default intent is `info`.
 
 ```tsx-live
 
 <div className='flex flex-col gap-2'>
   <Text>
-    <Highlight
-      text='The quick brown fox jumps over the lazy dog'
-      query='quick'
-    />
+    <Highlight text='Neutral intent highlight' query='Neutral' intent='neutral' />
   </Text>
   <Text>
-    <Highlight
-      text='The quick brown fox jumps over the lazy dog'
-      query='fox'
-    />
+    <Highlight text='Accent intent highlight' query='Accent' intent='accent' />
   </Text>
   <Text>
-    <Highlight
-      text='The quick brown fox jumps over the lazy dog'
-      query='lazy dog'
-    />
+    <Highlight text='Brand intent highlight' query='Brand' intent='brand' />
+  </Text>
+  <Text>
+    <Highlight text='Info intent highlight' query='Info' intent='info' />
+  </Text>
+  <Text>
+    <Highlight text='Success intent highlight' query='Success' intent='success' />
+  </Text>
+  <Text>
+    <Highlight text='Warning intent highlight' query='Warning' intent='warning' />
+  </Text>
+  <Text>
+    <Highlight text='Danger intent highlight' query='Danger' intent='danger' />
   </Text>
 </div>
 ```
 
-### Multiple queries
-
-Highlight multiple different terms:
+### With multiple queries
 
 ```tsx-live
 
@@ -62,162 +74,45 @@ Highlight multiple different terms:
 </Text>
 ```
 
-### Case sensitivity
+### With case sensitivity
 
-By default, matching is case-insensitive. You can make it case-sensitive:
-
-```tsx-live
-
-<div className='flex flex-col gap-2'>
-  <div className='flex flex-col gap-1'>
-    <Text size='xs' emphasis='subtle'>Case insensitive (default)</Text>
-    <Text>
-      <Highlight
-        text='Hello World'
-        query='hello'
-      />
-    </Text>
-  </div>
-  <div className='flex flex-col gap-1'>
-    <Text size='xs' emphasis='subtle'>Case sensitive</Text>
-    <Text>
-      <Highlight
-        text='Hello World'
-        query='hello'
-        ignoreCase={false}
-      />
-    </Text>
-  </div>
-</div>
-```
-
-### Match all occurrences
-
-By default, all matches are highlighted. You can disable this:
+By default, matching is case-insensitive.
 
 ```tsx-live
 
 <div className='flex flex-col gap-2'>
   <div className='flex flex-col gap-1'>
-    <Text size='xs' emphasis='subtle'>Match all (default)</Text>
+    <Text size='sm' emphasis='subtle'>Case insensitive (default)</Text>
     <Text>
-      <Highlight
-        text='foo bar foo baz foo'
-        query='foo'
-        matchAll={true}
-      />
+      <Highlight text='Hello World' query='hello' />
     </Text>
   </div>
   <div className='flex flex-col gap-1'>
-    <Text size='xs' emphasis='subtle'>Match first only</Text>
+    <Text size='sm' emphasis='subtle'>Case sensitive</Text>
     <Text>
-      <Highlight
-        text='foo bar foo baz foo'
-        query='foo'
-        matchAll={false}
-      />
+      <Highlight text='Hello World' query='hello' ignoreCase={false} />
     </Text>
   </div>
 </div>
 ```
 
-### Intents
+### With match first only
 
-Customize the highlight color using intents. The default intent is `info`.
+By default, all occurrences are highlighted.
 
 ```tsx-live
 
 <div className='flex flex-col gap-2'>
-  <Text>
-    <Highlight
-      text='This text uses the neutral intent'
-      query='neutral'
-      intent='neutral'
-    />
-  </Text>
-  <Text>
-    <Highlight
-      text='This text uses the accent intent'
-      query='accent'
-      intent='accent'
-    />
-  </Text>
-  <Text>
-    <Highlight
-      text='This text uses the brand intent'
-      query='brand'
-      intent='brand'
-    />
-  </Text>
-  <Text>
-    <Highlight
-      text='This text uses the info intent'
-      query='info'
-      intent='info'
-    />
-  </Text>
-  <Text>
-    <Highlight
-      text='This text uses the success intent'
-      query='success'
-      intent='success'
-    />
-  </Text>
-  <Text>
-    <Highlight
-      text='This text uses the warning intent'
-      query='warning'
-      intent='warning'
-    />
-  </Text>
-  <Text>
-    <Highlight
-      text='This text uses the danger intent'
-      query='danger'
-      intent='danger'
-    />
-  </Text>
-</div>
-```
-
-### In headings
-
-Highlight works great in headings for creating eye-catching titles:
-
-```tsx-live
-
-<div className='flex flex-col gap-2 text-center'>
-  <Heading as='h1' className='text-display-ui-3'>
-    <Highlight
-      text='Great events need great partners'
-      query='great'
-      intent='accent'
-    />
-  </Heading>
-</div>
-```
-
-### Search results example
-
-A practical example of highlighting search results:
-
-```tsx-live
-<div className='flex flex-col gap-4'>
   <div className='flex flex-col gap-1'>
-    <Heading as='h3' className='text-display-ui-6'>
-      Search results for "JavaScript"
-    </Heading>
-    <Text size='xs' emphasis='subtle'>3 results found</Text>
+    <Text size='sm' emphasis='subtle'>Match all (default)</Text>
+    <Text>
+      <Highlight text='foo bar foo baz foo' query='foo' matchAll={true} />
+    </Text>
   </div>
   <div className='flex flex-col gap-1'>
+    <Text size='sm' emphasis='subtle'>Match first only</Text>
     <Text>
-      <Highlight text='JavaScript is a programming language' query='JavaScript' intent='accent' />
-    </Text>
-    <Text>
-      <Highlight text='TypeScript is a typed superset of JavaScript' query='JavaScript' intent='accent' />
-    </Text>
-    <Text>
-      <Highlight text='React is a JavaScript library for building user interfaces' query='JavaScript' intent='accent' />
+      <Highlight text='foo bar foo baz foo' query='foo' matchAll={false} />
     </Text>
   </div>
 </div>

@@ -29,8 +29,8 @@ export const radioGroupItemVariants = cva(
   {
     variants: {
       appearance: {
-        default: 'gap-2',
-        card: 'gap-3 rounded-lg emphasis-default-surface emphasis-subtle-border p-3 hover:emphasis-subtle-surface has-[:checked]:emphasis-subtle-surface has-[:checked]:emphasis-default-border'
+        default: 'gap-2 rounded-md px-1.5 py-1 emphasis-subtler is-interactive',
+        card: 'justify-between gap-3 rounded-lg p-4 emphasis-default is-interactive has-[:checked]:bg-[var(--color-accent-2)] has-[:checked]:border-[var(--color-accent-9)] has-[:checked]:outline has-[:checked]:outline-[length:var(--focus-ring-width)] has-[:checked]:outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] has-[:checked]:outline-offset-0'
       }
     },
     defaultVariants: {
@@ -75,16 +75,38 @@ function RadioGroupItem({
   children,
   ...props
 }: RadioGroupItemProps) {
+  const radio = (
+    <Radio.Root
+      className='flex size-6 shrink-0 items-center justify-center rounded-full emphasis-sunken emphasis-subtle-border transition-all data-[checked]:bg-[var(--color-accent-3)] data-[checked]:border-[var(--color-accent-9)] outline-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] outline-offset-0 focus-visible:outline-[length:var(--focus-ring-width)]'
+      {...props}
+    >
+      <Radio.Indicator className='size-2.5 rounded-full bg-[var(--color-accent-9)]' />
+    </Radio.Root>
+  )
+
   return (
     <label className={cn(radioGroupItemVariants({ appearance, className }))}>
-      <Radio.Root
-        className='flex size-4 shrink-0 items-center justify-center rounded-full border border-[var(--intent-border-default)] transition-all data-[checked]:border-[var(--intent-9)] data-[checked]:bg-[var(--intent-9)] outline-none focus-visible:outline-4 focus-visible:outline-[color-mix(in_oklch,var(--intent-9)_30%,transparent)]'
-        {...props}
-      >
-        <Radio.Indicator className='size-1.5 rounded-full bg-white' />
-      </Radio.Root>
-      {label && <span className='text-sm emphasis-default-fg'>{label}</span>}
-      {children}
+      {appearance === 'card' ? (
+        <>
+          <div className='flex flex-col gap-0.5'>
+            {label && (
+              <span className='text-base font-medium emphasis-default-fg'>
+                {label}
+              </span>
+            )}
+            {children}
+          </div>
+          {radio}
+        </>
+      ) : (
+        <>
+          {radio}
+          {label && (
+            <span className='text-sm emphasis-default-fg'>{label}</span>
+          )}
+          {children}
+        </>
+      )}
     </label>
   )
 }

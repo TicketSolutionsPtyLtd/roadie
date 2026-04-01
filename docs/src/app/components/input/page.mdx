@@ -9,8 +9,7 @@ import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # Input
 
-The Input component is a styled text input for collecting user data. It
-supports multiple sizes, emphasis levels, and intent colours.
+A styled text input for collecting user data.
 
 ## Import
 
@@ -20,13 +19,19 @@ import { Input } from '@oztix/roadie-components'
 
 ## Examples
 
+### Default
+
+```tsx-live
+<Input placeholder='Enter text' />
+```
+
 ### Sizes
 
 ```tsx-live
 <div className='flex flex-col gap-2'>
-  <Input size='sm' placeholder='Small input' />
-  <Input size='md' placeholder='Medium input (default)' />
-  <Input size='lg' placeholder='Large input' />
+  <Input size='sm' placeholder='Small' />
+  <Input size='md' placeholder='Medium (default)' />
+  <Input size='lg' placeholder='Large' />
 </div>
 ```
 
@@ -39,21 +44,26 @@ import { Input } from '@oztix/roadie-components'
 </div>
 ```
 
-### Intents
+### States
+
+Inputs start neutral, gain an accent-coloured border and ring on focus,
+and switch to danger colouring when invalid.
 
 ```tsx-live
-<div className='flex flex-col gap-2'>
-  <Input intent='neutral' placeholder='Neutral' />
-  <Input intent='accent' placeholder='Accent' />
-  <Input intent='danger' placeholder='Danger' />
-  <Input intent='success' placeholder='Success' />
+<div className='flex flex-col gap-4'>
+  <div className='flex flex-col gap-1'>
+    <Text size='sm' emphasis='subtle'>Default</Text>
+    <Input placeholder='Click to focus' />
+  </div>
+  <div className='flex flex-col gap-1'>
+    <Text size='sm' emphasis='subtle'>Invalid</Text>
+    <Input aria-invalid='true' defaultValue='bad-email' />
+  </div>
+  <div className='flex flex-col gap-1'>
+    <Text size='sm' emphasis='subtle'>Disabled</Text>
+    <Input disabled placeholder='Disabled' />
+  </div>
 </div>
-```
-
-### Disabled
-
-```tsx-live
-<Input disabled placeholder='Disabled input' />
 ```
 
 <PropsDefinitions componentPath='packages/components/src/components/Input/index.tsx' />

@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Accordion',
-  description: 'A vertically stacked set of collapsible content sections',
+  description: 'Vertically stacked collapsible content sections',
   status: 'beta',
   category: 'Data Display',
 }
@@ -9,8 +9,7 @@ import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # Accordion
 
-The Accordion component displays vertically stacked sections of content that
-can be expanded and collapsed. It supports single and multiple expansion modes.
+Vertically stacked collapsible content sections.
 
 ## Import
 
@@ -20,9 +19,9 @@ import { Accordion } from '@oztix/roadie-components'
 
 ## Examples
 
-### Single mode (default)
+### Default
 
-Only one item can be open at a time:
+Only one item can be open at a time in single mode (the default).
 
 ```tsx-live
 <Accordion type='single'>
@@ -47,28 +46,9 @@ Only one item can be open at a time:
 </Accordion>
 ```
 
-### Multiple mode
+### Variants
 
-Multiple items can be open simultaneously:
-
-```tsx-live
-<Accordion type='multiple'>
-  <Accordion.Item value='a'>
-    <Accordion.Trigger>Section A</Accordion.Trigger>
-    <Accordion.Content>
-      <Text className='pb-3'>Content for section A.</Text>
-    </Accordion.Content>
-  </Accordion.Item>
-  <Accordion.Item value='b'>
-    <Accordion.Trigger>Section B</Accordion.Trigger>
-    <Accordion.Content>
-      <Text className='pb-3'>Content for section B.</Text>
-    </Accordion.Content>
-  </Accordion.Item>
-</Accordion>
-```
-
-### Contained appearance
+Use `appearance='contained'` for a bordered look with dividers between items.
 
 ```tsx-live
 <Accordion type='single' appearance='contained'>
@@ -82,6 +62,64 @@ Multiple items can be open simultaneously:
     <Accordion.Trigger>Second question</Accordion.Trigger>
     <Accordion.Content>
       <Text className='pb-3'>Answer to the second question.</Text>
+    </Accordion.Content>
+  </Accordion.Item>
+</Accordion>
+```
+
+### States
+
+Use `type='multiple'` to allow multiple items open simultaneously.
+
+```tsx-live
+<div className='flex flex-col gap-4'>
+  <div className='flex flex-col gap-1'>
+    <Text size='sm' emphasis='subtle'>Single (default)</Text>
+    <Accordion type='single'>
+      <Accordion.Item value='a'>
+        <Accordion.Trigger>Section A</Accordion.Trigger>
+        <Accordion.Content>
+          <Text className='pb-3'>Content for section A.</Text>
+        </Accordion.Content>
+      </Accordion.Item>
+      <Accordion.Item value='b'>
+        <Accordion.Trigger>Section B</Accordion.Trigger>
+        <Accordion.Content>
+          <Text className='pb-3'>Content for section B.</Text>
+        </Accordion.Content>
+      </Accordion.Item>
+    </Accordion>
+  </div>
+  <div className='flex flex-col gap-1'>
+    <Text size='sm' emphasis='subtle'>Multiple</Text>
+    <Accordion type='multiple'>
+      <Accordion.Item value='a'>
+        <Accordion.Trigger>Section A</Accordion.Trigger>
+        <Accordion.Content>
+          <Text className='pb-3'>Content for section A.</Text>
+        </Accordion.Content>
+      </Accordion.Item>
+      <Accordion.Item value='b'>
+        <Accordion.Trigger>Section B</Accordion.Trigger>
+        <Accordion.Content>
+          <Text className='pb-3'>Content for section B.</Text>
+        </Accordion.Content>
+      </Accordion.Item>
+    </Accordion>
+  </div>
+</div>
+```
+
+### Composition
+
+Accordion is a compound component with `Accordion.Item`, `Accordion.Trigger`, and `Accordion.Content`.
+
+```tsx-live
+<Accordion type='single'>
+  <Accordion.Item value='item-1'>
+    <Accordion.Trigger>What is Roadie?</Accordion.Trigger>
+    <Accordion.Content>
+      <Text className='pb-3'>Roadie is a comprehensive design system for building consistent user interfaces.</Text>
     </Accordion.Content>
   </Accordion.Item>
 </Accordion>

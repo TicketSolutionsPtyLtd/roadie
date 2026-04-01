@@ -98,7 +98,7 @@ export default async function ComponentsPage() {
               <Link
                 key={component.name}
                 href={`/components/${component.name}`}
-                className='p-4 rounded-md flex flex-col gap-2 bg-neutral-1 border border-neutral-7 hover:bg-neutral-3 transition-colors no-underline'
+                className='p-4 rounded-md flex flex-col gap-2 emphasis-default is-interactive no-underline'
               >
                 <Heading as='h3' className='text-display-ui-5'>
                   {component.title}

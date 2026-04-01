@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Card',
-  description: 'A container for grouping related content with header, content, and footer sections',
+  description: 'A container for grouping related content with optional header and footer',
   status: 'beta',
   category: 'Data Display',
 }
@@ -9,8 +9,7 @@ import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # Card
 
-The Card component is a versatile container for grouping related content. It
-provides header, content, and footer sub-components for structured layouts.
+A container for grouping related content with optional header and footer.
 
 ## Import
 
@@ -20,20 +19,13 @@ import { Card } from '@oztix/roadie-components'
 
 ## Examples
 
-### Basic card
+### Default
 
 ```tsx-live
 <Card>
-  <Card.Header>
-    <Heading className='text-display-ui-6'>Card title</Heading>
-    <Text size='sm'>A short description of the card content.</Text>
-  </Card.Header>
   <Card.Content>
-    <Text>This is the main content area of the card.</Text>
+    <Text>Card content</Text>
   </Card.Content>
-  <Card.Footer>
-    <Button size='sm'>Action</Button>
-  </Card.Footer>
 </Card>
 ```
 
@@ -42,7 +34,7 @@ import { Card } from '@oztix/roadie-components'
 ```tsx-live
 <div className='flex flex-col gap-4'>
   <Card emphasis='raised'>
-    <Card.Content><Text>Raised (default)</Text></Card.Content>
+    <Card.Content><Text>Raised</Text></Card.Content>
   </Card>
   <Card emphasis='default'>
     <Card.Content><Text>Default</Text></Card.Content>
@@ -58,15 +50,34 @@ import { Card } from '@oztix/roadie-components'
 ```tsx-live
 <div className='flex flex-col gap-4'>
   <Card intent='accent'>
-    <Card.Content><Text>Accent card</Text></Card.Content>
+    <Card.Content><Text>Accent</Text></Card.Content>
   </Card>
   <Card intent='success'>
-    <Card.Content><Text>Success card</Text></Card.Content>
+    <Card.Content><Text>Success</Text></Card.Content>
   </Card>
   <Card intent='danger'>
-    <Card.Content><Text>Danger card</Text></Card.Content>
+    <Card.Content><Text>Danger</Text></Card.Content>
   </Card>
 </div>
+```
+
+### Composition
+
+Use `Card.Header`, `Card.Content`, and `Card.Footer` to structure content.
+
+```tsx-live
+<Card>
+  <Card.Header>
+    <Heading className='text-display-ui-6'>Card title</Heading>
+    <Text size='sm'>A short description of the card content.</Text>
+  </Card.Header>
+  <Card.Content>
+    <Text>This is the main content area of the card.</Text>
+  </Card.Content>
+  <Card.Footer>
+    <Button size='sm'>Action</Button>
+  </Card.Footer>
+</Card>
 ```
 
 <PropsDefinitions componentPath='packages/components/src/components/Card/index.tsx' />

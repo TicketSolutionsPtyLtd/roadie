@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Field',
-  description: 'A compound component for labelled form fields with helper and error text',
+  description: 'A compound wrapper for labelled form fields with helper and error text',
   status: 'beta',
   category: 'Forms',
 }
@@ -9,8 +9,7 @@ import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # Field
 
-The Field component is a compound component that groups a label, input, and
-helper or error text into a cohesive form field.
+A compound wrapper for labelled form fields with helper and error text.
 
 ## Import
 
@@ -20,7 +19,7 @@ import { Field } from '@oztix/roadie-components'
 
 ## Examples
 
-### Basic field
+### Default
 
 ```tsx-live
 <Field>
@@ -29,7 +28,44 @@ import { Field } from '@oztix/roadie-components'
 </Field>
 ```
 
-### With helper text
+### States
+
+Fields inherit input interaction states. Focus shows accent colouring,
+invalid shows danger colouring with error text.
+
+```tsx-live
+<div className='flex flex-col gap-6'>
+  <div className='flex flex-col gap-1'>
+    <Text size='sm' emphasis='subtle'>Default</Text>
+    <Field>
+      <Field.Label htmlFor='default-field'>Label</Field.Label>
+      <Field.Input id='default-field' placeholder='Click to focus' />
+      <Field.HelperText>Helper text appears below the input.</Field.HelperText>
+    </Field>
+  </div>
+  <div className='flex flex-col gap-1'>
+    <Text size='sm' emphasis='subtle'>Invalid</Text>
+    <Field>
+      <Field.Label htmlFor='error-field'>Label</Field.Label>
+      <Field.Input id='error-field' aria-invalid='true' defaultValue='bad-value' />
+      <Field.ErrorText>This field is required.</Field.ErrorText>
+    </Field>
+  </div>
+  <div className='flex flex-col gap-1'>
+    <Text size='sm' emphasis='subtle'>Disabled</Text>
+    <Field>
+      <Field.Label htmlFor='disabled-field'>Label</Field.Label>
+      <Field.Input id='disabled-field' disabled placeholder='Cannot edit' />
+    </Field>
+  </div>
+</div>
+```
+
+### Composition
+
+Field exposes sub-components for label, input, textarea, helper text, and error text.
+
+#### With helper text
 
 ```tsx-live
 <Field>
@@ -39,7 +75,10 @@ import { Field } from '@oztix/roadie-components'
 </Field>
 ```
 
-### With error text
+#### With error text
+
+Set `aria-invalid='true'` on the input to activate the danger state. The
+input border and focus ring automatically switch to danger colours.
 
 ```tsx-live
 <Field>
@@ -49,7 +88,7 @@ import { Field } from '@oztix/roadie-components'
 </Field>
 ```
 
-### With textarea
+#### With textarea
 
 ```tsx-live
 <Field>

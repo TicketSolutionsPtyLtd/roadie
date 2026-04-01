@@ -18,17 +18,11 @@
   --color-intent-surface-raised: var(--intent-surface-raised);
   --color-intent-surface-sunken: var(--intent-surface-sunken);
 
-  --color-intent-border-subtler: var(--intent-border-subtler);
-  --color-intent-border-subtle: var(--intent-border-subtle);
-  --color-intent-border-default: var(--intent-border-default);
-  --color-intent-border-strong: var(--intent-border-strong);
-  --color-intent-border-inverted: var(--intent-border-inverted);
-
-  --color-intent-fg-subtler: var(--intent-fg-subtler);
-  --color-intent-fg-subtle: var(--intent-fg-subtle);
-  --color-intent-fg-default: var(--intent-fg-default);
-  --color-intent-fg-strong: var(--intent-fg-strong);
-  --color-intent-fg-inverted: var(--intent-fg-inverted);
+  /* Border colors — generates border-emphasis-subtle, divide-emphasis-subtler, etc. */
+  --color-emphasis-subtler: var(--intent-border-subtler);
+  --color-emphasis-subtle: var(--intent-border-subtle);
+  --color-emphasis-default: var(--intent-border-default);
+  --color-emphasis-strong: var(--intent-border-strong);
 
   /* Named color scales for direct access */
   --color-neutral-0: var(--color-neutral-0);
@@ -208,6 +202,11 @@
   --tracking-ui: -0.01em;
   --tracking-prose: -0.01em;
   --tracking-code: 0em;
+
+  /* ═══ Focus ring ═══ */
+  --focus-ring-width: 4px;
+  --focus-ring-opacity: 30%;
+  --focus-ring-opacity-dark: 20%;
 }
 
 /* ═══════════════════════════════════════════════════════════

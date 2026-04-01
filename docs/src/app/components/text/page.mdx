@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Text',
-  description: 'A fundamental typography component for displaying text content',
+  description: 'Body text with size, emphasis, and intent variants.',
   status: 'beta',
   category: 'Typography'
 }
@@ -9,9 +9,7 @@ import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # Text
 
-The Text component is a fundamental building block for typography. It
-supports multiple sizes, emphasis levels, and intents to accommodate
-different design contexts.
+Body text with size, emphasis, and intent variants.
 
 ## Import
 
@@ -28,6 +26,19 @@ import { Text } from '@oztix/roadie-components'
 <Text>Hello World</Text>
 ```
 
+### Emphasis
+
+```tsx-live
+
+<div className='flex flex-col gap-2'>
+  <Text emphasis='strong'>Strong text</Text>
+  <Text>Default text</Text>
+  <Text emphasis='subtle'>Subtle text</Text>
+  <Text emphasis='subtler'>Subtler text</Text>
+  <Text emphasis='inverted'>Inverted text</Text>
+</div>
+```
+
 ### Sizes
 
 ```tsx-live
@@ -41,24 +52,7 @@ import { Text } from '@oztix/roadie-components'
 </div>
 ```
 
-### Emphasis
-
-Use emphasis to adjust the visual weight of text:
-
-```tsx-live
-
-<div className='flex flex-col gap-2'>
-  <Text emphasis='strong'>Strong text</Text>
-  <Text>Default text</Text>
-  <Text emphasis='subtle'>Subtle text</Text>
-  <Text emphasis='subtler'>Subtler text</Text>
-  <Text emphasis='inverted'>Inverted text</Text>
-</div>
-```
-
 ### Intents
-
-Use intents with emphasis to create colored text for different contexts:
 
 ```tsx-live
 
@@ -104,8 +98,7 @@ Use intents with emphasis to create colored text for different contexts:
 
 ### Custom elements
 
-Text can be rendered as any HTML element or component using the `as`
-prop:
+Render as any HTML element using the `as` prop.
 
 ```tsx-live
 

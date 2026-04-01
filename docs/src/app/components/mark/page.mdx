@@ -1,16 +1,15 @@
-import { PropsDefinitions } from '@/components/PropsDefinitions'
-
 export const metadata = {
   title: 'Mark',
-  description:
-    'The Mark component is used to highlight or emphasize text content.',
+  description: 'Highlighted text using the HTML mark element with intent variants.',
   status: 'beta',
   category: 'Typography'
 }
 
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
 # Mark
 
-The Mark component is used to highlight or emphasize specific text content within your application. It renders the HTML `<mark>` element with consistent styling.
+Highlighted text using the HTML mark element with intent variants.
 
 ## Import
 
@@ -32,16 +31,6 @@ The default intent is `info`.
 ```
 
 ### Intents
-
-Each intent is designed for specific use cases:
-
-- `neutral`: General highlights
-- `accent`: Accent highlights
-- `brand`: Brand-specific highlights
-- `info`: Informational highlights (default)
-- `success`: Successful or positive highlights
-- `warning`: Warning-related highlights
-- `danger`: Error or critical highlights
 
 ```tsx-live
 
@@ -70,20 +59,7 @@ Each intent is designed for specific use cases:
 </div>
 ```
 
-### Nested content
-
-Mark supports nested content including other components:
-
-```tsx-live
-
-<Text>
-  You can mark text with <Mark>nested <strong>formatting</strong></Mark> inside.
-</Text>
-```
-
-### In headings
-
-Mark works great in headings for creating eye-catching titles:
+### With headings
 
 ```tsx-live
 
@@ -94,36 +70,6 @@ Mark works great in headings for creating eye-catching titles:
   <Heading as='h2' className='text-display-ui-5' emphasis='subtle'>
     Not just <Mark intent='warning'>great</Mark> ticketing software. Why?
   </Heading>
-</div>
-```
-
-### Use cases
-
-Mark is useful for highlighting important information in various contexts:
-
-```tsx-live
-
-<div className='flex flex-col gap-4'>
-  <div className='flex flex-col gap-1'>
-    <Heading as='h3' className='text-display-ui-6'>Search results</Heading>
-    <Text>
-      Found <Mark intent='accent'>5 matches</Mark> for your search query.
-    </Text>
-  </div>
-
-  <div className='flex flex-col gap-1'>
-    <Heading as='h3' className='text-display-ui-6'>Status updates</Heading>
-    <Text>
-      Your order is <Mark intent='success'>confirmed</Mark> and will ship soon.
-    </Text>
-  </div>
-
-  <div className='flex flex-col gap-1'>
-    <Heading as='h3' className='text-display-ui-6'>Warnings</Heading>
-    <Text>
-      This action is <Mark intent='warning'>irreversible</Mark>.
-    </Text>
-  </div>
 </div>
 ```
 

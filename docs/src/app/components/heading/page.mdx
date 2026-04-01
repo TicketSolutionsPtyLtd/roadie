@@ -1,17 +1,15 @@
-import { PropsDefinitions } from '@/components/PropsDefinitions'
-
 export const metadata = {
   title: 'Heading',
-  description:
-    'A heading component for titles and section headers',
+  description: 'Semantic heading element with display text styles, emphasis, and intents.',
   status: 'beta',
   category: 'Typography'
 }
 
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
 # Heading
 
-A heading component for titles and section headers. It supports
-semantic heading elements, text styles, emphasis levels, and intents.
+Semantic heading element with display text styles, emphasis, and intents.
 
 ## Import
 
@@ -20,6 +18,41 @@ import { Heading } from '@oztix/roadie-components'
 ```
 
 ## Examples
+
+### Default
+
+```tsx-live
+
+<Heading>Default heading</Heading>
+```
+
+### Emphasis
+
+```tsx-live
+
+<div className='flex flex-col gap-2'>
+  <Heading emphasis='strong'>Strong emphasis heading</Heading>
+  <Heading emphasis='default'>Default emphasis heading</Heading>
+  <Heading emphasis='subtle'>Subtle emphasis heading</Heading>
+  <Heading emphasis='subtler'>Subtler emphasis heading</Heading>
+  <Heading emphasis='inverted'>Inverted emphasis heading</Heading>
+</div>
+```
+
+### Intents
+
+```tsx-live
+
+<div className='flex flex-col gap-2'>
+  <Heading intent='neutral'>Neutral heading</Heading>
+  <Heading intent='accent'>Accent heading</Heading>
+  <Heading intent='brand'>Brand heading</Heading>
+  <Heading intent='info'>Info heading</Heading>
+  <Heading intent='success'>Success heading</Heading>
+  <Heading intent='warning'>Warning heading</Heading>
+  <Heading intent='danger'>Danger heading</Heading>
+</div>
+```
 
 ### UI display styles
 
@@ -93,49 +126,9 @@ import { Heading } from '@oztix/roadie-components'
 </div>
 ```
 
-### Intents
+### With font weight
 
-Each intent is designed for specific use cases:
-
-- `neutral`: Default for general content
-- `accent`: Highlighted sections
-- `brand`: Brand-specific headings
-- `info`: Informational headings
-- `success`: Positive or completion headings
-- `warning`: Cautionary headings
-- `danger`: Error or critical headings
-
-```tsx-live
-
-<div className='flex flex-col gap-2'>
-  <Heading intent='neutral'>Neutral heading</Heading>
-  <Heading intent='accent'>Accent heading</Heading>
-  <Heading intent='brand'>Brand heading</Heading>
-  <Heading intent='info'>Info heading</Heading>
-  <Heading intent='success'>Success heading</Heading>
-  <Heading intent='warning'>Warning heading</Heading>
-  <Heading intent='danger'>Danger heading</Heading>
-</div>
-```
-
-### Emphasis
-
-Use the `emphasis` prop to adjust the color emphasis of a heading:
-
-```tsx-live
-
-<div className='flex flex-col gap-2'>
-  <Heading emphasis='strong'>Strong emphasis heading</Heading>
-  <Heading emphasis='default'>Default emphasis heading</Heading>
-  <Heading emphasis='subtle'>Subtle emphasis heading</Heading>
-  <Heading emphasis='subtler'>Subtler emphasis heading</Heading>
-  <Heading emphasis='inverted'>Inverted emphasis heading</Heading>
-</div>
-```
-
-### Font weight
-
-If you need to adjust the weight of a heading independently from the text style, use Tailwind's font-weight utilities:
+Use Tailwind font-weight utilities to adjust weight independently from the text style.
 
 ```tsx-live
 
@@ -147,11 +140,9 @@ If you need to adjust the weight of a heading independently from the text style,
 </div>
 ```
 
-For most cases, prefer using a `text-display-*` class that already has the desired weight built in.
+### With custom element
 
-### Custom element with text style
-
-Combine `as` with a `text-display-*` class to decouple semantics from visual presentation:
+Combine `as` with a `text-display-*` class to decouple semantics from visual presentation.
 
 ```tsx-live
 

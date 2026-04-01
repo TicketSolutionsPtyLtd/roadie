@@ -32,7 +32,7 @@ describe('Select', () => {
 
   it('renders Trigger with different emphasis', () => {
     expect(selectTriggerVariants({ emphasis: 'default' })).toContain(
-      'emphasis-default-surface'
+      'emphasis-raised'
     )
     expect(selectTriggerVariants({ emphasis: 'subtle' })).toContain(
       'emphasis-subtle-surface'
