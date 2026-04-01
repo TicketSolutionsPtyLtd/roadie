@@ -56,7 +56,7 @@ function groupPropsBySource(
 ): GroupedProps {
   const result: GroupedProps = {
     ownProps: {},
-    inheritedProps: {},
+    inheritedProps: {}
   }
 
   Object.entries(props).forEach(([name, prop]) => {
@@ -65,7 +65,7 @@ function groupPropsBySource(
       if (!result.inheritedProps[parentName]) {
         result.inheritedProps[parentName] = {
           props: {},
-          from: parentName,
+          from: parentName
         }
       }
       result.inheritedProps[parentName]!.props[name] = prop
@@ -80,43 +80,43 @@ function groupPropsBySource(
 
 function PropsList({
   props,
-  title,
+  title
 }: {
   props: Record<string, ComponentProp>
   title?: string
 }) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className='flex flex-col gap-3'>
       {title && (
-        <div className="px-4 py-3 bg-neutral-2 border-b border-neutral-6">
-          <p className="text-base font-bold emphasis-subtle-fg">{title}</p>
+        <div className='px-4 py-3 bg-neutral-2 border-b border-neutral-6'>
+          <p className='text-base font-bold emphasis-subtle-fg'>{title}</p>
         </div>
       )}
       {Object.entries(props).map(([name, prop]) => (
         <div
           key={name}
-          className="border-b border-neutral-6 px-4 py-3 flex flex-col gap-1 last:border-b-0"
+          className='border-b border-neutral-6 px-4 py-3 flex flex-col gap-1 last:border-b-0'
         >
-          <dt className="flex items-baseline gap-1">
-            <div className="flex flex-col md:flex-row items-baseline gap-1">
-              <span className="font-mono text-sm font-semibold shrink-0">
+          <dt className='flex items-baseline gap-1'>
+            <div className='flex flex-col md:flex-row items-baseline gap-1'>
+              <span className='font-mono text-sm font-semibold shrink-0'>
                 {name}
                 {!prop.required && (
-                  <span className="emphasis-subtle-fg">?</span>
+                  <span className='emphasis-subtle-fg'>?</span>
                 )}
               </span>
-              <span className="font-mono text-sm text-info-11">
+              <span className='font-mono text-sm text-info-11'>
                 {formatTypeValues(prop)}
               </span>
             </div>
           </dt>
           <dd>
-            <div className="flex flex-col gap-2">
+            <div className='flex flex-col gap-2'>
               {prop.description && (
-                <p className="emphasis-subtle-fg">{prop.description}</p>
+                <p className='emphasis-subtle-fg'>{prop.description}</p>
               )}
               {prop.defaultValue && (
-                <p className="emphasis-subtle-fg text-sm">
+                <p className='emphasis-subtle-fg text-sm'>
                   Defaults to <Code>{prop.defaultValue.value}</Code>.
                 </p>
               )}
@@ -156,7 +156,7 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
 
           return Boolean(isFromOurComponents || isFromParentComponent)
         },
-        skipChildrenPropWithoutDoc: true,
+        skipChildrenPropWithoutDoc: true
       }
     )
 
@@ -174,15 +174,13 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
       `${componentInfo.displayName}Props`
 
     return (
-      <div className="flex flex-col gap-4 pt-16 mt-16 border-t border-neutral-7">
-        <h2 className="text-xl font-bold">Props</h2>
-        <dl className="flex flex-col border border-neutral-7 rounded-md">
-          <div className="border-b border-neutral-7 self-stretch flex flex-col gap-1 px-4 py-3 bg-neutral-2">
-            <h3 className="text-xl font-bold">{interfaceName}</h3>
+      <div className='flex flex-col gap-4 pt-16 mt-16 border-t border-neutral-7'>
+        <h2 className='text-xl font-bold'>Props</h2>
+        <dl className='flex flex-col border border-neutral-7 rounded-md'>
+          <div className='border-b border-neutral-7 self-stretch flex flex-col gap-1 px-4 py-3 bg-neutral-2'>
+            <h3 className='text-xl font-bold'>{interfaceName}</h3>
             {!!componentInfo.description && (
-              <p className="emphasis-subtle-fg">
-                {componentInfo.description}
-              </p>
+              <p className='emphasis-subtle-fg'>{componentInfo.description}</p>
             )}
           </div>
 

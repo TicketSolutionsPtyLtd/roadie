@@ -18,11 +18,11 @@ export function IllustrationGallery() {
     .sort(([a], [b]) => a.localeCompare(b))
 
   return (
-    <div className="flex flex-row gap-4 flex-wrap mb-8">
+    <div className='flex flex-row gap-4 flex-wrap mb-8'>
       {illustrations.map(([name, Component]) => (
-        <div key={name} className="flex flex-col gap-1 items-center w-24">
+        <div key={name} className='flex flex-col gap-1 items-center w-24'>
           {createElement(Component as React.ComponentType)}
-          <Code emphasis="subtler">{name}</Code>
+          <Code emphasis='subtler'>{name}</Code>
         </div>
       ))}
     </div>

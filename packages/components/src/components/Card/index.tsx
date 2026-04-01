@@ -50,7 +50,12 @@ function CardRoot({
 CardRoot.displayName = 'Card'
 
 function CardHeader({ className, ...props }: ComponentProps<'div'>) {
-  return <div className={cn('px-6 pt-6 flex flex-col gap-1.5', className)} {...props} />
+  return (
+    <div
+      className={cn('px-6 pt-6 flex flex-col gap-1.5', className)}
+      {...props}
+    />
+  )
 }
 
 CardHeader.displayName = 'Card.Header'
@@ -63,7 +68,10 @@ CardContent.displayName = 'Card.Content'
 
 function CardFooter({ className, ...props }: ComponentProps<'div'>) {
   return (
-    <div className={cn('px-6 pb-6 flex items-center gap-2', className)} {...props} />
+    <div
+      className={cn('px-6 pb-6 flex items-center gap-2', className)}
+      {...props}
+    />
   )
 }
 

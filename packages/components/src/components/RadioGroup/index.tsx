@@ -14,12 +14,12 @@ export const radioGroupVariants = cva('flex', {
   variants: {
     direction: {
       vertical: 'flex-col gap-2',
-      horizontal: 'flex-row gap-4',
-    },
+      horizontal: 'flex-row gap-4'
+    }
   },
   defaultVariants: {
-    direction: 'vertical',
-  },
+    direction: 'vertical'
+  }
 })
 
 /* ─── Item variants ─── */
@@ -30,12 +30,12 @@ export const radioGroupItemVariants = cva(
     variants: {
       appearance: {
         default: 'gap-2',
-        card: 'gap-3 rounded-lg emphasis-default-surface emphasis-subtle-border p-3 hover:emphasis-subtle-surface has-[:checked]:emphasis-subtle-surface has-[:checked]:emphasis-default-border',
-      },
+        card: 'gap-3 rounded-lg emphasis-default-surface emphasis-subtle-border p-3 hover:emphasis-subtle-surface has-[:checked]:emphasis-subtle-surface has-[:checked]:emphasis-default-border'
+      }
     },
     defaultVariants: {
-      appearance: 'default',
-    },
+      appearance: 'default'
+    }
   }
 )
 
@@ -83,9 +83,7 @@ function RadioGroupItem({
       >
         <Radio.Indicator className='size-1.5 rounded-full bg-white' />
       </Radio.Root>
-      {label && (
-        <span className='text-sm emphasis-default-fg'>{label}</span>
-      )}
+      {label && <span className='text-sm emphasis-default-fg'>{label}</span>}
       {children}
     </label>
   )
@@ -96,7 +94,7 @@ RadioGroupItem.displayName = 'RadioGroup.Item'
 /* ─── Compound export ─── */
 
 export const RadioGroup = Object.assign(RadioGroupRoot, {
-  Item: RadioGroupItem,
+  Item: RadioGroupItem
 })
 
 export type RadioGroupProps = RadioGroupRootProps

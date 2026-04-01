@@ -31,7 +31,7 @@ const layerColors: Record<
   detail: { fill: 'var(--color-illustration-detail)' },
   shadow: { fill: 'var(--color-illustration-shadow)' },
   highlight: { fill: 'var(--color-illustration-highlight)' },
-  stroke: { fill: 'none', stroke: 'var(--color-illustration-stroke)' },
+  stroke: { fill: 'none', stroke: 'var(--color-illustration-stroke)' }
 }
 
 export const SpotIllustration = forwardRef<
@@ -43,7 +43,7 @@ export const SpotIllustration = forwardRef<
   return (
     <svg
       ref={ref}
-      xmlns="http://www.w3.org/2000/svg"
+      xmlns='http://www.w3.org/2000/svg'
       viewBox={viewBox}
       className={cn('size-12', className)}
       style={{ fill: 'none' }}
@@ -62,7 +62,7 @@ export const SpotIllustration = forwardRef<
               strokeWidth: path.layer === 'stroke' ? 0.5 : undefined,
               strokeLinecap: path.layer === 'stroke' ? 'round' : undefined,
               strokeLinejoin: path.layer === 'stroke' ? 'round' : undefined,
-              opacity: path.layer === 'outline' && !outline ? 0 : undefined,
+              opacity: path.layer === 'outline' && !outline ? 0 : undefined
             }}
           />
         )

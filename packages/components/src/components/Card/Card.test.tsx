@@ -13,9 +13,7 @@ describe('Card', () => {
   })
 
   it('renders with different intents', () => {
-    const { rerender, getByText } = render(
-      <Card intent='accent'>Accent</Card>
-    )
+    const { rerender, getByText } = render(<Card intent='accent'>Accent</Card>)
     expect(getByText('Accent')).toHaveClass('intent-accent')
 
     rerender(<Card intent='danger'>Danger</Card>)
@@ -77,9 +75,7 @@ describe('Card', () => {
   })
 
   it('applies custom className', () => {
-    const { getByText } = render(
-      <Card className='custom-class'>Custom</Card>
-    )
+    const { getByText } = render(<Card className='custom-class'>Custom</Card>)
     expect(getByText('Custom')).toHaveClass('custom-class')
   })
 })

@@ -21,7 +21,10 @@ export {
 
 export { Badge, badgeVariants, type BadgeProps } from './components/Badge'
 
-export { Breadcrumb, type BreadcrumbSeparatorProps } from './components/Breadcrumb'
+export {
+  Breadcrumb,
+  type BreadcrumbSeparatorProps
+} from './components/Breadcrumb'
 
 export { Card, cardVariants, type CardProps } from './components/Card'
 

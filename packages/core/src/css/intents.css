@@ -73,7 +73,7 @@
   --intent-surface-strong: var(--color-neutral-12);
   --intent-surface-inverted: var(--color-neutral-12);
   --intent-surface-raised: var(--color-neutral-0);
-  --intent-surface-sunken: var(--color-neutral-2);
+  --intent-surface-sunken: var(--color-neutral-0);
 
   --intent-border-subtler: var(--color-neutral-5);
   --intent-border-subtle: var(--color-neutral-6);
@@ -89,7 +89,6 @@
 
   .dark & {
     --intent-surface-raised: var(--color-neutral-2);
-    --intent-surface-sunken: var(--color-neutral-0);
   }
 }
 

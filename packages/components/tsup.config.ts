@@ -11,14 +11,14 @@ const getComponentEntries = () => {
     .reduce(
       (acc, dirent) => ({
         ...acc,
-        [dirent.name]: `src/components/${dirent.name}/index.tsx`,
+        [dirent.name]: `src/components/${dirent.name}/index.tsx`
       }),
       {}
     )
 
   return {
     index: 'src/index.tsx',
-    ...components,
+    ...components
   }
 }
 
@@ -29,8 +29,8 @@ export default defineConfig({
     resolve: true,
     compilerOptions: {
       composite: false,
-      incremental: false,
-    },
+      incremental: false
+    }
   },
   sourcemap: true,
   clean: true,
@@ -38,12 +38,12 @@ export default defineConfig({
   external: ['react', 'react-dom', '@oztix/roadie-core', '@base-ui/react'],
   splitting: true,
   treeshake: {
-    preset: 'recommended',
+    preset: 'recommended'
   },
   minify: true,
   outDir: 'dist',
   outExtension: () => ({
-    js: '.js',
+    js: '.js'
   }),
   esbuildOptions(options) {
     options.chunkNames = '_chunks/[name]-[hash]'
@@ -96,5 +96,5 @@ export default defineConfig({
         // File might not exist
       }
     }
-  },
+  }
 })

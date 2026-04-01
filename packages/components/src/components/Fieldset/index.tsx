@@ -10,10 +10,7 @@ export interface FieldsetRootProps extends ComponentProps<'fieldset'> {}
 
 function FieldsetRoot({ className, ...props }: FieldsetRootProps) {
   return (
-    <fieldset
-      className={cn('border-none p-0 m-0', className)}
-      {...props}
-    />
+    <fieldset className={cn('border-none p-0 m-0', className)} {...props} />
   )
 }
 
@@ -40,10 +37,7 @@ export interface FieldsetHelperTextProps extends ComponentProps<'p'> {}
 
 function FieldsetHelperText({ className, ...props }: FieldsetHelperTextProps) {
   return (
-    <p
-      className={cn('text-sm emphasis-subtle-fg', className)}
-      {...props}
-    />
+    <p className={cn('text-sm emphasis-subtle-fg', className)} {...props} />
   )
 }
 
@@ -69,7 +63,7 @@ FieldsetErrorText.displayName = 'Fieldset.ErrorText'
 export const Fieldset = Object.assign(FieldsetRoot, {
   Legend: FieldsetLegend,
   HelperText: FieldsetHelperText,
-  ErrorText: FieldsetErrorText,
+  ErrorText: FieldsetErrorText
 })
 
 export type FieldsetProps = FieldsetRootProps

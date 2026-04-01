@@ -15,24 +15,24 @@ export const badgeVariants = cva(
         danger: 'intent-danger',
         success: 'intent-success',
         warning: 'intent-warning',
-        info: 'intent-info',
+        info: 'intent-info'
       },
       emphasis: {
         strong: 'emphasis-strong',
         default: 'emphasis-default emphasis-subtle-fg',
         subtle: 'emphasis-subtle emphasis-subtle-fg',
-        subtler: 'emphasis-subtler-surface emphasis-subtle-fg',
+        subtler: 'emphasis-subtler-surface emphasis-subtle-fg'
       },
       size: {
         sm: 'px-2 py-0.5 text-xs',
-        md: 'px-2.5 py-0.5 text-sm',
-      },
+        md: 'px-2.5 py-0.5 text-sm'
+      }
     },
     defaultVariants: {
       intent: 'neutral',
       emphasis: 'default',
-      size: 'md',
-    },
+      size: 'md'
+    }
   }
 )
 
@@ -66,7 +66,7 @@ export function Badge({
             'size-1.5 rounded-full bg-current shrink-0',
             indicatorPulse && 'animate-pulse'
           )}
-          aria-hidden="true"
+          aria-hidden='true'
         />
       )}
       {children}

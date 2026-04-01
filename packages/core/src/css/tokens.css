@@ -155,11 +155,11 @@
 /* --- Register non-color tokens via @theme --- */
 @theme {
   /* ═══ Elevation ═══ */
-  --elevation-raised: 0 1px 2px rgba(0, 20, 40, 0.08),
-    0 4px 8px -2px rgba(0, 20, 40, 0.12);
+  --elevation-raised:
+    0 1px 2px rgba(0, 20, 40, 0.08), 0 4px 8px -2px rgba(0, 20, 40, 0.12);
   --elevation-sunken: inset 0 2px 4px 0 rgba(0, 20, 40, 0.08);
-  --elevation-overlay: 0 8px 24px rgba(0, 20, 40, 0.16),
-    0 2px 8px rgba(0, 20, 40, 0.08);
+  --elevation-overlay:
+    0 8px 24px rgba(0, 20, 40, 0.16), 0 2px 8px rgba(0, 20, 40, 0.08);
 
   /* ═══ Illustration colors (fixed — do NOT change in dark mode) ═══
      Hardcoded to light mode values from core color scales:
@@ -490,9 +490,9 @@
   --color-info-13: oklch(0.96 0.025 303);
 
   /* ═══ Dark elevation overrides ═══ */
-  --elevation-raised: 0 2px 4px rgba(0, 0, 0, 0.4),
-    0 8px 16px -2px rgba(0, 0, 0, 0.5);
+  --elevation-raised:
+    0 2px 4px rgba(0, 0, 0, 0.4), 0 8px 16px -2px rgba(0, 0, 0, 0.5);
   --elevation-sunken: inset 0 2px 4px 0 rgba(0, 0, 0, 0.5);
-  --elevation-overlay: 0 8px 24px rgba(0, 0, 0, 0.5),
-    0 2px 8px rgba(0, 0, 0, 0.3);
+  --elevation-overlay:
+    0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
 }

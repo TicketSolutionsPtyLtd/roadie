@@ -36,6 +36,7 @@ Work on branch `feature/v2-tailwind-migration` (~47 commits from `main`).
 ### Phase 2: Component Migration — COMPLETE
 
 **Original v1 components (7 migrated):**
+
 - [x] Button + IconButton — Base UI + CVA (intent, emphasis, size + icon variants). Default intent=neutral.
 - [x] Text — semantic `<p>` with CVA (intent, emphasis, size)
 - [x] Heading — semantic h1-h6 with CVA (intent, emphasis, size, level)
@@ -47,6 +48,7 @@ Work on branch `feature/v2-tailwind-migration` (~47 commits from `main`).
 - [x] View/Container/hooks deprecated and removed
 
 **New components (11 added):**
+
 - [x] Badge — intent/emphasis/size, indicator with pulse, icons as children via `[&_svg]:size-[1em]`
 - [x] Card — generic card with Header/Content/Footer (emphasis: raised/subtle/default)
 - [x] Input — styled text input with intent/emphasis/size
@@ -77,9 +79,11 @@ Work on branch `feature/v2-tailwind-migration` (~47 commits from `main`).
 ### Phase 4: Migration Guide + Codemods — TODO
 
 Based on analysis of the Oztix Website (`TicketSolutions.Oztix.Website`):
+
 - 496 View instances, 25 Containers, 43 colorPalette usages, 12+ sva() recipes, 40+ responsive objects
 
 **Migration guide (`docs/migration-v2.md`):**
+
 - [ ] Setup: remove PandaCSS, add Tailwind v4, import roadie.css, add @source
 - [ ] View migration: `flexDirection='row'` → `flex flex-row`, `display='grid'` → `grid`, default → `view`, complex → map props to Tailwind
 - [ ] Container migration → Tailwind `container` class
@@ -92,6 +96,7 @@ Based on analysis of the Oztix Website (`TicketSolutions.Oztix.Website`):
 - [ ] splitCssProps() → removed
 
 **Codemods (jscodeshift):**
+
 - [ ] View → div (with layout class mapping)
 - [ ] Container → div with container class
 - [ ] colorPalette → intent

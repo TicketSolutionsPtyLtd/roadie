@@ -52,7 +52,7 @@ async function getNavigationItems() {
   )
 
   const foundationEntries = await readdir(foundationsDir, {
-    withFileTypes: true,
+    withFileTypes: true
   })
   const foundationPages = (
     await Promise.all(
@@ -71,12 +71,12 @@ async function getNavigationItems() {
             if (!tsxMetadata) return null
             return {
               title: tsxMetadata.title,
-              href: `/foundations/${dir.name}`,
+              href: `/foundations/${dir.name}`
             }
           }
           return {
             title: metadata.title,
-            href: `/foundations/${dir.name}`,
+            href: `/foundations/${dir.name}`
           }
         })
     )
@@ -110,7 +110,7 @@ async function getNavigationItems() {
             title: dir.name,
             description: '',
             status: 'unknown',
-            category: 'Other',
+            category: 'Other'
           }
 
           if (metadataMatch) {
@@ -158,22 +158,22 @@ async function getNavigationItems() {
         gettingStartedMetadata
           ? {
               title: gettingStartedMetadata.title,
-              href: '/overview/getting-started',
+              href: '/overview/getting-started'
             }
           : { title: 'Getting Started', href: '/overview/getting-started' },
         {
           title: 'Changelog',
-          href: 'https://github.com/ticketsolutionsptyltd/roadie/blob/main/packages/components/CHANGELOG.md',
-        },
-      ],
-    },
+          href: 'https://github.com/ticketsolutionsptyltd/roadie/blob/main/packages/components/CHANGELOG.md'
+        }
+      ]
+    }
   ]
 
   if (foundationPages.length > 0) {
     navigationItems.push({
       title: 'Foundations',
       href: '/foundations',
-      items: foundationPages,
+      items: foundationPages
     })
   }
 
@@ -183,13 +183,13 @@ async function getNavigationItems() {
     items: [
       {
         title: tokensMetadata?.title || 'Overview',
-        href: '/tokens',
+        href: '/tokens'
       },
       {
         title: tokensReferenceMetadata?.title || 'Reference',
-        href: '/tokens/reference',
-      },
-    ],
+        href: '/tokens/reference'
+      }
+    ]
   })
 
   if (validComponents.length > 0) {
@@ -199,15 +199,15 @@ async function getNavigationItems() {
       items: [
         {
           title: 'Overview',
-          href: '/components',
+          href: '/components'
         },
         ...validComponents
           .sort((a, b) => a.title.localeCompare(b.title))
           .map((comp) => ({
             title: comp.title,
-            href: `/components/${comp.name}`,
-          })),
-      ],
+            href: `/components/${comp.name}`
+          }))
+      ]
     })
   }
 
@@ -220,19 +220,19 @@ export const metadata: Metadata = {
     'A comprehensive collection of reusable components for building consistent user interfaces across Oztix applications.',
   icons: {
     icon: getAssetPath('/favicon.png'),
-    apple: getAssetPath('/favicon.png'),
-  },
+    apple: getAssetPath('/favicon.png')
+  }
 }
 
 export default async function RootLayout({
-  children,
+  children
 }: {
   children: React.ReactNode
 }) {
   const items = await getNavigationItems()
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang='en' suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -244,14 +244,14 @@ export default async function RootLayout({
                 document.documentElement.classList.toggle('dark', theme === 'dark')
                 window.__theme = theme
               } catch {}
-            `,
+            `
           }}
         />
       </head>
-      <body className="overflow-x-hidden bg-neutral-1 text-neutral-12">
-        <div className="min-h-screen max-w-[100vw] flex flex-row">
+      <body className='overflow-x-hidden bg-neutral-1 text-neutral-12'>
+        <div className='min-h-screen max-w-[100vw] flex flex-row'>
           <Navigation items={items} />
-          <main className="flex-1 min-w-0 overflow-x-clip px-4 md:px-8 lg:px-12 py-4 md:py-12 lg:py-20 max-w-4xl mx-auto">
+          <main className='flex-1 min-w-0 overflow-x-clip px-4 md:px-8 lg:px-12 py-4 md:py-12 lg:py-20 max-w-4xl mx-auto'>
             {children}
             <FooterNav items={items} />
           </main>

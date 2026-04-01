@@ -24,7 +24,7 @@ export const buttonVariants = cva(
         strong: 'emphasis-strong',
         default: 'emphasis-default emphasis-subtle-fg',
         subtle: 'emphasis-subtle emphasis-subtle-fg',
-        subtler: 'emphasis-subtler emphasis-subtle-fg',
+        subtler: 'emphasis-subtler emphasis-subtle-fg'
       },
       size: {
         xs: 'h-6 min-w-6 text-xs px-2.5 py-0.5 [&_svg:not([class*="size-"])]:size-3',

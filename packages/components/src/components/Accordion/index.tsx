@@ -1,6 +1,12 @@
 'use client'
 
-import { type ComponentProps, createContext, useCallback, useContext, useState } from 'react'
+import {
+  type ComponentProps,
+  createContext,
+  useCallback,
+  useContext,
+  useState
+} from 'react'
 
 import { Collapsible } from '@base-ui/react/collapsible'
 import { type VariantProps, cva } from 'class-variance-authority'
@@ -91,7 +97,12 @@ interface AccordionItemProps extends ComponentProps<'div'> {
   value: string
 }
 
-function AccordionItem({ value, className, children, ...props }: AccordionItemProps) {
+function AccordionItem({
+  value,
+  className,
+  children,
+  ...props
+}: AccordionItemProps) {
   const { openItems, toggle } = useContext(AccordionContext)
   const isOpen = openItems.includes(value)
 
@@ -108,7 +119,11 @@ function AccordionItem({ value, className, children, ...props }: AccordionItemPr
 
 AccordionItem.displayName = 'Accordion.Item'
 
-function AccordionTrigger({ className, children, ...props }: ComponentProps<'button'>) {
+function AccordionTrigger({
+  className,
+  children,
+  ...props
+}: ComponentProps<'button'>) {
   return (
     <Collapsible.Trigger
       className={cn(
@@ -124,7 +139,11 @@ function AccordionTrigger({ className, children, ...props }: ComponentProps<'but
 
 AccordionTrigger.displayName = 'Accordion.Trigger'
 
-function AccordionContent({ className, children, ...props }: ComponentProps<'div'>) {
+function AccordionContent({
+  className,
+  children,
+  ...props
+}: ComponentProps<'div'>) {
   return (
     <Collapsible.Panel
       className={cn(

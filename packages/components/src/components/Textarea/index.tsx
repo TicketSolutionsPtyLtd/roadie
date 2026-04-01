@@ -17,25 +17,25 @@ export const textareaVariants = cva(
         danger: 'intent-danger',
         success: 'intent-success',
         warning: 'intent-warning',
-        info: 'intent-info',
+        info: 'intent-info'
       },
       emphasis: {
         default:
           'emphasis-default-surface emphasis-subtle-border emphasis-default-fg hover:emphasis-subtle-surface focus:outline-4 focus:outline-[color-mix(in_oklch,var(--intent-9)_30%,transparent)] focus:outline-offset-0',
         subtle:
-          'emphasis-subtle-surface emphasis-default-fg border border-transparent focus:outline-4 focus:outline-[color-mix(in_oklch,var(--intent-9)_30%,transparent)] focus:outline-offset-0',
+          'emphasis-subtle-surface emphasis-default-fg border border-transparent focus:outline-4 focus:outline-[color-mix(in_oklch,var(--intent-9)_30%,transparent)] focus:outline-offset-0'
       },
       size: {
         sm: 'px-3 py-2 text-sm',
         md: 'px-4 py-2.5 text-sm',
-        lg: 'px-4 py-3 text-base',
-      },
+        lg: 'px-4 py-3 text-base'
+      }
     },
     defaultVariants: {
       intent: 'neutral',
       emphasis: 'default',
-      size: 'md',
-    },
+      size: 'md'
+    }
   }
 )
 

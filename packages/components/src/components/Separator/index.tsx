@@ -20,10 +20,14 @@ export interface SeparatorProps
   extends ComponentProps<'div'>,
     VariantProps<typeof separatorVariants> {}
 
-export function Separator({ className, orientation, ...props }: SeparatorProps) {
+export function Separator({
+  className,
+  orientation,
+  ...props
+}: SeparatorProps) {
   return (
     <div
-      role="separator"
+      role='separator'
       aria-orientation={orientation ?? 'horizontal'}
       className={cn(separatorVariants({ orientation, className }))}
       {...props}

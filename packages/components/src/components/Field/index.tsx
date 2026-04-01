@@ -54,10 +54,7 @@ export interface FieldHelperTextProps extends ComponentProps<'p'> {}
 
 function FieldHelperText({ className, ...props }: FieldHelperTextProps) {
   return (
-    <p
-      className={cn('text-sm emphasis-subtle-fg', className)}
-      {...props}
-    />
+    <p className={cn('text-sm emphasis-subtle-fg', className)} {...props} />
   )
 }
 
@@ -85,7 +82,7 @@ export const Field = Object.assign(FieldRoot, {
   Input: FieldInput,
   Textarea: FieldTextarea,
   HelperText: FieldHelperText,
-  ErrorText: FieldErrorText,
+  ErrorText: FieldErrorText
 })
 
 export type FieldProps = FieldRootProps

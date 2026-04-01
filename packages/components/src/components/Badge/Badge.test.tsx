@@ -51,9 +51,7 @@ describe('Badge', () => {
   })
 
   it('applies custom className', () => {
-    const { getByText } = render(
-      <Badge className='custom-class'>Custom</Badge>
-    )
+    const { getByText } = render(<Badge className='custom-class'>Custom</Badge>)
     expect(getByText('Custom')).toHaveClass('custom-class')
   })
 
