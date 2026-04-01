@@ -47,6 +47,11 @@ export default function Home() {
                 label: 'Typography',
                 href: '/foundations/typography',
                 description: 'Text styles and font system'
+              },
+              {
+                label: 'Elevation',
+                href: '/foundations/elevation',
+                description: 'Shadow scale and depth hierarchy'
               }
             ]}
           />

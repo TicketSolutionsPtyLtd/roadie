@@ -9,7 +9,7 @@ describe('Code', () => {
     const code = getByText('const x = 42;')
     expect(code).toBeInTheDocument()
     expect(code.tagName.toLowerCase()).toBe('code')
-    expect(code).toHaveClass('emphasis-subtle')
+    expect(code).toHaveClass('emphasis-default')
   })
 
   it('renders with different emphasis', () => {

@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import './reset.css';
 @import './tokens.css';
+@import './elevation.css';
 @import './intents.css';
 @import './emphasis.css';
 @import './typography.css';

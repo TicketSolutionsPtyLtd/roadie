@@ -9,7 +9,7 @@ describe('Card', () => {
     const card = getByText('Content')
     expect(card).toBeInTheDocument()
     expect(card.tagName.toLowerCase()).toBe('div')
-    expect(card).toHaveClass('rounded-lg', 'emphasis-raised')
+    expect(card).toHaveClass('rounded-lg', 'emphasis-default-surface')
   })
 
   it('renders with different intents', () => {

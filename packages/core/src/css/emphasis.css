@@ -29,12 +29,17 @@
 
 @utility emphasis-raised-surface {
   background-color: var(--intent-surface-raised);
-  box-shadow: var(--elevation-raised);
+  box-shadow: var(--rim-light), var(--shadow-md);
 }
 
 @utility emphasis-sunken-surface {
   background-color: var(--intent-surface-sunken);
-  box-shadow: var(--elevation-sunken);
+  box-shadow: var(--inset-shadow-sm);
+}
+
+@utility emphasis-floating-surface {
+  background-color: var(--intent-surface-raised);
+  box-shadow: var(--rim-light), var(--shadow-xl);
 }
 
 @utility emphasis-overlay-surface {
@@ -100,9 +105,7 @@
   &.is-interactive:focus-visible {
     background-color: var(--intent-10);
     transform: translateY(-1px);
-    box-shadow:
-      0 2px 4px rgba(0, 0, 0, 0.1),
-      0 4px 8px -2px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-sm);
   }
   &.is-interactive:active {
     background-color: var(--intent-11);
@@ -161,25 +164,29 @@
 
 @utility emphasis-raised {
   background-color: var(--intent-surface-raised);
-  box-shadow: var(--elevation-raised);
+  box-shadow: var(--rim-light), var(--shadow-md);
   color: var(--intent-fg-default);
 
   &.is-interactive:hover,
   &.is-interactive:focus-visible {
     transform: translateY(-1px);
-    box-shadow:
-      0 2px 4px rgba(0, 0, 0, 0.1),
-      0 8px 16px -4px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--rim-light), var(--shadow-lg);
   }
   &.is-interactive:active {
     transform: translateY(0) scale(0.98);
-    box-shadow: var(--elevation-raised);
+    box-shadow: var(--rim-light), var(--shadow-sm);
   }
 }
 
 @utility emphasis-sunken {
   background-color: var(--intent-surface-sunken);
-  box-shadow: var(--elevation-sunken);
+  box-shadow: var(--inset-shadow-sm);
+  color: var(--intent-fg-default);
+}
+
+@utility emphasis-floating {
+  background-color: var(--intent-surface-raised);
+  box-shadow: var(--rim-light), var(--shadow-xl);
   color: var(--intent-fg-default);
 }
 

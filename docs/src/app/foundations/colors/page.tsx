@@ -217,7 +217,7 @@ export default function ColorsPage() {
           </code>{' '}
           component or{' '}
           <code className='font-mono text-sm bg-neutral-3 px-1 py-0.5 rounded'>
-            generateRadixScale()
+            generateAccentScale()
           </code>{' '}
           function. Pass any hex color and the system generates a full 14-step
           OKLCH scale with automatic WCAG contrast detection.

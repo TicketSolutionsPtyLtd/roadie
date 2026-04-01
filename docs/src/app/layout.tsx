@@ -248,7 +248,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className='overflow-x-hidden bg-neutral-1 text-neutral-12'>
+      <body className='overflow-x-hidden'>
         <div className='min-h-screen max-w-[100vw] flex flex-row'>
           <Navigation items={items} />
           <main className='flex-1 min-w-0 overflow-x-clip px-4 md:px-8 lg:px-12 py-4 md:py-12 lg:py-20 max-w-4xl mx-auto'>
