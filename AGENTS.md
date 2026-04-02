@@ -173,7 +173,54 @@ CSS-native OKLCH scales parameterized by `--accent-hue` and `--accent-chroma`:
 - Neutral scale tinted with accent hue
 - Dark mode swaps values via `.dark` class — no `dark:` variants needed
 
+### Layout
+
+Default to `grid`. Use `gap`, not `margin`. Set constraints, not fixed dimensions.
+
+- **Grid = parent controls sizing.** Use for vertical stacks, columns, centering. Default for most layouts.
+- **Flex = children control sizing.** Use for tags, nav items, wrapping rows where items size themselves.
+
+```html
+<!-- Vertical stack (default) -->
+<div class="grid gap-4">...</div>
+
+<!-- Centered content -->
+<div class="grid place-content-center">...</div>
+
+<!-- Columns -->
+<div class="grid grid-cols-3 gap-4">...</div>
+
+<!-- Content-driven row -->
+<div class="flex gap-4 items-center">...</div>
+
+<!-- Wrapping tags -->
+<div class="flex flex-wrap gap-2">...</div>
+```
+
+> The `view` utility (flex column + min-h/w 0) is still available but `grid gap-*` is the default vertical stack.
+
+### Shape (border-radius)
+
+Consistent radius tiers across all components:
+
+| Tier | Class | Use for |
+|------|-------|---------|
+| Inline | `rounded-sm` | Marks, highlights |
+| Small | `rounded-md` | Code, prose images |
+| Field | `rounded-lg` | Inputs, textareas, selects |
+| Container | `rounded-xl` | Cards, popovers, select popups |
+| Large | `rounded-2xl` | Modals, dialogs |
+| Full | `rounded-full` | Buttons, badges, pills |
+
 ### Typography
+
+Two font families: **Intermission** (sans-serif, `font-sans`) and **IBM Plex Mono** (`font-mono`).
+
+Two display style families:
+- `text-display-ui-1` through `text-display-ui-6` — bold, for UI headings
+- `text-display-prose-1` through `text-display-prose-6` — heavier weights, for long-form content
+
+Sizes `text-lg` and above use `clamp()` for fluid scaling — no manual breakpoint overrides needed.
 
 Use raw HTML elements with utility classes:
 
@@ -216,7 +263,7 @@ export const buttonVariants = cva('base-classes is-interactive', {
     },
     size: { sm: 'h-8 px-3', md: 'h-10 px-4', lg: 'h-12 px-6' },
   },
-  defaultVariants: { intent: 'neutral', emphasis: 'default', size: 'md' },
+  defaultVariants: { emphasis: 'default', size: 'md' },
 })
 ```
 
@@ -235,17 +282,17 @@ export const buttonVariants = cva('base-classes is-interactive', {
 1. **Intent = which color palette.** Only sets CSS custom properties. No visual presentation.
 2. **Emphasis shortcuts = combined presets.** bg + text + border + hover states.
 3. **Individual properties = Tailwind utilities.** `bg-default`, `text-subtle`, `border-subtle`.
-4. **Default intent is neutral.** No class needed — set on `:root`.
-5. **No Text or Heading components.** Use raw `<p>`, `<h1>`-`<h6>` with utility classes.
-6. **Prose component** for CMS/markdown content. Has `size` prop (sm/md/lg).
-7. **No layout wrapper components.** Use `<div class="view gap-4">` or raw Tailwind classes.
-8. **`view` utility** = flex column with min-h/w 0 (flexbox overflow fix).
+4. **Default intent is neutral.** Set on `:root` — no class needed.
+5. **Components inherit intent from context.** Don't set a default intent in `defaultVariants`. Intent flows via CSS cascade.
+6. **No Text or Heading components.** Use raw `<p>`, `<h1>`-`<h6>` with utility classes.
+7. **Prose component** for CMS/markdown content. Has `size` prop (sm/md/lg).
+8. **Grid-first layout.** Use `<div class="grid gap-4">` for vertical stacks — not `flex flex-col`.
 9. **SpotIllustration colors are fixed** — they don't change in dark mode.
 10. **`@source` directive required** in consumer CSS to scan component dist files.
 
 ## Styling Rules
 
-1. Use Tailwind utilities for layout and spacing (`flex`, `gap-4`, `p-2`, `grid`)
+1. Use `grid` for layout by default, `flex` when children should control sizing
 2. Use `bg-*`, `text-*`, `border-*` for semantic colors
 3. Use emphasis shortcuts for interactive elements
 4. Never hardcode colors — use tokens
@@ -263,7 +310,7 @@ export const buttonVariants = cva('base-classes is-interactive', {
 ## Code Quality
 
 - ESLint with TypeScript + React + Prettier
-- Prettier: single quotes, no semicolons, 2 spaces, 80 chars
+- Prettier: single quotes, no semicolons, 2 spaces, 80 chars + Tailwind class sorting plugin
 - TypeScript strict mode, no `any`
 
 ## Build Pipeline
@@ -283,6 +330,21 @@ core:build → components:build → docs:build
 - CodePreview scope includes all components + SpotIllustrations
 - MDX tables wrapped in overflow-x-auto container
 - Body defaults from reset: `bg-default`, `text-default`, `font-body`, `leading-ui`
+
+### Foundation docs (detailed styling guidance)
+
+For detailed guidance on styling conventions, read the foundation pages:
+
+- Layout: `docs/src/app/foundations/layout/page.tsx`
+- Typography: `docs/src/app/foundations/typography/page.tsx`
+- Shape: `docs/src/app/foundations/shape/page.tsx`
+- Interactions: `docs/src/app/foundations/interactions/page.tsx`
+- Colors: `docs/src/app/foundations/colors/page.tsx`
+- Elevation: `docs/src/app/foundations/elevation/page.tsx`
+
+### Guideline component (docs-only)
+
+Use `<Guideline>` with `<Guideline.Do>` and `<Guideline.Dont>` for do/don't patterns in foundation docs. Supports `example` (rendered JSX) and `code` (code string) props. Located at `docs/src/components/Guideline.tsx`.
 
 ### Component doc structure
 

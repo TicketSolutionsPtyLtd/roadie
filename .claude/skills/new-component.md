@@ -11,14 +11,18 @@ Create a new Roadie design system component end-to-end.
 ## Steps
 
 1. **Read references** before writing any code:
-   - `CLAUDE.md` for component patterns (CVA, intent/emphasis, interaction utilities)
+   - `AGENTS.md` for component patterns (CVA, intent/emphasis, interaction utilities, layout, shape, typography)
    - `docs/COMPONENT_DOC_TEMPLATE.md` for documentation structure
+   - Foundation docs in `docs/src/app/foundations/` for detailed styling conventions
 
 2. **Create component file** at `packages/components/src/components/{Name}/index.tsx`:
    - Use CVA for variants (intent, emphasis, size as applicable)
+   - **Do not set a default intent** in `defaultVariants` — components inherit intent from CSS cascade
    - Use `cn()` from `@oztix/roadie-core/utils` for className merging
    - Use emphasis utilities for visual presentation
    - Use `is-interactive` for clickable elements, `is-field-interactive` for form inputs
+   - Use `grid gap-*` for internal layout (not `flex flex-col`)
+   - Use the correct border-radius tier: `rounded-full` (buttons/badges), `rounded-xl` (cards/popovers), `rounded-lg` (fields), `rounded-md` (code)
    - Export variants and component
    - Add `'use client'` directive
    - Add `.displayName`
