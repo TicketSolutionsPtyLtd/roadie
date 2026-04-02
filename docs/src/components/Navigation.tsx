@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-import { List, Moon, Sun, X } from '@phosphor-icons/react'
+import { ListIcon, MoonIcon, SunIcon, XIcon } from '@phosphor-icons/react'
 
 import { Image } from '@/components/Image'
 
@@ -66,9 +66,9 @@ function ThemeToggle() {
       aria-label={`Switch to ${colorMode === 'light' ? 'dark' : 'light'} mode`}
     >
       {colorMode === 'light' ? (
-        <Moon size={16} weight='bold' />
+        <MoonIcon weight='bold' className='size-4' />
       ) : (
-        <Sun size={16} weight='bold' />
+        <SunIcon weight='bold' className='size-4' />
       )}
       <span className='text-sm'>
         {colorMode === 'light' ? 'Dark' : 'Light'} mode
@@ -191,7 +191,7 @@ export function Navigation({ items }: NavigationProps) {
         className='is-interactive fixed top-3 left-3 z-50 flex size-10 emphasis-default items-center justify-center rounded-lg md:hidden'
         aria-label='Open navigation'
       >
-        <List size={20} weight='bold' />
+        <ListIcon weight='bold' className='size-5' />
       </button>
 
       {/* Mobile overlay */}
@@ -213,7 +213,7 @@ export function Navigation({ items }: NavigationProps) {
           className='is-interactive absolute top-3 right-3 flex size-10 items-center justify-center rounded-lg emphasis-subtler'
           aria-label='Close navigation'
         >
-          <X size={20} weight='bold' />
+          <XIcon weight='bold' className='size-5' />
         </button>
         <NavigationContent items={items} onNavigate={() => setIsOpen(false)} />
       </nav>

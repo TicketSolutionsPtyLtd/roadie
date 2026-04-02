@@ -5,25 +5,25 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
 import {
-  ArrowLeft,
-  ArrowRight,
-  CaretDown,
-  CaretUp,
-  CheckCircle,
-  Copy,
-  Eye,
-  EyeSlash,
-  Gear,
-  Heart,
-  Info,
-  MagnifyingGlass,
-  Minus,
-  PencilSimple,
-  Plus,
-  Star,
-  Trash,
-  Warning,
-  XCircle
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  CaretDownIcon,
+  CaretUpIcon,
+  CheckCircleIcon,
+  CopyIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  GearIcon,
+  HeartIcon,
+  InfoIcon,
+  MagnifyingGlassIcon,
+  MinusIcon,
+  PencilSimpleIcon,
+  PlusIcon,
+  StarIcon,
+  TrashIcon,
+  WarningIcon,
+  XCircleIcon
 } from '@phosphor-icons/react'
 import { Highlight, themes } from 'prism-react-renderer'
 import { LiveEditor, LiveError, LivePreview, LiveProvider } from 'react-live'
@@ -31,25 +31,26 @@ import { LiveEditor, LiveError, LivePreview, LiveProvider } from 'react-live'
 import * as RoadieComponents from '@oztix/roadie-components'
 import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
 
+// Bare-name keys so MDX live examples can use `<CheckCircle />` etc.
 const PhosphorIcons = {
-  CheckCircle,
-  XCircle,
-  Info,
-  Warning,
-  Star,
-  Plus,
-  Minus,
-  CaretDown,
-  CaretUp,
-  ArrowRight,
-  ArrowLeft,
-  Heart,
-  MagnifyingGlass,
-  Gear,
-  Trash,
-  PencilSimple,
-  Eye,
-  EyeSlash
+  CheckCircle: CheckCircleIcon,
+  XCircle: XCircleIcon,
+  Info: InfoIcon,
+  Warning: WarningIcon,
+  Star: StarIcon,
+  Plus: PlusIcon,
+  Minus: MinusIcon,
+  CaretDown: CaretDownIcon,
+  CaretUp: CaretUpIcon,
+  ArrowRight: ArrowRightIcon,
+  ArrowLeft: ArrowLeftIcon,
+  Heart: HeartIcon,
+  MagnifyingGlass: MagnifyingGlassIcon,
+  Gear: GearIcon,
+  Trash: TrashIcon,
+  PencilSimple: PencilSimpleIcon,
+  Eye: EyeIcon,
+  EyeSlash: EyeSlashIcon
 }
 
 const scope = {
@@ -95,7 +96,7 @@ function CopyButton({ code }: { code: string }) {
         aria-label='Copy code to clipboard'
       >
         {copied && 'Copied!'}
-        <Copy size={16} weight='bold' />
+        <CopyIcon weight='bold' className='size-4' />
       </Button>
     </div>
   )

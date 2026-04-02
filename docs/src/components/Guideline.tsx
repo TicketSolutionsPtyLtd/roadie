@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-import { CheckCircle, XCircle } from '@phosphor-icons/react/ssr'
+import { CheckCircleIcon, XCircleIcon } from '@phosphor-icons/react/ssr'
 
 import { CodePreview } from './CodePreview'
 
@@ -16,7 +16,7 @@ function GuidelineCard({
   children: ReactNode
 }) {
   const isDo = type === 'do'
-  const Icon = isDo ? CheckCircle : XCircle
+  const Icon = isDo ? CheckCircleIcon : XCircleIcon
   const hasVisual = example || code
 
   return (
