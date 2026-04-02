@@ -218,7 +218,7 @@ export default function LayoutPage() {
         </p>
 
         <div className='grid gap-4'>
-          <div className='grid sm:grid-cols-2 gap-4'>
+          <div className='grid sm:grid-cols-2 gap-4 items-start'>
             <div className='grid gap-2'>
               <h3 className='text-display-ui-6 text-strong'>
                 Constraints over fixed
@@ -242,7 +242,7 @@ export default function LayoutPage() {
             </div>
           </div>
 
-          <div className='grid sm:grid-cols-2 gap-4'>
+          <div className='grid sm:grid-cols-2 gap-4 items-start'>
             <div className='grid gap-2'>
               <h3 className='text-display-ui-6 text-strong'>fit-content</h3>
               <p className='text-sm text-subtle'>
@@ -279,7 +279,7 @@ export default function LayoutPage() {
         </p>
 
         <div className='grid gap-4'>
-          <div className='grid sm:grid-cols-2 gap-4'>
+          <div className='grid sm:grid-cols-2 gap-4 items-start'>
             <div className='grid gap-2'>
               <h3 className='text-display-ui-6 intent-danger text-subtle'>
                 Don&apos;t — media query
@@ -323,7 +323,7 @@ export default function LayoutPage() {
             <h3 className='text-display-ui-6 text-strong'>
               Live example — resize the columns
             </h3>
-            <div className='grid sm:grid-cols-2 gap-4'>
+            <div className='grid sm:grid-cols-2 gap-4 items-start'>
               <div className='@container'>
                 <div className='grid @sm:grid-cols-[80px_1fr] gap-3 bg-raised rounded-lg p-4'>
                   <div className='bg-subtle rounded aspect-square' />
