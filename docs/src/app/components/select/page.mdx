@@ -22,13 +22,37 @@ import { Select } from '@oztix/roadie-components'
 ### Default
 
 ```tsx-live
-<Select defaultValue='apple'>
-  <Select.Trigger />
-  <Select.Popup>
-    <Select.Item value='apple'>Apple</Select.Item>
-    <Select.Item value='banana'>Banana</Select.Item>
-    <Select.Item value='cherry'>Cherry</Select.Item>
-  </Select.Popup>
+<Select defaultValue='powderfinger'>
+  <Select.Trigger>
+    <Select.Value placeholder='Pick a band' />
+    <Select.Icon />
+  </Select.Trigger>
+  <Select.Portal>
+    <Select.Positioner>
+      <Select.Popup>
+        <Select.Item value='powderfinger'>
+          <Select.ItemText>Powderfinger</Select.ItemText>
+          <Select.ItemIndicator />
+        </Select.Item>
+        <Select.Item value='custard'>
+          <Select.ItemText>Custard</Select.ItemText>
+          <Select.ItemIndicator />
+        </Select.Item>
+        <Select.Item value='regurgitator'>
+          <Select.ItemText>Regurgitator</Select.ItemText>
+          <Select.ItemIndicator />
+        </Select.Item>
+        <Select.Item value='violent-soho'>
+          <Select.ItemText>Violent Soho</Select.ItemText>
+          <Select.ItemIndicator />
+        </Select.Item>
+        <Select.Item value='dz-deathrays'>
+          <Select.ItemText>DZ Deathrays</Select.ItemText>
+          <Select.ItemIndicator />
+        </Select.Item>
+      </Select.Popup>
+    </Select.Positioner>
+  </Select.Portal>
 </Select>
 ```
 
@@ -36,17 +60,41 @@ import { Select } from '@oztix/roadie-components'
 
 ```tsx-live
 <div className='grid gap-2'>
-  <Select defaultValue='default'>
-    <Select.Trigger emphasis='default' />
-    <Select.Popup>
-      <Select.Item value='default'>Default emphasis</Select.Item>
-    </Select.Popup>
+  <Select defaultValue='go-betweens'>
+    <Select.Trigger emphasis='default'>
+      <Select.Value />
+      <Select.Icon />
+    </Select.Trigger>
+    <Select.Portal>
+      <Select.Positioner>
+        <Select.Popup>
+          <Select.Item value='go-betweens'>
+            <Select.ItemText>The Go-Betweens</Select.ItemText>
+          </Select.Item>
+          <Select.Item value='saints'>
+            <Select.ItemText>The Saints</Select.ItemText>
+          </Select.Item>
+        </Select.Popup>
+      </Select.Positioner>
+    </Select.Portal>
   </Select>
-  <Select defaultValue='subtle'>
-    <Select.Trigger emphasis='subtle' />
-    <Select.Popup>
-      <Select.Item value='subtle'>Subtle emphasis</Select.Item>
-    </Select.Popup>
+  <Select defaultValue='bee-gees'>
+    <Select.Trigger emphasis='subtle'>
+      <Select.Value />
+      <Select.Icon />
+    </Select.Trigger>
+    <Select.Portal>
+      <Select.Positioner>
+        <Select.Popup>
+          <Select.Item value='bee-gees'>
+            <Select.ItemText>Bee Gees</Select.ItemText>
+          </Select.Item>
+          <Select.Item value='savage-garden'>
+            <Select.ItemText>Savage Garden</Select.ItemText>
+          </Select.Item>
+        </Select.Popup>
+      </Select.Positioner>
+    </Select.Portal>
   </Select>
 </div>
 ```
@@ -55,51 +103,95 @@ import { Select } from '@oztix/roadie-components'
 
 ```tsx-live
 <div className='grid gap-2'>
-  <Select defaultValue='sm'>
-    <Select.Trigger size='sm' />
-    <Select.Popup>
-      <Select.Item value='sm'>Small</Select.Item>
-    </Select.Popup>
+  <Select defaultValue='ball-park-music'>
+    <Select.Trigger size='sm'>
+      <Select.Value />
+      <Select.Icon />
+    </Select.Trigger>
+    <Select.Portal>
+      <Select.Positioner>
+        <Select.Popup>
+          <Select.Item value='ball-park-music'>
+            <Select.ItemText>Ball Park Music</Select.ItemText>
+          </Select.Item>
+        </Select.Popup>
+      </Select.Positioner>
+    </Select.Portal>
   </Select>
-  <Select defaultValue='md'>
-    <Select.Trigger size='md' />
-    <Select.Popup>
-      <Select.Item value='md'>Medium (default)</Select.Item>
-    </Select.Popup>
+  <Select defaultValue='cub-sport'>
+    <Select.Trigger size='md'>
+      <Select.Value />
+      <Select.Icon />
+    </Select.Trigger>
+    <Select.Portal>
+      <Select.Positioner>
+        <Select.Popup>
+          <Select.Item value='cub-sport'>
+            <Select.ItemText>Cub Sport</Select.ItemText>
+          </Select.Item>
+        </Select.Popup>
+      </Select.Positioner>
+    </Select.Portal>
   </Select>
-  <Select defaultValue='lg'>
-    <Select.Trigger size='lg' />
-    <Select.Popup>
-      <Select.Item value='lg'>Large</Select.Item>
-    </Select.Popup>
+  <Select defaultValue='jungle-giants'>
+    <Select.Trigger size='lg'>
+      <Select.Value />
+      <Select.Icon />
+    </Select.Trigger>
+    <Select.Portal>
+      <Select.Positioner>
+        <Select.Popup>
+          <Select.Item value='jungle-giants'>
+            <Select.ItemText>The Jungle Giants</Select.ItemText>
+          </Select.Item>
+        </Select.Popup>
+      </Select.Positioner>
+    </Select.Portal>
   </Select>
 </div>
 ```
 
 ### States
 
-The select trigger uses a raised surface with the same interaction states
-as other form controls. Focus shows accent colouring, disabled reduces
-opacity.
+The trigger uses `is-field-interactive` for state-based colour transitions:
+neutral at rest, accent on focus/open, danger when invalid.
 
 ```tsx-live
 <div className='grid gap-4'>
   <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Default</p>
-    <Select defaultValue='option'>
-      <Select.Trigger />
-      <Select.Popup>
-        <Select.Item value='option'>Select an option</Select.Item>
-      </Select.Popup>
+    <Select defaultValue='goon-sax'>
+      <Select.Trigger>
+        <Select.Value />
+        <Select.Icon />
+      </Select.Trigger>
+      <Select.Portal>
+        <Select.Positioner>
+          <Select.Popup>
+            <Select.Item value='goon-sax'>
+              <Select.ItemText>The Goon Sax</Select.ItemText>
+            </Select.Item>
+          </Select.Popup>
+        </Select.Positioner>
+      </Select.Portal>
     </Select>
   </div>
   <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Disabled</p>
-    <Select defaultValue='disabled'>
-      <Select.Trigger disabled />
-      <Select.Popup>
-        <Select.Item value='disabled'>Cannot change</Select.Item>
-      </Select.Popup>
+    <Select defaultValue='powderfinger' disabled>
+      <Select.Trigger>
+        <Select.Value />
+        <Select.Icon />
+      </Select.Trigger>
+      <Select.Portal>
+        <Select.Positioner>
+          <Select.Popup>
+            <Select.Item value='powderfinger'>
+              <Select.ItemText>Powderfinger</Select.ItemText>
+            </Select.Item>
+          </Select.Popup>
+        </Select.Positioner>
+      </Select.Portal>
     </Select>
   </div>
 </div>
@@ -107,20 +199,127 @@ opacity.
 
 ### Composition
 
-Select exposes sub-components for trigger, popup, item, and label.
+#### With label
 
 ```tsx-live
-<div className='grid gap-1.5'>
-  <Select.Label>Favourite fruit</Select.Label>
-  <Select defaultValue='apple'>
-    <Select.Trigger />
-    <Select.Popup>
-      <Select.Item value='apple'>Apple</Select.Item>
-      <Select.Item value='banana'>Banana</Select.Item>
-      <Select.Item value='cherry'>Cherry</Select.Item>
-    </Select.Popup>
-  </Select>
-</div>
+<Select defaultValue='powderfinger'>
+  <div className='grid gap-1.5'>
+    <Select.Label>Favourite band</Select.Label>
+    <Select.Trigger>
+      <Select.Value placeholder='Pick a band' />
+      <Select.Icon />
+    </Select.Trigger>
+  </div>
+  <Select.Portal>
+    <Select.Positioner>
+      <Select.Popup>
+        <Select.Item value='powderfinger'>
+          <Select.ItemText>Powderfinger</Select.ItemText>
+          <Select.ItemIndicator />
+        </Select.Item>
+        <Select.Item value='custard'>
+          <Select.ItemText>Custard</Select.ItemText>
+          <Select.ItemIndicator />
+        </Select.Item>
+        <Select.Item value='regurgitator'>
+          <Select.ItemText>Regurgitator</Select.ItemText>
+          <Select.ItemIndicator />
+        </Select.Item>
+      </Select.Popup>
+    </Select.Positioner>
+  </Select.Portal>
+</Select>
 ```
+
+#### With groups
+
+```tsx-live
+<Select defaultValue='powderfinger'>
+  <Select.Trigger>
+    <Select.Value placeholder='Pick a band' />
+    <Select.Icon />
+  </Select.Trigger>
+  <Select.Portal>
+    <Select.Positioner>
+      <Select.Popup>
+        <Select.Group>
+          <Select.GroupLabel>Brisbane</Select.GroupLabel>
+          <Select.Item value='powderfinger'>
+            <Select.ItemText>Powderfinger</Select.ItemText>
+            <Select.ItemIndicator />
+          </Select.Item>
+          <Select.Item value='custard'>
+            <Select.ItemText>Custard</Select.ItemText>
+            <Select.ItemIndicator />
+          </Select.Item>
+          <Select.Item value='go-betweens'>
+            <Select.ItemText>The Go-Betweens</Select.ItemText>
+            <Select.ItemIndicator />
+          </Select.Item>
+          <Select.Item value='saints'>
+            <Select.ItemText>The Saints</Select.ItemText>
+            <Select.ItemIndicator />
+          </Select.Item>
+        </Select.Group>
+        <Select.Group>
+          <Select.GroupLabel>Gold Coast</Select.GroupLabel>
+          <Select.Item value='violent-soho'>
+            <Select.ItemText>Violent Soho</Select.ItemText>
+            <Select.ItemIndicator />
+          </Select.Item>
+          <Select.Item value='dz-deathrays'>
+            <Select.ItemText>DZ Deathrays</Select.ItemText>
+            <Select.ItemIndicator />
+          </Select.Item>
+          <Select.Item value='goon-sax'>
+            <Select.ItemText>The Goon Sax</Select.ItemText>
+            <Select.ItemIndicator />
+          </Select.Item>
+        </Select.Group>
+      </Select.Popup>
+    </Select.Positioner>
+  </Select.Portal>
+</Select>
+```
+
+## Guidelines
+
+### When to use Select
+
+Use Select when the list of options is **known, short, and fixed**. The user
+picks from a closed set — they don't need to search or type a custom value.
+
+- Country/state dropdowns (small set)
+- Status or category pickers
+- Sort-by controls
+- Any list under ~15 items where scanning is faster than typing
+
+### When to use Combobox instead
+
+If users are likely to **search** the list, the list is **long** (15+ items), or
+options load **asynchronously**, use [Combobox](/components/combobox).
+
+| Question | Select | Combobox |
+|---|---|---|
+| Can the user type to filter? | No (typeahead only) | Yes |
+| Is the list longer than ~15 items? | Avoid | Preferred |
+| Are options loaded from an API? | No | Yes |
+| Can the user enter a custom value? | No | Possible |
+| Does the user know roughly what they want? | Maybe not — they browse | Yes — they search |
+
+### Keyboard behaviour
+
+Select delegates all keyboard handling to Base UI:
+
+- **Arrow keys** navigate the list
+- **Typeahead** jumps to items by first letter(s)
+- **Enter / Space** confirms the highlighted item
+- **Escape** closes the popup
+
+### Accessibility
+
+- Always pair with `Select.Label` or an `aria-label` on the trigger.
+- `Select.ItemIndicator` provides a visible check for the selected item — include it for clarity.
+- The popup locks scroll by default (`modal={true}`). Set `modal={false}` if the select appears in a non-blocking context like a toolbar.
 
 <PropsDefinitions componentPath='packages/components/src/components/Select/index.tsx' />

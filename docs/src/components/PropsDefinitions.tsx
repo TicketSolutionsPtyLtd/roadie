@@ -123,7 +123,7 @@ function PropsList({
   )
 }
 
-export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
+function parseComponentProps(componentPath: string) {
   const workspaceRoot = path.resolve(process.cwd(), '..')
   const absolutePath = path.join(workspaceRoot, componentPath)
 
@@ -135,68 +135,108 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
         shouldExtractLiteralValuesFromEnum: true,
         shouldRemoveUndefinedFromOptional: true,
         propFilter: (prop: PropItem): boolean => {
+          // Always exclude internal React/HTML props that add noise
+          const skipProps = new Set([
+            'ref',
+            'key',
+            'style',
+            'dangerouslySetInnerHTML'
+          ])
+          if (skipProps.has(prop.name)) return false
+
           if (!prop.declarations?.length) {
             return true
           }
 
+          // Include props declared in our component files
           const isFromOurComponents = prop.declarations.some(
             (d) =>
               d.fileName.includes('/components/') &&
               !d.fileName.includes('node_modules')
           )
 
+          // Include props whose parent interface is in our code
           const isFromParentComponent =
             prop.parent?.fileName.includes('/components/') &&
             !prop.parent.fileName.includes('node_modules')
 
-          return Boolean(isFromOurComponents || isFromParentComponent)
+          // Include props from Base UI component interfaces
+          // (these are the useful props consumers actually configure)
+          const isFromBaseUI = prop.parent?.fileName.includes('@base-ui/react')
+
+          return Boolean(
+            isFromOurComponents || isFromParentComponent || isFromBaseUI
+          )
         },
         skipChildrenPropWithoutDoc: true
       }
     )
 
     const result = parser.parse(absolutePath)
-    const componentInfo = result[0]
-    if (!componentInfo) return null
+    if (!result.length) return null
 
-    const groupedProps = groupPropsBySource(
-      componentInfo.props,
-      componentInfo.displayName
-    )
+    // Filter to components that have own props worth showing
+    const components = result.filter((info) => {
+      const grouped = groupPropsBySource(info.props, info.displayName)
+      return (
+        Object.keys(grouped.ownProps).length > 0 ||
+        Object.keys(grouped.inheritedProps).length > 0
+      )
+    })
 
-    const interfaceName =
-      Object.values(componentInfo.props)[0]?.parent?.name ||
-      `${componentInfo.displayName}Props`
-
-    return (
-      <div className='mt-8 grid gap-4 pt-8'>
-        <h2 className='text-xl font-bold'>Props</h2>
-        <dl className='grid overflow-hidden rounded-xl border border-subtler'>
-          <div className='grid gap-1 bg-subtler px-4 py-3'>
-            <h3 className='text-xl font-bold'>{interfaceName}</h3>
-            {!!componentInfo.description && (
-              <p className='text-subtle'>{componentInfo.description}</p>
-            )}
-          </div>
-
-          {Object.keys(groupedProps.ownProps).length > 0 && (
-            <PropsList props={groupedProps.ownProps} />
-          )}
-
-          {Object.entries(groupedProps.inheritedProps).map(
-            ([source, { props }]) => (
-              <PropsList
-                key={source}
-                props={props}
-                title={`Inherited from ${source}`}
-              />
-            )
-          )}
-        </dl>
-      </div>
-    )
+    if (!components.length) return null
+    return components
   } catch (error) {
     console.error('Error parsing component:', error)
     return null
   }
+}
+
+export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
+  const components = parseComponentProps(componentPath)
+  if (!components) return null
+
+  return (
+    <div className='mt-8 grid gap-4 pt-8'>
+      <h2 className='text-xl font-bold'>Props</h2>
+      {components.map((componentInfo) => {
+        const groupedProps = groupPropsBySource(
+          componentInfo.props,
+          componentInfo.displayName
+        )
+
+        const interfaceName =
+          Object.values(componentInfo.props)[0]?.parent?.name ||
+          `${componentInfo.displayName}Props`
+
+        return (
+          <dl
+            key={componentInfo.displayName}
+            className='grid overflow-hidden rounded-xl border border-subtler'
+          >
+            <div className='grid gap-1 bg-subtler px-4 py-3'>
+              <h3 className='text-xl font-bold'>{interfaceName}</h3>
+              {!!componentInfo.description && (
+                <p className='text-subtle'>{componentInfo.description}</p>
+              )}
+            </div>
+
+            {Object.keys(groupedProps.ownProps).length > 0 && (
+              <PropsList props={groupedProps.ownProps} />
+            )}
+
+            {Object.entries(groupedProps.inheritedProps).map(
+              ([source, { props }]) => (
+                <PropsList
+                  key={source}
+                  props={props}
+                  title={`Inherited from ${source}`}
+                />
+              )
+            )}
+          </dl>
+        )
+      })}
+    </div>
+  )
 }

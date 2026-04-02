@@ -7,10 +7,42 @@ import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+/* ─── Shared icon SVGs ─── */
+
+function CaretDownSvg({ className }: { className?: string }) {
+  return (
+    <svg
+      width='16'
+      height='16'
+      viewBox='0 0 256 256'
+      fill='currentColor'
+      aria-hidden='true'
+      className={className}
+    >
+      <path d='M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z' />
+    </svg>
+  )
+}
+
+function CheckSvg({ className }: { className?: string }) {
+  return (
+    <svg
+      width='16'
+      height='16'
+      viewBox='0 0 256 256'
+      fill='currentColor'
+      aria-hidden='true'
+      className={className}
+    >
+      <path d='M232.49,80.49l-128,128a12,12,0,0,1-17,0l-56-56a12,12,0,1,1,17-17L96,183,215.51,63.51a12,12,0,0,1,17,17Z' />
+    </svg>
+  )
+}
+
 /* ─── Trigger variants (matches Input) ─── */
 
 export const selectTriggerVariants = cva(
-  'inline-flex w-full items-center justify-between rounded-lg font-sans select-none cursor-pointer',
+  'inline-flex w-full items-center justify-between rounded-lg font-sans select-none cursor-pointer text-left data-[popup-open]:bg-[var(--color-accent-2)] data-[popup-open]:border-[var(--color-accent-9)] data-[popup-open]:outline-[length:var(--focus-ring-width)]',
   {
     variants: {
       intent: {
@@ -45,7 +77,7 @@ export const selectTriggerVariants = cva(
 export interface SelectRootProps
   extends ComponentProps<typeof SelectPrimitive.Root> {}
 
-function SelectRoot(props: SelectRootProps) {
+export function SelectRoot(props: SelectRootProps) {
   return <SelectPrimitive.Root {...props} />
 }
 
@@ -57,12 +89,11 @@ export interface SelectTriggerProps
   extends ComponentProps<typeof SelectPrimitive.Trigger>,
     VariantProps<typeof selectTriggerVariants> {}
 
-function SelectTrigger({
+export function SelectTrigger({
   className,
   intent,
   emphasis,
   size,
-  children: _children,
   ...props
 }: SelectTriggerProps) {
   return (
@@ -71,49 +102,95 @@ function SelectTrigger({
         selectTriggerVariants({ intent, emphasis, size, className })
       )}
       {...props}
-    >
-      <SelectPrimitive.Value />
-      <SelectPrimitive.Icon className='ml-2 shrink-0'>
-        <svg
-          width='12'
-          height='12'
-          viewBox='0 0 12 12'
-          fill='none'
-          aria-hidden='true'
-        >
-          <path
-            d='M3 4.5L6 7.5L9 4.5'
-            stroke='currentColor'
-            strokeWidth='1.5'
-            strokeLinecap='round'
-            strokeLinejoin='round'
-          />
-        </svg>
-      </SelectPrimitive.Icon>
-    </SelectPrimitive.Trigger>
+    />
   )
 }
 
 SelectTrigger.displayName = 'Select.Trigger'
+
+/* ─── Value ─── */
+
+export interface SelectValueProps
+  extends ComponentProps<typeof SelectPrimitive.Value> {}
+
+export function SelectValue({ className, ...props }: SelectValueProps) {
+  return (
+    <SelectPrimitive.Value
+      className={cn('truncate data-[placeholder]:text-subtle', className)}
+      {...props}
+    />
+  )
+}
+
+SelectValue.displayName = 'Select.Value'
+
+/* ─── Icon ─── */
+
+export interface SelectIconProps
+  extends ComponentProps<typeof SelectPrimitive.Icon> {}
+
+export function SelectIcon({ className, children, ...props }: SelectIconProps) {
+  return (
+    <SelectPrimitive.Icon
+      className={cn(
+        'ml-2 shrink-0 text-subtle transition-transform duration-200 data-[popup-open]:rotate-180',
+        className
+      )}
+      {...props}
+    >
+      {children ?? <CaretDownSvg />}
+    </SelectPrimitive.Icon>
+  )
+}
+
+SelectIcon.displayName = 'Select.Icon'
+
+/* ─── Portal ─── */
+
+export interface SelectPortalProps
+  extends ComponentProps<typeof SelectPrimitive.Portal> {}
+
+export function SelectPortal(props: SelectPortalProps) {
+  return <SelectPrimitive.Portal {...props} />
+}
+
+SelectPortal.displayName = 'Select.Portal'
+
+/* ─── Positioner ─── */
+
+export interface SelectPositionerProps
+  extends ComponentProps<typeof SelectPrimitive.Positioner> {}
+
+export function SelectPositioner({
+  className,
+  ...props
+}: SelectPositionerProps) {
+  return (
+    <SelectPrimitive.Positioner
+      className={cn('z-50', className)}
+      alignItemWithTrigger={false}
+      {...props}
+    />
+  )
+}
+
+SelectPositioner.displayName = 'Select.Positioner'
 
 /* ─── Popup (dropdown content) ─── */
 
 export interface SelectPopupProps
   extends ComponentProps<typeof SelectPrimitive.Popup> {}
 
-function SelectPopup({ className, ...props }: SelectPopupProps) {
+export function SelectPopup({ className, ...props }: SelectPopupProps) {
   return (
-    <SelectPrimitive.Portal>
-      <SelectPrimitive.Positioner>
-        <SelectPrimitive.Popup
-          className={cn(
-            'z-50 rounded-xl border border-[var(--intent-border-subtle)] bg-raised py-1',
-            className
-          )}
-          {...props}
-        />
-      </SelectPrimitive.Positioner>
-    </SelectPrimitive.Portal>
+    <SelectPrimitive.Popup
+      className={cn(
+        'min-w-[var(--anchor-width)] rounded-xl border border-[var(--intent-border-subtle)] bg-raised p-1 shadow-lg',
+        'origin-[var(--transform-origin)] transition-[transform,scale,opacity] data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0',
+        className
+      )}
+      {...props}
+    />
   )
 }
 
@@ -124,28 +201,95 @@ SelectPopup.displayName = 'Select.Popup'
 export interface SelectItemProps
   extends ComponentProps<typeof SelectPrimitive.Item> {}
 
-function SelectItem({ className, children, ...props }: SelectItemProps) {
+export function SelectItem({ className, ...props }: SelectItemProps) {
   return (
     <SelectPrimitive.Item
       className={cn(
-        'flex cursor-pointer items-center px-3 py-1.5 text-sm text-default outline-none select-none hover:bg-subtle data-[highlighted]:bg-subtle',
+        'flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm text-default outline-none select-none',
+        'data-[highlighted]:bg-subtle',
         className
       )}
       {...props}
-    >
-      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-    </SelectPrimitive.Item>
+    />
   )
 }
 
 SelectItem.displayName = 'Select.Item'
+
+/* ─── ItemText ─── */
+
+export interface SelectItemTextProps
+  extends ComponentProps<typeof SelectPrimitive.ItemText> {}
+
+export function SelectItemText(props: SelectItemTextProps) {
+  return <SelectPrimitive.ItemText {...props} />
+}
+
+SelectItemText.displayName = 'Select.ItemText'
+
+/* ─── ItemIndicator ─── */
+
+export interface SelectItemIndicatorProps
+  extends ComponentProps<typeof SelectPrimitive.ItemIndicator> {}
+
+export function SelectItemIndicator({
+  className,
+  children,
+  ...props
+}: SelectItemIndicatorProps) {
+  return (
+    <SelectPrimitive.ItemIndicator
+      className={cn('shrink-0 text-subtle', className)}
+      {...props}
+    >
+      {children ?? <CheckSvg />}
+    </SelectPrimitive.ItemIndicator>
+  )
+}
+
+SelectItemIndicator.displayName = 'Select.ItemIndicator'
+
+/* ─── Group ─── */
+
+export interface SelectGroupProps
+  extends ComponentProps<typeof SelectPrimitive.Group> {}
+
+export function SelectGroup({ className, ...props }: SelectGroupProps) {
+  return (
+    <SelectPrimitive.Group className={cn('[&+&]:mt-1', className)} {...props} />
+  )
+}
+
+SelectGroup.displayName = 'Select.Group'
+
+/* ─── GroupLabel ─── */
+
+export interface SelectGroupLabelProps
+  extends ComponentProps<typeof SelectPrimitive.GroupLabel> {}
+
+export function SelectGroupLabel({
+  className,
+  ...props
+}: SelectGroupLabelProps) {
+  return (
+    <SelectPrimitive.GroupLabel
+      className={cn(
+        'px-2 py-1.5 text-xs font-medium text-subtle select-none',
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+SelectGroupLabel.displayName = 'Select.GroupLabel'
 
 /* ─── Label ─── */
 
 export interface SelectLabelProps
   extends ComponentProps<typeof SelectPrimitive.Label> {}
 
-function SelectLabel({ className, ...props }: SelectLabelProps) {
+export function SelectLabel({ className, ...props }: SelectLabelProps) {
   return (
     <SelectPrimitive.Label
       className={cn('text-sm font-medium text-default', className)}
@@ -156,13 +300,79 @@ function SelectLabel({ className, ...props }: SelectLabelProps) {
 
 SelectLabel.displayName = 'Select.Label'
 
+/* ─── ScrollUpArrow ─── */
+
+export interface SelectScrollUpArrowProps
+  extends ComponentProps<typeof SelectPrimitive.ScrollUpArrow> {}
+
+export function SelectScrollUpArrow({
+  className,
+  ...props
+}: SelectScrollUpArrowProps) {
+  return (
+    <SelectPrimitive.ScrollUpArrow
+      className={cn(
+        'flex items-center justify-center py-1 text-subtle',
+        className
+      )}
+      {...props}
+    >
+      <svg
+        width='12'
+        height='12'
+        viewBox='0 0 256 256'
+        fill='currentColor'
+        aria-hidden='true'
+      >
+        <path d='M216.49,168.49a12,12,0,0,1-17,0L128,97,56.49,168.49a12,12,0,0,1-17-17l80-80a12,12,0,0,1,17,0l80,80A12,12,0,0,1,216.49,168.49Z' />
+      </svg>
+    </SelectPrimitive.ScrollUpArrow>
+  )
+}
+
+SelectScrollUpArrow.displayName = 'Select.ScrollUpArrow'
+
+/* ─── ScrollDownArrow ─── */
+
+export interface SelectScrollDownArrowProps
+  extends ComponentProps<typeof SelectPrimitive.ScrollDownArrow> {}
+
+export function SelectScrollDownArrow({
+  className,
+  ...props
+}: SelectScrollDownArrowProps) {
+  return (
+    <SelectPrimitive.ScrollDownArrow
+      className={cn(
+        'flex items-center justify-center py-1 text-subtle',
+        className
+      )}
+      {...props}
+    >
+      <CaretDownSvg />
+    </SelectPrimitive.ScrollDownArrow>
+  )
+}
+
+SelectScrollDownArrow.displayName = 'Select.ScrollDownArrow'
+
 /* ─── Compound export ─── */
 
 export const Select = Object.assign(SelectRoot, {
   Trigger: SelectTrigger,
+  Value: SelectValue,
+  Icon: SelectIcon,
+  Portal: SelectPortal,
+  Positioner: SelectPositioner,
   Popup: SelectPopup,
   Item: SelectItem,
-  Label: SelectLabel
+  ItemText: SelectItemText,
+  ItemIndicator: SelectItemIndicator,
+  Group: SelectGroup,
+  GroupLabel: SelectGroupLabel,
+  Label: SelectLabel,
+  ScrollUpArrow: SelectScrollUpArrow,
+  ScrollDownArrow: SelectScrollDownArrow
 })
 
 export type SelectProps = SelectRootProps

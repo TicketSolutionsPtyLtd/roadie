@@ -1,0 +1,305 @@
+export const metadata = {
+  title: 'Combobox',
+  description: 'A searchable dropdown for filtering and selecting from a list of options',
+  status: 'beta',
+  category: 'Inputs',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Combobox
+
+A searchable dropdown for filtering and selecting from a list of options.
+
+## Import
+
+```tsx
+import { Combobox } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+function ComboboxDefault() {
+  const bands = [
+    'Powderfinger',
+    'Custard',
+    'Regurgitator',
+    'The Go-Betweens',
+    'Violent Soho',
+    'DZ Deathrays',
+    'Ball Park Music',
+    'The Goon Sax',
+    'Cub Sport',
+    'The Jungle Giants',
+  ]
+
+  return (
+    <Combobox items={bands}>
+      <Combobox.InputGroup>
+        <Combobox.Input placeholder='Search bands...' />
+        <Combobox.Trigger />
+      </Combobox.InputGroup>
+      <Combobox.Portal>
+        <Combobox.Positioner>
+          <Combobox.Popup>
+            <Combobox.List>
+              {(band) => (
+                <Combobox.Item key={band} value={band}>
+                  {band}
+                  <Combobox.ItemIndicator />
+                </Combobox.Item>
+              )}
+            </Combobox.List>
+            <Combobox.Empty>No bands found</Combobox.Empty>
+          </Combobox.Popup>
+        </Combobox.Positioner>
+      </Combobox.Portal>
+    </Combobox>
+  )
+}
+```
+
+### Emphasis
+
+```tsx-live
+<div className='grid gap-2'>
+  <Combobox>
+    <Combobox.InputGroup emphasis='default'>
+      <Combobox.Input placeholder='Default emphasis' />
+      <Combobox.Trigger />
+    </Combobox.InputGroup>
+  </Combobox>
+  <Combobox>
+    <Combobox.InputGroup emphasis='subtle'>
+      <Combobox.Input placeholder='Subtle emphasis' />
+      <Combobox.Trigger />
+    </Combobox.InputGroup>
+  </Combobox>
+</div>
+```
+
+### Sizes
+
+```tsx-live
+<div className='grid gap-2'>
+  <Combobox>
+    <Combobox.InputGroup size='sm'>
+      <Combobox.Input placeholder='Small' />
+      <Combobox.Trigger />
+    </Combobox.InputGroup>
+  </Combobox>
+  <Combobox>
+    <Combobox.InputGroup size='md'>
+      <Combobox.Input placeholder='Medium (default)' />
+      <Combobox.Trigger />
+    </Combobox.InputGroup>
+  </Combobox>
+  <Combobox>
+    <Combobox.InputGroup size='lg'>
+      <Combobox.Input placeholder='Large' />
+      <Combobox.Trigger />
+    </Combobox.InputGroup>
+  </Combobox>
+</div>
+```
+
+### States
+
+```tsx-live
+<div className='grid gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Default</p>
+    <Combobox>
+      <Combobox.InputGroup>
+        <Combobox.Input placeholder='Search...' />
+        <Combobox.Trigger />
+      </Combobox.InputGroup>
+    </Combobox>
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <Combobox disabled>
+      <Combobox.InputGroup>
+        <Combobox.Input placeholder='Search...' />
+        <Combobox.Trigger />
+      </Combobox.InputGroup>
+    </Combobox>
+  </div>
+</div>
+```
+
+### Composition
+
+#### With label and clear
+
+```tsx-live
+function ComboboxWithLabel() {
+  const bands = [
+    'Powderfinger',
+    'Custard',
+    'Regurgitator',
+    'Violent Soho',
+    'DZ Deathrays',
+    'Ball Park Music',
+  ]
+
+  return (
+    <Combobox items={bands}>
+      <div className='grid gap-1.5'>
+        <label className='text-sm font-medium text-default'>Favourite band</label>
+        <Combobox.InputGroup>
+          <Combobox.Input placeholder='Search bands...' />
+          <Combobox.Clear />
+          <Combobox.Trigger />
+        </Combobox.InputGroup>
+      </div>
+      <Combobox.Portal>
+        <Combobox.Positioner>
+          <Combobox.Popup>
+            <Combobox.List>
+              {(band) => (
+                <Combobox.Item key={band} value={band}>
+                  {band}
+                  <Combobox.ItemIndicator />
+                </Combobox.Item>
+              )}
+            </Combobox.List>
+            <Combobox.Empty>No bands found</Combobox.Empty>
+          </Combobox.Popup>
+        </Combobox.Positioner>
+      </Combobox.Portal>
+    </Combobox>
+  )
+}
+```
+
+#### With groups
+
+```tsx-live
+function ComboboxWithGroups() {
+  const groups = [
+    {
+      value: 'Brisbane',
+      items: ['Powderfinger', 'Custard', 'Regurgitator', 'The Go-Betweens', 'The Saints'],
+    },
+    {
+      value: 'Gold Coast',
+      items: ['Violent Soho', 'DZ Deathrays', 'The Goon Sax', 'Cub Sport'],
+    },
+  ]
+
+  return (
+    <Combobox items={groups}>
+      <Combobox.InputGroup>
+        <Combobox.Input placeholder='Search by region...' />
+        <Combobox.Trigger />
+      </Combobox.InputGroup>
+      <Combobox.Portal>
+        <Combobox.Positioner>
+          <Combobox.Popup>
+            <Combobox.List>
+              {groups.map((group) => (
+                <Combobox.Group key={group.value} items={group.items}>
+                  <Combobox.GroupLabel>{group.value}</Combobox.GroupLabel>
+                  <Combobox.Collection>
+                    {(band) => (
+                      <Combobox.Item key={band} value={band}>
+                        {band}
+                        <Combobox.ItemIndicator />
+                      </Combobox.Item>
+                    )}
+                  </Combobox.Collection>
+                </Combobox.Group>
+              ))}
+            </Combobox.List>
+            <Combobox.Empty>No bands found</Combobox.Empty>
+          </Combobox.Popup>
+        </Combobox.Positioner>
+      </Combobox.Portal>
+    </Combobox>
+  )
+}
+```
+
+## Guidelines
+
+### When to use Combobox
+
+Use Combobox when the user needs to **search or filter** a list, or when options
+are **loaded from an API**. The input lets users narrow results by typing — they
+usually know roughly what they're looking for.
+
+- Venue or event search
+- Assignee pickers (team members from an API)
+- Tag or category selection with many options
+- Any list over ~15 items
+- Lists that load asynchronously
+
+### When to use Select instead
+
+If the list is **short, fixed, and fully known** (under ~15 items), use
+[Select](/components/select). Users browse rather than search — no text input
+needed.
+
+### Combobox vs Autocomplete (future)
+
+Autocomplete will be for **free-text input with suggestions** — the user's typed
+value is always valid, suggestions just help. Think address fields or search bars.
+
+| Question | Select | Combobox | Autocomplete (future) |
+|---|---|---|---|
+| User types to filter? | No | Yes | Yes |
+| Must pick from the list? | Yes | Yes | No — typed value is valid |
+| Options from an API? | No | Yes | Yes |
+| Custom/free-text value? | No | No | Yes |
+| Primary interaction | Browse and pick | Search and pick | Type with suggestions |
+| Typical list size | 2-15 items | 10-500+ items | Any |
+
+### Filtering
+
+Pass the `items` prop to `Combobox` root for built-in client-side filtering. Use
+`Combobox.List` with a render function child to template each filtered item:
+
+```tsx
+<Combobox items={bands}>
+  ...
+  <Combobox.List>
+    {(band) => <Combobox.Item value={band}>{band}</Combobox.Item>}
+  </Combobox.List>
+  <Combobox.Empty>No results</Combobox.Empty>
+</Combobox>
+```
+
+`Combobox.Empty` only renders when the filtered list is empty. It requires the
+`items` prop on root.
+
+### Async loading
+
+For server-side search, update the `items` prop as results arrive. Use
+`Combobox.Status` to announce state changes to screen readers:
+
+```tsx
+<Combobox items={results} onInputValueChange={(value) => fetchResults(value)}>
+  ...
+  <Combobox.Status>{isLoading ? 'Loading...' : `${results.length} results`}</Combobox.Status>
+</Combobox>
+```
+
+### Keyboard behaviour
+
+- **Arrow keys** navigate the list
+- **Enter** confirms the highlighted item
+- **Escape** closes the popup
+- Typing filters the list in real time
+
+### Accessibility
+
+- Use a `<label>` or `Combobox.Label` to name the input.
+- `Combobox.ItemIndicator` shows a check on the selected item — include it for clarity.
+- `Combobox.Empty` announces "no results" to screen readers automatically.
+- `Combobox.Status` is a live region — use it for async status like loading or result counts.
+
+<PropsDefinitions componentPath='packages/components/src/components/Combobox/index.tsx' />

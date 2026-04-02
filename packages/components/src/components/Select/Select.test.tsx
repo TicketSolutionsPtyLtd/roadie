@@ -7,7 +7,10 @@ describe('Select', () => {
   it('renders root component', () => {
     const { container } = render(
       <Select>
-        <Select.Trigger />
+        <Select.Trigger>
+          <Select.Value placeholder='Pick one' />
+          <Select.Icon />
+        </Select.Trigger>
       </Select>
     )
     expect(container).toBeInTheDocument()
@@ -15,6 +18,8 @@ describe('Select', () => {
 
   it('renders Trigger with default variant classes', () => {
     const classes = selectTriggerVariants()
+    expect(classes).toContain('emphasis-raised')
+    expect(classes).toContain('is-field-interactive')
     expect(classes).not.toContain('intent-neutral')
   })
 
@@ -47,7 +52,10 @@ describe('Select', () => {
     const { getByText } = render(
       <Select>
         <Select.Label>Choose option</Select.Label>
-        <Select.Trigger />
+        <Select.Trigger>
+          <Select.Value placeholder='Pick one' />
+          <Select.Icon />
+        </Select.Trigger>
       </Select>
     )
     expect(getByText('Choose option')).toBeInTheDocument()

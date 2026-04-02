@@ -9,7 +9,7 @@ describe('Card', () => {
     const card = getByText('Content')
     expect(card).toBeInTheDocument()
     expect(card.tagName.toLowerCase()).toBe('div')
-    expect(card).toHaveClass('rounded-xl', 'bg-default')
+    expect(card).toHaveClass('rounded-xl', 'emphasis-default')
   })
 
   it('renders with different intents', () => {
@@ -30,10 +30,10 @@ describe('Card', () => {
     expect(getByText('Raised')).toHaveClass('emphasis-raised')
 
     rerender(<Card emphasis='subtle'>Subtle</Card>)
-    expect(getByText('Subtle')).toHaveClass('bg-subtle')
+    expect(getByText('Subtle')).toHaveClass('emphasis-subtle')
 
     rerender(<Card emphasis='default'>Default</Card>)
-    expect(getByText('Default')).toHaveClass('bg-default')
+    expect(getByText('Default')).toHaveClass('emphasis-default')
   })
 
   it('renders Header sub-component', () => {
