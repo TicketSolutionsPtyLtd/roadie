@@ -284,8 +284,8 @@ export default function LayoutPage() {
               <h3 className='text-display-ui-6 intent-danger text-strong'>
                 Don&apos;t — media query
               </h3>
-              <div className='emphasis-sunken rounded-lg p-4'>
-                <pre className='text-xs font-mono text-subtle overflow-x-auto'>
+              <div className='emphasis-sunken rounded-lg p-4 min-w-0'>
+                <pre className='text-xs font-mono text-subtle overflow-x-auto min-w-0'>
                   {`{/* Responds to viewport — breaks in narrow columns */}
 <div className="grid md:grid-cols-[auto_1fr]">
   <img />
@@ -298,8 +298,8 @@ export default function LayoutPage() {
               <h3 className='text-display-ui-6 intent-success text-strong'>
                 Do — container query
               </h3>
-              <div className='emphasis-sunken rounded-lg p-4'>
-                <pre className='text-xs font-mono text-subtle overflow-x-auto'>
+              <div className='emphasis-sunken rounded-lg p-4 min-w-0'>
+                <pre className='text-xs font-mono text-subtle overflow-x-auto min-w-0'>
                   {`{/* Responds to parent width */}
 <div className="@container">
   <div className="grid @sm:grid-cols-[auto_1fr]">
