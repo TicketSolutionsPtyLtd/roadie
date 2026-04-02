@@ -152,21 +152,33 @@ export default function ElevationPage() {
         </Heading>
         <p className='text-subtle'>
           A subtle inner highlight for raised surfaces. Adds a polished,
-          glass-like edge. Apply with <Code>rim-light</Code>. Already included
-          in <Code>emphasis-raised</Code> and <Code>emphasis-floating</Code>.
+          glass-like edge. Four levels available, used automatically by emphasis
+          presets.
         </p>
 
-        <div className='grid gap-6 sm:grid-cols-2'>
-          <div className='view gap-2'>
-            <div className='rim-light shadow-md rounded-lg bg-raised p-6'>
-              <p className='text-sm text-strong font-mono'>
-                rim-light + shadow-md
-              </p>
+        <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-4'>
+          {[
+            {
+              name: 'rim-light-subtler',
+              desc: 'Barely visible — subtle surfaces'
+            },
+            { name: 'rim-light-subtle', desc: 'Gentle — strong buttons' },
+            { name: 'rim-light-default', desc: 'Standard — rim-light utility' },
+            {
+              name: 'rim-light-strong',
+              desc: 'Prominent — raised/floating surfaces'
+            }
+          ].map(({ name, desc }) => (
+            <div key={name} className='view gap-2'>
+              <div
+                className='shadow-md rounded-lg bg-raised p-6'
+                style={{ boxShadow: `var(--${name}), var(--shadow-md)` }}
+              >
+                <p className='text-xs text-strong font-mono'>{name}</p>
+              </div>
+              <p className='text-xs text-subtle'>{desc}</p>
             </div>
-            <p className='text-sm text-subtle'>
-              Combine with any shadow level for depth + highlight
-            </p>
-          </div>
+          ))}
         </div>
       </section>
 
@@ -214,9 +226,9 @@ export default function ElevationPage() {
             <tbody className='divide-y divide-subtler'>
               <tr>
                 <td className='py-2 pr-4 font-mono'>emphasis-raised</td>
-                <td className='py-2 pr-4'>rim-light + shadow-md</td>
-                <td className='py-2 pr-4'>rim-light + shadow-lg</td>
-                <td className='py-2'>rim-light + shadow-sm</td>
+                <td className='py-2 pr-4'>rim-light-strong + shadow-md</td>
+                <td className='py-2 pr-4'>rim-light-strong + shadow-lg</td>
+                <td className='py-2'>rim-light-strong + shadow-sm</td>
               </tr>
               <tr>
                 <td className='py-2 pr-4 font-mono'>emphasis-sunken</td>
@@ -226,14 +238,14 @@ export default function ElevationPage() {
               </tr>
               <tr>
                 <td className='py-2 pr-4 font-mono'>emphasis-floating</td>
-                <td className='py-2 pr-4'>rim-light + shadow-xl</td>
+                <td className='py-2 pr-4'>rim-light-strong + shadow-xl</td>
                 <td className='py-2 pr-4'>—</td>
                 <td className='py-2'>—</td>
               </tr>
               <tr>
                 <td className='py-2 pr-4 font-mono'>emphasis-strong</td>
-                <td className='py-2 pr-4'>none</td>
-                <td className='py-2 pr-4'>shadow-sm + lift</td>
+                <td className='py-2 pr-4'>rim-light-subtle</td>
+                <td className='py-2 pr-4'>rim-light-subtle + shadow-sm</td>
                 <td className='py-2'>none + press</td>
               </tr>
             </tbody>

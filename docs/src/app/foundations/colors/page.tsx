@@ -1,4 +1,4 @@
-import { Heading } from '@oztix/roadie-components'
+import { Code, Heading } from '@oztix/roadie-components'
 
 export const metadata = {
   title: 'Colors',
@@ -42,21 +42,22 @@ function ColorScale({ intent }: { intent: string }) {
   )
 }
 
-function EmphasisDemo({ intent }: { intent: string }) {
+function IntentDemo({ intent }: { intent: string }) {
   return (
-    <div className={`intent-${intent} flex flex-col gap-2`}>
-      <div className='flex gap-2'>
+    <div className={`intent-${intent} flex flex-col gap-3`}>
+      <p className='text-sm text-strong capitalize'>{intent}</p>
+      <div className='flex flex-wrap gap-2'>
         <div className='emphasis-strong rounded-md px-3 py-1.5 text-sm'>
-          strong
+          emphasis-strong
         </div>
-        <div className='emphasis-subtle rounded-md px-3 py-1.5 text-sm text-default'>
-          subtle
+        <div className='emphasis-default rounded-md px-3 py-1.5 text-sm'>
+          emphasis-default
         </div>
-        <div className='emphasis-subtler rounded-md px-3 py-1.5 text-sm text-default'>
-          subtler
+        <div className='emphasis-subtle rounded-md px-3 py-1.5 text-sm'>
+          emphasis-subtle
         </div>
-        <div className='bg-default border border-default text-default rounded-md px-3 py-1.5 text-sm'>
-          default + border
+        <div className='emphasis-subtler rounded-md px-3 py-1.5 text-sm'>
+          emphasis-subtler
         </div>
       </div>
     </div>
@@ -71,9 +72,10 @@ export default function ColorsPage() {
           Colors
         </Heading>
         <p className='text-lg text-subtle'>
-          Roadie uses OKLCH color scales with 14 steps (0-13) per intent,
-          providing perceptually uniform colors across all hues in both light
-          and dark modes.
+          Roadie uses OKLCH color scales with 14 steps (0-13) per intent. Colors
+          are applied through three utility types: <Code>bg-*</Code>,{' '}
+          <Code>text-*</Code>, and <Code>border-*</Code> — each scoped to its
+          own CSS property.
         </p>
       </div>
 
@@ -83,8 +85,9 @@ export default function ColorsPage() {
           Color scales
         </Heading>
         <p className='text-subtle'>
-          Each intent has a 14-step scale. Steps 1-12 follow the Radix color
-          system. Step 0 is the lightest extreme, step 13 the darkest.
+          Each intent has a 14-step OKLCH scale. Step 0 is the lightest extreme,
+          step 13 the darkest. Dark mode swaps the values — step numbers stay
+          the same.
         </p>
         <div className='flex flex-col gap-6'>
           {intents.map((intent) => (
@@ -93,83 +96,107 @@ export default function ColorsPage() {
         </div>
       </section>
 
-      {/* Semantic mapping */}
+      {/* Utility system */}
       <section className='flex flex-col gap-6'>
         <Heading as='h2' className='text-display-ui-3'>
-          Semantic mapping
+          Color utilities
         </Heading>
         <p className='text-subtle'>
-          Colors are accessed through the emphasis system, not by step number
-          directly. The emphasis scale maps to specific steps:
+          Three utility namespaces for applying colors. Each maps semantic
+          levels to specific scale steps via the current intent.
         </p>
+
         <div className='overflow-x-auto'>
           <table className='w-full text-sm'>
             <thead>
               <tr className='border-b border-subtle'>
                 <th className='text-left py-2 pr-4 font-semibold'>Level</th>
-                <th className='text-left py-2 pr-4 font-semibold'>Surface</th>
-                <th className='text-left py-2 pr-4 font-semibold'>Border</th>
-                <th className='text-left py-2 font-semibold'>Foreground</th>
+                <th className='text-left py-2 pr-4 font-semibold'>
+                  <Code>bg-*</Code>
+                </th>
+                <th className='text-left py-2 pr-4 font-semibold'>
+                  <Code>text-*</Code>
+                </th>
+                <th className='text-left py-2 font-semibold'>
+                  <Code>border-*</Code>
+                </th>
               </tr>
             </thead>
             <tbody className='text-subtle divide-y divide-subtler'>
               <tr>
-                <td className='py-2 pr-4'>subtler</td>
+                <td className='py-2 pr-4 text-strong'>subtler</td>
                 <td className='py-2 pr-4'>step 2</td>
-                <td className='py-2 pr-4'>step 5</td>
-                <td className='py-2'>step 10</td>
+                <td className='py-2 pr-4'>step 10</td>
+                <td className='py-2'>step 5</td>
               </tr>
               <tr>
-                <td className='py-2 pr-4'>subtle</td>
+                <td className='py-2 pr-4 text-strong'>subtle</td>
                 <td className='py-2 pr-4'>step 3</td>
-                <td className='py-2 pr-4'>step 6</td>
-                <td className='py-2'>step 11</td>
+                <td className='py-2 pr-4'>step 11</td>
+                <td className='py-2'>step 6</td>
               </tr>
               <tr>
-                <td className='py-2 pr-4'>default</td>
+                <td className='py-2 pr-4 text-strong'>default</td>
                 <td className='py-2 pr-4'>step 1</td>
-                <td className='py-2 pr-4'>step 7</td>
+                <td className='py-2 pr-4'>step 12</td>
+                <td className='py-2'>step 7</td>
+              </tr>
+              <tr>
+                <td className='py-2 pr-4 text-strong'>strong</td>
+                <td className='py-2 pr-4'>step 9 (neutral: 12)</td>
+                <td className='py-2 pr-4'>step 13</td>
+                <td className='py-2'>step 9</td>
+              </tr>
+              <tr>
+                <td className='py-2 pr-4 text-strong'>inverted</td>
+                <td className='py-2 pr-4'>step 12</td>
+                <td className='py-2 pr-4'>step 0</td>
                 <td className='py-2'>step 12</td>
               </tr>
               <tr>
-                <td className='py-2 pr-4'>strong</td>
-                <td className='py-2 pr-4'>step 9</td>
-                <td className='py-2 pr-4'>step 9</td>
-                <td className='py-2'>step 13 + bold</td>
+                <td className='py-2 pr-4 text-strong'>raised</td>
+                <td className='py-2 pr-4'>step 1 (dark: 2-3)</td>
+                <td className='py-2 pr-4'>—</td>
+                <td className='py-2'>—</td>
               </tr>
               <tr>
-                <td className='py-2 pr-4'>inverted</td>
-                <td className='py-2 pr-4'>step 12</td>
-                <td className='py-2 pr-4'>step 12</td>
-                <td className='py-2'>step 0</td>
+                <td className='py-2 pr-4 text-strong'>sunken</td>
+                <td className='py-2 pr-4'>step 2 (dark: 0)</td>
+                <td className='py-2 pr-4'>—</td>
+                <td className='py-2'>—</td>
               </tr>
             </tbody>
           </table>
         </div>
+
+        <div className='flex flex-col gap-2'>
+          <p className='text-sm text-strong'>Usage</p>
+          <div className='flex flex-wrap gap-2'>
+            <Code>bg-default</Code>
+            <Code>bg-subtle</Code>
+            <Code>bg-raised</Code>
+            <Code>text-subtle</Code>
+            <Code>text-strong</Code>
+            <Code>border-subtle</Code>
+            <Code>border-b-subtler</Code>
+            <Code>divide-subtler</Code>
+          </div>
+        </div>
       </section>
 
-      {/* Intent + emphasis demo */}
+      {/* Intent + emphasis */}
       <section className='flex flex-col gap-6'>
         <Heading as='h2' className='text-display-ui-3'>
           Intent + emphasis
         </Heading>
         <p className='text-subtle'>
-          Each intent works with the emphasis scale. Use{' '}
-          <code className='font-mono text-sm bg-subtler px-1 py-0.5 rounded'>
-            intent-&#123;name&#125;
-          </code>{' '}
-          to set the color context, then{' '}
-          <code className='font-mono text-sm bg-subtler px-1 py-0.5 rounded'>
-            emphasis-&#123;level&#125;
-          </code>{' '}
-          for the visual weight.
+          Set <Code>intent-*</Code> on a container to choose the color palette.
+          Use <Code>emphasis-*</Code> shortcuts for combined bg + text +
+          interactive states, or individual utilities for composability.
         </p>
-        <div className='flex flex-col gap-4'>
+        <div className='flex flex-col gap-6'>
           {intents.map((intent) => (
-            <div key={intent} className='flex flex-col gap-1'>
-              <p className='text-sm text-strong capitalize'>{intent}</p>
-              <EmphasisDemo intent={intent} />
-            </div>
+            <IntentDemo key={intent} intent={intent} />
           ))}
         </div>
       </section>
@@ -180,38 +207,23 @@ export default function ColorsPage() {
           Dark mode
         </Heading>
         <p className='text-subtle'>
-          Dark mode is automatic. The{' '}
-          <code className='font-mono text-sm bg-subtler px-1 py-0.5 rounded'>
-            .dark
-          </code>{' '}
-          class on{' '}
-          <code className='font-mono text-sm bg-subtler px-1 py-0.5 rounded'>
-            &lt;html&gt;
-          </code>{' '}
-          swaps all OKLCH values. No{' '}
-          <code className='font-mono text-sm bg-subtler px-1 py-0.5 rounded'>
-            dark:
-          </code>{' '}
-          Tailwind variants needed for colors.
+          Automatic. The <Code>.dark</Code> class on <Code>&lt;html&gt;</Code>{' '}
+          swaps all OKLCH values. No <Code>dark:</Code> Tailwind variants needed
+          — <Code>bg-default</Code>, <Code>text-subtle</Code>,{' '}
+          <Code>border-subtle</Code> all adapt automatically.
         </p>
       </section>
 
       {/* Dynamic accent */}
       <section className='flex flex-col gap-4'>
         <Heading as='h2' className='text-display-ui-3'>
-          Dynamic accent color
+          Dynamic accent
         </Heading>
         <p className='text-subtle'>
-          The accent scale can be overridden at runtime using the{' '}
-          <code className='font-mono text-sm bg-subtler px-1 py-0.5 rounded'>
-            ThemeProvider
-          </code>{' '}
-          component or{' '}
-          <code className='font-mono text-sm bg-subtler px-1 py-0.5 rounded'>
-            generateAccentScale()
-          </code>{' '}
-          function. Pass any hex color and the system generates a full 14-step
-          OKLCH scale with automatic WCAG contrast detection.
+          The accent scale is CSS-native. The <Code>ThemeProvider</Code> sets{' '}
+          <Code>--accent-hue</Code> and <Code>--accent-chroma</Code> — CSS{' '}
+          <Code>oklch()</Code> computes all accent and neutral colors in the
+          browser. No JavaScript color generation needed for modern browsers.
         </p>
       </section>
     </div>

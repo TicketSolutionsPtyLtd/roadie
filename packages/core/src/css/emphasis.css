@@ -14,15 +14,17 @@
 @utility emphasis-strong {
   background-color: var(--intent-bg-strong);
   color: var(--intent-text-inverted);
+  border: 1px solid transparent;
+  box-shadow: var(--rim-light-subtle);
 
   &.is-interactive:hover,
   &.is-interactive:focus-visible {
-    background-color: var(--intent-10);
+    background-color: var(--intent-11);
     transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--rim-light-subtle), var(--shadow-sm);
   }
   &.is-interactive:active {
-    background-color: var(--intent-11);
+    background-color: var(--intent-12);
     transform: translateY(0) scale(0.99);
     box-shadow: none;
   }
@@ -49,6 +51,8 @@
 @utility emphasis-subtle {
   background-color: var(--intent-bg-subtle);
   color: var(--intent-text-default);
+  border: 1px solid transparent;
+  box-shadow: var(--rim-light-subtler);
 
   &.is-interactive:hover,
   &.is-interactive:focus-visible {
@@ -62,6 +66,7 @@
 @utility emphasis-subtler {
   background-color: var(--intent-bg-subtler);
   color: var(--intent-text-default);
+  border: 1px solid transparent;
 
   &.is-interactive {
     background-color: transparent;
@@ -82,17 +87,17 @@
 
 @utility emphasis-raised {
   background-color: var(--intent-bg-raised);
-  box-shadow: var(--rim-light), var(--shadow-md);
+  box-shadow: var(--rim-light-strong), var(--shadow-md);
   color: var(--intent-text-default);
 
   &.is-interactive:hover,
   &.is-interactive:focus-visible {
     transform: translateY(-1px);
-    box-shadow: var(--rim-light), var(--shadow-lg);
+    box-shadow: var(--rim-light-strong), var(--shadow-lg);
   }
   &.is-interactive:active {
     transform: translateY(0) scale(0.99);
-    box-shadow: var(--rim-light), var(--shadow-sm);
+    box-shadow: var(--rim-light-strong), var(--shadow-sm);
   }
 }
 
@@ -104,7 +109,7 @@
 
 @utility emphasis-floating {
   background-color: var(--intent-bg-raised);
-  box-shadow: var(--rim-light), var(--shadow-xl);
+  box-shadow: var(--rim-light-strong), var(--shadow-xl);
   color: var(--intent-text-default);
 }
 
