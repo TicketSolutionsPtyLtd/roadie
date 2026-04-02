@@ -281,7 +281,7 @@ export default function LayoutPage() {
         <div className='grid gap-4'>
           <div className='grid sm:grid-cols-2 gap-4'>
             <div className='grid gap-2'>
-              <h3 className='text-display-ui-6 intent-danger text-strong'>
+              <h3 className='text-display-ui-6 intent-danger text-subtle'>
                 Don&apos;t — media query
               </h3>
               <div className='emphasis-sunken rounded-lg overflow-x-auto min-w-0'>
@@ -295,7 +295,7 @@ export default function LayoutPage() {
               </div>
             </div>
             <div className='grid gap-2'>
-              <h3 className='text-display-ui-6 intent-success text-strong'>
+              <h3 className='text-display-ui-6 intent-success text-subtle'>
                 Do — container query
               </h3>
               <div className='emphasis-sunken rounded-lg overflow-x-auto min-w-0'>
