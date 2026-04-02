@@ -282,34 +282,73 @@ export default function LayoutPage() {
           <div className='grid sm:grid-cols-2 gap-4'>
             <div className='grid gap-2'>
               <h3 className='text-display-ui-6 intent-danger text-strong'>
-                Don&apos;t
+                Don&apos;t — media query
               </h3>
               <div className='emphasis-sunken rounded-lg p-4'>
                 <pre className='text-xs font-mono text-subtle overflow-x-auto'>
-                  {`@media (min-width: 900px) {
-  .card { flex-direction: row; }
-}
-/* breaks when card is in a narrow column */`}
+                  {`{/* Responds to viewport — breaks in narrow columns */}
+<div className="grid md:grid-cols-[auto_1fr]">
+  <img />
+  <div>Content</div>
+</div>`}
                 </pre>
               </div>
             </div>
             <div className='grid gap-2'>
               <h3 className='text-display-ui-6 intent-success text-strong'>
-                Do
+                Do — container query
               </h3>
               <div className='emphasis-sunken rounded-lg p-4'>
                 <pre className='text-xs font-mono text-subtle overflow-x-auto'>
-                  {`.card-wrapper {
-  container-type: inline-size;
-}
-
-@container (min-width: 400px) {
-  .card { flex-direction: row; }
-}`}
+                  {`{/* Responds to parent width */}
+<div className="@container">
+  <div className="grid @sm:grid-cols-[auto_1fr]">
+    <img />
+    <div>Content</div>
+  </div>
+</div>`}
                 </pre>
               </div>
             </div>
           </div>
+
+          <p className='text-sm text-subtle'>
+            Tailwind&apos;s <Code>@container</Code> class sets{' '}
+            <Code>container-type: inline-size</Code>. Then use <Code>@sm:</Code>
+            , <Code>@md:</Code>, <Code>@lg:</Code> etc. as container-query
+            variants instead of <Code>sm:</Code>, <Code>md:</Code>.
+          </p>
+
+          <div className='grid gap-2'>
+            <h3 className='text-display-ui-6 text-strong'>
+              Live example — resize the columns
+            </h3>
+            <div className='grid sm:grid-cols-2 gap-4'>
+              <div className='@container'>
+                <div className='grid @sm:grid-cols-[80px_1fr] gap-3 bg-raised rounded-lg p-4'>
+                  <div className='bg-subtle rounded aspect-square' />
+                  <div className='grid gap-1'>
+                    <p className='text-sm text-strong'>Narrow container</p>
+                    <p className='text-xs text-subtle'>
+                      Card stacks vertically until container is wide enough
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className='@container sm:col-span-1'>
+                <div className='grid @sm:grid-cols-[80px_1fr] gap-3 bg-raised rounded-lg p-4'>
+                  <div className='bg-subtle rounded aspect-square' />
+                  <div className='grid gap-1'>
+                    <p className='text-sm text-strong'>Wider container</p>
+                    <p className='text-xs text-subtle'>
+                      Same component, adapts to available space
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <p className='text-sm text-subtle'>
             Media queries for page-level layout. Container queries for
             component-level adaptation. Use both.
