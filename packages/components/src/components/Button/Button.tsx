@@ -57,6 +57,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <ButtonPrimitive
+      nativeButton={!props.render}
       className={cn(buttonVariants({ intent, emphasis, size, className }))}
       {...props}
     />
