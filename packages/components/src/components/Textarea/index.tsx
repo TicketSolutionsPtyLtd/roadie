@@ -7,7 +7,7 @@ import { type VariantProps, cva } from 'class-variance-authority'
 import { cn } from '@oztix/roadie-core/utils'
 
 export const textareaVariants = cva(
-  'w-full rounded-md font-sans min-h-20 resize-y',
+  'w-full rounded-lg font-sans min-h-20 resize-y',
   {
     variants: {
       intent: {

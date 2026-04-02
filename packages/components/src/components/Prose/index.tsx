@@ -15,11 +15,11 @@ export const proseVariants = cva(
     // Blockquote
     '[&_blockquote]:border-l-[3px] [&_blockquote]:border-default [&_blockquote]:pl-4 [&_blockquote]:text-subtle',
     // Code
-    '[&_:not(pre)>code]:bg-subtler [&_:not(pre)>code]:rounded [&_:not(pre)>code]:px-1.5 [&_:not(pre)>code]:py-0.5 [&_:not(pre)>code]:text-[0.9em] [&_:not(pre)>code]:font-mono',
+    '[&_:not(pre)>code]:bg-subtler [&_:not(pre)>code]:rounded-md [&_:not(pre)>code]:px-1.5 [&_:not(pre)>code]:py-0.5 [&_:not(pre)>code]:text-[0.9em] [&_:not(pre)>code]:font-mono',
     // Pre
-    '[&_pre]:bg-sunken [&_pre]:rounded-md [&_pre]:overflow-x-auto [&_pre]:font-mono',
+    '[&_pre]:bg-sunken [&_pre]:rounded-lg [&_pre]:overflow-x-auto [&_pre]:font-mono',
     // Images
-    '[&_img]:rounded-md',
+    '[&_img]:rounded-lg',
     // Tables
     '[&_table]:w-full',
     '[&_th]:text-left [&_th]:font-semibold [&_th]:border-b [&_th]:border-subtle',

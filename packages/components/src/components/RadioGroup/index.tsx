@@ -29,8 +29,8 @@ export const radioGroupItemVariants = cva(
   {
     variants: {
       appearance: {
-        default: 'gap-2 rounded-md px-1.5 py-1 emphasis-subtler is-interactive',
-        card: 'justify-between gap-3 rounded-lg p-4 emphasis-default is-interactive has-[:checked]:bg-[var(--color-accent-2)] has-[:checked]:border-[var(--color-accent-9)] has-[:checked]:outline has-[:checked]:outline-[length:var(--focus-ring-width)] has-[:checked]:outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] has-[:checked]:outline-offset-0'
+        default: 'gap-2 rounded-lg px-1.5 py-1 emphasis-subtler is-interactive',
+        card: 'justify-between gap-3 rounded-xl p-4 emphasis-default is-interactive has-[:checked]:bg-[var(--color-accent-2)] has-[:checked]:border-[var(--color-accent-9)] has-[:checked]:outline has-[:checked]:outline-[length:var(--focus-ring-width)] has-[:checked]:outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] has-[:checked]:outline-offset-0'
       }
     },
     defaultVariants: {

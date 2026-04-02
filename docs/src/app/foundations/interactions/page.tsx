@@ -284,7 +284,7 @@ export default function InteractionsPage() {
             Pair with an <Code>emphasis-*</Code> class for visual styling.
           </p>
 
-          <div className='rounded-lg emphasis-subtle p-6'>
+          <div className='rounded-xl emphasis-subtle p-6'>
             <div className='flex flex-wrap items-center gap-3'>
               <button
                 type='button'
@@ -377,7 +377,7 @@ export default function InteractionsPage() {
               The focus ring colour follows the nearest <Code>intent-*</Code>{' '}
               ancestor. Tab through these to see the ring change.
             </p>
-            <div className='rounded-lg emphasis-subtle p-6'>
+            <div className='rounded-xl emphasis-subtle p-6'>
               <div className='flex flex-wrap gap-4'>
                 {intents.map(({ name, className }) => (
                   <div key={name} className={className}>
@@ -406,14 +406,14 @@ export default function InteractionsPage() {
             <Code>emphasis-raised</Code>.
           </p>
 
-          <div className='rounded-lg emphasis-subtle p-6'>
+          <div className='rounded-xl emphasis-subtle p-6'>
             <div className='grid gap-4 sm:grid-cols-3'>
               <div className='grid gap-1'>
                 <label className='text-sm text-strong'>Default</label>
                 <input
                   type='text'
                   placeholder='e.g. Jane Smith'
-                  className='is-field-interactive rounded-md border border-subtle emphasis-sunken px-3 py-2 text-sm'
+                  className='is-field-interactive rounded-lg border border-subtle emphasis-sunken px-3 py-2 text-sm'
                 />
               </div>
               <div className='grid gap-1'>
@@ -422,7 +422,7 @@ export default function InteractionsPage() {
                   type='text'
                   defaultValue='bad@'
                   aria-invalid='true'
-                  className='is-field-interactive rounded-md border border-subtle emphasis-sunken px-3 py-2 text-sm'
+                  className='is-field-interactive rounded-lg border border-subtle emphasis-sunken px-3 py-2 text-sm'
                 />
               </div>
               <div className='grid gap-1'>
@@ -431,7 +431,7 @@ export default function InteractionsPage() {
                   type='text'
                   disabled
                   placeholder='Cannot edit'
-                  className='is-field-interactive rounded-md border border-subtle emphasis-sunken px-3 py-2 text-sm'
+                  className='is-field-interactive rounded-lg border border-subtle emphasis-sunken px-3 py-2 text-sm'
                 />
               </div>
             </div>
@@ -509,11 +509,11 @@ export default function InteractionsPage() {
             {emphasisLevels.map(({ name, label }) => (
               <div key={name} className='grid gap-3'>
                 <div className='grid gap-2'>
-                  <div className={`${name} rounded-lg p-6`}>
+                  <div className={`${name} rounded-xl p-6`}>
                     <p className='font-mono text-sm'>{name} (static)</p>
                   </div>
                   <div
-                    className={`${name} is-interactive rounded-lg p-6`}
+                    className={`${name} is-interactive rounded-xl p-6`}
                     // biome-ignore lint: tabIndex for demo purposes
                     tabIndex={0}
                     role='button'
@@ -529,7 +529,7 @@ export default function InteractionsPage() {
           </div>
         </div>
 
-        <div className='rounded-lg emphasis-subtle p-4'>
+        <div className='rounded-xl emphasis-subtle p-4'>
           <p className='text-sm text-subtle'>
             <strong className='text-strong'>Note:</strong>{' '}
             <Code>is-field-interactive</Code> provides its own hover, focus, and
@@ -589,7 +589,7 @@ export default function InteractionsPage() {
                 <tr>
                   <td className='py-2 pr-4 text-strong'>Clickable card</td>
                   <td className='py-2 font-mono text-xs'>
-                    emphasis-raised is-interactive rounded-lg
+                    emphasis-raised is-interactive rounded-xl
                   </td>
                 </tr>
                 <tr>
@@ -664,7 +664,7 @@ export default function InteractionsPage() {
                 <td className='py-2 pr-4 font-mono text-xs'>is-interactive</td>
                 <td className='py-2 pr-4 font-mono text-xs'>raised</td>
                 <td className='py-2'>
-                  Add <Code>rounded-lg</Code>
+                  Add <Code>rounded-xl</Code>
                 </td>
               </tr>
               <tr>

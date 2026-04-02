@@ -202,7 +202,7 @@ function SectionCard({
           <li key={item.href}>
             <Link
               href={item.href}
-              className='is-interactive grid h-full gap-0.5 rounded-md emphasis-subtler p-4 no-underline'
+              className='is-interactive grid h-full gap-0.5 rounded-lg emphasis-subtler p-4 no-underline'
             >
               <h4 className='text-display-ui-6 text-strong intent-accent'>
                 {item.label}

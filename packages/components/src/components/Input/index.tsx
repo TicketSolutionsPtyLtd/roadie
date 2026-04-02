@@ -6,7 +6,7 @@ import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-export const inputVariants = cva('w-full rounded-md font-sans', {
+export const inputVariants = cva('w-full rounded-lg font-sans', {
   variants: {
     intent: {
       neutral: 'intent-neutral',

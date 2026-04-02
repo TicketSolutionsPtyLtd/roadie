@@ -142,7 +142,7 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
         <Highlight code={trimmedCode} language={language} theme={theme}>
           {({ style, tokens, getLineProps, getTokenProps }) => (
             <pre
-              className='min-w-0 overflow-x-auto rounded-md emphasis-sunken p-3 text-xs sm:p-4 sm:text-sm'
+              className='min-w-0 overflow-x-auto rounded-lg emphasis-sunken p-3 text-xs sm:p-4 sm:text-sm'
               style={style}
             >
               {tokens.map((line, i) => {
@@ -168,7 +168,7 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
   }
 
   return (
-    <div className='relative mb-8 min-w-0 overflow-hidden rounded-md border border-subtle'>
+    <div className='relative mb-8 min-w-0 overflow-hidden rounded-xl border border-subtle'>
       <LiveProvider
         code={trimmedCode}
         scope={scope}

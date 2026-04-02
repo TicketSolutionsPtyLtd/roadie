@@ -92,7 +92,7 @@ export default async function ComponentsPage() {
               <Link
                 key={component.name}
                 href={`/components/${component.name}`}
-                className='is-interactive grid emphasis-default gap-2 rounded-md p-4 no-underline'
+                className='is-interactive grid emphasis-default gap-2 rounded-xl p-4 no-underline'
               >
                 <h3 className='text-display-ui-5 text-strong'>
                   {component.title}

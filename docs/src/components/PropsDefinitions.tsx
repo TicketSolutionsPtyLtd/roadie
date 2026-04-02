@@ -171,7 +171,7 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
     return (
       <div className='mt-8 grid gap-4 pt-8'>
         <h2 className='text-xl font-bold'>Props</h2>
-        <dl className='grid overflow-hidden rounded-md border border-subtler'>
+        <dl className='grid overflow-hidden rounded-xl border border-subtler'>
           <div className='grid gap-1 bg-subtler px-4 py-3'>
             <h3 className='text-xl font-bold'>{interfaceName}</h3>
             {!!componentInfo.description && (

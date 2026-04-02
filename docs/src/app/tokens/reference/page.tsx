@@ -328,7 +328,7 @@ export default function TokenReferencePage() {
       </section>
 
       {/* Source */}
-      <div className='rounded-lg border border-default p-6'>
+      <div className='rounded-xl border border-default p-6'>
         <p className='text-subtle'>
           All tokens are defined in{' '}
           <Code>packages/core/src/css/tokens.css</Code>. Intent mappings are in{' '}

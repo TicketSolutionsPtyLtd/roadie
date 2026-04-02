@@ -16,11 +16,11 @@ function GuidelineCard({
 
   return (
     <div
-      className={`grid ${example ? 'grid-rows-[1fr_auto]' : ''} overflow-hidden rounded-lg`}
+      className={`grid ${example ? 'grid-rows-[1fr_auto]' : ''} overflow-hidden rounded-xl`}
     >
       {example && (
         <div
-          className='overflow-x-auto rounded-t-lg border-x border-t border-subtler emphasis-sunken p-4'
+          className='overflow-x-auto rounded-t-xl border-x border-t border-subtler emphasis-sunken p-4'
           style={{ scrollbarWidth: 'none' }}
         >
           {example}

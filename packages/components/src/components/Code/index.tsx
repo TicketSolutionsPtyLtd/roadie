@@ -7,7 +7,7 @@ import { type VariantProps, cva } from 'class-variance-authority'
 import { cn } from '@oztix/roadie-core/utils'
 
 export const codeVariants = cva(
-  'font-mono rounded px-1.5 py-0.5 text-[0.9em]',
+  'font-mono rounded-md px-1.5 py-0.5 text-[0.9em]',
   {
     variants: {
       intent: {

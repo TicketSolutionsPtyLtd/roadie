@@ -10,7 +10,7 @@ import { cn } from '@oztix/roadie-core/utils'
 /* ─── Trigger variants (matches Input) ─── */
 
 export const selectTriggerVariants = cva(
-  'inline-flex w-full items-center justify-between rounded-md font-sans select-none cursor-pointer',
+  'inline-flex w-full items-center justify-between rounded-lg font-sans select-none cursor-pointer',
   {
     variants: {
       intent: {
@@ -107,7 +107,7 @@ function SelectPopup({ className, ...props }: SelectPopupProps) {
       <SelectPrimitive.Positioner>
         <SelectPrimitive.Popup
           className={cn(
-            'z-50 rounded-lg border border-[var(--intent-border-subtle)] bg-raised py-1',
+            'z-50 rounded-xl border border-[var(--intent-border-subtle)] bg-raised py-1',
             className
           )}
           {...props}

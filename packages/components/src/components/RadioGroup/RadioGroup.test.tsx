@@ -30,7 +30,7 @@ describe('RadioGroup', () => {
 
   it('renders Item with card appearance', () => {
     const classes = radioGroupItemVariants({ appearance: 'card' })
-    expect(classes).toContain('rounded-lg')
+    expect(classes).toContain('rounded-xl')
   })
 
   it('renders Item with label text', () => {

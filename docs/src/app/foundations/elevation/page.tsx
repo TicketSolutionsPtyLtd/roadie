@@ -110,7 +110,7 @@ export default function ElevationPage() {
         <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
           {shadowScale.map(({ name, description, className }) => (
             <div key={name} className='grid gap-2'>
-              <div className={`${className} rounded-lg bg-raised p-6`}>
+              <div className={`${className} rounded-xl bg-raised p-6`}>
                 <p className='font-mono text-sm text-strong'>{name}</p>
               </div>
               <p className='text-sm text-subtle'>{description}</p>
@@ -130,7 +130,7 @@ export default function ElevationPage() {
         <div className='grid gap-6 sm:grid-cols-2'>
           {insetScale.map(({ name, description, className }) => (
             <div key={name} className='grid gap-2'>
-              <div className={`${className} rounded-lg bg-default p-6`}>
+              <div className={`${className} rounded-xl bg-default p-6`}>
                 <p className='font-mono text-sm text-strong'>{name}</p>
               </div>
               <p className='text-sm text-subtle'>{description}</p>
@@ -163,7 +163,7 @@ export default function ElevationPage() {
           ].map(({ name, desc }) => (
             <div key={name} className='grid gap-2'>
               <div
-                className='rounded-lg bg-raised p-6 shadow-md'
+                className='rounded-xl bg-raised p-6 shadow-md'
                 style={{ boxShadow: `var(--${name}), var(--shadow-md)` }}
               >
                 <p className='font-mono text-xs text-strong'>{name}</p>
@@ -188,7 +188,7 @@ export default function ElevationPage() {
             ({ name, description, className, interactive }) => (
               <div key={name} className='grid gap-2'>
                 <div
-                  className={`${className} ${interactive ? 'is-interactive' : ''} rounded-lg p-6`}
+                  className={`${className} ${interactive ? 'is-interactive' : ''} rounded-xl p-6`}
                 >
                   <p className='font-mono text-sm text-strong'>{name}</p>
                   {interactive && (
@@ -254,7 +254,7 @@ export default function ElevationPage() {
         <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
           {intents.map(({ name, className }) => (
             <div key={name} className={className}>
-              <div className='is-interactive emphasis-raised rounded-lg p-6'>
+              <div className='is-interactive emphasis-raised rounded-xl p-6'>
                 <p className='font-mono text-sm text-strong'>intent-{name}</p>
                 <p className='mt-1 text-xs text-subtle'>
                   emphasis-raised — hover me

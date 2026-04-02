@@ -45,7 +45,7 @@ export default function LayoutPage() {
           <strong className='text-strong'>who controls sizing</strong>.
         </p>
         <div className='grid gap-4 sm:grid-cols-2'>
-          <div className='grid emphasis-raised gap-3 rounded-lg p-6'>
+          <div className='grid emphasis-raised gap-3 rounded-xl p-6'>
             <h3 className='text-display-ui-5 text-strong'>
               Grid = parent controls
             </h3>
@@ -60,7 +60,7 @@ export default function LayoutPage() {
               <Code>grid place-content-center</Code>
             </div>
           </div>
-          <div className='grid emphasis-raised gap-3 rounded-lg p-6'>
+          <div className='grid emphasis-raised gap-3 rounded-xl p-6'>
             <h3 className='text-display-ui-5 text-strong'>
               Flex = children control
             </h3>
@@ -87,7 +87,7 @@ export default function LayoutPage() {
             <p className='text-sm text-subtle'>
               <Code>grid gap-4</Code> — the default vertical layout.
             </p>
-            <div className='rounded-lg emphasis-subtle p-4'>
+            <div className='rounded-xl emphasis-subtle p-4'>
               <div className='grid gap-4'>
                 <div className='rounded bg-raised p-3 text-sm'>Item 1</div>
                 <div className='rounded bg-raised p-3 text-sm'>Item 2</div>
@@ -102,7 +102,7 @@ export default function LayoutPage() {
               <Code>grid place-content-center</Code> — one class centers both
               axes.
             </p>
-            <div className='rounded-lg emphasis-subtle p-4'>
+            <div className='rounded-xl emphasis-subtle p-4'>
               <div className='grid min-h-[160px] place-content-center'>
                 <p className='text-sm text-subtle'>Centered in both axes</p>
               </div>
@@ -114,7 +114,7 @@ export default function LayoutPage() {
             <p className='text-sm text-subtle'>
               <Code>flex gap-4 items-center</Code> — content-driven sizing.
             </p>
-            <div className='rounded-lg emphasis-subtle p-4'>
+            <div className='rounded-xl emphasis-subtle p-4'>
               <div className='flex items-center gap-4'>
                 <div className='rounded bg-raised px-3 py-1.5 text-sm'>Tag</div>
                 <div className='rounded bg-raised px-3 py-1.5 text-sm'>
@@ -133,7 +133,7 @@ export default function LayoutPage() {
               <Code>grid grid-cols-3 gap-4</Code> — parent controls column
               widths.
             </p>
-            <div className='rounded-lg emphasis-subtle p-4'>
+            <div className='rounded-xl emphasis-subtle p-4'>
               <div className='grid grid-cols-3 gap-4'>
                 <div className='rounded bg-raised p-3 text-sm'>Column 1</div>
                 <div className='rounded bg-raised p-3 text-sm'>
@@ -149,7 +149,7 @@ export default function LayoutPage() {
             <p className='text-sm text-subtle'>
               <Code>grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6</Code>
             </p>
-            <div className='rounded-lg emphasis-subtle p-4'>
+            <div className='rounded-xl emphasis-subtle p-4'>
               <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
                 {[1, 2, 3, 4, 5, 6].map((n) => (
                   <div key={n} className='rounded bg-raised p-3 text-sm'>
@@ -165,7 +165,7 @@ export default function LayoutPage() {
             <p className='text-sm text-subtle'>
               <Code>{'grid grid-cols-[1fr_2fr] gap-6'}</Code>
             </p>
-            <div className='rounded-lg emphasis-subtle p-4'>
+            <div className='rounded-xl emphasis-subtle p-4'>
               <div className='grid grid-cols-[1fr_2fr] gap-6'>
                 <div className='rounded bg-raised p-3 text-sm'>
                   Sidebar (1fr)
@@ -183,7 +183,7 @@ export default function LayoutPage() {
               content width. This is where Flexbox shines: children control
               their own size.
             </p>
-            <div className='rounded-lg emphasis-subtle p-4'>
+            <div className='rounded-xl emphasis-subtle p-4'>
               <div className='flex flex-wrap gap-2'>
                 {[
                   'Design',
@@ -252,7 +252,7 @@ export default function LayoutPage() {
                 buttons, badges, and inline elements that shouldn&apos;t
                 stretch.
               </p>
-              <div className='rounded-lg emphasis-subtle p-4'>
+              <div className='rounded-xl emphasis-subtle p-4'>
                 <div className='w-fit emphasis-strong rounded-full px-4 py-2 text-sm'>
                   I&apos;m only as wide as my content
                 </div>
@@ -331,7 +331,7 @@ export default function LayoutPage() {
             </p>
             <div className='grid items-start gap-4 sm:grid-cols-[1fr_2fr]'>
               <div className='@container'>
-                <div className='grid gap-3 rounded-lg bg-raised p-4 @sm:grid-cols-[80px_1fr]'>
+                <div className='grid gap-3 rounded-xl bg-raised p-4 @sm:grid-cols-[80px_1fr]'>
                   <div className='aspect-square rounded bg-subtle' />
                   <div className='grid gap-1'>
                     <p className='text-sm text-strong'>Narrow container</p>
@@ -342,7 +342,7 @@ export default function LayoutPage() {
                 </div>
               </div>
               <div className='@container'>
-                <div className='grid gap-3 rounded-lg bg-raised p-4 @sm:grid-cols-[80px_1fr]'>
+                <div className='grid gap-3 rounded-xl bg-raised p-4 @sm:grid-cols-[80px_1fr]'>
                   <div className='aspect-square rounded bg-subtle' />
                   <div className='grid gap-1'>
                     <p className='text-sm text-strong'>Wider container</p>
@@ -370,7 +370,7 @@ export default function LayoutPage() {
           <Code>m-</Code>, <Code>w-</Code>, <Code>h-</Code>.
         </p>
 
-        <div className='grid gap-1 overflow-x-auto rounded-lg border border-subtle bg-subtle p-4'>
+        <div className='grid gap-1 overflow-x-auto rounded-xl border border-subtle bg-subtle p-4'>
           {spacingScale.map(({ token, value, rem }) => (
             <div key={token} className='flex items-center gap-3'>
               <p className='w-10 shrink-0 text-right text-sm text-strong tabular-nums'>
