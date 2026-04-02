@@ -17,8 +17,8 @@ export const cardVariants = cva('rounded-xl', {
     },
     emphasis: {
       raised: 'emphasis-raised',
-      subtle: 'bg-subtle border border-subtle',
-      default: 'bg-default border border-subtle'
+      subtle: 'emphasis-subtle',
+      default: 'emphasis-default'
     }
   },
   defaultVariants: {
@@ -26,19 +26,21 @@ export const cardVariants = cva('rounded-xl', {
   }
 })
 
-export interface CardProps
-  extends ComponentProps<'div'>,
-    VariantProps<typeof cardVariants> {
-  as?: ElementType
-}
+type CardOwnProps<T extends ElementType = 'div'> = {
+  as?: T
+} & VariantProps<typeof cardVariants>
 
-function CardRoot({
-  as: Component = 'div',
+export type CardProps<T extends ElementType = 'div'> = CardOwnProps<T> &
+  Omit<ComponentProps<T>, keyof CardOwnProps<T>>
+
+function CardRoot<T extends ElementType = 'div'>({
+  as,
   className,
   intent,
   emphasis,
   ...props
-}: CardProps) {
+}: CardProps<T>) {
+  const Component = as || 'div'
   return (
     <Component
       className={cn(cardVariants({ intent, emphasis, className }))}
@@ -76,6 +78,8 @@ export const Card = Object.assign(CardRoot, {
   Header: CardHeader,
   Content: CardContent,
   Footer: CardFooter
-})
-
-export type { CardProps as CardHeaderProps }
+}) as typeof CardRoot & {
+  Header: typeof CardHeader
+  Content: typeof CardContent
+  Footer: typeof CardFooter
+}

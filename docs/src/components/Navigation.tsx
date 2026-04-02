@@ -14,6 +14,7 @@ import { Button } from '@oztix/roadie-components'
 interface NavigationItem {
   title: string
   href?: string
+  label?: boolean
   items?: NavigationItem[]
 }
 
@@ -105,6 +106,17 @@ function NavigationGroup({
       {item.items && (
         <ul className='grid gap-0.5'>
           {item.items.map((subItem) => {
+            if (subItem.label) {
+              return (
+                <li
+                  key={subItem.title}
+                  className='m-0 list-none px-2 pt-3 pb-1 text-xs font-semibold text-subtler'
+                >
+                  {subItem.title}
+                </li>
+              )
+            }
+
             const isActive = pathname === subItem.href
 
             return (

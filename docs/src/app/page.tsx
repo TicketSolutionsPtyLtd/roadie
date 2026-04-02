@@ -1,168 +1,345 @@
 import Link from 'next/link'
 
 import {
-  Cube,
+  ArrowRight,
   MagicWand,
   Moon,
-  Palette,
-  Shapes,
   WheelchairMotion
 } from '@phosphor-icons/react/ssr'
 
-import { Button, Card } from '@oztix/roadie-components'
+import { Badge, Button, Card, Code } from '@oztix/roadie-components'
+import { HighFive } from '@oztix/roadie-components/spot-illustrations'
+
+const intents = [
+  'neutral',
+  'brand',
+  'accent',
+  'danger',
+  'success',
+  'warning',
+  'info'
+] as const
 
 export default function Home() {
   return (
     <main className='mx-auto grid max-w-4xl gap-20 py-8'>
-      {/* Hero Section */}
-      <section className='grid gap-3'>
-        <h1 className='text-display-prose-1 text-strong'>
-          Roadie design system
-        </h1>
-        <p className='text-lg text-subtle'>
-          A comprehensive design system for building consistent, accessible, and
-          beautiful user interfaces across Oztix applications.
-        </p>
+      {/* Hero */}
+      <section className='grid gap-8'>
+        <div className='grid gap-3'>
+          <h1 className='text-display-prose-1 text-strong'>
+            Roadie design system
+          </h1>
+          <p className='text-lg text-subtle'>
+            Consistent, accessible, and beautiful UI for Oztix applications.
+          </p>
+        </div>
+        <div className='flex gap-3'>
+          <Button
+            intent='accent'
+            emphasis='strong'
+            render={<Link href='/overview/getting-started' />}
+          >
+            Get started
+          </Button>
+          <Button emphasis='default' render={<Link href='/components' />}>
+            Browse components
+            <ArrowRight size={16} weight='bold' />
+          </Button>
+        </div>
       </section>
 
-      {/* Core Sections */}
-      <section className='grid gap-8'>
-        <div className='grid grid-cols-1 gap-8 lg:grid-cols-2'>
-          <SectionCard
-            icon={<Palette size={24} weight='bold' />}
-            title='Foundations'
-            description='Essential design foundations including typography, spacing, and color systems.'
-            items={[
-              {
-                label: 'Colors',
-                href: '/foundations/colors',
-                description: 'Color palette and usage'
-              },
-              {
-                label: 'Layout',
-                href: '/foundations/layout',
-                description: 'Grid, spacing, and layout patterns'
-              },
-              {
-                label: 'Typography',
-                href: '/foundations/typography',
-                description: 'Text styles and font system'
-              },
-              {
-                label: 'Elevation',
-                href: '/foundations/elevation',
-                description: 'Shadow scale and depth hierarchy'
-              }
-            ]}
+      {/* Foundations */}
+      <section className='grid gap-6'>
+        <div className='grid gap-1'>
+          <h2 className='text-display-ui-3 text-strong'>Foundations</h2>
+          <p className='text-subtle'>
+            The building blocks behind every component — color, type, layout,
+            and more.
+          </p>
+        </div>
+        <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+          <FoundationCard
+            href='/foundations/colors'
+            title='Colors'
+            description='OKLCH color scales and intents'
+            preview={
+              <div className='flex gap-0.5'>
+                {intents.map((intent) => (
+                  <div
+                    key={intent}
+                    className={`intent-${intent} h-4 flex-1 emphasis-strong first:rounded-l-sm last:rounded-r-sm`}
+                  />
+                ))}
+              </div>
+            }
           />
-          <SectionCard
-            icon={<Shapes size={24} weight='bold' />}
-            title='Design tokens'
-            description='Semantic design tokens for consistent theming and styling.'
-            items={[
-              {
-                label: 'Overview',
-                href: '/tokens',
-                description: 'Introduction and usage guide'
-              },
-              {
-                label: 'Reference',
-                href: '/tokens/reference',
-                description: 'Complete token documentation'
-              }
-            ]}
+          <FoundationCard
+            href='/foundations/typography'
+            title='Typography'
+            description='Text styles and fluid scaling'
+            preview={
+              <p className='truncate text-display-ui-4 text-strong'>Aa Bb Cc</p>
+            }
+          />
+          <FoundationCard
+            href='/foundations/layout'
+            title='Layout'
+            description='Grid, spacing, and layout patterns'
+            preview={
+              <div className='grid grid-cols-3 gap-1'>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className='h-2.5 rounded-xs bg-subtle' />
+                ))}
+              </div>
+            }
+          />
+          <FoundationCard
+            href='/foundations/elevation'
+            title='Elevation'
+            description='Shadow scale and depth'
+            preview={
+              <div className='flex items-end gap-2'>
+                {['shadow-xs', 'shadow-sm', 'shadow-md', 'shadow-lg'].map(
+                  (s) => (
+                    <div
+                      key={s}
+                      className={`size-6 emphasis-raised rounded-md ${s}`}
+                    />
+                  )
+                )}
+              </div>
+            }
+          />
+          <FoundationCard
+            href='/foundations/shape'
+            title='Shape'
+            description='Border-radius scale'
+            preview={
+              <div className='flex items-end gap-2'>
+                {[
+                  'rounded-sm',
+                  'rounded-md',
+                  'rounded-lg',
+                  'rounded-xl',
+                  'rounded-full'
+                ].map((r) => (
+                  <div
+                    key={r}
+                    className={`size-6 border border-subtle bg-subtle ${r}`}
+                  />
+                ))}
+              </div>
+            }
+          />
+          <FoundationCard
+            href='/foundations/interactions'
+            title='Interactions'
+            description='Interactive states and utilities'
+            preview={
+              <div className='flex gap-2'>
+                <div className='h-5 w-12 emphasis-strong rounded-full intent-accent' />
+                <div className='h-5 w-12 emphasis-default rounded-full' />
+              </div>
+            }
           />
         </div>
+      </section>
 
-        <SectionCard
-          icon={<Cube size={24} weight='bold' />}
-          title='Components'
-          description='A comprehensive library of accessible, customizable React components.'
-          items={[
-            {
-              label: 'Text',
-              href: '/components/text',
-              description: 'Typography component'
-            },
-            {
-              label: 'Heading',
-              href: '/components/heading',
-              description: 'Heading component'
-            },
-            {
-              label: 'Code',
-              href: '/components/code',
-              description: 'Code and syntax highlighting'
-            },
+      {/* Tokens */}
+      <section className='grid gap-6'>
+        <div className='grid gap-1'>
+          <h2 className='text-display-ui-3 text-strong'>Design tokens</h2>
+          <p className='text-subtle'>
+            Semantic CSS custom properties that power theming across intents and
+            modes.
+          </p>
+        </div>
+        <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+          <Card
+            as={Link}
+            href='/tokens'
+            className='is-interactive h-full p-6 no-underline'
+          >
+            <h3 className='text-display-ui-5 text-strong'>Overview</h3>
+            <p className='text-sm text-subtle'>Introduction and usage guide</p>
+          </Card>
+          <Card
+            as={Link}
+            href='/tokens/reference'
+            className='is-interactive h-full p-6 no-underline'
+          >
+            <h3 className='text-display-ui-5 text-strong'>Reference</h3>
+            <p className='text-sm text-subtle'>Complete token documentation</p>
+          </Card>
+        </div>
+      </section>
+
+      {/* Components */}
+      <section className='grid gap-6'>
+        <div className='grid gap-1'>
+          <h2 className='text-display-ui-3 text-strong'>Components</h2>
+          <p className='text-subtle'>
+            Accessible React components built on Base UI, styled with intent and
+            emphasis.
+          </p>
+        </div>
+        <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+          {[
             {
               label: 'Button',
               href: '/components/button',
-              description: 'Interactive button styles'
+              description: 'Actions and CTAs'
             },
             {
-              label: 'View all',
-              href: '/components',
-              description: 'All components'
+              label: 'Card',
+              href: '/components/card',
+              description: 'Content containers'
+            },
+            {
+              label: 'Badge',
+              href: '/components/badge',
+              description: 'Status and labels'
+            },
+            {
+              label: 'Accordion',
+              href: '/components/accordion',
+              description: 'Expandable content'
+            },
+            {
+              label: 'Input',
+              href: '/components/input',
+              description: 'Text input fields'
+            },
+            {
+              label: 'Select',
+              href: '/components/select',
+              description: 'Selection menus'
             }
-          ]}
-        />
+          ].map((item) => (
+            <Card
+              key={item.href}
+              as={Link}
+              href={item.href}
+              className='is-interactive h-full p-6 no-underline'
+            >
+              <h3 className='text-display-ui-6 text-strong'>{item.label}</h3>
+              <p className='text-sm text-subtle'>{item.description}</p>
+            </Card>
+          ))}
+        </div>
+        <Link
+          href='/components'
+          className='text-sm text-subtle hover:text-default'
+        >
+          View all components <ArrowRight size={12} className='inline' />
+        </Link>
       </section>
 
       {/* Key Features */}
       <section className='grid gap-8'>
-        <div className='grid gap-3'>
-          <h2 className='text-display-ui-3 text-strong'>Key features</h2>
-          <p className='text-lg text-subtle'>
-            Discover the powerful features that make Roadie a complete design
-            system solution
-          </p>
-        </div>
+        <h2 className='text-display-ui-3 text-strong'>Key features</h2>
         <div className='grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-8'>
           <FeatureCard
             icon={<MagicWand size={24} weight='bold' />}
             title='Tailwind-native styling'
-            description='Built with Tailwind CSS v4 and custom @utility directives for intent/emphasis theming.'
+            description='Built on Tailwind CSS v4 with custom @utility directives for intent/emphasis theming.'
+            demo={
+              <Code className='text-xs'>intent-accent emphasis-strong</Code>
+            }
           />
           <FeatureCard
             icon={<WheelchairMotion size={24} weight='bold' />}
             title='Accessible by default'
-            description='Components built on Base UI for robust accessibility support.'
+            description='Components built on Base UI for robust accessibility and keyboard navigation.'
           />
           <FeatureCard
             icon={<Moon size={24} weight='bold' />}
             title='Dark mode ready'
             description='OKLCH color scales with automatic dark mode via CSS custom properties.'
+            demo={
+              <div className='flex gap-1'>
+                <div
+                  className='size-6 rounded-md border'
+                  style={{
+                    backgroundColor: 'var(--color-neutral-1)',
+                    borderColor: 'var(--color-neutral-4)'
+                  }}
+                />
+                <div
+                  className='size-6 rounded-md border'
+                  style={{
+                    backgroundColor: 'var(--color-neutral-12)',
+                    borderColor: 'var(--color-neutral-10)'
+                  }}
+                />
+              </div>
+            }
           />
         </div>
       </section>
 
-      {/* Getting Started */}
-      <Card as='section' className='grid justify-items-start gap-3 p-8'>
-        <h2 className='text-display-ui-3 text-strong'>Get started</h2>
-        <p className='text-lg text-subtle'>
-          Ready to build? Follow our guide to start using Roadie in your
-          project.
-        </p>
-        <Button
-          intent='accent'
-          emphasis='strong'
-          render={<Link href='/overview/getting-started' />}
-        >
-          Getting started guide
-        </Button>
+      {/* Get Started CTA */}
+      <Card
+        as='section'
+        intent='accent'
+        emphasis='subtle'
+        className='grid grid-cols-[1fr_auto] items-center gap-6 p-8'
+      >
+        <div className='grid justify-items-start gap-3'>
+          <h2 className='text-display-ui-3 text-strong'>Ready to build?</h2>
+          <p className='text-subtle'>
+            Get up and running with Roadie in minutes.
+          </p>
+          <Button
+            intent='accent'
+            emphasis='strong'
+            render={<Link href='/overview/getting-started' />}
+          >
+            Getting started guide
+          </Button>
+        </div>
+        <HighFive className='hidden size-24 md:block' />
       </Card>
     </main>
+  )
+}
+
+function FoundationCard({
+  href,
+  title,
+  description,
+  preview
+}: {
+  href: string
+  title: string
+  description: string
+  preview: React.ReactNode
+}) {
+  return (
+    <Card
+      as={Link}
+      href={href}
+      className='is-interactive grid h-full gap-3 p-5 no-underline'
+    >
+      <div className='grid gap-0.5'>
+        <h3 className='text-display-ui-6 text-strong'>{title}</h3>
+        <p className='text-sm text-subtle'>{description}</p>
+      </div>
+      {preview}
+    </Card>
   )
 }
 
 function FeatureCard({
   icon,
   title,
-  description
+  description,
+  demo
 }: {
   icon: React.ReactNode
   title: string
   description: string
+  demo?: React.ReactNode
 }) {
   return (
     <div className='grid gap-3'>
@@ -171,47 +348,7 @@ function FeatureCard({
         <h3 className='text-display-ui-5 text-strong'>{title}</h3>
       </div>
       <p className='text-subtle'>{description}</p>
+      {demo}
     </div>
-  )
-}
-
-function SectionCard({
-  icon,
-  title,
-  description,
-  items
-}: {
-  icon: React.ReactNode
-  title: string
-  description: string
-  items: Array<{ label: string; href: string; description: string }>
-}) {
-  return (
-    <Card className='pt-8 pb-4'>
-      <div className='grid gap-1 px-8'>
-        <div className='flex gap-3'>
-          {icon}
-          <h3 className='text-display-ui-5 text-strong'>{title}</h3>
-        </div>
-        <p className='text-sm text-subtle'>{description}</p>
-      </div>
-      <ul
-        className={`grid grid-cols-1 px-4 pt-4 ${items.length > 2 ? 'md:grid-cols-[repeat(auto-fit,minmax(250px,1fr))]' : ''}`}
-      >
-        {items.map((item) => (
-          <li key={item.href}>
-            <Link
-              href={item.href}
-              className='is-interactive grid h-full gap-0.5 rounded-lg emphasis-subtler p-4 no-underline'
-            >
-              <h4 className='text-display-ui-6 text-strong intent-accent'>
-                {item.label}
-              </h4>
-              <p className='text-sm text-subtle'>{item.description}</p>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </Card>
   )
 }

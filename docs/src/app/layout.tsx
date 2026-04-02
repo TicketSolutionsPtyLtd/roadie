@@ -147,7 +147,11 @@ async function getNavigationItems() {
     'Reference'
   )
 
-  const navigationItems = [
+  const navigationItems: {
+    title: string
+    href: string
+    items: { title: string; href?: string; label?: boolean }[]
+  }[] = [
     {
       title: 'Overview',
       href: '/',
@@ -193,21 +197,43 @@ async function getNavigationItems() {
   })
 
   if (validComponents.length > 0) {
+    const categoryOrder = ['Actions', 'Inputs', 'Content', 'Text', 'Layout']
+
+    const componentsByCategory = validComponents.reduce(
+      (acc, comp) => {
+        const cat = comp.category || 'Other'
+        if (!acc[cat]) acc[cat] = []
+        acc[cat].push(comp)
+        return acc
+      },
+      {} as Record<string, ComponentMetadata[]>
+    )
+
+    const sortedCategories = Object.entries(componentsByCategory).sort(
+      ([a], [b]) => {
+        const aIdx = categoryOrder.indexOf(a)
+        const bIdx = categoryOrder.indexOf(b)
+        return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx)
+      }
+    )
+
+    const componentItems: { title: string; href?: string; label?: boolean }[] =
+      [{ title: 'Overview', href: '/components' }]
+
+    for (const [category, comps] of sortedCategories) {
+      componentItems.push({ title: category, label: true })
+      for (const comp of comps.sort((a, b) => a.title.localeCompare(b.title))) {
+        componentItems.push({
+          title: comp.title,
+          href: `/components/${comp.name}`
+        })
+      }
+    }
+
     navigationItems.push({
       title: 'Components',
       href: '/components',
-      items: [
-        {
-          title: 'Overview',
-          href: '/components'
-        },
-        ...validComponents
-          .sort((a, b) => a.title.localeCompare(b.title))
-          .map((comp) => ({
-            title: comp.title,
-            href: `/components/${comp.name}`
-          }))
-      ]
+      items: componentItems
     })
   }
 

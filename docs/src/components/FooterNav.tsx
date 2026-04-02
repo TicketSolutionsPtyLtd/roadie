@@ -5,7 +5,8 @@ import { usePathname } from 'next/navigation'
 
 interface NavItem {
   title: string
-  href: string
+  href?: string
+  label?: boolean
 }
 
 interface NavSection {
@@ -23,9 +24,17 @@ export function FooterNav({ items }: FooterNavProps) {
 
   if (pathname === '/') return null
 
-  const flatNav = items.reduce<NavItem[]>((acc, section) => {
-    return [...acc, ...section.items]
-  }, [])
+  const flatNav = items.reduce<(NavItem & { href: string })[]>(
+    (acc, section) => {
+      return [
+        ...acc,
+        ...(section.items.filter(
+          (item) => !item.label && item.href
+        ) as (NavItem & { href: string })[])
+      ]
+    },
+    []
+  )
 
   const currentIndex = flatNav.findIndex((item) => item.href === pathname)
 
