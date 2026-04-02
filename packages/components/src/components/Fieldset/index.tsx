@@ -10,7 +10,7 @@ export interface FieldsetRootProps extends ComponentProps<'fieldset'> {}
 
 function FieldsetRoot({ className, ...props }: FieldsetRootProps) {
   return (
-    <fieldset className={cn('border-none p-0 m-0', className)} {...props} />
+    <fieldset className={cn('m-0 border-none p-0', className)} {...props} />
   )
 }
 
@@ -48,7 +48,7 @@ export interface FieldsetErrorTextProps extends ComponentProps<'p'> {}
 function FieldsetErrorText({ className, ...props }: FieldsetErrorTextProps) {
   return (
     <p
-      className={cn('text-sm intent-danger text-subtle', className)}
+      className={cn('text-sm text-subtle intent-danger', className)}
       {...props}
     />
   )

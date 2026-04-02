@@ -137,12 +137,12 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
 
   if (!isLive) {
     return (
-      <div className='mb-8 relative min-w-0'>
+      <div className='relative mb-8 min-w-0'>
         <CopyButton code={trimmedCode} />
         <Highlight code={trimmedCode} language={language} theme={theme}>
           {({ style, tokens, getLineProps, getTokenProps }) => (
             <pre
-              className='emphasis-sunken overflow-x-auto text-xs sm:text-sm p-3 sm:p-4 rounded-md min-w-0'
+              className='min-w-0 overflow-x-auto rounded-md emphasis-sunken p-3 text-xs sm:p-4 sm:text-sm'
               style={style}
             >
               {tokens.map((line, i) => {
@@ -168,18 +168,18 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
   }
 
   return (
-    <div className='mb-8 relative min-w-0 border border-subtle rounded-md overflow-hidden'>
+    <div className='relative mb-8 min-w-0 overflow-hidden rounded-md border border-subtle'>
       <LiveProvider
         code={trimmedCode}
         scope={scope}
         theme={theme}
         language={language.replace('-live', '')}
       >
-        <LivePreview className='px-4 py-4 sm:px-6 sm:py-6 bg-default font-sans overflow-x-auto min-w-0' />
-        <LiveError className='px-4 py-3 text-sm intent-danger text-subtle bg-subtler' />
+        <LivePreview className='min-w-0 overflow-x-auto bg-default px-4 py-4 font-sans sm:px-6 sm:py-6' />
+        <LiveError className='bg-subtler px-4 py-3 text-sm text-subtle intent-danger' />
         <div className='relative min-w-0'>
           <CopyButton code={trimmedCode} />
-          <LiveEditor className='emphasis-sunken overflow-x-auto text-xs sm:text-sm p-3 sm:p-4 min-w-0' />
+          <LiveEditor className='min-w-0 overflow-x-auto emphasis-sunken p-3 text-xs sm:p-4 sm:text-sm' />
         </div>
       </LiveProvider>
     </div>

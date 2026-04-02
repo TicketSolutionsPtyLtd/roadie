@@ -29,7 +29,7 @@ function BreadcrumbLink({ className, ...props }: ComponentProps<'a'>) {
   return (
     <a
       className={cn(
-        'text-subtle hover:text-default transition-colors',
+        'text-subtle transition-colors hover:text-default',
         className
       )}
       {...props}
@@ -65,7 +65,7 @@ function BreadcrumbCurrent({ className, ...props }: ComponentProps<'span'>) {
   return (
     <span
       aria-current='page'
-      className={cn('text-default font-medium', className)}
+      className={cn('font-medium text-default', className)}
       {...props}
     />
   )

@@ -1,4 +1,4 @@
 @import '@oztix/roadie-core/css';
 
 /* Scan component dist for Tailwind class strings (rounded-full, h-10, etc.) */
-@source "../../node_modules/@oztix/roadie-components/dist";
+@source '../../node_modules/@oztix/roadie-components/dist';
