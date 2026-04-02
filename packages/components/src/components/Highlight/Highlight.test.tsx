@@ -56,12 +56,12 @@ describe('Highlight', () => {
     expect(marks[1]).toHaveTextContent('fox')
   })
 
-  it('applies default info intent to marks', () => {
+  it('inherits intent from parent context by default', () => {
     const { container } = render(
       <Highlight text='Highlighted text' query='Highlighted' />
     )
     const mark = container.querySelector('mark')
-    expect(mark).toHaveClass('intent-info')
+    expect(mark).not.toHaveClass('intent-info')
   })
 
   it('applies custom intent', () => {

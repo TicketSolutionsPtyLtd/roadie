@@ -9,7 +9,7 @@ describe('Mark', () => {
     const mark = container.querySelector('mark')
     expect(mark).toBeInTheDocument()
     expect(mark).toHaveTextContent('Marked text')
-    expect(mark).toHaveClass('intent-info') // default intent
+    expect(mark).not.toHaveClass('intent-info') // inherits from parent context
   })
 
   it('renders with different intents', () => {

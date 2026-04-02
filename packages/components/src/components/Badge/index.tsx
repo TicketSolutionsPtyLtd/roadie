@@ -29,7 +29,6 @@ export const badgeVariants = cva(
       }
     },
     defaultVariants: {
-      intent: 'neutral',
       emphasis: 'default',
       size: 'md'
     }
@@ -63,7 +62,7 @@ export function Badge({
       {indicator && (
         <span
           className={cn(
-            'size-1.5 rounded-full bg-current shrink-0',
+            'size-1.5 shrink-0 rounded-full bg-current',
             indicatorPulse && 'animate-pulse'
           )}
           aria-hidden='true'

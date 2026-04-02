@@ -15,17 +15,12 @@ describe('Accordion', () => {
       </Accordion>
     )
     expect(container.firstElementChild).toBeInTheDocument()
-    expect(container.firstElementChild).toHaveClass(
-      'flex',
-      'flex-col',
-      'w-full'
-    )
+    expect(container.firstElementChild).toHaveClass('grid', 'w-full')
   })
 
   it('renders with default appearance variant', () => {
     const classes = accordionVariants()
-    expect(classes).toContain('flex')
-    expect(classes).toContain('flex-col')
+    expect(classes).toContain('grid')
   })
 
   it('renders with contained appearance variant', () => {

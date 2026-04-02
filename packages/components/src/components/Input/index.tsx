@@ -29,7 +29,6 @@ export const inputVariants = cva('w-full rounded-md font-sans', {
     }
   },
   defaultVariants: {
-    intent: 'neutral',
     emphasis: 'default',
     size: 'md'
   }

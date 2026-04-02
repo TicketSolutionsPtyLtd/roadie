@@ -15,7 +15,7 @@ describe('Select', () => {
 
   it('renders Trigger with default variant classes', () => {
     const classes = selectTriggerVariants()
-    expect(classes).toContain('intent-neutral')
+    expect(classes).not.toContain('intent-neutral')
   })
 
   it('renders Trigger with different intents', () => {

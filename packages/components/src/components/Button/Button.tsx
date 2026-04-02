@@ -38,7 +38,6 @@ export const buttonVariants = cva(
       }
     },
     defaultVariants: {
-      intent: 'neutral',
       emphasis: 'default',
       size: 'md'
     }

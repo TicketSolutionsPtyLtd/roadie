@@ -10,7 +10,7 @@ describe('Input', () => {
     const input = container.querySelector('input')!
     expect(input).toBeInTheDocument()
     expect(input).toHaveAttribute('type', 'text')
-    expect(input).toHaveClass('intent-neutral')
+    expect(input).not.toHaveClass('intent-neutral')
   })
 
   it('renders with different intents', () => {

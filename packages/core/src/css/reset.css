@@ -27,7 +27,7 @@
   }
 
   ::selection {
-    background-color: var(--intent-bg-subtle);
+    background-color: var(--color-info-3);
   }
 
   body {

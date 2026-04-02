@@ -9,7 +9,7 @@ describe('Textarea', () => {
     const { container } = render(<Textarea />)
     const textarea = container.querySelector('textarea')!
     expect(textarea).toBeInTheDocument()
-    expect(textarea).toHaveClass('intent-neutral')
+    expect(textarea).not.toHaveClass('intent-neutral')
   })
 
   it('renders with different intents', () => {

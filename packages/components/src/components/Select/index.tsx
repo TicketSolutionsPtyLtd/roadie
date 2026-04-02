@@ -34,7 +34,6 @@ export const selectTriggerVariants = cva(
       }
     },
     defaultVariants: {
-      intent: 'neutral',
       emphasis: 'default',
       size: 'md'
     }
@@ -108,7 +107,7 @@ function SelectPopup({ className, ...props }: SelectPopupProps) {
       <SelectPrimitive.Positioner>
         <SelectPrimitive.Popup
           className={cn(
-            'intent-neutral bg-raised rounded-lg border border-[var(--intent-border-subtle)] py-1 z-50',
+            'z-50 rounded-lg border border-[var(--intent-border-subtle)] bg-raised py-1',
             className
           )}
           {...props}
@@ -129,7 +128,7 @@ function SelectItem({ className, children, ...props }: SelectItemProps) {
   return (
     <SelectPrimitive.Item
       className={cn(
-        'flex cursor-pointer select-none items-center px-3 py-1.5 text-sm text-default outline-none hover:bg-subtle data-[highlighted]:bg-subtle',
+        'flex cursor-pointer items-center px-3 py-1.5 text-sm text-default outline-none select-none hover:bg-subtle data-[highlighted]:bg-subtle',
         className
       )}
       {...props}

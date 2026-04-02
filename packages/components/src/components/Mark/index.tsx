@@ -18,9 +18,7 @@ export const markVariants = cva('rounded-sm px-[0.2em] py-[0.05em]', {
       info: 'intent-info'
     }
   },
-  defaultVariants: {
-    intent: 'info'
-  }
+  defaultVariants: {}
 })
 
 export interface MarkProps

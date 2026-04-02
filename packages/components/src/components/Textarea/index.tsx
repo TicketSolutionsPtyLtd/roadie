@@ -31,7 +31,6 @@ export const textareaVariants = cva(
       }
     },
     defaultVariants: {
-      intent: 'neutral',
       emphasis: 'default',
       size: 'md'
     }

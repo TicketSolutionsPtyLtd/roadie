@@ -9,7 +9,7 @@ describe('Field', () => {
     const root = container.firstElementChild!
     expect(root).toBeInTheDocument()
     expect(root.tagName.toLowerCase()).toBe('div')
-    expect(root).toHaveClass('flex', 'flex-col', 'gap-1.5')
+    expect(root).toHaveClass('grid', 'gap-1.5')
   })
 
   it('renders Label sub-component', () => {

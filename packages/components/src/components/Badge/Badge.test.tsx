@@ -9,7 +9,7 @@ describe('Badge', () => {
     const badge = getByText('New')
     expect(badge).toBeInTheDocument()
     expect(badge.tagName.toLowerCase()).toBe('span')
-    expect(badge).toHaveClass('intent-neutral')
+    expect(badge).not.toHaveClass('intent-neutral')
     expect(badge).toHaveClass('emphasis-default')
   })
 
