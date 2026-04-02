@@ -11,6 +11,7 @@ Roadie is a design system for Oztix's applications, built as a monorepo using pn
 - Build System: Turborepo
 - Framework: React v19
 - Component Primitives: @base-ui/react (for accessible interactive components)
+- Icons: @phosphor-icons/react (use `@phosphor-icons/react/ssr` in server components)
 - Styling: Tailwind CSS v4 with custom `@utility` directives
 - Language: TypeScript v5 (strict mode)
 - Documentation: Next.js v16 with MDX
@@ -18,6 +19,7 @@ Roadie is a design system for Oztix's applications, built as a monorepo using pn
 **External Documentation:**
 - Tailwind CSS v4: https://tailwindcss.com/docs
 - Base UI: https://base-ui.com/
+- Phosphor Icons: https://phosphoricons.com/
 
 ## Monorepo Structure
 
