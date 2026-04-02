@@ -1,0 +1,95 @@
+export const metadata = {
+  title: 'Prose',
+  description: 'Container for styling long-form and rich HTML content.'
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Prose
+
+Container for long-form content like CMS output, markdown, or user-generated HTML. Applies semantic typography, spacing, and element styles to nested HTML.
+
+## Import
+
+```tsx
+import { Prose } from '@oztix/roadie-components'
+```
+
+## Default
+
+```tsx-live
+<Prose>
+  <h2>Article heading</h2>
+  <p>Body paragraph with <strong>bold text</strong> and <a href="#">a link</a>. The Prose component handles all nested element styling so you don't need to add classes to each element.</p>
+  <h3>Subheading</h3>
+  <p>Another paragraph with <em>emphasis</em> and <code>inline code</code>.</p>
+</Prose>
+```
+
+## Lists
+
+```tsx-live
+<Prose>
+  <h3>Unordered list</h3>
+  <ul>
+    <li>First item</li>
+    <li>Second item with more detail</li>
+    <li>Third item</li>
+  </ul>
+  <h3>Ordered list</h3>
+  <ol>
+    <li>Step one</li>
+    <li>Step two</li>
+    <li>Step three</li>
+  </ol>
+</Prose>
+```
+
+## Blockquotes
+
+```tsx-live
+<Prose>
+  <blockquote>
+    Design is not just what it looks like and feels like. Design is how it works.
+  </blockquote>
+  <p>Blockquotes get a left border and subtle text color automatically.</p>
+</Prose>
+```
+
+## Tables
+
+```tsx-live
+<Prose>
+  <table>
+    <thead>
+      <tr>
+        <th>Token</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>text-subtle</td>
+        <td>Step 11</td>
+      </tr>
+      <tr>
+        <td>text-default</td>
+        <td>Step 12</td>
+      </tr>
+      <tr>
+        <td>text-strong</td>
+        <td>Step 13</td>
+      </tr>
+    </tbody>
+  </table>
+</Prose>
+```
+
+## Guidelines
+
+- Use Prose for **rendered content** — CMS output, markdown, user HTML
+- Do **not** use Prose for app UI — use utility classes directly
+- Prose sets `text-prose` (1.5 line-height) which is wider than `text-ui` (1.35)
+- All heading, list, blockquote, table, and code styles are handled automatically
+
+<PropsDefinitions componentPath='packages/components/src/components/Prose/index.tsx' />
