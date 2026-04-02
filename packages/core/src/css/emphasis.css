@@ -57,10 +57,10 @@
 
   &.is-interactive:hover,
   &.is-interactive:focus-visible {
-    background-color: var(--intent-4);
+    background-color: var(--intent-4a);
   }
   &.is-interactive:active {
-    background-color: var(--intent-5);
+    background-color: var(--intent-5a);
   }
 }
 
@@ -75,10 +75,10 @@
   }
   &.is-interactive:hover,
   &.is-interactive:focus-visible {
-    background-color: var(--intent-3);
+    background-color: var(--intent-3a);
   }
   &.is-interactive:active {
-    background-color: var(--intent-4);
+    background-color: var(--intent-4a);
   }
 }
 

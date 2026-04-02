@@ -119,13 +119,13 @@ export default function ColorsPage() {
             <tbody className='divide-y divide-subtler text-subtle'>
               <tr>
                 <td className='py-2 pr-4 text-strong'>subtler</td>
-                <td className='py-2 pr-4'>step 2</td>
+                <td className='py-2 pr-4'>step 9 @ 6% alpha</td>
                 <td className='py-2 pr-4'>step 10</td>
                 <td className='py-2'>step 5</td>
               </tr>
               <tr>
                 <td className='py-2 pr-4 text-strong'>subtle</td>
-                <td className='py-2 pr-4'>step 3</td>
+                <td className='py-2 pr-4'>step 9 @ 11% alpha</td>
                 <td className='py-2 pr-4'>step 11</td>
                 <td className='py-2'>step 6</td>
               </tr>

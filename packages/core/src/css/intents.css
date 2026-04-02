@@ -8,9 +8,9 @@
 :root {
   --intent-hue: var(--accent-hue, 247);
   --intent-bg-default: var(--color-neutral-1);
-  --intent-bg-subtler: var(--color-neutral-2);
-  --intent-bg-subtle: var(--color-neutral-3);
   --intent-bg-strong: var(--color-neutral-12);
+  --intent-bg-strong-hover: var(--color-neutral-12);
+  --intent-bg-strong-active: var(--color-neutral-13);
   --intent-bg-inverted: var(--color-neutral-12);
   --intent-bg-raised: var(--color-neutral-1);
   --intent-bg-sunken: var(--color-neutral-2);
@@ -42,6 +42,15 @@
   --intent-11: var(--color-neutral-11);
   --intent-12: var(--color-neutral-12);
   --intent-13: var(--color-neutral-13);
+
+  /* Alpha scale steps (visible on any surface) */
+  --intent-2a: color-mix(in oklch, var(--color-neutral-9) 6%, transparent);
+  --intent-3a: color-mix(in oklch, var(--color-neutral-9) 11%, transparent);
+  --intent-4a: color-mix(in oklch, var(--color-neutral-9) 17%, transparent);
+  --intent-5a: color-mix(in oklch, var(--color-neutral-9) 23%, transparent);
+
+  --intent-bg-subtler: var(--intent-2a);
+  --intent-bg-subtle: var(--intent-3a);
 }
 
 /* Dark mode: bump surfaces up for depth separation */
@@ -55,9 +64,7 @@
 @utility intent-neutral {
   --intent-hue: var(--accent-hue, 247);
   --intent-bg-default: var(--color-neutral-1);
-  --intent-bg-subtler: var(--color-neutral-2);
-  --intent-bg-subtle: var(--color-neutral-3);
-  --intent-bg-strong: var(--color-neutral-12);
+  --intent-bg-strong: var(--color-neutral-13);
   --intent-bg-inverted: var(--color-neutral-12);
   --intent-bg-raised: var(--color-neutral-1);
   --intent-bg-sunken: var(--color-neutral-0);
@@ -74,6 +81,14 @@
   --intent-text-strong: var(--color-neutral-13);
   --intent-text-inverted: var(--color-neutral-0);
 
+  --intent-2a: color-mix(in oklch, var(--color-neutral-9) 6%, transparent);
+  --intent-3a: color-mix(in oklch, var(--color-neutral-9) 11%, transparent);
+  --intent-4a: color-mix(in oklch, var(--color-neutral-9) 17%, transparent);
+  --intent-5a: color-mix(in oklch, var(--color-neutral-9) 23%, transparent);
+
+  --intent-bg-subtler: var(--intent-2a);
+  --intent-bg-subtle: var(--intent-3a);
+
   .dark & {
     --intent-bg-default: var(--color-neutral-2);
     --intent-bg-raised: var(--color-neutral-3);
@@ -84,9 +99,9 @@
 @utility intent-brand {
   --intent-hue: 247;
   --intent-bg-default: var(--color-brand-1);
-  --intent-bg-subtler: var(--color-brand-2);
-  --intent-bg-subtle: var(--color-brand-3);
   --intent-bg-strong: var(--color-brand-9);
+  --intent-bg-strong-hover: var(--color-brand-11);
+  --intent-bg-strong-active: var(--color-brand-12);
   --intent-bg-inverted: var(--color-brand-12);
   --intent-bg-raised: var(--color-brand-1);
   --intent-bg-sunken: var(--color-brand-2);
@@ -119,6 +134,14 @@
   --intent-12: var(--color-brand-12);
   --intent-13: var(--color-brand-13);
 
+  --intent-2a: color-mix(in oklch, var(--color-brand-9) 6%, transparent);
+  --intent-3a: color-mix(in oklch, var(--color-brand-9) 11%, transparent);
+  --intent-4a: color-mix(in oklch, var(--color-brand-9) 17%, transparent);
+  --intent-5a: color-mix(in oklch, var(--color-brand-9) 23%, transparent);
+
+  --intent-bg-subtler: var(--intent-2a);
+  --intent-bg-subtle: var(--intent-3a);
+
   .dark & {
     --intent-bg-default: var(--color-brand-2);
     --intent-bg-raised: var(--color-brand-2);
@@ -130,9 +153,9 @@
 @utility intent-accent {
   --intent-hue: var(--accent-hue, 247);
   --intent-bg-default: var(--color-accent-1);
-  --intent-bg-subtler: var(--color-accent-2);
-  --intent-bg-subtle: var(--color-accent-3);
   --intent-bg-strong: var(--color-accent-9);
+  --intent-bg-strong-hover: var(--color-accent-11);
+  --intent-bg-strong-active: var(--color-accent-12);
   --intent-bg-inverted: var(--color-accent-12);
   --intent-bg-raised: var(--color-accent-1);
   --intent-bg-sunken: var(--color-accent-2);
@@ -165,6 +188,14 @@
   --intent-12: var(--color-accent-12);
   --intent-13: var(--color-accent-13);
 
+  --intent-2a: color-mix(in oklch, var(--color-accent-9) 6%, transparent);
+  --intent-3a: color-mix(in oklch, var(--color-accent-9) 11%, transparent);
+  --intent-4a: color-mix(in oklch, var(--color-accent-9) 17%, transparent);
+  --intent-5a: color-mix(in oklch, var(--color-accent-9) 23%, transparent);
+
+  --intent-bg-subtler: var(--intent-2a);
+  --intent-bg-subtle: var(--intent-3a);
+
   .dark & {
     --intent-bg-default: var(--color-accent-2);
     --intent-bg-raised: var(--color-accent-2);
@@ -176,9 +207,9 @@
 @utility intent-danger {
   --intent-hue: 28;
   --intent-bg-default: var(--color-danger-1);
-  --intent-bg-subtler: var(--color-danger-2);
-  --intent-bg-subtle: var(--color-danger-3);
   --intent-bg-strong: var(--color-danger-9);
+  --intent-bg-strong-hover: var(--color-danger-11);
+  --intent-bg-strong-active: var(--color-danger-12);
   --intent-bg-inverted: var(--color-danger-12);
   --intent-bg-raised: var(--color-danger-1);
   --intent-bg-sunken: var(--color-danger-2);
@@ -211,6 +242,14 @@
   --intent-12: var(--color-danger-12);
   --intent-13: var(--color-danger-13);
 
+  --intent-2a: color-mix(in oklch, var(--color-danger-9) 6%, transparent);
+  --intent-3a: color-mix(in oklch, var(--color-danger-9) 11%, transparent);
+  --intent-4a: color-mix(in oklch, var(--color-danger-9) 17%, transparent);
+  --intent-5a: color-mix(in oklch, var(--color-danger-9) 23%, transparent);
+
+  --intent-bg-subtler: var(--intent-2a);
+  --intent-bg-subtle: var(--intent-3a);
+
   .dark & {
     --intent-bg-default: var(--color-danger-2);
     --intent-bg-raised: var(--color-danger-2);
@@ -222,9 +261,9 @@
 @utility intent-success {
   --intent-hue: 185;
   --intent-bg-default: var(--color-success-1);
-  --intent-bg-subtler: var(--color-success-2);
-  --intent-bg-subtle: var(--color-success-3);
   --intent-bg-strong: var(--color-success-9);
+  --intent-bg-strong-hover: var(--color-success-11);
+  --intent-bg-strong-active: var(--color-success-12);
   --intent-bg-inverted: var(--color-success-12);
   --intent-bg-raised: var(--color-success-1);
   --intent-bg-sunken: var(--color-success-2);
@@ -257,6 +296,14 @@
   --intent-12: var(--color-success-12);
   --intent-13: var(--color-success-13);
 
+  --intent-2a: color-mix(in oklch, var(--color-success-9) 6%, transparent);
+  --intent-3a: color-mix(in oklch, var(--color-success-9) 11%, transparent);
+  --intent-4a: color-mix(in oklch, var(--color-success-9) 17%, transparent);
+  --intent-5a: color-mix(in oklch, var(--color-success-9) 23%, transparent);
+
+  --intent-bg-subtler: var(--intent-2a);
+  --intent-bg-subtle: var(--intent-3a);
+
   .dark & {
     --intent-bg-default: var(--color-success-2);
     --intent-bg-raised: var(--color-success-2);
@@ -268,9 +315,9 @@
 @utility intent-warning {
   --intent-hue: 86;
   --intent-bg-default: var(--color-warning-1);
-  --intent-bg-subtler: var(--color-warning-2);
-  --intent-bg-subtle: var(--color-warning-3);
   --intent-bg-strong: var(--color-warning-9);
+  --intent-bg-strong-hover: var(--color-warning-11);
+  --intent-bg-strong-active: var(--color-warning-12);
   --intent-bg-inverted: var(--color-warning-12);
   --intent-bg-raised: var(--color-warning-1);
   --intent-bg-sunken: var(--color-warning-2);
@@ -303,6 +350,14 @@
   --intent-12: var(--color-warning-12);
   --intent-13: var(--color-warning-13);
 
+  --intent-2a: color-mix(in oklch, var(--color-warning-9) 6%, transparent);
+  --intent-3a: color-mix(in oklch, var(--color-warning-9) 11%, transparent);
+  --intent-4a: color-mix(in oklch, var(--color-warning-9) 17%, transparent);
+  --intent-5a: color-mix(in oklch, var(--color-warning-9) 23%, transparent);
+
+  --intent-bg-subtler: var(--intent-2a);
+  --intent-bg-subtle: var(--intent-3a);
+
   .dark & {
     --intent-bg-default: var(--color-warning-2);
     --intent-bg-raised: var(--color-warning-2);
@@ -314,9 +369,9 @@
 @utility intent-info {
   --intent-hue: 303;
   --intent-bg-default: var(--color-info-1);
-  --intent-bg-subtler: var(--color-info-2);
-  --intent-bg-subtle: var(--color-info-3);
   --intent-bg-strong: var(--color-info-9);
+  --intent-bg-strong-hover: var(--color-info-11);
+  --intent-bg-strong-active: var(--color-info-12);
   --intent-bg-inverted: var(--color-info-12);
   --intent-bg-raised: var(--color-info-1);
   --intent-bg-sunken: var(--color-info-2);
@@ -348,6 +403,14 @@
   --intent-11: var(--color-info-11);
   --intent-12: var(--color-info-12);
   --intent-13: var(--color-info-13);
+
+  --intent-2a: color-mix(in oklch, var(--color-info-9) 6%, transparent);
+  --intent-3a: color-mix(in oklch, var(--color-info-9) 11%, transparent);
+  --intent-4a: color-mix(in oklch, var(--color-info-9) 17%, transparent);
+  --intent-5a: color-mix(in oklch, var(--color-info-9) 23%, transparent);
+
+  --intent-bg-subtler: var(--intent-2a);
+  --intent-bg-subtle: var(--intent-3a);
 
   .dark & {
     --intent-bg-default: var(--color-info-2);
