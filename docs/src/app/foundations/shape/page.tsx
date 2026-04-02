@@ -184,37 +184,46 @@ export default function ShapePage() {
         <Guideline
           title='Match radius to hierarchy'
           description='Larger radii for higher-level containers, smaller radii for inline or nested elements. This creates a natural visual hierarchy.'
-          doContent='Use larger radii for containers (cards, dialogs) and smaller radii for inline elements (code, marks).'
-          dontContent='Apply the same radius everywhere. A card and an inline code span should not share the same corner treatment.'
-          doExample={
-            <div className='grid gap-3'>
-              <div className='rounded-xl border border-subtle bg-raised p-4'>
-                <p className='mb-2 text-xs text-subtle'>
-                  Card — <Code>rounded-xl</Code>
-                </p>
-                <div className='rounded-lg border border-subtle bg-sunken px-3 py-2'>
-                  <p className='text-xs text-subtle'>
-                    Input — <Code>rounded-lg</Code>
+        >
+          <Guideline.Do
+            example={
+              <div className='grid gap-3'>
+                <div className='rounded-xl border border-subtle bg-raised p-4'>
+                  <p className='mb-2 text-xs text-subtle'>
+                    Card — <Code>rounded-xl</Code>
                   </p>
+                  <div className='rounded-lg border border-subtle bg-sunken px-3 py-2'>
+                    <p className='text-xs text-subtle'>
+                      Input — <Code>rounded-lg</Code>
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          }
-          dontExample={
-            <div className='grid gap-3'>
-              <div className='rounded-md border border-subtle bg-raised p-4'>
-                <p className='mb-2 text-xs text-subtle'>
-                  Card — <Code>rounded-md</Code>
-                </p>
-                <div className='rounded-md border border-subtle bg-sunken px-3 py-2'>
-                  <p className='text-xs text-subtle'>
-                    Input — <Code>rounded-md</Code>
+            }
+          >
+            Use larger radii for containers (cards, dialogs) and smaller radii
+            for inline elements (code, marks).
+          </Guideline.Do>
+          <Guideline.Dont
+            example={
+              <div className='grid gap-3'>
+                <div className='rounded-md border border-subtle bg-raised p-4'>
+                  <p className='mb-2 text-xs text-subtle'>
+                    Card — <Code>rounded-md</Code>
                   </p>
+                  <div className='rounded-md border border-subtle bg-sunken px-3 py-2'>
+                    <p className='text-xs text-subtle'>
+                      Input — <Code>rounded-md</Code>
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          }
-        />
+            }
+          >
+            Apply the same radius everywhere. A card and an inline code span
+            should not share the same corner treatment.
+          </Guideline.Dont>
+        </Guideline>
 
         <Guideline
           title='Keep pills for actions'
@@ -224,57 +233,76 @@ export default function ShapePage() {
               circular elements.
             </>
           }
-          doContent='Use rounded-full for buttons, badges, tags, and avatars.'
-          dontContent='Use rounded-full on cards or containers. Full rounding distorts rectangular layouts.'
-          doExample={
-            <div className='flex flex-wrap items-center gap-2'>
-              <span className='emphasis-strong rounded-full px-3 py-1.5 text-sm font-bold'>
-                Button
-              </span>
-              <span className='emphasis-default rounded-full px-3 py-1.5 text-sm font-bold text-subtle'>
-                Button
-              </span>
-              <span className='rounded-full emphasis-subtle px-2.5 py-0.5 text-xs font-semibold'>
-                Badge
-              </span>
-              <span className='rounded-full emphasis-subtler px-2.5 py-0.5 text-xs font-semibold'>
-                Tag
-              </span>
-            </div>
-          }
-          dontExample={
-            <div className='rounded-full border border-subtle bg-raised p-6'>
-              <p className='text-xs text-subtle'>
-                A card with <Code>rounded-full</Code>
-              </p>
-            </div>
-          }
-        />
+        >
+          <Guideline.Do
+            example={
+              <div className='flex flex-wrap items-center gap-2'>
+                <span className='emphasis-strong rounded-full px-3 py-1.5 text-sm font-bold'>
+                  Button
+                </span>
+                <span className='emphasis-default rounded-full px-3 py-1.5 text-sm font-bold text-subtle'>
+                  Button
+                </span>
+                <span className='rounded-full emphasis-subtle px-2.5 py-0.5 text-xs font-semibold'>
+                  Badge
+                </span>
+                <span className='rounded-full emphasis-subtler px-2.5 py-0.5 text-xs font-semibold'>
+                  Tag
+                </span>
+              </div>
+            }
+          >
+            Use rounded-full for buttons, badges, tags, and avatars.
+          </Guideline.Do>
+          <Guideline.Dont
+            example={
+              <div className='rounded-full border border-subtle bg-raised p-6'>
+                <p className='text-xs text-subtle'>
+                  A card with <Code>rounded-full</Code>
+                </p>
+              </div>
+            }
+          >
+            Use rounded-full on cards or containers. Full rounding distorts
+            rectangular layouts.
+          </Guideline.Dont>
+        </Guideline>
 
         <Guideline
           title='Nest with decreasing radius'
           description='When elements are nested, the inner element should use an equal or smaller radius than the outer. This avoids visual tension at corners.'
-          doContent='Inner elements use equal or smaller radius than their parent.'
-          dontContent="Use a larger radius on a child than its parent — the child's corners will clip awkwardly against the parent's straighter edges."
-          doExample={
-            <div className='rounded-xl border border-subtle bg-raised p-4'>
-              <div className='rounded-lg border border-subtle bg-sunken p-3'>
-                <p className='text-xs text-subtle'>
-                  Parent <Code>rounded-xl</Code>, child <Code>rounded-lg</Code>
-                </p>
+        >
+          <Guideline.Do
+            example={
+              <div className='rounded-xl border border-subtle bg-raised p-4'>
+                <div className='rounded-lg border border-subtle bg-sunken p-3'>
+                  <p className='text-xs text-subtle'>
+                    Parent <Code>rounded-xl</Code>, child{' '}
+                    <Code>rounded-lg</Code>
+                  </p>
+                </div>
               </div>
-            </div>
-          }
-          dontExample={
-            <div className='rounded-lg border border-subtle bg-raised p-4'>
-              <div className='rounded-2xl border border-subtle bg-sunken p-3'>
-                <p className='text-xs text-subtle'>
-                  Parent <Code>rounded-lg</Code>, child <Code>rounded-2xl</Code>
-                </p>
+            }
+          >
+            Inner elements use equal or smaller radius than their parent.
+          </Guideline.Do>
+          <Guideline.Dont
+            example={
+              <div className='rounded-lg border border-subtle bg-raised p-4'>
+                <div className='rounded-2xl border border-subtle bg-sunken p-3'>
+                  <p className='text-xs text-subtle'>
+                    Parent <Code>rounded-lg</Code>, child{' '}
+                    <Code>rounded-2xl</Code>
+                  </p>
+                </div>
               </div>
-            </div>
-          }
-        />
+            }
+          >
+            Use a larger radius on a child than its parent — the child&apos;s
+            corners will clip awkwardly against the parent&apos;s straighter
+            edges.
+          </Guideline.Dont>
+        </Guideline>
       </section>
 
       {/* Best practices */}

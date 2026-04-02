@@ -47,40 +47,46 @@ export default function InteractionsPage() {
           <Guideline
             title='Keyboard works everywhere'
             description='The mouse is optional. Power users and assistive technologies rely on the keyboard.'
-            doContent='Ensure all flows are keyboard-operable and follow WAI-ARIA Authoring Practices.'
-            dontContent={
-              <>
-                Build &ldquo;clickable&rdquo; <Code>div</Code>s that cannot be
-                focused or activated with Enter/Space.
-              </>
-            }
-          />
+          >
+            <Guideline.Do>
+              Ensure all flows are keyboard-operable and follow WAI-ARIA
+              Authoring Practices.
+            </Guideline.Do>
+            <Guideline.Dont>
+              Build &ldquo;clickable&rdquo; <Code>div</Code>s that cannot be
+              focused or activated with Enter/Space.
+            </Guideline.Dont>
+          </Guideline>
 
           <Guideline
             title='Clear focus indicators'
             description='Navigation requires visibility. Users must always know where they are on the page.'
-            doContent={
-              <>
-                Show a visible focus ring for every focusable element. Use{' '}
-                <Code>:focus-visible</Code> to avoid distracting mouse users.
-                Roadie&apos;s <Code>is-interactive</Code> provides this
-                automatically.
-              </>
-            }
-            dontContent={
-              <>
-                Remove outlines (<Code>outline: none</Code>) without replacing
-                them with a high-contrast alternative.
-              </>
-            }
-          />
+          >
+            <Guideline.Do>
+              Show a visible focus ring for every focusable element. Use{' '}
+              <Code>:focus-visible</Code> to avoid distracting mouse users.
+              Roadie&apos;s <Code>is-interactive</Code> provides this
+              automatically.
+            </Guideline.Do>
+            <Guideline.Dont>
+              Remove outlines (<Code>outline: none</Code>) without replacing
+              them with a high-contrast alternative.
+            </Guideline.Dont>
+          </Guideline>
 
           <Guideline
             title='Manage focus'
             description="Context changes require focus changes. Don't leave the user's focus behind when the UI changes."
-            doContent='Use focus traps for modals. Move focus to new content after navigation. Return focus to the trigger when a menu closes.'
-            dontContent='Open a modal but leave the focus on the button that opened it, hidden under the backdrop.'
-          />
+          >
+            <Guideline.Do>
+              Use focus traps for modals. Move focus to new content after
+              navigation. Return focus to the trigger when a menu closes.
+            </Guideline.Do>
+            <Guideline.Dont>
+              Open a modal but leave the focus on the button that opened it,
+              hidden under the backdrop.
+            </Guideline.Dont>
+          </Guideline>
         </div>
 
         {/* Hit targets and touch */}
@@ -92,49 +98,55 @@ export default function InteractionsPage() {
           <Guideline
             title='Match visual and hit targets'
             description="Fitts' Law applies to code. What looks clickable must be clickable — at a comfortable size."
-            doContent={
-              <>
-                Expand hit targets to &ge; 24px (desktop) or &ge; 44px (mobile),
-                even if the icon is smaller. Use padding to expand the area.
-              </>
-            }
-            dontContent='Wrap a tiny 12px icon in a click handler with no padding.'
-          />
+          >
+            <Guideline.Do>
+              Expand hit targets to &ge; 24px (desktop) or &ge; 44px (mobile),
+              even if the icon is smaller. Use padding to expand the area.
+            </Guideline.Do>
+            <Guideline.Dont>
+              Wrap a tiny 12px icon in a click handler with no padding.
+            </Guideline.Dont>
+          </Guideline>
 
           <Guideline
             title='Mobile input hygiene'
             description='Prevent disorienting zooms. Inputs must be legible by default on touch devices.'
-            doContent={
-              <>
-                Set <Code>&lt;input&gt;</Code> font size to &ge; 16px on mobile.
-              </>
-            }
-            dontContent='Allow iOS Safari to auto-zoom/pan when an input is focused because the text is too small.'
-          />
+          >
+            <Guideline.Do>
+              Set <Code>&lt;input&gt;</Code> font size to &ge; 16px on mobile.
+            </Guideline.Do>
+            <Guideline.Dont>
+              Allow iOS Safari to auto-zoom/pan when an input is focused because
+              the text is too small.
+            </Guideline.Dont>
+          </Guideline>
 
           <Guideline
             title='No dead zones'
             description='Proximity implies relationship. There should be no gap between a label and its control.'
-            doContent='Wrap the input and label in a single clickable container. Clicking a visible label should focus its control.'
-            dontContent='Leave an unclickable gap between a checkbox and its text.'
-          />
+          >
+            <Guideline.Do>
+              Wrap the input and label in a single clickable container. Clicking
+              a visible label should focus its control.
+            </Guideline.Do>
+            <Guideline.Dont>
+              Leave an unclickable gap between a checkbox and its text.
+            </Guideline.Dont>
+          </Guideline>
 
           <Guideline
             title='Respect user agency'
             description='The browser belongs to the user. Never disable native capabilities like zooming or pasting.'
-            doContent={
-              <>
-                Allow pasting in all <Code>&lt;input&gt;</Code> and{' '}
-                <Code>&lt;textarea&gt;</Code> elements.
-              </>
-            }
-            dontContent={
-              <>
-                Disable browser zoom (<Code>user-scalable=no</Code>) or block
-                paste events for &ldquo;security.&rdquo;
-              </>
-            }
-          />
+          >
+            <Guideline.Do>
+              Allow pasting in all <Code>&lt;input&gt;</Code> and{' '}
+              <Code>&lt;textarea&gt;</Code> elements.
+            </Guideline.Do>
+            <Guideline.Dont>
+              Disable browser zoom (<Code>user-scalable=no</Code>) or block
+              paste events for &ldquo;security.&rdquo;
+            </Guideline.Dont>
+          </Guideline>
         </div>
 
         {/* Forms */}
@@ -144,79 +156,111 @@ export default function InteractionsPage() {
           <Guideline
             title='Labels are mandatory'
             description='Every control needs a name, even if visually hidden.'
-            doContent={
-              <>
-                Ensure every control has a <Code>&lt;label&gt;</Code> or{' '}
-                <Code>aria-label</Code>. Clicking a visible label should focus
-                its control.
-              </>
-            }
-            dontContent='Rely on placeholder text as the only label.'
-          />
+          >
+            <Guideline.Do>
+              Ensure every control has a <Code>&lt;label&gt;</Code> or{' '}
+              <Code>aria-label</Code>. Clicking a visible label should focus its
+              control.
+            </Guideline.Do>
+            <Guideline.Dont>
+              Rely on placeholder text as the only label.
+            </Guideline.Dont>
+          </Guideline>
 
           <Guideline
             title='Placeholders are examples'
             description='Placeholders should show how to answer, not what to answer.'
-            doContent={
-              <>
-                Use &ldquo;e.g. +1 (555) 000-0000&rdquo; as a placeholder to
-                show the expected format.
-              </>
-            }
-            dontContent='Repeat the label "Phone number" in the placeholder.'
-          />
+          >
+            <Guideline.Do>
+              Use &ldquo;e.g. +1 (555) 000-0000&rdquo; as a placeholder to show
+              the expected format.
+            </Guideline.Do>
+            <Guideline.Dont>
+              Repeat the label &ldquo;Phone number&rdquo; in the placeholder.
+            </Guideline.Dont>
+          </Guideline>
 
           <Guideline
             title='Enter submits'
             description='The Enter key is the universal "Done" signal.'
-            doContent='Submit the form on Enter when a text input is focused. If multiple controls exist, apply to the last one.'
-            dontContent='Force users to pick up the mouse to click "Save" after typing.'
-          />
+          >
+            <Guideline.Do>
+              Submit the form on Enter when a text input is focused. If multiple
+              controls exist, apply to the last one.
+            </Guideline.Do>
+            <Guideline.Dont>
+              Force users to pick up the mouse to click &ldquo;Save&rdquo; after
+              typing.
+            </Guideline.Dont>
+          </Guideline>
 
           <Guideline
             title='Keep submit active'
             description='Validation should be educational, not preventative. Disabled buttons hide the "why."'
-            doContent='Keep the submit button active. Show validation errors on click.'
-            dontContent='Disable the submit button while the form is incomplete.'
-          />
+          >
+            <Guideline.Do>
+              Keep the submit button active. Show validation errors on click.
+            </Guideline.Do>
+            <Guideline.Dont>
+              Disable the submit button while the form is incomplete.
+            </Guideline.Dont>
+          </Guideline>
 
           <Guideline
             title="Don't block typing"
             description='Inputs accept input. Let the user type, then correct them.'
-            doContent='Allow any characters in a field, then show a validation error if they are invalid. Trim leading/trailing whitespace before validation.'
-            dontContent='Silently block keystrokes (e.g., preventing non-numbers in a phone field) without feedback.'
-          />
+          >
+            <Guideline.Do>
+              Allow any characters in a field, then show a validation error if
+              they are invalid. Trim leading/trailing whitespace before
+              validation.
+            </Guideline.Do>
+            <Guideline.Dont>
+              Silently block keystrokes (e.g., preventing non-numbers in a phone
+              field) without feedback.
+            </Guideline.Dont>
+          </Guideline>
 
           <Guideline
             title='Inline errors'
             description='Contextualise failure. Show the error where the problem is.'
-            doContent='Display error messages immediately next to the invalid field. Focus the first error on submit.'
-            dontContent='Dump a generic "Form invalid" banner at the top of the page.'
-          />
+          >
+            <Guideline.Do>
+              Display error messages immediately next to the invalid field.
+              Focus the first error on submit.
+            </Guideline.Do>
+            <Guideline.Dont>
+              Dump a generic &ldquo;Form invalid&rdquo; banner at the top of the
+              page.
+            </Guideline.Dont>
+          </Guideline>
 
           <Guideline
             title='Autocomplete everywhere'
             description='Browsers are smart; let them help. Correct metadata enables one-click filling.'
-            doContent={
-              <>
-                Set <Code>autocomplete</Code> attributes and meaningful{' '}
-                <Code>name</Code> values on inputs.
-              </>
-            }
-            dontContent={
-              <>
-                Use generic names like <Code>input_1</Code> that confuse
-                password managers.
-              </>
-            }
-          />
+          >
+            <Guideline.Do>
+              Set <Code>autocomplete</Code> attributes and meaningful{' '}
+              <Code>name</Code> values on inputs.
+            </Guideline.Do>
+            <Guideline.Dont>
+              Use generic names like <Code>input_1</Code> that confuse password
+              managers.
+            </Guideline.Dont>
+          </Guideline>
 
           <Guideline
             title='Unsaved changes protection'
             description='Data loss is a critical failure. Warn the user before destroying their work.'
-            doContent='Trigger a confirmation dialog if the user tries to navigate away with dirty state.'
-            dontContent='Let a stray back-swipe wipe out a 500-word essay.'
-          />
+          >
+            <Guideline.Do>
+              Trigger a confirmation dialog if the user tries to navigate away
+              with dirty state.
+            </Guideline.Do>
+            <Guideline.Dont>
+              Let a stray back-swipe wipe out a 500-word essay.
+            </Guideline.Dont>
+          </Guideline>
         </div>
 
         {/* Feedback and state */}
@@ -226,42 +270,73 @@ export default function InteractionsPage() {
           <Guideline
             title='Honest loading states'
             description='For fast, reversible operations, skip the loader entirely and use optimistic UI instead.'
-            doContent='For slow or high-stakes operations, show a loader — but commit to it for at least 300ms. Delay its appearance by 200ms to avoid flash on fast responses.'
-            dontContent='Show a spinner for 50ms then immediately remove it. Flicker creates anxiety.'
-          />
+          >
+            <Guideline.Do>
+              For slow or high-stakes operations, show a loader — but commit to
+              it for at least 300ms. Delay its appearance by 200ms to avoid
+              flash on fast responses.
+            </Guideline.Do>
+            <Guideline.Dont>
+              Show a spinner for 50ms then immediately remove it. Flicker
+              creates anxiety.
+            </Guideline.Dont>
+          </Guideline>
 
           <Guideline
             title='Optimistic UI'
             description="The interface should move as fast as the user's thought. Reserve loading states for high-stakes or slow operations."
-            doContent='For fast, reversible actions (toggling a like, reordering a list), update the UI immediately and reconcile with the server in the background.'
-            dontContent='Block the UI with a spinner for every server round-trip, even trivial ones.'
-          />
+          >
+            <Guideline.Do>
+              For fast, reversible actions (toggling a like, reordering a list),
+              update the UI immediately and reconcile with the server in the
+              background.
+            </Guideline.Do>
+            <Guideline.Dont>
+              Block the UI with a spinner for every server round-trip, even
+              trivial ones.
+            </Guideline.Dont>
+          </Guideline>
 
           <Guideline
             title='Ellipsis implies continuation'
             description='An ellipsis indicates that an action is not yet complete or requires more input.'
-            doContent={
-              <>
-                Use &ldquo;Rename&hellip;&rdquo; (opens a dialog) and
-                &ldquo;Saving&hellip;&rdquo; (process in flight).
-              </>
-            }
-            dontContent='Use "Rename" for a button that opens a modal — the user expects immediate action.'
-          />
+          >
+            <Guideline.Do>
+              Use &ldquo;Rename&hellip;&rdquo; (opens a dialog) and
+              &ldquo;Saving&hellip;&rdquo; (process in flight).
+            </Guideline.Do>
+            <Guideline.Dont>
+              Use &ldquo;Rename&rdquo; for a button that opens a modal — the
+              user expects immediate action.
+            </Guideline.Dont>
+          </Guideline>
 
           <Guideline
             title='Destructive friction'
             description='Regret is expensive. Make irreversible actions hard to do by accident.'
-            doContent='Require explicit confirmation or provide a generous "Undo" window for destructive actions.'
-            dontContent='Delete a project immediately upon clicking a red trash icon.'
-          />
+          >
+            <Guideline.Do>
+              Require explicit confirmation or provide a generous
+              &ldquo;Undo&rdquo; window for destructive actions.
+            </Guideline.Do>
+            <Guideline.Dont>
+              Delete a project immediately upon clicking a red trash icon.
+            </Guideline.Dont>
+          </Guideline>
 
           <Guideline
             title='Forgiving interactions'
             description='Users are imprecise. The interface should anticipate intent, not punish inaccuracy.'
-            doContent='Use prediction cones for menus. Add debounce to tooltips (delay first, instant subsequent).'
-            dontContent='Close a dropdown the millisecond the mouse leaves the trigger pixel.'
-          />
+          >
+            <Guideline.Do>
+              Use prediction cones for menus. Add debounce to tooltips (delay
+              first, instant subsequent).
+            </Guideline.Do>
+            <Guideline.Dont>
+              Close a dropdown the millisecond the mouse leaves the trigger
+              pixel.
+            </Guideline.Dont>
+          </Guideline>
         </div>
       </section>
 

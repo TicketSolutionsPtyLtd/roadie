@@ -91,7 +91,7 @@ function CopyButton({ code }: { code: string }) {
       <Button
         onClick={handleCopy}
         size='sm'
-        emphasis='subtler'
+        emphasis='default'
         aria-label='Copy code to clipboard'
       >
         {copied && 'Copied!'}
@@ -103,10 +103,17 @@ function CopyButton({ code }: { code: string }) {
 
 type CodePreviewProps = {
   children: string
-  language: string
+  language?: string
+  showCopy?: boolean
+  className?: string
 }
 
-export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
+export function CodePreview({
+  children,
+  language = 'tsx',
+  showCopy = true,
+  className
+}: CodePreviewProps) {
   const [colorMode, setColorMode] = useState<'light' | 'dark'>('light')
 
   useEffect(() => {
@@ -137,13 +144,17 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
 
   if (!isLive) {
     return (
-      <div className='relative mb-8 min-w-0'>
-        <CopyButton code={trimmedCode} />
+      <div
+        className={
+          className ?? 'relative mb-8 min-w-0 rounded-lg emphasis-sunken'
+        }
+      >
+        {showCopy && <CopyButton code={trimmedCode} />}
         <Highlight code={trimmedCode} language={language} theme={theme}>
-          {({ style, tokens, getLineProps, getTokenProps }) => (
+          {({ tokens, getLineProps, getTokenProps }) => (
             <pre
-              className='min-w-0 overflow-x-auto rounded-lg emphasis-sunken p-3 text-xs sm:p-4 sm:text-sm'
-              style={style}
+              className='min-w-0 overflow-x-auto p-3 font-mono text-xs sm:p-4 sm:text-sm'
+              style={{ scrollbarWidth: 'none' }}
             >
               {tokens.map((line, i) => {
                 const { key: _key, ...linePropsWithoutKey } = getLineProps({
@@ -179,7 +190,7 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
         <LiveError className='bg-subtler px-4 py-3 text-sm text-subtle intent-danger' />
         <div className='relative min-w-0'>
           <CopyButton code={trimmedCode} />
-          <LiveEditor className='min-w-0 overflow-x-auto emphasis-sunken p-3 text-xs sm:p-4 sm:text-sm' />
+          <LiveEditor className='min-w-0 overflow-x-auto emphasis-sunken p-3 font-mono text-xs sm:p-4 sm:text-sm' />
         </div>
       </LiveProvider>
     </div>

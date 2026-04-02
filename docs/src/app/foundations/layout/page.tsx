@@ -292,33 +292,30 @@ export default function LayoutPage() {
                 <Code>md:</Code>.
               </>
             }
-            doContent='Respond to parent width so the component adapts regardless of where it is placed.'
-            doExample={
-              <div>
-                <pre className='min-w-0 font-mono text-xs text-subtle'>
-                  {`{/* Responds to parent width */}
+          >
+            <Guideline.Do
+              code={`{/* Responds to parent width */}
 <div className="@container">
   <div className="grid @sm:grid-cols-[auto_1fr]">
     <img />
     <div>Content</div>
   </div>
 </div>`}
-                </pre>
-              </div>
-            }
-            dontContent='Respond to the viewport — it breaks when the same component is placed in a narrow column.'
-            dontExample={
-              <div>
-                <pre className='min-w-0 font-mono text-xs text-subtle'>
-                  {`{/* Responds to viewport — breaks in narrow columns */}
+            >
+              Respond to parent width so the component adapts regardless of
+              where it is placed.
+            </Guideline.Do>
+            <Guideline.Dont
+              code={`{/* Responds to viewport — breaks in narrow columns */}
 <div className="grid md:grid-cols-[auto_1fr]">
   <img />
   <div>Content</div>
 </div>`}
-                </pre>
-              </div>
-            }
-          />
+            >
+              Respond to the viewport — it breaks when the same component is
+              placed in a narrow column.
+            </Guideline.Dont>
+          </Guideline>
 
           <div className='grid gap-2'>
             <h3 className='text-display-ui-6 text-strong'>
