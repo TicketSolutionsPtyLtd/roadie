@@ -10,7 +10,7 @@ export type { HighlightProps } from './Highlight'
 export { Mark, markVariants } from './Mark'
 export type { MarkProps } from './Mark'
 
-export { Prose } from './Prose'
+export { Prose, proseVariants } from './Prose'
 export type { ProseProps } from './Prose'
 
 export { Accordion, accordionVariants } from './Accordion'

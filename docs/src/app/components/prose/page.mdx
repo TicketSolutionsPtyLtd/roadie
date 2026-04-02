@@ -26,6 +26,28 @@ import { Prose } from '@oztix/roadie-components'
 </Prose>
 ```
 
+## Sizes
+
+```tsx-live
+<div className="flex flex-col gap-8">
+  <Prose size="sm">
+    <h3>Small prose</h3>
+    <p>Compact content for sidebars, cards, and tight spaces. Uses tighter spacing and smaller heading sizes.</p>
+    <ul><li>Tight list items</li><li>Minimal vertical rhythm</li></ul>
+  </Prose>
+  <Prose size="md">
+    <h3>Medium prose (default)</h3>
+    <p>Standard content size for articles and documentation. Balanced spacing and heading hierarchy.</p>
+    <ul><li>Standard list items</li><li>Comfortable vertical rhythm</li></ul>
+  </Prose>
+  <Prose size="lg">
+    <h3>Large prose</h3>
+    <p>Generous content for landing pages and editorial layouts. Wider spacing and larger base text.</p>
+    <ul><li>Spacious list items</li><li>Open vertical rhythm</li></ul>
+  </Prose>
+</div>
+```
+
 ## Lists
 
 ```tsx-live
