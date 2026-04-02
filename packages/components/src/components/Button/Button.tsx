@@ -8,7 +8,7 @@ import { type VariantProps, cva } from 'class-variance-authority'
 import { cn } from '@oztix/roadie-core/utils'
 
 export const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-full font-bold border border-transparent transition-all select-none is-interactive gap-1.5 [&_svg]:shrink-0 [&_svg:not([class*="size-"])]:size-4',
+  'inline-flex items-center justify-center whitespace-nowrap rounded-full font-bold transition-all select-none is-interactive gap-1.5 [&_svg]:shrink-0 [&_svg:not([class*="size-"])]:size-4',
   {
     variants: {
       intent: {

@@ -56,7 +56,7 @@ export default function SpacingPage() {
                 {token}
               </p>
               <div
-                className='h-6 rounded-sm emphasis-strong-surface intent-brand shrink-0'
+                className='h-6 rounded-sm bg-strong intent-brand shrink-0'
                 style={{ width: rem }}
               />
               <p className='text-xs text-subtler shrink-0'>{value}</p>
