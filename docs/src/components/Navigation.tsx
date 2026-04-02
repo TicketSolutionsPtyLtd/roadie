@@ -25,7 +25,7 @@ function Logo() {
   return (
     <Link
       href='/'
-      className='relative block w-full aspect-square focus:outline-2 focus:outline-accent-9 focus:outline-offset-2 focus:rounded'
+      className='focus:outline-accent-9 relative block aspect-square w-full focus:rounded focus:outline-2 focus:outline-offset-2'
       aria-label='Go to Roadie home page'
       role='banner'
     >
@@ -92,30 +92,30 @@ function NavigationGroup({
     : false
 
   return (
-    <div className='flex flex-col gap-2'>
+    <div className='grid gap-2'>
       <Link
         href={item.href || '#'}
         onClick={onNavigate}
-        className={`px-2 text-sm font-semibold no-underline transition-colors hover:text-accent-11 ${
-          isActiveParent ? 'intent-accent text-default' : 'text-default'
+        className={`hover:text-accent-11 px-2 text-sm font-semibold no-underline transition-colors ${
+          isActiveParent ? 'text-default intent-accent' : 'text-default'
         }`}
       >
         {item.title}
       </Link>
       {item.items && (
-        <ul className='flex flex-col gap-0.5'>
+        <ul className='grid gap-0.5'>
           {item.items.map((subItem) => {
             const isActive = pathname === subItem.href
 
             return (
-              <li key={subItem.href} className='list-none p-0 m-0'>
+              <li key={subItem.href} className='m-0 list-none p-0'>
                 <Link
                   href={subItem.href || '#'}
                   onClick={onNavigate}
-                  className={`block px-2 py-1 text-sm no-underline transition-all rounded-sm hover:bg-accent-3 hover:text-accent-11 ${
+                  className={`hover:bg-accent-3 hover:text-accent-11 block rounded-sm px-2 py-1 text-sm no-underline transition-all ${
                     isActive
                       ? 'text-accent-11 font-semibold'
-                      : 'text-subtle font-normal'
+                      : 'font-normal text-subtle'
                   }`}
                 >
                   {subItem.title}
@@ -137,16 +137,16 @@ function NavigationContent({
   onNavigate?: () => void
 }) {
   return (
-    <div className='flex flex-col gap-6 h-full pt-6'>
-      <div className='flex items-center px-4 shrink-0'>
+    <div className='flex h-full flex-col gap-6 pt-6'>
+      <div className='flex shrink-0 items-center px-4'>
         <Logo />
       </div>
-      <div className='flex flex-col px-4 gap-6 grow shrink-0'>
+      <div className='flex shrink-0 grow flex-col gap-6 px-4'>
         {items.map((item, index) => (
           <NavigationGroup key={index} item={item} onNavigate={onNavigate} />
         ))}
       </div>
-      <div className='p-4 mt-auto sticky bottom-0 bg-sunken shrink-0'>
+      <div className='sticky bottom-0 mt-auto shrink-0 bg-sunken p-4'>
         <ThemeToggle />
       </div>
     </div>
@@ -176,7 +176,7 @@ export function Navigation({ items }: NavigationProps) {
       {/* Mobile hamburger */}
       <button
         onClick={() => setIsOpen(true)}
-        className='fixed top-3 left-3 z-50 flex md:hidden items-center justify-center size-10 rounded-lg emphasis-default is-interactive'
+        className='is-interactive fixed top-3 left-3 z-50 flex size-10 emphasis-default items-center justify-center rounded-lg md:hidden'
         aria-label='Open navigation'
       >
         <List size={20} weight='bold' />
@@ -185,20 +185,20 @@ export function Navigation({ items }: NavigationProps) {
       {/* Mobile overlay */}
       {isOpen && (
         <div
-          className='fixed inset-0 z-40 bg-black/30 backdrop-blur-sm md:hidden'
+          className='bg-black/30 fixed inset-0 z-40 backdrop-blur-sm md:hidden'
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Mobile slide-out nav */}
       <nav
-        className={`fixed top-0 left-0 z-50 h-screen w-[280px] emphasis-sunken overflow-y-auto transition-transform duration-200 ease-out md:hidden ${
+        className={`fixed top-0 left-0 z-50 h-screen w-[280px] overflow-y-auto emphasis-sunken transition-transform duration-200 ease-out md:hidden ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <button
           onClick={() => setIsOpen(false)}
-          className='absolute top-3 right-3 flex items-center justify-center size-10 rounded-lg emphasis-subtler is-interactive'
+          className='is-interactive absolute top-3 right-3 flex size-10 items-center justify-center rounded-lg emphasis-subtler'
           aria-label='Close navigation'
         >
           <X size={20} weight='bold' />
@@ -207,7 +207,7 @@ export function Navigation({ items }: NavigationProps) {
       </nav>
 
       {/* Desktop sidebar */}
-      <nav className='sticky top-0 h-screen w-[220px] shrink-0 overflow-y-auto emphasis-sunken hidden md:block'>
+      <nav className='sticky top-0 hidden h-screen w-[220px] shrink-0 overflow-y-auto emphasis-sunken md:block'>
         <NavigationContent items={items} />
       </nav>
     </>

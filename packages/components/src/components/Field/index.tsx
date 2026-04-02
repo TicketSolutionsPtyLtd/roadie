@@ -12,7 +12,7 @@ import { Textarea, type TextareaProps } from '../Textarea'
 export interface FieldRootProps extends ComponentProps<'div'> {}
 
 function FieldRoot({ className, ...props }: FieldRootProps) {
-  return <div className={cn('flex flex-col gap-1.5', className)} {...props} />
+  return <div className={cn('grid gap-1.5', className)} {...props} />
 }
 
 FieldRoot.displayName = 'Field'
@@ -65,7 +65,7 @@ export interface FieldErrorTextProps extends ComponentProps<'p'> {}
 function FieldErrorText({ className, ...props }: FieldErrorTextProps) {
   return (
     <p
-      className={cn('text-sm intent-danger text-subtle', className)}
+      className={cn('text-sm text-subtle intent-danger', className)}
       {...props}
     />
   )

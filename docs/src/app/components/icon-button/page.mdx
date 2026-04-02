@@ -72,7 +72,7 @@ The default size is `icon-md`. All sizes maintain square proportions.
 ### Intents
 
 ```tsx-live
-<div className='flex flex-col gap-2'>
+<div className='grid gap-2'>
   <div className='flex flex-row flex-wrap gap-2'>
     <IconButton aria-label='Neutral' emphasis='strong' intent='neutral'><CheckCircle weight='bold' /></IconButton>
     <IconButton aria-label='Accent' emphasis='strong' intent='accent'><CheckCircle weight='bold' /></IconButton>
@@ -97,12 +97,12 @@ The default size is `icon-md`. All sizes maintain square proportions.
 ### States
 
 ```tsx-live
-<div className='flex flex-col gap-4'>
-  <div className='flex flex-col gap-1'>
+<div className='grid gap-4'>
+  <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Default</p>
     <div><IconButton aria-label='Favorite'><Heart weight='bold' /></IconButton></div>
   </div>
-  <div className='flex flex-col gap-1'>
+  <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Disabled</p>
     <div><IconButton aria-label='Favorite' disabled><Heart weight='bold' /></IconButton></div>
   </div>

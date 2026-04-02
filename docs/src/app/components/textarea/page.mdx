@@ -28,7 +28,7 @@ import { Textarea } from '@oztix/roadie-components'
 ### Emphasis
 
 ```tsx-live
-<div className='flex flex-col gap-2'>
+<div className='grid gap-2'>
   <Textarea emphasis='default' placeholder='Default emphasis' />
   <Textarea emphasis='subtle' placeholder='Subtle emphasis' />
 </div>
@@ -37,7 +37,7 @@ import { Textarea } from '@oztix/roadie-components'
 ### Sizes
 
 ```tsx-live
-<div className='flex flex-col gap-2'>
+<div className='grid gap-2'>
   <Textarea size='sm' placeholder='Small' />
   <Textarea size='md' placeholder='Medium (default)' />
   <Textarea size='lg' placeholder='Large' />
@@ -50,16 +50,16 @@ Textareas start neutral, gain an accent-coloured border and ring on focus,
 and switch to danger colouring when invalid.
 
 ```tsx-live
-<div className='flex flex-col gap-4'>
-  <div className='flex flex-col gap-1'>
+<div className='grid gap-4'>
+  <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Default</p>
     <Textarea placeholder='Click to focus' />
   </div>
-  <div className='flex flex-col gap-1'>
+  <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Invalid</p>
     <Textarea aria-invalid='true' defaultValue='Invalid content' />
   </div>
-  <div className='flex flex-col gap-1'>
+  <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Disabled</p>
     <Textarea disabled placeholder='Disabled' />
   </div>

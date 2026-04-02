@@ -19,7 +19,7 @@ const steps = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] as const
 
 function ColorScale({ intent }: { intent: string }) {
   return (
-    <div className='flex flex-col gap-1'>
+    <div className='grid gap-1'>
       <p className='text-sm text-strong capitalize'>{intent}</p>
       <div className='flex gap-0.5'>
         {steps.map((step) => (
@@ -33,7 +33,7 @@ function ColorScale({ intent }: { intent: string }) {
       </div>
       <div className='flex gap-0.5'>
         {steps.map((step) => (
-          <p key={step} className='text-xs text-subtler flex-1 text-center'>
+          <p key={step} className='flex-1 text-center text-xs text-subtler'>
             {step}
           </p>
         ))}
@@ -44,7 +44,7 @@ function ColorScale({ intent }: { intent: string }) {
 
 function IntentDemo({ intent }: { intent: string }) {
   return (
-    <div className={`intent-${intent} flex flex-col gap-3`}>
+    <div className={`intent-${intent} grid gap-3`}>
       <p className='text-sm text-strong capitalize'>{intent}</p>
       <div className='flex flex-wrap gap-2'>
         <div className='emphasis-strong rounded-md px-3 py-1.5 text-sm'>
@@ -53,10 +53,10 @@ function IntentDemo({ intent }: { intent: string }) {
         <div className='emphasis-default rounded-md px-3 py-1.5 text-sm'>
           emphasis-default
         </div>
-        <div className='emphasis-subtle rounded-md px-3 py-1.5 text-sm'>
+        <div className='rounded-md emphasis-subtle px-3 py-1.5 text-sm'>
           emphasis-subtle
         </div>
-        <div className='emphasis-subtler rounded-md px-3 py-1.5 text-sm'>
+        <div className='rounded-md emphasis-subtler px-3 py-1.5 text-sm'>
           emphasis-subtler
         </div>
       </div>
@@ -66,8 +66,8 @@ function IntentDemo({ intent }: { intent: string }) {
 
 export default function ColorsPage() {
   return (
-    <div className='flex flex-col gap-12'>
-      <div className='flex flex-col gap-3'>
+    <div className='grid gap-12'>
+      <div className='grid gap-3'>
         <h1 className='text-display-prose-1 text-strong'>Colors</h1>
         <p className='text-lg text-subtle'>
           Roadie uses OKLCH color scales with 14 steps (0-13) per intent. Colors
@@ -78,14 +78,14 @@ export default function ColorsPage() {
       </div>
 
       {/* Color scales */}
-      <section className='flex flex-col gap-6'>
+      <section className='grid gap-6'>
         <h2 className='text-display-ui-3 text-strong'>Color scales</h2>
         <p className='text-subtle'>
           Each intent has a 14-step OKLCH scale. Step 0 is the lightest extreme,
           step 13 the darkest. Dark mode swaps the values — step numbers stay
           the same.
         </p>
-        <div className='flex flex-col gap-6'>
+        <div className='grid gap-6'>
           {intents.map((intent) => (
             <ColorScale key={intent} intent={intent} />
           ))}
@@ -93,7 +93,7 @@ export default function ColorsPage() {
       </section>
 
       {/* Utility system */}
-      <section className='flex flex-col gap-6'>
+      <section className='grid gap-6'>
         <h2 className='text-display-ui-3 text-strong'>Color utilities</h2>
         <p className='text-subtle'>
           Three utility namespaces for applying colors. Each maps semantic
@@ -104,19 +104,19 @@ export default function ColorsPage() {
           <table className='w-full text-sm'>
             <thead>
               <tr className='border-b border-subtle'>
-                <th className='text-left py-2 pr-4 font-semibold'>Level</th>
-                <th className='text-left py-2 pr-4 font-semibold'>
+                <th className='py-2 pr-4 text-left font-semibold'>Level</th>
+                <th className='py-2 pr-4 text-left font-semibold'>
                   <Code>bg-*</Code>
                 </th>
-                <th className='text-left py-2 pr-4 font-semibold'>
+                <th className='py-2 pr-4 text-left font-semibold'>
                   <Code>text-*</Code>
                 </th>
-                <th className='text-left py-2 font-semibold'>
+                <th className='py-2 text-left font-semibold'>
                   <Code>border-*</Code>
                 </th>
               </tr>
             </thead>
-            <tbody className='text-subtle divide-y divide-subtler'>
+            <tbody className='divide-y divide-subtler text-subtle'>
               <tr>
                 <td className='py-2 pr-4 text-strong'>subtler</td>
                 <td className='py-2 pr-4'>step 2</td>
@@ -163,7 +163,7 @@ export default function ColorsPage() {
           </table>
         </div>
 
-        <div className='flex flex-col gap-2'>
+        <div className='grid gap-2'>
           <p className='text-sm text-strong'>Usage</p>
           <div className='flex flex-wrap gap-2'>
             <Code>bg-default</Code>
@@ -179,14 +179,14 @@ export default function ColorsPage() {
       </section>
 
       {/* Intent + emphasis */}
-      <section className='flex flex-col gap-6'>
+      <section className='grid gap-6'>
         <h2 className='text-display-ui-3 text-strong'>Intent + emphasis</h2>
         <p className='text-subtle'>
           Set <Code>intent-*</Code> on a container to choose the color palette.
           Use <Code>emphasis-*</Code> shortcuts for combined bg + text +
           interactive states, or individual utilities for composability.
         </p>
-        <div className='flex flex-col gap-6'>
+        <div className='grid gap-6'>
           {intents.map((intent) => (
             <IntentDemo key={intent} intent={intent} />
           ))}
@@ -194,7 +194,7 @@ export default function ColorsPage() {
       </section>
 
       {/* Dark mode */}
-      <section className='flex flex-col gap-4'>
+      <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Dark mode</h2>
         <p className='text-subtle'>
           Automatic. The <Code>.dark</Code> class on <Code>&lt;html&gt;</Code>{' '}
@@ -205,7 +205,7 @@ export default function ColorsPage() {
       </section>
 
       {/* Dynamic accent */}
-      <section className='flex flex-col gap-4'>
+      <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Dynamic accent</h2>
         <p className='text-subtle'>
           The accent scale is CSS-native. The <Code>ThemeProvider</Code> sets{' '}

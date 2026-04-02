@@ -54,15 +54,15 @@ import { RadioGroup } from '@oztix/roadie-components'
 ### States
 
 ```tsx-live
-<div className='flex flex-col gap-4'>
-  <div className='flex flex-col gap-1'>
+<div className='grid gap-4'>
+  <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Default</p>
     <RadioGroup>
       <RadioGroup.Item value='a' label='Option A' />
       <RadioGroup.Item value='b' label='Option B' />
     </RadioGroup>
   </div>
-  <div className='flex flex-col gap-1'>
+  <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Disabled</p>
     <RadioGroup disabled>
       <RadioGroup.Item value='a' label='Option A' />

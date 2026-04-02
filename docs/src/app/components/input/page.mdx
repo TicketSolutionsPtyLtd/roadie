@@ -28,7 +28,7 @@ import { Input } from '@oztix/roadie-components'
 ### Sizes
 
 ```tsx-live
-<div className='flex flex-col gap-2'>
+<div className='grid gap-2'>
   <Input size='sm' placeholder='Small' />
   <Input size='md' placeholder='Medium (default)' />
   <Input size='lg' placeholder='Large' />
@@ -38,7 +38,7 @@ import { Input } from '@oztix/roadie-components'
 ### Emphasis
 
 ```tsx-live
-<div className='flex flex-col gap-2'>
+<div className='grid gap-2'>
   <Input emphasis='default' placeholder='Default emphasis' />
   <Input emphasis='subtle' placeholder='Subtle emphasis' />
 </div>
@@ -50,16 +50,16 @@ Inputs start neutral, gain an accent-coloured border and ring on focus,
 and switch to danger colouring when invalid.
 
 ```tsx-live
-<div className='flex flex-col gap-4'>
-  <div className='flex flex-col gap-1'>
+<div className='grid gap-4'>
+  <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Default</p>
     <Input placeholder='Click to focus' />
   </div>
-  <div className='flex flex-col gap-1'>
+  <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Invalid</p>
     <Input aria-invalid='true' defaultValue='bad-email' />
   </div>
-  <div className='flex flex-col gap-1'>
+  <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Disabled</p>
     <Input disabled placeholder='Disabled' />
   </div>

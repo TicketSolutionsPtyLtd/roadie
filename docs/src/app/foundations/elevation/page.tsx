@@ -88,8 +88,8 @@ const intents = [
 
 export default function ElevationPage() {
   return (
-    <div className='view gap-10'>
-      <div className='view gap-3'>
+    <div className='grid gap-10'>
+      <div className='grid gap-3'>
         <h1 className='text-display-prose-1 text-strong'>Elevation</h1>
         <p className='text-lg text-subtle'>
           Shadows are tinted with the current intent&apos;s hue using CSS-native{' '}
@@ -100,7 +100,7 @@ export default function ElevationPage() {
       </div>
 
       {/* Shadow scale */}
-      <section className='view gap-4'>
+      <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Shadow scale</h2>
         <p className='text-subtle'>
           Each level uses multi-layer shadows with geometric scaling. Apply with{' '}
@@ -109,9 +109,9 @@ export default function ElevationPage() {
 
         <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
           {shadowScale.map(({ name, description, className }) => (
-            <div key={name} className='view gap-2'>
+            <div key={name} className='grid gap-2'>
               <div className={`${className} rounded-lg bg-raised p-6`}>
-                <p className='text-sm text-strong font-mono'>{name}</p>
+                <p className='font-mono text-sm text-strong'>{name}</p>
               </div>
               <p className='text-sm text-subtle'>{description}</p>
             </div>
@@ -120,7 +120,7 @@ export default function ElevationPage() {
       </section>
 
       {/* Inset shadows */}
-      <section className='view gap-4'>
+      <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Inset shadows</h2>
         <p className='text-subtle'>
           For sunken surfaces like input fields and wells. Apply with{' '}
@@ -129,9 +129,9 @@ export default function ElevationPage() {
 
         <div className='grid gap-6 sm:grid-cols-2'>
           {insetScale.map(({ name, description, className }) => (
-            <div key={name} className='view gap-2'>
+            <div key={name} className='grid gap-2'>
               <div className={`${className} rounded-lg bg-default p-6`}>
-                <p className='text-sm text-strong font-mono'>{name}</p>
+                <p className='font-mono text-sm text-strong'>{name}</p>
               </div>
               <p className='text-sm text-subtle'>{description}</p>
             </div>
@@ -140,7 +140,7 @@ export default function ElevationPage() {
       </section>
 
       {/* Rim light */}
-      <section className='view gap-4'>
+      <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Rim light</h2>
         <p className='text-subtle'>
           A subtle inner highlight for raised surfaces. Adds a polished,
@@ -161,12 +161,12 @@ export default function ElevationPage() {
               desc: 'Prominent — raised/floating surfaces'
             }
           ].map(({ name, desc }) => (
-            <div key={name} className='view gap-2'>
+            <div key={name} className='grid gap-2'>
               <div
-                className='shadow-md rounded-lg bg-raised p-6'
+                className='rounded-lg bg-raised p-6 shadow-md'
                 style={{ boxShadow: `var(--${name}), var(--shadow-md)` }}
               >
-                <p className='text-xs text-strong font-mono'>{name}</p>
+                <p className='font-mono text-xs text-strong'>{name}</p>
               </div>
               <p className='text-xs text-subtle'>{desc}</p>
             </div>
@@ -175,7 +175,7 @@ export default function ElevationPage() {
       </section>
 
       {/* Emphasis presets */}
-      <section className='view gap-4'>
+      <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Emphasis presets</h2>
         <p className='text-subtle'>
           The emphasis system includes elevation-aware presets that combine
@@ -186,13 +186,13 @@ export default function ElevationPage() {
         <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
           {emphasisPresets.map(
             ({ name, description, className, interactive }) => (
-              <div key={name} className='view gap-2'>
+              <div key={name} className='grid gap-2'>
                 <div
                   className={`${className} ${interactive ? 'is-interactive' : ''} rounded-lg p-6`}
                 >
-                  <p className='text-sm text-strong font-mono'>{name}</p>
+                  <p className='font-mono text-sm text-strong'>{name}</p>
                   {interactive && (
-                    <p className='text-xs text-subtle mt-1'>
+                    <p className='mt-1 text-xs text-subtle'>
                       Hover and click me
                     </p>
                   )}
@@ -244,7 +244,7 @@ export default function ElevationPage() {
       </section>
 
       {/* Intent tinting with emphasis presets */}
-      <section className='view gap-4'>
+      <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Intent tinting</h2>
         <p className='text-subtle'>
           Shadows automatically tint based on the nearest <Code>intent-*</Code>{' '}
@@ -254,9 +254,9 @@ export default function ElevationPage() {
         <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
           {intents.map(({ name, className }) => (
             <div key={name} className={className}>
-              <div className='emphasis-raised is-interactive rounded-lg p-6'>
-                <p className='text-sm text-strong font-mono'>intent-{name}</p>
-                <p className='text-xs text-subtle mt-1'>
+              <div className='is-interactive emphasis-raised rounded-lg p-6'>
+                <p className='font-mono text-sm text-strong'>intent-{name}</p>
+                <p className='mt-1 text-xs text-subtle'>
                   emphasis-raised — hover me
                 </p>
               </div>
@@ -266,10 +266,10 @@ export default function ElevationPage() {
       </section>
 
       {/* Usage guidelines */}
-      <section className='view gap-4'>
+      <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Usage guidelines</h2>
 
-        <div className='view gap-3'>
+        <div className='grid gap-3'>
           <h3 className='text-display-ui-4 text-strong'>Choosing a level</h3>
           <div className='overflow-x-auto'>
             <table className='w-full text-sm'>
@@ -322,9 +322,9 @@ export default function ElevationPage() {
           </div>
         </div>
 
-        <div className='view gap-3'>
+        <div className='grid gap-3'>
           <h3 className='text-display-ui-4 text-strong'>Best practices</h3>
-          <ul className='view gap-2 list-disc pl-5'>
+          <ul className='grid list-disc gap-2 pl-5'>
             <li>
               <p>
                 <strong>Prefer emphasis presets</strong> over raw shadow

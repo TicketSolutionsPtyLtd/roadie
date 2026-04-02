@@ -37,7 +37,7 @@ The default intent is `info`.
 
 ```tsx-live
 
-<div className='flex flex-col gap-2'>
+<div className='grid gap-2'>
   <p>
     <Highlight text='Neutral intent highlight' query='Neutral' intent='neutral' />
   </p>
@@ -80,14 +80,14 @@ By default, matching is case-insensitive.
 
 ```tsx-live
 
-<div className='flex flex-col gap-2'>
-  <div className='flex flex-col gap-1'>
+<div className='grid gap-2'>
+  <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Case insensitive (default)</p>
     <p>
       <Highlight text='Hello World' query='hello' />
     </p>
   </div>
-  <div className='flex flex-col gap-1'>
+  <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Case sensitive</p>
     <p>
       <Highlight text='Hello World' query='hello' ignoreCase={false} />
@@ -102,14 +102,14 @@ By default, all occurrences are highlighted.
 
 ```tsx-live
 
-<div className='flex flex-col gap-2'>
-  <div className='flex flex-col gap-1'>
+<div className='grid gap-2'>
+  <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Match all (default)</p>
     <p>
       <Highlight text='foo bar foo baz foo' query='foo' matchAll={true} />
     </p>
   </div>
-  <div className='flex flex-col gap-1'>
+  <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Match first only</p>
     <p>
       <Highlight text='foo bar foo baz foo' query='foo' matchAll={false} />

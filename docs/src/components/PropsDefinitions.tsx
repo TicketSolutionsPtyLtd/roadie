@@ -86,32 +86,32 @@ function PropsList({
   title?: string
 }) {
   return (
-    <div className='flex flex-col divide-y divide-subtler'>
+    <div className='grid divide-y divide-subtler'>
       {title && (
-        <div className='px-4 py-3 bg-subtler'>
+        <div className='bg-subtler px-4 py-3'>
           <p className='text-base font-bold text-subtle'>{title}</p>
         </div>
       )}
       {Object.entries(props).map(([name, prop]) => (
-        <div key={name} className='px-4 py-3 flex flex-col gap-1'>
+        <div key={name} className='grid gap-1 px-4 py-3'>
           <dt className='flex items-baseline gap-1'>
-            <div className='flex flex-col md:flex-row items-baseline gap-1'>
-              <span className='font-mono text-sm font-semibold shrink-0'>
+            <div className='flex flex-col items-baseline gap-1 md:flex-row'>
+              <span className='shrink-0 font-mono text-sm font-semibold'>
                 {name}
                 {!prop.required && <span className='text-subtle'>?</span>}
               </span>
-              <span className='font-mono text-sm text-info-11'>
+              <span className='text-info-11 font-mono text-sm'>
                 {formatTypeValues(prop)}
               </span>
             </div>
           </dt>
           <dd>
-            <div className='flex flex-col gap-2'>
+            <div className='grid gap-2'>
               {prop.description && (
                 <p className='text-subtle'>{prop.description}</p>
               )}
               {prop.defaultValue && (
-                <p className='text-subtle text-sm'>
+                <p className='text-sm text-subtle'>
                   Defaults to <Code>{prop.defaultValue.value}</Code>.
                 </p>
               )}
@@ -169,10 +169,10 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
       `${componentInfo.displayName}Props`
 
     return (
-      <div className='flex flex-col gap-4 pt-8 mt-8'>
+      <div className='mt-8 grid gap-4 pt-8'>
         <h2 className='text-xl font-bold'>Props</h2>
-        <dl className='flex flex-col border border-subtler rounded-md overflow-hidden'>
-          <div className='self-stretch flex flex-col gap-1 px-4 py-3 bg-subtler'>
+        <dl className='grid overflow-hidden rounded-md border border-subtler'>
+          <div className='grid gap-1 bg-subtler px-4 py-3'>
             <h3 className='text-xl font-bold'>{interfaceName}</h3>
             {!!componentInfo.description && (
               <p className='text-subtle'>{componentInfo.description}</p>

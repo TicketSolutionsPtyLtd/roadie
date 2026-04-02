@@ -11,40 +11,40 @@ type BlockquoteProps = ComponentPropsWithoutRef<'blockquote'>
 
 const components = {
   h1: (props: ComponentPropsWithoutRef<'h1'>) => (
-    <h1 className='text-display-prose-1 text-strong mb-4 pt-8' {...props} />
+    <h1 className='mb-4 pt-8 text-display-prose-1 text-strong' {...props} />
   ),
   h2: (props: ComponentPropsWithoutRef<'h2'>) => (
-    <h2 className='text-display-prose-2 text-strong mb-4 mt-12' {...props} />
+    <h2 className='mt-12 mb-4 text-display-prose-2 text-strong' {...props} />
   ),
   h3: (props: ComponentPropsWithoutRef<'h3'>) => (
-    <h3 className='text-display-prose-3 text-strong mb-4 mt-12' {...props} />
+    <h3 className='mt-12 mb-4 text-display-prose-3 text-strong' {...props} />
   ),
   h4: (props: ComponentPropsWithoutRef<'h4'>) => (
-    <h4 className='text-display-prose-4 text-strong mb-4 mt-8' {...props} />
+    <h4 className='mt-8 mb-4 text-display-prose-4 text-strong' {...props} />
   ),
   h5: (props: ComponentPropsWithoutRef<'h5'>) => (
-    <h5 className='text-display-prose-5 text-strong mb-4 mt-8' {...props} />
+    <h5 className='mt-8 mb-4 text-display-prose-5 text-strong' {...props} />
   ),
   h6: (props: ComponentPropsWithoutRef<'h6'>) => (
-    <h6 className='text-display-prose-6 text-strong mb-4 mt-8' {...props} />
+    <h6 className='mt-8 mb-4 text-display-prose-6 text-strong' {...props} />
   ),
   p: (props: ComponentPropsWithoutRef<'p'>) => (
-    <p className='text-lg mb-4 leading-relaxed' {...props} />
+    <p className='mb-4 text-lg leading-relaxed' {...props} />
   ),
   ol: (props: ComponentPropsWithoutRef<'ol'>) => (
-    <ol className='list-decimal flex flex-col gap-2 mb-8 pl-8' {...props} />
+    <ol className='mb-8 grid list-decimal gap-2 pl-8' {...props} />
   ),
   ul: (props: ComponentPropsWithoutRef<'ul'>) => (
-    <ul className='list-disc flex flex-col gap-2 mb-8 pl-8' {...props} />
+    <ul className='mb-8 grid list-disc gap-2 pl-8' {...props} />
   ),
   li: (props: ComponentPropsWithoutRef<'li'>) => (
-    <li className='text-lg pl-1 leading-relaxed' {...props} />
+    <li className='pl-1 text-lg leading-relaxed' {...props} />
   ),
   em: (props: ComponentPropsWithoutRef<'em'>) => (
-    <em className='italic text-[inherit]' {...props} />
+    <em className='text-[inherit] italic' {...props} />
   ),
   strong: (props: ComponentPropsWithoutRef<'strong'>) => (
-    <strong className='text-strong text-[inherit]' {...props} />
+    <strong className='text-[inherit] text-strong' {...props} />
   ),
   a: ({ href, children, ...props }: AnchorProps) => {
     const className = 'text-accent-11 hover:text-accent-9'
@@ -86,30 +86,30 @@ const components = {
     )
   },
   table: (props: ComponentPropsWithoutRef<'table'>) => (
-    <div className='overflow-x-auto mb-8 -mx-4 px-4 sm:mx-0 sm:px-0'>
-      <table className='w-full text-sm border-collapse min-w-100' {...props} />
+    <div className='-mx-4 mb-8 overflow-x-auto px-4 sm:mx-0 sm:px-0'>
+      <table className='w-full min-w-100 border-collapse text-sm' {...props} />
     </div>
   ),
   thead: (props: ComponentPropsWithoutRef<'thead'>) => <thead {...props} />,
   th: (props: ComponentPropsWithoutRef<'th'>) => (
     <th
-      className='py-2 pr-4 text-left font-semibold border-b border-subtle whitespace-nowrap'
+      className='border-b border-subtle py-2 pr-4 text-left font-semibold whitespace-nowrap'
       {...props}
     />
   ),
   td: (props: ComponentPropsWithoutRef<'td'>) => (
-    <td className='py-2 pr-4 border-b border-subtler text-subtle' {...props} />
+    <td className='border-b border-subtler py-2 pr-4 text-subtle' {...props} />
   ),
   tr: (props: ComponentPropsWithoutRef<'tr'>) => <tr {...props} />,
   Table: ({ data }: { data: { headers: string[]; rows: string[][] } }) => (
-    <div className='overflow-x-auto mb-8'>
-      <table className='w-full text-sm border-collapse'>
+    <div className='mb-8 overflow-x-auto'>
+      <table className='w-full border-collapse text-sm'>
         <thead>
           <tr>
             {data.headers.map((header, index) => (
               <th
                 key={index}
-                className='py-2 pr-4 text-left font-semibold border-b border-subtle'
+                className='border-b border-subtle py-2 pr-4 text-left font-semibold'
               >
                 {header}
               </th>
@@ -132,7 +132,7 @@ const components = {
   ),
   blockquote: (props: BlockquoteProps) => (
     <blockquote
-      className='border-l-[3px] border-default ml-[0.075em] pl-4 text-subtle'
+      className='ml-[0.075em] border-l-[3px] border-default pl-4 text-subtle'
       {...props}
     />
   )

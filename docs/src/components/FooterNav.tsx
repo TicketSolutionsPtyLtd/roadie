@@ -36,14 +36,11 @@ export function FooterNav({ items }: FooterNavProps) {
   if (!prev && !next) return null
 
   return (
-    <div className='pt-12 mt-12 border-t border-subtle flex justify-between flex-row w-full'>
+    <div className='mt-12 flex w-full flex-row justify-between border-t border-subtle pt-12'>
       {prev && (
-        <Link
-          href={prev.href}
-          className='flex flex-col gap-1 group no-underline'
-        >
+        <Link href={prev.href} className='group grid gap-1 no-underline'>
           <span className='text-sm text-subtle'>Previous page</span>
-          <span className='intent-accent text-default group-hover:text-accent-11'>
+          <span className='group-hover:text-accent-11 text-default intent-accent'>
             &larr; {prev.title}
           </span>
         </Link>
@@ -51,10 +48,10 @@ export function FooterNav({ items }: FooterNavProps) {
       {next && (
         <Link
           href={next.href}
-          className='flex flex-col gap-1 ml-auto text-right group no-underline'
+          className='group ml-auto grid gap-1 text-right no-underline'
         >
           <span className='text-sm text-subtle'>Next page</span>
-          <span className='intent-accent text-default group-hover:text-accent-11'>
+          <span className='group-hover:text-accent-11 text-default intent-accent'>
             {next.title} &rarr;
           </span>
         </Link>

@@ -20,7 +20,7 @@ const steps = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] as const
 
 function ColorScaleVisual({ scale }: { scale: string }) {
   return (
-    <div className='flex flex-col gap-1'>
+    <div className='grid gap-1'>
       <p className='text-sm text-strong capitalize'>{scale}</p>
       <div className='flex gap-0.5'>
         {steps.map((step) => (
@@ -34,7 +34,7 @@ function ColorScaleVisual({ scale }: { scale: string }) {
       </div>
       <div className='flex gap-0.5'>
         {steps.map((step) => (
-          <p key={step} className='text-xs text-subtler flex-1 text-center'>
+          <p key={step} className='flex-1 text-center text-xs text-subtler'>
             {step}
           </p>
         ))}
@@ -51,8 +51,8 @@ function TokenTable({
   tokens: { name: string; step: string; usage: string }[]
 }) {
   return (
-    <div className='flex flex-col gap-2'>
-      <p className='text-strong text-sm'>{title}</p>
+    <div className='grid gap-2'>
+      <p className='text-sm text-strong'>{title}</p>
       <div className='overflow-x-auto'>
         <table className='w-full text-sm'>
           <thead>
@@ -62,7 +62,7 @@ function TokenTable({
               <th className='py-1.5 text-left font-medium'>Usage</th>
             </tr>
           </thead>
-          <tbody className='text-subtle divide-y divide-subtler'>
+          <tbody className='divide-y divide-subtler text-subtle'>
             {tokens.map((t) => (
               <tr key={t.name}>
                 <td className='py-1.5 pr-4'>
@@ -81,24 +81,24 @@ function TokenTable({
 
 export default function TokenReferencePage() {
   return (
-    <div className='view gap-12'>
-      <div className='view gap-3'>
+    <div className='grid gap-12'>
+      <div className='grid gap-3'>
         <h1 className='text-display-prose-1 text-strong'>Token reference</h1>
-        <p className='text-subtle text-lg'>
+        <p className='text-lg text-subtle'>
           Complete reference for the v2 design token system. All tokens are CSS
           custom properties defined via Tailwind v4&apos;s @theme directive.
         </p>
       </div>
 
       {/* Color Scales */}
-      <section className='view gap-6'>
+      <section className='grid gap-6'>
         <h2 className='text-display-ui-3 text-strong'>Color scales</h2>
         <p className='text-subtle'>
           Each scale provides 14 OKLCH steps (0-13). Step 0 is the lightest
           extreme, step 13 the darkest. Dark mode swaps the underlying values —
           step numbers stay the same.
         </p>
-        <div className='view gap-4'>
+        <div className='grid gap-4'>
           {colorScales.map((scale) => (
             <ColorScaleVisual key={scale} scale={scale} />
           ))}
@@ -106,7 +106,7 @@ export default function TokenReferencePage() {
       </section>
 
       {/* Intent semantic tokens */}
-      <section className='view gap-6'>
+      <section className='grid gap-6'>
         <h2 className='text-display-ui-3 text-strong'>
           Intent semantic tokens
         </h2>
@@ -231,7 +231,7 @@ export default function TokenReferencePage() {
       </section>
 
       {/* Typography */}
-      <section className='view gap-6'>
+      <section className='grid gap-6'>
         <h2 className='text-display-ui-3 text-strong'>Typography</h2>
 
         <TokenTable
@@ -303,7 +303,7 @@ export default function TokenReferencePage() {
       </section>
 
       {/* Elevation */}
-      <section className='view gap-6'>
+      <section className='grid gap-6'>
         <h2 className='text-display-ui-3 text-strong'>Elevation</h2>
         <TokenTable
           title='Box shadows'

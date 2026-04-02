@@ -52,7 +52,7 @@ import { Button } from '@oztix/roadie-components'
 Neutral is the default intent. Each intent communicates a different purpose: accent for primary actions, danger for destructive actions, and so on. Hover and focus states adapt automatically.
 
 ```tsx-live
-<div className='flex flex-col gap-2'>
+<div className='grid gap-2'>
   <div className='flex flex-row flex-wrap gap-2'>
     <Button emphasis='strong' intent='neutral'>Neutral</Button>
     <Button emphasis='strong' intent='accent'>Accent</Button>
@@ -97,12 +97,12 @@ Neutral is the default intent. Each intent communicates a different purpose: acc
 Hover and focus states use the intent color scale automatically via `is-interactive`.
 
 ```tsx-live
-<div className='flex flex-col gap-4'>
-  <div className='flex flex-col gap-1'>
+<div className='grid gap-4'>
+  <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Default</p>
     <div><Button>Button</Button></div>
   </div>
-  <div className='flex flex-col gap-1'>
+  <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Disabled</p>
     <div><Button disabled>Button</Button></div>
   </div>

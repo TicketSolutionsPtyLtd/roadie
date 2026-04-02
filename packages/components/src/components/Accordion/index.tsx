@@ -41,7 +41,7 @@ const ItemContext = createContext<ItemContextValue>({
 
 // --- Variants ---
 
-export const accordionVariants = cva('flex flex-col w-full', {
+export const accordionVariants = cva('grid w-full', {
   variants: {
     appearance: {
       default: '',
@@ -127,7 +127,7 @@ function AccordionTrigger({
   return (
     <Collapsible.Trigger
       className={cn(
-        'flex items-center w-full text-left cursor-pointer font-medium text-default hover:bg-subtle transition-all py-3',
+        'flex w-full cursor-pointer items-center py-3 text-left font-medium text-default transition-all hover:bg-subtle',
         className
       )}
       {...props}
@@ -147,7 +147,7 @@ function AccordionContent({
   return (
     <Collapsible.Panel
       className={cn(
-        'overflow-hidden transition-all data-[state=open]:animate-slideDown data-[state=closed]:animate-slideUp',
+        'data-[state=open]:animate-slideDown data-[state=closed]:animate-slideUp overflow-hidden transition-all',
         className
       )}
       {...props}

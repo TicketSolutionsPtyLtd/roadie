@@ -75,24 +75,24 @@ export default async function ComponentsPage() {
   }, {} as CategorizedComponents)
 
   return (
-    <div className='flex flex-col gap-12'>
-      <div className='flex flex-col gap-4'>
+    <div className='grid gap-12'>
+      <div className='grid gap-4'>
         <h1 className='text-display-prose-1 text-strong'>Components</h1>
-        <p className='text-subtle text-xl'>
+        <p className='text-xl text-subtle'>
           A collection of components built with Base UI and styled with Tailwind
           CSS.
         </p>
       </div>
 
       {Object.entries(categorizedComponents).map(([category, components]) => (
-        <div key={category} className='flex flex-col gap-4'>
+        <div key={category} className='grid gap-4'>
           <h2 className='text-display-ui-3 text-strong'>{category}</h2>
-          <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>
+          <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3'>
             {components.map((component) => (
               <Link
                 key={component.name}
                 href={`/components/${component.name}`}
-                className='p-4 rounded-md flex flex-col gap-2 emphasis-default is-interactive no-underline'
+                className='is-interactive grid emphasis-default gap-2 rounded-md p-4 no-underline'
               >
                 <h3 className='text-display-ui-5 text-strong'>
                   {component.title}

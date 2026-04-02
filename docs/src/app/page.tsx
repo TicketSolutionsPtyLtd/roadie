@@ -13,9 +13,9 @@ import { Button, Card } from '@oztix/roadie-components'
 
 export default function Home() {
   return (
-    <main className='max-w-4xl mx-auto py-8 flex flex-col gap-20'>
+    <main className='mx-auto grid max-w-4xl gap-20 py-8'>
       {/* Hero Section */}
-      <section className='flex flex-col gap-3'>
+      <section className='grid gap-3'>
         <h1 className='text-display-prose-1 text-strong'>
           Roadie design system
         </h1>
@@ -26,8 +26,8 @@ export default function Home() {
       </section>
 
       {/* Core Sections */}
-      <section className='flex flex-col gap-8'>
-        <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
+      <section className='grid gap-8'>
+        <div className='grid grid-cols-1 gap-8 lg:grid-cols-2'>
           <SectionCard
             icon={<Palette size={24} weight='bold' />}
             title='Foundations'
@@ -109,8 +109,8 @@ export default function Home() {
       </section>
 
       {/* Key Features */}
-      <section className='flex flex-col gap-8'>
-        <div className='flex flex-col gap-3'>
+      <section className='grid gap-8'>
+        <div className='grid gap-3'>
           <h2 className='text-display-ui-3 text-strong'>Key features</h2>
           <p className='text-lg text-subtle'>
             Discover the powerful features that make Roadie a complete design
@@ -137,7 +137,7 @@ export default function Home() {
       </section>
 
       {/* Getting Started */}
-      <Card as='section' className='flex flex-col gap-3 items-start p-8'>
+      <Card as='section' className='grid justify-items-start gap-3 p-8'>
         <h2 className='text-display-ui-3 text-strong'>Get started</h2>
         <p className='text-lg text-subtle'>
           Ready to build? Follow our guide to start using Roadie in your
@@ -165,8 +165,8 @@ function FeatureCard({
   description: string
 }) {
   return (
-    <div className='flex flex-col gap-3'>
-      <div className='flex gap-3 text-accent-11'>
+    <div className='grid gap-3'>
+      <div className='text-accent-11 flex gap-3'>
         {icon}
         <h3 className='text-display-ui-5 text-strong'>{title}</h3>
       </div>
@@ -188,21 +188,21 @@ function SectionCard({
 }) {
   return (
     <Card className='pt-8 pb-4'>
-      <div className='flex flex-col gap-1 px-8'>
+      <div className='grid gap-1 px-8'>
         <div className='flex gap-3'>
           {icon}
           <h3 className='text-display-ui-5 text-strong'>{title}</h3>
         </div>
-        <p className='text-subtle text-sm'>{description}</p>
+        <p className='text-sm text-subtle'>{description}</p>
       </div>
       <ul
-        className={`pt-4 px-4 grid grid-cols-1 ${items.length > 2 ? 'md:grid-cols-[repeat(auto-fit,minmax(250px,1fr))]' : ''}`}
+        className={`grid grid-cols-1 px-4 pt-4 ${items.length > 2 ? 'md:grid-cols-[repeat(auto-fit,minmax(250px,1fr))]' : ''}`}
       >
         {items.map((item) => (
           <li key={item.href}>
             <Link
               href={item.href}
-              className='flex flex-col gap-0.5 p-4 rounded-md h-full is-interactive emphasis-subtler no-underline'
+              className='is-interactive grid h-full gap-0.5 rounded-md emphasis-subtler p-4 no-underline'
             >
               <h4 className='text-display-ui-6 text-strong intent-accent'>
                 {item.label}

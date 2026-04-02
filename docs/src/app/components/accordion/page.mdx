@@ -72,8 +72,8 @@ Use `appearance='contained'` for a bordered look with dividers between items.
 Use `type='multiple'` to allow multiple items open simultaneously.
 
 ```tsx-live
-<div className='flex flex-col gap-4'>
-  <div className='flex flex-col gap-1'>
+<div className='grid gap-4'>
+  <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Single (default)</p>
     <Accordion type='single'>
       <Accordion.Item value='a'>
@@ -90,7 +90,7 @@ Use `type='multiple'` to allow multiple items open simultaneously.
       </Accordion.Item>
     </Accordion>
   </div>
-  <div className='flex flex-col gap-1'>
+  <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Multiple</p>
     <Accordion type='multiple'>
       <Accordion.Item value='a'>

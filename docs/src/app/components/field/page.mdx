@@ -34,8 +34,8 @@ Fields inherit input interaction states. Focus shows accent colouring,
 invalid shows danger colouring with error text.
 
 ```tsx-live
-<div className='flex flex-col gap-6'>
-  <div className='flex flex-col gap-1'>
+<div className='grid gap-6'>
+  <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Default</p>
     <Field>
       <Field.Label htmlFor='default-field'>Label</Field.Label>
@@ -43,7 +43,7 @@ invalid shows danger colouring with error text.
       <Field.HelperText>Helper text appears below the input.</Field.HelperText>
     </Field>
   </div>
-  <div className='flex flex-col gap-1'>
+  <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Invalid</p>
     <Field>
       <Field.Label htmlFor='error-field'>Label</Field.Label>
@@ -51,7 +51,7 @@ invalid shows danger colouring with error text.
       <Field.ErrorText>This field is required.</Field.ErrorText>
     </Field>
   </div>
-  <div className='flex flex-col gap-1'>
+  <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Disabled</p>
     <Field>
       <Field.Label htmlFor='disabled-field'>Label</Field.Label>
