@@ -45,13 +45,13 @@ This gives you access to all Roadie design tokens as Tailwind utilities.
 Import and use components from `@oztix/roadie-components`. Components use the `intent` and `emphasis` props for styling:
 
 ```tsx
-import { Button, Text, Heading } from '@oztix/roadie-components'
+import { Button, Heading } from '@oztix/roadie-components'
 
 function MyComponent() {
   return (
     <div className='flex flex-col gap-4'>
       <Heading as='h1' className='text-display-ui-3'>Welcome</Heading>
-      <Text emphasis='subtle'>Get started with Roadie components.</Text>
+      <p className='text-subtle'>Get started with Roadie components.</p>
       <Button intent='accent' emphasis='strong'>
         Get started
       </Button>
@@ -68,7 +68,7 @@ The `intent` prop controls the color theme of a component:
 <Button intent='neutral'>Default action</Button>
 <Button intent='accent'>Primary action</Button>
 <Button intent='danger'>Delete</Button>
-<Text intent='success'>Operation complete</Text>
+<p className='intent-success'>Operation complete</p>
 ```
 
 The `emphasis` prop controls the visual weight:
@@ -77,7 +77,7 @@ The `emphasis` prop controls the visual weight:
 <Button emphasis='strong'>Strong button</Button>
 <Button emphasis='default'>Default button</Button>
 <Button emphasis='subtle'>Subtle button</Button>
-<Text emphasis='subtle'>Secondary text</Text>
+<p className='text-subtle'>Secondary text</p>
 ```
 
 ### Using Tailwind classes for layout
@@ -105,9 +105,9 @@ All components accept a `className` prop for additional Tailwind classes:
 <Button className='w-full' intent='brand' emphasis='strong'>
   Full width button
 </Button>
-<Text className='max-w-prose' size='lg'>
+<p className='max-w-prose text-lg'>
   Constrained width text block.
-</Text>
+</p>
 ```
 
 ## Features

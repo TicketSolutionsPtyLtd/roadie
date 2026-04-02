@@ -8,9 +8,7 @@ import {
   Code,
   type CodeProps,
   Heading,
-  type HeadingProps,
-  Text,
-  type TextProps
+  type HeadingProps
 } from '@oztix/roadie-components'
 
 type AnchorProps = ComponentPropsWithoutRef<'a'>
@@ -35,8 +33,8 @@ const components = {
   h6: (props: HeadingProps) => (
     <Heading as='h6' className='text-display-prose-6 mb-4 mt-8' {...props} />
   ),
-  p: (props: TextProps) => (
-    <Text as='p' size='lg' className='mb-4 leading-relaxed' {...props} />
+  p: (props: ComponentPropsWithoutRef<'p'>) => (
+    <p className='text-lg mb-4 leading-relaxed' {...props} />
   ),
   ol: (props: ComponentPropsWithoutRef<'ol'>) => (
     <ol className='list-decimal flex flex-col gap-2 mb-8 pl-8' {...props} />
@@ -44,14 +42,14 @@ const components = {
   ul: (props: ComponentPropsWithoutRef<'ul'>) => (
     <ul className='list-disc flex flex-col gap-2 mb-8 pl-8' {...props} />
   ),
-  li: (props: TextProps) => (
-    <Text as='li' size='lg' className='pl-1 leading-relaxed' {...props} />
+  li: (props: ComponentPropsWithoutRef<'li'>) => (
+    <li className='text-lg pl-1 leading-relaxed' {...props} />
   ),
-  em: (props: TextProps) => (
-    <Text {...props} as='em' className='italic text-[inherit]' />
+  em: (props: ComponentPropsWithoutRef<'em'>) => (
+    <em className='italic text-[inherit]' {...props} />
   ),
-  strong: (props: TextProps) => (
-    <Text {...props} as='strong' emphasis='strong' className='text-[inherit]' />
+  strong: (props: ComponentPropsWithoutRef<'strong'>) => (
+    <strong className='text-strong text-[inherit]' {...props} />
   ),
   a: ({ href, children, ...props }: AnchorProps) => {
     const className = 'text-accent-11 hover:text-accent-9'

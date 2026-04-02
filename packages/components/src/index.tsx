@@ -11,8 +11,7 @@ export {
 } from './components/Heading'
 export { Highlight, type HighlightProps } from './components/Highlight'
 export { Mark, markVariants, type MarkProps } from './components/Mark'
-export { Text, textVariants, type TextProps } from './components/Text'
-
+export { Prose, type ProseProps } from './components/Prose'
 export {
   Accordion,
   accordionVariants,

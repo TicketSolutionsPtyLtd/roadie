@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-import { Button, Heading, Text } from '@oztix/roadie-components'
+import { Button, Heading } from '@oztix/roadie-components'
 
 export default function NotFound() {
   return (
@@ -11,9 +11,9 @@ export default function NotFound() {
         </Heading>
         <Heading>Page Not Found</Heading>
       </header>
-      <Text emphasis='subtle' size='lg'>
+      <p className='text-subtle text-lg'>
         The page you&apos;re looking for doesn&apos;t exist or has been moved.
-      </Text>
+      </p>
       <Button size='lg' render={<Link href='/' />}>
         Return home
       </Button>

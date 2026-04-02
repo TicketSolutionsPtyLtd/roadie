@@ -1,4 +1,4 @@
-import { Code, Heading, Text } from '@oztix/roadie-components'
+import { Code, Heading } from '@oztix/roadie-components'
 
 export const metadata = {
   title: 'Spacing',
@@ -31,11 +31,11 @@ export default function SpacingPage() {
         <Heading as='h1' className='text-display-prose-1'>
           Spacing
         </Heading>
-        <Text size='lg' emphasis='subtle'>
+        <p className='text-lg text-subtle'>
           Roadie v2 uses Tailwind CSS v4&apos;s built-in spacing scale. Use
           utility classes like <Code>p-4</Code>, <Code>gap-2</Code>,{' '}
           <Code>mt-8</Code> for consistent spacing.
-        </Text>
+        </p>
       </div>
 
       {/* Visual spacing scale */}
@@ -43,29 +43,23 @@ export default function SpacingPage() {
         <Heading as='h2' className='text-display-ui-3'>
           Spacing scale
         </Heading>
-        <Text emphasis='subtle'>
+        <p className='text-subtle'>
           Based on a 4px unit. Use the token number with any spacing utility (
           <Code>p-</Code>, <Code>m-</Code>, <Code>gap-</Code>, <Code>w-</Code>,{' '}
           <Code>h-</Code>, etc.).
-        </Text>
+        </p>
 
         <div className='view gap-1 bg-subtle border border-subtle rounded-lg p-4 overflow-x-auto'>
           {spacingScale.map(({ token, value, rem }) => (
             <div key={token} className='flex items-center gap-3'>
-              <Text
-                size='sm'
-                emphasis='strong'
-                className='w-10 shrink-0 text-right tabular-nums'
-              >
+              <p className='text-sm text-strong w-10 shrink-0 text-right tabular-nums'>
                 {token}
-              </Text>
+              </p>
               <div
                 className='h-6 rounded-sm emphasis-strong-surface intent-brand shrink-0'
                 style={{ width: rem }}
               />
-              <Text size='xs' emphasis='subtler' className='shrink-0'>
-                {value}
-              </Text>
+              <p className='text-xs text-subtler shrink-0'>{value}</p>
             </div>
           ))}
         </div>
@@ -141,10 +135,10 @@ export default function SpacingPage() {
             <Heading as='h3' className='text-display-ui-5'>
               Responsive spacing
             </Heading>
-            <Text emphasis='subtle'>
+            <p className='text-subtle'>
               Use breakpoint prefixes to adjust spacing at different screen
               sizes. Always start mobile-first.
-            </Text>
+            </p>
             <div className='bg-subtle border border-subtle rounded-lg p-4'>
               <Code>
                 className=&quot;mt-2 md:mt-4 lg:mt-8 px-4 md:px-6&quot;
@@ -161,29 +155,29 @@ export default function SpacingPage() {
         </Heading>
         <ol className='view gap-3 list-decimal pl-6'>
           <li>
-            <Text as='span'>
+            <span>
               <strong>Use the scale, not magic numbers</strong> —{' '}
               <Code>p-4</Code> not <Code>p-[17px]</Code>
-            </Text>
+            </span>
           </li>
           <li>
-            <Text as='span'>
+            <span>
               <strong>Prefer gap over margins</strong> — cleaner, no collapsing
               issues
-            </Text>
+            </span>
           </li>
           <li>
-            <Text as='span'>
+            <span>
               <strong>Start mobile-first</strong> — use responsive prefixes (
               <Code>md:</Code>, <Code>lg:</Code>) to scale up
-            </Text>
+            </span>
           </li>
           <li>
-            <Text as='span'>
+            <span>
               <strong>Consistent patterns</strong> — small gaps (1-2) for
               related elements, medium (4-6) for components, large (8+) for
               sections
-            </Text>
+            </span>
           </li>
         </ol>
       </section>

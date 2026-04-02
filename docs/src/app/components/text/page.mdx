@@ -1,20 +1,25 @@
 export const metadata = {
   title: 'Text',
-  description: 'Body text with size, emphasis, and intent variants.',
+  description: 'Body text styling with size, emphasis, and intent utility classes.',
   status: 'beta',
   category: 'Typography'
 }
 
-import { PropsDefinitions } from '@/components/PropsDefinitions'
-
 # Text
 
-Body text with size, emphasis, and intent variants.
+Body text styling using utility classes for size, emphasis, and intent.
 
-## Import
+## Usage
+
+Use raw HTML elements (`<p>`, `<span>`, etc.) with Tailwind utility classes:
 
 ```tsx
-import { Text } from '@oztix/roadie-components'
+<p>Default body text</p>
+<p className='text-lg'>Large text</p>
+<p className='text-subtle'>Subtle secondary text</p>
+<p className='text-strong'>Bold emphasis text</p>
+<p className='intent-accent'>Accent-colored text</p>
+<span className='text-sm'>Inline small text</span>
 ```
 
 ## Examples
@@ -23,7 +28,7 @@ import { Text } from '@oztix/roadie-components'
 
 ```tsx-live
 
-<Text>Hello World</Text>
+<p>Hello World</p>
 ```
 
 ### Emphasis
@@ -31,11 +36,11 @@ import { Text } from '@oztix/roadie-components'
 ```tsx-live
 
 <div className='flex flex-col gap-2'>
-  <Text emphasis='strong'>Strong text</Text>
-  <Text>Default text</Text>
-  <Text emphasis='subtle'>Subtle text</Text>
-  <Text emphasis='subtler'>Subtler text</Text>
-  <Text emphasis='inverted'>Inverted text</Text>
+  <p className='text-strong'>Strong text</p>
+  <p>Default text</p>
+  <p className='text-subtle'>Subtle text</p>
+  <p className='text-subtler'>Subtler text</p>
+  <p className='text-inverted'>Inverted text</p>
 </div>
 ```
 
@@ -44,11 +49,11 @@ import { Text } from '@oztix/roadie-components'
 ```tsx-live
 
 <div className='flex flex-col gap-1'>
-  <Text size='xs'>Extra small text</Text>
-  <Text size='sm'>Small text</Text>
-  <Text size='base'>Base text (default)</Text>
-  <Text size='lg'>Large text</Text>
-  <Text size='xl'>Extra large text</Text>
+  <p className='text-xs'>Extra small text</p>
+  <p className='text-sm'>Small text</p>
+  <p>Base text (default)</p>
+  <p className='text-lg'>Large text</p>
+  <p className='text-xl'>Extra large text</p>
 </div>
 ```
 
@@ -58,55 +63,68 @@ import { Text } from '@oztix/roadie-components'
 
 <div className='grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3'>
   <div className='flex flex-col gap-1'>
-    <Text intent='accent' emphasis='subtler'>Subtler accent text</Text>
-    <Text intent='accent' emphasis='subtle'>Subtle accent text</Text>
-    <Text intent='accent'>Accent text</Text>
-    <Text intent='accent' emphasis='strong'>Strong accent text</Text>
+    <p className='intent-accent text-subtler'>Subtler accent text</p>
+    <p className='intent-accent text-subtle'>Subtle accent text</p>
+    <p className='intent-accent'>Accent text</p>
+    <p className='intent-accent text-strong'>Strong accent text</p>
   </div>
   <div className='flex flex-col gap-1'>
-    <Text intent='brand' emphasis='subtler'>Subtler brand text</Text>
-    <Text intent='brand' emphasis='subtle'>Subtle brand text</Text>
-    <Text intent='brand'>Brand text</Text>
-    <Text intent='brand' emphasis='strong'>Strong brand text</Text>
+    <p className='intent-brand text-subtler'>Subtler brand text</p>
+    <p className='intent-brand text-subtle'>Subtle brand text</p>
+    <p className='intent-brand'>Brand text</p>
+    <p className='intent-brand text-strong'>Strong brand text</p>
   </div>
   <div className='flex flex-col gap-1'>
-    <Text intent='info' emphasis='subtler'>Subtler info text</Text>
-    <Text intent='info' emphasis='subtle'>Subtle info text</Text>
-    <Text intent='info'>Info text</Text>
-    <Text intent='info' emphasis='strong'>Strong info text</Text>
+    <p className='intent-info text-subtler'>Subtler info text</p>
+    <p className='intent-info text-subtle'>Subtle info text</p>
+    <p className='intent-info'>Info text</p>
+    <p className='intent-info text-strong'>Strong info text</p>
   </div>
   <div className='flex flex-col gap-1'>
-    <Text intent='success' emphasis='subtler'>Subtler success text</Text>
-    <Text intent='success' emphasis='subtle'>Subtle success text</Text>
-    <Text intent='success'>Success text</Text>
-    <Text intent='success' emphasis='strong'>Strong success text</Text>
+    <p className='intent-success text-subtler'>Subtler success text</p>
+    <p className='intent-success text-subtle'>Subtle success text</p>
+    <p className='intent-success'>Success text</p>
+    <p className='intent-success text-strong'>Strong success text</p>
   </div>
   <div className='flex flex-col gap-1'>
-    <Text intent='warning' emphasis='subtler'>Subtler warning text</Text>
-    <Text intent='warning' emphasis='subtle'>Subtle warning text</Text>
-    <Text intent='warning'>Warning text</Text>
-    <Text intent='warning' emphasis='strong'>Strong warning text</Text>
+    <p className='intent-warning text-subtler'>Subtler warning text</p>
+    <p className='intent-warning text-subtle'>Subtle warning text</p>
+    <p className='intent-warning'>Warning text</p>
+    <p className='intent-warning text-strong'>Strong warning text</p>
   </div>
   <div className='flex flex-col gap-1'>
-    <Text intent='danger' emphasis='subtler'>Subtler danger text</Text>
-    <Text intent='danger' emphasis='subtle'>Subtle danger text</Text>
-    <Text intent='danger'>Danger text</Text>
-    <Text intent='danger' emphasis='strong'>Strong danger text</Text>
+    <p className='intent-danger text-subtler'>Subtler danger text</p>
+    <p className='intent-danger text-subtle'>Subtle danger text</p>
+    <p className='intent-danger'>Danger text</p>
+    <p className='intent-danger text-strong'>Strong danger text</p>
   </div>
 </div>
 ```
 
 ### Custom elements
 
-Render as any HTML element using the `as` prop.
+Use any HTML element directly.
 
 ```tsx-live
 
 <div className='flex flex-col gap-2'>
-  <Text as='span'>Inline text (default)</Text>
-  <Text as='p'>Paragraph text</Text>
-  <Text as='label'>Label text</Text>
+  <span>Inline text (default)</span>
+  <p>Paragraph text</p>
+  <label>Label text</label>
 </div>
 ```
 
-<PropsDefinitions componentPath='packages/components/src/components/Text/index.tsx' />
+## Class reference
+
+| Prop | Class |
+|------|-------|
+| `emphasis='subtle'` | `text-subtle` |
+| `emphasis='subtler'` | `text-subtler` |
+| `emphasis='strong'` | `text-strong` |
+| `emphasis='inverted'` | `text-inverted` |
+| `size='xs'` | `text-xs` |
+| `size='sm'` | `text-sm` |
+| `size='lg'` | `text-lg` |
+| `size='xl'` | `text-xl` |
+| `intent='accent'` | `intent-accent` |
+| `intent='brand'` | `intent-brand` |

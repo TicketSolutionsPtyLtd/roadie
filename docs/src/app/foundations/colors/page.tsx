@@ -1,4 +1,4 @@
-import { Heading, Text } from '@oztix/roadie-components'
+import { Heading } from '@oztix/roadie-components'
 
 export const metadata = {
   title: 'Colors',
@@ -20,9 +20,7 @@ const steps = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] as const
 function ColorScale({ intent }: { intent: string }) {
   return (
     <div className='flex flex-col gap-1'>
-      <Text size='sm' emphasis='strong' className='capitalize'>
-        {intent}
-      </Text>
+      <p className='text-sm text-strong capitalize'>{intent}</p>
       <div className='flex gap-0.5'>
         {steps.map((step) => (
           <div
@@ -35,14 +33,9 @@ function ColorScale({ intent }: { intent: string }) {
       </div>
       <div className='flex gap-0.5'>
         {steps.map((step) => (
-          <Text
-            key={step}
-            size='xs'
-            emphasis='subtler'
-            className='flex-1 text-center'
-          >
+          <p key={step} className='text-xs text-subtler flex-1 text-center'>
             {step}
-          </Text>
+          </p>
         ))}
       </div>
     </div>
@@ -77,11 +70,11 @@ export default function ColorsPage() {
         <Heading as='h1' className='text-display-prose-1'>
           Colors
         </Heading>
-        <Text size='lg' emphasis='subtle'>
-          Roadie uses OKLCH color scales with 14 steps (0–13) per intent,
+        <p className='text-lg text-subtle'>
+          Roadie uses OKLCH color scales with 14 steps (0-13) per intent,
           providing perceptually uniform colors across all hues in both light
           and dark modes.
-        </Text>
+        </p>
       </div>
 
       {/* Color scales */}
@@ -89,10 +82,10 @@ export default function ColorsPage() {
         <Heading as='h2' className='text-display-ui-3'>
           Color scales
         </Heading>
-        <Text emphasis='subtle'>
-          Each intent has a 14-step scale. Steps 1–12 follow the Radix color
+        <p className='text-subtle'>
+          Each intent has a 14-step scale. Steps 1-12 follow the Radix color
           system. Step 0 is the lightest extreme, step 13 the darkest.
-        </Text>
+        </p>
         <div className='flex flex-col gap-6'>
           {intents.map((intent) => (
             <ColorScale key={intent} intent={intent} />
@@ -105,10 +98,10 @@ export default function ColorsPage() {
         <Heading as='h2' className='text-display-ui-3'>
           Semantic mapping
         </Heading>
-        <Text emphasis='subtle'>
+        <p className='text-subtle'>
           Colors are accessed through the emphasis system, not by step number
           directly. The emphasis scale maps to specific steps:
-        </Text>
+        </p>
         <div className='overflow-x-auto'>
           <table className='w-full text-sm'>
             <thead>
@@ -160,7 +153,7 @@ export default function ColorsPage() {
         <Heading as='h2' className='text-display-ui-3'>
           Intent + emphasis
         </Heading>
-        <Text emphasis='subtle'>
+        <p className='text-subtle'>
           Each intent works with the emphasis scale. Use{' '}
           <code className='font-mono text-sm bg-subtler px-1 py-0.5 rounded'>
             intent-&#123;name&#125;
@@ -170,13 +163,11 @@ export default function ColorsPage() {
             emphasis-&#123;level&#125;
           </code>{' '}
           for the visual weight.
-        </Text>
+        </p>
         <div className='flex flex-col gap-4'>
           {intents.map((intent) => (
             <div key={intent} className='flex flex-col gap-1'>
-              <Text size='sm' emphasis='strong' className='capitalize'>
-                {intent}
-              </Text>
+              <p className='text-sm text-strong capitalize'>{intent}</p>
               <EmphasisDemo intent={intent} />
             </div>
           ))}
@@ -188,7 +179,7 @@ export default function ColorsPage() {
         <Heading as='h2' className='text-display-ui-3'>
           Dark mode
         </Heading>
-        <Text emphasis='subtle'>
+        <p className='text-subtle'>
           Dark mode is automatic. The{' '}
           <code className='font-mono text-sm bg-subtler px-1 py-0.5 rounded'>
             .dark
@@ -202,7 +193,7 @@ export default function ColorsPage() {
             dark:
           </code>{' '}
           Tailwind variants needed for colors.
-        </Text>
+        </p>
       </section>
 
       {/* Dynamic accent */}
@@ -210,7 +201,7 @@ export default function ColorsPage() {
         <Heading as='h2' className='text-display-ui-3'>
           Dynamic accent color
         </Heading>
-        <Text emphasis='subtle'>
+        <p className='text-subtle'>
           The accent scale can be overridden at runtime using the{' '}
           <code className='font-mono text-sm bg-subtler px-1 py-0.5 rounded'>
             ThemeProvider
@@ -221,7 +212,7 @@ export default function ColorsPage() {
           </code>{' '}
           function. Pass any hex color and the system generates a full 14-step
           OKLCH scale with automatic WCAG contrast detection.
-        </Text>
+        </p>
       </section>
     </div>
   )

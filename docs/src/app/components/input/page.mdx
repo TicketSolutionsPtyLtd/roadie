@@ -52,15 +52,15 @@ and switch to danger colouring when invalid.
 ```tsx-live
 <div className='flex flex-col gap-4'>
   <div className='flex flex-col gap-1'>
-    <Text size='sm' emphasis='subtle'>Default</Text>
+    <p className='text-sm text-subtle'>Default</p>
     <Input placeholder='Click to focus' />
   </div>
   <div className='flex flex-col gap-1'>
-    <Text size='sm' emphasis='subtle'>Invalid</Text>
+    <p className='text-sm text-subtle'>Invalid</p>
     <Input aria-invalid='true' defaultValue='bad-email' />
   </div>
   <div className='flex flex-col gap-1'>
-    <Text size='sm' emphasis='subtle'>Disabled</Text>
+    <p className='text-sm text-subtle'>Disabled</p>
     <Input disabled placeholder='Disabled' />
   </div>
 </div>

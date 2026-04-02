@@ -23,12 +23,12 @@ import { Highlight } from '@oztix/roadie-components'
 
 ```tsx-live
 
-<Text>
+<p>
   <Highlight
     text='The quick brown fox jumps over the lazy dog'
     query='quick'
   />
-</Text>
+</p>
 ```
 
 ### Intents
@@ -38,27 +38,27 @@ The default intent is `info`.
 ```tsx-live
 
 <div className='flex flex-col gap-2'>
-  <Text>
+  <p>
     <Highlight text='Neutral intent highlight' query='Neutral' intent='neutral' />
-  </Text>
-  <Text>
+  </p>
+  <p>
     <Highlight text='Accent intent highlight' query='Accent' intent='accent' />
-  </Text>
-  <Text>
+  </p>
+  <p>
     <Highlight text='Brand intent highlight' query='Brand' intent='brand' />
-  </Text>
-  <Text>
+  </p>
+  <p>
     <Highlight text='Info intent highlight' query='Info' intent='info' />
-  </Text>
-  <Text>
+  </p>
+  <p>
     <Highlight text='Success intent highlight' query='Success' intent='success' />
-  </Text>
-  <Text>
+  </p>
+  <p>
     <Highlight text='Warning intent highlight' query='Warning' intent='warning' />
-  </Text>
-  <Text>
+  </p>
+  <p>
     <Highlight text='Danger intent highlight' query='Danger' intent='danger' />
-  </Text>
+  </p>
 </div>
 ```
 
@@ -66,12 +66,12 @@ The default intent is `info`.
 
 ```tsx-live
 
-<Text>
+<p>
   <Highlight
     text='React, Vue, and Svelte are popular JavaScript frameworks'
     query={['React', 'Vue', 'Svelte']}
   />
-</Text>
+</p>
 ```
 
 ### With case sensitivity
@@ -82,16 +82,16 @@ By default, matching is case-insensitive.
 
 <div className='flex flex-col gap-2'>
   <div className='flex flex-col gap-1'>
-    <Text size='sm' emphasis='subtle'>Case insensitive (default)</Text>
-    <Text>
+    <p className='text-sm text-subtle'>Case insensitive (default)</p>
+    <p>
       <Highlight text='Hello World' query='hello' />
-    </Text>
+    </p>
   </div>
   <div className='flex flex-col gap-1'>
-    <Text size='sm' emphasis='subtle'>Case sensitive</Text>
-    <Text>
+    <p className='text-sm text-subtle'>Case sensitive</p>
+    <p>
       <Highlight text='Hello World' query='hello' ignoreCase={false} />
-    </Text>
+    </p>
   </div>
 </div>
 ```
@@ -104,16 +104,16 @@ By default, all occurrences are highlighted.
 
 <div className='flex flex-col gap-2'>
   <div className='flex flex-col gap-1'>
-    <Text size='sm' emphasis='subtle'>Match all (default)</Text>
-    <Text>
+    <p className='text-sm text-subtle'>Match all (default)</p>
+    <p>
       <Highlight text='foo bar foo baz foo' query='foo' matchAll={true} />
-    </Text>
+    </p>
   </div>
   <div className='flex flex-col gap-1'>
-    <Text size='sm' emphasis='subtle'>Match first only</Text>
-    <Text>
+    <p className='text-sm text-subtle'>Match first only</p>
+    <p>
       <Highlight text='foo bar foo baz foo' query='foo' matchAll={false} />
-    </Text>
+    </p>
   </div>
 </div>
 ```

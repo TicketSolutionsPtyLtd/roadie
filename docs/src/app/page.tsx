@@ -9,7 +9,7 @@ import {
   WheelchairMotion
 } from '@phosphor-icons/react/ssr'
 
-import { Button, Card, Heading, Text } from '@oztix/roadie-components'
+import { Button, Card, Heading } from '@oztix/roadie-components'
 
 export default function Home() {
   return (
@@ -19,10 +19,10 @@ export default function Home() {
         <Heading as='h1' className='text-display-prose-1'>
           Roadie design system
         </Heading>
-        <Text size='lg' emphasis='subtle'>
+        <p className='text-lg text-subtle'>
           A comprehensive design system for building consistent, accessible, and
           beautiful user interfaces across Oztix applications.
-        </Text>
+        </p>
       </section>
 
       {/* Core Sections */}
@@ -114,10 +114,10 @@ export default function Home() {
           <Heading as='h2' className='text-display-ui-3'>
             Key features
           </Heading>
-          <Text size='lg' emphasis='subtle'>
+          <p className='text-lg text-subtle'>
             Discover the powerful features that make Roadie a complete design
             system solution
-          </Text>
+          </p>
         </div>
         <div className='grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-8'>
           <FeatureCard
@@ -143,10 +143,10 @@ export default function Home() {
         <Heading as='h2' className='text-display-ui-3'>
           Get started
         </Heading>
-        <Text size='lg' emphasis='subtle'>
+        <p className='text-lg text-subtle'>
           Ready to build? Follow our guide to start using Roadie in your
           project.
-        </Text>
+        </p>
         <Button
           intent='accent'
           emphasis='strong'
@@ -176,7 +176,7 @@ function FeatureCard({
           {title}
         </Heading>
       </div>
-      <Text emphasis='subtle'>{description}</Text>
+      <p className='text-subtle'>{description}</p>
     </div>
   )
 }
@@ -201,9 +201,7 @@ function SectionCard({
             {title}
           </Heading>
         </div>
-        <Text emphasis='subtle' size='sm'>
-          {description}
-        </Text>
+        <p className='text-subtle text-sm'>{description}</p>
       </div>
       <ul
         className={`pt-4 px-4 grid grid-cols-1 ${items.length > 2 ? 'md:grid-cols-[repeat(auto-fit,minmax(250px,1fr))]' : ''}`}
@@ -217,9 +215,7 @@ function SectionCard({
               <Heading as='h4' className='text-display-ui-6' intent='accent'>
                 {item.label}
               </Heading>
-              <Text size='sm' emphasis='subtle'>
-                {item.description}
-              </Text>
+              <p className='text-sm text-subtle'>{item.description}</p>
             </Link>
           </li>
         ))}

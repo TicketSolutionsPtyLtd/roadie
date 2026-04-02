@@ -90,15 +90,15 @@ Pre-composed text styles combine font size, weight, line height, and letter spac
 
 ### Text
 
-```tsx
-import { Text } from '@oztix/roadie-components'
+Use raw HTML elements with utility classes:
 
-<Text>Default body text</Text>
-<Text size="lg">Large text</Text>
-<Text emphasis="subtle">Subtle secondary text</Text>
-<Text emphasis="strong">Bold emphasis text</Text>
-<Text intent="accent">Accent-colored text</Text>
-<Text as="span" size="sm">Inline small text</Text>
+```tsx
+<p>Default body text</p>
+<p className="text-lg">Large text</p>
+<p className="text-subtle">Subtle secondary text</p>
+<p className="text-strong">Bold emphasis text</p>
+<p className="intent-accent">Accent-colored text</p>
+<span className="text-sm">Inline small text</span>
 ```
 
 ### Heading
@@ -140,8 +140,8 @@ import { Code } from '@oztix/roadie-components'
 
 ## Best practices
 
-1. **Use components for semantic meaning** — `Text` for body, `Heading` for headings, `Code` for code
+1. **Use semantic HTML elements** — `<p>` for body, `Heading` for headings, `Code` for code
 2. **Use text style utilities for one-off styling** — `text-display-ui-3` on a raw `<h2>`
 3. **Let fluid type handle responsiveness** — no manual `md:text-lg` needed for font sizes
-4. **Use emphasis props** — `emphasis="subtle"` not manual color classes
-5. **Maintain heading hierarchy** — h1 → h2 → h3, use `level` prop on Heading
+4. **Use emphasis classes** — `text-subtle` not manual color classes
+5. **Maintain heading hierarchy** — h1 -> h2 -> h3, use `level` prop on Heading

@@ -13,8 +13,8 @@ export type { HighlightProps } from './Highlight'
 export { Mark, markVariants } from './Mark'
 export type { MarkProps } from './Mark'
 
-export { Text, textVariants } from './Text'
-export type { TextProps } from './Text'
+export { Prose } from './Prose'
+export type { ProseProps } from './Prose'
 
 export { Accordion, accordionVariants } from './Accordion'
 export type { AccordionProps } from './Accordion'

@@ -9,7 +9,7 @@ import { List, Moon, Sun, X } from '@phosphor-icons/react'
 
 import { Image } from '@/components/Image'
 
-import { Button, Text } from '@oztix/roadie-components'
+import { Button } from '@oztix/roadie-components'
 
 interface NavigationItem {
   title: string
@@ -69,9 +69,9 @@ function ThemeToggle() {
       ) : (
         <Sun size={16} weight='bold' />
       )}
-      <Text as='span' size='sm'>
+      <span className='text-sm'>
         {colorMode === 'light' ? 'Dark' : 'Light'} mode
-      </Text>
+      </span>
     </Button>
   )
 }

@@ -28,19 +28,19 @@ Only one item can be open at a time in single mode (the default).
   <Accordion.Item value='item-1'>
     <Accordion.Trigger>What is Roadie?</Accordion.Trigger>
     <Accordion.Content>
-      <Text className='pb-3'>Roadie is a comprehensive design system for building consistent user interfaces.</Text>
+      <p className='pb-3'>Roadie is a comprehensive design system for building consistent user interfaces.</p>
     </Accordion.Content>
   </Accordion.Item>
   <Accordion.Item value='item-2'>
     <Accordion.Trigger>How do I install it?</Accordion.Trigger>
     <Accordion.Content>
-      <Text className='pb-3'>Install via npm or pnpm from the @oztix/roadie-components package.</Text>
+      <p className='pb-3'>Install via npm or pnpm from the @oztix/roadie-components package.</p>
     </Accordion.Content>
   </Accordion.Item>
   <Accordion.Item value='item-3'>
     <Accordion.Trigger>Is it accessible?</Accordion.Trigger>
     <Accordion.Content>
-      <Text className='pb-3'>Yes, all components follow WAI-ARIA guidelines for accessibility.</Text>
+      <p className='pb-3'>Yes, all components follow WAI-ARIA guidelines for accessibility.</p>
     </Accordion.Content>
   </Accordion.Item>
 </Accordion>
@@ -55,13 +55,13 @@ Use `appearance='contained'` for a bordered look with dividers between items.
   <Accordion.Item value='q1'>
     <Accordion.Trigger>First question</Accordion.Trigger>
     <Accordion.Content>
-      <Text className='pb-3'>Answer to the first question.</Text>
+      <p className='pb-3'>Answer to the first question.</p>
     </Accordion.Content>
   </Accordion.Item>
   <Accordion.Item value='q2'>
     <Accordion.Trigger>Second question</Accordion.Trigger>
     <Accordion.Content>
-      <Text className='pb-3'>Answer to the second question.</Text>
+      <p className='pb-3'>Answer to the second question.</p>
     </Accordion.Content>
   </Accordion.Item>
 </Accordion>
@@ -74,35 +74,35 @@ Use `type='multiple'` to allow multiple items open simultaneously.
 ```tsx-live
 <div className='flex flex-col gap-4'>
   <div className='flex flex-col gap-1'>
-    <Text size='sm' emphasis='subtle'>Single (default)</Text>
+    <p className='text-sm text-subtle'>Single (default)</p>
     <Accordion type='single'>
       <Accordion.Item value='a'>
         <Accordion.Trigger>Section A</Accordion.Trigger>
         <Accordion.Content>
-          <Text className='pb-3'>Content for section A.</Text>
+          <p className='pb-3'>Content for section A.</p>
         </Accordion.Content>
       </Accordion.Item>
       <Accordion.Item value='b'>
         <Accordion.Trigger>Section B</Accordion.Trigger>
         <Accordion.Content>
-          <Text className='pb-3'>Content for section B.</Text>
+          <p className='pb-3'>Content for section B.</p>
         </Accordion.Content>
       </Accordion.Item>
     </Accordion>
   </div>
   <div className='flex flex-col gap-1'>
-    <Text size='sm' emphasis='subtle'>Multiple</Text>
+    <p className='text-sm text-subtle'>Multiple</p>
     <Accordion type='multiple'>
       <Accordion.Item value='a'>
         <Accordion.Trigger>Section A</Accordion.Trigger>
         <Accordion.Content>
-          <Text className='pb-3'>Content for section A.</Text>
+          <p className='pb-3'>Content for section A.</p>
         </Accordion.Content>
       </Accordion.Item>
       <Accordion.Item value='b'>
         <Accordion.Trigger>Section B</Accordion.Trigger>
         <Accordion.Content>
-          <Text className='pb-3'>Content for section B.</Text>
+          <p className='pb-3'>Content for section B.</p>
         </Accordion.Content>
       </Accordion.Item>
     </Accordion>
@@ -119,7 +119,7 @@ Accordion is a compound component with `Accordion.Item`, `Accordion.Trigger`, an
   <Accordion.Item value='item-1'>
     <Accordion.Trigger>What is Roadie?</Accordion.Trigger>
     <Accordion.Content>
-      <Text className='pb-3'>Roadie is a comprehensive design system for building consistent user interfaces.</Text>
+      <p className='pb-3'>Roadie is a comprehensive design system for building consistent user interfaces.</p>
     </Accordion.Content>
   </Accordion.Item>
 </Accordion>

@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { readFile, readdir } from 'fs/promises'
 import { join } from 'path'
 
-import { Heading, Text } from '@oztix/roadie-components'
+import { Heading } from '@oztix/roadie-components'
 
 type ComponentMetadata = {
   name: string
@@ -82,10 +82,10 @@ export default async function ComponentsPage() {
         <Heading as='h1' className='text-display-prose-1'>
           Components
         </Heading>
-        <Text emphasis='subtle' size='xl'>
+        <p className='text-subtle text-xl'>
           A collection of components built with Base UI and styled with Tailwind
           CSS.
-        </Text>
+        </p>
       </div>
 
       {Object.entries(categorizedComponents).map(([category, components]) => (
@@ -103,20 +103,18 @@ export default async function ComponentsPage() {
                 <Heading as='h3' className='text-display-ui-5'>
                   {component.title}
                 </Heading>
-                <Text emphasis='subtle'>{component.description}</Text>
-                <Text
-                  size='sm'
-                  emphasis='strong'
-                  intent={
+                <p className='text-subtle'>{component.description}</p>
+                <p
+                  className={`text-sm text-strong ${
                     component.status === 'stable'
-                      ? 'success'
+                      ? 'intent-success'
                       : component.status === 'beta'
-                        ? 'warning'
-                        : 'neutral'
-                  }
+                        ? 'intent-warning'
+                        : ''
+                  }`}
                 >
                   {component.status}
-                </Text>
+                </p>
               </Link>
             ))}
           </div>

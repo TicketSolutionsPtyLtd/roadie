@@ -2,7 +2,7 @@ import '@testing-library/jest-dom/vitest'
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { Button, Code, Heading, Highlight, Mark, Text } from './index'
+import { Button, Code, Heading, Highlight, Mark } from './index'
 
 describe('Component exports', () => {
   it('exports Button component', () => {
@@ -20,12 +20,6 @@ describe('Component exports', () => {
   it('exports Heading component', () => {
     expect(Heading).toBeDefined()
     const { container } = render(<Heading>Test</Heading>)
-    expect(container).toBeInTheDocument()
-  })
-
-  it('exports Text component', () => {
-    expect(Text).toBeDefined()
-    const { container } = render(<Text>Test</Text>)
     expect(container).toBeInTheDocument()
   })
 

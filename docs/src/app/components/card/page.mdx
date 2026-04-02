@@ -24,7 +24,7 @@ import { Card } from '@oztix/roadie-components'
 ```tsx-live
 <Card>
   <Card.Content>
-    <Text>Card content</Text>
+    <p>Card content</p>
   </Card.Content>
 </Card>
 ```
@@ -34,13 +34,13 @@ import { Card } from '@oztix/roadie-components'
 ```tsx-live
 <div className='flex flex-col gap-4'>
   <Card emphasis='raised'>
-    <Card.Content><Text>Raised</Text></Card.Content>
+    <Card.Content><p>Raised</p></Card.Content>
   </Card>
   <Card emphasis='default'>
-    <Card.Content><Text>Default</Text></Card.Content>
+    <Card.Content><p>Default</p></Card.Content>
   </Card>
   <Card emphasis='subtle'>
-    <Card.Content><Text>Subtle</Text></Card.Content>
+    <Card.Content><p>Subtle</p></Card.Content>
   </Card>
 </div>
 ```
@@ -50,13 +50,13 @@ import { Card } from '@oztix/roadie-components'
 ```tsx-live
 <div className='flex flex-col gap-4'>
   <Card intent='accent'>
-    <Card.Content><Text>Accent</Text></Card.Content>
+    <Card.Content><p>Accent</p></Card.Content>
   </Card>
   <Card intent='success'>
-    <Card.Content><Text>Success</Text></Card.Content>
+    <Card.Content><p>Success</p></Card.Content>
   </Card>
   <Card intent='danger'>
-    <Card.Content><Text>Danger</Text></Card.Content>
+    <Card.Content><p>Danger</p></Card.Content>
   </Card>
 </div>
 ```
@@ -69,10 +69,10 @@ Use `Card.Header`, `Card.Content`, and `Card.Footer` to structure content.
 <Card>
   <Card.Header>
     <Heading className='text-display-ui-6'>Card title</Heading>
-    <Text size='sm'>A short description of the card content.</Text>
+    <p className='text-sm'>A short description of the card content.</p>
   </Card.Header>
   <Card.Content>
-    <Text>This is the main content area of the card.</Text>
+    <p>This is the main content area of the card.</p>
   </Card.Content>
   <Card.Footer>
     <Button size='sm'>Action</Button>

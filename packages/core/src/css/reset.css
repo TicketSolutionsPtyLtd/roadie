@@ -31,10 +31,12 @@
   }
 
   body {
+    font-family: var(--font-body);
+    font-size: var(--text-base);
     line-height: var(--leading-ui);
+    letter-spacing: var(--tracking-ui);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-family: var(--font-sans);
     color: var(--intent-text-default);
     background-color: var(--intent-bg-default);
     border-color: var(--intent-border-subtle);

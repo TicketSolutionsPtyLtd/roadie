@@ -65,15 +65,11 @@ Toggles: checked/unchecked, open/closed.
 
 <div className='flex flex-col gap-4'>
   <div className='flex flex-col gap-1'>
-    <Text size='sm' emphasis='subtle'>
-      Default
-    </Text>
+    <p className='text-sm text-subtle'>Default</p>
     <ComponentName />
   </div>
   <div className='flex flex-col gap-1'>
-    <Text size='sm' emphasis='subtle'>
-      Disabled
-    </Text>
+    <p className='text-sm text-subtle'>Disabled</p>
     <ComponentName disabled />
   </div>
 </div>
@@ -102,7 +98,7 @@ Can also use "With [Feature]" naming: "With helper text", "With footer", etc.
 7. **Guidelines** — brief, only non-obvious things. Oztix context goes here
 8. **No duplicates** — if disabled is in States, don't add separate Disabled section
 9. **Minimal examples** — show only the feature. Layout with `flex flex-col gap-2` or `flex flex-row flex-wrap gap-2`
-10. **State labels** — `<Text size='sm' emphasis='subtle'>Label</Text>` above each state
+10. **State labels** — `<p className='text-sm text-subtle'>Label</p>` above each state
 
 ## Section applicability by category
 

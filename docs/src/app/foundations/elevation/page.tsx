@@ -1,4 +1,4 @@
-import { Code, Heading, Text } from '@oztix/roadie-components'
+import { Code, Heading } from '@oztix/roadie-components'
 
 export const metadata = {
   title: 'Elevation',
@@ -93,12 +93,12 @@ export default function ElevationPage() {
         <Heading as='h1' className='text-display-prose-1'>
           Elevation
         </Heading>
-        <Text size='lg' emphasis='subtle'>
+        <p className='text-lg text-subtle'>
           Shadows are tinted with the current intent&apos;s hue using CSS-native{' '}
           <Code>oklch()</Code>. A card inside <Code>intent-danger</Code>{' '}
           automatically gets red-tinted shadows. Uses Tailwind&apos;s standard
           shadow utilities.
-        </Text>
+        </p>
       </div>
 
       {/* Shadow scale */}
@@ -106,22 +106,18 @@ export default function ElevationPage() {
         <Heading as='h2' className='text-display-ui-3'>
           Shadow scale
         </Heading>
-        <Text emphasis='subtle'>
+        <p className='text-subtle'>
           Each level uses multi-layer shadows with geometric scaling. Apply with{' '}
           <Code>shadow-sm</Code>, <Code>shadow-lg</Code>, etc.
-        </Text>
+        </p>
 
         <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
           {shadowScale.map(({ name, description, className }) => (
             <div key={name} className='view gap-2'>
               <div className={`${className} rounded-lg bg-raised p-6`}>
-                <Text size='sm' emphasis='strong' className='font-mono'>
-                  {name}
-                </Text>
+                <p className='text-sm text-strong font-mono'>{name}</p>
               </div>
-              <Text size='sm' emphasis='subtle'>
-                {description}
-              </Text>
+              <p className='text-sm text-subtle'>{description}</p>
             </div>
           ))}
         </div>
@@ -132,22 +128,18 @@ export default function ElevationPage() {
         <Heading as='h2' className='text-display-ui-3'>
           Inset shadows
         </Heading>
-        <Text emphasis='subtle'>
+        <p className='text-subtle'>
           For sunken surfaces like input fields and wells. Apply with{' '}
           <Code>inset-shadow-xs</Code> or <Code>inset-shadow-sm</Code>.
-        </Text>
+        </p>
 
         <div className='grid gap-6 sm:grid-cols-2'>
           {insetScale.map(({ name, description, className }) => (
             <div key={name} className='view gap-2'>
               <div className={`${className} rounded-lg bg-default p-6`}>
-                <Text size='sm' emphasis='strong' className='font-mono'>
-                  {name}
-                </Text>
+                <p className='text-sm text-strong font-mono'>{name}</p>
               </div>
-              <Text size='sm' emphasis='subtle'>
-                {description}
-              </Text>
+              <p className='text-sm text-subtle'>{description}</p>
             </div>
           ))}
         </div>
@@ -158,22 +150,22 @@ export default function ElevationPage() {
         <Heading as='h2' className='text-display-ui-3'>
           Rim light
         </Heading>
-        <Text emphasis='subtle'>
+        <p className='text-subtle'>
           A subtle inner highlight for raised surfaces. Adds a polished,
           glass-like edge. Apply with <Code>rim-light</Code>. Already included
           in <Code>emphasis-raised</Code> and <Code>emphasis-floating</Code>.
-        </Text>
+        </p>
 
         <div className='grid gap-6 sm:grid-cols-2'>
           <div className='view gap-2'>
             <div className='rim-light shadow-md rounded-lg bg-raised p-6'>
-              <Text size='sm' emphasis='strong' className='font-mono'>
+              <p className='text-sm text-strong font-mono'>
                 rim-light + shadow-md
-              </Text>
+              </p>
             </div>
-            <Text size='sm' emphasis='subtle'>
+            <p className='text-sm text-subtle'>
               Combine with any shadow level for depth + highlight
-            </Text>
+            </p>
           </div>
         </div>
       </section>
@@ -183,11 +175,11 @@ export default function ElevationPage() {
         <Heading as='h2' className='text-display-ui-3'>
           Emphasis presets
         </Heading>
-        <Text emphasis='subtle'>
+        <p className='text-subtle'>
           The emphasis system includes elevation-aware presets that combine
           background, shadow, and interactive states. These are the recommended
           way to apply elevation.
-        </Text>
+        </p>
 
         <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
           {emphasisPresets.map(
@@ -196,18 +188,14 @@ export default function ElevationPage() {
                 <div
                   className={`${className} ${interactive ? 'is-interactive' : ''} rounded-lg p-6`}
                 >
-                  <Text size='sm' emphasis='strong' className='font-mono'>
-                    {name}
-                  </Text>
+                  <p className='text-sm text-strong font-mono'>{name}</p>
                   {interactive && (
-                    <Text size='xs' emphasis='subtle' className='mt-1'>
+                    <p className='text-xs text-subtle mt-1'>
                       Hover and click me
-                    </Text>
+                    </p>
                   )}
                 </div>
-                <Text size='sm' emphasis='subtle'>
-                  {description}
-                </Text>
+                <p className='text-sm text-subtle'>{description}</p>
               </div>
             )
           )}
@@ -258,21 +246,19 @@ export default function ElevationPage() {
         <Heading as='h2' className='text-display-ui-3'>
           Intent tinting
         </Heading>
-        <Text emphasis='subtle'>
+        <p className='text-subtle'>
           Shadows automatically tint based on the nearest <Code>intent-*</Code>{' '}
           ancestor. Works with both raw shadow utilities and emphasis presets.
-        </Text>
+        </p>
 
         <div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
           {intents.map(({ name, className }) => (
             <div key={name} className={className}>
               <div className='emphasis-raised is-interactive rounded-lg p-6'>
-                <Text size='sm' emphasis='strong' className='font-mono'>
-                  intent-{name}
-                </Text>
-                <Text size='xs' emphasis='subtle' className='mt-1'>
+                <p className='text-sm text-strong font-mono'>intent-{name}</p>
+                <p className='text-xs text-subtle mt-1'>
                   emphasis-raised — hover me
-                </Text>
+                </p>
               </div>
             </div>
           ))}
@@ -346,44 +332,44 @@ export default function ElevationPage() {
           </Heading>
           <ul className='view gap-2 list-disc pl-5'>
             <li>
-              <Text>
+              <p>
                 <strong>Prefer emphasis presets</strong> over raw shadow
                 utilities. <Code>emphasis-raised</Code> handles background,
                 shadow, rim light, and hover/active states together.
-              </Text>
+              </p>
             </li>
             <li>
-              <Text>
+              <p>
                 Use <strong>one elevation level of separation</strong> between
                 stacked surfaces. Don&apos;t jump from <Code>shadow-xs</Code> to{' '}
                 <Code>shadow-2xl</Code>.
-              </Text>
+              </p>
             </li>
             <li>
-              <Text>
+              <p>
                 <strong>Hover states</strong> should increase by one level (e.g.{' '}
                 <Code>shadow-md</Code> at rest, <Code>shadow-lg</Code> on
                 hover).
-              </Text>
+              </p>
             </li>
             <li>
-              <Text>
+              <p>
                 <strong>Active/pressed states</strong> should decrease or remove
                 shadow — the element feels pushed down.
-              </Text>
+              </p>
             </li>
             <li>
-              <Text>
+              <p>
                 Use <Code>emphasis-floating</Code> for UI that overlaps content
                 (popovers, dropdowns). Use <Code>emphasis-raised</Code> for
                 surfaces that sit on the page (cards, panels).
-              </Text>
+              </p>
             </li>
             <li>
-              <Text>
+              <p>
                 Intent tinting is automatic — just ensure the element is inside
                 an <Code>intent-*</Code> container.
-              </Text>
+              </p>
             </li>
           </ul>
         </div>

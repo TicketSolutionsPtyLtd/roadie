@@ -1,4 +1,4 @@
-import { Code, Heading, Text } from '@oztix/roadie-components'
+import { Code, Heading } from '@oztix/roadie-components'
 
 export const metadata = {
   title: 'Token reference',
@@ -21,9 +21,7 @@ const steps = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] as const
 function ColorScaleVisual({ scale }: { scale: string }) {
   return (
     <div className='flex flex-col gap-1'>
-      <Text size='sm' emphasis='strong' className='capitalize'>
-        {scale}
-      </Text>
+      <p className='text-sm text-strong capitalize'>{scale}</p>
       <div className='flex gap-0.5'>
         {steps.map((step) => (
           <div
@@ -36,14 +34,9 @@ function ColorScaleVisual({ scale }: { scale: string }) {
       </div>
       <div className='flex gap-0.5'>
         {steps.map((step) => (
-          <Text
-            key={step}
-            size='xs'
-            emphasis='subtler'
-            className='flex-1 text-center'
-          >
+          <p key={step} className='text-xs text-subtler flex-1 text-center'>
             {step}
-          </Text>
+          </p>
         ))}
       </div>
     </div>
@@ -59,9 +52,7 @@ function TokenTable({
 }) {
   return (
     <div className='flex flex-col gap-2'>
-      <Text emphasis='strong' size='sm'>
-        {title}
-      </Text>
+      <p className='text-strong text-sm'>{title}</p>
       <div className='overflow-x-auto'>
         <table className='w-full text-sm'>
           <thead>
@@ -95,10 +86,10 @@ export default function TokenReferencePage() {
         <Heading as='h1' className='text-display-prose-1'>
           Token reference
         </Heading>
-        <Text emphasis='subtle' size='lg'>
+        <p className='text-subtle text-lg'>
           Complete reference for the v2 design token system. All tokens are CSS
           custom properties defined via Tailwind v4&apos;s @theme directive.
-        </Text>
+        </p>
       </div>
 
       {/* Color Scales */}
@@ -106,11 +97,11 @@ export default function TokenReferencePage() {
         <Heading as='h2' className='text-display-ui-3'>
           Color scales
         </Heading>
-        <Text emphasis='subtle'>
+        <p className='text-subtle'>
           Each scale provides 14 OKLCH steps (0-13). Step 0 is the lightest
           extreme, step 13 the darkest. Dark mode swaps the underlying values —
           step numbers stay the same.
-        </Text>
+        </p>
         <div className='view gap-4'>
           {colorScales.map((scale) => (
             <ColorScaleVisual key={scale} scale={scale} />
@@ -123,10 +114,10 @@ export default function TokenReferencePage() {
         <Heading as='h2' className='text-display-ui-3'>
           Intent semantic tokens
         </Heading>
-        <Text emphasis='subtle'>
+        <p className='text-subtle'>
           Set by intent utilities (e.g. <Code>intent-accent</Code>). Each intent
           maps scale steps to semantic roles.
-        </Text>
+        </p>
 
         <TokenTable
           title='Surface'
@@ -346,12 +337,12 @@ export default function TokenReferencePage() {
 
       {/* Source */}
       <div className='rounded-lg border border-default p-6'>
-        <Text emphasis='subtle'>
+        <p className='text-subtle'>
           All tokens are defined in{' '}
           <Code>packages/core/src/css/tokens.css</Code>. Intent mappings are in{' '}
           <Code>intents.css</Code>. Emphasis utilities are in{' '}
           <Code>emphasis.css</Code>.
-        </Text>
+        </p>
       </div>
     </div>
   )

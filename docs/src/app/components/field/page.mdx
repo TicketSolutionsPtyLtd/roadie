@@ -36,7 +36,7 @@ invalid shows danger colouring with error text.
 ```tsx-live
 <div className='flex flex-col gap-6'>
   <div className='flex flex-col gap-1'>
-    <Text size='sm' emphasis='subtle'>Default</Text>
+    <p className='text-sm text-subtle'>Default</p>
     <Field>
       <Field.Label htmlFor='default-field'>Label</Field.Label>
       <Field.Input id='default-field' placeholder='Click to focus' />
@@ -44,7 +44,7 @@ invalid shows danger colouring with error text.
     </Field>
   </div>
   <div className='flex flex-col gap-1'>
-    <Text size='sm' emphasis='subtle'>Invalid</Text>
+    <p className='text-sm text-subtle'>Invalid</p>
     <Field>
       <Field.Label htmlFor='error-field'>Label</Field.Label>
       <Field.Input id='error-field' aria-invalid='true' defaultValue='bad-value' />
@@ -52,7 +52,7 @@ invalid shows danger colouring with error text.
     </Field>
   </div>
   <div className='flex flex-col gap-1'>
-    <Text size='sm' emphasis='subtle'>Disabled</Text>
+    <p className='text-sm text-subtle'>Disabled</p>
     <Field>
       <Field.Label htmlFor='disabled-field'>Label</Field.Label>
       <Field.Input id='disabled-field' disabled placeholder='Cannot edit' />
