@@ -86,41 +86,37 @@ Pre-composed text styles combine font size, weight, line height, and letter spac
 | `text-prose` | base | 1.5 | Long-form content |
 | `text-code` | sm | 1.625 | Code blocks |
 
-## Components
+## Usage patterns
 
-### Text
+### Body text
 
-Use raw HTML elements with utility classes:
+Use semantic HTML elements with utility classes. No wrapper component needed — the body reset provides `text-ui` defaults.
 
 ```tsx
-<p>Default body text</p>
+<p>Default body text — inherits body styles</p>
 <p className="text-lg">Large text</p>
-<p className="text-subtle">Subtle secondary text</p>
-<p className="text-strong">Bold emphasis text</p>
-<p className="intent-accent">Accent-colored text</p>
+<p className="text-subtle">Secondary text</p>
+<p className="text-strong">Emphasised text</p>
+<p className="text-subtler text-sm">Meta / hint text</p>
 <span className="text-sm">Inline small text</span>
 ```
 
-### Heading
+### Headings
 
-Use raw heading elements with text style utilities:
-
-```tsx
-<h1 className="text-display-prose-1 text-strong">Page title</h1>
-<h2 className="text-display-ui-3 text-strong">Section heading</h2>
-<h3 className="text-display-ui-4 text-strong">Subsection</h3>
-<h2 className="text-display-ui-5 text-subtle">Subtitle</h2>
-```
-
-Or use the text style utilities on any element:
+Use raw heading elements with display style utilities. Always pair a `text-display-*` class with a text color class like `text-strong`.
 
 ```tsx
-<h1 className="text-display-prose-1 text-strong">Page title</h1>
-<h2 className="text-display-ui-3 text-strong">UI section</h2>
-<p className="text-prose">Body paragraph</p>
+{/* App UI headings */}
+<h1 className="text-display-ui-1 text-strong">Dashboard</h1>
+<h2 className="text-display-ui-3 text-strong">Section</h2>
+<h3 className="text-display-ui-5 text-strong">Subsection</h3>
+
+{/* Long-form content headings */}
+<h1 className="text-display-prose-1 text-strong">Article title</h1>
+<h2 className="text-display-prose-3 text-strong">Chapter</h2>
 ```
 
-### Code
+### Inline code
 
 ```tsx
 import { Code } from '@oztix/roadie-components'
@@ -128,6 +124,36 @@ import { Code } from '@oztix/roadie-components'
 <Code>npm install @oztix/roadie-components</Code>
 <Code intent="danger">error: something broke</Code>
 ```
+
+### Prose (rich content)
+
+The `Prose` component styles nested HTML for CMS output, markdown, or user-generated content. It sets appropriate typography, spacing, and element styles.
+
+```tsx
+import { Prose } from '@oztix/roadie-components'
+
+<Prose>
+  <h2>Article heading</h2>
+  <p>Body paragraph with <strong>bold</strong> and <a href="#">links</a>.</p>
+  <ul>
+    <li>List item one</li>
+    <li>List item two</li>
+  </ul>
+  <blockquote>A pull quote</blockquote>
+</Prose>
+```
+
+## Semantic elements guide
+
+| Element | When to use | Example |
+|---------|-------------|---------|
+| `<p>` | Body text, descriptions | `<p className="text-subtle">Description</p>` |
+| `<span>` | Inline text within other elements | `<span className="text-sm">Label</span>` |
+| `<h1>`–`<h6>` | Section headings (maintain hierarchy) | `<h2 className="text-display-ui-3 text-strong">` |
+| `<strong>` | Important text | `<strong>Required</strong>` |
+| `<em>` | Emphasis / stress | `<em>Note:</em>` |
+| `<a>` | Links | Style with `underline underline-offset-2` |
+| `<Code>` | Inline code, tokens, commands | `<Code>bg-default</Code>` |
 
 ## Semantic line heights and letter spacing
 
