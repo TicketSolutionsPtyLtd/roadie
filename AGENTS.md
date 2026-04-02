@@ -35,19 +35,20 @@ src/
 ├── css/
 │   ├── roadie.css          # Main entry (imports all below + tailwindcss)
 │   ├── reset.css           # CSS reset and global defaults
-│   ├── tokens.css          # Color scales (OKLCH), typography, elevation
+│   ├── tokens.css          # Color scales (OKLCH), typography, @theme registrations
 │   ├── intents.css         # @utility intent-* (set color context)
-│   ├── emphasis.css        # @utility emphasis-* (visual presentation)
+│   ├── emphasis.css        # @utility emphasis-* (combined shortcuts)
+│   ├── elevation.css       # Shadow scale, rim-light, inset shadows
 │   ├── typography.css      # @utility text-display-*, text-ui, text-prose
 │   ├── layout.css          # @utility view (flex column layout primitive)
 │   ├── interactions.css    # @utility is-interactive (hover/focus/disabled)
 │   ├── fonts.css           # @font-face declarations
 │   └── safelist.html       # Ensures all utilities in compiled CSS output
 ├── colors/
-│   ├── radix-generator.ts  # Dynamic 0-13 OKLCH scale from hex input
-│   └── contrast.ts         # WCAG contrast check
+│   ├── color-scale-generator.ts  # OKLCH curve-based scale from hex input
+│   └── contrast.ts               # WCAG contrast check
 ├── utils/
-│   └── cn.ts               # clsx + tailwind-merge helper
+│   └── cn.ts               # clsx + tailwind-merge (with semantic color config)
 └── index.ts                # JS re-exports
 ```
 
@@ -57,11 +58,21 @@ src/
 src/
 ├── components/
 │   ├── Button/             # Base UI Button + CVA
-│   ├── Text/               # Semantic <p> with emphasis/size
-│   ├── Heading/            # Semantic h1-h6 with level/emphasis/size
 │   ├── Code/               # Inline code with emphasis
 │   ├── Mark/               # Highlighted text with intent
 │   ├── Highlight/          # String highlighting (in-house useHighlight)
+│   ├── Prose/              # Rich content container (sm/md/lg)
+│   ├── Card/               # Card with elevation
+│   ├── Badge/              # Status badges
+│   ├── Accordion/          # Collapsible sections
+│   ├── Breadcrumb/         # Navigation breadcrumbs
+│   ├── Separator/          # Visual divider
+│   ├── Input/              # Text input
+│   ├── Textarea/           # Multi-line input
+│   ├── Select/             # Dropdown select
+│   ├── Field/              # Form field (label + input + helper)
+│   ├── Fieldset/           # Form group
+│   ├── RadioGroup/         # Radio button group
 │   └── SpotIllustration/   # Themed SVG illustrations
 ├── providers/
 │   └── ThemeProvider.tsx    # Dynamic accent color + dark mode
@@ -84,16 +95,34 @@ pnpm --filter @oztix/roadie-components test
 pnpm --filter docs dev
 ```
 
-## Architecture: Intent/Emphasis System
+## Architecture: Color Utility System
 
-The styling system has two layers, both defined as Tailwind `@utility` directives:
+Three Tailwind-native utility namespaces, each scoped to its own CSS property:
+
+### Color utilities
+
+| Utility | CSS property | Example |
+|---------|-------------|---------|
+| `bg-default` | `background-color` | Page background |
+| `bg-subtle` | `background-color` | Tinted surface |
+| `bg-raised` | `background-color` | Elevated card |
+| `bg-sunken` | `background-color` | Recessed area |
+| `text-default` | `color` | Body text |
+| `text-subtle` | `color` | Secondary text |
+| `text-strong` | `color` | Headings |
+| `border-subtle` | `border-color` | Dividers |
+| `border-default` | `border-color` | Standard borders |
+| `divide-subtler` | children border-color | Table rows |
+
+These are generated from `@theme inline` in `tokens.css` using Tailwind's utility-specific namespaces (`--background-color-*`, `--text-color-*`, `--border-color-*`).
+
+Default Tailwind color utilities (bg-red-500, text-blue-300 etc.) are disabled via `--color-*: initial`.
 
 ### Intent (color context)
 
 Sets `--intent-*` CSS custom properties. Children inherit via cascade.
 
 ```html
-<!-- Set intent on a container or directly on the element -->
 <div class="intent-accent">
   <button class="emphasis-strong is-interactive rounded-full px-4 py-2">
     Accent button
@@ -104,41 +133,63 @@ Sets `--intent-*` CSS custom properties. Children inherit via cascade.
 **Available intents:** `neutral` (default on :root), `brand`, `accent`, `danger`, `success`, `warning`, `info`
 
 Each intent exposes:
-- Semantic vars: `--intent-surface-*`, `--intent-border-*`, `--intent-fg-*`
+- Semantic vars: `--intent-bg-*`, `--intent-border-*`, `--intent-text-*`
 - Raw scale steps: `--intent-0` through `--intent-13`
+- Hue for tinted shadows: `--intent-hue`
 
-### Emphasis (visual presentation)
+### Emphasis (combined shortcuts)
 
-Consumes `--intent-*` vars. Two forms:
+Presets combining bg + text + border + interactive states:
 
-**Shortcuts** (surface + fg): `emphasis-strong`, `emphasis-subtle`, `emphasis-subtler`, `emphasis-default`, `emphasis-raised`, `emphasis-sunken`
-
-**Property-specific** (composable): `emphasis-strong-surface`, `emphasis-subtle-fg`, `emphasis-default-border`
-
-Naming convention: `emphasis-{level}` (shortcut) or `emphasis-{level}-{property}` (specific). Drop the last segment = shortcut.
+- `emphasis-strong` — solid bg, inverted text, rim-light
+- `emphasis-default` — default bg, visible border
+- `emphasis-subtle` — tinted bg, transparent border
+- `emphasis-subtler` — barely tinted, transparent when interactive
+- `emphasis-raised` — raised bg, rim-light-strong, shadow-md
+- `emphasis-sunken` — sunken bg, inset shadow
+- `emphasis-floating` — raised bg, rim-light-strong, shadow-xl
+- `emphasis-inverted` — inverted bg + text
+- `emphasis-overlay` — dark overlay with backdrop blur
 
 ### Interaction states
 
-Emphasis shortcuts include hover/active/focus-visible states using intent color scale steps:
-- `emphasis-strong`: hover → step 10, active → step 11
-- `emphasis-subtle`: hover → step 4, active → step 5
-- `emphasis-subtler`: transparent by default when interactive, hover → step 2
+`is-interactive` provides: cursor, transitions, active scale, focus ring, disabled state.
+`is-field-interactive` provides: state-based color transitions (neutral→accent→danger).
 
-`is-interactive` provides: cursor, transitions, active scale, focus ring (semi-transparent via color-mix), disabled state.
+### Elevation / Shadows
+
+Intent-tinted shadows using `oklch()` with `var(--intent-hue)`:
+
+- `shadow-xs` through `shadow-2xl` — Tailwind standard names, tinted with intent
+- `inset-shadow-xs`, `inset-shadow-sm` — for sunken surfaces
+- `rim-light` scale: `--rim-light-subtler`, `--rim-light-subtle`, `--rim-light-default`, `--rim-light-strong`
 
 ### Color Scale
 
-Extended Radix 0-13 OKLCH per intent (7 intents + brand-secondary):
-- Steps 1-12: Radix scale
-- Step 0: lightest extreme
-- Step 13: darkest extreme
-- Neutral strong uses step 12 (near-black/white)
+CSS-native OKLCH scales parameterized by `--accent-hue` and `--accent-chroma`:
+- 14 steps (0-13) per intent
+- Neutral scale tinted with accent hue
+- Dark mode swaps values via `.dark` class — no `dark:` variants needed
 
-### Dark Mode
+### Typography
 
-`.dark` class on `<html>` swaps OKLCH values. No `dark:` Tailwind variants needed for colors. Intent/emphasis utilities automatically adapt.
+Use raw HTML elements with utility classes:
 
-Focus rings use `color-mix(in oklch, var(--intent-9) 30%, transparent)` in light, 20% in dark.
+```html
+<!-- Headings -->
+<h1 class="text-display-prose-1 text-strong">Page title</h1>
+<h2 class="text-display-ui-3 text-strong">Section</h2>
+
+<!-- Body text -->
+<p>Default body text</p>
+<p class="text-subtle text-sm">Secondary text</p>
+
+<!-- Rich content -->
+<Prose size="md">
+  <h2>Article</h2>
+  <p>Rendered markdown or CMS content</p>
+</Prose>
+```
 
 ## Component Patterns
 
@@ -154,13 +205,12 @@ export const buttonVariants = cva('base-classes is-interactive', {
       neutral: 'intent-neutral',
       brand: 'intent-brand',
       accent: 'intent-accent',
-      // ... all 7 intents
     },
     emphasis: {
       strong: 'emphasis-strong',
-      default: 'emphasis-default-surface emphasis-subtle-fg emphasis-subtle-border',
-      subtle: 'emphasis-subtle emphasis-subtle-fg',
-      subtler: 'emphasis-subtler emphasis-subtle-fg',
+      default: 'emphasis-default text-subtle',
+      subtle: 'emphasis-subtle text-subtle',
+      subtler: 'emphasis-subtler text-subtle',
     },
     size: { sm: 'h-8 px-3', md: 'h-10 px-4', lg: 'h-12 px-6' },
   },
@@ -181,23 +231,25 @@ export const buttonVariants = cva('base-classes is-interactive', {
 ### Key rules
 
 1. **Intent = which color palette.** Only sets CSS custom properties. No visual presentation.
-2. **Emphasis = how colors are applied.** Consumes intent vars for bg, fg, border, hover states.
-3. **Default intent is neutral.** No class needed — set on `:root`.
-4. **Button default intent is neutral** (not brand).
-5. **Button text uses `emphasis-subtle-fg`** (step 11) for visible intent color on non-strong buttons.
-6. **No layout wrapper components.** View/Container/Grid are deprecated. Use `<div class="view gap-4">` or raw Tailwind classes.
-7. **`view` utility** = flex column with min-h/w 0 (flexbox overflow fix). Migration helper for `<View>`.
-8. **SpotIllustration colors are fixed** — they don't change in dark mode. Defined as `--color-illustration-*` tokens.
-9. **`@source` directive required** in consumer CSS to scan component dist files for Tailwind class strings.
+2. **Emphasis shortcuts = combined presets.** bg + text + border + hover states.
+3. **Individual properties = Tailwind utilities.** `bg-default`, `text-subtle`, `border-subtle`.
+4. **Default intent is neutral.** No class needed — set on `:root`.
+5. **No Text or Heading components.** Use raw `<p>`, `<h1>`-`<h6>` with utility classes.
+6. **Prose component** for CMS/markdown content. Has `size` prop (sm/md/lg).
+7. **No layout wrapper components.** Use `<div class="view gap-4">` or raw Tailwind classes.
+8. **`view` utility** = flex column with min-h/w 0 (flexbox overflow fix).
+9. **SpotIllustration colors are fixed** — they don't change in dark mode.
+10. **`@source` directive required** in consumer CSS to scan component dist files.
 
 ## Styling Rules
 
 1. Use Tailwind utilities for layout and spacing (`flex`, `gap-4`, `p-2`, `grid`)
-2. Use intent/emphasis for colors — not raw scale steps
-3. Never hardcode colors — use tokens
-4. Prefer `gap` over `margin`
-5. Use `Text` for body text, `Heading` for headings, `Code` for code
-6. Use sentence case for content
+2. Use `bg-*`, `text-*`, `border-*` for semantic colors
+3. Use emphasis shortcuts for interactive elements
+4. Never hardcode colors — use tokens
+5. Prefer `gap` over `margin`
+6. Use raw `<p>`, `<h1>`-`<h6>`, `<span>` for text — no wrapper components
+7. Use sentence case for content
 
 ## Testing
 
@@ -228,7 +280,7 @@ core:build → components:build → docs:build
 - Live code examples use `tsx-live` code fence language tag
 - CodePreview scope includes all components + SpotIllustrations
 - MDX tables wrapped in overflow-x-auto container
-- Body uses `bg-neutral-1 text-neutral-12` for dark mode support
+- Body defaults from reset: `bg-default`, `text-default`, `font-body`, `leading-ui`
 
 ### Component doc structure
 
@@ -238,11 +290,11 @@ Follow `docs/COMPONENT_DOC_TEMPLATE.md` for all component documentation. Key rul
 2. Section order: Import → Examples (Default → Variants → Emphasis → Sizes → Intents → States → Composition → With [Feature]) → Guidelines → PropsDefinitions
 3. Only include sections that apply to the component
 4. **No Intents section on form controls** (Input, Textarea, Select, Field, RadioGroup) — `is-field-interactive` manages state colours (neutral→accent→danger)
-5. States section for interactive components — show all states in one example with `<Text size='sm' emphasis='subtle'>` labels
+5. States section for interactive components — show all states in one example with `<p className='text-sm text-subtle'>` labels
 6. Default example first — simplest usage, no props
 7. No duplicate examples — if disabled is in States, don't add a separate Disabled section
 
 ### Interaction utilities
 
 - `is-interactive` — for buttons, cards, clickable elements. Provides cursor, transitions, active scale, focus ring, disabled state. Pair with emphasis shortcuts.
-- `is-field-interactive` — for form inputs. Provides state-based colour transitions: neutral at rest → accent on focus → danger when invalid. Uses `--focus-ring-width`, `--focus-ring-opacity`, `--focus-ring-opacity-dark` tokens.
+- `is-field-interactive` — for form inputs. Provides state-based colour transitions: neutral at rest → accent on focus → danger when invalid.
