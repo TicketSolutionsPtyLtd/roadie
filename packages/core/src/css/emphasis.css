@@ -51,7 +51,8 @@
 @utility emphasis-subtle {
   background-color: var(--intent-bg-subtle);
   color: var(--intent-text-default);
-  border: 1px solid transparent;
+  border-width: 1px;
+  border-style: solid;
   box-shadow: var(--rim-light-subtler);
 
   &.is-interactive:hover,
@@ -66,7 +67,8 @@
 @utility emphasis-subtler {
   background-color: var(--intent-bg-subtler);
   color: var(--intent-text-default);
-  border: 1px solid transparent;
+  border-width: 1px;
+  border-style: solid;
 
   &.is-interactive {
     background-color: transparent;

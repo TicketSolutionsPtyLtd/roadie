@@ -91,7 +91,8 @@
       "mcp__claude_ai_Rulestacks__search",
       "mcp__claude_ai_Rulestacks__get_stack",
       "mcp__claude_ai_Rulestacks__get_rule",
-      "Bash(pnpm vitest:*)"
+      "Bash(pnpm vitest:*)",
+      "Skill(commit-commands:commit)"
     ],
     "deny": [],
     "ask": []

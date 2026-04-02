@@ -15,6 +15,7 @@
     margin: 0;
     padding: 0;
     font-style: normal;
+    border-color: transparent;
   }
 
   :focus-visible {

@@ -1,3 +1,5 @@
+import { Guideline } from '@/components/Guideline'
+
 import { Code } from '@oztix/roadie-components'
 
 export const metadata = {
@@ -279,27 +281,21 @@ export default function LayoutPage() {
         </p>
 
         <div className='grid gap-4'>
-          <div className='grid items-start gap-4 sm:grid-cols-2'>
-            <div className='grid gap-2'>
-              <h3 className='text-display-ui-6 text-subtle intent-danger'>
-                Don&apos;t — media query
-              </h3>
-              <div className='min-w-0 overflow-x-auto rounded-lg emphasis-sunken'>
-                <pre className='min-w-0 p-4 font-mono text-xs text-subtle'>
-                  {`{/* Responds to viewport — breaks in narrow columns */}
-<div className="grid md:grid-cols-[auto_1fr]">
-  <img />
-  <div>Content</div>
-</div>`}
-                </pre>
-              </div>
-            </div>
-            <div className='grid gap-2'>
-              <h3 className='text-display-ui-6 text-subtle intent-success'>
-                Do — container query
-              </h3>
-              <div className='min-w-0 overflow-x-auto rounded-lg emphasis-sunken'>
-                <pre className='min-w-0 p-4 font-mono text-xs text-subtle'>
+          <Guideline
+            title='Prefer container queries'
+            description={
+              <>
+                Tailwind&apos;s <Code>@container</Code> class sets{' '}
+                <Code>container-type: inline-size</Code>. Then use{' '}
+                <Code>@sm:</Code>, <Code>@md:</Code>, <Code>@lg:</Code> etc. as
+                container-query variants instead of <Code>sm:</Code>,{' '}
+                <Code>md:</Code>.
+              </>
+            }
+            doContent='Respond to parent width so the component adapts regardless of where it is placed.'
+            doExample={
+              <div>
+                <pre className='min-w-0 font-mono text-xs text-subtle'>
                   {`{/* Responds to parent width */}
 <div className="@container">
   <div className="grid @sm:grid-cols-[auto_1fr]">
@@ -309,39 +305,49 @@ export default function LayoutPage() {
 </div>`}
                 </pre>
               </div>
-            </div>
-          </div>
-
-          <p className='text-sm text-subtle'>
-            Tailwind&apos;s <Code>@container</Code> class sets{' '}
-            <Code>container-type: inline-size</Code>. Then use <Code>@sm:</Code>
-            , <Code>@md:</Code>, <Code>@lg:</Code> etc. as container-query
-            variants instead of <Code>sm:</Code>, <Code>md:</Code>.
-          </p>
+            }
+            dontContent='Respond to the viewport — it breaks when the same component is placed in a narrow column.'
+            dontExample={
+              <div>
+                <pre className='min-w-0 font-mono text-xs text-subtle'>
+                  {`{/* Responds to viewport — breaks in narrow columns */}
+<div className="grid md:grid-cols-[auto_1fr]">
+  <img />
+  <div>Content</div>
+</div>`}
+                </pre>
+              </div>
+            }
+          />
 
           <div className='grid gap-2'>
             <h3 className='text-display-ui-6 text-strong'>
-              Live example — resize the columns
+              Live example — same component, different containers
             </h3>
-            <div className='grid items-start gap-4 sm:grid-cols-2'>
+            <p className='text-sm text-subtle'>
+              Both cards use the same <Code>@sm:grid-cols-[80px_1fr]</Code>{' '}
+              breakpoint. The narrow one stacks because its container is too
+              small. The wider one goes side-by-side.
+            </p>
+            <div className='grid items-start gap-4 sm:grid-cols-[1fr_2fr]'>
               <div className='@container'>
                 <div className='grid gap-3 rounded-lg bg-raised p-4 @sm:grid-cols-[80px_1fr]'>
                   <div className='aspect-square rounded bg-subtle' />
                   <div className='grid gap-1'>
                     <p className='text-sm text-strong'>Narrow container</p>
                     <p className='text-xs text-subtle'>
-                      Card stacks vertically until container is wide enough
+                      Stacks vertically — container is too narrow
                     </p>
                   </div>
                 </div>
               </div>
-              <div className='@container sm:col-span-1'>
+              <div className='@container'>
                 <div className='grid gap-3 rounded-lg bg-raised p-4 @sm:grid-cols-[80px_1fr]'>
                   <div className='aspect-square rounded bg-subtle' />
                   <div className='grid gap-1'>
                     <p className='text-sm text-strong'>Wider container</p>
                     <p className='text-xs text-subtle'>
-                      Same component, adapts to available space
+                      Goes side-by-side — same component, more space
                     </p>
                   </div>
                 </div>
