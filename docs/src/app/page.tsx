@@ -39,9 +39,9 @@ export default function Home() {
                 description: 'Color palette and usage'
               },
               {
-                label: 'Spacing',
-                href: '/foundations/spacing',
-                description: 'Layout and spacing scale'
+                label: 'Layout',
+                href: '/foundations/layout',
+                description: 'Grid, spacing, and layout patterns'
               },
               {
                 label: 'Typography',
