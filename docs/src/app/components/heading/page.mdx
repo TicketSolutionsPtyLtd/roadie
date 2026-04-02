@@ -1,20 +1,20 @@
 export const metadata = {
   title: 'Heading',
-  description: 'Semantic heading element with display text styles, emphasis, and intents.',
+  description: 'Semantic heading elements with display text styles, emphasis, and intents.',
   status: 'beta',
   category: 'Typography'
 }
 
-import { PropsDefinitions } from '@/components/PropsDefinitions'
-
 # Heading
 
-Semantic heading element with display text styles, emphasis, and intents.
+Semantic heading elements with display text styles, emphasis, and intents. Use raw `<h1>`-`<h6>` elements with Tailwind utility classes.
 
-## Import
+## Usage
 
 ```tsx
-import { Heading } from '@oztix/roadie-components'
+<h1 className='text-display-prose-1 text-strong'>Page title</h1>
+<h2 className='text-display-ui-3 text-strong'>Section heading</h2>
+<h3 className='text-display-ui-4 text-strong'>Subsection</h3>
 ```
 
 ## Examples
@@ -23,7 +23,7 @@ import { Heading } from '@oztix/roadie-components'
 
 ```tsx-live
 
-<Heading>Default heading</Heading>
+<h2 className='text-display-ui text-strong'>Default heading</h2>
 ```
 
 ### Emphasis
@@ -31,11 +31,11 @@ import { Heading } from '@oztix/roadie-components'
 ```tsx-live
 
 <div className='flex flex-col gap-2'>
-  <Heading emphasis='strong'>Strong emphasis heading</Heading>
-  <Heading emphasis='default'>Default emphasis heading</Heading>
-  <Heading emphasis='subtle'>Subtle emphasis heading</Heading>
-  <Heading emphasis='subtler'>Subtler emphasis heading</Heading>
-  <Heading emphasis='inverted'>Inverted emphasis heading</Heading>
+  <h2 className='text-display-ui text-strong'>Strong emphasis heading</h2>
+  <h2 className='text-display-ui text-strong'>Default emphasis heading</h2>
+  <h2 className='text-display-ui text-subtle'>Subtle emphasis heading</h2>
+  <h2 className='text-display-ui text-subtler'>Subtler emphasis heading</h2>
+  <h2 className='text-display-ui text-inverted'>Inverted emphasis heading</h2>
 </div>
 ```
 
@@ -44,13 +44,13 @@ import { Heading } from '@oztix/roadie-components'
 ```tsx-live
 
 <div className='flex flex-col gap-2'>
-  <Heading intent='neutral'>Neutral heading</Heading>
-  <Heading intent='accent'>Accent heading</Heading>
-  <Heading intent='brand'>Brand heading</Heading>
-  <Heading intent='info'>Info heading</Heading>
-  <Heading intent='success'>Success heading</Heading>
-  <Heading intent='warning'>Warning heading</Heading>
-  <Heading intent='danger'>Danger heading</Heading>
+  <h2 className='text-display-ui text-strong intent-neutral'>Neutral heading</h2>
+  <h2 className='text-display-ui text-strong intent-accent'>Accent heading</h2>
+  <h2 className='text-display-ui text-strong intent-brand'>Brand heading</h2>
+  <h2 className='text-display-ui text-strong intent-info'>Info heading</h2>
+  <h2 className='text-display-ui text-strong intent-success'>Success heading</h2>
+  <h2 className='text-display-ui text-strong intent-warning'>Warning heading</h2>
+  <h2 className='text-display-ui text-strong intent-danger'>Danger heading</h2>
 </div>
 ```
 
@@ -60,31 +60,31 @@ import { Heading } from '@oztix/roadie-components'
 
 <div className='flex flex-col gap-8'>
   <div>
-    <Heading>Default UI heading</Heading>
+    <h2 className='text-display-ui text-strong'>Default UI heading</h2>
     <p className='text-subtle'>The default text style for display text in UI</p>
   </div>
   <div>
-    <Heading as='h1' className='text-display-ui-1'>UI Page title</Heading>
+    <h1 className='text-display-ui-1 text-strong'>UI Page title</h1>
     <p className='text-subtle'>The style for page titles in UI</p>
   </div>
   <div>
-    <Heading as='h2' className='text-display-ui-2'>UI Section title</Heading>
+    <h2 className='text-display-ui-2 text-strong'>UI Section title</h2>
     <p className='text-subtle'>The style for 2nd level headings in UI. Used for major section headers, modal titles, and primary content areas within a page</p>
   </div>
   <div>
-    <Heading as='h3' className='text-display-ui-3'>UI Sub-section title</Heading>
+    <h3 className='text-display-ui-3 text-strong'>UI Sub-section title</h3>
     <p className='text-subtle'>The style for 3rd level headings in UI. Used for subsection headers, card titles, and group headings within major sections</p>
   </div>
   <div>
-    <Heading as='h4' className='text-display-ui-4'>UI Sub-sub-section title</Heading>
+    <h4 className='text-display-ui-4 text-strong'>UI Sub-sub-section title</h4>
     <p className='text-subtle'>The style for 4th level headings in UI. Used for form section labels, sidebar navigation categories, and minor content divisions</p>
   </div>
   <div>
-    <Heading as='h5' className='text-display-ui-5'>UI Sub-sub-sub-section title</Heading>
+    <h5 className='text-display-ui-5 text-strong'>UI Sub-sub-sub-section title</h5>
     <p className='text-subtle'>The style for 5th level headings in UI. Used for list group headers, dropdown section labels, and nested navigation items</p>
   </div>
   <div>
-    <Heading as='h6' className='text-display-ui-6'>UI Sub-sub-sub-sub-section title</Heading>
+    <h6 className='text-display-ui-6 text-strong'>UI Sub-sub-sub-sub-section title</h6>
     <p className='text-subtle'>The style for 6th level headings in UI. Used for small widget titles, inline section labels, and minor UI element headers</p>
   </div>
 </div>
@@ -96,31 +96,31 @@ import { Heading } from '@oztix/roadie-components'
 
 <div className='flex flex-col gap-8'>
   <div>
-    <Heading className='text-display-prose'>Default prose heading</Heading>
+    <h2 className='text-display-prose text-strong'>Default prose heading</h2>
     <p className='text-subtle'>The default text style for display text in prose</p>
   </div>
   <div>
-    <Heading as='h1' className='text-display-prose-1'>Prose page title</Heading>
+    <h1 className='text-display-prose-1 text-strong'>Prose page title</h1>
     <p className='text-subtle'>The style for page titles in long-form content. Used for article headlines, blog post titles, and landing page hero headings</p>
   </div>
   <div>
-    <Heading as='h2' className='text-display-prose-2'>Prose section title</Heading>
+    <h2 className='text-display-prose-2 text-strong'>Prose section title</h2>
     <p className='text-subtle'>The style for 2nd level headings in prose. Used for major article sections, chapter titles, and primary content divisions</p>
   </div>
   <div>
-    <Heading as='h3' className='text-display-prose-3'>Prose sub-section title</Heading>
+    <h3 className='text-display-prose-3 text-strong'>Prose sub-section title</h3>
     <p className='text-subtle'>The style for 3rd level headings in prose. Used for sub-sections within articles, FAQ groups, and content breakpoints</p>
   </div>
   <div>
-    <Heading as='h4' className='text-display-prose-4'>Prose 4th level heading</Heading>
+    <h4 className='text-display-prose-4 text-strong'>Prose 4th level heading</h4>
     <p className='text-subtle'>The style for 4th level headings in prose. Used for detailed breakdowns, nested topic areas, and supporting content groups</p>
   </div>
   <div>
-    <Heading as='h5' className='text-display-prose-5'>Prose 5th level heading</Heading>
+    <h5 className='text-display-prose-5 text-strong'>Prose 5th level heading</h5>
     <p className='text-subtle'>The style for 5th level headings in prose. Used for minor sub-topics, sidebar content headers, and supplementary sections</p>
   </div>
   <div>
-    <Heading as='h6' className='text-display-prose-6'>Prose 6th level heading</Heading>
+    <h6 className='text-display-prose-6 text-strong'>Prose 6th level heading</h6>
     <p className='text-subtle'>The style for 6th level headings in prose. Used for footnote headers, appendix sub-sections, and fine-grained content labels</p>
   </div>
 </div>
@@ -133,20 +133,18 @@ Use Tailwind font-weight utilities to adjust weight independently from the text 
 ```tsx-live
 
 <div className='flex flex-col gap-2'>
-  <Heading className='font-black'>Strong weight heading</Heading>
-  <Heading className='font-bold'>Bold weight heading</Heading>
-  <Heading className='font-medium'>Medium weight heading</Heading>
-  <Heading className='font-normal'>Normal weight heading</Heading>
+  <h2 className='text-display-ui text-strong font-black'>Strong weight heading</h2>
+  <h2 className='text-display-ui text-strong font-bold'>Bold weight heading</h2>
+  <h2 className='text-display-ui text-strong font-medium'>Medium weight heading</h2>
+  <h2 className='text-display-ui text-strong font-normal'>Normal weight heading</h2>
 </div>
 ```
 
 ### With custom element
 
-Combine `as` with a `text-display-*` class to decouple semantics from visual presentation.
+Combine any heading element with a `text-display-*` class to decouple semantics from visual presentation.
 
 ```tsx-live
 
-<Heading as='h1' className='text-display-ui-3'>Page title rendered as h1</Heading>
+<h1 className='text-display-ui-3 text-strong'>Page title rendered as h1</h1>
 ```
-
-<PropsDefinitions componentPath='packages/components/src/components/Heading/index.tsx' />

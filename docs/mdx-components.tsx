@@ -4,34 +4,29 @@ import { Link } from 'next-view-transitions'
 
 import { CodePreview } from '@/components/CodePreview'
 
-import {
-  Code,
-  type CodeProps,
-  Heading,
-  type HeadingProps
-} from '@oztix/roadie-components'
+import { Code, type CodeProps } from '@oztix/roadie-components'
 
 type AnchorProps = ComponentPropsWithoutRef<'a'>
 type BlockquoteProps = ComponentPropsWithoutRef<'blockquote'>
 
 const components = {
-  h1: (props: HeadingProps) => (
-    <Heading as='h1' className='text-display-prose-1 mb-4 pt-8' {...props} />
+  h1: (props: ComponentPropsWithoutRef<'h1'>) => (
+    <h1 className='text-display-prose-1 text-strong mb-4 pt-8' {...props} />
   ),
-  h2: (props: HeadingProps) => (
-    <Heading as='h2' className='text-display-prose-2 mb-4 mt-12' {...props} />
+  h2: (props: ComponentPropsWithoutRef<'h2'>) => (
+    <h2 className='text-display-prose-2 text-strong mb-4 mt-12' {...props} />
   ),
-  h3: (props: HeadingProps) => (
-    <Heading as='h3' className='text-display-prose-3 mb-4 mt-12' {...props} />
+  h3: (props: ComponentPropsWithoutRef<'h3'>) => (
+    <h3 className='text-display-prose-3 text-strong mb-4 mt-12' {...props} />
   ),
-  h4: (props: HeadingProps) => (
-    <Heading as='h4' className='text-display-prose-4 mb-4 mt-8' {...props} />
+  h4: (props: ComponentPropsWithoutRef<'h4'>) => (
+    <h4 className='text-display-prose-4 text-strong mb-4 mt-8' {...props} />
   ),
-  h5: (props: HeadingProps) => (
-    <Heading as='h5' className='text-display-prose-5 mb-4 mt-8' {...props} />
+  h5: (props: ComponentPropsWithoutRef<'h5'>) => (
+    <h5 className='text-display-prose-5 text-strong mb-4 mt-8' {...props} />
   ),
-  h6: (props: HeadingProps) => (
-    <Heading as='h6' className='text-display-prose-6 mb-4 mt-8' {...props} />
+  h6: (props: ComponentPropsWithoutRef<'h6'>) => (
+    <h6 className='text-display-prose-6 text-strong mb-4 mt-8' {...props} />
   ),
   p: (props: ComponentPropsWithoutRef<'p'>) => (
     <p className='text-lg mb-4 leading-relaxed' {...props} />

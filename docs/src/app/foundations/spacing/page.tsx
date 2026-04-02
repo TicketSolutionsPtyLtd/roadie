@@ -1,4 +1,4 @@
-import { Code, Heading } from '@oztix/roadie-components'
+import { Code } from '@oztix/roadie-components'
 
 export const metadata = {
   title: 'Spacing',
@@ -28,9 +28,7 @@ export default function SpacingPage() {
   return (
     <div className='view gap-10'>
       <div className='view gap-3'>
-        <Heading as='h1' className='text-display-prose-1'>
-          Spacing
-        </Heading>
+        <h1 className='text-display-prose-1 text-strong'>Spacing</h1>
         <p className='text-lg text-subtle'>
           Roadie v2 uses Tailwind CSS v4&apos;s built-in spacing scale. Use
           utility classes like <Code>p-4</Code>, <Code>gap-2</Code>,{' '}
@@ -40,9 +38,7 @@ export default function SpacingPage() {
 
       {/* Visual spacing scale */}
       <section className='view gap-4'>
-        <Heading as='h2' className='text-display-ui-3'>
-          Spacing scale
-        </Heading>
+        <h2 className='text-display-ui-3 text-strong'>Spacing scale</h2>
         <p className='text-subtle'>
           Based on a 4px unit. Use the token number with any spacing utility (
           <Code>p-</Code>, <Code>m-</Code>, <Code>gap-</Code>, <Code>w-</Code>,{' '}
@@ -67,15 +63,11 @@ export default function SpacingPage() {
 
       {/* Usage */}
       <section className='view gap-4'>
-        <Heading as='h2' className='text-display-ui-3'>
-          Usage
-        </Heading>
+        <h2 className='text-display-ui-3 text-strong'>Usage</h2>
 
         <div className='view gap-6'>
           <div className='view gap-2'>
-            <Heading as='h3' className='text-display-ui-5'>
-              Padding and gap
-            </Heading>
+            <h3 className='text-display-ui-5 text-strong'>Padding and gap</h3>
             <div className='overflow-x-auto'>
               <table className='w-full text-sm'>
                 <thead>
@@ -132,9 +124,9 @@ export default function SpacingPage() {
           </div>
 
           <div className='view gap-2'>
-            <Heading as='h3' className='text-display-ui-5'>
+            <h3 className='text-display-ui-5 text-strong'>
               Responsive spacing
-            </Heading>
+            </h3>
             <p className='text-subtle'>
               Use breakpoint prefixes to adjust spacing at different screen
               sizes. Always start mobile-first.
@@ -150,9 +142,7 @@ export default function SpacingPage() {
 
       {/* Best practices */}
       <section className='view gap-4'>
-        <Heading as='h2' className='text-display-ui-3'>
-          Best practices
-        </Heading>
+        <h2 className='text-display-ui-3 text-strong'>Best practices</h2>
         <ol className='view gap-3 list-decimal pl-6'>
           <li>
             <span>

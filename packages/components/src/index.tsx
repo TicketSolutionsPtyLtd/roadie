@@ -4,11 +4,6 @@ export {
   type IconButtonProps
 } from './components/Button/IconButton'
 export { Code, codeVariants, type CodeProps } from './components/Code'
-export {
-  Heading,
-  headingVariants,
-  type HeadingProps
-} from './components/Heading'
 export { Highlight, type HighlightProps } from './components/Highlight'
 export { Mark, markVariants, type MarkProps } from './components/Mark'
 export { Prose, type ProseProps } from './components/Prose'

@@ -9,16 +9,16 @@ import {
   WheelchairMotion
 } from '@phosphor-icons/react/ssr'
 
-import { Button, Card, Heading } from '@oztix/roadie-components'
+import { Button, Card } from '@oztix/roadie-components'
 
 export default function Home() {
   return (
     <main className='max-w-4xl mx-auto py-8 flex flex-col gap-20'>
       {/* Hero Section */}
       <section className='flex flex-col gap-3'>
-        <Heading as='h1' className='text-display-prose-1'>
+        <h1 className='text-display-prose-1 text-strong'>
           Roadie design system
-        </Heading>
+        </h1>
         <p className='text-lg text-subtle'>
           A comprehensive design system for building consistent, accessible, and
           beautiful user interfaces across Oztix applications.
@@ -111,9 +111,7 @@ export default function Home() {
       {/* Key Features */}
       <section className='flex flex-col gap-8'>
         <div className='flex flex-col gap-3'>
-          <Heading as='h2' className='text-display-ui-3'>
-            Key features
-          </Heading>
+          <h2 className='text-display-ui-3 text-strong'>Key features</h2>
           <p className='text-lg text-subtle'>
             Discover the powerful features that make Roadie a complete design
             system solution
@@ -140,9 +138,7 @@ export default function Home() {
 
       {/* Getting Started */}
       <Card as='section' className='flex flex-col gap-3 items-start p-8'>
-        <Heading as='h2' className='text-display-ui-3'>
-          Get started
-        </Heading>
+        <h2 className='text-display-ui-3 text-strong'>Get started</h2>
         <p className='text-lg text-subtle'>
           Ready to build? Follow our guide to start using Roadie in your
           project.
@@ -172,9 +168,7 @@ function FeatureCard({
     <div className='flex flex-col gap-3'>
       <div className='flex gap-3 text-accent-11'>
         {icon}
-        <Heading as='h3' className='text-display-ui-5'>
-          {title}
-        </Heading>
+        <h3 className='text-display-ui-5 text-strong'>{title}</h3>
       </div>
       <p className='text-subtle'>{description}</p>
     </div>
@@ -197,9 +191,7 @@ function SectionCard({
       <div className='flex flex-col gap-1 px-8'>
         <div className='flex gap-3'>
           {icon}
-          <Heading as='h3' className='text-display-ui-5'>
-            {title}
-          </Heading>
+          <h3 className='text-display-ui-5 text-strong'>{title}</h3>
         </div>
         <p className='text-subtle text-sm'>{description}</p>
       </div>
@@ -212,9 +204,9 @@ function SectionCard({
               href={item.href}
               className='flex flex-col gap-0.5 p-4 rounded-md h-full is-interactive emphasis-subtler no-underline'
             >
-              <Heading as='h4' className='text-display-ui-6' intent='accent'>
+              <h4 className='text-display-ui-6 text-strong intent-accent'>
                 {item.label}
-              </Heading>
+              </h4>
               <p className='text-sm text-subtle'>{item.description}</p>
             </Link>
           </li>

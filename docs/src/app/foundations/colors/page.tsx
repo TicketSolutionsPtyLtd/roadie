@@ -1,4 +1,4 @@
-import { Code, Heading } from '@oztix/roadie-components'
+import { Code } from '@oztix/roadie-components'
 
 export const metadata = {
   title: 'Colors',
@@ -68,9 +68,7 @@ export default function ColorsPage() {
   return (
     <div className='flex flex-col gap-12'>
       <div className='flex flex-col gap-3'>
-        <Heading as='h1' className='text-display-prose-1'>
-          Colors
-        </Heading>
+        <h1 className='text-display-prose-1 text-strong'>Colors</h1>
         <p className='text-lg text-subtle'>
           Roadie uses OKLCH color scales with 14 steps (0-13) per intent. Colors
           are applied through three utility types: <Code>bg-*</Code>,{' '}
@@ -81,9 +79,7 @@ export default function ColorsPage() {
 
       {/* Color scales */}
       <section className='flex flex-col gap-6'>
-        <Heading as='h2' className='text-display-ui-3'>
-          Color scales
-        </Heading>
+        <h2 className='text-display-ui-3 text-strong'>Color scales</h2>
         <p className='text-subtle'>
           Each intent has a 14-step OKLCH scale. Step 0 is the lightest extreme,
           step 13 the darkest. Dark mode swaps the values — step numbers stay
@@ -98,9 +94,7 @@ export default function ColorsPage() {
 
       {/* Utility system */}
       <section className='flex flex-col gap-6'>
-        <Heading as='h2' className='text-display-ui-3'>
-          Color utilities
-        </Heading>
+        <h2 className='text-display-ui-3 text-strong'>Color utilities</h2>
         <p className='text-subtle'>
           Three utility namespaces for applying colors. Each maps semantic
           levels to specific scale steps via the current intent.
@@ -186,9 +180,7 @@ export default function ColorsPage() {
 
       {/* Intent + emphasis */}
       <section className='flex flex-col gap-6'>
-        <Heading as='h2' className='text-display-ui-3'>
-          Intent + emphasis
-        </Heading>
+        <h2 className='text-display-ui-3 text-strong'>Intent + emphasis</h2>
         <p className='text-subtle'>
           Set <Code>intent-*</Code> on a container to choose the color palette.
           Use <Code>emphasis-*</Code> shortcuts for combined bg + text +
@@ -203,9 +195,7 @@ export default function ColorsPage() {
 
       {/* Dark mode */}
       <section className='flex flex-col gap-4'>
-        <Heading as='h2' className='text-display-ui-3'>
-          Dark mode
-        </Heading>
+        <h2 className='text-display-ui-3 text-strong'>Dark mode</h2>
         <p className='text-subtle'>
           Automatic. The <Code>.dark</Code> class on <Code>&lt;html&gt;</Code>{' '}
           swaps all OKLCH values. No <Code>dark:</Code> Tailwind variants needed
@@ -216,9 +206,7 @@ export default function ColorsPage() {
 
       {/* Dynamic accent */}
       <section className='flex flex-col gap-4'>
-        <Heading as='h2' className='text-display-ui-3'>
-          Dynamic accent
-        </Heading>
+        <h2 className='text-display-ui-3 text-strong'>Dynamic accent</h2>
         <p className='text-subtle'>
           The accent scale is CSS-native. The <Code>ThemeProvider</Code> sets{' '}
           <Code>--accent-hue</Code> and <Code>--accent-chroma</Code> — CSS{' '}

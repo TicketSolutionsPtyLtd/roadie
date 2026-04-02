@@ -1,4 +1,4 @@
-import { Code, Heading } from '@oztix/roadie-components'
+import { Code } from '@oztix/roadie-components'
 
 export const metadata = {
   title: 'Elevation',
@@ -90,9 +90,7 @@ export default function ElevationPage() {
   return (
     <div className='view gap-10'>
       <div className='view gap-3'>
-        <Heading as='h1' className='text-display-prose-1'>
-          Elevation
-        </Heading>
+        <h1 className='text-display-prose-1 text-strong'>Elevation</h1>
         <p className='text-lg text-subtle'>
           Shadows are tinted with the current intent&apos;s hue using CSS-native{' '}
           <Code>oklch()</Code>. A card inside <Code>intent-danger</Code>{' '}
@@ -103,9 +101,7 @@ export default function ElevationPage() {
 
       {/* Shadow scale */}
       <section className='view gap-4'>
-        <Heading as='h2' className='text-display-ui-3'>
-          Shadow scale
-        </Heading>
+        <h2 className='text-display-ui-3 text-strong'>Shadow scale</h2>
         <p className='text-subtle'>
           Each level uses multi-layer shadows with geometric scaling. Apply with{' '}
           <Code>shadow-sm</Code>, <Code>shadow-lg</Code>, etc.
@@ -125,9 +121,7 @@ export default function ElevationPage() {
 
       {/* Inset shadows */}
       <section className='view gap-4'>
-        <Heading as='h2' className='text-display-ui-3'>
-          Inset shadows
-        </Heading>
+        <h2 className='text-display-ui-3 text-strong'>Inset shadows</h2>
         <p className='text-subtle'>
           For sunken surfaces like input fields and wells. Apply with{' '}
           <Code>inset-shadow-xs</Code> or <Code>inset-shadow-sm</Code>.
@@ -147,9 +141,7 @@ export default function ElevationPage() {
 
       {/* Rim light */}
       <section className='view gap-4'>
-        <Heading as='h2' className='text-display-ui-3'>
-          Rim light
-        </Heading>
+        <h2 className='text-display-ui-3 text-strong'>Rim light</h2>
         <p className='text-subtle'>
           A subtle inner highlight for raised surfaces. Adds a polished,
           glass-like edge. Four levels available, used automatically by emphasis
@@ -184,9 +176,7 @@ export default function ElevationPage() {
 
       {/* Emphasis presets */}
       <section className='view gap-4'>
-        <Heading as='h2' className='text-display-ui-3'>
-          Emphasis presets
-        </Heading>
+        <h2 className='text-display-ui-3 text-strong'>Emphasis presets</h2>
         <p className='text-subtle'>
           The emphasis system includes elevation-aware presets that combine
           background, shadow, and interactive states. These are the recommended
@@ -255,9 +245,7 @@ export default function ElevationPage() {
 
       {/* Intent tinting with emphasis presets */}
       <section className='view gap-4'>
-        <Heading as='h2' className='text-display-ui-3'>
-          Intent tinting
-        </Heading>
+        <h2 className='text-display-ui-3 text-strong'>Intent tinting</h2>
         <p className='text-subtle'>
           Shadows automatically tint based on the nearest <Code>intent-*</Code>{' '}
           ancestor. Works with both raw shadow utilities and emphasis presets.
@@ -279,14 +267,10 @@ export default function ElevationPage() {
 
       {/* Usage guidelines */}
       <section className='view gap-4'>
-        <Heading as='h2' className='text-display-ui-3'>
-          Usage guidelines
-        </Heading>
+        <h2 className='text-display-ui-3 text-strong'>Usage guidelines</h2>
 
         <div className='view gap-3'>
-          <Heading as='h3' className='text-display-ui-4'>
-            Choosing a level
-          </Heading>
+          <h3 className='text-display-ui-4 text-strong'>Choosing a level</h3>
           <div className='overflow-x-auto'>
             <table className='w-full text-sm'>
               <thead>
@@ -339,9 +323,7 @@ export default function ElevationPage() {
         </div>
 
         <div className='view gap-3'>
-          <Heading as='h3' className='text-display-ui-4'>
-            Best practices
-          </Heading>
+          <h3 className='text-display-ui-4 text-strong'>Best practices</h3>
           <ul className='view gap-2 list-disc pl-5'>
             <li>
               <p>

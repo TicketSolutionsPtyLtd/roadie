@@ -1,4 +1,4 @@
-import { Code, Heading } from '@oztix/roadie-components'
+import { Code } from '@oztix/roadie-components'
 
 export const metadata = {
   title: 'Token reference',
@@ -83,9 +83,7 @@ export default function TokenReferencePage() {
   return (
     <div className='view gap-12'>
       <div className='view gap-3'>
-        <Heading as='h1' className='text-display-prose-1'>
-          Token reference
-        </Heading>
+        <h1 className='text-display-prose-1 text-strong'>Token reference</h1>
         <p className='text-subtle text-lg'>
           Complete reference for the v2 design token system. All tokens are CSS
           custom properties defined via Tailwind v4&apos;s @theme directive.
@@ -94,9 +92,7 @@ export default function TokenReferencePage() {
 
       {/* Color Scales */}
       <section className='view gap-6'>
-        <Heading as='h2' className='text-display-ui-3'>
-          Color scales
-        </Heading>
+        <h2 className='text-display-ui-3 text-strong'>Color scales</h2>
         <p className='text-subtle'>
           Each scale provides 14 OKLCH steps (0-13). Step 0 is the lightest
           extreme, step 13 the darkest. Dark mode swaps the underlying values —
@@ -111,9 +107,9 @@ export default function TokenReferencePage() {
 
       {/* Intent semantic tokens */}
       <section className='view gap-6'>
-        <Heading as='h2' className='text-display-ui-3'>
+        <h2 className='text-display-ui-3 text-strong'>
           Intent semantic tokens
-        </Heading>
+        </h2>
         <p className='text-subtle'>
           Set by intent utilities (e.g. <Code>intent-accent</Code>). Each intent
           maps scale steps to semantic roles.
@@ -236,9 +232,7 @@ export default function TokenReferencePage() {
 
       {/* Typography */}
       <section className='view gap-6'>
-        <Heading as='h2' className='text-display-ui-3'>
-          Typography
-        </Heading>
+        <h2 className='text-display-ui-3 text-strong'>Typography</h2>
 
         <TokenTable
           title='Font sizes (fluid from lg)'
@@ -310,9 +304,7 @@ export default function TokenReferencePage() {
 
       {/* Elevation */}
       <section className='view gap-6'>
-        <Heading as='h2' className='text-display-ui-3'>
-          Elevation
-        </Heading>
+        <h2 className='text-display-ui-3 text-strong'>Elevation</h2>
         <TokenTable
           title='Box shadows'
           tokens={[

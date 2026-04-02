@@ -103,20 +103,20 @@ Use raw HTML elements with utility classes:
 
 ### Heading
 
-```tsx
-import { Heading } from '@oztix/roadie-components'
+Use raw heading elements with text style utilities:
 
-<Heading as="h1" className="text-display-prose-1">Page title</Heading>
-<Heading as="h2" className="text-display-ui-3">Section heading</Heading>
-<Heading as="h3" className="text-display-ui-4">Subsection</Heading>
-<Heading emphasis="subtle" className="text-display-ui-5">Subtitle</Heading>
+```tsx
+<h1 className="text-display-prose-1 text-strong">Page title</h1>
+<h2 className="text-display-ui-3 text-strong">Section heading</h2>
+<h3 className="text-display-ui-4 text-strong">Subsection</h3>
+<h2 className="text-display-ui-5 text-subtle">Subtitle</h2>
 ```
 
-Or use the text style utilities directly on any element:
+Or use the text style utilities on any element:
 
 ```tsx
-<h1 className="text-display-prose-1">Page title</h1>
-<h2 className="text-display-ui-3">UI section</h2>
+<h1 className="text-display-prose-1 text-strong">Page title</h1>
+<h2 className="text-display-ui-3 text-strong">UI section</h2>
 <p className="text-prose">Body paragraph</p>
 ```
 
@@ -140,8 +140,8 @@ import { Code } from '@oztix/roadie-components'
 
 ## Best practices
 
-1. **Use semantic HTML elements** — `<p>` for body, `Heading` for headings, `Code` for code
-2. **Use text style utilities for one-off styling** — `text-display-ui-3` on a raw `<h2>`
+1. **Use semantic HTML elements** — `<p>` for body, `<h1>`-`<h6>` for headings, `Code` for code
+2. **Use text style utilities** — `text-display-ui-3 text-strong` on a `<h2>`
 3. **Let fluid type handle responsiveness** — no manual `md:text-lg` needed for font sizes
 4. **Use emphasis classes** — `text-subtle` not manual color classes
-5. **Maintain heading hierarchy** — h1 -> h2 -> h3, use `level` prop on Heading
+5. **Maintain heading hierarchy** — h1 -> h2 -> h3, match semantic level to visual style

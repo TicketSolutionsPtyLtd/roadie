@@ -3,8 +3,6 @@ import Link from 'next/link'
 import { readFile, readdir } from 'fs/promises'
 import { join } from 'path'
 
-import { Heading } from '@oztix/roadie-components'
-
 type ComponentMetadata = {
   name: string
   title: string
@@ -79,9 +77,7 @@ export default async function ComponentsPage() {
   return (
     <div className='flex flex-col gap-12'>
       <div className='flex flex-col gap-4'>
-        <Heading as='h1' className='text-display-prose-1'>
-          Components
-        </Heading>
+        <h1 className='text-display-prose-1 text-strong'>Components</h1>
         <p className='text-subtle text-xl'>
           A collection of components built with Base UI and styled with Tailwind
           CSS.
@@ -90,9 +86,7 @@ export default async function ComponentsPage() {
 
       {Object.entries(categorizedComponents).map(([category, components]) => (
         <div key={category} className='flex flex-col gap-4'>
-          <Heading as='h2' className='text-display-ui-3'>
-            {category}
-          </Heading>
+          <h2 className='text-display-ui-3 text-strong'>{category}</h2>
           <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>
             {components.map((component) => (
               <Link
@@ -100,9 +94,9 @@ export default async function ComponentsPage() {
                 href={`/components/${component.name}`}
                 className='p-4 rounded-md flex flex-col gap-2 emphasis-default is-interactive no-underline'
               >
-                <Heading as='h3' className='text-display-ui-5'>
+                <h3 className='text-display-ui-5 text-strong'>
                   {component.title}
-                </Heading>
+                </h3>
                 <p className='text-subtle'>{component.description}</p>
                 <p
                   className={`text-sm text-strong ${

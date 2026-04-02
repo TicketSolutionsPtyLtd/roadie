@@ -45,12 +45,12 @@ This gives you access to all Roadie design tokens as Tailwind utilities.
 Import and use components from `@oztix/roadie-components`. Components use the `intent` and `emphasis` props for styling:
 
 ```tsx
-import { Button, Heading } from '@oztix/roadie-components'
+import { Button } from '@oztix/roadie-components'
 
 function MyComponent() {
   return (
     <div className='flex flex-col gap-4'>
-      <Heading as='h1' className='text-display-ui-3'>Welcome</Heading>
+      <h1 className='text-display-ui-3 text-strong'>Welcome</h1>
       <p className='text-subtle'>Get started with Roadie components.</p>
       <Button intent='accent' emphasis='strong'>
         Get started
