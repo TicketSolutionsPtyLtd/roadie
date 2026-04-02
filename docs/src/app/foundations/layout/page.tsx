@@ -174,6 +174,146 @@ export default function LayoutPage() {
               </div>
             </div>
           </div>
+          <div className='grid gap-2'>
+            <h3 className='text-display-ui-5 text-strong'>Wrapping row</h3>
+            <p className='text-sm text-subtle'>
+              <Code>flex flex-wrap gap-2</Code> — items wrap naturally based on
+              content width. This is where Flexbox shines: children control
+              their own size.
+            </p>
+            <div className='emphasis-subtle rounded-lg p-4'>
+              <div className='flex flex-wrap gap-2'>
+                {[
+                  'Design',
+                  'Tokens',
+                  'Tailwind',
+                  'CSS',
+                  'Grid',
+                  'Flexbox',
+                  'Layout',
+                  'Spacing',
+                  'Typography',
+                  'Color',
+                  'Elevation'
+                ].map((tag) => (
+                  <span
+                    key={tag}
+                    className='emphasis-subtle rounded-full px-3 py-1 text-sm'
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Sizing */}
+      <section className='grid gap-6'>
+        <h2 className='text-display-ui-3 text-strong'>Sizing</h2>
+        <p className='text-subtle'>
+          Set constraints, not fixed dimensions. Let content breathe and the
+          layout flex.
+        </p>
+
+        <div className='grid gap-4'>
+          <div className='grid sm:grid-cols-2 gap-4'>
+            <div className='grid gap-2'>
+              <h3 className='text-display-ui-6 text-strong'>
+                Constraints over fixed
+              </h3>
+              <p className='text-sm text-subtle'>
+                Use <Code>min-h-</Code> / <Code>max-w-</Code> instead of{' '}
+                <Code>h-</Code> / <Code>w-</Code>. Fixed dimensions clip
+                content. Constraints let it grow.
+              </p>
+            </div>
+            <div className='grid gap-2'>
+              <h3 className='text-display-ui-6 text-strong'>
+                Trust browser defaults
+              </h3>
+              <p className='text-sm text-subtle'>
+                Block elements default to <Code>width: auto</Code> which
+                accounts for margins and padding. Don&apos;t set{' '}
+                <Code>w-full</Code> or <Code>w-screen</Code> unless you have a
+                concrete reason.
+              </p>
+            </div>
+          </div>
+
+          <div className='grid sm:grid-cols-2 gap-4'>
+            <div className='grid gap-2'>
+              <h3 className='text-display-ui-6 text-strong'>fit-content</h3>
+              <p className='text-sm text-subtle'>
+                <Code>w-fit</Code> sizes an element to its content. Useful for
+                buttons, badges, and inline elements that shouldn&apos;t
+                stretch.
+              </p>
+              <div className='emphasis-subtle rounded-lg p-4'>
+                <div className='w-fit emphasis-strong rounded-full px-4 py-2 text-sm'>
+                  I&apos;m only as wide as my content
+                </div>
+              </div>
+            </div>
+            <div className='grid gap-2'>
+              <h3 className='text-display-ui-6 text-strong'>fr and minmax()</h3>
+              <p className='text-sm text-subtle'>
+                Use <Code>fr</Code> units in grid templates to distribute
+                available space. Use <Code>minmax(0, 1fr)</Code> to prevent
+                content from forcing columns wider than intended.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Container queries */}
+      <section className='grid gap-6'>
+        <h2 className='text-display-ui-3 text-strong'>Container queries</h2>
+        <p className='text-subtle'>
+          Components should respond to their parent, not the viewport. A card in
+          a narrow sidebar needs different styling than the same card in a wide
+          main column — but the viewport width is the same. Use{' '}
+          <Code>@container</Code> for component-level adaptation.
+        </p>
+
+        <div className='grid gap-4'>
+          <div className='grid sm:grid-cols-2 gap-4'>
+            <div className='grid gap-2'>
+              <h3 className='text-display-ui-6 intent-danger text-strong'>
+                Don&apos;t
+              </h3>
+              <div className='emphasis-sunken rounded-lg p-4'>
+                <pre className='text-xs font-mono text-subtle overflow-x-auto'>
+                  {`@media (min-width: 900px) {
+  .card { flex-direction: row; }
+}
+/* breaks when card is in a narrow column */`}
+                </pre>
+              </div>
+            </div>
+            <div className='grid gap-2'>
+              <h3 className='text-display-ui-6 intent-success text-strong'>
+                Do
+              </h3>
+              <div className='emphasis-sunken rounded-lg p-4'>
+                <pre className='text-xs font-mono text-subtle overflow-x-auto'>
+                  {`.card-wrapper {
+  container-type: inline-size;
+}
+
+@container (min-width: 400px) {
+  .card { flex-direction: row; }
+}`}
+                </pre>
+              </div>
+            </div>
+          </div>
+          <p className='text-sm text-subtle'>
+            Media queries for page-level layout. Container queries for
+            component-level adaptation. Use both.
+          </p>
         </div>
       </section>
 
