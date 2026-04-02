@@ -212,6 +212,15 @@ Consistent radius tiers across all components:
 | Large | `rounded-2xl` | Modals, dialogs |
 | Full | `rounded-full` | Buttons, badges, pills |
 
+### Iconography
+
+- **Library:** Phosphor Icons (`@phosphor-icons/react`)
+- **Weight:** Always `bold`. Use `fill` only for active/selected states.
+- **Import convention:** Use the `Icon` suffix export — `import { HeartIcon } from '@phosphor-icons/react/ssr'` (bare names like `Heart` are deprecated)
+- **SSR:** Use `@phosphor-icons/react/ssr` in server components, `@phosphor-icons/react` in client components
+- **Sizing:** XS=`size-3` (badges, tags), SM=`size-4` (buttons, inline — default), MD=`size-5` (nav, standalone), LG=`size-6` (headers, cards). Use Tailwind `className`, not the Phosphor `size` prop.
+- **Color:** Icons inherit `currentColor`. Use `text-*` utilities.
+
 ### Typography
 
 Two font families: **Intermission** (sans-serif, `font-sans`) and **IBM Plex Mono** (`font-mono`).
@@ -341,6 +350,7 @@ For detailed guidance on styling conventions, read the foundation pages:
 - Interactions: `docs/src/app/foundations/interactions/page.tsx`
 - Colors: `docs/src/app/foundations/colors/page.tsx`
 - Elevation: `docs/src/app/foundations/elevation/page.tsx`
+- Iconography: `docs/src/app/foundations/iconography/page.tsx`
 
 ### Guideline component (docs-only)
 

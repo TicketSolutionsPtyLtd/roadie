@@ -1,10 +1,15 @@
 import Link from 'next/link'
 
 import {
-  ArrowRight,
-  MagicWand,
-  Moon,
-  WheelchairMotion
+  ArrowRightIcon,
+  GearIcon,
+  HeartIcon,
+  MagicWandIcon,
+  MoonIcon,
+  PlusIcon,
+  StarIcon,
+  TrashIcon,
+  WheelchairMotionIcon
 } from '@phosphor-icons/react/ssr'
 
 import { Badge, Button, Card, Code } from '@oztix/roadie-components'
@@ -43,7 +48,7 @@ export default function Home() {
           </Button>
           <Button emphasis='default' render={<Link href='/components' />}>
             Browse components
-            <ArrowRight size={16} weight='bold' />
+            <ArrowRightIcon weight='bold' className='size-4' />
           </Button>
         </div>
       </section>
@@ -142,6 +147,20 @@ export default function Home() {
               </div>
             }
           />
+          <FoundationCard
+            href='/foundations/iconography'
+            title='Iconography'
+            description='Phosphor Bold icons and sizing'
+            preview={
+              <div className='flex gap-2 text-subtle'>
+                <HeartIcon weight='bold' className='size-5' />
+                <StarIcon weight='bold' className='size-5' />
+                <PlusIcon weight='bold' className='size-5' />
+                <TrashIcon weight='bold' className='size-5' />
+                <GearIcon weight='bold' className='size-5' />
+              </div>
+            }
+          />
         </div>
       </section>
 
@@ -231,7 +250,7 @@ export default function Home() {
           href='/components'
           className='text-sm text-subtle hover:text-default'
         >
-          View all components <ArrowRight size={12} className='inline' />
+          View all components <ArrowRightIcon className='inline size-3' />
         </Link>
       </section>
 
@@ -240,7 +259,7 @@ export default function Home() {
         <h2 className='text-display-ui-3 text-strong'>Key features</h2>
         <div className='grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-8'>
           <FeatureCard
-            icon={<MagicWand size={24} weight='bold' />}
+            icon={<MagicWandIcon weight='bold' className='size-6' />}
             title='Tailwind-native styling'
             description='Built on Tailwind CSS v4 with custom @utility directives for intent/emphasis theming.'
             demo={
@@ -248,12 +267,12 @@ export default function Home() {
             }
           />
           <FeatureCard
-            icon={<WheelchairMotion size={24} weight='bold' />}
+            icon={<WheelchairMotionIcon weight='bold' className='size-6' />}
             title='Accessible by default'
             description='Components built on Base UI for robust accessibility and keyboard navigation.'
           />
           <FeatureCard
-            icon={<Moon size={24} weight='bold' />}
+            icon={<MoonIcon weight='bold' className='size-6' />}
             title='Dark mode ready'
             description='OKLCH color scales with automatic dark mode via CSS custom properties.'
             demo={
