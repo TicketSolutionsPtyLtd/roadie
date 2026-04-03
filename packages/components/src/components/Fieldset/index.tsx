@@ -48,6 +48,7 @@ export interface FieldsetErrorTextProps extends ComponentProps<'p'> {}
 function FieldsetErrorText({ className, ...props }: FieldsetErrorTextProps) {
   return (
     <p
+      role='alert'
       className={cn('text-sm text-subtle intent-danger', className)}
       {...props}
     />

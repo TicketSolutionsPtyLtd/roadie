@@ -65,6 +65,7 @@ export interface FieldErrorTextProps extends ComponentProps<'p'> {}
 function FieldErrorText({ className, ...props }: FieldErrorTextProps) {
   return (
     <p
+      role='alert'
       className={cn('text-sm text-subtle intent-danger', className)}
       {...props}
     />

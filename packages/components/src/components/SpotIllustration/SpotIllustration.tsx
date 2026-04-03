@@ -45,6 +45,7 @@ export const SpotIllustration = forwardRef<
       ref={ref}
       xmlns='http://www.w3.org/2000/svg'
       viewBox={viewBox}
+      aria-hidden={!props['aria-label']}
       className={cn('size-12', className)}
       style={{ fill: 'none' }}
       {...props}
