@@ -5,6 +5,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useMemo,
   useState
 } from 'react'
 
@@ -104,10 +105,13 @@ function AccordionRoot({
     [type]
   )
 
+  const contextValue = useMemo(
+    () => ({ type, emphasis: emphasis ?? 'default', openItems, toggle }),
+    [type, emphasis, openItems, toggle]
+  )
+
   return (
-    <AccordionContext.Provider
-      value={{ type, emphasis: emphasis ?? 'default', openItems, toggle }}
-    >
+    <AccordionContext.Provider value={contextValue}>
       <div
         className={cn(accordionVariants({ intent, emphasis, className }))}
         {...props}

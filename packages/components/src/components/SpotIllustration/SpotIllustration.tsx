@@ -1,4 +1,4 @@
-import { type ComponentProps, forwardRef } from 'react'
+import type { ComponentProps } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -34,10 +34,36 @@ const layerColors: Record<
   stroke: { fill: 'none', stroke: 'var(--color-illustration-stroke)' }
 }
 
-export const SpotIllustration = forwardRef<
-  SVGSVGElement,
-  SpotIllustrationProps
->(({ illustration, outline = false, className, ...props }, ref) => {
+/** Pre-computed style objects — avoids allocating new objects every render. */
+const layerStyles: Record<PathData['layer'], React.CSSProperties> = {
+  outline: { fill: layerColors.outline.fill },
+  face: { fill: layerColors.face.fill },
+  detail: { fill: layerColors.detail.fill },
+  shadow: { fill: layerColors.shadow.fill },
+  highlight: { fill: layerColors.highlight.fill },
+  stroke: {
+    fill: 'none',
+    stroke: layerColors.stroke.stroke,
+    strokeWidth: 0.5,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round'
+  }
+}
+
+const outlineHiddenStyle: React.CSSProperties = {
+  ...layerStyles.outline,
+  opacity: 0
+}
+
+const svgStyle: React.CSSProperties = { fill: 'none' }
+
+export function SpotIllustration({
+  illustration,
+  outline = false,
+  className,
+  ref,
+  ...props
+}: SpotIllustrationProps) {
   const { viewBox = '0 0 48 48', paths } = illustration
 
   return (
@@ -47,29 +73,23 @@ export const SpotIllustration = forwardRef<
       viewBox={viewBox}
       aria-hidden={!props['aria-label']}
       className={cn('size-12', className)}
-      style={{ fill: 'none' }}
+      style={svgStyle}
       {...props}
     >
-      {paths.map((path: PathData, index: number) => {
-        const colors = layerColors[path.layer]
-        return (
-          <path
-            key={index}
-            d={path.d}
-            data-part={path.layer}
-            style={{
-              fill: colors.fill,
-              stroke: colors.stroke,
-              strokeWidth: path.layer === 'stroke' ? 0.5 : undefined,
-              strokeLinecap: path.layer === 'stroke' ? 'round' : undefined,
-              strokeLinejoin: path.layer === 'stroke' ? 'round' : undefined,
-              opacity: path.layer === 'outline' && !outline ? 0 : undefined
-            }}
-          />
-        )
-      })}
+      {paths.map((path: PathData, index: number) => (
+        <path
+          key={index}
+          d={path.d}
+          data-part={path.layer}
+          style={
+            path.layer === 'outline' && !outline
+              ? outlineHiddenStyle
+              : layerStyles[path.layer]
+          }
+        />
+      ))}
     </svg>
   )
-})
+}
 
 SpotIllustration.displayName = 'SpotIllustration'
