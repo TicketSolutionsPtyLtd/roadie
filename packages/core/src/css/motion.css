@@ -1,0 +1,108 @@
+/* ═══════════════════════════════════════════════════════════
+   Motion Tokens & Utilities
+   Duration scale, easing curves, keyframes, and reduced
+   motion reset for consistent, accessible animation.
+   ═══════════════════════════════════════════════════════════ */
+
+@theme {
+  /* ═══ Durations ═══
+     Micro: 50–150ms  |  Component: 200–300ms  |  Page: 400–600ms */
+  --duration-instant: 0ms;
+  --duration-fastest: 50ms;
+  --duration-fast: 100ms;
+  --duration-normal: 150ms;
+  --duration-moderate: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 400ms;
+  --duration-slowest: 600ms;
+
+  /* ═══ Easings (color, opacity, box-shadow) ═══ */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-enter: cubic-bezier(0, 0, 0.2, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* ═══ Spring approximation via linear() — transforms only ═══ */
+  --ease-spring: linear(
+    0,
+    0.006,
+    0.025 2.8%,
+    0.101 6.1%,
+    0.539 18.9%,
+    0.721 25.3%,
+    0.849 31.5%,
+    0.937 38.1%,
+    0.968 41.8%,
+    0.991 45.7%,
+    1.006 50.1%,
+    1.015 55%,
+    1.017 63.9%,
+    1.001 85.9%,
+    1
+  );
+
+  /* ═══ Stagger ═══ */
+  --stagger-base: 30ms;
+}
+
+/* ─── Keyframes ─── */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@keyframes scale-out {
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+/* ─── Motion utilities ─── */
+
+@utility motion-fade-in {
+  animation: fade-in var(--duration-normal) var(--ease-enter) both;
+}
+
+@utility motion-fade-out {
+  animation: fade-out var(--duration-fast) var(--ease-exit) both;
+}
+
+@utility motion-scale-in {
+  animation: scale-in var(--duration-normal) var(--ease-spring) both;
+}
+
+@utility motion-scale-out {
+  animation: scale-out var(--duration-fast) var(--ease-exit) both;
+}
+
+/* ─── Reduced motion ───
+   Global reset for users who prefer reduced motion.
+   Uses 0.01ms (not 0ms) so JS transition/animation events still fire.
+   Tailwind's motion-safe: / motion-reduce: variants remain available
+   for selective overrides. */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

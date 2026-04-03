@@ -9,6 +9,7 @@ import {
 } from 'react'
 
 import { Collapsible } from '@base-ui/react/collapsible'
+import { CaretDownIcon } from '@phosphor-icons/react'
 import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
@@ -127,12 +128,16 @@ function AccordionTrigger({
   return (
     <Collapsible.Trigger
       className={cn(
-        'flex w-full cursor-pointer items-center py-3 text-left font-medium text-default transition-all hover:bg-subtle',
+        'group flex w-full cursor-pointer items-center justify-between py-3 text-left font-medium text-default transition-colors hover:bg-subtle',
         className
       )}
       {...props}
     >
       {children}
+      <CaretDownIcon
+        weight='bold'
+        className='duration-moderate size-4 shrink-0 text-subtle transition-transform group-data-[panel-open]:rotate-180'
+      />
     </Collapsible.Trigger>
   )
 }
@@ -147,7 +152,7 @@ function AccordionContent({
   return (
     <Collapsible.Panel
       className={cn(
-        'data-[state=open]:animate-slideDown data-[state=closed]:animate-slideUp overflow-hidden transition-all',
+        'duration-moderate h-[var(--collapsible-panel-height)] overflow-hidden transition-[height] ease-enter data-[ending-style]:h-0 data-[starting-style]:h-0',
         className
       )}
       {...props}

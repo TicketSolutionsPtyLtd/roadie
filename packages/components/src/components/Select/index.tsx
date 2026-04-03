@@ -3,41 +3,10 @@
 import type { ComponentProps } from 'react'
 
 import { Select as SelectPrimitive } from '@base-ui/react/select'
+import { CaretDownIcon, CaretUpIcon, CheckIcon } from '@phosphor-icons/react'
 import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
-
-/* ─── Shared icon SVGs ─── */
-
-function CaretDownSvg({ className }: { className?: string }) {
-  return (
-    <svg
-      width='16'
-      height='16'
-      viewBox='0 0 256 256'
-      fill='currentColor'
-      aria-hidden='true'
-      className={className}
-    >
-      <path d='M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z' />
-    </svg>
-  )
-}
-
-function CheckSvg({ className }: { className?: string }) {
-  return (
-    <svg
-      width='16'
-      height='16'
-      viewBox='0 0 256 256'
-      fill='currentColor'
-      aria-hidden='true'
-      className={className}
-    >
-      <path d='M232.49,80.49l-128,128a12,12,0,0,1-17,0l-56-56a12,12,0,1,1,17-17L96,183,215.51,63.51a12,12,0,0,1,17,17Z' />
-    </svg>
-  )
-}
 
 /* ─── Trigger variants (matches Input) ─── */
 
@@ -133,12 +102,12 @@ export function SelectIcon({ className, children, ...props }: SelectIconProps) {
   return (
     <SelectPrimitive.Icon
       className={cn(
-        'ml-2 shrink-0 text-subtle transition-transform duration-200 data-[popup-open]:rotate-180',
+        'duration-moderate ml-2 shrink-0 text-subtle transition-transform data-[popup-open]:rotate-180',
         className
       )}
       {...props}
     >
-      {children ?? <CaretDownSvg />}
+      {children ?? <CaretDownIcon weight='bold' className='size-4' />}
     </SelectPrimitive.Icon>
   )
 }
@@ -242,7 +211,7 @@ export function SelectItemIndicator({
       className={cn('shrink-0 text-subtle', className)}
       {...props}
     >
-      {children ?? <CheckSvg />}
+      {children ?? <CheckIcon weight='bold' className='size-4' />}
     </SelectPrimitive.ItemIndicator>
   )
 }
@@ -317,15 +286,7 @@ export function SelectScrollUpArrow({
       )}
       {...props}
     >
-      <svg
-        width='12'
-        height='12'
-        viewBox='0 0 256 256'
-        fill='currentColor'
-        aria-hidden='true'
-      >
-        <path d='M216.49,168.49a12,12,0,0,1-17,0L128,97,56.49,168.49a12,12,0,0,1-17-17l80-80a12,12,0,0,1,17,0l80,80A12,12,0,0,1,216.49,168.49Z' />
-      </svg>
+      <CaretUpIcon weight='bold' className='size-3' />
     </SelectPrimitive.ScrollUpArrow>
   )
 }
@@ -349,7 +310,7 @@ export function SelectScrollDownArrow({
       )}
       {...props}
     >
-      <CaretDownSvg />
+      <CaretDownIcon weight='bold' className='size-3' />
     </SelectPrimitive.ScrollDownArrow>
   )
 }

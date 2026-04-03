@@ -7,59 +7,13 @@ import {
   type ComboboxFilterOptions,
   Combobox as ComboboxPrimitive
 } from '@base-ui/react/combobox'
+import { CaretDownIcon, CheckIcon, XIcon } from '@phosphor-icons/react'
 import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
 export const useFilter = ComboboxPrimitive.useFilter
 export type { ComboboxFilter as Filter, ComboboxFilterOptions as FilterOptions }
-
-/* ─── Shared icon SVGs ─── */
-
-function CaretDownSvg({ className }: { className?: string }) {
-  return (
-    <svg
-      width='16'
-      height='16'
-      viewBox='0 0 256 256'
-      fill='currentColor'
-      aria-hidden='true'
-      className={className}
-    >
-      <path d='M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z' />
-    </svg>
-  )
-}
-
-function CheckSvg({ className }: { className?: string }) {
-  return (
-    <svg
-      width='16'
-      height='16'
-      viewBox='0 0 256 256'
-      fill='currentColor'
-      aria-hidden='true'
-      className={className}
-    >
-      <path d='M232.49,80.49l-128,128a12,12,0,0,1-17,0l-56-56a12,12,0,1,1,17-17L96,183,215.51,63.51a12,12,0,0,1,17,17Z' />
-    </svg>
-  )
-}
-
-function XSvg({ className }: { className?: string }) {
-  return (
-    <svg
-      width='16'
-      height='16'
-      viewBox='0 0 256 256'
-      fill='currentColor'
-      aria-hidden='true'
-      className={className}
-    >
-      <path d='M208.49,191.51a12,12,0,0,1-17,17L128,145,64.49,208.49a12,12,0,0,1-17-17L111,128,47.51,64.49a12,12,0,0,1,17-17L128,111l63.51-63.52a12,12,0,0,1,17,17L145,128Z' />
-    </svg>
-  )
-}
 
 /* ─── Input group variants (matches Input/Select trigger) ─── */
 
@@ -179,12 +133,12 @@ export function ComboboxTrigger({
   return (
     <ComboboxPrimitive.Trigger
       className={cn(
-        'shrink-0 text-subtle transition-transform duration-200 data-[popup-open]:rotate-180',
+        'duration-moderate shrink-0 text-subtle transition-transform data-[popup-open]:rotate-180',
         className
       )}
       {...props}
     >
-      {children ?? <CaretDownSvg />}
+      {children ?? <CaretDownIcon weight='bold' className='size-4' />}
     </ComboboxPrimitive.Trigger>
   )
 }
@@ -209,7 +163,7 @@ export function ComboboxClear({
       )}
       {...props}
     >
-      {children ?? <XSvg />}
+      {children ?? <XIcon weight='bold' className='size-4' />}
     </ComboboxPrimitive.Clear>
   )
 }
@@ -324,7 +278,7 @@ export function ComboboxItemIndicator({
       className={cn('shrink-0 text-subtle', className)}
       {...props}
     >
-      {children ?? <CheckSvg />}
+      {children ?? <CheckIcon weight='bold' className='size-4' />}
     </ComboboxPrimitive.ItemIndicator>
   )
 }

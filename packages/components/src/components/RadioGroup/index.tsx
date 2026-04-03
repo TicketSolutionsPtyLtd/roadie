@@ -25,7 +25,7 @@ export const radioGroupVariants = cva('flex', {
 /* ─── Item variants ─── */
 
 export const radioGroupItemVariants = cva(
-  'flex cursor-pointer select-none items-center transition-all',
+  'flex cursor-pointer select-none items-center',
   {
     variants: {
       appearance: {
@@ -77,7 +77,7 @@ function RadioGroupItem({
 }: RadioGroupItemProps) {
   const radio = (
     <Radio.Root
-      className='flex size-6 shrink-0 items-center justify-center rounded-full border border-subtle emphasis-sunken outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] transition-all focus-visible:outline-[length:var(--focus-ring-width)] data-[checked]:border-[var(--color-accent-9)] data-[checked]:bg-[var(--color-accent-3)]'
+      className='duration-moderate flex size-6 shrink-0 items-center justify-center rounded-full border border-subtle emphasis-sunken outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] transition-[background-color,border-color,outline-width,outline-color] focus-visible:outline-[length:var(--focus-ring-width)] data-[checked]:border-[var(--color-accent-9)] data-[checked]:bg-[var(--color-accent-3)]'
       {...props}
     >
       <Radio.Indicator className='size-2.5 rounded-full bg-[var(--color-accent-9)]' />

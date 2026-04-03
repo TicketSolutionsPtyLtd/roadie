@@ -35,7 +35,13 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   target: 'es2022',
-  external: ['react', 'react-dom', '@oztix/roadie-core', '@base-ui/react'],
+  external: [
+    'react',
+    'react-dom',
+    '@oztix/roadie-core',
+    '@base-ui/react',
+    '@phosphor-icons/react'
+  ],
   splitting: true,
   treeshake: {
     preset: 'recommended'

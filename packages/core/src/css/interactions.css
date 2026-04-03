@@ -6,11 +6,11 @@
 
 @utility is-field-interactive {
   transition:
-    background-color 0.2s ease-out,
-    border-color 0.2s ease-out,
-    box-shadow 0.2s ease-out,
-    outline-width 0.15s ease-out,
-    outline-color 0.15s ease-out;
+    background-color var(--duration-moderate) var(--ease-enter),
+    border-color var(--duration-moderate) var(--ease-enter),
+    box-shadow var(--duration-moderate) var(--ease-enter),
+    outline-width var(--duration-normal) var(--ease-enter),
+    outline-color var(--duration-normal) var(--ease-enter);
 
   outline: 0 solid
     color-mix(
@@ -86,11 +86,11 @@
 
 @utility is-field-group-interactive {
   transition:
-    background-color 0.2s ease-out,
-    border-color 0.2s ease-out,
-    box-shadow 0.2s ease-out,
-    outline-width 0.15s ease-out,
-    outline-color 0.15s ease-out;
+    background-color var(--duration-moderate) var(--ease-enter),
+    border-color var(--duration-moderate) var(--ease-enter),
+    box-shadow var(--duration-moderate) var(--ease-enter),
+    outline-width var(--duration-normal) var(--ease-enter),
+    outline-color var(--duration-normal) var(--ease-enter);
 
   outline: 0 solid
     color-mix(
@@ -168,13 +168,13 @@
   cursor: pointer;
   outline: 0 solid transparent;
   transition:
-    background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    outline-width 0.15s cubic-bezier(0.4, 0, 0.2, 1),
-    outline-color 0.15s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    background-color var(--duration-moderate) var(--ease-standard),
+    border-color var(--duration-moderate) var(--ease-standard),
+    color var(--duration-moderate) var(--ease-standard),
+    box-shadow var(--duration-moderate) var(--ease-standard),
+    outline-width var(--duration-normal) var(--ease-standard),
+    outline-color var(--duration-normal) var(--ease-standard),
+    transform var(--duration-normal) var(--ease-spring);
 
   &:active {
     transform: scale(0.99);
