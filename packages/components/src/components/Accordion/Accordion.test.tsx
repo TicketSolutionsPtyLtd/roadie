@@ -15,17 +15,41 @@ describe('Accordion', () => {
       </Accordion>
     )
     expect(container.firstElementChild).toBeInTheDocument()
-    expect(container.firstElementChild).toHaveClass('grid', 'w-full')
+    expect(container.firstElementChild).toHaveClass(
+      'grid',
+      'w-full',
+      'emphasis-default'
+    )
   })
 
-  it('renders with default appearance variant', () => {
+  it('renders with default emphasis variant', () => {
     const classes = accordionVariants()
+    expect(classes).toContain('emphasis-default')
+    expect(classes).toContain('rounded-xl')
+  })
+
+  it('renders with subtle emphasis variant', () => {
+    const classes = accordionVariants({ emphasis: 'subtle' })
+    expect(classes).toContain('gap-0.5')
+  })
+
+  it('renders with subtler emphasis variant', () => {
+    const classes = accordionVariants({ emphasis: 'subtler' })
     expect(classes).toContain('grid')
   })
 
-  it('renders with contained appearance variant', () => {
-    const classes = accordionVariants({ appearance: 'contained' })
-    expect(classes).toContain('[&>*+*]:border-t')
+  it('applies emphasis-subtle to items in subtle variant', () => {
+    const { container } = render(
+      <Accordion emphasis='subtle'>
+        <Accordion.Item value='item-1'>
+          <Accordion.Trigger>Trigger</Accordion.Trigger>
+          <Accordion.Content>Content</Accordion.Content>
+        </Accordion.Item>
+      </Accordion>
+    )
+    expect(container.firstElementChild).toHaveClass('gap-0.5')
+    const item = container.querySelector('[class*="emphasis-subtle"]')
+    expect(item).toBeInTheDocument()
   })
 
   it('renders Trigger sub-component', () => {

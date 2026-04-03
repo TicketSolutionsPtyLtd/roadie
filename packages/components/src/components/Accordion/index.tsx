@@ -17,15 +17,18 @@ import { cn } from '@oztix/roadie-core/utils'
 // --- Context ---
 
 type AccordionType = 'single' | 'multiple'
+type AccordionEmphasis = 'default' | 'subtle' | 'subtler' | null
 
 interface AccordionContextValue {
   type: AccordionType
+  emphasis: AccordionEmphasis
   openItems: string[]
   toggle: (value: string) => void
 }
 
 const AccordionContext = createContext<AccordionContextValue>({
   type: 'single',
+  emphasis: 'default',
   openItems: [],
   toggle: () => {}
 })
@@ -44,15 +47,33 @@ const ItemContext = createContext<ItemContextValue>({
 
 export const accordionVariants = cva('grid w-full', {
   variants: {
-    appearance: {
-      default: '',
-      contained: '[&>*+*]:border-t [&>*+*]:border-subtle'
+    intent: {
+      neutral: 'intent-neutral',
+      brand: 'intent-brand',
+      accent: 'intent-accent',
+      danger: 'intent-danger',
+      success: 'intent-success',
+      warning: 'intent-warning',
+      info: 'intent-info'
+    },
+    emphasis: {
+      default:
+        'emphasis-default rounded-xl [&>*+*]:border-t [&>*+*]:border-subtle',
+      subtle: 'gap-0.5',
+      subtler: ''
     }
   },
   defaultVariants: {
-    appearance: 'default'
+    emphasis: 'default'
   }
 })
+
+const accordionItemVariants: Record<'default' | 'subtle' | 'subtler', string> =
+  {
+    default: '',
+    subtle: 'emphasis-subtle first:rounded-t-xl last:rounded-b-xl',
+    subtler: ''
+  }
 
 // --- Components ---
 
@@ -64,7 +85,8 @@ export interface AccordionProps
 
 function AccordionRoot({
   type = 'single',
-  appearance,
+  intent,
+  emphasis,
   className,
   ...props
 }: AccordionProps) {
@@ -83,9 +105,11 @@ function AccordionRoot({
   )
 
   return (
-    <AccordionContext.Provider value={{ type, openItems, toggle }}>
+    <AccordionContext.Provider
+      value={{ type, emphasis: emphasis ?? 'default', openItems, toggle }}
+    >
       <div
-        className={cn(accordionVariants({ appearance, className }))}
+        className={cn(accordionVariants({ intent, emphasis, className }))}
         {...props}
       />
     </AccordionContext.Provider>
@@ -104,15 +128,19 @@ function AccordionItem({
   children,
   ...props
 }: AccordionItemProps) {
-  const { openItems, toggle } = useContext(AccordionContext)
+  const { emphasis, openItems, toggle } = useContext(AccordionContext)
   const isOpen = openItems.includes(value)
+  const itemEmphasis = accordionItemVariants[emphasis ?? 'default']
 
   return (
     <ItemContext.Provider value={{ value, isOpen }}>
-      <Collapsible.Root open={isOpen} onOpenChange={() => toggle(value)}>
-        <div className={cn('overflow-hidden', className)} {...props}>
-          {children}
-        </div>
+      <Collapsible.Root
+        open={isOpen}
+        onOpenChange={() => toggle(value)}
+        className={cn('overflow-hidden', itemEmphasis, className)}
+        {...props}
+      >
+        {children}
       </Collapsible.Root>
     </ItemContext.Provider>
   )
@@ -128,7 +156,7 @@ function AccordionTrigger({
   return (
     <Collapsible.Trigger
       className={cn(
-        'group flex w-full cursor-pointer items-center justify-between py-3 text-left font-medium text-default transition-colors hover:bg-subtle',
+        'group flex w-full cursor-pointer items-center justify-between px-4 py-3 text-left font-medium text-default transition-colors hover:bg-subtle',
         className
       )}
       {...props}
@@ -152,7 +180,7 @@ function AccordionContent({
   return (
     <Collapsible.Panel
       className={cn(
-        'duration-moderate h-[var(--collapsible-panel-height)] overflow-hidden transition-[height] ease-enter data-[ending-style]:h-0 data-[starting-style]:h-0',
+        'duration-moderate h-[var(--collapsible-panel-height)] overflow-hidden px-4 pt-1 pb-3 transition-[height] ease-enter data-[ending-style]:h-0 data-[starting-style]:h-0',
         className
       )}
       {...props}

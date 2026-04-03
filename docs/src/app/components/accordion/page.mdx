@@ -28,43 +28,119 @@ Only one item can be open at a time in single mode (the default).
   <Accordion.Item value='item-1'>
     <Accordion.Trigger>What is Roadie?</Accordion.Trigger>
     <Accordion.Content>
-      <p className='pb-3'>Roadie is a comprehensive design system for building consistent user interfaces.</p>
+      <p>Roadie is a comprehensive design system for building consistent user interfaces.</p>
     </Accordion.Content>
   </Accordion.Item>
   <Accordion.Item value='item-2'>
     <Accordion.Trigger>How do I install it?</Accordion.Trigger>
     <Accordion.Content>
-      <p className='pb-3'>Install via npm or pnpm from the @oztix/roadie-components package.</p>
+      <p>Install via npm or pnpm from the @oztix/roadie-components package.</p>
     </Accordion.Content>
   </Accordion.Item>
   <Accordion.Item value='item-3'>
     <Accordion.Trigger>Is it accessible?</Accordion.Trigger>
     <Accordion.Content>
-      <p className='pb-3'>Yes, all components follow WAI-ARIA guidelines for accessibility.</p>
+      <p>Yes, all components follow WAI-ARIA guidelines for accessibility.</p>
     </Accordion.Content>
   </Accordion.Item>
 </Accordion>
 ```
 
-### Variants
+### Emphasis
 
-Use `appearance='contained'` for a bordered look with dividers between items.
+Use the `emphasis` prop to control the visual weight of the accordion.
 
 ```tsx-live
-<Accordion type='single' appearance='contained'>
-  <Accordion.Item value='q1'>
-    <Accordion.Trigger>First question</Accordion.Trigger>
-    <Accordion.Content>
-      <p className='pb-3'>Answer to the first question.</p>
-    </Accordion.Content>
-  </Accordion.Item>
-  <Accordion.Item value='q2'>
-    <Accordion.Trigger>Second question</Accordion.Trigger>
-    <Accordion.Content>
-      <p className='pb-3'>Answer to the second question.</p>
-    </Accordion.Content>
-  </Accordion.Item>
-</Accordion>
+<div className='grid gap-6'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Default</p>
+    <Accordion type='single' emphasis='default'>
+      <Accordion.Item value='q1'>
+        <Accordion.Trigger>First question</Accordion.Trigger>
+        <Accordion.Content>
+          <p>Answer to the first question.</p>
+        </Accordion.Content>
+      </Accordion.Item>
+      <Accordion.Item value='q2'>
+        <Accordion.Trigger>Second question</Accordion.Trigger>
+        <Accordion.Content>
+          <p>Answer to the second question.</p>
+        </Accordion.Content>
+      </Accordion.Item>
+    </Accordion>
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Subtle</p>
+    <Accordion type='single' emphasis='subtle'>
+      <Accordion.Item value='q1'>
+        <Accordion.Trigger>First question</Accordion.Trigger>
+        <Accordion.Content>
+          <p>Answer to the first question.</p>
+        </Accordion.Content>
+      </Accordion.Item>
+      <Accordion.Item value='q2'>
+        <Accordion.Trigger>Second question</Accordion.Trigger>
+        <Accordion.Content>
+          <p>Answer to the second question.</p>
+        </Accordion.Content>
+      </Accordion.Item>
+    </Accordion>
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Subtler</p>
+    <Accordion type='single' emphasis='subtler'>
+      <Accordion.Item value='q1'>
+        <Accordion.Trigger>First question</Accordion.Trigger>
+        <Accordion.Content>
+          <p>Answer to the first question.</p>
+        </Accordion.Content>
+      </Accordion.Item>
+      <Accordion.Item value='q2'>
+        <Accordion.Trigger>Second question</Accordion.Trigger>
+        <Accordion.Content>
+          <p>Answer to the second question.</p>
+        </Accordion.Content>
+      </Accordion.Item>
+    </Accordion>
+  </div>
+</div>
+```
+
+### Intents
+
+Set the color context with the `intent` prop.
+
+```tsx-live
+<div className='grid gap-6'>
+  <Accordion type='single' intent='accent'>
+    <Accordion.Item value='q1'>
+      <Accordion.Trigger>Accent intent</Accordion.Trigger>
+      <Accordion.Content>
+        <p>This accordion uses the accent color palette.</p>
+      </Accordion.Content>
+    </Accordion.Item>
+    <Accordion.Item value='q2'>
+      <Accordion.Trigger>Second item</Accordion.Trigger>
+      <Accordion.Content>
+        <p>Intent cascades to all children.</p>
+      </Accordion.Content>
+    </Accordion.Item>
+  </Accordion>
+  <Accordion type='single' intent='danger' emphasis='subtle'>
+    <Accordion.Item value='q1'>
+      <Accordion.Trigger>Danger intent with subtle emphasis</Accordion.Trigger>
+      <Accordion.Content>
+        <p>Intents work with all emphasis levels.</p>
+      </Accordion.Content>
+    </Accordion.Item>
+    <Accordion.Item value='q2'>
+      <Accordion.Trigger>Second item</Accordion.Trigger>
+      <Accordion.Content>
+        <p>Intent cascades to all children.</p>
+      </Accordion.Content>
+    </Accordion.Item>
+  </Accordion>
+</div>
 ```
 
 ### States
@@ -79,13 +155,13 @@ Use `type='multiple'` to allow multiple items open simultaneously.
       <Accordion.Item value='a'>
         <Accordion.Trigger>Section A</Accordion.Trigger>
         <Accordion.Content>
-          <p className='pb-3'>Content for section A.</p>
+          <p>Content for section A.</p>
         </Accordion.Content>
       </Accordion.Item>
       <Accordion.Item value='b'>
         <Accordion.Trigger>Section B</Accordion.Trigger>
         <Accordion.Content>
-          <p className='pb-3'>Content for section B.</p>
+          <p>Content for section B.</p>
         </Accordion.Content>
       </Accordion.Item>
     </Accordion>
@@ -96,13 +172,13 @@ Use `type='multiple'` to allow multiple items open simultaneously.
       <Accordion.Item value='a'>
         <Accordion.Trigger>Section A</Accordion.Trigger>
         <Accordion.Content>
-          <p className='pb-3'>Content for section A.</p>
+          <p>Content for section A.</p>
         </Accordion.Content>
       </Accordion.Item>
       <Accordion.Item value='b'>
         <Accordion.Trigger>Section B</Accordion.Trigger>
         <Accordion.Content>
-          <p className='pb-3'>Content for section B.</p>
+          <p>Content for section B.</p>
         </Accordion.Content>
       </Accordion.Item>
     </Accordion>
@@ -119,7 +195,7 @@ Accordion is a compound component with `Accordion.Item`, `Accordion.Trigger`, an
   <Accordion.Item value='item-1'>
     <Accordion.Trigger>What is Roadie?</Accordion.Trigger>
     <Accordion.Content>
-      <p className='pb-3'>Roadie is a comprehensive design system for building consistent user interfaces.</p>
+      <p>Roadie is a comprehensive design system for building consistent user interfaces.</p>
     </Accordion.Content>
   </Accordion.Item>
 </Accordion>
