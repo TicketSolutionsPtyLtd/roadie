@@ -49,7 +49,7 @@ export function FooterNav({ items }: FooterNavProps) {
       {prev && (
         <Link href={prev.href} className='group grid gap-1 no-underline'>
           <span className='text-sm text-subtle'>Previous page</span>
-          <span className='group-hover:text-accent-11 text-default intent-accent'>
+          <span className='group-hover:text-accent-11 text-normal intent-accent'>
             &larr; {prev.title}
           </span>
         </Link>
@@ -60,7 +60,7 @@ export function FooterNav({ items }: FooterNavProps) {
           className='group ml-auto grid gap-1 text-right no-underline'
         >
           <span className='text-sm text-subtle'>Next page</span>
-          <span className='group-hover:text-accent-11 text-default intent-accent'>
+          <span className='group-hover:text-accent-11 text-normal intent-accent'>
             {next.title} &rarr;
           </span>
         </Link>

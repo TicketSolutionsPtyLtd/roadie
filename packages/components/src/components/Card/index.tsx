@@ -18,11 +18,11 @@ export const cardVariants = cva('rounded-xl', {
     emphasis: {
       raised: 'emphasis-raised',
       subtle: 'emphasis-subtle',
-      default: 'emphasis-default'
+      normal: 'emphasis-normal'
     }
   },
   defaultVariants: {
-    emphasis: 'default'
+    emphasis: 'normal'
   }
 })
 

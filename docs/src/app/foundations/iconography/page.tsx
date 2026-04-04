@@ -247,7 +247,7 @@ export default function IconographyPage() {
 
         <div className='rounded-xl bg-raised p-4'>
           <p className='text-sm text-subtle'>
-            <strong className='text-default'>Auto-sizing in components:</strong>{' '}
+            <strong className='text-normal'>Auto-sizing in components:</strong>{' '}
             Badge and Button auto-size child SVGs via CSS (
             <Code>[&_svg]:size-[1em]</Code> and <Code>[&_svg]:size-4</Code>).
             You typically don&apos;t need an explicit size class when placing
@@ -315,8 +315,8 @@ export default function IconographyPage() {
 
         <div className='flex flex-wrap items-center gap-6'>
           <div className='grid place-items-center gap-1'>
-            <HeartIcon weight='bold' className='size-6 text-default' />
-            <p className='font-mono text-xs text-subtle'>text-default</p>
+            <HeartIcon weight='bold' className='size-6 text-normal' />
+            <p className='font-mono text-xs text-subtle'>text-normal</p>
           </div>
           <div className='grid place-items-center gap-1'>
             <HeartIcon weight='bold' className='size-6 text-subtle' />

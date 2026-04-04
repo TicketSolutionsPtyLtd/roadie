@@ -19,7 +19,7 @@ export const badgeVariants = cva(
       },
       emphasis: {
         strong: 'emphasis-strong',
-        default: 'emphasis-default text-subtle',
+        normal: 'emphasis-normal text-subtle',
         subtle: 'emphasis-subtle text-subtle',
         subtler: 'bg-subtler text-subtle'
       },
@@ -29,7 +29,7 @@ export const badgeVariants = cva(
       }
     },
     defaultVariants: {
-      emphasis: 'default',
+      emphasis: 'normal',
       size: 'md'
     }
   }

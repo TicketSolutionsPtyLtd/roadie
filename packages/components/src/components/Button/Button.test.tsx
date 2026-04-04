@@ -23,7 +23,7 @@ describe('Button', () => {
     let button = getByText('Strong')
     expect(button).toHaveClass('emphasis-strong', 'intent-accent')
 
-    rerender(<Button emphasis='default'>Default</Button>)
+    rerender(<Button emphasis='normal'>Default</Button>)
     button = getByText('Default')
     expect(button).toHaveClass('text-subtle')
 

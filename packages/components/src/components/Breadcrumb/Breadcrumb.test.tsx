@@ -109,7 +109,7 @@ describe('Breadcrumb', () => {
     const current = getByText('Current Page')
     expect(current).toBeInTheDocument()
     expect(current).toHaveAttribute('aria-current', 'page')
-    expect(current).toHaveClass('text-default', 'font-medium')
+    expect(current).toHaveClass('text-normal', 'font-medium')
   })
 
   it('applies custom className to sub-components', () => {

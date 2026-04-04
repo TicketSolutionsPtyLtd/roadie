@@ -19,7 +19,7 @@ Tokens are defined in `packages/core/src/css/tokens.css` and consumed via Tailwi
 
 ```tsx
 {/* Use via intent + emphasis utilities */}
-<div className="intent-accent emphasis-subtle text-default p-4 rounded-xl">
+<div className="intent-accent emphasis-subtle text-normal p-4 rounded-xl">
   Content using the intent/emphasis system
 </div>
 ```
@@ -100,7 +100,7 @@ All tokens automatically adapt via the `.dark` class on `<html>`. The OKLCH colo
 
 ```tsx
 {/* Semantic classes adapt to dark mode automatically */}
-<div className="bg-default text-default border border-subtle p-4 rounded-xl">
+<div className="bg-normal text-normal border border-subtle p-4 rounded-xl">
   Adapts to light/dark automatically
 </div>
 

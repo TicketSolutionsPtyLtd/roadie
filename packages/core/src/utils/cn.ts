@@ -31,14 +31,14 @@ const twMerge = extendTailwindMerge<
         }
       ],
       'semantic-text-color': [
-        'text-default',
+        'text-normal',
         'text-subtle',
         'text-subtler',
         'text-strong',
         'text-inverted'
       ],
       'semantic-bg-color': [
-        'bg-default',
+        'bg-normal',
         'bg-subtle',
         'bg-subtler',
         'bg-strong',
@@ -49,7 +49,7 @@ const twMerge = extendTailwindMerge<
       'semantic-border-color': [
         'border-subtle',
         'border-subtler',
-        'border-default',
+        'border-normal',
         'border-strong',
         'border-inverted'
       ]

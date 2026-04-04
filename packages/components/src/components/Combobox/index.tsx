@@ -31,10 +31,10 @@ export const comboboxInputGroupVariants = cva(
         info: 'intent-info'
       },
       emphasis: {
-        default:
-          'emphasis-raised border border-default is-field-group-interactive',
+        normal:
+          'emphasis-raised border border-normal is-field-group-interactive',
         subtle:
-          'bg-subtle text-default border border-transparent is-field-group-interactive'
+          'bg-subtle text-normal border border-transparent is-field-group-interactive'
       },
       size: {
         sm: 'h-8 px-1.5 text-base',
@@ -43,7 +43,7 @@ export const comboboxInputGroupVariants = cva(
       }
     },
     defaultVariants: {
-      emphasis: 'default',
+      emphasis: 'normal',
       size: 'md'
     }
   }
@@ -68,7 +68,7 @@ export interface ComboboxLabelProps
 export function ComboboxLabel({ className, ...props }: ComboboxLabelProps) {
   return (
     <ComboboxPrimitive.Label
-      className={cn('text-sm font-medium text-default', className)}
+      className={cn('text-sm font-medium text-normal', className)}
       {...props}
     />
   )
@@ -158,7 +158,7 @@ export function ComboboxClear({
   return (
     <ComboboxPrimitive.Clear
       className={cn(
-        'shrink-0 cursor-pointer text-subtle hover:text-default',
+        'shrink-0 cursor-pointer text-subtle hover:text-normal',
         className
       )}
       {...props}
@@ -241,7 +241,7 @@ export function ComboboxItem({ className, ...props }: ComboboxItemProps) {
   return (
     <ComboboxPrimitive.Item
       className={cn(
-        'flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm text-default outline-none select-none',
+        'flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm text-normal outline-none select-none',
         'data-[highlighted]:bg-subtle',
         className
       )}

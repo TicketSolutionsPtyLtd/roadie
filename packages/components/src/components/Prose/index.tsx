@@ -6,14 +6,14 @@ import { cn } from '@oztix/roadie-core/utils'
 
 export const proseVariants = cva(
   [
-    'text-prose text-default',
+    'text-prose text-normal',
     // Links
     '[&_a]:underline [&_a]:underline-offset-2',
     // Lists
     '[&_ul]:list-disc [&_ul]:pl-6',
     '[&_ol]:list-decimal [&_ol]:pl-6',
     // Blockquote
-    '[&_blockquote]:border-l-[3px] [&_blockquote]:border-default [&_blockquote]:pl-4 [&_blockquote]:text-subtle',
+    '[&_blockquote]:border-l-[3px] [&_blockquote]:border-normal [&_blockquote]:pl-4 [&_blockquote]:text-subtle',
     // Code
     '[&_:not(pre)>code]:bg-subtler [&_:not(pre)>code]:rounded-md [&_:not(pre)>code]:px-1.5 [&_:not(pre)>code]:py-0.5 [&_:not(pre)>code]:text-[0.9em] [&_:not(pre)>code]:font-mono',
     // Pre

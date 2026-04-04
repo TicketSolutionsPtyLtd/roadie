@@ -20,14 +20,14 @@ export const codeVariants = cva(
         info: 'intent-info'
       },
       emphasis: {
-        default: 'emphasis-default',
+        normal: 'emphasis-normal',
         strong: 'emphasis-strong',
         subtle: 'emphasis-subtle',
         subtler: 'emphasis-subtler'
       }
     },
     defaultVariants: {
-      emphasis: 'default'
+      emphasis: 'normal'
     }
   }
 )

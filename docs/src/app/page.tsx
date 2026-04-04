@@ -46,7 +46,7 @@ export default function Home() {
           >
             Get started
           </Button>
-          <Button emphasis='default' render={<Link href='/components' />}>
+          <Button emphasis='normal' render={<Link href='/components' />}>
             Browse components
             <ArrowRightIcon weight='bold' className='size-4' />
           </Button>
@@ -143,7 +143,7 @@ export default function Home() {
             preview={
               <div className='flex gap-2'>
                 <div className='h-5 w-12 emphasis-strong rounded-full intent-accent' />
-                <div className='h-5 w-12 emphasis-default rounded-full' />
+                <div className='h-5 w-12 emphasis-normal rounded-full' />
               </div>
             }
           />
@@ -248,7 +248,7 @@ export default function Home() {
         </div>
         <Link
           href='/components'
-          className='text-sm text-subtle hover:text-default'
+          className='text-sm text-subtle hover:text-normal'
         >
           View all components <ArrowRightIcon className='inline size-3' />
         </Link>

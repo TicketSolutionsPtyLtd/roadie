@@ -46,8 +46,8 @@
     letter-spacing: var(--tracking-ui);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    color: var(--intent-text-default);
-    background-color: var(--intent-bg-default);
+    color: var(--intent-text-normal);
+    background-color: var(--intent-bg-normal);
     border-color: var(--intent-border-subtle);
   }
 

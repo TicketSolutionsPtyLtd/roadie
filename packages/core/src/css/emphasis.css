@@ -30,10 +30,10 @@
   }
 }
 
-@utility emphasis-default {
-  background-color: var(--intent-bg-default);
-  color: var(--intent-text-default);
-  border: 1px solid var(--intent-border-default);
+@utility emphasis-normal {
+  background-color: var(--intent-bg-normal);
+  color: var(--intent-text-normal);
+  border: 1px solid var(--intent-border-normal);
 
   &.is-interactive:hover,
   &.is-interactive:focus-visible {
@@ -50,7 +50,7 @@
 
 @utility emphasis-subtle {
   background-color: var(--intent-bg-subtle);
-  color: var(--intent-text-default);
+  color: var(--intent-text-normal);
   border-width: 1px;
   border-style: solid;
   box-shadow: var(--rim-light-subtler);
@@ -66,7 +66,7 @@
 
 @utility emphasis-subtler {
   background-color: var(--intent-bg-subtler);
-  color: var(--intent-text-default);
+  color: var(--intent-text-normal);
   border-width: 1px;
   border-style: solid;
 
@@ -90,7 +90,7 @@
 @utility emphasis-raised {
   background-color: var(--intent-bg-raised);
   box-shadow: var(--rim-light-strong), var(--shadow-md);
-  color: var(--intent-text-default);
+  color: var(--intent-text-normal);
 
   &.is-interactive:hover,
   &.is-interactive:focus-visible {
@@ -106,13 +106,13 @@
 @utility emphasis-sunken {
   background-color: var(--intent-bg-sunken);
   box-shadow: var(--inset-shadow-sm);
-  color: var(--intent-text-default);
+  color: var(--intent-text-normal);
 }
 
 @utility emphasis-floating {
   background-color: var(--intent-bg-raised);
   box-shadow: var(--rim-light-strong), var(--shadow-xl);
-  color: var(--intent-text-default);
+  color: var(--intent-text-normal);
 }
 
 @utility emphasis-overlay {

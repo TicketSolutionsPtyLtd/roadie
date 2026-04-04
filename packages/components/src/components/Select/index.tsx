@@ -24,9 +24,9 @@ export const selectTriggerVariants = cva(
         info: 'intent-info'
       },
       emphasis: {
-        default: 'emphasis-raised border border-default is-field-interactive',
+        normal: 'emphasis-raised border border-normal is-field-interactive',
         subtle:
-          'bg-subtle text-default border border-transparent is-field-interactive'
+          'bg-subtle text-normal border border-transparent is-field-interactive'
       },
       size: {
         sm: 'h-8 px-1.5 text-base',
@@ -35,7 +35,7 @@ export const selectTriggerVariants = cva(
       }
     },
     defaultVariants: {
-      emphasis: 'default',
+      emphasis: 'normal',
       size: 'md'
     }
   }
@@ -174,7 +174,7 @@ export function SelectItem({ className, ...props }: SelectItemProps) {
   return (
     <SelectPrimitive.Item
       className={cn(
-        'flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm text-default outline-none select-none',
+        'flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm text-normal outline-none select-none',
         'data-[highlighted]:bg-subtle',
         className
       )}
@@ -261,7 +261,7 @@ export interface SelectLabelProps
 export function SelectLabel({ className, ...props }: SelectLabelProps) {
   return (
     <SelectPrimitive.Label
-      className={cn('text-sm font-medium text-default', className)}
+      className={cn('text-sm font-medium text-normal', className)}
       {...props}
     />
   )

@@ -17,7 +17,7 @@ const intents = [
 
 const emphasisLevels = [
   { name: 'emphasis-strong', label: 'Strong' },
-  { name: 'emphasis-default', label: 'Default' },
+  { name: 'emphasis-normal', label: 'Normal' },
   { name: 'emphasis-raised', label: 'Raised' }
 ]
 
@@ -369,7 +369,7 @@ export default function InteractionsPage() {
               </button>
               <button
                 type='button'
-                className='is-interactive emphasis-default rounded-full px-4 py-2 text-sm font-bold text-subtle'
+                className='is-interactive emphasis-normal rounded-full px-4 py-2 text-sm font-bold text-subtle'
               >
                 Default
               </button>
@@ -640,7 +640,7 @@ export default function InteractionsPage() {
                 <tr>
                   <td className='py-2 pr-4 text-strong'>Button (secondary)</td>
                   <td className='py-2 font-mono text-xs'>
-                    emphasis-default is-interactive rounded-full
+                    emphasis-normal is-interactive rounded-full
                   </td>
                 </tr>
                 <tr>
@@ -658,7 +658,7 @@ export default function InteractionsPage() {
                 <tr>
                   <td className='py-2 pr-4 text-strong'>Select</td>
                   <td className='py-2 font-mono text-xs'>
-                    emphasis-raised border border-default is-field-interactive
+                    emphasis-raised border border-normal is-field-interactive
                   </td>
                 </tr>
                 <tr>
@@ -721,7 +721,7 @@ export default function InteractionsPage() {
                 </td>
                 <td className='py-2 pr-4 font-mono text-xs'>raised</td>
                 <td className='py-2'>
-                  Add <Code>border border-default</Code>
+                  Add <Code>border border-normal</Code>
                 </td>
               </tr>
               <tr>

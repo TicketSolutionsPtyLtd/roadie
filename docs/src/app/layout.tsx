@@ -166,6 +166,10 @@ async function getNavigationItems() {
             }
           : { title: 'Getting Started', href: '/overview/getting-started' },
         {
+          title: 'Migrating to v2',
+          href: '/migration'
+        },
+        {
           title: 'Changelog',
           href: 'https://github.com/ticketsolutionsptyltd/roadie/blob/main/packages/components/CHANGELOG.md'
         }

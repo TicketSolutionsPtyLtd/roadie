@@ -240,7 +240,7 @@ export default function ShapePage() {
                 <span className='emphasis-strong rounded-full px-3 py-1.5 text-sm font-bold'>
                   Button
                 </span>
-                <span className='emphasis-default rounded-full px-3 py-1.5 text-sm font-bold text-subtle'>
+                <span className='emphasis-normal rounded-full px-3 py-1.5 text-sm font-bold text-subtle'>
                   Button
                 </span>
                 <span className='rounded-full emphasis-subtle px-2.5 py-0.5 text-xs font-semibold'>

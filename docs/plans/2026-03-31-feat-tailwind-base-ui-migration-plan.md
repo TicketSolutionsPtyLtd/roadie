@@ -3,6 +3,7 @@ title: 'feat: Migrate design system from PandaCSS to Tailwind v4 + Base UI'
 type: feat
 status: active
 date: 2026-03-31
+updated: 2026-04-04
 origin: docs/brainstorms/2026-03-31-tailwind-migration-brainstorm.md
 ---
 
@@ -12,7 +13,7 @@ origin: docs/brainstorms/2026-03-31-tailwind-migration-brainstorm.md
 
 Major v2 overhaul of the Roadie design system: replace PandaCSS with Tailwind CSS v4, replace Ark UI with Base UI, and introduce a Tailwind-native intent/emphasis semantic styling system using `@utility` directives. The system must serve React apps (full component library) and a legacy Vue app (tokens + utility classes).
 
-Work on branch `feature/v2-tailwind-migration` (~80 commits from `main`).
+Work on branch `feature/v2-tailwind-migration` (~92 commits from `main`).
 
 ## Implementation Phases
 
@@ -21,14 +22,15 @@ Work on branch `feature/v2-tailwind-migration` (~80 commits from `main`).
 - [x] Spike: validate `@utility` + CSS custom property scoping + `.dark &` nesting
 - [x] `tokens.css` — 8 color scales (0-13) in OKLCH (neutral, brand, brand-secondary/orange, accent, danger, success, warning, info), light + dark. Elevation shadows. Typography tokens. Illustration color tokens (fixed, don't change in dark mode). Semantic color namespaces (`--background-color-*`, `--text-color-*`, `--border-color-*`) with default Tailwind color utilities disabled (`--color-*: initial`).
 - [x] `intents.css` — 7 `@utility` intent directives with dark mode raised/sunken swap. Raw scale steps `--intent-0` through `--intent-13` exposed for granular access.
-- [x] `emphasis.css` — Property-specific primitives (`emphasis-{level}-{surface|fg|border}`) + combined shortcuts (`emphasis-{level}`). Hover/active/focus-visible states per emphasis using intent scale steps. `emphasis-default` includes border. Dark mode uses lighter border (step 7).
+- [x] `emphasis.css` — Property-specific primitives (`emphasis-{level}-{surface|fg|border}`) + combined shortcuts (`emphasis-{level}`). Hover/active/focus-visible states per emphasis using intent scale steps. `emphasis-normal` includes border. Dark mode uses lighter border (step 7).
 - [x] `elevation.css` — Intent-tinted shadows (shadow-xs through shadow-2xl) using `oklch()` with `var(--intent-hue)`. Inset shadows for sunken surfaces. Rim-light scale (`--rim-light-subtler` through `--rim-light-strong`).
-- [x] `typography.css` — Text style `@utility` composites (display-ui-1–6, display-prose-1–6). Fluid scaling via `clamp()` for text-lg and above.
-- [x] `interactions.css` — `is-interactive` utility with transitions, active scale, semi-transparent focus ring via `color-mix(in oklch)` (30% light / 20% dark). `is-field-interactive` for form inputs (neutral→accent→danger state transitions).
+- [x] `typography.css` — Text style `@utility` composites (display-ui-1-6, display-prose-1-6). Fluid scaling via `clamp()` for text-lg and above.
+- [x] `interactions.css` — `is-interactive` utility with transitions, active scale, semi-transparent focus ring via `color-mix(in oklch)` (30% light / 20% dark). `is-field-interactive` for form inputs (neutral->accent->danger state transitions).
+- [x] `motion.css` — Duration scale (`--duration-instant` through `--duration-slowest`), easing curves (`--ease-standard`, `--ease-enter`, `--ease-exit`, `--ease-spring` via `linear()`), keyframes (fade-in/out, scale-in/out), motion utilities (`motion-fade-in`, `motion-fade-out`, `motion-scale-in`, `motion-scale-out`), stagger token (`--stagger-base: 30ms`), `prefers-reduced-motion` global reset (0.01ms durations so JS events still fire).
 - [x] `layout.css` — `view` utility (flex column + min-h/w 0 for migration compatibility)
 - [x] `reset.css` — Modern CSS reset with body defaults (`bg-default text-default font-sans leading-ui`), font smoothing, text wrapping, inline code word-break
 - [x] `fonts.css` — Intermission + IBM Plex Mono font-face
-- [x] `roadie.css` — Main entry importing all above + tailwindcss
+- [x] `roadie.css` — Main entry importing all 11 CSS modules + tailwindcss
 - [x] `safelist.html` — Ensures all utilities appear in compiled CSS output
 - [x] `radix-generator.ts` — Extended 0-13 OKLCH scale generator with WCAG contrast check
 - [x] `contrast.ts` + `cn.ts` — Utilities
@@ -49,7 +51,7 @@ Work on branch `feature/v2-tailwind-migration` (~80 commits from `main`).
 - [x] **Text component removed** — replaced with raw `<p>`, `<span>` + utility classes
 - [x] **Heading component removed** — replaced with raw `<h1>`-`<h6>` + `text-display-ui-*` / `text-display-prose-*` utilities
 
-**New components (12 added):**
+**New components (13 added):**
 
 - [x] Prose — rich content container with `size` prop (sm/md/lg) for CMS/markdown
 - [x] Badge — intent/emphasis/size, indicator with pulse, icons as children via `[&_svg]:size-[1em]`
@@ -57,10 +59,11 @@ Work on branch `feature/v2-tailwind-migration` (~80 commits from `main`).
 - [x] Input — styled text input with `is-field-interactive`
 - [x] Textarea — styled textarea with same variant system
 - [x] Field — compound form field (Label, Input, Textarea, HelperText, ErrorText)
-- [x] Select — Base UI Select with trigger/popup/item
+- [x] Select — Base UI Select with full sub-component API (Root/Trigger/Value/Icon/Portal/Positioner/Popup/Item/ItemText/ItemIndicator/Group/GroupLabel/Label/ScrollUpArrow/ScrollDownArrow)
+- [x] Combobox — Base UI Combobox with full sub-component API (Root/Label/InputGroup/Input/Trigger/Clear/Portal/Positioner/Popup/List/Item/Collection/ItemIndicator/Group/GroupLabel/Empty/Status) + `useFilter` hook + `is-field-group-interactive` utility
 - [x] RadioGroup — Base UI Radio with default/card appearances
 - [x] Fieldset — form grouping with Legend, HelperText, ErrorText
-- [x] Accordion — Base UI Collapsible with single/multiple + default/contained
+- [x] Accordion — Base UI Collapsible with single/multiple + emphasis (default/subtle/subtler) + intent
 - [x] Breadcrumb — semantic nav with List/Item/Link/Separator/Current
 - [x] Separator — horizontal/vertical divider
 
@@ -69,58 +72,138 @@ Work on branch `feature/v2-tailwind-migration` (~80 commits from `main`).
 - Components no longer set a default intent — they inherit from CSS cascade context
 - Grid-first layout adopted throughout (replaced `flex flex-col` stacks with `grid gap-*`)
 - Tailwind Prettier plugin added for consistent class ordering
+- Accordion `appearance` prop replaced with `emphasis` and `intent` for consistency
+- Select enhanced from simple component to full sub-component API alongside Combobox
+- All icon imports migrated to Icon suffix convention (`HeartIcon` not `Heart`)
 
-**Testing:** 139 tests across 18 test files, all passing.
+**Testing:** 148 tests across 19 test files, all passing.
 
 ### Phase 3: Documentation Site — COMPLETE
 
 - [x] Removed PandaCSS (config, generated artifacts, dep)
 - [x] Added Tailwind v4 + PostCSS, globals.css imports roadie.css + `@source` for component dist scanning
 - [x] Migrated layout.tsx, mdx-components.tsx, all shared components. Body uses `bg-default text-default`.
-- [x] Replaced all Lucide icons with Phosphor (`@phosphor-icons/react`, `weight='bold'`). Server components use `/ssr` import.
-- [x] All component pages have live examples via `tsx-live` code fence. CodePreview scope includes all components + SpotIllustrations + 18 Phosphor icons.
+- [x] Replaced all Lucide icons with Phosphor (`@phosphor-icons/react`, `weight='bold'`). Server components use `/ssr` import. All imports use Icon suffix convention.
+- [x] All component pages have live examples via `tsx-live` code fence. CodePreview scope includes all components + SpotIllustrations + Phosphor icons.
 - [x] MDX tables wrapped in `overflow-x-auto`. Mobile-responsive code blocks with `min-w-0`, responsive text/padding.
-- [x] 6 Foundations pages: Colors, Typography (redone with fluid type table + text style reference), Layout (renamed from Spacing — grid-first guidelines, wrapping, sizing, container queries), Shape (border-radius tiers), Elevation (shadows + rim-light), Interactions (is-interactive + is-field-interactive)
+- [x] 10 Foundation pages:
+  - Colors — color system, intent scales, dark mode
+  - Typography — redone with fluid type table + text style reference
+  - Layout — renamed from Spacing, grid-first guidelines, wrapping, sizing, container queries
+  - Shape — border-radius tiers, increased border-radius across components
+  - Elevation — shadows + rim-light
+  - Interactions — is-interactive + is-field-interactive
+  - Motion — duration/easing tokens, keyframes, reduced motion, animation guidelines
+  - Iconography — Phosphor icon library, sizing tiers, import conventions
+  - Performance — Core Web Vitals, rendering, network, fonts
+  - Accessibility — semantic HTML, ARIA, contrast, screen readers, testing checklist
 - [x] Token pages: Overview (intent/emphasis architecture) + Reference (color scales, semantic tokens, typography, elevation)
 - [x] Guideline component with `<Guideline.Do>` / `<Guideline.Dont>` subcomponents for do/don't patterns
-- [x] 29 pages building successfully as static content
-- [x] AGENTS.md fully rewritten for v2 architecture (updated twice — latest includes all conventions)
+- [x] Home page redesigned with component overview, skeletons, and categorized navigation
+- [x] ~34 pages building successfully as static content
+- [x] AGENTS.md fully rewritten for v2 architecture (updated multiple times — latest includes all conventions)
 
-### Phase 4: Migration Guide + Codemods — TODO
+### Phase 4a: Migration Guide — IN PROGRESS
 
 Based on analysis of the Oztix Website (`TicketSolutions.Oztix.Website`):
 
 - 496 View instances, 25 Containers, 43 colorPalette usages, 12+ sva() recipes, 40+ responsive objects
 
-**Migration guide (`docs/migration-v2.md`):**
+**Migration guide (`docs/src/app/migration/page.tsx`):**
 
-- [ ] Setup: remove PandaCSS, add Tailwind v4, import roadie.css, add @source
-- [ ] View migration: `flexDirection='row'` → `flex flex-row`, `display='grid'` → `grid`, default → `view`, complex → map props to Tailwind
-- [ ] Container migration → Tailwind `container` class
-- [ ] `colorPalette` → `intent` prop rename (`information` → `info`)
-- [ ] `data-color-mode='dark'` → `className="dark"`
-- [ ] Spacing token map (PandaCSS `'200'`=16px → Tailwind `4`=16px)
-- [ ] Responsive syntax → Tailwind breakpoint prefixes
-- [ ] Color token map → intent/emphasis classes
-- [ ] css()/sva()/cva()/styled() → Tailwind classes / CVA
-- [ ] splitCssProps() → removed
+Setup:
 
-**Codemods (jscodeshift):**
+- [ ] Remove PandaCSS: uninstall `@pandacss/dev`, delete `panda.config.ts`, remove `styled-system/` generated dir
+- [ ] Add Tailwind v4: install `tailwindcss@4`, `@tailwindcss/postcss`
+- [ ] Import `@oztix/roadie-core/css` in app CSS entry
+- [ ] Add `@source "../../node_modules/@oztix/roadie-components/dist"` to scan component classes
 
-- [ ] View → div (with layout class mapping)
-- [ ] Container → div with container class
-- [ ] colorPalette → intent
-- [ ] data-color-mode → dark class
-- [ ] Spacing props → Tailwind classes
+Component migration:
+
+- [ ] View -> `div` with layout classes: `flexDirection='row'` -> `flex flex-row`, `display='grid'` -> `grid`, default -> `grid gap-*` (grid-first), complex -> map props to Tailwind
+- [ ] Container -> Tailwind `container` class or `mx-auto max-w-*`
+- [ ] Text -> raw `<p>`, `<span>` + utility classes (`text-sm`, `text-subtle`, etc.)
+- [ ] Heading -> raw `<h1>`-`<h6>` + `text-display-ui-*` / `text-display-prose-*`
+
+Prop/API migration:
+
+- [ ] `colorPalette` -> `intent` prop rename (`information` -> `info`, `primary` -> `brand`)
+- [ ] `appearance` -> `emphasis` where applicable
+- [ ] `data-color-mode='dark'` -> `className="dark"`
+
+Token migration:
+
+- [ ] Spacing token map: PandaCSS `'200'`=16px -> Tailwind `4`=16px (full mapping table)
+- [ ] Color token map -> intent/emphasis classes
+- [ ] Responsive syntax -> Tailwind breakpoint prefixes (`{{ base: 'x', md: 'y' }}` -> `x md:y`)
+
+CSS-in-JS removal:
+
+- [ ] `css()` -> Tailwind utility classes
+- [ ] `sva()` recipes -> CVA with Tailwind classes
+- [ ] `cva()` (PandaCSS version) -> CVA (class-variance-authority)
+- [ ] `styled()` -> raw elements + `cn()` utility
+- [ ] `splitCssProps()` -> removed (no longer needed)
+- [ ] PandaCSS import removal (`import { css, styled, ... } from 'styled-system/*'`)
+
+Icons:
+
+- [ ] Lucide -> Phosphor (`@phosphor-icons/react`), `weight='bold'`, Icon suffix imports, sizing via `className` not `size` prop, SSR import path
+
+New concepts (no v1 equivalent):
+
+- [ ] Emphasis system — full explanation of shortcuts replacing manual bg/text/border combinations
+- [ ] Motion tokens — `--duration-*`, `--ease-*`, keyframes, `motion-*` utilities
+- [ ] Combobox adoption guide
+- [ ] `is-field-group-interactive` for composite form controls
+- [ ] Shape tiers reference
+
+Component API changes:
+
+- [ ] Table of all renamed/changed props across components
+- [ ] New sub-component APIs (Select, Combobox)
+- [ ] Removed components (View, Container, Text, Heading) with replacements
+
+### Phase 4b: Codemods — TODO
+
+jscodeshift transforms:
+
+- [ ] View -> div (with layout class mapping)
+- [ ] Container -> div with container class
+- [ ] colorPalette -> intent (with value mapping)
+- [ ] appearance -> emphasis
+- [ ] data-color-mode -> dark class
+- [ ] Spacing props -> Tailwind classes (with token value mapping)
 - [ ] PandaCSS import removal
+- [ ] Icon migration (Lucide -> Phosphor with Icon suffix)
 
-### Phase 5: Polish + Release — TODO
+### Phase 5a: API Review + Accessibility Audit — TODO
 
-- [ ] Vue integration guide
-- [ ] Accessibility audit (contrast ratios, focus rings)
+API review:
+
+- [ ] Review all 18 component APIs for consistency (prop naming, sub-component patterns, defaults)
+- [ ] Verify Combobox and Select sub-component API naming is consistent
+- [ ] Check `is-field-group-interactive` is documented in Interactions foundation page
+- [ ] Review all component exports in `packages/components/src/index.tsx`
+- [ ] Add component-level accessibility sections to each component doc page
+- [ ] Update `COMPONENT_DOC_TEMPLATE.md` with Accessibility section
+
+Accessibility audit:
+
+- [ ] Contrast ratios: all emphasis levels meet WCAG AA in light + dark
+- [ ] Focus rings: verify across all intents and emphasis levels
+- [ ] Keyboard navigation: test all interactive components
+- [ ] Screen reader testing: VoiceOver walkthrough
+- [ ] Reduced motion: verify `motion.css` reset disables all component animations
+
+### Phase 5b: Polish + Release — TODO
+
+- [ ] Vue integration guide (tokens + utility classes only, no components)
 - [ ] CSS bundle size measurement
-- [ ] Changesets + release (major version bump)
-- [ ] Review and refine all new component APIs before release
+- [ ] Changesets setup + major version bump (v2.0.0)
+- [ ] Update README files
+- [ ] Tag release, publish to npm
+- [ ] Deploy updated docs site
 
 ## Key Architecture Decisions
 
@@ -129,7 +212,7 @@ These decisions were made during implementation and should be maintained:
 1. **Intent = color context only.** Sets `--intent-*` CSS vars + raw `--intent-0` to `--intent-13`. No visual presentation.
 2. **Emphasis = visual presentation.** Consumes intent vars. Includes hover/active/focus-visible states.
 3. **Naming: `{concept}-{modifier}` shorthand, `{concept}-{modifier}-{property}` specific.** Drop the last segment = shortcut.
-4. **emphasis-default includes a border** (`--intent-border-subtle`, step 7 in dark mode).
+4. **emphasis-normal includes a border** (`--intent-border-subtle`, step 7 in dark mode).
 5. **Components inherit intent from CSS cascade.** No default intent in `defaultVariants` — intent flows via CSS custom properties.
 6. **No Text or Heading components.** Use raw `<p>`, `<h1>`-`<h6>` with utility classes (`text-display-ui-*`, `text-display-prose-*`). Prose component for CMS/markdown content.
 7. **Grid-first layout.** Use `grid gap-*` for vertical stacks. `flex` only when children should control sizing.
@@ -138,13 +221,17 @@ These decisions were made during implementation and should be maintained:
 10. **Focus rings use `color-mix(in oklch, var(--intent-9) 30%, transparent)`** in light, 20% in dark.
 11. **SpotIllustration colors are fixed** — hardcoded OKLCH in `@theme`, don't change in dark mode.
 12. **`@source` directive required** in consumer CSS to scan component dist files.
-13. **Icons: Phosphor with `weight='bold'`**. Use `/ssr` import for server components. Icons in Badge/Button are just children, not props.
-14. **Shape tiers:** `rounded-sm` (inline) → `rounded-md` (small) → `rounded-lg` (field) → `rounded-xl` (container) → `rounded-2xl` (large) → `rounded-full` (buttons/badges).
+13. **Icons: Phosphor with `weight='bold'`**. Use `/ssr` import for server components. Icons in Badge/Button are just children, not props. Import with Icon suffix (`HeartIcon` not `Heart`).
+14. **Shape tiers:** `rounded-sm` (inline) -> `rounded-md` (small) -> `rounded-lg` (field) -> `rounded-xl` (container) -> `rounded-2xl` (large) -> `rounded-full` (buttons/badges).
 15. **Elevation is intent-tinted** — shadows use `oklch()` with `var(--intent-hue)`. Rim-light scale for raised surfaces.
-16. **Two interaction utilities:** `is-interactive` (buttons, cards) and `is-field-interactive` (form inputs with neutral→accent→danger state transitions).
+16. **Two interaction utilities:** `is-interactive` (buttons, cards) and `is-field-interactive` (form inputs with neutral->accent->danger state transitions). Plus `is-field-group-interactive` for composite inputs (Combobox InputGroup).
 17. **Semantic color utilities replace default Tailwind colors** — `bg-default`, `text-subtle`, `border-default` etc. Default Tailwind `--color-*` disabled.
 18. **Fluid typography** — `text-lg` and above use `clamp()` for responsive scaling without breakpoint overrides.
 19. **CSS var names (`--intent-surface-strong`) don't match class naming pattern** — low priority, vars are internal plumbing.
+20. **Motion tokens are CSS-native** — duration scale, easing curves (including spring via `linear()`), stagger base. Global `prefers-reduced-motion` reset uses `0.01ms` (not `0ms`) so JS events still fire.
+21. **Sub-component API pattern** — Select and Combobox use compound component pattern via `Object.assign`. Each sub-component has its own typed props interface.
+22. **Accordion uses `emphasis` + `intent`, not `appearance`** — consistent with every other component in the system.
+23. **Component-level accessibility docs** — each component page should document keyboard patterns, ARIA roles, and screen reader behavior (template update pending in Phase 5a).
 
 ## Sources & References
 
@@ -152,4 +239,4 @@ These decisions were made during implementation and should be maintained:
 - **Branch:** `feature/v2-tailwind-migration`
 - **Prototypes:** `packages/ui-v2/`, `/Users/lukebrooker/Code/prototype/`
 - **Consumer analysis:** `/Users/lukebrooker/Code/ticketsolutions.oztix.website/` (Oztix Website)
-- **Migration plan:** `/Users/lukebrooker/.claude/plans/piped-jingling-kite.md`
+- **Related plans:** `docs/plans/2026-04-03-feat-performance-accessibility-foundation-pages-plan.md`

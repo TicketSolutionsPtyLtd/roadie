@@ -50,8 +50,8 @@ function IntentDemo({ intent }: { intent: string }) {
         <div className='emphasis-strong rounded-md px-3 py-1.5 text-sm'>
           emphasis-strong
         </div>
-        <div className='emphasis-default rounded-md px-3 py-1.5 text-sm'>
-          emphasis-default
+        <div className='emphasis-normal rounded-md px-3 py-1.5 text-sm'>
+          emphasis-normal
         </div>
         <div className='rounded-md emphasis-subtle px-3 py-1.5 text-sm'>
           emphasis-subtle
@@ -166,7 +166,7 @@ export default function ColorsPage() {
         <div className='grid gap-2'>
           <p className='text-sm text-strong'>Usage</p>
           <div className='flex flex-wrap gap-2'>
-            <Code>bg-default</Code>
+            <Code>bg-normal</Code>
             <Code>bg-subtle</Code>
             <Code>bg-raised</Code>
             <Code>text-subtle</Code>
@@ -199,7 +199,7 @@ export default function ColorsPage() {
         <p className='text-subtle'>
           Automatic. The <Code>.dark</Code> class on <Code>&lt;html&gt;</Code>{' '}
           swaps all OKLCH values. No <Code>dark:</Code> Tailwind variants needed
-          — <Code>bg-default</Code>, <Code>text-subtle</Code>,{' '}
+          — <Code>bg-normal</Code>, <Code>text-subtle</Code>,{' '}
           <Code>border-subtle</Code> all adapt automatically.
         </p>
       </section>

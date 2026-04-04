@@ -24,7 +24,7 @@ export interface FieldLabelProps extends ComponentProps<'label'> {}
 function FieldLabel({ className, ...props }: FieldLabelProps) {
   return (
     <label
-      className={cn('text-sm font-medium text-default', className)}
+      className={cn('text-sm font-medium text-normal', className)}
       {...props}
     />
   )

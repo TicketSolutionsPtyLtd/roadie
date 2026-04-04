@@ -33,7 +33,7 @@ describe('Combobox', () => {
   })
 
   it('renders InputGroup with different emphasis', () => {
-    expect(comboboxInputGroupVariants({ emphasis: 'default' })).toContain(
+    expect(comboboxInputGroupVariants({ emphasis: 'normal' })).toContain(
       'emphasis-raised'
     )
     expect(comboboxInputGroupVariants({ emphasis: 'subtle' })).toContain(

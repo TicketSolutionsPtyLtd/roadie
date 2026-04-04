@@ -10,11 +10,11 @@
 }
 
 /* --- Semantic color utilities ---
-   bg-default, text-subtle, border-default, divide-subtler, etc.
+   bg-normal, text-subtle, border-normal, divide-subtler, etc.
    Each namespace is scoped to its own utility type. */
 @theme inline {
-  /* Backgrounds: bg-default, bg-raised, bg-subtle, etc. */
-  --background-color-default: var(--intent-bg-default);
+  /* Backgrounds: bg-normal, bg-raised, bg-subtle, etc. */
+  --background-color-normal: var(--intent-bg-normal);
   --background-color-subtler: var(--intent-bg-subtler);
   --background-color-subtle: var(--intent-bg-subtle);
   --background-color-strong: var(--intent-bg-strong);
@@ -22,8 +22,8 @@
   --background-color-raised: var(--intent-bg-raised);
   --background-color-sunken: var(--intent-bg-sunken);
 
-  /* Text colors: text-default, text-subtle, etc. */
-  --text-color-default: var(--intent-text-default);
+  /* Text colors: text-normal, text-subtle, etc. */
+  --text-color-normal: var(--intent-text-normal);
   --text-color-subtler: var(--intent-text-subtler);
   --text-color-subtle: var(--intent-text-subtle);
   --text-color-strong: var(--intent-text-strong);
@@ -32,7 +32,7 @@
   /* Borders: border-subtle, border-b-subtler, divide-subtle, etc. */
   --border-color-subtler: var(--intent-border-subtler);
   --border-color-subtle: var(--intent-border-subtle);
-  --border-color-default: var(--intent-border-default);
+  --border-color-normal: var(--intent-border-normal);
   --border-color-strong: var(--intent-border-strong);
   --border-color-inverted: var(--intent-border-inverted);
 }

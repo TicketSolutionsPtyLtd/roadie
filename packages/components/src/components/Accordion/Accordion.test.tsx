@@ -18,13 +18,13 @@ describe('Accordion', () => {
     expect(container.firstElementChild).toHaveClass(
       'grid',
       'w-full',
-      'emphasis-default'
+      'emphasis-normal'
     )
   })
 
   it('renders with default emphasis variant', () => {
     const classes = accordionVariants()
-    expect(classes).toContain('emphasis-default')
+    expect(classes).toContain('emphasis-normal')
     expect(classes).toContain('rounded-xl')
   })
 

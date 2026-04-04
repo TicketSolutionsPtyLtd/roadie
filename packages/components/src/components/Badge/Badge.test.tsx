@@ -10,7 +10,7 @@ describe('Badge', () => {
     expect(badge).toBeInTheDocument()
     expect(badge.tagName.toLowerCase()).toBe('span')
     expect(badge).not.toHaveClass('intent-neutral')
-    expect(badge).toHaveClass('emphasis-default')
+    expect(badge).toHaveClass('emphasis-normal')
   })
 
   it('renders with different intents', () => {

@@ -130,7 +130,7 @@ export default function ElevationPage() {
         <div className='grid gap-6 sm:grid-cols-2'>
           {insetScale.map(({ name, description, className }) => (
             <div key={name} className='grid gap-2'>
-              <div className={`${className} rounded-xl bg-default p-6`}>
+              <div className={`${className} rounded-xl bg-normal p-6`}>
                 <p className='font-mono text-sm text-strong'>{name}</p>
               </div>
               <p className='text-sm text-subtle'>{description}</p>

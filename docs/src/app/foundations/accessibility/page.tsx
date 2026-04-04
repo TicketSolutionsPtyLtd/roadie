@@ -128,7 +128,7 @@ export default function AccessibilityPage() {
           description='4.5:1 for normal text. 3:1 for large text (18px bold / 24px regular) and UI components.'
         >
           <Guideline.Do>
-            Use Roadie&apos;s semantic text colours (<Code>text-default</Code>,{' '}
+            Use Roadie&apos;s semantic text colours (<Code>text-normal</Code>,{' '}
             <Code>text-subtle</Code>, <Code>text-strong</Code>) which are
             designed to meet contrast ratios in both light and dark modes.
           </Guideline.Do>
@@ -351,7 +351,7 @@ export default function AccessibilityPage() {
               Contrast-safe tokens
             </h3>
             <p className='text-sm text-subtle'>
-              Semantic colour tokens (<Code>text-default</Code>,{' '}
+              Semantic colour tokens (<Code>text-normal</Code>,{' '}
               <Code>text-subtle</Code>) are designed to maintain contrast ratios
               in both light and dark modes.
             </p>

@@ -92,7 +92,7 @@ function CopyButton({ code }: { code: string }) {
       <Button
         onClick={handleCopy}
         size='sm'
-        emphasis='default'
+        emphasis='normal'
         aria-label='Copy code to clipboard'
       >
         {copied && 'Copied!'}
@@ -187,7 +187,7 @@ export function CodePreview({
         theme={theme}
         language={language.replace('-live', '')}
       >
-        <LivePreview className='min-w-0 overflow-x-auto bg-default px-4 py-4 font-sans sm:px-6 sm:py-6' />
+        <LivePreview className='min-w-0 overflow-x-auto bg-normal px-4 py-4 font-sans sm:px-6 sm:py-6' />
         <LiveError className='bg-subtler px-4 py-3 text-sm text-subtle intent-danger' />
         <div className='relative min-w-0'>
           <CopyButton code={trimmedCode} />

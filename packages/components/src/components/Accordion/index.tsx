@@ -17,7 +17,7 @@ import { cn } from '@oztix/roadie-core/utils'
 // --- Context ---
 
 type AccordionType = 'single' | 'multiple'
-type AccordionEmphasis = 'default' | 'subtle' | 'subtler' | null
+type AccordionEmphasis = 'normal' | 'subtle' | 'subtler' | null
 
 interface AccordionContextValue {
   name: string | undefined
@@ -26,7 +26,7 @@ interface AccordionContextValue {
 
 const AccordionContext = createContext<AccordionContextValue>({
   name: undefined,
-  emphasis: 'default'
+  emphasis: 'normal'
 })
 
 // --- Variants ---
@@ -43,23 +43,22 @@ export const accordionVariants = cva('grid w-full', {
       info: 'intent-info'
     },
     emphasis: {
-      default:
-        'emphasis-default rounded-xl [&>*+*]:border-t [&>*+*]:border-subtle',
+      normal:
+        'emphasis-normal rounded-xl [&>*+*]:border-t [&>*+*]:border-subtle',
       subtle: 'gap-0.5',
       subtler: ''
     }
   },
   defaultVariants: {
-    emphasis: 'default'
+    emphasis: 'normal'
   }
 })
 
-const accordionItemVariants: Record<'default' | 'subtle' | 'subtler', string> =
-  {
-    default: '',
-    subtle: 'emphasis-subtle first:rounded-t-xl last:rounded-b-xl',
-    subtler: ''
-  }
+const accordionItemVariants: Record<'normal' | 'subtle' | 'subtler', string> = {
+  normal: '',
+  subtle: 'emphasis-subtle first:rounded-t-xl last:rounded-b-xl',
+  subtler: ''
+}
 
 // --- Components ---
 
@@ -80,7 +79,7 @@ function AccordionRoot({
   const name = type === 'single' ? `accordion-${id}` : undefined
 
   const contextValue = useMemo(
-    () => ({ name, emphasis: emphasis ?? 'default' }),
+    () => ({ name, emphasis: emphasis ?? 'normal' }),
     [name, emphasis]
   )
 
@@ -100,7 +99,7 @@ type AccordionItemProps = ComponentProps<'details'>
 
 function AccordionItem({ className, children, ...props }: AccordionItemProps) {
   const { name, emphasis } = useContext(AccordionContext)
-  const itemEmphasis = accordionItemVariants[emphasis ?? 'default']
+  const itemEmphasis = accordionItemVariants[emphasis ?? 'normal']
 
   return (
     <details
@@ -158,7 +157,7 @@ function AccordionTrigger({
   return (
     <summary
       className={cn(
-        'flex w-full cursor-pointer list-none items-center justify-between px-4 py-3 text-left font-medium text-default transition-colors hover:bg-subtle [&::-webkit-details-marker]:hidden',
+        'flex w-full cursor-pointer list-none items-center justify-between px-4 py-3 text-left font-medium text-normal transition-colors hover:bg-subtle [&::-webkit-details-marker]:hidden',
         className
       )}
       onClick={handleClick}

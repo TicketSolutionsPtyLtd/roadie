@@ -98,7 +98,7 @@ function NavigationGroup({
         href={item.href || '#'}
         onClick={onNavigate}
         className={`hover:text-accent-11 px-2 text-sm font-semibold no-underline transition-colors ${
-          isActiveParent ? 'text-default intent-accent' : 'text-default'
+          isActiveParent ? 'text-normal intent-accent' : 'text-normal'
         }`}
       >
         {item.title}
@@ -188,7 +188,7 @@ export function Navigation({ items }: NavigationProps) {
       {/* Mobile hamburger */}
       <button
         onClick={() => setIsOpen(true)}
-        className='is-interactive fixed top-3 left-3 z-50 flex size-10 emphasis-default items-center justify-center rounded-lg md:hidden'
+        className='is-interactive fixed top-3 left-3 z-50 flex size-10 emphasis-normal items-center justify-center rounded-lg md:hidden'
         aria-label='Open navigation'
       >
         <ListIcon weight='bold' className='size-5' />

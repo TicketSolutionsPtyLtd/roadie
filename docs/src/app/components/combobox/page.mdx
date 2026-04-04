@@ -67,8 +67,8 @@ function ComboboxDefault() {
 ```tsx-live
 <div className='grid gap-2'>
   <Combobox>
-    <Combobox.InputGroup emphasis='default'>
-      <Combobox.Input placeholder='Default emphasis' />
+    <Combobox.InputGroup emphasis='normal'>
+      <Combobox.Input placeholder='Normal emphasis' />
       <Combobox.Trigger />
     </Combobox.InputGroup>
   </Combobox>
@@ -149,7 +149,7 @@ function ComboboxWithLabel() {
   return (
     <Combobox items={bands}>
       <div className='grid gap-1.5'>
-        <label className='text-sm font-medium text-default'>Favourite band</label>
+        <label className='text-sm font-medium text-normal'>Favourite band</label>
         <Combobox.InputGroup>
           <Combobox.Input placeholder='Search bands...' />
           <Combobox.Clear />

@@ -78,7 +78,7 @@ export default function TypographyPage() {
               <p className='w-20 shrink-0 text-right text-sm text-strong tabular-nums'>
                 {token.replace('text-', '')}
               </p>
-              <p className={`${token} shrink-0 text-default`}>
+              <p className={`${token} shrink-0 text-normal`}>
                 The quick brown fox
               </p>
               <p className='shrink-0 text-xs text-subtler'>{value}</p>
@@ -198,8 +198,8 @@ export default function TypographyPage() {
           <p className='text-strong'>
             text-strong — headings, emphasis, high contrast
           </p>
-          <p className='text-default'>
-            text-default — body text (inherited from body reset)
+          <p className='text-normal'>
+            text-normal — body text (inherited from body reset)
           </p>
           <p className='text-subtle'>
             text-subtle — secondary text, descriptions
@@ -386,13 +386,13 @@ export default function TypographyPage() {
             example={
               <div className='grid gap-1'>
                 <p className='text-strong'>Strong text</p>
-                <p className='text-default'>Default text</p>
+                <p className='text-normal'>Default text</p>
                 <p className='text-subtle'>Subtle text</p>
                 <p className='text-subtler'>Subtler text</p>
               </div>
             }
             code={`<p className="text-strong">Strong text</p>
-<p className="text-default">Default text</p>
+<p className="text-normal">Default text</p>
 <p className="text-subtle">Subtle text</p>
 <p className="text-subtler">Subtler text</p>`}
           >
@@ -631,7 +631,7 @@ export default function TypographyPage() {
                 <td className='py-2 pr-4 font-mono text-xs'>&lt;Code&gt;</td>
                 <td className='py-2 pr-4'>Inline code, tokens, commands</td>
                 <td className='py-2 font-mono text-xs'>
-                  &lt;Code&gt;bg-default&lt;/Code&gt;
+                  &lt;Code&gt;bg-normal&lt;/Code&gt;
                 </td>
               </tr>
               <tr>

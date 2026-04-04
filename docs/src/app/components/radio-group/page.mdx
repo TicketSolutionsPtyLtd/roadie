@@ -41,13 +41,17 @@ import { RadioGroup } from '@oztix/roadie-components'
 </RadioGroup>
 ```
 
-#### Card appearance
+### Emphasis
+
+Use the `emphasis` prop on the Root to control the visual weight of all items.
+
+#### Normal
 
 ```tsx-live
-<RadioGroup>
-  <RadioGroup.Item value='standard' appearance='card' label='Standard delivery' />
-  <RadioGroup.Item value='express' appearance='card' label='Express delivery' />
-  <RadioGroup.Item value='overnight' appearance='card' label='Overnight delivery' />
+<RadioGroup emphasis='normal'>
+  <RadioGroup.Item value='standard' label='Standard delivery' />
+  <RadioGroup.Item value='express' label='Express delivery' />
+  <RadioGroup.Item value='overnight' label='Overnight delivery' />
 </RadioGroup>
 ```
 

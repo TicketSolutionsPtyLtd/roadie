@@ -137,23 +137,23 @@ function ComponentSkeleton({ name }: { name: string }) {
       return (
         <div className='flex gap-2'>
           <div className='h-7 w-20 emphasis-strong rounded-full intent-accent' />
-          <div className='h-7 w-20 emphasis-default rounded-full' />
+          <div className='h-7 w-20 emphasis-normal rounded-full' />
         </div>
       )
     case 'icon-button':
       return (
         <div className='flex gap-2'>
-          <div className='grid size-8 emphasis-default place-content-center rounded-full'>
+          <div className='grid size-8 emphasis-normal place-content-center rounded-full'>
             <Skel className='size-3.5 rounded-full' />
           </div>
-          <div className='grid size-8 emphasis-default place-content-center rounded-full'>
+          <div className='grid size-8 emphasis-normal place-content-center rounded-full'>
             <Skel className='size-3.5 rounded-full' />
           </div>
         </div>
       )
     case 'card':
       return (
-        <div className='grid w-40 gap-2 rounded-lg border border-subtle bg-default p-3'>
+        <div className='grid w-40 gap-2 rounded-lg border border-subtle bg-normal p-3'>
           <Skel className='h-2 w-16' />
           <Skel className='h-2 w-full' />
           <Skel className='h-2 w-24' />
@@ -170,16 +170,16 @@ function ComponentSkeleton({ name }: { name: string }) {
     case 'accordion':
       return (
         <div className='grid w-44 gap-1'>
-          <div className='flex items-center justify-between rounded-md bg-default px-3 py-2'>
+          <div className='flex items-center justify-between rounded-md bg-normal px-3 py-2'>
             <Skel className='h-2 w-16' />
             <Skel className='size-2' />
           </div>
-          <div className='rounded-md border border-subtle bg-default px-3 py-2'>
+          <div className='rounded-md border border-subtle bg-normal px-3 py-2'>
             <Skel className='mb-1.5 h-2 w-20' />
             <Skel className='h-1.5 w-full' />
             <Skel className='mt-1 h-1.5 w-24' />
           </div>
-          <div className='flex items-center justify-between rounded-md bg-default px-3 py-2'>
+          <div className='flex items-center justify-between rounded-md bg-normal px-3 py-2'>
             <Skel className='h-2 w-20' />
             <Skel className='size-2' />
           </div>
@@ -187,13 +187,13 @@ function ComponentSkeleton({ name }: { name: string }) {
       )
     case 'input':
       return (
-        <div className='w-40 rounded-lg border border-subtle bg-default px-3 py-2'>
+        <div className='w-40 rounded-lg border border-subtle bg-normal px-3 py-2'>
           <Skel className='h-2 w-16 opacity-50' />
         </div>
       )
     case 'textarea':
       return (
-        <div className='grid w-40 gap-1.5 rounded-lg border border-subtle bg-default px-3 py-2'>
+        <div className='grid w-40 gap-1.5 rounded-lg border border-subtle bg-normal px-3 py-2'>
           <Skel className='h-2 w-24' />
           <Skel className='h-2 w-16' />
           <Skel className='h-2 w-10 opacity-50' />
@@ -201,7 +201,7 @@ function ComponentSkeleton({ name }: { name: string }) {
       )
     case 'select':
       return (
-        <div className='flex w-40 items-center justify-between rounded-lg border border-subtle bg-default px-3 py-2'>
+        <div className='flex w-40 items-center justify-between rounded-lg border border-subtle bg-normal px-3 py-2'>
           <Skel className='h-2 w-16' />
           <Skel className='size-2' />
         </div>
@@ -210,7 +210,7 @@ function ComponentSkeleton({ name }: { name: string }) {
       return (
         <div className='grid w-40 gap-1.5'>
           <Skel className='h-2 w-12' />
-          <div className='rounded-lg border border-subtle bg-default px-3 py-2'>
+          <div className='rounded-lg border border-subtle bg-normal px-3 py-2'>
             <Skel className='h-2 w-20 opacity-50' />
           </div>
           <Skel className='h-1.5 w-24 opacity-50' />
@@ -221,10 +221,10 @@ function ComponentSkeleton({ name }: { name: string }) {
         <div className='grid w-44 gap-2 rounded-lg border border-subtle p-3'>
           <Skel className='h-2 w-16' />
           <div className='grid gap-1.5'>
-            <div className='rounded-md border border-subtle bg-default px-2 py-1.5'>
+            <div className='rounded-md border border-subtle bg-normal px-2 py-1.5'>
               <Skel className='h-1.5 w-20 opacity-50' />
             </div>
-            <div className='rounded-md border border-subtle bg-default px-2 py-1.5'>
+            <div className='rounded-md border border-subtle bg-normal px-2 py-1.5'>
               <Skel className='h-1.5 w-16 opacity-50' />
             </div>
           </div>
@@ -302,13 +302,13 @@ function ComponentSkeleton({ name }: { name: string }) {
     case 'spot-illustration':
       return (
         <div className='flex gap-3'>
-          <div className='grid size-10 place-content-center rounded-lg bg-default'>
+          <div className='grid size-10 place-content-center rounded-lg bg-normal'>
             <Skel className='size-6 rounded-md' />
           </div>
-          <div className='grid size-10 place-content-center rounded-lg bg-default'>
+          <div className='grid size-10 place-content-center rounded-lg bg-normal'>
             <Skel className='size-6 rounded-full' />
           </div>
-          <div className='grid size-10 place-content-center rounded-lg bg-default'>
+          <div className='grid size-10 place-content-center rounded-lg bg-normal'>
             <Skel className='size-6 rounded-md' />
           </div>
         </div>

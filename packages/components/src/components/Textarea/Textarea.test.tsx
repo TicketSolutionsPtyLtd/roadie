@@ -27,7 +27,7 @@ describe('Textarea', () => {
   })
 
   it('renders with different emphasis', () => {
-    const { container, rerender } = render(<Textarea emphasis='default' />)
+    const { container, rerender } = render(<Textarea emphasis='normal' />)
     let textarea = container.querySelector('textarea')!
     expect(textarea).toHaveClass('emphasis-sunken')
 

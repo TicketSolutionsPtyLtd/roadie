@@ -105,15 +105,15 @@ Three Tailwind-native utility namespaces, each scoped to its own CSS property:
 
 | Utility | CSS property | Example |
 |---------|-------------|---------|
-| `bg-default` | `background-color` | Page background |
+| `bg-normal` | `background-color` | Page background |
 | `bg-subtle` | `background-color` | Tinted surface |
 | `bg-raised` | `background-color` | Elevated card |
 | `bg-sunken` | `background-color` | Recessed area |
-| `text-default` | `color` | Body text |
+| `text-normal` | `color` | Body text |
 | `text-subtle` | `color` | Secondary text |
 | `text-strong` | `color` | Headings |
 | `border-subtle` | `border-color` | Dividers |
-| `border-default` | `border-color` | Standard borders |
+| `border-normal` | `border-color` | Standard borders |
 | `divide-subtler` | children border-color | Table rows |
 
 These are generated from `@theme inline` in `tokens.css` using Tailwind's utility-specific namespaces (`--background-color-*`, `--text-color-*`, `--border-color-*`).
@@ -144,7 +144,7 @@ Each intent exposes:
 Presets combining bg + text + border + interactive states:
 
 - `emphasis-strong` — solid bg, inverted text, rim-light
-- `emphasis-default` — default bg, visible border
+- `emphasis-normal` — normal bg, visible border
 - `emphasis-subtle` — tinted bg, transparent border
 - `emphasis-subtler` — barely tinted, transparent when interactive
 - `emphasis-raised` — raised bg, rim-light-strong, shadow-md
@@ -266,13 +266,13 @@ export const buttonVariants = cva('base-classes is-interactive', {
     },
     emphasis: {
       strong: 'emphasis-strong',
-      default: 'emphasis-default text-subtle',
+      normal: 'emphasis-normal text-subtle',
       subtle: 'emphasis-subtle text-subtle',
       subtler: 'emphasis-subtler text-subtle',
     },
     size: { sm: 'h-8 px-3', md: 'h-10 px-4', lg: 'h-12 px-6' },
   },
-  defaultVariants: { emphasis: 'default', size: 'md' },
+  defaultVariants: { emphasis: 'normal', size: 'md' },
 })
 ```
 
@@ -290,7 +290,7 @@ export const buttonVariants = cva('base-classes is-interactive', {
 
 1. **Intent = which color palette.** Only sets CSS custom properties. No visual presentation.
 2. **Emphasis shortcuts = combined presets.** bg + text + border + hover states.
-3. **Individual properties = Tailwind utilities.** `bg-default`, `text-subtle`, `border-subtle`.
+3. **Individual properties = Tailwind utilities.** `bg-normal`, `text-subtle`, `border-subtle`.
 4. **Default intent is neutral.** Set on `:root` — no class needed.
 5. **Components inherit intent from context.** Don't set a default intent in `defaultVariants`. Intent flows via CSS cascade.
 6. **No Text or Heading components.** Use raw `<p>`, `<h1>`-`<h6>` with utility classes.
@@ -338,7 +338,7 @@ core:build → components:build → docs:build
 - Live code examples use `tsx-live` code fence language tag
 - CodePreview scope includes all components + SpotIllustrations
 - MDX tables wrapped in overflow-x-auto container
-- Body defaults from reset: `bg-default`, `text-default`, `font-body`, `leading-ui`
+- Body defaults from reset: `bg-normal`, `text-normal`, `font-body`, `leading-ui`
 
 ### Foundation docs (detailed styling guidance)
 

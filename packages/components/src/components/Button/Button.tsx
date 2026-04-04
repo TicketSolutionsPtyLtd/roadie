@@ -22,7 +22,7 @@ export const buttonVariants = cva(
       },
       emphasis: {
         strong: 'emphasis-strong',
-        default: 'emphasis-default text-subtle',
+        normal: 'emphasis-normal text-subtle',
         subtle: 'emphasis-subtle text-subtle',
         subtler: 'emphasis-subtler text-subtle'
       },
@@ -38,7 +38,7 @@ export const buttonVariants = cva(
       }
     },
     defaultVariants: {
-      emphasis: 'default',
+      emphasis: 'normal',
       size: 'md'
     }
   }

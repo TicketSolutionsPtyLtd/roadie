@@ -23,14 +23,37 @@ describe('RadioGroup', () => {
     expect(classes).toContain('flex-row')
   })
 
-  it('renders Item with default appearance', () => {
+  it('renders Item with subtler emphasis by default', () => {
     const classes = radioGroupItemVariants()
     expect(classes).toContain('gap-2')
+    expect(classes).toContain('emphasis-subtler')
   })
 
-  it('renders Item with card appearance', () => {
-    const classes = radioGroupItemVariants({ appearance: 'card' })
+  it('renders Item with normal emphasis', () => {
+    const classes = radioGroupItemVariants({ emphasis: 'normal' })
     expect(classes).toContain('rounded-xl')
+    expect(classes).toContain('emphasis-normal')
+  })
+
+  it('items inherit emphasis from Root', () => {
+    const { container } = render(
+      <RadioGroup emphasis='normal'>
+        <RadioGroup.Item value='a' label='Option A' />
+      </RadioGroup>
+    )
+    const label = container.querySelector('label')!
+    expect(label).toHaveClass('emphasis-normal')
+    expect(label).toHaveClass('rounded-xl')
+  })
+
+  it('items default to subtler emphasis', () => {
+    const { container } = render(
+      <RadioGroup>
+        <RadioGroup.Item value='a' label='Option A' />
+      </RadioGroup>
+    )
+    const label = container.querySelector('label')!
+    expect(label).toHaveClass('emphasis-subtler')
   })
 
   it('renders Item with label text', () => {
