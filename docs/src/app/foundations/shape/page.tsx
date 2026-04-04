@@ -338,7 +338,7 @@ export default function ShapePage() {
           <li>
             <p>
               <strong>Focus rings follow automatically.</strong> Roadie&apos;s{' '}
-              <Code>is-interactive</Code> and <Code>is-field-interactive</Code>{' '}
+              <Code>is-interactive</Code> and <Code>is-interactive-field</Code>{' '}
               utilities handle focus ring radius — no separate token needed.
             </p>
           </li>

@@ -66,4 +66,10 @@ and switch to danger colouring when invalid.
 </div>
 ```
 
+## Accessibility
+
+- **Label association**: Always pair with a `<label>` (or `Field.Label`) using matching `htmlFor`/`id` attributes.
+- **Validation**: Set `aria-invalid="true"` on invalid inputs. `is-interactive-field` provides visual danger styling automatically.
+- **Description**: Use `aria-describedby` to link helper or error text to the input.
+
 <PropsDefinitions componentPath='packages/components/src/components/Input/index.tsx' />

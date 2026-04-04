@@ -98,4 +98,10 @@ input border and focus ring automatically switch to danger colours.
 </Field>
 ```
 
+## Accessibility
+
+- **Label wiring**: Set `htmlFor` on `Field.Label` and a matching `id` on `Field.Input` or `Field.Textarea` to associate them.
+- **Error announcements**: `Field.ErrorText` renders with `role="alert"`, so screen readers announce errors immediately when they appear.
+- **Description linking**: Use `aria-describedby` on the input to connect it to `Field.HelperText` or `Field.ErrorText` by `id`.
+
 <PropsDefinitions componentPath='packages/components/src/components/Field/index.tsx' />

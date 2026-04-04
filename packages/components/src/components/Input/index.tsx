@@ -18,9 +18,9 @@ export const inputVariants = cva('w-full rounded-lg font-sans', {
       info: 'intent-info'
     },
     emphasis: {
-      normal: 'emphasis-sunken border border-subtle is-field-interactive',
+      normal: 'emphasis-sunken border border-subtle is-interactive-field',
       subtle:
-        'bg-subtle text-normal border border-transparent is-field-interactive'
+        'bg-subtle text-normal border border-transparent is-interactive-field'
     },
     size: {
       sm: 'h-8 px-1.5 text-base',

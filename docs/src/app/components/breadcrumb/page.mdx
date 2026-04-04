@@ -65,4 +65,9 @@ Pass a custom character or element to `Breadcrumb.Separator`.
 </Breadcrumb>
 ```
 
+## Accessibility
+
+- **Landmark**: Renders as a `<nav>` element with `aria-label="Breadcrumb"` for screen reader navigation.
+- **Current page**: Use `Breadcrumb.Current` (renders as `<span>`) for the active page — screen readers won't announce it as a link.
+
 <PropsDefinitions componentPath='packages/components/src/components/Breadcrumb/index.tsx' />

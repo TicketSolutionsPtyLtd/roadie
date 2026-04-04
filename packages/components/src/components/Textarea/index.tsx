@@ -20,9 +20,9 @@ export const textareaVariants = cva(
         info: 'intent-info'
       },
       emphasis: {
-        normal: 'emphasis-sunken border border-subtle is-field-interactive',
+        normal: 'emphasis-sunken border border-subtle is-interactive-field',
         subtle:
-          'bg-subtle text-normal border border-transparent is-field-interactive'
+          'bg-subtle text-normal border border-transparent is-interactive-field'
       },
       size: {
         sm: 'px-1.5 py-2 text-base',

@@ -109,4 +109,10 @@ Hover and focus states use the intent color scale automatically via `is-interact
 </div>
 ```
 
+## Accessibility
+
+- **Keyboard**: `Enter` or `Space` activates the button. Focus is indicated by a semi-transparent ring via `is-interactive`.
+- **ARIA**: Uses native `<button>` element. `disabled` sets `aria-disabled` automatically.
+- **IconButton**: Requires an `aria-label` prop (enforced by TypeScript) since there is no visible text.
+
 <PropsDefinitions componentPath='packages/components/src/components/Button/index.tsx' />

@@ -130,7 +130,7 @@ export default function ColorsPage() {
                 <td className='py-2'>step 6</td>
               </tr>
               <tr>
-                <td className='py-2 pr-4 text-strong'>default</td>
+                <td className='py-2 pr-4 text-strong'>normal</td>
                 <td className='py-2 pr-4'>step 1</td>
                 <td className='py-2 pr-4'>step 12</td>
                 <td className='py-2'>step 7</td>

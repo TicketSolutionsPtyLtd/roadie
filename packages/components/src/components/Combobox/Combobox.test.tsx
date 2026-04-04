@@ -19,7 +19,7 @@ describe('Combobox', () => {
   it('renders InputGroup with default variant classes', () => {
     const classes = comboboxInputGroupVariants()
     expect(classes).toContain('emphasis-raised')
-    expect(classes).toContain('is-field-group-interactive')
+    expect(classes).toContain('is-interactive-field-group')
     expect(classes).not.toContain('intent-neutral')
   })
 

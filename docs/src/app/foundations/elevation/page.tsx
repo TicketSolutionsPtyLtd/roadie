@@ -155,7 +155,7 @@ export default function ElevationPage() {
               desc: 'Barely visible — subtle surfaces'
             },
             { name: 'rim-light-subtle', desc: 'Gentle — strong buttons' },
-            { name: 'rim-light-default', desc: 'Standard — rim-light utility' },
+            { name: 'rim-light-normal', desc: 'Standard — rim-light utility' },
             {
               name: 'rim-light-strong',
               desc: 'Prominent — raised/floating surfaces'

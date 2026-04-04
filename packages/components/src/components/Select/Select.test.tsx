@@ -19,7 +19,7 @@ describe('Select', () => {
   it('renders Trigger with default variant classes', () => {
     const classes = selectTriggerVariants()
     expect(classes).toContain('emphasis-raised')
-    expect(classes).toContain('is-field-interactive')
+    expect(classes).toContain('is-interactive-field')
     expect(classes).not.toContain('intent-neutral')
   })
 

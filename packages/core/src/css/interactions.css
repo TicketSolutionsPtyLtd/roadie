@@ -4,7 +4,7 @@
    Hover/active bg changes are per-emphasis in emphasis.css.
    ═══════════════════════════════════════════════════════════ */
 
-@utility is-field-interactive {
+@utility is-interactive-field {
   transition:
     background-color var(--duration-moderate) var(--ease-enter),
     border-color var(--duration-moderate) var(--ease-enter),
@@ -84,7 +84,7 @@
   }
 }
 
-@utility is-field-group-interactive {
+@utility is-interactive-field-group {
   transition:
     background-color var(--duration-moderate) var(--ease-enter),
     border-color var(--duration-moderate) var(--ease-enter),

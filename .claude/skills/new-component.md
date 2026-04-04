@@ -20,7 +20,7 @@ Create a new Roadie design system component end-to-end.
    - **Do not set a default intent** in `defaultVariants` — components inherit intent from CSS cascade
    - Use `cn()` from `@oztix/roadie-core/utils` for className merging
    - Use emphasis utilities for visual presentation
-   - Use `is-interactive` for clickable elements, `is-field-interactive` for form inputs
+   - Use `is-interactive` for clickable elements, `is-interactive-field` for form inputs
    - Use `grid gap-*` for internal layout (not `flex flex-col`)
    - Use the correct border-radius tier: `rounded-full` (buttons/badges), `rounded-xl` (cards/popovers), `rounded-lg` (fields), `rounded-md` (code)
    - Export variants and component

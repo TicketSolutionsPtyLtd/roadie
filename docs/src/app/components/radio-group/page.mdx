@@ -76,4 +76,10 @@ Use the `emphasis` prop on the Root to control the visual weight of all items.
 </div>
 ```
 
+## Accessibility
+
+- **Keyboard**: `Arrow Up`/`Arrow Down` moves between radio items. `Space` selects the focused item. Base UI manages roving tabindex.
+- **ARIA**: Base UI Radio sets `role="radiogroup"` on the root and `role="radio"` with `aria-checked` on each item automatically.
+- **Grouping**: Wrap in a `Fieldset` with a `Legend` to provide a group label for screen readers.
+
 <PropsDefinitions componentPath='packages/components/src/components/RadioGroup/index.tsx' />

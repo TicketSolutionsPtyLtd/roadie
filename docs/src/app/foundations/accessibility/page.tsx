@@ -342,7 +342,7 @@ export default function AccessibilityPage() {
               Field state styling
             </h3>
             <p className='text-sm text-subtle'>
-              <Code>is-field-interactive</Code> provides visual state
+              <Code>is-interactive-field</Code> provides visual state
               transitions for focus and <Code>aria-invalid</Code> automatically.
             </p>
           </div>

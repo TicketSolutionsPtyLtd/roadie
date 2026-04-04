@@ -52,7 +52,7 @@ Simplest possible usage. No props, no wrappers.
 ### Intents
 
 (if applicable) Only when intent visibly changes the component at rest.
-Omit for form controls — they manage intent via is-field-interactive.
+Omit for form controls — they manage intent via is-interactive-field.
 
 ### States
 
@@ -84,6 +84,16 @@ Can also use "With [Feature]" naming: "With helper text", "With footer", etc.
 
 (if applicable, brief) When to use, when not to use, Oztix-specific notes.
 
+## Accessibility
+
+(for interactive components) Document keyboard patterns, ARIA roles/attributes,
+and screen reader behaviour. Keep it brief — link to the
+[Accessibility foundation](/foundations/accessibility) for general guidance.
+
+- **Keyboard**: Which keys trigger actions (Enter, Space, Arrow keys, Escape)
+- **ARIA**: Notable roles or attributes the component sets or requires
+- **Screen readers**: Any announced state changes or live regions
+
 <PropsDefinitions componentPath='packages/components/src/components/ComponentName/index.tsx' />
 ````
 
@@ -96,18 +106,20 @@ Can also use "With [Feature]" naming: "With helper text", "With footer", etc.
 5. **States** — for any interactive component. Single live example with labelled states
 6. **Composition** — for compound components (Field, Card, Accordion, Breadcrumb, Select)
 7. **Guidelines** — brief, only non-obvious things. Oztix context goes here
-8. **No duplicates** — if disabled is in States, don't add separate Disabled section
-9. **Minimal examples** — show only the feature. Layout with `flex flex-col gap-2` or `flex flex-row flex-wrap gap-2`
-10. **State labels** — `<p className='text-sm text-subtle'>Label</p>` above each state
+8. **Accessibility** — for interactive components. Keyboard patterns, ARIA, screen reader notes
+9. **No duplicates** — if disabled is in States, don't add separate Disabled section
+10. **Minimal examples** — show only the feature. Layout with `flex flex-col gap-2` or `flex flex-row flex-wrap gap-2`
+11. **State labels** — `<p className='text-sm text-subtle'>Label</p>` above each state
 
 ## Section applicability by category
 
-| Section     | Actions | Forms | Data Display | Typography | Layout | Navigation | Media |
-| ----------- | ------- | ----- | ------------ | ---------- | ------ | ---------- | ----- |
-| Default     | yes     | yes   | yes          | yes        | yes    | yes        | yes   |
-| Variants    | maybe   | maybe | maybe        | maybe      | maybe  | maybe      | maybe |
-| Emphasis    | yes     | yes   | yes          | yes        | no     | no         | no    |
-| Sizes       | yes     | yes   | yes          | yes        | no     | no         | no    |
-| Intents     | yes     | no    | yes          | yes        | no     | no         | no    |
-| States      | yes     | yes   | yes          | no         | no     | yes        | no    |
-| Composition | no      | yes   | yes          | no         | no     | yes        | no    |
+| Section       | Actions | Forms | Data Display | Typography | Layout | Navigation | Media |
+| ------------- | ------- | ----- | ------------ | ---------- | ------ | ---------- | ----- |
+| Default       | yes     | yes   | yes          | yes        | yes    | yes        | yes   |
+| Variants      | maybe   | maybe | maybe        | maybe      | maybe  | maybe      | maybe |
+| Emphasis      | yes     | yes   | yes          | yes        | no     | no         | no    |
+| Sizes         | yes     | yes   | yes          | yes        | no     | no         | no    |
+| Intents       | yes     | no    | yes          | yes        | no     | no         | no    |
+| States        | yes     | yes   | yes          | no         | no     | yes        | no    |
+| Composition   | no      | yes   | yes          | no         | no     | yes        | no    |
+| Accessibility | yes     | yes   | no           | no         | no     | yes        | no    |

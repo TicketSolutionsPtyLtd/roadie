@@ -469,10 +469,10 @@ export default function InteractionsPage() {
           </div>
         </div>
 
-        {/* is-field-interactive */}
+        {/* is-interactive-field */}
         <div className='grid gap-4'>
           <h3 className='text-display-ui-5 text-strong'>
-            <Code>is-field-interactive</Code>
+            <Code>is-interactive-field</Code>
           </h3>
           <p className='text-subtle'>
             For form inputs — text fields, textareas, selects. Provides
@@ -488,7 +488,7 @@ export default function InteractionsPage() {
                 <input
                   type='text'
                   placeholder='e.g. Jane Smith'
-                  className='is-field-interactive rounded-lg border border-subtle emphasis-sunken px-3 py-2 text-sm'
+                  className='is-interactive-field rounded-lg border border-subtle emphasis-sunken px-3 py-2 text-sm'
                 />
               </div>
               <div className='grid gap-1'>
@@ -497,7 +497,7 @@ export default function InteractionsPage() {
                   type='text'
                   defaultValue='bad@'
                   aria-invalid='true'
-                  className='is-field-interactive rounded-lg border border-subtle emphasis-sunken px-3 py-2 text-sm'
+                  className='is-interactive-field rounded-lg border border-subtle emphasis-sunken px-3 py-2 text-sm'
                 />
               </div>
               <div className='grid gap-1'>
@@ -506,7 +506,7 @@ export default function InteractionsPage() {
                   type='text'
                   disabled
                   placeholder='Cannot edit'
-                  className='is-field-interactive rounded-lg border border-subtle emphasis-sunken px-3 py-2 text-sm'
+                  className='is-interactive-field rounded-lg border border-subtle emphasis-sunken px-3 py-2 text-sm'
                 />
               </div>
             </div>
@@ -562,6 +562,25 @@ export default function InteractionsPage() {
             </table>
           </div>
         </div>
+
+        {/* is-interactive-field-group */}
+        <div className='grid gap-4'>
+          <h3 className='text-display-ui-5 text-strong'>
+            <Code>is-interactive-field-group</Code>
+          </h3>
+          <p className='text-subtle'>
+            For composite form controls where multiple inputs share a single
+            visual container — like the Combobox input group (text input +
+            trigger button). Provides the same state transitions as{' '}
+            <Code>is-interactive-field</Code> but scoped to the group wrapper
+            instead of an individual input.
+          </p>
+          <p className='text-sm text-subtle'>
+            Use on the wrapping element that contains the child inputs. Focus
+            within any child triggers the accent transition on the group. Pair
+            with <Code>emphasis-raised</Code> or <Code>emphasis-sunken</Code>.
+          </p>
+        </div>
       </section>
 
       {/* ── Emphasis + interaction layering ── */}
@@ -607,10 +626,10 @@ export default function InteractionsPage() {
         <div className='rounded-xl emphasis-subtle p-4'>
           <p className='text-sm text-subtle'>
             <strong className='text-strong'>Note:</strong>{' '}
-            <Code>is-field-interactive</Code> provides its own hover, focus, and
+            <Code>is-interactive-field</Code> provides its own hover, focus, and
             invalid logic — it does not use emphasis hover states. This is why
             form inputs use <Code>emphasis-sunken</Code> (which has no
-            interactive states) paired with <Code>is-field-interactive</Code>{' '}
+            interactive states) paired with <Code>is-interactive-field</Code>{' '}
             (which provides all of them).
           </p>
         </div>
@@ -652,13 +671,13 @@ export default function InteractionsPage() {
                 <tr>
                   <td className='py-2 pr-4 text-strong'>Text input</td>
                   <td className='py-2 font-mono text-xs'>
-                    emphasis-sunken border border-subtle is-field-interactive
+                    emphasis-sunken border border-subtle is-interactive-field
                   </td>
                 </tr>
                 <tr>
                   <td className='py-2 pr-4 text-strong'>Select</td>
                   <td className='py-2 font-mono text-xs'>
-                    emphasis-raised border border-normal is-field-interactive
+                    emphasis-raised border border-normal is-interactive-field
                   </td>
                 </tr>
                 <tr>
@@ -707,7 +726,7 @@ export default function InteractionsPage() {
               <tr>
                 <td className='py-2 pr-4 text-strong'>Text input</td>
                 <td className='py-2 pr-4 font-mono text-xs'>
-                  is-field-interactive
+                  is-interactive-field
                 </td>
                 <td className='py-2 pr-4 font-mono text-xs'>sunken</td>
                 <td className='py-2'>
@@ -717,7 +736,7 @@ export default function InteractionsPage() {
               <tr>
                 <td className='py-2 pr-4 text-strong'>Select</td>
                 <td className='py-2 pr-4 font-mono text-xs'>
-                  is-field-interactive
+                  is-interactive-field
                 </td>
                 <td className='py-2 pr-4 font-mono text-xs'>raised</td>
                 <td className='py-2'>
@@ -727,7 +746,7 @@ export default function InteractionsPage() {
               <tr>
                 <td className='py-2 pr-4 text-strong'>Textarea</td>
                 <td className='py-2 pr-4 font-mono text-xs'>
-                  is-field-interactive
+                  is-interactive-field
                 </td>
                 <td className='py-2 pr-4 font-mono text-xs'>sunken</td>
                 <td className='py-2'>

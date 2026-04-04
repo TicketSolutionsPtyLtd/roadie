@@ -55,7 +55,7 @@ Unifies scattered accessibility guidance into one reference. Links back to Inter
 - **Reduced motion** — Signpost only (1-2 sentences + link). Full coverage lives in [Motion foundation](/foundations/motion). No guidelines duplicated here.
 - **Screen readers** — Test with VoiceOver (macOS) / NVDA (Windows). Ensure meaningful alt text, announce dynamic content with live regions, logical heading hierarchy.
 - **Forms** — Only the ARIA-specific guidance not already in Interactions: associate errors with `aria-describedby`, use `aria-invalid`, group related fields with `fieldset`/`legend`. Link to [Interactions foundation](/foundations/interactions) for the full forms section.
-- **What Roadie handles** — Callout box: Base UI primitives provide ARIA attributes, focus management, keyboard navigation. `is-interactive` provides focus-visible rings. `is-field-interactive` provides invalid state styling. Semantic color tokens maintain contrast ratios in light/dark modes.
+- **What Roadie handles** — Callout box: Base UI primitives provide ARIA attributes, focus management, keyboard navigation. `is-interactive` provides focus-visible rings. `is-interactive-field` provides invalid state styling. Semantic color tokens maintain contrast ratios in light/dark modes.
 - **Testing checklist** — Compact checklist: keyboard navigation, screen reader, color contrast tool, reduced motion emulation, zoom to 200%.
 
 ## Technical considerations

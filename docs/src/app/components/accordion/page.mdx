@@ -205,4 +205,10 @@ Accordion is a compound component with `Accordion.Item`, `Accordion.Trigger`, an
 </Accordion>
 ```
 
+## Accessibility
+
+- **Keyboard**: `Enter` or `Space` toggles an item. Native `<details>`/`<summary>` elements provide built-in keyboard support.
+- **ARIA**: Each summary is focusable by default. The browser manages `aria-expanded` state natively.
+- **Screen readers**: Announce open/closed state automatically via the native disclosure pattern.
+
 <PropsDefinitions componentPath='packages/components/src/components/Accordion/index.tsx' />

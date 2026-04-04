@@ -369,7 +369,7 @@ export default function MotionPage() {
           >
             <h3 className='text-display-ui-5 text-strong'>Interactions</h3>
             <p className='text-sm text-subtle'>
-              <Code>is-interactive</Code> and <Code>is-field-interactive</Code>{' '}
+              <Code>is-interactive</Code> and <Code>is-interactive-field</Code>{' '}
               embed motion tokens directly. Button hover uses{' '}
               <Code>duration-moderate</Code> + <Code>ease-standard</Code>.
               Active press uses <Code>duration-normal</Code> +{' '}
@@ -663,7 +663,7 @@ transition: all 150ms ease-out;`}
             Interactions
           </Link>{' '}
           for the full <Code>is-interactive</Code> and{' '}
-          <Code>is-field-interactive</Code> behaviour breakdown.
+          <Code>is-interactive-field</Code> behaviour breakdown.
         </p>
 
         <div className='overflow-x-auto'>
@@ -702,7 +702,7 @@ transition: all 150ms ease-out;`}
                 </td>
                 <td className='py-2 pr-4 font-mono text-xs'>ease-enter</td>
                 <td className='py-2'>
-                  Handled by <Code>is-field-interactive</Code>
+                  Handled by <Code>is-interactive-field</Code>
                 </td>
               </tr>
               <tr>

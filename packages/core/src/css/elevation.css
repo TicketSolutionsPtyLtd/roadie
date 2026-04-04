@@ -28,13 +28,13 @@
 
   --rim-light-subtler: inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
   --rim-light-subtle: inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
-  --rim-light-default:
+  --rim-light-normal:
     inset 0 1px 0 0 rgba(255, 255, 255, 0.4),
     inset 0 0 0 1px rgba(255, 255, 255, 0.06);
   --rim-light-strong:
     inset 0 1px 0 0 rgba(255, 255, 255, 0.6),
     inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-  --rim-light: var(--rim-light-default);
+  --rim-light: var(--rim-light-normal);
 }
 
 .dark {
@@ -58,11 +58,11 @@
 
   --rim-light-subtler: inset 0 1px 0 0 rgba(255, 255, 255, 0.02);
   --rim-light-subtle: inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
-  --rim-light-default: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+  --rim-light-normal: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
   --rim-light-strong:
     inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
     inset 0 0 0 1px rgba(255, 255, 255, 0.03);
-  --rim-light: var(--rim-light-default);
+  --rim-light: var(--rim-light-normal);
 }
 
 /* ─── OKLCH tinted shadows (modern browsers) ─── */

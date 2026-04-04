@@ -156,7 +156,7 @@ Presets combining bg + text + border + interactive states:
 ### Interaction states
 
 `is-interactive` provides: cursor, transitions, active scale, focus ring, disabled state.
-`is-field-interactive` provides: state-based color transitions (neutral→accent→danger).
+`is-interactive-field` provides: state-based color transitions (neutral→accent→danger).
 
 ### Elevation / Shadows
 
@@ -164,7 +164,7 @@ Intent-tinted shadows using `oklch()` with `var(--intent-hue)`:
 
 - `shadow-xs` through `shadow-2xl` — Tailwind standard names, tinted with intent
 - `inset-shadow-xs`, `inset-shadow-sm` — for sunken surfaces
-- `rim-light` scale: `--rim-light-subtler`, `--rim-light-subtle`, `--rim-light-default`, `--rim-light-strong`
+- `rim-light` scale: `--rim-light-subtler`, `--rim-light-subtle`, `--rim-light-normal`, `--rim-light-strong`
 
 ### Color Scale
 
@@ -361,9 +361,9 @@ Use `<Guideline>` with `<Guideline.Do>` and `<Guideline.Dont>` for do/don't patt
 Follow `docs/COMPONENT_DOC_TEMPLATE.md` for all component documentation. Key rules:
 
 1. One-line description — say what it *is*, not "The X component is..."
-2. Section order: Import → Examples (Default → Variants → Emphasis → Sizes → Intents → States → Composition → With [Feature]) → Guidelines → PropsDefinitions
+2. Section order: Import → Examples (Default → Variants → Emphasis → Sizes → Intents → States → Composition → With [Feature]) → Guidelines → Accessibility → PropsDefinitions
 3. Only include sections that apply to the component
-4. **No Intents section on form controls** (Input, Textarea, Select, Field, RadioGroup) — `is-field-interactive` manages state colours (neutral→accent→danger)
+4. **No Intents section on form controls** (Input, Textarea, Select, Field, RadioGroup) — `is-interactive-field` manages state colours (neutral→accent→danger)
 5. States section for interactive components — show all states in one example with `<p className='text-sm text-subtle'>` labels
 6. Default example first — simplest usage, no props
 7. No duplicate examples — if disabled is in States, don't add a separate Disabled section
@@ -371,4 +371,5 @@ Follow `docs/COMPONENT_DOC_TEMPLATE.md` for all component documentation. Key rul
 ### Interaction utilities
 
 - `is-interactive` — for buttons, cards, clickable elements. Provides cursor, transitions, active scale, focus ring, disabled state. Pair with emphasis shortcuts.
-- `is-field-interactive` — for form inputs. Provides state-based colour transitions: neutral at rest → accent on focus → danger when invalid.
+- `is-interactive-field` — for form inputs. Provides state-based colour transitions: neutral at rest → accent on focus → danger when invalid.
+- `is-interactive-field-group` — for composite form controls (e.g., Combobox input group). Same transitions as `is-interactive-field` but scoped to the group wrapper.

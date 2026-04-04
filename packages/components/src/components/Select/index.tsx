@@ -24,9 +24,9 @@ export const selectTriggerVariants = cva(
         info: 'intent-info'
       },
       emphasis: {
-        normal: 'emphasis-raised border border-normal is-field-interactive',
+        normal: 'emphasis-raised border border-normal is-interactive-field',
         subtle:
-          'bg-subtle text-normal border border-transparent is-field-interactive'
+          'bg-subtle text-normal border border-transparent is-interactive-field'
       },
       size: {
         sm: 'h-8 px-1.5 text-base',
