@@ -8,7 +8,7 @@ describe('Accordion', () => {
   it('renders with default props', () => {
     const { container } = render(
       <Accordion>
-        <Accordion.Item value='item-1'>
+        <Accordion.Item>
           <Accordion.Trigger>Trigger 1</Accordion.Trigger>
           <Accordion.Content>Content 1</Accordion.Content>
         </Accordion.Item>
@@ -41,7 +41,7 @@ describe('Accordion', () => {
   it('applies emphasis-subtle to items in subtle variant', () => {
     const { container } = render(
       <Accordion emphasis='subtle'>
-        <Accordion.Item value='item-1'>
+        <Accordion.Item>
           <Accordion.Trigger>Trigger</Accordion.Trigger>
           <Accordion.Content>Content</Accordion.Content>
         </Accordion.Item>
@@ -52,44 +52,47 @@ describe('Accordion', () => {
     expect(item).toBeInTheDocument()
   })
 
-  it('renders Trigger sub-component', () => {
-    const { getByText } = render(
+  it('renders native details/summary elements', () => {
+    const { container } = render(
       <Accordion>
-        <Accordion.Item value='item-1'>
+        <Accordion.Item>
           <Accordion.Trigger>Click me</Accordion.Trigger>
           <Accordion.Content>Hidden</Accordion.Content>
         </Accordion.Item>
       </Accordion>
     )
-    expect(getByText('Click me')).toBeInTheDocument()
+    expect(container.querySelector('details')).toBeInTheDocument()
+    expect(container.querySelector('summary')).toBeInTheDocument()
+    expect(container.querySelector('summary')).toHaveTextContent('Click me')
   })
 
   it('toggles content on trigger click', async () => {
     const user = userEvent.setup()
 
-    const { getByText } = render(
+    const { container, getByText } = render(
       <Accordion>
-        <Accordion.Item value='item-1'>
+        <Accordion.Item>
           <Accordion.Trigger>Toggle</Accordion.Trigger>
           <Accordion.Content>Revealed content</Accordion.Content>
         </Accordion.Item>
       </Accordion>
     )
 
-    const trigger = getByText('Toggle')
-    await user.click(trigger)
+    const details = container.querySelector('details')!
+    expect(details).not.toHaveAttribute('open')
 
-    expect(getByText('Revealed content')).toBeInTheDocument()
+    await user.click(getByText('Toggle'))
+    expect(details).toHaveAttribute('open')
   })
 
   it('renders multiple items', () => {
     const { getByText } = render(
       <Accordion>
-        <Accordion.Item value='item-1'>
+        <Accordion.Item>
           <Accordion.Trigger>First</Accordion.Trigger>
           <Accordion.Content>Content 1</Accordion.Content>
         </Accordion.Item>
-        <Accordion.Item value='item-2'>
+        <Accordion.Item>
           <Accordion.Trigger>Second</Accordion.Trigger>
           <Accordion.Content>Content 2</Accordion.Content>
         </Accordion.Item>
@@ -97,6 +100,58 @@ describe('Accordion', () => {
     )
     expect(getByText('First')).toBeInTheDocument()
     expect(getByText('Second')).toBeInTheDocument()
+  })
+
+  it('sets shared name attribute in single mode', () => {
+    const { container } = render(
+      <Accordion type='single'>
+        <Accordion.Item>
+          <Accordion.Trigger>A</Accordion.Trigger>
+          <Accordion.Content>Content A</Accordion.Content>
+        </Accordion.Item>
+        <Accordion.Item>
+          <Accordion.Trigger>B</Accordion.Trigger>
+          <Accordion.Content>Content B</Accordion.Content>
+        </Accordion.Item>
+      </Accordion>
+    )
+    const details = container.querySelectorAll('details')
+    expect(details[0]).toHaveAttribute('name')
+    expect(details[1]).toHaveAttribute('name')
+    expect(details[0].getAttribute('name')).toBe(
+      details[1].getAttribute('name')
+    )
+  })
+
+  it('omits name attribute in multiple mode', () => {
+    const { container } = render(
+      <Accordion type='multiple'>
+        <Accordion.Item>
+          <Accordion.Trigger>A</Accordion.Trigger>
+          <Accordion.Content>Content A</Accordion.Content>
+        </Accordion.Item>
+        <Accordion.Item>
+          <Accordion.Trigger>B</Accordion.Trigger>
+          <Accordion.Content>Content B</Accordion.Content>
+        </Accordion.Item>
+      </Accordion>
+    )
+    const details = container.querySelectorAll('details')
+    expect(details[0]).not.toHaveAttribute('name')
+    expect(details[1]).not.toHaveAttribute('name')
+  })
+
+  it('applies is-disclosure-animated class to items', () => {
+    const { container } = render(
+      <Accordion>
+        <Accordion.Item>
+          <Accordion.Trigger>Trigger</Accordion.Trigger>
+          <Accordion.Content>Content</Accordion.Content>
+        </Accordion.Item>
+      </Accordion>
+    )
+    const details = container.querySelector('details')
+    expect(details).toHaveClass('is-disclosure-animated')
   })
 
   it('applies custom className to root', () => {

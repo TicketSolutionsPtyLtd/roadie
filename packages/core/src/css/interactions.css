@@ -164,6 +164,32 @@
   }
 }
 
+/* ─── Disclosure animation (details/summary) ─── */
+
+.is-disclosure-animated {
+  &::details-content {
+    height: 0;
+    overflow: clip;
+    transition:
+      height var(--duration-moderate) var(--ease-enter),
+      content-visibility var(--duration-moderate) allow-discrete;
+  }
+
+  /* Chrome/Firefox: interpolate-size allows height: auto */
+  @supports (interpolate-size: allow-keywords) {
+    &[open]::details-content {
+      height: auto;
+    }
+  }
+
+  /* Safari: JS-measured height, falls back to auto (no animation) */
+  @supports not (interpolate-size: allow-keywords) {
+    &[open]::details-content {
+      height: var(--content-height, auto);
+    }
+  }
+}
+
 @utility is-interactive {
   cursor: pointer;
   outline: 0 solid transparent;

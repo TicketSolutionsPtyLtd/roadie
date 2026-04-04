@@ -31,7 +31,15 @@
     background-color: var(--color-info-3);
   }
 
+  :root {
+    @supports (interpolate-size: allow-keywords) {
+      interpolate-size: allow-keywords;
+    }
+  }
+
   body {
+    min-block-size: 100svh;
+    scrollbar-gutter: stable;
     font-family: var(--font-body);
     font-size: var(--text-base);
     line-height: var(--leading-ui);

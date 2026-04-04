@@ -5,11 +5,10 @@ import {
   createContext,
   useCallback,
   useContext,
-  useMemo,
-  useState
+  useId,
+  useMemo
 } from 'react'
 
-import { Collapsible } from '@base-ui/react/collapsible'
 import { CaretDownIcon } from '@phosphor-icons/react'
 import { type VariantProps, cva } from 'class-variance-authority'
 
@@ -21,27 +20,13 @@ type AccordionType = 'single' | 'multiple'
 type AccordionEmphasis = 'default' | 'subtle' | 'subtler' | null
 
 interface AccordionContextValue {
-  type: AccordionType
+  name: string | undefined
   emphasis: AccordionEmphasis
-  openItems: string[]
-  toggle: (value: string) => void
 }
 
 const AccordionContext = createContext<AccordionContextValue>({
-  type: 'single',
-  emphasis: 'default',
-  openItems: [],
-  toggle: () => {}
-})
-
-interface ItemContextValue {
-  value: string
-  isOpen: boolean
-}
-
-const ItemContext = createContext<ItemContextValue>({
-  value: '',
-  isOpen: false
+  name: undefined,
+  emphasis: 'default'
 })
 
 // --- Variants ---
@@ -91,23 +76,12 @@ function AccordionRoot({
   className,
   ...props
 }: AccordionProps) {
-  const [openItems, setOpenItems] = useState<string[]>([])
-
-  const toggle = useCallback(
-    (value: string) => {
-      setOpenItems((prev) => {
-        if (prev.includes(value)) {
-          return prev.filter((v) => v !== value)
-        }
-        return type === 'single' ? [value] : [...prev, value]
-      })
-    },
-    [type]
-  )
+  const id = useId()
+  const name = type === 'single' ? `accordion-${id}` : undefined
 
   const contextValue = useMemo(
-    () => ({ type, emphasis: emphasis ?? 'default', openItems, toggle }),
-    [type, emphasis, openItems, toggle]
+    () => ({ name, emphasis: emphasis ?? 'default' }),
+    [name, emphasis]
   )
 
   return (
@@ -122,31 +96,24 @@ function AccordionRoot({
 
 AccordionRoot.displayName = 'Accordion'
 
-interface AccordionItemProps extends ComponentProps<'div'> {
-  value: string
-}
+type AccordionItemProps = ComponentProps<'details'>
 
-function AccordionItem({
-  value,
-  className,
-  children,
-  ...props
-}: AccordionItemProps) {
-  const { emphasis, openItems, toggle } = useContext(AccordionContext)
-  const isOpen = openItems.includes(value)
+function AccordionItem({ className, children, ...props }: AccordionItemProps) {
+  const { name, emphasis } = useContext(AccordionContext)
   const itemEmphasis = accordionItemVariants[emphasis ?? 'default']
 
   return (
-    <ItemContext.Provider value={{ value, isOpen }}>
-      <Collapsible.Root
-        open={isOpen}
-        onOpenChange={() => toggle(value)}
-        className={cn('overflow-hidden', itemEmphasis, className)}
-        {...props}
-      >
-        {children}
-      </Collapsible.Root>
-    </ItemContext.Provider>
+    <details
+      name={name}
+      className={cn(
+        'group/item is-disclosure-animated',
+        itemEmphasis,
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </details>
   )
 }
 
@@ -155,22 +122,54 @@ AccordionItem.displayName = 'Accordion.Item'
 function AccordionTrigger({
   className,
   children,
+  onClick,
   ...props
-}: ComponentProps<'button'>) {
+}: ComponentProps<'summary'>) {
+  const handleClick = useCallback(
+    (e: React.MouseEvent<HTMLElement>) => {
+      onClick?.(e)
+
+      // Only measure for browsers without interpolate-size (Safari)
+      if (
+        typeof CSS !== 'undefined' &&
+        CSS.supports?.('interpolate-size', 'allow-keywords')
+      )
+        return
+
+      const details = e.currentTarget.closest('details')
+      if (!details || details.open) return
+
+      // Temporarily open to measure content, then close before browser toggles
+      details.open = true
+      const content = details.querySelector(
+        ':scope > :not(summary)'
+      ) as HTMLElement
+      if (content?.scrollHeight) {
+        details.style.setProperty(
+          '--content-height',
+          `${content.scrollHeight}px`
+        )
+      }
+      details.open = false
+    },
+    [onClick]
+  )
+
   return (
-    <Collapsible.Trigger
+    <summary
       className={cn(
-        'group flex w-full cursor-pointer items-center justify-between px-4 py-3 text-left font-medium text-default transition-colors hover:bg-subtle',
+        'flex w-full cursor-pointer list-none items-center justify-between px-4 py-3 text-left font-medium text-default transition-colors hover:bg-subtle [&::-webkit-details-marker]:hidden',
         className
       )}
+      onClick={handleClick}
       {...props}
     >
       {children}
       <CaretDownIcon
         weight='bold'
-        className='duration-moderate size-4 shrink-0 text-subtle transition-transform group-data-[panel-open]:rotate-180'
+        className='duration-moderate size-4 shrink-0 text-subtle transition-transform ease-enter group-open/item:rotate-180'
       />
-    </Collapsible.Trigger>
+    </summary>
   )
 }
 
@@ -182,15 +181,12 @@ function AccordionContent({
   ...props
 }: ComponentProps<'div'>) {
   return (
-    <Collapsible.Panel
-      className={cn(
-        'duration-moderate h-[var(--collapsible-panel-height)] overflow-hidden px-4 pt-1 pb-3 transition-[height] ease-enter data-[ending-style]:h-0 data-[starting-style]:h-0',
-        className
-      )}
+    <div
+      className={cn('min-h-0 overflow-hidden px-4 pt-1 pb-3', className)}
       {...props}
     >
       {children}
-    </Collapsible.Panel>
+    </div>
   )
 }
 

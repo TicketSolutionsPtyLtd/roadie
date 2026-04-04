@@ -9,7 +9,7 @@ import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # Accordion
 
-Vertically stacked collapsible content sections.
+Vertically stacked collapsible content sections built on native `<details>`/`<summary>` elements with CSS-animated expand/collapse.
 
 ## Import
 
@@ -24,23 +24,27 @@ import { Accordion } from '@oztix/roadie-components'
 Only one item can be open at a time in single mode (the default).
 
 ```tsx-live
-<Accordion type='single'>
-  <Accordion.Item value='item-1'>
+<Accordion>
+  <Accordion.Item>
     <Accordion.Trigger>What is Roadie?</Accordion.Trigger>
     <Accordion.Content>
-      <p>Roadie is a comprehensive design system for building consistent user interfaces.</p>
+      <p>Roadie is a comprehensive design system built for Oztix applications. It provides CSS design tokens, a React component library, and documentation to help teams build consistent, accessible user interfaces across products.</p>
     </Accordion.Content>
   </Accordion.Item>
-  <Accordion.Item value='item-2'>
+  <Accordion.Item>
     <Accordion.Trigger>How do I install it?</Accordion.Trigger>
     <Accordion.Content>
-      <p>Install via npm or pnpm from the @oztix/roadie-components package.</p>
+      <div className='grid gap-2'>
+        <p>Install the packages via pnpm:</p>
+        <p className='text-sm text-subtle'>pnpm add @oztix/roadie-core @oztix/roadie-components</p>
+        <p>Then import the CSS foundation in your app's global stylesheet and add the source directive so Tailwind scans the component dist for class strings.</p>
+      </div>
     </Accordion.Content>
   </Accordion.Item>
-  <Accordion.Item value='item-3'>
+  <Accordion.Item>
     <Accordion.Trigger>Is it accessible?</Accordion.Trigger>
     <Accordion.Content>
-      <p>Yes, all components follow WAI-ARIA guidelines for accessibility.</p>
+      <p>Yes. Interactive components use Base UI primitives that follow WAI-ARIA guidelines. The accordion itself uses native details and summary elements, giving you built-in keyboard navigation and screen reader support with no extra JavaScript.</p>
     </Accordion.Content>
   </Accordion.Item>
 </Accordion>
@@ -54,14 +58,14 @@ Use the `emphasis` prop to control the visual weight of the accordion.
 <div className='grid gap-6'>
   <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Default</p>
-    <Accordion type='single' emphasis='default'>
-      <Accordion.Item value='q1'>
+    <Accordion emphasis='default'>
+      <Accordion.Item>
         <Accordion.Trigger>First question</Accordion.Trigger>
         <Accordion.Content>
           <p>Answer to the first question.</p>
         </Accordion.Content>
       </Accordion.Item>
-      <Accordion.Item value='q2'>
+      <Accordion.Item>
         <Accordion.Trigger>Second question</Accordion.Trigger>
         <Accordion.Content>
           <p>Answer to the second question.</p>
@@ -71,14 +75,14 @@ Use the `emphasis` prop to control the visual weight of the accordion.
   </div>
   <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Subtle</p>
-    <Accordion type='single' emphasis='subtle'>
-      <Accordion.Item value='q1'>
+    <Accordion emphasis='subtle'>
+      <Accordion.Item>
         <Accordion.Trigger>First question</Accordion.Trigger>
         <Accordion.Content>
           <p>Answer to the first question.</p>
         </Accordion.Content>
       </Accordion.Item>
-      <Accordion.Item value='q2'>
+      <Accordion.Item>
         <Accordion.Trigger>Second question</Accordion.Trigger>
         <Accordion.Content>
           <p>Answer to the second question.</p>
@@ -88,14 +92,14 @@ Use the `emphasis` prop to control the visual weight of the accordion.
   </div>
   <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Subtler</p>
-    <Accordion type='single' emphasis='subtler'>
-      <Accordion.Item value='q1'>
+    <Accordion emphasis='subtler'>
+      <Accordion.Item>
         <Accordion.Trigger>First question</Accordion.Trigger>
         <Accordion.Content>
           <p>Answer to the first question.</p>
         </Accordion.Content>
       </Accordion.Item>
-      <Accordion.Item value='q2'>
+      <Accordion.Item>
         <Accordion.Trigger>Second question</Accordion.Trigger>
         <Accordion.Content>
           <p>Answer to the second question.</p>
@@ -112,28 +116,28 @@ Set the color context with the `intent` prop.
 
 ```tsx-live
 <div className='grid gap-6'>
-  <Accordion type='single' intent='accent'>
-    <Accordion.Item value='q1'>
+  <Accordion intent='accent'>
+    <Accordion.Item>
       <Accordion.Trigger>Accent intent</Accordion.Trigger>
       <Accordion.Content>
         <p>This accordion uses the accent color palette.</p>
       </Accordion.Content>
     </Accordion.Item>
-    <Accordion.Item value='q2'>
+    <Accordion.Item>
       <Accordion.Trigger>Second item</Accordion.Trigger>
       <Accordion.Content>
         <p>Intent cascades to all children.</p>
       </Accordion.Content>
     </Accordion.Item>
   </Accordion>
-  <Accordion type='single' intent='danger' emphasis='subtle'>
-    <Accordion.Item value='q1'>
+  <Accordion intent='danger' emphasis='subtle'>
+    <Accordion.Item>
       <Accordion.Trigger>Danger intent with subtle emphasis</Accordion.Trigger>
       <Accordion.Content>
         <p>Intents work with all emphasis levels.</p>
       </Accordion.Content>
     </Accordion.Item>
-    <Accordion.Item value='q2'>
+    <Accordion.Item>
       <Accordion.Trigger>Second item</Accordion.Trigger>
       <Accordion.Content>
         <p>Intent cascades to all children.</p>
@@ -152,13 +156,13 @@ Use `type='multiple'` to allow multiple items open simultaneously.
   <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Single (default)</p>
     <Accordion type='single'>
-      <Accordion.Item value='a'>
+      <Accordion.Item>
         <Accordion.Trigger>Section A</Accordion.Trigger>
         <Accordion.Content>
           <p>Content for section A.</p>
         </Accordion.Content>
       </Accordion.Item>
-      <Accordion.Item value='b'>
+      <Accordion.Item>
         <Accordion.Trigger>Section B</Accordion.Trigger>
         <Accordion.Content>
           <p>Content for section B.</p>
@@ -169,13 +173,13 @@ Use `type='multiple'` to allow multiple items open simultaneously.
   <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Multiple</p>
     <Accordion type='multiple'>
-      <Accordion.Item value='a'>
+      <Accordion.Item>
         <Accordion.Trigger>Section A</Accordion.Trigger>
         <Accordion.Content>
           <p>Content for section A.</p>
         </Accordion.Content>
       </Accordion.Item>
-      <Accordion.Item value='b'>
+      <Accordion.Item>
         <Accordion.Trigger>Section B</Accordion.Trigger>
         <Accordion.Content>
           <p>Content for section B.</p>
@@ -191,8 +195,8 @@ Use `type='multiple'` to allow multiple items open simultaneously.
 Accordion is a compound component with `Accordion.Item`, `Accordion.Trigger`, and `Accordion.Content`.
 
 ```tsx-live
-<Accordion type='single'>
-  <Accordion.Item value='item-1'>
+<Accordion>
+  <Accordion.Item>
     <Accordion.Trigger>What is Roadie?</Accordion.Trigger>
     <Accordion.Content>
       <p>Roadie is a comprehensive design system for building consistent user interfaces.</p>
