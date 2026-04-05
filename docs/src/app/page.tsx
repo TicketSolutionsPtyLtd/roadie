@@ -161,6 +161,47 @@ export default function Home() {
               </div>
             }
           />
+          <FoundationCard
+            href='/foundations/accessibility'
+            title='Accessibility'
+            description='Inclusive design and semantic HTML'
+            preview={
+              <div className='flex items-center gap-3'>
+                <WheelchairMotionIcon
+                  weight='bold'
+                  className='size-5 text-subtle'
+                />
+                <div className='outline-accent-9 h-5 w-12 rounded-md outline outline-2 outline-offset-2' />
+              </div>
+            }
+          />
+          <FoundationCard
+            href='/foundations/motion'
+            title='Motion'
+            description='Duration, easing, and animation tokens'
+            preview={
+              <div className='grid gap-1'>
+                {['w-4', 'w-8', 'w-14', 'w-full'].map((w) => (
+                  <div
+                    key={w}
+                    className={`h-1.5 rounded-full bg-subtle ${w}`}
+                  />
+                ))}
+              </div>
+            }
+          />
+          <FoundationCard
+            href='/foundations/performance'
+            title='Performance'
+            description='Speed principles and optimisation'
+            preview={
+              <div className='flex items-end gap-1'>
+                {['h-2', 'h-3', 'h-4', 'h-5', 'h-6'].map((h) => (
+                  <div key={h} className={`w-3 rounded-xs bg-subtle ${h}`} />
+                ))}
+              </div>
+            }
+          />
         </div>
       </section>
 
