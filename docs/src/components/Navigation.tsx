@@ -26,7 +26,7 @@ function Logo() {
   return (
     <Link
       href='/'
-      className='focus:outline-accent-9 relative block aspect-square w-full focus:rounded focus:outline-2 focus:outline-offset-2'
+      className='relative block aspect-square w-full focus:rounded focus:outline-2 focus:outline-offset-2 focus:outline-accent-9'
       aria-label='Go to Roadie home page'
       role='banner'
     >
@@ -82,7 +82,7 @@ function NavigationGroup({
       <Link
         href={item.href || '#'}
         onClick={onNavigate}
-        className={`hover:text-accent-11 px-2 text-sm font-semibold no-underline transition-colors ${
+        className={`px-2 text-sm font-semibold no-underline transition-colors hover:text-accent-11 ${
           isActiveParent ? 'text-normal intent-accent' : 'text-normal'
         }`}
       >
@@ -109,9 +109,9 @@ function NavigationGroup({
                 <Link
                   href={subItem.href || '#'}
                   onClick={onNavigate}
-                  className={`hover:bg-accent-3 hover:text-accent-11 block rounded-sm px-2 py-1 text-sm no-underline transition-all ${
+                  className={`block rounded-sm px-2 py-1 text-sm no-underline transition-all hover:bg-accent-3 hover:text-accent-11 ${
                     isActive
-                      ? 'text-accent-11 font-semibold'
+                      ? 'font-semibold text-accent-11'
                       : 'font-normal text-subtle'
                   }`}
                 >

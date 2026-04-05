@@ -1,0 +1,91 @@
+/* ═══════════════════════════════════════════════════════════
+   Button Utilities
+   Reusable button styles for <button>, <a>, or any element.
+   Pair with is-interactive + emphasis-* + intent-* utilities.
+   ═══════════════════════════════════════════════════════════ */
+
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  border-radius: 9999px;
+  font-weight: 700;
+  user-select: none;
+  gap: 0.375rem;
+  text-decoration: none;
+
+  & svg {
+    flex-shrink: 0;
+  }
+  & svg:not([class*='size-']) {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+/* ─── Text button sizes ─── */
+
+@utility btn-xs {
+  height: 1.5rem;
+  min-width: 1.5rem;
+  font-size: 0.75rem;
+  padding: 0.125rem 0.625rem;
+
+  & svg:not([class*='size-']) {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+}
+
+@utility btn-sm {
+  height: 2rem;
+  min-width: 2rem;
+  font-size: 0.875rem;
+  padding: 0.25rem 0.75rem;
+}
+
+@utility btn-md {
+  height: 2.5rem;
+  min-width: 2.5rem;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+}
+
+@utility btn-lg {
+  height: 3rem;
+  min-width: 3rem;
+  font-size: 1rem;
+  padding: 0.5rem 1.5rem;
+}
+
+/* ─── Icon-only button sizes ─── */
+
+@utility btn-icon-xs {
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+
+  & svg:not([class*='size-']) {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+}
+
+@utility btn-icon-sm {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+}
+
+@utility btn-icon-md {
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+}
+
+@utility btn-icon-lg {
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+}

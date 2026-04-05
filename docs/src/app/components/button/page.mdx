@@ -109,6 +109,20 @@ Hover and focus states use the intent color scale automatically via `is-interact
 </div>
 ```
 
+### As a link
+
+Use [LinkButton](/components/link-button) and LinkIconButton when you need button styling on a link. They accept an `as` prop for custom components like Next.js `Link`.
+
+```tsx-live
+<div className='flex flex-row flex-wrap items-center gap-2'>
+  <LinkButton href='#' emphasis='strong' intent='accent'>Link button</LinkButton>
+  <LinkButton href='#' emphasis='normal'>Normal link</LinkButton>
+  <LinkIconButton href='#' emphasis='subtle' aria-label='Settings'>
+    <Gear weight='bold' />
+  </LinkIconButton>
+</div>
+```
+
 ## Accessibility
 
 - **Keyboard**: `Enter` or `Space` activates the button. Focus is indicated by a semi-transparent ring via `is-interactive`.

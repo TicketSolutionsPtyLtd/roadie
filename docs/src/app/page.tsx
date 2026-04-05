@@ -171,7 +171,7 @@ export default function Home() {
                   weight='bold'
                   className='size-5 text-subtle'
                 />
-                <div className='outline-accent-9 h-5 w-12 rounded-md outline outline-2 outline-offset-2' />
+                <div className='h-5 w-12 rounded-md outline outline-2 outline-offset-2 outline-accent-9' />
               </div>
             }
           />
@@ -403,7 +403,7 @@ function FeatureCard({
 }) {
   return (
     <div className='grid gap-3'>
-      <div className='text-accent-11 flex gap-3'>
+      <div className='flex gap-3 text-accent-11'>
         {icon}
         <h3 className='text-display-ui-5 text-strong'>{title}</h3>
       </div>

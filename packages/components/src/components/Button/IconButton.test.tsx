@@ -10,7 +10,7 @@ describe('IconButton', () => {
     const button = getByRole('button')
     expect(button).toBeInTheDocument()
     expect(button.tagName.toLowerCase()).toBe('button')
-    expect(button).toHaveClass('size-10') // icon-md default
+    expect(button).toHaveClass('btn-icon-md')
   })
 
   it('renders with different emphasis', () => {

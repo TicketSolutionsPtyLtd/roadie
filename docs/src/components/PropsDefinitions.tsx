@@ -100,7 +100,7 @@ function PropsList({
                 {name}
                 {!prop.required && <span className='text-subtle'>?</span>}
               </span>
-              <span className='text-info-11 font-mono text-sm'>
+              <span className='font-mono text-sm text-info-11'>
                 {formatTypeValues(prop)}
               </span>
             </div>

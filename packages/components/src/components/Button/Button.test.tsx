@@ -39,15 +39,15 @@ describe('Button', () => {
   it('renders with different sizes', () => {
     const { rerender, getByText } = render(<Button size='sm'>Small</Button>)
     let button = getByText('Small')
-    expect(button).toHaveClass('h-8')
+    expect(button).toHaveClass('btn-sm')
 
     rerender(<Button size='md'>Medium</Button>)
     button = getByText('Medium')
-    expect(button).toHaveClass('h-10')
+    expect(button).toHaveClass('btn-md')
 
     rerender(<Button size='lg'>Large</Button>)
     button = getByText('Large')
-    expect(button).toHaveClass('h-12')
+    expect(button).toHaveClass('btn-lg')
   })
 
   it('renders with different intents', () => {
@@ -118,7 +118,7 @@ describe('Button', () => {
     expect(button).toHaveClass(
       'emphasis-strong',
       'intent-accent',
-      'h-12',
+      'btn-lg',
       'custom-class'
     )
   })

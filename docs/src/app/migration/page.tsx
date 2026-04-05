@@ -75,7 +75,12 @@ const newComponents = [
   { name: 'Fieldset', description: 'Form group with legend' },
   { name: 'Accordion', description: 'Collapsible sections' },
   { name: 'Breadcrumb', description: 'Navigation breadcrumbs' },
-  { name: 'Separator', description: 'Visual divider' }
+  { name: 'Separator', description: 'Visual divider' },
+  {
+    name: 'LinkButton',
+    description: 'Link styled as a button (replaces Button as/asChild)'
+  },
+  { name: 'LinkIconButton', description: 'Icon-only link styled as a button' }
 ]
 
 export default function MigrationPage() {
@@ -447,6 +452,46 @@ module.exports = {
 <Button intent='brand' emphasis='strong'>
   Save
 </Button>`}</code>
+            </pre>
+          </div>
+        </div>
+
+        {/* Button as link */}
+        <div className='grid gap-4'>
+          <h3 className='text-display-ui-4 text-strong'>
+            Button as link → LinkButton
+          </h3>
+          <p className='text-sm text-subtle'>
+            In v1, you could use <Code>{'asChild'}</Code> or the{' '}
+            <Code>{'as'}</Code> prop on Button to render as a link, or apply
+            button recipe styles to an anchor. In v2, use the dedicated{' '}
+            <Code>{'LinkButton'}</Code> and <Code>{'LinkIconButton'}</Code>{' '}
+            components instead. They accept an <Code>{'as'}</Code> prop for
+            custom link components like Next.js <Code>{'Link'}</Code>.
+          </p>
+          <div className='grid grid-cols-2 gap-3'>
+            <pre className='overflow-x-auto rounded-lg bg-raised p-3 text-xs'>
+              <code>{`{/* v1 — asChild or as prop */}
+<Button asChild colorPalette='primary'>
+  <a href='/about'>About</a>
+</Button>
+
+{/* v1 — recipe on anchor */}
+<a href='/about' className={button()}>
+  About
+</a>`}</code>
+            </pre>
+            <pre className='overflow-x-auto rounded-lg bg-raised p-3 text-xs'>
+              <code>{`{/* v2 — LinkButton */}
+<LinkButton href='/about' intent='brand'
+  emphasis='strong'>
+  About
+</LinkButton>
+
+{/* v2 — with Next.js Link */}
+<LinkButton as={Link} href='/about'>
+  About
+</LinkButton>`}</code>
             </pre>
           </div>
         </div>

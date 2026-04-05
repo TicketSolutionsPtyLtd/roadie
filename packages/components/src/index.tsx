@@ -3,6 +3,11 @@ export {
   IconButton,
   type IconButtonProps
 } from './components/Button/IconButton'
+export { LinkButton, type LinkButtonProps } from './components/LinkButton'
+export {
+  LinkIconButton,
+  type LinkIconButtonProps
+} from './components/LinkButton'
 export { Code, codeVariants, type CodeProps } from './components/Code'
 export { Highlight, type HighlightProps } from './components/Highlight'
 export { Mark, markVariants, type MarkProps } from './components/Mark'

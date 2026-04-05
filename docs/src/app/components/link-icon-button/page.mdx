@@ -1,0 +1,121 @@
+export const metadata = {
+  title: 'LinkIconButton',
+  description: 'An icon-only link styled as a button',
+  status: 'beta',
+  category: 'Actions'
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# LinkIconButton
+
+An icon-only link styled as a button. Shares all visual styles with [IconButton](/components/icon-button).
+
+## Import
+
+```tsx
+import { LinkIconButton } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Default
+
+Always provide an `aria-label` since there is no visible text.
+
+```tsx-live
+<LinkIconButton href='#' aria-label='Settings'>
+  <Gear weight='bold' />
+</LinkIconButton>
+```
+
+### Emphasis
+
+```tsx-live
+<div className='flex flex-row flex-wrap gap-2'>
+  <LinkIconButton href='#' aria-label='Strong' emphasis='strong'>
+    <Star weight='bold' />
+  </LinkIconButton>
+  <LinkIconButton href='#' aria-label='Normal' emphasis='normal'>
+    <Star weight='bold' />
+  </LinkIconButton>
+  <LinkIconButton href='#' aria-label='Subtle' emphasis='subtle'>
+    <Star weight='bold' />
+  </LinkIconButton>
+  <LinkIconButton href='#' aria-label='Subtler' emphasis='subtler'>
+    <Star weight='bold' />
+  </LinkIconButton>
+</div>
+```
+
+### Sizes
+
+The default size is `icon-md`. All sizes maintain square proportions.
+
+```tsx-live
+<div className='flex flex-row flex-wrap items-center gap-2'>
+  <LinkIconButton href='#' aria-label='Extra small' size='icon-xs'>
+    <Heart weight='bold' />
+  </LinkIconButton>
+  <LinkIconButton href='#' aria-label='Small' size='icon-sm'>
+    <Heart weight='bold' />
+  </LinkIconButton>
+  <LinkIconButton href='#' aria-label='Medium' size='icon-md'>
+    <Heart weight='bold' />
+  </LinkIconButton>
+  <LinkIconButton href='#' aria-label='Large' size='icon-lg'>
+    <Heart weight='bold' />
+  </LinkIconButton>
+</div>
+```
+
+### Intents
+
+```tsx-live
+<div className='grid gap-2'>
+  <div className='flex flex-row flex-wrap gap-2'>
+    <LinkIconButton href='#' aria-label='Neutral' emphasis='strong' intent='neutral'><CheckCircle weight='bold' /></LinkIconButton>
+    <LinkIconButton href='#' aria-label='Accent' emphasis='strong' intent='accent'><CheckCircle weight='bold' /></LinkIconButton>
+    <LinkIconButton href='#' aria-label='Brand' emphasis='strong' intent='brand'><CheckCircle weight='bold' /></LinkIconButton>
+    <LinkIconButton href='#' aria-label='Info' emphasis='strong' intent='info'><CheckCircle weight='bold' /></LinkIconButton>
+    <LinkIconButton href='#' aria-label='Success' emphasis='strong' intent='success'><CheckCircle weight='bold' /></LinkIconButton>
+    <LinkIconButton href='#' aria-label='Warning' emphasis='strong' intent='warning'><CheckCircle weight='bold' /></LinkIconButton>
+    <LinkIconButton href='#' aria-label='Danger' emphasis='strong' intent='danger'><CheckCircle weight='bold' /></LinkIconButton>
+  </div>
+  <div className='flex flex-row flex-wrap gap-2'>
+    <LinkIconButton href='#' aria-label='Neutral' emphasis='normal' intent='neutral'><CheckCircle weight='bold' /></LinkIconButton>
+    <LinkIconButton href='#' aria-label='Accent' emphasis='normal' intent='accent'><CheckCircle weight='bold' /></LinkIconButton>
+    <LinkIconButton href='#' aria-label='Brand' emphasis='normal' intent='brand'><CheckCircle weight='bold' /></LinkIconButton>
+    <LinkIconButton href='#' aria-label='Info' emphasis='normal' intent='info'><CheckCircle weight='bold' /></LinkIconButton>
+    <LinkIconButton href='#' aria-label='Success' emphasis='normal' intent='success'><CheckCircle weight='bold' /></LinkIconButton>
+    <LinkIconButton href='#' aria-label='Warning' emphasis='normal' intent='warning'><CheckCircle weight='bold' /></LinkIconButton>
+    <LinkIconButton href='#' aria-label='Danger' emphasis='normal' intent='danger'><CheckCircle weight='bold' /></LinkIconButton>
+  </div>
+</div>
+```
+
+### With custom component
+
+Use the `as` prop to render with a custom component like Next.js `Link`.
+
+```tsx
+import Link from 'next/link'
+
+<LinkIconButton as={Link} href='/settings' aria-label='Settings'>
+  <GearIcon weight='bold' />
+</LinkIconButton>
+```
+
+## Guidelines
+
+- Always provide an `aria-label` to describe the action since there is no visible text.
+- For links with visible text, use [LinkButton](/components/link-button) instead.
+- The `as` prop accepts any component that forwards `className` and `href` (e.g., Next.js `Link`, React Router `Link`).
+
+## Accessibility
+
+- **Keyboard**: `Enter` activates the link. Focus is indicated by a semi-transparent ring via `is-interactive`.
+- **ARIA**: Renders as a native `<a>` element by default. Screen readers announce it as a link, not a button.
+- Requires an `aria-label` prop (enforced by TypeScript) since there is no visible text.
+
+<PropsDefinitions componentPath='packages/components/src/components/LinkButton/LinkIconButton.tsx' />
