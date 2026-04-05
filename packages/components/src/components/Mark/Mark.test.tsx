@@ -9,7 +9,7 @@ describe('Mark', () => {
     const mark = container.querySelector('mark')
     expect(mark).toBeInTheDocument()
     expect(mark).toHaveTextContent('Marked text')
-    expect(mark).not.toHaveClass('intent-info') // inherits from parent context
+    expect(mark).toHaveClass('intent-info') // default intent
   })
 
   it('renders with different intents', () => {
@@ -26,10 +26,10 @@ describe('Mark', () => {
     expect(mark).toHaveClass('intent-danger')
   })
 
-  it('applies emphasis classes', () => {
+  it('applies mark color classes', () => {
     const { container } = render(<Mark>Styled</Mark>)
     const mark = container.querySelector('mark')
-    expect(mark).toHaveClass('bg-subtle', 'text-normal')
+    expect(mark).toHaveClass('bg-mark', 'text-mark')
   })
 
   it('applies custom className', () => {

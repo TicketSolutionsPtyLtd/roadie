@@ -6,7 +6,7 @@ import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-export const markVariants = cva('rounded-sm px-[0.2em] py-[0.05em]', {
+export const markVariants = cva('px-[0.2em] py-[0.05em]', {
   variants: {
     intent: {
       neutral: 'intent-neutral',
@@ -18,7 +18,7 @@ export const markVariants = cva('rounded-sm px-[0.2em] py-[0.05em]', {
       info: 'intent-info'
     }
   },
-  defaultVariants: {}
+  defaultVariants: { intent: 'info' }
 })
 
 export interface MarkProps
@@ -28,10 +28,7 @@ export interface MarkProps
 export function Mark({ className, intent, ...props }: MarkProps) {
   return (
     <mark
-      className={cn(
-        markVariants({ intent, className }),
-        'bg-subtle text-normal'
-      )}
+      className={cn(markVariants({ intent, className }), 'bg-mark text-mark')}
       {...props}
     />
   )

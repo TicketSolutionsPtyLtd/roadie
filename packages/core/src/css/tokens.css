@@ -21,6 +21,7 @@
   --background-color-inverted: var(--intent-bg-inverted);
   --background-color-raised: var(--intent-bg-raised);
   --background-color-sunken: var(--intent-bg-sunken);
+  --background-color-mark: var(--intent-mark-bg);
 
   /* Text colors: text-normal, text-subtle, etc. */
   --text-color-normal: var(--intent-text-normal);
@@ -28,6 +29,7 @@
   --text-color-subtle: var(--intent-text-subtle);
   --text-color-strong: var(--intent-text-strong);
   --text-color-inverted: var(--intent-text-inverted);
+  --text-color-mark: var(--intent-mark-text);
 
   /* Borders: border-subtle, border-b-subtler, divide-subtle, etc. */
   --border-color-subtler: var(--intent-border-subtler);
@@ -40,12 +42,12 @@
 /* --- Register non-color tokens via @theme --- */
 @theme {
   /* ═══ Illustration colors (fixed — do NOT change in dark mode) ═══ */
-  --color-illustration-outline: #ffffff;
-  --color-illustration-face: #e1d1fb;
-  --color-illustration-detail: #ffc3a8;
-  --color-illustration-shadow: #0191eb;
-  --color-illustration-highlight: #c2dffb;
-  --color-illustration-stroke: #151e25;
+  --color-illustration-outline: var(--color-neutral-light-0, #ffffff);
+  --color-illustration-face: var(--color-info-light-5, #e1d1fb);
+  --color-illustration-detail: var(--color-brand-secondary-light-5, #ffc3a8);
+  --color-illustration-shadow: var(--color-brand-9, #0191eb);
+  --color-illustration-highlight: var(--color-brand-light-5, #c2dffb);
+  --color-illustration-stroke: var(--color-neutral-light-12, #16202a);
 
   /* ═══ Font families ═══ */
   --font-sans: 'Intermission', 'Inter', ui-sans-serif, system-ui, sans-serif;
@@ -106,125 +108,150 @@
    Light Mode — Hex Fallbacks (all browsers)
    ═══════════════════════════════════════════════════════════ */
 :root {
-  --color-neutral-0: #ffffff;
+  --color-neutral-light-0: #ffffff;
+  --color-neutral-0: var(--color-neutral-light-0);
   --color-neutral-1: #fafcff;
   --color-neutral-2: #f5fafe;
   --color-neutral-3: #eaf1f7;
   --color-neutral-4: #e1e9f1;
-  --color-neutral-5: #d7e2ed;
+  --color-neutral-light-5: #d7e2ed;
+  --color-neutral-5: var(--color-neutral-light-5);
   --color-neutral-6: #cfdce8;
   --color-neutral-7: #c1d1e1;
   --color-neutral-8: #a9bfd3;
   --color-neutral-9: #7b90a5;
   --color-neutral-10: #718598;
   --color-neutral-11: #566676;
-  --color-neutral-12: #16202a;
-  --color-neutral-13: #0d1318;
+  --color-neutral-light-12: #16202a;
+  --color-neutral-12: var(--color-neutral-light-12);
+  --color-neutral-light-13: #0d1318;
+  --color-neutral-13: var(--color-neutral-light-13);
 
   --color-brand-0: #ffffff;
   --color-brand-1: #f8fafc;
   --color-brand-2: #f1f6fb;
   --color-brand-3: #e4f0fb;
   --color-brand-4: #d4e9fd;
-  --color-brand-5: #c2dffb;
+  --color-brand-light-5: #c2dffb;
+  --color-brand-5: var(--color-brand-light-5);
   --color-brand-6: #add2f5;
   --color-brand-7: #92c1ee;
   --color-brand-8: #68aae6;
   --color-brand-9: #0191eb;
   --color-brand-10: #0084d9;
   --color-brand-11: #0172c9;
-  --color-brand-12: #04365b;
-  --color-brand-13: #00172d;
+  --color-brand-light-12: #04365b;
+  --color-brand-12: var(--color-brand-light-12);
+  --color-brand-light-13: #00172d;
+  --color-brand-13: var(--color-brand-light-13);
 
   --color-brand-secondary-0: #ffffff;
   --color-brand-secondary-1: #fcf9f8;
   --color-brand-secondary-2: #fef2ee;
   --color-brand-secondary-3: #ffe6db;
   --color-brand-secondary-4: #ffd3bd;
-  --color-brand-secondary-5: #ffc3a8;
+  --color-brand-secondary-light-5: #ffc3a8;
+  --color-brand-secondary-5: var(--color-brand-secondary-light-5);
   --color-brand-secondary-6: #ffb290;
   --color-brand-secondary-7: #ff9e78;
   --color-brand-secondary-8: #f78255;
   --color-brand-secondary-9: #ff8a5c;
   --color-brand-secondary-10: #f37f51;
   --color-brand-secondary-11: #bf501f;
-  --color-brand-secondary-12: #5f270f;
-  --color-brand-secondary-13: #2b0a00;
+  --color-brand-secondary-light-12: #5f270f;
+  --color-brand-secondary-12: var(--color-brand-secondary-light-12);
+  --color-brand-secondary-light-13: #2b0a00;
+  --color-brand-secondary-13: var(--color-brand-secondary-light-13);
 
   --color-accent-0: #ffffff;
   --color-accent-1: #f8fafc;
   --color-accent-2: #f1f6fb;
   --color-accent-3: #e4f0fb;
   --color-accent-4: #d4e9fd;
-  --color-accent-5: #c2dffb;
+  --color-accent-light-5: #c2dffb;
+  --color-accent-5: var(--color-accent-light-5);
   --color-accent-6: #add2f5;
   --color-accent-7: #92c1ee;
   --color-accent-8: #68aae6;
   --color-accent-9: #0191eb;
   --color-accent-10: #0084d9;
   --color-accent-11: #0172c9;
-  --color-accent-12: #04365b;
-  --color-accent-13: #00172d;
+  --color-accent-light-12: #04365b;
+  --color-accent-12: var(--color-accent-light-12);
+  --color-accent-light-13: #00172d;
+  --color-accent-13: var(--color-accent-light-13);
 
   --color-danger-0: #ffffff;
   --color-danger-1: #fbf9f8;
   --color-danger-2: #fdf2f1;
   --color-danger-3: #ffe6e2;
   --color-danger-4: #ffd2c9;
-  --color-danger-5: #ffc2b7;
+  --color-danger-light-5: #ffc2b7;
+  --color-danger-5: var(--color-danger-light-5);
   --color-danger-6: #ffb4a9;
   --color-danger-7: #f5a296;
   --color-danger-8: #ea897c;
   --color-danger-9: #ff6b5c;
   --color-danger-10: #f25f51;
   --color-danger-11: #cc3d33;
-  --color-danger-12: #592b25;
-  --color-danger-13: #2c120e;
+  --color-danger-light-12: #592b25;
+  --color-danger-12: var(--color-danger-light-12);
+  --color-danger-light-13: #2c120e;
+  --color-danger-13: var(--color-danger-light-13);
 
   --color-success-0: #ffffff;
   --color-success-1: #f5fbfa;
   --color-success-2: #edf9f7;
   --color-success-3: #d4f6f1;
   --color-success-4: #bbf2ea;
-  --color-success-5: #a1eae0;
+  --color-success-light-5: #a1eae0;
+  --color-success-5: var(--color-success-light-5);
   --color-success-6: #86ded3;
   --color-success-7: #61cec1;
   --color-success-8: #01baab;
   --color-success-9: #00c2b3;
   --color-success-10: #00b6a8;
   --color-success-11: #01766b;
-  --color-success-12: #02453f;
-  --color-success-13: #00201d;
+  --color-success-light-12: #02453f;
+  --color-success-12: var(--color-success-light-12);
+  --color-success-light-13: #00201d;
+  --color-success-13: var(--color-success-light-13);
 
   --color-warning-0: #ffffff;
   --color-warning-1: #fefdf9;
   --color-warning-2: #fffae6;
   --color-warning-3: #fff4ba;
   --color-warning-4: #ffeb9e;
-  --color-warning-5: #ffe077;
+  --color-warning-light-5: #ffe077;
+  --color-warning-5: var(--color-warning-light-5);
   --color-warning-6: #ffd04f;
   --color-warning-7: #f0c250;
   --color-warning-8: #deaa00;
   --color-warning-9: #e0ac00;
   --color-warning-10: #d5a101;
   --color-warning-11: #9b7102;
-  --color-warning-12: #483a1a;
-  --color-warning-13: #221906;
+  --color-warning-light-12: #483a1a;
+  --color-warning-12: var(--color-warning-light-12);
+  --color-warning-light-13: #221906;
+  --color-warning-13: var(--color-warning-light-13);
 
   --color-info-0: #ffffff;
   --color-info-1: #faf9fc;
   --color-info-2: #f7f4fc;
   --color-info-3: #f1e9fd;
   --color-info-4: #eadefd;
-  --color-info-5: #e1d1fb;
+  --color-info-light-5: #e1d1fb;
+  --color-info-5: var(--color-info-light-5);
   --color-info-6: #d6c1f7;
   --color-info-7: #c8acf0;
   --color-info-8: #b691e8;
   --color-info-9: #a96af1;
   --color-info-10: #9d5de3;
   --color-info-11: #7b3fb9;
-  --color-info-12: #431e69;
-  --color-info-13: #1e0833;
+  --color-info-light-12: #431e69;
+  --color-info-12: var(--color-info-light-12);
+  --color-info-light-13: #1e0833;
+  --color-info-13: var(--color-info-light-13);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -363,20 +390,24 @@
     --accent-chroma: 0.168;
 
     /* Neutral scale — driven by --accent-hue */
-    --color-neutral-0: oklch(1 0 0);
+    --color-neutral-light-0: oklch(1 0 0);
+    --color-neutral-0: var(--color-neutral-light-0);
     --color-neutral-1: oklch(0.991 0.004 var(--accent-hue));
     --color-neutral-2: oklch(0.982 0.007 var(--accent-hue));
     --color-neutral-3: oklch(0.955 0.011 var(--accent-hue));
     --color-neutral-4: oklch(0.931 0.014 var(--accent-hue));
-    --color-neutral-5: oklch(0.909 0.019 var(--accent-hue));
+    --color-neutral-light-5: oklch(0.909 0.019 var(--accent-hue));
+    --color-neutral-5: var(--color-neutral-light-5);
     --color-neutral-6: oklch(0.888 0.022 var(--accent-hue));
     --color-neutral-7: oklch(0.853 0.028 var(--accent-hue));
     --color-neutral-8: oklch(0.794 0.038 var(--accent-hue));
     --color-neutral-9: oklch(0.645 0.039 var(--accent-hue));
     --color-neutral-10: oklch(0.609 0.037 var(--accent-hue));
     --color-neutral-11: oklch(0.503 0.032 var(--accent-hue));
-    --color-neutral-12: oklch(0.24 0.024 var(--accent-hue));
-    --color-neutral-13: oklch(0.182 0.015 var(--accent-hue));
+    --color-neutral-light-12: oklch(0.24 0.024 var(--accent-hue));
+    --color-neutral-12: var(--color-neutral-light-12);
+    --color-neutral-light-13: oklch(0.182 0.015 var(--accent-hue));
+    --color-neutral-13: var(--color-neutral-light-13);
 
     /* Brand (fixed — always Oztix Blue) */
     --color-brand-0: oklch(1 0 0);
@@ -384,15 +415,18 @@
     --color-brand-2: oklch(0.971 0.009 247);
     --color-brand-3: oklch(0.949 0.02 247);
     --color-brand-4: oklch(0.925 0.035 247);
-    --color-brand-5: oklch(0.891 0.049 247);
+    --color-brand-light-5: oklch(0.891 0.049 247);
+    --color-brand-5: var(--color-brand-light-5);
     --color-brand-6: oklch(0.849 0.063 247);
     --color-brand-7: oklch(0.794 0.081 247);
     --color-brand-8: oklch(0.718 0.111 247);
     --color-brand-9: oklch(0.639 0.168 247);
     --color-brand-10: oklch(0.598 0.16 247);
     --color-brand-11: oklch(0.547 0.159 247);
-    --color-brand-12: oklch(0.324 0.082 247);
-    --color-brand-13: oklch(0.2 0.055 247);
+    --color-brand-light-12: oklch(0.324 0.082 247);
+    --color-brand-12: var(--color-brand-light-12);
+    --color-brand-light-13: oklch(0.2 0.055 247);
+    --color-brand-13: var(--color-brand-light-13);
 
     /* Brand Secondary (fixed — Oztix Orange) */
     --color-brand-secondary-0: oklch(1 0 0);
@@ -400,15 +434,18 @@
     --color-brand-secondary-2: oklch(0.969 0.014 42);
     --color-brand-secondary-3: oklch(0.942 0.031 42);
     --color-brand-secondary-4: oklch(0.899 0.058 42);
-    --color-brand-secondary-5: oklch(0.865 0.078 42);
+    --color-brand-secondary-light-5: oklch(0.865 0.078 42);
+    --color-brand-secondary-5: var(--color-brand-secondary-light-5);
     --color-brand-secondary-6: oklch(0.829 0.102 42);
     --color-brand-secondary-7: oklch(0.79 0.127 42);
     --color-brand-secondary-8: oklch(0.729 0.155 42);
     --color-brand-secondary-9: oklch(0.753 0.155 42);
     --color-brand-secondary-10: oklch(0.719 0.155 42);
     --color-brand-secondary-11: oklch(0.569 0.155 42);
-    --color-brand-secondary-12: oklch(0.349 0.089 42);
-    --color-brand-secondary-13: oklch(0.2 0.06 42);
+    --color-brand-secondary-light-12: oklch(0.349 0.089 42);
+    --color-brand-secondary-12: var(--color-brand-secondary-light-12);
+    --color-brand-secondary-light-13: oklch(0.2 0.06 42);
+    --color-brand-secondary-13: var(--color-brand-secondary-light-13);
 
     /* Accent scale — driven by --accent-hue and --accent-chroma */
     --color-accent-0: oklch(1 0 0);
@@ -424,9 +461,10 @@
     --color-accent-4: oklch(
       0.925 calc(0.208 * var(--accent-chroma)) var(--accent-hue)
     );
-    --color-accent-5: oklch(
+    --color-accent-light-5: oklch(
       0.891 calc(0.292 * var(--accent-chroma)) var(--accent-hue)
     );
+    --color-accent-5: var(--color-accent-light-5);
     --color-accent-6: oklch(
       0.849 calc(0.375 * var(--accent-chroma)) var(--accent-hue)
     );
@@ -443,72 +481,86 @@
     --color-accent-11: oklch(
       0.547 calc(0.946 * var(--accent-chroma)) var(--accent-hue)
     );
-    --color-accent-12: oklch(
+    --color-accent-light-12: oklch(
       0.324 calc(0.488 * var(--accent-chroma)) var(--accent-hue)
     );
-    --color-accent-13: oklch(
+    --color-accent-12: var(--color-accent-light-12);
+    --color-accent-light-13: oklch(
       0.2 calc(0.327 * var(--accent-chroma)) var(--accent-hue)
     );
+    --color-accent-13: var(--color-accent-light-13);
 
     --color-danger-0: oklch(1 0 0);
     --color-danger-1: oklch(0.983 0.003 48.719);
     --color-danger-2: oklch(0.969 0.012 23.703);
     --color-danger-3: oklch(0.944 0.028 28.516);
     --color-danger-4: oklch(0.9 0.052 31.272);
-    --color-danger-5: oklch(0.866 0.072 30.236);
+    --color-danger-light-5: oklch(0.866 0.072 30.236);
+    --color-danger-5: var(--color-danger-light-5);
     --color-danger-6: oklch(0.838 0.09 28.413);
     --color-danger-7: oklch(0.791 0.101 28.55);
     --color-danger-8: oklch(0.73 0.121 28.471);
     --color-danger-9: oklch(0.709 0.184 28.37);
     --color-danger-10: oklch(0.673 0.184 28.364);
     --color-danger-11: oklch(0.569 0.181 28.264);
-    --color-danger-12: oklch(0.349 0.069 28.777);
-    --color-danger-13: oklch(0.22 0.045 28);
+    --color-danger-light-12: oklch(0.349 0.069 28.777);
+    --color-danger-12: var(--color-danger-light-12);
+    --color-danger-light-13: oklch(0.22 0.045 28);
+    --color-danger-13: var(--color-danger-light-13);
 
     --color-success-0: oklch(1 0 0);
     --color-success-1: oklch(0.983 0.006 185.277);
     --color-success-2: oklch(0.973 0.013 185.101);
     --color-success-3: oklch(0.947 0.036 185.818);
     --color-success-4: oklch(0.921 0.057 185.27);
-    --color-success-5: oklch(0.886 0.074 185.252);
+    --color-success-light-5: oklch(0.886 0.074 185.252);
+    --color-success-5: var(--color-success-light-5);
     --color-success-6: oklch(0.842 0.087 185.529);
     --color-success-7: oklch(0.784 0.102 184.951);
     --color-success-8: oklch(0.709 0.125 184.715);
     --color-success-9: oklch(0.732 0.129 185.089);
     --color-success-10: oklch(0.698 0.123 185.178);
     --color-success-11: oklch(0.508 0.09 183.645);
-    --color-success-12: oklch(0.351 0.061 185.02);
-    --color-success-13: oklch(0.22 0.04 185);
+    --color-success-light-12: oklch(0.351 0.061 185.02);
+    --color-success-12: var(--color-success-light-12);
+    --color-success-light-13: oklch(0.22 0.04 185);
+    --color-success-13: var(--color-success-light-13);
 
     --color-warning-0: oklch(1 0 0);
     --color-warning-1: oklch(0.994 0.005 95.098);
     --color-warning-2: oklch(0.984 0.027 95.333);
     --color-warning-3: oklch(0.962 0.075 98.601);
     --color-warning-4: oklch(0.939 0.099 95.312);
-    --color-warning-5: oklch(0.912 0.129 93.243);
+    --color-warning-light-5: oklch(0.912 0.129 93.243);
+    --color-warning-5: var(--color-warning-light-5);
     --color-warning-6: oklch(0.876 0.151 88.465);
     --color-warning-7: oklch(0.834 0.139 86.578);
     --color-warning-8: oklch(0.765 0.157 86.419);
     --color-warning-9: oklch(0.771 0.158 86.663);
     --color-warning-10: oklch(0.738 0.151 85.261);
     --color-warning-11: oklch(0.576 0.118 82.642);
-    --color-warning-12: oklch(0.356 0.052 86.003);
-    --color-warning-13: oklch(0.22 0.035 86);
+    --color-warning-light-12: oklch(0.356 0.052 86.003);
+    --color-warning-12: var(--color-warning-light-12);
+    --color-warning-light-13: oklch(0.22 0.035 86);
+    --color-warning-13: var(--color-warning-light-13);
 
     --color-info-0: oklch(1 0 0);
     --color-info-1: oklch(0.984 0.004 301.426);
     --color-info-2: oklch(0.972 0.011 303.114);
     --color-info-3: oklch(0.946 0.028 303.922);
     --color-info-4: oklch(0.92 0.044 303.104);
-    --color-info-5: oklch(0.887 0.059 302.54);
+    --color-info-light-5: oklch(0.887 0.059 302.54);
+    --color-info-5: var(--color-info-light-5);
     --color-info-6: oklch(0.846 0.077 302.529);
     --color-info-7: oklch(0.792 0.099 303.066);
     --color-info-8: oklch(0.724 0.129 302.898);
     --color-info-9: oklch(0.652 0.198 302.833);
     --color-info-10: oklch(0.612 0.198 303.02);
     --color-info-11: oklch(0.505 0.185 302.873);
-    --color-info-12: oklch(0.33 0.125 302.655);
-    --color-info-13: oklch(0.2 0.08 303);
+    --color-info-light-12: oklch(0.33 0.125 302.655);
+    --color-info-12: var(--color-info-light-12);
+    --color-info-light-13: oklch(0.2 0.08 303);
+    --color-info-13: var(--color-info-light-13);
   }
 
   .dark {
@@ -658,15 +710,5 @@
     --color-info-11: oklch(0.78 0.143 306.109);
     --color-info-12: oklch(0.909 0.054 303.269);
     --color-info-13: oklch(0.96 0.025 303);
-  }
-
-  @theme {
-    /* ═══ Illustration colors — OKLCH upgrade ═══ */
-    --color-illustration-outline: oklch(1 0 0);
-    --color-illustration-face: oklch(0.887 0.059 302.54);
-    --color-illustration-detail: oklch(0.865 0.078 45.355);
-    --color-illustration-shadow: oklch(0.639 0.168 247.062);
-    --color-illustration-highlight: oklch(0.891 0.049 247.447);
-    --color-illustration-stroke: oklch(0.231 0.018 240);
   }
 }

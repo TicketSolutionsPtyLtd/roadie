@@ -8,9 +8,7 @@
 :root {
   --intent-hue: var(--accent-hue, 247);
   --intent-bg-normal: var(--color-neutral-1);
-  --intent-bg-strong: var(--color-neutral-12);
-  --intent-bg-strong-hover: var(--color-neutral-12);
-  --intent-bg-strong-active: var(--color-neutral-13);
+  --intent-bg-strong: var(--color-neutral-13);
   --intent-bg-inverted: var(--color-neutral-12);
   --intent-bg-raised: var(--color-neutral-1);
   --intent-bg-sunken: var(--color-neutral-2);
@@ -51,6 +49,10 @@
 
   --intent-bg-subtler: var(--intent-2a);
   --intent-bg-subtle: var(--intent-3a);
+
+  /* Mark colors (fixed — always light mode) */
+  --intent-mark-bg: var(--color-neutral-light-5);
+  --intent-mark-text: var(--color-neutral-light-13);
 }
 
 /* Dark mode: bump surfaces up for depth separation */
@@ -67,7 +69,7 @@
   --intent-bg-strong: var(--color-neutral-13);
   --intent-bg-inverted: var(--color-neutral-12);
   --intent-bg-raised: var(--color-neutral-1);
-  --intent-bg-sunken: var(--color-neutral-0);
+  --intent-bg-sunken: var(--color-neutral-2);
 
   --intent-border-subtler: var(--color-neutral-5);
   --intent-border-subtle: var(--color-neutral-6);
@@ -81,6 +83,22 @@
   --intent-text-strong: var(--color-neutral-13);
   --intent-text-inverted: var(--color-neutral-0);
 
+  /* Raw scale steps */
+  --intent-0: var(--color-neutral-0);
+  --intent-1: var(--color-neutral-1);
+  --intent-2: var(--color-neutral-2);
+  --intent-3: var(--color-neutral-3);
+  --intent-4: var(--color-neutral-4);
+  --intent-5: var(--color-neutral-5);
+  --intent-6: var(--color-neutral-6);
+  --intent-7: var(--color-neutral-7);
+  --intent-8: var(--color-neutral-8);
+  --intent-9: var(--color-neutral-9);
+  --intent-10: var(--color-neutral-10);
+  --intent-11: var(--color-neutral-11);
+  --intent-12: var(--color-neutral-12);
+  --intent-13: var(--color-neutral-13);
+
   --intent-2a: color-mix(in oklch, var(--color-neutral-9) 6%, transparent);
   --intent-3a: color-mix(in oklch, var(--color-neutral-9) 11%, transparent);
   --intent-4a: color-mix(in oklch, var(--color-neutral-9) 17%, transparent);
@@ -89,9 +107,13 @@
   --intent-bg-subtler: var(--intent-2a);
   --intent-bg-subtle: var(--intent-3a);
 
+  --intent-mark-bg: var(--color-neutral-light-5);
+  --intent-mark-text: var(--color-neutral-light-13);
+
   .dark & {
     --intent-bg-normal: var(--color-neutral-2);
     --intent-bg-raised: var(--color-neutral-3);
+    --intent-bg-sunken: var(--color-neutral-0);
   }
 }
 
@@ -100,8 +122,6 @@
   --intent-hue: 247;
   --intent-bg-normal: var(--color-brand-1);
   --intent-bg-strong: var(--color-brand-9);
-  --intent-bg-strong-hover: var(--color-brand-11);
-  --intent-bg-strong-active: var(--color-brand-12);
   --intent-bg-inverted: var(--color-brand-12);
   --intent-bg-raised: var(--color-brand-1);
   --intent-bg-sunken: var(--color-brand-2);
@@ -142,6 +162,9 @@
   --intent-bg-subtler: var(--intent-2a);
   --intent-bg-subtle: var(--intent-3a);
 
+  --intent-mark-bg: var(--color-brand-light-5);
+  --intent-mark-text: var(--color-brand-light-13);
+
   .dark & {
     --intent-bg-normal: var(--color-brand-2);
     --intent-bg-raised: var(--color-brand-2);
@@ -154,8 +177,6 @@
   --intent-hue: var(--accent-hue, 247);
   --intent-bg-normal: var(--color-accent-1);
   --intent-bg-strong: var(--color-accent-9);
-  --intent-bg-strong-hover: var(--color-accent-11);
-  --intent-bg-strong-active: var(--color-accent-12);
   --intent-bg-inverted: var(--color-accent-12);
   --intent-bg-raised: var(--color-accent-1);
   --intent-bg-sunken: var(--color-accent-2);
@@ -196,6 +217,9 @@
   --intent-bg-subtler: var(--intent-2a);
   --intent-bg-subtle: var(--intent-3a);
 
+  --intent-mark-bg: var(--color-accent-light-5);
+  --intent-mark-text: var(--color-accent-light-13);
+
   .dark & {
     --intent-bg-normal: var(--color-accent-2);
     --intent-bg-raised: var(--color-accent-2);
@@ -208,8 +232,6 @@
   --intent-hue: 28;
   --intent-bg-normal: var(--color-danger-1);
   --intent-bg-strong: var(--color-danger-9);
-  --intent-bg-strong-hover: var(--color-danger-11);
-  --intent-bg-strong-active: var(--color-danger-12);
   --intent-bg-inverted: var(--color-danger-12);
   --intent-bg-raised: var(--color-danger-1);
   --intent-bg-sunken: var(--color-danger-2);
@@ -250,6 +272,9 @@
   --intent-bg-subtler: var(--intent-2a);
   --intent-bg-subtle: var(--intent-3a);
 
+  --intent-mark-bg: var(--color-danger-light-5);
+  --intent-mark-text: var(--color-danger-light-13);
+
   .dark & {
     --intent-bg-normal: var(--color-danger-2);
     --intent-bg-raised: var(--color-danger-2);
@@ -262,8 +287,6 @@
   --intent-hue: 185;
   --intent-bg-normal: var(--color-success-1);
   --intent-bg-strong: var(--color-success-9);
-  --intent-bg-strong-hover: var(--color-success-11);
-  --intent-bg-strong-active: var(--color-success-12);
   --intent-bg-inverted: var(--color-success-12);
   --intent-bg-raised: var(--color-success-1);
   --intent-bg-sunken: var(--color-success-2);
@@ -304,6 +327,9 @@
   --intent-bg-subtler: var(--intent-2a);
   --intent-bg-subtle: var(--intent-3a);
 
+  --intent-mark-bg: var(--color-success-light-5);
+  --intent-mark-text: var(--color-success-light-13);
+
   .dark & {
     --intent-bg-normal: var(--color-success-2);
     --intent-bg-raised: var(--color-success-2);
@@ -316,8 +342,6 @@
   --intent-hue: 86;
   --intent-bg-normal: var(--color-warning-1);
   --intent-bg-strong: var(--color-warning-9);
-  --intent-bg-strong-hover: var(--color-warning-11);
-  --intent-bg-strong-active: var(--color-warning-12);
   --intent-bg-inverted: var(--color-warning-12);
   --intent-bg-raised: var(--color-warning-1);
   --intent-bg-sunken: var(--color-warning-2);
@@ -358,6 +382,9 @@
   --intent-bg-subtler: var(--intent-2a);
   --intent-bg-subtle: var(--intent-3a);
 
+  --intent-mark-bg: var(--color-warning-light-5);
+  --intent-mark-text: var(--color-warning-light-13);
+
   .dark & {
     --intent-bg-normal: var(--color-warning-2);
     --intent-bg-raised: var(--color-warning-2);
@@ -370,8 +397,6 @@
   --intent-hue: 303;
   --intent-bg-normal: var(--color-info-1);
   --intent-bg-strong: var(--color-info-9);
-  --intent-bg-strong-hover: var(--color-info-11);
-  --intent-bg-strong-active: var(--color-info-12);
   --intent-bg-inverted: var(--color-info-12);
   --intent-bg-raised: var(--color-info-1);
   --intent-bg-sunken: var(--color-info-2);
@@ -411,6 +436,9 @@
 
   --intent-bg-subtler: var(--intent-2a);
   --intent-bg-subtle: var(--intent-3a);
+
+  --intent-mark-bg: var(--color-info-light-5);
+  --intent-mark-text: var(--color-info-light-13);
 
   .dark & {
     --intent-bg-normal: var(--color-info-2);

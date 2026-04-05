@@ -61,7 +61,7 @@ describe('Highlight', () => {
       <Highlight text='Highlighted text' query='Highlighted' />
     )
     const mark = container.querySelector('mark')
-    expect(mark).not.toHaveClass('intent-info')
+    expect(mark).toHaveClass('intent-info') // default intent
   })
 
   it('applies custom intent', () => {
