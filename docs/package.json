@@ -6,7 +6,7 @@
   "scripts": {
     "build": "next build",
     "clean": "rm -rf node_modules .next out",
-    "dev": "next dev",
+    "dev": "next dev --port 9614",
     "start": "next start",
     "format": "prettier --ignore-path ../.prettierignore --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format:check": "prettier --ignore-path ../.prettierignore --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
