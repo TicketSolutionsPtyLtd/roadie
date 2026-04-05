@@ -3,7 +3,7 @@ title: 'feat: Migrate design system from PandaCSS to Tailwind v4 + Base UI'
 type: feat
 status: active
 date: 2026-03-31
-updated: 2026-04-04
+updated: 2026-04-05
 origin: docs/brainstorms/2026-03-31-tailwind-migration-brainstorm.md
 ---
 
@@ -207,7 +207,33 @@ Accessibility audit:
 - [ ] Keyboard navigation: manual test all interactive components (deferred — Base UI handles this)
 - [ ] Screen reader testing: VoiceOver walkthrough (deferred — requires manual testing)
 
-### Phase 5b: Polish + Release — TODO
+### Phase 5b: Dark Mode + Code Review — COMPLETE
+
+Dark mode (commit `d226e35`):
+
+- [x] CSS `color-scheme` dark mode with `getThemeScript()` for flash-free SSR
+- [x] `ThemeProvider` with `followSystem`, `defaultDark`, `setDark`, localStorage persistence
+- [x] Dark-mode-immune Mark with `-light` token layer (commit `f62fbca`)
+
+Code review (commit `395507e`):
+
+- [x] Fix Highlight `regex.test()` lastIndex bug — global flag caused incorrect alternating matches (replaced with non-global test regex + regression tests)
+- [x] Normalize Badge `subtler` emphasis to use `emphasis-subtler` utility (was using raw `bg-subtler`, missed hover states)
+- [x] Add Prose component tests (was the only untested component — 6 tests added)
+- [x] Remove deprecated `useAccent()` hook (v2 breaking change, replaced by `useTheme()`)
+- [x] Remove stale partial `components/index.ts` barrel (unused, missing 8 of 18 components)
+- [x] Optimize ThemeProvider accent effect to skip regeneration when SSR values already match
+- [x] Add font preconnect hints to Getting Started docs
+
+**Open items from code review (needs triage):**
+
+- [ ] Verify font format: `fonts.css` declares `format('woff2')` but file has `.woff` extension — check actual format on CDN
+- [ ] Document or resolve form field intent cascade: `is-interactive-field` hardcodes accent for focus/invalid regardless of parent intent, while `is-interactive` respects intent cascade. Form controls expose `intent` CVA variants that change border/bg but focus ring stays accent. Decide: (a) document as intentional, (b) make field interactions intent-aware, or (c) remove intent variant from form controls
+- [ ] Consider lazy-loading `colorjs.io` (~60-80KB) via dynamic import — most consumers use fixed accent and never need runtime generation
+
+**Testing:** 179 tests across 21 test files, all passing. Full build (core → components → docs) succeeds.
+
+### Phase 5c: Polish + Release — TODO
 
 - [ ] Vue integration guide (tokens + utility classes only, no components)
 - [ ] CSS bundle size measurement
@@ -245,6 +271,8 @@ These decisions were made during implementation and should be maintained:
 23. **Emphasis scale uses `normal` not `default`** — avoids collision with the programming concept of "default value". Scale: strong → normal → subtle → subtler. Each component independently chooses its default emphasis level.
 24. **RadioGroup emphasis is set on Root, not Item** — Root accepts `emphasis` (subtler/normal, default subtler), items inherit via React context. `emphasis='normal'` gives the "card" look.
 25. **Component-level accessibility docs** — each component page should document keyboard patterns, ARIA roles, and screen reader behavior (template update pending in Phase 5a).
+26. **`useAccent()` removed in v2** — replaced by `useTheme()` which also exposes `isDark`, `setDark`, `accentColor`, `setAccentColor`.
+27. **Dark mode uses `color-scheme` + `.dark` class** — `getThemeScript()` provides a blocking inline script for flash-free SSR. ThemeProvider syncs state with localStorage and optional OS preference following.
 
 ## Sources & References
 
