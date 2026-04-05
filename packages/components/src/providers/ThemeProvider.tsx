@@ -10,28 +10,44 @@ import {
   getOklchHue
 } from '@oztix/roadie-core/colors'
 
+export { getThemeScript } from '@oztix/roadie-core/theme'
+
 const DEFAULT_ACCENT = '#0091EB' // Oztix Blue
+const THEME_STORAGE_KEY = 'theme'
 
 const supportsOklch =
   typeof CSS !== 'undefined' &&
   typeof CSS.supports === 'function' &&
   CSS.supports('color', 'oklch(0 0 0)')
 
-interface AccentContextType {
+// ---------------------------------------------------------------------------
+// Theme context (accent color + dark mode)
+// ---------------------------------------------------------------------------
+
+interface ThemeContextType {
   accentColor: string
   setAccentColor: (color: string) => void
   scaleResult: ScaleResult | null
+  isDark: boolean
+  setDark: (dark: boolean) => void
 }
 
-const AccentContext = React.createContext<AccentContextType | undefined>(
+const ThemeContext = React.createContext<ThemeContextType | undefined>(
   undefined
 )
 
 export interface ThemeProviderProps {
   children: React.ReactNode
   defaultAccentColor?: string
+  /** Initial dark mode state when no stored preference exists (default: false) */
   defaultDark?: boolean
+  /** Respect prefers-color-scheme when no explicit user choice is stored (default: false) */
+  followSystem?: boolean
 }
+
+// ---------------------------------------------------------------------------
+// SSR helpers
+// ---------------------------------------------------------------------------
 
 /**
  * Generate a <style> tag string for server-side rendering.
@@ -76,13 +92,91 @@ export function getAccentStyleTag(
 </style>`
 }
 
+// ---------------------------------------------------------------------------
+// Dark mode helpers
+// ---------------------------------------------------------------------------
+
+function applyDark(dark: boolean) {
+  document.documentElement.classList.toggle('dark', dark)
+  document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
+}
+
+function getStoredTheme(): string | null {
+  try {
+    return localStorage.getItem(THEME_STORAGE_KEY)
+  } catch {
+    return null
+  }
+}
+
+function storeTheme(dark: boolean) {
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, dark ? 'dark' : 'light')
+  } catch {
+    // localStorage unavailable
+  }
+}
+
+// ---------------------------------------------------------------------------
+// ThemeProvider
+// ---------------------------------------------------------------------------
+
 export function ThemeProvider({
   children,
-  defaultAccentColor = DEFAULT_ACCENT
+  defaultAccentColor = DEFAULT_ACCENT,
+  defaultDark = false,
+  followSystem = false
 }: ThemeProviderProps) {
   const [accentColor, setAccentColor] = React.useState(defaultAccentColor)
   const [scaleResult, setScaleResult] = React.useState<ScaleResult | null>(null)
 
+  // Initialise dark mode from prop — inline script may have already set .dark
+  const [isDark, setIsDarkState] = React.useState(defaultDark)
+
+  // Sync with DOM on mount
+  React.useEffect(() => {
+    const stored = getStoredTheme()
+    if (stored) {
+      setIsDarkState(stored === 'dark')
+      return
+    }
+
+    // No stored preference — check OS preference or DOM state
+    if (followSystem) {
+      const prefersDark = window.matchMedia(
+        '(prefers-color-scheme: dark)'
+      ).matches
+      setIsDarkState(prefersDark)
+      applyDark(prefersDark)
+    } else {
+      const domDark = document.documentElement.classList.contains('dark')
+      setIsDarkState(domDark)
+    }
+  }, [])
+
+  // Listen for OS preference changes when followSystem is true
+  React.useEffect(() => {
+    if (!followSystem) return
+
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const handler = (e: MediaQueryListEvent) => {
+      // Only follow system if user hasn't explicitly chosen
+      if (getStoredTheme()) return
+      setIsDarkState(e.matches)
+      applyDark(e.matches)
+    }
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [followSystem])
+
+  // Explicit toggle — persists to localStorage and applies to DOM
+  const setDark = React.useCallback((dark: boolean) => {
+    setIsDarkState(dark)
+    applyDark(dark)
+    storeTheme(dark)
+  }, [])
+
+  // Accent color effect (unchanged from original)
   React.useEffect(() => {
     const result = generateAccentScale(accentColor)
     setScaleResult(result)
@@ -93,7 +187,6 @@ export function ThemeProvider({
     let css: string
 
     if (supportsOklch) {
-      // Modern browsers: set hue + chroma, CSS oklch() handles the rest
       css = `
         :root {
           --accent-hue: ${hue};
@@ -101,7 +194,6 @@ export function ThemeProvider({
         }
       `
     } else {
-      // Old browsers: generate hex values for accent + neutral
       const neutral = generateNeutralScale(accentColor)
       const accentVars = result.light
         .map((hex, i) => `--color-accent-${i}: ${hex};`)
@@ -137,19 +229,27 @@ export function ThemeProvider({
     style.textContent = css
   }, [accentColor])
 
-  return (
-    <AccentContext.Provider
-      value={{ accentColor, setAccentColor, scaleResult }}
-    >
-      {children}
-    </AccentContext.Provider>
+  const value = React.useMemo(
+    () => ({ accentColor, setAccentColor, scaleResult, isDark, setDark }),
+    [accentColor, scaleResult, isDark, setDark]
   )
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 }
 
-export function useAccent() {
-  const context = React.useContext(AccentContext)
+// ---------------------------------------------------------------------------
+// Hooks
+// ---------------------------------------------------------------------------
+
+export function useTheme() {
+  const context = React.useContext(ThemeContext)
   if (!context) {
-    throw new Error('useAccent must be used within a ThemeProvider')
+    throw new Error('useTheme must be used within a ThemeProvider')
   }
   return context
+}
+
+/** @deprecated Use useTheme() instead */
+export function useAccent() {
+  return useTheme()
 }

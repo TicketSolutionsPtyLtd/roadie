@@ -21,6 +21,10 @@
       "types": "./dist/colors/index.d.ts",
       "import": "./dist/colors/index.js"
     },
+    "./theme": {
+      "types": "./dist/theme/index.d.ts",
+      "import": "./dist/theme/index.js"
+    },
     "./utils": {
       "types": "./dist/utils/index.d.ts",
       "import": "./dist/utils/index.js"

@@ -5,7 +5,10 @@ import { join } from 'path'
 
 import { FooterNav } from '@/components/FooterNav'
 import { Navigation } from '@/components/Navigation'
+import { Providers } from '@/components/Providers'
 import { getAssetPath } from '@/utils/getAssetPath'
+
+import { getThemeScript } from '@oztix/roadie-core/theme'
 
 import './globals.css'
 
@@ -264,28 +267,23 @@ export default async function RootLayout({
   return (
     <html lang='en' suppressHydrationWarning>
       <head>
+        <meta name='color-scheme' content='light' />
         <script
           dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                const theme =
-                  localStorage.getItem('theme') ||
-                  (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-                document.documentElement.classList.toggle('dark', theme === 'dark')
-                window.__theme = theme
-              } catch {}
-            `
+            __html: getThemeScript({ followSystem: true })
           }}
         />
       </head>
       <body className='overflow-x-hidden'>
-        <div className='flex min-h-screen max-w-[100vw] flex-row'>
-          <Navigation items={items} />
-          <main className='mx-auto max-w-4xl min-w-0 flex-1 overflow-x-clip px-4 py-4 md:px-8 md:py-12 lg:px-12 lg:py-20'>
-            {children}
-            <FooterNav items={items} />
-          </main>
-        </div>
+        <Providers>
+          <div className='flex min-h-screen max-w-[100vw] flex-row'>
+            <Navigation items={items} />
+            <main className='mx-auto max-w-4xl min-w-0 flex-1 overflow-x-clip px-4 py-4 md:px-8 md:py-12 lg:px-12 lg:py-20'>
+              {children}
+              <FooterNav items={items} />
+            </main>
+          </div>
+        </Providers>
       </body>
     </html>
   )

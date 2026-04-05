@@ -481,7 +481,9 @@ module.exports = {
         <div className='grid gap-4'>
           <h3 className='text-display-ui-4 text-strong'>Dark mode</h3>
           <p className='text-sm text-subtle'>
-            Dark mode is now class-based instead of data-attribute-based.
+            Dark mode is now class-based instead of data-attribute-based. The
+            CSS also sets <Code>color-scheme</Code> so native browser UI
+            (scrollbars, form controls) matches the active theme.
           </p>
           <div className='grid grid-cols-2 gap-3'>
             <pre className='overflow-x-auto rounded-lg bg-raised p-3 text-xs'>
@@ -497,6 +499,31 @@ module.exports = {
 </div>`}</code>
             </pre>
           </div>
+          <p className='text-sm text-subtle'>
+            Use <Code>getThemeScript()</Code> from{' '}
+            <Code>@oztix/roadie-core/theme</Code> for flash-free SSR setup. For
+            React apps, <Code>ThemeProvider</Code> now manages dark mode — use{' '}
+            <Code>useTheme()</Code> instead of <Code>useAccent()</Code>.
+          </p>
+          <pre className='overflow-x-auto rounded-lg bg-raised p-3 text-xs'>
+            <code>{`// Flash prevention (any framework — no React dependency)
+import { getThemeScript } from '@oztix/roadie-core/theme'
+// <script>{getThemeScript({ followSystem: true })}</script>
+
+// React: useAccent() is deprecated, use useTheme()
+import { useTheme } from '@oztix/roadie-components'
+const { isDark, setDark, accentColor, setAccentColor } = useTheme()`}</code>
+          </pre>
+          <p className='text-sm text-subtle'>
+            See the{' '}
+            <Link
+              href='/foundations/colors'
+              className='underline underline-offset-2'
+            >
+              Colors
+            </Link>{' '}
+            foundation for full dark mode setup instructions.
+          </p>
         </div>
       </section>
 
@@ -1081,6 +1108,11 @@ import { HeartIcon } from '@phosphor-icons/react'
                 ['colorPalette="information"', 'intent="info"'],
                 ['appearance="contained"', 'emphasis="subtle"'],
                 ["data-color-mode='dark'", "className='dark'"],
+                ['useAccent()', 'useTheme() from @oztix/roadie-components'],
+                [
+                  'Hand-rolled theme script',
+                  "getThemeScript() from '@oztix/roadie-core/theme'"
+                ],
                 ["gap='200'", 'className="gap-4"'],
                 ['{{ base: "x", md: "y" }}', '"x md:y"'],
                 ['Lucide icons', 'Phosphor icons (bold, Icon suffix)'],

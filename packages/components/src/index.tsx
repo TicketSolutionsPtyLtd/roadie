@@ -105,7 +105,9 @@ export {
 // Providers
 export {
   ThemeProvider,
+  useTheme,
   useAccent,
   getAccentStyleTag,
+  getThemeScript,
   type ThemeProviderProps
 } from './providers/ThemeProvider'

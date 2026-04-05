@@ -194,14 +194,97 @@ export default function ColorsPage() {
       </section>
 
       {/* Dark mode */}
-      <section className='grid gap-4'>
-        <h2 className='text-display-ui-3 text-strong'>Dark mode</h2>
-        <p className='text-subtle'>
-          Automatic. The <Code>.dark</Code> class on <Code>&lt;html&gt;</Code>{' '}
-          swaps all OKLCH values. No <Code>dark:</Code> Tailwind variants needed
-          — <Code>bg-normal</Code>, <Code>text-subtle</Code>,{' '}
-          <Code>border-subtle</Code> all adapt automatically.
-        </p>
+      <section className='grid gap-6'>
+        <div className='grid gap-4'>
+          <h2 className='text-display-ui-3 text-strong'>Dark mode</h2>
+          <p className='text-subtle'>
+            Automatic. The <Code>.dark</Code> class on <Code>&lt;html&gt;</Code>{' '}
+            swaps all OKLCH values. No <Code>dark:</Code> Tailwind variants
+            needed — <Code>bg-normal</Code>, <Code>text-subtle</Code>,{' '}
+            <Code>border-subtle</Code> all adapt automatically.
+          </p>
+          <p className='text-subtle'>
+            The CSS also sets <Code>color-scheme: light</Code> on{' '}
+            <Code>:root</Code> and <Code>color-scheme: dark</Code> on{' '}
+            <Code>.dark</Code>, so native browser UI (scrollbars, form controls)
+            matches your theme.
+          </p>
+        </div>
+
+        <div className='grid gap-4'>
+          <h3 className='text-display-ui-4 text-strong'>Setup</h3>
+          <p className='text-sm text-subtle'>
+            Add a blocking script in <Code>&lt;head&gt;</Code> to prevent flash
+            of wrong theme. The <Code>getThemeScript</Code> helper generates
+            this for you — import from <Code>@oztix/roadie-core/theme</Code> (no
+            React dependency).
+          </p>
+          <pre className='overflow-x-auto rounded-xl bg-raised p-4 text-xs'>
+            <code>{`import { getThemeScript } from '@oztix/roadie-core/theme'
+
+// In your <head>:
+<meta name="color-scheme" content="light" />
+<script dangerouslySetInnerHTML={{ __html: getThemeScript() }} />`}</code>
+          </pre>
+        </div>
+
+        <div className='grid gap-4'>
+          <h3 className='text-display-ui-4 text-strong'>
+            Following system preference
+          </h3>
+          <p className='text-sm text-subtle'>
+            By default, the theme is light. Pass <Code>followSystem: true</Code>{' '}
+            to respect the user&apos;s OS preference when they haven&apos;t
+            explicitly toggled.
+          </p>
+          <pre className='overflow-x-auto rounded-xl bg-raised p-4 text-xs'>
+            <code>{`getThemeScript({ followSystem: true })`}</code>
+          </pre>
+        </div>
+
+        <div className='grid gap-4'>
+          <h3 className='text-display-ui-4 text-strong'>
+            React: ThemeProvider
+          </h3>
+          <p className='text-sm text-subtle'>
+            For React apps, wrap your app in <Code>ThemeProvider</Code> to get
+            the <Code>useTheme()</Code> hook with <Code>isDark</Code> and{' '}
+            <Code>setDark</Code>.
+          </p>
+          <pre className='overflow-x-auto rounded-xl bg-raised p-4 text-xs'>
+            <code>{`import { ThemeProvider, useTheme } from '@oztix/roadie-components'
+
+// In your layout:
+<ThemeProvider followSystem>
+  <App />
+</ThemeProvider>
+
+// In a toggle component:
+function ThemeToggle() {
+  const { isDark, setDark } = useTheme()
+  return <button onClick={() => setDark(!isDark)}>{isDark ? 'Light' : 'Dark'}</button>
+}`}</code>
+          </pre>
+          <p className='text-sm text-subtle'>
+            Once a user explicitly toggles, their choice persists in{' '}
+            <Code>localStorage</Code> and overrides the system preference.
+          </p>
+        </div>
+
+        <div className='grid gap-4'>
+          <h3 className='text-display-ui-4 text-strong'>Vue / vanilla JS</h3>
+          <p className='text-sm text-subtle'>
+            For non-React apps, use <Code>getThemeScript()</Code> for initial
+            load and toggle with plain DOM calls.
+          </p>
+          <pre className='overflow-x-auto rounded-xl bg-raised p-4 text-xs'>
+            <code>{`function setDark(dark) {
+  document.documentElement.classList.toggle('dark', dark)
+  document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
+  localStorage.setItem('theme', dark ? 'dark' : 'light')
+}`}</code>
+          </pre>
+        </div>
       </section>
 
       {/* Dynamic accent */}

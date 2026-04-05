@@ -4,6 +4,7 @@ export default defineConfig(({ watch }) => ({
   entry: {
     index: './src/index.ts',
     'colors/index': './src/colors/index.ts',
+    'theme/index': './src/theme/index.ts',
     'utils/index': './src/utils/index.ts'
   },
   splitting: false,

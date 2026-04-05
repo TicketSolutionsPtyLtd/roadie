@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -9,7 +9,7 @@ import { ListIcon, MoonIcon, SunIcon, XIcon } from '@phosphor-icons/react'
 
 import { Image } from '@/components/Image'
 
-import { Button } from '@oztix/roadie-components'
+import { Button, useTheme } from '@oztix/roadie-components'
 
 interface NavigationItem {
   title: string
@@ -42,37 +42,22 @@ function Logo() {
 }
 
 function ThemeToggle() {
-  const [colorMode, setColorMode] = useState<'light' | 'dark'>('light')
-
-  useEffect(() => {
-    const isDark = document.documentElement.classList.contains('dark')
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- reading DOM state on mount
-    setColorMode(isDark ? 'dark' : 'light')
-  }, [])
-
-  const toggle = useCallback(() => {
-    const next = colorMode === 'light' ? 'dark' : 'light'
-    document.documentElement.classList.toggle('dark', next === 'dark')
-    localStorage.setItem('theme', next)
-    setColorMode(next)
-  }, [colorMode])
+  const { isDark, setDark } = useTheme()
 
   return (
     <Button
       emphasis='subtler'
       size='sm'
       className='w-full'
-      onClick={toggle}
-      aria-label={`Switch to ${colorMode === 'light' ? 'dark' : 'light'} mode`}
+      onClick={() => setDark(!isDark)}
+      aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
     >
-      {colorMode === 'light' ? (
-        <MoonIcon weight='bold' className='size-4' />
-      ) : (
+      {isDark ? (
         <SunIcon weight='bold' className='size-4' />
+      ) : (
+        <MoonIcon weight='bold' className='size-4' />
       )}
-      <span className='text-sm'>
-        {colorMode === 'light' ? 'Dark' : 'Light'} mode
-      </span>
+      <span className='text-sm'>{isDark ? 'Light' : 'Dark'} mode</span>
     </Button>
   )
 }
