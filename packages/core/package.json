@@ -15,7 +15,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./css": "./src/css/roadie.css",
+    "./css": {
+      "style": "./src/css/roadie.css",
+      "default": "./src/css/roadie.css"
+    },
     "./css/compiled": "./dist/roadie.compiled.css",
     "./colors": {
       "types": "./dist/colors/index.d.ts",
