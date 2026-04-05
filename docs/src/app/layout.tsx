@@ -278,7 +278,7 @@ export default async function RootLayout({
         <Providers>
           <div className='flex min-h-screen max-w-[100vw] flex-row'>
             <Navigation items={items} />
-            <main className='mx-auto max-w-4xl min-w-0 flex-1 overflow-x-clip px-4 py-4 md:px-8 md:py-12 lg:px-12 lg:py-20'>
+            <main className='container-4xl min-w-0 flex-1 overflow-x-clip py-4 md:py-12 lg:py-20'>
               {children}
               <FooterNav items={items} />
             </main>

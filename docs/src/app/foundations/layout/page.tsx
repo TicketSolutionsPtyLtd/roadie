@@ -270,6 +270,69 @@ export default function LayoutPage() {
         </div>
       </section>
 
+      {/* Container */}
+      <section className='grid gap-6'>
+        <h2 className='text-display-ui-3 text-strong'>Container</h2>
+        <p className='text-subtle'>
+          The <Code>container-*</Code> utility centers content with responsive
+          horizontal padding and a configurable max width. It replaces the v1{' '}
+          <Code>{'<Container>'}</Code> component.
+        </p>
+
+        <div className='grid gap-4'>
+          <div className='grid gap-2'>
+            <h3 className='text-display-ui-5 text-strong'>Usage</h3>
+            <div className='grid gap-1'>
+              <Code>{'<div className="container-8xl">...</div>'}</Code>
+              <Code>{'<div className="container-4xl">...</div>'}</Code>
+            </div>
+            <p className='text-sm text-subtle'>
+              Any <Code>--container-*</Code> token works: <Code>3xs</Code>–
+              <Code>7xl</Code> (Tailwind defaults) plus <Code>8xl</Code>{' '}
+              (1440px).
+            </p>
+          </div>
+
+          <div className='grid gap-2'>
+            <h3 className='text-display-ui-5 text-strong'>
+              Responsive padding
+            </h3>
+            <div className='overflow-x-auto'>
+              <table className='w-full text-sm'>
+                <thead>
+                  <tr className='border-b border-subtle'>
+                    <th className='py-2 pr-4 text-left font-semibold'>
+                      Breakpoint
+                    </th>
+                    <th className='py-2 text-left font-semibold'>
+                      Inline padding
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className='divide-y divide-subtler text-subtle'>
+                  <tr>
+                    <td className='py-2 pr-4'>Default</td>
+                    <td className='py-2 font-mono text-xs'>1.5rem (24px)</td>
+                  </tr>
+                  <tr>
+                    <td className='py-2 pr-4'>
+                      <Code>md</Code> (48rem)
+                    </td>
+                    <td className='py-2 font-mono text-xs'>2rem (32px)</td>
+                  </tr>
+                  <tr>
+                    <td className='py-2 pr-4'>
+                      <Code>lg</Code> (64rem)
+                    </td>
+                    <td className='py-2 font-mono text-xs'>3rem (48px)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Container queries */}
       <section className='grid gap-6'>
         <h2 className='text-display-ui-3 text-strong'>Container queries</h2>

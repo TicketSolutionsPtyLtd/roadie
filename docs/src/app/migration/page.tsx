@@ -47,7 +47,7 @@ const removedComponents = [
   },
   {
     name: 'Container',
-    replacement: '<div className="mx-auto max-w-*">',
+    replacement: '<div className="container-8xl">',
     link: '/foundations/layout'
   },
   {
@@ -326,7 +326,7 @@ module.exports = {
             </pre>
             <pre className='overflow-x-auto rounded-lg bg-raised p-3 text-xs'>
               <code>{`{/* v2 */}
-<div className='mx-auto max-w-7xl px-4'>
+<div className='container-8xl'>
   {content}
 </div>`}</code>
             </pre>
@@ -1146,7 +1146,7 @@ import { HeartIcon } from '@phosphor-icons/react'
                 ['sva() / cva() recipes', 'CVA (class-variance-authority)'],
                 ['splitCssProps()', 'Removed — not needed'],
                 ['<View>', '<div className="grid gap-*">'],
-                ['<Container>', '<div className="mx-auto max-w-*">'],
+                ['<Container>', '<div className="container-8xl">'],
                 ['<Text>', '<p>, <span> + utility classes'],
                 ['<Heading>', '<h1>-<h6> + text-display-* utilities'],
                 ['colorPalette="primary"', 'intent="brand"'],

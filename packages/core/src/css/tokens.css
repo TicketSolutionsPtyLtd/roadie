@@ -207,6 +207,9 @@
   --tracking-prose: -0.01em;
   --tracking-code: 0em;
 
+  /* ═══ Container / max-width ═══ */
+  --container-8xl: 90rem; /* 1440px */
+
   /* ═══ Focus ring ═══ */
   --focus-ring-width: 4px;
   --focus-ring-opacity: 30%;
