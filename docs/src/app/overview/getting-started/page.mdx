@@ -19,7 +19,16 @@ pnpm add @oztix/roadie-core @oztix/roadie-components
 
 ## Setup
 
-### 1. Import the stylesheet
+### 1. Add font preconnect hints
+
+Add these to your HTML `<head>` to reduce font loading latency:
+
+```html
+<link rel="preconnect" href="https://assets.oztix.com.au" crossorigin />
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+```
+
+### 2. Import the stylesheet
 
 Import the Roadie CSS file in your application entry point. This provides all design tokens, theme variables, and base styles:
 
@@ -27,7 +36,7 @@ Import the Roadie CSS file in your application entry point. This provides all de
 import '@oztix/roadie-core/css/roadie.css'
 ```
 
-### 2. Configure Tailwind v4
+### 3. Configure Tailwind v4
 
 Roadie v2 uses Tailwind CSS v4. Import the Roadie tokens in your main CSS file:
 

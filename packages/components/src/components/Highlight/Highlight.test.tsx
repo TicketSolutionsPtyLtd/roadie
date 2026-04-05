@@ -98,6 +98,26 @@ describe('Highlight', () => {
     expect(mark).toHaveAttribute('title', 'tooltip')
   })
 
+  it('highlights consecutive repeated matches correctly', () => {
+    const { container } = render(<Highlight text='aaa' query='a' matchAll />)
+    const marks = container.querySelectorAll('mark')
+    expect(marks).toHaveLength(3)
+    marks.forEach((mark: Element) => {
+      expect(mark).toHaveTextContent('a')
+    })
+  })
+
+  it('highlights when match is at start of text', () => {
+    const { container } = render(
+      <Highlight text='foo bar foo' query='foo' matchAll />
+    )
+    const marks = container.querySelectorAll('mark')
+    expect(marks).toHaveLength(2)
+    marks.forEach((mark: Element) => {
+      expect(mark).toHaveTextContent('foo')
+    })
+  })
+
   it('applies custom className', () => {
     const { container } = render(
       <Highlight

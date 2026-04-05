@@ -3,7 +3,7 @@ import { act, render, renderHook } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { ThemeProvider, useAccent, useTheme } from './ThemeProvider'
+import { ThemeProvider, useTheme } from './ThemeProvider'
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -193,17 +193,6 @@ describe('followSystem', () => {
       wrapper: ({ children }) => <ThemeProvider>{children}</ThemeProvider>
     })
     expect(addEventListener).not.toHaveBeenCalled()
-  })
-})
-
-describe('useAccent (deprecated)', () => {
-  it('returns the same context as useTheme', () => {
-    const { result } = renderHook(() => useAccent(), {
-      wrapper: ({ children }) => <ThemeProvider>{children}</ThemeProvider>
-    })
-    expect(result.current.accentColor).toBeDefined()
-    expect(result.current.isDark).toBeDefined()
-    expect(result.current.setDark).toBeDefined()
   })
 })
 

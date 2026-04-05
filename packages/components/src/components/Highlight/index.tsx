@@ -39,12 +39,13 @@ function highlight(
   const flags = `${ignoreCase ? 'i' : ''}${matchAll ? 'g' : ''}`
   const regex = new RegExp(`(${pattern})`, flags)
 
+  const testRegex = new RegExp(`^(${pattern})$`, ignoreCase ? 'i' : '')
   const parts = text.split(regex)
   return parts
     .filter((part) => part.length > 0)
     .map((part) => ({
       text: part,
-      match: regex.test(part)
+      match: testRegex.test(part)
     }))
 }
 

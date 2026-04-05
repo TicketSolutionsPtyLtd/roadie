@@ -21,7 +21,7 @@ export const badgeVariants = cva(
         strong: 'emphasis-strong',
         normal: 'emphasis-normal text-subtle',
         subtle: 'emphasis-subtle text-subtle',
-        subtler: 'bg-subtler text-subtle'
+        subtler: 'emphasis-subtler text-subtle'
       },
       size: {
         sm: 'px-2 py-0.5 text-xs',

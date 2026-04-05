@@ -152,7 +152,7 @@ export function ThemeProvider({
       const domDark = document.documentElement.classList.contains('dark')
       setIsDarkState(domDark)
     }
-  }, [])
+  }, []) // mount-only: followSystem/defaultDark are expected to be static
 
   // Listen for OS preference changes when followSystem is true
   React.useEffect(() => {
@@ -176,13 +176,19 @@ export function ThemeProvider({
     storeTheme(dark)
   }, [])
 
-  // Accent color effect (unchanged from original)
+  // Accent color effect — skip if SSR already injected matching values
   React.useEffect(() => {
-    const result = generateAccentScale(accentColor)
-    setScaleResult(result)
-
     const hue = Math.round(getOklchHue(accentColor))
     const chroma = +getOklchChroma(accentColor).toFixed(4)
+
+    // Skip regeneration if existing style tag already has matching values
+    const existing = document.getElementById('roadie-accent-theme')
+    if (existing?.textContent?.includes(`--accent-hue: ${hue}`)) {
+      return
+    }
+
+    const result = generateAccentScale(accentColor)
+    setScaleResult(result)
 
     let css: string
 
@@ -247,9 +253,4 @@ export function useTheme() {
     throw new Error('useTheme must be used within a ThemeProvider')
   }
   return context
-}
-
-/** @deprecated Use useTheme() instead */
-export function useAccent() {
-  return useTheme()
 }

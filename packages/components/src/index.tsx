@@ -106,7 +106,6 @@ export {
 export {
   ThemeProvider,
   useTheme,
-  useAccent,
   getAccentStyleTag,
   getThemeScript,
   type ThemeProviderProps
