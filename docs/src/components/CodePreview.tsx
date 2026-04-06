@@ -135,7 +135,10 @@ export function CodePreview({
   }, [])
 
   const theme = colorMode === 'dark' ? customDarkTheme : customLightTheme
-  const isLiveLang = language === 'tsx-live' || language === 'jsx-live'
+  const isBleedX =
+    language === 'tsx-live-bleed-x' || language === 'jsx-live-bleed-x'
+  const isLiveLang =
+    language === 'tsx-live' || language === 'jsx-live' || isBleedX
   const isLivePrefix =
     children.startsWith('live') && (language === 'tsx' || language === 'jsx')
   const isLive = isLiveLang || isLivePrefix
@@ -185,9 +188,11 @@ export function CodePreview({
         code={trimmedCode}
         scope={scope}
         theme={theme}
-        language={language.replace('-live', '')}
+        language={language.replace(/-live(-bleed-x)?/, '')}
       >
-        <LivePreview className='min-w-0 overflow-x-auto bg-normal px-4 py-4 font-sans sm:px-6 sm:py-6' />
+        <LivePreview
+          className={`min-w-0 overflow-x-auto bg-normal font-sans ${isBleedX ? 'py-4 sm:py-6' : 'px-4 py-4 sm:px-6 sm:py-6'}`}
+        />
         <LiveError className='bg-subtler px-4 py-3 text-sm text-subtle intent-danger' />
         <div className='relative min-w-0'>
           <CopyButton code={trimmedCode} />

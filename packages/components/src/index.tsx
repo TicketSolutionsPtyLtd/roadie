@@ -33,6 +33,8 @@ export {
   type SeparatorProps
 } from './components/Separator'
 
+export { Marquee, type MarqueeProps } from './components/Marquee'
+
 // Form components
 export { Input, inputVariants, type InputProps } from './components/Input'
 export {

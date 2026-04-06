@@ -27,6 +27,14 @@
 /* View: flex column container with sensible defaults.
    Replaces the v1 <View> component.
    Usage: <div className="view gap-4 p-2">...</div> */
+/* Marquee: infinite horizontal scroll animation.
+   Used by the Marquee component. Duration set via --marquee-duration inline. */
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 @utility view {
   display: flex;
   position: relative;

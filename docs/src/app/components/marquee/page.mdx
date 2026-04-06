@@ -1,0 +1,79 @@
+export const metadata = {
+  title: 'Marquee',
+  description: 'An infinitely scrolling horizontal content strip',
+  status: 'beta',
+  category: 'Media',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Marquee
+
+An infinitely scrolling horizontal content strip.
+
+## Import
+
+```tsx
+import { Marquee } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Default
+
+```tsx-live-bleed-x
+<Marquee>
+  {['Festivals', 'Concerts', 'Theatre', 'Sports', 'Comedy', 'Exhibitions'].map((label) => (
+    <div key={label} className='intent-brand emphasis-subtle rounded-full px-4 py-2 text-sm'>
+      {label}
+    </div>
+  ))}
+</Marquee>
+```
+
+### Direction
+
+Use `direction='reverse'` to scroll in the opposite direction.
+
+```tsx-live-bleed-x
+<Marquee direction='reverse'>
+  {['Festivals', 'Concerts', 'Theatre', 'Sports', 'Comedy', 'Exhibitions'].map((label) => (
+    <div key={label} className='intent-accent emphasis-subtle rounded-full px-4 py-2 text-sm'>
+      {label}
+    </div>
+  ))}
+</Marquee>
+```
+
+### Pause on hover
+
+```tsx-live-bleed-x
+<Marquee pauseOnHover>
+  {['Festivals', 'Concerts', 'Theatre', 'Sports', 'Comedy', 'Exhibitions'].map((label) => (
+    <div key={label} className='intent-brand-secondary emphasis-subtle rounded-full px-4 py-2 text-sm'>
+      {label}
+    </div>
+  ))}
+</Marquee>
+```
+
+### Custom speed and gap
+
+```tsx-live-bleed-x
+<Marquee speed={100} gap={32}>
+  {['Fast', 'Scrolling', 'Content', 'With', 'Wider', 'Gaps'].map((label) => (
+    <div key={label} className='emphasis-normal rounded-xl px-6 py-4'>
+      {label}
+    </div>
+  ))}
+</Marquee>
+```
+
+## Accessibility
+
+- **Role**: The root element has `role='marquee'`
+- **Label**: Use `aria-label` to describe the scrolling content
+- **Duplicates**: The cloned children set is marked `aria-hidden='true'` so screen readers only announce content once
+- **Motion**: Users with `prefers-reduced-motion` should see paused content — consider wrapping with a motion preference check in your application
+
+<PropsDefinitions componentPath='packages/components/src/components/Marquee/index.tsx' />
