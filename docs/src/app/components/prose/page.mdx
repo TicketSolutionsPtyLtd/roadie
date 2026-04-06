@@ -109,10 +109,22 @@ import { Prose } from '@oztix/roadie-components'
 </Prose>
 ```
 
+## Custom element
+
+Use the `as` prop to render as a semantic HTML element.
+
+```tsx-live
+<Prose as='article'>
+  <h2>Article heading</h2>
+  <p>This renders as an <code>&lt;article&gt;</code> element instead of a <code>&lt;div&gt;</code>.</p>
+</Prose>
+```
+
 ## Guidelines
 
 - Use Prose for **rendered content** — CMS output, markdown, user HTML
 - Do **not** use Prose for app UI — use utility classes directly
+- Use the `as` prop to render with a semantic element like `article` or `section`
 - Prose sets `text-prose` (1.5 line-height) which is wider than `text-ui` (1.35)
 - All heading, list, blockquote, table, and code styles are handled automatically
 

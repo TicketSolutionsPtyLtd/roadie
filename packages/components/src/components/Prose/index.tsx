@@ -1,4 +1,4 @@
-import type { ComponentProps } from 'react'
+import type { ComponentProps, ElementType } from 'react'
 
 import { type VariantProps, cva } from 'class-variance-authority'
 
@@ -79,16 +79,26 @@ export const proseVariants = cva(
   }
 )
 
-export interface ProseProps
-  extends ComponentProps<'div'>,
-    VariantProps<typeof proseVariants> {}
+export type ProseProps<T extends ElementType = 'div'> = {
+  as?: T
+  className?: string
+} & VariantProps<typeof proseVariants> &
+  Omit<ComponentProps<T>, 'as' | 'className' | 'size'>
 
 /**
  * Prose container for long-form/rich content (CMS output, markdown, user HTML).
  * Applies semantic typography styles to nested HTML elements.
  */
-export function Prose({ className, size, ...props }: ProseProps) {
-  return <div className={cn(proseVariants({ size, className }))} {...props} />
+export function Prose<T extends ElementType = 'div'>({
+  as,
+  className,
+  size,
+  ...props
+}: ProseProps<T>) {
+  const Component = as || 'div'
+  return (
+    <Component className={cn(proseVariants({ size, className }))} {...props} />
+  )
 }
 
 Prose.displayName = 'Prose'

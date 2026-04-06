@@ -49,4 +49,25 @@ describe('Prose', () => {
     expect(div).toHaveAttribute('data-testid', 'my-prose')
     expect(div).toHaveAttribute('id', 'prose-1')
   })
+
+  it('renders as a custom element via as prop', () => {
+    const { container } = render(
+      <Prose as='article'>
+        <p>Content</p>
+      </Prose>
+    )
+    const el = container.firstElementChild as HTMLElement
+    expect(el.tagName.toLowerCase()).toBe('article')
+  })
+
+  it('renders as section', () => {
+    const { container } = render(
+      <Prose as='section' size='lg'>
+        <p>Content</p>
+      </Prose>
+    )
+    const el = container.firstElementChild as HTMLElement
+    expect(el.tagName.toLowerCase()).toBe('section')
+    expect(el.className).toContain('text-lg')
+  })
 })
