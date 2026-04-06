@@ -12,6 +12,7 @@ export const buttonVariants = cva('btn is-interactive', {
     intent: {
       neutral: 'intent-neutral',
       brand: 'intent-brand',
+      'brand-secondary': 'intent-brand-secondary',
       accent: 'intent-accent',
       danger: 'intent-danger',
       success: 'intent-success',

@@ -9,6 +9,7 @@ export const metadata = {
 const intents = [
   'neutral',
   'brand',
+  'brand-secondary',
   'accent',
   'danger',
   'success',

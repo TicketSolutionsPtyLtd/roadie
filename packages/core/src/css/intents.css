@@ -50,9 +50,9 @@
   --intent-bg-subtler: var(--intent-2a);
   --intent-bg-subtle: var(--intent-3a);
 
-  /* Mark colors (fixed — always light mode) */
-  --intent-mark-bg: var(--color-neutral-light-5);
-  --intent-mark-text: var(--color-neutral-light-13);
+  /* Mark colors — neutral uses inverted (dark bg / light text) */
+  --intent-mark-bg: var(--color-neutral-13);
+  --intent-mark-text: var(--color-neutral-0);
 }
 
 /* Dark mode: bump surfaces up for depth separation */
@@ -107,8 +107,8 @@
   --intent-bg-subtler: var(--intent-2a);
   --intent-bg-subtle: var(--intent-3a);
 
-  --intent-mark-bg: var(--color-neutral-light-5);
-  --intent-mark-text: var(--color-neutral-light-13);
+  --intent-mark-bg: var(--color-neutral-13);
+  --intent-mark-text: var(--color-neutral-0);
 
   .dark & {
     --intent-bg-normal: var(--color-neutral-2);
@@ -169,6 +169,77 @@
     --intent-bg-normal: var(--color-brand-2);
     --intent-bg-raised: var(--color-brand-2);
     --intent-bg-sunken: var(--color-brand-0);
+  }
+}
+
+/* ═══ Intent: brand-secondary ═══ */
+@utility intent-brand-secondary {
+  --intent-hue: 42;
+  --intent-bg-normal: var(--color-brand-secondary-1);
+  --intent-bg-strong: var(--color-brand-secondary-9);
+  --intent-bg-inverted: var(--color-brand-secondary-12);
+  --intent-bg-raised: var(--color-brand-secondary-1);
+  --intent-bg-sunken: var(--color-brand-secondary-2);
+
+  --intent-border-subtler: var(--color-brand-secondary-5);
+  --intent-border-subtle: var(--color-brand-secondary-6);
+  --intent-border-normal: var(--color-brand-secondary-7);
+  --intent-border-strong: var(--color-brand-secondary-9);
+  --intent-border-inverted: var(--color-brand-secondary-12);
+
+  --intent-text-subtler: var(--color-brand-secondary-10);
+  --intent-text-subtle: var(--color-brand-secondary-11);
+  --intent-text-normal: var(--color-brand-secondary-12);
+  --intent-text-strong: var(--color-brand-secondary-13);
+  --intent-text-inverted: var(--color-brand-secondary-0);
+
+  /* Raw scale steps */
+  --intent-0: var(--color-brand-secondary-0);
+  --intent-1: var(--color-brand-secondary-1);
+  --intent-2: var(--color-brand-secondary-2);
+  --intent-3: var(--color-brand-secondary-3);
+  --intent-4: var(--color-brand-secondary-4);
+  --intent-5: var(--color-brand-secondary-5);
+  --intent-6: var(--color-brand-secondary-6);
+  --intent-7: var(--color-brand-secondary-7);
+  --intent-8: var(--color-brand-secondary-8);
+  --intent-9: var(--color-brand-secondary-9);
+  --intent-10: var(--color-brand-secondary-10);
+  --intent-11: var(--color-brand-secondary-11);
+  --intent-12: var(--color-brand-secondary-12);
+  --intent-13: var(--color-brand-secondary-13);
+
+  --intent-2a: color-mix(
+    in oklch,
+    var(--color-brand-secondary-9) 6%,
+    transparent
+  );
+  --intent-3a: color-mix(
+    in oklch,
+    var(--color-brand-secondary-9) 11%,
+    transparent
+  );
+  --intent-4a: color-mix(
+    in oklch,
+    var(--color-brand-secondary-9) 17%,
+    transparent
+  );
+  --intent-5a: color-mix(
+    in oklch,
+    var(--color-brand-secondary-9) 23%,
+    transparent
+  );
+
+  --intent-bg-subtler: var(--intent-2a);
+  --intent-bg-subtle: var(--intent-3a);
+
+  --intent-mark-bg: var(--color-brand-secondary-light-5);
+  --intent-mark-text: var(--color-brand-secondary-light-13);
+
+  .dark & {
+    --intent-bg-normal: var(--color-brand-secondary-2);
+    --intent-bg-raised: var(--color-brand-secondary-2);
+    --intent-bg-sunken: var(--color-brand-secondary-0);
   }
 }
 
