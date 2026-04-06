@@ -39,10 +39,16 @@ The default intent is `info`.
     This is <Mark intent='neutral'>neutral</Mark> highlighted text.
   </p>
   <p>
+    This is <Mark intent='neutral-inverted'>neutral-inverted</Mark> highlighted text.
+  </p>
+  <p>
     This is <Mark intent='accent'>accent</Mark> highlighted text.
   </p>
   <p>
     This is <Mark intent='brand'>brand</Mark> highlighted text.
+  </p>
+  <p>
+    This is <Mark intent='brand-secondary'>brand-secondary</Mark> highlighted text.
   </p>
   <p>
     This is <Mark intent='info'>info</Mark> highlighted text.
@@ -59,7 +65,28 @@ The default intent is `info`.
 </div>
 ```
 
+### As heading
+
+Use the `as` prop to render Mark as a heading element. Padding automatically increases to suit display text.
+
+```tsx-live
+
+<div className='grid gap-4 text-center'>
+  <Mark as='h2' intent='accent' className='text-display-ui-3'>
+    Great events need great partners
+  </Mark>
+  <Mark as='h3' intent='neutral' className='text-display-ui-5'>
+    Not just great ticketing software
+  </Mark>
+  <Mark as='h3' intent='brand-secondary' className='text-display-ui-5'>
+    Built for the live events industry
+  </Mark>
+</div>
+```
+
 ### With headings
+
+Mark and [Highlight](/components/highlight) can both be used inline within headings.
 
 ```tsx-live
 
@@ -68,7 +95,7 @@ The default intent is `info`.
     Great events need great <Mark intent='accent'>partners</Mark>
   </h1>
   <h2 className='text-display-ui-5 text-subtle'>
-    Not just <Mark intent='warning'>great</Mark> ticketing software. Why?
+    <Highlight text='Not just great ticketing software. Why?' query='great' intent='warning' />
   </h2>
 </div>
 ```
