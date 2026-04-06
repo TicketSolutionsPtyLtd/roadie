@@ -65,6 +65,26 @@ Pass a custom character or element to `Breadcrumb.Separator`.
 </Breadcrumb>
 ```
 
+### With custom component
+
+Use the `as` prop on `Breadcrumb.Link` to render with a custom component like Next.js `Link`.
+
+```tsx
+import Link from 'next/link'
+
+<Breadcrumb>
+  <Breadcrumb.List>
+    <Breadcrumb.Item>
+      <Breadcrumb.Link as={Link} href='/'>Home</Breadcrumb.Link>
+      <Breadcrumb.Separator />
+    </Breadcrumb.Item>
+    <Breadcrumb.Item>
+      <Breadcrumb.Current>Current page</Breadcrumb.Current>
+    </Breadcrumb.Item>
+  </Breadcrumb.List>
+</Breadcrumb>
+```
+
 ## Accessibility
 
 - **Landmark**: Renders as a `<nav>` element with `aria-label="Breadcrumb"` for screen reader navigation.

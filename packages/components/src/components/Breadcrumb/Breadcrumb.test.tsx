@@ -112,6 +112,28 @@ describe('Breadcrumb', () => {
     expect(current).toHaveClass('text-normal', 'font-medium')
   })
 
+  it('renders Link with custom component via as prop', () => {
+    function CustomLink(props: React.ComponentProps<'a'>) {
+      return <a data-custom='true' {...props} />
+    }
+    const { getByText } = render(
+      <Breadcrumb>
+        <Breadcrumb.List>
+          <Breadcrumb.Item>
+            <Breadcrumb.Link as={CustomLink} href='/home'>
+              Home
+            </Breadcrumb.Link>
+          </Breadcrumb.Item>
+        </Breadcrumb.List>
+      </Breadcrumb>
+    )
+    const link = getByText('Home')
+    expect(link.tagName.toLowerCase()).toBe('a')
+    expect(link).toHaveAttribute('data-custom', 'true')
+    expect(link).toHaveAttribute('href', '/home')
+    expect(link).toHaveClass('text-subtle')
+  })
+
   it('applies custom className to sub-components', () => {
     const { container } = render(
       <Breadcrumb className='custom-nav'>
