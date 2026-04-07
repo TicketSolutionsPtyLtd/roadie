@@ -35,6 +35,16 @@ export {
 
 export { Marquee, type MarqueeProps } from './components/Marquee'
 
+export {
+  Steps,
+  stepsVariants,
+  useSteps,
+  type StepsProps,
+  type StepsItemProps,
+  type UseStepsProps,
+  type UseStepsReturn
+} from './components/Steps'
+
 // Form components
 export { Input, inputVariants, type InputProps } from './components/Input'
 export {
