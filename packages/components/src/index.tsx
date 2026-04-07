@@ -105,6 +105,28 @@ export {
   type FilterOptions
 } from './components/Combobox'
 export {
+  Autocomplete,
+  autocompleteInputGroupVariants,
+  useFilteredItems,
+  type AutocompleteProps,
+  type AutocompleteRootProps,
+  type AutocompleteValueProps,
+  type AutocompleteInputGroupProps,
+  type AutocompleteInputProps,
+  type AutocompleteTriggerProps,
+  type AutocompleteClearProps,
+  type AutocompletePortalProps,
+  type AutocompletePositionerProps,
+  type AutocompletePopupProps,
+  type AutocompleteListProps,
+  type AutocompleteItemProps,
+  type AutocompleteCollectionProps,
+  type AutocompleteGroupProps,
+  type AutocompleteGroupLabelProps,
+  type AutocompleteEmptyProps,
+  type AutocompleteStatusProps
+} from './components/Autocomplete'
+export {
   RadioGroup,
   radioGroupVariants,
   radioGroupItemVariants,

@@ -1,0 +1,343 @@
+export const metadata = {
+  title: 'Autocomplete',
+  description: 'A text input with suggestions that optionally complete your typing',
+  status: 'beta',
+  category: 'Inputs',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Autocomplete
+
+A text input with suggestions that optionally complete your typing.
+
+## Import
+
+```tsx
+import { Autocomplete } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+function AutocompleteDefault() {
+  const cities = [
+    'Brisbane',
+    'Sydney',
+    'Melbourne',
+    'Perth',
+    'Adelaide',
+    'Hobart',
+    'Darwin',
+    'Canberra',
+    'Gold Coast',
+    'Newcastle',
+  ]
+
+  return (
+    <Autocomplete items={cities}>
+      <Autocomplete.InputGroup>
+        <Autocomplete.Input placeholder='Type a city...' />
+      </Autocomplete.InputGroup>
+      <Autocomplete.Portal>
+        <Autocomplete.Positioner>
+          <Autocomplete.Popup>
+            <Autocomplete.List>
+              {(city) => (
+                <Autocomplete.Item key={city} value={city}>
+                  {city}
+                </Autocomplete.Item>
+              )}
+            </Autocomplete.List>
+            <Autocomplete.Empty>No cities found</Autocomplete.Empty>
+          </Autocomplete.Popup>
+        </Autocomplete.Positioner>
+      </Autocomplete.Portal>
+    </Autocomplete>
+  )
+}
+```
+
+### Emphasis
+
+```tsx-live
+<div className='grid gap-2'>
+  <Autocomplete>
+    <Autocomplete.InputGroup emphasis='normal'>
+      <Autocomplete.Input placeholder='Normal emphasis' />
+    </Autocomplete.InputGroup>
+  </Autocomplete>
+  <Autocomplete>
+    <Autocomplete.InputGroup emphasis='subtle'>
+      <Autocomplete.Input placeholder='Subtle emphasis' />
+    </Autocomplete.InputGroup>
+  </Autocomplete>
+</div>
+```
+
+### Sizes
+
+```tsx-live
+<div className='grid gap-2'>
+  <Autocomplete>
+    <Autocomplete.InputGroup size='sm'>
+      <Autocomplete.Input placeholder='Small' />
+    </Autocomplete.InputGroup>
+  </Autocomplete>
+  <Autocomplete>
+    <Autocomplete.InputGroup size='md'>
+      <Autocomplete.Input placeholder='Medium (default)' />
+    </Autocomplete.InputGroup>
+  </Autocomplete>
+  <Autocomplete>
+    <Autocomplete.InputGroup size='lg'>
+      <Autocomplete.Input placeholder='Large' />
+    </Autocomplete.InputGroup>
+  </Autocomplete>
+</div>
+```
+
+### States
+
+```tsx-live
+<div className='grid gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Default</p>
+    <Autocomplete>
+      <Autocomplete.InputGroup>
+        <Autocomplete.Input placeholder='Type here...' />
+      </Autocomplete.InputGroup>
+    </Autocomplete>
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <Autocomplete disabled>
+      <Autocomplete.InputGroup>
+        <Autocomplete.Input placeholder='Type here...' />
+      </Autocomplete.InputGroup>
+    </Autocomplete>
+  </div>
+</div>
+```
+
+### Composition
+
+#### With label and clear
+
+```tsx-live
+function AutocompleteWithLabel() {
+  const cities = [
+    'Brisbane',
+    'Sydney',
+    'Melbourne',
+    'Perth',
+    'Adelaide',
+    'Hobart',
+    'Darwin',
+    'Canberra',
+  ]
+
+  return (
+    <Autocomplete items={cities}>
+      <div className='grid gap-1.5'>
+        <label className='text-sm font-medium text-normal'>City</label>
+        <Autocomplete.InputGroup>
+          <Autocomplete.Input placeholder='Type a city...' />
+          <Autocomplete.Clear />
+        </Autocomplete.InputGroup>
+      </div>
+      <Autocomplete.Portal>
+        <Autocomplete.Positioner>
+          <Autocomplete.Popup>
+            <Autocomplete.List>
+              {(city) => (
+                <Autocomplete.Item key={city} value={city}>
+                  {city}
+                </Autocomplete.Item>
+              )}
+            </Autocomplete.List>
+            <Autocomplete.Empty>No cities found</Autocomplete.Empty>
+          </Autocomplete.Popup>
+        </Autocomplete.Positioner>
+      </Autocomplete.Portal>
+    </Autocomplete>
+  )
+}
+```
+
+#### With trigger
+
+```tsx-live
+function AutocompleteWithTrigger() {
+  const cities = [
+    'Brisbane',
+    'Sydney',
+    'Melbourne',
+    'Perth',
+    'Adelaide',
+    'Hobart',
+  ]
+
+  return (
+    <Autocomplete items={cities}>
+      <Autocomplete.InputGroup>
+        <Autocomplete.Input placeholder='Type a city...' />
+        <Autocomplete.Clear />
+        <Autocomplete.Trigger />
+      </Autocomplete.InputGroup>
+      <Autocomplete.Portal>
+        <Autocomplete.Positioner>
+          <Autocomplete.Popup>
+            <Autocomplete.List>
+              {(city) => (
+                <Autocomplete.Item key={city} value={city}>
+                  {city}
+                </Autocomplete.Item>
+              )}
+            </Autocomplete.List>
+            <Autocomplete.Empty>No cities found</Autocomplete.Empty>
+          </Autocomplete.Popup>
+        </Autocomplete.Positioner>
+      </Autocomplete.Portal>
+    </Autocomplete>
+  )
+}
+```
+
+#### With groups
+
+```tsx-live
+function AutocompleteWithGroups() {
+  const groups = [
+    {
+      value: 'New South Wales',
+      items: ['Sydney', 'Newcastle', 'Wollongong', 'Central Coast'],
+    },
+    {
+      value: 'Queensland',
+      items: ['Brisbane', 'Gold Coast', 'Sunshine Coast', 'Cairns'],
+    },
+  ]
+
+  return (
+    <Autocomplete items={groups}>
+      <Autocomplete.InputGroup>
+        <Autocomplete.Input placeholder='Search by state...' />
+      </Autocomplete.InputGroup>
+      <Autocomplete.Portal>
+        <Autocomplete.Positioner>
+          <Autocomplete.Popup>
+            <Autocomplete.List>
+              {groups.map((group) => (
+                <Autocomplete.Group key={group.value} items={group.items}>
+                  <Autocomplete.GroupLabel>{group.value}</Autocomplete.GroupLabel>
+                  <Autocomplete.Collection>
+                    {(city) => (
+                      <Autocomplete.Item key={city} value={city}>
+                        {city}
+                      </Autocomplete.Item>
+                    )}
+                  </Autocomplete.Collection>
+                </Autocomplete.Group>
+              ))}
+            </Autocomplete.List>
+            <Autocomplete.Empty>No cities found</Autocomplete.Empty>
+          </Autocomplete.Popup>
+        </Autocomplete.Positioner>
+      </Autocomplete.Portal>
+    </Autocomplete>
+  )
+}
+```
+
+## Guidelines
+
+### When to use Autocomplete
+
+Use Autocomplete when the user is typing **free text** and suggestions help
+speed things up — but the typed value is always valid, even if it doesn't match
+any suggestion.
+
+- Address fields
+- Search bars
+- Tag input where custom values are allowed
+- Any text field where suggestions are helpful but not required
+
+### When to use Combobox or Select instead
+
+If the user **must pick from the list**, use
+[Combobox](/components/combobox). If the list is short and fixed, use
+[Select](/components/select).
+
+| Question | Select | Combobox | Autocomplete |
+|---|---|---|---|
+| User types to filter? | No | Yes | Yes |
+| Must pick from the list? | Yes | Yes | No — typed value is valid |
+| Options from an API? | No | Yes | Yes |
+| Custom/free-text value? | No | No | Yes |
+| Primary interaction | Browse and pick | Search and pick | Type with suggestions |
+| Typical list size | 2-15 items | 10-500+ items | Any |
+
+### Filtering
+
+Pass the `items` prop to `Autocomplete` root for built-in client-side filtering.
+Use `Autocomplete.List` with a render function child to template each filtered
+item:
+
+```tsx
+<Autocomplete items={cities}>
+  ...
+  <Autocomplete.List>
+    {(city) => <Autocomplete.Item value={city}>{city}</Autocomplete.Item>}
+  </Autocomplete.List>
+  <Autocomplete.Empty>No results</Autocomplete.Empty>
+</Autocomplete>
+```
+
+`Autocomplete.Empty` only renders when the filtered list is empty. It requires
+the `items` prop on root.
+
+### Async loading
+
+For server-side search, update the `items` prop as results arrive. Use
+`Autocomplete.Status` to announce state changes to screen readers:
+
+```tsx
+<Autocomplete items={results} onValueChange={(value) => fetchResults(value)}>
+  ...
+  <Autocomplete.Status>{isLoading ? 'Loading...' : `${results.length} results`}</Autocomplete.Status>
+</Autocomplete>
+```
+
+### Mode
+
+The `mode` prop controls how filtering and inline autocompletion behave:
+
+- **`list`** (default) — items are filtered as you type. The input value stays
+  as typed.
+- **`both`** — items are filtered and the input temporarily shows the
+  highlighted item's value (inline autocompletion).
+- **`inline`** — items are **not** filtered. The input temporarily shows the
+  highlighted item's value.
+- **`none`** — items are static and the input value doesn't change based on
+  highlighting.
+
+### Keyboard behaviour
+
+- **Arrow keys** navigate the list
+- **Enter** confirms the highlighted item (or submits the form if no item is highlighted)
+- **Escape** closes the popup
+- Typing filters the list in real time
+
+## Accessibility
+
+- Use a `<label>` element to name the input.
+- `Autocomplete.Empty` announces "no results" to screen readers automatically.
+- `Autocomplete.Status` is a live region — use it for async status like loading
+  or result counts.
+- The input value is always valid — screen readers don't need to announce
+  selection errors.
+
+<PropsDefinitions componentPath='packages/components/src/components/Autocomplete/index.tsx' />
