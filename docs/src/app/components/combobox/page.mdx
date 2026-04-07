@@ -228,6 +228,54 @@ function ComboboxWithGroups() {
 }
 ```
 
+#### With rich items
+
+Use custom markup inside `Combobox.Item` to show metadata like a subtitle or
+secondary label alongside the primary text.
+
+```tsx-live
+function ComboboxRichItems() {
+  const venues = [
+    { name: 'The Tivoli', location: 'Fortitude Valley, QLD' },
+    { name: 'The Triffid', location: 'Newstead, QLD' },
+    { name: 'The Zoo', location: 'Fortitude Valley, QLD' },
+    { name: 'Woolly Mammoth', location: 'Fortitude Valley, QLD' },
+    { name: 'The Princess Theatre', location: 'Woolloongabba, QLD' },
+    { name: 'Riverstage', location: 'South Bank, QLD' },
+    { name: 'The Fortitude Music Hall', location: 'Fortitude Valley, QLD' },
+    { name: 'Black Bear Lodge', location: 'Fortitude Valley, QLD' },
+  ]
+
+  return (
+    <Combobox items={venues} getOptionLabel={(venue) => venue.name} getOptionString={(venue) => venue.name}>
+      <Combobox.InputGroup>
+        <Combobox.Input placeholder='Search venues...' />
+        <Combobox.Clear />
+        <Combobox.Trigger />
+      </Combobox.InputGroup>
+      <Combobox.Portal>
+        <Combobox.Positioner>
+          <Combobox.Popup>
+            <Combobox.List>
+              {(venue) => (
+                <Combobox.Item key={venue.name} value={venue.name}>
+                  <div className='grid gap-0.5 min-w-0'>
+                    <span className='truncate font-medium'>{venue.name}</span>
+                    <span className='truncate text-xs text-subtle'>{venue.location}</span>
+                  </div>
+                  <Combobox.ItemIndicator />
+                </Combobox.Item>
+              )}
+            </Combobox.List>
+            <Combobox.Empty>No venues found</Combobox.Empty>
+          </Combobox.Popup>
+        </Combobox.Positioner>
+      </Combobox.Portal>
+    </Combobox>
+  )
+}
+```
+
 ## Guidelines
 
 ### When to use Combobox

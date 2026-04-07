@@ -193,7 +193,7 @@ export function SelectPopup({ className, ...props }: SelectPopupProps) {
   return (
     <SelectPrimitive.Popup
       className={cn(
-        'min-w-[var(--anchor-width)] rounded-xl border border-[var(--intent-border-subtle)] bg-raised p-1 shadow-lg',
+        'max-h-[var(--available-height)] max-w-[var(--available-width)] min-w-[var(--anchor-width)] overflow-y-auto rounded-xl border border-[var(--intent-border-subtle)] bg-raised p-1 shadow-lg',
         'origin-[var(--transform-origin)] transition-[transform,scale,opacity] data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0',
         className
       )}
@@ -223,7 +223,7 @@ export function SelectItem({ className, children, ...props }: SelectItemProps) {
   return (
     <SelectPrimitive.Item
       className={cn(
-        'flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm text-normal outline-none select-none',
+        'flex w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm text-normal outline-none select-none',
         'data-[highlighted]:bg-subtle',
         className
       )}

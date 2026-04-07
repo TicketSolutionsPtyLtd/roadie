@@ -108,7 +108,16 @@
       "Bash(cross-env NODE_NO_WARNINGS=1 next dev -p 3001)",
       "Bash(NODE_NO_WARNINGS=1 pnpm exec next dev -p 3001)",
       "Read(//Users/lukebrooker/.claude/**)",
-      "Read(//Users/lukebrooker/.claude/plugins/cache/**)"
+      "Read(//Users/lukebrooker/.claude/plugins/cache/**)",
+      "Bash(pnpm --filter @oztix/roadie-components test -- --run src/components/Prose)",
+      "Bash(pnpm --filter @oztix/roadie-components test -- --run src/components/Breadcrumb)",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__ark-ui__get_component_props",
+      "mcp__ark-ui__list_examples",
+      "mcp__ark-ui__get_example",
+      "mcp__plugin_compound-engineering_context7__query-docs",
+      "Bash(pnpm info:*)",
+      "Bash(pnpm:*)"
     ],
     "deny": [],
     "ask": []

@@ -8,6 +8,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  place-self: start;
   white-space: nowrap;
   border-radius: 9999px;
   font-weight: 700;

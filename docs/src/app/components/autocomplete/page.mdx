@@ -256,6 +256,59 @@ function AutocompleteWithGroups() {
 }
 ```
 
+#### With rich items
+
+Use custom markup inside `Autocomplete.Item` to show metadata like venue, date,
+or an avatar alongside the primary label. Use `itemToStringValue` to control
+what text appears in the input when an item is selected — this includes the
+metadata so the user sees full context.
+
+```tsx-live
+function AutocompleteRichItems() {
+  const events = [
+    { name: 'Somersault Magazine Issue 02 Launch + 1st Birthday', venue: 'QUIVR, Fortitude Valley', date: '17/04/2026, 7:00 pm' },
+    { name: 'Manorism - "Something I Can\'t See" Single Launch', venue: 'Shotkickers, Thornbury', date: '17/04/2026, 7:00 pm' },
+    { name: 'Little Somebodies w/ The Phosphenes + Lightkeepers Trio', venue: 'Bar Open, Fitzroy', date: '26/07/2026, 7:00 pm' },
+    { name: 'Our Zebra Troy - "Something Cerebral" Album Launch', venue: 'Shotkickers, Thornbury', date: '18/04/2026, 2:00 pm' },
+    { name: 'In The Pines 2026', venue: 'UWA Somerville, Crawley', date: '19/04/2026, 11:00 am' },
+    { name: 'SUNSET FEST SOUTH - Tribute Band Festival', venue: 'Port Beach Brewery, North Fremantle', date: '11/04/2026, 3:00 pm' },
+  ]
+
+  return (
+    <Autocomplete
+      items={events}
+      itemToStringValue={(event) =>
+        `${event.name} — ${event.venue} · ${event.date}`
+      }
+    >
+      <Autocomplete.InputGroup>
+        <Autocomplete.Input placeholder='Search events...' />
+        <Autocomplete.Clear />
+      </Autocomplete.InputGroup>
+      <Autocomplete.Portal>
+        <Autocomplete.Positioner>
+          <Autocomplete.Popup>
+            <Autocomplete.List>
+              {(event) => (
+                <Autocomplete.Item key={event.name} value={event.name}>
+                  <div className='grid gap-0.5 min-w-0'>
+                    <span className='truncate font-medium'>{event.name}</span>
+                    <span className='truncate text-xs text-subtle'>
+                      {event.venue} · {event.date}
+                    </span>
+                  </div>
+                </Autocomplete.Item>
+              )}
+            </Autocomplete.List>
+            <Autocomplete.Empty>No events found</Autocomplete.Empty>
+          </Autocomplete.Popup>
+        </Autocomplete.Positioner>
+      </Autocomplete.Portal>
+    </Autocomplete>
+  )
+}
+```
+
 ## Guidelines
 
 ### When to use Autocomplete
