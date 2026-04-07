@@ -7,7 +7,7 @@ import { type VariantProps, cva } from 'class-variance-authority'
 import { cn } from '@oztix/roadie-core/utils'
 
 export const markVariants = cva(
-  'inline-block justify-self-start px-[0.1em] py-[0.05em]',
+  'inline-block justify-self-start self-start px-[0.1em] py-[0.05em]',
   {
     variants: {
       intent: {
@@ -47,11 +47,12 @@ export function Mark<T extends ElementType = 'mark'>({
   return (
     <Component
       className={cn(
-        markVariants({ intent, className }),
+        markVariants({ intent }),
         isNeutralInverted
-          ? 'bg-[var(--color-neutral-0)] text-[var(--color-neutral-13)]'
+          ? 'bg-neutral-0 text-neutral-13'
           : 'bg-mark text-mark',
-        isHeading && 'px-[0.4em] py-[0.2em]'
+        isHeading && 'px-[0.4em] py-[0.2em]',
+        className
       )}
       {...props}
     />

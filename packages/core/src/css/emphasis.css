@@ -23,7 +23,8 @@
     transform: translateY(-1px);
     box-shadow: var(--rim-light-subtle), var(--shadow-sm);
   }
-  &.is-interactive:active {
+  &.is-interactive:active,
+  &.is-interactive.is-active {
     background-color: var(--intent-12);
     transform: translateY(0) scale(0.99);
     box-shadow: none;
@@ -41,7 +42,8 @@
     transform: translateY(-1px);
     box-shadow: var(--shadow-sm);
   }
-  &.is-interactive:active {
+  &.is-interactive:active,
+  &.is-interactive.is-active {
     background-color: var(--intent-3);
     transform: translateY(0) scale(0.99);
     box-shadow: none;
@@ -59,7 +61,8 @@
   &.is-interactive:focus-visible {
     background-color: var(--intent-4a);
   }
-  &.is-interactive:active {
+  &.is-interactive:active,
+  &.is-interactive.is-active {
     background-color: var(--intent-5a);
   }
 }
@@ -77,7 +80,8 @@
   &.is-interactive:focus-visible {
     background-color: var(--intent-3a);
   }
-  &.is-interactive:active {
+  &.is-interactive:active,
+  &.is-interactive.is-active {
     background-color: var(--intent-4a);
   }
 }
@@ -97,7 +101,8 @@
     transform: translateY(-1px);
     box-shadow: var(--rim-light-strong), var(--shadow-lg);
   }
-  &.is-interactive:active {
+  &.is-interactive:active,
+  &.is-interactive.is-active {
     transform: translateY(0) scale(0.99);
     box-shadow: var(--rim-light-strong), var(--shadow-sm);
   }

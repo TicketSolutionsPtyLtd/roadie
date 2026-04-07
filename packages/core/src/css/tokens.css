@@ -176,6 +176,17 @@
   --text-5xl: clamp(2.25rem, 0.7059rem + 5.1471vw, 4rem);
   --text-6xl: clamp(2.5rem, 0.5147rem + 6.6176vw, 4.75rem);
   --text-7xl: clamp(2.75rem, -0.1176rem + 9.5588vw, 6rem);
+  --text-xs--line-height: initial;
+  --text-sm--line-height: initial;
+  --text-base--line-height: initial;
+  --text-lg--line-height: initial;
+  --text-xl--line-height: initial;
+  --text-2xl--line-height: initial;
+  --text-3xl--line-height: initial;
+  --text-4xl--line-height: initial;
+  --text-5xl--line-height: initial;
+  --text-6xl--line-height: initial;
+  --text-7xl--line-height: initial;
 
   /* ═══ Line heights ═══ */
   --leading-tightest: 1;

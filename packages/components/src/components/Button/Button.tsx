@@ -21,7 +21,7 @@ export const buttonVariants = cva('btn is-interactive', {
     },
     emphasis: {
       strong: 'emphasis-strong',
-      normal: 'emphasis-normal text-subtle',
+      normal: 'emphasis-normal',
       subtle: 'emphasis-subtle text-subtle',
       subtler: 'emphasis-subtler text-subtle'
     },
