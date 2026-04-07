@@ -3,7 +3,7 @@ title: 'feat: Migrate design system from PandaCSS to Tailwind v4 + Base UI'
 type: feat
 status: active
 date: 2026-03-31
-updated: 2026-04-05
+updated: 2026-04-08
 origin: docs/brainstorms/2026-03-31-tailwind-migration-brainstorm.md
 ---
 
@@ -13,7 +13,7 @@ origin: docs/brainstorms/2026-03-31-tailwind-migration-brainstorm.md
 
 Major v2 overhaul of the Roadie design system: replace PandaCSS with Tailwind CSS v4, replace Ark UI with Base UI, and introduce a Tailwind-native intent/emphasis semantic styling system using `@utility` directives. The system must serve React apps (full component library) and a legacy Vue app (tokens + utility classes).
 
-Work on branch `feature/v2-tailwind-migration` (~98 commits from `main`).
+Work on branch `feature/v2-tailwind-migration` (124 commits from `main`).
 
 ## Implementation Phases
 
@@ -43,7 +43,7 @@ Work on branch `feature/v2-tailwind-migration` (~98 commits from `main`).
 
 - [x] Button + IconButton — Base UI + CVA (intent, emphasis, size + icon variants). Uses native `<button>` when no custom render prop.
 - [x] Code — `<code>` with CVA (intent, emphasis). Default emphasis=normal.
-- [x] Mark — `<mark>` with intent + emphasis styling
+- [x] Mark — `<mark>` with intent + emphasis styling, polymorphic `as` prop
 - [x] Highlight — reimplemented useHighlight in-house
 - [x] SpotIllustration — inline styles using `--color-illustration-*` tokens (fixed colors, don't change in dark mode)
 - [x] ThemeProvider — dynamic accent via generateRadixScale + SSR-safe getAccentStyleTag()
@@ -51,34 +51,44 @@ Work on branch `feature/v2-tailwind-migration` (~98 commits from `main`).
 - [x] **Text component removed** — replaced with raw `<p>`, `<span>` + utility classes
 - [x] **Heading component removed** — replaced with raw `<h1>`-`<h6>` + `text-display-ui-*` / `text-display-prose-*` utilities
 
-**New components (13 added):**
+**New components (19 added):**
 
-- [x] Prose — rich content container with `size` prop (sm/md/lg) for CMS/markdown
+- [x] Prose — rich content container with `size` prop (sm/md/lg) for CMS/markdown, polymorphic `as` prop
 - [x] Badge — intent/emphasis/size, indicator with pulse, icons as children via `[&_svg]:size-[1em]`
 - [x] Card — generic card with Header/Content/Footer (emphasis: raised/subtle/normal)
 - [x] Input — styled text input with `is-interactive-field`
-- [x] Textarea — styled textarea with same variant system
-- [x] Field — compound form field (Label, Input, Textarea, HelperText, ErrorText)
-- [x] Select — Base UI Select with full sub-component API (Root/Trigger/Value/Icon/Portal/Positioner/Popup/Item/ItemText/ItemIndicator/Group/GroupLabel/Label/ScrollUpArrow/ScrollDownArrow)
-- [x] Combobox — Base UI Combobox with full sub-component API (Root/Label/InputGroup/Input/Trigger/Clear/Portal/Positioner/Popup/List/Item/Collection/ItemIndicator/Group/GroupLabel/Empty/Status) + `useFilter` hook + `is-interactive-field-group` utility
+- [x] Textarea — styled textarea with same variant system, `autoResize` prop
+- [x] Field — universal compound form field wrapper (Label, Input, Textarea, HelperText, ErrorText) with `invalid`/`required`/`disabled` context inheritance
+- [x] Label — standalone label component
+- [x] Select — Base UI Select with full sub-component API (Root/Trigger/Value/Icon/Content/Item/ItemText/ItemIndicator/Group/GroupLabel/Label/ScrollUpArrow/ScrollDownArrow)
+- [x] Combobox — Base UI Combobox with full sub-component API + `useFilter` hook + `is-interactive-field-group` utility
+- [x] Autocomplete — Base UI Autocomplete wrapping @base-ui/react/autocomplete
 - [x] RadioGroup — Base UI Radio with emphasis on Root (subtler/normal), items inherit via context
 - [x] Fieldset — form grouping with Legend, HelperText, ErrorText
 - [x] Accordion — Base UI Collapsible with single/multiple + emphasis (normal/subtle/subtler) + intent
-- [x] Breadcrumb — semantic nav with List/Item/Link/Separator/Current
+- [x] Breadcrumb — semantic nav with List/Item/Link/Separator/Current, polymorphic `as` prop on Link
 - [x] Separator — horizontal/vertical divider
+- [x] Steps — wrapping @ark-ui/react/steps
+- [x] LinkButton — button styled as a link
+- [x] Indicator — status indicator component
+- [x] Marquee — CSS animation-based scrolling content
 
 **Key refactors during Phase 2:**
 
 - Components no longer set a default intent — they inherit from CSS cascade context
 - Grid-first layout adopted throughout (replaced `flex flex-col` stacks with `grid gap-*`)
-- Tailwind Prettier plugin added for consistent class ordering
+- Tailwind Prettier plugin added for consistent class ordering (+ canonical classes plugin)
 - Accordion `appearance` prop replaced with `emphasis` and `intent` for consistency
 - Select enhanced from simple component to full sub-component API alongside Combobox
+- Select simplified: `Select.Content` replaces Portal + Positioner + Popup nesting
+- Field made universal wrapper for all form controls (Input, Textarea, Select, RadioGroup, Combobox, Autocomplete)
 - All icon imports migrated to Icon suffix convention (`HeartIcon` not `Heart`)
 - Emphasis `default` renamed to `normal` across all CSS, components, tests, and docs (strong → normal → subtle → subtler)
 - RadioGroup `appearance` prop on Item refactored to `emphasis` on Root with context inheritance
+- `brand-secondary` intent added across all component variants
+- Line-height stripped from text-size utilities for better composition
 
-**Testing:** 153 tests across 19 test files, all passing.
+**Testing:** 276 tests across 27 test files, all passing.
 
 ### Phase 3: Documentation Site — COMPLETE
 
@@ -102,7 +112,9 @@ Work on branch `feature/v2-tailwind-migration` (~98 commits from `main`).
 - [x] Token pages: Overview (intent/emphasis architecture) + Reference (color scales, semantic tokens, typography, elevation)
 - [x] Guideline component with `<Guideline.Do>` / `<Guideline.Dont>` subcomponents for do/don't patterns
 - [x] Home page redesigned with component overview, skeletons, and categorized navigation
-- [x] ~34 pages building successfully as static content
+- [x] Philosophy page under Getting Started
+- [x] 28 component doc pages (including Forms overview, icon-button, link-button, link-icon-button, autocomplete, steps, label, marquee)
+- [x] ~40+ pages building successfully as static content
 - [x] AGENTS.md fully rewritten for v2 architecture (updated multiple times — latest includes all conventions)
 
 ### Phase 4a: Migration Guide — COMPLETE
@@ -172,24 +184,15 @@ Component API changes:
 
 **Verified 2026-04-04:** All content uses `normal` naming. No stale references.
 
-### Phase 4b: Codemods — TODO
+### Phase 4b: Codemods — DROPPED
 
-jscodeshift transforms:
-
-- [ ] View -> div (with layout class mapping)
-- [ ] Container -> div with container class
-- [ ] colorPalette -> intent (with value mapping)
-- [ ] appearance -> emphasis
-- [ ] data-color-mode -> dark class
-- [ ] Spacing props -> Tailwind classes (with token value mapping)
-- [ ] PandaCSS import removal
-- [ ] Icon migration (Lucide -> Phosphor with Icon suffix)
+~~jscodeshift transforms~~ — No longer needed. The Oztix Website is the only consumer of Roadie and is being migrated manually on its own `feature/roadie-v2-migration` branch. PandaCSS has already been fully removed from the website source. Manual migration is more reliable and allows design improvements during the process.
 
 ### Phase 5a: API Review + Accessibility Audit — COMPLETE
 
 API review:
 
-- [x] Review all 18 component APIs for consistency (prop naming, sub-component patterns, defaults)
+- [x] Review all component APIs for consistency (prop naming, sub-component patterns, defaults)
 - [x] Verify Combobox and Select sub-component API naming is consistent
 - [x] Check `is-interactive-field-group` is documented in Interactions foundation page
 - [x] Review all component exports in `packages/components/src/index.tsx`
@@ -225,22 +228,44 @@ Code review (commit `395507e`):
 - [x] Optimize ThemeProvider accent effect to skip regeneration when SSR values already match
 - [x] Add font preconnect hints to Getting Started docs
 
-**Open items from code review (needs triage):**
+**Open items from code review:**
 
-- [ ] Verify font format: `fonts.css` declares `format('woff2')` but file has `.woff` extension — check actual format on CDN
-- [ ] Document or resolve form field intent cascade: `is-interactive-field` hardcodes accent for focus/invalid regardless of parent intent, while `is-interactive` respects intent cascade. Form controls expose `intent` CVA variants that change border/bg but focus ring stays accent. Decide: (a) document as intentional, (b) make field interactions intent-aware, or (c) remove intent variant from form controls
-- [ ] Consider lazy-loading `colorjs.io` (~60-80KB) via dynamic import — most consumers use fixed accent and never need runtime generation
+- [x] **Font format:** `fonts.css` declares `format('woff2')` correctly — files are WOFF2 despite `.woff` extension on CDN. No action needed.
+- [x] **Form field intent cascade:** Fixed — field interactions now respect intent cascade.
+- [ ] **Lazy-load colorjs.io:** Deferred to post-v2.0.0. Consider dynamic import for `colorjs.io` (~60-80KB) — most consumers use fixed accent and never need runtime generation.
 
-**Testing:** 179 tests across 21 test files, all passing. Full build (core → components → docs) succeeds.
+### Phase 6: Website Migration — IN PROGRESS
 
-### Phase 5c: Polish + Release — TODO
+The Oztix Website (`~/Code/ticketsolutions.oztix.website/src/TicketSolutions.Oztix.Website`) is being migrated on its own `feature/roadie-v2-migration` branch using `file:` references to local Roadie packages.
 
-- [ ] Vue integration guide (tokens + utility classes only, no components)
-- [ ] CSS bundle size measurement
+**Completed:**
+
+- [x] PandaCSS fully removed from website source (no `styled-system` imports remain)
+- [x] Tailwind v4 + `@tailwindcss/postcss` installed
+- [x] `@oztix/roadie-core` and `@oztix/roadie-components` referenced via `file:` protocol
+- [x] `@base-ui/react`, `@phosphor-icons/react` added as website dependencies
+- [x] `link:roadie` / `unlink:roadie` scripts available
+- [x] Deprecated `colorPalette` replaced with `intent`
+- [x] Tailwind canonical classes plugin + formatting applied
+- [x] `flex-col` vertical stacks replaced with `grid`
+- [x] Contact form migrated to Roadie v2 Field/Select/RadioGroup
+- [x] Form step spacing improvements
+- [x] Audit remaining pages for any leftover PandaCSS patterns or v1 component usage
+- [x] Verify all pages render correctly in light mode
+- [x] Test all interactive components (forms, accordions, etc.)
+- [x] Run full build and verify static export
+- [x] Performance check (bundle size, CWV)
+
+### Phase 7: Polish + Release — TODO
+
+- [x] CSS bundle size measurement — 82.6 KB raw / 12.8 KB gzip / 9.4 KB brotli
+- [x] Vue integration guide (tokens + utility classes only, no components) — `docs/src/app/overview/vue-integration/page.mdx`
 - [ ] Changesets setup + major version bump (v2.0.0)
-- [ ] Update README files
+- [x] Update README files
 - [ ] Tag release, publish to npm
 - [ ] Deploy updated docs site
+- [ ] Merge website migration branch
+- [ ] Lazy-load colorjs.io (deferred to post-v2.0.0)
 
 ## Key Architecture Decisions
 
@@ -273,11 +298,13 @@ These decisions were made during implementation and should be maintained:
 25. **Component-level accessibility docs** — each component page should document keyboard patterns, ARIA roles, and screen reader behavior (template update pending in Phase 5a).
 26. **`useAccent()` removed in v2** — replaced by `useTheme()` which also exposes `isDark`, `setDark`, `accentColor`, `setAccentColor`.
 27. **Dark mode uses `color-scheme` + `.dark` class** — `getThemeScript()` provides a blocking inline script for flash-free SSR. ThemeProvider syncs state with localStorage and optional OS preference following.
+28. **Field is the universal wrapper** for all form controls — provides layout, label, helper/error text, and `invalid`/`required`/`disabled` context inheritance.
+29. **No codemods** — single consumer (Oztix Website) migrated manually for higher quality results.
 
 ## Sources & References
 
 - **Brainstorm:** [docs/brainstorms/2026-03-31-tailwind-migration-brainstorm.md](../brainstorms/2026-03-31-tailwind-migration-brainstorm.md)
-- **Branch:** `feature/v2-tailwind-migration`
+- **Branch:** `feature/v2-tailwind-migration` (Roadie), `feature/roadie-v2-migration` (Website)
 - **Prototypes:** `packages/ui-v2/`, `/Users/lukebrooker/Code/prototype/`
-- **Consumer analysis:** `/Users/lukebrooker/Code/ticketsolutions.oztix.website/` (Oztix Website)
+- **Consumer:** `~/Code/ticketsolutions.oztix.website/src/TicketSolutions.Oztix.Website`
 - **Related plans:** `docs/plans/2026-04-03-feat-performance-accessibility-foundation-pages-plan.md`

@@ -298,7 +298,7 @@ export default function Home() {
       {/* Key Features */}
       <section className='grid gap-8'>
         <h2 className='text-display-ui-3 text-strong'>Key features</h2>
-        <div className='grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-8'>
+        <div className='grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-8'>
           <FeatureCard
             icon={<MagicWandIcon weight='bold' className='size-6' />}
             title='Tailwind-native styling'
@@ -402,8 +402,8 @@ function FeatureCard({
   demo?: React.ReactNode
 }) {
   return (
-    <div className='grid gap-3'>
-      <div className='flex gap-3 text-accent-11'>
+    <div className='grid content-start gap-3'>
+      <div className='flex gap-1 text-accent-11'>
         {icon}
         <h3 className='text-display-ui-5 text-strong'>{title}</h3>
       </div>

@@ -1,187 +1,120 @@
 # Roadie Design System
 
-A comprehensive design system for Oztix's applications and services.
-
-## Overview
-
-The Roadie Design System is a collection of reusable components, patterns, and guidelines that ensure consistency across Oztix's products.
-
-## Installation
-
-```bash
-pnpm install @oztix/roadie-core @oztix/roadie-components
-```
-
-## Usage
-
-```tsx
-import { Button } from '@oztix/roadie-components'
-
-function MyComponent() {
-  return <Button>Click me</Button>
-}
-```
+A design system for Oztix's applications, built on Tailwind CSS v4 with semantic color tokens, an intent/emphasis styling system, and a React component library.
 
 ## Packages
 
-- `@oztix/roadie-core` - Design tokens and Panda CSS utilities
-- `@oztix/roadie-components` - React component library
+| Package                                           | Description                                                                             |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| [`@oztix/roadie-core`](packages/core)             | CSS foundation — tokens, intents, emphasis, elevation, typography, interactions, motion |
+| [`@oztix/roadie-components`](packages/components) | React component library — 24 components built on Base UI                                |
+| [`docs`](docs)                                    | Documentation site — Next.js with live code examples                                    |
 
-## Quick Start
+## Quick start
 
-1. Install the packages you need:
+Install the packages:
 
 ```bash
-pnpm install @oztix/roadie-components
+pnpm add @oztix/roadie-core @oztix/roadie-components @phosphor-icons/react
 ```
 
-2. Import and use components:
+Import the CSS in your main stylesheet:
+
+```css
+@import '@oztix/roadie-core/css';
+
+/* Scan component dist for Tailwind class detection */
+@source '../../node_modules/@oztix/roadie-components/dist';
+```
+
+Use components:
 
 ```tsx
-import { Button, Heading, Text, View } from '@oztix/roadie-components'
+import { Button, Field } from '@oztix/roadie-components'
 
 function MyApp() {
   return (
-    <View gap='400' bg='neutral.surface.subtle'>
-      <Heading as='h1' textStyle='display.ui.1'>
-        My sweet heading
-      </Heading>
-      <Text>Some cool content</Text>
-      <Button colorPalette='accent' emphasis='strong'>
-        Submit
+    <div className='grid gap-6 p-6'>
+      <h1 className='text-display-ui-2 text-strong'>Welcome</h1>
+      <p className='text-subtle'>Get started with Roadie.</p>
+      <Button intent='accent' emphasis='strong'>
+        Get started
       </Button>
-    </View>
+    </div>
   )
 }
 ```
 
-## Using CSS Tokens (Non-React Projects)
+## CSS-only usage (Vue, Svelte, etc.)
 
-If you're working on a non-React project (Vue, Svelte, vanilla JS, etc.), you can use just the design tokens as CSS variables:
-
-### Installation
+Install the core package only:
 
 ```bash
-npm install @oztix/roadie-core
+pnpm add @oztix/roadie-core
 ```
 
-### Usage
-
-Import the CSS files into your project:
+Import the CSS and use utility classes directly:
 
 ```css
-/* In your main CSS file or entry point */
-@import '@oztix/roadie-core/tokens.css';
-@import '@oztix/roadie-core/utilities.css';
+@import '@oztix/roadie-core/css';
 ```
-
-Or import in JavaScript/TypeScript:
-
-```javascript
-import '@oztix/roadie-core/tokens.css'
-import '@oztix/roadie-core/utilities.css'
-```
-
-### Using CSS Variables
-
-All design tokens are available as CSS custom properties:
-
-```css
-.my-component {
-  /* Colors */
-  background-color: var(--colors-neutral-surface);
-  color: var(--colors-neutral-fg);
-  border: 1px solid var(--colors-neutral-border);
-  
-  /* Spacing */
-  padding: var(--spacing-400);
-  gap: var(--spacing-200);
-  
-  /* Typography */
-  font-family: var(--fonts-ui);
-  font-size: var(--font-sizes-md);
-  line-height: var(--line-heights-ui);
-  
-  /* Shadows */
-  box-shadow: var(--shadows-raised);
-  
-  /* Border radius */
-  border-radius: var(--radii-md);
-}
-```
-
-### Dark Mode
-
-Dark mode is automatically supported. Add the `data-color-mode` attribute to your root element:
 
 ```html
-<!-- Light mode (default) -->
-<html>...</html>
-
-<!-- Dark mode -->
-<html data-color-mode="dark">...</html>
+<button
+  class="is-interactive btn btn-md emphasis-strong rounded-full intent-accent"
+>
+  Submit
+</button>
 ```
 
-Toggle dark mode with JavaScript:
+See the [Vue integration guide](https://ticketsolutionsptyltd.github.io/roadie/overview/vue-integration) for detailed setup.
 
-```javascript
-// Toggle dark mode
-document.documentElement.setAttribute('data-color-mode', 'dark')
+## Key concepts
 
-// Toggle back to light mode
-document.documentElement.removeAttribute('data-color-mode')
-// or
-document.documentElement.setAttribute('data-color-mode', 'light')
+**Intent** sets the color palette — `intent-accent`, `intent-brand`, `intent-danger`, etc. Children inherit via CSS cascade.
+
+**Emphasis** sets the visual weight — `emphasis-strong` (solid), `emphasis-normal` (bordered), `emphasis-subtle` (tinted), `emphasis-subtler` (minimal).
+
+**Semantic colors** replace default Tailwind colors — `bg-normal`, `text-subtle`, `border-normal`, etc.
+
+**Dark mode** works automatically — add the `dark` class to `<html>`. No `dark:` variants needed.
+
+## Bundle size
+
+|          | Raw     | Gzip    | Brotli |
+| -------- | ------- | ------- | ------ |
+| Core CSS | 82.6 KB | 12.8 KB | 9.4 KB |
+
+Components are tree-shakeable — import only what you use.
+
+## Development
+
+```bash
+corepack enable          # Enable pnpm via corepack
+pnpm install             # Install dependencies
+pnpm dev                 # Start all packages in dev mode
+pnpm build               # Build all packages
+pnpm test                # Run tests (276 tests across 27 files)
+pnpm typecheck           # TypeScript type checking
+pnpm lint                # ESLint
+pnpm format              # Prettier
 ```
-
-### Text Style Utilities
-
-Pre-built text style classes are available in `utilities.css`:
-
-```html
-<h1 class="text-styles-display-ui-1">Large Heading</h1>
-<h2 class="text-styles-display-ui-2">Medium Heading</h2>
-<p class="text-styles-prose">Body text for articles and long-form content</p>
-<small class="text-styles-ui-meta">Small metadata text</small>
-```
-
-### Available Token Categories
-
-- **Colors**: `--colors-*` (neutral, accent, brand, success, warning, danger)
-- **Spacing**: `--spacing-*` (025, 050, 100, 200, 300, 400, 500, 600, 800, 1000)
-- **Typography**: `--fonts-*`, `--font-sizes-*`, `--font-weights-*`, `--line-heights-*`, `--letter-spacings-*`
-- **Shadows**: `--shadows-*` (raised, overlay, modal, sunken)
-- **Radii**: `--radii-*` (sm, md, lg, full)
-- **Blurs**: `--blurs-*` (sm, base, md, lg, xl, 2xl, 3xl)
-- **Breakpoints**: `--breakpoints-*` (sm, md, lg, xl, 2xl)
-
-For a complete list of available tokens, see the [token documentation](https://ticketsolutionsptyltd.github.io/roadie/tokens).
 
 ## Documentation
 
-For detailed documentation and component examples, visit our documentation site. [Roadie Docs](https://ticketsolutionsptyltd.github.io/roadie/).
+Browse the full documentation at [ticketsolutionsptyltd.github.io/roadie](https://ticketsolutionsptyltd.github.io/roadie/).
 
-## Contributing
+## Tech stack
 
-If you're making changes, please read our [contributing guidelines](CONTRIBUTING.md) before submitting changes.
+- Package manager: pnpm with corepack
+- Build system: Turborepo
+- Framework: React v19
+- Component primitives: @base-ui/react
+- Icons: @phosphor-icons/react
+- Styling: Tailwind CSS v4 with custom `@utility` directives
+- Language: TypeScript (strict mode)
+- Documentation: Next.js v16 with MDX
 
 ## License
 
-ISC © Ticket Solutions Pty Ltd
-
-## Tech Stack
-
-- Package Manager: pnpm@9.15.0
-- Build System: Turborepo
-- Framework: React (using react-aria-components)
-- Styling: PandaCSS
-- Language: TypeScript
-- Documentation: Next.js with MDX
-
-## Key Dependencies
-
-- React v19.0.0
-- Next.js v15.0.0
-- PandaCSS v0.48+
-- react-aria-components v1.0.0
-- TypeScript v5.x
+ISC &copy; Ticket Solutions Pty Ltd

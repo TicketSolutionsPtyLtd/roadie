@@ -60,6 +60,11 @@ async function getNavigationItems() {
     'Getting Started'
   )
 
+  const vueIntegrationMetadata = await getMetadataFromFile(
+    join(overviewDir, 'vue-integration/page.mdx'),
+    'Vue Integration'
+  )
+
   const foundationEntries = await readdir(foundationsDir, {
     withFileTypes: true
   })
@@ -180,6 +185,15 @@ async function getNavigationItems() {
               href: '/overview/getting-started'
             }
           : { title: 'Getting Started', href: '/overview/getting-started' },
+        vueIntegrationMetadata
+          ? {
+              title: vueIntegrationMetadata.title,
+              href: '/overview/vue-integration'
+            }
+          : {
+              title: 'Vue Integration',
+              href: '/overview/vue-integration'
+            },
         {
           title: 'Migrating to v2',
           href: '/migration'
