@@ -79,4 +79,18 @@ describe('Textarea', () => {
     expect(textarea).toHaveAttribute('name', 'test-textarea')
     expect(textarea).toHaveAttribute('rows', '5')
   })
+
+  it('applies autoResize classes', () => {
+    const { container } = render(<Textarea autoResize />)
+    const textarea = container.querySelector('textarea')!
+    expect(textarea).toHaveClass('resize-none')
+    expect(textarea).toHaveClass('min-h-fit')
+    expect(textarea).not.toHaveClass('resize-y')
+  })
+
+  it('has resize-y by default without autoResize', () => {
+    const { container } = render(<Textarea />)
+    const textarea = container.querySelector('textarea')!
+    expect(textarea).toHaveClass('resize-y')
+  })
 })

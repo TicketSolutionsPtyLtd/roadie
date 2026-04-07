@@ -40,18 +40,25 @@ export const textareaVariants = cva(
 
 export interface TextareaProps
   extends Omit<ComponentProps<'textarea'>, 'size'>,
-    VariantProps<typeof textareaVariants> {}
+    VariantProps<typeof textareaVariants> {
+  autoResize?: boolean
+}
 
 export function Textarea({
   className,
   intent,
   emphasis,
   size,
+  autoResize,
   ...props
 }: TextareaProps) {
   return (
     <textarea
-      className={cn(textareaVariants({ intent, emphasis, size, className }))}
+      className={cn(
+        textareaVariants({ intent, emphasis, size }),
+        autoResize && '[field-sizing:content] min-h-fit resize-none',
+        className
+      )}
       {...props}
     />
   )

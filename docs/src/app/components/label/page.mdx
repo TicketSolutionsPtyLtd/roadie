@@ -1,0 +1,107 @@
+export const metadata = {
+  title: 'Label',
+  description: 'A styled label for form controls',
+  status: 'beta',
+  category: 'Inputs',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Label
+
+A styled label for form controls.
+
+## Import
+
+```tsx
+import { Label } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<Label>Email address</Label>
+```
+
+### Composition
+
+#### With Input
+
+```tsx-live
+<div className='grid gap-1.5'>
+  <Label htmlFor='name'>Full name</Label>
+  <Input id='name' placeholder='Jane Doe' />
+</div>
+```
+
+#### With Autocomplete
+
+```tsx-live
+function LabelWithAutocomplete() {
+  const cities = [
+    'Brisbane',
+    'Sydney',
+    'Melbourne',
+    'Perth',
+    'Adelaide',
+  ]
+
+  return (
+    <Autocomplete items={cities}>
+      <div className='grid gap-1.5'>
+        <Label htmlFor='city'>City</Label>
+        <Autocomplete.InputGroup>
+          <Autocomplete.Input id='city' placeholder='Type a city...' />
+          <Autocomplete.Clear />
+        </Autocomplete.InputGroup>
+      </div>
+      <Autocomplete.Portal>
+        <Autocomplete.Positioner>
+          <Autocomplete.Popup>
+            <Autocomplete.List>
+              {(city) => (
+                <Autocomplete.Item key={city} value={city}>
+                  {city}
+                </Autocomplete.Item>
+              )}
+            </Autocomplete.List>
+            <Autocomplete.Empty>No cities found</Autocomplete.Empty>
+          </Autocomplete.Popup>
+        </Autocomplete.Positioner>
+      </Autocomplete.Portal>
+    </Autocomplete>
+  )
+}
+```
+
+## Guidelines
+
+### When to use Label
+
+Use `Label` for any standalone form control that needs a visible text label.
+It works with `htmlFor`/`id` pairing for native accessibility.
+
+- Inputs and textareas outside of [Field](/components/field)
+- [Autocomplete](/components/autocomplete) (which has no built-in label)
+- [Combobox](/components/combobox) in input-driven mode
+
+### When to use Field.Label instead
+
+Use [Field](/components/field) when you need a label **plus** helper text or
+error text — it provides consistent spacing and structure.
+
+### When to use Select.Label or Combobox.Label
+
+[Select.Label](/components/select) and [Combobox.Label](/components/combobox)
+wrap Base UI primitives with automatic ARIA association — they wire
+`aria-labelledby` to the trigger without manual `htmlFor`/`id`. Use those
+within their respective compound components.
+
+## Accessibility
+
+- Always pair with a form control using matching `htmlFor` and `id` attributes.
+- Renders a native `<label>` element for built-in browser accessibility.
+
+<PropsDefinitions componentPath='packages/components/src/components/Label/index.tsx' />

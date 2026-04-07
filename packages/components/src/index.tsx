@@ -46,6 +46,7 @@ export {
 } from './components/Steps'
 
 // Form components
+export { Label, type LabelProps } from './components/Label'
 export { Input, inputVariants, type InputProps } from './components/Input'
 export {
   Textarea,

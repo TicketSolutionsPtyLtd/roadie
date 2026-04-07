@@ -313,6 +313,63 @@ function ComponentSkeleton({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'label':
+      return <Skel className='h-2 w-16' />
+    case 'autocomplete':
+      return (
+        <div className='w-40 rounded-lg border border-subtle bg-normal px-3 py-2'>
+          <Skel className='h-2 w-20 opacity-50' />
+        </div>
+      )
+    case 'combobox':
+      return (
+        <div className='flex w-40 items-center justify-between rounded-lg border border-subtle bg-normal px-3 py-2'>
+          <Skel className='h-2 w-20 opacity-50' />
+          <Skel className='size-2' />
+        </div>
+      )
+    case 'link-button':
+      return (
+        <div className='flex gap-2'>
+          <div className='h-7 w-20 rounded-full emphasis-subtle intent-accent' />
+          <div className='h-7 w-20 rounded-full emphasis-subtle' />
+        </div>
+      )
+    case 'link-icon-button':
+      return (
+        <div className='flex gap-2'>
+          <div className='grid size-8 place-content-center rounded-full emphasis-subtle'>
+            <Skel className='size-3.5 rounded-full' />
+          </div>
+          <div className='grid size-8 place-content-center rounded-full emphasis-subtle'>
+            <Skel className='size-3.5 rounded-full' />
+          </div>
+        </div>
+      )
+    case 'marquee':
+      return (
+        <div className='flex w-44 items-center gap-3 overflow-hidden'>
+          <Skel className='h-6 w-14 shrink-0 rounded-md' />
+          <Skel className='h-6 w-14 shrink-0 rounded-md' />
+          <Skel className='h-6 w-14 shrink-0 rounded-md opacity-50' />
+        </div>
+      )
+    case 'steps':
+      return (
+        <div className='flex items-center gap-1.5'>
+          <div className='grid size-5 emphasis-strong place-content-center rounded-full text-[10px] font-bold intent-accent'>
+            1
+          </div>
+          <Skel className='h-0.5 w-6' />
+          <div className='grid size-5 emphasis-strong place-content-center rounded-full text-[10px] font-bold intent-accent'>
+            2
+          </div>
+          <Skel className='h-0.5 w-6' />
+          <div className='grid size-5 place-content-center rounded-full border-2 border-subtle text-[10px] font-bold text-subtle'>
+            3
+          </div>
+        </div>
+      )
     default:
       return (
         <div className='grid w-40 gap-1.5'>

@@ -5,6 +5,7 @@ import type { ComponentProps } from 'react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { Input, type InputProps } from '../Input'
+import { Label, type LabelProps } from '../Label'
 import { Textarea, type TextareaProps } from '../Textarea'
 
 /* ─── Root ─── */
@@ -19,15 +20,10 @@ FieldRoot.displayName = 'Field'
 
 /* ─── Label ─── */
 
-export interface FieldLabelProps extends ComponentProps<'label'> {}
+export type FieldLabelProps = LabelProps
 
-function FieldLabel({ className, ...props }: FieldLabelProps) {
-  return (
-    <label
-      className={cn('text-sm font-medium text-normal', className)}
-      {...props}
-    />
-  )
+function FieldLabel(props: FieldLabelProps) {
+  return <Label {...props} />
 }
 
 FieldLabel.displayName = 'Field.Label'
