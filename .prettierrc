@@ -19,6 +19,7 @@
   "useTabs": false,
   "plugins": [
     "@trivago/prettier-plugin-sort-imports",
+    "prettier-plugin-tailwindcss-canonical-classes",
     "prettier-plugin-tailwindcss"
   ],
   "tailwindStylesheet": "./packages/core/src/css/roadie.css",

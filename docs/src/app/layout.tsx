@@ -50,6 +50,11 @@ async function getNavigationItems() {
     }
   }
 
+  const philosophyMetadata = await getMetadataFromFile(
+    join(overviewDir, 'philosophy/page.mdx'),
+    'Philosophy'
+  )
+
   const gettingStartedMetadata = await getMetadataFromFile(
     join(overviewDir, 'getting-started/page.mdx'),
     'Getting Started'
@@ -163,6 +168,12 @@ async function getNavigationItems() {
         indexMetadata
           ? { title: indexMetadata.title, href: '/' }
           : { title: 'Introduction', href: '/' },
+        philosophyMetadata
+          ? {
+              title: philosophyMetadata.title,
+              href: '/overview/philosophy'
+            }
+          : { title: 'Philosophy', href: '/overview/philosophy' },
         gettingStartedMetadata
           ? {
               title: gettingStartedMetadata.title,

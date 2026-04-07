@@ -6,96 +6,9 @@ Reference for writing and reviewing Roadie component docs.
 
 Every component doc follows this skeleton. Only include sections that apply.
 
-````mdx
-export const metadata = {
-  title: 'ComponentName',
-  description: 'One-line description of what it is',
-  status: 'beta',
-  category: 'Forms' // Actions | Forms | Data Display | Typography | Layout | Navigation | Media
-}
+```mdx
 
-import { PropsDefinitions } from '@/components/PropsDefinitions'
-
-# Component name
-
-One-line description. Say what it _is_, not what it _does_.
-
-## Import
-
-\```tsx
-import { ComponentName } from '@oztix/roadie-components'
-\```
-
-## Examples
-
-### Default
-
-Simplest possible usage. No props, no wrappers.
-
-\```tsx-live
-
-<ComponentName />
-\```
-
-### Variants
-
-(if applicable) Appearance, type, mode — any non-intent/emphasis/size variant.
-
-### Emphasis
-
-(if applicable) Show all emphasis levels.
-
-### Sizes
-
-(if applicable) Show all size variants.
-
-### Intents
-
-(if applicable) Only when intent visibly changes the component at rest.
-Omit for form controls — they manage intent via is-interactive-field.
-
-### States
-
-(if applicable) Show interactive states in a single example with labels.
-Form controls: default, invalid, disabled.
-Buttons: note about hover/focus in description.
-Toggles: checked/unchecked, open/closed.
-
-\```tsx-live
-
-<div className='flex flex-col gap-4'>
-  <div className='flex flex-col gap-1'>
-    <p className='text-sm text-subtle'>Default</p>
-    <ComponentName />
-  </div>
-  <div className='flex flex-col gap-1'>
-    <p className='text-sm text-subtle'>Disabled</p>
-    <ComponentName disabled />
-  </div>
-</div>
-\```
-
-### Composition
-
-(if applicable) For compound components — show sub-components together.
-Can also use "With [Feature]" naming: "With helper text", "With footer", etc.
-
-## Guidelines
-
-(if applicable, brief) When to use, when not to use, Oztix-specific notes.
-
-## Accessibility
-
-(for interactive components) Document keyboard patterns, ARIA roles/attributes,
-and screen reader behaviour. Keep it brief — link to the
-[Accessibility foundation](/foundations/accessibility) for general guidance.
-
-- **Keyboard**: Which keys trigger actions (Enter, Space, Arrow keys, Escape)
-- **ARIA**: Notable roles or attributes the component sets or requires
-- **Screen readers**: Any announced state changes or live regions
-
-<PropsDefinitions componentPath='packages/components/src/components/ComponentName/index.tsx' />
-````
+```
 
 ## Rules
 

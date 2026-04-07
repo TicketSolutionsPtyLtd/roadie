@@ -37,6 +37,7 @@
     "husky": "9.1.7",
     "prettier": "3.6.2",
     "prettier-plugin-tailwindcss": "0.7.2",
+    "prettier-plugin-tailwindcss-canonical-classes": "0.1.4",
     "pretty-quick": "4.2.2",
     "turbo": "2.5.8",
     "typescript": "5.9.3"
