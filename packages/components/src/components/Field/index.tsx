@@ -17,12 +17,14 @@ interface FieldContextValue {
   required?: boolean
   disabled?: boolean
   fieldId: string
+  labelId: string
   helperTextId: string
   errorTextId: string
 }
 
 const FieldContext = createContext<FieldContextValue>({
   fieldId: '',
+  labelId: '',
   helperTextId: '',
   errorTextId: ''
 })
@@ -48,6 +50,7 @@ function FieldRoot({
 }: FieldRootProps) {
   const id = useId()
   const fieldId = `field-${id}`
+  const labelId = `${fieldId}-label`
   const helperTextId = `${fieldId}-helper`
   const errorTextId = `${fieldId}-error`
 
@@ -58,6 +61,7 @@ function FieldRoot({
         required,
         disabled,
         fieldId,
+        labelId,
         helperTextId,
         errorTextId
       }}
@@ -81,9 +85,13 @@ function FieldLabel({
   children,
   ...props
 }: FieldLabelProps) {
-  const { fieldId, required } = use(FieldContext)
+  const { fieldId, labelId, required } = use(FieldContext)
   return (
-    <Label htmlFor={htmlFor ?? (fieldId || undefined)} {...props}>
+    <Label
+      id={labelId || undefined}
+      htmlFor={htmlFor ?? (fieldId || undefined)}
+      {...props}
+    >
       {children}
       {showIndicator &&
         (required ? (

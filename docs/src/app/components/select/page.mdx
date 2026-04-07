@@ -137,10 +137,53 @@ neutral at rest, accent on focus/open, danger when invalid.
 
 ### Composition
 
-#### With label and indicator
+#### With Field
 
-Use `showIndicator` on `Select.Label` to automatically show a required or
-optional indicator based on the `required` prop.
+Wrap Select in [Field](/components/field) for consistent layout, labels, and
+error handling. Field provides spacing, label wiring, and context flow
+automatically.
+
+```tsx-live
+<Field required>
+  <Field.Label showIndicator>Favourite band</Field.Label>
+  <Select defaultValue='powderfinger'>
+    <Select.Trigger>
+      <Select.Value placeholder='Pick a band' />
+      <Select.Icon />
+    </Select.Trigger>
+    <Select.Content>
+      <Select.Item value='powderfinger'>Powderfinger</Select.Item>
+      <Select.Item value='custard'>Custard</Select.Item>
+      <Select.Item value='regurgitator'>Regurgitator</Select.Item>
+    </Select.Content>
+  </Select>
+</Field>
+```
+
+#### With Field and error
+
+```tsx-live
+<Field invalid required>
+  <Field.Label showIndicator>Favourite band</Field.Label>
+  <Select>
+    <Select.Trigger>
+      <Select.Value placeholder='Pick a band' />
+      <Select.Icon />
+    </Select.Trigger>
+    <Select.Content>
+      <Select.Item value='powderfinger'>Powderfinger</Select.Item>
+      <Select.Item value='custard'>Custard</Select.Item>
+      <Select.Item value='regurgitator'>Regurgitator</Select.Item>
+    </Select.Content>
+  </Select>
+  <Field.ErrorText>Please select a band.</Field.ErrorText>
+</Field>
+```
+
+#### With standalone label
+
+Select also has its own `Select.Label` for standalone usage without a Field
+wrapper. Use `showIndicator` to show a required or optional indicator.
 
 ```tsx-live
 <Select defaultValue='powderfinger' required>

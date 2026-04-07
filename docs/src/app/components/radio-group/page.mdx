@@ -29,10 +29,26 @@ import { RadioGroup } from '@oztix/roadie-components'
 </RadioGroup>
 ```
 
-### With label and indicator
+### With Field
 
-Use `showIndicator` on `RadioGroup.Label` to automatically show a required or
-optional indicator based on the `required` prop.
+Wrap RadioGroup in [Field](/components/field) for consistent layout, labels,
+and error handling.
+
+```tsx-live
+<Field required>
+  <Field.Label showIndicator>Contact method</Field.Label>
+  <RadioGroup>
+    <RadioGroup.Item value='email' label='Email' />
+    <RadioGroup.Item value='phone' label='Phone' />
+    <RadioGroup.Item value='post' label='Post' />
+  </RadioGroup>
+</Field>
+```
+
+### With standalone label
+
+RadioGroup also has its own `RadioGroup.Label` for standalone usage without a
+Field wrapper.
 
 ```tsx-live
 <RadioGroup required>

@@ -2,6 +2,7 @@ import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { Select, selectTriggerVariants } from '.'
+import { Field } from '../Field'
 
 describe('Select', () => {
   it('renders root component', () => {
@@ -147,5 +148,50 @@ describe('Select', () => {
       </Select>
     )
     expect(container).toBeInTheDocument()
+  })
+
+  it('inherits invalid from Field context', () => {
+    const { container } = render(
+      <Field invalid>
+        <Select>
+          <Select.Trigger>
+            <Select.Value placeholder='Pick one' />
+            <Select.Icon />
+          </Select.Trigger>
+        </Select>
+        <Field.ErrorText>Error</Field.ErrorText>
+      </Field>
+    )
+    const trigger = container.querySelector('button')!
+    expect(trigger).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('standalone Select still works without Field', () => {
+    const { container } = render(
+      <Select>
+        <Select.Trigger>
+          <Select.Value placeholder='Pick one' />
+          <Select.Icon />
+        </Select.Trigger>
+      </Select>
+    )
+    const trigger = container.querySelector('button')!
+    expect(trigger).not.toHaveAttribute('aria-labelledby')
+    expect(trigger).not.toHaveAttribute('aria-invalid')
+  })
+
+  it('Select props override Field context', () => {
+    const { container } = render(
+      <Field invalid>
+        <Select invalid={false}>
+          <Select.Trigger>
+            <Select.Value placeholder='Pick one' />
+            <Select.Icon />
+          </Select.Trigger>
+        </Select>
+      </Field>
+    )
+    const trigger = container.querySelector('button')!
+    expect(trigger).not.toHaveAttribute('aria-invalid')
   })
 })

@@ -8,6 +8,7 @@ import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { useFieldContext } from '../Field'
 import { OptionalIndicator } from '../Indicator'
 import { RequiredIndicator } from '../Indicator'
 
@@ -63,8 +64,14 @@ export interface SelectRootProps
 }
 
 export function SelectRoot({ invalid, required, ...props }: SelectRootProps) {
+  const fieldContext = useFieldContext()
+  const resolvedInvalid = invalid ?? fieldContext.invalid
+  const resolvedRequired = required ?? fieldContext.required
+
   return (
-    <SelectContext value={{ invalid, required }}>
+    <SelectContext
+      value={{ invalid: resolvedInvalid, required: resolvedRequired }}
+    >
       <SelectPrimitive.Root {...props} />
     </SelectContext>
   )
@@ -85,11 +92,23 @@ export function SelectTrigger({
   size,
   ...props
 }: SelectTriggerProps) {
+  const fieldContext = useFieldContext()
+  const { invalid } = use(SelectContext)
+  const inField = !!fieldContext.fieldId
+
   return (
     <SelectPrimitive.Trigger
       className={cn(
         selectTriggerVariants({ intent, emphasis, size, className })
       )}
+      {...(inField && {
+        'aria-labelledby': fieldContext.labelId || undefined,
+        'aria-describedby': invalid
+          ? fieldContext.errorTextId || undefined
+          : fieldContext.helperTextId || undefined,
+        'aria-invalid': invalid || undefined,
+        'aria-required': fieldContext.required || undefined
+      })}
       {...props}
     />
   )

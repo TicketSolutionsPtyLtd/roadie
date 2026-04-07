@@ -2,6 +2,10 @@ import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { Field } from '.'
+import { Autocomplete } from '../Autocomplete'
+import { Combobox } from '../Combobox'
+import { RadioGroup } from '../RadioGroup'
+import { Select } from '../Select'
 
 describe('Field', () => {
   it('renders with default props', () => {
@@ -224,5 +228,207 @@ describe('Field', () => {
       </Field>
     )
     expect(queryByText('*')).not.toBeInTheDocument()
+  })
+
+  it('renders Field.Label with id attribute', () => {
+    const { container } = render(
+      <Field>
+        <Field.Label>Email</Field.Label>
+        <Field.Input />
+      </Field>
+    )
+    const label = container.querySelector('label')!
+    expect(label).toHaveAttribute('id')
+    expect(label.id).toContain('-label')
+  })
+})
+
+describe('Field + Select integration', () => {
+  it('Select trigger gets aria-labelledby matching Field.Label id', () => {
+    const { container } = render(
+      <Field>
+        <Field.Label>Industry</Field.Label>
+        <Select>
+          <Select.Trigger>
+            <Select.Value placeholder='Pick one' />
+            <Select.Icon />
+          </Select.Trigger>
+        </Select>
+      </Field>
+    )
+    const label = container.querySelector('label')!
+    const trigger = container.querySelector('button')!
+    expect(trigger).toHaveAttribute('aria-labelledby', label.id)
+  })
+
+  it('Select inherits invalid and required from Field context', () => {
+    const { container } = render(
+      <Field invalid required>
+        <Field.Label showIndicator>Industry</Field.Label>
+        <Select>
+          <Select.Trigger>
+            <Select.Value placeholder='Pick one' />
+            <Select.Icon />
+          </Select.Trigger>
+        </Select>
+        <Field.ErrorText>Required</Field.ErrorText>
+      </Field>
+    )
+    const trigger = container.querySelector('button')!
+    expect(trigger).toHaveAttribute('aria-invalid', 'true')
+    expect(trigger).toHaveAttribute('aria-required', 'true')
+    expect(container.querySelector('[role="alert"]')).toBeInTheDocument()
+  })
+
+  it('Select trigger gets aria-describedby pointing to error text when invalid', () => {
+    const { container } = render(
+      <Field invalid>
+        <Field.Label>Industry</Field.Label>
+        <Select>
+          <Select.Trigger>
+            <Select.Value placeholder='Pick one' />
+            <Select.Icon />
+          </Select.Trigger>
+        </Select>
+        <Field.ErrorText>Required</Field.ErrorText>
+      </Field>
+    )
+    const trigger = container.querySelector('button')!
+    const errorText = container.querySelector('[role="alert"]')!
+    expect(trigger).toHaveAttribute('aria-describedby', errorText.id)
+  })
+
+  it('Select props override Field context', () => {
+    const { queryByText } = render(
+      <Field invalid>
+        <Select invalid={false}>
+          <Select.Trigger>
+            <Select.Value placeholder='Pick one' />
+            <Select.Icon />
+          </Select.Trigger>
+          <Select.ErrorText>Should be hidden</Select.ErrorText>
+        </Select>
+      </Field>
+    )
+    expect(queryByText('Should be hidden')).not.toBeInTheDocument()
+  })
+})
+
+describe('Field + RadioGroup integration', () => {
+  it('RadioGroup gets aria-labelledby matching Field.Label id', () => {
+    const { container } = render(
+      <Field>
+        <Field.Label>Contact method</Field.Label>
+        <RadioGroup>
+          <RadioGroup.Item value='email' label='Email' />
+        </RadioGroup>
+      </Field>
+    )
+    const label = container.querySelector('label')!
+    const radioGroup = container.querySelector('[role="radiogroup"]')!
+    expect(radioGroup).toHaveAttribute('aria-labelledby', label.id)
+  })
+
+  it('RadioGroup inherits invalid from Field context', () => {
+    const { container } = render(
+      <Field invalid>
+        <Field.Label>Contact method</Field.Label>
+        <RadioGroup>
+          <RadioGroup.Item value='email' label='Email' />
+        </RadioGroup>
+        <Field.ErrorText>Required</Field.ErrorText>
+      </Field>
+    )
+    expect(container.querySelector('[role="alert"]')).toBeInTheDocument()
+  })
+})
+
+describe('Field + Combobox integration', () => {
+  it('Combobox input gets id matching Field.Label htmlFor', () => {
+    const { container } = render(
+      <Field>
+        <Field.Label>Venue</Field.Label>
+        <Combobox>
+          <Combobox.InputGroup>
+            <Combobox.Input placeholder='Search...' />
+            <Combobox.Trigger />
+          </Combobox.InputGroup>
+        </Combobox>
+      </Field>
+    )
+    const label = container.querySelector('label')!
+    const input = container.querySelector('input')!
+    expect(label).toHaveAttribute('for', input.id)
+  })
+
+  it('Combobox input gets aria attributes from Field context when invalid', () => {
+    const { container } = render(
+      <Field invalid required>
+        <Field.Label>Venue</Field.Label>
+        <Combobox>
+          <Combobox.InputGroup>
+            <Combobox.Input placeholder='Search...' />
+            <Combobox.Trigger />
+          </Combobox.InputGroup>
+        </Combobox>
+        <Field.ErrorText>Required</Field.ErrorText>
+      </Field>
+    )
+    const input = container.querySelector('input')!
+    expect(input).toHaveAttribute('aria-invalid', 'true')
+    expect(input).toHaveAttribute('aria-required', 'true')
+    const errorText = container.querySelector('[role="alert"]')!
+    expect(input).toHaveAttribute('aria-describedby', errorText.id)
+  })
+
+  it('Combobox InputGroup gets aria-invalid when Field is invalid', () => {
+    const { container } = render(
+      <Field invalid>
+        <Field.Label>Venue</Field.Label>
+        <Combobox>
+          <Combobox.InputGroup>
+            <Combobox.Input placeholder='Search...' />
+            <Combobox.Trigger />
+          </Combobox.InputGroup>
+        </Combobox>
+      </Field>
+    )
+    const inputGroup = container.querySelector('[aria-invalid="true"]')
+    expect(inputGroup).toBeInTheDocument()
+  })
+})
+
+describe('Field + Autocomplete integration', () => {
+  it('Autocomplete input gets id matching Field.Label htmlFor', () => {
+    const { container } = render(
+      <Field>
+        <Field.Label>Address</Field.Label>
+        <Autocomplete>
+          <Autocomplete.InputGroup>
+            <Autocomplete.Input placeholder='Start typing...' />
+          </Autocomplete.InputGroup>
+        </Autocomplete>
+      </Field>
+    )
+    const label = container.querySelector('label')!
+    const input = container.querySelector('input')!
+    expect(label).toHaveAttribute('for', input.id)
+  })
+
+  it('Autocomplete input gets aria attributes from Field context', () => {
+    const { container } = render(
+      <Field invalid required>
+        <Field.Label>Address</Field.Label>
+        <Autocomplete>
+          <Autocomplete.InputGroup>
+            <Autocomplete.Input placeholder='Start typing...' />
+          </Autocomplete.InputGroup>
+        </Autocomplete>
+        <Field.ErrorText>Required</Field.ErrorText>
+      </Field>
+    )
+    const input = container.querySelector('input')!
+    expect(input).toHaveAttribute('aria-invalid', 'true')
+    expect(input).toHaveAttribute('aria-required', 'true')
   })
 })

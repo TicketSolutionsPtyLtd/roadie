@@ -12,6 +12,8 @@ import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { useFieldContext } from '../Field'
+
 export const useFilter = ComboboxPrimitive.useFilter
 export type { ComboboxFilter as Filter, ComboboxFilterOptions as FilterOptions }
 
@@ -90,11 +92,15 @@ export function ComboboxInputGroup({
   size,
   ...props
 }: ComboboxInputGroupProps) {
+  const fieldContext = useFieldContext()
+  const inField = !!fieldContext.fieldId
+
   return (
     <ComboboxPrimitive.InputGroup
       className={cn(
         comboboxInputGroupVariants({ intent, emphasis, size, className })
       )}
+      aria-invalid={(inField && fieldContext.invalid) || undefined}
       {...props}
     />
   )
@@ -108,12 +114,23 @@ export interface ComboboxInputProps
   extends ComponentProps<typeof ComboboxPrimitive.Input> {}
 
 export function ComboboxInput({ className, ...props }: ComboboxInputProps) {
+  const fieldContext = useFieldContext()
+  const inField = !!fieldContext.fieldId
+
   return (
     <ComboboxPrimitive.Input
       className={cn(
         'min-w-0 flex-1 bg-transparent outline-none placeholder:text-subtle',
         className
       )}
+      {...(inField && {
+        id: fieldContext.fieldId,
+        'aria-invalid': fieldContext.invalid || undefined,
+        'aria-required': fieldContext.required || undefined,
+        'aria-describedby': fieldContext.invalid
+          ? fieldContext.errorTextId || undefined
+          : fieldContext.helperTextId || undefined
+      })}
       {...props}
     />
   )

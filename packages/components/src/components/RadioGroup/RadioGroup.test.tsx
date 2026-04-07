@@ -2,6 +2,7 @@ import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { RadioGroup, radioGroupItemVariants, radioGroupVariants } from '.'
+import { Field } from '../Field'
 
 describe('RadioGroup', () => {
   it('renders with default props', () => {
@@ -122,5 +123,40 @@ describe('RadioGroup', () => {
       </RadioGroup>
     )
     expect(getByText('(optional)')).toBeInTheDocument()
+  })
+
+  it('inherits invalid from Field context', () => {
+    const { container } = render(
+      <Field invalid>
+        <Field.Label>Contact method</Field.Label>
+        <RadioGroup>
+          <RadioGroup.Item value='email' label='Email' />
+        </RadioGroup>
+        <Field.ErrorText>Required</Field.ErrorText>
+      </Field>
+    )
+    expect(container.querySelector('[role="alert"]')).toBeInTheDocument()
+  })
+
+  it('standalone RadioGroup still works without Field', () => {
+    const { container } = render(
+      <RadioGroup>
+        <RadioGroup.Item value='a' label='Option A' />
+      </RadioGroup>
+    )
+    const radioGroup = container.querySelector('[role="radiogroup"]')!
+    expect(radioGroup).not.toHaveAttribute('aria-labelledby')
+  })
+
+  it('RadioGroup props override Field context', () => {
+    const { queryByText } = render(
+      <Field invalid>
+        <RadioGroup invalid={false}>
+          <RadioGroup.Item value='a' label='Option A' />
+          <RadioGroup.ErrorText>Should be hidden</RadioGroup.ErrorText>
+        </RadioGroup>
+      </Field>
+    )
+    expect(queryByText('Should be hidden')).not.toBeInTheDocument()
   })
 })

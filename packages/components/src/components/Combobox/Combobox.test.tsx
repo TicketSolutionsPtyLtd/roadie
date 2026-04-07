@@ -2,6 +2,7 @@ import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { Combobox, comboboxInputGroupVariants } from '.'
+import { Field } from '../Field'
 
 describe('Combobox', () => {
   it('renders root component', () => {
@@ -62,5 +63,37 @@ describe('Combobox', () => {
   it('renders with custom className on InputGroup', () => {
     const classes = comboboxInputGroupVariants({ className: 'custom-class' })
     expect(classes).toContain('custom-class')
+  })
+
+  it('Combobox input gets aria attributes from Field context', () => {
+    const { container } = render(
+      <Field invalid required>
+        <Field.Label>Venue</Field.Label>
+        <Combobox>
+          <Combobox.InputGroup>
+            <Combobox.Input placeholder='Search...' />
+            <Combobox.Trigger />
+          </Combobox.InputGroup>
+        </Combobox>
+        <Field.ErrorText>Required</Field.ErrorText>
+      </Field>
+    )
+    const input = container.querySelector('input')!
+    expect(input).toHaveAttribute('aria-invalid', 'true')
+    expect(input).toHaveAttribute('aria-required', 'true')
+  })
+
+  it('standalone Combobox works without Field', () => {
+    const { container } = render(
+      <Combobox>
+        <Combobox.InputGroup>
+          <Combobox.Input placeholder='Search...' />
+          <Combobox.Trigger />
+        </Combobox.InputGroup>
+      </Combobox>
+    )
+    const input = container.querySelector('input')!
+    expect(input).not.toHaveAttribute('aria-invalid')
+    expect(input).not.toHaveAttribute('aria-required')
   })
 })

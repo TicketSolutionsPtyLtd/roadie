@@ -133,10 +133,14 @@ function ComboboxDefault() {
 
 ### Composition
 
-#### With label and clear
+#### With Field
+
+Wrap Combobox in [Field](/components/field) for consistent layout, labels, and
+error handling. Field.Label's `htmlFor` wires directly to the Combobox input —
+clicking the label focuses the search field.
 
 ```tsx-live
-function ComboboxWithLabel() {
+function ComboboxWithField() {
   const bands = [
     'Powderfinger',
     'Custard',
@@ -147,31 +151,31 @@ function ComboboxWithLabel() {
   ]
 
   return (
-    <Combobox items={bands}>
-      <div className='grid gap-1.5'>
-        <label className='text-sm font-medium text-normal'>Favourite band</label>
+    <Field required>
+      <Field.Label showIndicator>Favourite band</Field.Label>
+      <Combobox items={bands}>
         <Combobox.InputGroup>
           <Combobox.Input placeholder='Search bands...' />
           <Combobox.Clear />
           <Combobox.Trigger />
         </Combobox.InputGroup>
-      </div>
-      <Combobox.Portal>
-        <Combobox.Positioner>
-          <Combobox.Popup>
-            <Combobox.List>
-              {(band) => (
-                <Combobox.Item key={band} value={band}>
-                  {band}
-                  <Combobox.ItemIndicator />
-                </Combobox.Item>
-              )}
-            </Combobox.List>
-            <Combobox.Empty>No bands found</Combobox.Empty>
-          </Combobox.Popup>
-        </Combobox.Positioner>
-      </Combobox.Portal>
-    </Combobox>
+        <Combobox.Portal>
+          <Combobox.Positioner>
+            <Combobox.Popup>
+              <Combobox.List>
+                {(band) => (
+                  <Combobox.Item key={band} value={band}>
+                    {band}
+                    <Combobox.ItemIndicator />
+                  </Combobox.Item>
+                )}
+              </Combobox.List>
+              <Combobox.Empty>No bands found</Combobox.Empty>
+            </Combobox.Popup>
+          </Combobox.Positioner>
+        </Combobox.Portal>
+      </Combobox>
+    </Field>
   )
 }
 ```

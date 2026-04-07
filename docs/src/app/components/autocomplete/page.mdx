@@ -124,10 +124,14 @@ function AutocompleteDefault() {
 
 ### Composition
 
-#### With label and clear
+#### With Field
+
+Wrap Autocomplete in [Field](/components/field) for consistent layout, labels,
+and error handling. Field.Label's `htmlFor` wires directly to the Autocomplete
+input — clicking the label focuses the text field.
 
 ```tsx-live
-function AutocompleteWithLabel() {
+function AutocompleteWithField() {
   const cities = [
     'Brisbane',
     'Sydney',
@@ -140,29 +144,29 @@ function AutocompleteWithLabel() {
   ]
 
   return (
-    <Autocomplete items={cities}>
-      <div className='grid gap-1.5'>
-        <label className='text-sm font-medium text-normal'>City</label>
+    <Field>
+      <Field.Label>City</Field.Label>
+      <Autocomplete items={cities}>
         <Autocomplete.InputGroup>
           <Autocomplete.Input placeholder='Type a city...' />
           <Autocomplete.Clear />
         </Autocomplete.InputGroup>
-      </div>
-      <Autocomplete.Portal>
-        <Autocomplete.Positioner>
-          <Autocomplete.Popup>
-            <Autocomplete.List>
-              {(city) => (
-                <Autocomplete.Item key={city} value={city}>
-                  {city}
-                </Autocomplete.Item>
-              )}
-            </Autocomplete.List>
-            <Autocomplete.Empty>No cities found</Autocomplete.Empty>
-          </Autocomplete.Popup>
-        </Autocomplete.Positioner>
-      </Autocomplete.Portal>
-    </Autocomplete>
+        <Autocomplete.Portal>
+          <Autocomplete.Positioner>
+            <Autocomplete.Popup>
+              <Autocomplete.List>
+                {(city) => (
+                  <Autocomplete.Item key={city} value={city}>
+                    {city}
+                  </Autocomplete.Item>
+                )}
+              </Autocomplete.List>
+              <Autocomplete.Empty>No cities found</Autocomplete.Empty>
+            </Autocomplete.Popup>
+          </Autocomplete.Positioner>
+        </Autocomplete.Portal>
+      </Autocomplete>
+    </Field>
   )
 }
 ```
@@ -333,7 +337,7 @@ The `mode` prop controls how filtering and inline autocompletion behave:
 
 ## Accessibility
 
-- Use a `<label>` element to name the input.
+- Wrap in `Field` and use `Field.Label` to name the input — this provides automatic `htmlFor` wiring.
 - `Autocomplete.Empty` announces "no results" to screen readers automatically.
 - `Autocomplete.Status` is a live region — use it for async status like loading
   or result counts.

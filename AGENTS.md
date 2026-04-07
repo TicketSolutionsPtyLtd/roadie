@@ -301,57 +301,67 @@ export const buttonVariants = cva('base-classes is-interactive', {
 
 ## Form Component Patterns
 
-### Field (preferred for inputs and textareas)
+### Field as universal wrapper
 
-Use `invalid`, `required`, and `disabled` props on `Field` root — they flow through context automatically. Use `showIndicator` on `Field.Label` instead of manually placing `RequiredIndicator`/`OptionalIndicator`. Don't pass `aria-invalid` on `Field.Input`/`Field.Textarea` — the context handles it.
+Field wraps **all** form controls — Input, Textarea, Select, RadioGroup, Combobox, and Autocomplete. It provides consistent `grid gap-1.5` spacing, label, helper/error text, and `invalid`/`required`/`disabled` context that child controls inherit automatically.
 
 ```tsx
+// Input
 <Field invalid={fieldState.invalid} required>
   <Field.Label showIndicator>Email</Field.Label>
   <Field.Input type='email' />
   <Field.ErrorText>{fieldState.error?.message}</Field.ErrorText>
 </Field>
-```
 
-### Select (preferred for dropdowns)
+// Select
+<Field invalid={fieldState.invalid} required>
+  <Field.Label showIndicator>Industry</Field.Label>
+  <Select value={value} onValueChange={onChange}>
+    <Select.Trigger>
+      <Select.Value placeholder='Select...' />
+      <Select.Icon />
+    </Select.Trigger>
+    <Select.Content>
+      <Select.Item value='music'>Music</Select.Item>
+      <Select.Item value='sport'>Sport</Select.Item>
+    </Select.Content>
+  </Select>
+  <Field.ErrorText>{fieldState.error?.message}</Field.ErrorText>
+</Field>
 
-Use `Select.Content` instead of manually nesting Portal > Positioner > Popup. Pass string children to `Select.Item` for auto-wrapping with `ItemText` + `ItemIndicator`. Use `invalid`/`required` props on Select root. Use `showIndicator` on `Select.Label`.
+// RadioGroup
+<Field invalid={fieldState.invalid} required>
+  <Field.Label showIndicator>Contact method</Field.Label>
+  <RadioGroup value={value} onValueChange={onChange}>
+    <RadioGroup.Item value='email' label='Email' />
+    <RadioGroup.Item value='phone' label='Phone' />
+  </RadioGroup>
+  <Field.ErrorText>{fieldState.error?.message}</Field.ErrorText>
+</Field>
 
-```tsx
-<Select value={value} onValueChange={onChange} invalid={fieldState.invalid}>
-  <Select.Label showIndicator>Industry</Select.Label>
-  <Select.Trigger>
-    <Select.Value placeholder='Select...' />
-    <Select.Icon />
-  </Select.Trigger>
-  <Select.Content>
-    <Select.Item value='music'>Music</Select.Item>
-    <Select.Item value='sport'>Sport</Select.Item>
-  </Select.Content>
-  <Select.ErrorText>{fieldState.error?.message}</Select.ErrorText>
-</Select>
-```
-
-### RadioGroup
-
-Use `invalid`/`required` props on RadioGroup root. Use `showIndicator` on `RadioGroup.Label`. ErrorText auto-hides when `invalid` is `false`.
-
-```tsx
-<RadioGroup required invalid={fieldState.invalid} value={value} onValueChange={onChange}>
-  <RadioGroup.Label showIndicator>Contact method</RadioGroup.Label>
-  <RadioGroup.Item value='email' label='Email' />
-  <RadioGroup.Item value='phone' label='Phone' />
-  <RadioGroup.ErrorText>{fieldState.error?.message}</RadioGroup.ErrorText>
-</RadioGroup>
+// Combobox
+<Field invalid={fieldState.invalid} required>
+  <Field.Label showIndicator>Venue</Field.Label>
+  <Combobox items={venues}>
+    <Combobox.InputGroup>
+      <Combobox.Input placeholder='Search...' />
+      <Combobox.Trigger />
+    </Combobox.InputGroup>
+    ...
+  </Combobox>
+  <Field.ErrorText>{fieldState.error?.message}</Field.ErrorText>
+</Field>
 ```
 
 ### Form rules
 
-1. **Set `invalid`/`required`/`disabled` on the root** (Field, Select, RadioGroup) — don't set aria attributes on inputs manually.
-2. **Use `showIndicator`** on labels instead of importing `RequiredIndicator`/`OptionalIndicator`.
-3. **Use `Select.Content`** instead of Portal + Positioner + Popup nesting.
-4. **Pass string children to `Select.Item`** for automatic ItemText + ItemIndicator wrapping.
-5. **ErrorText conditionally renders** — no need for `{error && ...}` wrappers. Field.ErrorText hides when `invalid` is falsy. Select/RadioGroup ErrorText hides when `invalid` is explicitly `false`.
+1. **Wrap all form controls in `Field`** — it provides layout, label, helper/error text, and context.
+2. **Set `invalid`/`required`/`disabled` on `Field`** — child controls inherit these automatically.
+3. **Use `Field.Label` with `showIndicator`** instead of component-specific labels or manual indicators.
+4. **Use `Field.ErrorText`/`Field.HelperText`** — ErrorText auto-hides when `invalid` is falsy.
+5. **Use `Select.Content`** instead of Portal + Positioner + Popup nesting.
+6. **Pass string children to `Select.Item`** for automatic ItemText + ItemIndicator wrapping.
+7. **Component-specific Labels** (Select.Label, RadioGroup.Label) remain available for standalone usage without Field.
 
 ## Styling Rules
 

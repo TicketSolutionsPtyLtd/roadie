@@ -8,6 +8,7 @@ import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { useFieldContext } from '../Field'
 import { OptionalIndicator } from '../Indicator'
 import { RequiredIndicator } from '../Indicator'
 
@@ -81,17 +82,28 @@ function RadioGroupRoot({
   required,
   ...props
 }: RadioGroupRootProps) {
+  const fieldContext = useFieldContext()
+  const resolvedInvalid = invalid ?? fieldContext.invalid
+  const resolvedRequired = required ?? fieldContext.required
+  const inField = !!fieldContext.fieldId
+
   return (
     <RadioGroupContext
       value={{
         emphasis,
         direction: direction ?? 'vertical',
-        invalid,
-        required
+        invalid: resolvedInvalid,
+        required: resolvedRequired
       }}
     >
       <RadioGroupPrimitive
         className={cn(radioGroupVariants({ direction, className }))}
+        {...(inField && {
+          'aria-labelledby': fieldContext.labelId || undefined,
+          'aria-describedby': resolvedInvalid
+            ? fieldContext.errorTextId || undefined
+            : fieldContext.helperTextId || undefined
+        })}
         {...props}
       />
     </RadioGroupContext>

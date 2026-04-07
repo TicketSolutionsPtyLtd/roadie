@@ -33,7 +33,7 @@ children. Set `invalid`, `required`, and `disabled` on the root — child inputs
 pick up the corresponding aria attributes automatically.
 
 ```tsx-live
-<div className='grid gap-6'>
+<Fieldset>
   <Field required>
     <Field.Label showIndicator>Email</Field.Label>
     <Field.Input type='email' placeholder='you@example.com' />
@@ -48,7 +48,7 @@ pick up the corresponding aria attributes automatically.
     <Field.Input defaultValue='taken-name' />
     <Field.HelperText>This field cannot be changed.</Field.HelperText>
   </Field>
-</div>
+</Fieldset>
 ```
 
 ## Indicators
@@ -59,7 +59,7 @@ based on the parent's `required` prop. This eliminates the need to manually
 import and place `RequiredIndicator` or `OptionalIndicator`.
 
 ```tsx-live
-<div className='grid gap-6'>
+<Fieldset>
   <Field required>
     <Field.Label showIndicator>Full name</Field.Label>
     <Field.Input autoComplete='name' />
@@ -68,7 +68,87 @@ import and place `RequiredIndicator` or `OptionalIndicator`.
     <Field.Label showIndicator>Phone number</Field.Label>
     <Field.Input type='tel' />
   </Field>
-</div>
+</Fieldset>
+```
+
+## Field as universal wrapper
+
+Field wraps any form control — not just Input and Textarea. Use it with Select,
+RadioGroup, Combobox, and Autocomplete for consistent layout, labels, and error
+handling. Field provides `grid gap-1.5` spacing, label wiring, and
+`invalid`/`required`/`disabled` context that child controls inherit automatically.
+
+### Select in Field
+
+```tsx-live
+<Field required>
+  <Field.Label showIndicator>Industry</Field.Label>
+  <Select defaultValue='music'>
+    <Select.Trigger>
+      <Select.Value placeholder='Select...' />
+      <Select.Icon />
+    </Select.Trigger>
+    <Select.Content>
+      <Select.Item value='music'>Music</Select.Item>
+      <Select.Item value='sport'>Sport</Select.Item>
+      <Select.Item value='arts'>Arts</Select.Item>
+    </Select.Content>
+  </Select>
+</Field>
+```
+
+### RadioGroup in Field
+
+```tsx-live
+<Field required>
+  <Field.Label showIndicator>Preferred contact method</Field.Label>
+  <RadioGroup>
+    <RadioGroup.Item value='email' label='Email' />
+    <RadioGroup.Item value='phone' label='Phone' />
+  </RadioGroup>
+</Field>
+```
+
+### Combobox in Field
+
+```tsx-live
+function ComboboxInField() {
+  const bands = [
+    'Powderfinger',
+    'Custard',
+    'Regurgitator',
+    'Violent Soho',
+    'DZ Deathrays',
+  ]
+
+  return (
+    <Field required>
+      <Field.Label showIndicator>Favourite band</Field.Label>
+      <Combobox items={bands}>
+        <Combobox.InputGroup>
+          <Combobox.Input placeholder='Search bands...' />
+          <Combobox.Clear />
+          <Combobox.Trigger />
+        </Combobox.InputGroup>
+        <Combobox.Portal>
+          <Combobox.Positioner>
+            <Combobox.Popup>
+              <Combobox.List>
+                {(band) => (
+                  <Combobox.Item key={band} value={band}>
+                    {band}
+                    <Combobox.ItemIndicator />
+                  </Combobox.Item>
+                )}
+              </Combobox.List>
+              <Combobox.Empty>No bands found</Combobox.Empty>
+            </Combobox.Popup>
+          </Combobox.Positioner>
+        </Combobox.Portal>
+      </Combobox>
+    </Field>
+  )
+}
 ```
 
 ## Select shortcuts
@@ -78,21 +158,6 @@ Pass string children to `Select.Item` for automatic `ItemText` and
 `ItemIndicator` wrapping. The individual primitives remain available for
 advanced customisation.
 
-```tsx-live
-<Select defaultValue='music'>
-  <Select.Label showIndicator>Industry</Select.Label>
-  <Select.Trigger>
-    <Select.Value placeholder='Select...' />
-    <Select.Icon />
-  </Select.Trigger>
-  <Select.Content>
-    <Select.Item value='music'>Music</Select.Item>
-    <Select.Item value='sport'>Sport</Select.Item>
-    <Select.Item value='arts'>Arts</Select.Item>
-  </Select.Content>
-</Select>
-```
-
 ## Error handling
 
 `Field.ErrorText` only renders when the parent Field has `invalid` set.
@@ -101,7 +166,7 @@ advanced customisation.
 conditional wrappers.
 
 ```tsx-live
-<div className='grid gap-6'>
+<Fieldset>
   <Field invalid required>
     <Field.Label showIndicator>Email</Field.Label>
     <Field.Input type='email' />
@@ -112,7 +177,7 @@ conditional wrappers.
     <Field.Input defaultValue='Luke' />
     <Field.ErrorText>This error is hidden because the field is valid.</Field.ErrorText>
   </Field>
-</div>
+</Fieldset>
 ```
 
 ## Grouping fields
@@ -140,34 +205,59 @@ semantic HTML grouping and a visible legend for screen readers.
 </Fieldset>
 ```
 
-## RadioGroup with validation
+## Validation with Field
 
-Pass `required` and `invalid` to RadioGroup root. Use `showIndicator` on the
-label. ErrorText auto-hides when the field is valid.
+Set `invalid` on the Field root to show error states across any control.
+Field.ErrorText auto-hides when invalid is falsy.
 
 ```tsx-live
-<RadioGroup required invalid={false}>
-  <RadioGroup.Label showIndicator>Preferred contact method</RadioGroup.Label>
-  <RadioGroup.Item value='email' label='Email' />
-  <RadioGroup.Item value='phone' label='Phone' />
-  <RadioGroup.ErrorText>Please select a contact method.</RadioGroup.ErrorText>
-</RadioGroup>
+<Fieldset>
+  <Field invalid required>
+    <Field.Label showIndicator>Email</Field.Label>
+    <Field.Input type='email' />
+    <Field.ErrorText>Please enter a valid email address.</Field.ErrorText>
+  </Field>
+  <Field invalid required>
+    <Field.Label showIndicator>Industry</Field.Label>
+    <Select>
+      <Select.Trigger>
+        <Select.Value placeholder='Select...' />
+        <Select.Icon />
+      </Select.Trigger>
+      <Select.Content>
+        <Select.Item value='music'>Music</Select.Item>
+        <Select.Item value='sport'>Sport</Select.Item>
+      </Select.Content>
+    </Select>
+    <Field.ErrorText>Please select an industry.</Field.ErrorText>
+  </Field>
+  <Field invalid required>
+    <Field.Label showIndicator>Contact method</Field.Label>
+    <RadioGroup>
+      <RadioGroup.Item value='email' label='Email' />
+      <RadioGroup.Item value='phone' label='Phone' />
+    </RadioGroup>
+    <Field.ErrorText>Please select a contact method.</Field.ErrorText>
+  </Field>
+</Fieldset>
 ```
 
 ## Guidelines
 
 ### Do
 
-- Set `invalid`, `required`, and `disabled` on the root component (Field, Select, RadioGroup) rather than on individual inputs
-- Use `showIndicator` on labels instead of manually placing indicator components
+- Wrap all form controls in `Field` for consistent layout, labels, and error handling
+- Set `invalid`, `required`, and `disabled` on the `Field` root — child controls inherit these automatically
+- Use `Field.Label` with `showIndicator` for all form control labels
+- Use `Field.ErrorText` and `Field.HelperText` for feedback text
 - Use `Select.Content` for standard dropdowns
-- Always include `Field.ErrorText` in your markup — it auto-hides when valid
 - Use `Fieldset` with `Fieldset.Legend` to group related fields
 
 ### Don't
 
-- Don't pass `aria-invalid` manually on `Field.Input` or `Field.Textarea` — the context handles it
+- Don't pass `aria-invalid` manually — Field context handles it
 - Don't import `RequiredIndicator` or `OptionalIndicator` directly when using `showIndicator`
+- Don't add manual `<div className='grid gap-1.5'>` wrappers — Field provides spacing
 - Don't use `Select.Portal` + `Select.Positioner` + `Select.Popup` when `Select.Content` suffices
 - Don't wrap `Field.ErrorText` in conditional rendering (`{error && ...}`) — the component handles visibility
 - Don't set a default `intent` on form components — intent flows via the CSS cascade
