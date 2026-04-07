@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentProps, forwardRef } from 'react'
+import { type ComponentProps, useCallback, useEffect, useRef } from 'react'
 
 import {
   Steps as ArkSteps,
@@ -21,23 +21,13 @@ export { useSteps, type UseStepsProps, type UseStepsReturn }
 
 export const stepsVariants = cva('grid w-full gap-4', {
   variants: {
-    intent: {
-      neutral: 'intent-neutral',
-      brand: 'intent-brand',
-      'brand-secondary': 'intent-brand-secondary',
-      accent: 'intent-accent',
-      danger: 'intent-danger',
-      success: 'intent-success',
-      warning: 'intent-warning',
-      info: 'intent-info'
-    },
-    orientation: {
+    direction: {
       horizontal: '',
       vertical: 'grid-cols-[auto_1fr] gap-3'
     }
   },
   defaultVariants: {
-    orientation: 'horizontal'
+    direction: 'horizontal'
   }
 })
 
@@ -47,16 +37,15 @@ export interface StepsProps
   extends Omit<ComponentProps<typeof ArkSteps.Root>, 'orientation'>,
     VariantProps<typeof stepsVariants> {}
 
-const StepsRoot = forwardRef<HTMLDivElement, StepsProps>(
-  ({ intent, orientation, className, ...props }, ref) => (
+function StepsRoot({ direction, className, ...props }: StepsProps) {
+  return (
     <ArkSteps.Root
-      ref={ref}
-      orientation={orientation ?? 'horizontal'}
-      className={cn(stepsVariants({ intent, orientation, className }))}
+      orientation={direction === 'vertical' ? 'vertical' : 'horizontal'}
+      className={cn(stepsVariants({ direction, className }))}
       {...props}
     />
   )
-)
+}
 
 StepsRoot.displayName = 'Steps'
 
@@ -68,7 +57,7 @@ function StepsList({ className, ...props }: StepsListProps) {
   return (
     <ArkSteps.List
       className={cn(
-        'flex items-start justify-start rounded-md bg-subtler px-2',
+        'flex items-start justify-start rounded-xl bg-subtler px-4 py-3',
         'data-[orientation=vertical]:flex-col data-[orientation=vertical]:gap-2',
         className
       )}
@@ -83,21 +72,67 @@ StepsList.displayName = 'Steps.List'
 
 export interface StepsItemProps {
   index: number
+  invalid?: boolean
   className?: string
   children?: React.ReactNode
 }
 
-function StepsItem({ className, ...props }: StepsItemProps) {
+interface StepsItemInternalProps extends StepsItemProps {
+  ref?: React.Ref<HTMLDivElement>
+  onClick?: React.MouseEventHandler<HTMLDivElement>
+}
+
+function StepsItem({ className, invalid, ...props }: StepsItemProps) {
   // Ark UI's types lose `index` in the HTMLProps intersection (upstream bug).
   // Cast is safe — index is required by the Zag.js state machine at runtime.
-  const Item = ArkSteps.Item as React.ComponentType<StepsItemProps>
+  const Item = ArkSteps.Item as React.ComponentType<
+    Omit<StepsItemInternalProps, 'invalid'>
+  >
+
+  const itemRef = useRef<HTMLDivElement>(null)
+  const prevInvalid = useRef(invalid)
+
+  useEffect(() => {
+    if (invalid && !prevInvalid.current) {
+      const trigger = itemRef.current?.querySelector(
+        '[data-part="trigger"]'
+      ) as HTMLElement | null
+      if (trigger) {
+        trigger.classList.remove('animate-shake')
+        void trigger.offsetWidth
+        trigger.classList.add('animate-shake')
+      }
+    }
+    prevInvalid.current = invalid
+  }, [invalid])
+
+  const handleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const trigger = (e.currentTarget as HTMLElement).querySelector(
+      '[data-part="trigger"]'
+    ) as HTMLElement | null
+    if (!trigger) return
+    // In linear mode, Ark sets tabindex="-1" on non-current triggers
+    // and the onClick returns early — the step doesn't change.
+    // We detect this by checking tabindex and data-incomplete.
+    const isLocked =
+      trigger.getAttribute('tabindex') === '-1' &&
+      trigger.hasAttribute('data-incomplete')
+    if (!isLocked) return
+    trigger.classList.remove('animate-shake')
+    void trigger.offsetWidth
+    trigger.classList.add('animate-shake')
+  }, [])
+
   return (
     <Item
+      ref={itemRef}
       className={cn(
-        'flex flex-1 items-center last:flex-none',
+        'group/step-item flex flex-1 items-center last:flex-none',
         'data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch',
         className
       )}
+      data-invalid={invalid || undefined}
+      onClick={handleClick}
       {...props}
     />
   )
@@ -113,9 +148,9 @@ function StepsTrigger({ className, ...props }: StepsTriggerProps) {
   return (
     <ArkSteps.Trigger
       className={cn(
-        'flex cursor-pointer flex-col items-center gap-1 rounded-md border-none bg-transparent px-2 py-2 transition-all duration-200 ease-out',
-        'disabled:cursor-not-allowed disabled:opacity-50',
+        'group/step flex cursor-pointer flex-col items-center gap-1 rounded-md border-none bg-transparent px-3 py-3 transition-all duration-200 ease-out',
         'data-[orientation=vertical]:flex-row data-[orientation=vertical]:items-center data-[orientation=vertical]:gap-2',
+        'data-current:intent-accent',
         className
       )}
       {...props}
@@ -137,18 +172,22 @@ function StepsIndicator({
   return (
     <ArkSteps.Indicator
       className={cn(
-        'group flex size-8 shrink-0 items-center justify-center rounded-full border text-sm font-black transition-all duration-200 ease-out',
+        'flex size-10 shrink-0 items-center justify-center rounded-full border text-lg font-black outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] transition-all duration-200 ease-out',
         'border-subtle bg-raised text-subtler',
-        'data-[current]:border-strong data-[current]:bg-subtle data-[current]:text-normal',
-        'data-[complete]:border-transparent data-[complete]:bg-strong data-[complete]:text-inverted',
+        'group-hover/step:outline-[length:var(--focus-ring-width)]',
+        'data-current:border-normal data-current:bg-subtle data-current:text-subtle',
+        'data-complete:emphasis-strong',
+        'group-data-invalid/step-item:emphasis-normal group-data-invalid/step-item:border-normal group-data-invalid/step-item:bg-subtle group-data-invalid/step-item:text-subtle group-data-invalid/step-item:intent-danger',
         className
       )}
       {...props}
     >
-      <span className='group-data-[complete]:hidden'>{children}</span>
+      <span className='group-data-complete/step:hidden group-data-invalid/step-item:!block'>
+        {children}
+      </span>
       <CheckIcon
         weight='bold'
-        className='hidden size-4 group-data-[complete]:block'
+        className='hidden size-5 group-data-complete/step:block group-data-invalid/step-item:!hidden'
       />
     </ArkSteps.Indicator>
   )
@@ -164,8 +203,8 @@ function StepsSeparator({ className, ...props }: StepsSeparatorProps) {
   return (
     <ArkSteps.Separator
       className={cn(
-        'h-0.5 flex-1 bg-subtler transition-all duration-200 ease-out',
-        'data-[complete]:bg-strong',
+        'h-0.5 flex-1 bg-subtle transition-all duration-200 ease-out md:bottom-0 md:translate-y-5.5',
+        'data-complete:bg-strong',
         'data-[orientation=vertical]:ml-4 data-[orientation=vertical]:h-4 data-[orientation=vertical]:w-0.5',
         className
       )}
@@ -234,7 +273,7 @@ function StepsProgress({ className, ...props }: StepsProgressProps) {
   return (
     <ArkSteps.Progress
       className={cn(
-        'relative h-1 w-full overflow-hidden rounded-sm bg-subtler',
+        'relative h-1 w-full overflow-hidden rounded-sm bg-subtle',
         'after:absolute after:inset-y-0 after:left-0 after:w-[calc(var(--percent)*1%)] after:bg-strong after:transition-[width] after:duration-300 after:ease-out',
         className
       )}
@@ -245,12 +284,35 @@ function StepsProgress({ className, ...props }: StepsProgressProps) {
 
 StepsProgress.displayName = 'Steps.Progress'
 
+/* ─── TriggerText ─── */
+
+type StepsTriggerTextProps = ComponentProps<'span'>
+
+function StepsTriggerText({ className, ...props }: StepsTriggerTextProps) {
+  return (
+    <span
+      className={cn(
+        'hidden text-sm font-bold md:block',
+        'group-data-incomplete/step:text-subtle',
+        'group-data-current/step:text-subtle',
+        'group-data-complete/step:text-normal',
+        'group-data-invalid/step-item:text-subtle group-data-invalid/step-item:intent-danger',
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+StepsTriggerText.displayName = 'Steps.TriggerText'
+
 /* ─── Compound export ─── */
 
 export const Steps = Object.assign(StepsRoot, {
   List: StepsList,
   Item: StepsItem,
   Trigger: StepsTrigger,
+  TriggerText: StepsTriggerText,
   Indicator: StepsIndicator,
   Separator: StepsSeparator,
   Content: StepsContent,

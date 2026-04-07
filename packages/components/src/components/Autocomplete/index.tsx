@@ -37,7 +37,7 @@ export const autocompleteInputGroupVariants = cva(
       },
       emphasis: {
         normal:
-          'emphasis-raised border border-normal is-interactive-field-group',
+          'emphasis-sunken border border-subtle is-interactive-field-group',
         subtle:
           'bg-subtle text-normal border border-transparent is-interactive-field-group'
       },
@@ -216,7 +216,7 @@ export function AutocompletePopup({
   return (
     <AutocompletePrimitive.Popup
       className={cn(
-        'min-w-[var(--anchor-width)] rounded-xl border border-[var(--intent-border-subtle)] bg-raised p-1 shadow-lg',
+        'max-w-[var(--available-width)] min-w-[var(--anchor-width)] rounded-xl border border-[var(--intent-border-subtle)] bg-raised p-1 shadow-lg',
         'origin-[var(--transform-origin)] transition-[transform,scale,opacity] data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0',
         className
       )}

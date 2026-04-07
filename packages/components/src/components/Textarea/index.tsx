@@ -56,7 +56,7 @@ export function Textarea({
     <textarea
       className={cn(
         textareaVariants({ intent, emphasis, size }),
-        autoResize && '[field-sizing:content] min-h-fit resize-none',
+        autoResize && '[field-sizing:content] resize-none',
         className
       )}
       {...props}

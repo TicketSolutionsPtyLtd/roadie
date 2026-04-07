@@ -2,7 +2,7 @@ export const metadata = {
   title: 'Field',
   description: 'A compound wrapper for labelled form fields with helper and error text',
   status: 'beta',
-  category: 'Inputs',
+  category: 'Forms',
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
@@ -23,39 +23,59 @@ import { Field } from '@oztix/roadie-components'
 
 ```tsx-live
 <Field>
-  <Field.Label htmlFor='name'>Name</Field.Label>
-  <Field.Input id='name' placeholder='Enter your name' />
+  <Field.Label>Name</Field.Label>
+  <Field.Input placeholder='Enter your name' />
 </Field>
+```
+
+### With indicators
+
+Use `showIndicator` on `Field.Label` to automatically render a required or
+optional indicator based on the Field's `required` prop. This eliminates the
+need to manually import and place `RequiredIndicator` or `OptionalIndicator`.
+
+```tsx-live
+<div className='grid gap-6'>
+  <Field required>
+    <Field.Label showIndicator>Email</Field.Label>
+    <Field.Input type='email' placeholder='you@example.com' />
+  </Field>
+  <Field>
+    <Field.Label showIndicator>Phone number</Field.Label>
+    <Field.Input type='tel' placeholder='0400 000 000' />
+  </Field>
+</div>
 ```
 
 ### States
 
 Fields inherit input interaction states. Focus shows accent colouring,
-invalid shows danger colouring with error text.
+invalid shows danger colouring with error text. The `invalid` and `disabled`
+props flow through context to child inputs automatically.
 
 ```tsx-live
 <div className='grid gap-6'>
   <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Default</p>
     <Field>
-      <Field.Label htmlFor='default-field'>Label</Field.Label>
-      <Field.Input id='default-field' placeholder='Click to focus' />
+      <Field.Label>Label</Field.Label>
+      <Field.Input placeholder='Click to focus' />
       <Field.HelperText>Helper text appears below the input.</Field.HelperText>
     </Field>
   </div>
   <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Invalid</p>
-    <Field>
-      <Field.Label htmlFor='error-field'>Label</Field.Label>
-      <Field.Input id='error-field' aria-invalid='true' defaultValue='bad-value' />
+    <Field invalid>
+      <Field.Label>Label</Field.Label>
+      <Field.Input defaultValue='bad-value' />
       <Field.ErrorText>This field is required.</Field.ErrorText>
     </Field>
   </div>
   <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Disabled</p>
-    <Field>
-      <Field.Label htmlFor='disabled-field'>Label</Field.Label>
-      <Field.Input id='disabled-field' disabled placeholder='Cannot edit' />
+    <Field disabled>
+      <Field.Label>Label</Field.Label>
+      <Field.Input placeholder='Cannot edit' />
     </Field>
   </div>
 </div>
@@ -69,21 +89,22 @@ Field exposes sub-components for label, input, textarea, helper text, and error 
 
 ```tsx-live
 <Field>
-  <Field.Label htmlFor='email'>Email</Field.Label>
-  <Field.Input id='email' type='email' placeholder='you@example.com' />
+  <Field.Label>Email</Field.Label>
+  <Field.Input type='email' placeholder='you@example.com' />
   <Field.HelperText>We will never share your email.</Field.HelperText>
 </Field>
 ```
 
 #### With error text
 
-Set `aria-invalid='true'` on the input to activate the danger state. The
-input border and focus ring automatically switch to danger colours.
+Set `invalid` on the Field root to activate the danger state. The input
+border and focus ring automatically switch to danger colours, and
+`aria-invalid` is set on the input automatically.
 
 ```tsx-live
-<Field>
-  <Field.Label htmlFor='password'>Password</Field.Label>
-  <Field.Input id='password' type='password' aria-invalid='true' />
+<Field invalid>
+  <Field.Label>Password</Field.Label>
+  <Field.Input type='password' />
   <Field.ErrorText>Password must be at least 8 characters.</Field.ErrorText>
 </Field>
 ```
@@ -92,16 +113,17 @@ input border and focus ring automatically switch to danger colours.
 
 ```tsx-live
 <Field>
-  <Field.Label htmlFor='bio'>Bio</Field.Label>
-  <Field.Textarea id='bio' placeholder='Tell us about yourself' />
+  <Field.Label>Bio</Field.Label>
+  <Field.Textarea placeholder='Tell us about yourself' />
   <Field.HelperText>Maximum 200 characters.</Field.HelperText>
 </Field>
 ```
 
 ## Accessibility
 
-- **Label wiring**: Set `htmlFor` on `Field.Label` and a matching `id` on `Field.Input` or `Field.Textarea` to associate them.
-- **Error announcements**: `Field.ErrorText` renders with `role="alert"`, so screen readers announce errors immediately when they appear.
-- **Description linking**: Use `aria-describedby` on the input to connect it to `Field.HelperText` or `Field.ErrorText` by `id`.
+- **Auto-wired IDs**: Field auto-generates matching IDs for the label, input, helper text, and error text. You don't need to set `htmlFor` or `id` manually.
+- **Context-driven aria**: The `invalid`, `required`, and `disabled` props on Field automatically set `aria-invalid`, `aria-required`, and `disabled` on child inputs via context.
+- **Error announcements**: `Field.ErrorText` renders with `role="alert"` and only appears when `invalid` is true, so screen readers announce errors immediately.
+- **Description linking**: `aria-describedby` is automatically wired to the helper text (or error text when invalid).
 
 <PropsDefinitions componentPath='packages/components/src/components/Field/index.tsx' />

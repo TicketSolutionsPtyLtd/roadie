@@ -58,9 +58,9 @@ describe('Field', () => {
     expect(helperText).toHaveClass('text-sm', 'text-subtle')
   })
 
-  it('renders ErrorText sub-component', () => {
+  it('renders ErrorText sub-component when invalid', () => {
     const { getByText } = render(
-      <Field>
+      <Field invalid>
         <Field.ErrorText>Email is required</Field.ErrorText>
       </Field>
     )
@@ -68,6 +68,15 @@ describe('Field', () => {
     expect(errorText).toBeInTheDocument()
     expect(errorText.tagName.toLowerCase()).toBe('p')
     expect(errorText).toHaveClass('text-sm', 'intent-danger')
+  })
+
+  it('hides ErrorText when not invalid', () => {
+    const { container } = render(
+      <Field>
+        <Field.ErrorText>Email is required</Field.ErrorText>
+      </Field>
+    )
+    expect(container.querySelector('[role="alert"]')).not.toBeInTheDocument()
   })
 
   it('renders a complete field with all sub-components', () => {
@@ -88,5 +97,132 @@ describe('Field', () => {
       <Field className='custom-class'>Content</Field>
     )
     expect(container.firstElementChild).toHaveClass('custom-class')
+  })
+
+  it('propagates aria-invalid and aria-required to Input', () => {
+    const { container } = render(
+      <Field invalid required>
+        <Field.Input />
+      </Field>
+    )
+    const input = container.querySelector('input')!
+    expect(input).toHaveAttribute('aria-invalid', 'true')
+    expect(input).toHaveAttribute('aria-required', 'true')
+  })
+
+  it('propagates aria-invalid and aria-required to Textarea', () => {
+    const { container } = render(
+      <Field invalid required>
+        <Field.Textarea />
+      </Field>
+    )
+    const textarea = container.querySelector('textarea')!
+    expect(textarea).toHaveAttribute('aria-invalid', 'true')
+    expect(textarea).toHaveAttribute('aria-required', 'true')
+  })
+
+  it('does not set aria attributes when not invalid or required', () => {
+    const { container } = render(
+      <Field>
+        <Field.Input />
+      </Field>
+    )
+    const input = container.querySelector('input')!
+    expect(input).not.toHaveAttribute('aria-invalid')
+    expect(input).not.toHaveAttribute('aria-required')
+  })
+
+  it('wires aria-describedby to ErrorText when invalid', () => {
+    const { container } = render(
+      <Field invalid>
+        <Field.Input />
+        <Field.HelperText>Help</Field.HelperText>
+        <Field.ErrorText>Error</Field.ErrorText>
+      </Field>
+    )
+    const input = container.querySelector('input')!
+    const errorText = container.querySelector('[role="alert"]')!
+    expect(input).toHaveAttribute('aria-describedby', errorText.id)
+  })
+
+  it('wires aria-describedby to HelperText when not invalid', () => {
+    const { container } = render(
+      <Field>
+        <Field.Input />
+        <Field.HelperText>Help</Field.HelperText>
+      </Field>
+    )
+    const input = container.querySelector('input')!
+    const helperText = container.querySelector('p')!
+    expect(input).toHaveAttribute('aria-describedby', helperText.id)
+  })
+
+  it('auto-wires htmlFor on Label to Input id', () => {
+    const { container } = render(
+      <Field>
+        <Field.Label>Email</Field.Label>
+        <Field.Input />
+      </Field>
+    )
+    const label = container.querySelector('label')!
+    const input = container.querySelector('input')!
+    expect(label).toHaveAttribute('for', input.id)
+  })
+
+  it('propagates disabled to Input via context', () => {
+    const { container } = render(
+      <Field disabled>
+        <Field.Input />
+      </Field>
+    )
+    const input = container.querySelector('input')!
+    expect(input).toBeDisabled()
+  })
+
+  it('propagates disabled to Textarea via context', () => {
+    const { container } = render(
+      <Field disabled>
+        <Field.Textarea />
+      </Field>
+    )
+    const textarea = container.querySelector('textarea')!
+    expect(textarea).toBeDisabled()
+  })
+
+  it('does not set disabled when not provided', () => {
+    const { container } = render(
+      <Field>
+        <Field.Input />
+      </Field>
+    )
+    const input = container.querySelector('input')!
+    expect(input).not.toBeDisabled()
+  })
+
+  it('renders RequiredIndicator when showIndicator and required', () => {
+    const { getByText } = render(
+      <Field required>
+        <Field.Label showIndicator>Email</Field.Label>
+      </Field>
+    )
+    expect(getByText('*')).toBeInTheDocument()
+  })
+
+  it('renders OptionalIndicator when showIndicator and not required', () => {
+    const { getByText } = render(
+      <Field>
+        <Field.Label showIndicator>Email</Field.Label>
+      </Field>
+    )
+    expect(getByText('(optional)')).toBeInTheDocument()
+  })
+
+  it('does not render indicator when showIndicator is false', () => {
+    const { queryByText } = render(
+      <Field required>
+        <Field.Label>Email</Field.Label>
+      </Field>
+    )
+    expect(queryByText('*')).not.toBeInTheDocument()
   })
 })

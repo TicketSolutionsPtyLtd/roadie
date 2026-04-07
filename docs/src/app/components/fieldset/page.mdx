@@ -2,7 +2,7 @@ export const metadata = {
   title: 'Fieldset',
   description: 'A compound wrapper for grouping related form fields with a legend',
   status: 'beta',
-  category: 'Inputs',
+  category: 'Forms',
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
@@ -24,16 +24,14 @@ import { Fieldset } from '@oztix/roadie-components'
 ```tsx-live
 <Fieldset>
   <Fieldset.Legend>Contact information</Fieldset.Legend>
-  <div className='grid gap-3 mt-3'>
-    <Field>
-      <Field.Label htmlFor='fs-name'>Name</Field.Label>
-      <Field.Input id='fs-name' placeholder='Your name' />
-    </Field>
-    <Field>
-      <Field.Label htmlFor='fs-email'>Email</Field.Label>
-      <Field.Input id='fs-email' type='email' placeholder='you@example.com' />
-    </Field>
-  </div>
+  <Field>
+    <Field.Label>Name</Field.Label>
+    <Field.Input placeholder='Your name' />
+  </Field>
+  <Field>
+    <Field.Label>Email</Field.Label>
+    <Field.Input type='email' placeholder='you@example.com' />
+  </Field>
 </Fieldset>
 ```
 
@@ -47,16 +45,14 @@ Fieldset exposes sub-components for legend, helper text, and error text.
 <Fieldset>
   <Fieldset.Legend>Contact information</Fieldset.Legend>
   <Fieldset.HelperText>Provide your preferred contact details.</Fieldset.HelperText>
-  <div className='grid gap-3 mt-3'>
-    <Field>
-      <Field.Label htmlFor='fs2-name'>Name</Field.Label>
-      <Field.Input id='fs2-name' placeholder='Your name' />
-    </Field>
-    <Field>
-      <Field.Label htmlFor='fs2-email'>Email</Field.Label>
-      <Field.Input id='fs2-email' type='email' placeholder='you@example.com' />
-    </Field>
-  </div>
+  <Field>
+    <Field.Label>Name</Field.Label>
+    <Field.Input placeholder='Your name' />
+  </Field>
+  <Field>
+    <Field.Label>Email</Field.Label>
+    <Field.Input type='email' placeholder='you@example.com' />
+  </Field>
 </Fieldset>
 ```
 

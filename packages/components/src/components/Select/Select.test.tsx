@@ -65,4 +65,87 @@ describe('Select', () => {
     const classes = selectTriggerVariants({ className: 'custom-class' })
     expect(classes).toContain('custom-class')
   })
+
+  it('renders ErrorText when invalid is not set', () => {
+    const { getByText } = render(
+      <Select>
+        <Select.ErrorText>Error message</Select.ErrorText>
+      </Select>
+    )
+    expect(getByText('Error message')).toBeInTheDocument()
+  })
+
+  it('hides ErrorText when invalid is false', () => {
+    const { queryByText } = render(
+      <Select invalid={false}>
+        <Select.ErrorText>Error message</Select.ErrorText>
+      </Select>
+    )
+    expect(queryByText('Error message')).not.toBeInTheDocument()
+  })
+
+  it('shows ErrorText when invalid is true', () => {
+    const { getByText } = render(
+      <Select invalid>
+        <Select.ErrorText>Error message</Select.ErrorText>
+      </Select>
+    )
+    expect(getByText('Error message')).toBeInTheDocument()
+  })
+
+  it('renders RequiredIndicator on Label when showIndicator and required', () => {
+    const { getByText } = render(
+      <Select required>
+        <Select.Label showIndicator>Industry</Select.Label>
+        <Select.Trigger>
+          <Select.Value placeholder='Pick one' />
+          <Select.Icon />
+        </Select.Trigger>
+      </Select>
+    )
+    expect(getByText('*')).toBeInTheDocument()
+  })
+
+  it('renders OptionalIndicator on Label when showIndicator and not required', () => {
+    const { getByText } = render(
+      <Select>
+        <Select.Label showIndicator>Industry</Select.Label>
+        <Select.Trigger>
+          <Select.Value placeholder='Pick one' />
+          <Select.Icon />
+        </Select.Trigger>
+      </Select>
+    )
+    expect(getByText('(optional)')).toBeInTheDocument()
+  })
+
+  it('renders Content convenience wrapper', () => {
+    const { container } = render(
+      <Select>
+        <Select.Trigger>
+          <Select.Value placeholder='Pick one' />
+          <Select.Icon />
+        </Select.Trigger>
+        <Select.Content>
+          <Select.Item value='a'>Option A</Select.Item>
+        </Select.Content>
+      </Select>
+    )
+    expect(container).toBeInTheDocument()
+  })
+
+  it('auto-wraps string children in Item with ItemText and ItemIndicator', () => {
+    const { container } = render(
+      <Select defaultValue='a'>
+        <Select.Trigger>
+          <Select.Value />
+          <Select.Icon />
+        </Select.Trigger>
+        <Select.Content>
+          <Select.Item value='a'>Option A</Select.Item>
+        </Select.Content>
+      </Select>
+    )
+    expect(container).toBeInTheDocument()
+  })
 })

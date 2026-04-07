@@ -76,4 +76,51 @@ describe('RadioGroup', () => {
     const classes = radioGroupItemVariants({ className: 'custom-item' })
     expect(classes).toContain('custom-item')
   })
+
+  it('renders ErrorText when invalid is not set', () => {
+    const { getByText } = render(
+      <RadioGroup>
+        <RadioGroup.ErrorText>Error message</RadioGroup.ErrorText>
+      </RadioGroup>
+    )
+    expect(getByText('Error message')).toBeInTheDocument()
+  })
+
+  it('hides ErrorText when invalid is false', () => {
+    const { queryByText } = render(
+      <RadioGroup invalid={false}>
+        <RadioGroup.ErrorText>Error message</RadioGroup.ErrorText>
+      </RadioGroup>
+    )
+    expect(queryByText('Error message')).not.toBeInTheDocument()
+  })
+
+  it('shows ErrorText when invalid is true', () => {
+    const { getByText } = render(
+      <RadioGroup invalid>
+        <RadioGroup.ErrorText>Error message</RadioGroup.ErrorText>
+      </RadioGroup>
+    )
+    expect(getByText('Error message')).toBeInTheDocument()
+  })
+
+  it('renders RequiredIndicator on Label when showIndicator and required', () => {
+    const { getByText } = render(
+      <RadioGroup required>
+        <RadioGroup.Label showIndicator>Choose one</RadioGroup.Label>
+        <RadioGroup.Item value='a' label='Option A' />
+      </RadioGroup>
+    )
+    expect(getByText('*')).toBeInTheDocument()
+  })
+
+  it('renders OptionalIndicator on Label when showIndicator and not required', () => {
+    const { getByText } = render(
+      <RadioGroup>
+        <RadioGroup.Label showIndicator>Choose one</RadioGroup.Label>
+        <RadioGroup.Item value='a' label='Option A' />
+      </RadioGroup>
+    )
+    expect(getByText('(optional)')).toBeInTheDocument()
+  })
 })

@@ -42,15 +42,10 @@ describe('Steps', () => {
     expect(classes).toContain('gap-4')
   })
 
-  it('renders vertical orientation variant', () => {
-    const classes = stepsVariants({ orientation: 'vertical' })
+  it('renders vertical direction variant', () => {
+    const classes = stepsVariants({ direction: 'vertical' })
     expect(classes).toContain('grid-cols-[auto_1fr]')
     expect(classes).toContain('gap-3')
-  })
-
-  it('applies intent variant', () => {
-    const classes = stepsVariants({ intent: 'accent' })
-    expect(classes).toContain('intent-accent')
   })
 
   it('applies custom className via variants', () => {
@@ -105,7 +100,7 @@ describe('Steps', () => {
     )
     const separators = container.querySelectorAll('[data-part="separator"]')
     expect(separators.length).toBeGreaterThan(0)
-    expect(separators[0]).toHaveClass('bg-subtler')
+    expect(separators[0]).toHaveClass('bg-subtle')
   })
 
   it('renders content for the active step', () => {
@@ -181,6 +176,6 @@ describe('Steps', () => {
     )
     const progress = container.querySelector('[data-part="progress"]')
     expect(progress).toBeInTheDocument()
-    expect(progress).toHaveClass('bg-subtler', 'rounded-sm')
+    expect(progress).toHaveClass('bg-subtle', 'rounded-sm')
   })
 })

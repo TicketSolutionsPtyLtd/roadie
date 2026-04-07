@@ -11,6 +11,7 @@ type ComponentMetadata = {
   description: string
   status: string
   category: string
+  hidden?: boolean
 }
 
 type CategorizedComponents = {
@@ -36,7 +37,7 @@ export default async function ComponentsPage() {
           const metadataMatch = content.match(
             /export const metadata = ({[\s\S]*?})/m
           )
-          let metadata = {
+          let metadata: Omit<ComponentMetadata, 'name'> = {
             title: dir.name,
             description: '',
             status: 'unknown',
@@ -67,7 +68,9 @@ export default async function ComponentsPage() {
       })
   )
 
-  const categorizedComponents = components.reduce((acc, component) => {
+  const visibleComponents = components.filter((c) => !c.hidden)
+
+  const categorizedComponents = visibleComponents.reduce((acc, component) => {
     const category = component.category || 'Other'
     if (!acc[category]) {
       acc[category] = []
@@ -76,7 +79,7 @@ export default async function ComponentsPage() {
     return acc
   }, {} as CategorizedComponents)
 
-  const categoryOrder = ['Actions', 'Inputs', 'Content', 'Text', 'Layout']
+  const categoryOrder = ['Actions', 'Forms', 'Content', 'Text', 'Layout']
 
   const sortedCategories = Object.entries(categorizedComponents).sort(
     ([a], [b]) => {

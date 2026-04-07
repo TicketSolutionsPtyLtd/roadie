@@ -1,4 +1,4 @@
-import { fireEvent, render } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import { beforeAll, describe, expect, it } from 'vitest'
 
 import { Marquee } from '.'
@@ -78,16 +78,17 @@ describe('Marquee', () => {
     expect(track.style.animationDirection).toBe('reverse')
   })
 
-  it('pauses and resumes on hover when pauseOnHover is enabled', () => {
+  it('pauses and resumes on hover when pauseOnHover is enabled', async () => {
+    const user = (await import('@testing-library/user-event')).default.setup()
     const { container } = render(
       <Marquee pauseOnHover>
         <div>Item</div>
       </Marquee>
     )
     const track = container.querySelector('[style*="animation"]') as HTMLElement
-    fireEvent.mouseEnter(track)
+    await user.hover(track)
     expect(track.style.animationPlayState).toBe('paused')
-    fireEvent.mouseLeave(track)
+    await user.unhover(track)
     expect(track.style.animationPlayState).toBe('running')
   })
 

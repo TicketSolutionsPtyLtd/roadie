@@ -2,7 +2,7 @@ export const metadata = {
   title: 'Select',
   description: 'A dropdown for choosing from a list of options',
   status: 'beta',
-  category: 'Inputs',
+  category: 'Forms',
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
@@ -21,38 +21,22 @@ import { Select } from '@oztix/roadie-components'
 
 ### Default
 
+Pass string children to `Select.Item` for automatic `ItemText` + `ItemIndicator`
+wrapping. Use `Select.Content` as a convenience wrapper for Portal + Positioner + Popup.
+
 ```tsx-live
 <Select defaultValue='powderfinger'>
   <Select.Trigger>
     <Select.Value placeholder='Pick a band' />
     <Select.Icon />
   </Select.Trigger>
-  <Select.Portal>
-    <Select.Positioner>
-      <Select.Popup>
-        <Select.Item value='powderfinger'>
-          <Select.ItemText>Powderfinger</Select.ItemText>
-          <Select.ItemIndicator />
-        </Select.Item>
-        <Select.Item value='custard'>
-          <Select.ItemText>Custard</Select.ItemText>
-          <Select.ItemIndicator />
-        </Select.Item>
-        <Select.Item value='regurgitator'>
-          <Select.ItemText>Regurgitator</Select.ItemText>
-          <Select.ItemIndicator />
-        </Select.Item>
-        <Select.Item value='violent-soho'>
-          <Select.ItemText>Violent Soho</Select.ItemText>
-          <Select.ItemIndicator />
-        </Select.Item>
-        <Select.Item value='dz-deathrays'>
-          <Select.ItemText>DZ Deathrays</Select.ItemText>
-          <Select.ItemIndicator />
-        </Select.Item>
-      </Select.Popup>
-    </Select.Positioner>
-  </Select.Portal>
+  <Select.Content>
+    <Select.Item value='powderfinger'>Powderfinger</Select.Item>
+    <Select.Item value='custard'>Custard</Select.Item>
+    <Select.Item value='regurgitator'>Regurgitator</Select.Item>
+    <Select.Item value='violent-soho'>Violent Soho</Select.Item>
+    <Select.Item value='dz-deathrays'>DZ Deathrays</Select.Item>
+  </Select.Content>
 </Select>
 ```
 
@@ -65,36 +49,20 @@ import { Select } from '@oztix/roadie-components'
       <Select.Value />
       <Select.Icon />
     </Select.Trigger>
-    <Select.Portal>
-      <Select.Positioner>
-        <Select.Popup>
-          <Select.Item value='go-betweens'>
-            <Select.ItemText>The Go-Betweens</Select.ItemText>
-          </Select.Item>
-          <Select.Item value='saints'>
-            <Select.ItemText>The Saints</Select.ItemText>
-          </Select.Item>
-        </Select.Popup>
-      </Select.Positioner>
-    </Select.Portal>
+    <Select.Content>
+      <Select.Item value='go-betweens'>The Go-Betweens</Select.Item>
+      <Select.Item value='saints'>The Saints</Select.Item>
+    </Select.Content>
   </Select>
   <Select defaultValue='bee-gees'>
     <Select.Trigger emphasis='subtle'>
       <Select.Value />
       <Select.Icon />
     </Select.Trigger>
-    <Select.Portal>
-      <Select.Positioner>
-        <Select.Popup>
-          <Select.Item value='bee-gees'>
-            <Select.ItemText>Bee Gees</Select.ItemText>
-          </Select.Item>
-          <Select.Item value='savage-garden'>
-            <Select.ItemText>Savage Garden</Select.ItemText>
-          </Select.Item>
-        </Select.Popup>
-      </Select.Positioner>
-    </Select.Portal>
+    <Select.Content>
+      <Select.Item value='bee-gees'>Bee Gees</Select.Item>
+      <Select.Item value='savage-garden'>Savage Garden</Select.Item>
+    </Select.Content>
   </Select>
 </div>
 ```
@@ -108,45 +76,27 @@ import { Select } from '@oztix/roadie-components'
       <Select.Value />
       <Select.Icon />
     </Select.Trigger>
-    <Select.Portal>
-      <Select.Positioner>
-        <Select.Popup>
-          <Select.Item value='ball-park-music'>
-            <Select.ItemText>Ball Park Music</Select.ItemText>
-          </Select.Item>
-        </Select.Popup>
-      </Select.Positioner>
-    </Select.Portal>
+    <Select.Content>
+      <Select.Item value='ball-park-music'>Ball Park Music</Select.Item>
+    </Select.Content>
   </Select>
   <Select defaultValue='cub-sport'>
     <Select.Trigger size='md'>
       <Select.Value />
       <Select.Icon />
     </Select.Trigger>
-    <Select.Portal>
-      <Select.Positioner>
-        <Select.Popup>
-          <Select.Item value='cub-sport'>
-            <Select.ItemText>Cub Sport</Select.ItemText>
-          </Select.Item>
-        </Select.Popup>
-      </Select.Positioner>
-    </Select.Portal>
+    <Select.Content>
+      <Select.Item value='cub-sport'>Cub Sport</Select.Item>
+    </Select.Content>
   </Select>
   <Select defaultValue='jungle-giants'>
     <Select.Trigger size='lg'>
       <Select.Value />
       <Select.Icon />
     </Select.Trigger>
-    <Select.Portal>
-      <Select.Positioner>
-        <Select.Popup>
-          <Select.Item value='jungle-giants'>
-            <Select.ItemText>The Jungle Giants</Select.ItemText>
-          </Select.Item>
-        </Select.Popup>
-      </Select.Positioner>
-    </Select.Portal>
+    <Select.Content>
+      <Select.Item value='jungle-giants'>The Jungle Giants</Select.Item>
+    </Select.Content>
   </Select>
 </div>
 ```
@@ -165,15 +115,9 @@ neutral at rest, accent on focus/open, danger when invalid.
         <Select.Value />
         <Select.Icon />
       </Select.Trigger>
-      <Select.Portal>
-        <Select.Positioner>
-          <Select.Popup>
-            <Select.Item value='goon-sax'>
-              <Select.ItemText>The Goon Sax</Select.ItemText>
-            </Select.Item>
-          </Select.Popup>
-        </Select.Positioner>
-      </Select.Portal>
+      <Select.Content>
+        <Select.Item value='goon-sax'>The Goon Sax</Select.Item>
+      </Select.Content>
     </Select>
   </div>
   <div className='grid gap-1'>
@@ -183,15 +127,9 @@ neutral at rest, accent on focus/open, danger when invalid.
         <Select.Value />
         <Select.Icon />
       </Select.Trigger>
-      <Select.Portal>
-        <Select.Positioner>
-          <Select.Popup>
-            <Select.Item value='powderfinger'>
-              <Select.ItemText>Powderfinger</Select.ItemText>
-            </Select.Item>
-          </Select.Popup>
-        </Select.Positioner>
-      </Select.Portal>
+      <Select.Content>
+        <Select.Item value='powderfinger'>Powderfinger</Select.Item>
+      </Select.Content>
     </Select>
   </div>
 </div>
@@ -199,35 +137,25 @@ neutral at rest, accent on focus/open, danger when invalid.
 
 ### Composition
 
-#### With label
+#### With label and indicator
+
+Use `showIndicator` on `Select.Label` to automatically show a required or
+optional indicator based on the `required` prop.
 
 ```tsx-live
-<Select defaultValue='powderfinger'>
+<Select defaultValue='powderfinger' required>
   <div className='grid gap-1.5'>
-    <Select.Label>Favourite band</Select.Label>
+    <Select.Label showIndicator>Favourite band</Select.Label>
     <Select.Trigger>
       <Select.Value placeholder='Pick a band' />
       <Select.Icon />
     </Select.Trigger>
   </div>
-  <Select.Portal>
-    <Select.Positioner>
-      <Select.Popup>
-        <Select.Item value='powderfinger'>
-          <Select.ItemText>Powderfinger</Select.ItemText>
-          <Select.ItemIndicator />
-        </Select.Item>
-        <Select.Item value='custard'>
-          <Select.ItemText>Custard</Select.ItemText>
-          <Select.ItemIndicator />
-        </Select.Item>
-        <Select.Item value='regurgitator'>
-          <Select.ItemText>Regurgitator</Select.ItemText>
-          <Select.ItemIndicator />
-        </Select.Item>
-      </Select.Popup>
-    </Select.Positioner>
-  </Select.Portal>
+  <Select.Content>
+    <Select.Item value='powderfinger'>Powderfinger</Select.Item>
+    <Select.Item value='custard'>Custard</Select.Item>
+    <Select.Item value='regurgitator'>Regurgitator</Select.Item>
+  </Select.Content>
 </Select>
 ```
 
@@ -239,46 +167,21 @@ neutral at rest, accent on focus/open, danger when invalid.
     <Select.Value placeholder='Pick a band' />
     <Select.Icon />
   </Select.Trigger>
-  <Select.Portal>
-    <Select.Positioner>
-      <Select.Popup>
-        <Select.Group>
-          <Select.GroupLabel>Brisbane</Select.GroupLabel>
-          <Select.Item value='powderfinger'>
-            <Select.ItemText>Powderfinger</Select.ItemText>
-            <Select.ItemIndicator />
-          </Select.Item>
-          <Select.Item value='custard'>
-            <Select.ItemText>Custard</Select.ItemText>
-            <Select.ItemIndicator />
-          </Select.Item>
-          <Select.Item value='go-betweens'>
-            <Select.ItemText>The Go-Betweens</Select.ItemText>
-            <Select.ItemIndicator />
-          </Select.Item>
-          <Select.Item value='saints'>
-            <Select.ItemText>The Saints</Select.ItemText>
-            <Select.ItemIndicator />
-          </Select.Item>
-        </Select.Group>
-        <Select.Group>
-          <Select.GroupLabel>Gold Coast</Select.GroupLabel>
-          <Select.Item value='violent-soho'>
-            <Select.ItemText>Violent Soho</Select.ItemText>
-            <Select.ItemIndicator />
-          </Select.Item>
-          <Select.Item value='dz-deathrays'>
-            <Select.ItemText>DZ Deathrays</Select.ItemText>
-            <Select.ItemIndicator />
-          </Select.Item>
-          <Select.Item value='goon-sax'>
-            <Select.ItemText>The Goon Sax</Select.ItemText>
-            <Select.ItemIndicator />
-          </Select.Item>
-        </Select.Group>
-      </Select.Popup>
-    </Select.Positioner>
-  </Select.Portal>
+  <Select.Content>
+    <Select.Group>
+      <Select.GroupLabel>Brisbane</Select.GroupLabel>
+      <Select.Item value='powderfinger'>Powderfinger</Select.Item>
+      <Select.Item value='custard'>Custard</Select.Item>
+      <Select.Item value='go-betweens'>The Go-Betweens</Select.Item>
+      <Select.Item value='saints'>The Saints</Select.Item>
+    </Select.Group>
+    <Select.Group>
+      <Select.GroupLabel>Gold Coast</Select.GroupLabel>
+      <Select.Item value='violent-soho'>Violent Soho</Select.Item>
+      <Select.Item value='dz-deathrays'>DZ Deathrays</Select.Item>
+      <Select.Item value='goon-sax'>The Goon Sax</Select.Item>
+    </Select.Group>
+  </Select.Content>
 </Select>
 ```
 

@@ -8,17 +8,32 @@ import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { OptionalIndicator } from '../Indicator'
+import { RequiredIndicator } from '../Indicator'
+
 /* ─── Types ─── */
 
 type RadioGroupEmphasis = 'subtler' | 'normal'
 
 /* ─── Context ─── */
 
-const RadioGroupContext = createContext<RadioGroupEmphasis>('subtler')
+type RadioGroupDirection = 'vertical' | 'horizontal'
+
+interface RadioGroupContextValue {
+  emphasis: RadioGroupEmphasis
+  direction: RadioGroupDirection
+  invalid?: boolean
+  required?: boolean
+}
+
+const RadioGroupContext = createContext<RadioGroupContextValue>({
+  emphasis: 'subtler',
+  direction: 'vertical'
+})
 
 /* ─── Root variants ─── */
 
-export const radioGroupVariants = cva('flex', {
+export const radioGroupVariants = cva('flex flex-wrap', {
   variants: {
     direction: {
       vertical: 'flex-col gap-2',
@@ -39,7 +54,7 @@ export const radioGroupItemVariants = cva(
       emphasis: {
         subtler: 'gap-2 rounded-lg px-1.5 py-1 emphasis-subtler is-interactive',
         normal:
-          'justify-between gap-3 rounded-xl p-4 emphasis-normal is-interactive has-[:checked]:bg-[var(--color-accent-2)] has-[:checked]:border-[var(--color-accent-9)] has-[:checked]:outline has-[:checked]:outline-[length:var(--focus-ring-width)] has-[:checked]:outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] has-[:checked]:outline-offset-0'
+          'justify-between gap-3 rounded-xl p-4 emphasis-normal is-interactive has-[:checked]:bg-[var(--color-accent-2)] has-[:checked]:border-[var(--color-accent-9)] has-[:focus-visible]:outline has-[:focus-visible]:outline-[length:var(--focus-ring-width)] has-[:focus-visible]:outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] has-[:focus-visible]:outline-offset-0'
       }
     },
     defaultVariants: {
@@ -54,16 +69,27 @@ export interface RadioGroupRootProps
   extends ComponentProps<typeof RadioGroupPrimitive>,
     VariantProps<typeof radioGroupVariants> {
   emphasis?: RadioGroupEmphasis
+  invalid?: boolean
+  required?: boolean
 }
 
 function RadioGroupRoot({
   className,
-  direction,
+  direction = 'vertical',
   emphasis = 'subtler',
+  invalid,
+  required,
   ...props
 }: RadioGroupRootProps) {
   return (
-    <RadioGroupContext value={emphasis}>
+    <RadioGroupContext
+      value={{
+        emphasis,
+        direction: direction ?? 'vertical',
+        invalid,
+        required
+      }}
+    >
       <RadioGroupPrimitive
         className={cn(radioGroupVariants({ direction, className }))}
         {...props}
@@ -78,19 +104,25 @@ RadioGroupRoot.displayName = 'RadioGroup'
 
 export interface RadioGroupItemProps extends ComponentProps<typeof Radio.Root> {
   label?: string
+  description?: string
 }
 
 function RadioGroupItem({
   className,
   label,
+  description,
   children,
   ...props
 }: RadioGroupItemProps) {
-  const emphasis = use(RadioGroupContext)
+  const { emphasis, direction } = use(RadioGroupContext)
 
   const radio = (
     <Radio.Root
-      className='duration-moderate flex size-6 shrink-0 items-center justify-center rounded-full border border-subtle emphasis-sunken outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] transition-[background-color,border-color,outline-width,outline-color] focus-visible:outline-[length:var(--focus-ring-width)] data-[checked]:border-[var(--color-accent-9)] data-[checked]:bg-[var(--color-accent-3)]'
+      className={cn(
+        'duration-moderate flex size-6 shrink-0 items-center justify-center rounded-full border border-subtle emphasis-sunken outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] transition-[background-color,border-color,outline-width,outline-color] data-[checked]:border-[var(--color-accent-9)] data-[checked]:bg-[var(--color-accent-3)]',
+        emphasis !== 'normal' &&
+          'focus-visible:outline-[length:var(--focus-ring-width)]'
+      )}
       {...props}
     >
       <Radio.Indicator className='size-2.5 rounded-full bg-[var(--color-accent-9)]' />
@@ -98,22 +130,34 @@ function RadioGroupItem({
   )
 
   return (
-    <label className={cn(radioGroupItemVariants({ emphasis, className }))}>
+    <label
+      className={cn(
+        radioGroupItemVariants({ emphasis, className }),
+        direction === 'horizontal' && emphasis === 'normal' && 'flex-1'
+      )}
+    >
       {emphasis === 'normal' ? (
         <>
           <div className='grid gap-0.5'>
-            {label && (
-              <span className='text-base font-medium text-normal'>{label}</span>
+            <span className='flex items-center gap-2'>
+              {children}
+              {label && (
+                <span className='text-base font-medium text-normal'>
+                  {label}
+                </span>
+              )}
+            </span>
+            {description && (
+              <span className='text-sm text-subtle'>{description}</span>
             )}
-            {children}
           </div>
           {radio}
         </>
       ) : (
         <>
           {radio}
-          {label && <span className='text-sm text-normal'>{label}</span>}
           {children}
+          {label && <span className='text-sm text-normal'>{label}</span>}
         </>
       )}
     </label>
@@ -122,10 +166,89 @@ function RadioGroupItem({
 
 RadioGroupItem.displayName = 'RadioGroup.Item'
 
+/* ─── Label ─── */
+
+export interface RadioGroupLabelProps extends ComponentProps<'label'> {
+  showIndicator?: boolean
+}
+
+function RadioGroupLabel({
+  className,
+  showIndicator,
+  children,
+  ...props
+}: RadioGroupLabelProps) {
+  const { required } = use(RadioGroupContext)
+  return (
+    <label
+      className={cn(
+        'flex w-full items-center gap-1 text-sm font-medium text-normal',
+        className
+      )}
+      {...props}
+    >
+      {children}
+      {showIndicator &&
+        (required ? (
+          <>
+            {' '}
+            <RequiredIndicator />
+          </>
+        ) : (
+          <>
+            {' '}
+            <OptionalIndicator />
+          </>
+        ))}
+    </label>
+  )
+}
+
+RadioGroupLabel.displayName = 'RadioGroup.Label'
+
+/* ─── Helper text ─── */
+
+export interface RadioGroupHelperTextProps extends ComponentProps<'p'> {}
+
+function RadioGroupHelperText({
+  className,
+  ...props
+}: RadioGroupHelperTextProps) {
+  return (
+    <p className={cn('w-full text-sm text-subtle', className)} {...props} />
+  )
+}
+
+RadioGroupHelperText.displayName = 'RadioGroup.HelperText'
+
+/* ─── Error text ─── */
+
+export interface RadioGroupErrorTextProps extends ComponentProps<'p'> {}
+
+function RadioGroupErrorText({
+  className,
+  ...props
+}: RadioGroupErrorTextProps) {
+  const { invalid } = use(RadioGroupContext)
+  if (invalid === false) return null
+  return (
+    <p
+      role='alert'
+      className={cn('w-full text-sm text-subtle intent-danger', className)}
+      {...props}
+    />
+  )
+}
+
+RadioGroupErrorText.displayName = 'RadioGroup.ErrorText'
+
 /* ─── Compound export ─── */
 
 export const RadioGroup = Object.assign(RadioGroupRoot, {
-  Item: RadioGroupItem
+  Item: RadioGroupItem,
+  Label: RadioGroupLabel,
+  HelperText: RadioGroupHelperText,
+  ErrorText: RadioGroupErrorText
 })
 
 export type RadioGroupProps = RadioGroupRootProps

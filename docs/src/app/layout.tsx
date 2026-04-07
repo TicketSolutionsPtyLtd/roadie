@@ -18,6 +18,7 @@ interface ComponentMetadata {
   description: string
   status: string
   category: string
+  hidden?: boolean
 }
 
 async function getNavigationItems() {
@@ -133,7 +134,7 @@ async function getNavigationItems() {
   )
 
   const validComponents = components.filter(
-    (comp): comp is ComponentMetadata => comp !== null
+    (comp): comp is ComponentMetadata => comp !== null && !comp.hidden
   )
 
   const indexMetadata = await getMetadataFromFile(
@@ -204,7 +205,7 @@ async function getNavigationItems() {
   })
 
   if (validComponents.length > 0) {
-    const categoryOrder = ['Actions', 'Inputs', 'Content', 'Text', 'Layout']
+    const categoryOrder = ['Actions', 'Forms', 'Content', 'Text', 'Layout']
 
     const componentsByCategory = validComponents.reduce(
       (acc, comp) => {
@@ -228,7 +229,30 @@ async function getNavigationItems() {
       [{ title: 'Overview', href: '/components' }]
 
     for (const [category, comps] of sortedCategories) {
-      componentItems.push({ title: category, label: true })
+      const categorySlug = category.toLowerCase()
+      const overviewPath = join(
+        process.cwd(),
+        `src/app/components/${categorySlug}/page.mdx`
+      )
+      let hasOverview = false
+      try {
+        await readFile(overviewPath)
+        hasOverview = true
+      } catch {
+        // No overview page for this category
+      }
+
+      componentItems.push({
+        title: category,
+        label: true,
+        ...(hasOverview ? { href: `/components/${categorySlug}` } : {})
+      })
+      if (hasOverview) {
+        componentItems.push({
+          title: 'Overview',
+          href: `/components/${categorySlug}`
+        })
+      }
       for (const comp of comps.sort((a, b) => a.title.localeCompare(b.title))) {
         componentItems.push({
           title: comp.title,

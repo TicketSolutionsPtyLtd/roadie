@@ -17,7 +17,7 @@ describe('Autocomplete', () => {
 
   it('renders InputGroup with default variant classes', () => {
     const classes = autocompleteInputGroupVariants()
-    expect(classes).toContain('emphasis-raised')
+    expect(classes).toContain('emphasis-sunken')
     expect(classes).toContain('is-interactive-field-group')
     expect(classes).not.toContain('intent-neutral')
   })
@@ -33,7 +33,7 @@ describe('Autocomplete', () => {
 
   it('renders InputGroup with different emphasis', () => {
     expect(autocompleteInputGroupVariants({ emphasis: 'normal' })).toContain(
-      'emphasis-raised'
+      'emphasis-sunken'
     )
     expect(autocompleteInputGroupVariants({ emphasis: 'subtle' })).toContain(
       'bg-subtle'

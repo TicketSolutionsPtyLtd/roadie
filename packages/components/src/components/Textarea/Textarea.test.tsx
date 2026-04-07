@@ -84,7 +84,7 @@ describe('Textarea', () => {
     const { container } = render(<Textarea autoResize />)
     const textarea = container.querySelector('textarea')!
     expect(textarea).toHaveClass('resize-none')
-    expect(textarea).toHaveClass('min-h-fit')
+    expect(textarea).toHaveClass('min-h-20')
     expect(textarea).not.toHaveClass('resize-y')
   })
 

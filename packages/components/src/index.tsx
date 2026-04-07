@@ -45,6 +45,14 @@ export {
   type UseStepsReturn
 } from './components/Steps'
 
+// Indicators
+export {
+  RequiredIndicator,
+  type RequiredIndicatorProps,
+  OptionalIndicator,
+  type OptionalIndicatorProps
+} from './components/Indicator'
+
 // Form components
 export { Label, type LabelProps } from './components/Label'
 export { Input, inputVariants, type InputProps } from './components/Input'
@@ -55,6 +63,8 @@ export {
 } from './components/Textarea'
 export {
   Field,
+  useFieldContext,
+  useFieldInputProps,
   type FieldProps,
   type FieldLabelProps,
   type FieldHelperTextProps,
@@ -77,8 +87,11 @@ export {
   type SelectGroupProps,
   type SelectGroupLabelProps,
   type SelectLabelProps,
+  type SelectHelperTextProps,
+  type SelectErrorTextProps,
   type SelectScrollUpArrowProps,
-  type SelectScrollDownArrowProps
+  type SelectScrollDownArrowProps,
+  type SelectContentProps
 } from './components/Select'
 export {
   Combobox,
@@ -132,7 +145,10 @@ export {
   radioGroupVariants,
   radioGroupItemVariants,
   type RadioGroupProps,
-  type RadioGroupItemProps
+  type RadioGroupItemProps,
+  type RadioGroupLabelProps,
+  type RadioGroupHelperTextProps,
+  type RadioGroupErrorTextProps
 } from './components/RadioGroup'
 export {
   Fieldset,

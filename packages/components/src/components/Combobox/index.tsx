@@ -33,7 +33,7 @@ export const comboboxInputGroupVariants = cva(
       },
       emphasis: {
         normal:
-          'emphasis-raised border border-normal is-interactive-field-group',
+          'emphasis-sunken border border-subtle is-interactive-field-group',
         subtle:
           'bg-subtle text-normal border border-transparent is-interactive-field-group'
       },

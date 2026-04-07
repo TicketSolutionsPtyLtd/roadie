@@ -2,7 +2,7 @@ export const metadata = {
   title: 'Radio group',
   description: 'A group of radio buttons for selecting one option from a set',
   status: 'beta',
-  category: 'Inputs',
+  category: 'Forms',
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
@@ -23,6 +23,20 @@ import { RadioGroup } from '@oztix/roadie-components'
 
 ```tsx-live
 <RadioGroup>
+  <RadioGroup.Item value='email' label='Email' />
+  <RadioGroup.Item value='phone' label='Phone' />
+  <RadioGroup.Item value='post' label='Post' />
+</RadioGroup>
+```
+
+### With label and indicator
+
+Use `showIndicator` on `RadioGroup.Label` to automatically show a required or
+optional indicator based on the `required` prop.
+
+```tsx-live
+<RadioGroup required>
+  <RadioGroup.Label showIndicator>Contact method</RadioGroup.Label>
   <RadioGroup.Item value='email' label='Email' />
   <RadioGroup.Item value='phone' label='Phone' />
   <RadioGroup.Item value='post' label='Post' />

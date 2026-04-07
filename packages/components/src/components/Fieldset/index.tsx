@@ -10,7 +10,10 @@ export interface FieldsetRootProps extends ComponentProps<'fieldset'> {}
 
 function FieldsetRoot({ className, ...props }: FieldsetRootProps) {
   return (
-    <fieldset className={cn('m-0 border-none p-0', className)} {...props} />
+    <fieldset
+      className={cn('m-0 border-none p-0 [&>*+*]:mt-6', className)}
+      {...props}
+    />
   )
 }
 

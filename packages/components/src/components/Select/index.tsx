@@ -1,12 +1,24 @@
 'use client'
 
-import type { ComponentProps } from 'react'
+import { type ComponentProps, createContext, use } from 'react'
 
 import { Select as SelectPrimitive } from '@base-ui/react/select'
 import { CaretDownIcon, CaretUpIcon, CheckIcon } from '@phosphor-icons/react'
 import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
+
+import { OptionalIndicator } from '../Indicator'
+import { RequiredIndicator } from '../Indicator'
+
+/* ─── Context ─── */
+
+interface SelectContextValue {
+  invalid?: boolean
+  required?: boolean
+}
+
+const SelectContext = createContext<SelectContextValue>({})
 
 /* ─── Trigger variants (matches Input) ─── */
 
@@ -45,10 +57,17 @@ export const selectTriggerVariants = cva(
 /* ─── Root ─── */
 
 export interface SelectRootProps
-  extends ComponentProps<typeof SelectPrimitive.Root> {}
+  extends ComponentProps<typeof SelectPrimitive.Root> {
+  invalid?: boolean
+  required?: boolean
+}
 
-export function SelectRoot(props: SelectRootProps) {
-  return <SelectPrimitive.Root {...props} />
+export function SelectRoot({ invalid, required, ...props }: SelectRootProps) {
+  return (
+    <SelectContext value={{ invalid, required }}>
+      <SelectPrimitive.Root {...props} />
+    </SelectContext>
+  )
 }
 
 SelectRoot.displayName = 'Select'
@@ -171,7 +190,17 @@ SelectPopup.displayName = 'Select.Popup'
 export interface SelectItemProps
   extends ComponentProps<typeof SelectPrimitive.Item> {}
 
-export function SelectItem({ className, ...props }: SelectItemProps) {
+export function SelectItem({ className, children, ...props }: SelectItemProps) {
+  const content =
+    typeof children === 'string' || typeof children === 'number' ? (
+      <>
+        <SelectItemText>{children}</SelectItemText>
+        <SelectItemIndicator />
+      </>
+    ) : (
+      children
+    )
+
   return (
     <SelectPrimitive.Item
       className={cn(
@@ -180,7 +209,9 @@ export function SelectItem({ className, ...props }: SelectItemProps) {
         className
       )}
       {...props}
-    />
+    >
+      {content}
+    </SelectPrimitive.Item>
   )
 }
 
@@ -257,14 +288,39 @@ SelectGroupLabel.displayName = 'Select.GroupLabel'
 /* ─── Label ─── */
 
 export interface SelectLabelProps
-  extends ComponentProps<typeof SelectPrimitive.Label> {}
+  extends ComponentProps<typeof SelectPrimitive.Label> {
+  showIndicator?: boolean
+}
 
-export function SelectLabel({ className, ...props }: SelectLabelProps) {
+export function SelectLabel({
+  className,
+  showIndicator,
+  children,
+  ...props
+}: SelectLabelProps) {
+  const { required } = use(SelectContext)
   return (
     <SelectPrimitive.Label
-      className={cn('text-sm font-medium text-normal', className)}
+      className={cn(
+        'flex items-center gap-1 text-sm font-medium text-normal',
+        className
+      )}
       {...props}
-    />
+    >
+      {children}
+      {showIndicator &&
+        (required ? (
+          <>
+            {' '}
+            <RequiredIndicator />
+          </>
+        ) : (
+          <>
+            {' '}
+            <OptionalIndicator />
+          </>
+        ))}
+    </SelectPrimitive.Label>
   )
 }
 
@@ -318,6 +374,53 @@ export function SelectScrollDownArrow({
 
 SelectScrollDownArrow.displayName = 'Select.ScrollDownArrow'
 
+/* ─── HelperText ─── */
+
+export interface SelectHelperTextProps extends ComponentProps<'p'> {}
+
+export function SelectHelperText({
+  className,
+  ...props
+}: SelectHelperTextProps) {
+  return <p className={cn('text-sm text-subtle', className)} {...props} />
+}
+
+SelectHelperText.displayName = 'Select.HelperText'
+
+/* ─── ErrorText ─── */
+
+export interface SelectErrorTextProps extends ComponentProps<'p'> {}
+
+export function SelectErrorText({ className, ...props }: SelectErrorTextProps) {
+  const { invalid } = use(SelectContext)
+  if (invalid === false) return null
+  return (
+    <p
+      role='alert'
+      className={cn('text-sm text-subtle intent-danger', className)}
+      {...props}
+    />
+  )
+}
+
+SelectErrorText.displayName = 'Select.ErrorText'
+
+/* ─── Content (convenience wrapper) ─── */
+
+export interface SelectContentProps extends SelectPopupProps {}
+
+export function SelectContent({ children, ...props }: SelectContentProps) {
+  return (
+    <SelectPortal>
+      <SelectPositioner>
+        <SelectPopup {...props}>{children}</SelectPopup>
+      </SelectPositioner>
+    </SelectPortal>
+  )
+}
+
+SelectContent.displayName = 'Select.Content'
+
 /* ─── Compound export ─── */
 
 export const Select = Object.assign(SelectRoot, {
@@ -327,12 +430,15 @@ export const Select = Object.assign(SelectRoot, {
   Portal: SelectPortal,
   Positioner: SelectPositioner,
   Popup: SelectPopup,
+  Content: SelectContent,
   Item: SelectItem,
   ItemText: SelectItemText,
   ItemIndicator: SelectItemIndicator,
   Group: SelectGroup,
   GroupLabel: SelectGroupLabel,
   Label: SelectLabel,
+  HelperText: SelectHelperText,
+  ErrorText: SelectErrorText,
   ScrollUpArrow: SelectScrollUpArrow,
   ScrollDownArrow: SelectScrollDownArrow
 })

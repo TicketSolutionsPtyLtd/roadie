@@ -97,7 +97,17 @@ function NavigationGroup({
                   key={subItem.title}
                   className='m-0 list-none px-2 pt-3 pb-1 text-xs font-semibold text-subtler'
                 >
-                  {subItem.title}
+                  {subItem.href ? (
+                    <Link
+                      href={subItem.href}
+                      onClick={onNavigate}
+                      className='text-subtler no-underline transition-colors hover:text-accent-11'
+                    >
+                      {subItem.title}
+                    </Link>
+                  ) : (
+                    subItem.title
+                  )}
                 </li>
               )
             }

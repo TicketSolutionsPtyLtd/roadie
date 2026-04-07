@@ -299,6 +299,60 @@ export const buttonVariants = cva('base-classes is-interactive', {
 9. **SpotIllustration colors are fixed** — they don't change in dark mode.
 10. **`@source` directive required** in consumer CSS to scan component dist files.
 
+## Form Component Patterns
+
+### Field (preferred for inputs and textareas)
+
+Use `invalid`, `required`, and `disabled` props on `Field` root — they flow through context automatically. Use `showIndicator` on `Field.Label` instead of manually placing `RequiredIndicator`/`OptionalIndicator`. Don't pass `aria-invalid` on `Field.Input`/`Field.Textarea` — the context handles it.
+
+```tsx
+<Field invalid={fieldState.invalid} required>
+  <Field.Label showIndicator>Email</Field.Label>
+  <Field.Input type='email' />
+  <Field.ErrorText>{fieldState.error?.message}</Field.ErrorText>
+</Field>
+```
+
+### Select (preferred for dropdowns)
+
+Use `Select.Content` instead of manually nesting Portal > Positioner > Popup. Pass string children to `Select.Item` for auto-wrapping with `ItemText` + `ItemIndicator`. Use `invalid`/`required` props on Select root. Use `showIndicator` on `Select.Label`.
+
+```tsx
+<Select value={value} onValueChange={onChange} invalid={fieldState.invalid}>
+  <Select.Label showIndicator>Industry</Select.Label>
+  <Select.Trigger>
+    <Select.Value placeholder='Select...' />
+    <Select.Icon />
+  </Select.Trigger>
+  <Select.Content>
+    <Select.Item value='music'>Music</Select.Item>
+    <Select.Item value='sport'>Sport</Select.Item>
+  </Select.Content>
+  <Select.ErrorText>{fieldState.error?.message}</Select.ErrorText>
+</Select>
+```
+
+### RadioGroup
+
+Use `invalid`/`required` props on RadioGroup root. Use `showIndicator` on `RadioGroup.Label`. ErrorText auto-hides when `invalid` is `false`.
+
+```tsx
+<RadioGroup required invalid={fieldState.invalid} value={value} onValueChange={onChange}>
+  <RadioGroup.Label showIndicator>Contact method</RadioGroup.Label>
+  <RadioGroup.Item value='email' label='Email' />
+  <RadioGroup.Item value='phone' label='Phone' />
+  <RadioGroup.ErrorText>{fieldState.error?.message}</RadioGroup.ErrorText>
+</RadioGroup>
+```
+
+### Form rules
+
+1. **Set `invalid`/`required`/`disabled` on the root** (Field, Select, RadioGroup) — don't set aria attributes on inputs manually.
+2. **Use `showIndicator`** on labels instead of importing `RequiredIndicator`/`OptionalIndicator`.
+3. **Use `Select.Content`** instead of Portal + Positioner + Popup nesting.
+4. **Pass string children to `Select.Item`** for automatic ItemText + ItemIndicator wrapping.
+5. **ErrorText conditionally renders** — no need for `{error && ...}` wrappers. Field.ErrorText hides when `invalid` is falsy. Select/RadioGroup ErrorText hides when `invalid` is explicitly `false`.
+
 ## Styling Rules
 
 1. Use `grid` for layout by default, `flex` when children should control sizing

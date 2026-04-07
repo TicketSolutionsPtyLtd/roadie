@@ -46,10 +46,7 @@ describe('Mark', () => {
     )
     const mark = container.querySelector('mark')
     expect(mark).not.toHaveClass('bg-mark')
-    expect(mark).toHaveClass(
-      'bg-[var(--color-neutral-0)]',
-      'text-[var(--color-neutral-13)]'
-    )
+    expect(mark).toHaveClass('bg-neutral-0', 'text-neutral-13')
   })
 
   it('applies custom className', () => {

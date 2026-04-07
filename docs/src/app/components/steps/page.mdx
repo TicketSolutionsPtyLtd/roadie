@@ -29,21 +29,21 @@ A horizontal stepper with three steps. Click a step trigger to navigate.
     <Steps.Item index={0}>
       <Steps.Trigger>
         <Steps.Indicator>1</Steps.Indicator>
-        <span className='text-sm'>Details</span>
+        <Steps.TriggerText>Details</Steps.TriggerText>
       </Steps.Trigger>
       <Steps.Separator />
     </Steps.Item>
     <Steps.Item index={1}>
       <Steps.Trigger>
         <Steps.Indicator>2</Steps.Indicator>
-        <span className='text-sm'>Review</span>
+        <Steps.TriggerText>Review</Steps.TriggerText>
       </Steps.Trigger>
       <Steps.Separator />
     </Steps.Item>
     <Steps.Item index={2}>
       <Steps.Trigger>
         <Steps.Indicator>3</Steps.Indicator>
-        <span className='text-sm'>Confirm</span>
+        <Steps.TriggerText>Confirm</Steps.TriggerText>
       </Steps.Trigger>
     </Steps.Item>
   </Steps.List>
@@ -62,31 +62,31 @@ A horizontal stepper with three steps. Click a step trigger to navigate.
 </Steps>
 ```
 
-### Orientation
+### Direction
 
-Use the `orientation` prop to switch between horizontal and vertical layouts.
+Use the `direction` prop to switch between horizontal and vertical layouts.
 
 ```tsx-live
-<Steps count={3} orientation='vertical'>
+<Steps count={3} direction='vertical'>
   <Steps.List>
     <Steps.Item index={0}>
       <Steps.Trigger>
         <Steps.Indicator>1</Steps.Indicator>
-        <span className='text-sm'>Account</span>
+        <Steps.TriggerText>Account</Steps.TriggerText>
       </Steps.Trigger>
       <Steps.Separator />
     </Steps.Item>
     <Steps.Item index={1}>
       <Steps.Trigger>
         <Steps.Indicator>2</Steps.Indicator>
-        <span className='text-sm'>Profile</span>
+        <Steps.TriggerText>Profile</Steps.TriggerText>
       </Steps.Trigger>
       <Steps.Separator />
     </Steps.Item>
     <Steps.Item index={2}>
       <Steps.Trigger>
         <Steps.Indicator>3</Steps.Indicator>
-        <span className='text-sm'>Done</span>
+        <Steps.TriggerText>Done</Steps.TriggerText>
       </Steps.Trigger>
     </Steps.Item>
   </Steps.List>
@@ -102,87 +102,6 @@ Use the `orientation` prop to switch between horizontal and vertical layouts.
 </Steps>
 ```
 
-### Intents
-
-Set the color context with the `intent` prop. Intent cascades to indicators, separators, and the progress bar.
-
-```tsx-live
-<div className='grid gap-6'>
-  <Steps count={3} intent='accent' defaultStep={1}>
-    <Steps.List>
-      <Steps.Item index={0}>
-        <Steps.Trigger>
-          <Steps.Indicator>1</Steps.Indicator>
-          <span className='text-sm'>First</span>
-        </Steps.Trigger>
-        <Steps.Separator />
-      </Steps.Item>
-      <Steps.Item index={1}>
-        <Steps.Trigger>
-          <Steps.Indicator>2</Steps.Indicator>
-          <span className='text-sm'>Second</span>
-        </Steps.Trigger>
-        <Steps.Separator />
-      </Steps.Item>
-      <Steps.Item index={2}>
-        <Steps.Trigger>
-          <Steps.Indicator>3</Steps.Indicator>
-          <span className='text-sm'>Third</span>
-        </Steps.Trigger>
-      </Steps.Item>
-    </Steps.List>
-  </Steps>
-  <Steps count={3} intent='success' defaultStep={1}>
-    <Steps.List>
-      <Steps.Item index={0}>
-        <Steps.Trigger>
-          <Steps.Indicator>1</Steps.Indicator>
-          <span className='text-sm'>First</span>
-        </Steps.Trigger>
-        <Steps.Separator />
-      </Steps.Item>
-      <Steps.Item index={1}>
-        <Steps.Trigger>
-          <Steps.Indicator>2</Steps.Indicator>
-          <span className='text-sm'>Second</span>
-        </Steps.Trigger>
-        <Steps.Separator />
-      </Steps.Item>
-      <Steps.Item index={2}>
-        <Steps.Trigger>
-          <Steps.Indicator>3</Steps.Indicator>
-          <span className='text-sm'>Third</span>
-        </Steps.Trigger>
-      </Steps.Item>
-    </Steps.List>
-  </Steps>
-  <Steps count={3} intent='danger' defaultStep={1}>
-    <Steps.List>
-      <Steps.Item index={0}>
-        <Steps.Trigger>
-          <Steps.Indicator>1</Steps.Indicator>
-          <span className='text-sm'>First</span>
-        </Steps.Trigger>
-        <Steps.Separator />
-      </Steps.Item>
-      <Steps.Item index={1}>
-        <Steps.Trigger>
-          <Steps.Indicator>2</Steps.Indicator>
-          <span className='text-sm'>Second</span>
-        </Steps.Trigger>
-        <Steps.Separator />
-      </Steps.Item>
-      <Steps.Item index={2}>
-        <Steps.Trigger>
-          <Steps.Indicator>3</Steps.Indicator>
-          <span className='text-sm'>Third</span>
-        </Steps.Trigger>
-      </Steps.Item>
-    </Steps.List>
-  </Steps>
-</div>
-```
-
 ### States
 
 Use `linear` to restrict navigation to sequential order. In linear mode, users cannot click ahead — only the next step is reachable.
@@ -196,21 +115,21 @@ Use `linear` to restrict navigation to sequential order. In linear mode, users c
         <Steps.Item index={0}>
           <Steps.Trigger>
             <Steps.Indicator>1</Steps.Indicator>
-            <span className='text-sm'>First</span>
+            <Steps.TriggerText>First</Steps.TriggerText>
           </Steps.Trigger>
           <Steps.Separator />
         </Steps.Item>
         <Steps.Item index={1}>
           <Steps.Trigger>
             <Steps.Indicator>2</Steps.Indicator>
-            <span className='text-sm'>Second</span>
+            <Steps.TriggerText>Second</Steps.TriggerText>
           </Steps.Trigger>
           <Steps.Separator />
         </Steps.Item>
         <Steps.Item index={2}>
           <Steps.Trigger>
             <Steps.Indicator>3</Steps.Indicator>
-            <span className='text-sm'>Third</span>
+            <Steps.TriggerText>Third</Steps.TriggerText>
           </Steps.Trigger>
         </Steps.Item>
       </Steps.List>
@@ -218,26 +137,91 @@ Use `linear` to restrict navigation to sequential order. In linear mode, users c
   </div>
   <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Linear</p>
-    <Steps count={3} linear>
+    <Steps count={3} linear defaultStep={1}>
       <Steps.List>
         <Steps.Item index={0}>
           <Steps.Trigger>
             <Steps.Indicator>1</Steps.Indicator>
-            <span className='text-sm'>First</span>
+            <Steps.TriggerText>First</Steps.TriggerText>
           </Steps.Trigger>
           <Steps.Separator />
         </Steps.Item>
         <Steps.Item index={1}>
           <Steps.Trigger>
             <Steps.Indicator>2</Steps.Indicator>
-            <span className='text-sm'>Second</span>
+            <Steps.TriggerText>Second</Steps.TriggerText>
           </Steps.Trigger>
           <Steps.Separator />
         </Steps.Item>
         <Steps.Item index={2}>
           <Steps.Trigger>
             <Steps.Indicator>3</Steps.Indicator>
-            <span className='text-sm'>Third</span>
+            <Steps.TriggerText>Third</Steps.TriggerText>
+          </Steps.Trigger>
+        </Steps.Item>
+      </Steps.List>
+    </Steps>
+  </div>
+</div>
+```
+
+### Invalid step
+
+Set `invalid` on a `Steps.Item` to show a danger state on its indicator and
+text. Use this when a step has validation errors that prevent progression.
+When a completed step is invalid, the check icon is replaced with the step number.
+
+```tsx-live
+<div className='grid gap-6'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Current step invalid</p>
+    <Steps count={3} defaultStep={1}>
+      <Steps.List>
+        <Steps.Item index={0}>
+          <Steps.Trigger>
+            <Steps.Indicator>1</Steps.Indicator>
+            <Steps.TriggerText>Your role</Steps.TriggerText>
+          </Steps.Trigger>
+          <Steps.Separator />
+        </Steps.Item>
+        <Steps.Item index={1} invalid>
+          <Steps.Trigger>
+            <Steps.Indicator>2</Steps.Indicator>
+            <Steps.TriggerText>Your enquiry</Steps.TriggerText>
+          </Steps.Trigger>
+          <Steps.Separator />
+        </Steps.Item>
+        <Steps.Item index={2}>
+          <Steps.Trigger>
+            <Steps.Indicator>3</Steps.Indicator>
+            <Steps.TriggerText>Your details</Steps.TriggerText>
+          </Steps.Trigger>
+        </Steps.Item>
+      </Steps.List>
+    </Steps>
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Previous step invalid</p>
+    <Steps count={3} defaultStep={2}>
+      <Steps.List>
+        <Steps.Item index={0}>
+          <Steps.Trigger>
+            <Steps.Indicator>1</Steps.Indicator>
+            <Steps.TriggerText>Your role</Steps.TriggerText>
+          </Steps.Trigger>
+          <Steps.Separator />
+        </Steps.Item>
+        <Steps.Item index={1} invalid>
+          <Steps.Trigger>
+            <Steps.Indicator>2</Steps.Indicator>
+            <Steps.TriggerText>Your enquiry</Steps.TriggerText>
+          </Steps.Trigger>
+          <Steps.Separator />
+        </Steps.Item>
+        <Steps.Item index={2}>
+          <Steps.Trigger>
+            <Steps.Indicator>3</Steps.Indicator>
+            <Steps.TriggerText>Your details</Steps.TriggerText>
           </Steps.Trigger>
         </Steps.Item>
       </Steps.List>
@@ -261,21 +245,21 @@ Use `Steps.Progress` to show a fill bar based on completion percentage.
     <Steps.Item index={0}>
       <Steps.Trigger>
         <Steps.Indicator>1</Steps.Indicator>
-        <span className='text-sm'>First</span>
+        <Steps.TriggerText>First</Steps.TriggerText>
       </Steps.Trigger>
       <Steps.Separator />
     </Steps.Item>
     <Steps.Item index={1}>
       <Steps.Trigger>
         <Steps.Indicator>2</Steps.Indicator>
-        <span className='text-sm'>Second</span>
+        <Steps.TriggerText>Second</Steps.TriggerText>
       </Steps.Trigger>
       <Steps.Separator />
     </Steps.Item>
     <Steps.Item index={2}>
       <Steps.Trigger>
         <Steps.Indicator>3</Steps.Indicator>
-        <span className='text-sm'>Third</span>
+        <Steps.TriggerText>Third</Steps.TriggerText>
       </Steps.Trigger>
     </Steps.Item>
   </Steps.List>
@@ -287,26 +271,26 @@ Use `Steps.Progress` to show a fill bar based on completion percentage.
 Use `Steps.NextTrigger` and `Steps.PrevTrigger` with `asChild` to compose with Roadie Button.
 
 ```tsx-live
-<Steps count={3} intent='accent'>
+<Steps count={3}>
   <Steps.List>
     <Steps.Item index={0}>
       <Steps.Trigger>
         <Steps.Indicator>1</Steps.Indicator>
-        <span className='text-sm'>Details</span>
+        <Steps.TriggerText>Details</Steps.TriggerText>
       </Steps.Trigger>
       <Steps.Separator />
     </Steps.Item>
     <Steps.Item index={1}>
       <Steps.Trigger>
         <Steps.Indicator>2</Steps.Indicator>
-        <span className='text-sm'>Review</span>
+        <Steps.TriggerText>Review</Steps.TriggerText>
       </Steps.Trigger>
       <Steps.Separator />
     </Steps.Item>
     <Steps.Item index={2}>
       <Steps.Trigger>
         <Steps.Indicator>3</Steps.Indicator>
-        <span className='text-sm'>Confirm</span>
+        <Steps.TriggerText>Confirm</Steps.TriggerText>
       </Steps.Trigger>
     </Steps.Item>
   </Steps.List>
@@ -349,7 +333,7 @@ function MyWizard() {
         <Steps.Item index={0}>
           <Steps.Trigger>
             <Steps.Indicator>1</Steps.Indicator>
-            <span className='text-sm'>First</span>
+            <Steps.TriggerText>First</Steps.TriggerText>
           </Steps.Trigger>
           <Steps.Separator />
         </Steps.Item>
