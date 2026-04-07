@@ -28,24 +28,26 @@ Add these to your HTML `<head>` to reduce font loading latency:
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 ```
 
-### 2. Import the stylesheet
+### 2. Configure your CSS
 
-Import the Roadie CSS file in your application entry point. This provides all design tokens, theme variables, and base styles:
-
-```tsx
-import '@oztix/roadie-core/css/roadie.css'
-```
-
-### 3. Configure Tailwind v4
-
-Roadie v2 uses Tailwind CSS v4. Import the Roadie tokens in your main CSS file:
+In your main CSS entry point (e.g. `globals.css` or `index.css`), import Roadie's CSS. This single import includes Tailwind CSS v4, all design tokens, theme variables, and base styles:
 
 ```css
-@import 'tailwindcss';
-@import '@oztix/roadie-core/css/tokens.css';
+@import '@oztix/roadie-core/css';
 ```
 
-This gives you access to all Roadie design tokens as Tailwind utilities.
+### 3. Enable component class scanning
+
+If you're using `@oztix/roadie-components`, add a `@source` directive so Tailwind detects the class strings used inside component dist files:
+
+```css
+@import '@oztix/roadie-core/css';
+
+/* Scan Roadie component dist for Tailwind class detection */
+@source "../../node_modules/@oztix/roadie-components/dist";
+```
+
+Adjust the relative path based on your project structure — it must point to `node_modules/@oztix/roadie-components/dist`.
 
 ## Usage
 

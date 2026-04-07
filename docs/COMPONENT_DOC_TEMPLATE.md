@@ -21,7 +21,7 @@ Every component doc follows this skeleton. Only include sections that apply.
 7. **Guidelines** — brief, only non-obvious things. Oztix context goes here
 8. **Accessibility** — for interactive components. Keyboard patterns, ARIA, screen reader notes
 9. **No duplicates** — if disabled is in States, don't add separate Disabled section
-10. **Minimal examples** — show only the feature. Layout with `flex flex-col gap-2` or `flex flex-row flex-wrap gap-2`
+10. **Minimal examples** — show only the feature. Layout with `grid gap-2` or `flex flex-wrap gap-2`
 11. **State labels** — `<p className='text-sm text-subtle'>Label</p>` above each state
 
 ## Section applicability by category
