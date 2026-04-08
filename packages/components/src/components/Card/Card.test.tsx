@@ -82,8 +82,12 @@ describe('Card', () => {
     expect(getByText('Section Card').tagName.toLowerCase()).toBe('section')
   })
 
-  it('renders as anchor when href is provided', () => {
-    const { getByText } = render(<Card href='/event'>Event</Card>)
+  it('renders as anchor when as="a" and href is provided', () => {
+    const { getByText } = render(
+      <Card as='a' href='/event'>
+        Event
+      </Card>
+    )
     const card = getByText('Event')
     expect(card.tagName.toLowerCase()).toBe('a')
     expect(card).toHaveAttribute('href', '/event')
@@ -102,9 +106,9 @@ describe('Card', () => {
     expect(getByText('Static')).not.toHaveClass('is-interactive')
   })
 
-  it('uses as prop over implicit anchor', () => {
+  it('uses as prop to render as button', () => {
     const { getByText } = render(
-      <Card as='button' href='/event'>
+      <Card as='button' onClick={() => {}}>
         Button Card
       </Card>
     )
