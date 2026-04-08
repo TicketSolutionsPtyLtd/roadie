@@ -33,7 +33,7 @@ export default function Home() {
       <section className='grid gap-8'>
         <div className='relative aspect-square w-40'>
           <Image
-            src='/roadie-logo.png'
+            src='roadie-logo.png'
             alt='Roadie Design System'
             fill
             priority
@@ -181,7 +181,7 @@ export default function Home() {
                   weight='bold'
                   className='size-5 text-subtle'
                 />
-                <div className='h-5 w-12 rounded-md outline outline-2 outline-offset-2 outline-accent-9' />
+                <div className='h-5 w-12 rounded-md outline-2 outline-offset-2 outline-accent-9' />
               </div>
             }
           />

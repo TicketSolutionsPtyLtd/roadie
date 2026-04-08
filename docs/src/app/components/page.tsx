@@ -110,7 +110,7 @@ export default async function ComponentsPage() {
                 href={`/components/${component.name}`}
                 className='is-interactive grid grid-rows-[auto_1fr] overflow-hidden no-underline'
               >
-                <div className='grid aspect-[4/3] place-content-center bg-subtle px-6'>
+                <div className='grid aspect-4/3 place-content-center bg-subtle px-6'>
                   <ComponentSkeleton name={component.name} />
                 </div>
                 <div className='grid content-start gap-1 px-5 py-5'>
