@@ -1,125 +1,135 @@
 export const metadata = {
   title: 'Overview',
   description:
-    'Design tokens are the foundation of our design system, providing a single source of truth for values like colors, spacing, typography, and more.'
+    'Design tokens are CSS custom properties that provide a consistent foundation for colors, typography, spacing, and theming.'
 }
 
 # Tokens
 
-Design tokens are the foundation of our design system, providing a
-single source of truth for values like colors, spacing, typography,
-and more. They help maintain consistency across our products while
-making it easier to scale and maintain our design language.
+Design tokens in Roadie v2 are CSS custom properties defined via Tailwind v4's `@theme` directive. They provide a single source of truth for colors, typography, spacing, and theming — automatically supporting dark mode via the `.dark` class.
 
-## Why Design Tokens?
+## How tokens work
 
-Design tokens serve several crucial purposes:
+Tokens are defined in `packages/core/src/css/tokens.css` and consumed via Tailwind utility classes or CSS custom properties:
 
-1. **Consistency**: They ensure visual consistency across all products
-   and platforms
-2. **Maintainability**: Changes can be made in one place and propagate
-   throughout the system
-3. **Theme Support**: They enable seamless theme switching (like dark
-   mode)
-4. **Platform Agnostic**: The same tokens can be used across web,
-   mobile, and other platforms
-
-## Token Types
-
-Our design system includes two main categories of tokens:
-
-### Base Tokens
-
-Base tokens (found in `tokens.json`) are the raw values that define
-our design primitives. These include:
-
-- **Colors**: Raw color values in various scales (e.g.,
-  `neutralSlate.1`, `neutralSand.1`)
-- **Spacing**: Base spacing units (e.g., `100 = 8px`, `200 = 16px`)
-- **Breakpoints**: Screen size breakpoints for responsive design
-- **Blurs**: Blur values for depth effects
-- **Typography**: Font sizes, weights, and line heights
-
-### Semantic Tokens
-
-Semantic tokens (found in `semantic-tokens.json`) are contextual
-aliases that map to base tokens. They provide meaningful,
-context-specific names for design values. For example:
-
-- **Surface colors**: `neutral.surface` for default surfaces, `neutral.surface.subtle` for subtle surfaces and `neutral.surface.strong` for strong surfaces (e.g. buttons)
-- **Foreground colors**: `neutral.fg` for primary text, `neutral.fg.subtle` for secondary text and `neutral.fg.strong` for strong text
-- **Border colors**: `neutral.border` for standard borders, `neutral.border.subtle` for subtle borders and `neutral.border.strong` for strong borders
-
-## Using Tokens in Code
-
-### With PandaCSS
-
-```tsx
-import { css } from '@oztix/roadie-core/css'
-
-const styles = css({
-  // Using semantic color tokens
-  color: 'neutral.fg',
-  bg: 'neutral.surface',
-  borderColor: 'neutral.border',
-
-  // Using spacing tokens
-  padding: '100', // 8px
-  margin: '200', // 16px
-  gap: '300', // 24px
-
-  // Using breakpoint tokens
-  sm: {
-    padding: '400' // 32px
-  }
-})
+```css
+/* Import in your app's CSS */
+@import '@oztix/roadie-core/css';
 ```
 
-### With React Components
-
 ```tsx
-import { View } from '@oztix/roadie-components'
-
-function MyComponent() {
-  return (
-    <View
-      padding='100'
-      backgroundColor='neutral.surface'
-      color='neutral.fg'
-      borderColor='neutral.border'
-    >
-      Content
-    </View>
-  )
-}
+{/* Use via intent + emphasis utilities */}
+<div className="intent-accent emphasis-subtle text-normal p-4 rounded-xl">
+  Content using the intent/emphasis system
+</div>
 ```
 
-## Best Practices
+## Token layers
 
-1. **Always use semantic tokens** when available instead of base
-   tokens
-2. **Use semantic color tokens appropriately**:
-   - `neutral.surface` for default surfaces, `neutral.surface.subtle` for subtle variations and `neutral.surface.strong` for strong surfaces
-   - `neutral.fg` for default text, `neutral.fg.subtle` for subtle text and `neutral.fg.strong` for strong text
-   - `neutral.border` for default borders, `neutral.border.subtle` for subtle borders and `neutral.border.strong` for strong borders
-3. **Maintain dark mode compatibility** by using semantic tokens that
-   automatically adapt
-4. **Use spacing tokens consistently**:
-   - `100` = 8px
-   - `200` = 16px
-   - `300` = 24px
-   - `400` = 32px
-5. **Follow responsive design patterns** using PandaCSS breakpoint
-   syntax
+### 1. Color scales (primitive)
 
-## Token Structure
+Raw OKLCH color values in 14 steps (0-13) per scale. Available scales:
 
-Each token includes:
+- **neutral** — grays for UI structure
+- **brand** — Oztix Blue (fixed)
+- **brand-secondary** — Oztix Orange (fixed)
+- **accent** — customizable per collection (defaults to brand)
+- **danger** — red for errors and destructive actions
+- **success** — green for positive outcomes
+- **warning** — yellow for caution states
+- **info** — purple for informational states
 
-- A unique name
-- A value or reference to another token
-- A type (color, space, etc.)
-- A description of its intended use
+Usage: `bg-neutral-3`, `text-accent-11`, `border-danger-7`
 
-For a complete reference of all available tokens, see the
-[Token Reference](/tokens/reference) page.
+### 2. Intent system (semantic)
+
+Intent utilities set `--intent-*` CSS custom properties that provide the color context. Children inherit the intent via CSS cascade:
+
+```tsx
+{/* Set intent on a container — children inherit */}
+<div className="intent-accent">
+  <button className="emphasis-strong is-interactive rounded-full px-4 py-2">
+    Accent button
+  </button>
+</div>
+
+{/* Or set intent directly on the element */}
+<button className="intent-danger emphasis-strong is-interactive rounded-full px-4 py-2">
+  Danger button
+</button>
+```
+
+Each intent exposes:
+- **Surface**: `--intent-surface-default` (step 1), `subtle` (3), `subtler` (2), `strong` (9), `inverted` (12), `raised` (0), `sunken` (2)
+- **Border**: `--intent-border-subtler` (5), `subtle` (6), `default` (7), `strong` (9)
+- **Foreground**: `--intent-fg-subtler` (10), `subtle` (11), `default` (12), `strong` (13), `inverted` (0)
+- **Raw steps**: `--intent-0` through `--intent-13` for granular access
+
+### 3. Emphasis system (visual)
+
+Emphasis utilities consume intent tokens to apply visual styles:
+
+```tsx
+{/* Combined shortcuts */}
+<div className="intent-accent emphasis-strong">Solid accent bg + white text</div>
+<div className="intent-accent emphasis-subtle">Tinted accent bg + dark text</div>
+
+{/* Property-specific (composable) */}
+<div className="intent-accent bg-strong text-subtle">
+  Solid accent bg + colored text
+</div>
+```
+
+### 4. Typography
+
+Fluid font sizes with `clamp()` from `lg` upward, plus pre-composed text style utilities:
+
+```tsx
+{/* Tailwind size utilities */}
+<p className="text-lg">Fluid large text</p>
+
+{/* Text style composites */}
+<h1 className="text-display-ui-1">App heading</h1>
+<h1 className="text-display-prose-1">Article heading</h1>
+<p className="text-prose">Body paragraph</p>
+```
+
+## Dark mode
+
+All tokens automatically adapt via the `.dark` class on `<html>`. The OKLCH color values swap — step numbers stay the same but perceptual weight inverts. No `dark:` Tailwind variants needed for colors.
+
+```tsx
+{/* Semantic classes adapt to dark mode automatically */}
+<div className="bg-normal text-normal border border-subtle p-4 rounded-xl">
+  Adapts to light/dark automatically
+</div>
+
+{/* Intent + emphasis on a button */}
+<button className="intent-accent emphasis-strong is-interactive rounded-full px-4 py-2">
+  Always uses the right colors
+</button>
+```
+
+## Dynamic accent color
+
+The accent scale can be overridden at runtime for per-collection branding:
+
+```tsx
+import { ThemeProvider } from '@oztix/roadie-components'
+
+<ThemeProvider defaultAccentColor="#FF6B00">
+  {/* All intent-accent elements use orange */}
+</ThemeProvider>
+```
+
+For SSR, use `getAccentStyleTag()` to inject colors server-side and avoid flash.
+
+## Best practices
+
+1. **Use intent + emphasis** for component colors — not raw scale steps
+2. **Use Tailwind utilities** for spacing and layout (`p-4`, `gap-2`, `grid`)
+3. **Let dark mode happen automatically** — the token system handles it
+4. **Use the accent intent** for primary actions — it adapts to dynamic theming
+5. **Use neutral intent** for structural UI — it's the default, no class needed on `:root`
+
+For a complete reference of all available tokens, see the [Token reference](/tokens/reference) page.

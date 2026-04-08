@@ -1,0 +1,147 @@
+/* ═══════════════════════════════════════════════════════════
+   Roadie CSS Reset & Defaults
+   Modern reset with sensible typography defaults.
+   Ported from v1 globalCss + enhanced.
+   ═══════════════════════════════════════════════════════════ */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    font-style: normal;
+    border-color: transparent;
+  }
+
+  :focus-visible {
+    outline: 2px solid color-mix(in oklch, var(--intent-9) 30%, transparent);
+    outline-offset: 2px;
+  }
+
+  .dark :focus-visible {
+    outline-color: color-mix(in oklch, var(--intent-9) 20%, transparent);
+  }
+
+  ::selection {
+    background-color: var(--color-info-3);
+  }
+
+  :root {
+    color-scheme: light;
+
+    @supports (interpolate-size: allow-keywords) {
+      interpolate-size: allow-keywords;
+    }
+  }
+
+  .dark {
+    color-scheme: dark;
+  }
+
+  @media print {
+    :root {
+      color-scheme: light !important;
+    }
+  }
+
+  body {
+    min-block-size: 100svh;
+    scrollbar-gutter: stable;
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    line-height: var(--leading-ui);
+    letter-spacing: var(--tracking-ui);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: var(--intent-text-normal);
+    background-color: var(--intent-bg-normal);
+    border-color: var(--intent-border-subtle);
+  }
+
+  /* Media elements */
+  img,
+  picture,
+  video,
+  canvas,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  /* Form elements inherit font */
+  input,
+  button,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  /* Typography wrapping */
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    overflow-wrap: break-word;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-wrap: balance;
+  }
+
+  /* Horizontal rule */
+  hr {
+    border: none;
+    border-top: 1px solid var(--intent-border-subtle);
+  }
+
+  /* Links */
+  a {
+    text-decoration: none;
+    color: currentColor;
+  }
+
+  a:visited {
+    color: inherit;
+  }
+
+  /* Code */
+  code,
+  pre {
+    font-family: var(--font-mono);
+  }
+
+  /* Inline code wrapping — prevents long paths from breaking mobile */
+  :not(pre) > code {
+    overflow-wrap: break-word;
+    word-break: break-all;
+  }
+
+  /* Isolation for root elements */
+  #root,
+  #__next {
+    isolation: isolate;
+  }
+
+  /* List style reset */
+  ul,
+  ol {
+    list-style: none;
+  }
+}

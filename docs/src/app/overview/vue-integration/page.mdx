@@ -1,0 +1,255 @@
+export const metadata = {
+  title: 'Vue integration',
+  description:
+    'Use Roadie design tokens and utility classes in Vue applications without the React component library.'
+}
+
+# Vue integration
+
+Roadie's core CSS layer — tokens, intents, emphasis, elevation, typography, and interaction utilities — works with any framework. This guide covers using Roadie in a Vue application where only the CSS foundation is needed.
+
+The React component library (`@oztix/roadie-components`) is not compatible with Vue. Use the token and utility class system directly instead.
+
+## Installation
+
+Install the core package only:
+
+```bash
+pnpm add @oztix/roadie-core
+```
+
+You also need Tailwind CSS v4 and PostCSS:
+
+```bash
+pnpm add tailwindcss @tailwindcss/postcss postcss
+```
+
+## Setup
+
+### 1. Configure PostCSS
+
+Create or update `postcss.config.js`:
+
+```js
+export default {
+  plugins: {
+    '@tailwindcss/postcss': {}
+  }
+}
+```
+
+### 2. Import Roadie CSS
+
+In your main CSS entry point (e.g. `src/assets/main.css`):
+
+```css
+@import '@oztix/roadie-core/css';
+```
+
+This single import includes Tailwind CSS v4, all design tokens, the reset, and every utility class.
+
+### 3. Add font preconnect hints
+
+Add these to your `index.html` `<head>`:
+
+```html
+<link rel="preconnect" href="https://assets.oztix.com.au" crossorigin />
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+```
+
+## Usage
+
+### Layout
+
+Use [grid-first layout](/foundations/layout) with Tailwind utility classes:
+
+```html
+<div class="grid gap-6 p-6">
+  <h1 class="text-display-ui-2 text-strong">Dashboard</h1>
+  <div class="grid grid-cols-3 gap-4">
+    <div class="emphasis-raised rounded-xl p-4">Card 1</div>
+    <div class="emphasis-raised rounded-xl p-4">Card 2</div>
+    <div class="emphasis-raised rounded-xl p-4">Card 3</div>
+  </div>
+</div>
+```
+
+### Buttons
+
+Use the `btn` base class with a size (`btn-sm`, `btn-md`, `btn-lg`) plus [intent](/foundations/colors), [emphasis](/tokens), and [interaction](/foundations/interactions) utilities:
+
+```html
+<!-- Standard buttons -->
+<button class="btn btn-md intent-accent emphasis-strong is-interactive rounded-full">
+  Primary action
+</button>
+
+<button class="btn btn-md intent-neutral emphasis-normal is-interactive rounded-full">
+  Secondary action
+</button>
+
+<button class="btn btn-sm intent-danger emphasis-subtle is-interactive rounded-full">
+  Delete
+</button>
+
+<!-- Icon button -->
+<button class="btn-icon-md intent-neutral emphasis-subtler is-interactive rounded-full">
+  <svg><!-- icon --></svg>
+</button>
+```
+
+Available sizes: `btn-xs` (24px), `btn-sm` (32px), `btn-md` (40px), `btn-lg` (48px). Icon buttons use `btn-icon-xs` through `btn-icon-lg`.
+
+### Intent and emphasis
+
+Set [color context](/foundations/colors) with `intent-*` classes. Children inherit the palette automatically via CSS cascade:
+
+```html
+<div class="intent-accent">
+  <button class="btn btn-md emphasis-strong is-interactive rounded-full">
+    Inherits accent
+  </button>
+  <p class="text-subtle">This text is also accent-tinted.</p>
+</div>
+
+<div class="intent-danger">
+  <button class="btn btn-md emphasis-subtle is-interactive rounded-full">
+    Danger action
+  </button>
+</div>
+```
+
+See the [tokens overview](/tokens) for how intent and [emphasis](/tokens) work together.
+
+### Typography
+
+Use the [display utility classes](/foundations/typography) for headings and standard Tailwind for body text:
+
+```html
+<h1 class="text-display-prose-1 text-strong">Page title</h1>
+<h2 class="text-display-ui-3 text-strong">Section heading</h2>
+<p class="text-subtle">Secondary body text.</p>
+<p class="text-sm text-subtle">Small helper text.</p>
+```
+
+### Semantic colors
+
+Roadie replaces default Tailwind colors with [semantic tokens](/foundations/colors):
+
+```html
+<div class="bg-normal text-normal">Default surface</div>
+<div class="bg-subtle text-subtle">Tinted surface</div>
+<div class="bg-raised text-strong border-subtle border">Elevated card</div>
+<div class="bg-sunken">Recessed area</div>
+```
+
+### Elevation
+
+[Shadows](/foundations/elevation) are tinted by the current intent:
+
+```html
+<div class="intent-accent shadow-lg rounded-xl p-6">
+  Accent-tinted shadow
+</div>
+
+<div class="emphasis-raised rounded-xl p-4">
+  Raised surface with rim-light and shadow
+</div>
+```
+
+### Form inputs
+
+Style form inputs with the [`is-interactive-field`](/foundations/interactions) utility for automatic state transitions (neutral at rest, accent on focus, danger when invalid):
+
+```html
+<div class="grid gap-1.5">
+  <label class="text-sm font-medium" for="email">Email</label>
+  <input
+    id="email"
+    type="email"
+    class="is-interactive-field rounded-lg border border-normal bg-normal px-3 py-2 text-normal"
+    placeholder="you@example.com"
+  />
+  <p class="text-sm text-subtle">We'll never share your email.</p>
+</div>
+```
+
+For composite inputs (e.g. an input with an attached button), use [`is-interactive-field-group`](/foundations/interactions) on the wrapper:
+
+```html
+<div class="is-interactive-field-group flex rounded-lg border border-normal">
+  <input
+    type="text"
+    class="flex-1 bg-transparent px-3 py-2 text-normal outline-none"
+    placeholder="Search..."
+  />
+  <button class="btn emphasis-strong is-interactive rounded-r-lg px-3">Go</button>
+</div>
+```
+
+### Interactive elements
+
+Use [`is-interactive`](/foundations/interactions) for buttons, cards, and clickable elements. It provides cursor, transitions, active scale, focus ring, and disabled state:
+
+```html
+<button class="btn btn-md intent-brand emphasis-strong is-interactive rounded-full">
+  Submit
+</button>
+
+<a href="/details" class="emphasis-subtle is-interactive rounded-xl p-4 no-underline">
+  Clickable card
+</a>
+```
+
+### Shape
+
+Follow the [shape tier system](/foundations/shape) for consistent border-radius:
+
+| Tier | Class | Use for |
+|------|-------|---------|
+| Inline | `rounded-sm` | Marks, highlights |
+| Small | `rounded-md` | Code, prose images |
+| Field | `rounded-lg` | Inputs, textareas, selects |
+| Container | `rounded-xl` | Cards, popovers |
+| Large | `rounded-2xl` | Modals, dialogs |
+| Full | `rounded-full` | Buttons, badges, pills |
+
+### Dark mode
+
+Toggle dark mode by adding the `dark` class to the `<html>` element. All tokens adapt automatically — no `dark:` variants needed.
+
+For SSR-safe dark mode without flash, use the theme script from `@oztix/roadie-core/theme`:
+
+```js
+import { getThemeScript } from '@oztix/roadie-core/theme'
+```
+
+Inject the script output into your `index.html` `<head>` as a blocking `<script>` tag. It reads localStorage and applies the `dark` class before first paint.
+
+### Dynamic accent color
+
+To change the accent hue at runtime, use the color scale generator:
+
+```js
+import { generateRadixScale } from '@oztix/roadie-core/colors'
+
+const scale = generateRadixScale('#6366f1')
+// Apply scale CSS variables to :root or a container element
+```
+
+## What's not available
+
+The following require the React component library and are not available in Vue:
+
+- Pre-built components (Button, Select, Accordion, etc.)
+- `ThemeProvider` React context (use the theme script + manual dark class toggling instead)
+- `useTheme()` hook (manage theme state in your Vue app directly)
+
+Everything else — tokens, intents, emphasis, elevation, typography, interactions, motion, and all Tailwind utilities — works identically.
+
+## Next steps
+
+- Browse the [Foundations](/foundations/colors) pages for detailed guidance on each system
+- See the [Token reference](/tokens/reference) for all available CSS custom properties
+- Read about [motion tokens](/foundations/motion) for animations and transitions
+- Check the [Getting started](/overview/getting-started) guide for React setup

@@ -1,16 +1,15 @@
-import { PropsDefinitions } from '@/components/PropsDefinitions'
-
 export const metadata = {
   title: 'Mark',
-  description:
-    'The Mark component is used to highlight or emphasize text content.',
+  description: 'Highlighted text using the HTML mark element with intent variants.',
   status: 'beta',
-  category: 'Typography'
+  category: 'Text'
 }
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # Mark
 
-The Mark component is used to highlight or emphasize specific text content within your application. It renders the HTML `<mark>` element with consistent styling.
+Highlighted text using the HTML mark element with intent variants.
 
 ## Import
 
@@ -22,107 +21,83 @@ import { Mark } from '@oztix/roadie-components'
 
 ### Default
 
-```tsx
-live
-<Text>
+The default intent is `info`.
+
+```tsx-live
+
+<p>
   The Mark component is used to <Mark>highlight text</Mark> within content.
-</Text>
+</p>
 ```
 
-### Color palettes
+### Intents
 
-The default color palette is `information`. Each color palette is designed for specific use cases:
+```tsx-live
 
-- `neutral`: Default for general highlights
-- `accent`: Accent highlights
-- `brand`: Brand-specific highlights
-- `information`: Informational highlights
-- `success`: Successful or positive highlights
-- `warning`: Warning-related highlights
-- `danger`: Error or critical highlights
-
-```tsx
-live
-<View gap='200'>
-  <Text>
-    This is <Mark colorPalette='neutral'>neutral</Mark> highlighted text.
-  </Text>
-  <Text>
-    This is <Mark colorPalette='accent'>accent</Mark> highlighted text.
-  </Text>
-  <Text>
-    This is <Mark colorPalette='brand'>brand</Mark> highlighted text.
-  </Text>
-  <Text>
-    This is <Mark colorPalette='information'>information</Mark> highlighted text.
-  </Text>
-  <Text>
-    This is <Mark colorPalette='success'>success</Mark> highlighted text.
-  </Text>
-  <Text>
-    This is <Mark colorPalette='warning'>warning</Mark> highlighted text.
-  </Text>
-  <Text>
-    This is <Mark colorPalette='danger'>danger</Mark> highlighted text.
-  </Text>
-</View>
+<div className='grid gap-2'>
+  <p>
+    This is <Mark intent='neutral'>neutral</Mark> highlighted text.
+  </p>
+  <p>
+    This is <Mark intent='neutral-inverted'>neutral-inverted</Mark> highlighted text.
+  </p>
+  <p>
+    This is <Mark intent='accent'>accent</Mark> highlighted text.
+  </p>
+  <p>
+    This is <Mark intent='brand'>brand</Mark> highlighted text.
+  </p>
+  <p>
+    This is <Mark intent='brand-secondary'>brand-secondary</Mark> highlighted text.
+  </p>
+  <p>
+    This is <Mark intent='info'>info</Mark> highlighted text.
+  </p>
+  <p>
+    This is <Mark intent='success'>success</Mark> highlighted text.
+  </p>
+  <p>
+    This is <Mark intent='warning'>warning</Mark> highlighted text.
+  </p>
+  <p>
+    This is <Mark intent='danger'>danger</Mark> highlighted text.
+  </p>
+</div>
 ```
 
-### Nested content
+### As heading
 
-Mark supports nested content including other components:
+Use the `as` prop to render Mark as a heading element. Padding automatically increases to suit display text.
 
-```tsx
-live
-<Text>
-  You can mark text with <Mark>nested <strong>formatting</strong></Mark> inside.
-</Text>
+```tsx-live
+
+<div className='grid gap-4 text-center'>
+  <Mark as='h2' intent='accent' className='text-display-ui-3'>
+    Great events need great partners
+  </Mark>
+  <Mark as='h3' intent='neutral' className='text-display-ui-5'>
+    Not just great ticketing software
+  </Mark>
+  <Mark as='h3' intent='brand-secondary' className='text-display-ui-5'>
+    Built for the live events industry
+  </Mark>
+</div>
 ```
 
-### In headings
+### With headings
 
-Mark works great in headings for creating eye-catching titles:
+Mark and [Highlight](/components/highlight) can both be used inline within headings.
 
-```tsx
-live
-<View gap='200' textAlign='center'>
-  <Heading as='h1' textStyle='display.prose.2'>
-    Great events need great <Mark colorPalette='accent'>partners</Mark>
-  </Heading>
-  <Heading as='h2' textStyle='display.prose.4' color='neutral.fg.subtle'>
-    Not just <Mark backgroundColor='orange.5' color='orange.12'>great</Mark> ticketing software. Why?
-  </Heading>
-</View>
-```
+```tsx-live
 
-### Use cases
-
-Mark is useful for highlighting important information in various contexts:
-
-```tsx
-live
-<View gap='300'>
-  <View gap='100'>
-    <Heading as='h3' textStyle='display.ui.4'>Search results</Heading>
-    <Text>
-      Found <Mark colorPalette='accent'>5 matches</Mark> for your search query.
-    </Text>
-  </View>
-
-  <View gap='100'>
-    <Heading as='h3' textStyle='display.ui.4'>Status updates</Heading>
-    <Text>
-      Your order is <Mark colorPalette='success'>confirmed</Mark> and will ship soon.
-    </Text>
-  </View>
-
-  <View gap='100'>
-    <Heading as='h3' textStyle='display.ui.4'>Warnings</Heading>
-    <Text>
-      This action is <Mark colorPalette='warning'>irreversible</Mark>.
-    </Text>
-  </View>
-</View>
+<div className='grid gap-2 text-center'>
+  <h1 className='text-display-ui-3 text-strong'>
+    Great events need great <Mark intent='accent'>partners</Mark>
+  </h1>
+  <h2 className='text-display-ui-5 text-subtle'>
+    <Highlight text='Not just great ticketing software. Why?' query='great' intent='warning' />
+  </h2>
+</div>
 ```
 
 <PropsDefinitions componentPath='packages/components/src/components/Mark/index.tsx' />

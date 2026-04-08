@@ -1,0 +1,115 @@
+export const metadata = {
+  title: 'Radio group',
+  description: 'A group of radio buttons for selecting one option from a set',
+  status: 'beta',
+  category: 'Forms',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Radio group
+
+A group of radio buttons for selecting one option from a set.
+
+## Import
+
+```tsx
+import { RadioGroup } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<RadioGroup>
+  <RadioGroup.Item value='email' label='Email' />
+  <RadioGroup.Item value='phone' label='Phone' />
+  <RadioGroup.Item value='post' label='Post' />
+</RadioGroup>
+```
+
+### With Field
+
+Wrap RadioGroup in [Field](/components/field) for consistent layout, labels,
+and error handling.
+
+```tsx-live
+<Field required>
+  <Field.Label showIndicator>Contact method</Field.Label>
+  <RadioGroup>
+    <RadioGroup.Item value='email' label='Email' />
+    <RadioGroup.Item value='phone' label='Phone' />
+    <RadioGroup.Item value='post' label='Post' />
+  </RadioGroup>
+</Field>
+```
+
+### With standalone label
+
+RadioGroup also has its own `RadioGroup.Label` for standalone usage without a
+Field wrapper.
+
+```tsx-live
+<RadioGroup required>
+  <RadioGroup.Label showIndicator>Contact method</RadioGroup.Label>
+  <RadioGroup.Item value='email' label='Email' />
+  <RadioGroup.Item value='phone' label='Phone' />
+  <RadioGroup.Item value='post' label='Post' />
+</RadioGroup>
+```
+
+### Variants
+
+#### Horizontal direction
+
+```tsx-live
+<RadioGroup direction='horizontal'>
+  <RadioGroup.Item value='small' label='Small' />
+  <RadioGroup.Item value='medium' label='Medium' />
+  <RadioGroup.Item value='large' label='Large' />
+</RadioGroup>
+```
+
+### Emphasis
+
+Use the `emphasis` prop on the Root to control the visual weight of all items.
+
+#### Normal
+
+```tsx-live
+<RadioGroup emphasis='normal'>
+  <RadioGroup.Item value='standard' label='Standard delivery' />
+  <RadioGroup.Item value='express' label='Express delivery' />
+  <RadioGroup.Item value='overnight' label='Overnight delivery' />
+</RadioGroup>
+```
+
+### States
+
+```tsx-live
+<div className='grid gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Default</p>
+    <RadioGroup>
+      <RadioGroup.Item value='a' label='Option A' />
+      <RadioGroup.Item value='b' label='Option B' />
+    </RadioGroup>
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <RadioGroup disabled>
+      <RadioGroup.Item value='a' label='Option A' />
+      <RadioGroup.Item value='b' label='Option B' />
+    </RadioGroup>
+  </div>
+</div>
+```
+
+## Accessibility
+
+- **Keyboard**: `Arrow Up`/`Arrow Down` moves between radio items. `Space` selects the focused item. Base UI manages roving tabindex.
+- **ARIA**: Base UI Radio sets `role="radiogroup"` on the root and `role="radio"` with `aria-checked` on each item automatically.
+- **Grouping**: Wrap in a `Fieldset` with a `Legend` to provide a group label for screen readers.
+
+<PropsDefinitions componentPath='packages/components/src/components/RadioGroup/index.tsx' />

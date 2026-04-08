@@ -1,0 +1,84 @@
+export const metadata = {
+  title: 'Textarea',
+  description: 'A multi-line text input for longer form content',
+  status: 'beta',
+  category: 'Forms',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Textarea
+
+A multi-line text input for longer form content.
+
+## Import
+
+```tsx
+import { Textarea } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<Textarea placeholder='Enter text' />
+```
+
+### Emphasis
+
+```tsx-live
+<div className='grid gap-2'>
+  <Textarea emphasis='normal' placeholder='Normal emphasis' />
+  <Textarea emphasis='subtle' placeholder='Subtle emphasis' />
+</div>
+```
+
+### Sizes
+
+```tsx-live
+<div className='grid gap-2'>
+  <Textarea size='sm' placeholder='Small' />
+  <Textarea size='md' placeholder='Medium (default)' />
+  <Textarea size='lg' placeholder='Large' />
+</div>
+```
+
+### Auto resize
+
+Uses CSS `field-sizing: content` to grow with the content. No manual resize
+handle — the textarea adjusts automatically.
+
+```tsx-live
+<Textarea autoResize placeholder='This textarea grows as you type...' />
+```
+
+### States
+
+Textareas start neutral, gain an accent-coloured border and ring on focus,
+and switch to danger colouring when invalid.
+
+```tsx-live
+<div className='grid gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Default</p>
+    <Textarea placeholder='Click to focus' />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Invalid</p>
+    <Textarea aria-invalid='true' defaultValue='Invalid content' />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <Textarea disabled placeholder='Disabled' />
+  </div>
+</div>
+```
+
+## Accessibility
+
+- **Label association**: Always pair with a `<label>` (or `Field.Label`) using matching `htmlFor`/`id` attributes.
+- **Validation**: Set `aria-invalid="true"` on invalid textareas. `is-interactive-field` provides visual danger styling automatically.
+- **Description**: Use `aria-describedby` to link helper or error text to the textarea.
+
+<PropsDefinitions componentPath='packages/components/src/components/Textarea/index.tsx' />

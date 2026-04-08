@@ -102,3 +102,6 @@ jobs:
         run: pnpm turbo build --framework-inference=false
         env:
           NEXT_PUBLIC_BASE_PATH: /roadie
+
+      - name: Check bundle size
+        run: pnpm --filter @oztix/roadie-components size:check

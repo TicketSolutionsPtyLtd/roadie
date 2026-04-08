@@ -1,44 +1,72 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import Link from 'next/link'
 
-import { Copy } from 'lucide-react'
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  CaretDownIcon,
+  CaretUpIcon,
+  CheckCircleIcon,
+  CopyIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  GearIcon,
+  HeartIcon,
+  InfoIcon,
+  MagnifyingGlassIcon,
+  MinusIcon,
+  PencilSimpleIcon,
+  PlusIcon,
+  StarIcon,
+  TrashIcon,
+  WarningIcon,
+  XCircleIcon
+} from '@phosphor-icons/react'
 import { Highlight, themes } from 'prism-react-renderer'
 import { LiveEditor, LiveError, LivePreview, LiveProvider } from 'react-live'
 
 import * as RoadieComponents from '@oztix/roadie-components'
-import { useColorMode } from '@oztix/roadie-components/hooks'
-import { css } from '@oztix/roadie-core/css'
-import * as PandaComponents from '@oztix/roadie-core/jsx'
+import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
+
+// Bare-name keys so MDX live examples can use `<CheckCircle />` etc.
+const PhosphorIcons = {
+  CheckCircle: CheckCircleIcon,
+  XCircle: XCircleIcon,
+  Info: InfoIcon,
+  Warning: WarningIcon,
+  Star: StarIcon,
+  Plus: PlusIcon,
+  Minus: MinusIcon,
+  CaretDown: CaretDownIcon,
+  CaretUp: CaretUpIcon,
+  ArrowRight: ArrowRightIcon,
+  ArrowLeft: ArrowLeftIcon,
+  Heart: HeartIcon,
+  MagnifyingGlass: MagnifyingGlassIcon,
+  Gear: GearIcon,
+  Trash: TrashIcon,
+  PencilSimple: PencilSimpleIcon,
+  Eye: EyeIcon,
+  EyeSlash: EyeSlashIcon
+}
 
 const scope = {
-  css,
   ...RoadieComponents,
-  ...PandaComponents,
+  ...SpotIllustrations,
+  ...PhosphorIcons,
   Link
 }
 
-const { Button, View } = RoadieComponents
+const { Button } = RoadieComponents
 
-const editorStyles = {
-  bg: 'neutral.surface.sunken',
-  overflow: 'auto',
-  fontSize: 'sm',
-  p: '200',
-  boxShadow: 'sunken',
-  borderRadius: 'md',
-  border: '1px solid',
-  borderColor: 'neutral.border.subtler'
-}
-
-// Custom themes that inherit from nightOwl but override the background
 const customDarkTheme = {
   ...themes.nightOwl,
   plain: {
     ...themes.nightOwl.plain,
-    backgroundColor: 'var(--colors-neutral-surface-sunken)'
+    backgroundColor: 'var(--intent-bg-sunken)'
   }
 }
 
@@ -46,7 +74,7 @@ const customLightTheme = {
   ...themes.nightOwlLight,
   plain: {
     ...themes.nightOwlLight.plain,
-    backgroundColor: 'var(--colors-neutral-surface-sunken)'
+    backgroundColor: 'var(--intent-bg-sunken)'
   }
 }
 
@@ -60,16 +88,15 @@ function CopyButton({ code }: { code: string }) {
   }
 
   return (
-    <div className={css({ position: 'absolute', top: '150', right: '150' })}>
+    <div className='absolute top-2 right-2 z-10'>
       <Button
         onClick={handleCopy}
         size='sm'
-        emphasis='subtler'
+        emphasis='normal'
         aria-label='Copy code to clipboard'
-        px='150'
       >
         {copied && 'Copied!'}
-        <Copy size={16} />
+        <CopyIcon weight='bold' className='size-4' />
       </Button>
     </div>
   )
@@ -77,36 +104,72 @@ function CopyButton({ code }: { code: string }) {
 
 type CodePreviewProps = {
   children: string
-  language: string
+  language?: string
+  showCopy?: boolean
+  className?: string
 }
 
-export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
-  const colorMode = useColorMode()
+export function CodePreview({
+  children,
+  language = 'tsx',
+  showCopy = true,
+  className
+}: CodePreviewProps) {
+  const [colorMode, setColorMode] = useState<'light' | 'dark'>('light')
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reading DOM state on mount
+    setColorMode(
+      document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+    )
+    const observer = new MutationObserver(() => {
+      setColorMode(
+        document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+      )
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    })
+    return () => observer.disconnect()
+  }, [])
+
   const theme = colorMode === 'dark' ? customDarkTheme : customLightTheme
-  const isLive =
+  const isBleedX =
+    language === 'tsx-live-bleed-x' || language === 'jsx-live-bleed-x'
+  const isLiveLang =
+    language === 'tsx-live' || language === 'jsx-live' || isBleedX
+  const isLivePrefix =
     children.startsWith('live') && (language === 'tsx' || language === 'jsx')
-  const trimmedCode = isLive
+  const isLive = isLiveLang || isLivePrefix
+  const trimmedCode = isLivePrefix
     ? children.replace('live', '').trim()
     : children.trim()
 
   if (!isLive) {
     return (
-      <View mb='800'>
-        <CopyButton code={trimmedCode} />
+      <div
+        className={
+          className ?? 'relative mb-8 min-w-0 rounded-lg emphasis-sunken'
+        }
+      >
+        {showCopy && <CopyButton code={trimmedCode} />}
         <Highlight code={trimmedCode} language={language} theme={theme}>
-          {({ style, tokens, getLineProps, getTokenProps }) => (
-            <pre className={css(editorStyles)} style={style}>
+          {({ tokens, getLineProps, getTokenProps }) => (
+            <pre
+              className='min-w-0 overflow-x-auto p-3 font-mono text-xs sm:p-4 sm:text-sm'
+              style={{ scrollbarWidth: 'none' }}
+            >
               {tokens.map((line, i) => {
-                const lineProps = getLineProps({ line, key: i })
-
-                const { key, ...linePropsWithoutKey } = lineProps
+                const { key: _key, ...linePropsWithoutKey } = getLineProps({
+                  line,
+                  key: i
+                })
                 return (
                   <div key={i} {...linePropsWithoutKey}>
                     {line.map((token, key) => {
-                      const tokenProps = getTokenProps({ token, key })
-
-                      const { key: tokenKey, ...tokenPropsWithoutKey } =
-                        tokenProps
+                      const { key: _tokenKey, ...tokenPropsWithoutKey } =
+                        getTokenProps({ token, key })
                       return <span key={key} {...tokenPropsWithoutKey} />
                     })}
                   </div>
@@ -115,43 +178,27 @@ export function CodePreview({ children, language = 'tsx' }: CodePreviewProps) {
             </pre>
           )}
         </Highlight>
-      </View>
+      </div>
     )
   }
+
   return (
-    <View mb='800'>
+    <div className='relative mb-8 min-w-0 overflow-hidden rounded-xl border border-subtle'>
       <LiveProvider
         code={trimmedCode}
         scope={scope}
         theme={theme}
-        language={language.replace('-live', '')}
+        language={language.replace(/-live(-bleed-x)?/, '')}
       >
         <LivePreview
-          className={css({
-            px: 300,
-            py: 300,
-            bg: 'neutral.surface',
-            borderTopRadius: 'md',
-            fontFamily: 'ui',
-            border: '1px solid',
-            borderColor: 'neutral.border.subtler',
-            borderBottom: 'none',
-            overflow: 'hidden',
-            overflowX: 'auto'
-          })}
+          className={`min-w-0 overflow-x-auto bg-normal font-sans ${isBleedX ? 'py-4 sm:py-6' : 'px-4 py-4 sm:px-6 sm:py-6'}`}
         />
-        <LiveError />
-        <View>
+        <LiveError className='bg-subtler px-4 py-3 text-sm text-subtle intent-danger' />
+        <div className='relative min-w-0'>
           <CopyButton code={trimmedCode} />
-          <LiveEditor
-            className={css({
-              ...editorStyles,
-              borderTopRadius: '0',
-              borderTop: 'none'
-            })}
-          />
-        </View>
+          <LiveEditor className='min-w-0 overflow-x-auto emphasis-sunken p-3 font-mono text-xs sm:p-4 sm:text-sm' />
+        </div>
       </LiveProvider>
-    </View>
+    </div>
   )
 }

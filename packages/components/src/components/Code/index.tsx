@@ -1,37 +1,40 @@
-import type { ReactNode } from 'react'
+import type { ComponentProps } from 'react'
 
-import { ark } from '@ark-ui/react/factory'
+import { type VariantProps, cva } from 'class-variance-authority'
 
-import type { ColorPalette } from '@oztix/roadie-core'
-import { styled } from '@oztix/roadie-core/jsx'
-import type { HTMLStyledProps } from '@oztix/roadie-core/jsx'
-import { type CodeVariantProps, code } from '@oztix/roadie-core/recipes'
+import { cn } from '@oztix/roadie-core/utils'
 
-/**
- * A code component that inherits from Text and renders as a code element
- */
-export interface CodeProps extends HTMLStyledProps<'code'> {
-  /**
-   * The appearance of the code block
-   * @default 'default'
-   */
-  emphasis?: CodeVariantProps['emphasis']
+import { intentVariants } from '../../variants'
 
-  /**
-   * The color palette to use for the code
-   * @default 'neutral'
-   */
-  colorPalette?: ColorPalette
+export const codeVariants = cva(
+  'font-mono rounded-md px-1.5 py-0.5 text-[0.9em]',
+  {
+    variants: {
+      intent: intentVariants,
+      emphasis: {
+        normal: 'emphasis-normal',
+        strong: 'emphasis-strong',
+        subtle: 'emphasis-subtle',
+        subtler: 'emphasis-subtler'
+      }
+    },
+    defaultVariants: {
+      emphasis: 'normal'
+    }
+  }
+)
 
-  /**
-   * The content to display
-   */
-  children?: ReactNode
+export interface CodeProps
+  extends ComponentProps<'code'>,
+    VariantProps<typeof codeVariants> {}
+
+export function Code({ className, intent, emphasis, ...props }: CodeProps) {
+  return (
+    <code
+      className={cn(codeVariants({ intent, emphasis, className }))}
+      {...props}
+    />
+  )
 }
-
-export const Code = styled(
-  ark.code,
-  code
-) as React.ForwardRefExoticComponent<CodeProps>
 
 Code.displayName = 'Code'

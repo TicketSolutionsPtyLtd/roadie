@@ -1,0 +1,88 @@
+export const metadata = {
+  title: 'Badge',
+  description: 'A compact label for status, counts, or categories',
+  status: 'beta',
+  category: 'Content',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Badge
+
+A compact label for status, counts, or categories.
+
+## Import
+
+```tsx
+import { Badge } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<Badge>Badge</Badge>
+```
+
+### Emphasis
+
+```tsx-live
+<div className='flex flex-row flex-wrap gap-2'>
+  <Badge emphasis='strong'>Strong</Badge>
+  <Badge emphasis='normal'>Normal</Badge>
+  <Badge emphasis='subtle'>Subtle</Badge>
+  <Badge emphasis='subtler'>Subtler</Badge>
+</div>
+```
+
+### Sizes
+
+```tsx-live
+<div className='flex flex-row flex-wrap items-center gap-2'>
+  <Badge size='sm'>Small</Badge>
+  <Badge size='md'>Medium</Badge>
+</div>
+```
+
+### Intents
+
+```tsx-live
+<div className='flex flex-row flex-wrap gap-2'>
+  <Badge intent='neutral'>Neutral</Badge>
+  <Badge intent='accent'>Accent</Badge>
+  <Badge intent='brand'>Brand</Badge>
+  <Badge intent='info'>Info</Badge>
+  <Badge intent='success'>Success</Badge>
+  <Badge intent='warning'>Warning</Badge>
+  <Badge intent='danger'>Danger</Badge>
+</div>
+```
+
+### With indicator
+
+Use the `indicator` prop to show a dot before the text. Add `indicatorPulse` for a slow pulse animation.
+
+```tsx-live
+<div className='flex flex-row flex-wrap gap-2'>
+  <Badge indicator intent='success'>Active</Badge>
+  <Badge indicator indicatorPulse intent='danger'>Live</Badge>
+  <Badge indicator intent='info'>Processing</Badge>
+  <Badge indicator indicatorPulse intent='warning'>Attention</Badge>
+</div>
+```
+
+### With icons
+
+Place icons directly as children. SVGs are automatically sized to match the text.
+
+```tsx-live
+<div className='flex flex-row flex-wrap gap-2'>
+  <Badge intent='success'><CheckCircle weight='bold' /> Verified</Badge>
+  <Badge intent='danger'><XCircle weight='bold' /> Failed</Badge>
+  <Badge intent='info'><Info weight='bold' /> Info</Badge>
+  <Badge intent='warning'><Warning weight='bold' /> Caution</Badge>
+</div>
+```
+
+<PropsDefinitions componentPath='packages/components/src/components/Badge/index.tsx' />

@@ -1,20 +1,15 @@
 export const metadata = {
   title: 'Button',
-  description: 'A fundamental building block for user interactions',
+  description: 'An interactive control that triggers an action when pressed',
   status: 'beta',
   category: 'Actions'
 }
-
-import { Button } from '@oztix/roadie-components'
-import { css } from '@oztix/roadie-core/css'
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # Button
 
-The Button component is a fundamental building block for user
-interactions. It supports multiple emphasiss and sizes to accommodate
-different design contexts.
+An interactive control that triggers an action when pressed.
 
 ## Import
 
@@ -24,159 +19,114 @@ import { Button } from '@oztix/roadie-components'
 
 ## Examples
 
+### Default
+
+```tsx-live
+<Button>Button</Button>
+```
+
 ### Emphasis
 
-Different button emphasiss for various contexts:
-
-```tsx
-live
-<View gap='200' flexDirection='row'>
-  <Button emphasis='strong'>
-    Strong Button
-  </Button>
-  <Button emphasis='default'>
-    Default Button
-  </Button>
-  <Button emphasis='subtle'>
-    Subtle Button
-  </Button>
-  <Button emphasis='subtler'>
-    Subtler Button
-  </Button>
-</View>
+```tsx-live
+<div className='flex flex-row flex-wrap gap-2'>
+  <Button emphasis='strong'>Strong</Button>
+  <Button emphasis='normal'>Normal</Button>
+  <Button emphasis='subtle'>Subtle</Button>
+  <Button emphasis='subtler'>Subtler</Button>
+</div>
 ```
 
 ### Sizes
 
-```tsx
-live
-<View gap='200' flexDirection='row' alignItems='center'>
-  <Button size='xs'>Extra Small</Button>
+```tsx-live
+<div className='flex flex-row flex-wrap items-center gap-2'>
+  <Button size='xs'>Extra small</Button>
   <Button size='sm'>Small</Button>
-  <Button size='md'>Medium (Default)</Button>
+  <Button size='md'>Medium</Button>
   <Button size='lg'>Large</Button>
-</View>
+</div>
 ```
 
-### Colors
+### Intents
 
-Neutral is the default color palette for all buttons.
+Neutral is the default intent. Each intent communicates a different purpose: accent for primary actions, danger for destructive actions, and so on. Hover and focus states adapt automatically.
 
-Each color palette is designed for specific use cases:
-
-- `neutral`: Default for most actions
-- `accent`: Primary or highlighted actions
-- `brand`: Brand-specific actions
-- `information`: Informational or help-related actions
-- `success`: Positive or completion actions
-- `warning`: Cautionary actions
-- `danger`: Destructive or high-risk actions
-
-```tsx
-live
-<View gap='200'>
-  <View flexDirection='row' gap='200'>
-    <Button emphasis='strong' colorPalette='neutral'>
-      Neutral
-    </Button>
-    <Button emphasis='strong' colorPalette='accent'>
-      Accent
-    </Button>
-    <Button emphasis='strong' colorPalette='brand'>
-      Brand
-    </Button>
-    <Button emphasis='strong' colorPalette='information'>
-      Information
-    </Button>
-    <Button emphasis='strong' colorPalette='success'>
-      Success
-    </Button>
-    <Button emphasis='strong' colorPalette='warning'>
-      Warning
-    </Button>
-    <Button emphasis='strong' colorPalette='danger'>
-      Danger
-    </Button>
-  </View>
-  <View flexDirection='row' gap='200'>
-    <Button emphasis='default' colorPalette='neutral'>
-      Neutral
-    </Button>
-    <Button emphasis='default' colorPalette='accent'>
-      Accent
-    </Button>
-    <Button emphasis='default' colorPalette='brand'>
-      Brand
-    </Button>
-    <Button emphasis='default' colorPalette='information'>
-      Information
-    </Button>
-    <Button emphasis='default' colorPalette='success'>
-      Success
-    </Button>
-    <Button emphasis='default' colorPalette='warning'>
-      Warning
-    </Button>
-    <Button emphasis='default' colorPalette='danger'>
-      Danger
-    </Button>
-  </View>
-  <View flexDirection='row' gap='200'>
-    <Button emphasis='subtle' colorPalette='neutral'>
-      Neutral
-    </Button>
-    <Button emphasis='subtle' colorPalette='accent'>
-      Accent
-    </Button>
-    <Button emphasis='subtle' colorPalette='brand'>
-      Brand
-    </Button>
-    <Button emphasis='subtle' colorPalette='information'>
-      Information
-    </Button>
-    <Button emphasis='subtle' colorPalette='success'>
-      Success
-    </Button>
-    <Button emphasis='subtle' colorPalette='warning'>
-      Warning
-    </Button>
-    <Button emphasis='subtle' colorPalette='danger'>
-      Danger
-    </Button>
-  </View>
-  <View flexDirection='row' gap='200'>
-    <Button emphasis='subtler' colorPalette='neutral'>
-      Neutral
-    </Button>
-    <Button emphasis='subtler' colorPalette='accent'>
-      Accent
-    </Button>
-    <Button emphasis='subtler' colorPalette='brand'>
-      Brand
-    </Button>
-    <Button emphasis='subtler' colorPalette='information'>
-      Information
-    </Button>
-    <Button emphasis='subtler' colorPalette='success'>
-      Success
-    </Button>
-    <Button emphasis='subtler' colorPalette='warning'>
-      Warning
-    </Button>
-    <Button emphasis='subtler' colorPalette='danger'>
-      Danger
-    </Button>
-  </View>
-</View>
+```tsx-live
+<div className='grid gap-2'>
+  <div className='flex flex-row flex-wrap gap-2'>
+    <Button emphasis='strong' intent='neutral'>Neutral</Button>
+    <Button emphasis='strong' intent='accent'>Accent</Button>
+    <Button emphasis='strong' intent='brand'>Brand</Button>
+    <Button emphasis='strong' intent='info'>Info</Button>
+    <Button emphasis='strong' intent='success'>Success</Button>
+    <Button emphasis='strong' intent='warning'>Warning</Button>
+    <Button emphasis='strong' intent='danger'>Danger</Button>
+  </div>
+  <div className='flex flex-row flex-wrap gap-2'>
+    <Button emphasis='normal' intent='neutral'>Neutral</Button>
+    <Button emphasis='normal' intent='accent'>Accent</Button>
+    <Button emphasis='normal' intent='brand'>Brand</Button>
+    <Button emphasis='normal' intent='info'>Info</Button>
+    <Button emphasis='normal' intent='success'>Success</Button>
+    <Button emphasis='normal' intent='warning'>Warning</Button>
+    <Button emphasis='normal' intent='danger'>Danger</Button>
+  </div>
+  <div className='flex flex-row flex-wrap gap-2'>
+    <Button emphasis='subtle' intent='neutral'>Neutral</Button>
+    <Button emphasis='subtle' intent='accent'>Accent</Button>
+    <Button emphasis='subtle' intent='brand'>Brand</Button>
+    <Button emphasis='subtle' intent='info'>Info</Button>
+    <Button emphasis='subtle' intent='success'>Success</Button>
+    <Button emphasis='subtle' intent='warning'>Warning</Button>
+    <Button emphasis='subtle' intent='danger'>Danger</Button>
+  </div>
+  <div className='flex flex-row flex-wrap gap-2'>
+    <Button emphasis='subtler' intent='neutral'>Neutral</Button>
+    <Button emphasis='subtler' intent='accent'>Accent</Button>
+    <Button emphasis='subtler' intent='brand'>Brand</Button>
+    <Button emphasis='subtler' intent='info'>Info</Button>
+    <Button emphasis='subtler' intent='success'>Success</Button>
+    <Button emphasis='subtler' intent='warning'>Warning</Button>
+    <Button emphasis='subtler' intent='danger'>Danger</Button>
+  </div>
+</div>
 ```
 
-## Usage
+### States
 
-```tsx
-live
-<Button onClick={() => alert('Button pressed')}>
-  Click me
-</Button>
+Hover and focus states use the intent color scale automatically via `is-interactive`.
+
+```tsx-live
+<div className='grid gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Default</p>
+    <div><Button>Button</Button></div>
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <div><Button disabled>Button</Button></div>
+  </div>
+</div>
 ```
+
+### As a link
+
+Use [LinkButton](/components/link-button) and LinkIconButton when you need button styling on a link. They accept an `as` prop for custom components like Next.js `Link`.
+
+```tsx-live
+<div className='flex flex-row flex-wrap items-center gap-2'>
+  <LinkButton href='#' emphasis='strong' intent='accent'>Link button</LinkButton>
+  <LinkButton href='#' emphasis='normal'>Normal link</LinkButton>
+  <LinkIconButton href='#' emphasis='subtle' aria-label='Settings'>
+    <Gear weight='bold' />
+  </LinkIconButton>
+</div>
+```
+
+## Accessibility
+
+- **Keyboard**: `Enter` or `Space` activates the button. Focus is indicated by a semi-transparent ring via `is-interactive`.
+- **ARIA**: Uses native `<button>` element. `disabled` sets `aria-disabled` automatically.
+- **IconButton**: Requires an `aria-label` prop (enforced by TypeScript) since there is no visible text.
 
 <PropsDefinitions componentPath='packages/components/src/components/Button/index.tsx' />

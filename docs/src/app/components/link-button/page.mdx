@@ -1,0 +1,97 @@
+export const metadata = {
+  title: 'LinkButton',
+  description: 'A link styled as a button for navigation actions',
+  status: 'beta',
+  category: 'Actions'
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# LinkButton
+
+A link styled as a button for navigation actions. Shares all visual styles with [Button](/components/button).
+
+## Import
+
+```tsx
+import { LinkButton, LinkIconButton } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<LinkButton href='#'>Link button</LinkButton>
+```
+
+### Emphasis
+
+```tsx-live
+<div className='flex flex-row flex-wrap gap-2'>
+  <LinkButton href='#' emphasis='strong'>Strong</LinkButton>
+  <LinkButton href='#' emphasis='normal'>Normal</LinkButton>
+  <LinkButton href='#' emphasis='subtle'>Subtle</LinkButton>
+  <LinkButton href='#' emphasis='subtler'>Subtler</LinkButton>
+</div>
+```
+
+### Sizes
+
+```tsx-live
+<div className='flex flex-row flex-wrap items-center gap-2'>
+  <LinkButton href='#' size='xs'>Extra small</LinkButton>
+  <LinkButton href='#' size='sm'>Small</LinkButton>
+  <LinkButton href='#' size='md'>Medium</LinkButton>
+  <LinkButton href='#' size='lg'>Large</LinkButton>
+</div>
+```
+
+### Intents
+
+```tsx-live
+<div className='grid gap-2'>
+  <div className='flex flex-row flex-wrap gap-2'>
+    <LinkButton href='#' emphasis='strong' intent='neutral'>Neutral</LinkButton>
+    <LinkButton href='#' emphasis='strong' intent='accent'>Accent</LinkButton>
+    <LinkButton href='#' emphasis='strong' intent='brand'>Brand</LinkButton>
+    <LinkButton href='#' emphasis='strong' intent='info'>Info</LinkButton>
+    <LinkButton href='#' emphasis='strong' intent='success'>Success</LinkButton>
+    <LinkButton href='#' emphasis='strong' intent='warning'>Warning</LinkButton>
+    <LinkButton href='#' emphasis='strong' intent='danger'>Danger</LinkButton>
+  </div>
+  <div className='flex flex-row flex-wrap gap-2'>
+    <LinkButton href='#' emphasis='normal' intent='neutral'>Neutral</LinkButton>
+    <LinkButton href='#' emphasis='normal' intent='accent'>Accent</LinkButton>
+    <LinkButton href='#' emphasis='normal' intent='brand'>Brand</LinkButton>
+    <LinkButton href='#' emphasis='normal' intent='info'>Info</LinkButton>
+    <LinkButton href='#' emphasis='normal' intent='success'>Success</LinkButton>
+    <LinkButton href='#' emphasis='normal' intent='warning'>Warning</LinkButton>
+    <LinkButton href='#' emphasis='normal' intent='danger'>Danger</LinkButton>
+  </div>
+</div>
+```
+
+### With custom component
+
+Use the `as` prop to render with a custom component like Next.js `Link`.
+
+```tsx
+import Link from 'next/link'
+
+<LinkButton as={Link} href='/about'>About</LinkButton>
+```
+
+## Guidelines
+
+- Use LinkButton for navigation that should look like a button (e.g., call-to-action links).
+- Use [Button](/components/button) for actions that don't navigate (form submissions, toggles, dialogs).
+- For icon-only links, use [LinkIconButton](/components/link-icon-button).
+- The `as` prop accepts any component that forwards `className` and `href` (e.g., Next.js `Link`, React Router `Link`).
+
+## Accessibility
+
+- **Keyboard**: `Enter` activates the link. Focus is indicated by a semi-transparent ring via `is-interactive`.
+- **ARIA**: Renders as a native `<a>` element by default. Screen readers announce it as a link, not a button.
+
+<PropsDefinitions componentPath='packages/components/src/components/LinkButton/LinkButton.tsx' />

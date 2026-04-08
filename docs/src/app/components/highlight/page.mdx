@@ -1,282 +1,121 @@
-import { PropsDefinitions } from '@/components/PropsDefinitions'
-
 export const metadata = {
   title: 'Highlight',
-  description:
-    'The Highlight component is used to highlight query matches within text.',
+  description: 'Query-based substring highlighting using Mark.',
   status: 'beta',
-  category: 'Typography'
+  category: 'Text'
 }
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # Highlight
 
-The Highlight component highlights substrings of text based on a search query. It's useful for search results, filtering, and drawing attention to specific text patterns.
+Query-based substring highlighting using Mark.
 
 ## Import
 
 ```tsx
 import { Highlight } from '@oztix/roadie-components'
-// For advanced use cases, you can also import the hook and types:
-import {
-  HighlightChunk,
-  UseHighlightProps,
-  useHighlight
-} from '@oztix/roadie-components/Highlight'
 ```
 
 ## Examples
 
-### Basic usage
+### Default
 
-Highlight specific text based on a query:
+```tsx-live
 
-```tsx
-live
-<View gap='200'>
-  <Text>
-    <Highlight
-      text='The quick brown fox jumps over the lazy dog'
-      query='quick'
-    />
-  </Text>
-  <Text>
-    <Highlight
-      text='The quick brown fox jumps over the lazy dog'
-      query='fox'
-    />
-  </Text>
-  <Text>
-    <Highlight
-      text='The quick brown fox jumps over the lazy dog'
-      query='lazy dog'
-    />
-  </Text>
-</View>
+<p>
+  <Highlight
+    text='The quick brown fox jumps over the lazy dog'
+    query='quick'
+  />
+</p>
 ```
 
-### Multiple queries
+### Intents
 
-Highlight multiple different terms:
+The default intent is `info`.
 
-```tsx
-live
-<Text>
+```tsx-live
+
+<div className='grid gap-2'>
+  <p>
+    <Highlight text='Neutral intent highlight' query='Neutral' intent='neutral' />
+  </p>
+  <p>
+    <Highlight text='Accent intent highlight' query='Accent' intent='accent' />
+  </p>
+  <p>
+    <Highlight text='Brand intent highlight' query='Brand' intent='brand' />
+  </p>
+  <p>
+    <Highlight text='Info intent highlight' query='Info' intent='info' />
+  </p>
+  <p>
+    <Highlight text='Success intent highlight' query='Success' intent='success' />
+  </p>
+  <p>
+    <Highlight text='Warning intent highlight' query='Warning' intent='warning' />
+  </p>
+  <p>
+    <Highlight text='Danger intent highlight' query='Danger' intent='danger' />
+  </p>
+</div>
+```
+
+### With multiple queries
+
+```tsx-live
+
+<p>
   <Highlight
     text='React, Vue, and Svelte are popular JavaScript frameworks'
     query={['React', 'Vue', 'Svelte']}
   />
-</Text>
+</p>
 ```
 
-### Case sensitivity
+### With case sensitivity
 
-By default, matching is case-insensitive. You can make it case-sensitive:
+By default, matching is case-insensitive.
 
-```tsx
-live
-<View gap='200'>
-  <View gap='100'>
-    <Text textStyle='ui.meta'>Case insensitive (default)</Text>
-    <Text>
-      <Highlight
-        text='Hello World'
-        query='hello'
-      />
-    </Text>
-  </View>
-  <View gap='100'>
-    <Text textStyle='ui.meta'>Case sensitive</Text>
-    <Text>
-      <Highlight
-        text='Hello World'
-        query='hello'
-        ignoreCase={false}
-      />
-    </Text>
-  </View>
-</View>
+```tsx-live
+
+<div className='grid gap-2'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Case insensitive (default)</p>
+    <p>
+      <Highlight text='Hello World' query='hello' />
+    </p>
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Case sensitive</p>
+    <p>
+      <Highlight text='Hello World' query='hello' ignoreCase={false} />
+    </p>
+  </div>
+</div>
 ```
 
-### Match all occurrences
+### With match first only
 
-By default, all matches are highlighted. You can disable this:
+By default, all occurrences are highlighted.
 
-```tsx
-live
-<View gap='200'>
-  <View gap='100'>
-    <Text textStyle='ui.meta'>Match all (default)</Text>
-    <Text>
-      <Highlight
-        text='foo bar foo baz foo'
-        query='foo'
-        matchAll={true}
-      />
-    </Text>
-  </View>
-  <View gap='100'>
-    <Text textStyle='ui.meta'>Match first only</Text>
-    <Text>
-      <Highlight
-        text='foo bar foo baz foo'
-        query='foo'
-        matchAll={false}
-      />
-    </Text>
-  </View>
-</View>
-```
+```tsx-live
 
-### Exact match
-
-Match whole words only:
-
-```tsx
-live
-<View gap='200'>
-  <View gap='100'>
-    <Text textStyle='ui.meta'>Partial match (default)</Text>
-    <Text>
-      <Highlight
-        text='foo foobar barfoo'
-        query='foo'
-      />
-    </Text>
-  </View>
-  <View gap='100'>
-    <Text textStyle='ui.meta'>Exact match</Text>
-    <Text>
-      <Highlight
-        text='foo foobar barfoo'
-        query='foo'
-        exactMatch={true}
-      />
-    </Text>
-  </View>
-</View>
-```
-
-### Color palettes
-
-Customize the highlight color using color palettes. Information is the default.
-
-```tsx
-live
-<View gap='200'>
-  <Text>
-    <Highlight
-      text='This text uses the neutral palette'
-      query='neutral'
-      colorPalette='neutral'
-    />
-  </Text>
-  <Text>
-    <Highlight
-      text='This text uses the accent palette'
-      query='accent'
-      colorPalette='accent'
-    />
-  </Text>
-  <Text>
-    <Highlight
-      text='This text uses the brand palette'
-      query='brand'
-      colorPalette='brand'
-    />
-  </Text>
-  <Text>
-    <Highlight
-      text='This text uses the brand secondary palette'
-      query='brand secondary'
-      colorPalette='brandSecondary'
-    />
-  </Text>
-  <Text>
-    <Highlight
-      text='This text uses the information palette'
-      query='information'
-      colorPalette='information'
-    />
-  </Text>
-  <Text>
-    <Highlight
-      text='This text uses the success palette'
-      query='success'
-      colorPalette='success'
-    />
-  </Text>
-  <Text>
-    <Highlight
-      text='This text uses the warning palette'
-      query='warning'
-      colorPalette='warning'
-    />
-  </Text>
-  <Text>
-    <Highlight
-      text='This text uses the danger palette'
-      query='danger'
-      colorPalette='danger'
-    />
-  </Text>
-</View>
-```
-
-### In headings
-
-Highlight works great in headings for creating eye-catching titles:
-
-```tsx
-live
-<View gap='200' textAlign='center'>
-  <Heading as='h1' textStyle='display.prose.2'>
-    <Highlight
-      text='Great events need great partners'
-      query='great'
-      colorPalette='accent'
-    />
-  </Heading>
-  <Heading as='h2' color='neutral.fg.subtle' textStyle='display.prose.4'>
-    <Highlight
-      text='Not just great ticketing software. Why?'
-      query='great'
-      backgroundColor='orange.5'
-    />
-  </Heading>
-</View>
-```
-
-### Search results example
-
-A practical example of highlighting search results:
-
-```tsx
-live(() => {
-  const results = [
-    'JavaScript is a programming language',
-    'TypeScript is a typed superset of JavaScript',
-    'React is a JavaScript library for building user interfaces'
-  ]
-  const searchTerm = 'JavaScript'
-
-  return (
-    <View gap='300'>
-      <View gap='100'>
-        <Heading as='h3' textStyle='display.ui.4'>
-          Search results for "{searchTerm}"
-        </Heading>
-        <Text textStyle='ui.meta'>{results.length} results found</Text>
-      </View>
-      <View gap='100'>
-        {results.map((result, index) => (
-          <Text key={index}>
-            <Highlight text={result} query={searchTerm} colorPalette='accent' />
-          </Text>
-        ))}
-      </View>
-    </View>
-  )
-})()
+<div className='grid gap-2'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Match all (default)</p>
+    <p>
+      <Highlight text='foo bar foo baz foo' query='foo' matchAll={true} />
+    </p>
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Match first only</p>
+    <p>
+      <Highlight text='foo bar foo baz foo' query='foo' matchAll={false} />
+    </p>
+  </div>
+</div>
 ```
 
 <PropsDefinitions componentPath='packages/components/src/components/Highlight/index.tsx' />

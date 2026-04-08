@@ -1,33 +1,60 @@
-import type { ReactNode } from 'react'
+import type { ComponentProps, ElementType } from 'react'
 
-import { ark } from '@ark-ui/react/factory'
+import { type VariantProps, cva } from 'class-variance-authority'
 
-import type { ColorPalette } from '@oztix/roadie-core'
-import { styled } from '@oztix/roadie-core/jsx'
-import type { HTMLStyledProps } from '@oztix/roadie-core/jsx'
-import { mark } from '@oztix/roadie-core/recipes'
+import { cn } from '@oztix/roadie-core/utils'
 
-/**
- * Mark component for highlighting text content
- */
-export interface MarkProps extends HTMLStyledProps<'mark'> {
-  /**
-   * The color palette to use for the mark
-   * @default 'information'
-   */
-  colorPalette?: ColorPalette
+export const markVariants = cva(
+  'inline-block justify-self-start self-start px-[0.1em] py-[0.05em]',
+  {
+    variants: {
+      intent: {
+        neutral: 'intent-neutral',
+        'neutral-inverted': 'intent-neutral',
+        brand: 'intent-brand',
+        'brand-secondary': 'intent-brand-secondary',
+        accent: 'intent-accent',
+        danger: 'intent-danger',
+        success: 'intent-success',
+        warning: 'intent-warning',
+        info: 'intent-info'
+      }
+    },
+    defaultVariants: { intent: 'info' }
+  }
+)
 
-  /**
-   * When true, the component will pass props to its child component
-   */
-  asChild?: boolean
+export type MarkProps<T extends ElementType = 'mark'> = {
+  as?: T
+  className?: string
+} & VariantProps<typeof markVariants> &
+  Omit<ComponentProps<T>, 'as' | 'className'>
 
-  /**
-   * The content to mark
-   */
-  children?: ReactNode
+const headingElements = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
+
+export function Mark<T extends ElementType = 'mark'>({
+  as,
+  className,
+  intent,
+  ...props
+}: MarkProps<T>) {
+  const Component = as || 'mark'
+  const isHeading =
+    typeof Component === 'string' && headingElements.has(Component)
+  const isNeutralInverted = intent === 'neutral-inverted'
+  return (
+    <Component
+      className={cn(
+        markVariants({ intent }),
+        isNeutralInverted
+          ? 'bg-neutral-0 text-neutral-13'
+          : 'bg-mark text-mark',
+        isHeading && 'px-[0.4em] py-[0.2em]',
+        className
+      )}
+      {...props}
+    />
+  )
 }
-
-export const Mark = styled(ark.mark, mark)
 
 Mark.displayName = 'Mark'

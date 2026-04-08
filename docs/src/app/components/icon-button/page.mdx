@@ -1,18 +1,15 @@
 export const metadata = {
   title: 'IconButton',
-  description: 'A square button component optimized for displaying icons',
+  description: 'A square button for icon-only actions',
   status: 'beta',
   category: 'Actions'
 }
-
-import { IconButton } from '@oztix/roadie-components'
-import { css } from '@oztix/roadie-core/css'
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # IconButton
 
-The IconButton component is a square button optimized for displaying icons. It maintains equal width and height across all sizes, making it perfect for icon-only actions.
+A square button for icon-only actions.
 
 ## Import
 
@@ -22,174 +19,99 @@ import { IconButton } from '@oztix/roadie-components'
 
 ## Examples
 
-### Basic usage
+### Default
 
-IconButton requires an `aria-label` for accessibility since it typically doesn't contain visible text.
+Always provide an `aria-label` since there is no visible text.
 
-```tsx
-live
-<View gap='200' flexDirection='row'>
-  <IconButton aria-label='Add item' emphasis='strong' colorPalette='accent'>
-    +
-  </IconButton>
-  <IconButton aria-label='Edit item' emphasis='default'>
-    ✏️
-  </IconButton>
-  <IconButton aria-label='Delete item' emphasis='subtle' colorPalette='danger'>
-    ×
-  </IconButton>
-</View>
+```tsx-live
+<IconButton aria-label='Add item'>
+  <Plus weight='bold' />
+</IconButton>
 ```
 
 ### Emphasis
 
-Different button emphasis levels for various contexts:
-
-```tsx
-live
-<View gap='200' flexDirection='row'>
+```tsx-live
+<div className='flex flex-row flex-wrap gap-2'>
   <IconButton aria-label='Strong' emphasis='strong'>
-    ★
+    <Star weight='bold' />
   </IconButton>
-  <IconButton aria-label='Default' emphasis='default'>
-    ★
+  <IconButton aria-label='Normal' emphasis='normal'>
+    <Star weight='bold' />
   </IconButton>
   <IconButton aria-label='Subtle' emphasis='subtle'>
-    ★
+    <Star weight='bold' />
   </IconButton>
   <IconButton aria-label='Subtler' emphasis='subtler'>
-    ★
+    <Star weight='bold' />
   </IconButton>
-</View>
+</div>
 ```
 
 ### Sizes
 
-IconButton maintains square proportions across all sizes:
+The default size is `icon-md`. All sizes maintain square proportions.
 
-```tsx
-live
-<View gap='200' flexDirection='row' alignItems='center'>
-  <IconButton aria-label='Extra small' size='xs'>
-    ✓
+```tsx-live
+<div className='flex flex-row flex-wrap items-center gap-2'>
+  <IconButton aria-label='Extra small' size='icon-xs'>
+    <Heart weight='bold' />
   </IconButton>
-  <IconButton aria-label='Small' size='sm'>
-    ✓
+  <IconButton aria-label='Small' size='icon-sm'>
+    <Heart weight='bold' />
   </IconButton>
-  <IconButton aria-label='Medium' size='md'>
-    ✓
+  <IconButton aria-label='Medium' size='icon-md'>
+    <Heart weight='bold' />
   </IconButton>
-  <IconButton aria-label='Large' size='lg'>
-    ✓
+  <IconButton aria-label='Large' size='icon-lg'>
+    <Heart weight='bold' />
   </IconButton>
-</View>
+</div>
 ```
 
-### Colors
+### Intents
 
-Each color palette is designed for specific use cases:
-
-- `neutral`: Default for most actions
-- `accent`: Primary or highlighted actions
-- `brand`: Brand-specific actions
-- `information`: Informational or help-related actions
-- `success`: Positive or completion actions
-- `warning`: Cautionary actions
-- `danger`: Destructive or high-risk actions
-
-```tsx
-live
-<View gap='200'>
-  <View flexDirection='row' gap='200'>
-    <IconButton aria-label='Neutral' emphasis='strong' colorPalette='neutral'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Accent' emphasis='strong' colorPalette='accent'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Brand' emphasis='strong' colorPalette='brand'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Information' emphasis='strong' colorPalette='information'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Success' emphasis='strong' colorPalette='success'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Warning' emphasis='strong' colorPalette='warning'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Danger' emphasis='strong' colorPalette='danger'>
-      ✓
-    </IconButton>
-  </View>
-  <View flexDirection='row' gap='200'>
-    <IconButton aria-label='Neutral' emphasis='default' colorPalette='neutral'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Accent' emphasis='default' colorPalette='accent'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Brand' emphasis='default' colorPalette='brand'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Information' emphasis='default' colorPalette='information'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Success' emphasis='default' colorPalette='success'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Warning' emphasis='default' colorPalette='warning'>
-      ✓
-    </IconButton>
-    <IconButton aria-label='Danger' emphasis='default' colorPalette='danger'>
-      ✓
-    </IconButton>
-  </View>
-</View>
+```tsx-live
+<div className='grid gap-2'>
+  <div className='flex flex-row flex-wrap gap-2'>
+    <IconButton aria-label='Neutral' emphasis='strong' intent='neutral'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Accent' emphasis='strong' intent='accent'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Brand' emphasis='strong' intent='brand'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Info' emphasis='strong' intent='info'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Success' emphasis='strong' intent='success'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Warning' emphasis='strong' intent='warning'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Danger' emphasis='strong' intent='danger'><CheckCircle weight='bold' /></IconButton>
+  </div>
+  <div className='flex flex-row flex-wrap gap-2'>
+    <IconButton aria-label='Neutral' emphasis='normal' intent='neutral'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Accent' emphasis='normal' intent='accent'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Brand' emphasis='normal' intent='brand'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Info' emphasis='normal' intent='info'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Success' emphasis='normal' intent='success'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Warning' emphasis='normal' intent='warning'><CheckCircle weight='bold' /></IconButton>
+    <IconButton aria-label='Danger' emphasis='normal' intent='danger'><CheckCircle weight='bold' /></IconButton>
+  </div>
+</div>
 ```
 
-### Disabled state
+### States
 
-```tsx
-live
-<View gap='200' flexDirection='row'>
-  <IconButton aria-label='Disabled' disabled emphasis='strong' colorPalette='accent'>
-    ✓
-  </IconButton>
-  <IconButton aria-label='Disabled' disabled emphasis='default'>
-    ✓
-  </IconButton>
-  <IconButton aria-label='Disabled' disabled emphasis='subtle'>
-    ✓
-  </IconButton>
-</View>
+```tsx-live
+<div className='grid gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Default</p>
+    <div><IconButton aria-label='Favorite'><Heart weight='bold' /></IconButton></div>
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <div><IconButton aria-label='Favorite' disabled><Heart weight='bold' /></IconButton></div>
+  </div>
+</div>
 ```
 
-## Usage
+## Guidelines
 
-```tsx
-live
-<IconButton
-  aria-label='Add to favorites'
-  emphasis='strong'
-  colorPalette='accent'
-  onClick={() => alert('Added to favorites')}
->
-  ♥
-</IconButton>
-```
-
-## Accessibility
-
-Always provide an `aria-label` prop to describe the button's action, since icon buttons typically don't contain visible text labels.
-
-```tsx
-// Good
-<IconButton aria-label='Close dialog'>×</IconButton>
-
-// Bad - missing aria-label
-<IconButton>×</IconButton>
-```
+- Always provide an `aria-label` to describe the action since there is no visible text.
+- For icon links that navigate, use [LinkIconButton](/components/link-icon-button) instead.
 
 <PropsDefinitions componentPath='packages/components/src/components/Button/IconButton.tsx' />

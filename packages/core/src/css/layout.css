@@ -1,0 +1,25 @@
+/* ═══════════════════════════════════════════════════════════
+   Layout Utilities
+   Migration helpers for transitioning from View/Container
+   components to utility-first Tailwind classes.
+   ═══════════════════════════════════════════════════════════ */
+
+/* Container: centered with responsive padding and configurable max width.
+   Replaces Tailwind's default container and the v1 <Container> component.
+   Usage: <div className="container-8xl">...</div>   → max-width: 1440px
+          <div className="container-4xl">...</div>   → max-width: 896px
+   Any --container-* token works: 3xs–7xl (Tailwind defaults) + 8xl (1440px). */
+@utility container-* {
+  width: 100%;
+  max-width: --value(--container-*);
+  margin-inline: auto;
+  padding-inline: 1.5rem; /* px-6 */
+
+  @media (width >= 48rem) {
+    padding-inline: 2rem; /* md:px-8 */
+  }
+
+  @media (width >= 64rem) {
+    padding-inline: 3rem; /* lg:px-12 */
+  }
+}

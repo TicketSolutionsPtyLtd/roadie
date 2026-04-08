@@ -2,14 +2,12 @@
 
 import { createElement } from 'react'
 
-import { Code, View } from '@oztix/roadie-components'
+import { Code } from '@oztix/roadie-components'
 import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
 
 export function IllustrationGallery() {
-  // Get all exported illustrations from the spot-illustrations path
   const illustrations = Object.entries(SpotIllustrations)
     .filter(([name]) => {
-      // Filter out utilities and type exports
       return (
         !name.includes('Props') &&
         name !== 'SpotIllustration' &&
@@ -20,15 +18,13 @@ export function IllustrationGallery() {
     .sort(([a], [b]) => a.localeCompare(b))
 
   return (
-    <View flexDirection='row' gap='300' flexWrap='wrap' mb='400'>
+    <div className='mb-8 flex flex-wrap gap-4'>
       {illustrations.map(([name, Component]) => (
-        <View key={name} gap='100' alignItems='center' width='96'>
-          {createElement(Component as any)}
-          <Code fontSize='xs' emphasis='subtler'>
-            {name}
-          </Code>
-        </View>
+        <div key={name} className='grid w-24 justify-items-center gap-1'>
+          {createElement(Component as React.ComponentType)}
+          <Code emphasis='subtler'>{name}</Code>
+        </div>
       ))}
-    </View>
+    </div>
   )
 }

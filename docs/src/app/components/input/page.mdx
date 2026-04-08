@@ -1,0 +1,75 @@
+export const metadata = {
+  title: 'Input',
+  description: 'A text input field for collecting user data',
+  status: 'beta',
+  category: 'Forms',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Input
+
+A styled text input for collecting user data.
+
+## Import
+
+```tsx
+import { Input } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<Input placeholder='Enter text' />
+```
+
+### Sizes
+
+```tsx-live
+<div className='grid gap-2'>
+  <Input size='sm' placeholder='Small' />
+  <Input size='md' placeholder='Medium (default)' />
+  <Input size='lg' placeholder='Large' />
+</div>
+```
+
+### Emphasis
+
+```tsx-live
+<div className='grid gap-2'>
+  <Input emphasis='normal' placeholder='Normal emphasis' />
+  <Input emphasis='subtle' placeholder='Subtle emphasis' />
+</div>
+```
+
+### States
+
+Inputs start neutral, gain an accent-coloured border and ring on focus,
+and switch to danger colouring when invalid.
+
+```tsx-live
+<div className='grid gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Default</p>
+    <Input placeholder='Click to focus' />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Invalid</p>
+    <Input aria-invalid='true' defaultValue='bad-email' />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <Input disabled placeholder='Disabled' />
+  </div>
+</div>
+```
+
+## Accessibility
+
+- **Label association**: Always pair with a `<label>` (or `Field.Label`) using matching `htmlFor`/`id` attributes.
+- **Validation**: Set `aria-invalid="true"` on invalid inputs. `is-interactive-field` provides visual danger styling automatically.
+- **Description**: Use `aria-describedby` to link helper or error text to the input.
+
+<PropsDefinitions componentPath='packages/components/src/components/Input/index.tsx' />

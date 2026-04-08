@@ -1,0 +1,55 @@
+export const metadata = {
+  title: 'Label',
+  description: 'A styled label for form controls',
+  status: 'beta',
+  category: 'Forms',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Label
+
+A styled label for form controls.
+
+## Import
+
+```tsx
+import { Label } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<Label>Email address</Label>
+```
+
+## Guidelines
+
+### Prefer Field.Label
+
+In most cases, use [Field](/components/field) to wrap your form controls
+instead of using `Label` directly. `Field.Label` automatically wires
+`htmlFor`, provides consistent spacing, and supports `showIndicator` for
+required/optional indicators.
+
+```tsx
+<Field required>
+  <Field.Label showIndicator>Full name</Field.Label>
+  <Field.Input />
+</Field>
+```
+
+### When to use standalone Label
+
+Use `Label` only when you need a styled label outside of a `Field` wrapper —
+for example, a label next to a standalone toggle or a non-form context.
+
+## Accessibility
+
+- When used standalone, pair with a form control using matching `htmlFor` and `id` attributes.
+- Renders a native `<label>` element for built-in browser accessibility.
+- Prefer `Field.Label` which handles `htmlFor`/`id` wiring automatically.
+
+<PropsDefinitions componentPath='packages/components/src/components/Label/index.tsx' />

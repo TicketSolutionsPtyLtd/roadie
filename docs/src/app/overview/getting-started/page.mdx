@@ -11,7 +11,7 @@ System in your project.
 
 ## Installation
 
-Install the core package and its peer dependencies:
+Install the core package and component library:
 
 ```bash
 pnpm add @oztix/roadie-core @oztix/roadie-components
@@ -19,112 +19,120 @@ pnpm add @oztix/roadie-core @oztix/roadie-components
 
 ## Setup
 
-### 1. Configure PandaCSS
+### 1. Add font preconnect hints
 
-Create a `panda.config.ts` file in your project root:
+Add these to your HTML `<head>` to reduce font loading latency:
 
-```ts
-import { defineConfig } from '@pandacss/dev'
-
-import { roadie } from '@oztix/roadie-core/presets'
-
-export default defineConfig({
-  presets: [roadie],
-  include: [
-    './node_modules/@oztix/roadie-components/src/**/*.tsx',
-    './src/**/*.{js,jsx,ts,tsx}'
-  ],
-  importMap: '@oztix/roadie-core',
-  outdir: 'roadie-core'
-})
+```html
+<link rel="preconnect" href="https://assets.oztix.com.au" crossorigin />
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 ```
 
-### 2. Add build scripts
+### 2. Configure your CSS
 
-Add the following scripts to your `package.json`:
+In your main CSS entry point (e.g. `globals.css` or `index.css`), import Roadie's CSS. This single import includes Tailwind CSS v4, all design tokens, theme variables, and base styles:
 
-```json
-{
-  "scripts": {
-    "prepare": "panda codegen",
-    "dev": "panda -w & next dev", // Adjust based on your framework
-    "build": "panda codegen && next build" // Adjust based on your framework
-  }
-}
+```css
+@import '@oztix/roadie-core/css';
 ```
+
+### 3. Enable component class scanning
+
+If you're using `@oztix/roadie-components`, add a `@source` directive so Tailwind detects the class strings used inside component dist files:
+
+```css
+@import '@oztix/roadie-core/css';
+
+/* Scan Roadie component dist for Tailwind class detection */
+@source "../../node_modules/@oztix/roadie-components/dist";
+```
+
+Adjust the relative path based on your project structure — it must point to `node_modules/@oztix/roadie-components/dist`.
 
 ## Usage
 
 ### Using components
 
-Import and use components from `@oztix/roadie-components`:
+Import and use components from `@oztix/roadie-components`. Components use the `intent` and `emphasis` props for styling:
 
 ```tsx
-import { Button, Text, View } from '@oztix/roadie-components'
+import { Button } from '@oztix/roadie-components'
 
 function MyComponent() {
   return (
-    <View>
-      <Text>Hello World</Text>
-      <Button>Click me</Button>
-    </View>
-  )
-}
-```
-
-### Using styles
-
-You can use the CSS utility functions from `@oztix/roadie-core`:
-
-```tsx
-import { css } from '@oztix/roadie-core/css'
-
-function MyComponent() {
-  return (
-    <div
-      className={css({
-        display: 'flex',
-        gap: '400',
-        padding: '400',
-        color: 'fg',
-        backgroundColor: 'bg'
-      })}
-    >
-      Content
+    <div className='grid gap-4'>
+      <h1 className='text-display-ui-3 text-strong'>Welcome</h1>
+      <p className='text-subtle'>Get started with Roadie components.</p>
+      <Button intent='accent' emphasis='strong'>
+        Get started
+      </Button>
     </div>
   )
 }
 ```
 
-### Using layout components
+### Using intent and emphasis
 
-Roadie provides common layout patterns through layout components:
+The `intent` prop controls the color theme of a component:
 
 ```tsx
-import { View } from '@oztix/roadie-core/jsx'
+<Button intent='neutral'>Default action</Button>
+<Button intent='accent'>Primary action</Button>
+<Button intent='danger'>Delete</Button>
+<p className='intent-success'>Operation complete</p>
+```
 
+The `emphasis` prop controls the visual weight:
+
+```tsx
+<Button emphasis='strong'>Strong button</Button>
+<Button emphasis='normal'>Normal button</Button>
+<Button emphasis='subtle'>Subtle button</Button>
+<p className='text-subtle'>Secondary text</p>
+```
+
+### Using Tailwind classes for layout
+
+Use standard Tailwind CSS classes for layout, spacing, and custom styling:
+
+```tsx
 function MyComponent() {
   return (
-    <View gap='400'>
-      <div>Item 1</div>
-      <div>Item 2</div>
-    </View>
+    <div className='grid gap-4 p-4'>
+      <div className='grid grid-cols-2 gap-2'>
+        <div>Item 1</div>
+        <div>Item 2</div>
+      </div>
+    </div>
   )
 }
+```
+
+### Adding custom classes to components
+
+All components accept a `className` prop for additional Tailwind classes:
+
+```tsx
+<Button className='w-full' intent='brand' emphasis='strong'>
+  Full width button
+</Button>
+<p className='max-w-prose text-lg'>
+  Constrained width text block.
+</p>
 ```
 
 ## Features
 
 The Roadie Design System includes:
 
-- 🎨 Design tokens for colors, spacing, typography, and more
-- 📦 Pre-built React components
-- 🎯 Type-safe styling with PandaCSS
-- 🌗 Built-in dark mode support
-- 📱 Responsive design utilities
-- 🔍 Semantic tokens for consistent theming
+- Design tokens for colors, spacing, typography, and more
+- Pre-built React components with intent/emphasis API
+- Tailwind CSS v4 integration
+- Built-in dark mode support
+- Responsive design utilities
+- Semantic color scales for consistent theming
 
 ## Next steps
 
-- Browse our [Components](/components) to see what's available
+- Browse our [Components](/components) to see what is available
 - Learn about our [Design Tokens](/tokens) and how to use them

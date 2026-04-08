@@ -1,75 +1,53 @@
-/* eslint-disable @pandacss/no-margin-properties */
 import type { ComponentPropsWithoutRef } from 'react'
 
 import { Link } from 'next-view-transitions'
 
 import { CodePreview } from '@/components/CodePreview'
 
-import {
-  Code,
-  type CodeProps,
-  Heading,
-  type HeadingProps,
-  Text,
-  type TextProps,
-  View,
-  type ViewProps
-} from '@oztix/roadie-components'
-import { css } from '@oztix/roadie-core/css'
+import { Code, type CodeProps } from '@oztix/roadie-components'
 
-type ListProps = ViewProps
 type AnchorProps = ComponentPropsWithoutRef<'a'>
 type BlockquoteProps = ComponentPropsWithoutRef<'blockquote'>
 
 const components = {
-  h1: (props: HeadingProps) => (
-    <Heading as='h1' textStyle='display.prose.1' mb='200' pt='400' {...props} />
+  h1: (props: ComponentPropsWithoutRef<'h1'>) => (
+    <h1 className='mb-4 pt-8 text-display-prose-1 text-strong' {...props} />
   ),
-  h2: (props: HeadingProps) => (
-    <Heading as='h2' textStyle='display.prose.2' mb='200' mt='600' {...props} />
+  h2: (props: ComponentPropsWithoutRef<'h2'>) => (
+    <h2 className='mt-12 mb-4 text-display-prose-2 text-strong' {...props} />
   ),
-  h3: (props: HeadingProps) => (
-    <Heading as='h3' textStyle='display.prose.3' mb='200' mt='600' {...props} />
+  h3: (props: ComponentPropsWithoutRef<'h3'>) => (
+    <h3 className='mt-12 mb-4 text-display-prose-3 text-strong' {...props} />
   ),
-  h4: (props: HeadingProps) => (
-    <Heading as='h4' textStyle='display.prose.4' mb='200' mt='400' {...props} />
+  h4: (props: ComponentPropsWithoutRef<'h4'>) => (
+    <h4 className='mt-8 mb-4 text-display-prose-4 text-strong' {...props} />
   ),
-  h5: (props: HeadingProps) => (
-    <Heading as='h5' textStyle='display.prose.5' mb='200' mt='400' {...props} />
+  h5: (props: ComponentPropsWithoutRef<'h5'>) => (
+    <h5 className='mt-8 mb-4 text-display-prose-5 text-strong' {...props} />
   ),
-  h6: (props: HeadingProps) => (
-    <Heading as='h6' textStyle='display.prose.6' mb='200' mt='400' {...props} />
+  h6: (props: ComponentPropsWithoutRef<'h6'>) => (
+    <h6 className='mt-8 mb-4 text-display-prose-6 text-strong' {...props} />
   ),
-  p: (props: TextProps) => (
-    <Text as='p' textStyle='prose' fontSize='lg' mb='200' {...props} />
+  p: (props: ComponentPropsWithoutRef<'p'>) => (
+    <p className='mb-4 text-lg leading-relaxed' {...props} />
   ),
-  ol: (props: ListProps) => (
-    <View
-      as='ol'
-      listStyleType='decimal'
-      gap='200'
-      mb='400'
-      pl='400'
-      {...props}
-    />
+  ol: (props: ComponentPropsWithoutRef<'ol'>) => (
+    <ol className='mb-8 grid list-decimal gap-2 pl-8' {...props} />
   ),
-  ul: (props: ListProps) => (
-    <View as='ul' listStyleType='disc' gap='200' mb='400' pl='400' {...props} />
+  ul: (props: ComponentPropsWithoutRef<'ul'>) => (
+    <ul className='mb-8 grid list-disc gap-2 pl-8' {...props} />
   ),
-  li: (props: TextProps) => (
-    <Text as='li' pl='100' fontSize='lg' textStyle='prose' {...props} />
+  li: (props: ComponentPropsWithoutRef<'li'>) => (
+    <li className='pl-1 text-lg leading-relaxed' {...props} />
   ),
-  em: (props: TextProps) => (
-    <Text {...props} as='em' fontStyle='italic' fontSize='inherit' />
+  em: (props: ComponentPropsWithoutRef<'em'>) => (
+    <em className='text-[inherit] italic' {...props} />
   ),
-  strong: (props: TextProps) => (
-    <Text {...props} as='strong' emphasis='strong' fontSize='inherit' />
+  strong: (props: ComponentPropsWithoutRef<'strong'>) => (
+    <strong className='text-[inherit] text-strong' {...props} />
   ),
   a: ({ href, children, ...props }: AnchorProps) => {
-    const className = css({
-      color: 'accent.fg',
-      _hover: { color: 'accent.fg.hover' }
-    })
+    const className = 'text-accent-11 hover:text-accent-9'
     if (href?.startsWith('/')) {
       return (
         <Link href={href} className={className} {...props}>
@@ -107,34 +85,54 @@ const components = {
       </CodePreview>
     )
   },
+  table: (props: ComponentPropsWithoutRef<'table'>) => (
+    <div className='-mx-4 mb-8 overflow-x-auto px-4 sm:mx-0 sm:px-0'>
+      <table className='w-full min-w-100 border-collapse text-sm' {...props} />
+    </div>
+  ),
+  thead: (props: ComponentPropsWithoutRef<'thead'>) => <thead {...props} />,
+  th: (props: ComponentPropsWithoutRef<'th'>) => (
+    <th
+      className='border-b border-subtle py-2 pr-4 text-left font-semibold whitespace-nowrap'
+      {...props}
+    />
+  ),
+  td: (props: ComponentPropsWithoutRef<'td'>) => (
+    <td className='border-b border-subtler py-2 pr-4 text-subtle' {...props} />
+  ),
+  tr: (props: ComponentPropsWithoutRef<'tr'>) => <tr {...props} />,
   Table: ({ data }: { data: { headers: string[]; rows: string[][] } }) => (
-    <table>
-      <thead>
-        <tr>
-          {data.headers.map((header, index) => (
-            <th key={index}>{header}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {data.rows.map((row, index) => (
-          <tr key={index}>
-            {row.map((cell, cellIndex) => (
-              <td key={cellIndex}>{cell}</td>
+    <div className='mb-8 overflow-x-auto'>
+      <table className='w-full border-collapse text-sm'>
+        <thead>
+          <tr>
+            {data.headers.map((header, index) => (
+              <th
+                key={index}
+                className='border-b border-subtle py-2 pr-4 text-left font-semibold'
+              >
+                {header}
+              </th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody className='divide-y divide-subtler'>
+          {data.rows.map((row, index) => (
+            <tr key={index}>
+              {row.map((cell, cellIndex) => (
+                <td key={cellIndex} className='py-2 pr-4'>
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   ),
   blockquote: (props: BlockquoteProps) => (
     <blockquote
-      className={css({
-        borderLeft: '3px solid',
-        ml: '0.075em',
-        pl: '200',
-        color: 'neutral.fg.subtle'
-      })}
+      className='ml-[0.075em] border-l-[3px] border-normal pl-4 text-subtle'
       {...props}
     />
   )

@@ -5,10 +5,10 @@ import { join } from 'path'
 
 import { FooterNav } from '@/components/FooterNav'
 import { Navigation } from '@/components/Navigation'
+import { Providers } from '@/components/Providers'
 import { getAssetPath } from '@/utils/getAssetPath'
 
-import { View } from '@oztix/roadie-components'
-import { css } from '@oztix/roadie-core/css'
+import { getThemeScript } from '@oztix/roadie-core/theme'
 
 import './globals.css'
 
@@ -18,6 +18,7 @@ interface ComponentMetadata {
   description: string
   status: string
   category: string
+  hidden?: boolean
 }
 
 async function getNavigationItems() {
@@ -26,7 +27,6 @@ async function getNavigationItems() {
   const overviewDir = join(process.cwd(), 'src/app/overview')
   const tokensDir = join(process.cwd(), 'src/app/tokens')
 
-  // Helper function to read metadata from MDX files
   async function getMetadataFromFile(
     filePath: string,
     defaultTitle: string
@@ -50,13 +50,21 @@ async function getNavigationItems() {
     }
   }
 
-  // Get overview pages metadata
+  const philosophyMetadata = await getMetadataFromFile(
+    join(overviewDir, 'philosophy/page.mdx'),
+    'Philosophy'
+  )
+
   const gettingStartedMetadata = await getMetadataFromFile(
     join(overviewDir, 'getting-started/page.mdx'),
     'Getting Started'
   )
 
-  // Get foundations pages metadata
+  const vueIntegrationMetadata = await getMetadataFromFile(
+    join(overviewDir, 'vue-integration/page.mdx'),
+    'Vue Integration'
+  )
+
   const foundationEntries = await readdir(foundationsDir, {
     withFileTypes: true
   })
@@ -69,7 +77,6 @@ async function getNavigationItems() {
             join(foundationsDir, dir.name, 'page.mdx'),
             dir.name
           )
-          // If MDX file doesn't exist or has no metadata, try TSX file
           if (!metadata) {
             const tsxMetadata = await getMetadataFromFile(
               join(foundationsDir, dir.name, 'page.tsx'),
@@ -89,7 +96,6 @@ async function getNavigationItems() {
     )
   ).filter((page): page is { title: string; href: string } => page !== null)
 
-  // Get component pages metadata
   const entries = await readdir(componentsDir, { withFileTypes: true })
   const components = await Promise.all(
     entries
@@ -138,16 +144,14 @@ async function getNavigationItems() {
   )
 
   const validComponents = components.filter(
-    (comp): comp is ComponentMetadata => comp !== null
+    (comp): comp is ComponentMetadata => comp !== null && !comp.hidden
   )
 
-  // Get index page metadata
   const indexMetadata = await getMetadataFromFile(
     join(process.cwd(), 'src/app/page.mdx'),
     'Introduction'
   )
 
-  // Get tokens pages metadata
   const tokensMetadata = await getMetadataFromFile(
     join(tokensDir, 'page.mdx'),
     'Design Tokens'
@@ -157,7 +161,11 @@ async function getNavigationItems() {
     'Reference'
   )
 
-  const navigationItems = [
+  const navigationItems: {
+    title: string
+    href: string
+    items: { title: string; href?: string; label?: boolean }[]
+  }[] = [
     {
       title: 'Overview',
       href: '/',
@@ -165,12 +173,31 @@ async function getNavigationItems() {
         indexMetadata
           ? { title: indexMetadata.title, href: '/' }
           : { title: 'Introduction', href: '/' },
+        philosophyMetadata
+          ? {
+              title: philosophyMetadata.title,
+              href: '/overview/philosophy'
+            }
+          : { title: 'Philosophy', href: '/overview/philosophy' },
         gettingStartedMetadata
           ? {
               title: gettingStartedMetadata.title,
               href: '/overview/getting-started'
             }
           : { title: 'Getting Started', href: '/overview/getting-started' },
+        vueIntegrationMetadata
+          ? {
+              title: vueIntegrationMetadata.title,
+              href: '/overview/vue-integration'
+            }
+          : {
+              title: 'Vue Integration',
+              href: '/overview/vue-integration'
+            },
+        {
+          title: 'Migrating to v2',
+          href: '/migration'
+        },
         {
           title: 'Changelog',
           href: 'https://github.com/ticketsolutionsptyltd/roadie/blob/main/packages/components/CHANGELOG.md'
@@ -187,7 +214,6 @@ async function getNavigationItems() {
     })
   }
 
-  // Add tokens section
   navigationItems.push({
     title: 'Tokens',
     href: '/tokens',
@@ -204,21 +230,66 @@ async function getNavigationItems() {
   })
 
   if (validComponents.length > 0) {
+    const categoryOrder = ['Actions', 'Forms', 'Content', 'Text', 'Layout']
+
+    const componentsByCategory = validComponents.reduce(
+      (acc, comp) => {
+        const cat = comp.category || 'Other'
+        if (!acc[cat]) acc[cat] = []
+        acc[cat].push(comp)
+        return acc
+      },
+      {} as Record<string, ComponentMetadata[]>
+    )
+
+    const sortedCategories = Object.entries(componentsByCategory).sort(
+      ([a], [b]) => {
+        const aIdx = categoryOrder.indexOf(a)
+        const bIdx = categoryOrder.indexOf(b)
+        return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx)
+      }
+    )
+
+    const componentItems: { title: string; href?: string; label?: boolean }[] =
+      [{ title: 'Overview', href: '/components' }]
+
+    for (const [category, comps] of sortedCategories) {
+      const categorySlug = category.toLowerCase()
+      const overviewPath = join(
+        process.cwd(),
+        `src/app/components/${categorySlug}/page.mdx`
+      )
+      let hasOverview = false
+      try {
+        await readFile(overviewPath)
+        hasOverview = true
+      } catch {
+        // No overview page for this category
+      }
+
+      componentItems.push({
+        title: category,
+        label: true,
+        ...(hasOverview ? { href: `/components/${categorySlug}` } : {})
+      })
+      if (hasOverview) {
+        componentItems.push({
+          title: 'Overview',
+          href: `/components/${categorySlug}`
+        })
+      }
+      for (const comp of comps.sort((a, b) => a.title.localeCompare(b.title))) {
+        componentItems.push({
+          title: comp.title,
+          href: `/components/${comp.name}`
+        })
+      }
+    }
+
     navigationItems.push({
       title: 'Components',
       href: '/components',
-      items: [
-        {
-          title: 'Overview',
-          href: '/components'
-        },
-        ...validComponents
-          .sort((a, b) => a.title.localeCompare(b.title))
-          .map((comp) => ({
-            title: comp.title,
-            href: `/components/${comp.name}`
-          }))
-      ]
+      items: componentItems
     })
   }
 
@@ -245,46 +316,23 @@ export default async function RootLayout({
   return (
     <html lang='en' suppressHydrationWarning>
       <head>
-        {/*
-          Inline theme script must run synchronously before any content loads
-          to prevent flash of wrong theme. This script:
-          1. Checks localStorage for saved theme preference
-          2. Falls back to system color scheme preference
-          3. Sets theme before any content is painted
-        */}
+        <meta name='color-scheme' content='light' />
         <script
           dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                const theme =
-                  localStorage.getItem('theme') ||
-                  (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-                document.documentElement.classList.toggle('dark', theme === 'dark')
-                window.__theme = theme
-              } catch {}
-            `
+            __html: getThemeScript({ followSystem: true })
           }}
         />
       </head>
-      <body
-        className={css({
-          overflowX: 'hidden'
-        })}
-      >
-        <View minH='screen' maxW='100vw' flexDirection='row'>
-          <Navigation items={items} />
-          <View
-            as='main'
-            flex='1'
-            px={{ base: '300', md: '500', lg: '600' }}
-            py={{ base: '300', md: '600', lg: '1000' }}
-            maxW='breakpoint-lg'
-            mx='auto'
-          >
-            {children}
-            <FooterNav items={items} />
-          </View>
-        </View>
+      <body className='overflow-x-hidden'>
+        <Providers>
+          <div className='flex min-h-screen max-w-[100vw] flex-row'>
+            <Navigation items={items} />
+            <main className='container-4xl min-w-0 flex-1 overflow-x-clip py-4 md:py-12 lg:py-20'>
+              {children}
+              <FooterNav items={items} />
+            </main>
+          </div>
+        </Providers>
       </body>
     </html>
   )

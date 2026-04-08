@@ -1,7 +1,7 @@
 {
   "name": "@oztix/roadie-components",
   "version": "1.2.0",
-  "description": "The components for Roadie Design System at Oztix",
+  "description": "React components for the Roadie Design System",
   "type": "module",
   "repository": {
     "type": "git",
@@ -13,28 +13,16 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.js"
-    },
-    "./hooks": {
-      "types": "./dist/hooks/index.d.ts",
-      "import": "./dist/hooks/index.js",
-      "require": "./dist/hooks/index.js"
+      "import": "./dist/index.js"
     },
     "./spot-illustrations": {
       "types": "./dist/SpotIllustration.d.ts",
-      "import": "./dist/SpotIllustration.js",
-      "require": "./dist/SpotIllustration.js"
-    },
-    "./src/*": {
-      "types": "./src/*",
-      "import": "./src/*"
+      "import": "./dist/SpotIllustration.js"
     }
   },
   "sideEffects": false,
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "publishConfig": {
     "access": "public"
@@ -43,7 +31,7 @@
     "build": "tsup",
     "build:spotillustration": "node scripts/svg-to-spot-illustration.cjs",
     "clean": "rm -rf node_modules dist",
-    "dev": "node scripts/svg-to-spot-illustration.cjs --watch & tsup --watch",
+    "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -52,18 +40,25 @@
     "format:check": "prettier --ignore-path ../../.prettierignore --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "size": "size-limit",
+    "size:check": "size-limit --limit"
   },
   "peerDependencies": {
+    "@ark-ui/react": "^5.0.0",
+    "@phosphor-icons/react": "^2.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "dependencies": {
-    "@ark-ui/react": "5.26.2",
-    "@oztix/roadie-core": "workspace:*"
+    "@base-ui/react": "^1.0.0",
+    "@oztix/roadie-core": "workspace:*",
+    "class-variance-authority": "^0.7.1"
   },
   "devDependencies": {
-    "@pandacss/dev": "1.4.3",
+    "@ark-ui/react": "5.35.0",
+    "@phosphor-icons/react": "^2.1.10",
+    "@size-limit/preset-small-lib": "12.0.1",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.0",
     "@testing-library/user-event": "14.6.1",
@@ -74,6 +69,7 @@
     "@vitest/coverage-v8": "4.0.4",
     "@vitest/ui": "4.0.4",
     "jsdom": "27.0.1",
+    "size-limit": "12.0.1",
     "svgo": "4.0.0",
     "tsup": "8.5.0",
     "vitest": "4.0.4"

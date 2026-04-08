@@ -2,67 +2,60 @@
 
 import { Fragment, type ReactElement } from 'react'
 
-import { useHighlight } from '@ark-ui/react/highlight'
+import { Mark, type MarkProps } from '../Mark'
 
-import type { ColorPalette } from '@oztix/roadie-core'
-import type { HTMLStyledProps } from '@oztix/roadie-core/jsx'
-
-import { Mark } from '../Mark'
-
-// Re-export Ark UI types and hook for advanced use cases
-export { useHighlight } from '@ark-ui/react/highlight'
-export type { HighlightChunk, UseHighlightProps } from '@ark-ui/react/highlight'
-
-/**
- * Highlight component for highlighting substrings within text
- */
-export interface HighlightProps
-  extends Omit<HTMLStyledProps<'mark'>, 'children'> {
-  /**
-   * The text content to display and potentially highlight
-   */
+export interface HighlightChunk {
   text: string
-
-  /**
-   * The query string(s) to highlight within the text
-   */
-  query: string | string[]
-
-  /**
-   * Whether to match whole words only
-   * @default false
-   */
-  exactMatch?: boolean
-
-  /**
-   * Whether to ignore case while matching
-   * @default true
-   */
-  ignoreCase?: boolean
-
-  /**
-   * Whether to match multiple instances of the query
-   * @default true
-   */
-  matchAll?: boolean
-
-  /**
-   * The color palette to use for the highlight
-   * @default 'information'
-   */
-  colorPalette?: ColorPalette
+  match: boolean
 }
 
-export const Highlight = ({
+export interface HighlightProps extends Omit<MarkProps, 'children'> {
+  text: string
+  query: string | string[]
+  ignoreCase?: boolean
+  matchAll?: boolean
+}
+
+/**
+ * Split text into chunks, marking which parts match the query.
+ */
+function highlight(
+  text: string,
+  query: string | string[],
+  ignoreCase = true,
+  matchAll = true
+): HighlightChunk[] {
+  const queries = Array.isArray(query) ? query : [query]
+  const validQueries = queries.filter((q) => q.length > 0)
+
+  if (validQueries.length === 0) {
+    return [{ text, match: false }]
+  }
+
+  const escaped = validQueries.map((q) =>
+    q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  )
+  const pattern = escaped.join('|')
+  const flags = `${ignoreCase ? 'i' : ''}${matchAll ? 'g' : ''}`
+  const regex = new RegExp(`(${pattern})`, flags)
+
+  const testRegex = new RegExp(`^(${pattern})$`, ignoreCase ? 'i' : '')
+  const parts = text.split(regex)
+  return parts
+    .filter((part) => part.length > 0)
+    .map((part) => ({
+      text: part,
+      match: testRegex.test(part)
+    }))
+}
+
+export function Highlight({
   text,
   query,
-  exactMatch = false,
   ignoreCase = true,
   matchAll = true,
-  colorPalette = 'information',
-  ...props
-}: HighlightProps): ReactElement => {
-  // Fast path: if query is empty, just return the text
+  ...markProps
+}: HighlightProps): ReactElement {
   const isQueryEmpty =
     !query || (Array.isArray(query) && query.length === 0) || query === ''
 
@@ -70,19 +63,13 @@ export const Highlight = ({
     return <>{text}</>
   }
 
-  const chunks = useHighlight({
-    query,
-    text,
-    exactMatch,
-    ignoreCase,
-    matchAll
-  })
+  const chunks = highlight(text, query, ignoreCase, matchAll)
 
   return (
     <>
       {chunks.map((chunk, index) =>
         chunk.match ? (
-          <Mark key={index} colorPalette={colorPalette} {...props}>
+          <Mark key={index} {...markProps}>
             {chunk.text}
           </Mark>
         ) : (

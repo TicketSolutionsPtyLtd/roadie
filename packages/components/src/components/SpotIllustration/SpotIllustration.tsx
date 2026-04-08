@@ -1,7 +1,6 @@
-import { forwardRef } from 'react'
+import type { ComponentProps } from 'react'
 
-import { styled } from '@oztix/roadie-core/jsx'
-import type { HTMLStyledProps } from '@oztix/roadie-core/jsx'
+import { cn } from '@oztix/roadie-core/utils'
 
 interface PathData {
   d: string
@@ -13,84 +12,84 @@ interface IllustrationData {
   paths: PathData[]
 }
 
-const StyledSvg = styled('svg', {
-  base: {
-    boxSize: '600',
-    fill: 'none',
-    '& [data-part="outline"]': {
-      fill: 'illustrations.outline'
-    },
-    '& [data-part="face"]': {
-      fill: 'illustrations.face'
-    },
-    '& [data-part="detail"]': {
-      fill: 'illustrations.detail'
-    },
-    '& [data-part="shadow"]': {
-      fill: 'illustrations.shadow'
-    },
-    '& [data-part="highlight"]': {
-      fill: 'illustrations.highlight'
-    },
-    '& [data-part="stroke"]': {
-      stroke: 'illustrations.stroke',
-      strokeWidth: '0.5',
-      strokeLinecap: 'round',
-      strokeLinejoin: 'round',
-      fill: 'none'
-    }
-  },
-  variants: {
-    outline: {
-      true: {
-        '& [data-part="outline"]': {
-          opacity: 1
-        }
-      },
-      false: {
-        '& [data-part="outline"]': {
-          opacity: 0
-        }
-      }
-    }
-  },
-  defaultVariants: {
-    outline: false
-  }
-})
-
 export interface SpotIllustrationProps
-  extends Omit<HTMLStyledProps<'svg'>, 'outline'> {
-  /**
-   * Illustration definition containing viewBox and paths
-   */
+  extends Omit<ComponentProps<'svg'>, 'outline'> {
   illustration: IllustrationData
-  /**
-   * Whether to show the outline layer
-   * @default false
-   */
   outline?: boolean
 }
 
-export const SpotIllustration = forwardRef<
-  SVGSVGElement,
-  SpotIllustrationProps
->(({ illustration, ...props }, ref) => {
-  // Fallback to default viewBox if not provided
+/**
+ * Illustration colors reference CSS tokens defined in tokens.css.
+ * These are fixed and do NOT change in dark mode.
+ */
+const layerColors: Record<
+  PathData['layer'],
+  { fill?: string; stroke?: string }
+> = {
+  outline: { fill: 'var(--color-illustration-outline)' },
+  face: { fill: 'var(--color-illustration-face)' },
+  detail: { fill: 'var(--color-illustration-detail)' },
+  shadow: { fill: 'var(--color-illustration-shadow)' },
+  highlight: { fill: 'var(--color-illustration-highlight)' },
+  stroke: { fill: 'none', stroke: 'var(--color-illustration-stroke)' }
+}
+
+/** Pre-computed style objects — avoids allocating new objects every render. */
+const layerStyles: Record<PathData['layer'], React.CSSProperties> = {
+  outline: { fill: layerColors.outline.fill },
+  face: { fill: layerColors.face.fill },
+  detail: { fill: layerColors.detail.fill },
+  shadow: { fill: layerColors.shadow.fill },
+  highlight: { fill: layerColors.highlight.fill },
+  stroke: {
+    fill: 'none',
+    stroke: layerColors.stroke.stroke,
+    strokeWidth: 0.5,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round'
+  }
+}
+
+const outlineHiddenStyle: React.CSSProperties = {
+  ...layerStyles.outline,
+  opacity: 0
+}
+
+const svgStyle: React.CSSProperties = { fill: 'none' }
+
+export function SpotIllustration({
+  illustration,
+  outline = false,
+  className,
+  ref,
+  ...props
+}: SpotIllustrationProps) {
   const { viewBox = '0 0 48 48', paths } = illustration
 
   return (
-    <StyledSvg
+    <svg
       ref={ref}
       xmlns='http://www.w3.org/2000/svg'
       viewBox={viewBox}
+      aria-hidden={!props['aria-label']}
+      className={cn('size-12', className)}
+      style={svgStyle}
       {...props}
     >
       {paths.map((path: PathData, index: number) => (
-        <path key={index} d={path.d} data-part={path.layer} />
+        <path
+          key={index}
+          d={path.d}
+          data-part={path.layer}
+          style={
+            path.layer === 'outline' && !outline
+              ? outlineHiddenStyle
+              : layerStyles[path.layer]
+          }
+        />
       ))}
-    </StyledSvg>
+    </svg>
   )
-})
+}
 
 SpotIllustration.displayName = 'SpotIllustration'

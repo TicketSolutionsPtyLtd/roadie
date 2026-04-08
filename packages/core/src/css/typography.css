@@ -1,0 +1,161 @@
+/* ═══════════════════════════════════════════════════════════
+   Typography Utilities
+   Pre-composed text styles combining size, weight,
+   line-height, and letter-spacing.
+
+   Two contexts:
+   - display.ui.*  — headings in app UI
+   - display.prose.* — headings in long-form content
+   - text-ui — body text for app UI
+   - text-prose — body text for long-form content
+   - text-code — monospaced code text
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Display: UI headings (compact, app context) ─── */
+
+@utility text-display-ui {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  font-family: var(--font-sans);
+}
+
+@utility text-display-ui-1 {
+  font-size: var(--text-4xl);
+  font-weight: 700;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  font-family: var(--font-sans);
+}
+
+@utility text-display-ui-2 {
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  font-family: var(--font-sans);
+}
+
+@utility text-display-ui-3 {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  font-family: var(--font-sans);
+}
+
+@utility text-display-ui-4 {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  font-family: var(--font-sans);
+}
+
+@utility text-display-ui-5 {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  font-family: var(--font-sans);
+}
+
+@utility text-display-ui-6 {
+  font-size: var(--text-base);
+  font-weight: 600;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  font-family: var(--font-sans);
+}
+
+/* ─── Display: Prose headings (larger, content context) ─── */
+
+@utility text-display-prose {
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  font-family: var(--font-sans);
+}
+
+@utility text-display-prose-1 {
+  font-size: var(--text-5xl);
+  font-weight: 900;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  font-family: var(--font-sans);
+}
+
+@utility text-display-prose-2 {
+  font-size: var(--text-4xl);
+  font-weight: 800;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  font-family: var(--font-sans);
+}
+
+@utility text-display-prose-3 {
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  font-family: var(--font-sans);
+}
+
+@utility text-display-prose-4 {
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  font-family: var(--font-sans);
+}
+
+@utility text-display-prose-5 {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  font-family: var(--font-sans);
+}
+
+@utility text-display-prose-6 {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+  font-family: var(--font-sans);
+}
+
+/* ─── Body text styles ─── */
+
+@utility text-ui {
+  font-size: var(--text-base);
+  font-weight: 400;
+  line-height: var(--leading-ui);
+  letter-spacing: var(--tracking-ui);
+  font-family: var(--font-sans);
+}
+
+@utility text-ui-meta {
+  font-size: var(--text-sm);
+  line-height: var(--leading-ui);
+  letter-spacing: var(--tracking-ui);
+  font-family: var(--font-sans);
+}
+
+@utility text-prose {
+  font-size: var(--text-base);
+  font-weight: 400;
+  line-height: var(--leading-prose);
+  letter-spacing: var(--tracking-prose);
+  font-family: var(--font-sans);
+}
+
+@utility text-code {
+  font-size: var(--text-sm);
+  font-weight: 400;
+  line-height: var(--leading-code);
+  letter-spacing: var(--tracking-code);
+  font-family: var(--font-mono);
+}

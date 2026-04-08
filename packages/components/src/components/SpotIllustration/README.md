@@ -182,12 +182,12 @@ This returns a component with:
 
 ### Styling System
 
-Components use PandaCSS with semantic tokens:
+Components use Tailwind CSS with the intent/emphasis system:
 
-- `colorPalette` system for theming
+- Tailwind utility classes for sizing and layout
 - Data attributes for layer targeting: `data-part="face"`, `data-part="shadow"`, etc.
-- `outline` variant to show/hide white outline
-- All PandaCSS style props supported
+- `outline` prop to show/hide white outline
+- Custom `className` supported via `cn()` merge
 
 ## File Structure
 

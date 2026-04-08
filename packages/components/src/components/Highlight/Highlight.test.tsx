@@ -12,7 +12,7 @@ describe('Highlight', () => {
     expect(mark).toHaveTextContent('World')
   })
 
-  it('highlights only matching text when query is provided', () => {
+  it('highlights only matching text', () => {
     const { container } = render(
       <Highlight text='The quick brown fox' query='quick' />
     )
@@ -56,33 +56,32 @@ describe('Highlight', () => {
     expect(marks[1]).toHaveTextContent('fox')
   })
 
-  it('applies default color palette', () => {
+  it('inherits intent from parent context by default', () => {
     const { container } = render(
       <Highlight text='Highlighted text' query='Highlighted' />
     )
     const mark = container.querySelector('mark')
-    expect(mark).toHaveClass('color-palette_information')
+    expect(mark).toHaveClass('intent-info') // default intent
   })
 
-  it('applies custom color palette', () => {
+  it('applies custom intent', () => {
     const { container } = render(
-      <Highlight
-        text='Highlighted text'
-        query='Highlighted'
-        colorPalette='success'
-      />
+      <Highlight text='Highlighted text' query='Highlighted' intent='success' />
     )
     const mark = container.querySelector('mark')
-    expect(mark).toHaveClass('color-palette_success')
+    expect(mark).toHaveClass('intent-success')
   })
 
-  it('matches exact words when exactMatch is true', () => {
-    const { container } = render(
-      <Highlight text='foo foobar' query='foo' exactMatch />
-    )
-    const marks = container.querySelectorAll('mark')
-    expect(marks).toHaveLength(1)
-    expect(marks[0]).toHaveTextContent('foo')
+  it('returns plain text when query is empty', () => {
+    const { container } = render(<Highlight text='Hello' query='' />)
+    expect(container).toHaveTextContent('Hello')
+    expect(container.querySelector('mark')).toBeNull()
+  })
+
+  it('returns plain text when query array is empty', () => {
+    const { container } = render(<Highlight text='Hello' query={[]} />)
+    expect(container).toHaveTextContent('Hello')
+    expect(container.querySelector('mark')).toBeNull()
   })
 
   it('forwards additional HTML attributes', () => {
@@ -99,6 +98,26 @@ describe('Highlight', () => {
     expect(mark).toHaveAttribute('title', 'tooltip')
   })
 
+  it('highlights consecutive repeated matches correctly', () => {
+    const { container } = render(<Highlight text='aaa' query='a' matchAll />)
+    const marks = container.querySelectorAll('mark')
+    expect(marks).toHaveLength(3)
+    marks.forEach((mark: Element) => {
+      expect(mark).toHaveTextContent('a')
+    })
+  })
+
+  it('highlights when match is at start of text', () => {
+    const { container } = render(
+      <Highlight text='foo bar foo' query='foo' matchAll />
+    )
+    const marks = container.querySelectorAll('mark')
+    expect(marks).toHaveLength(2)
+    marks.forEach((mark: Element) => {
+      expect(mark).toHaveTextContent('foo')
+    })
+  })
+
   it('applies custom className', () => {
     const { container } = render(
       <Highlight
@@ -108,6 +127,6 @@ describe('Highlight', () => {
       />
     )
     const mark = container.querySelector('mark')
-    expect(mark).toHaveClass('mark', 'custom-class')
+    expect(mark).toHaveClass('custom-class')
   })
 })

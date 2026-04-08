@@ -1,0 +1,19 @@
+[
+  {
+    "name": "All components (tree-shakeable index)",
+    "path": "dist/index.js",
+    "import": "*",
+    "limit": "110 kB"
+  },
+  {
+    "name": "Single component (Button)",
+    "path": "dist/index.js",
+    "import": "{ Button }",
+    "limit": "15 kB"
+  },
+  {
+    "name": "SpotIllustrations",
+    "path": "dist/SpotIllustration.js",
+    "limit": "20 kB"
+  }
+]

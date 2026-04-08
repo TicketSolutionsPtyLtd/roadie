@@ -64,11 +64,11 @@
       "persistent": true
     },
     "format": {
-      "inputs": ["**/*.{js,jsx,ts,tsx,md,mdx,json}"],
+      "inputs": ["**/*.{js,jsx,ts,tsx,md,mdx,json,css}"],
       "outputs": ["**/*.{js,jsx,ts,tsx,md,mdx,json}"]
     },
     "format:check": {
-      "inputs": ["**/*.{js,jsx,ts,tsx,md,mdx,json}"],
+      "inputs": ["**/*.{js,jsx,ts,tsx,md,mdx,json,css}"],
       "outputs": [".turbo/**"]
     }
   }

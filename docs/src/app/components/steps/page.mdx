@@ -1,0 +1,353 @@
+export const metadata = {
+  title: 'Steps',
+  description: 'A multi-step wizard for guiding users through sequential tasks',
+  status: 'beta',
+  category: 'Navigation',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Steps
+
+A multi-step wizard for guiding users through sequential tasks.
+
+## Import
+
+```tsx
+import { Steps } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Default
+
+A horizontal stepper with three steps. Click a step trigger to navigate.
+
+```tsx-live
+<Steps count={3}>
+  <Steps.List>
+    <Steps.Item index={0}>
+      <Steps.Trigger>
+        <Steps.Indicator>1</Steps.Indicator>
+        <Steps.TriggerText>Details</Steps.TriggerText>
+      </Steps.Trigger>
+      <Steps.Separator />
+    </Steps.Item>
+    <Steps.Item index={1}>
+      <Steps.Trigger>
+        <Steps.Indicator>2</Steps.Indicator>
+        <Steps.TriggerText>Review</Steps.TriggerText>
+      </Steps.Trigger>
+      <Steps.Separator />
+    </Steps.Item>
+    <Steps.Item index={2}>
+      <Steps.Trigger>
+        <Steps.Indicator>3</Steps.Indicator>
+        <Steps.TriggerText>Confirm</Steps.TriggerText>
+      </Steps.Trigger>
+    </Steps.Item>
+  </Steps.List>
+  <Steps.Content index={0}>
+    <p>Enter your details here.</p>
+  </Steps.Content>
+  <Steps.Content index={1}>
+    <p>Review your information.</p>
+  </Steps.Content>
+  <Steps.Content index={2}>
+    <p>Confirm and submit.</p>
+  </Steps.Content>
+  <Steps.CompletedContent>
+    <p className='text-subtle'>All steps completed!</p>
+  </Steps.CompletedContent>
+</Steps>
+```
+
+### Direction
+
+Use the `direction` prop to switch between horizontal and vertical layouts.
+
+```tsx-live
+<Steps count={3} direction='vertical'>
+  <Steps.List>
+    <Steps.Item index={0}>
+      <Steps.Trigger>
+        <Steps.Indicator>1</Steps.Indicator>
+        <Steps.TriggerText>Account</Steps.TriggerText>
+      </Steps.Trigger>
+      <Steps.Separator />
+    </Steps.Item>
+    <Steps.Item index={1}>
+      <Steps.Trigger>
+        <Steps.Indicator>2</Steps.Indicator>
+        <Steps.TriggerText>Profile</Steps.TriggerText>
+      </Steps.Trigger>
+      <Steps.Separator />
+    </Steps.Item>
+    <Steps.Item index={2}>
+      <Steps.Trigger>
+        <Steps.Indicator>3</Steps.Indicator>
+        <Steps.TriggerText>Done</Steps.TriggerText>
+      </Steps.Trigger>
+    </Steps.Item>
+  </Steps.List>
+  <Steps.Content index={0}>
+    <p>Set up your account credentials.</p>
+  </Steps.Content>
+  <Steps.Content index={1}>
+    <p>Complete your profile information.</p>
+  </Steps.Content>
+  <Steps.Content index={2}>
+    <p>You're all set.</p>
+  </Steps.Content>
+</Steps>
+```
+
+### States
+
+Use `linear` to restrict navigation to sequential order. In linear mode, users cannot click ahead — only the next step is reachable.
+
+```tsx-live
+<div className='grid gap-6'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Free navigation (default)</p>
+    <Steps count={3}>
+      <Steps.List>
+        <Steps.Item index={0}>
+          <Steps.Trigger>
+            <Steps.Indicator>1</Steps.Indicator>
+            <Steps.TriggerText>First</Steps.TriggerText>
+          </Steps.Trigger>
+          <Steps.Separator />
+        </Steps.Item>
+        <Steps.Item index={1}>
+          <Steps.Trigger>
+            <Steps.Indicator>2</Steps.Indicator>
+            <Steps.TriggerText>Second</Steps.TriggerText>
+          </Steps.Trigger>
+          <Steps.Separator />
+        </Steps.Item>
+        <Steps.Item index={2}>
+          <Steps.Trigger>
+            <Steps.Indicator>3</Steps.Indicator>
+            <Steps.TriggerText>Third</Steps.TriggerText>
+          </Steps.Trigger>
+        </Steps.Item>
+      </Steps.List>
+    </Steps>
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Linear</p>
+    <Steps count={3} linear defaultStep={1}>
+      <Steps.List>
+        <Steps.Item index={0}>
+          <Steps.Trigger>
+            <Steps.Indicator>1</Steps.Indicator>
+            <Steps.TriggerText>First</Steps.TriggerText>
+          </Steps.Trigger>
+          <Steps.Separator />
+        </Steps.Item>
+        <Steps.Item index={1}>
+          <Steps.Trigger>
+            <Steps.Indicator>2</Steps.Indicator>
+            <Steps.TriggerText>Second</Steps.TriggerText>
+          </Steps.Trigger>
+          <Steps.Separator />
+        </Steps.Item>
+        <Steps.Item index={2}>
+          <Steps.Trigger>
+            <Steps.Indicator>3</Steps.Indicator>
+            <Steps.TriggerText>Third</Steps.TriggerText>
+          </Steps.Trigger>
+        </Steps.Item>
+      </Steps.List>
+    </Steps>
+  </div>
+</div>
+```
+
+### Invalid step
+
+Set `invalid` on a `Steps.Item` to show a danger state on its indicator and
+text. Use this when a step has validation errors that prevent progression.
+When a completed step is invalid, the check icon is replaced with the step number.
+
+```tsx-live
+<div className='grid gap-6'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Current step invalid</p>
+    <Steps count={3} defaultStep={1}>
+      <Steps.List>
+        <Steps.Item index={0}>
+          <Steps.Trigger>
+            <Steps.Indicator>1</Steps.Indicator>
+            <Steps.TriggerText>Your role</Steps.TriggerText>
+          </Steps.Trigger>
+          <Steps.Separator />
+        </Steps.Item>
+        <Steps.Item index={1} invalid>
+          <Steps.Trigger>
+            <Steps.Indicator>2</Steps.Indicator>
+            <Steps.TriggerText>Your enquiry</Steps.TriggerText>
+          </Steps.Trigger>
+          <Steps.Separator />
+        </Steps.Item>
+        <Steps.Item index={2}>
+          <Steps.Trigger>
+            <Steps.Indicator>3</Steps.Indicator>
+            <Steps.TriggerText>Your details</Steps.TriggerText>
+          </Steps.Trigger>
+        </Steps.Item>
+      </Steps.List>
+    </Steps>
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Previous step invalid</p>
+    <Steps count={3} defaultStep={2}>
+      <Steps.List>
+        <Steps.Item index={0}>
+          <Steps.Trigger>
+            <Steps.Indicator>1</Steps.Indicator>
+            <Steps.TriggerText>Your role</Steps.TriggerText>
+          </Steps.Trigger>
+          <Steps.Separator />
+        </Steps.Item>
+        <Steps.Item index={1} invalid>
+          <Steps.Trigger>
+            <Steps.Indicator>2</Steps.Indicator>
+            <Steps.TriggerText>Your enquiry</Steps.TriggerText>
+          </Steps.Trigger>
+          <Steps.Separator />
+        </Steps.Item>
+        <Steps.Item index={2}>
+          <Steps.Trigger>
+            <Steps.Indicator>3</Steps.Indicator>
+            <Steps.TriggerText>Your details</Steps.TriggerText>
+          </Steps.Trigger>
+        </Steps.Item>
+      </Steps.List>
+    </Steps>
+  </div>
+</div>
+```
+
+### Composition
+
+Steps is a compound component. Use `Steps.List`, `Steps.Item`, `Steps.Trigger`, `Steps.Indicator`, `Steps.Separator`, `Steps.Content`, and `Steps.CompletedContent` to build the stepper.
+
+#### With progress bar
+
+Use `Steps.Progress` to show a fill bar based on completion percentage.
+
+```tsx-live
+<Steps count={3} defaultStep={1}>
+  <Steps.Progress />
+  <Steps.List>
+    <Steps.Item index={0}>
+      <Steps.Trigger>
+        <Steps.Indicator>1</Steps.Indicator>
+        <Steps.TriggerText>First</Steps.TriggerText>
+      </Steps.Trigger>
+      <Steps.Separator />
+    </Steps.Item>
+    <Steps.Item index={1}>
+      <Steps.Trigger>
+        <Steps.Indicator>2</Steps.Indicator>
+        <Steps.TriggerText>Second</Steps.TriggerText>
+      </Steps.Trigger>
+      <Steps.Separator />
+    </Steps.Item>
+    <Steps.Item index={2}>
+      <Steps.Trigger>
+        <Steps.Indicator>3</Steps.Indicator>
+        <Steps.TriggerText>Third</Steps.TriggerText>
+      </Steps.Trigger>
+    </Steps.Item>
+  </Steps.List>
+</Steps>
+```
+
+#### With Button navigation
+
+Use `Steps.NextTrigger` and `Steps.PrevTrigger` with `asChild` to compose with Roadie Button.
+
+```tsx-live
+<Steps count={3}>
+  <Steps.List>
+    <Steps.Item index={0}>
+      <Steps.Trigger>
+        <Steps.Indicator>1</Steps.Indicator>
+        <Steps.TriggerText>Details</Steps.TriggerText>
+      </Steps.Trigger>
+      <Steps.Separator />
+    </Steps.Item>
+    <Steps.Item index={1}>
+      <Steps.Trigger>
+        <Steps.Indicator>2</Steps.Indicator>
+        <Steps.TriggerText>Review</Steps.TriggerText>
+      </Steps.Trigger>
+      <Steps.Separator />
+    </Steps.Item>
+    <Steps.Item index={2}>
+      <Steps.Trigger>
+        <Steps.Indicator>3</Steps.Indicator>
+        <Steps.TriggerText>Confirm</Steps.TriggerText>
+      </Steps.Trigger>
+    </Steps.Item>
+  </Steps.List>
+  <Steps.Content index={0}>
+    <p>Step one content.</p>
+  </Steps.Content>
+  <Steps.Content index={1}>
+    <p>Step two content.</p>
+  </Steps.Content>
+  <Steps.Content index={2}>
+    <p>Step three content.</p>
+  </Steps.Content>
+  <Steps.CompletedContent>
+    <p className='text-subtle'>All done!</p>
+  </Steps.CompletedContent>
+  <div className='flex gap-2'>
+    <Steps.PrevTrigger asChild>
+      <Button emphasis='subtle'>Back</Button>
+    </Steps.PrevTrigger>
+    <Steps.NextTrigger asChild>
+      <Button intent='accent' emphasis='strong'>Next</Button>
+    </Steps.NextTrigger>
+  </div>
+</Steps>
+```
+
+### With custom component
+
+Use `Steps.RootProvider` with the `useSteps` hook for external state control.
+
+```tsx
+import { Steps, useSteps } from '@oztix/roadie-components'
+
+function MyWizard() {
+  const steps = useSteps({ count: 3 })
+
+  return (
+    <Steps.RootProvider value={steps}>
+      <Steps.List>
+        <Steps.Item index={0}>
+          <Steps.Trigger>
+            <Steps.Indicator>1</Steps.Indicator>
+            <Steps.TriggerText>First</Steps.TriggerText>
+          </Steps.Trigger>
+          <Steps.Separator />
+        </Steps.Item>
+        {/* ... */}
+      </Steps.List>
+    </Steps.RootProvider>
+  )
+}
+```
+
+## Accessibility
+
+- **Keyboard**: Arrow keys navigate between step triggers. `Enter` or `Space` activates a trigger.
+- **ARIA**: List renders as `role="tablist"`, triggers as `role="tab"`, content panels as `role="tabpanel"`. `aria-selected` marks the active trigger. `aria-controls` links triggers to panels.
+- **Screen readers**: Announce step state via `aria-selected`. Disabled triggers in linear mode receive `aria-disabled`.
+
+<PropsDefinitions componentPath='packages/components/src/components/Steps/index.tsx' />

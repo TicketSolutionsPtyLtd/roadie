@@ -1,0 +1,127 @@
+/* ═══════════════════════════════════════════════════════════
+   Emphasis Utilities
+   Combined shortcuts: emphasis-{level}
+   Consume --intent-* CSS custom properties.
+   For individual properties, use bg-*, text-*, border-* utilities.
+   ═══════════════════════════════════════════════════════════
+
+/* ═══════════════════════════════════════════════════════════
+   Combined Shortcuts (bg + text + interactive states)
+   Each shortcut includes hover/active/focus states that
+   use the intent color scale via --intent-* vars.
+   ═══════════════════════════════════════════════════════════ */
+
+@utility emphasis-strong {
+  background-color: var(--intent-bg-strong);
+  color: var(--intent-text-inverted);
+  border: 1px solid transparent;
+  box-shadow: var(--rim-light-subtle);
+
+  &.is-interactive:hover,
+  &.is-interactive:focus-visible {
+    background-color: var(--intent-11);
+    transform: translateY(-1px);
+    box-shadow: var(--rim-light-subtle), var(--shadow-sm);
+  }
+  &.is-interactive:active,
+  &.is-interactive.is-active {
+    background-color: var(--intent-12);
+    transform: translateY(0) scale(0.99);
+    box-shadow: none;
+  }
+}
+
+@utility emphasis-normal {
+  background-color: var(--intent-bg-normal);
+  color: var(--intent-text-normal);
+  border: 1px solid var(--intent-border-normal);
+
+  &.is-interactive:hover,
+  &.is-interactive:focus-visible {
+    background-color: var(--intent-2);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+  }
+  &.is-interactive:active,
+  &.is-interactive.is-active {
+    background-color: var(--intent-3);
+    transform: translateY(0) scale(0.99);
+    box-shadow: none;
+  }
+}
+
+@utility emphasis-subtle {
+  background-color: var(--intent-bg-subtle);
+  color: var(--intent-text-normal);
+  border-width: 1px;
+  border-style: solid;
+  box-shadow: var(--rim-light-subtler);
+
+  &.is-interactive:hover,
+  &.is-interactive:focus-visible {
+    background-color: var(--intent-4a);
+  }
+  &.is-interactive:active,
+  &.is-interactive.is-active {
+    background-color: var(--intent-5a);
+  }
+}
+
+@utility emphasis-subtler {
+  background-color: var(--intent-bg-subtler);
+  color: var(--intent-text-normal);
+  border-width: 1px;
+  border-style: solid;
+
+  &.is-interactive {
+    background-color: transparent;
+  }
+  &.is-interactive:hover,
+  &.is-interactive:focus-visible {
+    background-color: var(--intent-3a);
+  }
+  &.is-interactive:active,
+  &.is-interactive.is-active {
+    background-color: var(--intent-4a);
+  }
+}
+
+@utility emphasis-inverted {
+  background-color: var(--intent-bg-inverted);
+  color: var(--intent-text-inverted);
+}
+
+@utility emphasis-raised {
+  background-color: var(--intent-bg-raised);
+  box-shadow: var(--rim-light-strong), var(--shadow-md);
+  color: var(--intent-text-normal);
+
+  &.is-interactive:hover,
+  &.is-interactive:focus-visible {
+    transform: translateY(-1px);
+    box-shadow: var(--rim-light-strong), var(--shadow-lg);
+  }
+  &.is-interactive:active,
+  &.is-interactive.is-active {
+    transform: translateY(0) scale(0.99);
+    box-shadow: var(--rim-light-strong), var(--shadow-sm);
+  }
+}
+
+@utility emphasis-sunken {
+  background-color: var(--intent-bg-sunken);
+  box-shadow: var(--inset-shadow-sm);
+  color: var(--intent-text-normal);
+}
+
+@utility emphasis-floating {
+  background-color: var(--intent-bg-raised);
+  box-shadow: var(--rim-light-strong), var(--shadow-xl);
+  color: var(--intent-text-normal);
+}
+
+@utility emphasis-overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  color: var(--intent-text-inverted);
+}

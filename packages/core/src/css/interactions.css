@@ -1,0 +1,234 @@
+/* ═══════════════════════════════════════════════════════════
+   Interaction Utilities
+   Base transitions, focus ring, and disabled state.
+   Hover/active bg changes are per-emphasis in emphasis.css.
+   ═══════════════════════════════════════════════════════════ */
+
+@utility is-interactive-field {
+  transition:
+    background-color var(--duration-moderate) var(--ease-enter),
+    border-color var(--duration-moderate) var(--ease-enter),
+    box-shadow var(--duration-moderate) var(--ease-enter),
+    outline-width var(--duration-normal) var(--ease-enter),
+    outline-color var(--duration-normal) var(--ease-enter);
+
+  outline: 0 solid
+    color-mix(
+      in oklch,
+      var(--color-accent-9) var(--focus-ring-opacity),
+      transparent
+    );
+  outline-offset: 0;
+
+  /* Hover — neutral tint */
+  &:hover {
+    background-color: var(--color-neutral-2);
+    border-color: var(--color-neutral-7);
+  }
+
+  /* Focus — accent border + outline ring */
+  &:focus {
+    background-color: var(--color-accent-2);
+    border-color: var(--color-accent-9);
+    outline-width: var(--focus-ring-width);
+  }
+
+  &:hover:focus {
+    background-color: var(--color-accent-2);
+    border-color: var(--color-accent-9);
+  }
+
+  /* Invalid — danger border + outline ring */
+  &[aria-invalid='true'] {
+    background-color: var(--color-danger-2);
+    border-color: var(--color-danger-9);
+    outline-color: color-mix(
+      in oklch,
+      var(--color-danger-9) var(--focus-ring-opacity),
+      transparent
+    );
+  }
+
+  &[aria-invalid='true']:hover {
+    background-color: var(--color-danger-3);
+    border-color: var(--color-danger-9);
+  }
+
+  &[aria-invalid='true']:focus {
+    background-color: var(--color-danger-2);
+    border-color: var(--color-danger-9);
+    outline-width: var(--focus-ring-width);
+  }
+
+  &:disabled,
+  &[data-disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+    filter: grayscale(0.3);
+  }
+
+  .dark & {
+    outline-color: color-mix(
+      in oklch,
+      var(--color-accent-9) var(--focus-ring-opacity-dark),
+      transparent
+    );
+  }
+
+  .dark &[aria-invalid='true'] {
+    outline-color: color-mix(
+      in oklch,
+      var(--color-danger-9) var(--focus-ring-opacity-dark),
+      transparent
+    );
+  }
+}
+
+@utility is-interactive-field-group {
+  transition:
+    background-color var(--duration-moderate) var(--ease-enter),
+    border-color var(--duration-moderate) var(--ease-enter),
+    box-shadow var(--duration-moderate) var(--ease-enter),
+    outline-width var(--duration-normal) var(--ease-enter),
+    outline-color var(--duration-normal) var(--ease-enter);
+
+  outline: 0 solid
+    color-mix(
+      in oklch,
+      var(--color-accent-9) var(--focus-ring-opacity),
+      transparent
+    );
+  outline-offset: 0;
+
+  /* Hover — neutral tint */
+  &:hover {
+    background-color: var(--color-neutral-2);
+    border-color: var(--color-neutral-7);
+  }
+
+  /* Focus-within — accent border + outline ring */
+  &:focus-within {
+    background-color: var(--color-accent-2);
+    border-color: var(--color-accent-9);
+    outline-width: var(--focus-ring-width);
+  }
+
+  &:hover:focus-within {
+    background-color: var(--color-accent-2);
+    border-color: var(--color-accent-9);
+  }
+
+  /* Invalid — danger border + outline ring */
+  &[aria-invalid='true'] {
+    background-color: var(--color-danger-2);
+    border-color: var(--color-danger-9);
+    outline-color: color-mix(
+      in oklch,
+      var(--color-danger-9) var(--focus-ring-opacity),
+      transparent
+    );
+  }
+
+  &[aria-invalid='true']:hover {
+    background-color: var(--color-danger-3);
+    border-color: var(--color-danger-9);
+  }
+
+  &[aria-invalid='true']:focus-within {
+    background-color: var(--color-danger-2);
+    border-color: var(--color-danger-9);
+    outline-width: var(--focus-ring-width);
+  }
+
+  &:disabled,
+  &[data-disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+    filter: grayscale(0.3);
+  }
+
+  .dark & {
+    outline-color: color-mix(
+      in oklch,
+      var(--color-accent-9) var(--focus-ring-opacity-dark),
+      transparent
+    );
+  }
+
+  .dark &[aria-invalid='true'] {
+    outline-color: color-mix(
+      in oklch,
+      var(--color-danger-9) var(--focus-ring-opacity-dark),
+      transparent
+    );
+  }
+}
+
+/* ─── Disclosure animation (details/summary) ─── */
+
+.is-disclosure-animated {
+  &::details-content {
+    height: 0;
+    overflow: clip;
+    transition:
+      height var(--duration-moderate) var(--ease-enter),
+      content-visibility var(--duration-moderate) allow-discrete;
+  }
+
+  /* Chrome/Firefox: interpolate-size allows height: auto */
+  @supports (interpolate-size: allow-keywords) {
+    &[open]::details-content {
+      height: auto;
+    }
+  }
+
+  /* Safari: JS-measured height, falls back to auto (no animation) */
+  @supports not (interpolate-size: allow-keywords) {
+    &[open]::details-content {
+      height: var(--content-height, auto);
+    }
+  }
+}
+
+@utility is-interactive {
+  cursor: pointer;
+  outline: 0 solid transparent;
+  transition:
+    background-color var(--duration-moderate) var(--ease-standard),
+    border-color var(--duration-moderate) var(--ease-standard),
+    color var(--duration-moderate) var(--ease-standard),
+    box-shadow var(--duration-moderate) var(--ease-standard),
+    outline-width var(--duration-normal) var(--ease-standard),
+    outline-color var(--duration-normal) var(--ease-standard),
+    transform var(--duration-normal) var(--ease-spring);
+
+  &:active {
+    transform: scale(0.99);
+  }
+
+  /* Focus ring — intent-colored with transparency for a soft glow */
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid
+      color-mix(
+        in oklch,
+        var(--intent-9) var(--focus-ring-opacity),
+        transparent
+      );
+    outline-offset: 0;
+  }
+
+  .dark &:focus-visible {
+    outline-color: color-mix(
+      in oklch,
+      var(--intent-9) var(--focus-ring-opacity-dark),
+      transparent
+    );
+  }
+
+  &:disabled,
+  &[data-disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+    filter: grayscale(0.3);
+  }
+}

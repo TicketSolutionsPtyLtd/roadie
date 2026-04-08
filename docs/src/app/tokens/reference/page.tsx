@@ -1,398 +1,341 @@
-'use client'
+import { Code } from '@oztix/roadie-components'
 
-import { useState } from 'react'
-
-import { Code, Heading, Text, View } from '@oztix/roadie-components'
-import { pandaTokens } from '@oztix/roadie-core'
-import type { Token, TokenCategory } from '@oztix/roadie-core/tokens'
-import { token } from '@oztix/roadie-core/tokens'
-
-type TokenGroup = {
-  name: string
-  tokens: Array<{
-    name: Token
-    type: 'base' | 'semantic'
-  }>
+export const metadata = {
+  title: 'Token reference',
+  description: 'Complete reference for all design tokens.'
 }
 
-const TokenPreview = ({
-  name,
-  type,
-  order
-}: {
-  name: Token
-  type: TokenCategory
-  order: number
-}) => {
-  if (type === 'colors') {
-    const cssName = name
-      .replace(/\./g, '-')
-      .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
-      .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
-      .replace(/([A-Z])(\d+)$/, '-$1$2')
-      .toLowerCase()
+const colorScales = [
+  'neutral',
+  'brand',
+  'brand-secondary',
+  'accent',
+  'danger',
+  'success',
+  'warning',
+  'info'
+] as const
 
-    return (
-      <View
-        width='300'
-        height='300'
-        borderRadius='sm'
-        border='1px solid'
-        borderColor='neutral.border.subtler'
-        style={{
-          backgroundColor: `var(--${cssName})`
-        }}
-      />
-    )
-  }
-  if (type === 'spacing' || type === 'sizes') {
-    const cssName = name
-      .replace(/\./g, '-')
-      .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
-      .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
-      .replace(/([A-Z])(\d+)$/, '-$1$2')
-      .toLowerCase()
+const steps = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] as const
 
-    return (
-      <View
-        height='200'
-        borderRadius='sm'
-        backgroundColor='accent.surface.strong'
-        order={order}
-        style={{
-          width: `var(--${cssName})`
-        }}
-      />
-    )
-  }
-  return <View width='400' height='400' />
-}
-
-const TokenRow = ({ name }: { name: Token }) => {
-  const type = name.split('.')[0] as TokenCategory
-  const value = token(name)
-  const displayName = name.split('.').slice(1).join('.')
-  const isSpacingOrSize = type === 'spacing' || type === 'sizes'
-
+function ColorScaleVisual({ scale }: { scale: string }) {
   return (
-    <View
-      display='grid'
-      width='full'
-      gridTemplateColumns={{
-        base: '1fr 48px',
-        md: isSpacingOrSize ? '100px 200px 1fr' : '350px 48px 1fr'
-      }}
-      rowGap='200'
-      columnGap='100'
-      paddingY='150'
-      borderTop='1px solid'
-      borderColor='neutral.border.subtle'
-      alignItems='center'
-    >
-      <Code justifySelf='start' fontSize={{ base: 'sm', md: 'md' }}>
-        {displayName}
-      </Code>
-      <TokenPreview name={name} type={type} order={isSpacingOrSize ? 3 : 2} />
-      <Text
-        justifySelf='start'
-        display={{ base: 'block', md: 'initial' }}
-        gridColumn={{ base: '1 / -1', md: 'auto' }}
-        marginTop={{ base: '100', md: '0' }}
-        fontSize={{ base: 'sm', md: 'md' }}
-        order={isSpacingOrSize ? 2 : 3}
-      >
-        {value}
-      </Text>
-    </View>
-  )
-}
-
-const tokenDescriptions: Record<string, string> = {
-  colors:
-    'Used with color, backgroundColor, borderColor, fill, stroke, outlineColor, accentColor, and other color-related properties',
-  spacing:
-    'Used with margin, padding, gap, inset, space, and other spacing-related properties',
-  sizes:
-    'Used with width, height, maxWidth, maxHeight, flexBasis, and other dimension properties',
-  radii: 'Used with borderRadius property',
-  shadows: 'Used with boxShadow and textShadow properties',
-  blurs: 'Used with backdropBlur and blur properties',
-  fonts: 'Used with fontFamily property',
-  fontSizes: 'Used with fontSize property',
-  fontWeights: 'Used with fontWeight property',
-  lineHeights: 'Used with lineHeight property',
-  letterSpacings: 'Used with letterSpacing property',
-  breakpoints: 'Used with responsive styles and container queries',
-  durations: 'Used with transitionDuration and animationDuration properties',
-  easings:
-    'Used with transitionTimingFunction and animationTimingFunction properties'
-}
-
-const getTokenDescription = (name: string) => tokenDescriptions[name] || ''
-
-const TokenGroup = ({ name, tokens }: TokenGroup) => {
-  const sortNumericTokens = (a: { name: Token }, b: { name: Token }) => {
-    const aName = a.name.split('.').pop() || ''
-    const bName = b.name.split('.').pop() || ''
-
-    // Put 'none' at the top
-    if (aName === 'none') return -1
-    if (bName === 'none') return 1
-
-    // Handle other special cases
-    if (isNaN(parseInt(aName)) && isNaN(parseInt(bName))) return 0
-    if (isNaN(parseInt(aName))) return 1
-    if (isNaN(parseInt(bName))) return -1
-
-    const aNum = parseInt(aName)
-    const bNum = parseInt(bName)
-    return aNum - bNum
-  }
-
-  const semanticTokens = tokens
-    .filter((t) => t.type === 'semantic')
-    .sort((a, b) => {
-      if (['spacing', 'sizes', 'radii'].includes(name)) {
-        return sortNumericTokens(a, b)
-      }
-      return 0
-    })
-
-  const baseTokens = tokens
-    .filter((t) => t.type === 'base')
-    .sort((a, b) => {
-      if (['spacing', 'radii'].includes(name)) {
-        return sortNumericTokens(a, b)
-      }
-      return 0
-    })
-
-  const description = getTokenDescription(name)
-
-  return (
-    <View gap='200'>
-      <View
-        position='sticky'
-        top='0'
-        backgroundColor='neutral.surface'
-        paddingY='200'
-        zIndex='1'
-        gap='100'
-      >
-        <Heading as='h3' textStyle='display.ui.3'>
-          {name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()}
-        </Heading>
-        {description && <Text emphasis='subtle'>{description}</Text>}
-      </View>
-      <View gap='400'>
-        {semanticTokens.length > 0 && (
-          <View gap='200'>
-            <Heading as='h4' textStyle='display.ui.5' paddingBottom='100'>
-              Semantic tokens
-            </Heading>
-            <View overflow='hidden'>
-              {semanticTokens.map((token) => (
-                <TokenRow key={token.name} name={token.name} />
-              ))}
-            </View>
-          </View>
-        )}
-        {baseTokens.length > 0 && (
-          <View gap='200'>
-            <Heading as='h4' textStyle='display.ui.5' paddingBottom='100'>
-              Base tokens
-            </Heading>
-            <View>
-              {baseTokens.map((token) => (
-                <TokenRow key={token.name} name={token.name} />
-              ))}
-            </View>
-          </View>
-        )}
-      </View>
-    </View>
-  )
-}
-
-type SimpleTokenValue = {
-  value: string | number
-}
-
-type TokenMap = {
-  [key: string]: SimpleTokenValue | TokenMap | string | number
-}
-
-function flattenTokens(
-  obj: TokenMap,
-  prefix = ''
-): Array<[string, SimpleTokenValue]> {
-  const result: Array<[string, SimpleTokenValue]> = []
-
-  for (const [key, value] of Object.entries(obj)) {
-    if (key === '[Prototype]' || key === 'prototype') continue
-
-    const newKey = prefix ? `${prefix}.${key}` : key
-    const finalKey = newKey.endsWith('.DEFAULT') ? newKey.slice(0, -8) : newKey
-
-    if (value && typeof value === 'object') {
-      if ('value' in value) {
-        result.push([finalKey, value as SimpleTokenValue])
-      } else {
-        result.push(...flattenTokens(value as TokenMap, finalKey))
-      }
-    } else if (value !== undefined) {
-      result.push([finalKey, { value: String(value) }])
-    }
-  }
-
-  return result
-}
-
-export default function TokensReference() {
-  const [search, setSearch] = useState('')
-  const [tokenType, setTokenType] = useState<TokenCategory | 'all'>('all')
-
-  // Group all tokens by their category
-  const baseTokenGroups = flattenTokens(pandaTokens.tokens).reduce(
-    (groups, [tokenName]) => {
-      const type = tokenName.split('.')[0] as keyof typeof groups
-      if (!groups[type]) {
-        groups[type] = []
-      }
-      groups[type].push({ name: tokenName as Token, type: 'base' })
-      return groups
-    },
-    {} as Record<string, Array<{ name: Token; type: 'base' | 'semantic' }>>
-  )
-
-  const semanticTokenGroups = flattenTokens(pandaTokens.semanticTokens).reduce(
-    (groups, [tokenName]) => {
-      const type = tokenName.split('.')[0] as keyof typeof groups
-      if (!groups[type]) {
-        groups[type] = []
-      }
-      groups[type].push({ name: tokenName as Token, type: 'semantic' })
-      return groups
-    },
-    {} as Record<string, Array<{ name: Token; type: 'base' | 'semantic' }>>
-  )
-
-  // Filter tokens based on search and type
-  const filteredGroups = Object.keys({
-    ...baseTokenGroups,
-    ...semanticTokenGroups
-  })
-    .filter((type) => tokenType === 'all' || type === tokenType)
-    .map((type) => {
-      const semanticTokens = (semanticTokenGroups[type] || []).filter(
-        (token) =>
-          search === '' ||
-          token.name.toLowerCase().includes(search.toLowerCase())
-      )
-      const baseTokens = (baseTokenGroups[type] || []).filter(
-        (token) =>
-          search === '' ||
-          token.name.toLowerCase().includes(search.toLowerCase())
-      )
-
-      return {
-        name: type,
-        tokens: [...semanticTokens, ...baseTokens]
-      }
-    })
-    .filter((group) => group.tokens.length > 0)
-
-  return (
-    <View gap='400'>
-      <Heading as='h1' textStyle='display.ui.1'>
-        Token reference
-      </Heading>
-      <View flexDirection='row' gap='200' marginBottom='400'>
-        <View
-          as='input'
-          placeholder='Search tokens...'
-          value={search}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setSearch(e.target.value)
-          }
-          color='neutral.fg'
-          padding='150'
-          borderRadius='md'
-          border='2px solid'
-          borderColor='neutral.border'
-          bg='neutral.surface.sunken'
-          flex='1'
-          _hover={{
-            borderColor: 'neutral.border.hover',
-            bg: 'neutral.surface.hover'
-          }}
-          _focus={{
-            borderColor: 'accent.border.strong',
-            bg: 'neutral.surface.sunken',
-            _hover: {
-              borderColor: 'accent.border.strong',
-              bg: 'neutral.surface.sunken'
-            }
-          }}
-          _focusVisible={{
-            outline: 'none'
-          }}
-        />
-        <View
-          as='select'
-          value={tokenType}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-            setTokenType(e.target.value as TokenCategory | 'all')
-          }
-          padding='150'
-          flexDirection='row'
-          alignItems='center'
-          borderRadius='md'
-          border='1px solid'
-          borderColor='neutral.border'
-          bg='neutral.surface.raised'
-          color='neutral.fg'
-          width='200px'
-          _hover={{
-            borderColor: 'neutral.border.hover',
-            bg: 'neutral.surface.hover'
-          }}
-          _focus={{
-            borderColor: 'neutral.border.focus',
-            bg: 'neutral.surface.focus',
-            _hover: {
-              borderColor: 'neutral.border.focus',
-              bg: 'neutral.surface.focus'
-            }
-          }}
-          _focusVisible={{
-            borderColor: 'neutral.border.focus',
-            bg: 'neutral.surface.focus'
-          }}
-        >
-          <option value='all'>All Types</option>
-          <option value='blurs'>Blurs</option>
-          <option value='breakpoints'>Breakpoints</option>
-          <option value='colors'>Colors</option>
-          <option value='durations'>Durations</option>
-          <option value='easings'>Easings</option>
-          <option value='fonts'>Fonts</option>
-          <option value='fontSizes'>Font Sizes</option>
-          <option value='fontWeights'>Font Weights</option>
-          <option value='letterSpacings'>Letter Spacing</option>
-          <option value='lineHeights'>Line Heights</option>
-          <option value='radii'>Border Radius</option>
-          <option value='shadows'>Shadows</option>
-          <option value='sizes'>Sizes</option>
-          <option value='spacing'>Spacing</option>
-        </View>
-      </View>
-
-      <View gap='400'>
-        {filteredGroups.map((group) => (
-          <TokenGroup key={group.name} {...group} />
+    <div className='grid gap-1'>
+      <p className='text-sm text-strong capitalize'>{scale}</p>
+      <div className='flex gap-0.5'>
+        {steps.map((step) => (
+          <div
+            key={step}
+            className='h-8 flex-1 rounded-sm first:rounded-l-md last:rounded-r-md'
+            style={{ backgroundColor: `var(--color-${scale}-${step})` }}
+            title={`--color-${scale}-${step}`}
+          />
         ))}
-      </View>
-    </View>
+      </div>
+      <div className='flex gap-0.5'>
+        {steps.map((step) => (
+          <p key={step} className='flex-1 text-center text-xs text-subtler'>
+            {step}
+          </p>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function TokenTable({
+  title,
+  tokens
+}: {
+  title: string
+  tokens: { name: string; step: string; usage: string }[]
+}) {
+  return (
+    <div className='grid gap-2'>
+      <p className='text-sm text-strong'>{title}</p>
+      <div className='overflow-x-auto'>
+        <table className='w-full text-sm'>
+          <thead>
+            <tr className='border-b border-subtle'>
+              <th className='py-1.5 pr-4 text-left font-medium'>Token</th>
+              <th className='py-1.5 pr-4 text-left font-medium'>Step</th>
+              <th className='py-1.5 text-left font-medium'>Usage</th>
+            </tr>
+          </thead>
+          <tbody className='divide-y divide-subtler text-subtle'>
+            {tokens.map((t) => (
+              <tr key={t.name}>
+                <td className='py-1.5 pr-4'>
+                  <Code>{t.name}</Code>
+                </td>
+                <td className='py-1.5 pr-4'>{t.step}</td>
+                <td className='py-1.5'>{t.usage}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+export default function TokenReferencePage() {
+  return (
+    <div className='grid gap-12'>
+      <div className='grid gap-3'>
+        <h1 className='text-display-prose-1 text-strong'>Token reference</h1>
+        <p className='text-lg text-subtle'>
+          Complete reference for the v2 design token system. All tokens are CSS
+          custom properties defined via Tailwind v4&apos;s @theme directive.
+        </p>
+      </div>
+
+      {/* Color Scales */}
+      <section className='grid gap-6'>
+        <h2 className='text-display-ui-3 text-strong'>Color scales</h2>
+        <p className='text-subtle'>
+          Each scale provides 14 OKLCH steps (0-13). Step 0 is the lightest
+          extreme, step 13 the darkest. Dark mode swaps the underlying values —
+          step numbers stay the same.
+        </p>
+        <div className='grid gap-4'>
+          {colorScales.map((scale) => (
+            <ColorScaleVisual key={scale} scale={scale} />
+          ))}
+        </div>
+      </section>
+
+      {/* Intent semantic tokens */}
+      <section className='grid gap-6'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Intent semantic tokens
+        </h2>
+        <p className='text-subtle'>
+          Set by intent utilities (e.g. <Code>intent-accent</Code>). Each intent
+          maps scale steps to semantic roles.
+        </p>
+
+        <TokenTable
+          title='Surface'
+          tokens={[
+            {
+              name: '--intent-surface-default',
+              step: '1',
+              usage: 'Page/canvas background'
+            },
+            {
+              name: '--intent-surface-subtler',
+              step: '2',
+              usage: 'Barely tinted background'
+            },
+            {
+              name: '--intent-surface-subtle',
+              step: '3',
+              usage: 'Noticeable tint, button hover bg'
+            },
+            {
+              name: '--intent-surface-strong',
+              step: '9 (neutral: 12)',
+              usage: 'Solid color, primary buttons'
+            },
+            {
+              name: '--intent-surface-inverted',
+              step: '12',
+              usage: 'Inverted surface'
+            },
+            {
+              name: '--intent-surface-raised',
+              step: '0 (dark: 2)',
+              usage: 'Elevated card with shadow'
+            },
+            {
+              name: '--intent-surface-sunken',
+              step: '2 (dark: 0)',
+              usage: 'Inset area with shadow'
+            }
+          ]}
+        />
+
+        <TokenTable
+          title='Border'
+          tokens={[
+            {
+              name: '--intent-border-subtler',
+              step: '5',
+              usage: 'Card edges, very faint'
+            },
+            {
+              name: '--intent-border-subtle',
+              step: '6',
+              usage: 'Dividers, hr'
+            },
+            {
+              name: '--intent-border-normal',
+              step: '7',
+              usage: 'Standard borders'
+            },
+            {
+              name: '--intent-border-strong',
+              step: '9',
+              usage: 'Bold borders'
+            },
+            {
+              name: '--intent-border-inverted',
+              step: '12',
+              usage: 'Inverted borders'
+            }
+          ]}
+        />
+
+        <TokenTable
+          title='Foreground'
+          tokens={[
+            {
+              name: '--intent-fg-subtler',
+              step: '10',
+              usage: 'Placeholder, hint text'
+            },
+            {
+              name: '--intent-fg-subtle',
+              step: '11',
+              usage: 'Secondary text, button text'
+            },
+            {
+              name: '--intent-fg-default',
+              step: '12',
+              usage: 'Body text'
+            },
+            {
+              name: '--intent-fg-strong',
+              step: '13',
+              usage: 'Bold headings'
+            },
+            {
+              name: '--intent-fg-inverted',
+              step: '0',
+              usage: 'White/black text on strong surfaces'
+            }
+          ]}
+        />
+
+        <TokenTable
+          title='Raw steps'
+          tokens={[
+            {
+              name: '--intent-0 … --intent-13',
+              step: '0–13',
+              usage: 'Direct access to any scale step for hover/active states'
+            }
+          ]}
+        />
+      </section>
+
+      {/* Typography */}
+      <section className='grid gap-6'>
+        <h2 className='text-display-ui-3 text-strong'>Typography</h2>
+
+        <TokenTable
+          title='Font sizes (fluid from lg)'
+          tokens={[
+            { name: '--text-xs', step: '0.75rem', usage: '12px' },
+            { name: '--text-sm', step: '0.875rem', usage: '14px' },
+            { name: '--text-base', step: '1rem', usage: '16px' },
+            {
+              name: '--text-lg',
+              step: 'clamp(1.125rem…1.25rem)',
+              usage: '18–20px fluid'
+            },
+            {
+              name: '--text-xl',
+              step: 'clamp(1.25rem…1.5rem)',
+              usage: '20–24px fluid'
+            },
+            {
+              name: '--text-2xl',
+              step: 'clamp(1.5rem…2rem)',
+              usage: '24–32px fluid'
+            },
+            {
+              name: '--text-3xl',
+              step: 'clamp(1.75rem…2.5rem)',
+              usage: '28–40px fluid'
+            },
+            {
+              name: '--text-4xl',
+              step: 'clamp(2rem…3rem)',
+              usage: '32–48px fluid'
+            },
+            {
+              name: '--text-5xl',
+              step: 'clamp(2.25rem…4rem)',
+              usage: '36–64px fluid'
+            }
+          ]}
+        />
+
+        <TokenTable
+          title='Semantic line heights'
+          tokens={[
+            { name: '--leading-display', step: '1.2', usage: 'Headings' },
+            { name: '--leading-ui', step: '1.35', usage: 'App interface' },
+            { name: '--leading-prose', step: '1.5', usage: 'Long-form' },
+            { name: '--leading-code', step: '1.625', usage: 'Code blocks' }
+          ]}
+        />
+
+        <TokenTable
+          title='Semantic letter spacing'
+          tokens={[
+            {
+              name: '--tracking-display',
+              step: '-0.02em',
+              usage: 'Headings'
+            },
+            { name: '--tracking-ui', step: '-0.01em', usage: 'App interface' },
+            {
+              name: '--tracking-prose',
+              step: '-0.01em',
+              usage: 'Long-form'
+            },
+            { name: '--tracking-code', step: '0em', usage: 'Code blocks' }
+          ]}
+        />
+      </section>
+
+      {/* Elevation */}
+      <section className='grid gap-6'>
+        <h2 className='text-display-ui-3 text-strong'>Elevation</h2>
+        <TokenTable
+          title='Box shadows'
+          tokens={[
+            {
+              name: '--elevation-raised',
+              step: 'drop shadow',
+              usage: 'Cards, floating elements'
+            },
+            {
+              name: '--elevation-sunken',
+              step: 'inset shadow',
+              usage: 'Recessed areas, inputs'
+            },
+            {
+              name: '--elevation-overlay',
+              step: 'large shadow',
+              usage: 'Modals, popovers'
+            }
+          ]}
+        />
+      </section>
+
+      {/* Source */}
+      <div className='rounded-xl border border-normal p-6'>
+        <p className='text-subtle'>
+          All tokens are defined in{' '}
+          <Code>packages/core/src/css/tokens.css</Code>. Intent mappings are in{' '}
+          <Code>intents.css</Code>. Emphasis utilities are in{' '}
+          <Code>emphasis.css</Code>.
+        </p>
+      </div>
+    </div>
   )
 }

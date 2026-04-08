@@ -1,19 +1,32 @@
 'use client'
 
+import { useCallback, useEffect, useRef, useState } from 'react'
+
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-import { Moon, Sun } from 'lucide-react'
+import {
+  CheckIcon,
+  ListIcon,
+  MoonIcon,
+  SunIcon,
+  XIcon
+} from '@phosphor-icons/react'
 
-import { Image } from '@/components/Image'
+import { Button, IconButton, useTheme } from '@oztix/roadie-components'
 
-import { Button, Text, View } from '@oztix/roadie-components'
-import { useColorMode } from '@oztix/roadie-components/hooks'
-import { toggleColorMode } from '@oztix/roadie-core'
+const ACCENT_PRESETS = [
+  { label: 'Blue (default)', hex: '#0091EB' },
+  { label: 'Purple', hex: '#7C3AED' },
+  { label: 'Green', hex: '#72BF44' },
+  { label: 'Orange', hex: '#EA580C' },
+  { label: 'Pink', hex: '#E83068' }
+]
 
 interface NavigationItem {
   title: string
   href?: string
+  label?: boolean
   items?: NavigationItem[]
 }
 
@@ -21,55 +34,91 @@ interface NavigationProps {
   items: NavigationItem[]
 }
 
-function Logo() {
-  return (
-    <View
-      as={Link}
-      href='/'
-      flexDirection='row'
-      alignItems='center'
-      textDecoration='none'
-      maxWidth='100%'
-      width='100%'
-      aspectRatio='1/1'
-      aria-label='Go to Roadie home page'
-      role='banner'
-      _focus={{
-        outline: '2px solid',
-        outlineColor: 'accent.border.focus',
-        outlineOffset: '2px',
-        borderRadius: '050'
-      }}
-    >
-      <Image
-        src='/roadie-logo.png'
-        alt='Roadie Design System'
-        fill
-        priority
-        style={{ objectFit: 'contain' }}
-      />
-    </View>
-  )
-}
-
 function ThemeToggle() {
-  const colorMode = useColorMode()
+  const { isDark, setDark } = useTheme()
 
   return (
     <Button
-      emphasis='subtler'
       size='sm'
-      gap='050'
-      onClick={() => toggleColorMode()}
-      aria-label={`Switch to ${colorMode === 'light' ? 'dark' : 'light'} mode`}
+      className='w-full'
+      onClick={() => setDark(!isDark)}
+      aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
     >
-      {colorMode === 'light' ? <Moon size={16} /> : <Sun size={16} />}
-      <Text>{colorMode === 'light' ? 'Dark' : 'Light'} mode</Text>
+      {isDark ? (
+        <SunIcon weight='bold' className='size-4' />
+      ) : (
+        <MoonIcon weight='bold' className='size-4' />
+      )}
+      <span>{isDark ? 'Light' : 'Dark'} mode</span>
     </Button>
   )
 }
 
-function NavigationGroup({ item }: { item: NavigationItem }) {
+function AccentPicker() {
+  const { accentColor, setAccentColor } = useTheme()
+  const [isOpen, setIsOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  const close = useCallback(() => setIsOpen(false), [])
+
+  useEffect(() => {
+    if (!isOpen) return
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) close()
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [isOpen, close])
+
+  return (
+    <div ref={ref} className='relative'>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className='size-8 rounded-full border-subtle ring-0 ring-accent-6 transition-shadow hover:ring-4'
+        style={{ backgroundColor: accentColor }}
+        aria-label='Change accent color'
+      />
+      {isOpen && (
+        <div className='absolute -right-1 bottom-full mb-2 grid justify-items-center gap-1.5 rounded-xl emphasis-floating p-2'>
+          <h3 className='text-medium text-sm'>Accent color</h3>
+          <div className='flex gap-1.5'>
+            {ACCENT_PRESETS.map((preset) => {
+              const isActive =
+                accentColor.toLowerCase() === preset.hex.toLowerCase()
+              return (
+                <button
+                  key={preset.hex}
+                  onClick={() => {
+                    setAccentColor(preset.hex)
+                    close()
+                  }}
+                  className='grid size-7 place-items-center rounded-full ring-0 ring-neutral-5 transition-transform hover:scale-110 hover:shadow-lg hover:ring-2'
+                  style={{ backgroundColor: preset.hex }}
+                  aria-label={preset.label}
+                >
+                  {isActive && (
+                    <CheckIcon
+                      weight='bold'
+                      className='size-3.5 text-neutral-0'
+                    />
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function NavigationGroup({
+  item,
+  onNavigate
+}: {
+  item: NavigationItem
+  onNavigate?: () => void
+}) {
   const pathname = usePathname()
 
   const isActiveParent = item.href
@@ -79,107 +128,148 @@ function NavigationGroup({ item }: { item: NavigationItem }) {
     : false
 
   return (
-    <View gap='100'>
-      <Text
-        asChild
-        px='100'
-        fontSize='sm'
-        fontWeight='semibold'
-        colorPalette={isActiveParent ? 'accent' : 'neutral'}
-        textDecoration='none'
-        transition='colors'
-        _hover={{
-          color: 'colorPalette.fg.hover'
-        }}
+    <div className='grid gap-2'>
+      <Link
+        href={item.href || '#'}
+        onClick={onNavigate}
+        className={`px-2 text-sm font-semibold no-underline transition-colors hover:text-accent-11 ${
+          isActiveParent ? 'text-normal intent-accent' : 'text-normal'
+        }`}
       >
-        <Link href={item.href || '#'}>{item.title}</Link>
-      </Text>
+        {item.title}
+      </Link>
       {item.items && (
-        <View as='ul' gap='025'>
+        <ul className='grid gap-0.5'>
           {item.items.map((subItem) => {
+            if (subItem.label) {
+              return (
+                <li
+                  key={subItem.title}
+                  className='m-0 list-none px-2 pt-3 pb-1 text-xs font-semibold text-subtler'
+                >
+                  {subItem.href ? (
+                    <Link
+                      href={subItem.href}
+                      onClick={onNavigate}
+                      className='text-subtler no-underline transition-colors hover:text-accent-11'
+                    >
+                      {subItem.title}
+                    </Link>
+                  ) : (
+                    subItem.title
+                  )}
+                </li>
+              )
+            }
+
             const isActive = pathname === subItem.href
 
             return (
-              <View as='li' key={subItem.href} listStyleType='none' p='0' m='0'>
-                <Text
-                  asChild
-                  display='block'
-                  px='100'
-                  py='050'
-                  fontSize='sm'
-                  emphasis='subtle'
-                  fontWeight='normal'
-                  textDecoration='none'
-                  transition='all 0.2s'
-                  borderRadius='sm'
-                  data-current={isActive}
-                  _hover={{
-                    bg: 'accent.surface.hover',
-                    color: 'accent.fg.hover'
-                  }}
-                  _active={{
-                    bg: 'accent.surface.active',
-                    color: 'accent.fg.active'
-                  }}
-                  css={{
-                    '&[data-current=true]': {
-                      color: 'accent.fg',
-                      fontWeight: 'semibold'
-                    }
-                  }}
+              <li
+                key={subItem.href ?? subItem.title}
+                className='m-0 list-none p-0'
+              >
+                <Link
+                  href={subItem.href || '#'}
+                  onClick={onNavigate}
+                  className={`block rounded-sm px-2 py-1 text-sm no-underline transition-all hover:bg-accent-3 hover:text-accent-11 ${
+                    isActive
+                      ? 'font-semibold text-accent-11'
+                      : 'font-normal text-subtle'
+                  }`}
                 >
-                  <Link href={subItem.href || '#'}>{subItem.title}</Link>
-                </Text>
-              </View>
+                  {subItem.title}
+                </Link>
+              </li>
             )
           })}
-        </View>
+        </ul>
       )}
-    </View>
+    </div>
+  )
+}
+
+function NavigationContent({
+  items,
+  onNavigate
+}: {
+  items: NavigationItem[]
+  onNavigate?: () => void
+}) {
+  return (
+    <div className='flex h-full flex-col gap-6 pt-6'>
+      <div className='flex shrink-0 grow flex-col gap-6 px-4'>
+        {items.map((item, index) => (
+          <NavigationGroup key={index} item={item} onNavigate={onNavigate} />
+        ))}
+      </div>
+      <div className='sticky bottom-0 mt-auto flex shrink-0 items-center gap-2 border border-t-subtle bg-raised p-4'>
+        <ThemeToggle />
+        <AccentPicker />
+      </div>
+    </div>
   )
 }
 
 export function Navigation({ items }: NavigationProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  const pathname = usePathname()
+
+  // Close on route change
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: close nav when route changes
+    setIsOpen(false)
+  }, [pathname])
+
+  // Prevent body scroll when open
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? 'hidden' : ''
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
+
   return (
-    <View
-      as='nav'
-      position='sticky'
-      top='0'
-      height='100vh'
-      width='220px'
-      flexShrink={0}
-      overflowY='auto'
-      borderRightWidth='1px'
-      borderRightStyle='solid'
-      borderColor='neutral.border.subtler'
-      bg='neutral.surface.sunken'
-      shadow='sunken'
-      display={{ base: 'none', md: 'block' }}
-    >
-      <View gap='300' height='100%' pt='300'>
-        <View flexDirection='row' alignItems='center' px='200' flexShrink={0}>
-          <Logo />
-        </View>
-        <View px='200' gap='300' flexGrow={1} flexShrink={0}>
-          {items.map((item, index) => (
-            <NavigationGroup key={index} item={item} />
-          ))}
-        </View>
-        <View
-          p='200'
-          mt='auto'
-          position='sticky'
-          bottom='0'
-          bg='neutral.surface.raised'
-          flexShrink={0}
-          shadow='raised'
-          borderTopWidth='1px'
-          borderTopStyle='solid'
-          borderColor='neutral.border.subtler'
+    <>
+      {/* Mobile hamburger */}
+      <IconButton
+        onClick={() => setIsOpen(true)}
+        emphasis='normal'
+        className='fixed top-3 left-3 z-50 md:hidden'
+        aria-label='Open navigation'
+      >
+        <ListIcon weight='bold' className='size-5' />
+      </IconButton>
+
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div
+          className='bg-black/30 fixed inset-0 z-40 backdrop-blur-sm md:hidden'
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Mobile slide-out nav */}
+      <nav
+        className={`fixed top-0 left-0 z-50 h-screen w-[280px] overflow-y-auto emphasis-sunken transition-transform duration-200 ease-out md:hidden ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <IconButton
+          onClick={() => setIsOpen(false)}
+          emphasis='subtler'
+          className='absolute top-3 right-3'
+          aria-label='Close navigation'
         >
-          <ThemeToggle />
-        </View>
-      </View>
-    </View>
+          <XIcon weight='bold' className='size-5' />
+        </IconButton>
+        <NavigationContent items={items} onNavigate={() => setIsOpen(false)} />
+      </nav>
+
+      {/* Desktop sidebar */}
+      <nav className='sticky top-0 hidden h-screen w-[220px] shrink-0 overflow-y-auto emphasis-sunken md:block'>
+        <NavigationContent items={items} />
+      </nav>
+    </>
   )
 }

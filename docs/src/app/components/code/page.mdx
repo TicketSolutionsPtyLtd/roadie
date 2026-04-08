@@ -1,70 +1,56 @@
-import { PropsDefinitions } from '@/components/PropsDefinitions'
-
-import { Code, Text } from '@oztix/roadie-components'
-import { css } from '@oztix/roadie-core/css'
-
 export const metadata = {
   title: 'Code',
-  description: 'The Code component is used to display inline code snippets.',
+  description: 'Inline code snippet with emphasis and intent variants.',
   status: 'beta',
-  category: 'Typography'
+  category: 'Text'
 }
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # Code
 
-The Code component is used to display inline code snippets and blocks
-of code.
+Inline code snippet with emphasis and intent variants.
 
-## Usage
-
-### Inline code
+## Import
 
 ```tsx
-live
-<Code>npm install @oztix/roadie-components</Code>
+import { Code } from '@oztix/roadie-components'
 ```
 
 ## Examples
 
+### Default
+
+```tsx-live
+
+<Code>npm install @oztix/roadie-components</Code>
+```
+
 ### Emphasis
 
-Different emphasis levels for various contexts:
+```tsx-live
 
-```tsx
-live
-<View gap='200' flexDirection='row' flexWrap='wrap'>
-  <Code emphasis='default'>default code</Code>
+<div className='flex flex-row flex-wrap gap-2'>
+  <Code emphasis='normal'>normal code</Code>
   <Code emphasis='strong'>strong code</Code>
   <Code emphasis='subtle'>subtle code</Code>
   <Code emphasis='subtler'>subtler code</Code>
-</View>
+</div>
 ```
 
-### Color palettes
+### Intents
 
-Neutral is the default color palette for code elements.
+```tsx-live
 
-Each color palette is designed for specific use cases:
-
-- `neutral`: Default for general code snippets
-- `accent`: Highlighted code
-- `brand`: Brand-specific code examples
-- `information`: Informational code snippets
-- `success`: Successful operations or correct code
-- `warning`: Warning-related code
-- `danger`: Error or problematic code
-
-```tsx
-live
-<View gap='200' flexDirection='row' flexWrap='wrap'>
-  <Code colorPalette='neutral'>neutral</Code>
-  <Code colorPalette='accent'>accent</Code>
-  <Code colorPalette='brand'>brand</Code>
-  <Code colorPalette='information'>information</Code>
-  <Code colorPalette='success'>success</Code>
-  <Code colorPalette='warning'>warning</Code>
-  <Code colorPalette='danger'>danger</Code>
-</View>
+<div className='flex flex-row flex-wrap gap-2'>
+  <Code intent='neutral'>neutral</Code>
+  <Code intent='accent'>accent</Code>
+  <Code intent='brand'>brand</Code>
+  <Code intent='info'>info</Code>
+  <Code intent='success'>success</Code>
+  <Code intent='warning'>warning</Code>
+  <Code intent='danger'>danger</Code>
+</div>
 ```
 
 <PropsDefinitions componentPath='packages/components/src/components/Code/index.tsx' />

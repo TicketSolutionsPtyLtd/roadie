@@ -1,0 +1,44 @@
+export const metadata = {
+  title: 'Separator',
+  description: 'A visual divider between content sections',
+  status: 'beta',
+  category: 'Layout',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Separator
+
+A visual divider between content sections.
+
+## Import
+
+```tsx
+import { Separator } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<div className='grid gap-3'>
+  <p>Content above</p>
+  <Separator />
+  <p>Content below</p>
+</div>
+```
+
+### Variants
+
+Use `orientation='vertical'` for a vertical divider.
+
+```tsx-live
+<div className='flex flex-row items-center gap-3 h-6'>
+  <p>Left</p>
+  <Separator orientation='vertical' />
+  <p>Right</p>
+</div>
+```
+
+<PropsDefinitions componentPath='packages/components/src/components/Separator/index.tsx' />

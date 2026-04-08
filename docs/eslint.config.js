@@ -1,4 +1,3 @@
-import pandacssPlugin from '@pandacss/eslint-plugin'
 import prettierConfig from 'eslint-config-prettier'
 import { flatCodeBlocks, flat as mdxFlat } from 'eslint-plugin-mdx'
 import { createRequire } from 'module'
@@ -18,20 +17,6 @@ const config = [
   // MDX plugin config
   mdxFlat,
   flatCodeBlocks,
-
-  // Panda CSS rules - only apply to source files, not MDX
-  {
-    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
-    ignores: ['**/*.mdx', '**/*.mdx/**'],
-    plugins: {
-      '@pandacss': pandacssPlugin
-    },
-    rules: {
-      ...pandacssPlugin.configs.recommended.rules,
-      '@pandacss/no-margin-properties': 'warn',
-      '@pandacss/no-config-function-in-source': 'off'
-    }
-  },
 
   // MDX settings and rules
   {

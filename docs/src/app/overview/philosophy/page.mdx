@@ -1,0 +1,96 @@
+export const metadata = {
+  title: 'Philosophy',
+  description:
+    'The core goals, principles, and mental model behind the Roadie Design System.'
+}
+
+# Philosophy
+
+Roadie is the design system for Oztix applications. It exists to make
+building consistent, accessible, and beautiful UI the path of least
+resistance — so teams ship faster without sacrificing quality.
+
+## Core principles
+
+### Tailwind-native
+
+Roadie is not a styling abstraction on top of Tailwind — it _is_ Tailwind.
+Custom `@utility` directives extend Tailwind v4 with semantic color, emphasis,
+and interaction utilities. You write the same classes you already know, with a
+design-system vocabulary layered on top.
+
+### Intent and emphasis
+
+This is the most important concept in Roadie.
+
+**Intent** sets the color context — _what_ palette to use. Apply `intent-accent`,
+`intent-danger`, or `intent-success` to a container and every child inherits
+that palette automatically.
+
+**Emphasis** sets the visual weight — _how_ prominent an element should be.
+`emphasis-strong` is a solid fill, `emphasis-subtle` is a light tint,
+`emphasis-raised` floats with a shadow.
+
+Together they form a two-axis system: intent controls _which_ color,
+emphasis controls _how much_ color. See [Colors](/foundations/colors)
+and [Interactions](/foundations/interactions) for full details.
+
+### Semantic over literal
+
+You won't find `bg-gray-100` or `text-blue-500` in Roadie code. Instead,
+utilities like `bg-normal`, `text-subtle`, and `border-subtle` describe
+purpose, not appearance. These resolve differently depending on the
+active intent, light/dark mode, and theme — no conditional classes needed.
+
+See [Tokens](/tokens) for the full set of semantic values.
+
+### CSS cascade, not prop drilling
+
+Intent flows through the DOM via CSS custom properties. Wrap a section in
+`intent-accent` and every button, badge, and input inside it picks up the
+accent palette — no props to pass, no context providers to wire up. This
+keeps component APIs small and composable.
+
+### Accessible by default
+
+Components are built on [Base UI](https://base-ui.com/) which provides
+keyboard navigation, focus management, and ARIA semantics out of the box.
+Roadie layers styling on top without breaking those guarantees. The
+foundation is always semantic HTML.
+
+See [Accessibility](/foundations/accessibility) for guidelines and testing
+advice.
+
+### Fast by default
+
+Theming is pure CSS — zero JavaScript runtime for colors, dark mode, or
+intent switching. Components are tree-shakeable ESM. Typography scales
+fluidly with `clamp()` instead of breakpoint overrides.
+
+See [Performance](/foundations/performance) for optimisation principles.
+
+## Key concepts
+
+A quick map of the building blocks and where to learn more:
+
+- **Intent** — color palettes (`neutral`, `brand`, `accent`, `danger`,
+  `success`, `warning`, `info`). See [Colors](/foundations/colors).
+- **Emphasis** — visual weight presets (`strong`, `normal`, `subtle`,
+  `raised`, `floating`, etc). See [Colors](/foundations/colors).
+- **Semantic tokens** — purpose-based CSS custom properties for
+  background, text, and border. See [Tokens](/tokens).
+- **Grid-first layout** — `grid gap-*` is the default stack; `flex`
+  is for content-driven rows. See [Layout](/foundations/layout).
+- **Interaction utilities** — `is-interactive` for buttons,
+  `is-interactive-field` for inputs. See
+  [Interactions](/foundations/interactions).
+- **Shape scale** — consistent border-radius tiers from inline to
+  full. See [Shape](/foundations/shape).
+
+## Next steps
+
+- [Getting started](/overview/getting-started) — install and configure
+  Roadie in your project
+- [Components](/components) — browse the component library
+- [Foundations](/foundations/colors) — deep dive into the design
+  foundations

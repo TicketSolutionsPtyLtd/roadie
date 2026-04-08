@@ -1,0 +1,93 @@
+export const metadata = {
+  title: 'Breadcrumb',
+  description: 'A navigation trail showing the current page location within a hierarchy',
+  status: 'beta',
+  category: 'Layout',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Breadcrumb
+
+A navigation trail showing the current page location within a hierarchy.
+
+## Import
+
+```tsx
+import { Breadcrumb } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<Breadcrumb>
+  <Breadcrumb.List>
+    <Breadcrumb.Item>
+      <Breadcrumb.Link href='#'>Home</Breadcrumb.Link>
+      <Breadcrumb.Separator />
+    </Breadcrumb.Item>
+    <Breadcrumb.Item>
+      <Breadcrumb.Link href='#'>Components</Breadcrumb.Link>
+      <Breadcrumb.Separator />
+    </Breadcrumb.Item>
+    <Breadcrumb.Item>
+      <Breadcrumb.Current>Breadcrumb</Breadcrumb.Current>
+    </Breadcrumb.Item>
+  </Breadcrumb.List>
+</Breadcrumb>
+```
+
+### Composition
+
+Use `Breadcrumb.List`, `Breadcrumb.Item`, `Breadcrumb.Link`, `Breadcrumb.Separator`, and `Breadcrumb.Current` to build the trail. The last item uses `Breadcrumb.Current` instead of a link.
+
+#### With custom separator
+
+Pass a custom character or element to `Breadcrumb.Separator`.
+
+```tsx-live
+<Breadcrumb>
+  <Breadcrumb.List>
+    <Breadcrumb.Item>
+      <Breadcrumb.Link href='#'>Home</Breadcrumb.Link>
+      <Breadcrumb.Separator>{'>'}</Breadcrumb.Separator>
+    </Breadcrumb.Item>
+    <Breadcrumb.Item>
+      <Breadcrumb.Link href='#'>Settings</Breadcrumb.Link>
+      <Breadcrumb.Separator>{'>'}</Breadcrumb.Separator>
+    </Breadcrumb.Item>
+    <Breadcrumb.Item>
+      <Breadcrumb.Current>Profile</Breadcrumb.Current>
+    </Breadcrumb.Item>
+  </Breadcrumb.List>
+</Breadcrumb>
+```
+
+### With custom component
+
+Use the `as` prop on `Breadcrumb.Link` to render with a custom component like Next.js `Link`.
+
+```tsx
+import Link from 'next/link'
+
+<Breadcrumb>
+  <Breadcrumb.List>
+    <Breadcrumb.Item>
+      <Breadcrumb.Link as={Link} href='/'>Home</Breadcrumb.Link>
+      <Breadcrumb.Separator />
+    </Breadcrumb.Item>
+    <Breadcrumb.Item>
+      <Breadcrumb.Current>Current page</Breadcrumb.Current>
+    </Breadcrumb.Item>
+  </Breadcrumb.List>
+</Breadcrumb>
+```
+
+## Accessibility
+
+- **Landmark**: Renders as a `<nav>` element with `aria-label="Breadcrumb"` for screen reader navigation.
+- **Current page**: Use `Breadcrumb.Current` (renders as `<span>`) for the active page — screen readers won't announce it as a link.
+
+<PropsDefinitions componentPath='packages/components/src/components/Breadcrumb/index.tsx' />

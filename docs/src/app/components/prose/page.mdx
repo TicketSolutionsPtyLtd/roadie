@@ -1,0 +1,131 @@
+export const metadata = {
+  title: 'Prose',
+  description: 'Container for styling long-form and rich HTML content.',
+  status: 'beta',
+  category: 'Content'
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Prose
+
+Container for long-form content like CMS output, markdown, or user-generated HTML. Applies semantic typography, spacing, and element styles to nested HTML.
+
+## Import
+
+```tsx
+import { Prose } from '@oztix/roadie-components'
+```
+
+## Default
+
+```tsx-live
+<Prose>
+  <h2>Article heading</h2>
+  <p>Body paragraph with <strong>bold text</strong> and <a href="#">a link</a>. The Prose component handles all nested element styling so you don't need to add classes to each element.</p>
+  <h3>Subheading</h3>
+  <p>Another paragraph with <em>emphasis</em> and <code>inline code</code>.</p>
+</Prose>
+```
+
+## Sizes
+
+```tsx-live
+<div className="grid gap-8">
+  <Prose size="sm">
+    <h3>Small prose</h3>
+    <p>Compact content for sidebars, cards, and tight spaces. Uses tighter spacing and smaller heading sizes.</p>
+    <ul><li>Tight list items</li><li>Minimal vertical rhythm</li></ul>
+  </Prose>
+  <Prose size="md">
+    <h3>Medium prose (default)</h3>
+    <p>Standard content size for articles and documentation. Balanced spacing and heading hierarchy.</p>
+    <ul><li>Standard list items</li><li>Comfortable vertical rhythm</li></ul>
+  </Prose>
+  <Prose size="lg">
+    <h3>Large prose</h3>
+    <p>Generous content for landing pages and editorial layouts. Wider spacing and larger base text.</p>
+    <ul><li>Spacious list items</li><li>Open vertical rhythm</li></ul>
+  </Prose>
+</div>
+```
+
+## Lists
+
+```tsx-live
+<Prose>
+  <h3>Unordered list</h3>
+  <ul>
+    <li>First item</li>
+    <li>Second item with more detail</li>
+    <li>Third item</li>
+  </ul>
+  <h3>Ordered list</h3>
+  <ol>
+    <li>Step one</li>
+    <li>Step two</li>
+    <li>Step three</li>
+  </ol>
+</Prose>
+```
+
+## Blockquotes
+
+```tsx-live
+<Prose>
+  <blockquote>
+    Design is not just what it looks like and feels like. Design is how it works.
+  </blockquote>
+  <p>Blockquotes get a left border and subtle text color automatically.</p>
+</Prose>
+```
+
+## Tables
+
+```tsx-live
+<Prose>
+  <table>
+    <thead>
+      <tr>
+        <th>Token</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>text-subtle</td>
+        <td>Step 11</td>
+      </tr>
+      <tr>
+        <td>text-normal</td>
+        <td>Step 12</td>
+      </tr>
+      <tr>
+        <td>text-strong</td>
+        <td>Step 13</td>
+      </tr>
+    </tbody>
+  </table>
+</Prose>
+```
+
+## Custom element
+
+Use the `as` prop to render as a semantic HTML element.
+
+```tsx-live
+<Prose as='article'>
+  <h2>Article heading</h2>
+  <p>This renders as an <code>&lt;article&gt;</code> element instead of a <code>&lt;div&gt;</code>.</p>
+</Prose>
+```
+
+## Guidelines
+
+- Use Prose for **rendered content** — CMS output, markdown, user HTML
+- Do **not** use Prose for app UI — use utility classes directly
+- Use the `as` prop to render with a semantic element like `article` or `section`
+- Prose sets `text-prose` (1.5 line-height) which is wider than `text-ui` (1.35)
+- All heading, list, blockquote, table, and code styles are handled automatically
+
+<PropsDefinitions componentPath='packages/components/src/components/Prose/index.tsx' />

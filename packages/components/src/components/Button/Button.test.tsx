@@ -10,91 +10,66 @@ describe('Button', () => {
     const button = getByText('Click me')
     expect(button).toBeInTheDocument()
     expect(button.tagName.toLowerCase()).toBe('button')
-    expect(button).toHaveClass(
-      'button',
-      'button--emphasis_default',
-      'button--size_md'
-    )
+    expect(button).not.toHaveClass('intent-neutral')
+    expect(button).toHaveClass('is-interactive')
   })
 
   it('renders with different emphasis', () => {
     const { rerender, getByText } = render(
-      <Button emphasis='strong' colorPalette='accent'>
+      <Button emphasis='strong' intent='accent'>
         Strong
       </Button>
     )
     let button = getByText('Strong')
-    expect(button).toHaveClass(
-      'button--emphasis_strong',
-      'color-palette_accent'
-    )
+    expect(button).toHaveClass('emphasis-strong', 'intent-accent')
 
-    rerender(<Button emphasis='default'>Default</Button>)
+    rerender(<Button emphasis='normal'>Default</Button>)
     button = getByText('Default')
-    expect(button).toHaveClass('button--emphasis_default')
+    expect(button).toHaveClass('emphasis-normal')
 
     rerender(<Button emphasis='subtle'>Subtle</Button>)
     button = getByText('Subtle')
-    expect(button).toHaveClass('button--emphasis_subtle')
+    expect(button).toHaveClass('emphasis-subtle')
 
-    rerender(<Button emphasis='subtler'>subtler</Button>)
-    button = getByText('subtler')
-    expect(button).toHaveClass('button--emphasis_subtler')
+    rerender(<Button emphasis='subtler'>Subtler</Button>)
+    button = getByText('Subtler')
+    expect(button).toHaveClass('emphasis-subtler')
   })
 
   it('renders with different sizes', () => {
     const { rerender, getByText } = render(<Button size='sm'>Small</Button>)
     let button = getByText('Small')
-    expect(button).toHaveClass('button--size_sm')
+    expect(button).toHaveClass('btn-sm')
 
     rerender(<Button size='md'>Medium</Button>)
     button = getByText('Medium')
-    expect(button).toHaveClass('button--size_md')
+    expect(button).toHaveClass('btn-md')
 
     rerender(<Button size='lg'>Large</Button>)
     button = getByText('Large')
-    expect(button).toHaveClass('button--size_lg')
+    expect(button).toHaveClass('btn-lg')
   })
 
-  it('renders with different color palettes', () => {
+  it('renders with different intents', () => {
     const { rerender, getByText } = render(
-      <Button emphasis='strong' colorPalette='accent'>
-        Accent
-      </Button>
+      <Button intent='accent'>Accent</Button>
     )
     let button = getByText('Accent')
-    expect(button).toHaveClass('color-palette_accent')
+    expect(button).toHaveClass('intent-accent')
 
-    rerender(
-      <Button emphasis='strong' colorPalette='success'>
-        Success
-      </Button>
-    )
+    rerender(<Button intent='success'>Success</Button>)
     button = getByText('Success')
-    expect(button).toHaveClass('color-palette_success')
+    expect(button).toHaveClass('intent-success')
 
-    rerender(
-      <Button emphasis='strong' colorPalette='warning'>
-        Warning
-      </Button>
-    )
-    button = getByText('Warning')
-    expect(button).toHaveClass('color-palette_warning')
-
-    rerender(
-      <Button emphasis='strong' colorPalette='danger'>
-        Danger
-      </Button>
-    )
+    rerender(<Button intent='danger'>Danger</Button>)
     button = getByText('Danger')
-    expect(button).toHaveClass('color-palette_danger')
+    expect(button).toHaveClass('intent-danger')
   })
 
   it('handles disabled state', () => {
     const { getByText } = render(<Button disabled>Disabled</Button>)
     const button = getByText('Disabled')
     expect(button).toBeDisabled()
-    expect(button).toHaveClass('button')
   })
 
   it('calls onClick when clicked', async () => {
@@ -104,9 +79,7 @@ describe('Button', () => {
     const { getByText } = render(
       <Button onClick={handleClick}>Click me</Button>
     )
-    const button = getByText('Click me')
-
-    await user.click(button)
+    await user.click(getByText('Click me'))
     expect(handleClick).toHaveBeenCalledTimes(1)
   })
 
@@ -119,9 +92,7 @@ describe('Button', () => {
         Click me
       </Button>
     )
-    const button = getByText('Click me')
-
-    await user.click(button)
+    await user.click(getByText('Click me'))
     expect(handleClick).not.toHaveBeenCalled()
   })
 
@@ -129,8 +100,7 @@ describe('Button', () => {
     const { getByText } = render(
       <Button className='custom-class'>Custom</Button>
     )
-    const button = getByText('Custom')
-    expect(button).toHaveClass('custom-class')
+    expect(getByText('Custom')).toHaveClass('custom-class')
   })
 
   it('combines multiple props', () => {
@@ -138,7 +108,7 @@ describe('Button', () => {
       <Button
         emphasis='strong'
         size='lg'
-        colorPalette='accent'
+        intent='accent'
         className='custom-class'
       >
         Combined
@@ -146,10 +116,9 @@ describe('Button', () => {
     )
     const button = getByText('Combined')
     expect(button).toHaveClass(
-      'button',
-      'button--emphasis_strong',
-      'button--size_lg',
-      'color-palette_accent',
+      'emphasis-strong',
+      'intent-accent',
+      'btn-lg',
       'custom-class'
     )
   })

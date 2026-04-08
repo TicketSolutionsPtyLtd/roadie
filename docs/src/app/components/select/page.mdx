@@ -1,0 +1,271 @@
+export const metadata = {
+  title: 'Select',
+  description: 'A dropdown for choosing from a list of options',
+  status: 'beta',
+  category: 'Forms',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Select
+
+A dropdown for choosing from a list of options.
+
+## Import
+
+```tsx
+import { Select } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Default
+
+Pass string children to `Select.Item` for automatic `ItemText` + `ItemIndicator`
+wrapping. Use `Select.Content` as a convenience wrapper for Portal + Positioner + Popup.
+
+```tsx-live
+<Select defaultValue='powderfinger'>
+  <Select.Trigger>
+    <Select.Value placeholder='Pick a band' />
+    <Select.Icon />
+  </Select.Trigger>
+  <Select.Content>
+    <Select.Item value='powderfinger'>Powderfinger</Select.Item>
+    <Select.Item value='custard'>Custard</Select.Item>
+    <Select.Item value='regurgitator'>Regurgitator</Select.Item>
+    <Select.Item value='violent-soho'>Violent Soho</Select.Item>
+    <Select.Item value='dz-deathrays'>DZ Deathrays</Select.Item>
+  </Select.Content>
+</Select>
+```
+
+### Emphasis
+
+```tsx-live
+<div className='grid gap-2'>
+  <Select defaultValue='go-betweens'>
+    <Select.Trigger emphasis='normal'>
+      <Select.Value />
+      <Select.Icon />
+    </Select.Trigger>
+    <Select.Content>
+      <Select.Item value='go-betweens'>The Go-Betweens</Select.Item>
+      <Select.Item value='saints'>The Saints</Select.Item>
+    </Select.Content>
+  </Select>
+  <Select defaultValue='bee-gees'>
+    <Select.Trigger emphasis='subtle'>
+      <Select.Value />
+      <Select.Icon />
+    </Select.Trigger>
+    <Select.Content>
+      <Select.Item value='bee-gees'>Bee Gees</Select.Item>
+      <Select.Item value='savage-garden'>Savage Garden</Select.Item>
+    </Select.Content>
+  </Select>
+</div>
+```
+
+### Sizes
+
+```tsx-live
+<div className='grid gap-2'>
+  <Select defaultValue='ball-park-music'>
+    <Select.Trigger size='sm'>
+      <Select.Value />
+      <Select.Icon />
+    </Select.Trigger>
+    <Select.Content>
+      <Select.Item value='ball-park-music'>Ball Park Music</Select.Item>
+    </Select.Content>
+  </Select>
+  <Select defaultValue='cub-sport'>
+    <Select.Trigger size='md'>
+      <Select.Value />
+      <Select.Icon />
+    </Select.Trigger>
+    <Select.Content>
+      <Select.Item value='cub-sport'>Cub Sport</Select.Item>
+    </Select.Content>
+  </Select>
+  <Select defaultValue='jungle-giants'>
+    <Select.Trigger size='lg'>
+      <Select.Value />
+      <Select.Icon />
+    </Select.Trigger>
+    <Select.Content>
+      <Select.Item value='jungle-giants'>The Jungle Giants</Select.Item>
+    </Select.Content>
+  </Select>
+</div>
+```
+
+### States
+
+The trigger uses `is-interactive-field` for state-based colour transitions:
+neutral at rest, accent on focus/open, danger when invalid.
+
+```tsx-live
+<div className='grid gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Default</p>
+    <Select defaultValue='goon-sax'>
+      <Select.Trigger>
+        <Select.Value />
+        <Select.Icon />
+      </Select.Trigger>
+      <Select.Content>
+        <Select.Item value='goon-sax'>The Goon Sax</Select.Item>
+      </Select.Content>
+    </Select>
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <Select defaultValue='powderfinger' disabled>
+      <Select.Trigger>
+        <Select.Value />
+        <Select.Icon />
+      </Select.Trigger>
+      <Select.Content>
+        <Select.Item value='powderfinger'>Powderfinger</Select.Item>
+      </Select.Content>
+    </Select>
+  </div>
+</div>
+```
+
+### Composition
+
+#### With Field
+
+Wrap Select in [Field](/components/field) for consistent layout, labels, and
+error handling. Field provides spacing, label wiring, and context flow
+automatically.
+
+```tsx-live
+<Field required>
+  <Field.Label showIndicator>Favourite band</Field.Label>
+  <Select defaultValue='powderfinger'>
+    <Select.Trigger>
+      <Select.Value placeholder='Pick a band' />
+      <Select.Icon />
+    </Select.Trigger>
+    <Select.Content>
+      <Select.Item value='powderfinger'>Powderfinger</Select.Item>
+      <Select.Item value='custard'>Custard</Select.Item>
+      <Select.Item value='regurgitator'>Regurgitator</Select.Item>
+    </Select.Content>
+  </Select>
+</Field>
+```
+
+#### With Field and error
+
+```tsx-live
+<Field invalid required>
+  <Field.Label showIndicator>Favourite band</Field.Label>
+  <Select>
+    <Select.Trigger>
+      <Select.Value placeholder='Pick a band' />
+      <Select.Icon />
+    </Select.Trigger>
+    <Select.Content>
+      <Select.Item value='powderfinger'>Powderfinger</Select.Item>
+      <Select.Item value='custard'>Custard</Select.Item>
+      <Select.Item value='regurgitator'>Regurgitator</Select.Item>
+    </Select.Content>
+  </Select>
+  <Field.ErrorText>Please select a band.</Field.ErrorText>
+</Field>
+```
+
+#### With standalone label
+
+Select also has its own `Select.Label` for standalone usage without a Field
+wrapper. Use `showIndicator` to show a required or optional indicator.
+
+```tsx-live
+<Select defaultValue='powderfinger' required>
+  <div className='grid gap-1.5'>
+    <Select.Label showIndicator>Favourite band</Select.Label>
+    <Select.Trigger>
+      <Select.Value placeholder='Pick a band' />
+      <Select.Icon />
+    </Select.Trigger>
+  </div>
+  <Select.Content>
+    <Select.Item value='powderfinger'>Powderfinger</Select.Item>
+    <Select.Item value='custard'>Custard</Select.Item>
+    <Select.Item value='regurgitator'>Regurgitator</Select.Item>
+  </Select.Content>
+</Select>
+```
+
+#### With groups
+
+```tsx-live
+<Select defaultValue='powderfinger'>
+  <Select.Trigger>
+    <Select.Value placeholder='Pick a band' />
+    <Select.Icon />
+  </Select.Trigger>
+  <Select.Content>
+    <Select.Group>
+      <Select.GroupLabel>Brisbane</Select.GroupLabel>
+      <Select.Item value='powderfinger'>Powderfinger</Select.Item>
+      <Select.Item value='custard'>Custard</Select.Item>
+      <Select.Item value='go-betweens'>The Go-Betweens</Select.Item>
+      <Select.Item value='saints'>The Saints</Select.Item>
+    </Select.Group>
+    <Select.Group>
+      <Select.GroupLabel>Gold Coast</Select.GroupLabel>
+      <Select.Item value='violent-soho'>Violent Soho</Select.Item>
+      <Select.Item value='dz-deathrays'>DZ Deathrays</Select.Item>
+      <Select.Item value='goon-sax'>The Goon Sax</Select.Item>
+    </Select.Group>
+  </Select.Content>
+</Select>
+```
+
+## Guidelines
+
+### When to use Select
+
+Use Select when the list of options is **known, short, and fixed**. The user
+picks from a closed set — they don't need to search or type a custom value.
+
+- Country/state dropdowns (small set)
+- Status or category pickers
+- Sort-by controls
+- Any list under ~15 items where scanning is faster than typing
+
+### When to use Combobox instead
+
+If users are likely to **search** the list, the list is **long** (15+ items), or
+options load **asynchronously**, use [Combobox](/components/combobox).
+
+| Question | Select | Combobox |
+|---|---|---|
+| Can the user type to filter? | No (typeahead only) | Yes |
+| Is the list longer than ~15 items? | Avoid | Preferred |
+| Are options loaded from an API? | No | Yes |
+| Can the user enter a custom value? | No | Possible |
+| Does the user know roughly what they want? | Maybe not — they browse | Yes — they search |
+
+### Keyboard behaviour
+
+Select delegates all keyboard handling to Base UI:
+
+- **Arrow keys** navigate the list
+- **Typeahead** jumps to items by first letter(s)
+- **Enter / Space** confirms the highlighted item
+- **Escape** closes the popup
+
+### Accessibility
+
+- Always pair with `Select.Label` or an `aria-label` on the trigger.
+- `Select.ItemIndicator` provides a visible check for the selected item — include it for clarity.
+- The popup locks scroll by default (`modal={true}`). Set `modal={false}` if the select appears in a non-blocking context like a toolbar.
+
+<PropsDefinitions componentPath='packages/components/src/components/Select/index.tsx' />

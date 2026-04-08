@@ -1,5 +1,3 @@
-import { forwardRef } from 'react'
-
 import {
   SpotIllustration,
   type SpotIllustrationProps
@@ -28,17 +26,11 @@ export type SpotIllustrationComponentProps = Omit<
  * ```
  */
 export function createSpotIllustration(name: string, data: unknown) {
-  const Component = forwardRef<SVGSVGElement, SpotIllustrationComponentProps>(
-    (props, ref) => {
-      return (
-        <SpotIllustration
-          ref={ref}
-          illustration={data as IllustrationJson}
-          {...props}
-        />
-      )
-    }
-  )
+  function Component(props: SpotIllustrationComponentProps) {
+    return (
+      <SpotIllustration illustration={data as IllustrationJson} {...props} />
+    )
+  }
 
   Component.displayName = name
 
