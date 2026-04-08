@@ -1,7 +1,7 @@
 import { CodePreview } from '@/components/CodePreview'
 import { Guideline } from '@/components/Guideline'
 
-import { Code, Prose } from '@oztix/roadie-components'
+import { Code } from '@oztix/roadie-components'
 
 export const metadata = {
   title: 'Typography',

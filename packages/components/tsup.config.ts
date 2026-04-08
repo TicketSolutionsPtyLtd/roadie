@@ -81,8 +81,8 @@ export default defineConfig({
           const chunkPath = join(__dirname, 'dist', match[1])
           addUseClientToFile(chunkPath, visited)
         }
-      } catch {
-        // File might not exist
+      } catch (error) {
+        console.warn(`Failed to process ${filePath}:`, error)
       }
     }
 
