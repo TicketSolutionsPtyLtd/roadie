@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentProps } from 'react'
+import type { RefAttributes } from 'react'
 
 import { Button as ButtonPrimitive } from '@base-ui/react/button'
 import { type VariantProps, cva } from 'class-variance-authority'
@@ -35,9 +35,9 @@ export const buttonVariants = cva('btn is-interactive', {
   }
 })
 
-export interface ButtonProps
-  extends ComponentProps<typeof ButtonPrimitive>,
-    VariantProps<typeof buttonVariants> {}
+export type ButtonProps = ButtonPrimitive.Props &
+  RefAttributes<HTMLElement> &
+  VariantProps<typeof buttonVariants>
 
 export function Button({
   className,

@@ -66,13 +66,12 @@ export const radioGroupItemVariants = cva(
 
 /* ─── Root ─── */
 
-export interface RadioGroupRootProps
-  extends ComponentProps<typeof RadioGroupPrimitive>,
-    VariantProps<typeof radioGroupVariants> {
-  emphasis?: RadioGroupEmphasis
-  invalid?: boolean
-  required?: boolean
-}
+export type RadioGroupRootProps = RadioGroupPrimitive.Props &
+  VariantProps<typeof radioGroupVariants> & {
+    emphasis?: RadioGroupEmphasis
+    invalid?: boolean
+    required?: boolean
+  }
 
 function RadioGroupRoot({
   className,
@@ -114,7 +113,7 @@ RadioGroupRoot.displayName = 'RadioGroup'
 
 /* ─── Item ─── */
 
-export interface RadioGroupItemProps extends ComponentProps<typeof Radio.Root> {
+export type RadioGroupItemProps = Radio.Root.Props & {
   label?: string
   description?: string
 }

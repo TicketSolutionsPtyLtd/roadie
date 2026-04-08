@@ -28,7 +28,8 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && pnpm check:dts",
+    "check:dts": "! grep -r 'ComponentProps<typeof' dist/*.d.ts dist/**/*.d.ts 2>/dev/null || (echo 'ERROR: dist .d.ts files contain ComponentProps<typeof> — use named prop types instead' && exit 1)",
     "build:spotillustration": "node scripts/svg-to-spot-illustration.cjs",
     "clean": "rm -rf node_modules dist",
     "dev": "tsup --watch",

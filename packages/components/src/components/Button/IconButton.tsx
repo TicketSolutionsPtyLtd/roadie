@@ -1,11 +1,8 @@
 'use client'
 
-import type { ComponentProps } from 'react'
+import { Button, type ButtonProps } from './Button'
 
-import { Button } from './Button'
-
-export interface IconButtonProps
-  extends Omit<ComponentProps<typeof Button>, 'aria-label'> {
+export type IconButtonProps = Omit<ButtonProps, 'aria-label'> & {
   'aria-label': string
 }
 

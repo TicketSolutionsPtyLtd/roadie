@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentProps } from 'react'
+import type { RefAttributes } from 'react'
 
 import {
   type ComboboxFilter,
@@ -46,8 +46,7 @@ export const comboboxInputGroupVariants = cva(
 
 /* ─── Root ─── */
 
-export interface ComboboxRootProps
-  extends ComponentProps<typeof ComboboxPrimitive.Root> {}
+export type ComboboxRootProps = ComboboxPrimitive.Root.Props<unknown>
 
 export function ComboboxRoot(props: ComboboxRootProps) {
   return <ComboboxPrimitive.Root {...props} />
@@ -57,8 +56,8 @@ ComboboxRoot.displayName = 'Combobox'
 
 /* ─── Label ─── */
 
-export interface ComboboxLabelProps
-  extends ComponentProps<typeof ComboboxPrimitive.Label> {}
+export type ComboboxLabelProps = ComboboxPrimitive.Label.Props &
+  RefAttributes<HTMLDivElement>
 
 export function ComboboxLabel({ className, ...props }: ComboboxLabelProps) {
   return (
@@ -73,9 +72,9 @@ ComboboxLabel.displayName = 'Combobox.Label'
 
 /* ─── InputGroup ─── */
 
-export interface ComboboxInputGroupProps
-  extends ComponentProps<typeof ComboboxPrimitive.InputGroup>,
-    VariantProps<typeof comboboxInputGroupVariants> {}
+export type ComboboxInputGroupProps = ComboboxPrimitive.InputGroup.Props &
+  RefAttributes<HTMLDivElement> &
+  VariantProps<typeof comboboxInputGroupVariants>
 
 export function ComboboxInputGroup({
   className,
@@ -102,8 +101,8 @@ ComboboxInputGroup.displayName = 'Combobox.InputGroup'
 
 /* ─── Input ─── */
 
-export interface ComboboxInputProps
-  extends ComponentProps<typeof ComboboxPrimitive.Input> {}
+export type ComboboxInputProps = ComboboxPrimitive.Input.Props &
+  RefAttributes<HTMLInputElement>
 
 export function ComboboxInput({ className, ...props }: ComboboxInputProps) {
   const fieldContext = useFieldContext()
@@ -132,8 +131,8 @@ ComboboxInput.displayName = 'Combobox.Input'
 
 /* ─── Trigger ─── */
 
-export interface ComboboxTriggerProps
-  extends ComponentProps<typeof ComboboxPrimitive.Trigger> {}
+export type ComboboxTriggerProps = ComboboxPrimitive.Trigger.Props &
+  RefAttributes<HTMLButtonElement>
 
 export function ComboboxTrigger({
   className,
@@ -157,8 +156,8 @@ ComboboxTrigger.displayName = 'Combobox.Trigger'
 
 /* ─── Clear ─── */
 
-export interface ComboboxClearProps
-  extends ComponentProps<typeof ComboboxPrimitive.Clear> {}
+export type ComboboxClearProps = ComboboxPrimitive.Clear.Props &
+  RefAttributes<HTMLButtonElement>
 
 export function ComboboxClear({
   className,
@@ -182,8 +181,8 @@ ComboboxClear.displayName = 'Combobox.Clear'
 
 /* ─── Portal ─── */
 
-export interface ComboboxPortalProps
-  extends ComponentProps<typeof ComboboxPrimitive.Portal> {}
+export type ComboboxPortalProps = ComboboxPrimitive.Portal.Props &
+  RefAttributes<HTMLDivElement>
 
 export function ComboboxPortal(props: ComboboxPortalProps) {
   return <ComboboxPrimitive.Portal {...props} />
@@ -193,8 +192,8 @@ ComboboxPortal.displayName = 'Combobox.Portal'
 
 /* ─── Positioner ─── */
 
-export interface ComboboxPositionerProps
-  extends ComponentProps<typeof ComboboxPrimitive.Positioner> {}
+export type ComboboxPositionerProps = ComboboxPrimitive.Positioner.Props &
+  RefAttributes<HTMLDivElement>
 
 export function ComboboxPositioner({
   className,
@@ -213,8 +212,8 @@ ComboboxPositioner.displayName = 'Combobox.Positioner'
 
 /* ─── Popup ─── */
 
-export interface ComboboxPopupProps
-  extends ComponentProps<typeof ComboboxPrimitive.Popup> {}
+export type ComboboxPopupProps = ComboboxPrimitive.Popup.Props &
+  RefAttributes<HTMLDivElement>
 
 export function ComboboxPopup({ className, ...props }: ComboboxPopupProps) {
   return (
@@ -233,8 +232,8 @@ ComboboxPopup.displayName = 'Combobox.Popup'
 
 /* ─── List ─── */
 
-export interface ComboboxListProps
-  extends ComponentProps<typeof ComboboxPrimitive.List> {}
+export type ComboboxListProps = ComboboxPrimitive.List.Props &
+  RefAttributes<HTMLDivElement>
 
 export function ComboboxList({ className, ...props }: ComboboxListProps) {
   return <ComboboxPrimitive.List className={className} {...props} />
@@ -244,8 +243,8 @@ ComboboxList.displayName = 'Combobox.List'
 
 /* ─── Item ─── */
 
-export interface ComboboxItemProps
-  extends ComponentProps<typeof ComboboxPrimitive.Item> {}
+export type ComboboxItemProps = ComboboxPrimitive.Item.Props &
+  RefAttributes<HTMLDivElement>
 
 export function ComboboxItem({ className, ...props }: ComboboxItemProps) {
   return (
@@ -264,8 +263,7 @@ ComboboxItem.displayName = 'Combobox.Item'
 
 /* ─── Collection ─── */
 
-export interface ComboboxCollectionProps
-  extends ComponentProps<typeof ComboboxPrimitive.Collection> {}
+export type ComboboxCollectionProps = ComboboxPrimitive.Collection.Props
 
 export function ComboboxCollection(props: ComboboxCollectionProps) {
   return <ComboboxPrimitive.Collection {...props} />
@@ -275,8 +273,8 @@ ComboboxCollection.displayName = 'Combobox.Collection'
 
 /* ─── ItemIndicator ─── */
 
-export interface ComboboxItemIndicatorProps
-  extends ComponentProps<typeof ComboboxPrimitive.ItemIndicator> {}
+export type ComboboxItemIndicatorProps = ComboboxPrimitive.ItemIndicator.Props &
+  RefAttributes<HTMLSpanElement>
 
 export function ComboboxItemIndicator({
   className,
@@ -297,8 +295,8 @@ ComboboxItemIndicator.displayName = 'Combobox.ItemIndicator'
 
 /* ─── Group ─── */
 
-export interface ComboboxGroupProps
-  extends ComponentProps<typeof ComboboxPrimitive.Group> {}
+export type ComboboxGroupProps = ComboboxPrimitive.Group.Props &
+  RefAttributes<HTMLDivElement>
 
 export function ComboboxGroup({ className, ...props }: ComboboxGroupProps) {
   return (
@@ -313,8 +311,8 @@ ComboboxGroup.displayName = 'Combobox.Group'
 
 /* ─── GroupLabel ─── */
 
-export interface ComboboxGroupLabelProps
-  extends ComponentProps<typeof ComboboxPrimitive.GroupLabel> {}
+export type ComboboxGroupLabelProps = ComboboxPrimitive.GroupLabel.Props &
+  RefAttributes<HTMLDivElement>
 
 export function ComboboxGroupLabel({
   className,
@@ -335,8 +333,8 @@ ComboboxGroupLabel.displayName = 'Combobox.GroupLabel'
 
 /* ─── Empty ─── */
 
-export interface ComboboxEmptyProps
-  extends ComponentProps<typeof ComboboxPrimitive.Empty> {}
+export type ComboboxEmptyProps = ComboboxPrimitive.Empty.Props &
+  RefAttributes<HTMLDivElement>
 
 export function ComboboxEmpty({ className, ...props }: ComboboxEmptyProps) {
   return (
@@ -354,8 +352,8 @@ ComboboxEmpty.displayName = 'Combobox.Empty'
 
 /* ─── Status ─── */
 
-export interface ComboboxStatusProps
-  extends ComponentProps<typeof ComboboxPrimitive.Status> {}
+export type ComboboxStatusProps = ComboboxPrimitive.Status.Props &
+  RefAttributes<HTMLDivElement>
 
 export function ComboboxStatus({ className, ...props }: ComboboxStatusProps) {
   return (
