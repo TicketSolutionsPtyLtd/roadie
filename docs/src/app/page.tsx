@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 
 import {
@@ -30,6 +31,15 @@ export default function Home() {
     <main className='mx-auto grid max-w-4xl gap-20 py-8'>
       {/* Hero */}
       <section className='grid gap-8'>
+        <div className='relative aspect-square w-40'>
+          <Image
+            src='/roadie-logo.png'
+            alt='Roadie Design System'
+            fill
+            priority
+            style={{ objectFit: 'contain' }}
+          />
+        </div>
         <div className='grid gap-3'>
           <h1 className='text-display-prose-1 text-strong'>
             Roadie design system

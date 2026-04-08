@@ -7,8 +7,6 @@ import { usePathname } from 'next/navigation'
 
 import { ListIcon, MoonIcon, SunIcon, XIcon } from '@phosphor-icons/react'
 
-import { Image } from '@/components/Image'
-
 import { Button, IconButton, useTheme } from '@oztix/roadie-components'
 
 interface NavigationItem {
@@ -20,25 +18,6 @@ interface NavigationItem {
 
 interface NavigationProps {
   items: NavigationItem[]
-}
-
-function Logo() {
-  return (
-    <Link
-      href='/'
-      className='relative block aspect-square w-full focus:rounded focus:outline-2 focus:outline-offset-2 focus:outline-accent-9'
-      aria-label='Go to Roadie home page'
-      role='banner'
-    >
-      <Image
-        src='/roadie-logo.png'
-        alt='Roadie Design System'
-        fill
-        priority
-        style={{ objectFit: 'contain' }}
-      />
-    </Link>
-  )
 }
 
 function ThemeToggle() {
@@ -148,9 +127,6 @@ function NavigationContent({
 }) {
   return (
     <div className='flex h-full flex-col gap-6 pt-6'>
-      <div className='flex shrink-0 items-center px-4'>
-        <Logo />
-      </div>
       <div className='flex shrink-0 grow flex-col gap-6 px-4'>
         {items.map((item, index) => (
           <NavigationGroup key={index} item={item} onNavigate={onNavigate} />
