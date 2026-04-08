@@ -3,7 +3,7 @@ title: 'feat: Migrate design system from PandaCSS to Tailwind v4 + Base UI'
 type: feat
 status: active
 date: 2026-03-31
-updated: 2026-04-09
+updated: 2026-04-08
 origin: docs/brainstorms/2026-03-31-tailwind-migration-brainstorm.md
 ---
 
@@ -13,7 +13,7 @@ origin: docs/brainstorms/2026-03-31-tailwind-migration-brainstorm.md
 
 Major v2 overhaul of the Roadie design system: replace PandaCSS with Tailwind CSS v4, replace Ark UI with Base UI, and introduce a Tailwind-native intent/emphasis semantic styling system using `@utility` directives. The system must serve React apps (full component library) and a legacy Vue app (tokens + utility classes).
 
-Work on branch `feature/v2-tailwind-migration` (124 commits from `main`).
+Work on branch `feature/v2-tailwind-migration` (130 commits from `main`). PR: #26.
 
 ## Implementation Phases
 
@@ -236,7 +236,7 @@ Code review (commit `395507e`):
 
 ### Phase 5c: Pre-Release Code Review — COMPLETE
 
-Multi-agent code review (commit `TODO`):
+Multi-agent code review (commit `2db06b0`):
 
 - [x] Fix ErrorText null-check inconsistency — aligned Select, RadioGroup, Fieldset to use `!invalid` (same as Field). Fieldset gains `invalid` prop + context.
 - [x] Externalize `@ark-ui/react` in tsup, moved to peerDependencies
@@ -285,7 +285,7 @@ The Oztix Website (`~/Code/ticketsolutions.oztix.website/src/TicketSolutions.Ozt
 - [x] Update README files
 - [x] Pre-release code review (Phase 5c)
 - [x] Lazy-load colorjs.io via dynamic import
-- [ ] Changesets setup + major version bump (v2.0.0)
+- [x] Changesets setup + major version bump (v2.0.0) — changeset added, package versions reset to 1.2.0 for changesets to bump
 - [ ] Tag release, publish to npm
 - [ ] Deploy updated docs site
 - [ ] Merge website migration branch
