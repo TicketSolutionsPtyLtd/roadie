@@ -11,7 +11,10 @@ type BlockquoteProps = ComponentPropsWithoutRef<'blockquote'>
 
 const components = {
   h1: (props: ComponentPropsWithoutRef<'h1'>) => (
-    <h1 className='mb-4 pt-8 text-display-prose-1 text-strong' {...props} />
+    <h1
+      className='mb-3 pt-8 text-display-prose-1 text-strong first:pt-0'
+      {...props}
+    />
   ),
   h2: (props: ComponentPropsWithoutRef<'h2'>) => (
     <h2 className='mt-12 mb-4 text-display-prose-2 text-strong' {...props} />
@@ -29,7 +32,7 @@ const components = {
     <h6 className='mt-8 mb-4 text-display-prose-6 text-strong' {...props} />
   ),
   p: (props: ComponentPropsWithoutRef<'p'>) => (
-    <p className='mb-4 text-lg leading-relaxed' {...props} />
+    <p className='mb-4 text-lg text-subtle' {...props} />
   ),
   ol: (props: ComponentPropsWithoutRef<'ol'>) => (
     <ol className='mb-8 grid list-decimal gap-2 pl-8' {...props} />
@@ -38,13 +41,13 @@ const components = {
     <ul className='mb-8 grid list-disc gap-2 pl-8' {...props} />
   ),
   li: (props: ComponentPropsWithoutRef<'li'>) => (
-    <li className='pl-1 text-lg leading-relaxed' {...props} />
+    <li className='pl-1 text-lg text-subtle' {...props} />
   ),
   em: (props: ComponentPropsWithoutRef<'em'>) => (
-    <em className='text-[inherit] italic' {...props} />
+    <em className='text-inherit italic' {...props} />
   ),
   strong: (props: ComponentPropsWithoutRef<'strong'>) => (
-    <strong className='text-[inherit] text-strong' {...props} />
+    <strong className='text-strong' {...props} />
   ),
   a: ({ href, children, ...props }: AnchorProps) => {
     const className = 'text-accent-11 hover:text-accent-9'
