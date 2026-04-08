@@ -22,9 +22,13 @@ import { Card } from '@oztix/roadie-components'
 ### Default
 
 ```tsx-live
-<Card>
+<Card href='#'>
+  <Card.Header>
+    <Card.Title>Midnight Frequency</Card.Title>
+    <Card.Description>Live at The Triffid, Brisbane</Card.Description>
+  </Card.Header>
   <Card.Content>
-    <p>Card content</p>
+    <p>An evening of electronic beats and ambient soundscapes under the stars.</p>
   </Card.Content>
 </Card>
 ```
@@ -33,14 +37,41 @@ import { Card } from '@oztix/roadie-components'
 
 ```tsx-live
 <div className='grid gap-4'>
-  <Card emphasis='raised'>
-    <Card.Content><p>Raised</p></Card.Content>
+  <Card href='#' emphasis='raised'>
+    <Card.Header>
+      <Card.Title>Raised</Card.Title>
+      <Card.Description>Featured event</Card.Description>
+    </Card.Header>
+    <Card.Content>
+      <p>Use for primary or featured content that should stand out.</p>
+    </Card.Content>
   </Card>
-  <Card emphasis='normal'>
-    <Card.Content><p>Normal</p></Card.Content>
+  <Card href='#' emphasis='normal'>
+    <Card.Header>
+      <Card.Title>Normal</Card.Title>
+      <Card.Description>Standard event</Card.Description>
+    </Card.Header>
+    <Card.Content>
+      <p>Default emphasis for general-purpose cards.</p>
+    </Card.Content>
   </Card>
-  <Card emphasis='subtle'>
-    <Card.Content><p>Subtle</p></Card.Content>
+  <Card href='#' emphasis='subtle'>
+    <Card.Header>
+      <Card.Title>Subtle</Card.Title>
+      <Card.Description>Related event</Card.Description>
+    </Card.Header>
+    <Card.Content>
+      <p>Use for secondary or supporting content.</p>
+    </Card.Content>
+  </Card>
+  <Card href='#' emphasis='subtler'>
+    <Card.Header>
+      <Card.Title>Subtler</Card.Title>
+      <Card.Description>Background content</Card.Description>
+    </Card.Header>
+    <Card.Content>
+      <p>Invisible at rest — reveals on hover. Use for interactive lists or grids.</p>
+    </Card.Content>
   </Card>
 </div>
 ```
@@ -49,14 +80,58 @@ import { Card } from '@oztix/roadie-components'
 
 ```tsx-live
 <div className='grid gap-4'>
-  <Card intent='accent'>
-    <Card.Content><p>Accent</p></Card.Content>
+  <Card href='#' intent='accent' emphasis='subtle'>
+    <Card.Content>
+      <p className='text-sm font-semibold'>On sale now</p>
+      <p className='text-sm'>Early bird tickets available until Friday.</p>
+    </Card.Content>
   </Card>
-  <Card intent='success'>
-    <Card.Content><p>Success</p></Card.Content>
+  <Card href='#' intent='success' emphasis='subtle'>
+    <Card.Content>
+      <p className='text-sm font-semibold'>Booking confirmed</p>
+      <p className='text-sm'>Your tickets for Sunset Sounds have been reserved.</p>
+    </Card.Content>
   </Card>
-  <Card intent='danger'>
-    <Card.Content><p>Danger</p></Card.Content>
+  <Card href='#' intent='danger' emphasis='subtle'>
+    <Card.Content>
+      <p className='text-sm font-semibold'>Almost sold out</p>
+      <p className='text-sm'>Only 12 tickets remaining for Neon Dusk.</p>
+    </Card.Content>
+  </Card>
+</div>
+```
+
+### With image
+
+The subtler card has padding around the image, giving it inset rounded corners. The normal card uses a full-bleed image with `overflow-hidden`.
+
+```tsx-live
+<div className='grid grid-cols-2 gap-4'>
+  <Card href='#' emphasis='subtler'>
+    <Card.Image
+      src='https://placehold.co/600x600/1a1a2e/e0e0e0?text=Harbour+Cruise'
+      alt='Sunset Harbour Cruise'
+      className='aspect-square'
+    />
+    <Card.Header>
+      <Card.Title>Sunset Harbour Cruise</Card.Title>
+      <Card.Description>17 May &middot; 6:00 PM</Card.Description>
+      <Card.Description>Riverside Wharf</Card.Description>
+    </Card.Header>
+    <Card.Footer>
+      <p className='text-strong font-semibold'>$89</p>
+    </Card.Footer>
+  </Card>
+  <Card href='#' className='overflow-hidden'>
+    <Card.Image
+      src='https://placehold.co/600x300/2e1a2e/e0e0e0?text=Chef+Dinner'
+      alt='Long Table Dinner'
+    />
+    <Card.Header>
+      <Card.Description>Dining &amp; Social</Card.Description>
+      <Card.Title>Long Table Dinner with Marco Bellucci</Card.Title>
+      <Card.Description>24 May &middot; 3 hrs</Card.Description>
+    </Card.Header>
   </Card>
 </div>
 ```
@@ -68,14 +143,15 @@ Use `Card.Header`, `Card.Content`, and `Card.Footer` to structure content.
 ```tsx-live
 <Card>
   <Card.Header>
-    <h2 className='text-display-ui-6 text-strong'>Card title</h2>
-    <p className='text-sm'>A short description of the card content.</p>
+    <Card.Title>Sunset Sounds Festival</Card.Title>
+    <Card.Description>3-day music festival — Gold Coast Parklands</Card.Description>
   </Card.Header>
   <Card.Content>
-    <p>This is the main content area of the card.</p>
+    <p>Three days of live music across four stages featuring local and international artists. Food trucks, art installations, and late-night DJ sets.</p>
   </Card.Content>
   <Card.Footer>
-    <Button size='sm'>Action</Button>
+    <Button size='sm'>Buy tickets</Button>
+    <Button size='sm' emphasis='subtler'>Learn more</Button>
   </Card.Footer>
 </Card>
 ```
