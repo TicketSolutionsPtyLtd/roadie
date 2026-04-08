@@ -1,5 +1,11 @@
 # @oztix/roadie-components
 
+## 2.0.1
+
+### Patch Changes
+
+- d4f9539: Fix .d.ts type resolution for pnpm consumers. Use named prop types with type aliases instead of ComponentProps, add RefAttributes for ref forwarding, and move @base-ui/react and class-variance-authority to peer dependencies so consumers can resolve exported types. Adds attw and check:dts build guards to prevent regressions.
+
 ## 2.0.0
 
 ### Major Changes
