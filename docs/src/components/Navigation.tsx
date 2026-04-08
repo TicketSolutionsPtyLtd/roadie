@@ -1,13 +1,27 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-import { ListIcon, MoonIcon, SunIcon, XIcon } from '@phosphor-icons/react'
+import {
+  CheckIcon,
+  ListIcon,
+  MoonIcon,
+  SunIcon,
+  XIcon
+} from '@phosphor-icons/react'
 
 import { Button, IconButton, useTheme } from '@oztix/roadie-components'
+
+const ACCENT_PRESETS = [
+  { label: 'Blue (default)', hex: '#0091EB' },
+  { label: 'Purple', hex: '#7C3AED' },
+  { label: 'Green', hex: '#72BF44' },
+  { label: 'Orange', hex: '#EA580C' },
+  { label: 'Pink', hex: '#E83068' }
+]
 
 interface NavigationItem {
   title: string
@@ -25,7 +39,6 @@ function ThemeToggle() {
 
   return (
     <Button
-      emphasis='subtler'
       size='sm'
       className='w-full'
       onClick={() => setDark(!isDark)}
@@ -36,8 +49,66 @@ function ThemeToggle() {
       ) : (
         <MoonIcon weight='bold' className='size-4' />
       )}
-      <span className='text-sm'>{isDark ? 'Light' : 'Dark'} mode</span>
+      <span>{isDark ? 'Light' : 'Dark'} mode</span>
     </Button>
+  )
+}
+
+function AccentPicker() {
+  const { accentColor, setAccentColor } = useTheme()
+  const [isOpen, setIsOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  const close = useCallback(() => setIsOpen(false), [])
+
+  useEffect(() => {
+    if (!isOpen) return
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) close()
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [isOpen, close])
+
+  return (
+    <div ref={ref} className='relative'>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className='size-8 rounded-full border-subtle ring-0 ring-accent-6 transition-shadow hover:ring-4'
+        style={{ backgroundColor: accentColor }}
+        aria-label='Change accent color'
+      />
+      {isOpen && (
+        <div className='absolute -right-1 bottom-full mb-2 grid justify-items-center gap-1.5 rounded-xl emphasis-floating p-2'>
+          <h3 className='text-medium text-sm'>Accent color</h3>
+          <div className='flex gap-1.5'>
+            {ACCENT_PRESETS.map((preset) => {
+              const isActive =
+                accentColor.toLowerCase() === preset.hex.toLowerCase()
+              return (
+                <button
+                  key={preset.hex}
+                  onClick={() => {
+                    setAccentColor(preset.hex)
+                    close()
+                  }}
+                  className='grid size-7 place-items-center rounded-full ring-0 ring-neutral-5 transition-transform hover:scale-110 hover:shadow-lg hover:ring-2'
+                  style={{ backgroundColor: preset.hex }}
+                  aria-label={preset.label}
+                >
+                  {isActive && (
+                    <CheckIcon
+                      weight='bold'
+                      className='size-3.5 text-neutral-0'
+                    />
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -132,8 +203,9 @@ function NavigationContent({
           <NavigationGroup key={index} item={item} onNavigate={onNavigate} />
         ))}
       </div>
-      <div className='sticky bottom-0 mt-auto shrink-0 bg-sunken p-4'>
+      <div className='sticky bottom-0 mt-auto flex shrink-0 items-center gap-2 border border-t-subtle bg-raised p-4'>
         <ThemeToggle />
+        <AccentPicker />
       </div>
     </div>
   )
