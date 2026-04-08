@@ -28,8 +28,9 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsup && pnpm check:dts",
+    "build": "tsup && pnpm check:dts && pnpm check:exports",
     "check:dts": "! grep -r 'ComponentProps<typeof' dist/*.d.ts dist/**/*.d.ts 2>/dev/null || (echo 'ERROR: dist .d.ts files contain ComponentProps<typeof> — use named prop types instead' && exit 1)",
+    "check:exports": "attw --pack . --profile esm-only",
     "build:spotillustration": "node scripts/svg-to-spot-illustration.cjs",
     "clean": "rm -rf node_modules dist",
     "dev": "tsup --watch",
@@ -57,6 +58,7 @@
     "class-variance-authority": "^0.7.1"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.2",
     "@ark-ui/react": "5.35.0",
     "@phosphor-icons/react": "^2.1.10",
     "@size-limit/preset-small-lib": "12.0.1",
