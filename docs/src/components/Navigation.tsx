@@ -9,7 +9,7 @@ import { ListIcon, MoonIcon, SunIcon, XIcon } from '@phosphor-icons/react'
 
 import { Image } from '@/components/Image'
 
-import { Button, useTheme } from '@oztix/roadie-components'
+import { Button, IconButton, useTheme } from '@oztix/roadie-components'
 
 interface NavigationItem {
   title: string
@@ -115,7 +115,10 @@ function NavigationGroup({
             const isActive = pathname === subItem.href
 
             return (
-              <li key={subItem.href} className='m-0 list-none p-0'>
+              <li
+                key={subItem.href ?? subItem.title}
+                className='m-0 list-none p-0'
+              >
                 <Link
                   href={subItem.href || '#'}
                   onClick={onNavigate}
@@ -181,13 +184,14 @@ export function Navigation({ items }: NavigationProps) {
   return (
     <>
       {/* Mobile hamburger */}
-      <button
+      <IconButton
         onClick={() => setIsOpen(true)}
-        className='is-interactive fixed top-3 left-3 z-50 flex size-10 emphasis-normal items-center justify-center rounded-lg md:hidden'
+        emphasis='normal'
+        className='fixed top-3 left-3 z-50 md:hidden'
         aria-label='Open navigation'
       >
         <ListIcon weight='bold' className='size-5' />
-      </button>
+      </IconButton>
 
       {/* Mobile overlay */}
       {isOpen && (
@@ -203,13 +207,14 @@ export function Navigation({ items }: NavigationProps) {
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <button
+        <IconButton
           onClick={() => setIsOpen(false)}
-          className='is-interactive absolute top-3 right-3 flex size-10 items-center justify-center rounded-lg emphasis-subtler'
+          emphasis='subtler'
+          className='absolute top-3 right-3'
           aria-label='Close navigation'
         >
           <XIcon weight='bold' className='size-5' />
-        </button>
+        </IconButton>
         <NavigationContent items={items} onNavigate={() => setIsOpen(false)} />
       </nav>
 
