@@ -35,9 +35,18 @@ describe('Fieldset', () => {
     expect(helperText).toHaveClass('text-sm', 'text-subtle')
   })
 
-  it('renders ErrorText sub-component', () => {
-    const { getByText } = render(
+  it('hides ErrorText when invalid is not set', () => {
+    const { queryByText } = render(
       <Fieldset>
+        <Fieldset.ErrorText>Please fix errors</Fieldset.ErrorText>
+      </Fieldset>
+    )
+    expect(queryByText('Please fix errors')).not.toBeInTheDocument()
+  })
+
+  it('renders ErrorText when invalid is true', () => {
+    const { getByText } = render(
+      <Fieldset invalid>
         <Fieldset.ErrorText>Please fix errors</Fieldset.ErrorText>
       </Fieldset>
     )
@@ -49,7 +58,7 @@ describe('Fieldset', () => {
 
   it('renders a complete fieldset with all sub-components', () => {
     const { getByText } = render(
-      <Fieldset>
+      <Fieldset invalid>
         <Fieldset.Legend>Account</Fieldset.Legend>
         <Fieldset.HelperText>Enter your details</Fieldset.HelperText>
         <Fieldset.ErrorText>Something went wrong</Fieldset.ErrorText>

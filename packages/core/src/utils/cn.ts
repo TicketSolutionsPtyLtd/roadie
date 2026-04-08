@@ -2,7 +2,11 @@ import { type ClassValue, clsx } from 'clsx'
 import { extendTailwindMerge } from 'tailwind-merge'
 
 const twMerge = extendTailwindMerge<
-  'semantic-text-color' | 'semantic-bg-color' | 'semantic-border-color'
+  | 'semantic-text-color'
+  | 'semantic-bg-color'
+  | 'semantic-border-color'
+  | 'intent'
+  | 'emphasis'
 >({
   extend: {
     classGroups: {
@@ -52,6 +56,27 @@ const twMerge = extendTailwindMerge<
         'border-normal',
         'border-strong',
         'border-inverted'
+      ],
+      intent: [
+        'intent-neutral',
+        'intent-brand',
+        'intent-brand-secondary',
+        'intent-accent',
+        'intent-danger',
+        'intent-success',
+        'intent-warning',
+        'intent-info'
+      ],
+      emphasis: [
+        'emphasis-strong',
+        'emphasis-normal',
+        'emphasis-subtle',
+        'emphasis-subtler',
+        'emphasis-raised',
+        'emphasis-sunken',
+        'emphasis-floating',
+        'emphasis-inverted',
+        'emphasis-overlay'
       ]
     },
     conflictingClassGroups: {

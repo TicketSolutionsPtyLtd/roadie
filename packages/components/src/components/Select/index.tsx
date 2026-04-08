@@ -8,6 +8,7 @@ import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { intentVariants } from '../../variants'
 import { useFieldContext } from '../Field'
 import { OptionalIndicator } from '../Indicator'
 import { RequiredIndicator } from '../Indicator'
@@ -27,16 +28,7 @@ export const selectTriggerVariants = cva(
   'inline-flex w-full items-center justify-between rounded-lg font-sans select-none cursor-pointer text-left data-[popup-open]:bg-[var(--color-accent-2)] data-[popup-open]:border-[var(--color-accent-9)] data-[popup-open]:outline-[length:var(--focus-ring-width)]',
   {
     variants: {
-      intent: {
-        neutral: 'intent-neutral',
-        brand: 'intent-brand',
-        'brand-secondary': 'intent-brand-secondary',
-        accent: 'intent-accent',
-        danger: 'intent-danger',
-        success: 'intent-success',
-        warning: 'intent-warning',
-        info: 'intent-info'
-      },
+      intent: intentVariants,
       emphasis: {
         normal: 'emphasis-raised border border-normal is-interactive-field',
         subtle:
@@ -412,7 +404,7 @@ export interface SelectErrorTextProps extends ComponentProps<'p'> {}
 
 export function SelectErrorText({ className, ...props }: SelectErrorTextProps) {
   const { invalid } = use(SelectContext)
-  if (invalid === false) return null
+  if (!invalid) return null
   return (
     <p
       role='alert'

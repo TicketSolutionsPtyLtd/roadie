@@ -78,13 +78,13 @@ describe('RadioGroup', () => {
     expect(classes).toContain('custom-item')
   })
 
-  it('renders ErrorText when invalid is not set', () => {
-    const { getByText } = render(
+  it('hides ErrorText when invalid is not set', () => {
+    const { queryByText } = render(
       <RadioGroup>
         <RadioGroup.ErrorText>Error message</RadioGroup.ErrorText>
       </RadioGroup>
     )
-    expect(getByText('Error message')).toBeInTheDocument()
+    expect(queryByText('Error message')).not.toBeInTheDocument()
   })
 
   it('hides ErrorText when invalid is false', () => {

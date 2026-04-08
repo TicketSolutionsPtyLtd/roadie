@@ -3,7 +3,6 @@
 import * as React from 'react'
 
 import {
-  type ScaleResult,
   generateAccentScale,
   generateNeutralScale,
   getOklchChroma,
@@ -27,7 +26,6 @@ const supportsOklch =
 interface ThemeContextType {
   accentColor: string
   setAccentColor: (color: string) => void
-  scaleResult: ScaleResult | null
   isDark: boolean
   setDark: (dark: boolean) => void
 }
@@ -54,14 +52,14 @@ export interface ThemeProviderProps {
  * Sets --accent-hue and --accent-chroma for CSS-native theming,
  * plus hex fallbacks for older browsers.
  */
-export function getAccentStyleTag(
+export async function getAccentStyleTag(
   accentHex: string,
   id = 'roadie-accent-theme'
-): string {
-  const result = generateAccentScale(accentHex)
-  const neutral = generateNeutralScale(accentHex)
-  const hue = Math.round(getOklchHue(accentHex))
-  const chroma = +getOklchChroma(accentHex).toFixed(4)
+): Promise<string> {
+  const result = await generateAccentScale(accentHex)
+  const neutral = await generateNeutralScale(accentHex)
+  const hue = Math.round(await getOklchHue(accentHex))
+  const chroma = +(await getOklchChroma(accentHex)).toFixed(4)
 
   // Hex fallbacks for accent (non-oklch browsers)
   const accentVars = result.light
@@ -78,7 +76,8 @@ export function getAccentStyleTag(
     .map((hex, i) => `--color-neutral-${i}: ${hex};`)
     .join('\n    ')
 
-  return `<style id="${id}">
+  const safeId = id.replace(/[<>"&]/g, '')
+  return `<style id="${safeId}">
   :root {
     --accent-hue: ${hue};
     --accent-chroma: ${chroma};
@@ -128,7 +127,6 @@ export function ThemeProvider({
   followSystem = false
 }: ThemeProviderProps) {
   const [accentColor, setAccentColor] = React.useState(defaultAccentColor)
-  const [scaleResult, setScaleResult] = React.useState<ScaleResult | null>(null)
 
   // Initialise dark mode from prop — inline script may have already set .dark
   const [isDark, setIsDarkState] = React.useState(defaultDark)
@@ -178,66 +176,78 @@ export function ThemeProvider({
 
   // Accent color effect — skip if SSR already injected matching values
   React.useEffect(() => {
-    const hue = Math.round(getOklchHue(accentColor))
-    const chroma = +getOklchChroma(accentColor).toFixed(4)
+    let cancelled = false
 
-    // Skip regeneration if existing style tag already has matching values
-    const existing = document.getElementById('roadie-accent-theme')
-    if (existing?.textContent?.includes(`--accent-hue: ${hue}`)) {
-      return
+    async function updateAccent() {
+      const hue = Math.round(await getOklchHue(accentColor))
+      const chroma = +(await getOklchChroma(accentColor)).toFixed(4)
+
+      if (cancelled) return
+
+      // Skip regeneration if existing style tag already has matching values
+      const existing = document.getElementById('roadie-accent-theme')
+      if (existing?.textContent?.includes(`--accent-hue: ${hue}`)) {
+        return
+      }
+
+      let css: string
+
+      if (supportsOklch) {
+        css = `
+          :root {
+            --accent-hue: ${hue};
+            --accent-chroma: ${chroma};
+          }
+        `
+      } else {
+        const result = await generateAccentScale(accentColor)
+        const neutral = await generateNeutralScale(accentColor)
+
+        if (cancelled) return
+
+        const accentVars = result.light
+          .map((hex, i) => `--color-accent-${i}: ${hex};`)
+          .join('\n')
+        const darkAccentVars = result.dark
+          .map((hex, i) => `--color-accent-${i}: ${hex};`)
+          .join('\n')
+        const neutralVars = neutral.light
+          .map((hex, i) => `--color-neutral-${i}: ${hex};`)
+          .join('\n')
+        const darkNeutralVars = neutral.dark
+          .map((hex, i) => `--color-neutral-${i}: ${hex};`)
+          .join('\n')
+
+        css = `
+          :root {
+            ${neutralVars}
+            ${accentVars}
+          }
+          .dark {
+            ${darkNeutralVars}
+            ${darkAccentVars}
+          }
+        `
+      }
+
+      let style = document.getElementById('roadie-accent-theme')
+      if (!style) {
+        style = document.createElement('style')
+        style.id = 'roadie-accent-theme'
+        document.head.appendChild(style)
+      }
+      style.textContent = css
     }
 
-    const result = generateAccentScale(accentColor)
-    setScaleResult(result)
-
-    let css: string
-
-    if (supportsOklch) {
-      css = `
-        :root {
-          --accent-hue: ${hue};
-          --accent-chroma: ${chroma};
-        }
-      `
-    } else {
-      const neutral = generateNeutralScale(accentColor)
-      const accentVars = result.light
-        .map((hex, i) => `--color-accent-${i}: ${hex};`)
-        .join('\n')
-      const darkAccentVars = result.dark
-        .map((hex, i) => `--color-accent-${i}: ${hex};`)
-        .join('\n')
-      const neutralVars = neutral.light
-        .map((hex, i) => `--color-neutral-${i}: ${hex};`)
-        .join('\n')
-      const darkNeutralVars = neutral.dark
-        .map((hex, i) => `--color-neutral-${i}: ${hex};`)
-        .join('\n')
-
-      css = `
-        :root {
-          ${neutralVars}
-          ${accentVars}
-        }
-        .dark {
-          ${darkNeutralVars}
-          ${darkAccentVars}
-        }
-      `
+    updateAccent()
+    return () => {
+      cancelled = true
     }
-
-    let style = document.getElementById('roadie-accent-theme')
-    if (!style) {
-      style = document.createElement('style')
-      style.id = 'roadie-accent-theme'
-      document.head.appendChild(style)
-    }
-    style.textContent = css
   }, [accentColor])
 
   const value = React.useMemo(
-    () => ({ accentColor, setAccentColor, scaleResult, isDark, setDark }),
-    [accentColor, scaleResult, isDark, setDark]
+    () => ({ accentColor, setAccentColor, isDark, setDark }),
+    [accentColor, isDark, setDark]
   )
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>

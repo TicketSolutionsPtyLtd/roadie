@@ -15,10 +15,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./server": {
-      "types": "./dist/server.d.ts",
-      "import": "./dist/server.js"
-    },
     "./spot-illustrations": {
       "types": "./dist/SpotIllustration.d.ts",
       "import": "./dist/SpotIllustration.js"
@@ -49,17 +45,18 @@
     "size:check": "size-limit --limit"
   },
   "peerDependencies": {
+    "@ark-ui/react": "^5.0.0",
     "@phosphor-icons/react": "^2.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "dependencies": {
-    "@ark-ui/react": "5.35.0",
     "@base-ui/react": "^1.0.0",
     "@oztix/roadie-core": "workspace:*",
     "class-variance-authority": "^0.7.1"
   },
   "devDependencies": {
+    "@ark-ui/react": "5.35.0",
     "@phosphor-icons/react": "^2.1.10",
     "@size-limit/preset-small-lib": "12.0.1",
     "@testing-library/jest-dom": "6.9.1",

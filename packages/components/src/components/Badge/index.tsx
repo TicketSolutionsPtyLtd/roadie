@@ -4,20 +4,13 @@ import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { intentVariants } from '../../variants'
+
 export const badgeVariants = cva(
   'inline-flex items-center justify-center rounded-full font-semibold whitespace-nowrap gap-1 [&_svg]:size-[1em] [&_svg]:shrink-0',
   {
     variants: {
-      intent: {
-        neutral: 'intent-neutral',
-        brand: 'intent-brand',
-        'brand-secondary': 'intent-brand-secondary',
-        accent: 'intent-accent',
-        danger: 'intent-danger',
-        success: 'intent-success',
-        warning: 'intent-warning',
-        info: 'intent-info'
-      },
+      intent: intentVariants,
       emphasis: {
         strong: 'emphasis-strong',
         normal: 'emphasis-normal text-subtle',

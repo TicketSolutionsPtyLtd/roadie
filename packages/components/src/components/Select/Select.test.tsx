@@ -67,13 +67,13 @@ describe('Select', () => {
     expect(classes).toContain('custom-class')
   })
 
-  it('renders ErrorText when invalid is not set', () => {
-    const { getByText } = render(
+  it('hides ErrorText when invalid is not set', () => {
+    const { queryByText } = render(
       <Select>
         <Select.ErrorText>Error message</Select.ErrorText>
       </Select>
     )
-    expect(getByText('Error message')).toBeInTheDocument()
+    expect(queryByText('Error message')).not.toBeInTheDocument()
   })
 
   it('hides ErrorText when invalid is false', () => {

@@ -242,7 +242,7 @@ function RadioGroupErrorText({
   ...props
 }: RadioGroupErrorTextProps) {
   const { invalid } = use(RadioGroupContext)
-  if (invalid === false) return null
+  if (!invalid) return null
   return (
     <p
       role='alert'

@@ -18,7 +18,6 @@ const getComponentEntries = () => {
 
   return {
     index: 'src/index.tsx',
-    server: 'src/server.ts',
     ...components
   }
 }
@@ -40,6 +39,7 @@ export default defineConfig({
     'react',
     'react-dom',
     '@oztix/roadie-core',
+    '@ark-ui/react',
     '@base-ui/react',
     '@phosphor-icons/react'
   ],

@@ -4,18 +4,11 @@ import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { intentVariants } from '../../variants'
+
 export const cardVariants = cva('rounded-xl', {
   variants: {
-    intent: {
-      neutral: 'intent-neutral',
-      brand: 'intent-brand',
-      'brand-secondary': 'intent-brand-secondary',
-      accent: 'intent-accent',
-      danger: 'intent-danger',
-      success: 'intent-success',
-      warning: 'intent-warning',
-      info: 'intent-info'
-    },
+    intent: intentVariants,
     emphasis: {
       raised: 'emphasis-raised',
       subtle: 'emphasis-subtle',

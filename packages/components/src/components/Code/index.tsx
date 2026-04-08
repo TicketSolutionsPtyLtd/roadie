@@ -1,25 +1,16 @@
-'use client'
-
 import type { ComponentProps } from 'react'
 
 import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { intentVariants } from '../../variants'
+
 export const codeVariants = cva(
   'font-mono rounded-md px-1.5 py-0.5 text-[0.9em]',
   {
     variants: {
-      intent: {
-        neutral: 'intent-neutral',
-        brand: 'intent-brand',
-        'brand-secondary': 'intent-brand-secondary',
-        accent: 'intent-accent',
-        danger: 'intent-danger',
-        success: 'intent-success',
-        warning: 'intent-warning',
-        info: 'intent-info'
-      },
+      intent: intentVariants,
       emphasis: {
         normal: 'emphasis-normal',
         strong: 'emphasis-strong',

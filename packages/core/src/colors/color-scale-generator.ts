@@ -1,5 +1,3 @@
-import Color from 'colorjs.io'
-
 import { getContrastColor } from './contrast'
 
 // --- Types ---
@@ -20,16 +18,31 @@ export interface NeutralScaleResult {
   dark: string[]
 }
 
+// --- Lazy colorjs.io loader ---
+
+type ColorConstructor = typeof import('colorjs.io').default
+let _Color: ColorConstructor | null = null
+
+async function getColorClass(): Promise<ColorConstructor> {
+  if (!_Color) {
+    const mod = await import('colorjs.io')
+    _Color = mod.default
+  }
+  return _Color
+}
+
 // --- OKLCH utilities ---
 
 /** Extract the OKLCH hue (in degrees) from a hex color */
-export function getOklchHue(hex: string): number {
+export async function getOklchHue(hex: string): Promise<number> {
+  const Color = await getColorClass()
   const color = new Color(hex).to('oklch')
   return Number(color.coords[2]) || 0
 }
 
 /** Extract the OKLCH chroma from a hex color */
-export function getOklchChroma(hex: string): number {
+export async function getOklchChroma(hex: string): Promise<number> {
+  const Color = await getColorClass()
   const color = new Color(hex).to('oklch')
   return Number(color.coords[1]) || 0
 }
@@ -112,8 +125,8 @@ const NEUTRAL_DARK_CURVE: [number, number][] = [
 
 // --- Helpers ---
 
-/** Convert a Color to a full 6-digit hex string */
-function toHex6(color: Color): string {
+/** Convert a Color instance to a full 6-digit hex string */
+function toHex6(color: InstanceType<ColorConstructor>): string {
   const hex = color.to('srgb').toString({ format: 'hex' })
   if (hex.length === 4) {
     return `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
@@ -122,6 +135,7 @@ function toHex6(color: Color): string {
 }
 
 function curveToHex(
+  Color: ColorConstructor,
   curve: [number, number][],
   hue: number,
   chroma: number
@@ -136,14 +150,18 @@ function curveToHex(
 /**
  * Generate a 14-step accent color scale from a hex input.
  * Uses OKLCH curve-based generation (same model as the CSS tokens).
+ * Lazy-loads colorjs.io (~60-80KB) on first call.
  */
-export function generateAccentScale(accentHex: string): ScaleResult {
+export async function generateAccentScale(
+  accentHex: string
+): Promise<ScaleResult> {
+  const Color = await getColorClass()
   const color = new Color(accentHex).to('oklch')
   const hue = Number(color.coords[2]) || 0
   const chroma = Math.max(Number(color.coords[1]) || 0, 0.1)
 
-  const light = curveToHex(ACCENT_LIGHT_CURVE, hue, chroma)
-  const dark = curveToHex(ACCENT_DARK_CURVE, hue, chroma)
+  const light = curveToHex(Color, ACCENT_LIGHT_CURVE, hue, chroma)
+  const dark = curveToHex(Color, ACCENT_DARK_CURVE, hue, chroma)
 
   const fgOnStrong = getContrastColor(light[9] ?? '#000000')
 
@@ -153,8 +171,12 @@ export function generateAccentScale(accentHex: string): ScaleResult {
 /**
  * Generate a 14-step neutral scale tinted with the accent color's hue.
  * Fixed chroma curve with the accent's hue for visual cohesion.
+ * Lazy-loads colorjs.io (~60-80KB) on first call.
  */
-export function generateNeutralScale(accentHex: string): NeutralScaleResult {
+export async function generateNeutralScale(
+  accentHex: string
+): Promise<NeutralScaleResult> {
+  const Color = await getColorClass()
   const color = new Color(accentHex).to('oklch')
   const hue = Number(color.coords[2]) || 0
 

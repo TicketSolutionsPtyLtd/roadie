@@ -12,6 +12,7 @@ import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { intentVariants } from '../../variants'
 import { useFieldContext } from '../Field'
 
 export const useFilter = AutocompletePrimitive.useFilter
@@ -27,16 +28,7 @@ export const autocompleteInputGroupVariants = cva(
   'inline-flex w-full items-center rounded-lg font-sans',
   {
     variants: {
-      intent: {
-        neutral: 'intent-neutral',
-        brand: 'intent-brand',
-        'brand-secondary': 'intent-brand-secondary',
-        accent: 'intent-accent',
-        danger: 'intent-danger',
-        success: 'intent-success',
-        warning: 'intent-warning',
-        info: 'intent-info'
-      },
+      intent: intentVariants,
       emphasis: {
         normal:
           'emphasis-sunken border border-subtle is-interactive-field-group',

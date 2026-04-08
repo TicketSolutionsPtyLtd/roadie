@@ -3,8 +3,8 @@
 import {
   type ComponentProps,
   createContext,
+  use,
   useCallback,
-  useContext,
   useId,
   useMemo
 } from 'react'
@@ -13,6 +13,8 @@ import { CaretDownIcon } from '@phosphor-icons/react'
 import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
+
+import { intentVariants } from '../../variants'
 
 // --- Context ---
 
@@ -33,16 +35,7 @@ const AccordionContext = createContext<AccordionContextValue>({
 
 export const accordionVariants = cva('grid w-full', {
   variants: {
-    intent: {
-      neutral: 'intent-neutral',
-      brand: 'intent-brand',
-      'brand-secondary': 'intent-brand-secondary',
-      accent: 'intent-accent',
-      danger: 'intent-danger',
-      success: 'intent-success',
-      warning: 'intent-warning',
-      info: 'intent-info'
-    },
+    intent: intentVariants,
     emphasis: {
       normal:
         'emphasis-normal rounded-xl [&>*+*]:border-t [&>*+*]:border-subtle',
@@ -99,7 +92,7 @@ AccordionRoot.displayName = 'Accordion'
 type AccordionItemProps = ComponentProps<'details'>
 
 function AccordionItem({ className, children, ...props }: AccordionItemProps) {
-  const { name, emphasis } = useContext(AccordionContext)
+  const { name, emphasis } = use(AccordionContext)
   const itemEmphasis = accordionItemVariants[emphasis ?? 'normal']
 
   return (

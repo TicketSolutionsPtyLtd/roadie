@@ -1,19 +1,31 @@
 'use client'
 
-import type { ComponentProps } from 'react'
+import { type ComponentProps, createContext, use } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+/* ─── Context ─── */
+
+interface FieldsetContextValue {
+  invalid?: boolean
+}
+
+const FieldsetContext = createContext<FieldsetContextValue>({})
+
 /* ─── Root ─── */
 
-export interface FieldsetRootProps extends ComponentProps<'fieldset'> {}
+export interface FieldsetRootProps extends ComponentProps<'fieldset'> {
+  invalid?: boolean
+}
 
-function FieldsetRoot({ className, ...props }: FieldsetRootProps) {
+function FieldsetRoot({ className, invalid, ...props }: FieldsetRootProps) {
   return (
-    <fieldset
-      className={cn('m-0 border-none p-0 [&>*+*]:mt-6', className)}
-      {...props}
-    />
+    <FieldsetContext value={{ invalid }}>
+      <fieldset
+        className={cn('m-0 border-none p-0 [&>*+*]:mt-6', className)}
+        {...props}
+      />
+    </FieldsetContext>
   )
 }
 
@@ -49,6 +61,8 @@ FieldsetHelperText.displayName = 'Fieldset.HelperText'
 export interface FieldsetErrorTextProps extends ComponentProps<'p'> {}
 
 function FieldsetErrorText({ className, ...props }: FieldsetErrorTextProps) {
+  const { invalid } = use(FieldsetContext)
+  if (!invalid) return null
   return (
     <p
       role='alert'
