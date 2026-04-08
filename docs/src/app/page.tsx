@@ -33,7 +33,7 @@ export default function Home() {
       <section className='grid gap-8'>
         <div className='relative aspect-square w-40'>
           <Image
-            src='/roadie-logo.png'
+            src='roadie-logo.png'
             alt='Roadie Design System'
             fill
             priority
