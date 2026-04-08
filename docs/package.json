@@ -20,7 +20,7 @@
     "@next/mdx": "16.0.1",
     "@oztix/roadie-components": "workspace:*",
     "@oztix/roadie-core": "workspace:*",
-    "@phosphor-icons/react": "^2.1.10",
+    "@phosphor-icons/react": "2.1.10",
     "@types/mdx": "2.0.13",
     "next": "16.0.10",
     "next-view-transitions": "0.3.4",
@@ -31,7 +31,7 @@
     "remark-gfm": "4.0.1"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/postcss": "4.2.2",
     "@types/node": "24.9.2",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
@@ -40,7 +40,7 @@
     "eslint-plugin-mdx": "3.6.2",
     "npm-run-all": "4.1.5",
     "react-docgen-typescript": "2.4.0",
-    "tailwindcss": "^4",
+    "tailwindcss": "4.2.2",
     "unist-util-visit": "5.0.0"
   }
 }

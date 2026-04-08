@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentProps } from 'react'
+import type { RefAttributes } from 'react'
 
 import {
   type AutocompleteFilter,
@@ -50,8 +50,7 @@ export const autocompleteInputGroupVariants = cva(
 
 /* ─── Root ─── */
 
-export interface AutocompleteRootProps
-  extends ComponentProps<typeof AutocompletePrimitive.Root> {}
+export type AutocompleteRootProps = AutocompletePrimitive.Root.Props<unknown>
 
 export function AutocompleteRoot(props: AutocompleteRootProps) {
   return <AutocompletePrimitive.Root {...props} />
@@ -61,8 +60,7 @@ AutocompleteRoot.displayName = 'Autocomplete'
 
 /* ─── Value ─── */
 
-export interface AutocompleteValueProps
-  extends ComponentProps<typeof AutocompletePrimitive.Value> {}
+export type AutocompleteValueProps = AutocompletePrimitive.Value.Props
 
 export function AutocompleteValue(props: AutocompleteValueProps) {
   return <AutocompletePrimitive.Value {...props} />
@@ -72,9 +70,10 @@ AutocompleteValue.displayName = 'Autocomplete.Value'
 
 /* ─── InputGroup ─── */
 
-export interface AutocompleteInputGroupProps
-  extends ComponentProps<typeof AutocompletePrimitive.InputGroup>,
-    VariantProps<typeof autocompleteInputGroupVariants> {}
+export type AutocompleteInputGroupProps =
+  AutocompletePrimitive.InputGroup.Props &
+    RefAttributes<HTMLDivElement> &
+    VariantProps<typeof autocompleteInputGroupVariants>
 
 export function AutocompleteInputGroup({
   className,
@@ -101,8 +100,8 @@ AutocompleteInputGroup.displayName = 'Autocomplete.InputGroup'
 
 /* ─── Input ─── */
 
-export interface AutocompleteInputProps
-  extends ComponentProps<typeof AutocompletePrimitive.Input> {}
+export type AutocompleteInputProps = AutocompletePrimitive.Input.Props &
+  RefAttributes<HTMLInputElement>
 
 export function AutocompleteInput({
   className,
@@ -134,8 +133,8 @@ AutocompleteInput.displayName = 'Autocomplete.Input'
 
 /* ─── Trigger ─── */
 
-export interface AutocompleteTriggerProps
-  extends ComponentProps<typeof AutocompletePrimitive.Trigger> {}
+export type AutocompleteTriggerProps = AutocompletePrimitive.Trigger.Props &
+  RefAttributes<HTMLButtonElement>
 
 export function AutocompleteTrigger({
   className,
@@ -159,8 +158,8 @@ AutocompleteTrigger.displayName = 'Autocomplete.Trigger'
 
 /* ─── Clear ─── */
 
-export interface AutocompleteClearProps
-  extends ComponentProps<typeof AutocompletePrimitive.Clear> {}
+export type AutocompleteClearProps = AutocompletePrimitive.Clear.Props &
+  RefAttributes<HTMLButtonElement>
 
 export function AutocompleteClear({
   className,
@@ -184,8 +183,8 @@ AutocompleteClear.displayName = 'Autocomplete.Clear'
 
 /* ─── Portal ─── */
 
-export interface AutocompletePortalProps
-  extends ComponentProps<typeof AutocompletePrimitive.Portal> {}
+export type AutocompletePortalProps = AutocompletePrimitive.Portal.Props &
+  RefAttributes<HTMLDivElement>
 
 export function AutocompletePortal(props: AutocompletePortalProps) {
   return <AutocompletePrimitive.Portal {...props} />
@@ -195,8 +194,8 @@ AutocompletePortal.displayName = 'Autocomplete.Portal'
 
 /* ─── Positioner ─── */
 
-export interface AutocompletePositionerProps
-  extends ComponentProps<typeof AutocompletePrimitive.Positioner> {}
+export type AutocompletePositionerProps =
+  AutocompletePrimitive.Positioner.Props & RefAttributes<HTMLDivElement>
 
 export function AutocompletePositioner({
   className,
@@ -215,8 +214,8 @@ AutocompletePositioner.displayName = 'Autocomplete.Positioner'
 
 /* ─── Popup ─── */
 
-export interface AutocompletePopupProps
-  extends ComponentProps<typeof AutocompletePrimitive.Popup> {}
+export type AutocompletePopupProps = AutocompletePrimitive.Popup.Props &
+  RefAttributes<HTMLDivElement>
 
 export function AutocompletePopup({
   className,
@@ -238,8 +237,8 @@ AutocompletePopup.displayName = 'Autocomplete.Popup'
 
 /* ─── List ─── */
 
-export interface AutocompleteListProps
-  extends ComponentProps<typeof AutocompletePrimitive.List> {}
+export type AutocompleteListProps = AutocompletePrimitive.List.Props &
+  RefAttributes<HTMLDivElement>
 
 export function AutocompleteList({
   className,
@@ -252,8 +251,8 @@ AutocompleteList.displayName = 'Autocomplete.List'
 
 /* ─── Item ─── */
 
-export interface AutocompleteItemProps
-  extends ComponentProps<typeof AutocompletePrimitive.Item> {}
+export type AutocompleteItemProps = AutocompletePrimitive.Item.Props &
+  RefAttributes<HTMLDivElement>
 
 export function AutocompleteItem({
   className,
@@ -275,8 +274,7 @@ AutocompleteItem.displayName = 'Autocomplete.Item'
 
 /* ─── Collection ─── */
 
-export interface AutocompleteCollectionProps
-  extends ComponentProps<typeof AutocompletePrimitive.Collection> {}
+export type AutocompleteCollectionProps = AutocompletePrimitive.Collection.Props
 
 export function AutocompleteCollection(props: AutocompleteCollectionProps) {
   return <AutocompletePrimitive.Collection {...props} />
@@ -286,8 +284,8 @@ AutocompleteCollection.displayName = 'Autocomplete.Collection'
 
 /* ─── Group ─── */
 
-export interface AutocompleteGroupProps
-  extends ComponentProps<typeof AutocompletePrimitive.Group> {}
+export type AutocompleteGroupProps = AutocompletePrimitive.Group.Props &
+  RefAttributes<HTMLDivElement>
 
 export function AutocompleteGroup({
   className,
@@ -305,8 +303,8 @@ AutocompleteGroup.displayName = 'Autocomplete.Group'
 
 /* ─── GroupLabel ─── */
 
-export interface AutocompleteGroupLabelProps
-  extends ComponentProps<typeof AutocompletePrimitive.GroupLabel> {}
+export type AutocompleteGroupLabelProps =
+  AutocompletePrimitive.GroupLabel.Props & RefAttributes<HTMLDivElement>
 
 export function AutocompleteGroupLabel({
   className,
@@ -327,8 +325,8 @@ AutocompleteGroupLabel.displayName = 'Autocomplete.GroupLabel'
 
 /* ─── Empty ─── */
 
-export interface AutocompleteEmptyProps
-  extends ComponentProps<typeof AutocompletePrimitive.Empty> {}
+export type AutocompleteEmptyProps = AutocompletePrimitive.Empty.Props &
+  RefAttributes<HTMLDivElement>
 
 export function AutocompleteEmpty({
   className,
@@ -349,8 +347,8 @@ AutocompleteEmpty.displayName = 'Autocomplete.Empty'
 
 /* ─── Status ─── */
 
-export interface AutocompleteStatusProps
-  extends ComponentProps<typeof AutocompletePrimitive.Status> {}
+export type AutocompleteStatusProps = AutocompletePrimitive.Status.Props &
+  RefAttributes<HTMLDivElement>
 
 export function AutocompleteStatus({
   className,

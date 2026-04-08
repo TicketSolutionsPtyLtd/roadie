@@ -38,13 +38,13 @@ const components = {
     <ul className='mb-8 grid list-disc gap-2 pl-8' {...props} />
   ),
   li: (props: ComponentPropsWithoutRef<'li'>) => (
-    <li className='pl-1 text-lg leading-relaxed' {...props} />
+    <li className='pl-1 text-lg leading-prose' {...props} />
   ),
   em: (props: ComponentPropsWithoutRef<'em'>) => (
-    <em className='text-[inherit] italic' {...props} />
+    <em className='text-inherit italic' {...props} />
   ),
   strong: (props: ComponentPropsWithoutRef<'strong'>) => (
-    <strong className='text-[inherit] text-strong' {...props} />
+    <strong className='font-bold text-inherit' {...props} />
   ),
   a: ({ href, children, ...props }: AnchorProps) => {
     const className = 'text-accent-11 hover:text-accent-9'

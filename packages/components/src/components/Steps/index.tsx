@@ -33,9 +33,8 @@ export const stepsVariants = cva('grid w-full gap-4', {
 
 /* ─── Root ─── */
 
-export interface StepsProps
-  extends Omit<ComponentProps<typeof ArkSteps.Root>, 'orientation'>,
-    VariantProps<typeof stepsVariants> {}
+export type StepsProps = Omit<ArkSteps.RootProps, 'orientation'> &
+  VariantProps<typeof stepsVariants>
 
 function StepsRoot({ direction, className, ...props }: StepsProps) {
   return (
@@ -51,7 +50,7 @@ StepsRoot.displayName = 'Steps'
 
 /* ─── List ─── */
 
-type StepsListProps = ComponentProps<typeof ArkSteps.List>
+type StepsListProps = ArkSteps.ListProps
 
 function StepsList({ className, ...props }: StepsListProps) {
   return (
@@ -142,7 +141,7 @@ StepsItem.displayName = 'Steps.Item'
 
 /* ─── Trigger ─── */
 
-type StepsTriggerProps = ComponentProps<typeof ArkSteps.Trigger>
+type StepsTriggerProps = ArkSteps.TriggerProps
 
 function StepsTrigger({ className, ...props }: StepsTriggerProps) {
   return (
@@ -162,7 +161,7 @@ StepsTrigger.displayName = 'Steps.Trigger'
 
 /* ─── Indicator ─── */
 
-type StepsIndicatorProps = ComponentProps<typeof ArkSteps.Indicator>
+type StepsIndicatorProps = ArkSteps.IndicatorProps
 
 function StepsIndicator({
   className,
@@ -197,7 +196,7 @@ StepsIndicator.displayName = 'Steps.Indicator'
 
 /* ─── Separator ─── */
 
-type StepsSeparatorProps = ComponentProps<typeof ArkSteps.Separator>
+type StepsSeparatorProps = ArkSteps.SeparatorProps
 
 function StepsSeparator({ className, ...props }: StepsSeparatorProps) {
   return (
@@ -232,9 +231,7 @@ StepsContent.displayName = 'Steps.Content'
 
 /* ─── CompletedContent ─── */
 
-type StepsCompletedContentProps = ComponentProps<
-  typeof ArkSteps.CompletedContent
->
+type StepsCompletedContentProps = ArkSteps.CompletedContentProps
 
 function StepsCompletedContent({
   className,
@@ -247,7 +244,7 @@ StepsCompletedContent.displayName = 'Steps.CompletedContent'
 
 /* ─── NextTrigger ─── */
 
-type StepsNextTriggerProps = ComponentProps<typeof ArkSteps.NextTrigger>
+type StepsNextTriggerProps = ArkSteps.NextTriggerProps
 
 function StepsNextTrigger({ className, ...props }: StepsNextTriggerProps) {
   return <ArkSteps.NextTrigger className={cn(className)} {...props} />
@@ -257,7 +254,7 @@ StepsNextTrigger.displayName = 'Steps.NextTrigger'
 
 /* ─── PrevTrigger ─── */
 
-type StepsPrevTriggerProps = ComponentProps<typeof ArkSteps.PrevTrigger>
+type StepsPrevTriggerProps = ArkSteps.PrevTriggerProps
 
 function StepsPrevTrigger({ className, ...props }: StepsPrevTriggerProps) {
   return <ArkSteps.PrevTrigger className={cn(className)} {...props} />
@@ -267,7 +264,7 @@ StepsPrevTrigger.displayName = 'Steps.PrevTrigger'
 
 /* ─── Progress ─── */
 
-type StepsProgressProps = ComponentProps<typeof ArkSteps.Progress>
+type StepsProgressProps = ArkSteps.ProgressProps
 
 function StepsProgress({ className, ...props }: StepsProgressProps) {
   return (
