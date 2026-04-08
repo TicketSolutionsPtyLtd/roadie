@@ -3,7 +3,7 @@ title: 'feat: Migrate design system from PandaCSS to Tailwind v4 + Base UI'
 type: feat
 status: active
 date: 2026-03-31
-updated: 2026-04-08
+updated: 2026-04-09
 origin: docs/brainstorms/2026-03-31-tailwind-migration-brainstorm.md
 ---
 
@@ -232,7 +232,29 @@ Code review (commit `395507e`):
 
 - [x] **Font format:** `fonts.css` declares `format('woff2')` correctly — files are WOFF2 despite `.woff` extension on CDN. No action needed.
 - [x] **Form field intent cascade:** Fixed — field interactions now respect intent cascade.
-- [ ] **Lazy-load colorjs.io:** Deferred to post-v2.0.0. Consider dynamic import for `colorjs.io` (~60-80KB) — most consumers use fixed accent and never need runtime generation.
+- [x] **Lazy-load colorjs.io:** All color generation functions now async with `await import('colorjs.io')`. Cached after first load. ThemeProvider useEffect handles async with cancellation. `getAccentStyleTag` is now `async`.
+
+### Phase 5c: Pre-Release Code Review — COMPLETE
+
+Multi-agent code review (commit `TODO`):
+
+- [x] Fix ErrorText null-check inconsistency — aligned Select, RadioGroup, Fieldset to use `!invalid` (same as Field). Fieldset gains `invalid` prop + context.
+- [x] Externalize `@ark-ui/react` in tsup, moved to peerDependencies
+- [x] Sanitize `getAccentStyleTag` id parameter against XSS
+- [x] Gate ThemeProvider scale generation behind `!supportsOklch` — modern browsers skip colorjs.io entirely
+- [x] Remove unused `scaleResult` from ThemeContext
+- [x] Extract shared `intentVariants` constant used by 10 components (DRY)
+- [x] Add `intent`/`emphasis` conflict groups to tailwind-merge config in `cn()`
+- [x] Remove `'use client'` from presentational components (Code, Mark, Label, Indicator)
+- [x] Remove dead code: `server.ts`, `getContrastColor` export, `view` utility, stale marquee keyframe, empty `tokens/` dir
+- [x] Migrate Accordion from `useContext` to React 19 `use()`
+- [x] Lazy-load colorjs.io via dynamic import (~60-80KB deferred until needed)
+
+**Intentional / no action needed:**
+
+- SpotIllustration intentionally exported via `./spot-illustrations` subpath, not main barrel
+- Mark's `defaultVariants: { intent: 'info' }` is a deliberate design choice
+- `emphasis-subtle`/`emphasis-subtler` transparent border relies on reset intentionally (allows easier local overrides)
 
 ### Phase 6: Website Migration — IN PROGRESS
 
@@ -260,12 +282,13 @@ The Oztix Website (`~/Code/ticketsolutions.oztix.website/src/TicketSolutions.Ozt
 
 - [x] CSS bundle size measurement — 82.6 KB raw / 12.8 KB gzip / 9.4 KB brotli
 - [x] Vue integration guide (tokens + utility classes only, no components) — `docs/src/app/overview/vue-integration/page.mdx`
-- [ ] Changesets setup + major version bump (v2.0.0)
 - [x] Update README files
+- [x] Pre-release code review (Phase 5c)
+- [x] Lazy-load colorjs.io via dynamic import
+- [ ] Changesets setup + major version bump (v2.0.0)
 - [ ] Tag release, publish to npm
 - [ ] Deploy updated docs site
 - [ ] Merge website migration branch
-- [ ] Lazy-load colorjs.io (deferred to post-v2.0.0)
 
 ## Key Architecture Decisions
 
