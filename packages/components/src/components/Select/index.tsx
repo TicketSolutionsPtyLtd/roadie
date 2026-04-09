@@ -1,6 +1,11 @@
 'use client'
 
-import { type ComponentProps, createContext, use } from 'react'
+import {
+  type ComponentProps,
+  type RefAttributes,
+  createContext,
+  use
+} from 'react'
 
 import { Select as SelectPrimitive } from '@base-ui/react/select'
 import { CaretDownIcon, CaretUpIcon, CheckIcon } from '@phosphor-icons/react'
@@ -49,8 +54,7 @@ export const selectTriggerVariants = cva(
 
 /* ─── Root ─── */
 
-export interface SelectRootProps
-  extends ComponentProps<typeof SelectPrimitive.Root> {
+export type SelectRootProps = SelectPrimitive.Root.Props<unknown> & {
   invalid?: boolean
   required?: boolean
 }
@@ -73,9 +77,9 @@ SelectRoot.displayName = 'Select'
 
 /* ─── Trigger ─── */
 
-export interface SelectTriggerProps
-  extends ComponentProps<typeof SelectPrimitive.Trigger>,
-    VariantProps<typeof selectTriggerVariants> {}
+export type SelectTriggerProps = SelectPrimitive.Trigger.Props &
+  RefAttributes<HTMLButtonElement> &
+  VariantProps<typeof selectTriggerVariants>
 
 export function SelectTrigger({
   className,
@@ -110,8 +114,8 @@ SelectTrigger.displayName = 'Select.Trigger'
 
 /* ─── Value ─── */
 
-export interface SelectValueProps
-  extends ComponentProps<typeof SelectPrimitive.Value> {}
+export type SelectValueProps = SelectPrimitive.Value.Props &
+  RefAttributes<HTMLSpanElement>
 
 export function SelectValue({ className, ...props }: SelectValueProps) {
   return (
@@ -126,8 +130,8 @@ SelectValue.displayName = 'Select.Value'
 
 /* ─── Icon ─── */
 
-export interface SelectIconProps
-  extends ComponentProps<typeof SelectPrimitive.Icon> {}
+export type SelectIconProps = SelectPrimitive.Icon.Props &
+  RefAttributes<HTMLSpanElement>
 
 export function SelectIcon({ className, children, ...props }: SelectIconProps) {
   return (
@@ -147,8 +151,8 @@ SelectIcon.displayName = 'Select.Icon'
 
 /* ─── Portal ─── */
 
-export interface SelectPortalProps
-  extends ComponentProps<typeof SelectPrimitive.Portal> {}
+export type SelectPortalProps = SelectPrimitive.Portal.Props &
+  RefAttributes<HTMLDivElement>
 
 export function SelectPortal(props: SelectPortalProps) {
   return <SelectPrimitive.Portal {...props} />
@@ -158,8 +162,8 @@ SelectPortal.displayName = 'Select.Portal'
 
 /* ─── Positioner ─── */
 
-export interface SelectPositionerProps
-  extends ComponentProps<typeof SelectPrimitive.Positioner> {}
+export type SelectPositionerProps = SelectPrimitive.Positioner.Props &
+  RefAttributes<HTMLDivElement>
 
 export function SelectPositioner({
   className,
@@ -178,8 +182,8 @@ SelectPositioner.displayName = 'Select.Positioner'
 
 /* ─── Popup (dropdown content) ─── */
 
-export interface SelectPopupProps
-  extends ComponentProps<typeof SelectPrimitive.Popup> {}
+export type SelectPopupProps = SelectPrimitive.Popup.Props &
+  RefAttributes<HTMLDivElement>
 
 export function SelectPopup({ className, ...props }: SelectPopupProps) {
   return (
@@ -198,8 +202,8 @@ SelectPopup.displayName = 'Select.Popup'
 
 /* ─── Item ─── */
 
-export interface SelectItemProps
-  extends ComponentProps<typeof SelectPrimitive.Item> {}
+export type SelectItemProps = SelectPrimitive.Item.Props &
+  RefAttributes<HTMLDivElement>
 
 export function SelectItem({ className, children, ...props }: SelectItemProps) {
   const content =
@@ -230,8 +234,8 @@ SelectItem.displayName = 'Select.Item'
 
 /* ─── ItemText ─── */
 
-export interface SelectItemTextProps
-  extends ComponentProps<typeof SelectPrimitive.ItemText> {}
+export type SelectItemTextProps = SelectPrimitive.ItemText.Props &
+  RefAttributes<HTMLSpanElement>
 
 export function SelectItemText(props: SelectItemTextProps) {
   return <SelectPrimitive.ItemText {...props} />
@@ -241,8 +245,8 @@ SelectItemText.displayName = 'Select.ItemText'
 
 /* ─── ItemIndicator ─── */
 
-export interface SelectItemIndicatorProps
-  extends ComponentProps<typeof SelectPrimitive.ItemIndicator> {}
+export type SelectItemIndicatorProps = SelectPrimitive.ItemIndicator.Props &
+  RefAttributes<HTMLSpanElement>
 
 export function SelectItemIndicator({
   className,
@@ -263,8 +267,8 @@ SelectItemIndicator.displayName = 'Select.ItemIndicator'
 
 /* ─── Group ─── */
 
-export interface SelectGroupProps
-  extends ComponentProps<typeof SelectPrimitive.Group> {}
+export type SelectGroupProps = SelectPrimitive.Group.Props &
+  RefAttributes<HTMLDivElement>
 
 export function SelectGroup({ className, ...props }: SelectGroupProps) {
   return (
@@ -276,8 +280,8 @@ SelectGroup.displayName = 'Select.Group'
 
 /* ─── GroupLabel ─── */
 
-export interface SelectGroupLabelProps
-  extends ComponentProps<typeof SelectPrimitive.GroupLabel> {}
+export type SelectGroupLabelProps = SelectPrimitive.GroupLabel.Props &
+  RefAttributes<HTMLDivElement>
 
 export function SelectGroupLabel({
   className,
@@ -298,10 +302,10 @@ SelectGroupLabel.displayName = 'Select.GroupLabel'
 
 /* ─── Label ─── */
 
-export interface SelectLabelProps
-  extends ComponentProps<typeof SelectPrimitive.Label> {
-  showIndicator?: boolean
-}
+export type SelectLabelProps = SelectPrimitive.Label.Props &
+  RefAttributes<HTMLDivElement> & {
+    showIndicator?: boolean
+  }
 
 export function SelectLabel({
   className,
@@ -339,8 +343,8 @@ SelectLabel.displayName = 'Select.Label'
 
 /* ─── ScrollUpArrow ─── */
 
-export interface SelectScrollUpArrowProps
-  extends ComponentProps<typeof SelectPrimitive.ScrollUpArrow> {}
+export type SelectScrollUpArrowProps = SelectPrimitive.ScrollUpArrow.Props &
+  RefAttributes<HTMLDivElement>
 
 export function SelectScrollUpArrow({
   className,
@@ -363,8 +367,8 @@ SelectScrollUpArrow.displayName = 'Select.ScrollUpArrow'
 
 /* ─── ScrollDownArrow ─── */
 
-export interface SelectScrollDownArrowProps
-  extends ComponentProps<typeof SelectPrimitive.ScrollDownArrow> {}
+export type SelectScrollDownArrowProps = SelectPrimitive.ScrollDownArrow.Props &
+  RefAttributes<HTMLDivElement>
 
 export function SelectScrollDownArrow({
   className,
