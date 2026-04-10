@@ -29,11 +29,12 @@
   },
   "scripts": {
     "build": "tsdown && pnpm check:dts && pnpm check:exports",
+    "build:quiet": "tsdown --log-level warn",
     "check:dts": "! grep -r 'ComponentProps<typeof' dist/*.d.ts dist/**/*.d.ts 2>/dev/null || (echo 'ERROR: dist .d.ts files contain ComponentProps<typeof> — use named prop types instead' && exit 1)",
     "check:exports": "attw --pack . --profile esm-only",
     "build:spotillustration": "node scripts/svg-to-spot-illustration.cjs",
     "clean": "rm -rf node_modules dist",
-    "dev": "tsdown --watch",
+    "dev": "tsdown --watch --log-level warn",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

@@ -46,9 +46,10 @@
   "scripts": {
     "clean": "rm -rf node_modules dist",
     "build": "tsdown && pnpm build:css",
+    "build:quiet": "tsdown --log-level warn && pnpm build:css",
     "build:css": "tailwindcss -i src/css/roadie.css -o dist/roadie.compiled.css --content 'src/css/safelist.html'",
     "dev": "run-p dev:*",
-    "dev:tsdown": "tsdown --watch",
+    "dev:tsdown": "tsdown --watch --log-level warn",
     "format:check": "prettier --ignore-path ../../.prettierignore --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format": "prettier --ignore-path ../../.prettierignore --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "lint:fix": "eslint . --fix",

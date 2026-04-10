@@ -21,6 +21,18 @@
         ".turbo/**"
       ]
     },
+    "build:quiet": {
+      "dependsOn": ["^build:quiet"],
+      "inputs": [
+        "src/**/*.{js,jsx,ts,tsx,css,json}",
+        "package.json",
+        "tsconfig.json"
+      ],
+      "outputs": [
+        "dist/**",
+        ".turbo/**"
+      ]
+    },
     "typecheck": {
       "dependsOn": ["@oztix/roadie-core#build"],
       "inputs": [
@@ -56,10 +68,7 @@
       "cache": false
     },
     "dev": {
-      "dependsOn": [
-        "@oztix/roadie-core#build",
-        "@oztix/roadie-components#build"
-      ],
+      "dependsOn": ["^build:quiet"],
       "cache": false,
       "persistent": true
     },
