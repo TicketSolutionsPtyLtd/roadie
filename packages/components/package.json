@@ -28,12 +28,12 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsup && pnpm check:dts && pnpm check:exports",
+    "build": "tsdown && pnpm check:dts && pnpm check:exports",
     "check:dts": "! grep -r 'ComponentProps<typeof' dist/*.d.ts dist/**/*.d.ts 2>/dev/null || (echo 'ERROR: dist .d.ts files contain ComponentProps<typeof> — use named prop types instead' && exit 1)",
     "check:exports": "attw --pack . --profile esm-only",
     "build:spotillustration": "node scripts/svg-to-spot-illustration.cjs",
     "clean": "rm -rf node_modules dist",
-    "dev": "tsup --watch",
+    "dev": "tsdown --watch",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -76,7 +76,7 @@
     "jsdom": "27.0.1",
     "size-limit": "12.0.1",
     "svgo": "4.0.0",
-    "tsup": "8.5.0",
+    "tsdown": "0.21.7",
     "vitest": "4.0.4"
   },
   "author": {
