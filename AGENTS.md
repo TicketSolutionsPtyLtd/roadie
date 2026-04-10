@@ -251,6 +251,11 @@ Use raw HTML elements with utility classes:
 
 ## Component Patterns
 
+> **Wrapping a Base UI primitive?** Read
+> [`docs/contributing/BASE_UI.md`](docs/contributing/BASE_UI.md) first —
+> it is the canonical reference for imports, types, `render` prop policy,
+> data-attribute styling, and `'use client'` rules.
+
 ### Creating a component with CVA
 
 ```tsx
@@ -422,7 +427,7 @@ Use `<Guideline>` with `<Guideline.Do>` and `<Guideline.Dont>` for do/don't patt
 
 ### Component doc structure
 
-Follow `docs/COMPONENT_DOC_TEMPLATE.md` for all component documentation. Key rules:
+Follow [`docs/contributing/COMPONENT_DOC_TEMPLATE.md`](docs/contributing/COMPONENT_DOC_TEMPLATE.md) for all component documentation. Key rules:
 
 1. One-line description — say what it *is*, not "The X component is..."
 2. Section order: Import → Examples (Default → Variants → Emphasis → Sizes → Intents → States → Composition → With [Feature]) → Guidelines → Accessibility → PropsDefinitions

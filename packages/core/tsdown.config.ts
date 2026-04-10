@@ -1,4 +1,4 @@
-import { defineConfig } from 'tsup'
+import { defineConfig } from 'tsdown'
 
 export default defineConfig(({ watch }) => ({
   entry: {
@@ -7,7 +7,6 @@ export default defineConfig(({ watch }) => ({
     'theme/index': './src/theme/index.ts',
     'utils/index': './src/utils/index.ts'
   },
-  splitting: false,
   format: ['esm'],
   minify: !watch,
   dts: {
@@ -17,9 +16,5 @@ export default defineConfig(({ watch }) => ({
     }
   },
   clean: !watch,
-  bundle: true,
-  external: ['react', 'react-dom'],
-  outExtension: () => ({
-    js: '.js'
-  })
+  outExtensions: () => ({ js: '.js' })
 }))

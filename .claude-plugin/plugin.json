@@ -1,0 +1,12 @@
+{
+  "name": "roadie",
+  "description": "Roadie design system skills — audit a codebase against Roadie conventions and build UI with Roadie primitives.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Oztix",
+    "url": "https://github.com/TicketSolutionsPtyLtd/roadie"
+  },
+  "homepage": "https://ticketsolutionsptyltd.github.io/roadie/",
+  "repository": "https://github.com/TicketSolutionsPtyLtd/roadie",
+  "license": "MIT"
+}

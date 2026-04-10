@@ -1,6 +1,11 @@
 'use client'
 
-import { type ComponentProps, createContext, use } from 'react'
+import {
+  type ComponentProps,
+  type RefAttributes,
+  createContext,
+  use
+} from 'react'
 
 import { Radio } from '@base-ui/react/radio'
 import { RadioGroup as RadioGroupPrimitive } from '@base-ui/react/radio-group'
@@ -67,6 +72,7 @@ export const radioGroupItemVariants = cva(
 /* ─── Root ─── */
 
 export type RadioGroupRootProps = RadioGroupPrimitive.Props &
+  RefAttributes<HTMLDivElement> &
   VariantProps<typeof radioGroupVariants> & {
     emphasis?: RadioGroupEmphasis
     invalid?: boolean
@@ -113,10 +119,11 @@ RadioGroupRoot.displayName = 'RadioGroup'
 
 /* ─── Item ─── */
 
-export type RadioGroupItemProps = Radio.Root.Props & {
-  label?: string
-  description?: string
-}
+export type RadioGroupItemProps = Radio.Root.Props &
+  RefAttributes<HTMLButtonElement> & {
+    label?: string
+    description?: string
+  }
 
 function RadioGroupItem({
   className,
