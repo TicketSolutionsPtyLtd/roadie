@@ -28,7 +28,7 @@ const getComponentEntries = () => {
 // directives on entry outputs natively, so we no longer need the post-build
 // hook that previously re-inserted them. Verify after build with:
 //   head -c 13 dist/Select.js   # → "use client";
-export default defineConfig({
+export default defineConfig(({ watch }) => ({
   entry: getComponentEntries(),
   format: ['esm'],
   platform: 'neutral',
@@ -40,7 +40,7 @@ export default defineConfig({
     }
   },
   sourcemap: true,
-  clean: true,
+  clean: !watch,
   target: 'es2022',
   minify: true,
   shims: true,
@@ -56,4 +56,4 @@ export default defineConfig({
       '@phosphor-icons/react'
     ]
   }
-})
+}))
