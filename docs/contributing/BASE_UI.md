@@ -17,11 +17,11 @@ External docs:
 Always import per-component from the subpath and alias to a namespace:
 
 ```tsx
-import { Select as SelectPrimitive } from '@base-ui/react/select'
+import { Button as ButtonPrimitive } from '@base-ui/react/button'
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 import { Radio } from '@base-ui/react/radio'
 import { RadioGroup as RadioGroupPrimitive } from '@base-ui/react/radio-group'
-import { Button as ButtonPrimitive } from '@base-ui/react/button'
+import { Select as SelectPrimitive } from '@base-ui/react/select'
 ```
 
 Never import from the package root (`@base-ui/react`). The per-component
@@ -154,22 +154,20 @@ data-[placeholder]
 Example — dim the Select value when the placeholder is showing:
 
 ```tsx
-<SelectPrimitive.Value
-  className='truncate data-[placeholder]:text-subtle'
-/>
+<SelectPrimitive.Value className='truncate data-[placeholder]:text-subtle' />
 ```
 
 ## 6. CSS custom properties exposed by Base UI
 
 Use these for dynamic sizing/positioning instead of measuring in JS:
 
-| Variable             | Where                 | Purpose                         |
-| -------------------- | --------------------- | ------------------------------- |
-| `--available-height` | Popup                 | Cap popup max-height            |
-| `--available-width`  | Popup                 | Cap popup max-width             |
-| `--anchor-width`     | Popup                 | Match trigger width             |
-| `--anchor-height`    | Popup                 | Match trigger height            |
-| `--transform-origin` | Popup                 | Scale-from-anchor animations    |
+| Variable             | Where | Purpose                      |
+| -------------------- | ----- | ---------------------------- |
+| `--available-height` | Popup | Cap popup max-height         |
+| `--available-width`  | Popup | Cap popup max-width          |
+| `--anchor-width`     | Popup | Match trigger width          |
+| `--anchor-height`    | Popup | Match trigger height         |
+| `--transform-origin` | Popup | Scale-from-anchor animations |
 
 Example — a popup that never overflows the viewport and grows up to the
 trigger's width:
@@ -180,7 +178,7 @@ trigger's width:
     'max-h-[var(--available-height)] max-w-[var(--available-width)]',
     'min-w-[var(--anchor-width)] overflow-y-auto',
     'origin-[var(--transform-origin)]',
-    'data-[starting-style]:scale-95 data-[ending-style]:opacity-0'
+    'data-[ending-style]:opacity-0 data-[starting-style]:scale-95'
   )}
 />
 ```
@@ -194,6 +192,7 @@ hooks like `useState`, `createContext`) must start with `'use client'`.
 'use client'
 
 import { Select as SelectPrimitive } from '@base-ui/react/select'
+
 // ...
 ```
 
@@ -319,7 +318,9 @@ export function NewThingRoot({
 }: NewThingRootProps) {
   return (
     <NewThingPrimitive.Root
-      className={cn(newThingRootVariants({ intent, emphasis, size, className }))}
+      className={cn(
+        newThingRootVariants({ intent, emphasis, size, className })
+      )}
       {...props}
     />
   )

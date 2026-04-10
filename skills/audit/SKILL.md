@@ -1,5 +1,5 @@
 ---
-name: roadie-audit
+name: audit
 description: Use when auditing a codebase for Roadie design system compliance — scanning for hardcoded colors, wrong layout patterns, icon misuse, missing intent/emphasis, non-semantic HTML, raw scale references, deprecated props, inline styles, and missing setup. Triggers on "audit against Roadie", "check Roadie compliance", "fix styling to match Roadie".
 ---
 
@@ -7,10 +7,16 @@ description: Use when auditing a codebase for Roadie design system compliance �
 
 Scan a codebase for violations of Roadie design system conventions, report findings grouped by severity, and fix them.
 
+This skill is self-contained — it ships all the rules it needs to run in any consumer repo that uses `@oztix/roadie-core` and `@oztix/roadie-components`. You do not need the Roadie source repo checked out locally.
+
 ## Prerequisites
 
-1. **Read** the `AGENTS.md` file in this Roadie repository at the start of every audit — it's the source of truth and may have changed since this skill was written.
-2. **Identify the target directory** — ask the user if not obvious from context.
+1. **Identify the target directory** — ask the user if not obvious from context (usually `src/` or `app/`).
+2. **Optional freshness check** — fetch the latest `AGENTS.md` from the Roadie repo if you suspect the rules below may be stale:
+   ```
+   WebFetch https://raw.githubusercontent.com/TicketSolutionsPtyLtd/roadie/main/AGENTS.md
+   ```
+   Only do this if the user explicitly asks for the latest rules or if a check below produces confusing results. The rules in this skill are authoritative for normal audits.
 
 ## Exclude paths
 
@@ -24,7 +30,6 @@ All scans must skip generated/vendored files. When using the Grep tool, set `pat
 
 ```dot
 digraph audit {
-  "Read AGENTS.md" -> "Scan (batched greps)";
   "Scan (batched greps)" -> "Group by severity";
   "Group by severity" -> "Report to user";
   "Report to user" -> "User picks what to fix";
@@ -33,11 +38,10 @@ digraph audit {
 }
 ```
 
-1. **Read** the Roadie repo's `AGENTS.md` for current guidelines
-2. **Scan** the target directory using the checks below — run independent checks in parallel by issuing multiple Grep tool calls in a single message (see Parallelization guide)
-3. **Report** findings grouped by severity with file paths and line numbers
-4. **Ask** the user which categories to fix (or fix all if instructed)
-5. **Fix** issues, then re-scan to confirm no regressions
+1. **Scan** the target directory using the checks below — run independent checks in parallel by issuing multiple Grep tool calls in a single message (see Parallelization guide)
+2. **Report** findings grouped by severity with file paths and line numbers
+3. **Ask** the user which categories to fix (or fix all if instructed)
+4. **Fix** issues, then re-scan to confirm no regressions
 
 ## Severity levels
 
