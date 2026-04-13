@@ -29,7 +29,18 @@ export { Card, cardVariants, type CardProps } from './components/Card'
 
 export {
   Carousel,
-  type CarouselProps
+  useCarousel,
+  carouselContentVariants,
+  carouselContainerVariants,
+  carouselItemVariants,
+  carouselDotsVariants,
+  type CarouselProps,
+  type CarouselContentProps,
+  type CarouselItemProps,
+  type CarouselDotsProps,
+  type CarouselState,
+  type CarouselActions,
+  type UseCarouselReturn
 } from './components/Carousel'
 
 export {

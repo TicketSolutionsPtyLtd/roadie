@@ -8,6 +8,18 @@ class ResizeObserverMock {
   disconnect() {}
 }
 
+class IntersectionObserverMock {
+  readonly root = null
+  readonly rootMargin = ''
+  readonly thresholds: ReadonlyArray<number> = []
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords(): IntersectionObserverEntry[] {
+    return []
+  }
+}
+
 type MediaListener = (event: MediaQueryListEvent) => void
 
 type MediaListEntry = {
@@ -27,7 +39,6 @@ function getMediaList(query: string): MediaListEntry {
 }
 
 declare global {
-  // eslint-disable-next-line no-var
   var __setReducedMotion: ((value: boolean) => void) | undefined
 }
 
@@ -35,6 +46,18 @@ beforeAll(() => {
   if (typeof globalThis.ResizeObserver === 'undefined') {
     globalThis.ResizeObserver =
       ResizeObserverMock as unknown as typeof ResizeObserver
+  }
+
+  if (typeof globalThis.IntersectionObserver === 'undefined') {
+    globalThis.IntersectionObserver =
+      IntersectionObserverMock as unknown as typeof IntersectionObserver
+  }
+  // Embla reads window.ownerDocument.defaultView.IntersectionObserver;
+  // jsdom's window namespace also needs the polyfill.
+  if (typeof window !== 'undefined' && !window.IntersectionObserver) {
+    ;(
+      window as unknown as { IntersectionObserver: unknown }
+    ).IntersectionObserver = IntersectionObserverMock
   }
 
   // jsdom reports 0 for every layout property. Embla measures slides during
