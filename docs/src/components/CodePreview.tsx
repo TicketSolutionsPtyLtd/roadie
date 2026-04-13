@@ -8,6 +8,8 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
   CaretDownIcon,
+  CaretLeftIcon,
+  CaretRightIcon,
   CaretUpIcon,
   CheckCircleIcon,
   CopyIcon,
@@ -18,7 +20,9 @@ import {
   InfoIcon,
   MagnifyingGlassIcon,
   MinusIcon,
+  PauseIcon,
   PencilSimpleIcon,
+  PlayIcon,
   PlusIcon,
   StarIcon,
   TrashIcon,
@@ -42,6 +46,8 @@ const PhosphorIcons = {
   Minus: MinusIcon,
   CaretDown: CaretDownIcon,
   CaretUp: CaretUpIcon,
+  CaretLeft: CaretLeftIcon,
+  CaretRight: CaretRightIcon,
   ArrowRight: ArrowRightIcon,
   ArrowLeft: ArrowLeftIcon,
   Heart: HeartIcon,
@@ -50,7 +56,9 @@ const PhosphorIcons = {
   Trash: TrashIcon,
   PencilSimple: PencilSimpleIcon,
   Eye: EyeIcon,
-  EyeSlash: EyeSlashIcon
+  EyeSlash: EyeSlashIcon,
+  Pause: PauseIcon,
+  Play: PlayIcon
 }
 
 const scope = {

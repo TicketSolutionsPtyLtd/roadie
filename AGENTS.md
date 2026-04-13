@@ -75,6 +75,7 @@ src/
 │   ├── Field/              # Form field (label + input + helper)
 │   ├── Fieldset/           # Form group
 │   ├── RadioGroup/         # Radio button group
+│   ├── Carousel/           # Compound carousel built on Embla
 │   └── SpotIllustration/   # Themed SVG illustrations
 ├── providers/
 │   └── ThemeProvider.tsx    # Dynamic accent color + dark mode
@@ -255,6 +256,11 @@ Use raw HTML elements with utility classes:
 > [`docs/contributing/BASE_UI.md`](docs/contributing/BASE_UI.md) first —
 > it is the canonical reference for imports, types, `render` prop policy,
 > data-attribute styling, and `'use client'` rules.
+
+> **Building a compound component?** Read
+> [`docs/contributing/COMPOUND_PATTERNS.md`](docs/contributing/COMPOUND_PATTERNS.md)
+> for the two compound idioms in use (context-only vs index-injection)
+> and the direct-children constraint that comes with the second one.
 
 ### Creating a component with CVA
 

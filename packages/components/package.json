@@ -89,6 +89,19 @@
     "email": "mail@lukebrooker.com"
   },
   "license": "ISC",
+  "size-limit": [
+    {
+      "name": "Carousel",
+      "path": "dist/Carousel.js",
+      "limit": "13 KB",
+      "ignore": [
+        "react",
+        "react-dom",
+        "@oztix/roadie-core",
+        "@phosphor-icons/react"
+      ]
+    }
+  ],
   "turbo": {
     "build": {
       "dependsOn": [

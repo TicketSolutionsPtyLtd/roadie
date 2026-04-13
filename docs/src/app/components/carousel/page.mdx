@@ -1,0 +1,240 @@
+export const metadata = {
+  title: 'Carousel',
+  description: 'Compound horizontal or vertical carousel built on Embla',
+  status: 'beta',
+  category: 'Content',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Carousel
+
+A compound horizontal or vertical carousel built on Embla, with built-in autoplay, keyboard navigation, and `prefers-reduced-motion` handling.
+
+## Import
+
+```tsx
+import { Carousel } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Default
+
+The simplest usage — a single Content with Items, plus Previous/Next nav buttons.
+
+```tsx-live
+<Carousel aria-label='Default carousel'>
+  <Carousel.Header>
+    <Carousel.Title>Upcoming shows</Carousel.Title>
+    <div className='flex items-center gap-2'>
+      <Carousel.Previous />
+      <Carousel.Next />
+    </div>
+  </Carousel.Header>
+  <Carousel.Content>
+    <Carousel.Item className='basis-1/2 md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Midnight Frequency</Card.Title>
+          <Card.Description>The Triffid, Brisbane</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-1/2 md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Sunset Sounds</Card.Title>
+          <Card.Description>Riverstage, Brisbane</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-1/2 md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Neon Dusk</Card.Title>
+          <Card.Description>Fortitude Music Hall</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-1/2 md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Wave Theory</Card.Title>
+          <Card.Description>The Tivoli, Brisbane</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-1/2 md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Static Bloom</Card.Title>
+          <Card.Description>Eatons Hill Hotel</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+  </Carousel.Content>
+</Carousel>
+```
+
+### Featured (autoplay + loop)
+
+Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayPause` button is placed first inside the header so it is the first tab stop — required by WCAG 2.2.2.
+
+```tsx-live
+<Carousel
+  aria-label='Featured events'
+  autoPlay={5000}
+  opts={{ loop: true, align: 'start' }}
+>
+  <Carousel.Header>
+    <Carousel.Title href='#'>Featured events</Carousel.Title>
+    <div className='flex items-center gap-2'>
+      <Carousel.PlayPause />
+      <Carousel.Previous />
+      <Carousel.Next />
+    </div>
+  </Carousel.Header>
+  <Carousel.Content>
+    <Carousel.Item className='basis-[84vw] md:basis-1/2'>
+      <Card emphasis='raised'>
+        <Card.Content>
+          <Card.Title>Midnight Frequency</Card.Title>
+          <Card.Description>Friday 14 Mar — The Triffid</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[84vw] md:basis-1/2'>
+      <Card emphasis='raised'>
+        <Card.Content>
+          <Card.Title>Sunset Sounds</Card.Title>
+          <Card.Description>Saturday 22 Mar — Riverstage</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[84vw] md:basis-1/2'>
+      <Card emphasis='raised'>
+        <Card.Content>
+          <Card.Title>Neon Dusk</Card.Title>
+          <Card.Description>Sunday 30 Mar — Fortitude Music Hall</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+  </Carousel.Content>
+  <div className='mt-4 flex justify-center'>
+    <Carousel.Dots />
+  </div>
+</Carousel>
+```
+
+### With dots only
+
+A simpler hero pattern — dots replace explicit Previous/Next.
+
+```tsx-live
+<Carousel aria-label='With dots'>
+  <Carousel.Content>
+    <Carousel.Item>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Slide one</Card.Title>
+          <Card.Description>Use the dots to navigate.</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Slide two</Card.Title>
+          <Card.Description>Each dot scrolls to its slide.</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Slide three</Card.Title>
+          <Card.Description>Active dot is highlighted.</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+  </Carousel.Content>
+  <div className='mt-4 flex justify-center'>
+    <Carousel.Dots />
+  </div>
+</Carousel>
+```
+
+### Vertical
+
+Pass `direction='vertical'` to flip the axis. The Previous/Next icons swap to up/down carets automatically.
+
+```tsx-live
+<Carousel aria-label='Vertical carousel' direction='vertical' className='h-64'>
+  <Carousel.Header>
+    <Carousel.Title>Vertical</Carousel.Title>
+    <div className='flex items-center gap-2'>
+      <Carousel.Previous />
+      <Carousel.Next />
+    </div>
+  </Carousel.Header>
+  <Carousel.Content className='h-48'>
+    <Carousel.Item>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>First</Card.Title>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Second</Card.Title>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Third</Card.Title>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+  </Carousel.Content>
+</Carousel>
+```
+
+### Composition
+
+Carousel is a compound component. Available parts:
+
+| Part | Role |
+| --- | --- |
+| `Carousel` | Root. Owns the Embla instance and context. |
+| `Carousel.Header` | Layout shell for the title and nav buttons. |
+| `Carousel.Title` | `<h2>` by default, or an `<a>` when `href` is set. Registers as the carousel's accessible name. |
+| `Carousel.Content` | Embla viewport + container. Wraps each direct `Carousel.Item` child in per-item context. |
+| `Carousel.Item` | A single slide. Set the width with Tailwind `basis-*` utilities. |
+| `Carousel.Previous` / `Carousel.Next` | Nav buttons (compose `IconButton`). |
+| `Carousel.PlayPause` | Play/pause toggle. Renders only when `autoPlay` is set. |
+| `Carousel.Dots` | One button per slide. |
+| `useCarousel()` hook | Read state, call actions, access the Embla `api`. |
+
+## Guidelines
+
+- **Slide sizing is the consumer's job.** Set width on each `Carousel.Item` via Tailwind `basis-*` utilities (e.g. `basis-1/2 md:basis-1/3`). Don't try to size the carousel itself.
+- **Use `Carousel.PlayPause` whenever `autoPlay` is set.** WCAG 2.2.2 requires a persistent pause control for any auto-updating content. Place it first in tab order.
+- **Direct children only.** `Carousel.Content` walks its children with `Children.map` to inject per-item context. Fragments and conditionally rendered children are not unwrapped — render an array of `Carousel.Item` directly.
+- **`reInit` is automatic.** Adding or removing slides at runtime triggers an Embla re-init.
+- **`opts` is a pass-through to Embla.** Use it for things like `loop`, `align`, `slidesToScroll`, `containScroll`. The `axis` and `duration` options are managed by the `direction` and `prefers-reduced-motion` hook respectively — don't override them.
+
+## Accessibility
+
+- **Region role.** The carousel root has `role='region'` and `aria-roledescription='carousel'`. The accessible name comes from `Carousel.Title` (via `aria-labelledby`) when present, otherwise from the `aria-label` prop on the root.
+- **Slide group role.** Each `Carousel.Item` has `role='group'`, `aria-roledescription='slide'`, and `aria-label='N of M'`. Non-active slides are marked `inert` so their interactive content stays out of the tab order.
+- **Live region.** `Carousel.Content` is `aria-live='off'` while autoplay is running and `aria-live='polite'` otherwise. Transient hover/focus pauses do not flip the live region — only an explicit pause via `Carousel.PlayPause` does.
+- **Keyboard.** When the viewport has focus: `ArrowLeft`/`ArrowRight` (or `ArrowUp`/`ArrowDown` in vertical mode) move between slides; `Home`/`End` jump to the first/last slide. Arrow keys never hijack focus when the user is interacting with a focusable element inside a slide.
+- **Pause behaviour.** Autoplay pauses on hover, focus, and `pointerdown`. Explicit pause (via `Carousel.PlayPause`) is sticky — autoplay does not auto-resume after a user click. WCAG 2.2.2 compliant.
+- **Reduced motion.** When `prefers-reduced-motion: reduce` is set, autoplay is disabled entirely (no plugin instantiated) and Embla's `duration` is set to `0` for instant transitions. Live changes to the OS preference take effect via a `matchMedia` change listener.
+
+<PropsDefinitions componentPath='packages/components/src/components/Carousel/index.tsx' />
