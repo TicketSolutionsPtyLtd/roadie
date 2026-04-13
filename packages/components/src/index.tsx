@@ -28,6 +28,11 @@ export {
 export { Card, cardVariants, type CardProps } from './components/Card'
 
 export {
+  Carousel,
+  type CarouselProps
+} from './components/Carousel'
+
+export {
   Separator,
   separatorVariants,
   type SeparatorProps
