@@ -1,5 +1,5 @@
 import { waitFor } from '@testing-library/dom'
-import { render } from '@testing-library/react'
+import { act, render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -210,5 +210,310 @@ describe('Carousel', () => {
     // Just asserting the api is live with the custom opts — exhaustive
     // option-coverage belongs to Embla's own tests.
     expect(ref.current?.state.slideCount).toBe(3)
+  })
+
+  // ── Phase 3: Autoplay, header, title, keyboard, reduced motion ──
+
+  function AutoplayFixture({ delay = 5000 }: { delay?: number }) {
+    return (
+      <Carousel aria-label='autoplay carousel' autoPlay={delay}>
+        <Carousel.Header>
+          <Carousel.Title>Featured</Carousel.Title>
+          <Carousel.PlayPause />
+          <Carousel.Previous />
+          <Carousel.Next />
+        </Carousel.Header>
+        <Carousel.Content>
+          <Carousel.Item>1</Carousel.Item>
+          <Carousel.Item>2</Carousel.Item>
+          <Carousel.Item>3</Carousel.Item>
+        </Carousel.Content>
+      </Carousel>
+    )
+  }
+
+  it('wires the autoplay plugin when autoPlay is set', async () => {
+    const capture: { current: UseCarouselReturn | null } = { current: null }
+    function Spy() {
+      capture.current = useCarousel()
+      return null
+    }
+    render(
+      <Carousel aria-label='test' autoPlay={5000}>
+        <Carousel.Content>
+          <Carousel.Item>1</Carousel.Item>
+          <Carousel.Item>2</Carousel.Item>
+        </Carousel.Content>
+        <Spy />
+      </Carousel>
+    )
+    await waitFor(() => expect(capture.current?.api).toBeTruthy())
+    expect(capture.current?.api?.plugins().autoplay).toBeDefined()
+    expect(capture.current?.state.hasAutoPlay).toBe(true)
+  })
+
+  it('does NOT wire the autoplay plugin when prefers-reduced-motion is set', async () => {
+    act(() => {
+      ;(
+        globalThis as unknown as { __setReducedMotion?: (v: boolean) => void }
+      ).__setReducedMotion?.(true)
+    })
+    const capture: { current: UseCarouselReturn | null } = { current: null }
+    function Spy() {
+      capture.current = useCarousel()
+      return null
+    }
+    render(
+      <Carousel aria-label='test' autoPlay={5000}>
+        <Carousel.Content>
+          <Carousel.Item>1</Carousel.Item>
+          <Carousel.Item>2</Carousel.Item>
+        </Carousel.Content>
+        <Spy />
+      </Carousel>
+    )
+    await waitFor(() => expect(capture.current?.api).toBeTruthy())
+    expect(capture.current?.api?.plugins().autoplay).toBeUndefined()
+    expect(capture.current?.state.isPlaying).toBe(false)
+  })
+
+  it('Carousel.PlayPause is hidden when autoPlay is not set', () => {
+    const { queryByLabelText } = render(
+      <Carousel aria-label='test'>
+        <Carousel.Content>
+          <Carousel.Item>1</Carousel.Item>
+          <Carousel.Item>2</Carousel.Item>
+        </Carousel.Content>
+        <Carousel.PlayPause />
+      </Carousel>
+    )
+    expect(queryByLabelText(/pause carousel|play carousel/i)).toBeNull()
+  })
+
+  it('Carousel.PlayPause renders when autoPlay is set', async () => {
+    const { findByLabelText } = render(<AutoplayFixture />)
+    // After autoplay starts, button should show "Pause carousel"
+    const button = await findByLabelText(/pause carousel|play carousel/i)
+    expect(button).toBeInTheDocument()
+  })
+
+  it('click on PlayPause flips userPaused and stops autoplay', async () => {
+    const user = userEvent.setup()
+    const capture: { current: UseCarouselReturn | null } = { current: null }
+    function Spy() {
+      capture.current = useCarousel()
+      return null
+    }
+    const { findByLabelText } = render(
+      <Carousel aria-label='test' autoPlay={5000}>
+        <Carousel.Content>
+          <Carousel.Item>1</Carousel.Item>
+          <Carousel.Item>2</Carousel.Item>
+        </Carousel.Content>
+        <Carousel.PlayPause />
+        <Spy />
+      </Carousel>
+    )
+    await waitFor(() => expect(capture.current?.api).toBeTruthy())
+    await waitFor(() => expect(capture.current?.state.isPlaying).toBe(true))
+    const pauseBtn = await findByLabelText('Pause carousel')
+    await user.click(pauseBtn)
+    await waitFor(() => {
+      expect(capture.current?.state.isPlaying).toBe(false)
+      expect(capture.current?.state.userPaused).toBe(true)
+    })
+    // Click again to resume
+    const playBtn = await findByLabelText('Play carousel')
+    await user.click(playBtn)
+    await waitFor(() => {
+      expect(capture.current?.state.isPlaying).toBe(true)
+      expect(capture.current?.state.userPaused).toBe(false)
+    })
+  })
+
+  it('aria-live on Content is "off" during autoplay and "polite" when user-paused', async () => {
+    const user = userEvent.setup()
+    const { findByLabelText, container } = render(
+      <Carousel aria-label='test' autoPlay={5000}>
+        <Carousel.Content data-testid='content'>
+          <Carousel.Item>1</Carousel.Item>
+          <Carousel.Item>2</Carousel.Item>
+        </Carousel.Content>
+        <Carousel.PlayPause />
+      </Carousel>
+    )
+    const content = container.querySelector(
+      '[data-testid="content"]'
+    ) as HTMLElement
+    await waitFor(() => expect(content.getAttribute('aria-live')).toBe('off'))
+    const pauseBtn = await findByLabelText('Pause carousel')
+    await user.click(pauseBtn)
+    await waitFor(() =>
+      expect(content.getAttribute('aria-live')).toBe('polite')
+    )
+  })
+
+  it('aria-live on Content is "polite" when no autoPlay', () => {
+    const { container } = render(
+      <Carousel aria-label='test'>
+        <Carousel.Content data-testid='content'>
+          <Carousel.Item>1</Carousel.Item>
+          <Carousel.Item>2</Carousel.Item>
+        </Carousel.Content>
+      </Carousel>
+    )
+    const content = container.querySelector(
+      '[data-testid="content"]'
+    ) as HTMLElement
+    expect(content.getAttribute('aria-live')).toBe('polite')
+  })
+
+  it('Carousel.Title without href renders an <h2>', () => {
+    const { getByRole } = render(
+      <Carousel aria-label='test'>
+        <Carousel.Header>
+          <Carousel.Title>My Title</Carousel.Title>
+        </Carousel.Header>
+        <Carousel.Content>
+          <Carousel.Item>1</Carousel.Item>
+        </Carousel.Content>
+      </Carousel>
+    )
+    const heading = getByRole('heading', { level: 2, name: 'My Title' })
+    expect(heading.tagName).toBe('H2')
+  })
+
+  it('Carousel.Title with href renders an anchor', () => {
+    const { getByRole } = render(
+      <Carousel aria-label='test'>
+        <Carousel.Header>
+          <Carousel.Title href='/events'>My Title</Carousel.Title>
+        </Carousel.Header>
+        <Carousel.Content>
+          <Carousel.Item>1</Carousel.Item>
+        </Carousel.Content>
+      </Carousel>
+    )
+    const link = getByRole('link', { name: /My Title/ })
+    expect(link.tagName).toBe('A')
+    expect(link).toHaveAttribute('href', '/events')
+  })
+
+  it('root aria-labelledby points to Carousel.Title id', () => {
+    const { getByRole } = render(
+      <Carousel aria-label='fallback'>
+        <Carousel.Header>
+          <Carousel.Title id='my-title'>Hello</Carousel.Title>
+        </Carousel.Header>
+        <Carousel.Content>
+          <Carousel.Item>1</Carousel.Item>
+        </Carousel.Content>
+      </Carousel>
+    )
+    const region = getByRole('region')
+    expect(region).toHaveAttribute('aria-labelledby', 'my-title')
+    expect(region).not.toHaveAttribute('aria-label')
+  })
+
+  it('keyboard: ArrowRight advances, ArrowLeft goes back (horizontal)', async () => {
+    const user = userEvent.setup()
+    const capture: { current: UseCarouselReturn | null } = { current: null }
+    function Spy() {
+      capture.current = useCarousel()
+      return null
+    }
+    const { getByRole } = render(
+      <Carousel aria-label='test'>
+        <Carousel.Content>
+          <Carousel.Item>1</Carousel.Item>
+          <Carousel.Item>2</Carousel.Item>
+          <Carousel.Item>3</Carousel.Item>
+        </Carousel.Content>
+        <Spy />
+      </Carousel>
+    )
+    await waitFor(() => expect(capture.current?.api).toBeTruthy())
+    const viewport = getByRole('region').querySelector(
+      '[tabindex="0"]'
+    ) as HTMLElement
+    viewport.focus()
+    await user.keyboard('{ArrowRight}')
+    await waitFor(() => expect(capture.current?.state.selectedIndex).toBe(1))
+    await user.keyboard('{ArrowLeft}')
+    await waitFor(() => expect(capture.current?.state.selectedIndex).toBe(0))
+    await user.keyboard('{End}')
+    await waitFor(() => expect(capture.current?.state.selectedIndex).toBe(2))
+    await user.keyboard('{Home}')
+    await waitFor(() => expect(capture.current?.state.selectedIndex).toBe(0))
+  })
+
+  it('keyboard: ArrowRight inside a slide link does NOT advance', async () => {
+    const user = userEvent.setup()
+    const capture: { current: UseCarouselReturn | null } = { current: null }
+    function Spy() {
+      capture.current = useCarousel()
+      return null
+    }
+    const { getByText } = render(
+      <Carousel aria-label='test'>
+        <Carousel.Content>
+          <Carousel.Item>
+            <a href='/inside'>inside link</a>
+          </Carousel.Item>
+          <Carousel.Item>2</Carousel.Item>
+        </Carousel.Content>
+        <Spy />
+      </Carousel>
+    )
+    await waitFor(() => expect(capture.current?.api).toBeTruthy())
+    const link = getByText('inside link')
+    link.focus()
+    expect(document.activeElement).toBe(link)
+    await user.keyboard('{ArrowRight}')
+    expect(capture.current?.state.selectedIndex).toBe(0)
+  })
+
+  it('reduced motion toggle at runtime stops autoplay', async () => {
+    const capture: { current: UseCarouselReturn | null } = { current: null }
+    function Spy() {
+      capture.current = useCarousel()
+      return null
+    }
+    render(
+      <Carousel aria-label='test' autoPlay={5000}>
+        <Carousel.Content>
+          <Carousel.Item>1</Carousel.Item>
+          <Carousel.Item>2</Carousel.Item>
+        </Carousel.Content>
+        <Spy />
+      </Carousel>
+    )
+    await waitFor(() => expect(capture.current?.api).toBeTruthy())
+    await waitFor(() => expect(capture.current?.state.isPlaying).toBe(true))
+    act(() => {
+      ;(
+        globalThis as unknown as { __setReducedMotion?: (v: boolean) => void }
+      ).__setReducedMotion?.(true)
+    })
+    await waitFor(() => {
+      expect(capture.current?.api?.plugins().autoplay).toBeUndefined()
+      expect(capture.current?.state.isPlaying).toBe(false)
+    })
+  })
+
+  it('warns in dev for autoPlay delay < 2000ms', () => {
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Carousel aria-label='test' autoPlay={1000}>
+        <Carousel.Content>
+          <Carousel.Item>1</Carousel.Item>
+          <Carousel.Item>2</Carousel.Item>
+        </Carousel.Content>
+      </Carousel>
+    )
+    expect(spy).toHaveBeenCalledWith(
+      expect.stringContaining('autoPlay delay < 2000ms')
+    )
+    spy.mockRestore()
   })
 })

@@ -37,6 +37,7 @@ export {
   type CarouselProps,
   type CarouselContentProps,
   type CarouselItemProps,
+  type CarouselTitleProps,
   type CarouselDotsProps,
   type CarouselState,
   type CarouselActions,
