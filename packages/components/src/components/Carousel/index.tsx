@@ -3,6 +3,7 @@
 import {
   Children,
   type ComponentProps,
+  type ElementType,
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
   cloneElement,
@@ -600,23 +601,33 @@ CarouselHeader.displayName = 'Carousel.Header'
 
 /* ─── Title ─── */
 
-export interface CarouselTitleProps extends ComponentProps<'h2'> {
+type CarouselTitleOwnProps<T extends ElementType = 'h2'> = {
   /**
-   * When set, the title renders as an `<a>` with a trailing arrow icon
-   * instead of an `<h2>`.
+   * Render the title as a custom element/component (e.g. Next.js `Link`).
+   * When omitted, the title is an `<h2>` — or an `<a>` if `href` is set.
+   */
+  as?: T
+  /**
+   * When set, the title renders link-style with a trailing arrow icon.
+   * Defaults the underlying element to `<a>` unless `as` is also passed.
    */
   href?: string
 }
 
-export function CarouselTitle({
+export type CarouselTitleProps<T extends ElementType = 'h2'> =
+  CarouselTitleOwnProps<T> &
+    Omit<ComponentProps<T>, keyof CarouselTitleOwnProps<T>>
+
+export function CarouselTitle<T extends ElementType = 'h2'>({
+  as,
   className,
   children,
   href,
   id,
   ...props
-}: CarouselTitleProps) {
+}: CarouselTitleProps<T>) {
   const generatedId = useId()
-  const titleId = id ?? generatedId
+  const titleId = ((id as string | undefined) ?? generatedId) as string
   const { setLabelId } = useCarouselInternal()
 
   useEffect(() => {
@@ -624,33 +635,37 @@ export function CarouselTitle({
     return () => setLabelId(undefined)
   }, [titleId, setLabelId])
 
-  if (href) {
+  const isLinkLike = !!as || !!href
+  const Component = (as ?? (href ? 'a' : 'h2')) as ElementType
+
+  if (isLinkLike) {
     return (
-      <a
+      <Component
         id={titleId}
         href={href}
         className={cn(
           'group/title is-interactive flex items-center gap-1 text-display-ui-5 text-strong',
           className
         )}
+        {...props}
       >
         {children}
         <ArrowRightIcon
           weight='bold'
           className='size-5 text-subtle transition-transform group-hover/title:translate-x-1 group-hover/title:intent-accent'
         />
-      </a>
+      </Component>
     )
   }
 
   return (
-    <h2
+    <Component
       id={titleId}
       className={cn('text-display-ui-6 text-strong', className)}
       {...props}
     >
       {children}
-    </h2>
+    </Component>
   )
 }
 

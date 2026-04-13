@@ -383,6 +383,38 @@ describe('Carousel', () => {
     expect(heading.tagName).toBe('H2')
   })
 
+  it('Carousel.Title with as prop renders the custom component', () => {
+    const FakeLink = ({
+      href,
+      children,
+      ...rest
+    }: {
+      href?: string
+      children?: React.ReactNode
+      className?: string
+    }) => (
+      <a data-testid='fake-link' href={href} {...rest}>
+        {children}
+      </a>
+    )
+    const { getByTestId } = render(
+      <Carousel aria-label='test'>
+        <Carousel.Header>
+          <Carousel.Title as={FakeLink} href='/events'>
+            Featured
+          </Carousel.Title>
+        </Carousel.Header>
+        <Carousel.Content>
+          <Carousel.Item>1</Carousel.Item>
+        </Carousel.Content>
+      </Carousel>
+    )
+    const link = getByTestId('fake-link')
+    expect(link).toBeInTheDocument()
+    expect(link).toHaveAttribute('href', '/events')
+    expect(link).toHaveTextContent('Featured')
+  })
+
   it('Carousel.Title with href renders an anchor', () => {
     const { getByRole } = render(
       <Carousel aria-label='test'>

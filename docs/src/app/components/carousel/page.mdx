@@ -89,6 +89,8 @@ The simplest usage — a single Content with Items, plus Previous/Next nav butto
 
 Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayPause` button is placed first inside the header so it is the first tab stop — required by WCAG 2.2.2. Slides run edge-to-edge with a sliver of the next slide peeking in.
 
+`Carousel.Title` accepts `as` so you can pass a framework router link (`Link` here) instead of a plain `<a>` — the trailing arrow icon and link styling come along automatically.
+
 ```tsx-live-bleed-x
 <Carousel
   aria-label='Featured events'
@@ -96,7 +98,9 @@ Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayP
   opts={{ loop: true, align: 'start' }}
 >
   <Carousel.Header className='px-4 sm:px-6'>
-    <Carousel.Title href='#'>Featured events</Carousel.Title>
+    <Carousel.Title as={Link} href='/events'>
+      Featured events
+    </Carousel.Title>
     <div className='flex items-center gap-2'>
       <Carousel.PlayPause />
       <Carousel.Previous />

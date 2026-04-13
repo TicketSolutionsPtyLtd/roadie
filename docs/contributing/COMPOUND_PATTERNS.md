@@ -1,6 +1,6 @@
 # Compound Patterns
 
-Roadie has two distinct compound-component idioms in use. They wire context differently — pick one consciously when creating a new compound. There is also a separate question of how to *assemble* the compound at the bottom of the file, covered at the end.
+Roadie has two distinct compound-component idioms in use. They wire context differently — pick one consciously when creating a new compound. There is also a separate question of how to _assemble_ the compound at the bottom of the file, covered at the end.
 
 ## Context wiring
 
