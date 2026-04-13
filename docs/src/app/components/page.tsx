@@ -372,7 +372,7 @@ function ComponentSkeleton({ name }: { name: string }) {
             </div>
           </div>
           <div className='flex justify-center gap-1'>
-            <div className='h-1.5 w-4 rounded-full bg-accent' />
+            <div className='bg-accent h-1.5 w-4 rounded-full' />
             <div className='size-1.5 rounded-full bg-subtler' />
             <div className='size-1.5 rounded-full bg-subtler' />
           </div>

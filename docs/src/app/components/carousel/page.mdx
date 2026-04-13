@@ -21,19 +21,19 @@ import { Carousel } from '@oztix/roadie-components'
 
 ### Default
 
-The simplest usage — a single Content with Items, plus Previous/Next nav buttons.
+The simplest usage — a single Content with Items, plus Previous/Next nav buttons. On mobile the carousel runs edge-to-edge with a partial third slide peeking in to signal scrollability; from `md` upwards three slides sit in view.
 
-```tsx-live
-<Carousel aria-label='Default carousel'>
-  <Carousel.Header>
+```tsx-live-bleed-x
+<Carousel aria-label='Default carousel' opts={{ align: 'start' }}>
+  <Carousel.Header className='px-4 sm:px-6'>
     <Carousel.Title>Upcoming shows</Carousel.Title>
     <div className='flex items-center gap-2'>
       <Carousel.Previous />
       <Carousel.Next />
     </div>
   </Carousel.Header>
-  <Carousel.Content>
-    <Carousel.Item className='basis-1/2 md:basis-1/3'>
+  <Carousel.Content className='px-4 sm:px-6'>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
       <Card emphasis='subtle'>
         <Card.Content>
           <Card.Title>Midnight Frequency</Card.Title>
@@ -41,7 +41,7 @@ The simplest usage — a single Content with Items, plus Previous/Next nav butto
         </Card.Content>
       </Card>
     </Carousel.Item>
-    <Carousel.Item className='basis-1/2 md:basis-1/3'>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
       <Card emphasis='subtle'>
         <Card.Content>
           <Card.Title>Sunset Sounds</Card.Title>
@@ -49,7 +49,7 @@ The simplest usage — a single Content with Items, plus Previous/Next nav butto
         </Card.Content>
       </Card>
     </Carousel.Item>
-    <Carousel.Item className='basis-1/2 md:basis-1/3'>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
       <Card emphasis='subtle'>
         <Card.Content>
           <Card.Title>Neon Dusk</Card.Title>
@@ -57,7 +57,7 @@ The simplest usage — a single Content with Items, plus Previous/Next nav butto
         </Card.Content>
       </Card>
     </Carousel.Item>
-    <Carousel.Item className='basis-1/2 md:basis-1/3'>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
       <Card emphasis='subtle'>
         <Card.Content>
           <Card.Title>Wave Theory</Card.Title>
@@ -65,11 +65,19 @@ The simplest usage — a single Content with Items, plus Previous/Next nav butto
         </Card.Content>
       </Card>
     </Carousel.Item>
-    <Carousel.Item className='basis-1/2 md:basis-1/3'>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
       <Card emphasis='subtle'>
         <Card.Content>
           <Card.Title>Static Bloom</Card.Title>
           <Card.Description>Eatons Hill Hotel</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Echo Garden</Card.Title>
+          <Card.Description>Princess Theatre</Card.Description>
         </Card.Content>
       </Card>
     </Carousel.Item>
@@ -79,15 +87,15 @@ The simplest usage — a single Content with Items, plus Previous/Next nav butto
 
 ### Featured (autoplay + loop)
 
-Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayPause` button is placed first inside the header so it is the first tab stop — required by WCAG 2.2.2.
+Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayPause` button is placed first inside the header so it is the first tab stop — required by WCAG 2.2.2. Slides run edge-to-edge with a sliver of the next slide peeking in.
 
-```tsx-live
+```tsx-live-bleed-x
 <Carousel
   aria-label='Featured events'
   autoPlay={5000}
   opts={{ loop: true, align: 'start' }}
 >
-  <Carousel.Header>
+  <Carousel.Header className='px-4 sm:px-6'>
     <Carousel.Title href='#'>Featured events</Carousel.Title>
     <div className='flex items-center gap-2'>
       <Carousel.PlayPause />
@@ -95,8 +103,8 @@ Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayP
       <Carousel.Next />
     </div>
   </Carousel.Header>
-  <Carousel.Content>
-    <Carousel.Item className='basis-[84vw] md:basis-1/2'>
+  <Carousel.Content className='px-4 sm:px-6'>
+    <Carousel.Item className='basis-[88%] md:basis-1/2'>
       <Card emphasis='raised'>
         <Card.Content>
           <Card.Title>Midnight Frequency</Card.Title>
@@ -104,7 +112,7 @@ Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayP
         </Card.Content>
       </Card>
     </Carousel.Item>
-    <Carousel.Item className='basis-[84vw] md:basis-1/2'>
+    <Carousel.Item className='basis-[88%] md:basis-1/2'>
       <Card emphasis='raised'>
         <Card.Content>
           <Card.Title>Sunset Sounds</Card.Title>
@@ -112,7 +120,7 @@ Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayP
         </Card.Content>
       </Card>
     </Carousel.Item>
-    <Carousel.Item className='basis-[84vw] md:basis-1/2'>
+    <Carousel.Item className='basis-[88%] md:basis-1/2'>
       <Card emphasis='raised'>
         <Card.Content>
           <Card.Title>Neon Dusk</Card.Title>

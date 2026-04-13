@@ -190,12 +190,18 @@ export function useCarousel(): UseCarouselReturn {
 
 /* ─── Variants ─── */
 
+// `overflow: clip` + `overflow-clip-margin` lets card shadows bleed out
+// beyond the viewport box. Unlike `overflow: hidden` + padding, this only
+// extends the clip region for *painted output* — it does not add layout
+// space inside the viewport, so slides can't visibly drift into the bleed
+// region. 2 × `--spacing` = 8px is enough for `shadow-md` (~6–10px) on
+// every side.
 export const carouselContentVariants = cva(
-  'relative overflow-hidden focus-visible:outline-none',
+  'relative overflow-clip focus-visible:outline-none',
   {
     variants: {
       direction: {
-        horizontal: '',
+        horizontal: '-my-2 py-2',
         vertical: ''
       }
     },
@@ -582,7 +588,7 @@ CarouselRoot.displayName = 'Carousel'
 function CarouselHeader({ className, ...props }: ComponentProps<'div'>) {
   return (
     <div
-      className={cn('mb-4 flex items-center justify-between gap-4', className)}
+      className={cn('mb-2 flex items-center justify-between gap-4', className)}
       {...props}
     />
   )
@@ -622,14 +628,14 @@ function CarouselTitle({
         id={titleId}
         href={href}
         className={cn(
-          'group/title is-interactive flex items-center gap-2 text-display-ui-6 text-strong',
+          'group/title is-interactive flex items-center gap-1 text-display-ui-5 text-strong',
           className
         )}
       >
         {children}
         <ArrowRightIcon
           weight='bold'
-          className='size-4 transition-transform group-hover/title:translate-x-0.5'
+          className='size-5 text-subtle transition-transform group-hover/title:translate-x-1 group-hover/title:intent-accent'
         />
       </a>
     )
@@ -826,8 +832,8 @@ function CarouselPrevious({
   const Icon = direction === 'vertical' ? CaretUpIcon : CaretLeftIcon
   return (
     <IconButton
-      emphasis='subtler'
-      className={cn('rounded-full', className)}
+      size='icon-sm'
+      className={className}
       aria-label={ariaLabel}
       aria-disabled={!canGoToPrev || undefined}
       disabled={!canGoToPrev}
@@ -853,8 +859,8 @@ function CarouselNext({
   const Icon = direction === 'vertical' ? CaretDownIcon : CaretRightIcon
   return (
     <IconButton
-      emphasis='subtler'
-      className={cn('rounded-full', className)}
+      size='icon-sm'
+      className={className}
       aria-label={ariaLabel}
       aria-disabled={!canGoToNext || undefined}
       disabled={!canGoToNext}
@@ -882,8 +888,8 @@ function CarouselPlayPause({
   const label = ariaLabel ?? (isPlaying ? 'Pause carousel' : 'Play carousel')
   return (
     <IconButton
-      emphasis='subtler'
-      className={cn('rounded-full', className)}
+      size='icon-sm'
+      className={className}
       aria-label={label}
       aria-pressed={!isPlaying}
       onClick={toggle}
@@ -891,9 +897,9 @@ function CarouselPlayPause({
     >
       {children ??
         (isPlaying ? (
-          <PauseIcon weight='bold' className='size-4' />
+          <PauseIcon weight='bold' className='size-4 text-subtle' />
         ) : (
-          <PlayIcon weight='bold' className='size-4' />
+          <PlayIcon weight='bold' className='size-4 text-subtle' />
         ))}
     </IconButton>
   )
@@ -928,7 +934,9 @@ function CarouselDots({ className, ...props }: CarouselDotsProps) {
             onClick={() => goTo(index)}
             className={cn(
               'is-interactive h-2 rounded-full transition-all',
-              isActive ? 'bg-accent w-5' : 'w-2 bg-subtler hover:bg-subtle'
+              isActive
+                ? 'w-5 emphasis-strong intent-accent'
+                : 'w-2 emphasis-normal'
             )}
           />
         )
