@@ -261,7 +261,7 @@ export interface CarouselProps extends Omit<ComponentProps<'div'>, 'onBlur'> {
   'aria-label'?: string
 }
 
-function CarouselRoot({
+export function Carousel({
   opts,
   direction = 'horizontal',
   autoPlay = false,
@@ -581,11 +581,13 @@ function CarouselRoot({
   )
 }
 
-CarouselRoot.displayName = 'Carousel'
+Carousel.displayName = 'Carousel'
 
 /* ─── Header ─── */
 
-function CarouselHeader({ className, ...props }: ComponentProps<'div'>) {
+export type CarouselHeaderProps = ComponentProps<'div'>
+
+export function CarouselHeader({ className, ...props }: CarouselHeaderProps) {
   return (
     <div
       className={cn('mb-2 flex items-center justify-between gap-4', className)}
@@ -606,7 +608,7 @@ export interface CarouselTitleProps extends ComponentProps<'h2'> {
   href?: string
 }
 
-function CarouselTitle({
+export function CarouselTitle({
   className,
   children,
   href,
@@ -661,7 +663,7 @@ export interface CarouselContentProps extends ComponentProps<'div'> {
   containerProps?: ComponentProps<'div'>
 }
 
-function CarouselContent({
+export function CarouselContent({
   className,
   children,
   containerProps,
@@ -793,7 +795,11 @@ CarouselContent.displayName = 'Carousel.Content'
 
 export type CarouselItemProps = ComponentProps<'div'>
 
-function CarouselItem({ className, children, ...props }: CarouselItemProps) {
+export function CarouselItem({
+  className,
+  children,
+  ...props
+}: CarouselItemProps) {
   const { direction } = useCarouselState()
   const { index, total, isActive } = useCarouselItem()
   return (
@@ -815,17 +821,25 @@ CarouselItem.displayName = 'Carousel.Item'
 
 /* ─── Previous / Next ─── */
 
-type NavButtonProps = Omit<IconButtonProps, 'aria-label' | 'children'> & {
+export type CarouselNavButtonProps = Omit<
+  IconButtonProps,
+  'aria-label' | 'children'
+> & {
+  /**
+   * Override the default accessible label.
+   * Defaults to "Previous slide" / "Next slide" / "Pause carousel" / "Play carousel".
+   */
   'aria-label'?: string
+  /** Override the default caret/play/pause icon. */
   children?: ReactNode
 }
 
-function CarouselPrevious({
+export function CarouselPrevious({
   className,
   'aria-label': ariaLabel = 'Previous slide',
   children,
   ...props
-}: NavButtonProps) {
+}: CarouselNavButtonProps) {
   const { direction, slideCount, canGoToPrev } = useCarouselState()
   const { goToPrev } = useCarouselActions()
   if (slideCount <= 1) return null
@@ -847,12 +861,12 @@ function CarouselPrevious({
 
 CarouselPrevious.displayName = 'Carousel.Previous'
 
-function CarouselNext({
+export function CarouselNext({
   className,
   'aria-label': ariaLabel = 'Next slide',
   children,
   ...props
-}: NavButtonProps) {
+}: CarouselNavButtonProps) {
   const { direction, slideCount, canGoToNext } = useCarouselState()
   const { goToNext } = useCarouselActions()
   if (slideCount <= 1) return null
@@ -876,12 +890,12 @@ CarouselNext.displayName = 'Carousel.Next'
 
 /* ─── PlayPause ─── */
 
-function CarouselPlayPause({
+export function CarouselPlayPause({
   className,
   'aria-label': ariaLabel,
   children,
   ...props
-}: NavButtonProps) {
+}: CarouselNavButtonProps) {
   const { hasAutoPlay, isPlaying } = useCarouselState()
   const { toggle } = useCarouselActions()
   if (!hasAutoPlay) return null
@@ -911,7 +925,7 @@ CarouselPlayPause.displayName = 'Carousel.PlayPause'
 
 export interface CarouselDotsProps extends ComponentProps<'div'> {}
 
-function CarouselDots({ className, ...props }: CarouselDotsProps) {
+export function CarouselDots({ className, ...props }: CarouselDotsProps) {
   const { direction, slideCount, selectedIndex } = useCarouselState()
   const { goTo } = useCarouselActions()
   if (slideCount <= 1) return null
@@ -947,26 +961,21 @@ function CarouselDots({ className, ...props }: CarouselDotsProps) {
 
 CarouselDots.displayName = 'Carousel.Dots'
 
-/* ─── Compound export ─── */
+/* ─── Compound attachment ─── */
+//
+// Direct property assignment (instead of Object.assign + cast) keeps the
+// `Carousel` symbol a plain function declaration, which means
+// `react-docgen-typescript` can extract the full CarouselProps interface
+// for the docs site. TypeScript widens `typeof Carousel` automatically to
+// include each attached subcomponent.
 
-export const Carousel = Object.assign(CarouselRoot, {
-  Header: CarouselHeader,
-  Title: CarouselTitle,
-  Content: CarouselContent,
-  Item: CarouselItem,
-  Previous: CarouselPrevious,
-  Next: CarouselNext,
-  PlayPause: CarouselPlayPause,
-  Dots: CarouselDots
-}) as typeof CarouselRoot & {
-  Header: typeof CarouselHeader
-  Title: typeof CarouselTitle
-  Content: typeof CarouselContent
-  Item: typeof CarouselItem
-  Previous: typeof CarouselPrevious
-  Next: typeof CarouselNext
-  PlayPause: typeof CarouselPlayPause
-  Dots: typeof CarouselDots
-}
+Carousel.Header = CarouselHeader
+Carousel.Title = CarouselTitle
+Carousel.Content = CarouselContent
+Carousel.Item = CarouselItem
+Carousel.Previous = CarouselPrevious
+Carousel.Next = CarouselNext
+Carousel.PlayPause = CarouselPlayPause
+Carousel.Dots = CarouselDots
 
 export type CarouselVariantProps = VariantProps<typeof carouselContentVariants>

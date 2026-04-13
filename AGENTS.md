@@ -259,8 +259,14 @@ Use raw HTML elements with utility classes:
 
 > **Building a compound component?** Read
 > [`docs/contributing/COMPOUND_PATTERNS.md`](docs/contributing/COMPOUND_PATTERNS.md)
-> for the two compound idioms in use (context-only vs index-injection)
+> for the two context-wiring idioms (context-only vs index-injection)
 > and the direct-children constraint that comes with the second one.
+> **New compounds should use named exports + property assignment**
+> (`export function Carousel(); Carousel.Header = CarouselHeader`)
+> rather than `Object.assign + cast` — the former lets
+> `react-docgen-typescript` extract the full props for the docs site
+> (`<PropsDefinitions>`). Older components still use the legacy pattern;
+> see COMPOUND_PATTERNS.md for migration notes.
 
 ### Creating a component with CVA
 
