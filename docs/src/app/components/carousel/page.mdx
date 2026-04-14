@@ -24,7 +24,7 @@ import { Carousel } from '@oztix/roadie-components'
 The simplest usage — a Title, a centered row of Dots, and Previous/Next nav buttons all inside a single `Carousel.Header`. On mobile the controls hide automatically (touch users swipe instead) and the dots re-pin to the right; from `md` upwards three slides sit in view and the dots sit centered between the title and the buttons.
 
 ```tsx-live
-<Carousel aria-label='Default carousel' opts={{ align: 'start' }}>
+<Carousel aria-label='Default carousel'>
   <Carousel.Header>
     <Carousel.Title>Upcoming shows</Carousel.Title>
     <Carousel.Dots />
@@ -91,7 +91,7 @@ The simplest usage — a Title, a centered row of Dots, and Previous/Next nav bu
 Each `Carousel.Item` can wrap a clickable element. The `Card` component renders as an anchor when given an `href`, and Carousel's keyboard handler is smart enough not to advance slides when arrow keys hit a focusable element inside a slide — so `Tab` lands on each card's link in turn.
 
 ```tsx-live
-<Carousel aria-label='Linked event cards' opts={{ align: 'start' }}>
+<Carousel aria-label='Linked event cards'>
   <Carousel.Header>
     <Carousel.TitleLink href='/events'>Browse all events</Carousel.TitleLink>
     <Carousel.Dots />
@@ -144,7 +144,7 @@ Pass `slidesToScroll: 'auto'` through `opts` to move by a full viewport at a tim
 ```tsx-live
 <Carousel
   aria-label='Events by page'
-  opts={{ align: 'start', slidesToScroll: 'auto' }}
+  opts={{ slidesToScroll: 'auto' }}
 >
   <Carousel.Header>
     <Carousel.Title>This weekend</Carousel.Title>
@@ -235,7 +235,7 @@ Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayP
 <Carousel
   aria-label='Featured events'
   autoPlay={5000}
-  opts={{ loop: true, align: 'start' }}
+  opts={{ loop: true }}
 >
   <Carousel.Header>
     <Carousel.TitleLink as={Link} href='/events'>
@@ -282,7 +282,7 @@ Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayP
 When every slide already fits in the viewport, `Carousel.Previous`, `Carousel.Next`, `Carousel.Dots`, and `Carousel.Controls` all hide themselves automatically. Resize the preview wider to see the difference.
 
 ```tsx-live
-<Carousel aria-label='Comedy lineup' opts={{ align: 'start' }}>
+<Carousel aria-label='Comedy lineup'>
   <Carousel.Header>
     <Carousel.TitleLink href='/comedy'>Comedy</Carousel.TitleLink>
     <Carousel.Dots />

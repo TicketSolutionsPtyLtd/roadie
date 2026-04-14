@@ -419,6 +419,13 @@ export function Carousel({
 
   const resolvedOpts = useMemo<EmblaOptionsType>(
     () => ({
+      // Roadie defaults that a consumer can still override via `opts`.
+      // Embla's own default is `align: 'center'`, which reads badly for
+      // a card list because partial slides peek in from both edges
+      // simultaneously. `start` lines up with how Roadie carousels are
+      // meant to be composed (content flows from the left) and is what
+      // every example in the docs used to pass explicitly.
+      align: 'start',
       ...opts,
       axis,
       duration: prefersReducedMotion ? 0 : (opts?.duration ?? 25)
