@@ -60,33 +60,6 @@ beforeAll(() => {
     ).IntersectionObserver = IntersectionObserverMock
   }
 
-  // jsdom reports 0 for every layout property. Embla measures slides during
-  // init and never progresses past "not ready" without non-zero dimensions.
-  Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
-    configurable: true,
-    get() {
-      return 800
-    }
-  })
-  Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
-    configurable: true,
-    get() {
-      return 600
-    }
-  })
-  Object.defineProperty(HTMLElement.prototype, 'clientWidth', {
-    configurable: true,
-    get() {
-      return 800
-    }
-  })
-  Object.defineProperty(HTMLElement.prototype, 'clientHeight', {
-    configurable: true,
-    get() {
-      return 600
-    }
-  })
-
   if (typeof window.matchMedia === 'undefined') {
     Object.defineProperty(window, 'matchMedia', {
       writable: true,

@@ -1,9 +1,73 @@
 import { waitFor } from '@testing-library/dom'
 import { act, render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import type { EmblaCarouselType } from 'embla-carousel'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import { Carousel, type UseCarouselReturn, useCarousel } from './index'
+import {
+  Carousel,
+  type UseCarouselReturn,
+  useCarousel,
+  useCarouselUnsafeEmbla
+} from './index'
+
+// ── Layout stubs ──
+// Embla measures slide and viewport dimensions during init and never
+// progresses past "not ready" without non-zero values. jsdom returns 0 for
+// every layout property, so we patch the four properties Embla reads. The
+// stubs live here (not in the package-wide vitest setup) so they don't
+// silently change the layout characteristics of every other component's
+// tests.
+const layoutRestores: Array<() => void> = []
+
+function stubLayoutProperty(prop: PropertyKey, value: number) {
+  const original = Object.getOwnPropertyDescriptor(HTMLElement.prototype, prop)
+  Object.defineProperty(HTMLElement.prototype, prop, {
+    configurable: true,
+    get() {
+      return value
+    }
+  })
+  layoutRestores.push(() => {
+    if (original) {
+      Object.defineProperty(HTMLElement.prototype, prop, original)
+    } else {
+      delete (HTMLElement.prototype as unknown as Record<PropertyKey, unknown>)[
+        prop
+      ]
+    }
+  })
+}
+
+beforeAll(() => {
+  stubLayoutProperty('offsetWidth', 800)
+  stubLayoutProperty('offsetHeight', 600)
+  stubLayoutProperty('clientWidth', 800)
+  stubLayoutProperty('clientHeight', 600)
+})
+
+afterAll(() => {
+  while (layoutRestores.length > 0) {
+    layoutRestores.pop()?.()
+  }
+})
+
+type Captured = {
+  carousel: UseCarouselReturn
+  api: EmblaCarouselType | undefined
+}
+
+function makeCapture() {
+  const ref: { current: Captured | null } = { current: null }
+  function Spy() {
+    ref.current = {
+      carousel: useCarousel(),
+      api: useCarouselUnsafeEmbla()
+    }
+    return null
+  }
+  return { ref, Spy }
+}
 
 function Fixture({
   count = 3,
@@ -91,11 +155,7 @@ describe('Carousel', () => {
 
   it('clicking Next advances the selected index', async () => {
     const user = userEvent.setup()
-    const ref: { current: UseCarouselReturn | null } = { current: null }
-    function Spy() {
-      ref.current = useCarousel()
-      return null
-    }
+    const { ref, Spy } = makeCapture()
     const { getByLabelText } = render(
       <Carousel aria-label='test'>
         <Carousel.Content>
@@ -109,21 +169,17 @@ describe('Carousel', () => {
       </Carousel>
     )
     await waitFor(() => expect(ref.current?.api).toBeTruthy())
-    expect(ref.current?.state.selectedIndex).toBe(0)
+    expect(ref.current?.carousel.state.selectedIndex).toBe(0)
 
     await user.click(getByLabelText('Next slide'))
     await waitFor(() => {
-      expect(ref.current?.state.selectedIndex).toBe(1)
+      expect(ref.current?.carousel.state.selectedIndex).toBe(1)
     })
   })
 
   it('clicking a dot calls goTo with that index', async () => {
     const user = userEvent.setup()
-    const ref: { current: UseCarouselReturn | null } = { current: null }
-    function Spy() {
-      ref.current = useCarousel()
-      return null
-    }
+    const { ref, Spy } = makeCapture()
     const { getByLabelText } = render(
       <Carousel aria-label='test'>
         <Carousel.Content>
@@ -138,7 +194,7 @@ describe('Carousel', () => {
     await waitFor(() => expect(ref.current?.api).toBeTruthy())
     await user.click(getByLabelText('Go to slide 3'))
     await waitFor(() => {
-      expect(ref.current?.state.selectedIndex).toBe(2)
+      expect(ref.current?.carousel.state.selectedIndex).toBe(2)
     })
   })
 
@@ -167,11 +223,7 @@ describe('Carousel', () => {
   })
 
   it('re-initialises Embla when children count changes', async () => {
-    const ref: { current: UseCarouselReturn | null } = { current: null }
-    function Spy() {
-      ref.current = useCarousel()
-      return null
-    }
+    const { ref, Spy } = makeCapture()
     function Rerender({ count }: { count: number }) {
       return (
         <Carousel aria-label='test'>
@@ -185,17 +237,13 @@ describe('Carousel', () => {
       )
     }
     const { rerender } = render(<Rerender count={3} />)
-    await waitFor(() => expect(ref.current?.state.slideCount).toBe(3))
+    await waitFor(() => expect(ref.current?.carousel.state.slideCount).toBe(3))
     rerender(<Rerender count={5} />)
-    await waitFor(() => expect(ref.current?.state.slideCount).toBe(5))
+    await waitFor(() => expect(ref.current?.carousel.state.slideCount).toBe(5))
   })
 
   it('supports opts pass-through (align=start)', async () => {
-    const ref: { current: UseCarouselReturn | null } = { current: null }
-    function Spy() {
-      ref.current = useCarousel()
-      return null
-    }
+    const { ref, Spy } = makeCapture()
     render(
       <Carousel aria-label='test' opts={{ align: 'start' }}>
         <Carousel.Content>
@@ -209,7 +257,7 @@ describe('Carousel', () => {
     await waitFor(() => expect(ref.current?.api).toBeTruthy())
     // Just asserting the api is live with the custom opts — exhaustive
     // option-coverage belongs to Embla's own tests.
-    expect(ref.current?.state.slideCount).toBe(3)
+    expect(ref.current?.carousel.state.slideCount).toBe(3)
   })
 
   // ── Phase 3: Autoplay, header, title, keyboard, reduced motion ──
@@ -233,11 +281,7 @@ describe('Carousel', () => {
   }
 
   it('wires the autoplay plugin when autoPlay is set', async () => {
-    const capture: { current: UseCarouselReturn | null } = { current: null }
-    function Spy() {
-      capture.current = useCarousel()
-      return null
-    }
+    const { ref, Spy } = makeCapture()
     render(
       <Carousel aria-label='test' autoPlay={5000}>
         <Carousel.Content>
@@ -247,9 +291,9 @@ describe('Carousel', () => {
         <Spy />
       </Carousel>
     )
-    await waitFor(() => expect(capture.current?.api).toBeTruthy())
-    expect(capture.current?.api?.plugins().autoplay).toBeDefined()
-    expect(capture.current?.state.hasAutoPlay).toBe(true)
+    await waitFor(() => expect(ref.current?.api).toBeTruthy())
+    expect(ref.current?.api?.plugins().autoplay).toBeDefined()
+    expect(ref.current?.carousel.state.isPlaying).toBe(true)
   })
 
   it('does NOT wire the autoplay plugin when prefers-reduced-motion is set', async () => {
@@ -258,11 +302,7 @@ describe('Carousel', () => {
         globalThis as unknown as { __setReducedMotion?: (v: boolean) => void }
       ).__setReducedMotion?.(true)
     })
-    const capture: { current: UseCarouselReturn | null } = { current: null }
-    function Spy() {
-      capture.current = useCarousel()
-      return null
-    }
+    const { ref, Spy } = makeCapture()
     render(
       <Carousel aria-label='test' autoPlay={5000}>
         <Carousel.Content>
@@ -272,9 +312,9 @@ describe('Carousel', () => {
         <Spy />
       </Carousel>
     )
-    await waitFor(() => expect(capture.current?.api).toBeTruthy())
-    expect(capture.current?.api?.plugins().autoplay).toBeUndefined()
-    expect(capture.current?.state.isPlaying).toBe(false)
+    await waitFor(() => expect(ref.current?.api).toBeTruthy())
+    expect(ref.current?.api?.plugins().autoplay).toBeUndefined()
+    expect(ref.current?.carousel.state.isPlaying).toBe(false)
   })
 
   it('Carousel.PlayPause is hidden when autoPlay is not set', () => {
@@ -299,11 +339,7 @@ describe('Carousel', () => {
 
   it('click on PlayPause flips userPaused and stops autoplay', async () => {
     const user = userEvent.setup()
-    const capture: { current: UseCarouselReturn | null } = { current: null }
-    function Spy() {
-      capture.current = useCarousel()
-      return null
-    }
+    const { ref, Spy } = makeCapture()
     const { findByLabelText } = render(
       <Carousel aria-label='test' autoPlay={5000}>
         <Carousel.Content>
@@ -314,20 +350,22 @@ describe('Carousel', () => {
         <Spy />
       </Carousel>
     )
-    await waitFor(() => expect(capture.current?.api).toBeTruthy())
-    await waitFor(() => expect(capture.current?.state.isPlaying).toBe(true))
+    await waitFor(() => expect(ref.current?.api).toBeTruthy())
+    await waitFor(() =>
+      expect(ref.current?.carousel.state.isPlaying).toBe(true)
+    )
     const pauseBtn = await findByLabelText('Pause carousel')
     await user.click(pauseBtn)
     await waitFor(() => {
-      expect(capture.current?.state.isPlaying).toBe(false)
-      expect(capture.current?.state.userPaused).toBe(true)
+      expect(ref.current?.carousel.state.isPlaying).toBe(false)
+      expect(ref.current?.carousel.state.userPaused).toBe(true)
     })
     // Click again to resume
     const playBtn = await findByLabelText('Play carousel')
     await user.click(playBtn)
     await waitFor(() => {
-      expect(capture.current?.state.isPlaying).toBe(true)
-      expect(capture.current?.state.userPaused).toBe(false)
+      expect(ref.current?.carousel.state.isPlaying).toBe(true)
+      expect(ref.current?.carousel.state.userPaused).toBe(false)
     })
   })
 
@@ -368,7 +406,7 @@ describe('Carousel', () => {
     expect(content.getAttribute('aria-live')).toBe('polite')
   })
 
-  it('Carousel.Title without href renders an <h2>', () => {
+  it('Carousel.Title renders an <h2>', () => {
     const { getByRole } = render(
       <Carousel aria-label='test'>
         <Carousel.Header>
@@ -383,7 +421,22 @@ describe('Carousel', () => {
     expect(heading.tagName).toBe('H2')
   })
 
-  it('Carousel.Title with as prop renders the custom component', () => {
+  it('Carousel.Title with as="h3" renders an h3', () => {
+    const { getByRole } = render(
+      <Carousel aria-label='test'>
+        <Carousel.Header>
+          <Carousel.Title as='h3'>Section</Carousel.Title>
+        </Carousel.Header>
+        <Carousel.Content>
+          <Carousel.Item>1</Carousel.Item>
+        </Carousel.Content>
+      </Carousel>
+    )
+    const heading = getByRole('heading', { level: 3, name: 'Section' })
+    expect(heading.tagName).toBe('H3')
+  })
+
+  it('Carousel.TitleLink with as prop renders the custom component', () => {
     const FakeLink = ({
       href,
       children,
@@ -400,9 +453,9 @@ describe('Carousel', () => {
     const { getByTestId } = render(
       <Carousel aria-label='test'>
         <Carousel.Header>
-          <Carousel.Title as={FakeLink} href='/events'>
+          <Carousel.TitleLink as={FakeLink} href='/events'>
             Featured
-          </Carousel.Title>
+          </Carousel.TitleLink>
         </Carousel.Header>
         <Carousel.Content>
           <Carousel.Item>1</Carousel.Item>
@@ -415,11 +468,11 @@ describe('Carousel', () => {
     expect(link).toHaveTextContent('Featured')
   })
 
-  it('Carousel.Title with href renders an anchor', () => {
+  it('Carousel.TitleLink with href renders an anchor', () => {
     const { getByRole } = render(
       <Carousel aria-label='test'>
         <Carousel.Header>
-          <Carousel.Title href='/events'>My Title</Carousel.Title>
+          <Carousel.TitleLink href='/events'>My Title</Carousel.TitleLink>
         </Carousel.Header>
         <Carousel.Content>
           <Carousel.Item>1</Carousel.Item>
@@ -449,11 +502,7 @@ describe('Carousel', () => {
 
   it('keyboard: ArrowRight advances, ArrowLeft goes back (horizontal)', async () => {
     const user = userEvent.setup()
-    const capture: { current: UseCarouselReturn | null } = { current: null }
-    function Spy() {
-      capture.current = useCarousel()
-      return null
-    }
+    const { ref, Spy } = makeCapture()
     const { getByRole } = render(
       <Carousel aria-label='test'>
         <Carousel.Content>
@@ -464,28 +513,32 @@ describe('Carousel', () => {
         <Spy />
       </Carousel>
     )
-    await waitFor(() => expect(capture.current?.api).toBeTruthy())
+    await waitFor(() => expect(ref.current?.api).toBeTruthy())
     const viewport = getByRole('region').querySelector(
       '[tabindex="0"]'
     ) as HTMLElement
     viewport.focus()
     await user.keyboard('{ArrowRight}')
-    await waitFor(() => expect(capture.current?.state.selectedIndex).toBe(1))
+    await waitFor(() =>
+      expect(ref.current?.carousel.state.selectedIndex).toBe(1)
+    )
     await user.keyboard('{ArrowLeft}')
-    await waitFor(() => expect(capture.current?.state.selectedIndex).toBe(0))
+    await waitFor(() =>
+      expect(ref.current?.carousel.state.selectedIndex).toBe(0)
+    )
     await user.keyboard('{End}')
-    await waitFor(() => expect(capture.current?.state.selectedIndex).toBe(2))
+    await waitFor(() =>
+      expect(ref.current?.carousel.state.selectedIndex).toBe(2)
+    )
     await user.keyboard('{Home}')
-    await waitFor(() => expect(capture.current?.state.selectedIndex).toBe(0))
+    await waitFor(() =>
+      expect(ref.current?.carousel.state.selectedIndex).toBe(0)
+    )
   })
 
   it('keyboard: ArrowRight inside a slide link does NOT advance', async () => {
     const user = userEvent.setup()
-    const capture: { current: UseCarouselReturn | null } = { current: null }
-    function Spy() {
-      capture.current = useCarousel()
-      return null
-    }
+    const { ref, Spy } = makeCapture()
     const { getByText } = render(
       <Carousel aria-label='test'>
         <Carousel.Content>
@@ -497,20 +550,16 @@ describe('Carousel', () => {
         <Spy />
       </Carousel>
     )
-    await waitFor(() => expect(capture.current?.api).toBeTruthy())
+    await waitFor(() => expect(ref.current?.api).toBeTruthy())
     const link = getByText('inside link')
     link.focus()
     expect(document.activeElement).toBe(link)
     await user.keyboard('{ArrowRight}')
-    expect(capture.current?.state.selectedIndex).toBe(0)
+    expect(ref.current?.carousel.state.selectedIndex).toBe(0)
   })
 
   it('reduced motion toggle at runtime stops autoplay', async () => {
-    const capture: { current: UseCarouselReturn | null } = { current: null }
-    function Spy() {
-      capture.current = useCarousel()
-      return null
-    }
+    const { ref, Spy } = makeCapture()
     render(
       <Carousel aria-label='test' autoPlay={5000}>
         <Carousel.Content>
@@ -520,16 +569,18 @@ describe('Carousel', () => {
         <Spy />
       </Carousel>
     )
-    await waitFor(() => expect(capture.current?.api).toBeTruthy())
-    await waitFor(() => expect(capture.current?.state.isPlaying).toBe(true))
+    await waitFor(() => expect(ref.current?.api).toBeTruthy())
+    await waitFor(() =>
+      expect(ref.current?.carousel.state.isPlaying).toBe(true)
+    )
     act(() => {
       ;(
         globalThis as unknown as { __setReducedMotion?: (v: boolean) => void }
       ).__setReducedMotion?.(true)
     })
     await waitFor(() => {
-      expect(capture.current?.api?.plugins().autoplay).toBeUndefined()
-      expect(capture.current?.state.isPlaying).toBe(false)
+      expect(ref.current?.api?.plugins().autoplay).toBeUndefined()
+      expect(ref.current?.carousel.state.isPlaying).toBe(false)
     })
   })
 

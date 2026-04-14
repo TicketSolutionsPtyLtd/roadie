@@ -93,12 +93,15 @@
     {
       "name": "Carousel",
       "path": "dist/Carousel.js",
-      "limit": "13 KB",
+      "limit": "5 KB",
       "ignore": [
         "react",
         "react-dom",
         "@oztix/roadie-core",
-        "@phosphor-icons/react"
+        "@phosphor-icons/react",
+        "embla-carousel",
+        "embla-carousel-react",
+        "embla-carousel-autoplay"
       ]
     }
   ],

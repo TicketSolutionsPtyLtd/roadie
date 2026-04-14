@@ -85,11 +85,61 @@ The simplest usage — a single Content with Items, plus Previous/Next nav butto
 </Carousel>
 ```
 
+### With linked cards
+
+Each `Carousel.Item` can wrap a clickable element. The `Card` component renders as an anchor when given an `href`, and Carousel's keyboard handler is smart enough not to advance slides when arrow keys hit a focusable element inside a slide — so `Tab` lands on each card's link in turn.
+
+```tsx-live-bleed-x
+<Carousel aria-label='Linked event cards' opts={{ align: 'start' }}>
+  <Carousel.Header className='px-4 sm:px-6'>
+    <Carousel.TitleLink href='/events'>Browse all events</Carousel.TitleLink>
+    <div className='flex items-center gap-2'>
+      <Carousel.Previous />
+      <Carousel.Next />
+    </div>
+  </Carousel.Header>
+  <Carousel.Content className='px-4 sm:px-6'>
+    <Carousel.Item className='basis-[78%] md:basis-1/3'>
+      <Card emphasis='raised' href='/events/midnight-frequency'>
+        <Card.Content>
+          <Card.Title>Midnight Frequency</Card.Title>
+          <Card.Description>Friday 14 Mar — The Triffid</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[78%] md:basis-1/3'>
+      <Card emphasis='raised' href='/events/sunset-sounds'>
+        <Card.Content>
+          <Card.Title>Sunset Sounds</Card.Title>
+          <Card.Description>Saturday 22 Mar — Riverstage</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[78%] md:basis-1/3'>
+      <Card emphasis='raised' href='/events/neon-dusk'>
+        <Card.Content>
+          <Card.Title>Neon Dusk</Card.Title>
+          <Card.Description>Sunday 30 Mar — Fortitude Music Hall</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[78%] md:basis-1/3'>
+      <Card emphasis='raised' href='/events/wave-theory'>
+        <Card.Content>
+          <Card.Title>Wave Theory</Card.Title>
+          <Card.Description>Saturday 5 Apr — The Tivoli</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+  </Carousel.Content>
+</Carousel>
+```
+
 ### Featured (autoplay + loop)
 
 Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayPause` button is placed first inside the header so it is the first tab stop — required by WCAG 2.2.2. Slides run edge-to-edge with a sliver of the next slide peeking in.
 
-`Carousel.Title` accepts `as` so you can pass a framework router link (`Link` here) instead of a plain `<a>` — the trailing arrow icon and link styling come along automatically.
+`Carousel.TitleLink` accepts `as` so you can pass a framework router link (`Link` here) instead of a plain `<a>` — the trailing arrow icon and link styling come along automatically.
 
 ```tsx-live-bleed-x
 <Carousel
@@ -98,9 +148,9 @@ Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayP
   opts={{ loop: true, align: 'start' }}
 >
   <Carousel.Header className='px-4 sm:px-6'>
-    <Carousel.Title as={Link} href='/events'>
+    <Carousel.TitleLink as={Link} href='/events'>
       Featured events
-    </Carousel.Title>
+    </Carousel.TitleLink>
     <div className='flex items-center gap-2'>
       <Carousel.PlayPause />
       <Carousel.Previous />
@@ -109,7 +159,7 @@ Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayP
   </Carousel.Header>
   <Carousel.Content className='px-4 sm:px-6'>
     <Carousel.Item className='basis-[88%] md:basis-1/2'>
-      <Card emphasis='raised'>
+      <Card emphasis='raised' href='/events/midnight-frequency'>
         <Card.Content>
           <Card.Title>Midnight Frequency</Card.Title>
           <Card.Description>Friday 14 Mar — The Triffid</Card.Description>
@@ -117,7 +167,7 @@ Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayP
       </Card>
     </Carousel.Item>
     <Carousel.Item className='basis-[88%] md:basis-1/2'>
-      <Card emphasis='raised'>
+      <Card emphasis='raised' href='/events/sunset-sounds'>
         <Card.Content>
           <Card.Title>Sunset Sounds</Card.Title>
           <Card.Description>Saturday 22 Mar — Riverstage</Card.Description>
@@ -125,7 +175,7 @@ Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayP
       </Card>
     </Carousel.Item>
     <Carousel.Item className='basis-[88%] md:basis-1/2'>
-      <Card emphasis='raised'>
+      <Card emphasis='raised' href='/events/neon-dusk'>
         <Card.Content>
           <Card.Title>Neon Dusk</Card.Title>
           <Card.Description>Sunday 30 Mar — Fortitude Music Hall</Card.Description>
@@ -216,6 +266,49 @@ Pass `direction='vertical'` to flip the axis. The Previous/Next icons swap to up
 </Carousel>
 ```
 
+### States
+
+`Carousel.Previous` and `Carousel.Next` are disabled at the start and end boundaries unless `loop` is set. `Carousel.PlayPause` toggles its icon and `aria-pressed` on click.
+
+```tsx-live
+<Carousel aria-label='State demo' autoPlay={5000}>
+  <Carousel.Header>
+    <Carousel.Title>Boundary + autoplay states</Carousel.Title>
+    <div className='flex items-center gap-2'>
+      <Carousel.PlayPause />
+      <Carousel.Previous />
+      <Carousel.Next />
+    </div>
+  </Carousel.Header>
+  <Carousel.Content>
+    <Carousel.Item>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>First slide</Card.Title>
+          <Card.Description>Previous is disabled — try it.</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Middle slide</Card.Title>
+          <Card.Description>Both buttons enabled.</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Last slide</Card.Title>
+          <Card.Description>Next is disabled.</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+  </Carousel.Content>
+</Carousel>
+```
+
 ### Composition
 
 Carousel is a compound component. Available parts:
@@ -224,13 +317,15 @@ Carousel is a compound component. Available parts:
 | --- | --- |
 | `Carousel` | Root. Owns the Embla instance and context. |
 | `Carousel.Header` | Layout shell for the title and nav buttons. |
-| `Carousel.Title` | `<h2>` by default, or an `<a>` when `href` is set. Registers as the carousel's accessible name. |
+| `Carousel.Title` | `<h2>` by default; pass `as='h3'` (etc.) to change the heading level. Registers as the carousel's accessible name. |
+| `Carousel.TitleLink` | Anchor with a trailing arrow icon. Pass `as={Link}` to use a framework router link. Registers as the carousel's accessible name. |
 | `Carousel.Content` | Embla viewport + container. Wraps each direct `Carousel.Item` child in per-item context. |
 | `Carousel.Item` | A single slide. Set the width with Tailwind `basis-*` utilities. |
 | `Carousel.Previous` / `Carousel.Next` | Nav buttons (compose `IconButton`). |
 | `Carousel.PlayPause` | Play/pause toggle. Renders only when `autoPlay` is set. |
 | `Carousel.Dots` | One button per slide. |
-| `useCarousel()` hook | Read state, call actions, access the Embla `api`. |
+| `useCarousel()` hook | Read state and call actions from a child component. |
+| `useCarouselUnsafeEmbla()` hook | Escape hatch — returns the raw Embla `api`. Hard-couples your code to a specific `embla-carousel` major version, so prefer `useCarousel()` whenever possible. |
 
 ## Guidelines
 
@@ -242,7 +337,7 @@ Carousel is a compound component. Available parts:
 
 ## Accessibility
 
-- **Region role.** The carousel root has `role='region'` and `aria-roledescription='carousel'`. The accessible name comes from `Carousel.Title` (via `aria-labelledby`) when present, otherwise from the `aria-label` prop on the root.
+- **Region role.** The carousel root has `role='region'` and `aria-roledescription='carousel'`. The accessible name comes from `Carousel.Title` / `Carousel.TitleLink` (via `aria-labelledby`) when present, otherwise from the `aria-label` prop on the root.
 - **Slide group role.** Each `Carousel.Item` has `role='group'`, `aria-roledescription='slide'`, and `aria-label='N of M'`. Non-active slides are marked `inert` so their interactive content stays out of the tab order.
 - **Live region.** `Carousel.Content` is `aria-live='off'` while autoplay is running and `aria-live='polite'` otherwise. Transient hover/focus pauses do not flip the live region — only an explicit pause via `Carousel.PlayPause` does.
 - **Keyboard.** When the viewport has focus: `ArrowLeft`/`ArrowRight` (or `ArrowUp`/`ArrowDown` in vertical mode) move between slides; `Home`/`End` jump to the first/last slide. Arrow keys never hijack focus when the user is interacting with a focusable element inside a slide.

@@ -3,10 +3,13 @@
 import {
   Children,
   type ComponentProps,
+  type Dispatch,
   type ElementType,
+  type FocusEvent as ReactFocusEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
-  cloneElement,
+  type Ref,
+  type SetStateAction,
   createContext,
   isValidElement,
   use,
@@ -67,9 +70,9 @@ function safePluginCall(fn: () => void): void {
 /* ─── prefers-reduced-motion hook ─── */
 
 function usePrefersReducedMotion(): boolean {
-  // Initial render (SSR + first client render) always sees `false` so
-  // the server and client markup match. The real value is applied on the
-  // first client effect tick, and Embla re-inits if it flips.
+  // SSR + first client render always see `false` so server / client markup
+  // matches. The real value is applied on the first client effect tick;
+  // Embla re-inits if it flips.
   const [prefers, setPrefers] = useState(false)
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return
@@ -102,68 +105,57 @@ export type CarouselState = {
   canGoToPrev: boolean
   canGoToNext: boolean
   isPlaying: boolean
-  hasAutoPlay: boolean
   userPaused: boolean
   labelId: string | undefined
   rootAriaLabel: string | undefined
 }
 
-export type CarouselRefs = {
-  api: EmblaCarouselType | undefined
-  emblaRef: (node: HTMLElement | null) => void
-}
-
 export type UseCarouselReturn = {
   state: CarouselState
   actions: CarouselActions
-  api: EmblaCarouselType | undefined
 }
 
-/* ─── Contexts ─── */
+/* ─── Context ─── */
+//
+// Single root context. The previous design split state / actions / refs /
+// internal across four contexts; in practice every subcomponent reads from
+// most of them, render-perf isn't a concern at this scale, and the four-way
+// split was pure boilerplate. The per-item context (CarouselItemContext)
+// stays separate because its lifecycle is driven by Carousel.Content's
+// children loop, not the root.
 
-const CarouselActionsContext = createContext<CarouselActions | null>(null)
-const CarouselStateContext = createContext<CarouselState | null>(null)
-const CarouselRefsContext = createContext<CarouselRefs | null>(null)
+type CarouselContextValue = CarouselState &
+  CarouselActions & {
+    api: EmblaCarouselType | undefined
+    emblaRef: (node: HTMLElement | null) => void
+    setSlideCount: (count: number) => void
+    setLabelId: Dispatch<SetStateAction<string | undefined>>
+    loop: boolean
+    autoPlay: number | false
+    /** Indices of slides currently intersecting the viewport. */
+    slidesInView: number[]
+  }
 
-type CarouselInternal = {
-  setSlideCount: (count: number) => void
-  setLabelId: (id: string | undefined) => void
-  loop: boolean
-}
-
-const CarouselInternalContext = createContext<CarouselInternal | null>(null)
+const CarouselContext = createContext<CarouselContextValue | null>(null)
 
 type CarouselItemContextValue = {
   index: number
   total: number
+  /** True when this slide is the carousel's selected snap point. */
   isActive: boolean
+  /**
+   * True when this slide currently intersects the viewport. Multi-visible
+   * layouts (e.g. `basis-1/3`) have several in-view slides at once;
+   * `inert` should follow visibility, not just selection, so every visible
+   * slide remains interactive.
+   */
+  isInView: boolean
 }
 
 const CarouselItemContext = createContext<CarouselItemContextValue | null>(null)
 
-function useCarouselActions(): CarouselActions {
-  const ctx = use(CarouselActionsContext)
-  if (!ctx)
-    throw new Error('Carousel subcomponent must be used inside <Carousel>')
-  return ctx
-}
-
-function useCarouselState(): CarouselState {
-  const ctx = use(CarouselStateContext)
-  if (!ctx)
-    throw new Error('Carousel subcomponent must be used inside <Carousel>')
-  return ctx
-}
-
-function useCarouselRefs(): CarouselRefs {
-  const ctx = use(CarouselRefsContext)
-  if (!ctx)
-    throw new Error('Carousel subcomponent must be used inside <Carousel>')
-  return ctx
-}
-
-function useCarouselInternal(): CarouselInternal {
-  const ctx = use(CarouselInternalContext)
+function useCarouselContext(): CarouselContextValue {
+  const ctx = use(CarouselContext)
   if (!ctx)
     throw new Error('Carousel subcomponent must be used inside <Carousel>')
   return ctx
@@ -179,14 +171,63 @@ function useCarouselItem(): CarouselItemContextValue {
 }
 
 /**
- * Access the carousel's state, actions, and underlying Embla API.
- * Must be called inside a <Carousel> tree.
+ * Access the carousel's state and actions. Must be called inside a
+ * `<Carousel>` tree.
+ *
+ * For escape-hatch access to the underlying Embla instance, use
+ * `useCarouselUnsafeEmbla()` — it is intentionally separate so raw-Embla
+ * coupling is greppable.
  */
 export function useCarousel(): UseCarouselReturn {
-  const state = useCarouselState()
-  const actions = useCarouselActions()
-  const { api } = useCarouselRefs()
-  return { state, actions, api }
+  const ctx = useCarouselContext()
+  const state = useMemo<CarouselState>(
+    () => ({
+      direction: ctx.direction,
+      selectedIndex: ctx.selectedIndex,
+      slideCount: ctx.slideCount,
+      canGoToPrev: ctx.canGoToPrev,
+      canGoToNext: ctx.canGoToNext,
+      isPlaying: ctx.isPlaying,
+      userPaused: ctx.userPaused,
+      labelId: ctx.labelId,
+      rootAriaLabel: ctx.rootAriaLabel
+    }),
+    [
+      ctx.direction,
+      ctx.selectedIndex,
+      ctx.slideCount,
+      ctx.canGoToPrev,
+      ctx.canGoToNext,
+      ctx.isPlaying,
+      ctx.userPaused,
+      ctx.labelId,
+      ctx.rootAriaLabel
+    ]
+  )
+  const actions = useMemo<CarouselActions>(
+    () => ({
+      goToPrev: ctx.goToPrev,
+      goToNext: ctx.goToNext,
+      goTo: ctx.goTo,
+      play: ctx.play,
+      pause: ctx.pause,
+      toggle: ctx.toggle
+    }),
+    [ctx.goToPrev, ctx.goToNext, ctx.goTo, ctx.play, ctx.pause, ctx.toggle]
+  )
+  return { state, actions }
+}
+
+/**
+ * Escape hatch: read the underlying Embla `api` instance directly.
+ *
+ * Returning Embla's API hard-couples your code to a specific major version
+ * of `embla-carousel`. Prefer `useCarousel()` whenever the public state and
+ * actions are sufficient. This hook exists so you can grep for raw-Embla
+ * usage when planning an upgrade.
+ */
+export function useCarouselUnsafeEmbla(): EmblaCarouselType | undefined {
+  return useCarouselContext().api
 }
 
 /* ─── Variants ─── */
@@ -202,7 +243,7 @@ export const carouselContentVariants = cva(
   {
     variants: {
       direction: {
-        horizontal: '-my-2 py-2',
+        horizontal: '-my-4 py-4',
         vertical: ''
       }
     },
@@ -273,22 +314,27 @@ export function Carousel({
 }: CarouselProps) {
   const prefersReducedMotion = usePrefersReducedMotion()
   const axis: 'x' | 'y' = direction === 'vertical' ? 'y' : 'x'
+  const hasAutoPlay = autoPlay !== false
 
-  // Dev warnings
-  if (isDevEnvironment()) {
+  // Dev warnings — moved to effects so React 19 strict-mode double-invoke
+  // doesn't fire them twice during render.
+  useEffect(() => {
+    if (!isDevEnvironment()) return
     if (autoPlay !== false && autoPlay < 2000) {
       console.warn(
         '[Carousel] autoPlay delay < 2000ms may fail WCAG 2.2.1 timing; prefer >= 4000ms.'
       )
     }
+  }, [autoPlay])
+
+  useEffect(() => {
+    if (!isDevEnvironment()) return
     if (opts?.axis && opts.axis !== axis) {
       console.warn(
         `[Carousel] opts.axis="${opts.axis}" conflicts with direction="${direction}". direction wins.`
       )
     }
-  }
-
-  const hasAutoPlay = autoPlay !== false
+  }, [opts?.axis, axis, direction])
 
   const plugins = useMemo<EmblaPluginType[]>(() => {
     if (!hasAutoPlay || prefersReducedMotion) return []
@@ -311,32 +357,39 @@ export function Carousel({
 
   const [emblaRef, api] = useEmblaCarousel(resolvedOpts, plugins)
 
-  // slideCount is authoritative from Carousel.Content's children.
-  // See the Phase 2 commit for the rationale — short version: Embla's
-  // snapList() is empty in jsdom, and for the default 1-snap-per-slide
-  // case slideCount === children.length holds 1:1 with real browsers.
+  // slideCount is authoritative from Carousel.Content's children. Embla's
+  // snapList() is empty in jsdom and the default 1-snap-per-slide case
+  // matches children.length 1:1 in real browsers, so this is the simpler
+  // single source of truth.
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [slideCount, setSlideCount] = useState(0)
   const [labelId, setLabelId] = useState<string | undefined>(undefined)
+  // Indices of slides currently intersecting the viewport. Initialized to
+  // [0] so the first paint marks slide 0 as in-view (jsdom never fires the
+  // slidesinview event, so this also covers the default test fixture).
+  // Real browsers update via the slidesinview event below.
+  const [slidesInView, setSlidesInView] = useState<number[]>([0])
 
-  // isPlaying + userPaused are React state (not refs) — the race review
-  // flagged ref reads inside effects as vulnerable to tearing against the
-  // snapshot that triggered the render. isPlaying initialises to whether
-  // autoplay is configured *and* not blocked by reduced motion. Roadie
-  // owns this state; Embla's autoplay:play/autoplay:stop events sync it
-  // back when they fire in real browsers.
+  // isPlaying / userPaused are React state. The actions and hover/focus
+  // handlers update userPausedRef *synchronously* alongside setUserPaused,
+  // so any read in the same tick sees the latest value (no one-frame stale
+  // window from waiting on an effect commit).
   const [isPlaying, setIsPlaying] = useState(
     () => hasAutoPlay && !prefersReducedMotion
   )
   const [userPaused, setUserPaused] = useState(false)
   const userPausedRef = useRef(false)
-  useEffect(() => {
-    userPausedRef.current = userPaused
-  }, [userPaused])
 
   const loop = opts?.loop === true
 
   // ── Embla state sync ──
+  // In real browsers, Embla's `select` event fires synchronously after a
+  // navigation call and onSelect updates selectedIndex authoritatively.
+  // In jsdom, snapList() is empty and `select` never fires, so the action
+  // handlers below also poke state optimistically as a fallback. Embla
+  // wins on the next select event in real browsers — the only residual
+  // race is a click landing in the microsecond before Embla finishes its
+  // first init, which is documented but accepted.
   const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
     setSelectedIndex(emblaApi.selectedSnap())
   }, [])
@@ -350,10 +403,33 @@ export function Carousel({
     }
   }, [api, onSelect])
 
+  // ── Embla in-view sync ──
+  // For multi-visible layouts (basis-1/3 etc.) every slide that intersects
+  // the viewport must stay interactive — gating `inert` on selectedSnap
+  // alone leaves the other visible slides un-clickable, which was the bug
+  // reported in https://… (carousel inert traps non-selected visible
+  // cards). Embla emits `slidesinview` whenever the set changes.
+  const onSlidesInView = useCallback((emblaApi: EmblaCarouselType) => {
+    const next = emblaApi.slidesInView()
+    setSlidesInView(next.length > 0 ? next : [emblaApi.selectedSnap()])
+  }, [])
+
+  useEffect(() => {
+    if (!api) return
+    onSlidesInView(api)
+    api.on('reinit', onSlidesInView).on('slidesinview', onSlidesInView)
+    return () => {
+      api.off('reinit', onSlidesInView).off('slidesinview', onSlidesInView)
+    }
+  }, [api, onSlidesInView])
+
   // ── Focus drop guard ──
-  // When a select event fires (slide changes), if focus was inside the
-  // previous slide (which is about to become inert), move focus to the new
-  // slide's wrapper so it doesn't drop to <body>.
+  // When a select event fires, if focus was inside the previous (about-to-
+  // become-inert) slide, move focus to the new slide's wrapper so it
+  // doesn't drop to <body>. The focus call is deferred via
+  // requestAnimationFrame so React can commit the inert flip first —
+  // otherwise we'd .focus() a still-inert element and browsers would
+  // silently drop the call.
   useEffect(() => {
     if (!api) return
     const handleSelect = (emblaApi: EmblaCarouselType) => {
@@ -361,10 +437,12 @@ export function Carousel({
       const activeEl = document.activeElement as HTMLElement | null
       if (!activeEl || !activeEl.isConnected) return
       const prevSlide = activeEl.closest('[aria-roledescription="slide"]')
-      if (prevSlide && activeEl !== prevSlide) {
-        const newSlide = emblaApi.slideNodes()[emblaApi.selectedSnap()]
+      if (!prevSlide || activeEl === prevSlide) return
+      const newSlideIndex = emblaApi.selectedSnap()
+      requestAnimationFrame(() => {
+        const newSlide = emblaApi.slideNodes()[newSlideIndex]
         newSlide?.focus({ preventScroll: true })
-      }
+      })
     }
     api.on('select', handleSelect)
     return () => {
@@ -387,9 +465,6 @@ export function Carousel({
     if (!plugin) return
     if (userPausedRef.current) return
     safePluginCall(plugin.play)
-    // No cleanup that calls plugin.stop() — the action handlers below own
-    // start/stop transitions, and the plugin's own destroy lifecycle (when
-    // Embla unmounts) handles teardown.
   }, [api, plugins])
 
   // Reset isPlaying when autoplay configuration changes.
@@ -397,6 +472,7 @@ export function Carousel({
     setIsPlaying(hasAutoPlay && !prefersReducedMotion)
     if (!hasAutoPlay || prefersReducedMotion) {
       setUserPaused(false)
+      userPausedRef.current = false
     }
   }, [hasAutoPlay, prefersReducedMotion])
 
@@ -405,20 +481,23 @@ export function Carousel({
     api?.reInit()
   }, [api, slideCount])
 
-  // Clamp selectedIndex if children shrink below it.
-  useEffect(() => {
-    if (slideCount > 0 && selectedIndex >= slideCount) {
-      setSelectedIndex(slideCount - 1)
-    }
-  }, [slideCount, selectedIndex])
-
-  const canGoToPrev = slideCount > 1 && (loop || selectedIndex > 0)
-  const canGoToNext = slideCount > 1 && (loop || selectedIndex < slideCount - 1)
+  // canGoToPrev / canGoToNext use a clamped index so we don't have to keep
+  // a separate effect to clamp selectedIndex when children shrink. Embla's
+  // reinit handler updates selectedIndex via onSelect already; clamping at
+  // read time covers the transient gap before that lands.
+  const clampedIndex =
+    slideCount > 0 ? Math.min(Math.max(0, selectedIndex), slideCount - 1) : 0
+  const canGoToPrev = slideCount > 1 && (loop || clampedIndex > 0)
+  const canGoToNext = slideCount > 1 && (loop || clampedIndex < slideCount - 1)
 
   // ── Actions ──
-  // play/pause/toggle drive React state directly and call the plugin
-  // defensively. Roadie's React state is the source of truth — Embla's
-  // autoplay events are a real-browser confirmation layer.
+  // Navigation actions delegate to Embla AND update selectedIndex
+  // optimistically. In real browsers Embla's select event fires
+  // synchronously and re-asserts the same value via onSelect; in jsdom
+  // (where select doesn't fire) the optimistic update is the only path
+  // that keeps state in sync. play/pause/toggle drive React state directly
+  // and call the plugin defensively. userPausedRef is updated synchronously
+  // inside each action so any read in the same tick sees the latest value.
   const actions = useMemo<CarouselActions>(
     () => ({
       goToPrev: () => {
@@ -441,6 +520,7 @@ export function Carousel({
       },
       play: () => {
         if (!hasAutoPlay) return
+        userPausedRef.current = false
         setUserPaused(false)
         setIsPlaying(true)
         const plugin = api?.plugins().autoplay
@@ -448,6 +528,7 @@ export function Carousel({
       },
       pause: () => {
         if (!hasAutoPlay) return
+        userPausedRef.current = true
         setUserPaused(true)
         setIsPlaying(false)
         const plugin = api?.plugins().autoplay
@@ -455,18 +536,15 @@ export function Carousel({
       },
       toggle: () => {
         if (!hasAutoPlay) return
-        setIsPlaying((current) => {
-          const next = !current
-          setUserPaused(!next)
-          const plugin = api?.plugins().autoplay
-          if (plugin) {
-            safePluginCall(next ? plugin.play : plugin.stop)
-          }
-          return next
-        })
+        const next = !isPlaying
+        userPausedRef.current = !next
+        setUserPaused(!next)
+        setIsPlaying(next)
+        const plugin = api?.plugins().autoplay
+        if (plugin) safePluginCall(next ? plugin.play : plugin.stop)
       }
     }),
-    [api, loop, slideCount, hasAutoPlay]
+    [api, hasAutoPlay, isPlaying, loop, slideCount]
   )
 
   // ── Hover / focus pause handlers (on the root wrapper) ──
@@ -493,7 +571,7 @@ export function Carousel({
   }, [api])
 
   const handleFocusOut = useCallback(
-    (e: React.FocusEvent<HTMLDivElement>) => {
+    (e: ReactFocusEvent<HTMLDivElement>) => {
       if (userPausedRef.current) return
       const related = e.relatedTarget as Node | null
       const currentTarget = e.currentTarget
@@ -501,9 +579,9 @@ export function Carousel({
         const plugin = api?.plugins().autoplay
         if (plugin) safePluginCall(plugin.play)
       }
-      // Safari quirk: relatedTarget can be null for some blur events. Defer
-      // one RAF and re-read document.activeElement instead of trusting the
-      // synthetic event payload.
+      // Safari quirk: relatedTarget can be null for some blur events.
+      // Defer one RAF and re-read document.activeElement instead of
+      // trusting the synthetic event payload.
       if (!related) {
         requestAnimationFrame(() => {
           if (
@@ -522,63 +600,70 @@ export function Carousel({
     [api]
   )
 
-  const state = useMemo<CarouselState>(
+  const contextValue = useMemo<CarouselContextValue>(
     () => ({
+      // State
       direction,
-      selectedIndex,
+      selectedIndex: clampedIndex,
       slideCount,
       canGoToPrev,
       canGoToNext,
       isPlaying,
-      hasAutoPlay,
       userPaused,
       labelId,
-      rootAriaLabel: ariaLabel
+      rootAriaLabel: ariaLabel,
+      // Actions
+      goToPrev: actions.goToPrev,
+      goToNext: actions.goToNext,
+      goTo: actions.goTo,
+      play: actions.play,
+      pause: actions.pause,
+      toggle: actions.toggle,
+      // Refs / internal
+      api,
+      emblaRef,
+      setSlideCount,
+      setLabelId,
+      loop,
+      autoPlay,
+      slidesInView
     }),
     [
       direction,
-      selectedIndex,
+      clampedIndex,
       slideCount,
       canGoToPrev,
       canGoToNext,
       isPlaying,
-      hasAutoPlay,
       userPaused,
       labelId,
-      ariaLabel
+      ariaLabel,
+      actions,
+      api,
+      emblaRef,
+      loop,
+      autoPlay,
+      slidesInView
     ]
   )
 
-  const refs = useMemo<CarouselRefs>(() => ({ api, emblaRef }), [api, emblaRef])
-
-  const internal = useMemo<CarouselInternal>(
-    () => ({ setSlideCount, setLabelId, loop }),
-    [loop]
-  )
-
   return (
-    <CarouselActionsContext.Provider value={actions}>
-      <CarouselStateContext.Provider value={state}>
-        <CarouselRefsContext.Provider value={refs}>
-          <CarouselInternalContext.Provider value={internal}>
-            <div
-              role='region'
-              aria-roledescription='carousel'
-              aria-label={labelId ? undefined : ariaLabel}
-              aria-labelledby={labelId}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-              onFocus={handleFocusIn}
-              onBlur={handleFocusOut}
-              className={cn('relative', className)}
-              {...props}
-            >
-              {children}
-            </div>
-          </CarouselInternalContext.Provider>
-        </CarouselRefsContext.Provider>
-      </CarouselStateContext.Provider>
-    </CarouselActionsContext.Provider>
+    <CarouselContext.Provider value={contextValue}>
+      <div
+        role='region'
+        aria-roledescription='carousel'
+        aria-label={labelId ? undefined : ariaLabel}
+        aria-labelledby={labelId}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onFocus={handleFocusIn}
+        onBlur={handleFocusOut}
+        className={cn('relative', className)}
+        {...props}
+      >
+        {children}
+      </div>
+    </CarouselContext.Provider>
   )
 }
 
@@ -600,63 +685,50 @@ export function CarouselHeader({ className, ...props }: CarouselHeaderProps) {
 CarouselHeader.displayName = 'Carousel.Header'
 
 /* ─── Title ─── */
+//
+// Two sibling components instead of one polymorphic generic:
+//
+//   <Carousel.Title>Featured</Carousel.Title>
+//     → renders an <h2> (or another heading via `as`).
+//
+//   <Carousel.TitleLink href='/events'>Featured</Carousel.TitleLink>
+//     → renders an <a> (or framework Link via `as`) with a trailing arrow
+//       icon and link styling.
+//
+// The previous polymorphic <Carousel.Title as={…} href={…}> shape allowed
+// `<Title as='h2' href='/x'>` which produced invalid HTML at runtime.
+// Splitting kills the type unsoundness and the runtime branch.
 
-type CarouselTitleOwnProps<T extends ElementType = 'h2'> = {
-  /**
-   * Render the title as a custom element/component (e.g. Next.js `Link`).
-   * When omitted, the title is an `<h2>` — or an `<a>` if `href` is set.
-   */
-  as?: T
-  /**
-   * When set, the title renders link-style with a trailing arrow icon.
-   * Defaults the underlying element to `<a>` unless `as` is also passed.
-   */
-  href?: string
+type HeadingLevel = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+
+export type CarouselTitleProps = ComponentProps<'h2'> & {
+  /** Heading level. Defaults to `<h2>`. */
+  as?: HeadingLevel
 }
 
-export type CarouselTitleProps<T extends ElementType = 'h2'> =
-  CarouselTitleOwnProps<T> &
-    Omit<ComponentProps<T>, keyof CarouselTitleOwnProps<T>>
-
-export function CarouselTitle<T extends ElementType = 'h2'>({
-  as,
-  className,
-  children,
-  href,
-  id,
-  ...props
-}: CarouselTitleProps<T>) {
-  const generatedId = useId()
-  const titleId = ((id as string | undefined) ?? generatedId) as string
-  const { setLabelId } = useCarouselInternal()
-
+function useRegisterTitleLabel(titleId: string) {
+  const { setLabelId } = useCarouselContext()
+  // Register this title as the carousel's accessible name. The cleanup
+  // only clears labelId if it still points at *this* title — guards
+  // against responsive remounts where two titles fight over labelId.
   useEffect(() => {
     setLabelId(titleId)
-    return () => setLabelId(undefined)
+    return () => {
+      setLabelId((current) => (current === titleId ? undefined : current))
+    }
   }, [titleId, setLabelId])
+}
 
-  const isLinkLike = !!as || !!href
-  const Component = (as ?? (href ? 'a' : 'h2')) as ElementType
-
-  if (isLinkLike) {
-    return (
-      <Component
-        id={titleId}
-        href={href}
-        className={cn(
-          'group/title is-interactive flex items-center gap-1 text-display-ui-5 text-strong',
-          className
-        )}
-        {...props}
-      >
-        {children}
-        <ArrowRightIcon
-          weight='bold'
-          className='size-5 text-subtle transition-transform group-hover/title:translate-x-1 group-hover/title:intent-accent'
-        />
-      </Component>
-    )
-  }
+export function CarouselTitle({
+  as: Component = 'h2',
+  className,
+  children,
+  id,
+  ...props
+}: CarouselTitleProps) {
+  const generatedId = useId()
+  const titleId = id ?? generatedId
+  useRegisterTitleLabel(titleId)
 
   return (
     <Component
@@ -670,6 +742,53 @@ export function CarouselTitle<T extends ElementType = 'h2'>({
 }
 
 CarouselTitle.displayName = 'Carousel.Title'
+
+type CarouselTitleLinkOwnProps<T extends ElementType> = {
+  /**
+   * Render the link as a custom element/component (e.g. Next.js `Link`).
+   * Defaults to `<a>`.
+   */
+  as?: T
+  /** DOM id for `aria-labelledby`. Defaults to a generated id. */
+  id?: string
+}
+
+export type CarouselTitleLinkProps<T extends ElementType = 'a'> =
+  CarouselTitleLinkOwnProps<T> &
+    Omit<ComponentProps<T>, keyof CarouselTitleLinkOwnProps<T>>
+
+export function CarouselTitleLink<T extends ElementType = 'a'>({
+  as,
+  className,
+  children,
+  id,
+  ...props
+}: CarouselTitleLinkProps<T>) {
+  const generatedId = useId()
+  const titleId = id ?? generatedId
+  useRegisterTitleLabel(titleId)
+
+  const Component = (as ?? 'a') as ElementType
+
+  return (
+    <Component
+      id={titleId}
+      className={cn(
+        'group/title is-interactive flex items-center gap-1 text-display-ui-5 text-strong',
+        className
+      )}
+      {...props}
+    >
+      {children}
+      <ArrowRightIcon
+        weight='bold'
+        className='size-5 text-subtle transition-transform group-hover/title:translate-x-1 group-hover/title:intent-accent'
+      />
+    </Component>
+  )
+}
+
+CarouselTitleLink.displayName = 'Carousel.TitleLink'
 
 /* ─── Content ─── */
 
@@ -689,19 +808,21 @@ export function CarouselContent({
     direction,
     selectedIndex,
     slideCount,
-    hasAutoPlay,
-    userPaused,
+    slidesInView,
+    isPlaying,
     labelId,
-    rootAriaLabel
-  } = useCarouselState()
-  const { goToPrev, goToNext, goTo } = useCarouselActions()
-  const { emblaRef } = useCarouselRefs()
-  const { setSlideCount } = useCarouselInternal()
+    rootAriaLabel,
+    goToPrev,
+    goToNext,
+    goTo,
+    emblaRef,
+    setSlideCount
+  } = useCarouselContext()
 
-  // aria-live is set once based on hasAutoPlay, and only flips on explicit
-  // user pause — transient hover/focus pauses don't retrigger announcements.
-  const ariaLive: 'off' | 'polite' =
-    hasAutoPlay && !userPaused ? 'off' : 'polite'
+  // aria-live is `off` while autoplay is actively running, `polite`
+  // otherwise. Transient hover/focus pauses don't change isPlaying, so
+  // they don't retrigger announcements either.
+  const ariaLive: 'off' | 'polite' = isPlaying ? 'off' : 'polite'
 
   // Authoritative slide count comes from Carousel.Content's own children.
   // useLayoutEffect ensures the count is set before paint so the first
@@ -711,7 +832,12 @@ export function CarouselContent({
     setSlideCount(childCount)
   }, [childCount, setSlideCount])
 
-  if (isDevEnvironment()) {
+  // Dev-mode child-shape check — kept in an effect so React 19 strict-mode
+  // double-invoke doesn't fire it twice. The displayName check intentionally
+  // skips wrappers; the runtime useCarouselItem() throw is the real
+  // guardrail.
+  useEffect(() => {
+    if (!isDevEnvironment()) return
     Children.forEach(children, (child) => {
       if (
         isValidElement(child) &&
@@ -723,20 +849,24 @@ export function CarouselContent({
         )
       }
     })
-  }
+  }, [children])
 
   // Inject per-item context so each <Carousel.Item> can read its index /
-  // total without lifting state.
+  // total without lifting state. `isInView` drives the inert attribute so
+  // every visible slide stays interactive in multi-visible layouts; the
+  // selectedSnap is exposed separately as `isActive`.
+  const inViewSet = useMemo(() => new Set(slidesInView), [slidesInView])
   const wrappedChildren = Children.map(children, (child, index) => {
     if (!isValidElement(child)) return child
     const itemContext: CarouselItemContextValue = {
       index,
-      total: slideCount || Children.count(children),
-      isActive: index === selectedIndex
+      total: childCount,
+      isActive: index === selectedIndex,
+      isInView: inViewSet.has(index)
     }
     return (
-      <CarouselItemContext.Provider value={itemContext}>
-        {cloneElement(child)}
+      <CarouselItemContext.Provider key={index} value={itemContext}>
+        {child}
       </CarouselItemContext.Provider>
     )
   })
@@ -782,7 +912,7 @@ export function CarouselContent({
 
   return (
     <div
-      ref={emblaRef as unknown as React.Ref<HTMLDivElement>}
+      ref={emblaRef as Ref<HTMLDivElement>}
       tabIndex={0}
       onKeyDown={handleKeyDown}
       aria-live={ariaLive}
@@ -815,15 +945,15 @@ export function CarouselItem({
   children,
   ...props
 }: CarouselItemProps) {
-  const { direction } = useCarouselState()
-  const { index, total, isActive } = useCarouselItem()
+  const { direction } = useCarouselContext()
+  const { index, total, isInView } = useCarouselItem()
   return (
     <div
       role='group'
       aria-roledescription='slide'
       aria-label={`${index + 1} of ${total}`}
       tabIndex={-1}
-      inert={!isActive}
+      inert={!isInView}
       className={cn(carouselItemVariants({ direction }), className)}
       {...props}
     >
@@ -855,8 +985,7 @@ export function CarouselPrevious({
   children,
   ...props
 }: CarouselNavButtonProps) {
-  const { direction, slideCount, canGoToPrev } = useCarouselState()
-  const { goToPrev } = useCarouselActions()
+  const { direction, slideCount, canGoToPrev, goToPrev } = useCarouselContext()
   if (slideCount <= 1) return null
   const Icon = direction === 'vertical' ? CaretUpIcon : CaretLeftIcon
   return (
@@ -882,8 +1011,7 @@ export function CarouselNext({
   children,
   ...props
 }: CarouselNavButtonProps) {
-  const { direction, slideCount, canGoToNext } = useCarouselState()
-  const { goToNext } = useCarouselActions()
+  const { direction, slideCount, canGoToNext, goToNext } = useCarouselContext()
   if (slideCount <= 1) return null
   const Icon = direction === 'vertical' ? CaretDownIcon : CaretRightIcon
   return (
@@ -911,9 +1039,8 @@ export function CarouselPlayPause({
   children,
   ...props
 }: CarouselNavButtonProps) {
-  const { hasAutoPlay, isPlaying } = useCarouselState()
-  const { toggle } = useCarouselActions()
-  if (!hasAutoPlay) return null
+  const { autoPlay, isPlaying, toggle } = useCarouselContext()
+  if (autoPlay === false) return null
   const label = ariaLabel ?? (isPlaying ? 'Pause carousel' : 'Play carousel')
   return (
     <IconButton
@@ -938,11 +1065,10 @@ CarouselPlayPause.displayName = 'Carousel.PlayPause'
 
 /* ─── Dots ─── */
 
-export interface CarouselDotsProps extends ComponentProps<'div'> {}
+export type CarouselDotsProps = ComponentProps<'div'>
 
 export function CarouselDots({ className, ...props }: CarouselDotsProps) {
-  const { direction, slideCount, selectedIndex } = useCarouselState()
-  const { goTo } = useCarouselActions()
+  const { direction, slideCount, selectedIndex, goTo } = useCarouselContext()
   if (slideCount <= 1) return null
   return (
     <div
@@ -986,6 +1112,7 @@ CarouselDots.displayName = 'Carousel.Dots'
 
 Carousel.Header = CarouselHeader
 Carousel.Title = CarouselTitle
+Carousel.TitleLink = CarouselTitleLink
 Carousel.Content = CarouselContent
 Carousel.Item = CarouselItem
 Carousel.Previous = CarouselPrevious
