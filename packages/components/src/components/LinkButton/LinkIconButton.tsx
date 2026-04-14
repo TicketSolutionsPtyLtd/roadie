@@ -3,11 +3,7 @@ import type { ComponentProps, ElementType } from 'react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { buttonVariants } from '../Button/Button'
-
-import type {
-  LinkButtonEmphasis,
-  LinkButtonIntent
-} from './LinkButton'
+import type { LinkButtonEmphasis, LinkButtonIntent } from './LinkButton'
 
 export type LinkIconButtonSize = 'icon-xs' | 'icon-sm' | 'icon-md' | 'icon-lg'
 
