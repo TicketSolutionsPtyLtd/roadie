@@ -231,7 +231,14 @@ async function getNavigationItems() {
   })
 
   if (validComponents.length > 0) {
-    const categoryOrder = ['Actions', 'Forms', 'Content', 'Text', 'Layout']
+    const categoryOrder = [
+      'Actions',
+      'Forms',
+      'Navigation',
+      'Content',
+      'Typography',
+      'Layout'
+    ]
 
     const componentsByCategory = validComponents.reduce(
       (acc, comp) => {
