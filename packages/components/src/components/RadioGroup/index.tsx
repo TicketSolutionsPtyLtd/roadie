@@ -71,7 +71,7 @@ export const radioGroupItemVariants = cva(
 
 /* ─── Root ─── */
 
-export type RadioGroupRootProps = RadioGroupPrimitive.Props &
+export type RadioGroupProps = RadioGroupPrimitive.Props &
   RefAttributes<HTMLDivElement> &
   VariantProps<typeof radioGroupVariants> & {
     emphasis?: RadioGroupEmphasis
@@ -79,14 +79,14 @@ export type RadioGroupRootProps = RadioGroupPrimitive.Props &
     required?: boolean
   }
 
-function RadioGroupRoot({
+export function RadioGroup({
   className,
   direction = 'vertical',
   emphasis = 'subtler',
   invalid,
   required,
   ...props
-}: RadioGroupRootProps) {
+}: RadioGroupProps) {
   const fieldContext = useFieldContext()
   const resolvedInvalid = invalid ?? fieldContext.invalid
   const resolvedRequired = required ?? fieldContext.required
@@ -115,7 +115,7 @@ function RadioGroupRoot({
   )
 }
 
-RadioGroupRoot.displayName = 'RadioGroup'
+RadioGroup.displayName = 'RadioGroup'
 
 /* ─── Item ─── */
 
@@ -125,7 +125,7 @@ export type RadioGroupItemProps = Radio.Root.Props &
     description?: string
   }
 
-function RadioGroupItem({
+export function RadioGroupItem({
   className,
   label,
   description,
@@ -186,11 +186,11 @@ RadioGroupItem.displayName = 'RadioGroup.Item'
 
 /* ─── Label ─── */
 
-export interface RadioGroupLabelProps extends ComponentProps<'label'> {
+export type RadioGroupLabelProps = ComponentProps<'label'> & {
   showIndicator?: boolean
 }
 
-function RadioGroupLabel({
+export function RadioGroupLabel({
   className,
   showIndicator,
   children,
@@ -226,9 +226,9 @@ RadioGroupLabel.displayName = 'RadioGroup.Label'
 
 /* ─── Helper text ─── */
 
-export interface RadioGroupHelperTextProps extends ComponentProps<'p'> {}
+export type RadioGroupHelperTextProps = ComponentProps<'p'>
 
-function RadioGroupHelperText({
+export function RadioGroupHelperText({
   className,
   ...props
 }: RadioGroupHelperTextProps) {
@@ -241,9 +241,9 @@ RadioGroupHelperText.displayName = 'RadioGroup.HelperText'
 
 /* ─── Error text ─── */
 
-export interface RadioGroupErrorTextProps extends ComponentProps<'p'> {}
+export type RadioGroupErrorTextProps = ComponentProps<'p'>
 
-function RadioGroupErrorText({
+export function RadioGroupErrorText({
   className,
   ...props
 }: RadioGroupErrorTextProps) {
@@ -262,11 +262,7 @@ RadioGroupErrorText.displayName = 'RadioGroup.ErrorText'
 
 /* ─── Compound export ─── */
 
-export const RadioGroup = Object.assign(RadioGroupRoot, {
-  Item: RadioGroupItem,
-  Label: RadioGroupLabel,
-  HelperText: RadioGroupHelperText,
-  ErrorText: RadioGroupErrorText
-})
-
-export type RadioGroupProps = RadioGroupRootProps
+RadioGroup.Item = RadioGroupItem
+RadioGroup.Label = RadioGroupLabel
+RadioGroup.HelperText = RadioGroupHelperText
+RadioGroup.ErrorText = RadioGroupErrorText

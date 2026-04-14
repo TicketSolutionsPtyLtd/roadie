@@ -24,6 +24,14 @@ related_files:
 
 # CVA literal unions don't extract + interface-extends mis-names in the PropsDefinitions table
 
+## Update — 2026-04-14
+
+Part 2 of this issue (the `CarouselContentProps` / `Carousel.ContentProps` heading inconsistency for `interface extends` subcomponent types) was **resolved at the renderer level** as part of the Pattern A migration. `<PropsDefinitions>` now always derives section headings from the component's `displayName`, so `interface extends` and `type` alias subcomponents render identical dot-notation headings. The "Convert the `interface extends` declaration to a type alias" fix below is no longer required for heading correctness — it stands only as a style preference matching the Carousel reference implementation.
+
+Part 1 (the CVA `VariantProps<typeof v>['key']` extraction failure) **still applies unchanged**. Inline literal unions plus `@default` JSDoc tags remain the required pattern — `react-docgen-typescript` still can't drill into CVA's conditional types, and the prop still vanishes from the docs table when typed via `VariantProps`.
+
+The original analysis below is preserved as history.
+
 ## Symptom
 
 A compound component exposes a new prop typed from its CVA variant definition:

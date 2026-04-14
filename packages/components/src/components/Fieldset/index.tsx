@@ -14,11 +14,11 @@ const FieldsetContext = createContext<FieldsetContextValue>({})
 
 /* ─── Root ─── */
 
-export interface FieldsetRootProps extends ComponentProps<'fieldset'> {
+export interface FieldsetProps extends ComponentProps<'fieldset'> {
   invalid?: boolean
 }
 
-function FieldsetRoot({ className, invalid, ...props }: FieldsetRootProps) {
+export function Fieldset({ className, invalid, ...props }: FieldsetProps) {
   return (
     <FieldsetContext value={{ invalid }}>
       <fieldset
@@ -29,13 +29,13 @@ function FieldsetRoot({ className, invalid, ...props }: FieldsetRootProps) {
   )
 }
 
-FieldsetRoot.displayName = 'Fieldset'
+Fieldset.displayName = 'Fieldset'
 
 /* ─── Legend ─── */
 
-export interface FieldsetLegendProps extends ComponentProps<'legend'> {}
+export type FieldsetLegendProps = ComponentProps<'legend'>
 
-function FieldsetLegend({ className, ...props }: FieldsetLegendProps) {
+export function FieldsetLegend({ className, ...props }: FieldsetLegendProps) {
   return (
     <legend
       className={cn('text-lg font-semibold text-strong', className)}
@@ -48,9 +48,12 @@ FieldsetLegend.displayName = 'Fieldset.Legend'
 
 /* ─── Helper text ─── */
 
-export interface FieldsetHelperTextProps extends ComponentProps<'p'> {}
+export type FieldsetHelperTextProps = ComponentProps<'p'>
 
-function FieldsetHelperText({ className, ...props }: FieldsetHelperTextProps) {
+export function FieldsetHelperText({
+  className,
+  ...props
+}: FieldsetHelperTextProps) {
   return <p className={cn('text-sm text-subtle', className)} {...props} />
 }
 
@@ -58,9 +61,12 @@ FieldsetHelperText.displayName = 'Fieldset.HelperText'
 
 /* ─── Error text ─── */
 
-export interface FieldsetErrorTextProps extends ComponentProps<'p'> {}
+export type FieldsetErrorTextProps = ComponentProps<'p'>
 
-function FieldsetErrorText({ className, ...props }: FieldsetErrorTextProps) {
+export function FieldsetErrorText({
+  className,
+  ...props
+}: FieldsetErrorTextProps) {
   const { invalid } = use(FieldsetContext)
   if (!invalid) return null
   return (
@@ -76,10 +82,6 @@ FieldsetErrorText.displayName = 'Fieldset.ErrorText'
 
 /* ─── Compound export ─── */
 
-export const Fieldset = Object.assign(FieldsetRoot, {
-  Legend: FieldsetLegend,
-  HelperText: FieldsetHelperText,
-  ErrorText: FieldsetErrorText
-})
-
-export type FieldsetProps = FieldsetRootProps
+Fieldset.Legend = FieldsetLegend
+Fieldset.HelperText = FieldsetHelperText
+Fieldset.ErrorText = FieldsetErrorText

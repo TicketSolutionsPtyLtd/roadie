@@ -46,13 +46,18 @@ export const comboboxInputGroupVariants = cva(
 
 /* ─── Root ─── */
 
-export type ComboboxRootProps = ComboboxPrimitive.Root.Props<unknown>
+export type ComboboxProps = ComboboxPrimitive.Root.Props<unknown>
 
-export function ComboboxRoot(props: ComboboxRootProps) {
+/**
+ * @deprecated Use `ComboboxProps` instead.
+ */
+export type ComboboxRootProps = ComboboxProps
+
+export function Combobox(props: ComboboxProps) {
   return <ComboboxPrimitive.Root {...props} />
 }
 
-ComboboxRoot.displayName = 'Combobox'
+Combobox.displayName = 'Combobox'
 
 /* ─── Label ─── */
 
@@ -365,23 +370,19 @@ ComboboxStatus.displayName = 'Combobox.Status'
 
 /* ─── Compound export ─── */
 
-export const Combobox = Object.assign(ComboboxRoot, {
-  Label: ComboboxLabel,
-  InputGroup: ComboboxInputGroup,
-  Input: ComboboxInput,
-  Trigger: ComboboxTrigger,
-  Clear: ComboboxClear,
-  Portal: ComboboxPortal,
-  Positioner: ComboboxPositioner,
-  Popup: ComboboxPopup,
-  List: ComboboxList,
-  Item: ComboboxItem,
-  Collection: ComboboxCollection,
-  ItemIndicator: ComboboxItemIndicator,
-  Group: ComboboxGroup,
-  GroupLabel: ComboboxGroupLabel,
-  Empty: ComboboxEmpty,
-  Status: ComboboxStatus
-})
-
-export type ComboboxProps = ComboboxRootProps
+Combobox.Label = ComboboxLabel
+Combobox.InputGroup = ComboboxInputGroup
+Combobox.Input = ComboboxInput
+Combobox.Trigger = ComboboxTrigger
+Combobox.Clear = ComboboxClear
+Combobox.Portal = ComboboxPortal
+Combobox.Positioner = ComboboxPositioner
+Combobox.Popup = ComboboxPopup
+Combobox.List = ComboboxList
+Combobox.Item = ComboboxItem
+Combobox.Collection = ComboboxCollection
+Combobox.ItemIndicator = ComboboxItemIndicator
+Combobox.Group = ComboboxGroup
+Combobox.GroupLabel = ComboboxGroupLabel
+Combobox.Empty = ComboboxEmpty
+Combobox.Status = ComboboxStatus

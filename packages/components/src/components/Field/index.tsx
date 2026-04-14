@@ -35,19 +35,19 @@ export function useFieldContext() {
 
 /* ─── Root ─── */
 
-export interface FieldRootProps extends ComponentProps<'div'> {
+export interface FieldProps extends ComponentProps<'div'> {
   invalid?: boolean
   required?: boolean
   disabled?: boolean
 }
 
-function FieldRoot({
+export function Field({
   className,
   invalid,
   required,
   disabled,
   ...props
-}: FieldRootProps) {
+}: FieldProps) {
   const id = useId()
   const fieldId = `field-${id}`
   const labelId = `${fieldId}-label`
@@ -71,15 +71,15 @@ function FieldRoot({
   )
 }
 
-FieldRoot.displayName = 'Field'
+Field.displayName = 'Field'
 
 /* ─── Label ─── */
 
-export interface FieldLabelProps extends LabelProps {
+export type FieldLabelProps = LabelProps & {
   showIndicator?: boolean
 }
 
-function FieldLabel({
+export function FieldLabel({
   htmlFor,
   showIndicator,
   children,
@@ -128,7 +128,7 @@ export function useFieldInputProps() {
 
 /* ─── Input ─── */
 
-function FieldInput(props: InputProps) {
+export function FieldInput(props: InputProps) {
   const fieldProps = useFieldInputProps()
   return <Input {...fieldProps} {...props} />
 }
@@ -137,7 +137,7 @@ FieldInput.displayName = 'Field.Input'
 
 /* ─── Textarea ─── */
 
-function FieldTextarea(props: TextareaProps) {
+export function FieldTextarea(props: TextareaProps) {
   const fieldProps = useFieldInputProps()
   return <Textarea {...fieldProps} {...props} />
 }
@@ -146,9 +146,13 @@ FieldTextarea.displayName = 'Field.Textarea'
 
 /* ─── Helper text ─── */
 
-export interface FieldHelperTextProps extends ComponentProps<'p'> {}
+export type FieldHelperTextProps = ComponentProps<'p'>
 
-function FieldHelperText({ id, className, ...props }: FieldHelperTextProps) {
+export function FieldHelperText({
+  id,
+  className,
+  ...props
+}: FieldHelperTextProps) {
   const { helperTextId } = use(FieldContext)
   return (
     <p
@@ -163,9 +167,13 @@ FieldHelperText.displayName = 'Field.HelperText'
 
 /* ─── Error text ─── */
 
-export interface FieldErrorTextProps extends ComponentProps<'p'> {}
+export type FieldErrorTextProps = ComponentProps<'p'>
 
-function FieldErrorText({ id, className, ...props }: FieldErrorTextProps) {
+export function FieldErrorText({
+  id,
+  className,
+  ...props
+}: FieldErrorTextProps) {
   const { invalid, errorTextId } = use(FieldContext)
   if (!invalid) return null
   return (
@@ -182,12 +190,8 @@ FieldErrorText.displayName = 'Field.ErrorText'
 
 /* ─── Compound export ─── */
 
-export const Field = Object.assign(FieldRoot, {
-  Label: FieldLabel,
-  Input: FieldInput,
-  Textarea: FieldTextarea,
-  HelperText: FieldHelperText,
-  ErrorText: FieldErrorText
-})
-
-export type FieldProps = FieldRootProps
+Field.Label = FieldLabel
+Field.Input = FieldInput
+Field.Textarea = FieldTextarea
+Field.HelperText = FieldHelperText
+Field.ErrorText = FieldErrorText

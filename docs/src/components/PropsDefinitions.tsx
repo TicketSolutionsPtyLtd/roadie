@@ -175,19 +175,15 @@ function parseComponentProps(componentPath: string) {
     const result = parser.parse(absolutePath)
     if (!result.length) return null
 
-    // Filter to components that have own props worth showing.
-    // CVA factory functions (cardVariants, carouselContentVariants, etc.)
-    // are exported as camelCase and get detected by react-docgen-typescript
-    // as if they were components — strip them so only PascalCase React
-    // components survive.
-    const filtered = result.filter((info) => {
-      if (!/^[A-Z]/.test(info.displayName)) return false
-      const grouped = groupPropsBySource(info.props, info.displayName)
-      return (
-        Object.keys(grouped.ownProps).length > 0 ||
-        Object.keys(grouped.inheritedProps).length > 0
-      )
-    })
+    // Keep every PascalCase entry. CVA factory functions (`cardVariants`,
+    // `carouselContentVariants`, etc.) are camelCase and get skipped here.
+    //
+    // We intentionally don't require props to be present: many compound
+    // parts forward a plain `ComponentProps<'div'>` and would otherwise
+    // silently vanish from the docs once the propFilter strips every
+    // HTML-only prop. A section with a "forwards all HTML attributes"
+    // note is more useful than no section at all.
+    const filtered = result.filter((info) => /^[A-Z]/.test(info.displayName))
 
     // Deduplicate compound components: the parser detects each subcomponent
     // twice — once via `export function CarouselPrevious()` (yields name
@@ -232,9 +228,19 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
           componentInfo.displayName
         )
 
-        const interfaceName =
-          Object.values(componentInfo.props)[0]?.parent?.name ||
-          `${componentInfo.displayName}Props`
+        // Always derive the heading from the component's displayName rather
+        // than the first prop's parent type. Compound parts read as
+        // `Carousel.ContentProps`, `Field.TextareaProps`, `Select.TriggerProps`
+        // regardless of how their underlying props are typed — whether they
+        // wrap an HTML interface, a Base UI type, or another component's
+        // prop alias. This removes a whole class of inconsistent headings
+        // (e.g. `UseAnchorPositioningSharedParameters`, `RadioRootProps`,
+        // `TextareaProps` leaking through on compound subcomponents).
+        const interfaceName = `${componentInfo.displayName}Props`
+
+        const hasOwnProps = Object.keys(groupedProps.ownProps).length > 0
+        const hasInheritedProps =
+          Object.keys(groupedProps.inheritedProps).length > 0
 
         return (
           <dl
@@ -248,9 +254,14 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
               )}
             </div>
 
-            {Object.keys(groupedProps.ownProps).length > 0 && (
-              <PropsList props={groupedProps.ownProps} />
+            {!hasOwnProps && !hasInheritedProps && (
+              <p className='px-4 py-3 text-sm text-subtle'>
+                No additional props — forwards all standard HTML attributes to
+                the underlying element.
+              </p>
             )}
+
+            {hasOwnProps && <PropsList props={groupedProps.ownProps} />}
 
             {Object.entries(groupedProps.inheritedProps).map(
               ([source, { props }]) => (

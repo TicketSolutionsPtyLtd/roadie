@@ -54,12 +54,17 @@ export const selectTriggerVariants = cva(
 
 /* ─── Root ─── */
 
-export type SelectRootProps = SelectPrimitive.Root.Props<unknown> & {
+export type SelectProps = SelectPrimitive.Root.Props<unknown> & {
   invalid?: boolean
   required?: boolean
 }
 
-export function SelectRoot({ invalid, required, ...props }: SelectRootProps) {
+/**
+ * @deprecated Use `SelectProps` instead.
+ */
+export type SelectRootProps = SelectProps
+
+export function Select({ invalid, required, ...props }: SelectProps) {
   const fieldContext = useFieldContext()
   const resolvedInvalid = invalid ?? fieldContext.invalid
   const resolvedRequired = required ?? fieldContext.required
@@ -73,7 +78,7 @@ export function SelectRoot({ invalid, required, ...props }: SelectRootProps) {
   )
 }
 
-SelectRoot.displayName = 'Select'
+Select.displayName = 'Select'
 
 /* ─── Trigger ─── */
 
@@ -391,7 +396,7 @@ SelectScrollDownArrow.displayName = 'Select.ScrollDownArrow'
 
 /* ─── HelperText ─── */
 
-export interface SelectHelperTextProps extends ComponentProps<'p'> {}
+export type SelectHelperTextProps = ComponentProps<'p'>
 
 export function SelectHelperText({
   className,
@@ -404,7 +409,7 @@ SelectHelperText.displayName = 'Select.HelperText'
 
 /* ─── ErrorText ─── */
 
-export interface SelectErrorTextProps extends ComponentProps<'p'> {}
+export type SelectErrorTextProps = ComponentProps<'p'>
 
 export function SelectErrorText({ className, ...props }: SelectErrorTextProps) {
   const { invalid } = use(SelectContext)
@@ -422,7 +427,7 @@ SelectErrorText.displayName = 'Select.ErrorText'
 
 /* ─── Content (convenience wrapper) ─── */
 
-export interface SelectContentProps extends SelectPopupProps {}
+export type SelectContentProps = SelectPopupProps
 
 export function SelectContent({ children, ...props }: SelectContentProps) {
   return (
@@ -438,25 +443,22 @@ SelectContent.displayName = 'Select.Content'
 
 /* ─── Compound export ─── */
 
-export const Select = Object.assign(SelectRoot, {
-  Trigger: SelectTrigger,
-  Value: SelectValue,
-  Icon: SelectIcon,
-  Portal: SelectPortal,
-  Positioner: SelectPositioner,
-  Popup: SelectPopup,
-  Content: SelectContent,
-  Item: SelectItem,
-  ItemText: SelectItemText,
-  ItemIndicator: SelectItemIndicator,
-  Group: SelectGroup,
-  GroupLabel: SelectGroupLabel,
-  Label: SelectLabel,
-  HelperText: SelectHelperText,
-  ErrorText: SelectErrorText,
-  ScrollUpArrow: SelectScrollUpArrow,
-  ScrollDownArrow: SelectScrollDownArrow
-})
+Select.Trigger = SelectTrigger
+Select.Value = SelectValue
+Select.Icon = SelectIcon
+Select.Portal = SelectPortal
+Select.Positioner = SelectPositioner
+Select.Popup = SelectPopup
+Select.Content = SelectContent
+Select.Item = SelectItem
+Select.ItemText = SelectItemText
+Select.ItemIndicator = SelectItemIndicator
+Select.Group = SelectGroup
+Select.GroupLabel = SelectGroupLabel
+Select.Label = SelectLabel
+Select.HelperText = SelectHelperText
+Select.ErrorText = SelectErrorText
+Select.ScrollUpArrow = SelectScrollUpArrow
+Select.ScrollDownArrow = SelectScrollDownArrow
 
-export type SelectProps = SelectRootProps
 export type { SelectTriggerProps as SelectTriggerVariantProps }
