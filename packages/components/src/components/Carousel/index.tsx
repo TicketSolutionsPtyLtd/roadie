@@ -438,12 +438,23 @@ export function Carousel({
   const resolvedOpts = useMemo<EmblaOptionsType>(
     () => ({
       // Roadie defaults that a consumer can still override via `opts`.
-      // Embla's own default is `align: 'center'`, which reads badly for
-      // a card list because partial slides peek in from both edges
-      // simultaneously. `start` lines up with how Roadie carousels are
-      // meant to be composed (content flows from the left) and is what
-      // every example in the docs used to pass explicitly.
+      //
+      // `align: 'start'` — Embla's own default is `center`, which reads
+      // badly for a card list because partial slides peek in from both
+      // edges simultaneously. `start` lines up with how Roadie carousels
+      // are meant to be composed (content flows from the left).
+      //
+      // `slidesToScroll: 'auto'` — Embla's own default is `1`, which
+      // forces Prev / Next to advance one slide at a time. For
+      // multi-visible layouts (`basis-1/3`, `basis-1/4`, etc.) that
+      // feels sluggish — users expect a full viewport to flip per
+      // click. `'auto'` makes Embla derive the group size from whatever
+      // currently fits, so responsive `basis-full md:basis-1/3
+      // lg:basis-1/4` carousels automatically scroll 1 / 3 / 4 at a
+      // time without any breakpoint-specific config. The dot count
+      // collapses to match because `Carousel.Dots` renders one per snap.
       align: 'start',
+      slidesToScroll: 'auto',
       ...opts,
       axis,
       duration: prefersReducedMotion ? 0 : (opts?.duration ?? 25)
@@ -487,13 +498,17 @@ export function Carousel({
 
   // ── Embla state sync ──
   // In real browsers, Embla's `select` event fires synchronously after a
-  // navigation call and onSelect updates selectedIndex authoritatively.
-  // In jsdom, snapList() is empty and `select` never fires, so the action
-  // handlers below also poke state optimistically as a fallback. Embla
-  // wins on the next select event in real browsers — the only residual
-  // race is a click landing in the microsecond before Embla finishes its
-  // first init, which is documented but accepted.
+  // navigation call and `onSelect` updates `selectedIndex` authoritatively.
+  // In jsdom, snapList() is empty and `select` never fires, so the
+  // action handlers below also poke state optimistically as a fallback
+  // — but only when `onSelect` did NOT run during the call. We detect
+  // that via `onSelectFiredRef`, which is reset to false before each
+  // navigation call and flipped true inside `onSelect`. This is
+  // deterministic regardless of what Embla's `selectedSnap()` returns
+  // (which varies between bundlers / versions / environments).
+  const onSelectFiredRef = useRef(false)
   const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
+    onSelectFiredRef.current = true
     setSelectedIndex(emblaApi.selectedSnap())
   }, [])
 
@@ -623,36 +638,36 @@ export function Carousel({
   // inside each action so any read in the same tick sees the latest value.
   const actions = useMemo<CarouselActions>(
     () => ({
+      // Navigation actions delegate to Embla and fall back to a manual
+      // optimistic update only when `onSelect` didn't run during the
+      // call. Reset the ref right before `api.goTo*()` and check it
+      // immediately after: in real browsers Embla emits `select`
+      // synchronously inside `goToNext()` so the ref is already true
+      // and we short-circuit before the updater can double-increment;
+      // in jsdom Embla never emits select, so the ref stays false and
+      // the fallback advances state.
       goToPrev: () => {
-        // Call Embla first, then only fall back to an optimistic state
-        // poke if Embla's selectedSnap didn't move. In real browsers
-        // Embla emits `select` synchronously and onSelect has already
-        // queued the correct setSelectedIndex by the time we check —
-        // so `before === after` means jsdom (or a no-op at boundary),
-        // and only then do we update state ourselves. This avoids the
-        // "click Next, jump straight to the end" race where the
-        // optimistic updater saw the Embla-committed value as `current`.
-        const before = api?.selectedSnap()
+        onSelectFiredRef.current = false
         api?.goToPrev()
-        if (api && api.selectedSnap() !== before) return
+        if (onSelectFiredRef.current) return
         setSelectedIndex((current) => {
           if (current > 0) return current - 1
           return loop ? Math.max(0, effectiveSnapCount - 1) : current
         })
       },
       goToNext: () => {
-        const before = api?.selectedSnap()
+        onSelectFiredRef.current = false
         api?.goToNext()
-        if (api && api.selectedSnap() !== before) return
+        if (onSelectFiredRef.current) return
         setSelectedIndex((current) => {
           if (current < effectiveSnapCount - 1) return current + 1
           return loop ? 0 : current
         })
       },
       goTo: (index: number) => {
-        const before = api?.selectedSnap()
+        onSelectFiredRef.current = false
         api?.goTo(index)
-        if (api && api.selectedSnap() !== before) return
+        if (onSelectFiredRef.current) return
         setSelectedIndex(Math.max(0, Math.min(index, effectiveSnapCount - 1)))
       },
       play: () => {

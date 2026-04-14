@@ -295,15 +295,12 @@ Each `Carousel.Item` can wrap a clickable element. The `Card` component renders 
 </Carousel>
 ```
 
-### Scroll by viewport
+### Responsive group scrolling
 
-Pass `slidesToScroll: 'auto'` through `opts` to move by a full viewport at a time instead of a single slide. Embla derives the group size from whatever currently fits in the viewport, so the same carousel scrolls two-and-a-bit cards on mobile, three on medium screens, and four on large screens — the prop does the right thing without breakpoint-specific configuration. Because `Carousel.Dots` renders one dot per *snap*, the dot count also collapses from one-per-slide down to one-per-page as the breakpoint changes.
+Roadie defaults `slidesToScroll` to `'auto'` in `opts`, so Previous / Next move by a full viewport at a time instead of a single slide. Embla derives the group size from whatever currently fits in the viewport, so the same carousel scrolls two-and-a-bit cards on mobile, three on medium screens, and four on large screens — no breakpoint-specific configuration needed. Because `Carousel.Dots` renders one dot per *snap*, the dot count also collapses from one-per-slide down to one-per-page as the breakpoint changes.
 
 ```tsx-live
-<Carousel
-  aria-label='Events by page'
-  opts={{ slidesToScroll: 'auto' }}
->
+<Carousel aria-label='Events by page'>
   <Carousel.Header>
     <Carousel.Title>This weekend</Carousel.Title>
     <Carousel.Dots />
@@ -381,17 +378,66 @@ Pass `slidesToScroll: 'auto'` through `opts` to move by a full viewport at a tim
 </Carousel>
 ```
 
-If you want a fixed group size instead — scroll exactly three cards at a time regardless of viewport — use `opts={{ slidesToScroll: 3 }}` in place of `'auto'`.
-
-### Variable-width cards
-
-Set `basis-auto` on each `Carousel.Item` and every card sizes to its own content. Handy for genre pills, tag clouds, and anything chip-shaped where the slide widths are irregular. `slidesToScroll: 'auto'` still groups slides into viewport-sized pages for the Previous/Next buttons, so Embla handles the "how many fit" math even when the slide widths differ.
+If you'd rather step through one slide at a time — handy when each slide has rich content a user needs to dwell on — pass `opts={{ slidesToScroll: 1 }}` to override the `'auto'` default. `Carousel.Dots` then renders one per slide rather than one per page, and Previous / Next advance one snap per click.
 
 ```tsx-live
 <Carousel
-  aria-label='Browse by genre'
-  opts={{ slidesToScroll: 'auto' }}
+  aria-label='Step through each story'
+  opts={{ slidesToScroll: 1 }}
 >
+  <Carousel.Header>
+    <Carousel.Title>Tour stories</Carousel.Title>
+    <Carousel.Dots />
+    <Carousel.Controls>
+      <Carousel.Previous />
+      <Carousel.Next />
+    </Carousel.Controls>
+  </Carousel.Header>
+  <Carousel.Content>
+    <Carousel.Item className='basis-[82%] md:basis-1/2'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Backstage at The Glasshouse</Card.Title>
+          <Card.Description>Notes from the first night of Velvet Hours — sound checks, setlist changes, and the unexpected encore.</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[82%] md:basis-1/2'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>On the road with Neon Dusk</Card.Title>
+          <Card.Description>Three cities, two tour buses, and the long conversations at 2am about synths and setlists.</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[82%] md:basis-1/2'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Recording Echo Garden live</Card.Title>
+          <Card.Description>How a Sunday matinee at Princess Theatre turned into a live album.</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[82%] md:basis-1/2'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Wave Theory's rider</Card.Title>
+          <Card.Description>A deep look at the tech, the tea selection, and why the keyboardist travels with a houseplant.</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+  </Carousel.Content>
+</Carousel>
+```
+
+Fixed group sizes also work — `opts={{ slidesToScroll: 3 }}` always advances three at a time regardless of viewport. See the full list of Embla options in the [Embla Carousel options reference](https://www.embla-carousel.com/api/options/).
+
+### Variable-width cards
+
+Set `basis-auto` on each `Carousel.Item` and every card sizes to its own content. Handy for genre pills, tag clouds, and anything chip-shaped where the slide widths are irregular. The default `slidesToScroll: 'auto'` still groups slides into viewport-sized pages for the Previous/Next buttons, so Embla handles the "how many fit" math even when the slide widths differ.
+
+```tsx-live
+<Carousel aria-label='Browse by genre'>
   <Carousel.Header>
     <Carousel.Title>Browse by genre</Carousel.Title>
     <Carousel.Dots />
@@ -707,7 +753,7 @@ Carousel is a compound component. Available parts:
 | `Carousel.Item` | A single slide. Set the width with Tailwind `basis-*` utilities. |
 | `Carousel.Previous` / `Carousel.Next` | Nav buttons (compose `IconButton`). Auto-hide when there's nothing to scroll to. |
 | `Carousel.PlayPause` | Play/pause toggle. Renders only when `autoPlay` is set. |
-| `Carousel.Dots` | One button per scroll snap position (which can be fewer than `slideCount` when `slidesToScroll: 'auto'` or multi-visible layouts group slides into pages). Auto-hides when there's nothing to scroll to. |
+| `Carousel.Dots` | One button per scroll snap position (which can be fewer than `slideCount` when multi-visible layouts group slides into viewport-sized pages — the Roadie default). Auto-hides when there's nothing to scroll to. |
 | `useCarousel()` hook | Read state and call actions from a child component. |
 | `useCarouselUnsafeEmbla()` hook | Escape hatch — returns the raw Embla `api`. Hard-couples your code to a specific `embla-carousel` major version, so prefer `useCarousel()` whenever possible. |
 
@@ -720,7 +766,7 @@ Carousel is a compound component. Available parts:
 - **Use `Carousel.PlayPause` whenever `autoPlay` is set.** WCAG 2.2.2 requires a persistent pause control for any auto-updating content. Place it first inside `Carousel.Controls` so it is the first tab stop.
 - **Direct children only.** `Carousel.Content` walks its children with `Children.map` to inject per-item context. Fragments and conditionally rendered children are not unwrapped — render an array of `Carousel.Item` directly.
 - **`reInit` is automatic.** Adding or removing slides at runtime triggers an Embla re-init.
-- **`opts` is a pass-through to Embla.** Use it for things like `loop`, `align`, `slidesToScroll`, `containScroll`. The `axis` and `duration` options are managed by the `direction` and `prefers-reduced-motion` hook respectively — don't override them.
+- **`opts` is a pass-through to Embla.** Roadie sets opinionated defaults for `align: 'start'` and `slidesToScroll: 'auto'` (Embla's own defaults are `center` and `1`, which read worse for card carousels). Consumers can override either via `opts` — Roadie defaults spread first, consumer `opts` second. The `axis` and `duration` options are managed by the `direction` and `prefers-reduced-motion` hook respectively and can't be overridden. See the full list of Embla options in the [Embla Carousel options reference](https://www.embla-carousel.com/api/options/).
 
 ## Accessibility
 

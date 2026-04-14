@@ -13,11 +13,16 @@ import {
 
 // ── Layout stubs ──
 // Embla measures slide and viewport dimensions during init and never
-// progresses past "not ready" without non-zero values. jsdom returns 0 for
-// every layout property, so we patch the four properties Embla reads. The
-// stubs live here (not in the package-wide vitest setup) so they don't
-// silently change the layout characteristics of every other component's
-// tests.
+// progresses past "not ready" without non-zero values. jsdom returns 0
+// for every layout property, so we patch the four standard dimension
+// getters plus `getBoundingClientRect` so Embla's `slidesToScroll: 'auto'`
+// snap computation lands on realistic positions — otherwise every slide
+// would report the same `{ left: 0, right: 0 }` and Embla would collapse
+// the whole carousel to a single snap. The stubs live here (not in the
+// package-wide vitest setup) so they don't silently change the layout
+// characteristics of every other component's tests.
+const SLIDE_WIDTH = 800
+const SLIDE_HEIGHT = 600
 const layoutRestores: Array<() => void> = []
 
 function stubLayoutProperty(prop: PropertyKey, value: number) {
@@ -39,11 +44,47 @@ function stubLayoutProperty(prop: PropertyKey, value: number) {
   })
 }
 
+// Embla v9's NodeHandler reads `offsetTop` / `offsetLeft` (not
+// `getBoundingClientRect`) to build its slide rects. Stub `offsetLeft`
+// so slides inside `Carousel.Content` report incremental positions
+// based on their DOM index — otherwise every slide sits at x=0 and
+// Embla's `slidesToScroll: 'auto'` collapses the whole carousel to a
+// single snap (because all slides appear to occupy the same scroll
+// position).
+function stubPerInstanceOffsetLeft() {
+  const original = Object.getOwnPropertyDescriptor(
+    HTMLElement.prototype,
+    'offsetLeft'
+  )
+  Object.defineProperty(HTMLElement.prototype, 'offsetLeft', {
+    configurable: true,
+    get(this: HTMLElement) {
+      const isSlide =
+        this.getAttribute('role') === 'group' &&
+        this.getAttribute('aria-roledescription') === 'slide'
+      if (isSlide && this.parentElement) {
+        const siblings = Array.from(this.parentElement.children)
+        return siblings.indexOf(this) * SLIDE_WIDTH
+      }
+      return 0
+    }
+  })
+  layoutRestores.push(() => {
+    if (original) {
+      Object.defineProperty(HTMLElement.prototype, 'offsetLeft', original)
+    } else {
+      delete (HTMLElement.prototype as unknown as Record<string, unknown>)
+        .offsetLeft
+    }
+  })
+}
+
 beforeAll(() => {
-  stubLayoutProperty('offsetWidth', 800)
-  stubLayoutProperty('offsetHeight', 600)
-  stubLayoutProperty('clientWidth', 800)
-  stubLayoutProperty('clientHeight', 600)
+  stubLayoutProperty('offsetWidth', SLIDE_WIDTH)
+  stubLayoutProperty('offsetHeight', SLIDE_HEIGHT)
+  stubLayoutProperty('clientWidth', SLIDE_WIDTH)
+  stubLayoutProperty('clientHeight', SLIDE_HEIGHT)
+  stubPerInstanceOffsetLeft()
 })
 
 afterAll(() => {
