@@ -1,10 +1,8 @@
-'use client'
-
 import { Fragment, type ReactElement } from 'react'
 
 import { Mark, type MarkProps } from '../Mark'
 
-export interface HighlightChunk {
+interface HighlightChunk {
   text: string
   match: boolean
 }
@@ -56,8 +54,7 @@ export function Highlight({
   matchAll = true,
   ...markProps
 }: HighlightProps): ReactElement {
-  const isQueryEmpty =
-    !query || (Array.isArray(query) && query.length === 0) || query === ''
+  const isQueryEmpty = !query || (Array.isArray(query) && query.length === 0)
 
   if (isQueryEmpty) {
     return <>{text}</>

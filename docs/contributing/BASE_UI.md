@@ -185,6 +185,14 @@ trigger's width:
 
 ## 7. `'use client'` requirement
 
+**Server-safe by default.** Do not add `'use client'` unless the
+component calls a React hook (`useState`, `useEffect`, `useRef`, `useId`,
+etc.), uses `createContext`, or wraps a Base UI primitive that needs a
+client boundary. Pure presentational wrappers (e.g. `Input`, `Textarea`,
+`Highlight`) must stay server-safe so Next.js consumers can render them
+in server components without forcing the entire tree into the client
+bundle.
+
 Every file that imports from `@base-ui/react/*` (or uses React client
 hooks like `useState`, `createContext`) must start with `'use client'`.
 
@@ -344,11 +352,17 @@ export function NewThingItem({ className, ...props }: NewThingItemProps) {
 
 NewThingItem.displayName = 'NewThing.Item'
 
-/* ─── Compound export ─── */
+/* ─── Compound attachment ─── */
 
-export const NewThing = Object.assign(NewThingRoot, {
-  Item: NewThingItem
-})
+// TODO(Phase 3): migrate to `export * as NewThing from './parts'`.
+// See docs/plans/2026-04-15-refactor-components-consistency-cleanup-plan.md
+// (Phase 3) and docs/contributing/COMPOUND_PATTERNS.md for the target shape.
+// The current direct-assignment form below is Pattern A from commit ba58fd6
+// and is temporary — it breaks when consumers use `<NewThing.Item />` from a
+// Next.js server component.
+
+export const NewThing = NewThingRoot
+NewThing.Item = NewThingItem
 ```
 
 ## 12. Reference links

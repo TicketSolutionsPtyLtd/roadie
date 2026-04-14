@@ -7,7 +7,7 @@ import {
   type AutocompleteFilterOptions,
   Autocomplete as AutocompletePrimitive
 } from '@base-ui/react/autocomplete'
-import { CaretDownIcon, XIcon } from '@phosphor-icons/react'
+import { CaretDownIcon, XIcon } from '@phosphor-icons/react/ssr'
 import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
@@ -51,11 +51,6 @@ export const autocompleteInputGroupVariants = cva(
 /* ─── Root ─── */
 
 export type AutocompleteProps = AutocompletePrimitive.Root.Props<unknown>
-
-/**
- * @deprecated Use `AutocompleteProps` instead.
- */
-export type AutocompleteRootProps = AutocompleteProps
 
 export function Autocomplete(props: AutocompleteProps) {
   return <AutocompletePrimitive.Root {...props} />

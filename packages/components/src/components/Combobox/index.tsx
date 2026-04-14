@@ -7,7 +7,7 @@ import {
   type ComboboxFilterOptions,
   Combobox as ComboboxPrimitive
 } from '@base-ui/react/combobox'
-import { CaretDownIcon, CheckIcon, XIcon } from '@phosphor-icons/react'
+import { CaretDownIcon, CheckIcon, XIcon } from '@phosphor-icons/react/ssr'
 import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
@@ -47,11 +47,6 @@ export const comboboxInputGroupVariants = cva(
 /* ─── Root ─── */
 
 export type ComboboxProps = ComboboxPrimitive.Root.Props<unknown>
-
-/**
- * @deprecated Use `ComboboxProps` instead.
- */
-export type ComboboxRootProps = ComboboxProps
 
 export function Combobox(props: ComboboxProps) {
   return <ComboboxPrimitive.Root {...props} />

@@ -8,7 +8,7 @@ import {
   type UseStepsReturn,
   useSteps
 } from '@ark-ui/react/steps'
-import { CheckIcon } from '@phosphor-icons/react'
+import { CheckIcon } from '@phosphor-icons/react/ssr'
 import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
@@ -22,7 +22,7 @@ export { useSteps, type UseStepsProps, type UseStepsReturn }
 export const stepsVariants = cva('grid w-full gap-4', {
   variants: {
     direction: {
-      horizontal: '',
+      horizontal: undefined,
       vertical: 'grid-cols-[auto_1fr] gap-3'
     }
   },

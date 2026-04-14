@@ -8,7 +8,11 @@ import {
 } from 'react'
 
 import { Select as SelectPrimitive } from '@base-ui/react/select'
-import { CaretDownIcon, CaretUpIcon, CheckIcon } from '@phosphor-icons/react'
+import {
+  CaretDownIcon,
+  CaretUpIcon,
+  CheckIcon
+} from '@phosphor-icons/react/ssr'
 import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
@@ -58,11 +62,6 @@ export type SelectProps = SelectPrimitive.Root.Props<unknown> & {
   invalid?: boolean
   required?: boolean
 }
-
-/**
- * @deprecated Use `SelectProps` instead.
- */
-export type SelectRootProps = SelectProps
 
 export function Select({ invalid, required, ...props }: SelectProps) {
   const fieldContext = useFieldContext()
@@ -460,5 +459,3 @@ Select.HelperText = SelectHelperText
 Select.ErrorText = SelectErrorText
 Select.ScrollUpArrow = SelectScrollUpArrow
 Select.ScrollDownArrow = SelectScrollDownArrow
-
-export type { SelectTriggerProps as SelectTriggerVariantProps }
