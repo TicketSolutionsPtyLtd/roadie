@@ -59,11 +59,6 @@ export type SelectProps = SelectPrimitive.Root.Props<unknown> & {
   required?: boolean
 }
 
-/**
- * @deprecated Use `SelectProps` instead.
- */
-export type SelectRootProps = SelectProps
-
 export function Select({ invalid, required, ...props }: SelectProps) {
   const fieldContext = useFieldContext()
   const resolvedInvalid = invalid ?? fieldContext.invalid
@@ -460,5 +455,3 @@ Select.HelperText = SelectHelperText
 Select.ErrorText = SelectErrorText
 Select.ScrollUpArrow = SelectScrollUpArrow
 Select.ScrollDownArrow = SelectScrollDownArrow
-
-export type { SelectTriggerProps as SelectTriggerVariantProps }

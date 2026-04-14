@@ -48,11 +48,6 @@ export const comboboxInputGroupVariants = cva(
 
 export type ComboboxProps = ComboboxPrimitive.Root.Props<unknown>
 
-/**
- * @deprecated Use `ComboboxProps` instead.
- */
-export type ComboboxRootProps = ComboboxProps
-
 export function Combobox(props: ComboboxProps) {
   return <ComboboxPrimitive.Root {...props} />
 }

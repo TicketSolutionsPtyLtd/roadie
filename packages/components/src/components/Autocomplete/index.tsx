@@ -52,11 +52,6 @@ export const autocompleteInputGroupVariants = cva(
 
 export type AutocompleteProps = AutocompletePrimitive.Root.Props<unknown>
 
-/**
- * @deprecated Use `AutocompleteProps` instead.
- */
-export type AutocompleteRootProps = AutocompleteProps
-
 export function Autocomplete(props: AutocompleteProps) {
   return <AutocompletePrimitive.Root {...props} />
 }

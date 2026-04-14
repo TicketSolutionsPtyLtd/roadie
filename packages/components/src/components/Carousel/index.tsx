@@ -294,7 +294,7 @@ export const carouselContentVariants = cva(
     variants: {
       direction: {
         horizontal: '-my-4 py-4',
-        vertical: ''
+        vertical: undefined
       },
       overflow: {
         hidden: 'overflow-clip',

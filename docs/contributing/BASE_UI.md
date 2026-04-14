@@ -344,11 +344,17 @@ export function NewThingItem({ className, ...props }: NewThingItemProps) {
 
 NewThingItem.displayName = 'NewThing.Item'
 
-/* ─── Compound export ─── */
+/* ─── Compound attachment ─── */
 
-export const NewThing = Object.assign(NewThingRoot, {
-  Item: NewThingItem
-})
+// TODO(Phase 3): migrate to `export * as NewThing from './parts'`.
+// See docs/plans/2026-04-15-refactor-components-consistency-cleanup-plan.md
+// (Phase 3) and docs/contributing/COMPOUND_PATTERNS.md for the target shape.
+// The current direct-assignment form below is Pattern A from commit ba58fd6
+// and is temporary — it breaks when consumers use `<NewThing.Item />` from a
+// Next.js server component.
+
+export const NewThing = NewThingRoot
+NewThing.Item = NewThingItem
 ```
 
 ## 12. Reference links

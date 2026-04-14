@@ -22,7 +22,7 @@ export { useSteps, type UseStepsProps, type UseStepsReturn }
 export const stepsVariants = cva('grid w-full gap-4', {
   variants: {
     direction: {
-      horizontal: '',
+      horizontal: undefined,
       vertical: 'grid-cols-[auto_1fr] gap-3'
     }
   },
