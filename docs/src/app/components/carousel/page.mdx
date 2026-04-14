@@ -21,18 +21,19 @@ import { Carousel } from '@oztix/roadie-components'
 
 ### Default
 
-The simplest usage — a single Content with Items, plus Previous/Next nav buttons. On mobile the carousel runs edge-to-edge with a partial third slide peeking in to signal scrollability; from `md` upwards three slides sit in view.
+The simplest usage — a Title, a centered row of Dots, and Previous/Next nav buttons all inside a single `Carousel.Header`. On mobile the controls hide automatically (touch users swipe instead) and the dots re-pin to the right; from `md` upwards three slides sit in view and the dots sit centered between the title and the buttons.
 
-```tsx-live-bleed-x
+```tsx-live
 <Carousel aria-label='Default carousel' opts={{ align: 'start' }}>
-  <Carousel.Header className='px-4 sm:px-6'>
+  <Carousel.Header>
     <Carousel.Title>Upcoming shows</Carousel.Title>
-    <div className='flex items-center gap-2'>
+    <Carousel.Dots />
+    <Carousel.Controls>
       <Carousel.Previous />
       <Carousel.Next />
-    </div>
+    </Carousel.Controls>
   </Carousel.Header>
-  <Carousel.Content className='px-4 sm:px-6'>
+  <Carousel.Content>
     <Carousel.Item className='basis-[42%] md:basis-1/3'>
       <Card emphasis='subtle'>
         <Card.Content>
@@ -89,16 +90,17 @@ The simplest usage — a single Content with Items, plus Previous/Next nav butto
 
 Each `Carousel.Item` can wrap a clickable element. The `Card` component renders as an anchor when given an `href`, and Carousel's keyboard handler is smart enough not to advance slides when arrow keys hit a focusable element inside a slide — so `Tab` lands on each card's link in turn.
 
-```tsx-live-bleed-x
+```tsx-live
 <Carousel aria-label='Linked event cards' opts={{ align: 'start' }}>
-  <Carousel.Header className='px-4 sm:px-6'>
+  <Carousel.Header>
     <Carousel.TitleLink href='/events'>Browse all events</Carousel.TitleLink>
-    <div className='flex items-center gap-2'>
+    <Carousel.Dots />
+    <Carousel.Controls>
       <Carousel.Previous />
       <Carousel.Next />
-    </div>
+    </Carousel.Controls>
   </Carousel.Header>
-  <Carousel.Content className='px-4 sm:px-6'>
+  <Carousel.Content>
     <Carousel.Item className='basis-[78%] md:basis-1/3'>
       <Card emphasis='raised' href='/events/midnight-frequency'>
         <Card.Content>
@@ -135,29 +137,118 @@ Each `Carousel.Item` can wrap a clickable element. The `Card` component renders 
 </Carousel>
 ```
 
+### Scroll by viewport
+
+Pass `slidesToScroll: 'auto'` through `opts` to move by a full viewport at a time instead of a single slide. Embla derives the group size from whatever currently fits in the viewport, so the same carousel scrolls two-and-a-bit cards on mobile, three on medium screens, and four on large screens — the prop does the right thing without breakpoint-specific configuration. Because `Carousel.Dots` renders one dot per *snap*, the dot count also collapses from one-per-slide down to one-per-page as the breakpoint changes.
+
+```tsx-live
+<Carousel
+  aria-label='Events by page'
+  opts={{ align: 'start', slidesToScroll: 'auto' }}
+>
+  <Carousel.Header>
+    <Carousel.Title>This weekend</Carousel.Title>
+    <Carousel.Dots />
+    <Carousel.Controls>
+      <Carousel.Previous />
+      <Carousel.Next />
+    </Carousel.Controls>
+  </Carousel.Header>
+  <Carousel.Content>
+    <Carousel.Item className='basis-[42%] md:basis-1/3 lg:basis-1/4'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Midnight Frequency</Card.Title>
+          <Card.Description>Friday 14 Mar — The Triffid</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3 lg:basis-1/4'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Sunset Sounds</Card.Title>
+          <Card.Description>Saturday 22 Mar — Riverstage</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3 lg:basis-1/4'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Neon Dusk</Card.Title>
+          <Card.Description>Sunday 30 Mar — Fortitude Music Hall</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3 lg:basis-1/4'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Wave Theory</Card.Title>
+          <Card.Description>Saturday 5 Apr — The Tivoli</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3 lg:basis-1/4'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Static Bloom</Card.Title>
+          <Card.Description>Saturday 12 Apr — Eatons Hill Hotel</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3 lg:basis-1/4'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Echo Garden</Card.Title>
+          <Card.Description>Sunday 20 Apr — Princess Theatre</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3 lg:basis-1/4'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Velvet Hours</Card.Title>
+          <Card.Description>Friday 25 Apr — The Zoo</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3 lg:basis-1/4'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Paper Lanterns</Card.Title>
+          <Card.Description>Saturday 3 May — Black Bear Lodge</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+  </Carousel.Content>
+</Carousel>
+```
+
+If you want a fixed group size instead — scroll exactly three cards at a time regardless of viewport — use `opts={{ slidesToScroll: 3 }}` in place of `'auto'`.
+
 ### Featured (autoplay + loop)
 
-Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayPause` button is placed first inside the header so it is the first tab stop — required by WCAG 2.2.2. Slides run edge-to-edge with a sliver of the next slide peeking in.
+Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayPause` button is placed first inside `Carousel.Controls` so it is the first tab stop — required by WCAG 2.2.2. Slides run edge-to-edge with a sliver of the next slide peeking in.
 
 `Carousel.TitleLink` accepts `as` so you can pass a framework router link (`Link` here) instead of a plain `<a>` — the trailing arrow icon and link styling come along automatically.
 
-```tsx-live-bleed-x
+```tsx-live
 <Carousel
   aria-label='Featured events'
   autoPlay={5000}
   opts={{ loop: true, align: 'start' }}
 >
-  <Carousel.Header className='px-4 sm:px-6'>
+  <Carousel.Header>
     <Carousel.TitleLink as={Link} href='/events'>
       Featured events
     </Carousel.TitleLink>
-    <div className='flex items-center gap-2'>
+    <Carousel.Dots />
+    <Carousel.Controls>
       <Carousel.PlayPause />
       <Carousel.Previous />
       <Carousel.Next />
-    </div>
+    </Carousel.Controls>
   </Carousel.Header>
-  <Carousel.Content className='px-4 sm:px-6'>
+  <Carousel.Content>
     <Carousel.Item className='basis-[88%] md:basis-1/2'>
       <Card emphasis='raised' href='/events/midnight-frequency'>
         <Card.Content>
@@ -183,18 +274,62 @@ Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayP
       </Card>
     </Carousel.Item>
   </Carousel.Content>
-  <div className='mt-4 flex justify-center'>
+</Carousel>
+```
+
+### Fits in viewport (controls auto-hide)
+
+When every slide already fits in the viewport, `Carousel.Previous`, `Carousel.Next`, `Carousel.Dots`, and `Carousel.Controls` all hide themselves automatically. Resize the preview wider to see the difference.
+
+```tsx-live
+<Carousel aria-label='Comedy lineup' opts={{ align: 'start' }}>
+  <Carousel.Header>
+    <Carousel.TitleLink href='/comedy'>Comedy</Carousel.TitleLink>
     <Carousel.Dots />
-  </div>
+    <Carousel.Controls>
+      <Carousel.Previous />
+      <Carousel.Next />
+    </Carousel.Controls>
+  </Carousel.Header>
+  <Carousel.Content>
+    <Carousel.Item className='basis-[78%] md:basis-1/3'>
+      <Card emphasis='raised' href='/events/wil-anderson'>
+        <Card.Content>
+          <Card.Title>Wil Anderson — Wilegitimate</Card.Title>
+          <Card.Description>29 Jun · 9:00 PM</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[78%] md:basis-1/3'>
+      <Card emphasis='raised' href='/events/wynnum-fringe'>
+        <Card.Content>
+          <Card.Title>Wynnum Fringe Comedy Gala</Card.Title>
+          <Card.Description>3 Jul · 8:15 PM</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[78%] md:basis-1/3'>
+      <Card emphasis='raised' href='/events/dave-thornton'>
+        <Card.Content>
+          <Card.Title>Dave Thornton — Nothing's Impossible</Card.Title>
+          <Card.Description>5 Jul · 4:45 PM</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+  </Carousel.Content>
 </Carousel>
 ```
 
 ### With dots only
 
-A simpler hero pattern — dots replace explicit Previous/Next.
+A simpler hero pattern — drop `Carousel.Controls` and let the dots handle navigation. With only a Title and Dots, the Header collapses to a 2-slot layout (title left, dots right).
 
 ```tsx-live
 <Carousel aria-label='With dots'>
+  <Carousel.Header>
+    <Carousel.Title>Slides</Carousel.Title>
+    <Carousel.Dots />
+  </Carousel.Header>
   <Carousel.Content>
     <Carousel.Item>
       <Card emphasis='subtle'>
@@ -221,9 +356,6 @@ A simpler hero pattern — dots replace explicit Previous/Next.
       </Card>
     </Carousel.Item>
   </Carousel.Content>
-  <div className='mt-4 flex justify-center'>
-    <Carousel.Dots />
-  </div>
 </Carousel>
 ```
 
@@ -235,10 +367,10 @@ Pass `direction='vertical'` to flip the axis. The Previous/Next icons swap to up
 <Carousel aria-label='Vertical carousel' direction='vertical' className='h-64'>
   <Carousel.Header>
     <Carousel.Title>Vertical</Carousel.Title>
-    <div className='flex items-center gap-2'>
+    <Carousel.Controls>
       <Carousel.Previous />
       <Carousel.Next />
-    </div>
+    </Carousel.Controls>
   </Carousel.Header>
   <Carousel.Content className='h-48'>
     <Carousel.Item>
@@ -268,17 +400,18 @@ Pass `direction='vertical'` to flip the axis. The Previous/Next icons swap to up
 
 ### States
 
-`Carousel.Previous` and `Carousel.Next` are disabled at the start and end boundaries unless `loop` is set. `Carousel.PlayPause` toggles its icon and `aria-pressed` on click.
+`Carousel.Previous` and `Carousel.Next` are disabled at the start and end boundaries unless `loop` is set. `Carousel.PlayPause` toggles its icon and `aria-pressed` on click. The whole nav UI hides when there is nothing to scroll to.
 
 ```tsx-live
 <Carousel aria-label='State demo' autoPlay={5000}>
   <Carousel.Header>
     <Carousel.Title>Boundary + autoplay states</Carousel.Title>
-    <div className='flex items-center gap-2'>
+    <Carousel.Dots />
+    <Carousel.Controls>
       <Carousel.PlayPause />
       <Carousel.Previous />
       <Carousel.Next />
-    </div>
+    </Carousel.Controls>
   </Carousel.Header>
   <Carousel.Content>
     <Carousel.Item>
@@ -316,21 +449,25 @@ Carousel is a compound component. Available parts:
 | Part | Role |
 | --- | --- |
 | `Carousel` | Root. Owns the Embla instance and context. |
-| `Carousel.Header` | Layout shell for the title and nav buttons. |
+| `Carousel.Header` | Three-slot layout shell: title (left), dots (centre), controls (right). On mobile it collapses to a flex `justify-between` row. |
 | `Carousel.Title` | `<h2>` by default; pass `as='h3'` (etc.) to change the heading level. Registers as the carousel's accessible name. |
 | `Carousel.TitleLink` | Anchor with a trailing arrow icon. Pass `as={Link}` to use a framework router link. Registers as the carousel's accessible name. |
+| `Carousel.Controls` | Inline flex row for grouping `Carousel.PlayPause`, `Carousel.Previous`, and `Carousel.Next` (or any other inline buttons) with consistent spacing. Hidden on mobile by default; hidden entirely when there's nothing to scroll to. |
 | `Carousel.Content` | Embla viewport + container. Wraps each direct `Carousel.Item` child in per-item context. |
 | `Carousel.Item` | A single slide. Set the width with Tailwind `basis-*` utilities. |
-| `Carousel.Previous` / `Carousel.Next` | Nav buttons (compose `IconButton`). |
+| `Carousel.Previous` / `Carousel.Next` | Nav buttons (compose `IconButton`). Auto-hide when there's nothing to scroll to. |
 | `Carousel.PlayPause` | Play/pause toggle. Renders only when `autoPlay` is set. |
-| `Carousel.Dots` | One button per slide. |
+| `Carousel.Dots` | One button per slide. Auto-hides when there's nothing to scroll to. |
 | `useCarousel()` hook | Read state and call actions from a child component. |
 | `useCarouselUnsafeEmbla()` hook | Escape hatch — returns the raw Embla `api`. Hard-couples your code to a specific `embla-carousel` major version, so prefer `useCarousel()` whenever possible. |
 
 ## Guidelines
 
 - **Slide sizing is the consumer's job.** Set width on each `Carousel.Item` via Tailwind `basis-*` utilities (e.g. `basis-1/2 md:basis-1/3`). Don't try to size the carousel itself.
-- **Use `Carousel.PlayPause` whenever `autoPlay` is set.** WCAG 2.2.2 requires a persistent pause control for any auto-updating content. Place it first in tab order.
+- **Let `Carousel.Content` handle the gutter.** The default `overflow='subtle'` applies `-mx-4 px-4 sm:-mx-6 sm:px-6` plus fade-to-background gradients on the left and right edges, so slides visibly bleed past the viewport and fade into the page without leaving half-clipped cards. Use `overflow='hidden'` for a hard clip or `overflow='visible'` to let overflow extend indefinitely into surrounding margin.
+- **Compose the Header instead of stacking divs.** `<Carousel.Header>` accepts up to three children placed by source order — title, dots, controls. On mobile it collapses to a flex row with the controls hidden, so the dots automatically pin to the right.
+- **Nav UI hides when it's not needed.** `Carousel.Controls`, `Carousel.Previous`, `Carousel.Next`, and `Carousel.Dots` all render `null` when every slide already fits in the viewport. No special handling required at the consumer.
+- **Use `Carousel.PlayPause` whenever `autoPlay` is set.** WCAG 2.2.2 requires a persistent pause control for any auto-updating content. Place it first inside `Carousel.Controls` so it is the first tab stop.
 - **Direct children only.** `Carousel.Content` walks its children with `Children.map` to inject per-item context. Fragments and conditionally rendered children are not unwrapped — render an array of `Carousel.Item` directly.
 - **`reInit` is automatic.** Adding or removing slides at runtime triggers an Embla re-init.
 - **`opts` is a pass-through to Embla.** Use it for things like `loop`, `align`, `slidesToScroll`, `containScroll`. The `axis` and `duration` options are managed by the `direction` and `prefers-reduced-motion` hook respectively — don't override them.

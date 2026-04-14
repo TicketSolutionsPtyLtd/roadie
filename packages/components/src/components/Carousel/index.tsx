@@ -100,10 +100,25 @@ export type CarouselActions = {
 
 export type CarouselState = {
   direction: CarouselDirection
+  /** Selected snap index (0-based). Note: a snap may cover multiple slides. */
   selectedIndex: number
+  /** Number of `Carousel.Item` children. Used for "N of M" slide labels. */
   slideCount: number
+  /**
+   * Number of distinct Embla scroll snap positions. May be smaller than
+   * `slideCount` for multi-visible layouts (e.g. `basis-1/3` with 4 cards
+   * creates 2 snaps), or equal to it for single-slide layouts. Falls back
+   * to `slideCount` in environments where Embla can't measure (jsdom).
+   */
+  snapCount: number
   canGoToPrev: boolean
   canGoToNext: boolean
+  /**
+   * True when there is somewhere to scroll to. False when every slide
+   * already fits in the viewport (snapCount <= 1) — in which case
+   * Previous / Next / Dots / Controls all hide themselves.
+   */
+  canScroll: boolean
   isPlaying: boolean
   userPaused: boolean
   labelId: string | undefined
@@ -185,8 +200,10 @@ export function useCarousel(): UseCarouselReturn {
       direction: ctx.direction,
       selectedIndex: ctx.selectedIndex,
       slideCount: ctx.slideCount,
+      snapCount: ctx.snapCount,
       canGoToPrev: ctx.canGoToPrev,
       canGoToNext: ctx.canGoToNext,
+      canScroll: ctx.canScroll,
       isPlaying: ctx.isPlaying,
       userPaused: ctx.userPaused,
       labelId: ctx.labelId,
@@ -196,8 +213,10 @@ export function useCarousel(): UseCarouselReturn {
       ctx.direction,
       ctx.selectedIndex,
       ctx.slideCount,
+      ctx.snapCount,
       ctx.canGoToPrev,
       ctx.canGoToNext,
+      ctx.canScroll,
       ctx.isPlaying,
       ctx.userPaused,
       ctx.labelId,
@@ -232,22 +251,74 @@ export function useCarouselUnsafeEmbla(): EmblaCarouselType | undefined {
 
 /* ─── Variants ─── */
 
-// `overflow: clip` + `overflow-clip-margin` lets card shadows bleed out
-// beyond the viewport box. Unlike `overflow: hidden` + padding, this only
-// extends the clip region for *painted output* — it does not add layout
-// space inside the viewport, so slides can't visibly drift into the bleed
-// region. 2 × `--spacing` = 8px is enough for `shadow-md` (~6–10px) on
-// every side.
+// The `overflow` variant controls how slides escape the viewport box:
+//
+//   `hidden`  — slides are clipped at the viewport edge. Classic behaviour.
+//   `visible` — slides can extend indefinitely. Useful on wide screens
+//               where you deliberately want peeking slides to remain fully
+//               rendered in the margin area.
+//   `subtle`  — the default. Slides bleed past the viewport edges by the
+//               same amount as the inner gutter, and fade to the page
+//               background via `::before` / `::after` gradient overlays.
+//               Gives the scroll hint of `visible` without the reading
+//               noise of half-clipped cards at the edges.
+//
+// Horizontal subtle bleeds with `-mx-4 px-4` (sm+: `-mx-6 px-6`); the
+// gradients cover those padding strips. Vertical subtle is the same idea
+// rotated to the block axis.
+//
+// The `-my-4 py-4` on horizontal preserves the small vertical overflow
+// bleed needed to let `shadow-md` (~6–10px) escape the viewport box on
+// `Card` slides without the clip region eating the tint.
 export const carouselContentVariants = cva(
-  'relative overflow-clip focus-visible:outline-none',
+  'relative focus-visible:outline-none',
   {
     variants: {
       direction: {
         horizontal: '-my-4 py-4',
         vertical: ''
+      },
+      overflow: {
+        hidden: 'overflow-clip',
+        visible: 'overflow-visible',
+        subtle: 'overflow-clip'
       }
     },
-    defaultVariants: { direction: 'horizontal' }
+    compoundVariants: [
+      {
+        overflow: 'subtle',
+        direction: 'horizontal',
+        class: [
+          '-mx-4 px-4 sm:-mx-6 sm:px-6',
+          'before:pointer-events-none before:absolute before:inset-y-0 before:left-0 before:z-10',
+          'before:w-4 sm:before:w-6',
+          'before:bg-linear-to-r before:from-[var(--intent-bg-normal)] before:to-transparent',
+          'after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-10',
+          'after:w-4 sm:after:w-6',
+          'after:bg-linear-to-l after:from-[var(--intent-bg-normal)] after:to-transparent'
+        ].join(' ')
+      },
+      {
+        // Vertical subtle intentionally omits the negative block-axis
+        // margin — its axis collides with Carousel.Header sitting above
+        // it, and pulling Content upward would overlap the header. The
+        // py-4 padding creates the fade area inside Content's own box
+        // and the Embla container's -mt-4 still lets items scroll
+        // through that padding during transitions.
+        overflow: 'subtle',
+        direction: 'vertical',
+        class: [
+          'py-4',
+          'before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:z-10',
+          'before:h-4',
+          'before:bg-linear-to-b before:from-[var(--intent-bg-normal)] before:to-transparent',
+          'after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:z-10',
+          'after:h-4',
+          'after:bg-linear-to-t after:from-[var(--intent-bg-normal)] after:to-transparent'
+        ].join(' ')
+      }
+    ],
+    defaultVariants: { direction: 'horizontal', overflow: 'subtle' }
   }
 )
 
@@ -357,12 +428,19 @@ export function Carousel({
 
   const [emblaRef, api] = useEmblaCarousel(resolvedOpts, plugins)
 
-  // slideCount is authoritative from Carousel.Content's children. Embla's
-  // snapList() is empty in jsdom and the default 1-snap-per-slide case
-  // matches children.length 1:1 in real browsers, so this is the simpler
-  // single source of truth.
+  // slideCount is the authoritative count of Carousel.Item children, used
+  // for "N of M" labels on each slide. snapCount is the count of *Embla
+  // snap positions*, which can be smaller — e.g. a basis-1/3 carousel
+  // with 4 cards has 4 slides but 2 navigable snap positions. Nav buttons
+  // and dots use snapCount; slide labels use slideCount.
+  //
+  // jsdom note: Embla's `scrollSnapList()` returns `[]` in jsdom because
+  // measurements are zero, so snapCount stays 0 there. We treat 0 as
+  // "unknown" and fall back to slideCount, which makes default basis-full
+  // tests behave identically to a real browser.
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [slideCount, setSlideCount] = useState(0)
+  const [snapCount, setSnapCount] = useState(0)
   const [labelId, setLabelId] = useState<string | undefined>(undefined)
   // Indices of slides currently intersecting the viewport. Initialized to
   // [0] so the first paint marks slide 0 as in-view (jsdom never fires the
@@ -403,23 +481,36 @@ export function Carousel({
     }
   }, [api, onSelect])
 
-  // ── Embla in-view sync ──
+  // ── Embla in-view + snap-count sync ──
   // For multi-visible layouts (basis-1/3 etc.) every slide that intersects
-  // the viewport must stay interactive — gating `inert` on selectedSnap
-  // alone leaves the other visible slides un-clickable, which was the bug
-  // reported in https://… (carousel inert traps non-selected visible
-  // cards). Embla emits `slidesinview` whenever the set changes.
+  // the viewport must stay interactive — gating `inert` on the selected
+  // snap alone leaves the other visible slides un-clickable. Embla emits
+  // `slidesinview` whenever the set changes.
+  //
+  // We also track the snap-count here so navigation logic uses Embla's
+  // actual snap positions instead of the React children count. A
+  // basis-1/3 carousel with 4 cards has 4 slides but 2 snap positions;
+  // dots, prev/next, and the can-scroll check should all reflect the 2.
   const onSlidesInView = useCallback((emblaApi: EmblaCarouselType) => {
     const next = emblaApi.slidesInView()
     setSlidesInView(next.length > 0 ? next : [emblaApi.selectedSnap()])
+    setSnapCount(emblaApi.snapList().length)
   }, [])
 
   useEffect(() => {
     if (!api) return
     onSlidesInView(api)
-    api.on('reinit', onSlidesInView).on('slidesinview', onSlidesInView)
+    api
+      .on('reinit', onSlidesInView)
+      .on('slidesinview', onSlidesInView)
+      .on('resize', onSlidesInView)
+      .on('slideschanged', onSlidesInView)
     return () => {
-      api.off('reinit', onSlidesInView).off('slidesinview', onSlidesInView)
+      api
+        .off('reinit', onSlidesInView)
+        .off('slidesinview', onSlidesInView)
+        .off('resize', onSlidesInView)
+        .off('slideschanged', onSlidesInView)
     }
   }, [api, onSlidesInView])
 
@@ -481,14 +572,21 @@ export function Carousel({
     api?.reInit()
   }, [api, slideCount])
 
-  // canGoToPrev / canGoToNext use a clamped index so we don't have to keep
-  // a separate effect to clamp selectedIndex when children shrink. Embla's
-  // reinit handler updates selectedIndex via onSelect already; clamping at
-  // read time covers the transient gap before that lands.
+  // Effective snap count = Embla's snap positions when known, falling
+  // back to slideCount when Embla hasn't measured yet (jsdom or pre-init).
+  // All navigation derivations work in *snap space*, not slide space.
+  const effectiveSnapCount = snapCount > 0 ? snapCount : slideCount
   const clampedIndex =
-    slideCount > 0 ? Math.min(Math.max(0, selectedIndex), slideCount - 1) : 0
-  const canGoToPrev = slideCount > 1 && (loop || clampedIndex > 0)
-  const canGoToNext = slideCount > 1 && (loop || clampedIndex < slideCount - 1)
+    effectiveSnapCount > 0
+      ? Math.min(Math.max(0, selectedIndex), effectiveSnapCount - 1)
+      : 0
+  const canGoToPrev = effectiveSnapCount > 1 && (loop || clampedIndex > 0)
+  const canGoToNext =
+    effectiveSnapCount > 1 && (loop || clampedIndex < effectiveSnapCount - 1)
+  // True only when there is somewhere to scroll to. When every slide
+  // already fits in the viewport, snapCount collapses to 1 and the whole
+  // nav UI hides itself.
+  const canScroll = effectiveSnapCount > 1
 
   // ── Actions ──
   // Navigation actions delegate to Embla AND update selectedIndex
@@ -501,22 +599,36 @@ export function Carousel({
   const actions = useMemo<CarouselActions>(
     () => ({
       goToPrev: () => {
+        // Call Embla first, then only fall back to an optimistic state
+        // poke if Embla's selectedSnap didn't move. In real browsers
+        // Embla emits `select` synchronously and onSelect has already
+        // queued the correct setSelectedIndex by the time we check —
+        // so `before === after` means jsdom (or a no-op at boundary),
+        // and only then do we update state ourselves. This avoids the
+        // "click Next, jump straight to the end" race where the
+        // optimistic updater saw the Embla-committed value as `current`.
+        const before = api?.selectedSnap()
         api?.goToPrev()
+        if (api && api.selectedSnap() !== before) return
         setSelectedIndex((current) => {
           if (current > 0) return current - 1
-          return loop ? Math.max(0, slideCount - 1) : current
+          return loop ? Math.max(0, effectiveSnapCount - 1) : current
         })
       },
       goToNext: () => {
+        const before = api?.selectedSnap()
         api?.goToNext()
+        if (api && api.selectedSnap() !== before) return
         setSelectedIndex((current) => {
-          if (current < slideCount - 1) return current + 1
+          if (current < effectiveSnapCount - 1) return current + 1
           return loop ? 0 : current
         })
       },
       goTo: (index: number) => {
+        const before = api?.selectedSnap()
         api?.goTo(index)
-        setSelectedIndex(Math.max(0, Math.min(index, slideCount - 1)))
+        if (api && api.selectedSnap() !== before) return
+        setSelectedIndex(Math.max(0, Math.min(index, effectiveSnapCount - 1)))
       },
       play: () => {
         if (!hasAutoPlay) return
@@ -544,7 +656,7 @@ export function Carousel({
         if (plugin) safePluginCall(next ? plugin.play : plugin.stop)
       }
     }),
-    [api, hasAutoPlay, isPlaying, loop, slideCount]
+    [api, hasAutoPlay, isPlaying, loop, effectiveSnapCount]
   )
 
   // ── Hover / focus pause handlers (on the root wrapper) ──
@@ -606,8 +718,10 @@ export function Carousel({
       direction,
       selectedIndex: clampedIndex,
       slideCount,
+      snapCount: effectiveSnapCount,
       canGoToPrev,
       canGoToNext,
+      canScroll,
       isPlaying,
       userPaused,
       labelId,
@@ -634,6 +748,7 @@ export function Carousel({
       slideCount,
       canGoToPrev,
       canGoToNext,
+      canScroll,
       isPlaying,
       userPaused,
       labelId,
@@ -670,19 +785,85 @@ export function Carousel({
 Carousel.displayName = 'Carousel'
 
 /* ─── Header ─── */
+//
+// Mobile (default): a flex `justify-between` row. With the recommended
+// `<Title /><Dots /><Controls hidden on mobile />` arrangement that puts
+// the Title on the left and the Dots on the right — Controls vanish via
+// their own responsive `hidden md:flex`.
+//
+// Desktop (md+): a three-column grid (`1fr auto 1fr`). Children are placed
+// by position in source order:
+//
+//   1 child  → left only (e.g. just a Title)
+//   2 children → left + right (Title + Controls)
+//   3 children → left + centre + right (Title + Dots + Controls)
+//
+// Selectors target position rather than component type so consumers can
+// drop in custom nodes (a search box in the middle, an extra link on the
+// right) without losing the layout.
 
 export type CarouselHeaderProps = ComponentProps<'div'>
 
 export function CarouselHeader({ className, ...props }: CarouselHeaderProps) {
   return (
     <div
-      className={cn('mb-2 flex items-center justify-between gap-4', className)}
+      className={cn(
+        'mb-4 flex items-center justify-between gap-4',
+        'md:grid md:grid-cols-[1fr_auto_1fr]',
+        'md:[&>*:first-child]:justify-self-start',
+        'md:[&>*:last-child:not(:first-child)]:col-start-3',
+        'md:[&>*:last-child:not(:first-child)]:justify-self-end',
+        'md:[&>*:nth-child(2):not(:last-child)]:col-start-2',
+        'md:[&>*:nth-child(2):not(:last-child)]:justify-self-center',
+        className
+      )}
       {...props}
     />
   )
 }
 
 CarouselHeader.displayName = 'Carousel.Header'
+
+/* ─── Controls ─── */
+//
+// Layout shell that groups Carousel.PlayPause / Previous / Next (or any
+// other inline controls) into a consistently spaced flex row.
+//
+// Hidden on mobile by default (`hidden md:flex`) — touch users navigate by
+// swipe + dots, so Previous/Next/PlayPause buttons are redundant noise on
+// small screens. Override with `className='flex'` if a particular carousel
+// needs them visible on mobile.
+//
+// Hidden entirely when there's nothing to scroll to — every slide already
+// fits in the viewport, so the buttons would be no-ops. Use the explicit
+// `forceVisible` prop if a consumer wants to keep custom children rendered
+// even when nav is unavailable.
+
+export type CarouselControlsProps = ComponentProps<'div'> & {
+  /**
+   * Render the controls even when there's nothing to scroll to. Useful
+   * when the slot contains custom buttons (filters, share) that aren't
+   * gated on slide count.
+   */
+  forceVisible?: boolean
+}
+
+export function CarouselControls({
+  className,
+  forceVisible = false,
+  ...props
+}: CarouselControlsProps) {
+  const { canScroll } = useCarouselContext()
+  if (!forceVisible && !canScroll) return null
+  return (
+    <div
+      className={cn('hidden items-center gap-2 md:flex', className)}
+      {...props}
+    />
+  )
+}
+
+CarouselControls.displayName = 'Carousel.Controls'
 
 /* ─── Title ─── */
 //
@@ -792,9 +973,26 @@ CarouselTitleLink.displayName = 'Carousel.TitleLink'
 
 /* ─── Content ─── */
 
+export type CarouselContentOverflow = NonNullable<
+  VariantProps<typeof carouselContentVariants>['overflow']
+>
+
 export interface CarouselContentProps extends ComponentProps<'div'> {
   /** Props to forward to the inner Embla container (flex row/col). */
   containerProps?: ComponentProps<'div'>
+  /**
+   * How slides escape the viewport box.
+   *
+   * - `subtle` (default): slides bleed past the edges by the gutter width
+   *   and fade to the page background via `::before` / `::after`
+   *   gradients. Good for most carousels — gives a clear scroll hint
+   *   without half-clipped cards.
+   * - `hidden`: slides are hard-clipped at the viewport edge.
+   * - `visible`: slides can extend indefinitely. Useful on wide screens
+   *   where you deliberately want peeking slides to remain fully
+   *   rendered in the surrounding margin area.
+   */
+  overflow?: CarouselContentOverflow
 }
 
 export function CarouselContent({
@@ -802,12 +1000,13 @@ export function CarouselContent({
   children,
   containerProps,
   onKeyDown,
+  overflow,
   ...props
 }: CarouselContentProps) {
   const {
     direction,
     selectedIndex,
-    slideCount,
+    snapCount,
     slidesInView,
     isPlaying,
     labelId,
@@ -904,10 +1103,10 @@ export function CarouselContent({
         goTo(0)
       } else if (e.key === 'End') {
         e.preventDefault()
-        goTo(Math.max(0, slideCount - 1))
+        goTo(Math.max(0, snapCount - 1))
       }
     },
-    [direction, goToPrev, goToNext, goTo, slideCount, onKeyDown]
+    [direction, goToPrev, goToNext, goTo, snapCount, onKeyDown]
   )
 
   return (
@@ -918,7 +1117,10 @@ export function CarouselContent({
       aria-live={ariaLive}
       aria-label={labelId ? undefined : rootAriaLabel}
       aria-labelledby={labelId}
-      className={cn(carouselContentVariants({ direction }), className)}
+      className={cn(
+        carouselContentVariants({ direction, overflow }),
+        className
+      )}
       {...props}
     >
       <div
@@ -985,8 +1187,8 @@ export function CarouselPrevious({
   children,
   ...props
 }: CarouselNavButtonProps) {
-  const { direction, slideCount, canGoToPrev, goToPrev } = useCarouselContext()
-  if (slideCount <= 1) return null
+  const { direction, canScroll, canGoToPrev, goToPrev } = useCarouselContext()
+  if (!canScroll) return null
   const Icon = direction === 'vertical' ? CaretUpIcon : CaretLeftIcon
   return (
     <IconButton
@@ -1011,8 +1213,8 @@ export function CarouselNext({
   children,
   ...props
 }: CarouselNavButtonProps) {
-  const { direction, slideCount, canGoToNext, goToNext } = useCarouselContext()
-  if (slideCount <= 1) return null
+  const { direction, canScroll, canGoToNext, goToNext } = useCarouselContext()
+  if (!canScroll) return null
   const Icon = direction === 'vertical' ? CaretDownIcon : CaretRightIcon
   return (
     <IconButton
@@ -1068,8 +1270,9 @@ CarouselPlayPause.displayName = 'Carousel.PlayPause'
 export type CarouselDotsProps = ComponentProps<'div'>
 
 export function CarouselDots({ className, ...props }: CarouselDotsProps) {
-  const { direction, slideCount, selectedIndex, goTo } = useCarouselContext()
-  if (slideCount <= 1) return null
+  const { direction, snapCount, selectedIndex, canScroll, goTo } =
+    useCarouselContext()
+  if (!canScroll) return null
   return (
     <div
       role='group'
@@ -1077,7 +1280,7 @@ export function CarouselDots({ className, ...props }: CarouselDotsProps) {
       className={cn(carouselDotsVariants({ direction }), className)}
       {...props}
     >
-      {Array.from({ length: slideCount }, (_, index) => {
+      {Array.from({ length: snapCount }, (_, index) => {
         const isActive = index === selectedIndex
         return (
           <button
@@ -1113,6 +1316,7 @@ CarouselDots.displayName = 'Carousel.Dots'
 Carousel.Header = CarouselHeader
 Carousel.Title = CarouselTitle
 Carousel.TitleLink = CarouselTitleLink
+Carousel.Controls = CarouselControls
 Carousel.Content = CarouselContent
 Carousel.Item = CarouselItem
 Carousel.Previous = CarouselPrevious
