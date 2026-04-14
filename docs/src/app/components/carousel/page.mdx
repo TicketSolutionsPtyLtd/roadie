@@ -1,0 +1,780 @@
+export const metadata = {
+  title: 'Carousel',
+  description: 'Compound horizontal or vertical carousel built on Embla',
+  status: 'beta',
+  category: 'Content',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Carousel
+
+A compound horizontal or vertical carousel built on Embla, with built-in autoplay, keyboard navigation, and `prefers-reduced-motion` handling.
+
+## Import
+
+```tsx
+import { Carousel } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Default
+
+The simplest usage — a Title, a centered row of Dots, and Previous/Next nav buttons all inside a single `Carousel.Header`. On mobile the controls hide automatically (touch users swipe instead) and the dots re-pin to the right; from `md` upwards three slides sit in view and the dots sit centered between the title and the buttons.
+
+```tsx-live
+<Carousel aria-label='Default carousel'>
+  <Carousel.Header>
+    <Carousel.Title>Upcoming shows</Carousel.Title>
+    <Carousel.Dots />
+    <Carousel.Controls>
+      <Carousel.Previous />
+      <Carousel.Next />
+    </Carousel.Controls>
+  </Carousel.Header>
+  <Carousel.Content>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Midnight Frequency</Card.Title>
+          <Card.Description>The Glasshouse, Northbridge</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Sunset Sounds</Card.Title>
+          <Card.Description>Riverbend Park, Eastdale</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Neon Dusk</Card.Title>
+          <Card.Description>Northside Hall</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Wave Theory</Card.Title>
+          <Card.Description>The Lantern, Westgate</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Static Bloom</Card.Title>
+          <Card.Description>Hillside Tavern</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Echo Garden</Card.Title>
+          <Card.Description>The Empress Theatre</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+  </Carousel.Content>
+</Carousel>
+```
+
+### Overflow
+
+`Carousel.Content` takes an `overflow` prop that controls how slides behave at the viewport edges.
+
+- **`subtle`** (default): slides bleed past the edges by the gutter width and dissolve into the page background via `::before` / `::after` linear-gradient overlays. Gives a clear scroll hint without half-clipped cards in view.
+- **`hidden`**: slides are hard-clipped exactly at the viewport edge.
+- **`visible`**: slides extend indefinitely past the viewport without clipping — useful on wide screens where you deliberately want peeking content to remain fully rendered in the surrounding margin.
+
+```tsx-live
+<div className='grid gap-8'>
+  <Carousel aria-label='Subtle overflow'>
+    <Carousel.Header>
+      <Carousel.Title>Subtle (default)</Carousel.Title>
+    </Carousel.Header>
+    <Carousel.Content overflow='subtle'>
+      <Carousel.Item className='basis-[42%] md:basis-1/3'>
+        <Card emphasis='subtle'>
+          <Card.Content>
+            <Card.Title>Card one</Card.Title>
+            <Card.Description>Fades into the page</Card.Description>
+          </Card.Content>
+        </Card>
+      </Carousel.Item>
+      <Carousel.Item className='basis-[42%] md:basis-1/3'>
+        <Card emphasis='subtle'>
+          <Card.Content>
+            <Card.Title>Card two</Card.Title>
+            <Card.Description>Fades into the page</Card.Description>
+          </Card.Content>
+        </Card>
+      </Carousel.Item>
+      <Carousel.Item className='basis-[42%] md:basis-1/3'>
+        <Card emphasis='subtle'>
+          <Card.Content>
+            <Card.Title>Card three</Card.Title>
+            <Card.Description>Fades into the page</Card.Description>
+          </Card.Content>
+        </Card>
+      </Carousel.Item>
+      <Carousel.Item className='basis-[42%] md:basis-1/3'>
+        <Card emphasis='subtle'>
+          <Card.Content>
+            <Card.Title>Card four</Card.Title>
+            <Card.Description>Fades into the page</Card.Description>
+          </Card.Content>
+        </Card>
+      </Carousel.Item>
+      <Carousel.Item className='basis-[42%] md:basis-1/3'>
+        <Card emphasis='subtle'>
+          <Card.Content>
+            <Card.Title>Card five</Card.Title>
+            <Card.Description>Fades into the page</Card.Description>
+          </Card.Content>
+        </Card>
+      </Carousel.Item>
+    </Carousel.Content>
+  </Carousel>
+
+  <Carousel aria-label='Hidden overflow'>
+    <Carousel.Header>
+      <Carousel.Title>Hidden</Carousel.Title>
+    </Carousel.Header>
+    <Carousel.Content overflow='hidden'>
+      <Carousel.Item className='basis-[42%] md:basis-1/3'>
+        <Card emphasis='subtle'>
+          <Card.Content>
+            <Card.Title>Card one</Card.Title>
+            <Card.Description>Hard clip at the edge</Card.Description>
+          </Card.Content>
+        </Card>
+      </Carousel.Item>
+      <Carousel.Item className='basis-[42%] md:basis-1/3'>
+        <Card emphasis='subtle'>
+          <Card.Content>
+            <Card.Title>Card two</Card.Title>
+            <Card.Description>Hard clip at the edge</Card.Description>
+          </Card.Content>
+        </Card>
+      </Carousel.Item>
+      <Carousel.Item className='basis-[42%] md:basis-1/3'>
+        <Card emphasis='subtle'>
+          <Card.Content>
+            <Card.Title>Card three</Card.Title>
+            <Card.Description>Hard clip at the edge</Card.Description>
+          </Card.Content>
+        </Card>
+      </Carousel.Item>
+      <Carousel.Item className='basis-[42%] md:basis-1/3'>
+        <Card emphasis='subtle'>
+          <Card.Content>
+            <Card.Title>Card four</Card.Title>
+            <Card.Description>Hard clip at the edge</Card.Description>
+          </Card.Content>
+        </Card>
+      </Carousel.Item>
+      <Carousel.Item className='basis-[42%] md:basis-1/3'>
+        <Card emphasis='subtle'>
+          <Card.Content>
+            <Card.Title>Card five</Card.Title>
+            <Card.Description>Hard clip at the edge</Card.Description>
+          </Card.Content>
+        </Card>
+      </Carousel.Item>
+    </Carousel.Content>
+  </Carousel>
+
+  <Carousel aria-label='Visible overflow'>
+    <Carousel.Header>
+      <Carousel.Title>Visible</Carousel.Title>
+    </Carousel.Header>
+    <Carousel.Content overflow='visible'>
+      <Carousel.Item className='basis-[42%] md:basis-1/3'>
+        <Card emphasis='subtle'>
+          <Card.Content>
+            <Card.Title>Card one</Card.Title>
+            <Card.Description>Extends past the edge</Card.Description>
+          </Card.Content>
+        </Card>
+      </Carousel.Item>
+      <Carousel.Item className='basis-[42%] md:basis-1/3'>
+        <Card emphasis='subtle'>
+          <Card.Content>
+            <Card.Title>Card two</Card.Title>
+            <Card.Description>Extends past the edge</Card.Description>
+          </Card.Content>
+        </Card>
+      </Carousel.Item>
+      <Carousel.Item className='basis-[42%] md:basis-1/3'>
+        <Card emphasis='subtle'>
+          <Card.Content>
+            <Card.Title>Card three</Card.Title>
+            <Card.Description>Extends past the edge</Card.Description>
+          </Card.Content>
+        </Card>
+      </Carousel.Item>
+      <Carousel.Item className='basis-[42%] md:basis-1/3'>
+        <Card emphasis='subtle'>
+          <Card.Content>
+            <Card.Title>Card four</Card.Title>
+            <Card.Description>Extends past the edge</Card.Description>
+          </Card.Content>
+        </Card>
+      </Carousel.Item>
+      <Carousel.Item className='basis-[42%] md:basis-1/3'>
+        <Card emphasis='subtle'>
+          <Card.Content>
+            <Card.Title>Card five</Card.Title>
+            <Card.Description>Extends past the edge</Card.Description>
+          </Card.Content>
+        </Card>
+      </Carousel.Item>
+    </Carousel.Content>
+  </Carousel>
+</div>
+```
+
+`overflow='visible'` is bounded by whatever ancestor has `overflow: clip` / `hidden` / `auto` on it — inside the docs preview the preview itself clips, so it reads similarly to `hidden`. In a real layout with a wider parent it lets slides render into adjacent margin without the gradient fade.
+
+### With linked cards
+
+Each `Carousel.Item` can wrap a clickable element. The `Card` component renders as an anchor when given an `href`, and Carousel's keyboard handler is smart enough not to advance slides when arrow keys hit a focusable element inside a slide — so `Tab` lands on each card's link in turn.
+
+```tsx-live
+<Carousel aria-label='Linked event cards'>
+  <Carousel.Header>
+    <Carousel.TitleLink href='/events'>Browse all events</Carousel.TitleLink>
+    <Carousel.Dots />
+    <Carousel.Controls>
+      <Carousel.Previous />
+      <Carousel.Next />
+    </Carousel.Controls>
+  </Carousel.Header>
+  <Carousel.Content>
+    <Carousel.Item className='basis-[78%] md:basis-1/3'>
+      <Card emphasis='raised' href='/events/midnight-frequency'>
+        <Card.Content>
+          <Card.Title>Midnight Frequency</Card.Title>
+          <Card.Description>Friday 14 Mar — The Glasshouse</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[78%] md:basis-1/3'>
+      <Card emphasis='raised' href='/events/sunset-sounds'>
+        <Card.Content>
+          <Card.Title>Sunset Sounds</Card.Title>
+          <Card.Description>Saturday 22 Mar — Riverbend Park</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[78%] md:basis-1/3'>
+      <Card emphasis='raised' href='/events/neon-dusk'>
+        <Card.Content>
+          <Card.Title>Neon Dusk</Card.Title>
+          <Card.Description>Sunday 30 Mar — Northside Hall</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[78%] md:basis-1/3'>
+      <Card emphasis='raised' href='/events/wave-theory'>
+        <Card.Content>
+          <Card.Title>Wave Theory</Card.Title>
+          <Card.Description>Saturday 5 Apr — The Lantern</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+  </Carousel.Content>
+</Carousel>
+```
+
+### Responsive group scrolling
+
+Roadie defaults `slidesToScroll` to `'auto'` in `opts`, so Previous / Next move by a full viewport at a time instead of a single slide. Embla derives the group size from whatever currently fits in the viewport, so the same carousel scrolls two-and-a-bit cards on mobile, three on medium screens, and four on large screens — no breakpoint-specific configuration needed. Because `Carousel.Dots` renders one dot per *snap*, the dot count also collapses from one-per-slide down to one-per-page as the breakpoint changes.
+
+```tsx-live
+<Carousel aria-label='Events by page'>
+  <Carousel.Header>
+    <Carousel.Title>This weekend</Carousel.Title>
+    <Carousel.Dots />
+    <Carousel.Controls>
+      <Carousel.Previous />
+      <Carousel.Next />
+    </Carousel.Controls>
+  </Carousel.Header>
+  <Carousel.Content>
+    <Carousel.Item className='basis-[42%] md:basis-1/3 lg:basis-1/4'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Midnight Frequency</Card.Title>
+          <Card.Description>Friday 14 Mar — The Glasshouse</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3 lg:basis-1/4'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Sunset Sounds</Card.Title>
+          <Card.Description>Saturday 22 Mar — Riverbend Park</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3 lg:basis-1/4'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Neon Dusk</Card.Title>
+          <Card.Description>Sunday 30 Mar — Northside Hall</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3 lg:basis-1/4'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Wave Theory</Card.Title>
+          <Card.Description>Saturday 5 Apr — The Lantern</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3 lg:basis-1/4'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Static Bloom</Card.Title>
+          <Card.Description>Saturday 12 Apr — Hillside Tavern</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3 lg:basis-1/4'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Echo Garden</Card.Title>
+          <Card.Description>Sunday 20 Apr — The Empress Theatre</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3 lg:basis-1/4'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Velvet Hours</Card.Title>
+          <Card.Description>Friday 25 Apr — The Aviary</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[42%] md:basis-1/3 lg:basis-1/4'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Paper Lanterns</Card.Title>
+          <Card.Description>Saturday 3 May — Foxglove Lodge</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+  </Carousel.Content>
+</Carousel>
+```
+
+If you'd rather step through one slide at a time — handy when each slide has rich content a user needs to dwell on — pass `opts={{ slidesToScroll: 1 }}` to override the `'auto'` default. `Carousel.Dots` then renders one per slide rather than one per page, and Previous / Next advance one snap per click.
+
+```tsx-live
+<Carousel
+  aria-label='Step through each story'
+  opts={{ slidesToScroll: 1 }}
+>
+  <Carousel.Header>
+    <Carousel.Title>Tour stories</Carousel.Title>
+    <Carousel.Dots />
+    <Carousel.Controls>
+      <Carousel.Previous />
+      <Carousel.Next />
+    </Carousel.Controls>
+  </Carousel.Header>
+  <Carousel.Content>
+    <Carousel.Item className='basis-[82%] md:basis-1/2'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Backstage at The Glasshouse</Card.Title>
+          <Card.Description>Notes from the first night of Velvet Hours — sound checks, setlist changes, and the unexpected encore.</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[82%] md:basis-1/2'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>On the road with Neon Dusk</Card.Title>
+          <Card.Description>Three cities, two tour buses, and the long conversations at 2am about synths and setlists.</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[82%] md:basis-1/2'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Recording Echo Garden live</Card.Title>
+          <Card.Description>How a Sunday matinee at Princess Theatre turned into a live album.</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[82%] md:basis-1/2'>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Wave Theory's rider</Card.Title>
+          <Card.Description>A deep look at the tech, the tea selection, and why the keyboardist travels with a houseplant.</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+  </Carousel.Content>
+</Carousel>
+```
+
+Fixed group sizes also work — `opts={{ slidesToScroll: 3 }}` always advances three at a time regardless of viewport. See the full list of Embla options in the [Embla Carousel options reference](https://www.embla-carousel.com/api/options/).
+
+### Variable-width cards
+
+Set `basis-auto` on each `Carousel.Item` and every card sizes to its own content. Handy for genre pills, tag clouds, and anything chip-shaped where the slide widths are irregular. The default `slidesToScroll: 'auto'` still groups slides into viewport-sized pages for the Previous/Next buttons, so Embla handles the "how many fit" math even when the slide widths differ.
+
+```tsx-live
+<Carousel aria-label='Browse by genre'>
+  <Carousel.Header>
+    <Carousel.Title>Browse by genre</Carousel.Title>
+    <Carousel.Dots />
+    <Carousel.Controls>
+      <Carousel.Previous />
+      <Carousel.Next />
+    </Carousel.Controls>
+  </Carousel.Header>
+  <Carousel.Content>
+    <Carousel.Item className='basis-auto'>
+      <Card href='/genres/rock'>
+        <Card.Content>
+          <Card.Title>Rock</Card.Title>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-auto'>
+      <Card href='/genres/comedy'>
+        <Card.Content>
+          <Card.Title>Comedy</Card.Title>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-auto'>
+      <Card href='/genres/electronic'>
+        <Card.Content>
+          <Card.Title>Electronic</Card.Title>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-auto'>
+      <Card href='/genres/hip-hop'>
+        <Card.Content>
+          <Card.Title>Hip Hop</Card.Title>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-auto'>
+      <Card href='/genres/folk'>
+        <Card.Content>
+          <Card.Title>Folk &amp; Acoustic</Card.Title>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-auto'>
+      <Card href='/genres/jazz'>
+        <Card.Content>
+          <Card.Title>Jazz</Card.Title>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-auto'>
+      <Card href='/genres/classical'>
+        <Card.Content>
+          <Card.Title>Classical</Card.Title>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-auto'>
+      <Card href='/genres/country'>
+        <Card.Content>
+          <Card.Title>Country</Card.Title>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-auto'>
+      <Card href='/genres/rnb'>
+        <Card.Content>
+          <Card.Title>R&amp;B and Soul</Card.Title>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-auto'>
+      <Card href='/genres/indie'>
+        <Card.Content>
+          <Card.Title>Indie</Card.Title>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+  </Carousel.Content>
+</Carousel>
+```
+
+### Featured (autoplay + loop)
+
+Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayPause` button is placed first inside `Carousel.Controls` so it is the first tab stop — required by WCAG 2.2.2. Slides run edge-to-edge with a sliver of the next slide peeking in.
+
+`Carousel.TitleLink` accepts `as` so you can pass a framework router link (`Link` here) instead of a plain `<a>` — the trailing arrow icon and link styling come along automatically.
+
+```tsx-live
+<Carousel
+  aria-label='Featured events'
+  autoPlay={5000}
+  opts={{ loop: true }}
+>
+  <Carousel.Header>
+    <Carousel.TitleLink as={Link} href='/events'>
+      Featured events
+    </Carousel.TitleLink>
+    <Carousel.Dots />
+    <Carousel.Controls>
+      <Carousel.PlayPause />
+      <Carousel.Previous />
+      <Carousel.Next />
+    </Carousel.Controls>
+  </Carousel.Header>
+  <Carousel.Content>
+    <Carousel.Item className='basis-[88%] md:basis-1/2'>
+      <Card emphasis='raised' href='/events/midnight-frequency'>
+        <Card.Content>
+          <Card.Title>Midnight Frequency</Card.Title>
+          <Card.Description>Friday 14 Mar — The Glasshouse</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[88%] md:basis-1/2'>
+      <Card emphasis='raised' href='/events/sunset-sounds'>
+        <Card.Content>
+          <Card.Title>Sunset Sounds</Card.Title>
+          <Card.Description>Saturday 22 Mar — Riverbend Park</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[88%] md:basis-1/2'>
+      <Card emphasis='raised' href='/events/neon-dusk'>
+        <Card.Content>
+          <Card.Title>Neon Dusk</Card.Title>
+          <Card.Description>Sunday 30 Mar — Northside Hall</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+  </Carousel.Content>
+</Carousel>
+```
+
+### Fits in viewport (controls auto-hide)
+
+When every slide already fits in the viewport, `Carousel.Previous`, `Carousel.Next`, `Carousel.Dots`, and `Carousel.Controls` all hide themselves automatically. Resize the preview wider to see the difference.
+
+```tsx-live
+<Carousel aria-label='Comedy lineup'>
+  <Carousel.Header>
+    <Carousel.TitleLink href='/comedy'>Comedy</Carousel.TitleLink>
+    <Carousel.Dots />
+    <Carousel.Controls>
+      <Carousel.Previous />
+      <Carousel.Next />
+    </Carousel.Controls>
+  </Carousel.Header>
+  <Carousel.Content>
+    <Carousel.Item className='basis-[78%] md:basis-1/3'>
+      <Card emphasis='raised' href='/events/eli-bramble'>
+        <Card.Content>
+          <Card.Title>Eli Bramble — Punch Lines</Card.Title>
+          <Card.Description>29 Jun · 9:00 PM</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[78%] md:basis-1/3'>
+      <Card emphasis='raised' href='/events/riverside-fringe'>
+        <Card.Content>
+          <Card.Title>Riverside Fringe Comedy Gala</Card.Title>
+          <Card.Description>3 Jul · 8:15 PM</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item className='basis-[78%] md:basis-1/3'>
+      <Card emphasis='raised' href='/events/casey-vale'>
+        <Card.Content>
+          <Card.Title>Casey Vale — Maybe Tomorrow</Card.Title>
+          <Card.Description>5 Jul · 4:45 PM</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+  </Carousel.Content>
+</Carousel>
+```
+
+### With dots only
+
+A simpler hero pattern — drop `Carousel.Controls` and let the dots handle navigation. With only a Title and Dots, the Header collapses to a 2-slot layout (title left, dots right).
+
+```tsx-live
+<Carousel aria-label='With dots'>
+  <Carousel.Header>
+    <Carousel.Title>Slides</Carousel.Title>
+    <Carousel.Dots />
+  </Carousel.Header>
+  <Carousel.Content>
+    <Carousel.Item>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Slide one</Card.Title>
+          <Card.Description>Use the dots to navigate.</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Slide two</Card.Title>
+          <Card.Description>Each dot scrolls to its slide.</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Slide three</Card.Title>
+          <Card.Description>Active dot is highlighted.</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+  </Carousel.Content>
+</Carousel>
+```
+
+### Vertical
+
+Pass `direction='vertical'` to flip the axis. The Previous/Next icons swap to up/down carets automatically.
+
+```tsx-live
+<Carousel aria-label='Vertical carousel' direction='vertical' className='h-64'>
+  <Carousel.Header>
+    <Carousel.Title>Vertical</Carousel.Title>
+    <Carousel.Controls>
+      <Carousel.Previous />
+      <Carousel.Next />
+    </Carousel.Controls>
+  </Carousel.Header>
+  <Carousel.Content className='h-48'>
+    <Carousel.Item>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>First</Card.Title>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Second</Card.Title>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Third</Card.Title>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+  </Carousel.Content>
+</Carousel>
+```
+
+### States
+
+`Carousel.Previous` and `Carousel.Next` are disabled at the start and end boundaries unless `loop` is set. `Carousel.PlayPause` toggles its icon and `aria-pressed` on click. The whole nav UI hides when there is nothing to scroll to.
+
+```tsx-live
+<Carousel aria-label='State demo' autoPlay={5000}>
+  <Carousel.Header>
+    <Carousel.Title>Boundary + autoplay states</Carousel.Title>
+    <Carousel.Dots />
+    <Carousel.Controls>
+      <Carousel.PlayPause />
+      <Carousel.Previous />
+      <Carousel.Next />
+    </Carousel.Controls>
+  </Carousel.Header>
+  <Carousel.Content>
+    <Carousel.Item>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>First slide</Card.Title>
+          <Card.Description>Previous is disabled — try it.</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Middle slide</Card.Title>
+          <Card.Description>Both buttons enabled.</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+    <Carousel.Item>
+      <Card emphasis='subtle'>
+        <Card.Content>
+          <Card.Title>Last slide</Card.Title>
+          <Card.Description>Next is disabled.</Card.Description>
+        </Card.Content>
+      </Card>
+    </Carousel.Item>
+  </Carousel.Content>
+</Carousel>
+```
+
+### Composition
+
+Carousel is a compound component. Available parts:
+
+| Part | Role |
+| --- | --- |
+| `Carousel` | Root. Owns the Embla instance and context. |
+| `Carousel.Header` | Three-slot layout shell: title (left), dots (centre), controls (right). On mobile it collapses to a flex `justify-between` row. |
+| `Carousel.Title` | `<h2>` by default; pass `as='h3'` (etc.) to change the heading level. Registers as the carousel's accessible name. |
+| `Carousel.TitleLink` | Anchor with a trailing arrow icon. Pass `as={Link}` to use a framework router link. Registers as the carousel's accessible name. |
+| `Carousel.Controls` | Inline flex row for grouping `Carousel.PlayPause`, `Carousel.Previous`, and `Carousel.Next` (or any other inline buttons) with consistent spacing. Hidden on mobile by default; hidden entirely when there's nothing to scroll to. |
+| `Carousel.Content` | Embla viewport + container. Wraps each direct `Carousel.Item` child in per-item context. |
+| `Carousel.Item` | A single slide. Set the width with Tailwind `basis-*` utilities. |
+| `Carousel.Previous` / `Carousel.Next` | Nav buttons (compose `IconButton`). Auto-hide when there's nothing to scroll to. |
+| `Carousel.PlayPause` | Play/pause toggle. Renders only when `autoPlay` is set. |
+| `Carousel.Dots` | One button per scroll snap position (which can be fewer than `slideCount` when multi-visible layouts group slides into viewport-sized pages — the Roadie default). Auto-hides when there's nothing to scroll to. |
+| `useCarousel()` hook | Read state and call actions from a child component. |
+| `useCarouselUnsafeEmbla()` hook | Escape hatch — returns the raw Embla `api`. Hard-couples your code to a specific `embla-carousel` major version, so prefer `useCarousel()` whenever possible. |
+
+## Guidelines
+
+- **Slide sizing is the consumer's job.** Set width on each `Carousel.Item` via Tailwind `basis-*` utilities (e.g. `basis-1/2 md:basis-1/3`). Don't try to size the carousel itself.
+- **Let `Carousel.Content` handle the gutter.** The default `overflow='subtle'` applies `-mx-4 px-4 sm:-mx-6 sm:px-6` plus fade-to-background gradients on the left and right edges, so slides visibly bleed past the viewport and fade into the page without leaving half-clipped cards. Use `overflow='hidden'` for a hard clip or `overflow='visible'` to let overflow extend indefinitely into surrounding margin.
+- **Compose the Header instead of stacking divs.** `<Carousel.Header>` accepts up to three children placed by source order — title, dots, controls. On mobile it collapses to a flex row with the controls hidden, so the dots automatically pin to the right.
+- **Nav UI hides when it's not needed.** `Carousel.Controls`, `Carousel.Previous`, `Carousel.Next`, and `Carousel.Dots` all render `null` when every slide already fits in the viewport. No special handling required at the consumer.
+- **Use `Carousel.PlayPause` whenever `autoPlay` is set.** WCAG 2.2.2 requires a persistent pause control for any auto-updating content. Place it first inside `Carousel.Controls` so it is the first tab stop.
+- **Direct children only.** `Carousel.Content` walks its children with `Children.map` to inject per-item context. Fragments and conditionally rendered children are not unwrapped — render an array of `Carousel.Item` directly.
+- **`reInit` is automatic.** Adding or removing slides at runtime triggers an Embla re-init.
+- **`opts` is a pass-through to Embla.** Roadie sets opinionated defaults for `align: 'start'` and `slidesToScroll: 'auto'` (Embla's own defaults are `center` and `1`, which read worse for card carousels). Consumers can override either via `opts` — Roadie defaults spread first, consumer `opts` second. The `axis` and `duration` options are managed by the `direction` and `prefers-reduced-motion` hook respectively and can't be overridden. See the full list of Embla options in the [Embla Carousel options reference](https://www.embla-carousel.com/api/options/).
+
+## Accessibility
+
+- **Region role.** The carousel root has `role='region'` and `aria-roledescription='carousel'`. The accessible name comes from `Carousel.Title` / `Carousel.TitleLink` (via `aria-labelledby`) when present, otherwise from the `aria-label` prop on the root.
+- **Slide group role.** Each `Carousel.Item` has `role='group'`, `aria-roledescription='slide'`, and `aria-label='N of M'`. Non-active slides are marked `inert` so their interactive content stays out of the tab order.
+- **Live region.** `Carousel.Content` is `aria-live='off'` while autoplay is running and `aria-live='polite'` otherwise. Transient hover/focus pauses do not flip the live region — only an explicit pause via `Carousel.PlayPause` does.
+- **Keyboard.** When the viewport has focus: `ArrowLeft`/`ArrowRight` (or `ArrowUp`/`ArrowDown` in vertical mode) move between slides; `Home`/`End` jump to the first/last slide. Arrow keys never hijack focus when the user is interacting with a focusable element inside a slide.
+- **Pause behaviour.** Autoplay pauses on hover, focus, and `pointerdown`. Explicit pause (via `Carousel.PlayPause`) is sticky — autoplay does not auto-resume after a user click. WCAG 2.2.2 compliant.
+- **Reduced motion.** When `prefers-reduced-motion: reduce` is set, autoplay is disabled entirely (no plugin instantiated) and Embla's `duration` is set to `0` for instant transitions. Live changes to the OS preference take effect via a `matchMedia` change listener.
+
+<PropsDefinitions componentPath='packages/components/src/components/Carousel/index.tsx' />

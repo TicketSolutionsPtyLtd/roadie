@@ -118,8 +118,8 @@ describe('Accordion', () => {
     const details = container.querySelectorAll('details')
     expect(details[0]).toHaveAttribute('name')
     expect(details[1]).toHaveAttribute('name')
-    expect(details[0].getAttribute('name')).toBe(
-      details[1].getAttribute('name')
+    expect(details[0]!.getAttribute('name')).toBe(
+      details[1]!.getAttribute('name')
     )
   })
 

@@ -28,6 +28,29 @@ export {
 export { Card, cardVariants, type CardProps } from './components/Card'
 
 export {
+  Carousel,
+  useCarousel,
+  useCarouselUnsafeEmbla,
+  carouselContentVariants,
+  carouselContainerVariants,
+  carouselItemVariants,
+  carouselDotsVariants,
+  type CarouselProps,
+  type CarouselHeaderProps,
+  type CarouselControlsProps,
+  type CarouselContentProps,
+  type CarouselContentOverflow,
+  type CarouselItemProps,
+  type CarouselTitleProps,
+  type CarouselTitleLinkProps,
+  type CarouselNavButtonProps,
+  type CarouselDotsProps,
+  type CarouselState,
+  type CarouselActions,
+  type UseCarouselReturn
+} from './components/Carousel'
+
+export {
   Separator,
   separatorVariants,
   type SeparatorProps

@@ -175,14 +175,41 @@ function parseComponentProps(componentPath: string) {
     const result = parser.parse(absolutePath)
     if (!result.length) return null
 
-    // Filter to components that have own props worth showing
-    const components = result.filter((info) => {
+    // Filter to components that have own props worth showing.
+    // CVA factory functions (cardVariants, carouselContentVariants, etc.)
+    // are exported as camelCase and get detected by react-docgen-typescript
+    // as if they were components — strip them so only PascalCase React
+    // components survive.
+    const filtered = result.filter((info) => {
+      if (!/^[A-Z]/.test(info.displayName)) return false
       const grouped = groupPropsBySource(info.props, info.displayName)
       return (
         Object.keys(grouped.ownProps).length > 0 ||
         Object.keys(grouped.inheritedProps).length > 0
       )
     })
+
+    // Deduplicate compound components: the parser detects each subcomponent
+    // twice — once via `export function CarouselPrevious()` (yields name
+    // "CarouselPrevious") and once via `Carousel.Previous = CarouselPrevious`
+    // (yields name "Carousel.Previous" via the function's displayName).
+    // Normalise the names (strip dots, lowercase) to merge them, preferring
+    // the dot-notation entry since it carries the intended displayName.
+    const seen = new Map<string, (typeof filtered)[number]>()
+    filtered.forEach((info) => {
+      const key = info.displayName.replace(/\./g, '').toLowerCase()
+      const existing = seen.get(key)
+      if (!existing) {
+        seen.set(key, info)
+        return
+      }
+      const existingHasDot = existing.displayName.includes('.')
+      const currentHasDot = info.displayName.includes('.')
+      if (currentHasDot && !existingHasDot) {
+        seen.set(key, info)
+      }
+    })
+    const components = Array.from(seen.values())
 
     if (!components.length) return null
     return components

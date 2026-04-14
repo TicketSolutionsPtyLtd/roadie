@@ -357,6 +357,27 @@ function ComponentSkeleton({ name }: { name: string }) {
           <Skel className='h-6 w-14 shrink-0 rounded-md opacity-50' />
         </div>
       )
+    case 'carousel':
+      return (
+        <div className='grid w-44 gap-2'>
+          <div className='flex items-center gap-2 overflow-hidden'>
+            <div className='grid h-12 w-20 shrink-0 place-content-center rounded-md bg-normal'>
+              <Skel className='h-2 w-10' />
+            </div>
+            <div className='grid h-12 w-20 shrink-0 place-content-center rounded-md bg-normal'>
+              <Skel className='h-2 w-10' />
+            </div>
+            <div className='grid h-12 w-20 shrink-0 place-content-center rounded-md bg-normal opacity-40'>
+              <Skel className='h-2 w-10' />
+            </div>
+          </div>
+          <div className='flex justify-center gap-1'>
+            <div className='bg-accent h-1.5 w-4 rounded-full' />
+            <div className='size-1.5 rounded-full bg-subtler' />
+            <div className='size-1.5 rounded-full bg-subtler' />
+          </div>
+        </div>
+      )
     case 'steps':
       return (
         <div className='flex items-center gap-1.5'>

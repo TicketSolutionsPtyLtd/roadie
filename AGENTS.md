@@ -75,6 +75,7 @@ src/
 │   ├── Field/              # Form field (label + input + helper)
 │   ├── Fieldset/           # Form group
 │   ├── RadioGroup/         # Radio button group
+│   ├── Carousel/           # Compound carousel built on Embla
 │   └── SpotIllustration/   # Themed SVG illustrations
 ├── providers/
 │   └── ThemeProvider.tsx    # Dynamic accent color + dark mode
@@ -256,6 +257,17 @@ Use raw HTML elements with utility classes:
 > it is the canonical reference for imports, types, `render` prop policy,
 > data-attribute styling, and `'use client'` rules.
 
+> **Building a compound component?** Read
+> [`docs/contributing/COMPOUND_PATTERNS.md`](docs/contributing/COMPOUND_PATTERNS.md)
+> for the two context-wiring idioms (context-only vs index-injection)
+> and the direct-children constraint that comes with the second one.
+> **New compounds should use named exports + property assignment**
+> (`export function Carousel(); Carousel.Header = CarouselHeader`)
+> rather than `Object.assign + cast` — the former lets
+> `react-docgen-typescript` extract the full props for the docs site
+> (`<PropsDefinitions>`). Older components still use the legacy pattern;
+> see COMPOUND_PATTERNS.md for migration notes.
+
 ### Creating a component with CVA
 
 ```tsx
@@ -384,12 +396,16 @@ Field wraps **all** form controls — Input, Textarea, Select, RadioGroup, Combo
 - Tests co-located with components
 - Assert CVA class names (e.g., `intent-brand`, `emphasis-strong`)
 - Behaviour assertions preferred over class snapshots
+- **If CI surfaces a typecheck error and `pnpm typecheck` passes locally, delete every `tsbuildinfo` in the repo and re-run before investigating further.** TypeScript's incremental cache can hide errors in files the current task didn't touch — especially after widening strict flags. `find . -name "*.tsbuildinfo" -not -path "*/node_modules/*" -delete && pnpm typecheck` gives you CI's view. See [`docs/solutions/build-errors/stale-tsbuildinfo-masks-local-errors.md`](docs/solutions/build-errors/stale-tsbuildinfo-masks-local-errors.md).
 
 ## Code Quality
 
 - ESLint with TypeScript + React + Prettier
 - Prettier: single quotes, no semicolons, 2 spaces, 80 chars + Tailwind class sorting plugin
 - TypeScript strict mode, no `any`
+- **Subcomponent Props types use `type X = Base & { ... }`, not `interface X extends Base`.** The docs site's `<PropsDefinitions>` table renders section headings via a fallback that only triggers when the first own prop's parent is an inherited HTML interface — the type-alias form hits that fallback and surfaces the heading as `Carousel.ContentProps` (with the dot), matching every other subcomponent. The `interface extends` form surfaces `CarouselContentProps` (no dot), which looks inconsistent.
+- **Don't type CVA variant props as `VariantProps<typeof variants>['key']` on the public prop shape.** `react-docgen-typescript` can't drill into CVA's conditional types, so the literal values never reach the docs table and the prop silently vanishes from `<PropsDefinitions>`. Inline the literal union on the prop itself and export a sibling type alias (`export type XOverflow = 'a' | 'b' | 'c'`) if consumers need to annotate wrappers. See [`docs/solutions/build-errors/react-docgen-cva-literal-props.md`](docs/solutions/build-errors/react-docgen-cva-literal-props.md).
+- **For dev-only warnings / diagnostics in the components package, gate them on `process.env.NODE_ENV` (with a `typeof process !== 'undefined'` guard), not `import.meta.env.DEV`.** The latter is Vite-only and silently never fires in Next.js / Webpack / Rollup consumers, including the Roadie docs site itself. See [`docs/solutions/build-errors/cross-bundler-dev-env-check.md`](docs/solutions/build-errors/cross-bundler-dev-env-check.md).
 
 ## Build Pipeline
 
