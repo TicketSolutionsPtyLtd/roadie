@@ -66,6 +66,21 @@ function FooItem() {
 
 **When to use:** items need to know their own position (slide N of M, step N of M) and you want to compute it once at render time without per-item refs. Per-item ARIA labels (`aria-label="3 of 5"`) are the canonical use case.
 
+**Always key the wrapping provider by `child.key ?? index`, not just `index`.** A provider element created inside `Children.map` still needs a React key, and using the iteration index alone defeats React's reconciler when consumers reorder / insert / delete items — any stateful content inside a slide (forms, uncontrolled inputs, video players mid-playback) remounts on every parent update even though the consumer passed stable keys on the items themselves. Preferring `child.key` when it exists and falling back to `index` only when the consumer didn't supply one preserves identity through list mutations:
+
+```tsx
+return (
+  <FooItemContext.Provider
+    key={child.key ?? index}
+    value={{ index, total }}
+  >
+    {child}
+  </FooItemContext.Provider>
+)
+```
+
+This matters in practice for Carousel consumers that pass `key={event.id}` on each `<Carousel.Item>` — reorder the event list and the item providers shuffle, not remount.
+
 **Trade-off — the direct-children constraint:** `Children.map` walks only **direct** children. Fragments, mapped arrays where each element renders multiple `Item`s, and conditionally rendered children that wrap an `Item` inside another component will _not_ be unwrapped. The contributing rule:
 
 > Inside `Carousel.Content` (or any index-injection container), only render direct `<Carousel.Item>` children.
@@ -148,3 +163,67 @@ export const Card = Object.assign(CardRoot, {
 Used by Card, Accordion, Field, and others. Works at runtime, but the cast erases the original component's props from the parser's view, which is why those docs pages currently show only the CVA variant props (`intent`, `emphasis`).
 
 **Migration:** any compound can be converted from Pattern B to Pattern A in one PR — rename the root function, add `export` to each part, replace the Object.assign + cast with property assignments. The change is purely structural; no behaviour or public-API change. The docs page will start showing the full props on the next build.
+
+## Subcomponent prop types: `type` alias, not `interface extends`
+
+Declare subcomponent Props types as `type X = Base & { ... }`, not `interface X extends Base`. The docs site's `<PropsDefinitions>` table reads the first own prop's `parent.name` and falls back to `${displayName}Props` when the parent resolves to an inherited HTML interface. The type-alias form hits the fallback path and surfaces the heading as `Carousel.ContentProps` (with the dot), consistent with every other subcomponent. The `interface extends` form surfaces the first-prop parent directly, which is the raw interface name `CarouselContentProps` (no dot) — visually out of line with the sibling sections.
+
+```tsx
+// ✅ Preferred — headings render as `Carousel.ContentProps`
+export type CarouselContentProps = ComponentProps<'div'> & {
+  containerProps?: ComponentProps<'div'>
+  overflow?: 'hidden' | 'visible' | 'subtle'
+}
+
+// ❌ Legacy — headings render as `CarouselContentProps` (no dot)
+export interface CarouselContentProps extends ComponentProps<'div'> {
+  containerProps?: ComponentProps<'div'>
+  overflow?: 'hidden' | 'visible' | 'subtle'
+}
+```
+
+A related rule from the same debug cycle: **don't type CVA variant props as `VariantProps<typeof variants>['key']` on the public prop shape**. `react-docgen-typescript` can't drill into CVA's conditional types, so the literal values never reach the table and the prop silently vanishes from the docs. Inline the literal union on the prop itself and export a sibling type alias (`export type XOverflow = 'a' | 'b' | 'c'`) for consumers who want to annotate their own wrappers. See [`docs/solutions/build-errors/react-docgen-cva-literal-props.md`](../solutions/build-errors/react-docgen-cva-literal-props.md) for the full story.
+
+## Three-slot Header layout (responsive)
+
+Compounds that ship a header with a title on the left, a content-driven middle slot (dots, search, status indicator), and a right-pinned trailing slot (controls, overflow menu) should use a single layout shell with position-based child selectors rather than an inner grid of hand-placed divs. The pattern lets consumers drop 1, 2, or 3 children in any order and the layout adapts automatically.
+
+```tsx
+export type FooHeaderProps = ComponentProps<'div'>
+
+export function FooHeader({ className, ...props }: FooHeaderProps) {
+  return (
+    <div
+      className={cn(
+        // Mobile: flex justify-between so a 2-child (title + controls,
+        // with the middle slot hidden) arrangement stays legible.
+        'mb-2 flex items-center justify-between gap-4',
+        // Desktop (md+): 3-column grid, middle column sized to content.
+        'md:grid md:grid-cols-[1fr_auto_1fr]',
+        // Child placement by source order — not component type — so a
+        // consumer who drops in a custom <Search /> middle slot still
+        // gets the right layout.
+        'md:[&>*:first-child]:justify-self-start',
+        'md:[&>*:last-child:not(:first-child)]:col-start-3',
+        'md:[&>*:last-child:not(:first-child)]:justify-self-end',
+        'md:[&>*:nth-child(2):not(:last-child)]:col-start-2',
+        'md:[&>*:nth-child(2):not(:last-child)]:justify-self-center',
+        className
+      )}
+      {...props}
+    />
+  )
+}
+```
+
+Behaviour:
+
+- **1 child** → left-pinned only (e.g. just a Title)
+- **2 children** → first left, second right-pinned via `col-start-3 justify-self-end`
+- **3 children** → first left, middle in col 2 centered, third right-pinned
+
+The selectors are factored to avoid the single-child case picking up the right-pinned styling that the 2- and 3-child cases need — `:last-child:not(:first-child)` excludes the one-child scenario from the right-pinned rules.
+
+**Mobile collapse**: the outer `flex items-center justify-between` is active below `md`, and any slot that should only appear on desktop (typically the controls slot) uses its own `hidden md:flex` to vanish on narrow viewports. With the controls removed, the remaining title + middle slot (e.g. dots) sit at opposite ends of the flex row via `justify-between`, so the header stays visually balanced without any breakpoint-specific consumer code.
+
+Carousel.Header is the first concrete consumer of this pattern; other compound headers (Steps, future Drawer, future Modal) should reuse the same selector idiom rather than re-deriving it.
