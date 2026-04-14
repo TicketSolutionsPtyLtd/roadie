@@ -56,14 +56,19 @@ function isDevEnvironment(): boolean {
 /**
  * Embla v9's autoplay plugin can throw from its own methods if `init()`
  * bailed out (e.g. snapList was empty at init time in a test environment).
- * Wrap direct plugin calls so a defensive bail-out doesn't crash the host.
+ * Wrap direct plugin calls so a defensive bail-out doesn't crash the host,
+ * and surface the failure via `console.warn` in dev so it isn't swallowed
+ * silently — Roadie's React state stays authoritative for isPlaying /
+ * userPaused regardless, but the warning makes plugin regressions
+ * debuggable.
  */
 function safePluginCall(fn: () => void): void {
   try {
     fn()
-  } catch {
-    // No-op — the plugin is in a degraded state and our React state is
-    // still the source of truth for isPlaying / userPaused.
+  } catch (error) {
+    if (isDevEnvironment()) {
+      console.warn('[Carousel] Autoplay plugin call failed:', error)
+    }
   }
 }
 
