@@ -7,7 +7,6 @@
 // with "Element type is invalid". See:
 //   docs/contributing/COMPOUND_PATTERNS.md
 //   docs/solutions/rsc-patterns/compound-export-namespace.md
-
 import * as Fieldset from '@oztix/roadie-components/fieldset'
 
 export default function RscSmokePage() {
@@ -16,8 +15,8 @@ export default function RscSmokePage() {
       <header className='grid gap-2'>
         <h1 className='text-display-prose-1 text-strong'>RSC smoke test</h1>
         <p className='text-subtle'>
-          Every migrated compound renders below from a server component —
-          no client wrapper, no barrel import — using only the per-compound
+          Every migrated compound renders below from a server component — no
+          client wrapper, no barrel import — using only the per-compound
           subpath. If the docs build succeeds, each compound is RSC-safe.
         </p>
       </header>
@@ -27,7 +26,8 @@ export default function RscSmokePage() {
         <Fieldset.Root>
           <Fieldset.Legend>Contact information</Fieldset.Legend>
           <Fieldset.HelperText>
-            Renders from a server component via <code>@oztix/roadie-components/fieldset</code>.
+            Renders from a server component via{' '}
+            <code>@oztix/roadie-components/fieldset</code>.
           </Fieldset.HelperText>
         </Fieldset.Root>
         <Fieldset.Root invalid>

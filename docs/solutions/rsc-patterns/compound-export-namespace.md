@@ -137,6 +137,8 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { FieldsetContext } from './FieldsetContext'
 
+// FieldsetRoot.tsx
+
 export type FieldsetRootProps = ComponentProps<'fieldset'> & {
   invalid?: boolean
 }
@@ -170,6 +172,8 @@ When a sub-component is a direct re-export of a Base UI primitive, the leaf is a
 'use client'
 
 import { Combobox as ComboboxPrimitive } from '@base-ui-components/react/combobox'
+
+// ComboboxPortal.tsx
 
 export const ComboboxPortal = ComboboxPrimitive.Portal
 export type ComboboxPortalProps = ComboboxPrimitive.Portal.Props

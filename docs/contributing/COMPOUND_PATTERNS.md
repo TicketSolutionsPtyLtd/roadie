@@ -58,10 +58,7 @@ function FooContainer({ children }: { children: ReactNode }) {
   const wrapped = Children.map(children, (child, index) => {
     if (!isValidElement(child)) return child
     return (
-      <FooItemContext
-        key={child.key ?? index}
-        value={{ index, total }}
-      >
+      <FooItemContext key={child.key ?? index} value={{ index, total }}>
         {child}
       </FooItemContext>
     )
@@ -148,6 +145,8 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { FieldsetContext } from './FieldsetContext'
 
+// FieldsetRoot.tsx
+
 export type FieldsetRootProps = ComponentProps<'fieldset'> & {
   invalid?: boolean
 }
@@ -187,6 +186,8 @@ When a sub-component is a direct re-export of a Base UI (or Ark UI) primitive wi
 
 import { Combobox as ComboboxPrimitive } from '@base-ui-components/react/combobox'
 
+// ComboboxPortal.tsx
+
 export const ComboboxPortal = ComboboxPrimitive.Portal
 export type ComboboxPortalProps = ComboboxPrimitive.Portal.Props
 ```
@@ -202,6 +203,8 @@ Sub-components that share React context factor it into a sibling `*Context.ts` f
 'use client'
 
 import { createContext } from 'react'
+
+// FieldsetContext.ts
 
 export type FieldsetContextValue = {
   invalid?: boolean
@@ -345,18 +348,18 @@ Use this as the end-to-end flow when creating a new compound (or migrating an ol
 
 1. [ ] Create `packages/components/src/components/<Compound>/`.
 2. [ ] For each sub-component, create a file `<Compound><Sub>.tsx` containing:
-       - `'use client'` at the top
-       - A compound-prefixed function or const
-       - An exported `<Compound><Sub>Props` type alias (prefer `type =` over `interface extends`)
-       - A dot-notation `displayName` (`'<Compound>.<Sub>'`)
+   - `'use client'` at the top
+   - A compound-prefixed function or const
+   - An exported `<Compound><Sub>Props` type alias (prefer `type =` over `interface extends`)
+   - A dot-notation `displayName` (`'<Compound>.<Sub>'`)
 3. [ ] For pure passthroughs of a Base UI / Ark UI primitive, create a one-line file: `'use client'` + `export const <Compound><Sub> = <Primitive>.<Sub>` + a `type` re-export.
 4. [ ] If multiple leaves share React context, factor it into `<Compound>Context.ts` with `'use client'` at the top.
 5. [ ] If the compound has CVA variant maps, create `variants.ts` and export the maps + any literal-union type aliases. `'use client'` required.
 6. [ ] Create `parts.ts` with `'use client'` at the top plus one short-name re-export pair per leaf (value + type).
 7. [ ] Create `index.tsx` containing:
-       - `'use client'` at the top
-       - `export * from './parts'` (**not** `export * as <Compound>` — that ships the namespace as a single client-reference proxy and breaks dot access in server components)
-       - Any flat variant / type re-exports (from `./variants`)
+   - `'use client'` at the top
+   - `export * from './parts'` (**not** `export * as <Compound>` — that ships the namespace as a single client-reference proxy and breaks dot access in server components)
+   - Any flat variant / type re-exports (from `./variants`)
 8. [ ] Write `<Compound>.test.tsx` at the namespace level. Use `import * as <Compound> from '.'` so the test exercises the same consumer-side namespace form that production code uses.
 9. [ ] Update the root package barrel `packages/components/src/index.tsx` with `import * as <Compound> from './components/<Compound>'; export { <Compound> }` so barrel consumers still see the namespace.
 10. [ ] Run `pnpm --filter @oztix/roadie-components generate:exports` to register the subpath in `package.json`.
@@ -375,12 +378,12 @@ Use this as the end-to-end flow when creating a new compound (or migrating an ol
 
 ### Subpath naming
 
-| Compound      | Folder         | Subpath                                     | Dist file          |
-| ------------- | -------------- | ------------------------------------------- | ------------------ |
-| `Fieldset`    | `Fieldset/`    | `@oztix/roadie-components/fieldset`         | `dist/Fieldset.js` |
-| `Combobox`    | `Combobox/`    | `@oztix/roadie-components/combobox`         | `dist/Combobox.js` |
-| `RadioGroup`  | `RadioGroup/`  | `@oztix/roadie-components/radio-group`      | `dist/RadioGroup.js` |
-| `LinkButton`  | `LinkButton/`  | `@oztix/roadie-components/link-button`      | `dist/LinkButton.js` |
+| Compound     | Folder        | Subpath                                | Dist file            |
+| ------------ | ------------- | -------------------------------------- | -------------------- |
+| `Fieldset`   | `Fieldset/`   | `@oztix/roadie-components/fieldset`    | `dist/Fieldset.js`   |
+| `Combobox`   | `Combobox/`   | `@oztix/roadie-components/combobox`    | `dist/Combobox.js`   |
+| `RadioGroup` | `RadioGroup/` | `@oztix/roadie-components/radio-group` | `dist/RadioGroup.js` |
+| `LinkButton` | `LinkButton/` | `@oztix/roadie-components/link-button` | `dist/LinkButton.js` |
 
 Folder names stay PascalCase (matching the React component name). Subpath keys are kebab-case (matching Base UI's consumer surface). Dist filenames match the folder name — the generator handles the translation.
 
