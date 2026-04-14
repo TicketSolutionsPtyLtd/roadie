@@ -1,18 +1,30 @@
 import type { ComponentProps, ElementType } from 'react'
 
-import type { VariantProps } from 'class-variance-authority'
-
 import { cn } from '@oztix/roadie-core/utils'
 
 import { buttonVariants } from '../Button/Button'
 
-type LinkIconButtonSize = 'icon-xs' | 'icon-sm' | 'icon-md' | 'icon-lg'
+import type {
+  LinkButtonEmphasis,
+  LinkButtonIntent
+} from './LinkButton'
+
+export type LinkIconButtonSize = 'icon-xs' | 'icon-sm' | 'icon-md' | 'icon-lg'
 
 export type LinkIconButtonProps<T extends ElementType = 'a'> = {
   as?: T
   'aria-label': string
-  intent?: VariantProps<typeof buttonVariants>['intent']
-  emphasis?: VariantProps<typeof buttonVariants>['emphasis']
+  /**
+   * @default 'neutral'
+   */
+  intent?: LinkButtonIntent
+  /**
+   * @default 'normal'
+   */
+  emphasis?: LinkButtonEmphasis
+  /**
+   * @default 'icon-md'
+   */
   size?: LinkIconButtonSize
   className?: string
 } & Omit<
