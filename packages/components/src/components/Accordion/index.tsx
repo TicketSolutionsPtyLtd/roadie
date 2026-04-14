@@ -62,7 +62,7 @@ export interface AccordionProps
   type?: AccordionType
 }
 
-function AccordionRoot({
+export function Accordion({
   type = 'single',
   intent,
   emphasis,
@@ -87,11 +87,15 @@ function AccordionRoot({
   )
 }
 
-AccordionRoot.displayName = 'Accordion'
+Accordion.displayName = 'Accordion'
 
-type AccordionItemProps = ComponentProps<'details'>
+export type AccordionItemProps = ComponentProps<'details'>
 
-function AccordionItem({ className, children, ...props }: AccordionItemProps) {
+export function AccordionItem({
+  className,
+  children,
+  ...props
+}: AccordionItemProps) {
   const { name, emphasis } = use(AccordionContext)
   const itemEmphasis = accordionItemVariants[emphasis ?? 'normal']
 
@@ -112,7 +116,7 @@ function AccordionItem({ className, children, ...props }: AccordionItemProps) {
 
 AccordionItem.displayName = 'Accordion.Item'
 
-function AccordionTrigger({
+export function AccordionTrigger({
   className,
   children,
   onClick,
@@ -168,7 +172,7 @@ function AccordionTrigger({
 
 AccordionTrigger.displayName = 'Accordion.Trigger'
 
-function AccordionContent({
+export function AccordionContent({
   className,
   children,
   ...props
@@ -185,8 +189,6 @@ function AccordionContent({
 
 AccordionContent.displayName = 'Accordion.Content'
 
-export const Accordion = Object.assign(AccordionRoot, {
-  Item: AccordionItem,
-  Trigger: AccordionTrigger,
-  Content: AccordionContent
-})
+Accordion.Item = AccordionItem
+Accordion.Trigger = AccordionTrigger
+Accordion.Content = AccordionContent
