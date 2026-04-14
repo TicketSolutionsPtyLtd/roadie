@@ -1,14 +1,14 @@
-import type { ComponentProps, ElementType } from 'react'
+import type { ComponentProps, ElementType, ReactNode } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-function BreadcrumbRoot({ className, ...props }: ComponentProps<'nav'>) {
+export function Breadcrumb({ className, ...props }: ComponentProps<'nav'>) {
   return <nav aria-label='Breadcrumb' className={className} {...props} />
 }
 
-BreadcrumbRoot.displayName = 'Breadcrumb'
+Breadcrumb.displayName = 'Breadcrumb'
 
-function BreadcrumbList({ className, ...props }: ComponentProps<'ol'>) {
+export function BreadcrumbList({ className, ...props }: ComponentProps<'ol'>) {
   return (
     <ol
       className={cn('flex items-center gap-2 text-sm', className)}
@@ -19,18 +19,18 @@ function BreadcrumbList({ className, ...props }: ComponentProps<'ol'>) {
 
 BreadcrumbList.displayName = 'Breadcrumb.List'
 
-function BreadcrumbItem({ className, ...props }: ComponentProps<'li'>) {
+export function BreadcrumbItem({ className, ...props }: ComponentProps<'li'>) {
   return <li className={cn('flex items-center gap-2', className)} {...props} />
 }
 
 BreadcrumbItem.displayName = 'Breadcrumb.Item'
 
-type BreadcrumbLinkProps<T extends ElementType = 'a'> = {
+export type BreadcrumbLinkProps<T extends ElementType = 'a'> = {
   as?: T
   className?: string
 } & Omit<ComponentProps<T>, 'as' | 'className'>
 
-function BreadcrumbLink<T extends ElementType = 'a'>({
+export function BreadcrumbLink<T extends ElementType = 'a'>({
   as,
   className,
   ...props
@@ -49,11 +49,11 @@ function BreadcrumbLink<T extends ElementType = 'a'>({
 
 BreadcrumbLink.displayName = 'Breadcrumb.Link'
 
-interface BreadcrumbSeparatorProps extends ComponentProps<'span'> {
-  children?: React.ReactNode
+export type BreadcrumbSeparatorProps = ComponentProps<'span'> & {
+  children?: ReactNode
 }
 
-function BreadcrumbSeparator({
+export function BreadcrumbSeparator({
   className,
   children = '/',
   ...props
@@ -71,7 +71,10 @@ function BreadcrumbSeparator({
 
 BreadcrumbSeparator.displayName = 'Breadcrumb.Separator'
 
-function BreadcrumbCurrent({ className, ...props }: ComponentProps<'span'>) {
+export function BreadcrumbCurrent({
+  className,
+  ...props
+}: ComponentProps<'span'>) {
   return (
     <span
       aria-current='page'
@@ -83,12 +86,8 @@ function BreadcrumbCurrent({ className, ...props }: ComponentProps<'span'>) {
 
 BreadcrumbCurrent.displayName = 'Breadcrumb.Current'
 
-export const Breadcrumb = Object.assign(BreadcrumbRoot, {
-  List: BreadcrumbList,
-  Item: BreadcrumbItem,
-  Link: BreadcrumbLink,
-  Separator: BreadcrumbSeparator,
-  Current: BreadcrumbCurrent
-})
-
-export type { BreadcrumbSeparatorProps }
+Breadcrumb.List = BreadcrumbList
+Breadcrumb.Item = BreadcrumbItem
+Breadcrumb.Link = BreadcrumbLink
+Breadcrumb.Separator = BreadcrumbSeparator
+Breadcrumb.Current = BreadcrumbCurrent
