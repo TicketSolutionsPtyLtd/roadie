@@ -921,7 +921,7 @@ export function CarouselTitle({
   return (
     <Component
       id={titleId}
-      className={cn('text-display-ui-6 text-strong', className)}
+      className={cn('text-display-ui-5 text-strong', className)}
       {...props}
     >
       {children}
