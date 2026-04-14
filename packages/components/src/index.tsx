@@ -1,13 +1,3 @@
-// Fieldset is the pilot for the Pattern A migration. The compound ships
-// flat top-level exports from its subpath (`@oztix/roadie-components/fieldset`)
-// and consumers use `import * as Fieldset` to create a namespace on their
-// side — this is what makes `<Fieldset.Root />` work across the Next.js RSC
-// boundary. The barrel synthesises a namespace here so existing barrel
-// consumers still see `Fieldset.Root` / `Fieldset.Legend` etc., but new
-// server-component code should import from the subpath directly. See
-// `docs/contributing/COMPOUND_PATTERNS.md`.
-import * as Fieldset from './components/Fieldset'
-
 export { Button, buttonVariants, type ButtonProps } from './components/Button'
 export {
   IconButton,
@@ -181,7 +171,13 @@ export {
   type RadioGroupErrorTextProps
 } from './components/RadioGroup'
 
-export { Fieldset }
+// Fieldset is the pilot for the Pattern A migration. The compound ships as
+// a namespace re-export backed by per-file leaves (tsdown unbundle mode);
+// this barrel line — and consumer code importing `{ Fieldset }` from
+// either the barrel or the `/fieldset` subpath — works in Next.js server
+// components because Next follows the static re-export chain to each
+// leaf's `'use client'` module. See `docs/contributing/COMPOUND_PATTERNS.md`.
+export { Fieldset } from './components/Fieldset'
 
 // Providers
 export {

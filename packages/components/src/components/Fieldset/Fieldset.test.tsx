@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import * as Fieldset from '.'
+import { Fieldset } from '.'
 
 describe('Fieldset', () => {
   it('renders with default props', () => {

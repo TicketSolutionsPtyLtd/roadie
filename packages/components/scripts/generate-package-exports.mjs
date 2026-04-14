@@ -5,10 +5,16 @@
 // Source of truth: packages/components/src/components/*
 // Targets:         packages/components/package.json → "exports"
 //
-// The tsdown build already picks up every component folder automatically
-// (see packages/components/tsdown.config.ts), so this script only touches
-// package.json. Dist filenames are PascalCase (matching the folder name).
-// Subpath keys are kebab-case (matching Base UI's consumer surface).
+// The tsdown build runs in unbundle mode, so each compound folder emits
+// its own directory under `dist/components/<Compound>/` with one file per
+// source file plus an `index.js` that re-exports the namespace. Subpath
+// keys are kebab-case (matching Base UI's consumer surface) and point at
+// the compound's `index.js` + `index.d.ts`.
+//
+// Why unbundle: every leaf must be its own on-disk client module for
+// Next.js server components to dot into the compound namespace without
+// hitting the client-reference-proxy wall. See:
+//   docs/solutions/rsc-patterns/compound-export-namespace.md
 import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -18,10 +24,10 @@ const packageRoot = join(__dirname, '..')
 const componentsDir = join(packageRoot, 'src/components')
 const packageJsonPath = join(packageRoot, 'package.json')
 
-// Components intentionally excluded from subpath exports:
+// Components intentionally excluded from the auto-generated subpath block:
 // - Indicator: internal after Phase 10 M8; consumed via Field / Select / RadioGroup.
 // - SpotIllustration: tracked in a separate plan; retains its own legacy
-//   `./spot-illustrations` subpath key for backwards compatibility.
+//   `./spot-illustrations` subpath key, handled manually below.
 const EXCLUDE = new Set(['Indicator', 'SpotIllustration'])
 
 function toKebab(pascal) {
@@ -50,15 +56,15 @@ function buildExports(folders) {
     if (EXCLUDE.has(folder)) continue
     const key = `./${toKebab(folder)}`
     exports[key] = {
-      types: `./dist/${folder}.d.ts`,
-      import: `./dist/${folder}.js`
+      types: `./dist/components/${folder}/index.d.ts`,
+      import: `./dist/components/${folder}/index.js`
     }
   }
 
   // Legacy subpath kept for compatibility — SpotIllustration has its own plan.
   exports['./spot-illustrations'] = {
-    types: './dist/SpotIllustration.d.ts',
-    import: './dist/SpotIllustration.js'
+    types: './dist/components/SpotIllustration/index.d.ts',
+    import: './dist/components/SpotIllustration/index.js'
   }
 
   return exports

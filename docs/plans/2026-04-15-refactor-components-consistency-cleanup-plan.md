@@ -287,6 +287,8 @@ import { comboboxInputGroupVariants } from './variants'
 
 // ComboboxInput.tsx
 
+// ComboboxInput.tsx
+
 export type ComboboxInputProps = ComboboxPrimitive.Input.Props &
   VariantProps<typeof comboboxInputGroupVariants>
 
@@ -310,6 +312,8 @@ Notes on the leaf file shape:
 'use client'
 
 import { Combobox as ComboboxPrimitive } from '@base-ui-components/react/combobox'
+
+// ComboboxPortal.tsx
 
 // ComboboxPortal.tsx
 
@@ -709,35 +713,42 @@ CI builds the docs site, so the canary fails the build if any compound regresses
 
 ### Pilot status (Fieldset — 2026-04-15)
 
-Phase 3 opened with a Fieldset pilot to validate the pattern end-to-end before migrating the remaining 10 compounds. The pilot surfaced a **correction to the plan's stated pattern** (documented below), validated the generator / build / test / docs-build pipeline, and shipped the RSC canary as a permanent CI surface.
+Phase 3 opened with a Fieldset pilot to validate the pattern end-to-end before migrating the remaining 10 compounds. The pilot landed Base UI's exact import ergonomics (bare `import { Fieldset }` + `<Fieldset.Root>`) with full RSC safety via **tsdown's `unbundle: true` build mode**. It took three iterations to get there; the shapes that didn't work are documented at the bottom.
 
-**Correction to the stated pattern.** The plan originally called for `export * as Namespace` on the library side, matching Base UI 1.3.0's published `combobox/index.js`. That shape **does not work** for Roadie because tsdown bundles each compound into a single built file (Base UI ships one file per leaf on-disk). When the library exports a single `Namespace` top-level name, Next.js wraps it in a client-reference proxy and `<Namespace.Root />` on a server component fails with "Element type is invalid" — the exact same failure mode as the old property-assignment form.
+**Final pattern:**
 
-The correct pattern, proven by the Fieldset pilot and the permanent RSC canary:
+1. **Per-file leaves on disk.** Every sub-component is its own source file in the compound folder. Tsdown builds with `unbundle: true`, emitting each source file as its own dist file (`dist/components/Fieldset/FieldsetRoot.js`, etc.), preserving the source directory structure 1:1. Rolldown preserves `'use client'` on per-file outputs natively.
+2. **Server-safe namespace re-export.** `index.tsx` does `export * as Fieldset from './parts'` (Base UI's exact shape) with **no `'use client'` directive**. `parts.ts` is also server-safe. Together they form the re-export layer that Next.js's RSC compiler follows statically — the chain resolves `Fieldset.Root` at build time to a client reference pointing at `FieldsetRoot.js`.
+3. **`'use client'` only where needed.** Leaves with hooks, `createContext`, or client primitives carry the directive. Pure presentational leaves (`FieldsetLegend`, `FieldsetHelperText`) ship as server-safe components. The re-export layer (`parts.ts`, `index.tsx`) is server-safe.
+4. **Both subpath and barrel work in server components.** `import { Fieldset } from '@oztix/roadie-components/fieldset'` and `import { Fieldset } from '@oztix/roadie-components'` both resolve to the same server-safe namespace re-export. Subpath form is preferred (scopes the Next.js compiler walk to one compound), but both are valid. The RSC canary at `/debug/rsc-smoke` tests both forms on every docs build.
 
-1. **Library side:** flat top-level exports. `index.tsx` does `export * from './parts'`, not `export * as <Compound> from './parts'`.
-2. **Consumer side:** `import * as <Compound> from '@oztix/roadie-components/<compound>'`. The namespace is constructed on the **consumer** side — each dot access is a compile-time property reference against a local namespace, not a runtime proxy access.
-3. **Every file in the compound folder carries `'use client'`**, including `parts.ts`, `index.tsx`, the context module, and pure presentational leaves. This is required for rolldown (tsdown's backend) to hoist the directive onto shared chunks — without it, tsdown's code-splitting produces chunks with `createContext` but no directive and Next.js's turbopack bails when a server component imports them.
-4. **Barrel compatibility is client-only.** The root `@oztix/roadie-components` barrel synthesises a `Fieldset` namespace via internal `import * as` and re-exports it as a single named export. This works in client components (CodePreview live examples, client-rendered pages) but **fails in server components** — server components must use the subpath form. This is the non-negotiable reason subpath imports are canonical.
+[`docs/solutions/rsc-patterns/compound-export-namespace.md`](../solutions/rsc-patterns/compound-export-namespace.md) and [`docs/contributing/COMPOUND_PATTERNS.md`](../contributing/COMPOUND_PATTERNS.md) document the final pattern in full.
 
-All other parts of the plan's Phase 3 still apply: per-file split, subpath package exports, generator script, RSC canary. The only change is `export *` instead of `export * as` on library side, and `import * as` instead of `import { <Compound> }` on consumer side. [`docs/solutions/rsc-patterns/compound-export-namespace.md`](../solutions/rsc-patterns/compound-export-namespace.md) and [`docs/contributing/COMPOUND_PATTERNS.md`](../contributing/COMPOUND_PATTERNS.md) document the corrected pattern in full.
+**The three shapes ruled out along the way:**
 
-**Note on bundler:** Roadie uses **tsdown** (rolldown-backed), not tsup. `tsdown.config.ts` already reads component folders dynamically, so the generator script touches only `package.json`. Every reference to `tsup.config.ts` in the Acceptance list below should be read as "no config change required — tsdown handles this already".
+1. **Property assignment (`Compound.Sub = SubFn`)** — the pre-Phase-3 pattern. Broken at [vercel/next.js#51593](https://github.com/vercel/next.js/issues/51593) — property assignment is invisible to the client-reference proxy.
+2. **`export * as Namespace` with bundled tsdown output** — matches Base UI's published shape, but tsdown was bundling each compound folder into a single file. The namespace collapsed to a single client-reference proxy and `<Fieldset.Root />` failed with "Element type is invalid" — same failure mode as property assignment.
+3. **Flat library exports + consumer-side `import * as`** — worked, but required a non-standard consumer import form (`import * as Fieldset`) diverging from Base UI and every other React library.
+
+**What finally unlocked it:** tsdown's `unbundle: true` option emits each source file as its own dist file, matching Base UI's on-disk shape (one client-marked file per leaf + a server-safe `index.js` re-export). With per-file outputs, the server-safe re-export layer and the client-marked leaves exist as separate on-disk modules, which lets Next.js follow the static re-export chain at build time. Flipping one config flag gave us the right build output, and the export shape collapsed back to Base UI's exact form (`export * as Fieldset` on the library + `import { Fieldset }` on the consumer).
+
+**Note on bundler:** Roadie uses **tsdown** (rolldown-backed), not tsup. Every reference to `tsup.config.ts` in the Acceptance list below should be read as "no config change required — tsdown's unbundle mode + the generator script handle this already."
 
 ### Acceptance (Pilot — Fieldset only)
 
-- [x] `docs/solutions/rsc-patterns/compound-export-namespace.md` exists, documents the corrected flat-library + consumer-side-`import *` pattern, cites #51593 and the Base UI on-disk source that misled the original plan, linked from `COMPOUND_PATTERNS.md`
-- [x] `docs/contributing/COMPOUND_PATTERNS.md` rewritten — zero references to `Object.assign` or property assignment
+- [x] `docs/solutions/rsc-patterns/compound-export-namespace.md` exists, documents the final per-file + server-safe namespace re-export + tsdown unbundle pattern, cites #51593 and Base UI 1.3.0 on-disk source, linked from `COMPOUND_PATTERNS.md`
+- [x] `docs/contributing/COMPOUND_PATTERNS.md` rewritten — zero references to `Object.assign` or property assignment, documents the final Base UI-shape pattern and the `'use client'`-only-where-needed rule
 - [x] Authoring checklist in `COMPOUND_PATTERNS.md` covers: folder structure, leaf file shape, `variants.ts`, shared context, `parts.ts`, `index.tsx`, test file placement, `package.json` + tsdown generation, RSC canary page update
-- [x] Pilot compound (Fieldset) migrated to per-file layout with flat top-level exports and every file carrying `'use client'`
+- [x] `packages/components/tsdown.config.ts` uses `unbundle: true` + a `src/**/*.{ts,tsx}` glob entry; dist output is `dist/components/<Compound>/*` one-file-per-source
+- [x] Pilot compound (Fieldset) migrated to per-file layout with server-safe re-export layer and `'use client'` only on files that actually need it
 - [x] Fieldset folder contains: per-file sub-components (`FieldsetRoot`, `FieldsetLegend`, `FieldsetHelperText`, `FieldsetErrorText`), `FieldsetContext.ts`, `parts.ts`, `index.tsx`, `Fieldset.test.tsx`
 - [x] Every Fieldset leaf file sets `displayName` to the dot-notation form (`'Fieldset.Root'`, `'Fieldset.Legend'`, etc.)
-- [x] `packages/components/package.json` has `"sideEffects": false` (pre-existing) and an `exports` map with one entry per compound (generated)
-- [x] `scripts/generate-package-exports.mjs` exists and regenerates `package.json` `exports` from folder contents. Wired into `pnpm build`.
-- [x] Package barrel (`src/index.tsx`) synthesises `Fieldset` namespace via internal `import * as` for back-compat; comment documents the server-component caveat
-- [x] Fieldset docs page `docs/src/app/components/fieldset/page.mdx` uses `import * as Fieldset from '@oztix/roadie-components/fieldset'` in its Import section
+- [x] `packages/components/package.json` has `"sideEffects": false` (pre-existing) and an `exports` map with one entry per compound (generated, points at `dist/components/<Compound>/index.js`)
+- [x] `scripts/generate-package-exports.mjs` exists and regenerates `package.json` `exports` from folder contents, targeting the unbundle-mode dist layout. Wired into `pnpm build`.
+- [x] Package barrel (`src/index.tsx`) re-exports `Fieldset` as a bare `export { Fieldset } from './components/Fieldset'` — works in both server and client components
+- [x] Fieldset docs page `docs/src/app/components/fieldset/page.mdx` uses `import { Fieldset } from '@oztix/roadie-components/fieldset'` in its Import section (Base UI's bare form)
 - [x] `<PropsDefinitions>` accepts folder paths and enumerates every non-test `.tsx` file for parsing (enables per-file compounds)
-- [x] `docs/src/app/debug/rsc-smoke/page.tsx` exists as a permanent server-component route rendering `<Fieldset.Root>` + sub-components via the subpath import (follow-up compounds add their own sections)
+- [x] `docs/src/app/debug/rsc-smoke/page.tsx` exists as a permanent server-component route rendering `<Fieldset.Root>` via **both** the subpath and the root barrel. Follow-up compounds add their own sections.
 - [x] `pnpm --filter @oztix/roadie-components build && test && typecheck && lint` passes
 - [x] `pnpm --filter docs build` passes, including the RSC canary page rendering without "Element type is invalid"
 

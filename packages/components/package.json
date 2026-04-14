@@ -16,100 +16,100 @@
       "import": "./dist/index.js"
     },
     "./accordion": {
-      "types": "./dist/Accordion.d.ts",
-      "import": "./dist/Accordion.js"
+      "types": "./dist/components/Accordion/index.d.ts",
+      "import": "./dist/components/Accordion/index.js"
     },
     "./autocomplete": {
-      "types": "./dist/Autocomplete.d.ts",
-      "import": "./dist/Autocomplete.js"
+      "types": "./dist/components/Autocomplete/index.d.ts",
+      "import": "./dist/components/Autocomplete/index.js"
     },
     "./badge": {
-      "types": "./dist/Badge.d.ts",
-      "import": "./dist/Badge.js"
+      "types": "./dist/components/Badge/index.d.ts",
+      "import": "./dist/components/Badge/index.js"
     },
     "./breadcrumb": {
-      "types": "./dist/Breadcrumb.d.ts",
-      "import": "./dist/Breadcrumb.js"
+      "types": "./dist/components/Breadcrumb/index.d.ts",
+      "import": "./dist/components/Breadcrumb/index.js"
     },
     "./button": {
-      "types": "./dist/Button.d.ts",
-      "import": "./dist/Button.js"
+      "types": "./dist/components/Button/index.d.ts",
+      "import": "./dist/components/Button/index.js"
     },
     "./card": {
-      "types": "./dist/Card.d.ts",
-      "import": "./dist/Card.js"
+      "types": "./dist/components/Card/index.d.ts",
+      "import": "./dist/components/Card/index.js"
     },
     "./carousel": {
-      "types": "./dist/Carousel.d.ts",
-      "import": "./dist/Carousel.js"
+      "types": "./dist/components/Carousel/index.d.ts",
+      "import": "./dist/components/Carousel/index.js"
     },
     "./code": {
-      "types": "./dist/Code.d.ts",
-      "import": "./dist/Code.js"
+      "types": "./dist/components/Code/index.d.ts",
+      "import": "./dist/components/Code/index.js"
     },
     "./combobox": {
-      "types": "./dist/Combobox.d.ts",
-      "import": "./dist/Combobox.js"
+      "types": "./dist/components/Combobox/index.d.ts",
+      "import": "./dist/components/Combobox/index.js"
     },
     "./field": {
-      "types": "./dist/Field.d.ts",
-      "import": "./dist/Field.js"
+      "types": "./dist/components/Field/index.d.ts",
+      "import": "./dist/components/Field/index.js"
     },
     "./fieldset": {
-      "types": "./dist/Fieldset.d.ts",
-      "import": "./dist/Fieldset.js"
+      "types": "./dist/components/Fieldset/index.d.ts",
+      "import": "./dist/components/Fieldset/index.js"
     },
     "./highlight": {
-      "types": "./dist/Highlight.d.ts",
-      "import": "./dist/Highlight.js"
+      "types": "./dist/components/Highlight/index.d.ts",
+      "import": "./dist/components/Highlight/index.js"
     },
     "./input": {
-      "types": "./dist/Input.d.ts",
-      "import": "./dist/Input.js"
+      "types": "./dist/components/Input/index.d.ts",
+      "import": "./dist/components/Input/index.js"
     },
     "./label": {
-      "types": "./dist/Label.d.ts",
-      "import": "./dist/Label.js"
+      "types": "./dist/components/Label/index.d.ts",
+      "import": "./dist/components/Label/index.js"
     },
     "./link-button": {
-      "types": "./dist/LinkButton.d.ts",
-      "import": "./dist/LinkButton.js"
+      "types": "./dist/components/LinkButton/index.d.ts",
+      "import": "./dist/components/LinkButton/index.js"
     },
     "./mark": {
-      "types": "./dist/Mark.d.ts",
-      "import": "./dist/Mark.js"
+      "types": "./dist/components/Mark/index.d.ts",
+      "import": "./dist/components/Mark/index.js"
     },
     "./marquee": {
-      "types": "./dist/Marquee.d.ts",
-      "import": "./dist/Marquee.js"
+      "types": "./dist/components/Marquee/index.d.ts",
+      "import": "./dist/components/Marquee/index.js"
     },
     "./prose": {
-      "types": "./dist/Prose.d.ts",
-      "import": "./dist/Prose.js"
+      "types": "./dist/components/Prose/index.d.ts",
+      "import": "./dist/components/Prose/index.js"
     },
     "./radio-group": {
-      "types": "./dist/RadioGroup.d.ts",
-      "import": "./dist/RadioGroup.js"
+      "types": "./dist/components/RadioGroup/index.d.ts",
+      "import": "./dist/components/RadioGroup/index.js"
     },
     "./select": {
-      "types": "./dist/Select.d.ts",
-      "import": "./dist/Select.js"
+      "types": "./dist/components/Select/index.d.ts",
+      "import": "./dist/components/Select/index.js"
     },
     "./separator": {
-      "types": "./dist/Separator.d.ts",
-      "import": "./dist/Separator.js"
+      "types": "./dist/components/Separator/index.d.ts",
+      "import": "./dist/components/Separator/index.js"
     },
     "./steps": {
-      "types": "./dist/Steps.d.ts",
-      "import": "./dist/Steps.js"
+      "types": "./dist/components/Steps/index.d.ts",
+      "import": "./dist/components/Steps/index.js"
     },
     "./textarea": {
-      "types": "./dist/Textarea.d.ts",
-      "import": "./dist/Textarea.js"
+      "types": "./dist/components/Textarea/index.d.ts",
+      "import": "./dist/components/Textarea/index.js"
     },
     "./spot-illustrations": {
-      "types": "./dist/SpotIllustration.d.ts",
-      "import": "./dist/SpotIllustration.js"
+      "types": "./dist/components/SpotIllustration/index.d.ts",
+      "import": "./dist/components/SpotIllustration/index.js"
     }
   },
   "sideEffects": false,
@@ -185,7 +185,7 @@
   "size-limit": [
     {
       "name": "Carousel",
-      "path": "dist/Carousel.js",
+      "path": "dist/components/Carousel/index.js",
       "limit": "5 KB",
       "ignore": [
         "react",

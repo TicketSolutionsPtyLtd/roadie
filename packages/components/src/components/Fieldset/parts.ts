@@ -1,5 +1,3 @@
-'use client'
-
 export { FieldsetRoot as Root } from './FieldsetRoot'
 export type { FieldsetRootProps as RootProps } from './FieldsetRoot'
 
