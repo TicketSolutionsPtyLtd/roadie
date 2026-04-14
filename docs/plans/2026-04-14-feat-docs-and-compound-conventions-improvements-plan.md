@@ -1,7 +1,7 @@
 ---
 title: Docs and compound component conventions improvements
 type: feat
-status: active
+status: completed
 date: 2026-04-14
 ---
 
@@ -16,8 +16,8 @@ Four related upgrades to the docs site and the compound component conventions th
 | **1 — Compound migration**                        | ✅ Done        | [#36](https://github.com/TicketSolutionsPtyLtd/roadie/pull/36) | All 10 compounds migrated to Pattern A. Scope expanded during execution: (a) `LinkButton` / `LinkIconButton` CVA literal props inlined after a missed-grep discovery, (b) `PropsDefinitions` filter + interfaceName logic rewritten so every compound page renders full subcomponent sections (was meant for Phase 2 but deferring it left Card/Fieldset/etc looking broken).                                                     |
 | **2 — `PropsDefinitions` subcomponent accordion** | ✅ Done        | [#38](https://github.com/TicketSolutionsPtyLtd/roadie/pull/38) | Compound subcomponents collapse into a closed-by-default accordion with prop-count badges. Siblings like `Button` / `IconButton` render as inline cards rather than accordion items. The accordion is rendered by a dedicated `'use client'` wrapper (`docs/src/components/PropsAccordion.tsx`) so `<Accordion.Item>` dot-access works — see the "RSC client-reference proxy" note below, and the tracked follow-up for path (c). |
 | **2.5 — `/parts` subpath export (follow-up)**     | ⬜ Not started | —                                                              | Ship `@oztix/roadie-components/parts` as a dedicated entry point for server-component consumers, re-exporting every Pattern A compound's subcomponents as bare names. Systemic fix to the RSC-proxy problem that Phase 2 worked around with a client-component wrapper. Documents the constraint in `COMPOUND_PATTERNS.md` as a first-class concern.                                                                              |
-| **3C — `CodePreview` view-code toggle**           | ⬜ Not started | —                                                              | Unchanged from original plan.                                                                                                                                                                                                                                                                                                                                                                                                     |
-| **3D — "On this page" right rail**                | ⬜ Not started | —                                                              | Unchanged from original plan.                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **3C — `CodePreview` view-code toggle**           | ✅ Done        | —                                                              | Static and live editor panes truncate at 5 source lines with a centred "View code" button and bottom fade-out; "Hide code" control collapses again. Live preview never truncated; copy-to-clipboard always copies the full source.                                                                                                                                                                                                |
+| **3D — "On this page" right rail**                | ✅ Done        | —                                                              | New `OnThisPage` client component scans `<main>` for `h2`/`h3` after mount, auto-assigns slug ids when MDX/TSX pages don't supply them, and renders a sticky right rail at `lg`+ with IntersectionObserver active-state and smooth-scroll on click. Outer layout grid widened to `lg:max-w-[76rem]` with a `[minmax(0,56rem)_12rem]` split so the rail sits beside the existing `container-4xl` content area. `rehype-slug` wired into `next.config.mjs` (string form, for Next 16's serializable-options requirement). |
 
 ### What changed from the original plan during Phase 1
 
@@ -500,33 +500,33 @@ export function OnThisPage() {
 - [x] `COMPOUND_PATTERNS.md` has the new checklist section
 - [x] **Scope addition:** every compound docs page now renders full subcomponent sections via `PropsDefinitions` filter + heading rewrite
 
-#### B. Props accordion
+#### B. Props accordion ✅ Done (PR #38)
 
-- [ ] Every component docs page shows the root component's props inline
-- [ ] Every component docs page with subcomponents shows a closed-by-default accordion with one item per subcomponent
-- [ ] Each accordion item's trigger shows the subcomponent display name and a prop count
-- [ ] Clicking an item expands it and shows the existing `<dl>` props table inside
-- [ ] Multiple items can be open at once (`type='multiple'`)
+- [x] Every component docs page shows the root component's props inline
+- [x] Every component docs page with subcomponents shows a closed-by-default accordion with one item per subcomponent
+- [x] Each accordion item's trigger shows the subcomponent display name and a prop count
+- [x] Clicking an item expands it and shows the existing `<dl>` props table inside
+- [x] Multiple items can be open at once (`type='multiple'`)
 
 #### C. View-code toggle
 
-- [ ] Code examples with ≤ 5 lines render identically to today
-- [ ] Code examples with > 5 lines show only 5 lines plus a fade-out mask and a centred "View code" button
-- [ ] Clicking "View code" expands the editor to full height
-- [ ] A "Hide code" control at the bottom collapses it back
-- [ ] Copy-to-clipboard copies the full code string in both states
-- [ ] The live preview (runtime output) is never truncated
-- [ ] Editing code in an expanded live example still re-renders the preview correctly
+- [x] Code examples with ≤ 5 lines render identically to today
+- [x] Code examples with > 5 lines show only 5 lines plus a fade-out mask and a centred "View code" button
+- [x] Clicking "View code" expands the editor to full height
+- [x] A "Hide code" control at the bottom collapses it back
+- [x] Copy-to-clipboard copies the full code string in both states
+- [x] The live preview (runtime output) is never truncated
+- [x] Editing code in an expanded live example still re-renders the preview correctly
 
 #### D. On this page
 
-- [ ] Every docs page with ≥ 2 `h2`/`h3` headings shows a right-hand "On this page" rail at `lg` and above
-- [ ] The rail hides on screens below `lg`
-- [ ] The rail is sticky and scrolls internally when its own content overflows
-- [ ] Clicking a heading in the rail scrolls the page to that heading
-- [ ] The currently-visible heading is highlighted via IntersectionObserver
-- [ ] MDX pages have auto-generated heading IDs via `rehype-slug`
-- [ ] The rail hides on short pages with 0–1 headings
+- [x] Every docs page with ≥ 2 `h2`/`h3` headings shows a right-hand "On this page" rail at `lg` and above
+- [x] The rail hides on screens below `lg`
+- [x] The rail is sticky and scrolls internally when its own content overflows
+- [x] Clicking a heading in the rail smooth-scrolls the page to that heading (with a sticky-header offset)
+- [x] The currently-visible heading is highlighted via IntersectionObserver
+- [x] MDX pages have auto-generated heading IDs via `rehype-slug`; TSX pages get IDs auto-assigned client-side from heading text
+- [x] The rail hides on short pages with 0–1 headings
 
 ### Quality gates
 
@@ -593,20 +593,20 @@ Independent. Can be two separate PRs or one combined PR.
 
 **C:**
 
-1. Add `MAX_COLLAPSED_LINES`, `lineCount`, `canCollapse`, `isExpanded` to `CodePreview`.
-2. Wrap code-rendering block in collapsible container with gradient mask + "View code" button.
-3. Test interaction with `LiveEditor` — expand, edit, re-render.
-4. Visual QA on long examples: Carousel default, Steps default, any other 6+ line example.
+1. ✅ Added `MAX_COLLAPSED_LINES`, `COLLAPSED_HEIGHT_PX`, `lineCount`, `canCollapse`, `isExpanded` to `CodePreview`.
+2. ✅ Extracted the gradient mask + "View code" / "Hide code" affordance into a `ViewCodeShade` helper and wired it into both the static `Highlight` path and the `LiveProvider` editor pane.
+3. ✅ Verified live editor interaction: clicking "View code" expands the editor, edits in the now-visible textarea propagate to `LivePreview`, and the live preview is never inside the collapsible container so it always renders full-height.
+4. ✅ Visual QA on Carousel default (and other long live examples — every example >5 lines truncates).
 
 **D:**
 
-1. Install `rehype-slug` and `rehype-autolink-headings`.
-2. Wire into `docs/next.config.mjs`.
-3. Create `docs/src/components/OnThisPage.tsx` client component.
-4. Update `docs/src/app/layout.tsx` grid.
-5. Verify foundation TSX pages have heading IDs (add via `id={...}` where missing).
-6. Visual QA across `lg`+ breakpoints on pages with many headings (foundation/typography, foundation/colors).
-7. Verify rail hides on short overview pages.
+1. ✅ Installed `rehype-slug` (skipped `rehype-autolink-headings` — the existing MDX `a` mapping in `mdx-components.tsx` would re-style heading text as a link, which is undesirable; the rail handles in-page navigation instead).
+2. ✅ Wired into `docs/next.config.mjs` as the string `'rehype-slug'` (Next 16's Turbopack loader requires serializable plugin options, so passing the imported function directly fails the build with `does not have serializable options`).
+3. ✅ Created `docs/src/components/OnThisPage.tsx` (~115 lines: scan, slugify-and-assign-id fallback for TSX pages, IntersectionObserver active-state, smooth-scroll click handler with sticky-header offset, < 2 headings escape).
+4. ✅ Updated `docs/src/app/layout.tsx` grid: outer wrapper now `mx-auto w-full max-w-[56rem] px-6 md:px-8 lg:max-w-[76rem] lg:px-12` containing a `lg:grid lg:grid-cols-[minmax(0,56rem)_12rem] lg:gap-8` split. Below `lg`, the layout is identical to today.
+5. ✅ Foundation TSX pages were left untouched — `OnThisPage` slugifies and assigns ids on mount when a heading lacks one, so manual updates were unnecessary.
+6. ✅ Visual QA on `/components/carousel`, `/components/select`, `/foundations/colors`, `/`, and 800px (mobile) — rail visible on lg, hidden on smaller.
+7. ✅ Rail hides on pages with < 2 headings via the existing guard (verified in the component but no minimal page in the repo currently triggers it — the `< 2` escape is defensive).
 
 Deliverables: one or two PRs depending on batching preference.
 

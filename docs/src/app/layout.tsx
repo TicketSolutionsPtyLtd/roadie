@@ -5,6 +5,7 @@ import { join } from 'path'
 
 import { FooterNav } from '@/components/FooterNav'
 import { Navigation } from '@/components/Navigation'
+import { OnThisPage } from '@/components/OnThisPage'
 import { Providers } from '@/components/Providers'
 import { getAssetPath } from '@/utils/getAssetPath'
 
@@ -327,10 +328,17 @@ export default async function RootLayout({
         <Providers>
           <div className='flex min-h-screen max-w-[100vw] flex-row'>
             <Navigation items={items} />
-            <main className='container-4xl min-w-0 flex-1 overflow-x-clip py-4 md:py-12 lg:py-20'>
-              {children}
-              <FooterNav items={items} />
-            </main>
+            <div className='min-w-0 flex-1 overflow-x-clip py-4 md:py-12 lg:py-20'>
+              <div className='mx-auto w-full max-w-[56rem] px-6 md:px-8 lg:max-w-[76rem] lg:px-12'>
+                <div className='lg:grid lg:grid-cols-[minmax(0,56rem)_12rem] lg:gap-8'>
+                  <main className='min-w-0'>
+                    {children}
+                    <FooterNav items={items} />
+                  </main>
+                  <OnThisPage />
+                </div>
+              </div>
+            </div>
           </div>
         </Providers>
       </body>
