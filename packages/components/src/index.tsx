@@ -1,3 +1,13 @@
+// Fieldset is the pilot for the Pattern A migration. The compound ships
+// flat top-level exports from its subpath (`@oztix/roadie-components/fieldset`)
+// and consumers use `import * as Fieldset` to create a namespace on their
+// side — this is what makes `<Fieldset.Root />` work across the Next.js RSC
+// boundary. The barrel synthesises a namespace here so existing barrel
+// consumers still see `Fieldset.Root` / `Fieldset.Legend` etc., but new
+// server-component code should import from the subpath directly. See
+// `docs/contributing/COMPOUND_PATTERNS.md`.
+import * as Fieldset from './components/Fieldset'
+
 export { Button, buttonVariants, type ButtonProps } from './components/Button'
 export {
   IconButton,
@@ -170,13 +180,8 @@ export {
   type RadioGroupHelperTextProps,
   type RadioGroupErrorTextProps
 } from './components/RadioGroup'
-export {
-  Fieldset,
-  type FieldsetProps,
-  type FieldsetLegendProps,
-  type FieldsetHelperTextProps,
-  type FieldsetErrorTextProps
-} from './components/Fieldset'
+
+export { Fieldset }
 
 // Providers
 export {

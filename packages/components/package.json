@@ -15,6 +15,98 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./accordion": {
+      "types": "./dist/Accordion.d.ts",
+      "import": "./dist/Accordion.js"
+    },
+    "./autocomplete": {
+      "types": "./dist/Autocomplete.d.ts",
+      "import": "./dist/Autocomplete.js"
+    },
+    "./badge": {
+      "types": "./dist/Badge.d.ts",
+      "import": "./dist/Badge.js"
+    },
+    "./breadcrumb": {
+      "types": "./dist/Breadcrumb.d.ts",
+      "import": "./dist/Breadcrumb.js"
+    },
+    "./button": {
+      "types": "./dist/Button.d.ts",
+      "import": "./dist/Button.js"
+    },
+    "./card": {
+      "types": "./dist/Card.d.ts",
+      "import": "./dist/Card.js"
+    },
+    "./carousel": {
+      "types": "./dist/Carousel.d.ts",
+      "import": "./dist/Carousel.js"
+    },
+    "./code": {
+      "types": "./dist/Code.d.ts",
+      "import": "./dist/Code.js"
+    },
+    "./combobox": {
+      "types": "./dist/Combobox.d.ts",
+      "import": "./dist/Combobox.js"
+    },
+    "./field": {
+      "types": "./dist/Field.d.ts",
+      "import": "./dist/Field.js"
+    },
+    "./fieldset": {
+      "types": "./dist/Fieldset.d.ts",
+      "import": "./dist/Fieldset.js"
+    },
+    "./highlight": {
+      "types": "./dist/Highlight.d.ts",
+      "import": "./dist/Highlight.js"
+    },
+    "./input": {
+      "types": "./dist/Input.d.ts",
+      "import": "./dist/Input.js"
+    },
+    "./label": {
+      "types": "./dist/Label.d.ts",
+      "import": "./dist/Label.js"
+    },
+    "./link-button": {
+      "types": "./dist/LinkButton.d.ts",
+      "import": "./dist/LinkButton.js"
+    },
+    "./mark": {
+      "types": "./dist/Mark.d.ts",
+      "import": "./dist/Mark.js"
+    },
+    "./marquee": {
+      "types": "./dist/Marquee.d.ts",
+      "import": "./dist/Marquee.js"
+    },
+    "./prose": {
+      "types": "./dist/Prose.d.ts",
+      "import": "./dist/Prose.js"
+    },
+    "./radio-group": {
+      "types": "./dist/RadioGroup.d.ts",
+      "import": "./dist/RadioGroup.js"
+    },
+    "./select": {
+      "types": "./dist/Select.d.ts",
+      "import": "./dist/Select.js"
+    },
+    "./separator": {
+      "types": "./dist/Separator.d.ts",
+      "import": "./dist/Separator.js"
+    },
+    "./steps": {
+      "types": "./dist/Steps.d.ts",
+      "import": "./dist/Steps.js"
+    },
+    "./textarea": {
+      "types": "./dist/Textarea.d.ts",
+      "import": "./dist/Textarea.js"
+    },
     "./spot-illustrations": {
       "types": "./dist/SpotIllustration.d.ts",
       "import": "./dist/SpotIllustration.js"
@@ -28,8 +120,9 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsdown && pnpm check:dts && pnpm check:exports",
-    "build:quiet": "tsdown --log-level warn",
+    "build": "pnpm generate:exports && tsdown && pnpm check:dts && pnpm check:exports",
+    "build:quiet": "pnpm generate:exports && tsdown --log-level warn",
+    "generate:exports": "node scripts/generate-package-exports.mjs",
     "check:dts": "! grep -r 'ComponentProps<typeof' dist/*.d.ts dist/**/*.d.ts 2>/dev/null || (echo 'ERROR: dist .d.ts files contain ComponentProps<typeof> — use named prop types instead' && exit 1)",
     "check:exports": "attw --pack . --profile esm-only",
     "build:spotillustration": "node scripts/svg-to-spot-illustration.cjs",

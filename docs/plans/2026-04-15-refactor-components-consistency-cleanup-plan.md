@@ -703,29 +703,57 @@ export default function RscSmokePage() {
 
 CI builds the docs site, so the canary fails the build if any compound regresses from RSC-safe. Every new compound authoring includes "add a line to the RSC canary" as a step in `COMPOUND_PATTERNS.md`.
 
-### Acceptance
+### Pilot status (Fieldset — 2026-04-15)
 
-- [ ] `docs/solutions/rsc-patterns/compound-export-namespace.md` exists, documents the three-part pattern (export shape + per-file split + subpath exports), cites #51593 and Base UI on-disk source, linked from `COMPOUND_PATTERNS.md`
-- [ ] `docs/contributing/COMPOUND_PATTERNS.md` rewritten — zero references to `Object.assign` or property assignment (`rg "Object\.assign|\.Subcomponent\s*=" docs/contributing/COMPOUND_PATTERNS.md` returns 0)
-- [ ] Authoring checklist in `COMPOUND_PATTERNS.md` covers: folder structure, leaf file shape, `variants.ts`, shared context, `parts.ts`, `index.ts`, test file placement, `package.json` + `tsup` generation, RSC canary page update
-- [ ] All 11 compounds migrated to per-file layout. Property-assignment grep returns 0:
+Phase 3 opened with a Fieldset pilot to validate the pattern end-to-end before migrating the remaining 10 compounds. The pilot surfaced a **correction to the plan's stated pattern** (documented below), validated the generator / build / test / docs-build pipeline, and shipped the RSC canary as a permanent CI surface.
+
+**Correction to the stated pattern.** The plan originally called for `export * as Namespace` on the library side, matching Base UI 1.3.0's published `combobox/index.js`. That shape **does not work** for Roadie because tsdown bundles each compound into a single built file (Base UI ships one file per leaf on-disk). When the library exports a single `Namespace` top-level name, Next.js wraps it in a client-reference proxy and `<Namespace.Root />` on a server component fails with "Element type is invalid" — the exact same failure mode as the old property-assignment form.
+
+The correct pattern, proven by the Fieldset pilot and the permanent RSC canary:
+
+1. **Library side:** flat top-level exports. `index.tsx` does `export * from './parts'`, not `export * as <Compound> from './parts'`.
+2. **Consumer side:** `import * as <Compound> from '@oztix/roadie-components/<compound>'`. The namespace is constructed on the **consumer** side — each dot access is a compile-time property reference against a local namespace, not a runtime proxy access.
+3. **Every file in the compound folder carries `'use client'`**, including `parts.ts`, `index.tsx`, the context module, and pure presentational leaves. This is required for rolldown (tsdown's backend) to hoist the directive onto shared chunks — without it, tsdown's code-splitting produces chunks with `createContext` but no directive and Next.js's turbopack bails when a server component imports them.
+4. **Barrel compatibility is client-only.** The root `@oztix/roadie-components` barrel synthesises a `Fieldset` namespace via internal `import * as` and re-exports it as a single named export. This works in client components (CodePreview live examples, client-rendered pages) but **fails in server components** — server components must use the subpath form. This is the non-negotiable reason subpath imports are canonical.
+
+All other parts of the plan's Phase 3 still apply: per-file split, subpath package exports, generator script, RSC canary. The only change is `export *` instead of `export * as` on library side, and `import * as` instead of `import { <Compound> }` on consumer side. [`docs/solutions/rsc-patterns/compound-export-namespace.md`](../solutions/rsc-patterns/compound-export-namespace.md) and [`docs/contributing/COMPOUND_PATTERNS.md`](../contributing/COMPOUND_PATTERNS.md) document the corrected pattern in full.
+
+**Note on bundler:** Roadie uses **tsdown** (rolldown-backed), not tsup. `tsdown.config.ts` already reads component folders dynamically, so the generator script touches only `package.json`. Every reference to `tsup.config.ts` in the Acceptance list below should be read as "no config change required — tsdown handles this already".
+
+### Acceptance (Pilot — Fieldset only)
+
+- [x] `docs/solutions/rsc-patterns/compound-export-namespace.md` exists, documents the corrected flat-library + consumer-side-`import *` pattern, cites #51593 and the Base UI on-disk source that misled the original plan, linked from `COMPOUND_PATTERNS.md`
+- [x] `docs/contributing/COMPOUND_PATTERNS.md` rewritten — zero references to `Object.assign` or property assignment
+- [x] Authoring checklist in `COMPOUND_PATTERNS.md` covers: folder structure, leaf file shape, `variants.ts`, shared context, `parts.ts`, `index.tsx`, test file placement, `package.json` + tsdown generation, RSC canary page update
+- [x] Pilot compound (Fieldset) migrated to per-file layout with flat top-level exports and every file carrying `'use client'`
+- [x] Fieldset folder contains: per-file sub-components (`FieldsetRoot`, `FieldsetLegend`, `FieldsetHelperText`, `FieldsetErrorText`), `FieldsetContext.ts`, `parts.ts`, `index.tsx`, `Fieldset.test.tsx`
+- [x] Every Fieldset leaf file sets `displayName` to the dot-notation form (`'Fieldset.Root'`, `'Fieldset.Legend'`, etc.)
+- [x] `packages/components/package.json` has `"sideEffects": false` (pre-existing) and an `exports` map with one entry per compound (generated)
+- [x] `scripts/generate-package-exports.mjs` exists and regenerates `package.json` `exports` from folder contents. Wired into `pnpm build`.
+- [x] Package barrel (`src/index.tsx`) synthesises `Fieldset` namespace via internal `import * as` for back-compat; comment documents the server-component caveat
+- [x] Fieldset docs page `docs/src/app/components/fieldset/page.mdx` uses `import * as Fieldset from '@oztix/roadie-components/fieldset'` in its Import section
+- [x] `<PropsDefinitions>` accepts folder paths and enumerates every non-test `.tsx` file for parsing (enables per-file compounds)
+- [x] `docs/src/app/debug/rsc-smoke/page.tsx` exists as a permanent server-component route rendering `<Fieldset.Root>` + sub-components via the subpath import (follow-up compounds add their own sections)
+- [x] `pnpm --filter @oztix/roadie-components build && test && typecheck && lint` passes
+- [x] `pnpm --filter docs build` passes, including the RSC canary page rendering without "Element type is invalid"
+
+### Acceptance (Remaining — post-pilot)
+
+- [ ] Remaining 10 compounds migrated to the corrected per-file pattern (Accordion → RadioGroup → Breadcrumb → Field → Card → Carousel → Steps → Autocomplete → Combobox → Select)
+- [ ] Property-assignment grep returns 0 after all compounds land:
   ```bash
   rg "^[A-Z]\w+\.[A-Z]\w+\s*=\s*[A-Z]" packages/components/src/components/
   ```
-- [ ] Every compound folder contains: per-file sub-components, `variants.ts` (if applicable), `parts.ts`, `index.ts`, one `*.test.tsx`
+- [ ] Every compound folder contains: per-file sub-components, `variants.ts` (if applicable), `parts.ts`, `index.tsx`, one `*.test.tsx`
 - [ ] Every leaf file sets `displayName` to the dot-notation form
-- [ ] `packages/components/package.json` has `"sideEffects": false` and an `exports` map with one entry per compound + leaf component
-- [ ] `packages/components/tsup.config.ts` builds one entry per subpath; `pnpm build` emits `dist/combobox.js`, `dist/button.js`, etc.
-- [ ] `scripts/generate-package-exports.mjs` exists and regenerates `package.json` `exports` + `tsup.config.ts` entry map from folder contents
-- [ ] Package barrel (`src/index.tsx`) keeps re-exports as compat aliases; subpath imports are canonical in `AGENTS.md`
-- [ ] Docs site imports updated — `rg "from '@oztix/roadie-components'" docs/src/` returns 0 matches (all uses are subpath form)
+- [ ] Docs site imports updated — `rg "from '@oztix/roadie-components'" docs/src/` returns 0 matches for server components (all uses are subpath form); CodePreview barrel spread stays
 - [ ] `rg "^import \{[^}]*(Combobox|Autocomplete|Select)[A-Z]" docs/src/` returns 0 matches (no flat subcomponent imports)
-- [ ] `<PropsDefinitions>` on every compound doc page renders correct subcomponent headings (dot-notation form)
-- [ ] `docs/src/components/PropsAccordion.tsx` deleted; `<PropsDefinitions>` uses `<Accordion.Item>` directly
+- [ ] `<PropsDefinitions>` on every compound doc page renders correct subcomponent headings (dot-notation form) by passing the folder path
+- [ ] After Accordion migrates: `docs/src/components/PropsAccordion.tsx` deleted; `<PropsDefinitions>` uses `<Accordion.Item>` directly
 - [ ] `docs/plans/2026-04-14-feat-docs-and-compound-conventions-improvements-plan.md` Progress table updated to mark `/parts` follow-up as superseded
-- [ ] `docs/src/app/debug/rsc-smoke/page.tsx` exists as a permanent server-component route rendering every compound's Root + a sub-component
+- [ ] RSC canary page renders every migrated compound's Root + a sub-component; docs build fails if any regresses
 - [ ] `pnpm build && pnpm test && pnpm typecheck && pnpm lint` passes
-- [ ] Docs site builds, including the RSC canary page, without the "Element type is invalid" error
+- [ ] Docs site builds without the "Element type is invalid" error
 
 ### Risks
 

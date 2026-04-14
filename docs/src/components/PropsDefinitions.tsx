@@ -1,3 +1,4 @@
+import { readdirSync, statSync } from 'fs'
 import path from 'path'
 import type { PropItem } from 'react-docgen-typescript'
 import { withCustomConfig } from 'react-docgen-typescript'
@@ -179,11 +180,36 @@ function ComponentPropsCard({
   )
 }
 
-function parseComponentProps(componentPath: string) {
+function resolveParseTargets(componentPath: string): string[] {
+  // Pre-Pattern-A compounds still point `componentPath` at a single file
+  // (e.g. `packages/components/src/components/Card/index.tsx`). Post-migration
+  // compounds point at the folder (e.g. `packages/components/src/components/Fieldset`)
+  // because `index.tsx` is just a namespace re-export with no component
+  // declarations for react-docgen-typescript to extract.
+  //
+  // Accept either form: if the path is a directory, enumerate every
+  // non-test `.tsx` leaf file inside. Context / parts / variants / index
+  // files are TypeScript-only (`.ts`) so the `.tsx` filter skips them
+  // automatically.
   const workspaceRoot = path.resolve(process.cwd(), '..')
   const absolutePath = path.join(workspaceRoot, componentPath)
+  const stats = statSync(absolutePath)
+
+  if (stats.isFile()) {
+    return [absolutePath]
+  }
+
+  return readdirSync(absolutePath)
+    .filter((name) => name.endsWith('.tsx') && !name.endsWith('.test.tsx'))
+    .sort()
+    .map((name) => path.join(absolutePath, name))
+}
+
+function parseComponentProps(componentPath: string) {
+  const targets = resolveParseTargets(componentPath)
 
   try {
+    const workspaceRoot = path.resolve(process.cwd(), '..')
     const parser = withCustomConfig(
       path.resolve(workspaceRoot, 'tsconfig.react.json'),
       {
@@ -228,7 +254,7 @@ function parseComponentProps(componentPath: string) {
       }
     )
 
-    const result = parser.parse(absolutePath)
+    const result = parser.parse(targets)
     if (!result.length) return null
 
     // Keep every PascalCase entry. CVA factory functions (`cardVariants`,
