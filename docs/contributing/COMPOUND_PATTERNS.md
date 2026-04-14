@@ -101,9 +101,9 @@ Roadie ships a dev-only warning when a non-Item element is found at a direct-chi
 
 If you find yourself wanting both — items need both global state AND positional metadata — use index injection at the container level and a separate root context for the global state. That's exactly what `Carousel` does (`CarouselStateContext` + `CarouselItemContext`).
 
-## Compound assembly: prefer named exports + property assignment
+## Compound assembly: named exports + property assignment
 
-There are two ways to attach subcomponents to the root once you have them. **New compounds should use Pattern A.** Pattern B is what older Roadie components (Card, Accordion, Field, etc.) use, and is left in place for backwards compatibility.
+There are two ways to attach subcomponents to the root once you have them. **All Roadie compounds use Pattern A.** Pattern B is documented here only so you can recognise it in old PRs or in other codebases — it is no longer present in this repo.
 
 ### Pattern A — named exports + property assignment (preferred)
 
@@ -160,9 +160,24 @@ export const Card = Object.assign(CardRoot, {
 }
 ```
 
-Used by Card, Accordion, Field, and others. Works at runtime, but the cast erases the original component's props from the parser's view, which is why those docs pages currently show only the CVA variant props (`intent`, `emphasis`).
+This was the original Roadie pattern and lived in Card, Accordion, Field, Fieldset, Steps, RadioGroup, Select, Combobox, Autocomplete, and Breadcrumb until the April 2026 migration. It works at runtime, but the cast erases the original component's props from `react-docgen-typescript`'s view, which is why the docs pages for those components used to show only CVA variant props (`intent`, `emphasis`) instead of the full interface.
 
-**Migration:** any compound can be converted from Pattern B to Pattern A in one PR — rename the root function, add `export` to each part, replace the Object.assign + cast with property assignments. The change is purely structural; no behaviour or public-API change. The docs page will start showing the full props on the next build.
+**Converting Pattern B → Pattern A** — if you encounter it in a fork, cherry-pick, or code archaeology: rename the root function from `XRoot` to `X`, add `export` to every subcomponent function, replace the `Object.assign + cast` block with direct property assignments. Purely structural; no behaviour or public-API change. The docs page will start showing the full props on the next build.
+
+## Checklist for new / migrated compounds
+
+Use this as a final pre-merge check when creating a new compound component or touching an existing one:
+
+- [ ] Root and every subcomponent use named `export function`
+- [ ] Every subcomponent has an explicit dot-notation `displayName` (`Carousel.Header`, not `CarouselHeader`)
+- [ ] Subcomponents are attached via direct property assignment (`Carousel.Header = CarouselHeader`) — no `Object.assign + cast`
+- [ ] Every **subcomponent** prop type is declared as `type X = Base & { ... }`, not `interface X extends Base` (root prop types are exempt — see next section)
+- [ ] No CVA variant prop typed via `VariantProps<typeof v>['key']` on the public prop shape — inline the literal union instead (see the CVA literal props solution doc)
+- [ ] Dev-only warnings use `process.env.NODE_ENV` with the `typeof process !== 'undefined'` guard (never `import.meta.env.DEV`, which silently dies in Next.js / Webpack / Rollup consumers)
+- [ ] Context-only vs index-injection decision made consciously (see the Decision matrix above)
+- [ ] If index-injection: per-item providers keyed with `child.key ?? index`
+- [ ] Docs page renders without `<PropsDefinitions>` dropping any subcomponents — open it locally, scroll the props section, confirm every subcomponent's full prop set is visible
+- [ ] `grep -rn "Object.assign" packages/components/src/components` still returns zero results after your change
 
 ## Subcomponent prop types: `type` alias, not `interface extends`
 
