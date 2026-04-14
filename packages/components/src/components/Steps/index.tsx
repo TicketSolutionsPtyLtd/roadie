@@ -36,7 +36,7 @@ export const stepsVariants = cva('grid w-full gap-4', {
 export type StepsProps = Omit<ArkSteps.RootProps, 'orientation'> &
   VariantProps<typeof stepsVariants>
 
-function StepsRoot({ direction, className, ...props }: StepsProps) {
+export function Steps({ direction, className, ...props }: StepsProps) {
   return (
     <ArkSteps.Root
       orientation={direction === 'vertical' ? 'vertical' : 'horizontal'}
@@ -46,13 +46,13 @@ function StepsRoot({ direction, className, ...props }: StepsProps) {
   )
 }
 
-StepsRoot.displayName = 'Steps'
+Steps.displayName = 'Steps'
 
 /* ─── List ─── */
 
 type StepsListProps = ArkSteps.ListProps
 
-function StepsList({ className, ...props }: StepsListProps) {
+export function StepsList({ className, ...props }: StepsListProps) {
   return (
     <ArkSteps.List
       className={cn(
@@ -81,7 +81,7 @@ interface StepsItemInternalProps extends StepsItemProps {
   onClick?: React.MouseEventHandler<HTMLDivElement>
 }
 
-function StepsItem({ className, invalid, ...props }: StepsItemProps) {
+export function StepsItem({ className, invalid, ...props }: StepsItemProps) {
   // Ark UI's types lose `index` in the HTMLProps intersection (upstream bug).
   // Cast is safe — index is required by the Zag.js state machine at runtime.
   const Item = ArkSteps.Item as React.ComponentType<
@@ -143,7 +143,7 @@ StepsItem.displayName = 'Steps.Item'
 
 type StepsTriggerProps = ArkSteps.TriggerProps
 
-function StepsTrigger({ className, ...props }: StepsTriggerProps) {
+export function StepsTrigger({ className, ...props }: StepsTriggerProps) {
   return (
     <ArkSteps.Trigger
       className={cn(
@@ -163,7 +163,7 @@ StepsTrigger.displayName = 'Steps.Trigger'
 
 type StepsIndicatorProps = ArkSteps.IndicatorProps
 
-function StepsIndicator({
+export function StepsIndicator({
   className,
   children,
   ...props
@@ -198,7 +198,7 @@ StepsIndicator.displayName = 'Steps.Indicator'
 
 type StepsSeparatorProps = ArkSteps.SeparatorProps
 
-function StepsSeparator({ className, ...props }: StepsSeparatorProps) {
+export function StepsSeparator({ className, ...props }: StepsSeparatorProps) {
   return (
     <ArkSteps.Separator
       className={cn(
@@ -222,7 +222,7 @@ interface StepsContentProps {
   children?: React.ReactNode
 }
 
-function StepsContent({ className, ...props }: StepsContentProps) {
+export function StepsContent({ className, ...props }: StepsContentProps) {
   const Content = ArkSteps.Content as React.ComponentType<StepsContentProps>
   return <Content className={cn(className)} {...props} />
 }
@@ -233,7 +233,7 @@ StepsContent.displayName = 'Steps.Content'
 
 type StepsCompletedContentProps = ArkSteps.CompletedContentProps
 
-function StepsCompletedContent({
+export function StepsCompletedContent({
   className,
   ...props
 }: StepsCompletedContentProps) {
@@ -246,7 +246,10 @@ StepsCompletedContent.displayName = 'Steps.CompletedContent'
 
 type StepsNextTriggerProps = ArkSteps.NextTriggerProps
 
-function StepsNextTrigger({ className, ...props }: StepsNextTriggerProps) {
+export function StepsNextTrigger({
+  className,
+  ...props
+}: StepsNextTriggerProps) {
   return <ArkSteps.NextTrigger className={cn(className)} {...props} />
 }
 
@@ -256,7 +259,10 @@ StepsNextTrigger.displayName = 'Steps.NextTrigger'
 
 type StepsPrevTriggerProps = ArkSteps.PrevTriggerProps
 
-function StepsPrevTrigger({ className, ...props }: StepsPrevTriggerProps) {
+export function StepsPrevTrigger({
+  className,
+  ...props
+}: StepsPrevTriggerProps) {
   return <ArkSteps.PrevTrigger className={cn(className)} {...props} />
 }
 
@@ -266,7 +272,7 @@ StepsPrevTrigger.displayName = 'Steps.PrevTrigger'
 
 type StepsProgressProps = ArkSteps.ProgressProps
 
-function StepsProgress({ className, ...props }: StepsProgressProps) {
+export function StepsProgress({ className, ...props }: StepsProgressProps) {
   return (
     <ArkSteps.Progress
       className={cn(
@@ -285,7 +291,10 @@ StepsProgress.displayName = 'Steps.Progress'
 
 type StepsTriggerTextProps = ComponentProps<'span'>
 
-function StepsTriggerText({ className, ...props }: StepsTriggerTextProps) {
+export function StepsTriggerText({
+  className,
+  ...props
+}: StepsTriggerTextProps) {
   return (
     <span
       className={cn(
@@ -305,19 +314,17 @@ StepsTriggerText.displayName = 'Steps.TriggerText'
 
 /* ─── Compound export ─── */
 
-export const Steps = Object.assign(StepsRoot, {
-  List: StepsList,
-  Item: StepsItem,
-  Trigger: StepsTrigger,
-  TriggerText: StepsTriggerText,
-  Indicator: StepsIndicator,
-  Separator: StepsSeparator,
-  Content: StepsContent,
-  CompletedContent: StepsCompletedContent,
-  NextTrigger: StepsNextTrigger,
-  PrevTrigger: StepsPrevTrigger,
-  Progress: StepsProgress,
-  Context: ArkSteps.Context,
-  ItemContext: ArkSteps.ItemContext,
-  RootProvider: ArkSteps.RootProvider
-})
+Steps.List = StepsList
+Steps.Item = StepsItem
+Steps.Trigger = StepsTrigger
+Steps.TriggerText = StepsTriggerText
+Steps.Indicator = StepsIndicator
+Steps.Separator = StepsSeparator
+Steps.Content = StepsContent
+Steps.CompletedContent = StepsCompletedContent
+Steps.NextTrigger = StepsNextTrigger
+Steps.PrevTrigger = StepsPrevTrigger
+Steps.Progress = StepsProgress
+Steps.Context = ArkSteps.Context
+Steps.ItemContext = ArkSteps.ItemContext
+Steps.RootProvider = ArkSteps.RootProvider
