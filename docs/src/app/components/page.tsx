@@ -79,7 +79,14 @@ export default async function ComponentsPage() {
     return acc
   }, {} as CategorizedComponents)
 
-  const categoryOrder = ['Actions', 'Forms', 'Content', 'Text', 'Layout']
+  const categoryOrder = [
+    'Actions',
+    'Forms',
+    'Navigation',
+    'Content',
+    'Typography',
+    'Layout'
+  ]
 
   const sortedCategories = Object.entries(categorizedComponents).sort(
     ([a], [b]) => {

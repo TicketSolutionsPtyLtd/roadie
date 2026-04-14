@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { type CSSProperties, useEffect, useState } from 'react'
 
 import Link from 'next/link'
 
@@ -86,6 +86,49 @@ const customLightTheme = {
   }
 }
 
+const MAX_COLLAPSED_LINES = 5
+// Approx: 5 lines of font-mono text-sm (line-height ~24px) + 32px vertical
+// padding. Enough to show 5 source lines with the bottom line clipped under
+// the gradient, hinting that more code exists below.
+const COLLAPSED_HEIGHT_PX = 5 * 24 + 32
+
+function ViewCodeShade({
+  expanded,
+  onToggle
+}: {
+  expanded: boolean
+  onToggle: () => void
+}) {
+  if (expanded) {
+    return (
+      <div className='flex justify-center border-t border-subtler bg-subtler py-1.5'>
+        <button
+          type='button'
+          onClick={onToggle}
+          className='is-interactive rounded-full px-3 py-1 text-sm text-subtle hover:text-normal'
+        >
+          Hide code
+        </button>
+      </div>
+    )
+  }
+  return (
+    <>
+      <div
+        aria-hidden
+        className='pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[var(--intent-bg-sunken)] to-transparent'
+      />
+      <button
+        type='button'
+        onClick={onToggle}
+        className='is-interactive emphasis-normal absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full px-4 py-1.5 text-sm font-medium'
+      >
+        View code
+      </button>
+    </>
+  )
+}
+
 function CopyButton({ code }: { code: string }) {
   const [copied, setCopied] = useState(false)
 
@@ -154,6 +197,15 @@ export function CodePreview({
     ? children.replace('live', '').trim()
     : children.trim()
 
+  const lineCount = trimmedCode.split('\n').length
+  const canCollapse = lineCount > MAX_COLLAPSED_LINES
+  const [isExpanded, setIsExpanded] = useState(false)
+  const isCollapsed = canCollapse && !isExpanded
+
+  const collapseStyle: CSSProperties | undefined = isCollapsed
+    ? { maxHeight: `${COLLAPSED_HEIGHT_PX}px`, overflow: 'hidden' }
+    : undefined
+
   if (!isLive) {
     return (
       <div
@@ -162,30 +214,44 @@ export function CodePreview({
         }
       >
         {showCopy && <CopyButton code={trimmedCode} />}
-        <Highlight code={trimmedCode} language={language} theme={theme}>
-          {({ tokens, getLineProps, getTokenProps }) => (
-            <pre
-              className='min-w-0 overflow-x-auto p-3 font-mono text-xs sm:p-4 sm:text-sm'
-              style={{ scrollbarWidth: 'none' }}
-            >
-              {tokens.map((line, i) => {
-                const { key: _key, ...linePropsWithoutKey } = getLineProps({
-                  line,
-                  key: i
-                })
-                return (
-                  <div key={i} {...linePropsWithoutKey}>
-                    {line.map((token, key) => {
-                      const { key: _tokenKey, ...tokenPropsWithoutKey } =
-                        getTokenProps({ token, key })
-                      return <span key={key} {...tokenPropsWithoutKey} />
-                    })}
-                  </div>
-                )
-              })}
-            </pre>
+        <div className='relative' style={collapseStyle}>
+          <Highlight code={trimmedCode} language={language} theme={theme}>
+            {({ tokens, getLineProps, getTokenProps }) => (
+              <pre
+                className='min-w-0 overflow-x-auto p-3 font-mono text-xs sm:p-4 sm:text-sm'
+                style={{ scrollbarWidth: 'none' }}
+              >
+                {tokens.map((line, i) => {
+                  const { key: _key, ...linePropsWithoutKey } = getLineProps({
+                    line,
+                    key: i
+                  })
+                  return (
+                    <div key={i} {...linePropsWithoutKey}>
+                      {line.map((token, key) => {
+                        const { key: _tokenKey, ...tokenPropsWithoutKey } =
+                          getTokenProps({ token, key })
+                        return <span key={key} {...tokenPropsWithoutKey} />
+                      })}
+                    </div>
+                  )
+                })}
+              </pre>
+            )}
+          </Highlight>
+          {isCollapsed && (
+            <ViewCodeShade
+              expanded={false}
+              onToggle={() => setIsExpanded(true)}
+            />
           )}
-        </Highlight>
+        </div>
+        {canCollapse && isExpanded && (
+          <ViewCodeShade
+            expanded
+            onToggle={() => setIsExpanded(false)}
+          />
+        )}
       </div>
     )
   }
@@ -202,10 +268,22 @@ export function CodePreview({
           className={`min-w-0 overflow-x-auto bg-normal font-sans ${isBleedX ? 'py-4 sm:py-6' : 'px-4 py-4 sm:px-6 sm:py-6'}`}
         />
         <LiveError className='bg-subtler px-4 py-3 text-sm text-subtle intent-danger' />
-        <div className='relative min-w-0'>
+        <div className='relative min-w-0' style={collapseStyle}>
           <CopyButton code={trimmedCode} />
           <LiveEditor className='min-w-0 overflow-x-auto emphasis-sunken p-3 font-mono text-xs sm:p-4 sm:text-sm' />
+          {isCollapsed && (
+            <ViewCodeShade
+              expanded={false}
+              onToggle={() => setIsExpanded(true)}
+            />
+          )}
         </div>
+        {canCollapse && isExpanded && (
+          <ViewCodeShade
+            expanded
+            onToggle={() => setIsExpanded(false)}
+          />
+        )}
       </LiveProvider>
     </div>
   )
