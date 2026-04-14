@@ -28,7 +28,7 @@ type CardOwnProps<T extends ElementType = 'div'> = {
 export type CardProps<T extends ElementType = 'div'> = CardOwnProps<T> &
   Omit<ComponentProps<T>, keyof CardOwnProps<T>>
 
-function CardRoot<T extends ElementType = 'div'>({
+export function Card<T extends ElementType = 'div'>({
   as,
   className,
   intent,
@@ -50,9 +50,9 @@ function CardRoot<T extends ElementType = 'div'>({
   )
 }
 
-CardRoot.displayName = 'Card'
+Card.displayName = 'Card'
 
-function CardHeader({ className, ...props }: ComponentProps<'div'>) {
+export function CardHeader({ className, ...props }: ComponentProps<'div'>) {
   return (
     <div
       className={cn(
@@ -66,7 +66,7 @@ function CardHeader({ className, ...props }: ComponentProps<'div'>) {
 
 CardHeader.displayName = 'Card.Header'
 
-function CardContent({ className, ...props }: ComponentProps<'div'>) {
+export function CardContent({ className, ...props }: ComponentProps<'div'>) {
   return (
     <div
       className={cn(
@@ -80,7 +80,7 @@ function CardContent({ className, ...props }: ComponentProps<'div'>) {
 
 CardContent.displayName = 'Card.Content'
 
-function CardFooter({ className, ...props }: ComponentProps<'div'>) {
+export function CardFooter({ className, ...props }: ComponentProps<'div'>) {
   return (
     <div
       className={cn(
@@ -94,7 +94,7 @@ function CardFooter({ className, ...props }: ComponentProps<'div'>) {
 
 CardFooter.displayName = 'Card.Footer'
 
-function CardImage({
+export function CardImage({
   className,
   ...props
 }: ImgHTMLAttributes<HTMLImageElement>) {
@@ -113,7 +113,7 @@ function CardImage({
 
 CardImage.displayName = 'Card.Image'
 
-function CardTitle({ className, ...props }: ComponentProps<'h3'>) {
+export function CardTitle({ className, ...props }: ComponentProps<'h3'>) {
   return (
     <h3 className={cn('text-display-ui-6 text-strong', className)} {...props} />
   )
@@ -121,24 +121,15 @@ function CardTitle({ className, ...props }: ComponentProps<'h3'>) {
 
 CardTitle.displayName = 'Card.Title'
 
-function CardDescription({ className, ...props }: ComponentProps<'p'>) {
+export function CardDescription({ className, ...props }: ComponentProps<'p'>) {
   return <p className={cn('text-sm text-subtle', className)} {...props} />
 }
 
 CardDescription.displayName = 'Card.Description'
 
-export const Card = Object.assign(CardRoot, {
-  Header: CardHeader,
-  Content: CardContent,
-  Footer: CardFooter,
-  Image: CardImage,
-  Title: CardTitle,
-  Description: CardDescription
-}) as typeof CardRoot & {
-  Header: typeof CardHeader
-  Content: typeof CardContent
-  Footer: typeof CardFooter
-  Image: typeof CardImage
-  Title: typeof CardTitle
-  Description: typeof CardDescription
-}
+Card.Header = CardHeader
+Card.Content = CardContent
+Card.Footer = CardFooter
+Card.Image = CardImage
+Card.Title = CardTitle
+Card.Description = CardDescription
