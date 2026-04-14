@@ -1,5 +1,3 @@
-'use client'
-
 import { Fragment, type ReactElement } from 'react'
 
 import { Mark, type MarkProps } from '../Mark'

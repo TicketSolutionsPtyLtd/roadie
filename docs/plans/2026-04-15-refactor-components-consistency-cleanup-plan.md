@@ -10,6 +10,7 @@ date: 2026-04-15
 Sweep the existing component surface for consistency, dead code, and Next.js friendliness before adding Avatar, Checkbox, Switch, Dialog, and Form from Base UI. The goal is not rewrites — every change is a small, targeted fix that removes a decision point or a copy-paste trap for the incoming components.
 
 **Scope excludes:**
+
 - Steps → Base UI migration. `@ark-ui/react/steps` stays. Steps is still included in the cross-cutting phases (Phosphor imports, checked-state token, export-pattern migration) where the Ark-vs-Base-UI question doesn't matter.
 - SpotIllustration barrel export / package surface. Handled in a separate plan because the underlying question — "is SpotIllustration part of `@oztix/roadie-components` at all, or its own package?" — deserves its own decision.
 
@@ -32,7 +33,7 @@ Sweep the existing component surface for consistency, dead code, and Next.js fri
 
 ### New considerations discovered
 
-- **Pattern C (`Compound.Sub = SubFn`) is a confirmed breakage in Next.js server components**, not a theoretical one. Error: *"Cannot access .Foo on the server. You cannot dot into a client module from a server component."* Every current Roadie compound trips this if used across the RSC boundary.
+- **Pattern C (`Compound.Sub = SubFn`) is a confirmed breakage in Next.js server components**, not a theoretical one. Error: _"Cannot access .Foo on the server. You cannot dot into a client module from a server component."_ Every current Roadie compound trips this if used across the RSC boundary.
 - **`export * as` creates real ESM namespace semantics** — each member is a separate client reference, which is why it works where property assignment fails. Base UI itself ships exactly `export * as Combobox from "./index.parts.js"` in its published build.
 - **Barrel files hurt Next.js App Router build times.** Consumers importing `{ Button }` from the Roadie barrel force the Next.js compiler to walk every `'use client'` module transitively reachable from the barrel — even unused ones. Subpath imports scope the walk to one component. Next.js's [`optimizePackageImports`](https://nextjs.org/docs/app/api-reference/config/next-config-js/optimizePackageImports) is a workaround for this exact problem; shipping subpaths makes the optimization automatic.
 - **Per-file split gives HMR isolation.** Editing `ComboboxInput.tsx` only invalidates that module. In a single `parts.tsx`, every edit re-evaluates every sub-component. For Select (17 subs) and Combobox (16 subs) this is a real DX difference.
@@ -86,18 +87,18 @@ This plan materialised from `/compound-engineering:ce:review` run on 2026-04-15 
 
 ## Phase overview
 
-| Phase | Name | Scope | Risk | Effort |
-|---|---|---|---|---|
-| 1 | Zero-risk trim | Docs skeleton, dead type exports, empty CVA strings, trivial Highlight cleanup | Low | 30 min |
-| 2 | Next.js directives + icon imports | Remove unnecessary `'use client'`, sweep Phosphor imports to `/ssr` | Low | 45 min |
-| 3 | **Subcomponent export pattern migration + per-file split + subpath package exports + passthrough collapse** | Migrate all 11 compounds to `export * as Namespace` with per-file sub-component source layout (mirrors Base UI). Configure subpath package exports via `package.json` + `tsup` multi-entry. Codemod docs site to subpath imports. Rewrite `COMPOUND_PATTERNS.md`. Remove `PropsAccordion.tsx` workaround. Promote RSC canary to permanent debug route. Close the `/parts` subpath follow-up | High | 2–3 days |
-| 4 | Field `disabled` propagation | Thread `disabled` from Field context into all four field-integrated controls | Medium | 1.5 h |
-| 5 | HelperText / ErrorText consolidation | Delete duplicated subcomponents on Select / RadioGroup / Fieldset; keep Field's only | Medium | 1 h |
-| 6 | Prop-name inventory + Mark / LinkButton fixups | Research-first: cross-component prop-name table; then Mark inline-intent cleanup and LinkButton type reuse | Medium | 2 h |
-| 7 | Checked-state token | Extract `--intent-checked-bg` / `--intent-checked-border` tokens; migrate call sites | Medium | 1 h |
-| 8 | Root prop types: `interface extends` → `type =` | Sweep 14 component root prop types to `type =` form per CLAUDE.md preference | Low | 45 min |
-| 9 | Test coverage backfill | Add tests for Indicator and LinkButton (currently untested) | Low | 1 h |
-| 10 | Minor polish | Accordion dead variants, Card `as` generic, Field hooks privacy, Button folder note, Accordion Context form, Indicator public surface, Marquee flag | Low | 1 h |
+| Phase | Name                                                                                                        | Scope                                                                                                                                                                                                                                                                                                                                                                                       | Risk   | Effort   |
+| ----- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | -------- |
+| 1     | Zero-risk trim                                                                                              | Docs skeleton, dead type exports, empty CVA strings, trivial Highlight cleanup                                                                                                                                                                                                                                                                                                              | Low    | 30 min   |
+| 2     | Next.js directives + icon imports                                                                           | Remove unnecessary `'use client'`, sweep Phosphor imports to `/ssr`                                                                                                                                                                                                                                                                                                                         | Low    | 45 min   |
+| 3     | **Subcomponent export pattern migration + per-file split + subpath package exports + passthrough collapse** | Migrate all 11 compounds to `export * as Namespace` with per-file sub-component source layout (mirrors Base UI). Configure subpath package exports via `package.json` + `tsup` multi-entry. Codemod docs site to subpath imports. Rewrite `COMPOUND_PATTERNS.md`. Remove `PropsAccordion.tsx` workaround. Promote RSC canary to permanent debug route. Close the `/parts` subpath follow-up | High   | 2–3 days |
+| 4     | Field `disabled` propagation                                                                                | Thread `disabled` from Field context into all four field-integrated controls                                                                                                                                                                                                                                                                                                                | Medium | 1.5 h    |
+| 5     | HelperText / ErrorText consolidation                                                                        | Delete duplicated subcomponents on Select / RadioGroup / Fieldset; keep Field's only                                                                                                                                                                                                                                                                                                        | Medium | 1 h      |
+| 6     | Prop-name inventory + Mark / LinkButton fixups                                                              | Research-first: cross-component prop-name table; then Mark inline-intent cleanup and LinkButton type reuse                                                                                                                                                                                                                                                                                  | Medium | 2 h      |
+| 7     | Checked-state token                                                                                         | Extract `--intent-checked-bg` / `--intent-checked-border` tokens; migrate call sites                                                                                                                                                                                                                                                                                                        | Medium | 1 h      |
+| 8     | Root prop types: `interface extends` → `type =`                                                             | Sweep 14 component root prop types to `type =` form per CLAUDE.md preference                                                                                                                                                                                                                                                                                                                | Low    | 45 min   |
+| 9     | Test coverage backfill                                                                                      | Add tests for Indicator and LinkButton (currently untested)                                                                                                                                                                                                                                                                                                                                 | Low    | 1 h      |
+| 10    | Minor polish                                                                                                | Accordion dead variants, Card `as` generic, Field hooks privacy, Button folder note, Accordion Context form, Indicator public surface, Marquee flag                                                                                                                                                                                                                                         | Low    | 1 h      |
 
 **Suggested PR strategy:** Phases 1–2 as one PR (pure cleanup, no behaviour change). **Phase 3 as its own PR — the largest and most consequential change in the plan; 2–3 days of work, dedicated review.** Phase 4 as its own PR (the only behavioural change). Phase 5 as its own PR (public API removal). Phase 6 split into Research → Mark PR → LinkButton PR. Phase 7 as its own PR. Phases 8–10 bundled.
 
@@ -108,6 +109,7 @@ This plan materialised from `/compound-engineering:ce:review` run on 2026-04-15 
 Nothing here changes runtime behaviour. Everything is deletion of dead code or documentation correction.
 
 ### Files touched
+
 - `docs/contributing/BASE_UI.md` — line ~349 (skeleton template)
 - `packages/components/src/components/Select/index.tsx` — lines 62-65, 464
 - `packages/components/src/components/Combobox/index.tsx` — lines 51-54
@@ -151,6 +153,7 @@ Nothing here changes runtime behaviour. Everything is deletion of dead code or d
 Goal: ship the components package as server-first. Pure presentational wrappers are RSC-safe; wrappers that use hooks or Base UI primitives stay client. Phosphor imports use the `/ssr` path everywhere so a single import line works in both server and client components.
 
 ### Files touched
+
 - `packages/components/src/components/Highlight/index.tsx` — remove `'use client'`
 - `packages/components/src/components/Input/index.tsx` — remove `'use client'`
 - `packages/components/src/components/Textarea/index.tsx` — remove `'use client'`
@@ -166,6 +169,7 @@ Goal: ship the components package as server-first. Pure presentational wrappers 
 1. **B1 — Remove unnecessary `'use client'` directives.** Highlight, Input, Textarea are leaf components with no hooks and no Base UI — safe to drop the directive. Before each deletion, `rg "useState|useEffect|useRef|useCallback|useMemo|useReducer|useContext|useId|useSyncExternalStore|createContext|forwardRef" <file>` must return zero matches.
 
 2. **Add a Base UI guide note.** In `BASE_UI.md`:
+
    > **Server-safe by default.** Do not add `'use client'` unless the component calls a React hook, uses `createContext`, or wraps a Base UI primitive that needs a client boundary. Pure presentational wrappers must stay server-safe so Next.js consumers can render them in server components without forcing the entire tree into the client bundle.
 
 3. **B2 — Sweep Phosphor imports to `/ssr`.** Replace every `from '@phosphor-icons/react'` with `from '@phosphor-icons/react/ssr'` in Accordion, Select, Combobox, Autocomplete, Steps. Carousel is already on `/ssr`.
@@ -174,11 +178,12 @@ Goal: ship the components package as server-first. Pure presentational wrappers 
 
 ### Acceptance
 
-- [ ] `rg "'use client'" packages/components/src/components/Highlight/index.tsx packages/components/src/components/Input/index.tsx packages/components/src/components/Textarea/index.tsx` returns 0 matches
-- [ ] `rg "from '@phosphor-icons/react'" packages/components/src/` returns 0 matches
-- [ ] `pnpm build && pnpm test && pnpm typecheck` passes
-- [ ] Docs site builds
-- [ ] `BASE_UI.md` has the new server-safety paragraph
+- [x] `rg "'use client'" packages/components/src/components/Highlight/index.tsx packages/components/src/components/Input/index.tsx packages/components/src/components/Textarea/index.tsx` returns 0 matches
+- [x] `rg "from '@phosphor-icons/react'" packages/components/src/` returns 0 matches
+- [x] `pnpm build && pnpm test && pnpm typecheck` passes
+- [x] Docs site builds
+- [x] `BASE_UI.md` has the new server-safety paragraph
+- [ ] ESLint `no-restricted-imports` rule (optional, deferred to follow-up)
 
 ---
 
@@ -273,24 +278,24 @@ packages/components/src/components/Combobox/
 
 import { Combobox as ComboboxPrimitive } from '@base-ui-components/react/combobox'
 import type { VariantProps } from 'class-variance-authority'
+
 import { cn } from '@oztix/roadie-core/utils'
+
 import { comboboxInputGroupVariants } from './variants'
+
+// ComboboxInput.tsx
 
 export type ComboboxInputProps = ComboboxPrimitive.Input.Props &
   VariantProps<typeof comboboxInputGroupVariants>
 
 export function ComboboxInput({ className, ...props }: ComboboxInputProps) {
-  return (
-    <ComboboxPrimitive.Input
-      className={cn('...', className)}
-      {...props}
-    />
-  )
+  return <ComboboxPrimitive.Input className={cn('...', className)} {...props} />
 }
 ComboboxInput.displayName = 'Combobox.Input'
 ```
 
 Notes on the leaf file shape:
+
 - **Function keeps its compound-prefixed name** (`ComboboxInput`) so stack traces and React DevTools are readable.
 - **`displayName` is dot-notation** (`'Combobox.Input'`) — `<PropsDefinitions>` derives headings from this field.
 - **Types export in the same file** as their function — consumers can reach them via the subpath import.
@@ -303,6 +308,8 @@ Notes on the leaf file shape:
 'use client'
 
 import { Combobox as ComboboxPrimitive } from '@base-ui-components/react/combobox'
+
+// ComboboxPortal.tsx
 
 export const ComboboxPortal = ComboboxPrimitive.Portal
 export type ComboboxPortalProps = ComboboxPrimitive.Portal.Props
@@ -350,8 +357,8 @@ export type { ComboboxInputGroupVariants } from './variants'
 
 ```tsx
 // Next.js app/page.tsx — a server component
-import { Combobox } from '@oztix/roadie-components/combobox'
 import { Button } from '@oztix/roadie-components/button'
+import { Combobox } from '@oztix/roadie-components/combobox'
 import { Field } from '@oztix/roadie-components/field'
 
 export default function Page() {
@@ -360,14 +367,14 @@ export default function Page() {
       <Field.Label>Venue</Field.Label>
       <Combobox.Root>
         <Combobox.InputGroup>
-          <Combobox.Input placeholder="Search..." />
+          <Combobox.Input placeholder='Search...' />
           <Combobox.Trigger />
         </Combobox.InputGroup>
         <Combobox.Portal>
           <Combobox.Positioner>
             <Combobox.Popup>
               <Combobox.List>
-                <Combobox.Item value="a">A</Combobox.Item>
+                <Combobox.Item value='a'>A</Combobox.Item>
               </Combobox.List>
             </Combobox.Popup>
           </Combobox.Positioner>
@@ -386,6 +393,7 @@ RSC-safe end to end. No client wrapper. No barrel walking.
 #### 1. Capture the pattern in a solutions entry
 
 Create `docs/solutions/rsc-patterns/compound-export-namespace.md` with:
+
 - Pattern C breakage with the #51593 quote and error message
 - Why `export * as` works (ESM namespace semantics, top-level named exports, client-reference-per-member)
 - Why per-file split (HMR isolation, bundler precision, Base UI parity)
@@ -400,6 +408,7 @@ Create `docs/solutions/rsc-patterns/compound-export-namespace.md` with:
 Replace the existing "Pattern A (named export + property assignment)" mandate with the full new convention: `export * as Namespace` + per-file split + subpath exports. Preserve the context-wiring idioms and direct-children constraints.
 
 Updates:
+
 - **`displayName` requirement** — per-leaf-file with dot-notation string
 - **Test file rule** — one `Compound.test.tsx` at the namespace level, not per sub-component. Per-file unit tests only where a sub-component has non-trivial internal logic.
 - **Shared context rule** — if sub-components share context, factor it into `CompoundContext.ts` and import from each leaf. Matches Base UI.
@@ -410,6 +419,7 @@ Delete every reference to `Object.assign`, `Compound.Sub =`, and property assign
 Add a new "Type access" section documenting `Combobox.InputProps` namespace-type form and the `ComponentProps<typeof Combobox.Input>` fallback.
 
 Add an "Authoring a new compound" checklist:
+
 1. Create folder `packages/components/src/components/MyCompound/`
 2. Create one `.tsx` per sub-component with `'use client'`, function definition, `displayName` set to dot-notation
 3. Create `variants.ts` for CVA maps and shared types
@@ -430,33 +440,70 @@ Update `packages/components/package.json`:
   "exports": {
     ".": { "import": "./dist/index.js", "types": "./dist/index.d.ts" },
     "./button": { "import": "./dist/button.js", "types": "./dist/button.d.ts" },
-    "./link-button": { "import": "./dist/link-button.js", "types": "./dist/link-button.d.ts" },
-    "./accordion": { "import": "./dist/accordion.js", "types": "./dist/accordion.d.ts" },
-    "./autocomplete": { "import": "./dist/autocomplete.js", "types": "./dist/autocomplete.d.ts" },
+    "./link-button": {
+      "import": "./dist/link-button.js",
+      "types": "./dist/link-button.d.ts"
+    },
+    "./accordion": {
+      "import": "./dist/accordion.js",
+      "types": "./dist/accordion.d.ts"
+    },
+    "./autocomplete": {
+      "import": "./dist/autocomplete.js",
+      "types": "./dist/autocomplete.d.ts"
+    },
     "./badge": { "import": "./dist/badge.js", "types": "./dist/badge.d.ts" },
-    "./breadcrumb": { "import": "./dist/breadcrumb.js", "types": "./dist/breadcrumb.d.ts" },
+    "./breadcrumb": {
+      "import": "./dist/breadcrumb.js",
+      "types": "./dist/breadcrumb.d.ts"
+    },
     "./card": { "import": "./dist/card.js", "types": "./dist/card.d.ts" },
-    "./carousel": { "import": "./dist/carousel.js", "types": "./dist/carousel.d.ts" },
+    "./carousel": {
+      "import": "./dist/carousel.js",
+      "types": "./dist/carousel.d.ts"
+    },
     "./code": { "import": "./dist/code.js", "types": "./dist/code.d.ts" },
-    "./combobox": { "import": "./dist/combobox.js", "types": "./dist/combobox.d.ts" },
+    "./combobox": {
+      "import": "./dist/combobox.js",
+      "types": "./dist/combobox.d.ts"
+    },
     "./field": { "import": "./dist/field.js", "types": "./dist/field.d.ts" },
-    "./fieldset": { "import": "./dist/fieldset.js", "types": "./dist/fieldset.d.ts" },
-    "./highlight": { "import": "./dist/highlight.js", "types": "./dist/highlight.d.ts" },
+    "./fieldset": {
+      "import": "./dist/fieldset.js",
+      "types": "./dist/fieldset.d.ts"
+    },
+    "./highlight": {
+      "import": "./dist/highlight.js",
+      "types": "./dist/highlight.d.ts"
+    },
     "./input": { "import": "./dist/input.js", "types": "./dist/input.d.ts" },
     "./label": { "import": "./dist/label.js", "types": "./dist/label.d.ts" },
     "./mark": { "import": "./dist/mark.js", "types": "./dist/mark.d.ts" },
-    "./marquee": { "import": "./dist/marquee.js", "types": "./dist/marquee.d.ts" },
+    "./marquee": {
+      "import": "./dist/marquee.js",
+      "types": "./dist/marquee.d.ts"
+    },
     "./prose": { "import": "./dist/prose.js", "types": "./dist/prose.d.ts" },
-    "./radio-group": { "import": "./dist/radio-group.js", "types": "./dist/radio-group.d.ts" },
+    "./radio-group": {
+      "import": "./dist/radio-group.js",
+      "types": "./dist/radio-group.d.ts"
+    },
     "./select": { "import": "./dist/select.js", "types": "./dist/select.d.ts" },
-    "./separator": { "import": "./dist/separator.js", "types": "./dist/separator.d.ts" },
+    "./separator": {
+      "import": "./dist/separator.js",
+      "types": "./dist/separator.d.ts"
+    },
     "./steps": { "import": "./dist/steps.js", "types": "./dist/steps.d.ts" },
-    "./textarea": { "import": "./dist/textarea.js", "types": "./dist/textarea.d.ts" }
+    "./textarea": {
+      "import": "./dist/textarea.js",
+      "types": "./dist/textarea.d.ts"
+    }
   }
 }
 ```
 
 Notes:
+
 - **`"sideEffects": false`** is required for tree-shaking to work predictably. Verified safe because CSS ships from `@oztix/roadie-core`.
 - **`/button` exports both `Button` and `IconButton`** plus `buttonVariants`. They share a CVA variant map and co-locating matches the existing folder.
 - **`/link-button` exports `LinkButton` and `LinkIconButton`** for the same reason.
@@ -471,19 +518,22 @@ Generate the `exports` map from a build script (`scripts/generate-package-export
 Update `packages/components/tsup.config.ts`:
 
 ```ts
-import { defineConfig } from 'tsup'
 import { readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { defineConfig } from 'tsup'
 
 function resolveEntries() {
   const componentsDir = resolve(__dirname, 'src/components')
   const entries: Record<string, string> = {
-    index: 'src/index.tsx',
+    index: 'src/index.tsx'
   }
   for (const name of readdirSync(componentsDir)) {
     // skip Indicator (internal after M8) and SpotIllustration (separate plan)
     if (name === 'Indicator' || name === 'SpotIllustration') continue
-    const subpath = name.replace(/([A-Z])/g, (c, i) => (i ? '-' : '') + c.toLowerCase())
+    const subpath = name.replace(
+      /([A-Z])/g,
+      (c, i) => (i ? '-' : '') + c.toLowerCase()
+    )
     entries[subpath] = `src/components/${name}/index.ts`
   }
   return entries
@@ -495,11 +545,12 @@ export default defineConfig({
   dts: true,
   clean: true,
   splitting: true,
-  treeshake: true,
+  treeshake: true
 })
 ```
 
 Notes:
+
 - `splitting: true` lets tsup share common chunks across entries.
 - The same generator script that builds `package.json` `exports` consumes this entry map so both stay in sync.
 
@@ -536,15 +587,19 @@ For each compound, per-file migration steps:
 While creating each compound's per-file structure, these sub-components are pure passthroughs — tiny files that do `export const X = Primitive.X`:
 
 **Combobox:**
+
 - `ComboboxPortal.tsx`, `ComboboxList.tsx`, `ComboboxCollection.tsx`
 
 **Autocomplete:**
+
 - `AutocompleteValue.tsx`, `AutocompletePortal.tsx`, `AutocompleteList.tsx`, `AutocompleteCollection.tsx`
 
 **Select:**
+
 - `SelectPortal.tsx`, `SelectItemText.tsx`
 
 **Steps** (Ark UI, same principle):
+
 - `StepsContent.tsx`, `StepsCompletedContent.tsx`, `StepsNextTrigger.tsx`, `StepsPrevTrigger.tsx`
 
 The Ark UI `as React.ComponentType<...>` cast at old `Steps/index.tsx:226` disappears with the wrapper.
@@ -555,12 +610,26 @@ The Ark UI `as React.ComponentType<...>` cast at old `Steps/index.tsx:226` disap
 
 ```tsx
 export { Combobox } from './components/Combobox'
-export type { ComboboxRootProps, ComboboxInputProps } from './components/Combobox/ComboboxRoot'
+export type {
+  ComboboxRootProps,
+  ComboboxInputProps
+} from './components/Combobox/ComboboxRoot'
 export { comboboxInputGroupVariants } from './components/Combobox/variants'
 // ... for every compound
 
-export { Button, IconButton, buttonVariants, type ButtonProps, type IconButtonProps } from './components/Button'
-export { LinkButton, LinkIconButton, type LinkButtonProps, type LinkIconButtonProps } from './components/LinkButton'
+export {
+  Button,
+  IconButton,
+  buttonVariants,
+  type ButtonProps,
+  type IconButtonProps
+} from './components/Button'
+export {
+  LinkButton,
+  LinkIconButton,
+  type LinkButtonProps,
+  type LinkIconButtonProps
+} from './components/LinkButton'
 // ... for every leaf component
 ```
 
@@ -576,6 +645,7 @@ Every `@oztix/roadie-components` import in `docs/src/` becomes a subpath import.
 - **Handles MDX live examples** in `tsx-live` code fences so they resolve at runtime.
 
 Grep coverage:
+
 ```bash
 rg "^import .*\{[^}]*(Accordion|Autocomplete|Breadcrumb|Card|Carousel|Combobox|Field|Fieldset|RadioGroup|Select|Steps)[A-Z]\w+" docs/
 rg "<(Combobox|Autocomplete|Accordion|Breadcrumb|Card|Carousel|Field|Fieldset|RadioGroup|Select|Steps)[^.A-Za-z]" docs/
@@ -596,23 +666,26 @@ Create `docs/src/app/debug/rsc-smoke/page.tsx` as a permanent server component r
 ```tsx
 // docs/src/app/debug/rsc-smoke/page.tsx
 // No 'use client' — this is a server component.
-import { Combobox } from '@oztix/roadie-components/combobox'
-import { Select } from '@oztix/roadie-components/select'
 import { Accordion } from '@oztix/roadie-components/accordion'
+import { Combobox } from '@oztix/roadie-components/combobox'
 import { Field } from '@oztix/roadie-components/field'
+import { Select } from '@oztix/roadie-components/select'
+
 // ... every compound
 
 export default function RscSmokePage() {
   return (
     <main>
       <h1>RSC smoke test</h1>
-      <p>Every compound renders from a server component without a client wrapper.</p>
+      <p>
+        Every compound renders from a server component without a client wrapper.
+      </p>
 
       <section>
         <h2>Combobox</h2>
         <Combobox.Root>
           <Combobox.InputGroup>
-            <Combobox.Input placeholder="Test" />
+            <Combobox.Input placeholder='Test' />
           </Combobox.InputGroup>
         </Combobox.Root>
       </section>
@@ -673,17 +746,17 @@ CI builds the docs site, so the canary fails the build if any compound regresses
 
 For the record, in case the decision is revisited:
 
-| Dimension | Pattern A (`export * as`) | Pattern B (flat exports) | Current (property assignment) |
-|---|---|---|---|
-| RSC safe | ✅ Yes — Base UI 1.3.0 in production | ✅ Yes — shadcn at scale | ❌ **Broken** per next#51593 |
-| Import surface | 1 per compound | N per compound (5-17 for Roadie) | 1 per compound |
-| Tree-shaking | Per-member (per-file split + `sideEffects: false`) | Per-member | Partial |
-| `react-docgen-typescript` | Per-leaf `displayName` picked up natively | Picked up natively | Works with manual displayName |
-| HMR / Fast Refresh | Works (per-file split isolates invalidation) | Works | Fragile under monolithic parts file |
-| Matches Base UI | ✅ 1:1 (namespace shape + on-disk layout + subpath exports) | ❌ Different vocabulary | ❌ Different vocabulary |
-| Subpath export fit | Natural — each subpath's namespace is one file | Natural — each subpath exports N flat names | Natural |
-| Consumer cognitive load | Low — `<Combobox.Input>` mirrors Base UI | Medium — second vocabulary | Low — but broken in RSC |
-| Industry precedent 2026 | Base UI, Radix, Ark UI | shadcn/ui, most Tailwind kits | Pre-RSC React |
+| Dimension                 | Pattern A (`export * as`)                                   | Pattern B (flat exports)                    | Current (property assignment)       |
+| ------------------------- | ----------------------------------------------------------- | ------------------------------------------- | ----------------------------------- |
+| RSC safe                  | ✅ Yes — Base UI 1.3.0 in production                        | ✅ Yes — shadcn at scale                    | ❌ **Broken** per next#51593        |
+| Import surface            | 1 per compound                                              | N per compound (5-17 for Roadie)            | 1 per compound                      |
+| Tree-shaking              | Per-member (per-file split + `sideEffects: false`)          | Per-member                                  | Partial                             |
+| `react-docgen-typescript` | Per-leaf `displayName` picked up natively                   | Picked up natively                          | Works with manual displayName       |
+| HMR / Fast Refresh        | Works (per-file split isolates invalidation)                | Works                                       | Fragile under monolithic parts file |
+| Matches Base UI           | ✅ 1:1 (namespace shape + on-disk layout + subpath exports) | ❌ Different vocabulary                     | ❌ Different vocabulary             |
+| Subpath export fit        | Natural — each subpath's namespace is one file              | Natural — each subpath exports N flat names | Natural                             |
+| Consumer cognitive load   | Low — `<Combobox.Input>` mirrors Base UI                    | Medium — second vocabulary                  | Low — but broken in RSC             |
+| Industry precedent 2026   | Base UI, Radix, Ark UI                                      | shadcn/ui, most Tailwind kits               | Pre-RSC React                       |
 
 Both Pattern A and Pattern B work in RSC. The tiebreaker is Base UI parity at every level: namespace export shape, per-file source layout, and subpath package exports. Consumers who use Base UI directly for anything Roadie doesn't wrap get a consistent import convention across the whole stack.
 
@@ -696,6 +769,7 @@ The only behaviour change in this plan. Select, RadioGroup, Combobox, and Autoco
 **Dependency on Phase 3:** after migration, the file paths and function names change (per-file split). Phase 4 is expressed below in terms of the post-Phase-3 layout.
 
 ### Files touched
+
 - `packages/components/src/components/Field/FieldContext.ts` — confirm `disabled` is in context
 - `packages/components/src/components/Select/SelectRoot.tsx` — thread `disabled`
 - `packages/components/src/components/RadioGroup/RadioGroupRoot.tsx`
@@ -706,6 +780,7 @@ The only behaviour change in this plan. Select, RadioGroup, Combobox, and Autoco
 ### Actions
 
 1. **Audit current state.** For each control, find every `useFieldContext()` destructure and confirm `disabled` is missing. Thread it into the Base UI Root:
+
    ```tsx
    const fieldContext = useFieldContext()
    return <SelectPrimitive.Root disabled={disabled ?? fieldContext.disabled} {...props} />
@@ -726,6 +801,7 @@ The only behaviour change in this plan. Select, RadioGroup, Combobox, and Autoco
 - [ ] `is-interactive-field` responds to `[data-disabled]` on all four controls
 
 ### Risks
+
 - Base UI primitives may not accept `disabled` at Root for every compound — fall back to threading through InputGroup/Input for that specific control.
 - Existing consumers passing `disabled` on each control still work (consumer wins).
 
@@ -738,6 +814,7 @@ Delete `Fieldset.HelperText`, `Fieldset.ErrorText`, `RadioGroup.HelperText`, `Ra
 **Dependency on Phase 3:** the subcomponents now live in per-file leaves.
 
 ### Files touched
+
 - `packages/components/src/components/Fieldset/FieldsetHelperText.tsx` — delete
 - `packages/components/src/components/Fieldset/FieldsetErrorText.tsx` — delete
 - `packages/components/src/components/RadioGroup/RadioGroupHelperText.tsx` — delete
@@ -751,9 +828,11 @@ Delete `Fieldset.HelperText`, `Fieldset.ErrorText`, `RadioGroup.HelperText`, `Ra
 ### Actions
 
 1. **Consumer audit first.**
+
    ```bash
    rg "Fieldset\.(HelperText|ErrorText)|RadioGroup\.(HelperText|ErrorText)|Select\.(HelperText|ErrorText)" packages/ docs/
    ```
+
    Rewrite any docs examples to wrap in `<Field.Root>` + `Field.HelperText` / `Field.ErrorText`.
 
 2. **Delete the duplicated leaf files.** Remove `parts.ts` short-name re-exports. Remove any internal context fields only used by these subcomponents.
@@ -805,6 +884,7 @@ Re-run the prop-inventory agent. Deliverable: `docs/solutions/conventions/prop-n
 Four files reach directly for `var(--color-accent-*)` because the intent/emphasis system doesn't expose a "checked state" token.
 
 ### Files touched
+
 - `packages/core/src/css/tokens.css`
 - `packages/core/src/css/intents.css`
 - `packages/components/src/components/Select/SelectTrigger.tsx`
@@ -815,6 +895,7 @@ Four files reach directly for `var(--color-accent-*)` because the intent/emphasi
 ### Actions
 
 1. **Define tokens** in `intents.css`:
+
    ```css
    --intent-checked-bg: var(--intent-2);
    --intent-checked-bg-strong: var(--intent-3);
@@ -823,6 +904,7 @@ Four files reach directly for `var(--color-accent-*)` because the intent/emphasi
    ```
 
 2. **Register Tailwind utilities** in `tokens.css`:
+
    ```css
    @theme inline {
      --background-color-checked: var(--intent-checked-bg);
@@ -853,6 +935,7 @@ Sweep 14 root prop types to `type =` form per CLAUDE.md preference. SpotIllustra
 ### Actions
 
 1. Convert each of: `AccordionProps`, `FieldProps`, `FieldsetProps`, `BadgeProps`, `SeparatorProps`, `InputProps`, `TextareaProps`, `CodeProps`, `MarqueeProps`, `LabelProps`, `RequiredIndicatorProps`, `OptionalIndicatorProps`, `HighlightProps`, `CarouselProps`.
+
    ```tsx
    // before
    export interface BadgeProps extends ComponentProps<'span'>, VariantProps<typeof badgeVariants> { ... }
@@ -863,6 +946,7 @@ Sweep 14 root prop types to `type =` form per CLAUDE.md preference. SpotIllustra
 2. Accordion — unify root and item to both use `type =`.
 
 ### Acceptance
+
 - [ ] `rg "^export interface \w+Props" packages/components/src/` returns 0 matches except SpotIllustration
 - [ ] `pnpm typecheck` passes
 - [ ] All docs pages render with identical prop tables
@@ -874,14 +958,17 @@ Sweep 14 root prop types to `type =` form per CLAUDE.md preference. SpotIllustra
 Two components have no tests: `Indicator` and `LinkButton`.
 
 ### Files to create
+
 - `packages/components/src/components/Indicator/Indicator.test.tsx`
 - `packages/components/src/components/LinkButton/LinkButton.test.tsx`
 
 ### Actions
+
 - Indicator tests: assert CVA class names, className passthrough.
 - LinkButton tests: assert root element is `<a>`, CVA variants apply expected classes, `href`/`target`/`rel` passthrough. Mirror `Button.test.tsx`.
 
 ### Acceptance
+
 - [ ] New test files exist and pass
 - [ ] Every component folder has a test file
 
@@ -901,11 +988,12 @@ Grouped into one PR. Post-Phase-3 file paths apply.
 
 4. **M5 — `useFieldInputProps` / `useFieldContext` privacy.** Drop `export`. Remove barrel re-exports.
 
-5. **M7 — Button folder layout.** Button stays flat (not a namespace) because Button and IconButton are two peer root components, not a compound. They share `buttonVariants` and co-locate in `packages/components/src/components/Button/`. Both ship from the single subpath `@oztix/roadie-components/button`, which also re-exports `buttonVariants` (per TC2). Add a comment at the top of `Button/index.ts` explaining the multi-file layout and the Pattern-A exception: *"Button is a leaf component family, not a compound. Two peer components (Button, IconButton) share `buttonVariants` and ship together from the `/button` subpath. Pattern A namespace export does not apply."*
+5. **M7 — Button folder layout.** Button stays flat (not a namespace) because Button and IconButton are two peer root components, not a compound. They share `buttonVariants` and co-locate in `packages/components/src/components/Button/`. Both ship from the single subpath `@oztix/roadie-components/button`, which also re-exports `buttonVariants` (per TC2). Add a comment at the top of `Button/index.ts` explaining the multi-file layout and the Pattern-A exception: _"Button is a leaf component family, not a compound. Two peer components (Button, IconButton) share `buttonVariants` and ship together from the `/button` subpath. Pattern A namespace export does not apply."_
 
 6. **M8 — Indicator public surface.** Drop the package-root exports for `RequiredIndicator` / `OptionalIndicator`. They remain internal to Field / Select / RadioGroup. Remove the `/indicator` subpath from `package.json` `exports` (the generator already skips it). Gate on Phase 9 tests being green.
 
 ### Acceptance
+
 - [ ] Accordion CVA has no empty-string variant entries
 - [ ] `rg "AccordionContext\.Provider" packages/` returns 0 matches
 - [ ] `rg "as Record<string, unknown>" packages/components/src/components/Card/` returns 0 matches
@@ -961,11 +1049,13 @@ Beyond per-phase checks, verify at the end of the sweep:
 ## Sources & references
 
 ### Origin
+
 - Code review run on 2026-04-15 via `/compound-engineering:ce:review` — findings B1–B6, Y1–Y7, M1–M8
 - Plan deepened on 2026-04-15 via `/compound-engineering:deepen-plan` — Phase 3 rewritten with research evidence
 - Plan technically reviewed on 2026-04-15 — Phase 3 extended with per-file split, subpath exports, permanent RSC canary, and generator script
 
 ### Canonical in-repo references
+
 - `AGENTS.md` — styling and component rules (updated in Phase 3 to document subpath imports as canonical)
 - `docs/contributing/BASE_UI.md` — Base UI wrapping contract (Pattern B bug fixed in Phase 1)
 - `docs/contributing/COMPOUND_PATTERNS.md` — rewritten in Phase 3 for `export * as` + per-file split + subpath exports
@@ -975,6 +1065,7 @@ Beyond per-phase checks, verify at the end of the sweep:
 - `docs/solutions/build-errors/stale-tsbuildinfo-masks-local-errors.md`
 
 ### External evidence (Phase 3 research)
+
 - [vercel/next.js#51593 — "Dot notation client component breaks consuming RSC"](https://github.com/vercel/next.js/issues/51593)
 - [Dan Abramov's reply recommending `export * as` + `import * as`](https://github.com/vercel/next.js/issues/51593#issuecomment-1748001262)
 - `@base-ui/react@1.3.0` on-disk source — `node_modules/.pnpm/@base-ui+react@1.3.0.../esm/combobox/index.js`
@@ -984,12 +1075,14 @@ Beyond per-phase checks, verify at the end of the sweep:
 - [vercel/next.js#60449 — barrel-file client-reference proxy boundary](https://github.com/vercel/next.js/issues/60449)
 
 ### Recent related work
+
 - `baa67a3 feat(docs): collapsible code previews + on-this-page right rail (#39)`
 - `5b7e71c feat(docs): wrap compound subcomponent props in Accordion (#38)` — shipped the `PropsAccordion.tsx` workaround that Phase 3 removes
 - `ba58fd6 refactor: migrate all compounds to Pattern A + fix docs props extraction (#36)` — superseded by Phase 3
 - `docs/plans/2026-04-14-feat-docs-and-compound-conventions-improvements-plan.md` — Phase 2.5 (`/parts` subpath) retired by Phase 3
 
 ### External framework references
+
 - Base UI — https://base-ui.com/
 - Phosphor Icons — https://phosphoricons.com/
 - Next.js Server Components — https://nextjs.org/docs/app/building-your-application/rendering/server-components

@@ -8,7 +8,11 @@ import {
 } from 'react'
 
 import { Select as SelectPrimitive } from '@base-ui/react/select'
-import { CaretDownIcon, CaretUpIcon, CheckIcon } from '@phosphor-icons/react'
+import {
+  CaretDownIcon,
+  CaretUpIcon,
+  CheckIcon
+} from '@phosphor-icons/react/ssr'
 import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'

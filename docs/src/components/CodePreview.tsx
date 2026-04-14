@@ -121,7 +121,7 @@ function ViewCodeShade({
       <button
         type='button'
         onClick={onToggle}
-        className='is-interactive emphasis-normal absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full px-4 py-1.5 text-sm font-medium'
+        className='is-interactive absolute bottom-3 left-1/2 -translate-x-1/2 emphasis-normal rounded-full px-4 py-1.5 text-sm font-medium'
       >
         View code
       </button>
@@ -247,10 +247,7 @@ export function CodePreview({
           )}
         </div>
         {canCollapse && isExpanded && (
-          <ViewCodeShade
-            expanded
-            onToggle={() => setIsExpanded(false)}
-          />
+          <ViewCodeShade expanded onToggle={() => setIsExpanded(false)} />
         )}
       </div>
     )
@@ -279,10 +276,7 @@ export function CodePreview({
           )}
         </div>
         {canCollapse && isExpanded && (
-          <ViewCodeShade
-            expanded
-            onToggle={() => setIsExpanded(false)}
-          />
+          <ViewCodeShade expanded onToggle={() => setIsExpanded(false)} />
         )}
       </LiveProvider>
     </div>

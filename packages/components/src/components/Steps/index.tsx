@@ -8,7 +8,7 @@ import {
   type UseStepsReturn,
   useSteps
 } from '@ark-ui/react/steps'
-import { CheckIcon } from '@phosphor-icons/react'
+import { CheckIcon } from '@phosphor-icons/react/ssr'
 import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'

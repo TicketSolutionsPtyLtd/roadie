@@ -185,6 +185,14 @@ trigger's width:
 
 ## 7. `'use client'` requirement
 
+**Server-safe by default.** Do not add `'use client'` unless the
+component calls a React hook (`useState`, `useEffect`, `useRef`, `useId`,
+etc.), uses `createContext`, or wraps a Base UI primitive that needs a
+client boundary. Pure presentational wrappers (e.g. `Input`, `Textarea`,
+`Highlight`) must stay server-safe so Next.js consumers can render them
+in server components without forcing the entire tree into the client
+bundle.
+
 Every file that imports from `@base-ui/react/*` (or uses React client
 hooks like `useState`, `createContext`) must start with `'use client'`.
 

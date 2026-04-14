@@ -9,7 +9,7 @@ import {
   useMemo
 } from 'react'
 
-import { CaretDownIcon } from '@phosphor-icons/react'
+import { CaretDownIcon } from '@phosphor-icons/react/ssr'
 import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
