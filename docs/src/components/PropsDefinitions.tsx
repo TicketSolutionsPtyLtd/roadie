@@ -183,9 +183,7 @@ function parseComponentProps(componentPath: string) {
     // silently vanish from the docs once the propFilter strips every
     // HTML-only prop. A section with a "forwards all HTML attributes"
     // note is more useful than no section at all.
-    const filtered = result.filter((info) =>
-      /^[A-Z]/.test(info.displayName)
-    )
+    const filtered = result.filter((info) => /^[A-Z]/.test(info.displayName))
 
     // Deduplicate compound components: the parser detects each subcomponent
     // twice — once via `export function CarouselPrevious()` (yields name
@@ -258,8 +256,8 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
 
             {!hasOwnProps && !hasInheritedProps && (
               <p className='px-4 py-3 text-sm text-subtle'>
-                No additional props — forwards all standard HTML attributes
-                to the underlying element.
+                No additional props — forwards all standard HTML attributes to
+                the underlying element.
               </p>
             )}
 
