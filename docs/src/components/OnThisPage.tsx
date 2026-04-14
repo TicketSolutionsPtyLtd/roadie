@@ -1,10 +1,21 @@
 'use client'
 
-import { type MouseEvent, useCallback, useEffect, useState } from 'react'
+import {
+  type MouseEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState
+} from 'react'
+
+import { usePathname } from 'next/navigation'
 
 import { cn } from '@oztix/roadie-core/utils'
 
 const SCROLL_OFFSET_PX = 80
+// Smooth scroll usually settles in <500ms but we leave headroom for slow
+// machines + the inertia tail before honouring observer updates again.
+const PROGRAMMATIC_SCROLL_LOCK_MS = 800
 
 type Heading = { id: string; text: string; level: 2 | 3 }
 
@@ -18,10 +29,17 @@ function slugify(text: string): string {
 }
 
 export function OnThisPage() {
+  const pathname = usePathname()
   const [headings, setHeadings] = useState<Heading[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
 
+  // Tracks programmatic (click-driven) scrolls so the IntersectionObserver
+  // doesn't briefly highlight headings that pass through the active band
+  // while smooth-scrolling toward the user's target.
+  const programmaticScrollLockRef = useRef<number>(0)
+
   useEffect(() => {
+    if (pathname === '/') return
     const mainEl = document.querySelector('main')
     if (!mainEl) return
 
@@ -60,6 +78,7 @@ export function OnThisPage() {
 
     const observer = new IntersectionObserver(
       (entries) => {
+        if (Date.now() < programmaticScrollLockRef.current) return
         const visible = entries
           .filter((entry) => entry.isIntersecting)
           .sort(
@@ -69,14 +88,14 @@ export function OnThisPage() {
           )
         if (visible[0]) setActiveId(visible[0].target.id)
       },
-      { rootMargin: '-80px 0px -70% 0px', threshold: 0 }
+      { rootMargin: `-${SCROLL_OFFSET_PX}px 0px -70% 0px`, threshold: 0 }
     )
 
     nodes.forEach((node) => {
       if (node.id) observer.observe(node)
     })
     return () => observer.disconnect()
-  }, [])
+  }, [pathname])
 
   const handleClick = useCallback(
     (event: MouseEvent<HTMLAnchorElement>, id: string) => {
@@ -96,6 +115,8 @@ export function OnThisPage() {
       event.preventDefault()
       const top =
         target.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET_PX
+      programmaticScrollLockRef.current =
+        Date.now() + PROGRAMMATIC_SCROLL_LOCK_MS
       window.scrollTo({ top, behavior: 'smooth' })
       setActiveId(id)
       if (window.history.replaceState) {
@@ -105,6 +126,7 @@ export function OnThisPage() {
     []
   )
 
+  if (pathname === '/') return null
   if (headings.length < 2) return null
 
   return (
