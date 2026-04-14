@@ -143,6 +143,8 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { FieldsetContext } from './FieldsetContext'
 
+// FieldsetRoot.tsx
+
 export type FieldsetRootProps = ComponentProps<'fieldset'> & {
   invalid?: boolean
 }
@@ -182,6 +184,8 @@ When a sub-component is a direct re-export of a Base UI (or Ark UI) primitive wi
 
 import { Combobox as ComboboxPrimitive } from '@base-ui-components/react/combobox'
 
+// ComboboxPortal.tsx
+
 export const ComboboxPortal = ComboboxPrimitive.Portal
 export type ComboboxPortalProps = ComboboxPrimitive.Portal.Props
 ```
@@ -197,6 +201,8 @@ Sub-components that share React context factor it into a sibling `*Context.ts` f
 'use client'
 
 import { createContext } from 'react'
+
+// FieldsetContext.ts
 
 export type FieldsetContextValue = {
   invalid?: boolean
@@ -369,12 +375,12 @@ Use this as the end-to-end flow when creating a new compound (or migrating an ol
 
 ### Subpath naming
 
-| Compound     | Folder        | Subpath                                | Dist entry                             |
-| ------------ | ------------- | -------------------------------------- | -------------------------------------- |
-| `Fieldset`   | `Fieldset/`   | `@oztix/roadie-components/fieldset`    | `dist/components/Fieldset/index.js`    |
-| `Combobox`   | `Combobox/`   | `@oztix/roadie-components/combobox`    | `dist/components/Combobox/index.js`    |
-| `RadioGroup` | `RadioGroup/` | `@oztix/roadie-components/radio-group` | `dist/components/RadioGroup/index.js`  |
-| `LinkButton` | `LinkButton/` | `@oztix/roadie-components/link-button` | `dist/components/LinkButton/index.js`  |
+| Compound     | Folder        | Subpath                                | Dist entry                            |
+| ------------ | ------------- | -------------------------------------- | ------------------------------------- |
+| `Fieldset`   | `Fieldset/`   | `@oztix/roadie-components/fieldset`    | `dist/components/Fieldset/index.js`   |
+| `Combobox`   | `Combobox/`   | `@oztix/roadie-components/combobox`    | `dist/components/Combobox/index.js`   |
+| `RadioGroup` | `RadioGroup/` | `@oztix/roadie-components/radio-group` | `dist/components/RadioGroup/index.js` |
+| `LinkButton` | `LinkButton/` | `@oztix/roadie-components/link-button` | `dist/components/LinkButton/index.js` |
 
 Folder names stay PascalCase (matching the React component name). Subpath keys are kebab-case (matching Base UI's consumer surface). Under tsdown unbundle mode, each compound gets its own `dist/components/<Compound>/` directory with one file per source file plus a server-safe `index.js` re-export that the subpath key points at.
 

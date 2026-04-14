@@ -69,14 +69,22 @@ Leaves carry `'use client'` only where they actually need it — when they use h
 'use client'
 
 import type { ComponentProps } from 'react'
+
 import { cn } from '@oztix/roadie-core/utils'
+
 import { FieldsetContext } from './FieldsetContext'
+
+// FieldsetRoot.tsx — needs 'use client' because it provides React context
 
 export type FieldsetRootProps = ComponentProps<'fieldset'> & {
   invalid?: boolean
 }
 
-export function FieldsetRoot({ className, invalid, ...props }: FieldsetRootProps) {
+export function FieldsetRoot({
+  className,
+  invalid,
+  ...props
+}: FieldsetRootProps) {
   return (
     <FieldsetContext value={{ invalid }}>
       <fieldset className={cn('m-0 border-none p-0', className)} {...props} />
@@ -89,12 +97,18 @@ FieldsetRoot.displayName = 'Fieldset.Root'
 ```tsx
 // FieldsetLegend.tsx — pure presentational, no 'use client'
 import type { ComponentProps } from 'react'
+
 import { cn } from '@oztix/roadie-core/utils'
 
 export type FieldsetLegendProps = ComponentProps<'legend'>
 
 export function FieldsetLegend({ className, ...props }: FieldsetLegendProps) {
-  return <legend className={cn('text-lg font-semibold text-strong', className)} {...props} />
+  return (
+    <legend
+      className={cn('text-lg font-semibold text-strong', className)}
+      {...props}
+    />
+  )
 }
 FieldsetLegend.displayName = 'Fieldset.Legend'
 ```
@@ -106,7 +120,7 @@ The second load-bearing piece is in `packages/components/tsdown.config.ts`:
 ```ts
 export default defineConfig({
   entry: ['src/**/*.{ts,tsx}', '!**/*.test.{ts,tsx}'],
-  unbundle: true,
+  unbundle: true
   // ...
 })
 ```

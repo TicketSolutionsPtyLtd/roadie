@@ -49,7 +49,8 @@ export default function RscSmokePage() {
         <h2 className='text-display-ui-3 text-strong'>Fieldset — barrel</h2>
         <p className='text-sm text-subtle'>
           <code>
-            import &#123; Fieldset &#125; from &apos;@oztix/roadie-components&apos;
+            import &#123; Fieldset &#125; from
+            &apos;@oztix/roadie-components&apos;
           </code>
         </p>
         <FieldsetViaBarrel.Root>
