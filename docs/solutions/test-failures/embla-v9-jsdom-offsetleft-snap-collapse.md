@@ -41,11 +41,11 @@ FAIL  Carousel > keyboard: ArrowRight advances, ArrowLeft goes back (horizontal)
 All seven tests used a simple `basis-full` fixture with 3 `Carousel.Item` children. In real browsers with 3 full-width slides, Embla produces 3 snap positions and the carousel behaves normally. In jsdom with `slidesToScroll: 'auto'`, a debug probe showed:
 
 ```js
-api.snapList()       // → [0]            (length 1, not 3)
-api.selectedSnap()   // → 0              (can't advance)
-carousel.state.snapCount     // → 1
-carousel.state.canScroll     // → false
-carousel.state.canGoToNext   // → false
+api.snapList() // → [0]            (length 1, not 3)
+api.selectedSnap() // → 0              (can't advance)
+carousel.state.snapCount // → 1
+carousel.state.canScroll // → false
+carousel.state.canGoToNext // → false
 ```
 
 `canScroll` was false, so `Carousel.Previous` / `.Next` / `.Dots` all auto-hid themselves. The carousel was essentially inert. The same fixture with `slidesToScroll: 1` (Embla's default) had been passing for weeks — only the change to `'auto'` tripped it.
@@ -74,14 +74,12 @@ Embla v9's internal `NodeHandler.getRect` — which is what populates the `conta
 ```js
 // node_modules/embla-carousel@9.0.0-rc02/.../embla-carousel.esm.js ≈ line 1550
 function getRect(node) {
-  const {
-    offsetTop: top,
-    offsetLeft: left,
-    offsetWidth,
-    offsetHeight
-  } = node
+  const { offsetTop: top, offsetLeft: left, offsetWidth, offsetHeight } = node
   return {
-    top, left, width: offsetWidth, height: offsetHeight,
+    top,
+    left,
+    width: offsetWidth,
+    height: offsetHeight,
     right: left + offsetWidth,
     bottom: top + offsetHeight
   }

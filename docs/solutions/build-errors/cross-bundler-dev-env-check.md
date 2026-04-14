@@ -34,7 +34,9 @@ function isDevEnvironment(): boolean {
 useEffect(() => {
   if (!isDevEnvironment()) return
   if (autoPlay !== false && autoPlay < 2000) {
-    console.warn('[Carousel] autoPlay delay < 2000ms may fail WCAG 2.2.1 timing.')
+    console.warn(
+      '[Carousel] autoPlay delay < 2000ms may fail WCAG 2.2.1 timing.'
+    )
   }
 }, [autoPlay])
 ```
@@ -79,8 +81,7 @@ declare const process: { env?: { NODE_ENV?: string } } | undefined
 
 function isDevEnvironment(): boolean {
   return (
-    typeof process !== 'undefined' &&
-    process?.env?.NODE_ENV !== 'production'
+    typeof process !== 'undefined' && process?.env?.NODE_ENV !== 'production'
   )
 }
 ```

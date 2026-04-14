@@ -65,9 +65,7 @@ Non-null assert on the indexed access since the existence was already verified:
 ```ts
 expect(details[0]).toHaveAttribute('name')
 expect(details[1]).toHaveAttribute('name')
-expect(details[0]!.getAttribute('name')).toBe(
-  details[1]!.getAttribute('name')
-)
+expect(details[0]!.getAttribute('name')).toBe(details[1]!.getAttribute('name'))
 ```
 
 `!` is the right tool here because the runtime check is right above it. A full `if (details[0] && details[1])` guard would be fine but noisier for a test body.
