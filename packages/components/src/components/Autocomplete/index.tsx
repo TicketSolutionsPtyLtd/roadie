@@ -50,13 +50,18 @@ export const autocompleteInputGroupVariants = cva(
 
 /* ─── Root ─── */
 
-export type AutocompleteRootProps = AutocompletePrimitive.Root.Props<unknown>
+export type AutocompleteProps = AutocompletePrimitive.Root.Props<unknown>
 
-export function AutocompleteRoot(props: AutocompleteRootProps) {
+/**
+ * @deprecated Use `AutocompleteProps` instead.
+ */
+export type AutocompleteRootProps = AutocompleteProps
+
+export function Autocomplete(props: AutocompleteProps) {
   return <AutocompletePrimitive.Root {...props} />
 }
 
-AutocompleteRoot.displayName = 'Autocomplete'
+Autocomplete.displayName = 'Autocomplete'
 
 /* ─── Value ─── */
 
@@ -366,22 +371,18 @@ AutocompleteStatus.displayName = 'Autocomplete.Status'
 
 /* ─── Compound export ─── */
 
-export const Autocomplete = Object.assign(AutocompleteRoot, {
-  Value: AutocompleteValue,
-  InputGroup: AutocompleteInputGroup,
-  Input: AutocompleteInput,
-  Trigger: AutocompleteTrigger,
-  Clear: AutocompleteClear,
-  Portal: AutocompletePortal,
-  Positioner: AutocompletePositioner,
-  Popup: AutocompletePopup,
-  List: AutocompleteList,
-  Item: AutocompleteItem,
-  Collection: AutocompleteCollection,
-  Group: AutocompleteGroup,
-  GroupLabel: AutocompleteGroupLabel,
-  Empty: AutocompleteEmpty,
-  Status: AutocompleteStatus
-})
-
-export type AutocompleteProps = AutocompleteRootProps
+Autocomplete.Value = AutocompleteValue
+Autocomplete.InputGroup = AutocompleteInputGroup
+Autocomplete.Input = AutocompleteInput
+Autocomplete.Trigger = AutocompleteTrigger
+Autocomplete.Clear = AutocompleteClear
+Autocomplete.Portal = AutocompletePortal
+Autocomplete.Positioner = AutocompletePositioner
+Autocomplete.Popup = AutocompletePopup
+Autocomplete.List = AutocompleteList
+Autocomplete.Item = AutocompleteItem
+Autocomplete.Collection = AutocompleteCollection
+Autocomplete.Group = AutocompleteGroup
+Autocomplete.GroupLabel = AutocompleteGroupLabel
+Autocomplete.Empty = AutocompleteEmpty
+Autocomplete.Status = AutocompleteStatus
