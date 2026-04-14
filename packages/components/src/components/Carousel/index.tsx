@@ -980,11 +980,13 @@ CarouselTitleLink.displayName = 'Carousel.TitleLink'
 
 /* ─── Content ─── */
 
-export type CarouselContentOverflow = NonNullable<
-  VariantProps<typeof carouselContentVariants>['overflow']
->
+// Literal union (rather than `VariantProps<typeof carouselContentVariants>`)
+// so that `react-docgen-typescript` — which can't drill into CVA's
+// conditional types — can extract the three values and surface them in
+// the docs site's <PropsDefinitions> table.
+export type CarouselContentOverflow = 'hidden' | 'visible' | 'subtle'
 
-export interface CarouselContentProps extends ComponentProps<'div'> {
+export type CarouselContentProps = ComponentProps<'div'> & {
   /** Props to forward to the inner Embla container (flex row/col). */
   containerProps?: ComponentProps<'div'>
   /**
@@ -998,8 +1000,10 @@ export interface CarouselContentProps extends ComponentProps<'div'> {
    * - `visible`: slides can extend indefinitely. Useful on wide screens
    *   where you deliberately want peeking slides to remain fully
    *   rendered in the surrounding margin area.
+   *
+   * @default 'subtle'
    */
-  overflow?: CarouselContentOverflow
+  overflow?: 'hidden' | 'visible' | 'subtle'
 }
 
 export function CarouselContent({
@@ -1007,7 +1011,7 @@ export function CarouselContent({
   children,
   containerProps,
   onKeyDown,
-  overflow,
+  overflow = 'subtle',
   ...props
 }: CarouselContentProps) {
   const {
