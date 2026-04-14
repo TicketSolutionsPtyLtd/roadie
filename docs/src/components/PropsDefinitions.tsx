@@ -2,6 +2,11 @@ import path from 'path'
 import type { PropItem } from 'react-docgen-typescript'
 import { withCustomConfig } from 'react-docgen-typescript'
 
+import {
+  PropsAccordion,
+  type PropsAccordionItem
+} from '@/components/PropsAccordion'
+
 import { Code } from '@oztix/roadie-components'
 
 interface ComponentProp {
@@ -123,6 +128,57 @@ function PropsList({
   )
 }
 
+function ComponentPropsBody({ groupedProps }: { groupedProps: GroupedProps }) {
+  const hasOwnProps = Object.keys(groupedProps.ownProps).length > 0
+  const hasInheritedProps = Object.keys(groupedProps.inheritedProps).length > 0
+
+  if (!hasOwnProps && !hasInheritedProps) {
+    return (
+      <p className='px-4 py-3 text-sm text-subtle'>
+        No additional props — forwards all standard HTML attributes to the
+        underlying element.
+      </p>
+    )
+  }
+
+  return (
+    <>
+      {hasOwnProps && <PropsList props={groupedProps.ownProps} />}
+      {Object.entries(groupedProps.inheritedProps).map(
+        ([source, { props }]) => (
+          <PropsList
+            key={source}
+            props={props}
+            title={`Inherited from ${source}`}
+          />
+        )
+      )}
+    </>
+  )
+}
+
+function ComponentPropsCard({
+  componentInfo,
+  groupedProps
+}: {
+  componentInfo: { displayName: string; description?: string }
+  groupedProps: GroupedProps
+}) {
+  const interfaceName = `${componentInfo.displayName}Props`
+
+  return (
+    <dl className='grid overflow-hidden rounded-xl border border-subtler'>
+      <div className='grid gap-1 bg-subtler px-4 py-3'>
+        <h3 className='text-xl font-bold'>{interfaceName}</h3>
+        {!!componentInfo.description && (
+          <p className='text-subtle'>{componentInfo.description}</p>
+        )}
+      </div>
+      <ComponentPropsBody groupedProps={groupedProps} />
+    </dl>
+  )
+}
+
 function parseComponentProps(componentPath: string) {
   const workspaceRoot = path.resolve(process.cwd(), '..')
   const absolutePath = path.join(workspaceRoot, componentPath)
@@ -219,62 +275,53 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
   const components = parseComponentProps(componentPath)
   if (!components) return null
 
+  // Split on dot-notation displayName (the Pattern A convention — see
+  // `docs/contributing/COMPOUND_PATTERNS.md`). Dot-notation entries are
+  // true compound subcomponents and go in the collapsible accordion.
+  // Non-dot entries render as inline cards — this covers both the
+  // single-root case AND files like `Button/index.tsx` that re-export
+  // sibling components (Button + IconButton) which aren't parent/child.
+  const inlineComponents = components.filter(
+    (info) => !info.displayName.includes('.')
+  )
+  const subcomponents = components.filter((info) =>
+    info.displayName.includes('.')
+  )
+
+  const accordionItems: PropsAccordionItem[] = subcomponents.map((info) => {
+    const grouped = groupPropsBySource(info.props, info.displayName)
+    return {
+      displayName: info.displayName,
+      description: info.description,
+      ownCount: Object.keys(grouped.ownProps).length,
+      body: <ComponentPropsBody groupedProps={grouped} />
+    }
+  })
+
   return (
     <div className='mt-8 grid gap-4 pt-8'>
       <h2 className='text-xl font-bold'>Props</h2>
-      {components.map((componentInfo) => {
-        const groupedProps = groupPropsBySource(
+
+      {inlineComponents.map((componentInfo) => {
+        const grouped = groupPropsBySource(
           componentInfo.props,
           componentInfo.displayName
         )
-
-        // Always derive the heading from the component's displayName rather
-        // than the first prop's parent type. Compound parts read as
-        // `Carousel.ContentProps`, `Field.TextareaProps`, `Select.TriggerProps`
-        // regardless of how their underlying props are typed — whether they
-        // wrap an HTML interface, a Base UI type, or another component's
-        // prop alias. This removes a whole class of inconsistent headings
-        // (e.g. `UseAnchorPositioningSharedParameters`, `RadioRootProps`,
-        // `TextareaProps` leaking through on compound subcomponents).
-        const interfaceName = `${componentInfo.displayName}Props`
-
-        const hasOwnProps = Object.keys(groupedProps.ownProps).length > 0
-        const hasInheritedProps =
-          Object.keys(groupedProps.inheritedProps).length > 0
-
         return (
-          <dl
+          <ComponentPropsCard
             key={componentInfo.displayName}
-            className='grid overflow-hidden rounded-xl border border-subtler'
-          >
-            <div className='grid gap-1 bg-subtler px-4 py-3'>
-              <h3 className='text-xl font-bold'>{interfaceName}</h3>
-              {!!componentInfo.description && (
-                <p className='text-subtle'>{componentInfo.description}</p>
-              )}
-            </div>
-
-            {!hasOwnProps && !hasInheritedProps && (
-              <p className='px-4 py-3 text-sm text-subtle'>
-                No additional props — forwards all standard HTML attributes to
-                the underlying element.
-              </p>
-            )}
-
-            {hasOwnProps && <PropsList props={groupedProps.ownProps} />}
-
-            {Object.entries(groupedProps.inheritedProps).map(
-              ([source, { props }]) => (
-                <PropsList
-                  key={source}
-                  props={props}
-                  title={`Inherited from ${source}`}
-                />
-              )
-            )}
-          </dl>
+            componentInfo={componentInfo}
+            groupedProps={grouped}
+          />
         )
       })}
+
+      {accordionItems.length > 0 && (
+        <div className='grid gap-2'>
+          <h3 className='text-sm font-semibold text-subtle'>Subcomponents</h3>
+          <PropsAccordion items={accordionItems} />
+        </div>
+      )}
     </div>
   )
 }
