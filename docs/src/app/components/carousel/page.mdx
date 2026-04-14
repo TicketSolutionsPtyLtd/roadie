@@ -707,7 +707,7 @@ Carousel is a compound component. Available parts:
 | `Carousel.Item` | A single slide. Set the width with Tailwind `basis-*` utilities. |
 | `Carousel.Previous` / `Carousel.Next` | Nav buttons (compose `IconButton`). Auto-hide when there's nothing to scroll to. |
 | `Carousel.PlayPause` | Play/pause toggle. Renders only when `autoPlay` is set. |
-| `Carousel.Dots` | One button per slide. Auto-hides when there's nothing to scroll to. |
+| `Carousel.Dots` | One button per scroll snap position (which can be fewer than `slideCount` when `slidesToScroll: 'auto'` or multi-visible layouts group slides into pages). Auto-hides when there's nothing to scroll to. |
 | `useCarousel()` hook | Read state and call actions from a child component. |
 | `useCarouselUnsafeEmbla()` hook | Escape hatch — returns the raw Embla `api`. Hard-couples your code to a specific `embla-carousel` major version, so prefer `useCarousel()` whenever possible. |
 

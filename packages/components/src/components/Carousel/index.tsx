@@ -45,12 +45,25 @@ import { cn } from '@oztix/roadie-core/utils'
 import { IconButton, type IconButtonProps } from '../Button/IconButton'
 
 /**
- * Development-mode check using import.meta.env (Vite/tsdown) with a safe
- * fallback. Avoids importing @types/node just for process.env.NODE_ENV.
+ * Development-mode check that works across consumer bundlers.
+ *
+ * Uses `process.env.NODE_ENV` rather than `import.meta.env.DEV` because
+ * the latter is Vite-specific — Next.js, Webpack, Rollup, and friends
+ * don't populate it, so the dev-only warnings would never fire in those
+ * consumer runtimes. Every mainstream bundler replaces
+ * `process.env.NODE_ENV` with a string literal at build time; the
+ * `typeof process` guard covers the case where a consumer bundler hasn't
+ * shimmed `process` on the client. The minimal ambient `process`
+ * declaration below keeps us from pulling `@types/node` into the
+ * package-wide `types` array, which would otherwise leak Node-only
+ * globals into DOM code.
  */
+declare const process: { env?: { NODE_ENV?: string } } | undefined
+
 function isDevEnvironment(): boolean {
-  const meta = import.meta as unknown as { env?: { DEV?: boolean } }
-  return meta.env?.DEV === true
+  return (
+    typeof process !== 'undefined' && process?.env?.NODE_ENV !== 'production'
+  )
 }
 
 /**
@@ -1047,29 +1060,24 @@ export function CarouselContent({
     setSlideCount(childCount)
   }, [childCount, setSlideCount])
 
-  // Dev-mode child-shape check — kept in an effect so React 19 strict-mode
-  // double-invoke doesn't fire it twice. The displayName check intentionally
-  // skips wrappers; the runtime useCarouselItem() throw is the real
-  // guardrail.
-  useEffect(() => {
-    if (!isDevEnvironment()) return
-    Children.forEach(children, (child) => {
-      if (
-        isValidElement(child) &&
-        (child.type as { displayName?: string })?.displayName !==
-          'Carousel.Item'
-      ) {
-        console.warn(
-          '[Carousel] <Carousel.Content> only supports direct <Carousel.Item> children. Fragments and conditional children are not unwrapped.'
-        )
-      }
-    })
-  }, [children])
+  // Intentionally no dev-mode child-shape warning here. A `displayName`
+  // string compare was tried earlier and produced false positives for
+  // legitimate wrappers (`memo(Carousel.Item)`, `forwardRef`, and user
+  // wrapper components that render an Item internally), with no clean
+  // way to walk through them. The runtime `useCarouselItem()` throw is
+  // the real guardrail — any wrapper that doesn't render an Item as its
+  // output hits that error with a clear message on the first render.
 
   // Inject per-item context so each <Carousel.Item> can read its index /
   // total without lifting state. `isInView` drives the inert attribute so
   // every visible slide stays interactive in multi-visible layouts; the
   // selectedSnap is exposed separately as `isActive`.
+  //
+  // The wrapping provider uses `child.key ?? index` so consumers who pass
+  // stable keys on their slides (e.g. mapping from an array of events)
+  // keep React's reconciler identity on reorder / insert / delete, which
+  // means any stateful slide content (forms, videos, uncontrolled inputs)
+  // survives instead of remounting on every change.
   const inViewSet = useMemo(() => new Set(slidesInView), [slidesInView])
   const wrappedChildren = Children.map(children, (child, index) => {
     if (!isValidElement(child)) return child
@@ -1080,7 +1088,10 @@ export function CarouselContent({
       isInView: inViewSet.has(index)
     }
     return (
-      <CarouselItemContext.Provider key={index} value={itemContext}>
+      <CarouselItemContext.Provider
+        key={child.key ?? index}
+        value={itemContext}
+      >
         {child}
       </CarouselItemContext.Provider>
     )
@@ -1197,6 +1208,15 @@ export type CarouselNavButtonProps = Omit<
   children?: ReactNode
 }
 
+// Use `data-disabled` (which `is-interactive` already styles identically
+// to native `:disabled`) rather than the native `disabled` attribute.
+// Native `disabled` removes the button from the tab order entirely, which
+// means screen-reader users at a scroll boundary lose their place in the
+// carousel region. `data-disabled` keeps the button focusable + dims it +
+// disables pointer events via the Roadie styling, and the conditional
+// `onClick` guards against keyboard (Space/Enter) activation when the
+// nav direction is unavailable.
+
 export function CarouselPrevious({
   className,
   'aria-label': ariaLabel = 'Previous slide',
@@ -1212,8 +1232,8 @@ export function CarouselPrevious({
       className={className}
       aria-label={ariaLabel}
       aria-disabled={!canGoToPrev || undefined}
-      disabled={!canGoToPrev}
-      onClick={goToPrev}
+      data-disabled={!canGoToPrev || undefined}
+      onClick={canGoToPrev ? goToPrev : undefined}
       {...props}
     >
       {children ?? <Icon weight='bold' className='size-4' />}
@@ -1238,8 +1258,8 @@ export function CarouselNext({
       className={className}
       aria-label={ariaLabel}
       aria-disabled={!canGoToNext || undefined}
-      disabled={!canGoToNext}
-      onClick={goToNext}
+      data-disabled={!canGoToNext || undefined}
+      onClick={canGoToNext ? goToNext : undefined}
       {...props}
     >
       {children ?? <Icon weight='bold' className='size-4' />}
