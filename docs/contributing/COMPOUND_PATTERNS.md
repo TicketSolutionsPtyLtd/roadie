@@ -171,7 +171,7 @@ Use this as a final pre-merge check when creating a new compound component or to
 - [ ] Root and every subcomponent use named `export function`
 - [ ] Every subcomponent has an explicit dot-notation `displayName` (`Carousel.Header`, not `CarouselHeader`)
 - [ ] Subcomponents are attached via direct property assignment (`Carousel.Header = CarouselHeader`) — no `Object.assign + cast`
-- [ ] Every **subcomponent** prop type is declared as `type X = Base & { ... }`, not `interface X extends Base` (root prop types are exempt — see next section)
+- [ ] Subcomponent prop types prefer `type X = Base & { ... }` over `interface X extends Base` (style preference matching Carousel; section headings render correctly either way — see next section)
 - [ ] No CVA variant prop typed via `VariantProps<typeof v>['key']` on the public prop shape — inline the literal union instead (see the CVA literal props solution doc)
 - [ ] Dev-only warnings use `process.env.NODE_ENV` with the `typeof process !== 'undefined'` guard (never `import.meta.env.DEV`, which silently dies in Next.js / Webpack / Rollup consumers)
 - [ ] Context-only vs index-injection decision made consciously (see the Decision matrix above)
@@ -179,25 +179,23 @@ Use this as a final pre-merge check when creating a new compound component or to
 - [ ] Docs page renders without `<PropsDefinitions>` dropping any subcomponents — open it locally, scroll the props section, confirm every subcomponent's full prop set is visible
 - [ ] `grep -rn "Object.assign" packages/components/src/components` still returns zero results after your change
 
-## Subcomponent prop types: `type` alias, not `interface extends`
+## Subcomponent prop types: prefer `type` alias
 
-Declare subcomponent Props types as `type X = Base & { ... }`, not `interface X extends Base`. The docs site's `<PropsDefinitions>` table reads the first own prop's `parent.name` and falls back to `${displayName}Props` when the parent resolves to an inherited HTML interface. The type-alias form hits the fallback path and surfaces the heading as `Carousel.ContentProps` (with the dot), consistent with every other subcomponent. The `interface extends` form surfaces the first-prop parent directly, which is the raw interface name `CarouselContentProps` (no dot) — visually out of line with the sibling sections.
+Declare subcomponent Props types as `type X = Base & { ... }` rather than `interface X extends Base`. This is a style preference matching the Carousel reference implementation — both forms now render correctly in the docs.
 
 ```tsx
-// ✅ Preferred — headings render as `Carousel.ContentProps`
+// ✅ Preferred — matches Carousel's convention
 export type CarouselContentProps = ComponentProps<'div'> & {
-  containerProps?: ComponentProps<'div'>
-  overflow?: 'hidden' | 'visible' | 'subtle'
-}
-
-// ❌ Legacy — headings render as `CarouselContentProps` (no dot)
-export interface CarouselContentProps extends ComponentProps<'div'> {
   containerProps?: ComponentProps<'div'>
   overflow?: 'hidden' | 'visible' | 'subtle'
 }
 ```
 
-A related rule from the same debug cycle: **don't type CVA variant props as `VariantProps<typeof variants>['key']` on the public prop shape**. `react-docgen-typescript` can't drill into CVA's conditional types, so the literal values never reach the table and the prop silently vanishes from the docs. Inline the literal union on the prop itself and export a sibling type alias (`export type XOverflow = 'a' | 'b' | 'c'`) for consumers who want to annotate their own wrappers. See [`docs/solutions/build-errors/react-docgen-cva-literal-props.md`](../solutions/build-errors/react-docgen-cva-literal-props.md) for the full story.
+The type-alias form composes more cleanly with CVA intersections and union types than `interface extends`, which can't extend union types at all.
+
+> **Historical note.** Before April 2026, `<PropsDefinitions>` resolved subcomponent headings via a fallback that only fired when the first own prop's parent was an inherited HTML interface — so `interface extends` subcomponent types rendered as `CarouselContentProps` (no dot) instead of `Carousel.ContentProps`. That's no longer true: the renderer now always derives section headings directly from the component's `displayName`, regardless of the prop type's declaration form. See [`docs/solutions/build-errors/react-docgen-cva-literal-props.md`](../solutions/build-errors/react-docgen-cva-literal-props.md) for the full backstory.
+
+A related rule from the same debug cycle still applies: **don't type CVA variant props as `VariantProps<typeof variants>['key']` on the public prop shape**. `react-docgen-typescript` can't drill into CVA's conditional types, so the literal values never reach the table and the prop silently vanishes from the docs. Inline the literal union on the prop itself and export a sibling type alias (`export type XOverflow = 'a' | 'b' | 'c'`) for consumers who want to annotate their own wrappers. See [`docs/solutions/build-errors/react-docgen-cva-literal-props.md`](../solutions/build-errors/react-docgen-cva-literal-props.md) for the full story.
 
 ## Three-slot Header layout (responsive)
 

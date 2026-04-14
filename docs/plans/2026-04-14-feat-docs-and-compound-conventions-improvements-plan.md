@@ -9,6 +9,21 @@ date: 2026-04-14
 
 Four related upgrades to the docs site and the compound component conventions that feed it: migrate every compound to the Carousel conventions, collapse subcomponent props behind accordions, truncate long code previews behind a "View code" button, and add an "On this page" rail to every docs page.
 
+## Progress
+
+| Phase                                             | Status         | PR                                                             | Notes                                                                                                                                                                                                                                                                                                                                                                         |
+| ------------------------------------------------- | -------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1 — Compound migration**                        | ✅ Done        | [#36](https://github.com/TicketSolutionsPtyLtd/roadie/pull/36) | All 10 compounds migrated to Pattern A. Scope expanded during execution: (a) `LinkButton` / `LinkIconButton` CVA literal props inlined after a missed-grep discovery, (b) `PropsDefinitions` filter + interfaceName logic rewritten so every compound page renders full subcomponent sections (was meant for Phase 2 but deferring it left Card/Fieldset/etc looking broken). |
+| **2 — `PropsDefinitions` subcomponent accordion** | ⬜ Not started | —                                                              | **Scope reduced.** The filter + heading rewrite already landed in Phase 1. This phase is now just wrapping the existing subcomponent sections in `<Accordion type='multiple'>` (closed by default) with a per-subcomponent prop-count badge.                                                                                                                                  |
+| **3C — `CodePreview` view-code toggle**           | ⬜ Not started | —                                                              | Unchanged from original plan.                                                                                                                                                                                                                                                                                                                                                 |
+| **3D — "On this page" right rail**                | ⬜ Not started | —                                                              | Unchanged from original plan.                                                                                                                                                                                                                                                                                                                                                 |
+
+### What changed from the original plan during Phase 1
+
+- **`LinkButton` / `LinkIconButton` added to Phase 1 scope.** The plan's acceptance grep for `VariantProps<typeof v>['key']` was based on a flawed escape in my initial grep and reported "clean". Re-running the grep correctly surfaced two offenders (`LinkButton.tsx`, `LinkIconButton.tsx`). Fixed in the same PR; new exported type aliases `LinkButtonIntent`, `LinkButtonEmphasis`, `LinkButtonSize`, `LinkIconButtonSize`.
+- **`PropsDefinitions` renderer was rewritten in Phase 1.** The original plan assumed Pattern A migration alone would surface subcomponent sections. It doesn't — the existing component filter drops any component with zero props after `propFilter` strips HTML-only attributes. For every compound whose subcomponents are `ComponentProps<'div'>` (Card.Header, Fieldset.Legend, Field.HelperText, …), the sections silently disappeared. Same story for three Carousel parts (`Header`, `Item`, `Dots`) that were already missing on `main`. The fix: (1) keep every PascalCase entry through the filter, (2) always derive section headings from `displayName` rather than the first prop's `parent.name`, (3) render a "forwards all standard HTML attributes" fallback inside zero-prop subcomponent sections.
+- **The type-alias-vs-interface rule is no longer load-bearing for heading consistency.** With the new renderer, headings come from `displayName` unconditionally — both `type X = Base & { ... }` and `interface X extends Base` forms render identical dot-notation headings. The rule stands in `COMPOUND_PATTERNS.md` and `AGENTS.md` as a style preference (matching Carousel, composes better with CVA intersections), but is no longer required for correctness. `docs/solutions/build-errors/react-docgen-cva-literal-props.md` has a 2026-04-14 update note explaining the resolution.
+
 ## Overview
 
 The Carousel work landed the cleanest compound conventions in the codebase so far — Pattern A assembly, type-alias prop shapes, index-injection context, dev-only warnings via `process.env.NODE_ENV`. But nine other compounds still ship the legacy `Object.assign + cast` form and mixed `interface extends` prop types, which means `react-docgen-typescript` silently drops most of their props from the docs site. At the same time, the docs' `PropsDefinitions`, `CodePreview`, and root layout haven't caught up to the patterns modern design-system sites (shadcn, Base UI) use to stay scannable at scale.
@@ -465,15 +480,16 @@ export function OnThisPage() {
 
 ### Functional
 
-#### A. Compound migration
+#### A. Compound migration ✅ Done (PR #36)
 
-- [ ] All ten compounds in the migration table use Pattern A assembly
-- [ ] All subcomponent `interface X extends Y` declarations listed in the table are converted to `type X = Y & { … }`
-- [ ] Every subcomponent has an explicit dot-notation `displayName`
-- [ ] `grep -rn "Object.assign" packages/components/src/components` returns zero hits
-- [ ] `grep -rn "VariantProps<typeof.*\['" packages/components/src` returns zero hits
-- [ ] `grep -rn "import.meta.env" packages/components/src` returns zero hits
-- [ ] `COMPOUND_PATTERNS.md` has the new checklist section
+- [x] All ten compounds in the migration table use Pattern A assembly
+- [x] All subcomponent `interface X extends Y` declarations listed in the table are converted to `type X = Y & { … }`
+- [x] Every subcomponent has an explicit dot-notation `displayName`
+- [x] `grep -rn "Object.assign" packages/components/src/components` returns zero hits
+- [x] `grep -rn "VariantProps<typeof.*\['" packages/components/src` returns zero hits (includes LinkButton/LinkIconButton fixes added during execution)
+- [x] `grep -rn "import.meta.env" packages/components/src` returns zero hits
+- [x] `COMPOUND_PATTERNS.md` has the new checklist section
+- [x] **Scope addition:** every compound docs page now renders full subcomponent sections via `PropsDefinitions` filter + heading rewrite
 
 #### B. Props accordion
 
@@ -532,27 +548,30 @@ export function OnThisPage() {
 
 Sequence matters — stream A must land first, then B (which depends on stream A's type-alias fix to get correct headings), then C and D (independent, can run in parallel).
 
-### Phase 1: Compound migration (stream A)
+### Phase 1: Compound migration (stream A) ✅ Done — PR [#36](https://github.com/TicketSolutionsPtyLtd/roadie/pull/36)
 
 Migrate all ten compounds in one PR. The changes are mechanical and low-risk; splitting them creates churn in the barrel exports and makes review harder.
 
-1. Apply the Migration Recipe to each of the ten compounds.
-2. Convert the listed `interface X extends Y` subcomponent types to `type X = Y & { … }`.
-3. Update `COMPOUND_PATTERNS.md` with the checklist section.
-4. Cold typecheck (`*.tsbuildinfo` cleanup first).
-5. Run component tests.
-6. Load every component docs page locally, confirm `PropsDefinitions` still renders and subcomponent headings render with the dot (e.g. `Field.LabelProps` not `FieldLabelProps`).
+1. ✅ Apply the Migration Recipe to each of the ten compounds.
+2. ✅ Convert the listed `interface X extends Y` subcomponent types to `type X = Y & { … }`.
+3. ✅ Update `COMPOUND_PATTERNS.md` with the checklist section.
+4. ✅ Cold typecheck (`*.tsbuildinfo` cleanup first).
+5. ✅ Run component tests — 314/314 pass.
+6. ✅ Load every component docs page locally, confirm `PropsDefinitions` renders subcomponent sections with dot-notation headings.
+7. ✅ **Scope addition:** `LinkButton` / `LinkIconButton` CVA literal props inlined.
+8. ✅ **Scope addition:** `PropsDefinitions` filter + heading rewrite so every compound page renders full subcomponent sections (see "What changed from the original plan" at the top).
+9. ✅ **Docs sync:** `AGENTS.md`, `COMPOUND_PATTERNS.md` (the standalone "Subcomponent prop types" section), and `docs/solutions/build-errors/react-docgen-cva-literal-props.md` updated to reflect that heading fallback is no longer load-bearing.
 
-Deliverable: one PR, ~10 files changed in `packages/components`, 1 doc update.
+Deliverable: ~16 files changed across `packages/components`, `docs/src/components/PropsDefinitions.tsx`, and three doc files. Full diff in PR #36.
 
-### Phase 2: PropsDefinitions accordion (stream B)
+### Phase 2: PropsDefinitions accordion (stream B) — Scope reduced
 
-Depends on Phase 1 because the accordion makes subcomponent sections more prominent — any missing-props regression from bad type shapes would be harder to notice once hidden.
+> **Scope note:** the filter + heading rewrite that was originally planned for this phase already landed in Phase 1 (PR #36). What's left is just wrapping the existing subcomponent sections in a closed-by-default accordion so the Select / Combobox / Autocomplete docs pages don't render 17+ expanded tables on first paint.
 
 1. Extract existing `<dl>` block into a `ComponentPropsCard` helper inside `PropsDefinitions.tsx`.
 2. Add `const [root, ...subcomponents] = components`.
 3. Render root inline, subcomponents inside `<Accordion type='multiple'>`.
-4. Implement `countVisibleProps(info)` helper.
+4. Implement `countVisibleProps(info)` helper (falls back to the number of visible inherited prop groups if `ownProps` is empty).
 5. Visual QA on Carousel, Select, Combobox, Field, Card — pages with the most subcomponents.
 
 Deliverable: one PR, 1 file changed (`docs/src/components/PropsDefinitions.tsx`).
@@ -610,9 +629,9 @@ Deliverables: one or two PRs depending on batching preference.
 - `react-docgen-typescript` prop filter docs: https://github.com/styleguidist/react-docgen-typescript
 - shadcn/ui docs (UX reference): https://ui.shadcn.com/docs/components/date-picker
 
-### Related rules from CLAUDE.md
+### Related rules from AGENTS.md
 
-- "Subcomponent Props types use `type X = Base & { ... }`, not `interface X extends Base`"
-- "Don't type CVA variant props as `VariantProps<typeof variants>['key']` on the public prop shape"
+- "Prefer `type X = Base & { ... }` over `interface X extends Base` for subcomponent prop types" (style preference as of PR #36; no longer load-bearing for heading correctness)
+- "Don't type CVA variant props as `VariantProps<typeof variants>['key']` on the public prop shape" (still required — `react-docgen-typescript` can't drill into CVA's conditional types)
 - "For dev-only warnings / diagnostics in the components package, gate them on `process.env.NODE_ENV`"
 - "If CI surfaces a typecheck error and `pnpm typecheck` passes locally, delete every `tsbuildinfo` in the repo"
