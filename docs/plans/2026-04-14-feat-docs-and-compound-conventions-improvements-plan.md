@@ -83,18 +83,18 @@ DocsLayout (server)
 
 For each of the ten compounds below, apply the same mechanical conversion (detailed in the Migration Recipe section). No behaviour changes; purely structural + type shape.
 
-| # | Component | Path | Object.assign line | Subcomponents needing `interface extends` → `type` |
-|---|---|---|---|---|
-| 1 | Accordion | `packages/components/src/components/Accordion/index.tsx` | 188 | — (inline types OK) |
-| 2 | Autocomplete | `packages/components/src/components/Autocomplete/index.tsx` | 369 | — |
-| 3 | Breadcrumb | `packages/components/src/components/Breadcrumb/index.tsx` | 86 | `BreadcrumbSeparatorProps` (line 52) |
-| 4 | Card | `packages/components/src/components/Card/index.tsx` | 130 | — |
-| 5 | Combobox | `packages/components/src/components/Combobox/index.tsx` | 368 | — |
-| 6 | Field | `packages/components/src/components/Field/index.tsx` | 185 | `FieldLabelProps` (78), `FieldHelperTextProps` (149), `FieldErrorTextProps` (166) |
-| 7 | Fieldset | `packages/components/src/components/Fieldset/index.tsx` | 79 | `FieldsetLegendProps` (36), `FieldsetHelperTextProps` (51), `FieldsetErrorTextProps` (61) |
-| 8 | RadioGroup | `packages/components/src/components/RadioGroup/index.tsx` | 265 | `RadioGroupLabelProps` (189), `RadioGroupHelperTextProps` (229), `RadioGroupErrorTextProps` (244) |
-| 9 | Select | `packages/components/src/components/Select/index.tsx` | 441 | `SelectHelperTextProps` (394), `SelectErrorTextProps` (407), `SelectContentProps` (425) |
-| 10 | Steps | `packages/components/src/components/Steps/index.tsx` | 308 | — |
+| #   | Component    | Path                                                        | Object.assign line | Subcomponents needing `interface extends` → `type`                                                |
+| --- | ------------ | ----------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------- |
+| 1   | Accordion    | `packages/components/src/components/Accordion/index.tsx`    | 188                | — (inline types OK)                                                                               |
+| 2   | Autocomplete | `packages/components/src/components/Autocomplete/index.tsx` | 369                | —                                                                                                 |
+| 3   | Breadcrumb   | `packages/components/src/components/Breadcrumb/index.tsx`   | 86                 | `BreadcrumbSeparatorProps` (line 52)                                                              |
+| 4   | Card         | `packages/components/src/components/Card/index.tsx`         | 130                | —                                                                                                 |
+| 5   | Combobox     | `packages/components/src/components/Combobox/index.tsx`     | 368                | —                                                                                                 |
+| 6   | Field        | `packages/components/src/components/Field/index.tsx`        | 185                | `FieldLabelProps` (78), `FieldHelperTextProps` (149), `FieldErrorTextProps` (166)                 |
+| 7   | Fieldset     | `packages/components/src/components/Fieldset/index.tsx`     | 79                 | `FieldsetLegendProps` (36), `FieldsetHelperTextProps` (51), `FieldsetErrorTextProps` (61)         |
+| 8   | RadioGroup   | `packages/components/src/components/RadioGroup/index.tsx`   | 265                | `RadioGroupLabelProps` (189), `RadioGroupHelperTextProps` (229), `RadioGroupErrorTextProps` (244) |
+| 9   | Select       | `packages/components/src/components/Select/index.tsx`       | 441                | `SelectHelperTextProps` (394), `SelectErrorTextProps` (407), `SelectContentProps` (425)           |
+| 10  | Steps        | `packages/components/src/components/Steps/index.tsx`        | 308                | —                                                                                                 |
 
 Root prop types (`FieldRootProps`, `FieldsetRootProps`, `CarouselProps`, etc.) are **exempt** — the `type` alias rule in `COMPOUND_PATTERNS.md` only covers subcomponents because the heading fallback only applies to subcomponents. Do not touch root props.
 
@@ -106,10 +106,14 @@ Before:
 
 ```tsx
 // packages/components/src/components/Card/index.tsx
-function CardRoot(props: CardProps) { /* … */ }
+function CardRoot(props: CardProps) {
+  /* … */
+}
 CardRoot.displayName = 'Card'
 
-function CardHeader(props: ComponentProps<'div'>) { /* … */ }
+function CardHeader(props: ComponentProps<'div'>) {
+  /* … */
+}
 CardHeader.displayName = 'Card.Header'
 // … other subcomponents
 
@@ -130,10 +134,14 @@ After:
 
 ```tsx
 // packages/components/src/components/Card/index.tsx
-export function Card(props: CardProps) { /* … */ }
+export function Card(props: CardProps) {
+  /* … */
+}
 Card.displayName = 'Card'
 
-export function CardHeader(props: ComponentProps<'div'>) { /* … */ }
+export function CardHeader(props: ComponentProps<'div'>) {
+  /* … */
+}
 CardHeader.displayName = 'Card.Header'
 // … other subcomponents
 
@@ -259,10 +267,12 @@ const [isExpanded, setIsExpanded] = useState(false)
 Wrap the code-rendering block (both static `<Highlight>` pre and `<LiveEditor>`) in a container:
 
 ```tsx
-<div
+;<div
   className={cn(
     'relative',
-    canCollapse && !isExpanded && 'max-h-[var(--code-collapsed-h)] overflow-hidden'
+    canCollapse &&
+      !isExpanded &&
+      'max-h-[var(--code-collapsed-h)] overflow-hidden'
   )}
   style={
     canCollapse && !isExpanded
@@ -280,24 +290,26 @@ Wrap the code-rendering block (both static `<Highlight>` pre and `<LiveEditor>`)
       <button
         type='button'
         onClick={() => setIsExpanded(true)}
-        className='is-interactive emphasis-normal absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full px-4 py-1.5 text-sm font-medium'
+        className='is-interactive absolute bottom-4 left-1/2 -translate-x-1/2 emphasis-normal rounded-full px-4 py-1.5 text-sm font-medium'
       >
         View code
       </button>
     </>
   )}
 </div>
-{canCollapse && isExpanded && (
-  <div className='flex justify-center border-t border-subtler py-2'>
-    <button
-      type='button'
-      onClick={() => setIsExpanded(false)}
-      className='is-interactive text-sm text-subtle hover:text-normal'
-    >
-      Hide code
-    </button>
-  </div>
-)}
+{
+  canCollapse && isExpanded && (
+    <div className='flex justify-center border-t border-subtler py-2'>
+      <button
+        type='button'
+        onClick={() => setIsExpanded(false)}
+        className='is-interactive text-sm text-subtle hover:text-normal'
+      >
+        Hide code
+      </button>
+    </div>
+  )
+}
 ```
 
 Constraints to respect:
@@ -393,7 +405,9 @@ export function OnThisPage() {
               href={`#${h.id}`}
               className={cn(
                 'block text-sm transition-colors',
-                activeId === h.id ? 'text-strong font-semibold' : 'text-subtle hover:text-normal'
+                activeId === h.id
+                  ? 'font-semibold text-strong'
+                  : 'text-subtle hover:text-normal'
               )}
             >
               {h.text}
@@ -452,6 +466,7 @@ export function OnThisPage() {
 ### Functional
 
 #### A. Compound migration
+
 - [ ] All ten compounds in the migration table use Pattern A assembly
 - [ ] All subcomponent `interface X extends Y` declarations listed in the table are converted to `type X = Y & { … }`
 - [ ] Every subcomponent has an explicit dot-notation `displayName`
@@ -461,6 +476,7 @@ export function OnThisPage() {
 - [ ] `COMPOUND_PATTERNS.md` has the new checklist section
 
 #### B. Props accordion
+
 - [ ] Every component docs page shows the root component's props inline
 - [ ] Every component docs page with subcomponents shows a closed-by-default accordion with one item per subcomponent
 - [ ] Each accordion item's trigger shows the subcomponent display name and a prop count
@@ -468,6 +484,7 @@ export function OnThisPage() {
 - [ ] Multiple items can be open at once (`type='multiple'`)
 
 #### C. View-code toggle
+
 - [ ] Code examples with ≤ 5 lines render identically to today
 - [ ] Code examples with > 5 lines show only 5 lines plus a fade-out mask and a centred "View code" button
 - [ ] Clicking "View code" expands the editor to full height
@@ -477,6 +494,7 @@ export function OnThisPage() {
 - [ ] Editing code in an expanded live example still re-renders the preview correctly
 
 #### D. On this page
+
 - [ ] Every docs page with ≥ 2 `h2`/`h3` headings shows a right-hand "On this page" rail at `lg` and above
 - [ ] The rail hides on screens below `lg`
 - [ ] The rail is sticky and scrolls internally when its own content overflows
@@ -486,6 +504,7 @@ export function OnThisPage() {
 - [ ] The rail hides on short pages with 0–1 headings
 
 ### Quality gates
+
 - [ ] `pnpm --filter @oztix/roadie-components test` passes
 - [ ] Cold typecheck passes (`find . -name "*.tsbuildinfo" -not -path "*/node_modules/*" -delete && pnpm typecheck`)
 - [ ] `pnpm --filter docs build` completes successfully (static export)
@@ -495,6 +514,7 @@ export function OnThisPage() {
 ## Dependencies & Risks
 
 ### Dependencies
+
 - `rehype-slug` and `rehype-autolink-headings` (new `docs/package.json` devDeps)
 - No version bumps to existing deps
 
@@ -542,12 +562,14 @@ Deliverable: one PR, 1 file changed (`docs/src/components/PropsDefinitions.tsx`)
 Independent. Can be two separate PRs or one combined PR.
 
 **C:**
+
 1. Add `MAX_COLLAPSED_LINES`, `lineCount`, `canCollapse`, `isExpanded` to `CodePreview`.
 2. Wrap code-rendering block in collapsible container with gradient mask + "View code" button.
 3. Test interaction with `LiveEditor` — expand, edit, re-render.
 4. Visual QA on long examples: Carousel default, Steps default, any other 6+ line example.
 
 **D:**
+
 1. Install `rehype-slug` and `rehype-autolink-headings`.
 2. Wire into `docs/next.config.mjs`.
 3. Create `docs/src/components/OnThisPage.tsx` client component.
@@ -568,6 +590,7 @@ Deliverables: one or two PRs depending on batching preference.
 ## Sources & References
 
 ### Internal references
+
 - Compound conventions: `docs/contributing/COMPOUND_PATTERNS.md`
 - Base UI conventions: `docs/contributing/BASE_UI.md`
 - Build-error learnings:
@@ -581,12 +604,14 @@ Deliverables: one or two PRs depending on batching preference.
 - MDX setup: `docs/next.config.mjs:15`
 
 ### External references
+
 - `rehype-slug`: https://github.com/rehypejs/rehype-slug
 - `rehype-autolink-headings`: https://github.com/rehypejs/rehype-autolink-headings
 - `react-docgen-typescript` prop filter docs: https://github.com/styleguidist/react-docgen-typescript
 - shadcn/ui docs (UX reference): https://ui.shadcn.com/docs/components/date-picker
 
 ### Related rules from CLAUDE.md
+
 - "Subcomponent Props types use `type X = Base & { ... }`, not `interface X extends Base`"
 - "Don't type CVA variant props as `VariantProps<typeof variants>['key']` on the public prop shape"
 - "For dev-only warnings / diagnostics in the components package, gate them on `process.env.NODE_ENV`"
