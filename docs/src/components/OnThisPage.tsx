@@ -43,7 +43,11 @@ export function OnThisPage() {
     const mainEl = document.querySelector('main')
     if (!mainEl) return
 
-    const nodes = mainEl.querySelectorAll<HTMLHeadingElement>('h2, h3')
+    // The /components index lists every component as an h3 under category
+    // h2s — surfacing those in the rail just duplicates the left-hand
+    // navigation. Keep the rail at h2 (category) granularity only.
+    const selector = pathname === '/components' ? 'h2' : 'h2, h3'
+    const nodes = mainEl.querySelectorAll<HTMLHeadingElement>(selector)
     const usedIds = new Set<string>()
     const collected: Heading[] = []
 
