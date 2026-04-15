@@ -8,7 +8,13 @@ export function FieldsetHelperText({
   className,
   ...props
 }: FieldsetHelperTextProps) {
-  return <p className={cn('text-sm text-subtle', className)} {...props} />
+  return (
+    <p
+      data-slot='fieldset-helper-text'
+      className={cn('text-sm text-subtle', className)}
+      {...props}
+    />
+  )
 }
 
 FieldsetHelperText.displayName = 'Fieldset.HelperText'

@@ -17,6 +17,7 @@ export function FieldsetErrorText({
   return (
     <p
       role='alert'
+      data-slot='fieldset-error-text'
       className={cn('text-sm text-subtle intent-danger', className)}
       {...props}
     />

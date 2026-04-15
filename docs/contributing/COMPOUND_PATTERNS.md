@@ -137,7 +137,7 @@ packages/components/src/components/Fieldset/
   Fieldset.test.tsx         # integration tests (bare + .Root forms)
 ```
 
-`'use client'` goes **only** on files that actually need it — hooks, `createContext`, or wrapping a Base UI client primitive. Pure presentational leaves (`FieldsetLegend`, `FieldsetHelperText`) and the pure re-export layer (`parts.ts`, `index.tsx`) stay server-safe. See section 2.11 for the full rule.
+`'use client'` goes **only** on files that actually need it — hooks, `createContext`, or wrapping a Base UI client primitive. Pure presentational leaves (`FieldsetLegend`, `FieldsetHelperText`) and the server-safe `index.tsx` layer stay without the directive. See section 2.11 for the full rule.
 
 Additional files when the compound needs them:
 
@@ -156,12 +156,6 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { FieldsetContext } from './FieldsetContext'
 
-// FieldsetRoot.tsx
-
-// FieldsetRoot.tsx
-
-// FieldsetRoot.tsx
-
 export type FieldsetRootProps = ComponentProps<'fieldset'> & {
   invalid?: boolean
 }
@@ -174,6 +168,7 @@ export function FieldsetRoot({
   return (
     <FieldsetContext value={{ invalid }}>
       <fieldset
+        data-slot='fieldset'
         className={cn('m-0 border-none p-0 [&>*+*]:mt-6', className)}
         {...props}
       />
@@ -187,11 +182,39 @@ FieldsetRoot.displayName = 'Fieldset.Root'
 Non-negotiable rules:
 
 - **Function name is compound-prefixed** (`FieldsetRoot`, not `Root`). Keeps stack traces, React DevTools, and error overlays readable.
-- **`displayName` is dot-notation** (`'Fieldset.Root'`). `<PropsDefinitions>` derives its accordion headings from this field.
+- **`displayName` is dot-notation** (`'Fieldset.Root'`). The docs site and React DevTools use it.
 - **Types live beside their function** — export the `*Props` type from the same file.
+- **Every rendered DOM element carries `data-slot`** — see section 2.4 for the full rule.
 - **`'use client'` only when needed** — see section 2.11 for the exact rule. Pure presentational leaves don't get the directive; files with hooks, `createContext`, or client primitives do.
 
-### 2.4 Passthrough file shape
+### 2.4 `data-slot` attribute
+
+Every leaf renders a single top-level DOM element with a `data-slot` attribute. The value is the **kebab-case dot-path** of the sub-component relative to its compound:
+
+| Sub-component              | `data-slot`             |
+| -------------------------- | ----------------------- |
+| `Fieldset` / `Fieldset.Root`| `fieldset`              |
+| `Fieldset.Legend`          | `fieldset-legend`       |
+| `Fieldset.HelperText`      | `fieldset-helper-text`  |
+| `Fieldset.ErrorText`       | `fieldset-error-text`   |
+| `Carousel.Content`         | `carousel-content`      |
+| `Carousel.NavButton`       | `carousel-nav-button`   |
+
+The attribute makes every rendered instance addressable from CSS, consumer Tailwind variants, visual regression tooling, and the docs site's outline. It's load-bearing for:
+
+- **Consumer styling escape hatch.** A consumer can target `[data-slot="fieldset-legend"]` in their own CSS without relying on internal class names that may change across versions.
+- **Theme / variant overrides at scale.** Roadie's intent and emphasis utilities set properties up the cascade; `data-slot` lets a consumer scope `[data-slot="fieldset"] [data-slot="fieldset-legend"] { … }` when a design calls for it.
+- **DOM-level testing.** `container.querySelector('[data-slot="fieldset-legend"]')` is stable regardless of markup refactors.
+- **Debugging and inspection.** The attribute surfaces on the element itself in DevTools, so you can see which Roadie leaf rendered a given node at a glance.
+
+Rules:
+
+1. **Every leaf carries one `data-slot`** — no exceptions. Even pure passthrough components that render a Base UI primitive set the attribute on the primitive's `className`-receiving element (usually via the `render` prop or a wrapper).
+2. **The value is derived from the compound's dot-notation name.** Convert each segment to kebab-case and join with `-`. `Carousel.NavButton` → `carousel-nav-button`.
+3. **The root slot is just the compound name.** `Fieldset.Root` → `data-slot='fieldset'`, not `'fieldset-root'`. The `.Root` is an implementation/alias concern — the DOM element is the compound itself.
+4. **Attribute position in the JSX** — place `data-slot` immediately after the opening tag, before `className` and `...props`. This keeps the leaf's first-line signature consistent across the codebase.
+
+### 2.5 Passthrough file shape
 
 When a sub-component is a direct re-export of a Base UI (or Ark UI) primitive with no wrapper styling, it's a one-line passthrough file — no wrapper function, no extra typing:
 
@@ -207,13 +230,15 @@ import { Combobox as ComboboxPrimitive } from '@base-ui-components/react/combobo
 
 // ComboboxPortal.tsx
 
+// ComboboxPortal.tsx
+
 export const ComboboxPortal = ComboboxPrimitive.Portal
 export type ComboboxPortalProps = ComboboxPrimitive.Portal.Props
 ```
 
 Passthroughs still live in their own file so `parts.ts` can import them uniformly, and so HMR invalidation is isolated.
 
-### 2.5 Shared context (`*Context.ts`)
+### 2.6 Shared context (`*Context.ts`)
 
 Sub-components that share React context factor it into a sibling `*Context.ts` file. The context file is TypeScript-only (`.ts`, not `.tsx`) and carries no JSX, but it **needs `'use client'`** because calling `createContext` at module scope forces the module to be a client module under Next.js's rules.
 
@@ -222,6 +247,8 @@ Sub-components that share React context factor it into a sibling `*Context.ts` f
 'use client'
 
 import { createContext } from 'react'
+
+// FieldsetContext.ts
 
 // FieldsetContext.ts
 
@@ -238,7 +265,7 @@ export const FieldsetContext = createContext<FieldsetContextValue>({})
 
 The context module is imported by each leaf that needs it, and by `index.tsx` if the root attaches context to the compound — but it should not be part of the compound's public surface.
 
-### 2.6 Subpath entry (`index.tsx`)
+### 2.7 Subpath entry (`index.tsx`)
 
 `index.tsx` is the public face of the compound's subpath. It imports each leaf by name and attaches them as static properties on the root function, then exports the augmented root as the compound's name. **Server-safe — no `'use client'` directive.**
 
@@ -300,7 +327,7 @@ export {
 
 Co-locating the variant map with its compound means consumers extending CVA get the map from the same subpath (`@oztix/roadie-components/combobox`) as the component.
 
-### 2.7 Subpath registration
+### 2.8 Subpath registration
 
 `packages/components/package.json` ships one `exports` entry per compound (kebab-case key → `dist/components/<Compound>/index.js`). The entry map is **generated** — do not hand-edit it. Run:
 
@@ -321,7 +348,7 @@ head -c 13 packages/components/dist/components/Fieldset/FieldsetRoot.js   # → 
 head -c 13 packages/components/dist/components/Fieldset/FieldsetLegend.js # → "import{cn a"  (no directive — server-safe)
 ```
 
-### 2.8 Consumer surface
+### 2.9 Consumer surface
 
 ```tsx
 // app/page.tsx — a Next.js server component
@@ -351,7 +378,7 @@ For consumers migrating from Base UI or who prefer explicit dot-notation roots, 
 
 **Subpath form (`@oztix/roadie-components/fieldset`) is preferred over the barrel** because it scopes the Next.js compiler walk to one compound and avoids pulling unrelated compounds through the barrel's transitive import graph. Both forms are valid; the RSC canary at `/debug/rsc-smoke` verifies both on every docs build.
 
-### 2.9 Type access from consumer code
+### 2.10 Type access from consumer code
 
 The primary root prop type is re-exported from `index.tsx` as `FieldsetProps` (aliased from `FieldsetRootProps`), so the common case is a bare named import:
 
@@ -375,7 +402,7 @@ type LegendProps = ComponentProps<typeof Fieldset.Legend>
 
 The explicit `FieldsetLegendProps` type is also reachable via a deep import (`@oztix/roadie-components/fieldset/FieldsetLegend`) under unbundle mode, but `ComponentProps<typeof …>` is cleaner and doesn't lock consumers into the internal file layout.
 
-### 2.10 The `'use client'` rule
+### 2.11 The `'use client'` rule
 
 Mark files with `'use client'` **only where they actually need it**:
 
@@ -390,7 +417,7 @@ This is the essential discipline that makes the pattern work. `FieldsetLegend.ts
 
 If you catch yourself adding `'use client'` to a presentational leaf "just to be safe," stop and ask whether the leaf actually uses a client API. If it doesn't, leave the directive off. The RSC canary at `/debug/rsc-smoke` catches regressions.
 
-### 2.11 Sub-component prop types
+### 2.12 Sub-component prop types
 
 Prefer `type X = Base & { ... }` over `interface X extends Base` for sub-component prop types:
 
@@ -417,7 +444,8 @@ Use this as the end-to-end flow when creating a new compound (or migrating an ol
    - Compound-prefixed function or const (`FieldsetRoot`, not `Root`)
    - Exported `<Compound><Sub>Props` type alias (prefer `type =` over `interface extends`)
    - Dot-notation `displayName` (`'<Compound>.<Sub>'`)
-3. [ ] For pure passthroughs of a Base UI / Ark UI primitive, create a one-line file: `'use client'` + `export const <Compound><Sub> = <Primitive>.<Sub>` + a `type` re-export.
+   - **`data-slot` attribute on the rendered DOM element.** Kebab-case dot-path (`fieldset-legend`, `carousel-nav-button`). The root slot is just the compound name (`fieldset`, not `fieldset-root`). See 2.4.
+3. [ ] For pure passthroughs of a Base UI / Ark UI primitive, create a one-line file: `'use client'` + `export const <Compound><Sub> = <Primitive>.<Sub>` + a `type` re-export. Passthroughs that render a primitive still need `data-slot` — wire it through via the primitive's `render` prop or a thin wrapper.
 4. [ ] If multiple leaves share React context, factor it into `<Compound>Context.ts` with `'use client'` at the top (`createContext` at module scope forces a client module).
 5. [ ] If the compound has CVA variant maps, create `variants.ts` and export the maps + any literal-union type aliases. No `'use client'` unless it imports a client API.
 6. [ ] Create `index.tsx` as the **server-safe** subpath entry. **No `'use client'` directive.** It imports each leaf by name, attaches them as static properties on the root function via a type-cast alias + assignment, and exports the augmented root plus `FieldsetProps` (aliased from `FieldsetRootProps`). Also re-exports any flat variant / type re-exports (from `./variants`). See the example at 2.6.
@@ -431,6 +459,7 @@ Use this as the end-to-end flow when creating a new compound (or migrating an ol
 ### Don'ts
 
 - **Don't hand-edit `packages/components/package.json`'s `exports` block** — it's generated. Run the generator.
+- **Don't skip the `data-slot` attribute on a new leaf.** Every leaf needs one, including passthroughs. Consumers rely on it as the stable DOM-level selector for styling, testing, and debugging. See 2.4.
 - **Don't export the shared context from `index.tsx`** — it's an implementation detail, not a public surface.
 - **Don't add `'use client'` to `index.tsx`.** It must stay a server-safe module so Next.js follows the re-export + property-assignment layer at build time. Marking it as a client module reinstates the pre-Phase-3 client-reference-proxy wall and breaks dot access in server components.
 - **Don't add `'use client'` to pure presentational leaves.** If a leaf has no hooks, no context, and no client primitive, it ships as a server-safe component. The RSC canary verifies this works.

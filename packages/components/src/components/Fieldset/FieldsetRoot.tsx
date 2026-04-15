@@ -18,6 +18,7 @@ export function FieldsetRoot({
   return (
     <FieldsetContext value={{ invalid }}>
       <fieldset
+        data-slot='fieldset'
         className={cn('m-0 border-none p-0 [&>*+*]:mt-6', className)}
         {...props}
       />
