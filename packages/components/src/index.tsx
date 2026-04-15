@@ -207,7 +207,13 @@ export {
 // either the barrel or the `/fieldset` subpath — works in Next.js server
 // components because Next follows the static re-export chain to each
 // leaf's `'use client'` module. See `docs/contributing/COMPOUND_PATTERNS.md`.
-export { Fieldset } from './components/Fieldset'
+export {
+  Fieldset,
+  type FieldsetProps,
+  type FieldsetLegendProps,
+  type FieldsetHelperTextProps,
+  type FieldsetErrorTextProps
+} from './components/Fieldset'
 
 // Providers
 export {

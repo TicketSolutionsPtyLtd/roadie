@@ -38,3 +38,6 @@ Fieldset.ErrorText = FieldsetErrorText
 
 export { Fieldset }
 export type { FieldsetRootProps as FieldsetProps } from './FieldsetRoot'
+export type { FieldsetLegendProps } from './FieldsetLegend'
+export type { FieldsetHelperTextProps } from './FieldsetHelperText'
+export type { FieldsetErrorTextProps } from './FieldsetErrorText'
