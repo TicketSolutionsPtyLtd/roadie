@@ -211,7 +211,15 @@ Consistent radius tiers across all components:
 | Field | `rounded-lg` | Inputs, textareas, selects |
 | Container | `rounded-xl` | Cards, popovers, select popups |
 | Large | `rounded-2xl` | Modals, dialogs |
+| Hero | `rounded-5xl` | Hero cards, collection headers, bottom sheets |
+| Feature | `rounded-6xl` | Feature banners, spotlight surfaces |
+| Oversize | `rounded-7xl` | Edge-to-edge promotional layouts |
 | Full | `rounded-full` | Buttons, badges, pills |
+
+Roadie extends Tailwind's default radius scale (which stops at `rounded-4xl`)
+with `rounded-5xl` / `6xl` / `7xl` via tokens in `packages/core/src/css/tokens.css`.
+Avoid arbitrary values like `rounded-[2.5rem]` — use the named utilities so
+the brand radius stays consistent across components.
 
 ### Iconography
 

@@ -219,7 +219,13 @@ export {
 export {
   ThemeProvider,
   useTheme,
+  DEFAULT_ACCENT_COLOR,
+  InvalidColorError,
+  isValidHexColor,
   getAccentStyleTag,
+  getAccentStyleTagSync,
+  getAccentStyleSync,
+  getBootstrapScript,
   getThemeScript,
   type ThemeProviderProps
 } from './providers/ThemeProvider'

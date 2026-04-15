@@ -179,6 +179,85 @@ export default function ColorsPage() {
         </div>
       </section>
 
+      {/* Surface tokens cheat sheet */}
+      <section className='grid gap-4'>
+        <div className='grid gap-2'>
+          <h2 className='text-display-ui-3 text-strong'>Surface tokens</h2>
+          <p className='text-subtle'>
+            Four elevation levels in one picture. Pick the surface that matches
+            the element&apos;s depth in the layout — sunken for recessed areas,
+            normal for the page, raised for elevated cards, floating for
+            popovers and modals.
+          </p>
+        </div>
+
+        <div className='grid grid-cols-1 gap-6 rounded-2xl bg-normal p-6 md:grid-cols-2 lg:grid-cols-4'>
+          <div className='grid gap-2'>
+            <div className='grid aspect-[3/2] place-content-center rounded-xl emphasis-sunken p-4'>
+              <p className='text-center text-sm text-subtle'>Sunken</p>
+            </div>
+            <div className='grid gap-1'>
+              <p className='font-mono text-xs text-strong'>bg-sunken</p>
+              <p className='text-xs text-subtle'>
+                Recessed areas, inset panels, empty-state wells. Pairs with{' '}
+                <Code>emphasis-sunken</Code> for the full inset shadow
+                treatment.
+              </p>
+            </div>
+          </div>
+
+          <div className='grid gap-2'>
+            <div className='grid aspect-[3/2] place-content-center rounded-xl border border-subtle bg-normal p-4'>
+              <p className='text-center text-sm text-subtle'>Normal</p>
+            </div>
+            <div className='grid gap-1'>
+              <p className='font-mono text-xs text-strong'>bg-normal</p>
+              <p className='text-xs text-subtle'>
+                Default page background. The baseline everything else sits on —
+                use it when nothing should feel elevated or recessed.
+              </p>
+            </div>
+          </div>
+
+          <div className='grid gap-2'>
+            <div className='grid aspect-[3/2] emphasis-raised place-content-center rounded-xl p-4'>
+              <p className='text-center text-sm text-subtle'>Raised</p>
+            </div>
+            <div className='grid gap-1'>
+              <p className='font-mono text-xs text-strong'>bg-raised</p>
+              <p className='text-xs text-subtle'>
+                Elevated cards, sticky headers, grouped content that should
+                appear to lift off the page. Pairs with{' '}
+                <Code>emphasis-raised</Code> for rim-light + shadow-md.
+              </p>
+            </div>
+          </div>
+
+          <div className='grid gap-2'>
+            <div className='grid aspect-[3/2] place-content-center rounded-xl emphasis-floating p-4'>
+              <p className='text-center text-sm text-subtle'>Floating</p>
+            </div>
+            <div className='grid gap-1'>
+              <p className='font-mono text-xs text-strong'>emphasis-floating</p>
+              <p className='text-xs text-subtle'>
+                Popovers, modals, dropdowns — anything that floats above the
+                document flow. Uses the top elevation shadow and strong rim
+                light.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <p className='text-sm text-subtle'>
+          The four levels map to a depth hierarchy: <Code>sunken</Code> →{' '}
+          <Code>normal</Code> → <Code>raised</Code> → <Code>floating</Code>.
+          Reach for the <Code>emphasis-*</Code> shortcut when you need the full
+          bg + border + shadow treatment; use <Code>bg-raised</Code> /{' '}
+          <Code>bg-sunken</Code> directly when you just need the background
+          colour.
+        </p>
+      </section>
+
       {/* Intent + emphasis */}
       <section className='grid gap-6'>
         <h2 className='text-display-ui-3 text-strong'>Intent + emphasis</h2>

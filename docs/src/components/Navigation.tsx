@@ -13,10 +13,15 @@ import {
   XIcon
 } from '@phosphor-icons/react'
 
-import { Button, IconButton, useTheme } from '@oztix/roadie-components'
+import {
+  Button,
+  DEFAULT_ACCENT_COLOR,
+  IconButton,
+  useTheme
+} from '@oztix/roadie-components'
 
 const ACCENT_PRESETS = [
-  { label: 'Blue (default)', hex: '#0091EB' },
+  { label: 'Blue (default)', hex: DEFAULT_ACCENT_COLOR },
   { label: 'Purple', hex: '#7C3AED' },
   { label: 'Green', hex: '#72BF44' },
   { label: 'Orange', hex: '#EA580C' },
