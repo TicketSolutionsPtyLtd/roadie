@@ -9,6 +9,7 @@
 //   docs/contributing/COMPOUND_PATTERNS.md
 //   docs/solutions/rsc-patterns/compound-export-namespace.md
 import { Fieldset as FieldsetViaBarrel } from '@oztix/roadie-components'
+import { Accordion } from '@oztix/roadie-components/accordion'
 import { Fieldset } from '@oztix/roadie-components/fieldset'
 
 export default function RscSmokePage() {
@@ -84,6 +85,33 @@ export default function RscSmokePage() {
             server-safe re-export chain down to each leaf.
           </FieldsetViaBarrel.HelperText>
         </FieldsetViaBarrel>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>Accordion</h2>
+        <p className='text-sm text-subtle'>
+          <code>
+            import &#123; Accordion &#125; from
+            &apos;@oztix/roadie-components/accordion&apos;
+          </code>
+        </p>
+        <Accordion>
+          <Accordion.Item>
+            <Accordion.Trigger>What is an Accordion?</Accordion.Trigger>
+            <Accordion.Content>
+              A native <code>&lt;details&gt;</code> / <code>&lt;summary&gt;</code>{' '}
+              wrapper with Roadie styling. Renders from a server component via
+              the subpath import.
+            </Accordion.Content>
+          </Accordion.Item>
+          <Accordion.Item>
+            <Accordion.Trigger>Why per-file?</Accordion.Trigger>
+            <Accordion.Content>
+              Each leaf is its own on-disk module so Next.js can follow the
+              server-safe re-export chain at build time.
+            </Accordion.Content>
+          </Accordion.Item>
+        </Accordion>
       </section>
 
       {/*
