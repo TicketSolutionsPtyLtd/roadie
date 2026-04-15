@@ -1,5 +1,7 @@
 import Link from 'next/link'
 
+import { CodePreview } from '@/components/CodePreview'
+
 import { Code } from '@oztix/roadie-components'
 
 export const metadata = {
@@ -74,8 +76,8 @@ export default function ViewTransitionsPage() {
           Without this, content sliding in from below the fold will visually
           pass through or over the header mid-transition.
         </p>
-        <pre className='rounded-lg bg-sunken p-4 text-sm'>
-          <code>{`/* 1. Name the header's group */
+        <CodePreview language='css'>
+          {`/* 1. Name the header's group */
 header[data-sticky] {
   view-transition-name: site-header;
 }
@@ -83,8 +85,8 @@ header[data-sticky] {
 /* 2. Float it above everything else during a transition */
 ::view-transition-group(site-header) {
   z-index: 100;
-}`}</code>
-        </pre>
+}`}
+        </CodePreview>
         <p className='text-sm text-subtle'>
           Pick any integer above the default 0 — 100 is more than enough for
           most apps. Do the same for floating buttons, bottom sheets, and any
@@ -137,8 +139,8 @@ header[data-sticky] {
           <Code>@keyframes</Code> rule and attach it to either the old or new
           snapshot.
         </p>
-        <pre className='rounded-lg bg-sunken p-4 text-sm'>
-          <code>{`/* Slide the outgoing page up and fade it out */
+        <CodePreview language='css'>
+          {`/* Slide the outgoing page up and fade it out */
 ::view-transition-old(root) {
   animation: roadie-slide-up 200ms ease-in both;
 }
@@ -153,8 +155,8 @@ header[data-sticky] {
 }
 @keyframes roadie-fade-in {
   from { opacity: 0; }
-}`}</code>
-        </pre>
+}`}
+        </CodePreview>
         <p className='text-sm text-subtle'>
           Keep durations short — under 400ms for navigation-level transitions.
           Respect <Link href='/foundations/motion'>motion tokens</Link> and{' '}
@@ -177,8 +179,8 @@ header[data-sticky] {
           <Code>document.startViewTransition</Code> inside your navigation
           handler:
         </p>
-        <pre className='rounded-lg bg-sunken p-4 text-sm'>
-          <code>{`'use client'
+        <CodePreview language='tsx'>
+          {`'use client'
 
 import { useRouter } from 'next/navigation'
 import { startTransition } from 'react'
@@ -198,8 +200,8 @@ function FilterButton({ href }: { href: string }) {
   }
 
   return <button onClick={handleClick}>Filter</button>
-}`}</code>
-        </pre>
+}`}
+        </CodePreview>
         <p className='text-sm text-subtle'>
           The <Code>startTransition</Code> wrapper keeps React from thrashing
           state updates during the browser&apos;s snapshot capture. Without it

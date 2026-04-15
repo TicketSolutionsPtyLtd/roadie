@@ -130,14 +130,13 @@ export default function CollectionPage({ params }) {
         </CodePreview>
         <p className='text-sm text-subtle'>
           The provider re-renders whenever the prop changes — no{' '}
-          <Code>useEffect</Code>, no manual cleanup, no reset logic.
-          Passing <Code>null</Code> while the query is loading falls
-          back to <Code>defaultAccentColor</Code>, so the theme never
-          renders in a broken state during the suspense boundary. The
-          old <Code>CollectionAccentSync</Code>-style effect helper is
-          unnecessary — consumer apps can delete their bespoke
-          effect-plus-cleanup wiring as soon as they adopt the
-          controlled prop.
+          <Code>useEffect</Code>, no manual cleanup, no reset logic. Passing{' '}
+          <Code>null</Code> while the query is loading falls back to{' '}
+          <Code>defaultAccentColor</Code>, so the theme never renders in a
+          broken state during the suspense boundary. The old{' '}
+          <Code>CollectionAccentSync</Code>-style effect helper is unnecessary —
+          consumer apps can delete their bespoke effect-plus-cleanup wiring as
+          soon as they adopt the controlled prop.
         </p>
       </section>
 
@@ -220,8 +219,8 @@ try {
             <Code>getAccentStyleSync</Code> returns just the inner CSS body so
             you can wrap it in a real <Code>&lt;style&gt;</Code> element.
           </p>
-          <pre className='rounded-lg bg-sunken p-4 text-sm'>
-            <code>{`// app/layout.tsx
+          <CodePreview language='tsx'>
+            {`// app/layout.tsx
 import {
   getAccentStyleSync,
   getThemeScript
@@ -253,8 +252,8 @@ export default async function RootLayout({ children }) {
       </body>
     </html>
   )
-}`}</code>
-          </pre>
+}`}
+          </CodePreview>
         </div>
 
         <div className='grid gap-2'>
@@ -266,8 +265,8 @@ export default async function RootLayout({ children }) {
             It returns a raw HTML string combining both the theme script and the
             accent style tag, ready to drop into <Code>&lt;head&gt;</Code>.
           </p>
-          <pre className='rounded-lg bg-sunken p-4 text-sm'>
-            <code>{`// astro.page.astro
+          <CodePreview language='tsx'>
+            {`// astro.page.astro
 ---
 import { getBootstrapScript } from '@oztix/roadie-core/theme'
 
@@ -278,8 +277,8 @@ const html = getBootstrapScript({
 ---
 <head>
   <Fragment set:html={html} />
-</head>`}</code>
-          </pre>
+</head>`}
+          </CodePreview>
         </div>
 
         <p className='text-sm text-subtle'>
@@ -338,15 +337,15 @@ const html = getBootstrapScript({
           <Code>getBootstrapScript</Code> composes that with the accent style
           tag into one head injection.
         </p>
-        <pre className='rounded-lg bg-sunken p-4 text-sm'>
-          <code>{`<ThemeProvider
+        <CodePreview language='tsx'>
+          {`<ThemeProvider
   accentColor={collection?.themeColour ?? null}
   followSystem
   defaultDark={false}
 >
   {children}
-</ThemeProvider>`}</code>
-        </pre>
+</ThemeProvider>`}
+        </CodePreview>
         <ul className='grid list-disc gap-2 pl-5 text-sm text-subtle'>
           <li>
             <Code>followSystem</Code> — respect{' '}
@@ -379,16 +378,16 @@ const html = getBootstrapScript({
             let loading states flow through <Code>null</Code>. No effects, no
             cleanup.
           </p>
-          <pre className='rounded-lg bg-sunken p-4 text-sm'>
-            <code>{`function CollectionTheme({ slug, children }) {
+          <CodePreview language='tsx'>
+            {`function CollectionTheme({ slug, children }) {
   const { data } = useCollection(slug)
   return (
     <ThemeProvider accentColor={data?.themeColour ?? null}>
       {children}
     </ThemeProvider>
   )
-}`}</code>
-          </pre>
+}`}
+          </CodePreview>
         </div>
 
         <div className='grid gap-2'>
@@ -400,8 +399,8 @@ const html = getBootstrapScript({
             children in a scoped provider. Nesting overrides the parent provider
             — no global state to reset on navigation.
           </p>
-          <pre className='rounded-lg bg-sunken p-4 text-sm'>
-            <code>{`// app/collections/[slug]/layout.tsx
+          <CodePreview language='tsx'>
+            {`// app/collections/[slug]/layout.tsx
 export default async function CollectionLayout({ params, children }) {
   const { slug } = await params
   const collection = await getCollection(slug)
@@ -410,8 +409,8 @@ export default async function CollectionLayout({ params, children }) {
       {children}
     </ThemeProvider>
   )
-}`}</code>
-          </pre>
+}`}
+          </CodePreview>
         </div>
 
         <div className='grid gap-2'>
@@ -423,8 +422,8 @@ export default async function CollectionLayout({ params, children }) {
             style tag during the server pass so the first paint already uses the
             themed colours.
           </p>
-          <pre className='rounded-lg bg-sunken p-4 text-sm'>
-            <code>{`// app/collections/[slug]/page.tsx
+          <CodePreview language='tsx'>
+            {`// app/collections/[slug]/page.tsx
 import { getAccentStyleSync } from '@oztix/roadie-components'
 
 export async function generateStaticParams() {
@@ -449,8 +448,8 @@ export default async function CollectionPage({ params }) {
       <CollectionView collection={collection} />
     </>
   )
-}`}</code>
-          </pre>
+}`}
+          </CodePreview>
         </div>
       </section>
 
