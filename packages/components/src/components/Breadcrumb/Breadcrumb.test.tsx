@@ -4,7 +4,11 @@ import { describe, expect, it } from 'vitest'
 import { Breadcrumb } from '.'
 
 describe('Breadcrumb', () => {
-  it('renders root as nav with aria-label', () => {
+  it('Breadcrumb and Breadcrumb.Root are the same component reference', () => {
+    expect(Breadcrumb).toBe(Breadcrumb.Root)
+  })
+
+  it('renders bare <Breadcrumb> root as nav with aria-label', () => {
     const { container } = render(
       <Breadcrumb>
         <Breadcrumb.List>
@@ -13,6 +17,22 @@ describe('Breadcrumb', () => {
           </Breadcrumb.Item>
         </Breadcrumb.List>
       </Breadcrumb>
+    )
+    expect(container.querySelector('nav')).toHaveAttribute(
+      'aria-label',
+      'Breadcrumb'
+    )
+  })
+
+  it('renders <Breadcrumb.Root> alias as nav with aria-label', () => {
+    const { container } = render(
+      <Breadcrumb.Root>
+        <Breadcrumb.List>
+          <Breadcrumb.Item>
+            <Breadcrumb.Link href='/'>Home</Breadcrumb.Link>
+          </Breadcrumb.Item>
+        </Breadcrumb.List>
+      </Breadcrumb.Root>
     )
     const nav = container.querySelector('nav')!
     expect(nav).toBeInTheDocument()
