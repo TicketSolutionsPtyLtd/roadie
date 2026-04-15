@@ -11,6 +11,7 @@
 import { Fieldset as FieldsetViaBarrel } from '@oztix/roadie-components'
 import { Accordion } from '@oztix/roadie-components/accordion'
 import { Fieldset } from '@oztix/roadie-components/fieldset'
+import { RadioGroup } from '@oztix/roadie-components/radio-group'
 
 export default function RscSmokePage() {
   return (
@@ -99,9 +100,9 @@ export default function RscSmokePage() {
           <Accordion.Item>
             <Accordion.Trigger>What is an Accordion?</Accordion.Trigger>
             <Accordion.Content>
-              A native <code>&lt;details&gt;</code> / <code>&lt;summary&gt;</code>{' '}
-              wrapper with Roadie styling. Renders from a server component via
-              the subpath import.
+              A native <code>&lt;details&gt;</code> /{' '}
+              <code>&lt;summary&gt;</code> wrapper with Roadie styling. Renders
+              from a server component via the subpath import.
             </Accordion.Content>
           </Accordion.Item>
           <Accordion.Item>
@@ -112,6 +113,22 @@ export default function RscSmokePage() {
             </Accordion.Content>
           </Accordion.Item>
         </Accordion>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>RadioGroup</h2>
+        <p className='text-sm text-subtle'>
+          <code>
+            import &#123; RadioGroup &#125; from
+            &apos;@oztix/roadie-components/radio-group&apos;
+          </code>
+        </p>
+        <RadioGroup>
+          <RadioGroup.Label>Contact method</RadioGroup.Label>
+          <RadioGroup.Item value='email' label='Email' />
+          <RadioGroup.Item value='phone' label='Phone' />
+          <RadioGroup.HelperText>Choose how we reach you.</RadioGroup.HelperText>
+        </RadioGroup>
       </section>
 
       {/*
