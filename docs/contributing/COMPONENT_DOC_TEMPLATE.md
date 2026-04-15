@@ -4,57 +4,18 @@ Reference for writing and reviewing Roadie component docs.
 
 ## Structure
 
-Every component doc follows this skeleton. Only include sections that apply. (The outer fence below uses 4 backticks so the inner `tsx-live` fence survives intact.)
+The literal MDX skeleton lives in `docs/src/app/components/fieldset/page.mdx` — copy it as a starting point for new component docs. Prettier's markdown formatter eats nested `tsx-live` fences inside this file, so the skeleton can't be embedded here inline.
 
-````mdx
-export const metadata = {
-  title: 'Fieldset',
-  description: 'A one-line description of what the component is',
-  status: 'stable',
-  category: 'Forms',
-}
+The skeleton contains:
 
-import { PropsDefinitions } from '@/components/PropsDefinitions'
-
-# Fieldset
-
-A one-line description — not "The Fieldset component is...", just
-"A compound wrapper for grouping related form fields with a legend."
-
-## Import
-
-```tsx
-import { Fieldset } from '@oztix/roadie-components/fieldset'
-```
-
-## Examples
-
-### Default
-
-```tsx-live
-<Fieldset>
-  <Fieldset.Legend>Contact information</Fieldset.Legend>
-  <Field>
-    <Field.Label>Email</Field.Label>
-    <Field.Input type='email' />
-  </Field>
-</Fieldset>
-```
-
-### Variants / Emphasis / Sizes / Intents / States / Composition
-
-...only when they apply...
-
-## Guidelines
-
-Brief. Only non-obvious things.
-
-## Accessibility
-
-Interactive components only.
-
-<PropsDefinitions componentPath='packages/components/src/components/Fieldset' />
-````
+- Frontmatter `export const metadata = { title, description, status, category }`
+- `import { PropsDefinitions } from '@/components/PropsDefinitions'`
+- `# {Component}` heading + one-line description
+- `## Import` with a subpath import (never the barrel)
+- `## Examples` starting with a `### Default` `tsx-live` block
+- Optional `### Variants` / `### Emphasis` / `### Sizes` / `### Intents` / `### States` / `### Composition` sections
+- `## Guidelines` and `## Accessibility` for interactive components
+- A trailing `<PropsDefinitions componentPath='…' />` pointing at the folder (per-file compound) or the `index.tsx` (pre-Phase-3 monolithic compound)
 
 ## Rules
 
