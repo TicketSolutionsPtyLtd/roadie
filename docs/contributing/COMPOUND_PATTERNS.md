@@ -5,7 +5,7 @@ Roadie compounds ship as a **function root with sub-components attached as stati
 ```tsx
 import { Fieldset } from '@oztix/roadie-components/fieldset'
 
-<Fieldset>
+;<Fieldset>
   <Fieldset.Legend>Contact information</Fieldset.Legend>
   <Fieldset.HelperText>We'll get back to you.</Fieldset.HelperText>
 </Fieldset>
@@ -160,6 +160,8 @@ import { FieldsetContext } from './FieldsetContext'
 
 // FieldsetRoot.tsx
 
+// FieldsetRoot.tsx
+
 export type FieldsetRootProps = ComponentProps<'fieldset'> & {
   invalid?: boolean
 }
@@ -203,6 +205,8 @@ import { Combobox as ComboboxPrimitive } from '@base-ui-components/react/combobo
 
 // ComboboxPortal.tsx
 
+// ComboboxPortal.tsx
+
 export const ComboboxPortal = ComboboxPrimitive.Portal
 export type ComboboxPortalProps = ComboboxPrimitive.Portal.Props
 ```
@@ -218,6 +222,8 @@ Sub-components that share React context factor it into a sibling `*Context.ts` f
 'use client'
 
 import { createContext } from 'react'
+
+// FieldsetContext.ts
 
 // FieldsetContext.ts
 
@@ -272,6 +278,7 @@ Variant maps and shared literal-union types (if the compound has any) ship as fl
 // Combobox/index.tsx
 import { ComboboxInput } from './ComboboxInput'
 import { ComboboxRoot } from './ComboboxRoot'
+
 // ... other leaves
 
 const Combobox = ComboboxRoot as typeof ComboboxRoot & {
@@ -360,6 +367,7 @@ For sub-component prop types, use `ComponentProps<typeof Fieldset.Legend>`:
 
 ```tsx
 import type { ComponentProps } from 'react'
+
 import { Fieldset } from '@oztix/roadie-components/fieldset'
 
 type LegendProps = ComponentProps<typeof Fieldset.Legend>

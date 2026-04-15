@@ -293,6 +293,8 @@ import { comboboxInputGroupVariants } from './variants'
 
 // ComboboxInput.tsx
 
+// ComboboxInput.tsx
+
 export type ComboboxInputProps = ComboboxPrimitive.Input.Props &
   VariantProps<typeof comboboxInputGroupVariants>
 
@@ -316,6 +318,8 @@ Notes on the leaf file shape:
 'use client'
 
 import { Combobox as ComboboxPrimitive } from '@base-ui-components/react/combobox'
+
+// ComboboxPortal.tsx
 
 // ComboboxPortal.tsx
 

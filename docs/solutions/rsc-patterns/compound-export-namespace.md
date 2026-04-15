@@ -91,6 +91,8 @@ import { FieldsetContext } from './FieldsetContext'
 
 // FieldsetRoot.tsx — needs 'use client' because it provides React context
 
+// FieldsetRoot.tsx — needs 'use client' because it provides React context
+
 export type FieldsetRootProps = ComponentProps<'fieldset'> & {
   invalid?: boolean
 }
@@ -198,7 +200,7 @@ export function Fieldset(...) { ... }
 Fieldset.Legend = FieldsetLegend
 ```
 
-The key difference: the old file carried `'use client'`. That made the entire module a client module, wrapped in a client-reference proxy on the server side. The proxy only exposes top-level named exports — `Fieldset` the function — and the runtime property assignment `Fieldset.Legend = FieldsetLegend` happens *inside* the client runtime, invisible to the server proxy. Server-side dot access on `Fieldset.Legend` returns undefined.
+The key difference: the old file carried `'use client'`. That made the entire module a client module, wrapped in a client-reference proxy on the server side. The proxy only exposes top-level named exports — `Fieldset` the function — and the runtime property assignment `Fieldset.Legend = FieldsetLegend` happens _inside_ the client runtime, invisible to the server proxy. Server-side dot access on `Fieldset.Legend` returns undefined.
 
 Under unbundle mode + server-safe `index.tsx`, the property assignment happens **in the server-safe JavaScript layer**, not inside a client-reference proxy. The attached properties are real JavaScript properties on the imported client reference, reachable from the server.
 
