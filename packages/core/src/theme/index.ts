@@ -1,7 +1,4 @@
-import {
-  getOklchChromaSync,
-  getOklchHueSync
-} from '../colors/srgb-to-oklch'
+import { getOklchChromaSync, getOklchHueSync } from '../colors/srgb-to-oklch'
 
 const THEME_STORAGE_KEY = 'theme'
 const HEX_COLOR_PATTERN = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/

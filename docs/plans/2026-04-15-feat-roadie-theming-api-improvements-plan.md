@@ -1,7 +1,7 @@
 ---
 title: Roadie theming API improvements (controlled accent + sync bootstrap + docs)
 type: feat
-status: active
+status: completed
 date: 2026-04-15
 origin: docs/learnings/2026-04-15-theming-api-gaps-from-oztix-website.md
 ---
@@ -191,14 +191,14 @@ This replaces the defensive zod layer the Oztix app added in
 
 **Phase 1 deliverables**
 
-- [ ] `ThemeProvider` accepts `accentColor` prop, mirrors React controlled idiom
-- [ ] `DEFAULT_ACCENT_COLOR` exported from `@oztix/roadie-components`
-- [ ] `InvalidColorError` class + `isValidHexColor` helper exported
-- [ ] `setAccentColor` throws `InvalidColorError` synchronously
-- [ ] Dev warnings for controlled/uncontrolled switching and setter calls on controlled provider
-- [ ] Unit tests for: uncontrolled path (unchanged), controlled path (prop wins), switching warning, invalid hex throw, controlled setter no-op
-- [ ] `docs/src/components/Navigation.tsx:19` consumes the export instead of duplicating the constant
-- [ ] Changeset entry: `minor` bump on `@oztix/roadie-components` — 2.4.0
+- [x] `ThemeProvider` accepts `accentColor` prop, mirrors React controlled idiom
+- [x] `DEFAULT_ACCENT_COLOR` exported from `@oztix/roadie-components`
+- [x] `InvalidColorError` class + `isValidHexColor` helper exported
+- [x] `setAccentColor` throws `InvalidColorError` synchronously
+- [x] Dev warnings for controlled/uncontrolled switching and setter calls on controlled provider
+- [x] Unit tests for: uncontrolled path (unchanged), controlled path (prop wins), switching warning, invalid hex throw, controlled setter no-op
+- [x] `docs/src/components/Navigation.tsx:19` consumes the export instead of duplicating the constant
+- [x] Changeset entry: `minor` bump on `@oztix/roadie-components` — 2.4.0
 
 ### Phase 2 — Pre-hydration-friendly bootstrap (high value, medium risk)
 
@@ -283,13 +283,13 @@ pre-computed style tag directly — no client-side flash.
 
 **Phase 2 deliverables**
 
-- [ ] `@oztix/roadie-core/colors` exports `hexToOklch`, `getOklchHueSync`, `getOklchChromaSync`
-- [ ] Sync converter matches async output to 4 decimal places (test with 20+ representative hex inputs)
-- [ ] `@oztix/roadie-components` exports `getAccentStyleTagSync`
-- [ ] `@oztix/roadie-core/theme` exports `getBootstrapScript`
-- [ ] `docs/src/app/layout.tsx` migrates to `getBootstrapScript` as the reference implementation
-- [ ] New docs page: "Pre-hydration theming for static exports" under foundations (covers the inline `<style>` pattern + server-prefetched accent)
-- [ ] Changeset entries: `minor` bump on both `@oztix/roadie-core` and `@oztix/roadie-components`
+- [x] `@oztix/roadie-core/colors` exports `hexToOklch`, `getOklchHueSync`, `getOklchChromaSync`
+- [x] Sync converter matches async output to 4 decimal places (test with 20+ representative hex inputs)
+- [x] `@oztix/roadie-components` exports `getAccentStyleTagSync`
+- [x] `@oztix/roadie-core/theme` exports `getBootstrapScript`
+- [x] `docs/src/app/layout.tsx` migrates to `getBootstrapScript` as the reference implementation
+- [x] New docs page: "Pre-hydration theming for static exports" under foundations (covers the inline `<style>` pattern + server-prefetched accent)
+- [x] Changeset entries: `minor` bump on both `@oztix/roadie-core` and `@oztix/roadie-components`
 
 ### Phase 3 — Documentation (low risk, cheap wins)
 
@@ -393,14 +393,14 @@ Update the CLAUDE.md "Shape" table to reflect the new upper bound.
 
 **Phase 3 deliverables**
 
-- [ ] `docs/src/app/foundations/theming/page.tsx` — new canonical theming page covering concepts, static/dynamic/controlled usage, validation, pre-hydration bootstrap, dark mode integration, and consumer recipes
-- [ ] Theming page linked from the foundations index and from the `ThemeProvider` component page
-- [ ] `docs/src/app/foundations/view-transitions/page.tsx` — new page with working example
-- [ ] `docs/src/app/foundations/colors/page.tsx` — surface token cheat sheet added
-- [ ] `packages/core/src/css/tokens.css` — radius scale extended to 7xl
-- [ ] `docs/src/app/foundations/shape/page.tsx` — radius section with visual scale
-- [ ] `AGENTS.md` Shape table updated
-- [ ] Changeset: `minor` bump on `@oztix/roadie-core`
+- [x] `docs/src/app/foundations/theming/page.tsx` — new canonical theming page covering concepts, static/dynamic/controlled usage, validation, pre-hydration bootstrap, dark mode integration, and consumer recipes
+- [x] Theming page linked from the foundations index and from the `ThemeProvider` component page
+- [x] `docs/src/app/foundations/view-transitions/page.tsx` — new page with working example
+- [x] `docs/src/app/foundations/colors/page.tsx` — surface token cheat sheet added
+- [x] `packages/core/src/css/tokens.css` — radius scale extended to 7xl
+- [x] `docs/src/app/foundations/shape/page.tsx` — radius section with visual scale
+- [x] `AGENTS.md` Shape table updated
+- [x] Changeset: `minor` bump on `@oztix/roadie-core`
 
 ## Technical Considerations
 
@@ -496,49 +496,49 @@ independent if we choose to sequence them.
 
 ### Functional requirements
 
-- [ ] `ThemeProvider` accepts `accentColor` as a controlled prop and
+- [x] `ThemeProvider` accepts `accentColor` as a controlled prop and
       ignores `defaultAccentColor` when controlled.
-- [ ] Controlled prop changes update the accent effect on re-render
+- [x] Controlled prop changes update the accent effect on re-render
       without requiring `useTheme().setAccentColor` calls.
-- [ ] `DEFAULT_ACCENT_COLOR`, `InvalidColorError`, `isValidHexColor`,
+- [x] `DEFAULT_ACCENT_COLOR`, `InvalidColorError`, `isValidHexColor`,
       and `getAccentStyleTagSync` are exported from
       `@oztix/roadie-components`.
-- [ ] `hexToOklch`, `getOklchHueSync`, `getOklchChromaSync` are
+- [x] `hexToOklch`, `getOklchHueSync`, `getOklchChromaSync` are
       exported from `@oztix/roadie-core/colors`.
-- [ ] `getBootstrapScript` is exported from
+- [x] `getBootstrapScript` is exported from
       `@oztix/roadie-core/theme` and composes theme + accent.
-- [ ] `setAccentColor` throws `InvalidColorError` synchronously on
+- [x] `setAccentColor` throws `InvalidColorError` synchronously on
       invalid input.
-- [ ] Dev warning fires when `setAccentColor` is called on a
+- [x] Dev warning fires when `setAccentColor` is called on a
       controlled provider.
-- [ ] Radius scale extends to `rounded-7xl` via `tokens.css` with no
+- [x] Radius scale extends to `rounded-7xl` via `tokens.css` with no
       runtime overhead.
-- [ ] Theming foundation page renders with working live examples for
+- [x] Theming foundation page renders with working live examples for
       uncontrolled, controlled, and pre-hydration bootstrap patterns.
-- [ ] View-transitions foundation page renders with a working live
+- [x] View-transitions foundation page renders with a working live
       example.
-- [ ] Surface tokens cheat sheet renders with all four levels visible
+- [x] Surface tokens cheat sheet renders with all four levels visible
       side-by-side.
 
 ### Non-functional requirements
 
-- [ ] Sync OKLCH converter output matches async output to 4 decimal
+- [x] Sync OKLCH converter output matches async output to 4 decimal
       places across a 20-hex test palette.
-- [ ] No new runtime dependencies in `@oztix/roadie-core`.
-- [ ] `pnpm typecheck`, `pnpm test`, `pnpm build` all pass.
-- [ ] `tsbuildinfo` caches cleared before CI to avoid the stale-cache
+- [x] No new runtime dependencies in `@oztix/roadie-core`.
+- [x] `pnpm typecheck`, `pnpm test`, `pnpm build` all pass.
+- [x] `tsbuildinfo` caches cleared before CI to avoid the stale-cache
       pitfall (see `docs/solutions/build-errors/stale-tsbuildinfo-masks-local-errors.md`).
-- [ ] Docs site builds in static export mode with zero accent flash
+- [x] Docs site builds in static export mode with zero accent flash
       on a themed route (manual verification).
 
 ### Quality gates
 
-- [ ] Changeset entries accurately describe breaking surface
+- [x] Changeset entries accurately describe breaking surface
       (`InvalidColorError` is the only behavioural change).
-- [ ] Oztix consumer app can delete `CollectionAccentSync`, its zod
+- [x] Oztix consumer app can delete `CollectionAccentSync`, its zod
       hex validator, and its hardcoded `#0091EB` in a follow-up PR
       against the Oztix website without other changes.
-- [ ] Unit test coverage added for every new exported symbol.
+- [x] Unit test coverage added for every new exported symbol.
 
 ## Success Metrics
 

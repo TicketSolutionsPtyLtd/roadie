@@ -39,6 +39,17 @@
   --border-color-inverted: var(--intent-border-inverted);
 }
 
+/* --- Extended radius scale ---
+   Tailwind v4's default radius scale stops at `rounded-4xl` (2rem).
+   Roadie extends it up to `rounded-7xl` so large headers, hero cards,
+   and modal sheets can match the brand's soft corner language without
+   resorting to arbitrary values. See foundations/shape for usage. */
+@theme inline {
+  --radius-5xl: 2.5rem; /* 40px */
+  --radius-6xl: 3rem; /* 48px */
+  --radius-7xl: 3.5rem; /* 56px */
+}
+
 /* --- Raw color scale utilities ---
    bg-brand-5, text-danger-9, border-neutral-7, etc. */
 @theme inline {

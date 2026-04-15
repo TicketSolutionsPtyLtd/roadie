@@ -1,10 +1,7 @@
 import Color from 'colorjs.io'
 import { describe, expect, it } from 'vitest'
 
-import {
-  getOklchChroma,
-  getOklchHue
-} from './color-scale-generator'
+import { getOklchChroma, getOklchHue } from './color-scale-generator'
 import {
   getOklchChromaSync,
   getOklchHueSync,

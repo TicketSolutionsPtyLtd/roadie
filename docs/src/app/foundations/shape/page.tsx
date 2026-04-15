@@ -40,6 +40,24 @@ const radiusScale = [
     useFor: 'Modals, dialogs, drawers'
   },
   {
+    tier: 'Hero',
+    className: 'rounded-5xl',
+    value: '40px',
+    useFor: 'Hero cards, collection headers, bottom sheets'
+  },
+  {
+    tier: 'Feature',
+    className: 'rounded-6xl',
+    value: '48px',
+    useFor: 'Feature banners, spotlight surfaces'
+  },
+  {
+    tier: 'Oversize',
+    className: 'rounded-7xl',
+    value: '56px',
+    useFor: 'Edge-to-edge promotional layouts'
+  },
+  {
     tier: 'Full',
     className: 'rounded-full',
     value: '9999px',
@@ -90,8 +108,13 @@ export default function ShapePage() {
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Radius scale</h2>
         <p className='text-subtle'>
-          Six tiers mapped to Tailwind utilities. No custom tokens — we use the
-          built-in scale directly.
+          Nine tiers, from inline marks to edge-to-edge hero surfaces.
+          Roadie uses Tailwind&apos;s built-in radius utilities up to{' '}
+          <Code>rounded-4xl</Code> and adds three extended tiers
+          (<Code>rounded-5xl</Code>, <Code>rounded-6xl</Code>,{' '}
+          <Code>rounded-7xl</Code>) for large promotional layouts. Avoid
+          arbitrary values like <Code>rounded-[2.5rem]</Code> — stick to
+          the named utilities so the scale stays consistent.
         </p>
 
         <div className='overflow-x-auto'>
