@@ -1,9 +1,8 @@
+import { ArrowSquareOutIcon } from '@phosphor-icons/react/ssr'
 import { readdirSync, statSync } from 'fs'
 import path from 'path'
 import type { PropItem } from 'react-docgen-typescript'
 import { withCustomConfig } from 'react-docgen-typescript'
-
-import { ArrowSquareOutIcon } from '@phosphor-icons/react/ssr'
 
 import { Code } from '@oztix/roadie-components'
 
@@ -208,7 +207,7 @@ function ComponentSection({
               href={baseUiHref}
               target='_blank'
               rel='noreferrer'
-              className='inline-flex items-center gap-1 rounded-full emphasis-subtler is-interactive px-2 py-0.5 text-xs font-medium text-subtle'
+              className='is-interactive inline-flex items-center gap-1 rounded-full emphasis-subtler px-2 py-0.5 text-xs font-medium text-subtle'
             >
               Base UI
               <ArrowSquareOutIcon weight='bold' className='size-3' />
