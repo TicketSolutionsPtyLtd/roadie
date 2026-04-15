@@ -14,7 +14,7 @@ A multi-step wizard for guiding users through sequential tasks.
 ## Import
 
 ```tsx
-import { Steps } from '@oztix/roadie-components'
+import { Steps } from '@oztix/roadie-components/steps'
 ```
 
 ## Examples
@@ -322,7 +322,7 @@ Use `Steps.NextTrigger` and `Steps.PrevTrigger` with `asChild` to compose with R
 Use `Steps.RootProvider` with the `useSteps` hook for external state control.
 
 ```tsx
-import { Steps, useSteps } from '@oztix/roadie-components'
+import { Steps, useSteps } from '@oztix/roadie-components/steps'
 
 function MyWizard() {
   const steps = useSteps({ count: 3 })
@@ -350,4 +350,4 @@ function MyWizard() {
 - **ARIA**: List renders as `role="tablist"`, triggers as `role="tab"`, content panels as `role="tabpanel"`. `aria-selected` marks the active trigger. `aria-controls` links triggers to panels.
 - **Screen readers**: Announce step state via `aria-selected`. Disabled triggers in linear mode receive `aria-disabled`.
 
-<PropsDefinitions componentPath='packages/components/src/components/Steps/index.tsx' />
+<PropsDefinitions componentPath='packages/components/src/components/Steps' />
