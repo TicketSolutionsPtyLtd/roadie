@@ -22,11 +22,11 @@ export default function ViewTransitionsPage() {
           >
             View Transitions API
           </a>{' '}
-          lets you morph, slide, and fade content across navigation
-          boundaries without touching a JavaScript animation library.
-          Roadie components compose cleanly with it — but sticky
-          headers, hero images, and search-param-only navigation each
-          have gotchas worth documenting up front.
+          lets you morph, slide, and fade content across navigation boundaries
+          without touching a JavaScript animation library. Roadie components
+          compose cleanly with it — but sticky headers, hero images, and
+          search-param-only navigation each have gotchas worth documenting up
+          front.
         </p>
       </div>
 
@@ -34,36 +34,32 @@ export default function ViewTransitionsPage() {
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>How it works</h2>
         <p className='text-subtle'>
-          When the browser sees a new document during a view transition,
-          it captures a snapshot of the old DOM and a snapshot of the
-          new DOM, then interpolates between them. Each snapshot lives
-          inside a pseudo-element tree:
+          When the browser sees a new document during a view transition, it
+          captures a snapshot of the old DOM and a snapshot of the new DOM, then
+          interpolates between them. Each snapshot lives inside a pseudo-element
+          tree:
         </p>
         <ul className='grid list-disc gap-2 pl-5 text-subtle'>
           <li>
-            <Code>::view-transition-group(name)</Code> — the box that
-            contains the old + new snapshots for a named element.
+            <Code>::view-transition-group(name)</Code> — the box that contains
+            the old + new snapshots for a named element.
           </li>
           <li>
-            <Code>::view-transition-image-pair(name)</Code> — the
-            cross-fade pair.
+            <Code>::view-transition-image-pair(name)</Code> — the cross-fade
+            pair.
           </li>
           <li>
             <Code>::view-transition-old(name)</Code> and{' '}
-            <Code>::view-transition-new(name)</Code> — the two
-            snapshots that the browser animates between.
+            <Code>::view-transition-new(name)</Code> — the two snapshots that
+            the browser animates between.
           </li>
         </ul>
         <p className='text-subtle'>
-          Anything without an explicit <Code>view-transition-name</Code>{' '}
-          lives under the implicit <Code>root</Code> group. The root
-          group paints first, which is why sticky headers sometimes end
-          up{' '}
-          <em>
-            underneath
-          </em>{' '}
-          a hero image during a transition — the hero gets its own
-          group, and the root group has no <Code>z-index</Code>.
+          Anything without an explicit <Code>view-transition-name</Code> lives
+          under the implicit <Code>root</Code> group. The root group paints
+          first, which is why sticky headers sometimes end up{' '}
+          <em>underneath</em> a hero image during a transition — the hero gets
+          its own group, and the root group has no <Code>z-index</Code>.
         </p>
       </section>
 
@@ -75,8 +71,8 @@ export default function ViewTransitionsPage() {
         <p className='text-subtle'>
           Give the sticky header its own named group and set a{' '}
           <Code>z-index</Code> on its <Code>::view-transition-group</Code>.
-          Without this, content sliding in from below the fold will
-          visually pass through or over the header mid-transition.
+          Without this, content sliding in from below the fold will visually
+          pass through or over the header mid-transition.
         </p>
         <pre className='rounded-lg bg-sunken p-4 text-sm'>
           <code>{`/* 1. Name the header's group */
@@ -90,10 +86,9 @@ header[data-sticky] {
 }`}</code>
         </pre>
         <p className='text-sm text-subtle'>
-          Pick any integer above the default 0 — 100 is more than enough
-          for most apps. Do the same for floating buttons, bottom sheets,
-          and any other UI that should stay fixed while the page
-          underneath animates.
+          Pick any integer above the default 0 — 100 is more than enough for
+          most apps. Do the same for floating buttons, bottom sheets, and any
+          other UI that should stay fixed while the page underneath animates.
         </p>
       </section>
 
@@ -101,17 +96,17 @@ header[data-sticky] {
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Naming elements</h2>
         <p className='text-subtle'>
-          When you name an element with <Code>view-transition-name</Code>,
-          it gets its own animation group and morphs from its old
-          position + size to its new position + size. Unnamed elements
-          cross-fade together under the root group.
+          When you name an element with <Code>view-transition-name</Code>, it
+          gets its own animation group and morphs from its old position + size
+          to its new position + size. Unnamed elements cross-fade together under
+          the root group.
         </p>
         <p className='text-subtle'>
-          Rule of thumb: <strong>when in doubt, name it</strong>. Unused
-          names are free — they don&apos;t run an animation unless the
-          element actually moves. Naming the hero image, the title, and
-          the header separately is much cheaper than debugging a
-          root-group cross-fade that clobbers half your UI.
+          Rule of thumb: <strong>when in doubt, name it</strong>. Unused names
+          are free — they don&apos;t run an animation unless the element
+          actually moves. Naming the hero image, the title, and the header
+          separately is much cheaper than debugging a root-group cross-fade that
+          clobbers half your UI.
         </p>
         <div className='grid gap-3 rounded-lg bg-sunken p-4'>
           <p className='text-sm text-strong'>Common named groups</p>
@@ -123,12 +118,12 @@ header[data-sticky] {
               <Code>collection-hero</Code> — above-the-fold hero image
             </li>
             <li>
-              <Code>collection-title</Code> — the title that persists
-              across routes
+              <Code>collection-title</Code> — the title that persists across
+              routes
             </li>
             <li>
-              <Code>collection-header</Code> — the elevated surface that
-              wraps the hero on per-collection routes
+              <Code>collection-header</Code> — the elevated surface that wraps
+              the hero on per-collection routes
             </li>
           </ul>
         </div>
@@ -138,9 +133,9 @@ header[data-sticky] {
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Recommended keyframes</h2>
         <p className='text-subtle'>
-          Default view transitions cross-fade for 250ms. Override with a
-          named <Code>@keyframes</Code> rule and attach it to either the
-          old or new snapshot.
+          Default view transitions cross-fade for 250ms. Override with a named{' '}
+          <Code>@keyframes</Code> rule and attach it to either the old or new
+          snapshot.
         </p>
         <pre className='rounded-lg bg-sunken p-4 text-sm'>
           <code>{`/* Slide the outgoing page up and fade it out */
@@ -161,15 +156,12 @@ header[data-sticky] {
 }`}</code>
         </pre>
         <p className='text-sm text-subtle'>
-          Keep durations short — under 400ms for navigation-level
-          transitions. Respect{' '}
-          <Link href='/foundations/motion'>motion tokens</Link> and{' '}
+          Keep durations short — under 400ms for navigation-level transitions.
+          Respect <Link href='/foundations/motion'>motion tokens</Link> and{' '}
           <Code>prefers-reduced-motion</Code>: wrap your{' '}
           <Code>::view-transition-*</Code> rules in{' '}
-          <Code>
-            @media (prefers-reduced-motion: no-preference)
-          </Code>{' '}
-          so motion-sensitive users get an instant swap.
+          <Code>@media (prefers-reduced-motion: no-preference)</Code> so
+          motion-sensitive users get an instant swap.
         </p>
       </section>
 
@@ -179,11 +171,11 @@ header[data-sticky] {
           Triggering on search-param-only navigation
         </h2>
         <p className='text-subtle'>
-          Next.js App Router doesn&apos;t trigger a hard navigation when
-          only a search parameter changes, so browser-native view
-          transitions don&apos;t fire automatically. Wrap the update in{' '}
-          <Code>document.startViewTransition</Code> inside your
-          navigation handler:
+          Next.js App Router doesn&apos;t trigger a hard navigation when only a
+          search parameter changes, so browser-native view transitions
+          don&apos;t fire automatically. Wrap the update in{' '}
+          <Code>document.startViewTransition</Code> inside your navigation
+          handler:
         </p>
         <pre className='rounded-lg bg-sunken p-4 text-sm'>
           <code>{`'use client'
@@ -209,10 +201,10 @@ function FilterButton({ href }: { href: string }) {
 }`}</code>
         </pre>
         <p className='text-sm text-subtle'>
-          The <Code>startTransition</Code> wrapper keeps React from
-          thrashing state updates during the browser&apos;s snapshot
-          capture. Without it you can get flickers when the new page
-          renders faster than the old page&apos;s snapshot.
+          The <Code>startTransition</Code> wrapper keeps React from thrashing
+          state updates during the browser&apos;s snapshot capture. Without it
+          you can get flickers when the new page renders faster than the old
+          page&apos;s snapshot.
         </p>
       </section>
 
@@ -224,44 +216,40 @@ function FilterButton({ href }: { href: string }) {
             <p>
               <strong>Always feature-detect.</strong>{' '}
               <Code>document.startViewTransition</Code> is still gaining
-              adoption — wrap every call in a <Code>typeof</Code> check
-              and fall back to the standard navigation.
+              adoption — wrap every call in a <Code>typeof</Code> check and fall
+              back to the standard navigation.
             </p>
           </li>
           <li>
             <p>
-              <strong>
-                Reserve view transitions for spatial continuity.
-              </strong>{' '}
-              Use them when the user would benefit from seeing an
-              element move (hero → detail page, list → filtered list).
-              Skip them for navigation that isn&apos;t spatially
-              related.
+              <strong>Reserve view transitions for spatial continuity.</strong>{' '}
+              Use them when the user would benefit from seeing an element move
+              (hero → detail page, list → filtered list). Skip them for
+              navigation that isn&apos;t spatially related.
             </p>
           </li>
           <li>
             <p>
               <strong>Stay under 400ms.</strong> Longer transitions feel
-              sluggish, especially on search-param navigation where the
-              user expects instant filter feedback.
+              sluggish, especially on search-param navigation where the user
+              expects instant filter feedback.
             </p>
           </li>
           <li>
             <p>
-              <strong>Test on mobile Safari.</strong> iOS has stricter
-              rules about when <Code>startViewTransition</Code> can run
-              — if you trigger it from an async callback, the captured
-              snapshot may be stale.
+              <strong>Test on mobile Safari.</strong> iOS has stricter rules
+              about when <Code>startViewTransition</Code> can run — if you
+              trigger it from an async callback, the captured snapshot may be
+              stale.
             </p>
           </li>
           <li>
             <p>
               <strong>Don&apos;t animate intent.</strong> Changing{' '}
-              <Code>--accent-hue</Code> or <Code>--accent-chroma</Code>{' '}
-              during a transition produces noticeably ugly interpolation
-              — set the new accent{' '}
-              <em>before</em> the transition starts, or{' '}
-              <em>after</em> it completes.
+              <Code>--accent-hue</Code> or <Code>--accent-chroma</Code> during a
+              transition produces noticeably ugly interpolation — set the new
+              accent <em>before</em> the transition starts, or <em>after</em> it
+              completes.
             </p>
           </li>
         </ul>
