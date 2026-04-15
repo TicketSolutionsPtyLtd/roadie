@@ -223,6 +223,9 @@ export {
   InvalidColorError,
   isValidHexColor,
   getAccentStyleTag,
+  getAccentStyleTagSync,
+  getAccentStyleSync,
+  getBootstrapScript,
   getThemeScript,
   type ThemeProviderProps
 } from './providers/ThemeProvider'

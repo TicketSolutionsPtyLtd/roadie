@@ -6,10 +6,12 @@ import {
   generateAccentScale,
   generateNeutralScale,
   getOklchChroma,
-  getOklchHue
+  getOklchChromaSync,
+  getOklchHue,
+  getOklchHueSync
 } from '@oztix/roadie-core/colors'
 
-export { getThemeScript } from '@oztix/roadie-core/theme'
+export { getBootstrapScript, getThemeScript } from '@oztix/roadie-core/theme'
 
 /**
  * The default Roadie accent colour (Oztix blue).
@@ -20,8 +22,7 @@ export const DEFAULT_ACCENT_COLOR = '#0091EB'
 
 const THEME_STORAGE_KEY = 'theme'
 
-const HEX_COLOR_PATTERN =
-  /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/
+const HEX_COLOR_PATTERN = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/
 
 /**
  * Validate that a value is a CSS hex colour string (`#RGB`, `#RRGGBB`,
@@ -143,6 +144,61 @@ export async function getAccentStyleTag(
     ${darkAccentVars}
   }
 </style>`
+}
+
+/**
+ * Return only the inner CSS body (`:root{--accent-hue:…}`) for the
+ * accent colour. Useful for React consumers that want to inject the
+ * accent via `<style dangerouslySetInnerHTML>` without wrapping a
+ * second `<style>` tag around the output of `getAccentStyleTagSync`.
+ *
+ * Throws `InvalidColorError` on invalid hex input.
+ *
+ * @example
+ * ```tsx
+ * <head>
+ *   <style
+ *     id="roadie-accent-theme"
+ *     dangerouslySetInnerHTML={{ __html: getAccentStyleSync(accentHex) }}
+ *   />
+ * </head>
+ * ```
+ */
+export function getAccentStyleSync(accentHex: string): string {
+  if (!isValidHexColor(accentHex)) {
+    throw new InvalidColorError(accentHex)
+  }
+  const hue = Math.round(getOklchHueSync(accentHex))
+  const chroma = +getOklchChromaSync(accentHex).toFixed(4)
+  return `:root{--accent-hue:${hue};--accent-chroma:${chroma}}`
+}
+
+/**
+ * Synchronous variant of `getAccentStyleTag` for pre-hydration bootstrap.
+ *
+ * Writes only `--accent-hue` and `--accent-chroma` — the two CSS custom
+ * properties Roadie's OKLCH curves read. Modern browsers (Chrome 111+,
+ * Safari 15.4+, Firefox 113+) support `oklch()` and get zero-flash
+ * theming via this path. Non-OKLCH browsers continue to resolve the
+ * full hex scale after hydration through `getAccentStyleTag`.
+ *
+ * Because this function is synchronous it can be called during SSR,
+ * inside `getBootstrapScript`, or in a static-export layout that
+ * injects its output into `<head>` before any stylesheet loads.
+ *
+ * Throws `InvalidColorError` on invalid hex input.
+ */
+export function getAccentStyleTagSync(
+  accentHex: string,
+  id = 'roadie-accent-theme'
+): string {
+  if (!isValidHexColor(accentHex)) {
+    throw new InvalidColorError(accentHex)
+  }
+  const hue = Math.round(getOklchHueSync(accentHex))
+  const chroma = +getOklchChromaSync(accentHex).toFixed(4)
+  const safeId = id.replace(/[<>"&]/g, '')
+  return `<style id="${safeId}">:root{--accent-hue:${hue};--accent-chroma:${chroma}}</style>`
 }
 
 // ---------------------------------------------------------------------------

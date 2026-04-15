@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { getThemeScript } from './index'
+import { getBootstrapScript, getThemeScript } from './index'
 
 describe('getThemeScript', () => {
   it('returns a string', () => {
@@ -55,5 +55,62 @@ describe('getThemeScript', () => {
     const script = getThemeScript({ followSystem: true, defaultDark: true })
     // When followSystem is true, it should use matchMedia, not the defaultDark value
     expect(script).toContain('matchMedia')
+  })
+})
+
+describe('getBootstrapScript', () => {
+  it('wraps getThemeScript in a <script> tag when no accent is provided', () => {
+    const output = getBootstrapScript()
+    expect(output).toMatch(/^<script>try\{/)
+    expect(output).toMatch(/<\/script>$/)
+    expect(output).not.toContain('--accent-hue')
+  })
+
+  it('passes theme options through to getThemeScript', () => {
+    const output = getBootstrapScript({ followSystem: true })
+    expect(output).toContain('matchMedia')
+  })
+
+  it('appends an accent style tag when accentColor is provided', () => {
+    const output = getBootstrapScript({ accentColor: '#0091EB' })
+    expect(output).toContain('<script>')
+    expect(output).toContain('</script>')
+    expect(output).toContain(
+      '<style id="roadie-accent-theme">:root{--accent-hue:'
+    )
+    expect(output).toContain('--accent-chroma:')
+    expect(output).toContain('</style>')
+  })
+
+  it('treats null accentColor as no accent', () => {
+    const output = getBootstrapScript({ accentColor: null })
+    expect(output).not.toContain('--accent-hue')
+  })
+
+  it('treats undefined accentColor as no accent', () => {
+    const output = getBootstrapScript({ accentColor: undefined })
+    expect(output).not.toContain('--accent-hue')
+  })
+
+  it('throws on invalid hex accentColor', () => {
+    expect(() => getBootstrapScript({ accentColor: 'garbage' })).toThrow(
+      /Invalid accentColor/
+    )
+  })
+
+  it('produces an integer hue value', () => {
+    const output = getBootstrapScript({ accentColor: '#0091EB' })
+    // Hue should be rounded to a whole number
+    const match = output.match(/--accent-hue:(-?\d+)/)
+    expect(match).not.toBeNull()
+    expect(Number.isInteger(Number(match![1]))).toBe(true)
+  })
+
+  it('produces a 4-decimal chroma value', () => {
+    const output = getBootstrapScript({ accentColor: '#0091EB' })
+    const match = output.match(/--accent-chroma:([\d.]+)/)
+    expect(match).not.toBeNull()
+    const decimals = match![1]!.split('.')[1] ?? ''
+    expect(decimals.length).toBeLessThanOrEqual(4)
   })
 })

@@ -7,6 +7,8 @@ import {
   DEFAULT_ACCENT_COLOR,
   InvalidColorError,
   ThemeProvider,
+  getAccentStyleSync,
+  getAccentStyleTagSync,
   isValidHexColor,
   useTheme
 } from './ThemeProvider'
@@ -241,6 +243,50 @@ describe('ThemeProvider - accent color', () => {
     })
     act(() => result.current.setAccentColor('#FF0000'))
     expect(result.current.accentColor).toBe('#FF0000')
+  })
+})
+
+describe('getAccentStyleSync', () => {
+  it('returns just the :root CSS body (no style tag wrapper)', () => {
+    const css = getAccentStyleSync('#0091EB')
+    expect(css).toMatch(/^:root\{/)
+    expect(css).toContain('--accent-hue:')
+    expect(css).toContain('--accent-chroma:')
+    expect(css).not.toContain('<style')
+  })
+
+  it('throws InvalidColorError on invalid input', () => {
+    expect(() => getAccentStyleSync('garbage')).toThrow(InvalidColorError)
+  })
+})
+
+describe('getAccentStyleTagSync', () => {
+  it('returns a synchronous style tag with --accent-hue and --accent-chroma', () => {
+    const tag = getAccentStyleTagSync('#0091EB')
+    expect(tag).toMatch(/^<style id="roadie-accent-theme">/)
+    expect(tag).toContain('--accent-hue:')
+    expect(tag).toContain('--accent-chroma:')
+    expect(tag).toMatch(/<\/style>$/)
+  })
+
+  it('accepts a custom id', () => {
+    const tag = getAccentStyleTagSync('#0091EB', 'custom-id')
+    expect(tag).toContain('id="custom-id"')
+  })
+
+  it('sanitizes the id to strip angle brackets and quotes', () => {
+    const tag = getAccentStyleTagSync('#0091EB', '<script>"')
+    expect(tag).toContain('id="script"')
+  })
+
+  it('throws InvalidColorError on invalid input', () => {
+    expect(() => getAccentStyleTagSync('not-a-hex')).toThrow(InvalidColorError)
+  })
+
+  it('produces identical hue/chroma across calls (deterministic)', () => {
+    const a = getAccentStyleTagSync('#0091EB')
+    const b = getAccentStyleTagSync('#0091EB')
+    expect(a).toBe(b)
   })
 })
 

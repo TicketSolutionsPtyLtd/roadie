@@ -60,6 +60,7 @@ changes the default, our app silently drifts.
 
 ```ts
 import { DEFAULT_ACCENT_COLOR } from '@oztix/roadie-components'
+
 // or
 const { resetAccentColor } = useTheme()
 ```
@@ -161,6 +162,7 @@ integration at all.
 
 **Proposed docs.** A "View transitions with Roadie" guide in the tokens
 page, covering:
+
 - The z-index layering trick for sticky headers
 - How named groups interact with the `root` group
 - Recommended keyframe names for slide/fade/morph patterns
@@ -300,17 +302,17 @@ theming-adjacent feature:
 
 If we file these upstream against Roadie, here's the suggested priority:
 
-| # | Issue | Priority | Complexity |
-|---|---|---|---|
-| 1 | Controlled `accentColor` prop on `ThemeProvider` | **High** | Medium |
-| 4 | Pre-hydration-friendly accent bootstrap | **High** | Medium |
-| 3 | Input validation on `setAccentColor` | Medium | Small |
-| 2 | Export `DEFAULT_ACCENT_COLOR` constant | Medium | Trivial |
-| 5 | View transitions docs / z-index guidance | Medium | Small |
-| 6 | Surface token cheat sheet | Low | Trivial |
-| 7 | Extend or document radius scale ceiling | Low | Trivial |
-| 8 | `useAccentColorSync` helper hook | Low (obsolete if #1 lands) | Small |
-| 9 | Unified bootstrap script | Low | Small |
+| #   | Issue                                            | Priority                   | Complexity |
+| --- | ------------------------------------------------ | -------------------------- | ---------- |
+| 1   | Controlled `accentColor` prop on `ThemeProvider` | **High**                   | Medium     |
+| 4   | Pre-hydration-friendly accent bootstrap          | **High**                   | Medium     |
+| 3   | Input validation on `setAccentColor`             | Medium                     | Small      |
+| 2   | Export `DEFAULT_ACCENT_COLOR` constant           | Medium                     | Trivial    |
+| 5   | View transitions docs / z-index guidance         | Medium                     | Small      |
+| 6   | Surface token cheat sheet                        | Low                        | Trivial    |
+| 7   | Extend or document radius scale ceiling          | Low                        | Trivial    |
+| 8   | `useAccentColorSync` helper hook                 | Low (obsolete if #1 lands) | Small      |
+| 9   | Unified bootstrap script                         | Low                        | Small      |
 
 Learnings 1 + 4 are the biggest force multipliers. Everything else is
 polish.

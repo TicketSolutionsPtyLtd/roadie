@@ -114,7 +114,7 @@ export function ThemeProvider({
       if (isControlled && process.env.NODE_ENV !== 'production') {
         console.warn(
           '[Roadie] setAccentColor() called on a controlled ThemeProvider. ' +
-          'Update the `accentColor` prop instead — this call is a no-op.'
+            'Update the `accentColor` prop instead — this call is a no-op.'
         )
         return
       }
@@ -127,6 +127,7 @@ export function ThemeProvider({
 ```
 
 Key semantics:
+
 - `accentColor` prop always wins on re-render. The existing
   `useEffect(..., [accentColor])` at line 178 already reruns cleanly.
 - Calling `setAccentColor()` on a controlled provider is a no-op +
@@ -311,7 +312,7 @@ Proposed sections:
    colour space, the relationship between `--accent-hue` /
    `--accent-chroma` and the generated scales.
 2. **Static theming (uncontrolled).** Basic `<ThemeProvider
-   defaultAccentColor="#0091EB">` setup for apps that never change
+defaultAccentColor="#0091EB">` setup for apps that never change
    the accent at runtime. Matches what the docs site itself does
    today.
 3. **Dynamic theming (controlled).** The new `accentColor` prop
@@ -443,7 +444,7 @@ behaviour change. However:
 - New behaviour: call throws at the call site, consumer can wrap in
   try/catch or validate upfront.
 
-Since no current consumer can *handle* the existing async throw, we're
+Since no current consumer can _handle_ the existing async throw, we're
 strictly improving error handling. The dev warning on controlled-setter
 calls is purely additive.
 
