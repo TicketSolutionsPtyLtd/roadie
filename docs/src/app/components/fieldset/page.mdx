@@ -17,12 +17,17 @@ A compound wrapper for grouping related form fields with a legend.
 import { Fieldset } from '@oztix/roadie-components/fieldset'
 ```
 
+`<Fieldset>` is the root component. Sub-components are attached as properties:
+`<Fieldset.Legend>`, `<Fieldset.HelperText>`, `<Fieldset.ErrorText>`. For
+consumers who prefer Base UI's explicit root syntax, `<Fieldset.Root>` is a
+supported alias — the two forms reference the same function.
+
 ## Examples
 
 ### Default
 
 ```tsx-live
-<Fieldset.Root>
+<Fieldset>
   <Fieldset.Legend>Contact information</Fieldset.Legend>
   <Field>
     <Field.Label>Name</Field.Label>
@@ -32,7 +37,7 @@ import { Fieldset } from '@oztix/roadie-components/fieldset'
     <Field.Label>Email</Field.Label>
     <Field.Input type='email' placeholder='you@example.com' />
   </Field>
-</Fieldset.Root>
+</Fieldset>
 ```
 
 ### Composition
@@ -42,7 +47,7 @@ Fieldset exposes sub-components for legend, helper text, and error text.
 #### With helper text
 
 ```tsx-live
-<Fieldset.Root>
+<Fieldset>
   <Fieldset.Legend>Contact information</Fieldset.Legend>
   <Fieldset.HelperText>Provide your preferred contact details.</Fieldset.HelperText>
   <Field>
@@ -53,16 +58,16 @@ Fieldset exposes sub-components for legend, helper text, and error text.
     <Field.Label>Email</Field.Label>
     <Field.Input type='email' placeholder='you@example.com' />
   </Field>
-</Fieldset.Root>
+</Fieldset>
 ```
 
 #### With error text
 
 ```tsx-live
-<Fieldset.Root invalid>
+<Fieldset invalid>
   <Fieldset.Legend>Preferences</Fieldset.Legend>
   <Fieldset.ErrorText>Please select at least one option.</Fieldset.ErrorText>
-</Fieldset.Root>
+</Fieldset>
 ```
 
 <PropsDefinitions componentPath='packages/components/src/components/Fieldset' />

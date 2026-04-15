@@ -1,6 +1,17 @@
 # Compound Patterns
 
-Roadie compounds ship as a single **namespace export per compound**, sourced from a per-file split and delivered via a subpath package export. Under the hood each leaf is its own on-disk module (tsdown `unbundle: true`), and a server-safe `index.tsx` + `parts.ts` layer re-exports them as a namespace. Consumers write `import { Fieldset } from '@oztix/roadie-components/fieldset'` and `<Fieldset.Root>…</Fieldset.Root>` — Base UI's exact ergonomics — in both server and client components.
+Roadie compounds ship as a **function root with sub-components attached as static properties**. Each leaf is its own on-disk module (tsdown `unbundle: true`), and a server-safe `index.tsx` imports the leaves and attaches them to the root function via property assignment. Consumers write:
+
+```tsx
+import { Fieldset } from '@oztix/roadie-components/fieldset'
+
+<Fieldset>
+  <Fieldset.Legend>Contact information</Fieldset.Legend>
+  <Fieldset.HelperText>We'll get back to you.</Fieldset.HelperText>
+</Fieldset>
+```
+
+in both server and client components. **Bare `<Fieldset>` is the canonical root form** — no `.Root` required. For consumers migrating from Base UI or who prefer the explicit dot-notation root, `<Fieldset.Root>` is a supported alias that references the same component.
 
 This file covers:
 
@@ -96,7 +107,7 @@ If you find yourself wanting both — items need both global state AND positiona
 
 ---
 
-## 2. Compound assembly: per-file leaves + namespace re-export + tsdown unbundle mode
+## 2. Compound assembly: per-file leaves + server-safe property assignment + tsdown unbundle mode
 
 The runtime wiring from section 1 decides how your compound **works**. This section decides how it **ships**.
 
@@ -105,8 +116,10 @@ The runtime wiring from section 1 decides how your compound **works**. This sect
 Three things are load-bearing:
 
 1. **Per-file sub-components on disk.** Every leaf (`FieldsetRoot`, `FieldsetLegend`, `FieldsetHelperText`, `FieldsetErrorText`, `FieldsetContext`, etc.) is its own source file in the compound folder. **Tsdown builds with `unbundle: true`**, which emits each source file as its own dist file — `dist/components/Fieldset/FieldsetRoot.js`, `dist/components/Fieldset/FieldsetLegend.js`, etc. Rolldown preserves `'use client'` on per-file outputs natively, so the directive stays exactly where it's marked in source.
-2. **Server-safe namespace re-export.** `index.tsx` and `parts.ts` are pure re-export layers with **no `'use client'` directive**. `index.tsx` does `export * as Fieldset from './parts'` (Base UI's exact shape). Because these two files are server-safe and re-export statically from the individual leaves, Next.js's RSC compiler follows the chain at build time and resolves `Fieldset.Root` to a client reference pointing at `FieldsetRoot.js`. No proxy, no runtime dot access — the whole chain collapses to a static reference.
-3. **Subpath package exports.** Each compound ships from its own subpath entry (`@oztix/roadie-components/fieldset`). Subpath imports scope the Next.js compiler walk to one compound. Both the subpath form and the root barrel (`@oztix/roadie-components`) work in server components now, because the barrel just re-exports the same server-safe `Fieldset` namespace the subpath exposes.
+2. **Server-safe root + property assignment.** `index.tsx` has **no `'use client'` directive**. It imports each leaf by name and attaches them to the root function as static properties (`Fieldset.Legend = FieldsetLegend`, etc.), then exports the augmented root. Because `index.tsx` is a server-safe module, the property assignments execute in ordinary server-side JavaScript — Next never wraps this module in a client-reference proxy, so the attached properties are reachable from a server component that does `<Fieldset.Legend>`. This was the classically broken pattern pre-Phase-3, but only because `index.tsx` _used_ to carry `'use client'`. Under unbundle mode it doesn't, and the pattern works.
+3. **Subpath package exports.** Each compound ships from its own subpath entry (`@oztix/roadie-components/fieldset`). Subpath imports scope the Next.js compiler walk to one compound. Both the subpath form and the root barrel (`@oztix/roadie-components`) work in server components now, because the barrel just re-exports the same server-safe `Fieldset` root that the subpath exposes.
+
+The upshot for consumers: **`<Fieldset>` and `<Fieldset.Root>` are the same function reference** (literally `Fieldset === Fieldset.Root`). Both render identically. Bare `<Fieldset>` is the canonical form; the `.Root` alias exists for Base UI parity and explicit dot-notation preference.
 
 See [`docs/solutions/rsc-patterns/compound-export-namespace.md`](../solutions/rsc-patterns/compound-export-namespace.md) for the full background, the Dan Abramov quote, and the failure modes ruled out along the way.
 
@@ -120,8 +133,8 @@ packages/components/src/components/Fieldset/
   FieldsetErrorText.tsx     # 'use client' — reads FieldsetContext via use()
   FieldsetContext.ts        # 'use client' — module-scope createContext
   parts.ts                  # server-safe short-name re-export aggregator
-  index.tsx                 # server-safe — export * as Fieldset from './parts'
-  Fieldset.test.tsx         # namespace-level integration tests
+  index.tsx                 # server-safe — attaches leaves to root function
+  Fieldset.test.tsx         # integration tests (bare + .Root forms)
 ```
 
 `'use client'` goes **only** on files that actually need it — hooks, `createContext`, or wrapping a Base UI client primitive. Pure presentational leaves (`FieldsetLegend`, `FieldsetHelperText`) and the pure re-export layer (`parts.ts`, `index.tsx`) stay server-safe. See section 2.11 for the full rule.
@@ -142,6 +155,8 @@ import type { ComponentProps } from 'react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { FieldsetContext } from './FieldsetContext'
+
+// FieldsetRoot.tsx
 
 // FieldsetRoot.tsx
 
@@ -186,6 +201,8 @@ import { Combobox as ComboboxPrimitive } from '@base-ui-components/react/combobo
 
 // ComboboxPortal.tsx
 
+// ComboboxPortal.tsx
+
 export const ComboboxPortal = ComboboxPrimitive.Portal
 export type ComboboxPortalProps = ComboboxPrimitive.Portal.Props
 ```
@@ -204,6 +221,8 @@ import { createContext } from 'react'
 
 // FieldsetContext.ts
 
+// FieldsetContext.ts
+
 export type FieldsetContextValue = {
   invalid?: boolean
 }
@@ -211,41 +230,61 @@ export type FieldsetContextValue = {
 export const FieldsetContext = createContext<FieldsetContextValue>({})
 ```
 
-The context module is imported by each leaf that needs it. Don't re-export context from `parts.ts` — it's an implementation detail of the compound, not a public surface.
+The context module is imported by each leaf that needs it, and by `index.tsx` if the root attaches context to the compound — but it should not be part of the compound's public surface.
 
-### 2.6 Aggregator (`parts.ts`)
+### 2.6 Subpath entry (`index.tsx`)
 
-One line per sub-component. The _only_ place short-name renames happen. **Server-safe — no `'use client'` directive.** This file must be a pure re-export layer so the Next.js RSC compiler can statically follow the chain to each leaf.
-
-```ts
-// parts.ts
-export { FieldsetRoot as Root } from './FieldsetRoot'
-export type { FieldsetRootProps as RootProps } from './FieldsetRoot'
-
-export { FieldsetLegend as Legend } from './FieldsetLegend'
-export type { FieldsetLegendProps as LegendProps } from './FieldsetLegend'
-
-export { FieldsetHelperText as HelperText } from './FieldsetHelperText'
-export type { FieldsetHelperTextProps as HelperTextProps } from './FieldsetHelperText'
-
-export { FieldsetErrorText as ErrorText } from './FieldsetErrorText'
-export type { FieldsetErrorTextProps as ErrorTextProps } from './FieldsetErrorText'
-```
-
-### 2.7 Subpath entry (`index.tsx`)
+`index.tsx` is the public face of the compound's subpath. It imports each leaf by name and attaches them as static properties on the root function, then exports the augmented root as the compound's name. **Server-safe — no `'use client'` directive.**
 
 ```tsx
-// index.tsx
-export * as Fieldset from './parts'
+// Fieldset/index.tsx
+import { FieldsetErrorText } from './FieldsetErrorText'
+import { FieldsetHelperText } from './FieldsetHelperText'
+import { FieldsetLegend } from './FieldsetLegend'
+import { FieldsetRoot } from './FieldsetRoot'
+
+const Fieldset = FieldsetRoot as typeof FieldsetRoot & {
+  Root: typeof FieldsetRoot
+  Legend: typeof FieldsetLegend
+  HelperText: typeof FieldsetHelperText
+  ErrorText: typeof FieldsetErrorText
+}
+
+Fieldset.Root = FieldsetRoot
+Fieldset.Legend = FieldsetLegend
+Fieldset.HelperText = FieldsetHelperText
+Fieldset.ErrorText = FieldsetErrorText
+
+export { Fieldset }
+export type { FieldsetRootProps as FieldsetProps } from './FieldsetRoot'
 ```
 
-This is the public face of the compound's subpath. It ships a single `Fieldset` namespace export backed by the `parts.ts` re-export aggregator. **Server-safe — no `'use client'` directive.** Together with `parts.ts`, this file forms the server-safe re-export layer that Next.js's RSC compiler follows at build time.
+Notes:
 
-Variant maps and shared literal-union types (if the compound has any) ship as flat re-exports alongside the namespace:
+- **`Fieldset` is the root function** — same reference as `FieldsetRoot`. That's why `<Fieldset>` works bare.
+- **`Fieldset.Root = FieldsetRoot`** is the explicit alias for Base UI parity. Self-reference, no extra cost.
+- **Type cast via `as`** widens the root function's type to include the attached properties. No `Object.assign` return-type gymnastics — the explicit cast is cleaner and `react-docgen-typescript` handles it fine.
+- **Type re-export at the bottom** exposes `FieldsetProps` (aliased from `FieldsetRootProps`) as the primary prop type for the root. Sub-component prop types still live in their per-file leaves and are reachable via the namespace type (see 2.10).
+
+Variant maps and shared literal-union types (if the compound has any) ship as flat re-exports alongside the root:
 
 ```tsx
 // Combobox/index.tsx
-export * as Combobox from './parts'
+import { ComboboxInput } from './ComboboxInput'
+import { ComboboxRoot } from './ComboboxRoot'
+// ... other leaves
+
+const Combobox = ComboboxRoot as typeof ComboboxRoot & {
+  Root: typeof ComboboxRoot
+  Input: typeof ComboboxInput
+  // ... other attachments
+}
+
+Combobox.Root = ComboboxRoot
+Combobox.Input = ComboboxInput
+// ...
+
+export { Combobox }
 export {
   comboboxInputGroupVariants,
   type ComboboxInputGroupVariants
@@ -254,7 +293,7 @@ export {
 
 Co-locating the variant map with its compound means consumers extending CVA get the map from the same subpath (`@oztix/roadie-components/combobox`) as the component.
 
-### 2.8 Subpath registration
+### 2.7 Subpath registration
 
 `packages/components/package.json` ships one `exports` entry per compound (kebab-case key → `dist/components/<Compound>/index.js`). The entry map is **generated** — do not hand-edit it. Run:
 
@@ -275,7 +314,7 @@ head -c 13 packages/components/dist/components/Fieldset/FieldsetRoot.js   # → 
 head -c 13 packages/components/dist/components/Fieldset/FieldsetLegend.js # → "import{cn a"  (no directive — server-safe)
 ```
 
-### 2.9 Consumer surface
+### 2.8 Consumer surface
 
 ```tsx
 // app/page.tsx — a Next.js server component
@@ -283,32 +322,52 @@ import { Fieldset } from '@oztix/roadie-components/fieldset'
 
 export default function Page() {
   return (
-    <Fieldset.Root>
+    <Fieldset>
       <Fieldset.Legend>Contact information</Fieldset.Legend>
       <Fieldset.HelperText>We'll get back to you.</Fieldset.HelperText>
-    </Fieldset.Root>
+    </Fieldset>
   )
 }
 ```
 
-Base UI's exact import form. Bare `import { Fieldset }`, dot access via `<Fieldset.Root>`, works in server components, works in client components, works from the barrel (`@oztix/roadie-components`), works from the subpath (`@oztix/roadie-components/fieldset`). RSC-safe end to end. No client wrapper, no barrel walking, no `optimizePackageImports` configuration in consumer apps.
+**Bare `<Fieldset>` is the canonical root form.** It works in server components, client components, subpath imports, and barrel imports. RSC-safe end to end.
 
-**Subpath form is preferred** because it bypasses the barrel walk entirely and keeps the Next.js compiler's work scoped to one compound. But both forms are valid — the RSC canary at `/debug/rsc-smoke` verifies both on every docs build.
-
-### 2.10 Type access from consumer code
-
-Types are reachable through the same namespace identifier:
+For consumers migrating from Base UI or who prefer explicit dot-notation roots, `<Fieldset.Root>` is a supported alias:
 
 ```tsx
-import { Fieldset } from '@oztix/roadie-components/fieldset'
-
-type RootProps = Fieldset.RootProps
-type LegendProps = Fieldset.LegendProps
+<Fieldset.Root>
+  <Fieldset.Legend>Contact information</Fieldset.Legend>
+</Fieldset.Root>
 ```
 
-`parts.ts` re-exports types alongside values, and `export * as Fieldset` surfaces both in the namespace. For edge cases — e.g. anonymising a subcomponent inside a wrapper — fall back to `ComponentProps<typeof Fieldset.Root>`.
+`Fieldset === Fieldset.Root` — they are the same function reference. React DevTools shows both as `Fieldset.Root` (from the `displayName`).
 
-### 2.11 The `'use client'` rule
+**Subpath form (`@oztix/roadie-components/fieldset`) is preferred over the barrel** because it scopes the Next.js compiler walk to one compound and avoids pulling unrelated compounds through the barrel's transitive import graph. Both forms are valid; the RSC canary at `/debug/rsc-smoke` verifies both on every docs build.
+
+### 2.9 Type access from consumer code
+
+The primary root prop type is re-exported from `index.tsx` as `FieldsetProps` (aliased from `FieldsetRootProps`), so the common case is a bare named import:
+
+```tsx
+import { Fieldset, type FieldsetProps } from '@oztix/roadie-components/fieldset'
+
+function MyWrapper(props: FieldsetProps) {
+  return <Fieldset {...props} />
+}
+```
+
+For sub-component prop types, use `ComponentProps<typeof Fieldset.Legend>`:
+
+```tsx
+import type { ComponentProps } from 'react'
+import { Fieldset } from '@oztix/roadie-components/fieldset'
+
+type LegendProps = ComponentProps<typeof Fieldset.Legend>
+```
+
+The explicit `FieldsetLegendProps` type is also reachable via a deep import (`@oztix/roadie-components/fieldset/FieldsetLegend`) under unbundle mode, but `ComponentProps<typeof …>` is cleaner and doesn't lock consumers into the internal file layout.
+
+### 2.10 The `'use client'` rule
 
 Mark files with `'use client'` **only where they actually need it**:
 
@@ -316,14 +375,14 @@ Mark files with `'use client'` **only where they actually need it**:
 - **Always** — files that call `createContext` at module scope
 - **Always** — files that wrap a Base UI client primitive
 - **Never** — pure presentational leaves (function components that just render HTML)
-- **Never** — `index.tsx` and `parts.ts` aggregators (pure re-export layer — must be server-safe for the RSC chain to work)
+- **Never** — `index.tsx` (it's a server-safe property-assignment layer — this is what makes the whole pattern work)
 - **Never** — variant maps, type-only files, non-React utilities
 
-This is the essential discipline that makes the pattern work. `FieldsetLegend.tsx` is a pure presentational leaf — no hooks, no context — and ships as a server-safe component. `FieldsetRoot.tsx` provides context and carries the directive. `parts.ts` and `index.tsx` are re-export layers and stay server-safe.
+This is the essential discipline that makes the pattern work. `FieldsetLegend.tsx` is a pure presentational leaf — no hooks, no context — and ships as a server-safe component. `FieldsetRoot.tsx` provides context and carries the directive. `index.tsx` is the server-safe re-export + property-assignment layer.
 
 If you catch yourself adding `'use client'` to a presentational leaf "just to be safe," stop and ask whether the leaf actually uses a client API. If it doesn't, leave the directive off. The RSC canary at `/debug/rsc-smoke` catches regressions.
 
-### 2.12 Sub-component prop types
+### 2.11 Sub-component prop types
 
 Prefer `type X = Base & { ... }` over `interface X extends Base` for sub-component prop types:
 
@@ -353,25 +412,22 @@ Use this as the end-to-end flow when creating a new compound (or migrating an ol
 3. [ ] For pure passthroughs of a Base UI / Ark UI primitive, create a one-line file: `'use client'` + `export const <Compound><Sub> = <Primitive>.<Sub>` + a `type` re-export.
 4. [ ] If multiple leaves share React context, factor it into `<Compound>Context.ts` with `'use client'` at the top (`createContext` at module scope forces a client module).
 5. [ ] If the compound has CVA variant maps, create `variants.ts` and export the maps + any literal-union type aliases. No `'use client'` unless it imports a client API.
-6. [ ] Create `parts.ts` as a **server-safe** short-name re-export aggregator. **No `'use client'` directive.** One export pair per leaf (value + type).
-7. [ ] Create `index.tsx` as a **server-safe** namespace re-export. **No `'use client'` directive.**
-   - `export * as <Compound> from './parts'`
-   - Any flat variant / type re-exports (from `./variants`)
-8. [ ] Write `<Compound>.test.tsx` at the namespace level. Use `import { <Compound> } from '.'` and `<Compound>.Root` JSX form.
-9. [ ] Add `export { <Compound> } from './components/<Compound>'` to the root package barrel `packages/components/src/index.tsx`. Bare re-export — no namespace synthesis needed.
-10. [ ] Run `pnpm --filter @oztix/roadie-components generate:exports` to register the subpath in `package.json`.
-11. [ ] Add a `<section>` to `docs/src/app/debug/rsc-smoke/page.tsx` rendering `<Compound>.Root` and at least one sub-component via `import { <Compound> } from '@oztix/roadie-components/<kebab-compound>'`. This is the CI canary — it fails the docs build if the compound regresses from RSC-safe.
-12. [ ] Write the docs page `docs/src/app/components/<kebab-compound>/page.mdx`. Point `<PropsDefinitions componentPath='packages/components/src/components/<Compound>' />` at the **folder path**, not a single file. The parser enumerates every non-test `.tsx` file in the folder.
-13. [ ] Run `pnpm build && pnpm test && pnpm typecheck && pnpm lint` and verify the docs site builds with the RSC canary page rendering.
+6. [ ] Create `index.tsx` as the **server-safe** subpath entry. **No `'use client'` directive.** It imports each leaf by name, attaches them as static properties on the root function via a type-cast alias + assignment, and exports the augmented root plus `FieldsetProps` (aliased from `FieldsetRootProps`). Also re-exports any flat variant / type re-exports (from `./variants`). See the example at 2.6.
+7. [ ] Write `<Compound>.test.tsx` exercising both `<Compound>` (bare root, canonical) and `<Compound.Root>` (explicit alias) forms. Assert `Compound === Compound.Root` — they must be the same reference.
+8. [ ] Add `export { <Compound> } from './components/<Compound>'` to the root package barrel `packages/components/src/index.tsx`. Bare re-export — the root's attached properties carry through.
+9. [ ] Run `pnpm --filter @oztix/roadie-components generate:exports` to register the subpath in `package.json`.
+10. [ ] Add a `<section>` to `docs/src/app/debug/rsc-smoke/page.tsx` rendering `<Compound>` (bare root) and at least one sub-component via `import { <Compound> } from '@oztix/roadie-components/<kebab-compound>'`. Optionally add a second section verifying the `<Compound.Root>` alias. This is the CI canary — it fails the docs build if the compound regresses from RSC-safe.
+11. [ ] Write the docs page `docs/src/app/components/<kebab-compound>/page.mdx`. Use `<Compound>` (bare root) in the code examples — it's the canonical consumer form. Point `<PropsDefinitions componentPath='packages/components/src/components/<Compound>' />` at the **folder path**, not a single file. The parser enumerates every non-test `.tsx` file in the folder.
+12. [ ] Run `pnpm build && pnpm test && pnpm typecheck && pnpm lint` and verify the docs site builds with the RSC canary page rendering.
 
 ### Don'ts
 
 - **Don't hand-edit `packages/components/package.json`'s `exports` block** — it's generated. Run the generator.
-- **Don't re-export context from `parts.ts`** — it's an implementation detail of the compound, not a public surface.
-- **Don't add `'use client'` to `parts.ts` or `index.tsx`.** Those files must stay server-safe so the Next.js RSC compiler can follow the static re-export chain. Marking them as client modules collapses the re-export layer into the leaves and breaks RSC safety.
+- **Don't export the shared context from `index.tsx`** — it's an implementation detail, not a public surface.
+- **Don't add `'use client'` to `index.tsx`.** It must stay a server-safe module so Next.js follows the re-export + property-assignment layer at build time. Marking it as a client module reinstates the pre-Phase-3 client-reference-proxy wall and breaks dot access in server components.
 - **Don't add `'use client'` to pure presentational leaves.** If a leaf has no hooks, no context, and no client primitive, it ships as a server-safe component. The RSC canary verifies this works.
-- **Don't disable `unbundle: true` in `tsdown.config.ts`.** The per-file build output is load-bearing for RSC safety — see section 2.1. Bundling the compound folder would collapse the re-export layer into the client leaves.
-- **Don't use property assignment (`Compound.Sub = SubFn`) or `Object.assign + cast`.** Both are broken across the RSC boundary. Any new or migrated compound that uses either form will fail review and fail the RSC canary build.
+- **Don't disable `unbundle: true` in `tsdown.config.ts`.** The per-file build output is load-bearing for RSC safety — see section 2.1. Bundling the compound folder collapses the server-safe root module into the client leaves and forces the whole thing behind a client-reference proxy.
+- **Don't recommend `<Compound.Root>` in new docs code.** Use bare `<Compound>` as the canonical form — the `.Root` alias exists for consumers migrating from Base UI, not as the preferred syntax.
 
 ### Subpath naming
 
@@ -390,12 +446,15 @@ Folder names stay PascalCase (matching the React component name). Subpath keys a
 
 Before April 2026, Roadie compounds used runtime property assignment (`Compound.Sub = SubFn`). That pattern broke across the Next.js server-component / client-component proxy boundary, and PR #38 shipped a client-component wrapper (`docs/src/components/PropsAccordion.tsx`) specifically to dot into `<Accordion.Item>` from the server-rendered `<PropsDefinitions>`.
 
-Phase 3 of the April 2026 components cleanup plan replaced that pattern with **per-file leaves + server-safe namespace re-export + tsdown `unbundle: true`**, which gives us Base UI's exact import form (`import { Fieldset }` + `<Fieldset.Root>`) with full RSC safety. The full migration rationale and evidence trail live in [`docs/solutions/rsc-patterns/compound-export-namespace.md`](../solutions/rsc-patterns/compound-export-namespace.md) and the plan document [`docs/plans/2026-04-15-refactor-components-consistency-cleanup-plan.md`](../plans/2026-04-15-refactor-components-consistency-cleanup-plan.md).
+Phase 3 of the April 2026 components cleanup plan replaced the old pattern with **per-file leaves + server-safe property assignment + tsdown `unbundle: true`**. The shape is identical to the pre-Phase-3 property-assignment pattern — `Compound.Sub = SubFn` at module scope — but it works now because the compound's `index.tsx` is a **server-safe module** (no `'use client'`). The property assignments happen in ordinary server-side JavaScript, not inside a client-reference proxy, so Next.js can follow them at build time.
 
-The pilot went through three failed shapes before landing the final one:
+The full migration rationale and evidence trail live in [`docs/solutions/rsc-patterns/compound-export-namespace.md`](../solutions/rsc-patterns/compound-export-namespace.md) and the plan document [`docs/plans/2026-04-15-refactor-components-consistency-cleanup-plan.md`](../plans/2026-04-15-refactor-components-consistency-cleanup-plan.md).
 
-1. **`export * as Namespace` with bundled output** — matches Base UI's published shape, but since tsdown was bundling each compound folder into a single file, the namespace collapsed into a single client-reference proxy and `<Fieldset.Root>` failed in server components with "Element type is invalid."
-2. **Flat library exports + consumer-side `import * as`** — worked, but required a non-standard consumer import form that diverged from Base UI and every other React library.
-3. **Per-file leaves + `export * as Namespace` + tsdown `unbundle: true`** — the final pattern. Unbundle mode emits each source file as its own dist file, giving us the same on-disk shape Base UI ships, which lets Next.js follow the static re-export chain from the server-safe namespace layer down to each client-marked leaf at build time. Bare `import { Fieldset }` works in both server and client components from both the subpath and the barrel.
+The pilot went through four shapes before landing the final one:
 
-If you encounter an older compound in a fork or a cherry-pick that still uses `Object.assign` or property assignment, migrate it to the current pattern in a single commit — purely structural, no public API change beyond the `<Compound>` → `<Compound.Root>` root-tag rename.
+1. **Pre-Phase-3: property assignment with `'use client'` on `index.tsx`** — broken. The `'use client'` directive wrapped the whole module in a client-reference proxy and the runtime property assignments were invisible on the server side.
+2. **Phase 3 attempt 1: `export * as Namespace` with bundled tsdown output** — matches Base UI's published shape, but tsdown was bundling each compound folder into a single file. The namespace collapsed into a single client-reference proxy and `<Fieldset.Root>` failed in server components with "Element type is invalid."
+3. **Phase 3 attempt 2: flat library exports + consumer-side `import * as`** — worked, but required a non-standard consumer import form that diverged from Base UI and every other React library. Also forced `<Fieldset>` → `<Fieldset.Root>` as a breaking change.
+4. **Phase 3 final: per-file leaves + property assignment on a server-safe `index.tsx` + tsdown `unbundle: true`** — the landing pattern. Unbundle mode emits each source file as its own dist file, `index.tsx` stays server-safe (no `'use client'`), and attaches sub-components as static properties on the root function. Both `<Fieldset>` (canonical, bare) and `<Fieldset.Root>` (alias for Base UI parity) work. Zero breaking change for consumers that used bare `<Fieldset>` before.
+
+If you encounter an older compound in a fork or a cherry-pick that still uses property assignment with `'use client'` on `index.tsx`, migrate it to the current pattern by removing the directive from the index file (and adding it to the leaf files that actually need it) and flipping tsdown to unbundle mode. Purely structural; no public API change.

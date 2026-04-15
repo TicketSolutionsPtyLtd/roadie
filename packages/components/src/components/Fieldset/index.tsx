@@ -1,19 +1,40 @@
 // Subpath entry for `@oztix/roadie-components/fieldset`.
 //
-// Base UI's exact shape — server-safe re-export of a namespace whose
-// members are each individual client-module leaves on disk (enabled by
-// tsdown unbundle mode). Consumers do:
+// Zero-breaking-change shape: `Fieldset` is the root component (aliased to
+// FieldsetRoot) with sub-components attached as static properties. Both
+// `<Fieldset>...</Fieldset>` and `<Fieldset.Root>...</Fieldset.Root>` work,
+// along with `<Fieldset.Legend>`, `<Fieldset.HelperText>`, etc.
 //
-//   import { Fieldset } from '@oztix/roadie-components/fieldset'
-//   <Fieldset.Root>...</Fieldset.Root>
+// No `'use client'` directive here — this file is a server-safe module. The
+// property-assignment form is classically broken across the Next.js RSC
+// boundary (vercel/next.js#51593), but that failure mode requires the file
+// to be a `'use client'` module wrapped in a client-reference proxy. Under
+// tsdown `unbundle: true`, each leaf (`FieldsetRoot.tsx` et al.) is its own
+// client module on disk, and this index file is a server-safe re-export
+// layer that imports them by name. Property assignments happen in ordinary
+// server-side JavaScript — no proxy is involved — so the attached
+// sub-components are reachable from a server component that dots into
+// `Fieldset.Legend`.
 //
-// and Next.js follows the static re-export chain at build time to resolve
-// `Fieldset.Root` to a client reference pointing at `FieldsetRoot.tsx`.
-//
-// No `'use client'` directive here — this file is a pure server-safe
-// re-export layer. Each leaf (`FieldsetRoot.tsx` et al.) carries its own
-// `'use client'` where it's actually needed. See:
+// See:
 //   docs/solutions/rsc-patterns/compound-export-namespace.md
 //   docs/contributing/COMPOUND_PATTERNS.md
+import { FieldsetErrorText } from './FieldsetErrorText'
+import { FieldsetHelperText } from './FieldsetHelperText'
+import { FieldsetLegend } from './FieldsetLegend'
+import { FieldsetRoot } from './FieldsetRoot'
 
-export * as Fieldset from './parts'
+const Fieldset = FieldsetRoot as typeof FieldsetRoot & {
+  Root: typeof FieldsetRoot
+  Legend: typeof FieldsetLegend
+  HelperText: typeof FieldsetHelperText
+  ErrorText: typeof FieldsetErrorText
+}
+
+Fieldset.Root = FieldsetRoot
+Fieldset.Legend = FieldsetLegend
+Fieldset.HelperText = FieldsetHelperText
+Fieldset.ErrorText = FieldsetErrorText
+
+export { Fieldset }
+export type { FieldsetRootProps as FieldsetProps } from './FieldsetRoot'

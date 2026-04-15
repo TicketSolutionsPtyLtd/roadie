@@ -4,11 +4,35 @@ import { describe, expect, it } from 'vitest'
 import { Fieldset } from '.'
 
 describe('Fieldset', () => {
-  it('renders with default props', () => {
+  it('renders with default props using Fieldset.Root', () => {
     const { container } = render(<Fieldset.Root>Content</Fieldset.Root>)
     const fieldset = container.querySelector('fieldset')!
     expect(fieldset).toBeInTheDocument()
     expect(fieldset).toHaveClass('border-none', 'p-0', 'm-0')
+  })
+
+  it('renders with default props using bare <Fieldset> root alias', () => {
+    const { container } = render(<Fieldset>Content</Fieldset>)
+    const fieldset = container.querySelector('fieldset')!
+    expect(fieldset).toBeInTheDocument()
+    expect(fieldset).toHaveClass('border-none', 'p-0', 'm-0')
+  })
+
+  it('Fieldset and Fieldset.Root are the same component reference', () => {
+    expect(Fieldset).toBe(Fieldset.Root)
+  })
+
+  it('renders bare <Fieldset> with sub-components', () => {
+    const { getByText } = render(
+      <Fieldset invalid>
+        <Fieldset.Legend>Bare root</Fieldset.Legend>
+        <Fieldset.HelperText>Helper text</Fieldset.HelperText>
+        <Fieldset.ErrorText>Error text</Fieldset.ErrorText>
+      </Fieldset>
+    )
+    expect(getByText('Bare root')).toBeInTheDocument()
+    expect(getByText('Helper text')).toBeInTheDocument()
+    expect(getByText('Error text')).toBeInTheDocument()
   })
 
   it('renders Legend sub-component', () => {
