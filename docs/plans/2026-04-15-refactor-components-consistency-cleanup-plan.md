@@ -272,8 +272,9 @@ packages/components/src/components/Combobox/
 
 ### Target leaf file shape
 
+A `ComboboxInput.tsx` leaf:
+
 ```tsx
-// ComboboxInput.tsx
 'use client'
 
 import { Combobox as ComboboxPrimitive } from '@base-ui-components/react/combobox'
@@ -282,50 +283,6 @@ import type { VariantProps } from 'class-variance-authority'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { comboboxInputGroupVariants } from './variants'
-
-// ComboboxInput.tsx
-
-// ComboboxInput.tsx
-
-// ComboboxInput.tsx
-
-// ComboboxInput.tsx
-
-// ComboboxInput.tsx
-
-// ComboboxInput.tsx
-
-// ComboboxInput.tsx
-
-// ComboboxInput.tsx
-
-// ComboboxInput.tsx
-
-// ComboboxInput.tsx
-
-// ComboboxInput.tsx
-
-// ComboboxInput.tsx
-
-// ComboboxInput.tsx
-
-// ComboboxInput.tsx
-
-// ComboboxInput.tsx
-
-// ComboboxInput.tsx
-
-// ComboboxInput.tsx
-
-// ComboboxInput.tsx
-
-// ComboboxInput.tsx
-
-// ComboboxInput.tsx
-
-// ComboboxInput.tsx
-
-// ComboboxInput.tsx
 
 export type ComboboxInputProps = ComboboxPrimitive.Input.Props &
   VariantProps<typeof comboboxInputGroupVariants>
@@ -345,55 +302,12 @@ Notes on the leaf file shape:
 
 ### Target passthrough file shape
 
+A `ComboboxPortal.tsx` passthrough:
+
 ```tsx
-// ComboboxPortal.tsx
 'use client'
 
 import { Combobox as ComboboxPrimitive } from '@base-ui-components/react/combobox'
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
 
 export const ComboboxPortal = ComboboxPrimitive.Portal
 export type ComboboxPortalProps = ComboboxPrimitive.Portal.Props

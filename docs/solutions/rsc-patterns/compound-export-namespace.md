@@ -75,10 +75,9 @@ Notes:
 - **No `'use client'` on this file.** That's the whole trick — see "Why this works" below.
 - **`FieldsetProps`** is the primary root prop type, re-exported for consumer convenience (`import { Fieldset, type FieldsetProps }`).
 
-Leaves carry `'use client'` only where they actually need it — when they use hooks, `createContext`, or wrap a Base UI client primitive:
+Leaves carry `'use client'` only where they actually need it — when they use hooks, `createContext`, or wrap a Base UI client primitive. A `FieldsetRoot.tsx` leaf that provides React context needs the directive:
 
 ```tsx
-// FieldsetRoot.tsx — needs 'use client' because it provides React context
 'use client'
 
 import type { ComponentProps } from 'react'
@@ -86,26 +85,6 @@ import type { ComponentProps } from 'react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { FieldsetContext } from './FieldsetContext'
-
-// FieldsetRoot.tsx — needs 'use client' because it provides React context
-
-// FieldsetRoot.tsx — needs 'use client' because it provides React context
-
-// FieldsetRoot.tsx — needs 'use client' because it provides React context
-
-// FieldsetRoot.tsx — needs 'use client' because it provides React context
-
-// FieldsetRoot.tsx — needs 'use client' because it provides React context
-
-// FieldsetRoot.tsx — needs 'use client' because it provides React context
-
-// FieldsetRoot.tsx — needs 'use client' because it provides React context
-
-// FieldsetRoot.tsx — needs 'use client' because it provides React context
-
-// FieldsetRoot.tsx — needs 'use client' because it provides React context
-
-// FieldsetRoot.tsx — needs 'use client' because it provides React context
 
 export type FieldsetRootProps = ComponentProps<'fieldset'> & {
   invalid?: boolean
@@ -125,8 +104,9 @@ export function FieldsetRoot({
 FieldsetRoot.displayName = 'Fieldset.Root'
 ```
 
+A `FieldsetLegend.tsx` leaf is pure presentational and ships without the directive:
+
 ```tsx
-// FieldsetLegend.tsx — pure presentational, no 'use client'
 import type { ComponentProps } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'

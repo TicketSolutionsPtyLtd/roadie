@@ -146,8 +146,9 @@ Additional files when the compound needs them:
 
 ### 2.3 Leaf file shape
 
+A `FieldsetRoot.tsx` leaf looks like this:
+
 ```tsx
-// FieldsetRoot.tsx
 'use client'
 
 import type { ComponentProps } from 'react'
@@ -155,18 +156,6 @@ import type { ComponentProps } from 'react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { FieldsetContext } from './FieldsetContext'
-
-// FieldsetRoot.tsx
-
-// FieldsetRoot.tsx
-
-// FieldsetRoot.tsx
-
-// FieldsetRoot.tsx
-
-// FieldsetRoot.tsx
-
-// FieldsetRoot.tsx
 
 export type FieldsetRootProps = ComponentProps<'fieldset'> & {
   invalid?: boolean
@@ -228,33 +217,12 @@ Rules:
 
 ### 2.5 Passthrough file shape
 
-When a sub-component is a direct re-export of a Base UI (or Ark UI) primitive with no wrapper styling, it's a one-line passthrough file — no wrapper function, no extra typing:
+When a sub-component is a direct re-export of a Base UI (or Ark UI) primitive with no wrapper styling, it's a one-line passthrough file — no wrapper function, no extra typing. A `ComboboxPortal.tsx` passthrough looks like this:
 
 ```tsx
-// ComboboxPortal.tsx
 'use client'
 
 import { Combobox as ComboboxPrimitive } from '@base-ui-components/react/combobox'
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
-
-// ComboboxPortal.tsx
 
 export const ComboboxPortal = ComboboxPrimitive.Portal
 export type ComboboxPortalProps = ComboboxPrimitive.Portal.Props
@@ -264,33 +232,12 @@ Passthroughs still live in their own file so `parts.ts` can import them uniforml
 
 ### 2.6 Shared context (`*Context.ts`)
 
-Sub-components that share React context factor it into a sibling `*Context.ts` file. The context file is TypeScript-only (`.ts`, not `.tsx`) and carries no JSX, but it **needs `'use client'`** because calling `createContext` at module scope forces the module to be a client module under Next.js's rules.
+Sub-components that share React context factor it into a sibling `*Context.ts` file. The context file is TypeScript-only (`.ts`, not `.tsx`) and carries no JSX, but it **needs `'use client'`** because calling `createContext` at module scope forces the module to be a client module under Next.js's rules. A `FieldsetContext.ts` module looks like this:
 
 ```ts
-// FieldsetContext.ts
 'use client'
 
 import { createContext } from 'react'
-
-// FieldsetContext.ts
-
-// FieldsetContext.ts
-
-// FieldsetContext.ts
-
-// FieldsetContext.ts
-
-// FieldsetContext.ts
-
-// FieldsetContext.ts
-
-// FieldsetContext.ts
-
-// FieldsetContext.ts
-
-// FieldsetContext.ts
-
-// FieldsetContext.ts
 
 export type FieldsetContextValue = {
   invalid?: boolean
