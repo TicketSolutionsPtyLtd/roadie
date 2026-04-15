@@ -4,18 +4,42 @@ import { describe, expect, it } from 'vitest'
 import { Fieldset } from '.'
 
 describe('Fieldset', () => {
-  it('renders with default props', () => {
+  it('renders with default props using Fieldset.Root', () => {
+    const { container } = render(<Fieldset.Root>Content</Fieldset.Root>)
+    const fieldset = container.querySelector('fieldset')!
+    expect(fieldset).toBeInTheDocument()
+    expect(fieldset).toHaveClass('border-none', 'p-0', 'm-0')
+  })
+
+  it('renders with default props using bare <Fieldset> root alias', () => {
     const { container } = render(<Fieldset>Content</Fieldset>)
     const fieldset = container.querySelector('fieldset')!
     expect(fieldset).toBeInTheDocument()
     expect(fieldset).toHaveClass('border-none', 'p-0', 'm-0')
   })
 
+  it('Fieldset and Fieldset.Root are the same component reference', () => {
+    expect(Fieldset).toBe(Fieldset.Root)
+  })
+
+  it('renders bare <Fieldset> with sub-components', () => {
+    const { getByText } = render(
+      <Fieldset invalid>
+        <Fieldset.Legend>Bare root</Fieldset.Legend>
+        <Fieldset.HelperText>Helper text</Fieldset.HelperText>
+        <Fieldset.ErrorText>Error text</Fieldset.ErrorText>
+      </Fieldset>
+    )
+    expect(getByText('Bare root')).toBeInTheDocument()
+    expect(getByText('Helper text')).toBeInTheDocument()
+    expect(getByText('Error text')).toBeInTheDocument()
+  })
+
   it('renders Legend sub-component', () => {
     const { getByText } = render(
-      <Fieldset>
+      <Fieldset.Root>
         <Fieldset.Legend>Personal details</Fieldset.Legend>
-      </Fieldset>
+      </Fieldset.Root>
     )
     const legend = getByText('Personal details')
     expect(legend).toBeInTheDocument()
@@ -25,9 +49,9 @@ describe('Fieldset', () => {
 
   it('renders HelperText sub-component', () => {
     const { getByText } = render(
-      <Fieldset>
+      <Fieldset.Root>
         <Fieldset.HelperText>Fill in all fields</Fieldset.HelperText>
-      </Fieldset>
+      </Fieldset.Root>
     )
     const helperText = getByText('Fill in all fields')
     expect(helperText).toBeInTheDocument()
@@ -37,18 +61,18 @@ describe('Fieldset', () => {
 
   it('hides ErrorText when invalid is not set', () => {
     const { queryByText } = render(
-      <Fieldset>
+      <Fieldset.Root>
         <Fieldset.ErrorText>Please fix errors</Fieldset.ErrorText>
-      </Fieldset>
+      </Fieldset.Root>
     )
     expect(queryByText('Please fix errors')).not.toBeInTheDocument()
   })
 
   it('renders ErrorText when invalid is true', () => {
     const { getByText } = render(
-      <Fieldset invalid>
+      <Fieldset.Root invalid>
         <Fieldset.ErrorText>Please fix errors</Fieldset.ErrorText>
-      </Fieldset>
+      </Fieldset.Root>
     )
     const errorText = getByText('Please fix errors')
     expect(errorText).toBeInTheDocument()
@@ -58,11 +82,11 @@ describe('Fieldset', () => {
 
   it('renders a complete fieldset with all sub-components', () => {
     const { getByText } = render(
-      <Fieldset invalid>
+      <Fieldset.Root invalid>
         <Fieldset.Legend>Account</Fieldset.Legend>
         <Fieldset.HelperText>Enter your details</Fieldset.HelperText>
         <Fieldset.ErrorText>Something went wrong</Fieldset.ErrorText>
-      </Fieldset>
+      </Fieldset.Root>
     )
     expect(getByText('Account')).toBeInTheDocument()
     expect(getByText('Enter your details')).toBeInTheDocument()
@@ -71,16 +95,16 @@ describe('Fieldset', () => {
 
   it('applies custom className to root', () => {
     const { container } = render(
-      <Fieldset className='custom-class'>Content</Fieldset>
+      <Fieldset.Root className='custom-class'>Content</Fieldset.Root>
     )
     expect(container.querySelector('fieldset')).toHaveClass('custom-class')
   })
 
   it('forwards HTML attributes', () => {
     const { container } = render(
-      <Fieldset disabled data-testid='my-fieldset'>
+      <Fieldset.Root disabled data-testid='my-fieldset'>
         Content
-      </Fieldset>
+      </Fieldset.Root>
     )
     const fieldset = container.querySelector('fieldset')!
     expect(fieldset).toBeDisabled()

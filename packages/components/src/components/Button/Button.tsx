@@ -49,6 +49,7 @@ export function Button({
   return (
     <ButtonPrimitive
       nativeButton={!props.render}
+      data-slot='button'
       className={cn(buttonVariants({ intent, emphasis, size, className }))}
       {...props}
     />

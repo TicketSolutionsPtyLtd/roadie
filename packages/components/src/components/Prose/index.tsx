@@ -97,7 +97,11 @@ export function Prose<T extends ElementType = 'div'>({
 }: ProseProps<T>) {
   const Component = as || 'div'
   return (
-    <Component className={cn(proseVariants({ size, className }))} {...props} />
+    <Component
+      data-slot='prose'
+      className={cn(proseVariants({ size, className }))}
+      {...props}
+    />
   )
 }
 

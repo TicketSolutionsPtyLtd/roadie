@@ -39,6 +39,7 @@ export function LinkIconButton<T extends ElementType = 'a'>({
   const Component = as || 'a'
   return (
     <Component
+      data-slot='link-icon-button'
       className={cn(buttonVariants({ intent, emphasis, size, className }))}
       {...props}
     />

@@ -1,13 +1,140 @@
+import { ArrowSquareOutIcon } from '@phosphor-icons/react/ssr'
+import { readdirSync, statSync } from 'fs'
 import path from 'path'
 import type { PropItem } from 'react-docgen-typescript'
 import { withCustomConfig } from 'react-docgen-typescript'
 
-import {
-  PropsAccordion,
-  type PropsAccordionItem
-} from '@/components/PropsAccordion'
-
 import { Code } from '@oztix/roadie-components'
+
+// Compounds that wrap a Base UI primitive, plus the exact set of parts
+// Base UI actually documents for each. Only parts present in the map
+// render a link — Roadie-native sub-components (e.g. `Select.HelperText`,
+// `Select.Content`, `Select.ErrorText`, `RadioGroup.Label`) intentionally
+// render without a link because the corresponding anchor doesn't exist
+// upstream.
+//
+// Anchors are whatever Base UI actually uses in its docs markup, which
+// is **single-token lowercase with no separators** — e.g.
+// `Select.ItemText` → `#itemtext`, `Select.ScrollUpArrow` →
+// `#scrolluparrow`, `Combobox.InputGroup` → `#inputgroup`. Do NOT
+// kebab-case these — Base UI renders `#item-text` as a 404 anchor.
+//
+// Base UI groups Radio + RadioGroup on a single page at
+// `/react/components/radio`. Roadie's `RadioGroup` root maps to
+// `#radiogroup` on that page, and the `RadioGroup.Item` leaf (which
+// wraps Base UI's `<Radio>`) maps to `#root` (Base UI's Radio.Root
+// anchor).
+//
+// If Base UI adds a new sub-component we care about, add it here. If
+// we remove a wrapper, remove it here. The map is intentionally
+// explicit so a typo or an upstream rename fails loudly in review
+// rather than silently emitting a dead anchor.
+type BaseUiCompound = {
+  slug: string
+  parts: Record<string, string>
+}
+
+const BASE_UI_COMPOUNDS: Record<string, BaseUiCompound> = {
+  Autocomplete: {
+    slug: 'autocomplete',
+    parts: {
+      Root: 'root',
+      Value: 'value',
+      Input: 'input',
+      InputGroup: 'inputgroup',
+      Trigger: 'trigger',
+      Icon: 'icon',
+      Clear: 'clear',
+      List: 'list',
+      Portal: 'portal',
+      Positioner: 'positioner',
+      Popup: 'popup',
+      Status: 'status',
+      Empty: 'empty',
+      Collection: 'collection',
+      Item: 'item',
+      Group: 'group',
+      GroupLabel: 'grouplabel'
+    }
+  },
+  Button: {
+    slug: 'button',
+    parts: {}
+  },
+  Combobox: {
+    slug: 'combobox',
+    parts: {
+      Root: 'root',
+      Label: 'label',
+      Input: 'input',
+      InputGroup: 'inputgroup',
+      Trigger: 'trigger',
+      Icon: 'icon',
+      Clear: 'clear',
+      List: 'list',
+      Portal: 'portal',
+      Positioner: 'positioner',
+      Popup: 'popup',
+      Status: 'status',
+      Empty: 'empty',
+      Collection: 'collection',
+      Item: 'item',
+      ItemIndicator: 'itemindicator',
+      Group: 'group',
+      GroupLabel: 'grouplabel'
+    }
+  },
+  RadioGroup: {
+    slug: 'radio',
+    parts: {
+      // The RadioGroup root maps to Base UI's `#radiogroup` part on the
+      // shared /radio page.
+      Root: 'radiogroup',
+      // Roadie's RadioGroup.Item wraps Base UI's <Radio>, which is
+      // documented on the same page under Radio.Root.
+      Item: 'root'
+    }
+  },
+  Select: {
+    slug: 'select',
+    parts: {
+      Root: 'root',
+      Label: 'label',
+      Trigger: 'trigger',
+      Value: 'value',
+      Icon: 'icon',
+      Portal: 'portal',
+      Positioner: 'positioner',
+      Popup: 'popup',
+      List: 'list',
+      Item: 'item',
+      ItemText: 'itemtext',
+      ItemIndicator: 'itemindicator',
+      Group: 'group',
+      GroupLabel: 'grouplabel',
+      ScrollUpArrow: 'scrolluparrow',
+      ScrollDownArrow: 'scrolldownarrow',
+      Separator: 'separator'
+    }
+  }
+}
+
+function baseUiHrefFor(displayName: string): string | null {
+  const [compound, ...rest] = displayName.split('.')
+  if (!compound) return null
+  const entry = BASE_UI_COMPOUNDS[compound]
+  if (!entry) return null
+  const base = `https://base-ui.com/react/components/${entry.slug}`
+  // Bare compound name (no dot) uses the `Root` part anchor if Base UI
+  // documents one. For Select/Combobox/Autocomplete that's `#root`; for
+  // RadioGroup it's `#radiogroup` (Base UI's shared /radio page groups
+  // both Radio and RadioGroup). Falls back to the bare component page
+  // when the compound has no sub-parts (e.g. Button).
+  const partName = rest.length === 0 ? 'Root' : rest.join('')
+  const anchor = entry.parts[partName]
+  if (!anchor) return rest.length === 0 ? base : null
+  return `${base}#${anchor}`
+}
 
 interface ComponentProp {
   required: boolean
@@ -134,7 +261,7 @@ function ComponentPropsBody({ groupedProps }: { groupedProps: GroupedProps }) {
 
   if (!hasOwnProps && !hasInheritedProps) {
     return (
-      <p className='px-4 py-3 text-sm text-subtle'>
+      <p className='text-sm text-subtle'>
         No additional props — forwards all standard HTML attributes to the
         underlying element.
       </p>
@@ -142,7 +269,7 @@ function ComponentPropsBody({ groupedProps }: { groupedProps: GroupedProps }) {
   }
 
   return (
-    <>
+    <div className='overflow-hidden rounded-xl border border-subtler'>
       {hasOwnProps && <PropsList props={groupedProps.ownProps} />}
       {Object.entries(groupedProps.inheritedProps).map(
         ([source, { props }]) => (
@@ -153,37 +280,83 @@ function ComponentPropsBody({ groupedProps }: { groupedProps: GroupedProps }) {
           />
         )
       )}
-    </>
+    </div>
   )
 }
 
-function ComponentPropsCard({
+function ComponentSection({
   componentInfo,
   groupedProps
 }: {
   componentInfo: { displayName: string; description?: string }
   groupedProps: GroupedProps
 }) {
-  const interfaceName = `${componentInfo.displayName}Props`
-
+  const baseUiHref = baseUiHrefFor(componentInfo.displayName)
   return (
-    <dl className='grid overflow-hidden rounded-xl border border-subtler'>
-      <div className='grid gap-1 bg-subtler px-4 py-3'>
-        <h3 className='text-xl font-bold'>{interfaceName}</h3>
+    <section className='grid gap-3'>
+      <header className='grid gap-1'>
+        <div className='flex flex-wrap items-center gap-3'>
+          <h3 className='font-mono text-lg font-bold'>
+            {componentInfo.displayName}
+          </h3>
+          {baseUiHref && (
+            <a
+              href={baseUiHref}
+              target='_blank'
+              rel='noreferrer'
+              className='is-interactive inline-flex items-center gap-1 rounded-full emphasis-subtler px-2 py-0.5 text-xs font-medium text-subtle'
+            >
+              Base UI
+              <ArrowSquareOutIcon weight='bold' className='size-3' />
+            </a>
+          )}
+        </div>
         {!!componentInfo.description && (
           <p className='text-subtle'>{componentInfo.description}</p>
         )}
-      </div>
+      </header>
       <ComponentPropsBody groupedProps={groupedProps} />
-    </dl>
+    </section>
   )
 }
 
-function parseComponentProps(componentPath: string) {
+type ParseTargets = {
+  files: string[]
+  /** Non-null when componentPath is a per-file compound folder. */
+  compoundName: string | null
+}
+
+function resolveParseTargets(componentPath: string): ParseTargets {
+  // Pre-Pattern-A compounds still point `componentPath` at a single file
+  // (e.g. `packages/components/src/components/Card/index.tsx`). Post-migration
+  // compounds point at the folder (e.g. `packages/components/src/components/Fieldset`)
+  // because each sub-component is its own file and `index.tsx` is a server-safe
+  // property-assignment layer that react-docgen-typescript can't drill into.
+  //
+  // Accept either form. When the path is a directory, enumerate every non-test
+  // `.tsx` leaf inside — `parseComponentProps` also rewrites the parsed leaf
+  // displayNames using the folder basename as the compound prefix.
   const workspaceRoot = path.resolve(process.cwd(), '..')
   const absolutePath = path.join(workspaceRoot, componentPath)
+  const stats = statSync(absolutePath)
+
+  if (stats.isFile()) {
+    return { files: [absolutePath], compoundName: null }
+  }
+
+  const files = readdirSync(absolutePath)
+    .filter((name) => name.endsWith('.tsx') && !name.endsWith('.test.tsx'))
+    .sort()
+    .map((name) => path.join(absolutePath, name))
+
+  return { files, compoundName: path.basename(absolutePath) }
+}
+
+function parseComponentProps(componentPath: string) {
+  const { files: targets, compoundName } = resolveParseTargets(componentPath)
 
   try {
+    const workspaceRoot = path.resolve(process.cwd(), '..')
     const parser = withCustomConfig(
       path.resolve(workspaceRoot, 'tsconfig.react.json'),
       {
@@ -228,7 +401,7 @@ function parseComponentProps(componentPath: string) {
       }
     )
 
-    const result = parser.parse(absolutePath)
+    const result = parser.parse(targets)
     if (!result.length) return null
 
     // Keep every PascalCase entry. CVA factory functions (`cardVariants`,
@@ -239,7 +412,24 @@ function parseComponentProps(componentPath: string) {
     // silently vanish from the docs once the propFilter strips every
     // HTML-only prop. A section with a "forwards all HTML attributes"
     // note is more useful than no section at all.
-    const filtered = result.filter((info) => /^[A-Z]/.test(info.displayName))
+    const filtered = result
+      .filter((info) => /^[A-Z]/.test(info.displayName))
+      // Per-file compound layout: rewrite leaf displayNames from
+      // `FieldsetLegend` → `Fieldset.Legend`, drop the `FieldsetRoot`
+      // duplicate of the root (the root is already surfaced by
+      // `index.tsx`'s `export { Fieldset }`). react-docgen-typescript
+      // returns the function name from per-file leaves and never honours
+      // the runtime `Component.displayName = 'Compound.Sub'` assignment,
+      // so `PropsDefinitions` fixes that up here from the folder basename.
+      .flatMap((info) => {
+        if (!compoundName) return [info]
+        if (info.displayName === compoundName) return [info]
+        if (!info.displayName.startsWith(compoundName)) return [info]
+        const suffix = info.displayName.slice(compoundName.length)
+        if (!suffix || !/^[A-Z]/.test(suffix)) return [info]
+        if (suffix === 'Root') return []
+        return [{ ...info, displayName: `${compoundName}.${suffix}` }]
+      })
 
     // Deduplicate compound components: the parser detects each subcomponent
     // twice — once via `export function CarouselPrevious()` (yields name
@@ -275,53 +465,34 @@ export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
   const components = parseComponentProps(componentPath)
   if (!components) return null
 
-  // Split on dot-notation displayName (the Pattern A convention — see
-  // `docs/contributing/COMPOUND_PATTERNS.md`). Dot-notation entries are
-  // true compound subcomponents and go in the collapsible accordion.
-  // Non-dot entries render as inline cards — this covers both the
-  // single-root case AND files like `Button/index.tsx` that re-export
-  // sibling components (Button + IconButton) which aren't parent/child.
-  const inlineComponents = components.filter(
-    (info) => !info.displayName.includes('.')
-  )
-  const subcomponents = components.filter((info) =>
-    info.displayName.includes('.')
-  )
-
-  const accordionItems: PropsAccordionItem[] = subcomponents.map((info) => {
-    const grouped = groupPropsBySource(info.props, info.displayName)
-    return {
-      displayName: info.displayName,
-      description: info.description,
-      ownCount: Object.keys(grouped.ownProps).length,
-      body: <ComponentPropsBody groupedProps={grouped} />
-    }
+  // Base UI-style API reference: every entry renders as its own stacked
+  // section with a dot-notation heading (`Fieldset`, `Fieldset.Legend`, …),
+  // an optional short description, and a prop table. No inline-vs-accordion
+  // split. The root entry (whose displayName has no dot) sorts first;
+  // sub-components keep parser order after that.
+  const sortedComponents = [...components].sort((a, b) => {
+    const aHasDot = a.displayName.includes('.')
+    const bHasDot = b.displayName.includes('.')
+    if (aHasDot === bHasDot) return 0
+    return aHasDot ? 1 : -1
   })
 
   return (
-    <div className='mt-8 grid gap-4 pt-8'>
-      <h2 className='text-xl font-bold'>Props</h2>
-
-      {inlineComponents.map((componentInfo) => {
+    <div className='mt-8 grid gap-8 pt-8'>
+      <h2 className='text-xl font-bold'>API reference</h2>
+      {sortedComponents.map((componentInfo) => {
         const grouped = groupPropsBySource(
           componentInfo.props,
           componentInfo.displayName
         )
         return (
-          <ComponentPropsCard
+          <ComponentSection
             key={componentInfo.displayName}
             componentInfo={componentInfo}
             groupedProps={grouped}
           />
         )
       })}
-
-      {accordionItems.length > 0 && (
-        <div className='grid gap-2'>
-          <h3 className='text-sm font-semibold text-subtle'>Subcomponents</h3>
-          <PropsAccordion items={accordionItems} />
-        </div>
-      )}
     </div>
   )
 }

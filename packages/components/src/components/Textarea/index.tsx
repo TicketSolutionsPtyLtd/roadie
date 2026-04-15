@@ -45,6 +45,7 @@ export function Textarea({
 }: TextareaProps) {
   return (
     <textarea
+      data-slot='textarea'
       className={cn(
         textareaVariants({ intent, emphasis, size }),
         autoResize && '[field-sizing:content] resize-none',

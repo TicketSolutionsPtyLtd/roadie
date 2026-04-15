@@ -44,6 +44,7 @@ export function Mark<T extends ElementType = 'mark'>({
   const isNeutralInverted = intent === 'neutral-inverted'
   return (
     <Component
+      data-slot='mark'
       className={cn(
         markVariants({ intent }),
         isNeutralInverted

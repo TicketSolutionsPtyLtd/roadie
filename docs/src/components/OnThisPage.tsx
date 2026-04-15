@@ -48,7 +48,20 @@ export function OnThisPage() {
     // navigation. Keep the rail at h2 (category) granularity only.
     const selector = pathname === '/components' ? 'h2' : 'h2, h3'
     const nodes = mainEl.querySelectorAll<HTMLHeadingElement>(selector)
-    const usedIds = new Set<string>()
+
+    // Seed with every existing id already on the page — not just the ids
+    // we assign this pass. The MDX page title renders an h1 (e.g. "Select")
+    // that rehype-slug tags with id="select", and without this seed we would
+    // reassign id="select" to the first h3 with the same text — typically
+    // the root entry in `<PropsDefinitions>`'s API reference section. Two
+    // matching ids means `document.getElementById` returns the h1 and
+    // sidebar clicks scroll to the top of the page instead of the heading
+    // the user picked.
+    const usedIds = new Set<string>(
+      Array.from(document.querySelectorAll<HTMLElement>('[id]')).map(
+        (node) => node.id
+      )
+    )
     const collected: Heading[] = []
 
     nodes.forEach((el) => {

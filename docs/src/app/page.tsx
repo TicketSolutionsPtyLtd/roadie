@@ -13,7 +13,8 @@ import {
   WheelchairMotionIcon
 } from '@phosphor-icons/react/ssr'
 
-import { Button, Card, Code } from '@oztix/roadie-components'
+import { Button, Code } from '@oztix/roadie-components'
+import { Card } from '@oztix/roadie-components/card'
 import { HighFive } from '@oztix/roadie-components/spot-illustrations'
 
 const intents = [

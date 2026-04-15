@@ -22,10 +22,25 @@ export { Badge, badgeVariants, type BadgeProps } from './components/Badge'
 
 export {
   Breadcrumb,
-  type BreadcrumbSeparatorProps
+  type BreadcrumbProps,
+  type BreadcrumbListProps,
+  type BreadcrumbItemProps,
+  type BreadcrumbLinkProps,
+  type BreadcrumbSeparatorProps,
+  type BreadcrumbCurrentProps
 } from './components/Breadcrumb'
 
-export { Card, cardVariants, type CardProps } from './components/Card'
+export {
+  Card,
+  cardVariants,
+  type CardProps,
+  type CardHeaderProps,
+  type CardContentProps,
+  type CardFooterProps,
+  type CardImageProps,
+  type CardTitleProps,
+  type CardDescriptionProps
+} from './components/Card'
 
 export {
   Carousel,
@@ -63,7 +78,20 @@ export {
   stepsVariants,
   useSteps,
   type StepsProps,
+  type StepsListProps,
   type StepsItemProps,
+  type StepsTriggerProps,
+  type StepsTriggerTextProps,
+  type StepsIndicatorProps,
+  type StepsSeparatorProps,
+  type StepsContentProps,
+  type StepsCompletedContentProps,
+  type StepsNextTriggerProps,
+  type StepsPrevTriggerProps,
+  type StepsProgressProps,
+  type StepsContextProps,
+  type StepsItemContextProps,
+  type StepsRootProviderProps,
   type UseStepsProps,
   type UseStepsReturn
 } from './components/Steps'
@@ -90,6 +118,8 @@ export {
   useFieldInputProps,
   type FieldProps,
   type FieldLabelProps,
+  type FieldInputProps,
+  type FieldTextareaProps,
   type FieldHelperTextProps,
   type FieldErrorTextProps
 } from './components/Field'
@@ -170,6 +200,13 @@ export {
   type RadioGroupHelperTextProps,
   type RadioGroupErrorTextProps
 } from './components/RadioGroup'
+
+// Fieldset is the pilot for the Pattern A migration. The compound ships as
+// a namespace re-export backed by per-file leaves (tsdown unbundle mode);
+// this barrel line — and consumer code importing `{ Fieldset }` from
+// either the barrel or the `/fieldset` subpath — works in Next.js server
+// components because Next follows the static re-export chain to each
+// leaf's `'use client'` module. See `docs/contributing/COMPOUND_PATTERNS.md`.
 export {
   Fieldset,
   type FieldsetProps,

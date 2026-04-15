@@ -14,7 +14,7 @@ A compound horizontal or vertical carousel built on Embla, with built-in autopla
 ## Import
 
 ```tsx
-import { Carousel } from '@oztix/roadie-components'
+import { Carousel } from '@oztix/roadie-components/carousel'
 ```
 
 ## Examples
@@ -777,4 +777,4 @@ Carousel is a compound component. Available parts:
 - **Pause behaviour.** Autoplay pauses on hover, focus, and `pointerdown`. Explicit pause (via `Carousel.PlayPause`) is sticky — autoplay does not auto-resume after a user click. WCAG 2.2.2 compliant.
 - **Reduced motion.** When `prefers-reduced-motion: reduce` is set, autoplay is disabled entirely (no plugin instantiated) and Embla's `duration` is set to `0` for instant transitions. Live changes to the OS preference take effect via a `matchMedia` change listener.
 
-<PropsDefinitions componentPath='packages/components/src/components/Carousel/index.tsx' />
+<PropsDefinitions componentPath='packages/components/src/components/Carousel' />

@@ -15,9 +15,101 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./accordion": {
+      "types": "./dist/components/Accordion/index.d.ts",
+      "import": "./dist/components/Accordion/index.js"
+    },
+    "./autocomplete": {
+      "types": "./dist/components/Autocomplete/index.d.ts",
+      "import": "./dist/components/Autocomplete/index.js"
+    },
+    "./badge": {
+      "types": "./dist/components/Badge/index.d.ts",
+      "import": "./dist/components/Badge/index.js"
+    },
+    "./breadcrumb": {
+      "types": "./dist/components/Breadcrumb/index.d.ts",
+      "import": "./dist/components/Breadcrumb/index.js"
+    },
+    "./button": {
+      "types": "./dist/components/Button/index.d.ts",
+      "import": "./dist/components/Button/index.js"
+    },
+    "./card": {
+      "types": "./dist/components/Card/index.d.ts",
+      "import": "./dist/components/Card/index.js"
+    },
+    "./carousel": {
+      "types": "./dist/components/Carousel/index.d.ts",
+      "import": "./dist/components/Carousel/index.js"
+    },
+    "./code": {
+      "types": "./dist/components/Code/index.d.ts",
+      "import": "./dist/components/Code/index.js"
+    },
+    "./combobox": {
+      "types": "./dist/components/Combobox/index.d.ts",
+      "import": "./dist/components/Combobox/index.js"
+    },
+    "./field": {
+      "types": "./dist/components/Field/index.d.ts",
+      "import": "./dist/components/Field/index.js"
+    },
+    "./fieldset": {
+      "types": "./dist/components/Fieldset/index.d.ts",
+      "import": "./dist/components/Fieldset/index.js"
+    },
+    "./highlight": {
+      "types": "./dist/components/Highlight/index.d.ts",
+      "import": "./dist/components/Highlight/index.js"
+    },
+    "./input": {
+      "types": "./dist/components/Input/index.d.ts",
+      "import": "./dist/components/Input/index.js"
+    },
+    "./label": {
+      "types": "./dist/components/Label/index.d.ts",
+      "import": "./dist/components/Label/index.js"
+    },
+    "./link-button": {
+      "types": "./dist/components/LinkButton/index.d.ts",
+      "import": "./dist/components/LinkButton/index.js"
+    },
+    "./mark": {
+      "types": "./dist/components/Mark/index.d.ts",
+      "import": "./dist/components/Mark/index.js"
+    },
+    "./marquee": {
+      "types": "./dist/components/Marquee/index.d.ts",
+      "import": "./dist/components/Marquee/index.js"
+    },
+    "./prose": {
+      "types": "./dist/components/Prose/index.d.ts",
+      "import": "./dist/components/Prose/index.js"
+    },
+    "./radio-group": {
+      "types": "./dist/components/RadioGroup/index.d.ts",
+      "import": "./dist/components/RadioGroup/index.js"
+    },
+    "./select": {
+      "types": "./dist/components/Select/index.d.ts",
+      "import": "./dist/components/Select/index.js"
+    },
+    "./separator": {
+      "types": "./dist/components/Separator/index.d.ts",
+      "import": "./dist/components/Separator/index.js"
+    },
+    "./steps": {
+      "types": "./dist/components/Steps/index.d.ts",
+      "import": "./dist/components/Steps/index.js"
+    },
+    "./textarea": {
+      "types": "./dist/components/Textarea/index.d.ts",
+      "import": "./dist/components/Textarea/index.js"
+    },
     "./spot-illustrations": {
-      "types": "./dist/SpotIllustration.d.ts",
-      "import": "./dist/SpotIllustration.js"
+      "types": "./dist/components/SpotIllustration/index.d.ts",
+      "import": "./dist/components/SpotIllustration/index.js"
     }
   },
   "sideEffects": false,
@@ -28,8 +120,9 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsdown && pnpm check:dts && pnpm check:exports",
-    "build:quiet": "tsdown --log-level warn",
+    "build": "pnpm generate:exports && tsdown && pnpm check:dts && pnpm check:exports",
+    "build:quiet": "pnpm generate:exports && tsdown --log-level warn",
+    "generate:exports": "node scripts/generate-package-exports.mjs",
     "check:dts": "! grep -r 'ComponentProps<typeof' dist/*.d.ts dist/**/*.d.ts 2>/dev/null || (echo 'ERROR: dist .d.ts files contain ComponentProps<typeof> — use named prop types instead' && exit 1)",
     "check:exports": "attw --pack . --profile esm-only",
     "build:spotillustration": "node scripts/svg-to-spot-illustration.cjs",
@@ -92,7 +185,7 @@
   "size-limit": [
     {
       "name": "Carousel",
-      "path": "dist/Carousel.js",
+      "path": "dist/components/Carousel/index.js",
       "limit": "5 KB",
       "ignore": [
         "react",

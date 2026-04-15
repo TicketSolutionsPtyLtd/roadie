@@ -31,6 +31,7 @@ export interface CodeProps
 export function Code({ className, intent, emphasis, ...props }: CodeProps) {
   return (
     <code
+      data-slot='code'
       className={cn(codeVariants({ intent, emphasis, className }))}
       {...props}
     />

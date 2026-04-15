@@ -1,35 +1,29 @@
-import { readdirSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'tsdown'
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
-
-// Dynamically get all component entries
-const getComponentEntries = () => {
-  const componentsDir = join(__dirname, 'src/components')
-  const components = readdirSync(componentsDir, { withFileTypes: true })
-    .filter((dirent) => dirent.isDirectory())
-    .reduce(
-      (acc, dirent) => ({
-        ...acc,
-        [dirent.name]: `src/components/${dirent.name}/index.tsx`
-      }),
-      {}
-    )
-
-  return {
-    index: 'src/index.tsx',
-    ...components
-  }
-}
-
-// NOTE: Rolldown (tsdown's backend) preserves module-level "use client"
-// directives on entry outputs natively, so we no longer need the post-build
-// hook that previously re-inserted them. Verify after build with:
-//   head -c 13 dist/Select.js   # → "use client";
+// Unbundle mode: every source file under `src/` emits as its own output
+// file, preserving the source directory structure 1:1. This is load-bearing
+// for RSC safety — see:
+//
+//   docs/solutions/rsc-patterns/compound-export-namespace.md
+//   docs/contributing/COMPOUND_PATTERNS.md
+//
+// In a nutshell: Next.js server components can only "dot into" a compound
+// namespace when each leaf is its own on-disk module (separate client
+// reference per sub-component). Bundling everything under a compound folder
+// into a single file collapses the server-safe re-export layer into the
+// client-only leaves, which forces us to choose between a single
+// client-reference proxy (dot access fails) or an un-marked file with
+// createContext inside (Next bails at compile time). Unbundle mode emits the
+// per-file shape Base UI ships and the RSC canary at
+// /debug/rsc-smoke verifies it every docs build.
+//
+// Rolldown preserves module-level `'use client'` directives on per-file
+// outputs natively, so leaves that carry the directive still emit with
+// `"use client";` at the top. Verify after build with:
+//   head -c 13 dist/components/Fieldset/FieldsetRoot.js   # → "use client";
 export default defineConfig(({ watch }) => ({
-  entry: getComponentEntries(),
+  entry: ['src/**/*.{ts,tsx}', '!**/*.test.{ts,tsx}'],
+  unbundle: true,
   format: ['esm'],
   platform: 'neutral',
   dts: {

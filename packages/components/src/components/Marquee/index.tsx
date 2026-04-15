@@ -85,6 +85,7 @@ export function Marquee({
   return (
     <div
       ref={outerRef}
+      data-slot='marquee'
       className={cn('relative max-w-full overflow-hidden', className)}
       aria-label={ariaLabel}
       {...props}

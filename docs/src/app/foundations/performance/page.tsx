@@ -266,8 +266,9 @@ export default function PerformancePage() {
               Tree-shakeable components
             </h3>
             <p className='text-sm text-subtle'>
-              Components are built with <Code>tsup</Code> and code-splitting.
-              Import only what you use.
+              Components are built with <Code>tsdown</Code> in unbundle mode —
+              every leaf compiles to its own dist file, so subpath imports only
+              drag in what you use.
             </p>
           </div>
           <div className='grid content-start gap-2 rounded-xl emphasis-subtle p-5'>

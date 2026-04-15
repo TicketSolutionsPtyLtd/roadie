@@ -50,6 +50,7 @@ export function Badge({
 }: BadgeProps) {
   return (
     <span
+      data-slot='badge'
       className={cn(badgeVariants({ intent, emphasis, size, className }))}
       {...props}
     >

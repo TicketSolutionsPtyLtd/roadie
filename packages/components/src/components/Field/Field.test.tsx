@@ -8,6 +8,10 @@ import { RadioGroup } from '../RadioGroup'
 import { Select } from '../Select'
 
 describe('Field', () => {
+  it('Field and Field.Root are the same component reference', () => {
+    expect(Field).toBe(Field.Root)
+  })
+
   it('renders with default props', () => {
     const { container } = render(<Field>Content</Field>)
     const root = container.firstElementChild!
