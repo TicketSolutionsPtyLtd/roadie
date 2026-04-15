@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { readFile, readdir } from 'fs/promises'
 import { join } from 'path'
 
-import { Card } from '@oztix/roadie-components'
+import { Card } from '@oztix/roadie-components/card'
 
 type ComponentMetadata = {
   name: string

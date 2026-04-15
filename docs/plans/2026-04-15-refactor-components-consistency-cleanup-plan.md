@@ -845,7 +845,7 @@ Phase 3 opened with a Fieldset pilot to validate the pattern end-to-end before m
 - [x] Docs site imports updated — compound doc pages use subpath form (`@oztix/roadie-components/<compound>`) and `<Compound>` bare root in code examples
 - [x] `<PropsDefinitions>` on every compound doc page renders correct subcomponent headings (dot-notation form) by passing the folder path
 - [x] After Accordion migrates: `docs/src/components/PropsAccordion.tsx` deleted; `<PropsDefinitions>` uses `<Accordion.Item>` directly
-- [ ] `docs/plans/2026-04-14-feat-docs-and-compound-conventions-improvements-plan.md` Progress table updated to mark `/parts` follow-up as superseded
+- [x] `docs/plans/2026-04-14-feat-docs-and-compound-conventions-improvements-plan.md` Progress table updated to mark `/parts` follow-up as superseded
 - [x] RSC canary page renders every migrated compound via the subpath import; docs build fails if any regresses
 - [x] `pnpm build && pnpm test && pnpm typecheck && pnpm lint` passes
 - [x] Docs site builds without the "Element type is invalid" error
@@ -1139,8 +1139,8 @@ Beyond per-phase checks, verify at the end of the sweep:
 - [ ] `docs/solutions/rsc-patterns/compound-export-namespace.md` exists and is linked from `COMPOUND_PATTERNS.md`
 - [ ] `docs/solutions/conventions/prop-name-inventory-2026-04-15.md` exists and is linked from `docs/contributing/COMPONENT_DOC_TEMPLATE.md`
 - [ ] `docs/contributing/COMPOUND_PATTERNS.md` has zero references to `Object.assign` or property-assignment form; has an explicit "creating a new compound" checklist
-- [ ] `docs/plans/2026-04-14-feat-docs-and-compound-conventions-improvements-plan.md` Progress table marks Phase 2.5 (`/parts` subpath) as superseded
-- [ ] `docs/src/components/PropsAccordion.tsx` is deleted
+- [x] `docs/plans/2026-04-14-feat-docs-and-compound-conventions-improvements-plan.md` Progress table marks Phase 2.5 (`/parts` subpath) as superseded
+- [x] `docs/src/components/PropsAccordion.tsx` is deleted
 - [ ] `packages/components/package.json` has `"sideEffects": false` and an auto-generated `exports` map
 - [ ] `packages/components/tsup.config.ts` builds one output per subpath
 - [ ] `scripts/generate-package-exports.mjs` exists and the build pipeline runs it before `tsup`
