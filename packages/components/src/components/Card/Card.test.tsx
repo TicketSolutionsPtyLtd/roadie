@@ -4,6 +4,15 @@ import { describe, expect, it } from 'vitest'
 import { Card } from '.'
 
 describe('Card', () => {
+  it('Card and Card.Root are the same component reference', () => {
+    expect(Card).toBe(Card.Root)
+  })
+
+  it('renders <Card.Root> alias the same as bare <Card>', () => {
+    const { getByText } = render(<Card.Root>Root content</Card.Root>)
+    expect(getByText('Root content').tagName.toLowerCase()).toBe('div')
+  })
+
   it('renders with default props', () => {
     const { getByText } = render(<Card>Content</Card>)
     const card = getByText('Content')
