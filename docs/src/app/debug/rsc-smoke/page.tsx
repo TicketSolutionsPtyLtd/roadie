@@ -10,8 +10,16 @@
 //   docs/solutions/rsc-patterns/compound-export-namespace.md
 import { Fieldset as FieldsetViaBarrel } from '@oztix/roadie-components'
 import { Accordion } from '@oztix/roadie-components/accordion'
+import { Autocomplete } from '@oztix/roadie-components/autocomplete'
+import { Breadcrumb } from '@oztix/roadie-components/breadcrumb'
+import { Card } from '@oztix/roadie-components/card'
+import { Carousel } from '@oztix/roadie-components/carousel'
+import { Combobox } from '@oztix/roadie-components/combobox'
+import { Field } from '@oztix/roadie-components/field'
 import { Fieldset } from '@oztix/roadie-components/fieldset'
 import { RadioGroup } from '@oztix/roadie-components/radio-group'
+import { Select } from '@oztix/roadie-components/select'
+import { Steps } from '@oztix/roadie-components/steps'
 
 export default function RscSmokePage() {
   return (
@@ -127,8 +135,195 @@ export default function RscSmokePage() {
           <RadioGroup.Label>Contact method</RadioGroup.Label>
           <RadioGroup.Item value='email' label='Email' />
           <RadioGroup.Item value='phone' label='Phone' />
-          <RadioGroup.HelperText>Choose how we reach you.</RadioGroup.HelperText>
+          <RadioGroup.HelperText>
+            Choose how we reach you.
+          </RadioGroup.HelperText>
         </RadioGroup>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>Breadcrumb</h2>
+        <p className='text-sm text-subtle'>
+          <code>
+            import &#123; Breadcrumb &#125; from
+            &apos;@oztix/roadie-components/breadcrumb&apos;
+          </code>
+        </p>
+        <Breadcrumb>
+          <Breadcrumb.List>
+            <Breadcrumb.Item>
+              <Breadcrumb.Link href='#'>Home</Breadcrumb.Link>
+              <Breadcrumb.Separator />
+            </Breadcrumb.Item>
+            <Breadcrumb.Item>
+              <Breadcrumb.Link href='#'>Components</Breadcrumb.Link>
+              <Breadcrumb.Separator />
+            </Breadcrumb.Item>
+            <Breadcrumb.Item>
+              <Breadcrumb.Current>Breadcrumb</Breadcrumb.Current>
+            </Breadcrumb.Item>
+          </Breadcrumb.List>
+        </Breadcrumb>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>Card</h2>
+        <p className='text-sm text-subtle'>
+          <code>
+            import &#123; Card &#125; from
+            &apos;@oztix/roadie-components/card&apos;
+          </code>
+        </p>
+        <Card>
+          <Card.Header>
+            <Card.Title>Server card</Card.Title>
+            <Card.Description>
+              Rendered from a server component via the subpath import.
+            </Card.Description>
+          </Card.Header>
+          <Card.Content>
+            <p>
+              Sub-components reached via dot-notation from an RSC —
+              <code>Card.Header</code>, <code>Card.Content</code>, etc.
+            </p>
+          </Card.Content>
+          <Card.Footer>
+            <p className='text-sm text-subtle'>Footer</p>
+          </Card.Footer>
+        </Card>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>Steps</h2>
+        <p className='text-sm text-subtle'>
+          <code>
+            import &#123; Steps &#125; from
+            &apos;@oztix/roadie-components/steps&apos;
+          </code>
+        </p>
+        <Steps count={3}>
+          <Steps.List>
+            <Steps.Item index={0}>
+              <Steps.Trigger>
+                <Steps.Indicator>1</Steps.Indicator>
+                <Steps.TriggerText>Details</Steps.TriggerText>
+              </Steps.Trigger>
+              <Steps.Separator />
+            </Steps.Item>
+            <Steps.Item index={1}>
+              <Steps.Trigger>
+                <Steps.Indicator>2</Steps.Indicator>
+                <Steps.TriggerText>Review</Steps.TriggerText>
+              </Steps.Trigger>
+              <Steps.Separator />
+            </Steps.Item>
+            <Steps.Item index={2}>
+              <Steps.Trigger>
+                <Steps.Indicator>3</Steps.Indicator>
+                <Steps.TriggerText>Confirm</Steps.TriggerText>
+              </Steps.Trigger>
+            </Steps.Item>
+          </Steps.List>
+        </Steps>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>Field</h2>
+        <p className='text-sm text-subtle'>
+          <code>
+            import &#123; Field &#125; from
+            &apos;@oztix/roadie-components/field&apos;
+          </code>
+        </p>
+        <Field>
+          <Field.Label>Email</Field.Label>
+          <Field.Input type='email' placeholder='you@example.com' />
+          <Field.HelperText>We&apos;ll never share it.</Field.HelperText>
+        </Field>
+        <Field invalid>
+          <Field.Label>Invalid email</Field.Label>
+          <Field.Input type='email' defaultValue='not-an-email' />
+          <Field.ErrorText>Enter a valid email address.</Field.ErrorText>
+        </Field>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>Select</h2>
+        <p className='text-sm text-subtle'>
+          <code>
+            import &#123; Select &#125; from
+            &apos;@oztix/roadie-components/select&apos;
+          </code>
+        </p>
+        <Select>
+          <Select.Trigger>
+            <Select.Value placeholder='Pick an industry' />
+            <Select.Icon />
+          </Select.Trigger>
+          <Select.Content>
+            <Select.Item value='music'>Music</Select.Item>
+            <Select.Item value='sport'>Sport</Select.Item>
+            <Select.Item value='theatre'>Theatre</Select.Item>
+          </Select.Content>
+        </Select>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>Autocomplete</h2>
+        <p className='text-sm text-subtle'>
+          <code>
+            import &#123; Autocomplete &#125; from
+            &apos;@oztix/roadie-components/autocomplete&apos;
+          </code>
+        </p>
+        <Autocomplete items={['Music', 'Sport', 'Theatre']}>
+          <Autocomplete.InputGroup>
+            <Autocomplete.Input placeholder='Search industries…' />
+            <Autocomplete.Trigger />
+          </Autocomplete.InputGroup>
+        </Autocomplete>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>Combobox</h2>
+        <p className='text-sm text-subtle'>
+          <code>
+            import &#123; Combobox &#125; from
+            &apos;@oztix/roadie-components/combobox&apos;
+          </code>
+        </p>
+        <Combobox items={['Music', 'Sport', 'Theatre']}>
+          <Combobox.InputGroup>
+            <Combobox.Input placeholder='Search industries…' />
+            <Combobox.Trigger />
+          </Combobox.InputGroup>
+        </Combobox>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>Carousel</h2>
+        <p className='text-sm text-subtle'>
+          <code>
+            import &#123; Carousel &#125; from
+            &apos;@oztix/roadie-components/carousel&apos;
+          </code>
+        </p>
+        <Carousel aria-label='RSC carousel canary'>
+          <Carousel.Header>
+            <Carousel.Title>Upcoming events</Carousel.Title>
+          </Carousel.Header>
+          <Carousel.Content>
+            <Carousel.Item>
+              <div className='rounded-xl emphasis-subtle p-6'>Slide 1</div>
+            </Carousel.Item>
+            <Carousel.Item>
+              <div className='rounded-xl emphasis-subtle p-6'>Slide 2</div>
+            </Carousel.Item>
+            <Carousel.Item>
+              <div className='rounded-xl emphasis-subtle p-6'>Slide 3</div>
+            </Carousel.Item>
+          </Carousel.Content>
+        </Carousel>
       </section>
 
       {/*

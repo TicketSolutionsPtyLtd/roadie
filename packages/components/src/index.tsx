@@ -22,10 +22,25 @@ export { Badge, badgeVariants, type BadgeProps } from './components/Badge'
 
 export {
   Breadcrumb,
-  type BreadcrumbSeparatorProps
+  type BreadcrumbProps,
+  type BreadcrumbListProps,
+  type BreadcrumbItemProps,
+  type BreadcrumbLinkProps,
+  type BreadcrumbSeparatorProps,
+  type BreadcrumbCurrentProps
 } from './components/Breadcrumb'
 
-export { Card, cardVariants, type CardProps } from './components/Card'
+export {
+  Card,
+  cardVariants,
+  type CardProps,
+  type CardHeaderProps,
+  type CardContentProps,
+  type CardFooterProps,
+  type CardImageProps,
+  type CardTitleProps,
+  type CardDescriptionProps
+} from './components/Card'
 
 export {
   Carousel,
@@ -63,7 +78,20 @@ export {
   stepsVariants,
   useSteps,
   type StepsProps,
+  type StepsListProps,
   type StepsItemProps,
+  type StepsTriggerProps,
+  type StepsTriggerTextProps,
+  type StepsIndicatorProps,
+  type StepsSeparatorProps,
+  type StepsContentProps,
+  type StepsCompletedContentProps,
+  type StepsNextTriggerProps,
+  type StepsPrevTriggerProps,
+  type StepsProgressProps,
+  type StepsContextProps,
+  type StepsItemContextProps,
+  type StepsRootProviderProps,
   type UseStepsProps,
   type UseStepsReturn
 } from './components/Steps'
@@ -90,6 +118,8 @@ export {
   useFieldInputProps,
   type FieldProps,
   type FieldLabelProps,
+  type FieldInputProps,
+  type FieldTextareaProps,
   type FieldHelperTextProps,
   type FieldErrorTextProps
 } from './components/Field'

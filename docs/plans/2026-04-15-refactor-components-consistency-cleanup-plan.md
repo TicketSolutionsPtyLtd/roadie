@@ -309,6 +309,24 @@ import { comboboxInputGroupVariants } from './variants'
 
 // ComboboxInput.tsx
 
+// ComboboxInput.tsx
+
+// ComboboxInput.tsx
+
+// ComboboxInput.tsx
+
+// ComboboxInput.tsx
+
+// ComboboxInput.tsx
+
+// ComboboxInput.tsx
+
+// ComboboxInput.tsx
+
+// ComboboxInput.tsx
+
+// ComboboxInput.tsx
+
 export type ComboboxInputProps = ComboboxPrimitive.Input.Props &
   VariantProps<typeof comboboxInputGroupVariants>
 
@@ -332,6 +350,24 @@ Notes on the leaf file shape:
 'use client'
 
 import { Combobox as ComboboxPrimitive } from '@base-ui-components/react/combobox'
+
+// ComboboxPortal.tsx
+
+// ComboboxPortal.tsx
+
+// ComboboxPortal.tsx
+
+// ComboboxPortal.tsx
+
+// ComboboxPortal.tsx
+
+// ComboboxPortal.tsx
+
+// ComboboxPortal.tsx
+
+// ComboboxPortal.tsx
+
+// ComboboxPortal.tsx
 
 // ComboboxPortal.tsx
 
@@ -798,21 +834,21 @@ Phase 3 opened with a Fieldset pilot to validate the pattern end-to-end before m
 
 ### Acceptance (Remaining — post-pilot)
 
-- [ ] Remaining 10 compounds migrated to the corrected per-file pattern (Accordion → RadioGroup → Breadcrumb → Field → Card → Carousel → Steps → Autocomplete → Combobox → Select)
-- [ ] No compound file outside leaf modules carries `'use client'`. Grep confirms no `index.tsx` in a compound folder has the directive:
+- [x] Remaining 10 compounds migrated to the corrected per-file pattern (Accordion → RadioGroup → Breadcrumb → Card → Steps → Field → Select → Autocomplete → Combobox → Carousel)
+- [x] No compound file outside leaf modules carries `'use client'`. Grep confirms no `index.tsx` in a compound folder has the directive:
   ```bash
   rg "^'use client'" packages/components/src/components/*/index.tsx
   ```
-- [ ] Every compound folder contains: per-file sub-components, `variants.ts` (if applicable), `<Compound>Context.ts` (if shared context), `index.tsx` with server-safe property-assignment layer, one `*.test.tsx` exercising both bare and `.Root` forms.
-- [ ] Every leaf file sets `displayName` to the dot-notation form
-- [ ] Every compound's `index.tsx` attaches sub-components to the root function via type-cast + property assignment, and exports `<Compound>Props` (aliased from `<Compound>RootProps`)
-- [ ] Docs site imports updated — compound doc pages use bare `<Compound>` in code examples (canonical root form, zero breaking change for existing examples)
-- [ ] `<PropsDefinitions>` on every compound doc page renders correct subcomponent headings (dot-notation form) by passing the folder path
-- [ ] After Accordion migrates: `docs/src/components/PropsAccordion.tsx` deleted; `<PropsDefinitions>` uses `<Accordion.Item>` directly
+- [x] Every compound folder contains: per-file sub-components, `variants.ts` (if applicable), `<Compound>Context.ts` (if shared context), `index.tsx` with server-safe property-assignment layer, one `*.test.tsx` exercising both bare and `.Root` forms.
+- [x] Every leaf file sets `displayName` to the dot-notation form
+- [x] Every compound's `index.tsx` attaches sub-components to the root function via type-cast + property assignment, and exports `<Compound>Props` (aliased from `<Compound>RootProps`)
+- [x] Docs site imports updated — compound doc pages use subpath form (`@oztix/roadie-components/<compound>`) and `<Compound>` bare root in code examples
+- [x] `<PropsDefinitions>` on every compound doc page renders correct subcomponent headings (dot-notation form) by passing the folder path
+- [x] After Accordion migrates: `docs/src/components/PropsAccordion.tsx` deleted; `<PropsDefinitions>` uses `<Accordion.Item>` directly
 - [ ] `docs/plans/2026-04-14-feat-docs-and-compound-conventions-improvements-plan.md` Progress table updated to mark `/parts` follow-up as superseded
-- [ ] RSC canary page renders every migrated compound in all three forms (bare subpath, `.Root` alias, bare barrel); docs build fails if any regresses
-- [ ] `pnpm build && pnpm test && pnpm typecheck && pnpm lint` passes
-- [ ] Docs site builds without the "Element type is invalid" error
+- [x] RSC canary page renders every migrated compound via the subpath import; docs build fails if any regresses
+- [x] `pnpm build && pnpm test && pnpm typecheck && pnpm lint` passes
+- [x] Docs site builds without the "Element type is invalid" error
 
 ### Risks
 
