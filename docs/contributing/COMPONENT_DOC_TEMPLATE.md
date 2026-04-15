@@ -4,9 +4,9 @@ Reference for writing and reviewing Roadie component docs.
 
 ## Structure
 
-Every component doc follows this skeleton. Only include sections that apply.
+Every component doc follows this skeleton. Only include sections that apply. (The outer fence below uses 4 backticks so the inner `tsx-live` fence survives intact.)
 
-```mdx
+````mdx
 export const metadata = {
   title: 'Fieldset',
   description: 'A one-line description of what the component is',
@@ -18,9 +18,8 @@ import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # Fieldset
 
-A one-line description of what the component is — not "The Fieldset
-component is...", just "A compound wrapper for grouping related form
-fields with a legend."
+A one-line description — not "The Fieldset component is...", just
+"A compound wrapper for grouping related form fields with a legend."
 
 ## Import
 
@@ -55,7 +54,7 @@ Brief. Only non-obvious things.
 Interactive components only.
 
 <PropsDefinitions componentPath='packages/components/src/components/Fieldset' />
-```
+````
 
 ## Rules
 
@@ -75,15 +74,8 @@ Interactive components only.
 
 ## `<PropsDefinitions>` usage
 
-- **Single component** → point at the `index.tsx` file:
-  ```mdx
-  <PropsDefinitions componentPath='packages/components/src/components/Badge/index.tsx' />
-  ```
-- **Per-file compound** (Fieldset, and every compound migrated in Phase 3) → point at the **folder**:
-  ```mdx
-  <PropsDefinitions componentPath='packages/components/src/components/Fieldset' />
-  ```
-  `PropsDefinitions` enumerates every non-test `.tsx` file in the folder, rewrites the parsed leaf names from `FieldsetLegend` → `Fieldset.Legend` using the folder basename, and renders the Base UI-style API reference (section heading = dot-notation displayName, one stacked card per sub-component).
+- **Single component** → point at the `index.tsx` file: `componentPath='packages/components/src/components/Badge/index.tsx'`.
+- **Per-file compound** (Fieldset, and every compound migrated in Phase 3) → point at the **folder**: `componentPath='packages/components/src/components/Fieldset'`. `PropsDefinitions` enumerates every non-test `.tsx` file in the folder, rewrites the parsed leaf names from `FieldsetLegend` → `Fieldset.Legend` using the folder basename, and renders the Base UI-style API reference (section heading = dot-notation displayName, one stacked card per sub-component).
 - **Pre-Phase-3 compound** (monolithic `index.tsx` — Accordion, Card, Select, etc., while they are still being migrated) → point at the `index.tsx` file. The parser picks up the property-assignment pattern directly.
 
 ## Section applicability by category

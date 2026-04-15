@@ -398,7 +398,6 @@ NewThingItem.displayName = 'NewThing.Item'
 // assignments below execute on the server. Adding 'use client' here
 // reinstates the Next.js client-reference-proxy wall and breaks
 // <NewThing.Item /> in server components.
-
 import { NewThingItem } from './NewThingItem'
 import { NewThingRoot } from './NewThingRoot'
 
@@ -421,7 +420,7 @@ export { newThingRootVariants } from './variants'
 // Works in server components AND client components, via subpath OR barrel.
 import { NewThing } from '@oztix/roadie-components/new-thing'
 
-<NewThing>
+;<NewThing>
   <NewThing.Item value='a'>A</NewThing.Item>
 </NewThing>
 ```
