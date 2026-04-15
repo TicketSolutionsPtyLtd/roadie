@@ -219,6 +219,9 @@ export {
 export {
   ThemeProvider,
   useTheme,
+  DEFAULT_ACCENT_COLOR,
+  InvalidColorError,
+  isValidHexColor,
   getAccentStyleTag,
   getThemeScript,
   type ThemeProviderProps

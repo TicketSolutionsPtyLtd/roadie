@@ -11,8 +11,42 @@ import {
 
 export { getThemeScript } from '@oztix/roadie-core/theme'
 
-const DEFAULT_ACCENT = '#0091EB' // Oztix Blue
+/**
+ * The default Roadie accent colour (Oztix blue).
+ * Consumers that need to reset the accent back to the default should
+ * import this constant instead of hard-coding the hex.
+ */
+export const DEFAULT_ACCENT_COLOR = '#0091EB'
+
 const THEME_STORAGE_KEY = 'theme'
+
+const HEX_COLOR_PATTERN =
+  /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/
+
+/**
+ * Validate that a value is a CSS hex colour string (`#RGB`, `#RRGGBB`,
+ * or `#RRGGBBAA`). Consumers can use this at their fetch boundary to
+ * guard untrusted input before passing it to `ThemeProvider`.
+ */
+export function isValidHexColor(input: unknown): input is string {
+  return typeof input === 'string' && HEX_COLOR_PATTERN.test(input)
+}
+
+/**
+ * Thrown by `setAccentColor` and `getAccentStyleTagSync` when the input
+ * is not a valid hex colour. Prefer wrapping the call in a try/catch
+ * or validating up front with `isValidHexColor`.
+ */
+export class InvalidColorError extends Error {
+  constructor(input: unknown) {
+    super(
+      `[Roadie] Invalid accent colour: ${JSON.stringify(
+        input
+      )}. Expected a hex string like "#0091EB".`
+    )
+    this.name = 'InvalidColorError'
+  }
+}
 
 const supportsOklch =
   typeof CSS !== 'undefined' &&
@@ -36,6 +70,19 @@ const ThemeContext = React.createContext<ThemeContextType | undefined>(
 
 export interface ThemeProviderProps {
   children: React.ReactNode
+  /**
+   * Controlled accent colour. When provided (including `null`), the
+   * provider operates in controlled mode: this value overrides
+   * internal state on every render and imperative `setAccentColor`
+   * calls become no-ops with a dev warning. Pass `null` to opt into
+   * controlled mode while falling back to `defaultAccentColor` (useful
+   * for async data: `collection?.themeColour ?? null`).
+   */
+  accentColor?: string | null
+  /**
+   * Initial accent colour when uncontrolled. Ignored when the
+   * `accentColor` prop is provided.
+   */
   defaultAccentColor?: string
   /** Initial dark mode state when no stored preference exists (default: false) */
   defaultDark?: boolean
@@ -51,11 +98,18 @@ export interface ThemeProviderProps {
  * Generate a <style> tag string for server-side rendering.
  * Sets --accent-hue and --accent-chroma for CSS-native theming,
  * plus hex fallbacks for older browsers.
+ *
+ * Async because it pulls in `colorjs.io` to compute the full 14-step
+ * hex scale for non-OKLCH browsers. For pre-hydration bootstrap on
+ * modern browsers, prefer `getAccentStyleTagSync`.
  */
 export async function getAccentStyleTag(
   accentHex: string,
   id = 'roadie-accent-theme'
 ): Promise<string> {
+  if (!isValidHexColor(accentHex)) {
+    throw new InvalidColorError(accentHex)
+  }
   const result = await generateAccentScale(accentHex)
   const neutral = await generateNeutralScale(accentHex)
   const hue = Math.round(await getOklchHue(accentHex))
@@ -116,17 +170,83 @@ function storeTheme(dark: boolean) {
   }
 }
 
+/**
+ * Dev-mode check that works across consumer bundlers (Next.js, Vite,
+ * Webpack, Rollup). See `CarouselRoot.tsx` for the full rationale —
+ * `process.env.NODE_ENV` is replaced at build time by every mainstream
+ * bundler, and the `typeof process` guard covers runtimes that haven't
+ * shimmed `process` on the client.
+ */
+declare const process: { env?: { NODE_ENV?: string } } | undefined
+
+function isDev(): boolean {
+  return (
+    typeof process !== 'undefined' && process?.env?.NODE_ENV !== 'production'
+  )
+}
+
 // ---------------------------------------------------------------------------
 // ThemeProvider
 // ---------------------------------------------------------------------------
 
 export function ThemeProvider({
   children,
-  defaultAccentColor = DEFAULT_ACCENT,
+  accentColor: controlledAccent,
+  defaultAccentColor = DEFAULT_ACCENT_COLOR,
   defaultDark = false,
   followSystem = false
 }: ThemeProviderProps) {
-  const [accentColor, setAccentColor] = React.useState(defaultAccentColor)
+  const isControlled = controlledAccent !== undefined
+
+  // Dev warning: switching between controlled/uncontrolled is almost
+  // always a bug. Mirrors React's controlled-input convention.
+  const wasControlled = React.useRef(isControlled)
+  if (isDev() && wasControlled.current !== isControlled) {
+    console.warn(
+      `[Roadie] ThemeProvider is switching from ${
+        wasControlled.current ? 'controlled' : 'uncontrolled'
+      } to ${
+        isControlled ? 'controlled' : 'uncontrolled'
+      }. Decide once and stick with it — pass a stable \`accentColor\` prop or omit it entirely.`
+    )
+    wasControlled.current = isControlled
+  }
+
+  const [internalAccent, setInternalAccent] = React.useState(defaultAccentColor)
+
+  // Resolve the effective accent colour. Controlled prop always wins.
+  // Invalid controlled input falls back to defaultAccentColor with a warning.
+  const accentColor = React.useMemo(() => {
+    if (!isControlled) return internalAccent
+    if (controlledAccent === null) return defaultAccentColor
+    if (isValidHexColor(controlledAccent)) return controlledAccent
+    if (isDev()) {
+      console.warn(
+        `[Roadie] Invalid accentColor passed to <ThemeProvider>: ${JSON.stringify(
+          controlledAccent
+        )}. Falling back to defaultAccentColor.`
+      )
+    }
+    return defaultAccentColor
+  }, [isControlled, controlledAccent, defaultAccentColor, internalAccent])
+
+  const setAccentColor = React.useCallback(
+    (next: string) => {
+      if (!isValidHexColor(next)) {
+        throw new InvalidColorError(next)
+      }
+      if (isControlled) {
+        if (isDev()) {
+          console.warn(
+            '[Roadie] setAccentColor() was called on a controlled <ThemeProvider>. Update the `accentColor` prop instead — this call is a no-op.'
+          )
+        }
+        return
+      }
+      setInternalAccent(next)
+    },
+    [isControlled]
+  )
 
   // Initialise dark mode from prop — inline script may have already set .dark
   const [isDark, setIsDarkState] = React.useState(defaultDark)
@@ -247,7 +367,7 @@ export function ThemeProvider({
 
   const value = React.useMemo(
     () => ({ accentColor, setAccentColor, isDark, setDark }),
-    [accentColor, isDark, setDark]
+    [accentColor, setAccentColor, isDark, setDark]
   )
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
