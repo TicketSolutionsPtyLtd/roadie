@@ -136,6 +136,10 @@ function Fixture({
 }
 
 describe('Carousel', () => {
+  it('Carousel and Carousel.Root are the same component reference', () => {
+    expect(Carousel).toBe(Carousel.Root)
+  })
+
   it('renders root with carousel role and accessible name', () => {
     const { getByRole } = render(<Fixture />)
     const region = getByRole('region')
