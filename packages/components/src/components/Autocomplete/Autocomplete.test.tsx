@@ -5,6 +5,10 @@ import { Autocomplete, autocompleteInputGroupVariants } from '.'
 import { Field } from '../Field'
 
 describe('Autocomplete', () => {
+  it('Autocomplete and Autocomplete.Root are the same component reference', () => {
+    expect(Autocomplete).toBe(Autocomplete.Root)
+  })
+
   it('renders root component', () => {
     const { container } = render(
       <Autocomplete>
