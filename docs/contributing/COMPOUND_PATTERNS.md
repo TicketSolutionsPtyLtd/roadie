@@ -158,6 +158,8 @@ import { FieldsetContext } from './FieldsetContext'
 
 // FieldsetRoot.tsx
 
+// FieldsetRoot.tsx
+
 export type FieldsetRootProps = ComponentProps<'fieldset'> & {
   invalid?: boolean
 }
@@ -236,6 +238,8 @@ import { Combobox as ComboboxPrimitive } from '@base-ui-components/react/combobo
 
 // ComboboxPortal.tsx
 
+// ComboboxPortal.tsx
+
 export const ComboboxPortal = ComboboxPrimitive.Portal
 export type ComboboxPortalProps = ComboboxPrimitive.Portal.Props
 ```
@@ -251,6 +255,8 @@ Sub-components that share React context factor it into a sibling `*Context.ts` f
 'use client'
 
 import { createContext } from 'react'
+
+// FieldsetContext.ts
 
 // FieldsetContext.ts
 

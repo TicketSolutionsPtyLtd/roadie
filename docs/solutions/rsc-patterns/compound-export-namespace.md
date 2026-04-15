@@ -97,6 +97,8 @@ import { FieldsetContext } from './FieldsetContext'
 
 // FieldsetRoot.tsx — needs 'use client' because it provides React context
 
+// FieldsetRoot.tsx — needs 'use client' because it provides React context
+
 export type FieldsetRootProps = ComponentProps<'fieldset'> & {
   invalid?: boolean
 }

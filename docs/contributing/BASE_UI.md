@@ -36,10 +36,27 @@ Base UI primitives follow a canonical compound:
 Root → Trigger → Portal → Positioner → Popup → Item
 ```
 
-Roadie re-exports every part under the same name via
-`Object.assign(Root, { Part, ... })`, so consumers get the familiar
-`Select.Trigger`, `Select.Popup`, etc. See the end of
-`packages/components/src/components/Select/index.tsx` for the canonical export shape.
+Roadie wraps them as **per-file leaves** with a server-safe `index.tsx`
+that assigns each leaf as a static property on the root function.
+Consumers write bare `<Select>` (or the `<Select.Root>` alias) plus dot
+access for every sub-component (`<Select.Trigger>`, `<Select.Popup>`,
+…). The pattern is RSC-safe end to end and works in both server and
+client components from both the subpath and the root barrel.
+
+**Before wrapping any Base UI compound, read
+[`docs/contributing/COMPOUND_PATTERNS.md`](./COMPOUND_PATTERNS.md).**
+It is the canonical reference for:
+
+- Per-file folder layout
+- Server-safe `index.tsx` property-assignment pattern
+- `'use client'`-only-where-needed rule
+- `data-slot` attribute convention
+- Authoring checklist
+
+See `packages/components/src/components/Fieldset/` for the reference
+implementation (small compound). Larger compounds like Select / Combobox
+/ Autocomplete are in the process of migrating from the pre-Phase-3
+monolithic layout — treat `Fieldset` as the target shape.
 
 ## 3. The `render` prop (element replacement)
 
@@ -280,21 +297,16 @@ intercepting `onKeyDown`.
 
 ## 11. Component skeleton template
 
-Drop this into a new `NewComponent/index.tsx` and adjust:
+Compound components ship as **per-file leaves + a server-safe `index.tsx`
+property-assignment layer**. Drop these files into a new
+`NewThing/` folder and adjust:
+
+### `variants.ts`
 
 ```tsx
-'use client'
-
-import { type RefAttributes } from 'react'
-
-import { NewThing as NewThingPrimitive } from '@base-ui/react/new-thing'
-import { type VariantProps, cva } from 'class-variance-authority'
-
-import { cn } from '@oztix/roadie-core/utils'
+import { cva } from 'class-variance-authority'
 
 import { intentVariants } from '../../variants'
-
-/* ─── Variants ─── */
 
 export const newThingRootVariants = cva('base-classes is-interactive', {
   variants: {
@@ -310,8 +322,21 @@ export const newThingRootVariants = cva('base-classes is-interactive', {
   },
   defaultVariants: { emphasis: 'normal', size: 'md' }
 })
+```
 
-/* ─── Root ─── */
+### `NewThingRoot.tsx` (leaf)
+
+```tsx
+'use client'
+
+import { type RefAttributes } from 'react'
+
+import { NewThing as NewThingPrimitive } from '@base-ui/react/new-thing'
+import { type VariantProps } from 'class-variance-authority'
+
+import { cn } from '@oztix/roadie-core/utils'
+
+import { newThingRootVariants } from './variants'
 
 export type NewThingRootProps = NewThingPrimitive.Root.Props &
   RefAttributes<HTMLDivElement> &
@@ -326,6 +351,7 @@ export function NewThingRoot({
 }: NewThingRootProps) {
   return (
     <NewThingPrimitive.Root
+      data-slot='new-thing'
       className={cn(
         newThingRootVariants({ intent, emphasis, size, className })
       )}
@@ -334,9 +360,19 @@ export function NewThingRoot({
   )
 }
 
-NewThingRoot.displayName = 'NewThing'
+NewThingRoot.displayName = 'NewThing.Root'
+```
 
-/* ─── Item ─── */
+### `NewThingItem.tsx` (leaf)
+
+```tsx
+'use client'
+
+import { type RefAttributes } from 'react'
+
+import { NewThing as NewThingPrimitive } from '@base-ui/react/new-thing'
+
+import { cn } from '@oztix/roadie-core/utils'
 
 export type NewThingItemProps = NewThingPrimitive.Item.Props &
   RefAttributes<HTMLDivElement>
@@ -344,6 +380,7 @@ export type NewThingItemProps = NewThingPrimitive.Item.Props &
 export function NewThingItem({ className, ...props }: NewThingItemProps) {
   return (
     <NewThingPrimitive.Item
+      data-slot='new-thing-item'
       className={cn('data-[highlighted]:bg-subtle', className)}
       {...props}
     />
@@ -351,19 +388,54 @@ export function NewThingItem({ className, ...props }: NewThingItemProps) {
 }
 
 NewThingItem.displayName = 'NewThing.Item'
-
-/* ─── Compound attachment ─── */
-
-// TODO(Phase 3): migrate to `export * as NewThing from './parts'`.
-// See docs/plans/2026-04-15-refactor-components-consistency-cleanup-plan.md
-// (Phase 3) and docs/contributing/COMPOUND_PATTERNS.md for the target shape.
-// The current direct-assignment form below is Pattern A from commit ba58fd6
-// and is temporary — it breaks when consumers use `<NewThing.Item />` from a
-// Next.js server component.
-
-export const NewThing = NewThingRoot
-NewThing.Item = NewThingItem
 ```
+
+### `index.tsx` (server-safe entry — **no `'use client'`**)
+
+```tsx
+// NO 'use client' — this file MUST stay a server-safe module. Under tsdown
+// `unbundle: true`, it's emitted as its own dist file, and the property
+// assignments below execute on the server. Adding 'use client' here
+// reinstates the Next.js client-reference-proxy wall and breaks
+// <NewThing.Item /> in server components.
+
+import { NewThingItem } from './NewThingItem'
+import { NewThingRoot } from './NewThingRoot'
+
+const NewThing = NewThingRoot as typeof NewThingRoot & {
+  Root: typeof NewThingRoot
+  Item: typeof NewThingItem
+}
+
+NewThing.Root = NewThingRoot
+NewThing.Item = NewThingItem
+
+export { NewThing }
+export type { NewThingRootProps as NewThingProps } from './NewThingRoot'
+export { newThingRootVariants } from './variants'
+```
+
+### Consumer surface
+
+```tsx
+// Works in server components AND client components, via subpath OR barrel.
+import { NewThing } from '@oztix/roadie-components/new-thing'
+
+<NewThing>
+  <NewThing.Item value='a'>A</NewThing.Item>
+</NewThing>
+```
+
+Both `<NewThing>` and `<NewThing.Root>` resolve to the same function —
+bare is canonical; `.Root` is a supported alias for Base UI parity.
+
+See
+[`docs/contributing/COMPOUND_PATTERNS.md`](./COMPOUND_PATTERNS.md)
+for the full authoring checklist (13 steps), including the `data-slot`
+rule, the `'use client'`-only-where-needed rule, tests, barrel
+re-export, subpath generator, and RSC canary page. See
+`packages/components/src/components/Fieldset/` for the reference
+implementation.
 
 ## 12. Reference links
 
