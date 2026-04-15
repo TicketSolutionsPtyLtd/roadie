@@ -3,7 +3,42 @@ import path from 'path'
 import type { PropItem } from 'react-docgen-typescript'
 import { withCustomConfig } from 'react-docgen-typescript'
 
+import { ArrowSquareOutIcon } from '@phosphor-icons/react/ssr'
+
 import { Code } from '@oztix/roadie-components'
+
+// Compounds that wrap a Base UI primitive. Every sub-component section
+// renders a small link to the matching Base UI docs page — the root entry
+// links to the component page, dot-notation entries link to the part anchor.
+// Base UI's URL scheme is `https://base-ui.com/react/components/<slug>#<part>`
+// where <part> is the sub-component name in kebab-case. If a sub-component
+// doesn't exist on the Base UI side (e.g. Roadie-native `Select.HelperText`,
+// `Select.Content`, `Select.ErrorText`), the anchor still loads the top of
+// the Base UI component page — a graceful fallback rather than a 404.
+const BASE_UI_COMPOUNDS: Record<string, string> = {
+  Autocomplete: 'autocomplete',
+  Button: 'button',
+  Combobox: 'combobox',
+  RadioGroup: 'radio-group',
+  Select: 'select'
+}
+
+function toKebabCase(value: string): string {
+  return value
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
+    .toLowerCase()
+}
+
+function baseUiHrefFor(displayName: string): string | null {
+  const [compound, ...rest] = displayName.split('.')
+  if (!compound) return null
+  const slug = BASE_UI_COMPOUNDS[compound]
+  if (!slug) return null
+  const base = `https://base-ui.com/react/components/${slug}`
+  if (rest.length === 0) return base
+  return `${base}#${toKebabCase(rest.join(''))}`
+}
 
 interface ComponentProp {
   required: boolean
@@ -160,12 +195,26 @@ function ComponentSection({
   componentInfo: { displayName: string; description?: string }
   groupedProps: GroupedProps
 }) {
+  const baseUiHref = baseUiHrefFor(componentInfo.displayName)
   return (
     <section className='grid gap-3'>
       <header className='grid gap-1'>
-        <h3 className='font-mono text-lg font-bold'>
-          {componentInfo.displayName}
-        </h3>
+        <div className='flex flex-wrap items-center gap-3'>
+          <h3 className='font-mono text-lg font-bold'>
+            {componentInfo.displayName}
+          </h3>
+          {baseUiHref && (
+            <a
+              href={baseUiHref}
+              target='_blank'
+              rel='noreferrer'
+              className='inline-flex items-center gap-1 rounded-full emphasis-subtler is-interactive px-2 py-0.5 text-xs font-medium text-subtle'
+            >
+              Base UI
+              <ArrowSquareOutIcon weight='bold' className='size-3' />
+            </a>
+          )}
+        </div>
         {!!componentInfo.description && (
           <p className='text-subtle'>{componentInfo.description}</p>
         )}
