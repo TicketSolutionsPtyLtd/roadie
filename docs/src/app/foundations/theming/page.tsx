@@ -111,34 +111,31 @@ export default function ThemingPage() {
           falling back to <Code>defaultAccentColor</Code>.
         </p>
         <CodePreview language='tsx-live'>
-          {`function ThemedCard({ brandColor }) {
-  // brandColor comes from a query — null while loading
-  return (
-    <ThemeProvider accentColor={brandColor ?? null}>
-      <div className="grid gap-3 rounded-xl bg-raised p-6">
-        <p className="text-strong">
-          Accent: <span className="font-mono text-sm">{brandColor ?? 'default'}</span>
-        </p>
-        <div className="flex gap-2 intent-accent">
-          <span className="emphasis-strong rounded-full px-3 py-1 text-sm font-bold">
-            Live
-          </span>
-          <span className="emphasis-subtle rounded-full px-3 py-1 text-sm">
-            Badge
-          </span>
-        </div>
-      </div>
-    </ThemeProvider>
-  )
-}
-
-render(<ThemedCard brandColor="#E83068" />)`}
+          {`<ThemeProvider accentColor="#E83068">
+  <div className="grid gap-3 rounded-xl bg-raised p-6">
+    <p className="text-strong">Accent driven by prop: #E83068</p>
+    <div className="flex gap-2 intent-accent">
+      <span className="emphasis-strong rounded-full px-3 py-1 text-sm font-bold">
+        Live
+      </span>
+      <span className="emphasis-subtle rounded-full px-3 py-1 text-sm">
+        Badge
+      </span>
+    </div>
+  </div>
+</ThemeProvider>`}
         </CodePreview>
         <p className='text-sm text-subtle'>
-          No <Code>useEffect</Code>, no manual cleanup, no reset logic. When the
-          data changes, re-render the provider with a new prop and Roadie
-          handles the rest. The old <Code>CollectionAccentSync</Code>-style
-          helper is unnecessary.
+          In a real app, replace <Code>&quot;#E83068&quot;</Code> with{' '}
+          <Code>{'collection?.themeColour ?? null'}</Code>. The provider
+          re-renders whenever the prop changes — no{' '}
+          <Code>useEffect</Code>, no manual cleanup, no reset logic.
+        </p>
+        <p className='text-sm text-subtle'>
+          The old <Code>CollectionAccentSync</Code>-style effect helper
+          is unnecessary — consumer apps can delete their bespoke
+          effect-plus-cleanup wiring as soon as they adopt the
+          controlled prop.
         </p>
       </section>
 
@@ -169,22 +166,18 @@ render(<ThemedCard brandColor="#E83068" />)`}
           </li>
         </ul>
         <CodePreview language='tsx-live'>
-          {`function FetchBoundary() {
-  // Guard untrusted input before it reaches ThemeProvider
-  const raw = '#72BF44'
-  const safe = isValidHexColor(raw) ? raw : DEFAULT_ACCENT_COLOR
-
-  return (
-    <ThemeProvider accentColor={safe}>
-      <div className="rounded-xl bg-raised p-4">
-        <p className="text-sm text-subtle">Validated accent:</p>
-        <p className="font-mono text-strong">{safe}</p>
-      </div>
-    </ThemeProvider>
-  )
-}
-
-render(<FetchBoundary />)`}
+          {`<ThemeProvider
+  accentColor={isValidHexColor('#72BF44') ? '#72BF44' : DEFAULT_ACCENT_COLOR}
+>
+  <div className="grid gap-2 rounded-xl bg-raised p-4">
+    <p className="text-sm text-subtle">Validated accent:</p>
+    <p className="font-mono text-strong">#72BF44</p>
+    <p className="text-xs text-subtler">
+      Replace the literal with untrusted input and the check guards it
+      before it reaches the provider.
+    </p>
+  </div>
+</ThemeProvider>`}
         </CodePreview>
       </section>
 
