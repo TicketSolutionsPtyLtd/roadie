@@ -80,20 +80,21 @@ export default function ThemingPage() {
           <Code>useTheme().setAccentColor(hex)</Code> imperatively — e.g. an
           in-app colour picker — and the internal state tracks the change.
         </p>
-        <CodePreview language='tsx-live'>
-          {`<ThemeProvider defaultAccentColor="#7C3AED">
-  <div className="grid gap-3 rounded-xl bg-raised p-6">
-    <p className="text-strong">intent-accent is now purple</p>
-    <div className="flex gap-2">
-      <button className="intent-accent is-interactive emphasis-strong rounded-full px-4 py-2">
-        Primary
-      </button>
-      <button className="intent-accent is-interactive emphasis-subtle rounded-full px-4 py-2">
-        Secondary
-      </button>
-    </div>
-  </div>
-</ThemeProvider>`}
+        <CodePreview language='tsx'>
+          {`// app/layout.tsx
+import { ThemeProvider } from '@oztix/roadie-components'
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <ThemeProvider defaultAccentColor="#7C3AED" followSystem>
+          {children}
+        </ThemeProvider>
+      </body>
+    </html>
+  )
+}`}
         </CodePreview>
       </section>
 
@@ -110,30 +111,31 @@ export default function ThemingPage() {
           dev warning. Pass <Code>null</Code> to opt into controlled mode while
           falling back to <Code>defaultAccentColor</Code>.
         </p>
-        <CodePreview language='tsx-live'>
-          {`<ThemeProvider accentColor="#E83068">
-  <div className="grid gap-3 rounded-xl bg-raised p-6">
-    <p className="text-strong">Accent driven by prop: #E83068</p>
-    <div className="flex gap-2 intent-accent">
-      <span className="emphasis-strong rounded-full px-3 py-1 text-sm font-bold">
-        Live
-      </span>
-      <span className="emphasis-subtle rounded-full px-3 py-1 text-sm">
-        Badge
-      </span>
-    </div>
-  </div>
-</ThemeProvider>`}
+        <CodePreview language='tsx'>
+          {`// app/collections/[slug]/page.tsx
+'use client'
+
+import { useCollection } from '@/hooks/useCollection'
+import { ThemeProvider } from '@oztix/roadie-components'
+
+export default function CollectionPage({ params }) {
+  const { data } = useCollection(params.slug)
+
+  return (
+    <ThemeProvider accentColor={data?.themeColour ?? null}>
+      <CollectionView collection={data} />
+    </ThemeProvider>
+  )
+}`}
         </CodePreview>
         <p className='text-sm text-subtle'>
-          In a real app, replace <Code>&quot;#E83068&quot;</Code> with{' '}
-          <Code>{'collection?.themeColour ?? null'}</Code>. The provider
-          re-renders whenever the prop changes — no{' '}
+          The provider re-renders whenever the prop changes — no{' '}
           <Code>useEffect</Code>, no manual cleanup, no reset logic.
-        </p>
-        <p className='text-sm text-subtle'>
-          The old <Code>CollectionAccentSync</Code>-style effect helper
-          is unnecessary — consumer apps can delete their bespoke
+          Passing <Code>null</Code> while the query is loading falls
+          back to <Code>defaultAccentColor</Code>, so the theme never
+          renders in a broken state during the suspense boundary. The
+          old <Code>CollectionAccentSync</Code>-style effect helper is
+          unnecessary — consumer apps can delete their bespoke
           effect-plus-cleanup wiring as soon as they adopt the
           controlled prop.
         </p>
@@ -165,19 +167,31 @@ export default function ThemingPage() {
             </p>
           </li>
         </ul>
-        <CodePreview language='tsx-live'>
-          {`<ThemeProvider
-  accentColor={isValidHexColor('#72BF44') ? '#72BF44' : DEFAULT_ACCENT_COLOR}
->
-  <div className="grid gap-2 rounded-xl bg-raised p-4">
-    <p className="text-sm text-subtle">Validated accent:</p>
-    <p className="font-mono text-strong">#72BF44</p>
-    <p className="text-xs text-subtler">
-      Replace the literal with untrusted input and the check guards it
-      before it reaches the provider.
-    </p>
-  </div>
-</ThemeProvider>`}
+        <CodePreview language='tsx'>
+          {`import {
+  DEFAULT_ACCENT_COLOR,
+  InvalidColorError,
+  ThemeProvider,
+  isValidHexColor
+} from '@oztix/roadie-components'
+
+function CollectionTheme({ collection, children }) {
+  // Guard untrusted input at the fetch boundary
+  const accent = isValidHexColor(collection.themeColour)
+    ? collection.themeColour
+    : DEFAULT_ACCENT_COLOR
+
+  return <ThemeProvider accentColor={accent}>{children}</ThemeProvider>
+}
+
+// Imperative calls throw synchronously on invalid input
+try {
+  setAccentColor(userInput)
+} catch (error) {
+  if (error instanceof InvalidColorError) {
+    toast.error('That colour isn\\'t a valid hex value.')
+  }
+}`}
         </CodePreview>
       </section>
 
