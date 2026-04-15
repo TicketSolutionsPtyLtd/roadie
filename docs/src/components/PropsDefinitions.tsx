@@ -6,37 +6,134 @@ import { withCustomConfig } from 'react-docgen-typescript'
 
 import { Code } from '@oztix/roadie-components'
 
-// Compounds that wrap a Base UI primitive. Every sub-component section
-// renders a small link to the matching Base UI docs page — the root entry
-// links to the component page, dot-notation entries link to the part anchor.
-// Base UI's URL scheme is `https://base-ui.com/react/components/<slug>#<part>`
-// where <part> is the sub-component name in kebab-case. If a sub-component
-// doesn't exist on the Base UI side (e.g. Roadie-native `Select.HelperText`,
-// `Select.Content`, `Select.ErrorText`), the anchor still loads the top of
-// the Base UI component page — a graceful fallback rather than a 404.
-const BASE_UI_COMPOUNDS: Record<string, string> = {
-  Autocomplete: 'autocomplete',
-  Button: 'button',
-  Combobox: 'combobox',
-  RadioGroup: 'radio-group',
-  Select: 'select'
+// Compounds that wrap a Base UI primitive, plus the exact set of parts
+// Base UI actually documents for each. Only parts present in the map
+// render a link — Roadie-native sub-components (e.g. `Select.HelperText`,
+// `Select.Content`, `Select.ErrorText`, `RadioGroup.Label`) intentionally
+// render without a link because the corresponding anchor doesn't exist
+// upstream.
+//
+// Anchors are whatever Base UI actually uses in its docs markup, which
+// is **single-token lowercase with no separators** — e.g.
+// `Select.ItemText` → `#itemtext`, `Select.ScrollUpArrow` →
+// `#scrolluparrow`, `Combobox.InputGroup` → `#inputgroup`. Do NOT
+// kebab-case these — Base UI renders `#item-text` as a 404 anchor.
+//
+// Base UI groups Radio + RadioGroup on a single page at
+// `/react/components/radio`. Roadie's `RadioGroup` root maps to
+// `#radiogroup` on that page, and the `RadioGroup.Item` leaf (which
+// wraps Base UI's `<Radio>`) maps to `#root` (Base UI's Radio.Root
+// anchor).
+//
+// If Base UI adds a new sub-component we care about, add it here. If
+// we remove a wrapper, remove it here. The map is intentionally
+// explicit so a typo or an upstream rename fails loudly in review
+// rather than silently emitting a dead anchor.
+type BaseUiCompound = {
+  slug: string
+  parts: Record<string, string>
 }
 
-function toKebabCase(value: string): string {
-  return value
-    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
-    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
-    .toLowerCase()
+const BASE_UI_COMPOUNDS: Record<string, BaseUiCompound> = {
+  Autocomplete: {
+    slug: 'autocomplete',
+    parts: {
+      Root: 'root',
+      Value: 'value',
+      Input: 'input',
+      InputGroup: 'inputgroup',
+      Trigger: 'trigger',
+      Icon: 'icon',
+      Clear: 'clear',
+      List: 'list',
+      Portal: 'portal',
+      Positioner: 'positioner',
+      Popup: 'popup',
+      Status: 'status',
+      Empty: 'empty',
+      Collection: 'collection',
+      Item: 'item',
+      Group: 'group',
+      GroupLabel: 'grouplabel'
+    }
+  },
+  Button: {
+    slug: 'button',
+    parts: {}
+  },
+  Combobox: {
+    slug: 'combobox',
+    parts: {
+      Root: 'root',
+      Label: 'label',
+      Input: 'input',
+      InputGroup: 'inputgroup',
+      Trigger: 'trigger',
+      Icon: 'icon',
+      Clear: 'clear',
+      List: 'list',
+      Portal: 'portal',
+      Positioner: 'positioner',
+      Popup: 'popup',
+      Status: 'status',
+      Empty: 'empty',
+      Collection: 'collection',
+      Item: 'item',
+      ItemIndicator: 'itemindicator',
+      Group: 'group',
+      GroupLabel: 'grouplabel'
+    }
+  },
+  RadioGroup: {
+    slug: 'radio',
+    parts: {
+      // The RadioGroup root maps to Base UI's `#radiogroup` part on the
+      // shared /radio page.
+      Root: 'radiogroup',
+      // Roadie's RadioGroup.Item wraps Base UI's <Radio>, which is
+      // documented on the same page under Radio.Root.
+      Item: 'root'
+    }
+  },
+  Select: {
+    slug: 'select',
+    parts: {
+      Root: 'root',
+      Label: 'label',
+      Trigger: 'trigger',
+      Value: 'value',
+      Icon: 'icon',
+      Portal: 'portal',
+      Positioner: 'positioner',
+      Popup: 'popup',
+      List: 'list',
+      Item: 'item',
+      ItemText: 'itemtext',
+      ItemIndicator: 'itemindicator',
+      Group: 'group',
+      GroupLabel: 'grouplabel',
+      ScrollUpArrow: 'scrolluparrow',
+      ScrollDownArrow: 'scrolldownarrow',
+      Separator: 'separator'
+    }
+  }
 }
 
 function baseUiHrefFor(displayName: string): string | null {
   const [compound, ...rest] = displayName.split('.')
   if (!compound) return null
-  const slug = BASE_UI_COMPOUNDS[compound]
-  if (!slug) return null
-  const base = `https://base-ui.com/react/components/${slug}`
-  if (rest.length === 0) return base
-  return `${base}#${toKebabCase(rest.join(''))}`
+  const entry = BASE_UI_COMPOUNDS[compound]
+  if (!entry) return null
+  const base = `https://base-ui.com/react/components/${entry.slug}`
+  // Bare compound name (no dot) uses the `Root` part anchor if Base UI
+  // documents one. For Select/Combobox/Autocomplete that's `#root`; for
+  // RadioGroup it's `#radiogroup` (Base UI's shared /radio page groups
+  // both Radio and RadioGroup). Falls back to the bare component page
+  // when the compound has no sub-parts (e.g. Button).
+  const partName = rest.length === 0 ? 'Root' : rest.join('')
+  const anchor = entry.parts[partName]
+  if (!anchor) return rest.length === 0 ? base : null
+  return `${base}#${anchor}`
 }
 
 interface ComponentProp {
