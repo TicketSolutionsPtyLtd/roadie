@@ -14,6 +14,7 @@ export function RequiredIndicator({
   return (
     <span
       aria-hidden='true'
+      data-slot='required-indicator'
       className={cn('text-subtle intent-danger', className)}
       {...props}
     >
@@ -34,7 +35,11 @@ export function OptionalIndicator({
   ...props
 }: OptionalIndicatorProps) {
   return (
-    <span className={cn('text-sm text-subtle', className)} {...props}>
+    <span
+      data-slot='optional-indicator'
+      className={cn('text-sm text-subtle', className)}
+      {...props}
+    >
       {children ?? '(optional)'}
     </span>
   )

@@ -66,7 +66,11 @@ export function Field({
         errorTextId
       }}
     >
-      <div className={cn('grid gap-1.5', className)} {...props} />
+      <div
+        data-slot='field'
+        className={cn('grid gap-1.5', className)}
+        {...props}
+      />
     </FieldContext>
   )
 }
@@ -90,6 +94,7 @@ export function FieldLabel({
     <Label
       id={labelId || undefined}
       htmlFor={htmlFor ?? (fieldId || undefined)}
+      data-slot='field-label'
       {...props}
     >
       {children}
@@ -130,7 +135,7 @@ export function useFieldInputProps() {
 
 export function FieldInput(props: InputProps) {
   const fieldProps = useFieldInputProps()
-  return <Input {...fieldProps} {...props} />
+  return <Input data-slot='field-input' {...fieldProps} {...props} />
 }
 
 FieldInput.displayName = 'Field.Input'
@@ -139,7 +144,7 @@ FieldInput.displayName = 'Field.Input'
 
 export function FieldTextarea(props: TextareaProps) {
   const fieldProps = useFieldInputProps()
-  return <Textarea {...fieldProps} {...props} />
+  return <Textarea data-slot='field-textarea' {...fieldProps} {...props} />
 }
 
 FieldTextarea.displayName = 'Field.Textarea'
@@ -157,6 +162,7 @@ export function FieldHelperText({
   return (
     <p
       id={id ?? (helperTextId || undefined)}
+      data-slot='field-helper-text'
       className={cn('text-sm text-subtle', className)}
       {...props}
     />
@@ -180,6 +186,7 @@ export function FieldErrorText({
     <p
       id={id ?? (errorTextId || undefined)}
       role='alert'
+      data-slot='field-error-text'
       className={cn('text-sm text-subtle intent-danger', className)}
       {...props}
     />

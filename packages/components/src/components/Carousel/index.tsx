@@ -809,6 +809,7 @@ export function Carousel({
         aria-roledescription='carousel'
         aria-label={labelId ? undefined : ariaLabel}
         aria-labelledby={labelId}
+        data-slot='carousel'
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onFocus={handleFocusIn}
@@ -847,6 +848,7 @@ export type CarouselHeaderProps = ComponentProps<'div'>
 export function CarouselHeader({ className, ...props }: CarouselHeaderProps) {
   return (
     <div
+      data-slot='carousel-header'
       className={cn(
         'mb-4 flex items-center justify-between gap-4',
         'md:grid md:grid-cols-[1fr_auto_1fr]',
@@ -897,6 +899,7 @@ export function CarouselControls({
   if (!forceVisible && !canScroll) return null
   return (
     <div
+      data-slot='carousel-controls'
       className={cn('hidden items-center gap-2 md:flex', className)}
       {...props}
     />
@@ -954,6 +957,7 @@ export function CarouselTitle({
   return (
     <Component
       id={titleId}
+      data-slot='carousel-title'
       className={cn('text-display-ui-5 text-strong', className)}
       {...props}
     >
@@ -994,6 +998,7 @@ export function CarouselTitleLink<T extends ElementType = 'a'>({
   return (
     <Component
       id={titleId}
+      data-slot='carousel-title-link'
       className={cn(
         'group/title is-interactive flex items-center gap-1 text-display-ui-5 text-strong',
         className
@@ -1159,6 +1164,7 @@ export function CarouselContent({
       aria-live={ariaLive}
       aria-label={labelId ? undefined : rootAriaLabel}
       aria-labelledby={labelId}
+      data-slot='carousel-content'
       className={cn(
         carouselContentVariants({ direction, overflow }),
         className
@@ -1167,6 +1173,7 @@ export function CarouselContent({
     >
       <div
         {...containerProps}
+        data-slot='carousel-container'
         className={cn(
           carouselContainerVariants({ direction }),
           containerProps?.className
@@ -1198,6 +1205,7 @@ export function CarouselItem({
       aria-label={`${index + 1} of ${total}`}
       tabIndex={-1}
       inert={!isInView}
+      data-slot='carousel-item'
       className={cn(carouselItemVariants({ direction }), className)}
       {...props}
     >
@@ -1248,6 +1256,7 @@ export function CarouselPrevious({
       aria-label={ariaLabel}
       aria-disabled={!canGoToPrev || undefined}
       data-disabled={!canGoToPrev || undefined}
+      data-slot='carousel-previous'
       onClick={canGoToPrev ? goToPrev : undefined}
       {...props}
     >
@@ -1274,6 +1283,7 @@ export function CarouselNext({
       aria-label={ariaLabel}
       aria-disabled={!canGoToNext || undefined}
       data-disabled={!canGoToNext || undefined}
+      data-slot='carousel-next'
       onClick={canGoToNext ? goToNext : undefined}
       {...props}
     >
@@ -1301,6 +1311,7 @@ export function CarouselPlayPause({
       className={className}
       aria-label={label}
       aria-pressed={!isPlaying}
+      data-slot='carousel-play-pause'
       onClick={toggle}
       {...props}
     >
@@ -1328,6 +1339,7 @@ export function CarouselDots({ className, ...props }: CarouselDotsProps) {
     <div
       role='group'
       aria-label='Choose slide to display'
+      data-slot='carousel-dots'
       className={cn(carouselDotsVariants({ direction }), className)}
       {...props}
     >
@@ -1340,6 +1352,7 @@ export function CarouselDots({ className, ...props }: CarouselDotsProps) {
             aria-label={`Go to slide ${index + 1}`}
             aria-current={isActive ? 'true' : undefined}
             aria-disabled={isActive || undefined}
+            data-slot='carousel-dot'
             onClick={() => goTo(index)}
             className={cn(
               'is-interactive h-2 rounded-full transition-all',

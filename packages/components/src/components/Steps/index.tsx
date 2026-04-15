@@ -40,6 +40,7 @@ export function Steps({ direction, className, ...props }: StepsProps) {
   return (
     <ArkSteps.Root
       orientation={direction === 'vertical' ? 'vertical' : 'horizontal'}
+      data-slot='steps'
       className={cn(stepsVariants({ direction, className }))}
       {...props}
     />
@@ -55,6 +56,7 @@ type StepsListProps = ArkSteps.ListProps
 export function StepsList({ className, ...props }: StepsListProps) {
   return (
     <ArkSteps.List
+      data-slot='steps-list'
       className={cn(
         'flex items-start justify-start rounded-xl bg-subtler px-4 py-3',
         'data-[orientation=vertical]:flex-col data-[orientation=vertical]:gap-2',
@@ -125,6 +127,7 @@ export function StepsItem({ className, invalid, ...props }: StepsItemProps) {
   return (
     <Item
       ref={itemRef}
+      data-slot='steps-item'
       className={cn(
         'group/step-item flex flex-1 items-center last:flex-none',
         'data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch',
@@ -146,6 +149,7 @@ type StepsTriggerProps = ArkSteps.TriggerProps
 export function StepsTrigger({ className, ...props }: StepsTriggerProps) {
   return (
     <ArkSteps.Trigger
+      data-slot='steps-trigger'
       className={cn(
         'group/step flex cursor-pointer flex-col items-center gap-1 rounded-md border-none bg-transparent px-3 py-3 transition-all duration-200 ease-out',
         'data-[orientation=vertical]:flex-row data-[orientation=vertical]:items-center data-[orientation=vertical]:gap-2',
@@ -170,6 +174,7 @@ export function StepsIndicator({
 }: StepsIndicatorProps) {
   return (
     <ArkSteps.Indicator
+      data-slot='steps-indicator'
       className={cn(
         'flex size-10 shrink-0 items-center justify-center rounded-full border text-lg font-black outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] transition-all duration-200 ease-out',
         'border-subtle bg-raised text-subtler',
@@ -201,6 +206,7 @@ type StepsSeparatorProps = ArkSteps.SeparatorProps
 export function StepsSeparator({ className, ...props }: StepsSeparatorProps) {
   return (
     <ArkSteps.Separator
+      data-slot='steps-separator'
       className={cn(
         'h-0.5 flex-1 bg-subtle transition-all duration-200 ease-out md:bottom-0 md:translate-y-5.5',
         'data-complete:bg-strong',
@@ -223,8 +229,12 @@ interface StepsContentProps {
 }
 
 export function StepsContent({ className, ...props }: StepsContentProps) {
-  const Content = ArkSteps.Content as React.ComponentType<StepsContentProps>
-  return <Content className={cn(className)} {...props} />
+  const Content = ArkSteps.Content as React.ComponentType<
+    StepsContentProps & { 'data-slot'?: string }
+  >
+  return (
+    <Content data-slot='steps-content' className={cn(className)} {...props} />
+  )
 }
 
 StepsContent.displayName = 'Steps.Content'
@@ -237,7 +247,13 @@ export function StepsCompletedContent({
   className,
   ...props
 }: StepsCompletedContentProps) {
-  return <ArkSteps.CompletedContent className={cn(className)} {...props} />
+  return (
+    <ArkSteps.CompletedContent
+      data-slot='steps-completed-content'
+      className={cn(className)}
+      {...props}
+    />
+  )
 }
 
 StepsCompletedContent.displayName = 'Steps.CompletedContent'
@@ -250,7 +266,13 @@ export function StepsNextTrigger({
   className,
   ...props
 }: StepsNextTriggerProps) {
-  return <ArkSteps.NextTrigger className={cn(className)} {...props} />
+  return (
+    <ArkSteps.NextTrigger
+      data-slot='steps-next-trigger'
+      className={cn(className)}
+      {...props}
+    />
+  )
 }
 
 StepsNextTrigger.displayName = 'Steps.NextTrigger'
@@ -263,7 +285,13 @@ export function StepsPrevTrigger({
   className,
   ...props
 }: StepsPrevTriggerProps) {
-  return <ArkSteps.PrevTrigger className={cn(className)} {...props} />
+  return (
+    <ArkSteps.PrevTrigger
+      data-slot='steps-prev-trigger'
+      className={cn(className)}
+      {...props}
+    />
+  )
 }
 
 StepsPrevTrigger.displayName = 'Steps.PrevTrigger'
@@ -275,6 +303,7 @@ type StepsProgressProps = ArkSteps.ProgressProps
 export function StepsProgress({ className, ...props }: StepsProgressProps) {
   return (
     <ArkSteps.Progress
+      data-slot='steps-progress'
       className={cn(
         'relative h-1 w-full overflow-hidden rounded-sm bg-subtle',
         'after:absolute after:inset-y-0 after:left-0 after:w-[calc(var(--percent)*1%)] after:bg-strong after:transition-[width] after:duration-300 after:ease-out',
@@ -297,6 +326,7 @@ export function StepsTriggerText({
 }: StepsTriggerTextProps) {
   return (
     <span
+      data-slot='steps-trigger-text'
       className={cn(
         'hidden text-sm font-bold md:block',
         'group-data-incomplete/step:text-subtle',

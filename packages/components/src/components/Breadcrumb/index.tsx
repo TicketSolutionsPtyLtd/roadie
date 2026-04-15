@@ -3,7 +3,14 @@ import type { ComponentProps, ElementType, ReactNode } from 'react'
 import { cn } from '@oztix/roadie-core/utils'
 
 export function Breadcrumb({ className, ...props }: ComponentProps<'nav'>) {
-  return <nav aria-label='Breadcrumb' className={className} {...props} />
+  return (
+    <nav
+      aria-label='Breadcrumb'
+      data-slot='breadcrumb'
+      className={className}
+      {...props}
+    />
+  )
 }
 
 Breadcrumb.displayName = 'Breadcrumb'
@@ -11,6 +18,7 @@ Breadcrumb.displayName = 'Breadcrumb'
 export function BreadcrumbList({ className, ...props }: ComponentProps<'ol'>) {
   return (
     <ol
+      data-slot='breadcrumb-list'
       className={cn('flex items-center gap-2 text-sm', className)}
       {...props}
     />
@@ -20,7 +28,13 @@ export function BreadcrumbList({ className, ...props }: ComponentProps<'ol'>) {
 BreadcrumbList.displayName = 'Breadcrumb.List'
 
 export function BreadcrumbItem({ className, ...props }: ComponentProps<'li'>) {
-  return <li className={cn('flex items-center gap-2', className)} {...props} />
+  return (
+    <li
+      data-slot='breadcrumb-item'
+      className={cn('flex items-center gap-2', className)}
+      {...props}
+    />
+  )
 }
 
 BreadcrumbItem.displayName = 'Breadcrumb.Item'
@@ -38,6 +52,7 @@ export function BreadcrumbLink<T extends ElementType = 'a'>({
   const Component = as || 'a'
   return (
     <Component
+      data-slot='breadcrumb-link'
       className={cn(
         'text-subtle transition-colors hover:text-normal',
         className
@@ -61,6 +76,7 @@ export function BreadcrumbSeparator({
   return (
     <span
       role='presentation'
+      data-slot='breadcrumb-separator'
       className={cn('text-subtler', className)}
       {...props}
     >
@@ -78,6 +94,7 @@ export function BreadcrumbCurrent({
   return (
     <span
       aria-current='page'
+      data-slot='breadcrumb-current'
       className={cn('font-medium text-normal', className)}
       {...props}
     />

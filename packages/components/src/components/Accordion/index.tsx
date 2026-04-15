@@ -80,6 +80,7 @@ export function Accordion({
   return (
     <AccordionContext.Provider value={contextValue}>
       <div
+        data-slot='accordion'
         className={cn(accordionVariants({ intent, emphasis, className }))}
         {...props}
       />
@@ -102,6 +103,7 @@ export function AccordionItem({
   return (
     <details
       name={name}
+      data-slot='accordion-item'
       className={cn(
         'group/item is-disclosure-animated',
         itemEmphasis,
@@ -154,6 +156,7 @@ export function AccordionTrigger({
 
   return (
     <summary
+      data-slot='accordion-trigger'
       className={cn(
         'flex w-full cursor-pointer list-none items-center justify-between px-4 py-3 text-left font-medium text-normal transition-colors hover:bg-subtle [&::-webkit-details-marker]:hidden',
         className
@@ -179,6 +182,7 @@ export function AccordionContent({
 }: ComponentProps<'div'>) {
   return (
     <div
+      data-slot='accordion-content'
       className={cn('min-h-0 overflow-hidden px-4 pt-1 pb-3', className)}
       {...props}
     >

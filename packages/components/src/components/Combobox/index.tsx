@@ -62,6 +62,7 @@ export type ComboboxLabelProps = ComboboxPrimitive.Label.Props &
 export function ComboboxLabel({ className, ...props }: ComboboxLabelProps) {
   return (
     <ComboboxPrimitive.Label
+      data-slot='combobox-label'
       className={cn('text-sm font-medium text-normal', className)}
       {...props}
     />
@@ -88,6 +89,7 @@ export function ComboboxInputGroup({
 
   return (
     <ComboboxPrimitive.InputGroup
+      data-slot='combobox-input-group'
       className={cn(
         comboboxInputGroupVariants({ intent, emphasis, size, className })
       )}
@@ -110,6 +112,7 @@ export function ComboboxInput({ className, ...props }: ComboboxInputProps) {
 
   return (
     <ComboboxPrimitive.Input
+      data-slot='combobox-input'
       className={cn(
         'min-w-0 flex-1 bg-transparent outline-none placeholder:text-subtle',
         className
@@ -141,6 +144,7 @@ export function ComboboxTrigger({
 }: ComboboxTriggerProps) {
   return (
     <ComboboxPrimitive.Trigger
+      data-slot='combobox-trigger'
       className={cn(
         'duration-moderate shrink-0 text-subtle transition-transform data-[popup-open]:rotate-180',
         className
@@ -166,6 +170,7 @@ export function ComboboxClear({
 }: ComboboxClearProps) {
   return (
     <ComboboxPrimitive.Clear
+      data-slot='combobox-clear'
       className={cn(
         'shrink-0 cursor-pointer text-subtle hover:text-normal',
         className
@@ -201,6 +206,7 @@ export function ComboboxPositioner({
 }: ComboboxPositionerProps) {
   return (
     <ComboboxPrimitive.Positioner
+      data-slot='combobox-positioner'
       className={cn('z-50', className)}
       sideOffset={4}
       {...props}
@@ -218,6 +224,7 @@ export type ComboboxPopupProps = ComboboxPrimitive.Popup.Props &
 export function ComboboxPopup({ className, ...props }: ComboboxPopupProps) {
   return (
     <ComboboxPrimitive.Popup
+      data-slot='combobox-popup'
       className={cn(
         'max-h-[var(--available-height)] max-w-[var(--available-width)] min-w-[var(--anchor-width)] overflow-y-auto rounded-xl border border-[var(--intent-border-subtle)] bg-raised p-1 shadow-lg',
         'origin-[var(--transform-origin)] transition-[transform,scale,opacity] data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0',
@@ -236,7 +243,13 @@ export type ComboboxListProps = ComboboxPrimitive.List.Props &
   RefAttributes<HTMLDivElement>
 
 export function ComboboxList({ className, ...props }: ComboboxListProps) {
-  return <ComboboxPrimitive.List className={className} {...props} />
+  return (
+    <ComboboxPrimitive.List
+      data-slot='combobox-list'
+      className={className}
+      {...props}
+    />
+  )
 }
 
 ComboboxList.displayName = 'Combobox.List'
@@ -249,6 +262,7 @@ export type ComboboxItemProps = ComboboxPrimitive.Item.Props &
 export function ComboboxItem({ className, ...props }: ComboboxItemProps) {
   return (
     <ComboboxPrimitive.Item
+      data-slot='combobox-item'
       className={cn(
         'flex w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm text-normal outline-none select-none',
         'data-[highlighted]:bg-subtle',
@@ -283,6 +297,7 @@ export function ComboboxItemIndicator({
 }: ComboboxItemIndicatorProps) {
   return (
     <ComboboxPrimitive.ItemIndicator
+      data-slot='combobox-item-indicator'
       className={cn('shrink-0 text-subtle', className)}
       {...props}
     >
@@ -301,6 +316,7 @@ export type ComboboxGroupProps = ComboboxPrimitive.Group.Props &
 export function ComboboxGroup({ className, ...props }: ComboboxGroupProps) {
   return (
     <ComboboxPrimitive.Group
+      data-slot='combobox-group'
       className={cn('[&+&]:mt-1', className)}
       {...props}
     />
@@ -320,6 +336,7 @@ export function ComboboxGroupLabel({
 }: ComboboxGroupLabelProps) {
   return (
     <ComboboxPrimitive.GroupLabel
+      data-slot='combobox-group-label'
       className={cn(
         'px-2 py-1.5 text-xs font-medium text-subtle select-none',
         className
@@ -339,6 +356,7 @@ export type ComboboxEmptyProps = ComboboxPrimitive.Empty.Props &
 export function ComboboxEmpty({ className, ...props }: ComboboxEmptyProps) {
   return (
     <ComboboxPrimitive.Empty
+      data-slot='combobox-empty'
       className={cn(
         'text-center text-sm text-subtle empty:hidden [&:not(:empty)]:px-3 [&:not(:empty)]:py-4',
         className
@@ -357,7 +375,11 @@ export type ComboboxStatusProps = ComboboxPrimitive.Status.Props &
 
 export function ComboboxStatus({ className, ...props }: ComboboxStatusProps) {
   return (
-    <ComboboxPrimitive.Status className={cn('sr-only', className)} {...props} />
+    <ComboboxPrimitive.Status
+      data-slot='combobox-status'
+      className={cn('sr-only', className)}
+      {...props}
+    />
   )
 }
 

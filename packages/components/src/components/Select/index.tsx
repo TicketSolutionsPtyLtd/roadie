@@ -98,6 +98,7 @@ export function SelectTrigger({
 
   return (
     <SelectPrimitive.Trigger
+      data-slot='select-trigger'
       className={cn(
         selectTriggerVariants({ intent, emphasis, size, className })
       )}
@@ -124,6 +125,7 @@ export type SelectValueProps = SelectPrimitive.Value.Props &
 export function SelectValue({ className, ...props }: SelectValueProps) {
   return (
     <SelectPrimitive.Value
+      data-slot='select-value'
       className={cn('truncate data-[placeholder]:text-subtle', className)}
       {...props}
     />
@@ -140,6 +142,7 @@ export type SelectIconProps = SelectPrimitive.Icon.Props &
 export function SelectIcon({ className, children, ...props }: SelectIconProps) {
   return (
     <SelectPrimitive.Icon
+      data-slot='select-icon'
       className={cn(
         'duration-moderate ml-2 shrink-0 text-subtle transition-transform data-[popup-open]:rotate-180',
         className
@@ -175,6 +178,7 @@ export function SelectPositioner({
 }: SelectPositionerProps) {
   return (
     <SelectPrimitive.Positioner
+      data-slot='select-positioner'
       className={cn('z-50', className)}
       alignItemWithTrigger={false}
       {...props}
@@ -192,6 +196,7 @@ export type SelectPopupProps = SelectPrimitive.Popup.Props &
 export function SelectPopup({ className, ...props }: SelectPopupProps) {
   return (
     <SelectPrimitive.Popup
+      data-slot='select-popup'
       className={cn(
         'max-h-[var(--available-height)] max-w-[var(--available-width)] min-w-[var(--anchor-width)] overflow-y-auto rounded-xl border border-[var(--intent-border-subtle)] bg-raised p-1 shadow-lg',
         'origin-[var(--transform-origin)] transition-[transform,scale,opacity] data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0',
@@ -222,6 +227,7 @@ export function SelectItem({ className, children, ...props }: SelectItemProps) {
 
   return (
     <SelectPrimitive.Item
+      data-slot='select-item'
       className={cn(
         'flex w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm text-normal outline-none select-none',
         'data-[highlighted]:bg-subtle',
@@ -242,7 +248,7 @@ export type SelectItemTextProps = SelectPrimitive.ItemText.Props &
   RefAttributes<HTMLSpanElement>
 
 export function SelectItemText(props: SelectItemTextProps) {
-  return <SelectPrimitive.ItemText {...props} />
+  return <SelectPrimitive.ItemText data-slot='select-item-text' {...props} />
 }
 
 SelectItemText.displayName = 'Select.ItemText'
@@ -259,6 +265,7 @@ export function SelectItemIndicator({
 }: SelectItemIndicatorProps) {
   return (
     <SelectPrimitive.ItemIndicator
+      data-slot='select-item-indicator'
       className={cn('shrink-0 text-subtle', className)}
       {...props}
     >
@@ -276,7 +283,11 @@ export type SelectGroupProps = SelectPrimitive.Group.Props &
 
 export function SelectGroup({ className, ...props }: SelectGroupProps) {
   return (
-    <SelectPrimitive.Group className={cn('[&+&]:mt-1', className)} {...props} />
+    <SelectPrimitive.Group
+      data-slot='select-group'
+      className={cn('[&+&]:mt-1', className)}
+      {...props}
+    />
   )
 }
 
@@ -293,6 +304,7 @@ export function SelectGroupLabel({
 }: SelectGroupLabelProps) {
   return (
     <SelectPrimitive.GroupLabel
+      data-slot='select-group-label'
       className={cn(
         'px-2 py-1.5 text-xs font-medium text-subtle select-none',
         className
@@ -320,6 +332,7 @@ export function SelectLabel({
   const { required } = use(SelectContext)
   return (
     <SelectPrimitive.Label
+      data-slot='select-label'
       className={cn(
         'flex items-center gap-1 text-sm font-medium text-normal',
         className
@@ -356,6 +369,7 @@ export function SelectScrollUpArrow({
 }: SelectScrollUpArrowProps) {
   return (
     <SelectPrimitive.ScrollUpArrow
+      data-slot='select-scroll-up-arrow'
       className={cn(
         'flex items-center justify-center py-1 text-subtle',
         className
@@ -380,6 +394,7 @@ export function SelectScrollDownArrow({
 }: SelectScrollDownArrowProps) {
   return (
     <SelectPrimitive.ScrollDownArrow
+      data-slot='select-scroll-down-arrow'
       className={cn(
         'flex items-center justify-center py-1 text-subtle',
         className
@@ -401,7 +416,13 @@ export function SelectHelperText({
   className,
   ...props
 }: SelectHelperTextProps) {
-  return <p className={cn('text-sm text-subtle', className)} {...props} />
+  return (
+    <p
+      data-slot='select-helper-text'
+      className={cn('text-sm text-subtle', className)}
+      {...props}
+    />
+  )
 }
 
 SelectHelperText.displayName = 'Select.HelperText'
@@ -416,6 +437,7 @@ export function SelectErrorText({ className, ...props }: SelectErrorTextProps) {
   return (
     <p
       role='alert'
+      data-slot='select-error-text'
       className={cn('text-sm text-subtle intent-danger', className)}
       {...props}
     />

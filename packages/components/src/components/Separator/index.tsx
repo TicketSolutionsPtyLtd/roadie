@@ -29,6 +29,7 @@ export function Separator({
     <div
       role='separator'
       aria-orientation={orientation ?? 'horizontal'}
+      data-slot='separator'
       className={cn(separatorVariants({ orientation, className }))}
       {...props}
     />

@@ -156,6 +156,8 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { FieldsetContext } from './FieldsetContext'
 
+// FieldsetRoot.tsx
+
 export type FieldsetRootProps = ComponentProps<'fieldset'> & {
   invalid?: boolean
 }
@@ -191,14 +193,14 @@ Non-negotiable rules:
 
 Every leaf renders a single top-level DOM element with a `data-slot` attribute. The value is the **kebab-case dot-path** of the sub-component relative to its compound:
 
-| Sub-component              | `data-slot`             |
-| -------------------------- | ----------------------- |
-| `Fieldset` / `Fieldset.Root`| `fieldset`              |
-| `Fieldset.Legend`          | `fieldset-legend`       |
-| `Fieldset.HelperText`      | `fieldset-helper-text`  |
-| `Fieldset.ErrorText`       | `fieldset-error-text`   |
-| `Carousel.Content`         | `carousel-content`      |
-| `Carousel.NavButton`       | `carousel-nav-button`   |
+| Sub-component                | `data-slot`            |
+| ---------------------------- | ---------------------- |
+| `Fieldset` / `Fieldset.Root` | `fieldset`             |
+| `Fieldset.Legend`            | `fieldset-legend`      |
+| `Fieldset.HelperText`        | `fieldset-helper-text` |
+| `Fieldset.ErrorText`         | `fieldset-error-text`  |
+| `Carousel.Content`           | `carousel-content`     |
+| `Carousel.NavButton`         | `carousel-nav-button`  |
 
 The attribute makes every rendered instance addressable from CSS, consumer Tailwind variants, visual regression tooling, and the docs site's outline. It's load-bearing for:
 
@@ -232,6 +234,8 @@ import { Combobox as ComboboxPrimitive } from '@base-ui-components/react/combobo
 
 // ComboboxPortal.tsx
 
+// ComboboxPortal.tsx
+
 export const ComboboxPortal = ComboboxPrimitive.Portal
 export type ComboboxPortalProps = ComboboxPrimitive.Portal.Props
 ```
@@ -247,6 +251,8 @@ Sub-components that share React context factor it into a sibling `*Context.ts` f
 'use client'
 
 import { createContext } from 'react'
+
+// FieldsetContext.ts
 
 // FieldsetContext.ts
 

@@ -7,7 +7,7 @@ export type IconButtonProps = Omit<ButtonProps, 'aria-label'> & {
 }
 
 export function IconButton({ size = 'icon-md', ...props }: IconButtonProps) {
-  return <Button size={size} {...props} />
+  return <Button data-slot='icon-button' size={size} {...props} />
 }
 
 IconButton.displayName = 'IconButton'

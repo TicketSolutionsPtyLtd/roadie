@@ -102,6 +102,7 @@ export function RadioGroup({
       }}
     >
       <RadioGroupPrimitive
+        data-slot='radio-group'
         className={cn(radioGroupVariants({ direction, className }))}
         {...(inField && {
           'aria-labelledby': fieldContext.labelId || undefined,
@@ -149,6 +150,7 @@ export function RadioGroupItem({
 
   return (
     <label
+      data-slot='radio-group-item'
       className={cn(
         radioGroupItemVariants({ emphasis, className }),
         direction === 'horizontal' && emphasis === 'normal' && 'flex-1'
@@ -199,6 +201,7 @@ export function RadioGroupLabel({
   const { required } = use(RadioGroupContext)
   return (
     <label
+      data-slot='radio-group-label'
       className={cn(
         'flex w-full items-center gap-1 text-sm font-medium text-normal',
         className
@@ -233,7 +236,11 @@ export function RadioGroupHelperText({
   ...props
 }: RadioGroupHelperTextProps) {
   return (
-    <p className={cn('w-full text-sm text-subtle', className)} {...props} />
+    <p
+      data-slot='radio-group-helper-text'
+      className={cn('w-full text-sm text-subtle', className)}
+      {...props}
+    />
   )
 }
 
@@ -252,6 +259,7 @@ export function RadioGroupErrorText({
   return (
     <p
       role='alert'
+      data-slot='radio-group-error-text'
       className={cn('w-full text-sm text-subtle intent-danger', className)}
       {...props}
     />

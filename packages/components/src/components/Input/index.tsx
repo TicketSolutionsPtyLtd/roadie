@@ -41,6 +41,7 @@ export function Input({
   return (
     <input
       type={type}
+      data-slot='input'
       className={cn(inputVariants({ intent, emphasis, size, className }))}
       {...props}
     />

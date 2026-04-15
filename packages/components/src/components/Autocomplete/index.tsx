@@ -63,7 +63,9 @@ Autocomplete.displayName = 'Autocomplete'
 export type AutocompleteValueProps = AutocompletePrimitive.Value.Props
 
 export function AutocompleteValue(props: AutocompleteValueProps) {
-  return <AutocompletePrimitive.Value {...props} />
+  return (
+    <AutocompletePrimitive.Value data-slot='autocomplete-value' {...props} />
+  )
 }
 
 AutocompleteValue.displayName = 'Autocomplete.Value'
@@ -87,6 +89,7 @@ export function AutocompleteInputGroup({
 
   return (
     <AutocompletePrimitive.InputGroup
+      data-slot='autocomplete-input-group'
       className={cn(
         autocompleteInputGroupVariants({ intent, emphasis, size, className })
       )}
@@ -112,6 +115,7 @@ export function AutocompleteInput({
 
   return (
     <AutocompletePrimitive.Input
+      data-slot='autocomplete-input'
       className={cn(
         'min-w-0 flex-1 bg-transparent outline-none placeholder:text-subtle',
         className
@@ -143,6 +147,7 @@ export function AutocompleteTrigger({
 }: AutocompleteTriggerProps) {
   return (
     <AutocompletePrimitive.Trigger
+      data-slot='autocomplete-trigger'
       className={cn(
         'duration-moderate shrink-0 text-subtle transition-transform data-[popup-open]:rotate-180',
         className
@@ -168,6 +173,7 @@ export function AutocompleteClear({
 }: AutocompleteClearProps) {
   return (
     <AutocompletePrimitive.Clear
+      data-slot='autocomplete-clear'
       className={cn(
         'shrink-0 cursor-pointer text-subtle hover:text-normal',
         className
@@ -203,6 +209,7 @@ export function AutocompletePositioner({
 }: AutocompletePositionerProps) {
   return (
     <AutocompletePrimitive.Positioner
+      data-slot='autocomplete-positioner'
       className={cn('z-50', className)}
       sideOffset={4}
       {...props}
@@ -223,6 +230,7 @@ export function AutocompletePopup({
 }: AutocompletePopupProps) {
   return (
     <AutocompletePrimitive.Popup
+      data-slot='autocomplete-popup'
       className={cn(
         'max-h-[var(--available-height)] max-w-[var(--available-width)] min-w-[var(--anchor-width)] overflow-y-auto rounded-xl border border-[var(--intent-border-subtle)] bg-raised p-1 shadow-lg',
         'origin-[var(--transform-origin)] transition-[transform,scale,opacity] data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0',
@@ -244,7 +252,13 @@ export function AutocompleteList({
   className,
   ...props
 }: AutocompleteListProps) {
-  return <AutocompletePrimitive.List className={className} {...props} />
+  return (
+    <AutocompletePrimitive.List
+      data-slot='autocomplete-list'
+      className={className}
+      {...props}
+    />
+  )
 }
 
 AutocompleteList.displayName = 'Autocomplete.List'
@@ -260,6 +274,7 @@ export function AutocompleteItem({
 }: AutocompleteItemProps) {
   return (
     <AutocompletePrimitive.Item
+      data-slot='autocomplete-item'
       className={cn(
         'flex w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm text-normal outline-none select-none',
         'data-[highlighted]:bg-subtle',
@@ -293,6 +308,7 @@ export function AutocompleteGroup({
 }: AutocompleteGroupProps) {
   return (
     <AutocompletePrimitive.Group
+      data-slot='autocomplete-group'
       className={cn('[&+&]:mt-1', className)}
       {...props}
     />
@@ -312,6 +328,7 @@ export function AutocompleteGroupLabel({
 }: AutocompleteGroupLabelProps) {
   return (
     <AutocompletePrimitive.GroupLabel
+      data-slot='autocomplete-group-label'
       className={cn(
         'px-2 py-1.5 text-xs font-medium text-subtle select-none',
         className
@@ -334,6 +351,7 @@ export function AutocompleteEmpty({
 }: AutocompleteEmptyProps) {
   return (
     <AutocompletePrimitive.Empty
+      data-slot='autocomplete-empty'
       className={cn(
         'text-center text-sm text-subtle empty:hidden [&:not(:empty)]:px-3 [&:not(:empty)]:py-4',
         className
@@ -356,6 +374,7 @@ export function AutocompleteStatus({
 }: AutocompleteStatusProps) {
   return (
     <AutocompletePrimitive.Status
+      data-slot='autocomplete-status'
       className={cn('sr-only', className)}
       {...props}
     />
