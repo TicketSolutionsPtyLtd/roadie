@@ -19,7 +19,7 @@ export function ComboboxTrigger({
     <ComboboxPrimitive.Trigger
       data-slot='combobox-trigger'
       className={cn(
-        'duration-moderate shrink-0 text-subtle transition-transform data-[popup-open]:rotate-180',
+        'shrink-0 text-subtle transition-transform duration-moderate data-[popup-open]:rotate-180',
         className
       )}
       {...props}

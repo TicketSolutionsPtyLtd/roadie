@@ -96,6 +96,22 @@ export {
   type UseStepsReturn
 } from './components/Steps'
 
+export {
+  Tabs,
+  tabsListVariants,
+  tabsTabVariants,
+  tabsIndicatorVariants,
+  type TabsProps,
+  type TabsListProps,
+  type TabsTabProps,
+  type TabsIndicatorProps,
+  type TabsPanelProps,
+  type TabsRootDirection,
+  type TabsRootEmphasis,
+  type TabsRootIntent,
+  type TabsRootSize
+} from './components/Tabs'
+
 // Indicators
 export {
   RequiredIndicator,

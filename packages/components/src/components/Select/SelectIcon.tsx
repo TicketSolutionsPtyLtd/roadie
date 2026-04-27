@@ -15,7 +15,7 @@ export function SelectIcon({ className, children, ...props }: SelectIconProps) {
     <SelectPrimitive.Icon
       data-slot='select-icon'
       className={cn(
-        'duration-moderate ml-2 shrink-0 text-subtle transition-transform data-[popup-open]:rotate-180',
+        'ml-2 shrink-0 text-subtle transition-transform duration-moderate data-[popup-open]:rotate-180',
         className
       )}
       {...props}

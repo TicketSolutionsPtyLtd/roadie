@@ -1,0 +1,277 @@
+export const metadata = {
+  title: 'Tabs',
+  description: 'Tabbed navigation between related views with an animated active indicator.',
+  status: 'beta',
+  category: 'Navigation',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Tabs
+
+Tabbed navigation between related views with an animated active indicator.
+
+## Import
+
+```tsx
+import { Tabs } from '@oztix/roadie-components/tabs'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<Tabs defaultValue='overview'>
+  <Tabs.List>
+    <Tabs.Tab value='overview'>Overview</Tabs.Tab>
+    <Tabs.Tab value='details'>Details</Tabs.Tab>
+    <Tabs.Tab value='history'>History</Tabs.Tab>
+    <Tabs.Indicator />
+  </Tabs.List>
+  <Tabs.Panel value='overview'>
+    <p className='py-4 text-subtle'>Overview panel content.</p>
+  </Tabs.Panel>
+  <Tabs.Panel value='details'>
+    <p className='py-4 text-subtle'>Details panel content.</p>
+  </Tabs.Panel>
+  <Tabs.Panel value='history'>
+    <p className='py-4 text-subtle'>History panel content.</p>
+  </Tabs.Panel>
+</Tabs>
+```
+
+### Emphasis
+
+`emphasis` controls the visual treatment of the list and the indicator. The active indicator animates between tabs in every variant — only the appearance of the indicator changes.
+
+#### strong
+
+A high-contrast segmented control with a solid inverted pill behind the active tab. Use when tabs need to stand out against a busy or photographic background.
+
+```tsx-live
+<Tabs defaultValue='week' emphasis='strong'>
+  <Tabs.List>
+    <Tabs.Tab value='day'>Day</Tabs.Tab>
+    <Tabs.Tab value='week'>Week</Tabs.Tab>
+    <Tabs.Tab value='month'>Month</Tabs.Tab>
+    <Tabs.Indicator />
+  </Tabs.List>
+</Tabs>
+```
+
+#### normal (default)
+
+A segmented control with a raised pill that slides between active tabs. Use inside cards and toolbars.
+
+```tsx-live
+<Tabs defaultValue='week' emphasis='normal'>
+  <Tabs.List>
+    <Tabs.Tab value='day'>Day</Tabs.Tab>
+    <Tabs.Tab value='week'>Week</Tabs.Tab>
+    <Tabs.Tab value='month'>Month</Tabs.Tab>
+    <Tabs.Indicator />
+  </Tabs.List>
+</Tabs>
+```
+
+#### subtle
+
+A ghost segmented control — no track, just a tinted pill that slides behind the active tab. Use when the surrounding surface already provides framing.
+
+```tsx-live
+<Tabs defaultValue='week' emphasis='subtle'>
+  <Tabs.List>
+    <Tabs.Tab value='day'>Day</Tabs.Tab>
+    <Tabs.Tab value='week'>Week</Tabs.Tab>
+    <Tabs.Tab value='month'>Month</Tabs.Tab>
+    <Tabs.Indicator />
+  </Tabs.List>
+</Tabs>
+```
+
+#### subtler
+
+A flat row with a sliding underline. Use for in-page section navigation where tabs should defer to the surrounding content.
+
+```tsx-live
+<Tabs defaultValue='week' emphasis='subtler'>
+  <Tabs.List>
+    <Tabs.Tab value='day'>Day</Tabs.Tab>
+    <Tabs.Tab value='week'>Week</Tabs.Tab>
+    <Tabs.Tab value='month'>Month</Tabs.Tab>
+    <Tabs.Indicator />
+  </Tabs.List>
+</Tabs>
+```
+
+### Sizes
+
+```tsx-live
+<div className='grid gap-4'>
+  <Tabs defaultValue='week' size='sm'>
+    <Tabs.List>
+      <Tabs.Tab value='day'>Day</Tabs.Tab>
+      <Tabs.Tab value='week'>Week</Tabs.Tab>
+      <Tabs.Tab value='month'>Month</Tabs.Tab>
+      <Tabs.Indicator />
+    </Tabs.List>
+  </Tabs>
+  <Tabs defaultValue='week' size='md'>
+    <Tabs.List>
+      <Tabs.Tab value='day'>Day</Tabs.Tab>
+      <Tabs.Tab value='week'>Week</Tabs.Tab>
+      <Tabs.Tab value='month'>Month</Tabs.Tab>
+      <Tabs.Indicator />
+    </Tabs.List>
+  </Tabs>
+  <Tabs defaultValue='week' size='lg'>
+    <Tabs.List>
+      <Tabs.Tab value='day'>Day</Tabs.Tab>
+      <Tabs.Tab value='week'>Week</Tabs.Tab>
+      <Tabs.Tab value='month'>Month</Tabs.Tab>
+      <Tabs.Indicator />
+    </Tabs.List>
+  </Tabs>
+</div>
+```
+
+### Intents
+
+`intent` cascades down to descendants via CSS custom properties. The active indicator picks up the intent's strong colour in `subtler` emphasis.
+
+```tsx-live
+<div className='grid gap-4'>
+  <Tabs defaultValue='one' intent='accent' emphasis='subtle'>
+    <Tabs.List>
+      <Tabs.Tab value='one'>Accent</Tabs.Tab>
+      <Tabs.Tab value='two'>Two</Tabs.Tab>
+      <Tabs.Indicator />
+    </Tabs.List>
+  </Tabs>
+  <Tabs defaultValue='one' intent='brand' emphasis='subtle'>
+    <Tabs.List>
+      <Tabs.Tab value='one'>Brand</Tabs.Tab>
+      <Tabs.Tab value='two'>Two</Tabs.Tab>
+      <Tabs.Indicator />
+    </Tabs.List>
+  </Tabs>
+  <Tabs defaultValue='one' intent='success' emphasis='subtle'>
+    <Tabs.List>
+      <Tabs.Tab value='one'>Success</Tabs.Tab>
+      <Tabs.Tab value='two'>Two</Tabs.Tab>
+      <Tabs.Indicator />
+    </Tabs.List>
+  </Tabs>
+  <Tabs defaultValue='one' intent='danger' emphasis='subtle'>
+    <Tabs.List>
+      <Tabs.Tab value='one'>Danger</Tabs.Tab>
+      <Tabs.Tab value='two'>Two</Tabs.Tab>
+      <Tabs.Indicator />
+    </Tabs.List>
+  </Tabs>
+</div>
+```
+
+### States
+
+Disabled tabs are skipped during keyboard navigation and ignore clicks.
+
+```tsx-live
+<Tabs defaultValue='active'>
+  <Tabs.List>
+    <Tabs.Tab value='active'>Active</Tabs.Tab>
+    <Tabs.Tab value='disabled' disabled>Disabled</Tabs.Tab>
+    <Tabs.Tab value='another'>Another</Tabs.Tab>
+    <Tabs.Indicator />
+  </Tabs.List>
+</Tabs>
+```
+
+### Composition
+
+#### With icons
+
+Use the Base UI `render` prop to access the active state and switch a Phosphor icon's `weight` between `bold` and `fill`.
+
+```tsx-live
+<Tabs defaultValue='profile' emphasis='normal'>
+  <Tabs.List>
+    <Tabs.Tab
+      value='profile'
+      render={(props, state) => (
+        <button {...props}>
+          <Heart className='size-4' weight={state.active ? 'fill' : 'bold'} />
+          Profile
+        </button>
+      )}
+    />
+    <Tabs.Tab
+      value='settings'
+      render={(props, state) => (
+        <button {...props}>
+          <Gear className='size-4' weight={state.active ? 'fill' : 'bold'} />
+          Settings
+        </button>
+      )}
+    />
+    <Tabs.Indicator />
+  </Tabs.List>
+</Tabs>
+```
+
+#### Vertical direction
+
+Pass `direction='vertical'` to render a column of left-aligned tabs. With `emphasis='subtler'` the active indicator becomes a 2px bar on the left edge that slides between tabs; the pill emphases (`strong`, `normal`, `subtle`) keep their full-rect shape around the active tab in vertical mode.
+
+```tsx-live
+<Tabs defaultValue='one' direction='vertical' emphasis='subtler'>
+  <div className='flex gap-6'>
+    <Tabs.List>
+      <Tabs.Tab value='one'>Account</Tabs.Tab>
+      <Tabs.Tab value='two'>Notifications</Tabs.Tab>
+      <Tabs.Tab value='three'>Privacy</Tabs.Tab>
+      <Tabs.Indicator />
+    </Tabs.List>
+    <div className='flex-1'>
+      <Tabs.Panel value='one'>
+        <p className='text-subtle'>Account settings.</p>
+      </Tabs.Panel>
+      <Tabs.Panel value='two'>
+        <p className='text-subtle'>Notification preferences.</p>
+      </Tabs.Panel>
+      <Tabs.Panel value='three'>
+        <p className='text-subtle'>Privacy controls.</p>
+      </Tabs.Panel>
+    </div>
+  </div>
+</Tabs>
+```
+
+#### Persistent panels
+
+By default, panels mount only when active. Pass `keepMounted` on `Tabs.Panel` to preserve in-flight state (forms, scroll position, video playback) when switching tabs.
+
+```tsx
+<Tabs.Panel value='form' keepMounted>
+  <Field>
+    <Field.Label>Name</Field.Label>
+    <Field.Input />
+  </Field>
+</Tabs.Panel>
+```
+
+## Guidelines
+
+- **Use Tabs for related views**, not for top-level page navigation. Reach for `Breadcrumb` or a sidebar instead when tabs would otherwise represent separate pages.
+- **Prefer `emphasis='normal'` inside cards or toolbars** — the segmented track gives the control its own visual frame. Reach for `emphasis='strong'` when tabs need to stand out against a busy or photographic background, `emphasis='subtle'` for a quieter ghost-segmented look, and `emphasis='subtler'` for a flat underline-only row that defers to the surrounding content.
+- **Place the `Tabs.Indicator` inside `Tabs.List`** as a sibling of the tabs themselves, not inside a tab. The indicator is positioned absolutely against the list and reads its geometry from Base UI's `--active-tab-*` CSS variables.
+
+## Accessibility
+
+- **Keyboard:** `Arrow` keys move focus between tabs (`ArrowLeft`/`ArrowRight` for horizontal, `ArrowUp`/`ArrowDown` for vertical). `Home` and `End` jump to the first and last tab. `Enter` and `Space` activate the focused tab.
+- **Active-on-focus:** Pass `activateOnFocus` on `Tabs.List` to switch panels as focus moves, instead of waiting for `Enter`/`Space`.
+- **ARIA:** Base UI handles `role='tablist'`, `role='tab'`, `role='tabpanel'`, `aria-controls`, `aria-selected`, and `aria-orientation` automatically.
+- **Reduced motion:** The indicator's slide animation is disabled under `prefers-reduced-motion: reduce` — the indicator still updates position, just without the transition.
+
+<PropsDefinitions componentPath='packages/components/src/components/Tabs' />

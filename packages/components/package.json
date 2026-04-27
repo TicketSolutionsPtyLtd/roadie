@@ -103,6 +103,10 @@
       "types": "./dist/components/Steps/index.d.ts",
       "import": "./dist/components/Steps/index.js"
     },
+    "./tabs": {
+      "types": "./dist/components/Tabs/index.d.ts",
+      "import": "./dist/components/Tabs/index.js"
+    },
     "./textarea": {
       "types": "./dist/components/Textarea/index.d.ts",
       "import": "./dist/components/Textarea/index.js"
