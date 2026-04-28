@@ -1,13 +1,19 @@
 export const metadata = {
   title: 'LinkButton',
-  description: 'A link styled as a button for navigation actions',
-  status: 'beta',
+  description: 'A link styled as a button for navigation actions (deprecated — use Button with href instead)',
+  status: 'deprecated',
   category: 'Actions'
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # LinkButton
+
+> **Deprecated.** Use [`<Button href={…}>`](/components/button) and wire
+> [`RoadieLinkProvider`](/foundations/linking) at the app root for
+> client-side routing instead. `LinkButton` and `LinkIconButton` remain
+> exported and continue to work for back-compat, but will be removed in
+> v3.0.0.
 
 A link styled as a button for navigation actions. Shares all visual styles with [Button](/components/button).
 

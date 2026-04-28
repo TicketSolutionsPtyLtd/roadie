@@ -50,24 +50,26 @@ Always provide an `aria-label` since there is no visible text.
 
 ### Sizes
 
-The default size is `icon-md`. All sizes maintain square proportions.
+The default size is `md`. All sizes maintain square proportions.
 
 ```tsx-live
 <div className='flex flex-row flex-wrap items-center gap-2'>
-  <IconButton aria-label='Extra small' size='icon-xs'>
+  <IconButton aria-label='Extra small' size='xs'>
     <Heart weight='bold' />
   </IconButton>
-  <IconButton aria-label='Small' size='icon-sm'>
+  <IconButton aria-label='Small' size='sm'>
     <Heart weight='bold' />
   </IconButton>
-  <IconButton aria-label='Medium' size='icon-md'>
+  <IconButton aria-label='Medium' size='md'>
     <Heart weight='bold' />
   </IconButton>
-  <IconButton aria-label='Large' size='icon-lg'>
+  <IconButton aria-label='Large' size='lg'>
     <Heart weight='bold' />
   </IconButton>
 </div>
 ```
+
+The legacy `icon-xs` / `icon-sm` / `icon-md` / `icon-lg` size literals are still accepted for backwards compatibility (marked `@deprecated` in TypeScript) but new code should use the plain `xs` / `sm` / `md` / `lg` names above.
 
 ### Intents
 
@@ -109,9 +111,39 @@ The default size is `icon-md`. All sizes maintain square proportions.
 </div>
 ```
 
+### Href
+
+Pass `href` to render the icon button as a routed anchor. Internal hrefs route through your configured [`RoadieLinkProvider`](/foundations/linking); external hrefs auto-render with `target='_blank' rel='noopener noreferrer'`; `mailto:` / `tel:` / `sms:` render plain anchors with no target.
+
+```tsx-live
+<div className='flex flex-row flex-wrap items-center gap-2'>
+  <IconButton aria-label='Search' href='/search' emphasis='strong' intent='accent'>
+    <MagnifyingGlass weight='bold' />
+  </IconButton>
+  <IconButton aria-label='Docs' href='https://oztix.com.au' emphasis='subtle'>
+    <ArrowRight weight='bold' />
+  </IconButton>
+  <IconButton aria-label='Settings' href='/settings' emphasis='subtle'>
+    <Gear weight='bold' />
+  </IconButton>
+</div>
+```
+
+See [Linking](/foundations/linking) for the full reference.
+
+### Escape hatch
+
+For typed access to anchor-only DOM props or full element control, use Base UI's `render` prop. Passing both `href` and `render` triggers a one-shot dev warning — `render` wins.
+
+```tsx-live
+<IconButton aria-label='Edit profile' render={<a href='/profile' />}>
+  <PencilSimple weight='bold' />
+</IconButton>
+```
+
 ## Guidelines
 
 - Always provide an `aria-label` to describe the action since there is no visible text.
-- For icon links that navigate, use [LinkIconButton](/components/link-icon-button) instead.
+- For icon links that navigate, prefer `<IconButton href={…}>` and wire [`RoadieLinkProvider`](/foundations/linking) at the app root. The legacy [LinkIconButton](/components/link-icon-button) component is `@deprecated` and will be removed in v3.0.0.
 
 <PropsDefinitions componentPath='packages/components/src/components/Button/IconButton.tsx' />

@@ -704,7 +704,7 @@ without making BreadcrumbLink client.
 
 ---
 
-- [ ] **Unit 8: Documentation — Linking foundations + Tracking recipe**
+- [x] **Unit 8: Documentation — Linking foundations + Tracking recipe**
 
 **Goal:** A single foundations page is the canonical reference for
 linking. Component docs cross-link to it. A recipes page documents the

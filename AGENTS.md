@@ -328,6 +328,57 @@ export const buttonVariants = cva('base-classes is-interactive', {
 9. **SpotIllustration colors are fixed** — they don't change in dark mode.
 10. **`@source` directive required** in consumer CSS to scan component dist files.
 
+### Linking
+
+Every link-bearing Roadie component (`Button`, `IconButton`, `Card`,
+`Breadcrumb.Link`, `Carousel.TitleLink`, `Tabs.Tab`) accepts a single
+`href` prop. Internal hrefs route through the configured
+`RoadieLinkProvider`; external hrefs (`http(s)://`, `//…`) auto-render
+`<a target='_blank' rel='noopener noreferrer'>`; `mailto:` / `tel:` /
+`sms:` render plain `<a>`. No `href` and a button-shaped component
+renders `<button>`.
+
+```tsx
+// Mount once at the app root (alongside ThemeProvider)
+import NextLink from 'next/link'
+import { RoadieLinkProvider, ThemeProvider } from '@oztix/roadie-components'
+
+<RoadieLinkProvider Link={NextLink}>
+  <ThemeProvider>{children}</ThemeProvider>
+</RoadieLinkProvider>
+
+// Consumers pass href and stop thinking
+<Button href='/events/123'>View</Button>
+<Card href='/event/abc'>{/* whole-card link */}</Card>
+<Breadcrumb.Link href='/events'>Events</Breadcrumb.Link>
+<Tabs.Tab value='settings' href='/settings'>Settings</Tabs.Tab>
+```
+
+Key conventions:
+
+1. **Don't import `next/link` from inside Roadie.** The provider is the
+   only seam — Roadie stays framework-agnostic. Apps without a router
+   pass `null` (or omit the provider) and get plain `<a>` fallbacks.
+2. **Don't reach for `as` or `render` first.** Both are escape hatches
+   for the rare cases `href` can't express. Per `BASE_UI.md` §3, Base UI
+   consumers use `render`; non-Base-UI components use `as`.
+3. **`as` always wins over `href` smart-routing** on Card / Breadcrumb /
+   Carousel. Useful for `<Card as='button'>` or for bypassing the
+   provider with a custom Link wrapper.
+4. **`<Button href + render>` is a footgun** — `render` wins, smart
+   routing is silently disabled. The component logs a one-shot dev
+   warning. Pick one.
+5. **`LinkButton` / `LinkIconButton` are deprecated** as of v2.6.
+   Continue working for back-compat; will be removed in v3.0. New code
+   uses `<Button href>` / `<IconButton href>`.
+6. **Tracking lives in consumer apps**, not Roadie. The recommended
+   pattern is a small `<Tracked pageSection=…>{<Button href=… />}</Tracked>`
+   wrapper that reads `currentTarget.href` / `aria-label` off the
+   rendered element. See the `/foundations/linking` page for the
+   reference implementation.
+
+Full reference: [`/foundations/linking`](docs/src/app/foundations/linking/page.tsx).
+
 ## Form Component Patterns
 
 ### Field as universal wrapper

@@ -3,9 +3,9 @@
 import NextLink from 'next/link'
 
 import {
+  type RoadieLinkComponent,
   RoadieLinkProvider,
-  ThemeProvider,
-  type RoadieLinkComponent
+  ThemeProvider
 } from '@oztix/roadie-components'
 
 // `next/link` accepts a superset of the `RoadieLinkProps` shape (it

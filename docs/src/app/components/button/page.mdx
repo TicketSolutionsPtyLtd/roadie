@@ -109,18 +109,28 @@ Hover and focus states use the intent color scale automatically via `is-interact
 </div>
 ```
 
-### As a link
+### Href
 
-Use [LinkButton](/components/link-button) and LinkIconButton when you need button styling on a link. They accept an `as` prop for custom components like Next.js `Link`.
+Pass `href` to render the button as a routed anchor. Internal hrefs route through your configured [`RoadieLinkProvider`](/foundations/linking); external hrefs (`https://…`, `//…`) automatically render with `target='_blank' rel='noopener noreferrer'`; `mailto:` / `tel:` / `sms:` render plain anchors with no target.
 
 ```tsx-live
 <div className='flex flex-row flex-wrap items-center gap-2'>
-  <LinkButton href='#' emphasis='strong' intent='accent'>Link button</LinkButton>
-  <LinkButton href='#' emphasis='normal'>Normal link</LinkButton>
-  <LinkIconButton href='#' emphasis='subtle' aria-label='Settings'>
-    <Gear weight='bold' />
-  </LinkIconButton>
+  <Button href='#' emphasis='strong' intent='accent'>Internal link</Button>
+  <Button href='https://oztix.com.au' emphasis='normal'>External</Button>
+  <Button href='mailto:hello@oztix.com.au' emphasis='subtle'>Email</Button>
 </div>
+```
+
+See [Linking](/foundations/linking) for the full reference: provider setup, the external/internal/protocol decision tree, and the `external`/`target`/`rel` overrides.
+
+### Escape hatch
+
+For typed access to anchor-only DOM props (`download`, `hreflang`, `referrerPolicy`) or full element control, use Base UI's `render` prop. Passing both `href` and `render` triggers a one-shot dev warning — `render` wins, provider routing is silently disabled.
+
+```tsx-live
+<Button render={<a href='/spec.pdf' download='spec.pdf' />}>
+  Download spec
+</Button>
 ```
 
 ## Accessibility
