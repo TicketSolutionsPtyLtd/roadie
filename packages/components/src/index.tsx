@@ -245,3 +245,11 @@ export {
   getThemeScript,
   type ThemeProviderProps
 } from './providers/ThemeProvider'
+
+export {
+  RoadieLinkProvider,
+  useRoadieLink,
+  type RoadieLinkProviderProps,
+  type RoadieLinkComponent,
+  type RoadieLinkProps
+} from './providers/RoadieLinkProvider'
