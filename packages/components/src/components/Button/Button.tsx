@@ -1,12 +1,13 @@
 'use client'
 
-import type { RefAttributes } from 'react'
+import { type RefAttributes, useEffect, useRef } from 'react'
 
 import { Button as ButtonPrimitive } from '@base-ui/react/button'
 import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { isDev } from '../../utils/isDev'
 import { intentVariants } from '../../variants'
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 
@@ -42,7 +43,7 @@ export const buttonVariants = cva('btn is-interactive', {
  * synthesises `render={<RoadieRoutedLink href={…} … />}` so the right
  * element + routing is picked automatically.
  */
-export interface ButtonHrefProps {
+export type ButtonHrefProps = {
   /**
    * Pass a URL to render the button as a routed anchor instead of a
    * `<button>`. Internal hrefs route through the configured
@@ -69,14 +70,6 @@ export type ButtonProps = ButtonPrimitive.Props &
   VariantProps<typeof buttonVariants> &
   ButtonHrefProps
 
-declare const process: { env?: { NODE_ENV?: string } } | undefined
-
-function isDev(): boolean {
-  return (
-    typeof process !== 'undefined' && process?.env?.NODE_ENV !== 'production'
-  )
-}
-
 export function Button({
   className,
   intent,
@@ -90,15 +83,20 @@ export function Button({
 }: ButtonProps) {
   // Consumer `render` always wins — it's the canonical escape hatch for
   // full element control. When `href` is also passed, the synthesized
-  // routing is bypassed; warn in dev so the silent disable doesn't get
-  // shipped accidentally.
-  if (props.render && href !== undefined) {
-    if (isDev()) {
-      console.warn(
-        '[Roadie] Button received both `href` and `render` — `render` wins, provider routing is disabled. Pick one: pass `href` for smart routing, or pass `render` for full element control.'
-      )
+  // routing is bypassed; warn in dev once per mount so the silent
+  // disable doesn't get shipped accidentally. Use a ref so StrictMode's
+  // double-render and ordinary re-renders don't multiply the warn.
+  const hasWarnedRef = useRef(false)
+  useEffect(() => {
+    if (props.render && href !== undefined && !hasWarnedRef.current) {
+      hasWarnedRef.current = true
+      if (isDev()) {
+        console.warn(
+          '[Roadie] Button received both `href` and `render` — `render` wins, provider routing is disabled. Pick one: pass `href` for smart routing, or pass `render` for full element control.'
+        )
+      }
     }
-  }
+  }, [props.render, href])
 
   // If consumer didn't supply `render` and `href` is set, synthesize a
   // routed anchor. RoadieRoutedLink applies external/target/rel rules and

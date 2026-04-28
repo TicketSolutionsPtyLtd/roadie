@@ -100,9 +100,9 @@ The default size is `icon-md`. All sizes maintain square proportions.
 </div>
 ```
 
-### With custom component
+### With custom component (legacy)
 
-Use the `as` prop to render with a custom component like Next.js `Link`.
+> **Recommended:** wire [`RoadieLinkProvider`](/foundations/linking) at the app root and use [`<IconButton href={…}>`](/components/icon-button) — it routes through your configured Link automatically. The `as` prop below is preserved for back-compat only and will be removed in v3.0.0.
 
 ```tsx
 import Link from 'next/link'
@@ -114,9 +114,9 @@ import Link from 'next/link'
 
 ## Guidelines
 
+- Use [`<IconButton href={…}>`](/components/icon-button) for new navigation links — `LinkIconButton` is deprecated.
 - Always provide an `aria-label` to describe the action since there is no visible text.
-- For links with visible text, use [LinkButton](/components/link-button) instead.
-- The `as` prop accepts any component that forwards `className` and `href` (e.g., Next.js `Link`, React Router `Link`).
+- For links with visible text, use [`<Button href={…}>`](/components/button) instead.
 
 ## Accessibility
 

@@ -4,6 +4,7 @@ import {
   type ComponentProps,
   type ElementType,
   type ReactElement,
+  cloneElement,
   useId
 } from 'react'
 
@@ -11,7 +12,7 @@ import { ArrowRightIcon } from '@phosphor-icons/react/ssr'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { type RoadieRenderProp, useRender } from '../../utils/useRender'
+import { type RoadieRenderProp, resolveRender } from '../../utils/resolveRender'
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 import { useRegisterTitleLabel } from './useRegisterTitleLabel'
 
@@ -67,18 +68,20 @@ export function CarouselTitleLink<T extends ElementType = 'a'>({
     className
   )
 
-  const innerChildren = (
-    <>
-      {children}
-      <ArrowRightIcon
-        weight='bold'
-        className='size-5 text-subtle transition-transform group-hover/title:translate-x-1 group-hover/title:intent-accent'
-      />
-    </>
+  const trailingIcon = (
+    <ArrowRightIcon
+      weight='bold'
+      className='size-5 text-subtle transition-transform group-hover/title:translate-x-1 group-hover/title:intent-accent'
+    />
   )
 
   if (render !== undefined) {
-    return useRender(
+    // Build the rendered element first with the consumer's text as
+    // children. Then re-clone to APPEND the decorative trailing icon so
+    // a render override that carries its own children
+    // (e.g. `render={<NextLink>See all</NextLink>}`) keeps the icon —
+    // mergeProps' "override wins" rule would otherwise drop it.
+    const baseElement = resolveRender(
       'a',
       {
         id: titleId,
@@ -88,9 +91,16 @@ export function CarouselTitleLink<T extends ElementType = 'a'>({
         ...(target !== undefined && { target }),
         ...(rel !== undefined && { rel }),
         ...(props as Record<string, unknown>),
-        children: innerChildren
+        children
       },
       render
+    )
+    const baseProps = baseElement.props as { children?: React.ReactNode }
+    return cloneElement(
+      baseElement,
+      undefined,
+      baseProps.children,
+      trailingIcon
     )
   }
 
@@ -106,7 +116,12 @@ export function CarouselTitleLink<T extends ElementType = 'a'>({
       ...(rel !== undefined && { rel }),
       ...(props as Record<string, unknown>)
     }
-    return <Component {...passthroughProps}>{innerChildren}</Component>
+    return (
+      <Component {...passthroughProps}>
+        {children}
+        {trailingIcon}
+      </Component>
+    )
   }
 
   if (href !== undefined) {
@@ -121,7 +136,8 @@ export function CarouselTitleLink<T extends ElementType = 'a'>({
         rel={rel}
         {...(props as Record<string, unknown>)}
       >
-        {innerChildren}
+        {children}
+        {trailingIcon}
       </RoadieRoutedLink>
     )
   }
@@ -133,7 +149,8 @@ export function CarouselTitleLink<T extends ElementType = 'a'>({
       className={sharedClassName}
       {...(props as ComponentProps<'a'>)}
     >
-      {innerChildren}
+      {children}
+      {trailingIcon}
     </a>
   )
 }

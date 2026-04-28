@@ -529,6 +529,31 @@ describe('Carousel', () => {
     expect(link).toHaveAttribute('href', '/events')
   })
 
+  it('Carousel.TitleLink preserves trailing arrow when render element has its own children', () => {
+    // Regression: COR-001 — element-form render carrying children would
+    // drop the decorative ArrowRightIcon because mergeProps' override
+    // rule replaced default children with render-element children.
+    const { getByText, container } = render(
+      <Carousel aria-label='test'>
+        <Carousel.Header>
+          <Carousel.TitleLink render={<a href='/all'>See all</a>}>
+            Events
+          </Carousel.TitleLink>
+        </Carousel.Header>
+        <Carousel.Content>
+          <Carousel.Item>1</Carousel.Item>
+        </Carousel.Content>
+      </Carousel>
+    )
+    expect(getByText('See all')).toBeInTheDocument()
+    // ArrowRightIcon renders as an <svg>; assert one exists inside the
+    // title-link slot specifically.
+    const titleLink = container.querySelector(
+      '[data-slot="carousel-title-link"]'
+    )
+    expect(titleLink?.querySelector('svg')).toBeInTheDocument()
+  })
+
   it('Carousel.TitleLink render escape hatch wins over href smart-routing', () => {
     const { getByText } = render(
       <Carousel aria-label='test'>

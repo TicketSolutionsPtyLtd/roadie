@@ -17,7 +17,7 @@ import { tabsTabVariants } from './variants'
  * false so Base UI treats the rendered anchor correctly. Consumer
  * `render` always wins.
  */
-export interface TabsTabHrefProps {
+export type TabsTabHrefProps = {
   /**
    * Render the tab as a routed anchor instead of a `<button>`. Useful
    * for tabbed navigation where each tab maps to a route. Internal
@@ -66,16 +66,19 @@ export function TabsTab({
 
   const finalRender = props.render ?? synthesizedRender
 
+  // Base UI defaults `nativeButton=true`; flip to false when the
+  // rendered element isn't a `<button>` (anchor synthesis or
+  // consumer-provided non-button render). Without this Base UI emits a
+  // dev warning per node_modules/.../use-button/useButton.js. Apply
+  // AFTER {...props} so a consumer's explicit `nativeButton` doesn't
+  // accidentally override our intent — the synthesized non-button
+  // render is canonical here.
   return (
     <TabsPrimitive.Tab
       data-slot='tabs-tab'
       className={cn(tabsTabVariants({ emphasis, size }), className)}
-      // Base UI defaults `nativeButton=true`; flip to false when the
-      // rendered element isn't a `<button>` (anchor synthesis or
-      // consumer-provided non-button render). Without this Base UI
-      // emits a dev warning per node_modules/.../use-button/useButton.js.
-      {...(finalRender !== undefined && { nativeButton: false })}
       {...props}
+      {...(finalRender !== undefined && { nativeButton: false })}
       render={finalRender}
     />
   )

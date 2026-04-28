@@ -381,6 +381,29 @@ describe('Tabs', () => {
       error.mockRestore()
     })
 
+    it('preserves nativeButton=false even when consumer also passes nativeButton (ADV-001)', () => {
+      // Regression: spread order previously let consumer's
+      // nativeButton override the synthesized false, producing Base UI
+      // dev warnings about anchor-as-button.
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+      render(
+        <Tabs defaultValue='a'>
+          <Tabs.List>
+            <Tabs.Tab value='a' href='/x' nativeButton>
+              X
+            </Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+      )
+      const allCalls = [...warn.mock.calls, ...error.mock.calls]
+        .map((c) => String(c[0]))
+        .join('\n')
+      expect(allCalls).not.toMatch(/nativeButton/i)
+      warn.mockRestore()
+      error.mockRestore()
+    })
+
     it('arrow keys still move focus across mixed button/anchor tabs', async () => {
       const user = userEvent.setup()
       const { getByRole } = render(

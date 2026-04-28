@@ -252,6 +252,21 @@ describe('Card', () => {
       expect(card).toHaveAttribute('data-custom', '1')
     })
 
+    it('adds is-interactive when render carries onClick (ADV-003)', () => {
+      // Regression: previously isInteractive looked only at outer
+      // onClick. With render={<button onClick=…/>} the click handler
+      // lived inside the render element, so the cursor/focus-ring/scale
+      // styles silently dropped.
+      const { getByText } = render(
+        <Card render={<button type='button' onClick={() => {}} />}>
+          Click me
+        </Card>
+      )
+      const card = getByText('Click me')
+      expect(card.tagName.toLowerCase()).toBe('button')
+      expect(card).toHaveClass('is-interactive')
+    })
+
     it('supports the function form with default props', () => {
       const { getByText } = render(
         <Card

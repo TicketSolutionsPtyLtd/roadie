@@ -364,8 +364,8 @@ Key conventions:
    state-aware rendering). The same `render` prop works on every Roadie
    component — Base UI consumers (`Button`, `IconButton`, `Tabs.Tab`)
    use Base UI's native render; non-Base-UI components (`Card`,
-   `Breadcrumb.Link`, `Carousel.TitleLink`) compose the `useRender`
-   helper from `packages/components/src/utils/useRender.tsx` to deliver
+   `Breadcrumb.Link`, `Carousel.TitleLink`) compose the `resolveRender`
+   helper from `packages/components/src/utils/resolveRender.tsx` to deliver
    the same contract.
 3. **`render` always wins over `href` smart-routing.** Pass `render`
    when you need a non-anchor or want to bypass provider routing

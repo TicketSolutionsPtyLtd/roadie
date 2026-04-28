@@ -5,20 +5,20 @@ import { render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { useRender } from './useRender'
+import { resolveRender } from './resolveRender'
 
 function Probe(props: {
-  render?: Parameters<typeof useRender>[2]
+  render?: Parameters<typeof resolveRender>[2]
   className?: string
   onClick?: React.MouseEventHandler
   ref?: React.Ref<HTMLElement>
   children?: React.ReactNode
 }) {
   const { render: renderProp, ...defaults } = props
-  return useRender('div', defaults, renderProp)
+  return resolveRender('div', defaults, renderProp)
 }
 
-describe('useRender', () => {
+describe('resolveRender', () => {
   it('renders the default element when no render prop is set', () => {
     const { getByText } = render(<Probe className='base'>Hello</Probe>)
     const el = getByText('Hello')

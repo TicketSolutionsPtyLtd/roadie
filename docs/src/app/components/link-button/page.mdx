@@ -78,9 +78,9 @@ import { LinkButton, LinkIconButton } from '@oztix/roadie-components'
 </div>
 ```
 
-### With custom component
+### With custom component (legacy)
 
-Use the `as` prop to render with a custom component like Next.js `Link`.
+> **Recommended:** wire [`RoadieLinkProvider`](/foundations/linking) at the app root and use [`<Button href={…}>`](/components/button) — it routes through your configured Link automatically. The `as` prop below is preserved for back-compat only and will be removed in v3.0.0.
 
 ```tsx
 import Link from 'next/link'
@@ -90,10 +90,9 @@ import Link from 'next/link'
 
 ## Guidelines
 
-- Use LinkButton for navigation that should look like a button (e.g., call-to-action links).
+- Use [`<Button href={…}>`](/components/button) for new navigation links — `LinkButton` is deprecated.
 - Use [Button](/components/button) for actions that don't navigate (form submissions, toggles, dialogs).
-- For icon-only links, use [LinkIconButton](/components/link-icon-button).
-- The `as` prop accepts any component that forwards `className` and `href` (e.g., Next.js `Link`, React Router `Link`).
+- For icon-only links, use [`<IconButton href={…}>`](/components/icon-button).
 
 ## Accessibility
 

@@ -1,10 +1,15 @@
-import type { ComponentProps, ElementType, ReactElement } from 'react'
+import {
+  type ComponentProps,
+  type ElementType,
+  type ReactElement,
+  isValidElement
+} from 'react'
 
 import { type VariantProps } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { type RoadieRenderProp, useRender } from '../../utils/useRender'
+import { type RoadieRenderProp, resolveRender } from '../../utils/resolveRender'
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 import { cardVariants } from './variants'
 
@@ -29,7 +34,11 @@ type CardOwnProps<T extends ElementType = 'div'> = {
    * render a non-anchor or to bypass provider routing.
    */
   href?: string
-  /** Force external-link treatment when `href` is set. */
+  /**
+   * Force external-link treatment when `href` is set. Has no effect
+   * when `render` is set — the consumer's element is responsible for
+   * its own target/rel.
+   */
   external?: boolean
   /** Override the auto `target='_blank'` default on external hrefs. */
   target?: string
@@ -76,7 +85,18 @@ export function CardRoot<T extends ElementType = 'div'>({
   ...props
 }: CardRootProps<T>): ReactElement {
   const rest = props as Record<string, unknown>
-  const isInteractive = href !== undefined || !!rest.onClick
+
+  // Detect interactivity from outer onClick OR from a render element
+  // that itself carries onClick (e.g. `render={<button onClick=… />}`).
+  // Without this, `<Card render={<button onClick={fn} />}>` would lose
+  // is-interactive styling — cursor, focus ring, hover scale all drop.
+  const renderElementOnClick =
+    isValidElement(render) &&
+    typeof (render.props as { onClick?: unknown } | null)?.onClick ===
+      'function'
+  const isInteractive =
+    href !== undefined || !!rest.onClick || renderElementOnClick
+
   const finalClassName = cn(
     cardVariants({ intent, emphasis }),
     isInteractive && 'is-interactive',
@@ -84,9 +104,9 @@ export function CardRoot<T extends ElementType = 'div'>({
   )
 
   // `render` is the canonical escape hatch. When set, use it via
-  // useRender for consistent prop merging.
+  // resolveRender for consistent prop merging.
   if (render !== undefined) {
-    return useRender(
+    return resolveRender(
       'div',
       {
         'data-slot': 'card',

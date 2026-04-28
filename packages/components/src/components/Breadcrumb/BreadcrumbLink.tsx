@@ -2,7 +2,7 @@ import type { ComponentProps, ElementType, ReactElement } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { type RoadieRenderProp, useRender } from '../../utils/useRender'
+import { type RoadieRenderProp, resolveRender } from '../../utils/resolveRender'
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 
 export type BreadcrumbLinkProps<T extends ElementType = 'a'> = {
@@ -18,7 +18,11 @@ export type BreadcrumbLinkProps<T extends ElementType = 'a'> = {
    * wins — pass it to bypass provider routing.
    */
   href?: string
-  /** Force external-link treatment when `href` is set. */
+  /**
+   * Force external-link treatment when `href` is set. Has no effect
+   * when `render` is set — the consumer's element owns its own
+   * target/rel.
+   */
   external?: boolean
   /** Override the auto `target='_blank'` default on external hrefs. */
   target?: string
@@ -54,7 +58,7 @@ export function BreadcrumbLink<T extends ElementType = 'a'>({
   )
 
   if (render !== undefined) {
-    return useRender(
+    return resolveRender(
       'a',
       {
         'data-slot': 'breadcrumb-link',

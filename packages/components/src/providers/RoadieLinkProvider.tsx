@@ -1,7 +1,8 @@
 'use client'
 
-import { type ReactNode, use, useMemo, useRef } from 'react'
+import { type ReactNode, use, useEffect, useRef } from 'react'
 
+import { isDev } from '../utils/isDev'
 import {
   type RoadieLinkComponent,
   RoadieLinkContext
@@ -9,15 +10,7 @@ import {
 
 export type { RoadieLinkComponent, RoadieLinkProps } from './RoadieLinkContext'
 
-declare const process: { env?: { NODE_ENV?: string } } | undefined
-
-function isDev(): boolean {
-  return (
-    typeof process !== 'undefined' && process?.env?.NODE_ENV !== 'production'
-  )
-}
-
-export interface RoadieLinkProviderProps {
+export type RoadieLinkProviderProps = {
   /**
    * The Link component used for internal routing. Pass
    * `import Link from 'next/link'`, an in-app shim that wraps
@@ -42,22 +35,28 @@ export function RoadieLinkProvider({
   Link,
   children
 }: RoadieLinkProviderProps) {
-  const previousLink = useRef(Link)
-  if (
-    isDev() &&
-    previousLink.current !== Link &&
-    previousLink.current !== null &&
-    Link !== null
-  ) {
-    console.warn(
-      '[Roadie] RoadieLinkProvider received a new Link reference. Pass a stable component (typically `import Link from "next/link"` at module scope) — recreating Link on every render will defeat React rendering optimizations.'
-    )
-  }
-  previousLink.current = Link
+  // Track the previous Link in a ref updated only after commit
+  // (useEffect), not during render. This avoids spurious warnings under
+  // React 19 concurrent rendering when a render attempt is discarded.
+  const previousLink = useRef<RoadieLinkComponent | null>(Link)
+  useEffect(() => {
+    if (
+      isDev() &&
+      previousLink.current !== Link &&
+      previousLink.current !== null &&
+      Link !== null
+    ) {
+      console.warn(
+        '[Roadie] RoadieLinkProvider received a new Link reference. Pass a stable component (typically `import Link from "next/link"` at module scope) — recreating Link on every render will defeat React rendering optimizations.'
+      )
+    }
+    previousLink.current = Link
+  }, [Link])
 
-  const value = useMemo(() => Link, [Link])
+  // Pass `Link` straight through. React.context bails on unchanged
+  // references already; an extra useMemo would just wrap the identity.
   return (
-    <RoadieLinkContext.Provider value={value}>
+    <RoadieLinkContext.Provider value={Link}>
       {children}
     </RoadieLinkContext.Provider>
   )

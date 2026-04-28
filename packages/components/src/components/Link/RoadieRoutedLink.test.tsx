@@ -184,6 +184,50 @@ describe('RoadieRoutedLink', () => {
     })
   })
 
+  describe('unsafe protocols (XSS prevention)', () => {
+    it('refuses javascript: hrefs and renders href="#"', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const { getByTestId } = render(
+        <RoadieRoutedLink data-testid='link' href='javascript:alert(1)'>
+          Pwn
+        </RoadieRoutedLink>
+      )
+      const link = getByTestId('link')
+      expect(link.tagName.toLowerCase()).toBe('a')
+      expect(link).toHaveAttribute('href', '#')
+      expect(link).not.toHaveAttribute('target')
+      expect(warn).toHaveBeenCalledTimes(1)
+      expect(warn.mock.calls[0]?.[0]).toMatch(/unsafe href/i)
+      warn.mockRestore()
+    })
+
+    it('refuses data: hrefs', () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const { getByTestId } = render(
+        <RoadieRoutedLink
+          data-testid='link'
+          href='data:text/html,<script>alert(1)</script>'
+        >
+          Pwn
+        </RoadieRoutedLink>
+      )
+      expect(getByTestId('link')).toHaveAttribute('href', '#')
+    })
+
+    it('refuses unsafe href even when provider is wired', () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const { getByTestId, queryByTestId } = render(
+        <RoadieLinkProvider Link={StubLink}>
+          <RoadieRoutedLink data-testid='link' href='javascript:alert(1)'>
+            Pwn
+          </RoadieRoutedLink>
+        </RoadieLinkProvider>
+      )
+      expect(queryByTestId('stub-link')).toBeNull()
+      expect(getByTestId('link')).toHaveAttribute('href', '#')
+    })
+  })
+
   describe('external override', () => {
     it('external={false} forces internal routing through provider for an https:// href', () => {
       const { getByTestId, queryByTestId } = render(

@@ -3,6 +3,7 @@
 import { type AnchorHTMLAttributes, type ComponentProps, type Ref } from 'react'
 
 import { useRoadieLink } from '../../providers/RoadieLinkProvider'
+import { isDev } from '../../utils/isDev'
 import { resolveLinkKind } from '../../utils/resolveLinkKind'
 
 /**
@@ -17,6 +18,11 @@ import { resolveLinkKind } from '../../utils/resolveLinkKind'
  *   no `rel`.
  * - **Internal**: the configured Link component if a provider is wired,
  *   otherwise a plain `<a>` fallback.
+ * - **Unsafe** (`javascript:`, `data:`, `vbscript:`, `blob:`, `file:`):
+ *   refused. Renders `<a href='#'>` so the click is inert, and logs a
+ *   dev-only warning. These protocols never have a legitimate place in
+ *   navigation; passing them is almost always a bug or an attack
+ *   vector reaching a user-controlled href.
  *
  * Not exported from `@oztix/roadie-components`. Smart-href components
  * (Button, Card, Breadcrumb, Carousel, Tabs) compose this internally.
@@ -47,6 +53,19 @@ export function RoadieRoutedLink({
 }: RoadieRoutedLinkProps) {
   const Link = useRoadieLink()
   const kind = resolveLinkKind(href)
+
+  if (kind === 'unsafe') {
+    if (isDev()) {
+      console.warn(
+        `[Roadie] Refused to render an unsafe href: ${JSON.stringify(href)}. ` +
+          `\`javascript:\`, \`data:\`, \`vbscript:\`, \`blob:\`, and \`file:\` ` +
+          `URLs are blocked to prevent XSS via user-controlled hrefs. ` +
+          `If you need this URL, sanitize at the boundary and pass an ` +
+          `explicit \`render\` prop with your own anchor.`
+      )
+    }
+    return <a ref={ref} href='#' {...rest} />
+  }
 
   if (kind === 'protocol') {
     return <a ref={ref} href={href} {...rest} />

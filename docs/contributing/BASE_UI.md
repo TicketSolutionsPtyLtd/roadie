@@ -94,7 +94,7 @@ consumer can pass `render={<a>}` to swap it out.
 > **Updated v2.6 (2026-04-28):** Every Roadie component — Base UI consumer
 > or not — now exposes the same `render` prop. Non-Base-UI wrappers
 > (Card, Breadcrumb.Link, Carousel.TitleLink) compose the in-house
-> `useRender` helper at `packages/components/src/utils/useRender.tsx` to
+> `resolveRender` helper at `packages/components/src/utils/resolveRender.tsx` to
 > deliver Base UI's render contract (element / component / function form)
 > against an in-house default. Their legacy `as` props are `@deprecated`
 > and removed in v3.0.0. New components, Base UI or not, must use

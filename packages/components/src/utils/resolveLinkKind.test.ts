@@ -56,4 +56,43 @@ describe('resolveLinkKind', () => {
     expect(resolveLinkKind('MAILTO:a@b.com')).toBe('protocol')
     expect(resolveLinkKind('Tel:+61400000000')).toBe('protocol')
   })
+
+  describe('unsafe protocols (XSS prevention)', () => {
+    it('classifies javascript: as unsafe', () => {
+      expect(resolveLinkKind('javascript:alert(1)')).toBe('unsafe')
+    })
+
+    it('classifies data: as unsafe', () => {
+      expect(resolveLinkKind('data:text/html,<script>alert(1)</script>')).toBe(
+        'unsafe'
+      )
+    })
+
+    it('classifies vbscript: as unsafe', () => {
+      expect(resolveLinkKind('vbscript:msgbox(1)')).toBe('unsafe')
+    })
+
+    it('classifies blob: as unsafe', () => {
+      expect(resolveLinkKind('blob:https://example.com/abc')).toBe('unsafe')
+    })
+
+    it('classifies file: as unsafe', () => {
+      expect(resolveLinkKind('file:///etc/passwd')).toBe('unsafe')
+    })
+
+    it('classifies unsafe protocols case-insensitively', () => {
+      expect(resolveLinkKind('JAVASCRIPT:alert(1)')).toBe('unsafe')
+      expect(resolveLinkKind('JavaScript:alert(1)')).toBe('unsafe')
+    })
+
+    it('strips leading whitespace before matching', () => {
+      expect(resolveLinkKind('  javascript:alert(1)')).toBe('unsafe')
+      expect(resolveLinkKind('\tjavascript:alert(1)')).toBe('unsafe')
+    })
+
+    it('does NOT misclassify innocent paths starting with javascript-similar text', () => {
+      expect(resolveLinkKind('/javascript-tutorial')).toBe('internal')
+      expect(resolveLinkKind('https://example.com/data:foo')).toBe('external')
+    })
+  })
 })

@@ -92,11 +92,16 @@ function mergeProps(defaults: AnyProps, overrides: AnyProps): AnyProps {
  * element / component / function instead.
  *
  * The `render` prop is the universal escape hatch for every Roadie
- * component. Use `useRender` when wrapping non-Base-UI primitives
+ * component. Use `resolveRender` when wrapping non-Base-UI primitives
  * (Card, Breadcrumb.Link, Carousel.TitleLink) so they behave
  * consistently with Base UI consumers like Button and Tabs.Tab.
+ *
+ * **This is not a React hook** — it never calls hooks internally and is
+ * safe to call inside conditional branches. Named without the `use`
+ * prefix on purpose, so `eslint-plugin-react-hooks` and the rules of
+ * hooks don't apply to call sites.
  */
-export function useRender<P extends AnyProps>(
+export function resolveRender<P extends AnyProps>(
   defaultElement: ElementType,
   defaultProps: P,
   render: RoadieRenderProp<P> | undefined
