@@ -47,12 +47,9 @@ describe('resolveLinkKind', () => {
     expect(resolveLinkKind('#section')).toBe('internal')
   })
 
-  it('matches external case-insensitively', () => {
+  it('matches external and protocol case-insensitively', () => {
     expect(resolveLinkKind('HTTPS://example.com')).toBe('external')
     expect(resolveLinkKind('Http://example.com')).toBe('external')
-  })
-
-  it('matches protocol case-insensitively', () => {
     expect(resolveLinkKind('MAILTO:a@b.com')).toBe('protocol')
     expect(resolveLinkKind('Tel:+61400000000')).toBe('protocol')
   })

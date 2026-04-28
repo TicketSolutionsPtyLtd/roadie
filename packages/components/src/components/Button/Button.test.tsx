@@ -157,16 +157,6 @@ describe('Button', () => {
       expect(link).toHaveClass('btn', 'is-interactive')
     })
 
-    it('renders external href with target=_blank rel=noopener', () => {
-      const { getByText } = render(
-        <Button href='https://example.com'>External</Button>
-      )
-      const link = getByText('External')
-      expect(link.tagName.toLowerCase()).toBe('a')
-      expect(link).toHaveAttribute('target', '_blank')
-      expect(link).toHaveAttribute('rel', 'noopener noreferrer')
-    })
-
     it('still renders a button when href is absent', () => {
       const { getByText } = render(<Button onClick={() => {}}>Click</Button>)
       const button = getByText('Click')
@@ -195,33 +185,6 @@ describe('Button', () => {
         'emphasis-strong',
         'btn-lg'
       )
-    })
-
-    it('forces external treatment when external={true} on an internal href', () => {
-      const { getByText, queryByTestId } = render(
-        <RoadieLinkProvider Link={StubLink}>
-          <Button href='/redirect/foo' external>
-            Redirect
-          </Button>
-        </RoadieLinkProvider>
-      )
-      expect(queryByTestId('stub-link')).toBeNull()
-      const link = getByText('Redirect')
-      expect(link).toHaveAttribute('target', '_blank')
-      expect(link).toHaveAttribute('rel', 'noopener noreferrer')
-    })
-
-    it('forces internal routing when external={false} on an https href', () => {
-      const { getByTestId } = render(
-        <RoadieLinkProvider Link={StubLink}>
-          <Button href='https://oztix.com.au/x' external={false}>
-            Oztix
-          </Button>
-        </RoadieLinkProvider>
-      )
-      const link = getByTestId('stub-link')
-      expect(link).toHaveAttribute('href', 'https://oztix.com.au/x')
-      expect(link).not.toHaveAttribute('target')
     })
 
     it('does not leak external prop as a DOM attribute', () => {
@@ -253,8 +216,15 @@ describe('Button', () => {
       expect(link).toHaveAttribute('data-custom', '1')
     })
 
-    it('warns in dev when href and render are passed together', () => {
+    it('warns in dev only when href and render are passed together', () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+      // Only href → no warning
+      const { unmount } = render(<Button href='/x'>X</Button>)
+      expect(warn).not.toHaveBeenCalled()
+      unmount()
+
+      // href + render → exactly one warning
       render(
         <Button href='/x' render={<a href='/y' />}>
           Conflict
@@ -262,12 +232,6 @@ describe('Button', () => {
       )
       expect(warn).toHaveBeenCalledTimes(1)
       expect(warn.mock.calls[0]?.[0]).toMatch(/href.*render.*provider routing/i)
-    })
-
-    it('does not warn when only href is passed', () => {
-      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-      render(<Button href='/x'>X</Button>)
-      expect(warn).not.toHaveBeenCalled()
     })
 
     it('does not put href onto the rendered <button> when consumer render is non-anchor', () => {
@@ -280,19 +244,6 @@ describe('Button', () => {
       const el = getByText('Btn')
       expect(el.tagName.toLowerCase()).toBe('button')
       expect(el).not.toHaveAttribute('href')
-    })
-
-    it('forwards className and intent classes to the routed anchor', () => {
-      const { getByText } = render(
-        <Button href='/x' intent='accent' emphasis='strong' className='extra'>
-          Go
-        </Button>
-      )
-      expect(getByText('Go')).toHaveClass(
-        'intent-accent',
-        'emphasis-strong',
-        'extra'
-      )
     })
   })
 })

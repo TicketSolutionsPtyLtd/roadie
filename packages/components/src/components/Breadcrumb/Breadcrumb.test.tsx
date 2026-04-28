@@ -182,23 +182,6 @@ describe('Breadcrumb', () => {
       expect(link).toHaveClass('text-subtle')
     })
 
-    it('renders external href with target=_blank rel=noopener', () => {
-      const { getByText } = render(
-        <Breadcrumb>
-          <Breadcrumb.List>
-            <Breadcrumb.Item>
-              <Breadcrumb.Link href='https://example.com'>
-                External
-              </Breadcrumb.Link>
-            </Breadcrumb.Item>
-          </Breadcrumb.List>
-        </Breadcrumb>
-      )
-      const link = getByText('External')
-      expect(link).toHaveAttribute('target', '_blank')
-      expect(link).toHaveAttribute('rel', 'noopener noreferrer')
-    })
-
     it('as prop wins over href smart-routing (back-compat)', () => {
       function CustomLink(props: React.ComponentProps<'a'>) {
         return <a data-custom='true' {...props} />

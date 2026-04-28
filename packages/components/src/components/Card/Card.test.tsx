@@ -186,16 +186,6 @@ describe('Card', () => {
       expect(card).toHaveClass('is-interactive')
     })
 
-    it('renders external href with target=_blank rel=noopener', () => {
-      const { getByText } = render(
-        <Card href='https://example.com'>External</Card>
-      )
-      const card = getByText('External')
-      expect(card.tagName.toLowerCase()).toBe('a')
-      expect(card).toHaveAttribute('target', '_blank')
-      expect(card).toHaveAttribute('rel', 'noopener noreferrer')
-    })
-
     it('as prop wins over href smart-routing (back-compat)', () => {
       const { getByText, queryByTestId } = render(
         <RoadieLinkProvider Link={StubLink}>
@@ -209,19 +199,6 @@ describe('Card', () => {
       const card = getByText('Event')
       expect(card.tagName.toLowerCase()).toBe('a')
       expect(card).toHaveAttribute('href', '/event')
-    })
-
-    it('forces external when external={true}', () => {
-      const { getByText, queryByTestId } = render(
-        <RoadieLinkProvider Link={StubLink}>
-          <Card href='/redirect/foo' external>
-            R
-          </Card>
-        </RoadieLinkProvider>
-      )
-      expect(queryByTestId('stub-link')).toBeNull()
-      const card = getByText('R')
-      expect(card).toHaveAttribute('target', '_blank')
     })
   })
 

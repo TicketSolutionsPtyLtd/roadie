@@ -155,33 +155,28 @@ describe('RoadieRoutedLink', () => {
   })
 
   describe('protocol hrefs', () => {
-    it('renders a plain <a> for mailto: with no target or rel', () => {
-      const { getByTestId, queryByTestId } = render(
-        <RoadieLinkProvider Link={StubLink}>
-          <RoadieRoutedLink data-testid='link' href='mailto:hello@oztix.com.au'>
-            Email
-          </RoadieRoutedLink>
-        </RoadieLinkProvider>
-      )
-      expect(queryByTestId('stub-link')).toBeNull()
-      const link = getByTestId('link')
-      expect(link).toHaveAttribute('href', 'mailto:hello@oztix.com.au')
-      expect(link).not.toHaveAttribute('target')
-      expect(link).not.toHaveAttribute('rel')
-    })
-
-    it('renders a plain <a> for tel: regardless of provider', () => {
-      const { getByTestId } = render(
-        <RoadieLinkProvider Link={StubLink}>
-          <RoadieRoutedLink data-testid='link' href='tel:+61400000000'>
-            Call
-          </RoadieRoutedLink>
-        </RoadieLinkProvider>
-      )
-      const link = getByTestId('link')
-      expect(link.tagName.toLowerCase()).toBe('a')
-      expect(link).toHaveAttribute('href', 'tel:+61400000000')
-    })
+    it.each<[string]>([
+      ['mailto:hello@oztix.com.au'],
+      ['tel:+61400000000'],
+      ['sms:+61400000000']
+    ])(
+      'renders a plain <a> for %s with no target/rel, ignoring provider',
+      (href: string) => {
+        const { getByTestId, queryByTestId } = render(
+          <RoadieLinkProvider Link={StubLink}>
+            <RoadieRoutedLink data-testid='link' href={href}>
+              Contact
+            </RoadieRoutedLink>
+          </RoadieLinkProvider>
+        )
+        expect(queryByTestId('stub-link')).toBeNull()
+        const link = getByTestId('link')
+        expect(link.tagName.toLowerCase()).toBe('a')
+        expect(link).toHaveAttribute('href', href)
+        expect(link).not.toHaveAttribute('target')
+        expect(link).not.toHaveAttribute('rel')
+      }
+    )
   })
 
   describe('unsafe protocols (XSS prevention)', () => {
