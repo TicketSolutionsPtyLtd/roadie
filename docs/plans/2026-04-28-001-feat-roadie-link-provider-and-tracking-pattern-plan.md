@@ -788,7 +788,7 @@ recommended consumer-app tracking pattern.
 
 ---
 
-- [ ] **Unit 9: Wire the docs site to use `RoadieLinkProvider`**
+- [x] **Unit 9: Wire the docs site to use `RoadieLinkProvider`**
 
 **Goal:** Roadie's own docs site eats its own dog food. Internal nav,
 footer, and any in-page CTAs route through the new provider.
@@ -820,7 +820,7 @@ footer, and any in-page CTAs route through the new provider.
 
 ---
 
-- [ ] **Unit 10: Migration notes and changelog entry**
+- [x] **Unit 10: Migration notes and changelog entry**
 
 **Goal:** Communicate the change to consumers.
 
