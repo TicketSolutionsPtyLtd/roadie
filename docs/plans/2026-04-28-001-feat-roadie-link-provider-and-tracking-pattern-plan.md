@@ -574,7 +574,7 @@ existing `<T extends ElementType>` generic surface intact. Mark
 
 ---
 
-- [ ] **Unit 5: `Card` href routes through provider via client delegation**
+- [x] **Unit 5: `Card` href routes through provider via client delegation**
 
 **Goal:** When a Card has `href`, render through the configured Link
 (or external rules), without forcing CardRoot into a client boundary
@@ -626,7 +626,7 @@ in the no-href case.
 
 ---
 
-- [ ] **Unit 6: `BreadcrumbLink` accepts `href` directly via the same delegation pattern**
+- [x] **Unit 6: `BreadcrumbLink` accepts `href` directly via the same delegation pattern**
 
 **Goal:** `<Breadcrumb.Link href='/x'>` routes through the provider
 without making BreadcrumbLink client.
@@ -665,7 +665,7 @@ without making BreadcrumbLink client.
 
 ---
 
-- [ ] **Unit 7: `CarouselTitleLink` and `Tabs.Tab` adopt `href`**
+- [x] **Unit 7: `CarouselTitleLink` and `Tabs.Tab` adopt `href`**
 
 **Goal:** Bring the remaining link-shaped surfaces in line.
 

@@ -332,4 +332,75 @@ describe('Tabs', () => {
       expect(tab).toHaveClass('h-12')
     })
   })
+
+  describe('Tabs.Tab href routing', () => {
+    it('renders a button by default (no href)', () => {
+      const { getByRole } = render(
+        <Tabs defaultValue='a'>
+          <Tabs.List>
+            <Tabs.Tab value='a'>A</Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+      )
+      const tab = getByRole('tab', { name: 'A' })
+      expect(tab.tagName.toLowerCase()).toBe('button')
+    })
+
+    it('renders an anchor when href is set', () => {
+      const { getByRole } = render(
+        <Tabs defaultValue='a'>
+          <Tabs.List>
+            <Tabs.Tab value='a' href='/events'>
+              Events
+            </Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+      )
+      const tab = getByRole('tab', { name: 'Events' })
+      expect(tab.tagName.toLowerCase()).toBe('a')
+      expect(tab).toHaveAttribute('href', '/events')
+    })
+
+    it('does NOT emit Base UI nativeButton dev warning when href is set', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+      render(
+        <Tabs defaultValue='a'>
+          <Tabs.List>
+            <Tabs.Tab value='a' href='/events'>
+              Events
+            </Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+      )
+      const allCalls = [...warn.mock.calls, ...error.mock.calls]
+        .map((c) => String(c[0]))
+        .join('\n')
+      expect(allCalls).not.toMatch(/nativeButton/i)
+      warn.mockRestore()
+      error.mockRestore()
+    })
+
+    it('arrow keys still move focus across mixed button/anchor tabs', async () => {
+      const user = userEvent.setup()
+      const { getByRole } = render(
+        <Tabs defaultValue='a'>
+          <Tabs.List>
+            <Tabs.Tab value='a'>A</Tabs.Tab>
+            <Tabs.Tab value='b' href='/b'>
+              B
+            </Tabs.Tab>
+            <Tabs.Tab value='c'>C</Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+      )
+      const a = getByRole('tab', { name: 'A' })
+      const b = getByRole('tab', { name: 'B' })
+      a.focus()
+      expect(document.activeElement).toBe(a)
+      await user.keyboard('{ArrowRight}')
+      expect(document.activeElement).toBe(b)
+      expect(b.tagName.toLowerCase()).toBe('a')
+    })
+  })
 })

@@ -529,6 +529,37 @@ describe('Carousel', () => {
     expect(link).toHaveAttribute('href', '/events')
   })
 
+  it('Carousel.TitleLink href routes through configured RoadieLinkProvider', async () => {
+    const { RoadieLinkProvider } = await import(
+      '../../providers/RoadieLinkProvider'
+    )
+    const StubLink = ({
+      href,
+      children,
+      ...rest
+    }: {
+      href: string
+      children?: React.ReactNode
+    }) => (
+      <a data-testid='stub-link' href={href} {...rest}>
+        {children}
+      </a>
+    )
+    const { getByTestId } = render(
+      <RoadieLinkProvider Link={StubLink}>
+        <Carousel aria-label='test'>
+          <Carousel.Header>
+            <Carousel.TitleLink href='/events'>Events</Carousel.TitleLink>
+          </Carousel.Header>
+          <Carousel.Content>
+            <Carousel.Item>1</Carousel.Item>
+          </Carousel.Content>
+        </Carousel>
+      </RoadieLinkProvider>
+    )
+    expect(getByTestId('stub-link')).toHaveAttribute('href', '/events')
+  })
+
   it('root aria-labelledby points to Carousel.Title id', () => {
     const { getByRole } = render(
       <Carousel aria-label='fallback'>

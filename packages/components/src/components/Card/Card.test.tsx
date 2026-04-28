@@ -2,6 +2,16 @@ import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { Card } from '.'
+import {
+  type RoadieLinkComponent,
+  RoadieLinkProvider
+} from '../../providers/RoadieLinkProvider'
+
+const StubLink: RoadieLinkComponent = ({ href, children, ...rest }) => (
+  <a data-testid='stub-link' href={href} {...rest}>
+    {children}
+  </a>
+)
 
 describe('Card', () => {
   it('Card and Card.Root are the same component reference', () => {
@@ -154,6 +164,65 @@ describe('Card', () => {
     expect(title).toBeInTheDocument()
     expect(title.tagName.toLowerCase()).toBe('h3')
     expect(title).toHaveClass('text-display-ui-6', 'text-strong')
+  })
+
+  describe('href routing', () => {
+    it('renders as anchor when href is set without as', () => {
+      const { getByText } = render(<Card href='/event/123'>Event</Card>)
+      const card = getByText('Event')
+      expect(card.tagName.toLowerCase()).toBe('a')
+      expect(card).toHaveAttribute('href', '/event/123')
+      expect(card).toHaveClass('is-interactive')
+    })
+
+    it('routes through configured Link when provider is wired', () => {
+      const { getByTestId } = render(
+        <RoadieLinkProvider Link={StubLink}>
+          <Card href='/event/123'>Event</Card>
+        </RoadieLinkProvider>
+      )
+      const card = getByTestId('stub-link')
+      expect(card).toHaveAttribute('href', '/event/123')
+      expect(card).toHaveClass('is-interactive')
+    })
+
+    it('renders external href with target=_blank rel=noopener', () => {
+      const { getByText } = render(
+        <Card href='https://example.com'>External</Card>
+      )
+      const card = getByText('External')
+      expect(card.tagName.toLowerCase()).toBe('a')
+      expect(card).toHaveAttribute('target', '_blank')
+      expect(card).toHaveAttribute('rel', 'noopener noreferrer')
+    })
+
+    it('as prop wins over href smart-routing (back-compat)', () => {
+      const { getByText, queryByTestId } = render(
+        <RoadieLinkProvider Link={StubLink}>
+          <Card as='a' href='/event'>
+            Event
+          </Card>
+        </RoadieLinkProvider>
+      )
+      // Provider Link must NOT be invoked when `as` is explicit
+      expect(queryByTestId('stub-link')).toBeNull()
+      const card = getByText('Event')
+      expect(card.tagName.toLowerCase()).toBe('a')
+      expect(card).toHaveAttribute('href', '/event')
+    })
+
+    it('forces external when external={true}', () => {
+      const { getByText, queryByTestId } = render(
+        <RoadieLinkProvider Link={StubLink}>
+          <Card href='/redirect/foo' external>
+            R
+          </Card>
+        </RoadieLinkProvider>
+      )
+      expect(queryByTestId('stub-link')).toBeNull()
+      const card = getByText('R')
+      expect(card).toHaveAttribute('target', '_blank')
+    })
   })
 
   it('renders Description sub-component', () => {
