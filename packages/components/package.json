@@ -190,7 +190,7 @@
     {
       "name": "Carousel",
       "path": "dist/components/Carousel/index.js",
-      "limit": "7 KB",
+      "limit": "6 KB",
       "ignore": [
         "react",
         "react-dom",

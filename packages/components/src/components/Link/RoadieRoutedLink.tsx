@@ -57,11 +57,9 @@ export function RoadieRoutedLink({
   if (kind === 'unsafe') {
     if (isDev()) {
       console.warn(
-        `[Roadie] Refused to render an unsafe href: ${JSON.stringify(href)}. ` +
-          `\`javascript:\`, \`data:\`, \`vbscript:\`, \`blob:\`, and \`file:\` ` +
-          `URLs are blocked to prevent XSS via user-controlled hrefs. ` +
-          `If you need this URL, sanitize at the boundary and pass an ` +
-          `explicit \`render\` prop with your own anchor.`
+        '[Roadie] Unsafe href blocked: ' +
+          JSON.stringify(href) +
+          '. See /foundations/linking.'
       )
     }
     return <a ref={ref} href='#' {...rest} />

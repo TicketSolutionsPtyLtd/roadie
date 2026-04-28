@@ -34,15 +34,9 @@ type AnyProps = Record<string, unknown> & {
   ref?: Ref<unknown>
 }
 
-function mergeRefs<T>(a: Ref<T> | undefined, b: Ref<T> | undefined): Ref<T> {
-  if (!a) return b ?? (() => {})
-  if (!b) return a
-  return (node: T | null) => {
-    if (typeof a === 'function') a(node)
-    else if (a) (a as { current: T | null }).current = node
-    if (typeof b === 'function') b(node)
-    else if (b) (b as { current: T | null }).current = node
-  }
+function setRef(ref: Ref<unknown> | undefined, node: unknown) {
+  if (typeof ref === 'function') ref(node)
+  else if (ref) (ref as { current: unknown }).current = node
 }
 
 /**
@@ -70,17 +64,26 @@ function mergeProps(defaults: AnyProps, overrides: AnyProps): AnyProps {
       typeof defaults[key] === 'function' &&
       typeof overrides[key] === 'function'
     ) {
-      const defaultHandler = defaults[key] as (...args: unknown[]) => unknown
-      const overrideHandler = overrides[key] as (...args: unknown[]) => unknown
+      const a = defaults[key] as (...args: unknown[]) => unknown
+      const b = overrides[key] as (...args: unknown[]) => unknown
       merged[key] = (...args: unknown[]) => {
-        defaultHandler(...args)
-        overrideHandler(...args)
+        a(...args)
+        b(...args)
       }
     }
   }
 
   if (defaults.ref !== undefined || overrides.ref !== undefined) {
-    merged.ref = mergeRefs(defaults.ref, overrides.ref) as Ref<unknown>
+    const { ref: a } = defaults
+    const { ref: b } = overrides
+    merged.ref = !a
+      ? b
+      : !b
+        ? a
+        : (node: unknown) => {
+            setRef(a, node)
+            setRef(b, node)
+          }
   }
 
   return merged
