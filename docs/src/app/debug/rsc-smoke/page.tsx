@@ -8,7 +8,10 @@
 // and fails the docs build. See:
 //   docs/contributing/COMPOUND_PATTERNS.md
 //   docs/solutions/rsc-patterns/compound-export-namespace.md
-import { Fieldset as FieldsetViaBarrel } from '@oztix/roadie-components'
+import {
+  Fieldset as FieldsetViaBarrel,
+  Tabs as TabsViaBarrel
+} from '@oztix/roadie-components'
 import { Accordion } from '@oztix/roadie-components/accordion'
 import { Autocomplete } from '@oztix/roadie-components/autocomplete'
 import { Breadcrumb } from '@oztix/roadie-components/breadcrumb'
@@ -20,6 +23,7 @@ import { Fieldset } from '@oztix/roadie-components/fieldset'
 import { RadioGroup } from '@oztix/roadie-components/radio-group'
 import { Select } from '@oztix/roadie-components/select'
 import { Steps } from '@oztix/roadie-components/steps'
+import { Tabs } from '@oztix/roadie-components/tabs'
 
 export default function RscSmokePage() {
   return (
@@ -324,6 +328,85 @@ export default function RscSmokePage() {
             </Carousel.Item>
           </Carousel.Content>
         </Carousel>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>Tabs</h2>
+        <p className='text-sm text-subtle'>
+          <code>
+            import &#123; Tabs &#125; from
+            &apos;@oztix/roadie-components/tabs&apos;
+          </code>
+        </p>
+        <Tabs defaultValue='overview'>
+          <Tabs.List>
+            <Tabs.Tab value='overview'>Overview</Tabs.Tab>
+            <Tabs.Tab value='details'>Details</Tabs.Tab>
+            <Tabs.Tab value='history'>History</Tabs.Tab>
+            <Tabs.Indicator />
+          </Tabs.List>
+          <Tabs.Panel value='overview'>
+            <p className='py-4 text-subtle'>
+              Bare <code>&lt;Tabs&gt;</code> root rendered from a server
+              component.
+            </p>
+          </Tabs.Panel>
+          <Tabs.Panel value='details'>
+            <p className='py-4 text-subtle'>Details panel.</p>
+          </Tabs.Panel>
+          <Tabs.Panel value='history'>
+            <p className='py-4 text-subtle'>History panel.</p>
+          </Tabs.Panel>
+        </Tabs>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>Tabs — barrel</h2>
+        <p className='text-sm text-subtle'>
+          <code>
+            import &#123; Tabs &#125; from &apos;@oztix/roadie-components&apos;
+          </code>
+        </p>
+        <TabsViaBarrel defaultValue='one'>
+          <TabsViaBarrel.List>
+            <TabsViaBarrel.Tab value='one'>One</TabsViaBarrel.Tab>
+            <TabsViaBarrel.Tab value='two'>Two</TabsViaBarrel.Tab>
+            <TabsViaBarrel.Indicator />
+          </TabsViaBarrel.List>
+          <TabsViaBarrel.Panel value='one'>
+            <p className='py-4 text-subtle'>
+              Imported from the root barrel — proves dot-notation children
+              survive the barrel re-export chain in a server component.
+            </p>
+          </TabsViaBarrel.Panel>
+          <TabsViaBarrel.Panel value='two'>
+            <p className='py-4 text-subtle'>Two.</p>
+          </TabsViaBarrel.Panel>
+        </TabsViaBarrel>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Tabs — <code>.Root</code> alias
+        </h2>
+        <p className='text-sm text-subtle'>
+          Explicit <code>&lt;Tabs.Root&gt;</code> form — same component
+          reference as bare <code>&lt;Tabs&gt;</code>. Also exercises the
+          underline emphasis variant.
+        </p>
+        <Tabs.Root defaultValue='one' emphasis='subtle'>
+          <Tabs.List>
+            <Tabs.Tab value='one'>One</Tabs.Tab>
+            <Tabs.Tab value='two'>Two</Tabs.Tab>
+            <Tabs.Indicator />
+          </Tabs.List>
+          <Tabs.Panel value='one'>
+            <p className='py-4 text-subtle'>Panel one.</p>
+          </Tabs.Panel>
+          <Tabs.Panel value='two'>
+            <p className='py-4 text-subtle'>Panel two.</p>
+          </Tabs.Panel>
+        </Tabs.Root>
       </section>
 
       {/*

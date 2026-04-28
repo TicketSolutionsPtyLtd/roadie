@@ -57,7 +57,7 @@ export function AccordionTrigger({
       {children}
       <CaretDownIcon
         weight='bold'
-        className='duration-moderate size-4 shrink-0 text-subtle transition-transform ease-enter group-open/item:rotate-180'
+        className='size-4 shrink-0 text-subtle transition-transform duration-moderate ease-enter group-open/item:rotate-180'
       />
     </summary>
   )

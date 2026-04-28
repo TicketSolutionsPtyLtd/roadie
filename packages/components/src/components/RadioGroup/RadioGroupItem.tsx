@@ -27,7 +27,7 @@ export function RadioGroupItem({
   const radio = (
     <Radio.Root
       className={cn(
-        'duration-moderate flex size-6 shrink-0 items-center justify-center rounded-full border border-subtle emphasis-sunken outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] transition-[background-color,border-color,outline-width,outline-color] data-[checked]:border-[var(--color-accent-9)] data-[checked]:bg-[var(--color-accent-3)]',
+        'flex size-6 shrink-0 items-center justify-center rounded-full border border-subtle emphasis-sunken outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] transition-[background-color,border-color,outline-width,outline-color] duration-moderate data-[checked]:border-[var(--color-accent-9)] data-[checked]:bg-[var(--color-accent-3)]',
         emphasis !== 'normal' &&
           'focus-visible:outline-[length:var(--focus-ring-width)]'
       )}

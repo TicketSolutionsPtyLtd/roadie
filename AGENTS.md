@@ -30,6 +30,11 @@ Roadie is a design system for Oztix's applications, built as a monorepo using pn
 /docs/                  - Documentation site (Next.js + MDX)
 ```
 
+`/docs/solutions/` holds documented learnings (bugs, best practices,
+workflow patterns), organized by category with YAML frontmatter —
+`module`, `tags`, `problem_type`. Relevant when implementing or
+debugging in documented areas.
+
 ### Core Package (`packages/core/`)
 
 ```

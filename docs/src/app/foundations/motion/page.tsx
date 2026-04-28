@@ -296,7 +296,7 @@ export default function MotionPage() {
             ].map(({ label, token, desc, className }) => (
               <div
                 key={label}
-                className={`duration-slow grid emphasis-raised place-content-center rounded-lg p-4 text-center transition-[translate] ${className} hover:-translate-y-2`}
+                className={`grid emphasis-raised place-content-center rounded-lg p-4 text-center transition-[translate] duration-slow ${className} hover:-translate-y-2`}
               >
                 <p className='text-sm font-bold text-strong'>{label}</p>
                 <p className='font-mono text-xs text-subtler'>{token}</p>
@@ -365,7 +365,7 @@ export default function MotionPage() {
         <div className='grid gap-4 sm:grid-cols-2'>
           <Link
             href='/foundations/interactions'
-            className='duration-moderate grid emphasis-raised content-start gap-2 rounded-xl p-5 transition-[translate,box-shadow] hover:-translate-y-0.5 hover:shadow-lg'
+            className='grid emphasis-raised content-start gap-2 rounded-xl p-5 transition-[translate,box-shadow] duration-moderate hover:-translate-y-0.5 hover:shadow-lg'
           >
             <h3 className='text-display-ui-5 text-strong'>Interactions</h3>
             <p className='text-sm text-subtle'>
@@ -379,7 +379,7 @@ export default function MotionPage() {
           </Link>
           <Link
             href='/foundations/elevation'
-            className='duration-moderate grid emphasis-raised content-start gap-2 rounded-xl p-5 transition-[translate,box-shadow] hover:-translate-y-0.5 hover:shadow-lg'
+            className='grid emphasis-raised content-start gap-2 rounded-xl p-5 transition-[translate,box-shadow] duration-moderate hover:-translate-y-0.5 hover:shadow-lg'
           >
             <h3 className='text-display-ui-5 text-strong'>Elevation</h3>
             <p className='text-sm text-subtle'>
@@ -392,7 +392,7 @@ export default function MotionPage() {
           </Link>
           <Link
             href='/foundations/shape'
-            className='duration-moderate grid emphasis-raised content-start gap-2 rounded-xl p-5 transition-[translate,box-shadow] hover:-translate-y-0.5 hover:shadow-lg'
+            className='grid emphasis-raised content-start gap-2 rounded-xl p-5 transition-[translate,box-shadow] duration-moderate hover:-translate-y-0.5 hover:shadow-lg'
           >
             <h3 className='text-display-ui-5 text-strong'>Shape</h3>
             <p className='text-sm text-subtle'>
@@ -405,7 +405,7 @@ export default function MotionPage() {
           </Link>
           <Link
             href='/foundations/colors'
-            className='duration-moderate grid emphasis-raised content-start gap-2 rounded-xl p-5 transition-[translate,box-shadow] hover:-translate-y-0.5 hover:shadow-lg'
+            className='grid emphasis-raised content-start gap-2 rounded-xl p-5 transition-[translate,box-shadow] duration-moderate hover:-translate-y-0.5 hover:shadow-lg'
           >
             <h3 className='text-display-ui-5 text-strong'>Colors</h3>
             <p className='text-sm text-subtle'>
@@ -567,12 +567,12 @@ transition: all 150ms ease-out;`}
           <Guideline.Do
             example={
               <div className='grid gap-2 sm:grid-cols-2'>
-                <div className='duration-moderate grid emphasis-raised place-content-center rounded-lg p-4 transition-transform ease-spring hover:scale-105'>
+                <div className='grid emphasis-raised place-content-center rounded-lg p-4 transition-transform duration-moderate ease-spring hover:scale-105'>
                   <p className='text-xs font-bold text-strong'>
                     Spring on transform
                   </p>
                 </div>
-                <div className='duration-moderate grid emphasis-raised place-content-center rounded-lg p-4 transition-[background-color] ease-standard hover:bg-subtle'>
+                <div className='grid emphasis-raised place-content-center rounded-lg p-4 transition-[background-color] duration-moderate ease-standard hover:bg-subtle'>
                   <p className='text-xs font-bold text-strong'>
                     Standard on color
                   </p>
