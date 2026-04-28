@@ -1,19 +1,23 @@
 'use client'
 
-import { type ComponentProps, type ElementType, useId } from 'react'
+import {
+  type ComponentProps,
+  type ElementType,
+  type ReactElement,
+  useId
+} from 'react'
 
 import { ArrowRightIcon } from '@phosphor-icons/react/ssr'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { type RoadieRenderProp, useRender } from '../../utils/useRender'
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 import { useRegisterTitleLabel } from './useRegisterTitleLabel'
 
 type CarouselTitleLinkOwnProps<T extends ElementType> = {
   /**
-   * Render the link as a custom element/component. Defaults to `<a>`.
-   * Pass `as` to bypass `RoadieLinkProvider` routing — useful for non-
-   * anchor elements or custom link wrappers.
+   * @deprecated Use `render` instead. `as` will be removed in v3.0.0.
    */
   as?: T
   /**
@@ -29,6 +33,11 @@ type CarouselTitleLinkOwnProps<T extends ElementType> = {
   target?: string
   /** Override the auto `rel='noopener noreferrer'` default on external hrefs. */
   rel?: string
+  /**
+   * Escape hatch — swap the underlying element with full control over
+   * the rendered shape.
+   */
+  render?: RoadieRenderProp
   /** DOM id for `aria-labelledby`. Defaults to a generated id. */
   id?: string
 }
@@ -46,8 +55,9 @@ export function CarouselTitleLink<T extends ElementType = 'a'>({
   external,
   target,
   rel,
+  render,
   ...props
-}: CarouselTitleLinkProps<T>) {
+}: CarouselTitleLinkProps<T>): ReactElement {
   const generatedId = useId()
   const titleId = id ?? generatedId
   useRegisterTitleLabel(titleId)
@@ -57,14 +67,49 @@ export function CarouselTitleLink<T extends ElementType = 'a'>({
     className
   )
 
-  const trailingIcon = (
-    <ArrowRightIcon
-      weight='bold'
-      className='size-5 text-subtle transition-transform group-hover/title:translate-x-1 group-hover/title:intent-accent'
-    />
+  const innerChildren = (
+    <>
+      {children}
+      <ArrowRightIcon
+        weight='bold'
+        className='size-5 text-subtle transition-transform group-hover/title:translate-x-1 group-hover/title:intent-accent'
+      />
+    </>
   )
 
-  if (!as && href !== undefined) {
+  if (render !== undefined) {
+    return useRender(
+      'a',
+      {
+        id: titleId,
+        'data-slot': 'carousel-title-link',
+        className: sharedClassName,
+        ...(href !== undefined && { href }),
+        ...(target !== undefined && { target }),
+        ...(rel !== undefined && { rel }),
+        ...(props as Record<string, unknown>),
+        children: innerChildren
+      },
+      render
+    )
+  }
+
+  // Legacy `as` path — back-compat only.
+  if (as) {
+    const Component = as as ElementType
+    const passthroughProps = {
+      id: titleId,
+      'data-slot': 'carousel-title-link',
+      className: sharedClassName,
+      ...(href !== undefined && { href }),
+      ...(target !== undefined && { target }),
+      ...(rel !== undefined && { rel }),
+      ...(props as Record<string, unknown>)
+    }
+    return <Component {...passthroughProps}>{innerChildren}</Component>
+  }
+
+  if (href !== undefined) {
     return (
       <RoadieRoutedLink
         id={titleId}
@@ -76,29 +121,20 @@ export function CarouselTitleLink<T extends ElementType = 'a'>({
         rel={rel}
         {...(props as Record<string, unknown>)}
       >
-        {children}
-        {trailingIcon}
+        {innerChildren}
       </RoadieRoutedLink>
     )
   }
 
-  const Component = (as ?? 'a') as ElementType
-  const passthroughProps = {
-    ...(href !== undefined && { href }),
-    ...(target !== undefined && { target }),
-    ...(rel !== undefined && { rel }),
-    ...props
-  }
   return (
-    <Component
+    <a
       id={titleId}
       data-slot='carousel-title-link'
       className={sharedClassName}
-      {...passthroughProps}
+      {...(props as ComponentProps<'a'>)}
     >
-      {children}
-      {trailingIcon}
-    </Component>
+      {innerChildren}
+    </a>
   )
 }
 

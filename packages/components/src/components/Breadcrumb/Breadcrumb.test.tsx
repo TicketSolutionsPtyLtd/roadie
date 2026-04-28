@@ -221,6 +221,30 @@ describe('Breadcrumb', () => {
       expect(link).toHaveAttribute('data-custom', 'true')
       expect(link).toHaveAttribute('href', '/x')
     })
+
+    it('render escape hatch wins over href smart-routing', () => {
+      const { getByText, queryByTestId } = render(
+        <RoadieLinkProvider Link={StubLink}>
+          <Breadcrumb>
+            <Breadcrumb.List>
+              <Breadcrumb.Item>
+                <Breadcrumb.Link
+                  href='/x'
+                  render={<a href='/y' data-custom='1' />}
+                >
+                  Y
+                </Breadcrumb.Link>
+              </Breadcrumb.Item>
+            </Breadcrumb.List>
+          </Breadcrumb>
+        </RoadieLinkProvider>
+      )
+      expect(queryByTestId('stub-link')).toBeNull()
+      const link = getByText('Y')
+      expect(link).toHaveAttribute('href', '/y')
+      expect(link).toHaveAttribute('data-custom', '1')
+      expect(link).toHaveClass('text-subtle')
+    })
   })
 
   it('applies custom className to sub-components', () => {

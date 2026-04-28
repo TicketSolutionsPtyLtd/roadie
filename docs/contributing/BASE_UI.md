@@ -91,9 +91,18 @@ API on top of it.
 `nativeButton={!props.render}` so the default stays a `<button>` but a
 consumer can pass `render={<a>}` to swap it out.
 
-> The `as` / `ElementType` pattern in Breadcrumb, Card, and LinkButton is
-> fine — those are **not** Base UI consumers. This policy applies only to
-> new wrappers built on a Base UI primitive.
+> **Updated v2.6 (2026-04-28):** Every Roadie component — Base UI consumer
+> or not — now exposes the same `render` prop. Non-Base-UI wrappers
+> (Card, Breadcrumb.Link, Carousel.TitleLink) compose the in-house
+> `useRender` helper at `packages/components/src/utils/useRender.tsx` to
+> deliver Base UI's render contract (element / component / function form)
+> against an in-house default. Their legacy `as` props are `@deprecated`
+> and removed in v3.0.0. New components, Base UI or not, must use
+> `render` — do not invent `as` / `ElementType` / `asChild` APIs.
+>
+> `LinkButton` / `LinkIconButton` are `@deprecated` whole components
+> (also removed in v3.0.0) and keep their original `as` API for back-
+> compat — don't migrate them to `render`, they're going away.
 
 ## 4. Type conventions
 

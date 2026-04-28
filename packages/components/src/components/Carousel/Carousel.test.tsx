@@ -529,6 +529,28 @@ describe('Carousel', () => {
     expect(link).toHaveAttribute('href', '/events')
   })
 
+  it('Carousel.TitleLink render escape hatch wins over href smart-routing', () => {
+    const { getByText } = render(
+      <Carousel aria-label='test'>
+        <Carousel.Header>
+          <Carousel.TitleLink
+            href='/x'
+            render={<a href='/y' data-custom='1' />}
+          >
+            Title
+          </Carousel.TitleLink>
+        </Carousel.Header>
+        <Carousel.Content>
+          <Carousel.Item>1</Carousel.Item>
+        </Carousel.Content>
+      </Carousel>
+    )
+    const link = getByText(/Title/)
+    expect(link).toHaveAttribute('href', '/y')
+    expect(link).toHaveAttribute('data-custom', '1')
+    expect(link).toHaveClass('text-display-ui-5')
+  })
+
   it('Carousel.TitleLink href routes through configured RoadieLinkProvider', async () => {
     const { RoadieLinkProvider } = await import(
       '../../providers/RoadieLinkProvider'

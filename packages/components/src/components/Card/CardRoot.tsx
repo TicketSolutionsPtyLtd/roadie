@@ -1,13 +1,22 @@
-import type { ComponentProps, ElementType } from 'react'
+import type { ComponentProps, ElementType, ReactElement } from 'react'
 
 import { type VariantProps } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { type RoadieRenderProp, useRender } from '../../utils/useRender'
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 import { cardVariants } from './variants'
 
 type CardOwnProps<T extends ElementType = 'div'> = {
+  /**
+   * @deprecated Use `render` instead. `as` will be removed in v3.0.0.
+   *
+   * Pass `render={<button onClick=… />}` for a clickable card, or
+   * `render={<MyLink href='/x' />}` for a custom link wrapper. The
+   * `render` prop accepts an element, a component, or a function
+   * `(defaultProps) => element` for full control.
+   */
   as?: T
   /**
    * Pass an href to render the card as a routed anchor. Internal hrefs
@@ -16,8 +25,8 @@ type CardOwnProps<T extends ElementType = 'div'> = {
    * `mailto:` / `tel:` / `sms:` render plain `<a>`. Use `external` to
    * override the auto classification.
    *
-   * `as` always wins over `href` smart-routing — pass `as` to render a
-   * non-anchor or to bypass provider routing.
+   * `render` always wins over `href` smart-routing — pass `render` to
+   * render a non-anchor or to bypass provider routing.
    */
   href?: string
   /** Force external-link treatment when `href` is set. */
@@ -26,6 +35,12 @@ type CardOwnProps<T extends ElementType = 'div'> = {
   target?: string
   /** Override the auto `rel='noopener noreferrer'` default on external hrefs. */
   rel?: string
+  /**
+   * Escape hatch — swap the underlying element with full control over
+   * the rendered shape. See [Linking](/foundations/linking) for the
+   * full reference.
+   */
+  render?: RoadieRenderProp
 } & VariantProps<typeof cardVariants>
 
 export type CardRootProps<T extends ElementType = 'div'> = CardOwnProps<T> &
@@ -34,14 +49,16 @@ export type CardRootProps<T extends ElementType = 'div'> = CardOwnProps<T> &
 /**
  * Card root.
  *
- * Smart-href routing: when `href` is set without `as`, the card delegates
- * to `RoadieRoutedLink` so internal hrefs route through the configured
- * `RoadieLinkProvider`, external hrefs render `<a target='_blank' rel>`,
- * and protocol hrefs render plain `<a>`. The `as` prop, when set, always
- * wins — `<Card as='button' onClick={…}>` keeps button semantics, and
- * `<Card as={MyCustomLink} href='/x'>` renders `MyCustomLink` directly,
- * bypassing provider routing (useful for non-anchor elements or custom
- * link wrappers).
+ * Smart-href routing: when `href` is set without `render`, the card
+ * delegates to `RoadieRoutedLink` so internal hrefs route through the
+ * configured `RoadieLinkProvider`, external hrefs render
+ * `<a target='_blank' rel>`, and protocol hrefs render plain `<a>`.
+ *
+ * Escape hatch: pass `render` (element, component, or function form) to
+ * take over the rendered element. `render` always wins over `href`
+ * smart-routing.
+ *
+ * The legacy `as` prop is `@deprecated` — use `render` instead.
  *
  * `CardRoot` itself stays server-safe — `RoadieRoutedLink` is the
  * `'use client'` boundary and only loads when `href` is actually set.
@@ -55,22 +72,54 @@ export function CardRoot<T extends ElementType = 'div'>({
   external,
   target,
   rel,
+  render,
   ...props
-}: CardRootProps<T>) {
+}: CardRootProps<T>): ReactElement {
   const rest = props as Record<string, unknown>
   const isInteractive = href !== undefined || !!rest.onClick
+  const finalClassName = cn(
+    cardVariants({ intent, emphasis }),
+    isInteractive && 'is-interactive',
+    className
+  )
 
-  // `as` always wins (back-compat + escape hatch). When absent and `href`
-  // is set, route through RoadieRoutedLink. Otherwise default to `<div>`.
-  if (!as && href !== undefined) {
+  // `render` is the canonical escape hatch. When set, use it via
+  // useRender for consistent prop merging.
+  if (render !== undefined) {
+    return useRender(
+      'div',
+      {
+        'data-slot': 'card',
+        className: finalClassName,
+        ...(href !== undefined && { href }),
+        ...(target !== undefined && { target }),
+        ...(rel !== undefined && { rel }),
+        ...rest
+      },
+      render
+    )
+  }
+
+  // Legacy `as` path — back-compat only. Prefer `render` for new code.
+  if (as) {
+    const Component = as as ElementType
+    const passthroughProps = {
+      'data-slot': 'card',
+      className: finalClassName,
+      ...(href !== undefined && { href }),
+      ...(target !== undefined && { target }),
+      ...(rel !== undefined && { rel }),
+      ...rest
+    }
+    return <Component {...passthroughProps} />
+  }
+
+  // Default routes: href → RoadieRoutedLink → routed anchor
+  if (href !== undefined) {
     return (
       <RoadieRoutedLink
         data-slot='card'
-        className={cn(
-          cardVariants({ intent, emphasis }),
-          'is-interactive',
-          className
-        )}
+        className={finalClassName}
         href={href}
         external={external}
         target={target}
@@ -80,26 +129,8 @@ export function CardRoot<T extends ElementType = 'div'>({
     )
   }
 
-  const Component = as || 'div'
-  // Forward href (and target/rel) when an explicit `as` is set — preserves
-  // the existing `<Card as='a' href='/x'>` API exactly.
-  const passthroughProps = {
-    ...(href !== undefined && { href }),
-    ...(target !== undefined && { target }),
-    ...(rel !== undefined && { rel }),
-    ...props
-  }
-  return (
-    <Component
-      data-slot='card'
-      className={cn(
-        cardVariants({ intent, emphasis }),
-        isInteractive && 'is-interactive',
-        className
-      )}
-      {...passthroughProps}
-    />
-  )
+  // Default — plain div
+  return <div data-slot='card' className={finalClassName} {...props} />
 }
 
 CardRoot.displayName = 'Card.Root'

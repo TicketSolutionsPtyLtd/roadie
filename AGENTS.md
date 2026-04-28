@@ -359,15 +359,22 @@ Key conventions:
 1. **Don't import `next/link` from inside Roadie.** The provider is the
    only seam — Roadie stays framework-agnostic. Apps without a router
    pass `null` (or omit the provider) and get plain `<a>` fallbacks.
-2. **Don't reach for `as` or `render` first.** Both are escape hatches
-   for the rare cases `href` can't express. Per `BASE_UI.md` §3, Base UI
-   consumers use `render`; non-Base-UI components use `as`.
-3. **`as` always wins over `href` smart-routing** on Card / Breadcrumb /
-   Carousel. Useful for `<Card as='button'>` or for bypassing the
-   provider with a custom Link wrapper.
-4. **`<Button href + render>` is a footgun** — `render` wins, smart
-   routing is silently disabled. The component logs a one-shot dev
-   warning. Pick one.
+2. **Don't reach for `render` first.** It's the escape hatch for the
+   rare cases `href` can't express (custom elements, full prop control,
+   state-aware rendering). The same `render` prop works on every Roadie
+   component — Base UI consumers (`Button`, `IconButton`, `Tabs.Tab`)
+   use Base UI's native render; non-Base-UI components (`Card`,
+   `Breadcrumb.Link`, `Carousel.TitleLink`) compose the `useRender`
+   helper from `packages/components/src/utils/useRender.tsx` to deliver
+   the same contract.
+3. **`render` always wins over `href` smart-routing.** Pass `render`
+   when you need a non-anchor or want to bypass provider routing
+   entirely. When both `href` and `render` are passed to Button, Button
+   logs a one-shot dev-mode warning — the silent-disable is a footgun.
+4. **`as` is `@deprecated` on Card / Breadcrumb.Link / Carousel.TitleLink**
+   as of v2.6 and removed in v3.0.0. Migrate to `render`. JSDoc
+   `@deprecated` triggers IDE strikethrough so consumers see the
+   warning at the call site.
 5. **`LinkButton` / `LinkIconButton` are deprecated** as of v2.6.
    Continue working for back-compat; will be removed in v3.0. New code
    uses `<Button href>` / `<IconButton href>`.

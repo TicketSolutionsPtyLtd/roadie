@@ -55,6 +55,23 @@ Smart `href` routing across every link-bearing component, plus
 - **`'icon-*'` size literals on `IconButton` / `LinkIconButton`** —
   use `'xs' | 'sm' | 'md' | 'lg'` instead.
 
+- **`as` prop on `Card` / `Breadcrumb.Link` / `Carousel.TitleLink`** —
+  unified on `render` as the universal escape hatch. Every Roadie
+  component now accepts the same `render` prop (element / component /
+  function form), mirroring Base UI's contract. Non-Base-UI components
+  compose a small `useRender` helper internally to deliver the same
+  semantics. The `as` prop continues to work for back-compat.
+
+  ```tsx
+  // Before
+  <Card as='button' onClick={handleSelect}>…</Card>
+  <Card as={MyLink} href='/x'>…</Card>
+
+  // After
+  <Card render={<button type='button' onClick={handleSelect} />}>…</Card>
+  <Card render={<MyLink href='/x' />}>…</Card>
+  ```
+
 ## Notes for consumers
 
 - Existing `<Button onClick={…}>`, `<Button render={<a>}>`, and

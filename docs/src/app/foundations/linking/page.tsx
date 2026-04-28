@@ -155,7 +155,7 @@ export function Providers({ children }) {
                   <Code>&lt;button&gt;</Code>
                 </td>
                 <td>
-                  <Code>render</Code> prop (Base UI)
+                  <Code>render</Code> prop
                 </td>
               </tr>
               <tr className='border-b border-subtle'>
@@ -167,7 +167,7 @@ export function Providers({ children }) {
                   when href is set)
                 </td>
                 <td>
-                  <Code>as</Code> prop
+                  <Code>render</Code> prop
                 </td>
               </tr>
               <tr className='border-b border-subtle'>
@@ -178,7 +178,7 @@ export function Providers({ children }) {
                   <Code>&lt;a&gt;</Code>
                 </td>
                 <td>
-                  <Code>as</Code> prop
+                  <Code>render</Code> prop
                 </td>
               </tr>
               <tr className='border-b border-subtle'>
@@ -189,7 +189,7 @@ export function Providers({ children }) {
                   <Code>&lt;a&gt;</Code>
                 </td>
                 <td>
-                  <Code>as</Code> prop
+                  <Code>render</Code> prop
                 </td>
               </tr>
               <tr>
@@ -201,7 +201,7 @@ export function Providers({ children }) {
                   when href is set)
                 </td>
                 <td>
-                  <Code>render</Code> prop (Base UI)
+                  <Code>render</Code> prop
                 </td>
               </tr>
             </tbody>
@@ -244,31 +244,43 @@ export function Providers({ children }) {
 
       {/* Escape hatches */}
       <section className='grid gap-4'>
-        <h2 className='text-display-ui-3 text-strong'>Escape hatches</h2>
+        <h2 className='text-display-ui-3 text-strong'>Escape hatch — render</h2>
         <p className='text-subtle'>
           The <Code>href</Code> path covers the happy case. For full control
-          over the rendered element, every component still exposes its existing
-          polymorphism API. Per{' '}
+          over the rendered element, every Roadie component accepts the same{' '}
+          <Code>render</Code> prop — element form, component form, or function
+          form. The contract mirrors{' '}
           <Link
-            href='https://github.com/TicketSolutionsPtyLtd/roadie/blob/main/docs/contributing/BASE_UI.md'
+            href='https://base-ui.com/react/overview/composition'
             className='text-accent-11 underline'
           >
-            BASE_UI.md
-          </Link>{' '}
-          §3, Base UI consumers use <Code>render</Code>; non-Base-UI components
-          use <Code>as</Code>.
+            Base UI&apos;s render prop
+          </Link>
+          .
         </p>
 
-        <h3 className='text-display-ui-5 text-strong'>
-          Base UI components — <Code>render</Code>
-        </h3>
-        <CodePreview>{`{/* Button: anchor with a typed anchor-only DOM prop */}
+        <h3 className='text-display-ui-5 text-strong'>Element form</h3>
+        <CodePreview>{`{/* Card as a clickable button (no href, full element swap): */}
+<Card render={<button type='button' onClick={handleSelect} />}>
+  …
+</Card>
+
+{/* Button: typed access to anchor-only DOM props */}
 <Button render={<a href='/file.pdf' download='spec.pdf' />}>
   Download spec
 </Button>
 
-{/* Tabs.Tab: function form for state-aware rendering */}
-<Tabs.Tab
+{/* Breadcrumb.Link with a custom analytics-aware wrapper: */}
+<Breadcrumb.Link render={<MyTrackedLink analyticsId='breadcrumb' href='/x' />}>
+  Events
+</Breadcrumb.Link>`}</CodePreview>
+
+        <h3 className='text-display-ui-5 text-strong'>Function form</h3>
+        <p className='text-subtle'>
+          Receive the default props and return any element. Useful for
+          state-aware rendering or attribute composition.
+        </p>
+        <CodePreview>{`<Tabs.Tab
   value='events'
   render={(props, state) => (
     <a {...props} data-active={state.selected} href='/events' />
@@ -276,29 +288,23 @@ export function Providers({ children }) {
 >
   Events
 </Tabs.Tab>`}</CodePreview>
+
         <p className='text-subtle'>
-          When you pass both <Code>href</Code> and <Code>render</Code> to
-          Button, your <Code>render</Code> wins — Roadie&apos;s smart routing is
-          silently disabled. The component logs a one-shot dev-mode warning so
-          the conflict can&apos;t ship by accident. Pick one.
+          When you pass both <Code>href</Code> and <Code>render</Code>,{' '}
+          <Code>render</Code> wins — Roadie&apos;s smart routing is silently
+          disabled for that call. Button logs a one-shot dev warning so the
+          conflict can&apos;t ship by accident. Pick one.
         </p>
 
-        <h3 className='text-display-ui-5 text-strong'>
-          Non-Base-UI components — <Code>as</Code>
-        </h3>
-        <CodePreview>{`{/* Card as a button (clickable card without an href): */}
-<Card as='button' onClick={handleSelect}>
-  …
-</Card>
-
-{/* Card with a custom Link wrapper (bypasses provider routing): */}
-<Card as={MyCustomLink} href='/x' analyticsId='hero'>
-  …
-</Card>`}</CodePreview>
         <p className='text-subtle'>
-          <Code>as</Code> always wins over <Code>href</Code> smart routing on{' '}
+          <strong>
+            Legacy <Code>as</Code> prop:
+          </strong>{' '}
           <Code>Card</Code>, <Code>Breadcrumb.Link</Code>, and{' '}
-          <Code>Carousel.TitleLink</Code>.
+          <Code>Carousel.TitleLink</Code> previously exposed an <Code>as</Code>{' '}
+          prop for polymorphism. It continues to work for back-compat but is{' '}
+          <Code>@deprecated</Code> as of v2.6 and will be removed in v3.0.0 —
+          migrate to <Code>render</Code>.
         </p>
       </section>
 

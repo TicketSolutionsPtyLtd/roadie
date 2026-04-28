@@ -225,6 +225,53 @@ describe('Card', () => {
     })
   })
 
+  describe('render escape hatch', () => {
+    it('renders the element form, merging className', () => {
+      const { getByText } = render(
+        <Card render={<button type='button' className='extra' />}>
+          Click me
+        </Card>
+      )
+      const card = getByText('Click me')
+      expect(card.tagName.toLowerCase()).toBe('button')
+      expect(card).toHaveClass('rounded-xl', 'extra')
+    })
+
+    it('render wins over href smart-routing', () => {
+      const { getByText, queryByTestId } = render(
+        <RoadieLinkProvider Link={StubLink}>
+          <Card href='/x' render={<a href='/y' data-custom='1' />}>
+            Custom
+          </Card>
+        </RoadieLinkProvider>
+      )
+      expect(queryByTestId('stub-link')).toBeNull()
+      const card = getByText('Custom')
+      expect(card.tagName.toLowerCase()).toBe('a')
+      expect(card).toHaveAttribute('href', '/y')
+      expect(card).toHaveAttribute('data-custom', '1')
+    })
+
+    it('supports the function form with default props', () => {
+      const { getByText } = render(
+        <Card
+          render={(props) => (
+            <section
+              {...(props as React.HTMLAttributes<HTMLElement>)}
+              data-from-fn='1'
+            />
+          )}
+        >
+          Section
+        </Card>
+      )
+      const card = getByText('Section')
+      expect(card.tagName.toLowerCase()).toBe('section')
+      expect(card).toHaveAttribute('data-from-fn', '1')
+      expect(card).toHaveClass('rounded-xl')
+    })
+  })
+
   it('renders Description sub-component', () => {
     const { getByText } = render(
       <Card>

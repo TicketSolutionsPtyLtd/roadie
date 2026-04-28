@@ -1,17 +1,21 @@
-import type { ComponentProps, ElementType } from 'react'
+import type { ComponentProps, ElementType, ReactElement } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { type RoadieRenderProp, useRender } from '../../utils/useRender'
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 
 export type BreadcrumbLinkProps<T extends ElementType = 'a'> = {
+  /**
+   * @deprecated Use `render` instead. `as` will be removed in v3.0.0.
+   */
   as?: T
   /**
    * Pass an href to render the link as a routed anchor. Internal hrefs
    * route through the configured `RoadieLinkProvider`; external hrefs
    * (`http(s)://`, `//…`) render `<a target='_blank' rel='noopener noreferrer'>`;
-   * `mailto:` / `tel:` / `sms:` render plain `<a>`. `as` always wins —
-   * pass it to bypass provider routing.
+   * `mailto:` / `tel:` / `sms:` render plain `<a>`. `render` always
+   * wins — pass it to bypass provider routing.
    */
   href?: string
   /** Force external-link treatment when `href` is set. */
@@ -20,15 +24,19 @@ export type BreadcrumbLinkProps<T extends ElementType = 'a'> = {
   target?: string
   /** Override the auto `rel='noopener noreferrer'` default on external hrefs. */
   rel?: string
+  /**
+   * Escape hatch — swap the underlying element with full control over
+   * the rendered shape.
+   */
+  render?: RoadieRenderProp
   className?: string
-} & Omit<ComponentProps<T>, 'as' | 'className'>
+} & Omit<ComponentProps<T>, 'as' | 'className' | 'render'>
 
 /**
  * BreadcrumbLink stays server-safe — `RoadieRoutedLink` is the
  * `'use client'` boundary and only loads when `href` is set without
- * `as`. The `as` prop is the documented escape hatch for non-Base-UI
- * polymorphism (BASE_UI.md §3) and always wins over `href` smart
- * routing.
+ * `render`. Pass `render` (element / component / function form) for
+ * full control. The legacy `as` prop is `@deprecated`.
  */
 export function BreadcrumbLink<T extends ElementType = 'a'>({
   as,
@@ -37,18 +45,48 @@ export function BreadcrumbLink<T extends ElementType = 'a'>({
   external,
   target,
   rel,
+  render,
   ...props
-}: BreadcrumbLinkProps<T>) {
-  const linkClassName = cn(
+}: BreadcrumbLinkProps<T>): ReactElement {
+  const finalClassName = cn(
     'text-subtle transition-colors hover:text-normal',
     className
   )
 
-  if (!as && href !== undefined) {
+  if (render !== undefined) {
+    return useRender(
+      'a',
+      {
+        'data-slot': 'breadcrumb-link',
+        className: finalClassName,
+        ...(href !== undefined && { href }),
+        ...(target !== undefined && { target }),
+        ...(rel !== undefined && { rel }),
+        ...(props as Record<string, unknown>)
+      },
+      render
+    )
+  }
+
+  // Legacy `as` path — back-compat only.
+  if (as) {
+    const Component = as as ElementType
+    const passthroughProps = {
+      'data-slot': 'breadcrumb-link',
+      className: finalClassName,
+      ...(href !== undefined && { href }),
+      ...(target !== undefined && { target }),
+      ...(rel !== undefined && { rel }),
+      ...(props as Record<string, unknown>)
+    }
+    return <Component {...passthroughProps} />
+  }
+
+  if (href !== undefined) {
     return (
       <RoadieRoutedLink
         data-slot='breadcrumb-link'
-        className={linkClassName}
+        className={finalClassName}
         href={href}
         external={external}
         target={target}
@@ -58,18 +96,11 @@ export function BreadcrumbLink<T extends ElementType = 'a'>({
     )
   }
 
-  const Component = as || 'a'
-  const passthroughProps = {
-    ...(href !== undefined && { href }),
-    ...(target !== undefined && { target }),
-    ...(rel !== undefined && { rel }),
-    ...props
-  }
   return (
-    <Component
+    <a
       data-slot='breadcrumb-link'
-      className={linkClassName}
-      {...passthroughProps}
+      className={finalClassName}
+      {...(props as ComponentProps<'a'>)}
     />
   )
 }
