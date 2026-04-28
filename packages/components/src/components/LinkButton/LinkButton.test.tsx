@@ -68,6 +68,15 @@ describe('LinkButton', () => {
     expect(getByText('Custom')).toHaveClass('custom-class')
   })
 
+  it('preserves brand-secondary intent literal', () => {
+    const { getByText } = render(
+      <LinkButton href='/' intent='brand-secondary'>
+        Brand2
+      </LinkButton>
+    )
+    expect(getByText('Brand2')).toHaveClass('intent-brand-secondary')
+  })
+
   it('renders with a custom component via as prop', () => {
     function CustomLink(props: React.ComponentProps<'a'>) {
       return <a data-custom='true' {...props} />

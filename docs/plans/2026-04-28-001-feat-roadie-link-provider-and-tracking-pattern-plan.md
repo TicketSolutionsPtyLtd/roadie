@@ -455,7 +455,7 @@ for every smart-href component.
 
 ---
 
-- [ ] **Unit 3: `Button` and `IconButton` accept `href`**
+- [x] **Unit 3: `Button` and `IconButton` accept `href`**
 
 **Goal:** Make `<Button href='/x'>` and `<Button href='https://…'>` work
 with router-aware behavior, while preserving existing `render={…}`
@@ -510,7 +510,7 @@ escape hatch and the Base UI `nativeButton` contract.
 
 ---
 
-- [ ] **Unit 4: `LinkButton` / `LinkIconButton` deprecation**
+- [x] **Unit 4: `LinkButton` / `LinkIconButton` deprecation**
 
 **Goal:** Collapse `LinkButton` and `LinkIconButton` into thin
 type-preserving wrappers around `Button` and `IconButton` that keep the
