@@ -529,6 +529,84 @@ describe('Carousel', () => {
     expect(link).toHaveAttribute('href', '/events')
   })
 
+  it('Carousel.TitleLink preserves trailing arrow when render element has its own children', () => {
+    // Regression: COR-001 — element-form render carrying children would
+    // drop the decorative ArrowRightIcon because mergeProps' override
+    // rule replaced default children with render-element children.
+    const { getByText, container } = render(
+      <Carousel aria-label='test'>
+        <Carousel.Header>
+          <Carousel.TitleLink render={<a href='/all'>See all</a>}>
+            Events
+          </Carousel.TitleLink>
+        </Carousel.Header>
+        <Carousel.Content>
+          <Carousel.Item>1</Carousel.Item>
+        </Carousel.Content>
+      </Carousel>
+    )
+    expect(getByText('See all')).toBeInTheDocument()
+    // ArrowRightIcon renders as an <svg>; assert one exists inside the
+    // title-link slot specifically.
+    const titleLink = container.querySelector(
+      '[data-slot="carousel-title-link"]'
+    )
+    expect(titleLink?.querySelector('svg')).toBeInTheDocument()
+  })
+
+  it('Carousel.TitleLink render escape hatch wins over href smart-routing', () => {
+    const { getByText } = render(
+      <Carousel aria-label='test'>
+        <Carousel.Header>
+          <Carousel.TitleLink
+            href='/x'
+            render={<a href='/y' data-custom='1' />}
+          >
+            Title
+          </Carousel.TitleLink>
+        </Carousel.Header>
+        <Carousel.Content>
+          <Carousel.Item>1</Carousel.Item>
+        </Carousel.Content>
+      </Carousel>
+    )
+    const link = getByText(/Title/)
+    expect(link).toHaveAttribute('href', '/y')
+    expect(link).toHaveAttribute('data-custom', '1')
+    expect(link).toHaveClass('text-display-ui-5')
+  })
+
+  it('Carousel.TitleLink href routes through configured RoadieLinkProvider', async () => {
+    const { RoadieLinkProvider } = await import(
+      '../../providers/RoadieLinkProvider'
+    )
+    const StubLink = ({
+      href,
+      children,
+      ...rest
+    }: {
+      href: string
+      children?: React.ReactNode
+    }) => (
+      <a data-testid='stub-link' href={href} {...rest}>
+        {children}
+      </a>
+    )
+    const { getByTestId } = render(
+      <RoadieLinkProvider Link={StubLink}>
+        <Carousel aria-label='test'>
+          <Carousel.Header>
+            <Carousel.TitleLink href='/events'>Events</Carousel.TitleLink>
+          </Carousel.Header>
+          <Carousel.Content>
+            <Carousel.Item>1</Carousel.Item>
+          </Carousel.Content>
+        </Carousel>
+      </RoadieLinkProvider>
+    )
+    expect(getByTestId('stub-link')).toHaveAttribute('href', '/events')
+  })
+
   it('root aria-labelledby points to Carousel.Title id', () => {
     const { getByRole } = render(
       <Carousel aria-label='fallback'>

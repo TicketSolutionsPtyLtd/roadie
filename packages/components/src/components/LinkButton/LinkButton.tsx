@@ -35,6 +35,16 @@ export type LinkButtonProps<T extends ElementType = 'a'> = {
   className?: string
 } & Omit<ComponentProps<T>, 'as' | 'intent' | 'emphasis' | 'size' | 'className'>
 
+/**
+ * A link styled as a button.
+ *
+ * @deprecated Use `<Button href={…}>` instead and wire
+ * `RoadieLinkProvider` at the app root for client-side routing. This
+ * export remains for backwards compatibility and will be removed in
+ * v3.0.0. The new `<Button href>` API picks the right element, applies
+ * external-link safety attributes, and routes through the configured
+ * Link automatically — see the Linking foundations docs page.
+ */
 export function LinkButton<T extends ElementType = 'a'>({
   as,
   className,

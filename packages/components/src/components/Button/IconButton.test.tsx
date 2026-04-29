@@ -102,4 +102,71 @@ describe('IconButton', () => {
     )
     expect(getByRole('button')).toHaveClass('custom-class')
   })
+
+  it('inherits href routing from Button — renders as anchor with icon size', () => {
+    const { getByLabelText } = render(
+      <IconButton aria-label='Cart' href='/cart'>
+        +
+      </IconButton>
+    )
+    const link = getByLabelText('Cart')
+    expect(link.tagName.toLowerCase()).toBe('a')
+    expect(link).toHaveAttribute('href', '/cart')
+    expect(link).toHaveClass('btn-icon-md', 'is-interactive')
+  })
+
+  describe('size prop', () => {
+    it('accepts plain sizes (xs/sm/md/lg) and maps to icon-* classes', () => {
+      const { rerender, getByRole } = render(
+        <IconButton size='xs' aria-label='XS'>
+          +
+        </IconButton>
+      )
+      expect(getByRole('button')).toHaveClass('btn-icon-xs')
+
+      rerender(
+        <IconButton size='sm' aria-label='SM'>
+          +
+        </IconButton>
+      )
+      expect(getByRole('button')).toHaveClass('btn-icon-sm')
+
+      rerender(
+        <IconButton size='md' aria-label='MD'>
+          +
+        </IconButton>
+      )
+      expect(getByRole('button')).toHaveClass('btn-icon-md')
+
+      rerender(
+        <IconButton size='lg' aria-label='LG'>
+          +
+        </IconButton>
+      )
+      expect(getByRole('button')).toHaveClass('btn-icon-lg')
+    })
+
+    it('still accepts legacy icon-* aliases for backwards compatibility', () => {
+      const { rerender, getByRole } = render(
+        <IconButton size='icon-sm' aria-label='SM'>
+          +
+        </IconButton>
+      )
+      expect(getByRole('button')).toHaveClass('btn-icon-sm')
+
+      rerender(
+        <IconButton size='icon-lg' aria-label='LG'>
+          +
+        </IconButton>
+      )
+      expect(getByRole('button')).toHaveClass('btn-icon-lg')
+    })
+
+    it('defaults to md', () => {
+      const { getByRole } = render(
+        <IconButton aria-label='Default'>+</IconButton>
+      )
+      expect(getByRole('button')).toHaveClass('btn-icon-md')
+    })
+  })
 })

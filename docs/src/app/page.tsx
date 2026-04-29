@@ -159,6 +159,18 @@ export default function Home() {
             }
           />
           <FoundationCard
+            href='/foundations/linking'
+            title='Linking'
+            description='Smart href, RoadieLinkProvider, and tracking pattern'
+            preview={
+              <div className='flex items-center gap-2 text-subtle'>
+                <Code>href</Code>
+                <ArrowRightIcon weight='bold' className='size-4' />
+                <Code>{'<a>'}</Code>
+              </div>
+            }
+          />
+          <FoundationCard
             href='/foundations/iconography'
             title='Iconography'
             description='Phosphor Bold icons and sizing'

@@ -50,24 +50,26 @@ Always provide an `aria-label` since there is no visible text.
 
 ### Sizes
 
-The default size is `icon-md`. All sizes maintain square proportions.
+The default size is `md`. All sizes maintain square proportions.
 
 ```tsx-live
 <div className='flex flex-row flex-wrap items-center gap-2'>
-  <IconButton aria-label='Extra small' size='icon-xs'>
+  <IconButton aria-label='Extra small' size='xs'>
     <Heart weight='bold' />
   </IconButton>
-  <IconButton aria-label='Small' size='icon-sm'>
+  <IconButton aria-label='Small' size='sm'>
     <Heart weight='bold' />
   </IconButton>
-  <IconButton aria-label='Medium' size='icon-md'>
+  <IconButton aria-label='Medium' size='md'>
     <Heart weight='bold' />
   </IconButton>
-  <IconButton aria-label='Large' size='icon-lg'>
+  <IconButton aria-label='Large' size='lg'>
     <Heart weight='bold' />
   </IconButton>
 </div>
 ```
+
+The legacy `icon-xs` / `icon-sm` / `icon-md` / `icon-lg` size literals are still accepted for backwards compatibility (marked `@deprecated` in TypeScript) but new code should use the plain `xs` / `sm` / `md` / `lg` names above.
 
 ### Intents
 
@@ -109,9 +111,49 @@ The default size is `icon-md`. All sizes maintain square proportions.
 </div>
 ```
 
+### Href
+
+Pass `href` to render the icon button as a routed anchor. Roadie picks the right element + safety attributes based on the href shape: internal routes go through your configured [`RoadieLinkProvider`](/foundations/linking); external (`https://…`) auto-render with `target='_blank' rel='noopener noreferrer'`; protocol hrefs (`mailto:` / `tel:` / `sms:`) render plain anchors.
+
+```tsx-live
+<div className='flex flex-row flex-wrap items-center gap-3'>
+  {/* Internal — routes through RoadieLinkProvider */}
+  <IconButton aria-label='View cart' href='/cart' emphasis='strong' intent='accent'>
+    <ShoppingCart weight='bold' />
+  </IconButton>
+
+  {/* External — auto target='_blank' rel='noopener noreferrer' */}
+  <IconButton aria-label='Open Oztix in a new tab' href='https://oztix.com.au' emphasis='normal'>
+    <ArrowSquareOut weight='bold' />
+  </IconButton>
+
+  {/* Protocol — plain <a>, no target/rel */}
+  <IconButton aria-label='Email support' href='mailto:hello@oztix.com.au' emphasis='subtle'>
+    <Envelope weight='bold' />
+  </IconButton>
+
+  {/* Protocol — plain <a> */}
+  <IconButton aria-label='Call support' href='tel:+61400000000' emphasis='subtle'>
+    <Phone weight='bold' />
+  </IconButton>
+</div>
+```
+
+Hover each button — the browser status bar shows the resolved `href` exactly as Roadie rendered it (note the `mailto:` / `tel:` URLs vs the routed paths). See [Linking](/foundations/linking) for the full reference, including `external` / `target` / `rel` overrides.
+
+### Escape hatch
+
+For typed access to anchor-only DOM props (e.g. `download` on a file link) or full element control, use Base UI's `render` prop. Passing both `href` and `render` triggers a one-shot dev warning — `render` wins.
+
+```tsx-live
+<IconButton aria-label='Download spec' render={<a href='/spec.pdf' download='spec.pdf' />}>
+  <Download weight='bold' />
+</IconButton>
+```
+
 ## Guidelines
 
 - Always provide an `aria-label` to describe the action since there is no visible text.
-- For icon links that navigate, use [LinkIconButton](/components/link-icon-button) instead.
+- For icon links that navigate, prefer `<IconButton href={…}>` and wire [`RoadieLinkProvider`](/foundations/linking) at the app root. The legacy [LinkIconButton](/components/link-icon-button) component is `@deprecated` and will be removed in v3.0.0.
 
 <PropsDefinitions componentPath='packages/components/src/components/Button/IconButton.tsx' />

@@ -43,7 +43,7 @@ describe('LinkIconButton', () => {
     expect(getByRole('link')).toHaveClass('emphasis-strong', 'intent-accent')
   })
 
-  it('renders with different sizes', () => {
+  it('renders with different sizes (legacy icon-* aliases)', () => {
     const { rerender, getByRole } = render(
       <LinkIconButton href='/' size='icon-sm' aria-label='Small'>
         +
@@ -57,6 +57,31 @@ describe('LinkIconButton', () => {
       </LinkIconButton>
     )
     expect(getByRole('link')).toHaveClass('btn-icon-lg')
+  })
+
+  it('accepts plain size names (xs/sm/md/lg)', () => {
+    const { rerender, getByRole } = render(
+      <LinkIconButton href='/' size='sm' aria-label='Small'>
+        +
+      </LinkIconButton>
+    )
+    expect(getByRole('link')).toHaveClass('btn-icon-sm')
+
+    rerender(
+      <LinkIconButton href='/' size='lg' aria-label='Large'>
+        +
+      </LinkIconButton>
+    )
+    expect(getByRole('link')).toHaveClass('btn-icon-lg')
+  })
+
+  it('defaults to md', () => {
+    const { getByRole } = render(
+      <LinkIconButton href='/' aria-label='Default'>
+        +
+      </LinkIconButton>
+    )
+    expect(getByRole('link')).toHaveClass('btn-icon-md')
   })
 
   it('renders with different intents', () => {

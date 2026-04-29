@@ -2,6 +2,16 @@ import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { Card } from '.'
+import {
+  type RoadieLinkComponent,
+  RoadieLinkProvider
+} from '../../providers/RoadieLinkProvider'
+
+const StubLink: RoadieLinkComponent = ({ href, children, ...rest }) => (
+  <a data-testid='stub-link' href={href} {...rest}>
+    {children}
+  </a>
+)
 
 describe('Card', () => {
   it('Card and Card.Root are the same component reference', () => {
@@ -154,6 +164,104 @@ describe('Card', () => {
     expect(title).toBeInTheDocument()
     expect(title.tagName.toLowerCase()).toBe('h3')
     expect(title).toHaveClass('text-display-ui-6', 'text-strong')
+  })
+
+  describe('href routing', () => {
+    it('renders as anchor when href is set without as', () => {
+      const { getByText } = render(<Card href='/event/123'>Event</Card>)
+      const card = getByText('Event')
+      expect(card.tagName.toLowerCase()).toBe('a')
+      expect(card).toHaveAttribute('href', '/event/123')
+      expect(card).toHaveClass('is-interactive')
+    })
+
+    it('routes through configured Link when provider is wired', () => {
+      const { getByTestId } = render(
+        <RoadieLinkProvider Link={StubLink}>
+          <Card href='/event/123'>Event</Card>
+        </RoadieLinkProvider>
+      )
+      const card = getByTestId('stub-link')
+      expect(card).toHaveAttribute('href', '/event/123')
+      expect(card).toHaveClass('is-interactive')
+    })
+
+    it('as prop wins over href smart-routing (back-compat)', () => {
+      const { getByText, queryByTestId } = render(
+        <RoadieLinkProvider Link={StubLink}>
+          <Card as='a' href='/event'>
+            Event
+          </Card>
+        </RoadieLinkProvider>
+      )
+      // Provider Link must NOT be invoked when `as` is explicit
+      expect(queryByTestId('stub-link')).toBeNull()
+      const card = getByText('Event')
+      expect(card.tagName.toLowerCase()).toBe('a')
+      expect(card).toHaveAttribute('href', '/event')
+    })
+  })
+
+  describe('render escape hatch', () => {
+    it('renders the element form, merging className', () => {
+      const { getByText } = render(
+        <Card render={<button type='button' className='extra' />}>
+          Click me
+        </Card>
+      )
+      const card = getByText('Click me')
+      expect(card.tagName.toLowerCase()).toBe('button')
+      expect(card).toHaveClass('rounded-xl', 'extra')
+    })
+
+    it('render wins over href smart-routing', () => {
+      const { getByText, queryByTestId } = render(
+        <RoadieLinkProvider Link={StubLink}>
+          <Card href='/x' render={<a href='/y' data-custom='1' />}>
+            Custom
+          </Card>
+        </RoadieLinkProvider>
+      )
+      expect(queryByTestId('stub-link')).toBeNull()
+      const card = getByText('Custom')
+      expect(card.tagName.toLowerCase()).toBe('a')
+      expect(card).toHaveAttribute('href', '/y')
+      expect(card).toHaveAttribute('data-custom', '1')
+    })
+
+    it('adds is-interactive when render carries onClick (ADV-003)', () => {
+      // Regression: previously isInteractive looked only at outer
+      // onClick. With render={<button onClick=…/>} the click handler
+      // lived inside the render element, so the cursor/focus-ring/scale
+      // styles silently dropped.
+      const { getByText } = render(
+        <Card render={<button type='button' onClick={() => {}} />}>
+          Click me
+        </Card>
+      )
+      const card = getByText('Click me')
+      expect(card.tagName.toLowerCase()).toBe('button')
+      expect(card).toHaveClass('is-interactive')
+    })
+
+    it('supports the function form with default props', () => {
+      const { getByText } = render(
+        <Card
+          render={(props) => (
+            <section
+              {...(props as React.HTMLAttributes<HTMLElement>)}
+              data-from-fn='1'
+            />
+          )}
+        >
+          Section
+        </Card>
+      )
+      const card = getByText('Section')
+      expect(card.tagName.toLowerCase()).toBe('section')
+      expect(card).toHaveAttribute('data-from-fn', '1')
+      expect(card).toHaveClass('rounded-xl')
+    })
   })
 
   it('renders Description sub-component', () => {

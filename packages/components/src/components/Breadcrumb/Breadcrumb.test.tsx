@@ -2,6 +2,16 @@ import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { Breadcrumb } from '.'
+import {
+  type RoadieLinkComponent,
+  RoadieLinkProvider
+} from '../../providers/RoadieLinkProvider'
+
+const StubLink: RoadieLinkComponent = ({ href, children, ...rest }) => (
+  <a data-testid='stub-link' href={href} {...rest}>
+    {children}
+  </a>
+)
 
 describe('Breadcrumb', () => {
   it('Breadcrumb and Breadcrumb.Root are the same component reference', () => {
@@ -152,6 +162,72 @@ describe('Breadcrumb', () => {
     expect(link).toHaveAttribute('data-custom', 'true')
     expect(link).toHaveAttribute('href', '/home')
     expect(link).toHaveClass('text-subtle')
+  })
+
+  describe('Link href routing', () => {
+    it('routes through configured Link when href is set without as', () => {
+      const { getByTestId } = render(
+        <RoadieLinkProvider Link={StubLink}>
+          <Breadcrumb>
+            <Breadcrumb.List>
+              <Breadcrumb.Item>
+                <Breadcrumb.Link href='/events'>Events</Breadcrumb.Link>
+              </Breadcrumb.Item>
+            </Breadcrumb.List>
+          </Breadcrumb>
+        </RoadieLinkProvider>
+      )
+      const link = getByTestId('stub-link')
+      expect(link).toHaveAttribute('href', '/events')
+      expect(link).toHaveClass('text-subtle')
+    })
+
+    it('as prop wins over href smart-routing (back-compat)', () => {
+      function CustomLink(props: React.ComponentProps<'a'>) {
+        return <a data-custom='true' {...props} />
+      }
+      const { getByText, queryByTestId } = render(
+        <RoadieLinkProvider Link={StubLink}>
+          <Breadcrumb>
+            <Breadcrumb.List>
+              <Breadcrumb.Item>
+                <Breadcrumb.Link as={CustomLink} href='/x'>
+                  X
+                </Breadcrumb.Link>
+              </Breadcrumb.Item>
+            </Breadcrumb.List>
+          </Breadcrumb>
+        </RoadieLinkProvider>
+      )
+      expect(queryByTestId('stub-link')).toBeNull()
+      const link = getByText('X')
+      expect(link).toHaveAttribute('data-custom', 'true')
+      expect(link).toHaveAttribute('href', '/x')
+    })
+
+    it('render escape hatch wins over href smart-routing', () => {
+      const { getByText, queryByTestId } = render(
+        <RoadieLinkProvider Link={StubLink}>
+          <Breadcrumb>
+            <Breadcrumb.List>
+              <Breadcrumb.Item>
+                <Breadcrumb.Link
+                  href='/x'
+                  render={<a href='/y' data-custom='1' />}
+                >
+                  Y
+                </Breadcrumb.Link>
+              </Breadcrumb.Item>
+            </Breadcrumb.List>
+          </Breadcrumb>
+        </RoadieLinkProvider>
+      )
+      expect(queryByTestId('stub-link')).toBeNull()
+      const link = getByText('Y')
+      expect(link).toHaveAttribute('href', '/y')
+      expect(link).toHaveAttribute('data-custom', '1')
+      expect(link).toHaveClass('text-subtle')
+    })
   })
 
   it('applies custom className to sub-components', () => {
