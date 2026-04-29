@@ -111,17 +111,28 @@ Hover and focus states use the intent color scale automatically via `is-interact
 
 ### Href
 
-Pass `href` to render the button as a routed anchor. Internal hrefs route through your configured [`RoadieLinkProvider`](/foundations/linking); external hrefs (`https://…`, `//…`) automatically render with `target='_blank' rel='noopener noreferrer'`; `mailto:` / `tel:` / `sms:` render plain anchors with no target.
+Pass `href` to render the button as a routed anchor. Roadie picks the right element + safety attributes based on the href shape: internal routes go through your configured [`RoadieLinkProvider`](/foundations/linking); external hrefs (`https://…`, `//…`) auto-render with `target='_blank' rel='noopener noreferrer'`; protocol hrefs (`mailto:` / `tel:` / `sms:`) render plain anchors.
 
 ```tsx-live
 <div className='flex flex-row flex-wrap items-center gap-2'>
-  <Button href='#' emphasis='strong' intent='accent'>Internal link</Button>
-  <Button href='https://oztix.com.au' emphasis='normal'>External</Button>
-  <Button href='mailto:hello@oztix.com.au' emphasis='subtle'>Email</Button>
+  {/* Internal — routes through RoadieLinkProvider */}
+  <Button href='/checkout' emphasis='strong' intent='accent'>Checkout</Button>
+
+  {/* External — auto target='_blank' rel='noopener noreferrer' */}
+  <Button href='https://oztix.com.au' emphasis='normal'>
+    Open Oztix
+    <ArrowSquareOut weight='bold' className='size-4' />
+  </Button>
+
+  {/* Protocol — plain <a>, no target/rel */}
+  <Button href='mailto:hello@oztix.com.au' emphasis='subtle'>
+    <Envelope weight='bold' className='size-4' />
+    Email us
+  </Button>
 </div>
 ```
 
-See [Linking](/foundations/linking) for the full reference: provider setup, the external/internal/protocol decision tree, and the `external`/`target`/`rel` overrides.
+Hover each button — the browser status bar shows the resolved `href` exactly as Roadie rendered it. See [Linking](/foundations/linking) for the full reference: provider setup, the external/internal/protocol decision tree, and the `external`/`target`/`rel` overrides.
 
 ### Escape hatch
 

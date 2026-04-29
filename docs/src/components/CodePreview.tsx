@@ -7,12 +7,15 @@ import Link from 'next/link'
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
+  ArrowSquareOutIcon,
   CaretDownIcon,
   CaretLeftIcon,
   CaretRightIcon,
   CaretUpIcon,
   CheckCircleIcon,
   CopyIcon,
+  DownloadIcon,
+  EnvelopeIcon,
   EyeIcon,
   EyeSlashIcon,
   GearIcon,
@@ -22,8 +25,10 @@ import {
   MinusIcon,
   PauseIcon,
   PencilSimpleIcon,
+  PhoneIcon,
   PlayIcon,
   PlusIcon,
+  ShoppingCartIcon,
   StarIcon,
   TrashIcon,
   WarningIcon,
@@ -50,6 +55,7 @@ const PhosphorIcons = {
   CaretRight: CaretRightIcon,
   ArrowRight: ArrowRightIcon,
   ArrowLeft: ArrowLeftIcon,
+  ArrowSquareOut: ArrowSquareOutIcon,
   Heart: HeartIcon,
   MagnifyingGlass: MagnifyingGlassIcon,
   Gear: GearIcon,
@@ -58,7 +64,11 @@ const PhosphorIcons = {
   Eye: EyeIcon,
   EyeSlash: EyeSlashIcon,
   Pause: PauseIcon,
-  Play: PlayIcon
+  Play: PlayIcon,
+  Envelope: EnvelopeIcon,
+  Phone: PhoneIcon,
+  ShoppingCart: ShoppingCartIcon,
+  Download: DownloadIcon
 }
 
 const scope = {

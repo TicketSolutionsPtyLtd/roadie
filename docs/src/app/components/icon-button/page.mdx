@@ -113,31 +113,41 @@ The legacy `icon-xs` / `icon-sm` / `icon-md` / `icon-lg` size literals are still
 
 ### Href
 
-Pass `href` to render the icon button as a routed anchor. Internal hrefs route through your configured [`RoadieLinkProvider`](/foundations/linking); external hrefs auto-render with `target='_blank' rel='noopener noreferrer'`; `mailto:` / `tel:` / `sms:` render plain anchors with no target.
+Pass `href` to render the icon button as a routed anchor. Roadie picks the right element + safety attributes based on the href shape: internal routes go through your configured [`RoadieLinkProvider`](/foundations/linking); external (`https://…`) auto-render with `target='_blank' rel='noopener noreferrer'`; protocol hrefs (`mailto:` / `tel:` / `sms:`) render plain anchors.
 
 ```tsx-live
-<div className='flex flex-row flex-wrap items-center gap-2'>
-  <IconButton aria-label='Search' href='/search' emphasis='strong' intent='accent'>
-    <MagnifyingGlass weight='bold' />
+<div className='flex flex-row flex-wrap items-center gap-3'>
+  {/* Internal — routes through RoadieLinkProvider */}
+  <IconButton aria-label='View cart' href='/cart' emphasis='strong' intent='accent'>
+    <ShoppingCart weight='bold' />
   </IconButton>
-  <IconButton aria-label='Docs' href='https://oztix.com.au' emphasis='subtle'>
-    <ArrowRight weight='bold' />
+
+  {/* External — auto target='_blank' rel='noopener noreferrer' */}
+  <IconButton aria-label='Open Oztix in a new tab' href='https://oztix.com.au' emphasis='normal'>
+    <ArrowSquareOut weight='bold' />
   </IconButton>
-  <IconButton aria-label='Settings' href='/settings' emphasis='subtle'>
-    <Gear weight='bold' />
+
+  {/* Protocol — plain <a>, no target/rel */}
+  <IconButton aria-label='Email support' href='mailto:hello@oztix.com.au' emphasis='subtle'>
+    <Envelope weight='bold' />
+  </IconButton>
+
+  {/* Protocol — plain <a> */}
+  <IconButton aria-label='Call support' href='tel:+61400000000' emphasis='subtle'>
+    <Phone weight='bold' />
   </IconButton>
 </div>
 ```
 
-See [Linking](/foundations/linking) for the full reference.
+Hover each button — the browser status bar shows the resolved `href` exactly as Roadie rendered it (note the `mailto:` / `tel:` URLs vs the routed paths). See [Linking](/foundations/linking) for the full reference, including `external` / `target` / `rel` overrides.
 
 ### Escape hatch
 
-For typed access to anchor-only DOM props or full element control, use Base UI's `render` prop. Passing both `href` and `render` triggers a one-shot dev warning — `render` wins.
+For typed access to anchor-only DOM props (e.g. `download` on a file link) or full element control, use Base UI's `render` prop. Passing both `href` and `render` triggers a one-shot dev warning — `render` wins.
 
 ```tsx-live
-<IconButton aria-label='Edit profile' render={<a href='/profile' />}>
-  <PencilSimple weight='bold' />
+<IconButton aria-label='Download spec' render={<a href='/spec.pdf' download='spec.pdf' />}>
+  <Download weight='bold' />
 </IconButton>
 ```
 
