@@ -27,9 +27,12 @@ describe('isSafeRelativePath', () => {
     ['query with slashes', '/path?x=//evil'],
     ['dot-segments resolve same-origin', '/../../etc/passwd'],
     ['percent-encoded slashes are literal', '/%2F%2Fevil.com']
-  ])('still accepts %s (no over-rejection)', (_label: string, input: string) => {
-    expect(isSafeRelativePath(input)).toBe(true)
-  })
+  ])(
+    'still accepts %s (no over-rejection)',
+    (_label: string, input: string) => {
+      expect(isSafeRelativePath(input)).toBe(true)
+    }
+  )
 })
 
 describe('buildCheckoutUrl', () => {
