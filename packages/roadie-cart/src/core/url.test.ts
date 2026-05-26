@@ -15,9 +15,20 @@ describe('isSafeRelativePath', () => {
     ['empty', ''],
     ['no leading slash', 'outlet/extras'],
     ['backslash trick', '/\\evil.com'],
-    ['whitespace scheme', ' javascript:alert(1)']
+    ['whitespace scheme', ' javascript:alert(1)'],
+    ['embedded tab', '/\t/evil.com'],
+    ['embedded LF', '/\n/evil.com'],
+    ['embedded CR', '/\r/evil.com']
   ])('rejects %s', (_label: string, input: string) => {
     expect(isSafeRelativePath(input)).toBe(false)
+  })
+  it.each([
+    ['nested path', '/outlet/extras/abc'],
+    ['query with slashes', '/path?x=//evil'],
+    ['dot-segments resolve same-origin', '/../../etc/passwd'],
+    ['percent-encoded slashes are literal', '/%2F%2Fevil.com']
+  ])('still accepts %s (no over-rejection)', (_label: string, input: string) => {
+    expect(isSafeRelativePath(input)).toBe(true)
   })
 })
 
@@ -34,5 +45,8 @@ describe('buildCheckoutUrl', () => {
   })
   it('returns null for an unsafe extrasUrl', () => {
     expect(buildCheckoutUrl('https://h.example', 'https://evil.com')).toBeNull()
+  })
+  it('returns null for an embedded-tab open-redirect path', () => {
+    expect(buildCheckoutUrl('', '/\t/evil.com')).toBeNull()
   })
 })
