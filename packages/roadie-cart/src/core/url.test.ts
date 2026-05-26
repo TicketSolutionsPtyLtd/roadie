@@ -16,7 +16,7 @@ describe('isSafeRelativePath', () => {
     ['no leading slash', 'outlet/extras'],
     ['backslash trick', '/\\evil.com'],
     ['whitespace scheme', ' javascript:alert(1)']
-  ])('rejects %s', (_label, input) => {
+  ])('rejects %s', (_label: string, input: string) => {
     expect(isSafeRelativePath(input)).toBe(false)
   })
 })

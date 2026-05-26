@@ -34,8 +34,8 @@ describe('groupEventsByDay', () => {
     ]
     const groups = groupEventsByDay(events)
     expect(groups).toHaveLength(1)
-    expect(groups[0].key).toBe('2026-06-15')
-    expect(groups[0].events.map((e) => e.eventId)).toEqual(['a', 'b'])
+    expect(groups[0]?.key).toBe('2026-06-15')
+    expect(groups[0]?.events.map((e) => e.eventId)).toEqual(['a', 'b'])
   })
 
   it('orders groups and events by eventStartAtUtc ascending', () => {
