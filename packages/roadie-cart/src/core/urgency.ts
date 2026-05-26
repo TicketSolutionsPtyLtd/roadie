@@ -20,5 +20,8 @@ export function remainingSeconds(
   now: number
 ): number | null {
   if (!expiresAtUtc) return null
-  return Math.max(0, Math.floor((new Date(expiresAtUtc).getTime() - now) / 1000))
+  return Math.max(
+    0,
+    Math.floor((new Date(expiresAtUtc).getTime() - now) / 1000)
+  )
 }

@@ -17,7 +17,7 @@ describe('urgencyLevel', () => {
     [119, 'danger'],
     [1, 'danger'],
     [0, 'expired']
-  ])('remaining %s → %s', (rem, level) => {
+  ])('remaining %s → %s', (rem: number | null, level: UrgencyLevel) => {
     expect(urgencyLevel(rem)).toBe(level)
   })
 })
