@@ -8,8 +8,12 @@
     "type": "git",
     "url": "https://github.com/TicketSolutionsPtyLtd/roadie"
   },
-  "files": ["dist"],
-  "sideEffects": ["**/*.css"],
+  "files": [
+    "dist"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "exports": {
     "./core": {
       "types": "./dist/core/index.d.ts",
@@ -47,13 +51,27 @@
     "vue": "^3.5.0"
   },
   "peerDependenciesMeta": {
-    "react": { "optional": true },
-    "react-dom": { "optional": true },
-    "@oztix/roadie-components": { "optional": true },
-    "motion": { "optional": true },
-    "@number-flow/react": { "optional": true },
-    "react-focus-lock": { "optional": true },
-    "vue": { "optional": true }
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "@oztix/roadie-components": {
+      "optional": true
+    },
+    "motion": {
+      "optional": true
+    },
+    "@number-flow/react": {
+      "optional": true
+    },
+    "react-focus-lock": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@oztix/roadie-components": "workspace:*",
