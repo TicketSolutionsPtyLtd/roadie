@@ -1,7 +1,7 @@
-import { flushPromises } from '@vue/test-utils'
-import { defineComponent, h, nextTick, ref } from 'vue'
 import { render } from '@testing-library/vue'
+import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
+import { defineComponent, h, nextTick, ref } from 'vue'
 
 import type { CartClient, CartDetails, CartSummary } from '../core'
 import { buildCheckoutUrl } from '../core'
@@ -51,7 +51,11 @@ function mountComposable(
   const result: { value: ReturnType<typeof useCart> | null } = { value: null }
   const Comp = defineComponent({
     setup() {
-      result.value = useCart(cart, () => collectionId, () => refreshKey.value)
+      result.value = useCart(
+        cart,
+        () => collectionId,
+        () => refreshKey.value
+      )
       return () => h('div')
     }
   })

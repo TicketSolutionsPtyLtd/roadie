@@ -1,4 +1,4 @@
-import { onMounted, type Ref, shallowRef, watch } from 'vue'
+import { type Ref, onMounted, shallowRef, watch } from 'vue'
 
 import type { CartClient, CartDetails, CartSummary } from '../core'
 
