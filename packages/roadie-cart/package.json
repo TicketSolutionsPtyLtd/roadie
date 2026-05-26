@@ -45,6 +45,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "@oztix/roadie-components": "workspace:*",
+    "@tanstack/react-query": "^5.0.0",
     "motion": "^12.0.0",
     "@number-flow/react": "^0.5.0",
     "react-focus-lock": "^2.13.0",
@@ -58,6 +59,9 @@
       "optional": true
     },
     "@oztix/roadie-components": {
+      "optional": true
+    },
+    "@tanstack/react-query": {
       "optional": true
     },
     "motion": {
@@ -78,6 +82,7 @@
     "@oztix/roadie-core": "workspace:*",
     "@number-flow/react": "^0.5.14",
     "@testing-library/jest-dom": "6.9.1",
+    "@tanstack/react-query": "^5.62.0",
     "@testing-library/react": "^16.1.0",
     "@testing-library/vue": "^8.1.0",
     "@types/node": "22.10.2",
