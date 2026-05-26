@@ -33,7 +33,8 @@ export function CartEventGroup({
   // pre-formatted venue-local string, otherwise we render the wall-clock time.
   const start = new Date(event.eventStartAtUtc)
   const startValid = !Number.isNaN(start.getTime())
-  const timeLabel = event.eventDateDisplay ?? (startValid ? formatTime(start) : null)
+  const timeLabel =
+    event.eventDateDisplay ?? (startValid ? formatTime(start) : null)
 
   return (
     <div className='grid gap-3'>
@@ -119,7 +120,6 @@ function XIconTrash() {
       fill='currentColor'
       className='size-4'
       aria-hidden='true'
-      xmlns='http://www.w3.org/2000/svg'
     >
       <path d='M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192Z' />
     </svg>

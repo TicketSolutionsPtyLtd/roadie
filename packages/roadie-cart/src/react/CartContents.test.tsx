@@ -91,7 +91,9 @@ describe('CartContents', () => {
     )
     const checkout = screen.getByRole('button', { name: /checkout/i })
     fireEvent.click(checkout)
-    expect(onNavigate).toHaveBeenCalledWith('https://h.example/outlet/extras/c1')
+    expect(onNavigate).toHaveBeenCalledWith(
+      'https://h.example/outlet/extras/c1'
+    )
   })
 
   it('disables checkout when the URL is null (unsafe)', () => {

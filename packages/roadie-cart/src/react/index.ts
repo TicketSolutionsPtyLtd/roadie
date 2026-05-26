@@ -1,2 +1,2 @@
-// Phase 2 fills this barrel with the React cart skin.
-export {}
+export { CartDrawer } from './CartDrawer'
+export type { CartDrawerProps } from './CartDrawer'

@@ -18,17 +18,13 @@ const event: CartEvent = {
 
 describe('CartEventGroup', () => {
   it('renders event name and venue', () => {
-    render(
-      <CartEventGroup event={event} locale='en-AU' currency='AUD' />
-    )
+    render(<CartEventGroup event={event} locale='en-AU' currency='AUD' />)
     expect(screen.getByText('Night Show')).toBeInTheDocument()
     expect(screen.getByText('The Venue')).toBeInTheDocument()
   })
 
   it('formats ticket price with the injected currency (NZD, no hardcoded $/AUD)', () => {
-    render(
-      <CartEventGroup event={event} locale='en-NZ' currency='NZD' />
-    )
+    render(<CartEventGroup event={event} locale='en-NZ' currency='NZD' />)
     // 25.00 formatted as NZD in en-NZ. No literal "$25.00" AUD assumption —
     // the row pulls its currency from the injected formatter.
     const priceCell = screen.getByText((text) => text.includes('25.00'))
@@ -40,9 +36,7 @@ describe('CartEventGroup', () => {
       ...event,
       tickets: [{ name: 'Comp', quantity: 1, priceEach: 0 }]
     }
-    render(
-      <CartEventGroup event={freeEvent} locale='en-AU' currency='AUD' />
-    )
+    render(<CartEventGroup event={freeEvent} locale='en-AU' currency='AUD' />)
     expect(screen.getByText('Free')).toBeInTheDocument()
   })
 })

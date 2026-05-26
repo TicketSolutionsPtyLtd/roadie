@@ -8,7 +8,10 @@ interface CartEmptyStateProps {
   onNavigate: (href: string) => void
 }
 
-export function CartEmptyState({ browseHref, onNavigate }: CartEmptyStateProps) {
+export function CartEmptyState({
+  browseHref,
+  onNavigate
+}: CartEmptyStateProps) {
   // Roadie Button + onNavigate — no next/link. Routing is the consumer's job.
   return (
     <div className='grid gap-4'>
