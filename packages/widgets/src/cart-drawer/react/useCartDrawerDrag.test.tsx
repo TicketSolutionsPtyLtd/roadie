@@ -1,7 +1,7 @@
 import { type PointerEvent as ReactPointerEvent } from 'react'
 
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { useCartDrawerDrag } from './useCartDrawerDrag'
 
@@ -67,5 +67,20 @@ describe('useCartDrawerDrag', () => {
     // The original pointer releasing ends it.
     act(() => dispatchPointer('pointerup', 400, 1))
     expect(result.current.isDragging).toBe(false)
+  })
+
+  it('detaches window drag listeners when unmounted mid-drag', () => {
+    const removeSpy = vi.spyOn(window, 'removeEventListener')
+    const { result, unmount } = renderHook(() =>
+      useCartDrawerDrag({ initialState: 'closed' })
+    )
+    act(() => result.current.handleDragStart(dragStartEvent(500, 1)))
+    expect(result.current.isDragging).toBe(true)
+
+    unmount()
+    // pointermove is only ever removed by the drag cleanup — proves the
+    // in-flight listeners were detached rather than leaked.
+    expect(removeSpy).toHaveBeenCalledWith('pointermove', expect.any(Function))
+    removeSpy.mockRestore()
   })
 })

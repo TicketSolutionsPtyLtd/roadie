@@ -104,6 +104,10 @@ export function useCartDrawerDrag(
   // The pointer currently driving a drag (null when idle). Gates re-entry and
   // filters out events from other concurrent pointers (multi-touch).
   const activePointerIdRef = useRef<number | null>(null)
+  // Detaches the in-flight drag's window listeners. Held in a ref so an unmount
+  // mid-drag can clean up (otherwise the listeners leak and later fire against
+  // an orphaned closure).
+  const dragCleanupRef = useRef<(() => void) | null>(null)
 
   // Measurement guard: only accept header/footer observations while the
   // drawer is fully closed. When morphing (dragProgress > 0), the header
@@ -179,6 +183,8 @@ export function useCartDrawerDrag(
     return () => {
       headerObserverRef.current?.disconnect()
       footerObserverRef.current?.disconnect()
+      // Detach any drag listeners still live at unmount (drag in progress).
+      dragCleanupRef.current?.()
     }
   }, [])
 
@@ -229,6 +235,14 @@ export function useCartDrawerDrag(
       let velocity = 0
       setIsDragging(true)
 
+      const detach = () => {
+        window.removeEventListener('pointermove', onMove)
+        window.removeEventListener('pointerup', onUp)
+        window.removeEventListener('pointercancel', onUp)
+        activePointerIdRef.current = null
+        dragCleanupRef.current = null
+      }
+
       const onMove = (ev: PointerEvent) => {
         if (ev.pointerId !== pointerId) return
         const delta = startY - ev.clientY // positive = dragged up = opening
@@ -251,10 +265,7 @@ export function useCartDrawerDrag(
 
       const onUp = (ev: PointerEvent) => {
         if (ev.pointerId !== pointerId) return
-        window.removeEventListener('pointermove', onMove)
-        window.removeEventListener('pointerup', onUp)
-        window.removeEventListener('pointercancel', onUp)
-        activePointerIdRef.current = null
+        detach()
         setIsDragging(false)
 
         const currentHeight = dragHeight.get()
@@ -284,6 +295,7 @@ export function useCartDrawerDrag(
       window.addEventListener('pointermove', onMove)
       window.addEventListener('pointerup', onUp)
       window.addEventListener('pointercancel', onUp)
+      dragCleanupRef.current = detach
     },
     [closedHeight, maxHeight, dragHeight, state, snapTo]
   )

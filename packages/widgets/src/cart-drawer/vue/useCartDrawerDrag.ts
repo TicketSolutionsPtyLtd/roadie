@@ -95,6 +95,9 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
   // The pointer currently driving a drag (null when idle). Gates re-entry and
   // filters out events from other concurrent pointers (multi-touch).
   let activePointerId: number | null = null
+  // Detaches the in-flight drag's window listeners. Held so an unmount
+  // mid-drag can clean up instead of leaking listeners onto window.
+  let dragCleanup: (() => void) | null = null
 
   const isClosedEnoughToMeasure = () => progress.value < 0.05
 
@@ -155,6 +158,8 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
   onBeforeUnmount(() => {
     headerObserver?.disconnect()
     footerObserver?.disconnect()
+    // Detach any drag listeners still live at unmount (drag in progress).
+    dragCleanup?.()
     if (typeof window === 'undefined') return
     window.removeEventListener('resize', updateViewport)
     window.visualViewport?.removeEventListener('resize', updateViewport)
@@ -194,6 +199,14 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     let velocity = 0
     isDragging.value = true
 
+    const detach = () => {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+      window.removeEventListener('pointercancel', onUp)
+      activePointerId = null
+      dragCleanup = null
+    }
+
     const onMove = (ev: PointerEvent) => {
       if (ev.pointerId !== pointerId) return
       const delta = startY - ev.clientY // positive = dragged up = opening
@@ -213,10 +226,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
 
     const onUp = (ev: PointerEvent) => {
       if (ev.pointerId !== pointerId) return
-      window.removeEventListener('pointermove', onMove)
-      window.removeEventListener('pointerup', onUp)
-      window.removeEventListener('pointercancel', onUp)
-      activePointerId = null
+      detach()
       isDragging.value = false
 
       const currentHeight = dragHeight.value
@@ -244,6 +254,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     window.addEventListener('pointermove', onMove)
     window.addEventListener('pointerup', onUp)
     window.addEventListener('pointercancel', onUp)
+    dragCleanup = detach
   }
 
   return {
