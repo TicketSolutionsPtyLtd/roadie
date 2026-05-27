@@ -2,7 +2,7 @@
 
 import { IconButton } from '@oztix/roadie-components'
 
-import { type CartEvent, formatCurrency } from '../core'
+import { type CartEvent, formatCurrency, isSafeImageUrl } from '../core'
 import { ClockIcon, MapPinIcon } from './icons'
 
 interface CartEventGroupProps {
@@ -35,6 +35,9 @@ export function CartEventGroup({
   const startValid = !Number.isNaN(start.getTime())
   const timeLabel =
     event.eventDateDisplay ?? (startValid ? formatTime(start) : null)
+  // Only render API-supplied images from absolute http(s) URLs — a hostile API
+  // could otherwise beacon viewers via a protocol-relative tracking pixel.
+  const safeImageUrl = isSafeImageUrl(event.imageUrl) ? event.imageUrl : null
 
   return (
     <div className='grid gap-3'>
@@ -54,11 +57,9 @@ export function CartEventGroup({
             </div>
           </div>
         </div>
-        {event.imageUrl && (
-          // Plain <img>: CORS isn't needed for display, only that the URL is
-          // absolute / resolvable from the consuming origin (design contract).
+        {safeImageUrl && (
           <img
-            src={event.imageUrl}
+            src={safeImageUrl}
             alt={event.eventName}
             className='size-20 shrink-0 rounded-lg bg-subtle object-cover'
           />

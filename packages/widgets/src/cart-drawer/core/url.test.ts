@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildCheckoutUrl, isSafeRelativePath } from './url'
+import { buildCheckoutUrl, isSafeImageUrl, isSafeRelativePath } from './url'
 
 /** Build `/<ctrl>/evil.com` without putting literal control bytes in source. */
 const withCtrl = (code: number): string =>
@@ -43,6 +43,31 @@ describe('isSafeRelativePath', () => {
       expect(isSafeRelativePath(input)).toBe(true)
     }
   )
+})
+
+describe('isSafeImageUrl', () => {
+  it.each([
+    ['https', 'https://cdn.example/img.jpg'],
+    ['http', 'http://cdn.example/img.jpg']
+  ])('accepts absolute %s url', (_label: string, input: string) => {
+    expect(isSafeImageUrl(input)).toBe(true)
+  })
+  it.each([
+    ['protocol-relative', '//attacker.example/pixel.gif'],
+    ['data uri', 'data:image/gif;base64,R0lGOD'],
+    ['javascript', 'javascript:alert(1)'],
+    ['relative path', '/images/x.jpg'],
+    ['bare host', 'cdn.example/x.jpg'],
+    ['empty', ''],
+    ['leading space', ' https://cdn.example/x.jpg'],
+    ['embedded NUL', `https://cdn.example/${String.fromCharCode(0)}.jpg`]
+  ])('rejects %s', (_label: string, input: string) => {
+    expect(isSafeImageUrl(input)).toBe(false)
+  })
+  it('rejects null/undefined', () => {
+    expect(isSafeImageUrl(null)).toBe(false)
+    expect(isSafeImageUrl(undefined)).toBe(false)
+  })
 })
 
 describe('buildCheckoutUrl', () => {

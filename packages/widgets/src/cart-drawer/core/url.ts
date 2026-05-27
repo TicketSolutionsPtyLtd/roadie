@@ -20,6 +20,28 @@ export function isSafeRelativePath(path: string): boolean {
   return true
 }
 
+/**
+ * True only for absolute http(s) URLs — used to gate API-supplied image URLs
+ * before they reach an `<img src>`. Blocks `data:`, `javascript:`,
+ * protocol-relative (`//host`) and relative refs so a hostile API can't beacon
+ * viewers or smuggle a non-image scheme. Host allow-listing is left to the
+ * consuming app (the trusted-hosts seam); this is the baseline scheme guard.
+ */
+export function isSafeImageUrl(url: string | null | undefined): url is string {
+  if (typeof url !== 'string' || url.length === 0) return false
+  if (url !== url.trim()) return false
+  for (let i = 0; i < url.length; i++) {
+    const code = url.charCodeAt(i)
+    if (code <= 0x1f || code === 0x7f) return false
+  }
+  try {
+    const { protocol } = new URL(url)
+    return protocol === 'https:' || protocol === 'http:'
+  } catch {
+    return false // relative or protocol-relative → no base → throws
+  }
+}
+
 /** host + validated extrasUrl, or null if the path is unsafe. */
 export function buildCheckoutUrl(
   host: string,

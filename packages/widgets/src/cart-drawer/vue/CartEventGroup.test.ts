@@ -49,4 +49,28 @@ describe('CartEventGroup', () => {
     expect(getByText('Night Show')).toBeTruthy()
     expect(getByText('The Venue')).toBeTruthy()
   })
+
+  it('renders an absolute http(s) image', () => {
+    const { container } = render(CartEventGroup, {
+      props: {
+        event: makeEvent({ imageUrl: 'https://cdn.example/x.jpg' }),
+        locale: 'en-AU',
+        currency: 'AUD'
+      }
+    })
+    expect(container.querySelector('img')?.getAttribute('src')).toBe(
+      'https://cdn.example/x.jpg'
+    )
+  })
+
+  it('drops an unsafe (protocol-relative) image url', () => {
+    const { container } = render(CartEventGroup, {
+      props: {
+        event: makeEvent({ imageUrl: '//attacker.example/pixel.gif' }),
+        locale: 'en-AU',
+        currency: 'AUD'
+      }
+    })
+    expect(container.querySelector('img')).toBeNull()
+  })
 })

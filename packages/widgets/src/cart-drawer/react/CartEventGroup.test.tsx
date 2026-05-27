@@ -39,4 +39,29 @@ describe('CartEventGroup', () => {
     render(<CartEventGroup event={freeEvent} locale='en-AU' currency='AUD' />)
     expect(screen.getByText('Free')).toBeInTheDocument()
   })
+
+  it('renders an absolute http(s) image', () => {
+    render(
+      <CartEventGroup
+        event={{ ...event, imageUrl: 'https://cdn.example/x.jpg' }}
+        locale='en-AU'
+        currency='AUD'
+      />
+    )
+    expect(screen.getByRole('img')).toHaveAttribute(
+      'src',
+      'https://cdn.example/x.jpg'
+    )
+  })
+
+  it('drops an unsafe (protocol-relative) image url', () => {
+    render(
+      <CartEventGroup
+        event={{ ...event, imageUrl: '//attacker.example/pixel.gif' }}
+        locale='en-AU'
+        currency='AUD'
+      />
+    )
+    expect(screen.queryByRole('img')).toBeNull()
+  })
 })

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import { type CartEvent, formatCurrency } from '../core'
+import { type CartEvent, formatCurrency, isSafeImageUrl } from '../core'
 
 const props = defineProps<{
   event: CartEvent
@@ -26,6 +26,12 @@ const timeLabel = computed(() => {
   const valid = !Number.isNaN(start.getTime())
   return props.event.eventDateDisplay ?? (valid ? formatTime(start) : null)
 })
+
+// Only render API-supplied images from absolute http(s) URLs — a hostile API
+// could otherwise beacon viewers via a protocol-relative tracking pixel.
+const safeImageUrl = computed(() =>
+  isSafeImageUrl(props.event.imageUrl) ? props.event.imageUrl : null
+)
 
 function money(amount: number): string {
   return formatCurrency(amount, {
@@ -59,11 +65,9 @@ function money(amount: number): string {
           </div>
         </div>
       </div>
-      <!-- Plain <img>: CORS isn't needed for display, only that the URL is
-           absolute / resolvable from the consuming origin (design contract). -->
       <img
-        v-if="event.imageUrl"
-        :src="event.imageUrl"
+        v-if="safeImageUrl"
+        :src="safeImageUrl"
         :alt="event.eventName"
         class="rc-event__image"
       />
