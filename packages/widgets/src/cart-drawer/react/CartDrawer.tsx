@@ -17,6 +17,11 @@ import { cn } from '@oztix/roadie-core/utils'
 import { type CartClient, remainingSeconds, urgencyLevel } from '../core'
 import { CartContents } from './CartContents'
 import { CartDrawerFooter, CartDrawerHeader } from './CartDrawerHandle'
+import {
+  lockBodyScroll as acquireBodyScrollLock,
+  clearDrawerHeightVar,
+  setDrawerHeightVar
+} from './documentEffects'
 import { useCartDetails, useCartSummary } from './useCart'
 import { useCartBounce } from './useCartBounce'
 import { useCartDrawerDrag } from './useCartDrawerDrag'
@@ -139,31 +144,23 @@ export function CartDrawer({
 
   // Publish full closed-state drawer height (docked header + footer action row)
   // to a CSS variable so the collection layout reserves matching bottom padding,
-  // AND report it via onHeightChange for non-CSS-var hosts (design #5).
+  // AND report it via onHeightChange for non-CSS-var hosts (design #5). The var
+  // is owned by a per-instance registry (publishes the max live height) so a
+  // second drawer's unmount can't wipe this one's reservation.
   const closedHeight = headerHeight + footerHeight
+  const heightKeyRef = useRef<object>({})
   useEffect(() => {
     onHeightChange?.(closedHeight)
-    if (typeof document === 'undefined') return
-    document.documentElement.style.setProperty(
-      '--cart-drawer-height',
-      `${closedHeight}px`
-    )
-    return () => {
-      document.documentElement.style.removeProperty('--cart-drawer-height')
-    }
+    const key = heightKeyRef.current
+    setDrawerHeightVar(key, closedHeight)
+    return () => clearDrawerHeightVar(key)
   }, [closedHeight, onHeightChange])
 
-  // Body scroll lock when open.
+  // Body scroll lock while open — refcounted so multiple instances don't
+  // unlock each other (e.g. a closing variant releasing while another is modal).
   useEffect(() => {
-    if (!lockBodyScroll) return
-    if (state === 'open') {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-    return () => {
-      document.body.style.overflow = ''
-    }
+    if (!lockBodyScroll || state !== 'open') return
+    return acquireBodyScrollLock()
   }, [lockBodyScroll, state])
 
   // Escape closes.
