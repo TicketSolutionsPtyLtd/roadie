@@ -9,6 +9,9 @@ export type UrgencyLevel = 'success' | 'warning' | 'danger' | 'expired'
  */
 export function urgencyLevel(remaining: number | null): UrgencyLevel {
   if (remaining === null) return 'success'
+  // Non-finite (e.g. NaN from an unparseable expiry) is fail-safe → expired,
+  // never silently 'success' by falling through every `<` comparison.
+  if (!Number.isFinite(remaining)) return 'expired'
   if (remaining <= 0) return 'expired'
   if (remaining < 120) return 'danger'
   if (remaining < 300) return 'warning'
@@ -20,8 +23,9 @@ export function remainingSeconds(
   now: number
 ): number | null {
   if (!expiresAtUtc) return null
-  return Math.max(
-    0,
-    Math.floor((new Date(expiresAtUtc).getTime() - now) / 1000)
-  )
+  const expiry = new Date(expiresAtUtc).getTime()
+  // Malformed expiry → treat as already expired (0), distinct from `null`
+  // (no expiry). Returning NaN here would slip past urgencyLevel as success.
+  if (!Number.isFinite(expiry)) return 0
+  return Math.max(0, Math.floor((expiry - now) / 1000))
 }

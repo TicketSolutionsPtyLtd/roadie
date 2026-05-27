@@ -16,7 +16,11 @@ describe('urgencyLevel', () => {
     [120, 'warning'],
     [119, 'danger'],
     [1, 'danger'],
-    [0, 'expired']
+    [0, 'expired'],
+    [-5, 'expired'],
+    // Non-finite (e.g. NaN from an unparseable expiry) is fail-safe → expired,
+    // never silently 'success'.
+    [NaN, 'expired']
   ])('remaining %s → %s', (rem: number | null, level: UrgencyLevel) => {
     expect(urgencyLevel(rem)).toBe(level)
   })
@@ -30,5 +34,9 @@ describe('remainingSeconds', () => {
   })
   it('returns null when no expiry', () => {
     expect(remainingSeconds(undefined, Date.now())).toBeNull()
+  })
+  it('treats an unparseable expiry as expired (0), not NaN', () => {
+    expect(remainingSeconds('x', Date.now())).toBe(0)
+    expect(remainingSeconds('not-a-date', Date.now())).toBe(0)
   })
 })
