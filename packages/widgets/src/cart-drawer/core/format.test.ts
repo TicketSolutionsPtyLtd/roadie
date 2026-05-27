@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { formatCurrency, formatDayHeader, formatTime } from './format'
 
@@ -42,5 +42,24 @@ describe('formatDayHeader', () => {
     expect(formatDayHeader('2026-13-40', { locale: 'en-AU' })).toBe(
       '2026-13-40'
     )
+  })
+
+  // The whole reason formatDayHeader parses with the local-date ctor (not
+  // `new Date('YYYY-MM-DD')`, which is UTC midnight) is to avoid a day-shift in
+  // non-UTC zones. Run it under a behind-UTC zone to prove the key's day is
+  // preserved — a UTC-parse impl would render the 14th here.
+  describe('under a non-UTC timezone (America/New_York)', () => {
+    const original = process.env.TZ
+    beforeAll(() => {
+      process.env.TZ = 'America/New_York'
+    })
+    afterAll(() => {
+      process.env.TZ = original
+    })
+    it('keeps the venue-local day (no UTC off-by-one)', () => {
+      const out = formatDayHeader('2026-06-15', { locale: 'en-AU' })
+      expect(out).toContain('15')
+      expect(out).not.toContain('14')
+    })
   })
 })
