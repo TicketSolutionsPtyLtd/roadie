@@ -96,6 +96,11 @@ describe('secret-guard: no hardcoded hosts or keys in cart source', () => {
   })
 
   // Positive detection — every pattern must actually catch its target shape.
+  // The secret-shaped samples are assembled from fragments at runtime so no
+  // contiguous token literal sits in this file — otherwise external secret
+  // scanners flag the test fixtures themselves (they match the whole token,
+  // not split concatenations). The guard sees the joined runtime value.
+  const jwtSample = ['eyJhbGciOiJIUzI1NiJ9', 'eyJzdWIiOiJ0In0', 'notarealsig'].join('.')
   const POSITIVE: Array<{ name: string; sample: string }> = [
     {
       name: 'absolute http(s) host',
@@ -109,27 +114,26 @@ describe('secret-guard: no hardcoded hosts or keys in cart source', () => {
       name: 'long key-shaped literal',
       sample: `const k = '${'aB3-_x'.repeat(8)}'` // url-safe base64
     },
+    { name: 'jwt', sample: `const t = ${jwtSample}` },
     {
-      name: 'jwt',
-      sample:
-        'const t = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.abcDEFghiJKLmnoPQRstuVWX'
+      name: 'provider key prefix',
+      sample: `const k = ${'sk_' + 'live_' + 'ABCDEFGHIJ1234567890'}`
     },
     {
       name: 'provider key prefix',
-      sample: 'const k = sk_live_ABCDEFGHIJ1234567890'
+      sample: `const k = ${'ghp_' + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'}`
     },
     {
       name: 'provider key prefix',
-      sample: 'const k = ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+      sample: `const k = ${'xoxb-' + '1234567890-abcdEFGHijkl'}`
     },
     {
       name: 'provider key prefix',
-      sample: 'const k = xoxb-1234567890-abcdEFGHijkl'
+      sample: `const k = ${'AKIA' + 'IOSFODNN7EXAMPLE'}`
     },
-    { name: 'provider key prefix', sample: 'const k = AKIAIOSFODNN7EXAMPLE' },
     {
       name: 'named secret literal',
-      sample: `const k = 'api_key=sk-abcdefghijklmnop'`
+      sample: `const k = 'api_key=${'sk-' + 'abcdefghijklmnop'}'`
     }
   ]
 
