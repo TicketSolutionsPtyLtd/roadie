@@ -15,7 +15,10 @@ export interface CartClient {
 }
 
 export function createCartClient(options: CartClientOptions): CartClient {
-  const { host } = options
+  // Strip trailing slashes so `${host}${path}` (path always starts with "/")
+  // can't produce `https://h.example//outlet/...` — some CDNs route `//` paths
+  // differently. Empty host (same-origin) stays empty.
+  const host = options.host.replace(/\/+$/, '')
   const doFetch = options.fetch ?? globalThis.fetch
 
   async function get<T>(path: string): Promise<T | null> {

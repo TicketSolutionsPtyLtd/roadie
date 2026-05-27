@@ -74,6 +74,19 @@ describe('createCartClient', () => {
     expect(cart.checkoutUrl(details('https://evil.com'))).toBeNull()
   })
 
+  it('normalises a trailing slash on the host (no //path)', async () => {
+    const fetchMock = okFetch({ cartId: 'c' })
+    const cart = createCartClient({
+      host: 'https://h.example/',
+      fetch: fetchMock
+    })
+    await cart.getSummary('col-1')
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://h.example/outlet/api/collection/col-1/cart/summary',
+      expect.anything()
+    )
+  })
+
   it('returns null on non-ok response', async () => {
     const fetchMock = vi.fn(async () => ({ ok: false }) as Response)
     const cart = createCartClient({ host: '', fetch: fetchMock })
