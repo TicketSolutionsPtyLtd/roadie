@@ -45,7 +45,7 @@
     "build": "tsdown && pnpm check:dts && pnpm check:exports",
     "build:quiet": "tsdown --log-level warn",
     "check:dts": "node scripts/check-dts.mjs",
-    "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints './cart-drawer/vue/style.css'",
+    "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints ./cart-drawer/vue/style.css",
     "clean": "rm -rf node_modules dist",
     "dev": "tsdown --watch --log-level warn",
     "test": "vitest run",
@@ -60,7 +60,8 @@
     "size:check": "size-limit --limit"
   },
   "dependencies": {
-    "@oztix/roadie-core": "workspace:*"
+    "@oztix/roadie-core": "workspace:*",
+    "focus-trap": "^7.6.5"
   },
   "peerDependencies": {
     "react": "^19.0.0",
@@ -70,8 +71,7 @@
     "motion": "^12.0.0",
     "@number-flow/react": "^0.5.0",
     "react-focus-lock": "^2.13.0",
-    "vue": "^3.5.0",
-    "focus-trap": "^7.6.0"
+    "vue": "^3.5.0"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -96,9 +96,6 @@
       "optional": true
     },
     "vue": {
-      "optional": true
-    },
-    "focus-trap": {
       "optional": true
     }
   },

@@ -118,7 +118,8 @@ describe('useCart', () => {
     await flushPromises() // second refresh issued (call 1 pending)
 
     const [resolveStale, resolveNewest] = resolvers
-    if (!resolveStale || !resolveNewest) throw new Error('resolvers not captured')
+    if (!resolveStale || !resolveNewest)
+      throw new Error('resolvers not captured')
     // Resolve the NEWEST request first, then the stale one. The stale
     // (call 0) response must not clobber the newer (call 1) state.
     resolveNewest(makeSummary({ ticketCount: 2 }))

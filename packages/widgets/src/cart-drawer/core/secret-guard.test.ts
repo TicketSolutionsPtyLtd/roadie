@@ -58,7 +58,10 @@ function findOffenders(text: string): string[] {
   for (const { name, re } of BANNED) {
     const match = text.match(re)
     if (!match) continue
-    if (name === 'absolute http(s) host' && SENTINEL_TLD.test(hostOf(match[0]))) {
+    if (
+      name === 'absolute http(s) host' &&
+      SENTINEL_TLD.test(hostOf(match[0]))
+    ) {
       continue
     }
     out.push(`[${name}] ${match[0]}`)
@@ -94,8 +97,14 @@ describe('secret-guard: no hardcoded hosts or keys in cart source', () => {
 
   // Positive detection — every pattern must actually catch its target shape.
   const POSITIVE: Array<{ name: string; sample: string }> = [
-    { name: 'absolute http(s) host', sample: `fetch('https://api.oztix.com.au/cart')` },
-    { name: 'long key-shaped literal', sample: `const k = '${'A'.repeat(48)}'` },
+    {
+      name: 'absolute http(s) host',
+      sample: `fetch('https://api.oztix.com.au/cart')`
+    },
+    {
+      name: 'long key-shaped literal',
+      sample: `const k = '${'A'.repeat(48)}'`
+    },
     {
       name: 'long key-shaped literal',
       sample: `const k = '${'aB3-_x'.repeat(8)}'` // url-safe base64
@@ -105,18 +114,29 @@ describe('secret-guard: no hardcoded hosts or keys in cart source', () => {
       sample:
         'const t = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.abcDEFghiJKLmnoPQRstuVWX'
     },
-    { name: 'provider key prefix', sample: 'const k = sk_live_ABCDEFGHIJ1234567890' },
+    {
+      name: 'provider key prefix',
+      sample: 'const k = sk_live_ABCDEFGHIJ1234567890'
+    },
     {
       name: 'provider key prefix',
       sample: 'const k = ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
     },
-    { name: 'provider key prefix', sample: 'const k = xoxb-1234567890-abcdEFGHijkl' },
+    {
+      name: 'provider key prefix',
+      sample: 'const k = xoxb-1234567890-abcdEFGHijkl'
+    },
     { name: 'provider key prefix', sample: 'const k = AKIAIOSFODNN7EXAMPLE' },
-    { name: 'named secret literal', sample: `const k = 'api_key=sk-abcdefghijklmnop'` }
+    {
+      name: 'named secret literal',
+      sample: `const k = 'api_key=sk-abcdefghijklmnop'`
+    }
   ]
 
   it.each(POSITIVE)('detects $name in: $sample', ({ name, sample }) => {
-    expect(findOffenders(sample)).toContainEqual(expect.stringContaining(`[${name}]`))
+    expect(findOffenders(sample)).toContainEqual(
+      expect.stringContaining(`[${name}]`)
+    )
   })
 
   it('allows sentinel TLDs only as the final host label', () => {
@@ -124,8 +144,8 @@ describe('secret-guard: no hardcoded hosts or keys in cart source', () => {
     expect(findOffenders(`base('https://x.invalid')`)).toEqual([])
     expect(findOffenders(`host('https://h.example')`)).toEqual([])
     // A sentinel buried in the path must NOT whitelist a real host.
-    expect(findOffenders(`fetch('https://evil.com/redirect?to=x.test')`)).toContainEqual(
-      expect.stringContaining('[absolute http(s) host]')
-    )
+    expect(
+      findOffenders(`fetch('https://evil.com/redirect?to=x.test')`)
+    ).toContainEqual(expect.stringContaining('[absolute http(s) host]'))
   })
 })
