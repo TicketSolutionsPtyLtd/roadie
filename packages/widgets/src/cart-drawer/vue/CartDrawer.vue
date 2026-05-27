@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue'
+import {
+  type ComponentPublicInstance,
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  useId,
+  watch
+} from 'vue'
 
 import { type CartClient, remainingSeconds, urgencyLevel } from '../core'
 import CartContents from './CartContents.vue'
@@ -47,6 +55,17 @@ const props = withDefaults(
 )
 
 const cartHeadingId = useId()
+
+// Resolve a template ref (DOM element or child component instance) to its root
+// HTMLElement for measurement. Typed so the SFC boundary keeps real prop types
+// — no `*.vue` shim flattening everything to `unknown`.
+function resolveRootEl(
+  el: Element | ComponentPublicInstance | null
+): HTMLElement | null {
+  if (el instanceof HTMLElement) return el
+  const root = (el as ComponentPublicInstance | null)?.$el
+  return root instanceof HTMLElement ? root : null
+}
 
 const { summary, details, detailsLoading, detailsError } = useCart(
   props.cart,
@@ -249,7 +268,7 @@ const contentOpacity = computed(() =>
       :style="{ height: `${dragHeight}px` }"
     >
       <CartDrawerHeader
-        :ref="(el: any) => setHeaderElement(el?.$el ?? null)"
+        :ref="(el) => setHeaderElement(resolveRootEl(el))"
         :ticket-count="summary.ticketCount"
         :cart-total="summary.cartTotal"
         :expires-at-utc="summary.expiresAtUtc"
@@ -300,7 +319,7 @@ const contentOpacity = computed(() =>
       </div>
 
       <CartDrawerFooter
-        :ref="(el: any) => setFooterElement(el?.$el ?? null)"
+        :ref="(el) => setFooterElement(resolveRootEl(el))"
         :cart-total="summary.cartTotal"
         :locale="locale"
         :currency="currency"
