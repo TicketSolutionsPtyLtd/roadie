@@ -279,12 +279,18 @@ importers:
         specifier: workspace:*
         version: link:../core
     devDependencies:
+      '@arethetypeswrong/cli':
+        specifier: 0.18.2
+        version: 0.18.2
       '@number-flow/react':
         specifier: ^0.5.14
         version: 0.5.14(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@oztix/roadie-components':
         specifier: workspace:*
         version: link:../components
+      '@size-limit/preset-small-lib':
+        specifier: 12.0.1
+        version: 12.0.1(size-limit@12.0.1(jiti@2.6.1))
       '@tanstack/react-query':
         specifier: ^5.62.0
         version: 5.100.14(react@19.2.3)
@@ -336,6 +342,9 @@ importers:
       react-focus-lock:
         specifier: 2.13.7
         version: 2.13.7(@types/react@19.2.2)(react@19.2.3)
+      size-limit:
+        specifier: 12.0.1
+        version: 12.0.1(jiti@2.6.1)
       tsdown:
         specifier: 0.21.7
         version: 0.21.7(@arethetypeswrong/core@0.18.2)(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(synckit@0.11.11)(typescript@5.9.3)(vue-tsc@3.2.9(typescript@5.9.3))
