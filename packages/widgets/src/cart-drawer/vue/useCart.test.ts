@@ -130,6 +130,16 @@ describe('useCart', () => {
     expect(r.value?.summary.value?.ticketCount).toBe(2)
   })
 
+  it('clears loading (no infinite skeletons) when collectionId is empty', async () => {
+    const cart = mockCart()
+    const refreshKey = ref<number | undefined>(undefined)
+    const r = mountComposable(cart, '', refreshKey)
+    await flushPromises()
+    expect(r.value?.summaryLoading.value).toBe(false)
+    expect(r.value?.detailsLoading.value).toBe(false)
+    expect(cart.getSummary).not.toHaveBeenCalled()
+  })
+
   it('captures a details error without throwing', async () => {
     const cart = mockCart({
       getDetails: vi.fn(async () => {

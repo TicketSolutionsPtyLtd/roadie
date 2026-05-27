@@ -2,8 +2,8 @@ import {
   type ComputedRef,
   type Ref,
   computed,
-  onBeforeUnmount,
   onMounted,
+  onScopeDispose,
   ref,
   watch
 } from 'vue'
@@ -60,11 +60,17 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
   const closedHeight = computed(() => headerHeight.value + footerHeight.value)
   const maxHeight = ref(computeViewportMaxHeight())
   const isDragging = ref(false)
-  const reducedMotion = ref(
-    typeof window !== 'undefined' &&
-      typeof window.matchMedia === 'function' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  )
+  // Track prefers-reduced-motion reactively (React's useReducedMotion already
+  // updates on change; this keeps the Vue skin in parity instead of capturing
+  // the value once at setup).
+  const motionQuery =
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-reduced-motion: reduce)')
+      : null
+  const reducedMotion = ref(motionQuery?.matches ?? false)
+  const onMotionChange = (e: MediaQueryListEvent) => {
+    reducedMotion.value = e.matches
+  }
 
   const dragHeight = ref(
     initialState === 'open' ? maxHeight.value : closedHeight.value
@@ -153,16 +159,21 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     updateViewport()
     window.addEventListener('resize', updateViewport)
     window.visualViewport?.addEventListener('resize', updateViewport)
+    motionQuery?.addEventListener('change', onMotionChange)
   })
 
-  onBeforeUnmount(() => {
+  // onScopeDispose (not onBeforeUnmount) so cleanup also fires when the
+  // composable runs inside a standalone effectScope() — tests, shared stores —
+  // where component lifecycle hooks never trigger.
+  onScopeDispose(() => {
     headerObserver?.disconnect()
     footerObserver?.disconnect()
-    // Detach any drag listeners still live at unmount (drag in progress).
+    // Detach any drag listeners still live at dispose (drag in progress).
     dragCleanup?.()
     if (typeof window === 'undefined') return
     window.removeEventListener('resize', updateViewport)
     window.visualViewport?.removeEventListener('resize', updateViewport)
+    motionQuery?.removeEventListener('change', onMotionChange)
   })
 
   const setState = (next: 'open' | 'closed') => {
