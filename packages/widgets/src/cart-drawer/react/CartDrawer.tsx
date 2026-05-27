@@ -14,7 +14,7 @@ import FocusLock from 'react-focus-lock'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { type CartClient, createExpiryWatcher } from '../core'
+import { BOUNCE_HOLD_MS, type CartClient, createExpiryWatcher } from '../core'
 import { CartContents } from './CartContents'
 import { CartDrawerFooter, CartDrawerHeader } from './CartDrawerHandle'
 import {
@@ -107,7 +107,10 @@ export function CartDrawer({
     if (bounceTimeoutRef.current !== null) {
       window.clearTimeout(bounceTimeoutRef.current)
     }
-    bounceTimeoutRef.current = window.setTimeout(() => setBounce(false), 600)
+    bounceTimeoutRef.current = window.setTimeout(
+      () => setBounce(false),
+      BOUNCE_HOLD_MS
+    )
   }, [])
   useEffect(() => {
     return () => {

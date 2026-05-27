@@ -17,7 +17,12 @@ import {
   useTransform
 } from 'motion/react'
 
-import { decideSnapTarget } from '../core'
+import {
+  MEASURE_PROGRESS_MAX,
+  TAP_PX,
+  VIEWPORT_MARGIN_PX,
+  decideSnapTarget
+} from '../core'
 
 export interface UseCartDrawerDragReturn {
   state: 'open' | 'closed'
@@ -57,7 +62,7 @@ interface UseCartDrawerDragOptions {
 function computeViewportMaxHeight(): number {
   if (typeof window === 'undefined') return 0
   const vh = window.visualViewport?.height ?? window.innerHeight
-  return Math.max(0, vh - 32)
+  return Math.max(0, vh - VIEWPORT_MARGIN_PX)
 }
 
 export function useCartDrawerDrag(
@@ -113,7 +118,7 @@ export function useCartDrawerDrag(
   // includes the expanded title area and the footer includes expanded
   // subtotal/fees rows — observing those sizes would inflate closedHeight.
   const isClosedEnoughToMeasure = useCallback(
-    () => dragProgress.get() < 0.05,
+    () => dragProgress.get() < MEASURE_PROGRESS_MAX,
     [dragProgress]
   )
 
@@ -266,7 +271,7 @@ export function useCartDrawerDrag(
         const currentHeight = dragHeight.get()
         const totalMove = Math.abs(currentHeight - startHeight)
 
-        if (totalMove < 5) {
+        if (totalMove < TAP_PX) {
           // Low-movement release = tap = toggle.
           snapTo(wasOpen ? 'closed' : 'open')
           return

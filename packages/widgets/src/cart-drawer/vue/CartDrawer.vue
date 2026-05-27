@@ -9,7 +9,11 @@ import {
   watch
 } from 'vue'
 
-import { type ExpiryWatcher, createExpiryWatcher } from '../core'
+import {
+  BOUNCE_HOLD_MS,
+  type ExpiryWatcher,
+  createExpiryWatcher
+} from '../core'
 import CartContents from './CartContents.vue'
 import CartDrawerFooter from './CartDrawerFooter.vue'
 import CartDrawerHeader from './CartDrawerHeader.vue'
@@ -80,7 +84,7 @@ watch(
       if (bounceTimer !== null) clearTimeout(bounceTimer)
       bounceTimer = setTimeout(() => {
         bounce.value = false
-      }, 600)
+      }, BOUNCE_HOLD_MS)
     }
     prevTicketCount = count
   }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
-import { remainingSeconds, urgencyLevel } from '../core'
+import { URGENCY_LONG_FORMAT_S, remainingSeconds, urgencyLevel } from '../core'
 
 const props = withDefaults(
   defineProps<{
@@ -41,7 +41,7 @@ const showCountdown = computed(
 const countdownLabel = computed(() => {
   const r = remaining.value
   if (r === null || r <= 0) return ''
-  if (r > 300) return `${Math.ceil(r / 60)} mins`
+  if (r > URGENCY_LONG_FORMAT_S) return `${Math.ceil(r / 60)} mins`
   const mins = Math.floor(r / 60)
   const secs = r % 60
   return `${mins}:${String(secs).padStart(2, '0')}`

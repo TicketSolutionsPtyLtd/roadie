@@ -8,7 +8,12 @@ import {
   watch
 } from 'vue'
 
-import { decideSnapTarget } from '../core'
+import {
+  MEASURE_PROGRESS_MAX,
+  TAP_PX,
+  VIEWPORT_MARGIN_PX,
+  decideSnapTarget
+} from '../core'
 
 export interface UseCartDrawerDragReturn {
   state: Ref<'open' | 'closed'>
@@ -46,7 +51,7 @@ interface Options {
 function computeViewportMaxHeight(): number {
   if (typeof window === 'undefined') return 0
   const vh = window.visualViewport?.height ?? window.innerHeight
-  return Math.max(0, vh - 32)
+  return Math.max(0, vh - VIEWPORT_MARGIN_PX)
 }
 
 export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
@@ -105,7 +110,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
   // mid-drag can clean up instead of leaking listeners onto window.
   let dragCleanup: (() => void) | null = null
 
-  const isClosedEnoughToMeasure = () => progress.value < 0.05
+  const isClosedEnoughToMeasure = () => progress.value < MEASURE_PROGRESS_MAX
 
   const readBlockSize = (entry: ResizeObserverEntry): number => {
     const bbox = entry.borderBoxSize?.[0]?.blockSize
@@ -243,7 +248,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
       const currentHeight = dragHeight.value
       const totalMove = Math.abs(currentHeight - startHeight)
 
-      if (totalMove < 5) {
+      if (totalMove < TAP_PX) {
         snapTo(wasOpen ? 'closed' : 'open')
         return
       }

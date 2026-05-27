@@ -7,7 +7,7 @@ import NumberFlow from '@number-flow/react'
 import { Badge } from '@oztix/roadie-components'
 import { cn } from '@oztix/roadie-core/utils'
 
-import { remainingSeconds, urgencyLevel } from '../core'
+import { URGENCY_LONG_FORMAT_S, remainingSeconds, urgencyLevel } from '../core'
 
 interface CartUrgencyBadgeProps {
   ticketCount: number
@@ -78,7 +78,7 @@ export function CartUrgencyBadge({
       {ticketCount === 1 ? 'ticket' : 'tickets'}
       {showCountdown && remaining !== null && (
         <>
-          {remaining > 300 ? (
+          {remaining > URGENCY_LONG_FORMAT_S ? (
             <span className='tabular-nums'>
               <NumberFlow value={Math.ceil(remaining / 60)} suffix=' mins' />
             </span>

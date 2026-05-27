@@ -14,6 +14,24 @@ export function formatCurrency(amount: number, opts: CurrencyOptions): string {
 }
 
 /**
+ * Derive the locale/currency-specific symbol (e.g. "$", "NZ$", "€") so an
+ * animated total can roll digits behind a correct prefix — never a hardcoded
+ * "$" (design finding #1). Framework-agnostic so both skins share it.
+ */
+export function currencyPrefix(locale: string, currency: string): string {
+  const parts = new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency
+  }).formatToParts(0)
+  let prefix = ''
+  for (const part of parts) {
+    if (part.type === 'integer' || part.type === 'decimal') break
+    if (part.type === 'currency' || part.type === 'literal') prefix += part.value
+  }
+  return prefix
+}
+
+/**
  * Wall-clock time of a Date as `7pm` / `7:30pm` (local time, lowercase am/pm,
  * no leading zero on the hour). Shared by both skins' event rows.
  */

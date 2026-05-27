@@ -8,27 +8,9 @@ import { type MotionValue, m, useTransform } from 'motion/react'
 import { Button, IconButton } from '@oztix/roadie-components'
 import { cn } from '@oztix/roadie-core/utils'
 
+import { currencyPrefix } from '../core'
 import { CartUrgencyBadge } from './CartUrgencyBadge'
 import { BagIcon, XIcon } from './icons'
-
-/**
- * Derive the locale/currency-specific symbol (e.g. "$", "NZ$", "€") so the
- * animated NumberFlow can roll digits behind a correct prefix — never a
- * hardcoded "$" (design finding #1).
- */
-function currencyPrefix(locale: string, currency: string): string {
-  const parts = new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency
-  }).formatToParts(0)
-  let prefix = ''
-  for (const part of parts) {
-    if (part.type === 'integer' || part.type === 'decimal') break
-    if (part.type === 'currency' || part.type === 'literal')
-      prefix += part.value
-  }
-  return prefix
-}
 
 /* ============================================================================
  * Header — drag pill + morphing title area (Cart title left→center, urgency

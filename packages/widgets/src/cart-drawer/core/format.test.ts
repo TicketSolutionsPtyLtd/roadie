@@ -1,6 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { formatCurrency, formatDayHeader, formatTime } from './format'
+import {
+  currencyPrefix,
+  formatCurrency,
+  formatDayHeader,
+  formatTime
+} from './format'
 
 describe('formatCurrency', () => {
   it('formats AUD in en-AU', () => {
@@ -11,6 +16,15 @@ describe('formatCurrency', () => {
     const out = formatCurrency(12.5, { locale: 'en-NZ', currency: 'NZD' })
     expect(out).toContain('12.50')
     expect(out).toContain('$') // en-NZ uses $ but the currency is NZD
+  })
+})
+
+describe('currencyPrefix', () => {
+  it('returns the leading symbol, not a hardcoded $', () => {
+    expect(currencyPrefix('en-AU', 'AUD')).toBe('$')
+    expect(currencyPrefix('en-NZ', 'NZD')).toBe('$')
+    // de-DE puts the symbol after the amount → no leading prefix.
+    expect(currencyPrefix('de-DE', 'EUR')).toBe('')
   })
 })
 
