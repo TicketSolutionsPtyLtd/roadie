@@ -17,8 +17,11 @@ export interface CartClient {
 export function createCartClient(options: CartClientOptions): CartClient {
   // Strip trailing slashes so `${host}${path}` (path always starts with "/")
   // can't produce `https://h.example//outlet/...` — some CDNs route `//` paths
-  // differently. Empty host (same-origin) stays empty.
-  const host = options.host.replace(/\/+$/, '')
+  // differently. Empty host (same-origin) stays empty. A manual trim (not a
+  // `/\/+$/` regex) sidesteps the polynomial-backtracking ReDoS that pattern
+  // triggers on inputs with many trailing slashes.
+  let host = options.host
+  while (host.endsWith('/')) host = host.slice(0, -1)
   const doFetch = options.fetch ?? globalThis.fetch
 
   async function get<T>(path: string): Promise<T | null> {
