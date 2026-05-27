@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest'
 
 import { buildCheckoutUrl, isSafeRelativePath } from './url'
 
+/** Build `/<ctrl>/evil.com` without putting literal control bytes in source. */
+const withCtrl = (code: number): string =>
+  `/${String.fromCharCode(code)}/evil.com`
+
 describe('isSafeRelativePath', () => {
   it('accepts a single-slash same-origin path', () => {
     expect(isSafeRelativePath('/outlet/extras/abc')).toBe(true)
@@ -10,15 +14,21 @@ describe('isSafeRelativePath', () => {
     ['protocol-relative', '//evil.com/x'],
     ['http', 'http://evil.com'],
     ['https', 'https://evil.com'],
+    ['uppercase http scheme', 'HTTP://evil.com'],
+    ['mixed-case javascript scheme', 'JavaScript:alert(1)'],
     ['javascript', 'javascript:alert(1)'],
     ['data', 'data:text/html,x'],
     ['empty', ''],
     ['no leading slash', 'outlet/extras'],
     ['backslash trick', '/\\evil.com'],
     ['whitespace scheme', ' javascript:alert(1)'],
-    ['embedded tab', '/\t/evil.com'],
-    ['embedded LF', '/\n/evil.com'],
-    ['embedded CR', '/\r/evil.com']
+    ['embedded tab', withCtrl(0x09)],
+    ['embedded LF', withCtrl(0x0a)],
+    ['embedded CR', withCtrl(0x0d)],
+    ['embedded NUL', withCtrl(0x00)],
+    ['embedded vertical tab', withCtrl(0x0b)],
+    ['embedded form feed', withCtrl(0x0c)],
+    ['embedded DEL', withCtrl(0x7f)]
   ])('rejects %s', (_label: string, input: string) => {
     expect(isSafeRelativePath(input)).toBe(false)
   })
@@ -50,6 +60,6 @@ describe('buildCheckoutUrl', () => {
     expect(buildCheckoutUrl('https://h.example', 'https://evil.com')).toBeNull()
   })
   it('returns null for an embedded-tab open-redirect path', () => {
-    expect(buildCheckoutUrl('', '/\t/evil.com')).toBeNull()
+    expect(buildCheckoutUrl('', withCtrl(0x09))).toBeNull()
   })
 })
