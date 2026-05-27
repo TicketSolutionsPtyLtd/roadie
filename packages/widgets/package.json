@@ -15,19 +15,19 @@
     "**/*.css"
   ],
   "exports": {
-    "./core": {
-      "types": "./dist/core/index.d.ts",
-      "import": "./dist/core/index.js"
+    "./cart-drawer/core": {
+      "types": "./dist/cart-drawer/core/index.d.ts",
+      "import": "./dist/cart-drawer/core/index.js"
     },
-    "./react": {
-      "types": "./dist/react/index.d.ts",
-      "import": "./dist/react/index.js"
+    "./cart-drawer/react": {
+      "types": "./dist/cart-drawer/react/index.d.ts",
+      "import": "./dist/cart-drawer/react/index.js"
     },
-    "./vue": {
-      "types": "./dist/vue/index.d.ts",
-      "import": "./dist/vue/index.js"
+    "./cart-drawer/vue": {
+      "types": "./dist/cart-drawer/vue/index.d.ts",
+      "import": "./dist/cart-drawer/vue/index.js"
     },
-    "./vue/style.css": "./dist/vue/style.css"
+    "./cart-drawer/vue/style.css": "./dist/cart-drawer/vue/style.css"
   },
   "scripts": {
     "build": "tsdown",
