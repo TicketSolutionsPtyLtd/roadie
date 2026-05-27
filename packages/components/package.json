@@ -127,7 +127,7 @@
     "build": "pnpm generate:exports && tsdown && pnpm check:dts && pnpm check:exports",
     "build:quiet": "pnpm generate:exports && tsdown --log-level warn",
     "generate:exports": "node scripts/generate-package-exports.mjs",
-    "check:dts": "! grep -r 'ComponentProps<typeof' dist/*.d.ts dist/**/*.d.ts 2>/dev/null || (echo 'ERROR: dist .d.ts files contain ComponentProps<typeof> — use named prop types instead' && exit 1)",
+    "check:dts": "node scripts/check-dts.mjs",
     "check:exports": "attw --pack . --profile esm-only",
     "build:spotillustration": "node scripts/svg-to-spot-illustration.cjs",
     "clean": "rm -rf node_modules dist",

@@ -21,6 +21,8 @@ coverage
 
 # Build artifacts
 **/trace-output/
+# npm/pnpm pack output (publish-prep tarballs)
+*.tgz
 
 # Python virtual environments
 scripts/venv/
