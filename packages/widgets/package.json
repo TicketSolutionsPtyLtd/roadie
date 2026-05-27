@@ -2,18 +2,30 @@
   "name": "@oztix/roadie-widgets",
   "version": "0.0.0",
   "description": "Roadie Design System widgets (core + React + Vue skins) — currently the shared cart drawer",
-  "private": true,
   "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/TicketSolutionsPtyLtd/roadie"
   },
+  "homepage": "https://github.com/TicketSolutionsPtyLtd/roadie/tree/main/packages/widgets",
+  "bugs": "https://github.com/TicketSolutionsPtyLtd/roadie/issues",
+  "author": {
+    "name": "Luke Brooker",
+    "email": "mail@lukebrooker.com"
+  },
+  "license": "ISC",
+  "main": "./dist/cart-drawer/core/index.js",
+  "module": "./dist/cart-drawer/core/index.js",
+  "types": "./dist/cart-drawer/core/index.d.ts",
   "files": [
     "dist"
   ],
   "sideEffects": [
     "**/*.css"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     "./cart-drawer/core": {
       "types": "./dist/cart-drawer/core/index.d.ts",
@@ -30,13 +42,22 @@
     "./cart-drawer/vue/style.css": "./dist/cart-drawer/vue/style.css"
   },
   "scripts": {
-    "build": "tsdown",
+    "build": "tsdown && pnpm check:dts && pnpm check:exports",
+    "build:quiet": "tsdown --log-level warn",
+    "check:dts": "node scripts/check-dts.mjs",
+    "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints './cart-drawer/vue/style.css'",
+    "clean": "rm -rf node_modules dist",
+    "dev": "tsdown --watch --log-level warn",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "typecheck": "vue-tsc --noEmit",
     "lint": "eslint .",
-    "format": "prettier --ignore-path ../../.prettierignore --write \"**/*.{ts,tsx,js,jsx,vue,json,css,md}\""
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --ignore-path ../../.prettierignore --write \"**/*.{ts,tsx,js,jsx,vue,json,css,md}\"",
+    "format:check": "prettier --ignore-path ../../.prettierignore --check \"**/*.{ts,tsx,js,jsx,vue,json,css,md}\"",
+    "size": "size-limit",
+    "size:check": "size-limit --limit"
   },
   "dependencies": {
     "@oztix/roadie-core": "workspace:*"
@@ -82,11 +103,13 @@
     }
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.2",
+    "@number-flow/react": "^0.5.14",
     "@oztix/roadie-components": "workspace:*",
     "@oztix/roadie-core": "workspace:*",
-    "@number-flow/react": "^0.5.14",
-    "@testing-library/jest-dom": "6.9.1",
+    "@size-limit/preset-small-lib": "12.0.1",
     "@tanstack/react-query": "^5.62.0",
+    "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "^16.1.0",
     "@testing-library/vue": "^8.1.0",
     "@types/node": "22.10.2",
@@ -102,10 +125,52 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-focus-lock": "2.13.7",
+    "size-limit": "12.0.1",
     "tsdown": "0.21.7",
     "typescript": "5.9.3",
     "vitest": "4.0.4",
     "vue": "^3.5.13",
     "vue-tsc": "~3.2.0"
+  },
+  "size-limit": [
+    {
+      "name": "cart-drawer/core",
+      "path": "dist/cart-drawer/core/index.js",
+      "limit": "1.5 KB"
+    },
+    {
+      "name": "cart-drawer/react",
+      "path": "dist/cart-drawer/react/index.js",
+      "limit": "8 KB",
+      "ignore": [
+        "react",
+        "react-dom",
+        "@oztix/roadie-core",
+        "@oztix/roadie-components",
+        "@tanstack/react-query",
+        "motion",
+        "@number-flow/react",
+        "react-focus-lock"
+      ]
+    },
+    {
+      "name": "cart-drawer/vue",
+      "path": "dist/cart-drawer/vue/index.js",
+      "limit": "8 KB",
+      "ignore": [
+        "vue",
+        "focus-trap"
+      ]
+    }
+  ],
+  "turbo": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
+    }
   }
 }
