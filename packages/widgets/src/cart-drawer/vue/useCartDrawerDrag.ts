@@ -92,6 +92,10 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
   let headerObserver: ResizeObserver | null = null
   let footerObserver: ResizeObserver | null = null
 
+  // The pointer currently driving a drag (null when idle). Gates re-entry and
+  // filters out events from other concurrent pointers (multi-touch).
+  let activePointerId: number | null = null
+
   const isClosedEnoughToMeasure = () => progress.value < 0.05
 
   const readBlockSize = (entry: ResizeObserverEntry): number => {
@@ -174,6 +178,13 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
 
   const handleDragStart = (e: PointerEvent) => {
     if (typeof window === 'undefined') return
+    // Re-entry guard: a second finger landing mid-drag would otherwise install
+    // a duplicate listener set whose release fires snapTo with conflicting
+    // targets. Honour only the first pointer until it ends.
+    if (activePointerId !== null) return
+    const pointerId = e.pointerId
+    activePointerId = pointerId
+
     const startY = e.clientY
     const startHeight = dragHeight.value
     const wasOpen = state.value === 'open'
@@ -184,6 +195,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     isDragging.value = true
 
     const onMove = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return
       const delta = startY - ev.clientY // positive = dragged up = opening
       dragHeight.value = Math.min(
         maxHeight.value,
@@ -199,10 +211,12 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
       lastTime = now
     }
 
-    const onUp = () => {
+    const onUp = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return
       window.removeEventListener('pointermove', onMove)
       window.removeEventListener('pointerup', onUp)
       window.removeEventListener('pointercancel', onUp)
+      activePointerId = null
       isDragging.value = false
 
       const currentHeight = dragHeight.value

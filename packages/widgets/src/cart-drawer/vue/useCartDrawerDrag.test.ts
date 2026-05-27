@@ -4,6 +4,20 @@ import { defineComponent, h, nextTick } from 'vue'
 
 import { useCartDrawerDrag } from './useCartDrawerDrag'
 
+function dragStartEvent(clientY: number, pointerId: number): PointerEvent {
+  return { clientY, pointerId } as unknown as PointerEvent
+}
+
+function dispatchPointer(
+  type: 'pointermove' | 'pointerup' | 'pointercancel',
+  clientY: number,
+  pointerId: number
+): void {
+  const e = new Event(type)
+  Object.assign(e, { clientY, pointerId })
+  window.dispatchEvent(e)
+}
+
 function mountDrag(initialState: 'open' | 'closed' = 'closed') {
   const result: { value: ReturnType<typeof useCartDrawerDrag> | null } = {
     value: null
@@ -53,5 +67,23 @@ describe('useCartDrawerDrag', () => {
   it('exposes a positive closed height from measured header + footer', () => {
     const drag = mountDrag('closed')
     expect(drag.closedHeight.value).toBeGreaterThan(0)
+  })
+
+  it('ignores pointer events from a different pointerId and refuses re-entry', () => {
+    const drag = mountDrag('closed')
+
+    drag.handleDragStart(dragStartEvent(500, 1))
+    expect(drag.isDragging.value).toBe(true)
+
+    // A second finger must not hijack the active pointer.
+    drag.handleDragStart(dragStartEvent(450, 2))
+
+    // A foreign pointer releasing must not end the in-progress drag.
+    dispatchPointer('pointerup', 400, 2)
+    expect(drag.isDragging.value).toBe(true)
+
+    // The original pointer releasing ends it.
+    dispatchPointer('pointerup', 400, 1)
+    expect(drag.isDragging.value).toBe(false)
   })
 })

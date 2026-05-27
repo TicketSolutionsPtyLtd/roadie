@@ -101,6 +101,10 @@ export function useCartDrawerDrag(
   const headerObserverRef = useRef<ResizeObserver | null>(null)
   const footerObserverRef = useRef<ResizeObserver | null>(null)
 
+  // The pointer currently driving a drag (null when idle). Gates re-entry and
+  // filters out events from other concurrent pointers (multi-touch).
+  const activePointerIdRef = useRef<number | null>(null)
+
   // Measurement guard: only accept header/footer observations while the
   // drawer is fully closed. When morphing (dragProgress > 0), the header
   // includes the expanded title area and the footer includes expanded
@@ -209,6 +213,13 @@ export function useCartDrawerDrag(
 
   const handleDragStart = useCallback(
     (e: ReactPointerEvent) => {
+      // Re-entry guard: a second finger landing mid-drag would otherwise install
+      // a duplicate listener set whose release fires snapTo with conflicting
+      // targets. Honour only the first pointer until it ends.
+      if (activePointerIdRef.current !== null) return
+      const pointerId = e.pointerId
+      activePointerIdRef.current = pointerId
+
       const startY = e.clientY
       const startHeight = dragHeight.get()
       const wasOpen = state === 'open'
@@ -219,6 +230,7 @@ export function useCartDrawerDrag(
       setIsDragging(true)
 
       const onMove = (ev: PointerEvent) => {
+        if (ev.pointerId !== pointerId) return
         const delta = startY - ev.clientY // positive = dragged up = opening
         const newHeight = Math.min(
           maxHeight,
@@ -237,10 +249,12 @@ export function useCartDrawerDrag(
         dragHeight.set(newHeight)
       }
 
-      const onUp = () => {
+      const onUp = (ev: PointerEvent) => {
+        if (ev.pointerId !== pointerId) return
         window.removeEventListener('pointermove', onMove)
         window.removeEventListener('pointerup', onUp)
         window.removeEventListener('pointercancel', onUp)
+        activePointerIdRef.current = null
         setIsDragging(false)
 
         const currentHeight = dragHeight.get()
