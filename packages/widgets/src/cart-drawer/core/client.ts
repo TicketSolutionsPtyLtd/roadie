@@ -1,7 +1,7 @@
 import type { CartDetails, CartSummary } from './types'
 import { buildCheckoutUrl } from './url'
 
-export interface CartClientOptions {
+export type CartClientOptions = {
   /** Base host. Empty string for same-origin. Never hardcode in this package. */
   host: string
   /** Injected transport. Defaults to global fetch. */

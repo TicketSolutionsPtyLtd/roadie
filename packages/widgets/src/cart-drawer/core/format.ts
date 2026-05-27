@@ -1,8 +1,8 @@
-export interface CurrencyOptions {
+export type CurrencyOptions = {
   locale: string
   currency: string
 }
-export interface DateOptions {
+export type DateOptions = {
   locale: string
 }
 

@@ -24,7 +24,7 @@ import {
   decideSnapTarget
 } from '../core'
 
-export interface UseCartDrawerDragReturn {
+export type UseCartDrawerDragReturn = {
   state: 'open' | 'closed'
   setState: (next: 'open' | 'closed') => void
   toggle: () => void
@@ -51,7 +51,7 @@ export interface UseCartDrawerDragReturn {
   reducedMotion: boolean
 }
 
-interface UseCartDrawerDragOptions {
+type UseCartDrawerDragOptions = {
   initialState?: 'open' | 'closed'
 }
 

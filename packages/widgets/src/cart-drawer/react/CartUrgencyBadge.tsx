@@ -9,7 +9,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { URGENCY_LONG_FORMAT_S, remainingSeconds, urgencyLevel } from '../core'
 
-interface CartUrgencyBadgeProps {
+type CartUrgencyBadgeProps = {
   ticketCount: number
   expiresAtUtc: string | undefined
   /** Drawer open-state progress 0..1. Controls the "remaining to checkout" tail expansion. */

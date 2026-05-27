@@ -3,9 +3,8 @@
 import { type PointerEvent as ReactPointerEvent, type Ref } from 'react'
 
 import NumberFlow from '@number-flow/react'
-import { type MotionValue, m, useTransform } from 'motion/react'
-
 import { ShoppingBagIcon, XIcon } from '@phosphor-icons/react'
+import { type MotionValue, m, useTransform } from 'motion/react'
 
 import { Button, IconButton } from '@oztix/roadie-components'
 import { cn } from '@oztix/roadie-core/utils'
@@ -18,7 +17,7 @@ import { CartUrgencyBadge } from './CartUrgencyBadge'
  * badge sliding top:4→36, total right fading out, close button left fading in)
  * ========================================================================== */
 
-interface CartDrawerHeaderProps {
+type CartDrawerHeaderProps = {
   ticketCount: number
   cartTotal: number
   expiresAtUtc: string | undefined
@@ -168,7 +167,7 @@ export function CartDrawerHeader({
  * buttons (always visible)
  * ========================================================================== */
 
-interface CartDrawerFooterProps {
+type CartDrawerFooterProps = {
   cartTotal: number
   locale: string
   currency: string

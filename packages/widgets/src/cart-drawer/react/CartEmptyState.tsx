@@ -2,7 +2,7 @@
 
 import { Button } from '@oztix/roadie-components'
 
-interface CartEmptyStateProps {
+type CartEmptyStateProps = {
   /** App-specific browse target (replaces the website's hardcoded route). */
   browseHref: string
   onNavigate: (href: string) => void

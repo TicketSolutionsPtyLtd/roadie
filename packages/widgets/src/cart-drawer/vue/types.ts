@@ -1,7 +1,7 @@
 import type { CartClient } from '../core'
 
 /** Props for the Vue `CartDrawer` SFC. Exported so consumers can type wrappers. */
-export interface CartDrawerProps {
+export type CartDrawerProps = {
   /** Core cart client (host + fetch injected by the consuming app). */
   cart: CartClient
   collectionId: string

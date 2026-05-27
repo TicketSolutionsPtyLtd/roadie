@@ -14,7 +14,7 @@ import {
 import { CartEmptyState } from './CartEmptyState'
 import { CartEventGroup } from './CartEventGroup'
 
-interface CartContentsProps {
+type CartContentsProps = {
   cart: CartDetails
   onNavigate: (href: string) => void
   /** App-specific browse target for the empty state (design finding #4). */

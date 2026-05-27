@@ -26,7 +26,7 @@ import { useCartDetails, useCartSummary } from './useCart'
 import { useCartBounce } from './useCartBounce'
 import { useCartDrawerDrag } from './useCartDrawerDrag'
 
-export interface CartDrawerProps {
+export type CartDrawerProps = {
   /** Core cart client (host + fetch injected by the consuming app). */
   cart: CartClient
   collectionId: string

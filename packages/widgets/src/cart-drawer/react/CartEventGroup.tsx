@@ -9,7 +9,7 @@ import {
   isSafeImageUrl
 } from '../core'
 
-interface CartEventGroupProps {
+type CartEventGroupProps = {
   event: CartEvent
   /** Locale for currency/time formatting (design finding #1). */
   locale: string

@@ -2,7 +2,7 @@ import { type Ref, onMounted, shallowRef, watch } from 'vue'
 
 import type { CartClient, CartDetails, CartSummary } from '../core'
 
-export interface UseCartReturn {
+export type UseCartReturn = {
   summary: Ref<CartSummary | null>
   details: Ref<CartDetails | null>
   summaryLoading: Ref<boolean>
