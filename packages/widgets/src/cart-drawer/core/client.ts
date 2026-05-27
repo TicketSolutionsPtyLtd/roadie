@@ -21,7 +21,16 @@ export function createCartClient(options: CartClientOptions): CartClient {
   async function get<T>(path: string): Promise<T | null> {
     const res = await doFetch(`${host}${path}`, { credentials: 'include' })
     if (!res.ok) return null
-    return (await res.json()) as T
+    const data: unknown = await res.json()
+    // Explicit trust seam: the response is untrusted. Assert the coarse shape
+    // (a non-null, non-array object) here; field values that reach sinks are
+    // validated at point of use (extrasUrl → isSafeRelativePath, imageUrl →
+    // isSafeImageUrl). A non-object payload can't be a cart, so treat it as a
+    // failed fetch rather than handing `as T` a lie.
+    if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+      return null
+    }
+    return data as T
   }
 
   return {

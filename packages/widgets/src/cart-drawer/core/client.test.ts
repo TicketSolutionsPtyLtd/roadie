@@ -79,4 +79,17 @@ describe('createCartClient', () => {
     const cart = createCartClient({ host: '', fetch: fetchMock })
     expect(await cart.getSummary('c')).toBeNull()
   })
+
+  it('returns null when the payload is not a cart-shaped object', async () => {
+    for (const bad of [[], 'nope', 42, null, true]) {
+      const cart = createCartClient({
+        host: '',
+        fetch: vi.fn(
+          async () => ({ ok: true, json: async () => bad }) as Response
+        )
+      })
+      expect(await cart.getSummary('c')).toBeNull()
+      expect(await cart.getDetails('c')).toBeNull()
+    }
+  })
 })
