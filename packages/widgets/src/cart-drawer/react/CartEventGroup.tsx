@@ -1,12 +1,13 @@
 'use client'
 
+import { ClockIcon, MapPinIcon } from '@phosphor-icons/react'
+
 import {
   type CartEvent,
   formatCurrency,
   formatTime,
   isSafeImageUrl
 } from '../core'
-import { ClockIcon, MapPinIcon } from './icons'
 
 interface CartEventGroupProps {
   event: CartEvent
@@ -37,14 +38,20 @@ export function CartEventGroup({
         <div className='flex min-w-0 flex-1 flex-col gap-1'>
           {timeLabel && (
             <div className='flex items-center gap-2 text-ui-meta text-subtle'>
-              <ClockIcon className='size-4 shrink-0 text-subtler' />
+              <ClockIcon
+                weight='bold'
+                className='size-4 shrink-0 text-subtler'
+              />
               <span>{timeLabel}</span>
             </div>
           )}
           <div className='grid gap-1 pl-6'>
             <p className='text-ui font-medium text-strong'>{event.eventName}</p>
             <div className='flex items-center gap-1.5 text-ui-meta text-subtle'>
-              <MapPinIcon className='size-3.5 shrink-0 text-subtler' />
+              <MapPinIcon
+                weight='bold'
+                className='size-3.5 shrink-0 text-subtler'
+              />
               <span>{event.venueName}</span>
             </div>
           </div>

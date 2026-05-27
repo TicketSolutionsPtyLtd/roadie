@@ -1,5 +1,7 @@
 'use client'
 
+import { CalendarBlankIcon } from '@phosphor-icons/react'
+
 import { Button } from '@oztix/roadie-components'
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -11,7 +13,6 @@ import {
 } from '../core'
 import { CartEmptyState } from './CartEmptyState'
 import { CartEventGroup } from './CartEventGroup'
-import { CalendarBlankIcon } from './icons'
 
 interface CartContentsProps {
   cart: CartDetails
@@ -64,7 +65,10 @@ export function CartContents({
           <section key={group.key} className='grid gap-3'>
             <div className='sticky top-0 z-10 -mx-4 emphasis-strong px-4 py-2.5'>
               <div className='flex items-center gap-2'>
-                <CalendarBlankIcon className='size-4 shrink-0 text-subtle' />
+                <CalendarBlankIcon
+                  weight='bold'
+                  className='size-4 shrink-0 text-subtle'
+                />
                 <p className='text-ui-meta font-bold'>
                   {formatDayHeader(group.key, { locale })}
                 </p>

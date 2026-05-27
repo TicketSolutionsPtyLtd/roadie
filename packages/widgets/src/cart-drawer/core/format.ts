@@ -26,7 +26,8 @@ export function currencyPrefix(locale: string, currency: string): string {
   let prefix = ''
   for (const part of parts) {
     if (part.type === 'integer' || part.type === 'decimal') break
-    if (part.type === 'currency' || part.type === 'literal') prefix += part.value
+    if (part.type === 'currency' || part.type === 'literal')
+      prefix += part.value
   }
   return prefix
 }

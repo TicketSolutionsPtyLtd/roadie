@@ -5,12 +5,13 @@ import { type PointerEvent as ReactPointerEvent, type Ref } from 'react'
 import NumberFlow from '@number-flow/react'
 import { type MotionValue, m, useTransform } from 'motion/react'
 
+import { ShoppingBagIcon, XIcon } from '@phosphor-icons/react'
+
 import { Button, IconButton } from '@oztix/roadie-components'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { currencyPrefix } from '../core'
 import { CartUrgencyBadge } from './CartUrgencyBadge'
-import { BagIcon, XIcon } from './icons'
 
 /* ============================================================================
  * Header — drag pill + morphing title area (Cart title left→center, urgency
@@ -115,7 +116,7 @@ export function CartDrawerHeader({
             size='icon-sm'
             onClick={onToggle}
           >
-            <XIcon className='size-4' />
+            <XIcon weight='bold' className='size-4' />
           </IconButton>
         </m.div>
 
@@ -125,7 +126,10 @@ export function CartDrawerHeader({
           className='absolute top-0 flex h-8 items-center gap-2'
           style={{ left: titleLeft, transform: titleTransform }}
         >
-          <BagIcon className='size-5 text-subtle intent-accent' />
+          <ShoppingBagIcon
+            weight='bold'
+            className='size-5 text-subtle intent-accent'
+          />
           <span className='text-ui font-bold text-strong'>Cart</span>
         </m.div>
 
@@ -254,7 +258,7 @@ export function CartDrawerFooter({
             onClick={onCheckout}
             disabled={checkoutDisabled}
           >
-            <BagIcon className='mr-1.5 size-4' />
+            <ShoppingBagIcon weight='bold' className='mr-1.5 size-4' />
             Checkout
           </Button>
         </div>
