@@ -35,7 +35,6 @@ export interface UseCartDrawerDragReturn {
   maxHeight: number
   setHeaderElement: (el: HTMLElement | null) => void
   setFooterElement: (el: HTMLElement | null) => void
-  setDrawerElement: (el: HTMLElement | null) => void
   /**
    * Call from the drag region's onPointerDown. Installs document-level
    * pointermove + pointerup listeners, tracks velocity, updates `dragHeight`
@@ -160,10 +159,6 @@ export function useCartDrawerDrag(
     },
     [isClosedEnoughToMeasure]
   )
-
-  // setDrawerElement is retained for API compatibility (CartDrawer wires a
-  // ref to the drawer root) but is now a no-op — maxHeight is viewport-derived.
-  const setDrawerElement = useCallback((_el: HTMLElement | null) => {}, [])
 
   // Keep maxHeight fresh against viewport + visualViewport resizes (URL bar
   // collapse, rotation, keyboard show/hide).
@@ -311,7 +306,6 @@ export function useCartDrawerDrag(
     maxHeight,
     setHeaderElement,
     setFooterElement,
-    setDrawerElement,
     handleDragStart,
     isDragging,
     reducedMotion

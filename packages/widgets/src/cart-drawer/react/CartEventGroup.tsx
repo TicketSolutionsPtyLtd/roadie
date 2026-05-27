@@ -1,7 +1,5 @@
 'use client'
 
-import { IconButton } from '@oztix/roadie-components'
-
 import {
   type CartEvent,
   formatCurrency,
@@ -16,14 +14,12 @@ interface CartEventGroupProps {
   locale: string
   /** ISO 4217 currency code (design finding #1). */
   currency: string
-  onRemove?: (eventId: string) => void
 }
 
 export function CartEventGroup({
   event,
   locale,
-  currency,
-  onRemove
+  currency
 }: CartEventGroupProps) {
   // Time of day comes from the UTC start; eventDateDisplay (if provided) is the
   // pre-formatted venue-local string, otherwise we render the wall-clock time.
@@ -60,17 +56,6 @@ export function CartEventGroup({
             className='size-20 shrink-0 rounded-lg bg-subtle object-cover'
           />
         )}
-        {onRemove && (
-          <IconButton
-            aria-label={`Remove ${event.eventName}`}
-            emphasis='subtler'
-            intent='danger'
-            size='icon-sm'
-            onClick={() => onRemove(event.eventId)}
-          >
-            <XIconTrash />
-          </IconButton>
-        )}
       </div>
 
       <div className='grid gap-2 pl-6'>
@@ -106,19 +91,5 @@ export function CartEventGroup({
         ))}
       </div>
     </div>
-  )
-}
-
-// Minimal trash glyph for the (currently unused) remove control.
-function XIconTrash() {
-  return (
-    <svg
-      viewBox='0 0 256 256'
-      fill='currentColor'
-      className='size-4'
-      aria-hidden='true'
-    >
-      <path d='M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192Z' />
-    </svg>
   )
 }

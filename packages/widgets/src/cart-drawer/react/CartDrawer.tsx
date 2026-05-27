@@ -86,7 +86,6 @@ export function CartDrawer({
     footerHeight,
     setHeaderElement,
     setFooterElement,
-    setDrawerElement,
     handleDragStart,
     isDragging
   } = useCartDrawerDrag({ initialState })
@@ -191,7 +190,6 @@ export function CartDrawer({
       {/* Drawer — floating card, centered via mx-auto + max-w, height driven by
          the motion value. */}
       <m.div
-        ref={setDrawerElement}
         id='cart-drawer'
         {...(state === 'open'
           ? {
