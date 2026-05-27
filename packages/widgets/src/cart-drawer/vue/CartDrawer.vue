@@ -9,7 +9,11 @@ import {
   watch
 } from 'vue'
 
-import { type CartClient, remainingSeconds, urgencyLevel } from '../core'
+import {
+  type CartClient,
+  type ExpiryWatcher,
+  createExpiryWatcher
+} from '../core'
 import CartContents from './CartContents.vue'
 import CartDrawerFooter from './CartDrawerFooter.vue'
 import CartDrawerHeader from './CartDrawerHeader.vue'
@@ -115,31 +119,17 @@ watch(
 )
 
 // --- Expiry watch (design finding #10) ---
+// Once-latch + polling live in the shared core watcher; recreating it on
+// expiry change resets the latch.
 const expiresAtUtc = computed(() => summary.value?.expiresAtUtc)
-let expireTimer: ReturnType<typeof setInterval> | null = null
-let expiredFired = false
-function clearExpireTimer() {
-  if (expireTimer !== null) {
-    clearInterval(expireTimer)
-    expireTimer = null
-  }
-}
+let expireWatcher: ExpiryWatcher | null = null
 watch(
   expiresAtUtc,
   (expiry) => {
-    clearExpireTimer()
-    expiredFired = false
+    expireWatcher?.stop()
+    expireWatcher = null
     if (!expiry || !props.onExpire) return
-    const check = () => {
-      if (urgencyLevel(remainingSeconds(expiry, Date.now())) === 'expired') {
-        if (!expiredFired) {
-          expiredFired = true
-          props.onExpire?.()
-        }
-      }
-    }
-    check()
-    expireTimer = setInterval(check, 1000)
+    expireWatcher = createExpiryWatcher(expiry, props.onExpire)
   },
   { immediate: true }
 )
@@ -219,7 +209,7 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
   if (bounceTimer !== null) clearTimeout(bounceTimer)
-  clearExpireTimer()
+  expireWatcher?.stop()
   trap?.deactivate()
   if (typeof document !== 'undefined') {
     document.removeEventListener('keydown', onKeydown)

@@ -14,7 +14,7 @@ import FocusLock from 'react-focus-lock'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { type CartClient, remainingSeconds, urgencyLevel } from '../core'
+import { type CartClient, createExpiryWatcher } from '../core'
 import { CartContents } from './CartContents'
 import { CartDrawerFooter, CartDrawerHeader } from './CartDrawerHandle'
 import {
@@ -122,24 +122,13 @@ export function CartDrawer({
   // Fire onExpire once when the countdown reaches the expired state. The
   // CartUrgencyBadge runs its own tick for display; here we watch independently
   // so the host can refetch/clear (the outlet app has no refetch-on-focus).
+  // The once-latch + polling live in the shared core watcher; recreating it on
+  // expiry change resets the latch.
   const expiresAtUtc = summary?.expiresAtUtc
-  const expiredFiredRef = useRef(false)
   useEffect(() => {
-    expiredFiredRef.current = false
     if (!expiresAtUtc || !onExpire) return
-    const check = () => {
-      if (
-        urgencyLevel(remainingSeconds(expiresAtUtc, Date.now())) === 'expired'
-      ) {
-        if (!expiredFiredRef.current) {
-          expiredFiredRef.current = true
-          onExpire()
-        }
-      }
-    }
-    check()
-    const id = setInterval(check, 1000)
-    return () => clearInterval(id)
+    const watcher = createExpiryWatcher(expiresAtUtc, onExpire)
+    return () => watcher.stop()
   }, [expiresAtUtc, onExpire])
 
   // Publish full closed-state drawer height (docked header + footer action row)
