@@ -2,7 +2,12 @@
 
 import { IconButton } from '@oztix/roadie-components'
 
-import { type CartEvent, formatCurrency, isSafeImageUrl } from '../core'
+import {
+  type CartEvent,
+  formatCurrency,
+  formatTime,
+  isSafeImageUrl
+} from '../core'
 import { ClockIcon, MapPinIcon } from './icons'
 
 interface CartEventGroupProps {
@@ -12,15 +17,6 @@ interface CartEventGroupProps {
   /** ISO 4217 currency code (design finding #1). */
   currency: string
   onRemove?: (eventId: string) => void
-}
-
-function formatTime(date: Date): string {
-  const minutes = date.getMinutes()
-  const hour = date.getHours()
-  const ampm = hour >= 12 ? 'pm' : 'am'
-  const h = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
-  if (minutes === 0) return `${h}${ampm}`
-  return `${h}:${String(minutes).padStart(2, '0')}${ampm}`
 }
 
 export function CartEventGroup({

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatCurrency, formatDayHeader } from './format'
+import { formatCurrency, formatDayHeader, formatTime } from './format'
 
 describe('formatCurrency', () => {
   it('formats AUD in en-AU', () => {
@@ -11,6 +11,21 @@ describe('formatCurrency', () => {
     const out = formatCurrency(12.5, { locale: 'en-NZ', currency: 'NZD' })
     expect(out).toContain('12.50')
     expect(out).toContain('$') // en-NZ uses $ but the currency is NZD
+  })
+})
+
+describe('formatTime', () => {
+  // Local time — construct via the local-time Date ctor so the assertion is
+  // TZ-independent (matches how the skins parse the wall-clock hour).
+  it.each<[number, number, string]>([
+    [19, 0, '7pm'],
+    [19, 30, '7:30pm'],
+    [0, 0, '12am'],
+    [0, 5, '12:05am'],
+    [12, 0, '12pm'],
+    [9, 5, '9:05am']
+  ])('%i:%i → %s', (h: number, m: number, expected: string) => {
+    expect(formatTime(new Date(2026, 0, 1, h, m))).toBe(expected)
   })
 })
 
