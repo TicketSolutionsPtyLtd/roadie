@@ -97,6 +97,38 @@ describe('useCart', () => {
     expect(r.value?.detailsLoading.value).toBe(false)
   })
 
+  it('discards a stale refresh whose response resolves after a newer one', async () => {
+    const resolvers: Array<(s: CartSummary) => void> = []
+    let call = 0
+    const cart = mockCart({
+      getSummary: vi.fn(
+        () =>
+          new Promise<CartSummary>((resolve) => {
+            resolvers[call++] = resolve
+          })
+      )
+    })
+    const refreshKey = ref<number | undefined>(0)
+    const r = mountComposable(cart, 'col-1', refreshKey)
+    await nextTick()
+    await flushPromises() // first refresh issued (call 0 pending)
+
+    refreshKey.value = 1
+    await nextTick()
+    await flushPromises() // second refresh issued (call 1 pending)
+
+    const [resolveStale, resolveNewest] = resolvers
+    if (!resolveStale || !resolveNewest) throw new Error('resolvers not captured')
+    // Resolve the NEWEST request first, then the stale one. The stale
+    // (call 0) response must not clobber the newer (call 1) state.
+    resolveNewest(makeSummary({ ticketCount: 2 }))
+    await flushPromises()
+    resolveStale(makeSummary({ ticketCount: 1 }))
+    await flushPromises()
+
+    expect(r.value?.summary.value?.ticketCount).toBe(2)
+  })
+
   it('captures a details error without throwing', async () => {
     const cart = mockCart({
       getDetails: vi.fn(async () => {

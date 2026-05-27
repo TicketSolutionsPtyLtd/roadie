@@ -33,9 +33,17 @@ export function useCart(
   const summaryError = shallowRef<unknown>(null)
   const detailsError = shallowRef<unknown>(null)
 
+  // Monotonic request token. Each refresh claims the next id; any response
+  // whose token is no longer current is discarded. Without this, out-of-order
+  // resolutions (rapid refreshKey bumps, or getSummary/getDetails landing in a
+  // different order than issued) would let a stale response overwrite newer
+  // state — the outlet app has no react-query to dedupe (design finding #6).
+  let requestId = 0
+
   async function refresh(): Promise<void> {
     const id = collectionId()
     if (!id) return
+    const token = ++requestId
     summaryLoading.value = true
     detailsLoading.value = true
     summaryError.value = null
@@ -43,20 +51,26 @@ export function useCart(
     await Promise.all([
       (async () => {
         try {
-          summary.value = await cart.getSummary(id)
+          const res = await cart.getSummary(id)
+          if (token !== requestId) return
+          summary.value = res
         } catch (err) {
+          if (token !== requestId) return
           summaryError.value = err
         } finally {
-          summaryLoading.value = false
+          if (token === requestId) summaryLoading.value = false
         }
       })(),
       (async () => {
         try {
-          details.value = await cart.getDetails(id)
+          const res = await cart.getDetails(id)
+          if (token !== requestId) return
+          details.value = res
         } catch (err) {
+          if (token !== requestId) return
           detailsError.value = err
         } finally {
-          detailsLoading.value = false
+          if (token === requestId) detailsLoading.value = false
         }
       })()
     ])
