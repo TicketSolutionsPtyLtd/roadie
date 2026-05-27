@@ -100,7 +100,11 @@ describe('secret-guard: no hardcoded hosts or keys in cart source', () => {
   // contiguous token literal sits in this file — otherwise external secret
   // scanners flag the test fixtures themselves (they match the whole token,
   // not split concatenations). The guard sees the joined runtime value.
-  const jwtSample = ['eyJhbGciOiJIUzI1NiJ9', 'eyJzdWIiOiJ0In0', 'notarealsig'].join('.')
+  const jwtSample = [
+    'eyJhbGciOiJIUzI1NiJ9',
+    'eyJzdWIiOiJ0In0',
+    'notarealsig'
+  ].join('.')
   const POSITIVE: Array<{ name: string; sample: string }> = [
     {
       name: 'absolute http(s) host',
