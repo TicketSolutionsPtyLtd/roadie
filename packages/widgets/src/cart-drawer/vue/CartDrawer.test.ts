@@ -171,6 +171,37 @@ describe('CartDrawer (Vue)', () => {
     expect(drawer.getAttribute('aria-modal')).toBe('true')
   })
 
+  it('moves focus into the dialog on open and Escape closes it', async () => {
+    const cart = mockCart()
+    const { container, findAllByText } = render(CartDrawer, {
+      props: { ...baseProps, cart, onNavigate: vi.fn(), onOpenChange: vi.fn() }
+    })
+    await flushPromises()
+
+    const drawer = container.querySelector('#cart-drawer')!
+    const openBtn = (await findAllByText('Open cart'))[0] as HTMLButtonElement
+    openBtn.focus() // keyboard user activates the trigger
+    await fireEvent.click(openBtn)
+    await flushPromises()
+    await nextTick()
+
+    // focus-trap moves focus into the dialog (a tabbable child, or the drawer
+    // root via fallbackFocus when jsdom reports nothing tabbable).
+    await waitFor(() =>
+      expect(drawer.contains(document.activeElement)).toBe(true)
+    )
+
+    // Escape deactivates the trap and returns the drawer to the docked region.
+    // NOTE: return-focus-to-trigger isn't asserted — this drawer swaps its
+    // footer buttons on open, detaching the "Open cart" trigger before close,
+    // so focus-trap has no live node to restore to. Worth a follow-up (stable
+    // setReturnFocus target) but out of scope for this test.
+    await fireEvent.keyDown(document, { key: 'Escape' })
+    await flushPromises()
+    await nextTick()
+    expect(drawer.getAttribute('role')).toBe('region')
+  })
+
   it('reports the closed drawer height via onHeightChange and the CSS var', async () => {
     const cart = mockCart()
     const onHeightChange = vi.fn()
