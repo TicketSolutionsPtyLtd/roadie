@@ -10,7 +10,7 @@ export default defineConfig(({ watch }) => ({
   // version, so SFCs carry NO `<style>` blocks — the Vue skin's styles are
   // hand-authored in src/vue/style.css and copied verbatim to dist/vue/style.css
   // (the package.json `./vue/style.css` export points there). Consumers import
-  // it explicitly: `import '@oztix/roadie-cart/vue/style.css'`.
+  // it explicitly: `import '@oztix/roadie-widgets/vue/style.css'`.
   plugins: [vue()],
   copy: [{ from: 'src/vue/style.css', to: 'dist/vue' }],
   dts: {
