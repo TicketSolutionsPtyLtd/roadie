@@ -12,7 +12,9 @@ import {
 import {
   BOUNCE_HOLD_MS,
   type ExpiryWatcher,
-  createExpiryWatcher
+  buildBrowseHref,
+  createExpiryWatcher,
+  isSafeRelativePath
 } from '../core'
 import CartContents from './CartContents.vue'
 import CartDrawerFooter from './CartDrawerFooter.vue'
@@ -42,6 +44,15 @@ function resolveRootEl(
   const root = (el as ComponentPublicInstance | null)?.$el
   return root instanceof HTMLElement ? root : null
 }
+
+// Empty-state browse target. Prefer a consumer-supplied browseHref only if
+// it's a safe same-origin relative path; otherwise build the default from
+// collectionId so a tainted host value can never reach onNavigate.
+const effectiveBrowseHref = computed(() =>
+  typeof props.browseHref === 'string' && isSafeRelativePath(props.browseHref)
+    ? props.browseHref
+    : buildBrowseHref(props.collectionId)
+)
 
 const { summary, details, detailsLoading, detailsError } = useCart(
   props.cart,
@@ -263,7 +274,7 @@ const contentOpacity = computed(() =>
           v-else-if="details"
           :cart="details"
           :on-navigate="onNavigate"
-          :browse-href="browseHref"
+          :browse-href="effectiveBrowseHref"
           :checkout-url="checkoutUrl"
           :locale="locale"
           :currency="currency"

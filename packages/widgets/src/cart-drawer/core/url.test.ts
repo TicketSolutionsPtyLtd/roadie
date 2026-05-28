@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildCheckoutUrl, isSafeImageUrl, isSafeRelativePath } from './url'
+import {
+  buildBrowseHref,
+  buildCheckoutUrl,
+  isSafeImageUrl,
+  isSafeRelativePath
+} from './url'
 
 /** Build `/<ctrl>/evil.com` without putting literal control bytes in source. */
 const withCtrl = (code: number): string =>
@@ -86,5 +91,42 @@ describe('buildCheckoutUrl', () => {
   })
   it('returns null for an embedded-tab open-redirect path', () => {
     expect(buildCheckoutUrl('', withCtrl(0x09))).toBeNull()
+  })
+})
+
+describe('buildBrowseHref', () => {
+  // jsdom defaults: http://localhost/ — set explicit pathname/search per test.
+  const setLocation = (pathname: string, search: string): void => {
+    window.history.replaceState({}, '', `${pathname}${search}`)
+  }
+  const COLLECTION = 'abc-123-DEF'
+
+  it('builds /collection/cart with id + redirect to current path+search', () => {
+    setLocation('/event/x/y', '?foo=1&bar=2')
+    expect(buildBrowseHref(COLLECTION)).toBe(
+      `/collection/cart/?id=abc-123-DEF&redirect=${encodeURIComponent('/event/x/y?foo=1&bar=2')}`
+    )
+  })
+  it('strips an existing `redirect` param from the current search', () => {
+    setLocation('/event/x', '?redirect=%2Fstale&keep=1')
+    expect(buildBrowseHref(COLLECTION)).toBe(
+      `/collection/cart/?id=abc-123-DEF&redirect=${encodeURIComponent('/event/x?keep=1')}`
+    )
+  })
+  it('omits an empty query string from the redirect', () => {
+    setLocation('/event/x', '')
+    expect(buildBrowseHref(COLLECTION)).toBe(
+      `/collection/cart/?id=abc-123-DEF&redirect=${encodeURIComponent('/event/x')}`
+    )
+  })
+  it('returns "/" when collectionId is empty', () => {
+    setLocation('/event/x', '')
+    expect(buildBrowseHref('')).toBe('/')
+  })
+  it('encodes collectionId so a hostile value cannot inject query params', () => {
+    setLocation('/event/x', '')
+    const href = buildBrowseHref('&inject=evil')
+    expect(href).toContain('id=%26inject%3Devil')
+    expect(href).not.toMatch(/[?&]inject=evil/)
   })
 })

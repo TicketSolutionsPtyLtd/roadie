@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useMemo,
   useRef,
   useState
 } from 'react'
@@ -14,7 +15,13 @@ import FocusLock from 'react-focus-lock'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { BOUNCE_HOLD_MS, type CartClient, createExpiryWatcher } from '../core'
+import {
+  BOUNCE_HOLD_MS,
+  type CartClient,
+  buildBrowseHref,
+  createExpiryWatcher,
+  isSafeRelativePath
+} from '../core'
 import { CartContents } from './CartContents'
 import { CartDrawerFooter, CartDrawerHeader } from './CartDrawerHandle'
 import {
@@ -32,8 +39,14 @@ export type CartDrawerProps = {
   collectionId: string
   /** REQUIRED — routing is the consumer's job. No silent no-op fallback. */
   onNavigate: (href: string) => void
-  /** App-specific browse target for the empty state (design finding #4). */
-  browseHref: string
+  /**
+   * Empty-state "Browse" target. Optional — when omitted, `CartDrawer` builds
+   * a safe default from `collectionId` via `buildBrowseHref` (see
+   * `core/url.ts`). Pass this only if you need to override the default
+   * collection-cart route. Unsafe values (failing `isSafeRelativePath`) fall
+   * back to the built default so the navigation sink stays safe.
+   */
+  browseHref?: string
   /** Locale for currency/date formatting (design finding #1). */
   locale: string
   /** ISO 4217 currency code (design finding #1). */
@@ -67,6 +80,17 @@ export function CartDrawer({
   onExpire,
   onHeightChange
 }: CartDrawerProps): ReactElement | null {
+  // Empty-state browse target. Prefer a consumer-supplied browseHref only if
+  // it's a safe same-origin relative path; otherwise build the default from
+  // collectionId so a tainted host value can never reach onNavigate.
+  const effectiveBrowseHref = useMemo(
+    () =>
+      typeof browseHref === 'string' && isSafeRelativePath(browseHref)
+        ? browseHref
+        : buildBrowseHref(collectionId),
+    [browseHref, collectionId]
+  )
+
   const { data: summary } = useCartSummary(cart, collectionId, refreshKey)
   const {
     data: details,
@@ -245,7 +269,7 @@ export function CartDrawer({
               <CartContents
                 cart={details}
                 onNavigate={onNavigate}
-                browseHref={browseHref}
+                browseHref={effectiveBrowseHref}
                 checkoutUrl={checkoutUrl}
                 locale={locale}
                 currency={currency}
