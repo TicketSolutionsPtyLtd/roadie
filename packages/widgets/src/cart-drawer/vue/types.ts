@@ -7,8 +7,14 @@ export type CartDrawerProps = {
   collectionId: string
   /** REQUIRED — routing is the consumer's job. No silent no-op fallback. */
   onNavigate: (href: string) => void
-  /** App-specific browse target for the empty state (design finding #4). */
-  browseHref: string
+  /**
+   * Empty-state "Browse" target. Optional — when omitted, `CartDrawer` builds
+   * a safe default from `collectionId` via `buildBrowseHref` (see
+   * `core/url.ts`). Pass this only if you need to override the default
+   * collection-cart route. Unsafe values (failing `isSafeRelativePath`) fall
+   * back to the built default so the navigation sink stays safe.
+   */
+  browseHref?: string
   /** Locale for currency/date formatting (design finding #1). */
   locale: string
   /** ISO 4217 currency code (design finding #1). */
