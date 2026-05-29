@@ -1,5 +1,8 @@
+/* eslint-disable no-undef -- type-only DOM names like ResizeObserverCallback
+   are not runtime globals, so no-undef false-positives on them; TypeScript
+   already checks undefined references. */
 import { render } from '@testing-library/vue'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick } from 'vue'
 
 import { useCartDrawerDrag } from './useCartDrawerDrag'
@@ -85,6 +88,140 @@ describe('useCartDrawerDrag', () => {
     // The original pointer releasing ends it.
     dispatchPointer('pointerup', 400, 1)
     expect(drag.isDragging.value).toBe(false)
+  })
+
+  describe('ResizeObserver write deferral', () => {
+    let observerCallbacks: ResizeObserverCallback[] = []
+    let originalRO: typeof ResizeObserver | undefined
+
+    function stubElement(height: number): HTMLElement {
+      const el = document.createElement('div')
+      Object.defineProperty(el, 'getBoundingClientRect', {
+        value: () => ({
+          height,
+          width: 0,
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          x: 0,
+          y: 0
+        })
+      })
+      return el
+    }
+
+    function fireResize(
+      cb: ResizeObserverCallback,
+      target: HTMLElement,
+      height: number
+    ): void {
+      const entry = {
+        target,
+        borderBoxSize: [{ blockSize: height, inlineSize: 0 }],
+        contentBoxSize: [{ blockSize: height, inlineSize: 0 }],
+        devicePixelContentBoxSize: [],
+        contentRect: { height } as DOMRectReadOnly
+      } as unknown as ResizeObserverEntry
+      cb([entry], {} as ResizeObserver)
+    }
+
+    beforeEach(() => {
+      observerCallbacks = []
+      originalRO = (
+        globalThis as unknown as { ResizeObserver?: typeof ResizeObserver }
+      ).ResizeObserver
+      class MockResizeObserver {
+        constructor(cb: ResizeObserverCallback) {
+          observerCallbacks.push(cb)
+        }
+        observe = vi.fn()
+        unobserve = vi.fn()
+        disconnect = vi.fn()
+      }
+      ;(
+        globalThis as unknown as { ResizeObserver: typeof ResizeObserver }
+      ).ResizeObserver = MockResizeObserver as unknown as typeof ResizeObserver
+    })
+
+    afterEach(() => {
+      ;(
+        globalThis as unknown as { ResizeObserver?: typeof ResizeObserver }
+      ).ResizeObserver = originalRO
+    })
+
+    it('defers header height writes from inside the RO callback past the current frame', async () => {
+      const drag = mountDrag('closed')
+      const el = stubElement(40)
+      drag.setHeaderElement(el)
+      expect(drag.headerHeight.value).toBe(40)
+      expect(observerCallbacks).toHaveLength(1)
+
+      fireResize(observerCallbacks[0]!, el, 80)
+
+      // The synchronous write is the one that trips the RO loop warning.
+      expect(drag.headerHeight.value).toBe(40)
+
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => resolve())
+      )
+      await nextTick()
+      expect(drag.headerHeight.value).toBe(80)
+    })
+
+    it('defers footer height writes from inside the RO callback past the current frame', async () => {
+      const drag = mountDrag('closed')
+      const el = stubElement(50)
+      drag.setFooterElement(el)
+      expect(drag.footerHeight.value).toBe(50)
+      expect(observerCallbacks).toHaveLength(1)
+
+      fireResize(observerCallbacks[0]!, el, 90)
+      expect(drag.footerHeight.value).toBe(50)
+
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => resolve())
+      )
+      await nextTick()
+      expect(drag.footerHeight.value).toBe(90)
+    })
+
+    it('skips a deferred header write if the drawer starts opening before the rAF tick', async () => {
+      const drag = mountDrag('closed')
+      const el = stubElement(40)
+      drag.setHeaderElement(el)
+      expect(drag.headerHeight.value).toBe(40)
+
+      fireResize(observerCallbacks[0]!, el, 80)
+
+      // Once `progress` hits 1, an observation taken mid-open would inflate
+      // the docked height, so the deferred write must be dropped.
+      drag.setState('open')
+      await nextTick()
+
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => resolve())
+      )
+      await nextTick()
+      expect(drag.headerHeight.value).toBe(40)
+    })
+
+    it('cancels a pending header write when setHeaderElement is called with a new element', async () => {
+      const drag = mountDrag('closed')
+      const el1 = stubElement(40)
+      drag.setHeaderElement(el1)
+      fireResize(observerCallbacks[0]!, el1, 80)
+
+      const el2 = stubElement(55)
+      drag.setHeaderElement(el2)
+      expect(drag.headerHeight.value).toBe(55)
+
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => resolve())
+      )
+      await nextTick()
+      expect(drag.headerHeight.value).toBe(55)
+    })
   })
 
   it('detaches window drag listeners when unmounted mid-drag', () => {

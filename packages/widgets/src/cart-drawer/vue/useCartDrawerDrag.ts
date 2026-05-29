@@ -100,9 +100,6 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     { flush: 'sync' }
   )
 
-  let headerObserver: ResizeObserver | null = null
-  let footerObserver: ResizeObserver | null = null
-
   // The pointer currently driving a drag (null when idle). Gates re-entry and
   // filters out events from other concurrent pointers (multi-touch).
   let activePointerId: number | null = null
@@ -119,41 +116,73 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
       : (entry.target as HTMLElement).getBoundingClientRect().height
   }
 
-  const setHeaderElement = (el: HTMLElement | null) => {
-    headerObserver?.disconnect()
-    headerObserver = null
-    if (!el || typeof ResizeObserver === 'undefined') return
-    if (isClosedEnoughToMeasure()) {
-      const h = el.getBoundingClientRect().height
-      if (h > 0) headerHeight.value = h
+  // Last positive block-size across the delivered entries (0 if none).
+  const latestBlockSize = (entries: ResizeObserverEntry[]): number => {
+    let next = 0
+    for (const entry of entries) {
+      const h = readBlockSize(entry)
+      if (h > 0) next = h
     }
-    headerObserver = new ResizeObserver((entries) => {
-      if (!isClosedEnoughToMeasure()) return
-      for (const entry of entries) {
-        const h = readBlockSize(entry)
-        if (h > 0) headerHeight.value = h
-      }
-    })
-    headerObserver.observe(el)
+    return next
   }
 
-  const setFooterElement = (el: HTMLElement | null) => {
-    footerObserver?.disconnect()
-    footerObserver = null
-    if (!el || typeof ResizeObserver === 'undefined') return
-    if (isClosedEnoughToMeasure()) {
-      const h = el.getBoundingClientRect().height
-      if (h > 0) footerHeight.value = h
-    }
-    footerObserver = new ResizeObserver((entries) => {
-      if (!isClosedEnoughToMeasure()) return
-      for (const entry of entries) {
-        const h = readBlockSize(entry)
-        if (h > 0) footerHeight.value = h
+  // One self-contained height tracker per measured element (header / footer).
+  // Each owns a ResizeObserver plus a single pending rAF handle: observer
+  // writes are deferred to the next frame so the observer never triggers a
+  // synchronous relayout inside its own callback — that re-entrancy is what
+  // produces the "ResizeObserver loop completed with undelivered
+  // notifications" warning. Replaces two near-identical setHeader/setFooter
+  // bodies and flattens the previously triple-nested callback.
+  const createHeightTracker = (target: Ref<number>) => {
+    let observer: ResizeObserver | null = null
+    let pendingRaf: number | null = null
+
+    const cancelRaf = () => {
+      if (pendingRaf !== null) {
+        cancelAnimationFrame(pendingRaf)
+        pendingRaf = null
       }
-    })
-    footerObserver.observe(el)
+    }
+
+    // Defer the height write to the next frame; re-check the close-enough gate
+    // there since the drawer may have started opening between frames.
+    const commit = (nextHeight: number) => {
+      cancelRaf()
+      pendingRaf = requestAnimationFrame(() => {
+        pendingRaf = null
+        if (isClosedEnoughToMeasure()) target.value = nextHeight
+      })
+    }
+
+    const disconnect = () => {
+      observer?.disconnect()
+      observer = null
+      cancelRaf()
+    }
+
+    const setElement = (el: HTMLElement | null) => {
+      disconnect()
+      if (!el || typeof ResizeObserver === 'undefined') return
+      // Seed synchronously so the first paint has a real measurement.
+      if (isClosedEnoughToMeasure()) {
+        const h = el.getBoundingClientRect().height
+        if (h > 0) target.value = h
+      }
+      observer = new ResizeObserver((entries) => {
+        if (!isClosedEnoughToMeasure()) return
+        const nextHeight = latestBlockSize(entries)
+        if (nextHeight > 0) commit(nextHeight)
+      })
+      observer.observe(el)
+    }
+
+    return { setElement, disconnect }
   }
+
+  const headerTracker = createHeightTracker(headerHeight)
+  const footerTracker = createHeightTracker(footerHeight)
+  const setHeaderElement = headerTracker.setElement
+  const setFooterElement = footerTracker.setElement
 
   const updateViewport = () => {
     maxHeight.value = computeViewportMaxHeight()
@@ -171,8 +200,8 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
   // composable runs inside a standalone effectScope() — tests, shared stores —
   // where component lifecycle hooks never trigger.
   onScopeDispose(() => {
-    headerObserver?.disconnect()
-    footerObserver?.disconnect()
+    headerTracker.disconnect()
+    footerTracker.disconnect()
     // Detach any drag listeners still live at dispose (drag in progress).
     dragCleanup?.()
     if (typeof window === 'undefined') return
