@@ -1,5 +1,15 @@
 # @oztix/roadie-widgets
 
+## 1.2.1
+
+### Patch Changes
+
+- 77885bc: Fix `ResizeObserver loop completed with undelivered notifications` warning in
+  the cart-drawer drag composable. Header/footer height measurements taken
+  inside the observer callback now schedule their state writes via
+  `requestAnimationFrame`, so the observer no longer dispatches a fresh layout
+  synchronously within its own callback frame.
+
 ## 1.2.0
 
 ### Minor Changes
