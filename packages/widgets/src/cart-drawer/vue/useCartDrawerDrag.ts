@@ -105,6 +105,9 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
   let pendingHeaderRaf: number | null = null
   let pendingFooterRaf: number | null = null
 
+  let observedHeaderEl: HTMLElement | null = null
+  let observedFooterEl: HTMLElement | null = null
+
   // The pointer currently driving a drag (null when idle). Gates re-entry and
   // filters out events from other concurrent pointers (multi-touch).
   let activePointerId: number | null = null
@@ -135,6 +138,10 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
   }
 
   const setHeaderElement = (el: HTMLElement | null) => {
+    // Same element as last render — keep the live observer, skip the
+    // synchronous re-measure (see observedHeaderEl note above).
+    if (el === observedHeaderEl) return
+    observedHeaderEl = el
     headerObserver?.disconnect()
     headerObserver = null
     cancelHeaderRaf()
@@ -162,6 +169,10 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
   }
 
   const setFooterElement = (el: HTMLElement | null) => {
+    // Same element as last render — keep the live observer, skip the
+    // synchronous re-measure (see observedFooterEl note above).
+    if (el === observedFooterEl) return
+    observedFooterEl = el
     footerObserver?.disconnect()
     footerObserver = null
     cancelFooterRaf()

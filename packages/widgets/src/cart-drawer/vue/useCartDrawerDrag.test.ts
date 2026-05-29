@@ -224,6 +224,112 @@ describe('useCartDrawerDrag', () => {
     })
   })
 
+  describe('idempotent element wiring (recursion guard)', () => {
+    let observerCount = 0
+    let originalRO: typeof ResizeObserver | undefined
+
+    // Element whose getBoundingClientRect tallies synchronous measurements, so
+    // a test can prove the measure runs once — not once per render.
+    function countingElement(height: number): {
+      el: HTMLElement
+      measures: () => number
+    } {
+      let measures = 0
+      const el = document.createElement('div')
+      Object.defineProperty(el, 'getBoundingClientRect', {
+        value: () => {
+          measures += 1
+          return {
+            height,
+            width: 0,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            x: 0,
+            y: 0
+          }
+        }
+      })
+      return { el, measures: () => measures }
+    }
+
+    beforeEach(() => {
+      observerCount = 0
+      originalRO = (
+        globalThis as unknown as { ResizeObserver?: typeof ResizeObserver }
+      ).ResizeObserver
+      class MockResizeObserver {
+        constructor() {
+          observerCount += 1
+        }
+        observe = vi.fn()
+        unobserve = vi.fn()
+        disconnect = vi.fn()
+      }
+      ;(
+        globalThis as unknown as { ResizeObserver: typeof ResizeObserver }
+      ).ResizeObserver = MockResizeObserver as unknown as typeof ResizeObserver
+    })
+
+    afterEach(() => {
+      ;(
+        globalThis as unknown as { ResizeObserver?: typeof ResizeObserver }
+      ).ResizeObserver = originalRO
+    })
+
+    // Vue invokes function refs on every patch, so the SFC re-calls
+    // setHeaderElement / setFooterElement with the SAME element on every
+    // render. If each call re-ran the synchronous getBoundingClientRect
+    // measure, the headerHeight write would feed closedHeight -> progress ->
+    // the header's own titleAreaHeight, which is re-measured on the next
+    // render: a feedback loop that fails to converge within Vue's
+    // recursive-update cap when the open span is small ("Maximum recursive
+    // updates exceeded in <CartDrawer>"). Repeated same-element calls must
+    // be a no-op; the ResizeObserver handles genuine size changes off the
+    // synchronous render path.
+    it('measures the header once across repeated same-element wiring', () => {
+      const drag = mountDrag('closed')
+      const { el, measures } = countingElement(40)
+
+      drag.setHeaderElement(el)
+      drag.setHeaderElement(el)
+      drag.setHeaderElement(el)
+
+      expect(measures()).toBe(1)
+      expect(observerCount).toBe(1)
+      expect(drag.headerHeight.value).toBe(40)
+    })
+
+    it('measures the footer once across repeated same-element wiring', () => {
+      const drag = mountDrag('closed')
+      const { el, measures } = countingElement(50)
+
+      drag.setFooterElement(el)
+      drag.setFooterElement(el)
+      drag.setFooterElement(el)
+
+      expect(measures()).toBe(1)
+      expect(observerCount).toBe(1)
+      expect(drag.footerHeight.value).toBe(50)
+    })
+
+    it('re-measures and re-observes when the wired element actually changes', () => {
+      const drag = mountDrag('closed')
+      const a = countingElement(40)
+      const b = countingElement(60)
+
+      drag.setHeaderElement(a.el)
+      drag.setHeaderElement(a.el) // same element — no-op
+      drag.setHeaderElement(b.el) // changed — re-measure + re-observe
+
+      expect(a.measures()).toBe(1)
+      expect(b.measures()).toBe(1)
+      expect(observerCount).toBe(2)
+      expect(drag.headerHeight.value).toBe(60)
+    })
+  })
+
   it('detaches window drag listeners when unmounted mid-drag', () => {
     const removeSpy = vi.spyOn(window, 'removeEventListener')
     const result: { value: ReturnType<typeof useCartDrawerDrag> | null } = {
