@@ -102,6 +102,8 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
 
   let headerObserver: ResizeObserver | null = null
   let footerObserver: ResizeObserver | null = null
+  let pendingHeaderRaf: number | null = null
+  let pendingFooterRaf: number | null = null
 
   // The pointer currently driving a drag (null when idle). Gates re-entry and
   // filters out events from other concurrent pointers (multi-touch).
@@ -119,9 +121,23 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
       : (entry.target as HTMLElement).getBoundingClientRect().height
   }
 
+  const cancelHeaderRaf = () => {
+    if (pendingHeaderRaf !== null) {
+      cancelAnimationFrame(pendingHeaderRaf)
+      pendingHeaderRaf = null
+    }
+  }
+  const cancelFooterRaf = () => {
+    if (pendingFooterRaf !== null) {
+      cancelAnimationFrame(pendingFooterRaf)
+      pendingFooterRaf = null
+    }
+  }
+
   const setHeaderElement = (el: HTMLElement | null) => {
     headerObserver?.disconnect()
     headerObserver = null
+    cancelHeaderRaf()
     if (!el || typeof ResizeObserver === 'undefined') return
     if (isClosedEnoughToMeasure()) {
       const h = el.getBoundingClientRect().height
@@ -129,10 +145,18 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     }
     headerObserver = new ResizeObserver((entries) => {
       if (!isClosedEnoughToMeasure()) return
+      let nextHeight = 0
       for (const entry of entries) {
         const h = readBlockSize(entry)
-        if (h > 0) headerHeight.value = h
+        if (h > 0) nextHeight = h
       }
+      if (nextHeight === 0) return
+      cancelHeaderRaf()
+      pendingHeaderRaf = requestAnimationFrame(() => {
+        pendingHeaderRaf = null
+        if (!isClosedEnoughToMeasure()) return
+        headerHeight.value = nextHeight
+      })
     })
     headerObserver.observe(el)
   }
@@ -140,6 +164,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
   const setFooterElement = (el: HTMLElement | null) => {
     footerObserver?.disconnect()
     footerObserver = null
+    cancelFooterRaf()
     if (!el || typeof ResizeObserver === 'undefined') return
     if (isClosedEnoughToMeasure()) {
       const h = el.getBoundingClientRect().height
@@ -147,10 +172,18 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     }
     footerObserver = new ResizeObserver((entries) => {
       if (!isClosedEnoughToMeasure()) return
+      let nextHeight = 0
       for (const entry of entries) {
         const h = readBlockSize(entry)
-        if (h > 0) footerHeight.value = h
+        if (h > 0) nextHeight = h
       }
+      if (nextHeight === 0) return
+      cancelFooterRaf()
+      pendingFooterRaf = requestAnimationFrame(() => {
+        pendingFooterRaf = null
+        if (!isClosedEnoughToMeasure()) return
+        footerHeight.value = nextHeight
+      })
     })
     footerObserver.observe(el)
   }
@@ -173,6 +206,8 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
   onScopeDispose(() => {
     headerObserver?.disconnect()
     footerObserver?.disconnect()
+    cancelHeaderRaf()
+    cancelFooterRaf()
     // Detach any drag listeners still live at dispose (drag in progress).
     dragCleanup?.()
     if (typeof window === 'undefined') return
