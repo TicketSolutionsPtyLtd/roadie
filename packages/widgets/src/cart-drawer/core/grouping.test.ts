@@ -80,3 +80,73 @@ describe('groupEventsByDay', () => {
     expect(groups.map((g) => g.key)).toEqual(['2026-06-15', '2026-06-16'])
   })
 })
+
+// Defence-in-depth: the cart payload is untrusted (client.ts trust-seam). A
+// consumer that omits the ordering/grouping keys (e.g. an app that doesn't map
+// the API's date fields) must still see its items — not a thrown
+// "Cannot read properties of undefined (reading 'localeCompare')" that blanks
+// the whole list. These assert graceful degradation, never a throw, never a
+// dropped item.
+describe('groupEventsByDay — resilience to missing date fields', () => {
+  it('does not throw and keeps every event when eventStartAtUtc is missing (2+ event crash repro)', () => {
+    const events = [
+      ev({ eventId: 'a', eventStartAtUtc: undefined }),
+      ev({ eventId: 'b', eventStartAtUtc: undefined })
+    ]
+    let groups: ReturnType<typeof groupEventsByDay> = []
+    expect(() => {
+      groups = groupEventsByDay(events)
+    }).not.toThrow()
+    const ids = groups.flatMap((g) => g.events.map((e) => e.eventId))
+    expect(ids).toHaveLength(2)
+    expect(ids).toEqual(expect.arrayContaining(['a', 'b']))
+  })
+
+  it('does not throw and keeps every event when eventDateKey is missing', () => {
+    const events = [
+      ev({ eventId: 'a', eventDateKey: undefined }),
+      ev({ eventId: 'b', eventDateKey: undefined })
+    ]
+    let groups: ReturnType<typeof groupEventsByDay> = []
+    expect(() => {
+      groups = groupEventsByDay(events)
+    }).not.toThrow()
+    const ids = groups.flatMap((g) => g.events.map((e) => e.eventId))
+    expect(ids).toHaveLength(2)
+    expect(ids).toEqual(expect.arrayContaining(['a', 'b']))
+  })
+
+  it('keeps dated events ordered/grouped correctly and trails the undated ones', () => {
+    const events = [
+      ev({
+        eventId: 'undated',
+        eventStartAtUtc: undefined,
+        eventDateKey: undefined
+      }),
+      ev({
+        eventId: 'early',
+        eventDateKey: '2026-06-15',
+        eventStartAtUtc: '2026-06-15T09:00:00Z'
+      }),
+      ev({
+        eventId: 'late',
+        eventDateKey: '2026-06-16',
+        eventStartAtUtc: '2026-06-16T01:00:00Z'
+      })
+    ]
+    const groups = groupEventsByDay(events)
+    // Dated groups keep their correct ascending order at the front.
+    expect(groups.map((g) => g.key).slice(0, 2)).toEqual([
+      '2026-06-15',
+      '2026-06-16'
+    ])
+    // No item is dropped.
+    const ids = groups.flatMap((g) => g.events.map((e) => e.eventId))
+    expect(ids).toHaveLength(3)
+    expect(ids).toEqual(expect.arrayContaining(['early', 'late', 'undated']))
+    // The undated event trails in the last group.
+    expect(
+      groups[groups.length - 1]?.events.some((e) => e.eventId === 'undated')
+    ).toBe(true)
+  })
+})
