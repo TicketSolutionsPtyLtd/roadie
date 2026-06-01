@@ -5,17 +5,37 @@ export interface DayGroup {
   events: CartEvent[]
 }
 
+// The cart payload is untrusted (see client.ts trust-seam). A consumer that
+// omits the ordering/grouping keys must degrade gracefully — show its items —
+// not crash the whole list with "Cannot read properties of undefined (reading
+// 'localeCompare')". Missing keys are coerced to '' so compares are safe;
+// undated events then trail in a final '' day group rather than jumping to top.
+// (Typed `string | null | undefined` here because runtime values can defy the type.)
+function keyOf(value: string | null | undefined): string {
+  return typeof value === 'string' ? value : ''
+}
+
+// Ascending compare that sorts blank/missing keys AFTER present ones, so
+// undated events trail the dated ones instead of jumping to the top.
+function compareKeys(a: string, b: string): number {
+  if (a === b) return 0
+  if (a === '') return 1
+  if (b === '') return -1
+  return a.localeCompare(b)
+}
+
 export function groupEventsByDay(events: CartEvent[]): DayGroup[] {
   const ordered = [...events].sort((a, b) =>
-    a.eventStartAtUtc.localeCompare(b.eventStartAtUtc)
+    compareKeys(keyOf(a.eventStartAtUtc), keyOf(b.eventStartAtUtc))
   )
   const map = new Map<string, CartEvent[]>()
   for (const e of ordered) {
-    const bucket = map.get(e.eventDateKey)
+    const key = keyOf(e.eventDateKey)
+    const bucket = map.get(key)
     if (bucket) bucket.push(e)
-    else map.set(e.eventDateKey, [e])
+    else map.set(key, [e])
   }
   return Array.from(map.entries())
     .map(([key, evs]) => ({ key, events: evs }))
-    .sort((a, b) => a.key.localeCompare(b.key))
+    .sort((a, b) => compareKeys(a.key, b.key))
 }
