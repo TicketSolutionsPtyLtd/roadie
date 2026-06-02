@@ -11,14 +11,21 @@
  */
 
 :root {
-  --rc-bg-raised: var(--background-color-raised, #ffffff);
-  --rc-bg-sunken: var(--background-color-sunken, #f4f4f5);
-  --rc-bg-subtle: var(--background-color-subtle, #e4e4e7);
-  --rc-text-strong: var(--text-color-strong, #18181b);
-  --rc-text-normal: var(--text-color-normal, #3f3f46);
-  --rc-text-subtle: var(--text-color-subtle, #71717a);
-  --rc-text-subtler: var(--text-color-subtler, #a1a1aa);
-  --rc-border-subtle: var(--border-color-subtle, #e4e4e7);
+  /* Surface/text/border tokens bridge to Roadie's emitted `--intent-*`
+     properties, which swap automatically under `.dark`. (The
+     `--background-color-*` / `--text-color-*` / `--border-color-*` namespaces
+     are Tailwind v4 `@theme inline` utility namespaces that are NEVER emitted
+     to :root, so they always fell back to the hardcoded LIGHT value and broke
+     dark mode.) Fallbacks remain the light defaults for hosts with no Roadie
+     CSS loaded. */
+  --rc-bg-raised: var(--intent-bg-raised, #ffffff);
+  --rc-bg-sunken: var(--intent-bg-sunken, #f4f4f5);
+  --rc-bg-subtle: var(--intent-bg-subtle, #e4e4e7);
+  --rc-text-strong: var(--intent-text-strong, #18181b);
+  --rc-text-normal: var(--intent-text-normal, #3f3f46);
+  --rc-text-subtle: var(--intent-text-subtle, #71717a);
+  --rc-text-subtler: var(--intent-text-subtler, #a1a1aa);
+  --rc-border-subtle: var(--intent-border-subtle, #e4e4e7);
   --rc-radius-lg: 0.75rem;
   --rc-radius-xl: 1rem;
   --rc-radius-4xl: 2rem;
@@ -68,7 +75,6 @@
   bottom: 0;
   z-index: var(--rc-z);
   display: flex;
-  max-width: var(--rc-drawer-max-width);
   flex-direction: column;
   overflow: hidden;
   border-radius: var(--rc-radius-4xl) var(--rc-radius-4xl) 0 0;
@@ -83,6 +89,10 @@
     inset-inline: 1rem;
     bottom: 1rem;
     margin-inline: auto;
+    /* max-width only applies once floating — below sm the drawer is full-bleed.
+       (Leaving it in the base rule capped 600–640px viewports at 600px and
+       left-aligned them instead of true full-width.) */
+    max-width: var(--rc-drawer-max-width);
     border-radius: var(--rc-radius-4xl);
   }
 }
