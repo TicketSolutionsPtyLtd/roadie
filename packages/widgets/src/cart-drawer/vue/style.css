@@ -1,20 +1,24 @@
 /* Roadie cart drawer — Vue skin styles.
  *
- * Plain, framework-agnostic CSS (no Tailwind). Themeable via CSS custom
- * properties the consuming app may override on :root or a wrapping scope.
- * Every visual token below has a sensible neutral default so the drawer is
- * usable with zero theming. Class names are namespaced `rc-` to avoid clashes.
+ * Plain, framework-agnostic CSS (no Tailwind). Each colour token below is
+ * bridged to its Roadie core token (`var(--roadie-token, <fallback>)`): when
+ * the host app loads `@oztix/roadie-core` CSS, the drawer inherits the live
+ * theme — collection accent (via `--accent-hue`/`--accent-chroma`, set by
+ * `useRoadieTheme` or the React `ThemeProvider`) AND dark mode (Roadie tokens
+ * swap automatically under `.dark`, which the HOST owns — this skin never
+ * toggles it). With no Roadie CSS present, the hardcoded fallbacks keep the
+ * drawer usable with zero theming. Class names are namespaced `rc-`.
  */
 
 :root {
-  --rc-bg-raised: #ffffff;
-  --rc-bg-sunken: #f4f4f5;
-  --rc-bg-subtle: #e4e4e7;
-  --rc-text-strong: #18181b;
-  --rc-text-normal: #3f3f46;
-  --rc-text-subtle: #71717a;
-  --rc-text-subtler: #a1a1aa;
-  --rc-border-subtle: #e4e4e7;
+  --rc-bg-raised: var(--background-color-raised, #ffffff);
+  --rc-bg-sunken: var(--background-color-sunken, #f4f4f5);
+  --rc-bg-subtle: var(--background-color-subtle, #e4e4e7);
+  --rc-text-strong: var(--text-color-strong, #18181b);
+  --rc-text-normal: var(--text-color-normal, #3f3f46);
+  --rc-text-subtle: var(--text-color-subtle, #71717a);
+  --rc-text-subtler: var(--text-color-subtler, #a1a1aa);
+  --rc-border-subtle: var(--border-color-subtle, #e4e4e7);
   --rc-radius-lg: 0.75rem;
   --rc-radius-xl: 1rem;
   --rc-radius-4xl: 2rem;
@@ -24,16 +28,17 @@
   --rc-drawer-max-width: 600px;
   --rc-z: 70;
 
-  /* Intent palette — overridable per brand. */
-  --rc-intent-accent: #6d28d9;
-  --rc-intent-accent-contrast: #ffffff;
-  --rc-intent-brand: #111827;
-  --rc-intent-brand-contrast: #ffffff;
-  --rc-intent-neutral: #e4e4e7;
-  --rc-intent-neutral-contrast: #18181b;
-  --rc-intent-danger: #dc2626;
-  --rc-intent-warning: #d97706;
-  --rc-intent-success: #16a34a;
+  /* Intent palette — bridged to Roadie's accent/intent ramps so the drawer
+     tracks the collection accent. Fallbacks are Roadie's own defaults. */
+  --rc-intent-accent: var(--color-accent-9, #0191eb);
+  --rc-intent-accent-contrast: var(--text-color-inverted, #ffffff);
+  --rc-intent-brand: var(--color-neutral-12, #16202a);
+  --rc-intent-brand-contrast: var(--text-color-inverted, #ffffff);
+  --rc-intent-neutral: var(--background-color-subtle, #e4e4e7);
+  --rc-intent-neutral-contrast: var(--text-color-strong, #18181b);
+  --rc-intent-danger: var(--color-danger-9, #ff6b5c);
+  --rc-intent-warning: var(--color-warning-9, #e0ac00);
+  --rc-intent-success: var(--color-success-9, #00c2b3);
 }
 
 /* ---- Overlay ---- */
