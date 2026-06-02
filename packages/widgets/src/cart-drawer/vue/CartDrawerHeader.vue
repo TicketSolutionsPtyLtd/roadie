@@ -1,87 +1,85 @@
 <script setup lang="ts">
-import NumberFlow from "@number-flow/vue";
-import { computed } from "vue";
+import NumberFlow from '@number-flow/vue'
+import { computed } from 'vue'
 
-import { currencyPrefix } from "../core";
-import CartUrgencyBadge from "./CartUrgencyBadge.vue";
+import { currencyPrefix } from '../core'
+import CartUrgencyBadge from './CartUrgencyBadge.vue'
 
 // Roll the total digits behind a locale-correct currency symbol — never a
 // hardcoded "$" (matches the React skin's NumberFlow prefix approach).
-const PRICE_FORMAT = { minimumFractionDigits: 2 };
+const PRICE_FORMAT = { minimumFractionDigits: 2 }
 
 const props = defineProps<{
-  ticketCount: number;
-  cartTotal: number;
-  expiresAtUtc: string | undefined;
-  locale: string;
-  currency: string;
-  isOpen: boolean;
-  bounce: boolean;
+  ticketCount: number
+  cartTotal: number
+  expiresAtUtc: string | undefined
+  locale: string
+  currency: string
+  isOpen: boolean
+  bounce: boolean
   /** Drawer open progress 0..1 (drives the morph). */
-  progress: number;
-  titleId: string;
-}>();
+  progress: number
+  titleId: string
+}>()
 
 const emit = defineEmits<{
-  toggle: [];
-  dragStart: [e: PointerEvent];
-}>();
+  toggle: []
+  dragStart: [e: PointerEvent]
+}>()
 
-const pricePrefix = computed(() =>
-  currencyPrefix(props.locale, props.currency),
-);
+const pricePrefix = computed(() => currencyPrefix(props.locale, props.currency))
 const priceSuffix = computed(() => {
   const parts = new Intl.NumberFormat(props.locale, {
-    style: "currency",
-    currency: props.currency,
-  }).formatToParts(0);
+    style: 'currency',
+    currency: props.currency
+  }).formatToParts(0)
 
-  let suffix = "";
-  let seenNumber = false;
+  let suffix = ''
+  let seenNumber = false
   for (const part of parts) {
     const isNumberPart =
-      part.type === "integer" ||
-      part.type === "group" ||
-      part.type === "decimal" ||
-      part.type === "fraction";
+      part.type === 'integer' ||
+      part.type === 'group' ||
+      part.type === 'decimal' ||
+      part.type === 'fraction'
 
     if (isNumberPart) {
-      seenNumber = true;
-      continue;
+      seenNumber = true
+      continue
     }
 
-    if (seenNumber && (part.type === "currency" || part.type === "literal")) {
-      suffix += part.value;
+    if (seenNumber && (part.type === 'currency' || part.type === 'literal')) {
+      suffix += part.value
     }
   }
-  return suffix;
-});
+  return suffix
+})
 
 // Morph styles derived from progress (CSS-var-free; inline transforms).
-const titleAreaHeight = computed(() => 32 + props.progress * 40);
+const titleAreaHeight = computed(() => 32 + props.progress * 40)
 const titleLeft = computed(() =>
   props.progress <= 0
-    ? "16px"
-    : `calc(${16 * (1 - props.progress)}px + ${props.progress * 50}%)`,
-);
-const titleTransform = computed(() => `translateX(${-50 * props.progress}%)`);
-const badgeTop = computed(() => 4 + props.progress * 32);
-const priceOpacity = computed(() => 1 - props.progress);
+    ? '16px'
+    : `calc(${16 * (1 - props.progress)}px + ${props.progress * 50}%)`
+)
+const titleTransform = computed(() => `translateX(${-50 * props.progress}%)`)
+const badgeTop = computed(() => 4 + props.progress * 32)
+const priceOpacity = computed(() => 1 - props.progress)
 const closeOpacity = computed(() =>
-  Math.max(0, Math.min(1, (props.progress - 0.5) / 0.2)),
-);
+  Math.max(0, Math.min(1, (props.progress - 0.5) / 0.2))
+)
 
 function onPointerDown(e: PointerEvent) {
-  emit("dragStart", e);
+  emit('dragStart', e)
 }
 function onGrabberClick(e: MouseEvent) {
   // Synthetic clicks (detail === 0) = screen-reader / Enter-Space activation.
-  if (e.detail === 0) emit("toggle");
+  if (e.detail === 0) emit('toggle')
 }
 function onGrabberKeydown(e: KeyboardEvent) {
-  if (e.key === "Enter" || e.key === " ") {
-    e.preventDefault();
-    emit("toggle");
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault()
+    emit('toggle')
   }
 }
 </script>
@@ -113,7 +111,7 @@ function onGrabberKeydown(e: KeyboardEvent) {
         class="rc-header__close"
         :style="{
           opacity: closeOpacity,
-          pointerEvents: isOpen ? 'auto' : 'none',
+          pointerEvents: isOpen ? 'auto' : 'none'
         }"
         @pointerdown.stop
       >
