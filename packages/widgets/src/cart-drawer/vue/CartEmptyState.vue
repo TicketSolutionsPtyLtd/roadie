@@ -9,7 +9,20 @@ const props = defineProps<{
 
 <template>
   <div class="rc-empty">
-    <p class="rc-empty__text">Your cart is empty.</p>
+    <div class="rc-empty__icon">
+      <svg
+        class="rc-empty__icon-graphic"
+        viewBox="0 0 256 256"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path
+          d="M216,64H176a48,48,0,0,0-96,0H40A16,16,0,0,0,24,80V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V80A16,16,0,0,0,216,64ZM128,32a32,32,0,0,1,32,32H96A32,32,0,0,1,128,32Zm88,168H40V80H216V200Z"
+        />
+      </svg>
+    </div>
+    <h2 class="rc-empty__heading">Your cart is empty</h2>
+    <p class="rc-empty__text">Browse events and add tickets to get started.</p>
     <button
       type="button"
       class="rc-button rc-button--strong rc-intent-brand"

@@ -34,6 +34,12 @@ const feesOpacity = computed(() =>
   Math.max(0, Math.min(1, (props.progress - 0.5) / 0.5))
 )
 
+// Shadow grows with drag progress so the footer lifts off the content as the
+// drawer opens (parity with the React skin's CartDrawerHandle).
+const footerShadow = computed(
+  () => `0 -4px 16px oklch(0 0 0 / ${props.progress * 0.08})`
+)
+
 function onPointerDown(e: PointerEvent) {
   if (!props.isOpen) emit('dragStart', e)
 }
@@ -43,6 +49,7 @@ function onPointerDown(e: PointerEvent) {
   <div
     class="rc-footer"
     :class="{ 'rc-footer--draggable': !isOpen }"
+    :style="{ boxShadow: footerShadow }"
     @pointerdown="onPointerDown"
   >
     <div class="rc-footer__inner">

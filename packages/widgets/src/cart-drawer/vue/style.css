@@ -59,21 +59,32 @@
 }
 
 /* ---- Drawer shell ---- */
+/* Mobile-first: full-bleed, flush to the bottom edge, only the top corners
+   rounded. The `sm` media query below morphs it to a floating card (matches
+   the Website: mobile flush → desktop inset-4 floating). */
 .rc-drawer {
   position: fixed;
-  inset-inline: 1rem;
-  bottom: 1rem;
+  inset-inline: 0;
+  bottom: 0;
   z-index: var(--rc-z);
-  margin-inline: auto;
   display: flex;
   max-width: var(--rc-drawer-max-width);
   flex-direction: column;
   overflow: hidden;
-  border-radius: var(--rc-radius-4xl);
+  border-radius: var(--rc-radius-4xl) var(--rc-radius-4xl) 0 0;
   background: var(--rc-bg-raised);
   color: var(--rc-text-normal);
   box-shadow: var(--rc-shadow-floating);
   transition: height 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* sm breakpoint = Tailwind's 40rem (640px). Floating card from here up. */
+@media (min-width: 40rem) {
+  .rc-drawer {
+    inset-inline: 1rem;
+    bottom: 1rem;
+    margin-inline: auto;
+    border-radius: var(--rc-radius-4xl);
+  }
 }
 .rc-drawer--dragging {
   transition: none;
@@ -135,8 +146,10 @@
 .rc-header:active {
   cursor: grabbing;
 }
-.rc-header--bounce {
-  animation: rc-bounce 600ms ease;
+@media (prefers-reduced-motion: no-preference) {
+  .rc-header--bounce {
+    animation: rc-bounce 600ms ease;
+  }
 }
 @keyframes rc-bounce {
   0%,
@@ -360,8 +373,10 @@
   background: color-mix(in oklab, var(--rc-intent-success) 16%, transparent);
   color: var(--rc-intent-success);
 }
-.rc-badge--pop {
-  animation: rc-pop 600ms ease;
+@media (prefers-reduced-motion: no-preference) {
+  .rc-badge--pop {
+    animation: rc-pop 600ms ease;
+  }
 }
 @keyframes rc-pop {
   0%,
@@ -409,7 +424,7 @@
 }
 .rc-group {
   display: grid;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 .rc-group__header {
   position: sticky;
@@ -522,7 +537,7 @@
 }
 .rc-event__tickets {
   display: grid;
-  gap: 0.5rem;
+  gap: 0.75rem;
   padding-left: 1.5rem;
 }
 .rc-ticket {
@@ -563,10 +578,36 @@
 
 /* ---- Empty state ---- */
 .rc-empty {
-  display: grid;
-  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1.5rem;
+  text-align: center;
+}
+.rc-empty__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 6rem;
+  height: 6rem;
+  margin-bottom: 1.5rem;
+  border-radius: var(--rc-radius-full);
+  background: var(--rc-bg-subtle);
+}
+.rc-empty__icon-graphic {
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--rc-text-subtler);
+}
+.rc-empty__heading {
+  margin: 0 0 0.5rem 0;
+  font-weight: 700;
+  color: var(--rc-text-strong);
 }
 .rc-empty__text {
+  margin: 0 0 1.5rem 0;
+  max-width: 20rem;
   color: var(--rc-text-subtle);
 }
 

@@ -228,7 +228,7 @@ export function CartDrawer({
               role: 'region',
               'aria-label': 'Cart summary'
             })}
-        className='fixed inset-x-4 bottom-4 z-70 mx-auto flex max-w-[600px] flex-col overflow-hidden rounded-4xl emphasis-floating'
+        className='fixed inset-x-0 bottom-0 z-70 flex flex-col overflow-hidden rounded-t-4xl emphasis-floating sm:inset-x-4 sm:bottom-4 sm:mx-auto sm:max-w-[600px] sm:rounded-4xl'
         style={{ height: dragHeight }}
       >
         <FocusLock
