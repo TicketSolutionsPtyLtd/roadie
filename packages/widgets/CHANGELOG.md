@@ -1,5 +1,49 @@
 # @oztix/roadie-widgets
 
+## 1.3.0
+
+### Minor Changes
+
+- 8c8214f: Cart drawer — Website visual + theme parity across both skins.
+
+  **Theming (both skins now themeable like the Website):**
+  - The Vue skin's `--rc-*` colour tokens bridge to roadie-core ambient tokens
+    (`var(--background-color-raised, …)`, `var(--color-accent-9, …)`, etc.), so
+    the drawer inherits the collection accent (via `--accent-hue`) and dark mode
+    (roadie tokens swap under `.dark`) — matching the React skin, which already
+    inherits via roadie utility classes.
+  - New `useRoadieTheme(accentColor)` Vue composable mirrors React's
+    `ThemeProvider`: derives OKLCH hue/chroma from a hex and writes
+    `--accent-hue`/`--accent-chroma` to `:root`, so a Vue app can apply a
+    collection theme the same way the Website does. Reuses core's sync OKLCH
+    helpers — no new dependency.
+
+  **Visual parity (both skins):**
+  - Mobile shell morph — full-bleed flush-bottom with top-only rounding on
+    mobile, floating card from `sm` up (was always floating).
+  - Spacing aligned to the Website (outer/section/ticket gaps); React drops a
+    redundant wrapper and gains an opt-in `roundedDayHeaders` prop.
+  - Vue footer now has the progress-driven lift shadow the React skin already had.
+  - Centered empty state (icon, heading, prose) on both skins.
+  - Vue motion (`bounce`/`pop`) gated behind `prefers-reduced-motion`.
+
+### Patch Changes
+
+- 1e54981: Fix the Vue `CartDrawer` freezing the tab when the drawer is dragged. The
+  header/footer measurement setters ran on every re-render (Vue re-invokes
+  template ref callbacks each render), tearing down and re-observing their
+  `ResizeObserver`; each re-observe fired the callback, whose deferred write
+  scheduled another render → re-observe → a cross-frame loop that pinned the main
+  thread. It surfaced as a hard tab freeze with no console error (one render per
+  tick never trips Vue's in-tick recursion guard), and was worst during a drag
+  because `dragHeight` re-renders on every pointermove.
+
+  `createHeightTracker.setElement` is now idempotent — it (re)observes only when a
+  genuinely new element arrives and no-ops on same-element / transient-null
+  re-invocations (real teardown stays in `onScopeDispose`). The header/footer ref
+  callbacks are also hoisted to stable identities. Adds a regression test
+  asserting the observer is not re-attached across re-renders.
+
 ## 1.2.2
 
 ### Patch Changes
