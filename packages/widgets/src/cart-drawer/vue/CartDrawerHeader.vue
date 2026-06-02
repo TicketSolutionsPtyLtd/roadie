@@ -27,9 +27,7 @@ const emit = defineEmits<{
   dragStart: [e: PointerEvent]
 }>()
 
-const pricePrefix = computed(() =>
-  currencyPrefix(props.locale, props.currency)
-)
+const pricePrefix = computed(() => currencyPrefix(props.locale, props.currency))
 
 // Morph styles derived from progress (CSS-var-free; inline transforms).
 const titleAreaHeight = computed(() => 32 + props.progress * 40)

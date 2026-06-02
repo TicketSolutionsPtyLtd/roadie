@@ -60,6 +60,32 @@ const { summary, details, detailsLoading, detailsError } = useCart(
   () => props.refreshKey
 )
 
+// Count + total are sourced from `details` (the /cart payload) — the same
+// fresh data that drives the event list — NOT the separate /cart/summary
+// endpoint. summary is only a fallback for the brief window before details
+// load. Binding to summary made the header/footer go stale when its refetch
+// lagged/errored while details updated (the count/total "not reacting" bug).
+const displayTicketCount = computed(() => {
+  const d = details.value
+  if (d) {
+    return d.events.reduce(
+      (sum, event) =>
+        sum + event.tickets.reduce((t, ticket) => t + ticket.quantity, 0),
+      0
+    )
+  }
+  return summary.value?.ticketCount ?? 0
+})
+const displayTotal = computed(() => {
+  const d = details.value
+  // Sum the per-event `subtotal` — server-side that's a LIVE-computed field
+  // (`item.InventoryTotal()`), unlike `details.cartTotal` / `event.total`,
+  // which are STORED fields the backend only recalculates on a full cart save
+  // and therefore lag a just-added item. Mirrors the ticket-count derivation.
+  if (d) return d.events.reduce((sum, event) => sum + event.subtotal, 0)
+  return summary.value?.cartTotal ?? 0
+})
+
 const {
   state,
   toggle,
@@ -118,7 +144,9 @@ watch(
 // --- Expiry watch (design finding #10) ---
 // Once-latch + polling live in the shared core watcher; recreating it on
 // expiry change resets the latch.
-const expiresAtUtc = computed(() => summary.value?.expiresAtUtc)
+const expiresAtUtc = computed(
+  () => summary.value?.expiresAtUtc ?? details.value?.expiresAtUtc
+)
 let expireWatcher: ExpiryWatcher | null = null
 watch(
   expiresAtUtc,
@@ -229,7 +257,7 @@ const contentOpacity = computed(() =>
 </script>
 
 <template>
-  <template v-if="collectionId && summary">
+  <template v-if="collectionId && (summary || details)">
     <!-- Dark overlay — fades in with drag progress. -->
     <div
       aria-hidden="true"
@@ -256,9 +284,9 @@ const contentOpacity = computed(() =>
     >
       <CartDrawerHeader
         :ref="bindHeader"
-        :ticket-count="summary.ticketCount"
-        :cart-total="summary.cartTotal"
-        :expires-at-utc="summary.expiresAtUtc"
+        :ticket-count="displayTicketCount"
+        :cart-total="displayTotal"
+        :expires-at-utc="expiresAtUtc"
         :locale="locale"
         :currency="currency"
         :is-open="isOpen"
@@ -307,7 +335,7 @@ const contentOpacity = computed(() =>
 
       <CartDrawerFooter
         :ref="bindFooter"
-        :cart-total="summary.cartTotal"
+        :cart-total="displayTotal"
         :locale="locale"
         :currency="currency"
         :is-open="isOpen"

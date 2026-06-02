@@ -44,7 +44,9 @@ const showCountdown = computed(
 )
 // Structured countdown values for NumberFlow (mirrors the React skin: long
 // format shows "N mins"; short format rolls mm:ss).
-const isLongFormat = computed(() => (remaining.value ?? 0) > URGENCY_LONG_FORMAT_S)
+const isLongFormat = computed(
+  () => (remaining.value ?? 0) > URGENCY_LONG_FORMAT_S
+)
 const minutesCeil = computed(() => Math.ceil((remaining.value ?? 0) / 60))
 const minutesFloor = computed(() => Math.floor((remaining.value ?? 0) / 60))
 const secondsPart = computed(() => (remaining.value ?? 0) % 60)

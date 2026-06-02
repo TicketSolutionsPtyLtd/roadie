@@ -125,10 +125,7 @@ export function CartDrawerHeader({
           className='absolute top-0 flex h-8 items-center gap-2'
           style={{ left: titleLeft, transform: titleTransform }}
         >
-          <BagIcon
-            weight='bold'
-            className='size-5 text-subtle intent-accent'
-          />
+          <BagIcon weight='bold' className='size-5 text-subtle intent-accent' />
           <span className='text-ui font-bold text-strong'>Cart</span>
         </m.div>
 
