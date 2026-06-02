@@ -30,6 +30,32 @@ const emit = defineEmits<{
 const pricePrefix = computed(() =>
   currencyPrefix(props.locale, props.currency)
 )
+const priceSuffix = computed(() => {
+  const parts = new Intl.NumberFormat(props.locale, {
+    style: 'currency',
+    currency: props.currency
+  }).formatToParts(0)
+
+  let suffix = ''
+  let seenNumber = false
+  for (const part of parts) {
+    const isNumberPart =
+      part.type === 'integer' ||
+      part.type === 'group' ||
+      part.type === 'decimal' ||
+      part.type === 'fraction'
+
+    if (isNumberPart) {
+      seenNumber = true
+      continue
+    }
+
+    if (seenNumber && (part.type === 'currency' || part.type === 'literal')) {
+      suffix += part.value
+    }
+  }
+  return suffix
+})
 
 // Morph styles derived from progress (CSS-var-free; inline transforms).
 const titleAreaHeight = computed(() => 32 + props.progress * 40)
