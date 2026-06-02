@@ -72,6 +72,20 @@ const {
   handleDragStart
 } = useCartDrawerDrag({ initialState: props.initialState })
 
+// Stable ref callbacks — MUST keep a constant identity. An inline arrow
+// `:ref="(el) => setHeaderElement(...)"` is a fresh function every render, so
+// Vue re-invokes it on every render → setHeaderElement disconnect()+observe()s
+// the ResizeObserver, whose deferred write schedules another render →
+// re-observe → a cross-frame loop that freezes the tab (worst during drag,
+// when dragHeight re-renders continuously). A stable identity fires only on
+// real mount/unmount.
+const bindHeader = (el: Element | ComponentPublicInstance | null): void => {
+  setHeaderElement(resolveRootEl(el))
+}
+const bindFooter = (el: Element | ComponentPublicInstance | null): void => {
+  setFooterElement(resolveRootEl(el))
+}
+
 const isOpen = computed(() => state.value === 'open')
 
 // --- Open/close reporting (design finding #9) ---
@@ -241,7 +255,7 @@ const contentOpacity = computed(() =>
       :style="{ height: `${dragHeight}px` }"
     >
       <CartDrawerHeader
-        :ref="(el) => setHeaderElement(resolveRootEl(el))"
+        :ref="bindHeader"
         :ticket-count="summary.ticketCount"
         :cart-total="summary.cartTotal"
         :expires-at-utc="summary.expiresAtUtc"
@@ -292,7 +306,7 @@ const contentOpacity = computed(() =>
       </div>
 
       <CartDrawerFooter
-        :ref="(el) => setFooterElement(resolveRootEl(el))"
+        :ref="bindFooter"
         :cart-total="summary.cartTotal"
         :locale="locale"
         :currency="currency"

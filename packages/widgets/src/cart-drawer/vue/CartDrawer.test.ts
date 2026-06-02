@@ -202,6 +202,49 @@ describe('CartDrawer (Vue)', () => {
     expect(drawer.getAttribute('role')).toBe('region')
   })
 
+  it('does not re-observe header/footer on re-render (stable ref callbacks — no recursive drag freeze)', async () => {
+    // Real-browser bug: an inline arrow `:ref="(el) => setHeaderElement(...)"`
+    // gets a fresh identity every render, so Vue re-invokes the setter on every
+    // render → disconnect()+observe() churns the ResizeObserver, whose write
+    // schedules another render → re-observe → a cross-frame loop that freezes
+    // the tab (no "Maximum recursive updates" log because it's one render per
+    // tick). jsdom has no ResizeObserver, so install a counting mock and assert
+    // the setters run once (on mount) and are NOT re-invoked on re-render.
+    const observe = vi.fn()
+    const disconnect = vi.fn()
+    class MockResizeObserver {
+      observe = observe
+      unobserve = vi.fn()
+      disconnect = disconnect
+    }
+    vi.stubGlobal('ResizeObserver', MockResizeObserver)
+    try {
+      const cart = mockCart()
+      const { rerender } = render(CartDrawer, {
+        props: { ...baseProps, cart, onNavigate: vi.fn(), refreshKey: 0 }
+      })
+      await flushPromises()
+      const observesAfterMount = observe.mock.calls.length
+      expect(observesAfterMount).toBeGreaterThan(0) // header + footer observed
+
+      // Force several re-renders. With unstable inline refs each one re-invokes
+      // the setters → another observe(); with stable callbacks the count holds.
+      for (let i = 1; i <= 5; i++) {
+        await rerender({
+          ...baseProps,
+          cart,
+          onNavigate: vi.fn(),
+          refreshKey: i
+        })
+        await flushPromises()
+      }
+
+      expect(observe.mock.calls.length).toBe(observesAfterMount)
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
   it('reports the closed drawer height via onHeightChange and the CSS var', async () => {
     const cart = mockCart()
     const onHeightChange = vi.fn()
