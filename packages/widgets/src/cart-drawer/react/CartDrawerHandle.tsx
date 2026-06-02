@@ -245,7 +245,7 @@ export function CartDrawerFooter({
             className='flex-1'
             onClick={onToggle}
           >
-            {isOpen ? 'Browse events' : 'Open cart'}
+            {isOpen ? 'Close cart' : 'Open cart'}
           </Button>
           <Button
             emphasis='strong'

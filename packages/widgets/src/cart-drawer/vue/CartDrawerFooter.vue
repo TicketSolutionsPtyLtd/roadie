@@ -77,7 +77,7 @@ function onPointerDown(e: PointerEvent) {
           class="rc-button rc-button--normal rc-intent-neutral"
           @click="emit('toggle')"
         >
-          {{ isOpen ? 'Browse events' : 'Open cart' }}
+          {{ isOpen ? 'Close cart' : 'Open cart' }}
         </button>
         <button
           type="button"
