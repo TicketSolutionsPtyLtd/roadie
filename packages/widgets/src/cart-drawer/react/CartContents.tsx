@@ -29,10 +29,6 @@ type CartContentsProps = {
   stickyFooter?: boolean
   /** Skip the Total / fees / Checkout footer (the drawer renders its own). */
   hideFooter?: boolean
-  /** Round the day headers (`rounded-lg`) instead of full-bleed (`-mx-4`).
-   * Default false — the drawer uses full-bleed; a standalone cart page can
-   * opt into rounded headers. */
-  roundedDayHeaders?: boolean
 }
 
 export function CartContents({
@@ -44,8 +40,7 @@ export function CartContents({
   currency,
   className,
   stickyFooter = false,
-  hideFooter = false,
-  roundedDayHeaders = false
+  hideFooter = false
 }: CartContentsProps) {
   const ticketCount = cart.events.reduce(
     (sum, event) =>
@@ -67,12 +62,7 @@ export function CartContents({
     <div className={className ?? 'grid gap-5'}>
       {dayGroups.map((group) => (
         <section key={group.key} className='grid gap-4'>
-          <div
-            className={cn(
-              'sticky top-0 z-10 emphasis-strong px-4 py-2.5',
-              roundedDayHeaders ? 'rounded-lg' : '-mx-4'
-            )}
-          >
+          <div className='sticky top-0 z-10 -mx-4 emphasis-strong px-4 py-2.5'>
             <div className='flex items-center gap-2'>
               <CalendarBlankIcon
                 weight='bold'
@@ -84,7 +74,7 @@ export function CartContents({
             </div>
           </div>
 
-          <div className='grid gap-4 px-4'>
+          <div className='grid gap-4'>
             {group.events.map((event) => (
               <CartEventGroup
                 key={event.eventId}

@@ -14,6 +14,8 @@ import {
   type ExpiryWatcher,
   buildBrowseHref,
   createExpiryWatcher,
+  deriveCartTotal,
+  deriveTicketCount,
   isSafeRelativePath
 } from '../core'
 import CartContents from './CartContents.vue'
@@ -65,26 +67,12 @@ const { summary, details, detailsLoading, detailsError } = useCart(
 // endpoint. summary is only a fallback for the brief window before details
 // load. Binding to summary made the header/footer go stale when its refetch
 // lagged/errored while details updated (the count/total "not reacting" bug).
-const displayTicketCount = computed(() => {
-  const d = details.value
-  if (d) {
-    return d.events.reduce(
-      (sum, event) =>
-        sum + event.tickets.reduce((t, ticket) => t + ticket.quantity, 0),
-      0
-    )
-  }
-  return summary.value?.ticketCount ?? 0
-})
-const displayTotal = computed(() => {
-  const d = details.value
-  // Sum the per-event `subtotal` — server-side that's a LIVE-computed field
-  // (`item.InventoryTotal()`), unlike `details.cartTotal` / `event.total`,
-  // which are STORED fields the backend only recalculates on a full cart save
-  // and therefore lag a just-added item. Mirrors the ticket-count derivation.
-  if (d) return d.events.reduce((sum, event) => sum + event.subtotal, 0)
-  return summary.value?.cartTotal ?? 0
-})
+const displayTicketCount = computed(() =>
+  deriveTicketCount(details.value, summary.value)
+)
+const displayTotal = computed(() =>
+  deriveCartTotal(details.value, summary.value)
+)
 
 const {
   state,
@@ -123,23 +111,16 @@ watch(state, (next, prev) => {
 const bounce = ref(false)
 let bounceTimer: ReturnType<typeof setTimeout> | null = null
 let prevTicketCount: number | undefined
-watch(
-  () => summary.value?.ticketCount,
-  (count) => {
-    if (
-      count !== undefined &&
-      prevTicketCount !== undefined &&
-      count > prevTicketCount
-    ) {
-      bounce.value = true
-      if (bounceTimer !== null) clearTimeout(bounceTimer)
-      bounceTimer = setTimeout(() => {
-        bounce.value = false
-      }, BOUNCE_HOLD_MS)
-    }
-    prevTicketCount = count
+watch(displayTicketCount, (count) => {
+  if (prevTicketCount !== undefined && count > prevTicketCount) {
+    bounce.value = true
+    if (bounceTimer !== null) clearTimeout(bounceTimer)
+    bounceTimer = setTimeout(() => {
+      bounce.value = false
+    }, BOUNCE_HOLD_MS)
   }
-)
+  prevTicketCount = count
+})
 
 // --- Expiry watch (design finding #10) ---
 // Once-latch + polling live in the shared core watcher; recreating it on

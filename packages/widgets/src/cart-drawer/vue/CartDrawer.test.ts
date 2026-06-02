@@ -1,11 +1,26 @@
 import { fireEvent, render, waitFor } from '@testing-library/vue'
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { nextTick } from 'vue'
+import { h, nextTick } from 'vue'
 
 import type { CartClient, CartDetails, CartSummary } from '../core'
 import { buildCheckoutUrl } from '../core'
 import CartDrawer from './CartDrawer.vue'
+
+// @number-flow/vue is an animated Web Component that jsdom never upgrades, so
+// it renders no digit text under test (see CartUrgencyBadge.test.ts). Stub it
+// with a plain span that emits the same prefix/value/suffix text so the count
+// and total values flowing from the cart payload become assertable.
+vi.mock('@number-flow/vue', () => ({
+  default: {
+    name: 'NumberFlowStub',
+    props: ['value', 'prefix', 'suffix', 'format'],
+    setup(props: { value: number; prefix?: string; suffix?: string }) {
+      return () =>
+        h('span', `${props.prefix ?? ''}${props.value}${props.suffix ?? ''}`)
+    }
+  }
+}))
 
 afterEach(() => {
   vi.useRealTimers()
@@ -256,5 +271,71 @@ describe('CartDrawer (Vue)', () => {
     expect(
       document.documentElement.style.getPropertyValue('--cart-drawer-height')
     ).toMatch(/px$/)
+  })
+
+  it('reads count + total from details, not the disagreeing summary', async () => {
+    // summary lags details (the stale-summary bug): the fresh /cart payload
+    // sums to 2 tickets / 50, while /cart/summary still reports 1 / 25.
+    const cart = mockCart({
+      getSummary: vi.fn(async () =>
+        makeSummary({ ticketCount: 1, cartTotal: 25 })
+      ),
+      getDetails: vi.fn(async () =>
+        makeDetails({
+          cartTotal: 25,
+          events: [
+            {
+              eventId: 'e1',
+              eventName: 'Night Show',
+              venueName: 'The Venue',
+              eventStartAtUtc: '2026-06-15T10:00:00Z',
+              eventDateKey: '2026-06-15',
+              tickets: [{ name: 'GA', quantity: 2, priceEach: 25 }],
+              subtotal: 50,
+              bookingFees: 5,
+              total: 55
+            }
+          ]
+        })
+      )
+    })
+    const { container, findAllByText } = render(CartDrawer, {
+      props: { ...baseProps, cart, onNavigate: vi.fn() }
+    })
+    await flushPromises()
+    const openButtons = await findAllByText('Open cart')
+    await fireEvent.click(openButtons[0]!)
+    await flushPromises()
+    await nextTick()
+
+    // Badge count reflects the details sum (2), not summary.ticketCount (1).
+    expect(container.querySelector('.rc-badge__count')?.textContent).toBe('2')
+    // Header total reflects the per-event subtotal sum (50), not summary's 25.
+    expect(container.querySelector('.rc-header__price-text')?.textContent).toBe(
+      '$50'
+    )
+  })
+
+  it('falls back to summary count + total when details are null', async () => {
+    const cart = mockCart({
+      getSummary: vi.fn(async () =>
+        makeSummary({ ticketCount: 3, cartTotal: 75 })
+      ),
+      // details never resolve → displays should fall back to summary.
+      getDetails: vi.fn(() => new Promise<CartDetails>(() => {}))
+    })
+    const { container, findAllByText } = render(CartDrawer, {
+      props: { ...baseProps, cart, onNavigate: vi.fn() }
+    })
+    await flushPromises()
+    const openButtons = await findAllByText('Open cart')
+    await fireEvent.click(openButtons[0]!)
+    await flushPromises()
+    await nextTick()
+
+    expect(container.querySelector('.rc-badge__count')?.textContent).toBe('3')
+    expect(container.querySelector('.rc-header__price-text')?.textContent).toBe(
+      '$75'
+    )
   })
 })
