@@ -41,6 +41,7 @@ export default defineConfig(({ watch }) => ({
       'vue',
       'motion',
       '@number-flow/react',
+      '@number-flow/vue',
       'react-focus-lock',
       'focus-trap',
       '@oztix/roadie-core',

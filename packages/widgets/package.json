@@ -70,6 +70,7 @@
     "@tanstack/react-query": "^5.0.0",
     "motion": "^12.0.0",
     "@number-flow/react": "^0.5.0",
+    "@number-flow/vue": "^0.5.0",
     "@phosphor-icons/react": "^2.0.0",
     "react-focus-lock": "^2.13.0",
     "vue": "^3.5.0"
@@ -93,6 +94,9 @@
     "@number-flow/react": {
       "optional": true
     },
+    "@number-flow/vue": {
+      "optional": true
+    },
     "@phosphor-icons/react": {
       "optional": true
     },
@@ -106,6 +110,7 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.2",
     "@number-flow/react": "^0.5.14",
+    "@number-flow/vue": "^0.5.0",
     "@oztix/roadie-components": "workspace:*",
     "@oztix/roadie-core": "workspace:*",
     "@phosphor-icons/react": "2.1.10",
@@ -158,10 +163,11 @@
     {
       "name": "cart-drawer/vue",
       "path": "dist/cart-drawer/vue/index.js",
-      "limit": "8 KB",
+      "limit": "9 KB",
       "ignore": [
         "vue",
-        "focus-trap"
+        "focus-trap",
+        "@number-flow/vue"
       ]
     }
   ],

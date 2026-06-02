@@ -1,8 +1,13 @@
 <script setup lang="ts">
+import NumberFlow from '@number-flow/vue'
 import { computed } from 'vue'
 
-import { formatCurrency } from '../core'
+import { currencyPrefix } from '../core'
 import CartUrgencyBadge from './CartUrgencyBadge.vue'
+
+// Roll the total digits behind a locale-correct currency symbol — never a
+// hardcoded "$" (matches the React skin's NumberFlow prefix approach).
+const PRICE_FORMAT = { minimumFractionDigits: 2 }
 
 const props = defineProps<{
   ticketCount: number
@@ -22,11 +27,8 @@ const emit = defineEmits<{
   dragStart: [e: PointerEvent]
 }>()
 
-const totalLabel = computed(() =>
-  formatCurrency(props.cartTotal, {
-    locale: props.locale,
-    currency: props.currency
-  })
+const pricePrefix = computed(() =>
+  currencyPrefix(props.locale, props.currency)
 )
 
 // Morph styles derived from progress (CSS-var-free; inline transforms).
@@ -131,7 +133,13 @@ function onGrabberKeydown(e: KeyboardEvent) {
       </div>
 
       <div class="rc-header__price" :style="{ opacity: priceOpacity }">
-        <span class="rc-header__price-text">{{ totalLabel }}</span>
+        <span class="rc-header__price-text">
+          <NumberFlow
+            :value="cartTotal"
+            :prefix="pricePrefix"
+            :format="PRICE_FORMAT"
+          />
+        </span>
       </div>
     </div>
   </div>
