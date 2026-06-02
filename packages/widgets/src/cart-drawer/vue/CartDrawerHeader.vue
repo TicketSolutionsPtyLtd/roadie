@@ -163,6 +163,7 @@ function onGrabberKeydown(e: KeyboardEvent) {
           <NumberFlow
             :value="cartTotal"
             :prefix="pricePrefix"
+            :suffix="priceSuffix"
             :format="PRICE_FORMAT"
           />
         </span>
