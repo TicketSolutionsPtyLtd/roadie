@@ -1,8 +1,13 @@
 <script setup lang="ts">
+import NumberFlow from '@number-flow/vue'
 import { computed } from 'vue'
 
-import { formatCurrency } from '../core'
+import { currencyPrefix } from '../core'
 import CartUrgencyBadge from './CartUrgencyBadge.vue'
+
+// Roll the total digits behind a locale-correct currency symbol — never a
+// hardcoded "$" (matches the React skin's NumberFlow prefix approach).
+const PRICE_FORMAT = { minimumFractionDigits: 2 }
 
 const props = defineProps<{
   ticketCount: number
@@ -22,12 +27,33 @@ const emit = defineEmits<{
   dragStart: [e: PointerEvent]
 }>()
 
-const totalLabel = computed(() =>
-  formatCurrency(props.cartTotal, {
-    locale: props.locale,
+const pricePrefix = computed(() => currencyPrefix(props.locale, props.currency))
+const priceSuffix = computed(() => {
+  const parts = new Intl.NumberFormat(props.locale, {
+    style: 'currency',
     currency: props.currency
-  })
-)
+  }).formatToParts(0)
+
+  let suffix = ''
+  let seenNumber = false
+  for (const part of parts) {
+    const isNumberPart =
+      part.type === 'integer' ||
+      part.type === 'group' ||
+      part.type === 'decimal' ||
+      part.type === 'fraction'
+
+    if (isNumberPart) {
+      seenNumber = true
+      continue
+    }
+
+    if (seenNumber && (part.type === 'currency' || part.type === 'literal')) {
+      suffix += part.value
+    }
+  }
+  return suffix
+})
 
 // Morph styles derived from progress (CSS-var-free; inline transforms).
 const titleAreaHeight = computed(() => 32 + props.progress * 40)
@@ -97,7 +123,7 @@ function onGrabberKeydown(e: KeyboardEvent) {
         >
           <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
             <path
-              d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"
+              d="M208.49,191.51a12,12,0,0,1-17,17L128,145,64.49,208.49a12,12,0,0,1-17-17L111,128,47.51,64.49a12,12,0,0,1,17-17L128,111l63.51-63.52a12,12,0,0,1,17,17L145,128Z"
             />
           </svg>
         </button>
@@ -115,7 +141,7 @@ function onGrabberKeydown(e: KeyboardEvent) {
           aria-hidden="true"
         >
           <path
-            d="M216,64H176a48,48,0,0,0-96,0H40A16,16,0,0,0,24,80V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V80A16,16,0,0,0,216,64ZM128,32a32,32,0,0,1,32,32H96A32,32,0,0,1,128,32Zm88,168H40V80H216V200Z"
+            d="M216,60H179.83A52,52,0,0,0,76.17,60H40A20,20,0,0,0,20,80V200a20,20,0,0,0,20,20H216a20,20,0,0,0,20-20V80A20,20,0,0,0,216,60ZM128,36a28,28,0,0,1,27.71,24H100.29A28,28,0,0,1,128,36Zm84,160H44V84H76V96a12,12,0,0,0,24,0V84h56V96a12,12,0,0,0,24,0V84h32Z"
           />
         </svg>
         <span class="rc-header__title-text">Cart</span>
@@ -131,7 +157,14 @@ function onGrabberKeydown(e: KeyboardEvent) {
       </div>
 
       <div class="rc-header__price" :style="{ opacity: priceOpacity }">
-        <span class="rc-header__price-text">{{ totalLabel }}</span>
+        <span class="rc-header__price-text">
+          <NumberFlow
+            :value="cartTotal"
+            :prefix="pricePrefix"
+            :suffix="priceSuffix"
+            :format="PRICE_FORMAT"
+          />
+        </span>
       </div>
     </div>
   </div>

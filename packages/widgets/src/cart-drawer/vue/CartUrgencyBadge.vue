@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import NumberFlow from '@number-flow/vue'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import { URGENCY_LONG_FORMAT_S, remainingSeconds, urgencyLevel } from '../core'
+
+// Two-digit zero-pad for the seconds (0:09) — same as the React skin.
+const PAD2_FORMAT = { minimumIntegerDigits: 2 }
 
 const props = withDefaults(
   defineProps<{
@@ -38,14 +42,14 @@ const intent = computed(() =>
 const showCountdown = computed(
   () => remaining.value !== null && remaining.value > 0
 )
-const countdownLabel = computed(() => {
-  const r = remaining.value
-  if (r === null || r <= 0) return ''
-  if (r > URGENCY_LONG_FORMAT_S) return `${Math.ceil(r / 60)} mins`
-  const mins = Math.floor(r / 60)
-  const secs = r % 60
-  return `${mins}:${String(secs).padStart(2, '0')}`
-})
+// Structured countdown values for NumberFlow (mirrors the React skin: long
+// format shows "N mins"; short format rolls mm:ss).
+const isLongFormat = computed(
+  () => (remaining.value ?? 0) > URGENCY_LONG_FORMAT_S
+)
+const minutesCeil = computed(() => Math.ceil((remaining.value ?? 0) / 60))
+const minutesFloor = computed(() => Math.floor((remaining.value ?? 0) / 60))
+const secondsPart = computed(() => (remaining.value ?? 0) % 60)
 const ticketLabel = computed(() =>
   props.ticketCount === 1 ? 'ticket' : 'tickets'
 )
@@ -63,10 +67,20 @@ const ticketLabel = computed(() =>
       class="rc-badge__dot"
       :class="{ 'rc-badge__dot--pulse': showCountdown }"
     />
-    <span class="rc-badge__count tabular-nums">{{ ticketCount }}</span>
+    <span class="rc-badge__count tabular-nums">
+      <NumberFlow :value="ticketCount" />
+    </span>
     {{ ticketLabel }}
     <template v-if="showCountdown">
-      <span class="rc-badge__time tabular-nums">{{ countdownLabel }}</span>
+      <span class="rc-badge__time tabular-nums">
+        <NumberFlow v-if="isLongFormat" :value="minutesCeil" suffix=" mins" />
+        <template v-else>
+          <NumberFlow :value="minutesFloor" />:<NumberFlow
+            :value="secondsPart"
+            :format="PAD2_FORMAT"
+          />
+        </template>
+      </span>
       <span
         class="rc-badge__tail"
         :style="{

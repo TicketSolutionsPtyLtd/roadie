@@ -3,7 +3,7 @@
 import { type PointerEvent as ReactPointerEvent, type Ref } from 'react'
 
 import NumberFlow from '@number-flow/react'
-import { ShoppingBagIcon, XIcon } from '@phosphor-icons/react'
+import { BagIcon, XIcon } from '@phosphor-icons/react'
 import { type MotionValue, m, useTransform } from 'motion/react'
 
 import { Button, IconButton } from '@oztix/roadie-components'
@@ -125,10 +125,7 @@ export function CartDrawerHeader({
           className='absolute top-0 flex h-8 items-center gap-2'
           style={{ left: titleLeft, transform: titleTransform }}
         >
-          <ShoppingBagIcon
-            weight='bold'
-            className='size-5 text-subtle intent-accent'
-          />
+          <BagIcon weight='bold' className='size-5 text-subtle intent-accent' />
           <span className='text-ui font-bold text-strong'>Cart</span>
         </m.div>
 
@@ -248,7 +245,7 @@ export function CartDrawerFooter({
             className='flex-1'
             onClick={onToggle}
           >
-            {isOpen ? 'Browse events' : 'Open cart'}
+            {isOpen ? 'Close cart' : 'Open cart'}
           </Button>
           <Button
             emphasis='strong'
@@ -257,7 +254,7 @@ export function CartDrawerFooter({
             onClick={onCheckout}
             disabled={checkoutDisabled}
           >
-            <ShoppingBagIcon weight='bold' className='mr-1.5 size-4' />
+            <BagIcon weight='bold' className='mr-1.5 size-4' />
             Checkout
           </Button>
         </div>

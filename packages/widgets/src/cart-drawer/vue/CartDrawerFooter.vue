@@ -34,6 +34,12 @@ const feesOpacity = computed(() =>
   Math.max(0, Math.min(1, (props.progress - 0.5) / 0.5))
 )
 
+// Shadow grows with drag progress so the footer lifts off the content as the
+// drawer opens (parity with the React skin's CartDrawerHandle).
+const footerShadow = computed(
+  () => `0 -4px 16px oklch(0 0 0 / ${props.progress * 0.08})`
+)
+
 function onPointerDown(e: PointerEvent) {
   if (!props.isOpen) emit('dragStart', e)
 }
@@ -43,6 +49,7 @@ function onPointerDown(e: PointerEvent) {
   <div
     class="rc-footer"
     :class="{ 'rc-footer--draggable': !isOpen }"
+    :style="{ boxShadow: footerShadow }"
     @pointerdown="onPointerDown"
   >
     <div class="rc-footer__inner">
@@ -70,7 +77,7 @@ function onPointerDown(e: PointerEvent) {
           class="rc-button rc-button--normal rc-intent-neutral"
           @click="emit('toggle')"
         >
-          {{ isOpen ? 'Browse events' : 'Open cart' }}
+          {{ isOpen ? 'Close cart' : 'Open cart' }}
         </button>
         <button
           type="button"
@@ -80,7 +87,7 @@ function onPointerDown(e: PointerEvent) {
         >
           <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
             <path
-              d="M216,64H176a48,48,0,0,0-96,0H40A16,16,0,0,0,24,80V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V80A16,16,0,0,0,216,64ZM128,32a32,32,0,0,1,32,32H96A32,32,0,0,1,128,32Zm88,168H40V80H216V200Z"
+              d="M216,60H179.83A52,52,0,0,0,76.17,60H40A20,20,0,0,0,20,80V200a20,20,0,0,0,20,20H216a20,20,0,0,0,20-20V80A20,20,0,0,0,216,60ZM128,36a28,28,0,0,1,27.71,24H100.29A28,28,0,0,1,128,36Zm84,160H44V84H76V96a12,12,0,0,0,24,0V84h56V96a12,12,0,0,0,24,0V84h32Z"
             />
           </svg>
           Checkout

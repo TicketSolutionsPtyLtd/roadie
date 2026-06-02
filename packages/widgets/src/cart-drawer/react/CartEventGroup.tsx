@@ -65,7 +65,7 @@ export function CartEventGroup({
         )}
       </div>
 
-      <div className='grid gap-2 pl-6'>
+      <div className='grid gap-3 pl-6'>
         {event.tickets.map((ticket) => (
           <div key={ticket.name} className='grid gap-2'>
             <div className='md:hidden'>

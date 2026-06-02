@@ -135,6 +135,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
   // bodies and flattens the previously triple-nested callback.
   const createHeightTracker = (target: Ref<number>) => {
     let observer: ResizeObserver | null = null
+    let observed: HTMLElement | null = null
     let pendingRaf: number | null = null
 
     const cancelRaf = () => {
@@ -157,12 +158,25 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     const disconnect = () => {
       observer?.disconnect()
       observer = null
+      observed = null
       cancelRaf()
     }
 
+    // Idempotent by design. Vue re-invokes a template ref callback on EVERY
+    // re-render (identity-stable or not, and it may toggle null↔el), so this
+    // (re)observes ONLY when a genuinely new element arrives. Same-element and
+    // transient-null calls are no-ops — otherwise the ResizeObserver is torn
+    // down and re-observed every render, and re-observing fires the callback,
+    // whose deferred write schedules another render → re-observe → a
+    // cross-frame recursive freeze (worst during drag, which re-renders on
+    // every pointermove). Real teardown is handled by disconnect() in
+    // onScopeDispose, so ignoring the null calls here cannot leak the observer.
     const setElement = (el: HTMLElement | null) => {
-      disconnect()
-      if (!el || typeof ResizeObserver === 'undefined') return
+      if (el === observed || el === null) return
+      observer?.disconnect()
+      cancelRaf()
+      observed = el
+      if (typeof ResizeObserver === 'undefined') return
       // Seed synchronously so the first paint has a real measurement.
       if (isClosedEnoughToMeasure()) {
         const h = el.getBoundingClientRect().height

@@ -41,8 +41,11 @@ describe('CartUrgencyBadge', () => {
         expiresAtUtc: new Date(Date.now() + 90 * 1000).toISOString()
       }
     })
-    expect(container.querySelector('.rc-badge__time')?.textContent).toMatch(
-      /\d:\d\d/
-    )
+    const time = container.querySelector('.rc-badge__time')
+    expect(time).not.toBeNull()
+    // The mm:ss digits roll via <number-flow-vue> (the animated Web
+    // Component). jsdom doesn't render its digit content, so assert the
+    // component is present rather than matching text.
+    expect(time?.querySelector('number-flow-vue')).not.toBeNull()
   })
 })

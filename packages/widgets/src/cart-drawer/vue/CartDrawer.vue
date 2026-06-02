@@ -14,6 +14,8 @@ import {
   type ExpiryWatcher,
   buildBrowseHref,
   createExpiryWatcher,
+  deriveCartTotal,
+  deriveTicketCount,
   isSafeRelativePath
 } from '../core'
 import CartContents from './CartContents.vue'
@@ -60,6 +62,18 @@ const { summary, details, detailsLoading, detailsError } = useCart(
   () => props.refreshKey
 )
 
+// Count + total are sourced from `details` (the /cart payload) — the same
+// fresh data that drives the event list — NOT the separate /cart/summary
+// endpoint. summary is only a fallback for the brief window before details
+// load. Binding to summary made the header/footer go stale when its refetch
+// lagged/errored while details updated (the count/total "not reacting" bug).
+const displayTicketCount = computed(() =>
+  deriveTicketCount(details.value, summary.value)
+)
+const displayTotal = computed(() =>
+  deriveCartTotal(details.value, summary.value)
+)
+
 const {
   state,
   toggle,
@@ -72,6 +86,20 @@ const {
   handleDragStart
 } = useCartDrawerDrag({ initialState: props.initialState })
 
+// Stable ref callbacks — MUST keep a constant identity. An inline arrow
+// `:ref="(el) => setHeaderElement(...)"` is a fresh function every render, so
+// Vue re-invokes it on every render → setHeaderElement disconnect()+observe()s
+// the ResizeObserver, whose deferred write schedules another render →
+// re-observe → a cross-frame loop that freezes the tab (worst during drag,
+// when dragHeight re-renders continuously). A stable identity fires only on
+// real mount/unmount.
+const bindHeader = (el: Element | ComponentPublicInstance | null): void => {
+  setHeaderElement(resolveRootEl(el))
+}
+const bindFooter = (el: Element | ComponentPublicInstance | null): void => {
+  setFooterElement(resolveRootEl(el))
+}
+
 const isOpen = computed(() => state.value === 'open')
 
 // --- Open/close reporting (design finding #9) ---
@@ -83,28 +111,23 @@ watch(state, (next, prev) => {
 const bounce = ref(false)
 let bounceTimer: ReturnType<typeof setTimeout> | null = null
 let prevTicketCount: number | undefined
-watch(
-  () => summary.value?.ticketCount,
-  (count) => {
-    if (
-      count !== undefined &&
-      prevTicketCount !== undefined &&
-      count > prevTicketCount
-    ) {
-      bounce.value = true
-      if (bounceTimer !== null) clearTimeout(bounceTimer)
-      bounceTimer = setTimeout(() => {
-        bounce.value = false
-      }, BOUNCE_HOLD_MS)
-    }
-    prevTicketCount = count
+watch(displayTicketCount, (count) => {
+  if (prevTicketCount !== undefined && count > prevTicketCount) {
+    bounce.value = true
+    if (bounceTimer !== null) clearTimeout(bounceTimer)
+    bounceTimer = setTimeout(() => {
+      bounce.value = false
+    }, BOUNCE_HOLD_MS)
   }
-)
+  prevTicketCount = count
+})
 
 // --- Expiry watch (design finding #10) ---
 // Once-latch + polling live in the shared core watcher; recreating it on
 // expiry change resets the latch.
-const expiresAtUtc = computed(() => summary.value?.expiresAtUtc)
+const expiresAtUtc = computed(
+  () => summary.value?.expiresAtUtc ?? details.value?.expiresAtUtc
+)
 let expireWatcher: ExpiryWatcher | null = null
 watch(
   expiresAtUtc,
@@ -215,7 +238,7 @@ const contentOpacity = computed(() =>
 </script>
 
 <template>
-  <template v-if="collectionId && summary">
+  <template v-if="collectionId && (summary || details)">
     <!-- Dark overlay — fades in with drag progress. -->
     <div
       aria-hidden="true"
@@ -241,10 +264,10 @@ const contentOpacity = computed(() =>
       :style="{ height: `${dragHeight}px` }"
     >
       <CartDrawerHeader
-        :ref="(el) => setHeaderElement(resolveRootEl(el))"
-        :ticket-count="summary.ticketCount"
-        :cart-total="summary.cartTotal"
-        :expires-at-utc="summary.expiresAtUtc"
+        :ref="bindHeader"
+        :ticket-count="displayTicketCount"
+        :cart-total="displayTotal"
+        :expires-at-utc="expiresAtUtc"
         :locale="locale"
         :currency="currency"
         :is-open="isOpen"
@@ -292,8 +315,8 @@ const contentOpacity = computed(() =>
       </div>
 
       <CartDrawerFooter
-        :ref="(el) => setFooterElement(resolveRootEl(el))"
-        :cart-total="summary.cartTotal"
+        :ref="bindFooter"
+        :cart-total="displayTotal"
         :locale="locale"
         :currency="currency"
         :is-open="isOpen"

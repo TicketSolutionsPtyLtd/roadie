@@ -20,6 +20,8 @@ import {
   type CartClient,
   buildBrowseHref,
   createExpiryWatcher,
+  deriveCartTotal,
+  deriveTicketCount,
   isSafeRelativePath
 } from '../core'
 import { CartContents } from './CartContents'
@@ -98,6 +100,17 @@ export function CartDrawer({
     error: detailsError
   } = useCartDetails(cart, collectionId, refreshKey)
 
+  // Fresh, reactive figures derived from details (falls back to summary before
+  // details load) — summary.ticketCount/cartTotal lag a just-added item.
+  const displayTicketCount = useMemo(
+    () => deriveTicketCount(details ?? null, summary ?? null),
+    [details, summary]
+  )
+  const displayTotal = useMemo(
+    () => deriveCartTotal(details ?? null, summary ?? null),
+    [details, summary]
+  )
+
   const grabberRef = useRef<HTMLButtonElement | null>(null)
   const cartHeadingId = useId()
 
@@ -143,14 +156,14 @@ export function CartDrawer({
       }
     }
   }, [])
-  useCartBounce(summary?.ticketCount, fireBounce)
+  useCartBounce(displayTicketCount, fireBounce)
 
   // Fire onExpire once when the countdown reaches the expired state. The
   // CartUrgencyBadge runs its own tick for display; here we watch independently
   // so the host can refetch/clear (the outlet app has no refetch-on-focus).
   // The once-latch + polling live in the shared core watcher; recreating it on
   // expiry change resets the latch.
-  const expiresAtUtc = summary?.expiresAtUtc
+  const expiresAtUtc = summary?.expiresAtUtc ?? details?.expiresAtUtc
   useEffect(() => {
     if (!expiresAtUtc || !onExpire) return
     const watcher = createExpiryWatcher(expiresAtUtc, onExpire)
@@ -196,8 +209,11 @@ export function CartDrawer({
     if (checkoutUrl) onNavigate(checkoutUrl)
   }, [checkoutUrl, onNavigate])
 
+  // Render when there's a collection AND at least one data source — a failed
+  // summary fetch shouldn't blank a drawer that has working details (mirrors
+  // the Vue gate `collectionId && (summary || details)`).
   if (!collectionId) return null
-  if (!summary) return null
+  if (!summary && !details) return null
 
   return (
     <LazyMotion features={domAnimation} strict>
@@ -228,7 +244,7 @@ export function CartDrawer({
               role: 'region',
               'aria-label': 'Cart summary'
             })}
-        className='fixed inset-x-4 bottom-4 z-70 mx-auto flex max-w-[600px] flex-col overflow-hidden rounded-4xl emphasis-floating'
+        className='fixed inset-x-0 bottom-0 z-70 flex flex-col overflow-hidden rounded-t-4xl emphasis-floating sm:inset-x-4 sm:bottom-4 sm:mx-auto sm:max-w-[600px] sm:rounded-4xl'
         style={{ height: dragHeight }}
       >
         <FocusLock
@@ -237,9 +253,9 @@ export function CartDrawer({
           className='flex h-full min-h-0 flex-col'
         >
           <CartDrawerHeader
-            ticketCount={summary.ticketCount}
-            cartTotal={summary.cartTotal}
-            expiresAtUtc={summary.expiresAtUtc}
+            ticketCount={displayTicketCount}
+            cartTotal={displayTotal}
+            expiresAtUtc={expiresAtUtc}
             locale={locale}
             currency={currency}
             isOpen={state === 'open'}
@@ -285,7 +301,7 @@ export function CartDrawer({
           </m.div>
 
           <CartDrawerFooter
-            cartTotal={summary.cartTotal}
+            cartTotal={displayTotal}
             locale={locale}
             currency={currency}
             isOpen={state === 'open'}
