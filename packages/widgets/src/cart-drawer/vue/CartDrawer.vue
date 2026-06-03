@@ -178,6 +178,12 @@ async function ensureTrap(): Promise<FocusTrapInstance | null> {
     trap = mod.createFocusTrap(el, {
       escapeDeactivates: false,
       clickOutsideDeactivates: true,
+      // Focus the dialog CONTAINER on open, not the first tabbable (which is
+      // the drag grabber) — otherwise opening via drag/click paints the
+      // grabber's focus ring (a circle at the top). The container is
+      // tabindex="-1" + outline:none, so this is the standard ARIA-dialog
+      // pattern; keyboard users still Tab to the grabber and see its ring.
+      initialFocus: () => drawerEl.value ?? false,
       // Transient layouts can leave no tabbable element momentarily — fall back
       // to the drawer root. A function keeps it valid even if the ref changes.
       fallbackFocus: () => drawerEl.value ?? el,
@@ -256,6 +262,7 @@ const contentOpacity = computed(() =>
       ref="drawerEl"
       id="cart-drawer"
       class="rc-drawer"
+      tabindex="-1"
       :class="{ 'rc-drawer--dragging': isDragging }"
       :role="isOpen ? 'dialog' : 'region'"
       :aria-modal="isOpen ? 'true' : undefined"
