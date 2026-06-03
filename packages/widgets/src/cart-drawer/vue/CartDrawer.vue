@@ -29,6 +29,7 @@ const props = withDefaults(defineProps<CartDrawerProps>(), {
   refreshKey: undefined,
   lockBodyScroll: true,
   initialState: 'closed',
+  context: 'collection',
   onOpenChange: undefined,
   onExpire: undefined,
   onHeightChange: undefined
@@ -237,6 +238,15 @@ function handleCheckout() {
   if (checkoutUrl.value) props.onNavigate(checkoutUrl.value)
 }
 
+// Open-state "Browse events" in `event` context. The target is the
+// package-built, collectionId-derived, isSafeRelativePath-validated
+// `effectiveBrowseHref` — never a consumer-supplied URL — so this can't be
+// turned into an open redirect. (`collection` context closes instead and never
+// reaches here.)
+function handleBrowse() {
+  props.onNavigate(effectiveBrowseHref.value)
+}
+
 const overlayOpacity = computed(() => progress.value)
 const contentOpacity = computed(() =>
   Math.max(0, Math.min(1, (progress.value - 0.3) / 0.7))
@@ -329,8 +339,10 @@ const contentOpacity = computed(() =>
         :is-open="isOpen"
         :progress="progress"
         :checkout-disabled="!checkoutUrl"
+        :context="context"
         @toggle="toggle"
         @checkout="handleCheckout"
+        @browse="handleBrowse"
         @drag-start="handleDragStart"
       />
     </div>

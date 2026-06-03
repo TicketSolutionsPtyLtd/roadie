@@ -338,4 +338,44 @@ describe('CartDrawer (Vue)', () => {
       '$75'
     )
   })
+
+  it('event context: "Browse events" navigates to the package-built browse target', async () => {
+    const cart = mockCart()
+    const onNavigate = vi.fn()
+    const { container, findAllByText, findByText } = render(CartDrawer, {
+      props: { ...baseProps, cart, onNavigate, context: 'event' }
+    })
+    await flushPromises()
+    await fireEvent.click((await findAllByText('Open cart'))[0]!)
+    await flushPromises()
+    await nextTick()
+
+    await fireEvent.click(await findByText('Browse events'))
+    // Navigates to the safe, package-resolved browseHref ('/events'); the
+    // drawer stays open (navigation, not a close).
+    expect(onNavigate).toHaveBeenCalledWith('/events')
+    expect(container.querySelector('#cart-drawer')?.getAttribute('role')).toBe(
+      'dialog'
+    )
+  })
+
+  it('collection context: "Browse events" closes the drawer and never navigates', async () => {
+    const cart = mockCart()
+    const onNavigate = vi.fn()
+    const { container, findAllByText, findByText } = render(CartDrawer, {
+      props: { ...baseProps, cart, onNavigate, context: 'collection' }
+    })
+    await flushPromises()
+    await fireEvent.click((await findAllByText('Open cart'))[0]!)
+    await flushPromises()
+    await nextTick()
+
+    await fireEvent.click(await findByText('Browse events'))
+    await nextTick()
+    // Closes (role back to docked region); no browse navigation occurs.
+    expect(container.querySelector('#cart-drawer')?.getAttribute('role')).toBe(
+      'region'
+    )
+    expect(onNavigate).not.toHaveBeenCalledWith('/events')
+  })
 })

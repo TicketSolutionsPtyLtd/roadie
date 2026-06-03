@@ -218,4 +218,57 @@ describe('CartDrawer', () => {
     })
     expect(onExpire).toHaveBeenCalled()
   })
+
+  it('event context: "Browse events" navigates to the package-built browse target', async () => {
+    const cart = mockCart()
+    const onNavigate = vi.fn()
+    renderDrawer(
+      <CartDrawer
+        cart={cart}
+        collectionId='col-1'
+        onNavigate={onNavigate}
+        browseHref='/events'
+        locale='en-AU'
+        currency='AUD'
+        context='event'
+      />
+    )
+    const openButtons = await screen.findAllByRole('button', {
+      name: /open cart/i
+    })
+    fireEvent.click(openButtons[0]!)
+    const browse = await screen.findByRole('button', { name: 'Browse events' })
+    fireEvent.click(browse)
+    // Navigates to the safe, package-resolved browseHref.
+    await waitFor(() => expect(onNavigate).toHaveBeenCalledWith('/events'))
+  })
+
+  it('collection context: "Browse events" closes the drawer and never navigates', async () => {
+    const cart = mockCart()
+    const onNavigate = vi.fn()
+    renderDrawer(
+      <CartDrawer
+        cart={cart}
+        collectionId='col-1'
+        onNavigate={onNavigate}
+        browseHref='/events'
+        locale='en-AU'
+        currency='AUD'
+        context='collection'
+      />
+    )
+    const openButtons = await screen.findAllByRole('button', {
+      name: /open cart/i
+    })
+    fireEvent.click(openButtons[0]!)
+    const browse = await screen.findByRole('button', { name: 'Browse events' })
+    fireEvent.click(browse)
+    // Closes → the footer reverts to "Open cart"; no browse navigation occurs.
+    await waitFor(() =>
+      expect(
+        screen.getAllByRole('button', { name: /open cart/i }).length
+      ).toBeGreaterThan(0)
+    )
+    expect(onNavigate).not.toHaveBeenCalledWith('/events')
+  })
 })

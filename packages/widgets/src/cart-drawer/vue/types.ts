@@ -15,6 +15,24 @@ export type CartDrawerProps = {
    * back to the built default so the navigation sink stays safe.
    */
   browseHref?: string
+  /**
+   * Where the drawer is mounted — decides what the open-state secondary button
+   * ("Browse events") does:
+   *   - `'event'`      → navigate to the collection page to browse more events.
+   *   - `'collection'` → just close the drawer (the collection page is already
+   *                      behind it). Default.
+   *
+   * WHY an enum + internal URL (and NOT a consumer `onBrowse`/href callback):
+   * security. The browse target is built by the PACKAGE from the server-trusted
+   * `collectionId` (via `buildBrowseHref`, validated by `isSafeRelativePath`) and
+   * routed through `onNavigate`. If the consumer supplied the URL or the
+   * navigation, a tainted value (e.g. a `redirect=` query param) could turn
+   * "Browse events" into an open redirect. Keeping construction inside the
+   * package removes that surface: `onNavigate` only ever receives a same-origin,
+   * collectionId-derived path. The enum also names the two supported contexts
+   * explicitly and leaves room to add more later.
+   */
+  context?: 'collection' | 'event'
   /** Locale for currency/date formatting (design finding #1). */
   locale: string
   /** ISO 4217 currency code (design finding #1). */

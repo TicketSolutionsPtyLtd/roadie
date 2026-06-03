@@ -49,6 +49,23 @@ export type CartDrawerProps = {
    * back to the built default so the navigation sink stays safe.
    */
   browseHref?: string
+  /**
+   * Where the drawer is mounted — decides what the open-state secondary button
+   * ("Browse events") does:
+   *   - `'event'`      → navigate to the collection page to browse more events.
+   *   - `'collection'` → just close the drawer (the collection page is already
+   *                      behind it). Default.
+   *
+   * WHY an enum + internal URL (and NOT a consumer browse callback/href):
+   * security. The browse target is built by the PACKAGE from the server-trusted
+   * `collectionId` (via `buildBrowseHref`, validated by `isSafeRelativePath`) and
+   * routed through `onNavigate`. A consumer-supplied URL/navigation could be
+   * tainted (e.g. a `redirect=` param), turning "Browse events" into an open
+   * redirect; keeping construction in the package means `onNavigate` only ever
+   * receives a same-origin, collectionId-derived path. The enum also names the
+   * supported contexts explicitly and leaves room to add more.
+   */
+  context?: 'collection' | 'event'
   /** Locale for currency/date formatting (design finding #1). */
   locale: string
   /** ISO 4217 currency code (design finding #1). */
@@ -73,6 +90,7 @@ export function CartDrawer({
   collectionId,
   onNavigate,
   browseHref,
+  context = 'collection',
   locale,
   currency,
   refreshKey,
@@ -209,6 +227,13 @@ export function CartDrawer({
     if (checkoutUrl) onNavigate(checkoutUrl)
   }, [checkoutUrl, onNavigate])
 
+  // Open-state "Browse events" in `event` context. Routes the package-built,
+  // collectionId-derived, validated `effectiveBrowseHref` (never a
+  // consumer-supplied URL) through onNavigate — no open-redirect surface.
+  const handleBrowse = useCallback(() => {
+    onNavigate(effectiveBrowseHref)
+  }, [effectiveBrowseHref, onNavigate])
+
   // Render when there's a collection AND at least one data source — a failed
   // summary fetch shouldn't blank a drawer that has working details (mirrors
   // the Vue gate `collectionId && (summary || details)`).
@@ -306,8 +331,10 @@ export function CartDrawer({
             currency={currency}
             isOpen={state === 'open'}
             progress={dragProgress}
+            context={context}
             onToggle={toggle}
             onCheckout={handleCheckout}
+            onBrowse={handleBrowse}
             checkoutDisabled={!checkoutUrl}
             onPointerDown={handleDragStart}
             footerRef={setFooterElement}

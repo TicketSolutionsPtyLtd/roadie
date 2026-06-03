@@ -12,13 +12,29 @@ const props = defineProps<{
   progress: number
   /** True while the checkout URL isn't known/safe — button disabled. */
   checkoutDisabled: boolean
+  /** Mount context — drives the open-state "Browse events" action. */
+  context: 'collection' | 'event'
 }>()
 
 const emit = defineEmits<{
   toggle: []
   checkout: []
+  /** Open-state "Browse events" in `event` context — parent navigates. */
+  browse: []
   dragStart: [e: PointerEvent]
 }>()
+
+// Closed → open the drawer. Open → "Browse events": in `event` context the
+// parent navigates to the package-built collection URL; in `collection`
+// context we just close (the collection page is already behind the drawer).
+function onSecondaryClick() {
+  if (!props.isOpen) {
+    emit('toggle')
+    return
+  }
+  if (props.context === 'event') emit('browse')
+  else emit('toggle')
+}
 
 const subtotalLabel = computed(() =>
   formatCurrency(props.cartTotal, {
@@ -75,9 +91,9 @@ function onPointerDown(e: PointerEvent) {
         <button
           type="button"
           class="rc-button rc-button--normal rc-intent-neutral"
-          @click="emit('toggle')"
+          @click="onSecondaryClick"
         >
-          {{ isOpen ? 'Close cart' : 'Open cart' }}
+          {{ isOpen ? 'Browse events' : 'Open cart' }}
         </button>
         <button
           type="button"

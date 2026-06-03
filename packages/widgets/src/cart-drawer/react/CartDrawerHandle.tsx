@@ -170,8 +170,12 @@ type CartDrawerFooterProps = {
   currency: string
   isOpen: boolean
   progress: MotionValue<number>
+  /** Mount context — drives the open-state "Browse events" action. */
+  context: 'collection' | 'event'
   onToggle: () => void
   onCheckout: () => void
+  /** Open-state "Browse events" in `event` context — parent navigates. */
+  onBrowse: () => void
   /** True while the checkout URL isn't known/safe — button stays visible but
    * disabled so the click isn't a silent no-op. */
   checkoutDisabled?: boolean
@@ -185,8 +189,10 @@ export function CartDrawerFooter({
   currency,
   isOpen,
   progress,
+  context,
   onToggle,
   onCheckout,
+  onBrowse,
   checkoutDisabled = false,
   onPointerDown,
   footerRef
@@ -243,9 +249,16 @@ export function CartDrawerFooter({
             emphasis='normal'
             intent='neutral'
             className='flex-1'
-            onClick={onToggle}
+            onClick={() => {
+              // Closed → open. Open → "Browse events": navigate in `event`
+              // context (parent routes the package-built collection URL),
+              // close in `collection` context.
+              if (!isOpen) onToggle()
+              else if (context === 'event') onBrowse()
+              else onToggle()
+            }}
           >
-            {isOpen ? 'Close cart' : 'Open cart'}
+            {isOpen ? 'Browse events' : 'Open cart'}
           </Button>
           <Button
             emphasis='strong'
