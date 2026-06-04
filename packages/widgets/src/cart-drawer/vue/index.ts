@@ -1,4 +1,7 @@
 export { default as CartDrawer } from './CartDrawer.vue'
 export type { CartDrawerProps } from './types'
+export { default as CartExpiryModals } from './CartExpiryModals.vue'
+export { useCartExpiry } from './useCartExpiry'
+export type { CartExpiryState } from './useCartExpiry'
 export { useRoadieTheme } from './theme'
 export type { UseRoadieThemeOptions } from './theme'

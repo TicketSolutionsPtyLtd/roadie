@@ -9,7 +9,7 @@ import { Button } from '@oztix/roadie-components'
 
 import { CartExpiryModal } from './CartExpiryModal'
 
-type CartExpiryModalsProps = {
+export type CartExpiryModalsProps = {
   showWarning: boolean
   expired: boolean
   /** Seconds remaining — drives the warning's live countdown. */
@@ -23,9 +23,10 @@ type CartExpiryModalsProps = {
 }
 
 // The two cart-expiry modals (warning + expired) rendered through the shared
-// shell. Both skins' drawers render this; the drawer owns the countdown via
-// useCartExpiry and passes the derived flags down. Navigation goes through the
-// consumer's onNavigate (no anchors), matching the rest of the widget.
+// shell. Standalone + presentational: the HOST owns the countdown (via
+// useCartExpiry) and passes the derived flags down, then decides whether to hide
+// the cart UI. Navigation goes through the consumer's onNavigate (no anchors),
+// matching the rest of the widget.
 export function CartExpiryModals({
   showWarning,
   expired,
