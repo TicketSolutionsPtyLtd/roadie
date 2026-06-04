@@ -27,6 +27,7 @@ import {
 } from '../core'
 import { CartContents } from './CartContents'
 import { CartDrawerFooter, CartDrawerHeader } from './CartDrawerHandle'
+import { CartExpiryModals } from './CartExpiryModals'
 import {
   lockBodyScroll as acquireBodyScrollLock,
   clearDrawerHeightVar,
@@ -35,6 +36,7 @@ import {
 import { useCartDetails, useCartSummary } from './useCart'
 import { useCartBounce } from './useCartBounce'
 import { useCartDrawerDrag } from './useCartDrawerDrag'
+import { useCartExpiry } from './useCartExpiry'
 
 export type CartDrawerProps = {
   /** Core cart client (host + fetch injected by the consuming app). */
@@ -187,6 +189,8 @@ export function CartDrawer({
   // The once-latch + polling live in the shared core watcher; recreating it on
   // expiry change resets the latch.
   const expiresAtUtc = summary?.expiresAtUtc ?? details?.expiresAtUtc
+  const { remaining, expired, showWarning, dismissWarning } =
+    useCartExpiry(expiresAtUtc)
   useEffect(() => {
     if (!expiresAtUtc || !onExpire) return
     const watcher = createExpiryWatcher(expiresAtUtc, onExpire)
@@ -244,6 +248,23 @@ export function CartDrawer({
   // the Vue gate `collectionId && (summary || details)`).
   if (!collectionId) return null
   if (!summary && !details) return null
+
+  // Once the hold expires the docked cart disappears — only the blocking
+  // expired modal remains. The stale cart 404s on the next fetch, so it's gone
+  // after the user navigates away. onExpire still fires (host can refetch).
+  if (expired) {
+    return (
+      <CartExpiryModals
+        showWarning={false}
+        expired
+        remaining={remaining}
+        onDismissWarning={dismissWarning}
+        checkoutUrl={checkoutUrl}
+        browseHref={effectiveBrowseHref}
+        onNavigate={onNavigate}
+      />
+    )
+  }
 
   return (
     <LazyMotion features={domAnimation} strict>
@@ -347,6 +368,16 @@ export function CartDrawer({
           />
         </FocusLock>
       </m.div>
+
+      <CartExpiryModals
+        showWarning={showWarning}
+        expired={false}
+        remaining={remaining}
+        onDismissWarning={dismissWarning}
+        checkoutUrl={checkoutUrl}
+        browseHref={effectiveBrowseHref}
+        onNavigate={onNavigate}
+      />
     </LazyMotion>
   )
 }
