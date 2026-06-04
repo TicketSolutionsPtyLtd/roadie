@@ -17,11 +17,14 @@ import {
   deriveBookingFees,
   deriveCartTotal,
   deriveTicketCount,
-  isSafeRelativePath
+  isSafeRelativePath,
+  remainingSeconds,
+  urgencyLevel
 } from '../core'
 import CartContents from './CartContents.vue'
 import CartDrawerFooter from './CartDrawerFooter.vue'
 import CartDrawerHeader from './CartDrawerHeader.vue'
+import CartExpiryModals from './CartExpiryModals.vue'
 import type { CartDrawerProps } from './types'
 import { useCart } from './useCart'
 import { useCartDrawerDrag } from './useCartDrawerDrag'
@@ -143,6 +146,34 @@ watch(
   { immediate: true }
 )
 
+// --- Reactive countdown for the expiry modals (warning + expired) ---
+// Plain 1s tick (the badge runs its own); drives the two modals + the
+// hide-on-expiry gate. Core urgencyLevel encodes the bands: 'danger' = the
+// <120s warning window, 'expired' = 0. Warning is one-shot per hold.
+const now = ref(Date.now())
+let countdownTimer: ReturnType<typeof setInterval> | null = null
+onMounted(() => {
+  countdownTimer = setInterval(() => {
+    now.value = Date.now()
+  }, 1000)
+})
+onBeforeUnmount(() => {
+  if (countdownTimer !== null) clearInterval(countdownTimer)
+})
+const remaining = computed(() =>
+  remainingSeconds(expiresAtUtc.value, now.value)
+)
+const expired = computed(() => urgencyLevel(remaining.value) === 'expired')
+const dismissedFor = ref<string | undefined>(undefined)
+function dismissWarning() {
+  dismissedFor.value = expiresAtUtc.value
+}
+const showWarning = computed(
+  () =>
+    urgencyLevel(remaining.value) === 'danger' &&
+    dismissedFor.value !== expiresAtUtc.value
+)
+
 // --- Closed drawer height → CSS var + onHeightChange (design finding #5) ---
 watch(
   closedHeight,
@@ -257,97 +288,111 @@ const contentOpacity = computed(() =>
 
 <template>
   <template v-if="collectionId && (summary || details)">
-    <!-- Dark overlay — fades in with drag progress. -->
-    <div
-      aria-hidden="true"
-      class="rc-overlay"
-      :class="{
-        'rc-overlay--open': isOpen,
-        'rc-overlay--dragging': isDragging
-      }"
-      :style="{ opacity: overlayOpacity }"
-      @click="toggle"
-    />
-
-    <!-- Drawer — floating card. -->
-    <div
-      ref="drawerEl"
-      id="cart-drawer"
-      class="rc-drawer"
-      tabindex="-1"
-      :class="{ 'rc-drawer--dragging': isDragging }"
-      :role="isOpen ? 'dialog' : 'region'"
-      :aria-modal="isOpen ? 'true' : undefined"
-      :aria-labelledby="isOpen ? cartHeadingId : undefined"
-      :aria-label="isOpen ? undefined : 'Cart summary'"
-      :style="{ height: `${dragHeight}px` }"
-    >
-      <CartDrawerHeader
-        :ref="bindHeader"
-        :ticket-count="displayTicketCount"
-        :cart-total="displayTotal"
-        :expires-at-utc="expiresAtUtc"
-        :locale="locale"
-        :currency="currency"
-        :is-open="isOpen"
-        :bounce="bounce"
-        :progress="progress"
-        :title-id="cartHeadingId"
-        @toggle="toggle"
-        @drag-start="handleDragStart"
+    <!-- The docked cart hides once the hold expires — only the blocking expired
+         modal remains; the stale cart 404s on the next fetch. -->
+    <template v-if="!expired">
+      <!-- Dark overlay — fades in with drag progress. -->
+      <div
+        aria-hidden="true"
+        class="rc-overlay"
+        :class="{
+          'rc-overlay--open': isOpen,
+          'rc-overlay--dragging': isDragging
+        }"
+        :style="{ opacity: overlayOpacity }"
+        @click="toggle"
       />
 
+      <!-- Drawer — floating card. -->
       <div
-        id="cart-drawer-body"
-        class="rc-drawer__body"
-        :style="{
-          opacity: contentOpacity,
-          pointerEvents: isOpen ? 'auto' : 'none'
-        }"
+        ref="drawerEl"
+        id="cart-drawer"
+        class="rc-drawer"
+        tabindex="-1"
+        :class="{ 'rc-drawer--dragging': isDragging }"
+        :role="isOpen ? 'dialog' : 'region'"
+        :aria-modal="isOpen ? 'true' : undefined"
+        :aria-labelledby="isOpen ? cartHeadingId : undefined"
+        :aria-label="isOpen ? undefined : 'Cart summary'"
+        :style="{ height: `${dragHeight}px` }"
       >
-        <p
-          v-if="detailsError"
-          class="rc-drawer__error rc-intent-danger"
-          role="status"
-        >
-          Couldn't load your cart. Please try again.
-        </p>
-        <CartContents
-          v-else-if="details"
-          :cart="details"
-          :on-navigate="onNavigate"
-          :browse-href="effectiveBrowseHref"
-          :checkout-url="checkoutUrl"
+        <CartDrawerHeader
+          :ref="bindHeader"
+          :ticket-count="displayTicketCount"
+          :cart-total="displayTotal"
+          :expires-at-utc="expiresAtUtc"
           :locale="locale"
           :currency="currency"
-          hide-footer
+          :is-open="isOpen"
+          :bounce="bounce"
+          :progress="progress"
+          :title-id="cartHeadingId"
+          @toggle="toggle"
+          @drag-start="handleDragStart"
         />
-        <div
-          v-else-if="detailsLoading"
-          class="rc-drawer__loading"
-          data-testid="cart-drawer-loading"
-        >
-          <div class="rc-skeleton rc-skeleton--line" />
-          <div class="rc-skeleton rc-skeleton--block" />
-          <div class="rc-skeleton rc-skeleton--block" />
-        </div>
-      </div>
 
-      <CartDrawerFooter
-        :ref="bindFooter"
-        :cart-total="displayTotal"
-        :booking-fees="displayBookingFees"
-        :locale="locale"
-        :currency="currency"
-        :is-open="isOpen"
-        :progress="progress"
-        :checkout-disabled="!checkoutUrl"
-        :context="context"
-        @toggle="toggle"
-        @checkout="handleCheckout"
-        @browse="handleBrowse"
-        @drag-start="handleDragStart"
-      />
-    </div>
+        <div
+          id="cart-drawer-body"
+          class="rc-drawer__body"
+          :style="{
+            opacity: contentOpacity,
+            pointerEvents: isOpen ? 'auto' : 'none'
+          }"
+        >
+          <p
+            v-if="detailsError"
+            class="rc-drawer__error rc-intent-danger"
+            role="status"
+          >
+            Couldn't load your cart. Please try again.
+          </p>
+          <CartContents
+            v-else-if="details"
+            :cart="details"
+            :on-navigate="onNavigate"
+            :browse-href="effectiveBrowseHref"
+            :checkout-url="checkoutUrl"
+            :locale="locale"
+            :currency="currency"
+            hide-footer
+          />
+          <div
+            v-else-if="detailsLoading"
+            class="rc-drawer__loading"
+            data-testid="cart-drawer-loading"
+          >
+            <div class="rc-skeleton rc-skeleton--line" />
+            <div class="rc-skeleton rc-skeleton--block" />
+            <div class="rc-skeleton rc-skeleton--block" />
+          </div>
+        </div>
+
+        <CartDrawerFooter
+          :ref="bindFooter"
+          :cart-total="displayTotal"
+          :booking-fees="displayBookingFees"
+          :locale="locale"
+          :currency="currency"
+          :is-open="isOpen"
+          :progress="progress"
+          :checkout-disabled="!checkoutUrl"
+          :context="context"
+          @toggle="toggle"
+          @checkout="handleCheckout"
+          @browse="handleBrowse"
+          @drag-start="handleDragStart"
+        />
+      </div>
+    </template>
+
+    <CartExpiryModals
+      :show-warning="showWarning"
+      :expired="expired"
+      :remaining="remaining"
+      :on-dismiss-warning="dismissWarning"
+      :checkout-url="checkoutUrl"
+      :browse-href="effectiveBrowseHref"
+      :on-navigate="onNavigate"
+    />
   </template>
 </template>

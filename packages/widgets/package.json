@@ -163,7 +163,7 @@
     {
       "name": "cart-drawer/vue",
       "path": "dist/cart-drawer/vue/index.js",
-      "limit": "9 KB",
+      "limit": "10.5 KB",
       "ignore": [
         "vue",
         "focus-trap",
