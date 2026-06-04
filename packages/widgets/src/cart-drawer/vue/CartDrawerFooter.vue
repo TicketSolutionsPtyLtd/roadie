@@ -5,6 +5,8 @@ import { formatCurrency } from '../core'
 
 const props = defineProps<{
   cartTotal: number
+  /** Summed booking fees across cart events — drives the footer fees line. */
+  bookingFees: number
   locale: string
   currency: string
   isOpen: boolean
@@ -41,6 +43,18 @@ const subtotalLabel = computed(() =>
     locale: props.locale,
     currency: props.currency
   })
+)
+
+// Surface the booking fees explicitly (mirrors the full CartContents footer).
+// bookingFees is summed from the FRESH per-event cart API value
+// (item.InventoryBookingFee()), so it tracks the cart, not a stale total.
+const feesLabel = computed(() =>
+  props.bookingFees > 0
+    ? `Incl. ${formatCurrency(props.bookingFees, {
+        locale: props.locale,
+        currency: props.currency
+      })} booking fees. Delivery and refund protection calculated at checkout`
+    : 'Includes booking fees. Delivery and refund protection calculated at checkout'
 )
 
 const subtotalMaxHeight = computed(() => props.progress * 50)
@@ -84,7 +98,7 @@ function onPointerDown(e: PointerEvent) {
         class="rc-footer__fees"
         :style="{ maxHeight: `${feesMaxHeight}px`, opacity: feesOpacity }"
       >
-        Delivery and refund protection calculated at checkout
+        {{ feesLabel }}
       </p>
 
       <div class="rc-footer__buttons" @pointerdown.stop>

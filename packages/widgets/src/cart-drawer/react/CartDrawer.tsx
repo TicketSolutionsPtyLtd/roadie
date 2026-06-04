@@ -20,6 +20,7 @@ import {
   type CartClient,
   buildBrowseHref,
   createExpiryWatcher,
+  deriveBookingFees,
   deriveCartTotal,
   deriveTicketCount,
   isSafeRelativePath
@@ -127,6 +128,10 @@ export function CartDrawer({
   const displayTotal = useMemo(
     () => deriveCartTotal(details ?? null, summary ?? null),
     [details, summary]
+  )
+  const displayBookingFees = useMemo(
+    () => deriveBookingFees(details ?? null),
+    [details]
   )
 
   const grabberRef = useRef<HTMLButtonElement | null>(null)
@@ -327,6 +332,7 @@ export function CartDrawer({
 
           <CartDrawerFooter
             cartTotal={displayTotal}
+            bookingFees={displayBookingFees}
             locale={locale}
             currency={currency}
             isOpen={state === 'open'}

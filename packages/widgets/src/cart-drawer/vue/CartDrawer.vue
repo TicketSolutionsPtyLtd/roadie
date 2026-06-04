@@ -14,6 +14,7 @@ import {
   type ExpiryWatcher,
   buildBrowseHref,
   createExpiryWatcher,
+  deriveBookingFees,
   deriveCartTotal,
   deriveTicketCount,
   isSafeRelativePath
@@ -74,6 +75,7 @@ const displayTicketCount = computed(() =>
 const displayTotal = computed(() =>
   deriveCartTotal(details.value, summary.value)
 )
+const displayBookingFees = computed(() => deriveBookingFees(details.value))
 
 const {
   state,
@@ -334,6 +336,7 @@ const contentOpacity = computed(() =>
       <CartDrawerFooter
         :ref="bindFooter"
         :cart-total="displayTotal"
+        :booking-fees="displayBookingFees"
         :locale="locale"
         :currency="currency"
         :is-open="isOpen"

@@ -271,4 +271,61 @@ describe('CartDrawer', () => {
     )
     expect(onNavigate).not.toHaveBeenCalledWith('/events')
   })
+
+  it('footer shows the summed booking fees when the cart has fees', async () => {
+    // makeDetails has one event with bookingFees: 5 → "Incl. $5.00 booking fees".
+    const cart = mockCart()
+    renderDrawer(
+      <CartDrawer
+        cart={cart}
+        collectionId='col-1'
+        onNavigate={vi.fn()}
+        browseHref='/events'
+        locale='en-AU'
+        currency='AUD'
+      />
+    )
+    expect(
+      await screen.findByText(
+        /Incl\. \$5\.00 booking fees\. Delivery and refund protection calculated at checkout/
+      )
+    ).toBeInTheDocument()
+  })
+
+  it('footer falls back to a fee-free line when there are no booking fees', async () => {
+    const cart = mockCart({
+      getDetails: vi.fn(async () =>
+        makeDetails({
+          events: [
+            {
+              eventId: 'e1',
+              eventName: 'Night Show',
+              venueName: 'The Venue',
+              eventStartAtUtc: '2026-06-15T10:00:00Z',
+              eventDateKey: '2026-06-15',
+              tickets: [{ name: 'GA', quantity: 2, priceEach: 25 }],
+              subtotal: 50,
+              bookingFees: 0,
+              total: 50
+            }
+          ]
+        })
+      )
+    })
+    renderDrawer(
+      <CartDrawer
+        cart={cart}
+        collectionId='col-1'
+        onNavigate={vi.fn()}
+        browseHref='/events'
+        locale='en-AU'
+        currency='AUD'
+      />
+    )
+    expect(
+      await screen.findByText(
+        'Includes booking fees. Delivery and refund protection calculated at checkout'
+      )
+    ).toBeInTheDocument()
+  })
 })
