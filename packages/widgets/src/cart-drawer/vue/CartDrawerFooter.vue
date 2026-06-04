@@ -93,7 +93,7 @@ function onPointerDown(e: PointerEvent) {
           class="rc-button rc-button--normal rc-intent-neutral"
           @click="onSecondaryClick"
         >
-          {{ isOpen ? 'Browse events' : 'Open cart' }}
+          {{ isOpen ? 'Browse events' : 'View cart' }}
         </button>
         <button
           type="button"

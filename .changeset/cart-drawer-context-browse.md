@@ -3,7 +3,7 @@
 ---
 
 Add a `context: 'collection' | 'event'` prop to `CartDrawer` (both skins) that
-drives the open-state secondary button. The button is now **"Open cart"**
+drives the open-state secondary button. The button is now **"View cart"**
 (closed) / **"Browse events"** (open):
 
 - `context: 'event'` — "Browse events" navigates to the collection page so the

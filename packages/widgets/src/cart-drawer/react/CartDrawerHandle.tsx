@@ -258,7 +258,7 @@ export function CartDrawerFooter({
               else onToggle()
             }}
           >
-            {isOpen ? 'Browse events' : 'Open cart'}
+            {isOpen ? 'Browse events' : 'View cart'}
           </Button>
           <Button
             emphasis='strong'

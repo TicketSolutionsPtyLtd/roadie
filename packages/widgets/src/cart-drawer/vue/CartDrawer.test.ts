@@ -136,7 +136,7 @@ describe('CartDrawer (Vue)', () => {
     })
     await flushPromises()
     // Footer "Open cart" button toggles open while closed.
-    const openButtons = await findAllByText('Open cart')
+    const openButtons = await findAllByText('View cart')
     await fireEvent.click(openButtons[0]!)
     await nextTick()
     expect(onOpenChange).toHaveBeenCalledWith(true)
@@ -179,7 +179,7 @@ describe('CartDrawer (Vue)', () => {
     await flushPromises()
     const drawer = container.querySelector('#cart-drawer')!
     expect(drawer.getAttribute('role')).toBe('region')
-    const openButtons = await findAllByText('Open cart')
+    const openButtons = await findAllByText('View cart')
     await fireEvent.click(openButtons[0]!)
     await nextTick()
     expect(drawer.getAttribute('role')).toBe('dialog')
@@ -194,7 +194,7 @@ describe('CartDrawer (Vue)', () => {
     await flushPromises()
 
     const drawer = container.querySelector('#cart-drawer')!
-    const openBtn = (await findAllByText('Open cart'))[0] as HTMLButtonElement
+    const openBtn = (await findAllByText('View cart'))[0] as HTMLButtonElement
     openBtn.focus() // keyboard user activates the trigger
     await fireEvent.click(openBtn)
     await flushPromises()
@@ -303,7 +303,7 @@ describe('CartDrawer (Vue)', () => {
       props: { ...baseProps, cart, onNavigate: vi.fn() }
     })
     await flushPromises()
-    const openButtons = await findAllByText('Open cart')
+    const openButtons = await findAllByText('View cart')
     await fireEvent.click(openButtons[0]!)
     await flushPromises()
     await nextTick()
@@ -328,7 +328,7 @@ describe('CartDrawer (Vue)', () => {
       props: { ...baseProps, cart, onNavigate: vi.fn() }
     })
     await flushPromises()
-    const openButtons = await findAllByText('Open cart')
+    const openButtons = await findAllByText('View cart')
     await fireEvent.click(openButtons[0]!)
     await flushPromises()
     await nextTick()
@@ -346,7 +346,7 @@ describe('CartDrawer (Vue)', () => {
       props: { ...baseProps, cart, onNavigate, context: 'event' }
     })
     await flushPromises()
-    await fireEvent.click((await findAllByText('Open cart'))[0]!)
+    await fireEvent.click((await findAllByText('View cart'))[0]!)
     await flushPromises()
     await nextTick()
 
@@ -366,7 +366,7 @@ describe('CartDrawer (Vue)', () => {
       props: { ...baseProps, cart, onNavigate, context: 'collection' }
     })
     await flushPromises()
-    await fireEvent.click((await findAllByText('Open cart'))[0]!)
+    await fireEvent.click((await findAllByText('View cart'))[0]!)
     await flushPromises()
     await nextTick()
 
