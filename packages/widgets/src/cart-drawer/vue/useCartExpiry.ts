@@ -11,9 +11,9 @@ import {
 import { remainingSeconds, urgencyLevel } from '../core'
 
 export interface CartExpiryState {
-  remaining: Ref<number | null>
-  expired: Ref<boolean>
-  showWarning: Ref<boolean>
+  remaining: Readonly<Ref<number | null>>
+  expired: Readonly<Ref<boolean>>
+  showWarning: Readonly<Ref<boolean>>
   dismissWarning: () => void
 }
 
