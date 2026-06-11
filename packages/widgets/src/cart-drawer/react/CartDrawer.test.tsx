@@ -233,10 +233,8 @@ describe('CartDrawer', () => {
         context='event'
       />
     )
-    const openButtons = await screen.findAllByRole('button', {
-      name: /open cart/i
-    })
-    fireEvent.click(openButtons[0]!)
+const viewCart = await screen.findByRole('button', { name: /view cart/i })
+fireEvent.click(viewCart)
     const browse = await screen.findByRole('button', { name: 'Browse events' })
     fireEvent.click(browse)
     // Navigates to the safe, package-resolved browseHref.
