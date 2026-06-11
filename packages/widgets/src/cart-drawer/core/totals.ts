@@ -43,3 +43,17 @@ export function deriveCartTotal(
   }
   return summary?.cartTotal ?? 0
 }
+
+/**
+ * Summed booking fees across cart events, for the footer fees line. Per-event
+ * `bookingFees` is a FRESH server-computed value (item.InventoryBookingFee()),
+ * so it tracks the cart like the total. Returns 0 before details load (the
+ * summary payload carries no booking-fee figure).
+ */
+export function deriveBookingFees(details: CartDetails | null): number {
+  if (!details) return 0
+  return (details.events ?? []).reduce(
+    (sum, event) => sum + (Number(event.bookingFees) || 0),
+    0
+  )
+}

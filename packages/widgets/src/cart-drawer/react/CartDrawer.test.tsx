@@ -218,4 +218,106 @@ describe('CartDrawer', () => {
     })
     expect(onExpire).toHaveBeenCalled()
   })
+
+  it('event context: "Browse events" navigates to the package-built browse target', async () => {
+    const cart = mockCart()
+    const onNavigate = vi.fn()
+    renderDrawer(
+      <CartDrawer
+        cart={cart}
+        collectionId='col-1'
+        onNavigate={onNavigate}
+        browseHref='/events'
+        locale='en-AU'
+        currency='AUD'
+        context='event'
+      />
+    )
+    const viewCart = await screen.findByRole('button', { name: /view cart/i })
+    fireEvent.click(viewCart)
+    const browse = await screen.findByRole('button', { name: 'Browse events' })
+    fireEvent.click(browse)
+    // Navigates to the safe, package-resolved browseHref.
+    await waitFor(() => expect(onNavigate).toHaveBeenCalledWith('/events'))
+  })
+
+  it('collection context: "Browse events" closes the drawer and never navigates', async () => {
+    const cart = mockCart()
+    const onNavigate = vi.fn()
+    renderDrawer(
+      <CartDrawer
+        cart={cart}
+        collectionId='col-1'
+        onNavigate={onNavigate}
+        browseHref='/events'
+        locale='en-AU'
+        currency='AUD'
+        context='collection'
+      />
+    )
+    const viewCart = await screen.findByRole('button', { name: /view cart/i })
+    fireEvent.click(viewCart)
+    const browse = await screen.findByRole('button', { name: 'Browse events' })
+    fireEvent.click(browse)
+    // Closes → the footer reverts to "View cart"; no browse navigation occurs.
+    await screen.findByRole('button', { name: /view cart/i })
+    expect(onNavigate).not.toHaveBeenCalledWith('/events')
+  })
+
+  it('footer shows the summed booking fees when the cart has fees', async () => {
+    // makeDetails has one event with bookingFees: 5 → "Incl. $5.00 booking fees".
+    const cart = mockCart()
+    renderDrawer(
+      <CartDrawer
+        cart={cart}
+        collectionId='col-1'
+        onNavigate={vi.fn()}
+        browseHref='/events'
+        locale='en-AU'
+        currency='AUD'
+      />
+    )
+    expect(
+      await screen.findByText(
+        /Incl\. \$5\.00 booking fees\. Delivery and refund protection calculated at checkout/
+      )
+    ).toBeInTheDocument()
+  })
+
+  it('footer falls back to a fee-free line when there are no booking fees', async () => {
+    const cart = mockCart({
+      getDetails: vi.fn(async () =>
+        makeDetails({
+          events: [
+            {
+              eventId: 'e1',
+              eventName: 'Night Show',
+              venueName: 'The Venue',
+              eventStartAtUtc: '2026-06-15T10:00:00Z',
+              eventDateKey: '2026-06-15',
+              tickets: [{ name: 'GA', quantity: 2, priceEach: 25 }],
+              subtotal: 50,
+              bookingFees: 0,
+              total: 50
+            }
+          ]
+        })
+      )
+    })
+    renderDrawer(
+      <CartDrawer
+        cart={cart}
+        collectionId='col-1'
+        onNavigate={vi.fn()}
+        browseHref='/events'
+        locale='en-AU'
+        currency='AUD'
+      />
+    )
+    expect(
+      await screen.findByText(
+        'Includes booking fees. Delivery and refund protection calculated at checkout'
+      )
+    ).toBeInTheDocument()
+  })
 })

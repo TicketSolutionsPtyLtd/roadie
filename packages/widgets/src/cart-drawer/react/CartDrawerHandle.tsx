@@ -9,7 +9,7 @@ import { type MotionValue, m, useTransform } from 'motion/react'
 import { Button, IconButton } from '@oztix/roadie-components'
 import { cn } from '@oztix/roadie-core/utils'
 
-import { currencyPrefix } from '../core'
+import { currencyPrefix, formatCurrency } from '../core'
 import { CartUrgencyBadge } from './CartUrgencyBadge'
 
 /* ============================================================================
@@ -166,12 +166,18 @@ export function CartDrawerHeader({
 
 type CartDrawerFooterProps = {
   cartTotal: number
+  /** Summed booking fees across cart events — drives the footer fees line. */
+  bookingFees: number
   locale: string
   currency: string
   isOpen: boolean
   progress: MotionValue<number>
+  /** Mount context — drives the open-state "Browse events" action. */
+  context: 'collection' | 'event'
   onToggle: () => void
   onCheckout: () => void
+  /** Open-state "Browse events" in `event` context — parent navigates. */
+  onBrowse: () => void
   /** True while the checkout URL isn't known/safe — button stays visible but
    * disabled so the click isn't a silent no-op. */
   checkoutDisabled?: boolean
@@ -181,12 +187,15 @@ type CartDrawerFooterProps = {
 
 export function CartDrawerFooter({
   cartTotal,
+  bookingFees,
   locale,
   currency,
   isOpen,
   progress,
+  context,
   onToggle,
   onCheckout,
+  onBrowse,
   checkoutDisabled = false,
   onPointerDown,
   footerRef
@@ -234,7 +243,9 @@ export function CartDrawerFooter({
           className='overflow-hidden pb-2 text-ui-meta text-subtle'
           style={{ maxHeight: feesMaxHeight, opacity: feesOpacity }}
         >
-          Delivery and refund protection calculated at checkout
+          {bookingFees > 0
+            ? `Incl. ${formatCurrency(bookingFees, { locale, currency })} booking fees. Delivery and refund protection calculated at checkout`
+            : 'Includes booking fees. Delivery and refund protection calculated at checkout'}
         </m.p>
 
         {/* Buttons — always visible. stopPropagation prevents drag. */}
@@ -243,9 +254,16 @@ export function CartDrawerFooter({
             emphasis='normal'
             intent='neutral'
             className='flex-1'
-            onClick={onToggle}
+            onClick={() => {
+              // Closed → open. Open → "Browse events": navigate in `event`
+              // context (parent routes the package-built collection URL),
+              // close in `collection` context.
+              if (!isOpen) onToggle()
+              else if (context === 'event') onBrowse()
+              else onToggle()
+            }}
           >
-            {isOpen ? 'Close cart' : 'Open cart'}
+            {isOpen ? 'Browse events' : 'View cart'}
           </Button>
           <Button
             emphasis='strong'

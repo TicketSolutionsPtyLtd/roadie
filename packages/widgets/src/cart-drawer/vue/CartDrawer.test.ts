@@ -6,6 +6,7 @@ import { h, nextTick } from 'vue'
 import type { CartClient, CartDetails, CartSummary } from '../core'
 import { buildCheckoutUrl } from '../core'
 import CartDrawer from './CartDrawer.vue'
+import { lockBodyScroll } from './documentEffects'
 
 // @number-flow/vue is an animated Web Component that jsdom never upgrades, so
 // it renders no digit text under test (see CartUrgencyBadge.test.ts). Stub it
@@ -136,7 +137,7 @@ describe('CartDrawer (Vue)', () => {
     })
     await flushPromises()
     // Footer "Open cart" button toggles open while closed.
-    const openButtons = await findAllByText('Open cart')
+    const openButtons = await findAllByText('View cart')
     await fireEvent.click(openButtons[0]!)
     await nextTick()
     expect(onOpenChange).toHaveBeenCalledWith(true)
@@ -179,7 +180,7 @@ describe('CartDrawer (Vue)', () => {
     await flushPromises()
     const drawer = container.querySelector('#cart-drawer')!
     expect(drawer.getAttribute('role')).toBe('region')
-    const openButtons = await findAllByText('Open cart')
+    const openButtons = await findAllByText('View cart')
     await fireEvent.click(openButtons[0]!)
     await nextTick()
     expect(drawer.getAttribute('role')).toBe('dialog')
@@ -194,7 +195,7 @@ describe('CartDrawer (Vue)', () => {
     await flushPromises()
 
     const drawer = container.querySelector('#cart-drawer')!
-    const openBtn = (await findAllByText('Open cart'))[0] as HTMLButtonElement
+    const openBtn = (await findAllByText('View cart'))[0] as HTMLButtonElement
     openBtn.focus() // keyboard user activates the trigger
     await fireEvent.click(openBtn)
     await flushPromises()
@@ -303,7 +304,7 @@ describe('CartDrawer (Vue)', () => {
       props: { ...baseProps, cart, onNavigate: vi.fn() }
     })
     await flushPromises()
-    const openButtons = await findAllByText('Open cart')
+    const openButtons = await findAllByText('View cart')
     await fireEvent.click(openButtons[0]!)
     await flushPromises()
     await nextTick()
@@ -328,7 +329,7 @@ describe('CartDrawer (Vue)', () => {
       props: { ...baseProps, cart, onNavigate: vi.fn() }
     })
     await flushPromises()
-    const openButtons = await findAllByText('Open cart')
+    const openButtons = await findAllByText('View cart')
     await fireEvent.click(openButtons[0]!)
     await flushPromises()
     await nextTick()
@@ -337,5 +338,136 @@ describe('CartDrawer (Vue)', () => {
     expect(container.querySelector('.rc-header__price-text')?.textContent).toBe(
       '$75'
     )
+  })
+
+  it('event context: "Browse events" navigates to the package-built browse target', async () => {
+    const cart = mockCart()
+    const onNavigate = vi.fn()
+    const { container, findAllByText, findByText } = render(CartDrawer, {
+      props: { ...baseProps, cart, onNavigate, context: 'event' }
+    })
+    await flushPromises()
+    await fireEvent.click((await findAllByText('View cart'))[0]!)
+    await flushPromises()
+    await nextTick()
+
+    await fireEvent.click(await findByText('Browse events'))
+    // Navigates to the safe, package-resolved browseHref ('/events'); the
+    // drawer stays open (navigation, not a close).
+    expect(onNavigate).toHaveBeenCalledWith('/events')
+    expect(container.querySelector('#cart-drawer')?.getAttribute('role')).toBe(
+      'dialog'
+    )
+  })
+
+  it('collection context: "Browse events" closes the drawer and never navigates', async () => {
+    const cart = mockCart()
+    const onNavigate = vi.fn()
+    const { container, findAllByText, findByText } = render(CartDrawer, {
+      props: { ...baseProps, cart, onNavigate, context: 'collection' }
+    })
+    await flushPromises()
+    await fireEvent.click((await findAllByText('View cart'))[0]!)
+    await flushPromises()
+    await nextTick()
+
+    await fireEvent.click(await findByText('Browse events'))
+    await nextTick()
+    // Closes (role back to docked region); no browse navigation occurs.
+    expect(container.querySelector('#cart-drawer')?.getAttribute('role')).toBe(
+      'region'
+    )
+    expect(onNavigate).not.toHaveBeenCalledWith('/events')
+  })
+
+  it('footer shows the summed booking fees when the cart has fees', async () => {
+    // makeDetails has one event with bookingFees: 5 → "Incl. $5.00 booking fees".
+    const cart = mockCart()
+    const { container } = render(CartDrawer, {
+      props: { ...baseProps, cart, onNavigate: vi.fn() }
+    })
+    await flushPromises()
+    await nextTick()
+    expect(
+      container.querySelector('.rc-footer__fees')?.textContent?.trim()
+    ).toBe(
+      'Incl. $5.00 booking fees. Delivery and refund protection calculated at checkout'
+    )
+  })
+
+  it('footer falls back to a fee-free line when there are no booking fees', async () => {
+    const cart = mockCart({
+      getDetails: vi.fn(async () =>
+        makeDetails({
+          events: [
+            {
+              eventId: 'e1',
+              eventName: 'Night Show',
+              venueName: 'The Venue',
+              eventStartAtUtc: '2026-06-15T10:00:00Z',
+              eventDateKey: '2026-06-15',
+              tickets: [{ name: 'GA', quantity: 2, priceEach: 25 }],
+              subtotal: 50,
+              bookingFees: 0,
+              total: 50
+            }
+          ]
+        })
+      )
+    })
+    const { container } = render(CartDrawer, {
+      props: { ...baseProps, cart, onNavigate: vi.fn() }
+    })
+    await flushPromises()
+    await nextTick()
+    expect(
+      container.querySelector('.rc-footer__fees')?.textContent?.trim()
+    ).toBe(
+      'Includes booking fees. Delivery and refund protection calculated at checkout'
+    )
+  })
+
+  it('locks body scroll while open', async () => {
+    expect(document.body.style.overflow).toBe('')
+    const cart = mockCart()
+    const { findAllByText } = render(CartDrawer, {
+      props: { ...baseProps, cart, onNavigate: vi.fn() }
+    })
+    await flushPromises()
+    await fireEvent.click((await findAllByText('View cart'))[0]!)
+    await nextTick()
+    expect(document.body.style.overflow).toBe('hidden')
+  })
+
+  it('keeps body scroll locked when it closes while a modal still holds the lock', async () => {
+    expect(document.body.style.overflow).toBe('')
+    const cart = mockCart()
+    const { container, findAllByText } = render(CartDrawer, {
+      props: { ...baseProps, cart, onNavigate: vi.fn(), onOpenChange: vi.fn() }
+    })
+    await flushPromises()
+
+    // Open the drawer → it locks background scroll.
+    await fireEvent.click((await findAllByText('View cart'))[0]!)
+    await nextTick()
+    expect(document.body.style.overflow).toBe('hidden')
+
+    // An expiry modal is also open, holding the lock via the same refcounted
+    // helper the modal uses.
+    const releaseModal = lockBodyScroll()
+
+    // Close the drawer (Escape). The modal is still open, so background scroll
+    // MUST stay locked — the drawer must not stomp the shared lock.
+    await fireEvent.keyDown(document, { key: 'Escape' })
+    await flushPromises()
+    await nextTick()
+    expect(container.querySelector('#cart-drawer')?.getAttribute('role')).toBe(
+      'region'
+    )
+    expect(document.body.style.overflow).toBe('hidden')
+
+    // Once the modal releases too, scroll is restored.
+    releaseModal()
+    expect(document.body.style.overflow).toBe('')
   })
 })

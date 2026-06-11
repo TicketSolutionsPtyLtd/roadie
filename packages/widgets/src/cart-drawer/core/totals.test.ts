@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { deriveCartTotal, deriveTicketCount } from './totals'
+import { deriveBookingFees, deriveCartTotal, deriveTicketCount } from './totals'
 import type { CartDetails, CartSummary } from './types'
 
 const event = (over: Partial<CartDetails['events'][number]>) => ({
@@ -138,5 +138,39 @@ describe('deriveCartTotal', () => {
     const d = details({ events: undefined as unknown as CartDetails['events'] })
     expect(() => deriveCartTotal(d, null)).not.toThrow()
     expect(deriveCartTotal(d, null)).toBe(0)
+  })
+})
+
+describe('deriveBookingFees', () => {
+  it('sums per-event booking fees across multiple events from details', () => {
+    const d = details({
+      events: [event({ bookingFees: 2.35 }), event({ bookingFees: 2.35 })]
+    })
+    expect(deriveBookingFees(d)).toBe(4.7)
+  })
+
+  it('returns 0 when details is null (summary carries no fee figure)', () => {
+    expect(deriveBookingFees(null)).toBe(0)
+  })
+
+  it('returns 0 for empty events', () => {
+    expect(deriveBookingFees(details({ events: [] }))).toBe(0)
+  })
+
+  it('coerces a malformed booking fee to 0 without producing NaN', () => {
+    const d = details({
+      events: [
+        event({ bookingFees: undefined as unknown as number }),
+        event({ bookingFees: NaN }),
+        event({ bookingFees: 1.5 })
+      ]
+    })
+    expect(deriveBookingFees(d)).toBe(1.5)
+  })
+
+  it('tolerates a missing events array without throwing', () => {
+    const d = details({ events: undefined as unknown as CartDetails['events'] })
+    expect(() => deriveBookingFees(d)).not.toThrow()
+    expect(deriveBookingFees(d)).toBe(0)
   })
 })

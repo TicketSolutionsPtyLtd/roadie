@@ -1,13 +1,14 @@
 'use client'
 
-import { type CSSProperties, useMemo, useSyncExternalStore } from 'react'
+import { type CSSProperties } from 'react'
 
 import NumberFlow from '@number-flow/react'
 
 import { Badge } from '@oztix/roadie-components'
 import { cn } from '@oztix/roadie-core/utils'
 
-import { URGENCY_LONG_FORMAT_S, remainingSeconds, urgencyLevel } from '../core'
+import { URGENCY_LONG_FORMAT_S, urgencyLevel } from '../core'
+import { useCountdown } from './useCountdown'
 
 type CartUrgencyBadgeProps = {
   ticketCount: number
@@ -18,24 +19,6 @@ type CartUrgencyBadgeProps = {
   bounce?: boolean
   className?: string
   style?: CSSProperties
-}
-
-/**
- * Live countdown backed by core `remainingSeconds`. `useSyncExternalStore`
- * drives the 1s tick; the snapshot recomputes against `Date.now()` each frame.
- */
-function useCountdown(expiresAt: string | undefined): number | null {
-  const subscribe = useMemo(() => {
-    if (!expiresAt) return () => () => {}
-    return (cb: () => void) => {
-      const id = setInterval(cb, 1000)
-      return () => clearInterval(id)
-    }
-  }, [expiresAt])
-
-  const getSnapshot = () => remainingSeconds(expiresAt, Date.now())
-
-  return useSyncExternalStore(subscribe, getSnapshot, () => null)
 }
 
 export function CartUrgencyBadge({

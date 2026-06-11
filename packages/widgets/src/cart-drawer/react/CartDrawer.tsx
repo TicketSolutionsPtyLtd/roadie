@@ -20,6 +20,7 @@ import {
   type CartClient,
   buildBrowseHref,
   createExpiryWatcher,
+  deriveBookingFees,
   deriveCartTotal,
   deriveTicketCount,
   isSafeRelativePath
@@ -49,6 +50,23 @@ export type CartDrawerProps = {
    * back to the built default so the navigation sink stays safe.
    */
   browseHref?: string
+  /**
+   * Where the drawer is mounted — decides what the open-state secondary button
+   * ("Browse events") does:
+   *   - `'event'`      → navigate to the collection page to browse more events.
+   *   - `'collection'` → just close the drawer (the collection page is already
+   *                      behind it). Default.
+   *
+   * WHY an enum + internal URL (and NOT a consumer browse callback/href):
+   * security. The browse target is built by the PACKAGE from the server-trusted
+   * `collectionId` (via `buildBrowseHref`, validated by `isSafeRelativePath`) and
+   * routed through `onNavigate`. A consumer-supplied URL/navigation could be
+   * tainted (e.g. a `redirect=` param), turning "Browse events" into an open
+   * redirect; keeping construction in the package means `onNavigate` only ever
+   * receives a same-origin, collectionId-derived path. The enum also names the
+   * supported contexts explicitly and leaves room to add more.
+   */
+  context?: 'collection' | 'event'
   /** Locale for currency/date formatting (design finding #1). */
   locale: string
   /** ISO 4217 currency code (design finding #1). */
@@ -73,6 +91,7 @@ export function CartDrawer({
   collectionId,
   onNavigate,
   browseHref,
+  context = 'collection',
   locale,
   currency,
   refreshKey,
@@ -109,6 +128,10 @@ export function CartDrawer({
   const displayTotal = useMemo(
     () => deriveCartTotal(details ?? null, summary ?? null),
     [details, summary]
+  )
+  const displayBookingFees = useMemo(
+    () => deriveBookingFees(details ?? null),
+    [details]
   )
 
   const grabberRef = useRef<HTMLButtonElement | null>(null)
@@ -158,11 +181,8 @@ export function CartDrawer({
   }, [])
   useCartBounce(displayTicketCount, fireBounce)
 
-  // Fire onExpire once when the countdown reaches the expired state. The
-  // CartUrgencyBadge runs its own tick for display; here we watch independently
-  // so the host can refetch/clear (the outlet app has no refetch-on-focus).
-  // The once-latch + polling live in the shared core watcher; recreating it on
-  // expiry change resets the latch.
+  // Outbound expiry signal for the host (modals + hide are its job). The core
+  // watcher fires onExpire once; its latch resets when expiry changes (below).
   const expiresAtUtc = summary?.expiresAtUtc ?? details?.expiresAtUtc
   useEffect(() => {
     if (!expiresAtUtc || !onExpire) return
@@ -208,6 +228,13 @@ export function CartDrawer({
   const handleCheckout = useCallback(() => {
     if (checkoutUrl) onNavigate(checkoutUrl)
   }, [checkoutUrl, onNavigate])
+
+  // Open-state "Browse events" in `event` context. Routes the package-built,
+  // collectionId-derived, validated `effectiveBrowseHref` (never a
+  // consumer-supplied URL) through onNavigate — no open-redirect surface.
+  const handleBrowse = useCallback(() => {
+    onNavigate(effectiveBrowseHref)
+  }, [effectiveBrowseHref, onNavigate])
 
   // Render when there's a collection AND at least one data source — a failed
   // summary fetch shouldn't blank a drawer that has working details (mirrors
@@ -302,12 +329,15 @@ export function CartDrawer({
 
           <CartDrawerFooter
             cartTotal={displayTotal}
+            bookingFees={displayBookingFees}
             locale={locale}
             currency={currency}
             isOpen={state === 'open'}
             progress={dragProgress}
+            context={context}
             onToggle={toggle}
             onCheckout={handleCheckout}
+            onBrowse={handleBrowse}
             checkoutDisabled={!checkoutUrl}
             onPointerDown={handleDragStart}
             footerRef={setFooterElement}

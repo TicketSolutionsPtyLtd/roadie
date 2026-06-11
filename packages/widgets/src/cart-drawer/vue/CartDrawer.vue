@@ -14,6 +14,7 @@ import {
   type ExpiryWatcher,
   buildBrowseHref,
   createExpiryWatcher,
+  deriveBookingFees,
   deriveCartTotal,
   deriveTicketCount,
   isSafeRelativePath
@@ -21,6 +22,7 @@ import {
 import CartContents from './CartContents.vue'
 import CartDrawerFooter from './CartDrawerFooter.vue'
 import CartDrawerHeader from './CartDrawerHeader.vue'
+import { lockBodyScroll } from './documentEffects'
 import type { CartDrawerProps } from './types'
 import { useCart } from './useCart'
 import { useCartDrawerDrag } from './useCartDrawerDrag'
@@ -29,6 +31,7 @@ const props = withDefaults(defineProps<CartDrawerProps>(), {
   refreshKey: undefined,
   lockBodyScroll: true,
   initialState: 'closed',
+  context: 'collection',
   onOpenChange: undefined,
   onExpire: undefined,
   onHeightChange: undefined
@@ -73,6 +76,7 @@ const displayTicketCount = computed(() =>
 const displayTotal = computed(() =>
   deriveCartTotal(details.value, summary.value)
 )
+const displayBookingFees = computed(() => deriveBookingFees(details.value))
 
 const {
   state,
@@ -122,9 +126,7 @@ watch(displayTicketCount, (count) => {
   prevTicketCount = count
 })
 
-// --- Expiry watch (design finding #10) ---
-// Once-latch + polling live in the shared core watcher; recreating it on
-// expiry change resets the latch.
+// --- Expiry watch: fire onExpire once (core watcher's latch resets on change) ---
 const expiresAtUtc = computed(
   () => summary.value?.expiresAtUtc ?? details.value?.expiresAtUtc
 )
@@ -152,14 +154,23 @@ watch(
 )
 
 // --- Body scroll lock when open ---
-watch([() => props.lockBodyScroll, isOpen], ([lock, open]) => {
-  if (typeof document === 'undefined') return
-  if (lock && open) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-})
+// Refcounted via documentEffects so the drawer and the expiry modals compose:
+// whichever opens/closes first no longer clobbers the other's lock (re-enabling
+// background scroll while one is still open). Acquire once on entering the
+// locked state, release on leaving it (and on unmount).
+let releaseScrollLock: (() => void) | null = null
+watch(
+  [() => props.lockBodyScroll, isOpen],
+  ([lock, open]) => {
+    if (lock && open) {
+      releaseScrollLock ??= lockBodyScroll()
+    } else {
+      releaseScrollLock?.()
+      releaseScrollLock = null
+    }
+  },
+  { immediate: true }
+)
 
 // --- Escape closes ---
 function onKeydown(e: KeyboardEvent) {
@@ -178,6 +189,12 @@ async function ensureTrap(): Promise<FocusTrapInstance | null> {
     trap = mod.createFocusTrap(el, {
       escapeDeactivates: false,
       clickOutsideDeactivates: true,
+      // Focus the dialog CONTAINER on open, not the first tabbable (which is
+      // the drag grabber) — otherwise opening via drag/click paints the
+      // grabber's focus ring (a circle at the top). The container is
+      // tabindex="-1" + outline:none, so this is the standard ARIA-dialog
+      // pattern; keyboard users still Tab to the grabber and see its ring.
+      initialFocus: () => drawerEl.value ?? false,
       // Transient layouts can leave no tabbable element momentarily — fall back
       // to the drawer root. A function keeps it valid even if the ref changes.
       fallbackFocus: () => drawerEl.value ?? el,
@@ -217,10 +234,11 @@ onBeforeUnmount(() => {
   if (bounceTimer !== null) clearTimeout(bounceTimer)
   expireWatcher?.stop()
   trap?.deactivate()
+  releaseScrollLock?.()
+  releaseScrollLock = null
   if (typeof document !== 'undefined') {
     document.removeEventListener('keydown', onKeydown)
     document.documentElement.style.removeProperty('--cart-drawer-height')
-    document.body.style.overflow = ''
   }
 })
 
@@ -229,6 +247,15 @@ const checkoutUrl = computed(() =>
 )
 function handleCheckout() {
   if (checkoutUrl.value) props.onNavigate(checkoutUrl.value)
+}
+
+// Open-state "Browse events" in `event` context. The target is the
+// package-built, collectionId-derived, isSafeRelativePath-validated
+// `effectiveBrowseHref` — never a consumer-supplied URL — so this can't be
+// turned into an open redirect. (`collection` context closes instead and never
+// reaches here.)
+function handleBrowse() {
+  props.onNavigate(effectiveBrowseHref.value)
 }
 
 const overlayOpacity = computed(() => progress.value)
@@ -256,6 +283,7 @@ const contentOpacity = computed(() =>
       ref="drawerEl"
       id="cart-drawer"
       class="rc-drawer"
+      tabindex="-1"
       :class="{ 'rc-drawer--dragging': isDragging }"
       :role="isOpen ? 'dialog' : 'region'"
       :aria-modal="isOpen ? 'true' : undefined"
@@ -317,13 +345,16 @@ const contentOpacity = computed(() =>
       <CartDrawerFooter
         :ref="bindFooter"
         :cart-total="displayTotal"
+        :booking-fees="displayBookingFees"
         :locale="locale"
         :currency="currency"
         :is-open="isOpen"
         :progress="progress"
         :checkout-disabled="!checkoutUrl"
+        :context="context"
         @toggle="toggle"
         @checkout="handleCheckout"
+        @browse="handleBrowse"
         @drag-start="handleDragStart"
       />
     </div>
