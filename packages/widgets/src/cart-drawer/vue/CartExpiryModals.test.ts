@@ -1,7 +1,13 @@
 import { fireEvent, render } from '@testing-library/vue'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { nextTick } from 'vue'
 
 import CartExpiryModals from './CartExpiryModals.vue'
+import { lockBodyScroll } from './documentEffects'
+
+afterEach(() => {
+  document.body.style.overflow = ''
+})
 
 function renderModals(props: Record<string, unknown> = {}) {
   const onDismissWarning = vi.fn()
@@ -94,5 +100,39 @@ describe('CartExpiryModals — idle', () => {
     })
     expect(queryByText('Still here?')).toBeNull()
     expect(queryByText('Your hold has ended')).toBeNull()
+  })
+})
+
+describe('CartExpiryModals — body scroll lock composition', () => {
+  it('locks background scroll while the warning is shown', async () => {
+    expect(document.body.style.overflow).toBe('')
+    renderModals({ showWarning: true, remaining: 65 })
+    await nextTick()
+    expect(document.body.style.overflow).toBe('hidden')
+  })
+
+  it('keeps scroll locked when the warning is dismissed while the drawer still holds the lock', async () => {
+    expect(document.body.style.overflow).toBe('')
+
+    // Warning modal appears (e.g. <120s left) → it locks background scroll.
+    const { rerender } = renderModals({ showWarning: true, remaining: 65 })
+    await nextTick()
+    expect(document.body.style.overflow).toBe('hidden')
+
+    // The drawer is ALSO open and holding the lock, via the same refcounted
+    // helper the drawer uses. This is the coexistence the inlined save/restore
+    // could not survive.
+    const releaseDrawer = lockBodyScroll()
+
+    // User dismisses the warning → the warning modal unmounts.
+    await rerender({ showWarning: false, expired: false, remaining: 65 })
+    await nextTick()
+
+    // The drawer is still open, so background scroll MUST stay locked.
+    expect(document.body.style.overflow).toBe('hidden')
+
+    // Once the drawer releases too, scroll is restored.
+    releaseDrawer()
+    expect(document.body.style.overflow).toBe('')
   })
 })

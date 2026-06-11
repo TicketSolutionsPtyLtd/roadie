@@ -6,6 +6,7 @@ import { h, nextTick } from 'vue'
 import type { CartClient, CartDetails, CartSummary } from '../core'
 import { buildCheckoutUrl } from '../core'
 import CartDrawer from './CartDrawer.vue'
+import { lockBodyScroll } from './documentEffects'
 
 // @number-flow/vue is an animated Web Component that jsdom never upgrades, so
 // it renders no digit text under test (see CartUrgencyBadge.test.ts). Stub it
@@ -424,5 +425,49 @@ describe('CartDrawer (Vue)', () => {
     ).toBe(
       'Includes booking fees. Delivery and refund protection calculated at checkout'
     )
+  })
+
+  it('locks body scroll while open', async () => {
+    expect(document.body.style.overflow).toBe('')
+    const cart = mockCart()
+    const { findAllByText } = render(CartDrawer, {
+      props: { ...baseProps, cart, onNavigate: vi.fn() }
+    })
+    await flushPromises()
+    await fireEvent.click((await findAllByText('View cart'))[0]!)
+    await nextTick()
+    expect(document.body.style.overflow).toBe('hidden')
+  })
+
+  it('keeps body scroll locked when it closes while a modal still holds the lock', async () => {
+    expect(document.body.style.overflow).toBe('')
+    const cart = mockCart()
+    const { container, findAllByText } = render(CartDrawer, {
+      props: { ...baseProps, cart, onNavigate: vi.fn(), onOpenChange: vi.fn() }
+    })
+    await flushPromises()
+
+    // Open the drawer → it locks background scroll.
+    await fireEvent.click((await findAllByText('View cart'))[0]!)
+    await nextTick()
+    expect(document.body.style.overflow).toBe('hidden')
+
+    // An expiry modal is also open, holding the lock via the same refcounted
+    // helper the modal uses.
+    const releaseModal = lockBodyScroll()
+
+    // Close the drawer (Escape). The modal is still open, so background scroll
+    // MUST stay locked — the drawer must not stomp the shared lock.
+    await fireEvent.keyDown(document, { key: 'Escape' })
+    await flushPromises()
+    await nextTick()
+    expect(container.querySelector('#cart-drawer')?.getAttribute('role')).toBe(
+      'region'
+    )
+    expect(document.body.style.overflow).toBe('hidden')
+
+    // Once the modal releases too, scroll is restored.
+    releaseModal()
+    expect(document.body.style.overflow).toBe('')
   })
 })

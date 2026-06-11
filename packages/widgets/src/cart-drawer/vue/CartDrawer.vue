@@ -22,6 +22,7 @@ import {
 import CartContents from './CartContents.vue'
 import CartDrawerFooter from './CartDrawerFooter.vue'
 import CartDrawerHeader from './CartDrawerHeader.vue'
+import { lockBodyScroll } from './documentEffects'
 import type { CartDrawerProps } from './types'
 import { useCart } from './useCart'
 import { useCartDrawerDrag } from './useCartDrawerDrag'
@@ -153,14 +154,23 @@ watch(
 )
 
 // --- Body scroll lock when open ---
-watch([() => props.lockBodyScroll, isOpen], ([lock, open]) => {
-  if (typeof document === 'undefined') return
-  if (lock && open) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
-})
+// Refcounted via documentEffects so the drawer and the expiry modals compose:
+// whichever opens/closes first no longer clobbers the other's lock (re-enabling
+// background scroll while one is still open). Acquire once on entering the
+// locked state, release on leaving it (and on unmount).
+let releaseScrollLock: (() => void) | null = null
+watch(
+  [() => props.lockBodyScroll, isOpen],
+  ([lock, open]) => {
+    if (lock && open) {
+      releaseScrollLock ??= lockBodyScroll()
+    } else {
+      releaseScrollLock?.()
+      releaseScrollLock = null
+    }
+  },
+  { immediate: true }
+)
 
 // --- Escape closes ---
 function onKeydown(e: KeyboardEvent) {
@@ -224,10 +234,11 @@ onBeforeUnmount(() => {
   if (bounceTimer !== null) clearTimeout(bounceTimer)
   expireWatcher?.stop()
   trap?.deactivate()
+  releaseScrollLock?.()
+  releaseScrollLock = null
   if (typeof document !== 'undefined') {
     document.removeEventListener('keydown', onKeydown)
     document.documentElement.style.removeProperty('--cart-drawer-height')
-    document.body.style.overflow = ''
   }
 })
 

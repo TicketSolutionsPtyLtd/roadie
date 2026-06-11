@@ -233,8 +233,8 @@ describe('CartDrawer', () => {
         context='event'
       />
     )
-const viewCart = await screen.findByRole('button', { name: /view cart/i })
-fireEvent.click(viewCart)
+    const viewCart = await screen.findByRole('button', { name: /view cart/i })
+    fireEvent.click(viewCart)
     const browse = await screen.findByRole('button', { name: 'Browse events' })
     fireEvent.click(browse)
     // Navigates to the safe, package-resolved browseHref.
@@ -255,13 +255,14 @@ fireEvent.click(viewCart)
         context='collection'
       />
     )
-const viewCart = await screen.findByRole('button', { name: /view cart/i })
-fireEvent.click(viewCart)
-const browse = await screen.findByRole('button', { name: 'Browse events' })
-fireEvent.click(browse)
-// Closes → the footer reverts to "View cart"; no browse navigation occurs.
-await screen.findByRole('button', { name: /view cart/i })
-expect(onNavigate).not.toHaveBeenCalledWith('/events')
+    const viewCart = await screen.findByRole('button', { name: /view cart/i })
+    fireEvent.click(viewCart)
+    const browse = await screen.findByRole('button', { name: 'Browse events' })
+    fireEvent.click(browse)
+    // Closes → the footer reverts to "View cart"; no browse navigation occurs.
+    await screen.findByRole('button', { name: /view cart/i })
+    expect(onNavigate).not.toHaveBeenCalledWith('/events')
+  })
 
   it('footer shows the summed booking fees when the cart has fees', async () => {
     // makeDetails has one event with bookingFees: 5 → "Incl. $5.00 booking fees".

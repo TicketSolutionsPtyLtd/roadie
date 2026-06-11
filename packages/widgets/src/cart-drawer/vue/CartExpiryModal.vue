@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 
+import { lockBodyScroll } from './documentEffects'
+
 // Accessible shell (rc-* styles): role=dialog + focus trap + Escape +
-// save/restore body-scroll-lock (composes with the drawer's). Parent v-ifs it in
-// and out, so mounted === open.
+// refcounted body-scroll-lock (shared with the drawer via documentEffects, so
+// the two compose — see that module). Parent v-ifs it in and out, so
+// mounted === open.
 const props = withDefaults(
   defineProps<{
     titleId: string
@@ -16,7 +19,7 @@ const props = withDefaults(
 )
 
 const panelEl = ref<HTMLElement | null>(null)
-let prevOverflow = ''
+let releaseScrollLock: (() => void) | null = null
 type FocusTrapInstance = { activate: () => void; deactivate: () => void }
 let trap: FocusTrapInstance | null = null
 
@@ -29,8 +32,7 @@ function onOverlayClick() {
 
 onMounted(async () => {
   if (typeof document !== 'undefined') {
-    prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    releaseScrollLock = lockBodyScroll()
     document.addEventListener('keydown', onKeydown)
   }
   const el = panelEl.value
@@ -58,7 +60,8 @@ onBeforeUnmount(() => {
   }
   if (typeof document !== 'undefined') {
     document.removeEventListener('keydown', onKeydown)
-    document.body.style.overflow = prevOverflow
+    releaseScrollLock?.()
+    releaseScrollLock = null
   }
 })
 </script>
