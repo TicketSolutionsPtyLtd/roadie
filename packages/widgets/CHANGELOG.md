@@ -1,5 +1,87 @@
 # @oztix/roadie-widgets
 
+## 2.0.0
+
+### Major Changes
+
+- **Breaking:** `CartDrawer` is now presentation-only for expiry. It keeps the
+  countdown pill and the `onExpire` signal, but no longer renders the expiry
+  modals or hides itself when the cart expires — that is now the host's
+  responsibility. This lets the host own the blocking/expired UX (and keep it
+  mounted after the drawer is gone).
+
+  `CartExpiryModals` and `useCartExpiry` (+ their types) are now exported from
+  each skin's barrel as standalone pieces so the host can mount and drive them.
+
+  Migration — read the hold's `expiresAtUtc` yourself, drive `useCartExpiry`,
+  render `CartExpiryModals`, and drop the drawer once `expired` is true:
+
+  ```tsx
+  // React
+  const { remaining, expired, showWarning, dismissWarning } =
+    useCartExpiry(expiresAtUtc)
+
+  return (
+    <>
+      {!expired && <CartDrawer cart={cart} collectionId={id} onNavigate={nav} />}
+      <CartExpiryModals
+        showWarning={showWarning}
+        expired={expired}
+        remaining={remaining}
+        onDismissWarning={dismissWarning}
+        checkoutUrl={checkoutUrl}
+        browseHref={browseHref}
+        onNavigate={nav}
+      />
+    </>
+  )
+  ```
+
+  The Vue skin mirrors this with a `useCartExpiry` composable and the
+  `CartExpiryModals.vue` component exported from `cart-drawer/vue`.
+
+### Minor Changes
+
+- 008f472: Surface booking fees in the `CartDrawer` footer (both skins). The fees line now
+  reads **"Incl. $X booking fees. Delivery and refund protection calculated at
+  checkout"** when the cart carries booking fees, falling back to **"Includes
+  booking fees. Delivery and refund protection calculated at checkout"** when
+  there are none — matching the full `CartContents` footer.
+
+  The figure is summed client-side from the FRESH per-event `bookingFees` field on
+  the `/cart` details payload (server: `item.InventoryBookingFee()`), via a new
+  `deriveBookingFees` core helper. Like `deriveCartTotal`, it reads the computed
+  per-event value rather than the stored, lag-prone cart total, so the fees line
+  tracks the cart reactively. No new props are required by consumers — the drawer
+  derives and renders the line automatically.
+
+- cdf813f: Add a `context: 'collection' | 'event'` prop to `CartDrawer` (both skins) that
+  drives the open-state secondary button. The button is now **"View cart"**
+  (closed) / **"Browse events"** (open):
+  - `context: 'event'` — "Browse events" navigates to the collection page so the
+    user can browse more events.
+  - `context: 'collection'` (default) — "Browse events" just closes the drawer
+    (the collection page is already behind it).
+
+  The browse target is built **inside the package** from the server-trusted
+  `collectionId` (`buildBrowseHref` → validated by `isSafeRelativePath`) and routed
+  through `onNavigate`. We deliberately don't accept a consumer-supplied browse URL
+  or navigate callback: a tainted value (e.g. a `redirect=` query param) could turn
+  "Browse events" into an open redirect, whereas internal construction guarantees
+  `onNavigate` only ever receives a same-origin, collectionId-derived path.
+
+  Backward-compatible: omitting `context` defaults to `'collection'`, preserving
+  the prior close-on-secondary-button behaviour (only the label changes).
+
+### Patch Changes
+
+- 2355fc8: Stop the cart-drawer grabber painting a focus ring (a circle at the top) when
+  the drawer is opened by drag or click. The focus trap now targets the dialog
+  container (`tabindex="-1"`, no outline) on open instead of the first tabbable
+  element (the drag grabber), matching the standard ARIA-dialog focus pattern.
+  Keyboard users still tab to the grabber and see its `:focus-visible` ring, so
+  accessibility is preserved.
+
 ## 1.3.0
 
 ### Minor Changes
