@@ -257,20 +257,13 @@ describe('CartDrawer', () => {
         context='collection'
       />
     )
-    const openButtons = await screen.findAllByRole('button', {
-      name: /open cart/i
-    })
-    fireEvent.click(openButtons[0]!)
-    const browse = await screen.findByRole('button', { name: 'Browse events' })
-    fireEvent.click(browse)
-    // Closes → the footer reverts to "Open cart"; no browse navigation occurs.
-    await waitFor(() =>
-      expect(
-        screen.getAllByRole('button', { name: /open cart/i }).length
-      ).toBeGreaterThan(0)
-    )
-    expect(onNavigate).not.toHaveBeenCalledWith('/events')
-  })
+const viewCart = await screen.findByRole('button', { name: /view cart/i })
+fireEvent.click(viewCart)
+const browse = await screen.findByRole('button', { name: 'Browse events' })
+fireEvent.click(browse)
+// Closes → the footer reverts to "View cart"; no browse navigation occurs.
+await screen.findByRole('button', { name: /view cart/i })
+expect(onNavigate).not.toHaveBeenCalledWith('/events')
 
   it('footer shows the summed booking fees when the cart has fees', async () => {
     // makeDetails has one event with bookingFees: 5 → "Incl. $5.00 booking fees".
