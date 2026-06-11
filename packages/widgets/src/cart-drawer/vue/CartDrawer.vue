@@ -125,9 +125,7 @@ watch(displayTicketCount, (count) => {
   prevTicketCount = count
 })
 
-// --- Expiry watch (design finding #10) ---
-// Once-latch + polling live in the shared core watcher; recreating it on
-// expiry change resets the latch.
+// --- Expiry watch: fire onExpire once (core watcher's latch resets on change) ---
 const expiresAtUtc = computed(
   () => summary.value?.expiresAtUtc ?? details.value?.expiresAtUtc
 )

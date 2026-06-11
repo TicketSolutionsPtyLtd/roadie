@@ -16,15 +16,13 @@ type CartExpiryModalProps = {
   icon: ReactNode
   children: ReactNode
   actions: ReactNode
-  /** Light-dismiss via backdrop, Escape, and a close button. Off for the
-   * blocking expired modal (its only exit is its action). */
+  /** Light-dismiss (backdrop/Escape/close); off for the blocking expired modal. */
   dismissible?: boolean
   onClose?: () => void
 }
 
-// Accessible modal shell composed from Roadie tokens + the same overlay/focus
-// pattern CartDrawer uses (no Roadie/Base UI Dialog component exists):
-// role=dialog + aria-modal + focus trap + Escape + refcounted body-scroll-lock.
+// Hand-rolled accessible shell (Roadie has no Dialog): role=dialog + aria-modal
+// + focus trap + Escape + refcounted body-scroll-lock.
 export function CartExpiryModal({
   open,
   titleId,
@@ -35,7 +33,6 @@ export function CartExpiryModal({
   dismissible = false,
   onClose
 }: CartExpiryModalProps) {
-  // Escape closes only when dismissible (mirror CartDrawer's Escape handling).
   useEffect(() => {
     if (!open || !dismissible) return
     const onKey = (e: KeyboardEvent) => {
@@ -45,7 +42,7 @@ export function CartExpiryModal({
     return () => document.removeEventListener('keydown', onKey)
   }, [open, dismissible, onClose])
 
-  // Body scroll lock while open — refcounted so it composes with the drawer's.
+  // Refcounted so it composes with the drawer's own body-scroll lock.
   useEffect(() => {
     if (!open) return
     return lockBodyScroll()

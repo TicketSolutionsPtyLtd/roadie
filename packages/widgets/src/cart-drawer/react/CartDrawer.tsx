@@ -181,11 +181,8 @@ export function CartDrawer({
   }, [])
   useCartBounce(displayTicketCount, fireBounce)
 
-  // Fire onExpire once when the countdown reaches the expired state. The host
-  // owns the expiry modals + hide-on-expiry; this is the outbound signal it
-  // hooks to refetch/clear (the outlet app has no refetch-on-focus). The
-  // once-latch + polling live in the shared core watcher; recreating it on
-  // expiry change resets the latch.
+  // Outbound expiry signal for the host (modals + hide are its job). The core
+  // watcher fires onExpire once; its latch resets when expiry changes (below).
   const expiresAtUtc = summary?.expiresAtUtc ?? details?.expiresAtUtc
   useEffect(() => {
     if (!expiresAtUtc || !onExpire) return

@@ -12,21 +12,16 @@ import { CartExpiryModal } from './CartExpiryModal'
 export type CartExpiryModalsProps = {
   showWarning: boolean
   expired: boolean
-  /** Seconds remaining — drives the warning's live countdown. */
   remaining: number | null
   onDismissWarning: () => void
-  /** Checkout target for the warning's primary action; null while loading. */
   checkoutUrl: string | null
-  /** Collection page — the expired modal's only exit. */
   browseHref: string
   onNavigate: (href: string) => void
 }
 
-// The two cart-expiry modals (warning + expired) rendered through the shared
-// shell. Standalone + presentational: the HOST owns the countdown (via
-// useCartExpiry) and passes the derived flags down, then decides whether to hide
-// the cart UI. Navigation goes through the consumer's onNavigate (no anchors),
-// matching the rest of the widget.
+// Standalone, presentational warning + expired modals. The host owns the
+// countdown (useCartExpiry) and decides whether to hide the cart UI; navigation
+// goes through the consumer's onNavigate (no anchors).
 export function CartExpiryModals({
   showWarning,
   expired,

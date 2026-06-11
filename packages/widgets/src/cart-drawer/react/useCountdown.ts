@@ -4,9 +4,7 @@ import { useMemo, useSyncExternalStore } from 'react'
 
 import { remainingSeconds } from '../core'
 
-// Live cart countdown backed by core `remainingSeconds`. useSyncExternalStore
-// drives the 1s tick; the snapshot recomputes against Date.now() each frame.
-// Shared by CartUrgencyBadge (display) and useCartExpiry (warning/expired state).
+// Ticks once a second via useSyncExternalStore (avoids useEffect + setState).
 export function useCountdown(expiresAt: string | undefined): number | null {
   const subscribe = useMemo(() => {
     if (!expiresAt) return () => () => {}

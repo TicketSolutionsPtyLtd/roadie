@@ -1,16 +1,14 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 
-// Accessible modal shell composed from the rc-* styles + the same focus-trap
-// pattern CartDrawer.vue uses: role=dialog + aria-modal + focus trap + Escape +
-// body-scroll-lock (save/restore so it composes with the drawer's own lock).
-// The parent v-ifs this in/out, so "mounted" === "open".
+// Accessible shell (rc-* styles): role=dialog + focus trap + Escape +
+// save/restore body-scroll-lock (composes with the drawer's). Parent v-ifs it in
+// and out, so mounted === open.
 const props = withDefaults(
   defineProps<{
     titleId: string
     title: string
-    /** Light-dismiss via backdrop, Escape, and a close button. Off for the
-     * blocking expired modal (its only exit is its action). */
+    /** Light-dismiss (backdrop/Escape/close); off for the blocking expired modal. */
     dismissible?: boolean
     onClose?: () => void
   }>(),
