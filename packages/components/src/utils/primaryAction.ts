@@ -27,8 +27,13 @@ export function triggerPrimaryActionOnEnter(event: KeyboardEvent<HTMLElement>) {
     return
   }
 
-  const primary =
-    event.currentTarget.querySelector<HTMLElement>('.emphasis-strong')
+  // Scope to actionable elements — a strong-emphasis decorative element
+  // (e.g. an `<IconTile emphasis='strong'>` in a Dialog header) carries the
+  // same `.emphasis-strong` class but isn't a primary action; matching it
+  // would swallow Enter and never reach the real button.
+  const primary = event.currentTarget.querySelector<HTMLElement>(
+    ':is(button, a, [role="button"]).emphasis-strong'
+  )
   if (!primary || (primary as HTMLButtonElement).disabled) return
 
   event.preventDefault()

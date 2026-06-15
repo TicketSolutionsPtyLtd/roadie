@@ -13,7 +13,7 @@ export function PopoverTitle({ className, ...props }: PopoverTitleProps) {
   return (
     <PopoverPrimitive.Title
       data-slot='popover-title'
-      className={cn('text-base font-semibold text-strong', className)}
+      className={cn('text-display-ui-6 text-strong', className)}
       {...props}
     />
   )

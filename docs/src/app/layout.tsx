@@ -235,6 +235,7 @@ async function getNavigationItems() {
       'Actions',
       'Forms',
       'Navigation',
+      'Overlays',
       'Content',
       'Typography',
       'Layout'

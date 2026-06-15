@@ -146,6 +146,7 @@ describe('Dialog (assembled)', () => {
           </Dialog.Header>
           <Dialog.Body>
             <textarea aria-label='Comment' />
+            <button>Other action</button>
           </Dialog.Body>
           <Dialog.Footer>
             <button className='emphasis-strong' onClick={onSave}>
@@ -162,5 +163,40 @@ describe('Dialog (assembled)', () => {
     // Enter inside a textarea inserts a newline rather than submitting.
     fireEvent.keyDown(screen.getByLabelText('Comment'), { key: 'Enter' })
     expect(onSave).not.toHaveBeenCalled()
+
+    // Enter on a focused non-primary button activates that button itself,
+    // not the strong primary action.
+    fireEvent.keyDown(screen.getByText('Other action'), { key: 'Enter' })
+    expect(onSave).not.toHaveBeenCalled()
+  })
+
+  it('ignores a strong-emphasis non-button (e.g. an IconTile in the header)', async () => {
+    const user = userEvent.setup()
+    const onSave = vi.fn()
+
+    render(
+      <Dialog>
+        <Dialog.Trigger>Open</Dialog.Trigger>
+        <Dialog.Content>
+          <Dialog.Header>
+            {/* A decorative strong-emphasis tile sits before the footer in
+                DOM order — it must not be mistaken for the primary action. */}
+            <div className='emphasis-strong' data-slot='icon-tile' />
+            <Dialog.Title>Save changes?</Dialog.Title>
+          </Dialog.Header>
+          <Dialog.Footer>
+            <button className='emphasis-strong' onClick={onSave}>
+              Save
+            </button>
+          </Dialog.Footer>
+        </Dialog.Content>
+      </Dialog>
+    )
+
+    await user.click(screen.getByText('Open'))
+    const dialog = await screen.findByRole('dialog')
+
+    fireEvent.keyDown(dialog, { key: 'Enter' })
+    expect(onSave).toHaveBeenCalledOnce()
   })
 })

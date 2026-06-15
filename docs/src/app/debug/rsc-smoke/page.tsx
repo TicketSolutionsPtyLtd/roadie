@@ -9,7 +9,9 @@
 //   docs/contributing/COMPOUND_PATTERNS.md
 //   docs/solutions/rsc-patterns/compound-export-namespace.md
 import {
+  Dialog as DialogViaBarrel,
   Fieldset as FieldsetViaBarrel,
+  Popover as PopoverViaBarrel,
   Tabs as TabsViaBarrel
 } from '@oztix/roadie-components'
 import { Accordion } from '@oztix/roadie-components/accordion'
@@ -412,7 +414,7 @@ export default function RscSmokePage() {
       </section>
 
       <section className='grid gap-2'>
-        <h2 className='text-display-ui-4 text-strong'>Popover</h2>
+        <h2 className='text-display-ui-3 text-strong'>Popover — subpath</h2>
         <Popover>
           <Popover.Trigger>Open popover</Popover.Trigger>
           <Popover.Content>
@@ -425,7 +427,36 @@ export default function RscSmokePage() {
       </section>
 
       <section className='grid gap-2'>
-        <h2 className='text-display-ui-4 text-strong'>Dialog</h2>
+        <h2 className='text-display-ui-3 text-strong'>Popover — barrel</h2>
+        <PopoverViaBarrel>
+          <PopoverViaBarrel.Trigger>Open popover</PopoverViaBarrel.Trigger>
+          <PopoverViaBarrel.Content>
+            <PopoverViaBarrel.Title>Popover title</PopoverViaBarrel.Title>
+            <PopoverViaBarrel.Description>
+              Imported from the root barrel.
+            </PopoverViaBarrel.Description>
+          </PopoverViaBarrel.Content>
+        </PopoverViaBarrel>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Popover — <code>.Root</code> alias
+        </h2>
+        <Popover.Root>
+          <Popover.Trigger>Open popover</Popover.Trigger>
+          <Popover.Content>
+            <Popover.Title>Popover title</Popover.Title>
+            <Popover.Description>
+              Explicit <code>&lt;Popover.Root&gt;</code> — same reference as
+              bare <code>&lt;Popover&gt;</code>.
+            </Popover.Description>
+          </Popover.Content>
+        </Popover.Root>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Dialog — subpath</h2>
         <Dialog>
           <Dialog.Trigger>Open dialog</Dialog.Trigger>
           <Dialog.Content>
@@ -435,6 +466,35 @@ export default function RscSmokePage() {
             </Dialog.Description>
           </Dialog.Content>
         </Dialog>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Dialog — barrel</h2>
+        <DialogViaBarrel>
+          <DialogViaBarrel.Trigger>Open dialog</DialogViaBarrel.Trigger>
+          <DialogViaBarrel.Content>
+            <DialogViaBarrel.Title>Dialog title</DialogViaBarrel.Title>
+            <DialogViaBarrel.Description>
+              Imported from the root barrel.
+            </DialogViaBarrel.Description>
+          </DialogViaBarrel.Content>
+        </DialogViaBarrel>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Dialog — <code>.Root</code> alias
+        </h2>
+        <Dialog.Root>
+          <Dialog.Trigger>Open dialog</Dialog.Trigger>
+          <Dialog.Content>
+            <Dialog.Title>Dialog title</Dialog.Title>
+            <Dialog.Description>
+              Explicit <code>&lt;Dialog.Root&gt;</code> — same reference as bare{' '}
+              <code>&lt;Dialog&gt;</code>.
+            </Dialog.Description>
+          </Dialog.Content>
+        </Dialog.Root>
       </section>
 
       {/*
