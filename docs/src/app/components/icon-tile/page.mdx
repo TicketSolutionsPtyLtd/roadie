@@ -1,0 +1,180 @@
+export const metadata = {
+  title: 'Icon Tile',
+  description: 'A tile that frames a single icon',
+  status: 'beta',
+  category: 'Content',
+}
+
+import { IconTile } from '@oztix/roadie-components'
+import {
+  CheckCircleIcon,
+  GearIcon,
+  HeartIcon,
+  StarIcon
+} from '@phosphor-icons/react/ssr'
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+# Icon Tile
+
+A tile that frames a single icon.
+
+## Import
+
+```tsx
+import { IconTile } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Default
+
+Place a Phosphor icon as the only child. The tile sizes and centres it for you.
+
+```tsx-live
+<IconTile intent='accent'>
+  <Ticket weight='bold' />
+</IconTile>
+```
+
+### Emphasis
+
+The default emphasis is `subtle`. Use `strong` for a solid fill, or step down to `subtler` for the lightest tint.
+
+```tsx-live
+<div className='flex flex-row flex-wrap items-center gap-3'>
+  <IconTile intent='accent' emphasis='strong'>
+    <Heart weight='bold' />
+  </IconTile>
+  <IconTile intent='accent' emphasis='normal'>
+    <Heart weight='bold' />
+  </IconTile>
+  <IconTile intent='accent' emphasis='subtle'>
+    <Heart weight='bold' />
+  </IconTile>
+  <IconTile intent='accent' emphasis='subtler'>
+    <Heart weight='bold' />
+  </IconTile>
+</div>
+```
+
+### Sizes
+
+Sizes run `xs` through `3xl`. Each maps to a Tailwind `size-*` box on the tile, with matching internal padding and icon size — the tile dimension is `2 × padding + icon`. The tier names are variant keys, not Tailwind utilities (there is no `size-3xl`).
+
+```tsx-live
+<div className='flex flex-row flex-wrap items-center gap-3'>
+  <IconTile intent='accent' size='xs'><Gear weight='bold' /></IconTile>
+  <IconTile intent='accent' size='sm'><Gear weight='bold' /></IconTile>
+  <IconTile intent='accent' size='md'><Gear weight='bold' /></IconTile>
+  <IconTile intent='accent' size='lg'><Gear weight='bold' /></IconTile>
+  <IconTile intent='accent' size='xl'><Gear weight='duotone' /></IconTile>
+  <IconTile intent='accent' size='2xl'><Gear weight='duotone' /></IconTile>
+  <IconTile intent='accent' size='3xl'><Gear weight='duotone' /></IconTile>
+</div>
+```
+
+### Shape
+
+Tiles are circular by default. Set `shape='square'` for a rounded square — its corner radius scales with the size so it stays in proportion.
+
+```tsx-live
+<div className='flex flex-row flex-wrap items-center gap-3'>
+  <IconTile intent='accent' shape='circle' size='lg'>
+    <Gear weight='bold' />
+  </IconTile>
+  <IconTile intent='accent' shape='square' size='lg'>
+    <Gear weight='bold' />
+  </IconTile>
+</div>
+```
+
+```tsx-live
+<div className='flex flex-row flex-wrap items-center gap-3'>
+  <IconTile intent='accent' shape='square' size='xs'><Gear weight='bold' /></IconTile>
+  <IconTile intent='accent' shape='square' size='sm'><Gear weight='bold' /></IconTile>
+  <IconTile intent='accent' shape='square' size='md'><Gear weight='bold' /></IconTile>
+  <IconTile intent='accent' shape='square' size='lg'><Gear weight='bold' /></IconTile>
+  <IconTile intent='accent' shape='square' size='xl'><Gear weight='duotone' /></IconTile>
+  <IconTile intent='accent' shape='square' size='2xl'><Gear weight='duotone' /></IconTile>
+  <IconTile intent='accent' shape='square' size='3xl'><Gear weight='duotone' /></IconTile>
+</div>
+```
+
+### Intents
+
+Intent sets the colour palette. The tile inherits its surrounding intent context unless you set one directly.
+
+```tsx-live
+<div className='flex flex-row flex-wrap gap-3'>
+  <IconTile intent='neutral'><Star weight='bold' /></IconTile>
+  <IconTile intent='accent'><Star weight='bold' /></IconTile>
+  <IconTile intent='brand'><Star weight='bold' /></IconTile>
+  <IconTile intent='info'><Info weight='bold' /></IconTile>
+  <IconTile intent='success'><CheckCircle weight='bold' /></IconTile>
+  <IconTile intent='warning'><Warning weight='bold' /></IconTile>
+  <IconTile intent='danger'><Trash weight='bold' /></IconTile>
+</div>
+```
+
+### Icon weight
+
+Use `weight='bold'` up to 48px (the `lg` size), then switch to `weight='duotone'` above 48px. A bold outline can look hollow and under-filled on a large tile, while duotone's soft tinted fill gives bigger tiles more presence.
+
+```tsx-live
+<div className='flex flex-row flex-wrap items-center gap-3'>
+  <IconTile intent='accent' emphasis='subtle' size='md'>
+    <Heart weight='bold' />
+  </IconTile>
+  <IconTile intent='accent' emphasis='subtle' size='lg'>
+    <Heart weight='bold' />
+  </IconTile>
+  <IconTile intent='accent' emphasis='subtle' size='xl'>
+    <Heart weight='duotone' />
+  </IconTile>
+  <IconTile intent='accent' emphasis='subtle' size='3xl'>
+    <Heart weight='duotone' />
+  </IconTile>
+</div>
+```
+
+## Guidelines
+
+<Guideline title='Frame a single icon'>
+  <Guideline.Do example={<IconTile intent='accent'><GearIcon weight='bold' /></IconTile>}>
+    Place one Phosphor icon as the only child.
+  </Guideline.Do>
+  <Guideline.Dont example={<IconTile intent='accent'><GearIcon weight='bold' /><StarIcon weight='bold' /></IconTile>}>
+    Don't cram multiple icons or text into a tile — it's a frame, not a layout container.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Bold up to 48px, duotone above'>
+  <Guideline.Do example={<div className='flex items-center gap-3'><IconTile intent='accent' size='lg'><HeartIcon weight='bold' /></IconTile><IconTile intent='accent' size='3xl'><HeartIcon weight='duotone' /></IconTile></div>}>
+    Use <code>weight='bold'</code> up to 48px (the <code>lg</code> size); switch to <code>weight='duotone'</code> above it. Never go lighter than bold.
+  </Guideline.Do>
+  <Guideline.Dont example={<IconTile intent='accent' size='3xl'><HeartIcon weight='bold' /></IconTile>}>
+    A bold outline looks hollow and under-filled on a large tile — duotone's tinted fill gives big tiles more presence.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Let intent flow from context'>
+  <Guideline.Do code={`<div className='intent-accent'>\n  <IconTile>\n    <GearIcon weight='bold' />\n  </IconTile>\n</div>`}>
+    Inherit intent from the surrounding context where you can.
+  </Guideline.Do>
+  <Guideline.Dont code={`<IconTile intent='accent'>…</IconTile>\n<IconTile intent='accent'>…</IconTile>\n<IconTile intent='accent'>…</IconTile>`}>
+    Don't hard-code the same intent on every tile when a parent already sets it.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Pair a meaningful tile with a label'>
+  <Guideline.Do example={<div className='flex items-center gap-3'><IconTile intent='success'><CheckCircleIcon weight='bold' /></IconTile><p className='text-sm'>Payment complete</p></div>}>
+    Add accompanying text — or an <code>aria-label</code> — when the icon carries meaning.
+  </Guideline.Do>
+  <Guideline.Dont example={<IconTile intent='success'><CheckCircleIcon weight='bold' /></IconTile>}>
+    A lone tile with no label leaves its meaning to guesswork for screen readers.
+  </Guideline.Dont>
+</Guideline>
+
+<PropsDefinitions componentPath='packages/components/src/components/IconTile/index.tsx' />

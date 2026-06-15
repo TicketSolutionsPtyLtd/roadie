@@ -63,6 +63,10 @@
       "types": "./dist/components/Highlight/index.d.ts",
       "import": "./dist/components/Highlight/index.js"
     },
+    "./icon-tile": {
+      "types": "./dist/components/IconTile/index.d.ts",
+      "import": "./dist/components/IconTile/index.js"
+    },
     "./input": {
       "types": "./dist/components/Input/index.d.ts",
       "import": "./dist/components/Input/index.js"

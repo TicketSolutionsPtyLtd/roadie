@@ -21,6 +21,12 @@ export {
 export { Badge, badgeVariants, type BadgeProps } from './components/Badge'
 
 export {
+  IconTile,
+  iconTileVariants,
+  type IconTileProps
+} from './components/IconTile'
+
+export {
   Breadcrumb,
   type BreadcrumbProps,
   type BreadcrumbListProps,

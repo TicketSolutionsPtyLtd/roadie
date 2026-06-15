@@ -11,7 +11,13 @@ import {
 
 import { Guideline } from '@/components/Guideline'
 
-import { Badge, Button, Code, IconButton } from '@oztix/roadie-components'
+import {
+  Badge,
+  Button,
+  Code,
+  IconButton,
+  IconTile
+} from '@oztix/roadie-components'
 
 export const metadata = {
   title: 'Iconography',
@@ -248,10 +254,46 @@ export default function IconographyPage() {
         <div className='rounded-xl bg-raised p-4'>
           <p className='text-sm text-subtle'>
             <strong className='text-normal'>Auto-sizing in components:</strong>{' '}
-            Badge and Button auto-size child SVGs via CSS (
+            Badge, Button, and IconTile auto-size child SVGs via CSS (
             <Code>[&_svg]:size-[1em]</Code> and <Code>[&_svg]:size-4</Code>).
             You typically don&apos;t need an explicit size class when placing
             icons inside these components.
+          </p>
+        </div>
+      </section>
+
+      {/* Icon tiles */}
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>Icon tiles</h2>
+        <p className='text-subtle'>
+          When an icon needs to stand on its own — leading a dialog, a list row,
+          or an empty state — frame it in an <Code>IconTile</Code>. The tile
+          sizes and centres the icon for you, so you pass a bare icon as
+          children with no size class.
+        </p>
+
+        <div className='flex flex-wrap items-center gap-3'>
+          <IconTile intent='accent' size='lg'>
+            <HeartIcon weight='bold' />
+          </IconTile>
+          <IconTile intent='success' size='lg'>
+            <CheckCircleIcon weight='bold' />
+          </IconTile>
+          <IconTile intent='accent' size='lg' emphasis='strong'>
+            <StarIcon weight='bold' />
+          </IconTile>
+          <IconTile intent='danger' size='lg'>
+            <TrashIcon weight='bold' />
+          </IconTile>
+        </div>
+
+        <div className='rounded-xl bg-raised p-4'>
+          <p className='text-sm text-subtle'>
+            <strong className='text-normal'>Weight inside tiles:</strong> tiles
+            are the one place <Code>weight=&quot;duotone&quot;</Code> is welcome.
+            Use <Code>weight=&quot;bold&quot;</Code> up to 48px, then switch to
+            duotone above 48px, where a bold outline can look hollow on the
+            larger surface. Keep Fill reserved for active states as elsewhere.
           </p>
         </div>
       </section>
@@ -536,8 +578,10 @@ export default function IconographyPage() {
           </li>
           <li>
             <p>
-              <strong>Inside Badge and Button, icons auto-size.</strong> No
-              explicit <Code>className</Code> size needed — the component CSS
+              <strong>
+                Inside Badge, Button, and IconTile, icons auto-size.
+              </strong>{' '}
+              No explicit <Code>className</Code> size needed — the component CSS
               handles it.
             </p>
           </li>

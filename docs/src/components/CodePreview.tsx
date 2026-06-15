@@ -30,6 +30,7 @@ import {
   PlusIcon,
   ShoppingCartIcon,
   StarIcon,
+  TicketIcon,
   TrashIcon,
   WarningIcon,
   XCircleIcon
@@ -47,6 +48,7 @@ const PhosphorIcons = {
   Info: InfoIcon,
   Warning: WarningIcon,
   Star: StarIcon,
+  Ticket: TicketIcon,
   Plus: PlusIcon,
   Minus: MinusIcon,
   CaretDown: CaretDownIcon,

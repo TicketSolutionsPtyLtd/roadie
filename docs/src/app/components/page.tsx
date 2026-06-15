@@ -401,6 +401,17 @@ function ComponentSkeleton({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'icon-tile':
+      return (
+        <div className='flex items-center gap-3'>
+          <div className='grid size-12 place-content-center rounded-full emphasis-subtle intent-accent'>
+            <div className='size-5 rounded-sm bg-current opacity-60' />
+          </div>
+          <div className='grid size-12 place-content-center rounded-xl emphasis-subtle intent-accent'>
+            <div className='size-5 rounded-sm bg-current opacity-60' />
+          </div>
+        </div>
+      )
     default:
       return (
         <div className='grid w-40 gap-1.5'>
