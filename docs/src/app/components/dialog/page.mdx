@@ -23,7 +23,7 @@ import { Dialog } from '@oztix/roadie-components/dialog'
 
 ## Examples
 
-Each example leads with an [IconTile](/components/icon-tile) (`size='2xl'`, its `intent` inherited from the dialog) centred above the title — `Dialog.Header` handles the centring.
+Each example leads with an [IconTile](/components/icon-tile) (`size='2xl' shape='circle'`, its `intent` inherited from the dialog) centred above the title — `Dialog.Header` handles the centring.
 
 ### Default
 
@@ -34,7 +34,7 @@ A trigger opens a centred modal over a dimmed backdrop. `Dialog.Content` collaps
   <Dialog.Trigger render={<Button>Open dialog</Button>} />
   <Dialog.Content>
     <Dialog.Header>
-      <IconTile size='2xl'>
+      <IconTile size='2xl' shape='circle'>
         <Envelope weight='duotone' />
       </IconTile>
       <Dialog.Title>Subscribe</Dialog.Title>
@@ -59,7 +59,7 @@ Use the `size` prop on `Dialog.Content` to set the maximum width. Defaults to `m
     <Dialog.Content size='sm'>
       <Dialog.Header>
         <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
-        <IconTile size='2xl'>
+        <IconTile size='2xl' shape='circle'>
           <Info weight='duotone' />
         </IconTile>
         <Dialog.Title>Small dialog</Dialog.Title>
@@ -72,7 +72,7 @@ Use the `size` prop on `Dialog.Content` to set the maximum width. Defaults to `m
     <Dialog.Content size='md'>
       <Dialog.Header>
         <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
-        <IconTile size='2xl'>
+        <IconTile size='2xl' shape='circle'>
           <Info weight='duotone' />
         </IconTile>
         <Dialog.Title>Medium dialog</Dialog.Title>
@@ -85,7 +85,7 @@ Use the `size` prop on `Dialog.Content` to set the maximum width. Defaults to `m
     <Dialog.Content size='lg'>
       <Dialog.Header>
         <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
-        <IconTile size='2xl'>
+        <IconTile size='2xl' shape='circle'>
           <Info weight='duotone' />
         </IconTile>
         <Dialog.Title>Large dialog</Dialog.Title>
@@ -108,7 +108,7 @@ Portaled popups sit outside the trigger's CSS cascade, so set the colour context
     <Dialog.Content intent='info' size='sm'>
       <Dialog.Header>
         <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
-        <IconTile size='2xl'>
+        <IconTile size='2xl' shape='circle'>
           <Info weight='duotone' />
         </IconTile>
         <Dialog.Title>What's new in 2.0</Dialog.Title>
@@ -123,7 +123,7 @@ Portaled popups sit outside the trigger's CSS cascade, so set the colour context
     <Dialog.Content intent='success' size='sm'>
       <Dialog.Header>
         <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
-        <IconTile size='2xl'>
+        <IconTile size='2xl' shape='circle'>
           <CheckCircle weight='duotone' />
         </IconTile>
         <Dialog.Title>You're all set</Dialog.Title>
@@ -137,7 +137,7 @@ Portaled popups sit outside the trigger's CSS cascade, so set the colour context
     <Dialog.Trigger render={<Button>Save and exit</Button>} />
     <Dialog.Content intent='warning' size='sm'>
       <Dialog.Header>
-        <IconTile size='2xl'>
+        <IconTile size='2xl' shape='circle'>
           <Warning weight='duotone' />
         </IconTile>
         <Dialog.Title>Discard changes?</Dialog.Title>
@@ -155,7 +155,7 @@ Portaled popups sit outside the trigger's CSS cascade, so set the colour context
     <Dialog.Trigger render={<Button intent='danger'>Remove member</Button>} />
     <Dialog.Content intent='danger' size='sm'>
       <Dialog.Header>
-        <IconTile size='2xl'>
+        <IconTile size='2xl' shape='circle'>
           <Trash weight='duotone' />
         </IconTile>
         <Dialog.Title>Remove Jordan?</Dialog.Title>
@@ -173,7 +173,7 @@ Portaled popups sit outside the trigger's CSS cascade, so set the colour context
     <Dialog.Trigger render={<Button intent='accent' emphasis='strong'>Upgrade</Button>} />
     <Dialog.Content intent='accent' size='sm'>
       <Dialog.Header>
-        <IconTile size='2xl'>
+        <IconTile size='2xl' shape='circle'>
           <Star weight='duotone' />
         </IconTile>
         <Dialog.Title>Upgrade to Pro</Dialog.Title>
@@ -198,7 +198,7 @@ Dialog is a compound component. Use `Dialog.Header`, `Dialog.Body`, and `Dialog.
   <Dialog.Content>
     <Dialog.Header>
       <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
-      <IconTile size='2xl'>
+      <IconTile size='2xl' shape='circle'>
         <Ticket weight='duotone' />
       </IconTile>
       <Dialog.Title>Order #1024</Dialog.Title>
@@ -220,7 +220,7 @@ A `Dialog.Footer` holds a centered actions row. Combine it with `intent='danger'
   <Dialog.Trigger render={<Button intent='danger' emphasis='strong'>Delete account</Button>} />
   <Dialog.Content intent='danger' size='sm'>
     <Dialog.Header>
-      <IconTile size='2xl'>
+      <IconTile size='2xl' shape='circle'>
         <Warning weight='duotone' />
       </IconTile>
       <Dialog.Title>Delete account?</Dialog.Title>
@@ -280,7 +280,7 @@ Use a dialog for tasks that need the user's full attention — confirmations, sh
 
 <Guideline title='Lead notable dialogs with a matching icon'>
   <Guideline.Do>
-    For confirmations and notable moments, centre a `size='2xl'` [IconTile](/components/icon-tile) above the title and leave its `intent` unset so it inherits the dialog's — a danger or warning tile for caution, success for completion. It signals the nature of the action before the title is read.
+    For confirmations and notable moments, centre a `size='2xl' shape='circle'` [IconTile](/components/icon-tile) above the title and leave its `intent` unset so it inherits the dialog's — a danger or warning tile for caution, success for completion. It signals the nature of the action before the title is read.
   </Guideline.Do>
   <Guideline.Dont>
     Don't give the tile an `intent` that clashes with the dialog, shrink it until it reads as decoration, or add one to routine dialogs where it is just noise.

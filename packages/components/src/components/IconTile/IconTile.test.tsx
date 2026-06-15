@@ -14,8 +14,10 @@ describe('IconTile', () => {
     expect(tile).toBeInTheDocument()
     expect(tile.tagName.toLowerCase()).toBe('div')
     expect(tile).not.toHaveClass('intent-neutral')
-    // Default emphasis is subtle, default size is md, default shape is circle
-    expect(tile).toHaveClass('emphasis-subtle', 'size-10', 'rounded-full')
+    // Default emphasis is subtle, default size is md, default shape is square
+    // (md square => rounded-xl)
+    expect(tile).toHaveClass('emphasis-subtle', 'size-10', 'rounded-xl')
+    expect(tile).not.toHaveClass('rounded-full')
   })
 
   it('renders icon children', () => {
@@ -106,15 +108,8 @@ describe('IconTile', () => {
     }
   })
 
-  it('renders a circle by default and when shape="circle"', () => {
-    const { rerender, getByTestId } = render(
-      <IconTile data-testid='tile'>
-        <svg />
-      </IconTile>
-    )
-    expect(getByTestId('tile')).toHaveClass('rounded-full')
-
-    rerender(
+  it('renders a full-radius pill when shape="circle"', () => {
+    const { getByTestId } = render(
       <IconTile shape='circle' data-testid='tile'>
         <svg />
       </IconTile>
@@ -122,7 +117,7 @@ describe('IconTile', () => {
     expect(getByTestId('tile')).toHaveClass('rounded-full')
   })
 
-  it('scales the square radius with size', () => {
+  it('scales the square radius with size (the default shape)', () => {
     const cases = [
       ['xs', 'rounded-md'],
       ['sm', 'rounded-lg'],

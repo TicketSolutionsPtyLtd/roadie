@@ -15,7 +15,8 @@ import { intentVariants } from '../../variants'
  * utility lives on the tile, not the icon — the icon is sized via a descendant
  * selector so consumers can pass a bare icon as children.
  *
- * `shape` is `circle` by default; `square` uses a size-proportional radius.
+ * `shape` is `square` by default (with a size-proportional radius); `circle`
+ * renders a full-radius pill.
  *
  * Icons rendered inside a tile should use `weight='bold'` or `weight='duotone'`.
  */
@@ -58,7 +59,7 @@ export const iconTileVariants = cva(
     defaultVariants: {
       emphasis: 'subtle',
       size: 'md',
-      shape: 'circle'
+      shape: 'square'
     }
   }
 )

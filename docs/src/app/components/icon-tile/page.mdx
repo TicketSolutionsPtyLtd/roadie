@@ -77,28 +77,16 @@ Sizes run `xs` through `3xl`. Each maps to a Tailwind `size-*` box on the tile, 
 
 ### Shape
 
-Tiles are circular by default. Set `shape='square'` for a rounded square — its corner radius scales with the size so it stays in proportion.
+Tiles are square by default, with a corner radius that scales with the size so it stays in proportion. Set `shape='circle'` for a full-radius pill.
 
 ```tsx-live
 <div className='flex flex-row flex-wrap items-center gap-3'>
-  <IconTile intent='accent' shape='circle' size='lg'>
-    <Gear weight='bold' />
-  </IconTile>
   <IconTile intent='accent' shape='square' size='lg'>
     <Gear weight='bold' />
   </IconTile>
-</div>
-```
-
-```tsx-live
-<div className='flex flex-row flex-wrap items-center gap-3'>
-  <IconTile intent='accent' shape='square' size='xs'><Gear weight='bold' /></IconTile>
-  <IconTile intent='accent' shape='square' size='sm'><Gear weight='bold' /></IconTile>
-  <IconTile intent='accent' shape='square' size='md'><Gear weight='bold' /></IconTile>
-  <IconTile intent='accent' shape='square' size='lg'><Gear weight='bold' /></IconTile>
-  <IconTile intent='accent' shape='square' size='xl'><Gear weight='duotone' /></IconTile>
-  <IconTile intent='accent' shape='square' size='2xl'><Gear weight='duotone' /></IconTile>
-  <IconTile intent='accent' shape='square' size='3xl'><Gear weight='duotone' /></IconTile>
+  <IconTile intent='accent' shape='circle' size='lg'>
+    <Gear weight='bold' />
+  </IconTile>
 </div>
 ```
 

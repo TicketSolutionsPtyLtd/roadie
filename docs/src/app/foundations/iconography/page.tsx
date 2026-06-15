@@ -290,10 +290,11 @@ export default function IconographyPage() {
         <div className='rounded-xl bg-raised p-4'>
           <p className='text-sm text-subtle'>
             <strong className='text-normal'>Weight inside tiles:</strong> tiles
-            are the one place <Code>weight=&quot;duotone&quot;</Code> is welcome.
-            Use <Code>weight=&quot;bold&quot;</Code> up to 48px, then switch to
-            duotone above 48px, where a bold outline can look hollow on the
-            larger surface. Keep Fill reserved for active states as elsewhere.
+            are the one place <Code>weight=&quot;duotone&quot;</Code> is
+            welcome. Use <Code>weight=&quot;bold&quot;</Code> up to 48px, then
+            switch to duotone above 48px, where a bold outline can look hollow
+            on the larger surface. Keep Fill reserved for active states as
+            elsewhere.
           </p>
         </div>
       </section>

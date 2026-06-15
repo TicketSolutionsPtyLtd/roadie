@@ -415,7 +415,7 @@ function ComponentSkeleton({ name }: { name: string }) {
       )
     case 'dialog':
       return (
-        <div className='grid w-40 place-items-center gap-2 rounded-xl emphasis-raised p-3'>
+        <div className='grid w-40 emphasis-raised place-items-center gap-2 rounded-xl p-3'>
           <div className='size-7 rounded-full emphasis-subtle intent-accent' />
           <Skel className='h-2 w-20' />
           <Skel className='h-1.5 w-28' />
@@ -427,7 +427,7 @@ function ComponentSkeleton({ name }: { name: string }) {
       )
     case 'popover':
       return (
-        <div className='relative w-36 rounded-xl emphasis-raised p-3'>
+        <div className='relative w-36 emphasis-raised rounded-xl p-3'>
           <div className='absolute -top-1 left-6 size-2 rotate-45 rounded-[1px] bg-raised' />
           <Skel className='mb-1.5 h-2 w-16' />
           <Skel className='h-1.5 w-24' />
