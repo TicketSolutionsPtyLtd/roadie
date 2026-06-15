@@ -207,8 +207,9 @@ export function CodePreview({
   }, [])
 
   const theme = colorMode === 'dark' ? customDarkTheme : customLightTheme
-  const isBleedX =
-    language === 'tsx-live-bleed-x' || language === 'jsx-live-bleed-x'
+  // Match the `bleed-x` segment regardless of a trailing `-noinline` so a
+  // `tsx-live-bleed-x-noinline` fence still gets the bleed-x padding.
+  const isBleedX = /^(?:tsx|jsx)-live-bleed-x/.test(language)
   const isLiveLang = /^(?:tsx|jsx)-live/.test(language)
   const isLivePrefix =
     children.startsWith('live') && (language === 'tsx' || language === 'jsx')

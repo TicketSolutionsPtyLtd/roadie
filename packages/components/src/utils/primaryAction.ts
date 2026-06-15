@@ -34,7 +34,16 @@ export function triggerPrimaryActionOnEnter(event: KeyboardEvent<HTMLElement>) {
   const primary = event.currentTarget.querySelector<HTMLElement>(
     ':is(button, a, [role="button"]).emphasis-strong'
   )
-  if (!primary || (primary as HTMLButtonElement).disabled) return
+  // `<a>` / `[role=button]` can't carry the native `disabled` attribute, so
+  // also honour the ARIA / Base UI disabled signals a styled button uses.
+  if (
+    !primary ||
+    (primary as HTMLButtonElement).disabled ||
+    primary.getAttribute('aria-disabled') === 'true' ||
+    primary.hasAttribute('data-disabled')
+  ) {
+    return
+  }
 
   event.preventDefault()
   primary.click()

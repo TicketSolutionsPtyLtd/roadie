@@ -170,6 +170,35 @@ describe('Dialog (assembled)', () => {
     expect(onSave).not.toHaveBeenCalled()
   })
 
+  it('does not activate an aria-disabled strong primary action', async () => {
+    const user = userEvent.setup()
+    const onSave = vi.fn()
+
+    render(
+      <Dialog>
+        <Dialog.Trigger>Open</Dialog.Trigger>
+        <Dialog.Content>
+          <Dialog.Header>
+            <Dialog.Title>Save changes?</Dialog.Title>
+          </Dialog.Header>
+          <Dialog.Footer>
+            {/* A link-style primary action that signals disabled via ARIA
+                rather than the native attribute. */}
+            <a className='emphasis-strong' aria-disabled='true' onClick={onSave}>
+              Save
+            </a>
+          </Dialog.Footer>
+        </Dialog.Content>
+      </Dialog>
+    )
+
+    await user.click(screen.getByText('Open'))
+    const dialog = await screen.findByRole('dialog')
+
+    fireEvent.keyDown(dialog, { key: 'Enter' })
+    expect(onSave).not.toHaveBeenCalled()
+  })
+
   it('ignores a strong-emphasis non-button (e.g. an IconTile in the header)', async () => {
     const user = userEvent.setup()
     const onSave = vi.fn()
