@@ -1,0 +1,23 @@
+/* ═══════════════════════════════════════════════════════════
+   Layering — z-index scale
+   Named stacking tiers so overlay components layer predictably
+   against each other and new components slot into the right
+   band. Reference with the `z-(--z-*)` utility — never a raw
+   `z-50`. Higher tier = closer to the viewer.
+
+   Intra-component stacking (e.g. a tab's text above its own
+   pseudo-element, a carousel's edge-fade gradients) stays local
+   with small `z-[n]` values — it does not participate in this
+   cross-component scale.
+   ═══════════════════════════════════════════════════════════ */
+@theme {
+  --z-hide: -1; /* pulled out of the stacking flow */
+  --z-base: 0; /* default in-flow content */
+  --z-docked: 10; /* in-flow elevated accents pinned to a surface */
+  --z-sticky: 20; /* position: sticky headers / toolbars */
+  --z-overlay: 30; /* dialog / drawer backdrop scrim */
+  --z-modal: 40; /* dialog / drawer surface */
+  --z-popover: 50; /* popover, select, combobox, autocomplete, dropdown panels */
+  --z-toast: 60; /* transient notifications */
+  --z-tooltip: 70; /* tooltips — always on top */
+}

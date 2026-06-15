@@ -18,8 +18,10 @@ import { Breadcrumb } from '@oztix/roadie-components/breadcrumb'
 import { Card } from '@oztix/roadie-components/card'
 import { Carousel } from '@oztix/roadie-components/carousel'
 import { Combobox } from '@oztix/roadie-components/combobox'
+import { Dialog } from '@oztix/roadie-components/dialog'
 import { Field } from '@oztix/roadie-components/field'
 import { Fieldset } from '@oztix/roadie-components/fieldset'
+import { Popover } from '@oztix/roadie-components/popover'
 import { RadioGroup } from '@oztix/roadie-components/radio-group'
 import { Select } from '@oztix/roadie-components/select'
 import { Steps } from '@oztix/roadie-components/steps'
@@ -407,6 +409,32 @@ export default function RscSmokePage() {
             <p className='py-4 text-subtle'>Panel two.</p>
           </Tabs.Panel>
         </Tabs.Root>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-4 text-strong'>Popover</h2>
+        <Popover>
+          <Popover.Trigger>Open popover</Popover.Trigger>
+          <Popover.Content>
+            <Popover.Title>Popover title</Popover.Title>
+            <Popover.Description>
+              Rendered from a server component.
+            </Popover.Description>
+          </Popover.Content>
+        </Popover>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-4 text-strong'>Dialog</h2>
+        <Dialog>
+          <Dialog.Trigger>Open dialog</Dialog.Trigger>
+          <Dialog.Content>
+            <Dialog.Title>Dialog title</Dialog.Title>
+            <Dialog.Description>
+              Rendered from a server component.
+            </Dialog.Description>
+          </Dialog.Content>
+        </Dialog>
       </section>
 
       {/*

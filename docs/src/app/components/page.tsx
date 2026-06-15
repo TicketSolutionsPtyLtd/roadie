@@ -83,6 +83,7 @@ export default async function ComponentsPage() {
     'Actions',
     'Forms',
     'Navigation',
+    'Overlays',
     'Content',
     'Typography',
     'Layout'
@@ -385,6 +386,17 @@ function ComponentSkeleton({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'icon-tile':
+      return (
+        <div className='flex items-center gap-3'>
+          <div className='grid size-12 place-content-center rounded-full emphasis-subtle intent-accent'>
+            <div className='size-5 rounded-sm bg-current opacity-60' />
+          </div>
+          <div className='grid size-12 place-content-center rounded-xl emphasis-subtle intent-accent'>
+            <div className='size-5 rounded-sm bg-current opacity-60' />
+          </div>
+        </div>
+      )
     case 'steps':
       return (
         <div className='flex items-center gap-1.5'>
@@ -401,15 +413,24 @@ function ComponentSkeleton({ name }: { name: string }) {
           </div>
         </div>
       )
-    case 'icon-tile':
+    case 'dialog':
       return (
-        <div className='flex items-center gap-3'>
-          <div className='grid size-12 place-content-center rounded-full emphasis-subtle intent-accent'>
-            <div className='size-5 rounded-sm bg-current opacity-60' />
+        <div className='grid w-40 place-items-center gap-2 rounded-xl emphasis-raised p-3'>
+          <div className='size-7 rounded-full emphasis-subtle intent-accent' />
+          <Skel className='h-2 w-20' />
+          <Skel className='h-1.5 w-28' />
+          <div className='mt-1 flex gap-1.5'>
+            <div className='h-5 w-12 emphasis-normal rounded-full' />
+            <div className='h-5 w-12 emphasis-strong rounded-full intent-accent' />
           </div>
-          <div className='grid size-12 place-content-center rounded-xl emphasis-subtle intent-accent'>
-            <div className='size-5 rounded-sm bg-current opacity-60' />
-          </div>
+        </div>
+      )
+    case 'popover':
+      return (
+        <div className='relative w-36 rounded-xl emphasis-raised p-3'>
+          <div className='absolute -top-1 left-6 size-2 rotate-45 rounded-[1px] bg-raised' />
+          <Skel className='mb-1.5 h-2 w-16' />
+          <Skel className='h-1.5 w-24' />
         </div>
       )
     default:

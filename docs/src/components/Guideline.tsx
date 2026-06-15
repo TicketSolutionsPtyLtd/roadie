@@ -45,7 +45,9 @@ function GuidelineCard({
           <Icon weight='fill' className='size-5 text-subtle' />
           {isDo ? 'Do' : 'Don\u2019t'}
         </p>
-        <p className='text-sm'>{children}</p>
+        <div className='text-sm [&_p]:mb-0 [&_p]:text-sm [&_p]:leading-normal'>
+          {children}
+        </div>
       </div>
     </div>
   )

@@ -76,6 +76,26 @@ const emphasisPresets = [
   }
 ]
 
+const zScale = [
+  { name: 'z-hide', value: '-1', usage: 'Pulled out of the stacking flow' },
+  { name: 'z-base', value: '0', usage: 'Default in-flow content' },
+  {
+    name: 'z-docked',
+    value: '10',
+    usage: 'In-flow accents pinned to a surface'
+  },
+  { name: 'z-sticky', value: '20', usage: 'Sticky headers and toolbars' },
+  { name: 'z-overlay', value: '30', usage: 'Dialog / drawer backdrop scrim' },
+  { name: 'z-modal', value: '40', usage: 'Dialog / drawer surface' },
+  {
+    name: 'z-popover',
+    value: '50',
+    usage: 'Popover, select, combobox, autocomplete, dropdown panels'
+  },
+  { name: 'z-toast', value: '60', usage: 'Transient notifications' },
+  { name: 'z-tooltip', value: '70', usage: 'Tooltips — always on top' }
+]
+
 const intents = [
   { name: 'neutral', className: 'intent-neutral' },
   { name: 'brand', className: 'intent-brand' },
@@ -367,6 +387,65 @@ export default function ElevationPage() {
             </li>
           </ul>
         </div>
+      </section>
+
+      {/* Layering / z-index scale */}
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>Layering</h2>
+        <p className='text-subtle'>
+          Named stacking tiers so overlay components layer predictably against
+          each other. Reference them with the var-shorthand utility —{' '}
+          <Code>z-(--z-popover)</Code> — never a raw <Code>z-50</Code>. A higher
+          tier sits closer to the viewer.
+        </p>
+
+        <div className='overflow-x-auto'>
+          <table className='w-full text-sm'>
+            <thead>
+              <tr className='border-b border-subtle text-left'>
+                <th className='py-2 pr-4 font-semibold'>Token</th>
+                <th className='py-2 pr-4 font-semibold'>Value</th>
+                <th className='py-2 font-semibold'>Use for</th>
+              </tr>
+            </thead>
+            <tbody className='divide-y divide-subtler'>
+              {zScale.map(({ name, value, usage }) => (
+                <tr key={name}>
+                  <td className='py-2 pr-4 font-mono'>z-(--{name})</td>
+                  <td className='py-2 pr-4 font-mono'>{value}</td>
+                  <td className='py-2'>{usage}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <ul className='grid list-disc gap-2 pl-5'>
+          <li>
+            <p>
+              <strong>
+                Reference via <Code>z-(--z-popover)</Code>
+              </strong>{' '}
+              — the canonical var-shorthand utility. Never reach for a raw{' '}
+              <Code>z-50</Code>, which drifts out of sync with the scale.
+            </p>
+          </li>
+          <li>
+            <p>
+              <strong>Popover sits above modal</strong> (<Code>50</Code> vs{' '}
+              <Code>40</Code>) so a select, combobox, or dropdown opened inside
+              a dialog layers correctly over the dialog surface.
+            </p>
+          </li>
+          <li>
+            <p>
+              <strong>Intra-component stacking stays local.</strong> Small{' '}
+              <Code>z-[n]</Code> values for an element above its own
+              pseudo-element or gradient are not part of this cross-component
+              scale.
+            </p>
+          </li>
+        </ul>
       </section>
     </div>
   )

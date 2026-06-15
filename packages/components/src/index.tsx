@@ -237,6 +237,42 @@ export {
   type FieldsetErrorTextProps
 } from './components/Fieldset'
 
+export {
+  Popover,
+  popoverPopupVariants,
+  type PopoverProps,
+  type PopoverTriggerProps,
+  type PopoverPortalProps,
+  type PopoverPositionerProps,
+  type PopoverPopupProps,
+  type PopoverArrowProps,
+  type PopoverTitleProps,
+  type PopoverDescriptionProps,
+  type PopoverCloseProps,
+  type PopoverHeaderProps,
+  type PopoverBodyProps,
+  type PopoverFooterProps,
+  type PopoverContentProps
+} from './components/Popover'
+
+export {
+  Dialog,
+  dialogPopupVariants,
+  type DialogProps,
+  type DialogTriggerProps,
+  type DialogPortalProps,
+  type DialogBackdropProps,
+  type DialogViewportProps,
+  type DialogPopupProps,
+  type DialogTitleProps,
+  type DialogDescriptionProps,
+  type DialogCloseProps,
+  type DialogHeaderProps,
+  type DialogBodyProps,
+  type DialogFooterProps,
+  type DialogContentProps
+} from './components/Dialog'
+
 // Providers
 export {
   ThemeProvider,
