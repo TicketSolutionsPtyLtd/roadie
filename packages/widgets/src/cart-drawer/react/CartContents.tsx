@@ -29,6 +29,14 @@ type CartContentsProps = {
   stickyFooter?: boolean
   /** Skip the Total / fees / Checkout footer (the drawer renders its own). */
   hideFooter?: boolean
+  /**
+   * Optional per-event remove handler. When supplied, each event group renders
+   * a trash button + confirmation popover. Receives the `eventId`; the owner
+   * runs the `cart.removeItem` + refetch flow.
+   */
+  onRemoveEvent?: (eventId: string) => void
+  /** True while a remove is in flight — disables the trash triggers. */
+  busy?: boolean
 }
 
 export function CartContents({
@@ -40,7 +48,9 @@ export function CartContents({
   currency,
   className,
   stickyFooter = false,
-  hideFooter = false
+  hideFooter = false,
+  onRemoveEvent,
+  busy = false
 }: CartContentsProps) {
   const ticketCount = cart.events.reduce(
     (sum, event) =>
@@ -81,6 +91,8 @@ export function CartContents({
                 event={event}
                 locale={locale}
                 currency={currency}
+                onRemoveEvent={onRemoveEvent}
+                isRemoving={busy}
               />
             ))}
           </div>

@@ -59,7 +59,7 @@ const effectiveBrowseHref = computed(() =>
     : buildBrowseHref(props.collectionId)
 )
 
-const { summary, details, detailsLoading, detailsError } = useCart(
+const { summary, details, detailsLoading, detailsError, refresh } = useCart(
   props.cart,
   () => props.collectionId,
   () => props.refreshKey
@@ -174,7 +174,11 @@ watch(
 
 // --- Escape closes ---
 function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && isOpen.value) toggle()
+  if (e.key !== 'Escape' || !isOpen.value) return
+  // A confirm popover is open — let it consume Escape; don't ALSO close the
+  // whole drawer (both listeners sit on document; the drawer must defer).
+  if (document.querySelector('.rc-confirm')) return
+  toggle()
 }
 
 // --- Focus trap (focus-trap pkg) wired to the dialog while open ---
@@ -258,6 +262,29 @@ function handleBrowse() {
   props.onNavigate(effectiveBrowseHref.value)
 }
 
+// --- Remove an entire event from the cart (INNO-377) ---
+// Non-optimistic + "lock the whole cart": no row removal, no useMutation. The
+// server write path is last-writer-wins, so a single in-flight remove is
+// required (the lock enforces it). Flow: lock → await cart.removeItem (204, no
+// body) → refresh the reads (the existing empty-cart rendering covers the
+// last-event case) → unlock. On a thrown error keep the rows + surface it.
+const removing = ref(false)
+const removeError = ref<string | null>(null)
+async function handleRemoveEvent(eventId: string) {
+  if (removing.value || !details.value) return
+  removing.value = true
+  removeError.value = null
+  try {
+    await props.cart.removeItem(details.value.cartId, eventId)
+    await refresh()
+  } catch (err) {
+    removeError.value =
+      err instanceof Error ? err.message : 'Could not remove this event.'
+  } finally {
+    removing.value = false
+  }
+}
+
 const overlayOpacity = computed(() => progress.value)
 const contentOpacity = computed(() =>
   Math.max(0, Math.min(1, (progress.value - 0.3) / 0.7))
@@ -309,6 +336,7 @@ const contentOpacity = computed(() =>
       <div
         id="cart-drawer-body"
         class="rc-drawer__body"
+        :aria-busy="removing"
         :style="{
           opacity: contentOpacity,
           pointerEvents: isOpen ? 'auto' : 'none'
@@ -321,16 +349,47 @@ const contentOpacity = computed(() =>
         >
           Couldn't load your cart. Please try again.
         </p>
-        <CartContents
-          v-else-if="details"
-          :cart="details"
-          :on-navigate="onNavigate"
-          :browse-href="effectiveBrowseHref"
-          :checkout-url="checkoutUrl"
-          :locale="locale"
-          :currency="currency"
-          hide-footer
-        />
+        <template v-else-if="details">
+          <p
+            v-if="removeError"
+            class="rc-drawer__error rc-intent-danger"
+            role="alert"
+          >
+            {{ removeError }}
+          </p>
+          <!-- Lock the WHOLE cart while a remove is in flight: dim + disable
+               pointers on the content, overlay a spinner. -->
+          <div class="rc-lock" :class="{ 'rc-lock--busy': removing }">
+            <CartContents
+              :cart="details"
+              :on-navigate="onNavigate"
+              :browse-href="effectiveBrowseHref"
+              :checkout-url="checkoutUrl"
+              :locale="locale"
+              :currency="currency"
+              :busy="removing"
+              hide-footer
+              @remove-event="handleRemoveEvent"
+            />
+            <div
+              v-if="removing"
+              class="rc-lock__overlay"
+              aria-hidden="true"
+              data-testid="cart-remove-spinner"
+            >
+              <svg
+                class="rc-spinner"
+                viewBox="0 0 256 256"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  d="M232,128a104,104,0,0,1-208,0c0-41,23.81-78.36,60.66-95.27a8,8,0,0,1,6.68,14.54C60.15,61.59,40,93.27,40,128a88,88,0,0,0,176,0c0-34.73-20.15-66.41-51.34-80.73a8,8,0,0,1,6.68-14.54C208.19,49.64,232,87,232,128Z"
+                />
+              </svg>
+            </div>
+          </div>
+        </template>
         <div
           v-else-if="detailsLoading"
           class="rc-drawer__loading"

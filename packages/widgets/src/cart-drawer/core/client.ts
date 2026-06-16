@@ -12,6 +12,13 @@ export interface CartClient {
   getSummary(collectionId: string): Promise<CartSummary | null>
   getDetails(collectionId: string): Promise<CartDetails | null>
   checkoutUrl(details: Pick<CartDetails, 'extrasUrl'>): string | null
+  /**
+   * Remove an entire event (all its ticket lines) from the cart. Backend
+   * `RemoveCartItems` returns 204 and no body, so this resolves to void —
+   * callers must refetch `getDetails`/`getSummary` to reflect the new cart.
+   * Rejects on any non-2xx so the caller can unlock + surface an error.
+   */
+  removeItem(cartId: string, eventId: string): Promise<void>
 }
 
 export function createCartClient(options: CartClientOptions): CartClient {
@@ -39,6 +46,19 @@ export function createCartClient(options: CartClientOptions): CartClient {
     return data as T
   }
 
+  // POST mutation with no body, used for cart writes. The remove endpoint
+  // returns 204; any non-2xx is a real failure the caller must observe, so
+  // throw rather than swallow (mirrors the read seam's "untrusted" posture but
+  // surfaces errors instead of returning null, since a write that silently
+  // "succeeds" would desync the drawer).
+  async function post(path: string): Promise<void> {
+    const res = await doFetch(`${host}${path}`, {
+      method: 'POST',
+      credentials: 'include'
+    })
+    if (!res.ok) throw new Error(`Cart request failed (${res.status})`)
+  }
+
   return {
     getSummary: (id) =>
       get<CartSummary>(
@@ -46,6 +66,12 @@ export function createCartClient(options: CartClientOptions): CartClient {
       ),
     getDetails: (id) =>
       get<CartDetails>(`/outlet/api/collection/${encodeURIComponent(id)}/cart`),
-    checkoutUrl: (details) => buildCheckoutUrl(host, details.extrasUrl)
+    checkoutUrl: (details) => buildCheckoutUrl(host, details.extrasUrl),
+    // Event-scoped remove — deletes ALL ticket lines for the event (backend
+    // RemoveCartItems). Path built internally; consumer still injects host only.
+    removeItem: (cartId, eventId) =>
+      post(
+        `/outlet/api/carts/${encodeURIComponent(cartId)}/events/${encodeURIComponent(eventId)}/remove`
+      )
   }
 }

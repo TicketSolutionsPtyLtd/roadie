@@ -10,6 +10,8 @@ import {
   useState
 } from 'react'
 
+import { CircleNotchIcon } from '@phosphor-icons/react'
+import { useQueryClient } from '@tanstack/react-query'
 import { LazyMotion, domAnimation, m, useTransform } from 'motion/react'
 import FocusLock from 'react-focus-lock'
 
@@ -112,12 +114,20 @@ export function CartDrawer({
     [browseHref, collectionId]
   )
 
+  const queryClient = useQueryClient()
+
   const { data: summary } = useCartSummary(cart, collectionId, refreshKey)
   const {
     data: details,
     isLoading: detailsLoading,
     error: detailsError
   } = useCartDetails(cart, collectionId, refreshKey)
+
+  // Remove-event flow state. Non-optimistic: we lock the whole cart body while
+  // a single remove is in flight (server is last-writer-wins) and refetch on
+  // success. On failure the rows stay put and we surface the thrown error.
+  const [removeBusy, setRemoveBusy] = useState(false)
+  const [removeError, setRemoveError] = useState<string | null>(null)
 
   // Fresh, reactive figures derived from details (falls back to summary before
   // details load) — summary.ticketCount/cartTotal lag a just-added item.
@@ -215,7 +225,13 @@ export function CartDrawer({
   useEffect(() => {
     if (state !== 'open') return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') toggle()
+      if (e.key !== 'Escape') return
+      // A confirm popover is open — let it consume Escape; don't ALSO collapse
+      // the whole drawer. Both listeners sit on document and ours was registered
+      // first, so it must defer to the inner layer. (Base UI popups carry
+      // data-slot="popover-popup".)
+      if (document.querySelector('[data-slot="popover-popup"]')) return
+      toggle()
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
@@ -235,6 +251,37 @@ export function CartDrawer({
   const handleBrowse = useCallback(() => {
     onNavigate(effectiveBrowseHref)
   }, [effectiveBrowseHref, onNavigate])
+
+  // Owns the remove flow: lock the cart, await the event removal, refetch the
+  // reads, unlock. The read hooks fold refreshKey into their query keys, so we
+  // invalidate by PREFIX ([key, collectionId]) to match every refreshKey. On
+  // error keep the rows mounted and surface the message. Guard against a second
+  // in-flight remove (removeBusy) — single-remove only.
+  const removeEvent = useCallback(
+    async (eventId: string) => {
+      if (!details || removeBusy) return
+      setRemoveBusy(true)
+      setRemoveError(null)
+      try {
+        await cart.removeItem(details.cartId, eventId)
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: ['roadieCartDetails', collectionId]
+          }),
+          queryClient.invalidateQueries({
+            queryKey: ['roadieCartSummary', collectionId]
+          })
+        ])
+      } catch (err) {
+        setRemoveError(
+          err instanceof Error ? err.message : 'Could not remove this event.'
+        )
+      } finally {
+        setRemoveBusy(false)
+      }
+    },
+    [cart, details, collectionId, queryClient, removeBusy]
+  )
 
   // Render when there's a collection AND at least one data source — a failed
   // summary fetch shouldn't blank a drawer that has working details (mirrors
@@ -295,36 +342,71 @@ export function CartDrawer({
             titleId={cartHeadingId}
           />
 
-          {/* Scrollable body — fills space between header and footer. */}
+          {/* Scrollable body — fills space between header and footer. While a
+             remove is in flight the whole body is locked (aria-busy, dimmed,
+             pointer-events off) and a spinner overlay sits centered on top. */}
           <m.div
-            id='cart-drawer-body'
-            className='min-h-0 flex-1 overflow-y-auto px-4'
+            className='relative min-h-0 flex-1'
             style={{
               opacity: contentOpacity,
               pointerEvents: state === 'open' ? 'auto' : 'none'
             }}
           >
-            {detailsError ? (
-              <p className='text-prose text-subtle intent-danger' role='status'>
-                Couldn&apos;t load your cart. Please try again.
-              </p>
-            ) : details ? (
-              <CartContents
-                cart={details}
-                onNavigate={onNavigate}
-                browseHref={effectiveBrowseHref}
-                checkoutUrl={checkoutUrl}
-                locale={locale}
-                currency={currency}
-                hideFooter
-              />
-            ) : detailsLoading ? (
-              <div className='grid gap-4' data-testid='cart-drawer-loading'>
-                <div className='h-4 w-40 animate-pulse rounded bg-subtle' />
-                <div className='h-32 w-full animate-pulse rounded-xl bg-subtle' />
-                <div className='h-32 w-full animate-pulse rounded-xl bg-subtle' />
+            <div
+              id='cart-drawer-body'
+              aria-busy={removeBusy}
+              className={cn(
+                'h-full overflow-y-auto px-4 transition-opacity',
+                removeBusy && 'pointer-events-none opacity-50'
+              )}
+            >
+              {removeError && (
+                <p
+                  role='alert'
+                  className='text-ui-meta text-subtle intent-danger'
+                >
+                  {removeError}
+                </p>
+              )}
+              {detailsError ? (
+                <p
+                  className='text-prose text-subtle intent-danger'
+                  role='status'
+                >
+                  Couldn&apos;t load your cart. Please try again.
+                </p>
+              ) : details ? (
+                <CartContents
+                  cart={details}
+                  onNavigate={onNavigate}
+                  browseHref={effectiveBrowseHref}
+                  checkoutUrl={checkoutUrl}
+                  locale={locale}
+                  currency={currency}
+                  hideFooter
+                  onRemoveEvent={removeEvent}
+                  busy={removeBusy}
+                />
+              ) : detailsLoading ? (
+                <div className='grid gap-4' data-testid='cart-drawer-loading'>
+                  <div className='h-4 w-40 animate-pulse rounded bg-subtle' />
+                  <div className='h-32 w-full animate-pulse rounded-xl bg-subtle' />
+                  <div className='h-32 w-full animate-pulse rounded-xl bg-subtle' />
+                </div>
+              ) : null}
+            </div>
+
+            {removeBusy && (
+              <div
+                aria-hidden='true'
+                className='pointer-events-none absolute inset-0 grid place-content-center'
+              >
+                <CircleNotchIcon
+                  weight='bold'
+                  className='size-6 animate-spin text-subtle'
+                />
               </div>
-            ) : null}
+            )}
           </m.div>
 
           <CartDrawerFooter

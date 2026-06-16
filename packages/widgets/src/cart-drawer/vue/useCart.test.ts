@@ -38,6 +38,7 @@ function mockCart(over: Partial<CartClient> = {}): CartClient {
     getSummary: vi.fn(async () => makeSummary()),
     getDetails: vi.fn(async () => makeDetails()),
     checkoutUrl: (details) => buildCheckoutUrl(HOST, details.extrasUrl),
+    removeItem: vi.fn(async () => {}),
     ...over
   }
 }

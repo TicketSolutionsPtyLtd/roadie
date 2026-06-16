@@ -70,6 +70,7 @@ function mockCart(over: Partial<CartClient> = {}): CartClient {
     getSummary: vi.fn(async () => makeSummary()),
     getDetails: vi.fn(async () => makeDetails()),
     checkoutUrl: (details) => buildCheckoutUrl(HOST, details.extrasUrl),
+    removeItem: vi.fn(async () => {}),
     ...over
   }
 }
@@ -437,6 +438,92 @@ describe('CartDrawer (Vue)', () => {
     await fireEvent.click((await findAllByText('View cart'))[0]!)
     await nextTick()
     expect(document.body.style.overflow).toBe('hidden')
+  })
+
+  it('removes an event: calls cart.removeItem(cartId, eventId) then refetches', async () => {
+    const cart = mockCart()
+    const { findByLabelText, findByText } = render(CartDrawer, {
+      props: { ...baseProps, cart, onNavigate: vi.fn() }
+    })
+    await flushPromises()
+    // getDetails ran once on mount.
+    expect(cart.getDetails).toHaveBeenCalledTimes(1)
+
+    // Open the confirm popover from the per-event trash, then confirm.
+    await fireEvent.click(await findByLabelText('Remove Night Show'))
+    await fireEvent.click(await findByText('Remove'))
+    await flushPromises()
+
+    // cartId from details, eventId from the event row.
+    expect(cart.removeItem).toHaveBeenCalledWith('c1', 'e1')
+    // Non-optimistic: a successful 204 triggers a refetch (getDetails again).
+    expect(cart.getDetails).toHaveBeenCalledTimes(2)
+  })
+
+  it('locks the cart (aria-busy + spinner) while the remove is in flight', async () => {
+    let resolveRemove: (() => void) | undefined
+    const cart = mockCart({
+      removeItem: vi.fn(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveRemove = resolve
+          })
+      )
+    })
+    const { container, findByLabelText, findByText } = render(CartDrawer, {
+      props: { ...baseProps, cart, onNavigate: vi.fn() }
+    })
+    await flushPromises()
+
+    const body = container.querySelector('#cart-drawer-body')!
+    expect(body.getAttribute('aria-busy')).toBe('false')
+
+    await fireEvent.click(await findByLabelText('Remove Night Show'))
+    await fireEvent.click(await findByText('Remove'))
+    await nextTick()
+
+    // In-flight: body is aria-busy and the spinner overlay is mounted.
+    expect(body.getAttribute('aria-busy')).toBe('true')
+    expect(
+      container.querySelector('[data-testid="cart-remove-spinner"]')
+    ).not.toBeNull()
+
+    // Resolve the remove → unlock.
+    resolveRemove?.()
+    await flushPromises()
+    await nextTick()
+    expect(body.getAttribute('aria-busy')).toBe('false')
+    expect(
+      container.querySelector('[data-testid="cart-remove-spinner"]')
+    ).toBeNull()
+  })
+
+  it('on a failed remove keeps the rows, unlocks, and surfaces the error', async () => {
+    const cart = mockCart({
+      removeItem: vi.fn(async () => {
+        throw new Error('Cart request failed (409)')
+      })
+    })
+    const { container, findByLabelText, findByText, getByText } = render(
+      CartDrawer,
+      { props: { ...baseProps, cart, onNavigate: vi.fn() } }
+    )
+    await flushPromises()
+    // getDetails ran once on mount; a failed remove must NOT refetch.
+    expect(cart.getDetails).toHaveBeenCalledTimes(1)
+
+    await fireEvent.click(await findByLabelText('Remove Night Show'))
+    await fireEvent.click(await findByText('Remove'))
+    await flushPromises()
+    await nextTick()
+
+    // Error surfaced (the thrown message), cart unlocked, rows still present.
+    expect(getByText('Cart request failed (409)')).toBeTruthy()
+    const body = container.querySelector('#cart-drawer-body')
+    expect(body?.getAttribute('aria-busy')).toBe('false')
+    expect(cart.getDetails).toHaveBeenCalledTimes(1)
+    // The event row survives (Night Show still rendered).
+    expect(getByText('Night Show')).toBeTruthy()
   })
 
   it('keeps body scroll locked when it closes while a modal still holds the lock', async () => {

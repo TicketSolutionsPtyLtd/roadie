@@ -1,6 +1,10 @@
 'use client'
 
-import { ClockIcon, MapPinIcon } from '@phosphor-icons/react'
+import { useState } from 'react'
+
+import { ClockIcon, MapPinIcon, TrashIcon } from '@phosphor-icons/react'
+
+import { Button, IconButton, Popover } from '@oztix/roadie-components'
 
 import {
   type CartEvent,
@@ -15,13 +19,26 @@ type CartEventGroupProps = {
   locale: string
   /** ISO 4217 currency code (design finding #1). */
   currency: string
+  /**
+   * Optional remove handler. When supplied, a per-event trash button +
+   * confirmation popover render in the header. Receives the `eventId`; the
+   * owner (CartDrawer) runs the actual `cart.removeItem` + refetch flow. Kept
+   * presentational — this component never calls the client itself.
+   */
+  onRemoveEvent?: (eventId: string) => void
+  /** True while a remove is in flight — disables the trash trigger. */
+  isRemoving?: boolean
 }
 
 export function CartEventGroup({
   event,
   locale,
-  currency
+  currency,
+  onRemoveEvent,
+  isRemoving = false
 }: CartEventGroupProps) {
+  // Controlled so "Remove" can fire the callback and close in one click.
+  const [confirmOpen, setConfirmOpen] = useState(false)
   // Time of day comes from the UTC start; eventDateDisplay (if provided) is the
   // pre-formatted venue-local string, otherwise we render the wall-clock time.
   const start = new Date(event.eventStartAtUtc)
@@ -62,6 +79,50 @@ export function CartEventGroup({
             alt={event.eventName}
             className='size-20 shrink-0 rounded-lg bg-subtle object-cover'
           />
+        )}
+        {onRemoveEvent && (
+          <Popover open={confirmOpen} onOpenChange={setConfirmOpen}>
+            <Popover.Trigger
+              render={
+                <IconButton
+                  intent='danger'
+                  emphasis='subtler'
+                  size='sm'
+                  disabled={isRemoving}
+                  aria-label={`Remove ${event.eventName}`}
+                >
+                  <TrashIcon weight='bold' className='size-4' />
+                </IconButton>
+              }
+            />
+            <Popover.Content intent='danger'>
+              <Popover.Body>
+                <p className='text-ui text-pretty text-strong'>
+                  Remove all tickets for this event?
+                </p>
+              </Popover.Body>
+              <Popover.Footer>
+                <Popover.Close
+                  render={
+                    <Button intent='neutral' emphasis='normal' size='sm'>
+                      Cancel
+                    </Button>
+                  }
+                />
+                <Button
+                  intent='danger'
+                  emphasis='strong'
+                  size='sm'
+                  onClick={() => {
+                    onRemoveEvent(event.eventId)
+                    setConfirmOpen(false)
+                  }}
+                >
+                  Remove
+                </Button>
+              </Popover.Footer>
+            </Popover.Content>
+          </Popover>
         )}
       </div>
 

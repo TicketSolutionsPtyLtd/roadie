@@ -22,9 +22,17 @@ const props = withDefaults(
     currency: string
     /** Skip the Total / fees / Checkout footer (the drawer renders its own). */
     hideFooter?: boolean
+    /** True while a cart-wide remove is in flight — locks the per-event trash. */
+    busy?: boolean
   }>(),
   { hideFooter: false }
 )
+
+// Bubble the per-event remove request straight up to CartDrawer, which owns the
+// lock → cart.removeItem → refresh flow (this layer stays presentational).
+const emit = defineEmits<{
+  removeEvent: [eventId: string]
+}>()
 
 const ticketCount = computed(() =>
   props.cart.events.reduce(
@@ -79,6 +87,8 @@ function onCheckout() {
             :event="event"
             :locale="locale"
             :currency="currency"
+            :busy="busy"
+            @remove-event="emit('removeEvent', $event)"
           />
         </div>
       </section>

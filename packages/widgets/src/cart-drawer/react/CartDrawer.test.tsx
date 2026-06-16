@@ -55,6 +55,7 @@ function mockCart(over: Partial<CartClient> = {}): CartClient {
     getSummary: vi.fn(async () => makeSummary()),
     getDetails: vi.fn(async () => makeDetails()),
     checkoutUrl: (details) => buildCheckoutUrl(HOST, details.extrasUrl),
+    removeItem: vi.fn(async () => {}),
     ...over
   }
 }
@@ -282,6 +283,107 @@ describe('CartDrawer', () => {
         /Incl\. \$5\.00 booking fees\. Delivery and refund protection calculated at checkout/
       )
     ).toBeInTheDocument()
+  })
+
+  it('removes an event: opens the confirm popover and calls removeItem with cartId + eventId', async () => {
+    const cart = mockCart()
+    renderDrawer(
+      <CartDrawer
+        cart={cart}
+        collectionId='col-1'
+        onNavigate={vi.fn()}
+        browseHref='/events'
+        locale='en-AU'
+        currency='AUD'
+        initialState='open'
+      />
+    )
+    // Trash trigger named after the event renders once details load.
+    const trash = await screen.findByRole('button', {
+      name: 'Remove Night Show'
+    })
+    fireEvent.click(trash)
+    // Popover prompt + actions appear.
+    expect(
+      await screen.findByText('Remove all tickets for this event?')
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument()
+    const remove = screen.getByRole('button', { name: 'Remove' })
+    fireEvent.click(remove)
+    // cartId from CartDetails.cartId ('c1'), eventId from CartEvent.eventId ('e1').
+    await waitFor(() =>
+      expect(cart.removeItem).toHaveBeenCalledWith('c1', 'e1')
+    )
+  })
+
+  it('locks the cart body (aria-busy) while the remove is in flight', async () => {
+    // Deferred removeItem so we can observe the pending (busy) state.
+    let resolveRemove: (() => void) | undefined
+    const cart = mockCart({
+      removeItem: vi.fn(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveRemove = resolve
+          })
+      )
+    })
+    renderDrawer(
+      <CartDrawer
+        cart={cart}
+        collectionId='col-1'
+        onNavigate={vi.fn()}
+        browseHref='/events'
+        locale='en-AU'
+        currency='AUD'
+        initialState='open'
+      />
+    )
+    const trash = await screen.findByRole('button', {
+      name: 'Remove Night Show'
+    })
+    fireEvent.click(trash)
+    fireEvent.click(await screen.findByRole('button', { name: 'Remove' }))
+
+    const body = document.getElementById('cart-drawer-body')!
+    await waitFor(() => expect(body).toHaveAttribute('aria-busy', 'true'))
+
+    // Resolving the remove unlocks the body.
+    await act(async () => {
+      resolveRemove?.()
+    })
+    await waitFor(() => expect(body).toHaveAttribute('aria-busy', 'false'))
+  })
+
+  it('keeps the event row and shows an error when removeItem rejects', async () => {
+    const cart = mockCart({
+      removeItem: vi.fn(async () => {
+        throw new Error('Network down')
+      })
+    })
+    renderDrawer(
+      <CartDrawer
+        cart={cart}
+        collectionId='col-1'
+        onNavigate={vi.fn()}
+        browseHref='/events'
+        locale='en-AU'
+        currency='AUD'
+        initialState='open'
+      />
+    )
+    const trash = await screen.findByRole('button', {
+      name: 'Remove Night Show'
+    })
+    fireEvent.click(trash)
+    fireEvent.click(await screen.findByRole('button', { name: 'Remove' }))
+
+    // The thrown message is surfaced…
+    expect(await screen.findByText('Network down')).toBeInTheDocument()
+    // …and the event row is still mounted (non-optimistic — nothing removed).
+    expect(screen.getByText('Night Show')).toBeInTheDocument()
+    // Body unlocks after the failure so the user can retry.
+    const body = document.getElementById('cart-drawer-body')!
+    await waitFor(() => expect(body).toHaveAttribute('aria-busy', 'false'))
   })
 
   it('footer falls back to a fee-free line when there are no booking fees', async () => {

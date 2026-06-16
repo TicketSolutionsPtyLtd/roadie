@@ -344,6 +344,16 @@
   background: var(--rc-intent-neutral);
   color: var(--rc-intent-neutral-contrast);
 }
+.rc-button--strong.rc-intent-danger {
+  background: var(--rc-intent-danger);
+  color: var(--rc-intent-accent-contrast);
+}
+/* Compact variant for the in-popover Cancel / Remove actions. */
+.rc-button--sm {
+  height: 2rem;
+  padding-inline: 0.75rem;
+  font-size: 0.8125rem;
+}
 
 .rc-icon-button {
   display: inline-flex;
@@ -364,6 +374,87 @@
 .rc-icon-button:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 2px;
+}
+.rc-icon-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+/* Per-event remove trash — danger-tinted, subtle resting fill. */
+.rc-icon-button--danger.rc-intent-danger {
+  background: transparent;
+  color: var(--rc-intent-danger);
+}
+.rc-icon-button--danger.rc-intent-danger:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--rc-intent-danger) 14%, transparent);
+}
+
+/* ---- Remove confirm popover ---- */
+/* Hand-rolled (no Base UI in this skin): absolutely-positioned card anchored to
+   the trash button; click-outside / Escape dismiss is wired in CartEventGroup. */
+.rc-event__remove {
+  position: relative;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+.rc-confirm {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 20;
+  margin-top: 0.25rem;
+  width: 14rem;
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--rc-border-subtle);
+  border-radius: var(--rc-radius-xl);
+  background: var(--rc-bg-raised);
+  box-shadow: var(--rc-shadow-floating);
+}
+.rc-confirm__text {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--rc-text-normal);
+}
+.rc-confirm__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.rc-confirm__actions .rc-button {
+  flex: 1;
+}
+
+/* ---- Cart lock (remove-in-flight) ---- */
+/* Lock the WHOLE cart body during a remove: dim + block pointers on the
+   content, float a spinner on top (Roadie has no Spinner component). */
+.rc-lock {
+  position: relative;
+}
+.rc-lock--busy {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.rc-lock__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rc-spinner {
+  width: 2rem;
+  height: 2rem;
+  color: var(--rc-text-subtle);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .rc-spinner {
+    animation: rc-spin 0.7s linear infinite;
+  }
+}
+@keyframes rc-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ---- Urgency badge ---- */

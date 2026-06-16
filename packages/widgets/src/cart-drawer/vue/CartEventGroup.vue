@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 
 import {
   type CartEvent,
@@ -14,6 +14,15 @@ const props = defineProps<{
   locale: string
   /** ISO 4217 currency code (design finding #1). */
   currency: string
+  /** True while a cart-wide remove is in flight — disables the trash/confirm. */
+  busy?: boolean
+}>()
+
+// Presentational only: bubble the eventId up. The parent (CartDrawer) owns the
+// remove flow (lock cart → cart.removeItem → refresh) — this component never
+// touches the cart client itself.
+const emit = defineEmits<{
+  removeEvent: [eventId: string]
 }>()
 
 // Time of day from the UTC start; eventDateDisplay (if provided) wins.
@@ -35,6 +44,53 @@ function money(amount: number): string {
     currency: props.currency
   })
 }
+
+// --- Confirm popover (hand-rolled: absolutely-positioned card + click-outside,
+// the same approach the prototype uses; no Base UI / Tailwind in this skin). ---
+const confirming = ref(false)
+const removeWrapEl = ref<HTMLElement | null>(null)
+// Stable ids so the trigger's aria-controls and the dialog's accessible name
+// (aria-labelledby -> the prompt) resolve per-event.
+const confirmId = computed(() => `rc-confirm-${props.event.eventId}`)
+const confirmLabelId = computed(() => `rc-confirm-label-${props.event.eventId}`)
+
+function openConfirm() {
+  if (props.busy) return
+  confirming.value = true
+}
+function closeConfirm() {
+  confirming.value = false
+}
+function confirmRemove() {
+  emit('removeEvent', props.event.eventId)
+  confirming.value = false
+}
+
+// Dismiss on outside pointerdown (mousedown parity with the prototype) and on
+// Escape. Listeners attach only while open so a closed popover costs nothing.
+function onDocumentPointerDown(e: MouseEvent) {
+  if (removeWrapEl.value && !removeWrapEl.value.contains(e.target as Node)) {
+    closeConfirm()
+  }
+}
+function onDocumentKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') closeConfirm()
+}
+watch(confirming, (open) => {
+  if (typeof document === 'undefined') return
+  if (open) {
+    document.addEventListener('mousedown', onDocumentPointerDown)
+    document.addEventListener('keydown', onDocumentKeydown)
+  } else {
+    document.removeEventListener('mousedown', onDocumentPointerDown)
+    document.removeEventListener('keydown', onDocumentKeydown)
+  }
+})
+onBeforeUnmount(() => {
+  if (typeof document === 'undefined') return
+  document.removeEventListener('mousedown', onDocumentPointerDown)
+  document.removeEventListener('keydown', onDocumentKeydown)
+})
 </script>
 
 <template>
@@ -67,6 +123,52 @@ function money(amount: number): string {
         :alt="event.eventName"
         class="rc-event__image"
       />
+      <div ref="removeWrapEl" class="rc-event__remove">
+        <button
+          type="button"
+          class="rc-icon-button rc-icon-button--danger rc-intent-danger"
+          :aria-label="`Remove ${event.eventName}`"
+          :aria-expanded="confirming"
+          :aria-controls="confirmId"
+          :disabled="busy"
+          @click="openConfirm"
+        >
+          <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+            <path
+              d="M216,52H40a12,12,0,0,0,0,24h4V208a20,20,0,0,0,20,20H192a20,20,0,0,0,20-20V76h4a12,12,0,0,0,0-24ZM188,204H68V76H188ZM76,40a12,12,0,0,1,12-12h80a12,12,0,0,1,0,24H88A12,12,0,0,1,76,40Zm32,80v48a12,12,0,0,1-24,0V120a12,12,0,0,1,24,0Zm64,0v48a12,12,0,0,1-24,0V120a12,12,0,0,1,24,0Z"
+            />
+          </svg>
+        </button>
+
+        <div
+          v-if="confirming"
+          :id="confirmId"
+          class="rc-confirm"
+          role="dialog"
+          :aria-labelledby="confirmLabelId"
+        >
+          <p :id="confirmLabelId" class="rc-confirm__text">
+            Remove all tickets for this event?
+          </p>
+          <div class="rc-confirm__actions">
+            <button
+              type="button"
+              class="rc-button rc-button--sm rc-button--normal rc-intent-neutral"
+              @click="closeConfirm"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="rc-button rc-button--sm rc-button--strong rc-intent-danger"
+              :disabled="busy"
+              @click="confirmRemove"
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="rc-event__tickets">
