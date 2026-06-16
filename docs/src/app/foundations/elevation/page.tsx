@@ -1,6 +1,8 @@
+import type { Metadata } from 'next'
+
 import { Code } from '@oztix/roadie-components'
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Elevation',
   description:
     'Intent-tinted shadow scale for depth and hierarchy in light and dark modes.'

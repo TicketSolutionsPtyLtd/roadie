@@ -9,6 +9,8 @@ import {
   TrashIcon
 } from '@phosphor-icons/react/ssr'
 
+import type { Metadata } from 'next'
+
 import { Guideline } from '@/components/Guideline'
 
 import {
@@ -19,7 +21,7 @@ import {
   IconTile
 } from '@oztix/roadie-components'
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Iconography',
   description:
     'Icon library, weight conventions, sizing scale, and import patterns for Phosphor Bold icons.'
