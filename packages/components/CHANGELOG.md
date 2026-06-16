@@ -1,5 +1,19 @@
 # @oztix/roadie-components
 
+## 2.7.0
+
+### Minor Changes
+
+- 2a43e97: Add Dialog, Popover, and IconTile components.
+  - **Dialog** / **Popover** — `@base-ui/react` compounds with `*.Content` shortcuts, `Header`/`Body`/`Footer`, and an `intent` variant on the popup. Dialog adds `sm`/`md`/`lg` sizes; Popover adds `Arrow`, `positionerProps` placement, and `openOnHover`.
+  - **IconTile** — a tile that frames a single Phosphor icon, with `xs`–`3xl` sizes, `intent`/`emphasis` variants, and `square` (default) / `circle` shapes.
+  - **core**: new `layering.css` z-index scale emitting named utilities (`z-overlay`, `z-modal`, `z-popover`, …), reusable `motion-scale` / `motion-slide` enter/exit utilities in `motion.css`, and a `--rim-light-edge` token in `elevation.css`.
+
+### Patch Changes
+
+- Updated dependencies [2a43e97]
+  - @oztix/roadie-core@2.2.0
+
 ## 2.6.0
 
 ### Minor Changes
