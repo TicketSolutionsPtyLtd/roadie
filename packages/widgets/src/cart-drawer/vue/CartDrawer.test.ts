@@ -460,6 +460,35 @@ describe('CartDrawer (Vue)', () => {
     expect(cart.getDetails).toHaveBeenCalledTimes(2)
   })
 
+  it('Escape on the confirm popover closes only the popover, not the drawer', async () => {
+    const cart = mockCart()
+    const {
+      container,
+      findAllByText,
+      findByLabelText,
+      findByText,
+      queryByText
+    } = render(CartDrawer, {
+      props: { ...baseProps, cart, onNavigate: vi.fn() }
+    })
+    await flushPromises()
+    const drawer = container.querySelector('#cart-drawer')!
+    // Open the drawer so its own Escape handler is active.
+    await fireEvent.click((await findAllByText('View cart'))[0]!)
+    await nextTick()
+    expect(drawer.getAttribute('role')).toBe('dialog')
+    // Open the confirm popover, then press Escape.
+    await fireEvent.click(await findByLabelText('Remove Night Show'))
+    await findByText('Remove all tickets for this event?')
+    // Escape dismisses the popover but must NOT also close the drawer — the
+    // drawer's onKeydown bails via the .rc-confirm guard.
+    await fireEvent.keyDown(document, { key: 'Escape' })
+    await flushPromises()
+    await nextTick()
+    expect(queryByText('Remove all tickets for this event?')).toBeNull()
+    expect(drawer.getAttribute('role')).toBe('dialog')
+  })
+
   it('locks the cart (aria-busy + spinner) while the remove is in flight', async () => {
     let resolveRemove: (() => void) | undefined
     const cart = mockCart({

@@ -316,6 +316,40 @@ describe('CartDrawer', () => {
     )
   })
 
+  it('Escape on the confirm popover closes only the popover, not the drawer', async () => {
+    const cart = mockCart()
+    renderDrawer(
+      <CartDrawer
+        cart={cart}
+        collectionId='col-1'
+        onNavigate={vi.fn()}
+        browseHref='/events'
+        locale='en-AU'
+        currency='AUD'
+        initialState='open'
+      />
+    )
+    // Await data load + the open drawer (initialState='open') before reading it.
+    const trash = await screen.findByRole('button', {
+      name: 'Remove Night Show'
+    })
+    const drawer = document.getElementById('cart-drawer')!
+    expect(drawer).toHaveAttribute('role', 'dialog')
+    fireEvent.click(trash)
+    expect(
+      await screen.findByText('Remove all tickets for this event?')
+    ).toBeInTheDocument()
+    // Escape dismisses the popover but must NOT also collapse the drawer — the
+    // drawer's document Escape handler bails while a popover popup is open.
+    fireEvent.keyDown(document, { key: 'Escape' })
+    await waitFor(() =>
+      expect(
+        screen.queryByText('Remove all tickets for this event?')
+      ).not.toBeInTheDocument()
+    )
+    expect(drawer).toHaveAttribute('role', 'dialog')
+  })
+
   it('locks the cart body (aria-busy) while the remove is in flight', async () => {
     // Deferred removeItem so we can observe the pending (busy) state.
     let resolveRemove: (() => void) | undefined
