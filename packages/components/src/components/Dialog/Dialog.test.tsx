@@ -184,7 +184,11 @@ describe('Dialog (assembled)', () => {
           <Dialog.Footer>
             {/* A link-style primary action that signals disabled via ARIA
                 rather than the native attribute. */}
-            <a className='emphasis-strong' aria-disabled='true' onClick={onSave}>
+            <a
+              className='emphasis-strong'
+              aria-disabled='true'
+              onClick={onSave}
+            >
               Save
             </a>
           </Dialog.Footer>
