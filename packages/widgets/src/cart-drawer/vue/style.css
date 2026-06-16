@@ -346,7 +346,7 @@
 }
 .rc-button--strong.rc-intent-danger {
   background: var(--rc-intent-danger);
-  color: var(--rc-intent-accent-contrast);
+  color: var(--text-color-inverted, #ffffff);
 }
 /* Compact variant for the in-popover Cancel / Remove actions. */
 .rc-button--sm {
