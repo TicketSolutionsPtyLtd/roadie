@@ -16,7 +16,7 @@ export function AutocompletePositioner({
   return (
     <AutocompletePrimitive.Positioner
       data-slot='autocomplete-positioner'
-      className={cn('z-(--z-popover)', className)}
+      className={cn('z-popover', className)}
       sideOffset={4}
       {...props}
     />

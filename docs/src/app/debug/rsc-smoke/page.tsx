@@ -8,6 +8,8 @@
 // and fails the docs build. See:
 //   docs/contributing/COMPOUND_PATTERNS.md
 //   docs/solutions/rsc-patterns/compound-export-namespace.md
+import { StarIcon } from '@phosphor-icons/react/ssr'
+
 import {
   Dialog as DialogViaBarrel,
   Fieldset as FieldsetViaBarrel,
@@ -29,7 +31,6 @@ import { RadioGroup } from '@oztix/roadie-components/radio-group'
 import { Select } from '@oztix/roadie-components/select'
 import { Steps } from '@oztix/roadie-components/steps'
 import { Tabs } from '@oztix/roadie-components/tabs'
-import { StarIcon } from '@phosphor-icons/react/ssr'
 
 export default function RscSmokePage() {
   return (

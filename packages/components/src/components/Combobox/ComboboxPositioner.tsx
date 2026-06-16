@@ -16,7 +16,7 @@ export function ComboboxPositioner({
   return (
     <ComboboxPrimitive.Positioner
       data-slot='combobox-positioner'
-      className={cn('z-(--z-popover)', className)}
+      className={cn('z-popover', className)}
       sideOffset={4}
       {...props}
     />

@@ -394,9 +394,9 @@ export default function ElevationPage() {
         <h2 className='text-display-ui-3 text-strong'>Layering</h2>
         <p className='text-subtle'>
           Named stacking tiers so overlay components layer predictably against
-          each other. Reference them with the var-shorthand utility —{' '}
-          <Code>z-(--z-popover)</Code> — never a raw <Code>z-50</Code>. A higher
-          tier sits closer to the viewer.
+          each other. Each tier is a generated Tailwind utility —{' '}
+          <Code>z-popover</Code> — never a raw <Code>z-50</Code>. A higher tier
+          sits closer to the viewer.
         </p>
 
         <div className='overflow-x-auto'>
@@ -411,7 +411,7 @@ export default function ElevationPage() {
             <tbody className='divide-y divide-subtler'>
               {zScale.map(({ name, value, usage }) => (
                 <tr key={name}>
-                  <td className='py-2 pr-4 font-mono'>z-(--{name})</td>
+                  <td className='py-2 pr-4 font-mono'>{name}</td>
                   <td className='py-2 pr-4 font-mono'>{value}</td>
                   <td className='py-2'>{usage}</td>
                 </tr>
@@ -424,10 +424,10 @@ export default function ElevationPage() {
           <li>
             <p>
               <strong>
-                Reference via <Code>z-(--z-popover)</Code>
+                Reference via <Code>z-popover</Code>
               </strong>{' '}
-              — the canonical var-shorthand utility. Never reach for a raw{' '}
-              <Code>z-50</Code>, which drifts out of sync with the scale.
+              — the generated utility. Never reach for a raw <Code>z-50</Code>,
+              which drifts out of sync with the scale.
             </p>
           </li>
           <li>

@@ -17,7 +17,7 @@ export function PopoverPositioner({
   return (
     <PopoverPrimitive.Positioner
       data-slot='popover-positioner'
-      className={cn('z-(--z-popover)', className)}
+      className={cn('z-popover', className)}
       sideOffset={sideOffset}
       {...props}
     />

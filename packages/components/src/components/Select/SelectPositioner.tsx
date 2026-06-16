@@ -16,7 +16,7 @@ export function SelectPositioner({
   return (
     <SelectPrimitive.Positioner
       data-slot='select-positioner'
-      className={cn('z-(--z-popover)', className)}
+      className={cn('z-popover', className)}
       alignItemWithTrigger={false}
       {...props}
     />

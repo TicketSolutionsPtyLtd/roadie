@@ -14,7 +14,7 @@ export function DialogViewport({ className, ...props }: DialogViewportProps) {
     <DialogPrimitive.Viewport
       data-slot='dialog-viewport'
       className={cn(
-        'fixed inset-0 z-(--z-modal) grid place-items-center overflow-y-auto p-4',
+        'fixed inset-0 z-modal grid place-items-center overflow-y-auto p-4',
         className
       )}
       {...props}
