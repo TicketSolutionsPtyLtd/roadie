@@ -26,10 +26,10 @@ export function PopoverArrow({ className, ...props }: PopoverArrowProps) {
       // reach is half its width plus half its depth → `1px - (w + h) / 2`.
       className={cn(
         'z-10 flex [--arrow-h:0.5rem] [--arrow-w:1rem]',
-        'data-[side=bottom]:top-[calc(1px_-_var(--arrow-h))] data-[side=bottom]:rotate-0',
-        'data-[side=top]:bottom-[calc(1px_-_var(--arrow-h))] data-[side=top]:rotate-180',
-        'data-[side=left]:right-[calc(1px_-_(var(--arrow-w)_+_var(--arrow-h))/2)] data-[side=left]:rotate-90',
-        'data-[side=right]:left-[calc(1px_-_(var(--arrow-w)_+_var(--arrow-h))/2)] data-[side=right]:-rotate-90',
+        'data-[side=bottom]:top-[calc(1px-var(--arrow-h))] data-[side=bottom]:rotate-0',
+        'data-[side=top]:bottom-[calc(1px-var(--arrow-h))] data-[side=top]:rotate-180',
+        'data-[side=left]:right-[calc(1px-(var(--arrow-w)+var(--arrow-h))/2)] data-[side=left]:rotate-90',
+        'data-[side=right]:left-[calc(1px-(var(--arrow-w)+var(--arrow-h))/2)] data-[side=right]:-rotate-90',
         className
       )}
       {...props}
