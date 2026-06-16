@@ -1,0 +1,25 @@
+/* ═══════════════════════════════════════════════════════════
+   Layering — z-index scale
+   Named stacking tiers so overlay components layer predictably
+   against each other and new components slot into the right
+   band. Registered in Tailwind's `--z-index-*` namespace, so each
+   token emits a first-class utility — write `z-popover`, never a
+   raw `z-50` or the `z-(--z-popover)` var form. Higher tier =
+   closer to the viewer.
+
+   Intra-component stacking (e.g. a tab's text above its own
+   pseudo-element, a carousel's edge-fade gradients) stays local
+   with small `z-[n]` values — it does not participate in this
+   cross-component scale.
+   ═══════════════════════════════════════════════════════════ */
+@theme {
+  --z-index-hide: -1; /* pulled out of the stacking flow */
+  --z-index-base: 0; /* default in-flow content */
+  --z-index-docked: 10; /* in-flow elevated accents pinned to a surface */
+  --z-index-sticky: 20; /* position: sticky headers / toolbars */
+  --z-index-overlay: 30; /* dialog / drawer backdrop scrim */
+  --z-index-modal: 40; /* dialog / drawer surface */
+  --z-index-popover: 50; /* popover, select, combobox, autocomplete, dropdown panels */
+  --z-index-toast: 60; /* transient notifications */
+  --z-index-tooltip: 70; /* tooltips — always on top */
+}

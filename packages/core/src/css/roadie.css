@@ -3,6 +3,7 @@
 @import './reset.css';
 @import './tokens.css';
 @import './elevation.css';
+@import './layering.css';
 @import './intents.css';
 @import './emphasis.css';
 @import './typography.css';

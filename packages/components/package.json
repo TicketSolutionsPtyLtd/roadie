@@ -51,6 +51,10 @@
       "types": "./dist/components/Combobox/index.d.ts",
       "import": "./dist/components/Combobox/index.js"
     },
+    "./dialog": {
+      "types": "./dist/components/Dialog/index.d.ts",
+      "import": "./dist/components/Dialog/index.js"
+    },
     "./field": {
       "types": "./dist/components/Field/index.d.ts",
       "import": "./dist/components/Field/index.js"
@@ -62,6 +66,10 @@
     "./highlight": {
       "types": "./dist/components/Highlight/index.d.ts",
       "import": "./dist/components/Highlight/index.js"
+    },
+    "./icon-tile": {
+      "types": "./dist/components/IconTile/index.d.ts",
+      "import": "./dist/components/IconTile/index.js"
     },
     "./input": {
       "types": "./dist/components/Input/index.d.ts",
@@ -82,6 +90,10 @@
     "./marquee": {
       "types": "./dist/components/Marquee/index.d.ts",
       "import": "./dist/components/Marquee/index.js"
+    },
+    "./popover": {
+      "types": "./dist/components/Popover/index.d.ts",
+      "import": "./dist/components/Popover/index.js"
     },
     "./prose": {
       "types": "./dist/components/Prose/index.d.ts",

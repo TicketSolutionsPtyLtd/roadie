@@ -35,6 +35,11 @@
     inset 0 1px 0 0 rgba(255, 255, 255, 0.6),
     inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   --rim-light: var(--rim-light-normal);
+
+  /* Standalone rim-light colour for surfaces that can't take an inset
+     box-shadow (e.g. an SVG arrow edge). Mirrors rim-light-strong's top
+     highlight. */
+  --rim-light-edge: rgba(255, 255, 255, 0.6);
 }
 
 .dark {
@@ -63,6 +68,7 @@
     inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
     inset 0 0 0 1px rgba(255, 255, 255, 0.03);
   --rim-light: var(--rim-light-normal);
+  --rim-light-edge: rgba(255, 255, 255, 0.1);
 }
 
 /* ─── OKLCH tinted shadows (modern browsers) ─── */

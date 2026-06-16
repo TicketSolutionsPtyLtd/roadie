@@ -8,8 +8,12 @@
 // and fails the docs build. See:
 //   docs/contributing/COMPOUND_PATTERNS.md
 //   docs/solutions/rsc-patterns/compound-export-namespace.md
+import { StarIcon } from '@phosphor-icons/react/ssr'
+
 import {
+  Dialog as DialogViaBarrel,
   Fieldset as FieldsetViaBarrel,
+  Popover as PopoverViaBarrel,
   Tabs as TabsViaBarrel
 } from '@oztix/roadie-components'
 import { Accordion } from '@oztix/roadie-components/accordion'
@@ -18,8 +22,11 @@ import { Breadcrumb } from '@oztix/roadie-components/breadcrumb'
 import { Card } from '@oztix/roadie-components/card'
 import { Carousel } from '@oztix/roadie-components/carousel'
 import { Combobox } from '@oztix/roadie-components/combobox'
+import { Dialog } from '@oztix/roadie-components/dialog'
 import { Field } from '@oztix/roadie-components/field'
 import { Fieldset } from '@oztix/roadie-components/fieldset'
+import { IconTile } from '@oztix/roadie-components/icon-tile'
+import { Popover } from '@oztix/roadie-components/popover'
 import { RadioGroup } from '@oztix/roadie-components/radio-group'
 import { Select } from '@oztix/roadie-components/select'
 import { Steps } from '@oztix/roadie-components/steps'
@@ -407,6 +414,99 @@ export default function RscSmokePage() {
             <p className='py-4 text-subtle'>Panel two.</p>
           </Tabs.Panel>
         </Tabs.Root>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Popover — subpath</h2>
+        <Popover>
+          <Popover.Trigger>Open popover</Popover.Trigger>
+          <Popover.Content>
+            <Popover.Title>Popover title</Popover.Title>
+            <Popover.Description>
+              Rendered from a server component.
+            </Popover.Description>
+          </Popover.Content>
+        </Popover>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Popover — barrel</h2>
+        <PopoverViaBarrel>
+          <PopoverViaBarrel.Trigger>Open popover</PopoverViaBarrel.Trigger>
+          <PopoverViaBarrel.Content>
+            <PopoverViaBarrel.Title>Popover title</PopoverViaBarrel.Title>
+            <PopoverViaBarrel.Description>
+              Imported from the root barrel.
+            </PopoverViaBarrel.Description>
+          </PopoverViaBarrel.Content>
+        </PopoverViaBarrel>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Popover — <code>.Root</code> alias
+        </h2>
+        <Popover.Root>
+          <Popover.Trigger>Open popover</Popover.Trigger>
+          <Popover.Content>
+            <Popover.Title>Popover title</Popover.Title>
+            <Popover.Description>
+              Explicit <code>&lt;Popover.Root&gt;</code> — same reference as
+              bare <code>&lt;Popover&gt;</code>.
+            </Popover.Description>
+          </Popover.Content>
+        </Popover.Root>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Dialog — subpath</h2>
+        <Dialog>
+          <Dialog.Trigger>Open dialog</Dialog.Trigger>
+          <Dialog.Content>
+            <Dialog.Title>Dialog title</Dialog.Title>
+            <Dialog.Description>
+              Rendered from a server component.
+            </Dialog.Description>
+          </Dialog.Content>
+        </Dialog>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Dialog — barrel</h2>
+        <DialogViaBarrel>
+          <DialogViaBarrel.Trigger>Open dialog</DialogViaBarrel.Trigger>
+          <DialogViaBarrel.Content>
+            <DialogViaBarrel.Title>Dialog title</DialogViaBarrel.Title>
+            <DialogViaBarrel.Description>
+              Imported from the root barrel.
+            </DialogViaBarrel.Description>
+          </DialogViaBarrel.Content>
+        </DialogViaBarrel>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Dialog — <code>.Root</code> alias
+        </h2>
+        <Dialog.Root>
+          <Dialog.Trigger>Open dialog</Dialog.Trigger>
+          <Dialog.Content>
+            <Dialog.Title>Dialog title</Dialog.Title>
+            <Dialog.Description>
+              Explicit <code>&lt;Dialog.Root&gt;</code> — same reference as bare{' '}
+              <code>&lt;Dialog&gt;</code>.
+            </Dialog.Description>
+          </Dialog.Content>
+        </Dialog.Root>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>IconTile</h2>
+        {/* Flat server-safe component (no 'use client'); this just confirms
+            it renders from a server component via its subpath import. */}
+        <IconTile intent='accent'>
+          <StarIcon weight='bold' />
+        </IconTile>
       </section>
 
       {/*

@@ -29,3 +29,6 @@ scripts/venv/
 .gemini/
 .claude/settings.local.json
 .agents/skills/*/
+
+# Local agent context
+.context/

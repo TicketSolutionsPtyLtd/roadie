@@ -235,6 +235,7 @@ async function getNavigationItems() {
       'Actions',
       'Forms',
       'Navigation',
+      'Overlays',
       'Content',
       'Typography',
       'Layout'
@@ -331,7 +332,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className='overflow-x-hidden'>
+      <body className='relative isolate overflow-x-hidden'>
         <Providers>
           <div className='flex min-h-screen max-w-[100vw] flex-row'>
             <Navigation items={items} />

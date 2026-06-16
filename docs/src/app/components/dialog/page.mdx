@@ -1,0 +1,300 @@
+export const metadata = {
+  title: 'Dialog',
+  description: 'A modal overlay that interrupts the page for a focused task',
+  status: 'beta',
+  category: 'Overlays',
+}
+
+import { Button, IconButton } from '@oztix/roadie-components'
+import { XIcon } from '@phosphor-icons/react/ssr'
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+# Dialog
+
+A modal overlay that interrupts the page for a focused task, built on Base UI's dialog primitive.
+
+## Import
+
+```tsx
+import { Dialog } from '@oztix/roadie-components/dialog'
+```
+
+## Examples
+
+Each example leads with an [IconTile](/components/icon-tile) (`size='2xl' shape='circle'`, its `intent` inherited from the dialog) centred above the title — `Dialog.Header` handles the centring.
+
+### Default
+
+A trigger opens a centred modal over a dimmed backdrop. `Dialog.Content` collapses the underlying `Portal`, `Backdrop`, `Viewport`, and `Popup` into a single element.
+
+```tsx-live
+<Dialog>
+  <Dialog.Trigger render={<Button>Open dialog</Button>} />
+  <Dialog.Content>
+    <Dialog.Header>
+      <IconTile size='2xl' shape='circle'>
+        <Envelope weight='duotone' />
+      </IconTile>
+      <Dialog.Title>Subscribe</Dialog.Title>
+      <Dialog.Description>Get product updates in your inbox.</Dialog.Description>
+    </Dialog.Header>
+    <Dialog.Footer>
+      <Dialog.Close render={<Button>Cancel</Button>} />
+      <Button intent='accent' emphasis='strong'>Subscribe</Button>
+    </Dialog.Footer>
+  </Dialog.Content>
+</Dialog>
+```
+
+### Sizes
+
+Use the `size` prop on `Dialog.Content` to set the maximum width. Defaults to `md`.
+
+```tsx-live
+<div className='flex flex-wrap gap-3'>
+  <Dialog>
+    <Dialog.Trigger render={<Button>Small</Button>} />
+    <Dialog.Content size='sm'>
+      <Dialog.Header>
+        <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+        <IconTile size='2xl' shape='circle'>
+          <Info weight='duotone' />
+        </IconTile>
+        <Dialog.Title>Small dialog</Dialog.Title>
+        <Dialog.Description>max-w-sm</Dialog.Description>
+      </Dialog.Header>
+    </Dialog.Content>
+  </Dialog>
+  <Dialog>
+    <Dialog.Trigger render={<Button>Medium</Button>} />
+    <Dialog.Content size='md'>
+      <Dialog.Header>
+        <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+        <IconTile size='2xl' shape='circle'>
+          <Info weight='duotone' />
+        </IconTile>
+        <Dialog.Title>Medium dialog</Dialog.Title>
+        <Dialog.Description>max-w-md (default)</Dialog.Description>
+      </Dialog.Header>
+    </Dialog.Content>
+  </Dialog>
+  <Dialog>
+    <Dialog.Trigger render={<Button>Large</Button>} />
+    <Dialog.Content size='lg'>
+      <Dialog.Header>
+        <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+        <IconTile size='2xl' shape='circle'>
+          <Info weight='duotone' />
+        </IconTile>
+        <Dialog.Title>Large dialog</Dialog.Title>
+        <Dialog.Description>max-w-lg</Dialog.Description>
+      </Dialog.Header>
+    </Dialog.Content>
+  </Dialog>
+</div>
+```
+
+### Intents
+
+Portaled popups sit outside the trigger's CSS cascade, so set the colour context directly on `Dialog.Content` with the `intent` prop. Each intent fits a different moment — `info` and `success` for informational modals (dismiss-only, with a header close), `warning` and `danger` for caution and destructive confirmations, and `accent` to promote an action.
+
+```tsx-live
+<div className='flex flex-wrap gap-3'>
+  {/* Info — informational, dismiss-only */}
+  <Dialog>
+    <Dialog.Trigger render={<IconButton aria-label='Release notes' emphasis='subtle'><Info weight='bold' /></IconButton>} />
+    <Dialog.Content intent='info' size='sm'>
+      <Dialog.Header>
+        <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+        <IconTile size='2xl' shape='circle'>
+          <Info weight='duotone' />
+        </IconTile>
+        <Dialog.Title>What's new in 2.0</Dialog.Title>
+        <Dialog.Description>Saved views, faster search, and a redesigned inbox.</Dialog.Description>
+      </Dialog.Header>
+    </Dialog.Content>
+  </Dialog>
+
+  {/* Success — confirmation, dismiss-only */}
+  <Dialog>
+    <Dialog.Trigger render={<Button>Finish setup</Button>} />
+    <Dialog.Content intent='success' size='sm'>
+      <Dialog.Header>
+        <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+        <IconTile size='2xl' shape='circle'>
+          <CheckCircle weight='duotone' />
+        </IconTile>
+        <Dialog.Title>You're all set</Dialog.Title>
+        <Dialog.Description>Your workspace is ready to go.</Dialog.Description>
+      </Dialog.Header>
+    </Dialog.Content>
+  </Dialog>
+
+  {/* Warning — caution confirm */}
+  <Dialog>
+    <Dialog.Trigger render={<Button>Save and exit</Button>} />
+    <Dialog.Content intent='warning' size='sm'>
+      <Dialog.Header>
+        <IconTile size='2xl' shape='circle'>
+          <Warning weight='duotone' />
+        </IconTile>
+        <Dialog.Title>Discard changes?</Dialog.Title>
+        <Dialog.Description>You have unsaved edits that will be lost.</Dialog.Description>
+      </Dialog.Header>
+      <Dialog.Footer>
+        <Dialog.Close render={<Button>Keep editing</Button>} />
+        <Dialog.Close render={<Button intent='warning' emphasis='strong'>Discard</Button>} />
+      </Dialog.Footer>
+    </Dialog.Content>
+  </Dialog>
+
+  {/* Danger — destructive confirm */}
+  <Dialog>
+    <Dialog.Trigger render={<Button intent='danger'>Remove member</Button>} />
+    <Dialog.Content intent='danger' size='sm'>
+      <Dialog.Header>
+        <IconTile size='2xl' shape='circle'>
+          <Trash weight='duotone' />
+        </IconTile>
+        <Dialog.Title>Remove Jordan?</Dialog.Title>
+        <Dialog.Description>They lose access to this workspace immediately.</Dialog.Description>
+      </Dialog.Header>
+      <Dialog.Footer>
+        <Dialog.Close render={<Button>Cancel</Button>} />
+        <Dialog.Close render={<Button intent='danger' emphasis='strong'>Remove</Button>} />
+      </Dialog.Footer>
+    </Dialog.Content>
+  </Dialog>
+
+  {/* Accent — promote an upgrade */}
+  <Dialog>
+    <Dialog.Trigger render={<Button intent='accent' emphasis='strong'>Upgrade</Button>} />
+    <Dialog.Content intent='accent' size='sm'>
+      <Dialog.Header>
+        <IconTile size='2xl' shape='circle'>
+          <Star weight='duotone' />
+        </IconTile>
+        <Dialog.Title>Upgrade to Pro</Dialog.Title>
+        <Dialog.Description>Unlock unlimited projects and priority support.</Dialog.Description>
+      </Dialog.Header>
+      <Dialog.Footer>
+        <Dialog.Close render={<Button>Maybe later</Button>} />
+        <Button intent='accent' emphasis='strong'>Upgrade now</Button>
+      </Dialog.Footer>
+    </Dialog.Content>
+  </Dialog>
+</div>
+```
+
+### Composition
+
+Dialog is a compound component. Use `Dialog.Header`, `Dialog.Body`, and `Dialog.Footer` to structure the modal, and `Dialog.Close` to dismiss it.
+
+```tsx-live
+<Dialog>
+  <Dialog.Trigger render={<Button>View details</Button>} />
+  <Dialog.Content>
+    <Dialog.Header>
+      <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+      <IconTile size='2xl' shape='circle'>
+        <Ticket weight='duotone' />
+      </IconTile>
+      <Dialog.Title>Order #1024</Dialog.Title>
+      <Dialog.Description>Placed on 14 June 2026</Dialog.Description>
+    </Dialog.Header>
+    <Dialog.Body>
+      <p className='text-sm text-subtle text-center'>Two tickets to the Saturday show, collected at the door.</p>
+    </Dialog.Body>
+  </Dialog.Content>
+</Dialog>
+```
+
+### With footer actions
+
+A `Dialog.Footer` holds a centered actions row. Combine it with `intent='danger'` for a confirm-deletion flow.
+
+```tsx-live
+<Dialog>
+  <Dialog.Trigger render={<Button intent='danger' emphasis='strong'>Delete account</Button>} />
+  <Dialog.Content intent='danger' size='sm'>
+    <Dialog.Header>
+      <IconTile size='2xl' shape='circle'>
+        <Warning weight='duotone' />
+      </IconTile>
+      <Dialog.Title>Delete account?</Dialog.Title>
+      <Dialog.Description>
+        This permanently removes your account and cannot be undone.
+      </Dialog.Description>
+    </Dialog.Header>
+    <Dialog.Footer>
+      <Dialog.Close render={<Button>Cancel</Button>} />
+      <Dialog.Close render={<Button intent='danger' emphasis='strong'>Delete</Button>} />
+    </Dialog.Footer>
+  </Dialog.Content>
+</Dialog>
+```
+
+## Guidelines
+
+Use a dialog for tasks that need the user's full attention — confirmations, short forms, and destructive actions. Keep content concise, and set `intent` on `Dialog.Content`, not the trigger, since portaled popups do not inherit the trigger's CSS cascade.
+
+<div className='grid gap-8'>
+
+<Guideline title='Name buttons by their action'>
+  <Guideline.Do example={<Button intent='accent' emphasis='strong'>Save changes</Button>}>
+    Label the confirming button with the specific verb and object the user is committing to. A clear action like "Save changes" lets people act without rereading the title, and for destructive flows naming the consequence — "Delete event" — leaves no doubt about what happens.
+  </Guideline.Do>
+  <Guideline.Dont example={<Button>OK</Button>}>
+    Vague labels like "OK", "Yes", or "Submit" tell the user nothing on their own. They have to jump back to the title to work out what they are actually agreeing to.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Write a title that states the decision'>
+  <Guideline.Do example={<p className='text-display-ui-4 text-strong'>Delete event?</p>}>
+    A title that names the affected object and the action — a clear question or noun phrase — tells the user exactly what is at stake before they read another word.
+  </Guideline.Do>
+  <Guideline.Dont example={<p className='text-display-ui-4 text-strong'>Are you sure?</p>}>
+    Vague titles that never name the affected object force the user to hunt through the body for context, and make them hesitate before acting.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Use one prominent action, the rest normal'>
+  <Guideline.Do example={<div className='flex gap-2'><Button>Cancel</Button><Button intent='accent' emphasis='strong'>Save changes</Button></div>}>
+    Give the dialog one prominent button — `emphasis='strong'` with an `accent` intent, or `danger` for a destructive task — and leave the rest as default buttons. The primary path stays obvious at a glance.
+  </Guideline.Do>
+  <Guideline.Dont example={<div className='flex gap-2'><Button emphasis='subtle'>Cancel</Button><Button intent='accent' emphasis='strong'>Save</Button><Button intent='accent' emphasis='strong'>Save and close</Button></div>}>
+    Never use `emphasis='subtle'` for footer actions, and never give a dialog more than one accent or strong button. Competing prominent buttons make the user stop and weigh every option instead of following the intended path.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Dismiss with a header close, not a lone Cancel'>
+  <Guideline.Do example={<IconButton aria-label='Close' emphasis='subtle'><XIcon weight='bold' /></IconButton>}>
+    When the only action is to close, put a Close icon button in the top-left of the header and skip the footer entirely. The dialog reads as informational, not a decision awaiting a choice.
+  </Guideline.Do>
+  <Guideline.Dont example={<Button>Cancel</Button>}>
+    A lone Cancel in the footer wastes the prominent action slot and adds a step. There is nothing to cancel — the user only wants to close.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Lead notable dialogs with a matching icon'>
+  <Guideline.Do>
+    For confirmations and notable moments, centre a `size='2xl' shape='circle'` [IconTile](/components/icon-tile) above the title and leave its `intent` unset so it inherits the dialog's — a danger or warning tile for caution, success for completion. It signals the nature of the action before the title is read.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't give the tile an `intent` that clashes with the dialog, shrink it until it reads as decoration, or add one to routine dialogs where it is just noise.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- **Keyboard**: `Escape` closes the dialog and returns focus to the trigger. Focus is trapped within the dialog while it is open.
+- **Default action**: `Enter` activates the strong primary action (the `emphasis='strong'` button), like a form's default submit. It is ignored while focus is on another button, a multi-line textarea, or editable content so those keep their own `Enter` behaviour.
+- **Focus**: Focus moves into the dialog on open and is restored to the trigger on close.
+- **ARIA**: The popup is exposed with `role="dialog"` and `aria-modal`, with `Dialog.Title`/`Dialog.Description` providing the accessible name and description.
+- **Icon-only close**: When the dismiss control shows only an icon, give it an explicit label — e.g. `<Dialog.Close render={<IconButton aria-label='Close'><XIcon weight='bold' /></IconButton>} />` — so screen readers announce its purpose.
+
+<PropsDefinitions componentPath='packages/components/src/components/Dialog' />

@@ -13,6 +13,7 @@ import {
   CaretRightIcon,
   CaretUpIcon,
   CheckCircleIcon,
+  CheckIcon,
   CopyIcon,
   DownloadIcon,
   EnvelopeIcon,
@@ -21,6 +22,7 @@ import {
   GearIcon,
   HeartIcon,
   InfoIcon,
+  LinkSimpleIcon,
   MagnifyingGlassIcon,
   MinusIcon,
   PauseIcon,
@@ -30,9 +32,11 @@ import {
   PlusIcon,
   ShoppingCartIcon,
   StarIcon,
+  TicketIcon,
   TrashIcon,
   WarningIcon,
-  XCircleIcon
+  XCircleIcon,
+  XIcon
 } from '@phosphor-icons/react'
 import { Highlight, themes } from 'prism-react-renderer'
 import { LiveEditor, LiveError, LivePreview, LiveProvider } from 'react-live'
@@ -43,10 +47,14 @@ import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
 // Bare-name keys so MDX live examples can use `<CheckCircle />` etc.
 const PhosphorIcons = {
   CheckCircle: CheckCircleIcon,
+  Check: CheckIcon,
+  LinkSimple: LinkSimpleIcon,
+  X: XIcon,
   XCircle: XCircleIcon,
   Info: InfoIcon,
   Warning: WarningIcon,
   Star: StarIcon,
+  Ticket: TicketIcon,
   Plus: PlusIcon,
   Minus: MinusIcon,
   CaretDown: CaretDownIcon,
@@ -59,6 +67,7 @@ const PhosphorIcons = {
   Heart: HeartIcon,
   MagnifyingGlass: MagnifyingGlassIcon,
   Gear: GearIcon,
+  Copy: CopyIcon,
   Trash: TrashIcon,
   PencilSimple: PencilSimpleIcon,
   Eye: EyeIcon,
@@ -75,7 +84,9 @@ const scope = {
   ...RoadieComponents,
   ...SpotIllustrations,
   ...PhosphorIcons,
-  Link
+  Link,
+  useState,
+  useEffect
 }
 
 const { Button } = RoadieComponents
@@ -196,10 +207,10 @@ export function CodePreview({
   }, [])
 
   const theme = colorMode === 'dark' ? customDarkTheme : customLightTheme
-  const isBleedX =
-    language === 'tsx-live-bleed-x' || language === 'jsx-live-bleed-x'
-  const isLiveLang =
-    language === 'tsx-live' || language === 'jsx-live' || isBleedX
+  // Match the `bleed-x` segment regardless of a trailing `-noinline` so a
+  // `tsx-live-bleed-x-noinline` fence still gets the bleed-x padding.
+  const isBleedX = /^(?:tsx|jsx)-live-bleed-x/.test(language)
+  const isLiveLang = /^(?:tsx|jsx)-live/.test(language)
   const isLivePrefix =
     children.startsWith('live') && (language === 'tsx' || language === 'jsx')
   const isLive = isLiveLang || isLivePrefix
@@ -269,7 +280,8 @@ export function CodePreview({
         code={trimmedCode}
         scope={scope}
         theme={theme}
-        language={language.replace(/-live(-bleed-x)?/, '')}
+        noInline={language.includes('noinline')}
+        language={language.replace(/-live(-bleed-x)?(-noinline)?/, '')}
       >
         <LivePreview
           className={`min-w-0 overflow-x-auto bg-normal font-sans ${isBleedX ? 'py-4 sm:py-6' : 'px-4 py-4 sm:px-6 sm:py-6'}`}
