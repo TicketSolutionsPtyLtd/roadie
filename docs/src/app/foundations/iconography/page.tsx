@@ -1,3 +1,5 @@
+import type { Metadata } from 'next'
+
 import {
   CaretDownIcon,
   CheckCircleIcon,
@@ -8,8 +10,6 @@ import {
   StarIcon,
   TrashIcon
 } from '@phosphor-icons/react/ssr'
-
-import type { Metadata } from 'next'
 
 import { Guideline } from '@/components/Guideline'
 
