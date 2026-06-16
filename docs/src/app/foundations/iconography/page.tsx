@@ -147,8 +147,11 @@ export default function IconographyPage() {
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Weight</h2>
         <p className='text-subtle'>
-          Two weights are used in the system. Bold is the default for
-          everything. Fill is reserved for active or selected states only.
+          Three weights are used in the system. Bold is the default for
+          everything. Fill is reserved for active or selected states. Duotone is
+          for large, decorative icons — feature surfaces and icons inside an{' '}
+          <Code>IconTile</Code> above 48px, where a bold outline alone looks
+          hollow.
         </p>
 
         <div className='overflow-x-auto'>
@@ -189,6 +192,21 @@ export default function IconographyPage() {
                   </div>
                 </td>
               </tr>
+              <tr>
+                <td className='py-2 pr-4 font-mono text-xs text-strong'>
+                  duotone
+                </td>
+                <td className='py-2 pr-4 text-subtle'>
+                  Large decorative icons only (48px+, e.g. in an IconTile)
+                </td>
+                <td className='py-2'>
+                  <div className='flex gap-3'>
+                    <HeartIcon weight='duotone' className='size-8' />
+                    <StarIcon weight='duotone' className='size-8' />
+                    <CheckCircleIcon weight='duotone' className='size-8' />
+                  </div>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -213,6 +231,35 @@ export default function IconographyPage() {
             </span>
           </div>
         </div>
+
+        <Guideline
+          title='Reserve duotone for large, decorative icons'
+          description='Duotone adds depth at large sizes but muddies legibility when small.'
+        >
+          <Guideline.Do
+            example={
+              <IconTile size='2xl' shape='circle' intent='accent'>
+                <HeartIcon weight='duotone' />
+              </IconTile>
+            }
+          >
+            Use <Code>weight=&quot;duotone&quot;</Code> for icons 48px and up —
+            feature surfaces and icons inside an <Code>IconTile</Code> — where
+            the two-tone fill reads as intentional depth.
+          </Guideline.Do>
+          <Guideline.Dont
+            example={
+              <span className='flex items-center gap-2 text-sm text-subtle'>
+                <HeartIcon weight='duotone' className='size-4' />
+                Favourites
+              </span>
+            }
+          >
+            Don&apos;t use duotone for small inline or UI icons — the lighter
+            secondary layer turns muddy at small sizes. Use{' '}
+            <Code>weight=&quot;bold&quot;</Code> instead.
+          </Guideline.Dont>
+        </Guideline>
       </section>
 
       {/* Sizing scale */}
