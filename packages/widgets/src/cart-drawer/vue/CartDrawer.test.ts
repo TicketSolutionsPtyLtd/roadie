@@ -125,7 +125,7 @@ describe('CartDrawer (Vue)', () => {
       }
     })
     await flushPromises()
-    const browse = await findByText('Browse Events')
+    const browse = await findByText('Browse events')
     await fireEvent.click(browse)
     expect(onNavigate).toHaveBeenCalledWith('/my-events')
   })

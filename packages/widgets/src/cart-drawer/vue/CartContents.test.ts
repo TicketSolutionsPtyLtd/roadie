@@ -45,7 +45,7 @@ describe('CartContents', () => {
         currency: 'AUD'
       }
     })
-    await fireEvent.click(getByText('Browse Events'))
+    await fireEvent.click(getByText('Browse events'))
     expect(onNavigate).toHaveBeenCalledWith('/my-events')
   })
 

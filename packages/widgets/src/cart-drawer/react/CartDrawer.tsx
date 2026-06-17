@@ -35,6 +35,7 @@ import {
 } from '../core'
 import { CartContents } from './CartContents'
 import { CartDrawerFooter, CartDrawerHeader } from './CartDrawerHandle'
+import { CartEmptyState } from './CartEmptyState'
 import {
   lockBodyScroll as acquireBodyScrollLock,
   clearDrawerHeightVar,
@@ -120,6 +121,10 @@ export function CartDrawer({
     () => deriveBookingFees(details ?? null),
     [details]
   )
+
+  // Empty once cart data has loaded and the derived ticket count is zero.
+  const isEmpty =
+    (summary != null || details != null) && displayTicketCount === 0
 
   const grabberRef = useRef<HTMLButtonElement | null>(null)
   const cartHeadingId = useId()
@@ -240,6 +245,9 @@ export function CartDrawer({
 
   if (!collectionId) return null
   if (!summary && !details) return null
+  // Empty + closed → the whole drawer disappears (no docked handle). Empty +
+  // open stays mounted so the EmptyState shows until the user closes it.
+  if (isEmpty && state === 'closed') return null
 
   return (
     <LazyMotion features={domAnimation} strict>
@@ -334,6 +342,11 @@ export function CartDrawer({
                 >
                   Couldn&apos;t load your cart. Please try again.
                 </p>
+              ) : isEmpty ? (
+                <CartEmptyState
+                  browseHref={effectiveBrowseHref}
+                  onNavigate={onNavigate}
+                />
               ) : details ? (
                 <CartContents
                   cart={details}
@@ -368,21 +381,23 @@ export function CartDrawer({
             )}
           </m.div>
 
-          <CartDrawerFooter
-            cartTotal={displayTotal}
-            bookingFees={displayBookingFees}
-            locale={locale}
-            currency={currency}
-            isOpen={state === 'open'}
-            progress={dragProgress}
-            context={context}
-            onToggle={toggle}
-            onCheckout={handleCheckout}
-            onBrowse={handleBrowse}
-            checkoutDisabled={!checkoutUrl}
-            onPointerDown={handleDragStart}
-            footerRef={setFooterElement}
-          />
+          {!isEmpty && (
+            <CartDrawerFooter
+              cartTotal={displayTotal}
+              bookingFees={displayBookingFees}
+              locale={locale}
+              currency={currency}
+              isOpen={state === 'open'}
+              progress={dragProgress}
+              context={context}
+              onToggle={toggle}
+              onCheckout={handleCheckout}
+              onBrowse={handleBrowse}
+              checkoutDisabled={!checkoutUrl}
+              onPointerDown={handleDragStart}
+              footerRef={setFooterElement}
+            />
+          )}
         </FocusLock>
       </m.div>
     </LazyMotion>

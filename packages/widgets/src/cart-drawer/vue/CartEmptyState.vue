@@ -9,22 +9,38 @@ const props = defineProps<{
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center px-6 py-16 text-center">
+  <!-- Hand-port of the Roadie EmptyState compound (size md) — class strings
+       copied from packages/components/src/components/EmptyState. -->
+  <div
+    data-slot="empty-state"
+    class="grid justify-items-center gap-6 py-12 text-center"
+  >
     <div
-      class="mb-6 flex size-24 items-center justify-center rounded-full bg-subtle"
+      data-slot="empty-state-icon-tile"
+      class="inline-flex size-16 items-center justify-center rounded-full emphasis-subtle p-3.5 text-subtle [&_svg]:size-9 [&_svg]:shrink-0"
     >
-      <PhBag weight="bold" class="size-10 text-subtler" aria-hidden="true" />
+      <PhBag weight="bold" aria-hidden="true" />
     </div>
-    <h2 class="mb-2 text-display-ui-3 text-strong">Your cart is empty</h2>
-    <p class="mb-6 max-w-xs text-prose text-balance text-subtle">
+    <h2
+      data-slot="empty-state-title"
+      class="text-display-ui-3 text-balance text-strong"
+    >
+      Your cart is empty
+    </h2>
+    <p
+      data-slot="empty-state-description"
+      class="max-w-md text-base/prose tracking-prose text-pretty text-subtle [[data-slot=empty-state-title]+&]:-mt-4"
+    >
       Browse events and add tickets to get started.
     </p>
-    <button
-      type="button"
-      class="is-interactive btn btn-lg emphasis-strong intent-brand"
-      @click="props.onNavigate(props.browseHref)"
-    >
-      Browse Events
-    </button>
+    <div class="flex flex-wrap items-center justify-center gap-3">
+      <button
+        type="button"
+        class="is-interactive btn btn-md emphasis-strong intent-brand"
+        @click="props.onNavigate(props.browseHref)"
+      >
+        Browse events
+      </button>
+    </div>
   </div>
 </template>

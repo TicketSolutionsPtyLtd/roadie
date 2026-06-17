@@ -23,6 +23,7 @@ import {
 import CartContents from './CartContents.vue'
 import CartDrawerFooter from './CartDrawerFooter.vue'
 import CartDrawerHeader from './CartDrawerHeader.vue'
+import CartEmptyState from './CartEmptyState.vue'
 import { lockBodyScroll } from './documentEffects'
 import type { CartDrawerProps } from './types'
 import { useCart } from './useCart'
@@ -90,6 +91,16 @@ const bindFooter = (el: Element | ComponentPublicInstance | null): void => {
 }
 
 const isOpen = computed(() => state.value === 'open')
+
+// Empty once cart data has loaded and the derived ticket count is zero.
+const isEmpty = computed(
+  () =>
+    (summary.value != null || details.value != null) &&
+    displayTicketCount.value === 0
+)
+// Empty + closed → the whole drawer disappears. Empty + open stays mounted so
+// the EmptyState shows until the user closes it.
+const hidden = computed(() => isEmpty.value && !isOpen.value)
 
 watch(state, (next, prev) => {
   if (next !== prev) props.onOpenChange?.(next === 'open')
@@ -247,7 +258,7 @@ const contentOpacity = computed(() =>
 </script>
 
 <template>
-  <template v-if="collectionId && (summary || details)">
+  <template v-if="collectionId && (summary || details) && !hidden">
     <div
       aria-hidden="true"
       class="fixed inset-0 z-70 emphasis-overlay transition-opacity duration-300 ease-out"
@@ -308,6 +319,11 @@ const contentOpacity = computed(() =>
         >
           Couldn't load your cart. Please try again.
         </p>
+        <CartEmptyState
+          v-else-if="isEmpty"
+          :browse-href="effectiveBrowseHref"
+          :on-navigate="onNavigate"
+        />
         <template v-else-if="details">
           <p
             v-if="removeError"
@@ -356,6 +372,7 @@ const contentOpacity = computed(() =>
       </div>
 
       <CartDrawerFooter
+        v-if="!isEmpty"
         :ref="bindFooter"
         :cart-total="displayTotal"
         :booking-fees="displayBookingFees"

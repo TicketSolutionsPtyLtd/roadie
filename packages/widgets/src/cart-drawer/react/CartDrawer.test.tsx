@@ -126,8 +126,9 @@ describe('CartDrawer', () => {
         initialState='open'
       />
     )
-    // Empty-state button is exact "Browse Events"; footer uses lowercase "Browse events".
-    const browse = await screen.findByRole('button', { name: 'Browse Events' })
+    // Empty cart hides the footer, so the only "Browse events" button is the
+    // EmptyState action.
+    const browse = await screen.findByRole('button', { name: 'Browse events' })
     fireEvent.click(browse)
     expect(onNavigate).toHaveBeenCalledWith('/my-events')
   })
