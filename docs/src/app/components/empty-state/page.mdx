@@ -1,0 +1,307 @@
+export const metadata = {
+  title: 'Empty state',
+  description:
+    'Communicates that a section or page has no content, with optional media, message, and actions.',
+  status: 'beta',
+  category: 'Content'
+}
+
+import { Button, EmptyState } from '@oztix/roadie-components'
+import { MagnifyingGlassIcon, TicketIcon } from '@phosphor-icons/react/ssr'
+
+import { Guideline } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Empty state
+
+Communicates that a section or page has no content — scaling from a small
+empty section up to a whole-page empty or 404 screen via a single `size` token.
+
+## Import
+
+```tsx
+import { EmptyState } from '@oztix/roadie-components/empty-state'
+```
+
+## Examples
+
+### Default
+
+The standalone `md` empty state — an IconTile, a message, and one action.
+
+```tsx-live
+<EmptyState>
+  <EmptyState.IconTile>
+    <TicketIcon weight='duotone' />
+  </EmptyState.IconTile>
+  <EmptyState.Title>No events yet</EmptyState.Title>
+  <EmptyState.Description>
+    This collection doesn't have any events listed yet. Check back soon.
+  </EmptyState.Description>
+  <EmptyState.Actions>
+    <Button href='#'>Back to home</Button>
+  </EmptyState.Actions>
+</EmptyState>
+```
+
+### In a section
+
+Use `size='sm'` for an empty state inside a card or panel.
+
+```tsx-live
+<Card>
+  <Card.Content>
+    <EmptyState size='sm'>
+      <EmptyState.IconTile>
+        <TicketIcon weight='duotone' />
+      </EmptyState.IconTile>
+      <EmptyState.Title>No tickets</EmptyState.Title>
+      <EmptyState.Description>
+        Tickets you buy will appear here.
+      </EmptyState.Description>
+    </EmptyState>
+  </Card.Content>
+</Card>
+```
+
+### Whole page
+
+Use `size='lg'` with a custom hero illustration for a full-page empty or 404
+screen. Raise the heading to `h1` with `render`.
+
+```tsx-live
+<EmptyState size='lg'>
+  <EmptyState.Title render={<h1 />}>This page packed up early</EmptyState.Title>
+  <EmptyState.Description>
+    The link is broken. The event might be over. Let's find you another gig.
+  </EmptyState.Description>
+  <EmptyState.Actions>
+    <Button href='#' intent='accent' emphasis='strong'>
+      Explore events
+    </Button>
+  </EmptyState.Actions>
+  <EmptyState.Illustration>
+    <img src='/empty-state-404.png' alt='' />
+  </EmptyState.Illustration>
+</EmptyState>
+```
+
+### Sizes
+
+```tsx-live
+<div className='grid gap-8'>
+  {['sm', 'md', 'lg'].map((size) => (
+    <EmptyState key={size} size={size}>
+      <EmptyState.IconTile>
+        <MagnifyingGlassIcon weight='duotone' />
+      </EmptyState.IconTile>
+      <EmptyState.Title>No results</EmptyState.Title>
+      <EmptyState.Description>Try a different search.</EmptyState.Description>
+    </EmptyState>
+  ))}
+</div>
+```
+
+### Media by size
+
+The recommended pairing: `sm` → IconTile, `md` → SpotIllustration,
+`lg` → hero illustration. The pairing is a convention, not enforced.
+
+```tsx-live
+<div className='grid gap-8'>
+  <EmptyState size='sm'>
+    <EmptyState.IconTile>
+      <HeartIcon weight='duotone' />
+    </EmptyState.IconTile>
+    <EmptyState.Title>No favourites yet</EmptyState.Title>
+    <EmptyState.Description>
+      Save events you love and they'll show up here.
+    </EmptyState.Description>
+    <EmptyState.Actions>
+      <Button href='#'>Browse events</Button>
+    </EmptyState.Actions>
+  </EmptyState>
+  <EmptyState size='md'>
+    <EmptyState.Illustration>
+      <NoteMusic />
+    </EmptyState.Illustration>
+    <EmptyState.Title>No upcoming events</EmptyState.Title>
+    <EmptyState.Description>
+      New shows will appear here as they're announced.
+    </EmptyState.Description>
+    <EmptyState.Actions>
+      <Button href='#'>Browse events</Button>
+    </EmptyState.Actions>
+  </EmptyState>
+</div>
+```
+
+### Intents
+
+Set `intent` on the root to tint the IconTile and Button together. Omit it to
+inherit the palette from an ancestor instead.
+
+```tsx-live
+<div className='grid gap-8'>
+  <EmptyState intent='accent' size='sm'>
+    <EmptyState.IconTile>
+      <StarIcon weight='duotone' />
+    </EmptyState.IconTile>
+    <EmptyState.Title>You're all caught up</EmptyState.Title>
+    <EmptyState.Description>No new notifications right now.</EmptyState.Description>
+    <EmptyState.Actions>
+      <Button href='#' emphasis='strong'>
+        View activity
+      </Button>
+    </EmptyState.Actions>
+  </EmptyState>
+  <EmptyState intent='danger' size='sm'>
+    <EmptyState.IconTile>
+      <WarningIcon weight='duotone' />
+    </EmptyState.IconTile>
+    <EmptyState.Title>Something went wrong</EmptyState.Title>
+    <EmptyState.Description>
+      We couldn't load your events. Try again.
+    </EmptyState.Description>
+    <EmptyState.Actions>
+      <Button href='#' emphasis='strong'>
+        Retry
+      </Button>
+    </EmptyState.Actions>
+  </EmptyState>
+</div>
+```
+
+### Without actions
+
+Title and description only.
+
+```tsx-live
+<EmptyState size='sm'>
+  <EmptyState.IconTile>
+    <EnvelopeIcon weight='duotone' />
+  </EmptyState.IconTile>
+  <EmptyState.Title>Inbox zero</EmptyState.Title>
+  <EmptyState.Description>You're all caught up.</EmptyState.Description>
+</EmptyState>
+```
+
+## Guidelines
+
+<div className='grid gap-8'>
+
+<Guideline title='Match the size to its context'>
+  <Guideline.Do
+    example={
+      <EmptyState size='sm'>
+        <EmptyState.IconTile>
+          <TicketIcon weight='duotone' />
+        </EmptyState.IconTile>
+        <EmptyState.Title>No tickets</EmptyState.Title>
+        <EmptyState.Description>
+          Tickets you buy will appear here.
+        </EmptyState.Description>
+      </EmptyState>
+    }
+  >
+    Use `size='sm'` inside a card or panel, `md` for a standalone state, and
+    `lg` only for a whole-page empty or 404 screen.
+  </Guideline.Do>
+  <Guideline.Dont
+    example={
+      <EmptyState size='lg'>
+        <EmptyState.Title>No tickets</EmptyState.Title>
+        <EmptyState.Description>
+          Tickets you buy will appear here.
+        </EmptyState.Description>
+      </EmptyState>
+    }
+  >
+    Don't drop a whole-page `lg` state into a small section — it overwhelms the
+    surrounding UI.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep the message short and give a way out'>
+  <Guideline.Do
+    example={
+      <EmptyState size='sm'>
+        <EmptyState.IconTile>
+          <MagnifyingGlassIcon weight='duotone' />
+        </EmptyState.IconTile>
+        <EmptyState.Title>No results</EmptyState.Title>
+        <EmptyState.Description>
+          Try a different search.
+        </EmptyState.Description>
+        <EmptyState.Actions>
+          <Button href='#'>Clear filters</Button>
+        </EmptyState.Actions>
+      </EmptyState>
+    }
+  >
+    A short title, a one-line description, and an action that moves the user
+    forward.
+  </Guideline.Do>
+  <Guideline.Dont
+    example={
+      <EmptyState size='sm'>
+        <EmptyState.IconTile>
+          <MagnifyingGlassIcon weight='duotone' />
+        </EmptyState.IconTile>
+        <EmptyState.Title>No results were found for your search</EmptyState.Title>
+        <EmptyState.Description>
+          We looked everywhere but couldn't find anything matching your
+          criteria. This can happen when filters are too narrow, the spelling
+          is off, or there simply isn't any content yet.
+        </EmptyState.Description>
+      </EmptyState>
+    }
+  >
+    Don't pad the copy into a paragraph or leave the user at a dead end with no
+    next step.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Set the intent once on the root'>
+  <Guideline.Do
+    code={`<EmptyState intent='danger'>\n  <EmptyState.IconTile>…</EmptyState.IconTile>\n  <EmptyState.Title>Something went wrong</EmptyState.Title>\n  <EmptyState.Actions>\n    <Button emphasis='strong'>Retry</Button>\n  </EmptyState.Actions>\n</EmptyState>`}
+  >
+    Pass `intent` on the root (or inherit it from an ancestor) so the tile and
+    buttons share one palette.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`<EmptyState>\n  <EmptyState.IconTile intent='danger'>…</EmptyState.IconTile>\n  <EmptyState.Actions>\n    <Button intent='danger'>Retry</Button>\n  </EmptyState.Actions>\n</EmptyState>`}
+  >
+    Don't hard-code the same intent on every child — it drifts out of sync.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Let EmptyState borrow a surface'>
+  <Guideline.Do
+    code={`<Card>\n  <Card.Content>\n    <EmptyState size='sm'>…</EmptyState>\n  </Card.Content>\n</Card>`}
+  >
+    Wrap the empty state in a `Card` when you need a background or border —
+    EmptyState has no surface of its own.
+  </Guideline.Do>
+  <Guideline.Dont
+    code={`<EmptyState className='rounded-xl border bg-raised p-6'>…</EmptyState>`}
+  >
+    Don't bolt an ad-hoc surface onto the root with utility classes — reach for
+    the `Card` you already have.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- `EmptyState.Title` renders an `<h2>` by default. Use `render={<h1 />}` (or
+  another level) so the heading fits the surrounding document outline —
+  especially `h1` for a whole-page state.
+- Decorative media should be hidden from assistive tech: pass `alt=''` on
+  `<img>` heroes. `SpotIllustration` sets `aria-hidden` automatically unless
+  you give it an `aria-label`. `IconTile` is not hidden by default — add
+  `aria-hidden` to a purely decorative tile; the title and description carry
+  the meaning.
+
+<PropsDefinitions componentPath='packages/components/src/components/EmptyState' />

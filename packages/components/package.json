@@ -1,6 +1,6 @@
 {
   "name": "@oztix/roadie-components",
-  "version": "2.7.0",
+  "version": "2.8.0",
   "description": "React components for the Roadie Design System",
   "type": "module",
   "repository": {
@@ -54,6 +54,10 @@
     "./dialog": {
       "types": "./dist/components/Dialog/index.d.ts",
       "import": "./dist/components/Dialog/index.js"
+    },
+    "./empty-state": {
+      "types": "./dist/components/EmptyState/index.d.ts",
+      "import": "./dist/components/EmptyState/index.js"
     },
     "./field": {
       "types": "./dist/components/Field/index.d.ts",
