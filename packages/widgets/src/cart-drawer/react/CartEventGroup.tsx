@@ -95,15 +95,12 @@ export function CartEventGroup({
                 </IconButton>
               }
             />
-            <Popover.Content
-              intent='danger'
-              aria-label='Remove all tickets for this event?'
-            >
-              <Popover.Body>
-                <p className='text-ui text-pretty text-strong'>
+            <Popover.Content intent='danger'>
+              <Popover.Header>
+                <Popover.Title>
                   Remove all tickets for this event?
-                </p>
-              </Popover.Body>
+                </Popover.Title>
+              </Popover.Header>
               <Popover.Footer>
                 <Popover.Close
                   render={

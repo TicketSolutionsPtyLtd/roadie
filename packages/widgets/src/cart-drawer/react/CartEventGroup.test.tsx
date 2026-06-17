@@ -99,6 +99,11 @@ describe('CartEventGroup', () => {
     expect(
       await screen.findByText('Remove all tickets for this event?')
     ).toBeInTheDocument()
+    expect(
+      await screen.findByRole('dialog', {
+        name: 'Remove all tickets for this event?'
+      })
+    ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Remove' })).toBeInTheDocument()
   })
