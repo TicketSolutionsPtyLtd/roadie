@@ -84,7 +84,7 @@ onBeforeUnmount(() => {
       <div v-if="dismissible" class="absolute top-4 right-4">
         <button
           type="button"
-          class="btn is-interactive btn-icon-sm emphasis-subtle intent-neutral"
+          class="is-interactive btn btn-icon-sm emphasis-subtle intent-neutral"
           aria-label="Close"
           @click="onClose?.()"
         >

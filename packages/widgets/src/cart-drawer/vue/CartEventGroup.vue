@@ -132,7 +132,7 @@ onBeforeUnmount(() => {
       <div ref="removeWrapEl" class="relative shrink-0 self-start">
         <button
           type="button"
-          class="btn is-interactive btn-icon-sm emphasis-subtler intent-danger"
+          class="is-interactive btn btn-icon-sm emphasis-subtler intent-danger"
           :aria-label="`Remove ${event.eventName}`"
           :aria-expanded="confirming"
           :aria-controls="confirmId"
