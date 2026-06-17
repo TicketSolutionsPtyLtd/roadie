@@ -22,6 +22,13 @@ export const VIEWPORT_MARGIN_PX = 32
  */
 export const MOBILE_OPEN_TOP_INSET_PX = 30
 
+/**
+ * How long (ms) to keep an emptied drawer mounted after it's closed so the
+ * normal close slide-down plays before it unmounts. Covers both skins' close
+ * timing (React spring settle ~270ms; Vue height transition 320ms).
+ */
+export const EMPTY_CLOSE_UNMOUNT_MS = 350
+
 /** How long (ms) the cart bounces after the ticket count increases. */
 export const BOUNCE_HOLD_MS = 600
 

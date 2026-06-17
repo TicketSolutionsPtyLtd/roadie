@@ -7,11 +7,13 @@ import {
   onMounted,
   ref,
   useId,
-  watch
+  watch,
+  watchEffect
 } from 'vue'
 
 import {
   BOUNCE_HOLD_MS,
+  EMPTY_CLOSE_UNMOUNT_MS,
   type ExpiryWatcher,
   buildBrowseHref,
   createExpiryWatcher,
@@ -92,15 +94,48 @@ const bindFooter = (el: Element | ComponentPublicInstance | null): void => {
 
 const isOpen = computed(() => state.value === 'open')
 
-// Empty once cart data has loaded and the derived ticket count is zero.
+// High-water latch: once the drawer has shown a cart with items, remember it so
+// an empty/null refetch (the API returns null for an emptied cart) keeps the
+// open drawer mounted to show the EmptyState instead of vanishing.
+const sawCart = ref(false)
+const hasCartData = computed(
+  () => summary.value != null || details.value != null
+)
+watchEffect(() => {
+  if (hasCartData.value && displayTicketCount.value > 0) sawCart.value = true
+})
 const isEmpty = computed(
   () =>
-    (summary.value != null || details.value != null) &&
-    displayTicketCount.value === 0
+    (hasCartData.value && displayTicketCount.value === 0) ||
+    (sawCart.value && !hasCartData.value)
 )
-// Empty + closed → the whole drawer disappears. Empty + open stays mounted so
-// the EmptyState shows until the user closes it.
-const hidden = computed(() => isEmpty.value && !isOpen.value)
+// Empty + closed → the whole drawer disappears, but only after the close
+// slide-down has played (emptyClosed). Empty + open stays mounted so the
+// EmptyState shows until the user closes it.
+const emptyClosed = ref(false)
+let emptyCloseTimer: ReturnType<typeof setTimeout> | null = null
+watch(
+  () => isEmpty.value && !isOpen.value,
+  (closing) => {
+    if (emptyCloseTimer !== null) {
+      clearTimeout(emptyCloseTimer)
+      emptyCloseTimer = null
+    }
+    if (closing) {
+      emptyCloseTimer = setTimeout(() => {
+        emptyClosed.value = true
+      }, EMPTY_CLOSE_UNMOUNT_MS)
+    } else {
+      emptyClosed.value = false
+    }
+  }
+)
+const hidden = computed(
+  () => isEmpty.value && !isOpen.value && emptyClosed.value
+)
+// Closing an emptied drawer: fade the whole surface out as it slides down so
+// the docked bar never reads before it unmounts.
+const emptyClosing = computed(() => isEmpty.value && !isOpen.value)
 
 watch(state, (next, prev) => {
   if (next !== prev) props.onOpenChange?.(next === 'open')
@@ -212,6 +247,7 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
   if (bounceTimer !== null) clearTimeout(bounceTimer)
+  if (emptyCloseTimer !== null) clearTimeout(emptyCloseTimer)
   expireWatcher?.stop()
   trap?.deactivate()
   releaseScrollLock?.()
@@ -258,7 +294,7 @@ const contentOpacity = computed(() =>
 </script>
 
 <template>
-  <template v-if="collectionId && (summary || details) && !hidden">
+  <template v-if="collectionId && (summary || details || sawCart) && !hidden">
     <div
       aria-hidden="true"
       class="fixed inset-0 z-70 emphasis-overlay transition-opacity duration-300 ease-out"
@@ -273,19 +309,20 @@ const contentOpacity = computed(() =>
     <div
       ref="drawerEl"
       id="cart-drawer"
-      class="animate-cart-pop-in fixed z-70 flex flex-col overflow-hidden emphasis-floating [transition:height_320ms_cubic-bezier(0.22,1,0.36,1),border-radius_300ms_var(--ease-out),inset_300ms_var(--ease-out)] focus:outline-none sm:inset-x-4 sm:bottom-4 sm:mx-auto sm:max-w-[600px] sm:rounded-4xl"
+      class="fixed z-70 flex flex-col overflow-hidden emphasis-floating [transition:height_320ms_cubic-bezier(0.22,1,0.36,1),border-radius_300ms_var(--ease-out),inset_300ms_var(--ease-out),opacity_300ms_var(--ease-out)] focus:outline-none sm:inset-x-4 sm:bottom-4 sm:mx-auto sm:max-w-[600px] sm:rounded-4xl"
       tabindex="-1"
       :class="[
         isOpen
           ? 'inset-x-0 bottom-0 rounded-t-4xl'
           : 'inset-x-3 bottom-3 rounded-3xl',
+        !emptyClosing && 'animate-cart-pop-in',
         isDragging && 'transition-none'
       ]"
       :role="isOpen ? 'dialog' : 'region'"
       :aria-modal="isOpen ? 'true' : undefined"
       :aria-labelledby="isOpen ? cartHeadingId : undefined"
       :aria-label="isOpen ? undefined : 'Cart summary'"
-      :style="{ height: `${dragHeight}px` }"
+      :style="{ height: `${dragHeight}px`, opacity: emptyClosing ? 0 : 1 }"
     >
       <CartDrawerHeader
         :ref="bindHeader"

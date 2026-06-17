@@ -26,6 +26,7 @@ import { cn } from '@oztix/roadie-core/utils'
 import {
   BOUNCE_HOLD_MS,
   type CartClient,
+  EMPTY_CLOSE_UNMOUNT_MS,
   buildBrowseHref,
   createExpiryWatcher,
   deriveBookingFees,
@@ -108,6 +109,8 @@ export function CartDrawer({
 
   const [removeBusy, setRemoveBusy] = useState(false)
   const [removeError, setRemoveError] = useState<string | null>(null)
+  // True once the empty-close slide-down has finished and we can unmount.
+  const [emptyClosed, setEmptyClosed] = useState(false)
 
   const displayTicketCount = useMemo(
     () => deriveTicketCount(details ?? null, summary ?? null),
@@ -122,9 +125,15 @@ export function CartDrawer({
     [details]
   )
 
-  // Empty once cart data has loaded and the derived ticket count is zero.
+  const sawCartRef = useRef(false)
+  // High-water latch: once the drawer has shown a cart with items, remember it so
+  // an empty/null refetch (the API returns null for an emptied cart) keeps the
+  // open drawer mounted to show the EmptyState instead of vanishing.
+  const hasCartData = summary != null || details != null
+  if (hasCartData && displayTicketCount > 0) sawCartRef.current = true
   const isEmpty =
-    (summary != null || details != null) && displayTicketCount === 0
+    (hasCartData && displayTicketCount === 0) ||
+    (sawCartRef.current && !hasCartData)
 
   const grabberRef = useRef<HTMLButtonElement | null>(null)
   const cartHeadingId = useId()
@@ -194,6 +203,19 @@ export function CartDrawer({
     return acquireBodyScrollLock()
   }, [lockBodyScroll, state])
 
+  // Defer the unmount of an emptied, closed drawer until the close slide-down
+  // has played, so it animates out the same way a normal close does.
+  useEffect(() => {
+    if (isEmpty && state === 'closed') {
+      const t = window.setTimeout(
+        () => setEmptyClosed(true),
+        EMPTY_CLOSE_UNMOUNT_MS
+      )
+      return () => window.clearTimeout(t)
+    }
+    setEmptyClosed(false)
+  }, [isEmpty, state])
+
   useEffect(() => {
     if (state !== 'open') return
     const onKey = (e: KeyboardEvent) => {
@@ -244,10 +266,17 @@ export function CartDrawer({
   )
 
   if (!collectionId) return null
-  if (!summary && !details) return null
-  // Empty + closed → the whole drawer disappears (no docked handle). Empty +
-  // open stays mounted so the EmptyState shows until the user closes it.
-  if (isEmpty && state === 'closed') return null
+  // Never had a cart → render nothing. Once we've shown one (sawCartRef), an
+  // emptied/null refetch keeps us mounted so the EmptyState can show.
+  if (!summary && !details && !sawCartRef.current) return null
+  // Empty + closed → the whole drawer disappears (no docked handle), but only
+  // after the close slide-down has played (emptyClosed). Empty + open stays
+  // mounted so the EmptyState shows until the user closes it.
+  if (isEmpty && state === 'closed' && emptyClosed) return null
+
+  // Closing an emptied drawer: fade the whole surface out as it slides down so
+  // the docked bar never reads before it unmounts.
+  const emptyClosing = isEmpty && state === 'closed'
 
   return (
     <LazyMotion features={domAnimation} strict>
@@ -277,7 +306,7 @@ export function CartDrawer({
         initial={
           prefersReducedMotion ? false : { opacity: 0, scale: 0.96, y: 8 }
         }
-        animate={{ opacity: 1, scale: 1, y: 0 }}
+        animate={{ opacity: emptyClosing ? 0 : 1, scale: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
         className={cn(
           'fixed z-70 flex flex-col overflow-hidden emphasis-floating',
