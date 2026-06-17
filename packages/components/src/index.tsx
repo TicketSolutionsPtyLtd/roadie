@@ -27,6 +27,19 @@ export {
 } from './components/IconTile'
 
 export {
+  EmptyState,
+  emptyStateVariants,
+  type EmptyStateProps,
+  type EmptyStateSize,
+  type EmptyStateIntent,
+  type EmptyStateTitleProps,
+  type EmptyStateDescriptionProps,
+  type EmptyStateIconTileProps,
+  type EmptyStateIllustrationProps,
+  type EmptyStateActionsProps
+} from './components/EmptyState'
+
+export {
   Breadcrumb,
   type BreadcrumbProps,
   type BreadcrumbListProps,

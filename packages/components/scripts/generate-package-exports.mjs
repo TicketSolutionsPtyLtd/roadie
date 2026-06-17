@@ -15,7 +15,13 @@
 // Next.js server components to dot into the compound namespace without
 // hitting the client-reference-proxy wall. See:
 //   docs/solutions/rsc-patterns/compound-export-namespace.md
-import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
+import {
+  existsSync,
+  readFileSync,
+  readdirSync,
+  statSync,
+  writeFileSync
+} from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -44,7 +50,14 @@ function listComponentFolders() {
   return readdirSync(componentsDir)
     .filter((name) => {
       const entry = join(componentsDir, name)
-      return statSync(entry).isDirectory() && /^[A-Z]/.test(name)
+      if (!statSync(entry).isDirectory() || !/^[A-Z]/.test(name)) return false
+      // Only include components with a public index — in-progress directories
+      // that contain only variants/context files are excluded until an index
+      // is added (prevents broken subpath exports during multi-task work).
+      return (
+        existsSync(join(entry, 'index.tsx')) ||
+        existsSync(join(entry, 'index.ts'))
+      )
     })
     .sort()
 }
