@@ -110,7 +110,7 @@ export function CartDrawerHeader({
         >
           <IconButton
             aria-label='Close cart'
-            emphasis='subtle'
+            emphasis='subtler'
             intent='neutral'
             size='icon-sm'
             onClick={onToggle}

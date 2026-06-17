@@ -266,7 +266,7 @@ const contentOpacity = computed(() =>
       tabindex="-1"
       :class="[
         isOpen
-          ? 'inset-x-0 bottom-0 rounded-t-4xl'
+          ? 'inset-x-3 bottom-3 rounded-4xl'
           : 'inset-x-3 bottom-3 rounded-3xl',
         isDragging && 'transition-none'
       ]"

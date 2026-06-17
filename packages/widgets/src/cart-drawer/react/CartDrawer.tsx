@@ -175,7 +175,6 @@ export function CartDrawer({
     return () => watcher.stop()
   }, [expiresAtUtc, onExpire])
 
-  // Per-instance registry guards the CSS var so a second drawer's unmount can't wipe this one's reservation.
   const closedHeight = headerHeight + footerHeight
   const heightKeyRef = useRef<object>({})
   useEffect(() => {
@@ -185,7 +184,6 @@ export function CartDrawer({
     return () => clearDrawerHeightVar(key)
   }, [closedHeight, onHeightChange])
 
-  // Refcounted so multiple instances don't unlock each other.
   useEffect(() => {
     if (!lockBodyScroll || state !== 'open') return
     return acquireBodyScrollLock()
@@ -210,7 +208,6 @@ export function CartDrawer({
     if (checkoutUrl) onNavigate(checkoutUrl)
   }, [checkoutUrl, onNavigate])
 
-  // Routes the package-built effectiveBrowseHref (never a consumer URL) — no open-redirect surface.
   const handleBrowse = useCallback(() => {
     onNavigate(effectiveBrowseHref)
   }, [effectiveBrowseHref, onNavigate])
@@ -278,7 +275,7 @@ export function CartDrawer({
           'fixed z-70 flex flex-col overflow-hidden emphasis-floating',
           'transition-[border-radius,inset] duration-300 ease-out',
           state === 'open'
-            ? 'inset-x-0 bottom-0 rounded-t-4xl'
+            ? 'inset-x-3 bottom-3 rounded-4xl'
             : 'inset-x-3 bottom-3 rounded-3xl',
           'sm:inset-x-4 sm:bottom-4 sm:mx-auto sm:max-w-[600px] sm:rounded-4xl',
           isDragging && 'transition-none'

@@ -116,7 +116,7 @@ function onGrabberKeydown(e: KeyboardEvent) {
       >
         <button
           type="button"
-          class="is-interactive btn btn-icon-sm emphasis-subtle intent-neutral"
+          class="is-interactive btn btn-icon-sm emphasis-subtler intent-neutral"
           aria-label="Close cart"
           @click="emit('toggle')"
         >
