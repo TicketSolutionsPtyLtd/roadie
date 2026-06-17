@@ -47,7 +47,7 @@ function browse() {
       >
         <PhClock
           weight="bold"
-          class="size-7 text-normal intent-danger"
+          class="size-7 text-[var(--intent-9)] intent-danger"
           aria-hidden="true"
         />
       </div>
@@ -55,7 +55,7 @@ function browse() {
     <template #body>
       Your tickets are held for a little longer. Check out now to secure them.
       <span
-        class="mt-2 block text-display-ui-4 text-normal tabular-nums intent-danger"
+        class="mt-2 block text-display-ui-4 text-[var(--intent-9)] tabular-nums intent-danger"
       >
         <NumberFlow :value="minutes" />:<NumberFlow
           :value="seconds"
@@ -73,7 +73,7 @@ function browse() {
       </button>
       <button
         type="button"
-        class="is-interactive btn btn-md flex-1 emphasis-strong intent-accent"
+        class="is-interactive btn btn-md flex-1 emphasis-strong intent-danger"
         :disabled="!checkoutUrl"
         @click="checkout"
       >

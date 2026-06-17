@@ -40,7 +40,7 @@ export function CartExpiryModals({
           <div className='flex size-14 items-center justify-center rounded-full bg-subtle'>
             <ClockIcon
               weight='bold'
-              className='size-7 text-normal intent-danger'
+              className='size-7 text-[var(--intent-9)] intent-danger'
             />
           </div>
         }
@@ -56,7 +56,7 @@ export function CartExpiryModals({
             </Button>
             <Button
               emphasis='strong'
-              intent='accent'
+              intent='danger'
               className='flex-1'
               disabled={!checkoutUrl}
               onClick={() => {
@@ -69,7 +69,7 @@ export function CartExpiryModals({
         }
       >
         Your tickets are held for a little longer. Check out now to secure them.
-        <span className='mt-2 block text-display-ui-4 text-normal tabular-nums intent-danger'>
+        <span className='mt-2 block text-display-ui-4 text-[var(--intent-9)] tabular-nums intent-danger'>
           <NumberFlow value={mins} />:
           <NumberFlow value={secs} format={{ minimumIntegerDigits: 2 }} />
         </span>

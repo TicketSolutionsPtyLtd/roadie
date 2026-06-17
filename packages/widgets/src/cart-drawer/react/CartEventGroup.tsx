@@ -102,7 +102,7 @@ export function CartEventGroup({
                 />
                 <Button
                   intent='danger'
-                  emphasis='strong'
+                  emphasis='subtle'
                   size='sm'
                   onClick={() => {
                     onRemoveEvent(event.eventId)

@@ -203,7 +203,7 @@ onBeforeUnmount(() => {
             </button>
             <button
               type="button"
-              class="is-interactive btn btn-sm emphasis-strong intent-danger"
+              class="is-interactive btn btn-sm emphasis-subtle intent-danger"
               :disabled="busy"
               @click="confirmRemove"
             >
