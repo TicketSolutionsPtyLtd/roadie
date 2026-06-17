@@ -57,22 +57,22 @@ const ticketLabel = computed(() =>
 
 <template>
   <span
-    class="rc-badge"
-    :class="[`rc-intent-${intent}`, { 'rc-badge--pop': bounce }]"
+    class="inline-flex items-center justify-center gap-2 rounded-full emphasis-subtle px-3 py-1 text-xs font-semibold whitespace-nowrap text-subtle"
+    :class="[`intent-${intent}`, { 'animate-badge-pop': bounce }]"
     :data-intent="intent"
   >
     <span
       v-if="showCountdown"
       aria-hidden="true"
-      class="rc-badge__dot"
-      :class="{ 'rc-badge__dot--pulse': showCountdown }"
+      class="size-1.5 shrink-0 rounded-full bg-current"
+      :class="{ 'animate-pulse': showCountdown }"
     />
-    <span class="rc-badge__count tabular-nums">
+    <span class="tabular-nums" data-testid="cart-badge-count">
       <NumberFlow :value="ticketCount" />
     </span>
     {{ ticketLabel }}
     <template v-if="showCountdown">
-      <span class="rc-badge__time tabular-nums">
+      <span class="tabular-nums" data-testid="cart-badge-time">
         <NumberFlow v-if="isLongFormat" :value="minutesCeil" suffix=" mins" />
         <template v-else>
           <NumberFlow :value="minutesFloor" />:<NumberFlow
@@ -82,7 +82,7 @@ const ticketLabel = computed(() =>
         </template>
       </span>
       <span
-        class="rc-badge__tail"
+        class="overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-300 ease-out"
         :style="{
           maxWidth: `${Math.max(0, Math.min(1, progress)) * 200}px`,
           opacity: Math.max(0, Math.min(1, progress))

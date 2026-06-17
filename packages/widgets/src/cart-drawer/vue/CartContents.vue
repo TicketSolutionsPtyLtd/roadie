@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PhCalendarBlank } from '@phosphor-icons/vue'
 import { computed } from 'vue'
 
 import {
@@ -69,18 +70,22 @@ function onCheckout() {
     :browse-href="browseHref"
     :on-navigate="onNavigate"
   />
-  <div v-else class="rc-contents">
-    <div class="rc-contents__groups">
-      <section v-for="group in dayGroups" :key="group.key" class="rc-group">
-        <div class="rc-group__header">
-          <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
-            <path
-              d="M208,28H188V24a12,12,0,0,0-24,0v4H92V24a12,12,0,0,0-24,0v4H48A20,20,0,0,0,28,48V208a20,20,0,0,0,20,20H208a20,20,0,0,0,20-20V48A20,20,0,0,0,208,28ZM68,52a12,12,0,0,0,24,0h72a12,12,0,0,0,24,0h16V76H52V52ZM52,204V100H204V204Z"
+  <div v-else class="grid gap-5">
+    <div class="grid gap-5">
+      <section v-for="group in dayGroups" :key="group.key" class="grid gap-4">
+        <div class="sticky top-0 z-10 -mx-4 emphasis-strong px-4 py-2.5">
+          <div class="flex items-center gap-2">
+            <PhCalendarBlank
+              weight="bold"
+              class="size-4 shrink-0 text-subtle"
+              aria-hidden="true"
             />
-          </svg>
-          <p class="rc-group__title">{{ dayHeader(group.key) }}</p>
+            <p class="text-ui-meta font-bold" data-testid="cart-group-title">
+              {{ dayHeader(group.key) }}
+            </p>
+          </div>
         </div>
-        <div class="rc-group__events">
+        <div class="grid gap-4">
           <CartEventGroup
             v-for="event in group.events"
             :key="event.eventId"
@@ -94,14 +99,14 @@ function onCheckout() {
       </section>
     </div>
 
-    <div v-if="!hideFooter" class="rc-contents__footer">
-      <div class="rc-contents__total">
-        <span class="rc-contents__total-label">Total</span>
-        <span class="rc-contents__total-value">{{
+    <div v-if="!hideFooter" class="grid gap-4 border-t border-subtle pt-4">
+      <div class="flex items-center justify-between gap-4">
+        <span class="text-ui font-bold text-strong">Total</span>
+        <span class="text-ui font-bold text-strong">{{
           money(cart.cartTotal)
         }}</span>
       </div>
-      <p class="rc-contents__fees">
+      <p class="text-ui-meta text-subtle">
         {{
           totalBookingFees > 0
             ? `Incl. ${money(totalBookingFees)} booking fees. `
@@ -110,7 +115,7 @@ function onCheckout() {
       </p>
       <button
         type="button"
-        class="rc-button rc-button--normal rc-intent-brand"
+        class="is-interactive btn btn-md emphasis-normal intent-brand"
         :disabled="!checkoutUrl"
         @click="onCheckout"
       >

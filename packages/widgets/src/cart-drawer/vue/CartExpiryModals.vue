@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import NumberFlow from '@number-flow/vue'
+import { PhClock } from '@phosphor-icons/vue'
 import { computed, useId } from 'vue'
 
 import CartExpiryModal from './CartExpiryModal.vue'
@@ -29,10 +30,6 @@ function checkout() {
 function browse() {
   props.onNavigate(props.browseHref)
 }
-
-// Phosphor Clock icon (reused from CartEventGroup.vue) for both modals.
-const CLOCK_PATH =
-  'M128,20A108,108,0,1,0,236,128,108.12,108.12,0,0,0,128,20Zm0,192a84,84,0,1,1,84-84A84.09,84.09,0,0,1,128,212Zm68-84a12,12,0,0,1-12,12H128a12,12,0,0,1-12-12V72a12,12,0,0,1,24,0v44h44A12,12,0,0,1,196,128Z'
 </script>
 
 <template>
@@ -45,15 +42,21 @@ const CLOCK_PATH =
     :on-close="onDismissWarning"
   >
     <template #icon>
-      <div class="rc-modal__icon rc-modal__icon--warning">
-        <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
-          <path :d="CLOCK_PATH" />
-        </svg>
+      <div
+        class="flex size-14 items-center justify-center rounded-full bg-subtle"
+      >
+        <PhClock
+          weight="bold"
+          class="size-7 text-normal intent-danger"
+          aria-hidden="true"
+        />
       </div>
     </template>
     <template #body>
       Your tickets are held for a little longer. Check out now to secure them.
-      <span class="rc-modal__countdown tabular-nums">
+      <span
+        class="mt-2 block text-display-ui-4 text-normal tabular-nums intent-danger"
+      >
         <NumberFlow :value="minutes" />:<NumberFlow
           :value="seconds"
           :format="PAD2_FORMAT"
@@ -63,14 +66,14 @@ const CLOCK_PATH =
     <template #actions>
       <button
         type="button"
-        class="rc-button rc-button--normal rc-intent-neutral"
+        class="is-interactive btn btn-md flex-1 emphasis-normal intent-neutral"
         @click="onDismissWarning"
       >
         Keep browsing
       </button>
       <button
         type="button"
-        class="rc-button rc-button--strong rc-intent-accent"
+        class="is-interactive btn btn-md flex-1 emphasis-strong intent-accent"
         :disabled="!checkoutUrl"
         @click="checkout"
       >
@@ -86,10 +89,10 @@ const CLOCK_PATH =
     title="Your hold has ended"
   >
     <template #icon>
-      <div class="rc-modal__icon rc-modal__icon--expired">
-        <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
-          <path :d="CLOCK_PATH" />
-        </svg>
+      <div
+        class="flex size-16 items-center justify-center rounded-full bg-subtle"
+      >
+        <PhClock weight="bold" class="size-8 text-subtler" aria-hidden="true" />
       </div>
     </template>
     <template #body>
@@ -99,7 +102,7 @@ const CLOCK_PATH =
     <template #actions>
       <button
         type="button"
-        class="rc-button rc-button--strong rc-intent-accent"
+        class="is-interactive btn btn-md flex-1 emphasis-strong intent-accent"
         @click="browse"
       >
         Browse events

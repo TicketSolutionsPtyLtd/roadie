@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PhClock, PhMapPin, PhTrash } from '@phosphor-icons/vue'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 
 import {
@@ -51,8 +52,10 @@ const confirming = ref(false)
 const removeWrapEl = ref<HTMLElement | null>(null)
 // Stable ids so the trigger's aria-controls and the dialog's accessible name
 // (aria-labelledby -> the prompt) resolve per-event.
-const confirmId = computed(() => `rc-confirm-${props.event.eventId}`)
-const confirmLabelId = computed(() => `rc-confirm-label-${props.event.eventId}`)
+const confirmId = computed(() => `cart-confirm-${props.event.eventId}`)
+const confirmLabelId = computed(
+  () => `cart-confirm-label-${props.event.eventId}`
+)
 
 function openConfirm() {
   if (props.busy) return
@@ -94,25 +97,28 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="rc-event">
-    <div class="rc-event__row">
-      <div class="rc-event__info">
-        <div v-if="timeLabel" class="rc-event__time">
-          <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
-            <path
-              d="M128,20A108,108,0,1,0,236,128,108.12,108.12,0,0,0,128,20Zm0,192a84,84,0,1,1,84-84A84.09,84.09,0,0,1,128,212Zm68-84a12,12,0,0,1-12,12H128a12,12,0,0,1-12-12V72a12,12,0,0,1,24,0v44h44A12,12,0,0,1,196,128Z"
-            />
-          </svg>
+  <div class="grid gap-3">
+    <div class="flex items-start gap-3">
+      <div class="flex min-w-0 flex-1 flex-col gap-1">
+        <div
+          v-if="timeLabel"
+          class="flex items-center gap-2 text-ui-meta text-subtle"
+        >
+          <PhClock
+            weight="bold"
+            class="size-4 shrink-0 text-subtler"
+            aria-hidden="true"
+          />
           <span>{{ timeLabel }}</span>
         </div>
-        <div class="rc-event__detail">
-          <p class="rc-event__name">{{ event.eventName }}</p>
-          <div class="rc-event__venue">
-            <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
-              <path
-                d="M128,60a44,44,0,1,0,44,44A44.05,44.05,0,0,0,128,60Zm0,64a20,20,0,1,1,20-20A20,20,0,0,1,128,124Zm0-112a92.1,92.1,0,0,0-92,92c0,77.36,81.64,135.4,85.12,137.83a12,12,0,0,0,13.76,0,259,259,0,0,0,42.18-39C205.15,170.57,220,136.37,220,104A92.1,92.1,0,0,0,128,12Zm31.3,174.71A249.35,249.35,0,0,1,128,216.89a249.35,249.35,0,0,1-31.3-30.18C80,167.37,60,137.31,60,104a68,68,0,0,1,136,0C196,137.31,176,167.37,159.3,186.71Z"
-              />
-            </svg>
+        <div class="grid gap-1 pl-6">
+          <p class="text-ui font-medium text-strong">{{ event.eventName }}</p>
+          <div class="flex items-center gap-1.5 text-ui-meta text-subtle">
+            <PhMapPin
+              weight="bold"
+              class="size-3.5 shrink-0 text-subtler"
+              aria-hidden="true"
+            />
             <span>{{ event.venueName }}</span>
           </div>
         </div>
@@ -121,46 +127,43 @@ onBeforeUnmount(() => {
         v-if="safeImageUrl"
         :src="safeImageUrl"
         :alt="event.eventName"
-        class="rc-event__image"
+        class="size-20 shrink-0 rounded-lg bg-subtle object-cover"
       />
-      <div ref="removeWrapEl" class="rc-event__remove">
+      <div ref="removeWrapEl" class="relative shrink-0 self-start">
         <button
           type="button"
-          class="rc-icon-button rc-icon-button--danger rc-intent-danger"
+          class="btn-icon is-interactive btn-icon-sm emphasis-subtler intent-danger"
           :aria-label="`Remove ${event.eventName}`"
           :aria-expanded="confirming"
           :aria-controls="confirmId"
           :disabled="busy"
           @click="openConfirm"
         >
-          <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
-            <path
-              d="M216,52H40a12,12,0,0,0,0,24h4V208a20,20,0,0,0,20,20H192a20,20,0,0,0,20-20V76h4a12,12,0,0,0,0-24ZM188,204H68V76H188ZM76,40a12,12,0,0,1,12-12h80a12,12,0,0,1,0,24H88A12,12,0,0,1,76,40Zm32,80v48a12,12,0,0,1-24,0V120a12,12,0,0,1,24,0Zm64,0v48a12,12,0,0,1-24,0V120a12,12,0,0,1,24,0Z"
-            />
-          </svg>
+          <PhTrash weight="bold" class="size-4" aria-hidden="true" />
         </button>
 
         <div
           v-if="confirming"
           :id="confirmId"
-          class="rc-confirm"
+          data-cart-confirm
+          class="grid gap-4 rounded-xl emphasis-floating p-4 text-pretty"
           role="dialog"
           :aria-labelledby="confirmLabelId"
         >
-          <p :id="confirmLabelId" class="rc-confirm__text">
+          <p :id="confirmLabelId" class="text-ui text-pretty text-strong">
             Remove all tickets for this event?
           </p>
-          <div class="rc-confirm__actions">
+          <div class="flex gap-2">
             <button
               type="button"
-              class="rc-button rc-button--sm rc-button--normal rc-intent-neutral"
+              class="is-interactive btn btn-sm flex-1 emphasis-normal intent-neutral"
               @click="closeConfirm"
             >
               Cancel
             </button>
             <button
               type="button"
-              class="rc-button rc-button--sm rc-button--strong rc-intent-danger"
+              class="is-interactive btn btn-sm flex-1 emphasis-strong intent-danger"
               :disabled="busy"
               @click="confirmRemove"
             >
@@ -171,16 +174,35 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <div class="rc-event__tickets">
-      <div v-for="ticket in event.tickets" :key="ticket.name" class="rc-ticket">
-        <span class="rc-ticket__name">{{ ticket.name }}</span>
-        <span class="rc-ticket__price">
-          {{ ticket.priceEach === 0 ? 'Free' : money(ticket.priceEach) }}
-        </span>
-        <span class="rc-ticket__qty">&times; {{ ticket.quantity }}</span>
-        <span class="rc-ticket__total tabular-nums">
-          {{ money(ticket.quantity * ticket.priceEach) }}
-        </span>
+    <div class="grid gap-3 pl-6">
+      <div
+        v-for="ticket in event.tickets"
+        :key="ticket.name"
+        class="grid gap-2"
+      >
+        <div class="md:hidden">
+          <p class="text-ui font-medium text-strong">{{ ticket.name }}</p>
+        </div>
+        <div class="flex items-center rounded-lg bg-sunken px-3 py-2">
+          <div class="hidden min-w-0 flex-1 pr-4 md:block">
+            <span class="block truncate text-ui font-medium text-strong">
+              {{ ticket.name }}
+            </span>
+          </div>
+          <span class="w-20 shrink-0 text-ui-meta text-subtle">
+            {{ ticket.priceEach === 0 ? 'Free' : money(ticket.priceEach) }}
+          </span>
+          <div class="flex flex-1 items-center justify-center">
+            <span class="shrink-0 text-ui-meta font-medium text-strong">
+              &times; {{ ticket.quantity }}
+            </span>
+          </div>
+          <span
+            class="w-24 shrink-0 text-right text-ui font-bold text-strong tabular-nums"
+          >
+            {{ money(ticket.quantity * ticket.priceEach) }}
+          </span>
+        </div>
       </div>
     </div>
   </div>

@@ -49,10 +49,25 @@ const cart = createCartClient({
 
 ### Vue 3 (Options API, Webpack)
 
+> **Breaking in `3.0.0`.** The Vue skin now emits raw Roadie/Tailwind utility
+> classes (like the React skin) instead of a self-contained `rc-` stylesheet.
+> The **host must run Tailwind CSS v4**, import `@oztix/roadie-core/css`, and
+> `@source`-scan the widget dist so those utilities compile. A host that does
+> neither renders the drawer **unstyled**. Hosts that cannot adopt Tailwind v4
+> stay on `2.x`.
+
+```css
+/* host global CSS (compiled by the host's Tailwind v4 build) */
+@import '@oztix/roadie-core/css';
+@source '../node_modules/@oztix/roadie-widgets/dist/cart-drawer/vue';
+```
+
 ```js
 import { createCartClient } from '@oztix/roadie-widgets/cart-drawer/core'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/vue'
-import '@oztix/roadie-widgets/cart-drawer/vue/style.css'
+// Bespoke cart keyframes (cart-bounce, badge-pop). Everything else — colours,
+// spacing, pulse, spin — comes from the host's Tailwind + Roadie core build.
+import '@oztix/roadie-widgets/cart-drawer/vue/motion.css'
 
 app.component('cart-drawer', CartDrawer)
 
@@ -79,9 +94,11 @@ Each widget is internally organised as three layers under `src/<widget>/`:
 - **`core/`** — Framework-agnostic logic. No React, no Vue, no secrets. Pure
   functions plus a small client factory consumers wire to their own transport.
 - **`react/`** — React 19 skin.
-- **`vue/`** — Vue 3 SFC skin. Ships a compiled stylesheet
-  (`@oztix/roadie-widgets/<widget>/vue/style.css`) for Webpack / SCSS hosts
-  without Tailwind.
+- **`vue/`** — Vue 3 SFC skin. Like the React skin, it emits raw
+  Roadie/Tailwind utility classes compiled by the **host's** Tailwind v4 +
+  `@oztix/roadie-core` build (single source of truth — core/React/Vue stay in
+  sync). The package ships only the bespoke cart keyframes
+  (`@oztix/roadie-widgets/<widget>/vue/motion.css`); the host imports them.
 
 Subpath exports mean consumers pay only for what they import:
 

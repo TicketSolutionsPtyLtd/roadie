@@ -311,11 +311,13 @@ describe('CartDrawer (Vue)', () => {
     await nextTick()
 
     // Badge count reflects the details sum (2), not summary.ticketCount (1).
-    expect(container.querySelector('.rc-badge__count')?.textContent).toBe('2')
+    expect(
+      container.querySelector('[data-testid="cart-badge-count"]')?.textContent
+    ).toBe('2')
     // Header total reflects the per-event subtotal sum (50), not summary's 25.
-    expect(container.querySelector('.rc-header__price-text')?.textContent).toBe(
-      '$50'
-    )
+    expect(
+      container.querySelector('[data-testid="cart-header-price"]')?.textContent
+    ).toBe('$50')
   })
 
   it('falls back to summary count + total when details are null', async () => {
@@ -335,10 +337,12 @@ describe('CartDrawer (Vue)', () => {
     await flushPromises()
     await nextTick()
 
-    expect(container.querySelector('.rc-badge__count')?.textContent).toBe('3')
-    expect(container.querySelector('.rc-header__price-text')?.textContent).toBe(
-      '$75'
-    )
+    expect(
+      container.querySelector('[data-testid="cart-badge-count"]')?.textContent
+    ).toBe('3')
+    expect(
+      container.querySelector('[data-testid="cart-header-price"]')?.textContent
+    ).toBe('$75')
   })
 
   it('event context: "Browse events" navigates to the package-built browse target', async () => {
@@ -390,7 +394,9 @@ describe('CartDrawer (Vue)', () => {
     await flushPromises()
     await nextTick()
     expect(
-      container.querySelector('.rc-footer__fees')?.textContent?.trim()
+      container
+        .querySelector('[data-testid="cart-footer-fees"]')
+        ?.textContent?.trim()
     ).toBe(
       'Incl. $5.00 booking fees. Delivery and refund protection calculated at checkout'
     )
@@ -422,7 +428,9 @@ describe('CartDrawer (Vue)', () => {
     await flushPromises()
     await nextTick()
     expect(
-      container.querySelector('.rc-footer__fees')?.textContent?.trim()
+      container
+        .querySelector('[data-testid="cart-footer-fees"]')
+        ?.textContent?.trim()
     ).toBe(
       'Includes booking fees. Delivery and refund protection calculated at checkout'
     )
@@ -481,7 +489,7 @@ describe('CartDrawer (Vue)', () => {
     await fireEvent.click(await findByLabelText('Remove Night Show'))
     await findByText('Remove all tickets for this event?')
     // Escape dismisses the popover but must NOT also close the drawer — the
-    // drawer's onKeydown bails via the .rc-confirm guard.
+    // drawer's onKeydown bails via the [data-cart-confirm] guard.
     await fireEvent.keyDown(document, { key: 'Escape' })
     await flushPromises()
     await nextTick()

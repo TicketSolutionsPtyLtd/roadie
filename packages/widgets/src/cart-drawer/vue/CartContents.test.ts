@@ -73,7 +73,7 @@ describe('CartContents', () => {
       }
     })
     const headers = Array.from(
-      container.querySelectorAll('.rc-group__title')
+      container.querySelectorAll('[data-testid="cart-group-title"]')
     ).map((el) => el.textContent ?? '')
     // 15th must come before 16th.
     expect(headers).toHaveLength(2)

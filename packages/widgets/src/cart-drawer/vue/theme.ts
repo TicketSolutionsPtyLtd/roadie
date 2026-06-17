@@ -25,8 +25,8 @@ export type UseRoadieThemeOptions = {
  * `<ThemeProvider accentColor>` does. Derives OKLCH hue + chroma from a hex
  * colour and writes them to `:root` as `--accent-hue` / `--accent-chroma`, from
  * which Roadie core regenerates every accent / intent / semantic token. The
- * cart drawer (whose `--rc-*` tokens bridge to those Roadie tokens) then tracks
- * the colour automatically, as does any other Roadie-tokened UI on the page.
+ * cart drawer (which renders Roadie utilities directly) then tracks the colour
+ * automatically, as does any other Roadie-tokened UI on the page.
  *
  * Reactive: pass a ref/getter and the theme follows it. Call once near the app
  * root, e.g. `useRoadieTheme(() => collection.value?.themeColour)`.

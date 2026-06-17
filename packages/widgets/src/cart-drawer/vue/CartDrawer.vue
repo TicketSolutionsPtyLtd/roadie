@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PhCircleNotch } from '@phosphor-icons/vue'
 import {
   type ComponentPublicInstance,
   computed,
@@ -177,7 +178,7 @@ function onKeydown(e: KeyboardEvent) {
   if (e.key !== 'Escape' || !isOpen.value) return
   // A confirm popover is open — let it consume Escape; don't ALSO close the
   // whole drawer (both listeners sit on document; the drawer must defer).
-  if (document.querySelector('.rc-confirm')) return
+  if (document.querySelector('[data-cart-confirm]')) return
   toggle()
 }
 
@@ -296,11 +297,11 @@ const contentOpacity = computed(() =>
     <!-- Dark overlay — fades in with drag progress. -->
     <div
       aria-hidden="true"
-      class="rc-overlay"
-      :class="{
-        'rc-overlay--open': isOpen,
-        'rc-overlay--dragging': isDragging
-      }"
+      class="fixed inset-0 z-70 emphasis-overlay transition-opacity duration-300 ease-out"
+      :class="[
+        isOpen ? 'pointer-events-auto' : 'pointer-events-none',
+        isDragging && 'transition-none'
+      ]"
       :style="{ opacity: overlayOpacity }"
       @click="toggle"
     />
@@ -309,9 +310,9 @@ const contentOpacity = computed(() =>
     <div
       ref="drawerEl"
       id="cart-drawer"
-      class="rc-drawer"
+      class="fixed inset-x-0 bottom-0 z-70 flex flex-col overflow-hidden rounded-t-4xl emphasis-floating [transition:height_320ms_cubic-bezier(0.22,1,0.36,1)] focus:outline-none sm:inset-x-4 sm:bottom-4 sm:mx-auto sm:max-w-[600px] sm:rounded-4xl"
       tabindex="-1"
-      :class="{ 'rc-drawer--dragging': isDragging }"
+      :class="{ '[transition:none]': isDragging }"
       :role="isOpen ? 'dialog' : 'region'"
       :aria-modal="isOpen ? 'true' : undefined"
       :aria-labelledby="isOpen ? cartHeadingId : undefined"
@@ -335,7 +336,7 @@ const contentOpacity = computed(() =>
 
       <div
         id="cart-drawer-body"
-        class="rc-drawer__body"
+        class="h-full min-h-0 flex-1 overflow-y-auto px-4 transition-opacity"
         :aria-busy="removing"
         :style="{
           opacity: contentOpacity,
@@ -344,7 +345,7 @@ const contentOpacity = computed(() =>
       >
         <p
           v-if="detailsError"
-          class="rc-drawer__error rc-intent-danger"
+          class="text-prose text-subtle intent-danger"
           role="status"
         >
           Couldn't load your cart. Please try again.
@@ -352,52 +353,50 @@ const contentOpacity = computed(() =>
         <template v-else-if="details">
           <p
             v-if="removeError"
-            class="rc-drawer__error rc-intent-danger"
+            class="text-ui-meta text-subtle intent-danger"
             role="alert"
           >
             {{ removeError }}
           </p>
           <!-- Lock the WHOLE cart while a remove is in flight: dim + disable
-               pointers on the content, overlay a spinner. -->
-          <div class="rc-lock" :class="{ 'rc-lock--busy': removing }">
-            <CartContents
-              :cart="details"
-              :on-navigate="onNavigate"
-              :browse-href="effectiveBrowseHref"
-              :checkout-url="checkoutUrl"
-              :locale="locale"
-              :currency="currency"
-              :busy="removing"
-              hide-footer
-              @remove-event="handleRemoveEvent"
-            />
+               pointers on the content only, overlaying a full-opacity spinner
+               (the spinner is a sibling of the dimmed content, not inside it). -->
+          <div class="relative">
+            <div :class="{ 'pointer-events-none opacity-50': removing }">
+              <CartContents
+                :cart="details"
+                :on-navigate="onNavigate"
+                :browse-href="effectiveBrowseHref"
+                :checkout-url="checkoutUrl"
+                :locale="locale"
+                :currency="currency"
+                :busy="removing"
+                hide-footer
+                @remove-event="handleRemoveEvent"
+              />
+            </div>
             <div
               v-if="removing"
-              class="rc-lock__overlay"
+              class="pointer-events-none absolute inset-0 grid place-content-center"
               aria-hidden="true"
               data-testid="cart-remove-spinner"
             >
-              <svg
-                class="rc-spinner"
-                viewBox="0 0 256 256"
-                fill="currentColor"
+              <PhCircleNotch
+                weight="bold"
+                :class="'size-6 animate-spin text-subtle'"
                 aria-hidden="true"
-              >
-                <path
-                  d="M232,128a104,104,0,0,1-208,0c0-41,23.81-78.36,60.66-95.27a8,8,0,0,1,6.68,14.54C60.15,61.59,40,93.27,40,128a88,88,0,0,0,176,0c0-34.73-20.15-66.41-51.34-80.73a8,8,0,0,1,6.68-14.54C208.19,49.64,232,87,232,128Z"
-                />
-              </svg>
+              />
             </div>
           </div>
         </template>
         <div
           v-else-if="detailsLoading"
-          class="rc-drawer__loading"
+          class="grid gap-4"
           data-testid="cart-drawer-loading"
         >
-          <div class="rc-skeleton rc-skeleton--line" />
-          <div class="rc-skeleton rc-skeleton--block" />
-          <div class="rc-skeleton rc-skeleton--block" />
+          <div class="h-4 w-40 animate-pulse rounded bg-subtle" />
+          <div class="h-32 w-full animate-pulse rounded-xl bg-subtle" />
+          <div class="h-32 w-full animate-pulse rounded-xl bg-subtle" />
         </div>
       </div>
 
