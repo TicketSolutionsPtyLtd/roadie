@@ -32,6 +32,25 @@ const twMerge = extendTailwindMerge<
       // the utilities, but tailwind-merge needs them registered to
       // dedup `ease-enter` against `ease-exit` etc.
       ease: ['ease-standard', 'ease-enter', 'ease-exit', 'ease-spring'],
+      // Roadie registers named z-index tiers (`z-overlay`, `z-modal`
+      // etc.) in Tailwind's `--z-index-*` namespace via `layering.css`,
+      // so each emits a first-class utility. tailwind-merge's built-in
+      // `z` group only knows the numeric forms (`z-80`), so without
+      // registering these the named token and a numeric override both
+      // survive a merge and the named one wins on source order —
+      // silently dropping `z-80` overrides. Extending the built-in `z`
+      // group makes `cn('z-overlay', 'z-80')` resolve to `z-80`.
+      z: [
+        'z-hide',
+        'z-base',
+        'z-docked',
+        'z-sticky',
+        'z-overlay',
+        'z-modal',
+        'z-popover',
+        'z-toast',
+        'z-tooltip'
+      ],
       'font-size': [
         {
           text: [

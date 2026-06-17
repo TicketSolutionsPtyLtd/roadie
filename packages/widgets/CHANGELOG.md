@@ -2,6 +2,15 @@
 
 ## 3.0.0
 
+### Minor Changes
+
+- e37b139: Cart drawer can now remove a whole event from the cart (both skins). The
+  core client gains a `removeItem(cartId, eventId)` method that `POST`s to
+  `.../events/{eventId}/remove` and refetches the cart, and each skin renders a
+  remove-confirm popover on the event row so the action is a deliberate,
+  two-step interaction. This new core surface is what justifies the
+  `cart-drawer/core` size-limit budget.
+
 ### Major Changes
 
 - **Breaking (Vue skin):** the cart drawer's Vue skin now emits raw
@@ -32,8 +41,8 @@
   **Migration:**
   - Remove `import '@oztix/roadie-widgets/cart-drawer/vue/style.css'` — the
     `./cart-drawer/vue/style.css` export has been **removed** and replaced by
-    `./cart-drawer/vue/motion.css` (bespoke `cart-bounce` / `badge-pop`
-    keyframes only).
+    `./cart-drawer/vue/motion.css` (bespoke `cart-bounce` / `badge-pop` /
+    `cart-pop-in` keyframes only).
   - Add the Tailwind v4 + `@oztix/roadie-core/css` import + `@source` scan shown
     above.
   - The Vue skin now renders icons via `@phosphor-icons/vue`, added as a new

@@ -1,6 +1,6 @@
 'use client'
 
-import { type CSSProperties } from 'react'
+import { type CSSProperties, useEffect, useRef, useState } from 'react'
 
 import NumberFlow from '@number-flow/react'
 
@@ -9,6 +9,20 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { URGENCY_LONG_FORMAT_S, urgencyLevel } from '../core'
 import { useCountdown } from './useCountdown'
+
+/**
+ * Coarse, screen-reader-only message for the live countdown. Derived from the
+ * urgency level + whole-minute bucket so it only changes at meaningful
+ * transitions — never once per second.
+ */
+function coarseUrgencyMessage(remaining: number | null): string {
+  const level = urgencyLevel(remaining)
+  if (level === 'expired') return 'Cart expired'
+  if (remaining === null) return ''
+  if (level === 'danger') return 'Cart expiring soon'
+  const minutes = Math.ceil(remaining / 60)
+  return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} remaining to checkout`
+}
 
 type CartUrgencyBadgeProps = {
   ticketCount: number
@@ -38,6 +52,20 @@ export function CartUrgencyBadge({
   const intent: 'success' | 'warning' | 'danger' =
     level === 'expired' ? 'danger' : level
 
+  // Announce the countdown to screen readers only at coarse transitions — when
+  // the urgency level changes or a whole-minute threshold is crossed — so the
+  // polite live region does not spam every second (the visible mm:ss stays
+  // aria-hidden via the Badge below).
+  const minuteBucket = remaining === null ? null : Math.ceil(remaining / 60)
+  const [announcement, setAnnouncement] = useState('')
+  const lastKeyRef = useRef<string | null>(null)
+  useEffect(() => {
+    const key = `${level}:${minuteBucket}`
+    if (key === lastKeyRef.current) return
+    lastKeyRef.current = key
+    setAnnouncement(coarseUrgencyMessage(remaining))
+  }, [level, minuteBucket, remaining])
+
   const tailMaxWidth = Math.max(0, Math.min(1, progress)) * 200
   const tailOpacity = Math.max(0, Math.min(1, progress))
 
@@ -57,6 +85,9 @@ export function CartUrgencyBadge({
       )}
       style={style}
     >
+      <span className='sr-only' aria-live='polite' aria-atomic='true'>
+        {announcement}
+      </span>
       <NumberFlow value={ticketCount} className='tabular-nums' />{' '}
       {ticketCount === 1 ? 'ticket' : 'tickets'}
       {showCountdown && remaining !== null && (

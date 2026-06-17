@@ -343,6 +343,7 @@ const contentOpacity = computed(() =>
         id="cart-drawer-body"
         class="h-full min-h-0 flex-1 overflow-y-auto px-4 transition-opacity"
         :aria-busy="removing"
+        :inert="!isOpen"
         :style="{
           opacity: contentOpacity,
           pointerEvents: isOpen ? 'auto' : 'none'

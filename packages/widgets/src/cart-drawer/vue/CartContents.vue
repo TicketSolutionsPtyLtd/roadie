@@ -71,33 +71,31 @@ function onCheckout() {
     :on-navigate="onNavigate"
   />
   <div v-else class="grid gap-5">
-    <div class="grid gap-5">
-      <section v-for="group in dayGroups" :key="group.key" class="grid gap-4">
-        <div class="sticky top-0 z-10 -mx-4 emphasis-strong px-4 py-2.5">
-          <div class="flex items-center gap-2">
-            <PhCalendarBlank
-              weight="bold"
-              class="size-4 shrink-0 text-subtle"
-              aria-hidden="true"
-            />
-            <p class="text-ui-meta font-bold" data-testid="cart-group-title">
-              {{ dayHeader(group.key) }}
-            </p>
-          </div>
-        </div>
-        <div class="grid gap-4">
-          <CartEventGroup
-            v-for="event in group.events"
-            :key="event.eventId"
-            :event="event"
-            :locale="locale"
-            :currency="currency"
-            :busy="busy"
-            @remove-event="emit('removeEvent', $event)"
+    <section v-for="group in dayGroups" :key="group.key" class="grid gap-4">
+      <div class="sticky top-0 z-10 -mx-4 emphasis-strong px-4 py-2.5">
+        <div class="flex items-center gap-2">
+          <PhCalendarBlank
+            weight="bold"
+            class="size-4 shrink-0 text-subtle"
+            aria-hidden="true"
           />
+          <p class="text-ui-meta font-bold" data-testid="cart-group-title">
+            {{ dayHeader(group.key) }}
+          </p>
         </div>
-      </section>
-    </div>
+      </div>
+      <div class="grid gap-4">
+        <CartEventGroup
+          v-for="event in group.events"
+          :key="event.eventId"
+          :event="event"
+          :locale="locale"
+          :currency="currency"
+          :busy="busy"
+          @remove-event="emit('removeEvent', $event)"
+        />
+      </div>
+    </section>
 
     <div v-if="!hideFooter" class="grid gap-4 border-t border-subtle pt-4">
       <div class="flex items-center justify-between gap-4">

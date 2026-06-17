@@ -69,6 +69,9 @@ const priceOpacity = computed(() => 1 - props.progress)
 const closeOpacity = computed(() =>
   Math.max(0, Math.min(1, (props.progress - 0.5) / 0.2))
 )
+const closeScale = computed(
+  () => 0.8 + Math.max(0, Math.min(1, (props.progress - 0.5) / 0.2)) * 0.2
+)
 
 function onPointerDown(e: PointerEvent) {
   emit('dragStart', e)
@@ -109,6 +112,7 @@ function onGrabberKeydown(e: KeyboardEvent) {
         class="absolute top-0 left-4"
         :style="{
           opacity: closeOpacity,
+          transform: `scale(${closeScale})`,
           pointerEvents: isOpen ? 'auto' : 'none'
         }"
         @pointerdown.stop

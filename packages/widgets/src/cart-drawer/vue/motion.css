@@ -1,7 +1,8 @@
 /* Roadie cart drawer — Vue skin bespoke motion.
  * Everything else (colours, spacing, pulse, spin) comes from the host's
- * Tailwind + @oztix/roadie-core build. These two keyframes are widget-specific
- * (not design tokens) so they ship here rather than in core. */
+ * Tailwind + @oztix/roadie-core build. These three keyframes (cart-bounce,
+ * badge-pop, cart-pop-in) are widget-specific (not design tokens) so they ship
+ * here rather than in core. */
 @keyframes cart-bounce {
   0%,
   100% {

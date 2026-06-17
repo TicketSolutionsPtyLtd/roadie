@@ -3,8 +3,9 @@
 Widget components for the [Roadie Design System](https://github.com/TicketSolutionsPtyLtd/roadie).
 Framework-agnostic UI building blocks shared between React and Vue consumers.
 
-> **Pre-1.0.** The API will move. Pin with `~0.x` and check the [changelog](./CHANGELOG.md)
-> before upgrading.
+> **Versioning.** This package follows semver. Pin a major (`^3` for compatible
+> updates, or `~3.0` to stay on a minor) and read the [changelog](./CHANGELOG.md)
+> before taking a major bump.
 
 ## Widgets
 
@@ -65,8 +66,8 @@ const cart = createCartClient({
 ```js
 import { createCartClient } from '@oztix/roadie-widgets/cart-drawer/core'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/vue'
-// Bespoke cart keyframes (cart-bounce, badge-pop). Everything else — colours,
-// spacing, pulse, spin — comes from the host's Tailwind + Roadie core build.
+// Bespoke cart keyframes (cart-bounce, badge-pop, cart-pop-in). Everything else
+// — colours, spacing, pulse, spin — comes from the host's Tailwind + Roadie core build.
 import '@oztix/roadie-widgets/cart-drawer/vue/motion.css'
 
 app.component('cart-drawer', CartDrawer)

@@ -382,6 +382,7 @@ export function CartDrawer({
             <div
               id='cart-drawer-body'
               aria-busy={removeBusy}
+              inert={state !== 'open'}
               className={cn(
                 'h-full overflow-y-auto px-4 transition-opacity',
                 removeBusy && 'pointer-events-none opacity-50'

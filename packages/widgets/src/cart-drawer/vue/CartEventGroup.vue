@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PhClock, PhMapPin, PhTrash } from '@phosphor-icons/vue'
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 
 import {
   type CartEvent,
@@ -50,6 +50,7 @@ function money(amount: number): string {
 // the same approach the prototype uses; no Base UI / Tailwind in this skin). ---
 const confirming = ref(false)
 const removeWrapEl = ref<HTMLElement | null>(null)
+const confirmPopupEl = ref<HTMLElement | null>(null)
 // Stable ids so the trigger's aria-controls and the dialog's accessible name
 // (aria-labelledby -> the prompt) resolve per-event.
 const confirmId = computed(() => `cart-confirm-${props.event.eventId}`)
@@ -79,17 +80,69 @@ function onDocumentPointerDown(e: MouseEvent) {
 function onDocumentKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape') closeConfirm()
 }
-watch(confirming, (open) => {
+
+// Focus management (focus-trap pkg) wired to the confirm popup — same pattern as
+// CartDrawer.vue. On open, trap focus inside the popup (initial focus on the
+// Cancel button, container fallback); on every close path the trap deactivates
+// and returns focus to the trash trigger (returnFocusOnDeactivate).
+const confirmCancelEl = ref<HTMLButtonElement | null>(null)
+type FocusTrapInstance = { activate: () => void; deactivate: () => void }
+let trap: FocusTrapInstance | null = null
+async function ensureTrap(): Promise<FocusTrapInstance | null> {
+  const el = confirmPopupEl.value
+  if (trap || !el) return trap
+  try {
+    const mod = await import('focus-trap')
+    trap = mod.createFocusTrap(el, {
+      escapeDeactivates: false,
+      clickOutsideDeactivates: false,
+      returnFocusOnDeactivate: true,
+      initialFocus: () =>
+        confirmCancelEl.value ?? confirmPopupEl.value ?? false,
+      fallbackFocus: () => confirmPopupEl.value ?? el
+    })
+  } catch {
+    trap = null
+  }
+  return trap
+}
+
+watch(confirming, async (open) => {
   if (typeof document === 'undefined') return
   if (open) {
     document.addEventListener('mousedown', onDocumentPointerDown)
     document.addEventListener('keydown', onDocumentKeydown)
+    // Wait for the popup to render before trapping focus into it.
+    await nextTick()
+    const t = await ensureTrap()
+    if (t && confirmPopupEl.value?.isConnected) {
+      try {
+        t.activate()
+      } catch {
+        /* focus-trap may throw if no focusable node yet — non-fatal */
+      }
+    }
   } else {
     document.removeEventListener('mousedown', onDocumentPointerDown)
     document.removeEventListener('keydown', onDocumentKeydown)
+    try {
+      // Deactivate returns focus to the trash trigger.
+      trap?.deactivate()
+    } catch {
+      /* non-fatal */
+    }
+    // The popup unmounts on close; drop the stale trap so the next open rebuilds
+    // it against the fresh element.
+    trap = null
   }
 })
 onBeforeUnmount(() => {
+  try {
+    trap?.deactivate()
+  } catch {
+    /* non-fatal */
+  }
+  trap = null
   if (typeof document === 'undefined') return
   document.removeEventListener('mousedown', onDocumentPointerDown)
   document.removeEventListener('keydown', onDocumentKeydown)
@@ -145,25 +198,30 @@ onBeforeUnmount(() => {
         <div
           v-if="confirming"
           :id="confirmId"
+          ref="confirmPopupEl"
           data-cart-confirm
-          class="absolute top-full right-0 z-20 mt-1 grid w-56 gap-4 rounded-xl emphasis-floating p-4 text-pretty"
+          class="absolute top-full right-0 z-20 mt-1 grid max-w-80 gap-4 rounded-xl emphasis-floating p-4 text-pretty intent-danger"
           role="dialog"
           :aria-labelledby="confirmLabelId"
         >
-          <p :id="confirmLabelId" class="text-ui text-pretty text-strong">
+          <p
+            :id="confirmLabelId"
+            class="text-center text-display-ui-6 text-pretty text-strong"
+          >
             Remove all tickets for this event?
           </p>
-          <div class="flex gap-2">
+          <div class="flex justify-center gap-2">
             <button
+              ref="confirmCancelEl"
               type="button"
-              class="is-interactive btn btn-sm flex-1 emphasis-normal intent-neutral"
+              class="is-interactive btn btn-sm emphasis-normal intent-neutral"
               @click="closeConfirm"
             >
               Cancel
             </button>
             <button
               type="button"
-              class="is-interactive btn btn-sm flex-1 emphasis-strong intent-danger"
+              class="is-interactive btn btn-sm emphasis-strong intent-danger"
               :disabled="busy"
               @click="confirmRemove"
             >

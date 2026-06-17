@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import NumberFlow from '@number-flow/vue'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import { URGENCY_LONG_FORMAT_S, remainingSeconds, urgencyLevel } from '../core'
 
@@ -53,6 +53,30 @@ const secondsPart = computed(() => (remaining.value ?? 0) % 60)
 const ticketLabel = computed(() =>
   props.ticketCount === 1 ? 'ticket' : 'tickets'
 )
+
+// Coarse, screen-reader-only countdown announcement. Derived from the urgency
+// level + whole-minute bucket so the polite live region only updates at
+// meaningful transitions — never once per second (the visible mm:ss stays
+// aria-hidden).
+const coarseMessage = computed(() => {
+  if (level.value === 'expired') return 'Cart expired'
+  if (remaining.value === null) return ''
+  if (level.value === 'danger') return 'Cart expiring soon'
+  const minutes = Math.ceil(remaining.value / 60)
+  return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} remaining to checkout`
+})
+const minuteBucket = computed(() =>
+  remaining.value === null ? null : Math.ceil(remaining.value / 60)
+)
+// Only push to the live region when the level or whole-minute bucket changes.
+const announcement = ref('')
+watch(
+  () => `${level.value}:${minuteBucket.value}`,
+  () => {
+    announcement.value = coarseMessage.value
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
@@ -61,6 +85,9 @@ const ticketLabel = computed(() =>
     :class="[`intent-${intent}`, { 'animate-badge-pop': bounce }]"
     :data-intent="intent"
   >
+    <span class="sr-only" aria-live="polite" aria-atomic="true">
+      {{ announcement }}
+    </span>
     <span
       v-if="showCountdown"
       aria-hidden="true"
