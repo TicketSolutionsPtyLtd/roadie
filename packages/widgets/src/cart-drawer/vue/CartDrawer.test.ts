@@ -348,20 +348,20 @@ describe('CartDrawer (Vue)', () => {
   it('event context: "Browse events" navigates to the package-built browse target', async () => {
     const cart = mockCart()
     const onNavigate = vi.fn()
-    const { container, findAllByText, findByText } = render(CartDrawer, {
+    const { container, findByText } = render(CartDrawer, {
       props: { ...baseProps, cart, onNavigate, context: 'event' }
     })
     await flushPromises()
-    await fireEvent.click((await findAllByText('View cart'))[0]!)
-    await flushPromises()
     await nextTick()
 
+    // Event context: the secondary button is always "Browse events" and
+    // navigates — even from the closed/docked state (no "View cart").
     await fireEvent.click(await findByText('Browse events'))
-    // Navigates to the safe, package-resolved browseHref ('/events'); the
-    // drawer stays open (navigation, not a close).
+    // Navigates to the safe, package-resolved browseHref ('/events'); it's a
+    // navigation, not an open — the drawer stays docked.
     expect(onNavigate).toHaveBeenCalledWith('/events')
     expect(container.querySelector('#cart-drawer')?.getAttribute('role')).toBe(
-      'dialog'
+      'region'
     )
   })
 

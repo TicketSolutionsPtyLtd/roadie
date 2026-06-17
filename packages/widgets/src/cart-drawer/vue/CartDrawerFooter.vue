@@ -27,14 +27,15 @@ const emit = defineEmits<{
   dragStart: [e: PointerEvent]
 }>()
 
-// Closed: open the drawer. Open: browse in `event` context, else close.
+// `event` context (e.g. online outlet): always "Browse events" → navigate,
+// open or closed. `collection` context (website): toggle the drawer (closed →
+// open, open → close), labelled "View cart" when closed.
 function onSecondaryClick() {
-  if (!props.isOpen) {
-    emit('toggle')
+  if (props.context === 'event') {
+    emit('browse')
     return
   }
-  if (props.context === 'event') emit('browse')
-  else emit('toggle')
+  emit('toggle')
 }
 
 const subtotalLabel = computed(() =>
@@ -106,7 +107,7 @@ function onPointerDown(e: PointerEvent) {
           class="is-interactive btn btn-md flex-1 emphasis-normal intent-neutral"
           @click="onSecondaryClick"
         >
-          {{ isOpen ? 'Browse events' : 'View cart' }}
+          {{ context === 'event' || isOpen ? 'Browse events' : 'View cart' }}
         </button>
         <button
           type="button"

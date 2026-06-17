@@ -275,7 +275,7 @@ export function CartDrawer({
           'fixed z-70 flex flex-col overflow-hidden emphasis-floating',
           'transition-[border-radius,inset] duration-300 ease-out',
           state === 'open'
-            ? 'inset-x-3 bottom-3 rounded-4xl'
+            ? 'inset-x-0 bottom-0 rounded-t-4xl'
             : 'inset-x-3 bottom-3 rounded-3xl',
           'sm:inset-x-4 sm:bottom-4 sm:mx-auto sm:max-w-[600px] sm:rounded-4xl',
           isDragging && 'transition-none'

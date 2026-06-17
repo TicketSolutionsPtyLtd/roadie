@@ -10,6 +10,7 @@ import {
 
 import {
   MEASURE_PROGRESS_MAX,
+  MOBILE_OPEN_TOP_INSET_PX,
   TAP_PX,
   VIEWPORT_MARGIN_PX,
   decideSnapTarget
@@ -48,9 +49,16 @@ type Options = {
 
 function computeViewportMaxHeight(): number {
   if (typeof window === 'undefined') return 0
+  if (window.innerWidth < 640) {
+    // Open mobile drawer is fullscreen + bottom-anchored (inset-x-0 bottom-0).
+    // Base on the layout viewport (clientHeight — what `position: fixed` is
+    // measured against), minus a top inset so it stops clear of the top chrome.
+    const layoutH = document.documentElement.clientHeight || window.innerHeight
+    return Math.max(0, layoutH - MOBILE_OPEN_TOP_INSET_PX)
+  }
+  // Desktop: floating, margined card sized to the visible viewport.
   const vh = window.visualViewport?.height ?? window.innerHeight
-  const margin = window.innerWidth < 640 ? 0 : VIEWPORT_MARGIN_PX
-  return Math.max(0, vh - margin)
+  return Math.max(0, vh - VIEWPORT_MARGIN_PX)
 }
 
 export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {

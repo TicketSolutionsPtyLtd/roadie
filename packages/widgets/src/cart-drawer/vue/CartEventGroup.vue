@@ -182,16 +182,16 @@ onBeforeUnmount(() => {
           :id="confirmId"
           ref="confirmPopupEl"
           data-cart-confirm
-          class="absolute top-full right-0 z-20 mt-1 grid max-w-80 gap-4 rounded-xl emphasis-floating p-4 text-pretty"
+          class="absolute top-full right-0 z-20 mt-1 grid max-w-80 gap-4 rounded-xl emphasis-floating p-4 text-pretty intent-danger"
           role="dialog"
           :aria-labelledby="confirmLabelId"
         >
-          <p
-            :id="confirmLabelId"
-            class="text-center text-ui text-pretty text-normal"
-          >
-            Remove all tickets for this event?
-          </p>
+          <div class="grid gap-1 text-center">
+            <p :id="confirmLabelId" class="text-display-ui-6 text-strong">
+              Remove all tickets for this event?
+            </p>
+            <p class="text-sm text-subtle">This action cannot be undone.</p>
+          </div>
           <div class="flex justify-center gap-2">
             <button
               ref="confirmCancelEl"

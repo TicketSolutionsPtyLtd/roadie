@@ -234,8 +234,8 @@ describe('CartDrawer', () => {
         context='event'
       />
     )
-    const viewCart = await screen.findByRole('button', { name: /view cart/i })
-    fireEvent.click(viewCart)
+    // Event context: the secondary button is always "Browse events" and
+    // navigates — even from the closed/docked state (no "View cart").
     const browse = await screen.findByRole('button', { name: 'Browse events' })
     fireEvent.click(browse)
     // Navigates to the safe, package-resolved browseHref.

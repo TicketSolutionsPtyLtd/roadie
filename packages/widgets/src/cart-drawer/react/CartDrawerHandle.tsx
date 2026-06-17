@@ -255,15 +255,14 @@ export function CartDrawerFooter({
             intent='neutral'
             className='flex-1'
             onClick={() => {
-              // Closed → open. Open → "Browse events": navigate in `event`
-              // context (parent routes the package-built collection URL),
-              // close in `collection` context.
-              if (!isOpen) onToggle()
-              else if (context === 'event') onBrowse()
+              // `event` context (e.g. online outlet): always "Browse events" →
+              // navigate (parent routes the package-built collection URL), open
+              // or closed. `collection` context: toggle the drawer.
+              if (context === 'event') onBrowse()
               else onToggle()
             }}
           >
-            {isOpen ? 'Browse events' : 'View cart'}
+            {context === 'event' || isOpen ? 'Browse events' : 'View cart'}
           </Button>
           <Button
             emphasis='strong'

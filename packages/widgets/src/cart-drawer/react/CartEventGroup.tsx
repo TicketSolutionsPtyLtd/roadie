@@ -86,11 +86,14 @@ export function CartEventGroup({
                 </IconButton>
               }
             />
-            <Popover.Content>
+            <Popover.Content intent='danger'>
               <Popover.Header>
-                <Popover.Title className='text-ui text-normal'>
+                <Popover.Title>
                   Remove all tickets for this event?
                 </Popover.Title>
+                <Popover.Description>
+                  This action cannot be undone.
+                </Popover.Description>
               </Popover.Header>
               <Popover.Footer>
                 <Popover.Close
