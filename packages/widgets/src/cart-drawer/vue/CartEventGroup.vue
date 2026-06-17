@@ -46,9 +46,9 @@ function money(amount: number): string {
   })
 }
 
-// --- Confirm popover (hand-rolled: absolutely-positioned card + click-outside,
-// the same approach the prototype uses; no Base UI / Tailwind in this skin). ---
-const confirming = ref(false)
+// --- Confirm popover (hand-rolled: absolutely-positioned card + click-outside). ---
+// This Vue skin uses Roadie/Tailwind utility classes for styling; the confirm UI
+// itself is still hand-rolled (i.e. not Base UI’s Popover) to keep the behavior local.
 const removeWrapEl = ref<HTMLElement | null>(null)
 const confirmPopupEl = ref<HTMLElement | null>(null)
 // Stable ids so the trigger's aria-controls and the dialog's accessible name
