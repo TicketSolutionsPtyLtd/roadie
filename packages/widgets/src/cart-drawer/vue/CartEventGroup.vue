@@ -132,7 +132,7 @@ onBeforeUnmount(() => {
       <div ref="removeWrapEl" class="relative shrink-0 self-start">
         <button
           type="button"
-          class="btn-icon is-interactive btn-icon-sm emphasis-subtler intent-danger"
+          class="btn is-interactive btn-icon-sm emphasis-subtler intent-danger"
           :aria-label="`Remove ${event.eventName}`"
           :aria-expanded="confirming"
           :aria-controls="confirmId"
@@ -146,7 +146,7 @@ onBeforeUnmount(() => {
           v-if="confirming"
           :id="confirmId"
           data-cart-confirm
-          class="grid gap-4 rounded-xl emphasis-floating p-4 text-pretty"
+          class="absolute top-full right-0 z-20 mt-1 grid w-56 gap-4 rounded-xl emphasis-floating p-4 text-pretty"
           role="dialog"
           :aria-labelledby="confirmLabelId"
         >
