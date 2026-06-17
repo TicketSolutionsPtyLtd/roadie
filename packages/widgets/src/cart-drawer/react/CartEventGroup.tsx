@@ -88,7 +88,7 @@ export function CartEventGroup({
             />
             <Popover.Content>
               <Popover.Header>
-                <Popover.Title>
+                <Popover.Title className='text-ui text-normal'>
                   Remove all tickets for this event?
                 </Popover.Title>
               </Popover.Header>
@@ -102,7 +102,7 @@ export function CartEventGroup({
                 />
                 <Button
                   intent='danger'
-                  emphasis='subtle'
+                  emphasis='strong'
                   size='sm'
                   onClick={() => {
                     onRemoveEvent(event.eventId)

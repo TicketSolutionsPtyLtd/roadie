@@ -188,7 +188,7 @@ onBeforeUnmount(() => {
         >
           <p
             :id="confirmLabelId"
-            class="text-center text-display-ui-6 text-pretty text-strong"
+            class="text-center text-ui text-pretty text-normal"
           >
             Remove all tickets for this event?
           </p>
@@ -203,7 +203,7 @@ onBeforeUnmount(() => {
             </button>
             <button
               type="button"
-              class="is-interactive btn btn-sm emphasis-subtle intent-danger"
+              class="is-interactive btn btn-sm emphasis-strong intent-danger"
               :disabled="busy"
               @click="confirmRemove"
             >
