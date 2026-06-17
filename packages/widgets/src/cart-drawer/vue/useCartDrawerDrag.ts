@@ -46,12 +46,16 @@ type Options = {
   initialState?: 'open' | 'closed'
 }
 
-// 32px matches the drawer's vertical margins; visualViewport is preferred over
-// innerHeight where available because it excludes the iOS URL-bar overlay.
+// visualViewport is preferred over innerHeight where available because it
+// excludes the iOS URL-bar overlay. The OPEN drawer is edge-to-edge on mobile
+// (< 640px → margin 0 so it fills the screen) and a floating card on desktop
+// (>= 640px → the shared VIEWPORT_MARGIN_PX, matching the drawer's margins).
+// The resize listener recomputes maxHeight, so width changes are handled.
 function computeViewportMaxHeight(): number {
   if (typeof window === 'undefined') return 0
   const vh = window.visualViewport?.height ?? window.innerHeight
-  return Math.max(0, vh - VIEWPORT_MARGIN_PX)
+  const margin = window.innerWidth < 640 ? 0 : VIEWPORT_MARGIN_PX
+  return Math.max(0, vh - margin)
 }
 
 export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {

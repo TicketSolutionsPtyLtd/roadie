@@ -310,9 +310,14 @@ const contentOpacity = computed(() =>
     <div
       ref="drawerEl"
       id="cart-drawer"
-      class="fixed inset-x-0 bottom-0 z-70 flex flex-col overflow-hidden rounded-t-4xl emphasis-floating [transition:height_320ms_cubic-bezier(0.22,1,0.36,1)] focus:outline-none sm:inset-x-4 sm:bottom-4 sm:mx-auto sm:max-w-[600px] sm:rounded-4xl"
+      class="animate-cart-pop-in fixed z-70 flex flex-col overflow-hidden emphasis-floating [transition:height_320ms_cubic-bezier(0.22,1,0.36,1),border-radius_300ms_var(--ease-out),inset_300ms_var(--ease-out)] focus:outline-none sm:inset-x-4 sm:bottom-4 sm:mx-auto sm:max-w-[600px] sm:rounded-4xl"
       tabindex="-1"
-      :class="{ '[transition:none]': isDragging }"
+      :class="[
+        isOpen
+          ? 'inset-x-0 bottom-0 rounded-t-4xl'
+          : 'inset-x-3 bottom-3 rounded-3xl',
+        isDragging && 'transition-none'
+      ]"
       :role="isOpen ? 'dialog' : 'region'"
       :aria-modal="isOpen ? 'true' : undefined"
       :aria-labelledby="isOpen ? cartHeadingId : undefined"

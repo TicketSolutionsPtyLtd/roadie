@@ -12,7 +12,13 @@ import {
 
 import { CircleNotchIcon } from '@phosphor-icons/react'
 import { useQueryClient } from '@tanstack/react-query'
-import { LazyMotion, domAnimation, m, useTransform } from 'motion/react'
+import {
+  LazyMotion,
+  domAnimation,
+  m,
+  useReducedMotion,
+  useTransform
+} from 'motion/react'
 import FocusLock from 'react-focus-lock'
 
 import { cn } from '@oztix/roadie-core/utils'
@@ -160,6 +166,10 @@ export function CartDrawer({
     isDragging
   } = useCartDrawerDrag({ initialState })
 
+  // Pop-in entrance plays once when the drawer first appears. Skip it under
+  // prefers-reduced-motion so the drawer simply appears.
+  const prefersReducedMotion = useReducedMotion()
+
   // Report open/close transitions to the host (design finding #9).
   const prevStateRef = useRef(state)
   useEffect(() => {
@@ -304,8 +314,12 @@ export function CartDrawer({
         style={{ opacity: overlayOpacity }}
       />
 
-      {/* Drawer — floating card, centered via mx-auto + max-w, height driven by
-         the motion value. */}
+      {/* Drawer — mobile: floating pill when closed → edge-to-edge when open;
+         desktop: floating card in both states (static sm: overrides). Height is
+         driven by the motion value; the inset + border-radius morph over 300ms
+         (disabled mid-drag, like the height transition). A one-shot pop-in
+         (opacity/scale/translateY from bottom) plays on first appear unless
+         reduced motion is preferred. */}
       <m.div
         id='cart-drawer'
         {...(state === 'open'
@@ -318,8 +332,21 @@ export function CartDrawer({
               role: 'region',
               'aria-label': 'Cart summary'
             })}
-        className='fixed inset-x-0 bottom-0 z-70 flex flex-col overflow-hidden rounded-t-4xl emphasis-floating sm:inset-x-4 sm:bottom-4 sm:mx-auto sm:max-w-[600px] sm:rounded-4xl'
-        style={{ height: dragHeight }}
+        initial={
+          prefersReducedMotion ? false : { opacity: 0, scale: 0.96, y: 8 }
+        }
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        className={cn(
+          'fixed z-70 flex flex-col overflow-hidden emphasis-floating',
+          'transition-[border-radius,inset] duration-300 ease-out',
+          state === 'open'
+            ? 'inset-x-0 bottom-0 rounded-t-4xl'
+            : 'inset-x-3 bottom-3 rounded-3xl',
+          'sm:inset-x-4 sm:bottom-4 sm:mx-auto sm:max-w-[600px] sm:rounded-4xl',
+          isDragging && 'transition-none'
+        )}
+        style={{ height: dragHeight, transformOrigin: 'bottom' }}
       >
         <FocusLock
           returnFocus

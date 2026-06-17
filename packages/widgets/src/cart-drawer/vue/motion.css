@@ -23,11 +23,28 @@
     transform: scale(1.12);
   }
 }
+/* One-shot entrance played when the drawer first mounts/appears. Subtle so it
+ * doesn't fight the open/height morph; transform-origin bottom keeps it anchored
+ * to the screen edge it slides up from. */
+@keyframes cart-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
 @media (prefers-reduced-motion: no-preference) {
   .animate-cart-bounce {
     animation: cart-bounce 600ms ease;
   }
   .animate-badge-pop {
     animation: badge-pop 600ms ease;
+  }
+  .animate-cart-pop-in {
+    transform-origin: bottom;
+    animation: cart-pop-in 350ms ease-out both;
   }
 }
