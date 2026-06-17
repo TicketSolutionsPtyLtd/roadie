@@ -9,11 +9,6 @@ import { emptyStateIllustrationVariants } from './variants'
 
 export type EmptyStateIllustrationProps = ComponentProps<'div'>
 
-/**
- * Media wrapper for a `SpotIllustration` (recommended at `size='md'`) or a
- * custom hero illustration — large `<img>` / SVG (recommended at `size='lg'`).
- * Centers and size-scales whatever is dropped inside.
- */
 export function EmptyStateIllustration({
   className,
   ...props

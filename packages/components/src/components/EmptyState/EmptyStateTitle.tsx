@@ -9,10 +9,7 @@ import { EmptyStateContext } from './EmptyStateContext'
 import { emptyStateTitleVariants } from './variants'
 
 export type EmptyStateTitleProps = ComponentProps<'h2'> & {
-  /**
-   * Escape hatch to change the heading level for accessibility — e.g.
-   * `render={<h1 />}` on a whole-page empty state. Defaults to `<h2>`.
-   */
+  /** Change the heading level, e.g. `render={<h1 />}`. Defaults to `<h2>`. */
   render?: RoadieRenderProp
 }
 

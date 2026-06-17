@@ -68,12 +68,8 @@ export function OnThisPage() {
       const text = el.textContent?.trim() ?? ''
       if (!text) return
 
-      // Skip headings that belong to a rendered component example rather than
-      // a real page section. Live previews and Guideline examples render
-      // Roadie components (e.g. `EmptyState.Title` is an <h2>), and every
-      // Roadie leaf carries a `data-slot`. Section headings from MDX and the
-      // PropsDefinitions API reference never sit inside a `data-slot` element,
-      // so this drops example content without touching real sections.
+      // Skip headings rendered inside component examples (Roadie leaves carry
+      // data-slot); real section headings never do.
       if (el.closest('[data-slot]')) return
 
       let id = el.id

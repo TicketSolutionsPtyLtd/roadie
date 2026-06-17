@@ -1,7 +1,4 @@
-// Subpath entry for `@oztix/roadie-components/empty-state`.
-//
-// NO `'use client'` — server-safe property-assignment layer.
-// See docs/contributing/COMPOUND_PATTERNS.md.
+// Server-safe subpath entry — no 'use client'. See COMPOUND_PATTERNS.md.
 import { EmptyStateActions } from './EmptyStateActions'
 import { EmptyStateDescription } from './EmptyStateDescription'
 import { EmptyStateIconTile } from './EmptyStateIconTile'

@@ -80,10 +80,7 @@ const PhosphorIcons = {
   Download: DownloadIcon
 }
 
-// Icon-suffixed keys (`<TicketIcon />`) derived from the bare map, so live
-// examples can match the repo's `@phosphor-icons/react/ssr` import convention
-// (AGENTS.md) — and so suffixed names never collide with same-named
-// SpotIllustrations (e.g. `Ticket`, `Heart`).
+// Icon-suffixed keys (`<TicketIcon />`) derived from the bare map.
 const PhosphorIconsSuffixed = Object.fromEntries(
   Object.entries(PhosphorIcons).map(([name, Icon]) => [`${name}Icon`, Icon])
 )

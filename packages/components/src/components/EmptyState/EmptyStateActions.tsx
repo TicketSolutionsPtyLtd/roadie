@@ -4,10 +4,6 @@ import { cn } from '@oztix/roadie-core/utils'
 
 export type EmptyStateActionsProps = ComponentProps<'div'>
 
-/**
- * Centered action row. Holds the consumer's own `<Button>`s — zero, one, or
- * two. Does not re-wrap Button. Server-safe (no context read).
- */
 export function EmptyStateActions({
   className,
   ...props

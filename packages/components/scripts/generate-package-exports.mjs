@@ -51,9 +51,7 @@ function listComponentFolders() {
     .filter((name) => {
       const entry = join(componentsDir, name)
       if (!statSync(entry).isDirectory() || !/^[A-Z]/.test(name)) return false
-      // Only include components with a public index — in-progress directories
-      // that contain only variants/context files are excluded until an index
-      // is added (prevents broken subpath exports during multi-task work).
+      // Only export folders with a public index (skip in-progress folders).
       return (
         existsSync(join(entry, 'index.tsx')) ||
         existsSync(join(entry, 'index.ts'))

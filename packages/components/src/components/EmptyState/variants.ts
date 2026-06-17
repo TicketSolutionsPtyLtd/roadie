@@ -2,10 +2,8 @@ import { cva } from 'class-variance-authority'
 
 import { intentVariants } from '../../variants'
 
-/** Size token shared across every EmptyState sub-component. */
 export type EmptyStateSize = 'sm' | 'md' | 'lg'
 
-/** Intent palette applied to the root so descendants inherit it via cascade. */
 export type EmptyStateIntent =
   | 'neutral'
   | 'brand'
@@ -16,14 +14,8 @@ export type EmptyStateIntent =
   | 'warning'
   | 'info'
 
-/**
- * Root layout. Centered grid; `gap` and vertical padding scale with size.
- * This gap is the *wider* spacing that separates the media, the message, and
- * the actions — the title and description are pulled back into a tight pair by
- * `emptyStateDescriptionVariants`. No background/border — wrap in a `Card` for
- * a surface. `intent` is optional and has no default, so when omitted the
- * palette cascades from an ancestor.
- */
+// Root gap is the wider spacing between media, message and actions; the
+// description's negative margin tightens it back to the title.
 export const emptyStateVariants = cva('grid justify-items-center text-center', {
   variants: {
     intent: intentVariants,
@@ -36,7 +28,6 @@ export const emptyStateVariants = cva('grid justify-items-center text-center', {
   defaultVariants: { size: 'md' }
 })
 
-/** Title type: bold UI display at sm/md, heavier prose display at lg. */
 export const emptyStateTitleVariants = cva('text-balance text-strong', {
   variants: {
     size: {
@@ -48,14 +39,8 @@ export const emptyStateTitleVariants = cva('text-balance text-strong', {
   defaultVariants: { size: 'md' }
 })
 
-/**
- * Description: prose body copy, subtle, size-scaled with a readable max-width.
- * `text-<size>/prose` bakes the prose line-height (`--leading-prose`) into each
- * font-size so the body keeps long-form leading while the size scales — using
- * the `text-prose` bundle would lock the size. When it directly follows a
- * Title, a negative top margin pulls it back up so the title and description
- * read as one tight block, set apart from the wider root gap.
- */
+// text-<size>/prose scales the body while keeping prose leading; the adjacent
+// rule tightens the description up to a directly preceding Title.
 export const emptyStateDescriptionVariants = cva(
   'text-pretty tracking-prose text-subtle',
   {
@@ -70,11 +55,6 @@ export const emptyStateDescriptionVariants = cva(
   }
 )
 
-/**
- * Illustration wrapper. Centers + size-scales a SpotIllustration (svg) or
- * a custom hero (img/svg) via descendant selectors so consumers can drop
- * raw media in without sizing it themselves.
- */
 export const emptyStateIllustrationVariants = cva('grid justify-items-center', {
   variants: {
     size: {

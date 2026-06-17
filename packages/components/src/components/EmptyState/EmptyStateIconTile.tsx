@@ -17,11 +17,6 @@ const tileSizeForEmptyState: Record<
   lg: '3xl'
 }
 
-/**
- * Phosphor icon in a tinted circle — the recommended media at `size='sm'`.
- * Tile size follows the EmptyState size unless `size` is passed explicitly.
- * Shape defaults to `circle`; pass `shape='square'` to override.
- */
 export function EmptyStateIconTile({
   size,
   shape = 'circle',
