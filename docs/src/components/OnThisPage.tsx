@@ -68,6 +68,10 @@ export function OnThisPage() {
       const text = el.textContent?.trim() ?? ''
       if (!text) return
 
+      // Skip headings rendered inside component examples (Roadie leaves carry
+      // data-slot); real section headings never do.
+      if (el.closest('[data-slot]')) return
+
       let id = el.id
       if (!id) {
         const base = slugify(text)

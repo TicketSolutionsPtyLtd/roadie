@@ -80,10 +80,16 @@ const PhosphorIcons = {
   Download: DownloadIcon
 }
 
+// Icon-suffixed keys (`<TicketIcon />`) derived from the bare map.
+const PhosphorIconsSuffixed = Object.fromEntries(
+  Object.entries(PhosphorIcons).map(([name, Icon]) => [`${name}Icon`, Icon])
+)
+
 const scope = {
   ...RoadieComponents,
   ...SpotIllustrations,
   ...PhosphorIcons,
+  ...PhosphorIconsSuffixed,
   Link,
   useState,
   useEffect
