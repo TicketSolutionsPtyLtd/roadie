@@ -57,7 +57,7 @@ const ticketLabel = computed(() =>
 
 <template>
   <span
-    class="inline-flex items-center justify-center gap-2 rounded-full emphasis-subtle px-3 py-1 text-xs font-semibold whitespace-nowrap text-subtle"
+    class="inline-flex items-center justify-center gap-2 rounded-full emphasis-subtle px-3 py-1 text-xs font-semibold whitespace-nowrap text-subtle [&_svg]:size-[1em] [&_svg]:shrink-0"
     :class="[`intent-${intent}`, { 'animate-badge-pop': bounce }]"
     :data-intent="intent"
   >

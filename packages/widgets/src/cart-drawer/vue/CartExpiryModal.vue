@@ -69,12 +69,12 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    class="fixed inset-0 z-80 flex items-center justify-center emphasis-overlay p-4"
+    class="fixed inset-0 z-80 grid place-items-center overflow-y-auto emphasis-overlay p-4"
     @click="onOverlayClick"
   >
     <div
       ref="panelEl"
-      class="relative grid w-full max-w-sm justify-items-center gap-4 rounded-4xl emphasis-floating p-6 text-center focus:outline-none"
+      class="relative grid w-full max-w-sm justify-items-center gap-6 rounded-2xl emphasis-floating p-6 text-center focus:outline-none"
       role="dialog"
       aria-modal="true"
       :aria-labelledby="titleId"

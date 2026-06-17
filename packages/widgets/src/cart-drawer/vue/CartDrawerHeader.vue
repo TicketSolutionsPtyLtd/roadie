@@ -91,7 +91,7 @@ function onGrabberKeydown(e: KeyboardEvent) {
     :class="{ 'animate-cart-bounce': bounce }"
     @pointerdown="onPointerDown"
   >
-    <div class="flex justify-center py-2">
+    <div class="flex justify-center pt-2 pb-2">
       <div aria-hidden="true" class="h-1.5 w-9 rounded-full bg-subtle" />
     </div>
     <button

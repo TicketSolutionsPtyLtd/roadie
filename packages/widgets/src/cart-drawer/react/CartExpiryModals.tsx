@@ -1,7 +1,5 @@
 'use client'
 
-import { useId } from 'react'
-
 import NumberFlow from '@number-flow/react'
 import { ClockIcon } from '@phosphor-icons/react'
 
@@ -31,8 +29,6 @@ export function CartExpiryModals({
   browseHref,
   onNavigate
 }: CartExpiryModalsProps) {
-  const warningTitleId = useId()
-  const expiredTitleId = useId()
   const mins = Math.floor((remaining ?? 0) / 60)
   const secs = (remaining ?? 0) % 60
 
@@ -43,7 +39,6 @@ export function CartExpiryModals({
         open={showWarning && !expired}
         dismissible
         onClose={onDismissWarning}
-        titleId={warningTitleId}
         title='Still here?'
         icon={
           <div className='flex size-14 items-center justify-center rounded-full bg-subtle'>
@@ -87,7 +82,6 @@ export function CartExpiryModals({
       {/* Expired — blocking; the only exit is back to browsing. */}
       <CartExpiryModal
         open={expired}
-        titleId={expiredTitleId}
         title='Your hold has ended'
         icon={
           <div className='flex size-16 items-center justify-center rounded-full bg-subtle'>
