@@ -68,7 +68,6 @@ const showcaseIcons = [
 export default function IconographyPage() {
   return (
     <div className='grid gap-12'>
-      {/* Hero */}
       <div className='grid gap-3'>
         <h1 className='text-display-prose-1 text-strong'>Iconography</h1>
         <p className='text-lg text-subtle'>
@@ -86,7 +85,6 @@ export default function IconographyPage() {
         </p>
       </div>
 
-      {/* Principles */}
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Principles</h2>
         <ul className='grid list-disc gap-2 pl-5'>
@@ -122,7 +120,6 @@ export default function IconographyPage() {
         </ul>
       </section>
 
-      {/* Icon showcase */}
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Visual style</h2>
         <p className='text-subtle'>
@@ -145,7 +142,6 @@ export default function IconographyPage() {
         </div>
       </section>
 
-      {/* Weight */}
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Weight</h2>
         <p className='text-subtle'>
@@ -213,7 +209,6 @@ export default function IconographyPage() {
           </table>
         </div>
 
-        {/* Bold vs Fill visual example */}
         <div className='grid gap-2'>
           <p className='text-sm text-subtle'>
             Example: navigation items using Bold (inactive) and Fill (active).
@@ -264,7 +259,6 @@ export default function IconographyPage() {
         </Guideline>
       </section>
 
-      {/* Sizing scale */}
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Sizing</h2>
         <p className='text-subtle'>
@@ -311,7 +305,6 @@ export default function IconographyPage() {
         </div>
       </section>
 
-      {/* Icon tiles */}
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Icon tiles</h2>
         <p className='text-subtle'>
@@ -348,7 +341,6 @@ export default function IconographyPage() {
         </div>
       </section>
 
-      {/* Import conventions */}
       <section className='grid gap-6'>
         <h2 className='text-display-ui-3 text-strong'>Import conventions</h2>
 
@@ -396,7 +388,6 @@ export default function IconographyPage() {
         </Guideline>
       </section>
 
-      {/* Color */}
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Color</h2>
         <p className='text-subtle'>
@@ -429,7 +420,6 @@ export default function IconographyPage() {
         </div>
       </section>
 
-      {/* Guidelines */}
       <section className='grid gap-6'>
         <h2 className='text-display-ui-3 text-strong'>Guidelines</h2>
 
@@ -580,7 +570,6 @@ export default function IconographyPage() {
         </Guideline>
       </section>
 
-      {/* Best practices */}
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Best practices</h2>
         <ul className='grid list-disc gap-2 pl-5'>

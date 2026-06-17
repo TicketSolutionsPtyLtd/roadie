@@ -50,13 +50,10 @@ type Options = {
 function computeViewportMaxHeight(): number {
   if (typeof window === 'undefined') return 0
   if (window.innerWidth < 640) {
-    // Open mobile drawer is fullscreen + bottom-anchored (inset-x-0 bottom-0).
-    // Base on the layout viewport (clientHeight — what `position: fixed` is
-    // measured against), minus a top inset so it stops clear of the top chrome.
+    // clientHeight is what `position: fixed` is measured against.
     const layoutH = document.documentElement.clientHeight || window.innerHeight
     return Math.max(0, layoutH - MOBILE_OPEN_TOP_INSET_PX)
   }
-  // Desktop: floating, margined card sized to the visible viewport.
   const vh = window.visualViewport?.height ?? window.innerHeight
   return Math.max(0, vh - VIEWPORT_MARGIN_PX)
 }
@@ -100,7 +97,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     { flush: 'sync' }
   )
 
-  // Active drag pointer; gates re-entry and filters concurrent multi-touch pointers.
+  // Gates re-entry and filters concurrent multi-touch pointers.
   let activePointerId: number | null = null
   // Detaches in-flight drag listeners so an unmount mid-drag doesn't leak them.
   let dragCleanup: (() => void) | null = null
@@ -123,8 +120,8 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     return next
   }
 
-  // Per-element height tracker. Observer writes are deferred to rAF to avoid the
-  // synchronous relayout that triggers the "ResizeObserver loop" warning.
+  // Observer writes are deferred to rAF to avoid the synchronous relayout
+  // that triggers the "ResizeObserver loop" warning.
   const createHeightTracker = (target: Ref<number>) => {
     let observer: ResizeObserver | null = null
     let observed: HTMLElement | null = null
@@ -152,9 +149,9 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
       cancelRaf()
     }
 
-    // Must (re)observe ONLY for a genuinely new element — re-observing on every
-    // render fires the callback and recurses into a freeze. disconnect() in
-    // onScopeDispose handles real teardown, so ignoring null calls won't leak.
+    // (Re)observe ONLY a genuinely new element — re-observing on every render
+    // fires the callback and recurses into a freeze. Null teardown is handled
+    // by disconnect() in onScopeDispose, so ignoring null calls won't leak.
     const setElement = (el: HTMLElement | null) => {
       if (el === observed || el === null) return
       observer?.disconnect()

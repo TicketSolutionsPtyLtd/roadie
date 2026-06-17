@@ -87,7 +87,7 @@ export function CartDrawer({
   onExpire,
   onHeightChange
 }: CartDrawerProps): ReactElement | null {
-  // Only accept a consumer browseHref if it's a safe relative path; else build from collectionId.
+  // Reject non-safe-relative browseHref to avoid open-redirect.
   const effectiveBrowseHref = useMemo(
     () =>
       typeof browseHref === 'string' && isSafeRelativePath(browseHref)

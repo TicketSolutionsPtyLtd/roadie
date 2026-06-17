@@ -12,11 +12,6 @@ import { cn } from '@oztix/roadie-core/utils'
 import { currencyPrefix, formatCurrency } from '../core'
 import { CartUrgencyBadge } from './CartUrgencyBadge'
 
-/* ============================================================================
- * Header — drag pill + morphing title area (Cart title left→center, urgency
- * badge sliding top:4→36, total right fading out, close button left fading in)
- * ========================================================================== */
-
 type CartDrawerHeaderProps = {
   ticketCount: number
   cartTotal: number
@@ -71,13 +66,11 @@ export function CartDrawerHeader({
         bounce && 'animate-cart-bounce'
       )}
     >
-      {/* Drag pill — decorative. */}
       <div className='flex justify-center pt-2 pb-2'>
         <div aria-hidden='true' className='h-1.5 w-9 rounded-full bg-subtle' />
       </div>
-      {/* Keyboard / screen-reader entry point — visually invisible overlay on
-         the drag pill. onClick fires onToggle only for synthetic clicks
-         (detail === 0), which is how screen readers + Enter/Space activate. */}
+      {/* detail === 0 fires onToggle only for synthetic clicks (screen
+         readers + Enter/Space), not real pointer clicks on the drag pill. */}
       <button
         ref={grabberRef}
         type='button'
@@ -96,9 +89,7 @@ export function CartDrawerHeader({
         }}
       />
 
-      {/* Title area — morphing. */}
       <m.div className='relative' style={{ height: titleAreaHeight }}>
-        {/* Close button — left, fades in late. */}
         <m.div
           className='absolute top-0 left-4'
           style={{
@@ -119,7 +110,6 @@ export function CartDrawerHeader({
           </IconButton>
         </m.div>
 
-        {/* Cart title — morphs left → center. */}
         <m.div
           id={titleId}
           className='absolute top-0 flex h-8 items-center gap-2'
@@ -129,7 +119,6 @@ export function CartDrawerHeader({
           <span className='text-ui font-bold text-strong'>Cart</span>
         </m.div>
 
-        {/* Urgency badge — slides from inline to below title on open. */}
         <m.div
           className='absolute left-1/2 -translate-x-1/2'
           style={{ top: badgeTop }}
@@ -142,7 +131,6 @@ export function CartDrawerHeader({
           />
         </m.div>
 
-        {/* Price — right, fades out on open. Digits roll on change. */}
         <m.div
           className='absolute top-0 right-4 flex h-8 items-center'
           style={{ opacity: priceOpacity }}
@@ -158,11 +146,6 @@ export function CartDrawerHeader({
     </div>
   )
 }
-
-/* ============================================================================
- * Footer — Subtotal (fades in on open), fees line (fades in late), action
- * buttons (always visible)
- * ========================================================================== */
 
 type CartDrawerFooterProps = {
   cartTotal: number
@@ -221,8 +204,8 @@ export function CartDrawerFooter({
       style={{ boxShadow: footerShadow }}
     >
       <div className='px-4 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))]'>
-        {/* Subtotal — fades/grows when open. maxHeight:0 when closed so it takes
-           no layout space and doesn't pad the closed-state footer. */}
+        {/* maxHeight:0 when closed so it takes no layout space and doesn't
+           pad the closed-state footer. */}
         <m.div
           className='overflow-hidden'
           style={{ maxHeight: subtotalMaxHeight, opacity: subtotalOpacity }}
@@ -238,7 +221,6 @@ export function CartDrawerFooter({
           </div>
         </m.div>
 
-        {/* Fees line — fades in later. */}
         <m.p
           className='overflow-hidden pb-2 text-ui-meta text-subtle'
           style={{ maxHeight: feesMaxHeight, opacity: feesOpacity }}
@@ -248,16 +230,14 @@ export function CartDrawerFooter({
             : 'Includes booking fees. Delivery and refund protection calculated at checkout'}
         </m.p>
 
-        {/* Buttons — always visible. stopPropagation prevents drag. */}
+        {/* stopPropagation prevents drag. */}
         <div className='flex gap-3' onPointerDown={(e) => e.stopPropagation()}>
           <Button
             emphasis='normal'
             intent='neutral'
             className='flex-1'
             onClick={() => {
-              // `event` context (e.g. online outlet): always "Browse events" →
-              // navigate (parent routes the package-built collection URL), open
-              // or closed. `collection` context: toggle the drawer.
+              // `event` context always navigates; `collection` toggles the drawer.
               if (context === 'event') onBrowse()
               else onToggle()
             }}

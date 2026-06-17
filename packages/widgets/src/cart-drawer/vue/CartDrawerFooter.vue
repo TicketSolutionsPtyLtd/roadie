@@ -27,9 +27,7 @@ const emit = defineEmits<{
   dragStart: [e: PointerEvent]
 }>()
 
-// `event` context (e.g. online outlet): always "Browse events" → navigate,
-// open or closed. `collection` context (website): toggle the drawer (closed →
-// open, open → close), labelled "View cart" when closed.
+// `event` context always navigates; `collection` context toggles the drawer.
 function onSecondaryClick() {
   if (props.context === 'event') {
     emit('browse')

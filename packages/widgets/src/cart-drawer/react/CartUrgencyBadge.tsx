@@ -10,7 +10,7 @@ import { cn } from '@oztix/roadie-core/utils'
 import { URGENCY_LONG_FORMAT_S, urgencyLevel } from '../core'
 import { useCountdown } from './useCountdown'
 
-// Coarse screen-reader message that only changes at meaningful transitions, not every second.
+// Coarse so the live region doesn't announce every second.
 function coarseUrgencyMessage(remaining: number | null): string {
   const level = urgencyLevel(remaining)
   if (level === 'expired') return 'Cart expired'
@@ -45,7 +45,7 @@ export function CartUrgencyBadge({
   const intent: 'success' | 'warning' | 'danger' =
     level === 'expired' ? 'danger' : level
 
-  // Announce only at coarse transitions so the live region doesn't spam every second.
+  // Announce only at coarse transitions, not every second.
   const minuteBucket = remaining === null ? null : Math.ceil(remaining / 60)
   const [announcement, setAnnouncement] = useState('')
   const lastKeyRef = useRef<string | null>(null)

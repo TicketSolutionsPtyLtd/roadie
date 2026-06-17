@@ -75,7 +75,6 @@ describe('CartContents', () => {
     const headers = Array.from(
       container.querySelectorAll('[data-testid="cart-group-title"]')
     ).map((el) => el.textContent ?? '')
-    // 15th must come before 16th.
     expect(headers).toHaveLength(2)
     expect(headers[0]).toMatch(/15/)
     expect(headers[1]).toMatch(/16/)

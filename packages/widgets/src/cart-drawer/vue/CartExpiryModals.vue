@@ -33,7 +33,6 @@ function browse() {
 </script>
 
 <template>
-  <!-- Close-to-expiry warning — light-dismiss nudge. -->
   <CartExpiryModal
     v-if="showWarning && !expired"
     :title-id="warningTitleId"
@@ -82,7 +81,7 @@ function browse() {
     </template>
   </CartExpiryModal>
 
-  <!-- Expired — blocking; the only exit is back to browsing. -->
+  <!-- Blocking; no dismiss — the only exit is back to browsing. -->
   <CartExpiryModal
     v-if="expired"
     :title-id="expiredTitleId"

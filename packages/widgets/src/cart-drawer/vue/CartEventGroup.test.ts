@@ -24,7 +24,6 @@ describe('CartEventGroup', () => {
     const { getAllByText } = render(CartEventGroup, {
       props: { event: makeEvent(), locale: 'en-NZ', currency: 'NZD' }
     })
-    // 2 x $25 = $50 line total; en-NZ NZD uses "$".
     const totals = getAllByText(/\$50\.00/)
     expect(totals.length).toBeGreaterThan(0)
   })
@@ -85,14 +84,12 @@ describe('CartEventGroup', () => {
     const { getByLabelText, getByText, queryByText } = render(CartEventGroup, {
       props: { event: makeEvent(), locale: 'en-AU', currency: 'AUD' }
     })
-    // Closed initially — no prompt.
     expect(queryByText('Remove all tickets for this event?')).toBeNull()
 
     await fireEvent.click(getByLabelText('Remove Night Show'))
 
     expect(getByText('Remove all tickets for this event?')).toBeTruthy()
     expect(getByText('Cancel')).toBeTruthy()
-    // Two "Remove" matches now: the trash aria-label + the confirm button.
     expect(getByText('Remove')).toBeTruthy()
   })
 
@@ -130,7 +127,6 @@ describe('CartEventGroup', () => {
     await fireEvent.click(getByLabelText('Remove Night Show'))
     expect(queryByText('Remove all tickets for this event?')).toBeTruthy()
 
-    // Click-outside (mousedown on the document body) closes it.
     await fireEvent.mouseDown(document.body)
     expect(queryByText('Remove all tickets for this event?')).toBeNull()
   })
@@ -146,7 +142,6 @@ describe('CartEventGroup', () => {
     })
     const trash = getByLabelText('Remove Night Show') as HTMLButtonElement
     expect(trash.disabled).toBe(true)
-    // A disabled trash can't open the popover.
     await fireEvent.click(trash)
     expect(trash.getAttribute('aria-expanded')).toBe('false')
   })

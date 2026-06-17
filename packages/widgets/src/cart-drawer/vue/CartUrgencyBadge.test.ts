@@ -43,9 +43,7 @@ describe('CartUrgencyBadge', () => {
     })
     const time = container.querySelector('[data-testid="cart-badge-time"]')
     expect(time).not.toBeNull()
-    // The mm:ss digits roll via <number-flow-vue> (the animated Web
-    // Component). jsdom doesn't render its digit content, so assert the
-    // component is present rather than matching text.
+    // jsdom doesn't render <number-flow-vue> digit content, so assert presence.
     expect(time?.querySelector('number-flow-vue')).not.toBeNull()
   })
 })

@@ -137,7 +137,6 @@ describe('CartDrawer (Vue)', () => {
       props: { ...baseProps, cart, onNavigate: vi.fn(), onOpenChange }
     })
     await flushPromises()
-    // Footer "Open cart" button toggles open while closed.
     const openButtons = await findAllByText('View cart')
     await fireEvent.click(openButtons[0]!)
     await nextTick()
@@ -197,7 +196,7 @@ describe('CartDrawer (Vue)', () => {
 
     const drawer = container.querySelector('#cart-drawer')!
     const openBtn = (await findAllByText('View cart'))[0] as HTMLButtonElement
-    openBtn.focus() // keyboard user activates the trigger
+    openBtn.focus()
     await fireEvent.click(openBtn)
     await flushPromises()
     await nextTick()
@@ -242,10 +241,10 @@ describe('CartDrawer (Vue)', () => {
       })
       await flushPromises()
       const observesAfterMount = observe.mock.calls.length
-      expect(observesAfterMount).toBeGreaterThan(0) // header + footer observed
+      expect(observesAfterMount).toBeGreaterThan(0)
 
-      // Force several re-renders. With unstable inline refs each one re-invokes
-      // the setters → another observe(); with stable callbacks the count holds.
+      // With unstable inline refs each re-render re-invokes the setters →
+      // another observe(); with stable callbacks the count holds.
       for (let i = 1; i <= 5; i++) {
         await rerender({
           ...baseProps,
@@ -354,11 +353,8 @@ describe('CartDrawer (Vue)', () => {
     await flushPromises()
     await nextTick()
 
-    // Event context: the secondary button is always "Browse events" and
-    // navigates — even from the closed/docked state (no "View cart").
+    // Event context navigates even from the docked state (no "View cart").
     await fireEvent.click(await findByText('Browse events'))
-    // Navigates to the safe, package-resolved browseHref ('/events'); it's a
-    // navigation, not an open — the drawer stays docked.
     expect(onNavigate).toHaveBeenCalledWith('/events')
     expect(container.querySelector('#cart-drawer')?.getAttribute('role')).toBe(
       'region'
@@ -378,7 +374,6 @@ describe('CartDrawer (Vue)', () => {
 
     await fireEvent.click(await findByText('Browse events'))
     await nextTick()
-    // Closes (role back to docked region); no browse navigation occurs.
     expect(container.querySelector('#cart-drawer')?.getAttribute('role')).toBe(
       'region'
     )
@@ -386,7 +381,6 @@ describe('CartDrawer (Vue)', () => {
   })
 
   it('footer shows the summed booking fees when the cart has fees', async () => {
-    // makeDetails has one event with bookingFees: 5 → "Incl. $5.00 booking fees".
     const cart = mockCart()
     const { container } = render(CartDrawer, {
       props: { ...baseProps, cart, onNavigate: vi.fn() }
@@ -454,15 +448,12 @@ describe('CartDrawer (Vue)', () => {
       props: { ...baseProps, cart, onNavigate: vi.fn() }
     })
     await flushPromises()
-    // getDetails ran once on mount.
     expect(cart.getDetails).toHaveBeenCalledTimes(1)
 
-    // Open the confirm popover from the per-event trash, then confirm.
     await fireEvent.click(await findByLabelText('Remove Night Show'))
     await fireEvent.click(await findByText('Remove'))
     await flushPromises()
 
-    // cartId from details, eventId from the event row.
     expect(cart.removeItem).toHaveBeenCalledWith('c1', 'e1')
     // Non-optimistic: a successful 204 triggers a refetch (getDetails again).
     expect(cart.getDetails).toHaveBeenCalledTimes(2)
@@ -485,7 +476,6 @@ describe('CartDrawer (Vue)', () => {
     await fireEvent.click((await findAllByText('View cart'))[0]!)
     await nextTick()
     expect(drawer.getAttribute('role')).toBe('dialog')
-    // Open the confirm popover, then press Escape.
     await fireEvent.click(await findByLabelText('Remove Night Show'))
     await findByText('Remove all tickets for this event?')
     // Escape dismisses the popover but must NOT also close the drawer — the
@@ -519,13 +509,11 @@ describe('CartDrawer (Vue)', () => {
     await fireEvent.click(await findByText('Remove'))
     await nextTick()
 
-    // In-flight: body is aria-busy and the spinner overlay is mounted.
     expect(body.getAttribute('aria-busy')).toBe('true')
     expect(
       container.querySelector('[data-testid="cart-remove-spinner"]')
     ).not.toBeNull()
 
-    // Resolve the remove → unlock.
     resolveRemove?.()
     await flushPromises()
     await nextTick()
@@ -546,7 +534,7 @@ describe('CartDrawer (Vue)', () => {
       { props: { ...baseProps, cart, onNavigate: vi.fn() } }
     )
     await flushPromises()
-    // getDetails ran once on mount; a failed remove must NOT refetch.
+    // A failed remove must NOT refetch.
     expect(cart.getDetails).toHaveBeenCalledTimes(1)
 
     await fireEvent.click(await findByLabelText('Remove Night Show'))
@@ -554,12 +542,10 @@ describe('CartDrawer (Vue)', () => {
     await flushPromises()
     await nextTick()
 
-    // Error surfaced (the thrown message), cart unlocked, rows still present.
     expect(getByText('Cart request failed (409)')).toBeTruthy()
     const body = container.querySelector('#cart-drawer-body')
     expect(body?.getAttribute('aria-busy')).toBe('false')
     expect(cart.getDetails).toHaveBeenCalledTimes(1)
-    // The event row survives (Night Show still rendered).
     expect(getByText('Night Show')).toBeTruthy()
   })
 
@@ -571,7 +557,6 @@ describe('CartDrawer (Vue)', () => {
     })
     await flushPromises()
 
-    // Open the drawer → it locks background scroll.
     await fireEvent.click((await findAllByText('View cart'))[0]!)
     await nextTick()
     expect(document.body.style.overflow).toBe('hidden')
@@ -590,7 +575,6 @@ describe('CartDrawer (Vue)', () => {
     )
     expect(document.body.style.overflow).toBe('hidden')
 
-    // Once the modal releases too, scroll is restored.
     releaseModal()
     expect(document.body.style.overflow).toBe('')
   })

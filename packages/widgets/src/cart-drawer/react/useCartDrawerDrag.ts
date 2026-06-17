@@ -55,13 +55,10 @@ type UseCartDrawerDragOptions = {
 function computeViewportMaxHeight(): number {
   if (typeof window === 'undefined') return 0
   if (window.innerWidth < 640) {
-    // Open mobile drawer is fullscreen + bottom-anchored (inset-x-0 bottom-0).
-    // Base on the layout viewport (clientHeight — what `position: fixed` is
-    // measured against), minus a top inset so it stops clear of the top chrome.
+    // clientHeight is what `position: fixed` is measured against; inset keeps it clear of top chrome.
     const layoutH = document.documentElement.clientHeight || window.innerHeight
     return Math.max(0, layoutH - MOBILE_OPEN_TOP_INSET_PX)
   }
-  // Desktop: floating, margined card sized to the visible viewport.
   const vh = window.visualViewport?.height ?? window.innerHeight
   return Math.max(0, vh - VIEWPORT_MARGIN_PX)
 }
@@ -73,7 +70,6 @@ export function useCartDrawerDrag(
   const initialState = opts.initialState ?? 'closed'
   const [state, setState] = useState<'open' | 'closed'>(initialState)
 
-  // ResizeObserver skips measurements while morphing so an open observation can't inflate closedHeight.
   const [headerHeight, setHeaderHeight] = useState(53)
   const [footerHeight, setFooterHeight] = useState(64)
   // Derived from the viewport, not the drawer's rendered height, to avoid a 0-high measurement loop.
@@ -173,7 +169,7 @@ export function useCartDrawerDrag(
     }
   }, [])
 
-  // Settle the motion value before paint; useLayoutEffect since the external store can't be mutated during render.
+  // useLayoutEffect: settle the motion value before paint (external store can't be mutated during render).
   useLayoutEffect(() => {
     if (isDragging) return
     dragHeight.set(state === 'open' ? maxHeight : closedHeight)

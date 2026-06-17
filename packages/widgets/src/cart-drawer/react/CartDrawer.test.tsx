@@ -83,7 +83,6 @@ describe('CartDrawer', () => {
         currency='AUD'
       />
     )
-    // Footer Checkout button is always rendered once the summary loads.
     const checkout = await screen.findByRole('button', { name: /checkout/i })
     fireEvent.click(checkout)
     expect(onNavigate).toHaveBeenCalledWith(`${HOST}/outlet/extras/c1`)
@@ -127,8 +126,7 @@ describe('CartDrawer', () => {
         initialState='open'
       />
     )
-    // The empty state renders an exact "Browse Events" button (the footer uses
-    // lowercase "Browse events" when open — match the empty-state one exactly).
+    // Empty-state button is exact "Browse Events"; footer uses lowercase "Browse events".
     const browse = await screen.findByRole('button', { name: 'Browse Events' })
     fireEvent.click(browse)
     expect(onNavigate).toHaveBeenCalledWith('/my-events')
@@ -148,8 +146,7 @@ describe('CartDrawer', () => {
         onOpenChange={onOpenChange}
       />
     )
-    // Both the grabber (aria-label) and the footer Button read "Open cart" while
-    // closed — both toggle open, so clicking the first fires onOpenChange(true).
+    // Both the grabber and the footer Button read "Open cart" while closed.
     await screen.findAllByRole('button', { name: /open cart/i })
     const openButtons = screen.getAllByRole('button', { name: /open cart/i })
     fireEvent.click(openButtons[0]!)
@@ -171,7 +168,6 @@ describe('CartDrawer', () => {
     )
     await waitFor(() => expect(cart.getSummary).toHaveBeenCalledTimes(1))
 
-    // rerender shares the same QueryClient via the wrapper closure.
     const client = new QueryClient({
       defaultOptions: { queries: { retry: false } }
     })
@@ -210,7 +206,6 @@ describe('CartDrawer', () => {
         onExpire={onExpire}
       />
     )
-    // Let the summary query resolve under fake timers.
     await act(async () => {
       await vi.advanceTimersByTimeAsync(0)
     })
@@ -234,11 +229,8 @@ describe('CartDrawer', () => {
         context='event'
       />
     )
-    // Event context: the secondary button is always "Browse events" and
-    // navigates — even from the closed/docked state (no "View cart").
     const browse = await screen.findByRole('button', { name: 'Browse events' })
     fireEvent.click(browse)
-    // Navigates to the safe, package-resolved browseHref.
     await waitFor(() => expect(onNavigate).toHaveBeenCalledWith('/events'))
   })
 
@@ -260,7 +252,6 @@ describe('CartDrawer', () => {
     fireEvent.click(viewCart)
     const browse = await screen.findByRole('button', { name: 'Browse events' })
     fireEvent.click(browse)
-    // Closes → the footer reverts to "View cart"; no browse navigation occurs.
     await screen.findByRole('button', { name: /view cart/i })
     expect(onNavigate).not.toHaveBeenCalledWith('/events')
   })
@@ -298,19 +289,16 @@ describe('CartDrawer', () => {
         initialState='open'
       />
     )
-    // Trash trigger named after the event renders once details load.
     const trash = await screen.findByRole('button', {
       name: 'Remove Night Show'
     })
     fireEvent.click(trash)
-    // Popover prompt + actions appear.
     expect(
       await screen.findByText('Remove all tickets for this event?')
     ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument()
     const remove = screen.getByRole('button', { name: 'Remove' })
     fireEvent.click(remove)
-    // cartId from CartDetails.cartId ('c1'), eventId from CartEvent.eventId ('e1').
     await waitFor(() =>
       expect(cart.removeItem).toHaveBeenCalledWith('c1', 'e1')
     )
@@ -329,7 +317,6 @@ describe('CartDrawer', () => {
         initialState='open'
       />
     )
-    // Await data load + the open drawer (initialState='open') before reading it.
     const trash = await screen.findByRole('button', {
       name: 'Remove Night Show'
     })
@@ -339,8 +326,7 @@ describe('CartDrawer', () => {
     expect(
       await screen.findByText('Remove all tickets for this event?')
     ).toBeInTheDocument()
-    // Escape dismisses the popover but must NOT also collapse the drawer — the
-    // drawer's document Escape handler bails while a popover popup is open.
+    // Drawer's document Escape handler bails while a popover popup is open.
     fireEvent.keyDown(document, { key: 'Escape' })
     await waitFor(() =>
       expect(
@@ -381,7 +367,6 @@ describe('CartDrawer', () => {
     const body = document.getElementById('cart-drawer-body')!
     await waitFor(() => expect(body).toHaveAttribute('aria-busy', 'true'))
 
-    // Resolving the remove unlocks the body.
     await act(async () => {
       resolveRemove?.()
     })
@@ -411,11 +396,9 @@ describe('CartDrawer', () => {
     fireEvent.click(trash)
     fireEvent.click(await screen.findByRole('button', { name: 'Remove' }))
 
-    // The thrown message is surfaced…
     expect(await screen.findByText('Network down')).toBeInTheDocument()
-    // …and the event row is still mounted (non-optimistic — nothing removed).
+    // Row still mounted — remove is non-optimistic.
     expect(screen.getByText('Night Show')).toBeInTheDocument()
-    // Body unlocks after the failure so the user can retry.
     const body = document.getElementById('cart-drawer-body')!
     await waitFor(() => expect(body).toHaveAttribute('aria-busy', 'false'))
   })

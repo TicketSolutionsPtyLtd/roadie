@@ -47,7 +47,7 @@ export function useRoadieTheme(
     const { hue, chroma } = coords.value
     const css = `:root{--accent-hue:${hue};--accent-chroma:${chroma}}`
     let tag = document.getElementById(id) as HTMLStyleElement | null
-    if (tag && tag.textContent === css) return // dedupe identical writes
+    if (tag && tag.textContent === css) return
     if (!tag) {
       tag = document.createElement('style')
       tag.id = id

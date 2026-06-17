@@ -25,8 +25,6 @@ describe('CartEventGroup', () => {
 
   it('formats ticket price with the injected currency (NZD, no hardcoded $/AUD)', () => {
     render(<CartEventGroup event={event} locale='en-NZ' currency='NZD' />)
-    // 25.00 formatted as NZD in en-NZ. No literal "$25.00" AUD assumption —
-    // the row pulls its currency from the injected formatter.
     const priceCell = screen.getByText((text) => text.includes('25.00'))
     expect(priceCell).toBeInTheDocument()
   })
