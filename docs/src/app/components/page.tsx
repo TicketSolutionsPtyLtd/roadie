@@ -433,6 +433,15 @@ function ComponentSkeleton({ name }: { name: string }) {
           <Skel className='h-1.5 w-24' />
         </div>
       )
+    case 'empty-state':
+      return (
+        <div className='grid w-40 justify-items-center gap-2 text-center'>
+          <div className='size-9 rounded-full bg-subtle' />
+          <Skel className='mt-1 h-2.5 w-24' />
+          <Skel className='h-1.5 w-32' />
+          <div className='mt-1 h-6 w-20 emphasis-normal rounded-full' />
+        </div>
+      )
     default:
       return (
         <div className='grid w-40 gap-1.5'>
