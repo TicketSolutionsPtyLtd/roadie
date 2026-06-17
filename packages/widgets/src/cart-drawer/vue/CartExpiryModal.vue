@@ -4,15 +4,11 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 
 import { lockBodyScroll } from './documentEffects'
 
-// Accessible shell (Roadie utilities): role=dialog + focus trap + Escape +
-// refcounted body-scroll-lock (shared with the drawer via documentEffects, so
-// the two compose — see that module). Parent v-ifs it in and out, so
-// mounted === open.
 const props = withDefaults(
   defineProps<{
     titleId: string
     title: string
-    /** Light-dismiss (backdrop/Escape/close); off for the blocking expired modal. */
+    /** Light-dismiss via backdrop/Escape/close. */
     dismissible?: boolean
     onClose?: () => void
   }>(),
@@ -57,7 +53,7 @@ onBeforeUnmount(() => {
   try {
     trap?.deactivate()
   } catch {
-    /* focus-trap may throw if nothing was focusable — non-fatal */
+    /* non-fatal */
   }
   if (typeof document !== 'undefined') {
     document.removeEventListener('keydown', onKeydown)

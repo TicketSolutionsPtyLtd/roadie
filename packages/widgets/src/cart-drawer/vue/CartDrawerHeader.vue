@@ -6,8 +6,6 @@ import { computed } from 'vue'
 import { currencyPrefix } from '../core'
 import CartUrgencyBadge from './CartUrgencyBadge.vue'
 
-// Roll the total digits behind a locale-correct currency symbol — never a
-// hardcoded "$" (matches the React skin's NumberFlow prefix approach).
 const PRICE_FORMAT = { minimumFractionDigits: 2 }
 
 const props = defineProps<{
@@ -18,7 +16,7 @@ const props = defineProps<{
   currency: string
   isOpen: boolean
   bounce: boolean
-  /** Drawer open progress 0..1 (drives the morph). */
+  /** Drawer open progress 0..1. */
   progress: number
   titleId: string
 }>()
@@ -56,7 +54,6 @@ const priceSuffix = computed(() => {
   return suffix
 })
 
-// Morph styles derived from progress (CSS-var-free; inline transforms).
 const titleAreaHeight = computed(() => 32 + props.progress * 40)
 const titleLeft = computed(() =>
   props.progress <= 0
@@ -77,7 +74,7 @@ function onPointerDown(e: PointerEvent) {
   emit('dragStart', e)
 }
 function onGrabberClick(e: MouseEvent) {
-  // Synthetic clicks (detail === 0) = screen-reader / Enter-Space activation.
+  // detail === 0 = screen-reader / Enter-Space activation.
   if (e.detail === 0) emit('toggle')
 }
 function onGrabberKeydown(e: KeyboardEvent) {

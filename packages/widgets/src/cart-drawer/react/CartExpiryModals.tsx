@@ -17,9 +17,6 @@ export type CartExpiryModalsProps = {
   onNavigate: (href: string) => void
 }
 
-// Standalone, presentational warning + expired modals. The host owns the
-// countdown (useCartExpiry) and decides whether to hide the cart UI; navigation
-// goes through the consumer's onNavigate (no anchors).
 export function CartExpiryModals({
   showWarning,
   expired,
@@ -34,7 +31,6 @@ export function CartExpiryModals({
 
   return (
     <>
-      {/* Close-to-expiry warning — light-dismiss nudge. */}
       <CartExpiryModal
         open={showWarning && !expired}
         dismissible
@@ -79,7 +75,6 @@ export function CartExpiryModals({
         </span>
       </CartExpiryModal>
 
-      {/* Expired — blocking; the only exit is back to browsing. */}
       <CartExpiryModal
         open={expired}
         title='Your hold has ended'

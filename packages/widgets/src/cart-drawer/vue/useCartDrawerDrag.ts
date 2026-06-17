@@ -19,7 +19,7 @@ export type UseCartDrawerDragReturn = {
   state: Ref<'open' | 'closed'>
   setState: (next: 'open' | 'closed') => void
   toggle: () => void
-  /** Live drawer height in px (drag drives it; settles to closed/open on release). */
+  /** Live drawer height in px. */
   dragHeight: Ref<number>
   /** 0 at closedHeight → 1 at maxHeight. */
   progress: ComputedRef<number>
@@ -27,11 +27,11 @@ export type UseCartDrawerDragReturn = {
   headerHeight: Ref<number>
   /** Measured footer height in px. */
   footerHeight: Ref<number>
-  /** headerHeight + footerHeight — the docked (closed) drawer height. */
+  /** The docked (closed) drawer height. */
   closedHeight: ComputedRef<number>
   /** Viewport-derived open height in px. */
   maxHeight: Ref<number>
-  /** True while a pointer drag is in progress — disables the height transition. */
+  /** True while a pointer drag is in progress. */
   isDragging: Ref<boolean>
   /** Whether the user prefers reduced motion. */
   reducedMotion: Ref<boolean>
@@ -46,11 +46,6 @@ type Options = {
   initialState?: 'open' | 'closed'
 }
 
-// visualViewport is preferred over innerHeight where available because it
-// excludes the iOS URL-bar overlay. The OPEN drawer is edge-to-edge on mobile
-// (< 640px → margin 0 so it fills the screen) and a floating card on desktop
-// (>= 640px → the shared VIEWPORT_MARGIN_PX, matching the drawer's margins).
-// The resize listener recomputes maxHeight, so width changes are handled.
 function computeViewportMaxHeight(): number {
   if (typeof window === 'undefined') return 0
   const vh = window.visualViewport?.height ?? window.innerHeight
@@ -62,16 +57,11 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
   const initialState = opts.initialState ?? 'closed'
   const state = ref<'open' | 'closed'>(initialState)
 
-  // Defaults mirror the React skin's closedHeight breakdown (53 header / 64
-  // footer). ResizeObserver refines them while the drawer is fully closed.
   const headerHeight = ref(53)
   const footerHeight = ref(64)
   const closedHeight = computed(() => headerHeight.value + footerHeight.value)
   const maxHeight = ref(computeViewportMaxHeight())
   const isDragging = ref(false)
-  // Track prefers-reduced-motion reactively (React's useReducedMotion already
-  // updates on change; this keeps the Vue skin in parity instead of capturing
-  // the value once at setup).
   const motionQuery =
     typeof window !== 'undefined' && typeof window.matchMedia === 'function'
       ? window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -92,8 +82,6 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     return Math.max(0, Math.min(1, p))
   })
 
-  // Settle height to the logical target whenever measurements / state change
-  // (and the user isn't actively dragging).
   watch(
     [state, closedHeight, maxHeight, isDragging],
     () => {
@@ -104,11 +92,9 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     { flush: 'sync' }
   )
 
-  // The pointer currently driving a drag (null when idle). Gates re-entry and
-  // filters out events from other concurrent pointers (multi-touch).
+  // Active drag pointer; gates re-entry and filters concurrent multi-touch pointers.
   let activePointerId: number | null = null
-  // Detaches the in-flight drag's window listeners. Held so an unmount
-  // mid-drag can clean up instead of leaking listeners onto window.
+  // Detaches in-flight drag listeners so an unmount mid-drag doesn't leak them.
   let dragCleanup: (() => void) | null = null
 
   const isClosedEnoughToMeasure = () => progress.value < MEASURE_PROGRESS_MAX
@@ -120,7 +106,6 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
       : (entry.target as HTMLElement).getBoundingClientRect().height
   }
 
-  // Last positive block-size across the delivered entries (0 if none).
   const latestBlockSize = (entries: ResizeObserverEntry[]): number => {
     let next = 0
     for (const entry of entries) {
@@ -130,13 +115,8 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     return next
   }
 
-  // One self-contained height tracker per measured element (header / footer).
-  // Each owns a ResizeObserver plus a single pending rAF handle: observer
-  // writes are deferred to the next frame so the observer never triggers a
-  // synchronous relayout inside its own callback — that re-entrancy is what
-  // produces the "ResizeObserver loop completed with undelivered
-  // notifications" warning. Replaces two near-identical setHeader/setFooter
-  // bodies and flattens the previously triple-nested callback.
+  // Per-element height tracker. Observer writes are deferred to rAF to avoid the
+  // synchronous relayout that triggers the "ResizeObserver loop" warning.
   const createHeightTracker = (target: Ref<number>) => {
     let observer: ResizeObserver | null = null
     let observed: HTMLElement | null = null
@@ -149,8 +129,6 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
       }
     }
 
-    // Defer the height write to the next frame; re-check the close-enough gate
-    // there since the drawer may have started opening between frames.
     const commit = (nextHeight: number) => {
       cancelRaf()
       pendingRaf = requestAnimationFrame(() => {
@@ -166,15 +144,9 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
       cancelRaf()
     }
 
-    // Idempotent by design. Vue re-invokes a template ref callback on EVERY
-    // re-render (identity-stable or not, and it may toggle null↔el), so this
-    // (re)observes ONLY when a genuinely new element arrives. Same-element and
-    // transient-null calls are no-ops — otherwise the ResizeObserver is torn
-    // down and re-observed every render, and re-observing fires the callback,
-    // whose deferred write schedules another render → re-observe → a
-    // cross-frame recursive freeze (worst during drag, which re-renders on
-    // every pointermove). Real teardown is handled by disconnect() in
-    // onScopeDispose, so ignoring the null calls here cannot leak the observer.
+    // Must (re)observe ONLY for a genuinely new element — re-observing on every
+    // render fires the callback and recurses into a freeze. disconnect() in
+    // onScopeDispose handles real teardown, so ignoring null calls won't leak.
     const setElement = (el: HTMLElement | null) => {
       if (el === observed || el === null) return
       observer?.disconnect()
@@ -214,13 +186,10 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     motionQuery?.addEventListener('change', onMotionChange)
   })
 
-  // onScopeDispose (not onBeforeUnmount) so cleanup also fires when the
-  // composable runs inside a standalone effectScope() — tests, shared stores —
-  // where component lifecycle hooks never trigger.
+  // onScopeDispose (not onBeforeUnmount) so cleanup also fires inside a standalone effectScope().
   onScopeDispose(() => {
     headerTracker.disconnect()
     footerTracker.disconnect()
-    // Detach any drag listeners still live at dispose (drag in progress).
     dragCleanup?.()
     if (typeof window === 'undefined') return
     window.removeEventListener('resize', updateViewport)
@@ -233,9 +202,6 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
   }
 
   const snapTo = (next: 'open' | 'closed') => {
-    // CSS transition on the bound height animates the spring; we only set the
-    // logical state + target. isDragging is false here, so the height watcher
-    // settles dragHeight to the target.
     state.value = next
     dragHeight.value = next === 'open' ? maxHeight.value : closedHeight.value
   }
@@ -246,9 +212,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
 
   const handleDragStart = (e: PointerEvent) => {
     if (typeof window === 'undefined') return
-    // Re-entry guard: a second finger landing mid-drag would otherwise install
-    // a duplicate listener set whose release fires snapTo with conflicting
-    // targets. Honour only the first pointer until it ends.
+    // Re-entry guard: honour only the first pointer to avoid duplicate listeners on multi-touch.
     if (activePointerId !== null) return
     const pointerId = e.pointerId
     activePointerId = pointerId
@@ -300,10 +264,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
         return
       }
 
-      // Delegate to the pure, unit-tested core helper. Core's convention is
-      // Y-position with up = negative; this hook tracks height with up =
-      // positive, so invert velocity + offset. openY = 0, closedY =
-      // maxHeight - closedHeight (drawer top edge sits that far down when docked).
+      // Core uses Y-position (up = negative); this hook tracks height (up = positive), so invert.
       const target = decideSnapTarget({
         velocity: -velocity,
         offset: -(currentHeight - startHeight),

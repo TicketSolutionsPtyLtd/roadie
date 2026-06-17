@@ -10,11 +10,7 @@ import { cn } from '@oztix/roadie-core/utils'
 import { URGENCY_LONG_FORMAT_S, urgencyLevel } from '../core'
 import { useCountdown } from './useCountdown'
 
-/**
- * Coarse, screen-reader-only message for the live countdown. Derived from the
- * urgency level + whole-minute bucket so it only changes at meaningful
- * transitions — never once per second.
- */
+// Coarse screen-reader message that only changes at meaningful transitions, not every second.
 function coarseUrgencyMessage(remaining: number | null): string {
   const level = urgencyLevel(remaining)
   if (level === 'expired') return 'Cart expired'
@@ -27,9 +23,9 @@ function coarseUrgencyMessage(remaining: number | null): string {
 type CartUrgencyBadgeProps = {
   ticketCount: number
   expiresAtUtc: string | undefined
-  /** Drawer open-state progress 0..1. Controls the "remaining to checkout" tail expansion. */
+  /** Drawer open-state progress 0..1. Controls the tail expansion. */
   progress?: number
-  /** Fires the badge-pop keyframe once per add. Caller toggles via a keyed wrapper or passes a truthy signal. */
+  /** Fires the badge-pop keyframe once per add. */
   bounce?: boolean
   className?: string
   style?: CSSProperties
@@ -45,17 +41,11 @@ export function CartUrgencyBadge({
 }: CartUrgencyBadgeProps) {
   const remaining = useCountdown(expiresAtUtc)
 
-  // urgencyLevel maps remaining seconds → success/warning/danger/expired; the
-  // badge only paints the three live intents (expired floors at 0:00 alongside
-  // danger). Drives the Badge's coloured background + text via Roadie intents.
   const level = urgencyLevel(remaining)
   const intent: 'success' | 'warning' | 'danger' =
     level === 'expired' ? 'danger' : level
 
-  // Announce the countdown to screen readers only at coarse transitions — when
-  // the urgency level changes or a whole-minute threshold is crossed — so the
-  // polite live region does not spam every second (the visible mm:ss stays
-  // aria-hidden via the Badge below).
+  // Announce only at coarse transitions so the live region doesn't spam every second.
   const minuteBucket = remaining === null ? null : Math.ceil(remaining / 60)
   const [announcement, setAnnouncement] = useState('')
   const lastKeyRef = useRef<string | null>(null)

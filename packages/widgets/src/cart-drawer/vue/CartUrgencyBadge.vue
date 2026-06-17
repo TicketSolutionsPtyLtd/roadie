@@ -4,14 +4,13 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import { URGENCY_LONG_FORMAT_S, remainingSeconds, urgencyLevel } from '../core'
 
-// Two-digit zero-pad for the seconds (0:09) — same as the React skin.
 const PAD2_FORMAT = { minimumIntegerDigits: 2 }
 
 const props = withDefaults(
   defineProps<{
     ticketCount: number
     expiresAtUtc: string | undefined
-    /** Drawer open progress 0..1 — expands the "remaining to checkout" tail. */
+    /** Drawer open progress 0..1. */
     progress?: number
     /** Fires the badge-pop keyframe once per add. */
     bounce?: boolean
@@ -19,7 +18,6 @@ const props = withDefaults(
   { progress: 0, bounce: false }
 )
 
-// Live countdown — plain reactive 1s tick (no Web Component; jsdom-safe).
 const now = ref(Date.now())
 let timer: ReturnType<typeof setInterval> | null = null
 onMounted(() => {
@@ -35,15 +33,12 @@ const remaining = computed(() =>
   remainingSeconds(props.expiresAtUtc, now.value)
 )
 const level = computed(() => urgencyLevel(remaining.value))
-// Paint danger when expired (floors at 0:00 alongside danger).
 const intent = computed(() =>
   level.value === 'expired' ? 'danger' : level.value
 )
 const showCountdown = computed(
   () => remaining.value !== null && remaining.value > 0
 )
-// Structured countdown values for NumberFlow (mirrors the React skin: long
-// format shows "N mins"; short format rolls mm:ss).
 const isLongFormat = computed(
   () => (remaining.value ?? 0) > URGENCY_LONG_FORMAT_S
 )
@@ -54,10 +49,6 @@ const ticketLabel = computed(() =>
   props.ticketCount === 1 ? 'ticket' : 'tickets'
 )
 
-// Coarse, screen-reader-only countdown announcement. Derived from the urgency
-// level + whole-minute bucket so the polite live region only updates at
-// meaningful transitions — never once per second (the visible mm:ss stays
-// aria-hidden).
 const coarseMessage = computed(() => {
   if (level.value === 'expired') return 'Cart expired'
   if (remaining.value === null) return ''
@@ -68,7 +59,6 @@ const coarseMessage = computed(() => {
 const minuteBucket = computed(() =>
   remaining.value === null ? null : Math.ceil(remaining.value / 60)
 )
-// Only push to the live region when the level or whole-minute bucket changes.
 const announcement = ref('')
 watch(
   () => `${level.value}:${minuteBucket.value}`,

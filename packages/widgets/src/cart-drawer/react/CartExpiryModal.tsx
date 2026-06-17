@@ -17,11 +17,6 @@ type CartExpiryModalProps = {
   onClose?: () => void
 }
 
-// Built on Roadie's Dialog (Base UI), which provides focus-trap, return-focus,
-// body-scroll-lock and Escape handling. We compose Portal/Backdrop/Viewport/Popup
-// manually (instead of Dialog.Content) so the overlay can sit at z-80 — above the
-// cart drawer's z-70 — rather than the stock z-overlay/z-modal that would render
-// behind the still-docked drawer.
 export function CartExpiryModal({
   open,
   title,
@@ -34,9 +29,6 @@ export function CartExpiryModal({
   return (
     <Dialog.Root
       open={open}
-      // Outside-press dismissal is gated here; Escape stays internally enabled but
-      // is a no-op for the blocking modal, which passes no onClose (and !next is
-      // ignored). The warning modal wires onClose, so Escape/backdrop both close it.
       disablePointerDismissal={!dismissible}
       onOpenChange={(next) => {
         if (!next) onClose?.()

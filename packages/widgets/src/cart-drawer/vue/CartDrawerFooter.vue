@@ -27,9 +27,7 @@ const emit = defineEmits<{
   dragStart: [e: PointerEvent]
 }>()
 
-// Closed → open the drawer. Open → "Browse events": in `event` context the
-// parent navigates to the package-built collection URL; in `collection`
-// context we just close (the collection page is already behind the drawer).
+// Closed: open the drawer. Open: browse in `event` context, else close.
 function onSecondaryClick() {
   if (!props.isOpen) {
     emit('toggle')
@@ -46,9 +44,6 @@ const subtotalLabel = computed(() =>
   })
 )
 
-// Surface the booking fees explicitly (mirrors the full CartContents footer).
-// bookingFees is summed from the FRESH per-event cart API value
-// (item.InventoryBookingFee()), so it tracks the cart, not a stale total.
 const feesLabel = computed(() =>
   props.bookingFees > 0
     ? `Incl. ${formatCurrency(props.bookingFees, {
@@ -65,8 +60,6 @@ const feesOpacity = computed(() =>
   Math.max(0, Math.min(1, (props.progress - 0.5) / 0.5))
 )
 
-// Shadow grows with drag progress so the footer lifts off the content as the
-// drawer opens (parity with the React skin's CartDrawerHandle).
 const footerShadow = computed(
   () => `0 -4px 16px oklch(0 0 0 / ${props.progress * 0.08})`
 )

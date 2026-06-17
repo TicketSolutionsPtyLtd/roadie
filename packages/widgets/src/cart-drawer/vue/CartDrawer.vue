@@ -40,9 +40,6 @@ const props = withDefaults(defineProps<CartDrawerProps>(), {
 
 const cartHeadingId = useId()
 
-// Resolve a template ref (DOM element or child component instance) to its root
-// HTMLElement for measurement. Typed so the SFC boundary keeps real prop types
-// — no `*.vue` shim flattening everything to `unknown`.
 function resolveRootEl(
   el: Element | ComponentPublicInstance | null
 ): HTMLElement | null {
@@ -51,9 +48,7 @@ function resolveRootEl(
   return root instanceof HTMLElement ? root : null
 }
 
-// Empty-state browse target. Prefer a consumer-supplied browseHref only if
-// it's a safe same-origin relative path; otherwise build the default from
-// collectionId so a tainted host value can never reach onNavigate.
+// Only accept a consumer browseHref if it's a safe relative path — else a tainted host value could reach onNavigate.
 const effectiveBrowseHref = computed(() =>
   typeof props.browseHref === 'string' && isSafeRelativePath(props.browseHref)
     ? props.browseHref
@@ -66,11 +61,6 @@ const { summary, details, detailsLoading, detailsError, refresh } = useCart(
   () => props.refreshKey
 )
 
-// Count + total are sourced from `details` (the /cart payload) — the same
-// fresh data that drives the event list — NOT the separate /cart/summary
-// endpoint. summary is only a fallback for the brief window before details
-// load. Binding to summary made the header/footer go stale when its refetch
-// lagged/errored while details updated (the count/total "not reacting" bug).
 const displayTicketCount = computed(() =>
   deriveTicketCount(details.value, summary.value)
 )
@@ -91,13 +81,7 @@ const {
   handleDragStart
 } = useCartDrawerDrag({ initialState: props.initialState })
 
-// Stable ref callbacks — MUST keep a constant identity. An inline arrow
-// `:ref="(el) => setHeaderElement(...)"` is a fresh function every render, so
-// Vue re-invokes it on every render → setHeaderElement disconnect()+observe()s
-// the ResizeObserver, whose deferred write schedules another render →
-// re-observe → a cross-frame loop that freezes the tab (worst during drag,
-// when dragHeight re-renders continuously). A stable identity fires only on
-// real mount/unmount.
+// Stable ref callbacks MUST keep constant identity — an inline arrow re-fires every render → ResizeObserver re-observe loop that freezes the tab.
 const bindHeader = (el: Element | ComponentPublicInstance | null): void => {
   setHeaderElement(resolveRootEl(el))
 }
@@ -107,12 +91,10 @@ const bindFooter = (el: Element | ComponentPublicInstance | null): void => {
 
 const isOpen = computed(() => state.value === 'open')
 
-// --- Open/close reporting (design finding #9) ---
 watch(state, (next, prev) => {
   if (next !== prev) props.onOpenChange?.(next === 'open')
 })
 
-// --- Bounce: true for 600ms after ticket count increases ---
 const bounce = ref(false)
 let bounceTimer: ReturnType<typeof setTimeout> | null = null
 let prevTicketCount: number | undefined
@@ -127,7 +109,6 @@ watch(displayTicketCount, (count) => {
   prevTicketCount = count
 })
 
-// --- Expiry watch: fire onExpire once (core watcher's latch resets on change) ---
 const expiresAtUtc = computed(
   () => summary.value?.expiresAtUtc ?? details.value?.expiresAtUtc
 )
@@ -143,7 +124,6 @@ watch(
   { immediate: true }
 )
 
-// --- Closed drawer height → CSS var + onHeightChange (design finding #5) ---
 watch(
   closedHeight,
   (h) => {
@@ -154,11 +134,7 @@ watch(
   { immediate: true }
 )
 
-// --- Body scroll lock when open ---
-// Refcounted via documentEffects so the drawer and the expiry modals compose:
-// whichever opens/closes first no longer clobbers the other's lock (re-enabling
-// background scroll while one is still open). Acquire once on entering the
-// locked state, release on leaving it (and on unmount).
+// Body scroll lock when open — refcounted via documentEffects so drawer + expiry modals don't clobber each other's lock.
 let releaseScrollLock: (() => void) | null = null
 watch(
   [() => props.lockBodyScroll, isOpen],
@@ -173,16 +149,12 @@ watch(
   { immediate: true }
 )
 
-// --- Escape closes ---
 function onKeydown(e: KeyboardEvent) {
   if (e.key !== 'Escape' || !isOpen.value) return
-  // A confirm popover is open — let it consume Escape; don't ALSO close the
-  // whole drawer (both listeners sit on document; the drawer must defer).
   if (document.querySelector('[data-cart-confirm]')) return
   toggle()
 }
 
-// --- Focus trap (focus-trap pkg) wired to the dialog while open ---
 const drawerEl = ref<HTMLElement | null>(null)
 type FocusTrapInstance = { activate: () => void; deactivate: () => void }
 let trap: FocusTrapInstance | null = null
@@ -194,14 +166,7 @@ async function ensureTrap(): Promise<FocusTrapInstance | null> {
     trap = mod.createFocusTrap(el, {
       escapeDeactivates: false,
       clickOutsideDeactivates: true,
-      // Focus the dialog CONTAINER on open, not the first tabbable (which is
-      // the drag grabber) — otherwise opening via drag/click paints the
-      // grabber's focus ring (a circle at the top). The container is
-      // tabindex="-1" + outline:none, so this is the standard ARIA-dialog
-      // pattern; keyboard users still Tab to the grabber and see its ring.
       initialFocus: () => drawerEl.value ?? false,
-      // Transient layouts can leave no tabbable element momentarily — fall back
-      // to the drawer root. A function keeps it valid even if the ref changes.
       fallbackFocus: () => drawerEl.value ?? el,
       returnFocusOnDeactivate: true
     })
@@ -213,12 +178,11 @@ async function ensureTrap(): Promise<FocusTrapInstance | null> {
 watch(isOpen, async (open) => {
   if (open) {
     const t = await ensureTrap()
-    // Guard: the element may have detached (e.g. unmount) before activation.
     if (t && drawerEl.value?.isConnected) {
       try {
         t.activate()
       } catch {
-        /* focus-trap may throw if no focusable node yet — non-fatal */
+        /* non-fatal */
       }
     }
   } else {
@@ -254,21 +218,11 @@ function handleCheckout() {
   if (checkoutUrl.value) props.onNavigate(checkoutUrl.value)
 }
 
-// Open-state "Browse events" in `event` context. The target is the
-// package-built, collectionId-derived, isSafeRelativePath-validated
-// `effectiveBrowseHref` — never a consumer-supplied URL — so this can't be
-// turned into an open redirect. (`collection` context closes instead and never
-// reaches here.)
+// Navigates to the validated effectiveBrowseHref only — never a consumer URL — so it can't become an open redirect.
 function handleBrowse() {
   props.onNavigate(effectiveBrowseHref.value)
 }
 
-// --- Remove an entire event from the cart (INNO-377) ---
-// Non-optimistic + "lock the whole cart": no row removal, no useMutation. The
-// server write path is last-writer-wins, so a single in-flight remove is
-// required (the lock enforces it). Flow: lock → await cart.removeItem (204, no
-// body) → refresh the reads (the existing empty-cart rendering covers the
-// last-event case) → unlock. On a thrown error keep the rows + surface it.
 const removing = ref(false)
 const removeError = ref<string | null>(null)
 async function handleRemoveEvent(eventId: string) {
@@ -294,7 +248,6 @@ const contentOpacity = computed(() =>
 
 <template>
   <template v-if="collectionId && (summary || details)">
-    <!-- Dark overlay — fades in with drag progress. -->
     <div
       aria-hidden="true"
       class="fixed inset-0 z-70 emphasis-overlay transition-opacity duration-300 ease-out"
@@ -306,7 +259,6 @@ const contentOpacity = computed(() =>
       @click="toggle"
     />
 
-    <!-- Drawer — floating card. -->
     <div
       ref="drawerEl"
       id="cart-drawer"
@@ -364,9 +316,6 @@ const contentOpacity = computed(() =>
           >
             {{ removeError }}
           </p>
-          <!-- Lock the WHOLE cart while a remove is in flight: dim + disable
-               pointers on the content only, overlaying a full-opacity spinner
-               (the spinner is a sibling of the dimmed content, not inside it). -->
           <div class="relative">
             <div :class="{ 'pointer-events-none opacity-50': removing }">
               <CartContents

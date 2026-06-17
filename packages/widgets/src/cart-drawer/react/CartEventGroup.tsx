@@ -15,16 +15,11 @@ import {
 
 type CartEventGroupProps = {
   event: CartEvent
-  /** Locale for currency/time formatting (design finding #1). */
+  /** Locale for currency/time formatting. */
   locale: string
-  /** ISO 4217 currency code (design finding #1). */
+  /** ISO 4217 currency code. */
   currency: string
-  /**
-   * Optional remove handler. When supplied, a per-event trash button +
-   * confirmation popover render in the header. Receives the `eventId`; the
-   * owner (CartDrawer) runs the actual `cart.removeItem` + refetch flow. Kept
-   * presentational — this component never calls the client itself.
-   */
+  /** Optional remove handler. Receives the `eventId`. */
   onRemoveEvent?: (eventId: string) => void
   /** True while a remove is in flight — disables the trash trigger. */
   isRemoving?: boolean
@@ -37,16 +32,12 @@ export function CartEventGroup({
   onRemoveEvent,
   isRemoving = false
 }: CartEventGroupProps) {
-  // Controlled so "Remove" can fire the callback and close in one click.
   const [confirmOpen, setConfirmOpen] = useState(false)
-  // Time of day comes from the UTC start; eventDateDisplay (if provided) is the
-  // pre-formatted venue-local string, otherwise we render the wall-clock time.
   const start = new Date(event.eventStartAtUtc)
   const startValid = !Number.isNaN(start.getTime())
   const timeLabel =
     event.eventDateDisplay ?? (startValid ? formatTime(start) : null)
-  // Only render API-supplied images from absolute http(s) URLs — a hostile API
-  // could otherwise beacon viewers via a protocol-relative tracking pixel.
+  // Only render absolute http(s) image URLs — a hostile API could otherwise beacon viewers.
   const safeImageUrl = isSafeImageUrl(event.imageUrl) ? event.imageUrl : null
 
   return (

@@ -17,23 +17,18 @@ import { CartEventGroup } from './CartEventGroup'
 type CartContentsProps = {
   cart: CartDetails
   onNavigate: (href: string) => void
-  /** App-specific browse target for the empty state (design finding #4). */
+  /** App-specific browse target for the empty state. */
   browseHref: string
-  /** Pre-validated checkout URL from `cart.checkoutUrl(details)`. Null when the
-   * extrasUrl failed the same-origin safety check — the CTA is then disabled. */
+  /** Pre-validated checkout URL. Null when the safety check failed — CTA disabled. */
   checkoutUrl: string | null
   locale: string
   currency: string
   className?: string
   /** Pin the footer to the bottom of the nearest scrolling ancestor. */
   stickyFooter?: boolean
-  /** Skip the Total / fees / Checkout footer (the drawer renders its own). */
+  /** Skip the Total / fees / Checkout footer. */
   hideFooter?: boolean
-  /**
-   * Optional per-event remove handler. When supplied, each event group renders
-   * a trash button + confirmation popover. Receives the `eventId`; the owner
-   * runs the `cart.removeItem` + refetch flow.
-   */
+  /** Optional per-event remove handler. Receives the `eventId`. */
   onRemoveEvent?: (eventId: string) => void
   /** True while a remove is in flight — disables the trash triggers. */
   busy?: boolean
@@ -61,7 +56,6 @@ export function CartContents({
     return <CartEmptyState browseHref={browseHref} onNavigate={onNavigate} />
   }
 
-  // Core groups by venue-local eventDateKey and orders by eventStartAtUtc.
   const dayGroups = groupEventsByDay(cart.events)
   const totalBookingFees = cart.events.reduce(
     (sum, event) => sum + event.bookingFees,

@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { PhBag } from '@phosphor-icons/vue'
 
-// Plain button + onNavigate — no router import. Routing is the consumer's job.
 const props = defineProps<{
-  /** App-specific browse target (replaces the website's hardcoded route). */
+  /** App-specific browse target. */
   browseHref: string
   onNavigate: (href: string) => void
 }>()

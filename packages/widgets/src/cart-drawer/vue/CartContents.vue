@@ -29,8 +29,6 @@ const props = withDefaults(
   { hideFooter: false }
 )
 
-// Bubble the per-event remove request straight up to CartDrawer, which owns the
-// lock → cart.removeItem → refresh flow (this layer stays presentational).
 const emit = defineEmits<{
   removeEvent: [eventId: string]
 }>()
@@ -44,7 +42,6 @@ const ticketCount = computed(() =>
 )
 const isEmpty = computed(() => ticketCount.value === 0)
 
-// Core groups by venue-local eventDateKey and orders by eventStartAtUtc.
 const dayGroups = computed(() => groupEventsByDay(props.cart.events))
 const totalBookingFees = computed(() =>
   props.cart.events.reduce((sum, event) => sum + event.bookingFees, 0)

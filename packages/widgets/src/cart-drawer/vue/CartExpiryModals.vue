@@ -8,12 +8,12 @@ import CartExpiryModal from './CartExpiryModal.vue'
 const props = defineProps<{
   showWarning: boolean
   expired: boolean
-  /** Seconds remaining — drives the warning's live countdown. */
+  /** Seconds remaining. */
   remaining: number | null
   onDismissWarning: () => void
-  /** Checkout target for the warning's primary action; null while loading. */
+  /** Checkout target; null while loading. */
   checkoutUrl: string | null
-  /** Collection page — the expired modal's only exit. */
+  /** Collection page target. */
   browseHref: string
   onNavigate: (href: string) => void
 }>()
