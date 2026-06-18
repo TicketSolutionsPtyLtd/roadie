@@ -126,9 +126,8 @@ export function CartDrawer({
   )
 
   const sawCartRef = useRef(false)
-  // High-water latch: once the drawer has shown a cart with items, remember it so
-  // an empty/null refetch (the API returns null for an emptied cart) keeps the
-  // open drawer mounted to show the EmptyState instead of vanishing.
+  // Latch: keep mounted on an empty/null refetch (API returns null for an
+  // emptied cart) so the EmptyState shows instead of vanishing.
   const hasCartData = summary != null || details != null
   if (hasCartData && displayTicketCount > 0) sawCartRef.current = true
   const isEmpty =
@@ -268,16 +267,13 @@ export function CartDrawer({
   )
 
   if (!collectionId) return null
-  // Never had a cart → render nothing. Once we've shown one (sawCartRef), an
-  // emptied/null refetch keeps us mounted so the EmptyState can show.
+  // Never had a cart → nothing. Once one has shown, an empty/null refetch keeps
+  // us mounted for the EmptyState.
   if (!summary && !details && !sawCartRef.current) return null
-  // Empty + closed → the whole drawer disappears (no docked handle), but only
-  // after the close slide-down has played (emptyClosed). Empty + open stays
-  // mounted so the EmptyState shows until the user closes it.
+  // Empty + closed unmounts only after the slide-down; empty + open stays.
   if (isEmpty && state === 'closed' && emptyClosed) return null
 
-  // Closing an emptied drawer: fade the whole surface out as it slides down so
-  // the docked bar never reads before it unmounts.
+  // Fade the surface out as an emptied drawer slides closed.
   const emptyClosing = isEmpty && state === 'closed'
 
   return (
