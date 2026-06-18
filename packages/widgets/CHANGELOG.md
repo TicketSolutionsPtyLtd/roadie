@@ -1,5 +1,65 @@
 # @oztix/roadie-widgets
 
+## 3.0.0
+
+### Major Changes
+
+- 3142ef0: **Breaking (Vue skin):** the cart drawer's Vue skin now emits raw
+  Roadie/Tailwind utility classes — the same ones the React skin uses — instead
+  of shipping a self-contained, hand-authored `rc-` stylesheet. This makes
+  core, React, and Vue share a single styling source of truth.
+
+  The host **must** now provide the styles, exactly as every React Roadie
+  consumer already does — run **Tailwind CSS v4** in the host build and, in the
+  host's global CSS:
+
+  ```css
+  @import '@oztix/roadie-core/css';
+  @source '../node_modules/@oztix/roadie-widgets/dist/cart-drawer/vue';
+  ```
+
+  That single import covers everything, animation included — the widget no longer
+  ships a stylesheet of its own (the drawer's keyframes now live in Roadie core as
+  `animate-nudge` / `animate-pop` / `motion-pop-in`).
+
+  A host that loads neither Tailwind nor Roadie core CSS renders the drawer
+  **unstyled**. Hosts that cannot run Tailwind v4 are not supported by `3.0.0`
+  and should stay on `2.x`.
+
+  **Migration:**
+  - Remove `import '@oztix/roadie-widgets/cart-drawer/vue/style.css'` — the
+    `./cart-drawer/vue/style.css` export has been **removed**. There is no
+    replacement stylesheet to import; the keyframes ship from `@oztix/roadie-core/css`.
+  - Add the Tailwind v4 + `@oztix/roadie-core/css` import + `@source` scan shown
+    above.
+  - The Vue skin now renders icons via `@phosphor-icons/vue`, added as a new
+    **optional peer dependency** (`^2.2.0`). Install it in the host.
+
+  The overlay blur changes from a hand-rolled `blur(2px)` to Roadie's
+  `emphasis-overlay` (`blur(8px)`), and button heights align to Roadie's
+  `btn-md` / `btn-sm` tiers to match what the React skin renders.
+
+### Minor Changes
+
+- 3142ef0: Cart drawer can now remove a whole event from the cart (both skins). The
+  core client gains a `removeItem(cartId, eventId)` method that `POST`s to
+  `.../events/{eventId}/remove` and refetches the cart, and each skin renders a
+  remove-confirm popover on the event row so the action is a deliberate,
+  two-step interaction. This new core surface is what justifies the
+  `cart-drawer/core` size-limit budget.
+
+### Patch Changes
+
+- 0ba959a: Add a `z-alert` layering tier and let `Dialog` pick its z-index from the ARIA `role`.
+  - **core**: new `--z-index-alert` (80) tier above `tooltip`, for blocking alert dialogs that must stack over an open modal or drawer.
+  - **components**: `Dialog.Root` accepts `role='dialog' | 'alertdialog'` (default `dialog`). `alertdialog` sets `role="alertdialog"` on the surface and raises the backdrop + surface to `z-alert`.
+  - **widgets**: cart-drawer expiry modal uses `role='alertdialog'`; cart-drawer layering migrated to named z-index tiers and footer shadow tinted via `--intent-hue`.
+
+- Updated dependencies [82ae89b]
+- Updated dependencies [0ba959a]
+  - @oztix/roadie-core@2.3.0
+  - @oztix/roadie-components@2.9.0
+
 ## 2.0.1
 
 ### Patch Changes
