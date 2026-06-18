@@ -29,14 +29,15 @@ export function CartExpiryModal({
   return (
     <Dialog.Root
       open={open}
+      role='alertdialog'
       disablePointerDismissal={!dismissible}
       onOpenChange={(next) => {
         if (!next) onClose?.()
       }}
     >
       <Dialog.Portal>
-        <Dialog.Backdrop className='z-80' />
-        <Dialog.Viewport className='z-80'>
+        <Dialog.Backdrop />
+        <Dialog.Viewport>
           <Dialog.Popup
             size='sm'
             className='relative justify-items-center gap-6 text-center'
@@ -48,7 +49,7 @@ export function CartExpiryModal({
                     aria-label='Close'
                     emphasis='subtle'
                     intent='neutral'
-                    size='icon-sm'
+                    size='sm'
                     className='absolute top-4 right-4'
                   />
                 }

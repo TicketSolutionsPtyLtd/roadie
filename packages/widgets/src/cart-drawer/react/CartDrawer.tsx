@@ -284,7 +284,7 @@ export function CartDrawer({
         aria-hidden='true'
         onClick={toggle}
         className={cn(
-          'fixed inset-0 z-70 emphasis-overlay transition-opacity duration-300 ease-out',
+          'fixed inset-0 z-overlay emphasis-overlay transition-opacity duration-300 ease-out',
           state === 'open' ? 'pointer-events-auto' : 'pointer-events-none',
           isDragging && 'transition-none'
         )}
@@ -309,7 +309,7 @@ export function CartDrawer({
         animate={{ opacity: emptyClosing ? 0 : 1, scale: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
         className={cn(
-          'fixed z-70 flex flex-col overflow-hidden emphasis-floating',
+          'fixed z-modal flex flex-col overflow-hidden emphasis-floating',
           'transition-[border-radius,inset] duration-300 ease-out',
           state === 'open'
             ? 'inset-x-0 bottom-0 rounded-t-4xl'

@@ -297,7 +297,7 @@ const contentOpacity = computed(() =>
   <template v-if="collectionId && (summary || details || sawCart) && !hidden">
     <div
       aria-hidden="true"
-      class="fixed inset-0 z-70 emphasis-overlay transition-opacity duration-300 ease-out"
+      class="fixed inset-0 z-overlay emphasis-overlay transition-opacity duration-300 ease-out"
       :class="[
         isOpen ? 'pointer-events-auto' : 'pointer-events-none',
         isDragging && 'transition-none'
@@ -309,7 +309,7 @@ const contentOpacity = computed(() =>
     <div
       ref="drawerEl"
       id="cart-drawer"
-      class="fixed z-70 flex flex-col overflow-hidden emphasis-floating [transition:height_320ms_cubic-bezier(0.22,1,0.36,1),border-radius_300ms_var(--ease-out),inset_300ms_var(--ease-out),opacity_300ms_var(--ease-out)] focus:outline-none sm:inset-x-4 sm:bottom-4 sm:mx-auto sm:max-w-[600px] sm:rounded-4xl"
+      class="fixed z-modal flex flex-col overflow-hidden emphasis-floating [transition:height_320ms_cubic-bezier(0.22,1,0.36,1),border-radius_300ms_var(--ease-out),inset_300ms_var(--ease-out),opacity_300ms_var(--ease-out)] focus:outline-none sm:inset-x-4 sm:bottom-4 sm:mx-auto sm:max-w-[600px] sm:rounded-4xl"
       tabindex="-1"
       :class="[
         isOpen

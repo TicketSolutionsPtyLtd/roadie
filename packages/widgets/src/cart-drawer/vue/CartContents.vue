@@ -69,7 +69,7 @@ function onCheckout() {
   />
   <div v-else class="grid gap-5">
     <section v-for="group in dayGroups" :key="group.key" class="grid gap-4">
-      <div class="sticky top-0 z-10 -mx-4 emphasis-strong px-4 py-2.5">
+      <div class="sticky top-0 z-sticky -mx-4 emphasis-strong px-4 py-2.5">
         <div class="flex items-center gap-2">
           <PhCalendarBlank
             weight="bold"

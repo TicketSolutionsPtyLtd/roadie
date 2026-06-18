@@ -103,7 +103,7 @@ export function CartDrawerHeader({
             aria-label='Close cart'
             emphasis='subtle'
             intent='neutral'
-            size='icon-sm'
+            size='sm'
             onClick={onToggle}
           >
             <XIcon weight='bold' className='size-4' />
@@ -189,7 +189,7 @@ export function CartDrawerFooter({
   const feesOpacity = useTransform(progress, [0.5, 1], [0, 1])
   const footerShadow = useTransform(
     progress,
-    (p) => `0 -4px 16px oklch(0 0 0 / ${p * 0.08})`
+    (p) => `0 -4px 16px oklch(0.1 0.04 var(--intent-hue) / ${p * 0.08})`
   )
   const prefix = currencyPrefix(locale, currency)
 

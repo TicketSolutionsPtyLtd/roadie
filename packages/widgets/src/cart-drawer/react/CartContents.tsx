@@ -66,7 +66,7 @@ export function CartContents({
     <div className={className ?? 'grid gap-5'}>
       {dayGroups.map((group) => (
         <section key={group.key} className='grid gap-4'>
-          <div className='sticky top-0 z-10 -mx-4 emphasis-strong px-4 py-2.5'>
+          <div className='sticky top-0 z-sticky -mx-4 emphasis-strong px-4 py-2.5'>
             <div className='flex items-center gap-2'>
               <CalendarBlankIcon
                 weight='bold'

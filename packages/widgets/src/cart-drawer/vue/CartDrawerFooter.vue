@@ -60,7 +60,8 @@ const feesOpacity = computed(() =>
 )
 
 const footerShadow = computed(
-  () => `0 -4px 16px oklch(0 0 0 / ${props.progress * 0.08})`
+  () =>
+    `0 -4px 16px oklch(0.1 0.04 var(--intent-hue) / ${props.progress * 0.08})`
 )
 
 function onPointerDown(e: PointerEvent) {
