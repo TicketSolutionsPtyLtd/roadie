@@ -9,7 +9,11 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
-    globals: true
+    globals: true,
+    // React + Base UI Popover transitions + async refetch run slowly in jsdom;
+    // the heavier cart-drawer flows brush past the 5s default on slower CI
+    // runners (locally ~3-5s). 15s gives headroom without masking a real hang.
+    testTimeout: 15000
   },
   ssr: { noExternal: ['@oztix/roadie-core'] }
 })
