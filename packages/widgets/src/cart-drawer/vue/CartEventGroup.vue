@@ -85,6 +85,11 @@ async function ensureTrap(): Promise<FocusTrapInstance | null> {
     trap = mod.createFocusTrap(el, {
       escapeDeactivates: false,
       clickOutsideDeactivates: false,
+      // Don't preventDefault outside clicks — the trap would otherwise swallow a
+      // click on the drawer's close button while the confirm is open. The
+      // document pointerdown handler still closes the confirm; the click also
+      // reaches the close button, so one click dismisses both.
+      allowOutsideClick: true,
       returnFocusOnDeactivate: true,
       initialFocus: () =>
         confirmCancelEl.value ?? confirmPopupEl.value ?? false,
