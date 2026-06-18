@@ -95,36 +95,15 @@ describe('buildCheckoutUrl', () => {
 })
 
 describe('buildBrowseHref', () => {
-  // jsdom defaults: http://localhost/ — set explicit pathname/search per test.
-  const setLocation = (pathname: string, search: string): void => {
-    window.history.replaceState({}, '', `${pathname}${search}`)
-  }
   const COLLECTION = 'abc-123-DEF'
 
-  it('builds /collection/cart with id + redirect to current path+search', () => {
-    setLocation('/event/x/y', '?foo=1&bar=2')
-    expect(buildBrowseHref(COLLECTION)).toBe(
-      `/collection/cart/?id=abc-123-DEF&redirect=${encodeURIComponent('/event/x/y?foo=1&bar=2')}`
-    )
-  })
-  it('strips an existing `redirect` param from the current search', () => {
-    setLocation('/event/x', '?redirect=%2Fstale&keep=1')
-    expect(buildBrowseHref(COLLECTION)).toBe(
-      `/collection/cart/?id=abc-123-DEF&redirect=${encodeURIComponent('/event/x?keep=1')}`
-    )
-  })
-  it('omits an empty query string from the redirect', () => {
-    setLocation('/event/x', '')
-    expect(buildBrowseHref(COLLECTION)).toBe(
-      `/collection/cart/?id=abc-123-DEF&redirect=${encodeURIComponent('/event/x')}`
-    )
+  it('builds the /collection/ events route with the id', () => {
+    expect(buildBrowseHref(COLLECTION)).toBe('/collection/?id=abc-123-DEF')
   })
   it('returns "/" when collectionId is empty', () => {
-    setLocation('/event/x', '')
     expect(buildBrowseHref('')).toBe('/')
   })
   it('encodes collectionId so a hostile value cannot inject query params', () => {
-    setLocation('/event/x', '')
     const href = buildBrowseHref('&inject=evil')
     expect(href).toContain('id=%26inject%3Devil')
     expect(href).not.toMatch(/[?&]inject=evil/)
