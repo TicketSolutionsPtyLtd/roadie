@@ -370,10 +370,12 @@ export function CartDrawer({
                   Couldn&apos;t load your cart. Please try again.
                 </p>
               ) : isEmpty ? (
-                <CartEmptyState
-                  browseHref={effectiveBrowseHref}
-                  onNavigate={onNavigate}
-                />
+                <div className='grid min-h-full place-content-center'>
+                  <CartEmptyState
+                    browseHref={effectiveBrowseHref}
+                    onNavigate={onNavigate}
+                  />
+                </div>
               ) : details ? (
                 <CartContents
                   cart={details}

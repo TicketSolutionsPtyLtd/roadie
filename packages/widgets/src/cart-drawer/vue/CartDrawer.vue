@@ -356,11 +356,15 @@ const contentOpacity = computed(() =>
         >
           Couldn't load your cart. Please try again.
         </p>
-        <CartEmptyState
+        <div
           v-else-if="isEmpty"
-          :browse-href="effectiveBrowseHref"
-          :on-navigate="onNavigate"
-        />
+          class="grid min-h-full place-content-center"
+        >
+          <CartEmptyState
+            :browse-href="effectiveBrowseHref"
+            :on-navigate="onNavigate"
+          />
+        </div>
         <template v-else-if="details">
           <p
             v-if="removeError"
