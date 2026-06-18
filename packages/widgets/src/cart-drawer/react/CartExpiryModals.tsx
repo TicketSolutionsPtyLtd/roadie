@@ -1,7 +1,5 @@
 'use client'
 
-import { useId } from 'react'
-
 import NumberFlow from '@number-flow/react'
 import { ClockIcon } from '@phosphor-icons/react'
 
@@ -19,9 +17,6 @@ export type CartExpiryModalsProps = {
   onNavigate: (href: string) => void
 }
 
-// Standalone, presentational warning + expired modals. The host owns the
-// countdown (useCartExpiry) and decides whether to hide the cart UI; navigation
-// goes through the consumer's onNavigate (no anchors).
 export function CartExpiryModals({
   showWarning,
   expired,
@@ -31,25 +26,21 @@ export function CartExpiryModals({
   browseHref,
   onNavigate
 }: CartExpiryModalsProps) {
-  const warningTitleId = useId()
-  const expiredTitleId = useId()
   const mins = Math.floor((remaining ?? 0) / 60)
   const secs = (remaining ?? 0) % 60
 
   return (
     <>
-      {/* Close-to-expiry warning — light-dismiss nudge. */}
       <CartExpiryModal
         open={showWarning && !expired}
         dismissible
         onClose={onDismissWarning}
-        titleId={warningTitleId}
         title='Still here?'
         icon={
           <div className='flex size-14 items-center justify-center rounded-full bg-subtle'>
             <ClockIcon
               weight='bold'
-              className='size-7 text-normal intent-danger'
+              className='size-7 text-[var(--intent-9)] intent-danger'
             />
           </div>
         }
@@ -65,7 +56,7 @@ export function CartExpiryModals({
             </Button>
             <Button
               emphasis='strong'
-              intent='accent'
+              intent='danger'
               className='flex-1'
               disabled={!checkoutUrl}
               onClick={() => {
@@ -78,16 +69,14 @@ export function CartExpiryModals({
         }
       >
         Your tickets are held for a little longer. Check out now to secure them.
-        <span className='mt-2 block text-display-ui-4 text-normal tabular-nums intent-danger'>
+        <span className='mt-2 block text-display-ui-4 text-[var(--intent-9)] tabular-nums intent-danger'>
           <NumberFlow value={mins} />:
           <NumberFlow value={secs} format={{ minimumIntegerDigits: 2 }} />
         </span>
       </CartExpiryModal>
 
-      {/* Expired — blocking; the only exit is back to browsing. */}
       <CartExpiryModal
         open={expired}
-        titleId={expiredTitleId}
         title='Your hold has ended'
         icon={
           <div className='flex size-16 items-center justify-center rounded-full bg-subtle'>

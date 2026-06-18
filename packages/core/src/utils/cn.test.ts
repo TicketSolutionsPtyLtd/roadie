@@ -34,6 +34,16 @@ describe('cn', () => {
     expect(cn('ease-in', 'ease-spring')).toBe('ease-spring')
   })
 
+  it('dedupes Roadie named z-index tiers', () => {
+    expect(cn('z-overlay', 'z-modal')).toBe('z-modal')
+    expect(cn('z-popover', 'z-tooltip')).toBe('z-tooltip')
+  })
+
+  it('dedupes a Roadie named z-index against a numeric z-index', () => {
+    expect(cn('z-overlay', 'z-80')).toBe('z-80')
+    expect(cn('z-40', 'z-tooltip')).toBe('z-tooltip')
+  })
+
   it('keeps unrelated classes intact', () => {
     expect(cn('p-4', 'duration-slow', 'rounded-full')).toBe(
       'p-4 duration-slow rounded-full'

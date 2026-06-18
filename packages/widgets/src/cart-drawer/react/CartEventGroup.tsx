@@ -1,6 +1,10 @@
 'use client'
 
-import { ClockIcon, MapPinIcon } from '@phosphor-icons/react'
+import { useState } from 'react'
+
+import { ClockIcon, MapPinIcon, TrashIcon } from '@phosphor-icons/react'
+
+import { Button, IconButton, Popover } from '@oztix/roadie-components'
 
 import {
   type CartEvent,
@@ -11,25 +15,29 @@ import {
 
 type CartEventGroupProps = {
   event: CartEvent
-  /** Locale for currency/time formatting (design finding #1). */
+  /** Locale for currency/time formatting. */
   locale: string
-  /** ISO 4217 currency code (design finding #1). */
+  /** ISO 4217 currency code. */
   currency: string
+  /** Optional remove handler. Receives the `eventId`. */
+  onRemoveEvent?: (eventId: string) => void
+  /** True while a remove is in flight — disables the trash trigger. */
+  isRemoving?: boolean
 }
 
 export function CartEventGroup({
   event,
   locale,
-  currency
+  currency,
+  onRemoveEvent,
+  isRemoving = false
 }: CartEventGroupProps) {
-  // Time of day comes from the UTC start; eventDateDisplay (if provided) is the
-  // pre-formatted venue-local string, otherwise we render the wall-clock time.
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const start = new Date(event.eventStartAtUtc)
   const startValid = !Number.isNaN(start.getTime())
   const timeLabel =
     event.eventDateDisplay ?? (startValid ? formatTime(start) : null)
-  // Only render API-supplied images from absolute http(s) URLs — a hostile API
-  // could otherwise beacon viewers via a protocol-relative tracking pixel.
+  // Only render absolute http(s) image URLs — a hostile API could otherwise beacon viewers.
   const safeImageUrl = isSafeImageUrl(event.imageUrl) ? event.imageUrl : null
 
   return (
@@ -62,6 +70,53 @@ export function CartEventGroup({
             alt={event.eventName}
             className='size-20 shrink-0 rounded-lg bg-subtle object-cover'
           />
+        )}
+        {onRemoveEvent && (
+          <Popover open={confirmOpen} onOpenChange={setConfirmOpen}>
+            <Popover.Trigger
+              render={
+                <IconButton
+                  intent='danger'
+                  emphasis='subtler'
+                  size='sm'
+                  disabled={isRemoving}
+                  aria-label={`Remove ${event.eventName}`}
+                >
+                  <TrashIcon weight='bold' className='size-4' />
+                </IconButton>
+              }
+            />
+            <Popover.Content intent='danger' data-cart-confirm>
+              <Popover.Header>
+                <Popover.Title>
+                  Remove all tickets for this event?
+                </Popover.Title>
+                <Popover.Description>
+                  This action cannot be undone.
+                </Popover.Description>
+              </Popover.Header>
+              <Popover.Footer>
+                <Popover.Close
+                  render={
+                    <Button intent='neutral' emphasis='normal' size='sm'>
+                      Cancel
+                    </Button>
+                  }
+                />
+                <Button
+                  intent='danger'
+                  emphasis='strong'
+                  size='sm'
+                  onClick={() => {
+                    onRemoveEvent(event.eventId)
+                    setConfirmOpen(false)
+                  }}
+                >
+                  Remove
+                </Button>
+              </Popover.Footer>
+            </Popover.Content>
+          </Popover>
         )}
       </div>
 

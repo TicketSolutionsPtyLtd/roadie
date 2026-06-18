@@ -133,7 +133,7 @@ Portaled popups sit outside the trigger's CSS cascade, so set the colour context
   </Dialog>
 
   {/* Warning — caution confirm */}
-  <Dialog>
+  <Dialog role='alertdialog'>
     <Dialog.Trigger render={<Button>Save and exit</Button>} />
     <Dialog.Content intent='warning' size='sm'>
       <Dialog.Header>
@@ -151,7 +151,7 @@ Portaled popups sit outside the trigger's CSS cascade, so set the colour context
   </Dialog>
 
   {/* Danger — destructive confirm */}
-  <Dialog>
+  <Dialog role='alertdialog'>
     <Dialog.Trigger render={<Button intent='danger'>Remove member</Button>} />
     <Dialog.Content intent='danger' size='sm'>
       <Dialog.Header>
@@ -188,6 +188,30 @@ Portaled popups sit outside the trigger's CSS cascade, so set the colour context
 </div>
 ```
 
+### Alert dialog
+
+For a blocking message that demands a response — a session timeout, a cart-expiry
+warning, an irreversible confirmation — set `role='alertdialog'` on the root. This
+exposes the surface as `role="alertdialog"` and raises the backdrop and surface to
+the [`z-alert`](/foundations/elevation) tier so the dialog stacks **above** an
+already-open dialog or drawer. The default `role='dialog'` stays on the
+`z-overlay` / `z-modal` tiers.
+
+```tsx
+<Dialog role='alertdialog' open={expired} onOpenChange={onClose}>
+  <Dialog.Content size='sm'>
+    <Dialog.Header>
+      <Dialog.Title>Your cart has expired</Dialog.Title>
+    </Dialog.Header>
+    <Dialog.Footer>
+      <Button emphasis='strong' onClick={onClose}>
+        Start over
+      </Button>
+    </Dialog.Footer>
+  </Dialog.Content>
+</Dialog>
+```
+
 ### Composition
 
 Dialog is a compound component. Use `Dialog.Header`, `Dialog.Body`, and `Dialog.Footer` to structure the modal, and `Dialog.Close` to dismiss it.
@@ -216,7 +240,7 @@ Dialog is a compound component. Use `Dialog.Header`, `Dialog.Body`, and `Dialog.
 A `Dialog.Footer` holds a centered actions row. Combine it with `intent='danger'` for a confirm-deletion flow.
 
 ```tsx-live
-<Dialog>
+<Dialog role='alertdialog'>
   <Dialog.Trigger render={<Button intent='danger' emphasis='strong'>Delete account</Button>} />
   <Dialog.Content intent='danger' size='sm'>
     <Dialog.Header>
@@ -241,6 +265,15 @@ A `Dialog.Footer` holds a centered actions row. Combine it with `intent='danger'
 Use a dialog for tasks that need the user's full attention — confirmations, short forms, and destructive actions. Keep content concise, and set `intent` on `Dialog.Content`, not the trigger, since portaled popups do not inherit the trigger's CSS cascade.
 
 <div className='grid gap-8'>
+
+<Guideline title='Use alertdialog for blocking or destructive confirmations'>
+  <Guideline.Do code={`<Dialog role='alertdialog'>\n  <Dialog.Content intent='danger' size='sm'>\n    <Dialog.Title>Delete event?</Dialog.Title>\n    …\n  </Dialog.Content>\n</Dialog>`}>
+    Set `role='alertdialog'` when the user must resolve the dialog before moving on — deleting data, discarding edits, a session or cart expiry. Screen readers announce it assertively, and it stacks above an already-open dialog or drawer on the `z-alert` tier.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Dialog>\n  <Dialog.Content intent='danger' size='sm'>\n    <Dialog.Title>Delete event?</Dialog.Title>\n    …\n  </Dialog.Content>\n</Dialog>`}>
+    Don't leave a destructive or blocking confirmation as the default `role='dialog'` — it is announced as a plain dialog and can be obscured by an open drawer. Keep `role='dialog'` for informational or optional content.
+  </Guideline.Dont>
+</Guideline>
 
 <Guideline title='Name buttons by their action'>
   <Guideline.Do example={<Button intent='accent' emphasis='strong'>Save changes</Button>}>
@@ -294,7 +327,7 @@ Use a dialog for tasks that need the user's full attention — confirmations, sh
 - **Keyboard**: `Escape` closes the dialog and returns focus to the trigger. Focus is trapped within the dialog while it is open.
 - **Default action**: `Enter` activates the strong primary action (the `emphasis='strong'` button), like a form's default submit. It is ignored while focus is on another button, a multi-line textarea, or editable content so those keep their own `Enter` behaviour.
 - **Focus**: Focus moves into the dialog on open and is restored to the trigger on close.
-- **ARIA**: The popup is exposed with `role="dialog"` and `aria-modal`, with `Dialog.Title`/`Dialog.Description` providing the accessible name and description.
+- **ARIA**: The popup is exposed with `role="dialog"` and `aria-modal`, with `Dialog.Title`/`Dialog.Description` providing the accessible name and description. Set `role='alertdialog'` for a blocking message that needs a response — this also raises the dialog to the `z-alert` tier so it stacks above an open dialog or drawer.
 - **Icon-only close**: When the dismiss control shows only an icon, give it an explicit label — e.g. `<Dialog.Close render={<IconButton aria-label='Close'><XIcon weight='bold' /></IconButton>} />` — so screen readers announce its purpose.
 
 <PropsDefinitions componentPath='packages/components/src/components/Dialog' />

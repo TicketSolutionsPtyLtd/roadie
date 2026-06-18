@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { PhClock, PhMapPin, PhTrash } from '@phosphor-icons/vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 
 import {
   type CartEvent,
@@ -10,21 +11,25 @@ import {
 
 const props = defineProps<{
   event: CartEvent
-  /** Locale for currency/time formatting (design finding #1). */
+  /** Locale for currency/time formatting. */
   locale: string
-  /** ISO 4217 currency code (design finding #1). */
+  /** ISO 4217 currency code. */
   currency: string
+  /** True while a cart-wide remove is in flight. */
+  busy?: boolean
 }>()
 
-// Time of day from the UTC start; eventDateDisplay (if provided) wins.
+const emit = defineEmits<{
+  removeEvent: [eventId: string]
+}>()
+
 const timeLabel = computed(() => {
   const start = new Date(props.event.eventStartAtUtc)
   const valid = !Number.isNaN(start.getTime())
   return props.event.eventDateDisplay ?? (valid ? formatTime(start) : null)
 })
 
-// Only render API-supplied images from absolute http(s) URLs — a hostile API
-// could otherwise beacon viewers via a protocol-relative tracking pixel.
+// Security: only render absolute http(s) image URLs (avoid hostile-API beacon).
 const safeImageUrl = computed(() =>
   isSafeImageUrl(props.event.imageUrl) ? props.event.imageUrl : null
 )
@@ -35,28 +40,124 @@ function money(amount: number): string {
     currency: props.currency
   })
 }
+
+const confirming = ref(false)
+const removeWrapEl = ref<HTMLElement | null>(null)
+const confirmPopupEl = ref<HTMLElement | null>(null)
+const confirmId = computed(() => `cart-confirm-${props.event.eventId}`)
+const confirmLabelId = computed(
+  () => `cart-confirm-label-${props.event.eventId}`
+)
+
+function openConfirm() {
+  if (props.busy) return
+  confirming.value = true
+}
+function closeConfirm() {
+  confirming.value = false
+}
+function confirmRemove() {
+  emit('removeEvent', props.event.eventId)
+  confirming.value = false
+}
+
+function onDocumentPointerDown(e: PointerEvent) {
+  if (
+    e.target instanceof Node &&
+    removeWrapEl.value &&
+    !removeWrapEl.value.contains(e.target)
+  ) {
+    closeConfirm()
+  }
+}
+function onDocumentKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') closeConfirm()
+}
+
+const confirmCancelEl = ref<HTMLButtonElement | null>(null)
+type FocusTrapInstance = { activate: () => void; deactivate: () => void }
+let trap: FocusTrapInstance | null = null
+async function ensureTrap(): Promise<FocusTrapInstance | null> {
+  const el = confirmPopupEl.value
+  if (trap || !el) return trap
+  try {
+    const mod = await import('focus-trap')
+    trap = mod.createFocusTrap(el, {
+      escapeDeactivates: false,
+      clickOutsideDeactivates: false,
+      returnFocusOnDeactivate: true,
+      initialFocus: () =>
+        confirmCancelEl.value ?? confirmPopupEl.value ?? false,
+      fallbackFocus: () => confirmPopupEl.value ?? el
+    })
+  } catch {
+    trap = null
+  }
+  return trap
+}
+
+watch(confirming, async (open) => {
+  if (typeof document === 'undefined') return
+  if (open) {
+    document.addEventListener('pointerdown', onDocumentPointerDown)
+    document.addEventListener('keydown', onDocumentKeydown)
+    await nextTick()
+    const t = await ensureTrap()
+    if (t && confirmPopupEl.value?.isConnected) {
+      try {
+        t.activate()
+      } catch {
+        /* non-fatal */
+      }
+    }
+  } else {
+    document.removeEventListener('pointerdown', onDocumentPointerDown)
+    document.removeEventListener('keydown', onDocumentKeydown)
+    try {
+      trap?.deactivate()
+    } catch {
+      /* non-fatal */
+    }
+    // Drop the stale trap so the next open rebuilds against the fresh element.
+    trap = null
+  }
+})
+onBeforeUnmount(() => {
+  try {
+    trap?.deactivate()
+  } catch {
+    /* non-fatal */
+  }
+  trap = null
+  if (typeof document === 'undefined') return
+  document.removeEventListener('pointerdown', onDocumentPointerDown)
+  document.removeEventListener('keydown', onDocumentKeydown)
+})
 </script>
 
 <template>
-  <div class="rc-event">
-    <div class="rc-event__row">
-      <div class="rc-event__info">
-        <div v-if="timeLabel" class="rc-event__time">
-          <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
-            <path
-              d="M128,20A108,108,0,1,0,236,128,108.12,108.12,0,0,0,128,20Zm0,192a84,84,0,1,1,84-84A84.09,84.09,0,0,1,128,212Zm68-84a12,12,0,0,1-12,12H128a12,12,0,0,1-12-12V72a12,12,0,0,1,24,0v44h44A12,12,0,0,1,196,128Z"
-            />
-          </svg>
+  <div class="grid gap-3">
+    <div class="flex items-start gap-3">
+      <div class="flex min-w-0 flex-1 flex-col gap-1">
+        <div
+          v-if="timeLabel"
+          class="flex items-center gap-2 text-ui-meta text-subtle"
+        >
+          <PhClock
+            weight="bold"
+            class="size-4 shrink-0 text-subtler"
+            aria-hidden="true"
+          />
           <span>{{ timeLabel }}</span>
         </div>
-        <div class="rc-event__detail">
-          <p class="rc-event__name">{{ event.eventName }}</p>
-          <div class="rc-event__venue">
-            <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
-              <path
-                d="M128,60a44,44,0,1,0,44,44A44.05,44.05,0,0,0,128,60Zm0,64a20,20,0,1,1,20-20A20,20,0,0,1,128,124Zm0-112a92.1,92.1,0,0,0-92,92c0,77.36,81.64,135.4,85.12,137.83a12,12,0,0,0,13.76,0,259,259,0,0,0,42.18-39C205.15,170.57,220,136.37,220,104A92.1,92.1,0,0,0,128,12Zm31.3,174.71A249.35,249.35,0,0,1,128,216.89a249.35,249.35,0,0,1-31.3-30.18C80,167.37,60,137.31,60,104a68,68,0,0,1,136,0C196,137.31,176,167.37,159.3,186.71Z"
-              />
-            </svg>
+        <div class="grid gap-1 pl-6">
+          <p class="text-ui font-medium text-strong">{{ event.eventName }}</p>
+          <div class="flex items-center gap-1.5 text-ui-meta text-subtle">
+            <PhMapPin
+              weight="bold"
+              class="size-3.5 shrink-0 text-subtler"
+              aria-hidden="true"
+            />
             <span>{{ event.venueName }}</span>
           </div>
         </div>
@@ -65,20 +166,87 @@ function money(amount: number): string {
         v-if="safeImageUrl"
         :src="safeImageUrl"
         :alt="event.eventName"
-        class="rc-event__image"
+        class="size-20 shrink-0 rounded-lg bg-subtle object-cover"
       />
+      <div ref="removeWrapEl" class="relative shrink-0 self-start">
+        <button
+          type="button"
+          class="is-interactive btn btn-icon-sm emphasis-subtler intent-danger"
+          :aria-label="`Remove ${event.eventName}`"
+          :aria-expanded="confirming"
+          :aria-controls="confirmId"
+          :disabled="busy"
+          @click="openConfirm"
+        >
+          <PhTrash weight="bold" class="size-4" aria-hidden="true" />
+        </button>
+
+        <div
+          v-if="confirming"
+          :id="confirmId"
+          ref="confirmPopupEl"
+          data-cart-confirm
+          class="absolute top-full right-0 z-popover mt-1 grid max-w-80 gap-4 rounded-xl emphasis-floating p-4 text-pretty intent-danger"
+          role="dialog"
+          :aria-labelledby="confirmLabelId"
+        >
+          <div class="grid gap-1 text-center">
+            <p :id="confirmLabelId" class="text-display-ui-6 text-strong">
+              Remove all tickets for this event?
+            </p>
+            <p class="text-sm text-subtle">This action cannot be undone.</p>
+          </div>
+          <div class="flex justify-center gap-2">
+            <button
+              ref="confirmCancelEl"
+              type="button"
+              class="is-interactive btn btn-sm emphasis-normal intent-neutral"
+              @click="closeConfirm"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="is-interactive btn btn-sm emphasis-strong intent-danger"
+              :disabled="busy"
+              @click="confirmRemove"
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="rc-event__tickets">
-      <div v-for="ticket in event.tickets" :key="ticket.name" class="rc-ticket">
-        <span class="rc-ticket__name">{{ ticket.name }}</span>
-        <span class="rc-ticket__price">
-          {{ ticket.priceEach === 0 ? 'Free' : money(ticket.priceEach) }}
-        </span>
-        <span class="rc-ticket__qty">&times; {{ ticket.quantity }}</span>
-        <span class="rc-ticket__total tabular-nums">
-          {{ money(ticket.quantity * ticket.priceEach) }}
-        </span>
+    <div class="grid gap-3 pl-6">
+      <div
+        v-for="ticket in event.tickets"
+        :key="ticket.name"
+        class="grid gap-2"
+      >
+        <div class="md:hidden">
+          <p class="text-ui font-medium text-strong">{{ ticket.name }}</p>
+        </div>
+        <div class="flex items-center rounded-lg bg-sunken px-3 py-2">
+          <div class="hidden min-w-0 flex-1 pr-4 md:block">
+            <span class="block truncate text-ui font-medium text-strong">
+              {{ ticket.name }}
+            </span>
+          </div>
+          <span class="w-20 shrink-0 text-ui-meta text-subtle">
+            {{ ticket.priceEach === 0 ? 'Free' : money(ticket.priceEach) }}
+          </span>
+          <div class="flex flex-1 items-center justify-center">
+            <span class="shrink-0 text-ui-meta font-medium text-strong">
+              &times; {{ ticket.quantity }}
+            </span>
+          </div>
+          <span
+            class="w-24 shrink-0 text-right text-ui font-bold text-strong tabular-nums"
+          >
+            {{ money(ticket.quantity * ticket.priceEach) }}
+          </span>
+        </div>
       </div>
     </div>
   </div>

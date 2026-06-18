@@ -42,6 +42,46 @@ describe('DialogPopup', () => {
   })
 })
 
+describe('Dialog role / layering', () => {
+  it('defaults to role="dialog" with the modal/overlay z-tiers', () => {
+    render(
+      <Dialog open>
+        <Dialog.Content>Body</Dialog.Content>
+      </Dialog>
+    )
+    const popup = document.body.querySelector('[data-slot="dialog-popup"]')!
+    const backdrop = document.body.querySelector(
+      '[data-slot="dialog-backdrop"]'
+    )!
+    const viewport = document.body.querySelector(
+      '[data-slot="dialog-viewport"]'
+    )!
+    expect(popup).not.toHaveAttribute('role', 'alertdialog')
+    expect(backdrop).toHaveClass('z-overlay')
+    expect(viewport).toHaveClass('z-modal')
+  })
+
+  it('role="alertdialog" sets the role and raises both layers to z-alert', () => {
+    render(
+      <Dialog open role='alertdialog'>
+        <Dialog.Content>Body</Dialog.Content>
+      </Dialog>
+    )
+    const popup = document.body.querySelector('[data-slot="dialog-popup"]')!
+    const backdrop = document.body.querySelector(
+      '[data-slot="dialog-backdrop"]'
+    )!
+    const viewport = document.body.querySelector(
+      '[data-slot="dialog-viewport"]'
+    )!
+    expect(popup).toHaveAttribute('role', 'alertdialog')
+    expect(backdrop).toHaveClass('z-alert')
+    expect(backdrop).not.toHaveClass('z-overlay')
+    expect(viewport).toHaveClass('z-alert')
+    expect(viewport).not.toHaveClass('z-modal')
+  })
+})
+
 describe('Dialog presentational leaves', () => {
   it('Header renders a grid container', () => {
     const { container } = render(<DialogHeader>Title</DialogHeader>)

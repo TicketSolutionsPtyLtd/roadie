@@ -91,6 +91,40 @@
   }
 }
 
+@keyframes nudge {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-6px);
+  }
+  60% {
+    transform: translateY(2px);
+  }
+}
+
+@keyframes pop {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.12);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 /* ─── Duration utilities ───
    Tailwind v4 auto-generates `ease-{name}` utilities from `--ease-*`
    theme tokens, but it does NOT auto-generate `duration-{name}` from
@@ -150,8 +184,23 @@
   animation: scale-out var(--duration-fast) var(--ease-exit) both;
 }
 
+/* Entrance: fade + slide-up + slight scale. Pair with `origin-bottom`
+   (or any `origin-*`) to grow from a specific edge. */
+@utility motion-pop-in {
+  animation: pop-in var(--duration-slow) var(--ease-enter) both;
+}
+
 @utility animate-shake {
   animation: shake var(--duration-moderate) var(--ease-standard);
+}
+
+/* One-shot attention cues. Replay by toggling the class. */
+@utility animate-nudge {
+  animation: nudge var(--duration-slowest) var(--ease-standard);
+}
+
+@utility animate-pop {
+  animation: pop var(--duration-slowest) var(--ease-standard);
 }
 
 /* ─── Enter/exit transitions ───

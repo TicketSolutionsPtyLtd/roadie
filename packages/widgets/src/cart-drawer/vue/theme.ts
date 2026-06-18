@@ -20,23 +20,7 @@ export type UseRoadieThemeOptions = {
   defaultAccentColor?: string
 }
 
-/**
- * Apply a Roadie accent theme in a Vue app — the same way React's
- * `<ThemeProvider accentColor>` does. Derives OKLCH hue + chroma from a hex
- * colour and writes them to `:root` as `--accent-hue` / `--accent-chroma`, from
- * which Roadie core regenerates every accent / intent / semantic token. The
- * cart drawer (whose `--rc-*` tokens bridge to those Roadie tokens) then tracks
- * the colour automatically, as does any other Roadie-tokened UI on the page.
- *
- * Reactive: pass a ref/getter and the theme follows it. Call once near the app
- * root, e.g. `useRoadieTheme(() => collection.value?.themeColour)`.
- *
- * SSR: the hue/chroma computation is pure (hydration-safe); the only DOM write
- * is guarded by `typeof document`. Modern browsers render the hue/chroma path
- * flash-free. For non-OKLCH browsers, server-inject the accent style before
- * hydration (parity with React's `getAccentStyleTagSync`); this hook does not
- * emit hex fallbacks.
- */
+/** Apply a Roadie accent theme in a Vue app by writing OKLCH hue/chroma to `:root`. */
 export function useRoadieTheme(
   accentColor: MaybeRefOrGetter<string | null | undefined>,
   options: UseRoadieThemeOptions = {}
@@ -46,7 +30,6 @@ export function useRoadieTheme(
     ? options.defaultAccentColor
     : DEFAULT_ACCENT
 
-  // Pure compute — no DOM. Resolve to a valid hex, then to OKLCH hue/chroma.
   const coords = computed(() => {
     const raw = toValue(accentColor)
     const hex = isValidHexColor(raw) ? raw : fallback
@@ -56,8 +39,7 @@ export function useRoadieTheme(
     }
   })
 
-  // Tracks ONLY a tag this hook created, so dispose never removes a
-  // server-injected tag or another instance's tag.
+  // Tracks ONLY a tag this hook created, so dispose never removes a server-injected/other tag.
   let createdTag: HTMLStyleElement | null = null
 
   watchEffect(() => {
@@ -65,7 +47,7 @@ export function useRoadieTheme(
     const { hue, chroma } = coords.value
     const css = `:root{--accent-hue:${hue};--accent-chroma:${chroma}}`
     let tag = document.getElementById(id) as HTMLStyleElement | null
-    if (tag && tag.textContent === css) return // dedupe identical writes
+    if (tag && tag.textContent === css) return
     if (!tag) {
       tag = document.createElement('style')
       tag.id = id

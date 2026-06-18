@@ -108,6 +108,21 @@ const animationUtilities = [
     name: 'motion-scale-out',
     description: 'Scale down to 95% with fade — popup dismiss',
     use: 'motion-scale-out'
+  },
+  {
+    name: 'motion-pop-in',
+    description: 'Fade + slide-up + scale entrance — pair with origin-*',
+    use: 'motion-pop-in'
+  },
+  {
+    name: 'animate-nudge',
+    description: 'One-shot vertical nudge — attention cue (cart bump)',
+    use: 'animate-nudge'
+  },
+  {
+    name: 'animate-pop',
+    description: 'One-shot scale pop — attention cue (badge update)',
+    use: 'animate-pop'
   }
 ]
 
@@ -349,6 +364,30 @@ export default function MotionPage() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        <div className='grid gap-2'>
+          <p className='text-sm text-strong'>Hover a tile to replay it</p>
+          <div className='grid gap-3 rounded-xl emphasis-subtle p-6 sm:grid-cols-3'>
+            {[
+              { label: 'animate-nudge', className: 'hover:animate-nudge' },
+              { label: 'animate-pop', className: 'hover:animate-pop' },
+              {
+                label: 'motion-pop-in',
+                className: 'origin-bottom hover:motion-pop-in'
+              }
+            ].map(({ label, className }) => (
+              <div
+                key={label}
+                className={`grid emphasis-raised place-content-center gap-1 rounded-lg p-6 text-center ${className}`}
+              >
+                <p className='font-mono text-xs font-bold text-strong'>
+                  {label}
+                </p>
+                <p className='text-xs text-subtler'>Hover to play</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

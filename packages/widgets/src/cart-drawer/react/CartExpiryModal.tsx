@@ -1,17 +1,13 @@
 'use client'
 
-import { type ReactNode, useEffect } from 'react'
+import { type ReactNode } from 'react'
 
 import { XIcon } from '@phosphor-icons/react'
-import FocusLock from 'react-focus-lock'
 
-import { IconButton } from '@oztix/roadie-components'
-
-import { lockBodyScroll } from './documentEffects'
+import { Dialog, IconButton } from '@oztix/roadie-components'
 
 type CartExpiryModalProps = {
   open: boolean
-  titleId: string
   title: string
   icon: ReactNode
   children: ReactNode
@@ -21,11 +17,8 @@ type CartExpiryModalProps = {
   onClose?: () => void
 }
 
-// Hand-rolled accessible shell (Roadie has no Dialog): role=dialog + aria-modal
-// + focus trap + Escape + refcounted body-scroll-lock.
 export function CartExpiryModal({
   open,
-  titleId,
   title,
   icon,
   children,
@@ -33,57 +26,48 @@ export function CartExpiryModal({
   dismissible = false,
   onClose
 }: CartExpiryModalProps) {
-  useEffect(() => {
-    if (!open || !dismissible) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose?.()
-    }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [open, dismissible, onClose])
-
-  // Refcounted so it composes with the drawer's own body-scroll lock.
-  useEffect(() => {
-    if (!open) return
-    return lockBodyScroll()
-  }, [open])
-
-  if (!open) return null
-
   return (
-    <div
-      className='fixed inset-0 z-80 flex items-center justify-center emphasis-overlay p-4'
-      onClick={dismissible ? onClose : undefined}
+    <Dialog.Root
+      open={open}
+      role='alertdialog'
+      disablePointerDismissal={!dismissible}
+      onOpenChange={(next) => {
+        if (!next) onClose?.()
+      }}
     >
-      <FocusLock returnFocus className='w-full max-w-sm'>
-        <div
-          role='dialog'
-          aria-modal='true'
-          aria-labelledby={titleId}
-          onClick={(e) => e.stopPropagation()}
-          className='relative grid justify-items-center gap-4 rounded-4xl emphasis-floating p-6 text-center'
-        >
-          {dismissible && onClose && (
-            <div className='absolute top-4 right-4'>
-              <IconButton
-                aria-label='Close'
-                emphasis='subtle'
-                intent='neutral'
-                size='icon-sm'
-                onClick={onClose}
+      <Dialog.Portal>
+        <Dialog.Backdrop />
+        <Dialog.Viewport>
+          <Dialog.Popup
+            size='sm'
+            className='relative justify-items-center gap-6 text-center'
+          >
+            {dismissible && onClose && (
+              <Dialog.Close
+                render={
+                  <IconButton
+                    aria-label='Close'
+                    emphasis='subtle'
+                    intent='neutral'
+                    size='sm'
+                    className='absolute top-4 right-4'
+                  />
+                }
               >
                 <XIcon weight='bold' className='size-4' />
-              </IconButton>
+              </Dialog.Close>
+            )}
+            {icon}
+            <Dialog.Title className='text-display-ui-4 text-strong'>
+              {title}
+            </Dialog.Title>
+            <div className='text-prose text-balance text-subtle'>
+              {children}
             </div>
-          )}
-          {icon}
-          <h2 id={titleId} className='text-display-ui-4 text-strong'>
-            {title}
-          </h2>
-          <div className='text-prose text-balance text-subtle'>{children}</div>
-          <div className='flex w-full gap-3'>{actions}</div>
-        </div>
-      </FocusLock>
-    </div>
+            <div className='flex w-full gap-3'>{actions}</div>
+          </Dialog.Popup>
+        </Dialog.Viewport>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }

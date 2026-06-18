@@ -10,14 +10,6 @@ const twMerge = extendTailwindMerge<
 >({
   extend: {
     classGroups: {
-      // Roadie ships named duration tokens (`duration-fast` etc.) as
-      // explicit `@utility` blocks in `motion.css`. Tailwind v4 doesn't
-      // auto-extend `--duration-*` into utilities the way it does
-      // `--ease-*`, so tailwind-merge's built-in `transition-duration`
-      // group only covers the numeric `duration-150` / `duration-300`
-      // forms. Register the named tokens here so consumer overrides
-      // (`<Component className='duration-fast' />`) deduplicate
-      // against the wrapper's baked-in duration class.
       duration: [
         'duration-instant',
         'duration-fastest',
@@ -28,10 +20,18 @@ const twMerge = extendTailwindMerge<
         'duration-slower',
         'duration-slowest'
       ],
-      // Same story for the named easing tokens — Tailwind v4 emits
-      // the utilities, but tailwind-merge needs them registered to
-      // dedup `ease-enter` against `ease-exit` etc.
       ease: ['ease-standard', 'ease-enter', 'ease-exit', 'ease-spring'],
+      z: [
+        'z-hide',
+        'z-base',
+        'z-docked',
+        'z-sticky',
+        'z-overlay',
+        'z-modal',
+        'z-popover',
+        'z-toast',
+        'z-tooltip'
+      ],
       'font-size': [
         {
           text: [

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PhBag } from '@phosphor-icons/vue'
 import { computed } from 'vue'
 
 import { formatCurrency } from '../core'
@@ -26,16 +27,13 @@ const emit = defineEmits<{
   dragStart: [e: PointerEvent]
 }>()
 
-// Closed → open the drawer. Open → "Browse events": in `event` context the
-// parent navigates to the package-built collection URL; in `collection`
-// context we just close (the collection page is already behind the drawer).
+// `event` context always navigates; `collection` context toggles the drawer.
 function onSecondaryClick() {
-  if (!props.isOpen) {
-    emit('toggle')
+  if (props.context === 'event') {
+    emit('browse')
     return
   }
-  if (props.context === 'event') emit('browse')
-  else emit('toggle')
+  emit('toggle')
 }
 
 const subtotalLabel = computed(() =>
@@ -45,9 +43,6 @@ const subtotalLabel = computed(() =>
   })
 )
 
-// Surface the booking fees explicitly (mirrors the full CartContents footer).
-// bookingFees is summed from the FRESH per-event cart API value
-// (item.InventoryBookingFee()), so it tracks the cart, not a stale total.
 const feesLabel = computed(() =>
   props.bookingFees > 0
     ? `Incl. ${formatCurrency(props.bookingFees, {
@@ -64,10 +59,9 @@ const feesOpacity = computed(() =>
   Math.max(0, Math.min(1, (props.progress - 0.5) / 0.5))
 )
 
-// Shadow grows with drag progress so the footer lifts off the content as the
-// drawer opens (parity with the React skin's CartDrawerHandle).
 const footerShadow = computed(
-  () => `0 -4px 16px oklch(0 0 0 / ${props.progress * 0.08})`
+  () =>
+    `0 -4px 16px oklch(0.1 0.04 var(--intent-hue) / ${props.progress * 0.08})`
 )
 
 function onPointerDown(e: PointerEvent) {
@@ -77,49 +71,50 @@ function onPointerDown(e: PointerEvent) {
 
 <template>
   <div
-    class="rc-footer"
-    :class="{ 'rc-footer--draggable': !isOpen }"
+    class="shrink-0 bg-raised"
+    :class="{
+      'cursor-grab touch-none select-none active:cursor-grabbing': !isOpen
+    }"
     :style="{ boxShadow: footerShadow }"
     @pointerdown="onPointerDown"
   >
-    <div class="rc-footer__inner">
+    <div class="px-4 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
       <div
-        class="rc-footer__subtotal"
+        class="overflow-hidden"
         :style="{
           maxHeight: `${subtotalMaxHeight}px`,
           opacity: subtotalOpacity
         }"
       >
-        <span class="rc-footer__subtotal-label">Subtotal</span>
-        <span class="rc-footer__subtotal-value">{{ subtotalLabel }}</span>
+        <div class="flex items-center justify-between gap-4 pb-2">
+          <span class="text-ui font-bold text-strong">Subtotal</span>
+          <span class="text-ui font-bold text-strong">{{ subtotalLabel }}</span>
+        </div>
       </div>
 
       <p
-        class="rc-footer__fees"
+        class="overflow-hidden pb-2 text-ui-meta text-subtle"
+        data-testid="cart-footer-fees"
         :style="{ maxHeight: `${feesMaxHeight}px`, opacity: feesOpacity }"
       >
         {{ feesLabel }}
       </p>
 
-      <div class="rc-footer__buttons" @pointerdown.stop>
+      <div class="flex gap-3" @pointerdown.stop>
         <button
           type="button"
-          class="rc-button rc-button--normal rc-intent-neutral"
+          class="is-interactive btn btn-md flex-1 emphasis-normal intent-neutral"
           @click="onSecondaryClick"
         >
-          {{ isOpen ? 'Browse events' : 'View cart' }}
+          {{ context === 'event' || isOpen ? 'Browse events' : 'View cart' }}
         </button>
         <button
           type="button"
-          class="rc-button rc-button--strong rc-intent-accent"
+          class="is-interactive btn btn-md flex-1 emphasis-strong intent-accent"
           :disabled="checkoutDisabled"
           @click="emit('checkout')"
         >
-          <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
-            <path
-              d="M216,60H179.83A52,52,0,0,0,76.17,60H40A20,20,0,0,0,20,80V200a20,20,0,0,0,20,20H216a20,20,0,0,0,20-20V80A20,20,0,0,0,216,60ZM128,36a28,28,0,0,1,27.71,24H100.29A28,28,0,0,1,128,36Zm84,160H44V84H76V96a12,12,0,0,0,24,0V84h56V96a12,12,0,0,0,24,0V84h32Z"
-            />
-          </svg>
+          <PhBag weight="bold" :class="'mr-1.5 size-4'" aria-hidden="true" />
           Checkout
         </button>
       </div>

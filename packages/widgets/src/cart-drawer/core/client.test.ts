@@ -105,4 +105,41 @@ describe('createCartClient', () => {
       expect(await cart.getDetails('c')).toBeNull()
     }
   })
+
+  it('removeItem POSTs the event-scoped remove path with credentials', async () => {
+    const fetchMock = vi.fn(async () => ({ ok: true }) as Response)
+    const cart = createCartClient({
+      host: 'https://h.example',
+      fetch: fetchMock
+    })
+    await cart.removeItem('cart-1', 'ev-1')
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://h.example/outlet/api/carts/cart-1/events/ev-1/remove',
+      expect.objectContaining({ method: 'POST', credentials: 'include' })
+    )
+  })
+
+  it('removeItem encodes the cart and event ids', async () => {
+    const fetchMock = vi.fn(async () => ({ ok: true }) as Response)
+    const cart = createCartClient({ host: '', fetch: fetchMock })
+    await cart.removeItem('a/b', 'c d')
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/outlet/api/carts/a%2Fb/events/c%20d/remove',
+      expect.anything()
+    )
+  })
+
+  it('removeItem resolves on a 204 (no body)', async () => {
+    const fetchMock = vi.fn(async () => ({ ok: true }) as Response)
+    const cart = createCartClient({ host: '', fetch: fetchMock })
+    await expect(cart.removeItem('c', 'e')).resolves.toBeUndefined()
+  })
+
+  it('removeItem rejects on a non-ok response so the caller can surface it', async () => {
+    const fetchMock = vi.fn(
+      async () => ({ ok: false, status: 500 }) as Response
+    )
+    const cart = createCartClient({ host: '', fetch: fetchMock })
+    await expect(cart.removeItem('c', 'e')).rejects.toThrow()
+  })
 })

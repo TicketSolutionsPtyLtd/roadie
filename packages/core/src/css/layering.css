@@ -22,4 +22,5 @@
   --z-index-popover: 50; /* popover, select, combobox, autocomplete, dropdown panels */
   --z-index-toast: 60; /* transient notifications */
   --z-index-tooltip: 70; /* tooltips — always on top */
+  --z-index-alert: 80; /* blocking alert dialogs — above an open modal / drawer */
 }

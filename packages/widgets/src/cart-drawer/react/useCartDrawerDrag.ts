@@ -19,6 +19,7 @@ import {
 
 import {
   MEASURE_PROGRESS_MAX,
+  MOBILE_OPEN_TOP_INSET_PX,
   TAP_PX,
   VIEWPORT_MARGIN_PX,
   decideSnapTarget
@@ -40,11 +41,7 @@ export type UseCartDrawerDragReturn = {
   maxHeight: number
   setHeaderElement: (el: HTMLElement | null) => void
   setFooterElement: (el: HTMLElement | null) => void
-  /**
-   * Call from the drag region's onPointerDown. Installs document-level
-   * pointermove + pointerup listeners, tracks velocity, updates `dragHeight`
-   * live, and snaps on release.
-   */
+  /** Call from the drag region's onPointerDown. */
   handleDragStart: (e: ReactPointerEvent) => void
   /** True while a drag is in progress — callers may want to disable transitions. */
   isDragging: boolean
@@ -55,12 +52,13 @@ type UseCartDrawerDragOptions = {
   initialState?: 'open' | 'closed'
 }
 
-// 32px matches the drawer's vertical margins (bottom-4 + ~1rem top gap); the
-// prototype uses the same viewport-minus-offset formula. `window.visualViewport`
-// is preferred over `innerHeight` where available because it tracks the
-// visible viewport (excludes iOS URL bar overlay).
 function computeViewportMaxHeight(): number {
   if (typeof window === 'undefined') return 0
+  if (window.innerWidth < 640) {
+    // clientHeight is what `position: fixed` is measured against; inset keeps it clear of top chrome.
+    const layoutH = document.documentElement.clientHeight || window.innerHeight
+    return Math.max(0, layoutH - MOBILE_OPEN_TOP_INSET_PX)
+  }
   const vh = window.visualViewport?.height ?? window.innerHeight
   return Math.max(0, vh - VIEWPORT_MARGIN_PX)
 }
@@ -72,17 +70,9 @@ export function useCartDrawerDrag(
   const initialState = opts.initialState ?? 'closed'
   const [state, setState] = useState<'open' | 'closed'>(initialState)
 
-  // Defaults match the prototype's closedHeight breakdown: drag pill (~21) +
-  // closed title area (32) = 53 header; pt-2 (8) + h-11 buttons (44) +
-  // pb-0.75rem (12) = 64 footer. ResizeObserver refines these at mount and
-  // skips measurements while the drawer is morphing (open or mid-transition)
-  // so an open observation can't inflate closedHeight.
   const [headerHeight, setHeaderHeight] = useState(53)
   const [footerHeight, setFooterHeight] = useState(64)
-  // maxHeight: how tall the drawer should be when open. Derived from the
-  // viewport, NOT from the drawer's rendered height — the drawer's rendered
-  // height is controlled by `dragHeight`, so observing the element itself
-  // would lock us into a 0-high measurement loop. Matches prototype.
+  // Derived from the viewport, not the drawer's rendered height, to avoid a 0-high measurement loop.
   const [maxHeight, setMaxHeight] = useState(() => computeViewportMaxHeight())
   const [isDragging, setIsDragging] = useState(false)
 
@@ -91,8 +81,7 @@ export function useCartDrawerDrag(
     initialState === 'open' ? maxHeight : closedHeight
   )
 
-  // progress: 0 at closedHeight, 1 at maxHeight. Clamp to handle the edge
-  // where closedHeight === maxHeight (drawer not yet measured).
+  // Clamp handles the edge where closedHeight === maxHeight (drawer not yet measured).
   const safeOpen = maxHeight > closedHeight ? maxHeight : closedHeight + 1
   const dragProgress = useTransform(
     dragHeight,
@@ -101,22 +90,15 @@ export function useCartDrawerDrag(
     { clamp: true }
   )
 
-  // Observers.
   const headerObserverRef = useRef<ResizeObserver | null>(null)
   const footerObserverRef = useRef<ResizeObserver | null>(null)
 
-  // The pointer currently driving a drag (null when idle). Gates re-entry and
-  // filters out events from other concurrent pointers (multi-touch).
+  // Gates drag re-entry and filters out other concurrent pointers (multi-touch).
   const activePointerIdRef = useRef<number | null>(null)
-  // Detaches the in-flight drag's window listeners. Held in a ref so an unmount
-  // mid-drag can clean up (otherwise the listeners leak and later fire against
-  // an orphaned closure).
+  // Held in a ref so an unmount mid-drag can detach listeners and avoid a leak.
   const dragCleanupRef = useRef<(() => void) | null>(null)
 
-  // Measurement guard: only accept header/footer observations while the
-  // drawer is fully closed. When morphing (dragProgress > 0), the header
-  // includes the expanded title area and the footer includes expanded
-  // subtotal/fees rows — observing those sizes would inflate closedHeight.
+  // Only measure while fully closed — morphing sizes would inflate closedHeight.
   const isClosedEnoughToMeasure = useCallback(
     () => dragProgress.get() < MEASURE_PROGRESS_MAX,
     [dragProgress]
@@ -165,8 +147,7 @@ export function useCartDrawerDrag(
     [isClosedEnoughToMeasure]
   )
 
-  // Keep maxHeight fresh against viewport + visualViewport resizes (URL bar
-  // collapse, rotation, keyboard show/hide).
+  // Keep maxHeight fresh against viewport + visualViewport resizes.
   useEffect(() => {
     if (typeof window === 'undefined') return
     const update = () => setMaxHeight(computeViewportMaxHeight())
@@ -188,11 +169,7 @@ export function useCartDrawerDrag(
     }
   }, [])
 
-  // When measured heights or logical state change (and the user isn't actively
-  // dragging), settle the motion value to the corresponding target before paint
-  // so the visual height stays coherent. useLayoutEffect — not adjust-during-
-  // render — because the motion value is an external store and mutating it
-  // during render isn't safe under concurrent rendering.
+  // useLayoutEffect: settle the motion value before paint (external store can't be mutated during render).
   useLayoutEffect(() => {
     if (isDragging) return
     dragHeight.set(state === 'open' ? maxHeight : closedHeight)
@@ -219,9 +196,7 @@ export function useCartDrawerDrag(
 
   const handleDragStart = useCallback(
     (e: ReactPointerEvent) => {
-      // Re-entry guard: a second finger landing mid-drag would otherwise install
-      // a duplicate listener set whose release fires snapTo with conflicting
-      // targets. Honour only the first pointer until it ends.
+      // Re-entry guard: honour only the first pointer so a second finger can't install duplicate listeners.
       if (activePointerIdRef.current !== null) return
       const pointerId = e.pointerId
       activePointerIdRef.current = pointerId
@@ -277,11 +252,7 @@ export function useCartDrawerDrag(
           return
         }
 
-        // Delegate the snap decision to the pure, unit-tested core helper. Its
-        // coordinate convention is Y-position with up = negative; this hook
-        // tracks height with up = positive, so we invert sign on velocity and
-        // offset. Mapping: openY = 0, closedY = maxHeight - closedHeight
-        // (drawer's top edge sits that far below the open position when docked).
+        // Core helper uses Y-position (up = negative); this hook tracks height (up = positive), so invert velocity/offset.
         const target = decideSnapTarget({
           velocity: -velocity,
           offset: -(currentHeight - startHeight),

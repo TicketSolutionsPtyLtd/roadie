@@ -32,3 +32,6 @@ scripts/venv/
 
 # Local agent context
 .context/
+
+# Internal planning doc — kept locally, not committed
+docs/plans/2026-06-17-refactor-vue-cart-drawer-tailwind-migration-plan.md

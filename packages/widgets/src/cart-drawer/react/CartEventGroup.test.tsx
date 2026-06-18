@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
 
 import type { CartEvent } from '../core'
 import { CartEventGroup } from './CartEventGroup'
@@ -25,8 +25,6 @@ describe('CartEventGroup', () => {
 
   it('formats ticket price with the injected currency (NZD, no hardcoded $/AUD)', () => {
     render(<CartEventGroup event={event} locale='en-NZ' currency='NZD' />)
-    // 25.00 formatted as NZD in en-NZ. No literal "$25.00" AUD assumption —
-    // the row pulls its currency from the injected formatter.
     const priceCell = screen.getByText((text) => text.includes('25.00'))
     expect(priceCell).toBeInTheDocument()
   })
@@ -63,5 +61,103 @@ describe('CartEventGroup', () => {
       />
     )
     expect(screen.queryByRole('img')).toBeNull()
+  })
+
+  it('renders no trash control when onRemoveEvent is omitted', () => {
+    render(<CartEventGroup event={event} locale='en-AU' currency='AUD' />)
+    expect(
+      screen.queryByRole('button', { name: /remove night show/i })
+    ).toBeNull()
+  })
+
+  it('renders a trash button named after the event when onRemoveEvent is supplied', () => {
+    render(
+      <CartEventGroup
+        event={event}
+        locale='en-AU'
+        currency='AUD'
+        onRemoveEvent={vi.fn()}
+      />
+    )
+    expect(
+      screen.getByRole('button', { name: 'Remove Night Show' })
+    ).toBeInTheDocument()
+  })
+
+  it('opens a confirmation popover with the prompt and Cancel/Remove actions', async () => {
+    render(
+      <CartEventGroup
+        event={event}
+        locale='en-AU'
+        currency='AUD'
+        onRemoveEvent={vi.fn()}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Night Show' }))
+    expect(
+      await screen.findByText('Remove all tickets for this event?')
+    ).toBeInTheDocument()
+    expect(
+      await screen.findByRole('dialog', {
+        name: 'Remove all tickets for this event?'
+      })
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Remove' })).toBeInTheDocument()
+  })
+
+  it('invokes onRemoveEvent with the eventId and closes when Remove is clicked', async () => {
+    const onRemoveEvent = vi.fn()
+    render(
+      <CartEventGroup
+        event={event}
+        locale='en-AU'
+        currency='AUD'
+        onRemoveEvent={onRemoveEvent}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Night Show' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Remove' }))
+    expect(onRemoveEvent).toHaveBeenCalledWith('e1')
+    await waitFor(() =>
+      expect(
+        screen.queryByText('Remove all tickets for this event?')
+      ).not.toBeInTheDocument()
+    )
+  })
+
+  it('closes without calling onRemoveEvent when Cancel is clicked', async () => {
+    const onRemoveEvent = vi.fn()
+    render(
+      <CartEventGroup
+        event={event}
+        locale='en-AU'
+        currency='AUD'
+        onRemoveEvent={onRemoveEvent}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Night Show' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Cancel' }))
+    expect(onRemoveEvent).not.toHaveBeenCalled()
+    await waitFor(() =>
+      expect(
+        screen.queryByText('Remove all tickets for this event?')
+      ).not.toBeInTheDocument()
+    )
+  })
+
+  it('disables the trash trigger while a remove is in flight', () => {
+    render(
+      <CartEventGroup
+        event={event}
+        locale='en-AU'
+        currency='AUD'
+        onRemoveEvent={vi.fn()}
+        isRemoving
+      />
+    )
+    expect(
+      screen.getByRole('button', { name: 'Remove Night Show' })
+    ).toBeDisabled()
   })
 })

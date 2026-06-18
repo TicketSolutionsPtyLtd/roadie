@@ -95,7 +95,12 @@ const zScale = [
     usage: 'Popover, select, combobox, autocomplete, dropdown panels'
   },
   { name: 'z-toast', value: '60', usage: 'Transient notifications' },
-  { name: 'z-tooltip', value: '70', usage: 'Tooltips — always on top' }
+  { name: 'z-tooltip', value: '70', usage: 'Tooltips — always on top' },
+  {
+    name: 'z-alert',
+    value: '80',
+    usage: 'Critical blocking alert dialogs (session / cart expiry)'
+  }
 ]
 
 const intents = [

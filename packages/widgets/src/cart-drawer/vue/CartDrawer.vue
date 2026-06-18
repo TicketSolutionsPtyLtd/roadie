@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PhCircleNotch } from '@phosphor-icons/vue'
 import {
   type ComponentPublicInstance,
   computed,
@@ -6,11 +7,13 @@ import {
   onMounted,
   ref,
   useId,
-  watch
+  watch,
+  watchEffect
 } from 'vue'
 
 import {
   BOUNCE_HOLD_MS,
+  EMPTY_CLOSE_UNMOUNT_MS,
   type ExpiryWatcher,
   buildBrowseHref,
   createExpiryWatcher,
@@ -22,6 +25,7 @@ import {
 import CartContents from './CartContents.vue'
 import CartDrawerFooter from './CartDrawerFooter.vue'
 import CartDrawerHeader from './CartDrawerHeader.vue'
+import CartEmptyState from './CartEmptyState.vue'
 import { lockBodyScroll } from './documentEffects'
 import type { CartDrawerProps } from './types'
 import { useCart } from './useCart'
@@ -39,9 +43,6 @@ const props = withDefaults(defineProps<CartDrawerProps>(), {
 
 const cartHeadingId = useId()
 
-// Resolve a template ref (DOM element or child component instance) to its root
-// HTMLElement for measurement. Typed so the SFC boundary keeps real prop types
-// — no `*.vue` shim flattening everything to `unknown`.
 function resolveRootEl(
   el: Element | ComponentPublicInstance | null
 ): HTMLElement | null {
@@ -50,26 +51,19 @@ function resolveRootEl(
   return root instanceof HTMLElement ? root : null
 }
 
-// Empty-state browse target. Prefer a consumer-supplied browseHref only if
-// it's a safe same-origin relative path; otherwise build the default from
-// collectionId so a tainted host value can never reach onNavigate.
+// Only accept a consumer browseHref if it's a safe relative path — else a tainted host value could reach onNavigate.
 const effectiveBrowseHref = computed(() =>
   typeof props.browseHref === 'string' && isSafeRelativePath(props.browseHref)
     ? props.browseHref
     : buildBrowseHref(props.collectionId)
 )
 
-const { summary, details, detailsLoading, detailsError } = useCart(
+const { summary, details, detailsLoading, detailsError, refresh } = useCart(
   props.cart,
   () => props.collectionId,
   () => props.refreshKey
 )
 
-// Count + total are sourced from `details` (the /cart payload) — the same
-// fresh data that drives the event list — NOT the separate /cart/summary
-// endpoint. summary is only a fallback for the brief window before details
-// load. Binding to summary made the header/footer go stale when its refetch
-// lagged/errored while details updated (the count/total "not reacting" bug).
 const displayTicketCount = computed(() =>
   deriveTicketCount(details.value, summary.value)
 )
@@ -90,13 +84,7 @@ const {
   handleDragStart
 } = useCartDrawerDrag({ initialState: props.initialState })
 
-// Stable ref callbacks — MUST keep a constant identity. An inline arrow
-// `:ref="(el) => setHeaderElement(...)"` is a fresh function every render, so
-// Vue re-invokes it on every render → setHeaderElement disconnect()+observe()s
-// the ResizeObserver, whose deferred write schedules another render →
-// re-observe → a cross-frame loop that freezes the tab (worst during drag,
-// when dragHeight re-renders continuously). A stable identity fires only on
-// real mount/unmount.
+// Stable ref callbacks MUST keep constant identity — an inline arrow re-fires every render → ResizeObserver re-observe loop that freezes the tab.
 const bindHeader = (el: Element | ComponentPublicInstance | null): void => {
   setHeaderElement(resolveRootEl(el))
 }
@@ -106,12 +94,53 @@ const bindFooter = (el: Element | ComponentPublicInstance | null): void => {
 
 const isOpen = computed(() => state.value === 'open')
 
-// --- Open/close reporting (design finding #9) ---
+// High-water latch: once the drawer has shown a cart with items, remember it so
+// an empty/null refetch (the API returns null for an emptied cart) keeps the
+// open drawer mounted to show the EmptyState instead of vanishing.
+const sawCart = ref(false)
+const hasCartData = computed(
+  () => summary.value != null || details.value != null
+)
+watchEffect(() => {
+  if (hasCartData.value && displayTicketCount.value > 0) sawCart.value = true
+})
+const isEmpty = computed(
+  () =>
+    (hasCartData.value && displayTicketCount.value === 0) ||
+    (sawCart.value && !hasCartData.value)
+)
+// Empty + closed → the whole drawer disappears, but only after the close
+// slide-down has played (emptyClosed). Empty + open stays mounted so the
+// EmptyState shows until the user closes it.
+const emptyClosed = ref(false)
+let emptyCloseTimer: ReturnType<typeof setTimeout> | null = null
+watch(
+  () => isEmpty.value && !isOpen.value,
+  (closing) => {
+    if (emptyCloseTimer !== null) {
+      clearTimeout(emptyCloseTimer)
+      emptyCloseTimer = null
+    }
+    if (closing) {
+      emptyCloseTimer = setTimeout(() => {
+        emptyClosed.value = true
+      }, EMPTY_CLOSE_UNMOUNT_MS)
+    } else {
+      emptyClosed.value = false
+    }
+  }
+)
+const hidden = computed(
+  () => isEmpty.value && !isOpen.value && emptyClosed.value
+)
+// Closing an emptied drawer: fade the whole surface out as it slides down so
+// the docked bar never reads before it unmounts.
+const emptyClosing = computed(() => isEmpty.value && !isOpen.value)
+
 watch(state, (next, prev) => {
   if (next !== prev) props.onOpenChange?.(next === 'open')
 })
 
-// --- Bounce: true for 600ms after ticket count increases ---
 const bounce = ref(false)
 let bounceTimer: ReturnType<typeof setTimeout> | null = null
 let prevTicketCount: number | undefined
@@ -126,7 +155,6 @@ watch(displayTicketCount, (count) => {
   prevTicketCount = count
 })
 
-// --- Expiry watch: fire onExpire once (core watcher's latch resets on change) ---
 const expiresAtUtc = computed(
   () => summary.value?.expiresAtUtc ?? details.value?.expiresAtUtc
 )
@@ -142,7 +170,6 @@ watch(
   { immediate: true }
 )
 
-// --- Closed drawer height → CSS var + onHeightChange (design finding #5) ---
 watch(
   closedHeight,
   (h) => {
@@ -153,11 +180,7 @@ watch(
   { immediate: true }
 )
 
-// --- Body scroll lock when open ---
-// Refcounted via documentEffects so the drawer and the expiry modals compose:
-// whichever opens/closes first no longer clobbers the other's lock (re-enabling
-// background scroll while one is still open). Acquire once on entering the
-// locked state, release on leaving it (and on unmount).
+// Body scroll lock when open — refcounted via documentEffects so drawer + expiry modals don't clobber each other's lock.
 let releaseScrollLock: (() => void) | null = null
 watch(
   [() => props.lockBodyScroll, isOpen],
@@ -172,12 +195,12 @@ watch(
   { immediate: true }
 )
 
-// --- Escape closes ---
 function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && isOpen.value) toggle()
+  if (e.key !== 'Escape' || !isOpen.value) return
+  if (document.querySelector('[data-cart-confirm]')) return
+  toggle()
 }
 
-// --- Focus trap (focus-trap pkg) wired to the dialog while open ---
 const drawerEl = ref<HTMLElement | null>(null)
 type FocusTrapInstance = { activate: () => void; deactivate: () => void }
 let trap: FocusTrapInstance | null = null
@@ -189,14 +212,7 @@ async function ensureTrap(): Promise<FocusTrapInstance | null> {
     trap = mod.createFocusTrap(el, {
       escapeDeactivates: false,
       clickOutsideDeactivates: true,
-      // Focus the dialog CONTAINER on open, not the first tabbable (which is
-      // the drag grabber) — otherwise opening via drag/click paints the
-      // grabber's focus ring (a circle at the top). The container is
-      // tabindex="-1" + outline:none, so this is the standard ARIA-dialog
-      // pattern; keyboard users still Tab to the grabber and see its ring.
       initialFocus: () => drawerEl.value ?? false,
-      // Transient layouts can leave no tabbable element momentarily — fall back
-      // to the drawer root. A function keeps it valid even if the ref changes.
       fallbackFocus: () => drawerEl.value ?? el,
       returnFocusOnDeactivate: true
     })
@@ -208,12 +224,11 @@ async function ensureTrap(): Promise<FocusTrapInstance | null> {
 watch(isOpen, async (open) => {
   if (open) {
     const t = await ensureTrap()
-    // Guard: the element may have detached (e.g. unmount) before activation.
     if (t && drawerEl.value?.isConnected) {
       try {
         t.activate()
       } catch {
-        /* focus-trap may throw if no focusable node yet — non-fatal */
+        /* non-fatal */
       }
     }
   } else {
@@ -232,6 +247,7 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
   if (bounceTimer !== null) clearTimeout(bounceTimer)
+  if (emptyCloseTimer !== null) clearTimeout(emptyCloseTimer)
   expireWatcher?.stop()
   trap?.deactivate()
   releaseScrollLock?.()
@@ -249,13 +265,26 @@ function handleCheckout() {
   if (checkoutUrl.value) props.onNavigate(checkoutUrl.value)
 }
 
-// Open-state "Browse events" in `event` context. The target is the
-// package-built, collectionId-derived, isSafeRelativePath-validated
-// `effectiveBrowseHref` — never a consumer-supplied URL — so this can't be
-// turned into an open redirect. (`collection` context closes instead and never
-// reaches here.)
+// Navigates to the validated effectiveBrowseHref only — never a consumer URL — so it can't become an open redirect.
 function handleBrowse() {
   props.onNavigate(effectiveBrowseHref.value)
+}
+
+const removing = ref(false)
+const removeError = ref<string | null>(null)
+async function handleRemoveEvent(eventId: string) {
+  if (removing.value || !details.value) return
+  removing.value = true
+  removeError.value = null
+  try {
+    await props.cart.removeItem(details.value.cartId, eventId)
+    await refresh()
+  } catch (err) {
+    removeError.value =
+      err instanceof Error ? err.message : 'Could not remove this event.'
+  } finally {
+    removing.value = false
+  }
 }
 
 const overlayOpacity = computed(() => progress.value)
@@ -265,31 +294,35 @@ const contentOpacity = computed(() =>
 </script>
 
 <template>
-  <template v-if="collectionId && (summary || details)">
-    <!-- Dark overlay — fades in with drag progress. -->
+  <template v-if="collectionId && (summary || details || sawCart) && !hidden">
     <div
       aria-hidden="true"
-      class="rc-overlay"
-      :class="{
-        'rc-overlay--open': isOpen,
-        'rc-overlay--dragging': isDragging
-      }"
+      class="fixed inset-0 z-overlay emphasis-overlay transition-opacity duration-300 ease-out"
+      :class="[
+        isOpen ? 'pointer-events-auto' : 'pointer-events-none',
+        isDragging && 'transition-none'
+      ]"
       :style="{ opacity: overlayOpacity }"
       @click="toggle"
     />
 
-    <!-- Drawer — floating card. -->
     <div
       ref="drawerEl"
       id="cart-drawer"
-      class="rc-drawer"
+      class="fixed z-modal flex flex-col overflow-hidden emphasis-floating [transition:height_320ms_cubic-bezier(0.22,1,0.36,1),border-radius_300ms_var(--ease-out),inset_300ms_var(--ease-out),opacity_300ms_var(--ease-out)] focus:outline-none sm:inset-x-4 sm:bottom-4 sm:mx-auto sm:max-w-[600px] sm:rounded-4xl"
       tabindex="-1"
-      :class="{ 'rc-drawer--dragging': isDragging }"
+      :class="[
+        isOpen
+          ? 'inset-x-0 bottom-0 rounded-t-4xl'
+          : 'inset-x-3 bottom-3 rounded-3xl',
+        !emptyClosing && 'origin-bottom motion-pop-in',
+        isDragging && 'transition-none'
+      ]"
       :role="isOpen ? 'dialog' : 'region'"
       :aria-modal="isOpen ? 'true' : undefined"
       :aria-labelledby="isOpen ? cartHeadingId : undefined"
       :aria-label="isOpen ? undefined : 'Cart summary'"
-      :style="{ height: `${dragHeight}px` }"
+      :style="{ height: `${dragHeight}px`, opacity: emptyClosing ? 0 : 1 }"
     >
       <CartDrawerHeader
         :ref="bindHeader"
@@ -308,7 +341,9 @@ const contentOpacity = computed(() =>
 
       <div
         id="cart-drawer-body"
-        class="rc-drawer__body"
+        class="h-full min-h-0 flex-1 overflow-y-auto px-4 transition-opacity"
+        :aria-busy="removing"
+        :inert="!isOpen"
         :style="{
           opacity: contentOpacity,
           pointerEvents: isOpen ? 'auto' : 'none'
@@ -316,33 +351,69 @@ const contentOpacity = computed(() =>
       >
         <p
           v-if="detailsError"
-          class="rc-drawer__error rc-intent-danger"
+          class="text-prose text-subtle intent-danger"
           role="status"
         >
           Couldn't load your cart. Please try again.
         </p>
-        <CartContents
-          v-else-if="details"
-          :cart="details"
-          :on-navigate="onNavigate"
-          :browse-href="effectiveBrowseHref"
-          :checkout-url="checkoutUrl"
-          :locale="locale"
-          :currency="currency"
-          hide-footer
-        />
+        <div
+          v-else-if="isEmpty"
+          class="grid min-h-full place-content-center"
+        >
+          <CartEmptyState
+            :browse-href="effectiveBrowseHref"
+            :on-navigate="onNavigate"
+          />
+        </div>
+        <template v-else-if="details">
+          <p
+            v-if="removeError"
+            class="text-ui-meta text-subtle intent-danger"
+            role="alert"
+          >
+            {{ removeError }}
+          </p>
+          <div class="relative">
+            <div :class="{ 'pointer-events-none opacity-50': removing }">
+              <CartContents
+                :cart="details"
+                :on-navigate="onNavigate"
+                :browse-href="effectiveBrowseHref"
+                :checkout-url="checkoutUrl"
+                :locale="locale"
+                :currency="currency"
+                :busy="removing"
+                hide-footer
+                @remove-event="handleRemoveEvent"
+              />
+            </div>
+            <div
+              v-if="removing"
+              class="pointer-events-none absolute inset-0 grid place-content-center"
+              aria-hidden="true"
+              data-testid="cart-remove-spinner"
+            >
+              <PhCircleNotch
+                weight="bold"
+                :class="'size-6 animate-spin text-subtle'"
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+        </template>
         <div
           v-else-if="detailsLoading"
-          class="rc-drawer__loading"
+          class="grid gap-4"
           data-testid="cart-drawer-loading"
         >
-          <div class="rc-skeleton rc-skeleton--line" />
-          <div class="rc-skeleton rc-skeleton--block" />
-          <div class="rc-skeleton rc-skeleton--block" />
+          <div class="h-4 w-40 animate-pulse rounded bg-subtle" />
+          <div class="h-32 w-full animate-pulse rounded-xl bg-subtle" />
+          <div class="h-32 w-full animate-pulse rounded-xl bg-subtle" />
         </div>
       </div>
 
       <CartDrawerFooter
+        v-if="!isEmpty"
         :ref="bindFooter"
         :cart-total="displayTotal"
         :booking-fees="displayBookingFees"

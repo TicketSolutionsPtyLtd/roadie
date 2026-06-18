@@ -1,25 +1,23 @@
 <script setup lang="ts">
 import NumberFlow from '@number-flow/vue'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import { URGENCY_LONG_FORMAT_S, remainingSeconds, urgencyLevel } from '../core'
 
-// Two-digit zero-pad for the seconds (0:09) — same as the React skin.
 const PAD2_FORMAT = { minimumIntegerDigits: 2 }
 
 const props = withDefaults(
   defineProps<{
     ticketCount: number
     expiresAtUtc: string | undefined
-    /** Drawer open progress 0..1 — expands the "remaining to checkout" tail. */
+    /** Drawer open progress 0..1. */
     progress?: number
-    /** Fires the badge-pop keyframe once per add. */
+    /** Fires the animate-pop cue once per add. */
     bounce?: boolean
   }>(),
   { progress: 0, bounce: false }
 )
 
-// Live countdown — plain reactive 1s tick (no Web Component; jsdom-safe).
 const now = ref(Date.now())
 let timer: ReturnType<typeof setInterval> | null = null
 onMounted(() => {
@@ -35,15 +33,12 @@ const remaining = computed(() =>
   remainingSeconds(props.expiresAtUtc, now.value)
 )
 const level = computed(() => urgencyLevel(remaining.value))
-// Paint danger when expired (floors at 0:00 alongside danger).
 const intent = computed(() =>
   level.value === 'expired' ? 'danger' : level.value
 )
 const showCountdown = computed(
   () => remaining.value !== null && remaining.value > 0
 )
-// Structured countdown values for NumberFlow (mirrors the React skin: long
-// format shows "N mins"; short format rolls mm:ss).
 const isLongFormat = computed(
   () => (remaining.value ?? 0) > URGENCY_LONG_FORMAT_S
 )
@@ -53,26 +48,48 @@ const secondsPart = computed(() => (remaining.value ?? 0) % 60)
 const ticketLabel = computed(() =>
   props.ticketCount === 1 ? 'ticket' : 'tickets'
 )
+
+const coarseMessage = computed(() => {
+  if (level.value === 'expired') return 'Cart expired'
+  if (remaining.value === null) return ''
+  if (level.value === 'danger') return 'Cart expiring soon'
+  const minutes = Math.ceil(remaining.value / 60)
+  return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} remaining to checkout`
+})
+const minuteBucket = computed(() =>
+  remaining.value === null ? null : Math.ceil(remaining.value / 60)
+)
+const announcement = ref('')
+watch(
+  () => `${level.value}:${minuteBucket.value}`,
+  () => {
+    announcement.value = coarseMessage.value
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
   <span
-    class="rc-badge"
-    :class="[`rc-intent-${intent}`, { 'rc-badge--pop': bounce }]"
+    class="inline-flex items-center justify-center gap-2 rounded-full emphasis-subtle px-3 py-1 text-xs font-semibold whitespace-nowrap text-subtle [&_svg]:size-[1em] [&_svg]:shrink-0"
+    :class="[`intent-${intent}`, { 'animate-pop': bounce }]"
     :data-intent="intent"
   >
+    <span class="sr-only" aria-live="polite" aria-atomic="true">
+      {{ announcement }}
+    </span>
     <span
       v-if="showCountdown"
       aria-hidden="true"
-      class="rc-badge__dot"
-      :class="{ 'rc-badge__dot--pulse': showCountdown }"
+      class="size-1.5 shrink-0 rounded-full bg-current"
+      :class="{ 'animate-pulse': showCountdown }"
     />
-    <span class="rc-badge__count tabular-nums">
+    <span class="tabular-nums" data-testid="cart-badge-count">
       <NumberFlow :value="ticketCount" />
     </span>
     {{ ticketLabel }}
     <template v-if="showCountdown">
-      <span class="rc-badge__time tabular-nums">
+      <span class="tabular-nums" data-testid="cart-badge-time">
         <NumberFlow v-if="isLongFormat" :value="minutesCeil" suffix=" mins" />
         <template v-else>
           <NumberFlow :value="minutesFloor" />:<NumberFlow
@@ -82,7 +99,7 @@ const ticketLabel = computed(() =>
         </template>
       </span>
       <span
-        class="rc-badge__tail"
+        class="overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-300 ease-out"
         :style="{
           maxWidth: `${Math.max(0, Math.min(1, progress)) * 200}px`,
           opacity: Math.max(0, Math.min(1, progress))

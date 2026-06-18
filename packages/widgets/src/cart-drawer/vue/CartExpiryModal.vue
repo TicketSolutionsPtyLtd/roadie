@@ -1,17 +1,14 @@
 <script setup lang="ts">
+import { PhX } from '@phosphor-icons/vue'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 
 import { lockBodyScroll } from './documentEffects'
 
-// Accessible shell (rc-* styles): role=dialog + focus trap + Escape +
-// refcounted body-scroll-lock (shared with the drawer via documentEffects, so
-// the two compose — see that module). Parent v-ifs it in and out, so
-// mounted === open.
 const props = withDefaults(
   defineProps<{
     titleId: string
     title: string
-    /** Light-dismiss (backdrop/Escape/close); off for the blocking expired modal. */
+    /** Light-dismiss via backdrop/Escape/close. */
     dismissible?: boolean
     onClose?: () => void
   }>(),
@@ -56,7 +53,7 @@ onBeforeUnmount(() => {
   try {
     trap?.deactivate()
   } catch {
-    /* focus-trap may throw if nothing was focusable — non-fatal */
+    /* non-fatal */
   }
   if (typeof document !== 'undefined') {
     document.removeEventListener('keydown', onKeydown)
@@ -67,34 +64,35 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="rc-modal-overlay" @click="onOverlayClick">
+  <div
+    class="fixed inset-0 z-alert grid place-items-center overflow-y-auto emphasis-overlay p-4"
+    @click="onOverlayClick"
+  >
     <div
       ref="panelEl"
-      class="rc-modal"
-      role="dialog"
+      class="relative grid w-full max-w-sm justify-items-center gap-6 rounded-2xl emphasis-floating p-6 text-center focus:outline-none"
+      role="alertdialog"
       aria-modal="true"
       :aria-labelledby="titleId"
       tabindex="-1"
       @click.stop
     >
-      <div v-if="dismissible" class="rc-modal__close">
+      <div v-if="dismissible" class="absolute top-4 right-4">
         <button
           type="button"
-          class="rc-icon-button"
+          class="is-interactive btn btn-icon-sm emphasis-subtle intent-neutral"
           aria-label="Close"
           @click="onClose?.()"
         >
-          <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
-            <path
-              d="M208.49,191.51a12,12,0,0,1-17,17L128,145,64.49,208.49a12,12,0,0,1-17-17L111,128,47.51,64.49a12,12,0,0,1,17-17L128,111l63.51-63.52a12,12,0,0,1,17,17L145,128Z"
-            />
-          </svg>
+          <PhX weight="bold" class="size-4" aria-hidden="true" />
         </button>
       </div>
       <slot name="icon" />
-      <h2 :id="titleId" class="rc-modal__title">{{ title }}</h2>
-      <div class="rc-modal__body"><slot name="body" /></div>
-      <div class="rc-modal__actions"><slot name="actions" /></div>
+      <h2 :id="titleId" class="text-display-ui-4 text-strong">{{ title }}</h2>
+      <div class="text-prose text-balance text-subtle">
+        <slot name="body" />
+      </div>
+      <div class="flex w-full gap-3"><slot name="actions" /></div>
     </div>
   </div>
 </template>
