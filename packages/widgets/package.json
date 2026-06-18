@@ -38,14 +38,13 @@
     "./cart-drawer/vue": {
       "types": "./dist/cart-drawer/vue/index.d.ts",
       "import": "./dist/cart-drawer/vue/index.js"
-    },
-    "./cart-drawer/vue/motion.css": "./dist/cart-drawer/vue/motion.css"
+    }
   },
   "scripts": {
     "build": "tsdown && pnpm check:dts && pnpm check:exports",
     "build:quiet": "tsdown --log-level warn",
     "check:dts": "node scripts/check-dts.mjs",
-    "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints ./cart-drawer/vue/motion.css",
+    "check:exports": "attw --pack . --profile esm-only",
     "clean": "rm -rf node_modules dist",
     "dev": "tsdown --watch --log-level warn",
     "test": "vitest run",

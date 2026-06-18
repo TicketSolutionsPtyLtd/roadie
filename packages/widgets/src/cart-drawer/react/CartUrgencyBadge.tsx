@@ -25,7 +25,7 @@ type CartUrgencyBadgeProps = {
   expiresAtUtc: string | undefined
   /** Drawer open-state progress 0..1. Controls the tail expansion. */
   progress?: number
-  /** Fires the badge-pop keyframe once per add. */
+  /** Fires the animate-pop cue once per add. */
   bounce?: boolean
   className?: string
   style?: CSSProperties
@@ -68,11 +68,7 @@ export function CartUrgencyBadge({
       size='sm'
       indicator={showCountdown}
       indicatorPulse={showCountdown}
-      className={cn(
-        'gap-2 px-3 py-1',
-        bounce && 'animate-badge-pop',
-        className
-      )}
+      className={cn('gap-2 px-3 py-1', bounce && 'animate-pop', className)}
       style={style}
     >
       <span className='sr-only' aria-live='polite' aria-atomic='true'>

@@ -12,9 +12,6 @@ export default defineConfig(({ watch }) => ({
   format: ['esm'],
   platform: 'neutral',
   plugins: [vue()],
-  copy: [
-    { from: 'src/cart-drawer/vue/motion.css', to: 'dist/cart-drawer/vue' }
-  ],
   dts: {
     resolve: true,
     vue: true,

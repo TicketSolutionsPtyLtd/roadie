@@ -315,7 +315,7 @@ const contentOpacity = computed(() =>
         isOpen
           ? 'inset-x-0 bottom-0 rounded-t-4xl'
           : 'inset-x-3 bottom-3 rounded-3xl',
-        !emptyClosing && 'animate-cart-pop-in',
+        !emptyClosing && 'origin-bottom motion-pop-in',
         isDragging && 'transition-none'
       ]"
       :role="isOpen ? 'dialog' : 'region'"

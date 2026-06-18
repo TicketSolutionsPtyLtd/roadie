@@ -63,7 +63,7 @@ export function CartDrawerHeader({
       onPointerDown={onPointerDown}
       className={cn(
         'relative shrink-0 cursor-grab touch-none select-none active:cursor-grabbing',
-        bounce && 'animate-cart-bounce'
+        bounce && 'animate-nudge'
       )}
     >
       <div className='flex justify-center pt-2 pb-2'>

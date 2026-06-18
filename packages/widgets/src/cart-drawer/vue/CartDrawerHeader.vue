@@ -88,7 +88,7 @@ function onGrabberKeydown(e: KeyboardEvent) {
 <template>
   <div
     class="relative shrink-0 cursor-grab touch-none select-none active:cursor-grabbing"
-    :class="{ 'animate-cart-bounce': bounce }"
+    :class="{ 'animate-nudge': bounce }"
     @pointerdown="onPointerDown"
   >
     <div class="flex justify-center pt-2 pb-2">
