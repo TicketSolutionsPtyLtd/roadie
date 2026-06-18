@@ -77,18 +77,30 @@ importers:
       '@next/mdx':
         specifier: 16.0.1
         version: 16.0.1(@mdx-js/loader@3.1.1)(@mdx-js/react@3.1.1(@types/react@19.2.2)(react@19.2.3))
+      '@number-flow/react':
+        specifier: ^0.5.14
+        version: 0.5.14(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@oztix/roadie-components':
         specifier: workspace:*
         version: link:../packages/components
       '@oztix/roadie-core':
         specifier: workspace:*
         version: link:../packages/core
+      '@oztix/roadie-widgets':
+        specifier: workspace:*
+        version: link:../packages/widgets
       '@phosphor-icons/react':
         specifier: 2.1.10
         version: 2.1.10(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@tanstack/react-query':
+        specifier: ^5.62.0
+        version: 5.100.14(react@19.2.3)
       '@types/mdx':
         specifier: 2.0.13
         version: 2.0.13
+      motion:
+        specifier: ^12.38.0
+        version: 12.40.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       next:
         specifier: 16.0.10
         version: 16.0.10(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -104,6 +116,9 @@ importers:
       react-dom:
         specifier: 19.2.3
         version: 19.2.3(react@19.2.3)
+      react-focus-lock:
+        specifier: 2.13.7
+        version: 2.13.7(@types/react@19.2.2)(react@19.2.3)
       react-live:
         specifier: 4.1.8
         version: 4.1.8(react-dom@19.2.3(react@19.2.3))(react@19.2.3)

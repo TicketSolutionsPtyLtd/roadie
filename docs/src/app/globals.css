@@ -2,3 +2,7 @@
 
 /* Scan component dist for Tailwind class strings (rounded-full, h-10, etc.) */
 @source '../../node_modules/@oztix/roadie-components/dist';
+
+/* Scan widget dist too — the cart drawer's classes (drag handle, sheet, etc.)
+   only appear here, so without this they'd never make it into the CSS. */
+@source '../../node_modules/@oztix/roadie-widgets/dist';

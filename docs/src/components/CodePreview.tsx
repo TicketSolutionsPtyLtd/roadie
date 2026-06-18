@@ -38,11 +38,15 @@ import {
   XCircleIcon,
   XIcon
 } from '@phosphor-icons/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Highlight, themes } from 'prism-react-renderer'
 import { LiveEditor, LiveError, LivePreview, LiveProvider } from 'react-live'
 
 import * as RoadieComponents from '@oztix/roadie-components'
 import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
+import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
+
+import { createDemoCart } from './cartDrawerDemo'
 
 // Bare-name keys so MDX live examples can use `<CheckCircle />` etc.
 const PhosphorIcons = {
@@ -90,6 +94,11 @@ const scope = {
   ...SpotIllustrations,
   ...PhosphorIcons,
   ...PhosphorIconsSuffixed,
+  // Widgets + the helpers their live demos need.
+  CartDrawer,
+  QueryClient,
+  QueryClientProvider,
+  createDemoCart,
   Link,
   useState,
   useEffect

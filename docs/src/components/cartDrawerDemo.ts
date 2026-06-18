@@ -1,0 +1,215 @@
+import type {
+  CartClient,
+  CartDetails,
+  CartEvent,
+  CartSummary
+} from '@oztix/roadie-widgets/cart-drawer/core'
+
+// Canned cart for the live CartDrawer examples. No network — every method
+// resolves instantly from in-memory data. `createDemoCart()` returns a fresh,
+// independently mutable client (plus a demo-only `addEvent`) so each mounted
+// example owns its state. Placeholder images come from picsum.photos because
+// the drawer only renders http(s) image URLs — data URIs are rejected by its
+// `isSafeImageUrl` guard.
+
+const img = (seed: string) => `https://picsum.photos/seed/${seed}/160/160`
+
+const DEMO_EVENTS: CartEvent[] = [
+  {
+    eventId: 'e1',
+    eventName: 'Sunset Sessions — Opening Night',
+    venueName: 'The Tivoli, Brisbane',
+    imageUrl: img('sunset-sessions'),
+    eventStartAtUtc: '2026-09-18T09:00:00Z',
+    eventDateKey: '2026-09-18',
+    tickets: [{ name: 'General Admission', quantity: 2, priceEach: 68.5 }],
+    subtotal: 137,
+    bookingFees: 11,
+    total: 148
+  },
+  {
+    eventId: 'e2',
+    eventName: 'Riverstage Weekender',
+    venueName: 'Riverstage, Brisbane',
+    imageUrl: img('riverstage'),
+    eventStartAtUtc: '2026-10-04T08:30:00Z',
+    eventDateKey: '2026-10-04',
+    tickets: [{ name: 'Saturday Pass', quantity: 1, priceEach: 89.5 }],
+    subtotal: 89.5,
+    bookingFees: 10,
+    total: 99.5
+  }
+]
+
+type TicketLine = { name: string; quantity: number; priceEach: number }
+
+type EventTemplate = {
+  eventName: string
+  venueName: string
+  seed: string
+  eventStartAtUtc: string
+  eventDateKey: string
+  tickets: TicketLine[]
+}
+
+// Cycled through by `addEvent` so repeated clicks add distinct events — some
+// with a single ticket type, others with multiple. The first entry uses long
+// event/venue/ticket names to exercise truncation.
+const EXTRA_EVENTS: EventTemplate[] = [
+  {
+    eventName: 'Circus The Show! — The Greatest Spectacular on Earth',
+    venueName: 'Augathella Spiegeltent (Wynnum, QLD)',
+    seed: 'circus-the-show',
+    eventStartAtUtc: '2026-06-25T09:00:00Z',
+    eventDateKey: '2026-06-25',
+    tickets: [
+      { name: 'General Admission - Adult', quantity: 2, priceEach: 37.75 },
+      { name: 'General Admission - Concession', quantity: 2, priceEach: 32.65 }
+    ]
+  },
+  {
+    eventName: 'Lunar Park Live',
+    venueName: 'Brisbane Showgrounds',
+    seed: 'lunar-park',
+    eventStartAtUtc: '2026-11-21T08:00:00Z',
+    eventDateKey: '2026-11-21',
+    tickets: [{ name: 'General Admission', quantity: 2, priceEach: 74 }]
+  },
+  {
+    eventName: 'Harbourside Jazz',
+    venueName: 'QPAC, Brisbane',
+    seed: 'harbourside-jazz',
+    eventStartAtUtc: '2026-12-05T09:30:00Z',
+    eventDateKey: '2026-12-05',
+    tickets: [
+      { name: 'Reserved Seat', quantity: 2, priceEach: 110 },
+      { name: 'Premium Booth', quantity: 1, priceEach: 180 }
+    ]
+  },
+  {
+    eventName: 'Sunset Cinema',
+    venueName: 'New Farm Park, Brisbane',
+    seed: 'sunset-cinema',
+    eventStartAtUtc: '2026-12-19T09:00:00Z',
+    eventDateKey: '2026-12-19',
+    tickets: [{ name: 'Beanbag Ticket', quantity: 2, priceEach: 39.5 }]
+  },
+  {
+    eventName: 'Festival of Lights',
+    venueName: 'South Bank, Brisbane',
+    seed: 'festival-of-lights',
+    eventStartAtUtc: '2027-01-09T09:00:00Z',
+    eventDateKey: '2027-01-09',
+    tickets: [
+      { name: 'General Admission', quantity: 2, priceEach: 65 },
+      { name: 'VIP Lounge', quantity: 2, priceEach: 145 }
+    ]
+  }
+]
+
+// Flat per-ticket booking fee used to derive an added event's fees/total.
+const FEE_PER_TICKET = 5
+
+// Combine ticket lines when the same event is added again: a matching name +
+// price bumps the quantity; a new ticket type appends a line.
+function mergeTickets(
+  existing: TicketLine[],
+  incoming: TicketLine[]
+): TicketLine[] {
+  const result = existing.map((ticket) => ({ ...ticket }))
+  for (const inc of incoming) {
+    const match = result.find(
+      (ticket) => ticket.name === inc.name && ticket.priceEach === inc.priceEach
+    )
+    if (match) match.quantity += inc.quantity
+    else result.push({ ...inc })
+  }
+  return result
+}
+
+const sumTotals = (events: CartEvent[]) =>
+  events.reduce((acc, event) => acc + event.total, 0)
+
+const countTickets = (events: CartEvent[]) =>
+  events.reduce(
+    (acc, event) =>
+      acc + event.tickets.reduce((n, ticket) => n + ticket.quantity, 0),
+    0
+  )
+
+/** The demo client plus helpers the examples call (not part of the real
+ * `CartClient` contract — adding to cart and the expiry clock are server-side
+ * concerns in real apps). */
+export type DemoCartClient = CartClient & {
+  /** Append an event with one or more ticket types. */
+  addEvent: () => void
+  /** Shift the urgency countdown by whole minutes (can go negative). */
+  adjustExpiry: (deltaMinutes: number) => void
+}
+
+export function createDemoCart(): DemoCartClient {
+  // 8 minutes out so the urgency countdown is visible but not alarming.
+  let expiresAtUtc = new Date(Date.now() + 8 * 60 * 1000).toISOString()
+  let events = DEMO_EVENTS.map((event) => ({ ...event }))
+  let added = 0
+
+  return {
+    getSummary: async (): Promise<CartSummary> => ({
+      cartId: 'demo',
+      ticketCount: countTickets(events),
+      cartTotal: sumTotals(events),
+      expiresAtUtc,
+      eventIds: events.map((event) => event.eventId)
+    }),
+    getDetails: async (): Promise<CartDetails> => ({
+      cartId: 'demo',
+      collectionName: 'Roadie Festival',
+      logoUrl: null,
+      cartTotal: sumTotals(events),
+      expiresAtUtc,
+      extrasUrl: '/checkout/demo',
+      events: events.map((event) => ({ ...event }))
+    }),
+    checkoutUrl: (details) => details.extrasUrl,
+    removeItem: async (_cartId, eventId) => {
+      events = events.filter((event) => event.eventId !== eventId)
+    },
+    addEvent: () => {
+      const template = EXTRA_EVENTS[added % EXTRA_EVENTS.length]!
+      added += 1
+      // Stable per-event id so re-adding the same event combines into one entry
+      // (e.g. two adds of GA ×2 → one event with GA ×4) instead of duplicating.
+      const eventId = `added-${template.seed}`
+      const current = events.find((event) => event.eventId === eventId)
+      const tickets = mergeTickets(
+        current ? current.tickets : [],
+        template.tickets
+      )
+      const subtotal = tickets.reduce(
+        (acc, ticket) => acc + ticket.priceEach * ticket.quantity,
+        0
+      )
+      const quantity = tickets.reduce((acc, ticket) => acc + ticket.quantity, 0)
+      const merged: CartEvent = {
+        eventId,
+        eventName: template.eventName,
+        venueName: template.venueName,
+        imageUrl: img(template.seed),
+        eventStartAtUtc: template.eventStartAtUtc,
+        eventDateKey: template.eventDateKey,
+        tickets,
+        subtotal,
+        bookingFees: quantity * FEE_PER_TICKET,
+        total: subtotal + quantity * FEE_PER_TICKET
+      }
+      events = current
+        ? events.map((event) => (event.eventId === eventId ? merged : event))
+        : [...events, merged]
+    },
+    adjustExpiry: (deltaMinutes) => {
+      expiresAtUtc = new Date(
+        new Date(expiresAtUtc).getTime() + deltaMinutes * 60 * 1000
+      ).toISOString()
+    }
+  }
+}
