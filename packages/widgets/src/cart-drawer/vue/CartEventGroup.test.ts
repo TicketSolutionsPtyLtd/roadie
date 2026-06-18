@@ -127,7 +127,7 @@ describe('CartEventGroup', () => {
     await fireEvent.click(getByLabelText('Remove Night Show'))
     expect(queryByText('Remove all tickets for this event?')).toBeTruthy()
 
-    await fireEvent.mouseDown(document.body)
+    await fireEvent.pointerDown(document.body)
     expect(queryByText('Remove all tickets for this event?')).toBeNull()
   })
 

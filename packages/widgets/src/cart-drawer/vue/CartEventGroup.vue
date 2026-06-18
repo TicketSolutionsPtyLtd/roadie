@@ -61,8 +61,12 @@ function confirmRemove() {
   confirming.value = false
 }
 
-function onDocumentPointerDown(e: MouseEvent) {
-  if (removeWrapEl.value && !removeWrapEl.value.contains(e.target as Node)) {
+function onDocumentPointerDown(e: PointerEvent) {
+  if (
+    e.target instanceof Node &&
+    removeWrapEl.value &&
+    !removeWrapEl.value.contains(e.target)
+  ) {
     closeConfirm()
   }
 }
@@ -95,7 +99,7 @@ async function ensureTrap(): Promise<FocusTrapInstance | null> {
 watch(confirming, async (open) => {
   if (typeof document === 'undefined') return
   if (open) {
-    document.addEventListener('mousedown', onDocumentPointerDown)
+    document.addEventListener('pointerdown', onDocumentPointerDown)
     document.addEventListener('keydown', onDocumentKeydown)
     await nextTick()
     const t = await ensureTrap()
@@ -107,7 +111,7 @@ watch(confirming, async (open) => {
       }
     }
   } else {
-    document.removeEventListener('mousedown', onDocumentPointerDown)
+    document.removeEventListener('pointerdown', onDocumentPointerDown)
     document.removeEventListener('keydown', onDocumentKeydown)
     try {
       trap?.deactivate()
@@ -126,7 +130,7 @@ onBeforeUnmount(() => {
   }
   trap = null
   if (typeof document === 'undefined') return
-  document.removeEventListener('mousedown', onDocumentPointerDown)
+  document.removeEventListener('pointerdown', onDocumentPointerDown)
   document.removeEventListener('keydown', onDocumentKeydown)
 })
 </script>

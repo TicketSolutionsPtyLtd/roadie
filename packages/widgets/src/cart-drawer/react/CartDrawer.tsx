@@ -220,7 +220,9 @@ export function CartDrawer({
     if (state !== 'open') return
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
-      if (document.querySelector('[data-slot="popover-popup"]')) return
+      // Let the event's own confirm popover handle Escape first; scope to
+      // this widget's popover so an unrelated app Popover can't swallow it.
+      if (document.querySelector('[data-cart-confirm]')) return
       toggle()
     }
     document.addEventListener('keydown', onKey)
