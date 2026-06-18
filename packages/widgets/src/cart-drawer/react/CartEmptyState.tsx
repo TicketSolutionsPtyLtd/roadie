@@ -15,9 +15,9 @@ export function CartEmptyState({
   onNavigate
 }: CartEmptyStateProps) {
   return (
-    <EmptyState>
+    <EmptyState size='sm'>
       <EmptyState.IconTile>
-        <BagIcon weight='bold' aria-hidden='true' />
+        <BagIcon weight='duotone' aria-hidden='true' />
       </EmptyState.IconTile>
       <EmptyState.Title>Your cart is empty</EmptyState.Title>
       <EmptyState.Description>
