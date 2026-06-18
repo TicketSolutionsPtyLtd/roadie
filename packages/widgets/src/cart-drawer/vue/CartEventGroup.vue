@@ -85,6 +85,11 @@ async function ensureTrap(): Promise<FocusTrapInstance | null> {
     trap = mod.createFocusTrap(el, {
       escapeDeactivates: false,
       clickOutsideDeactivates: false,
+      // Don't preventDefault outside clicks — the trap would otherwise swallow a
+      // click on the drawer's close button while the confirm is open. The
+      // document pointerdown handler still closes the confirm; the click also
+      // reaches the close button, so one click dismisses both.
+      allowOutsideClick: true,
       returnFocusOnDeactivate: true,
       initialFocus: () =>
         confirmCancelEl.value ?? confirmPopupEl.value ?? false,
@@ -186,7 +191,7 @@ onBeforeUnmount(() => {
           :id="confirmId"
           ref="confirmPopupEl"
           data-cart-confirm
-          class="absolute top-full right-0 z-popover mt-1 grid max-w-80 gap-4 rounded-xl emphasis-floating p-4 text-pretty intent-danger"
+          class="absolute top-full right-0 z-popover mt-1 grid w-max max-w-80 gap-4 rounded-xl emphasis-floating p-4 text-pretty intent-danger"
           role="dialog"
           :aria-labelledby="confirmLabelId"
         >

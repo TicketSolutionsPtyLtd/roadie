@@ -52,34 +52,21 @@ export function buildCheckoutUrl(
 }
 
 /**
- * Default "browse" target for the empty-state CTA, built from the trusted
- * `collectionId` (a Guid the host serialises into the page) plus the current
- * location. Used by `CartDrawer` when the consumer doesn't pass `browseHref`,
- * so a request-param-derived value (e.g. Razor's `Model.CollectionUrl ←
- * request.CollectionUrl`) never reaches the navigation sink — closing the
- * window.location.href open-redirect class that pattern-scanners (Aikido)
- * flag on `onNavigate`.
+ * Default "browse events" target, built from the trusted `collectionId` (a Guid
+ * the host serialises into the page). Used by `CartDrawer` when the consumer
+ * doesn't pass `browseHref`, so a request-param-derived value (e.g. Razor's
+ * `Model.CollectionUrl ← request.CollectionUrl`) never reaches the navigation
+ * sink — closing the window.location.href open-redirect class that
+ * pattern-scanners (Aikido) flag on `onNavigate`.
  *
- * Returns the Oztix internal collection-cart route:
- *   /collection/cart/?id={collectionId}&redirect={current path+search}
+ * Returns the Oztix internal collection (events) route:
+ *   /collection/?id={collectionId}
  *
- * The route shape is currently hard-coded because both planned consumers
- * (OnlineOutlet and the Oztix website) use the same path. Lift to a template
- * prop if a third consumer with a different route ever appears.
- *
- * Must be called client-side. The empty-state button is only clicked after
- * mount, so SSR doesn't hit this path; we still defensively fall back when
- * `window` is undefined.
+ * The route shape is hard-coded because both consumers (OnlineOutlet and the
+ * Oztix website) use the same path. Lift to a template prop if a third
+ * consumer with a different route ever appears.
  */
 export function buildBrowseHref(collectionId: string): string {
   if (typeof collectionId !== 'string' || collectionId.length === 0) return '/'
-  const hasWin = typeof window !== 'undefined'
-  const search = new URLSearchParams(hasWin ? window.location.search : '')
-  // Strip a prior `redirect=` so a round-trip back through the cart page can't
-  // accrete encoded query stacks.
-  search.delete('redirect')
-  const qs = search.toString()
-  const path = hasWin ? window.location.pathname : '/'
-  const here = qs.length > 0 ? `${path}?${qs}` : path
-  return `/collection/cart/?id=${encodeURIComponent(collectionId)}&redirect=${encodeURIComponent(here)}`
+  return `/collection/?id=${encodeURIComponent(collectionId)}`
 }

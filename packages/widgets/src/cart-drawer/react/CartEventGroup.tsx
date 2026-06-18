@@ -86,7 +86,11 @@ export function CartEventGroup({
                 </IconButton>
               }
             />
-            <Popover.Content intent='danger' data-cart-confirm>
+            <Popover.Content
+              intent='danger'
+              data-cart-confirm
+              positionerProps={{ align: 'end', sideOffset: 4 }}
+            >
               <Popover.Header>
                 <Popover.Title>
                   Remove all tickets for this event?
