@@ -4,7 +4,7 @@ import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-export const separatorVariants = cva('border border-subtle', {
+export const separatorVariants = cva('border-subtle border-solid', {
   variants: {
     orientation: {
       horizontal: 'h-px w-full border-t',
