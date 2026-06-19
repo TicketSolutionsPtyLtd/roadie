@@ -9,21 +9,19 @@ import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # CartDrawer
 
-A docked, expandable cart for collection and event pages. It fetches its own
-summary and details, groups items by event, formats currency and dates for the
-given locale, runs an urgency countdown, and handles its own focus trap, body
-scroll lock, and motion. React and Vue skins are behaviour-equivalent because
-they share one core.
+A docked, expandable cart for collection and event pages — matching React and
+Vue skins over one shared core.
+
+- Fetches its own summary and details, then groups items by event
+- Locale-aware currency and dates, with a live urgency countdown
+- Self-contained focus trap, body scroll lock, and motion
 
 ## Live demo
 
-The drawer is `position: fixed` to the bottom of the screen, so it renders over
-this whole page — only the controls live in the example below. **Show cart**
-mounts the docked summary bar at the bottom of the window; **Expand cart** opens
-the full cart, which holds its `max-w-xl` width and centres. Pick the mount
-[context](#mount-context) with the radio group, then expand, add events, and
-remove them. It's backed by a canned cart (no network) — emptying it and
-reopening starts fresh.
+The drawer is `position: fixed` over the whole page, so only the controls sit in
+the example below — **Show cart** docks the summary bar, **Expand cart** opens the
+full cart. It runs on a canned cart (no network), so emptying and reopening
+starts fresh.
 
 ```tsx-live-noinline
 // A fresh cart + query client per "Show" so removing every item never strands
