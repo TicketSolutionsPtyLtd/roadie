@@ -2,8 +2,11 @@ export interface CartTicket {
   name: string
   quantity: number
   priceEach: number
-  /** Reserved-seat allocation, e.g. "Stalls B11–12". Omitted for GA tickets. */
-  seat?: string
+  /** Pre-formatted reserved-seat allocation for this line — a single seat or a
+   * range, e.g. "B12" or "Stalls B11–12". The consumer formats it from its own
+   * seat data (section / row / seat number); the drawer just displays it.
+   * Omitted for general-admission tickets. */
+  seats?: string
 }
 
 export interface CartEvent {
@@ -11,7 +14,8 @@ export interface CartEvent {
   eventName: string
   venueName: string
   imageUrl?: string
-  /** ISO 8601 UTC — used for ORDERING only. */
+  /** ISO 8601 UTC start. Drives ordering and, via `formatEventSchedule`, the
+   * displayed start time when `eventDateDisplay` isn't supplied. */
   eventStartAtUtc: string
   /** ISO 8601 UTC finish time. Drives a finish time / multi-day end. */
   eventEndAtUtc?: string

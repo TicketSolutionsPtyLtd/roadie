@@ -242,7 +242,7 @@ onBeforeUnmount(() => {
     <div class="grid gap-3 pl-6">
       <div
         v-for="ticket in event.tickets"
-        :key="ticket.name"
+        :key="`${ticket.name}|${ticket.priceEach}|${ticket.seats ?? ''}`"
         class="grid gap-1"
       >
         <div class="flex items-center justify-between gap-2">
@@ -250,11 +250,11 @@ onBeforeUnmount(() => {
             {{ ticket.name }}
           </p>
           <span
-            v-if="ticket.seat"
+            v-if="ticket.seats"
             class="inline-flex shrink-0 items-center justify-center gap-1 rounded-full emphasis-subtle px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-subtle [&_svg]:size-[1em] [&_svg]:shrink-0"
           >
             <PhSeat weight="bold" aria-hidden="true" />
-            {{ ticket.seat }}
+            {{ ticket.seats }}
           </span>
         </div>
         <div class="flex items-center rounded-lg emphasis-subtle px-2 py-1.5">

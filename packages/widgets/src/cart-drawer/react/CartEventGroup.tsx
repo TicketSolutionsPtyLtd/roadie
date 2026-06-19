@@ -131,15 +131,18 @@ export function CartEventGroup({
 
       <div className='grid gap-3 pl-6'>
         {event.tickets.map((ticket) => (
-          <div key={ticket.name} className='grid gap-1'>
+          <div
+            key={`${ticket.name}|${ticket.priceEach}|${ticket.seats ?? ''}`}
+            className='grid gap-1'
+          >
             <div className='flex items-center justify-between gap-2'>
               <p className='min-w-0 truncate text-ui-meta font-medium text-strong'>
                 {ticket.name}
               </p>
-              {ticket.seat && (
+              {ticket.seats && (
                 <Badge emphasis='subtle' size='sm' className='shrink-0'>
                   <SeatIcon weight='bold' />
-                  {ticket.seat}
+                  {ticket.seats}
                 </Badge>
               )}
             </div>

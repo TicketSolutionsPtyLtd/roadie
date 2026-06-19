@@ -61,7 +61,7 @@ type TicketLine = {
   name: string
   quantity: number
   priceEach: number
-  seat?: string
+  seats?: string
 }
 
 type EventTemplate = {
@@ -77,7 +77,7 @@ type EventTemplate = {
 
 // Cycled through by `addEvent` so repeated clicks add distinct events — a mix of
 // single/multi ticket types, single-day finish times, multi-day runs
-// (eventEndDateKey), and reserved seating (ticket.seat). The first entry uses
+// (eventEndDateKey), and reserved seating (ticket.seats). The first entry uses
 // long event/venue/ticket names to exercise truncation. Venues are fictional
 // Brisbane-area locations.
 const EXTRA_EVENTS: EventTemplate[] = [
@@ -116,9 +116,9 @@ const EXTRA_EVENTS: EventTemplate[] = [
         name: 'Reserved Seat',
         quantity: 2,
         priceEach: 110,
-        seat: 'Stalls B11–12'
+        seats: 'Stalls B11–12'
       },
-      { name: 'Premium Booth', quantity: 1, priceEach: 180, seat: 'Booth 4' }
+      { name: 'Premium Booth', quantity: 1, priceEach: 180, seats: 'Booth 4' }
     ]
   },
   {
@@ -143,7 +143,7 @@ const EXTRA_EVENTS: EventTemplate[] = [
         name: 'VIP Lounge',
         quantity: 2,
         priceEach: 145,
-        seat: 'Mezzanine M3–4'
+        seats: 'Mezzanine M3–4'
       }
     ]
   }
@@ -153,7 +153,8 @@ const EXTRA_EVENTS: EventTemplate[] = [
 const FEE_PER_TICKET = 5
 
 // Combine ticket lines when the same event is added again: a matching name +
-// price bumps the quantity; a new ticket type appends a line.
+// price + seats bumps the quantity; anything else appends a line (distinct
+// seat allocations stay separate).
 function mergeTickets(
   existing: TicketLine[],
   incoming: TicketLine[]
@@ -161,7 +162,10 @@ function mergeTickets(
   const result = existing.map((ticket) => ({ ...ticket }))
   for (const inc of incoming) {
     const match = result.find(
-      (ticket) => ticket.name === inc.name && ticket.priceEach === inc.priceEach
+      (ticket) =>
+        ticket.name === inc.name &&
+        ticket.priceEach === inc.priceEach &&
+        ticket.seats === inc.seats
     )
     if (match) match.quantity += inc.quantity
     else result.push({ ...inc })
