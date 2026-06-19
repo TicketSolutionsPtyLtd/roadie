@@ -309,7 +309,7 @@ const contentOpacity = computed(() =>
     <div
       ref="drawerEl"
       id="cart-drawer"
-      class="fixed z-modal flex flex-col overflow-hidden emphasis-floating [transition:height_320ms_cubic-bezier(0.22,1,0.36,1),border-radius_300ms_var(--ease-out),inset_300ms_var(--ease-out),opacity_300ms_var(--ease-out)] focus:outline-none sm:inset-x-4 sm:bottom-4 sm:mx-auto sm:max-w-[600px] sm:rounded-4xl"
+      class="fixed z-modal flex flex-col overflow-hidden emphasis-floating [transition:height_320ms_cubic-bezier(0.22,1,0.36,1),border-radius_300ms_var(--ease-out),inset_300ms_var(--ease-out),opacity_300ms_var(--ease-out)] focus:outline-none sm:inset-x-4 sm:bottom-4 sm:mx-auto sm:max-w-xl sm:rounded-4xl"
       tabindex="-1"
       :class="[
         isOpen
@@ -341,7 +341,7 @@ const contentOpacity = computed(() =>
 
       <div
         id="cart-drawer-body"
-        class="h-full min-h-0 flex-1 overflow-y-auto px-4 transition-opacity"
+        class="@container h-full min-h-0 flex-1 overflow-y-auto px-4 pb-8 transition-opacity"
         :aria-busy="removing"
         :inert="!isOpen"
         :style="{

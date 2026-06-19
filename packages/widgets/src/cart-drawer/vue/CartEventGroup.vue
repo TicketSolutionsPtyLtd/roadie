@@ -1,11 +1,17 @@
 <script setup lang="ts">
-import { PhClock, PhMapPin, PhTrash } from '@phosphor-icons/vue'
+import {
+  PhClock,
+  PhMapPin,
+  PhSeat,
+  PhTicket,
+  PhTrash
+} from '@phosphor-icons/vue'
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 
 import {
   type CartEvent,
   formatCurrency,
-  formatTime,
+  formatEventSchedule,
   isSafeImageUrl
 } from '../core'
 
@@ -23,11 +29,11 @@ const emit = defineEmits<{
   removeEvent: [eventId: string]
 }>()
 
-const timeLabel = computed(() => {
-  const start = new Date(props.event.eventStartAtUtc)
-  const valid = !Number.isNaN(start.getTime())
-  return props.event.eventDateDisplay ?? (valid ? formatTime(start) : null)
-})
+const timeLabel = computed(
+  () =>
+    props.event.eventDateDisplay ??
+    formatEventSchedule(props.event, { locale: props.locale })
+)
 
 // Security: only render absolute http(s) image URLs (avoid hostile-API beacon).
 const safeImageUrl = computed(() =>
@@ -142,11 +148,11 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="grid gap-3">
-    <div class="flex items-start gap-3">
-      <div class="flex min-w-0 flex-1 flex-col gap-1">
+    <div class="flex items-start gap-1">
+      <div class="flex min-w-0 flex-1 flex-col gap-2">
         <div
           v-if="timeLabel"
-          class="flex items-center gap-2 text-ui-meta text-subtle"
+          class="flex items-center gap-2 text-ui-meta font-medium text-subtle"
         >
           <PhClock
             weight="bold"
@@ -156,8 +162,8 @@ onBeforeUnmount(() => {
           <span>{{ timeLabel }}</span>
         </div>
         <div class="grid gap-1 pl-6">
-          <p class="text-ui font-medium text-strong">{{ event.eventName }}</p>
-          <div class="flex items-center gap-1.5 text-ui-meta text-subtle">
+          <p class="text-display-ui-6 text-strong">{{ event.eventName }}</p>
+          <div class="flex items-center gap-1 text-ui-meta text-subtle">
             <PhMapPin
               weight="bold"
               class="size-3.5 shrink-0 text-subtler"
@@ -171,7 +177,7 @@ onBeforeUnmount(() => {
         v-if="safeImageUrl"
         :src="safeImageUrl"
         :alt="event.eventName"
-        class="size-20 shrink-0 rounded-lg bg-subtle object-cover"
+        class="hidden size-16 shrink-0 rounded-lg bg-subtle object-cover @sm:block @md:size-20"
       />
       <div ref="removeWrapEl" class="relative shrink-0 self-start">
         <button
@@ -195,6 +201,16 @@ onBeforeUnmount(() => {
           role="dialog"
           :aria-labelledby="confirmLabelId"
         >
+          <svg
+            viewBox="0 0 20 10"
+            aria-hidden="true"
+            class="absolute top-[-7px] right-4 z-10 h-2 w-4 fill-(--intent-bg-raised) stroke-(--rim-light-edge)"
+            stroke-width="1"
+            stroke-linejoin="round"
+            stroke-linecap="round"
+          >
+            <path d="M0 10 L10 0 L20 10" />
+          </svg>
           <div class="grid gap-1 text-center">
             <p :id="confirmLabelId" class="text-display-ui-6 text-strong">
               Remove all tickets for this event?
@@ -227,27 +243,34 @@ onBeforeUnmount(() => {
       <div
         v-for="ticket in event.tickets"
         :key="ticket.name"
-        class="grid gap-2"
+        class="grid gap-1"
       >
-        <div class="md:hidden">
-          <p class="text-ui font-medium text-strong">{{ ticket.name }}</p>
+        <div class="flex items-center justify-between gap-2">
+          <p class="min-w-0 truncate text-ui-meta font-medium text-strong">
+            {{ ticket.name }}
+          </p>
+          <span
+            v-if="ticket.seat"
+            class="inline-flex shrink-0 items-center justify-center gap-1 rounded-full emphasis-subtle px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-subtle [&_svg]:size-[1em] [&_svg]:shrink-0"
+          >
+            <PhSeat weight="bold" aria-hidden="true" />
+            {{ ticket.seat }}
+          </span>
         </div>
-        <div class="flex items-center rounded-lg bg-sunken px-3 py-2">
-          <div class="hidden min-w-0 flex-1 pr-4 md:block">
-            <span class="block truncate text-ui font-medium text-strong">
-              {{ ticket.name }}
-            </span>
-          </div>
-          <span class="w-20 shrink-0 text-ui-meta text-subtle">
+        <div class="flex items-center rounded-lg emphasis-subtle px-2 py-1.5">
+          <span class="w-20 shrink-0 text-ui-meta font-medium text-subtle">
             {{ ticket.priceEach === 0 ? 'Free' : money(ticket.priceEach) }}
           </span>
           <div class="flex flex-1 items-center justify-center">
-            <span class="shrink-0 text-ui-meta font-medium text-strong">
-              &times; {{ ticket.quantity }}
+            <span
+              class="inline-flex emphasis-normal items-center justify-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-subtle [&_svg]:size-[1em] [&_svg]:shrink-0"
+            >
+              <PhTicket weight="bold" aria-hidden="true" />
+              {{ ticket.quantity }}
             </span>
           </div>
           <span
-            class="w-24 shrink-0 text-right text-ui font-bold text-strong tabular-nums"
+            class="w-24 shrink-0 text-right text-ui-meta font-medium text-strong tabular-nums"
           >
             {{ money(ticket.quantity * ticket.priceEach) }}
           </span>

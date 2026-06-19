@@ -54,14 +54,14 @@ const priceSuffix = computed(() => {
   return suffix
 })
 
-const titleAreaHeight = computed(() => 32 + props.progress * 40)
+const titleAreaHeight = computed(() => 32 + props.progress * 44)
 const titleLeft = computed(() =>
   props.progress <= 0
     ? '16px'
     : `calc(${16 * (1 - props.progress)}px + ${props.progress * 50}%)`
 )
 const titleTransform = computed(() => `translateX(${-50 * props.progress}%)`)
-const badgeTop = computed(() => 4 + props.progress * 32)
+const badgeTop = computed(() => props.progress * 36)
 const priceOpacity = computed(() => 1 - props.progress)
 const closeOpacity = computed(() =>
   Math.max(0, Math.min(1, (props.progress - 0.5) / 0.2))
@@ -87,26 +87,28 @@ function onGrabberKeydown(e: KeyboardEvent) {
 
 <template>
   <div
-    class="relative shrink-0 cursor-grab touch-none select-none active:cursor-grabbing"
+    class="relative shrink-0 cursor-pointer touch-none select-none"
     :class="{ 'animate-nudge': bounce }"
     @pointerdown="onPointerDown"
   >
-    <div class="flex justify-center pt-2 pb-2">
-      <div aria-hidden="true" class="h-1.5 w-9 rounded-full bg-subtle" />
+    <div class="flex justify-center pt-1 pb-1">
+      <button
+        type="button"
+        class="is-interactive flex cursor-grab appearance-none items-center justify-center rounded-full bg-transparent px-3 py-1 active:cursor-grabbing"
+        :aria-expanded="isOpen"
+        aria-controls="cart-drawer-body"
+        :aria-label="isOpen ? 'Close cart' : 'Open cart'"
+        @click="onGrabberClick"
+        @keydown="onGrabberKeydown"
+      >
+        <span aria-hidden="true" class="h-1.5 w-9 rounded-full bg-subtle" />
+      </button>
     </div>
-    <button
-      type="button"
-      class="absolute top-0 left-1/2 size-11 -translate-x-1/2 cursor-grab appearance-none rounded-full bg-transparent text-transparent outline-offset-2 focus:outline-none focus-visible:text-strong focus-visible:outline-2 focus-visible:outline-current"
-      :aria-expanded="isOpen"
-      aria-controls="cart-drawer-body"
-      :aria-label="isOpen ? 'Close cart' : 'Open cart'"
-      @click="onGrabberClick"
-      @keydown="onGrabberKeydown"
-    />
 
     <div class="relative" :style="{ height: `${titleAreaHeight}px` }">
       <div
         class="absolute top-0 left-4"
+        :inert="!isOpen"
         :style="{
           opacity: closeOpacity,
           transform: `scale(${closeScale})`,
@@ -138,7 +140,7 @@ function onGrabberKeydown(e: KeyboardEvent) {
       </div>
 
       <div
-        class="absolute left-1/2 -translate-x-1/2"
+        class="absolute left-1/2 flex h-8 -translate-x-1/2 items-center"
         :style="{ top: `${badgeTop}px` }"
       >
         <CartUrgencyBadge
