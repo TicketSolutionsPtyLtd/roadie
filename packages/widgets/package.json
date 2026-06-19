@@ -1,6 +1,6 @@
 {
   "name": "@oztix/roadie-widgets",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "Roadie Design System widgets (core + React + Vue skins) — currently the shared cart drawer",
   "type": "module",
   "repository": {
