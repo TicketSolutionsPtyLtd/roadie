@@ -17,15 +17,18 @@ function collapseSeatRuns(labels: string[]): string {
   const runs: string[] = []
   let start = sorted[0]!
   let prev = start
-  for (let i = 1; i <= sorted.length; i++) {
-    const cur = sorted[i]
+  const flush = () =>
+    runs.push(start === prev ? `${start}` : `${start}–${prev}`)
+  for (let i = 1; i < sorted.length; i++) {
+    const cur = sorted[i]!
     if (cur === prev + 1) {
       prev = cur
-      continue
+    } else {
+      flush()
+      start = prev = cur
     }
-    runs.push(start === prev ? `${start}` : `${start}–${prev}`)
-    if (cur !== undefined) start = prev = cur
   }
+  flush()
   return runs.join(', ')
 }
 
