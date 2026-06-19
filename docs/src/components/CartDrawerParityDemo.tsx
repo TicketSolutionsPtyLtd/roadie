@@ -7,10 +7,25 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Button, Card, RadioGroup, Tabs } from '@oztix/roadie-components'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
 
+import { CodePreview } from './CodePreview'
 import { VueCartDrawer } from './VueCartDrawer'
 import { createDemoCart } from './cartDrawerDemo'
 
 type Skin = 'react' | 'vue'
+
+// Per-skin usage shown under the tab so the difference (import path + host
+// wiring) is visible while switching. Kept ≤5 lines so CodePreview shows it all.
+const SKIN_CODE: Record<Skin, string> = {
+  react: `import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
+
+// Wrap once in a @tanstack/react-query QueryClientProvider, then:
+<CartDrawer cart={cart} collectionId={id} onNavigate={go}
+  locale="en-AU" currency="AUD" />`,
+  vue: `import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/vue'
+
+<CartDrawer :cart="cart" :collection-id="id" :on-navigate="go"
+  locale="en-AU" currency="AUD" />`
+}
 
 // A fresh cart + query client per "Show" so removing every item never strands
 // the demo. Kept together so Add can reach the cart.
@@ -91,28 +106,22 @@ export function CartDrawerParityDemo() {
   }
 
   return (
-    <div className='mb-8 grid gap-3'>
-      {/* The tab sits outside the card; everything it affects lives inside, so
-          it reads as "this card is the <skin> skin". */}
-      <Tabs
-        value={skin}
-        onValueChange={(value) => switchSkin(value as Skin)}
-        emphasis='strong'
-      >
-        <Tabs.List>
-          <Tabs.Tab value='react'>React</Tabs.Tab>
-          <Tabs.Tab value='vue'>Vue</Tabs.Tab>
-          <Tabs.Indicator />
-        </Tabs.List>
-      </Tabs>
-
-      <Card emphasis='raised'>
+    <div className='mb-8'>
+      <Card emphasis='normal'>
         <Card.Content className='grid gap-4'>
-          <p className='text-sm text-subtle'>
-            Same controls, same mock cart — flip the tab to compare the{' '}
-            <strong className='font-medium text-normal'>{skin}</strong> skin.
-            The drawer is <code>position: fixed</code> over the page.
-          </p>
+          {/* Tab + everything it affects live together in the card, so it reads
+              as "this card is the <skin> skin". */}
+          <Tabs
+            value={skin}
+            onValueChange={(value) => switchSkin(value as Skin)}
+            emphasis='strong'
+          >
+            <Tabs.List>
+              <Tabs.Tab value='react'>React</Tabs.Tab>
+              <Tabs.Tab value='vue'>Vue</Tabs.Tab>
+              <Tabs.Indicator />
+            </Tabs.List>
+          </Tabs>
 
           <div className='grid gap-1.5'>
             <p className='text-sm font-medium text-strong'>Cart context</p>
@@ -148,6 +157,13 @@ export function CartDrawerParityDemo() {
               +1 min
             </Button>
           </div>
+
+          <CodePreview
+            language='tsx'
+            className='relative min-w-0 rounded-lg emphasis-sunken'
+          >
+            {SKIN_CODE[skin]}
+          </CodePreview>
 
           {shown &&
             (skin === 'react' ? (
