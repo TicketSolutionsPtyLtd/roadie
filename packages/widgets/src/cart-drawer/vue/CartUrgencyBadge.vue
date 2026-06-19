@@ -68,8 +68,7 @@ watch(
   { immediate: true }
 )
 
-// Collapse width + the leading gap so the badge clears smoothly when the cart
-// empties or the countdown expires. WAAPI isn't in jsdom, so fall back instant.
+// Animate the badge clear (width + gap). WAAPI isn't in jsdom — fall back instant.
 function animateTime(
   node: HTMLElement,
   from: { width: string; opacity: number; marginLeft: string },

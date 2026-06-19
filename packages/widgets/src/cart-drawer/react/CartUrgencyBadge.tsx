@@ -74,8 +74,7 @@ export function CartUrgencyBadge({
           <NumberFlow value={ticketCount} />
         </span>
       </Badge>
-      {/* Collapse width + the leading gap so the badge clears smoothly when the
-         cart empties or the countdown expires. marginLeft holds the gap-1.5. */}
+      {/* marginLeft holds the gap so width + gap collapse together on clear. */}
       <AnimatePresence initial={false}>
         {showCountdown && remaining !== null && (
           <m.div

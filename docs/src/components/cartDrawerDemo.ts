@@ -58,7 +58,6 @@ const DEMO_EVENTS: CartEvent[] = [
   }
 ]
 
-// Helper to keep the seat fixtures terse: range('Stalls', 'B', 11, 12).
 function range(
   section: string | undefined,
   row: string | undefined,
@@ -88,11 +87,8 @@ type EventTemplate = {
   tickets: TicketLine[]
 }
 
-// Cycled through by `addEvent` so repeated clicks add distinct events — a mix of
-// single/multi ticket types, single-day finish times, multi-day runs
-// (eventEndDateKey), and reserved seating (ticket.seats). The first entry uses
-// long event/venue/ticket names to exercise truncation. Venues are fictional
-// Brisbane-area locations.
+// Cycled through by `addEvent`. The first entry's long names exercise
+// truncation; later entries cover finish times, multi-day runs, and seating.
 const EXTRA_EVENTS: EventTemplate[] = [
   {
     eventName: 'Circus The Show! — The Greatest Spectacular on Earth',
@@ -126,7 +122,6 @@ const EXTRA_EVENTS: EventTemplate[] = [
     eventEndDateKey: '2026-12-06',
     tickets: [
       {
-        // A range with a gap → "Stalls B11–12, 14".
         name: 'Reserved Seat',
         quantity: 3,
         priceEach: 110,
@@ -136,7 +131,6 @@ const EXTRA_EVENTS: EventTemplate[] = [
         ]
       },
       {
-        // A single seat with no row → "Booth 4".
         name: 'Premium Booth',
         quantity: 1,
         priceEach: 180,
@@ -163,7 +157,6 @@ const EXTRA_EVENTS: EventTemplate[] = [
     tickets: [
       { name: 'General Admission', quantity: 2, priceEach: 65 },
       {
-        // Seats across two sections → "Mezzanine M3 · Circle C5".
         name: 'VIP Lounge',
         quantity: 2,
         priceEach: 145,

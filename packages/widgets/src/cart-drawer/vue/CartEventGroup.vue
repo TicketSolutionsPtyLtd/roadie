@@ -36,8 +36,7 @@ const timeLabel = computed(
     formatEventSchedule(props.event, { locale: props.locale })
 )
 
-// Precompute the seat label once and key rows by name + price + seats so
-// distinct reserved-seat allocations sharing a ticket name don't collide.
+// Key rows by name + price + seats so same-named seat allocations don't collide.
 const ticketRows = computed(() =>
   props.event.tickets.map((ticket) => {
     const seatLabel = formatSeatRange(ticket.seats)

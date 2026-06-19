@@ -65,10 +65,9 @@ export function CartContents({
 
   return (
     <div className={className ?? 'grid gap-5'}>
-      {/* initial={false} skips enter animation so the cart doesn't unfurl on
-         open — only removals animate. overflow:'hidden' is applied only in the
-         exit target so the sticky day header isn't trapped in a scroll
-         container during normal scrolling. */}
+      {/* initial={false} → only removals animate, no unfurl on open. exit's
+         overflow is applied only on exit so the sticky header isn't trapped
+         in a scroll container while scrolling. */}
       <AnimatePresence initial={false}>
         {dayGroups.map((group) => (
           <m.section

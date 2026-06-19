@@ -1,6 +1,4 @@
-/** One reserved seat. The drawer renders these via `formatSeatRange`, which
- * groups by section/row and collapses consecutive seats into a range — so every
- * consumer (and skin) displays seating identically. */
+/** One reserved seat. `formatSeatRange` turns a list into a display range. */
 export interface CartSeat {
   /** e.g. "Stalls", "Mezzanine", "Booth". */
   section?: string
