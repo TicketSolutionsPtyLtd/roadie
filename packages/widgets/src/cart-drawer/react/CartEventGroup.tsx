@@ -16,6 +16,7 @@ import {
   type CartEvent,
   formatCurrency,
   formatEventSchedule,
+  formatSeatRange,
   isSafeImageUrl
 } from '../core'
 
@@ -130,43 +131,46 @@ export function CartEventGroup({
       </div>
 
       <div className='grid gap-3 pl-6'>
-        {event.tickets.map((ticket) => (
-          <div
-            key={`${ticket.name}|${ticket.priceEach}|${ticket.seats ?? ''}`}
-            className='grid gap-1'
-          >
-            <div className='flex items-center justify-between gap-2'>
-              <p className='min-w-0 truncate text-ui-meta font-medium text-strong'>
-                {ticket.name}
-              </p>
-              {ticket.seats && (
-                <Badge emphasis='subtle' size='sm' className='shrink-0'>
-                  <SeatIcon weight='bold' />
-                  {ticket.seats}
-                </Badge>
-              )}
-            </div>
-            <div className='flex items-center rounded-lg emphasis-subtle px-2 py-1.5'>
-              <span className='w-20 shrink-0 text-ui-meta font-medium text-subtle'>
-                {ticket.priceEach === 0
-                  ? 'Free'
-                  : formatCurrency(ticket.priceEach, { locale, currency })}
-              </span>
-              <div className='flex flex-1 items-center justify-center'>
-                <Badge emphasis='normal' size='sm'>
-                  <TicketIcon weight='bold' />
-                  {ticket.quantity}
-                </Badge>
+        {event.tickets.map((ticket) => {
+          const seatLabel = formatSeatRange(ticket.seats)
+          return (
+            <div
+              key={`${ticket.name}|${ticket.priceEach}|${seatLabel ?? ''}`}
+              className='grid gap-1'
+            >
+              <div className='flex items-center justify-between gap-2'>
+                <p className='min-w-0 truncate text-ui-meta font-medium text-strong'>
+                  {ticket.name}
+                </p>
+                {seatLabel && (
+                  <Badge emphasis='subtle' size='sm' className='shrink-0'>
+                    <SeatIcon weight='bold' />
+                    {seatLabel}
+                  </Badge>
+                )}
               </div>
-              <span className='w-24 shrink-0 text-right text-ui-meta font-medium text-strong tabular-nums'>
-                {formatCurrency(ticket.quantity * ticket.priceEach, {
-                  locale,
-                  currency
-                })}
-              </span>
+              <div className='flex items-center rounded-lg emphasis-subtle px-2 py-1.5'>
+                <span className='w-20 shrink-0 text-ui-meta font-medium text-subtle'>
+                  {ticket.priceEach === 0
+                    ? 'Free'
+                    : formatCurrency(ticket.priceEach, { locale, currency })}
+                </span>
+                <div className='flex flex-1 items-center justify-center'>
+                  <Badge emphasis='normal' size='sm'>
+                    <TicketIcon weight='bold' />
+                    {ticket.quantity}
+                  </Badge>
+                </div>
+                <span className='w-24 shrink-0 text-right text-ui-meta font-medium text-strong tabular-nums'>
+                  {formatCurrency(ticket.quantity * ticket.priceEach, {
+                    locale,
+                    currency
+                  })}
+                </span>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

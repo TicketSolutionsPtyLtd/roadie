@@ -196,6 +196,53 @@ interface CartClient {
 }
 ```
 
+## Event schedules
+
+Each `CartEvent` formats its own time row from structured fields — supply UTC
+timestamps and venue-local day keys, and the shared core renders the rest the
+same way in every skin and consumer.
+
+| Fields supplied                         | Time row                  |
+| --------------------------------------- | ------------------------- |
+| `eventStartAtUtc`                       | `7pm`                     |
+| `+ eventEndAtUtc` (same day)            | `7pm – 11pm`              |
+| `+ eventEndDateKey` (different day)     | `6:30pm – Sun 4 Oct, 9pm` |
+
+Pass `eventDateDisplay` to override the computed schedule with a pre-formatted
+string (an escape hatch — prefer the structured fields).
+
+## Reserved seating
+
+Ticket lines carry their seats as **structured data**. The drawer groups them
+by section and row and collapses consecutive seats into a range via the shared
+`formatSeatRange` helper, so React, Vue, and every consumer render seating
+identically — no app-side formatting to drift.
+
+```ts
+interface CartSeat {
+  section?: string // "Stalls", "Mezzanine", "Booth"
+  row?: string // "B"
+  seat: string // "12"
+}
+
+// on a ticket line:
+{ name: 'Reserved Seat', quantity: 2, priceEach: 110, seats: [
+  { section: 'Stalls', row: 'B', seat: '11' },
+  { section: 'Stalls', row: 'B', seat: '12' },
+]}
+```
+
+| Seats                                | Badge                      |
+| ------------------------------------ | -------------------------- |
+| Stalls B11, B12                      | `Stalls B11–12`            |
+| Stalls B11, B12, B14                 | `Stalls B11–12, 14`        |
+| Booth 4 (no row)                     | `Booth 4`                  |
+| Mezzanine M3 + Circle C5             | `Mezzanine M3 · Circle C5` |
+
+Omit `seats` for general-admission tickets — the seat badge only renders when
+seats are present. Add an event in the [live demo](#live-demo) to see the
+reserved-seating examples (Harbourside Jazz, Festival of Lights).
+
 ## Usage
 
 ### React

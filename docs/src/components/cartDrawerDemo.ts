@@ -1,8 +1,10 @@
-import type {
-  CartClient,
-  CartDetails,
-  CartEvent,
-  CartSummary
+import {
+  type CartClient,
+  type CartDetails,
+  type CartEvent,
+  type CartSeat,
+  type CartSummary,
+  formatSeatRange
 } from '@oztix/roadie-widgets/cart-drawer/core'
 
 // Canned cart for the live CartDrawer examples. No network — every method
@@ -57,11 +59,23 @@ const DEMO_EVENTS: CartEvent[] = [
   }
 ]
 
+// Helper to keep the seat fixtures terse: range('Stalls', 'B', 11, 12).
+function range(
+  section: string | undefined,
+  row: string | undefined,
+  from: number,
+  to: number
+): CartSeat[] {
+  const seats: CartSeat[] = []
+  for (let n = from; n <= to; n++) seats.push({ section, row, seat: `${n}` })
+  return seats
+}
+
 type TicketLine = {
   name: string
   quantity: number
   priceEach: number
-  seats?: string
+  seats?: CartSeat[]
 }
 
 type EventTemplate = {
@@ -113,12 +127,22 @@ const EXTRA_EVENTS: EventTemplate[] = [
     eventEndDateKey: '2026-12-06',
     tickets: [
       {
+        // A range with a gap → "Stalls B11–12, 14".
         name: 'Reserved Seat',
-        quantity: 2,
+        quantity: 3,
         priceEach: 110,
-        seats: 'Stalls B11–12'
+        seats: [
+          ...range('Stalls', 'B', 11, 12),
+          { section: 'Stalls', row: 'B', seat: '14' }
+        ]
       },
-      { name: 'Premium Booth', quantity: 1, priceEach: 180, seats: 'Booth 4' }
+      {
+        // A single seat with no row → "Booth 4".
+        name: 'Premium Booth',
+        quantity: 1,
+        priceEach: 180,
+        seats: [{ section: 'Booth', seat: '4' }]
+      }
     ]
   },
   {
@@ -140,10 +164,14 @@ const EXTRA_EVENTS: EventTemplate[] = [
     tickets: [
       { name: 'General Admission', quantity: 2, priceEach: 65 },
       {
+        // Seats across two sections → "Mezzanine M3 · Circle C5".
         name: 'VIP Lounge',
         quantity: 2,
         priceEach: 145,
-        seats: 'Mezzanine M3–4'
+        seats: [
+          { section: 'Mezzanine', row: 'M', seat: '3' },
+          { section: 'Circle', row: 'C', seat: '5' }
+        ]
       }
     ]
   }
@@ -165,7 +193,7 @@ function mergeTickets(
       (ticket) =>
         ticket.name === inc.name &&
         ticket.priceEach === inc.priceEach &&
-        ticket.seats === inc.seats
+        formatSeatRange(ticket.seats) === formatSeatRange(inc.seats)
     )
     if (match) match.quantity += inc.quantity
     else result.push({ ...inc })

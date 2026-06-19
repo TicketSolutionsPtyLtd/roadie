@@ -6,6 +6,7 @@ import {
   formatDayHeader,
   formatDayShort,
   formatEventSchedule,
+  formatSeatRange,
   formatTime
 } from './format'
 
@@ -141,5 +142,64 @@ describe('formatEventSchedule', () => {
         opts
       )
     ).toBeNull()
+  })
+})
+
+describe('formatSeatRange', () => {
+  it('returns null for no seats', () => {
+    expect(formatSeatRange(undefined)).toBeNull()
+    expect(formatSeatRange([])).toBeNull()
+  })
+
+  it('collapses a consecutive run within a row', () => {
+    expect(
+      formatSeatRange([
+        { section: 'Stalls', row: 'B', seat: '11' },
+        { section: 'Stalls', row: 'B', seat: '12' }
+      ])
+    ).toBe('Stalls B11–12')
+  })
+
+  it('handles a section without a row', () => {
+    expect(formatSeatRange([{ section: 'Booth', seat: '4' }])).toBe('Booth 4')
+  })
+
+  it('keeps gaps as a comma list and runs as a range', () => {
+    expect(
+      formatSeatRange([
+        { row: 'B', seat: '11' },
+        { row: 'B', seat: '12' },
+        { row: 'B', seat: '15' }
+      ])
+    ).toBe('B11–12, 15')
+  })
+
+  it('joins separate section/row groups with a middle dot', () => {
+    expect(
+      formatSeatRange([
+        { section: 'Stalls', row: 'B', seat: '11' },
+        { section: 'Stalls', row: 'B', seat: '12' },
+        { section: 'Mezzanine', row: 'M', seat: '3' }
+      ])
+    ).toBe('Stalls B11–12 · Mezzanine M3')
+  })
+
+  it('sorts unordered numeric seats before collapsing', () => {
+    expect(
+      formatSeatRange([
+        { row: 'A', seat: '3' },
+        { row: 'A', seat: '1' },
+        { row: 'A', seat: '2' }
+      ])
+    ).toBe('A1–3')
+  })
+
+  it('falls back to a comma list for non-integer labels', () => {
+    expect(
+      formatSeatRange([
+        { section: 'GA', seat: '11A' },
+        { section: 'GA', seat: '11B' }
+      ])
+    ).toBe('GA 11A, 11B')
   })
 })

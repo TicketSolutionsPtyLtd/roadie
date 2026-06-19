@@ -12,6 +12,7 @@ import {
   type CartEvent,
   formatCurrency,
   formatEventSchedule,
+  formatSeatRange,
   isSafeImageUrl
 } from '../core'
 
@@ -33,6 +34,19 @@ const timeLabel = computed(
   () =>
     props.event.eventDateDisplay ??
     formatEventSchedule(props.event, { locale: props.locale })
+)
+
+// Precompute the seat label once and key rows by name + price + seats so
+// distinct reserved-seat allocations sharing a ticket name don't collide.
+const ticketRows = computed(() =>
+  props.event.tickets.map((ticket) => {
+    const seatLabel = formatSeatRange(ticket.seats)
+    return {
+      ticket,
+      seatLabel,
+      key: `${ticket.name}|${ticket.priceEach}|${seatLabel ?? ''}`
+    }
+  })
 )
 
 // Security: only render absolute http(s) image URLs (avoid hostile-API beacon).
@@ -240,39 +254,37 @@ onBeforeUnmount(() => {
     </div>
 
     <div class="grid gap-3 pl-6">
-      <div
-        v-for="ticket in event.tickets"
-        :key="`${ticket.name}|${ticket.priceEach}|${ticket.seats ?? ''}`"
-        class="grid gap-1"
-      >
+      <div v-for="row in ticketRows" :key="row.key" class="grid gap-1">
         <div class="flex items-center justify-between gap-2">
           <p class="min-w-0 truncate text-ui-meta font-medium text-strong">
-            {{ ticket.name }}
+            {{ row.ticket.name }}
           </p>
           <span
-            v-if="ticket.seats"
+            v-if="row.seatLabel"
             class="inline-flex shrink-0 items-center justify-center gap-1 rounded-full emphasis-subtle px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-subtle [&_svg]:size-[1em] [&_svg]:shrink-0"
           >
             <PhSeat weight="bold" aria-hidden="true" />
-            {{ ticket.seats }}
+            {{ row.seatLabel }}
           </span>
         </div>
         <div class="flex items-center rounded-lg emphasis-subtle px-2 py-1.5">
           <span class="w-20 shrink-0 text-ui-meta font-medium text-subtle">
-            {{ ticket.priceEach === 0 ? 'Free' : money(ticket.priceEach) }}
+            {{
+              row.ticket.priceEach === 0 ? 'Free' : money(row.ticket.priceEach)
+            }}
           </span>
           <div class="flex flex-1 items-center justify-center">
             <span
               class="inline-flex emphasis-normal items-center justify-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-subtle [&_svg]:size-[1em] [&_svg]:shrink-0"
             >
               <PhTicket weight="bold" aria-hidden="true" />
-              {{ ticket.quantity }}
+              {{ row.ticket.quantity }}
             </span>
           </div>
           <span
             class="w-24 shrink-0 text-right text-ui-meta font-medium text-strong tabular-nums"
           >
-            {{ money(ticket.quantity * ticket.priceEach) }}
+            {{ money(row.ticket.quantity * row.ticket.priceEach) }}
           </span>
         </div>
       </div>

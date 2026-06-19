@@ -1,12 +1,21 @@
+/** One reserved seat. The drawer renders these via `formatSeatRange`, which
+ * groups by section/row and collapses consecutive seats into a range — so every
+ * consumer (and skin) displays seating identically. */
+export interface CartSeat {
+  /** e.g. "Stalls", "Mezzanine", "Booth". */
+  section?: string
+  /** Row label, e.g. "B". */
+  row?: string
+  /** Seat label/number, e.g. "12". */
+  seat: string
+}
+
 export interface CartTicket {
   name: string
   quantity: number
   priceEach: number
-  /** Pre-formatted reserved-seat allocation for this line — a single seat or a
-   * range, e.g. "B12" or "Stalls B11–12". The consumer formats it from its own
-   * seat data (section / row / seat number); the drawer just displays it.
-   * Omitted for general-admission tickets. */
-  seats?: string
+  /** Reserved seats for this line. Omitted for general-admission tickets. */
+  seats?: CartSeat[]
 }
 
 export interface CartEvent {

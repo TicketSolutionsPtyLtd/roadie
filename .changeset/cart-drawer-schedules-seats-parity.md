@@ -10,8 +10,11 @@ Vue skin is brought to parity with React.
   range (`6:30pm – Sun 4 Oct, 9pm`) via the new shared
   `formatEventSchedule` / `formatDayShort` core helpers. Existing data without
   end fields is unchanged (start time only).
-- **Reserved seats:** `CartTicket` gains an optional `seat` allocation, shown
-  as a seat-icon badge beside the ticket name.
+- **Reserved seats:** `CartTicket.seats` takes **structured** `CartSeat[]`
+  (section / row / seat). The new shared `formatSeatRange` core helper groups by
+  section + row and collapses consecutive seats into a range (e.g.
+  `Stalls B11–12`, `Mezzanine M3 · Circle C5`), so every skin and consumer
+  renders seating identically. Shown as a seat-icon badge beside the ticket name.
 - **Same-day events** are separated by a hairline divider; event and day-group
   removals animate height + opacity, and the header urgency badge splits into a
   ticket-count badge and a separate countdown badge that animates in/out and
