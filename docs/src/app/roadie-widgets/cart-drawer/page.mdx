@@ -1,0 +1,348 @@
+export const metadata = {
+  title: 'CartDrawer',
+  description:
+    'A docked, expandable cart for collection and event pages — fetches its own summary and details, with React and Vue skins over a shared core.',
+  status: 'beta'
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# CartDrawer
+
+A docked, expandable cart for collection and event pages — matching React and
+Vue skins over one shared core.
+
+- Fetches its own summary and details, then groups items by event
+- Locale-aware currency and dates, with a live urgency countdown
+- Self-contained focus trap, body scroll lock, and motion
+
+## Live demo
+
+The drawer is `position: fixed` over the whole page, so only the controls sit in
+the example below — **Show cart** docks the summary bar, **Expand cart** opens the
+full cart. It runs on a canned cart (no network), so emptying and reopening
+starts fresh.
+
+```tsx-live-noinline
+// A fresh cart + query client per "Show" so removing every item never strands
+// the demo. Kept in state together so the Add button can reach the cart.
+function makeDemoBundle() {
+  return { cart: createDemoCart(), client: new QueryClient() }
+}
+
+function CartDrawerDemo() {
+  const [shown, setShown] = useState(false)
+  const [open, setOpen] = useState(false)
+  const [context, setContext] = useState('collection')
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [bundle, setBundle] = useState(makeDemoBundle)
+
+  function show() {
+    setBundle(makeDemoBundle()) // fresh, full cart
+    setRefreshKey(0)
+    setShown(true)
+  }
+  function hide() {
+    setShown(false)
+    setOpen(false)
+  }
+  function addToCart() {
+    bundle.cart.addEvent() // demo-only helper: adds an event (re-adds combine)
+    setRefreshKey((k) => k + 1) // tell the drawer to refetch summary + details
+  }
+  function adjustTimer(deltaMinutes) {
+    bundle.cart.adjustExpiry(deltaMinutes) // shift the urgency countdown
+    setRefreshKey((k) => k + 1)
+  }
+
+  // The drawer is uncontrolled — toggled by its own handle. Expand triggers that
+  // handle so it animates instead of remounting; the same query also lets us
+  // notice when an emptied cart removes itself (the drawer renders null) and
+  // reset the button. Apps just let users tap the docked bar.
+  function toggleExpand() {
+    document.querySelector('button[aria-controls="cart-drawer-body"]')?.click()
+  }
+  function handleOpenChange(isOpen) {
+    setOpen(isOpen)
+    if (!isOpen) {
+      window.setTimeout(() => {
+        const handle = document.querySelector(
+          'button[aria-controls="cart-drawer-body"]'
+        )
+        if (!handle) hide()
+      }, 400)
+    }
+  }
+
+  return (
+    <div className='grid gap-3'>
+      <div className='grid gap-1.5'>
+        <p className='text-sm font-medium text-strong'>Cart context</p>
+        <RadioGroup value={context} onValueChange={setContext}>
+          <RadioGroup.Item value='collection' label='Collection' />
+          <RadioGroup.Item value='event' label='Event' />
+        </RadioGroup>
+      </div>
+      <div className='flex flex-wrap gap-2'>
+        <Button
+          intent='accent'
+          emphasis='strong'
+          onClick={() => (shown ? hide() : show())}
+        >
+          {shown ? 'Hide cart' : 'Show cart'}
+        </Button>
+        <Button disabled={!shown} onClick={toggleExpand}>
+          {open ? 'Collapse cart' : 'Expand cart'}
+        </Button>
+        <Button disabled={!shown} onClick={addToCart}>
+          Add to cart
+        </Button>
+        <Button disabled={!shown} onClick={() => adjustTimer(-1)}>
+          −1 min
+        </Button>
+        <Button disabled={!shown} onClick={() => adjustTimer(1)}>
+          +1 min
+        </Button>
+      </div>
+      {shown && (
+        <QueryClientProvider client={bundle.client}>
+          <CartDrawer
+            cart={bundle.cart}
+            collectionId='demo-collection'
+            onNavigate={(href) => window.alert('Navigate to: ' + href)}
+            locale='en-AU'
+            currency='AUD'
+            context={context}
+            refreshKey={refreshKey}
+            initialState='closed'
+            onOpenChange={handleOpenChange}
+          />
+        </QueryClientProvider>
+      )}
+    </div>
+  )
+}
+
+render(<CartDrawerDemo />)
+```
+
+In production you render `CartDrawer` once on the page — no buttons — and let
+users tap or drag the docked bar to expand it. `createDemoCart` is a docs-only
+stub; real apps pass a [cart client](#the-cart-client).
+
+## Installation
+
+```bash
+pnpm add @oztix/roadie-widgets
+```
+
+Install the peer dependencies for the skin you use.
+
+**React**
+
+```bash
+pnpm add react react-dom @oztix/roadie-components @tanstack/react-query motion \
+  @number-flow/react @phosphor-icons/react react-focus-lock
+```
+
+**Vue**
+
+```bash
+pnpm add vue @number-flow/vue @phosphor-icons/vue focus-trap
+```
+
+## Import
+
+```tsx
+// React
+import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
+```
+
+```ts
+// Vue
+import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/vue'
+```
+
+The framework-agnostic core is imported separately:
+
+```ts
+import { createCartClient } from '@oztix/roadie-widgets/cart-drawer/core'
+```
+
+## The cart client
+
+The drawer never talks to the network directly — you inject a `CartClient`. Use
+`createCartClient` to build one from a host plus an optional `fetch`
+implementation. It owns the cart endpoints and sends `credentials: 'include'`.
+
+```ts
+import { createCartClient } from '@oztix/roadie-widgets/cart-drawer/core'
+
+const cart = createCartClient({
+  host: '', // empty string for same-origin
+  // fetch, // optional — defaults to globalThis.fetch
+})
+```
+
+A `CartClient` exposes four methods, so you can supply your own if you need a
+custom transport:
+
+```ts
+interface CartClient {
+  getSummary(collectionId: string): Promise<CartSummary | null>
+  getDetails(collectionId: string): Promise<CartDetails | null>
+  checkoutUrl(details: Pick<CartDetails, 'extrasUrl'>): string | null
+  removeItem(cartId: string, eventId: string): Promise<void>
+}
+```
+
+## Event schedules
+
+Each `CartEvent` formats its own time row from structured fields — supply UTC
+timestamps and venue-local day keys, and the shared core renders the rest the
+same way in every skin and consumer.
+
+| Fields supplied                         | Time row                  |
+| --------------------------------------- | ------------------------- |
+| `eventStartAtUtc`                       | `7pm`                     |
+| `+ eventEndAtUtc` (same day)            | `7pm – 11pm`              |
+| `+ eventEndDateKey` (different day)     | `6:30pm – Sun 4 Oct, 9pm` |
+
+Pass `eventDateDisplay` to override the computed schedule with a pre-formatted
+string (an escape hatch — prefer the structured fields).
+
+## Reserved seating
+
+Ticket lines carry their seats as **structured data**. The drawer groups them
+by section and row and collapses consecutive seats into a range via the shared
+`formatSeatRange` helper, so React, Vue, and every consumer render seating
+identically — no app-side formatting to drift.
+
+```ts
+interface CartSeat {
+  section?: string // "Stalls", "Mezzanine", "Booth"
+  row?: string // "B"
+  seat: string // "12"
+}
+
+// on a ticket line:
+{ name: 'Reserved Seat', quantity: 2, priceEach: 110, seats: [
+  { section: 'Stalls', row: 'B', seat: '11' },
+  { section: 'Stalls', row: 'B', seat: '12' },
+]}
+```
+
+| Seats                                | Badge                      |
+| ------------------------------------ | -------------------------- |
+| Stalls B11, B12                      | `Stalls B11–12`            |
+| Stalls B11, B12, B14                 | `Stalls B11–12, 14`        |
+| Booth 4 (no row)                     | `Booth 4`                  |
+| Mezzanine M3 + Circle C5             | `Mezzanine M3 · Circle C5` |
+
+Omit `seats` for general-admission tickets — the seat badge only renders when
+seats are present. Add an event in the [live demo](#live-demo) to see the
+reserved-seating examples (Harbourside Jazz, Festival of Lights).
+
+## Usage
+
+### React
+
+The React skin uses `@tanstack/react-query` internally, so mount it under a
+`QueryClientProvider`. Routing is yours to own — `onNavigate` is required.
+
+```tsx
+'use client'
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
+
+import { createCartClient } from '@oztix/roadie-widgets/cart-drawer/core'
+import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
+
+const queryClient = new QueryClient()
+const cart = createCartClient({ host: '' })
+
+export function CollectionCart({ collectionId }: { collectionId: string }) {
+  const router = useRouter()
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <CartDrawer
+        cart={cart}
+        collectionId={collectionId}
+        onNavigate={(href) => router.push(href)}
+        locale='en-AU'
+        currency='AUD'
+      />
+    </QueryClientProvider>
+  )
+}
+```
+
+### Vue
+
+```vue
+<script setup lang="ts">
+import { createCartClient } from '@oztix/roadie-widgets/cart-drawer/core'
+import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/vue'
+
+const cart = createCartClient({ host: '' })
+
+function onNavigate(href: string): void {
+  // routing is the consumer's job — no silent no-op fallback
+  window.location.assign(href)
+}
+</script>
+
+<template>
+  <CartDrawer
+    :cart="cart"
+    collection-id="abc123"
+    :on-navigate="onNavigate"
+    locale="en-AU"
+    currency="AUD"
+  />
+</template>
+```
+
+The Vue skin also exports `useRoadieTheme` to mirror the host app's light/dark
+mode onto the drawer (which renders to `<body>`).
+
+## Mount context
+
+`context` decides what the open-state secondary button ("Browse events") does:
+
+- `'collection'` _(default)_ — the collection page is already behind the drawer,
+  so the button just closes it.
+- `'event'` — navigates to the collection page to browse more events.
+
+The browse target is always built **inside the package** from the
+server-trusted `collectionId` and routed through `onNavigate`. Consumers never
+supply the browse URL, which removes the open-redirect surface. Pass
+`browseHref` only to override the default collection-cart route; unsafe values
+fall back to the safe default.
+
+## Forcing a refetch
+
+The drawer caches its summary and details. Bump `refreshKey` after a mutation
+elsewhere in the app (for example, adding tickets on the event page) to force a
+fresh fetch.
+
+## Expiry
+
+The drawer runs an urgency countdown and fires `onExpire` when it hits zero. For
+the full expiry-modal experience, the package also exports `CartExpiryModals`
+and the `useCartExpiry` hook/composable from each skin.
+
+## Accessibility
+
+- **Focus is trapped** while the drawer is open — React via `react-focus-lock`,
+  Vue via `focus-trap` — and returns to the trigger on close.
+- **Body scroll is locked** by default while open (`lockBodyScroll`).
+- **Escape** closes the drawer.
+- Motion **respects `prefers-reduced-motion`**: the open/close and drag
+  animations are reduced when the user has requested it.
+
+The Vue skin accepts the same props as the React skin documented below.
+
+<PropsDefinitions componentPath='packages/widgets/src/cart-drawer/react/CartDrawer.tsx' />

@@ -27,6 +27,7 @@ async function getNavigationItems() {
   const foundationsDir = join(process.cwd(), 'src/app/foundations')
   const overviewDir = join(process.cwd(), 'src/app/overview')
   const tokensDir = join(process.cwd(), 'src/app/tokens')
+  const widgetsDir = join(process.cwd(), 'src/app/roadie-widgets')
 
   async function getMetadataFromFile(
     filePath: string,
@@ -299,6 +300,48 @@ async function getNavigationItems() {
       title: 'Components',
       href: '/components',
       items: componentItems
+    })
+  }
+
+  let widgetPages: { title: string; href: string }[] = []
+  try {
+    const widgetEntries = await readdir(widgetsDir, { withFileTypes: true })
+    widgetPages = (
+      await Promise.all(
+        widgetEntries
+          .filter((entry) => entry.isDirectory())
+          .map(async (dir) => {
+            const metadata = await getMetadataFromFile(
+              join(widgetsDir, dir.name, 'page.mdx'),
+              dir.name
+            )
+            if (!metadata) return null
+            return {
+              title: metadata.title,
+              href: `/roadie-widgets/${dir.name}`
+            }
+          })
+      )
+    ).filter((page): page is { title: string; href: string } => page !== null)
+  } catch {
+    // No widgets directory yet
+  }
+
+  if (widgetPages.length > 0) {
+    const widgetsOverview = await getMetadataFromFile(
+      join(widgetsDir, 'page.mdx'),
+      'Overview'
+    )
+    navigationItems.push({
+      title: 'Widgets',
+      href: '/roadie-widgets',
+      items: [
+        {
+          title: widgetsOverview?.title || 'Overview',
+          href: '/roadie-widgets'
+        },
+        ...widgetPages.sort((a, b) => a.title.localeCompare(b.title))
+      ]
     })
   }
 

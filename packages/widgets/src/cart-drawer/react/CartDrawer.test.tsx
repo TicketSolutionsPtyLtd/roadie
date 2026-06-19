@@ -436,7 +436,7 @@ describe('CartDrawer', () => {
     )
     expect(
       await screen.findByText(
-        'Includes booking fees. Delivery and refund protection calculated at checkout'
+        'Includes booking fees. Delivery and refund protection calculated at checkout.'
       )
     ).toBeInTheDocument()
   })

@@ -1,7 +1,19 @@
+/** One reserved seat. `formatSeatRange` turns a list into a display range. */
+export interface CartSeat {
+  /** e.g. "Stalls", "Mezzanine", "Booth". */
+  section?: string
+  /** Row label, e.g. "B". */
+  row?: string
+  /** Seat label/number, e.g. "12". */
+  seat: string
+}
+
 export interface CartTicket {
   name: string
   quantity: number
   priceEach: number
+  /** Reserved seats for this line. Omitted for general-admission tickets. */
+  seats?: CartSeat[]
 }
 
 export interface CartEvent {
@@ -9,11 +21,17 @@ export interface CartEvent {
   eventName: string
   venueName: string
   imageUrl?: string
-  /** ISO 8601 UTC — used for ORDERING only. */
+  /** ISO 8601 UTC start. Drives ordering and, via `formatEventSchedule`, the
+   * displayed start time when `eventDateDisplay` isn't supplied. */
   eventStartAtUtc: string
+  /** ISO 8601 UTC finish time. Drives a finish time / multi-day end. */
+  eventEndAtUtc?: string
   /** Venue-local YYYY-MM-DD — used for DAY GROUPING (design finding #2). */
   eventDateKey: string
-  /** Optional pre-formatted display string. */
+  /** Venue-local YYYY-MM-DD of the finish. When it differs from `eventDateKey`
+   * the event is multi-day and the end date is shown. */
+  eventEndDateKey?: string
+  /** Optional pre-formatted display string — overrides the computed schedule. */
   eventDateDisplay?: string
   tickets: CartTicket[]
   subtotal: number

@@ -38,11 +38,15 @@ import {
   XCircleIcon,
   XIcon
 } from '@phosphor-icons/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Highlight, themes } from 'prism-react-renderer'
 import { LiveEditor, LiveError, LivePreview, LiveProvider } from 'react-live'
 
 import * as RoadieComponents from '@oztix/roadie-components'
 import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
+import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
+
+import { createDemoCart } from './cartDrawerDemo'
 
 // Bare-name keys so MDX live examples can use `<CheckCircle />` etc.
 const PhosphorIcons = {
@@ -90,6 +94,11 @@ const scope = {
   ...SpotIllustrations,
   ...PhosphorIcons,
   ...PhosphorIconsSuffixed,
+  // Widgets + the helpers their live demos need.
+  CartDrawer,
+  QueryClient,
+  QueryClientProvider,
+  createDemoCart,
   Link,
   useState,
   useEffect
@@ -290,7 +299,10 @@ export function CodePreview({
         language={language.replace(/-live(-bleed-x)?(-noinline)?/, '')}
       >
         <LivePreview
-          className={`min-w-0 overflow-x-auto bg-normal font-sans ${isBleedX ? 'py-4 sm:py-6' : 'px-4 py-4 sm:px-6 sm:py-6'}`}
+          // whitespace-normal resets the `white-space: pre` inherited from the
+          // MDX code-fence <pre> wrapper, so rendered examples wrap text like a
+          // real app instead of forcing single-line width.
+          className={`min-w-0 overflow-x-auto bg-normal font-sans whitespace-normal ${isBleedX ? 'py-4 sm:py-6' : 'px-4 py-4 sm:px-6 sm:py-6'}`}
         />
         <LiveError className='bg-subtler px-4 py-3 text-sm text-subtle intent-danger' />
         <div className='relative min-w-0' style={collapseStyle}>

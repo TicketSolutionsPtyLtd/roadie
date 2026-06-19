@@ -59,6 +59,27 @@ function money(amount: number): string {
 function onCheckout() {
   if (props.checkoutUrl) props.onNavigate(props.checkoutUrl)
 }
+
+// Collapse height + fade on removal, mirroring the React skin's AnimatePresence
+// exit. Web Animations API isn't in jsdom, so fall back to an instant leave.
+function onLeave(el: Element, done: () => void) {
+  const node = el as HTMLElement
+  if (typeof node.animate !== 'function') {
+    done()
+    return
+  }
+  const height = node.offsetHeight
+  node.style.overflow = 'hidden'
+  const anim = node.animate(
+    [
+      { height: `${height}px`, opacity: 1 },
+      { height: '0px', opacity: 0 }
+    ],
+    { duration: 250, easing: 'ease-in-out' }
+  )
+  anim.onfinish = () => done()
+  anim.oncancel = () => done()
+}
 </script>
 
 <template>
@@ -68,31 +89,53 @@ function onCheckout() {
     :on-navigate="onNavigate"
   />
   <div v-else class="grid gap-5">
-    <section v-for="group in dayGroups" :key="group.key" class="grid gap-4">
-      <div class="sticky top-0 z-sticky -mx-4 emphasis-strong px-4 py-2.5">
-        <div class="flex items-center gap-2">
-          <PhCalendarBlank
-            weight="bold"
-            class="size-4 shrink-0 text-subtle"
-            aria-hidden="true"
-          />
-          <p class="text-ui-meta font-bold" data-testid="cart-group-title">
-            {{ dayHeader(group.key) }}
-          </p>
+    <TransitionGroup tag="div" class="grid gap-5" :css="false" @leave="onLeave">
+      <section
+        v-for="group in dayGroups"
+        :key="group.key"
+        class="-mx-4 grid gap-4"
+      >
+        <div class="sticky top-0 z-sticky emphasis-strong px-4 py-2.5">
+          <div class="flex items-center gap-2">
+            <PhCalendarBlank
+              weight="bold"
+              class="size-4 shrink-0"
+              aria-hidden="true"
+            />
+            <p class="text-ui-meta font-bold" data-testid="cart-group-title">
+              {{ dayHeader(group.key) }}
+            </p>
+          </div>
         </div>
-      </div>
-      <div class="grid gap-4">
-        <CartEventGroup
-          v-for="event in group.events"
-          :key="event.eventId"
-          :event="event"
-          :locale="locale"
-          :currency="currency"
-          :busy="busy"
-          @remove-event="emit('removeEvent', $event)"
-        />
-      </div>
-    </section>
+        <TransitionGroup
+          tag="div"
+          class="grid gap-4 px-4"
+          :css="false"
+          @leave="onLeave"
+        >
+          <div
+            v-for="(event, index) in group.events"
+            :key="event.eventId"
+            class="grid gap-4"
+          >
+            <div v-if="index > 0" class="pl-6">
+              <div
+                role="separator"
+                aria-orientation="horizontal"
+                class="h-px w-full border-t border-solid border-subtle"
+              />
+            </div>
+            <CartEventGroup
+              :event="event"
+              :locale="locale"
+              :currency="currency"
+              :busy="busy"
+              @remove-event="emit('removeEvent', $event)"
+            />
+          </div>
+        </TransitionGroup>
+      </section>
+    </TransitionGroup>
 
     <div v-if="!hideFooter" class="grid gap-4 border-t border-subtle pt-4">
       <div class="flex items-center justify-between gap-4">
@@ -106,7 +149,7 @@ function onCheckout() {
           totalBookingFees > 0
             ? `Incl. ${money(totalBookingFees)} booking fees. `
             : 'Includes booking fees. '
-        }}Delivery and refund protection calculated at checkout
+        }}Delivery and refund protection calculated at checkout.
       </p>
       <button
         type="button"

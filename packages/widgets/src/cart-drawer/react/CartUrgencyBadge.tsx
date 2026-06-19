@@ -3,6 +3,8 @@
 import { type CSSProperties, useEffect, useRef, useState } from 'react'
 
 import NumberFlow from '@number-flow/react'
+import { TicketIcon } from '@phosphor-icons/react'
+import { AnimatePresence, m } from 'motion/react'
 
 import { Badge } from '@oztix/roadie-components'
 import { cn } from '@oztix/roadie-core/utils'
@@ -59,51 +61,70 @@ export function CartUrgencyBadge({
   const tailMaxWidth = Math.max(0, Math.min(1, progress)) * 200
   const tailOpacity = Math.max(0, Math.min(1, progress))
 
-  const showCountdown = remaining !== null && remaining > 0
+  const showCountdown = ticketCount > 0 && remaining !== null && remaining > 0
 
   return (
-    <Badge
-      intent={intent}
-      emphasis='subtle'
-      size='sm'
-      indicator={showCountdown}
-      indicatorPulse={showCountdown}
-      className={cn('gap-2 px-3 py-1', bounce && 'animate-pop', className)}
-      style={style}
-    >
+    <div className='flex items-center' style={style}>
       <span className='sr-only' aria-live='polite' aria-atomic='true'>
         {announcement}
       </span>
-      <NumberFlow value={ticketCount} className='tabular-nums' />{' '}
-      {ticketCount === 1 ? 'ticket' : 'tickets'}
-      {showCountdown && remaining !== null && (
-        <>
-          {remaining > URGENCY_LONG_FORMAT_S ? (
-            <span className='tabular-nums'>
-              <NumberFlow value={Math.ceil(remaining / 60)} suffix=' mins' />
-            </span>
-          ) : (
-            <span className='tabular-nums'>
-              <NumberFlow value={Math.floor(remaining / 60)} />
-              :
-              <NumberFlow
-                value={remaining % 60}
-                format={{ minimumIntegerDigits: 2 }}
-              />
-            </span>
-          )}
-          <span
-            className='overflow-hidden whitespace-nowrap'
-            style={{
-              maxWidth: tailMaxWidth,
-              opacity: tailOpacity,
-              transition: 'max-width 300ms ease-out, opacity 300ms ease-out'
-            }}
+      <Badge size='sm' className={cn(bounce && 'animate-pop', className)}>
+        <TicketIcon weight='bold' />
+        <span className='tabular-nums'>
+          <NumberFlow value={ticketCount} />
+        </span>
+      </Badge>
+      {/* marginLeft holds the gap so width + gap collapse together on clear. */}
+      <AnimatePresence initial={false}>
+        {showCountdown && remaining !== null && (
+          <m.div
+            key='time'
+            initial={{ opacity: 0, width: 0, marginLeft: 0 }}
+            animate={{ opacity: 1, width: 'auto', marginLeft: 6 }}
+            exit={{ opacity: 0, width: 0, marginLeft: 0 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            className='overflow-hidden'
           >
-            remaining to checkout
-          </span>
-        </>
-      )}
-    </Badge>
+            <Badge
+              intent={intent}
+              size='sm'
+              indicator
+              indicatorPulse
+              className={className}
+            >
+              {remaining > URGENCY_LONG_FORMAT_S ? (
+                <span className='tabular-nums'>
+                  <NumberFlow
+                    value={Math.ceil(remaining / 60)}
+                    suffix=' mins'
+                  />
+                </span>
+              ) : (
+                <span className='flex items-baseline gap-1 tabular-nums'>
+                  <span>
+                    <NumberFlow value={Math.floor(remaining / 60)} />:
+                    <NumberFlow
+                      value={remaining % 60}
+                      format={{ minimumIntegerDigits: 2 }}
+                    />
+                  </span>
+                  <span
+                    className='overflow-hidden whitespace-nowrap'
+                    style={{
+                      maxWidth: tailMaxWidth,
+                      opacity: tailOpacity,
+                      transition:
+                        'max-width 300ms ease-out, opacity 300ms ease-out'
+                    }}
+                  >
+                    remaining to checkout
+                  </span>
+                </span>
+              )}
+            </Badge>
+          </m.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }

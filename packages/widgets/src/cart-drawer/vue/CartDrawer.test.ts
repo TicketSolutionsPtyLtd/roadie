@@ -392,7 +392,7 @@ describe('CartDrawer (Vue)', () => {
         .querySelector('[data-testid="cart-footer-fees"]')
         ?.textContent?.trim()
     ).toBe(
-      'Incl. $5.00 booking fees. Delivery and refund protection calculated at checkout'
+      'Incl. $5.00 booking fees. Delivery and refund protection calculated at checkout.'
     )
   })
 
@@ -426,7 +426,7 @@ describe('CartDrawer (Vue)', () => {
         .querySelector('[data-testid="cart-footer-fees"]')
         ?.textContent?.trim()
     ).toBe(
-      'Includes booking fees. Delivery and refund protection calculated at checkout'
+      'Includes booking fees. Delivery and refund protection calculated at checkout.'
     )
   })
 

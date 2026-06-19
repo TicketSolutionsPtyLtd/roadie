@@ -4,7 +4,7 @@ import path from 'path'
 import type { PropItem } from 'react-docgen-typescript'
 import { withCustomConfig } from 'react-docgen-typescript'
 
-import { Code } from '@oztix/roadie-components'
+import { Badge, Code } from '@oztix/roadie-components'
 
 // Compounds that wrap a Base UI primitive, plus the exact set of parts
 // Base UI actually documents for each. Only parts present in the map
@@ -150,6 +150,8 @@ interface ComponentProp {
   description?: string
   parent?: { fileName: string; name: string }
   declarations?: Array<{ fileName: string }>
+  /** Parsed JSDoc tags (e.g. `@deprecated`, `@default`) keyed by tag name. */
+  tags?: Record<string, string>
 }
 
 interface GroupedProps {
@@ -210,6 +212,38 @@ function groupPropsBySource(
   return result
 }
 
+// react-docgen-typescript (2.x) doesn't split JSDoc block tags into `tags`, so
+// `@deprecated` arrives inline at the top of the description. Pull the reason
+// out (it runs to the first blank line) and return the description with the
+// deprecation notice removed so the body stays clean. Falls back to the `tags`
+// map in case a future parser version populates it.
+function parseDeprecation(prop: ComponentProp): {
+  isDeprecated: boolean
+  reason: string
+  description: string
+} {
+  const description = prop.description ?? ''
+  const tagReason =
+    prop.tags && 'deprecated' in prop.tags ? prop.tags.deprecated : undefined
+  const idx = description.indexOf('@deprecated')
+
+  if (idx === -1) {
+    return {
+      isDeprecated: tagReason !== undefined,
+      reason: tagReason ?? '',
+      description
+    }
+  }
+
+  const after = description.slice(idx + '@deprecated'.length)
+  const sep = after.indexOf('\n\n')
+  const reason = (sep === -1 ? after : after.slice(0, sep)).trim()
+  const rest = (
+    description.slice(0, idx) + (sep === -1 ? '' : after.slice(sep))
+  ).trim()
+  return { isDeprecated: true, reason, description: rest }
+}
+
 function PropsList({
   props,
   title
@@ -224,33 +258,48 @@ function PropsList({
           <p className='text-base font-bold text-subtle'>{title}</p>
         </div>
       )}
-      {Object.entries(props).map(([name, prop]) => (
-        <div key={name} className='grid gap-1 px-4 py-3'>
-          <dt className='flex items-baseline gap-1'>
-            <div className='flex flex-col items-baseline gap-1 md:flex-row'>
-              <span className='shrink-0 font-mono text-sm font-semibold'>
-                {name}
-                {!prop.required && <span className='text-subtle'>?</span>}
-              </span>
-              <span className='font-mono text-sm text-info-11'>
-                {formatTypeValues(prop)}
-              </span>
-            </div>
-          </dt>
-          <dd>
-            <div className='grid gap-2'>
-              {prop.description && (
-                <p className='text-subtle'>{prop.description}</p>
+      {Object.entries(props).map(([name, prop]) => {
+        const { isDeprecated, reason, description } = parseDeprecation(prop)
+        return (
+          <div key={name} className='grid gap-1 px-4 py-3'>
+            <dt className='flex flex-wrap items-center gap-x-2 gap-y-1'>
+              <div className='flex flex-col items-baseline gap-1 md:flex-row md:gap-2'>
+                <span className='shrink-0 font-mono text-sm font-semibold'>
+                  {name}
+                </span>
+                <span className='font-mono text-sm text-info-11'>
+                  {formatTypeValues(prop)}
+                </span>
+              </div>
+              {prop.required && (
+                <Badge intent='danger' size='sm'>
+                  Required
+                </Badge>
               )}
-              {prop.defaultValue && (
-                <p className='text-sm text-subtle'>
-                  Defaults to <Code>{prop.defaultValue.value}</Code>.
-                </p>
+              {isDeprecated && (
+                <Badge intent='warning' emphasis='subtle' size='sm'>
+                  Deprecated
+                </Badge>
               )}
-            </div>
-          </dd>
-        </div>
-      ))}
+            </dt>
+            <dd>
+              <div className='grid gap-2'>
+                {description && <p className='text-subtle'>{description}</p>}
+                {isDeprecated && reason && (
+                  <p className='text-sm text-subtle intent-warning'>
+                    <span className='font-semibold'>Deprecated:</span> {reason}
+                  </p>
+                )}
+                {prop.defaultValue && (
+                  <p className='text-sm text-subtle'>
+                    Defaults to <Code>{prop.defaultValue.value}</Code>.
+                  </p>
+                )}
+              </div>
+            </dd>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -377,16 +426,18 @@ function parseComponentProps(componentPath: string) {
             return true
           }
 
-          // Include props declared in our component files
+          // Include props declared in our component or widget files
           const isFromOurComponents = prop.declarations.some(
             (d) =>
-              d.fileName.includes('/components/') &&
+              (d.fileName.includes('/components/') ||
+                d.fileName.includes('/widgets/')) &&
               !d.fileName.includes('node_modules')
           )
 
           // Include props whose parent interface is in our code
           const isFromParentComponent =
-            prop.parent?.fileName.includes('/components/') &&
+            (prop.parent?.fileName.includes('/components/') ||
+              prop.parent?.fileName.includes('/widgets/')) &&
             !prop.parent.fileName.includes('node_modules')
 
           // Include props from Base UI component interfaces

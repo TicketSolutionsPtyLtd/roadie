@@ -48,13 +48,13 @@ const feesLabel = computed(() =>
     ? `Incl. ${formatCurrency(props.bookingFees, {
         locale: props.locale,
         currency: props.currency
-      })} booking fees. Delivery and refund protection calculated at checkout`
-    : 'Includes booking fees. Delivery and refund protection calculated at checkout'
+      })} booking fees. Delivery and refund protection calculated at checkout.`
+    : 'Includes booking fees. Delivery and refund protection calculated at checkout.'
 )
 
 const subtotalMaxHeight = computed(() => props.progress * 50)
 const subtotalOpacity = computed(() => props.progress)
-const feesMaxHeight = computed(() => props.progress * 40)
+const feesMaxHeight = computed(() => props.progress * 64)
 const feesOpacity = computed(() =>
   Math.max(0, Math.min(1, (props.progress - 0.5) / 0.5))
 )
@@ -78,7 +78,7 @@ function onPointerDown(e: PointerEvent) {
     :style="{ boxShadow: footerShadow }"
     @pointerdown="onPointerDown"
   >
-    <div class="px-4 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+    <div class="px-4 pt-1 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
       <div
         class="overflow-hidden"
         :style="{
@@ -86,19 +86,20 @@ function onPointerDown(e: PointerEvent) {
           opacity: subtotalOpacity
         }"
       >
-        <div class="flex items-center justify-between gap-4 pb-2">
+        <div class="flex items-center justify-between gap-4 pt-3 pb-1">
           <span class="text-ui font-bold text-strong">Subtotal</span>
           <span class="text-ui font-bold text-strong">{{ subtotalLabel }}</span>
         </div>
       </div>
 
-      <p
-        class="overflow-hidden pb-2 text-ui-meta text-subtle"
-        data-testid="cart-footer-fees"
+      <div
+        class="overflow-hidden"
         :style="{ maxHeight: `${feesMaxHeight}px`, opacity: feesOpacity }"
       >
-        {{ feesLabel }}
-      </p>
+        <p class="pb-4 text-ui-meta text-subtle" data-testid="cart-footer-fees">
+          {{ feesLabel }}
+        </p>
+      </div>
 
       <div class="flex gap-3" @pointerdown.stop>
         <button

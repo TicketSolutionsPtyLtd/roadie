@@ -4,6 +4,9 @@ import {
   currencyPrefix,
   formatCurrency,
   formatDayHeader,
+  formatDayShort,
+  formatEventSchedule,
+  formatSeatRange,
   formatTime
 } from './format'
 
@@ -75,5 +78,139 @@ describe('formatDayHeader', () => {
       expect(out).toContain('15')
       expect(out).not.toContain('14')
     })
+  })
+})
+
+describe('formatDayShort', () => {
+  it('formats a key as a year-less short day', () => {
+    const out = formatDayShort('2026-10-04', { locale: 'en-AU' })
+    expect(out).toContain('4')
+    expect(out).toContain('Oct')
+    expect(out).not.toContain('2026')
+  })
+  it('returns the raw key when malformed', () => {
+    expect(formatDayShort('nope', { locale: 'en-AU' })).toBe('nope')
+  })
+})
+
+describe('formatEventSchedule', () => {
+  const opts = { locale: 'en-AU' }
+  // Local-naive ISO (no Z) so the local-time formatter is TZ-independent.
+
+  it('shows only the start time when there is no finish', () => {
+    expect(
+      formatEventSchedule(
+        { eventStartAtUtc: '2026-10-03T19:00:00', eventDateKey: '2026-10-03' },
+        opts
+      )
+    ).toBe('7pm')
+  })
+
+  it('shows start – finish for a same-day finish time', () => {
+    expect(
+      formatEventSchedule(
+        {
+          eventStartAtUtc: '2026-10-03T19:00:00',
+          eventEndAtUtc: '2026-10-03T23:00:00',
+          eventDateKey: '2026-10-03'
+        },
+        opts
+      )
+    ).toBe('7pm – 11pm')
+  })
+
+  it('adds the end date for a multi-day run', () => {
+    const out = formatEventSchedule(
+      {
+        eventStartAtUtc: '2026-10-03T18:30:00',
+        eventEndAtUtc: '2026-10-04T21:00:00',
+        eventDateKey: '2026-10-03',
+        eventEndDateKey: '2026-10-04'
+      },
+      opts
+    )
+    expect(out).toMatch(/^6:30pm – /)
+    expect(out).toContain('Oct')
+    expect(out).toContain('4')
+    expect(out).toMatch(/9pm$/)
+  })
+
+  it('returns null when the start is unparseable', () => {
+    expect(
+      formatEventSchedule(
+        { eventStartAtUtc: 'not-a-date', eventDateKey: 'x' },
+        opts
+      )
+    ).toBeNull()
+  })
+})
+
+describe('formatSeatRange', () => {
+  it('returns null for no seats', () => {
+    expect(formatSeatRange(undefined)).toBeNull()
+    expect(formatSeatRange([])).toBeNull()
+  })
+
+  it('collapses a consecutive run within a row', () => {
+    expect(
+      formatSeatRange([
+        { section: 'Stalls', row: 'B', seat: '11' },
+        { section: 'Stalls', row: 'B', seat: '12' }
+      ])
+    ).toBe('Stalls B11–12')
+  })
+
+  it('handles a section without a row', () => {
+    expect(formatSeatRange([{ section: 'Booth', seat: '4' }])).toBe('Booth 4')
+  })
+
+  it('keeps gaps as a comma list and runs as a range', () => {
+    expect(
+      formatSeatRange([
+        { row: 'B', seat: '11' },
+        { row: 'B', seat: '12' },
+        { row: 'B', seat: '15' }
+      ])
+    ).toBe('B11–12, 15')
+  })
+
+  it('joins separate section/row groups with a middle dot', () => {
+    expect(
+      formatSeatRange([
+        { section: 'Stalls', row: 'B', seat: '11' },
+        { section: 'Stalls', row: 'B', seat: '12' },
+        { section: 'Mezzanine', row: 'M', seat: '3' }
+      ])
+    ).toBe('Stalls B11–12 · Mezzanine M3')
+  })
+
+  it('sorts unordered numeric seats before collapsing', () => {
+    expect(
+      formatSeatRange([
+        { row: 'A', seat: '3' },
+        { row: 'A', seat: '1' },
+        { row: 'A', seat: '2' }
+      ])
+    ).toBe('A1–3')
+  })
+
+  it('falls back to a comma list for non-integer labels', () => {
+    expect(
+      formatSeatRange([
+        { section: 'GA', seat: '11A' },
+        { section: 'GA', seat: '11B' }
+      ])
+    ).toBe('GA 11A, 11B')
+  })
+
+  it('de-dupes identical seats from a merged reservation', () => {
+    expect(
+      formatSeatRange([
+        { section: 'Stalls', row: 'B', seat: '11' },
+        { section: 'Stalls', row: 'B', seat: '12' },
+        { section: 'Stalls', row: 'B', seat: '11' },
+        { section: 'Stalls', row: 'B', seat: '12' }
+      ])
+    ).toBe('Stalls B11–12')
   })
 })

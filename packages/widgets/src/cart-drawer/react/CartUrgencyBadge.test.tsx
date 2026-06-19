@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { CartUrgencyBadge } from './CartUrgencyBadge'
@@ -28,15 +28,19 @@ describe('CartUrgencyBadge', () => {
     expect(container.querySelector('.intent-warning')).not.toBeNull()
   })
 
-  it('renders success intent when no expiry is set', () => {
+  it('shows only the ticket count badge when no expiry is set', () => {
     const { container } = render(
       <CartUrgencyBadge ticketCount={1} expiresAtUtc={undefined} />
     )
-    expect(container.querySelector('.intent-success')).not.toBeNull()
+    expect(container.querySelectorAll('[data-slot="badge"]')).toHaveLength(1)
   })
 
-  it('pluralises the ticket label', () => {
-    render(<CartUrgencyBadge ticketCount={1} expiresAtUtc={undefined} />)
-    expect(screen.getByText(/ticket/)).toBeInTheDocument()
+  it('renders the ticket count with a ticket icon', () => {
+    const { container } = render(
+      <CartUrgencyBadge ticketCount={3} expiresAtUtc={undefined} />
+    )
+    const badge = container.querySelector('[data-slot="badge"]')
+    expect(badge?.querySelector('svg')).not.toBeNull()
+    expect(badge?.textContent).toContain('3')
   })
 })

@@ -1,0 +1,55 @@
+export const metadata = {
+  title: 'Overview',
+  description:
+    'Framework-agnostic, fully-featured widgets that share one core and ship React and Vue skins.'
+}
+
+# Widgets
+
+Widgets are larger, behaviour-rich building blocks that sit a level above the
+[components](/components). Where a component is a single UI primitive, a widget
+bundles data fetching, state, motion, and accessibility into a complete feature
+you drop into an app.
+
+They live in the `@oztix/roadie-widgets` package and follow a **core + skins**
+architecture:
+
+- **Core** — framework-agnostic logic: types, the cart client, URL helpers,
+  totals, grouping, urgency, and formatting. No UI.
+- **React skin** — a `'use client'` React component built on
+  `@oztix/roadie-components`, `motion`, and `@tanstack/react-query`.
+- **Vue skin** — a Vue 3 SFC with the same props and behaviour, built on the
+  same core.
+
+Both skins are pixel- and behaviour-equivalent because they share the core. Pick
+the skin that matches your app — the props are the same.
+
+> **Use the React skin for new work.** The Vue skins exist solely for the
+> **TicketSolutions.OnlineOutlet** app. That app is being folded into
+> **TicketSolutions.Oztix.Website** — a React codebase — after which the Vue
+> skins will be retired. Import the `/vue` entry points only inside OnlineOutlet;
+> everywhere else, use the React skin.
+
+## Installation
+
+```bash
+pnpm add @oztix/roadie-widgets
+```
+
+Each skin declares its own peer dependencies (React + react-query + motion, or
+Vue + its NumberFlow/Phosphor packages) so you only install what your framework
+needs. See each widget's page for the exact list.
+
+## Available widgets
+
+- [**Cart drawer**](/roadie-widgets/cart-drawer) — the shared docked cart for
+  collection and event pages.
+
+More widgets will be added here as they graduate from app code into the shared
+package.
+
+## When to reach for a widget
+
+Use a widget when you need the **same complex feature in more than one app or
+framework** and want a single source of truth for its behaviour. If you only
+need a styled primitive, use a [component](/components) instead.

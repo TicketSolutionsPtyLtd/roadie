@@ -24,14 +24,16 @@ describe('CartUrgencyBadge', () => {
     expect(container.querySelector('[data-intent="warning"]')).not.toBeNull()
   })
 
-  it('pluralises the ticket label', () => {
-    const { getByText, rerender } = render(CartUrgencyBadge, {
-      props: { ticketCount: 1, expiresAtUtc: undefined }
+  it('shows only the count badge (icon + number) when no expiry is set', () => {
+    const { container } = render(CartUrgencyBadge, {
+      props: { ticketCount: 3, expiresAtUtc: undefined }
     })
-    expect(getByText('ticket')).toBeTruthy()
-    return rerender({ ticketCount: 3, expiresAtUtc: undefined }).then(() => {
-      expect(getByText('tickets')).toBeTruthy()
-    })
+    const count = container.querySelector('[data-testid="cart-badge-count"]')
+    expect(count).not.toBeNull()
+    expect(count?.querySelector('svg')).not.toBeNull()
+    expect(
+      container.querySelector('[data-testid="cart-badge-time"]')
+    ).toBeNull()
   })
 
   it('renders a countdown when time remains', () => {

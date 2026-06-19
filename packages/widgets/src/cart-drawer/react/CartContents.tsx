@@ -1,8 +1,9 @@
 'use client'
 
 import { CalendarBlankIcon } from '@phosphor-icons/react'
+import { AnimatePresence, m } from 'motion/react'
 
-import { Button } from '@oztix/roadie-components'
+import { Button, Separator } from '@oztix/roadie-components'
 import { cn } from '@oztix/roadie-core/utils'
 
 import {
@@ -64,34 +65,57 @@ export function CartContents({
 
   return (
     <div className={className ?? 'grid gap-5'}>
-      {dayGroups.map((group) => (
-        <section key={group.key} className='grid gap-4'>
-          <div className='sticky top-0 z-sticky -mx-4 emphasis-strong px-4 py-2.5'>
-            <div className='flex items-center gap-2'>
-              <CalendarBlankIcon
-                weight='bold'
-                className='size-4 shrink-0 text-subtle'
-              />
-              <p className='text-ui-meta font-bold'>
-                {formatDayHeader(group.key, { locale })}
-              </p>
+      {/* initial={false} → only removals animate, no unfurl on open. exit's
+         overflow is applied only on exit so the sticky header isn't trapped
+         in a scroll container while scrolling. */}
+      <AnimatePresence initial={false}>
+        {dayGroups.map((group) => (
+          <m.section
+            key={group.key}
+            exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            // Full-bleed lives on the section (not the header via -mx-4) so the
+            // exit's overflow:hidden clips vertically without shearing off the
+            // header's left/right bleed.
+            className='-mx-4 grid gap-4'
+          >
+            <div className='sticky top-0 z-sticky emphasis-strong px-4 py-2.5'>
+              <div className='flex items-center gap-2'>
+                <CalendarBlankIcon weight='bold' className='size-4 shrink-0' />
+                <p className='text-ui-meta font-bold'>
+                  {formatDayHeader(group.key, { locale })}
+                </p>
+              </div>
             </div>
-          </div>
 
-          <div className='grid gap-4'>
-            {group.events.map((event) => (
-              <CartEventGroup
-                key={event.eventId}
-                event={event}
-                locale={locale}
-                currency={currency}
-                onRemoveEvent={onRemoveEvent}
-                isRemoving={busy}
-              />
-            ))}
-          </div>
-        </section>
-      ))}
+            <div className='grid gap-4 px-4'>
+              <AnimatePresence initial={false}>
+                {group.events.map((event, index) => (
+                  <m.div
+                    key={event.eventId}
+                    exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
+                    transition={{ duration: 0.25, ease: 'easeInOut' }}
+                    className='grid gap-4'
+                  >
+                    {index > 0 && (
+                      <div className='pl-6'>
+                        <Separator />
+                      </div>
+                    )}
+                    <CartEventGroup
+                      event={event}
+                      locale={locale}
+                      currency={currency}
+                      onRemoveEvent={onRemoveEvent}
+                      isRemoving={busy}
+                    />
+                  </m.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          </m.section>
+        ))}
+      </AnimatePresence>
 
       {!hideFooter && (
         <div
@@ -114,7 +138,7 @@ export function CartContents({
                   currency
                 })} booking fees. `
               : 'Includes booking fees. '}
-            Delivery and refund protection calculated at checkout
+            Delivery and refund protection calculated at checkout.
           </p>
           <Button
             emphasis='normal'
