@@ -18,9 +18,10 @@ const DEMO_EVENTS: CartEvent[] = [
   {
     eventId: 'e1',
     eventName: 'Sunset Sessions — Opening Night',
-    venueName: 'The Tivoli, Brisbane',
+    venueName: 'Riverlight Garden Stage, Bulimba',
     imageUrl: img('sunset-sessions'),
     eventStartAtUtc: '2026-09-18T09:00:00Z',
+    eventEndAtUtc: '2026-09-18T13:00:00Z',
     eventDateKey: '2026-09-18',
     tickets: [{ name: 'General Admission', quantity: 2, priceEach: 68.5 }],
     subtotal: 137,
@@ -28,39 +29,64 @@ const DEMO_EVENTS: CartEvent[] = [
     total: 148
   },
   {
+    eventId: 'e3',
+    eventName: 'Riverside Late Show',
+    venueName: 'West End Warehouse, Brisbane',
+    imageUrl: img('riverside-late'),
+    eventStartAtUtc: '2026-09-18T11:00:00Z',
+    eventEndAtUtc: '2026-09-18T13:30:00Z',
+    eventDateKey: '2026-09-18',
+    tickets: [{ name: 'General Admission', quantity: 2, priceEach: 55 }],
+    subtotal: 110,
+    bookingFees: 10,
+    total: 120
+  },
+  {
     eventId: 'e2',
-    eventName: 'Riverstage Weekender',
-    venueName: 'Riverstage, Brisbane',
+    eventName: 'Twilight River Weekender',
+    venueName: 'Kangaroo Point Lawn, Brisbane',
     imageUrl: img('riverstage'),
-    eventStartAtUtc: '2026-10-04T08:30:00Z',
-    eventDateKey: '2026-10-04',
-    tickets: [{ name: 'Saturday Pass', quantity: 1, priceEach: 89.5 }],
+    eventStartAtUtc: '2026-10-03T08:30:00Z',
+    eventEndAtUtc: '2026-10-04T11:00:00Z',
+    eventDateKey: '2026-10-03',
+    eventEndDateKey: '2026-10-04',
+    tickets: [{ name: 'Weekend Pass', quantity: 1, priceEach: 89.5 }],
     subtotal: 89.5,
     bookingFees: 10,
     total: 99.5
   }
 ]
 
-type TicketLine = { name: string; quantity: number; priceEach: number }
+type TicketLine = {
+  name: string
+  quantity: number
+  priceEach: number
+  seat?: string
+}
 
 type EventTemplate = {
   eventName: string
   venueName: string
   seed: string
   eventStartAtUtc: string
+  eventEndAtUtc?: string
   eventDateKey: string
+  eventEndDateKey?: string
   tickets: TicketLine[]
 }
 
-// Cycled through by `addEvent` so repeated clicks add distinct events — some
-// with a single ticket type, others with multiple. The first entry uses long
-// event/venue/ticket names to exercise truncation.
+// Cycled through by `addEvent` so repeated clicks add distinct events — a mix of
+// single/multi ticket types, single-day finish times, multi-day runs
+// (eventEndDateKey), and reserved seating (ticket.seat). The first entry uses
+// long event/venue/ticket names to exercise truncation. Venues are fictional
+// Brisbane-area locations.
 const EXTRA_EVENTS: EventTemplate[] = [
   {
     eventName: 'Circus The Show! — The Greatest Spectacular on Earth',
-    venueName: 'Augathella Spiegeltent (Wynnum, QLD)',
+    venueName: 'Wynnum Pier Marquee (Wynnum, QLD)',
     seed: 'circus-the-show',
     eventStartAtUtc: '2026-06-25T09:00:00Z',
+    eventEndAtUtc: '2026-06-25T13:30:00Z',
     eventDateKey: '2026-06-25',
     tickets: [
       { name: 'General Admission - Adult', quantity: 2, priceEach: 37.75 },
@@ -68,27 +94,36 @@ const EXTRA_EVENTS: EventTemplate[] = [
     ]
   },
   {
-    eventName: 'Lunar Park Live',
-    venueName: 'Brisbane Showgrounds',
+    eventName: 'Moonlight Carnival',
+    venueName: 'Brookfield Showfield, Brisbane',
     seed: 'lunar-park',
-    eventStartAtUtc: '2026-11-21T08:00:00Z',
-    eventDateKey: '2026-11-21',
-    tickets: [{ name: 'General Admission', quantity: 2, priceEach: 74 }]
+    eventStartAtUtc: '2026-11-20T08:00:00Z',
+    eventEndAtUtc: '2026-11-22T12:00:00Z',
+    eventDateKey: '2026-11-20',
+    eventEndDateKey: '2026-11-22',
+    tickets: [{ name: 'Carnival Pass', quantity: 2, priceEach: 74 }]
   },
   {
     eventName: 'Harbourside Jazz',
-    venueName: 'QPAC, Brisbane',
+    venueName: 'Hamilton Wharf Pavilion, Brisbane',
     seed: 'harbourside-jazz',
     eventStartAtUtc: '2026-12-05T09:30:00Z',
+    eventEndAtUtc: '2026-12-06T13:00:00Z',
     eventDateKey: '2026-12-05',
+    eventEndDateKey: '2026-12-06',
     tickets: [
-      { name: 'Reserved Seat', quantity: 2, priceEach: 110 },
-      { name: 'Premium Booth', quantity: 1, priceEach: 180 }
+      {
+        name: 'Reserved Seat',
+        quantity: 2,
+        priceEach: 110,
+        seat: 'Stalls B11–12'
+      },
+      { name: 'Premium Booth', quantity: 1, priceEach: 180, seat: 'Booth 4' }
     ]
   },
   {
     eventName: 'Sunset Cinema',
-    venueName: 'New Farm Park, Brisbane',
+    venueName: 'New Farm Riverwalk Lawn, Brisbane',
     seed: 'sunset-cinema',
     eventStartAtUtc: '2026-12-19T09:00:00Z',
     eventDateKey: '2026-12-19',
@@ -96,13 +131,20 @@ const EXTRA_EVENTS: EventTemplate[] = [
   },
   {
     eventName: 'Festival of Lights',
-    venueName: 'South Bank, Brisbane',
+    venueName: 'Southbank Promenade Green, Brisbane',
     seed: 'festival-of-lights',
-    eventStartAtUtc: '2027-01-09T09:00:00Z',
-    eventDateKey: '2027-01-09',
+    eventStartAtUtc: '2027-01-07T09:00:00Z',
+    eventEndAtUtc: '2027-01-09T12:30:00Z',
+    eventDateKey: '2027-01-07',
+    eventEndDateKey: '2027-01-09',
     tickets: [
       { name: 'General Admission', quantity: 2, priceEach: 65 },
-      { name: 'VIP Lounge', quantity: 2, priceEach: 145 }
+      {
+        name: 'VIP Lounge',
+        quantity: 2,
+        priceEach: 145,
+        seat: 'Mezzanine M3–4'
+      }
     ]
   }
 ]
@@ -196,7 +238,9 @@ export function createDemoCart(): DemoCartClient {
         venueName: template.venueName,
         imageUrl: img(template.seed),
         eventStartAtUtc: template.eventStartAtUtc,
+        eventEndAtUtc: template.eventEndAtUtc,
         eventDateKey: template.eventDateKey,
+        eventEndDateKey: template.eventEndDateKey,
         tickets,
         subtotal,
         bookingFees: quantity * FEE_PER_TICKET,
