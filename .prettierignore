@@ -47,6 +47,10 @@ pnpm-lock.yaml
 *.swp
 *.swo
 
+# Live-demo MDX — prettier's plugin chain mangles the embedded tsx-live
+# code fences and emits an empty file. Keep these out of the formatter.
+docs/src/app/roadie-widgets/**/*.mdx
+
 # Misc
 .DS_Store
 *.pem
