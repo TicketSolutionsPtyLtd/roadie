@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
-import { Button, RadioGroup, Tabs } from '@oztix/roadie-components'
+import { Button, Card, RadioGroup, Tabs } from '@oztix/roadie-components'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
 
 import { VueCartDrawer } from './VueCartDrawer'
@@ -91,7 +91,9 @@ export function CartDrawerParityDemo() {
   }
 
   return (
-    <div className='grid gap-4'>
+    <div className='grid gap-3'>
+      {/* The tab sits outside the card; everything it affects lives inside, so
+          it reads as "this card is the <skin> skin". */}
       <Tabs
         value={skin}
         onValueChange={(value) => switchSkin(value as Skin)}
@@ -104,53 +106,59 @@ export function CartDrawerParityDemo() {
         </Tabs.List>
       </Tabs>
 
-      <p className='text-sm text-subtle'>
-        Same controls, same mock cart — flip the tab to compare the{' '}
-        <strong className='font-medium text-normal'>{skin}</strong> skin. The
-        drawer is <code>position: fixed</code> over the page.
-      </p>
+      <Card emphasis='raised'>
+        <Card.Content className='grid gap-4'>
+          <p className='text-sm text-subtle'>
+            Same controls, same mock cart — flip the tab to compare the{' '}
+            <strong className='font-medium text-normal'>{skin}</strong> skin.
+            The drawer is <code>position: fixed</code> over the page.
+          </p>
 
-      <div className='grid gap-1.5'>
-        <p className='text-sm font-medium text-strong'>Cart context</p>
-        <RadioGroup
-          value={context}
-          onValueChange={(value) => setContext(value as 'collection' | 'event')}
-        >
-          <RadioGroup.Item value='collection' label='Collection' />
-          <RadioGroup.Item value='event' label='Event' />
-        </RadioGroup>
-      </div>
+          <div className='grid gap-1.5'>
+            <p className='text-sm font-medium text-strong'>Cart context</p>
+            <RadioGroup
+              value={context}
+              onValueChange={(value) =>
+                setContext(value as 'collection' | 'event')
+              }
+            >
+              <RadioGroup.Item value='collection' label='Collection' />
+              <RadioGroup.Item value='event' label='Event' />
+            </RadioGroup>
+          </div>
 
-      <div className='flex flex-wrap gap-2'>
-        <Button
-          intent='accent'
-          emphasis='strong'
-          onClick={() => (shown ? hide() : show())}
-        >
-          {shown ? 'Hide cart' : 'Show cart'}
-        </Button>
-        <Button disabled={!shown} onClick={toggleExpand}>
-          {open ? 'Collapse cart' : 'Expand cart'}
-        </Button>
-        <Button disabled={!shown} onClick={addToCart}>
-          Add to cart
-        </Button>
-        <Button disabled={!shown} onClick={() => adjustTimer(-1)}>
-          −1 min
-        </Button>
-        <Button disabled={!shown} onClick={() => adjustTimer(1)}>
-          +1 min
-        </Button>
-      </div>
+          <div className='flex flex-wrap gap-2'>
+            <Button
+              intent='accent'
+              emphasis='strong'
+              onClick={() => (shown ? hide() : show())}
+            >
+              {shown ? 'Hide cart' : 'Show cart'}
+            </Button>
+            <Button disabled={!shown} onClick={toggleExpand}>
+              {open ? 'Collapse cart' : 'Expand cart'}
+            </Button>
+            <Button disabled={!shown} onClick={addToCart}>
+              Add to cart
+            </Button>
+            <Button disabled={!shown} onClick={() => adjustTimer(-1)}>
+              −1 min
+            </Button>
+            <Button disabled={!shown} onClick={() => adjustTimer(1)}>
+              +1 min
+            </Button>
+          </div>
 
-      {shown &&
-        (skin === 'react' ? (
-          <QueryClientProvider client={bundle.client}>
-            <CartDrawer {...drawerProps} />
-          </QueryClientProvider>
-        ) : (
-          <VueCartDrawer {...drawerProps} />
-        ))}
+          {shown &&
+            (skin === 'react' ? (
+              <QueryClientProvider client={bundle.client}>
+                <CartDrawer {...drawerProps} />
+              </QueryClientProvider>
+            ) : (
+              <VueCartDrawer {...drawerProps} />
+            ))}
+        </Card.Content>
+      </Card>
     </div>
   )
 }
