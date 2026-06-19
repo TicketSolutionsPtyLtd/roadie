@@ -202,4 +202,15 @@ describe('formatSeatRange', () => {
       ])
     ).toBe('GA 11A, 11B')
   })
+
+  it('de-dupes identical seats from a merged reservation', () => {
+    expect(
+      formatSeatRange([
+        { section: 'Stalls', row: 'B', seat: '11' },
+        { section: 'Stalls', row: 'B', seat: '12' },
+        { section: 'Stalls', row: 'B', seat: '11' },
+        { section: 'Stalls', row: 'B', seat: '12' }
+      ])
+    ).toBe('Stalls B11–12')
+  })
 })

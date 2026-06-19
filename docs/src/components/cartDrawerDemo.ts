@@ -1,10 +1,9 @@
-import {
-  type CartClient,
-  type CartDetails,
-  type CartEvent,
-  type CartSeat,
-  type CartSummary,
-  formatSeatRange
+import type {
+  CartClient,
+  CartDetails,
+  CartEvent,
+  CartSeat,
+  CartSummary
 } from '@oztix/roadie-widgets/cart-drawer/core'
 
 // Canned cart for the live CartDrawer examples. No network — every method
@@ -180,9 +179,19 @@ const EXTRA_EVENTS: EventTemplate[] = [
 // Flat per-ticket booking fee used to derive an added event's fees/total.
 const FEE_PER_TICKET = 5
 
-// Combine ticket lines when the same event is added again: a matching name +
-// price + seats bumps the quantity; anything else appends a line (distinct
-// seat allocations stay separate).
+function dedupeSeats(seats: CartSeat[]): CartSeat[] {
+  const seen = new Set<string>()
+  return seats.filter((s) => {
+    const id = `${s.section ?? ''}|${s.row ?? ''}|${s.seat}`
+    if (seen.has(id)) return false
+    seen.add(id)
+    return true
+  })
+}
+
+// Merge ticket lines of the same type (name + price) when an event is re-added.
+// Reserved lines combine their seats into one range (quantity tracks the unique
+// seats); GA lines just sum the quantity.
 function mergeTickets(
   existing: TicketLine[],
   incoming: TicketLine[]
@@ -190,13 +199,16 @@ function mergeTickets(
   const result = existing.map((ticket) => ({ ...ticket }))
   for (const inc of incoming) {
     const match = result.find(
-      (ticket) =>
-        ticket.name === inc.name &&
-        ticket.priceEach === inc.priceEach &&
-        formatSeatRange(ticket.seats) === formatSeatRange(inc.seats)
+      (ticket) => ticket.name === inc.name && ticket.priceEach === inc.priceEach
     )
-    if (match) match.quantity += inc.quantity
-    else result.push({ ...inc })
+    if (!match) {
+      result.push({ ...inc, seats: inc.seats ? [...inc.seats] : undefined })
+    } else if (inc.seats?.length || match.seats?.length) {
+      match.seats = dedupeSeats([...(match.seats ?? []), ...(inc.seats ?? [])])
+      match.quantity = match.seats.length
+    } else {
+      match.quantity += inc.quantity
+    }
   }
   return result
 }
