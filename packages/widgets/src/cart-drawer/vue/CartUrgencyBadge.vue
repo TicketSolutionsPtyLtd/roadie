@@ -94,7 +94,12 @@ function onTimeEnter(el: Element, done: () => void) {
     node,
     { width: '0px', opacity: 0, marginLeft: '0px' },
     { width, opacity: 1, marginLeft: '6px' },
-    done
+    () => {
+      // Revert to class-driven sizing so the badge can grow/shrink with the
+      // countdown text (9:59 -> 10 mins) instead of a frozen width.
+      node.style.overflow = ''
+      done()
+    }
   )
 }
 function onTimeLeave(el: Element, done: () => void) {
