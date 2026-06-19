@@ -9,7 +9,7 @@ import { AnimatePresence, m } from 'motion/react'
 import { Badge } from '@oztix/roadie-components'
 import { cn } from '@oztix/roadie-core/utils'
 
-import { URGENCY_LONG_FORMAT_S, urgencyLevel } from '../core'
+import { URGENCY_LONG_FORMAT_S, urgencyLevel } from '../../cart'
 import { useCountdown } from './useCountdown'
 
 // Coarse so the live region doesn't announce every second.

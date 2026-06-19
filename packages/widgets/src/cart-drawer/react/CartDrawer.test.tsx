@@ -4,8 +4,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import type { CartClient, CartDetails, CartSummary } from '../core'
-import { buildCheckoutUrl } from '../core'
+import type { CartClient, CartDetails, CartSummary } from '../../cart'
+import { buildCheckoutUrl } from '../../cart'
 import { CartDrawer } from './CartDrawer'
 
 afterEach(() => {

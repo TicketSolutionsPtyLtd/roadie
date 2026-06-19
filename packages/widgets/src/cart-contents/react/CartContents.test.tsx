@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { CartDetails, CartEvent } from '../core'
+import type { CartDetails, CartEvent } from '../../cart'
 import { CartContents } from './CartContents'
 
 const ticket = { name: 'GA', quantity: 1, priceEach: 20 }

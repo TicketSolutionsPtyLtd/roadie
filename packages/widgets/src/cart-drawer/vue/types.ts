@@ -1,4 +1,4 @@
-import type { CartClient } from '../core'
+import type { CartClient } from '../../cart'
 
 /** Props for the Vue `CartDrawer` SFC. Exported so consumers can type wrappers. */
 export type CartDrawerProps = {

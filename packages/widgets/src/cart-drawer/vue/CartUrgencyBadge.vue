@@ -3,7 +3,11 @@ import NumberFlow from '@number-flow/vue'
 import { PhTicket } from '@phosphor-icons/vue'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-import { URGENCY_LONG_FORMAT_S, remainingSeconds, urgencyLevel } from '../core'
+import {
+  URGENCY_LONG_FORMAT_S,
+  remainingSeconds,
+  urgencyLevel
+} from '../../cart'
 
 const PAD2_FORMAT = { minimumIntegerDigits: 2 }
 

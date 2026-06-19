@@ -1,6 +1,6 @@
 import { type Ref, onMounted, shallowRef, watch } from 'vue'
 
-import type { CartClient, CartDetails, CartSummary } from '../core'
+import type { CartClient, CartDetails, CartSummary } from '../../cart'
 
 export type UseCartReturn = {
   summary: Ref<CartSummary | null>

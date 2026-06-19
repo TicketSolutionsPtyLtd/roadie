@@ -1,15 +1,19 @@
 <script setup lang="ts">
-import { PhCalendarBlank } from '@phosphor-icons/vue'
+import NumberFlow from '@number-flow/vue'
+import { PhBag, PhCalendarBlank } from '@phosphor-icons/vue'
 import { computed } from 'vue'
 
 import {
   type CartDetails,
+  currencyPrefix,
   formatCurrency,
   formatDayHeader,
   groupEventsByDay
-} from '../core'
+} from '../../cart'
 import CartEmptyState from './CartEmptyState.vue'
 import CartEventGroup from './CartEventGroup.vue'
+
+const PRICE_FORMAT = { minimumFractionDigits: 2 }
 
 const props = withDefaults(
   defineProps<{
@@ -46,6 +50,7 @@ const dayGroups = computed(() => groupEventsByDay(props.cart.events))
 const totalBookingFees = computed(() =>
   props.cart.events.reduce((sum, event) => sum + event.bookingFees, 0)
 )
+const pricePrefix = computed(() => currencyPrefix(props.locale, props.currency))
 
 function dayHeader(key: string): string {
   return formatDayHeader(key, { locale: props.locale })
@@ -88,7 +93,9 @@ function onLeave(el: Element, done: () => void) {
     :browse-href="browseHref"
     :on-navigate="onNavigate"
   />
-  <div v-else class="grid gap-5">
+  <!-- @container so the event-image container queries (@sm/@md in
+       CartEventGroup) resolve standalone, exactly as inside the drawer body. -->
+  <div v-else class="@container grid gap-5">
     <TransitionGroup tag="div" class="grid gap-5" :css="false" @leave="onLeave">
       <section
         v-for="group in dayGroups"
@@ -137,28 +144,44 @@ function onLeave(el: Element, done: () => void) {
       </section>
     </TransitionGroup>
 
-    <div v-if="!hideFooter" class="grid gap-4 border-t border-subtle pt-4">
-      <div class="flex items-center justify-between gap-4">
-        <span class="text-ui font-bold text-strong">Total</span>
-        <span class="text-ui font-bold text-strong">{{
-          money(cart.cartTotal)
-        }}</span>
+    <div v-if="!hideFooter" class="border-t border-subtle pt-4">
+      <div class="flex items-center justify-between gap-4 pb-1">
+        <span class="text-ui font-bold text-strong">Subtotal</span>
+        <span class="text-ui font-bold text-strong">
+          <NumberFlow
+            :value="cart.cartTotal"
+            :prefix="pricePrefix"
+            :format="PRICE_FORMAT"
+          />
+        </span>
       </div>
-      <p class="text-ui-meta text-subtle">
+      <p class="pb-4 text-ui-meta text-subtle">
         {{
           totalBookingFees > 0
             ? `Incl. ${money(totalBookingFees)} booking fees. `
             : 'Includes booking fees. '
         }}Delivery and refund protection calculated at checkout.
       </p>
-      <button
-        type="button"
-        class="is-interactive btn btn-md emphasis-normal intent-brand"
-        :disabled="!checkoutUrl"
-        @click="onCheckout"
-      >
-        Checkout
-      </button>
+      <!-- Mirrors the drawer footer: neutral secondary + strong-accent
+           Checkout with the bag icon. -->
+      <div class="flex gap-3">
+        <button
+          type="button"
+          class="is-interactive btn btn-md flex-1 emphasis-normal intent-neutral"
+          @click="onNavigate(browseHref)"
+        >
+          Browse events
+        </button>
+        <button
+          type="button"
+          class="is-interactive btn btn-md flex-1 emphasis-strong intent-accent"
+          :disabled="!checkoutUrl"
+          @click="onCheckout"
+        >
+          <PhBag weight="bold" :class="'mr-1.5 size-4'" aria-hidden="true" />
+          Checkout
+        </button>
+      </div>
     </div>
   </div>
 </template>

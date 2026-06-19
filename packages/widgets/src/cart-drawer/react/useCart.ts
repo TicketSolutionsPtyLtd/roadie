@@ -6,7 +6,7 @@ import {
   useQuery
 } from '@tanstack/react-query'
 
-import type { CartClient, CartDetails, CartSummary } from '../core'
+import type { CartClient, CartDetails, CartSummary } from '../../cart'
 
 /**
  * Fetch the cart summary via the injected core client. `refreshKey` is folded

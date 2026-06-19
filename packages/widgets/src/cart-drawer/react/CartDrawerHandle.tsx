@@ -9,7 +9,7 @@ import { type MotionValue, m, useTransform } from 'motion/react'
 import { Button, IconButton } from '@oztix/roadie-components'
 import { cn } from '@oztix/roadie-core/utils'
 
-import { currencyPrefix, formatCurrency } from '../core'
+import { currencyPrefix, formatCurrency } from '../../cart'
 import { CartUrgencyBadge } from './CartUrgencyBadge'
 
 type CartDrawerHeaderProps = {

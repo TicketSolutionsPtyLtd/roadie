@@ -4,7 +4,7 @@ import type {
   CartEvent,
   CartSeat,
   CartSummary
-} from '@oztix/roadie-widgets/cart-drawer/core'
+} from '@oztix/roadie-widgets/cart'
 
 // Canned cart for the live CartDrawer examples. No network — every method
 // resolves instantly from in-memory data. `createDemoCart()` returns a fresh,

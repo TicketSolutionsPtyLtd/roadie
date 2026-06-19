@@ -23,11 +23,11 @@ import {
   deriveCartTotal,
   deriveTicketCount,
   isSafeRelativePath
-} from '../core'
-import CartContents from './CartContents.vue'
+} from '../../cart'
+import CartContents from '../../cart-contents/vue/CartContents.vue'
+import CartEmptyState from '../../cart-contents/vue/CartEmptyState.vue'
 import CartDrawerFooter from './CartDrawerFooter.vue'
 import CartDrawerHeader from './CartDrawerHeader.vue'
-import CartEmptyState from './CartEmptyState.vue'
 import { lockBodyScroll } from './documentEffects'
 import type { CartDrawerProps } from './types'
 import { useCart } from './useCart'

@@ -18,7 +18,7 @@ import {
   formatEventSchedule,
   formatSeatRange,
   isSafeImageUrl
-} from '../core'
+} from '../../cart'
 
 type CartEventGroupProps = {
   event: CartEvent

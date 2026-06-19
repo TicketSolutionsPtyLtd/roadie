@@ -44,6 +44,7 @@ import { LiveEditor, LiveError, LivePreview, LiveProvider } from 'react-live'
 
 import * as RoadieComponents from '@oztix/roadie-components'
 import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
+import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
 
 import { createDemoCart } from './cartDrawerDemo'
@@ -96,6 +97,7 @@ const scope = {
   ...PhosphorIconsSuffixed,
   // Widgets + the helpers their live demos need.
   CartDrawer,
+  CartContents,
   QueryClient,
   QueryClientProvider,
   createDemoCart,

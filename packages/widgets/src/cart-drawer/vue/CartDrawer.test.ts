@@ -3,8 +3,8 @@ import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { h, nextTick } from 'vue'
 
-import type { CartClient, CartDetails, CartSummary } from '../core'
-import { buildCheckoutUrl } from '../core'
+import type { CartClient, CartDetails, CartSummary } from '../../cart'
+import { buildCheckoutUrl } from '../../cart'
 import CartDrawer from './CartDrawer.vue'
 import { lockBodyScroll } from './documentEffects'
 

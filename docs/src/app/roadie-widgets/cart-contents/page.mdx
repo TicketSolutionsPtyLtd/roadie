@@ -1,0 +1,148 @@
+export const metadata = {
+  title: 'CartContents',
+  description:
+    'The day-grouped cart event/ticket list — the body of the cart drawer, exported on its own so you can render it on a standalone cart page.',
+  status: 'beta'
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# CartContents
+
+The day-grouped event and ticket list that powers the cart drawer's body —
+exported on its own so you can render just the list on a full cart page.
+
+- Groups events by day with sticky day headers
+- Reserved seats render as range badges via the shared `formatSeatRange`
+- Per-event remove with an inline confirm, and removals animate out
+- Presentational: you pass it a `CartDetails`; it renders — no overlay, no fetching
+
+It's the same component `CartDrawer` renders internally, so a `/cart` page and
+the docked drawer stay visually identical over one shared core.
+
+## Live demo
+
+The way a `/cart` page would use it — in a normal page column, no overlay.
+Scroll the list to see the sticky day headers, remove an event (it animates
+out), and toggle the footer to show `hideFooter`. Runs on a canned cart.
+
+```tsx-live-noinline
+function CartPage() {
+  const [cart, setCart] = useState(() => createDemoCart())
+  const [details, setDetails] = useState(null)
+  const [hideFooter, setHideFooter] = useState(false)
+  const [busy, setBusy] = useState(false)
+
+  // Host owns fetching — refetch whenever the cart instance changes.
+  useEffect(() => {
+    cart.getDetails('demo-collection').then(setDetails)
+  }, [cart])
+
+  async function removeEvent(eventId) {
+    setBusy(true)
+    try {
+      await cart.removeItem(details?.cartId ?? '', eventId)
+      setDetails(await cart.getDetails('demo-collection'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className='grid gap-3'>
+      <div className='flex flex-wrap gap-2'>
+        <Button onClick={() => setHideFooter((v) => !v)}>
+          {hideFooter ? 'Show footer' : 'Hide footer'}
+        </Button>
+        <Button emphasis='subtle' onClick={() => setCart(createDemoCart())}>
+          Reset
+        </Button>
+      </div>
+      <div className='max-h-[28rem] overflow-y-auto rounded-xl border border-subtle px-4 py-4'>
+        {details && (
+          <CartContents
+            cart={details}
+            onNavigate={(href) => window.alert('Navigate to: ' + href)}
+            browseHref='/events'
+            checkoutUrl={cart.checkoutUrl(details)}
+            locale='en-AU'
+            currency='AUD'
+            hideFooter={hideFooter}
+            onRemoveEvent={removeEvent}
+            busy={busy}
+          />
+        )}
+      </div>
+    </div>
+  )
+}
+
+render(<CartPage />)
+```
+
+## Installation
+
+```bash
+pnpm add @oztix/roadie-widgets
+```
+
+CartContents is presentational — lighter peers than the full drawer (no
+react-query, no focus-trap):
+
+```bash
+pnpm add react react-dom @oztix/roadie-components motion @phosphor-icons/react
+```
+
+## Import
+
+```tsx
+// React
+import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
+import type { CartDetails } from '@oztix/roadie-widgets/cart-contents/react'
+```
+
+```ts
+// Vue
+import { CartContents } from '@oztix/roadie-widgets/cart-contents/vue'
+```
+
+Either entry pulls in only the list — none of the drawer's overlay, drag,
+focus-trap, or expiry code. The cart drawer composes this same component, so the
+standalone page and the docked drawer stay identical.
+
+## Usage
+
+Pass a `CartDetails` and the presentational props; the host owns data fetching
+and routing. Build a `CartDetails` however you like, or reuse the shared cart
+client:
+
+```tsx
+import { createCartClient } from '@oztix/roadie-widgets/cart'
+import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
+
+const cart = createCartClient({ host: '' }) // same-origin
+const details = await cart.getDetails(collectionId)
+
+;<CartContents
+  cart={details}
+  onNavigate={(href) => router.push(href)}
+  browseHref="/events"
+  checkoutUrl={cart.checkoutUrl(details)}
+  locale="en-AU"
+  currency="AUD"
+/>
+```
+
+- **`hideFooter`** — drop the Total / fees / Checkout footer (e.g. when your
+  page renders its own order summary).
+- **`stickyFooter`** — pin the footer to the bottom of the nearest scrolling
+  ancestor.
+- **`onRemoveEvent` / `busy`** — wire per-event removal; `busy` disables the
+  trash triggers while a remove is in flight.
+
+When `cart` has no tickets, CartContents renders the empty state with the
+`browseHref` call to action.
+
+## Props
+
+<PropsDefinitions componentPath='packages/widgets/src/cart-contents/react/CartContents.tsx' />

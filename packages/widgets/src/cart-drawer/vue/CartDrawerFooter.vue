@@ -3,7 +3,7 @@ import NumberFlow from '@number-flow/vue'
 import { PhBag } from '@phosphor-icons/vue'
 import { computed } from 'vue'
 
-import { currencyPrefix, formatCurrency } from '../core'
+import { currencyPrefix, formatCurrency } from '../../cart'
 
 const PRICE_FORMAT = { minimumFractionDigits: 2 }
 

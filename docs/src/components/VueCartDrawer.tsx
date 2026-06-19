@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 
-import type { CartClient } from '@oztix/roadie-widgets/cart-drawer/core'
+import type { CartClient } from '@oztix/roadie-widgets/cart'
 
 // Bridges the Vue CartDrawer skin into the React docs so the parity bench can
 // render either skin from the same controls. Vue + the widget's Vue dist are

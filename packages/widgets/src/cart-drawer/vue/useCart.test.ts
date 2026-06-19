@@ -3,8 +3,8 @@ import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick, ref } from 'vue'
 
-import type { CartClient, CartDetails, CartSummary } from '../core'
-import { buildCheckoutUrl } from '../core'
+import type { CartClient, CartDetails, CartSummary } from '../../cart'
+import { buildCheckoutUrl } from '../../cart'
 import { useCart } from './useCart'
 
 const HOST = 'https://h.example'

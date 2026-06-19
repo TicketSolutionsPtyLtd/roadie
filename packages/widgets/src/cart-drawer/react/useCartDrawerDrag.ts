@@ -23,7 +23,7 @@ import {
   TAP_PX,
   VIEWPORT_MARGIN_PX,
   decideSnapTarget
-} from '../core'
+} from '../../cart'
 
 export type UseCartDrawerDragReturn = {
   state: 'open' | 'closed'

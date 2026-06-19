@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react'
 
-import { urgencyLevel } from '../core'
+import { urgencyLevel } from '../../cart'
 import { useCountdown } from './useCountdown'
 
 export interface CartExpiryState {

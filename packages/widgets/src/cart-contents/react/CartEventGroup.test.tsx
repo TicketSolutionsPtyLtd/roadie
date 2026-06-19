@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { CartEvent } from '../core'
+import type { CartEvent } from '../../cart'
 import { CartEventGroup } from './CartEventGroup'
 
 const event: CartEvent = {

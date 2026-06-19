@@ -14,7 +14,7 @@ import {
   formatEventSchedule,
   formatSeatRange,
   isSafeImageUrl
-} from '../core'
+} from '../../cart'
 
 const props = defineProps<{
   event: CartEvent
