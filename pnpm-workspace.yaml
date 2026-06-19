@@ -1,6 +1,23 @@
 packages:
   - 'packages/*'
   - 'docs'
+
+# pnpm settings (migrated from .npmrc — pnpm 11's home for these is here).
+nodeLinker: isolated
+enablePrePostScripts: true
+engineStrict: true
+preferWorkspacePackages: true
+saveExact: true
+
+# Supply-chain cooldown (pnpm 11): refuse package versions published less than
+# 3 days ago — value is in MINUTES (4320 = 3 days) — so a freshly-compromised
+# release or typosquat can't be pulled in before it's noticed. Workspace
+# @oztix/* packages are linked, not fetched, so the exclude is belt-and-braces
+# for any that ever ship from the registry.
+minimumReleaseAge: 4320
+minimumReleaseAgeExclude:
+  - '@oztix/*'
+
 # Dependency postinstall/build scripts — left disabled (pnpm 10 ignored these
 # too; the build + tests pass without them). Flip to true only if one is needed.
 allowBuilds:
