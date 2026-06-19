@@ -45,6 +45,28 @@ export function VueCartDrawer(props: VueCartDrawerProps) {
     let cancelled = false
     let unmount: (() => void) | null = null
 
+    // Docs-only: this page renders BOTH skins, so @number-flow/react and
+    // @number-flow/vue both run number-flow's module-load `CSS.registerProperty`
+    // for the same @property names. The second registration throws, which makes
+    // number-flow's capability check report "can't animate" and silently kills
+    // the Vue digit-roll. Real single-skin apps (e.g. Outlet) never hit this.
+    // Make re-registration a no-op so the Vue tab animates like React.
+    const css = CSS as unknown as {
+      registerProperty?: (d: PropertyDefinition) => void
+      __nfDupePatched?: boolean
+    }
+    if (css.registerProperty && !css.__nfDupePatched) {
+      const original = css.registerProperty.bind(CSS)
+      css.registerProperty = (def) => {
+        try {
+          original(def)
+        } catch {
+          /* already registered by the other skin's number-flow build */
+        }
+      }
+      css.__nfDupePatched = true
+    }
+
     void (async () => {
       const [vue, widget] = await Promise.all([
         import('vue') as unknown as Promise<VueRuntime>,
