@@ -31,6 +31,12 @@ export interface CartEvent {
   /** Venue-local YYYY-MM-DD of the finish. When it differs from `eventDateKey`
    * the event is multi-day and the end date is shown. */
   eventEndDateKey?: string
+  /** Venue IANA timezone (e.g. `Australia/Brisbane`). When present, the schedule
+   * row's times render in the VENUE's local time rather than the viewer's
+   * browser timezone. Omit to keep the legacy browser-local behaviour.
+   * Must be an IANA id — Windows ids ("E. Australia Standard Time") are not
+   * accepted by `Intl` and must be converted upstream. */
+  eventTimeZone?: string
   /** Optional pre-formatted display string — overrides the computed schedule. */
   eventDateDisplay?: string
   tickets: CartTicket[]
