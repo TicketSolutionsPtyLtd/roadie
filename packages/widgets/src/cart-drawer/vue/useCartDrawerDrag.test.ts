@@ -21,6 +21,20 @@ function dispatchPointer(
   window.dispatchEvent(e)
 }
 
+// Spin rAF/microtasks until a spring-driven value reaches its target (or a
+// frame budget elapses), so tests assert settled state without a fixed sleep.
+async function settle(
+  get: () => number,
+  target: number,
+  maxFrames = 120
+): Promise<void> {
+  for (let i = 0; i < maxFrames; i++) {
+    if (Math.abs(get() - target) <= 0.001) return
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+    await nextTick()
+  }
+}
+
 function mountDrag(initialState: 'open' | 'closed' = 'closed') {
   const result: { value: ReturnType<typeof useCartDrawerDrag> | null } = {
     value: null
@@ -52,12 +66,14 @@ describe('useCartDrawerDrag', () => {
     expect(drag.state.value).toBe('open')
   })
 
-  it('progress is 0 when closed and 1 when open', async () => {
+  it('progress is 0 when closed and springs to 1 when opened', async () => {
     const drag = mountDrag('closed')
     expect(drag.progress.value).toBe(0)
     drag.toggle()
-    await nextTick()
-    expect(drag.progress.value).toBe(1)
+    // Height now springs (motion `animate`) instead of snapping, so progress
+    // ramps toward 1 over several frames rather than jumping in one tick.
+    await settle(() => drag.progress.value, 1)
+    expect(drag.progress.value).toBeGreaterThan(0.99)
   })
 
   it('setState forces a target state', async () => {

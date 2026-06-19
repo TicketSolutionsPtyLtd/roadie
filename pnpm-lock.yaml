@@ -80,6 +80,9 @@ importers:
       '@number-flow/react':
         specifier: ^0.5.14
         version: 0.5.14(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@number-flow/vue':
+        specifier: ^0.5.0
+        version: 0.5.0(vue@3.5.34(typescript@5.9.3))
       '@oztix/roadie-components':
         specifier: workspace:*
         version: link:../packages/components
@@ -92,12 +95,18 @@ importers:
       '@phosphor-icons/react':
         specifier: 2.1.10
         version: 2.1.10(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@phosphor-icons/vue':
+        specifier: ^2.2.1
+        version: 2.2.1(vue@3.5.34(typescript@5.9.3))
       '@tanstack/react-query':
         specifier: ^5.62.0
         version: 5.100.14(react@19.2.3)
       '@types/mdx':
         specifier: 2.0.13
         version: 2.0.13
+      focus-trap:
+        specifier: ^7.6.5
+        version: 7.8.0
       motion:
         specifier: ^12.38.0
         version: 12.40.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -125,6 +134,9 @@ importers:
       remark-gfm:
         specifier: 4.0.1
         version: 4.0.1
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.34(typescript@5.9.3)
     devDependencies:
       '@tailwindcss/postcss':
         specifier: 4.2.2

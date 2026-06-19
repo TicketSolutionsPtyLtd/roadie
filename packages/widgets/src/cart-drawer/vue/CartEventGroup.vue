@@ -205,50 +205,60 @@ onBeforeUnmount(() => {
           <PhTrash weight="bold" class="size-4" aria-hidden="true" />
         </button>
 
-        <div
-          v-if="confirming"
-          :id="confirmId"
-          ref="confirmPopupEl"
-          data-cart-confirm
-          class="absolute top-full right-0 z-popover mt-1 grid w-max max-w-80 gap-4 rounded-xl emphasis-floating p-4 text-pretty intent-danger"
-          role="dialog"
-          :aria-labelledby="confirmLabelId"
+        <!-- Mirrors the React skin's Base UI Popover (motion-scale): scale 0.95→1
+             + fade over --duration-normal/--ease-standard from the trigger corner.
+             CSS-transition based, so reduced motion neutralises it like Base UI. -->
+        <Transition
+          enter-active-class="[transition:scale_var(--duration-normal)_var(--ease-standard),opacity_var(--duration-normal)_var(--ease-standard)]"
+          leave-active-class="[transition:scale_var(--duration-normal)_var(--ease-standard),opacity_var(--duration-normal)_var(--ease-standard)]"
+          enter-from-class="[scale:0.95] opacity-0"
+          leave-to-class="[scale:0.95] opacity-0"
         >
-          <svg
-            viewBox="0 0 20 10"
-            aria-hidden="true"
-            class="absolute top-[-7px] right-4 z-10 h-2 w-4 fill-(--intent-bg-raised) stroke-(--rim-light-edge)"
-            stroke-width="1"
-            stroke-linejoin="round"
-            stroke-linecap="round"
+          <div
+            v-if="confirming"
+            :id="confirmId"
+            ref="confirmPopupEl"
+            data-cart-confirm
+            class="absolute top-full right-0 z-popover mt-1 grid w-max max-w-80 origin-top-right gap-4 rounded-xl emphasis-floating p-4 text-pretty intent-danger"
+            role="dialog"
+            :aria-labelledby="confirmLabelId"
           >
-            <path d="M0 10 L10 0 L20 10" />
-          </svg>
-          <div class="grid gap-1 text-center">
-            <p :id="confirmLabelId" class="text-display-ui-6 text-strong">
-              Remove all tickets for this event?
-            </p>
-            <p class="text-sm text-subtle">This action cannot be undone.</p>
-          </div>
-          <div class="flex justify-center gap-2">
-            <button
-              ref="confirmCancelEl"
-              type="button"
-              class="is-interactive btn btn-sm emphasis-normal intent-neutral"
-              @click="closeConfirm"
+            <svg
+              viewBox="0 0 20 10"
+              aria-hidden="true"
+              class="absolute top-[-7px] right-4 z-10 h-2 w-4 fill-(--intent-bg-raised) stroke-(--rim-light-edge)"
+              stroke-width="1"
+              stroke-linejoin="round"
+              stroke-linecap="round"
             >
-              Cancel
-            </button>
-            <button
-              type="button"
-              class="is-interactive btn btn-sm emphasis-strong intent-danger"
-              :disabled="busy"
-              @click="confirmRemove"
-            >
-              Remove
-            </button>
+              <path d="M0 10 L10 0 L20 10" />
+            </svg>
+            <div class="grid gap-1 text-center">
+              <p :id="confirmLabelId" class="text-display-ui-6 text-strong">
+                Remove all tickets for this event?
+              </p>
+              <p class="text-sm text-subtle">This action cannot be undone.</p>
+            </div>
+            <div class="flex justify-center gap-2">
+              <button
+                ref="confirmCancelEl"
+                type="button"
+                class="is-interactive btn btn-sm emphasis-normal intent-neutral"
+                @click="closeConfirm"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                class="is-interactive btn btn-sm emphasis-strong intent-danger"
+                :disabled="busy"
+                @click="confirmRemove"
+              >
+                Remove
+              </button>
+            </div>
           </div>
-        </div>
+        </Transition>
       </div>
     </div>
 

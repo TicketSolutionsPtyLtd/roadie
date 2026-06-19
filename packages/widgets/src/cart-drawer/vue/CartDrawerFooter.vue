@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import NumberFlow from '@number-flow/vue'
 import { PhBag } from '@phosphor-icons/vue'
 import { computed } from 'vue'
 
-import { formatCurrency } from '../core'
+import { currencyPrefix, formatCurrency } from '../core'
+
+const PRICE_FORMAT = { minimumFractionDigits: 2 }
 
 const props = defineProps<{
   cartTotal: number
@@ -36,12 +39,7 @@ function onSecondaryClick() {
   emit('toggle')
 }
 
-const subtotalLabel = computed(() =>
-  formatCurrency(props.cartTotal, {
-    locale: props.locale,
-    currency: props.currency
-  })
-)
+const pricePrefix = computed(() => currencyPrefix(props.locale, props.currency))
 
 const feesLabel = computed(() =>
   props.bookingFees > 0
@@ -88,7 +86,13 @@ function onPointerDown(e: PointerEvent) {
       >
         <div class="flex items-center justify-between gap-4 pt-3 pb-1">
           <span class="text-ui font-bold text-strong">Subtotal</span>
-          <span class="text-ui font-bold text-strong">{{ subtotalLabel }}</span>
+          <span class="text-ui font-bold text-strong">
+            <NumberFlow
+              :value="cartTotal"
+              :prefix="pricePrefix"
+              :format="PRICE_FORMAT"
+            />
+          </span>
         </div>
       </div>
 
