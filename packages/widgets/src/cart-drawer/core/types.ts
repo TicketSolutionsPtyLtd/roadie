@@ -2,6 +2,8 @@ export interface CartTicket {
   name: string
   quantity: number
   priceEach: number
+  /** Reserved-seat allocation, e.g. "Stalls B11–12". Omitted for GA tickets. */
+  seat?: string
 }
 
 export interface CartEvent {
@@ -11,9 +13,14 @@ export interface CartEvent {
   imageUrl?: string
   /** ISO 8601 UTC — used for ORDERING only. */
   eventStartAtUtc: string
+  /** ISO 8601 UTC finish time. Drives a finish time / multi-day end. */
+  eventEndAtUtc?: string
   /** Venue-local YYYY-MM-DD — used for DAY GROUPING (design finding #2). */
   eventDateKey: string
-  /** Optional pre-formatted display string. */
+  /** Venue-local YYYY-MM-DD of the finish. When it differs from `eventDateKey`
+   * the event is multi-day and the end date is shown. */
+  eventEndDateKey?: string
+  /** Optional pre-formatted display string — overrides the computed schedule. */
   eventDateDisplay?: string
   tickets: CartTicket[]
   subtotal: number

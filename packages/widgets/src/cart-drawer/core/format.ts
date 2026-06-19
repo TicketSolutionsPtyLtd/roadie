@@ -45,25 +45,78 @@ export function formatTime(date: Date): string {
   return `${h}:${String(minutes).padStart(2, '0')}${ampm}`
 }
 
-/** Format a venue-local YYYY-MM-DD key as a day header (parsed as local date). */
-export function formatDayHeader(dateKey: string, opts: DateOptions): string {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return dateKey // fail-safe: malformed key
+// Parse a venue-local YYYY-MM-DD key to a local Date, or null if malformed /
+// out-of-range (so callers can fail safe to the raw key).
+function parseDateKey(dateKey: string): Date | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return null
   const y = Number(dateKey.slice(0, 4))
   const m = Number(dateKey.slice(5, 7))
   const d = Number(dateKey.slice(8, 10))
   const date = new Date(y, m - 1, d) // local; no UTC shift
-  // Reject out-of-range keys that JS Date would silently roll over.
   if (
     date.getFullYear() !== y ||
     date.getMonth() !== m - 1 ||
     date.getDate() !== d
   ) {
-    return dateKey
+    return null
   }
+  return date
+}
+
+/** Format a venue-local YYYY-MM-DD key as a day header (parsed as local date). */
+export function formatDayHeader(dateKey: string, opts: DateOptions): string {
+  const date = parseDateKey(dateKey)
+  if (!date) return dateKey // fail-safe: malformed key
   return new Intl.DateTimeFormat(opts.locale, {
     weekday: 'short',
     day: 'numeric',
     month: 'long',
     year: 'numeric'
   }).format(date)
+}
+
+/** Short day form like `Sun 4 Oct` (no year) for inline end dates. The locale
+ * comma after the weekday is dropped so it composes cleanly inside a schedule. */
+export function formatDayShort(dateKey: string, opts: DateOptions): string {
+  const date = parseDateKey(dateKey)
+  if (!date) return dateKey
+  return new Intl.DateTimeFormat(opts.locale, {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short'
+  })
+    .format(date)
+    .replace(/,/g, '')
+}
+
+type Schedulable = {
+  eventStartAtUtc: string
+  eventEndAtUtc?: string
+  eventDateKey: string
+  eventEndDateKey?: string
+}
+
+/**
+ * Build the event time row: `7pm` (no finish), `7pm – 11pm` (same-day finish),
+ * or `6:30pm – Sun 4 Oct, 9pm` (multi-day — start time then end date + time).
+ * Returns null when the start time is unparseable.
+ */
+export function formatEventSchedule(
+  event: Schedulable,
+  opts: DateOptions
+): string | null {
+  const start = new Date(event.eventStartAtUtc)
+  if (Number.isNaN(start.getTime())) return null
+  const startTime = formatTime(start)
+
+  const end = event.eventEndAtUtc ? new Date(event.eventEndAtUtc) : null
+  if (!end || Number.isNaN(end.getTime())) return startTime
+  const endTime = formatTime(end)
+
+  const multiDay =
+    !!event.eventEndDateKey && event.eventEndDateKey !== event.eventDateKey
+  if (multiDay) {
+    return `${startTime} – ${formatDayShort(event.eventEndDateKey!, opts)}, ${endTime}`
+  }
+  return `${startTime} – ${endTime}`
 }

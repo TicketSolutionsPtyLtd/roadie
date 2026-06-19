@@ -43,7 +43,7 @@ export function CartDrawerHeader({
   grabberRef,
   titleId
 }: CartDrawerHeaderProps) {
-  const titleAreaHeight = useTransform(progress, [0, 1], [32, 72])
+  const titleAreaHeight = useTransform(progress, [0, 1], [32, 76])
   const titleLeft = useTransform(progress, (p) =>
     p <= 0 ? '16px' : `calc(${16 * (1 - p)}px + ${p * 50}%)`
   )
@@ -51,7 +51,7 @@ export function CartDrawerHeader({
     progress,
     (p) => `translateX(${-50 * p}%)`
   )
-  const badgeTop = useTransform(progress, [0, 1], [4, 36])
+  const badgeTop = useTransform(progress, [0, 1], [0, 36])
   const priceOpacity = useTransform(progress, [0, 1], [1, 0])
   const closeOpacity = useTransform(progress, [0.5, 0.7], [0, 1])
   const closeScale = useTransform(progress, [0.5, 0.7], [0.8, 1])
@@ -62,35 +62,47 @@ export function CartDrawerHeader({
       ref={headerRef}
       onPointerDown={onPointerDown}
       className={cn(
-        'relative shrink-0 cursor-grab touch-none select-none active:cursor-grabbing',
+        // Whole header reads as clickable (pointer); only the pill below shows
+        // the grab cursor. Dragging the whole header still works.
+        'relative shrink-0 cursor-pointer touch-none select-none',
         bounce && 'animate-nudge'
       )}
     >
-      <div className='flex justify-center pt-2 pb-2'>
-        <div aria-hidden='true' className='h-1.5 w-9 rounded-full bg-subtle' />
+      {/* The drag pill is the focusable/clickable toggle. It stays in flow so
+         it reserves its own row above the title (not overlapping the badge),
+         and is pill-shaped so the is-interactive focus ring hugs the handle.
+         detail === 0 fires onToggle only for synthetic clicks (screen readers +
+         Enter/Space); real pointer taps toggle via the header's drag/tap. */}
+      <div className='flex justify-center pt-1 pb-1'>
+        <button
+          ref={grabberRef}
+          type='button'
+          aria-expanded={isOpen}
+          aria-controls='cart-drawer-body'
+          aria-label={isOpen ? 'Close cart' : 'Open cart'}
+          className='is-interactive flex cursor-grab appearance-none items-center justify-center rounded-full bg-transparent px-3 py-1 active:cursor-grabbing'
+          onClick={(e) => {
+            if (e.detail === 0) onToggle()
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              onToggle()
+            }
+          }}
+        >
+          <span
+            aria-hidden='true'
+            className='h-1.5 w-9 rounded-full bg-subtle'
+          />
+        </button>
       </div>
-      {/* detail === 0 fires onToggle only for synthetic clicks (screen
-         readers + Enter/Space), not real pointer clicks on the drag pill. */}
-      <button
-        ref={grabberRef}
-        type='button'
-        aria-expanded={isOpen}
-        aria-controls='cart-drawer-body'
-        aria-label={isOpen ? 'Close cart' : 'Open cart'}
-        className='absolute top-0 left-1/2 size-11 -translate-x-1/2 cursor-grab appearance-none rounded-full bg-transparent text-transparent outline-offset-2 focus:outline-none focus-visible:text-strong focus-visible:outline-2 focus-visible:outline-current'
-        onClick={(e) => {
-          if (e.detail === 0) onToggle()
-        }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            onToggle()
-          }
-        }}
-      />
 
       <m.div className='relative' style={{ height: titleAreaHeight }}>
         <m.div
+          // inert when closed so the hidden close button isn't a phantom tab
+          // stop between the handle and the footer actions.
+          inert={!isOpen}
           className='absolute top-0 left-4'
           style={{
             opacity: closeOpacity,
@@ -120,7 +132,7 @@ export function CartDrawerHeader({
         </m.div>
 
         <m.div
-          className='absolute left-1/2 -translate-x-1/2'
+          className='absolute left-1/2 flex h-8 -translate-x-1/2 items-center'
           style={{ top: badgeTop }}
         >
           <CartUrgencyBadge
@@ -128,6 +140,7 @@ export function CartDrawerHeader({
             expiresAtUtc={expiresAtUtc}
             progress={isOpen ? 1 : 0}
             bounce={bounce}
+            className='is-interactive'
           />
         </m.div>
 
@@ -185,7 +198,7 @@ export function CartDrawerFooter({
 }: CartDrawerFooterProps) {
   const subtotalMaxHeight = useTransform(progress, [0, 1], [0, 50])
   const subtotalOpacity = useTransform(progress, [0, 1], [0, 1])
-  const feesMaxHeight = useTransform(progress, [0, 1], [0, 40])
+  const feesMaxHeight = useTransform(progress, [0, 1], [0, 64])
   const feesOpacity = useTransform(progress, [0.5, 1], [0, 1])
   const footerShadow = useTransform(
     progress,
@@ -199,18 +212,18 @@ export function CartDrawerFooter({
       onPointerDown={isOpen ? undefined : onPointerDown}
       className={cn(
         'shrink-0 bg-raised',
-        !isOpen && 'cursor-grab touch-none select-none active:cursor-grabbing'
+        !isOpen && 'cursor-pointer touch-none select-none'
       )}
       style={{ boxShadow: footerShadow }}
     >
-      <div className='px-4 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))]'>
+      <div className='px-4 pt-1 pb-[calc(0.75rem+env(safe-area-inset-bottom))]'>
         {/* maxHeight:0 when closed so it takes no layout space and doesn't
            pad the closed-state footer. */}
         <m.div
           className='overflow-hidden'
           style={{ maxHeight: subtotalMaxHeight, opacity: subtotalOpacity }}
         >
-          <div className='flex items-center justify-between gap-4 pb-2'>
+          <div className='flex items-center justify-between gap-4 pt-3 pb-1'>
             <span className='text-ui font-bold text-strong'>Subtotal</span>
             <NumberFlow
               value={cartTotal}
@@ -221,14 +234,18 @@ export function CartDrawerFooter({
           </div>
         </m.div>
 
-        <m.p
-          className='overflow-hidden pb-2 text-ui-meta text-subtle'
+        {/* Padding lives on the inner <p> so max-height:0 fully collapses the
+           line when closed (no residual gap above the buttons). */}
+        <m.div
+          className='overflow-hidden'
           style={{ maxHeight: feesMaxHeight, opacity: feesOpacity }}
         >
-          {bookingFees > 0
-            ? `Incl. ${formatCurrency(bookingFees, { locale, currency })} booking fees. Delivery and refund protection calculated at checkout`
-            : 'Includes booking fees. Delivery and refund protection calculated at checkout'}
-        </m.p>
+          <p className='pb-4 text-ui-meta text-subtle'>
+            {bookingFees > 0
+              ? `Incl. ${formatCurrency(bookingFees, { locale, currency })} booking fees. Delivery and refund protection calculated at checkout.`
+              : 'Includes booking fees. Delivery and refund protection calculated at checkout.'}
+          </p>
+        </m.div>
 
         {/* stopPropagation prevents drag. */}
         <div className='flex gap-3' onPointerDown={(e) => e.stopPropagation()}>

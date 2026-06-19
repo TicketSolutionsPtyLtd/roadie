@@ -1,6 +1,10 @@
 'use client'
 
-import { type UseQueryResult, useQuery } from '@tanstack/react-query'
+import {
+  type UseQueryResult,
+  keepPreviousData,
+  useQuery
+} from '@tanstack/react-query'
 
 import type { CartClient, CartDetails, CartSummary } from '../core'
 
@@ -17,7 +21,10 @@ export function useCartSummary(
   return useQuery({
     queryKey: ['roadieCartSummary', collectionId, refreshKey],
     queryFn: () => cart.getSummary(collectionId),
-    staleTime: 0
+    staleTime: 0,
+    // Keep showing the prior cart while a refreshKey bump refetches, so the
+    // summary/footer don't blank out (and the footer doesn't unmount) mid-add.
+    placeholderData: keepPreviousData
   })
 }
 
@@ -30,6 +37,7 @@ export function useCartDetails(
   return useQuery({
     queryKey: ['roadieCartDetails', collectionId, refreshKey],
     queryFn: () => cart.getDetails(collectionId),
-    staleTime: 0
+    staleTime: 0,
+    placeholderData: keepPreviousData
   })
 }

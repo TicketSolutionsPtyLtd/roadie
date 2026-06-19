@@ -4,6 +4,8 @@ import {
   currencyPrefix,
   formatCurrency,
   formatDayHeader,
+  formatDayShort,
+  formatEventSchedule,
   formatTime
 } from './format'
 
@@ -75,5 +77,69 @@ describe('formatDayHeader', () => {
       expect(out).toContain('15')
       expect(out).not.toContain('14')
     })
+  })
+})
+
+describe('formatDayShort', () => {
+  it('formats a key as a year-less short day', () => {
+    const out = formatDayShort('2026-10-04', { locale: 'en-AU' })
+    expect(out).toContain('4')
+    expect(out).toContain('Oct')
+    expect(out).not.toContain('2026')
+  })
+  it('returns the raw key when malformed', () => {
+    expect(formatDayShort('nope', { locale: 'en-AU' })).toBe('nope')
+  })
+})
+
+describe('formatEventSchedule', () => {
+  const opts = { locale: 'en-AU' }
+  // Local-naive ISO (no Z) so the local-time formatter is TZ-independent.
+
+  it('shows only the start time when there is no finish', () => {
+    expect(
+      formatEventSchedule(
+        { eventStartAtUtc: '2026-10-03T19:00:00', eventDateKey: '2026-10-03' },
+        opts
+      )
+    ).toBe('7pm')
+  })
+
+  it('shows start – finish for a same-day finish time', () => {
+    expect(
+      formatEventSchedule(
+        {
+          eventStartAtUtc: '2026-10-03T19:00:00',
+          eventEndAtUtc: '2026-10-03T23:00:00',
+          eventDateKey: '2026-10-03'
+        },
+        opts
+      )
+    ).toBe('7pm – 11pm')
+  })
+
+  it('adds the end date for a multi-day run', () => {
+    const out = formatEventSchedule(
+      {
+        eventStartAtUtc: '2026-10-03T18:30:00',
+        eventEndAtUtc: '2026-10-04T21:00:00',
+        eventDateKey: '2026-10-03',
+        eventEndDateKey: '2026-10-04'
+      },
+      opts
+    )
+    expect(out).toMatch(/^6:30pm – /)
+    expect(out).toContain('Oct')
+    expect(out).toContain('4')
+    expect(out).toMatch(/9pm$/)
+  })
+
+  it('returns null when the start is unparseable', () => {
+    expect(
+      formatEventSchedule(
+        { eventStartAtUtc: 'not-a-date', eventDateKey: 'x' },
+        opts
+      )
+    ).toBeNull()
   })
 })
