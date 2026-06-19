@@ -91,7 +91,7 @@ export function CartDrawerParityDemo() {
   }
 
   return (
-    <div className='grid gap-3'>
+    <div className='mb-8 grid gap-3'>
       {/* The tab sits outside the card; everything it affects lives inside, so
           it reads as "this card is the <skin> skin". */}
       <Tabs
