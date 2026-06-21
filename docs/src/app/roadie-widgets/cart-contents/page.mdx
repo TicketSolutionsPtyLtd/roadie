@@ -5,6 +5,7 @@ export const metadata = {
   status: 'beta'
 }
 
+import { CartContentsParityDemo } from '@/components/CartContentsParityDemo'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 # CartContents
@@ -22,65 +23,19 @@ the docked drawer stay visually identical over one shared core.
 
 ## Live demo
 
-The way a `/cart` page would use it — in a normal page column, no overlay.
-Scroll the list to see the sticky day headers, remove an event (it animates
-out), and toggle the footer to show `hideFooter`. Runs on a canned cart.
+The way a `/cart` page would use it — in a normal page column, no overlay. The
+frame below is a fixed-height "page area" so you can see `fillHeight` work. Use
+the **React / Vue** tabs to compare the skins, and the toggles to test:
 
-```tsx-live-bleed-x-noinline
-function CartPage() {
-  const [cart, setCart] = useState(() => createDemoCart())
-  const [details, setDetails] = useState(null)
-  const [hideFooter, setHideFooter] = useState(false)
-  const [busy, setBusy] = useState(false)
+- **`fillHeight`** — on, the cart fills the frame: the footer pins to the bottom
+  for a short cart and the empty state centres. Off, the cart sits at its natural
+  height, top-aligned.
+- **`hideFooter`** — drop the Total / Checkout footer.
+- **Add event / Empty cart / Reset** — change the cart length, or empty it to see
+  the last event animate out and the empty state animate in. Per-event removal
+  (the trash icon) animates too. Runs on a canned cart.
 
-  // Host owns fetching — refetch whenever the cart instance changes.
-  useEffect(() => {
-    cart.getDetails('demo-collection').then(setDetails)
-  }, [cart])
-
-  async function removeEvent(eventId) {
-    setBusy(true)
-    try {
-      await cart.removeItem(details?.cartId ?? '', eventId)
-      setDetails(await cart.getDetails('demo-collection'))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return (
-    <div className='grid gap-3'>
-      <div className='flex flex-wrap gap-2 px-4 sm:px-6'>
-        <Button onClick={() => setHideFooter((v) => !v)}>
-          {hideFooter ? 'Show footer' : 'Hide footer'}
-        </Button>
-        <Button emphasis='subtle' onClick={() => setCart(createDemoCart())}>
-          Reset
-        </Button>
-      </div>
-      {/* px-4 stays so the day headers full-bleed to the edge instead of
-          overflowing; no border/inset padding — the cart sits flush. */}
-      <div className='max-h-[28rem] overflow-y-auto px-4'>
-        {details && (
-          <CartContents
-            cart={details}
-            onNavigate={(href) => window.alert('Navigate to: ' + href)}
-            browseHref='/events'
-            checkoutUrl={cart.checkoutUrl(details)}
-            locale='en-AU'
-            currency='AUD'
-            hideFooter={hideFooter}
-            onRemoveEvent={removeEvent}
-            busy={busy}
-          />
-        )}
-      </div>
-    </div>
-  )
-}
-
-render(<CartPage />)
-```
+<CartContentsParityDemo />
 
 ## Installation
 
@@ -151,6 +106,15 @@ const details = await cart.getDetails(collectionId)
 />
 ```
 
+- **`fillHeight`** — for a full `/cart`-style page. The root becomes a
+  fill-height column so it fills whatever height its container provides: the
+  footer pins to the bottom for short carts (no scroll overflow needed) and the
+  empty state centres. Render it as just
+  `<div className="min-h-full"><CartContents fillHeight … /></div>` — no external
+  `flex-1`, `mt-auto`, or conditional `justify-center`. Leave it unset inside the
+  drawer, which sizes its own panel. Composes with `stickyFooter`: `mt-auto`
+  covers short carts, `stickyFooter` keeps the footer pinned while a long cart
+  scrolls.
 - **`hideFooter`** — drop the Total / fees / Checkout footer (e.g. when your
   page renders its own order summary).
 - **`stickyFooter`** — pin the footer to the bottom of the nearest scrolling
@@ -159,7 +123,9 @@ const details = await cart.getDetails(collectionId)
   trash triggers while a remove is in flight.
 
 When `cart` has no tickets, CartContents renders the empty state with the
-`browseHref` call to action.
+`browseHref` call to action. Removing the last event animates the list out and
+the empty state in (one shared presence tree), and under `fillHeight` the empty
+state fills and centres in the column.
 
 ## Props
 

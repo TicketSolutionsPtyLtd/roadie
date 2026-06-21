@@ -29,6 +29,13 @@ export type CartContentsProps = {
   className?: string
   /** Pin the footer to the bottom of the nearest scrolling ancestor. */
   stickyFooter?: boolean
+  /**
+   * For standalone `/cart`-style pages: make the root a fill-height column so
+   * it fills the height the consumer's container provides. The footer pins to
+   * the bottom for short carts (via `mt-auto`) and the empty state centres.
+   * Leave unset (the default) inside the drawer, which sizes its own panel.
+   */
+  fillHeight?: boolean
   /** Skip the Total / fees / Checkout footer. */
   hideFooter?: boolean
   /** Optional per-event remove handler. Receives the `eventId`. */
@@ -46,6 +53,7 @@ export function CartContents({
   currency,
   className,
   stickyFooter = false,
+  fillHeight = false,
   hideFooter = false,
   onRemoveEvent,
   busy = false
@@ -55,9 +63,7 @@ export function CartContents({
       sum + event.tickets.reduce((tSum, t) => tSum + t.quantity, 0),
     0
   )
-  if (ticketCount === 0) {
-    return <CartEmptyState browseHref={browseHref} onNavigate={onNavigate} />
-  }
+  const isEmpty = ticketCount === 0
 
   const dayGroups = groupEventsByDay(cart.events)
   const totalBookingFees = cart.events.reduce(
@@ -74,75 +80,108 @@ export function CartContents({
          CartEventGroup) resolve standalone, exactly as they do inside the
          drawer body's @container. `isolate` keeps the sticky day headers'
          z-index contained to the cart — without it they paint over app
-         content (the drawer gets this for free from its fixed z-modal panel). */}
-      <div className={cn('@container isolate', className ?? 'grid gap-5')}>
-        {/* Once the container is wide (@xl ≈ 576px) the list stops going
-         edge-to-edge: it centres at a readable max width and the day headers
-         pick up rounded corners (see @xl utilities below). */}
-        <div className='grid gap-5 @xl:mx-auto @xl:w-full @xl:max-w-lg'>
-          {/* initial={false} → only removals animate, no unfurl on open. exit's
-           overflow is applied only on exit so the sticky header isn't trapped
-           in a scroll container while scrolling. */}
-          <AnimatePresence initial={false}>
-            {dayGroups.map((group) => (
-              <m.section
-                key={group.key}
-                exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
-                transition={{ duration: 0.25, ease: 'easeInOut' }}
-                // Full-bleed lives on the section (not the header via -mx-4) so
-                // the exit's overflow:hidden clips vertically without shearing
-                // off the header's left/right bleed. At @xl the column is
-                // constrained, so the bleed is dropped and the header rounds.
-                className='-mx-4 grid gap-4 @xl:mx-0'
-              >
-                <div className='sticky top-0 z-sticky emphasis-strong px-4 py-2.5 @xl:rounded-xl'>
-                  <div className='flex items-center gap-2'>
-                    <CalendarBlankIcon
-                      weight='bold'
-                      className='size-4 shrink-0'
-                    />
-                    <p className='text-ui-meta font-bold'>
-                      {formatDayHeader(group.key, { locale })}
-                    </p>
-                  </div>
-                </div>
-
-                <div className='grid gap-4 px-4'>
-                  <AnimatePresence initial={false}>
-                    {group.events.map((event, index) => (
-                      <m.div
-                        key={event.eventId}
-                        exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
-                        transition={{ duration: 0.25, ease: 'easeInOut' }}
-                        className='grid gap-4'
-                      >
-                        {index > 0 && (
-                          <div className='pl-6'>
-                            <Separator />
-                          </div>
-                        )}
-                        <CartEventGroup
-                          event={event}
-                          locale={locale}
-                          currency={currency}
-                          onRemoveEvent={onRemoveEvent}
-                          isRemoving={busy}
+         content (the drawer gets this for free from its fixed z-modal panel).
+         fillHeight swaps the default grid for a fill-height flex column. */}
+      <div
+        className={cn(
+          '@container isolate',
+          className ?? (fillHeight ? 'flex min-h-full flex-col' : 'grid gap-5')
+        )}
+      >
+        {/* One presence tree spans both states so removing the last event
+           animates the list out and the empty state in (mode='wait' →
+           sequential crossfade). initial={false} → no animation on first
+           mount. */}
+        <AnimatePresence mode='wait' initial={false}>
+          {isEmpty ? (
+            <m.div
+              key='empty'
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className={cn(fillHeight && 'grid flex-1 place-content-center')}
+            >
+              <CartEmptyState browseHref={browseHref} onNavigate={onNavigate} />
+            </m.div>
+          ) : (
+            <m.div
+              key='list'
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              // Once the container is wide (@xl ≈ 576px) the list stops going
+              // edge-to-edge: it centres at a readable max width and the day
+              // headers pick up rounded corners (see @xl utilities below).
+              className='grid gap-5 @xl:mx-auto @xl:w-full @xl:max-w-lg'
+            >
+              {/* Per-event removal. exit's overflow is applied only on exit so
+                 the sticky header isn't trapped in a scroll container while
+                 scrolling. */}
+              <AnimatePresence initial={false}>
+                {dayGroups.map((group) => (
+                  <m.section
+                    key={group.key}
+                    exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
+                    transition={{ duration: 0.25, ease: 'easeInOut' }}
+                    // Full-bleed lives on the section (not the header via -mx-4)
+                    // so the exit's overflow:hidden clips vertically without
+                    // shearing off the header's bleed. At @xl the column is
+                    // constrained, so the bleed is dropped and the header rounds.
+                    className='-mx-4 grid gap-4 @xl:mx-0'
+                  >
+                    <div className='sticky top-0 z-sticky emphasis-strong px-4 py-2.5 @xl:rounded-xl'>
+                      <div className='flex items-center gap-2'>
+                        <CalendarBlankIcon
+                          weight='bold'
+                          className='size-4 shrink-0'
                         />
-                      </m.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
-              </m.section>
-            ))}
-          </AnimatePresence>
-        </div>
+                        <p className='text-ui-meta font-bold'>
+                          {formatDayHeader(group.key, { locale })}
+                        </p>
+                      </div>
+                    </div>
 
-        {!hideFooter && (
+                    <div className='grid gap-4 px-4'>
+                      <AnimatePresence initial={false}>
+                        {group.events.map((event, index) => (
+                          <m.div
+                            key={event.eventId}
+                            exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
+                            transition={{ duration: 0.25, ease: 'easeInOut' }}
+                            className='grid gap-4'
+                          >
+                            {index > 0 && (
+                              <div className='pl-6'>
+                                <Separator />
+                              </div>
+                            )}
+                            <CartEventGroup
+                              event={event}
+                              locale={locale}
+                              currency={currency}
+                              onRemoveEvent={onRemoveEvent}
+                              isRemoving={busy}
+                            />
+                          </m.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  </m.section>
+                ))}
+              </AnimatePresence>
+            </m.div>
+          )}
+        </AnimatePresence>
+
+        {!isEmpty && !hideFooter && (
           // The footer band stays full-bleed; only its content tracks the same
-          // @xl max-width column as the list above so they stay aligned.
+          // @xl max-width column as the list above so they stay aligned. Under
+          // fillHeight, mt-auto pins it to the bottom for short carts;
+          // stickyFooter additionally keeps it pinned while a long cart scrolls.
           <div
             className={cn(
               'border-t border-subtle pt-4',
+              fillHeight && 'mt-auto',
               stickyFooter &&
                 'sticky bottom-0 bg-raised pb-[env(safe-area-inset-bottom)]'
             )}

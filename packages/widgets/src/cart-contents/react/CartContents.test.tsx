@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { CartDetails, CartEvent } from '../../cart'
@@ -108,5 +108,83 @@ describe('CartContents', () => {
       />
     )
     expect(screen.getByRole('button', { name: /checkout/i })).toBeDisabled()
+  })
+
+  it('fills height and pins the footer to the bottom under fillHeight (short cart)', () => {
+    const { container } = render(
+      <CartContents
+        fillHeight
+        cart={details([ev({})])}
+        onNavigate={vi.fn()}
+        browseHref='/events'
+        checkoutUrl='/outlet/extras/c1'
+        locale='en-AU'
+        currency='AUD'
+      />
+    )
+    const root = container.firstElementChild as HTMLElement
+    expect(root.className).toMatch(/\bflex\b/)
+    expect(root.className).toMatch(/min-h-full/)
+    expect(root.className).toMatch(/flex-col/)
+    // Footer pins to the bottom via mt-auto so a short cart's footer sits low
+    // without needing scroll overflow.
+    const footer = screen.getByText('Subtotal').closest('.border-t')
+    expect(footer?.className).toMatch(/mt-auto/)
+  })
+
+  it('centres the empty state under fillHeight', () => {
+    const { container } = render(
+      <CartContents
+        fillHeight
+        cart={details([])}
+        onNavigate={vi.fn()}
+        browseHref='/events'
+        checkoutUrl={null}
+        locale='en-AU'
+        currency='AUD'
+      />
+    )
+    const centered = container.querySelector('.place-content-center')
+    expect(centered).not.toBeNull()
+    expect(
+      within(centered as HTMLElement).getByText(/your cart is empty/i)
+    ).toBeInTheDocument()
+  })
+
+  it('does not fill or centre without fillHeight (drawer-compatible default)', () => {
+    const { container } = render(
+      <CartContents
+        cart={details([])}
+        onNavigate={vi.fn()}
+        browseHref='/events'
+        checkoutUrl={null}
+        locale='en-AU'
+        currency='AUD'
+      />
+    )
+    const root = container.firstElementChild as HTMLElement
+    expect(root.className).toMatch(/grid gap-5/)
+    expect(container.querySelector('.place-content-center')).toBeNull()
+  })
+
+  it('transitions from the last item to the empty state (single presence tree)', async () => {
+    const props = {
+      onNavigate: vi.fn(),
+      browseHref: '/events',
+      checkoutUrl: '/outlet/extras/c1',
+      locale: 'en-AU',
+      currency: 'AUD',
+      onRemoveEvent: vi.fn()
+    }
+    const { rerender } = render(
+      <CartContents cart={details([ev({})])} {...props} />
+    )
+    expect(
+      screen.getByRole('button', { name: /checkout/i })
+    ).toBeInTheDocument()
+    // Removing the last event empties the cart — the empty state is reached
+    // through the same AnimatePresence instead of a short-circuit return.
+    rerender(<CartContents cart={details([])} {...props} />)
+    expect(await screen.findByText(/your cart is empty/i)).toBeInTheDocument()
   })
 })

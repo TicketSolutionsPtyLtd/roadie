@@ -111,4 +111,55 @@ describe('CartContents', () => {
     })
     expect((getByText('Checkout') as HTMLButtonElement).disabled).toBe(true)
   })
+
+  it('fills height and pins the footer to the bottom under fillHeight', () => {
+    const { container, getByText } = render(CartContents, {
+      props: {
+        cart: makeDetails(),
+        onNavigate: vi.fn(),
+        browseHref: '/events',
+        checkoutUrl: '/outlet/extras/c1',
+        locale: 'en-AU',
+        currency: 'AUD',
+        fillHeight: true
+      }
+    })
+    // The test env stubs <Transition>, so reach the list root by class.
+    const root = container.querySelector('[class*="flex-col"]') as HTMLElement
+    expect(root).not.toBeNull()
+    expect(root.className).toMatch(/\bflex\b/)
+    expect(root.className).toMatch(/min-h-full/)
+    const footer = getByText('Subtotal').closest('.border-t')
+    expect(footer?.className).toMatch(/mt-auto/)
+  })
+
+  it('centres the empty state under fillHeight', () => {
+    const { container, getByText } = render(CartContents, {
+      props: {
+        cart: makeDetails({ events: [], cartTotal: 0 }),
+        onNavigate: vi.fn(),
+        browseHref: '/events',
+        checkoutUrl: null,
+        locale: 'en-AU',
+        currency: 'AUD',
+        fillHeight: true
+      }
+    })
+    expect(container.querySelector('.place-content-center')).not.toBeNull()
+    expect(getByText('Your cart is empty')).toBeTruthy()
+  })
+
+  it('does not centre the empty state without fillHeight (drawer-compatible default)', () => {
+    const { container } = render(CartContents, {
+      props: {
+        cart: makeDetails({ events: [], cartTotal: 0 }),
+        onNavigate: vi.fn(),
+        browseHref: '/events',
+        checkoutUrl: null,
+        locale: 'en-AU',
+        currency: 'AUD'
+      }
+    })
+    expect(container.querySelector('.place-content-center')).toBeNull()
+  })
 })
