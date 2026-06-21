@@ -40,6 +40,19 @@ Each skin declares its own peer dependencies (React + react-query + motion, or
 Vue + its NumberFlow/Phosphor packages) so you only install what your framework
 needs. See each widget's page for the exact list.
 
+Then register the widget classes with Tailwind — one import, next to the core
+import in your global stylesheet:
+
+```css
+/* app/globals.css */
+@import '@oztix/roadie-core/css';
+@import '@oztix/roadie-widgets/css';
+```
+
+`@oztix/roadie-widgets/css` ships its own `@source` pointing at the package's
+`dist`, so Tailwind scans the compiled widget classes without you ever writing a
+`node_modules` path. Without it, the widgets render unstyled.
+
 ## Available widgets
 
 - [**Cart drawer**](/roadie-widgets/cart-drawer) — the shared docked cart for

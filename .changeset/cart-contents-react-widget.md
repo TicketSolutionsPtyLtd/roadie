@@ -27,6 +27,11 @@ cart core to its own entry.
   both widgets depend on it. `@oztix/roadie-widgets/cart-drawer/core` still
   works as a **deprecated** re-export (removed in the next major).
 
+- **New `@oztix/roadie-widgets/css`** — a Tailwind source-registration entry.
+  Add `@import '@oztix/roadie-widgets/css'` next to `@oztix/roadie-core/css` and
+  Tailwind scans the compiled widget classes automatically; it ships its own
+  `@source` so consumers no longer hand-write a `node_modules` path.
+
 Additive and backward-compatible: existing `cart-drawer/*` entries are
 unchanged. CartContents has lighter peers than the full drawer (no
 `@tanstack/react-query`, no `react-focus-lock`).

@@ -1,0 +1,12 @@
+/* Roadie components — Tailwind source registration.
+ *
+ * Import this once alongside `@oztix/roadie-core/css` so Tailwind scans the
+ * compiled component classes (Button, Card, Select, etc). Those class strings
+ * only exist in this package's `dist`, and Tailwind ignores `node_modules` by
+ * default, so without this they'd never make it into your CSS.
+ *
+ * The path is relative to this file (src/css → ../../dist), so it resolves
+ * correctly from inside node_modules — consumers never write a node_modules
+ * path themselves.
+ */
+@source '../../dist';

@@ -18,7 +18,8 @@
   "module": "./dist/cart-drawer/core/index.js",
   "types": "./dist/cart-drawer/core/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "src/css"
   ],
   "sideEffects": [
     "**/*.css"
@@ -27,6 +28,10 @@
     "access": "public"
   },
   "exports": {
+    "./css": {
+      "style": "./src/css/widgets.css",
+      "default": "./src/css/widgets.css"
+    },
     "./cart": {
       "types": "./dist/cart/index.d.ts",
       "import": "./dist/cart/index.js"
@@ -56,7 +61,7 @@
     "build": "tsdown && pnpm check:dts && pnpm check:exports",
     "build:quiet": "tsdown --log-level warn",
     "check:dts": "node scripts/check-dts.mjs",
-    "check:exports": "attw --pack . --profile esm-only",
+    "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css",
     "clean": "rm -rf node_modules dist",
     "dev": "tsdown --watch --log-level warn",
     "test": "vitest run",

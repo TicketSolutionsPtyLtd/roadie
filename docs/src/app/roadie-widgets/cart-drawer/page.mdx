@@ -52,6 +52,22 @@ pnpm add react react-dom @oztix/roadie-components @tanstack/react-query motion \
 pnpm add vue motion @number-flow/vue @phosphor-icons/vue focus-trap
 ```
 
+### Tailwind setup
+
+The drawer's classes live in the package's compiled output, so Tailwind needs to
+scan it — otherwise the styles never make it into your CSS. Add one import to
+your global stylesheet, next to the core import:
+
+```css
+/* app/globals.css */
+@import '@oztix/roadie-core/css';
+@import '@oztix/roadie-widgets/css';
+```
+
+`@oztix/roadie-widgets/css` ships its own `@source` pointing at the package's
+`dist`, so you never write a brittle `node_modules` path yourself. One line
+covers every widget.
+
 ## Import
 
 ```tsx

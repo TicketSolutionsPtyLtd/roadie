@@ -26,7 +26,7 @@ The way a `/cart` page would use it — in a normal page column, no overlay.
 Scroll the list to see the sticky day headers, remove an event (it animates
 out), and toggle the footer to show `hideFooter`. Runs on a canned cart.
 
-```tsx-live-noinline
+```tsx-live-bleed-x-noinline
 function CartPage() {
   const [cart, setCart] = useState(() => createDemoCart())
   const [details, setDetails] = useState(null)
@@ -50,7 +50,7 @@ function CartPage() {
 
   return (
     <div className='grid gap-3'>
-      <div className='flex flex-wrap gap-2'>
+      <div className='flex flex-wrap gap-2 px-4 sm:px-6'>
         <Button onClick={() => setHideFooter((v) => !v)}>
           {hideFooter ? 'Show footer' : 'Hide footer'}
         </Button>
@@ -58,7 +58,9 @@ function CartPage() {
           Reset
         </Button>
       </div>
-      <div className='max-h-[28rem] overflow-y-auto rounded-xl border border-subtle px-4 py-4'>
+      {/* px-4 stays so the day headers full-bleed to the edge instead of
+          overflowing; no border/inset padding — the cart sits flush. */}
+      <div className='max-h-[28rem] overflow-y-auto px-4'>
         {details && (
           <CartContents
             cart={details}
@@ -92,6 +94,22 @@ react-query, no focus-trap):
 ```bash
 pnpm add react react-dom @oztix/roadie-components motion @phosphor-icons/react
 ```
+
+### Tailwind setup
+
+CartContents' classes live in the package's compiled output, so Tailwind needs
+to scan it — otherwise the styles never make it into your CSS. Add one import to
+your global stylesheet, next to the core import:
+
+```css
+/* app/globals.css */
+@import '@oztix/roadie-core/css';
+@import '@oztix/roadie-widgets/css';
+```
+
+`@oztix/roadie-widgets/css` ships its own `@source` pointing at the package's
+`dist`, so you never write a brittle `node_modules` path yourself. One line
+covers every widget (cart contents and cart drawer).
 
 ## Import
 

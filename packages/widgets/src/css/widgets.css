@@ -1,0 +1,17 @@
+/* Roadie widgets — Tailwind source registration.
+ *
+ * Import this once alongside `@oztix/roadie-core/css` so Tailwind scans the
+ * compiled widget classes (cart drawer / cart contents drag handles, sheets,
+ * intents, container-query variants, etc). Those class strings only exist in
+ * this package's `dist`, so without this they'd never make it into your CSS.
+ *
+ * The React skins render `@oztix/roadie-components` (Button, Popover, …), whose
+ * class strings live in *that* package's dist — so pull in its source
+ * registration too. One widgets import then covers everything a widget renders.
+ */
+@import '@oztix/roadie-components/css';
+
+/* The path is relative to this file (src/css → ../../dist), so it resolves
+ * correctly from inside node_modules — consumers never write a node_modules
+ * path themselves. */
+@source '../../dist';
