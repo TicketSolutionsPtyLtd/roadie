@@ -26,8 +26,10 @@ event data, and Vue parity. All changes are additive and backward-compatible.
   internal components, so the page and drawer keep identical spacing.
 - A `removingEventId` prop drives a per-event loading state: set it for the
   duration of your async remove and the list dims with a danger **Removing…**
-  overlay on that event until it leaves the cart. The `page` container also uses
-  the larger (`md`) empty-state size; `drawer` keeps the compact (`sm`) one.
+  overlay (a blurred, header-aligned panel over that event) until it leaves the
+  cart. `CartDrawer` wires this through its own remove flow, replacing the old
+  centre spinner. The `page` container also uses the larger (`md`) empty-state
+  size; `drawer` keeps the compact (`sm`) one.
 
 **CartDrawer**
 

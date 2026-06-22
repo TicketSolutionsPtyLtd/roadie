@@ -529,7 +529,7 @@ describe('CartDrawer (Vue)', () => {
     expect(drawer.getAttribute('role')).toBe('dialog')
   })
 
-  it('locks the cart (aria-busy + spinner) while the remove is in flight', async () => {
+  it('locks the cart (aria-busy + Removing… overlay) while the remove is in flight', async () => {
     let resolveRemove: (() => void) | undefined
     const cart = mockCart({
       removeItem: vi.fn(
@@ -539,9 +539,10 @@ describe('CartDrawer (Vue)', () => {
           })
       )
     })
-    const { container, findByLabelText, findByText } = render(CartDrawer, {
-      props: { ...baseProps, cart, onNavigate: vi.fn() }
-    })
+    const { container, findByLabelText, findByText, queryByText } = render(
+      CartDrawer,
+      { props: { ...baseProps, cart, onNavigate: vi.fn() } }
+    )
     await flushPromises()
 
     const body = container.querySelector('#cart-drawer-body')!
@@ -552,17 +553,13 @@ describe('CartDrawer (Vue)', () => {
     await nextTick()
 
     expect(body.getAttribute('aria-busy')).toBe('true')
-    expect(
-      container.querySelector('[data-testid="cart-remove-spinner"]')
-    ).not.toBeNull()
+    expect(queryByText('Removing…')).not.toBeNull()
 
     resolveRemove?.()
     await flushPromises()
     await nextTick()
     expect(body.getAttribute('aria-busy')).toBe('false')
-    expect(
-      container.querySelector('[data-testid="cart-remove-spinner"]')
-    ).toBeNull()
+    expect(queryByText('Removing…')).toBeNull()
   })
 
   it('on a failed remove keeps the rows, unlocks, and surfaces the error', async () => {

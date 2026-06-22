@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { PhCircleNotch } from '@phosphor-icons/vue'
 import { type AnimationPlaybackControls, animate } from 'motion'
 import {
   type ComponentPublicInstance,
@@ -347,10 +346,12 @@ function handleBrowse() {
 }
 
 const removing = ref(false)
+const removingEventId = ref<string | null>(null)
 const removeError = ref<string | null>(null)
 async function handleRemoveEvent(eventId: string) {
   if (removing.value || !details.value) return
   removing.value = true
+  removingEventId.value = eventId
   removeError.value = null
   try {
     await props.cart.removeItem(details.value.cartId, eventId)
@@ -360,6 +361,7 @@ async function handleRemoveEvent(eventId: string) {
       err instanceof Error ? err.message : 'Could not remove this event.'
   } finally {
     removing.value = false
+    removingEventId.value = null
   }
 }
 
@@ -428,7 +430,7 @@ const contentOpacity = computed(() =>
         <div
           id="cart-drawer-body"
           class="@container h-full overflow-y-auto px-4 pb-8 transition-opacity"
-          :class="{ 'pointer-events-none opacity-50': removing }"
+          :class="{ 'pointer-events-none': removing }"
           :aria-busy="removing"
           :inert="!isOpen"
         >
@@ -461,6 +463,7 @@ const contentOpacity = computed(() =>
               :locale="locale"
               :currency="currency"
               :busy="removing"
+              :removing-event-id="removingEventId"
               container="drawer"
               @remove-event="handleRemoveEvent"
             />
@@ -474,19 +477,6 @@ const contentOpacity = computed(() =>
             <div class="h-32 w-full animate-pulse rounded-xl bg-subtle" />
             <div class="h-32 w-full animate-pulse rounded-xl bg-subtle" />
           </div>
-        </div>
-
-        <div
-          v-if="removing"
-          class="pointer-events-none absolute inset-0 grid place-content-center"
-          aria-hidden="true"
-          data-testid="cart-remove-spinner"
-        >
-          <PhCircleNotch
-            weight="bold"
-            :class="'size-6 animate-spin text-subtle'"
-            aria-hidden="true"
-          />
         </div>
       </div>
 

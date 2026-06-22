@@ -121,7 +121,10 @@
 }
 
 @utility emphasis-overlay {
-  background-color: rgba(0, 0, 0, 0.5);
+  /* Fixed-dark so it stays a scrim in both themes (the intent scale flips
+     light/dark), tinted by the intent hue — neutral ≈ near-black, danger a
+     dark red, etc. */
+  background-color: oklch(0.1 0.04 var(--intent-hue) / 0.55);
   backdrop-filter: blur(8px);
   color: var(--intent-text-inverted);
 }

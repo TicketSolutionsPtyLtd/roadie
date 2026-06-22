@@ -167,7 +167,7 @@ onBeforeUnmount(() => {
     <div
       v-if="removing"
       role="status"
-      class="absolute inset-0 z-[1] grid place-content-center rounded-lg intent-danger emphasis-subtle"
+      class="absolute -inset-x-4 -inset-y-2 z-[1] grid place-content-center intent-danger emphasis-subtle backdrop-blur-sm @xl:rounded-xl"
     >
       <span class="flex items-center gap-2 text-ui-meta font-bold">
         <PhCircleNotch

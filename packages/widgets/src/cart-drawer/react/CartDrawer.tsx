@@ -10,7 +10,6 @@ import {
   useState
 } from 'react'
 
-import { CircleNotchIcon } from '@phosphor-icons/react'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   LazyMotion,
@@ -116,6 +115,7 @@ export function CartDrawer({
   } = useCartDetails(cart, collectionId, refreshKey)
 
   const [removeBusy, setRemoveBusy] = useState(false)
+  const [removingEventId, setRemovingEventId] = useState<string | null>(null)
   const [removeError, setRemoveError] = useState<string | null>(null)
   const [emptyClosed, setEmptyClosed] = useState(false)
 
@@ -264,6 +264,7 @@ export function CartDrawer({
     async (eventId: string) => {
       if (!details || removeBusy) return
       setRemoveBusy(true)
+      setRemovingEventId(eventId)
       setRemoveError(null)
       try {
         await cart.removeItem(details.cartId, eventId)
@@ -281,6 +282,7 @@ export function CartDrawer({
         )
       } finally {
         setRemoveBusy(false)
+        setRemovingEventId(null)
       }
     },
     [cart, details, collectionId, queryClient, removeBusy]
@@ -370,7 +372,7 @@ export function CartDrawer({
               className={cn(
                 // @container so ticket rows size against the drawer, not the viewport.
                 '@container h-full overflow-y-auto px-4 pb-8 transition-opacity',
-                removeBusy && 'pointer-events-none opacity-50'
+                removeBusy && 'pointer-events-none'
               )}
             >
               {removeError && (
@@ -406,6 +408,7 @@ export function CartDrawer({
                   container='drawer'
                   onRemoveEvent={removeEvent}
                   busy={removeBusy}
+                  removingEventId={removingEventId}
                 />
               ) : detailsLoading ? (
                 <div className='grid gap-4' data-testid='cart-drawer-loading'>
@@ -415,18 +418,6 @@ export function CartDrawer({
                 </div>
               ) : null}
             </div>
-
-            {removeBusy && (
-              <div
-                aria-hidden='true'
-                className='pointer-events-none absolute inset-0 grid place-content-center'
-              >
-                <CircleNotchIcon
-                  weight='bold'
-                  className='size-6 animate-spin text-subtle'
-                />
-              </div>
-            )}
           </m.div>
 
           {!isEmpty && (
