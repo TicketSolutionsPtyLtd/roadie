@@ -3,6 +3,7 @@
 import { useState } from 'react'
 
 import {
+  CircleNotchIcon,
   ClockIcon,
   MapPinIcon,
   SeatIcon,
@@ -11,6 +12,7 @@ import {
 } from '@phosphor-icons/react'
 
 import { Badge, Button, IconButton, Popover } from '@oztix/roadie-components'
+import { cn } from '@oztix/roadie-core/utils'
 
 import {
   type CartEvent,
@@ -26,6 +28,7 @@ type CartEventGroupProps = {
   currency: string
   onRemoveEvent?: (eventId: string) => void
   isRemoving?: boolean
+  removing?: boolean
 }
 
 export function CartEventGroup({
@@ -33,7 +36,8 @@ export function CartEventGroup({
   locale,
   currency,
   onRemoveEvent,
-  isRemoving = false
+  isRemoving = false,
+  removing = false
 }: CartEventGroupProps) {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const timeLabel =
@@ -42,7 +46,27 @@ export function CartEventGroup({
   const safeImageUrl = isSafeImageUrl(event.imageUrl) ? event.imageUrl : null
 
   return (
-    <div className='grid gap-3'>
+    <div
+      className={cn(
+        'relative grid gap-3 transition-opacity',
+        isRemoving && !removing && 'opacity-50'
+      )}
+    >
+      {removing && (
+        <div
+          role='status'
+          className='absolute inset-0 z-[1] grid place-content-center rounded-lg emphasis-subtle intent-danger'
+        >
+          <span className='flex items-center gap-2 text-ui-meta font-bold'>
+            <CircleNotchIcon
+              weight='bold'
+              className='size-4 animate-spin'
+              aria-hidden='true'
+            />
+            Removing…
+          </span>
+        </div>
+      )}
       <div className='flex items-start gap-1'>
         <div className='flex min-w-0 flex-1 flex-col gap-2'>
           {timeLabel && (

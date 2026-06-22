@@ -30,6 +30,10 @@ export type CartContentsProps = {
   onRemoveEvent?: (eventId: string) => void
   /** True while a remove is in flight — disables the trash triggers. */
   busy?: boolean
+  /** Event currently being removed. Dims the list and shows a "Removing…"
+   * overlay on that event until it leaves `cart`. Set it for the duration of
+   * your async remove. */
+  removingEventId?: string | null
 }
 
 export function CartContents({
@@ -42,7 +46,8 @@ export function CartContents({
   className,
   container = 'drawer',
   onRemoveEvent,
-  busy = false
+  busy = false,
+  removingEventId = null
 }: CartContentsProps) {
   const isPage = container === 'page'
   const ticketCount = cart.events.reduce(
@@ -95,7 +100,11 @@ export function CartContents({
               transition={{ duration: 0.2 }}
               className={cn(isPage && 'grid flex-1 place-content-center')}
             >
-              <CartEmptyState browseHref={browseHref} onNavigate={onNavigate} />
+              <CartEmptyState
+                browseHref={browseHref}
+                onNavigate={onNavigate}
+                size={isPage ? 'md' : 'sm'}
+              />
             </m.div>
           ) : (
             <m.div
@@ -144,7 +153,8 @@ export function CartContents({
                               locale={locale}
                               currency={currency}
                               onRemoveEvent={onRemoveEvent}
-                              isRemoving={busy}
+                              isRemoving={busy || removingEventId !== null}
+                              removing={removingEventId === event.eventId}
                             />
                           </m.div>
                         ))}

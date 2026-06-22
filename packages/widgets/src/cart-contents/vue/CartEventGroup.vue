@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+  PhCircleNotch,
   PhClock,
   PhMapPin,
   PhSeat,
@@ -24,6 +25,8 @@ const props = defineProps<{
   currency: string
   /** True while a cart-wide remove is in flight. */
   busy?: boolean
+  /** True when this event is the one being removed (shows the overlay). */
+  removing?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -157,7 +160,24 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="grid gap-3">
+  <div
+    class="relative grid gap-3 transition-opacity"
+    :class="{ 'opacity-50': busy && !removing }"
+  >
+    <div
+      v-if="removing"
+      role="status"
+      class="absolute inset-0 z-[1] grid place-content-center rounded-lg intent-danger emphasis-subtle"
+    >
+      <span class="flex items-center gap-2 text-ui-meta font-bold">
+        <PhCircleNotch
+          weight="bold"
+          class="size-4 animate-spin"
+          aria-hidden="true"
+        />
+        Removing…
+      </span>
+    </div>
     <div class="flex items-start gap-1">
       <div class="flex min-w-0 flex-1 flex-col gap-2">
         <div

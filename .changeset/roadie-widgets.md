@@ -24,6 +24,10 @@ event data, and Vue parity. All changes are additive and backward-compatible.
 - Removing the last event animates (list crossfades to the empty state through
   one presence tree). The footer (`CartFooter`) and `CartUrgencyBadge` are shared
   internal components, so the page and drawer keep identical spacing.
+- A `removingEventId` prop drives a per-event loading state: set it for the
+  duration of your async remove and the list dims with a danger **Removing…**
+  overlay on that event until it leaves the cart. The `page` container also uses
+  the larger (`md`) empty-state size; `drawer` keeps the compact (`sm`) one.
 
 **CartDrawer**
 

@@ -18,8 +18,9 @@ const props = withDefaults(
     currency: string
     container?: 'drawer' | 'page'
     busy?: boolean
+    removingEventId?: string | null
   }>(),
-  { container: 'drawer' }
+  { container: 'drawer', removingEventId: null }
 )
 
 const emit = defineEmits<{
@@ -104,7 +105,11 @@ function onLeave(el: Element, done: () => void) {
         key="empty"
         :class="isPage && 'grid flex-1 place-content-center'"
       >
-        <CartEmptyState :browse-href="browseHref" :on-navigate="onNavigate" />
+        <CartEmptyState
+          :browse-href="browseHref"
+          :on-navigate="onNavigate"
+          :size="isPage ? 'md' : 'sm'"
+        />
       </div>
       <TransitionGroup
         v-else
@@ -155,7 +160,8 @@ function onLeave(el: Element, done: () => void) {
                 :event="event"
                 :locale="locale"
                 :currency="currency"
-                :busy="busy"
+                :busy="busy || removingEventId !== null"
+                :removing="removingEventId === event.eventId"
                 @remove-event="emit('removeEvent', $event)"
               />
             </div>

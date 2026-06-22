@@ -20,6 +20,7 @@ export type VueCartContentsProps = {
   currency: string
   container?: 'drawer' | 'page'
   busy?: boolean
+  removingEventId?: string | null
   onRemoveEvent?: (eventId: string) => void
 }
 

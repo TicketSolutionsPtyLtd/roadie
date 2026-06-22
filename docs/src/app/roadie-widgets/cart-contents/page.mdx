@@ -139,10 +139,34 @@ const details = await cart.getDetails(collectionId)
   `mt-auto`, or `justify-center` needed.
 - **`onRemoveEvent` / `busy`** — wire per-event removal; `busy` disables the
   trash triggers while a remove is in flight.
+- **`removingEventId`** — set it to the event you're deleting for the duration of
+  your async remove. CartContents dims the whole list and shows a danger
+  **Removing…** overlay on that event until it leaves `cart`. Pair it with your
+  remove handler:
+
+  ```tsx
+  const [removingId, setRemovingId] = useState<string | null>(null)
+
+  async function remove(eventId: string) {
+    setRemovingId(eventId)
+    try {
+      await cart.removeItem(details.cartId, eventId)
+      await refetch() // updated cart no longer contains the event
+    } finally {
+      setRemovingId(null)
+    }
+  }
+
+  // <CartContents … onRemoveEvent={remove} removingEventId={removingId} />
+  ```
+
+  Vue is identical — bind `:removing-event-id="removingId"` and handle
+  `@remove-event`.
 
 When `cart` has no tickets, CartContents renders the empty state with the
-`browseHref` call to action (centred under `container="page"`). Removing the last
-event animates the list out and the empty state in.
+`browseHref` call to action. Under `container="page"` it's centred and uses the
+larger (`md`) empty-state size; the `drawer` preset uses the compact (`sm`) size.
+Removing the last event animates the list out and the empty state in.
 
 ## Props
 

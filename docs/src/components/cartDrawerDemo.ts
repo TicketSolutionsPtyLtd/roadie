@@ -265,6 +265,8 @@ export function createDemoCart(): DemoCartClient {
     }),
     checkoutUrl: (details) => details.extrasUrl,
     removeItem: async (_cartId, eventId) => {
+      // Simulate a network round-trip so the "Removing…" state is visible.
+      await new Promise((resolve) => setTimeout(resolve, 900))
       events = events.filter((event) => event.eventId !== eventId)
     },
     addEvent: () => {

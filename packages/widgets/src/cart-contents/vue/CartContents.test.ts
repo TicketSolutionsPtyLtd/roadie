@@ -201,4 +201,41 @@ describe('CartContents', () => {
     expect(container.querySelector('.place-content-center')).toBeNull()
     expect(queryByText('Checkout')).toBeNull()
   })
+
+  it('shows a Removing… overlay on the event being removed', () => {
+    const { getAllByText } = render(CartContents, {
+      props: {
+        cart: makeDetails({
+          events: [
+            makeEvent({ eventId: 'e1', eventName: 'First' }),
+            makeEvent({ eventId: 'e2', eventName: 'Second' })
+          ]
+        }),
+        onNavigate: vi.fn(),
+        browseHref: '/events',
+        checkoutUrl: '/outlet/extras/c1',
+        locale: 'en-AU',
+        currency: 'AUD',
+        container: 'page',
+        removingEventId: 'e1'
+      }
+    })
+    expect(getAllByText('Removing…')).toHaveLength(1)
+  })
+
+  it('uses the larger empty state in the page container', () => {
+    const { container } = render(CartContents, {
+      props: {
+        cart: makeDetails({ events: [], cartTotal: 0 }),
+        onNavigate: vi.fn(),
+        browseHref: '/events',
+        checkoutUrl: null,
+        locale: 'en-AU',
+        currency: 'AUD',
+        container: 'page'
+      }
+    })
+    const title = container.querySelector('[data-slot="empty-state-title"]')
+    expect(title?.className).toContain('text-display-ui-3')
+  })
 })

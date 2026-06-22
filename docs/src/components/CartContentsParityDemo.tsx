@@ -35,6 +35,7 @@ export function CartContentsParityDemo() {
   const [client, setClient] = useState<DemoCartClient>(() => createDemoCart())
   const [details, setDetails] = useState<CartDetails | null>(null)
   const [busy, setBusy] = useState(false)
+  const [removingId, setRemovingId] = useState<string | null>(null)
 
   const refetch = useCallback(async (c: DemoCartClient) => {
     setDetails(await c.getDetails('demo-collection'))
@@ -46,12 +47,12 @@ export function CartContentsParityDemo() {
 
   const removeEvent = useCallback(
     async (eventId: string) => {
-      setBusy(true)
+      setRemovingId(eventId)
       try {
         await client.removeItem(details?.cartId ?? '', eventId)
         await refetch(client)
       } finally {
-        setBusy(false)
+        setRemovingId(null)
       }
     },
     [client, details, refetch]
@@ -91,6 +92,7 @@ export function CartContentsParityDemo() {
     currency: 'AUD',
     container,
     busy,
+    removingEventId: removingId,
     onRemoveEvent: removeEvent
   }
 

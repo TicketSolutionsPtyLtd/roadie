@@ -206,4 +206,49 @@ describe('CartContents', () => {
     rerender(<CartContents cart={details([])} {...props} />)
     expect(await screen.findByText(/your cart is empty/i)).toBeInTheDocument()
   })
+
+  it('shows a Removing… overlay on the event being removed', () => {
+    render(
+      <CartContents
+        cart={details([
+          ev({ eventId: 'e1', eventName: 'First' }),
+          ev({
+            eventId: 'e2',
+            eventName: 'Second',
+            eventDateKey: '2026-06-16',
+            eventStartAtUtc: '2026-06-16T01:00:00Z'
+          })
+        ])}
+        onNavigate={vi.fn()}
+        browseHref='/events'
+        checkoutUrl='/outlet/extras/c1'
+        locale='en-AU'
+        currency='AUD'
+        onRemoveEvent={vi.fn()}
+        removingEventId='e1'
+      />
+    )
+    expect(screen.getByRole('status')).toHaveTextContent('Removing…')
+    // Only the targeted event gets the overlay.
+    expect(screen.getAllByRole('status')).toHaveLength(1)
+  })
+
+  it('uses the larger empty state in the page container', () => {
+    const props = {
+      cart: details([]),
+      onNavigate: vi.fn(),
+      browseHref: '/events',
+      checkoutUrl: null,
+      locale: 'en-AU',
+      currency: 'AUD'
+    }
+    const { rerender } = render(<CartContents {...props} container='page' />)
+    expect(
+      screen.getByRole('heading', { name: /your cart is empty/i }).className
+    ).toMatch(/text-display-ui-3/)
+    rerender(<CartContents {...props} container='drawer' />)
+    expect(
+      screen.getByRole('heading', { name: /your cart is empty/i }).className
+    ).toMatch(/text-display-ui-5/)
+  })
 })
