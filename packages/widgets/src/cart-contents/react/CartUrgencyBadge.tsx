@@ -9,7 +9,7 @@ import { AnimatePresence, m } from 'motion/react'
 import { Badge } from '@oztix/roadie-components'
 import { cn } from '@oztix/roadie-core/utils'
 
-import { URGENCY_LONG_FORMAT_S, urgencyLevel } from '../core'
+import { URGENCY_LONG_FORMAT_S, urgencyLevel } from '../../cart'
 import { useCountdown } from './useCountdown'
 
 // Coarse so the live region doesn't announce every second.
@@ -25,9 +25,7 @@ function coarseUrgencyMessage(remaining: number | null): string {
 type CartUrgencyBadgeProps = {
   ticketCount: number
   expiresAtUtc: string | undefined
-  /** Drawer open-state progress 0..1. Controls the tail expansion. */
   progress?: number
-  /** Fires the animate-pop cue once per add. */
   bounce?: boolean
   className?: string
   style?: CSSProperties
@@ -47,7 +45,6 @@ export function CartUrgencyBadge({
   const intent: 'success' | 'warning' | 'danger' =
     level === 'expired' ? 'danger' : level
 
-  // Announce only at coarse transitions, not every second.
   const minuteBucket = remaining === null ? null : Math.ceil(remaining / 60)
   const [announcement, setAnnouncement] = useState('')
   const lastKeyRef = useRef<string | null>(null)
@@ -69,7 +66,7 @@ export function CartUrgencyBadge({
         {announcement}
       </span>
       <Badge size='sm' className={cn(bounce && 'animate-pop', className)}>
-        <TicketIcon weight='bold' />
+        <TicketIcon weight='bold' aria-hidden='true' />
         <span className='tabular-nums'>
           <NumberFlow value={ticketCount} />
         </span>

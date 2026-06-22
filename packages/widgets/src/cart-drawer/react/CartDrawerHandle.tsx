@@ -6,11 +6,12 @@ import NumberFlow from '@number-flow/react'
 import { BagIcon, XIcon } from '@phosphor-icons/react'
 import { type MotionValue, m, useTransform } from 'motion/react'
 
-import { Button, IconButton } from '@oztix/roadie-components'
+import { IconButton } from '@oztix/roadie-components'
 import { cn } from '@oztix/roadie-core/utils'
 
-import { currencyPrefix, formatCurrency } from '../core'
-import { CartUrgencyBadge } from './CartUrgencyBadge'
+import { currencyPrefix } from '../../cart'
+import { CartFooter } from '../../cart-contents/react/CartFooter'
+import { CartUrgencyBadge } from '../../cart-contents/react/CartUrgencyBadge'
 
 type CartDrawerHeaderProps = {
   ticketCount: number
@@ -62,16 +63,11 @@ export function CartDrawerHeader({
       ref={headerRef}
       onPointerDown={onPointerDown}
       className={cn(
-        // Whole header reads as clickable (pointer); only the pill below shows
-        // the grab cursor. Dragging the whole header still works.
         'relative shrink-0 cursor-pointer touch-none select-none',
         bounce && 'animate-nudge'
       )}
     >
-      {/* The drag pill is the focusable/clickable toggle. It stays in flow so
-         it reserves its own row above the title (not overlapping the badge),
-         and is pill-shaped so the is-interactive focus ring hugs the handle.
-         detail === 0 fires onToggle only for synthetic clicks (screen readers +
+      {/* detail === 0 toggles only for synthetic clicks (screen readers,
          Enter/Space); real pointer taps toggle via the header's drag/tap. */}
       <div className='flex justify-center pt-1 pb-1'>
         <button
@@ -100,8 +96,7 @@ export function CartDrawerHeader({
 
       <m.div className='relative' style={{ height: titleAreaHeight }}>
         <m.div
-          // inert when closed so the hidden close button isn't a phantom tab
-          // stop between the handle and the footer actions.
+          // inert when closed so the hidden close button isn't a phantom tab stop.
           inert={!isOpen}
           className='absolute top-0 left-4'
           style={{
@@ -162,20 +157,15 @@ export function CartDrawerHeader({
 
 type CartDrawerFooterProps = {
   cartTotal: number
-  /** Summed booking fees across cart events — drives the footer fees line. */
   bookingFees: number
   locale: string
   currency: string
   isOpen: boolean
   progress: MotionValue<number>
-  /** Mount context — drives the open-state "Browse events" action. */
   context: 'collection' | 'event'
   onToggle: () => void
   onCheckout: () => void
-  /** Open-state "Browse events" in `event` context — parent navigates. */
   onBrowse: () => void
-  /** True while the checkout URL isn't known/safe — button stays visible but
-   * disabled so the click isn't a silent no-op. */
   checkoutDisabled?: boolean
   onPointerDown: (e: ReactPointerEvent) => void
   footerRef: (el: HTMLElement | null) => void
@@ -204,7 +194,6 @@ export function CartDrawerFooter({
     progress,
     (p) => `0 -4px 16px oklch(0.1 0.04 var(--intent-hue) / ${p * 0.08})`
   )
-  const prefix = currencyPrefix(locale, currency)
 
   return (
     <m.div
@@ -216,63 +205,24 @@ export function CartDrawerFooter({
       )}
       style={{ boxShadow: footerShadow }}
     >
-      <div className='px-4 pt-1 pb-[calc(0.75rem+env(safe-area-inset-bottom))]'>
-        {/* maxHeight:0 when closed so it takes no layout space and doesn't
-           pad the closed-state footer. */}
-        <m.div
-          className='overflow-hidden'
-          style={{ maxHeight: subtotalMaxHeight, opacity: subtotalOpacity }}
-        >
-          <div className='flex items-center justify-between gap-4 pt-3 pb-1'>
-            <span className='text-ui font-bold text-strong'>Subtotal</span>
-            <NumberFlow
-              value={cartTotal}
-              prefix={prefix}
-              format={{ minimumFractionDigits: 2 }}
-              className='text-ui font-bold text-strong'
-            />
-          </div>
-        </m.div>
-
-        {/* Padding lives on the inner <p> so max-height:0 fully collapses the
-           line when closed (no residual gap above the buttons). */}
-        <m.div
-          className='overflow-hidden'
-          style={{ maxHeight: feesMaxHeight, opacity: feesOpacity }}
-        >
-          <p className='pb-4 text-ui-meta text-subtle'>
-            {bookingFees > 0
-              ? `Incl. ${formatCurrency(bookingFees, { locale, currency })} booking fees. Delivery and refund protection calculated at checkout.`
-              : 'Includes booking fees. Delivery and refund protection calculated at checkout.'}
-          </p>
-        </m.div>
-
-        {/* stopPropagation prevents drag. */}
-        <div className='flex gap-3' onPointerDown={(e) => e.stopPropagation()}>
-          <Button
-            emphasis='normal'
-            intent='neutral'
-            className='flex-1'
-            onClick={() => {
-              // `event` context always navigates; `collection` toggles the drawer.
-              if (context === 'event') onBrowse()
-              else onToggle()
-            }}
-          >
-            {context === 'event' || isOpen ? 'Browse events' : 'View cart'}
-          </Button>
-          <Button
-            emphasis='strong'
-            intent='accent'
-            className='flex-1'
-            onClick={onCheckout}
-            disabled={checkoutDisabled}
-          >
-            <BagIcon weight='bold' className='mr-1.5 size-4' />
-            Checkout
-          </Button>
-        </div>
-      </div>
+      <CartFooter
+        cartTotal={cartTotal}
+        bookingFees={bookingFees}
+        locale={locale}
+        currency={currency}
+        secondaryLabel={
+          context === 'event' || isOpen ? 'Browse events' : 'View cart'
+        }
+        // `event` context always navigates; `collection` toggles the drawer.
+        onSecondary={() => (context === 'event' ? onBrowse() : onToggle())}
+        onCheckout={onCheckout}
+        checkoutDisabled={checkoutDisabled}
+        subtotalStyle={{
+          maxHeight: subtotalMaxHeight,
+          opacity: subtotalOpacity
+        }}
+        feesStyle={{ maxHeight: feesMaxHeight, opacity: feesOpacity }}
+      />
     </m.div>
   )
 }

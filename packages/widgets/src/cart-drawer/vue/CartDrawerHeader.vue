@@ -3,8 +3,8 @@ import NumberFlow from '@number-flow/vue'
 import { PhBag, PhX } from '@phosphor-icons/vue'
 import { computed } from 'vue'
 
-import { currencyPrefix } from '../core'
-import CartUrgencyBadge from './CartUrgencyBadge.vue'
+import { currencyPrefix } from '../../cart'
+import CartUrgencyBadge from '../../cart-contents/vue/CartUrgencyBadge.vue'
 
 const PRICE_FORMAT = { minimumFractionDigits: 2 }
 

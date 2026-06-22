@@ -10,7 +10,6 @@ import {
   useState
 } from 'react'
 
-import { CircleNotchIcon } from '@phosphor-icons/react'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   LazyMotion,
@@ -33,10 +32,10 @@ import {
   deriveCartTotal,
   deriveTicketCount,
   isSafeRelativePath
-} from '../core'
-import { CartContents } from './CartContents'
+} from '../../cart'
+import { CartContents } from '../../cart-contents/react/CartContents'
+import { CartEmptyState } from '../../cart-contents/react/CartEmptyState'
 import { CartDrawerFooter, CartDrawerHeader } from './CartDrawerHandle'
-import { CartEmptyState } from './CartEmptyState'
 import {
   lockBodyScroll as acquireBodyScrollLock,
   clearDrawerHeightVar,
@@ -64,9 +63,16 @@ export type CartDrawerProps = {
   refreshKey?: number
   /** Lock body scroll while open. Default true. */
   lockBodyScroll?: boolean
-  /** Uncontrolled initial state. Default 'closed'. */
+  /**
+   * Controlled open state. When provided, the drawer animates to match it —
+   * drive it from your own state so any UI (e.g. a "View cart" button) can
+   * open/close it, echoing `onOpenChange` back into it. Omit for uncontrolled
+   * (tap/drag) behaviour seeded by `initialState`.
+   */
+  open?: boolean
+  /** Uncontrolled initial state when `open` is omitted. Default 'closed'. */
   initialState?: 'closed' | 'open'
-  /** Fires on open/close transitions. */
+  /** Fires on every open/close intent (tap, drag, Escape, backdrop, or `open`). */
   onOpenChange?: (open: boolean) => void
   /** Fires when the urgency countdown hits expiry. */
   onExpire?: () => void
@@ -84,6 +90,7 @@ export function CartDrawer({
   currency,
   refreshKey,
   lockBodyScroll = true,
+  open,
   initialState = 'closed',
   onOpenChange,
   onExpire,
@@ -108,8 +115,8 @@ export function CartDrawer({
   } = useCartDetails(cart, collectionId, refreshKey)
 
   const [removeBusy, setRemoveBusy] = useState(false)
+  const [removingEventId, setRemovingEventId] = useState<string | null>(null)
   const [removeError, setRemoveError] = useState<string | null>(null)
-  // True once the empty-close slide-down has finished and we can unmount.
   const [emptyClosed, setEmptyClosed] = useState(false)
 
   const displayTicketCount = useMemo(
@@ -126,8 +133,8 @@ export function CartDrawer({
   )
 
   const sawCartRef = useRef(false)
-  // Latch: keep mounted on an empty/null refetch (API returns null for an
-  // emptied cart) so the EmptyState shows instead of vanishing.
+  // Latch: an emptied cart refetches as null, so remember we saw one and keep
+  // the EmptyState mounted instead of letting the drawer vanish.
   const hasCartData = summary != null || details != null
   if (hasCartData && displayTicketCount > 0) sawCartRef.current = true
   const isEmpty =
@@ -140,6 +147,7 @@ export function CartDrawer({
   const {
     state,
     toggle,
+    snapTo,
     dragHeight,
     dragProgress,
     headerHeight,
@@ -148,7 +156,21 @@ export function CartDrawer({
     setFooterElement,
     handleDragStart,
     isDragging
-  } = useCartDrawerDrag({ initialState })
+  } = useCartDrawerDrag({
+    initialState: open === undefined ? initialState : open ? 'open' : 'closed'
+  })
+
+  // Controlled `open`: snap only when the prop itself changes — never off
+  // internal `state`, or a tap (which moves state before the parent echoes
+  // `open` back) would be reconciled away. Skip mid-drag without consuming the
+  // prop so it reconciles once the drag releases.
+  const prevOpenRef = useRef(open)
+  useEffect(() => {
+    if (open === undefined || open === prevOpenRef.current) return
+    if (isDragging) return
+    prevOpenRef.current = open
+    if (state !== (open ? 'open' : 'closed')) snapTo(open ? 'open' : 'closed')
+  }, [open, state, isDragging, snapTo])
 
   const prefersReducedMotion = useReducedMotion()
 
@@ -202,8 +224,7 @@ export function CartDrawer({
     return acquireBodyScrollLock()
   }, [lockBodyScroll, state])
 
-  // Defer the unmount of an emptied, closed drawer until the close slide-down
-  // has played, so it animates out the same way a normal close does.
+  // Defer unmount of an emptied, closed drawer until the slide-down plays.
   useEffect(() => {
     if (isEmpty && state === 'closed') {
       const t = window.setTimeout(
@@ -219,8 +240,7 @@ export function CartDrawer({
     if (state !== 'open') return
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
-      // Let the event's own confirm popover handle Escape first; scope to
-      // this widget's popover so an unrelated app Popover can't swallow it.
+      // Let an open confirm popover handle Escape first.
       if (document.querySelector('[data-cart-confirm]')) return
       toggle()
     }
@@ -244,6 +264,7 @@ export function CartDrawer({
     async (eventId: string) => {
       if (!details || removeBusy) return
       setRemoveBusy(true)
+      setRemovingEventId(eventId)
       setRemoveError(null)
       try {
         await cart.removeItem(details.cartId, eventId)
@@ -261,19 +282,18 @@ export function CartDrawer({
         )
       } finally {
         setRemoveBusy(false)
+        setRemovingEventId(null)
       }
     },
     [cart, details, collectionId, queryClient, removeBusy]
   )
 
   if (!collectionId) return null
-  // Never had a cart → nothing. Once one has shown, an empty/null refetch keeps
-  // us mounted for the EmptyState.
+  // Unmount only before any cart has shown; after that the latch keeps the
+  // EmptyState mounted until the empty-close slide-down finishes.
   if (!summary && !details && !sawCartRef.current) return null
-  // Empty + closed unmounts only after the slide-down; empty + open stays.
   if (isEmpty && state === 'closed' && emptyClosed) return null
 
-  // Fade the surface out as an emptied drawer slides closed.
   const emptyClosing = isEmpty && state === 'closed'
 
   return (
@@ -350,10 +370,9 @@ export function CartDrawer({
               aria-busy={removeBusy}
               inert={state !== 'open'}
               className={cn(
-                // @container so ticket rows can show/size event images by the
-                // drawer's own width, not the viewport (it's max-w-xl on desktop).
+                // @container so ticket rows size against the drawer, not the viewport.
                 '@container h-full overflow-y-auto px-4 pb-8 transition-opacity',
-                removeBusy && 'pointer-events-none opacity-50'
+                removeBusy && 'pointer-events-none'
               )}
             >
               {removeError && (
@@ -386,9 +405,10 @@ export function CartDrawer({
                   checkoutUrl={checkoutUrl}
                   locale={locale}
                   currency={currency}
-                  hideFooter
+                  container='drawer'
                   onRemoveEvent={removeEvent}
                   busy={removeBusy}
+                  removingEventId={removingEventId}
                 />
               ) : detailsLoading ? (
                 <div className='grid gap-4' data-testid='cart-drawer-loading'>
@@ -398,18 +418,6 @@ export function CartDrawer({
                 </div>
               ) : null}
             </div>
-
-            {removeBusy && (
-              <div
-                aria-hidden='true'
-                className='pointer-events-none absolute inset-0 grid place-content-center'
-              >
-                <CircleNotchIcon
-                  weight='bold'
-                  className='size-6 animate-spin text-subtle'
-                />
-              </div>
-            )}
           </m.div>
 
           {!isEmpty && (

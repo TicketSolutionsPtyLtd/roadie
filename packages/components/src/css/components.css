@@ -1,0 +1,4 @@
+/* Registers the component dist for Tailwind (it ignores node_modules by
+   default). Path is relative to this file so it resolves from inside
+   node_modules. */
+@source '../../dist';

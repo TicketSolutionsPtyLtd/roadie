@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { renderHook, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { CartClient, CartDetails, CartSummary } from '../core'
+import type { CartClient, CartDetails, CartSummary } from '../../cart'
 import { useCartDetails, useCartSummary } from './useCart'
 
 const summary: CartSummary = {

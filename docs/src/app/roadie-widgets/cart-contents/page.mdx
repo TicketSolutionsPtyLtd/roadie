@@ -1,0 +1,173 @@
+export const metadata = {
+  title: 'CartContents',
+  description:
+    'The day-grouped cart event/ticket list — the body of the cart drawer, exported on its own so you can render it on a standalone cart page.',
+  status: 'beta'
+}
+
+import { CartContentsParityDemo } from '@/components/CartContentsParityDemo'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# CartContents
+
+The day-grouped event and ticket list that powers the cart drawer's body —
+exported on its own so you can render it on a full `/cart` page.
+
+- Two layouts via `container`: the drawer body, or a full page with a **Cart**
+  header (ticket count + live expiry) and a sticky footer
+- Groups events by day with sticky day headers
+- Reserved seats render as range badges via the shared `formatSeatRange`
+- Per-event remove with an inline confirm, and removals animate out
+- Presentational: you pass it a `CartDetails`; it renders — no overlay, no fetching
+
+It's the same component `CartDrawer` renders internally, so a `/cart` page and
+the docked drawer stay visually identical over one shared core.
+
+## Live demo
+
+The way a `/cart` page would use it — in a normal page column, no overlay. The
+frame below is a fixed-height "page area". Use the **React / Vue** tabs to compare
+the skins, and the controls to test:
+
+- **`container`** — `page` fills the frame with a Cart header (ticket count + live
+  expiry), a sticky edge-to-edge footer, and a centred empty state; `drawer` is
+  the body-only list (no header/footer) for embedding in your own chrome.
+- **Add event / Empty cart / Reset** — change the cart length, or empty it to see
+  the last event animate out and the empty state animate in. Per-event removal
+  (the trash icon) animates too. Runs on a canned cart.
+
+<CartContentsParityDemo />
+
+## Installation
+
+```bash
+pnpm add @oztix/roadie-widgets
+```
+
+CartContents is presentational — lighter peers than the full drawer (no
+react-query). Install the peers for the skin you use.
+
+**React**
+
+```bash
+pnpm add react react-dom @oztix/roadie-components motion @number-flow/react \
+  @phosphor-icons/react
+```
+
+**Vue**
+
+```bash
+pnpm add vue @number-flow/vue @phosphor-icons/vue focus-trap
+```
+
+### Tailwind setup
+
+CartContents' classes live in the package's compiled output, so Tailwind needs
+to scan it — otherwise the styles never make it into your CSS. Add the CSS
+imports for the skin you use to your global stylesheet:
+
+**React** — the React skin renders `@oztix/roadie-components`, so include its CSS
+as well:
+
+```css
+/* app/globals.css */
+@import '@oztix/roadie-core/css';
+@import '@oztix/roadie-components/css';
+@import '@oztix/roadie-widgets/css';
+```
+
+**Vue** — the Vue skin uses core classes only, so no components CSS:
+
+```css
+/* app/globals.css */
+@import '@oztix/roadie-core/css';
+@import '@oztix/roadie-widgets/css';
+```
+
+Each package's CSS ships its own `@source`, so Tailwind scans the compiled
+classes without you ever writing a `node_modules` path.
+
+## Import
+
+```tsx
+// React
+import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
+import type { CartDetails } from '@oztix/roadie-widgets/cart-contents/react'
+```
+
+```ts
+// Vue
+import { CartContents } from '@oztix/roadie-widgets/cart-contents/vue'
+```
+
+Either entry pulls in only the list — none of the drawer's overlay, drag,
+focus-trap, or expiry code. The cart drawer composes this same component, so the
+standalone page and the docked drawer stay identical.
+
+## Usage
+
+Pass a `CartDetails` and the presentational props; the host owns data fetching
+and routing. Build a `CartDetails` however you like, or reuse the shared cart
+client:
+
+```tsx
+import { createCartClient } from '@oztix/roadie-widgets/cart'
+import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
+
+const cart = createCartClient({ host: '' }) // same-origin
+const details = await cart.getDetails(collectionId)
+
+;<div className="min-h-full">
+  <CartContents
+    cart={details}
+    container="page"
+    onNavigate={(href) => router.push(href)}
+    browseHref="/events"
+    checkoutUrl={cart.checkoutUrl(details)}
+    locale="en-AU"
+    currency="AUD"
+  />
+</div>
+```
+
+- **`container`** — the layout preset. `drawer` (default) is the body-only list
+  (no header or footer, natural height) for embedding in your own chrome — it's
+  what `CartDrawer` renders. `page` is the full `/cart` experience: a fill-height
+  column with a **Cart** header (ticket count + live expiry), a sticky
+  edge-to-edge footer pinned to the bottom, and a centred empty state. Give the
+  parent a height (e.g. `<div className="min-h-full">`) — no external `flex-1`,
+  `mt-auto`, or `justify-center` needed.
+- **`onRemoveEvent` / `busy`** — wire per-event removal; `busy` disables the
+  trash triggers while a remove is in flight.
+- **`removingEventId`** — set it to the event you're deleting for the duration of
+  your async remove. CartContents dims the whole list and shows a danger
+  **Removing…** overlay on that event until it leaves `cart`. Pair it with your
+  remove handler:
+
+  ```tsx
+  const [removingId, setRemovingId] = useState<string | null>(null)
+
+  async function remove(eventId: string) {
+    setRemovingId(eventId)
+    try {
+      await cart.removeItem(details.cartId, eventId)
+      await refetch() // updated cart no longer contains the event
+    } finally {
+      setRemovingId(null)
+    }
+  }
+
+  // <CartContents … onRemoveEvent={remove} removingEventId={removingId} />
+  ```
+
+  Vue is identical — bind `:removing-event-id="removingId"` and handle
+  `@remove-event`.
+
+When `cart` has no tickets, CartContents renders the empty state with the
+`browseHref` call to action. Under `container="page"` it's centred and uses the
+larger (`md`) empty-state size; the `drawer` preset uses the compact (`sm`) size.
+Removing the last event animates the list out and the empty state in.
+
+## Props
+
+<PropsDefinitions componentPath='packages/widgets/src/cart-contents/react/CartContents.tsx' />

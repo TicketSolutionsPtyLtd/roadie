@@ -6,6 +6,7 @@ export const metadata = {
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { CartDrawerParityDemo } from '@/components/CartDrawerParityDemo'
 
 # CartDrawer
 
@@ -18,113 +19,13 @@ Vue skins over one shared core.
 
 ## Live demo
 
-The drawer is `position: fixed` over the whole page, so only the controls sit in
-the example below — **Show cart** docks the summary bar, **Expand cart** opens the
-full cart. It runs on a canned cart (no network), so emptying and reopening
-starts fresh.
+The drawer is `position: fixed` over the whole page, so only the controls
+sit in the example below. Use the **React / Vue** tabs to compare the two
+skins driven by the same controls and the same mock cart — **Show cart**
+docks the summary bar, **Expand cart** opens the full cart. It runs on a
+canned cart (no network), so emptying and reopening starts fresh.
 
-```tsx-live-noinline
-// A fresh cart + query client per "Show" so removing every item never strands
-// the demo. Kept in state together so the Add button can reach the cart.
-function makeDemoBundle() {
-  return { cart: createDemoCart(), client: new QueryClient() }
-}
-
-function CartDrawerDemo() {
-  const [shown, setShown] = useState(false)
-  const [open, setOpen] = useState(false)
-  const [context, setContext] = useState('collection')
-  const [refreshKey, setRefreshKey] = useState(0)
-  const [bundle, setBundle] = useState(makeDemoBundle)
-
-  function show() {
-    setBundle(makeDemoBundle()) // fresh, full cart
-    setRefreshKey(0)
-    setShown(true)
-  }
-  function hide() {
-    setShown(false)
-    setOpen(false)
-  }
-  function addToCart() {
-    bundle.cart.addEvent() // demo-only helper: adds an event (re-adds combine)
-    setRefreshKey((k) => k + 1) // tell the drawer to refetch summary + details
-  }
-  function adjustTimer(deltaMinutes) {
-    bundle.cart.adjustExpiry(deltaMinutes) // shift the urgency countdown
-    setRefreshKey((k) => k + 1)
-  }
-
-  // The drawer is uncontrolled — toggled by its own handle. Expand triggers that
-  // handle so it animates instead of remounting; the same query also lets us
-  // notice when an emptied cart removes itself (the drawer renders null) and
-  // reset the button. Apps just let users tap the docked bar.
-  function toggleExpand() {
-    document.querySelector('button[aria-controls="cart-drawer-body"]')?.click()
-  }
-  function handleOpenChange(isOpen) {
-    setOpen(isOpen)
-    if (!isOpen) {
-      window.setTimeout(() => {
-        const handle = document.querySelector(
-          'button[aria-controls="cart-drawer-body"]'
-        )
-        if (!handle) hide()
-      }, 400)
-    }
-  }
-
-  return (
-    <div className='grid gap-3'>
-      <div className='grid gap-1.5'>
-        <p className='text-sm font-medium text-strong'>Cart context</p>
-        <RadioGroup value={context} onValueChange={setContext}>
-          <RadioGroup.Item value='collection' label='Collection' />
-          <RadioGroup.Item value='event' label='Event' />
-        </RadioGroup>
-      </div>
-      <div className='flex flex-wrap gap-2'>
-        <Button
-          intent='accent'
-          emphasis='strong'
-          onClick={() => (shown ? hide() : show())}
-        >
-          {shown ? 'Hide cart' : 'Show cart'}
-        </Button>
-        <Button disabled={!shown} onClick={toggleExpand}>
-          {open ? 'Collapse cart' : 'Expand cart'}
-        </Button>
-        <Button disabled={!shown} onClick={addToCart}>
-          Add to cart
-        </Button>
-        <Button disabled={!shown} onClick={() => adjustTimer(-1)}>
-          −1 min
-        </Button>
-        <Button disabled={!shown} onClick={() => adjustTimer(1)}>
-          +1 min
-        </Button>
-      </div>
-      {shown && (
-        <QueryClientProvider client={bundle.client}>
-          <CartDrawer
-            cart={bundle.cart}
-            collectionId='demo-collection'
-            onNavigate={(href) => window.alert('Navigate to: ' + href)}
-            locale='en-AU'
-            currency='AUD'
-            context={context}
-            refreshKey={refreshKey}
-            initialState='closed'
-            onOpenChange={handleOpenChange}
-          />
-        </QueryClientProvider>
-      )}
-    </div>
-  )
-}
-
-render(<CartDrawerDemo />)
-```
+<CartDrawerParityDemo />
 
 In production you render `CartDrawer` once on the page — no buttons — and let
 users tap or drag the docked bar to expand it. `createDemoCart` is a docs-only
@@ -148,8 +49,35 @@ pnpm add react react-dom @oztix/roadie-components @tanstack/react-query motion \
 **Vue**
 
 ```bash
-pnpm add vue @number-flow/vue @phosphor-icons/vue focus-trap
+pnpm add vue motion @number-flow/vue @phosphor-icons/vue focus-trap
 ```
+
+### Tailwind setup
+
+The drawer's classes live in the package's compiled output, so Tailwind needs to
+scan it — otherwise the styles never make it into your CSS. Add the CSS imports
+for the skin you use to your global stylesheet:
+
+**React** — the React skin renders `@oztix/roadie-components`, so include its CSS
+as well:
+
+```css
+/* app/globals.css */
+@import '@oztix/roadie-core/css';
+@import '@oztix/roadie-components/css';
+@import '@oztix/roadie-widgets/css';
+```
+
+**Vue** — the Vue skin uses core classes only, so no components CSS:
+
+```css
+/* app/globals.css */
+@import '@oztix/roadie-core/css';
+@import '@oztix/roadie-widgets/css';
+```
+
+Each package's CSS ships its own `@source`, so Tailwind scans the compiled
+classes without you ever writing a `node_modules` path.
 
 ## Import
 
@@ -166,7 +94,7 @@ import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/vue'
 The framework-agnostic core is imported separately:
 
 ```ts
-import { createCartClient } from '@oztix/roadie-widgets/cart-drawer/core'
+import { createCartClient } from '@oztix/roadie-widgets/cart'
 ```
 
 ## The cart client
@@ -176,7 +104,7 @@ The drawer never talks to the network directly — you inject a `CartClient`. Us
 implementation. It owns the cart endpoints and sends `credentials: 'include'`.
 
 ```ts
-import { createCartClient } from '@oztix/roadie-widgets/cart-drawer/core'
+import { createCartClient } from '@oztix/roadie-widgets/cart'
 
 const cart = createCartClient({
   host: '', // empty string for same-origin
@@ -256,7 +184,7 @@ The React skin uses `@tanstack/react-query` internally, so mount it under a
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 
-import { createCartClient } from '@oztix/roadie-widgets/cart-drawer/core'
+import { createCartClient } from '@oztix/roadie-widgets/cart'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
 
 const queryClient = new QueryClient()
@@ -283,7 +211,7 @@ export function CollectionCart({ collectionId }: { collectionId: string }) {
 
 ```vue
 <script setup lang="ts">
-import { createCartClient } from '@oztix/roadie-widgets/cart-drawer/core'
+import { createCartClient } from '@oztix/roadie-widgets/cart'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/vue'
 
 const cart = createCartClient({ host: '' })
@@ -307,6 +235,28 @@ function onNavigate(href: string): void {
 
 The Vue skin also exports `useRoadieTheme` to mirror the host app's light/dark
 mode onto the drawer (which renders to `<body>`).
+
+## Controlling open/close
+
+By default the drawer is uncontrolled — users tap or drag the docked bar, and it
+owns its state (seed it with `initialState`). To open or close it from elsewhere
+in your UI (e.g. an inline "View cart" button), control it with `open` +
+`onOpenChange`: changing `open` animates the drawer with the same spring as a
+tap, and tap/drag report back through `onOpenChange` so you keep them in sync.
+
+```tsx
+// React
+const [open, setOpen] = useState(false)
+
+;<button onClick={() => setOpen(true)}>View cart</button>
+;<CartDrawer open={open} onOpenChange={setOpen} cart={cart} … />
+```
+
+```vue
+<!-- Vue: v-model:open -->
+<button @click="open = true">View cart</button>
+<CartDrawer v-model:open="open" :cart="cart" … />
+```
 
 ## Mount context
 

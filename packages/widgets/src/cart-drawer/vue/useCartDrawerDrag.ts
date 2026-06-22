@@ -1,3 +1,4 @@
+import { type AnimationPlaybackControls, animate } from 'motion'
 import {
   type ComputedRef,
   type Ref,
@@ -14,32 +15,23 @@ import {
   TAP_PX,
   VIEWPORT_MARGIN_PX,
   decideSnapTarget
-} from '../core'
+} from '../../cart'
 
 export type UseCartDrawerDragReturn = {
   state: Ref<'open' | 'closed'>
   setState: (next: 'open' | 'closed') => void
   toggle: () => void
-  /** Live drawer height in px. */
+  snapTo: (next: 'open' | 'closed') => void
   dragHeight: Ref<number>
-  /** 0 at closedHeight → 1 at maxHeight. */
   progress: ComputedRef<number>
-  /** Measured header height in px. */
   headerHeight: Ref<number>
-  /** Measured footer height in px. */
   footerHeight: Ref<number>
-  /** The docked (closed) drawer height. */
   closedHeight: ComputedRef<number>
-  /** Viewport-derived open height in px. */
   maxHeight: Ref<number>
-  /** True while a pointer drag is in progress. */
   isDragging: Ref<boolean>
-  /** Whether the user prefers reduced motion. */
   reducedMotion: Ref<boolean>
-  /** Template refs to wire onto the header / footer elements for measurement. */
   setHeaderElement: (el: HTMLElement | null) => void
   setFooterElement: (el: HTMLElement | null) => void
-  /** Begin a drag from the drag region's pointerdown. */
   handleDragStart: (e: PointerEvent) => void
 }
 
@@ -80,6 +72,34 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     initialState === 'open' ? maxHeight.value : closedHeight.value
   )
 
+  // Spring the height like the React skin (same damping/stiffness) instead of
+  // an instant set + CSS transition. Driving the ref each frame means `progress`
+  // — and every progress-derived surface — ramps with the spring rather than
+  // snapping 0↔1 on toggle.
+  let heightAnim: AnimationPlaybackControls | null = null
+  const stopHeightAnim = () => {
+    heightAnim?.stop()
+    heightAnim = null
+  }
+  const animateHeightTo = (target: number) => {
+    stopHeightAnim()
+    if (reducedMotion.value) {
+      dragHeight.value = target
+      return
+    }
+    heightAnim = animate(dragHeight.value, target, {
+      type: 'spring',
+      damping: 30,
+      stiffness: 300,
+      onUpdate: (v) => {
+        dragHeight.value = v
+      },
+      onComplete: () => {
+        heightAnim = null
+      }
+    })
+  }
+
   const progress = computed(() => {
     const span = maxHeight.value - closedHeight.value
     if (span <= 0) return state.value === 'open' ? 1 : 0
@@ -87,15 +107,13 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     return Math.max(0, Math.min(1, p))
   })
 
-  watch(
-    [state, closedHeight, maxHeight, isDragging],
-    () => {
-      if (isDragging.value) return
-      dragHeight.value =
-        state.value === 'open' ? maxHeight.value : closedHeight.value
-    },
-    { flush: 'sync' }
-  )
+  // Reconcile the rested height to measurement/viewport changes while idle.
+  // Toggle (snapTo) and drag own the height otherwise, so skip mid-drag/anim.
+  watch([closedHeight, maxHeight], () => {
+    if (isDragging.value || heightAnim) return
+    dragHeight.value =
+      state.value === 'open' ? maxHeight.value : closedHeight.value
+  })
 
   // Gates re-entry and filters concurrent multi-touch pointers.
   let activePointerId: number | null = null
@@ -193,6 +211,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
 
   // onScopeDispose (not onBeforeUnmount) so cleanup also fires inside a standalone effectScope().
   onScopeDispose(() => {
+    stopHeightAnim()
     headerTracker.disconnect()
     footerTracker.disconnect()
     dragCleanup?.()
@@ -202,13 +221,18 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     motionQuery?.removeEventListener('change', onMotionChange)
   })
 
+  // Imperative state set (no spring) — mirrors React's layout-effect snap.
   const setState = (next: 'open' | 'closed') => {
     state.value = next
+    stopHeightAnim()
+    dragHeight.value = next === 'open' ? maxHeight.value : closedHeight.value
   }
 
   const snapTo = (next: 'open' | 'closed') => {
+    // Start the spring before flipping state so the sync reconcile watch sees an
+    // in-flight animation and doesn't clobber it with an instant set.
+    animateHeightTo(next === 'open' ? maxHeight.value : closedHeight.value)
     state.value = next
-    dragHeight.value = next === 'open' ? maxHeight.value : closedHeight.value
   }
 
   const toggle = () => {
@@ -230,6 +254,8 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     let lastTime = Date.now()
     let velocity = 0
     isDragging.value = true
+    // Hand the height over to the pointer — cancel any in-flight snap spring.
+    stopHeightAnim()
 
     const detach = () => {
       window.removeEventListener('pointermove', onMove)
@@ -290,6 +316,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     state,
     setState,
     toggle,
+    snapTo,
     dragHeight,
     progress,
     headerHeight,

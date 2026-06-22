@@ -3,7 +3,11 @@ import NumberFlow from '@number-flow/vue'
 import { PhTicket } from '@phosphor-icons/vue'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-import { URGENCY_LONG_FORMAT_S, remainingSeconds, urgencyLevel } from '../core'
+import {
+  URGENCY_LONG_FORMAT_S,
+  remainingSeconds,
+  urgencyLevel
+} from '../../cart'
 
 const PAD2_FORMAT = { minimumIntegerDigits: 2 }
 
@@ -11,9 +15,7 @@ const props = withDefaults(
   defineProps<{
     ticketCount: number
     expiresAtUtc: string | undefined
-    /** Drawer open progress 0..1. */
     progress?: number
-    /** Fires the animate-pop cue once per add. */
     bounce?: boolean
   }>(),
   { progress: 0, bounce: false }
@@ -37,8 +39,7 @@ const level = computed(() => urgencyLevel(remaining.value))
 const intent = computed(() =>
   level.value === 'expired' ? 'danger' : level.value
 )
-// No countdown when the cart is empty — an expiry may linger server-side, but
-// there's nothing to lose, so the time badge shouldn't show.
+// No countdown when the cart is empty, even if a server expiry lingers.
 const showCountdown = computed(
   () => props.ticketCount > 0 && remaining.value !== null && remaining.value > 0
 )
@@ -95,8 +96,7 @@ function onTimeEnter(el: Element, done: () => void) {
     { width: '0px', opacity: 0, marginLeft: '0px' },
     { width, opacity: 1, marginLeft: '6px' },
     () => {
-      // Revert to class-driven sizing so the badge can grow/shrink with the
-      // countdown text (9:59 -> 10 mins) instead of a frozen width.
+      // Clear the inline width so the badge resizes with the countdown text.
       node.style.overflow = ''
       done()
     }

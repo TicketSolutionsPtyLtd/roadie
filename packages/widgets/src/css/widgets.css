@@ -1,0 +1,4 @@
+/* Registers the widget dist for Tailwind. Path is relative to this file so it
+   resolves from inside node_modules. React consumers also import
+   `@oztix/roadie-components/css`; Vue consumers don't. */
+@source '../../dist';

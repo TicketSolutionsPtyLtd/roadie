@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { PhCircleNotch } from '@phosphor-icons/vue'
+import { type AnimationPlaybackControls, animate } from 'motion'
 import {
   type ComponentPublicInstance,
   computed,
+  nextTick,
   onBeforeUnmount,
   onMounted,
   ref,
@@ -21,11 +22,11 @@ import {
   deriveCartTotal,
   deriveTicketCount,
   isSafeRelativePath
-} from '../core'
-import CartContents from './CartContents.vue'
+} from '../../cart'
+import CartContents from '../../cart-contents/vue/CartContents.vue'
+import CartEmptyState from '../../cart-contents/vue/CartEmptyState.vue'
 import CartDrawerFooter from './CartDrawerFooter.vue'
 import CartDrawerHeader from './CartDrawerHeader.vue'
-import CartEmptyState from './CartEmptyState.vue'
 import { lockBodyScroll } from './documentEffects'
 import type { CartDrawerProps } from './types'
 import { useCart } from './useCart'
@@ -40,6 +41,10 @@ const props = withDefaults(defineProps<CartDrawerProps>(), {
   onExpire: undefined,
   onHeightChange: undefined
 })
+
+const emit = defineEmits<{
+  'update:open': [open: boolean]
+}>()
 
 const cartHeadingId = useId()
 
@@ -75,16 +80,26 @@ const displayBookingFees = computed(() => deriveBookingFees(details.value))
 const {
   state,
   toggle,
+  snapTo,
   dragHeight,
   progress,
   closedHeight,
   isDragging,
+  reducedMotion,
   setHeaderElement,
   setFooterElement,
   handleDragStart
-} = useCartDrawerDrag({ initialState: props.initialState })
+} = useCartDrawerDrag({
+  initialState:
+    props.open === undefined
+      ? props.initialState
+      : props.open
+        ? 'open'
+        : 'closed'
+})
 
-// Stable ref callbacks MUST keep constant identity — an inline arrow re-fires every render → ResizeObserver re-observe loop that freezes the tab.
+// Must keep stable identity — an inline arrow re-fires every render and freezes
+// the tab via a ResizeObserver re-observe loop.
 const bindHeader = (el: Element | ComponentPublicInstance | null): void => {
   setHeaderElement(resolveRootEl(el))
 }
@@ -94,9 +109,8 @@ const bindFooter = (el: Element | ComponentPublicInstance | null): void => {
 
 const isOpen = computed(() => state.value === 'open')
 
-// High-water latch: once the drawer has shown a cart with items, remember it so
-// an empty/null refetch (the API returns null for an emptied cart) keeps the
-// open drawer mounted to show the EmptyState instead of vanishing.
+// Latch: an emptied cart refetches as null, so remember we saw one and keep the
+// EmptyState mounted instead of letting the drawer vanish.
 const sawCart = ref(false)
 const hasCartData = computed(
   () => summary.value != null || details.value != null
@@ -109,9 +123,7 @@ const isEmpty = computed(
     (hasCartData.value && displayTicketCount.value === 0) ||
     (sawCart.value && !hasCartData.value)
 )
-// Empty + closed → the whole drawer disappears, but only after the close
-// slide-down has played (emptyClosed). Empty + open stays mounted so the
-// EmptyState shows until the user closes it.
+// Empty + closed unmounts only after the slide-down plays; empty + open stays.
 const emptyClosed = ref(false)
 let emptyCloseTimer: ReturnType<typeof setTimeout> | null = null
 watch(
@@ -133,18 +145,80 @@ watch(
 const hidden = computed(
   () => isEmpty.value && !isOpen.value && emptyClosed.value
 )
-// Closing an emptied drawer: fade the whole surface out as it slides down so
-// the docked bar never reads before it unmounts.
 const emptyClosing = computed(() => isEmpty.value && !isOpen.value)
 
+const visible = computed(() =>
+  Boolean(
+    props.collectionId &&
+      (summary.value || details.value || sawCart.value) &&
+      !hidden.value
+  )
+)
+
+// motion drives opacity/scale/y for the surface enter + empty-close; height
+// stays Vue-bound (spring).
+let surfaceAnim: AnimationPlaybackControls | null = null
+const stopSurfaceAnim = () => {
+  surfaceAnim?.stop()
+  surfaceAnim = null
+}
+// Pop-in on every fresh appearance.
+watch(
+  visible,
+  async (now, prev) => {
+    if (!now || prev) return
+    await nextTick()
+    const el = drawerEl.value
+    if (!el || reducedMotion.value) return
+    stopSurfaceAnim()
+    surfaceAnim = animate(
+      el,
+      { opacity: [0, 1], scale: [0.96, 1], y: [8, 0] },
+      { duration: 0.35, ease: 'easeOut' }
+    )
+  },
+  { immediate: true }
+)
+// Fade the surface out/in on the empty-close flip (opacity only, so it also
+// runs under reduced motion).
+watch(emptyClosing, (closing) => {
+  const el = drawerEl.value
+  if (!el) return
+  stopSurfaceAnim()
+  surfaceAnim = animate(
+    el,
+    { opacity: closing ? 0 : 1 },
+    { duration: 0.35, ease: 'easeOut' }
+  )
+})
+
 watch(state, (next, prev) => {
-  if (next !== prev) props.onOpenChange?.(next === 'open')
+  if (next === prev) return
+  props.onOpenChange?.(next === 'open')
+  emit('update:open', next === 'open')
+})
+
+// Controlled `open` (incl. v-model:open): snap only when the prop itself
+// changes — never off internal `state`, or a tap (which moves state before the
+// parent echoes `open` back) would be reconciled away. Skip mid-drag without
+// consuming the prop so it reconciles once the drag releases.
+let prevOpen = props.open
+watch([() => props.open, isDragging], ([o, dragging]) => {
+  if (o === undefined || o === prevOpen || dragging) return
+  prevOpen = o
+  const target = o ? 'open' : 'closed'
+  if (state.value !== target) snapTo(target)
 })
 
 const bounce = ref(false)
 let bounceTimer: ReturnType<typeof setTimeout> | null = null
 let prevTicketCount: number | undefined
 watch(displayTicketCount, (count) => {
+  // No bounce under reduced motion.
+  if (reducedMotion.value) {
+    prevTicketCount = count
+    return
+  }
   if (prevTicketCount !== undefined && count > prevTicketCount) {
     bounce.value = true
     if (bounceTimer !== null) clearTimeout(bounceTimer)
@@ -180,7 +254,7 @@ watch(
   { immediate: true }
 )
 
-// Body scroll lock when open — refcounted via documentEffects so drawer + expiry modals don't clobber each other's lock.
+// Refcounted so the drawer + expiry modals don't clobber each other's lock.
 let releaseScrollLock: (() => void) | null = null
 watch(
   [() => props.lockBodyScroll, isOpen],
@@ -246,6 +320,7 @@ onMounted(() => {
   }
 })
 onBeforeUnmount(() => {
+  stopSurfaceAnim()
   if (bounceTimer !== null) clearTimeout(bounceTimer)
   if (emptyCloseTimer !== null) clearTimeout(emptyCloseTimer)
   expireWatcher?.stop()
@@ -271,10 +346,12 @@ function handleBrowse() {
 }
 
 const removing = ref(false)
+const removingEventId = ref<string | null>(null)
 const removeError = ref<string | null>(null)
 async function handleRemoveEvent(eventId: string) {
   if (removing.value || !details.value) return
   removing.value = true
+  removingEventId.value = eventId
   removeError.value = null
   try {
     await props.cart.removeItem(details.value.cartId, eventId)
@@ -284,6 +361,7 @@ async function handleRemoveEvent(eventId: string) {
       err instanceof Error ? err.message : 'Could not remove this event.'
   } finally {
     removing.value = false
+    removingEventId.value = null
   }
 }
 
@@ -309,20 +387,19 @@ const contentOpacity = computed(() =>
     <div
       ref="drawerEl"
       id="cart-drawer"
-      class="fixed z-modal flex flex-col overflow-hidden emphasis-floating [transition:height_320ms_cubic-bezier(0.22,1,0.36,1),border-radius_300ms_var(--ease-out),inset_300ms_var(--ease-out),opacity_300ms_var(--ease-out)] focus:outline-none sm:inset-x-4 sm:bottom-4 sm:mx-auto sm:max-w-xl sm:rounded-4xl"
+      class="fixed z-modal flex origin-bottom flex-col overflow-hidden emphasis-floating [transition:border-radius_300ms_var(--ease-out),inset_300ms_var(--ease-out)] focus:outline-none sm:inset-x-4 sm:bottom-4 sm:mx-auto sm:max-w-xl sm:rounded-4xl"
       tabindex="-1"
       :class="[
         isOpen
           ? 'inset-x-0 bottom-0 rounded-t-4xl'
           : 'inset-x-3 bottom-3 rounded-3xl',
-        !emptyClosing && 'origin-bottom motion-pop-in',
         isDragging && 'transition-none'
       ]"
       :role="isOpen ? 'dialog' : 'region'"
       :aria-modal="isOpen ? 'true' : undefined"
       :aria-labelledby="isOpen ? cartHeadingId : undefined"
       :aria-label="isOpen ? undefined : 'Cart summary'"
-      :style="{ height: `${dragHeight}px`, opacity: emptyClosing ? 0 : 1 }"
+      :style="{ height: `${dragHeight}px` }"
     >
       <CartDrawerHeader
         :ref="bindHeader"
@@ -339,73 +416,67 @@ const contentOpacity = computed(() =>
         @drag-start="handleDragStart"
       />
 
+      <!-- Padding-less flex child so the collapsed drawer can shrink it to 0;
+           the inner body owns scroll + pb-8 (clipped by overflow). Mirrors the
+           React skin — putting flex-1 on the padded body floors it at pb-8 (32px)
+           and clips the footer when docked. -->
       <div
-        id="cart-drawer-body"
-        class="@container h-full min-h-0 flex-1 overflow-y-auto px-4 pb-8 transition-opacity"
-        :aria-busy="removing"
-        :inert="!isOpen"
+        class="relative min-h-0 flex-1"
         :style="{
           opacity: contentOpacity,
           pointerEvents: isOpen ? 'auto' : 'none'
         }"
       >
-        <p
-          v-if="detailsError"
-          class="text-prose text-subtle intent-danger"
-          role="status"
-        >
-          Couldn't load your cart. Please try again.
-        </p>
-        <div v-else-if="isEmpty" class="grid min-h-full place-content-center">
-          <CartEmptyState
-            :browse-href="effectiveBrowseHref"
-            :on-navigate="onNavigate"
-          />
-        </div>
-        <template v-else-if="details">
-          <p
-            v-if="removeError"
-            class="text-ui-meta text-subtle intent-danger"
-            role="alert"
-          >
-            {{ removeError }}
-          </p>
-          <div class="relative">
-            <div :class="{ 'pointer-events-none opacity-50': removing }">
-              <CartContents
-                :cart="details"
-                :on-navigate="onNavigate"
-                :browse-href="effectiveBrowseHref"
-                :checkout-url="checkoutUrl"
-                :locale="locale"
-                :currency="currency"
-                :busy="removing"
-                hide-footer
-                @remove-event="handleRemoveEvent"
-              />
-            </div>
-            <div
-              v-if="removing"
-              class="pointer-events-none absolute inset-0 grid place-content-center"
-              aria-hidden="true"
-              data-testid="cart-remove-spinner"
-            >
-              <PhCircleNotch
-                weight="bold"
-                :class="'size-6 animate-spin text-subtle'"
-                aria-hidden="true"
-              />
-            </div>
-          </div>
-        </template>
         <div
-          v-else-if="detailsLoading"
-          class="grid gap-4"
-          data-testid="cart-drawer-loading"
+          id="cart-drawer-body"
+          class="@container h-full overflow-y-auto px-4 pb-8 transition-opacity"
+          :class="{ 'pointer-events-none': removing }"
+          :aria-busy="removing"
+          :inert="!isOpen"
         >
-          <div class="h-4 w-40 animate-pulse rounded bg-subtle" />
-          <div class="h-32 w-full animate-pulse rounded-xl bg-subtle" />
-          <div class="h-32 w-full animate-pulse rounded-xl bg-subtle" />
+          <p
+            v-if="detailsError"
+            class="text-prose text-subtle intent-danger"
+            role="status"
+          >
+            Couldn't load your cart. Please try again.
+          </p>
+          <div v-else-if="isEmpty" class="grid min-h-full place-content-center">
+            <CartEmptyState
+              :browse-href="effectiveBrowseHref"
+              :on-navigate="onNavigate"
+            />
+          </div>
+          <template v-else-if="details">
+            <p
+              v-if="removeError"
+              class="text-ui-meta text-subtle intent-danger"
+              role="alert"
+            >
+              {{ removeError }}
+            </p>
+            <CartContents
+              :cart="details"
+              :on-navigate="onNavigate"
+              :browse-href="effectiveBrowseHref"
+              :checkout-url="checkoutUrl"
+              :locale="locale"
+              :currency="currency"
+              :busy="removing"
+              :removing-event-id="removingEventId"
+              container="drawer"
+              @remove-event="handleRemoveEvent"
+            />
+          </template>
+          <div
+            v-else-if="detailsLoading"
+            class="grid gap-4"
+            data-testid="cart-drawer-loading"
+          >
+            <div class="h-4 w-40 animate-pulse rounded bg-subtle" />
+            <div class="h-32 w-full animate-pulse rounded-xl bg-subtle" />
+            <div class="h-32 w-full animate-pulse rounded-xl bg-subtle" />
+          </div>
         </div>
       </div>
 

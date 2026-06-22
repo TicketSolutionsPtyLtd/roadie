@@ -3,8 +3,8 @@ import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { h, nextTick } from 'vue'
 
-import type { CartClient, CartDetails, CartSummary } from '../core'
-import { buildCheckoutUrl } from '../core'
+import type { CartClient, CartDetails, CartSummary } from '../../cart'
+import { buildCheckoutUrl } from '../../cart'
 import CartDrawer from './CartDrawer.vue'
 import { lockBodyScroll } from './documentEffects'
 
@@ -141,6 +141,48 @@ describe('CartDrawer (Vue)', () => {
     await fireEvent.click(openButtons[0]!)
     await nextTick()
     expect(onOpenChange).toHaveBeenCalledWith(true)
+  })
+
+  it('controlled `open` prop opens and closes the drawer', async () => {
+    const cart = mockCart()
+    const { container, rerender } = render(CartDrawer, {
+      props: { ...baseProps, cart, onNavigate: vi.fn(), open: false }
+    })
+    await flushPromises()
+    expect(container.querySelector('#cart-drawer')?.getAttribute('role')).toBe(
+      'region'
+    )
+
+    await rerender({ ...baseProps, cart, onNavigate: vi.fn(), open: true })
+    await waitFor(() =>
+      expect(
+        container.querySelector('#cart-drawer')?.getAttribute('role')
+      ).toBe('dialog')
+    )
+
+    await rerender({ ...baseProps, cart, onNavigate: vi.fn(), open: false })
+    await waitFor(() =>
+      expect(
+        container.querySelector('#cart-drawer')?.getAttribute('role')
+      ).toBe('region')
+    )
+  })
+
+  it('emits update:open for v-model when toggled open', async () => {
+    const cart = mockCart()
+    const onUpdateOpen = vi.fn()
+    const { findAllByText } = render(CartDrawer, {
+      props: {
+        ...baseProps,
+        cart,
+        onNavigate: vi.fn(),
+        'onUpdate:open': onUpdateOpen
+      }
+    })
+    await flushPromises()
+    await fireEvent.click((await findAllByText('View cart'))[0]!)
+    await nextTick()
+    expect(onUpdateOpen).toHaveBeenCalledWith(true)
   })
 
   it('refetches when refreshKey is bumped', async () => {
@@ -487,7 +529,7 @@ describe('CartDrawer (Vue)', () => {
     expect(drawer.getAttribute('role')).toBe('dialog')
   })
 
-  it('locks the cart (aria-busy + spinner) while the remove is in flight', async () => {
+  it('locks the cart (aria-busy + Removing… overlay) while the remove is in flight', async () => {
     let resolveRemove: (() => void) | undefined
     const cart = mockCart({
       removeItem: vi.fn(
@@ -497,9 +539,10 @@ describe('CartDrawer (Vue)', () => {
           })
       )
     })
-    const { container, findByLabelText, findByText } = render(CartDrawer, {
-      props: { ...baseProps, cart, onNavigate: vi.fn() }
-    })
+    const { container, findByLabelText, findByText, queryByText } = render(
+      CartDrawer,
+      { props: { ...baseProps, cart, onNavigate: vi.fn() } }
+    )
     await flushPromises()
 
     const body = container.querySelector('#cart-drawer-body')!
@@ -510,17 +553,13 @@ describe('CartDrawer (Vue)', () => {
     await nextTick()
 
     expect(body.getAttribute('aria-busy')).toBe('true')
-    expect(
-      container.querySelector('[data-testid="cart-remove-spinner"]')
-    ).not.toBeNull()
+    expect(queryByText('Removing…')).not.toBeNull()
 
     resolveRemove?.()
     await flushPromises()
     await nextTick()
     expect(body.getAttribute('aria-busy')).toBe('false')
-    expect(
-      container.querySelector('[data-testid="cart-remove-spinner"]')
-    ).toBeNull()
+    expect(queryByText('Removing…')).toBeNull()
   })
 
   it('on a failed remove keeps the rows, unlocks, and surfaces the error', async () => {

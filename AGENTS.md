@@ -7,6 +7,7 @@ This file provides guidance to AI coding agents when working with code in this r
 Roadie is a design system for Oztix's applications, built as a monorepo using pnpm workspaces and Turborepo. It provides CSS design tokens, a React component library, and documentation.
 
 **Tech Stack:**
+
 - Package Manager: pnpm (use `corepack enable`)
 - Build System: Turborepo
 - Framework: React v19
@@ -17,6 +18,7 @@ Roadie is a design system for Oztix's applications, built as a monorepo using pn
 - Documentation: Next.js v16 with MDX
 
 **External Documentation:**
+
 - Tailwind CSS v4: https://tailwindcss.com/docs
 - Base UI: https://base-ui.com/
 - Phosphor Icons: https://phosphoricons.com/
@@ -109,18 +111,18 @@ Three Tailwind-native utility namespaces, each scoped to its own CSS property:
 
 ### Color utilities
 
-| Utility | CSS property | Example |
-|---------|-------------|---------|
-| `bg-normal` | `background-color` | Page background |
-| `bg-subtle` | `background-color` | Tinted surface |
-| `bg-raised` | `background-color` | Elevated card |
-| `bg-sunken` | `background-color` | Recessed area |
-| `text-normal` | `color` | Body text |
-| `text-subtle` | `color` | Secondary text |
-| `text-strong` | `color` | Headings |
-| `border-subtle` | `border-color` | Dividers |
-| `border-normal` | `border-color` | Standard borders |
-| `divide-subtler` | children border-color | Table rows |
+| Utility          | CSS property          | Example          |
+| ---------------- | --------------------- | ---------------- |
+| `bg-normal`      | `background-color`    | Page background  |
+| `bg-subtle`      | `background-color`    | Tinted surface   |
+| `bg-raised`      | `background-color`    | Elevated card    |
+| `bg-sunken`      | `background-color`    | Recessed area    |
+| `text-normal`    | `color`               | Body text        |
+| `text-subtle`    | `color`               | Secondary text   |
+| `text-strong`    | `color`               | Headings         |
+| `border-subtle`  | `border-color`        | Dividers         |
+| `border-normal`  | `border-color`        | Standard borders |
+| `divide-subtler` | children border-color | Table rows       |
 
 These are generated from `@theme inline` in `tokens.css` using Tailwind's utility-specific namespaces (`--background-color-*`, `--text-color-*`, `--border-color-*`).
 
@@ -132,7 +134,7 @@ Sets `--intent-*` CSS custom properties. Children inherit via cascade.
 
 ```html
 <div class="intent-accent">
-  <button class="emphasis-strong is-interactive rounded-full px-4 py-2">
+  <button class="is-interactive emphasis-strong rounded-full px-4 py-2">
     Accent button
   </button>
 </div>
@@ -141,6 +143,7 @@ Sets `--intent-*` CSS custom properties. Children inherit via cascade.
 **Available intents:** `neutral` (default on :root), `brand`, `accent`, `danger`, `success`, `warning`, `info`
 
 Each intent exposes:
+
 - Semantic vars: `--intent-bg-*`, `--intent-border-*`, `--intent-text-*`
 - Raw scale steps: `--intent-0` through `--intent-13`
 - Hue for tinted shadows: `--intent-hue`
@@ -175,6 +178,7 @@ Intent-tinted shadows using `oklch()` with `var(--intent-hue)`:
 ### Color Scale
 
 CSS-native OKLCH scales parameterized by `--accent-hue` and `--accent-chroma`:
+
 - 14 steps (0-13) per intent
 - Neutral scale tinted with accent hue
 - Dark mode swaps values via `.dark` class — no `dark:` variants needed
@@ -197,7 +201,7 @@ Default to `grid`. Use `gap`, not `margin`. Set constraints, not fixed dimension
 <div class="grid grid-cols-3 gap-4">...</div>
 
 <!-- Content-driven row -->
-<div class="flex gap-4 items-center">...</div>
+<div class="flex items-center gap-4">...</div>
 
 <!-- Wrapping tags -->
 <div class="flex flex-wrap gap-2">...</div>
@@ -209,17 +213,17 @@ Default to `grid`. Use `gap`, not `margin`. Set constraints, not fixed dimension
 
 Consistent radius tiers across all components:
 
-| Tier | Class | Use for |
-|------|-------|---------|
-| Inline | `rounded-sm` | Marks, highlights |
-| Small | `rounded-md` | Code, prose images |
-| Field | `rounded-lg` | Inputs, textareas, selects |
-| Container | `rounded-xl` | Cards, popovers, select popups |
-| Large | `rounded-2xl` | Modals, dialogs |
-| Hero | `rounded-5xl` | Hero cards, collection headers, bottom sheets |
-| Feature | `rounded-6xl` | Feature banners, spotlight surfaces |
-| Oversize | `rounded-7xl` | Edge-to-edge promotional layouts |
-| Full | `rounded-full` | Buttons, badges, pills |
+| Tier      | Class          | Use for                                       |
+| --------- | -------------- | --------------------------------------------- |
+| Inline    | `rounded-sm`   | Marks, highlights                             |
+| Small     | `rounded-md`   | Code, prose images                            |
+| Field     | `rounded-lg`   | Inputs, textareas, selects                    |
+| Container | `rounded-xl`   | Cards, popovers, select popups                |
+| Large     | `rounded-2xl`  | Modals, dialogs                               |
+| Hero      | `rounded-5xl`  | Hero cards, collection headers, bottom sheets |
+| Feature   | `rounded-6xl`  | Feature banners, spotlight surfaces           |
+| Oversize  | `rounded-7xl`  | Edge-to-edge promotional layouts              |
+| Full      | `rounded-full` | Buttons, badges, pills                        |
 
 Roadie extends Tailwind's default radius scale (which stops at `rounded-4xl`)
 with `rounded-5xl` / `6xl` / `7xl` via tokens in `packages/core/src/css/tokens.css`.
@@ -240,6 +244,7 @@ the brand radius stays consistent across components.
 Two font families: **Intermission** (sans-serif, `font-sans`) and **IBM Plex Mono** (`font-mono`).
 
 Two display style families:
+
 - `text-display-ui-1` through `text-display-ui-6` — bold, for UI headings
 - `text-display-prose-1` through `text-display-prose-6` — heavier weights, for long-form content
 
@@ -254,7 +259,7 @@ Use raw HTML elements with utility classes:
 
 <!-- Body text -->
 <p>Default body text</p>
-<p class="text-subtle text-sm">Secondary text</p>
+<p class="text-sm text-subtle">Secondary text</p>
 
 <!-- Rich content -->
 <Prose size="md">
@@ -283,7 +288,8 @@ Use raw HTML elements with utility classes:
 ### Creating a component with CVA
 
 ```tsx
-import { cva, type VariantProps } from 'class-variance-authority'
+import { type VariantProps, cva } from 'class-variance-authority'
+
 import { cn } from '@oztix/roadie-core/utils'
 
 export const buttonVariants = cva('base-classes is-interactive', {
@@ -291,17 +297,17 @@ export const buttonVariants = cva('base-classes is-interactive', {
     intent: {
       neutral: 'intent-neutral',
       brand: 'intent-brand',
-      accent: 'intent-accent',
+      accent: 'intent-accent'
     },
     emphasis: {
       strong: 'emphasis-strong',
       normal: 'emphasis-normal text-subtle',
       subtle: 'emphasis-subtle text-subtle',
-      subtler: 'emphasis-subtler text-subtle',
+      subtler: 'emphasis-subtler text-subtle'
     },
-    size: { sm: 'h-8 px-3', md: 'h-10 px-4', lg: 'h-12 px-6' },
+    size: { sm: 'h-8 px-3', md: 'h-10 px-4', lg: 'h-12 px-6' }
   },
-  defaultVariants: { emphasis: 'normal', size: 'md' },
+  defaultVariants: { emphasis: 'normal', size: 'md' }
 })
 ```
 
@@ -311,8 +317,10 @@ export const buttonVariants = cva('base-classes is-interactive', {
 /* app/globals.css */
 @import '@oztix/roadie-core/css';
 
-/* For docs/apps using components, scan dist for class strings: */
-@source "../../node_modules/@oztix/roadie-components/dist";
+/* Each package's CSS registers only its own classes (its own @source, no
+   node_modules path) — import every package you use. */
+@import '@oztix/roadie-components/css';
+@import '@oztix/roadie-widgets/css'; /* React widget skins also need components CSS above; Vue skins don't */
 ```
 
 ### Key rules
@@ -326,7 +334,7 @@ export const buttonVariants = cva('base-classes is-interactive', {
 7. **Prose component** for CMS/markdown content. Has `size` prop (sm/md/lg).
 8. **Grid-first layout.** Use `<div class="grid gap-4">` for vertical stacks — not `flex flex-col`.
 9. **SpotIllustration colors are fixed** — they don't change in dark mode.
-10. **`@source` directive required** in consumer CSS to scan component dist files.
+10. **Import `@oztix/roadie-components/css`** (and `/widgets/css` if used) in consumer CSS so Tailwind scans the dist class strings — each package ships its own `@source`, so no `node_modules` path needed.
 
 ### Linking
 
@@ -515,7 +523,7 @@ Use `<Guideline>` with `<Guideline.Do>` and `<Guideline.Dont>` for do/don't patt
 
 Follow [`docs/contributing/COMPONENT_DOC_TEMPLATE.md`](docs/contributing/COMPONENT_DOC_TEMPLATE.md) for all component documentation. Key rules:
 
-1. One-line description — say what it *is*, not "The X component is..."
+1. One-line description — say what it _is_, not "The X component is..."
 2. Section order: Import → Examples (Default → Variants → Emphasis → Sizes → Intents → States → Composition → With [Feature]) → Guidelines → Accessibility → PropsDefinitions
 3. Only include sections that apply to the component
 4. **No Intents section on form controls** (Input, Textarea, Select, Field, RadioGroup) — `is-interactive-field` manages state colours (neutral→accent→danger)

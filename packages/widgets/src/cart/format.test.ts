@@ -44,6 +44,32 @@ describe('formatTime', () => {
   ])('%i:%i → %s', (h: number, m: number, expected: string) => {
     expect(formatTime(new Date(2026, 0, 1, h, m))).toBe(expected)
   })
+
+  describe('with a venue timeZone', () => {
+    // Absolute instant (Z) + explicit IANA tz → result depends only on the
+    // venue tz, so these assertions are independent of the test runner's tz.
+    it('renders the instant in the venue tz (Australia/Brisbane = UTC+10)', () => {
+      // 09:00 UTC = 19:00 in Brisbane.
+      expect(
+        formatTime(new Date('2026-10-03T09:00:00Z'), {
+          timeZone: 'Australia/Brisbane'
+        })
+      ).toBe('7pm')
+    })
+    it('renders the same instant differently in another venue tz', () => {
+      // 09:00 UTC = 05:00 in New York (EDT, UTC-4).
+      expect(
+        formatTime(new Date('2026-10-03T09:00:00Z'), {
+          timeZone: 'America/New_York'
+        })
+      ).toBe('5am')
+    })
+    it('falls back to browser-local (no throw) for an invalid tz id', () => {
+      const date = new Date(2026, 0, 1, 19, 30)
+      expect(() => formatTime(date, { timeZone: 'Not/AZone' })).not.toThrow()
+      expect(formatTime(date, { timeZone: 'Not/AZone' })).toBe(formatTime(date))
+    })
+  })
 })
 
 describe('formatDayHeader', () => {
@@ -143,6 +169,80 @@ describe('formatEventSchedule', () => {
       )
     ).toBeNull()
   })
+
+  describe('with eventTimeZone (venue-local times)', () => {
+    // Absolute instants (Z) + an explicit venue tz → runner-tz-independent.
+    it('renders same-day start/finish in the venue tz', () => {
+      // 09:00–13:00 UTC = 19:00–23:00 Brisbane (UTC+10).
+      expect(
+        formatEventSchedule(
+          {
+            eventStartAtUtc: '2026-10-03T09:00:00Z',
+            eventEndAtUtc: '2026-10-03T13:00:00Z',
+            eventDateKey: '2026-10-03',
+            eventTimeZone: 'Australia/Brisbane'
+          },
+          opts
+        )
+      ).toBe('7pm – 11pm')
+    })
+
+    it('threads the venue tz through the multi-day branch', () => {
+      // 08:30 UTC → 18:30 Brisbane; next day 11:00 UTC → 21:00 Brisbane.
+      const out = formatEventSchedule(
+        {
+          eventStartAtUtc: '2026-10-03T08:30:00Z',
+          eventEndAtUtc: '2026-10-04T11:00:00Z',
+          eventDateKey: '2026-10-03',
+          eventEndDateKey: '2026-10-04',
+          eventTimeZone: 'Australia/Brisbane'
+        },
+        opts
+      )
+      expect(out).toMatch(/^6:30pm – /)
+      expect(out).toContain('Oct')
+      expect(out).toMatch(/9pm$/)
+    })
+
+    it('falls back to browser-local for an invalid tz (no throw)', () => {
+      // Local-naive start + bogus tz → fallback parses local wall-clock = 7pm,
+      // independent of the runner tz.
+      const event = {
+        eventStartAtUtc: '2026-10-03T19:00:00',
+        eventDateKey: '2026-10-03',
+        eventTimeZone: 'Bogus/Zone'
+      }
+      expect(() => formatEventSchedule(event, opts)).not.toThrow()
+      expect(formatEventSchedule(event, opts)).toBe('7pm')
+    })
+
+    // Forcing the runner tz proves the time is the VENUE's, not the runner's:
+    // the same instant reads differently with vs without eventTimeZone.
+    describe('under a runner tz that differs from the venue', () => {
+      const original = process.env.TZ
+      beforeAll(() => {
+        process.env.TZ = 'America/New_York'
+      })
+      afterAll(() => {
+        process.env.TZ = original
+      })
+      it('uses venue-local (Brisbane), not runner-local (New York)', () => {
+        const base = {
+          eventStartAtUtc: '2026-10-03T09:00:00Z', // 19:00 Brisbane / 05:00 NY
+          eventDateKey: '2026-10-03'
+        }
+        // No tz → runner-local (New York) = 5am.
+        expect(formatEventSchedule(base, opts)).toBe('5am')
+        // With venue tz → Brisbane = 7pm.
+        expect(
+          formatEventSchedule(
+            { ...base, eventTimeZone: 'Australia/Brisbane' },
+            opts
+          )
+        ).toBe('7pm')
+      })
+    })
+  })
 })
 
 describe('formatSeatRange', () => {
@@ -172,6 +272,16 @@ describe('formatSeatRange', () => {
         { row: 'B', seat: '15' }
       ])
     ).toBe('B11–12, 15')
+  })
+
+  it('collapses a gap of 1 but splits a gap of 2', () => {
+    expect(
+      formatSeatRange([
+        { row: 'A', seat: '1' },
+        { row: 'A', seat: '2' },
+        { row: 'A', seat: '4' }
+      ])
+    ).toBe('A1–2, 4')
   })
 
   it('joins separate section/row groups with a middle dot', () => {

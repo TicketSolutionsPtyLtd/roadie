@@ -66,6 +66,13 @@ function buildExports(folders) {
     '.': {
       types: './dist/index.d.ts',
       import: './dist/index.js'
+    },
+    // Tailwind source registration — ships its own @source so consumers
+    // `@import '@oztix/roadie-components/css'` instead of hand-writing a
+    // node_modules path. Not a JS entry; excluded from attw in check:exports.
+    './css': {
+      style: './src/css/components.css',
+      default: './src/css/components.css'
     }
   }
 

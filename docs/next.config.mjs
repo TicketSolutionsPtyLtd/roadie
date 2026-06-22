@@ -9,7 +9,11 @@ const nextConfig = {
     unoptimized: true
   },
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
-  transpilePackages: ['@oztix/roadie-components', '@oztix/roadie-core']
+  transpilePackages: [
+    '@oztix/roadie-components',
+    '@oztix/roadie-core',
+    '@oztix/roadie-widgets'
+  ]
 }
 
 const withMDX = createMDX({

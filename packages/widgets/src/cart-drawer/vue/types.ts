@@ -1,4 +1,4 @@
-import type { CartClient } from '../core'
+import type { CartClient } from '../../cart'
 
 /** Props for the Vue `CartDrawer` SFC. Exported so consumers can type wrappers. */
 export type CartDrawerProps = {
@@ -41,9 +41,15 @@ export type CartDrawerProps = {
   refreshKey?: number
   /** Lock body scroll while open. Default true. */
   lockBodyScroll?: boolean
-  /** Uncontrolled initial state. Default 'closed'. */
+  /**
+   * Controlled open state — supports `v-model:open`. When provided, the drawer
+   * animates to match it, so any UI (e.g. a "View cart" button) can open/close
+   * it. Omit for uncontrolled (tap/drag) behaviour seeded by `initialState`.
+   */
+  open?: boolean
+  /** Uncontrolled initial state when `open` is omitted. Default 'closed'. */
   initialState?: 'closed' | 'open'
-  /** Fires on open/close transitions (design finding #9). */
+  /** Fires on every open/close intent (tap, drag, Escape, backdrop, or `open`). */
   onOpenChange?: (open: boolean) => void
   /** Fires when the urgency countdown hits expiry (design finding #10). */
   onExpire?: () => void

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+  PhCircleNotch,
   PhClock,
   PhMapPin,
   PhSeat,
@@ -14,7 +15,7 @@ import {
   formatEventSchedule,
   formatSeatRange,
   isSafeImageUrl
-} from '../core'
+} from '../../cart'
 
 const props = defineProps<{
   event: CartEvent
@@ -24,6 +25,8 @@ const props = defineProps<{
   currency: string
   /** True while a cart-wide remove is in flight. */
   busy?: boolean
+  /** True when this event is the one being removed (shows the overlay). */
+  removing?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -104,10 +107,8 @@ async function ensureTrap(): Promise<FocusTrapInstance | null> {
     trap = mod.createFocusTrap(el, {
       escapeDeactivates: false,
       clickOutsideDeactivates: false,
-      // Don't preventDefault outside clicks — the trap would otherwise swallow a
-      // click on the drawer's close button while the confirm is open. The
-      // document pointerdown handler still closes the confirm; the click also
-      // reaches the close button, so one click dismisses both.
+      // Let outside clicks through so one click both dismisses the confirm and
+      // hits the drawer's close button.
       allowOutsideClick: true,
       returnFocusOnDeactivate: true,
       initialFocus: () =>
@@ -142,7 +143,6 @@ watch(confirming, async (open) => {
     } catch {
       /* non-fatal */
     }
-    // Drop the stale trap so the next open rebuilds against the fresh element.
     trap = null
   }
 })
@@ -160,7 +160,26 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="grid gap-3">
+  <div
+    class="relative grid gap-3 transition-opacity"
+    :class="{ 'opacity-50': busy && !removing }"
+  >
+    <div
+      v-if="removing"
+      role="status"
+      class="absolute -inset-4 z-docked grid place-content-center bg-raised/60 backdrop-blur-sm @xl:rounded-xl"
+    >
+      <span
+        class="flex items-center gap-2 text-ui-meta font-bold text-subtle intent-danger"
+      >
+        <PhCircleNotch
+          weight="bold"
+          class="size-4 animate-spin"
+          aria-hidden="true"
+        />
+        Removing…
+      </span>
+    </div>
     <div class="flex items-start gap-1">
       <div class="flex min-w-0 flex-1 flex-col gap-2">
         <div
@@ -205,50 +224,57 @@ onBeforeUnmount(() => {
           <PhTrash weight="bold" class="size-4" aria-hidden="true" />
         </button>
 
-        <div
-          v-if="confirming"
-          :id="confirmId"
-          ref="confirmPopupEl"
-          data-cart-confirm
-          class="absolute top-full right-0 z-popover mt-1 grid w-max max-w-80 gap-4 rounded-xl emphasis-floating p-4 text-pretty intent-danger"
-          role="dialog"
-          :aria-labelledby="confirmLabelId"
+        <Transition
+          enter-active-class="[transition:scale_var(--duration-normal)_var(--ease-standard),opacity_var(--duration-normal)_var(--ease-standard)]"
+          leave-active-class="[transition:scale_var(--duration-normal)_var(--ease-standard),opacity_var(--duration-normal)_var(--ease-standard)]"
+          enter-from-class="[scale:0.95] opacity-0"
+          leave-to-class="[scale:0.95] opacity-0"
         >
-          <svg
-            viewBox="0 0 20 10"
-            aria-hidden="true"
-            class="absolute top-[-7px] right-4 z-10 h-2 w-4 fill-(--intent-bg-raised) stroke-(--rim-light-edge)"
-            stroke-width="1"
-            stroke-linejoin="round"
-            stroke-linecap="round"
+          <div
+            v-if="confirming"
+            :id="confirmId"
+            ref="confirmPopupEl"
+            data-cart-confirm
+            class="absolute top-full right-0 z-popover mt-1 grid w-max max-w-80 origin-top-right gap-4 rounded-xl emphasis-floating p-4 text-pretty intent-danger"
+            role="dialog"
+            :aria-labelledby="confirmLabelId"
           >
-            <path d="M0 10 L10 0 L20 10" />
-          </svg>
-          <div class="grid gap-1 text-center">
-            <p :id="confirmLabelId" class="text-display-ui-6 text-strong">
-              Remove all tickets for this event?
-            </p>
-            <p class="text-sm text-subtle">This action cannot be undone.</p>
-          </div>
-          <div class="flex justify-center gap-2">
-            <button
-              ref="confirmCancelEl"
-              type="button"
-              class="is-interactive btn btn-sm emphasis-normal intent-neutral"
-              @click="closeConfirm"
+            <svg
+              viewBox="0 0 20 10"
+              aria-hidden="true"
+              class="absolute top-[-7px] right-4 z-[1] h-2 w-4 fill-(--intent-bg-raised) stroke-(--rim-light-edge)"
+              stroke-width="1"
+              stroke-linejoin="round"
+              stroke-linecap="round"
             >
-              Cancel
-            </button>
-            <button
-              type="button"
-              class="is-interactive btn btn-sm emphasis-strong intent-danger"
-              :disabled="busy"
-              @click="confirmRemove"
-            >
-              Remove
-            </button>
+              <path d="M0 10 L10 0 L20 10" />
+            </svg>
+            <div class="grid gap-1 text-center">
+              <p :id="confirmLabelId" class="text-display-ui-6 text-strong">
+                Remove all tickets for this event?
+              </p>
+              <p class="text-sm text-subtle">This action cannot be undone.</p>
+            </div>
+            <div class="flex justify-center gap-2">
+              <button
+                ref="confirmCancelEl"
+                type="button"
+                class="is-interactive btn btn-sm emphasis-normal intent-neutral"
+                @click="closeConfirm"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                class="is-interactive btn btn-sm emphasis-strong intent-danger"
+                :disabled="busy"
+                @click="confirmRemove"
+              >
+                Remove
+              </button>
+            </div>
           </div>
-        </div>
+        </Transition>
       </div>
     </div>
 

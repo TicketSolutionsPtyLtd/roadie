@@ -1,7 +1,7 @@
 import { fireEvent, render } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
 
-import type { CartEvent } from '../core'
+import type { CartEvent } from '../../cart'
 import CartEventGroup from './CartEventGroup.vue'
 
 function makeEvent(over: Partial<CartEvent> = {}): CartEvent {

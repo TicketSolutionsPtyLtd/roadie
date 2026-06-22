@@ -3,6 +3,7 @@
 import { useState } from 'react'
 
 import {
+  CircleNotchIcon,
   ClockIcon,
   MapPinIcon,
   SeatIcon,
@@ -11,6 +12,7 @@ import {
 } from '@phosphor-icons/react'
 
 import { Badge, Button, IconButton, Popover } from '@oztix/roadie-components'
+import { cn } from '@oztix/roadie-core/utils'
 
 import {
   type CartEvent,
@@ -18,18 +20,15 @@ import {
   formatEventSchedule,
   formatSeatRange,
   isSafeImageUrl
-} from '../core'
+} from '../../cart'
 
 type CartEventGroupProps = {
   event: CartEvent
-  /** Locale for currency/time formatting. */
   locale: string
-  /** ISO 4217 currency code. */
   currency: string
-  /** Optional remove handler. Receives the `eventId`. */
   onRemoveEvent?: (eventId: string) => void
-  /** True while a remove is in flight — disables the trash trigger. */
   isRemoving?: boolean
+  removing?: boolean
 }
 
 export function CartEventGroup({
@@ -37,7 +36,8 @@ export function CartEventGroup({
   locale,
   currency,
   onRemoveEvent,
-  isRemoving = false
+  isRemoving = false,
+  removing = false
 }: CartEventGroupProps) {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const timeLabel =
@@ -46,7 +46,27 @@ export function CartEventGroup({
   const safeImageUrl = isSafeImageUrl(event.imageUrl) ? event.imageUrl : null
 
   return (
-    <div className='grid gap-3'>
+    <div
+      className={cn(
+        'relative grid gap-3 transition-opacity',
+        isRemoving && !removing && 'opacity-50'
+      )}
+    >
+      {removing && (
+        <div
+          role='status'
+          className='absolute -inset-4 z-docked grid place-content-center bg-raised/60 backdrop-blur-sm @xl:rounded-xl'
+        >
+          <span className='flex items-center gap-2 text-ui-meta font-bold text-subtle intent-danger'>
+            <CircleNotchIcon
+              weight='bold'
+              className='size-4 animate-spin'
+              aria-hidden='true'
+            />
+            Removing…
+          </span>
+        </div>
+      )}
       <div className='flex items-start gap-1'>
         <div className='flex min-w-0 flex-1 flex-col gap-2'>
           {timeLabel && (
@@ -54,6 +74,7 @@ export function CartEventGroup({
               <ClockIcon
                 weight='bold'
                 className='size-4 shrink-0 text-subtler'
+                aria-hidden='true'
               />
               <span>{timeLabel}</span>
             </div>
@@ -64,6 +85,7 @@ export function CartEventGroup({
               <MapPinIcon
                 weight='bold'
                 className='size-3.5 shrink-0 text-subtler'
+                aria-hidden='true'
               />
               <span>{event.venueName}</span>
             </div>
@@ -87,7 +109,11 @@ export function CartEventGroup({
                   disabled={isRemoving}
                   aria-label={`Remove ${event.eventName}`}
                 >
-                  <TrashIcon weight='bold' className='size-4' />
+                  <TrashIcon
+                    weight='bold'
+                    className='size-4'
+                    aria-hidden='true'
+                  />
                 </IconButton>
               }
             />
@@ -144,7 +170,7 @@ export function CartEventGroup({
                 </p>
                 {seatLabel && (
                   <Badge emphasis='subtle' size='sm' className='shrink-0'>
-                    <SeatIcon weight='bold' />
+                    <SeatIcon weight='bold' aria-hidden='true' />
                     {seatLabel}
                   </Badge>
                 )}
@@ -157,7 +183,7 @@ export function CartEventGroup({
                 </span>
                 <div className='flex flex-1 items-center justify-center'>
                   <Badge emphasis='normal' size='sm'>
-                    <TicketIcon weight='bold' />
+                    <TicketIcon weight='bold' aria-hidden='true' />
                     {ticket.quantity}
                   </Badge>
                 </div>

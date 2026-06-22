@@ -8,7 +8,7 @@ import {
   toValue
 } from 'vue'
 
-import { remainingSeconds, urgencyLevel } from '../core'
+import { remainingSeconds, urgencyLevel } from '../../cart'
 
 export interface CartExpiryState {
   remaining: Readonly<Ref<number | null>>

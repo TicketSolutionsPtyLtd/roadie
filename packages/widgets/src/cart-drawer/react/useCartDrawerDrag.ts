@@ -23,27 +23,21 @@ import {
   TAP_PX,
   VIEWPORT_MARGIN_PX,
   decideSnapTarget
-} from '../core'
+} from '../../cart'
 
 export type UseCartDrawerDragReturn = {
   state: 'open' | 'closed'
   setState: (next: 'open' | 'closed') => void
   toggle: () => void
-  /** Drawer's animated height in px. closedHeight when closed; maxHeight when open. */
+  snapTo: (next: 'open' | 'closed') => void
   dragHeight: MotionValue<number>
-  /** 0 at closedHeight → 1 at maxHeight. */
   dragProgress: MotionValue<number>
-  /** Measured header (drag pill + title area) height in px. */
   headerHeight: number
-  /** Measured footer (action row + safe-area padding) height in px. */
   footerHeight: number
-  /** Drawer element's CSS-driven max height in px. */
   maxHeight: number
   setHeaderElement: (el: HTMLElement | null) => void
   setFooterElement: (el: HTMLElement | null) => void
-  /** Call from the drag region's onPointerDown. */
   handleDragStart: (e: ReactPointerEvent) => void
-  /** True while a drag is in progress — callers may want to disable transitions. */
   isDragging: boolean
   reducedMotion: boolean
 }
@@ -275,6 +269,7 @@ export function useCartDrawerDrag(
     state,
     setState,
     toggle,
+    snapTo,
     dragHeight,
     dragProgress,
     headerHeight,

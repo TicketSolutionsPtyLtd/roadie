@@ -1,8 +1,7 @@
 @import '@oztix/roadie-core/css';
 
-/* Scan component dist for Tailwind class strings (rounded-full, h-10, etc.) */
-@source '../../node_modules/@oztix/roadie-components/dist';
-
-/* Scan widget dist too — the cart drawer's classes (drag handle, sheet, etc.)
-   only appear here, so without this they'd never make it into the CSS. */
-@source '../../node_modules/@oztix/roadie-widgets/dist';
+/* Register component + widget classes with Tailwind. Each ships its own @source
+   (relative to its own package), so no node_modules path needed here. The docs
+   render React widgets (which use components) plus components on their own. */
+@import '@oztix/roadie-components/css';
+@import '@oztix/roadie-widgets/css';

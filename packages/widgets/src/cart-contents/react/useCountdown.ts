@@ -2,7 +2,7 @@
 
 import { useMemo, useSyncExternalStore } from 'react'
 
-import { remainingSeconds } from '../core'
+import { remainingSeconds } from '../../cart'
 
 // Ticks once a second via useSyncExternalStore (avoids useEffect + setState).
 export function useCountdown(expiresAt: string | undefined): number | null {

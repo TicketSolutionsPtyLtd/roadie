@@ -8,14 +8,16 @@ type CartEmptyStateProps = {
   /** App-specific browse target (replaces the website's hardcoded route). */
   browseHref: string
   onNavigate: (href: string) => void
+  size?: 'sm' | 'md'
 }
 
 export function CartEmptyState({
   browseHref,
-  onNavigate
+  onNavigate,
+  size = 'sm'
 }: CartEmptyStateProps) {
   return (
-    <EmptyState size='sm'>
+    <EmptyState size={size}>
       <EmptyState.IconTile>
         <BagIcon weight='duotone' aria-hidden='true' />
       </EmptyState.IconTile>
