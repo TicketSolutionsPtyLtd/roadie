@@ -55,9 +55,9 @@ export function CartEventGroup({
       {removing && (
         <div
           role='status'
-          className='absolute -inset-x-4 -inset-y-2 z-[1] grid place-content-center emphasis-subtle backdrop-blur-sm @xl:rounded-xl'
+          className='absolute -inset-x-4 -inset-y-4 z-[1] grid place-content-center bg-raised/60 backdrop-blur-sm @xl:rounded-xl'
         >
-          <span className='flex items-center gap-2 text-ui-meta font-bold text-strong intent-danger'>
+          <span className='flex items-center gap-2 text-ui-meta font-bold text-subtle intent-danger'>
             <CircleNotchIcon
               weight='bold'
               className='size-4 animate-spin'
