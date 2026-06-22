@@ -1,8 +1,7 @@
 @import '@oztix/roadie-core/css';
 
 /* Register component + widget classes with Tailwind. Each ships its own @source
-   (relative to its own package), so no node_modules path needed here. The
-   widgets import already pulls in components, but we list both explicitly since
-   the docs render plenty of components on their own. */
+   (relative to its own package), so no node_modules path needed here. The docs
+   render React widgets (which use components) plus components on their own. */
 @import '@oztix/roadie-components/css';
 @import '@oztix/roadie-widgets/css';

@@ -15,8 +15,7 @@ ships its own `@source` relative to itself:
 @import '@oztix/roadie-components/css';
 ```
 
-The `@oztix/roadie-widgets/css` entry now `@import`s
-`@oztix/roadie-components/css`, since the React widget skins render Roadie
-components (Button, Popover, …) whose class strings live in the components dist.
-A single `@import '@oztix/roadie-widgets/css'` therefore covers everything a
-widget renders — no separate components registration needed when using widgets.
+Each package's CSS registers only its own classes, so import every package you
+use. The **React** widget skins render Roadie components (Button, Popover, …), so
+React consumers add `@oztix/roadie-components/css` alongside
+`@oztix/roadie-widgets/css`; the **Vue** skins use core classes only and don't.

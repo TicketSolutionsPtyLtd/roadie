@@ -317,10 +317,10 @@ export const buttonVariants = cva('base-classes is-interactive', {
 /* app/globals.css */
 @import '@oztix/roadie-core/css';
 
-/* Register component (and, if used, widget) classes with Tailwind. Each package
-   ships its own @source, so no node_modules path needed. */
+/* Each package's CSS registers only its own classes (its own @source, no
+   node_modules path) — import every package you use. */
 @import '@oztix/roadie-components/css';
-@import '@oztix/roadie-widgets/css'; /* only if you use widgets; pulls in components too */
+@import '@oztix/roadie-widgets/css'; /* React widget skins also need components CSS above; Vue skins don't */
 ```
 
 ### Key rules

@@ -55,8 +55,20 @@ pnpm add vue motion @number-flow/vue @phosphor-icons/vue focus-trap
 ### Tailwind setup
 
 The drawer's classes live in the package's compiled output, so Tailwind needs to
-scan it — otherwise the styles never make it into your CSS. Add one import to
-your global stylesheet, next to the core import:
+scan it — otherwise the styles never make it into your CSS. Add the CSS imports
+for the skin you use to your global stylesheet:
+
+**React** — the React skin renders `@oztix/roadie-components`, so include its CSS
+as well:
+
+```css
+/* app/globals.css */
+@import '@oztix/roadie-core/css';
+@import '@oztix/roadie-components/css';
+@import '@oztix/roadie-widgets/css';
+```
+
+**Vue** — the Vue skin uses core classes only, so no components CSS:
 
 ```css
 /* app/globals.css */
@@ -64,9 +76,8 @@ your global stylesheet, next to the core import:
 @import '@oztix/roadie-widgets/css';
 ```
 
-`@oztix/roadie-widgets/css` ships its own `@source` pointing at the package's
-`dist`, so you never write a brittle `node_modules` path yourself. One line
-covers every widget.
+Each package's CSS ships its own `@source`, so Tailwind scans the compiled
+classes without you ever writing a `node_modules` path.
 
 ## Import
 

@@ -11,8 +11,10 @@ import { PropsDefinitions } from '@/components/PropsDefinitions'
 # CartContents
 
 The day-grouped event and ticket list that powers the cart drawer's body —
-exported on its own so you can render just the list on a full cart page.
+exported on its own so you can render it on a full `/cart` page.
 
+- Two layouts via `container`: the drawer body, or a full page with a **Cart**
+  header (ticket count + live expiry) and a sticky footer
 - Groups events by day with sticky day headers
 - Reserved seats render as range badges via the shared `formatSeatRange`
 - Per-event remove with an inline confirm, and removals animate out
@@ -43,17 +45,38 @@ pnpm add @oztix/roadie-widgets
 ```
 
 CartContents is presentational — lighter peers than the full drawer (no
-react-query, no focus-trap):
+react-query). Install the peers for the skin you use.
+
+**React**
 
 ```bash
-pnpm add react react-dom @oztix/roadie-components motion @phosphor-icons/react
+pnpm add react react-dom @oztix/roadie-components motion @number-flow/react \
+  @phosphor-icons/react
+```
+
+**Vue**
+
+```bash
+pnpm add vue @number-flow/vue @phosphor-icons/vue focus-trap
 ```
 
 ### Tailwind setup
 
 CartContents' classes live in the package's compiled output, so Tailwind needs
-to scan it — otherwise the styles never make it into your CSS. Add one import to
-your global stylesheet, next to the core import:
+to scan it — otherwise the styles never make it into your CSS. Add the CSS
+imports for the skin you use to your global stylesheet:
+
+**React** — the React skin renders `@oztix/roadie-components`, so include its CSS
+as well:
+
+```css
+/* app/globals.css */
+@import '@oztix/roadie-core/css';
+@import '@oztix/roadie-components/css';
+@import '@oztix/roadie-widgets/css';
+```
+
+**Vue** — the Vue skin uses core classes only, so no components CSS:
 
 ```css
 /* app/globals.css */
@@ -61,9 +84,8 @@ your global stylesheet, next to the core import:
 @import '@oztix/roadie-widgets/css';
 ```
 
-`@oztix/roadie-widgets/css` ships its own `@source` pointing at the package's
-`dist`, so you never write a brittle `node_modules` path yourself. One line
-covers every widget (cart contents and cart drawer).
+Each package's CSS ships its own `@source`, so Tailwind scans the compiled
+classes without you ever writing a `node_modules` path.
 
 ## Import
 
