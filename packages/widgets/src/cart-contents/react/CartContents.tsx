@@ -74,6 +74,7 @@ export function CartContents({
                 <BagIcon
                   weight='bold'
                   className='size-6 text-subtle intent-accent'
+                  aria-hidden='true'
                 />
                 Cart
               </h2>
@@ -116,6 +117,7 @@ export function CartContents({
                         <CalendarBlankIcon
                           weight='bold'
                           className='size-4 shrink-0'
+                          aria-hidden='true'
                         />
                         <p className='text-ui-meta font-bold'>
                           {formatDayHeader(group.key, { locale })}

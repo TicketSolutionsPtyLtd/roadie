@@ -50,6 +50,7 @@ export function CartEventGroup({
               <ClockIcon
                 weight='bold'
                 className='size-4 shrink-0 text-subtler'
+                aria-hidden='true'
               />
               <span>{timeLabel}</span>
             </div>
@@ -60,6 +61,7 @@ export function CartEventGroup({
               <MapPinIcon
                 weight='bold'
                 className='size-3.5 shrink-0 text-subtler'
+                aria-hidden='true'
               />
               <span>{event.venueName}</span>
             </div>
@@ -83,7 +85,11 @@ export function CartEventGroup({
                   disabled={isRemoving}
                   aria-label={`Remove ${event.eventName}`}
                 >
-                  <TrashIcon weight='bold' className='size-4' />
+                  <TrashIcon
+                    weight='bold'
+                    className='size-4'
+                    aria-hidden='true'
+                  />
                 </IconButton>
               }
             />
@@ -140,7 +146,7 @@ export function CartEventGroup({
                 </p>
                 {seatLabel && (
                   <Badge emphasis='subtle' size='sm' className='shrink-0'>
-                    <SeatIcon weight='bold' />
+                    <SeatIcon weight='bold' aria-hidden='true' />
                     {seatLabel}
                   </Badge>
                 )}
@@ -153,7 +159,7 @@ export function CartEventGroup({
                 </span>
                 <div className='flex flex-1 items-center justify-center'>
                   <Badge emphasis='normal' size='sm'>
-                    <TicketIcon weight='bold' />
+                    <TicketIcon weight='bold' aria-hidden='true' />
                     {ticket.quantity}
                   </Badge>
                 </div>

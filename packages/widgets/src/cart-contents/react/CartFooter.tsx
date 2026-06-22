@@ -73,7 +73,7 @@ export function CartFooter({
           disabled={checkoutDisabled}
           onClick={onCheckout}
         >
-          <BagIcon weight='bold' className='mr-1.5 size-4' />
+          <BagIcon weight='bold' className='mr-1.5 size-4' aria-hidden='true' />
           Checkout
         </Button>
       </div>

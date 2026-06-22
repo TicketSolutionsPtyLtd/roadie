@@ -66,7 +66,7 @@ export function CartUrgencyBadge({
         {announcement}
       </span>
       <Badge size='sm' className={cn(bounce && 'animate-pop', className)}>
-        <TicketIcon weight='bold' />
+        <TicketIcon weight='bold' aria-hidden='true' />
         <span className='tabular-nums'>
           <NumberFlow value={ticketCount} />
         </span>
