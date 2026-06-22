@@ -16,6 +16,17 @@ import {
 } from '../../cart'
 import { CartEmptyState } from './CartEmptyState'
 import { CartEventGroup } from './CartEventGroup'
+import { CartUrgencyBadge } from './CartUrgencyBadge'
+
+/**
+ * Layout preset:
+ * - `drawer` (default): body only — no header/footer, natural height — for the
+ *   cart drawer, which renders its own chrome.
+ * - `page`: fill-height column with a "Cart" header (ticket count + live expiry),
+ *   a sticky edge-to-edge footer, and a centred empty state — for a standalone
+ *   `/cart` page.
+ */
+export type CartContainer = 'drawer' | 'page'
 
 export type CartContentsProps = {
   cart: CartDetails
@@ -27,17 +38,8 @@ export type CartContentsProps = {
   locale: string
   currency: string
   className?: string
-  /** Pin the footer to the bottom of the nearest scrolling ancestor. */
-  stickyFooter?: boolean
-  /**
-   * For standalone `/cart`-style pages: make the root a fill-height column so
-   * it fills the height the consumer's container provides. The footer pins to
-   * the bottom for short carts (via `mt-auto`) and the empty state centres.
-   * Leave unset (the default) inside the drawer, which sizes its own panel.
-   */
-  fillHeight?: boolean
-  /** Skip the Total / fees / Checkout footer. */
-  hideFooter?: boolean
+  /** Layout preset. `drawer` (default) is body-only; `page` adds the header, sticky footer and fill-height. */
+  container?: CartContainer
   /** Optional per-event remove handler. Receives the `eventId`. */
   onRemoveEvent?: (eventId: string) => void
   /** True while a remove is in flight — disables the trash triggers. */
@@ -52,12 +54,11 @@ export function CartContents({
   locale,
   currency,
   className,
-  stickyFooter = false,
-  fillHeight = false,
-  hideFooter = false,
+  container = 'drawer',
   onRemoveEvent,
   busy = false
 }: CartContentsProps) {
+  const isPage = container === 'page'
   const ticketCount = cart.events.reduce(
     (sum, event) =>
       sum + event.tickets.reduce((tSum, t) => tSum + t.quantity, 0),
@@ -72,26 +73,34 @@ export function CartContents({
   )
 
   return (
-    // Self-provide motion features so removals animate even when rendered
-    // standalone (no drawer LazyMotion ancestor). Nesting inside the drawer's
-    // LazyMotion is fine.
+    // LazyMotion so removals animate standalone; isolate keeps the sticky
+    // headers' z-index from escaping the cart.
     <LazyMotion features={domAnimation}>
-      {/* @container so the event-image container queries (@sm/@md in
-         CartEventGroup) resolve standalone, exactly as they do inside the
-         drawer body's @container. `isolate` keeps the sticky day headers'
-         z-index contained to the cart — without it they paint over app
-         content (the drawer gets this for free from its fixed z-modal panel).
-         fillHeight swaps the default grid for a fill-height flex column. */}
       <div
         className={cn(
           '@container isolate',
-          className ?? (fillHeight ? 'flex min-h-full flex-col' : 'grid gap-5')
+          className ?? (isPage ? 'flex min-h-full flex-col' : 'grid')
         )}
       >
-        {/* One presence tree spans both states so removing the last event
-           animates the list out and the empty state in (mode='wait' →
-           sequential crossfade). initial={false} → no animation on first
-           mount. */}
+        {isPage && (
+          <div className='@xl:mx-auto @xl:w-full @xl:max-w-lg'>
+            <div className='grid justify-items-center gap-2 pt-4 pb-3'>
+              <h2 className='flex items-center gap-2 text-display-ui-3 text-strong'>
+                <BagIcon
+                  weight='bold'
+                  className='size-6 text-subtle intent-accent'
+                />
+                Cart
+              </h2>
+              <CartUrgencyBadge
+                ticketCount={ticketCount}
+                expiresAtUtc={cart.expiresAtUtc}
+              />
+            </div>
+          </div>
+        )}
+        {/* One presence tree across both states so the last removal crossfades
+           list → empty. */}
         <AnimatePresence mode='wait' initial={false}>
           {isEmpty ? (
             <m.div
@@ -100,7 +109,7 @@ export function CartContents({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className={cn(fillHeight && 'grid flex-1 place-content-center')}
+              className={cn(isPage && 'grid flex-1 place-content-center')}
             >
               <CartEmptyState browseHref={browseHref} onNavigate={onNavigate} />
             </m.div>
@@ -109,24 +118,16 @@ export function CartContents({
               key='list'
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              // Once the container is wide (@xl ≈ 576px) the list stops going
-              // edge-to-edge: it centres at a readable max width and the day
-              // headers pick up rounded corners (see @xl utilities below).
-              className='grid gap-5 @xl:mx-auto @xl:w-full @xl:max-w-lg'
+              className='grid gap-5 pb-5 @xl:mx-auto @xl:w-full @xl:max-w-lg'
             >
-              {/* Per-event removal. exit's overflow is applied only on exit so
-                 the sticky header isn't trapped in a scroll container while
-                 scrolling. */}
               <AnimatePresence initial={false}>
                 {dayGroups.map((group) => (
                   <m.section
                     key={group.key}
                     exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
                     transition={{ duration: 0.25, ease: 'easeInOut' }}
-                    // Full-bleed lives on the section (not the header via -mx-4)
-                    // so the exit's overflow:hidden clips vertically without
-                    // shearing off the header's bleed. At @xl the column is
-                    // constrained, so the bleed is dropped and the header rounds.
+                    // Full-bleed on the section so the exit clip doesn't shear
+                    // the header's -mx-4 bleed; dropped at @xl where it rounds.
                     className='-mx-4 grid gap-4 @xl:mx-0'
                   >
                     <div className='sticky top-0 z-sticky emphasis-strong px-4 py-2.5 @xl:rounded-xl'>
@@ -173,19 +174,10 @@ export function CartContents({
           )}
         </AnimatePresence>
 
-        {!isEmpty && !hideFooter && (
-          // The footer band stays full-bleed; only its content tracks the same
-          // @xl max-width column as the list above so they stay aligned. Under
-          // fillHeight, mt-auto pins it to the bottom for short carts;
-          // stickyFooter additionally keeps it pinned while a long cart scrolls.
-          <div
-            className={cn(
-              'border-t border-subtle pt-4',
-              fillHeight && 'mt-auto',
-              stickyFooter &&
-                'sticky bottom-0 bg-raised pb-[env(safe-area-inset-bottom)]'
-            )}
-          >
+        {isPage && !isEmpty && (
+          // Edge-to-edge separator (-mx-4/px-4); mt-auto + sticky pin it to the
+          // bottom. z-sticky so a day header can't scroll over it.
+          <div className='sticky bottom-0 z-sticky -mx-4 mt-auto border-t border-subtle bg-raised px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))]'>
             <div className='@xl:mx-auto @xl:w-full @xl:max-w-lg'>
               <div className='flex items-center justify-between gap-4 pb-1'>
                 <span className='text-ui font-bold text-strong'>Subtotal</span>
@@ -205,8 +197,6 @@ export function CartContents({
                   : 'Includes booking fees. '}
                 Delivery and refund protection calculated at checkout.
               </p>
-              {/* Mirrors the drawer footer: neutral secondary + strong-accent
-             Checkout with the bag icon. */}
               <div className='flex gap-3'>
                 <Button
                   emphasis='normal'

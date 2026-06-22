@@ -12,6 +12,7 @@ import {
 } from '../../cart'
 import CartEmptyState from './CartEmptyState.vue'
 import CartEventGroup from './CartEventGroup.vue'
+import CartUrgencyBadge from './CartUrgencyBadge.vue'
 
 const PRICE_FORMAT = { minimumFractionDigits: 2 }
 
@@ -26,22 +27,22 @@ const props = withDefaults(
     locale: string
     currency: string
     /**
-     * For standalone `/cart`-style pages: make the root a fill-height column,
-     * pin the footer to the bottom for short carts (mt-auto), and centre the
-     * empty state. Leave unset inside the drawer, which sizes its own panel.
+     * Layout preset. `drawer` (default): body only — no header/footer, natural
+     * height. `page`: fill-height column with a "Cart" header (count + live
+     * expiry), a sticky edge-to-edge footer, and a centred empty state.
      */
-    fillHeight?: boolean
-    /** Skip the Total / fees / Checkout footer (the drawer renders its own). */
-    hideFooter?: boolean
+    container?: 'drawer' | 'page'
     /** True while a cart-wide remove is in flight — locks the per-event trash. */
     busy?: boolean
   }>(),
-  { fillHeight: false, hideFooter: false }
+  { container: 'drawer' }
 )
 
 const emit = defineEmits<{
   removeEvent: [eventId: string]
 }>()
+
+const isPage = computed(() => props.container === 'page')
 
 const ticketCount = computed(() =>
   props.cart.events.reduce(
@@ -94,44 +95,49 @@ function onLeave(el: Element, done: () => void) {
 </script>
 
 <template>
-  <!-- One out-in transition spans both states so removing the last event fades
-       the list out and the empty state in (mirrors the React skin's mode='wait'
-       AnimatePresence). Vue Transitions don't run on initial render, matching
-       React's initial={false}. -->
-  <Transition
-    mode="out-in"
-    enter-active-class="transition-opacity duration-200"
-    leave-active-class="transition-opacity duration-200"
-    enter-from-class="opacity-0"
-    leave-to-class="opacity-0"
+  <!-- isolate keeps the sticky day headers' z-index from escaping the cart. -->
+  <div
+    class="@container isolate"
+    :class="isPage ? 'flex min-h-full flex-col' : 'grid'"
   >
-    <!-- @container + isolate as below; under fillHeight the empty state fills
-         and centres in the column. -->
-    <div
-      v-if="isEmpty"
-      key="empty"
-      class="@container isolate"
-      :class="fillHeight && 'grid min-h-full place-content-center'"
-    >
-      <CartEmptyState :browse-href="browseHref" :on-navigate="onNavigate" />
+    <div v-if="isPage" class="@xl:mx-auto @xl:w-full @xl:max-w-lg">
+      <div class="grid justify-items-center gap-2 pt-4 pb-3">
+        <h2 class="flex items-center gap-2 text-display-ui-3 text-strong">
+          <PhBag
+            weight="bold"
+            class="size-6 text-subtle intent-accent"
+            aria-hidden="true"
+          />
+          Cart
+        </h2>
+        <CartUrgencyBadge
+          :ticket-count="ticketCount"
+          :expires-at-utc="cart.expiresAtUtc"
+        />
+      </div>
     </div>
-    <!-- @container so the event-image container queries (@sm/@md in
-       CartEventGroup) resolve standalone, exactly as inside the drawer body.
-       `isolate` keeps the sticky day headers' z-index contained to the cart —
-       without it they paint over app content (the drawer gets this for free
-       from its fixed z-modal panel). fillHeight swaps the grid for a fill-height
-       flex column. -->
-    <div
-      v-else
-      key="list"
-      class="@container isolate"
-      :class="fillHeight ? 'flex min-h-full flex-col' : 'grid gap-5'"
+
+    <!-- out-in mirrors the React skin's mode='wait': last removal crossfades
+         list → empty. -->
+    <Transition
+      mode="out-in"
+      enter-active-class="transition-opacity duration-200"
+      leave-active-class="transition-opacity duration-200"
+      enter-from-class="opacity-0"
+      leave-to-class="opacity-0"
     >
-      <!-- Once the container is wide (@xl ≈ 576px) the list centres at a readable
-         max width and the day headers pick up rounded corners. -->
+      <div
+        v-if="isEmpty"
+        key="empty"
+        :class="isPage && 'grid flex-1 place-content-center'"
+      >
+        <CartEmptyState :browse-href="browseHref" :on-navigate="onNavigate" />
+      </div>
       <TransitionGroup
+        v-else
+        key="list"
         tag="div"
-        class="grid gap-5 @xl:mx-auto @xl:w-full @xl:max-w-lg"
+        class="grid gap-5 pb-5 @xl:mx-auto @xl:w-full @xl:max-w-lg"
         :css="false"
         @leave="onLeave"
       >
@@ -183,59 +189,49 @@ function onLeave(el: Element, done: () => void) {
           </TransitionGroup>
         </section>
       </TransitionGroup>
+    </Transition>
 
-      <!-- The footer band stays full-bleed; only its content tracks the same @xl
-         max-width column as the list above so they stay aligned. Under
-         fillHeight, mt-auto pins it to the bottom for short carts. -->
-      <div
-        v-if="!hideFooter"
-        class="border-t border-subtle pt-4"
-        :class="fillHeight && 'mt-auto'"
-      >
-        <div class="@xl:mx-auto @xl:w-full @xl:max-w-lg">
-          <div class="flex items-center justify-between gap-4 pb-1">
-            <span class="text-ui font-bold text-strong">Subtotal</span>
-            <span class="text-ui font-bold text-strong">
-              <NumberFlow
-                :value="cart.cartTotal"
-                :prefix="pricePrefix"
-                :format="PRICE_FORMAT"
-              />
-            </span>
-          </div>
-          <p class="pb-4 text-ui-meta text-subtle">
-            {{
-              totalBookingFees > 0
-                ? `Incl. ${money(totalBookingFees)} booking fees. `
-                : 'Includes booking fees. '
-            }}Delivery and refund protection calculated at checkout.
-          </p>
-          <!-- Mirrors the drawer footer: neutral secondary + strong-accent
-           Checkout with the bag icon. -->
-          <div class="flex gap-3">
-            <button
-              type="button"
-              class="is-interactive btn btn-md flex-1 emphasis-normal intent-neutral"
-              @click="onNavigate(browseHref)"
-            >
-              Browse events
-            </button>
-            <button
-              type="button"
-              class="is-interactive btn btn-md flex-1 emphasis-strong intent-accent"
-              :disabled="!checkoutUrl"
-              @click="onCheckout"
-            >
-              <PhBag
-                weight="bold"
-                :class="'mr-1.5 size-4'"
-                aria-hidden="true"
-              />
-              Checkout
-            </button>
-          </div>
+    <div
+      v-if="isPage && !isEmpty"
+      class="sticky bottom-0 z-sticky -mx-4 mt-auto border-t border-subtle bg-raised px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))]"
+    >
+      <div class="@xl:mx-auto @xl:w-full @xl:max-w-lg">
+        <div class="flex items-center justify-between gap-4 pb-1">
+          <span class="text-ui font-bold text-strong">Subtotal</span>
+          <span class="text-ui font-bold text-strong">
+            <NumberFlow
+              :value="cart.cartTotal"
+              :prefix="pricePrefix"
+              :format="PRICE_FORMAT"
+            />
+          </span>
+        </div>
+        <p class="pb-4 text-ui-meta text-subtle">
+          {{
+            totalBookingFees > 0
+              ? `Incl. ${money(totalBookingFees)} booking fees. `
+              : 'Includes booking fees. '
+          }}Delivery and refund protection calculated at checkout.
+        </p>
+        <div class="flex gap-3">
+          <button
+            type="button"
+            class="is-interactive btn btn-md flex-1 emphasis-normal intent-neutral"
+            @click="onNavigate(browseHref)"
+          >
+            Browse events
+          </button>
+          <button
+            type="button"
+            class="is-interactive btn btn-md flex-1 emphasis-strong intent-accent"
+            :disabled="!checkoutUrl"
+            @click="onCheckout"
+          >
+            <PhBag weight="bold" :class="'mr-1.5 size-4'" aria-hidden="true" />
+            Checkout
+          </button>
         </div>
       </div>
     </div>
-  </Transition>
+  </div>
 </template>

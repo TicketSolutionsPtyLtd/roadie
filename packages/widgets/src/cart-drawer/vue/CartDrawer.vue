@@ -444,7 +444,7 @@ const contentOpacity = computed(() =>
               :locale="locale"
               :currency="currency"
               :busy="removing"
-              hide-footer
+              container="drawer"
               @remove-event="handleRemoveEvent"
             />
           </template>

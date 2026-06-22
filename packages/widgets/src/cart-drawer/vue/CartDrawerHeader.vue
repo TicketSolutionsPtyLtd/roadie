@@ -4,7 +4,7 @@ import { PhBag, PhX } from '@phosphor-icons/vue'
 import { computed } from 'vue'
 
 import { currencyPrefix } from '../../cart'
-import CartUrgencyBadge from './CartUrgencyBadge.vue'
+import CartUrgencyBadge from '../../cart-contents/vue/CartUrgencyBadge.vue'
 
 const PRICE_FORMAT = { minimumFractionDigits: 2 }
 

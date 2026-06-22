@@ -9,11 +9,20 @@ import type {
 // Canned cart for the live CartDrawer examples. No network — every method
 // resolves instantly from in-memory data. `createDemoCart()` returns a fresh,
 // independently mutable client (plus a demo-only `addEvent`) so each mounted
-// example owns its state. Placeholder images come from picsum.photos because
-// the drawer only renders http(s) image URLs — data URIs are rejected by its
-// `isSafeImageUrl` guard.
+// example owns its state.
 
-const img = (seed: string) => `https://picsum.photos/seed/${seed}/160/160`
+// Placeholder image: a same-origin SVG in /public, resolved to an absolute
+// http(s) URL at call time (client-side). `isSafeImageUrl` only accepts absolute
+// http(s) URLs — a relative path throws — and an external host (picsum, etc.) is
+// unreliable behind strict networks/CSP, so we serve our own asset. `seed` is
+// kept for API compatibility but every event shares the one placeholder.
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || ''
+
+const img = (_seed: string) => {
+  if (typeof window === 'undefined') return '' // SSR: rejected, demo is client-fetched
+  return new URL(`${BASE_PATH}/cart-demo-event.svg`, window.location.origin)
+    .href
+}
 
 const DEMO_EVENTS: CartEvent[] = [
   {
@@ -247,7 +256,12 @@ export function createDemoCart(): DemoCartClient {
       cartTotal: sumTotals(events),
       expiresAtUtc,
       extrasUrl: '/checkout/demo',
-      events: events.map((event) => ({ ...event }))
+      // Re-resolve the image URL here (always client-side) so it's absolute even
+      // if the module first evaluated during SSR.
+      events: events.map((event) => ({
+        ...event,
+        imageUrl: img(event.eventId)
+      }))
     }),
     checkoutUrl: (details) => details.extrasUrl,
     removeItem: async (_cartId, eventId) => {

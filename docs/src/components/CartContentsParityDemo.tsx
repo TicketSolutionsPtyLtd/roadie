@@ -11,29 +11,27 @@ import { VueCartContents } from './VueCartContents'
 import { type DemoCartClient, createDemoCart } from './cartDrawerDemo'
 
 type Skin = 'react' | 'vue'
+type Container = 'drawer' | 'page'
 
-// Per-skin usage shown under the tabs so the import path + fillHeight wiring is
-// visible while switching. Kept short so CodePreview shows it all.
 const SKIN_CODE: Record<Skin, string> = {
   react: `import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
 
-// fillHeight owns the layout — no external flex-1 / mt-auto / justify-center.
+// container="page" adds the header + footer and fills its container's height.
 <div className="min-h-full">
-  <CartContents cart={cart} fillHeight onNavigate={go} browseHref="/events"
+  <CartContents cart={cart} container="page" onNavigate={go} browseHref="/events"
     checkoutUrl={url} locale="en-AU" currency="AUD" onRemoveEvent={remove} />
 </div>`,
   vue: `import { CartContents } from '@oztix/roadie-widgets/cart-contents/vue'
 
 <div class="min-h-full">
-  <CartContents :cart="cart" fill-height :on-navigate="go" browse-href="/events"
+  <CartContents :cart="cart" container="page" :on-navigate="go" browse-href="/events"
     :checkout-url="url" locale="en-AU" currency="AUD" @remove-event="remove" />
 </div>`
 }
 
 export function CartContentsParityDemo() {
   const [skin, setSkin] = useState<Skin>('react')
-  const [fillHeight, setFillHeight] = useState(true)
-  const [hideFooter, setHideFooter] = useState(false)
+  const [container, setContainer] = useState<Container>('page')
   const [client, setClient] = useState<DemoCartClient>(() => createDemoCart())
   const [details, setDetails] = useState<CartDetails | null>(null)
   const [busy, setBusy] = useState(false)
@@ -91,8 +89,7 @@ export function CartContentsParityDemo() {
     checkoutUrl: client.checkoutUrl(details),
     locale: 'en-AU',
     currency: 'AUD',
-    fillHeight,
-    hideFooter,
+    container,
     busy,
     onRemoveEvent: removeEvent
   }
@@ -115,20 +112,15 @@ export function CartContentsParityDemo() {
             </Tabs.List>
           </Tabs>
 
-          <div className='flex flex-wrap gap-2'>
+          <div className='flex flex-wrap items-center gap-2'>
             <Button
-              intent={fillHeight ? 'accent' : 'neutral'}
-              emphasis={fillHeight ? 'strong' : 'normal'}
-              onClick={() => setFillHeight((v) => !v)}
+              intent={container === 'page' ? 'accent' : 'neutral'}
+              emphasis={container === 'page' ? 'strong' : 'normal'}
+              onClick={() =>
+                setContainer((c) => (c === 'page' ? 'drawer' : 'page'))
+              }
             >
-              fillHeight: {fillHeight ? 'on' : 'off'}
-            </Button>
-            <Button
-              intent={hideFooter ? 'accent' : 'neutral'}
-              emphasis={hideFooter ? 'strong' : 'normal'}
-              onClick={() => setHideFooter((v) => !v)}
-            >
-              hideFooter: {hideFooter ? 'on' : 'off'}
+              container: {container}
             </Button>
             <Button onClick={addEvent}>Add event</Button>
             <Button onClick={emptyCart}>Empty cart</Button>
@@ -137,13 +129,10 @@ export function CartContentsParityDemo() {
             </Button>
           </div>
 
-          {/* The frame is a fixed-height "page area" — the definite-height
-              context fillHeight fills. CartContents is a direct child (the Vue
-              bridge wrapper is display:contents) so its min-h-full resolves
-              against the frame: the footer pins to the bottom for a short cart
-              and the empty state centres. Toggle fillHeight off to see the cart
-              sit at its natural height, top-aligned. px-4 lets the day headers
-              full-bleed to the frame edges. */}
+          {/* Fixed-height "page area": container="page" fills it (header, sticky
+              footer, centred empty state); "drawer" is the body-only list. The
+              Vue bridge wrapper is display:contents so both skins lay out as a
+              direct child. px-4 lets the day headers full-bleed. */}
           <div className='h-[28rem] overflow-y-auto rounded-xl border border-subtle bg-normal px-4'>
             {shared &&
               (skin === 'react' ? (

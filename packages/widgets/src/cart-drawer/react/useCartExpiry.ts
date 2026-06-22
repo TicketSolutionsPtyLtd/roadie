@@ -3,7 +3,7 @@
 import { useCallback, useState } from 'react'
 
 import { urgencyLevel } from '../../cart'
-import { useCountdown } from './useCountdown'
+import { useCountdown } from '../../cart-contents/react/useCountdown'
 
 export interface CartExpiryState {
   remaining: number | null

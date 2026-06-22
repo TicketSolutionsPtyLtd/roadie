@@ -18,8 +18,7 @@ export type VueCartContentsProps = {
   checkoutUrl: string | null
   locale: string
   currency: string
-  fillHeight?: boolean
-  hideFooter?: boolean
+  container?: 'drawer' | 'page'
   busy?: boolean
   onRemoveEvent?: (eventId: string) => void
 }

@@ -386,7 +386,7 @@ export function CartDrawer({
                   checkoutUrl={checkoutUrl}
                   locale={locale}
                   currency={currency}
-                  hideFooter
+                  container='drawer'
                   onRemoveEvent={removeEvent}
                   busy={removeBusy}
                 />

@@ -89,7 +89,8 @@ describe('CartContents', () => {
         browseHref: '/events',
         checkoutUrl: 'https://h.example/outlet/extras/c1',
         locale: 'en-AU',
-        currency: 'AUD'
+        currency: 'AUD',
+        container: 'page'
       }
     })
     await fireEvent.click(getByText('Checkout'))
@@ -106,13 +107,14 @@ describe('CartContents', () => {
         browseHref: '/events',
         checkoutUrl: null,
         locale: 'en-AU',
-        currency: 'AUD'
+        currency: 'AUD',
+        container: 'page'
       }
     })
     expect((getByText('Checkout') as HTMLButtonElement).disabled).toBe(true)
   })
 
-  it('fills height and pins the footer to the bottom under fillHeight', () => {
+  it('page container fills height and pins the footer', () => {
     const { container, getByText } = render(CartContents, {
       props: {
         cart: makeDetails(),
@@ -121,10 +123,9 @@ describe('CartContents', () => {
         checkoutUrl: '/outlet/extras/c1',
         locale: 'en-AU',
         currency: 'AUD',
-        fillHeight: true
+        container: 'page'
       }
     })
-    // The test env stubs <Transition>, so reach the list root by class.
     const root = container.querySelector('[class*="flex-col"]') as HTMLElement
     expect(root).not.toBeNull()
     expect(root.className).toMatch(/\bflex\b/)
@@ -133,7 +134,22 @@ describe('CartContents', () => {
     expect(footer?.className).toMatch(/mt-auto/)
   })
 
-  it('centres the empty state under fillHeight', () => {
+  it('page container renders a Cart header', () => {
+    const { getByRole } = render(CartContents, {
+      props: {
+        cart: makeDetails(),
+        onNavigate: vi.fn(),
+        browseHref: '/events',
+        checkoutUrl: '/outlet/extras/c1',
+        locale: 'en-AU',
+        currency: 'AUD',
+        container: 'page'
+      }
+    })
+    expect(getByRole('heading', { name: /cart/i })).toBeTruthy()
+  })
+
+  it('page container centres the empty state', () => {
     const { container, getByText } = render(CartContents, {
       props: {
         cart: makeDetails({ events: [], cartTotal: 0 }),
@@ -142,24 +158,25 @@ describe('CartContents', () => {
         checkoutUrl: null,
         locale: 'en-AU',
         currency: 'AUD',
-        fillHeight: true
+        container: 'page'
       }
     })
     expect(container.querySelector('.place-content-center')).not.toBeNull()
     expect(getByText('Your cart is empty')).toBeTruthy()
   })
 
-  it('does not centre the empty state without fillHeight (drawer-compatible default)', () => {
-    const { container } = render(CartContents, {
+  it('defaults to the drawer container — no footer', () => {
+    const { container, queryByText } = render(CartContents, {
       props: {
-        cart: makeDetails({ events: [], cartTotal: 0 }),
+        cart: makeDetails(),
         onNavigate: vi.fn(),
         browseHref: '/events',
-        checkoutUrl: null,
+        checkoutUrl: '/outlet/extras/c1',
         locale: 'en-AU',
         currency: 'AUD'
       }
     })
     expect(container.querySelector('.place-content-center')).toBeNull()
+    expect(queryByText('Checkout')).toBeNull()
   })
 })

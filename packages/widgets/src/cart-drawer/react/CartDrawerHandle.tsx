@@ -10,7 +10,7 @@ import { Button, IconButton } from '@oztix/roadie-components'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { currencyPrefix, formatCurrency } from '../../cart'
-import { CartUrgencyBadge } from './CartUrgencyBadge'
+import { CartUrgencyBadge } from '../../cart-contents/react/CartUrgencyBadge'
 
 type CartDrawerHeaderProps = {
   ticketCount: number

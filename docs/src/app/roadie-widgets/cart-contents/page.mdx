@@ -24,13 +24,12 @@ the docked drawer stay visually identical over one shared core.
 ## Live demo
 
 The way a `/cart` page would use it — in a normal page column, no overlay. The
-frame below is a fixed-height "page area" so you can see `fillHeight` work. Use
-the **React / Vue** tabs to compare the skins, and the toggles to test:
+frame below is a fixed-height "page area". Use the **React / Vue** tabs to compare
+the skins, and the controls to test:
 
-- **`fillHeight`** — on, the cart fills the frame: the footer pins to the bottom
-  for a short cart and the empty state centres. Off, the cart sits at its natural
-  height, top-aligned.
-- **`hideFooter`** — drop the Total / Checkout footer.
+- **`container`** — `page` fills the frame with a Cart header (ticket count + live
+  expiry), a sticky edge-to-edge footer, and a centred empty state; `drawer` is
+  the body-only list (no header/footer) for embedding in your own chrome.
 - **Add event / Empty cart / Reset** — change the cart length, or empty it to see
   the last event animate out and the empty state animate in. Per-event removal
   (the trash icon) animates too. Runs on a canned cart.
@@ -96,36 +95,32 @@ import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
 const cart = createCartClient({ host: '' }) // same-origin
 const details = await cart.getDetails(collectionId)
 
-;<CartContents
-  cart={details}
-  onNavigate={(href) => router.push(href)}
-  browseHref="/events"
-  checkoutUrl={cart.checkoutUrl(details)}
-  locale="en-AU"
-  currency="AUD"
-/>
+;<div className="min-h-full">
+  <CartContents
+    cart={details}
+    container="page"
+    onNavigate={(href) => router.push(href)}
+    browseHref="/events"
+    checkoutUrl={cart.checkoutUrl(details)}
+    locale="en-AU"
+    currency="AUD"
+  />
+</div>
 ```
 
-- **`fillHeight`** — for a full `/cart`-style page. The root becomes a
-  fill-height column so it fills whatever height its container provides: the
-  footer pins to the bottom for short carts (no scroll overflow needed) and the
-  empty state centres. Render it as just
-  `<div className="min-h-full"><CartContents fillHeight … /></div>` — no external
-  `flex-1`, `mt-auto`, or conditional `justify-center`. Leave it unset inside the
-  drawer, which sizes its own panel. Composes with `stickyFooter`: `mt-auto`
-  covers short carts, `stickyFooter` keeps the footer pinned while a long cart
-  scrolls.
-- **`hideFooter`** — drop the Total / fees / Checkout footer (e.g. when your
-  page renders its own order summary).
-- **`stickyFooter`** — pin the footer to the bottom of the nearest scrolling
-  ancestor.
+- **`container`** — the layout preset. `drawer` (default) is the body-only list
+  (no header or footer, natural height) for embedding in your own chrome — it's
+  what `CartDrawer` renders. `page` is the full `/cart` experience: a fill-height
+  column with a **Cart** header (ticket count + live expiry), a sticky
+  edge-to-edge footer pinned to the bottom, and a centred empty state. Give the
+  parent a height (e.g. `<div className="min-h-full">`) — no external `flex-1`,
+  `mt-auto`, or `justify-center` needed.
 - **`onRemoveEvent` / `busy`** — wire per-event removal; `busy` disables the
   trash triggers while a remove is in flight.
 
 When `cart` has no tickets, CartContents renders the empty state with the
-`browseHref` call to action. Removing the last event animates the list out and
-the empty state in (one shared presence tree), and under `fillHeight` the empty
-state fills and centres in the column.
+`browseHref` call to action (centred under `container="page"`). Removing the last
+event animates the list out and the empty state in.
 
 ## Props
 
