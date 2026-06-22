@@ -64,9 +64,16 @@ export type CartDrawerProps = {
   refreshKey?: number
   /** Lock body scroll while open. Default true. */
   lockBodyScroll?: boolean
-  /** Uncontrolled initial state. Default 'closed'. */
+  /**
+   * Controlled open state. When provided, the drawer animates to match it —
+   * drive it from your own state so any UI (e.g. a "View cart" button) can
+   * open/close it, echoing `onOpenChange` back into it. Omit for uncontrolled
+   * (tap/drag) behaviour seeded by `initialState`.
+   */
+  open?: boolean
+  /** Uncontrolled initial state when `open` is omitted. Default 'closed'. */
   initialState?: 'closed' | 'open'
-  /** Fires on open/close transitions. */
+  /** Fires on every open/close intent (tap, drag, Escape, backdrop, or `open`). */
   onOpenChange?: (open: boolean) => void
   /** Fires when the urgency countdown hits expiry. */
   onExpire?: () => void
@@ -84,6 +91,7 @@ export function CartDrawer({
   currency,
   refreshKey,
   lockBodyScroll = true,
+  open,
   initialState = 'closed',
   onOpenChange,
   onExpire,
@@ -140,6 +148,7 @@ export function CartDrawer({
   const {
     state,
     toggle,
+    snapTo,
     dragHeight,
     dragProgress,
     headerHeight,
@@ -148,7 +157,20 @@ export function CartDrawer({
     setFooterElement,
     handleDragStart,
     isDragging
-  } = useCartDrawerDrag({ initialState })
+  } = useCartDrawerDrag({
+    initialState: open === undefined ? initialState : open ? 'open' : 'closed'
+  })
+
+  // Controlled `open`: animate to match whenever the prop changes. Internal
+  // tap/drag still flow through `state` + onOpenChange; consumers echo that back
+  // into `open`, so this only fires for external commands.
+  const prevOpenRef = useRef(open)
+  useEffect(() => {
+    if (open === undefined || open === prevOpenRef.current) return
+    prevOpenRef.current = open
+    const target = open ? 'open' : 'closed'
+    if (state !== target) snapTo(target)
+  }, [open, state, snapTo])
 
   const prefersReducedMotion = useReducedMotion()
 

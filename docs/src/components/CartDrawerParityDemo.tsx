@@ -60,30 +60,9 @@ export function CartDrawerParityDemo() {
     setRefreshKey((k) => k + 1)
   }
 
-  // The drawer is uncontrolled — toggled by its own handle. Expand triggers
-  // that handle so it animates instead of remounting. Works for both skins
-  // (same aria-controls), and only one skin is mounted at a time.
-  function toggleExpand() {
-    document
-      .querySelector<HTMLButtonElement>(
-        'button[aria-controls="cart-drawer-body"]'
-      )
-      ?.click()
-  }
-  const handleOpenChange = useCallback(
-    (isOpen: boolean) => {
-      setOpen(isOpen)
-      if (!isOpen) {
-        window.setTimeout(() => {
-          const handle = document.querySelector(
-            'button[aria-controls="cart-drawer-body"]'
-          )
-          if (!handle) hide()
-        }, 400)
-      }
-    },
-    [hide]
-  )
+  // Controlled via the `open` prop — toggling it animates open/close. The drawer
+  // echoes tap/drag through onOpenChange, which we sync back into `open`.
+  const handleOpenChange = useCallback((isOpen: boolean) => setOpen(isOpen), [])
 
   // Switching skins tears down whichever drawer is mounted; start clean so the
   // other skin doesn't inherit a half-open state.
@@ -101,7 +80,7 @@ export function CartDrawerParityDemo() {
     currency: 'AUD',
     context,
     refreshKey,
-    initialState: 'closed' as const,
+    open,
     onOpenChange: handleOpenChange
   }
 
@@ -144,7 +123,7 @@ export function CartDrawerParityDemo() {
             >
               {shown ? 'Hide cart' : 'Show cart'}
             </Button>
-            <Button disabled={!shown} onClick={toggleExpand}>
+            <Button disabled={!shown} onClick={() => setOpen((o) => !o)}>
               {open ? 'Collapse cart' : 'Expand cart'}
             </Button>
             <Button disabled={!shown} onClick={addToCart}>

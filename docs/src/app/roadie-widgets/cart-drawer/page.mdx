@@ -236,6 +236,28 @@ function onNavigate(href: string): void {
 The Vue skin also exports `useRoadieTheme` to mirror the host app's light/dark
 mode onto the drawer (which renders to `<body>`).
 
+## Controlling open/close
+
+By default the drawer is uncontrolled — users tap or drag the docked bar, and it
+owns its state (seed it with `initialState`). To open or close it from elsewhere
+in your UI (e.g. an inline "View cart" button), control it with `open` +
+`onOpenChange`: changing `open` animates the drawer with the same spring as a
+tap, and tap/drag report back through `onOpenChange` so you keep them in sync.
+
+```tsx
+// React
+const [open, setOpen] = useState(false)
+
+;<button onClick={() => setOpen(true)}>View cart</button>
+;<CartDrawer open={open} onOpenChange={setOpen} cart={cart} … />
+```
+
+```vue
+<!-- Vue: v-model:open -->
+<button @click="open = true">View cart</button>
+<CartDrawer v-model:open="open" :cart="cart" … />
+```
+
 ## Mount context
 
 `context` decides what the open-state secondary button ("Browse events") does:

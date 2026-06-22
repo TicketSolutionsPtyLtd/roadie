@@ -43,6 +43,10 @@ const props = withDefaults(defineProps<CartDrawerProps>(), {
   onHeightChange: undefined
 })
 
+const emit = defineEmits<{
+  'update:open': [open: boolean]
+}>()
+
 const cartHeadingId = useId()
 
 function resolveRootEl(
@@ -77,6 +81,7 @@ const displayBookingFees = computed(() => deriveBookingFees(details.value))
 const {
   state,
   toggle,
+  snapTo,
   dragHeight,
   progress,
   closedHeight,
@@ -85,7 +90,14 @@ const {
   setHeaderElement,
   setFooterElement,
   handleDragStart
-} = useCartDrawerDrag({ initialState: props.initialState })
+} = useCartDrawerDrag({
+  initialState:
+    props.open === undefined
+      ? props.initialState
+      : props.open
+        ? 'open'
+        : 'closed'
+})
 
 // Stable ref callbacks MUST keep constant identity — an inline arrow re-fires every render → ResizeObserver re-observe loop that freezes the tab.
 const bindHeader = (el: Element | ComponentPublicInstance | null): void => {
@@ -189,8 +201,21 @@ watch(emptyClosing, (closing) => {
 })
 
 watch(state, (next, prev) => {
-  if (next !== prev) props.onOpenChange?.(next === 'open')
+  if (next === prev) return
+  props.onOpenChange?.(next === 'open')
+  emit('update:open', next === 'open')
 })
+
+// Controlled `open` (incl. v-model:open): animate to match when it changes.
+// Internal tap/drag flow through `state` above; consumers echo that back.
+watch(
+  () => props.open,
+  (o) => {
+    if (o === undefined) return
+    const target = o ? 'open' : 'closed'
+    if (state.value !== target) snapTo(target)
+  }
+)
 
 const bounce = ref(false)
 let bounceTimer: ReturnType<typeof setTimeout> | null = null

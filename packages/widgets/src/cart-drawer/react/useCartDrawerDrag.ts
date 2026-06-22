@@ -29,6 +29,8 @@ export type UseCartDrawerDragReturn = {
   state: 'open' | 'closed'
   setState: (next: 'open' | 'closed') => void
   toggle: () => void
+  /** Animate to a state (same spring as a tap). */
+  snapTo: (next: 'open' | 'closed') => void
   /** Drawer's animated height in px. closedHeight when closed; maxHeight when open. */
   dragHeight: MotionValue<number>
   /** 0 at closedHeight → 1 at maxHeight. */
@@ -275,6 +277,7 @@ export function useCartDrawerDrag(
     state,
     setState,
     toggle,
+    snapTo,
     dragHeight,
     dragProgress,
     headerHeight,

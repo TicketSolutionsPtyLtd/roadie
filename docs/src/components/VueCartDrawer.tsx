@@ -18,7 +18,7 @@ export type VueCartDrawerProps = {
   currency: string
   context?: 'collection' | 'event'
   refreshKey?: number
-  initialState?: 'closed' | 'open'
+  open?: boolean
   onOpenChange?: (open: boolean) => void
 }
 
