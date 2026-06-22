@@ -22,13 +22,9 @@ import {
 
 type CartEventGroupProps = {
   event: CartEvent
-  /** Locale for currency/time formatting. */
   locale: string
-  /** ISO 4217 currency code. */
   currency: string
-  /** Optional remove handler. Receives the `eventId`. */
   onRemoveEvent?: (eventId: string) => void
-  /** True while a remove is in flight — disables the trash trigger. */
   isRemoving?: boolean
 }
 

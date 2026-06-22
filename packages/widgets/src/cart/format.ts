@@ -8,8 +8,6 @@ export type DateOptions = {
   locale: string
 }
 
-// Collapse a row's seat numbers into runs ("11","12","15" -> "11–12, 15").
-// Non-integer labels fall back to a comma list.
 function collapseSeatRuns(labels: string[]): string {
   const allInts = labels.every((s) => /^\d+$/.test(s))
   if (!allInts) return labels.join(', ')
@@ -32,16 +30,9 @@ function collapseSeatRuns(labels: string[]): string {
   return runs.join(', ')
 }
 
-/**
- * Render a seat list as a human range — `Stalls B11–12`, `Booth 4`, or
- * `Stalls B11–12 · Mezzanine M3` across sections. Groups by section + row,
- * collapses consecutive seat numbers, and joins groups with a middle dot.
- * Returns null for empty/absent seats. Shared so every skin/consumer matches.
- */
 export function formatSeatRange(seats: CartSeat[] | undefined): string | null {
   if (!seats || seats.length === 0) return null
-  // De-dupe identical seats so a merged reservation (the same seat arriving
-  // from two combined lines) never renders twice.
+  // De-dupe identical seats so a merged reservation never renders twice.
   const seen = new Set<string>()
   const groups = new Map<
     string,
@@ -74,11 +65,6 @@ export function formatCurrency(amount: number, opts: CurrencyOptions): string {
   })
 }
 
-/**
- * Derive the locale/currency-specific symbol (e.g. "$", "NZ$", "€") so an
- * animated total can roll digits behind a correct prefix — never a hardcoded
- * "$" (design finding #1). Framework-agnostic so both skins share it.
- */
 export function currencyPrefix(locale: string, currency: string): string {
   const parts = new Intl.NumberFormat(locale, {
     style: 'currency',
@@ -94,14 +80,10 @@ export function currencyPrefix(locale: string, currency: string): string {
 }
 
 export type TimeOptions = {
-  /** Venue IANA timezone. When set, the time renders in venue-local rather than
-   * browser-local time. Falls back to browser-local if the id is invalid. */
   timeZone?: string
 }
 
-// Wall-clock hour (0–23) + minute of an instant in a given IANA timezone, or
-// null if `Intl` rejects the id (so callers fail safe to browser-local). 'en-US'
-// only fixes the digit set we parse — the displayed style is reassembled below.
+// 'en-US' only fixes the digit set; null lets callers fail safe to browser-local.
 function wallClockInZone(
   date: Date,
   timeZone: string
@@ -118,16 +100,10 @@ function wallClockInZone(
     if (Number.isNaN(hour) || Number.isNaN(minute)) return null
     return { hour: hour % 24, minute } // 'hour12:false' can emit 24 at midnight
   } catch {
-    return null // unknown/invalid timezone id
+    return null
   }
 }
 
-/**
- * Wall-clock time of a Date as `7pm` / `7:30pm` (lowercase am/pm, no leading
- * zero on the hour). With `opts.timeZone` the time is the VENUE's local time;
- * without it (or on an invalid id) it's the viewer's browser-local time —
- * preserving the legacy behaviour. Shared by both skins' event rows.
- */
 export function formatTime(date: Date, opts: TimeOptions = {}): string {
   let hour = date.getHours()
   let minutes = date.getMinutes()
@@ -144,8 +120,6 @@ export function formatTime(date: Date, opts: TimeOptions = {}): string {
   return `${h}:${String(minutes).padStart(2, '0')}${ampm}`
 }
 
-// Parse a venue-local YYYY-MM-DD key to a local Date, or null if malformed /
-// out-of-range (so callers can fail safe to the raw key).
 function parseDateKey(dateKey: string): Date | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return null
   const y = Number(dateKey.slice(0, 4))
@@ -162,10 +136,9 @@ function parseDateKey(dateKey: string): Date | null {
   return date
 }
 
-/** Format a venue-local YYYY-MM-DD key as a day header (parsed as local date). */
 export function formatDayHeader(dateKey: string, opts: DateOptions): string {
   const date = parseDateKey(dateKey)
-  if (!date) return dateKey // fail-safe: malformed key
+  if (!date) return dateKey
   return new Intl.DateTimeFormat(opts.locale, {
     weekday: 'short',
     day: 'numeric',
@@ -174,8 +147,6 @@ export function formatDayHeader(dateKey: string, opts: DateOptions): string {
   }).format(date)
 }
 
-/** Short day form like `Sun 4 Oct` (no year) for inline end dates. The locale
- * comma after the weekday is dropped so it composes cleanly inside a schedule. */
 export function formatDayShort(dateKey: string, opts: DateOptions): string {
   const date = parseDateKey(dateKey)
   if (!date) return dateKey
@@ -193,18 +164,9 @@ type Schedulable = {
   eventEndAtUtc?: string
   eventDateKey: string
   eventEndDateKey?: string
-  /** Venue IANA timezone — renders times venue-local. Optional; omit for the
-   * legacy browser-local behaviour. */
   eventTimeZone?: string
 }
 
-/**
- * Build the event time row: `7pm` (no finish), `7pm – 11pm` (same-day finish),
- * or `6:30pm – Sun 4 Oct, 9pm` (multi-day — start time then end date + time).
- * Times render in the venue's timezone when `event.eventTimeZone` is set,
- * otherwise in the viewer's browser-local time. Returns null when the start
- * time is unparseable.
- */
 export function formatEventSchedule(
   event: Schedulable,
   opts: DateOptions

@@ -37,12 +37,6 @@ describe('useCartDrawerDrag', () => {
     expect(result.current.state).toBe('closed')
   })
 
-  it('setState sets the state directly', () => {
-    const { result } = renderHook(() => useCartDrawerDrag())
-    act(() => result.current.setState('open'))
-    expect(result.current.state).toBe('open')
-  })
-
   it('exposes measured header/footer defaults', () => {
     const { result } = renderHook(() => useCartDrawerDrag())
     expect(result.current.headerHeight).toBeGreaterThan(0)

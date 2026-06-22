@@ -17,7 +17,6 @@ export type CartFooterProps = {
   secondaryLabel?: string
   onCheckout: () => void
   checkoutDisabled?: boolean
-  /** Collapse styles for the drawer's open/close. Omit for a static footer. */
   subtotalStyle?: MotionStyle
   feesStyle?: MotionStyle
 }

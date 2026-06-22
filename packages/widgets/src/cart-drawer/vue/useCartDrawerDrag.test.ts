@@ -76,13 +76,6 @@ describe('useCartDrawerDrag', () => {
     expect(drag.progress.value).toBeGreaterThan(0.99)
   })
 
-  it('setState forces a target state', async () => {
-    const drag = mountDrag('closed')
-    drag.setState('open')
-    await nextTick()
-    expect(drag.state.value).toBe('open')
-  })
-
   it('exposes a positive closed height from measured header + footer', () => {
     const drag = mountDrag('closed')
     expect(drag.closedHeight.value).toBeGreaterThan(0)

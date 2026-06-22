@@ -15,7 +15,6 @@ const props = withDefaults(
     currency: string
     secondaryLabel?: string
     checkoutDisabled?: boolean
-    /** Collapse styles for the drawer's open/close. Omit for a static footer. */
     subtotalStyle?: Record<string, string | number>
     feesStyle?: Record<string, string | number>
   }>(),

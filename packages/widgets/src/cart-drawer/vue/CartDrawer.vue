@@ -99,7 +99,8 @@ const {
         : 'closed'
 })
 
-// Stable ref callbacks MUST keep constant identity — an inline arrow re-fires every render → ResizeObserver re-observe loop that freezes the tab.
+// Must keep stable identity — an inline arrow re-fires every render and freezes
+// the tab via a ResizeObserver re-observe loop.
 const bindHeader = (el: Element | ComponentPublicInstance | null): void => {
   setHeaderElement(resolveRootEl(el))
 }
@@ -109,9 +110,8 @@ const bindFooter = (el: Element | ComponentPublicInstance | null): void => {
 
 const isOpen = computed(() => state.value === 'open')
 
-// High-water latch: once the drawer has shown a cart with items, remember it so
-// an empty/null refetch (the API returns null for an emptied cart) keeps the
-// open drawer mounted to show the EmptyState instead of vanishing.
+// Latch: an emptied cart refetches as null, so remember we saw one and keep the
+// EmptyState mounted instead of letting the drawer vanish.
 const sawCart = ref(false)
 const hasCartData = computed(
   () => summary.value != null || details.value != null
@@ -124,9 +124,7 @@ const isEmpty = computed(
     (hasCartData.value && displayTicketCount.value === 0) ||
     (sawCart.value && !hasCartData.value)
 )
-// Empty + closed → the whole drawer disappears, but only after the close
-// slide-down has played (emptyClosed). Empty + open stays mounted so the
-// EmptyState shows until the user closes it.
+// Empty + closed unmounts only after the slide-down plays; empty + open stays.
 const emptyClosed = ref(false)
 let emptyCloseTimer: ReturnType<typeof setTimeout> | null = null
 watch(
@@ -148,11 +146,8 @@ watch(
 const hidden = computed(
   () => isEmpty.value && !isOpen.value && emptyClosed.value
 )
-// Closing an emptied drawer: fade the whole surface out as it slides down so
-// the docked bar never reads before it unmounts.
 const emptyClosing = computed(() => isEmpty.value && !isOpen.value)
 
-// Whether the drawer element is in the tree (mirrors the template v-if).
 const visible = computed(() =>
   Boolean(
     props.collectionId &&
@@ -161,15 +156,14 @@ const visible = computed(() =>
   )
 )
 
-// Surface enter + empty-close are motion-driven (opacity/scale/y) to match the
-// React skin's initial/animate exactly, instead of a CSS keyframe + opacity
-// transition. height stays Vue-bound (spring); motion owns only opacity/scale/y.
+// motion drives opacity/scale/y for the surface enter + empty-close; height
+// stays Vue-bound (spring).
 let surfaceAnim: AnimationPlaybackControls | null = null
 const stopSurfaceAnim = () => {
   surfaceAnim?.stop()
   surfaceAnim = null
 }
-// Pop-in on every fresh appearance (React re-plays `initial` on remount).
+// Pop-in on every fresh appearance.
 watch(
   visible,
   async (now, prev) => {
@@ -186,9 +180,8 @@ watch(
   },
   { immediate: true }
 )
-// Fade the surface out (or back in) when the emptied-close state flips, matching
-// React's `animate={{ opacity: emptyClosing ? 0 : 1 }}`. Runs under reduced
-// motion too (opacity only — no movement), as React does.
+// Fade the surface out/in on the empty-close flip (opacity only, so it also
+// runs under reduced motion).
 watch(emptyClosing, (closing) => {
   const el = drawerEl.value
   if (!el) return
@@ -206,24 +199,23 @@ watch(state, (next, prev) => {
   emit('update:open', next === 'open')
 })
 
-// Controlled `open` (incl. v-model:open): animate to match when it changes.
-// Internal tap/drag flow through `state` above; consumers echo that back.
-watch(
-  () => props.open,
-  (o) => {
-    if (o === undefined) return
-    const target = o ? 'open' : 'closed'
-    if (state.value !== target) snapTo(target)
-  }
-)
+// Controlled `open` (incl. v-model:open): snap only when the prop itself
+// changes — never off internal `state`, or a tap (which moves state before the
+// parent echoes `open` back) would be reconciled away. Skip mid-drag without
+// consuming the prop so it reconciles once the drag releases.
+let prevOpen = props.open
+watch([() => props.open, isDragging], ([o, dragging]) => {
+  if (o === undefined || o === prevOpen || dragging) return
+  prevOpen = o
+  const target = o ? 'open' : 'closed'
+  if (state.value !== target) snapTo(target)
+})
 
 const bounce = ref(false)
 let bounceTimer: ReturnType<typeof setTimeout> | null = null
 let prevTicketCount: number | undefined
 watch(displayTicketCount, (count) => {
-  // Skip the bounce entirely under reduced motion, matching the React skin's
-  // useCartBounce (the CSS keyframe is also globally neutered, but don't even
-  // flip the flag).
+  // No bounce under reduced motion.
   if (reducedMotion.value) {
     prevTicketCount = count
     return
@@ -263,7 +255,7 @@ watch(
   { immediate: true }
 )
 
-// Body scroll lock when open — refcounted via documentEffects so drawer + expiry modals don't clobber each other's lock.
+// Refcounted so the drawer + expiry modals don't clobber each other's lock.
 let releaseScrollLock: (() => void) | null = null
 watch(
   [() => props.lockBodyScroll, isOpen],

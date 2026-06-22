@@ -21,28 +21,17 @@ export type UseCartDrawerDragReturn = {
   state: Ref<'open' | 'closed'>
   setState: (next: 'open' | 'closed') => void
   toggle: () => void
-  /** Animate to a state (same spring as a tap). */
   snapTo: (next: 'open' | 'closed') => void
-  /** Live drawer height in px. */
   dragHeight: Ref<number>
-  /** 0 at closedHeight → 1 at maxHeight. */
   progress: ComputedRef<number>
-  /** Measured header height in px. */
   headerHeight: Ref<number>
-  /** Measured footer height in px. */
   footerHeight: Ref<number>
-  /** The docked (closed) drawer height. */
   closedHeight: ComputedRef<number>
-  /** Viewport-derived open height in px. */
   maxHeight: Ref<number>
-  /** True while a pointer drag is in progress. */
   isDragging: Ref<boolean>
-  /** Whether the user prefers reduced motion. */
   reducedMotion: Ref<boolean>
-  /** Template refs to wire onto the header / footer elements for measurement. */
   setHeaderElement: (el: HTMLElement | null) => void
   setFooterElement: (el: HTMLElement | null) => void
-  /** Begin a drag from the drag region's pointerdown. */
   handleDragStart: (e: PointerEvent) => void
 }
 

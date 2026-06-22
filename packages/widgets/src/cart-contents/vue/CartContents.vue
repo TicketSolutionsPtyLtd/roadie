@@ -12,19 +12,11 @@ const props = withDefaults(
   defineProps<{
     cart: CartDetails
     onNavigate: (href: string) => void
-    /** App-specific browse target for the empty state (design finding #4). */
     browseHref: string
-    /** Pre-validated checkout URL; null disables the CTA (unsafe extrasUrl). */
     checkoutUrl: string | null
     locale: string
     currency: string
-    /**
-     * Layout preset. `drawer` (default): body only — no header/footer, natural
-     * height. `page`: fill-height column with a "Cart" header (count + live
-     * expiry), a sticky edge-to-edge footer, and a centred empty state.
-     */
     container?: 'drawer' | 'page'
-    /** True while a cart-wide remove is in flight — locks the per-event trash. */
     busy?: boolean
   }>(),
   { container: 'drawer' }
@@ -57,8 +49,7 @@ function onCheckout() {
   if (props.checkoutUrl) props.onNavigate(props.checkoutUrl)
 }
 
-// Collapse height + fade on removal, mirroring the React skin's AnimatePresence
-// exit. Web Animations API isn't in jsdom, so fall back to an instant leave.
+// WAAPI isn't in jsdom — fall back to an instant leave.
 function onLeave(el: Element, done: () => void) {
   const node = el as HTMLElement
   if (typeof node.animate !== 'function') {
@@ -80,7 +71,6 @@ function onLeave(el: Element, done: () => void) {
 </script>
 
 <template>
-  <!-- isolate keeps the sticky day headers' z-index from escaping the cart. -->
   <div
     class="@container isolate"
     :class="isPage ? 'flex min-h-full flex-col' : 'grid'"
@@ -102,8 +92,6 @@ function onLeave(el: Element, done: () => void) {
       </div>
     </div>
 
-    <!-- out-in mirrors the React skin's mode='wait': last removal crossfades
-         list → empty. -->
     <Transition
       mode="out-in"
       enter-active-class="transition-opacity duration-200"

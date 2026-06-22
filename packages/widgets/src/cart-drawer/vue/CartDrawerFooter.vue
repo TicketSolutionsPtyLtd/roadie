@@ -5,23 +5,18 @@ import CartFooter from '../../cart-contents/vue/CartFooter.vue'
 
 const props = defineProps<{
   cartTotal: number
-  /** Summed booking fees across cart events — drives the footer fees line. */
   bookingFees: number
   locale: string
   currency: string
   isOpen: boolean
-  /** Drawer open progress 0..1. */
   progress: number
-  /** True while the checkout URL isn't known/safe — button disabled. */
   checkoutDisabled: boolean
-  /** Mount context — drives the open-state "Browse events" action. */
   context: 'collection' | 'event'
 }>()
 
 const emit = defineEmits<{
   toggle: []
   checkout: []
-  /** Open-state "Browse events" in `event` context — parent navigates. */
   browse: []
   dragStart: [e: PointerEvent]
 }>()

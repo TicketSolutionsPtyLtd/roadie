@@ -143,6 +143,48 @@ describe('CartDrawer (Vue)', () => {
     expect(onOpenChange).toHaveBeenCalledWith(true)
   })
 
+  it('controlled `open` prop opens and closes the drawer', async () => {
+    const cart = mockCart()
+    const { container, rerender } = render(CartDrawer, {
+      props: { ...baseProps, cart, onNavigate: vi.fn(), open: false }
+    })
+    await flushPromises()
+    expect(container.querySelector('#cart-drawer')?.getAttribute('role')).toBe(
+      'region'
+    )
+
+    await rerender({ ...baseProps, cart, onNavigate: vi.fn(), open: true })
+    await waitFor(() =>
+      expect(
+        container.querySelector('#cart-drawer')?.getAttribute('role')
+      ).toBe('dialog')
+    )
+
+    await rerender({ ...baseProps, cart, onNavigate: vi.fn(), open: false })
+    await waitFor(() =>
+      expect(
+        container.querySelector('#cart-drawer')?.getAttribute('role')
+      ).toBe('region')
+    )
+  })
+
+  it('emits update:open for v-model when toggled open', async () => {
+    const cart = mockCart()
+    const onUpdateOpen = vi.fn()
+    const { findAllByText } = render(CartDrawer, {
+      props: {
+        ...baseProps,
+        cart,
+        onNavigate: vi.fn(),
+        'onUpdate:open': onUpdateOpen
+      }
+    })
+    await flushPromises()
+    await fireEvent.click((await findAllByText('View cart'))[0]!)
+    await nextTick()
+    expect(onUpdateOpen).toHaveBeenCalledWith(true)
+  })
+
   it('refetches when refreshKey is bumped', async () => {
     const cart = mockCart()
     const { rerender } = render(CartDrawer, {

@@ -117,7 +117,6 @@ export function CartDrawer({
 
   const [removeBusy, setRemoveBusy] = useState(false)
   const [removeError, setRemoveError] = useState<string | null>(null)
-  // True once the empty-close slide-down has finished and we can unmount.
   const [emptyClosed, setEmptyClosed] = useState(false)
 
   const displayTicketCount = useMemo(
@@ -134,8 +133,8 @@ export function CartDrawer({
   )
 
   const sawCartRef = useRef(false)
-  // Latch: keep mounted on an empty/null refetch (API returns null for an
-  // emptied cart) so the EmptyState shows instead of vanishing.
+  // Latch: an emptied cart refetches as null, so remember we saw one and keep
+  // the EmptyState mounted instead of letting the drawer vanish.
   const hasCartData = summary != null || details != null
   if (hasCartData && displayTicketCount > 0) sawCartRef.current = true
   const isEmpty =
@@ -161,16 +160,17 @@ export function CartDrawer({
     initialState: open === undefined ? initialState : open ? 'open' : 'closed'
   })
 
-  // Controlled `open`: animate to match whenever the prop changes. Internal
-  // tap/drag still flow through `state` + onOpenChange; consumers echo that back
-  // into `open`, so this only fires for external commands.
+  // Controlled `open`: snap only when the prop itself changes — never off
+  // internal `state`, or a tap (which moves state before the parent echoes
+  // `open` back) would be reconciled away. Skip mid-drag without consuming the
+  // prop so it reconciles once the drag releases.
   const prevOpenRef = useRef(open)
   useEffect(() => {
     if (open === undefined || open === prevOpenRef.current) return
+    if (isDragging) return
     prevOpenRef.current = open
-    const target = open ? 'open' : 'closed'
-    if (state !== target) snapTo(target)
-  }, [open, state, snapTo])
+    if (state !== (open ? 'open' : 'closed')) snapTo(open ? 'open' : 'closed')
+  }, [open, state, isDragging, snapTo])
 
   const prefersReducedMotion = useReducedMotion()
 
@@ -224,8 +224,7 @@ export function CartDrawer({
     return acquireBodyScrollLock()
   }, [lockBodyScroll, state])
 
-  // Defer the unmount of an emptied, closed drawer until the close slide-down
-  // has played, so it animates out the same way a normal close does.
+  // Defer unmount of an emptied, closed drawer until the slide-down plays.
   useEffect(() => {
     if (isEmpty && state === 'closed') {
       const t = window.setTimeout(
@@ -241,8 +240,7 @@ export function CartDrawer({
     if (state !== 'open') return
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
-      // Let the event's own confirm popover handle Escape first; scope to
-      // this widget's popover so an unrelated app Popover can't swallow it.
+      // Let an open confirm popover handle Escape first.
       if (document.querySelector('[data-cart-confirm]')) return
       toggle()
     }
@@ -289,13 +287,11 @@ export function CartDrawer({
   )
 
   if (!collectionId) return null
-  // Never had a cart → nothing. Once one has shown, an empty/null refetch keeps
-  // us mounted for the EmptyState.
+  // Unmount only before any cart has shown; after that the latch keeps the
+  // EmptyState mounted until the empty-close slide-down finishes.
   if (!summary && !details && !sawCartRef.current) return null
-  // Empty + closed unmounts only after the slide-down; empty + open stays.
   if (isEmpty && state === 'closed' && emptyClosed) return null
 
-  // Fade the surface out as an emptied drawer slides closed.
   const emptyClosing = isEmpty && state === 'closed'
 
   return (
@@ -372,8 +368,7 @@ export function CartDrawer({
               aria-busy={removeBusy}
               inert={state !== 'open'}
               className={cn(
-                // @container so ticket rows can show/size event images by the
-                // drawer's own width, not the viewport (it's max-w-xl on desktop).
+                // @container so ticket rows size against the drawer, not the viewport.
                 '@container h-full overflow-y-auto px-4 pb-8 transition-opacity',
                 removeBusy && 'pointer-events-none opacity-50'
               )}

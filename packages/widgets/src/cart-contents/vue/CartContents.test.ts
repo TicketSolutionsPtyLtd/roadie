@@ -165,6 +165,28 @@ describe('CartContents', () => {
     expect(getByText('Your cart is empty')).toBeTruthy()
   })
 
+  it('transitions from the last item to the empty state (single presence tree)', async () => {
+    const props = {
+      onNavigate: vi.fn(),
+      browseHref: '/events',
+      checkoutUrl: '/outlet/extras/c1',
+      locale: 'en-AU',
+      currency: 'AUD',
+      container: 'page' as const
+    }
+    const { getByText, findByText, queryByText, rerender } = render(
+      CartContents,
+      { props: { ...props, cart: makeDetails() } }
+    )
+    expect(getByText('Checkout')).toBeTruthy()
+    await rerender({
+      ...props,
+      cart: makeDetails({ events: [], cartTotal: 0 })
+    })
+    expect(await findByText('Your cart is empty')).toBeTruthy()
+    expect(queryByText('Checkout')).toBeNull()
+  })
+
   it('defaults to the drawer container — no footer', () => {
     const { container, queryByText } = render(CartContents, {
       props: {

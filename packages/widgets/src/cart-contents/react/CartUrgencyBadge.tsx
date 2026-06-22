@@ -25,9 +25,7 @@ function coarseUrgencyMessage(remaining: number | null): string {
 type CartUrgencyBadgeProps = {
   ticketCount: number
   expiresAtUtc: string | undefined
-  /** Drawer open-state progress 0..1. Controls the tail expansion. */
   progress?: number
-  /** Fires the animate-pop cue once per add. */
   bounce?: boolean
   className?: string
   style?: CSSProperties
@@ -47,7 +45,6 @@ export function CartUrgencyBadge({
   const intent: 'success' | 'warning' | 'danger' =
     level === 'expired' ? 'danger' : level
 
-  // Announce only at coarse transitions, not every second.
   const minuteBucket = remaining === null ? null : Math.ceil(remaining / 60)
   const [announcement, setAnnouncement] = useState('')
   const lastKeyRef = useRef<string | null>(null)

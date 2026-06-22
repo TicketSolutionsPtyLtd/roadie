@@ -12,14 +12,6 @@ import { CartEventGroup } from './CartEventGroup'
 import { CartFooter } from './CartFooter'
 import { CartUrgencyBadge } from './CartUrgencyBadge'
 
-/**
- * Layout preset:
- * - `drawer` (default): body only — no header/footer, natural height — for the
- *   cart drawer, which renders its own chrome.
- * - `page`: fill-height column with a "Cart" header (ticket count + live expiry),
- *   a sticky edge-to-edge footer, and a centred empty state — for a standalone
- *   `/cart` page.
- */
 export type CartContainer = 'drawer' | 'page'
 
 export type CartContentsProps = {
@@ -67,13 +59,12 @@ export function CartContents({
   )
 
   return (
-    // LazyMotion so removals animate standalone; isolate keeps the sticky
-    // headers' z-index from escaping the cart.
     <LazyMotion features={domAnimation}>
       <div
         className={cn(
           '@container isolate',
-          className ?? (isPage ? 'flex min-h-full flex-col' : 'grid')
+          isPage ? 'flex min-h-full flex-col' : 'grid',
+          className
         )}
       >
         {isPage && (
@@ -93,8 +84,6 @@ export function CartContents({
             </div>
           </div>
         )}
-        {/* One presence tree across both states so the last removal crossfades
-           list → empty. */}
         <AnimatePresence mode='wait' initial={false}>
           {isEmpty ? (
             <m.div
@@ -120,8 +109,6 @@ export function CartContents({
                     key={group.key}
                     exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
                     transition={{ duration: 0.25, ease: 'easeInOut' }}
-                    // Full-bleed on the section so the exit clip doesn't shear
-                    // the header's -mx-4 bleed; dropped at @xl where it rounds.
                     className='-mx-4 grid gap-4 @xl:mx-0'
                   >
                     <div className='sticky top-0 z-sticky emphasis-strong px-4 py-2.5 @xl:rounded-xl'>
@@ -169,8 +156,6 @@ export function CartContents({
         </AnimatePresence>
 
         {isPage && !isEmpty && (
-          // Edge-to-edge separator (-mx-4); mt-auto + sticky pin it to the
-          // bottom. z-sticky so a day header can't scroll over it.
           <div className='sticky bottom-0 z-sticky -mx-4 mt-auto border-t border-subtle bg-raised'>
             <div className='@xl:mx-auto @xl:w-full @xl:max-w-lg'>
               <CartFooter

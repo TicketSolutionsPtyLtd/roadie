@@ -274,6 +274,16 @@ describe('formatSeatRange', () => {
     ).toBe('B11–12, 15')
   })
 
+  it('collapses a gap of 1 but splits a gap of 2', () => {
+    expect(
+      formatSeatRange([
+        { row: 'A', seat: '1' },
+        { row: 'A', seat: '2' },
+        { row: 'A', seat: '4' }
+      ])
+    ).toBe('A1–2, 4')
+  })
+
   it('joins separate section/row groups with a middle dot', () => {
     expect(
       formatSeatRange([

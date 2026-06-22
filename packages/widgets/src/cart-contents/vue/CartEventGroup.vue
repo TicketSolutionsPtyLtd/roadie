@@ -104,10 +104,8 @@ async function ensureTrap(): Promise<FocusTrapInstance | null> {
     trap = mod.createFocusTrap(el, {
       escapeDeactivates: false,
       clickOutsideDeactivates: false,
-      // Don't preventDefault outside clicks — the trap would otherwise swallow a
-      // click on the drawer's close button while the confirm is open. The
-      // document pointerdown handler still closes the confirm; the click also
-      // reaches the close button, so one click dismisses both.
+      // Let outside clicks through so one click both dismisses the confirm and
+      // hits the drawer's close button.
       allowOutsideClick: true,
       returnFocusOnDeactivate: true,
       initialFocus: () =>
@@ -142,7 +140,6 @@ watch(confirming, async (open) => {
     } catch {
       /* non-fatal */
     }
-    // Drop the stale trap so the next open rebuilds against the fresh element.
     trap = null
   }
 })
@@ -205,9 +202,6 @@ onBeforeUnmount(() => {
           <PhTrash weight="bold" class="size-4" aria-hidden="true" />
         </button>
 
-        <!-- Mirrors the React skin's Base UI Popover (motion-scale): scale 0.95→1
-             + fade over --duration-normal/--ease-standard from the trigger corner.
-             CSS-transition based, so reduced motion neutralises it like Base UI. -->
         <Transition
           enter-active-class="[transition:scale_var(--duration-normal)_var(--ease-standard),opacity_var(--duration-normal)_var(--ease-standard)]"
           leave-active-class="[transition:scale_var(--duration-normal)_var(--ease-standard),opacity_var(--duration-normal)_var(--ease-standard)]"
@@ -226,7 +220,7 @@ onBeforeUnmount(() => {
             <svg
               viewBox="0 0 20 10"
               aria-hidden="true"
-              class="absolute top-[-7px] right-4 z-10 h-2 w-4 fill-(--intent-bg-raised) stroke-(--rim-light-edge)"
+              class="absolute top-[-7px] right-4 z-[1] h-2 w-4 fill-(--intent-bg-raised) stroke-(--rim-light-edge)"
               stroke-width="1"
               stroke-linejoin="round"
               stroke-linecap="round"

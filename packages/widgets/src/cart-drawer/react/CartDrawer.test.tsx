@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react'
+import { type ReactElement, useState } from 'react'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
@@ -152,6 +152,67 @@ describe('CartDrawer', () => {
     const openButtons = screen.getAllByRole('button', { name: /open cart/i })
     fireEvent.click(openButtons[0]!)
     await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(true))
+  })
+
+  it('controlled `open` prop opens and closes the drawer', async () => {
+    const cart = mockCart()
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } }
+    })
+    const ui = (open: boolean) => (
+      <QueryClientProvider client={client}>
+        <CartDrawer
+          cart={cart}
+          collectionId='col-1'
+          onNavigate={vi.fn()}
+          browseHref='/events'
+          locale='en-AU'
+          currency='AUD'
+          open={open}
+        />
+      </QueryClientProvider>
+    )
+    const { rerender } = render(ui(false))
+    await screen.findAllByRole('button', { name: /open cart/i })
+    const drawer = document.getElementById('cart-drawer')!
+    expect(drawer).toHaveAttribute('role', 'region')
+
+    rerender(ui(true))
+    await waitFor(() => expect(drawer).toHaveAttribute('role', 'dialog'))
+
+    rerender(ui(false))
+    await waitFor(() => expect(drawer).toHaveAttribute('role', 'region'))
+  })
+
+  it('a controlled parent that echoes onOpenChange settles without looping', async () => {
+    const cart = mockCart()
+    const onOpenChange = vi.fn()
+    function Controlled() {
+      const [open, setOpen] = useState(false)
+      return (
+        <CartDrawer
+          cart={cart}
+          collectionId='col-1'
+          onNavigate={vi.fn()}
+          browseHref='/events'
+          locale='en-AU'
+          currency='AUD'
+          open={open}
+          onOpenChange={(o) => {
+            onOpenChange(o)
+            setOpen(o)
+          }}
+        />
+      )
+    }
+    renderDrawer(<Controlled />)
+    const openButtons = await screen.findAllByRole('button', {
+      name: /open cart/i
+    })
+    const drawer = document.getElementById('cart-drawer')!
+    fireEvent.click(openButtons[0]!)
+    await waitFor(() => expect(drawer).toHaveAttribute('role', 'dialog'))
+    expect(onOpenChange).toHaveBeenCalledWith(true)
   })
 
   it('refetches when refreshKey is bumped', async () => {
