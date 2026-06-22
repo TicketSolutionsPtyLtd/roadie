@@ -167,7 +167,7 @@ onBeforeUnmount(() => {
     <div
       v-if="removing"
       role="status"
-      class="absolute -inset-x-4 -inset-y-4 z-[1] grid place-content-center bg-raised/60 backdrop-blur-sm @xl:rounded-xl"
+      class="absolute -inset-4 z-[1] grid place-content-center bg-raised/60 backdrop-blur-sm @xl:rounded-xl"
     >
       <span
         class="flex items-center gap-2 text-ui-meta font-bold text-subtle intent-danger"
