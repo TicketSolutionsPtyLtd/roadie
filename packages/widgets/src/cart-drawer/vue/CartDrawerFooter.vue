@@ -1,11 +1,7 @@
 <script setup lang="ts">
-import NumberFlow from '@number-flow/vue'
-import { PhBag } from '@phosphor-icons/vue'
 import { computed } from 'vue'
 
-import { currencyPrefix, formatCurrency } from '../../cart'
-
-const PRICE_FORMAT = { minimumFractionDigits: 2 }
+import CartFooter from '../../cart-contents/vue/CartFooter.vue'
 
 const props = defineProps<{
   cartTotal: number
@@ -31,7 +27,7 @@ const emit = defineEmits<{
 }>()
 
 // `event` context always navigates; `collection` context toggles the drawer.
-function onSecondaryClick() {
+function onSecondary() {
   if (props.context === 'event') {
     emit('browse')
     return
@@ -39,23 +35,18 @@ function onSecondaryClick() {
   emit('toggle')
 }
 
-const pricePrefix = computed(() => currencyPrefix(props.locale, props.currency))
-
-const feesLabel = computed(() =>
-  props.bookingFees > 0
-    ? `Incl. ${formatCurrency(props.bookingFees, {
-        locale: props.locale,
-        currency: props.currency
-      })} booking fees. Delivery and refund protection calculated at checkout.`
-    : 'Includes booking fees. Delivery and refund protection calculated at checkout.'
+const secondaryLabel = computed(() =>
+  props.context === 'event' || props.isOpen ? 'Browse events' : 'View cart'
 )
 
-const subtotalMaxHeight = computed(() => props.progress * 50)
-const subtotalOpacity = computed(() => props.progress)
-const feesMaxHeight = computed(() => props.progress * 64)
-const feesOpacity = computed(() =>
-  Math.max(0, Math.min(1, (props.progress - 0.5) / 0.5))
-)
+const subtotalStyle = computed(() => ({
+  maxHeight: `${props.progress * 50}px`,
+  opacity: props.progress
+}))
+const feesStyle = computed(() => ({
+  maxHeight: `${props.progress * 64}px`,
+  opacity: Math.max(0, Math.min(1, (props.progress - 0.5) / 0.5))
+}))
 
 const footerShadow = computed(
   () =>
@@ -76,53 +67,17 @@ function onPointerDown(e: PointerEvent) {
     :style="{ boxShadow: footerShadow }"
     @pointerdown="onPointerDown"
   >
-    <div class="px-4 pt-1 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-      <div
-        class="overflow-hidden"
-        :style="{
-          maxHeight: `${subtotalMaxHeight}px`,
-          opacity: subtotalOpacity
-        }"
-      >
-        <div class="flex items-center justify-between gap-4 pt-3 pb-1">
-          <span class="text-ui font-bold text-strong">Subtotal</span>
-          <span class="text-ui font-bold text-strong">
-            <NumberFlow
-              :value="cartTotal"
-              :prefix="pricePrefix"
-              :format="PRICE_FORMAT"
-            />
-          </span>
-        </div>
-      </div>
-
-      <div
-        class="overflow-hidden"
-        :style="{ maxHeight: `${feesMaxHeight}px`, opacity: feesOpacity }"
-      >
-        <p class="pb-4 text-ui-meta text-subtle" data-testid="cart-footer-fees">
-          {{ feesLabel }}
-        </p>
-      </div>
-
-      <div class="flex gap-3" @pointerdown.stop>
-        <button
-          type="button"
-          class="is-interactive btn btn-md flex-1 emphasis-normal intent-neutral"
-          @click="onSecondaryClick"
-        >
-          {{ context === 'event' || isOpen ? 'Browse events' : 'View cart' }}
-        </button>
-        <button
-          type="button"
-          class="is-interactive btn btn-md flex-1 emphasis-strong intent-accent"
-          :disabled="checkoutDisabled"
-          @click="emit('checkout')"
-        >
-          <PhBag weight="bold" :class="'mr-1.5 size-4'" aria-hidden="true" />
-          Checkout
-        </button>
-      </div>
-    </div>
+    <CartFooter
+      :cart-total="cartTotal"
+      :booking-fees="bookingFees"
+      :locale="locale"
+      :currency="currency"
+      :secondary-label="secondaryLabel"
+      :checkout-disabled="checkoutDisabled"
+      :subtotal-style="subtotalStyle"
+      :fees-style="feesStyle"
+      @secondary="onSecondary"
+      @checkout="emit('checkout')"
+    />
   </div>
 </template>

@@ -1,20 +1,12 @@
 <script setup lang="ts">
-import NumberFlow from '@number-flow/vue'
 import { PhBag, PhCalendarBlank } from '@phosphor-icons/vue'
 import { computed } from 'vue'
 
-import {
-  type CartDetails,
-  currencyPrefix,
-  formatCurrency,
-  formatDayHeader,
-  groupEventsByDay
-} from '../../cart'
+import { type CartDetails, formatDayHeader, groupEventsByDay } from '../../cart'
 import CartEmptyState from './CartEmptyState.vue'
 import CartEventGroup from './CartEventGroup.vue'
+import CartFooter from './CartFooter.vue'
 import CartUrgencyBadge from './CartUrgencyBadge.vue'
-
-const PRICE_FORMAT = { minimumFractionDigits: 2 }
 
 const props = withDefaults(
   defineProps<{
@@ -57,16 +49,9 @@ const dayGroups = computed(() => groupEventsByDay(props.cart.events))
 const totalBookingFees = computed(() =>
   props.cart.events.reduce((sum, event) => sum + event.bookingFees, 0)
 )
-const pricePrefix = computed(() => currencyPrefix(props.locale, props.currency))
 
 function dayHeader(key: string): string {
   return formatDayHeader(key, { locale: props.locale })
-}
-function money(amount: number): string {
-  return formatCurrency(amount, {
-    locale: props.locale,
-    currency: props.currency
-  })
 }
 function onCheckout() {
   if (props.checkoutUrl) props.onNavigate(props.checkoutUrl)
@@ -193,44 +178,18 @@ function onLeave(el: Element, done: () => void) {
 
     <div
       v-if="isPage && !isEmpty"
-      class="sticky bottom-0 z-sticky -mx-4 mt-auto border-t border-subtle bg-raised px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))]"
+      class="sticky bottom-0 z-sticky -mx-4 mt-auto border-t border-subtle bg-raised"
     >
       <div class="@xl:mx-auto @xl:w-full @xl:max-w-lg">
-        <div class="flex items-center justify-between gap-4 pb-1">
-          <span class="text-ui font-bold text-strong">Subtotal</span>
-          <span class="text-ui font-bold text-strong">
-            <NumberFlow
-              :value="cart.cartTotal"
-              :prefix="pricePrefix"
-              :format="PRICE_FORMAT"
-            />
-          </span>
-        </div>
-        <p class="pb-4 text-ui-meta text-subtle">
-          {{
-            totalBookingFees > 0
-              ? `Incl. ${money(totalBookingFees)} booking fees. `
-              : 'Includes booking fees. '
-          }}Delivery and refund protection calculated at checkout.
-        </p>
-        <div class="flex gap-3">
-          <button
-            type="button"
-            class="is-interactive btn btn-md flex-1 emphasis-normal intent-neutral"
-            @click="onNavigate(browseHref)"
-          >
-            Browse events
-          </button>
-          <button
-            type="button"
-            class="is-interactive btn btn-md flex-1 emphasis-strong intent-accent"
-            :disabled="!checkoutUrl"
-            @click="onCheckout"
-          >
-            <PhBag weight="bold" :class="'mr-1.5 size-4'" aria-hidden="true" />
-            Checkout
-          </button>
-        </div>
+        <CartFooter
+          :cart-total="cart.cartTotal"
+          :booking-fees="totalBookingFees"
+          :locale="locale"
+          :currency="currency"
+          :checkout-disabled="!checkoutUrl"
+          @secondary="onNavigate(browseHref)"
+          @checkout="onCheckout"
+        />
       </div>
     </div>
   </div>

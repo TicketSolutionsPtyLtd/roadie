@@ -17,6 +17,8 @@ Also: removing the **last** event animates (the list crossfades to the empty
 state through one presence tree) and the day-list / footer spacing was tightened
 (edge-to-edge footer separator, footer bottom padding).
 
-`CartUrgencyBadge` (ticket count + live expiry) moved from `cart-drawer` into
-`cart-contents` so both the drawer header and the page header share it; this is
-internal (not a public export). No change to the cart-drawer public API.
+`CartUrgencyBadge` (ticket count + live expiry) and the footer (`CartFooter` —
+Subtotal + fees + Browse/Checkout actions) moved into `cart-contents` and are now
+shared internal components used by both the page and the drawer, so their spacing
+stays identical (the drawer passes collapse styles to keep its open/close
+animation). Internal only — no change to the cart-drawer public API.

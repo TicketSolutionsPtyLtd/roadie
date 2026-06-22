@@ -1,21 +1,15 @@
 'use client'
 
-import NumberFlow from '@number-flow/react'
 import { BagIcon, CalendarBlankIcon } from '@phosphor-icons/react'
 import { AnimatePresence, LazyMotion, domAnimation, m } from 'motion/react'
 
-import { Button, Separator } from '@oztix/roadie-components'
+import { Separator } from '@oztix/roadie-components'
 import { cn } from '@oztix/roadie-core/utils'
 
-import {
-  type CartDetails,
-  currencyPrefix,
-  formatCurrency,
-  formatDayHeader,
-  groupEventsByDay
-} from '../../cart'
+import { type CartDetails, formatDayHeader, groupEventsByDay } from '../../cart'
 import { CartEmptyState } from './CartEmptyState'
 import { CartEventGroup } from './CartEventGroup'
+import { CartFooter } from './CartFooter'
 import { CartUrgencyBadge } from './CartUrgencyBadge'
 
 /**
@@ -175,50 +169,21 @@ export function CartContents({
         </AnimatePresence>
 
         {isPage && !isEmpty && (
-          // Edge-to-edge separator (-mx-4/px-4); mt-auto + sticky pin it to the
+          // Edge-to-edge separator (-mx-4); mt-auto + sticky pin it to the
           // bottom. z-sticky so a day header can't scroll over it.
-          <div className='sticky bottom-0 z-sticky -mx-4 mt-auto border-t border-subtle bg-raised px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))]'>
+          <div className='sticky bottom-0 z-sticky -mx-4 mt-auto border-t border-subtle bg-raised'>
             <div className='@xl:mx-auto @xl:w-full @xl:max-w-lg'>
-              <div className='flex items-center justify-between gap-4 pb-1'>
-                <span className='text-ui font-bold text-strong'>Subtotal</span>
-                <NumberFlow
-                  value={cart.cartTotal}
-                  prefix={currencyPrefix(locale, currency)}
-                  format={{ minimumFractionDigits: 2 }}
-                  className='text-ui font-bold text-strong'
-                />
-              </div>
-              <p className='pb-4 text-ui-meta text-subtle'>
-                {totalBookingFees > 0
-                  ? `Incl. ${formatCurrency(totalBookingFees, {
-                      locale,
-                      currency
-                    })} booking fees. `
-                  : 'Includes booking fees. '}
-                Delivery and refund protection calculated at checkout.
-              </p>
-              <div className='flex gap-3'>
-                <Button
-                  emphasis='normal'
-                  intent='neutral'
-                  className='flex-1'
-                  onClick={() => onNavigate(browseHref)}
-                >
-                  Browse events
-                </Button>
-                <Button
-                  emphasis='strong'
-                  intent='accent'
-                  className='flex-1'
-                  disabled={!checkoutUrl}
-                  onClick={() => {
-                    if (checkoutUrl) onNavigate(checkoutUrl)
-                  }}
-                >
-                  <BagIcon weight='bold' className='mr-1.5 size-4' />
-                  Checkout
-                </Button>
-              </div>
+              <CartFooter
+                cartTotal={cart.cartTotal}
+                bookingFees={totalBookingFees}
+                locale={locale}
+                currency={currency}
+                onSecondary={() => onNavigate(browseHref)}
+                onCheckout={() => {
+                  if (checkoutUrl) onNavigate(checkoutUrl)
+                }}
+                checkoutDisabled={!checkoutUrl}
+              />
             </div>
           </div>
         )}
