@@ -280,9 +280,53 @@ fresh fetch.
 
 ## Expiry
 
-The drawer runs an urgency countdown and fires `onExpire` when it hits zero. For
-the full expiry-modal experience, the package also exports `CartExpiryModals`
-and the `useCartExpiry` hook/composable from each skin.
+The drawer itself only runs the urgency countdown and fires `onExpire` when the
+hold reaches zero — it does **not** render any expiry UI. The full
+"hold expiring / hold ended" experience is opt-in, shipped as two exports per
+skin that you compose yourself:
+
+- **`useCartExpiry(expiresAtUtc)`** — a headless hook (React) / composable (Vue),
+  no UI of its own. It runs the same one-second countdown as the badge and
+  returns `{ remaining, expired, showWarning, dismissWarning }`. `showWarning`
+  turns on inside the final urgency band (under two minutes) and is a one-shot
+  per `expiresAtUtc`: dismissing hides it until the server extends the hold,
+  which re-arms it. `expired` becomes `true` once the hold reaches zero.
+- **`CartExpiryModals`** — the presentational layer. Given that state it renders
+  two `alertdialog`s: a dismissible **"Still here?"** warning with a live mm:ss
+  countdown and _Keep browsing_ / _Checkout_ actions (Checkout stays disabled
+  until `checkoutUrl` is ready), and a blocking **"Your hold has ended"** modal
+  (no light-dismiss) whose only exit is _Browse events_.
+
+Wire them together once, alongside the drawer:
+
+```tsx
+import {
+  CartExpiryModals,
+  useCartExpiry
+} from '@oztix/roadie-widgets/cart-drawer/react'
+
+function CartExpiryLayer({ expiresAtUtc, checkoutUrl, browseHref, onNavigate }) {
+  const { remaining, expired, showWarning, dismissWarning } =
+    useCartExpiry(expiresAtUtc)
+
+  return (
+    <CartExpiryModals
+      showWarning={showWarning}
+      expired={expired}
+      remaining={remaining}
+      onDismissWarning={dismissWarning}
+      checkoutUrl={checkoutUrl}
+      browseHref={browseHref}
+      onNavigate={onNavigate}
+    />
+  )
+}
+```
+
+The Vue skin exports the same `CartExpiryModals` component and `useCartExpiry`
+composable from `@oztix/roadie-widgets/cart-drawer/vue`, with identical props.
+
+<PropsDefinitions componentPath='packages/widgets/src/cart-drawer/react/CartExpiryModals.tsx' />
 
 ## Accessibility
 
