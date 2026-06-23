@@ -89,6 +89,7 @@ function onLeave(el: Element, done: () => void) {
         <CartUrgencyBadge
           :ticket-count="ticketCount"
           :expires-at-utc="cart.expiresAtUtc"
+          :progress="1"
         />
       </div>
     </div>

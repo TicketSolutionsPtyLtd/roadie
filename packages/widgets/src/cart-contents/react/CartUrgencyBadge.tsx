@@ -89,15 +89,10 @@ export function CartUrgencyBadge({
               indicatorPulse
               className={className}
             >
-              {remaining > URGENCY_LONG_FORMAT_S ? (
-                <span className='tabular-nums'>
-                  <NumberFlow
-                    value={Math.ceil(remaining / 60)}
-                    suffix=' mins'
-                  />
-                </span>
-              ) : (
-                <span className='flex items-baseline gap-1 tabular-nums'>
+              <span className='flex items-baseline gap-1 tabular-nums'>
+                {remaining > URGENCY_LONG_FORMAT_S ? (
+                  <NumberFlow value={Math.ceil(remaining / 60)} suffix=' mins' />
+                ) : (
                   <span>
                     <NumberFlow value={Math.floor(remaining / 60)} />:
                     <NumberFlow
@@ -105,19 +100,19 @@ export function CartUrgencyBadge({
                       format={{ minimumIntegerDigits: 2 }}
                     />
                   </span>
-                  <span
-                    className='overflow-hidden whitespace-nowrap'
-                    style={{
-                      maxWidth: tailMaxWidth,
-                      opacity: tailOpacity,
-                      transition:
-                        'max-width 300ms ease-out, opacity 300ms ease-out'
-                    }}
-                  >
-                    remaining to checkout
-                  </span>
+                )}
+                <span
+                  className='overflow-hidden whitespace-nowrap'
+                  style={{
+                    maxWidth: tailMaxWidth,
+                    opacity: tailOpacity,
+                    transition:
+                      'max-width 300ms ease-out, opacity 300ms ease-out'
+                  }}
+                >
+                  remaining to checkout
                 </span>
-              )}
+              </span>
             </Badge>
           </m.div>
         )}

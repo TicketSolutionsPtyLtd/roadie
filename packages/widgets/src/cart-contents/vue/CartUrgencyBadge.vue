@@ -138,27 +138,29 @@ function onTimeLeave(el: Element, done: () => void) {
             aria-hidden="true"
             class="size-1.5 shrink-0 animate-pulse rounded-full bg-current"
           />
-          <span class="tabular-nums" data-testid="cart-badge-time">
-            <NumberFlow
-              v-if="isLongFormat"
-              :value="minutesCeil"
-              suffix=" mins"
-            />
-            <template v-else>
-              <NumberFlow :value="minutesFloor" />:<NumberFlow
-                :value="secondsPart"
-                :format="PAD2_FORMAT"
+          <span class="flex items-baseline gap-1 tabular-nums">
+            <span data-testid="cart-badge-time">
+              <NumberFlow
+                v-if="isLongFormat"
+                :value="minutesCeil"
+                suffix=" mins"
               />
-            </template>
-          </span>
-          <span
-            class="overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-300 ease-out"
-            :style="{
-              maxWidth: `${Math.max(0, Math.min(1, progress)) * 200}px`,
-              opacity: Math.max(0, Math.min(1, progress))
-            }"
-          >
-            remaining to checkout
+              <template v-else>
+                <NumberFlow :value="minutesFloor" />:<NumberFlow
+                  :value="secondsPart"
+                  :format="PAD2_FORMAT"
+                />
+              </template>
+            </span>
+            <span
+              class="overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-300 ease-out"
+              :style="{
+                maxWidth: `${Math.max(0, Math.min(1, progress)) * 200}px`,
+                opacity: Math.max(0, Math.min(1, progress))
+              }"
+            >
+              remaining to checkout
+            </span>
           </span>
         </span>
       </div>
