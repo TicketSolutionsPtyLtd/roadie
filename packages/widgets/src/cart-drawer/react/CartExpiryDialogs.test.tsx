@@ -1,15 +1,15 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { CartExpiryModals } from './CartExpiryModals'
+import { CartExpiryDialogs } from './CartExpiryDialogs'
 
-type Props = Parameters<typeof CartExpiryModals>[0]
+type Props = Parameters<typeof CartExpiryDialogs>[0]
 
 function renderModals(overrides: Partial<Props> = {}) {
   const onDismissWarning = vi.fn()
   const onNavigate = vi.fn()
   render(
-    <CartExpiryModals
+    <CartExpiryDialogs
       showWarning={false}
       expired={false}
       remaining={null}
@@ -23,7 +23,7 @@ function renderModals(overrides: Partial<Props> = {}) {
   return { onDismissWarning, onNavigate }
 }
 
-describe('CartExpiryModals — close-to-expiry warning', () => {
+describe('CartExpiryDialogs — close-to-expiry warning', () => {
   it('renders the warning with Checkout + Keep browsing + a close affordance', () => {
     renderModals({ showWarning: true, remaining: 65 })
     expect(screen.getByText(/still here\?/i)).toBeInTheDocument()
@@ -56,7 +56,7 @@ describe('CartExpiryModals — close-to-expiry warning', () => {
   })
 })
 
-describe('CartExpiryModals — expired', () => {
+describe('CartExpiryDialogs — expired', () => {
   it('renders the blocking expired modal with only Browse events', () => {
     renderModals({ expired: true })
     expect(screen.getByText(/your hold has ended/i)).toBeInTheDocument()
@@ -88,7 +88,7 @@ describe('CartExpiryModals — expired', () => {
   })
 })
 
-describe('CartExpiryModals — idle', () => {
+describe('CartExpiryDialogs — idle', () => {
   it('renders nothing when neither warning nor expired', () => {
     renderModals({ showWarning: false, expired: false, remaining: 600 })
     expect(screen.queryByText(/still here\?/i)).not.toBeInTheDocument()
