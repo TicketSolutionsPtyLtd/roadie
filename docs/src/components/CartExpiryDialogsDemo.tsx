@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { Button, Card, Tabs } from '@oztix/roadie-components'
 import { CartExpiryDialogs } from '@oztix/roadie-widgets/cart-drawer/react'
@@ -31,7 +31,19 @@ export function CartExpiryDialogsDemo() {
   const [skin, setSkin] = useState<Skin>('react')
   const [showWarning, setShowWarning] = useState(false)
   const [expired, setExpired] = useState(false)
-  const remaining = 90 // seconds → rendered as 1:30 in the warning
+  const [endsAt, setEndsAt] = useState<number | null>(null)
+  const [remaining, setRemaining] = useState(90)
+
+  // Derive from a fixed end-time each tick — like the real useCartExpiry — so
+  // NumberFlow animates the digits down and stray ticks can't accelerate it.
+  useEffect(() => {
+    if (!showWarning || expired || endsAt == null) return
+    const tick = () =>
+      setRemaining(Math.max(0, Math.round((endsAt - Date.now()) / 1000)))
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [showWarning, expired, endsAt])
 
   const reset = useCallback(() => {
     setShowWarning(false)
@@ -82,6 +94,8 @@ export function CartExpiryDialogsDemo() {
               emphasis='strong'
               onClick={() => {
                 setExpired(false)
+                setRemaining(90)
+                setEndsAt(Date.now() + 90_000)
                 setShowWarning(true)
               }}
             >
