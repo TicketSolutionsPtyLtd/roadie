@@ -138,7 +138,7 @@ function onTimeLeave(el: Element, done: () => void) {
             aria-hidden="true"
             class="size-1.5 shrink-0 animate-pulse rounded-full bg-current"
           />
-          <span class="flex items-baseline gap-1 tabular-nums">
+          <span class="flex items-baseline tabular-nums">
             <span data-testid="cart-badge-time">
               <NumberFlow
                 v-if="isLongFormat"
@@ -153,9 +153,10 @@ function onTimeLeave(el: Element, done: () => void) {
               </template>
             </span>
             <span
-              class="overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-300 ease-out"
+              class="overflow-hidden whitespace-nowrap transition-[max-width,margin-left,opacity] duration-300 ease-out"
               :style="{
                 maxWidth: `${Math.max(0, Math.min(1, progress)) * 200}px`,
+                marginLeft: `${Math.max(0, Math.min(1, progress)) * 4}px`,
                 opacity: Math.max(0, Math.min(1, progress))
               }"
             >

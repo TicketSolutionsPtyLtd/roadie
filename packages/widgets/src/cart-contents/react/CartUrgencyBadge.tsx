@@ -89,7 +89,7 @@ export function CartUrgencyBadge({
               indicatorPulse
               className={className}
             >
-              <span className='flex items-baseline gap-1 tabular-nums'>
+              <span className='flex items-baseline tabular-nums'>
                 {remaining > URGENCY_LONG_FORMAT_S ? (
                   <NumberFlow
                     value={Math.ceil(remaining / 60)}
@@ -108,9 +108,10 @@ export function CartUrgencyBadge({
                   className='overflow-hidden whitespace-nowrap'
                   style={{
                     maxWidth: tailMaxWidth,
+                    marginLeft: tailOpacity * 4,
                     opacity: tailOpacity,
                     transition:
-                      'max-width 300ms ease-out, opacity 300ms ease-out'
+                      'max-width 300ms ease-out, margin-left 300ms ease-out, opacity 300ms ease-out'
                   }}
                 >
                   remaining to checkout

@@ -28,6 +28,18 @@ describe('CartUrgencyBadge', () => {
     expect(container.querySelector('.intent-warning')).not.toBeNull()
   })
 
+  it('shows the "remaining to checkout" label in long format (over five minutes)', () => {
+    vi.useFakeTimers()
+    const { container } = render(
+      <CartUrgencyBadge
+        ticketCount={2}
+        expiresAtUtc={expiryIn(600)}
+        progress={1}
+      />
+    )
+    expect(container.textContent).toContain('remaining to checkout')
+  })
+
   it('shows only the ticket count badge when no expiry is set', () => {
     const { container } = render(
       <CartUrgencyBadge ticketCount={1} expiresAtUtc={undefined} />

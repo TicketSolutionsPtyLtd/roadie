@@ -36,6 +36,17 @@ describe('CartUrgencyBadge', () => {
     ).toBeNull()
   })
 
+  it('shows the "remaining to checkout" label in long format (over five minutes)', () => {
+    const { container } = render(CartUrgencyBadge, {
+      props: {
+        ticketCount: 2,
+        expiresAtUtc: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+        progress: 1
+      }
+    })
+    expect(container.textContent).toContain('remaining to checkout')
+  })
+
   it('renders a countdown when time remains', () => {
     const { container } = render(CartUrgencyBadge, {
       props: {
