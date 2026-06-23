@@ -67,8 +67,20 @@ export function CartUrgencyBadge({
       </span>
       <Badge size='sm' className={cn(bounce && 'animate-pop', className)}>
         <TicketIcon weight='bold' aria-hidden='true' />
-        <span className='tabular-nums'>
+        <span className='flex items-baseline tabular-nums'>
           <NumberFlow value={ticketCount} />
+          <span
+            className='overflow-hidden whitespace-nowrap'
+            style={{
+              maxWidth: tailMaxWidth,
+              marginLeft: tailOpacity * 4,
+              opacity: tailOpacity,
+              transition:
+                'max-width 300ms ease-out, margin-left 300ms ease-out, opacity 300ms ease-out'
+            }}
+          >
+            {ticketCount === 1 ? 'ticket' : 'tickets'}
+          </span>
         </span>
       </Badge>
       {/* marginLeft holds the gap so width + gap collapse together on clear. */}

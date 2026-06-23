@@ -125,7 +125,19 @@ function onTimeLeave(el: Element, done: () => void) {
       data-testid="cart-badge-count"
     >
       <PhTicket weight="bold" aria-hidden="true" />
-      <span class="tabular-nums"><NumberFlow :value="ticketCount" /></span>
+      <span class="flex items-baseline tabular-nums">
+        <NumberFlow :value="ticketCount" />
+        <span
+          class="overflow-hidden whitespace-nowrap transition-[max-width,margin-left,opacity] duration-300 ease-out"
+          :style="{
+            maxWidth: `${Math.max(0, Math.min(1, progress)) * 200}px`,
+            marginLeft: `${Math.max(0, Math.min(1, progress)) * 4}px`,
+            opacity: Math.max(0, Math.min(1, progress))
+          }"
+        >
+          {{ ticketCount === 1 ? 'ticket' : 'tickets' }}
+        </span>
+      </span>
     </span>
     <Transition :css="false" @enter="onTimeEnter" @leave="onTimeLeave">
       <div v-if="showCountdown" class="ml-1.5 overflow-hidden">

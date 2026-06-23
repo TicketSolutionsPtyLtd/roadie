@@ -40,6 +40,23 @@ describe('CartUrgencyBadge', () => {
     expect(container.textContent).toContain('remaining to checkout')
   })
 
+  it('reveals the "tickets" label when progress is 1', () => {
+    const { container } = render(
+      <CartUrgencyBadge ticketCount={3} expiresAtUtc={undefined} progress={1} />
+    )
+    const badge = container.querySelector('[data-slot="badge"]')
+    expect(badge?.textContent).toContain('tickets')
+  })
+
+  it('uses the singular "ticket" label for a single ticket', () => {
+    const { container } = render(
+      <CartUrgencyBadge ticketCount={1} expiresAtUtc={undefined} progress={1} />
+    )
+    const badge = container.querySelector('[data-slot="badge"]')
+    expect(badge?.textContent).toContain('ticket')
+    expect(badge?.textContent).not.toContain('tickets')
+  })
+
   it('shows only the ticket count badge when no expiry is set', () => {
     const { container } = render(
       <CartUrgencyBadge ticketCount={1} expiresAtUtc={undefined} />

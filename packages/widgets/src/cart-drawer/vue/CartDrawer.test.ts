@@ -354,7 +354,7 @@ describe('CartDrawer (Vue)', () => {
     // Badge count reflects the details sum (2), not summary.ticketCount (1).
     expect(
       container.querySelector('[data-testid="cart-badge-count"]')?.textContent
-    ).toBe('2')
+    ).toContain('2')
     // Header total reflects the per-event subtotal sum (50), not summary's 25.
     expect(
       container.querySelector('[data-testid="cart-header-price"]')?.textContent
@@ -380,7 +380,7 @@ describe('CartDrawer (Vue)', () => {
 
     expect(
       container.querySelector('[data-testid="cart-badge-count"]')?.textContent
-    ).toBe('3')
+    ).toContain('3')
     expect(
       container.querySelector('[data-testid="cart-header-price"]')?.textContent
     ).toBe('$75')
