@@ -352,9 +352,12 @@ describe('CartDrawer (Vue)', () => {
     await nextTick()
 
     // Badge count reflects the details sum (2), not summary.ticketCount (1).
+    // Match the numeric run so the "tickets" label doesn't mask a wrong count.
     expect(
-      container.querySelector('[data-testid="cart-badge-count"]')?.textContent
-    ).toContain('2')
+      container
+        .querySelector('[data-testid="cart-badge-count"]')
+        ?.textContent?.match(/\d+/)?.[0]
+    ).toBe('2')
     // Header total reflects the per-event subtotal sum (50), not summary's 25.
     expect(
       container.querySelector('[data-testid="cart-header-price"]')?.textContent
@@ -379,8 +382,10 @@ describe('CartDrawer (Vue)', () => {
     await nextTick()
 
     expect(
-      container.querySelector('[data-testid="cart-badge-count"]')?.textContent
-    ).toContain('3')
+      container
+        .querySelector('[data-testid="cart-badge-count"]')
+        ?.textContent?.match(/\d+/)?.[0]
+    ).toBe('3')
     expect(
       container.querySelector('[data-testid="cart-header-price"]')?.textContent
     ).toBe('$75')
