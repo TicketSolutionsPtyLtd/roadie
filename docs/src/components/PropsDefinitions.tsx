@@ -163,7 +163,8 @@ interface GroupedProps {
 }
 
 interface PropsDefinitionsProps {
-  componentPath: string
+  /** A single source path, or several to list under one "API reference". */
+  componentPath: string | string[]
 }
 
 function formatTypeValues(prop: ComponentProp): string {
@@ -513,20 +514,24 @@ function parseComponentProps(componentPath: string) {
 }
 
 export function PropsDefinitions({ componentPath }: PropsDefinitionsProps) {
-  const components = parseComponentProps(componentPath)
-  if (!components) return null
+  const paths = Array.isArray(componentPath) ? componentPath : [componentPath]
 
   // Base UI-style API reference: every entry renders as its own stacked
   // section with a dot-notation heading (`Fieldset`, `Fieldset.Legend`, …),
   // an optional short description, and a prop table. No inline-vs-accordion
   // split. The root entry (whose displayName has no dot) sorts first;
-  // sub-components keep parser order after that.
-  const sortedComponents = [...components].sort((a, b) => {
-    const aHasDot = a.displayName.includes('.')
-    const bHasDot = b.displayName.includes('.')
-    if (aHasDot === bHasDot) return 0
-    return aHasDot ? 1 : -1
-  })
+  // sub-components keep parser order after that. Multiple paths keep their
+  // given order so callers control which component leads.
+  const sortedComponents = paths.flatMap((p) =>
+    [...(parseComponentProps(p) ?? [])].sort((a, b) => {
+      const aHasDot = a.displayName.includes('.')
+      const bHasDot = b.displayName.includes('.')
+      if (aHasDot === bHasDot) return 0
+      return aHasDot ? 1 : -1
+    })
+  )
+
+  if (!sortedComponents.length) return null
 
   return (
     <div className='mt-8 grid gap-8 pt-8'>

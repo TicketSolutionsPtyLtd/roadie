@@ -3,7 +3,7 @@ import NumberFlow from '@number-flow/vue'
 import { PhClock } from '@phosphor-icons/vue'
 import { computed, useId } from 'vue'
 
-import CartExpiryModal from './CartExpiryModal.vue'
+import CartExpiryDialog from './CartExpiryDialog.vue'
 
 const props = defineProps<{
   showWarning: boolean
@@ -33,29 +33,20 @@ function browse() {
 </script>
 
 <template>
-  <CartExpiryModal
+  <CartExpiryDialog
     v-if="showWarning && !expired"
     :title-id="warningTitleId"
+    intent="warning"
     title="Still here?"
+    description="Your tickets are held for a little longer. Check out now to secure them."
     dismissible
     :on-close="onDismissWarning"
   >
     <template #icon>
-      <div
-        class="flex size-14 items-center justify-center rounded-full bg-subtle"
-      >
-        <PhClock
-          weight="bold"
-          class="size-7 text-[var(--intent-9)] intent-danger"
-          aria-hidden="true"
-        />
-      </div>
+      <PhClock weight="duotone" aria-hidden="true" />
     </template>
     <template #body>
-      Your tickets are held for a little longer. Check out now to secure them.
-      <span
-        class="mt-2 block text-display-ui-4 text-[var(--intent-9)] tabular-nums intent-danger"
-      >
+      <span class="text-display-ui-4 text-[var(--intent-9)] tabular-nums">
         <NumberFlow :value="minutes" />:<NumberFlow
           :value="seconds"
           :format="PAD2_FORMAT"
@@ -63,49 +54,45 @@ function browse() {
       </span>
     </template>
     <template #actions>
+      <!-- No intent — inherits the dialog's warning via the cascade. -->
       <button
         type="button"
-        class="is-interactive btn btn-md flex-1 emphasis-normal intent-neutral"
+        class="is-interactive btn btn-md emphasis-normal"
         @click="onDismissWarning"
       >
         Keep browsing
       </button>
       <button
         type="button"
-        class="is-interactive btn btn-md flex-1 emphasis-strong intent-danger"
+        class="is-interactive btn btn-md emphasis-strong"
         :disabled="!checkoutUrl"
         @click="checkout"
       >
         Checkout
       </button>
     </template>
-  </CartExpiryModal>
+  </CartExpiryDialog>
 
   <!-- Blocking; no dismiss — the only exit is back to browsing. -->
-  <CartExpiryModal
+  <CartExpiryDialog
     v-if="expired"
     :title-id="expiredTitleId"
+    intent="danger"
     title="Your hold has ended"
+    description="Your tickets are no longer being held. Head back to browse and grab them again."
   >
     <template #icon>
-      <div
-        class="flex size-16 items-center justify-center rounded-full bg-subtle"
-      >
-        <PhClock weight="bold" class="size-8 text-subtler" aria-hidden="true" />
-      </div>
-    </template>
-    <template #body>
-      Your tickets are no longer being held. Head back to browse and grab them
-      again.
+      <PhClock weight="duotone" aria-hidden="true" />
     </template>
     <template #actions>
+      <!-- Accent CTA against the danger framing — the way forward. -->
       <button
         type="button"
-        class="is-interactive btn btn-md flex-1 emphasis-strong intent-accent"
+        class="is-interactive btn btn-md emphasis-strong intent-accent"
         @click="browse"
       >
         Browse events
       </button>
     </template>
-  </CartExpiryModal>
+  </CartExpiryDialog>
 </template>

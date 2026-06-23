@@ -7,6 +7,7 @@ export const metadata = {
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 import { CartDrawerParityDemo } from '@/components/CartDrawerParityDemo'
+import { CartExpiryDialogsDemo } from '@/components/CartExpiryDialogsDemo'
 
 # CartDrawer
 
@@ -280,9 +281,63 @@ fresh fetch.
 
 ## Expiry
 
-The drawer runs an urgency countdown and fires `onExpire` when it hits zero. For
-the full expiry-modal experience, the package also exports `CartExpiryModals`
-and the `useCartExpiry` hook/composable from each skin.
+The drawer itself only runs the urgency countdown and fires `onExpire` when the
+hold reaches zero — it does **not** render any expiry UI. The full
+"hold expiring / hold ended" experience is opt-in, shipped as two exports per
+skin that you compose yourself:
+
+- **`useCartExpiry(expiresAtUtc)`** — a headless hook (React) / composable (Vue),
+  no UI of its own. It runs the same one-second countdown as the badge and
+  returns `{ remaining, expired, showWarning, dismissWarning }`. `showWarning`
+  turns on inside the final urgency band (under two minutes) and is a one-shot
+  per `expiresAtUtc`: dismissing hides it until the server extends the hold,
+  which re-arms it. `expired` becomes `true` once the hold reaches zero.
+- **`CartExpiryDialogs`** — the presentational layer, built on the
+  [Dialog](/components/dialog) compound. Given that state it renders two
+  `alertdialog`s: a dismissible **"Still here?"** warning (warning intent) with a
+  live mm:ss countdown and _Keep browsing_ / _Checkout_ actions (Checkout stays
+  disabled until `checkoutUrl` is ready), and a blocking **"Your hold has ended"**
+  dialog (danger intent, no light-dismiss) whose only exit is _Browse events_.
+
+Trigger each dialog to see it — switch the **React / Vue** tabs to compare skins.
+The warning is light-dismissible (close button, backdrop, or `Escape`); the
+expired dialog is blocking, so _Browse events_ is the only way out.
+
+<CartExpiryDialogsDemo />
+
+Wire them together once, alongside the drawer. In production you derive the
+props from `useCartExpiry` (the Vue composable takes a getter so it tracks prop
+changes):
+
+```tsx
+import {
+  CartExpiryDialogs,
+  useCartExpiry
+} from '@oztix/roadie-widgets/cart-drawer/react'
+
+function CartExpiryLayer({ expiresAtUtc, checkoutUrl, browseHref, onNavigate }) {
+  const { remaining, expired, showWarning, dismissWarning } =
+    useCartExpiry(expiresAtUtc)
+
+  return (
+    <CartExpiryDialogs
+      showWarning={showWarning}
+      expired={expired}
+      remaining={remaining}
+      onDismissWarning={dismissWarning}
+      checkoutUrl={checkoutUrl}
+      browseHref={browseHref}
+      onNavigate={onNavigate}
+    />
+  )
+}
+```
+
+The Vue skin exposes the same `CartExpiryDialogs` component and `useCartExpiry`
+composable from `@oztix/roadie-widgets/cart-drawer/vue`, with identical props.
+`CartExpiryModals` remains as a deprecated alias and will be removed in v3.0.0.
+`CartExpiryDialogs`' props are documented in the [API reference](#api-reference)
+below.
 
 ## Accessibility
 
@@ -295,4 +350,9 @@ and the `useCartExpiry` hook/composable from each skin.
 
 The Vue skin accepts the same props as the React skin documented below.
 
-<PropsDefinitions componentPath='packages/widgets/src/cart-drawer/react/CartDrawer.tsx' />
+<PropsDefinitions
+  componentPath={[
+    'packages/widgets/src/cart-drawer/react/CartDrawer.tsx',
+    'packages/widgets/src/cart-drawer/react/CartExpiryDialogs.tsx'
+  ]}
+/>

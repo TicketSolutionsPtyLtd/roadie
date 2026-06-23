@@ -86,6 +86,7 @@ export function CartContents({
               <CartUrgencyBadge
                 ticketCount={ticketCount}
                 expiresAtUtc={cart.expiresAtUtc}
+                progress={1}
               />
             </div>
           </div>

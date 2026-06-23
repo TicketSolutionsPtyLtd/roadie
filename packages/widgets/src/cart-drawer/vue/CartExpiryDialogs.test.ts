@@ -2,7 +2,7 @@ import { fireEvent, render } from '@testing-library/vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 
-import CartExpiryModals from './CartExpiryModals.vue'
+import CartExpiryDialogs from './CartExpiryDialogs.vue'
 import { lockBodyScroll } from './documentEffects'
 
 afterEach(() => {
@@ -12,7 +12,7 @@ afterEach(() => {
 function renderModals(props: Record<string, unknown> = {}) {
   const onDismissWarning = vi.fn()
   const onNavigate = vi.fn()
-  const utils = render(CartExpiryModals, {
+  const utils = render(CartExpiryDialogs, {
     props: {
       showWarning: false,
       expired: false,
@@ -27,7 +27,7 @@ function renderModals(props: Record<string, unknown> = {}) {
   return { ...utils, onDismissWarning, onNavigate }
 }
 
-describe('CartExpiryModals — close-to-expiry warning', () => {
+describe('CartExpiryDialogs — close-to-expiry warning', () => {
   it('renders the warning with Checkout + Keep browsing + a close affordance', () => {
     const { getByRole, getByText } = renderModals({
       showWarning: true,
@@ -59,7 +59,7 @@ describe('CartExpiryModals — close-to-expiry warning', () => {
   })
 })
 
-describe('CartExpiryModals — expired', () => {
+describe('CartExpiryDialogs — expired', () => {
   it('renders the blocking expired modal with only Browse events', () => {
     const { getByRole, getByText, queryByRole } = renderModals({
       expired: true
@@ -91,7 +91,7 @@ describe('CartExpiryModals — expired', () => {
   })
 })
 
-describe('CartExpiryModals — idle', () => {
+describe('CartExpiryDialogs — idle', () => {
   it('renders nothing when neither warning nor expired', () => {
     const { queryByText } = renderModals({
       showWarning: false,
@@ -103,7 +103,7 @@ describe('CartExpiryModals — idle', () => {
   })
 })
 
-describe('CartExpiryModals — body scroll lock composition', () => {
+describe('CartExpiryDialogs — body scroll lock composition', () => {
   it('locks background scroll while the warning is shown', async () => {
     expect(document.body.style.overflow).toBe('')
     renderModals({ showWarning: true, remaining: 65 })

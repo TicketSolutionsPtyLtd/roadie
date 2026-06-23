@@ -36,6 +36,34 @@ describe('CartUrgencyBadge', () => {
     ).toBeNull()
   })
 
+  it('shows the "remaining to checkout" label in long format (over five minutes)', () => {
+    const { container } = render(CartUrgencyBadge, {
+      props: {
+        ticketCount: 2,
+        expiresAtUtc: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+        progress: 1
+      }
+    })
+    expect(container.textContent).toContain('remaining to checkout')
+  })
+
+  it('reveals the "tickets" label when progress is 1', () => {
+    const { container } = render(CartUrgencyBadge, {
+      props: { ticketCount: 3, expiresAtUtc: undefined, progress: 1 }
+    })
+    const count = container.querySelector('[data-testid="cart-badge-count"]')
+    expect(count?.textContent).toContain('tickets')
+  })
+
+  it('uses the singular "ticket" label for a single ticket', () => {
+    const { container } = render(CartUrgencyBadge, {
+      props: { ticketCount: 1, expiresAtUtc: undefined, progress: 1 }
+    })
+    const count = container.querySelector('[data-testid="cart-badge-count"]')
+    expect(count?.textContent).toContain('ticket')
+    expect(count?.textContent).not.toContain('tickets')
+  })
+
   it('renders a countdown when time remains', () => {
     const { container } = render(CartUrgencyBadge, {
       props: {

@@ -5,9 +5,9 @@ import { ClockIcon } from '@phosphor-icons/react'
 
 import { Button } from '@oztix/roadie-components'
 
-import { CartExpiryModal } from './CartExpiryModal'
+import { CartExpiryDialog } from './CartExpiryDialog'
 
-export type CartExpiryModalsProps = {
+export type CartExpiryDialogsProps = {
   showWarning: boolean
   expired: boolean
   remaining: number | null
@@ -17,7 +17,7 @@ export type CartExpiryModalsProps = {
   onNavigate: (href: string) => void
 }
 
-export function CartExpiryModals({
+export function CartExpiryDialogs({
   showWarning,
   expired,
   remaining,
@@ -25,39 +25,26 @@ export function CartExpiryModals({
   checkoutUrl,
   browseHref,
   onNavigate
-}: CartExpiryModalsProps) {
+}: CartExpiryDialogsProps) {
   const mins = Math.floor((remaining ?? 0) / 60)
   const secs = (remaining ?? 0) % 60
 
   return (
     <>
-      <CartExpiryModal
+      <CartExpiryDialog
         open={showWarning && !expired}
+        intent='warning'
         dismissible
         onClose={onDismissWarning}
+        icon={<ClockIcon weight='duotone' />}
         title='Still here?'
-        icon={
-          <div className='flex size-14 items-center justify-center rounded-full bg-subtle'>
-            <ClockIcon
-              weight='bold'
-              className='size-7 text-[var(--intent-9)] intent-danger'
-            />
-          </div>
-        }
+        description='Your tickets are held for a little longer. Check out now to secure them.'
         actions={
           <>
-            <Button
-              emphasis='normal'
-              intent='neutral'
-              className='flex-1'
-              onClick={onDismissWarning}
-            >
-              Keep browsing
-            </Button>
+            {/* No intent — inherits the dialog's warning via the cascade. */}
+            <Button onClick={onDismissWarning}>Keep browsing</Button>
             <Button
               emphasis='strong'
-              intent='danger'
-              className='flex-1'
               disabled={!checkoutUrl}
               onClick={() => {
                 if (checkoutUrl) onNavigate(checkoutUrl)
@@ -68,35 +55,29 @@ export function CartExpiryModals({
           </>
         }
       >
-        Your tickets are held for a little longer. Check out now to secure them.
-        <span className='mt-2 block text-display-ui-4 text-[var(--intent-9)] tabular-nums intent-danger'>
+        <span className='text-display-ui-4 text-[var(--intent-9)] tabular-nums'>
           <NumberFlow value={mins} />:
           <NumberFlow value={secs} format={{ minimumIntegerDigits: 2 }} />
         </span>
-      </CartExpiryModal>
+      </CartExpiryDialog>
 
-      <CartExpiryModal
+      <CartExpiryDialog
         open={expired}
+        intent='danger'
+        icon={<ClockIcon weight='duotone' />}
         title='Your hold has ended'
-        icon={
-          <div className='flex size-16 items-center justify-center rounded-full bg-subtle'>
-            <ClockIcon weight='bold' className='size-8 text-subtler' />
-          </div>
-        }
+        description='Your tickets are no longer being held. Head back to browse and grab them again.'
         actions={
+          // Accent CTA against the danger framing — the way forward, not a warning.
           <Button
-            emphasis='strong'
             intent='accent'
-            className='flex-1'
+            emphasis='strong'
             onClick={() => onNavigate(browseHref)}
           >
             Browse events
           </Button>
         }
-      >
-        Your tickets are no longer being held. Head back to browse and grab them
-        again.
-      </CartExpiryModal>
+      />
     </>
   )
 }
