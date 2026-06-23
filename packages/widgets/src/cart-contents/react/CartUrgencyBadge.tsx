@@ -91,7 +91,10 @@ export function CartUrgencyBadge({
             >
               <span className='flex items-baseline gap-1 tabular-nums'>
                 {remaining > URGENCY_LONG_FORMAT_S ? (
-                  <NumberFlow value={Math.ceil(remaining / 60)} suffix=' mins' />
+                  <NumberFlow
+                    value={Math.ceil(remaining / 60)}
+                    suffix=' mins'
+                  />
                 ) : (
                   <span>
                     <NumberFlow value={Math.floor(remaining / 60)} />:
