@@ -325,8 +325,8 @@ function CartExpiryLayer({ expiresAtUtc, checkoutUrl, browseHref, onNavigate }) 
 
 The Vue skin exports the same `CartExpiryModals` component and `useCartExpiry`
 composable from `@oztix/roadie-widgets/cart-drawer/vue`, with identical props.
-
-<PropsDefinitions componentPath='packages/widgets/src/cart-drawer/react/CartExpiryModals.tsx' />
+`CartExpiryModals`' props are documented in the [API reference](#api-reference)
+below.
 
 ## Accessibility
 
@@ -339,4 +339,9 @@ composable from `@oztix/roadie-widgets/cart-drawer/vue`, with identical props.
 
 The Vue skin accepts the same props as the React skin documented below.
 
-<PropsDefinitions componentPath='packages/widgets/src/cart-drawer/react/CartDrawer.tsx' />
+<PropsDefinitions
+  componentPath={[
+    'packages/widgets/src/cart-drawer/react/CartDrawer.tsx',
+    'packages/widgets/src/cart-drawer/react/CartExpiryModals.tsx'
+  ]}
+/>
