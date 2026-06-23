@@ -323,8 +323,62 @@ function CartExpiryLayer({ expiresAtUtc, checkoutUrl, browseHref, onNavigate }) 
 }
 ```
 
-The Vue skin exports the same `CartExpiryModals` component and `useCartExpiry`
-composable from `@oztix/roadie-widgets/cart-drawer/vue`, with identical props.
+The Vue skin exposes the same `CartExpiryModals` component and `useCartExpiry`
+composable from `@oztix/roadie-widgets/cart-drawer/vue`, with identical props. In
+production you drive the props from `useCartExpiry` (pass a getter so it tracks
+prop changes); the example below instead wires manual triggers so each dialog can
+be opened on demand:
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+
+import { CartExpiryModals } from '@oztix/roadie-widgets/cart-drawer/vue'
+
+// In production these come from `useCartExpiry(() => expiresAtUtc)`; here we
+// drive them directly so each dialog can be triggered without a live countdown.
+const showWarning = ref(false)
+const expired = ref(false)
+const remaining = ref(90) // seconds → rendered as 1:30 in the warning
+
+function navigate(href: string) {
+  // Real apps route here. Reset so the blocking modal isn't a dead end in the demo.
+  showWarning.value = false
+  expired.value = false
+  console.log('navigate', href)
+}
+</script>
+
+<template>
+  <div class="flex gap-3">
+    <button
+      type="button"
+      class="is-interactive btn btn-md emphasis-normal intent-neutral"
+      @click="showWarning = true"
+    >
+      Trigger “Still here?”
+    </button>
+    <button
+      type="button"
+      class="is-interactive btn btn-md emphasis-strong intent-danger"
+      @click="expired = true"
+    >
+      Trigger “Hold ended”
+    </button>
+  </div>
+
+  <CartExpiryModals
+    :show-warning="showWarning"
+    :expired="expired"
+    :remaining="remaining"
+    :on-dismiss-warning="() => (showWarning = false)"
+    checkout-url="/checkout"
+    browse-href="/events"
+    :on-navigate="navigate"
+  />
+</template>
+```
+
 `CartExpiryModals`' props are documented in the [API reference](#api-reference)
 below.
 
