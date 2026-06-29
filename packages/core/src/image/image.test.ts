@@ -100,6 +100,13 @@ describe('oztixImageAtWidth', () => {
   it('passes non-Oztix URLs through untouched', () => {
     expect(oztixImageAtWidth(EXTERNAL, 600)).toBe(EXTERNAL)
   })
+
+  it('is a no-op for non-positive or non-finite widths', () => {
+    expect(oztixImageAtWidth(OZTIX, 0)).toBe(OZTIX)
+    expect(oztixImageAtWidth(OZTIX, -100)).toBe(OZTIX)
+    expect(oztixImageAtWidth(OZTIX, Number.NaN)).toBe(OZTIX)
+    expect(oztixImageAtWidth(OZTIX, Number.POSITIVE_INFINITY)).toBe(OZTIX)
+  })
 })
 
 describe('oztixSrcSet', () => {

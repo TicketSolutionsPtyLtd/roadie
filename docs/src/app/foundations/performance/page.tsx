@@ -95,9 +95,9 @@ export default function PerformancePage() {
 
         <p className='text-subtle'>
           For Oztix-hosted imagery the{' '}
-          <a className='underline' href='/components/image'>
+          <Link className='underline' href='/components/image'>
             <code>Image</code> component
-          </a>{' '}
+          </Link>{' '}
           handles all of this: explicit dimensions to prevent CLS, a right-sized
           WebP <code>srcSet</code> to cut bytes, lazy-by-default loading with{' '}
           <code>priority</code> for the LCP image, and <code>defer</code> for

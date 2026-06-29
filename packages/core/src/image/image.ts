@@ -55,7 +55,7 @@ export function oztixImageAtWidth(
   width: number,
   opts?: OztixImageOptions
 ): string {
-  if (!isOztixImageUrl(src)) return src
+  if (!isOztixImageUrl(src) || !Number.isFinite(width) || width <= 0) return src
 
   const url = new URL(src)
   url.searchParams.set('width', String(Math.round(width)))

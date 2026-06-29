@@ -73,6 +73,8 @@ export type ImageProps = Omit<
 > & {
   /** Image URL. Oztix-CDN hosts get the resize/transcode rewrite; everything else passes through. */
   src: string
+  /** Alt text. Required — use an empty string (`alt=''`) for decorative images. */
+  alt: string
   /**
    * 1x render width in CSS pixels. Drives the default `srcSet`/`sizes` and
    * reserves layout. Omit to render a plain pass-through `<img>`.
