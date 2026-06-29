@@ -240,6 +240,19 @@ describe('Image', () => {
     expect(container.querySelector('img')).not.toHaveClass('bg-subtle')
   })
 
+  it('re-shows the placeholder when the source changes', () => {
+    const { container, rerender } = render(
+      <Image src={OZTIX} alt='Logo' width={600} />
+    )
+    act(() => {
+      container.querySelector('img')!.dispatchEvent(new Event('load'))
+    })
+    expect(container.querySelector('img')).not.toHaveClass('bg-subtle')
+
+    rerender(<Image src={OZTIX} alt='Logo' width={900} />)
+    expect(container.querySelector('img')).toHaveClass('bg-subtle')
+  })
+
   it('lets a semantic background class override the tint', () => {
     const { container } = render(
       <Image src={OZTIX} alt='Logo' width={600} className='bg-sunken' />
@@ -273,6 +286,22 @@ describe('Image', () => {
         img.dispatchEvent(new Event('load'))
       })
       expect(wrapper.querySelector('img')!.style.opacity).toBe('1')
+    })
+
+    it('lets className override object-fit on the blurred image', () => {
+      const { container } = render(
+        <Image
+          src={OZTIX}
+          alt='Logo'
+          width={600}
+          height={300}
+          placeholder='blur'
+          className='object-contain'
+        />
+      )
+      const img = container.querySelector('img')!
+      expect(img).toHaveClass('object-contain')
+      expect(img).not.toHaveClass('object-cover')
     })
 
     it('stays a bare <img> when placeholder is empty', () => {

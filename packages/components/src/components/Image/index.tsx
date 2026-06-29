@@ -226,6 +226,14 @@ export function Image({
         : undefined))
     : undefined
 
+  // Reset the placeholder when the requested image changes, so a swapped src
+  // shows the tint/blur and re-runs the fade-in.
+  const renderedSrc = useRef(resolvedSrc)
+  if (renderedSrc.current !== resolvedSrc) {
+    renderedSrc.current = resolvedSrc
+    setLoaded(false)
+  }
+
   // Cached images can finish loading before React attaches onLoad, so the fade
   // and tint removal would never fire — reconcile from the element's own
   // complete flag.
@@ -254,15 +262,16 @@ export function Image({
         setLoaded(true)
         onLoad?.(event)
       }}
-      className={lqip ? undefined : cn(!loaded && 'bg-subtle', className)}
+      className={
+        lqip
+          ? cn('size-full object-cover', className)
+          : cn(!loaded && 'bg-subtle', className)
+      }
       style={
         lqip
           ? {
               position: 'absolute',
               inset: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
               opacity: loaded ? 1 : 0,
               transition: FADE
             }
