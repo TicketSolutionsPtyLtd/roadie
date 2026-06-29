@@ -14,10 +14,10 @@ export interface OztixImageOptions {
   autotrim?: boolean
   /**
    * Escape hatch for any other ImageSharp.Web command, merged verbatim into the
-   * query (applied last, so it can override the defaults — e.g. reintroduce
-   * `height` with `rmode: 'crop'`). Supported commands: `height`, `rmode`,
-   * `ranchor`, `rxy`, `rsampler`, `compand`, `orient`, `bgcolor`, `autoorient`,
-   * `pngcolortype`. See TicketSolutions.Assets ImageSharpWeb config.
+   * query (applied last, so it can override the defaults). Supported commands:
+   * `rmode`, `ranchor`, `rxy`, `rsampler`, `compand`, `orient`, `bgcolor`,
+   * `autoorient`, `pngcolortype`. Use the `height` option for cropping rather
+   * than `params`. See TicketSolutions.Assets ImageSharpWeb config.
    */
   params?: Record<string, string | number | boolean>
 }

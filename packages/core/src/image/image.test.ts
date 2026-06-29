@@ -59,14 +59,14 @@ describe('oztixImageAtWidth', () => {
     expect(url.searchParams.get('quality')).toBe('70')
   })
 
-  it('merges arbitrary params verbatim, applied last so they override', () => {
+  it('merges arbitrary params verbatim', () => {
     const url = new URL(
       oztixImageAtWidth(OZTIX, 600, {
-        params: { height: 350, rmode: 'crop', autoorient: true }
+        params: { rmode: 'crop', ranchor: 'top', autoorient: true }
       })
     )
-    expect(url.searchParams.get('height')).toBe('350')
     expect(url.searchParams.get('rmode')).toBe('crop')
+    expect(url.searchParams.get('ranchor')).toBe('top')
     expect(url.searchParams.get('autoorient')).toBe('true')
     expect(url.searchParams.get('width')).toBe('600')
   })

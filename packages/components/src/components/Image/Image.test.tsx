@@ -126,13 +126,13 @@ describe('Image', () => {
         alt='Logo'
         width={600}
         quality={70}
-        params={{ rmode: 'crop', height: 300 }}
+        params={{ rmode: 'crop', ranchor: 'top' }}
       />
     )
     const src = container.querySelector('img')!.getAttribute('src')!
     expect(src).toContain('quality=70')
     expect(src).toContain('rmode=crop')
-    expect(src).toContain('height=300')
+    expect(src).toContain('ranchor=top')
   })
 
   it('leaves non-Oztix URLs unrewritten even with a width', () => {

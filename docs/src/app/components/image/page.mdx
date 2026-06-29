@@ -70,20 +70,21 @@ Logos often ship with baked-in transparent padding. Set `autotrim` to crop it se
 
 ### Quality and advanced commands
 
-`quality` (1–100) trades fidelity for bytes. For anything else the proxy supports — resize mode, anchor, background colour, an explicit crop `height` — use the `params` escape hatch; entries are merged verbatim into the query.
+`quality` (1–100) trades fidelity for bytes. For anything else the proxy supports — resize mode, anchor, background colour — use the `params` escape hatch; entries are merged verbatim into the query.
 
 ```tsx
 <Image
   src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
   alt='Cropped card art'
   width={700}
+  height={350}
   quality={70}
-  params={{ height: 350, rmode: 'crop', bgcolor: 'fff' }}
+  params={{ rmode: 'crop', bgcolor: 'fff' }}
 />
-// → …?width=700&format=webp&quality=70&height=350&rmode=crop&bgcolor=fff
+// → …?width=700&height=350&format=webp&quality=70&rmode=crop&bgcolor=fff
 ```
 
-Supported `params` keys (ImageSharp.Web): `height`, `rmode`, `ranchor`, `rxy`, `rsampler`, `compand`, `orient`, `bgcolor`, `autoorient`, `pngcolortype`.
+Supported `params` keys (ImageSharp.Web): `rmode`, `ranchor`, `rxy`, `rsampler`, `compand`, `orient`, `bgcolor`, `autoorient`, `pngcolortype`.
 
 ### Reserving layout
 
