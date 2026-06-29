@@ -8,6 +8,7 @@ import {
   isOztixImageUrl,
   oztixImageAtWidth
 } from '@oztix/roadie-core/image'
+import { cn } from '@oztix/roadie-core/utils'
 
 import { setRef } from '../../utils/resolveRender'
 
@@ -186,7 +187,7 @@ export function Image({
         setLoaded(true)
         onLoad?.(event)
       }}
-      className={lqip ? undefined : className}
+      className={lqip ? undefined : cn('bg-subtle', className)}
       style={
         lqip
           ? {
@@ -211,7 +212,7 @@ export function Image({
   return (
     <span
       data-slot='image-blur'
-      className={className}
+      className={cn('bg-subtle', className)}
       style={{
         position: 'relative',
         display: 'block',

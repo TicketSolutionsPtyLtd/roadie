@@ -157,6 +157,20 @@ describe('Image', () => {
     expect(ref.current).toBeInstanceOf(HTMLImageElement)
   })
 
+  it('paints a subtle background tint behind the image', () => {
+    const { container } = render(<Image src={OZTIX} alt='Logo' width={600} />)
+    expect(container.querySelector('img')).toHaveClass('bg-subtle')
+  })
+
+  it('lets a semantic background class override the tint', () => {
+    const { container } = render(
+      <Image src={OZTIX} alt='Logo' width={600} className='bg-sunken' />
+    )
+    const img = container.querySelector('img')!
+    expect(img).toHaveClass('bg-sunken')
+    expect(img).not.toHaveClass('bg-subtle')
+  })
+
   describe('placeholder=blur', () => {
     it('wraps the image and shows a blurred LQIP that fades out on load', () => {
       const { container } = render(
@@ -170,6 +184,7 @@ describe('Image', () => {
       )
       const wrapper = container.querySelector('[data-slot="image-blur"]')!
       expect(wrapper).toBeInTheDocument()
+      expect(wrapper).toHaveClass('bg-subtle')
       const lqip = wrapper.querySelector('[aria-hidden="true"]') as HTMLElement
       expect(lqip.style.backgroundImage).toContain(`width=${24}`)
       expect(lqip.style.filter).toContain('blur')
