@@ -9,7 +9,8 @@ topic: image-component
 
 A new `<Image>` primitive in `@oztix/roadie-components` that wraps a plain
 `<img>` and pushes every Oztix-CDN asset through the ImageSharp.Web resize
-proxy (`?width=&height=&format=webp`) plus a sensible 1x/2x `srcSet`.
+proxy (`?width=&format=webp`, height dropped so the proxy scales
+proportionally) plus a sensible 1x/2x `srcSet`.
 Off-Oztix URLs pass through unchanged so external thumbnails still work.
 
 A companion utility module in `@oztix/roadie-core/image` (`oztixImageAtWidth`,
@@ -253,9 +254,10 @@ per call site.
 ## Open Questions
 
 - **Bundle weight.** The component is ~30 LOC + the core helpers (~50
-  LOC). Negligible. `roadie-core/image` adds one new entry point — worth
-  confirming the tsup config picks it up automatically (it should, given
-  how `utils/cn.ts` is exported).
+  LOC). Negligible. `roadie-core/image` adds one new entry point — core's
+  `tsdown.config.ts` uses an explicit entry map and `package.json` an
+  explicit `exports` block, so the `image/index` entry and the `./image`
+  export both need adding by hand (mirroring how `utils/cn.ts` is wired).
 - **`width` as a hint vs. a hard intrinsic.** `next/image` requires it
   for layout reservation. We do too, but only for the srcSet/sizes
   defaults — the actual `<img width=>` HTML attribute can be set to the
