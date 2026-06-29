@@ -8,6 +8,8 @@ import {
   oztixSrcSet
 } from '@oztix/roadie-core/image'
 
+import { setRef } from '../../utils/resolveRender'
+
 export type ImageProps = Omit<
   ComponentProps<'img'>,
   'width' | 'height' | 'src'
@@ -58,6 +60,10 @@ export function Image({
 
   useEffect(() => {
     if (visible) return
+    if (!deferred) {
+      setVisible(true)
+      return
+    }
     const el = innerRef.current
     if (!el || typeof IntersectionObserver === 'undefined') {
       setVisible(true)
@@ -74,23 +80,22 @@ export function Image({
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [visible])
+  }, [visible, deferred])
 
-  const ladder = width != null ? (widths ?? [width, width * 2]) : undefined
+  const sized = width != null && width > 0
+  const ladder = sized ? (widths ?? [width, width * 2]) : undefined
   const srcSet = ladder ? oztixSrcSet(src, ladder, { format }) : undefined
-  const resolvedSrc =
-    width != null ? oztixImageAtWidth(src, width, { format }) : src
+  const resolvedSrc = sized ? oztixImageAtWidth(src, width, { format }) : src
   const resolvedSizes = srcSet ? (sizes ?? `${width}px`) : sizes
 
   const aspectRatio =
-    width != null && height != null ? `${width} / ${height}` : undefined
+    sized && height != null && height > 0 ? `${width} / ${height}` : undefined
 
   return (
     <img
       ref={(node) => {
         innerRef.current = node
-        if (typeof ref === 'function') ref(node)
-        else if (ref) ref.current = node
+        setRef(ref, node)
       }}
       data-slot='image'
       alt={alt}

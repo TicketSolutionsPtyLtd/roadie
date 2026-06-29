@@ -34,7 +34,7 @@ type AnyProps = Record<string, unknown> & {
   ref?: Ref<unknown>
 }
 
-function setRef(ref: Ref<unknown> | undefined, node: unknown) {
+export function setRef(ref: Ref<unknown> | undefined, node: unknown) {
   if (typeof ref === 'function') ref(node)
   else if (ref) (ref as { current: unknown }).current = node
 }

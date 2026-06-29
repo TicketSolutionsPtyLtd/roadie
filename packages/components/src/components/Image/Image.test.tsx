@@ -74,6 +74,14 @@ describe('Image', () => {
     expect(img.style.aspectRatio).toBe('600 / 300')
   })
 
+  it('treats a non-positive width as no width (plain pass-through)', () => {
+    const { container } = render(<Image src={OZTIX} alt='Logo' width={0} />)
+    const img = container.querySelector('img')!
+    expect(img).toHaveAttribute('src', OZTIX)
+    expect(img).not.toHaveAttribute('srcset')
+    expect(img.style.aspectRatio).toBe('')
+  })
+
   it('lazy-loads by default', () => {
     const { container } = render(<Image src={OZTIX} alt='Logo' width={600} />)
     expect(container.querySelector('img')).toHaveAttribute('loading', 'lazy')
@@ -164,6 +172,18 @@ describe('Image', () => {
         'width=600'
       )
       expect(disconnect).toHaveBeenCalled()
+    })
+
+    it('loads immediately when defer flips off before intersection', () => {
+      const { container, rerender } = render(
+        <Image src={OZTIX} alt='Logo' width={600} defer />
+      )
+      expect(container.querySelector('img')).not.toHaveAttribute('src')
+
+      rerender(<Image src={OZTIX} alt='Logo' width={600} defer={false} />)
+      expect(container.querySelector('img')!.getAttribute('src')).toContain(
+        'width=600'
+      )
     })
 
     it('ignores defer when priority is set', () => {
