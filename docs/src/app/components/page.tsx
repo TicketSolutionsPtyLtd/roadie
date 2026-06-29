@@ -170,6 +170,14 @@ function ComponentSkeleton({ name }: { name: string }) {
           <Skel className='h-2 w-24' />
         </div>
       )
+    case 'image':
+      return (
+        <div className='relative h-24 w-40 overflow-hidden rounded-lg border border-subtle bg-normal'>
+          <div className='absolute top-3.5 right-3.5 size-3.5 rounded-full bg-subtler' />
+          <div className='absolute -bottom-5 left-2 size-14 rotate-45 rounded-md bg-subtle' />
+          <div className='absolute -bottom-7 left-16 size-20 rotate-45 rounded-md bg-subtler' />
+        </div>
+      )
     case 'badge':
       return (
         <div className='flex gap-2'>
