@@ -12,6 +12,61 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { setRef } from '../../utils/resolveRender'
 
+const MIME: Record<OztixImageFormat, string> = {
+  webp: 'image/webp',
+  png: 'image/png',
+  jpg: 'image/jpeg'
+}
+
+/**
+ * Width-descriptor `srcSet` for an Oztix URL, with `height` (if any) scaled
+ * proportionally per entry. Returns `undefined` for non-Oztix URLs or no width.
+ */
+function buildSrcSet(
+  src: string,
+  width: number | undefined,
+  widths: number[] | undefined,
+  height: number | undefined,
+  opts: OztixImageOptions
+): string | undefined {
+  if (width == null || width <= 0 || !isOztixImageUrl(src)) return undefined
+  const ladder = [
+    ...new Set(
+      (widths ?? [width, width * 2]).map(Math.round).filter((w) => w > 0)
+    )
+  ].sort((a, b) => a - b)
+  if (ladder.length === 0) return undefined
+  return ladder
+    .map((w) => {
+      const h =
+        height != null && height > 0
+          ? Math.round(height * (w / width))
+          : undefined
+      return `${oztixImageAtWidth(src, w, { ...opts, height: h })} ${w}w`
+    })
+    .join(', ')
+}
+
+/** A breakpoint-specific `<source>` for art direction — a different URL/crop per media query. */
+export type ImageSource = {
+  /** `<source media>` query, e.g. `'(max-width: 767px)'`. */
+  media: string
+  /** Source URL. Defaults to the component's `src`. */
+  src?: string
+  /** 1x width for this source. Defaults to the component's `width`. */
+  width?: number
+  /** Crop height for this source. */
+  height?: number
+  /** Explicit srcSet ladder for this source. */
+  widths?: number[]
+  /** `<source sizes>`. Defaults to `${width}px`. */
+  sizes?: string
+  format?: OztixImageFormat
+  quality?: number
+  autotrim?: boolean
+  params?: OztixImageOptions['params']
+}
+
 export type ImageProps = Omit<
   ComponentProps<'img'>,
   'width' | 'height' | 'src'
@@ -56,6 +111,13 @@ export type ImageProps = Omit<
   /** Explicit preview source for `placeholder='blur'`. Required for non-Oztix images. */
   blurDataURL?: string
   /**
+   * Art direction: render a `<picture>` with a `<source>` per breakpoint, each
+   * able to use a different URL/crop. The component `src` stays the fallback
+   * `<img>`. Each entry inherits `format`/`quality`/`autotrim`/`params`/`width`
+   * unless it overrides them.
+   */
+  sources?: ImageSource[]
+  /**
    * Defer loading until the image nears the viewport via IntersectionObserver.
    * Use inside horizontally-scrolled surfaces (e.g. Carousel) where native
    * `loading='lazy'` over-fetches. Ignored when `priority` is set.
@@ -82,6 +144,7 @@ export function Image({
   params,
   placeholder = 'empty',
   blurDataURL,
+  sources,
   defer = false,
   loading,
   fetchPriority,
@@ -123,25 +186,7 @@ export function Image({
   const opts: OztixImageOptions = { format, quality, autotrim, params }
   const sized = width != null && width > 0
 
-  let srcSet: string | undefined
-  if (sized && isOztixImageUrl(src)) {
-    const ladder = [
-      ...new Set(
-        (widths ?? [width, width * 2]).map(Math.round).filter((w) => w > 0)
-      )
-    ].sort((a, b) => a - b)
-    if (ladder.length > 0)
-      srcSet = ladder
-        .map((w) => {
-          const h =
-            height != null && height > 0
-              ? Math.round(height * (w / width))
-              : undefined
-          return `${oztixImageAtWidth(src, w, { ...opts, height: h })} ${w}w`
-        })
-        .join(', ')
-  }
-
+  const srcSet = buildSrcSet(src, width, widths, height, opts)
   const resolvedSrc = sized
     ? oztixImageAtWidth(src, width, { ...opts, height })
     : src
@@ -209,7 +254,43 @@ export function Image({
     />
   )
 
-  if (!lqip) return img
+  const sourceEls = sources?.map((source, i) => {
+    const sSrc = source.src ?? src
+    const sWidth = source.width ?? width
+    const sHeight = source.height ?? height
+    const sOpts: OztixImageOptions = {
+      format: source.format ?? format,
+      quality: source.quality ?? quality,
+      autotrim: source.autotrim ?? autotrim,
+      params: source.params ?? params
+    }
+    const set = buildSrcSet(sSrc, sWidth, source.widths, sHeight, sOpts)
+    const single =
+      sWidth != null && sWidth > 0
+        ? oztixImageAtWidth(sSrc, sWidth, { ...sOpts, height: sHeight })
+        : sSrc
+    return (
+      <source
+        key={`${source.media}-${i}`}
+        media={source.media}
+        srcSet={visible ? (set ?? single) : undefined}
+        sizes={source.sizes ?? (set ? `${sWidth}px` : undefined)}
+        type={isOztixImageUrl(sSrc) ? MIME[sOpts.format ?? 'webp'] : undefined}
+      />
+    )
+  })
+
+  const visual =
+    sourceEls && sourceEls.length > 0 ? (
+      <picture>
+        {sourceEls}
+        {img}
+      </picture>
+    ) : (
+      img
+    )
+
+  if (!lqip) return visual
 
   return (
     <span
@@ -237,7 +318,7 @@ export function Image({
           transition: FADE
         }}
       />
-      {img}
+      {visual}
     </span>
   )
 }

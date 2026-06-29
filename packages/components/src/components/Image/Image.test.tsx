@@ -31,6 +31,60 @@ describe('Image', () => {
     expect(img).toHaveAttribute('sizes', '600px')
   })
 
+  describe('sources (art direction)', () => {
+    const PORTRAIT = 'https://assets.oztix.com.au/image/portrait.png'
+
+    it('renders a <picture> with a <source> per breakpoint and the img fallback', () => {
+      const { container } = render(
+        <Image
+          src={OZTIX}
+          alt='Hero'
+          width={1200}
+          height={480}
+          sources={[
+            {
+              media: '(max-width: 767px)',
+              src: PORTRAIT,
+              width: 600,
+              height: 800
+            }
+          ]}
+        />
+      )
+      const picture = container.querySelector('picture')!
+      expect(picture).toBeInTheDocument()
+      const source = picture.querySelector('source')!
+      expect(source).toHaveAttribute('media', '(max-width: 767px)')
+      expect(source.getAttribute('srcset')).toContain('portrait.png')
+      expect(source.getAttribute('srcset')).toContain('width=600')
+      expect(source.getAttribute('srcset')).toContain('height=800')
+      expect(source).toHaveAttribute('type', 'image/webp')
+      // fallback img still carries the main src
+      expect(picture.querySelector('img')!.getAttribute('src')).toContain(
+        'width=1200'
+      )
+    })
+
+    it('inherits the component src and width when a source omits them', () => {
+      const { container } = render(
+        <Image
+          src={OZTIX}
+          alt='Hero'
+          width={1200}
+          sources={[{ media: '(min-width: 1024px)', widths: [1600, 2400] }]}
+        />
+      )
+      const srcset = container.querySelector('source')!.getAttribute('srcset')!
+      expect(srcset).toContain('2400w')
+    })
+
+    it('stays a bare <img> with no sources', () => {
+      const { container } = render(<Image src={OZTIX} alt='Hero' width={600} />)
+      expect(container.querySelector('picture')).not.toBeInTheDocument()
+      expect(container.querySelector('img')).toBeInTheDocument()
+    })
+  })
+
   it('honours an explicit widths ladder and sizes', () => {
     const { container } = render(
       <Image

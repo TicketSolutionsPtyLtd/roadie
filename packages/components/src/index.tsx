@@ -26,7 +26,7 @@ export {
   type IconTileProps
 } from './components/IconTile'
 
-export { Image, type ImageProps } from './components/Image'
+export { Image, type ImageProps, type ImageSource } from './components/Image'
 
 export {
   EmptyState,
