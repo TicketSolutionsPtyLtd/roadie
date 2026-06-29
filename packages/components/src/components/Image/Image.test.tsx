@@ -5,7 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Image } from '.'
 
-const OZTIX = 'https://assets.oztix.com.au/image/abc.png'
+const OZTIX =
+  'https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
 const EXTERNAL = 'https://images.example.com/abc.png'
 
 describe('Image', () => {
@@ -55,6 +56,31 @@ describe('Image', () => {
     )
   })
 
+  it('appends autotrim=1 to src and srcSet when autotrim is set', () => {
+    const { container } = render(
+      <Image src={OZTIX} alt='Logo' width={600} autotrim />
+    )
+    const img = container.querySelector('img')!
+    expect(img.getAttribute('src')).toContain('autotrim=1')
+    expect(img.getAttribute('srcset')).toContain('autotrim=1')
+  })
+
+  it('forwards quality and arbitrary params to the rewritten src', () => {
+    const { container } = render(
+      <Image
+        src={OZTIX}
+        alt='Logo'
+        width={600}
+        quality={70}
+        params={{ rmode: 'crop', height: 300 }}
+      />
+    )
+    const src = container.querySelector('img')!.getAttribute('src')!
+    expect(src).toContain('quality=70')
+    expect(src).toContain('rmode=crop')
+    expect(src).toContain('height=300')
+  })
+
   it('leaves non-Oztix URLs unrewritten even with a width', () => {
     const { container } = render(
       <Image src={EXTERNAL} alt='External' width={600} />
@@ -72,6 +98,19 @@ describe('Image', () => {
     expect(img).toHaveAttribute('width', '600')
     expect(img).toHaveAttribute('height', '300')
     expect(img.style.aspectRatio).toBe('600 / 300')
+  })
+
+  it('sends height to the proxy and scales it proportionally in srcSet', () => {
+    const { container } = render(
+      <Image src={OZTIX} alt='Logo' width={600} height={300} />
+    )
+    const img = container.querySelector('img')!
+    expect(img.getAttribute('src')).toContain('height=300')
+    const srcset = img.getAttribute('srcset')!
+    expect(srcset).toContain('width=600')
+    expect(srcset).toContain('height=300')
+    expect(srcset).toContain('width=1200')
+    expect(srcset).toContain('height=600')
   })
 
   it('treats a non-positive width as no width (plain pass-through)', () => {
@@ -116,6 +155,67 @@ describe('Image', () => {
     const ref = createRef<HTMLImageElement>()
     render(<Image ref={ref} src={OZTIX} alt='Logo' width={600} />)
     expect(ref.current).toBeInstanceOf(HTMLImageElement)
+  })
+
+  describe('placeholder=blur', () => {
+    it('wraps the image and shows a blurred LQIP that fades out on load', () => {
+      const { container } = render(
+        <Image
+          src={OZTIX}
+          alt='Logo'
+          width={600}
+          height={300}
+          placeholder='blur'
+        />
+      )
+      const wrapper = container.querySelector('[data-slot="image-blur"]')!
+      expect(wrapper).toBeInTheDocument()
+      const lqip = wrapper.querySelector('[aria-hidden="true"]') as HTMLElement
+      expect(lqip.style.backgroundImage).toContain(`width=${24}`)
+      expect(lqip.style.filter).toContain('blur')
+
+      const img = wrapper.querySelector('img')!
+      expect(img.style.opacity).toBe('0')
+      act(() => {
+        img.dispatchEvent(new Event('load'))
+      })
+      expect(wrapper.querySelector('img')!.style.opacity).toBe('1')
+    })
+
+    it('stays a bare <img> when placeholder is empty', () => {
+      const { container } = render(
+        <Image src={OZTIX} alt='Logo' width={600} placeholder='empty' />
+      )
+      expect(
+        container.querySelector('[data-slot="image-blur"]')
+      ).not.toBeInTheDocument()
+      expect(container.querySelector('img')).toBeInTheDocument()
+    })
+
+    it('uses blurDataURL for non-Oztix images', () => {
+      const { container } = render(
+        <Image
+          src={EXTERNAL}
+          alt='External'
+          width={600}
+          placeholder='blur'
+          blurDataURL='data:image/png;base64,abc'
+        />
+      )
+      const lqip = container.querySelector(
+        '[aria-hidden="true"]'
+      ) as HTMLElement
+      expect(lqip.style.backgroundImage).toContain('data:image/png;base64,abc')
+    })
+
+    it('falls back to a bare <img> for non-Oztix images with no blurDataURL', () => {
+      const { container } = render(
+        <Image src={EXTERNAL} alt='External' width={600} placeholder='blur' />
+      )
+      expect(
+        container.querySelector('[data-slot="image-blur"]')
+      ).not.toBeInTheDocument()
+    })
   })
 
   describe('defer', () => {

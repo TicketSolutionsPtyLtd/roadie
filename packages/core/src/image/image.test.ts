@@ -7,7 +7,8 @@ import {
   oztixSrcSet
 } from './image'
 
-const OZTIX = 'https://assets.oztix.com.au/image/abc.png'
+const OZTIX =
+  'https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
 const CLOUDFRONT = 'https://d3fcfeclx4v047.cloudfront.net/image/abc.png'
 const EXTERNAL = 'https://images.example.com/abc.png'
 
@@ -47,10 +48,39 @@ describe('oztixImageAtWidth', () => {
     expect(url.searchParams.get('format')).toBe('jpg')
   })
 
+  it('adds autotrim=1 when requested, and omits it otherwise', () => {
+    expect(oztixImageAtWidth(OZTIX, 600)).not.toContain('autotrim')
+    const url = new URL(oztixImageAtWidth(OZTIX, 600, { autotrim: true }))
+    expect(url.searchParams.get('autotrim')).toBe('1')
+  })
+
+  it('sets quality when provided', () => {
+    const url = new URL(oztixImageAtWidth(OZTIX, 600, { quality: 70 }))
+    expect(url.searchParams.get('quality')).toBe('70')
+  })
+
+  it('merges arbitrary params verbatim, applied last so they override', () => {
+    const url = new URL(
+      oztixImageAtWidth(OZTIX, 600, {
+        params: { height: 350, rmode: 'crop', autoorient: true }
+      })
+    )
+    expect(url.searchParams.get('height')).toBe('350')
+    expect(url.searchParams.get('rmode')).toBe('crop')
+    expect(url.searchParams.get('autoorient')).toBe('true')
+    expect(url.searchParams.get('width')).toBe('600')
+  })
+
   it('drops any pre-existing height so aspect ratio is preserved', () => {
     const url = new URL(oztixImageAtWidth(`${OZTIX}?width=300&height=150`, 600))
     expect(url.searchParams.get('width')).toBe('600')
     expect(url.searchParams.has('height')).toBe(false)
+  })
+
+  it('sets height for a crop when opts.height is given', () => {
+    const url = new URL(oztixImageAtWidth(OZTIX, 600, { height: 300 }))
+    expect(url.searchParams.get('width')).toBe('600')
+    expect(url.searchParams.get('height')).toBe('300')
   })
 
   it('rounds fractional widths', () => {
@@ -86,6 +116,11 @@ describe('oztixSrcSet', () => {
     expect(oztixSrcSet(OZTIX, [1200, 600, 600])).toBe(
       `${oztixImageAtWidth(OZTIX, 600)} 600w, ${oztixImageAtWidth(OZTIX, 1200)} 1200w`
     )
+  })
+
+  it('threads autotrim through every srcSet entry', () => {
+    const srcSet = oztixSrcSet(OZTIX, [600, 1200], { autotrim: true })!
+    expect(srcSet.match(/autotrim=1/g)).toHaveLength(2)
   })
 
   it('returns undefined for non-Oztix URLs', () => {

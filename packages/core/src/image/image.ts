@@ -1,7 +1,25 @@
 export type OztixImageFormat = 'webp' | 'png' | 'jpg'
 
 export interface OztixImageOptions {
+  /** Output format. Defaults to `webp`. */
   format?: OztixImageFormat
+  /**
+   * Target height. When set, the proxy resizes to fit both dimensions (crop);
+   * when omitted, height is dropped and the proxy scales proportionally.
+   */
+  height?: number
+  /** Encoder quality, 1–100. Lower trades fidelity for bytes. */
+  quality?: number
+  /** Crop surrounding transparent space server-side (ImageSharp `autotrim=1`). */
+  autotrim?: boolean
+  /**
+   * Escape hatch for any other ImageSharp.Web command, merged verbatim into the
+   * query (applied last, so it can override the defaults — e.g. reintroduce
+   * `height` with `rmode: 'crop'`). Supported commands: `height`, `rmode`,
+   * `ranchor`, `rxy`, `rsampler`, `compand`, `orient`, `bgcolor`, `autoorient`,
+   * `pngcolortype`. See TicketSolutions.Assets ImageSharpWeb config.
+   */
+  params?: Record<string, string | number | boolean>
 }
 
 /**
@@ -26,8 +44,11 @@ export function isOztixImageUrl(src: string): boolean {
 
 /**
  * Rewrites an Oztix image URL to request a single resized/transcoded variant.
- * Sets `width` and `format`, and drops any pre-existing `height` so the proxy
- * scales proportionally. Non-Oztix URLs are returned unchanged.
+ * Sets `width` and `format`. With `opts.height` it crops to both dimensions;
+ * otherwise any pre-existing `height` is dropped so the proxy scales
+ * proportionally. With `autotrim`, surrounding transparent space is cropped
+ * server-side. `quality` and `params` map to the matching ImageSharp.Web
+ * commands. Non-Oztix URLs are returned unchanged.
  */
 export function oztixImageAtWidth(
   src: string,
@@ -38,8 +59,16 @@ export function oztixImageAtWidth(
 
   const url = new URL(src)
   url.searchParams.set('width', String(Math.round(width)))
-  url.searchParams.delete('height')
+  if (opts?.height != null && opts.height > 0)
+    url.searchParams.set('height', String(Math.round(opts.height)))
+  else url.searchParams.delete('height')
   url.searchParams.set('format', opts?.format ?? 'webp')
+  if (opts?.quality != null)
+    url.searchParams.set('quality', String(opts.quality))
+  if (opts?.autotrim) url.searchParams.set('autotrim', '1')
+  if (opts?.params)
+    for (const [key, value] of Object.entries(opts.params))
+      url.searchParams.set(key, String(value))
   return url.toString()
 }
 

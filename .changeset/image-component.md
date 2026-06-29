@@ -8,9 +8,14 @@
   ImageSharp.Web proxy plus a 1x/2x `srcSet`, cutting download bytes and
   decoded-bitmap memory (the Safari-mobile crash class). Non-Oztix URLs, and
   calls without a `width`, pass through as a plain `<img>`. Supports `widths`,
-  `sizes`, `height` (layout reservation + `aspect-ratio`), `priority`
-  (eager + `fetchpriority="high"`), `format`, and `defer` (IntersectionObserver
-  loading for off-screen carousel slides).
+  `sizes`, `height` (layout reservation + `aspect-ratio`, and sent to the proxy
+  to crop to a fixed box — scaled across the `srcSet`), `priority`
+  (eager + `fetchpriority="high"`), `format`, `quality`, `autotrim` (crop
+  transparent padding server-side), a `params` escape hatch for any other
+  ImageSharp.Web command (`rmode`, `ranchor`, `bgcolor`, …), `placeholder='blur'`
+  (blur-up LQIP that fades in on load, auto-derived from the proxy with a
+  `blurDataURL` override), and `defer` (IntersectionObserver loading for
+  off-screen carousel slides).
 - **New `@oztix/roadie-core/image` entry point** — pure URL helpers
   `isOztixImageUrl`, `oztixImageAtWidth`, `oztixSrcSet` (+ `OZTIX_IMAGE_HOSTS`)
   for consumers building custom compositions without the React component.

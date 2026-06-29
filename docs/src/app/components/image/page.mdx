@@ -39,10 +39,9 @@ For images served from the Oztix CDN, pass `width` (the 1x render width in CSS p
 
 ```tsx
 <Image
-  src='https://assets.oztix.com.au/image/<guid>.png'
+  src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
   alt='Show artwork'
   width={360}
-  height={360}
 />
 // →
 // src    = …/image/<guid>.png?width=360&format=webp
@@ -50,19 +49,61 @@ For images served from the Oztix CDN, pass `width` (the 1x render width in CSS p
 // sizes  = 360px
 ```
 
+`width` alone scales proportionally. Add `height` to crop to a fixed box — it's sent to the proxy and scaled with each `srcSet` entry to keep the ratio:
+
+```tsx
+<Image src={url} alt='Show artwork' width={360} height={240} />
+// → src = …?width=360&height=240&format=webp
+//   srcSet = …width=360&height=240… 360w, …width=720&height=480… 720w
+```
+
+### Trimming transparent space
+
+Logos often ship with baked-in transparent padding. Set `autotrim` to crop it server-side (`autotrim=1`) so the artwork fills the box.
+
+```tsx
+<Image
+  src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+  alt='Event logo'
+  width={700}
+  height={350}
+  autotrim
+/>
+// → …/image/<guid>.png?width=700&format=webp&autotrim=1
+```
+
+### Quality and advanced commands
+
+`quality` (1–100) trades fidelity for bytes. For anything else the proxy supports — resize mode, anchor, background colour, an explicit crop `height` — use the `params` escape hatch; entries are merged verbatim into the query.
+
+```tsx
+<Image
+  src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+  alt='Cropped card art'
+  width={700}
+  quality={70}
+  params={{ height: 350, rmode: 'crop', bgcolor: 'fff' }}
+/>
+// → …?width=700&format=webp&quality=70&height=350&rmode=crop&bgcolor=fff
+```
+
+Supported `params` keys (ImageSharp.Web): `height`, `rmode`, `ranchor`, `rxy`, `rsampler`, `compand`, `orient`, `bgcolor`, `autoorient`, `pngcolortype`.
+
 ### Reserving layout
 
 Pass `width` and `height` to reserve space and avoid layout shift — the component sets the `width`/`height` attributes and an `aspect-ratio` style.
 
 ```tsx-live
 <Image
-  src='https://placehold.co/600x300/2e1a2e/e0e0e0?text=16%3A9'
-  alt='Placeholder with reserved layout'
-  width={600}
-  height={300}
+  src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+  alt='Event artwork'
+  width={800}
+  height={450}
   className='w-full rounded-xl'
 />
 ```
+
+The source is a 2752×1536 6.1 MB PNG; resized to WebP it ships ~280 KB.
 
 ### Hero imagery
 
@@ -79,6 +120,23 @@ For images that stretch across breakpoints, pass an explicit `widths` ladder and
   priority
 />
 ```
+
+### Blur-up placeholder
+
+Set `placeholder='blur'` to show a tiny low-quality preview that fades into the full image on load — the default loading treatment for content imagery. The preview is derived from the Oztix proxy automatically; pass `width`+`height` so layout is reserved while it loads.
+
+```tsx-live
+<Image
+  src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+  alt='Event artwork'
+  width={800}
+  height={450}
+  placeholder='blur'
+  className='w-full rounded-xl'
+/>
+```
+
+For non-Oztix images (or to override the auto preview), pass `blurDataURL` — a data URI or any small image URL.
 
 ### Deferred loading in carousels
 
@@ -110,6 +168,7 @@ import {
 } from '@oztix/roadie-core/image'
 
 oztixImageAtWidth(src, 600) // …?width=600&format=webp
+oztixImageAtWidth(src, 600, { autotrim: true }) // …&autotrim=1
 oztixSrcSet(src, [600, 1200]) // …600w, …1200w  (undefined for non-Oztix URLs)
 isOztixImageUrl(src) // true for assets.oztix.com.au + the CloudFront distros
 ```
