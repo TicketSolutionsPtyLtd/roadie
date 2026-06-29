@@ -13,7 +13,7 @@ A size-aware `<img>` that routes Oztix-CDN assets through the resize/transcode p
 
 Pass a `width` and the component requests a right-sized WebP from the Oztix CDN plus a 1x/2x `srcSet` — cutting download bytes and decoded-bitmap memory. Non-Oztix URLs (and calls without a `width`) pass through as a plain `<img>`, so external thumbnails still work untouched.
 
-Every image sits on a subtle `bg-subtle` tint, so there's a neutral surface from first paint — before the blur preview or full image arrives. Override it with another semantic background utility (e.g. `className='bg-sunken'`) when you need a different surface.
+Every image shows a subtle `bg-subtle` tint as a placeholder from first paint — before the blur preview or full image arrives — then drops it once the image loads, so it never lingers behind a transparent image. Override the placeholder surface with another semantic background utility (e.g. `className='bg-sunken'`).
 
 ## Import
 

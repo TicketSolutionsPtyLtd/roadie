@@ -157,9 +157,14 @@ describe('Image', () => {
     expect(ref.current).toBeInstanceOf(HTMLImageElement)
   })
 
-  it('paints a subtle background tint behind the image', () => {
+  it('shows a subtle tint as a placeholder, then drops it once loaded', () => {
     const { container } = render(<Image src={OZTIX} alt='Logo' width={600} />)
-    expect(container.querySelector('img')).toHaveClass('bg-subtle')
+    const img = container.querySelector('img')!
+    expect(img).toHaveClass('bg-subtle')
+    act(() => {
+      img.dispatchEvent(new Event('load'))
+    })
+    expect(container.querySelector('img')).not.toHaveClass('bg-subtle')
   })
 
   it('lets a semantic background class override the tint', () => {

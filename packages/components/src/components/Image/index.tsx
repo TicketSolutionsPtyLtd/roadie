@@ -162,10 +162,12 @@ export function Image({
     : undefined
 
   // Cached images can finish loading before React attaches onLoad, so the fade
-  // would never fire — reconcile from the element's own complete flag.
+  // and tint removal would never fire — reconcile from the element's own
+  // complete flag.
   useEffect(() => {
-    if (lqip && innerRef.current?.complete) setLoaded(true)
-  }, [lqip, resolvedSrc, visible])
+    if (innerRef.current?.complete && innerRef.current.currentSrc)
+      setLoaded(true)
+  }, [resolvedSrc, visible])
 
   const img = (
     <img
@@ -187,7 +189,7 @@ export function Image({
         setLoaded(true)
         onLoad?.(event)
       }}
-      className={lqip ? undefined : cn('bg-subtle', className)}
+      className={lqip ? undefined : cn(!loaded && 'bg-subtle', className)}
       style={
         lqip
           ? {
@@ -212,7 +214,7 @@ export function Image({
   return (
     <span
       data-slot='image-blur'
-      className={cn('bg-subtle', className)}
+      className={cn(!loaded && 'bg-subtle', className)}
       style={{
         position: 'relative',
         display: 'block',

@@ -15,8 +15,8 @@
   ImageSharp.Web command (`rmode`, `ranchor`, `bgcolor`, …), `placeholder='blur'`
   (blur-up LQIP that fades in on load, auto-derived from the proxy with a
   `blurDataURL` override), and `defer` (IntersectionObserver loading for
-  off-screen carousel slides). Every image sits on a subtle `bg-subtle` tint
-  so there's a neutral surface from first paint (override with a background
+  off-screen carousel slides). Every image shows a subtle `bg-subtle` tint as a
+  placeholder until it loads, then drops it (override with a semantic background
   utility).
 - **New `@oztix/roadie-core/image` entry point** — pure URL helpers
   `isOztixImageUrl`, `oztixImageAtWidth`, `oztixSrcSet` (+ `OZTIX_IMAGE_HOSTS`)
