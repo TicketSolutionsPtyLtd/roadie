@@ -84,7 +84,7 @@ export type ImageSource = {
 
 export type ImageProps = Omit<
   ComponentProps<'img'>,
-  'width' | 'height' | 'src' | 'alt'
+  'width' | 'height' | 'src' | 'alt' | 'sizes'
 > & {
   /** Image URL. Oztix-CDN hosts get the resize/transcode rewrite; everything else passes through. */
   src: string
@@ -102,6 +102,12 @@ export type ImageProps = Omit<
   height?: number
   /** Explicit srcSet ladder. Defaults to `[width, width * 2]`. */
   widths?: number[]
+  /**
+   * `<img sizes>` describing how wide the image renders (e.g. `'100vw'`). Set it
+   * for fluid images so Roadie builds a responsive ladder and small screens load
+   * small files. Defaults to `${width}px` (fixed size).
+   */
+  sizes?: string
   /** Marks the image as LCP-critical: eager loading + `fetchpriority="high"`. */
   priority?: boolean
   /** Output format. Defaults to `webp`. */
