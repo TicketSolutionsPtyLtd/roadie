@@ -23,13 +23,13 @@ import { Image } from '@oztix/roadie-components'
 
 ### Default
 
-Without a `width`, `Image` is a zero-overhead `<img>` wrapper — same DOM, no rewrite.
+Without a `width`, `Image` is a zero-overhead `<img>` wrapper — same DOM, no rewrite. It serves the original file (here the full 2752×1536 6.1 MB PNG), so pass a `width` to optimise — see the next example.
 
 ```tsx-live
 <Image
-  src='https://placehold.co/600x300/1a1a2e/e0e0e0?text=Roadie'
-  alt='Placeholder artwork'
-  className='rounded-xl'
+  src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+  alt='Event artwork'
+  className='w-full rounded-xl'
 />
 ```
 
@@ -44,7 +44,7 @@ For images served from the Oztix CDN, pass `width` (the 1x render width in CSS p
   width={360}
 />
 // →
-// src    = …/image/<guid>.png?width=360&format=webp
+// src    = …1226ab55….png?width=360&format=webp
 // srcSet = …?width=360&format=webp 360w, …?width=720&format=webp 720w
 // sizes  = 360px
 ```
@@ -59,17 +59,11 @@ For images served from the Oztix CDN, pass `width` (the 1x render width in CSS p
 
 ### Trimming transparent space
 
-Logos often ship with baked-in transparent padding. Set `autotrim` to crop it server-side (`autotrim=1`) so the artwork fills the box.
+Logos often ship with baked-in transparent padding. Set `autotrim` to crop it server-side (`autotrim=1`) so the artwork fills the box. Best paired with a proportional `width` (no `height`) so the trimmed result keeps its own ratio.
 
 ```tsx
-<Image
-  src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
-  alt='Event logo'
-  width={700}
-  height={350}
-  autotrim
-/>
-// → …/image/<guid>.png?width=700&format=webp&autotrim=1
+<Image src={logoUrl} alt='Event logo' width={300} autotrim />
+// → …?width=300&format=webp&autotrim=1
 ```
 
 ### Quality and advanced commands
