@@ -295,6 +295,50 @@ Each `Carousel.Item` can wrap a clickable element. The `Card` component renders 
 </Carousel>
 ```
 
+### With deferred images
+
+Embla mounts every slide in the DOM, so native `loading='lazy'` still fetches off-screen slides. Give each `Card.Image` a `width` and `defer` so the full image only loads once the slide nears the viewport — the canonical pattern for image-heavy carousels. `placeholder='blur'` keeps the tile from popping in.
+
+```tsx-live
+<Carousel aria-label='Events with artwork'>
+  <Carousel.Header>
+    <Carousel.TitleLink href='/events'>What's on</Carousel.TitleLink>
+    <Carousel.Controls>
+      <Carousel.Previous />
+      <Carousel.Next />
+    </Carousel.Controls>
+  </Carousel.Header>
+  <Carousel.Content>
+    {[
+      'Midnight Frequency',
+      'Sunset Sounds',
+      'Neon Dusk',
+      'Wave Theory',
+      'Echo Chamber',
+      'Lowlight'
+    ].map((title, i) => (
+      <Carousel.Item key={title} className='basis-[78%] md:basis-1/3'>
+        <Card emphasis='raised' href={`/events/${i}`}>
+          <Card.Image
+            src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+            alt={title}
+            width={360}
+            height={203}
+            defer
+            placeholder='blur'
+            priority={i === 0}
+          />
+          <Card.Content>
+            <Card.Title>{title}</Card.Title>
+            <Card.Description>Fri 14 Mar — The Glasshouse</Card.Description>
+          </Card.Content>
+        </Card>
+      </Carousel.Item>
+    ))}
+  </Carousel.Content>
+</Carousel>
+```
+
 ### Responsive group scrolling
 
 Roadie defaults `slidesToScroll` to `'auto'` in `opts`, so Previous / Next move by a full viewport at a time instead of a single slide. Embla derives the group size from whatever currently fits in the viewport, so the same carousel scrolls two-and-a-bit cards on mobile, three on medium screens, and four on large screens — no breakpoint-specific configuration needed. Because `Carousel.Dots` renders one dot per *snap*, the dot count also collapses from one-per-slide down to one-per-page as the breakpoint changes.

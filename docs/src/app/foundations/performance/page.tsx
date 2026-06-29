@@ -93,6 +93,17 @@ export default function PerformancePage() {
           </Guideline.Dont>
         </Guideline>
 
+        <p className='text-subtle'>
+          For Oztix-hosted imagery the{' '}
+          <a className='underline' href='/components/image'>
+            <code>Image</code> component
+          </a>{' '}
+          handles all of this: explicit dimensions to prevent CLS, a right-sized
+          WebP <code>srcSet</code> to cut bytes, lazy-by-default loading with{' '}
+          <code>priority</code> for the LCP image, and <code>defer</code> for
+          off-screen carousel slides.
+        </p>
+
         <Guideline
           title='Responsive to input (INP)'
           description='The main thread is for UI. Heavy logic belongs elsewhere.'
