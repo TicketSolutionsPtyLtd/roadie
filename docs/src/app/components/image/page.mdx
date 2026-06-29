@@ -167,6 +167,54 @@ oztixSrcSet(src, [600, 1200]) // …600w, …1200w  (undefined for non-Oztix URL
 isOztixImageUrl(src) // true for assets.oztix.com.au + the CloudFront distros
 ```
 
+### Hero image with blur (Vue)
+
+Vue consumers don't get the React component, but the helpers give you the same result. Derive a tiny LQIP and a responsive `srcSet` from the source, then fade the full image in over the blurred preview. Style with Roadie/Tailwind utilities — only the dynamic LQIP URL needs an inline `:style`.
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { oztixImageAtWidth, oztixSrcSet } from '@oztix/roadie-core/image'
+
+const props = defineProps<{ src: string; alt: string }>()
+
+// Pure URL helpers — no network, no React.
+const lqip = oztixImageAtWidth(props.src, 24, { quality: 30 })
+const full = oztixImageAtWidth(props.src, 1600)
+const srcset = oztixSrcSet(props.src, [768, 1200, 1600, 2400])
+
+const loaded = ref(false)
+</script>
+
+<template>
+  <div class="relative aspect-[16/9] w-full overflow-hidden rounded-5xl">
+    <!-- Blurred low-res preview, fades out once the full image is ready -->
+    <div
+      aria-hidden="true"
+      class="absolute inset-0 scale-110 bg-cover bg-center blur-lg transition-opacity duration-500"
+      :class="loaded ? 'opacity-0' : 'opacity-100'"
+      :style="{ backgroundImage: `url(${lqip})` }"
+    />
+    <!-- Full image: eager + high priority because a hero is the LCP element -->
+    <img
+      :src="full"
+      :srcset="srcset"
+      sizes="100vw"
+      :alt="alt"
+      width="1600"
+      height="900"
+      fetchpriority="high"
+      decoding="async"
+      class="absolute inset-0 size-full object-cover transition-opacity duration-500"
+      :class="loaded ? 'opacity-100' : 'opacity-0'"
+      @load="loaded = true"
+    />
+  </div>
+</template>
+```
+
+A hero is above the fold, so it loads eagerly (no `loading='lazy'`) with `fetchpriority='high'`. For a cached image the `@load` may have already fired before hydration — guard with `if ((e.target as HTMLImageElement).complete) loaded = true` on mount if that matters for your app.
+
 ## Guidelines
 
 - Pass `width` for any Oztix-CDN image — it is the switch that turns on resizing.
