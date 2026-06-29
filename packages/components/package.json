@@ -79,6 +79,10 @@
       "types": "./dist/components/IconTile/index.d.ts",
       "import": "./dist/components/IconTile/index.js"
     },
+    "./image": {
+      "types": "./dist/components/Image/index.d.ts",
+      "import": "./dist/components/Image/index.js"
+    },
     "./input": {
       "types": "./dist/components/Input/index.d.ts",
       "import": "./dist/components/Input/index.js"

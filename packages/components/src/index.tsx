@@ -26,6 +26,8 @@ export {
   type IconTileProps
 } from './components/IconTile'
 
+export { Image, type ImageProps } from './components/Image'
+
 export {
   EmptyState,
   emptyStateVariants,

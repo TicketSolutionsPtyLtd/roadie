@@ -1,0 +1,130 @@
+export const metadata = {
+  title: 'Image',
+  description: 'A size-aware <img> that routes Oztix-CDN assets through the resize/transcode proxy',
+  status: 'beta',
+  category: 'Content',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Image
+
+A size-aware `<img>` that routes Oztix-CDN assets through the resize/transcode proxy.
+
+Pass a `width` and the component requests a right-sized WebP from the Oztix CDN plus a 1x/2x `srcSet` — cutting download bytes and decoded-bitmap memory. Non-Oztix URLs (and calls without a `width`) pass through as a plain `<img>`, so external thumbnails still work untouched.
+
+## Import
+
+```tsx
+import { Image } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Default
+
+Without a `width`, `Image` is a zero-overhead `<img>` wrapper — same DOM, no rewrite.
+
+```tsx-live
+<Image
+  src='https://placehold.co/600x300/1a1a2e/e0e0e0?text=Roadie'
+  alt='Placeholder artwork'
+  className='rounded-xl'
+/>
+```
+
+### Resizing Oztix assets
+
+For images served from the Oztix CDN, pass `width` (the 1x render width in CSS pixels). The component rewrites `src` to `?width=&format=webp` and emits a `[width, width * 2]` `srcSet` with `sizes="${width}px"`:
+
+```tsx
+<Image
+  src='https://assets.oztix.com.au/image/<guid>.png'
+  alt='Show artwork'
+  width={360}
+  height={360}
+/>
+// →
+// src    = …/image/<guid>.png?width=360&format=webp
+// srcSet = …?width=360&format=webp 360w, …?width=720&format=webp 720w
+// sizes  = 360px
+```
+
+### Reserving layout
+
+Pass `width` and `height` to reserve space and avoid layout shift — the component sets the `width`/`height` attributes and an `aspect-ratio` style.
+
+```tsx-live
+<Image
+  src='https://placehold.co/600x300/2e1a2e/e0e0e0?text=16%3A9'
+  alt='Placeholder with reserved layout'
+  width={600}
+  height={300}
+  className='w-full rounded-xl'
+/>
+```
+
+### Hero imagery
+
+For images that stretch across breakpoints, pass an explicit `widths` ladder and `sizes`, and mark the LCP image with `priority` (eager load + `fetchpriority="high"`).
+
+```tsx
+<Image
+  src={heroUrl}
+  alt='Festival hero'
+  width={1200}
+  height={480}
+  widths={[768, 1200, 1600, 2400]}
+  sizes='100vw'
+  priority
+/>
+```
+
+### Deferred loading in carousels
+
+Embla mounts every slide in the DOM, so native `loading='lazy'` over-fetches off-screen slides. Set `defer` to hold the `src` until the tile nears the viewport (IntersectionObserver). Layout is still reserved from `width`/`height`.
+
+```tsx
+<Carousel>
+  <Carousel.Content>
+    {events.map((event) => (
+      <Carousel.Item key={event.id}>
+        <Card href={event.href}>
+          <Card.Image src={event.image} alt={event.title} width={360} defer />
+        </Card>
+      </Carousel.Item>
+    ))}
+  </Carousel.Content>
+</Carousel>
+```
+
+## Helpers
+
+For custom compositions (LQIP banners, CSS `background-image`, server-rendered `<img srcset>`), the pure URL helpers ship from `@oztix/roadie-core/image` without the React component:
+
+```tsx
+import {
+  isOztixImageUrl,
+  oztixImageAtWidth,
+  oztixSrcSet
+} from '@oztix/roadie-core/image'
+
+oztixImageAtWidth(src, 600) // …?width=600&format=webp
+oztixSrcSet(src, [600, 1200]) // …600w, …1200w  (undefined for non-Oztix URLs)
+isOztixImageUrl(src) // true for assets.oztix.com.au + the CloudFront distros
+```
+
+## Guidelines
+
+- Pass `width` for any Oztix-CDN image — it is the switch that turns on resizing.
+- Pass `height` too whenever you know the aspect ratio, to prevent layout shift.
+- Mark the single largest above-the-fold image `priority`; leave everything else lazy.
+- Use `defer` for images inside horizontally-scrolled surfaces like `Carousel`.
+- Don't reach for `width` on a non-Oztix URL expecting a resize — those pass through untouched.
+
+## Accessibility
+
+- `alt` is required. Use a concise description, or an empty string (`alt=''`) for purely decorative images paired with `aria-hidden` on a parent.
+- `width`/`height` reserve layout, reducing cumulative layout shift for assistive-tech and keyboard users alike.
+
+<PropsDefinitions componentPath='packages/components/src/components/Image/index.tsx' />

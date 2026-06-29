@@ -5,7 +5,8 @@ export default defineConfig(({ watch }) => ({
     index: './src/index.ts',
     'colors/index': './src/colors/index.ts',
     'theme/index': './src/theme/index.ts',
-    'utils/index': './src/utils/index.ts'
+    'utils/index': './src/utils/index.ts',
+    'image/index': './src/image/index.ts'
   },
   format: ['esm'],
   minify: !watch,

@@ -152,6 +152,21 @@ describe('Card', () => {
     expect(img.parentElement).toHaveClass('overflow-hidden', 'rounded-xl')
   })
 
+  it('resizes Image sub-component when given a width', () => {
+    const { getByAltText } = render(
+      <Card>
+        <Card.Image
+          src='https://assets.oztix.com.au/image/abc.png'
+          alt='Sized'
+          width={600}
+        />
+      </Card>
+    )
+    const img = getByAltText('Sized')
+    expect(img.getAttribute('src')).toContain('width=600')
+    expect(img.getAttribute('srcset')).toContain('1200w')
+  })
+
   it('renders Title sub-component', () => {
     const { getByText } = render(
       <Card>
