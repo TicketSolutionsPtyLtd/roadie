@@ -25,11 +25,13 @@
   `isOztixImageUrl`, `oztixImageAtWidth`, `oztixSrcSet` (+ `OZTIX_IMAGE_HOSTS`)
   for consumers building custom compositions without the React component.
 - **`Card.Image` is now size-aware** — its inner `<img>` is an `<Image>`, so it
-  accepts `width`/`widths`/`sizes`/`priority`/`format`/`defer`.
+  inherits the full `Image` API (`width`/`height`/`widths`/`sizes`/`quality`/
+  `autotrim`/`params`/`placeholder`/`sources`/`priority`/`defer`, the responsive
+  ladder, and the `bg-subtle` placeholder).
   - **Behavior change:** card images now default to `loading='lazy'` (and
     `decoding='async'`), where the old bare `<img>` eager-loaded. Mark any
     above-the-fold card image `priority` to restore eager loading and protect
     LCP.
-  - **Type narrowing:** `Card.Image` now requires `src`, and `width`/`height`
-    are `number`-only (previously `string | number` via `ImgHTMLAttributes`).
-    Numeric call sites are unaffected.
+  - **Type narrowing:** `Card.Image` now requires `src` and `alt`, and
+    `width`/`height` are `number`-only (previously `string | number` via
+    `ImgHTMLAttributes`). Numeric call sites with alt text are unaffected.
