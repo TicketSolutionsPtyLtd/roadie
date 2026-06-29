@@ -18,6 +18,21 @@ const MIME: Record<OztixImageFormat, string> = {
   jpg: 'image/jpeg'
 }
 
+// Common device widths, used to build a responsive ladder for fluid images so
+// small screens download small files. The proxy caps width at 4000.
+const DEVICE_WIDTHS = [320, 420, 640, 768, 1024, 1280, 1536, 1920, 2400]
+
+/**
+ * srcSet widths for an image. Fixed-size images (no `sizes`) just need 1x/2x;
+ * fluid images (`sizes` given) get a ladder spanning small→2× so the browser
+ * can pick a smaller file on a smaller screen/container.
+ */
+function defaultWidths(width: number, fluid: boolean): number[] {
+  if (!fluid) return [width, width * 2]
+  const max = Math.min(width * 2, 4000)
+  return [...DEVICE_WIDTHS, width, width * 2].filter((w) => w <= max)
+}
+
 /**
  * Width-descriptor `srcSet` for an Oztix URL, with `height` (if any) scaled
  * proportionally per entry. Returns `undefined` for non-Oztix URLs or no width.
@@ -69,7 +84,7 @@ export type ImageSource = {
 
 export type ImageProps = Omit<
   ComponentProps<'img'>,
-  'width' | 'height' | 'src'
+  'width' | 'height' | 'src' | 'alt'
 > & {
   /** Image URL. Oztix-CDN hosts get the resize/transcode rewrite; everything else passes through. */
   src: string
@@ -188,7 +203,9 @@ export function Image({
   const opts: OztixImageOptions = { format, quality, autotrim, params }
   const sized = width != null && width > 0
 
-  const srcSet = buildSrcSet(src, width, widths, height, opts)
+  const mainWidths =
+    widths ?? (sized && sizes != null ? defaultWidths(width, true) : undefined)
+  const srcSet = buildSrcSet(src, width, mainWidths, height, opts)
   const resolvedSrc = sized
     ? oztixImageAtWidth(src, width, { ...opts, height })
     : src
@@ -266,7 +283,12 @@ export function Image({
       autotrim: source.autotrim ?? autotrim,
       params: source.params ?? params
     }
-    const set = buildSrcSet(sSrc, sWidth, source.widths, sHeight, sOpts)
+    const sWidths =
+      source.widths ??
+      (sWidth != null && sWidth > 0 && source.sizes != null
+        ? defaultWidths(sWidth, true)
+        : undefined)
+    const set = buildSrcSet(sSrc, sWidth, sWidths, sHeight, sOpts)
     const single =
       sWidth != null && sWidth > 0
         ? oztixImageAtWidth(sSrc, sWidth, { ...sOpts, height: sHeight })

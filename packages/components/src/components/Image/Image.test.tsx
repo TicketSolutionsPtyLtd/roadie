@@ -101,6 +101,25 @@ describe('Image', () => {
     expect(container.querySelector('img')).toHaveAttribute('sizes', '100vw')
   })
 
+  it('emits only 1x/2x widths for a fixed-size image (no sizes)', () => {
+    const { container } = render(<Image src={OZTIX} alt='Logo' width={1000} />)
+    const srcset = container.querySelector('img')!.getAttribute('srcset')!
+    expect(srcset).not.toContain('320w')
+    expect(srcset).toContain('1000w')
+    expect(srcset).toContain('2000w')
+  })
+
+  it('builds a responsive ladder with small candidates when sizes is set', () => {
+    const { container } = render(
+      <Image src={OZTIX} alt='Hero' width={1000} sizes='100vw' />
+    )
+    const srcset = container.querySelector('img')!.getAttribute('srcset')!
+    expect(srcset).toContain('320w')
+    expect(srcset).toContain('768w')
+    expect(srcset).toContain('2000w')
+    expect(container.querySelector('img')).toHaveAttribute('sizes', '100vw')
+  })
+
   it('honours an explicit format', () => {
     const { container } = render(
       <Image src={OZTIX} alt='Logo' width={600} format='jpg' />
