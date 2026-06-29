@@ -25,7 +25,7 @@ import { Image } from '@oztix/roadie-components'
 
 ### Default
 
-Without a `width`, `Image` is a zero-overhead `<img>` wrapper — same DOM, no rewrite. It serves the original file (here the full 2752×1536 6.1 MB PNG), so pass a `width` to optimise — see the next example.
+Without a `width`, `Image` renders a plain `<img>` — no wrapper, no URL rewrite. It serves the original file (here the full 2752×1536 6.1 MB PNG), so pass a `width` to optimise — see the next example.
 
 ```tsx-live
 <Image
