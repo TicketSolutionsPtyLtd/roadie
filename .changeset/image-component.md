@@ -22,8 +22,10 @@
   placeholder until it loads, then drops it (override with a semantic background
   utility).
 - **New `@oztix/roadie-core/image` entry point** — pure URL helpers
-  `isOztixImageUrl`, `oztixImageAtWidth`, `oztixSrcSet` (+ `OZTIX_IMAGE_HOSTS`)
-  for consumers building custom compositions without the React component.
+  `isOztixImageUrl`, `oztixImageAtWidth`, `oztixSrcSet`, and `oztixWidthLadder`
+  (the responsive ladder the component uses), plus `OZTIX_IMAGE_HOSTS` /
+  `OZTIX_DEVICE_WIDTHS`. For consumers building custom compositions (Vue,
+  server-rendered `srcSet`) without the React component.
 - **`Card.Image` is now size-aware** — its inner `<img>` is an `<Image>`, so it
   inherits the full `Image` API (`width`/`height`/`widths`/`sizes`/`quality`/
   `autotrim`/`params`/`placeholder`/`sources`/`priority`/`defer`, the responsive

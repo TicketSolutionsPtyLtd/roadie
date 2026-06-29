@@ -6,7 +6,8 @@ import {
   type OztixImageFormat,
   type OztixImageOptions,
   isOztixImageUrl,
-  oztixImageAtWidth
+  oztixImageAtWidth,
+  oztixWidthLadder
 } from '@oztix/roadie-core/image'
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -18,19 +19,13 @@ const MIME: Record<OztixImageFormat, string> = {
   jpg: 'image/jpeg'
 }
 
-// Common device widths, used to build a responsive ladder for fluid images so
-// small screens download small files. The proxy caps width at 4000.
-const DEVICE_WIDTHS = [320, 420, 640, 768, 1024, 1280, 1536, 1920, 2400]
-
 /**
  * srcSet widths for an image. Fixed-size images (no `sizes`) just need 1x/2x;
  * fluid images (`sizes` given) get a ladder spanning small→2× so the browser
  * can pick a smaller file on a smaller screen/container.
  */
 function defaultWidths(width: number, fluid: boolean): number[] {
-  if (!fluid) return [width, width * 2]
-  const max = Math.min(width * 2, 4000)
-  return [...DEVICE_WIDTHS, width, width * 2].filter((w) => w <= max)
+  return fluid ? oztixWidthLadder(width) : [width, width * 2]
 }
 
 /**

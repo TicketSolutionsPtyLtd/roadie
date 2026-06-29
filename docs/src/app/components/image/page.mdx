@@ -214,14 +214,19 @@ Building a custom composition? Think LQIP banners, CSS `background-image`, or a 
 import {
   isOztixImageUrl,
   oztixImageAtWidth,
-  oztixSrcSet
+  oztixSrcSet,
+  oztixWidthLadder
 } from '@oztix/roadie-core/image'
 
-oztixImageAtWidth(src, 600) // …?width=600&format=webp
+oztixImageAtWidth(src, 600) // one URL: …?width=600&format=webp
 oztixImageAtWidth(src, 600, { autotrim: true }) // …&autotrim=1
-oztixSrcSet(src, [600, 1200]) // …600w, …1200w  (undefined for non-Oztix URLs)
+oztixWidthLadder(1600) // responsive widths: [320, 420, …, 3200]
+oztixSrcSet(src, oztixWidthLadder(1600)) // responsive srcSet for a fluid image
+oztixSrcSet(src, [600, 1200]) // or a fixed 1x/2x ladder
 isOztixImageUrl(src) // true for assets.oztix.com.au + the CloudFront distros
 ```
+
+Pair the `srcSet` with a `sizes` attribute on your `<img>` so the browser actually picks the small file on small screens.
 
 ### Hero image with blur (Vue)
 
@@ -230,14 +235,19 @@ Vue consumers don't get the React component, but the helpers give the same resul
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue'
-import { oztixImageAtWidth, oztixSrcSet } from '@oztix/roadie-core/image'
+import {
+  oztixImageAtWidth,
+  oztixSrcSet,
+  oztixWidthLadder
+} from '@oztix/roadie-core/image'
 
 const props = defineProps<{ src: string; alt: string }>()
 
 // Pure URL helpers. No network, no React.
 const lqip = oztixImageAtWidth(props.src, 24, { quality: 30 })
 const full = oztixImageAtWidth(props.src, 1600)
-const srcset = oztixSrcSet(props.src, [768, 1200, 1600, 2400])
+// Same responsive ladder the Image component generates for a fluid image.
+const srcset = oztixSrcSet(props.src, oztixWidthLadder(1600))
 
 const loaded = ref(false)
 </script>

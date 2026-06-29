@@ -4,7 +4,8 @@ import {
   OZTIX_IMAGE_HOSTS,
   isOztixImageUrl,
   oztixImageAtWidth,
-  oztixSrcSet
+  oztixSrcSet,
+  oztixWidthLadder
 } from './image'
 
 const OZTIX =
@@ -106,6 +107,34 @@ describe('oztixImageAtWidth', () => {
     expect(oztixImageAtWidth(OZTIX, -100)).toBe(OZTIX)
     expect(oztixImageAtWidth(OZTIX, Number.NaN)).toBe(OZTIX)
     expect(oztixImageAtWidth(OZTIX, Number.POSITIVE_INFINITY)).toBe(OZTIX)
+  })
+})
+
+describe('oztixWidthLadder', () => {
+  it('spans small widths up to 2x, sorted and de-duplicated', () => {
+    const ladder = oztixWidthLadder(1000)
+    expect(ladder[0]).toBe(320)
+    expect(ladder).toContain(768)
+    expect(ladder).toContain(1000)
+    expect(ladder).toContain(2000)
+    expect(Math.max(...ladder)).toBe(2000)
+    expect([...ladder].sort((a, b) => a - b)).toEqual(ladder)
+  })
+
+  it('caps at the proxy 4000px limit', () => {
+    expect(Math.max(...oztixWidthLadder(2000))).toBe(4000) // 2x = 4000
+    expect(Math.max(...oztixWidthLadder(3000))).toBeLessThanOrEqual(4000)
+  })
+
+  it('returns an empty ladder for non-positive widths', () => {
+    expect(oztixWidthLadder(0)).toEqual([])
+    expect(oztixWidthLadder(-10)).toEqual([])
+  })
+
+  it('feeds oztixSrcSet for a responsive set', () => {
+    const srcSet = oztixSrcSet(OZTIX, oztixWidthLadder(1000))!
+    expect(srcSet).toContain('320w')
+    expect(srcSet).toContain('2000w')
   })
 })
 

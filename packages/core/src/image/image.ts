@@ -34,6 +34,27 @@ export const OZTIX_IMAGE_HOSTS = new Set([
   'dp4qkqhwvriyk.cloudfront.net'
 ])
 
+/** Common device widths, used to build responsive srcSet ladders. */
+export const OZTIX_DEVICE_WIDTHS = [
+  320, 420, 640, 768, 1024, 1280, 1536, 1920, 2400
+]
+
+/**
+ * Responsive srcSet widths for a fluid image rendered up to `width` at 1x:
+ * common device widths plus the 1x and 2x, capped at the proxy's 4000px limit.
+ * Lets small screens download small files. For a fixed-size image just use
+ * `[width, width * 2]`.
+ */
+export function oztixWidthLadder(width: number): number[] {
+  if (!Number.isFinite(width) || width <= 0) return []
+  const max = Math.min(width * 2, 4000)
+  return [
+    ...new Set([...OZTIX_DEVICE_WIDTHS, width, width * 2].map(Math.round))
+  ]
+    .filter((w) => w > 0 && w <= max)
+    .sort((a, b) => a - b)
+}
+
 export function isOztixImageUrl(src: string): boolean {
   try {
     return OZTIX_IMAGE_HOSTS.has(new URL(src).hostname)
@@ -73,9 +94,12 @@ export function oztixImageAtWidth(
 }
 
 /**
- * Builds a width-descriptor `srcSet` from a list of target widths. Returns
- * `undefined` for non-Oztix URLs or when no positive width remains, so callers
- * can omit the attribute entirely.
+ * Builds a width-descriptor `srcSet` from a list of target widths, applying the
+ * same `opts` to each entry. Returns `undefined` for non-Oztix URLs or when no
+ * positive width remains, so callers can omit the attribute entirely. Pair with
+ * `oztixWidthLadder` for a responsive ladder. (A fixed `opts.height` is applied
+ * to every entry as-is; for a proportionally-scaled crop ladder, map
+ * `oztixImageAtWidth` per width like the `Image` component does.)
  */
 export function oztixSrcSet(
   src: string,
