@@ -1,8 +1,10 @@
-import type { ComponentProps, ElementType } from 'react'
+import type { ComponentProps, ElementType, ReactElement } from 'react'
 
 import { type VariantProps, cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
+
+import { type RoadieRenderProp, resolveRender } from '../../utils/resolveRender'
 
 export const proseVariants = cva(
   [
@@ -80,10 +82,18 @@ export const proseVariants = cva(
 )
 
 export type ProseProps<T extends ElementType = 'div'> = {
+  /**
+   * @deprecated Use `render` instead. `as` will be removed in v3.0.0.
+   */
   as?: T
+  /**
+   * Escape hatch — swap the underlying element with full control over the
+   * rendered shape (e.g. `render={<article />}`).
+   */
+  render?: RoadieRenderProp
   className?: string
 } & VariantProps<typeof proseVariants> &
-  Omit<ComponentProps<T>, 'as' | 'className' | 'size'>
+  Omit<ComponentProps<T>, 'as' | 'className' | 'size' | 'render'>
 
 /**
  * Prose container for long-form/rich content (CMS output, markdown, user HTML).
@@ -91,18 +101,21 @@ export type ProseProps<T extends ElementType = 'div'> = {
  */
 export function Prose<T extends ElementType = 'div'>({
   as,
+  render,
   className,
   size,
   ...props
-}: ProseProps<T>) {
-  const Component = as || 'div'
-  return (
-    <Component
-      data-slot='prose'
-      className={cn(proseVariants({ size, className }))}
-      {...props}
-    />
-  )
+}: ProseProps<T>): ReactElement {
+  const finalProps = {
+    'data-slot': 'prose',
+    className: cn(proseVariants({ size, className })),
+    ...props
+  }
+
+  if (render !== undefined) return resolveRender('div', finalProps, render)
+
+  const Component = (as ?? 'div') as ElementType
+  return <Component {...finalProps} />
 }
 
 Prose.displayName = 'Prose'

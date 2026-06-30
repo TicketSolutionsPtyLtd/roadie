@@ -111,10 +111,10 @@ import { Prose } from '@oztix/roadie-components'
 
 ## Custom element
 
-Use the `as` prop to render as a semantic HTML element.
+Use `render` to draw Prose as a semantic HTML element.
 
 ```tsx-live
-<Prose as='article'>
+<Prose render={<article />}>
   <h2>Article heading</h2>
   <p>This renders as an <code>&lt;article&gt;</code> element instead of a <code>&lt;div&gt;</code>.</p>
 </Prose>

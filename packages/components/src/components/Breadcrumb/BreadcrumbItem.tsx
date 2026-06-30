@@ -8,7 +8,7 @@ export function BreadcrumbItem({ className, ...props }: BreadcrumbItemProps) {
   return (
     <li
       data-slot='breadcrumb-item'
-      className={cn('flex items-center gap-2', className)}
+      className={cn('flex min-w-0 items-center gap-2', className)}
       {...props}
     />
   )

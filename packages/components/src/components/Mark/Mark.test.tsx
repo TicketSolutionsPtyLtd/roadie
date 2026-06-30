@@ -104,4 +104,21 @@ describe('Mark', () => {
     const el = container.querySelector('span')
     expect(el).not.toHaveClass('px-[0.4em]')
   })
+
+  it('swaps the element via render and merges mark classes', () => {
+    const { container } = render(<Mark render={<span />}>Rendered</Mark>)
+    const el = container.querySelector('span')!
+    expect(el).toHaveTextContent('Rendered')
+    expect(el).toHaveClass('bg-mark', 'text-mark')
+    expect(el).toHaveAttribute('data-slot', 'mark')
+    expect(container.querySelector('mark')).toBeNull()
+  })
+
+  it('applies heading padding when render is a heading element', () => {
+    const { container } = render(<Mark render={<h2 />}>Heading</Mark>)
+    expect(container.querySelector('h2')).toHaveClass(
+      'px-[0.4em]',
+      'py-[0.2em]'
+    )
+  })
 })

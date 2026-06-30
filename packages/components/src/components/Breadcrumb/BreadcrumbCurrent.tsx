@@ -12,7 +12,7 @@ export function BreadcrumbCurrent({
     <span
       aria-current='page'
       data-slot='breadcrumb-current'
-      className={cn('font-medium text-normal', className)}
+      className={cn('min-w-0 truncate font-medium text-normal', className)}
       {...props}
     />
   )

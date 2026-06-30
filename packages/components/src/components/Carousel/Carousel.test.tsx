@@ -481,6 +481,24 @@ describe('Carousel', () => {
     expect(heading.tagName).toBe('H3')
   })
 
+  it('Carousel.Title with render={<h3 />} renders an h3 and keeps registration', () => {
+    const { getByRole } = render(
+      <Carousel aria-label='test'>
+        <Carousel.Header>
+          <Carousel.Title render={<h3 />}>Section</Carousel.Title>
+        </Carousel.Header>
+        <Carousel.Content>
+          <Carousel.Item>1</Carousel.Item>
+        </Carousel.Content>
+      </Carousel>
+    )
+    const heading = getByRole('heading', { level: 3, name: 'Section' })
+    expect(heading.tagName).toBe('H3')
+    expect(heading).toHaveAttribute('data-slot', 'carousel-title')
+    // registered as the carousel's accessible name
+    expect(getByRole('region')).toHaveAccessibleName('Section')
+  })
+
   it('Carousel.TitleLink with as prop renders the custom component', () => {
     const FakeLink = ({
       href,

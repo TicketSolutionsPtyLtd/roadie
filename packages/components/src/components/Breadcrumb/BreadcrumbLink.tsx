@@ -53,7 +53,7 @@ export function BreadcrumbLink<T extends ElementType = 'a'>({
   ...props
 }: BreadcrumbLinkProps<T>): ReactElement {
   const finalClassName = cn(
-    'text-subtle transition-colors hover:text-normal',
+    'min-w-0 truncate text-subtle transition-colors hover:text-normal',
     className
   )
 

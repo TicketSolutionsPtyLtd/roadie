@@ -15,7 +15,7 @@ export function BreadcrumbSeparator({
     <span
       role='presentation'
       data-slot='breadcrumb-separator'
-      className={cn('text-subtler', className)}
+      className={cn('shrink-0 text-subtler', className)}
       {...props}
     >
       {children}

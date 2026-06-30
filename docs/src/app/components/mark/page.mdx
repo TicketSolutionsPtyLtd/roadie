@@ -67,18 +67,18 @@ The default intent is `info`.
 
 ### As heading
 
-Use the `as` prop to render Mark as a heading element. Padding automatically increases to suit display text.
+Use `render` to draw Mark as a heading element. Padding automatically increases to suit display text.
 
 ```tsx-live
 
 <div className='grid gap-4 text-center'>
-  <Mark as='h2' intent='accent' className='text-display-ui-3'>
+  <Mark render={<h2 />} intent='accent' className='text-display-ui-3'>
     Great events need great partners
   </Mark>
-  <Mark as='h3' intent='neutral' className='text-display-ui-5'>
+  <Mark render={<h3 />} intent='neutral' className='text-display-ui-5'>
     Not just great ticketing software
   </Mark>
-  <Mark as='h3' intent='brand-secondary' className='text-display-ui-5'>
+  <Mark render={<h3 />} intent='brand-secondary' className='text-display-ui-5'>
     Built for the live events industry
   </Mark>
 </div>

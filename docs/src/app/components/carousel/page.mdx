@@ -579,7 +579,7 @@ Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayP
   opts={{ loop: true }}
 >
   <Carousel.Header>
-    <Carousel.TitleLink as={Link} href='/events'>
+    <Carousel.TitleLink render={<Link href='/events' />}>
       Featured events
     </Carousel.TitleLink>
     <Carousel.Dots />
@@ -791,8 +791,8 @@ Carousel is a compound component. Available parts:
 | --- | --- |
 | `Carousel` | Root. Owns the Embla instance and context. |
 | `Carousel.Header` | Three-slot layout shell: title (left), dots (centre), controls (right). On mobile it collapses to a flex `justify-between` row. |
-| `Carousel.Title` | `<h2>` by default; pass `as='h3'` (etc.) to change the heading level. Registers as the carousel's accessible name. |
-| `Carousel.TitleLink` | Anchor with a trailing arrow icon. Pass `as={Link}` to use a framework router link. Registers as the carousel's accessible name. |
+| `Carousel.Title` | `<h2>` by default; pass `render={<h3 />}` (etc.) to change the heading level. Registers as the carousel's accessible name. |
+| `Carousel.TitleLink` | Anchor with a trailing arrow icon. Pass `render={<Link />}` to use a framework router link. Registers as the carousel's accessible name. |
 | `Carousel.Controls` | Inline flex row for grouping `Carousel.PlayPause`, `Carousel.Previous`, and `Carousel.Next` (or any other inline buttons) with consistent spacing. Hidden on mobile by default; hidden entirely when there's nothing to scroll to. |
 | `Carousel.Content` | Embla viewport + container. Wraps each direct `Carousel.Item` child in per-item context. |
 | `Carousel.Item` | A single slide. Set the width with Tailwind `basis-*` utilities. |

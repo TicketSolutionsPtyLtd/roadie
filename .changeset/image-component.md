@@ -37,3 +37,12 @@
   - **Type narrowing:** `Card.Image` now requires `src` and `alt`, and
     `width`/`height` are `number`-only (previously `string | number` via
     `ImgHTMLAttributes`). Numeric call sites with alt text are unaffected.
+- **`render` on `Mark`, `Prose`, and `Carousel.Title`** — these still exposed the
+  legacy polymorphic `as` prop. They now accept the standard Roadie `render`
+  escape hatch (e.g. `<Mark render={<h2 />}>`, `<Prose render={<article />}>`,
+  `<Carousel.Title render={<h3 />}>`), matching `Card`, `Breadcrumb.Link`, and
+  `Carousel.TitleLink`. `as` is now `@deprecated` and will be removed in v3.0.0;
+  it keeps working until then.
+- **`Breadcrumb` truncates instead of wrapping** — items no longer wrap. When the
+  row runs out of room each item truncates with an ellipsis (`min-w-0` +
+  `truncate` on the link/current text), while separators stay put (`shrink-0`).
