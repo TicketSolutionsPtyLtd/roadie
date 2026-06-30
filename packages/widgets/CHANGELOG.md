@@ -1,5 +1,13 @@
 # @oztix/roadie-widgets
 
+## 3.4.1
+
+### Patch Changes
+
+- Updated dependencies [5d05bd1]
+  - @oztix/roadie-components@2.11.0
+  - @oztix/roadie-core@2.5.0
+
 ## 3.4.0
 
 ### Minor Changes
