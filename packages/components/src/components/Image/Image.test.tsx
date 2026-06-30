@@ -127,15 +127,6 @@ describe('Image', () => {
     expect(srcset).not.toContain('5000w')
   })
 
-  it('honours an explicit format', () => {
-    const { container } = render(
-      <Image src={OZTIX} alt='Logo' width={600} format='jpg' />
-    )
-    expect(container.querySelector('img')!.getAttribute('src')).toContain(
-      'format=jpg'
-    )
-  })
-
   it('appends autotrim=1 to src and srcSet when autotrim is set', () => {
     const { container } = render(
       <Image src={OZTIX} alt='Logo' width={600} autotrim />
@@ -145,17 +136,19 @@ describe('Image', () => {
     expect(img.getAttribute('srcset')).toContain('autotrim=1')
   })
 
-  it('forwards quality and arbitrary params to the rewritten src', () => {
+  it('forwards format, quality, and params to the rewritten src', () => {
     const { container } = render(
       <Image
         src={OZTIX}
         alt='Logo'
         width={600}
+        format='jpg'
         quality={70}
         params={{ rmode: 'crop', ranchor: 'top' }}
       />
     )
     const src = container.querySelector('img')!.getAttribute('src')!
+    expect(src).toContain('format=jpg')
     expect(src).toContain('quality=70')
     expect(src).toContain('rmode=crop')
     expect(src).toContain('ranchor=top')
