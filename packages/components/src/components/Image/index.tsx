@@ -40,9 +40,12 @@ function buildSrcSet(
   opts: OztixImageOptions
 ): string | undefined {
   if (width == null || width <= 0 || !isOztixImageUrl(src)) return undefined
+  // Cap at the proxy's 4000px limit — larger candidates are dropped server-side.
   const ladder = [
     ...new Set(
-      (widths ?? [width, width * 2]).map(Math.round).filter((w) => w > 0)
+      (widths ?? [width, width * 2])
+        .map(Math.round)
+        .filter((w) => w > 0 && w <= 4000)
     )
   ].sort((a, b) => a - b)
   if (ladder.length === 0) return undefined
@@ -226,21 +229,22 @@ export function Image({
         : undefined))
     : undefined
 
-  // Reset the placeholder when the requested image changes, so a swapped src
-  // shows the tint/blur and re-runs the fade-in.
-  const renderedSrc = useRef(resolvedSrc)
-  if (renderedSrc.current !== resolvedSrc) {
-    renderedSrc.current = resolvedSrc
-    setLoaded(false)
-  }
-
-  // Cached images can finish loading before React attaches onLoad, so the fade
-  // and tint removal would never fire — reconcile from the element's own
-  // complete flag.
+  // Keep `loaded` in sync with the requested image: reset when the source
+  // changes (re-show the tint/blur and re-run the fade-in), but mark loaded
+  // immediately for a cached image that finished before onLoad attached.
   useEffect(() => {
-    if (innerRef.current?.complete && innerRef.current.currentSrc)
-      setLoaded(true)
+    setLoaded(
+      Boolean(innerRef.current?.complete && innerRef.current.currentSrc)
+    )
   }, [resolvedSrc, visible])
+
+  // In blur mode `className` lands on the wrapper (layout / rounding / transform).
+  // The inner <img> takes only `object-*` utilities, so transform/transition
+  // classes aren't applied twice and can't compound.
+  const imgObjectClasses = className
+    ?.split(/\s+/)
+    .filter((c) => c.startsWith('object-'))
+    .join(' ')
 
   const img = (
     <img
@@ -264,7 +268,7 @@ export function Image({
       }}
       className={
         lqip
-          ? cn('size-full object-cover', className)
+          ? cn('size-full object-cover', imgObjectClasses)
           : cn(!loaded && 'bg-subtle', className)
       }
       style={

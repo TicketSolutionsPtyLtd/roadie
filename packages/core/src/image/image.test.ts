@@ -60,6 +60,17 @@ describe('oztixImageAtWidth', () => {
     expect(url.searchParams.get('quality')).toBe('70')
   })
 
+  it('clamps quality to 1–100 and drops non-finite values', () => {
+    const at = (q: number) =>
+      new URL(oztixImageAtWidth(OZTIX, 600, { quality: q })).searchParams.get(
+        'quality'
+      )
+    expect(at(0)).toBe('1')
+    expect(at(200)).toBe('100')
+    expect(at(Number.NaN)).toBeNull()
+    expect(at(Number.POSITIVE_INFINITY)).toBeNull()
+  })
+
   it('merges arbitrary params verbatim', () => {
     const url = new URL(
       oztixImageAtWidth(OZTIX, 600, {

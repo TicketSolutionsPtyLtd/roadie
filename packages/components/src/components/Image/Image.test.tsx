@@ -120,6 +120,13 @@ describe('Image', () => {
     expect(container.querySelector('img')).toHaveAttribute('sizes', '100vw')
   })
 
+  it('caps srcSet candidates at the proxy 4000px limit', () => {
+    const { container } = render(<Image src={OZTIX} alt='Big' width={2500} />)
+    const srcset = container.querySelector('img')!.getAttribute('srcset')!
+    expect(srcset).toContain('2500w')
+    expect(srcset).not.toContain('5000w')
+  })
+
   it('honours an explicit format', () => {
     const { container } = render(
       <Image src={OZTIX} alt='Logo' width={600} format='jpg' />

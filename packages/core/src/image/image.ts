@@ -84,8 +84,10 @@ export function oztixImageAtWidth(
     url.searchParams.set('height', String(Math.round(opts.height)))
   else url.searchParams.delete('height')
   url.searchParams.set('format', opts?.format ?? 'webp')
-  if (opts?.quality != null)
-    url.searchParams.set('quality', String(opts.quality))
+  if (opts?.quality != null && Number.isFinite(opts.quality)) {
+    const quality = Math.min(100, Math.max(1, Math.round(opts.quality)))
+    url.searchParams.set('quality', String(quality))
+  }
   if (opts?.autotrim) url.searchParams.set('autotrim', '1')
   if (opts?.params)
     for (const [key, value] of Object.entries(opts.params))
