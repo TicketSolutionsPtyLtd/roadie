@@ -1,0 +1,340 @@
+export const metadata = {
+  title: 'Image',
+  description: 'A size-aware <img> that routes Oztix-CDN assets through the resize/transcode proxy',
+  status: 'beta',
+  category: 'Content',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+# Image
+
+A size-aware `<img>` that routes Oztix-CDN assets through the resize/transcode proxy.
+
+Pass a `width`. The component requests a right-sized WebP plus a `srcSet`, cutting download bytes and decoded memory. Non-Oztix URLs and calls without a `width` render a plain `<img>`, so external thumbnails still work.
+
+Every image sits on a `bg-subtle` tint as a placeholder. It drops once the image loads, so it never lingers behind a transparent image. Override it with another semantic background utility like `bg-sunken`.
+
+## Import
+
+```tsx
+import { Image } from '@oztix/roadie-components'
+```
+
+## Examples
+
+### Default
+
+The simplest correct usage: a `src`, an `alt`, and a `width`. The component serves a right-sized WebP with a 1x/2x `srcSet`. Add `height` to reserve space. (Omit `width` and it falls back to a plain `<img>` of the original file.)
+
+```tsx-live
+<Image
+  src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+  alt='Event artwork'
+  width={400}
+  height={300}
+  className='rounded-xl'
+/>
+```
+
+### Resizing Oztix assets
+
+Pass `width` (the 1x render size in CSS pixels). The component rewrites `src` to `?width=&format=webp` and builds a `srcSet`. One prop decides whether small screens get small files: `sizes`.
+
+**Fixed-size images** render at the same size everywhere. Think logos, avatars, fixed thumbnails. Just pass `width`. You get a 1x/2x `srcSet` and `sizes='${width}px'`. Retina screens get the crisp 2x. Nobody downloads more.
+
+```tsx
+<Image src={url} alt='Show artwork' width={360} />
+// srcSet = 360w, 720w   sizes = 360px
+```
+
+**Fluid images** fill their container and change size across breakpoints. Think full-width heroes or cards in a grid. Add `sizes` to describe how wide the image renders. Roadie then builds a small-to-2x ladder for you. This is the lever that loads a small file on a phone and a large one on a desktop. No manual `widths` needed.
+
+The example below is fluid. Resize the window with the network panel open: the browser fetches a smaller file as the column narrows.
+
+```tsx-live
+<Image
+  src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+  alt='Responsive event artwork'
+  width={1200}
+  height={600}
+  sizes='100vw'
+  className='w-full rounded-xl'
+/>
+```
+
+Match `sizes` to the layout. Use `'100vw'` for full-bleed. Use `'(min-width: 768px) 33vw, 100vw'` for a 3-up grid. Pass `widths` only to override the generated ladder.
+
+Add `height` to crop to a fixed box. It is sent to the proxy and scaled per `srcSet` entry to keep the ratio.
+
+```tsx
+<Image src={url} alt='Show artwork' width={360} height={240} />
+// src = …?width=360&height=240&format=webp
+```
+
+### Trimming transparent space
+
+Logos often ship with transparent padding. Set `autotrim` to crop it server-side so the artwork fills the box. Pair it with a proportional `width` (no `height`) to keep the trimmed ratio.
+
+```tsx
+<Image src={logoUrl} alt='Event logo' width={300} autotrim />
+// …?width=300&format=webp&autotrim=1
+```
+
+### Quality and advanced commands
+
+`quality` (1–100) trades fidelity for bytes. For anything else the proxy supports, like resize mode, anchor, or background colour, use the `params` escape hatch. Entries merge verbatim into the query.
+
+```tsx
+<Image
+  src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+  alt='Cropped card art'
+  width={700}
+  height={350}
+  quality={70}
+  params={{ rmode: 'crop', bgcolor: 'fff' }}
+/>
+// → …?width=700&height=350&format=webp&quality=70&rmode=crop&bgcolor=fff
+```
+
+Supported `params` keys (ImageSharp.Web): `rmode`, `ranchor`, `rxy`, `rsampler`, `compand`, `orient`, `bgcolor`, `autoorient`, `pngcolortype`.
+
+### Reserving layout
+
+Reserve space to avoid layout shift in one of two ways:
+
+- **`width` + `height`** sets the `width`/`height` attributes and an `aspect-ratio` style. It also sends `height` to the proxy, cropping to that box.
+- **`width` + an `aspect-*` utility** reserves the box without a fixed height. The resize stays proportional (no crop). The aspect class lands on the layout box, so pair it with `w-full`.
+
+```tsx-live
+<div className='grid grid-cols-2 gap-4'>
+  <Image
+    src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+    alt='Cropped to 16:9'
+    width={800}
+    height={450}
+    sizes='(min-width: 768px) 50vw, 100vw'
+    className='w-full rounded-xl'
+  />
+  <Image
+    src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+    alt='4:3 box, proportional'
+    width={800}
+    sizes='(min-width: 768px) 50vw, 100vw'
+    className='aspect-4/3 w-full rounded-xl object-cover'
+  />
+</div>
+```
+
+The source is a 2752×1536 6.1 MB PNG. Resized to WebP it ships ~280 KB. In short: `aspect-*` or `height` reserves space; `height` also crops.
+
+### Hero imagery
+
+A full-bleed hero is a fluid image that's also the LCP element. Set `sizes='100vw'` so Roadie builds the ladder, then add `priority` for eager loading and `fetchpriority="high"`. Reach for `widths` only to hand-tune the ladder.
+
+```tsx
+<Image
+  src={heroUrl}
+  alt='Festival hero'
+  width={1600}
+  height={640}
+  sizes='100vw'
+  priority
+/>
+```
+
+### Art direction (different crops per breakpoint)
+
+`widths` and `sizes` do resolution switching: the same image at different sizes. Art direction is different. It serves a different URL or crop per breakpoint, like a tall portrait on mobile and a wide banner on desktop. Pass `sources` for that. The component renders a `<picture>` with one `<source>` per entry and keeps `src` as the fallback `<img>`. Each source inherits `format`, `quality`, `autotrim`, `params`, and `width` unless it overrides them.
+
+`<picture>` only swaps the file. The layout box is still CSS. So change the shape per breakpoint with a responsive `aspect-*` utility, and don't set a top-level `height` (it would pin one aspect ratio across every breakpoint). Resize the window to see it switch.
+
+```tsx-live
+<Image
+  src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+  alt='Event artwork'
+  width={1200}
+  sizes='100vw'
+  className='aspect-3/4 w-full rounded-xl object-cover sm:aspect-video'
+  sources={[
+    {
+      media: '(max-width: 639px)',
+      width: 600,
+      height: 800,
+      params: { rmode: 'crop' }
+    }
+  ]}
+/>
+```
+
+Phones (under 640px) load a real 600×800 portrait crop in a 3:4 box. Wider screens get the proportional image in a 16:9 box. Pass a different `src` per source to serve entirely separate images.
+
+### Blur-up placeholder
+
+Set `placeholder='blur'` to show a tiny preview that fades into the full image on load. Use it as the default treatment for content imagery. The preview comes from the Oztix proxy automatically. Pass `width` and `height` so layout is reserved while it loads.
+
+```tsx-live
+<Image
+  src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+  alt='Event artwork'
+  width={800}
+  height={450}
+  sizes='100vw'
+  placeholder='blur'
+  className='w-full rounded-xl'
+/>
+```
+
+For non-Oztix images, or to override the auto preview, pass `blurDataURL`. It takes a data URI or any small image URL.
+
+### Deferred loading in carousels
+
+Embla mounts every slide in the DOM, so native `loading='lazy'` over-fetches off-screen slides. Set `defer` to hold the `src` until the tile nears the viewport (via IntersectionObserver). Layout is still reserved from `width` and `height`.
+
+```tsx
+<Carousel>
+  <Carousel.Content>
+    {events.map((event) => (
+      <Carousel.Item key={event.id}>
+        <Card href={event.href}>
+          <Card.Image src={event.image} alt={event.title} width={360} defer />
+        </Card>
+      </Carousel.Item>
+    ))}
+  </Carousel.Content>
+</Carousel>
+```
+
+## Helpers
+
+Building a custom composition? Think LQIP banners, CSS `background-image`, or a server-rendered `<img srcset>`. The pure URL helpers ship from `@oztix/roadie-core/image` without the React component.
+
+```tsx
+import {
+  isOztixImageUrl,
+  oztixImageAtWidth,
+  oztixSrcSet,
+  oztixWidthLadder
+} from '@oztix/roadie-core/image'
+
+oztixImageAtWidth(src, 600) // one URL: …?width=600&format=webp
+oztixImageAtWidth(src, 600, { autotrim: true }) // …&autotrim=1
+oztixWidthLadder(1600) // responsive widths: [320, 420, …, 3200]
+oztixSrcSet(src, oztixWidthLadder(1600)) // responsive srcSet for a fluid image
+oztixSrcSet(src, [600, 1200]) // or a fixed 1x/2x ladder
+isOztixImageUrl(src) // true for assets.oztix.com.au + the CloudFront distros
+```
+
+Pair the `srcSet` with a `sizes` attribute on your `<img>` so the browser actually picks the small file on small screens.
+
+### Hero image with blur (Vue)
+
+Vue consumers don't get the React component, but the helpers give the same result. Derive a tiny LQIP and a responsive `srcSet` from the source. Then fade the full image in over the blurred preview. Style with Roadie/Tailwind utilities. Only the dynamic LQIP URL needs an inline `:style`.
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import {
+  oztixImageAtWidth,
+  oztixSrcSet,
+  oztixWidthLadder
+} from '@oztix/roadie-core/image'
+
+const props = defineProps<{ src: string; alt: string }>()
+
+// Pure URL helpers. No network, no React.
+const lqip = oztixImageAtWidth(props.src, 24, { quality: 30 })
+const full = oztixImageAtWidth(props.src, 1600)
+// Same responsive ladder the Image component generates for a fluid image.
+const srcset = oztixSrcSet(props.src, oztixWidthLadder(1600))
+
+const loaded = ref(false)
+</script>
+
+<template>
+  <div class="relative aspect-[16/9] w-full overflow-hidden rounded-5xl">
+    <!-- Blurred low-res preview, fades out once the full image is ready -->
+    <div
+      aria-hidden="true"
+      class="absolute inset-0 scale-110 bg-cover bg-center blur-lg transition-opacity duration-500"
+      :class="loaded ? 'opacity-0' : 'opacity-100'"
+      :style="{ backgroundImage: `url(${lqip})` }"
+    />
+    <!-- Full image: eager + high priority because a hero is the LCP element -->
+    <img
+      :src="full"
+      :srcset="srcset"
+      sizes="100vw"
+      :alt="alt"
+      width="1600"
+      height="900"
+      fetchpriority="high"
+      decoding="async"
+      class="absolute inset-0 size-full object-cover transition-opacity duration-500"
+      :class="loaded ? 'opacity-100' : 'opacity-0'"
+      @load="loaded = true"
+    />
+  </div>
+</template>
+```
+
+A hero is above the fold, so it loads eagerly with `fetchpriority='high'`. A cached image may fire `@load` before hydration. Guard it on mount with `if ((e.target as HTMLImageElement).complete) loaded = true` if that matters for your app.
+
+## Guidelines
+
+<div className='grid gap-8'>
+
+<Guideline title='Pass width to optimise Oztix images'>
+  <Guideline.Do code={`<Image src={oztixUrl} alt='…' width={600} />`}>
+    `width` turns on resizing. The CDN returns a right-sized WebP plus a `srcSet`.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Image src={oztixUrl} alt='…' />`}>
+    Without `width` the original file is served (here a 6.1 MB PNG). Non-Oztix URLs always pass through, so size those at the source.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Add sizes for fluid images so phones get small files'>
+  <Guideline.Do code={`<Image src={url} alt='…' width={1600} sizes='100vw' />`}>
+    For an image that fills its container, set `sizes` to how wide it renders. Roadie builds a small→large ladder, so a phone downloads a small file and a desktop a large one.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Image src={url} alt='…' width={1600} className='w-full' />`}>
+    A full-width image with no `sizes` is treated as fixed at its `width`, so small screens still download the large file.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Reserve space to avoid layout shift'>
+  <Guideline.Do code={`<Image src={url} alt='…' width={800} height={450} />\n// or, no crop:\n<Image src={url} alt='…' width={800} className='aspect-video w-full' />`}>
+    Give the box a ratio with `height` (also crops to it) or an `aspect-*` utility plus `w-full` (proportional).
+  </Guideline.Do>
+  <Guideline.Dont code={`<Image src={url} alt='…' width={800} className='w-full' />`}>
+    `width` alone reserves no height, so the page reflows when the image loads.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Prioritise only the LCP image'>
+  <Guideline.Do code={`<Image src={heroUrl} alt='…' width={1600} sizes='100vw' priority />`}>
+    Mark the single largest above-the-fold image `priority`; everything else stays lazy by default.
+  </Guideline.Do>
+  <Guideline.Dont code={`// priority on every card in a grid`}>
+    Prioritising everything floods the network on first paint and hurts LCP.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Defer images inside carousels'>
+  <Guideline.Do code={`<Card.Image src={url} alt='…' width={360} defer />`}>
+    Use `defer` in horizontally-scrolled surfaces. Slides load only as they near the viewport.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Card.Image src={url} alt='…' width={360} />`}>
+    Native `loading='lazy'` still fetches off-screen slides, because Embla mounts them all in the DOM.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- `alt` is required. Write a concise description of what the image shows.
+- `width`/`height` reserve layout, reducing cumulative layout shift for assistive-tech and keyboard users alike.
+
+<PropsDefinitions componentPath='packages/components/src/components/Image/index.tsx' />

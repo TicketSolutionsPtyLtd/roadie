@@ -105,13 +105,19 @@ import { Card } from '@oztix/roadie-components/card'
 
 The subtler card has padding around the image, giving it inset rounded corners. The normal card uses a full-bleed image with `overflow-hidden`.
 
+`Card.Image` is an [`Image`](/components/image). Pass `width` (and `height`) to serve a right-sized WebP instead of the original, `sizes` so the fluid card loads small files on small screens, and `placeholder='blur'` for a blur-up while it loads.
+
 ```tsx-live
 <div className='grid grid-cols-2 gap-4'>
   <Card href='#' emphasis='subtler'>
     <Card.Image
-      src='https://placehold.co/600x600/1a1a2e/e0e0e0?text=Harbour+Cruise'
+      src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
       alt='Sunset Harbour Cruise'
       className='aspect-square'
+      width={300}
+      height={300}
+      sizes='(min-width: 640px) 25vw, 50vw'
+      placeholder='blur'
     />
     <Card.Header>
       <Card.Title>Sunset Harbour Cruise</Card.Title>
@@ -124,8 +130,11 @@ The subtler card has padding around the image, giving it inset rounded corners. 
   </Card>
   <Card href='#' className='overflow-hidden'>
     <Card.Image
-      src='https://placehold.co/600x300/2e1a2e/e0e0e0?text=Chef+Dinner'
+      src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
       alt='Long Table Dinner'
+      width={600}
+      height={300}
+      sizes='(min-width: 640px) 25vw, 50vw'
     />
     <Card.Header>
       <Card.Description>Dining &amp; Social</Card.Description>

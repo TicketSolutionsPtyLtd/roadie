@@ -70,4 +70,16 @@ describe('Prose', () => {
     expect(el.tagName.toLowerCase()).toBe('section')
     expect(el.className).toContain('text-lg')
   })
+
+  it('swaps the element via render and keeps prose classes', () => {
+    const { container } = render(
+      <Prose render={<article />}>
+        <p>Content</p>
+      </Prose>
+    )
+    const el = container.firstElementChild as HTMLElement
+    expect(el.tagName.toLowerCase()).toBe('article')
+    expect(el).toHaveAttribute('data-slot', 'prose')
+    expect(el.className).toContain('text-normal')
+  })
 })

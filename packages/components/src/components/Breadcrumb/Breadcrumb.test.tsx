@@ -247,4 +247,31 @@ describe('Breadcrumb', () => {
     expect(container.querySelector('li')).toHaveClass('custom-item')
     expect(container.querySelector('a')).toHaveClass('custom-link')
   })
+
+  it('truncates items per-item and keeps separators from shrinking', () => {
+    const { container } = render(
+      <Breadcrumb>
+        <Breadcrumb.List>
+          <Breadcrumb.Item>
+            <Breadcrumb.Link href='/'>Home</Breadcrumb.Link>
+            <Breadcrumb.Separator />
+          </Breadcrumb.Item>
+          <Breadcrumb.Item>
+            <Breadcrumb.Current>
+              A very long current page title
+            </Breadcrumb.Current>
+          </Breadcrumb.Item>
+        </Breadcrumb.List>
+      </Breadcrumb>
+    )
+    expect(container.querySelector('ol')).toHaveClass('min-w-0')
+    expect(container.querySelectorAll('li')[0]).toHaveClass('min-w-0')
+    expect(container.querySelector('a')).toHaveClass('truncate', 'min-w-0')
+    expect(
+      container.querySelector('[data-slot="breadcrumb-current"]')
+    ).toHaveClass('truncate', 'min-w-0')
+    expect(
+      container.querySelector('[data-slot="breadcrumb-separator"]')
+    ).toHaveClass('shrink-0')
+  })
 })

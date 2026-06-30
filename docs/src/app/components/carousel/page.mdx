@@ -295,6 +295,51 @@ Each `Carousel.Item` can wrap a clickable element. The `Card` component renders 
 </Carousel>
 ```
 
+### With deferred images
+
+Embla mounts every slide in the DOM, so native `loading='lazy'` still fetches off-screen slides. Give each `Card.Image` a `width` and `defer` so the full image only loads once the slide nears the viewport — the canonical pattern for image-heavy carousels. `placeholder='blur'` keeps the tile from popping in.
+
+```tsx-live
+<Carousel aria-label='Events with artwork'>
+  <Carousel.Header>
+    <Carousel.TitleLink href='/events'>What's on</Carousel.TitleLink>
+    <Carousel.Controls>
+      <Carousel.Previous />
+      <Carousel.Next />
+    </Carousel.Controls>
+  </Carousel.Header>
+  <Carousel.Content>
+    {[
+      'Midnight Frequency',
+      'Sunset Sounds',
+      'Neon Dusk',
+      'Wave Theory',
+      'Echo Chamber',
+      'Lowlight'
+    ].map((title, i) => (
+      <Carousel.Item key={title} className='basis-[78%] md:basis-1/3'>
+        <Card emphasis='raised' href={`/events/${i}`}>
+          <Card.Image
+            src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+            alt={title}
+            width={360}
+            height={203}
+            sizes='(min-width: 768px) 33vw, 78vw'
+            defer
+            placeholder='blur'
+            priority={i === 0}
+          />
+          <Card.Content>
+            <Card.Title>{title}</Card.Title>
+            <Card.Description>Fri 14 Mar — The Glasshouse</Card.Description>
+          </Card.Content>
+        </Card>
+      </Carousel.Item>
+    ))}
+  </Carousel.Content>
+</Carousel>
+```
+
 ### Responsive group scrolling
 
 Roadie defaults `slidesToScroll` to `'auto'` in `opts`, so Previous / Next move by a full viewport at a time instead of a single slide. Embla derives the group size from whatever currently fits in the viewport, so the same carousel scrolls two-and-a-bit cards on mobile, three on medium screens, and four on large screens — no breakpoint-specific configuration needed. Because `Carousel.Dots` renders one dot per *snap*, the dot count also collapses from one-per-slide down to one-per-page as the breakpoint changes.
@@ -534,7 +579,7 @@ Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayP
   opts={{ loop: true }}
 >
   <Carousel.Header>
-    <Carousel.TitleLink as={Link} href='/events'>
+    <Carousel.TitleLink render={<Link href='/events' />}>
       Featured events
     </Carousel.TitleLink>
     <Carousel.Dots />
@@ -746,8 +791,8 @@ Carousel is a compound component. Available parts:
 | --- | --- |
 | `Carousel` | Root. Owns the Embla instance and context. |
 | `Carousel.Header` | Three-slot layout shell: title (left), dots (centre), controls (right). On mobile it collapses to a flex `justify-between` row. |
-| `Carousel.Title` | `<h2>` by default; pass `as='h3'` (etc.) to change the heading level. Registers as the carousel's accessible name. |
-| `Carousel.TitleLink` | Anchor with a trailing arrow icon. Pass `as={Link}` to use a framework router link. Registers as the carousel's accessible name. |
+| `Carousel.Title` | `<h2>` by default; pass `render={<h3 />}` (etc.) to change the heading level. Registers as the carousel's accessible name. |
+| `Carousel.TitleLink` | Anchor with a trailing arrow icon. Pass `render={<Link />}` to use a framework router link. Registers as the carousel's accessible name. |
 | `Carousel.Controls` | Inline flex row for grouping `Carousel.PlayPause`, `Carousel.Previous`, and `Carousel.Next` (or any other inline buttons) with consistent spacing. Hidden on mobile by default; hidden entirely when there's nothing to scroll to. |
 | `Carousel.Content` | Embla viewport + container. Wraps each direct `Carousel.Item` child in per-item context. |
 | `Carousel.Item` | A single slide. Set the width with Tailwind `basis-*` utilities. |

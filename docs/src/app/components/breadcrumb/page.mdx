@@ -67,7 +67,7 @@ Pass a custom character or element to `Breadcrumb.Separator`.
 
 ### With custom component
 
-Use the `as` prop on `Breadcrumb.Link` to render with a custom component like Next.js `Link`.
+Pass `render` on `Breadcrumb.Link` to use a custom component like Next.js `Link`. For internal routes you can also just pass `href` and let the `RoadieLinkProvider` route it.
 
 ```tsx
 import Link from 'next/link'
@@ -75,7 +75,7 @@ import Link from 'next/link'
 <Breadcrumb>
   <Breadcrumb.List>
     <Breadcrumb.Item>
-      <Breadcrumb.Link as={Link} href='/'>Home</Breadcrumb.Link>
+      <Breadcrumb.Link render={<Link href='/' />}>Home</Breadcrumb.Link>
       <Breadcrumb.Separator />
     </Breadcrumb.Item>
     <Breadcrumb.Item>
@@ -83,6 +83,30 @@ import Link from 'next/link'
     </Breadcrumb.Item>
   </Breadcrumb.List>
 </Breadcrumb>
+```
+
+### Truncation
+
+Items never wrap. When the row runs out of room each item truncates with an ellipsis, while the separators stay put. Constrain the width to see it.
+
+```tsx-live
+<div className='max-w-xs'>
+  <Breadcrumb>
+    <Breadcrumb.List>
+      <Breadcrumb.Item>
+        <Breadcrumb.Link href='#'>Home</Breadcrumb.Link>
+        <Breadcrumb.Separator />
+      </Breadcrumb.Item>
+      <Breadcrumb.Item>
+        <Breadcrumb.Link href='#'>A long category name</Breadcrumb.Link>
+        <Breadcrumb.Separator />
+      </Breadcrumb.Item>
+      <Breadcrumb.Item>
+        <Breadcrumb.Current>An even longer current page title</Breadcrumb.Current>
+      </Breadcrumb.Item>
+    </Breadcrumb.List>
+  </Breadcrumb>
+</div>
 ```
 
 ## Accessibility
