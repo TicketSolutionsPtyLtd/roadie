@@ -1,0 +1,36 @@
+name: Audit
+
+# Scheduled as well as per-PR: advisories are published upstream, so they land
+# with no matching diff. Threshold lives in pnpm-workspace.yaml under `audit:`.
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    # Monday 06:00 Brisbane
+    - cron: '0 20 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup
+        uses: ./.github/composite-actions/setup
+
+      - name: Audit dependencies
+        run: pnpm audit
