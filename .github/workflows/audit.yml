@@ -28,9 +28,19 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+        with:
+          persist-credentials: false
 
-      - name: Setup
-        uses: ./.github/composite-actions/setup
+      - name: Install pnpm
+        uses: pnpm/action-setup@v5
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      # Deliberately not the composite setup: audit reads pnpm-lock.yaml and
+      # needs no node_modules, so installing would cost a minute and run
+      # dependency lifecycle scripts inside the job that checks them.
       - name: Audit dependencies
         run: pnpm audit
