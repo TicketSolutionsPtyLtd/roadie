@@ -197,14 +197,15 @@
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
     "@vitejs/plugin-react": "5.1.0",
-    "@vitest/coverage-v8": "4.0.4",
-    "@vitest/ui": "4.0.4",
+    "@vitest/coverage-v8": "4.1.10",
+    "@vitest/ui": "4.1.10",
     "class-variance-authority": "0.7.1",
     "jsdom": "27.0.1",
     "size-limit": "12.0.1",
-    "svgo": "4.0.0",
+    "svgo": "4.0.2",
     "tsdown": "0.21.7",
-    "vitest": "4.0.4"
+    "vite": "7.3.6",
+    "vitest": "4.1.10"
   },
   "author": {
     "name": "Luke Brooker",
