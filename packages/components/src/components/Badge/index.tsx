@@ -30,8 +30,7 @@ export const badgeVariants = cva(
 )
 
 export interface BadgeProps
-  extends ComponentProps<'span'>,
-    VariantProps<typeof badgeVariants> {
+  extends ComponentProps<'span'>, VariantProps<typeof badgeVariants> {
   /** Show a dot indicator before the text */
   indicator?: boolean
   /** Animate the indicator with a slow pulse */

@@ -595,9 +595,8 @@ describe('Carousel', () => {
   })
 
   it('Carousel.TitleLink href routes through configured RoadieLinkProvider', async () => {
-    const { RoadieLinkProvider } = await import(
-      '../../providers/RoadieLinkProvider'
-    )
+    const { RoadieLinkProvider } =
+      await import('../../providers/RoadieLinkProvider')
     const StubLink = ({
       href,
       children,

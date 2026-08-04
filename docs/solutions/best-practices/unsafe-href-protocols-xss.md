@@ -61,11 +61,7 @@ design system is the right place to draw that line.
 ```ts
 // utils/resolveLinkKind.ts
 export type ResolvedLinkKind =
-  | 'button'
-  | 'external'
-  | 'protocol'
-  | 'internal'
-  | 'unsafe' // ← new
+  'button' | 'external' | 'protocol' | 'internal' | 'unsafe' // ← new
 
 const EXTERNAL_PATTERN = /^(https?:)?\/\//i
 const PROTOCOL_PATTERN = /^(mailto|tel|sms):/i

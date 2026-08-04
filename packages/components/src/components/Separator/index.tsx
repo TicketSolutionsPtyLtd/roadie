@@ -17,8 +17,7 @@ export const separatorVariants = cva('border-subtle border-solid', {
 })
 
 export interface SeparatorProps
-  extends ComponentProps<'div'>,
-    VariantProps<typeof separatorVariants> {}
+  extends ComponentProps<'div'>, VariantProps<typeof separatorVariants> {}
 
 export function Separator({
   className,

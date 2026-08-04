@@ -25,8 +25,7 @@ import { cn } from '@oztix/roadie-core/utils'
  *   — full control with the default props in hand.
  */
 export type RoadieRenderProp<P = Record<string, unknown>> =
-  | ReactElement
-  | ((defaultProps: P) => ReactElement)
+  ReactElement | ((defaultProps: P) => ReactElement)
 
 type AnyProps = Record<string, unknown> & {
   className?: string

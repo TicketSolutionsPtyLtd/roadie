@@ -150,8 +150,8 @@ const emptyClosing = computed(() => isEmpty.value && !isOpen.value)
 const visible = computed(() =>
   Boolean(
     props.collectionId &&
-      (summary.value || details.value || sawCart.value) &&
-      !hidden.value
+    (summary.value || details.value || sawCart.value) &&
+    !hidden.value
   )
 )
 

@@ -65,8 +65,7 @@ export const iconTileVariants = cva(
 )
 
 export interface IconTileProps
-  extends ComponentProps<'div'>,
-    VariantProps<typeof iconTileVariants> {}
+  extends ComponentProps<'div'>, VariantProps<typeof iconTileVariants> {}
 
 export function IconTile({
   className,

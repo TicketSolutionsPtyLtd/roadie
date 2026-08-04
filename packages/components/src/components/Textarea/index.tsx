@@ -30,7 +30,8 @@ export const textareaVariants = cva(
 )
 
 export interface TextareaProps
-  extends Omit<ComponentProps<'textarea'>, 'size'>,
+  extends
+    Omit<ComponentProps<'textarea'>, 'size'>,
     VariantProps<typeof textareaVariants> {
   autoResize?: boolean
 }
