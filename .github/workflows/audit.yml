@@ -1,0 +1,46 @@
+name: Audit
+
+# Scheduled as well as per-PR: advisories are published upstream, so they land
+# with no matching diff. Threshold lives in pnpm-workspace.yaml under `audit:`.
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    # Monday 06:00 Brisbane
+    - cron: '0 20 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: '.nvmrc'
+
+      # Deliberately not the composite setup: audit reads pnpm-lock.yaml and
+      # needs no node_modules, so installing would cost a minute and run
+      # dependency lifecycle scripts inside the job that checks them.
+      - name: Audit dependencies
+        run: pnpm audit

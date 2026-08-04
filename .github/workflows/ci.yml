@@ -27,7 +27,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 2
 
@@ -42,27 +42,13 @@ jobs:
         env:
           TURBO_SCM_BASE: origin/main
 
-  # Separate job, and not --affected: advisories land without a matching diff.
-  audit:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Setup
-        uses: ./.github/composite-actions/setup
-
-      - name: Audit dependencies
-        run: pnpm audit
-
   build:
     needs: [check]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 2
 
