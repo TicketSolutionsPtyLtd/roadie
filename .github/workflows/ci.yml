@@ -42,6 +42,11 @@ jobs:
         env:
           TURBO_SCM_BASE: origin/main
 
+      # eslint's prettier rule only covers files it lints, so md/json drift
+      # silently without this.
+      - name: Check formatting
+        run: pnpm format:check
+
   build:
     needs: [check]
     runs-on: ubuntu-latest
@@ -64,5 +69,6 @@ jobs:
           NEXT_PUBLIC_BASE_PATH: /roadie
           TURBO_SCM_BASE: origin/main
 
+      # -r so widgets is covered too; it had been over budget unnoticed.
       - name: Check bundle size
-        run: pnpm --filter @oztix/roadie-components size:check
+        run: pnpm -r size:check

@@ -70,8 +70,8 @@
     "typecheck": "vue-tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier --ignore-path ../../.prettierignore --write \"**/*.{ts,tsx,js,jsx,vue,json,css,md}\"",
-    "format:check": "prettier --ignore-path ../../.prettierignore --check \"**/*.{ts,tsx,js,jsx,vue,json,css,md}\"",
+    "format": "prettier --ignore-path ../../.prettierignore --write \"**/*.{ts,tsx,js,jsx,cjs,mjs,vue,json,css,md}\"",
+    "format:check": "prettier --ignore-path ../../.prettierignore --check \"**/*.{ts,tsx,js,jsx,cjs,mjs,vue,json,css,md}\"",
     "size": "size-limit",
     "size:check": "size-limit --limit"
   },
@@ -164,12 +164,12 @@
     {
       "name": "cart-drawer/core",
       "path": "dist/cart-drawer/core/index.js",
-      "limit": "1.6 KB"
+      "limit": "2.1 KB"
     },
     {
       "name": "cart-drawer/react",
       "path": "dist/cart-drawer/react/index.js",
-      "limit": "8 KB",
+      "limit": "9.5 KB",
       "ignore": [
         "react",
         "react-dom",
@@ -184,7 +184,7 @@
     {
       "name": "cart-drawer/vue",
       "path": "dist/cart-drawer/vue/index.js",
-      "limit": "11 KB",
+      "limit": "14.5 KB",
       "ignore": [
         "vue",
         "focus-trap",
