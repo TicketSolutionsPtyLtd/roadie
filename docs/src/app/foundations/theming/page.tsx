@@ -13,16 +13,13 @@ export const metadata = {
 export default function ThemingPage() {
   return (
     <div className='grid gap-12'>
-      <div className='grid gap-3'>
-        <h1 className='text-display-prose-1 text-strong'>Theming</h1>
-        <p className='text-lg text-subtle'>
-          Roadie&apos;s <Code>ThemeProvider</Code> wires one hex accent colour
-          into 14-step OKLCH scales at runtime and handles dark mode at the same
-          time. Use it uncontrolled for apps with a single brand colour,
-          controlled for apps themed from data, or compose the pre-hydration
-          bootstrap helpers for static exports that need zero-flash cold loads.
-        </p>
-      </div>
+      <p className='text-lg text-subtle'>
+        Roadie&apos;s <Code>ThemeProvider</Code> wires one hex accent colour
+        into 14-step OKLCH scales at runtime and handles dark mode at the same
+        time. Use it uncontrolled for apps with a single brand colour,
+        controlled for apps themed from data, or compose the pre-hydration
+        bootstrap helpers for static exports that need zero-flash cold loads.
+      </p>
 
       {/* Concepts */}
       <section className='grid gap-4'>

@@ -126,6 +126,11 @@ const playsNowUtilities = [
     description: 'One-shot scale pop — attention cue (badge update)'
   },
   {
+    name: 'animate-pop-tap',
+    description:
+      'One-shot scale pop, faster with a spring ease — selection feedback under the tap, not a notification'
+  },
+  {
     name: 'animate-pulse-subtle',
     description: 'Looping opacity pulse — a surface waiting on something'
   },
@@ -180,15 +185,11 @@ const brandValues = [
 export default function MotionPage() {
   return (
     <div className='grid gap-12'>
-      {/* ── Hero ── */}
-      <div className='grid gap-3'>
-        <h1 className='text-display-prose-1 text-strong'>Motion</h1>
-        <p className='text-lg text-subtle'>
-          Motion is feedback. Every transition tells the user what happened,
-          what&apos;s happening, or where to look. If it doesn&apos;t do one of
-          those jobs, cut it.
-        </p>
-      </div>
+      <p className='text-lg text-subtle'>
+        Motion is feedback. Every transition tells the user what happened,
+        what&apos;s happening, or where to look. If it doesn&apos;t do one of
+        those jobs, cut it.
+      </p>
 
       {/* ── Brand personality ── */}
       <section className='grid gap-6'>
@@ -450,8 +451,17 @@ export default function MotionPage() {
               { label: 'animate-nudge', className: 'hover:animate-nudge' },
               { label: 'animate-pop', className: 'hover:animate-pop' },
               {
+<<<<<<< HEAD
                 label: 'animate-pop-in',
                 className: 'origin-bottom hover:animate-pop-in'
+=======
+                label: 'animate-pop-tap',
+                className: 'hover:animate-pop-tap'
+              },
+              {
+                label: 'motion-pop-in',
+                className: 'origin-bottom hover:motion-pop-in'
+>>>>>>> d801dd5a (docs: component pages and navigation for the new primitives)
               }
             ].map(({ label, className }) => (
               <div

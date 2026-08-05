@@ -34,6 +34,12 @@ const radiusScale = [
     useFor: 'Cards, select popups, radio cards, popovers'
   },
   {
+    tier: 'App shell',
+    className: 'rounded-2xl',
+    value: '16px',
+    useFor: 'Navigator panes and rail'
+  },
+  {
     tier: 'Large',
     className: 'rounded-2xl',
     value: '16px',
@@ -95,14 +101,11 @@ const componentMapping = [
 export default function ShapePage() {
   return (
     <div className='grid gap-12'>
-      <div className='grid gap-3'>
-        <h1 className='text-display-prose-1 text-strong'>Shape</h1>
-        <p className='text-lg text-subtle'>
-          Soft corners signal approachability. Roadie uses Tailwind&apos;s
-          built-in border-radius scale to create a consistent, rounded visual
-          language that progresses from inline elements to full containers.
-        </p>
-      </div>
+      <p className='text-lg text-subtle'>
+        Soft corners signal approachability. Roadie uses Tailwind&apos;s
+        built-in border-radius scale to create a consistent, rounded visual
+        language that progresses from inline elements to full containers.
+      </p>
 
       {/* Radius scale */}
       <section className='grid gap-4'>

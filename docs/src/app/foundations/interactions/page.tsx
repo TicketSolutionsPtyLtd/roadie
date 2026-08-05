@@ -24,13 +24,10 @@ const emphasisLevels = [
 export default function InteractionsPage() {
   return (
     <div className='grid gap-12'>
-      <div className='grid gap-3'>
-        <h1 className='text-display-prose-1 text-strong'>Interactions</h1>
-        <p className='text-lg text-subtle'>
-          Interaction is a conversation. Details are the vocabulary. We build
-          for the felt experience — not just what works, but what feels right.
-        </p>
-      </div>
+      <p className='text-lg text-subtle'>
+        Interaction is a conversation. Details are the vocabulary. We build for
+        the felt experience — not just what works, but what feels right.
+      </p>
 
       {/* ── Design principles ── */}
       <section className='grid gap-6'>

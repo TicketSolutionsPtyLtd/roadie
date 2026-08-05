@@ -86,13 +86,10 @@ const newComponents = [
 export default function MigrationPage() {
   return (
     <div className='grid gap-12'>
-      <div className='grid gap-3'>
-        <h1 className='text-display-prose-1 text-strong'>Migrating to v2</h1>
-        <p className='text-lg text-subtle'>
-          Roadie v2 replaces PandaCSS with Tailwind CSS v4 and Ark UI with Base
-          UI. This guide covers every change you need to make.
-        </p>
-      </div>
+      <p className='text-lg text-subtle'>
+        Roadie v2 replaces PandaCSS with Tailwind CSS v4 and Ark UI with Base
+        UI. This guide covers every change you need to make.
+      </p>
 
       {/* ── Overview ── */}
       <section className='grid gap-6'>

@@ -1,0 +1,780 @@
+export const metadata = {
+  title: 'Navigator',
+  description:
+    'A full-height application frame — a rail on desktop, a tab bar on mobile — that adapts to whether the product has nested sections',
+  status: 'alpha',
+  category: 'Navigation',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+A full-height application frame — a rail on desktop, a tab bar on
+mobile — that adapts to whether the product has nested sections.
+
+## Import
+
+```tsx
+import { Navigator } from '@oztix/roadie-components/navigator'
+```
+
+## Anatomy
+
+Navigator owns the whole viewport (`100dvh`). `Navigator.Primary` is the
+top-level navigation: a vertical rail on desktop and a floating tab bar
+on mobile — both are derived from the same `Navigator.Item` children, so
+you author the destinations once. `Navigator.Content` arranges one or more
+[`Pane`](/components/pane)s, each of which owns its own scroll.
+
+Navigator is always **controlled** — the active `value` belongs to your
+router. The examples below hold it in `useState` to stay
+self-contained; in a real app you would derive `value` from the URL and
+let each item's `href` drive navigation.
+
+Every example is wrapped in a fixed-height, `overflow-hidden` box so the
+frame renders whole inside the page. The floating tab bar and the
+overflow fold are the **mobile** presentation — narrow your viewport (or
+open the example on a phone) to see them; a wide viewport shows the
+desktop rail.
+
+**Keep the whole tree in a client component.** `Navigator.Primary`,
+`Navigator.Secondary`, `Navigator.Group` and `Navigator.Panel` all find
+something by element reference — items, a group's title, a panel's own
+props — rather than by walking rendered output. React Flight replaces the
+type of every element authored in a server component with a lazy wrapper,
+so a server-authored tree silently renders the wrong rail form, drops
+group titles, and produces an empty tab bar. Author the whole Navigator
+inside a `'use client'` component — `Navigator.Content` and `Pane` are the
+only pieces that are server-safe on their own. See
+`docs/contributing/COMPOUND_PATTERNS.md` §1.2.
+
+## Examples
+
+### Default
+
+The consumer shape: a handful of primary destinations and an
+`Navigator.End` group anchored to the bottom of the rail. No nesting, so
+the rail stays in its compact, icon-first form.
+
+```tsx-live-noinline
+function ConsumerNav() {
+  const [active, setActive] = useState('discover')
+  const labels = {
+    discover: 'Discover',
+    tickets: 'My tickets',
+    saved: 'Saved',
+    account: 'Account'
+  }
+  const upcoming = [
+    { title: 'Midnight Frequency', subtitle: 'Sat 12 Jul · The Tivoli' },
+    { title: 'Sunset Sounds', subtitle: 'Fri 18 Jul · Riverstage' },
+    { title: 'Neon Dusk', subtitle: 'Sat 26 Jul · The Zoo' },
+    { title: 'Harbour Lights', subtitle: 'Sun 3 Aug · Fortitude Music Hall' },
+    { title: 'Analog Bloom', subtitle: 'Fri 15 Aug · The Triffid' },
+    { title: 'Coastal Echo', subtitle: 'Sat 23 Aug · Princess Theatre' },
+    { title: 'Velvet Static', subtitle: 'Fri 5 Sep · The Brightside' },
+    { title: 'Golden Hour', subtitle: 'Sat 20 Sep · Suncorp Piazza' }
+  ]
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <Navigator value={active} onValueChange={setActive} className='h-full'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Item value='discover' icon={<MagnifyingGlassIcon />}>
+            Discover
+          </Navigator.Item>
+          <Navigator.Item value='tickets' icon={<TicketIcon />}>
+            My tickets
+          </Navigator.Item>
+          <Navigator.Item value='saved' icon={<HeartIcon />}>
+            Saved
+          </Navigator.Item>
+          <Navigator.End>
+            <Navigator.Item value='account' icon={<GearIcon />}>
+              Account
+            </Navigator.Item>
+          </Navigator.End>
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Pane role='detail'>
+            <div className='grid gap-3 p-4'>
+              <h2 className='text-display-ui-4 text-strong'>{labels[active]}</h2>
+              <List>
+                {upcoming.map((event) => (
+                  <List.Item
+                    key={event.title}
+                    title={event.title}
+                    subtitle={event.subtitle}
+                    leading={
+                      <IconTile intent='accent' emphasis='subtle'>
+                        <TicketIcon weight='bold' />
+                      </IconTile>
+                    }
+                    chevron
+                  />
+                ))}
+              </List>
+            </div>
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    </div>
+  )
+}
+render(<ConsumerNav />)
+```
+
+### Nested
+
+The organiser shape: a primary item declares a `Navigator.Secondary`.
+Declaring one anywhere in the tree switches the whole rail to its wider,
+labelled form (240px), and the secondary layer appears indented under
+its parent when that parent is active. On mobile the same declaration
+becomes a horizontally scrolling strip above the content.
+
+```tsx-live-noinline
+function OrganiserNav() {
+  const [active, setActive] = useState('events-upcoming')
+  const events = [
+    { title: 'Midnight Frequency', subtitle: '1,240 sold · 60 remaining' },
+    { title: 'Sunset Sounds', subtitle: '820 sold · 180 remaining' },
+    { title: 'Neon Dusk', subtitle: '540 sold · 460 remaining' },
+    { title: 'Harbour Lights', subtitle: '2,010 sold · sold out' },
+    { title: 'Analog Bloom', subtitle: '310 sold · 690 remaining' },
+    { title: 'Coastal Echo', subtitle: '95 sold · 405 remaining' },
+    { title: 'Velvet Static', subtitle: '640 sold · 160 remaining' },
+    { title: 'Golden Hour', subtitle: '1,480 sold · 20 remaining' }
+  ]
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <Navigator value={active} onValueChange={setActive} className='h-full'>
+        <Navigator.Primary aria-label='Organiser'>
+          <Navigator.Item value='events' icon={<TicketIcon />}>
+            Events
+            <Navigator.Secondary aria-label='Events sections'>
+              <Navigator.Item value='events-upcoming'>Upcoming</Navigator.Item>
+              <Navigator.Item value='events-past'>Past</Navigator.Item>
+              <Navigator.Item value='events-draft'>Draft</Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+          <Navigator.Item value='marketing' icon={<EnvelopeIcon />}>
+            Marketing
+          </Navigator.Item>
+          <Navigator.End>
+            <Navigator.Item value='settings' icon={<GearIcon />}>
+              Settings
+            </Navigator.Item>
+          </Navigator.End>
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Pane role='detail'>
+            <div className='grid gap-3 p-4'>
+              <h2 className='text-display-ui-4 text-strong'>Upcoming events</h2>
+              <List>
+                {events.map((event) => (
+                  <List.Item
+                    key={event.title}
+                    title={event.title}
+                    subtitle={event.subtitle}
+                    leading={
+                      <IconTile intent='brand' emphasis='subtle'>
+                        <TicketIcon weight='bold' />
+                      </IconTile>
+                    }
+                    chevron
+                  />
+                ))}
+              </List>
+            </div>
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    </div>
+  )
+}
+render(<OrganiserNav />)
+```
+
+### Grouping
+
+`Navigator.Group` heads a run of `Navigator.Item`s with a `Navigator.GroupTitle`
+— its first child. The title renders as an `<h2>` by default; pass `render` to
+change the level when the page's own outline needs it. The group announces to
+assistive tech as a named list, via `aria-labelledby` on the run's `<ul>`, so
+screen reader users hear "Manage, list, 2 items" rather than an unlabelled run.
+
+Groups flatten where there's no room for a heading: on the mobile strip and in
+the tab bar's first four slots, the items render inline in author order and
+the title is dropped — the destinations are still reachable, just without the
+grouping.
+
+```tsx-live-noinline
+function GroupedNav() {
+  const [active, setActive] = useState('overview')
+  const labels = {
+    overview: 'Overview',
+    events: 'Events',
+    orders: 'Orders',
+    reviews: 'Reviews',
+    messages: 'Messages'
+  }
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <Navigator value={active} onValueChange={setActive} className='h-full'>
+        <Navigator.Primary aria-label='Admin'>
+          <Navigator.Item value='overview' icon={<MagnifyingGlassIcon />}>
+            Overview
+          </Navigator.Item>
+          <Navigator.Group>
+            <Navigator.GroupTitle>Manage</Navigator.GroupTitle>
+            <Navigator.Item value='events' icon={<TicketIcon />}>
+              Events
+            </Navigator.Item>
+            <Navigator.Item value='orders' icon={<ShoppingCartIcon />}>
+              Orders
+            </Navigator.Item>
+          </Navigator.Group>
+          <Navigator.Group>
+            <Navigator.GroupTitle>Insights</Navigator.GroupTitle>
+            <Navigator.Item value='reviews' icon={<StarIcon />}>
+              Reviews
+            </Navigator.Item>
+            <Navigator.Item value='messages' icon={<EnvelopeIcon />}>
+              Messages
+            </Navigator.Item>
+          </Navigator.Group>
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Pane role='detail'>
+            <div className='grid gap-3 p-4'>
+              <h2 className='text-display-ui-4 text-strong'>{labels[active]}</h2>
+              <p className='text-subtle'>
+                Two groups, Manage and Insights — narrow the viewport to see
+                them flatten into the tab bar.
+              </p>
+            </div>
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    </div>
+  )
+}
+render(<GroupedNav />)
+```
+
+### Overflow
+
+The mobile tab bar holds at most five slots. With six primary items plus a
+`Navigator.End`, the tail folds into a final **More** tab. Opening it pushes a
+full-screen `Navigator.Overflow` pane onto the stack — the tab bar stays
+visible, because you're still inside the nav, not away from it — and the
+indicator slides to the More tab to mark it selected. It closes by tapping a
+row, tapping More again, or pressing Escape; there is no outside-tap, because
+there is no floating surface to tap outside of.
+
+Declaring `Navigator.Overflow` yourself — with a `Pane.Header` for a title —
+is the composable form, and the one on this page. Omit it and
+`Navigator.Content` generates one holding just a bare `Navigator.OverflowItems`,
+with no header. The desktop rail always shows every item — narrow your
+viewport to see the fold.
+
+```tsx-live-noinline
+function OverflowNav() {
+  const [active, setActive] = useState('discover')
+  const orders = [
+    { title: 'Order #10482', subtitle: '2 tickets · Midnight Frequency' },
+    { title: 'Order #10461', subtitle: '4 tickets · Sunset Sounds' },
+    { title: 'Order #10437', subtitle: '1 ticket · Neon Dusk' },
+    { title: 'Order #10402', subtitle: '3 tickets · Harbour Lights' },
+    { title: 'Order #10388', subtitle: '2 tickets · Analog Bloom' },
+    { title: 'Order #10355', subtitle: '6 tickets · Coastal Echo' },
+    { title: 'Order #10329', subtitle: '2 tickets · Velvet Static' },
+    { title: 'Order #10310', subtitle: '5 tickets · Golden Hour' }
+  ]
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <Navigator value={active} onValueChange={setActive} className='h-full'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Item value='discover' icon={<MagnifyingGlassIcon />}>
+            Discover
+          </Navigator.Item>
+          <Navigator.Item value='tickets' icon={<TicketIcon />}>
+            Tickets
+          </Navigator.Item>
+          <Navigator.Item value='saved' icon={<HeartIcon />}>
+            Saved
+          </Navigator.Item>
+          <Navigator.Item value='orders' icon={<ShoppingCartIcon />}>
+            Orders
+          </Navigator.Item>
+          <Navigator.Item value='reviews' icon={<StarIcon />}>
+            Reviews
+          </Navigator.Item>
+          <Navigator.Item value='messages' icon={<EnvelopeIcon />}>
+            Messages
+          </Navigator.Item>
+          <Navigator.End>
+            <Navigator.Item value='account' icon={<GearIcon />}>
+              Account
+            </Navigator.Item>
+          </Navigator.End>
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Pane role='detail'>
+            <div className='grid gap-3 p-4'>
+              <h2 className='text-display-ui-4 text-strong'>{active}</h2>
+              <p className='text-subtle'>Six items plus End — the mobile bar folds the tail into “More”.</p>
+              <List>
+                {orders.map((order) => (
+                  <List.Item
+                    key={order.title}
+                    title={order.title}
+                    subtitle={order.subtitle}
+                    leading={
+                      <IconTile intent='accent' emphasis='subtle'>
+                        <ShoppingCartIcon weight='bold' />
+                      </IconTile>
+                    }
+                    chevron
+                  />
+                ))}
+              </List>
+            </div>
+          </Pane>
+          <Navigator.Overflow>
+            <Pane.Header>
+              <Pane.Title>More</Pane.Title>
+            </Pane.Header>
+            <div className='p-4'>
+              <Navigator.OverflowItems />
+            </div>
+          </Navigator.Overflow>
+        </Navigator.Content>
+      </Navigator>
+    </div>
+  )
+}
+render(<OverflowNav />)
+```
+
+### Tab slots
+
+`Navigator.Primary`'s `tabs` prop picks which items take the tab bar's slots,
+in tab order — independent of rail order. Omit it and the bar uses source
+order, folding the tail past four into More, which is what every example
+above does. `tabs` is a tuple type capped at four values, because the fifth
+slot is always More; TypeScript rejects a fifth.
+
+Declaring `tabs` declares the whole membership: any rail item not named in the
+array folds into the overflow, even if it would otherwise have fit — a lone
+unnamed item still discloses rather than getting its own tab. A value in
+`tabs` that doesn't match any `Navigator.Item`'s `value` is a dev-mode
+warning, and that slot is dropped.
+
+```tsx-live-noinline
+function TabSlotsNav() {
+  const [active, setActive] = useState('/')
+  const labels = {
+    '/': 'Home',
+    '/listings': 'Listings',
+    '/calendar': 'Calendar',
+    '/messages': 'Messages',
+    '/reports': 'Reports'
+  }
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <Navigator value={active} onValueChange={setActive} className='h-full'>
+        <Navigator.Primary
+          aria-label='Main'
+          tabs={['/', '/calendar', '/listings', '/messages']}
+        >
+          <Navigator.Item value='/' icon={<MagnifyingGlassIcon />}>
+            Home
+          </Navigator.Item>
+          <Navigator.Item value='/listings' icon={<TicketIcon />}>
+            Listings
+          </Navigator.Item>
+          <Navigator.Item value='/calendar' icon={<StarIcon />}>
+            Calendar
+          </Navigator.Item>
+          <Navigator.Item value='/messages' icon={<EnvelopeIcon />}>
+            Messages
+          </Navigator.Item>
+          <Navigator.Item value='/reports' icon={<ShoppingCartIcon />}>
+            Reports
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Pane role='detail'>
+            <div className='grid gap-3 p-4'>
+              <h2 className='text-display-ui-4 text-strong'>{labels[active]}</h2>
+              <p className='text-subtle'>
+                `tabs` fixes the mobile order to Home, Calendar, Listings,
+                Messages — Reports isn't named, so it folds into the final tab
+                even though the rail shows all five in a different order.
+              </p>
+            </div>
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    </div>
+  )
+}
+render(<TabSlotsNav />)
+```
+
+### Panel
+
+`Navigator.Panel` gives an item a menu instead of a destination — an account
+switcher, a settings menu. Declaring one makes the item a **disclosure**: any
+`href` on it is ignored, exactly as a `Navigator.Secondary` makes it a
+section. It works on any item, primary or `Navigator.End`.
+
+One declaration, two presentations, neither configurable: a popover anchored
+to the rail row from `md`, and below it the item's own tab in the bar toggles
+a full-screen pane — the same tab, not a separate overlay. Put the panel's
+`List` at its own top level — below `md` it renders inside the pane, whose
+list unwind reaches direct children only.
+
+```tsx-live-noinline
+function PanelNav() {
+  const [active, setActive] = useState('discover')
+  const labels = { discover: 'Discover', tickets: 'Tickets' }
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <Navigator value={active} onValueChange={setActive} className='h-full'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Item value='discover' icon={<MagnifyingGlassIcon />}>
+            Discover
+          </Navigator.Item>
+          <Navigator.Item value='tickets' icon={<TicketIcon />}>
+            Tickets
+          </Navigator.Item>
+          <Navigator.End>
+            <Navigator.Item value='account' icon={<GearIcon />}>
+              Account
+              <Navigator.Panel aria-label='Account menu'>
+                <List>
+                  <List.Item
+                    title='Profile'
+                    leading={
+                      <IconTile intent='neutral' emphasis='subtle'>
+                        <GearIcon weight='bold' />
+                      </IconTile>
+                    }
+                    chevron
+                  />
+                  <List.Item
+                    title='Billing'
+                    leading={
+                      <IconTile intent='neutral' emphasis='subtle'>
+                        <TicketIcon weight='bold' />
+                      </IconTile>
+                    }
+                    chevron
+                  />
+                  <List.Item
+                    title='Sign out'
+                    leading={
+                      <IconTile intent='danger' emphasis='subtle'>
+                        <XIcon weight='bold' />
+                      </IconTile>
+                    }
+                  />
+                </List>
+              </Navigator.Panel>
+            </Navigator.Item>
+          </Navigator.End>
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Pane role='detail'>
+            <div className='grid gap-3 p-4'>
+              <h2 className='text-display-ui-4 text-strong'>{labels[active]}</h2>
+              <p className='text-subtle'>
+                Account owns a menu, not a page — open it from the rail row
+                (a popover) or its own tab (a full-screen pane); it never
+                navigates.
+              </p>
+            </div>
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    </div>
+  )
+}
+render(<PanelNav />)
+```
+
+### Panes
+
+`Navigator.Content` lays panes out side by side on desktop and stacks
+them on mobile. A `list` pane is width-capped so the `detail` pane takes
+the remaining space; each pane scrolls independently.
+
+```tsx-live-noinline
+function PanesLayout() {
+  const [selected, setSelected] = useState('midnight')
+  const events = {
+    midnight: { title: 'Midnight Frequency', subtitle: 'Sat 12 Jul · The Tivoli' },
+    sunset: { title: 'Sunset Sounds', subtitle: 'Fri 18 Jul · Riverstage' },
+    neon: { title: 'Neon Dusk', subtitle: 'Sat 26 Jul · The Zoo' },
+    harbour: { title: 'Harbour Lights', subtitle: 'Sun 3 Aug · Fortitude Music Hall' },
+    analog: { title: 'Analog Bloom', subtitle: 'Fri 15 Aug · The Triffid' },
+    coastal: { title: 'Coastal Echo', subtitle: 'Sat 23 Aug · Princess Theatre' },
+    velvet: { title: 'Velvet Static', subtitle: 'Fri 5 Sep · The Brightside' },
+    golden: { title: 'Golden Hour', subtitle: 'Sat 20 Sep · Suncorp Piazza' }
+  }
+  const event = events[selected]
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <Navigator className='h-full'>
+        <Navigator.Content>
+          <Pane role='list'>
+            <div className='p-4'>
+              <List emphasis='subtler'>
+                {Object.entries(events).map(([value, { title, subtitle }]) => (
+                <List.Item
+                  key={value}
+                  title={title}
+                  subtitle={subtitle}
+                  leading={
+                    <IconTile intent='accent' emphasis='subtle'>
+                      <TicketIcon weight='bold' />
+                    </IconTile>
+                  }
+                    current={selected === value}
+                    onClick={() => setSelected(value)}
+                  />
+                ))}
+              </List>
+            </div>
+          </Pane>
+          <Pane role='detail' current={event != null}>
+            <div className='grid gap-3 p-4'>
+              <h2 className='text-display-ui-4 text-strong'>{event.title}</h2>
+              <p className='text-subtle'>{event.subtitle}</p>
+              <List>
+                <List.Item
+                  title='General admission'
+                  subtitle='$68.00 · on sale'
+                  leading={<IconTile intent='success' emphasis='subtle'><TicketIcon weight='bold' /></IconTile>}
+                  chevron
+                />
+                <List.Item
+                  title='Early bird'
+                  subtitle='$54.00 · sold out'
+                  leading={<IconTile intent='neutral' emphasis='subtle'><TicketIcon weight='bold' /></IconTile>}
+                  chevron
+                />
+                <List.Item
+                  title='VIP booth'
+                  subtitle='$180.00 · 6 remaining'
+                  leading={<IconTile intent='brand' emphasis='subtle'><StarIcon weight='bold' /></IconTile>}
+                  chevron
+                />
+                <List.Item
+                  title='Doors'
+                  subtitle='7:00 pm'
+                  leading={<IconTile intent='accent' emphasis='subtle'><InfoIcon weight='bold' /></IconTile>}
+                />
+                <List.Item
+                  title='Support act'
+                  subtitle='The Paper Kites'
+                  leading={<IconTile intent='accent' emphasis='subtle'><HeartIcon weight='bold' /></IconTile>}
+                />
+              </List>
+            </div>
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    </div>
+  )
+}
+render(<PanesLayout />)
+```
+
+### Pane header
+
+[`Pane.Header`](/components/pane) is sticky chrome at the top of a pane: a
+`Pane.Title`, a back affordance (top-left, from `backHref` or `onBack`), and a
+`Pane.Actions` slot (top-right). Body content scrolls beneath it. Here a `list`
+pane drills into a `detail` pane — selecting a row reveals the detail, and the
+back control clears the selection. It is depth-aware: a `list` (first) pane has
+nothing to go back to and shows none, and the back row hides from `lg` up, where
+every pane is a column beside its siblings rather than stacked over them.
+
+The header is also where Navigator renders the active section's secondary nav on
+mobile. Only the **top** pane's header draws it, so a stack of mounted panes can
+never produce two section-nav landmarks.
+
+```tsx-live-noinline
+function DrillInNav() {
+  const [selected, setSelected] = useState(null)
+  const events = [
+    { id: 'midnight', title: 'Midnight Frequency', subtitle: '1,240 sold · 60 remaining' },
+    { id: 'sunset', title: 'Sunset Sounds', subtitle: '820 sold · 180 remaining' },
+    { id: 'neon', title: 'Neon Dusk', subtitle: '540 sold · 460 remaining' },
+    { id: 'harbour', title: 'Harbour Lights', subtitle: '2,010 sold · sold out' },
+    { id: 'analog', title: 'Analog Bloom', subtitle: '310 sold · 690 remaining' },
+    { id: 'coastal', title: 'Coastal Echo', subtitle: '95 sold · 405 remaining' }
+  ]
+  const event = events.find((e) => e.id === selected)
+  const tiers = [
+    { title: 'General admission', subtitle: '$68.00 · on sale' },
+    { title: 'Early bird', subtitle: '$54.00 · sold out' },
+    { title: 'VIP booth', subtitle: '$180.00 · 6 remaining' },
+    { title: 'Group of 6', subtitle: '$360.00 · on sale' },
+    { title: 'Accessible seating', subtitle: '$68.00 · on sale' },
+    { title: 'Companion', subtitle: '$0.00 · on request' }
+  ]
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <Navigator className='h-full'>
+        <Navigator.Content>
+          <Pane role='list'>
+            <List>
+              {events.map((e) => (
+                <List.Item
+                  key={e.id}
+                  title={e.title}
+                  subtitle={e.subtitle}
+                  leading={
+                    <IconTile intent='accent' emphasis='subtle'>
+                      <TicketIcon weight='bold' />
+                    </IconTile>
+                  }
+                  chevron
+                  current={selected === e.id}
+                  onClick={() => setSelected(e.id)}
+                />
+              ))}
+            </List>
+          </Pane>
+          {event ? (
+            <Pane role='detail' current={event != null}>
+              <Pane.Header onBack={() => setSelected(null)}>
+                <Pane.Title>{event.title}</Pane.Title>
+                <Pane.Actions>
+                  <Button intent='accent' emphasis='strong'>
+                    Publish
+                  </Button>
+                </Pane.Actions>
+              </Pane.Header>
+              <div className='grid gap-3 py-4'>
+                <p className='px-4 text-subtle'>{event.subtitle}</p>
+                <List>
+                  {tiers.map((tier) => (
+                    <List.Item
+                      key={tier.title}
+                      title={tier.title}
+                      subtitle={tier.subtitle}
+                      leading={
+                        <IconTile intent='brand' emphasis='subtle'>
+                          <TicketIcon weight='bold' />
+                        </IconTile>
+                      }
+                      chevron
+                    />
+                  ))}
+                </List>
+              </div>
+            </Pane>
+          ) : null}
+        </Navigator.Content>
+      </Navigator>
+    </div>
+  )
+}
+render(<DrillInNav />)
+```
+
+## Long sections
+
+`Navigator.Secondary` is right for a handful of flat sub-pages. Once a section's
+list is long enough to scroll on its own, needs grouping, needs filtering, or its
+rows carry more than a label, it wants a column rather than a nested run of rail
+rows — so declare a [`Pane`](/components/pane) of your own inside
+`Navigator.Content` and leave the section without a `Navigator.Secondary`.
+
+<Guideline title='Choosing Secondary vs. a Pane'>
+  <Guideline.Do code={`<Navigator.Item value='/events' href='/events'>\n  Events\n  <Navigator.Secondary aria-label='Events pages'>\n    <Navigator.Item value='/events/upcoming' href='/events/upcoming'>Upcoming</Navigator.Item>\n    <Navigator.Item value='/events/past' href='/events/past'>Past</Navigator.Item>\n  </Navigator.Secondary>\n</Navigator.Item>`}>
+    **Secondary** for a handful of flat sub-pages with short labels. It
+    keeps the section's structure visible next to its siblings and costs
+    no layout.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Navigator.Secondary aria-label='Catalogue sections'>\n  <Navigator.Item value='/catalogue/tshirts'>T-shirts</Navigator.Item>\n  ... 40 more rows ...\n</Navigator.Secondary>`}>
+    Forty rows in the rail is not a nested section, it is a list. Give it
+    a `Pane` with a `List` inside instead — it costs a column, so it suits
+    a section a user dwells in rather than passes through.
+  </Guideline.Dont>
+</Guideline>
+
+Rough dividing line: under ~10 flat items, `Navigator.Secondary`. Grouped,
+filterable, or thumbnail-bearing, a `Pane`. A heuristic, not a rule.
+
+A section with no `Navigator.Secondary` still lights up on its sub-pages: a
+section's `value` is matched as a **route prefix**, so any destination whose
+value starts with `${value}/` keeps the section branch-active in the rail and
+the tab bar. `Navigator.Primary` passes that branch-active state straight
+through as the tab's `aria-current='page'`, so the section tab announces
+itself as the current page too, alongside whatever destination is actually
+selected inside it — a recorded, accepted imprecision rather than a
+guarantee. The tab bar has no control pointing at a sub-page it never
+rendered, so the nearest reachable ancestor claims the page role instead of
+leaving it unclaimed.
+
+Filtering the list is the consumer's own `.filter()` over its own data, before
+it renders the rows — Navigator has no filter registry, and a `Pane` is just a
+scroll container.
+
+## Pane surfaces and the mobile stack
+
+Both belong to [`Pane`](/components/pane) rather than to Navigator, so they are
+documented there. The two facts worth knowing from here:
+
+- **Below `lg` panes stack**, full-bleed, one visible at a time, and push/pop
+  between them animates. Which pane is on top is derived from the deepest pane
+  marked `current` — declare it, and the arrangement follows.
+- **`Navigator.Content` is the orchestrator.** Panes announce themselves to
+  the nearest `Navigator.Content` through context, wherever they sit in its
+  subtree — a pane returned by a route, a Next.js parallel-route slot, or a
+  wrapper component all participate normally. What still breaks is having no
+  `Pane` reachable at all: nothing registers, so stack position, push/pop
+  motion and `primaryNav` all stay inert, and `Navigator.Content` warns to
+  the console about it in development.
+
+## Guidelines
+
+- **Drive selection from the router.** Navigator is controlled. Derive
+  `value` from the URL and give each item an `href` so back/forward and
+  deep links work; reach for `onValueChange` only when there is no route
+  to own the state.
+- **Use `Navigator.End` for account and settings**, not another primary
+  item — it anchors to the bottom of the rail and becomes the final
+  mobile tab.
+- **Let the top pane declare what the mobile bar does.** `Pane`'s `primaryNav`
+  is `auto` by default: the bar collapses to the active tab as the pane
+  scrolls and returns at the top. `visible` pins it, `hidden` takes it away
+  for the pushed screen (iOS's `hidesBottomBarWhenPushed`).
+- **Panes scroll through a `ScrollArea` viewport.** `Pane` renders a
+  [`ScrollArea`](/components/scroll-area) whose viewport
+  (`[data-slot="pane-viewport"]`) is the real scroll container — anything
+  reading `scrollTop` or calling `scrollTo` on a pane must target the
+  viewport, not the `<section>`.
+- **Sections remember where you left them.** Returning to a section you have
+  visited before lands you back where you left it, not at its declared
+  landing. That memory lives only in the running app — the URL is the only
+  source of truth, so a reload always starts every section at its declared
+  `href`.
+
+## Accessibility
+
+- **Landmarks**: the rail, the mobile tab bar, and each declared
+  secondary render as distinct `<nav>` elements. `aria-label` on
+  `Navigator.Primary` and `Navigator.Secondary` is **required** so screen
+  readers can tell them apart.
+- **Current destination**: the active item carries `aria-current='page'`.
+- **Collapsed tabs stay in the accessibility tree** — they shrink to zero
+  width rather than `display:none`, so the full destination set remains
+  reachable.
+
+<PropsDefinitions componentPath='packages/components/src/components/Navigator' />

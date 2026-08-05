@@ -19,6 +19,12 @@ const PROGRAMMATIC_SCROLL_LOCK_MS = 800
 
 type Heading = { id: string; text: string; level: 2 | 3 }
 
+export type DocHeadings = {
+  headings: Heading[]
+  activeId: string | null
+  onSelect: (event: MouseEvent<HTMLAnchorElement>, id: string) => void
+}
+
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -28,7 +34,13 @@ function slugify(text: string): string {
     .replace(/-+/g, '-')
 }
 
-export function OnThisPage() {
+/**
+ * Lifted out of the view so the inspector pane can be declared only when there
+ * is a table of contents — a declared inspector puts a reveal toggle in the top
+ * pane's header, and below 2xl that toggle would otherwise open an empty
+ * drawer.
+ */
+export function useDocHeadings(): DocHeadings {
   const pathname = usePathname()
   const [headings, setHeadings] = useState<Heading[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -39,9 +51,22 @@ export function OnThisPage() {
   const programmaticScrollLockRef = useRef<number>(0)
 
   useEffect(() => {
-    if (pathname === '/') return
-    const mainEl = document.querySelector('main')
-    if (!mainEl) return
+    // Every bail-out clears first. The count is what declares the inspector
+    // pane, so a route with no contents that returned early would leave the
+    // previous page's headings standing — links to ids that no longer exist.
+    if (pathname === '/') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reading DOM state on mount
+      setHeadings([])
+      return
+    }
+    // Navigator wraps the page in a scrolling pane, so scope to the content
+    // wrapper rather than <main> (which is now Navigator.Content and carries a
+    // data-slot the skip below would otherwise trip on).
+    const mainEl = document.getElementById('docs-content')
+    if (!mainEl) {
+      setHeadings([])
+      return
+    }
 
     // The /components index lists every component as an h3 under category
     // h2s — surfacing those in the rail just duplicates the left-hand
@@ -50,13 +75,17 @@ export function OnThisPage() {
     const nodes = mainEl.querySelectorAll<HTMLHeadingElement>(selector)
 
     // Seed with every existing id already on the page — not just the ids
-    // we assign this pass. The MDX page title renders an h1 (e.g. "Select")
-    // that rehype-slug tags with id="select", and without this seed we would
-    // reassign id="select" to the first h3 with the same text — typically
-    // the root entry in `<PropsDefinitions>`'s API reference section. Two
-    // matching ids means `document.getElementById` returns the h1 and
-    // sidebar clicks scroll to the top of the page instead of the heading
-    // the user picked.
+    // we assign this pass. This used to guard against a specific collision:
+    // the MDX page title rendered an h1 (e.g. "Select") that rehype-slug
+    // tagged with id="select", and a later same-text h3 — typically the
+    // root entry in `<PropsDefinitions>`'s API reference section — could
+    // steal it at runtime if this seed didn't already know "select" was
+    // taken. The title now renders via React as `Pane.BodyTitle`, not MDX,
+    // so it never receives a rehype-slug id — and the `h2, h3` selector
+    // above skips it regardless of where it lives — so that specific
+    // collision can't recur. The seed stays anyway: it is the only thing
+    // that protects a same-text h3 from colliding with any other id already
+    // on the page, from any source.
     const usedIds = new Set<string>(
       Array.from(document.querySelectorAll<HTMLElement>('[id]')).map(
         (node) => node.id
@@ -69,8 +98,11 @@ export function OnThisPage() {
       if (!text) return
 
       // Skip headings rendered inside component examples (Roadie leaves carry
-      // data-slot); real section headings never do.
-      if (el.closest('[data-slot]')) return
+      // data-slot); real section headings never do. Bound the check to the
+      // content wrapper — the enclosing `Pane` carries a data-slot too, and
+      // every heading is inside it.
+      const slot = el.closest('[data-slot]')
+      if (slot && mainEl.contains(slot)) return
 
       let id = el.id
       if (!id) {
@@ -92,7 +124,6 @@ export function OnThisPage() {
       })
     })
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- reading DOM state on mount
     setHeadings(collected)
 
     if (collected.length === 0) return
@@ -134,11 +165,12 @@ export function OnThisPage() {
       if (!target) return
 
       event.preventDefault()
-      const top =
-        target.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET_PX
       programmaticScrollLockRef.current =
         Date.now() + PROGRAMMATIC_SCROLL_LOCK_MS
-      window.scrollTo({ top, behavior: 'smooth' })
+      // The page no longer scrolls — the content Pane does. scrollIntoView
+      // walks up to that scroll container; the pane's scroll-pt keeps the
+      // heading clear of the top edge.
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
       setActiveId(id)
       if (window.history.replaceState) {
         window.history.replaceState(null, '', `#${id}`)
@@ -147,14 +179,16 @@ export function OnThisPage() {
     []
   )
 
-  if (pathname === '/') return null
-  if (headings.length < 2) return null
+  return { headings, activeId, onSelect: handleClick }
+}
 
+/**
+ * The table of contents itself. Visibility and stickiness belong to the
+ * enclosing inspector pane, so this carries neither.
+ */
+export function OnThisPage({ headings, activeId, onSelect }: DocHeadings) {
   return (
-    <nav
-      aria-label='On this page'
-      className='hidden lg:sticky lg:top-20 lg:block lg:max-h-[calc(100vh-6rem)] lg:self-start lg:overflow-y-auto'
-    >
+    <nav aria-label='On this page'>
       <p className='mb-3 text-sm font-semibold text-strong'>On this page</p>
       <ul className='grid gap-2 border-l border-subtler'>
         {headings.map((h) => (
@@ -167,7 +201,7 @@ export function OnThisPage() {
           >
             <a
               href={`#${h.id}`}
-              onClick={(event) => handleClick(event, h.id)}
+              onClick={(event) => onSelect(event, h.id)}
               className={cn(
                 'block text-sm transition-colors',
                 activeId === h.id

@@ -123,15 +123,12 @@ const intents = [
 export default function ElevationPage() {
   return (
     <div className='grid gap-10'>
-      <div className='grid gap-3'>
-        <h1 className='text-display-prose-1 text-strong'>Elevation</h1>
-        <p className='text-lg text-subtle'>
-          Shadows are tinted with the current intent&apos;s hue using CSS-native{' '}
-          <Code>oklch()</Code>. A card inside <Code>intent-danger</Code>{' '}
-          automatically gets red-tinted shadows. Uses Tailwind&apos;s standard
-          shadow utilities.
-        </p>
-      </div>
+      <p className='text-lg text-subtle'>
+        Shadows are tinted with the current intent&apos;s hue using CSS-native{' '}
+        <Code>oklch()</Code>. A card inside <Code>intent-danger</Code>{' '}
+        automatically gets red-tinted shadows. Uses Tailwind&apos;s standard
+        shadow utilities.
+      </p>
 
       {/* Shadow scale */}
       <section className='grid gap-4'>
