@@ -17,3 +17,6 @@ export const surfaceTitleClass = 'text-display-ui-4 text-strong'
 
 /** A literal union, because `react-docgen-typescript` can't read CVA types. */
 export type RoadieIntent = keyof typeof intentVariants
+
+/** The default field surface, matching `Input` and `Textarea`. */
+export const fieldSurfaceClass = 'emphasis-field is-interactive-field'
