@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 
-import { Link } from 'next-view-transitions'
+import Link from 'next/link'
 
 import { CodePreview } from '@/components/CodePreview'
 

@@ -200,7 +200,7 @@ unambiguous. All 476 tests passed unchanged after the rename.
 // Before — eslint-plugin-react-hooks would flag this when enabled
 function CardRoot({ render, ...props }: CardRootProps) {
   if (render !== undefined) {
-    return useRender(CardElement, props, render)  // ❌ react-hooks/rules-of-hooks
+    return useRender(CardElement, props, render) // ❌ react-hooks/rules-of-hooks
   }
   return <CardElement {...props} />
 }
@@ -208,7 +208,7 @@ function CardRoot({ render, ...props }: CardRootProps) {
 // After — identical logic, no lint exposure, no future hazard
 function CardRoot({ render, ...props }: CardRootProps) {
   if (render !== undefined) {
-    return resolveRender(CardElement, props, render)  // ✅
+    return resolveRender(CardElement, props, render) // ✅
   }
   return <CardElement {...props} />
 }

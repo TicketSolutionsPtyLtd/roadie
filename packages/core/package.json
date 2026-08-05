@@ -69,8 +69,8 @@
   "license": "ISC",
   "dependencies": {
     "clsx": "2.1.1",
-    "colorjs.io": "0.6.1",
-    "tailwind-merge": "3.4.0"
+    "colorjs.io": "0.7.1",
+    "tailwind-merge": "3.6.0"
   },
   "devDependencies": {
     "@tailwindcss/cli": "4.2.2",

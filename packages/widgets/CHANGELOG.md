@@ -240,7 +240,9 @@
 
   return (
     <>
-      {!expired && <CartDrawer cart={cart} collectionId={id} onNavigate={nav} />}
+      {!expired && (
+        <CartDrawer cart={cart} collectionId={id} onNavigate={nav} />
+      )}
       <CartExpiryModals
         showWarning={showWarning}
         expired={expired}
