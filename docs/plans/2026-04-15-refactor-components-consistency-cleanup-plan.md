@@ -820,7 +820,12 @@ The only behaviour change in this plan. Select, RadioGroup, Combobox, and Autoco
 
    ```tsx
    const fieldContext = useFieldContext()
-   return <SelectPrimitive.Root disabled={disabled ?? fieldContext.disabled} {...props} />
+   return (
+     <SelectPrimitive.Root
+       disabled={disabled ?? fieldContext.disabled}
+       {...props}
+     />
+   )
    ```
 
 2. **Precedence rule.** `disabled: ownDisabled ?? fieldContext.disabled`. Consumer-level wins over context-level.

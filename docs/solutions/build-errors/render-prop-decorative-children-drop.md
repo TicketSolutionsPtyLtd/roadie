@@ -99,7 +99,7 @@ if (render !== undefined) {
       className: sharedClassName,
       ...(href !== undefined && { href }),
       ...(props as Record<string, unknown>),
-      children                     // ← consumer-provided text or component default
+      children // ← consumer-provided text or component default
     },
     render
   )
@@ -109,9 +109,9 @@ if (render !== undefined) {
   const baseProps = baseElement.props as { children?: React.ReactNode }
   return cloneElement(
     baseElement,
-    undefined,                     // don't replace props
-    baseProps.children,            // preserve whatever children resolved
-    trailingIcon                   // append the decorative element
+    undefined, // don't replace props
+    baseProps.children, // preserve whatever children resolved
+    trailingIcon // append the decorative element
   )
 }
 ```
