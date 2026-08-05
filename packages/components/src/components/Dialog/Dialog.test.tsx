@@ -90,6 +90,24 @@ describe('Dialog presentational leaves', () => {
     )
   })
 
+  it('Title carries the shared surface title class, not a pane-sized one', async () => {
+    render(
+      <Dialog>
+        <Dialog.Trigger>Open</Dialog.Trigger>
+        <Dialog.Content>
+          <Dialog.Header>
+            <Dialog.Title>Save changes?</Dialog.Title>
+          </Dialog.Header>
+        </Dialog.Content>
+      </Dialog>
+    )
+    await userEvent.click(screen.getByText('Open'))
+    await screen.findByRole('dialog')
+    expect(document.querySelector('[data-slot="dialog-title"]')).toHaveClass(
+      'text-display-ui-4'
+    )
+  })
+
   it('Body renders its content', () => {
     const { getByText } = render(<DialogBody>Content</DialogBody>)
     expect(getByText('Content')).toBeInTheDocument()
