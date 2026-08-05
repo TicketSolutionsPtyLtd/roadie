@@ -27,7 +27,8 @@ export const inputVariants = cva('w-full rounded-lg font-sans', {
 })
 
 export interface InputProps
-  extends Omit<ComponentProps<'input'>, 'size'>,
+  extends
+    Omit<ComponentProps<'input'>, 'size'>,
     VariantProps<typeof inputVariants> {}
 
 export function Input({

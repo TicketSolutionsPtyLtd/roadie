@@ -12,8 +12,10 @@ interface IllustrationData {
   paths: PathData[]
 }
 
-export interface SpotIllustrationProps
-  extends Omit<ComponentProps<'svg'>, 'outline'> {
+export interface SpotIllustrationProps extends Omit<
+  ComponentProps<'svg'>,
+  'outline'
+> {
   illustration: IllustrationData
   outline?: boolean
 }

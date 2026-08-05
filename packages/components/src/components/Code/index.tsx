@@ -25,8 +25,7 @@ export const codeVariants = cva(
 )
 
 export interface CodeProps
-  extends ComponentProps<'code'>,
-    VariantProps<typeof codeVariants> {}
+  extends ComponentProps<'code'>, VariantProps<typeof codeVariants> {}
 
 export function Code({ className, intent, emphasis, ...props }: CodeProps) {
   return (

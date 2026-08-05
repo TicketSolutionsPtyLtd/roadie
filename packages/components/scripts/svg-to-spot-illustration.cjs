@@ -400,9 +400,7 @@ function updateIndexExports(componentDir) {
   )
 
   if (baseExportsEnd === -1) {
-    console.log(
-      '  ⚠ Could not find base exports in index.tsx, skipping update'
-    )
+    console.log('  ⚠ Could not find base exports in index.tsx, skipping update')
     return
   }
 

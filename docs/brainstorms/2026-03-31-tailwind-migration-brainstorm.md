@@ -117,11 +117,12 @@ Set `--intent-*` CSS custom properties — children inherit via cascade:
 | inverted | step 12      | step 12 | step 0         |
 
 Surface-only elevation variants:
-| Level | Surface (bg) | Light mode | Dark mode |
-|------------|---------------------|-------------|-------------|
-| raised | step 0 + drop shadow| step 0 | step 2 |
-| sunken | step 2 + inset shadow| step 2 | step 0 |
-| overlay | scrim + backdrop blur| — | — |
+
+| Level   | Surface (bg)          | Light mode | Dark mode |
+| ------- | --------------------- | ---------- | --------- |
+| raised  | step 0 + drop shadow  | step 0     | step 2    |
+| sunken  | step 2 + inset shadow | step 2     | step 0    |
+| overlay | scrim + backdrop blur | —          | —         |
 
 Note: raised/sunken swap their step relative to default in dark mode (raised is lighter, sunken is darker).
 
