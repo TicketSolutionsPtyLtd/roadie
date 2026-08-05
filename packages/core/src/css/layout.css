@@ -23,3 +23,10 @@
     padding-inline: 3rem; /* lg:px-12 */
   }
 }
+
+/* Navigator rail widths. Two forms, chosen once per product by whether
+   anything in the tree declares a Secondary — never a prop. */
+@theme {
+  --navigator-rail-compact: 5.75rem; /* 92px — icons only */
+  --navigator-rail-nested: 15rem; /* 240px — labels + nested children */
+}

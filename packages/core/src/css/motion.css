@@ -259,6 +259,13 @@
   animation: pop var(--duration-slowest) var(--ease-standard);
 }
 
+/* A tap response, not an attention cue: `animate-pop` runs the same keyframe
+   at 600ms, which reads as a notification. Selecting a tab wants the bounce to
+   land under the finger. `--ease-spring` is the file's transform easing. */
+@utility animate-pop-tap {
+  animation: pop var(--duration-moderate) var(--ease-spring);
+}
+
 /* ─── Enter/exit transitions ───
    Reusable, component-agnostic motions for any element that toggles
    `data-[starting-style]` on enter and `data-[ending-style]` on exit
