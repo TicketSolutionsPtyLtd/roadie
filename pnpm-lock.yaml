@@ -213,7 +213,7 @@ importers:
         version: 2.1.10(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@size-limit/preset-small-lib':
         specifier: 12.0.1
-        version: 12.0.1(size-limit@12.0.1(jiti@2.6.1))
+        version: 12.0.1(size-limit@13.0.3)
       '@testing-library/dom':
         specifier: 10.4.0
         version: 10.4.0
@@ -251,8 +251,8 @@ importers:
         specifier: 27.0.1
         version: 27.0.1(postcss@8.5.23)(supports-color@9.4.0)
       size-limit:
-        specifier: 12.0.1
-        version: 12.0.1(jiti@2.6.1)
+        specifier: 13.0.3
+        version: 13.0.3
       svgo:
         specifier: 4.0.2
         version: 4.0.2
@@ -335,7 +335,7 @@ importers:
         version: 2.2.1(vue@3.5.34(typescript@5.9.3))
       '@size-limit/preset-small-lib':
         specifier: 12.0.1
-        version: 12.0.1(size-limit@12.0.1(jiti@2.6.1))
+        version: 12.0.1(size-limit@13.0.3)
       '@tanstack/react-query':
         specifier: 5.100.14
         version: 5.100.14(react@19.2.3)
@@ -385,8 +385,8 @@ importers:
         specifier: 2.13.7
         version: 2.13.7(@types/react@19.2.2)(react@19.2.3)
       size-limit:
-        specifier: 12.0.1
-        version: 12.0.1(jiti@2.6.1)
+        specifier: 13.0.3
+        version: 13.0.3
       tsdown:
         specifier: 0.21.7
         version: 0.21.7(@arethetypeswrong/core@0.18.2)(@emnapi/core@1.10.0)(@emnapi/runtime@1.11.3)(synckit@0.11.13)(typescript@5.9.3)(vue-tsc@3.2.9(typescript@5.9.3))
@@ -5299,15 +5299,10 @@ packages:
     resolution: {integrity: sha512-2wcC/oGxHis/BoHkkPwldgiPSYcpZK3JU28WoMVv55yHJgcZ8rlXvuG9iZggz+sU1d4bRgIGASwyWqjxu3FM0g==}
     engines: {node: '>=18'}
 
-  size-limit@12.0.1:
-    resolution: {integrity: sha512-vuFj+6lDOoBJQu6OLhcMQv7jnbXjuoEn4WsQHlSLOV/8EFfOka/tfjtLQ/rZig5Gagi3R0GnU/0kd4EY/y2etg==}
-    engines: {node: ^20.0.0 || ^22.0.0 || >=24.0.0}
+  size-limit@13.0.3:
+    resolution: {integrity: sha512-KVb2aNEU49BwTR21SVjD+2QHP9gBV/nWsTHzNB/heRwXtHyA7lLQiDZDQ1TiNh/B/TZXKAZrHYyTt+cvBUrzYw==}
+    engines: {node: ^22.18.0 || ^24.0.0 || >=26.0.0}
     hasBin: true
-    peerDependencies:
-      jiti: ^2.0.0
-    peerDependenciesMeta:
-      jiti:
-        optional: true
 
   skin-tone@2.0.0:
     resolution: {integrity: sha512-kUMbT1oBJCpgrnKoSr0o6wPtvRWT9W9UKvGLwfJYO2WuahZRHOpEyL1ckyMGgMWh0UdpmaoFqKKD29WTomNEGA==}
@@ -7413,21 +7408,21 @@ snapshots:
 
   '@sindresorhus/is@4.6.0': {}
 
-  '@size-limit/esbuild@12.0.1(size-limit@12.0.1(jiti@2.6.1))':
+  '@size-limit/esbuild@12.0.1(size-limit@13.0.3)':
     dependencies:
       esbuild: 0.28.1
       nanoid: 5.1.7
-      size-limit: 12.0.1(jiti@2.6.1)
+      size-limit: 13.0.3
 
-  '@size-limit/file@12.0.1(size-limit@12.0.1(jiti@2.6.1))':
+  '@size-limit/file@12.0.1(size-limit@13.0.3)':
     dependencies:
-      size-limit: 12.0.1(jiti@2.6.1)
+      size-limit: 13.0.3
 
-  '@size-limit/preset-small-lib@12.0.1(size-limit@12.0.1(jiti@2.6.1))':
+  '@size-limit/preset-small-lib@12.0.1(size-limit@13.0.3)':
     dependencies:
-      '@size-limit/esbuild': 12.0.1(size-limit@12.0.1(jiti@2.6.1))
-      '@size-limit/file': 12.0.1(size-limit@12.0.1(jiti@2.6.1))
-      size-limit: 12.0.1(jiti@2.6.1)
+      '@size-limit/esbuild': 12.0.1(size-limit@13.0.3)
+      '@size-limit/file': 12.0.1(size-limit@13.0.3)
+      size-limit: 13.0.3
 
   '@standard-schema/spec@1.1.0': {}
 
@@ -11914,15 +11909,11 @@ snapshots:
       mrmime: 2.0.1
       totalist: 3.0.1
 
-  size-limit@12.0.1(jiti@2.6.1):
+  size-limit@13.0.3:
     dependencies:
       bytes-iec: 3.1.1
       lilconfig: 3.1.3
       nanospinner: 1.2.2
-      picocolors: 1.1.1
-      tinyglobby: 0.2.15
-    optionalDependencies:
-      jiti: 2.6.1
 
   skin-tone@2.0.0:
     dependencies:
