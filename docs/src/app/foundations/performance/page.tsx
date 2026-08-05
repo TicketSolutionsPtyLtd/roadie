@@ -13,13 +13,10 @@ export const metadata = {
 export default function PerformancePage() {
   return (
     <div className='grid gap-12'>
-      <div className='grid gap-3'>
-        <h1 className='text-display-prose-1 text-strong'>Performance</h1>
-        <p className='text-lg text-subtle'>
-          Speed is a feature. Performance is the foundation of user trust.
-          Latency kills flow.
-        </p>
-      </div>
+      <p className='text-lg text-subtle'>
+        Speed is a feature. Performance is the foundation of user trust. Latency
+        kills flow.
+      </p>
 
       {/* ── Measure reliably ── */}
       <section className='grid gap-6'>

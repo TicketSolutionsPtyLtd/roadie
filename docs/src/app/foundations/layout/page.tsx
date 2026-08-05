@@ -29,13 +29,10 @@ const spacingScale = [
 export default function LayoutPage() {
   return (
     <div className='grid gap-12'>
-      <div className='grid gap-3'>
-        <h1 className='text-display-prose-1 text-strong'>Layout</h1>
-        <p className='text-lg text-subtle'>
-          Default to Grid. Use gap, not margin. Set constraints, not fixed
-          dimensions. Let the browser do the work.
-        </p>
-      </div>
+      <p className='text-lg text-subtle'>
+        Default to Grid. Use gap, not margin. Set constraints, not fixed
+        dimensions. Let the browser do the work.
+      </p>
 
       {/* Grid vs Flexbox */}
       <section className='grid gap-6'>

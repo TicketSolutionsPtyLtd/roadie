@@ -68,15 +68,12 @@ function IntentDemo({ intent }: { intent: string }) {
 export default function ColorsPage() {
   return (
     <div className='grid gap-12'>
-      <div className='grid gap-3'>
-        <h1 className='text-display-prose-1 text-strong'>Colors</h1>
-        <p className='text-lg text-subtle'>
-          Roadie uses OKLCH color scales with 14 steps (0-13) per intent. Colors
-          are applied through three utility types: <Code>bg-*</Code>,{' '}
-          <Code>text-*</Code>, and <Code>border-*</Code> — each scoped to its
-          own CSS property.
-        </p>
-      </div>
+      <p className='text-lg text-subtle'>
+        Roadie uses OKLCH color scales with 14 steps (0-13) per intent. Colors
+        are applied through three utility types: <Code>bg-*</Code>,{' '}
+        <Code>text-*</Code>, and <Code>border-*</Code> — each scoped to its own
+        CSS property.
+      </p>
 
       {/* Color scales */}
       <section className='grid gap-6'>

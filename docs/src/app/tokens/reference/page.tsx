@@ -82,13 +82,10 @@ function TokenTable({
 export default function TokenReferencePage() {
   return (
     <div className='grid gap-12'>
-      <div className='grid gap-3'>
-        <h1 className='text-display-prose-1 text-strong'>Token reference</h1>
-        <p className='text-lg text-subtle'>
-          Complete reference for the v2 design token system. All tokens are CSS
-          custom properties defined via Tailwind v4&apos;s @theme directive.
-        </p>
-      </div>
+      <p className='text-lg text-subtle'>
+        Complete reference for the v2 design token system. All tokens are CSS
+        custom properties defined via Tailwind v4&apos;s @theme directive.
+      </p>
 
       {/* Color Scales */}
       <section className='grid gap-6'>

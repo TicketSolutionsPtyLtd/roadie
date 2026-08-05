@@ -51,7 +51,6 @@ export default function TypographyPage() {
   return (
     <div className='grid gap-12'>
       <div className='grid gap-3'>
-        <h1 className='text-display-prose-1 text-strong'>Typography</h1>
         <p className='text-lg text-subtle'>
           Use pre-composed text styles. Let fluid type handle responsiveness.
           Pair semantic colors with semantic HTML.

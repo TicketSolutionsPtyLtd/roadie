@@ -68,22 +68,19 @@ const showcaseIcons = [
 export default function IconographyPage() {
   return (
     <div className='grid gap-12'>
-      <div className='grid gap-3'>
-        <h1 className='text-display-prose-1 text-strong'>Iconography</h1>
-        <p className='text-lg text-subtle'>
-          Roadie uses{' '}
-          <a
-            href='https://phosphoricons.com/'
-            target='_blank'
-            rel='noopener noreferrer'
-            className='underline'
-          >
-            Phosphor Icons
-          </a>{' '}
-          at the Bold weight. The thicker strokes pair with the system&apos;s
-          rounded, approachable visual language and stay legible at small sizes.
-        </p>
-      </div>
+      <p className='text-lg text-subtle'>
+        Roadie uses{' '}
+        <a
+          href='https://phosphoricons.com/'
+          target='_blank'
+          rel='noopener noreferrer'
+          className='underline'
+        >
+          Phosphor Icons
+        </a>{' '}
+        at the Bold weight. The thicker strokes pair with the system&apos;s
+        rounded, approachable visual language and stay legible at small sizes.
+      </p>
 
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Principles</h2>

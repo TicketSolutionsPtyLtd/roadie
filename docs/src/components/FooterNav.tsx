@@ -11,7 +11,7 @@ interface NavItem {
 
 interface NavSection {
   title: string
-  href: string
+  href?: string
   items: NavItem[]
 }
 

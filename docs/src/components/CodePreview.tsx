@@ -1,6 +1,6 @@
 'use client'
 
-import { type CSSProperties, useEffect, useState } from 'react'
+import { type CSSProperties, use, useEffect, useId, useState } from 'react'
 
 import Link from 'next/link'
 
@@ -104,8 +104,10 @@ const scope = {
   QueryClientProvider,
   createDemoCart,
   Link,
+  use,
   useState,
-  useEffect
+  useEffect,
+  useId
 }
 
 const { Button } = RoadieComponents
@@ -179,7 +181,7 @@ function CopyButton({ code }: { code: string }) {
   }
 
   return (
-    <div className='absolute top-2 right-2 z-10'>
+    <div className='absolute top-2 right-2 z-docked'>
       <Button
         onClick={handleCopy}
         size='sm'

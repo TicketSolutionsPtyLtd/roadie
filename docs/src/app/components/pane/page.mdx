@@ -1,0 +1,517 @@
+export const metadata = {
+  title: 'Pane',
+  description:
+    'A scrolling column of an application frame — sticky chrome, its own scroll, and a stack position when the panes have to share a screen',
+  status: 'alpha',
+  category: 'Layout',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+A scrolling column of an application frame — sticky chrome, its own scroll, and
+a stack position when the panes have to share a screen.
+
+## Import
+
+```tsx
+import { Pane } from '@oztix/roadie-components/pane'
+```
+
+## Anatomy
+
+A pane is a `<section>` that owns a surface, a shape and a scroll. Its body
+scrolls beneath a sticky `Pane.Header` and above a sticky `Pane.Footer`; the
+page itself never scrolls.
+
+A pane works on its own — everything below the Roles example is a standalone
+pane in a fixed-height box. Put panes side by side inside
+[`Navigator.Content`](/components/navigator) and they gain an arrangement: a
+row of columns where there is room, a stack where there isn't.
+
+Because a docs example is a box inside a page, its breakpoints are still the
+**viewport's**. Narrow the window to see the stacked bands; widen it past
+`2xl` to see an `inspector` take a column.
+
+## Examples
+
+### Default
+
+A pane in a box. `Pane.Header` is sticky, the body scrolls under it, and the
+scrollbar is the pane's own — nothing on the page moves.
+
+```tsx-live
+<div className='h-80 rounded-2xl bg-sunken p-3'>
+  <Pane role='detail' className='h-full'>
+    <Pane.Header>
+      <Pane.Title>Midnight Frequency</Pane.Title>
+    </Pane.Header>
+    <List>
+      <List.Item title='General admission' subtitle='$68.00 · on sale' chevron />
+      <List.Item title='Early bird' subtitle='$54.00 · sold out' chevron />
+      <List.Item title='VIP booth' subtitle='$180.00 · 6 remaining' chevron />
+      <List.Item title='Group of 6' subtitle='$360.00 · on sale' chevron />
+      <List.Item title='Accessible seating' subtitle='$68.00 · on sale' chevron />
+      <List.Item title='Companion' subtitle='$0.00 · on request' chevron />
+      <List.Item title='Doors' subtitle='7:00 pm' />
+      <List.Item title='Support act' subtitle='The Paper Kites' />
+    </List>
+  </Pane>
+</div>
+```
+
+The `List` above declares no padding. A pane publishes `--content-inset`, and
+`List` pads by the difference between that and its own row bleed — so row text
+lands on the same edge as the header title while the row's interactive
+background still bleeds wider.
+
+### Roles
+
+`role` is sizing plus yield order, not a taxonomy. `list` is a capped track,
+`detail` takes the remaining space, and `inspector` is a fixed track that
+yields first — a column from `2xl` up, and nothing below it.
+
+Yielding is not disappearing. The **consumer** declares the small-screen
+affordance, and the natural one is a [`Drawer`](/components/drawer) in the
+detail pane's `Pane.Actions`. That hands dismissal, focus trapping, Escape and
+the scrim to Base UI instead of a hand-rolled overlay, and it lets the
+application own the media query that picks the drawer's side — an app knows its
+own breakpoints; Roadie's internals do not.
+
+```tsx-live-noinline
+function Roles() {
+  const [open, setOpen] = useState(false)
+  const tiers = [
+    { title: 'General admission', subtitle: '$68.00 · on sale' },
+    { title: 'Early bird', subtitle: '$54.00 · sold out' },
+    { title: 'VIP booth', subtitle: '$180.00 · 6 remaining' },
+    { title: 'Group of 6', subtitle: '$360.00 · on sale' },
+    { title: 'Accessible seating', subtitle: '$68.00 · on sale' }
+  ]
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <Navigator className='h-full'>
+        <Navigator.Content>
+          <Pane role='list' aria-label='Events' className='lg:w-56'>
+            <Pane.Header>
+              <Pane.Title>Events</Pane.Title>
+            </Pane.Header>
+            <List>
+              <List.Item title='Midnight Frequency' subtitle='60 remaining' current />
+              <List.Item title='Sunset Sounds' subtitle='180 remaining' />
+              <List.Item title='Neon Dusk' subtitle='460 remaining' />
+              <List.Item title='Harbour Lights' subtitle='sold out' />
+            </List>
+          </Pane>
+          <Pane role='detail' aria-label='Midnight Frequency'>
+            <Pane.Header>
+              <Pane.Title>Midnight Frequency</Pane.Title>
+              <Pane.Actions>
+                <Drawer open={open} onOpenChange={setOpen} side='bottom'>
+                  <Drawer.Trigger
+                    render={
+                      <IconButton aria-label='Event details' emphasis='normal' className='2xl:hidden'>
+                        <InfoIcon weight='bold' className='size-5' />
+                      </IconButton>
+                    }
+                  />
+                  <Drawer.Content aria-label='Event details'>
+                    <Drawer.Body className='py-4'>
+                      <List emphasis='subtler'>
+                        <List.Item title='Venue' subtitle='The Tivoli' />
+                        <List.Item title='Doors' subtitle='7:00 pm' />
+                        <List.Item title='Capacity' subtitle='1,300' />
+                      </List>
+                    </Drawer.Body>
+                  </Drawer.Content>
+                </Drawer>
+              </Pane.Actions>
+            </Pane.Header>
+            <List>
+              {tiers.map((tier) => (
+                <List.Item key={tier.title} title={tier.title} subtitle={tier.subtitle} chevron />
+              ))}
+            </List>
+          </Pane>
+          <Pane role='inspector' emphasis='subtler' aria-label='Event details'>
+            <Pane.Header>
+              <Pane.Title>Details</Pane.Title>
+            </Pane.Header>
+            <List emphasis='subtler'>
+              <List.Item title='Venue' subtitle='The Tivoli' />
+              <List.Item title='Doors' subtitle='7:00 pm' />
+              <List.Item title='Capacity' subtitle='1,300' />
+            </List>
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    </div>
+  )
+}
+render(<Roles />)
+```
+
+### Emphasis
+
+Surface treatment, mirroring `Card`'s names with one difference: a pane's
+`subtler` is **no surface at all** — not a faint tint plus a hairline. It sits
+directly on the frame behind it, the way the rail does.
+
+```tsx-live
+<div className='grid grid-cols-2 gap-3 rounded-2xl bg-sunken p-3 lg:grid-cols-4'>
+  <Pane emphasis='raised' className='h-40 lg:w-auto'>
+    <Pane.Header>
+      <Pane.Title>Raised</Pane.Title>
+    </Pane.Header>
+    <p className='px-4 pb-4 text-sm text-subtle'>The default.</p>
+  </Pane>
+  <Pane emphasis='normal' className='h-40 lg:w-auto'>
+    <Pane.Header>
+      <Pane.Title>Normal</Pane.Title>
+    </Pane.Header>
+    <p className='px-4 pb-4 text-sm text-subtle'>Flat surface, visible border.</p>
+  </Pane>
+  <Pane emphasis='subtle' className='h-40 lg:w-auto'>
+    <Pane.Header>
+      <Pane.Title>Subtle</Pane.Title>
+    </Pane.Header>
+    <p className='px-4 pb-4 text-sm text-subtle'>A tint over what is behind it.</p>
+  </Pane>
+  <Pane emphasis='subtler' className='h-40 lg:w-auto'>
+    <Pane.Header>
+      <Pane.Title>Subtler</Pane.Title>
+    </Pane.Header>
+    <p className='px-4 pb-4 text-sm text-subtle'>No surface at all.</p>
+  </Pane>
+</div>
+```
+
+### Stacking
+
+`column` means "beside my siblings where there is room, over them where there
+isn't" — columns from `lg` up, a stack below it. It is the only value the
+orchestrator arranges by. `Pane` also accepts a `presentation` prop of
+`'stack' | 'sheet' | 'drawer'`, but nothing in `Pane` or `Navigator.Content`
+currently reads it beyond echoing it onto `data-presentation` — treat those
+values as reserved, not implemented, until they grow real layout behaviour.
+
+In the stacked bands one pane is visible at a time and `current` picks it: the
+deepest `current` pane is the top of the stack, and push and pop between them
+animate. Above `lg` `current` does nothing at all, because every pane is a
+column beside its siblings.
+
+Select a row below, then resize the window across `lg` and select again — the
+same declaration reads as a side-by-side reveal on a wide screen and a push on
+a narrow one.
+
+```tsx-live-noinline
+function Stacking() {
+  const [selected, setSelected] = useState(null)
+  const events = [
+    { id: 'midnight', title: 'Midnight Frequency', subtitle: '1,240 sold · 60 remaining' },
+    { id: 'sunset', title: 'Sunset Sounds', subtitle: '820 sold · 180 remaining' },
+    { id: 'neon', title: 'Neon Dusk', subtitle: '540 sold · 460 remaining' },
+    { id: 'harbour', title: 'Harbour Lights', subtitle: '2,010 sold · sold out' }
+  ]
+  const event = events.find((e) => e.id === selected)
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <Navigator className='h-full'>
+        <Navigator.Content>
+          <Pane role='list' aria-label='Events' className='lg:w-56'>
+            <Pane.Header>
+              <Pane.Title>Events</Pane.Title>
+            </Pane.Header>
+            <List>
+              {events.map((e) => (
+                <List.Item
+                  key={e.id}
+                  title={e.title}
+                  subtitle={e.subtitle}
+                  chevron
+                  current={selected === e.id}
+                  onClick={() => setSelected(e.id)}
+                />
+              ))}
+            </List>
+          </Pane>
+          <Pane role='detail' current={event != null} aria-label='Event'>
+            <Pane.Header onBack={() => setSelected(null)}>
+              <Pane.Title>{event ? event.title : 'Nothing selected'}</Pane.Title>
+            </Pane.Header>
+            <div className='grid gap-3 px-4 pb-4'>
+              <p className='text-subtle'>
+                {event ? event.subtitle : 'Pick an event from the list.'}
+              </p>
+            </div>
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    </div>
+  )
+}
+render(<Stacking />)
+```
+
+### Composition
+
+`Pane.Header` holds a top row — the back affordance on the left, `Pane.Actions`
+on the right — with the title, a `Pane.Search` and anything else flowing
+beneath it at full width. `Pane.Footer` is the same material at the foot of the
+pane.
+
+Actions use each control's default size. The top row is chrome a user acts on,
+not a dense toolbar, so a `<Button>` or `<IconButton>` sits there unsized.
+
+`Pane.Search` is a styled controlled input and nothing more. Filtering is a
+plain `.filter()` over your own data before you render the rows.
+
+```tsx-live-noinline
+function Composed() {
+  const [query, setQuery] = useState('')
+  const rows = [
+    'General admission',
+    'Early bird',
+    'VIP booth',
+    'Group of 6',
+    'Accessible seating',
+    'Companion'
+  ]
+  const shown = rows.filter((row) =>
+    row.toLowerCase().includes(query.toLowerCase())
+  )
+  return (
+    <div className='h-96 rounded-2xl bg-sunken p-3'>
+      <Pane role='detail' className='h-full'>
+        <Pane.Header onBack={() => setQuery('')}>
+          <Pane.Title>Ticket types</Pane.Title>
+          <Pane.Actions>
+            <Button intent='accent' emphasis='strong'>
+              Publish
+            </Button>
+          </Pane.Actions>
+          <Pane.Search
+            value={query}
+            onValueChange={setQuery}
+            placeholder='Filter ticket types'
+          />
+        </Pane.Header>
+        <List>
+          {shown.map((row) => (
+            <List.Item key={row} title={row} chevron />
+          ))}
+        </List>
+        {shown.length === 0 ? (
+          <p className='px-4 py-3 text-sm text-subtle'>No matches</p>
+        ) : null}
+        <Pane.Footer>
+          <Button size='sm' emphasis='normal'>
+            Add ticket type
+          </Button>
+        </Pane.Footer>
+      </Pane>
+    </div>
+  )
+}
+render(<Composed />)
+```
+
+The back affordance appears only on a non-`list` pane — a `list` is the root of
+the stack, so there is nothing to go back to — and only in the stacked bands.
+Widen the window past `lg` and it goes.
+
+### Closing a column
+
+From `lg` up, panes stop covering each other and become columns instead — so
+the back affordance, which only exists in the stacked bands, has nothing to
+pop. A consumer who drills list → detail → detail can end up with three
+columns and no way back to two.
+
+`Pane.Header` covers that from `onBack` alone: a drill-down's "go back" and a
+column's "close" are almost always the same intent, so `onBack` renders Back
+in the stacked bands and Close from `lg` up, calling the same handler either
+way. Close renders in the same cell as Back — the same slot at a different
+size — gated to the opposite band, so the two can never collide.
+
+```tsx
+<Pane role='detail' current={event != null}>
+  <Pane.Header onBack={() => setSelected(null)}>
+    <Pane.Title>{event?.title}</Pane.Title>
+  </Pane.Header>
+</Pane>
+```
+
+Pass `onClose` when closing a column should do something different from going
+back — it overrides `onBack`'s handler for Close, but leaves Back alone:
+
+```tsx
+<Pane role='detail' current={event != null}>
+  <Pane.Header onBack={() => setSelected(null)} onClose={() => setEvent(null)}>
+    <Pane.Title>{event?.title}</Pane.Title>
+  </Pane.Header>
+</Pane>
+```
+
+`backHref` does **not** imply a Close. A link-based back navigates somewhere;
+an ✕ that navigates would misrepresent itself as dismissal. A pane using
+`backHref` needs an explicit `onClose`, or to move to `onBack`.
+
+Roadie can't close a pane it doesn't own — whether a column disappears is your
+own routing or state, so the affordance only appears once you supply `onBack`
+or `onClose`. And it never appears on the root pane, even if you thread the
+same handler to every pane uniformly (the natural shape when panes come from a
+map): the component knows which pane is the base of the stack and withholds
+Close there itself, so passing the same prop everywhere is safe.
+
+### Collapse on scroll
+
+`Pane.Header` takes a docked shadow and its title collapses as the pane
+scrolls — automatically, with no prop. `Pane.Title` renders both the large
+heading and a compact echo; the echo cross-fades in, centred between the back
+affordance and `Pane.Actions`, and is the only one that responds to a tap —
+tapping it scrolls the pane back to the top. Expanded, the tap would be a
+no-op, so only the collapsed echo is reachable.
+
+`Pane.Title` must be a **direct child** of `Pane.Header`, same as
+`Pane.Actions` — the compact echo places itself in the header's grid, and grid
+placement only reaches direct children.
+
+The header's height change is animated too, not just the cross-fade — the
+title's row transitions `grid-template-rows` (`1fr` → `0fr`) and its own top
+margin alongside the `scale`/`opacity` fade, so the header shrinks
+continuously instead of snapping. Those are layout properties, and animating
+them is a deliberate, commented exception to this design system's
+translate/scale/opacity-only rule: nothing else can reclaim the row's space,
+and it costs one transition per collapse toggle rather than one per scroll
+frame. The title itself never leaves the flow; its row closes underneath it.
+
+### Body title
+
+`Pane.BodyTitle` is the alternative: instead of living in `Pane.Header`, it
+renders in the pane's own scrolling content, alongside whatever sits beside
+it there. `Pane.Header` picks up its text through context and cross-fades in
+the same compact echo a `Pane.Title` would have rendered itself — declare
+`Pane.Header` with no title of its own.
+
+```tsx-live
+<div className='h-80 rounded-2xl bg-sunken p-3'>
+  <Pane role='detail' className='h-full'>
+    <Pane.Header />
+    <div className='grid gap-3 px-4 pb-4'>
+      <Pane.BodyTitle>Midnight Frequency</Pane.BodyTitle>
+      <p className='text-subtle'>Sat 14 Feb · The Tivoli · 60 remaining</p>
+    </div>
+  </Pane>
+</div>
+```
+
+**Recommended.** Nothing about the header's box depends on the title, so
+there is nothing to animate at all — the header holds one constant height for
+the whole cross-fade, where the in-header arrangement above still pays for a
+`grid-template-rows` transition on every collapse toggle, the one layout
+property this design system otherwise never animates.
+
+`Pane.BodyTitle` defaults to `text-display-ui-3`. Pass a `text-display-*`
+utility through `className` to size it differently — Tailwind's merge
+replaces the default rather than joining it, so there is no separate size
+prop to reach for.
+
+`Pane.BodyTitle` applies no inset of its own, unlike `Pane.Header` and
+`List`, which publish or read `--content-inset` for you. It is content, not
+chrome — what it has to align with is its content neighbours, not the pane's
+edge — so the caller places it inside whatever padding wraps the rest of the
+body, the same way the example above relies on the wrapping `div`'s `px-4`.
+
+Declaring both is a mistake, not a fallback: if a `Pane.Header` contains a
+`Pane.Title` **and** the pane also has a `Pane.BodyTitle` in its content,
+`Pane.Header` renders the `Pane.Title`'s echo and ignores the other, warning
+to the console in development.
+
+## Guidelines
+
+<Guideline title='Declaration order is stack depth'>
+  <Guideline.Do code={`<Navigator.Content>\n  <Pane role='list' />\n  <Pane role='detail' current={selected != null} />\n</Navigator.Content>`}>
+    Author panes shallowest first. The arrangement uses DOM order to tell
+    *ahead* from *behind*: a pane after the top one is ahead and parks
+    off-screen right, a pane before it is behind and parks a third left.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Navigator.Content>\n  <Pane role='detail' current />\n  <Pane role='list' />\n</Navigator.Content>`}>
+    A pane authored out of depth order parks on the wrong side, so the push
+    slides in from the left and the pop from the right. This is a **visual**
+    assumption, not just a bookkeeping one.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Panes can sit anywhere in the subtree'>
+  <Guideline.Do code={`<Navigator.Content>\n  <EventSlot>\n    <Pane role='list' />\n  </EventSlot>\n  <DetailSlot>\n    <Pane role='detail' current />\n  </DetailSlot>\n</Navigator.Content>`}>
+    A pane announces itself to the nearest `Navigator.Content` through
+    context, wherever it sits in that subtree. A pane returned by a route, a
+    Next.js parallel-route slot, or a plain wrapper component all participate
+    in the stack normally — there is no direct-child requirement.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Navigator.Content>\n  {/* renders children but no <Pane> anywhere */}\n  <div>Not a pane</div>\n</Navigator.Content>`}>
+    What still breaks is having **no `Pane` at all** reachable in the
+    subtree — nothing registers, so stack position, push/pop motion, the
+    mobile section nav and `primaryNav` all stay inert. In development,
+    `Navigator.Content` warns to the console when this happens.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Pane.Actions belongs directly under Pane.Header'>
+  <Guideline.Do code={`<Pane.Header backHref='/events'>\n  <Pane.Title>Midnight Frequency</Pane.Title>\n  <Pane.Actions>\n    <Button>Publish</Button>\n  </Pane.Actions>\n</Pane.Header>`}>
+    Actions place themselves in the header's grid, opposite the back
+    affordance. Grid placement only reaches direct children.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Pane.Header backHref='/events'>\n  <div className='flex justify-between'>\n    <Pane.Title>Midnight Frequency</Pane.Title>\n    <Pane.Actions>…</Pane.Actions>\n  </div>\n</Pane.Header>`}>
+    Nested in a wrapper, the actions lose their cell and render below the top
+    row instead of opposite the back affordance.
+  </Guideline.Dont>
+</Guideline>
+
+- **`role` is sizing plus yield order.** Three tracks, not a taxonomy of what a
+  pane contains: a capped `list`, a `detail` that takes the remainder, and an
+  `inspector` that is fixed and yields first. Pick the one that describes how
+  the pane should behave when space runs short.
+- **An `inspector` needs an affordance you declare.** It is a column from `2xl`
+  and hidden below it. Put a [`Drawer`](/components/drawer) in the detail
+  pane's `Pane.Actions` to keep its contents reachable, and choose the drawer's
+  side from your own breakpoints.
+- **`current` only matters in the stacked bands.** From `lg` up every pane is a
+  column regardless, so a `current` that never changes is only ever read below
+  `lg`.
+- **Filtering is your own `.filter()`.** `Pane.Search` carries no filter
+  machinery on purpose. The predicate registry it replaces existed only so
+  filtered-out rows could stay declared and keep navigation state alive — a
+  constraint that no longer exists.
+- **A pane scrolls natively, and `List` does not virtualise.** That is fine
+  into the hundreds of rows. A list in the thousands wants virtualisation,
+  which `Pane` neither provides nor prevents — the scroll container is the
+  viewport at `[data-slot="pane-viewport"]`.
+- **Re-publish `--content-inset` to change alignment.** A `List` dropped
+  straight into a pane aligns with the header title because the pane publishes
+  the inset and the list pads by the difference. A container that wants a
+  different one (a `Card`, say) republishes the property for its own subtree.
+
+## Accessibility
+
+- The pane renders a `<section>`. Pass `aria-label` to make it a **named
+  region** — without one it is an unlabelled section and carries no landmark
+  weight.
+- `Pane.Title` is an `<h2>`, so a pane heading never collides with the page's
+  own `<h1>`. `Pane.BodyTitle` defaults to `<h1>` instead — it is the page's
+  own heading, not a heading nested under one, so declare at most one per
+  pane and none of your own alongside it.
+- The back affordance is a labelled `IconButton` ("Back"). It appears only on a
+  non-`list` pane and only in the stacked bands, because above `lg` there is
+  nothing covering the pane it would return to.
+- The close affordance is a labelled `IconButton` ("Close"), given via
+  `onBack` or `onClose` (`onClose` wins when both are supplied). It appears
+  only from `lg` up — the reverse of Back — and never on the root pane,
+  whether or not you pass it a handler. `backHref` alone never produces one.
+- `Pane.Search` is a `type='search'` input named by its `placeholder`, so it
+  reads as a searchbox with an accessible name.
+- **Known gap:** a covered pane is `pointer-events-none`, so taps cannot reach
+  it, but it is not `inert` — it remains reachable by assistive technology.
+  This is a recorded, deliberate deferral, not an oversight.
+
+<PropsDefinitions componentPath='packages/components/src/components/Pane' />

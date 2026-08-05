@@ -8,8 +8,6 @@ export const metadata = {
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 import { Guideline } from '@/components/Guideline'
 
-# Image
-
 A size-aware `<img>` that routes Oztix-CDN assets through the resize/transcode proxy.
 
 Pass a `width`. The component requests a right-sized WebP plus a `srcSet`, cutting download bytes and decoded memory. Non-Oztix URLs and calls without a `width` render a plain `<img>`, so external thumbnails still work.
