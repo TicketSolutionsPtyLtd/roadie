@@ -131,6 +131,14 @@
       "types": "./dist/components/Marquee/index.d.ts",
       "import": "./dist/components/Marquee/index.js"
     },
+    "./navigator": {
+      "types": "./dist/components/Navigator/index.d.ts",
+      "import": "./dist/components/Navigator/index.js"
+    },
+    "./pane": {
+      "types": "./dist/components/Pane/index.d.ts",
+      "import": "./dist/components/Pane/index.js"
+    },
     "./popover": {
       "types": "./dist/components/Popover/index.d.ts",
       "import": "./dist/components/Popover/index.js"

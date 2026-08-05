@@ -138,6 +138,34 @@ export {
   type ScrollAreaFade
 } from './components/ScrollArea'
 
+export {
+  Navigator,
+  type NavigatorProps,
+  type NavigatorContentProps,
+  type NavigatorPrimaryProps,
+  type NavigatorSecondaryProps,
+  type NavigatorItemProps,
+  type NavigatorGroupProps,
+  type NavigatorEndProps,
+  type NavigatorSlotMeta,
+  type MobileSlots
+} from './components/Navigator'
+
+export {
+  Pane,
+  type PaneProps,
+  type PaneHeaderProps,
+  type PaneTitleProps,
+  type PaneBodyTitleProps,
+  type PaneActionsProps,
+  type PaneSearchProps,
+  type PaneFooterProps,
+  type PaneRole,
+  type PanePresentation,
+  type PaneEmphasis,
+  type PanePrimaryNav
+} from './components/Pane'
+
 export { Marquee, type MarqueeProps } from './components/Marquee'
 
 export {
