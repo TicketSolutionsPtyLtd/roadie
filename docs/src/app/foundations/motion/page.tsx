@@ -451,17 +451,12 @@ export default function MotionPage() {
               { label: 'animate-nudge', className: 'hover:animate-nudge' },
               { label: 'animate-pop', className: 'hover:animate-pop' },
               {
-<<<<<<< HEAD
-                label: 'animate-pop-in',
-                className: 'origin-bottom hover:animate-pop-in'
-=======
                 label: 'animate-pop-tap',
                 className: 'hover:animate-pop-tap'
               },
               {
-                label: 'motion-pop-in',
-                className: 'origin-bottom hover:motion-pop-in'
->>>>>>> d801dd5a (docs: component pages and navigation for the new primitives)
+                label: 'animate-pop-in',
+                className: 'origin-bottom hover:animate-pop-in'
               }
             ].map(({ label, className }) => (
               <div

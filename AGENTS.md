@@ -256,8 +256,9 @@ Use raw HTML elements with utility classes:
 
 > **Building a compound component?** Read
 > [`docs/contributing/COMPOUND_PATTERNS.md`](docs/contributing/COMPOUND_PATTERNS.md)
-> for the two context-wiring idioms (context-only vs index-injection)
-> and the direct-children constraint that comes with the second one.
+> for the three context-wiring idioms (context-only, index-injection, and
+> registration) and the direct-children constraint that comes with
+> index-injection.
 > **All compounds use named exports + property assignment**
 > (`export function Carousel(); Carousel.Header = CarouselHeader`) —
 > the legacy `Object.assign + cast` form is no longer present in the
@@ -318,7 +319,8 @@ export const buttonVariants = cva('base-classes is-interactive', {
 ### Linking
 
 Every link-bearing Roadie component (`Button`, `IconButton`, `Card`,
-`Breadcrumb.Link`, `Carousel.TitleLink`, `Tabs.Tab`, `List.Item`) accepts a single
+`Breadcrumb.Link`, `Carousel.TitleLink`, `Tabs.Tab`, `List.Item`,
+`Navigator.Item`) accepts a single
 `href` prop. Internal hrefs route through the configured
 `RoadieLinkProvider`; external hrefs (`http(s)://`, `//…`) auto-render
 `<a target='_blank' rel='noopener noreferrer'>`; `mailto:` / `tel:` /
@@ -348,14 +350,14 @@ Key conventions:
    pass `null` (or omit the provider) and get plain `<a>` fallbacks.
 2. **Don't reach for `render` first.** It's the escape hatch for the
    rare cases `href` can't express (custom elements, full prop control,
-   state-aware rendering). The same `render` prop works on every Roadie
-   component — Base UI consumers (`Button`, `IconButton`, `Tabs.Tab`)
-   use Base UI's native render; non-Base-UI components (`Card`,
+   state-aware rendering). Base UI consumers (`Button`, `IconButton`,
+   `Tabs.Tab`) use Base UI's native render; non-Base-UI components (`Card`,
    `Breadcrumb.Link`, `Carousel.TitleLink`) compose the `resolveRender`
    helper from `packages/components/src/utils/resolveRender.tsx` to deliver
    the same contract.
-   `List.Item` is `href`-only — no `render` prop — so a case `href` can't
-   express means composing your own row rather than escaping into `render`.
+   `List.Item` and `Navigator.Item` are `href`-only — no `render` prop — so a
+   case `href` can't express means composing your own row rather than escaping
+   into `render`.
 3. **`render` always wins over `href` smart-routing.** Pass `render`
    when you need a non-anchor or want to bypass provider routing
    entirely. When both `href` and `render` are passed to Button, Button
