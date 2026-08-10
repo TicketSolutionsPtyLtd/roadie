@@ -60,10 +60,12 @@ scrollbar is the pane's own — nothing on the page moves.
 </div>
 ```
 
-The `List` above declares no padding. A pane publishes `--content-inset`, and
-`List` pads by the difference between that and its own row bleed — so row text
-lands on the same edge as the header title while the row's interactive
-background still bleeds wider.
+The `List` above declares no padding. A pane publishes `--content-inset` and
+pads its scrolling content by it, and its chrome — `Pane.Header`,
+`Pane.Search`, `Pane.Footer` — reads the same variable back, so header title
+and body text land on one edge. A `subtler` `List` then bleeds its rows back
+out by their own row padding, so the interactive background sits wider than
+the text without moving it.
 
 ### Roles
 
@@ -416,11 +418,11 @@ utility through `className` to size it differently — Tailwind's merge
 replaces the default rather than joining it, so there is no separate size
 prop to reach for.
 
-`Pane.BodyTitle` applies no inset of its own, unlike `Pane.Header` and
-`List`, which publish or read `--content-inset` for you. It is content, not
-chrome — what it has to align with is its content neighbours, not the pane's
-edge — so the caller places it inside whatever padding wraps the rest of the
-body, the same way the example above relies on the wrapping `div`'s `px-4`.
+`Pane.BodyTitle` applies no inset of its own, unlike the pane's chrome, which
+reads `--content-inset` for you. It is content, not chrome — what it has to
+align with is its content neighbours, not the pane's edge — so the caller
+places it inside whatever padding wraps the rest of the body, the same way the
+example above relies on the wrapping `div`'s `px-4`.
 
 Declaring both is a mistake, not a fallback: if a `Pane.Header` contains a
 `Pane.Title` **and** the pane also has a `Pane.BodyTitle` in its content,
@@ -487,10 +489,11 @@ to the console in development.
   into the hundreds of rows. A list in the thousands wants virtualisation,
   which `Pane` neither provides nor prevents — the scroll container is the
   viewport at `[data-slot="pane-viewport"]`.
-- **Re-publish `--content-inset` to change alignment.** A `List` dropped
-  straight into a pane aligns with the header title because the pane publishes
-  the inset and the list pads by the difference. A container that wants a
-  different one (a `Card`, say) republishes the property for its own subtree.
+- **`--content-inset` is the pane's one alignment number.** The pane pads its
+  scrolling content by it and its chrome reads it back, so a `List` dropped
+  straight in aligns with the header title without declaring padding. It is
+  the same contract `Drawer` and `Accordion.Content` publish, so a component
+  written against it works in any of them.
 
 ## Accessibility
 
