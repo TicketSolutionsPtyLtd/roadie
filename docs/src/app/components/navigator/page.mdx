@@ -26,6 +26,16 @@ on mobile — both are derived from the same `Navigator.Item` children, so
 you author the destinations once. `Navigator.Content` arranges one or more
 [`Pane`](/components/pane)s, each of which owns its own scroll.
 
+Two slots mark position rather than declaring destinations.
+`Navigator.Brand` pins a logo or wordmark to the top of the rail, and
+`Navigator.End` anchors a group — account, settings — to the bottom.
+Both are found by reference and skipped in the item walk, so neither
+counts toward rail form or nesting. `Navigator.Brand` is desktop-only:
+the tab bar has no brand slot, so it renders nothing below `md`. Give it
+a mark that survives the compact rail — that form centres its contents
+and hides anything you mark
+`group-data-[form=compact]/rail:hidden`.
+
 Navigator is always **controlled** — the active `value` belongs to your
 router. The examples below hold it in `useState` to stay
 self-contained; in a real app you would derive `value` from the URL and
@@ -148,6 +158,14 @@ function OrganiserNav() {
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
       <Navigator value={active} onValueChange={setActive} className='h-full'>
         <Navigator.Primary aria-label='Organiser'>
+          <Navigator.Brand>
+            <IconTile intent='brand' emphasis='strong'>
+              <TicketIcon weight='bold' />
+            </IconTile>
+            <span className='truncate text-base font-semibold text-strong group-data-[form=compact]/rail:hidden'>
+              Oztix
+            </span>
+          </Navigator.Brand>
           <Navigator.Item value='events' icon={<TicketIcon />}>
             Events
             <Navigator.Secondary aria-label='Events sections'>
