@@ -1,6 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": ["**/.env.*local", "pnpm-lock.yaml"],
+  "globalDependencies": ["**/.env.*local", "pnpm-lock.yaml", ".nvmrc"],
   "tasks": {
     "prepare": {
       "dependsOn": ["^build"],
@@ -60,7 +60,7 @@
         "jest.config.*",
         "package.json"
       ],
-      "outputs": ["coverage/**"]
+      "outputs": []
     },
     "clean": {
       "cache": false
