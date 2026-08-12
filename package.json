@@ -16,6 +16,8 @@
     "lint": "turbo lint",
     "lint:fix": "turbo lint:fix",
     "clean": "turbo clean && rm -rf node_modules",
+    "clean:cache": "rm -rf .turbo/cache && pnpm store prune",
+    "prune:cache": "find .turbo/cache -type f -mtime +14 -delete 2>/dev/null; true",
     "changeset": "changeset",
     "changeset:version": "changeset version",
     "changeset:publish": "changeset publish",
