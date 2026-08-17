@@ -36,7 +36,6 @@ type VueRuntime = {
 export function VueCartContents(props: VueCartContentsProps) {
   const elRef = useRef<HTMLDivElement | null>(null)
   const latest = useRef(props)
-  latest.current = props
   const reactiveProps = useRef<Record<string, unknown> | null>(null)
 
   useEffect(() => {
@@ -93,6 +92,7 @@ export function VueCartContents(props: VueCartContentsProps) {
 
   // Patch reactive props every render so toggles / cart changes reach Vue.
   useEffect(() => {
+    latest.current = props
     if (reactiveProps.current) Object.assign(reactiveProps.current, props)
   })
 
