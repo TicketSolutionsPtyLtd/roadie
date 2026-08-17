@@ -27,7 +27,6 @@ type VueRuntime = {
 export function VueCartExpiryDialogs(props: VueCartExpiryDialogsProps) {
   const elRef = useRef<HTMLDivElement | null>(null)
   const latest = useRef(props)
-  latest.current = props
   const reactiveProps = useRef<Record<string, unknown> | null>(null)
 
   useEffect(() => {
@@ -80,6 +79,7 @@ export function VueCartExpiryDialogs(props: VueCartExpiryDialogsProps) {
   }, [])
 
   useEffect(() => {
+    latest.current = props
     if (reactiveProps.current) Object.assign(reactiveProps.current, props)
   })
 
