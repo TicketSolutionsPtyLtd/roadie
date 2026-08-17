@@ -17,7 +17,7 @@
   "dependencies": {
     "@mdx-js/loader": "3.1.1",
     "@mdx-js/react": "3.1.1",
-    "@next/mdx": "16.2.12",
+    "@next/mdx": "16.3.1",
     "@number-flow/react": "0.6.2",
     "@number-flow/vue": "0.5.2",
     "@oztix/roadie-components": "workspace:*",
@@ -29,7 +29,7 @@
     "@types/mdx": "2.0.14",
     "focus-trap": "7.8.0",
     "motion": "12.43.0",
-    "next": "16.2.12",
+    "next": "16.3.1",
     "next-view-transitions": "0.3.5",
     "prism-react-renderer": "2.4.1",
     "react": "19.2.8",
@@ -37,7 +37,7 @@
     "react-focus-lock": "2.13.7",
     "react-live": "4.1.8",
     "remark-gfm": "4.0.1",
-    "vue": "3.5.40"
+    "vue": "3.5.41"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.3.3",
