@@ -37,7 +37,6 @@ export function VueCartDrawer(props: VueCartDrawerProps) {
   const elRef = useRef<HTMLDivElement | null>(null)
   // Latest props, read when (re)applying to the reactive Vue object.
   const latest = useRef(props)
-  latest.current = props
   // The Vue-side reactive props object; patched in place so Vue re-renders.
   const reactiveProps = useRef<Record<string, unknown> | null>(null)
 
@@ -98,6 +97,7 @@ export function VueCartDrawer(props: VueCartDrawerProps) {
   // Patch reactive props on every React render so refreshKey / context / cart
   // changes reach the live Vue tree.
   useEffect(() => {
+    latest.current = props
     if (reactiveProps.current) Object.assign(reactiveProps.current, props)
   })
 
