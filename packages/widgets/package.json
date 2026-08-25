@@ -148,7 +148,7 @@
     "@vitest/coverage-v8": "4.1.11",
     "@vue/test-utils": "2.4.11",
     "jsdom": "30.0.1",
-    "motion": "12.43.0",
+    "motion": "13.1.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-focus-lock": "2.13.7",
