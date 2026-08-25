@@ -22,7 +22,6 @@
     "target": "ES2022",
     "verbatimModuleSyntax": true,
     "rootDir": ".",
-    "baseUrl": ".",
     "assumeChangesOnlyAffectDirectDependencies": true
   },
   "include": ["**/*.ts", "**/*.tsx"],
