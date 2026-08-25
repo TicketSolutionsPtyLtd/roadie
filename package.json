@@ -39,7 +39,7 @@
     "prettier-plugin-tailwindcss": "0.8.1",
     "prettier-plugin-tailwindcss-canonical-classes": "0.1.5",
     "pretty-quick": "4.2.2",
-    "turbo": "2.10.9",
+    "turbo": "2.10.11",
     "typescript": "6.0.3"
   },
   "workspaces": [
