@@ -10,6 +10,8 @@ import { CodePreview } from './CodePreview'
 import { VueCartContents } from './VueCartContents'
 import { type DemoCartClient, createDemoCart } from './cartDrawerDemo'
 
+const COLLECTION_ID = 'demo-collection'
+
 type Skin = 'react' | 'vue'
 type Container = 'drawer' | 'page'
 
@@ -38,12 +40,18 @@ export function CartContentsParityDemo() {
   const [removingId, setRemovingId] = useState<string | null>(null)
 
   const refetch = useCallback(async (c: DemoCartClient) => {
-    setDetails(await c.getDetails('demo-collection'))
+    setDetails(await c.getDetails(COLLECTION_ID))
   }, [])
 
   useEffect(() => {
-    void refetch(client)
-  }, [client, refetch])
+    let stale = false
+    void client.getDetails(COLLECTION_ID).then((d) => {
+      if (!stale) setDetails(d)
+    })
+    return () => {
+      stale = true
+    }
+  }, [client])
 
   const removeEvent = useCallback(
     async (eventId: string) => {
