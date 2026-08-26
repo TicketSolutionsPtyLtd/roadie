@@ -17,6 +17,12 @@ saveExact: true
 minimumReleaseAge: 4320
 minimumReleaseAgeExclude:
   - '@oztix/*'
+  # Temporary: Next 16.3.3 patches two unauthenticated-RCE advisories
+  # (GHSA-p293-qw3h-jr36, GHSA-2xp9-vwfh-vxw4). Remove once it clears the
+  # 3-day cooldown on 2026-08-28.
+  - 'next'
+  - 'eslint-config-next'
+  - '@next/*'
 
 # Shared by CI and local runs. Gates on everything: accepted advisories go in
 # `ignore` as GHSA ids with a reason, never by raising the threshold.
