@@ -185,7 +185,7 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
-    "@ark-ui/react": "5.38.2",
+    "@ark-ui/react": "5.39.0",
     "@base-ui/react": "1.7.0",
     "@phosphor-icons/react": "2.1.10",
     "@size-limit/preset-small-lib": "13.0.3",
@@ -195,7 +195,7 @@
     "@testing-library/user-event": "14.6.6",
     "@types/node": "26.2.0",
     "@types/react": "19.2.18",
-    "@types/react-dom": "19.2.4",
+    "@types/react-dom": "19.2.5",
     "@vitejs/plugin-react": "6.1.0",
     "@vitest/coverage-v8": "4.1.11",
     "@vitest/ui": "4.1.11",
