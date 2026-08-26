@@ -179,7 +179,7 @@
   },
   "dependencies": {
     "@oztix/roadie-core": "workspace:*",
-    "embla-carousel": "9.0.0-rc02",
+    "embla-carousel": "9.0.0-rc03",
     "embla-carousel-autoplay": "9.0.0-rc02",
     "embla-carousel-react": "9.0.0-rc02"
   },
