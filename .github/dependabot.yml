@@ -5,13 +5,19 @@ version: 2
 # grouped so they stay reviewable; majors come separately and get read.
 #
 # Note: Dependabot does not honour pnpm's minimumReleaseAge cooldown, so a PR
-# may propose a version `pnpm install` then refuses. Wait it out.
+# may propose a version `pnpm install` then refuses. For a routine bump, wait
+# it out — the cooldown is the point. For a security patch that can't wait,
+# add a version-pinned entry to `minimumReleaseAgeExclude` in
+# pnpm-workspace.yaml (pin the exact version, never a bare name) and remove it
+# once the version ages past the cutoff.
+#
+# Daily rather than weekly: a security release should be proposed within a day
+# of publication, not sit until Monday. Grouping keeps the volume reviewable.
 updates:
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: weekly
-      day: monday
+      interval: daily
       time: '06:00'
       timezone: Australia/Brisbane
     open-pull-requests-limit: 5

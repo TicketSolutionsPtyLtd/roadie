@@ -17,12 +17,25 @@ saveExact: true
 minimumReleaseAge: 4320
 minimumReleaseAgeExclude:
   - '@oztix/*'
-  # Temporary: Next 16.3.3 patches two unauthenticated-RCE advisories
-  # (GHSA-p293-qw3h-jr36, GHSA-2xp9-vwfh-vxw4). Remove once it clears the
-  # 3-day cooldown on 2026-08-28.
-  - 'next'
-  - 'eslint-config-next'
-  - '@next/*'
+  # Security-only exemptions. Each entry MUST pin the exact version that
+  # carries the fix, never a bare name or glob — a bare name would let the
+  # next routine bump of that package skip the cooldown too. Drop entries
+  # once the version ages past the cutoff; a stale one is a silent hole.
+  #
+  # Next 16.3.3 — unauthenticated RCE, GHSA-p293-qw3h-jr36 and
+  # GHSA-2xp9-vwfh-vxw4. Cooldown lapses 2026-08-28.
+  - 'next@16.3.3'
+  - 'eslint-config-next@16.3.3'
+  - '@next/env@16.3.3'
+  - '@next/eslint-plugin-next@16.3.3'
+  - '@next/swc-darwin-arm64@16.3.3'
+  - '@next/swc-darwin-x64@16.3.3'
+  - '@next/swc-linux-arm64-gnu@16.3.3'
+  - '@next/swc-linux-arm64-musl@16.3.3'
+  - '@next/swc-linux-x64-gnu@16.3.3'
+  - '@next/swc-linux-x64-musl@16.3.3'
+  - '@next/swc-win32-arm64-msvc@16.3.3'
+  - '@next/swc-win32-x64-msvc@16.3.3'
 
 # Shared by CI and local runs. Gates on everything: accepted advisories go in
 # `ignore` as GHSA ids with a reason, never by raising the threshold.
