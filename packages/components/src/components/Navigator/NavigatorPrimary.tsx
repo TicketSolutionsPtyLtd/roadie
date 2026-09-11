@@ -518,6 +518,7 @@ export function NavigatorPrimary({
             return renderTab(tab, {
               label: tab.label,
               icon: tab.icon,
+              badge: tab.badge,
               href: tabHref(tab, active),
               active: active && !disclosureOpen,
               current: active && !overflowOpen,
@@ -557,6 +558,7 @@ export function NavigatorPrimary({
             {renderTab(pinnedTab, {
               label: pinnedTab.label,
               icon: pinnedTab.icon,
+              badge: pinnedTab.badge,
               href: tabHref(pinnedTab, pinnedIsActive),
               active: pinnedIsActive && !disclosureOpen,
               current: pinnedIsActive && !overflowOpen,

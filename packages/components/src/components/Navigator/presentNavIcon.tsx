@@ -7,6 +7,8 @@ import {
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import type { BadgeProps } from '../Badge'
+
 type NavIconProps = {
   weight?: string
   className?: string
@@ -25,5 +27,12 @@ export function presentNavIcon(
     weight: 'duotone',
     className: cn(el.props.className, size),
     ...(dataSlot ? { 'data-slot': dataSlot } : {})
+  })
+}
+
+export function badgeDot(badge: ReactElement<BadgeProps>): ReactElement {
+  return cloneElement(badge, {
+    hideLabel: true,
+    className: cn(badge.props.className, 'absolute end-1 top-1')
   })
 }

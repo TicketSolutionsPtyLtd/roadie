@@ -1,5 +1,6 @@
 import type { ReactElement, ReactNode } from 'react'
 
+import type { BadgeProps } from '../Badge'
 import type { NavigatorMenuProps } from './NavigatorMenu'
 import { MAX_TABS } from './variants'
 
@@ -20,6 +21,7 @@ export type NavigatorSlotMeta = {
   value: string
   label: ReactNode
   icon?: ReactNode
+  badge?: ReactElement<BadgeProps>
   href?: string
   /** The item's own `href`; `href` falls back to the first sub-page. */
   declaredHref?: string

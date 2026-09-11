@@ -9,6 +9,7 @@ import {
   listItemContentClass,
   listItemLeadingClass,
   listItemTitleClass,
+  listItemTrailingClass,
   listItemVariants
 } from '../List/variants'
 import {
@@ -89,6 +90,9 @@ export function NavigatorOverflowItems({
               className={listItemContentClass}
             >
               <span className={listItemTitleClass}>{slot.label}</span>
+              {slot.badge ? (
+                <span className={listItemTrailingClass}>{slot.badge}</span>
+              ) : null}
             </span>
           </button>
         }
@@ -107,6 +111,7 @@ export function NavigatorOverflowItems({
         key={slot.value}
         title={slot.label}
         leading={presentNavIcon(slot.icon, 'size-5 text-subtle')}
+        trailing={slot.badge}
         href={slot.href}
         current={active && (isActiveValue(slot.value, value) ? 'page' : true)}
         onClick={() => {

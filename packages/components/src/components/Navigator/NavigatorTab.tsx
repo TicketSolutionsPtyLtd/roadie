@@ -1,12 +1,13 @@
-import type { CSSProperties, MouseEvent, ReactNode } from 'react'
+import type { CSSProperties, MouseEvent, ReactElement, ReactNode } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import type { BadgeProps } from '../Badge'
 import {
   NavigatorDestination,
   type NavigatorDestinationProps
 } from './NavigatorDestination'
-import { presentNavIcon } from './presentNavIcon'
+import { badgeDot, presentNavIcon } from './presentNavIcon'
 import { navigatorTabVariants } from './variants'
 
 /** When the bar is collapsed, which edge this tab floats to as a circle. */
@@ -27,6 +28,8 @@ export type NavigatorTabProps = Omit<
 > & {
   label: ReactNode
   icon?: ReactNode
+  /** Shown as a corner dot in every presentation. */
+  badge?: ReactElement<BadgeProps>
   /** Same smart-href contract as `Navigator.Item`. Omit for a `<button>`. */
   href?: string
   active?: boolean
@@ -54,6 +57,7 @@ export type NavigatorTabProps = Omit<
 export function NavigatorTab({
   label,
   icon,
+  badge,
   href,
   active = false,
   current = active,
@@ -78,14 +82,22 @@ export function NavigatorTab({
         : 'hidden'
   const content = (
     <>
-      {/* A CSS animation, so re-tapping an already-active tab doesn't re-bounce. */}
-      {presentNavIcon(
-        icon,
-        cn('size-6', active && 'animate-pop-tap'),
-        'navigator-tab-icon'
-      )}
       <span data-slot='navigator-tab-label' className='sr-only'>
         {label}
+      </span>
+      {badge ? ' ' : null}
+      {/* A tile-sized box, so the dot sits as on the vertical tile, inside the tab's rounded clip. */}
+      <span
+        data-slot='navigator-tab-icon-frame'
+        className='relative -m-3 grid p-3'
+      >
+        {/* A CSS animation, so re-tapping an already-active tab doesn't re-bounce. */}
+        {presentNavIcon(
+          icon,
+          cn('size-6', active && 'animate-pop-tap'),
+          'navigator-tab-icon'
+        )}
+        {badge ? badgeDot(badge) : null}
       </span>
     </>
   )
