@@ -8,6 +8,7 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
   ArrowSquareOutIcon,
+  BellRingingIcon,
   CaretDownIcon,
   CaretLeftIcon,
   CaretRightIcon,
@@ -51,6 +52,7 @@ import { createDemoCart } from './cartDrawerDemo'
 
 // Bare-name keys so MDX live examples can use `<CheckCircle />` etc.
 const PhosphorIcons = {
+  BellRinging: BellRingingIcon,
   CheckCircle: CheckCircleIcon,
   Check: CheckIcon,
   LinkSimple: LinkSimpleIcon,
@@ -304,7 +306,13 @@ export function CodePreview({
           // whitespace-normal resets the `white-space: pre` inherited from the
           // MDX code-fence <pre> wrapper, so rendered examples wrap text like a
           // real app instead of forcing single-line width.
-          className={`min-w-0 overflow-x-auto bg-normal font-sans whitespace-normal ${isBleedX ? 'py-4 sm:py-6' : 'px-4 py-4 sm:px-6 sm:py-6'}`}
+          //
+          // overflow-y-hidden is not redundant: setting overflow-x to anything
+          // but visible forces the other axis to auto. The pane has no max
+          // height, so it can only ever overflow vertically by a sub-pixel, and
+          // that was enough to flicker a scrollbar on and off under an animated
+          // example.
+          className={`min-w-0 overflow-x-auto overflow-y-hidden bg-normal font-sans whitespace-normal ${isBleedX ? 'py-4 sm:py-6' : 'px-4 py-4 sm:px-6 sm:py-6'}`}
         />
         <LiveError className='bg-subtler px-4 py-3 text-sm text-subtle intent-danger' />
         <div className='relative min-w-0' style={collapseStyle}>
