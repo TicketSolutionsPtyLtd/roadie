@@ -361,7 +361,7 @@ export function DocsNavigator({
           >
             Appearance
           </Navigator.Item>
-          <Navigator.ExpandToggle placement='pinned' />
+          <Navigator.ExpandToggle />
         </Navigator.Primary>
 
         <Navigator.Content>

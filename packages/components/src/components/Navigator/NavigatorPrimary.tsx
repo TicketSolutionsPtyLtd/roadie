@@ -36,7 +36,7 @@ import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
 import type { NavigatorSecondaryProps } from './NavigatorSecondary'
 import { NavigatorTab, type NavigatorTabProps } from './NavigatorTab'
 import { NavigatorTileTooltip } from './NavigatorTileTooltip'
-import { fixedCapsules, primaryCapsules, wrapCapsules } from './capsules'
+import { primaryCapsules, wrapCapsules } from './capsules'
 import { collectSlots } from './collectSlots'
 import {
   type MobileSlots,
@@ -60,6 +60,7 @@ import {
   navigatorPrimaryBrandVariants,
   navigatorPrimaryCircleVariants,
   navigatorPrimaryClusterContentVariants,
+  navigatorPrimaryClusterTrackVariants,
   navigatorPrimaryClusterVariants,
   navigatorPrimaryClusterViewportVariants,
   navigatorPrimaryHorizontalVariants,
@@ -112,6 +113,7 @@ export function NavigatorPrimary({
   } = use(NavigatorContext)
   const tabTrackRef = useRef<HTMLDivElement>(null)
   const clusterRef = useRef<HTMLDivElement>(null)
+  const clusterTrackRef = useRef<HTMLDivElement>(null)
   const pinnedRef = useRef<HTMLDivElement>(null)
 
   const collected = useMemo(() => collectSlots(children), [children])
@@ -280,7 +282,6 @@ export function NavigatorPrimary({
   const verticalFolded = usePrimaryCapacity(
     clusterRef,
     primaryCapsules(collected.cluster),
-    fixedCapsules(collected.cluster),
     !expanded
   )
   const verticalFoldedSlots = collected.automatic.filter((slot) =>
@@ -419,12 +420,15 @@ export function NavigatorPrimary({
         className={cn(navigatorPrimaryVerticalVariants(), className)}
       >
         <Tooltip.Provider>
-          {collected.brand.length > 0 ? (
+          {collected.brand.length > 0 || collected.toggles.length > 0 ? (
             <div
               data-slot='navigator-primary-brand'
-              className={navigatorPrimaryBrandVariants()}
+              className={navigatorPrimaryBrandVariants({
+                toggle: collected.toggles.length > 0
+              })}
             >
               {collected.brand}
+              {collected.toggles}
             </div>
           ) : null}
           <ScrollArea
@@ -440,25 +444,34 @@ export function NavigatorPrimary({
                 fitWidth={false}
                 className={navigatorPrimaryClusterContentVariants()}
               >
-                <NavigatorFoldedContext value={verticalFolded}>
-                  {wrapCapsules(collected.cluster, verticalFolded)}
-                </NavigatorFoldedContext>
-                {verticalFoldedSlots.length > 0 ? (
-                  <ul
-                    data-slot='navigator-capsule'
-                    className={navigatorCapsuleVariants()}
-                  >
-                    <li>
-                      <NavigatorTileTooltip
-                        label={OVERFLOW_LABEL}
-                        disabled={overflowOpen}
-                        render={(asTrigger) => asTrigger(verticalMoreTile)}
-                      />
-                    </li>
-                  </ul>
-                ) : null}
+                <div
+                  ref={clusterTrackRef}
+                  data-slot='navigator-primary-cluster-track'
+                  className={navigatorPrimaryClusterTrackVariants()}
+                >
+                  <NavigatorFoldedContext value={verticalFolded}>
+                    {wrapCapsules(collected.cluster, verticalFolded)}
+                  </NavigatorFoldedContext>
+                  {verticalFoldedSlots.length > 0 ? (
+                    <ul
+                      data-slot='navigator-capsule'
+                      className={navigatorCapsuleVariants()}
+                    >
+                      <li>
+                        <NavigatorTileTooltip
+                          label={OVERFLOW_LABEL}
+                          disabled={overflowOpen}
+                          render={(asTrigger) => asTrigger(verticalMoreTile)}
+                        />
+                      </li>
+                    </ul>
+                  ) : null}
+                  <NavigatorIndicator
+                    trackRef={clusterTrackRef}
+                    surface='vertical'
+                  />
+                </div>
               </ScrollArea.Content>
-              <NavigatorIndicator trackRef={clusterRef} surface='vertical' />
             </ScrollArea.Viewport>
             <ScrollArea.Scrollbar flush>
               <ScrollArea.Thumb />

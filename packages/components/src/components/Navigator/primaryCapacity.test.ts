@@ -9,7 +9,8 @@ import {
 import {
   navigatorCapsuleVariants,
   navigatorItemVariants,
-  navigatorPrimaryClusterContentVariants
+  navigatorPrimaryClusterContentVariants,
+  navigatorPrimaryClusterTrackVariants
 } from './variants'
 
 const s = (
@@ -75,12 +76,6 @@ describe('vertical navigation arithmetic', () => {
     ).toEqual(['c', 'd'])
   })
 
-  it('counts a fixed capsule it can never fold', () => {
-    const capsules = [{ key: 'r', slots: [s('a'), s('b')] }]
-    expect(folded(fitPrimaryCluster(capsules, 12, [1]))).toEqual([])
-    expect(folded(fitPrimaryCluster(capsules, 11.9, [1]))).toEqual(['a', 'b'])
-  })
-
   it('folds nothing while unmeasured', () => {
     expect(
       folded(fitPrimaryCluster([{ key: 'r', slots: [s('a')] }], 0))
@@ -95,12 +90,13 @@ describe('vertical navigation arithmetic', () => {
       capsuleGap: 0.75,
       clusterPad: 0.5
     })
-    expect(classesOf(navigatorItemVariants())).toContain('size-12')
+    expect(classesOf(navigatorItemVariants())).toContain('h-12')
     expect(classesOf(navigatorCapsuleVariants())).toEqual(
       expect.arrayContaining(['p-1', 'gap-1'])
     )
-    expect(classesOf(navigatorPrimaryClusterContentVariants())).toEqual(
-      expect.arrayContaining(['gap-3', 'py-2'])
+    expect(classesOf(navigatorPrimaryClusterContentVariants())).toContain(
+      'py-2'
     )
+    expect(classesOf(navigatorPrimaryClusterTrackVariants())).toContain('gap-3')
   })
 })

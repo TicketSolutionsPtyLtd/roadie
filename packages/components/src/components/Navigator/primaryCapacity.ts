@@ -43,7 +43,6 @@ export function clusterHeight(
 export function fitPrimaryCluster(
   capsules: PrimaryCapsule[],
   available: number,
-  fixed: number[] = [],
   metrics: PrimaryMetrics = PRIMARY_METRICS
 ): { folded: Set<string> } {
   const all = capsules.flatMap((capsule) => capsule.slots)
@@ -55,7 +54,7 @@ export function fitPrimaryCluster(
       (capsule) => capsule.slots.filter((slot) => kept.has(slot.value)).length
     )
     const more = keep < all.length ? [1] : []
-    if (clusterHeight([...counts, ...fixed, ...more], metrics) <= available) {
+    if (clusterHeight([...counts, ...more], metrics) <= available) {
       return {
         folded: new Set(
           all.filter((slot) => !kept.has(slot.value)).map((slot) => slot.value)

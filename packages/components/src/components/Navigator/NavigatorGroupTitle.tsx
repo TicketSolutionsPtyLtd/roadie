@@ -2,7 +2,10 @@ import type { ComponentProps, ReactElement } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { navigatorGroupTitleVariants } from './variants'
+import {
+  navigatorGroupTitleTextVariants,
+  navigatorGroupTitleVariants
+} from './variants'
 
 export type NavigatorGroupTitleProps = ComponentProps<'h2'> & {
   /**
@@ -17,12 +20,21 @@ export type NavigatorGroupTitleProps = ComponentProps<'h2'> & {
 export function NavigatorGroupTitle({
   className,
   render,
+  children,
   ...props
 }: NavigatorGroupTitleProps) {
   const resolved = {
     'data-slot': 'navigator-group-title',
     className: cn(navigatorGroupTitleVariants(), className),
-    ...props
+    ...props,
+    children: (
+      <span
+        data-slot='navigator-group-title-text'
+        className={navigatorGroupTitleTextVariants()}
+      >
+        {children}
+      </span>
+    )
   }
   return render ? render(resolved) : <h2 {...resolved} />
 }

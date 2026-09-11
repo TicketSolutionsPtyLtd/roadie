@@ -100,14 +100,16 @@ describe('collectSlots', () => {
     expect(automatic[0]?.group?.title).toBe('Docs')
   })
 
-  it('places ExpandToggle by its placement without making it a destination', () => {
+  it('collects ExpandToggle apart from every region of destinations', () => {
     const result = collectSlots([
+      <Navigator.ExpandToggle key='toggle' />,
       <Navigator.Item key='a' value='/a'>
         A
-      </Navigator.Item>,
-      <Navigator.ExpandToggle key='toggle' placement='pinned' />
+      </Navigator.Item>
     ])
-    expect(result.pinned.map((entry) => entry.kind)).toEqual(['toggle'])
-    expect(result.pinnedSlots).toEqual([])
+    expect(result.toggles).toHaveLength(1)
+    expect(result.cluster.map((entry) => entry.kind)).toEqual(['item'])
+    expect(result.pinned).toEqual([])
+    expect(result.pinnedBeforeCluster).toBe(false)
   })
 })

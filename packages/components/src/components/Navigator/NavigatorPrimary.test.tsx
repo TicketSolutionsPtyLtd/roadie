@@ -10,10 +10,13 @@ import { Navigator } from '.'
 import { Badge } from '../Badge'
 import { FakeIcon, flushViewportMeasurement, primaryOf } from './testUtils'
 import {
+  navigatorBrandVariants,
   navigatorCapsuleVariants,
+  navigatorExpandToggleAnchorVariants,
   navigatorGroupTitleVariants,
   navigatorItemLabelClass,
   navigatorItemVariants,
+  navigatorPrimaryBrandVariants,
   navigatorPrimaryClusterContentVariants,
   navigatorPrimaryClusterVariants,
   navigatorPrimaryPinnedVariants,
@@ -136,10 +139,14 @@ describe('vertical regions', () => {
     ).toBeInTheDocument()
   })
 
-  it('keeps group titles for screen readers only while collapsed', async () => {
+  it('shuts group titles while collapsed but keeps them readable', async () => {
     render(<Six />)
     await flushViewportMeasurement()
-    expect(within(region('cluster')).getByText('Extra')).toHaveClass('sr-only')
+    const title = within(region('cluster')).getByRole('heading', {
+      name: 'Extra'
+    })
+    expect(title).toHaveClass('grid-rows-[0fr]', 'opacity-0')
+    expect(title).not.toHaveClass('sr-only')
     expect(vertical()).not.toHaveAttribute('data-expanded')
   })
 
@@ -304,10 +311,13 @@ describe('vertical capacity', () => {
     await flushViewportMeasurement()
     reportClusterHeight(192)
     const content = region('cluster').querySelector(
-      '[data-slot="scroll-area-content"]'
+      '[data-slot="navigator-primary-cluster-track"]'
     )!
-    const last = content.lastElementChild as HTMLElement
-    expect(last).toHaveAttribute('data-slot', 'navigator-capsule')
+    const last = [
+      ...content.querySelectorAll<HTMLElement>(
+        ':scope > [data-slot="navigator-capsule"]'
+      )
+    ].at(-1)!
     expect(
       within(last).getByRole('button', { name: 'More' })
     ).toBeInTheDocument()
@@ -367,7 +377,7 @@ function Expandable(props: {
             Gamma
           </Navigator.Item>
         </Navigator.Group>
-        <Navigator.ExpandToggle placement='pinned' />
+        <Navigator.ExpandToggle />
       </Navigator.Primary>
       <Navigator.Content />
     </Navigator>
@@ -393,7 +403,7 @@ describe('expanded vertical navigation', () => {
     const user = userEvent.setup()
     render(<Expandable />)
     await flushViewportMeasurement()
-    const toggle = within(region('pinned')).getByRole('button', {
+    const toggle = within(region('brand')).getByRole('button', {
       name: 'Expand sidebar'
     })
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
@@ -404,14 +414,14 @@ describe('expanded vertical navigation', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
   })
 
-  it('draws the toggle icon duotone at size-6, subtle', async () => {
+  it('draws the toggle icon duotone at size-5, subtle', async () => {
     render(<Expandable />)
     await flushViewportMeasurement()
-    const toggle = within(region('pinned')).getByRole('button', {
+    const toggle = within(region('brand')).getByRole('button', {
       name: 'Expand sidebar'
     })
     const icon = toggle.querySelector('svg')!
-    expect(icon).toHaveClass('size-6')
+    expect(icon).toHaveClass('size-5')
     expect(icon.querySelector('[opacity="0.2"]')).not.toBeNull()
     expect(toggle).toHaveClass('text-subtle')
   })
@@ -422,7 +432,7 @@ describe('expanded vertical navigation', () => {
     render(<Expandable expanded onExpandedChange={onExpandedChange} />)
     await flushViewportMeasurement()
     await user.click(
-      within(region('pinned')).getByRole('button', {
+      within(region('brand')).getByRole('button', {
         name: 'Collapse sidebar'
       })
     )
@@ -480,32 +490,35 @@ describe('expanded vertical navigation', () => {
       navigatorCapsuleVariants(),
       navigatorItemVariants(),
       navigatorItemLabelClass,
-      navigatorGroupTitleVariants()
+      navigatorGroupTitleVariants(),
+      navigatorPrimaryBrandVariants({ toggle: true }),
+      navigatorBrandVariants(),
+      navigatorExpandToggleAnchorVariants()
     ].join(' ')
     expect(classes).toContain('navigator-expanded:w-60')
-    expect(classes).toContain('navigator-expanded:not-sr-only')
+    expect(classes).toContain('navigator-expanded:opacity-100')
     expect(classes).not.toMatch(/\[html\[|data-\[expanded|expanded=false/)
   })
 
-  it('left-aligns the brand only while expanded', async () => {
-    const scope = `:where(${NAVIGATOR_EXPANDED_SCOPE})`
+  it('starts the brand on the icon column in both states', async () => {
     const { rerender } = render(<BrandedExpandable expanded={false} />)
     await flushViewportMeasurement()
-    const brand = region('brand').querySelector<HTMLElement>(
-      '[data-slot="navigator-brand"]'
-    )!
-    expect(region('brand')).toHaveClass(
-      'justify-items-center',
-      'navigator-expanded:justify-items-stretch'
-    )
-    expect(brand).toHaveClass(
-      'justify-center',
-      'navigator-expanded:justify-start',
-      'navigator-expanded:px-4'
-    )
-    expect(brand.matches(scope)).toBe(false)
-    rerender(<BrandedExpandable expanded />)
-    expect(brand.matches(scope)).toBe(true)
+    const brand = () =>
+      region('brand').querySelector<HTMLElement>(
+        '[data-slot="navigator-brand"]'
+      )!
+    for (const expanded of [false, true]) {
+      rerender(<BrandedExpandable expanded={expanded} />)
+      expect(brand()).toHaveClass(
+        'ps-1',
+        'grid-cols-[minmax(3rem,auto)]',
+        'justify-items-start',
+        '[&>:first-child]:justify-self-center'
+      )
+      expect(brand().className).not.toMatch(
+        /justify-center|justify-items-center/
+      )
+    }
   })
 
   it('centres the cluster in both states', async () => {
@@ -520,6 +533,105 @@ describe('expanded vertical navigation', () => {
       expect(content()).toHaveClass('min-h-full', 'content-center')
       expect(content().className).not.toMatch(/content-start/)
     }
+  })
+
+  it('keeps a 3rem tile with a size-6 icon on its own column in both states', async () => {
+    const { rerender } = render(<Expandable expanded={false} />)
+    await flushViewportMeasurement()
+    for (const expanded of [false, true]) {
+      rerender(<Expandable expanded={expanded} />)
+      const tile = within(region('cluster')).getByRole('link', {
+        name: 'Alpha'
+      })
+      expect(tile.querySelector('svg')).toHaveClass('size-6')
+      const classes = tile.className.split(' ')
+      expect(classes).toEqual(
+        expect.arrayContaining([
+          'h-12',
+          'w-full',
+          'grid-cols-[1.5rem_minmax(0,1fr)_auto]'
+        ])
+      )
+      // A gap beside the empty label column squeezed the icon to half width.
+      expect(
+        classes.some((name) => /(^|:)(scale-|gap-|size-)/.test(name))
+      ).toBe(false)
+    }
+  })
+
+  it('renders the toggle beside the brand wherever it is written', async () => {
+    render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.ExpandToggle />
+          <Navigator.Brand>Logo</Navigator.Brand>
+          <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
+            Alpha
+          </Navigator.Item>
+          <Navigator.Item
+            value='/me'
+            href='/me'
+            icon={<FakeIcon />}
+            placement='pinned'
+          >
+            Me
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content />
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const toggle = within(region('brand')).getByRole('button', {
+      name: 'Expand sidebar'
+    })
+    expect(toggle.closest('[data-slot="navigator-primary-brand"]')).toBe(
+      region('brand')
+    )
+    expect(region('brand')).toHaveClass('pb-12', 'navigator-expanded:pe-15')
+    expect(
+      within(region('cluster')).queryByRole('button', { name: /sidebar/ })
+    ).toBeNull()
+    expect(within(region('pinned')).getAllByRole('listitem')).toHaveLength(1)
+    expect(within(region('pinned')).queryByRole('button')).toBeNull()
+  })
+
+  it('keeps the toggle icon-only in both states', async () => {
+    const user = userEvent.setup()
+    render(<Expandable />)
+    await flushViewportMeasurement()
+    const toggle = within(region('brand')).getByRole('button', {
+      name: 'Expand sidebar'
+    })
+    const label = () =>
+      toggle.querySelector('[data-slot="navigator-expand-toggle-label"]')!
+    expect(label()).toHaveClass('sr-only')
+    await user.click(toggle)
+    expect(toggle).toHaveAccessibleName('Collapse sidebar')
+    expect(label()).toHaveClass('sr-only')
+    expect(
+      toggle.querySelector('[data-slot="navigator-item-label"]')
+    ).toBeNull()
+  })
+
+  it('labels the toggle with a tooltip while expanded too', async () => {
+    const user = userEvent.setup()
+    render(<Expandable defaultExpanded />)
+    await flushViewportMeasurement()
+    await user.hover(
+      within(region('brand')).getByRole('button', { name: 'Collapse sidebar' })
+    )
+    expect(
+      await screen.findByText(
+        'Collapse sidebar',
+        { selector: '[data-slot="tooltip-popup"]' },
+        { timeout: 2000 }
+      )
+    ).toBeInTheDocument()
+  })
+
+  it('takes no placement on the toggle', () => {
+    // @ts-expect-error the toggle always sits beside the brand
+    ;<Navigator.ExpandToggle placement='pinned' />
   })
 
   it('folds nothing while expanded', async () => {
@@ -608,7 +720,7 @@ describe('expanded from the document', () => {
     render(<Expandable expandedFromDocument />)
     await flushViewportMeasurement()
     await user.click(
-      within(region('pinned')).getByRole('button', {
+      within(region('brand')).getByRole('button', {
         name: 'Collapse sidebar'
       })
     )
@@ -619,7 +731,7 @@ describe('expanded from the document', () => {
       false
     )
     await user.click(
-      within(region('pinned')).getByRole('button', { name: 'Expand sidebar' })
+      within(region('brand')).getByRole('button', { name: 'Expand sidebar' })
     )
     expect(document.documentElement).toHaveAttribute('data-navigator-expanded')
   })
@@ -633,7 +745,7 @@ describe('expanded from the document', () => {
       false
     )
     expect(
-      within(region('pinned')).getByRole('button', { name: 'Expand sidebar' })
+      within(region('brand')).getByRole('button', { name: 'Expand sidebar' })
     ).toBeInTheDocument()
   })
 })
@@ -700,7 +812,7 @@ describe('collapsed labels', () => {
     const user = userEvent.setup()
     render(<Expandable />)
     await flushViewportMeasurement()
-    const toggle = within(region('pinned')).getByRole('button', {
+    const toggle = within(region('brand')).getByRole('button', {
       name: 'Expand sidebar'
     })
     expect(toggle).toHaveAttribute('data-slot', 'navigator-expand-toggle')

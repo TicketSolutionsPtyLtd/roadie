@@ -8,6 +8,8 @@ import { NavigatorContext } from './NavigatorContext'
 export type NavigatorTileTooltipProps = {
   label: ReactNode
   disabled?: boolean
+  /** Keep the tooltip while expanded, for a trigger that never shows its label. */
+  iconOnly?: boolean
   render: (asTrigger: (tile: ReactElement) => ReactElement) => ReactNode
 }
 
@@ -15,11 +17,12 @@ export type NavigatorTileTooltipProps = {
 export function NavigatorTileTooltip({
   label,
   disabled = false,
+  iconOnly = false,
   render
 }: NavigatorTileTooltipProps) {
   const { expanded } = use(NavigatorContext)
   return (
-    <Tooltip disabled={expanded || disabled}>
+    <Tooltip disabled={(expanded && !iconOnly) || disabled}>
       {render((tile) => (
         <Tooltip.Trigger render={tile} />
       ))}

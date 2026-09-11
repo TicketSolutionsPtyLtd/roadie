@@ -44,7 +44,8 @@ docs site built on them, and this redesign.
 
 ### Large screens (`md` and up), collapsed — the default
 
-- **Brand** at the top, never inside a capsule.
+- **Brand** at the top, never inside a capsule. The `ExpandToggle` sits under
+  it, icon-only and subtler than a tile, with no capsule of its own.
 - **Capsules.** Each `Navigator.Group` renders as its own raised floating
   capsule (`emphasis-raised rounded-full`). Consecutive loose items form an
   implicit capsule. Capsules are separated by a fixed gap.
@@ -56,10 +57,14 @@ docs site built on them, and this redesign.
 ### Large screens, expanded — a remembered user toggle
 
 - Capsules widen to show labels beside icons.
-- The brand left-aligns on the rows' icon column.
-- The cluster **stays centred** between brand and pinned, so toggling never
-  moves it vertically. Only when it outgrows that space does it top-align and
-  scroll.
+- The brand's mark stays on the rows' icon column; a wordmark fades in beside
+  it. The toggle moves to the trailing edge of the brand's row.
+- The cluster **stays centred** between brand and pinned. Only when it outgrows
+  that space does it top-align and scroll. The brand region loses the toggle's
+  row, so the cluster drifts up by half that row, animated.
+- Everything that moves animates on one duration and easing: the width (the
+  panes follow the grid track), the toggle, capsule widths, group titles and
+  labels. Reduced motion snaps. A pre-hydration expanded paint doesn't animate.
 - Brand stays top and pinned stays bottom; only the cluster between them
   scrolls (`ScrollArea`). Nothing overflows into More while expanded.
 
@@ -109,7 +114,7 @@ docs site built on them, and this redesign.
         <Navigator.MenuItem onClick={signOut}>Sign out</Navigator.MenuItem>
       </Navigator.Menu>
     </Navigator.Item>
-    <Navigator.ExpandToggle placement='pinned' />
+    <Navigator.ExpandToggle />
   </Navigator.Primary>
 
   <Navigator.Content>
@@ -140,7 +145,8 @@ docs site built on them, and this redesign.
 - **`expanded` / `defaultExpanded` / `onExpandedChange`** on the root.
   Navigator never touches storage; the app persists the choice (a cookie, so
   server rendering doesn't flash) and passes it back.
-- **`Navigator.ExpandToggle`** — the built-in toggle, placed like an item.
+- **`Navigator.ExpandToggle`** — the built-in toggle. Icon-only, it always
+  renders in the brand region, wherever it is written; it takes no `placement`.
 - **`searchable`** on `Navigator.Secondary` — the generated pane renders a
   `Pane.Search` that filters rows by label and hides groups left empty.
 - **`Navigator.SecondaryPane value='…'`** + **`Navigator.SecondaryItems`** —
@@ -277,7 +283,8 @@ columns reflow once, not per frame — within the translate/scale/opacity rule.
 - The `nav` landmark keeps its `aria-label`.
 - Capsules are lists named by their `GroupTitle`.
 - `ExpandToggle` is a button with `aria-expanded` and `aria-controls`,
-  labelled "Expand sidebar" / "Collapse sidebar".
+  labelled "Expand sidebar" / "Collapse sidebar" in visually hidden text and a
+  tooltip, in both states.
 - Tab order follows source order, not visual position, so pinned items come
   after the cluster.
 - Covered panes stay `visibility: hidden` below `lg` (already shipped).
@@ -298,7 +305,7 @@ columns reflow once, not per frame — within the translate/scale/opacity rule.
   panes.
 - Components becomes a `Secondary` with `searchable` and category groups; the
   hand-authored Components pane and its thumbnails are deleted.
-- Appearance and `ExpandToggle` are pinned.
+- Appearance is pinned; `ExpandToggle` sits beside the brand.
 - The expanded state persists in a cookie.
 
 ## Testing
