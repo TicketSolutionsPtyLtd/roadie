@@ -18,5 +18,4 @@ Also ships `Navigator.Menu`/`MenuItem`, `Navigator.ExpandToggle`,
 `Navigator.OverflowPane`/`OverflowItems`,
 `Navigator.SecondaryPane`/`SecondaryItems`; `showList`/`onShowListChange` to
 show a section's list from the URL; `expandedFromDocument` with
-`getNavigatorExpandedScript` from `@oztix/roadie-core/navigator`. Navigator
-and Pane are unreleased, so there is no migration note.
+`getNavigatorExpandedScript` from `@oztix/roadie-core/navigator`.
