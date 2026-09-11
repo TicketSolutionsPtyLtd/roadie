@@ -230,11 +230,16 @@ describe('vertical capacity', () => {
     expect(within(verticalRows).getAllByRole('link')).toHaveLength(4)
   })
 
-  it('renders More duotone at size-6 and its rows duotone at size-5', async () => {
+  it('renders More duotone at size-6 on the tile, size-7 in the bar, and its rows at size-5', async () => {
     const user = userEvent.setup()
     render(<Six />)
     await flushViewportMeasurement()
     reportClusterHeight(192)
+    expect(
+      within(horizontal())
+        .getByRole('button', { name: 'More' })
+        .querySelector('svg')
+    ).toHaveClass('size-7')
     const more = within(region('cluster')).getByRole('button', { name: 'More' })
     const moreIcon = more.querySelector('svg')!
     expect(moreIcon).toHaveClass('size-6')

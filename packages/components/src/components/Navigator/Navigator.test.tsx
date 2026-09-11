@@ -671,18 +671,33 @@ describe('destination visuals', () => {
         <Navigator.Item value='/b' href='/b' icon={<FakeIcon />}>
           B
         </Navigator.Item>
+        <Navigator.Item
+          value='/me'
+          href='/me'
+          icon={<FakeIcon />}
+          placement='pinned'
+        >
+          Me
+        </Navigator.Item>
       </Navigator.Primary>
     </Navigator>
   )
 
-  it('renders every destination icon duotone at size-6', async () => {
-    const { container } = render(tree())
+  it('renders every destination icon duotone, size-6 on tiles and size-7 in the bar', async () => {
+    render(tree())
     await flushViewportMeasurement()
-    const icons = container.querySelectorAll('[data-testid="fake-icon"]')
-    expect(icons.length).toBeGreaterThan(0)
-    for (const icon of icons) {
-      expect(icon).toHaveAttribute('data-weight', 'duotone')
-      expect(icon).toHaveClass('size-6')
+    for (const [orientation, size] of [
+      ['vertical', 'size-6'],
+      ['horizontal', 'size-7']
+    ] as const) {
+      const icons = primaryOf(orientation).querySelectorAll(
+        '[data-testid="fake-icon"]'
+      )
+      expect(icons).toHaveLength(3)
+      for (const icon of icons) {
+        expect(icon).toHaveAttribute('data-weight', 'duotone')
+        expect(icon).toHaveClass(size)
+      }
     }
   })
 
@@ -3118,7 +3133,7 @@ describe('Navigator collapsed edge circles', () => {
     expect(track).toHaveClass('py-1')
 
     const expandedTab = track.querySelector('[data-slot="navigator-item"]')!
-    expect(expandedTab).toHaveClass('py-4')
+    expect(expandedTab).toHaveClass('py-3.5')
 
     await collapse(container)
     // The track's own padding never changed, so nothing to transition.
@@ -3126,7 +3141,7 @@ describe('Navigator collapsed edge circles', () => {
     for (const tab of track.querySelectorAll(
       '[data-slot="navigator-item"]:not([data-circle-side])'
     )) {
-      expect(tab).toHaveClass('py-4')
+      expect(tab).toHaveClass('py-3.5')
     }
     await flushViewportMeasurement()
   })

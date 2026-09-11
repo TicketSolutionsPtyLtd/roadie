@@ -95,7 +95,7 @@ export function NavigatorTab({
         {/* A CSS animation, so re-tapping an already-active tab doesn't re-bounce. */}
         {presentNavIcon(
           icon,
-          cn('size-6', active && 'animate-pop-tap'),
+          cn('size-7', active && 'animate-pop-tap'),
           'navigator-tab-icon'
         )}
         {badge ? badgeDot(badge) : null}
