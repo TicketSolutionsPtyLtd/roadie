@@ -63,6 +63,7 @@ import {
   navigatorPrimaryClusterVariants,
   navigatorPrimaryClusterViewportVariants,
   navigatorPrimaryHorizontalVariants,
+  navigatorPrimaryLaneVariants,
   navigatorPrimaryPillVariants,
   navigatorPrimaryPinnedVariants,
   navigatorPrimaryTrackVariants,
@@ -486,8 +487,7 @@ export function NavigatorPrimary({
             '--navigator-primary-count': String(tabCount),
             '--navigator-primary-slots': String(
               phoneBarCapacity(pinnedTab !== undefined)
-            ),
-            '--navigator-primary-pinned': pinnedTab ? '4rem' : '0rem'
+            )
           } as CSSProperties
         }
         // `aria-hidden` too: `inert` alone doesn't leave every AT tree.
@@ -500,60 +500,65 @@ export function NavigatorPrimary({
         })}
       >
         <div
-          ref={tabTrackRef}
-          data-slot='navigator-primary-track'
-          className={navigatorPrimaryTrackVariants({ collapsed })}
+          data-slot='navigator-primary-lane'
+          className={navigatorPrimaryLaneVariants()}
         >
           <div
-            aria-hidden
-            data-slot='navigator-primary-pill'
-            className={navigatorPrimaryPillVariants({ collapsed })}
-          />
-          <NavigatorIndicator
-            trackRef={tabTrackRef}
-            surface='horizontal'
-            hidden={collapsed}
-          />
-          {slots.tabs.map((tab, tabIndex) => {
-            const active = isSectionActive(tab, activeValue)
-            // With the right circle taken, the first tab floats left so two circles always show.
-            const isLeftCircle = activeIsRight
-              ? tab.value === slots.tabs[0]?.value
-              : active
-            return renderTab(tab, {
-              label: tab.label,
-              icon: tab.icon,
-              badge: tab.badge,
-              href: tabHref(tab, active),
-              active: active && !disclosureOpen,
-              current: active && !overflowOpen,
-              isPage: isActiveValue(tab.value, activeValue),
-              collapsed,
-              circleSide: isLeftCircle ? 'left' : undefined,
-              index: tabIndex,
-              onSelect: (event) => selectDestination(event, tab, active)
-            })
-          })}
-          {hasMore ? (
-            <NavigatorTab
-              label={OVERFLOW_LABEL}
-              icon={<DotsThreeIcon />}
-              active={overflowOpen || (foldedIsActive && !disclosureOpen)}
-              current={overflowOpen || foldedIsActive}
-              collapsed={collapsed}
-              circleSide={moreCircleSide}
-              index={slots.tabs.length}
-              expanded={overflowOpen}
-              controls={overflowOpen ? overflowPaneId : undefined}
-              onSelect={(event) => {
-                if (event.currentTarget instanceof HTMLElement) {
-                  overflowOpener.current = event.currentTarget
-                }
-                setOpenMenu(null)
-                setOverflowOpen(!overflowOpen)
-              }}
+            ref={tabTrackRef}
+            data-slot='navigator-primary-track'
+            className={navigatorPrimaryTrackVariants({ collapsed })}
+          >
+            <div
+              aria-hidden
+              data-slot='navigator-primary-pill'
+              className={navigatorPrimaryPillVariants({ collapsed })}
             />
-          ) : null}
+            <NavigatorIndicator
+              trackRef={tabTrackRef}
+              surface='horizontal'
+              hidden={collapsed}
+            />
+            {slots.tabs.map((tab, tabIndex) => {
+              const active = isSectionActive(tab, activeValue)
+              // With the right circle taken, the first tab floats left so two circles always show.
+              const isLeftCircle = activeIsRight
+                ? tab.value === slots.tabs[0]?.value
+                : active
+              return renderTab(tab, {
+                label: tab.label,
+                icon: tab.icon,
+                badge: tab.badge,
+                href: tabHref(tab, active),
+                active: active && !disclosureOpen,
+                current: active && !overflowOpen,
+                isPage: isActiveValue(tab.value, activeValue),
+                collapsed,
+                circleSide: isLeftCircle ? 'left' : undefined,
+                index: tabIndex,
+                onSelect: (event) => selectDestination(event, tab, active)
+              })
+            })}
+            {hasMore ? (
+              <NavigatorTab
+                label={OVERFLOW_LABEL}
+                icon={<DotsThreeIcon />}
+                active={overflowOpen || (foldedIsActive && !disclosureOpen)}
+                current={overflowOpen || foldedIsActive}
+                collapsed={collapsed}
+                circleSide={moreCircleSide}
+                index={slots.tabs.length}
+                expanded={overflowOpen}
+                controls={overflowOpen ? overflowPaneId : undefined}
+                onSelect={(event) => {
+                  if (event.currentTarget instanceof HTMLElement) {
+                    overflowOpener.current = event.currentTarget
+                  }
+                  setOpenMenu(null)
+                  setOverflowOpen(!overflowOpen)
+                }}
+              />
+            ) : null}
+          </div>
         </div>
         {pinnedTab ? (
           <div

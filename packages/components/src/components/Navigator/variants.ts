@@ -81,10 +81,10 @@ export const navigatorCapsuleVariants = cva([
 ])
 
 // The box never changes size, so collapse animates on scale/translate/opacity
-// alone. `--navigator-primary-col` is one of the bar's slots across the root's
-// width less the 2rem inset and the pinned circle's width;
+// alone. `--navigator-primary-col` is one of the bar's slots across the lane
+// (its `cqw` resolves where it is used) less the track's inset;
 // `--navigator-primary-edge` is the fixed part of a collapsed circle's travel.
-// `Navigator.Primary` sets the count, the slots and the pinned width inline.
+// `Navigator.Primary` sets the count and the slots inline.
 export const navigatorPrimaryHorizontalVariants = cva(
   [
     'max-md:absolute max-md:inset-x-2 max-md:bottom-[max(1rem,env(safe-area-inset-bottom))] max-md:z-sticky md:hidden',
@@ -93,8 +93,7 @@ export const navigatorPrimaryHorizontalVariants = cva(
     'pointer-events-none',
     '[--navigator-primary-count:5]',
     '[--navigator-primary-slots:5]',
-    '[--navigator-primary-pinned:0rem]',
-    '[--navigator-primary-col:calc((100cqw-2rem-var(--navigator-primary-pinned))/var(--navigator-primary-slots))]',
+    '[--navigator-primary-col:calc((100cqw-1rem)/var(--navigator-primary-slots))]',
     '[--navigator-primary-edge:calc((var(--navigator-primary-slots)_-_var(--navigator-primary-count))_*_var(--navigator-primary-col)_/_2_+_(var(--navigator-primary-col)_-_3.5rem)_/_2)]',
     // `translate`, not `transform`: the hide state is `max-md:translate-y-[…]`,
     // which Tailwind v4 emits as the independent `translate` property, so
@@ -112,13 +111,18 @@ export const navigatorPrimaryHorizontalVariants = cva(
         false: ''
       },
       pinned: {
-        true: 'grid-cols-[1fr_auto] gap-2',
+        true: 'grid-cols-[minmax(0,1fr)_auto] gap-3',
         false: ''
       }
     },
     defaultVariants: { collapsed: false, hidden: false, pinned: false }
   }
 )
+
+// A size container, so the tabs share what the pinned circle and gap leave.
+export const navigatorPrimaryLaneVariants = cva([
+  '[container-type:inline-size]'
+])
 
 export const navigatorPrimaryCircleVariants = cva([
   'pointer-events-auto grid self-stretch'
@@ -179,8 +183,9 @@ export const navigatorTabVariants = cva(
           'pointer-events-auto size-14 translate-y-1 scale-100 place-content-center justify-self-center self-end bg-raised opacity-100 shadow-xl',
         // `py-4` holds the row's height while invisible.
         hidden: 'scale-0 px-0 py-4 opacity-0 pointer-events-none',
+        // `p-5` = the track's `py-1` + a tab's `py-4`: square at the bar's height, sized intrinsically.
         pinned:
-          'pointer-events-auto aspect-square h-full rounded-full emphasis-floating place-content-center justify-self-end'
+          'pointer-events-auto p-5 rounded-full emphasis-floating place-content-center justify-self-end'
       },
       circleSide: {
         left: '',
