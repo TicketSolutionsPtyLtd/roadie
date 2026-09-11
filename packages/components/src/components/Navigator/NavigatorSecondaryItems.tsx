@@ -51,7 +51,11 @@ export function NavigatorSecondaryItems({
     <List.Item
       key={props.value}
       title={splitItemChildren(props.children).label}
-      leading={props.icon ? presentNavIcon(props.icon, 'size-5') : undefined}
+      leading={
+        props.icon
+          ? presentNavIcon(props.icon, 'size-5 text-subtle')
+          : undefined
+      }
       trailing={props.badge}
       href={props.href}
       chevron={false}

@@ -208,14 +208,16 @@ describe('vertical capacity', () => {
     expect(moreIcon).toHaveClass('size-6')
     // Phosphor draws duotone's second tone as a 0.2-opacity path.
     expect(moreIcon.querySelector('[opacity="0.2"]')).not.toBeNull()
+    expect(moreIcon).not.toHaveClass('animate-pop-tap')
     await user.click(more)
+    expect(more.querySelector('svg')).toHaveClass('animate-pop-tap')
     const rowIcons = document.querySelectorAll(
       '[data-slot="navigator-overflow-items"] [data-testid="fake-icon"]'
     )
     expect(rowIcons.length).toBeGreaterThan(0)
     for (const icon of rowIcons) {
       expect(icon).toHaveAttribute('data-weight', 'duotone')
-      expect(icon).toHaveClass('size-5')
+      expect(icon).toHaveClass('size-5', 'text-subtle')
     }
   })
 

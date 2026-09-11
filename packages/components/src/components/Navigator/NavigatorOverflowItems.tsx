@@ -81,7 +81,7 @@ export function NavigatorOverflowItems({
           >
             {slot.icon ? (
               <span className={listItemLeadingClass}>
-                {presentNavIcon(slot.icon, 'size-5')}
+                {presentNavIcon(slot.icon, 'size-5 text-subtle')}
               </span>
             ) : null}
             <span
@@ -106,7 +106,7 @@ export function NavigatorOverflowItems({
       <List.Item
         key={slot.value}
         title={slot.label}
-        leading={presentNavIcon(slot.icon, 'size-5')}
+        leading={presentNavIcon(slot.icon, 'size-5 text-subtle')}
         href={slot.href}
         current={active && (isActiveValue(slot.value, value) ? 'page' : true)}
         onClick={() => {

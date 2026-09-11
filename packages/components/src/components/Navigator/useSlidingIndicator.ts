@@ -21,6 +21,8 @@ export const ACTIVE_DESTINATION_SELECTOR =
 export type SlidingIndicatorState = {
   style: CSSProperties | undefined
   ready: boolean
+  /** Ready since an earlier commit, so a move may slide rather than jump. */
+  settled: boolean
 }
 
 type Geometry = { left: number; top: number; width: number; height: number }
@@ -97,21 +99,27 @@ export function useSlidingIndicator(
   trackRef: RefObject<HTMLElement | null>
 ): SlidingIndicatorState {
   const [geometry, setGeometry] = useState<Geometry | null>(null)
+  const [ready, setReady] = useState(false)
+  const [settled, setSettled] = useState(false)
 
   const measure = useCallback(() => {
     const track = trackRef.current
     const active = track?.querySelector<HTMLElement>(
       ACTIVE_DESTINATION_SELECTOR
     )
+    const next =
+      track && active
+        ? (layoutBoxWithin(active, track) ?? rectBoxWithin(active, track))
+        : null
+    const visible = next !== null && next.width > 0 && next.height > 0
 
-    if (!track || !active) {
-      setGeometry((previous) => (previous === null ? previous : null))
-      return
+    setReady(visible)
+    // The last box is kept while unready so the pill fades out where it was.
+    if (visible) {
+      setGeometry((previous) =>
+        sameGeometry(previous, next) ? previous : next
+      )
     }
-
-    const next = layoutBoxWithin(active, track) ?? rectBoxWithin(active, track)
-
-    setGeometry((previous) => (sameGeometry(previous, next) ? previous : next))
   }, [trackRef])
 
   // The indicator is a child of the element `trackRef` points at, so React
@@ -139,10 +147,21 @@ export function useSlidingIndicator(
     return () => observer.disconnect()
   }, [trackRef, measure])
 
-  const ready = geometry !== null && geometry.width > 0 && geometry.height > 0
+  useIsomorphicLayoutEffect(() => {
+    if (!ready) {
+      setSettled(false)
+      return
+    }
+    if (settled) return
+    // Flush the first box's styles before enabling the translate transition,
+    // or the pill slides in from the track's origin.
+    trackRef.current?.getBoundingClientRect()
+    setSettled(true)
+  }, [trackRef, ready, settled])
 
   return {
     ready,
+    settled: ready && settled,
     style: geometry
       ? ({
           '--active-tab-left': `${geometry.left}px`,
