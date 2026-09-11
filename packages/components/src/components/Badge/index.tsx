@@ -20,21 +20,40 @@ export const badgeVariants = cva(
       size: {
         sm: 'px-2 py-0.5 text-xs',
         md: 'px-2.5 py-0.5 text-sm'
+      },
+      // After `size`, so `p-0` wins the merge against its padding.
+      hideLabel: {
+        true: 'shrink-0 gap-0 p-0',
+        false: ''
       }
     },
+    compoundVariants: [
+      { hideLabel: true, size: 'sm', class: 'size-2' },
+      { hideLabel: true, size: 'md', class: 'size-2.5' }
+    ],
     defaultVariants: {
       emphasis: 'normal',
-      size: 'md'
+      size: 'md',
+      hideLabel: false
     }
   }
 )
 
 export interface BadgeProps
-  extends ComponentProps<'span'>, VariantProps<typeof badgeVariants> {
+  extends
+    ComponentProps<'span'>,
+    Omit<VariantProps<typeof badgeVariants>, 'hideLabel'> {
   /** Show a dot indicator before the text */
   indicator?: boolean
   /** Animate the indicator with a slow pulse */
   indicatorPulse?: boolean
+  /**
+   * Shrink the badge to a dot and hide the label visually. The label is still
+   * announced, so it must describe the state ("3 unread", not "3"). Implies
+   * `indicator`; `emphasis` sets the dot's look.
+   * @default false
+   */
+  hideLabel?: boolean
 }
 
 export function Badge({
@@ -44,16 +63,21 @@ export function Badge({
   size,
   indicator,
   indicatorPulse,
+  hideLabel = false,
   children,
   ...props
 }: BadgeProps) {
   return (
     <span
       data-slot='badge'
-      className={cn(badgeVariants({ intent, emphasis, size, className }))}
+      className={cn(
+        badgeVariants({ intent, emphasis, size, hideLabel }),
+        hideLabel && indicatorPulse && 'animate-pulse',
+        className
+      )}
       {...props}
     >
-      {indicator && (
+      {indicator && !hideLabel && (
         <span
           className={cn(
             'size-1.5 shrink-0 rounded-full bg-current',
@@ -62,7 +86,7 @@ export function Badge({
           aria-hidden='true'
         />
       )}
-      {children}
+      {hideLabel ? <span className='sr-only'>{children}</span> : children}
     </span>
   )
 }
