@@ -12,6 +12,12 @@ list pane. The API moves from positional subcomponents (`End`, the `tabs`
 tuple, `Panel`) to per-item properties borrowed from UIKit and SwiftUI
 (`placement`, `visibilityPriority`) and a real `Menu`.
 
+`Navigator.Primary` is one component in two orientations:
+`data-slot='navigator-primary'` with `data-orientation='vertical'` (`md` and
+up) or `'horizontal'` (phones). The old desktop term is retired — it named no
+component, and desktop and phone are now the same navigation in two
+orientations.
+
 Prior art: iPhone Duo HIG (vertical controls, visibility priority per group
 then item, symbols with titles), `UITab.Placement`,
 `ToolbarItemVisibilityPriority` (iOS 27), SwiftUI `sidebarAdaptable`.
@@ -117,7 +123,7 @@ docs site built on them, and this redesign.
 | `tabs` tuple on `Primary` | `visibilityPriority` on Items and Groups |
 | `Navigator.Panel` | `Navigator.Menu` + `Navigator.MenuItem` |
 | `Navigator.Overflow` | renamed `Navigator.OverflowPane` |
-| Nested rail (inline sub-pages) | sub-pages always open in a pane |
+| Nested sub-pages inline in the desktop navigation | sub-pages always open in a pane |
 | Secondary strip in the mobile pane header | the section's list pane |
 
 ### New
@@ -165,7 +171,7 @@ fixed tokens, so capacity is arithmetic on the height between brand and
 pinned, read by one `ResizeObserver`. No per-item measurement, so no flicker.
 When the cluster doesn't fit, the lowest-ranked items move into a More tile at
 the end of the cluster. More opens the More pane as a list pane beside the
-rail — the same model as a section pane. Rows keep their groups.
+vertical navigation — the same model as a section pane. Rows keep their groups.
 
 **Large screens, expanded.** Nothing folds; the cluster scrolls.
 
@@ -196,9 +202,9 @@ The consumer's detail pane sits beside it.
 **Small screens.** The same pane is the tab's stack root. On a sub-page the
 list pane sits behind and the detail pane is on top, with Back.
 
-**Between `md` and `lg`** the rail is showing but panes still stack (stacking
-is Pane's `lg` rule): rail, then the list pane and detail as a stack beside
-it.
+**Between `md` and `lg`** the vertical navigation is showing but panes still
+stack (stacking is Pane's `lg` rule): the vertical navigation, then the list
+pane and detail as a stack beside it.
 
 **Rules.**
 
@@ -235,7 +241,7 @@ More: `DotsThreeIcon`. `ExpandToggle`: a sidebar icon. `animate-pop-tap`
 bounces the icon as a tab becomes active. `AGENTS.md` records the exception:
 Navigator destinations use duotone; everything else stays bold.
 
-**Pill.** The sliding pill stays everywhere — rail tiles (now moving
+**Pill.** The sliding pill stays everywhere — vertical tiles (now moving
 vertically), the phone bar, and expanded rows. `useSlidingIndicator` stays.
 
 **Labels.** Collapsed: the new `Tooltip`, inline-end on large screens, with a
@@ -260,7 +266,7 @@ it. Badge gets no position prop — placement is the container's job.
 **Surfaces.** Large-screen capsules `emphasis-raised`; the phone bar
 `emphasis-floating`; the brand has no surface.
 
-**Expand and collapse.** The rail width snaps; labels fade in on opacity. Pane
+**Expand and collapse.** The vertical navigation's width snaps; labels fade in on opacity. Pane
 columns reflow once, not per frame — within the translate/scale/opacity rule.
 
 **Accessibility.**
@@ -277,8 +283,9 @@ columns reflow once, not per frame — within the translate/scale/opacity rule.
 
 - `tabs` tuple handling in `mobileSlots` (replaced by priority ranking)
 - `NavigatorEnd`, `NavigatorPanel`, `NavigatorPanelPane`
-- The nested rail: indented rows, chevrons, the compact/nested rail width
-  tokens in `packages/core/src/css/layout.css`
+- The nested sub-page list in the desktop navigation: indented rows,
+  chevrons, the compact/nested width tokens in
+  `packages/core/src/css/layout.css`
 - The Secondary strip in `NavigatorPaneChrome`
 - The strip surface of the sliding indicator
 

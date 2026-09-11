@@ -769,7 +769,7 @@ git push -u origin fix/accordion-content-inset && gh pr create --fill
 
 **What it is.** A short, non-interactive label that appears beside a control on
 hover or keyboard focus, on `@base-ui/react/tooltip` (1.8.0). Its first
-consumer is Navigator's collapsed rail — labels inline-end of each tile, a
+consumer is Navigator's collapsed vertical navigation — labels inline-end of each tile, a
 shared delay, never on touch, an `aria-hidden` popup — but the component is
 general.
 
@@ -809,7 +809,7 @@ knobs a tooltip needs and Navigator sets `side` on every one;
 
 **Sides.** Base UI supports `'top' | 'bottom' | 'left' | 'right' |
 'inline-start' | 'inline-end'`. Default `'top'`. Prefer logical sides beside a
-vertical rail so RTL flips.
+vertical navigation so RTL flips.
 
 **Variants.** `emphasis`: `inverted` (default — `emphasis-inverted`, the
 high-contrast chip) or `floating` (`emphasis-floating`, Popover's raised
@@ -819,7 +819,7 @@ Popover. No `size`: one size, `text-sm`.
 **Delay group.** `Tooltip.Provider` groups every tooltip beneath it: once one
 is open, a neighbour opens instantly. Base UI marks that popup with
 `data-instant`, and the popup drops its scale-in under `data-[instant]` so the
-switch doesn't flicker. Mount one Provider around a toolbar or rail.
+switch doesn't flicker. Mount one Provider around a toolbar or a navigation.
 
 **Accessibility.** Base UI 1.8.0's tooltip sets no `aria-describedby` and the
 popup has no role. The trigger must carry its own accessible name (an

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** One navigation model at every size: a vertical capsule rail on large
+**Goal:** One navigation model at every size: a vertical capsule navigation on large
 screens that mirrors the phone tab bar, every section's sub-pages in a generated
 list pane, and an API built on per-item `placement` / `visibilityPriority` and a
 real Base UI `Menu` instead of `End`, the `tabs` tuple and `Panel`.
@@ -11,8 +11,8 @@ real Base UI `Menu` instead of `End`, the `tabs` tuple and `Panel`.
 children, but the walk now produces slot metadata carrying `placement` and
 `priority`, partitioned into brand / cluster / pinned. Two pure functions decide
 membership — `rankSlots`/`keepTopRanked` (priority ranking, beside
-`deriveMobileSlots`) and `fitRailCluster` (height arithmetic from fixed tile
-tokens, fed by one `ResizeObserver`). Sub-pages never render in the rail again:
+`deriveMobileSlots`) and `fitPrimaryCluster` (height arithmetic from fixed tile
+tokens, fed by one `ResizeObserver`). Sub-pages never render in the vertical navigation again:
 `Navigator.Secondary` becomes a declaration that `Navigator.Content` turns into
 the active section's `Pane role='list'`. Menus are Base UI `Menu` anchored to the
 tile, tab or row that owns them. Visuals move to duotone icons, `text-subtle` +
@@ -34,16 +34,20 @@ Every task's requirements implicitly include this section.
 - **Starts only after all six standalone PRs have merged** and Task 0's rebase
   is done. `Tooltip`, `Badge hideLabel`, `List`, `ScrollArea`, `Drawer` and the
   Accordion inset then come from `main`.
-- **Breakpoints, never conflated.** `md` (768) flips nav form (rail vs bar);
+- **Breakpoints, never conflated.** `md` (768) flips nav form (vertical vs horizontal);
   `lg` (1024) flips pane arrangement (columns vs stack). **No `matchMedia` or
   breakpoint logic in `packages/components/src`.** JS owns membership and depth;
-  CSS owns which surface shows. Where the bar and rail disagree (their folded
+  CSS owns which surface shows. Where the horizontal and vertical forms disagree (their folded
   sets), render both and gate with `md:hidden` / `max-md:hidden`.
 - **Only `translate` / `scale` / `opacity` animate** (`background-color` and
   `box-shadow` are paint and allowed). **Tailwind v4 emits `translate`, `scale`,
   `rotate` as independent properties** — a `transition-[transform]` paired with
   a translate utility animates nothing. Read the emitted `transition-property`.
-  The rail width **snaps** on expand/collapse; labels fade on opacity.
+  The vertical width **snaps** on expand/collapse; labels fade on opacity.
+- **The old desktop term is retired (D16).** It must not appear in
+  `packages/`, `docs/src`, `docs/contributing`, `AGENTS.md`, `.changeset`, this
+  plan or its spec. Check with the two greps in Task 0B step 4 (they spell the
+  word as the regex `r[a]il`, which is how this plan refers to it).
 - **Roadie never reads `location`.** Depth comes from `value` and `showList`,
   both derived by the app from its URL.
 - **`Navigator` imports from `Pane`, never the reverse.** Pane defines seams
@@ -109,7 +113,7 @@ Each is referenced by the task that implements it.
   inside a Group follows the Group; an Item declaring a *different* placement
   inside a Group gets a dev warning and is ignored — splitting a capsule across
   regions would break "capsules are lists named by their GroupTitle".
-- **D2 — DOM order is region order.** The rail renders brand, cluster, pinned;
+- **D2 — DOM order is region order.** The vertical navigation renders brand, cluster, pinned;
   the bar renders capsule, pinned circle. Within a region, source order holds.
   Authors put pinned items last (the spec's example does); a pinned item
   authored first is still tabbed after the cluster. *(Settled by the user:)* a
@@ -132,9 +136,9 @@ Each is referenced by the task that implements it.
   tile or tab that opened it. Tested in Task 4. It replaces the section pane
   while open (one list pane at a time), and its generated form uses `Pane.Title`
   like a section pane.
-- **D6 — One More pane, two row sets.** The bar and the rail fold different
+- **D6 — One More pane, two row sets.** The horizontal and vertical forms fold different
   items. `Navigator.OverflowItems` renders the bar's set `md:hidden` and the
-  rail's set `max-md:hidden` — no breakpoint in JS.
+  vertical navigation's set `max-md:hidden` — no breakpoint in JS.
 - **D7 — The URL decides depth; every section has its own route.** *(Settled
   by the user.)* An Item with a `Navigator.Secondary` declares an `href` — its
   section route. On the section route the section's list pane is the top of the
@@ -180,12 +184,12 @@ Each is referenced by the task that implements it.
   order, so it is the stack's root: the top when no consumer pane is current,
   when the value is the section route, or when `showList` is set; behind a
   `current` detail pane otherwise.
-- **D9 — Two pill tracks on the rail.** The cluster scrolls and the pinned
+- **D9 — Two pill tracks on the vertical navigation.** The cluster scrolls and the pinned
   region doesn't, so each gets its own `NavigatorIndicator`; moving between them
   cross-fades instead of sliding.
-- **D10 — Rail widths become Tailwind classes** (`w-20` collapsed, `w-60`
-  expanded). The `--navigator-rail-*` tokens are deleted, not replaced.
-- **D11 — Tile metrics live in one TS object** (`RAIL_METRICS`, rem) and a test
+- **D10 — Vertical navigation widths become Tailwind classes** (`w-20` collapsed, `w-60`
+  expanded). The `--navigator-primary-*` tokens are deleted, not replaced.
+- **D11 — Tile metrics live in one TS object** (`PRIMARY_METRICS`, rem) and a test
   pins the matching Tailwind classes, so the arithmetic and the CSS can't drift.
   An unmeasured cluster (height 0 — SSR, jsdom) folds nothing.
 - **D12 — `Navigator.SecondaryItems` takes an optional `query`**, so a
@@ -193,7 +197,7 @@ Each is referenced by the task that implements it.
 - **D13 — Menu-row icons inside the More pane stay List's leading size**
   (`size-5`) but duotone; tiles and tabs are `size-6`.
 - **D14 — Expanded styling is CSS-first through one variant.** *(Settled by
-  the user.)* One source of truth per style: the rail carries `data-expanded`
+  the user.)* One source of truth per style: the vertical navigation carries `data-expanded`
   from React state, and every expanded style is written once as
   `navigator-expanded:…` next to its collapsed default — no CVA `expanded`
   variant, no duplicated classes. Core ships the variant in
@@ -201,12 +205,12 @@ Each is referenced by the task that implements it.
   Tailwind build that imports Roadie sees it:
 
   ```css
-  @custom-variant navigator-expanded (&:where([data-slot=navigator-rail][data-expanded], [data-slot=navigator-rail][data-expanded] *, [data-navigator-expanded] [data-slot=navigator-rail][data-from-document], [data-navigator-expanded] [data-slot=navigator-rail][data-from-document] *));
+  @custom-variant navigator-expanded (&:where([data-slot=navigator-primary][data-orientation=vertical][data-expanded], [data-slot=navigator-primary][data-orientation=vertical][data-expanded] *, [data-navigator-expanded] [data-slot=navigator-primary][data-orientation=vertical][data-from-document], [data-navigator-expanded] [data-slot=navigator-primary][data-orientation=vertical][data-from-document] *));
   ```
 
-  It is scoped to the **rail**, not the Navigator root, because every
-  expanded style lives in the rail and a Navigator rendered inside another
-  Navigator's content (the docs examples) is never inside that rail — scoping
+  It is scoped to the **vertical navigation**, not the Navigator root, because every
+  expanded style lives in the vertical navigation and a Navigator rendered inside another
+  Navigator's content (the docs examples) is never inside that vertical navigation — scoping
   to the root would let an expanded site nav expand every example. `:where()`
   keeps the variant at zero added specificity, so `w-20
   navigator-expanded:w-60` resolves by Tailwind's variant ordering. Presence
@@ -220,7 +224,7 @@ Each is referenced by the task that implements it.
   cookie, so `@oztix/roadie-core/navigator` offers `getNavigatorExpandedScript()`,
   a blocking head script that sets `data-navigator-expanded` on `<html>` before
   paint; a Navigator opts in with `expandedFromDocument`, which renders
-  `data-from-document` on its rail (so only that Navigator follows the
+  `data-from-document` on its vertical navigation (so only that Navigator follows the
   document) and keeps the `<html>` attribute in sync after hydration. The
   subpath sits beside `@oztix/roadie-core/theme` rather than inside it — it
   isn't theming. Task 9 (variant, CSS-first styling), Task 9B (script), Task
@@ -230,6 +234,22 @@ Each is referenced by the task that implements it.
   section route, `/get-started`. *(Decided by the user.)* The home page `/`
   stays an ordinary page outside every section, so no list ever covers it on a
   phone; on `/` no section tile is lit.
+
+- **D16 — One `Navigator.Primary` in two orientations; the old desktop term
+  is retired.** *(Decided by the user.)* The public name stays
+  `Navigator.Primary`, pairing with `Navigator.Secondary`. Its desktop and
+  phone forms become one slot, `data-slot='navigator-primary'`, told apart by
+  `data-orientation='vertical'` (`md` and up) and `'horizontal'` (phones); the
+  old phone "tab bar" slot and variant names fold into the same
+  `navigator-primary*` family, and its custom properties become
+  `--navigator-primary-*`. Why: the old desktop term named no component, and
+  this redesign makes desktop and phone the same navigation in two
+  orientations. The word appears nowhere — API, types, slots, tokens, the
+  variant's selector, identifiers, file names, tests, docs, AGENTS.md,
+  changesets, this plan and its spec. Historical plans and brainstorms dated
+  before 2026-09-11 keep their wording. Prose says "the primary navigation",
+  "vertical" / "horizontal", or "on desktop" / "on phones". Task 0B does the
+  rename; Task 16 re-runs the gate.
 
 ---
 
@@ -241,9 +261,9 @@ Each is referenced by the task that implements it.
 | --- | --- |
 | `mobileSlots.test.ts` | pure tests: ranking, `keepTopRanked`, `deriveMobileSlots` (moved out of `Navigator.test.tsx`) |
 | `collectSlots.ts` / `collectSlots.test.tsx` | the Primary identity walk → brand / cluster / pinned entries with inherited placement + priority |
-| `railCapacity.ts` / `railCapacity.test.ts` | `RAIL_METRICS`, `capsuleHeight`, `clusterHeight`, `fitRailCluster` |
-| `useRailCapacity.ts` | one `ResizeObserver` on the cluster viewport → folded set |
-| `capsules.tsx` | `wrapCapsules` (replaces `railList.tsx`) |
+| `primaryCapacity.ts` / `primaryCapacity.test.ts` | `PRIMARY_METRICS`, `capsuleHeight`, `clusterHeight`, `fitPrimaryCluster` |
+| `usePrimaryCapacity.ts` | one `ResizeObserver` on the cluster viewport → folded set |
+| `capsules.tsx` | `wrapCapsules` (replaces `primaryList.tsx`) |
 | `NavigatorMenu.tsx` | `Navigator.Menu` declaration (renders null) |
 | `NavigatorMenuItem.tsx` | `Navigator.MenuItem` on `Menu.Item` / `Menu.LinkItem` |
 | `NavigatorMenuHost.tsx` | internal: Base UI `Menu.Root` around any trigger, publishes `openMenu` |
@@ -254,7 +274,7 @@ Each is referenced by the task that implements it.
 | `NavigatorSecondaryPane.tsx` | `Navigator.SecondaryPane value` override |
 | `NavigatorSectionPane.test.tsx` | generated pane, search, override, Back reveal |
 | `NavigatorExpandToggle.tsx` | `Navigator.ExpandToggle` |
-| `NavigatorRail.test.tsx` | rail regions, capsules, capacity, expanded, tooltips, badges |
+| `NavigatorPrimary.test.tsx` | vertical regions, capsules, capacity, expanded, tooltips, badges |
 | `docs/src/components/useExpandedCookie.ts` | docs: cookie-backed expanded state |
 | `packages/core/src/css/navigator.css` / `packages/core/src/css/navigator-variant.test.ts` | the `navigator-expanded` custom variant (D14) and a compile test |
 | `packages/core/src/navigator/index.ts` / `navigator.test.ts` | `@oztix/roadie-core/navigator`: `NAVIGATOR_EXPANDED_SCOPE`; later the optional head script, cookie constants and serializer (D14) |
@@ -266,8 +286,8 @@ Each is referenced by the task that implements it.
 | File | Change |
 | --- | --- |
 | `mobileSlots.ts` | priority types + ranking; `deriveMobileSlots(automatic, pinned)` |
-| `NavigatorPrimary.tsx` | walk via `collectSlots`; rail regions; tab bar pinned circle + More; capacity; `tabs` prop gone |
-| `NavigatorRoot.tsx` / `NavigatorContext.ts` | `expanded` state; `activeSection`; `openMenu`; `overflowItems: { bar, rail }`; `showList`/`onShowListChange`, `stackAtRoot`; `declaredSecondaryPanes`; drop `hasNesting`, `secondaryNav`, `openPanel`, `panelItems` |
+| `NavigatorPrimary.tsx` | walk via `collectSlots`; vertical regions; tab bar pinned circle + More; capacity; `tabs` prop gone |
+| `NavigatorRoot.tsx` / `NavigatorContext.ts` | `expanded` state; `activeSection`; `openMenu`; `overflowItems: { horizontal, vertical }`; `showList`/`onShowListChange`, `stackAtRoot`; `declaredSecondaryPanes`; drop `hasNesting`, `secondaryNav`, `openPanel`, `panelItems` |
 | `NavigatorItem.tsx` | `placement`, `visibilityPriority`, typed `badge`; tile/row; tooltip; menu host; no inline Secondary |
 | `NavigatorGroup.tsx` | `placement`, `visibilityPriority`; capsule list; folded filtering |
 | `NavigatorGroupTitle.tsx` / variants | `sr-only` while collapsed |
@@ -276,16 +296,16 @@ Each is referenced by the task that implements it.
 | `NavigatorTab.tsx` | icon-only; `pinned` presentation; badge dot |
 | `NavigatorDestination.tsx` | forwards `ref` and rest props (for Tooltip/Menu `render`) |
 | `NavigatorOverflowItems.tsx` | two gated row sets; menu rows |
-| `NavigatorIndicator.tsx` / `useSlidingIndicator.ts` | `rail` surface translate-only; `strip` gone |
+| `NavigatorIndicator.tsx` / `useSlidingIndicator.ts` | `vertical` surface translate-only (`tab` → `horizontal`); `strip` gone |
 | `presentNavIcon.tsx` | always `duotone` |
 | `splitSecondary.ts` | `menu` replaces `panel`; `textOf` for search |
 | `paneStack.ts` / `paneStack.test.ts` | `derivePositions(entries, revealRoot)` |
 | `useTopPaneChrome.tsx` | no strip; supplies the section route as `backHref` |
-| `variants.ts` | rail, capsule, tile, tab, indicator, More variants; deletions |
+| `variants.ts` | vertical navigation, capsule, tile, tab, indicator, More variants; deletions |
 | `index.tsx` + `packages/components/src/index.tsx` | new/removed parts and types |
 | `Navigator.test.tsx` | delete/migrate per task |
 | `Pane/PaneChromeContext.ts`, `Pane/PaneHeader.tsx`, `Pane/Pane.test.tsx` | `headerExtras` → `backHref` |
-| `packages/core/src/css/layout.css` | delete `--navigator-rail-*` |
+| `packages/core/src/css/layout.css` | delete `--navigator-primary-*` |
 | `packages/core/package.json`, `packages/core/tsdown.config.ts` | `./navigator` subpath and entry |
 | `packages/core/src/css/roadie.css` | imports `navigator.css` |
 | `docs/src/app/layout.tsx` | Foundations gets `href: '/foundations'`; the expanded head script |
@@ -297,11 +317,11 @@ Each is referenced by the task that implements it.
 **Deleted**
 
 `NavigatorEnd.tsx`, `NavigatorPanel.tsx`, `NavigatorPanelPane.tsx`,
-`NavigatorPaneChrome.tsx`, `NavigatorPresentationContext.ts`, `railList.tsx`,
+`NavigatorPaneChrome.tsx`, `NavigatorPresentationContext.ts`, `primaryList.tsx`,
 `NavigatorOverflow.tsx` (renamed), `docs/src/components/ComponentSkeleton.tsx`.
 Variants: `navigatorEndVariants`, `navigatorSecondaryVariants`,
 `navigatorChevronVariants`, `navigatorSecondaryStrip{,Viewport,Content}Variants`,
-`navigatorPanelPaneVariants`, `navigatorRailVariants`' `form`, the indicator's
+`navigatorPanelPaneVariants`, `navigatorPrimaryVerticalVariants`' `form`, the indicator's
 `strip` surface, `navigatorItemTrailingVariants`' chevron use.
 
 ---
@@ -380,7 +400,7 @@ shipped separately):
 Add `Navigator` and `Pane`, the application frame.
 
 `Navigator` is one navigation model at every size: icon-only floating capsules
-in a vertical rail from `md` (brand on top, pinned items at the bottom, an
+down the side of the screen from `md` (brand on top, pinned items at the bottom, an
 optional expanded state with labels), and a floating tab bar below it. Items
 declare `placement` and `visibilityPriority`; whatever doesn't fit folds into
 a More pane. A section's sub-pages open in a generated list pane, optionally
@@ -401,7 +421,7 @@ Add `animate-pop-tap` — a 200ms tap response, where `animate-pop` at 600ms rea
 as a notification.
 ```
 
-(The rail-width tokens it used to announce are deleted in Task 8 and never
+(The navigation width tokens it used to announce are deleted in Task 8 and never
 shipped.)
 
 - [ ] **Step 5: Baseline**
@@ -425,6 +445,165 @@ git commit -m "chore(navigator): re-baseline on main after the standalone compon
 
 The rebased branch needs a force-push; ask the user before running
 `git push --force-with-lease`.
+
+---
+
+## Task 0B: One `Navigator.Primary` in two orientations; retire the old term (D16)
+
+The old term for the desktop form is written in this task as `r[a]il` — a
+regex that matches it — so that this plan passes its own grep gate. Read
+`r[a]il` as that word.
+
+**Files:**
+- Modify: every file `git grep` lists in step 1 — at plan time that is
+  `packages/components/src/components/Navigator/*` (source and tests),
+  `packages/components/src/components/Pane/*` (comments),
+  `packages/components/src/index.tsx`, `packages/core/src/css/layout.css`,
+  `docs/src/components/Navigation.tsx`, `docs/src/app/debug/rsc-smoke/*`,
+  `docs/src/app/components/{navigator,pane}/page.mdx`,
+  `docs/src/app/foundations/app-shell/page.tsx`,
+  `docs/contributing/COMPOUND_PATTERNS.md`, `AGENTS.md`, `.changeset/*.md`
+- Rename: `…/Navigator/r[a]ilList.tsx` → `primaryList.tsx`
+
+**Interfaces:**
+- Produces — the names every later task uses:
+
+| Was | Now |
+| --- | --- |
+| `data-slot='navigator-r[a]il'` (desktop `<nav>`) | `data-slot='navigator-primary'` + `data-orientation='vertical'` |
+| `data-slot='navigator-tab-bar'` (phone `<nav>`) | `data-slot='navigator-primary'` + `data-orientation='horizontal'` |
+| `navigator-r[a]il-viewport` | `navigator-primary-viewport` |
+| `navigator-tab-bar-track` / `-pill` | `navigator-primary-track` / `navigator-primary-pill` |
+| `navigatorR[a]ilVariants` | `navigatorPrimaryVerticalVariants` |
+| `navigatorR[a]ilViewportVariants` / `ContentVariants` / `ListVariants` | `navigatorPrimaryViewportVariants` / `navigatorPrimaryContentVariants` / `navigatorPrimaryListVariants` |
+| `navigatorTabBarVariants` | `navigatorPrimaryHorizontalVariants` |
+| `navigatorTabBarTrackVariants` / `PillVariants` | `navigatorPrimaryTrackVariants` / `navigatorPrimaryPillVariants` |
+| `--navigator-tab-{count,col,edge,index}` | `--navigator-primary-{count,col,edge,index}` |
+| `--navigator-r[a]il-compact` / `-nested` | `--navigator-primary-compact` / `--navigator-primary-nested` (deleted in Task 8) |
+| `group/r[a]il` (Tailwind group) | `group/primary` |
+| `wrapR[a]ilRun` in `r[a]ilList.tsx` | `wrapPrimaryRun` in `primaryList.tsx` (deleted in Task 8) |
+| indicator surfaces `'tab' \| 'strip' \| 'r[a]il'` | `'horizontal' \| 'strip' \| 'vertical'` (`strip` deleted in Task 5) |
+| test helpers `tabBarOf`, `r[a]ilItem`, `r[a]ilOf`, `r[a]ilLink`, `r[a]ilRef` | `horizontalOf`, `verticalItem`, `verticalOf`, `verticalLink`, `verticalRef` |
+| describes `Navigator r[a]il form`, `r[a]il list semantics` | `Navigator vertical form`, `vertical list semantics` |
+
+`Navigator.Primary`, `NavigatorPrimary.tsx`, `NavigatorPrimaryProps`,
+`Navigator.Secondary` and the internal `NavigatorTab` keep their names. Later
+tasks add, in the same family: `navigator-primary-brand`,
+`navigator-primary-cluster`, `navigator-primary-cluster-viewport`,
+`navigator-primary-pinned` (vertical), `navigator-primary-circle` (the
+horizontal form's pinned circle), `--navigator-primary-pinned`.
+
+- [ ] **Step 1: Baseline**
+
+```bash
+git grep -nioE '[a-z_-]*r[a]il[a-z_-]*' -- packages docs/src docs/contributing AGENTS.md .changeset \
+  | grep -viE ':[a-z_-]*tr[a]il'
+```
+
+Record the count. (`trailing`, `navigatorItemTrailingVariants` and friends are
+filtered out — they contain the letters but aren't the word.)
+
+- [ ] **Step 2: Write the failing test**
+
+Add to `Navigator.test.tsx`:
+
+```tsx
+describe('one primary navigation, two orientations', () => {
+  it('renders navigator-primary vertically and horizontally', async () => {
+    const { container } = render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Item value='/a' href='/a'>A</Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const navs = Array.from(container.querySelectorAll('[data-slot="navigator-primary"]'))
+    expect(navs.map((nav) => nav.getAttribute('data-orientation'))).toEqual([
+      'vertical',
+      'horizontal'
+    ])
+    expect(navs[0]).toHaveAccessibleName('Main')
+    expect(navs[1]).toHaveAccessibleName('Main tabs')
+  })
+})
+```
+
+Run: `cd packages/components && pnpm vitest run src/components/Navigator/Navigator.test.tsx -t 'two orientations'`
+Expected: FAIL — no `navigator-primary` slot.
+
+- [ ] **Step 3: Mechanical renames**
+
+```bash
+git mv packages/components/src/components/Navigator/r[a]ilList.tsx \
+  packages/components/src/components/Navigator/primaryList.tsx
+FILES=$(git grep -liE 'r[a]il|navigator-tab-bar|navigatorTabBar|--navigator-tab-|tabBarOf' \
+  -- packages docs/src docs/contributing AGENTS.md .changeset)
+sed -i '' -E \
+  -e 's/navigatorR[a]ilViewportVariants/navigatorPrimaryViewportVariants/g' \
+  -e 's/navigatorR[a]ilContentVariants/navigatorPrimaryContentVariants/g' \
+  -e 's/navigatorR[a]ilListVariants/navigatorPrimaryListVariants/g' \
+  -e 's/navigatorR[a]ilVariants/navigatorPrimaryVerticalVariants/g' \
+  -e 's/navigatorTabBarTrackVariants/navigatorPrimaryTrackVariants/g' \
+  -e 's/navigatorTabBarPillVariants/navigatorPrimaryPillVariants/g' \
+  -e 's/navigatorTabBarVariants/navigatorPrimaryHorizontalVariants/g' \
+  -e 's/wrapR[a]ilRun/wrapPrimaryRun/g' \
+  -e 's/\.\/r[a]ilList/.\/primaryList/g' \
+  -e 's/\[data-slot="navigator-r[a]il"\]/[data-slot="navigator-primary"][data-orientation="vertical"]/g' \
+  -e 's/\[data-slot="navigator-tab-bar"\]/[data-slot="navigator-primary"][data-orientation="horizontal"]/g' \
+  -e 's/\[data-slot=navigator-r[a]il\]/[data-slot=navigator-primary][data-orientation=vertical]/g' \
+  -e 's/navigator-r[a]il-viewport/navigator-primary-viewport/g' \
+  -e 's/navigator-tab-bar-track/navigator-primary-track/g' \
+  -e 's/navigator-tab-bar-pill/navigator-primary-pill/g' \
+  -e 's/--navigator-r[a]il-(compact|nested)/--navigator-primary-\1/g' \
+  -e 's/--navigator-tab-(count|col|edge|index)/--navigator-primary-\1/g' \
+  -e 's/group\/r[a]il/group\/primary/g' \
+  -e 's/tabBarOf/horizontalOf/g' \
+  -e 's/r[a]il(Item|Of|Link|Ref)/vertical\1/g' \
+  $FILES
+```
+
+(`sed -i ''` is macOS/BSD; on GNU sed drop the `''`.) Then by hand:
+
+- The two `<nav>` roots in `NavigatorPrimary.tsx`: the desktop one's
+  `data-slot` becomes `'navigator-primary'` with `data-orientation='vertical'`
+  (it is rendered through `ScrollArea`'s `render`, so the attributes go on the
+  `ScrollArea` props), the phone one's `'navigator-primary'` with
+  `data-orientation='horizontal'`. Their `aria-label`s stay (`Main` /
+  `Main tabs`).
+- `NavigatorIndicatorSurface` and `navigatorIndicatorVariants`' keys:
+  `tab` → `horizontal`, the desktop key → `vertical`; update every
+  `surface='…'` call and test.
+- Every remaining hit from step 1's grep — comments, JSDoc, describe and test
+  titles, docs prose, AGENTS.md, COMPOUND_PATTERNS.md, the changesets: say
+  "the primary navigation", "vertical" / "horizontal", or "on desktop" / "on
+  phones". Apply the comments rule while you're there — most of these are
+  long comments that can simply go.
+
+- [ ] **Step 4: Verify**
+
+Run: `cd packages/components && pnpm vitest run src/components/Navigator src/components/Pane`
+Expected: PASS, including step 2's test; act warnings unchanged from Task 0.
+`pnpm typecheck && pnpm lint`.
+
+Then the gate — both must print nothing:
+
+```bash
+grep -rniwE 'r[a]ils?' packages/ docs/src docs/contributing AGENTS.md .changeset
+grep -rnoiE '[a-z_-]*r[a]il[a-z_-]*' packages/ docs/src docs/contributing AGENTS.md .changeset \
+  | grep -viE ':[a-z_-]*tr[a]il'
+```
+
+`packages/` includes `node_modules` symlinks and `dist`; add
+`--exclude-dir=node_modules --exclude-dir=dist` if either appears.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add -u packages docs/src docs/contributing AGENTS.md .changeset
+git add packages/components/src/components/Navigator/primaryList.tsx
+git commit -m "refactor(navigator): one Navigator.Primary in two orientations"
+```
 
 ---
 
@@ -606,13 +785,13 @@ placement?: NavigatorPlacement          // default 'automatic'
 visibilityPriority?: NavigatorVisibilityPriority // default 'automatic'
 
 // collectSlots.ts
-export type RailEntry =
+export type PrimaryEntry =
   | { kind: 'item'; element: ReactElement<NavigatorItemProps>; slot: NavigatorSlotMeta }
   | { kind: 'group'; element: ReactElement<NavigatorGroupProps>; group: NavigatorSlotGroup; slots: NavigatorSlotMeta[] }
 export type CollectedSlots = {
   brand: ReactElement[]
-  cluster: RailEntry[]            // automatic placement, source order
-  pinned: RailEntry[]             // pinned placement, source order
+  cluster: PrimaryEntry[]            // automatic placement, source order
+  pinned: PrimaryEntry[]             // pinned placement, source order
   automatic: NavigatorSlotMeta[]  // every destination in `cluster`, flattened
   pinnedSlots: NavigatorSlotMeta[]
   hasStrayChild: boolean
@@ -859,7 +1038,7 @@ Expected: FAIL — module not found; `placement`/`visibilityPriority` unknown pr
 `NavigatorItem.tsx` — add to `NavigatorItemProps`:
 
 ```ts
-  /** `pinned` anchors it to the rail's bottom and the bar's trailing circle. @default 'automatic' */
+  /** `pinned` anchors it to the vertical navigation's bottom and the bar's trailing circle. @default 'automatic' */
   placement?: NavigatorPlacement
   /** Which items stay visible when space runs out; falls back to the group's. @default 'automatic' */
   visibilityPriority?: NavigatorVisibilityPriority
@@ -893,7 +1072,7 @@ import {
   splitItemChildren
 } from './splitSecondary'
 
-export type RailEntry =
+export type PrimaryEntry =
   | {
       kind: 'item'
       element: ReactElement<NavigatorItemProps>
@@ -908,8 +1087,8 @@ export type RailEntry =
 
 export type CollectedSlots = {
   brand: ReactElement[]
-  cluster: RailEntry[]
-  pinned: RailEntry[]
+  cluster: PrimaryEntry[]
+  pinned: PrimaryEntry[]
   automatic: NavigatorSlotMeta[]
   pinnedSlots: NavigatorSlotMeta[]
   hasStrayChild: boolean
@@ -940,7 +1119,7 @@ export function collectSlots(children: ReactNode): CollectedSlots {
   }
   let groupCount = 0
 
-  const place = (entry: RailEntry, slots: NavigatorSlotMeta[]) => {
+  const place = (entry: PrimaryEntry, slots: NavigatorSlotMeta[]) => {
     const pinned = slots[0]?.placement === 'pinned'
     // Pinned renders after the cluster, so writing it first misleads tab order.
     if (!pinned && result.pinned.length > 0) result.pinnedBeforeCluster = true
@@ -1035,7 +1214,7 @@ In `NavigatorPrimary.tsx`:
     if (!isDev() || !pinnedFirst) return
     console.warn(
       '[Roadie] Navigator.Primary has a pinned item written before other ' +
-        'items. Pinned items render at the bottom of the rail and in the ' +
+        'items. Pinned items render at the bottom of the vertical navigation and in the ' +
         "phone bar's trailing circle, so keyboard and screen-reader order " +
         'follows that, not your source order. Write pinned items last.'
     )
@@ -1061,30 +1240,30 @@ In `NavigatorPrimary.tsx`:
   })
 ```
 
-   The "renders pinned items at the bottom of the rail" test in step 7 writes
+   The "renders pinned items at the bottom of the vertical navigation" test in step 7 writes
    the pinned item first on purpose; spy on `console.warn` there too so the
    warning doesn't leak into the output.
 
-5. Rail: render the cluster where the rows were, then a pinned region last:
+5. Vertical navigation: render the cluster where the rows were, then a pinned region last:
 
 ```tsx
-            {wrapRailRun([
+            {wrapPrimaryRun([
               ...collected.brand,
               ...collected.cluster.map((entry) => entry.element)
             ])}
             {collected.pinned.length > 0 ? (
               <div
-                data-slot='navigator-rail-pinned'
-                className={navigatorRailPinnedVariants()}
+                data-slot='navigator-primary-pinned'
+                className={navigatorPrimaryPinnedVariants()}
               >
-                {wrapRailRun(collected.pinned.map((entry) => entry.element))}
+                {wrapPrimaryRun(collected.pinned.map((entry) => entry.element))}
               </div>
             ) : null}
 ```
 
-   In `variants.ts` rename `navigatorEndVariants` → `navigatorRailPinnedVariants`
-   (same classes, comment: "Pinned items sit on the rail's bottom edge;
-   `mt-auto` pushes against the rail's flex column.").
+   In `variants.ts` rename `navigatorEndVariants` → `navigatorPrimaryPinnedVariants`
+   (same classes, comment: "Pinned items sit on the vertical navigation's bottom edge;
+   `mt-auto` pushes against the vertical navigation's flex column.").
 
 6. Tab bar. The final tab is always More now; the End/"sole folded" branch goes:
 
@@ -1105,21 +1284,22 @@ In `NavigatorPrimary.tsx`:
 
 ```tsx
       <nav
-        data-slot='navigator-tab-bar'
+        data-slot='navigator-primary'
+        data-orientation='horizontal'
         …
         style={
           {
-            '--navigator-tab-count': String(tabCount),
-            '--navigator-tab-pinned': pinnedTab ? '4rem' : '0rem'
+            '--navigator-primary-count': String(tabCount),
+            '--navigator-primary-pinned': pinnedTab ? '4rem' : '0rem'
           } as CSSProperties
         }
-        className={navigatorTabBarVariants({
+        className={navigatorPrimaryHorizontalVariants({
           collapsed,
           hidden: navHidden,
           pinned: pinnedTab !== undefined
         })}
       >
-        <div ref={tabTrackRef} data-slot='navigator-tab-bar-track' …>
+        <div ref={tabTrackRef} data-slot='navigator-primary-track' …>
           {/* pill, indicator, tabs as today; isLeftCircle uses activeIsRight */}
           {hasMore ? (
             <NavigatorTab
@@ -1140,8 +1320,8 @@ In `NavigatorPrimary.tsx`:
         </div>
         {pinnedTab ? (
           <div
-            data-slot='navigator-tab-bar-pinned'
-            className={navigatorTabBarPinnedVariants()}
+            data-slot='navigator-primary-circle'
+            className={navigatorPrimaryCircleVariants()}
           >
             <NavigatorTab
               label={pinnedTab.label}
@@ -1162,13 +1342,13 @@ In `NavigatorPrimary.tsx`:
    (`panel`/`openPanel` are replaced by Menu in Task 3.)
 
 7. `variants.ts`:
-   - `navigatorTabBarVariants`: base keeps `grid`; add
-     `'[--navigator-tab-pinned:0rem]'` and change the column to
-     `'[--navigator-tab-col:calc((100cqw-2rem-var(--navigator-tab-pinned))/5)]'`
+   - `navigatorPrimaryHorizontalVariants`: base keeps `grid`; add
+     `'[--navigator-primary-pinned:0rem]'` and change the column to
+     `'[--navigator-primary-col:calc((100cqw-2rem-var(--navigator-primary-pinned))/5)]'`
      (the `/5` stays — five columns of whatever width is left). New variant
      `pinned: { true: 'grid-cols-[1fr_auto] gap-2', false: '' }`, default `false`.
      Update the block comment's arithmetic paragraph to name the pinned width.
-   - New `navigatorTabBarPinnedVariants = cva(['pointer-events-auto grid self-stretch'])`.
+   - New `navigatorPrimaryCircleVariants = cva(['pointer-events-auto grid self-stretch'])`.
    - `navigatorTabVariants` gains a `pinned` presentation:
      `'pointer-events-auto aspect-square h-full rounded-full emphasis-floating place-content-center justify-self-end'`.
      `NavigatorTab` gets `pinned?: boolean`; presentation is `'pinned'` when
@@ -1184,7 +1364,7 @@ describe name):
   `describe('deriveMobileSlots with declared tabs')` (≈637-739),
   `describe('Navigator.Primary tabs prop')` (≈741-811),
   `describe('Navigator.End stray children')` (≈1191-1233), the End assertions
-  in `describe('Navigator rail form')` (≈903-918), and the `tabs` tests inside
+  in `describe('Navigator vertical form')` (≈903-918), and the `tabs` tests inside
   `describe('mobile tab bar')` (≈1557-1577). The new pure tests in
   `mobileSlots.test.ts` replace the first two.
 - **Migrate** every fixture that declares `<Navigator.End>…</Navigator.End>`:
@@ -1195,7 +1375,7 @@ describe name):
   print nothing afterwards.
 - **Rewrite** expectations that assumed End's lone item became the final tab's
   label: a single pinned item is now the trailing circle
-  (`[data-slot="navigator-tab-bar-pinned"]`), not a tab in the track. Two
+  (`[data-slot="navigator-primary-circle"]`), not a tab in the track. Two
   pinned items: the second is a row in the More pane.
 - The direct-children warning test (≈3522-3557) asserts the new message text.
 - Remove imports: `NavigatorTabSlots`, and `deriveMobileSlots` from
@@ -1219,15 +1399,15 @@ describe name):
       </Navigator>
     )
     await flushViewportMeasurement()
-    const bar = tabBarOf(container)!
-    const track = bar.querySelector('[data-slot="navigator-tab-bar-track"]')!
+    const bar = horizontalOf(container)!
+    const track = bar.querySelector('[data-slot="navigator-primary-track"]')!
     expect(within(track as HTMLElement).queryByText('Me')).toBeNull()
     expect(within(track as HTMLElement).queryByText('More')).toBeNull()
-    const circle = bar.querySelector('[data-slot="navigator-tab-bar-pinned"]')!
+    const circle = bar.querySelector('[data-slot="navigator-primary-circle"]')!
     expect(within(circle as HTMLElement).getByRole('link', { name: 'Me' })).toBeInTheDocument()
   })
 
-  it('renders pinned items at the bottom of the rail', async () => {
+  it('renders pinned items at the bottom of the vertical navigation', async () => {
     const { container } = render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
@@ -1237,14 +1417,14 @@ describe name):
       </Navigator>
     )
     await flushViewportMeasurement()
-    const rail = container.querySelector('[data-slot="navigator-rail"]')!
-    const pinned = rail.querySelector('[data-slot="navigator-rail-pinned"]')!
+    const vertical = container.querySelector('[data-slot="navigator-primary"][data-orientation="vertical"]')!
+    const pinned = vertical.querySelector('[data-slot="navigator-primary-pinned"]')!
     expect(within(pinned as HTMLElement).getByText('Me')).toBeInTheDocument()
     expect(within(pinned as HTMLElement).queryByText('A')).toBeNull()
   })
 ```
 
-(`tabBarOf` is defined locally in several describes — define it in this
+(`horizontalOf` is defined locally in several describes — define it in this
 describe too if it isn't in scope.)
 
 Run: `cd packages/components && pnpm vitest run src/components/Navigator`
@@ -1257,7 +1437,7 @@ Expected: PASS. Act-warning count for `Navigator.test.tsx` ≤ 2.
   `MobileSlots, NavigatorPrimaryProps, NavigatorSlotMeta` and add
   `export type { NavigatorPlacement, NavigatorVisibilityPriority } from './mobileSlots'`.
   Rename `navigatorEndVariants` in the variants list if it was exported (it
-  isn't today); add `navigatorTabBarPinnedVariants`, `navigatorRailPinnedVariants`.
+  isn't today); add `navigatorPrimaryCircleVariants`, `navigatorPrimaryPinnedVariants`.
 - `packages/components/src/index.tsx`: drop `type NavigatorEndProps`; add
   `type NavigatorPlacement, type NavigatorVisibilityPriority`.
 - `NavigatorPrimary.tsx`'s re-export line becomes
@@ -1305,15 +1485,15 @@ export type NavigatorMenuItemProps = {
   children: ReactNode
 }
 // internal
-export type NavigatorMenuSurface = 'rail' | 'bar' | 'overflow'
+export type NavigatorMenuSurface = 'vertical' | 'horizontal' | 'overflow'
 export const menuId = (surface: NavigatorMenuSurface, value: string) => `${surface}:${value}`
 // context: openMenu: string | null; setOpenMenu(next: string | null)
 // slot meta: `menu?: ReactElement<NavigatorMenuProps>` replaces `panel`
 // isSectionActive(item: Pick<NavigatorSlotMeta,'value'|'descendants'|'menu'>, active)
 ```
 
-The rail and the bar are both mounted (CSS picks one), so a menu's open state
-is keyed per surface — otherwise opening the rail's menu would also open the
+The vertical navigation and the bar are both mounted (CSS picks one), so a menu's open state
+is keyed per surface — otherwise opening the vertical navigation's menu would also open the
 bar's portaled copy.
 
 - [ ] **Step 1: Write the failing tests**
@@ -1334,10 +1514,10 @@ async function flushViewportMeasurement() {
 }
 
 const FakeIcon = () => <svg data-testid='fake-icon' />
-const rail = () =>
-  document.querySelector('[data-slot="navigator-rail"]') as HTMLElement
-const bar = () =>
-  document.querySelector('[data-slot="navigator-tab-bar"]') as HTMLElement
+const vertical = () =>
+  document.querySelector('[data-slot="navigator-primary"][data-orientation="vertical"]') as HTMLElement
+const horizontal = () =>
+  document.querySelector('[data-slot="navigator-primary"][data-orientation="horizontal"]') as HTMLElement
 
 function Tree({ value = '/home', signOut = () => {} }) {
   return (
@@ -1361,11 +1541,11 @@ function Tree({ value = '/home', signOut = () => {} }) {
 afterEach(() => vi.restoreAllMocks())
 
 describe('Navigator.Menu', () => {
-  it('opens a menu anchored inline-end of the rail tile', async () => {
+  it('opens a menu anchored inline-end of the vertical tile', async () => {
     const user = userEvent.setup()
     render(<Tree />)
     await flushViewportMeasurement()
-    const trigger = within(rail()).getByRole('button', { name: 'Account' })
+    const trigger = within(vertical()).getByRole('button', { name: 'Account' })
     await user.click(trigger)
     const menu = await screen.findByRole('menu')
     expect(within(menu).getAllByRole('menuitem')).toHaveLength(2)
@@ -1377,7 +1557,7 @@ describe('Navigator.Menu', () => {
     const user = userEvent.setup()
     render(<Tree />)
     await flushViewportMeasurement()
-    await user.click(within(rail()).getByRole('button', { name: 'Account' }))
+    await user.click(within(vertical()).getByRole('button', { name: 'Account' }))
     await screen.findByRole('menu')
     await user.keyboard('{ArrowDown}')
     expect(screen.getByRole('menuitem', { name: 'Profile' })).toHaveAttribute(
@@ -1393,7 +1573,7 @@ describe('Navigator.Menu', () => {
     const user = userEvent.setup()
     render(<Tree />)
     await flushViewportMeasurement()
-    const trigger = within(rail()).getByRole('button', { name: 'Account' })
+    const trigger = within(vertical()).getByRole('button', { name: 'Account' })
     await user.click(trigger)
     await screen.findByRole('menu')
     await user.keyboard('{Escape}')
@@ -1406,7 +1586,7 @@ describe('Navigator.Menu', () => {
     const signOut = vi.fn()
     render(<Tree signOut={signOut} />)
     await flushViewportMeasurement()
-    await user.click(within(rail()).getByRole('button', { name: 'Account' }))
+    await user.click(within(vertical()).getByRole('button', { name: 'Account' }))
     await user.click(await screen.findByRole('menuitem', { name: 'Sign out' }))
     expect(signOut).toHaveBeenCalledOnce()
     expect(screen.queryByRole('menu')).not.toBeInTheDocument()
@@ -1416,7 +1596,7 @@ describe('Navigator.Menu', () => {
     const user = userEvent.setup()
     render(<Tree />)
     await flushViewportMeasurement()
-    await user.click(within(rail()).getByRole('button', { name: 'Account' }))
+    await user.click(within(vertical()).getByRole('button', { name: 'Account' }))
     const profile = await screen.findByRole('menuitem', { name: 'Profile' })
     expect(profile.closest('a')).toHaveAttribute('href', '/profile')
   })
@@ -1424,7 +1604,7 @@ describe('Navigator.Menu', () => {
   it('never lights from the route', async () => {
     render(<Tree value='account/settings' />)
     await flushViewportMeasurement()
-    const trigger = within(rail()).getByRole('button', { name: 'Account' })
+    const trigger = within(vertical()).getByRole('button', { name: 'Account' })
     expect(trigger).not.toHaveAttribute('aria-current')
     expect(trigger).not.toHaveAttribute('data-current')
   })
@@ -1433,8 +1613,8 @@ describe('Navigator.Menu', () => {
     const user = userEvent.setup()
     render(<Tree />)
     await flushViewportMeasurement()
-    const trigger = within(rail()).getByRole('button', { name: 'Account' })
-    const home = within(rail()).getByRole('link', { name: 'Home' })
+    const trigger = within(vertical()).getByRole('button', { name: 'Account' })
+    const home = within(vertical()).getByRole('link', { name: 'Home' })
     expect(home).toHaveAttribute('data-current')
     await user.click(trigger)
     await screen.findByRole('menu')
@@ -1449,7 +1629,7 @@ describe('Navigator.Menu', () => {
     const user = userEvent.setup()
     render(<Tree />)
     await flushViewportMeasurement()
-    await user.click(within(bar()).getByRole('button', { name: 'Account' }))
+    await user.click(within(horizontal()).getByRole('button', { name: 'Account' }))
     expect(await screen.findAllByRole('menu')).toHaveLength(1)
     expect(screen.getByRole('menu').closest('[data-side]')).toHaveAttribute(
       'data-side',
@@ -1599,14 +1779,14 @@ import { NavigatorContext } from './NavigatorContext'
 import type { NavigatorMenuProps } from './NavigatorMenu'
 import { navigatorMenuPopupVariants } from './variants'
 
-export type NavigatorMenuSurface = 'rail' | 'bar' | 'overflow'
+export type NavigatorMenuSurface = 'vertical' | 'horizontal' | 'overflow'
 
 export const menuId = (surface: NavigatorMenuSurface, value: string) =>
   `${surface}:${value}`
 
 const PLACEMENT = {
-  rail: { side: 'inline-end', align: 'start' },
-  bar: { side: 'top', align: 'center' },
+  vertical: { side: 'inline-end', align: 'start' },
+  horizontal: { side: 'top', align: 'center' },
   overflow: { side: 'bottom', align: 'start' }
 } as const
 
@@ -1695,13 +1875,13 @@ its own unknown props through to `NavigatorDestination` the same way.
 
 ```tsx
     <NavigatorMenuHost
-      surface='rail'
+      surface='vertical'
       value={value}
       menu={menu}
       label={typeof labelText === 'string' ? labelText : undefined}
       trigger={
         <NavigatorDestination
-          dataCurrent={openMenu === menuId('rail', value)}
+          dataCurrent={openMenu === menuId('vertical', value)}
           className={finalClassName}
         >
           {content}
@@ -1725,7 +1905,7 @@ its own unknown props through to `NavigatorDestination` the same way.
     tab.menu ? (
       <NavigatorMenuHost
         key={tab.value}
-        surface='bar'
+        surface='horizontal'
         value={tab.value}
         menu={tab.menu}
         label={typeof tab.label === 'string' ? tab.label : undefined}
@@ -1733,7 +1913,7 @@ its own unknown props through to `NavigatorDestination` the same way.
           <NavigatorTab
             {...tabProps}
             href={undefined}
-            active={openMenu === menuId('bar', tab.value)}
+            active={openMenu === menuId('horizontal', tab.value)}
             onSelect={undefined}
           />
         }
@@ -1833,7 +2013,7 @@ Rewrite `describe('Panel + Secondary precedence')` (≈3268-3326) with
       </Navigator>
     )
     await flushViewportMeasurement()
-    await user.click(within(bar()).getByRole('button', { name: 'More' }))
+    await user.click(within(horizontal()).getByRole('button', { name: 'More' }))
     const pane = document.querySelector('[data-slot="pane"][id]') as HTMLElement
     await user.click(within(pane).getByRole('button', { name: 'Account' }))
     expect((await screen.findByRole('menu')).closest('[data-side]')).toHaveAttribute(
@@ -1860,7 +2040,7 @@ Rewrite `describe('Panel + Secondary precedence')` (≈3268-3326) with
       </Navigator>
     )
     await flushViewportMeasurement()
-    expect(within(rail()).getByRole('link', { name: 'X' })).toBeInTheDocument()
+    expect(within(vertical()).getByRole('link', { name: 'X' })).toBeInTheDocument()
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('The Menu is ignored'))
   })
 ```
@@ -1892,9 +2072,9 @@ git commit -m "feat(navigator)!: Navigator.Menu on Base UI Menu replaces Navigat
 
 **Interfaces:**
 - Produces: `Navigator.OverflowPane` / `NavigatorOverflowPaneProps` (same props
-  as before); context `overflowItems: { bar: NavigatorSlotMeta[]; rail: NavigatorSlotMeta[] }`
-  and `setOverflowItems(surface: 'bar' | 'rail', next: NavigatorSlotMeta[])`
-  (Task 8 writes `rail`); context `overflowOpener: RefObject<HTMLElement | null>`
+  as before); context `overflowItems: { horizontal: NavigatorSlotMeta[]; vertical: NavigatorSlotMeta[] }`
+  and `setOverflowItems(surface: 'horizontal' | 'vertical', next: NavigatorSlotMeta[])`
+  (Task 8 writes `vertical`); context `overflowOpener: RefObject<HTMLElement | null>`
   (the More control that opened the pane, for returning focus).
 - D5 (including its focus condition), D6.
 
@@ -1926,7 +2106,7 @@ with `Navigator.OverflowPane` in it. Add:
     const user = userEvent.setup()
     const { container } = render(overflowNav('/a'))
     await flushViewportMeasurement()
-    const more = within(tabBarOf(container)!).getByRole('button', { name: 'More' })
+    const more = within(horizontalOf(container)!).getByRole('button', { name: 'More' })
     await user.click(more)
     const pane = document.querySelector('[data-slot="pane"][id]') as HTMLElement
     expect(within(pane).getByRole('heading', { name: 'More' })).toHaveFocus()
@@ -1944,7 +2124,7 @@ with `Navigator.OverflowPane` in it. Add:
       ))
     )
     await flushViewportMeasurement()
-    await user.click(within(tabBarOf(container)!).getByRole('button', { name: 'More' }))
+    await user.click(within(horizontalOf(container)!).getByRole('button', { name: 'More' }))
     expect(document.querySelector('[data-slot="pane"][id]')).toHaveFocus()
   })
 
@@ -1960,7 +2140,7 @@ with `Navigator.OverflowPane` in it. Add:
 
 (`overflowNav(value, extra?)` is the describe's existing fixture — check that
 its second argument is placed inside `Navigator.Content` and adjust the call if
-not; define `tabBarOf` in the describe if it isn't in scope.) Run:
+not; define `horizontalOf` in the describe if it isn't in scope.) Run:
 `cd packages/components && pnpm vitest run src/components/Navigator/Navigator.test.tsx -t OverflowPane`
 Expected: FAIL.
 
@@ -2017,7 +2197,7 @@ effect so it lands before paint, keyed on the open transition only:
 
 and pass `ref={paneRef}` to `PaneRoot` (it forwards). For Escape, record the
 opener: `NavigatorContext` gains `overflowOpener: RefObject<HTMLElement | null>`
-(a ref created in `NavigatorRoot`); the More tab and the rail More tile set
+(a ref created in `NavigatorRoot`); the More tab and the vertical More tile set
 `overflowOpener.current = event.currentTarget` before opening. The existing
 Escape effect in `NavigatorPrimary` closes the pane and then calls
 `overflowOpener.current?.focus()`. Closing by selecting a row navigates, so it
@@ -2026,20 +2206,20 @@ doesn't restore focus.
 - [ ] **Step 3: Two row sets**
 
 `NavigatorContext.ts` / `NavigatorRoot.tsx`: `overflowItems` becomes
-`{ bar, rail }`, default `{ bar: [], rail: [] }`, with
+`{ horizontal, vertical }`, default `{ horizontal: [], vertical: [] }`, with
 
 ```ts
   const setOverflowItems = useCallback(
-    (surface: 'bar' | 'rail', next: NavigatorSlotMeta[]) =>
+    (surface: 'horizontal' | 'vertical', next: NavigatorSlotMeta[]) =>
       setOverflowItemsState((current) => ({ ...current, [surface]: next })),
     []
   )
 ```
 
-`NavigatorPrimary.tsx` calls `setOverflowItems('bar', folded)`. The fallback
+`NavigatorPrimary.tsx` calls `setOverflowItems('horizontal', folded)`. The fallback
 condition in `NavigatorContent` becomes
-`overflowItems.bar.length + overflowItems.rail.length > 0`, and the
-"folded with no host" warning reads `overflowItems.bar`.
+`overflowItems.horizontal.length + overflowItems.vertical.length > 0`, and the
+"folded with no host" warning reads `overflowItems.horizontal`.
 
 `NavigatorOverflowItems.tsx` renders both sets, each gated to the surface that
 folded it (D6), with `data-slot='navigator-overflow-items'` on each `List`:
@@ -2047,8 +2227,8 @@ folded it (D6), with `data-slot='navigator-overflow-items'` on each `List`:
 ```tsx
   return (
     <>
-      {renderSet(overflowItems.bar, 'md:hidden')}
-      {renderSet(overflowItems.rail, 'max-md:hidden')}
+      {renderSet(overflowItems.horizontal, 'md:hidden')}
+      {renderSet(overflowItems.vertical, 'max-md:hidden')}
     </>
   )
 ```
@@ -2078,7 +2258,7 @@ git commit -m "feat(navigator)!: rename Overflow to OverflowPane and make it a l
 
 ---
 
-## Task 5: Sub-pages open in a generated section pane; the nested rail and the strip go
+## Task 5: Sub-pages open in a generated section pane; the nested sub-page list and the strip go
 
 **Files:**
 - Create: `…/Navigator/NavigatorSectionPane.tsx`,
@@ -2141,8 +2321,8 @@ const panes = () =>
   Array.from(document.querySelectorAll<HTMLElement>('[data-slot="pane"]'))
 const sectionPane = () =>
   document.querySelector<HTMLElement>('[data-slot="pane"][data-navigator-section]')
-const rail = () =>
-  document.querySelector('[data-slot="navigator-rail"]') as HTMLElement
+const vertical = () =>
+  document.querySelector('[data-slot="navigator-primary"][data-orientation="vertical"]') as HTMLElement
 
 function Docs({
   value = '/components/button',
@@ -2225,16 +2405,16 @@ describe('generated section pane', () => {
   it('lights the section tile as the section, not the page', async () => {
     render(<Docs />)
     await flushViewportMeasurement()
-    expect(within(rail()).getByRole('link', { name: 'Components' })).toHaveAttribute(
+    expect(within(vertical()).getByRole('link', { name: 'Components' })).toHaveAttribute(
       'aria-current',
       'true'
     )
   })
 
-  it('never renders sub-pages in the rail', async () => {
+  it('never renders sub-pages in the vertical navigation', async () => {
     render(<Docs />)
     await flushViewportMeasurement()
-    expect(within(rail()).queryByText('Button')).toBeNull()
+    expect(within(vertical()).queryByText('Button')).toBeNull()
   })
 
   it('filters rows by label and hides groups left empty', async () => {
@@ -2272,7 +2452,7 @@ describe('textOf', () => {
 ```
 
 Run: `cd packages/components && pnpm vitest run src/components/Navigator/NavigatorSectionPane.test.tsx`
-Expected: FAIL — no `[data-navigator-section]` pane; `textOf` missing; the rail
+Expected: FAIL — no `[data-navigator-section]` pane; `textOf` missing; the vertical navigation
 still renders `Button`.
 
 - [ ] **Step 2: `textOf` and the rows**
@@ -2452,13 +2632,13 @@ export function NavigatorSectionPane({
 NavigatorSectionPane.displayName = 'NavigatorSectionPane'
 ```
 
-- [ ] **Step 4: Publish the active section; stop rendering Secondary in the rail**
+- [ ] **Step 4: Publish the active section; stop rendering Secondary in the vertical navigation**
 
 - `NavigatorSecondary.tsx`: returns `null`; props gain `searchable?: boolean`
   ("Adds a search field to the section's pane that filters rows by label.").
   Rewrite the JSDoc: a declaration read by `Navigator.Primary`; the section's
   sub-pages open in a list pane that `Navigator.Content` generates; override
-  one section with `Navigator.SecondaryPane`. Remove `wrapRailRun`.
+  one section with `Navigator.SecondaryPane`. Remove `wrapPrimaryRun`.
 - `NavigatorContext.ts` / `NavigatorRoot.tsx`: replace `secondaryNav` +
   `hasNesting` (and their setters and the `NavigatorSecondaryNav` type) with
   `activeSection` / `setActiveSection` typed as above.
@@ -2466,16 +2646,16 @@ NavigatorSectionPane.displayName = 'NavigatorSectionPane'
   returning `{ value: itemProps.value, href: itemProps.href, label, secondary: nested.props }` for the
   first branch-active item with a Secondary (use `splitItemChildren` for
   `label`). The publishing effect calls `setActiveSection(activeSection)`.
-  Delete `nests`, `setHasNesting`, `form` and `data-form`; the rail's class call
-  becomes `navigatorRailVariants()`.
-- `variants.ts`: `navigatorRailVariants` loses its `form` variant and uses
-  `w-(--navigator-rail-nested)` until Task 8 replaces it. Delete
+  Delete `nests`, `setHasNesting`, `form` and `data-form`; the vertical navigation's class call
+  becomes `navigatorPrimaryVerticalVariants()`.
+- `variants.ts`: `navigatorPrimaryVerticalVariants` loses its `form` variant and uses
+  `w-(--navigator-primary-nested)` until Task 8 replaces it. Delete
   `navigatorSecondaryVariants`, `navigatorChevronVariants`,
   `navigatorSecondaryStripVariants`, `navigatorSecondaryStripViewportVariants`,
   `navigatorSecondaryStripContentVariants`, the `strip` surface of
   `navigatorIndicatorVariants` (and `'strip'` from
   `NavigatorIndicatorSurface`), and the `tabsIndicatorSurfaceClass` /
-  `tabsListVariants` import. Remove every `group-data-[form=compact]/rail:`
+  `tabsListVariants` import. Remove every `group-data-[form=compact]/primary:`
   class in the file.
 - `NavigatorItem.tsx`: delete the chevron, the `isSection && isBranch ?
   secondary : null` render, the `presentation === 'strip'` branch and the
@@ -2526,13 +2706,13 @@ Expected: PASS.
 
 `Navigator.test.tsx` (plan-time line numbers; search by describe):
 
-- **Delete**: form tests in `Navigator rail form` (≈814-869);
+- **Delete**: form tests in `Navigator vertical form` (≈814-869);
   `section chevron` (≈1235-1279); the tree-line accent tests in
   `active-state split` (≈1331-1374); strip and nested tests in
   `sliding indicator` (≈2286-2346, ≈2361-2479); `strip indicator surface`
   (≈2482-2496); in `Navigator.Secondary` the strip tests (≈2532-2557,
-  2594-2606, 2631-2685) and nested-rail tests (≈2579-2592, 2608-2629,
-  2687-2709); `rail list semantics`' nested li test (≈2798-2822);
+  2594-2606, 2631-2685) and nested sub-page tests (≈2579-2592, 2608-2629,
+  2687-2709); `vertical list semantics`' nested li test (≈2798-2822);
   `Navigator.Group`'s strip test (≈2929-2957); `section nav in the pane
   header` strip tests (≈4016-4074).
 - **Rewrite against the generated pane**: `pane stack` ≈169-252 (strip →
@@ -2548,7 +2728,7 @@ Expected: PASS.
 - Remove the `navigatorSecondaryStripViewportVariants`,
   `tabsIndicatorSurfaceClass` and `tabsIndicatorVariants` imports and the
   `offsetParent` guard's use of the strip variant (≈4692-4706 — keep the test,
-  point it at `navigatorRailViewportVariants`).
+  point it at `navigatorPrimaryViewportVariants`).
 
 `Pane.test.tsx`: delete the `headerExtras` test in `orchestrator chrome`
 (≈993-1004); `withChrome` fixtures drop `headerExtras`.
@@ -2567,7 +2747,7 @@ warning to an old test, add `await flushViewportMeasurement()` there.
 ```bash
 git add packages/components/src/components/Navigator packages/components/src/components/Pane \
   docs/src/app/debug/rsc-smoke/NavigatorCanary.tsx
-git commit -m "feat(navigator)!: open sub-pages in a generated section pane; remove the nested rail and strip"
+git commit -m "feat(navigator)!: open sub-pages in a generated section pane; remove the nested sub-page list and strip"
 ```
 
 ---
@@ -2893,8 +3073,8 @@ function Routed({
   )
 }
 
-const tabBar = () =>
-  document.querySelector('[data-slot="navigator-tab-bar"]') as HTMLElement
+const horizontal = () =>
+  document.querySelector('[data-slot="navigator-primary"][data-orientation="horizontal"]') as HTMLElement
 
 describe('section routes', () => {
   it('puts the list on top on the section route, even with a current detail', async () => {
@@ -2937,7 +3117,7 @@ describe('section routes', () => {
   it('links the active tab to the section route when showList is not wired', async () => {
     render(<Routed value='/components/a' />)
     await flushViewportMeasurement()
-    expect(within(tabBar()).getByRole('link', { name: 'Components' })).toHaveAttribute(
+    expect(within(horizontal()).getByRole('link', { name: 'Components' })).toHaveAttribute(
       'href',
       '/components'
     )
@@ -2948,7 +3128,7 @@ describe('section routes', () => {
     const onShowListChange = vi.fn()
     render(<Routed value='/components/a' onShowListChange={onShowListChange} />)
     await flushViewportMeasurement()
-    await user.click(within(tabBar()).getByRole('link', { name: 'Components' }))
+    await user.click(within(horizontal()).getByRole('link', { name: 'Components' }))
     expect(onShowListChange).toHaveBeenCalledWith(true)
   })
 
@@ -2957,7 +3137,7 @@ describe('section routes', () => {
     const onShowListChange = vi.fn()
     render(<Routed value='/components/a' showList onShowListChange={onShowListChange} />)
     await flushViewportMeasurement()
-    await user.click(within(tabBar()).getByRole('link', { name: 'Components' }))
+    await user.click(within(horizontal()).getByRole('link', { name: 'Components' }))
     expect(onShowListChange).toHaveBeenCalledWith(false)
   })
 
@@ -2978,7 +3158,7 @@ describe('section routes', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
-    expect(within(tabBar()).getByRole('link', { name: 'Components' })).toHaveAttribute(
+    expect(within(horizontal()).getByRole('link', { name: 'Components' })).toHaveAttribute(
       'href',
       '/components'
     )
@@ -3075,7 +3255,7 @@ retargeted.
 - `useTopPaneChrome.tsx`: when `activeSection?.href !== undefined &&
   !overflowOpen && !stackAtRoot`, include `backHref: activeSection.href` in the
   memoised value.
-- Section tabs and tiles (`NavigatorPrimary` for tabs, `NavigatorItem` for rail
+- Section tabs and tiles (`NavigatorPrimary` for tabs, `NavigatorItem` for vertical navigation
   tiles): an item whose slot has `descendants.length > 0` links to its declared
   `href` (D7a), not `rememberedHref(…)`; items without a Secondary keep
   `rememberedHref`. Delete the `rememberSection` effect's recording for
@@ -3136,51 +3316,51 @@ git commit -m "feat(navigator): section routes decide depth; Back links to the s
 
 ---
 
-## Task 8: The capsule rail — brand, centred cluster, pinned — and capacity from height
+## Task 8: The capsule navigation — brand, centred cluster, pinned — and capacity from height
 
 **Files:**
-- Create: `…/Navigator/railCapacity.ts`, `railCapacity.test.ts`,
-  `useRailCapacity.ts`, `capsules.tsx`, `NavigatorFoldedContext.ts`,
-  `NavigatorRail.test.tsx`
+- Create: `…/Navigator/primaryCapacity.ts`, `primaryCapacity.test.ts`,
+  `usePrimaryCapacity.ts`, `capsules.tsx`, `NavigatorFoldedContext.ts`,
+  `NavigatorPrimary.test.tsx`
 - Modify: `NavigatorPrimary.tsx`, `NavigatorGroup.tsx`, `NavigatorGroupTitle.tsx`,
   `NavigatorItem.tsx`, `NavigatorBrand.tsx`, `variants.ts`, `index.tsx`,
   `Navigator.test.tsx`
 - Modify: `packages/core/src/css/layout.css`
 - Modify: `docs/src/components/Navigation.tsx` (Brand wordmark class only)
-- Delete: `…/Navigator/railList.tsx`
+- Delete: `…/Navigator/primaryList.tsx`
 
 **Interfaces:**
-- Consumes: `collectSlots` / `RailEntry` (Task 2), `rankSlots` (Task 1),
-  `setOverflowItems('rail', …)` (Task 4).
+- Consumes: `collectSlots` / `PrimaryEntry` (Task 2), `rankSlots` (Task 1),
+  `setOverflowItems('vertical', …)` (Task 4).
 - Produces:
 
 ```ts
-// railCapacity.ts — rem throughout
-export const RAIL_METRICS: { tile: 3; tileGap: 0.25; capsulePad: 0.25; capsuleGap: 0.75; clusterPad: 0.5 }
-export type RailMetrics = typeof RAIL_METRICS
-export type RailCapsule = { key: string; slots: { value: string; priority: NavigatorVisibilityPriority }[] }
-export function capsuleHeight(tiles: number, metrics?: RailMetrics): number
-export function clusterHeight(tileCounts: number[], metrics?: RailMetrics): number
-export function fitRailCluster(
-  capsules: RailCapsule[],
+// primaryCapacity.ts — rem throughout
+export const PRIMARY_METRICS: { tile: 3; tileGap: 0.25; capsulePad: 0.25; capsuleGap: 0.75; clusterPad: 0.5 }
+export type PrimaryMetrics = typeof PRIMARY_METRICS
+export type PrimaryCapsule = { key: string; slots: { value: string; priority: NavigatorVisibilityPriority }[] }
+export function capsuleHeight(tiles: number, metrics?: PrimaryMetrics): number
+export function clusterHeight(tileCounts: number[], metrics?: PrimaryMetrics): number
+export function fitPrimaryCluster(
+  capsules: PrimaryCapsule[],
   available: number,          // rem; <= 0 means unmeasured → fold nothing
   fixed?: number[],           // never-folding capsules (tile counts)
-  metrics?: RailMetrics
+  metrics?: PrimaryMetrics
 ): { folded: Set<string> }
 // capsules.tsx
-export function railCapsules(entries: RailEntry[]): RailCapsule[]
-export function wrapCapsules(entries: RailEntry[], folded: ReadonlySet<string>): ReactNode[]
-// useRailCapacity.ts
-export function useRailCapacity(
+export function primaryCapsules(entries: PrimaryEntry[]): PrimaryCapsule[]
+export function wrapCapsules(entries: PrimaryEntry[], folded: ReadonlySet<string>): ReactNode[]
+// usePrimaryCapacity.ts
+export function usePrimaryCapacity(
   viewportRef: RefObject<HTMLElement | null>,
-  capsules: RailCapsule[],
+  capsules: PrimaryCapsule[],
   fixed: number[],
   enabled: boolean
 ): ReadonlySet<string>
 // DOM
-// [data-slot=navigator-rail][data-expanded] > [data-slot=navigator-rail-brand]
-//   + [data-slot=navigator-rail-cluster] (ScrollArea; viewport [data-slot=navigator-rail-cluster-viewport])
-//   + [data-slot=navigator-rail-pinned]
+// [data-slot=navigator-primary][data-orientation=vertical][data-expanded] > [data-slot=navigator-primary-brand]
+//   + [data-slot=navigator-primary-cluster] (ScrollArea; viewport [data-slot=navigator-primary-cluster-viewport])
+//   + [data-slot=navigator-primary-pinned]
 // every capsule: <ul data-slot='navigator-capsule'>
 ```
 
@@ -3188,7 +3368,7 @@ export function useRailCapacity(
 
 - [ ] **Step 1: Failing pure tests**
 
-`railCapacity.test.ts` (worked numbers: a capsule of n tiles is
+`primaryCapacity.test.ts` (worked numbers: a capsule of n tiles is
 `3n + 0.25(n−1) + 0.5` rem; the cluster adds `0.75` between capsules and `1`
 of padding):
 
@@ -3196,15 +3376,15 @@ of padding):
 import { describe, expect, it } from 'vitest'
 
 import {
-  RAIL_METRICS,
+  PRIMARY_METRICS,
   capsuleHeight,
   clusterHeight,
-  fitRailCluster
-} from './railCapacity'
+  fitPrimaryCluster
+} from './primaryCapacity'
 import {
   navigatorCapsuleVariants,
   navigatorItemVariants,
-  navigatorRailClusterContentVariants
+  navigatorPrimaryClusterContentVariants
 } from './variants'
 
 const s = (value: string, priority: 'low' | 'automatic' | 'high' = 'automatic') => ({
@@ -3213,7 +3393,7 @@ const s = (value: string, priority: 'low' | 'automatic' | 'high' = 'automatic') 
 })
 const folded = (result: { folded: Set<string> }) => [...result.folded].sort()
 
-describe('rail arithmetic', () => {
+describe('vertical navigation arithmetic', () => {
   it('measures capsules and the cluster', () => {
     expect(capsuleHeight(1)).toBe(3.5)
     expect(capsuleHeight(5)).toBe(16.5)
@@ -3222,19 +3402,19 @@ describe('rail arithmetic', () => {
   })
 
   it('folds nothing when everything fits', () => {
-    expect(folded(fitRailCluster([{ key: 'r', slots: 'abcde'.split('').map((v) => s(v)) }], 17.5))).toEqual([])
+    expect(folded(fitPrimaryCluster([{ key: 'r', slots: 'abcde'.split('').map((v) => s(v)) }], 17.5))).toEqual([])
   })
 
   it('folds two, not one, when the More tile costs more than a tile saves', () => {
     expect(
-      folded(fitRailCluster([{ key: 'r', slots: 'abcde'.split('').map((v) => s(v)) }], 17.4))
+      folded(fitPrimaryCluster([{ key: 'r', slots: 'abcde'.split('').map((v) => s(v)) }], 17.4))
     ).toEqual(['d', 'e'])
   })
 
   it('folds lowest rank first, across capsules', () => {
     expect(
       folded(
-        fitRailCluster(
+        fitPrimaryCluster(
           [
             { key: 'g1', slots: [s('a'), s('b')] },
             { key: 'g2', slots: [s('c'), s('d'), s('e', 'low')] }
@@ -3247,14 +3427,14 @@ describe('rail arithmetic', () => {
 
   it('keeps a high-priority item even when it is last', () => {
     expect(
-      folded(fitRailCluster([{ key: 'r', slots: [s('a'), s('b'), s('c', 'high')] }], 10.5))
+      folded(fitPrimaryCluster([{ key: 'r', slots: [s('a'), s('b'), s('c', 'high')] }], 10.5))
     ).toEqual(['a', 'b'])
   })
 
   it('drops an emptied capsule and its gap from the arithmetic', () => {
     expect(
       folded(
-        fitRailCluster(
+        fitPrimaryCluster(
           [
             { key: 'g1', slots: [s('a'), s('b'), s('c')] },
             { key: 'g2', slots: [s('d', 'low')] }
@@ -3267,16 +3447,16 @@ describe('rail arithmetic', () => {
 
   it('counts a fixed capsule it can never fold', () => {
     const capsules = [{ key: 'r', slots: [s('a'), s('b')] }]
-    expect(folded(fitRailCluster(capsules, 12, [1]))).toEqual([])
-    expect(folded(fitRailCluster(capsules, 11.9, [1]))).toEqual(['a', 'b'])
+    expect(folded(fitPrimaryCluster(capsules, 12, [1]))).toEqual([])
+    expect(folded(fitPrimaryCluster(capsules, 11.9, [1]))).toEqual(['a', 'b'])
   })
 
   it('folds nothing while unmeasured', () => {
-    expect(folded(fitRailCluster([{ key: 'r', slots: [s('a')] }], 0))).toEqual([])
+    expect(folded(fitPrimaryCluster([{ key: 'r', slots: [s('a')] }], 0))).toEqual([])
   })
 
-  it('matches the classes that draw the rail', () => {
-    expect(RAIL_METRICS).toEqual({
+  it('matches the classes that draw the vertical navigation', () => {
+    expect(PRIMARY_METRICS).toEqual({
       tile: 3,
       tileGap: 0.25,
       capsulePad: 0.25,
@@ -3286,23 +3466,23 @@ describe('rail arithmetic', () => {
     expect(navigatorItemVariants()).toContain('size-12')
     expect(navigatorCapsuleVariants()).toContain('p-1')
     expect(navigatorCapsuleVariants()).toContain('gap-1')
-    expect(navigatorRailClusterContentVariants()).toContain('gap-3')
-    expect(navigatorRailClusterContentVariants()).toContain('py-2')
+    expect(navigatorPrimaryClusterContentVariants()).toContain('gap-3')
+    expect(navigatorPrimaryClusterContentVariants()).toContain('py-2')
   })
 })
 ```
 
-Run: `cd packages/components && pnpm vitest run src/components/Navigator/railCapacity.test.ts`
+Run: `cd packages/components && pnpm vitest run src/components/Navigator/primaryCapacity.test.ts`
 Expected: FAIL — module not found.
 
-- [ ] **Step 2: Implement `railCapacity.ts`**
+- [ ] **Step 2: Implement `primaryCapacity.ts`**
 
 ```ts
 import { type NavigatorVisibilityPriority, rankSlots } from './mobileSlots'
 
-// Mirrors the rail's classes — size-12 tiles, a capsule's p-1 and gap-1, the
-// cluster's gap-3 and py-2. `railCapacity.test.ts` pins the pairing.
-export const RAIL_METRICS = {
+// Mirrors the vertical navigation's classes — size-12 tiles, a capsule's p-1 and gap-1, the
+// cluster's gap-3 and py-2. `primaryCapacity.test.ts` pins the pairing.
+export const PRIMARY_METRICS = {
   tile: 3,
   tileGap: 0.25,
   capsulePad: 0.25,
@@ -3310,19 +3490,19 @@ export const RAIL_METRICS = {
   clusterPad: 0.5
 } as const
 
-export type RailMetrics = typeof RAIL_METRICS
+export type PrimaryMetrics = typeof PRIMARY_METRICS
 
-export type RailCapsule = {
+export type PrimaryCapsule = {
   key: string
   slots: { value: string; priority: NavigatorVisibilityPriority }[]
 }
 
-export function capsuleHeight(tiles: number, m: RailMetrics = RAIL_METRICS) {
+export function capsuleHeight(tiles: number, m: PrimaryMetrics = PRIMARY_METRICS) {
   if (tiles <= 0) return 0
   return tiles * m.tile + (tiles - 1) * m.tileGap + 2 * m.capsulePad
 }
 
-export function clusterHeight(counts: number[], m: RailMetrics = RAIL_METRICS) {
+export function clusterHeight(counts: number[], m: PrimaryMetrics = PRIMARY_METRICS) {
   const present = counts.filter((n) => n > 0)
   return (
     present.reduce((sum, n) => sum + capsuleHeight(n, m), 0) +
@@ -3331,11 +3511,11 @@ export function clusterHeight(counts: number[], m: RailMetrics = RAIL_METRICS) {
   )
 }
 
-export function fitRailCluster(
-  capsules: RailCapsule[],
+export function fitPrimaryCluster(
+  capsules: PrimaryCapsule[],
   available: number,
   fixed: number[] = [],
-  m: RailMetrics = RAIL_METRICS
+  m: PrimaryMetrics = PRIMARY_METRICS
 ): { folded: Set<string> } {
   const all = capsules.flatMap((capsule) => capsule.slots)
   if (available <= 0) return { folded: new Set() }
@@ -3359,9 +3539,9 @@ export function fitRailCluster(
 The metrics-vs-classes test still fails until step 4 adds the variants. Run:
 the arithmetic tests PASS.
 
-- [ ] **Step 3: Failing rail tests**
+- [ ] **Step 3: Failing vertical navigation tests**
 
-`NavigatorRail.test.tsx`:
+`NavigatorPrimary.test.tsx`:
 
 ```tsx
 import { act, render, screen, within } from '@testing-library/react'
@@ -3377,9 +3557,9 @@ async function flushViewportMeasurement() {
 }
 
 const FakeIcon = () => <svg data-testid='fake-icon' />
-const rail = () => document.querySelector('[data-slot="navigator-rail"]') as HTMLElement
+const vertical = () => document.querySelector('[data-slot="navigator-primary"][data-orientation="vertical"]') as HTMLElement
 const region = (name: string) =>
-  rail().querySelector(`[data-slot="navigator-rail-${name}"]`) as HTMLElement
+  vertical().querySelector(`[data-slot="navigator-primary-${name}"]`) as HTMLElement
 
 // Only the cluster viewport's observer is driven; every other observer (the
 // ScrollArea's, the indicator's) stays inert so their callbacks never see a
@@ -3394,7 +3574,7 @@ class StubResizeObserver {
   disconnect() {}
 }
 const reportClusterHeight = (px: number) => {
-  const viewport = rail().querySelector('[data-slot="navigator-rail-cluster-viewport"]')!
+  const viewport = vertical().querySelector('[data-slot="navigator-primary-cluster-viewport"]')!
   act(() =>
     observers.get(viewport)?.(
       [{ contentRect: { height: px } } as ResizeObserverEntry],
@@ -3433,15 +3613,15 @@ function Six({ value = '/a', lowGroup = false }: { value?: string; lowGroup?: bo
   )
 }
 
-describe('rail regions', () => {
+describe('vertical regions', () => {
   it('puts brand on top, the cluster between, pinned at the bottom', async () => {
     render(<Six />)
     await flushViewportMeasurement()
-    const children = Array.from(rail().children).map((el) => el.getAttribute('data-slot'))
+    const children = Array.from(vertical().children).map((el) => el.getAttribute('data-slot'))
     expect(children).toEqual([
-      'navigator-rail-brand',
-      'navigator-rail-cluster',
-      'navigator-rail-pinned'
+      'navigator-primary-brand',
+      'navigator-primary-cluster',
+      'navigator-primary-pinned'
     ])
     expect(within(region('brand')).getByText('Logo')).toBeInTheDocument()
     expect(within(region('pinned')).getByRole('link', { name: 'Me' })).toBeInTheDocument()
@@ -3459,7 +3639,7 @@ describe('rail regions', () => {
     render(<Six />)
     await flushViewportMeasurement()
     expect(within(region('cluster')).getByText('Extra')).toHaveClass('sr-only')
-    expect(rail()).not.toHaveAttribute('data-expanded')
+    expect(vertical()).not.toHaveAttribute('data-expanded')
   })
 
   it('folds nothing until the cluster has been measured', async () => {
@@ -3469,7 +3649,7 @@ describe('rail regions', () => {
   })
 })
 
-describe('rail capacity', () => {
+describe('vertical capacity', () => {
   it('folds the lowest-ranked items into a More tile at the end of the cluster', async () => {
     const user = userEvent.setup()
     render(<Six />)
@@ -3481,10 +3661,10 @@ describe('rail capacity', () => {
     const more = within(cluster).getByRole('button', { name: 'More' })
     await user.click(more)
     expect(more).toHaveAttribute('aria-expanded', 'true')
-    const railRows = document.querySelector(
+    const verticalRows = document.querySelector(
       '[data-slot="pane"][id] [data-slot="navigator-overflow-items"].max-md\\:hidden'
     ) as HTMLElement
-    expect(within(railRows).getAllByRole('link')).toHaveLength(4)
+    expect(within(verticalRows).getAllByRole('link')).toHaveLength(4)
   })
 
   it('removes a capsule whose items all fold', async () => {
@@ -3514,34 +3694,34 @@ Replace in `variants.ts` (keep the file's comment style — say *why*):
 
 ```ts
 // The cluster is the 1fr row, so it centres between brand and pinned.
-export const navigatorRailVariants = cva([
-  'group/rail hidden min-h-0 md:col-start-1 md:row-start-1 md:grid',
+export const navigatorPrimaryVerticalVariants = cva([
+  'group/primary hidden min-h-0 md:col-start-1 md:row-start-1 md:grid',
   'grid-rows-[auto_minmax(0,1fr)_auto] gap-3 py-3 w-20'
 ])
 
-export const navigatorRailBrandVariants = cva(['grid justify-items-center px-3'])
+export const navigatorPrimaryBrandVariants = cva(['grid justify-items-center px-3'])
 
-export const navigatorRailClusterVariants = cva(['min-h-0'])
+export const navigatorPrimaryClusterVariants = cva(['min-h-0'])
 
 // `relative` positions the cluster's pill; the viewport is what scrolls.
-export const navigatorRailClusterViewportVariants = cva(['relative size-full'])
+export const navigatorPrimaryClusterViewportVariants = cva(['relative size-full'])
 
 // `min-h-full` + `content-center` centres a short cluster; py-2 is
-// RAIL_METRICS.clusterPad and keeps capsule shadows off the clip edge.
-export const navigatorRailClusterContentVariants = cva([
+// PRIMARY_METRICS.clusterPad and keeps capsule shadows off the clip edge.
+export const navigatorPrimaryClusterContentVariants = cva([
   'grid min-h-full content-center justify-items-center gap-3 px-3 py-2'
 ])
 
-export const navigatorRailPinnedVariants = cva([
+export const navigatorPrimaryPinnedVariants = cva([
   'relative grid justify-items-center gap-3 px-3'
 ])
 
-// One floating capsule per group or run. p-1 and gap-1 are RAIL_METRICS.
+// One floating capsule per group or run. p-1 and gap-1 are PRIMARY_METRICS.
 export const navigatorCapsuleVariants = cva([
   'relative grid gap-1 p-1 rounded-full emphasis-raised'
 ])
 
-// A rail tile. `text-subtle` always; the active tile's `intent-accent` turns
+// A vertical tile. `text-subtle` always; the active tile's `intent-accent` turns
 // it into the accent's subtle tone, so no raw scale step is needed.
 export const navigatorItemVariants = cva(
   [
@@ -3563,14 +3743,14 @@ export const navigatorGroupTitleVariants = cva([
 export const navigatorBrandVariants = cva(['flex items-center justify-center gap-2 py-1'])
 ```
 
-Delete `navigatorRailViewportVariants`, `navigatorRailContentVariants`,
-`navigatorGroupListVariants`, `navigatorRailListVariants`, and the old
+Delete `navigatorPrimaryViewportVariants`, `navigatorPrimaryContentVariants`,
+`navigatorGroupListVariants`, `navigatorPrimaryListVariants`, and the old
 `state` variant of `navigatorItemVariants`. `navigatorItemTrailingVariants`
 stays for the badge (Task 12).
 
 `packages/core/src/css/layout.css`: delete the whole
-`/* Navigator rail widths … */ @theme { --navigator-rail-compact …; --navigator-rail-nested …; }`
-block. `grep -rn "navigator-rail-" packages docs/src` → no hits.
+`/* Navigator … widths … */ @theme { --navigator-primary-compact …; --navigator-primary-nested …; }`
+block (renamed in Task 0B). `grep -rn "navigator-primary-compact\|navigator-primary-nested" packages docs/src` → no hits.
 
 - [ ] **Step 5: Capsules, fold context, capacity hook**
 
@@ -3581,7 +3761,7 @@ block. `grep -rn "navigator-rail-" packages docs/src` → no hits.
 
 import { createContext } from 'react'
 
-// The rail's folded values, so a Group can drop its folded rows — the one
+// The vertical navigation's folded values, so a Group can drop its folded rows — the one
 // piece of fold state a Group can't get from its own props.
 export const NavigatorFoldedContext = createContext<ReadonlySet<string>>(new Set())
 ```
@@ -3591,16 +3771,16 @@ export const NavigatorFoldedContext = createContext<ReadonlySet<string>>(new Set
 ```tsx
 import { Fragment, type ReactNode } from 'react'
 
-import type { RailEntry } from './collectSlots'
-import type { RailCapsule } from './railCapacity'
+import type { PrimaryEntry } from './collectSlots'
+import type { PrimaryCapsule } from './primaryCapacity'
 import { navigatorCapsuleVariants } from './variants'
 
-type ItemEntry = Extract<RailEntry, { kind: 'item' }>
+type ItemEntry = Extract<PrimaryEntry, { kind: 'item' }>
 
-// Must group exactly as wrapCapsules draws, or the arithmetic measures the wrong rail.
-export function railCapsules(entries: RailEntry[]): RailCapsule[] {
-  const capsules: RailCapsule[] = []
-  let run: RailCapsule | null = null
+// Must group exactly as wrapCapsules draws, or the arithmetic measures the wrong vertical navigation.
+export function primaryCapsules(entries: PrimaryEntry[]): PrimaryCapsule[] {
+  const capsules: PrimaryCapsule[] = []
+  let run: PrimaryCapsule | null = null
   entries.forEach((entry, index) => {
     if (entry.kind === 'item') {
       run ??= { key: `run-${index}`, slots: [] }
@@ -3617,7 +3797,7 @@ export function railCapsules(entries: RailEntry[]): RailCapsule[] {
 
 /** Folded items drop out; a capsule left empty disappears. */
 export function wrapCapsules(
-  entries: RailEntry[],
+  entries: PrimaryEntry[],
   folded: ReadonlySet<string>
 ): ReactNode[] {
   const out: ReactNode[] = []
@@ -3659,14 +3839,14 @@ export function wrapCapsules(
 (Task 9 adds the `toggle` entry kind; the `entry.kind === 'group'` guards are
 written so that addition doesn't break them.)
 
-`useRailCapacity.ts`:
+`usePrimaryCapacity.ts`:
 
 ```ts
 'use client'
 
 import { type RefObject, useEffect, useMemo, useState } from 'react'
 
-import { type RailCapsule, fitRailCluster } from './railCapacity'
+import { type PrimaryCapsule, fitPrimaryCluster } from './primaryCapacity'
 
 const NONE: ReadonlySet<string> = new Set()
 
@@ -3674,9 +3854,9 @@ const rootFontSize = () =>
   parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
 
 /** One observer on the cluster's viewport; everything else is arithmetic. */
-export function useRailCapacity(
+export function usePrimaryCapacity(
   viewportRef: RefObject<HTMLElement | null>,
-  capsules: RailCapsule[],
+  capsules: PrimaryCapsule[],
   fixed: number[],
   enabled: boolean
 ): ReadonlySet<string> {
@@ -3698,62 +3878,63 @@ export function useRailCapacity(
     .join('|')}#${fixed.join(',')}`
 
   return useMemo(
-    () => (enabled ? fitRailCluster(capsules, available, fixed).folded : NONE),
+    () => (enabled ? fitPrimaryCluster(capsules, available, fixed).folded : NONE),
     [shape, available, enabled]
   )
 }
 ```
 
-- [ ] **Step 6: Render the rail**
+- [ ] **Step 6: Render the vertical navigation**
 
-`NavigatorPrimary.tsx` — replace the `ScrollArea`-as-`<nav>` rail with:
+`NavigatorPrimary.tsx` — replace the `ScrollArea`-as-`<nav>` vertical navigation with:
 
 ```tsx
   const clusterRef = useRef<HTMLDivElement>(null)
   const pinnedRef = useRef<HTMLDivElement>(null)
-  const capsules = railCapsules(collected.cluster)
-  const railFolded = useRailCapacity(clusterRef, capsules, [], true)
-  const railFoldedSlots = collected.automatic.filter((slot) => railFolded.has(slot.value))
-  const railFoldedKey = railFoldedSlots.map((slot) => slot.value).join(',')
+  const capsules = primaryCapsules(collected.cluster)
+  const verticalFolded = usePrimaryCapacity(clusterRef, capsules, [], true)
+  const verticalFoldedSlots = collected.automatic.filter((slot) => verticalFolded.has(slot.value))
+  const verticalFoldedKey = verticalFoldedSlots.map((slot) => slot.value).join(',')
   useEffect(() => {
-    setOverflowItems('rail', railFoldedSlots)
-  }, [railFoldedKey, setOverflowItems])
-  const railMoreActive =
+    setOverflowItems('vertical', verticalFoldedSlots)
+  }, [verticalFoldedKey, setOverflowItems])
+  const verticalMoreActive =
     overflowOpen ||
-    (railFoldedSlots.some((slot) => isSectionActive(slot, activeValue)) &&
+    (verticalFoldedSlots.some((slot) => isSectionActive(slot, activeValue)) &&
       !disclosureOpen)
 
   …
       <nav
-        data-slot='navigator-rail'
+        data-slot='navigator-primary'
+        data-orientation='vertical'
         aria-label={ariaLabel}
-        className={cn(navigatorRailVariants(), className)}
+        className={cn(navigatorPrimaryVerticalVariants(), className)}
       >
-        <div data-slot='navigator-rail-brand' className={navigatorRailBrandVariants()}>
+        <div data-slot='navigator-primary-brand' className={navigatorPrimaryBrandVariants()}>
           {collected.brand}
         </div>
-        <ScrollArea data-slot='navigator-rail-cluster' className={navigatorRailClusterVariants()}>
+        <ScrollArea data-slot='navigator-primary-cluster' className={navigatorPrimaryClusterVariants()}>
           <ScrollArea.Viewport
             ref={clusterRef}
-            data-slot='navigator-rail-cluster-viewport'
-            className={navigatorRailClusterViewportVariants()}
+            data-slot='navigator-primary-cluster-viewport'
+            className={navigatorPrimaryClusterViewportVariants()}
           >
             <ScrollArea.Content
               fitWidth={false}
-              className={navigatorRailClusterContentVariants()}
+              className={navigatorPrimaryClusterContentVariants()}
             >
-              <NavigatorFoldedContext value={railFolded}>
-                {wrapCapsules(collected.cluster, railFolded)}
+              <NavigatorFoldedContext value={verticalFolded}>
+                {wrapCapsules(collected.cluster, verticalFolded)}
               </NavigatorFoldedContext>
-              {railFoldedSlots.length > 0 ? (
+              {verticalFoldedSlots.length > 0 ? (
                 <ul data-slot='navigator-capsule' className={navigatorCapsuleVariants()}>
                   <li>
                     <NavigatorDestination
-                      ariaCurrent={railMoreActive ? 'true' : undefined}
-                      dataCurrent={railMoreActive}
+                      ariaCurrent={verticalMoreActive ? 'true' : undefined}
+                      dataCurrent={verticalMoreActive}
                       expanded={overflowOpen}
                       controls={overflowOpen ? overflowPaneId : undefined}
-                      className={navigatorItemVariants({ active: railMoreActive })}
+                      className={navigatorItemVariants({ active: verticalMoreActive })}
                       onClick={(event) => {
                         overflowOpener.current = event.currentTarget as HTMLElement
                         setOpenMenu(null)
@@ -3769,7 +3950,7 @@ export function useRailCapacity(
                 </ul>
               ) : null}
             </ScrollArea.Content>
-            <NavigatorIndicator trackRef={clusterRef} surface='rail' />
+            <NavigatorIndicator trackRef={clusterRef} surface='vertical' />
           </ScrollArea.Viewport>
           <ScrollArea.Scrollbar flush>
             <ScrollArea.Thumb />
@@ -3777,17 +3958,17 @@ export function useRailCapacity(
         </ScrollArea>
         <div
           ref={pinnedRef}
-          data-slot='navigator-rail-pinned'
-          className={navigatorRailPinnedVariants()}
+          data-slot='navigator-primary-pinned'
+          className={navigatorPrimaryPinnedVariants()}
         >
           {wrapCapsules(collected.pinned, new Set())}
-          <NavigatorIndicator trackRef={pinnedRef} surface='rail' />
+          <NavigatorIndicator trackRef={pinnedRef} surface='vertical' />
         </div>
       </nav>
 ```
 
-Drop `railRef`, `wrapRailRun` and `navigatorRailViewportVariants`/
-`navigatorRailContentVariants`. The Escape-closes-More effect stays (the More
+Drop `verticalRef`, `wrapPrimaryRun` and `navigatorPrimaryViewportVariants`/
+`navigatorPrimaryContentVariants`. The Escape-closes-More effect stays (the More
 pane now exists at every size).
 
 `NavigatorGroup.tsx`: read `NavigatorFoldedContext`, skip rows whose element
@@ -3804,13 +3985,13 @@ accessible name stays inside the link; no `aria-label`), no badge trailing yet
 (done above).
 
 `index.tsx`: export the new variants
-(`navigatorRailBrandVariants`, `navigatorRailClusterVariants`,
-`navigatorRailClusterViewportVariants`, `navigatorRailClusterContentVariants`,
-`navigatorRailPinnedVariants`, `navigatorCapsuleVariants`), remove the deleted
-ones. `git rm …/Navigator/railList.tsx`.
+(`navigatorPrimaryBrandVariants`, `navigatorPrimaryClusterVariants`,
+`navigatorPrimaryClusterViewportVariants`, `navigatorPrimaryClusterContentVariants`,
+`navigatorPrimaryPinnedVariants`, `navigatorCapsuleVariants`), remove the deleted
+ones. `git rm …/Navigator/primaryList.tsx`.
 
 `docs/src/components/Navigation.tsx`: the Brand wordmark's
-`group-data-[form=compact]/rail:hidden` becomes `hidden` (Task 9 adds
+`group-data-[form=compact]/primary:hidden` becomes `hidden` (Task 9 adds
 `navigator-expanded:inline`).
 
 - [ ] **Step 7: Run and migrate**
@@ -3818,11 +3999,11 @@ ones. `git rm …/Navigator/railList.tsx`.
 Run: `cd packages/components && pnpm vitest run src/components/Navigator`
 
 Expected new files PASS. In `Navigator.test.tsx`, rewrite the tests that read
-the old rail DOM: `Navigator.Brand` (≈1132-1152: brand is in
-`navigator-rail-brand`), `rail list semantics` (≈2775-2796: loose items are
+the old vertical navigation DOM: `Navigator.Brand` (≈1132-1152: brand is in
+`navigator-primary-brand`), `vertical list semantics` (≈2775-2796: loose items are
 `li`s of a `navigator-capsule` `ul`), and the offsetParent guard (≈4692-4706:
-`navigatorRailClusterViewportVariants`). Delete assertions on
-`navigator-rail-viewport` / `scroll-area-content` inside the rail. Act warnings
+`navigatorPrimaryClusterViewportVariants`). Delete assertions on
+`navigator-primary-viewport` / `scroll-area-content` inside the vertical navigation. Act warnings
 within budget.
 
 - [ ] **Step 8: Commit**
@@ -3830,12 +4011,12 @@ within budget.
 ```bash
 git add packages/components/src/components/Navigator packages/core/src/css/layout.css \
   packages/components/src/index.tsx docs/src/components/Navigation.tsx
-git commit -m "feat(navigator): capsule rail with brand, centred cluster and pinned items; fold by height"
+git commit -m "feat(navigator): capsule navigation with brand, centred cluster and pinned items; fold by height"
 ```
 
 ---
 
-## Task 9: Expanded rail and `Navigator.ExpandToggle`
+## Task 9: Expanded vertical navigation and `Navigator.ExpandToggle`
 
 **Files:**
 - Create: `…/Navigator/NavigatorExpandToggle.tsx`
@@ -3847,7 +4028,7 @@ git commit -m "feat(navigator): capsule rail with brand, centred cluster and pin
 - Modify: `NavigatorRoot.tsx`, `NavigatorContext.ts`, `collectSlots.ts`,
   `collectSlots.test.tsx`, `capsules.tsx`, `NavigatorPrimary.tsx`,
   `NavigatorItem.tsx`, `NavigatorGroup.tsx`, `variants.ts`, `index.tsx`,
-  `NavigatorRail.test.tsx`, `railCapacity.test.ts`,
+  `NavigatorPrimary.test.tsx`, `primaryCapacity.test.ts`,
   `packages/components/src/index.tsx`
 
 **Interfaces:**
@@ -3859,12 +4040,12 @@ expanded?: boolean
 defaultExpanded?: boolean // default false
 onExpandedChange?: (next: boolean) => void
 // context
-expanded: boolean; setExpanded: (next: boolean) => void; railId: string
+expanded: boolean; setExpanded: (next: boolean) => void; primaryId: string
 // NavigatorExpandToggleProps
 { placement?: NavigatorPlacement /* default 'automatic' */; className?: string }
-// RailEntry gains
+// PrimaryEntry gains
 | { kind: 'toggle'; element: ReactElement<NavigatorExpandToggleProps> }
-// the rail renders data-expanded (present only while expanded); every expanded
+// the vertical navigation renders data-expanded (present only while expanded); every expanded
 // style is one `navigator-expanded:` class — no CVA `expanded` variant
 // new constant: navigatorItemLabelClass
 // core (@oztix/roadie-core/css): @custom-variant navigator-expanded (D14)
@@ -3892,7 +4073,7 @@ const sheet = readFileSync(new URL('./navigator.css', import.meta.url), 'utf8')
 const squash = (css: string) => css.replace(/\s+/g, ' ')
 
 describe('navigator-expanded', () => {
-  it('compiles to the rail scope, wrapped in :where()', async () => {
+  it('compiles to the vertical navigation scope, wrapped in :where()', async () => {
     const compiler = await compile(`@tailwind utilities;\n${sheet}`)
     const css = squash(compiler.build(['navigator-expanded:grid']))
     expect(css).toContain(squash(`:where(${NAVIGATOR_EXPANDED_SCOPE})`))
@@ -3909,9 +4090,9 @@ import { describe, expect, it } from 'vitest'
 import { NAVIGATOR_EXPANDED_SCOPE } from './index'
 
 describe('NAVIGATOR_EXPANDED_SCOPE', () => {
-  it('is scoped to the rail, by its own state or the document', () => {
+  it('is scoped to the vertical navigation, by its own state or the document', () => {
     expect(NAVIGATOR_EXPANDED_SCOPE).toBe(
-      '[data-slot=navigator-rail][data-expanded], [data-slot=navigator-rail][data-expanded] *, [data-navigator-expanded] [data-slot=navigator-rail][data-from-document], [data-navigator-expanded] [data-slot=navigator-rail][data-from-document] *'
+      '[data-slot=navigator-primary][data-orientation=vertical][data-expanded], [data-slot=navigator-primary][data-orientation=vertical][data-expanded] *, [data-navigator-expanded] [data-slot=navigator-primary][data-orientation=vertical][data-from-document], [data-navigator-expanded] [data-slot=navigator-primary][data-orientation=vertical][data-from-document] *'
     )
   })
 })
@@ -3925,15 +4106,15 @@ Expected: FAIL — neither file exists.
 ```ts
 /** The `navigator-expanded` variant's selector list, for tests that assert it matches. */
 export const NAVIGATOR_EXPANDED_SCOPE =
-  '[data-slot=navigator-rail][data-expanded], [data-slot=navigator-rail][data-expanded] *, [data-navigator-expanded] [data-slot=navigator-rail][data-from-document], [data-navigator-expanded] [data-slot=navigator-rail][data-from-document] *'
+  '[data-slot=navigator-primary][data-orientation=vertical][data-expanded], [data-slot=navigator-primary][data-orientation=vertical][data-expanded] *, [data-navigator-expanded] [data-slot=navigator-primary][data-orientation=vertical][data-from-document], [data-navigator-expanded] [data-slot=navigator-primary][data-orientation=vertical][data-from-document] *'
 ```
 
 `packages/core/src/css/navigator.css` (imported from `roadie.css` after
 `layout.css`):
 
 ```css
-/* Navigator: the one variant every expanded-rail style is written with. */
-@custom-variant navigator-expanded (&:where([data-slot=navigator-rail][data-expanded], [data-slot=navigator-rail][data-expanded] *, [data-navigator-expanded] [data-slot=navigator-rail][data-from-document], [data-navigator-expanded] [data-slot=navigator-rail][data-from-document] *));
+/* Navigator: the one variant every expanded style is written with. */
+@custom-variant navigator-expanded (&:where([data-slot=navigator-primary][data-orientation=vertical][data-expanded], [data-slot=navigator-primary][data-orientation=vertical][data-expanded] *, [data-navigator-expanded] [data-slot=navigator-primary][data-orientation=vertical][data-from-document], [data-navigator-expanded] [data-slot=navigator-primary][data-orientation=vertical][data-from-document] *));
 ```
 
 Tailwind v4.3.3's shorthand `@custom-variant name (selector);` splits the
@@ -3964,12 +4145,12 @@ Run: `pnpm --filter @oztix/roadie-core test && pnpm --filter @oztix/roadie-core 
 Expected: PASS; `ls packages/core/dist/navigator/index.js`.
 
 `.changeset/app-frame-core-css.md` — append: "…and the `navigator-expanded`
-variant, which Navigator's expanded rail is styled with, plus
+variant, which Navigator's expanded vertical navigation is styled with, plus
 `@oztix/roadie-core/navigator`."
 
 - [ ] **Step 1: Failing tests**
 
-Append to `NavigatorRail.test.tsx` (and import
+Append to `NavigatorPrimary.test.tsx` (and import
 `NAVIGATOR_EXPANDED_SCOPE` from `@oztix/roadie-core/navigator` and the variants
 named below from `./variants` at the top of the file):
 
@@ -3995,16 +4176,16 @@ function Expandable(props: {
   )
 }
 
-describe('expanded rail', () => {
-  it('toggles, uncontrolled, with a labelled button that controls the rail', async () => {
+describe('expanded vertical navigation', () => {
+  it('toggles, uncontrolled, with a labelled button that controls the vertical navigation', async () => {
     const user = userEvent.setup()
     render(<Expandable />)
     await flushViewportMeasurement()
     const toggle = within(region('pinned')).getByRole('button', { name: 'Expand sidebar' })
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
-    expect(toggle).toHaveAttribute('aria-controls', rail().id)
+    expect(toggle).toHaveAttribute('aria-controls', vertical().id)
     await user.click(toggle)
-    expect(rail()).toHaveAttribute('data-expanded')
+    expect(vertical()).toHaveAttribute('data-expanded')
     expect(toggle).toHaveAccessibleName('Collapse sidebar')
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
   })
@@ -4016,17 +4197,17 @@ describe('expanded rail', () => {
     await flushViewportMeasurement()
     await user.click(within(region('pinned')).getByRole('button', { name: 'Collapse sidebar' }))
     expect(onExpandedChange).toHaveBeenCalledWith(false)
-    expect(rail()).toHaveAttribute('data-expanded')
+    expect(vertical()).toHaveAttribute('data-expanded')
   })
 
-  it('matches navigator-expanded inside the rail only while expanded', async () => {
+  it('matches navigator-expanded inside the vertical navigation only while expanded', async () => {
     const scope = `:where(${NAVIGATOR_EXPANDED_SCOPE})`
     const { rerender } = render(<Expandable expanded />)
     await flushViewportMeasurement()
     expect(within(region('cluster')).getByText('Alpha').matches(scope)).toBe(true)
     expect(within(region('cluster')).getByText('Docs').matches(scope)).toBe(true)
     rerender(<Expandable expanded={false} />)
-    expect(rail()).not.toHaveAttribute('data-expanded')
+    expect(vertical()).not.toHaveAttribute('data-expanded')
     expect(within(region('cluster')).getByText('Alpha').matches(scope)).toBe(false)
   })
 
@@ -4053,9 +4234,9 @@ describe('expanded rail', () => {
 
   it('writes each expanded style once, through the variant', () => {
     const classes = [
-      navigatorRailVariants(),
-      navigatorRailClusterContentVariants(),
-      navigatorRailPinnedVariants(),
+      navigatorPrimaryVerticalVariants(),
+      navigatorPrimaryClusterContentVariants(),
+      navigatorPrimaryPinnedVariants(),
       navigatorCapsuleVariants(),
       navigatorItemVariants(),
       navigatorItemLabelClass,
@@ -4077,7 +4258,7 @@ describe('expanded rail', () => {
   it('never renders the toggle on the phone bar', async () => {
     render(<Expandable />)
     await flushViewportMeasurement()
-    const bar = document.querySelector('[data-slot="navigator-tab-bar"]') as HTMLElement
+    const bar = document.querySelector('[data-slot="navigator-primary"][data-orientation="horizontal"]') as HTMLElement
     expect(within(bar).queryByRole('button', { name: /sidebar/ })).toBeNull()
   })
 })
@@ -4103,7 +4284,7 @@ Run both files. Expected: FAIL.
 - [ ] **Step 2: Root state**
 
 `NavigatorRoot.tsx` — add the three props (JSDoc on `expanded`: "The large-
-screen rail shows labels beside icons. Navigator never touches storage — persist
+screen vertical navigation shows labels beside icons. Navigator never touches storage — persist
 the choice yourself (a cookie reads on the server without a flash) and pass it
 back."), and:
 
@@ -4119,10 +4300,10 @@ back."), and:
     },
     [expandedProp, onExpandedChange]
   )
-  const railId = useId()
+  const primaryId = useId()
 ```
 
-Add `expanded`, `setExpanded`, `railId` to context (defaults `false`, no-op,
+Add `expanded`, `setExpanded`, `primaryId` to context (defaults `false`, no-op,
 `''`) and the memo deps.
 
 - [ ] **Step 3: The toggle**
@@ -4150,14 +4331,14 @@ export type NavigatorExpandToggleProps = {
 }
 
 export function NavigatorExpandToggle({ className }: NavigatorExpandToggleProps) {
-  const { expanded, setExpanded, railId } = use(NavigatorContext)
+  const { expanded, setExpanded, primaryId } = use(NavigatorContext)
   const label = expanded ? 'Collapse sidebar' : 'Expand sidebar'
   return (
     <button
       type='button'
       data-slot='navigator-expand-toggle'
       aria-expanded={expanded}
-      aria-controls={railId}
+      aria-controls={primaryId}
       className={cn(navigatorItemVariants({ active: false }), className)}
       onClick={() => setExpanded(!expanded)}
     >
@@ -4178,8 +4359,8 @@ NavigatorExpandToggle.displayName = 'Navigator.ExpandToggle'
 through the same `pinnedBeforeCluster` check as items and groups (a pinned
 toggle written before cluster items warns too).
 `capsules.tsx`: `wrapCapsules` renders a toggle entry in its own
-`navigator-capsule` `ul`; `railCapsules` skips it; add
-`export const fixedCapsules = (entries: RailEntry[]) => entries.filter((e) => e.kind === 'toggle').map(() => 1)`.
+`navigator-capsule` `ul`; `primaryCapsules` skips it; add
+`export const fixedCapsules = (entries: PrimaryEntry[]) => entries.filter((e) => e.kind === 'toggle').map(() => 1)`.
 
 - [ ] **Step 4: Expanded styles and wiring**
 
@@ -4187,14 +4368,14 @@ toggle written before cluster items warns too).
 written once with the variant:
 
 ```ts
-navigatorRailVariants base:                'w-20 navigator-expanded:w-60'
-navigatorRailClusterContentVariants base:  'content-center justify-items-center navigator-expanded:content-start navigator-expanded:justify-items-stretch'
-navigatorRailPinnedVariants base:          'justify-items-center navigator-expanded:justify-items-stretch'
+navigatorPrimaryVerticalVariants base:                'w-20 navigator-expanded:w-60'
+navigatorPrimaryClusterContentVariants base:  'content-center justify-items-center navigator-expanded:content-start navigator-expanded:justify-items-stretch'
+navigatorPrimaryPinnedVariants base:          'justify-items-center navigator-expanded:justify-items-stretch'
 navigatorCapsuleVariants base:             'rounded-full navigator-expanded:rounded-4xl'
 navigatorItemVariants base:                'size-12 place-items-center navigator-expanded:h-12 navigator-expanded:w-full navigator-expanded:grid-cols-[auto_1fr_auto] navigator-expanded:justify-items-start navigator-expanded:gap-3 navigator-expanded:px-3 navigator-expanded:text-sm navigator-expanded:font-semibold'
 navigatorGroupTitleVariants base:          'sr-only navigator-expanded:not-sr-only …'
 
-// `starting:` is @starting-style, so labels fade in as the rail snaps wide.
+// `starting:` is @starting-style, so labels fade in as the vertical navigation snaps wide.
 export const navigatorItemLabelClass =
   'sr-only navigator-expanded:not-sr-only navigator-expanded:truncate motion-safe:navigator-expanded:transition-opacity motion-safe:navigator-expanded:starting:opacity-0'
 ```
@@ -4202,14 +4383,14 @@ export const navigatorItemLabelClass =
 (Replace the classes they supersede in each base string rather than
 appending: `w-20`, `rounded-full`, `size-12 place-items-center`,
 `content-center justify-items-center` and `justify-items-center` each appear
-once.) The class guard in `railCapacity.test.ts` keeps its no-argument calls —
+once.) The class guard in `primaryCapacity.test.ts` keeps its no-argument calls —
 the collapsed defaults are still in each base string.
 
-`NavigatorPrimary.tsx`: read `expanded` and `railId`; the rail gets
-`id={railId}` and `data-expanded={expanded ? '' : undefined}` — the only place
+`NavigatorPrimary.tsx`: read `expanded` and `primaryId`; the vertical navigation gets
+`id={primaryId}` and `data-expanded={expanded ? '' : undefined}` — the only place
 expanded reaches the DOM; capacity is
-`useRailCapacity(clusterRef, capsules, fixedCapsules(collected.cluster), !expanded)`.
-Tile labels (`NavigatorItem`, rail More, `NavigatorExpandToggle`) use
+`usePrimaryCapacity(clusterRef, capsules, fixedCapsules(collected.cluster), !expanded)`.
+Tile labels (`NavigatorItem`, vertical More, `NavigatorExpandToggle`) use
 `navigatorItemLabelClass`. JS still reads `expanded` for behaviour — folding,
 tooltips (Task 11), the toggle's name and `aria-expanded` — never for styling.
 The tab bar never sees the toggle (it has no slot).
@@ -4230,7 +4411,7 @@ git add packages/core/src/css packages/core/src/navigator packages/core/package.
   packages/core/tsdown.config.ts .changeset/app-frame-core-css.md \
   packages/components/src/components/Navigator packages/components/src/index.tsx \
   docs/src/components/Navigation.tsx
-git commit -m "feat(navigator): expanded rail styled through navigator-expanded, and Navigator.ExpandToggle"
+git commit -m "feat(navigator): expanded vertical navigation styled through navigator-expanded, and Navigator.ExpandToggle"
 ```
 
 ---
@@ -4238,7 +4419,7 @@ git commit -m "feat(navigator): expanded rail styled through navigator-expanded,
 ## Task 9B: Optional pre-hydration expanded state for static sites (D14)
 
 Server-rendered apps skip this task's feature entirely: read the cookie on the
-server and pass `defaultExpanded` (or `expanded`); the rail's `data-expanded`
+server and pass `defaultExpanded` (or `expanded`); the vertical navigation's `data-expanded`
 is in the server HTML, so `navigator-expanded:` styles paint on the first frame
 with no script. This task is for static exports like the docs.
 
@@ -4247,7 +4428,7 @@ with no script. This task is for static exports like the docs.
   `packages/core/src/navigator/navigator.test.ts`,
   `.changeset/app-frame-core-css.md`
 - Modify: `…/Navigator/NavigatorRoot.tsx`, `NavigatorContext.ts`,
-  `NavigatorPrimary.tsx`, `NavigatorRail.test.tsx`
+  `NavigatorPrimary.tsx`, `NavigatorPrimary.test.tsx`
 
 **Interfaces:**
 - Consumes: `navigator-expanded` and `NAVIGATOR_EXPANDED_SCOPE` (Task 9) — the
@@ -4265,7 +4446,7 @@ export function serializeNavigatorExpandedCookie(
 ```
 
 - Produces (components): `NavigatorRootProps.expandedFromDocument?: boolean`.
-  When set, the rail renders `data-from-document`, which lets the variant match
+  When set, the vertical navigation renders `data-from-document`, which lets the variant match
   through `<html data-navigator-expanded>`; after mount Navigator keeps that
   attribute in sync with `expanded`. Nothing is duplicated in the class strings.
 
@@ -4357,7 +4538,7 @@ const nameOf = (options?: { cookieName?: string }) => {
 
 /**
  * Optional blocking `<head>` script for static sites: paints a persisted
- * expanded rail before hydration. Pair with `<Navigator expandedFromDocument>`.
+ * expanded vertical navigation before hydration. Pair with `<Navigator expandedFromDocument>`.
  *
  * @example
  * <script dangerouslySetInnerHTML={{ __html: getNavigatorExpandedScript() }} />
@@ -4369,7 +4550,7 @@ export function getNavigatorExpandedScript(options?: {
   return `try{var d=document.documentElement;/(?:^|; )${name}=1(?:;|$)/.test(document.cookie)?d.setAttribute('${NAVIGATOR_EXPANDED_ATTRIBUTE}',''):d.removeAttribute('${NAVIGATOR_EXPANDED_ATTRIBUTE}')}catch(x){}`
 }
 
-/** The cookie string to write when the user toggles the rail. */
+/** The cookie string to write when the user toggles the vertical navigation. */
 export function serializeNavigatorExpandedCookie(
   expanded: boolean,
   options?: { cookieName?: string }
@@ -4383,12 +4564,12 @@ Expected: PASS.
 
 `.changeset/app-frame-core-css.md` — append: "`@oztix/roadie-core/navigator`
 also exports `getNavigatorExpandedScript`, an optional head script that lets a
-static site paint a persisted expanded rail before hydration, with the cookie
+static site paint a persisted expanded vertical navigation before hydration, with the cookie
 name and serializer it reads."
 
 - [ ] **Step 3: Failing component tests**
 
-Append to `NavigatorRail.test.tsx` (add `expandedFromDocument?: boolean` to
+Append to `NavigatorPrimary.test.tsx` (add `expandedFromDocument?: boolean` to
 `Expandable`'s props; it already spreads them onto `Navigator`):
 
 ```tsx
@@ -4396,15 +4577,15 @@ describe('expanded from the document', () => {
   const scope = `:where(${NAVIGATOR_EXPANDED_SCOPE})`
   afterEach(() => document.documentElement.removeAttribute('data-navigator-expanded'))
 
-  it('styles the rail expanded from the document attribute alone', async () => {
+  it('styles the vertical navigation expanded from the document attribute alone', async () => {
     document.documentElement.setAttribute('data-navigator-expanded', '')
     render(<Expandable expandedFromDocument expanded={false} />)
     await flushViewportMeasurement()
-    expect(rail()).toHaveAttribute('data-from-document')
+    expect(vertical()).toHaveAttribute('data-from-document')
     expect(within(region('cluster')).getByText('Alpha').matches(scope)).toBe(true)
   })
 
-  it('treats the rail as expanded until the app changes expanded', async () => {
+  it('treats the vertical navigation as expanded until the app changes expanded', async () => {
     document.documentElement.setAttribute('data-navigator-expanded', '')
     render(<Expandable expandedFromDocument expanded={false} />)
     await flushViewportMeasurement()
@@ -4426,7 +4607,7 @@ describe('expanded from the document', () => {
     document.documentElement.setAttribute('data-navigator-expanded', '')
     render(<Expandable />)
     await flushViewportMeasurement()
-    expect(rail()).not.toHaveAttribute('data-from-document')
+    expect(vertical()).not.toHaveAttribute('data-from-document')
     expect(within(region('cluster')).getByText('Alpha').matches(scope)).toBe(false)
   })
 })
@@ -4470,7 +4651,7 @@ Task 9.) Run. Expected: FAIL.
   }, [expanded, expandedFromDocument])
 ```
 
-Expose `expandedFromDocument` on context; `NavigatorPrimary` renders the rail
+Expose `expandedFromDocument` on context; `NavigatorPrimary` renders the vertical navigation
 with `data-from-document={expandedFromDocument ? '' : undefined}`. Prop JSDoc,
 one sentence: "Follow `getNavigatorExpandedScript`'s attribute on `<html>`
 before hydration, for static sites."
@@ -4483,7 +4664,7 @@ Expected: PASS.
 ```bash
 git add packages/core/src/navigator .changeset/app-frame-core-css.md \
   packages/components/src/components/Navigator
-git commit -m "feat(navigator): optional head script to paint the expanded rail before hydration"
+git commit -m "feat(navigator): optional head script to paint the expanded vertical navigation before hydration"
 ```
 
 ---
@@ -4494,7 +4675,7 @@ git commit -m "feat(navigator): optional head script to paint the expanded rail 
 - Modify: `…/Navigator/presentNavIcon.tsx`, `variants.ts`, `NavigatorItem.tsx`,
   `NavigatorTab.tsx`, `NavigatorPrimary.tsx`, `NavigatorOverflowItems.tsx`,
   `NavigatorSecondaryItems.tsx`, `NavigatorExpandToggle.tsx`,
-  `Navigator.test.tsx`, `NavigatorRail.test.tsx`
+  `Navigator.test.tsx`, `NavigatorPrimary.test.tsx`
 
 **Interfaces:**
 - Produces: `presentNavIcon(icon: ReactNode, size: string, dataSlot?: string): ReactNode`
@@ -4504,7 +4685,7 @@ git commit -m "feat(navigator): optional head script to paint the expanded rail 
 - [ ] **Step 1: Failing tests**
 
 In `Navigator.test.tsx`, replace the icon-weight/size tests in
-`Navigator rail form` (≈937-1025) and `mobile tab bar` (≈1594-1640), and the
+`Navigator vertical form` (≈937-1025) and `mobile tab bar` (≈1594-1640), and the
 `active item surface` describe (≈1281-1322), with:
 
 ```tsx
@@ -4533,39 +4714,39 @@ describe('destination visuals', () => {
     const { container } = render(tree())
     await flushViewportMeasurement()
     const active = container.querySelectorAll('[data-slot="navigator-item"][data-current]')
-    expect(active.length).toBe(2) // rail tile and tab
+    expect(active.length).toBe(2) // vertical tile and tab
     for (const item of active) {
       expect(item).toHaveClass('intent-accent', 'text-subtle')
       expect(item.className).not.toMatch(/accent-\d+/)
     }
   })
 
-  it('bounces the icon as a rail tile becomes active', async () => {
+  it('bounces the icon as a vertical tile becomes active', async () => {
     const { container } = render(tree())
     await flushViewportMeasurement()
-    const railIcon = container.querySelector(
-      '[data-slot="navigator-rail"] [data-current] [data-testid="fake-icon"]'
+    const verticalIcon = container.querySelector(
+      '[data-slot="navigator-primary"][data-orientation="vertical"] [data-current] [data-testid="fake-icon"]'
     )
-    expect(railIcon).toHaveClass('animate-pop-tap')
+    expect(verticalIcon).toHaveClass('animate-pop-tap')
   })
 
   it('keeps the tab bar icon-only, with the name inside the link', async () => {
     const { container } = render(tree())
     await flushViewportMeasurement()
-    const tab = within(tabBarOf(container)!).getByRole('link', { name: 'A' })
+    const tab = within(horizontalOf(container)!).getByRole('link', { name: 'A' })
     expect(tab).not.toHaveAttribute('aria-label')
     expect(within(tab).getByText('A')).toHaveClass('sr-only')
   })
 })
 ```
 
-(`tabBarOf` — define it in the describe as elsewhere in the file.)
+(`horizontalOf` — define it in the describe as elsewhere in the file.)
 
 In `describe('sliding indicator')` add:
 
 ```tsx
-  it('slides the rail pill on translate only', () => {
-    const classes = navigatorIndicatorVariants({ surface: 'rail', visible: true })
+  it('slides the vertical pill on translate only', () => {
+    const classes = navigatorIndicatorVariants({ surface: 'vertical', visible: true })
     expect(classes).toContain('motion-safe:data-[ready=true]:transition-[translate]')
     expect(classes).not.toMatch(/transition-\[[^\]]*(left|top|width|height)/)
     expect(classes).toContain('intent-accent')
@@ -4574,7 +4755,7 @@ In `describe('sliding indicator')` add:
 
 Run: `cd packages/components && pnpm vitest run src/components/Navigator/Navigator.test.tsx -t 'destination visuals|sliding indicator'`
 Expected: FAIL — weights are `fill`/`bold`, tabs use `text-accent-11`, the tab
-label is visible, the rail pill transitions `left,top,width,height`.
+label is visible, the vertical pill transitions `left,top,width,height`.
 
 - [ ] **Step 2: Implement**
 
@@ -4597,7 +4778,7 @@ export function presentNavIcon(
 }
 ```
 
-Update every call site to the two/three-argument form: rail tile and rail More
+Update every call site to the two/three-argument form: vertical tile and vertical More
 (`'size-6'`, plus `cn('size-6', active && 'animate-pop-tap')` on the tile),
 `NavigatorTab` (`cn('size-6', active && 'animate-pop-tap')`,
 `'navigator-tab-icon'`), `NavigatorExpandToggle` (`'size-6'`), More-pane and
@@ -4612,7 +4793,7 @@ section-pane rows (`'size-5'`, D13).
   `'pointer-events-auto px-1 py-3 scale-100 opacity-100'` (icon-only; the
   collapsed circle's `self-end translate-y-1` descent still lands because every
   presentation keeps the same vertical padding — re-check that comment and the
-  bar-height reasoning in the block comment above `navigatorTabBarVariants`,
+  bar-height reasoning in the block comment above `navigatorPrimaryHorizontalVariants`,
   and correct any number that changed). Delete the `text-center
   text-[0.625rem]/tight font-medium` label typography from the base.
 - `navigatorIndicatorVariants`:
@@ -4621,8 +4802,8 @@ section-pane rows (`'size-5'`, D13).
         // Every surface's destinations are now fixed-size or full-width rows,
         // so every pill only moves — boxed once at the track's origin and slid
         // on `translate`. Width/height still follow the measurement, but snap:
-        // they change only when the rail itself snaps between widths.
-        rail: [
+        // they change only when the vertical navigation itself snaps between widths.
+        vertical: [
           'intent-accent bg-[var(--intent-bg-subtle)] rounded-full',
           'left-0 top-0 h-[var(--active-tab-height)] w-[var(--active-tab-width)]',
           'translate-x-[var(--active-tab-left)] translate-y-[var(--active-tab-top)]',
@@ -4631,7 +4812,7 @@ section-pane rows (`'size-5'`, D13).
 ```
 
   and delete the "known, recorded exception" paragraph. `NavigatorIndicatorSurface`
-  is `'tab' | 'rail'`.
+  is `'horizontal' | 'vertical'`.
 
 `NavigatorTab.tsx`: the label span is always `sr-only` (the tab's accessible
 name stays inside it). `NavigatorItem.tsx` / `NavigatorOverflowItems.tsx` /
@@ -4665,7 +4846,7 @@ in the browser:
 }
 ```
 
-Expected: every visible rail pill reports `translate` (not `left`, `top`,
+Expected: every visible vertical pill reports `translate` (not `left`, `top`,
 `width`, `height`, and not `transform`).
 
 - [ ] **Step 4: Commit**
@@ -4683,7 +4864,7 @@ git commit -m "feat(navigator): duotone icons, accent through intent, and a tran
 - Create: `…/Navigator/NavigatorTileTooltip.tsx`
 - Modify: `NavigatorPrimary.tsx`, `NavigatorItem.tsx`,
   `NavigatorExpandToggle.tsx`, `NavigatorDestination.tsx` (already forwards,
-  Task 3), `NavigatorRail.test.tsx`
+  Task 3), `NavigatorPrimary.test.tsx`
 
 **Interfaces:**
 - Consumes: `Tooltip` (`@oztix/roadie-components/tooltip` on `main`, imported
@@ -4704,7 +4885,7 @@ components.
 
 - [ ] **Step 1: Failing tests**
 
-Append to `NavigatorRail.test.tsx`:
+Append to `NavigatorPrimary.test.tsx`:
 
 ```tsx
 describe('collapsed labels', () => {
@@ -4734,7 +4915,7 @@ describe('collapsed labels', () => {
   it('never puts a tooltip on the phone bar', async () => {
     render(<Six />)
     await flushViewportMeasurement()
-    const bar = document.querySelector('[data-slot="navigator-tab-bar"]')!
+    const bar = document.querySelector('[data-slot="navigator-primary"][data-orientation="horizontal"]')!
     expect(bar.querySelector('[data-slot="tooltip-trigger"]')).toBeNull()
   })
 })
@@ -4743,7 +4924,7 @@ describe('collapsed labels', () => {
 Run the file. Expected: FAIL — no tooltip. If focus doesn't open Base UI's
 tooltip under jsdom, switch the first test to `user.hover` and keep the 2000ms
 `findBy` timeout (the Provider's delay is below it); if neither opens it in
-jsdom, keep only the structural assertions (trigger slot present on rail tiles,
+jsdom, keep only the structural assertions (trigger slot present on vertical tiles,
 absent on the bar) and verify opening in Task 16's browser pass — say so in the
 task report.
 
@@ -4787,14 +4968,14 @@ export function NavigatorTileTooltip({
 
 Wire it:
 
-- `NavigatorPrimary.tsx`: wrap the whole `<nav data-slot='navigator-rail'>`
+- `NavigatorPrimary.tsx`: wrap the whole vertical `<nav data-slot='navigator-primary' data-orientation='vertical'>`
   contents in `<Tooltip.Provider>` so moving between tiles is instant after the
   first (Base UI's default group timeout).
 - `NavigatorItem.tsx`: route tile →
   `<NavigatorTileTooltip label={label} render={(asTrigger) => asTrigger(tile)} />`;
   menu tile →
   `<NavigatorTileTooltip label={label} render={(asTrigger) => <NavigatorMenuHost … trigger={asTrigger(tile)} />} />`.
-- The rail More tile and `NavigatorExpandToggle` use the same wrapper with
+- The vertical More tile and `NavigatorExpandToggle` use the same wrapper with
   labels `More` and the toggle's current label.
 - The tab bar is untouched.
 
@@ -4818,7 +4999,7 @@ git commit -m "feat(navigator): label collapsed tiles with Tooltip"
 **Files:**
 - Modify: `…/Navigator/NavigatorItem.tsx`, `mobileSlots.ts`, `collectSlots.ts`,
   `NavigatorTab.tsx`, `NavigatorPrimary.tsx`, `NavigatorOverflowItems.tsx`,
-  `NavigatorSecondaryItems.tsx`, `variants.ts`, `NavigatorRail.test.tsx`
+  `NavigatorSecondaryItems.tsx`, `variants.ts`, `NavigatorPrimary.test.tsx`
 
 **Interfaces:**
 - Consumes: `Badge` + `BadgeProps.hideLabel` (from `main`, `../Badge`).
@@ -4828,7 +5009,7 @@ git commit -m "feat(navigator): label collapsed tiles with Tooltip"
 
 - [ ] **Step 1: Failing tests**
 
-Append to `NavigatorRail.test.tsx`:
+Append to `NavigatorPrimary.test.tsx`:
 
 ```tsx
 import { Badge } from '../Badge'
@@ -4872,7 +5053,7 @@ describe('badges', () => {
   it('is a dot on the phone bar', async () => {
     render(<WithBadge />)
     await flushViewportMeasurement()
-    const bar = document.querySelector('[data-slot="navigator-tab-bar"]') as HTMLElement
+    const bar = document.querySelector('[data-slot="navigator-primary"][data-orientation="horizontal"]') as HTMLElement
     expect(
       within(bar).getByRole('link', { name: /Inbox/ }).querySelector('[data-slot="badge"]')
     ).toHaveClass('size-2.5')
@@ -4944,7 +5125,7 @@ No prettier on MDX — edit by hand. The page has no `# Title` (Task 0).
 - [ ] **Step 1: Navigator page — metadata, intro, anatomy**
 
 Metadata `description` and the intro paragraph become:
-"A full-height application frame — floating capsules in a rail on large
+"A full-height application frame — floating capsules in a vertical navigation on large
 screens, a floating tab bar on phones — with one navigation model at every
 size." Rewrite **Anatomy** (≈21-59) around this tree, keeping the existing
 "Keep the whole tree in a client component" note but listing
@@ -4975,7 +5156,7 @@ and `Navigator.ExpandToggle` as the parts found by reference:
 </Navigator>
 ```
 
-Replace every `group-data-[form=compact]/rail:hidden` on the page with
+Replace every `group-data-[form=compact]/primary:hidden` on the page with
 `hidden navigator-expanded:inline`.
 
 - [ ] **Step 2: Navigator page — examples**
@@ -4987,21 +5168,21 @@ and pass icons bare (Navigator applies duotone). Then:
 
 | Section | Action |
 | --- | --- |
-| Default (≈63-135) | keep; Account becomes `placement='pinned'`; prose: "Pinned items sit at the bottom of the rail and in the phone bar's trailing circle." |
+| Default (≈63-135) | keep; Account becomes `placement='pinned'`; prose: "Pinned items sit at the bottom of the vertical navigation and in the phone bar's trailing circle." |
 | Nested (≈136-214) | **replace** with **Sections**: a `Navigator.Item` with an `href` and a `Navigator.Secondary`, and a detail pane; prose: "Every section has its own route. There, `Navigator.Content` generates the section's list pane — titled with the item's label, groups kept, the current row marked — beside your overview on a large screen and on top of it on a phone. A sub-page pushes over the list with a Back link to the section route." |
 | — | **add Showing the list from the URL**: the Sections example driven by `showList`/`onShowListChange` from a `useState` standing in for a query string; prose: "Roadie never reads the URL. To let a phone user see the list over a sub-page without leaving it, derive `showList` from a query parameter and turn `onShowListChange` into a URL update — the docs use `?nav`. With it wired, tapping the active section's tab shows the list instead of going to the section route." Include the Next.js snippet from Task 14 Step 3–4 as a static `tsx` block (the `Suspense` + `useSearchParams` leaf and `router.push`). |
 | — | **add Searchable**: the Sections example with `searchable` and two `Navigator.Group`s inside the Secondary |
-| Grouping (≈215-283) | keep the example; rewrite the prose: "Each group is its own floating capsule, named by its `GroupTitle` for screen readers; consecutive loose items share one. Titles show when the rail is expanded and in the More pane." |
+| Grouping (≈215-283) | keep the example; rewrite the prose: "Each group is its own floating capsule, named by its `GroupTitle` for screen readers; consecutive loose items share one. Titles show when the vertical navigation is expanded and in the More pane." |
 | Overflow (≈284-378) | rename to **Visibility priority**; the example gets eight items with `visibilityPriority='high'` on two and `'low'` on one; prose: "Whatever doesn't fit folds into More — on a phone past five slots, on a large screen when the window is too short. Priority decides membership, never order." Keep a short `Navigator.OverflowPane` + `Navigator.OverflowItems` sub-example ("Compose the More pane yourself"). |
 | Tab slots (≈379-444) | **delete** |
 | Panel (≈445-526) | **replace** with **Menu**: the Account item above with `Navigator.Menu` / `Navigator.MenuItem href` / `onClick`; prose from spec §4 (keyboard, anchoring, never navigates, "if it needs a screen's worth of content, it's a destination with its own pane"). |
-| — | **add Expanded**: a controlled example with `useState` and `Navigator.ExpandToggle placement='pinned'`; prose: "Navigator never touches storage. Persist the choice in a cookie; if you render on the server, read it there and pass `defaultExpanded` — the first paint is already right, no script needed. On a static site, optionally add `getNavigatorExpandedScript()` from `@oztix/roadie-core/navigator` to `<head>` and set `expandedFromDocument`." Add a static `tsx` block for each (server: `defaultExpanded={cookies().get(NAVIGATOR_EXPANDED_COOKIE)?.value === '1'}`; static: the head script plus `serializeNavigatorExpandedCookie` in `onExpandedChange`). Then a short "Styling the expanded rail" note: custom content in the rail (a Brand wordmark) uses the `navigator-expanded:` variant, e.g. `hidden navigator-expanded:inline`. |
+| — | **add Expanded**: a controlled example with `useState` and `Navigator.ExpandToggle placement='pinned'`; prose: "Navigator never touches storage. Persist the choice in a cookie; if you render on the server, read it there and pass `defaultExpanded` — the first paint is already right, no script needed. On a static site, optionally add `getNavigatorExpandedScript()` from `@oztix/roadie-core/navigator` to `<head>` and set `expandedFromDocument`." Add a static `tsx` block for each (server: `defaultExpanded={cookies().get(NAVIGATOR_EXPANDED_COOKIE)?.value === '1'}`; static: the head script plus `serializeNavigatorExpandedCookie` in `onExpandedChange`). Then a short "Styling the expanded vertical navigation" note: custom content in the vertical navigation (a Brand wordmark) uses the `navigator-expanded:` variant, e.g. `hidden navigator-expanded:inline`. |
 | — | **add Badges**: the Inbox item from Task 12; prose: "A declared `Badge` shrinks to a dot in the corner while collapsed and on the phone bar, and trails the label when expanded. Write the full meaning — its label is still announced." |
 | — | **add Section pane override**: `Navigator.SecondaryPane value='/components'` with a promo `Card` above `Navigator.SecondaryItems`; prose: "Replace one section's generated pane. Declare it before your detail pane." |
 | Panes, Pane header, Pane surfaces (≈527-764) | keep; delete the prose about the section nav in the pane header (≈626-627) |
 | Long sections (≈710-748) | **delete** — sub-pages always open in a pane now |
 | Guidelines (≈765-788) | replace the `Navigator.End` guideline with "Put pinned items last" (D2); add Do "Use a Menu for a handful of actions" / Don't "Put a screen's worth of content in a Menu"; add Do "Pass bare icons — Navigator renders destinations duotone at `size-6`" |
-| Accessibility (≈789-798) | rewrite: landmark keeps its `aria-label`; capsules are lists named by their group title; every tile's name is visually hidden text inside it, and the tooltip is `aria-hidden`; `ExpandToggle` is a button with `aria-expanded`/`aria-controls`, "Expand sidebar"/"Collapse sidebar"; tab order follows the rail's regions — brand, cluster, pinned; menus are Base UI menus (arrow keys, typeahead, Escape returns focus); covered panes are hidden from assistive tech below `lg`. |
+| Accessibility (≈789-798) | rewrite: landmark keeps its `aria-label`; capsules are lists named by their group title; every tile's name is visually hidden text inside it, and the tooltip is `aria-hidden`; `ExpandToggle` is a button with `aria-expanded`/`aria-controls`, "Expand sidebar"/"Collapse sidebar"; tab order follows the vertical navigation's regions — brand, cluster, pinned; menus are Base UI menus (arrow keys, typeahead, Escape returns focus); covered panes are hidden from assistive tech below `lg`. |
 
 The live examples must still render in the `h-[30rem]` boxes the page already
 uses. Check the icons each example uses are in `CodePreview`'s scope.
@@ -5009,14 +5190,15 @@ uses. Check the icons each example uses are in `CodePreview`'s scope.
 - [ ] **Step 3: Pane page, app shell, canary**
 
 - `pane/page.mdx`: ≈453 "mobile section nav" → "the section's list pane";
-  ≈160 "the way the rail does" → reword without the rail comparison.
+  ≈160, the sentence comparing a pane to the old side navigation → reword it
+  without that comparison (Task 0B may already have reworded it).
 - `foundations/app-shell/page.tsx`: ≈84-86 list the parts found by reference
   (add `Menu`, `ExpandToggle`); ≈230-232 add "and a section's sub-pages open in
   a list pane at the root of the stack".
 - `NavigatorCanary.tsx`: after Task 5 it checks the generated pane. Add a
   pinned item and a `Navigator.Group`; the mount check also throws unless
-  `[data-slot="navigator-rail-pinned"] [data-slot="navigator-item"]` and
-  `[data-slot="navigator-rail-cluster"] [data-slot="navigator-capsule"]` exist.
+  `[data-slot="navigator-primary-pinned"] [data-slot="navigator-item"]` and
+  `[data-slot="navigator-primary-cluster"] [data-slot="navigator-capsule"]` exist.
 - `rsc-smoke/page.tsx` ≈603: the prose names `Primary`, `Secondary`, `Group`,
   `Menu`, `ExpandToggle` as the reference-matched parts.
 
@@ -5035,7 +5217,7 @@ throwing. `pnpm typecheck && pnpm lint`.
 ```bash
 git add docs/src/app/components/navigator/page.mdx docs/src/app/components/pane/page.mdx \
   docs/src/app/foundations/app-shell/page.tsx docs/src/app/debug/rsc-smoke
-git commit -m "docs(navigator): document placement, priority, menus, section panes and the expanded rail"
+git commit -m "docs(navigator): document placement, priority, menus, section panes and the expanded vertical navigation"
 ```
 
 ---
@@ -5305,7 +5487,7 @@ Expected: only `ComponentSkeleton.tsx` itself.
 
 `pnpm typecheck && pnpm lint`. With the dev server on 9614:
 
-- 1440×900: `/components/button` shows the rail, the Components list (grouped,
+- 1440×900: `/components/button` shows the vertical navigation, the Components list (grouped,
   searchable, Button current) and the page; "inp" filters to Input.
   `/foundations` shows the Foundations list beside its empty state.
 - Toggle ExpandToggle, reload with the cache disabled and the network throttled
@@ -5327,7 +5509,7 @@ git add docs/src/components/Navigation.tsx docs/src/components/useExpandedCookie
   docs/src/app/foundations/page.tsx docs/src/app/get-started/page.tsx \
   docs/src/app/components/page.tsx \
   docs/src/components/ComponentSkeleton.tsx
-git commit -m "docs: build the docs navigation on section routes, section panes and the expanded rail"
+git commit -m "docs: build the docs navigation on section routes, section panes and the expanded vertical navigation"
 ```
 
 ---
@@ -5404,9 +5586,9 @@ On `/foundations/colors`:
 ```js
 () => {
   const rect = (s) => document.querySelector(s)?.getBoundingClientRect()
-  const brand = rect('[data-slot="navigator-rail-brand"]')
-  const pinned = rect('[data-slot="navigator-rail-pinned"]')
-  const capsules = [...document.querySelectorAll('[data-slot="navigator-rail-cluster"] [data-slot="navigator-capsule"]')].map((c) => c.getBoundingClientRect())
+  const brand = rect('[data-slot="navigator-primary-brand"]')
+  const pinned = rect('[data-slot="navigator-primary-pinned"]')
+  const capsules = [...document.querySelectorAll('[data-slot="navigator-primary-cluster"] [data-slot="navigator-capsule"]')].map((c) => c.getBoundingClientRect())
   const top = Math.min(...capsules.map((c) => c.top))
   const bottom = Math.max(...capsules.map((c) => c.bottom))
   return { innerWidth, above: top - brand.bottom, below: pinned.top - bottom }
@@ -5415,7 +5597,7 @@ On `/foundations/colors`:
 
 Expected: `above` and `below` within 2px of each other (centred between brand
 and pinned, not the viewport). Then: hover a tile → tooltip inline-end after
-the delay; slide to the next tile → instant; Tab through the rail → tooltip on
+the delay; slide to the next tile → instant; Tab through the vertical navigation → tooltip on
 focus; click Foundations then Tokens → the pill slides vertically between
 capsules; open Appearance's menu if it has one, or the Account example on
 `/components/navigator` → the menu opens inline-end of the tile.
@@ -5423,26 +5605,26 @@ capsules; open Appearance's menu if it has one, or the Account example on
 - [ ] **Step 2: Shorten the window — overflow into More**
 
 Resize to 1440×620, 1440×480, 1440×360, running the centring probe plus
-`document.querySelectorAll('[data-slot="navigator-rail-cluster"] [data-slot="navigator-item"]').length`
+`document.querySelectorAll('[data-slot="navigator-primary-cluster"] [data-slot="navigator-item"]').length`
 each time. Expected: the count falls as height falls, a More tile appears at the
 end of the cluster, nothing overlaps brand or pinned, and resizing produces no
 visible flicker (watch a screen recording or take screenshots mid-resize). Open
-More → the More pane is the leading column with the rail's folded rows only.
+More → the More pane is the leading column with the vertical navigation's folded rows only.
 
 - [ ] **Step 3: Expanded**
 
-Click ExpandToggle at 1440×500: labels fade in, the rail snaps wide, capsules
+Click ExpandToggle at 1440×500: labels fade in, the vertical navigation snaps wide, capsules
 top-align under the brand, the cluster scrolls while brand and pinned stay put,
 More disappears (nothing folds), the pill tracks full-width rows, tooltips no
 longer appear. Menus still open inline-end of their row.
 
 - [ ] **Step 3b: Expanded before hydration**
 
-With the rail expanded, reload `/foundations/colors` with the cache disabled
+With the vertical navigation expanded, reload `/foundations/colors` with the cache disabled
 and "Slow 4G" throttling, taking a screenshot as soon as anything paints:
-the first paint shows the expanded rail. Collapse, reload: the first paint is
+the first paint shows the expanded vertical navigation. Collapse, reload: the first paint is
 collapsed. A Navigator example on `/components/navigator` stays collapsed while
-the site rail is expanded. Then confirm in the compiled CSS that the variant
+the site's vertical navigation is expanded. Then confirm in the compiled CSS that the variant
 came through, by probing the live stylesheet:
 
 ```js
@@ -5455,11 +5637,11 @@ came through, by probing the live stylesheet:
 ```
 
 Expected: a non-zero count — every `navigator-expanded:` class the components
-use compiled to a rule scoped to the rail.
+use compiled to a rule scoped to the vertical navigation.
 
-- [ ] **Step 4: 900×900 — rail with stacked panes**
+- [ ] **Step 4: 900×900 — vertical navigation with stacked panes**
 
-On `/components/button`: rail visible, the Components list pane and the detail
+On `/components/button`: vertical navigation visible, the Components list pane and the detail
 stack (only the detail visible); Back in the detail header is a link to
 `/components`, where the list is on top; tapping a row pushes the detail again. Probe that covered panes report
 `getComputedStyle(pane).visibility === 'hidden'`.
@@ -5490,12 +5672,27 @@ then a folded menu row → the menu opens below the row. No tooltips anywhere.
 - macOS "Reduce motion" on: the pill jumps, labels appear without fading, panes
   swap without sliding, menus and tooltips appear without scaling.
 - A touch device: swipe a `Drawer` (the docs' On-this-page drawer) closed; a
-  long-press on a rail tile at tablet width shows no tooltip.
-- VoiceOver on the rail: capsules announce as lists named by their group, a
+  long-press on a vertical tile at tablet width shows no tooltip.
+- VoiceOver on the vertical navigation: capsules announce as lists named by their group, a
   collapsed tile reads its label once (not twice), a badge reads its label, the
   ExpandToggle announces its state.
 
 - [ ] **Step 8: Final gate and report**
+
+The old desktop term (D16) — all four must print nothing (the plan and spec
+are included here; older plans are exempt):
+
+```bash
+grep -rniwE 'r[a]ils?' --exclude-dir=node_modules --exclude-dir=dist \
+  packages/ docs/src docs/contributing AGENTS.md .changeset
+grep -rnoiE '[a-z_-]*r[a]il[a-z_-]*' --exclude-dir=node_modules --exclude-dir=dist \
+  packages/ docs/src docs/contributing AGENTS.md .changeset | grep -viE ':[a-z_-]*tr[a]il'
+grep -niwE 'r[a]ils?' docs/plans/2026-09-11-navigator-redesign-design.md docs/plans/2026-09-12-*.md
+grep -noiE '[a-z_-]*r[a]il[a-z_-]*' docs/plans/2026-09-11-navigator-redesign-design.md docs/plans/2026-09-12-*.md \
+  | grep -viE ':[a-z_-]*tr[a]il'
+```
+
+Then the test gate:
 
 ```bash
 cd packages/components && pnpm vitest run 2>&1 | tee /tmp/nav-final.txt | tail -5
@@ -5513,10 +5710,11 @@ breakpoint's probe output and any by-hand check not done.
 | Spec section | Task |
 | --- | --- |
 | Delivery (rebase, stripped titles) | 0 |
+| One `Navigator.Primary`, two orientations; old term retired (D16) | 0B, 16 |
 | §1 Large collapsed: brand, capsules, pinned, centred cluster, tooltips | 8, 11 |
 | §1 Large expanded: labels, top-aligned, scrolls, nothing folds | 9 |
 | §1 Small: floating bar, groups flatten, pinned circle, ellipsis More, no ExpandToggle | 2, 9, 10 |
-| §2 Removed: End, `tabs`, Panel, Overflow rename, nested rail, strip | 2, 3, 4, 5 |
+| §2 Removed: End, `tabs`, Panel, Overflow rename, nested sub-page list, strip | 2, 3, 4, 5 |
 | §2 New: `placement`, `visibilityPriority` | 1, 2 |
 | §2 New: `expanded`/`defaultExpanded`/`onExpandedChange`, `ExpandToggle`; persisted state without a flash | 9, 9B, 14 |
 | §2 New: `searchable`; `SecondaryPane` + `SecondaryItems`; `Menu` + `MenuItem` | 5, 6, 3 |
@@ -5559,10 +5757,10 @@ review before implementation starts:
    prerendered.
 5. **Expanded styling is one `navigator-expanded` variant (D14).** *Settled by
    the user.* Every expanded style is written once; the variant, shipped in
-   `@oztix/roadie-core/css`, matches a rail that has `data-expanded` or — for
+   `@oztix/roadie-core/css`, matches a vertical navigation that has `data-expanded` or — for
    static sites that opt in — `<html data-navigator-expanded>` plus
-   `data-from-document` on the rail. It is scoped to the rail, not the root, so
-   nested example Navigators never follow the site rail. The head script at
+   `data-from-document` on the vertical navigation. It is scoped to the vertical navigation, not the root, so
+   nested example Navigators never follow the site's vertical navigation. The head script at
    `@oztix/roadie-core/navigator` (a subpath beside `/theme`) is optional; SSR
    apps pass `defaultExpanded` from the cookie instead (Tasks 9, 9B, 14).
 6. **Pinned-first warning (D2)** covers pinned Items, Groups and a pinned
