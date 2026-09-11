@@ -60,6 +60,11 @@ beforeAll(() => {
     ).IntersectionObserver = IntersectionObserverMock
   }
 
+  // Base UI's ScrollAreaViewport calls getAnimations(), which jsdom lacks.
+  if (typeof Element.prototype.getAnimations === 'undefined') {
+    Element.prototype.getAnimations = () => []
+  }
+
   if (typeof window.matchMedia === 'undefined') {
     Object.defineProperty(window, 'matchMedia', {
       writable: true,

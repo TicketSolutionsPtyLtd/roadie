@@ -15,6 +15,7 @@ import {
   Fieldset as FieldsetViaBarrel,
   List as ListViaBarrel,
   Popover as PopoverViaBarrel,
+  ScrollArea as ScrollAreaViaBarrel,
   Tabs as TabsViaBarrel
 } from '@oztix/roadie-components'
 import { Accordion } from '@oztix/roadie-components/accordion'
@@ -30,6 +31,7 @@ import { IconTile } from '@oztix/roadie-components/icon-tile'
 import { List } from '@oztix/roadie-components/list'
 import { Popover } from '@oztix/roadie-components/popover'
 import { RadioGroup } from '@oztix/roadie-components/radio-group'
+import { ScrollArea } from '@oztix/roadie-components/scroll-area'
 import { Select } from '@oztix/roadie-components/select'
 import { Steps } from '@oztix/roadie-components/steps'
 import { Tabs } from '@oztix/roadie-components/tabs'
@@ -539,6 +541,30 @@ export default function RscSmokePage() {
           <ListViaBarrel.Item title='Imported from the root barrel' />
           <ListViaBarrel.Item title='Second item' />
         </ListViaBarrel>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>
+          ScrollArea — bare root, <code>.Root</code> alias, and barrel
+        </h2>
+        <ScrollArea className='h-32 rounded-xl border border-subtle'>
+          <ScrollArea.Viewport className='p-3'>
+            <p>Subpath, bare root.</p>
+          </ScrollArea.Viewport>
+          <ScrollArea.Scrollbar>
+            <ScrollArea.Thumb />
+          </ScrollArea.Scrollbar>
+        </ScrollArea>
+        <ScrollArea.Root className='h-32 rounded-xl border border-subtle'>
+          <ScrollArea.Viewport className='p-3'>
+            <p>Subpath, explicit .Root alias.</p>
+          </ScrollArea.Viewport>
+        </ScrollArea.Root>
+        <ScrollAreaViaBarrel className='h-32 rounded-xl border border-subtle'>
+          <ScrollAreaViaBarrel.Viewport className='p-3'>
+            <p>Root barrel import.</p>
+          </ScrollAreaViaBarrel.Viewport>
+        </ScrollAreaViaBarrel>
       </section>
 
       {/*

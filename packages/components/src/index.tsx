@@ -113,6 +113,24 @@ export {
   type SeparatorProps
 } from './components/Separator'
 
+export {
+  ScrollArea,
+  scrollAreaRootVariants,
+  scrollAreaViewportVariants,
+  scrollAreaContentVariants,
+  scrollAreaScrollbarVariants,
+  scrollAreaThumbVariants,
+  scrollAreaCornerVariants,
+  type ScrollAreaProps,
+  type ScrollAreaViewportProps,
+  type ScrollAreaContentProps,
+  type ScrollAreaScrollbarProps,
+  type ScrollAreaThumbProps,
+  type ScrollAreaCornerProps,
+  type ScrollAreaScrollbarOrientation,
+  type ScrollAreaFade
+} from './components/ScrollArea'
+
 export { Marquee, type MarqueeProps } from './components/Marquee'
 
 export {
