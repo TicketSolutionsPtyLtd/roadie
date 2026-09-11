@@ -376,12 +376,14 @@ export function NavigatorPrimary({
         aria-label={ariaLabel}
         className={cn(navigatorPrimaryVerticalVariants(), className)}
       >
-        <div
-          data-slot='navigator-primary-brand'
-          className={navigatorPrimaryBrandVariants()}
-        >
-          {collected.brand}
-        </div>
+        {collected.brand.length > 0 ? (
+          <div
+            data-slot='navigator-primary-brand'
+            className={navigatorPrimaryBrandVariants()}
+          >
+            {collected.brand}
+          </div>
+        ) : null}
         <ScrollArea
           data-slot='navigator-primary-cluster'
           className={navigatorPrimaryClusterVariants()}
@@ -439,14 +441,16 @@ export function NavigatorPrimary({
             <ScrollArea.Thumb />
           </ScrollArea.Scrollbar>
         </ScrollArea>
-        <div
-          ref={pinnedRef}
-          data-slot='navigator-primary-pinned'
-          className={navigatorPrimaryPinnedVariants()}
-        >
-          {wrapCapsules(collected.pinned, new Set())}
-          <NavigatorIndicator trackRef={pinnedRef} surface='vertical' />
-        </div>
+        {collected.pinned.length > 0 ? (
+          <div
+            ref={pinnedRef}
+            data-slot='navigator-primary-pinned'
+            className={navigatorPrimaryPinnedVariants()}
+          >
+            {wrapCapsules(collected.pinned, new Set())}
+            <NavigatorIndicator trackRef={pinnedRef} surface='vertical' />
+          </div>
+        ) : null}
       </nav>
       <nav
         data-slot='navigator-primary'

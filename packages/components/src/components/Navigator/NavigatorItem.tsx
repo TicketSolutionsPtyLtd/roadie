@@ -56,7 +56,8 @@ export function NavigatorItem({
     value: active,
     setValue,
     sectionMemory,
-    openMenu
+    openMenu,
+    overflowOpen
   } = use(NavigatorContext)
   const { label, secondary, menu: declaredMenu } = splitItemChildren(children)
   const isSection = secondary.length > 0
@@ -69,8 +70,8 @@ export function NavigatorItem({
   // A menu opens rather than navigates, so no route lights it.
   const isCurrent = !menu && isActiveValue(value, active)
   const isBranch = !menu && isBranchActive(value, descendants, active)
-  // `data-current` drives the pill. An open menu takes it.
-  const hasPill = menuOpen || (openMenu === null && isBranch)
+  // `data-current` drives the pill. An open menu or More takes it.
+  const hasPill = menuOpen || (openMenu === null && !overflowOpen && isBranch)
   const targetHref = isSection
     ? effectiveHref
     : rememberedHref(sectionMemory, value, effectiveHref, isBranch)
@@ -105,7 +106,7 @@ export function NavigatorItem({
 
   const ariaCurrent = isCurrent ? 'page' : isBranch ? 'true' : undefined
   const finalClassName = cn(
-    navigatorItemVariants({ active: isBranch }),
+    navigatorItemVariants({ active: hasPill }),
     className
   )
 
