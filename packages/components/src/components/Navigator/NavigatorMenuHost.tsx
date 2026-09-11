@@ -38,14 +38,19 @@ export function NavigatorMenuHost({
   label,
   trigger
 }: NavigatorMenuHostProps) {
-  const { openMenu, setOpenMenu } = use(NavigatorContext)
+  const { openMenu, setOpenMenu, setOverflowOpen } = use(NavigatorContext)
   const id = menuId(surface, value)
   const { side, align } = PLACEMENT[surface]
 
   return (
     <Menu.Root
       open={openMenu === id}
-      onOpenChange={(open) => setOpenMenu(open ? id : null)}
+      onOpenChange={(open, { reason }) => {
+        setOpenMenu(open ? id : null)
+        if (surface === 'overflow' && reason === 'item-press') {
+          setOverflowOpen(false)
+        }
+      }}
     >
       <Menu.Trigger render={trigger} />
       <Menu.Portal>

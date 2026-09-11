@@ -2,6 +2,8 @@
 
 import { type ReactElement, use } from 'react'
 
+import { cn } from '@oztix/roadie-core/utils'
+
 import { List } from '../List'
 import {
   listItemContentClass,
@@ -46,17 +48,15 @@ function toRuns(slots: NavigatorSlotMeta[]): Run[] {
 }
 
 /**
- * The generated `List` of folded destinations. Placed by the consumer, so the
- * promo card can sit above it or between sections — the ordering is authored,
- * the content is not.
+ * The folded destinations as a `List`, placed by the consumer inside
+ * `Navigator.OverflowPane`. Each orientation's rows show only where that
+ * orientation shows.
  */
 export function NavigatorOverflowItems({
   className
 }: NavigatorOverflowItemsProps) {
   const { overflowItems, value, setValue, setOverflowOpen, openMenu } =
     use(NavigatorContext)
-
-  if (overflowItems.length === 0) return null
 
   // List.Item renders its own <li>, so it can't be a menu trigger.
   const renderMenuRow = (
@@ -112,21 +112,32 @@ export function NavigatorOverflowItems({
     )
   }
 
+  const renderSet = (slots: NavigatorSlotMeta[], gate: string) =>
+    slots.length === 0 ? null : (
+      <List
+        data-slot='navigator-overflow-items'
+        className={cn(gate, className)}
+      >
+        {toRuns(slots).map((run) =>
+          run.group ? (
+            <List.Group key={run.key}>
+              {run.group.title != null ? (
+                <List.GroupTitle>{run.group.title}</List.GroupTitle>
+              ) : null}
+              {run.slots.map(renderRow)}
+            </List.Group>
+          ) : (
+            run.slots.map(renderRow)
+          )
+        )}
+      </List>
+    )
+
   return (
-    <List className={className}>
-      {toRuns(overflowItems).map((run) =>
-        run.group ? (
-          <List.Group key={run.key}>
-            {run.group.title != null ? (
-              <List.GroupTitle>{run.group.title}</List.GroupTitle>
-            ) : null}
-            {run.slots.map(renderRow)}
-          </List.Group>
-        ) : (
-          run.slots.map(renderRow)
-        )
-      )}
-    </List>
+    <>
+      {renderSet(overflowItems.horizontal, 'md:hidden')}
+      {renderSet(overflowItems.vertical, 'max-md:hidden')}
+    </>
   )
 }
 

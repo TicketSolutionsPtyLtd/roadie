@@ -1141,10 +1141,14 @@ describe('Navigator active-state split', () => {
 
 describe('overflow state', () => {
   it('publishes the folded items and the open flag on context', async () => {
-    const seen: { open: boolean; count: number }[] = []
+    const seen: { open: boolean; horizontal: number; vertical: number }[] = []
     function Probe() {
       const { overflowOpen, overflowItems } = use(NavigatorContext)
-      seen.push({ open: overflowOpen, count: overflowItems.length })
+      seen.push({
+        open: overflowOpen,
+        horizontal: overflowItems.horizontal.length,
+        vertical: overflowItems.vertical.length
+      })
       return null
     }
     render(
@@ -1164,7 +1168,8 @@ describe('overflow state', () => {
     const last = seen.at(-1)!
     expect(last.open).toBe(false)
     // Six items, four tabs kept, two folded.
-    expect(last.count).toBe(2)
+    expect(last.horizontal).toBe(2)
+    expect(last.vertical).toBe(0)
 
     await userEvent.click(screen.getByRole('button', { name: /More/ }))
     expect(seen.at(-1)!.open).toBe(true)
@@ -1518,7 +1523,7 @@ describe('Navigator mobile tab bar', () => {
   })
 })
 
-describe('Navigator.Overflow', () => {
+describe('Navigator.OverflowPane', () => {
   const overflowNav = (value: string, extra?: ReactNode) => (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Main'>
@@ -1539,6 +1544,81 @@ describe('Navigator.Overflow', () => {
 
   const panes = () =>
     Array.from(document.querySelectorAll('[data-slot="pane"]'))
+
+  const horizontalOf = (container: HTMLElement) =>
+    container.querySelector<HTMLElement>(
+      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+    )
+
+  it('is a list pane that leads the columns from lg', async () => {
+    render(overflowNav('/a'))
+    await flushViewportMeasurement()
+    const more = document.querySelector('[data-slot="pane"][id]')!
+    expect(more).toHaveClass('lg:-order-1')
+    expect(more).not.toHaveClass('md:hidden')
+  })
+
+  it('hides from lg while closed, so one list pane shows at a time', async () => {
+    const user = userEvent.setup()
+    const { container } = render(overflowNav('/a'))
+    await flushViewportMeasurement()
+    const more = document.querySelector('[data-slot="pane"][id]')!
+    expect(more).toHaveClass('lg:hidden')
+    await user.click(
+      within(horizontalOf(container)!).getByRole('button', { name: 'More' })
+    )
+    expect(more).not.toHaveClass('lg:hidden')
+  })
+
+  it('titles the generated pane in its header, like a section pane', async () => {
+    render(overflowNav('/a'))
+    await flushViewportMeasurement()
+    const more = document.querySelector('[data-slot="pane"][id]') as HTMLElement
+    expect(within(more).getByRole('heading', { name: 'More' })).toHaveAttribute(
+      'data-slot',
+      'pane-title'
+    )
+  })
+
+  it('moves focus to the More pane title on open, and back on Escape', async () => {
+    const user = userEvent.setup()
+    const { container } = render(overflowNav('/a'))
+    await flushViewportMeasurement()
+    const more = within(horizontalOf(container)!).getByRole('button', {
+      name: 'More'
+    })
+    await user.click(more)
+    const pane = document.querySelector('[data-slot="pane"][id]') as HTMLElement
+    expect(within(pane).getByRole('heading', { name: 'More' })).toHaveFocus()
+    await user.keyboard('{Escape}')
+    expect(more).toHaveFocus()
+  })
+
+  it('focuses a declared OverflowPane with no title itself', async () => {
+    const user = userEvent.setup()
+    const { container } = render(
+      overflowNav(
+        '/a',
+        <Navigator.OverflowPane aria-label='More'>
+          <Navigator.OverflowItems />
+        </Navigator.OverflowPane>
+      )
+    )
+    await flushViewportMeasurement()
+    await user.click(
+      within(horizontalOf(container)!).getByRole('button', { name: 'More' })
+    )
+    expect(document.querySelector('[data-slot="pane"][id]')).toHaveFocus()
+  })
+
+  it("renders the bar's folded rows below md only", async () => {
+    render(overflowNav('/a'))
+    await flushViewportMeasurement()
+    const lists = document.querySelectorAll(
+      '[data-slot="pane"][id] [data-slot="navigator-overflow-items"]'
+    )
+    expect(lists[0]).toHaveClass('md:hidden')
+  })
 
   it('renders a generated overflow pane when none is declared', async () => {
     render(overflowNav('/a'))
@@ -1662,13 +1742,13 @@ describe('Navigator.Overflow', () => {
     render(
       overflowNav(
         '/a',
-        <Navigator.Overflow>
+        <Navigator.OverflowPane>
           <Pane.Header>
             <Pane.Title>Menu</Pane.Title>
           </Pane.Header>
           <p>Promo</p>
           <Navigator.OverflowItems />
-        </Navigator.Overflow>
+        </Navigator.OverflowPane>
       )
     )
     await flushViewportMeasurement()
@@ -1685,22 +1765,18 @@ describe('Navigator.Overflow', () => {
     expect(document.querySelectorAll('[data-slot="pane"]')).toHaveLength(2)
   })
 
-  // Stands in for a Next.js parallel-route slot node — the same shape as the
-  // bug report this whole task answers, applied to the one place it still
-  // reached: a declared `Navigator.Overflow` is invisible to a children scan
-  // once it's behind a wrapper, so without a registration-based check it
-  // would double up with the generated fallback under one shared DOM id.
+  // Stands in for a Next.js parallel-route slot node, which a children scan can't see through.
   const Slot = ({ children }: { children: ReactNode }) => <>{children}</>
 
-  it('recognises a Navigator.Overflow declared behind a wrapper', async () => {
+  it('recognises a Navigator.OverflowPane declared behind a wrapper', async () => {
     render(
       overflowNav(
         '/a',
         <Slot>
-          <Navigator.Overflow>
+          <Navigator.OverflowPane>
             <p>Promo</p>
             <Navigator.OverflowItems />
-          </Navigator.Overflow>
+          </Navigator.OverflowPane>
         </Slot>
       )
     )
@@ -1754,24 +1830,26 @@ describe('Navigator.Overflow', () => {
     expect(row).toHaveAttribute('aria-current', 'page')
   })
 
-  it('warns in dev when two Navigator.Overflow are declared, sharing one DOM id', async () => {
+  it('warns in dev when two Navigator.OverflowPane are declared, sharing one DOM id', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
       overflowNav(
         '/a',
         <>
-          <Navigator.Overflow>
+          <Navigator.OverflowPane>
             <Navigator.OverflowItems />
-          </Navigator.Overflow>
-          <Navigator.Overflow>
+          </Navigator.OverflowPane>
+          <Navigator.OverflowPane>
             <Navigator.OverflowItems />
-          </Navigator.Overflow>
+          </Navigator.OverflowPane>
         </>
       )
     )
     await flushViewportMeasurement()
     expect(
-      warn.mock.calls.some((c) => String(c[0]).includes('Navigator.Overflow'))
+      warn.mock.calls.some((c) =>
+        String(c[0]).includes('Navigator.OverflowPane')
+      )
     ).toBe(true)
     warn.mockRestore()
   })
@@ -1838,10 +1916,6 @@ describe('Navigator.Overflow', () => {
     expect(disclosure).not.toHaveAttribute('aria-controls')
     await userEvent.click(disclosure)
     const controlsId = disclosure.getAttribute('aria-controls')
-    // Not just string equality between two reads of the same id — resolve it
-    // through the DOM, so a consumer clobbering the id Navigator owns (e.g.
-    // passing their own `id` to Navigator.Overflow) would show up as a broken
-    // reference here, not a coincidentally-matching pair of strings.
     expect(controlsId).toBeTruthy()
     expect(document.getElementById(controlsId!)).toBe(panes()[1])
   })

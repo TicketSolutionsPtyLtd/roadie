@@ -155,6 +155,7 @@ export {
   type NavigatorGroupProps,
   type NavigatorMenuProps,
   type NavigatorMenuItemProps,
+  type NavigatorOverflowPaneProps,
   type NavigatorPlacement,
   type NavigatorVisibilityPriority,
   type NavigatorSlotMeta,

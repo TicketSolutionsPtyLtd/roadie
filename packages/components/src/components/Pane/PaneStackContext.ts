@@ -7,15 +7,7 @@ import type { PanePrimaryNav, PaneRole } from './variants'
 
 export type PaneStackPosition = 'top' | 'ahead' | 'behind'
 
-// A pane's own opinion of what kind of pane it is, for the orchestrator's
-// bookkeeping only — distinct from `role`, which is content-facing and drives
-// layout. Every pane defaults to `'pane'`; `Navigator.Overflow` is the only
-// thing that ever fills this, with two different values depending on whether
-// it's rendering a consumer's own declaration or `Navigator.Content`'s
-// generated fallback for the same slot. That distinction is what lets the
-// fallback tell a real declaration apart from itself: both render the
-// identical component and carry the same DOM id, so nothing about their own
-// registration would otherwise say which is which.
+// Orchestrator bookkeeping only; lets a generated More pane tell a declared one apart.
 export type PaneKind = 'pane' | 'overflow' | 'generated-overflow'
 
 export type PaneRegistration = {
