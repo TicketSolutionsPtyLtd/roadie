@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { Navigator } from '.'
+import { Badge } from '../Badge'
 import { Pane } from '../Pane'
 import { secondaryBlocks, textOf } from './splitSecondary'
 import {
@@ -118,6 +119,42 @@ describe('generated section pane', () => {
     expect(
       within(pane).getByRole('navigation', { name: 'Components' })
     ).toHaveAttribute('data-slot', 'navigator-section-nav')
+  })
+
+  it('ends each row with a chevron, after any badge', async () => {
+    render(
+      <Navigator value='/c'>
+        <Navigator.Primary aria-label='Docs'>
+          {testBrand}
+          <Navigator.Item value='/c' href='/c'>
+            Components
+            <Navigator.Secondary aria-label='Components'>
+              <Navigator.Item value='/c/a' href='/c/a'>
+                Alpha
+              </Navigator.Item>
+              <Navigator.Item
+                value='/c/b'
+                href='/c/b'
+                badge={<Badge>New</Badge>}
+              >
+                Beta
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content />
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const pane = sectionPane()!
+    const trailing = (name: string) =>
+      within(pane)
+        .getByRole('link', { name: new RegExp(name) })
+        .querySelector('[data-slot="list-item-content"]')!.lastElementChild!
+    expect(trailing('Alpha').querySelector('svg')).not.toBeNull()
+    const beta = [...trailing('Beta').children]
+    expect(beta.at(-1)?.tagName.toLowerCase()).toBe('svg')
+    expect(beta[0]).toHaveTextContent('New')
   })
 
   it('lights the section tile as the section, not the page', async () => {
@@ -355,6 +392,16 @@ describe('Navigator.SecondaryPane', () => {
     expect(
       within(lists[0] as HTMLElement).getByText('Promo')
     ).toBeInTheDocument()
+  })
+
+  it('ends its SecondaryItems rows with a chevron', async () => {
+    render(<Override />)
+    await flushViewportMeasurement()
+    expect(
+      within(sectionPane()!)
+        .getByRole('link', { name: 'Input' })
+        .querySelector('svg')
+    ).not.toBeNull()
   })
 
   it('filters SecondaryItems by query', async () => {
