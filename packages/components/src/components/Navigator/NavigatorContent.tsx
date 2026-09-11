@@ -73,7 +73,9 @@ export function NavigatorContent({
   const ordered = useMemo(
     () =>
       orderByDocumentPosition(Array.from(panes.current.values())).map((pane) =>
-        pane.kind === 'pane' ? pane : { ...pane, current: overflowOpen }
+        pane.kind === 'overflow' || pane.kind === 'generated-overflow'
+          ? { ...pane, current: overflowOpen }
+          : pane
       ),
     [version, overflowOpen]
   )
@@ -120,7 +122,11 @@ export function NavigatorContent({
   // Reads the ref, not `ordered`: child effects have registered by now, the render hadn't.
   const hasChildren = children != null && children !== false
   useEffect(() => {
-    if (!isDev() || !hasChildren || panes.current.size > 0) return
+    if (!isDev() || !hasChildren) return
+    const declared = Array.from(panes.current.values()).some(
+      (pane) => pane.kind === 'pane' || pane.kind === 'overflow'
+    )
+    if (declared) return
     console.warn(
       '[Roadie] Navigator.Content rendered children but identified no ' +
         'panes. Stack position, push/pop motion and primaryNav are all ' +

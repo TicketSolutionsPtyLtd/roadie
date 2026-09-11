@@ -7,6 +7,7 @@ import { cn } from '@oztix/roadie-core/utils'
 import { PaneHeader } from '../Pane/PaneHeader'
 import { PaneRoot } from '../Pane/PaneRoot'
 import { PaneSearch } from '../Pane/PaneSearch'
+import { PaneKindContext } from '../Pane/PaneStackContext'
 import { PaneTitle } from '../Pane/PaneTitle'
 import type { NavigatorActiveSection } from './NavigatorContext'
 import { NavigatorSecondaryItems } from './NavigatorSecondaryItems'
@@ -22,25 +23,27 @@ export function NavigatorSectionPane({
   const { label, secondary } = section
 
   return (
-    <PaneRoot role='list' data-navigator-section={section.value}>
-      <PaneHeader>
-        <PaneTitle>{label}</PaneTitle>
-        {secondary.searchable ? (
-          <PaneSearch
-            value={query}
-            onValueChange={setQuery}
-            placeholder={`Search ${textOf(label).toLowerCase()}`}
-          />
-        ) : null}
-      </PaneHeader>
-      <nav
-        data-slot='navigator-section-nav'
-        aria-label={secondary['aria-label']}
-        className={cn('pb-4', secondary.className)}
-      >
-        <NavigatorSecondaryItems query={query} />
-      </nav>
-    </PaneRoot>
+    <PaneKindContext value='section'>
+      <PaneRoot role='list' data-navigator-section={section.value}>
+        <PaneHeader>
+          <PaneTitle>{label}</PaneTitle>
+          {secondary.searchable ? (
+            <PaneSearch
+              value={query}
+              onValueChange={setQuery}
+              placeholder={`Search ${textOf(label).toLowerCase()}`}
+            />
+          ) : null}
+        </PaneHeader>
+        <nav
+          data-slot='navigator-section-nav'
+          aria-label={secondary['aria-label']}
+          className={cn('pb-4', secondary.className)}
+        >
+          <NavigatorSecondaryItems query={query} />
+        </nav>
+      </PaneRoot>
+    </PaneKindContext>
   )
 }
 

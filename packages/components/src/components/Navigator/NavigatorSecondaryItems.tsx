@@ -68,11 +68,13 @@ export function NavigatorSecondaryItems({
   return (
     <List data-slot='navigator-secondary-items' className={className}>
       {blocks.map((block, index) =>
-        block.title === null ? (
+        block.kind === 'loose' ? (
           block.items.map(row)
         ) : (
           <List.Group key={`group-${index}`}>
-            <List.GroupTitle>{block.title}</List.GroupTitle>
+            {block.title !== null ? (
+              <List.GroupTitle>{block.title}</List.GroupTitle>
+            ) : null}
             {block.items.map(row)}
           </List.Group>
         )
