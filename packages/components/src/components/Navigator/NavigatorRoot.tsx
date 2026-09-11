@@ -68,6 +68,18 @@ export function NavigatorRoot({
   const rememberSection = useCallback((section: string, href: string) => {
     setSectionMemory((memory) => nextMemory(memory, section, href))
   }, [])
+  const [declaredSecondaryPanes, setDeclaredSecondaryPanes] = useState<
+    ReadonlySet<string>
+  >(() => new Set())
+  const declareSecondaryPane = useCallback((value: string) => {
+    setDeclaredSecondaryPanes((current) => new Set(current).add(value))
+    return () =>
+      setDeclaredSecondaryPanes((current) => {
+        const next = new Set(current)
+        next.delete(value)
+        return next
+      })
+  }, [])
 
   // A walk, not a child registration, which raced Primary's "no host" warning on first commit.
   const hasContent = useMemo(() => {
@@ -113,7 +125,9 @@ export function NavigatorRoot({
       openMenu,
       setOpenMenu,
       sectionMemory,
-      rememberSection
+      rememberSection,
+      declaredSecondaryPanes,
+      declareSecondaryPane
     }),
     [
       value,
@@ -131,7 +145,9 @@ export function NavigatorRoot({
       hasContent,
       openMenu,
       sectionMemory,
-      rememberSection
+      rememberSection,
+      declaredSecondaryPanes,
+      declareSecondaryPane
     ]
   )
 

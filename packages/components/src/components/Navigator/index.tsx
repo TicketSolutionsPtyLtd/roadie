@@ -14,6 +14,8 @@ import { NavigatorOverflowPane } from './NavigatorOverflowPane'
 import { NavigatorPrimary } from './NavigatorPrimary'
 import { NavigatorRoot } from './NavigatorRoot'
 import { NavigatorSecondary } from './NavigatorSecondary'
+import { NavigatorSecondaryItems } from './NavigatorSecondaryItems'
+import { NavigatorSecondaryPane } from './NavigatorSecondaryPane'
 
 const Navigator = NavigatorRoot as typeof NavigatorRoot & {
   Root: typeof NavigatorRoot
@@ -28,6 +30,8 @@ const Navigator = NavigatorRoot as typeof NavigatorRoot & {
   Brand: typeof NavigatorBrand
   OverflowPane: typeof NavigatorOverflowPane
   OverflowItems: typeof NavigatorOverflowItems
+  SecondaryPane: typeof NavigatorSecondaryPane
+  SecondaryItems: typeof NavigatorSecondaryItems
 }
 
 Navigator.Root = NavigatorRoot
@@ -42,6 +46,8 @@ Navigator.MenuItem = NavigatorMenuItem
 Navigator.Brand = NavigatorBrand
 Navigator.OverflowPane = NavigatorOverflowPane
 Navigator.OverflowItems = NavigatorOverflowItems
+Navigator.SecondaryPane = NavigatorSecondaryPane
+Navigator.SecondaryItems = NavigatorSecondaryItems
 
 export { Navigator }
 export type { NavigatorRootProps as NavigatorProps } from './NavigatorRoot'
@@ -64,6 +70,8 @@ export type { NavigatorMenuItemProps } from './NavigatorMenuItem'
 export type { NavigatorBrandProps } from './NavigatorBrand'
 export type { NavigatorOverflowPaneProps } from './NavigatorOverflowPane'
 export type { NavigatorOverflowItemsProps } from './NavigatorOverflowItems'
+export type { NavigatorSecondaryPaneProps } from './NavigatorSecondaryPane'
+export type { NavigatorSecondaryItemsProps } from './NavigatorSecondaryItems'
 export type { NavigatorIndicatorSurface } from './variants'
 export {
   MAX_TABS,

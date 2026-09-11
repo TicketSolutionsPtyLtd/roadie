@@ -1,6 +1,8 @@
+import type { ReactNode } from 'react'
+
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { Navigator } from '.'
 import { Pane } from '../Pane'
@@ -292,5 +294,166 @@ describe('secondaryBlocks', () => {
       { kind: 'loose', title: null, values: ['/a', '/b'] },
       { kind: 'group', title: 'Group', values: ['/c'] }
     ])
+  })
+})
+
+const Wrapper = ({ children }: { children: ReactNode }) => <>{children}</>
+
+function Override({ wrapped = false }: { wrapped?: boolean }) {
+  const pane = (
+    <Navigator.SecondaryPane value='/components'>
+      <p>Promo</p>
+      <Navigator.SecondaryItems query='in' />
+    </Navigator.SecondaryPane>
+  )
+  return (
+    <Navigator value='/components/button'>
+      <Navigator.Primary aria-label='Docs'>
+        <Navigator.Item value='/components' href='/components'>
+          Components
+          <Navigator.Secondary aria-label='Components'>
+            <Navigator.Item
+              value='/components/button'
+              href='/components/button'
+            >
+              Button
+            </Navigator.Item>
+            <Navigator.Item value='/components/input' href='/components/input'>
+              Input
+            </Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+        <Navigator.Item value='/start' href='/start'>
+          Start
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Navigator.Content>
+        {wrapped ? <Wrapper>{pane}</Wrapper> : pane}
+        <Pane role='detail' current>
+          Detail
+        </Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+}
+
+describe('Navigator.SecondaryPane', () => {
+  it("replaces that section's generated pane", async () => {
+    render(<Override />)
+    await flushViewportMeasurement()
+    const lists = document.querySelectorAll('[data-navigator-section]')
+    expect(lists).toHaveLength(1)
+    expect(
+      within(lists[0] as HTMLElement).getByText('Promo')
+    ).toBeInTheDocument()
+  })
+
+  it('filters SecondaryItems by query', async () => {
+    render(<Override />)
+    await flushViewportMeasurement()
+    const pane = sectionPane()!
+    expect(
+      within(pane).getByRole('link', { name: 'Input' })
+    ).toBeInTheDocument()
+    expect(within(pane).queryByRole('link', { name: 'Button' })).toBeNull()
+  })
+
+  it('still suppresses the generated pane when wrapped', async () => {
+    render(<Override wrapped />)
+    await flushViewportMeasurement()
+    expect(document.querySelectorAll('[data-navigator-section]')).toHaveLength(
+      1
+    )
+    expect(screen.getByText('Promo')).toBeInTheDocument()
+  })
+
+  it('renders nothing while its section is not active', async () => {
+    const { rerender } = render(<Override />)
+    await flushViewportMeasurement()
+    rerender(
+      <Navigator value='/start'>
+        <Navigator.Primary aria-label='Docs'>
+          <Navigator.Item value='/start' href='/start'>
+            Start
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Navigator.SecondaryPane value='/components'>
+            <p>Promo</p>
+          </Navigator.SecondaryPane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(screen.queryByText('Promo')).toBeNull()
+  })
+})
+
+function InactiveOverride({
+  value,
+  wrapped = false,
+  detail = false
+}: {
+  value: string
+  wrapped?: boolean
+  detail?: boolean
+}) {
+  const pane = (
+    <Navigator.SecondaryPane value='/components'>
+      <p>Promo</p>
+    </Navigator.SecondaryPane>
+  )
+  return (
+    <Navigator value={value}>
+      <Navigator.Primary aria-label='Docs'>
+        <Navigator.Item value='/components' href='/components'>
+          Components
+          <Navigator.Secondary aria-label='Components'>
+            <Navigator.Item
+              value='/components/button'
+              href='/components/button'
+            >
+              Button
+            </Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+        <Navigator.Item value='/start' href='/start'>
+          Start
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Navigator.Content>
+        {wrapped ? <Wrapper>{pane}</Wrapper> : pane}
+        {detail ? (
+          <Pane role='detail' current>
+            Detail
+          </Pane>
+        ) : null}
+      </Navigator.Content>
+    </Navigator>
+  )
+}
+
+describe('Navigator.SecondaryPane and the no-panes warning', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('counts as a declared pane while its section is inactive', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(<InactiveOverride value='/start' />)
+    await flushViewportMeasurement()
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('counts when wrapped and its section becomes inactive', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { rerender } = render(
+      <InactiveOverride value='/components/button' wrapped detail />
+    )
+    await flushViewportMeasurement()
+    rerender(<InactiveOverride value='/start' wrapped />)
+    await flushViewportMeasurement()
+    expect(screen.queryByText('Promo')).toBeNull()
+    expect(warn).not.toHaveBeenCalled()
   })
 })
