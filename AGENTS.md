@@ -134,6 +134,7 @@ Presets combining bg + text + border + interactive states:
 - `emphasis-subtler` — barely tinted, transparent when interactive
 - `emphasis-raised` — raised bg, rim-light-strong, shadow-md
 - `emphasis-sunken` — sunken bg, inset shadow
+- `emphasis-field` — sunken bg, translucent border, one inset line (text fields; pair with `is-interactive-field`)
 - `emphasis-floating` — raised bg, rim-light-strong, shadow-xl
 - `emphasis-inverted` — inverted bg + text
 - `emphasis-overlay` — dark overlay with backdrop blur

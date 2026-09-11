@@ -30,7 +30,7 @@ describe('Input', () => {
   it('renders with different emphasis', () => {
     const { container, rerender } = render(<Input emphasis='normal' />)
     let input = container.querySelector('input')!
-    expect(input).toHaveClass('emphasis-sunken')
+    expect(input).toHaveClass('emphasis-field')
 
     rerender(<Input emphasis='subtle' />)
     input = container.querySelector('input')!

@@ -477,8 +477,8 @@ export default function InteractionsPage() {
           <p className='text-subtle'>
             For form inputs — text fields, textareas, selects. Provides
             state-based colour transitions: neutral at rest, accent on focus,
-            danger when invalid. Pair with <Code>emphasis-sunken</Code> or{' '}
-            <Code>emphasis-raised</Code>.
+            danger when invalid. Pair with <Code>emphasis-field</Code> for text
+            fields, or <Code>emphasis-raised</Code> for select triggers.
           </p>
 
           <div className='rounded-xl emphasis-subtle p-6'>
@@ -488,7 +488,7 @@ export default function InteractionsPage() {
                 <input
                   type='text'
                   placeholder='e.g. Jane Smith'
-                  className='is-interactive-field rounded-lg border border-subtle emphasis-sunken px-3 py-2 text-sm'
+                  className='is-interactive-field rounded-lg emphasis-field px-3 py-2 text-sm'
                 />
               </div>
               <div className='grid gap-1'>
@@ -497,7 +497,7 @@ export default function InteractionsPage() {
                   type='text'
                   defaultValue='bad@'
                   aria-invalid='true'
-                  className='is-interactive-field rounded-lg border border-subtle emphasis-sunken px-3 py-2 text-sm'
+                  className='is-interactive-field rounded-lg emphasis-field px-3 py-2 text-sm'
                 />
               </div>
               <div className='grid gap-1'>
@@ -506,7 +506,7 @@ export default function InteractionsPage() {
                   type='text'
                   disabled
                   placeholder='Cannot edit'
-                  className='is-interactive-field rounded-lg border border-subtle emphasis-sunken px-3 py-2 text-sm'
+                  className='is-interactive-field rounded-lg emphasis-field px-3 py-2 text-sm'
                 />
               </div>
             </div>
@@ -535,13 +535,13 @@ export default function InteractionsPage() {
                 </tr>
                 <tr>
                   <td className='py-2 pr-4 text-strong'>Hover</td>
-                  <td className='py-2 pr-4'>neutral-2</td>
+                  <td className='py-2 pr-4'>neutral-3 (neutral-2 in dark)</td>
                   <td className='py-2 pr-4'>neutral-7</td>
                   <td className='py-2'>&mdash;</td>
                 </tr>
                 <tr>
                   <td className='py-2 pr-4 text-strong'>Focus</td>
-                  <td className='py-2 pr-4'>accent-2</td>
+                  <td className='py-2 pr-4'>accent-2 (accent-1 in dark)</td>
                   <td className='py-2 pr-4'>accent-9</td>
                   <td className='py-2'>accent ring</td>
                 </tr>

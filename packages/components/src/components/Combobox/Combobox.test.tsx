@@ -23,7 +23,7 @@ describe('Combobox', () => {
 
   it('renders InputGroup with default variant classes', () => {
     const classes = comboboxInputGroupVariants()
-    expect(classes).toContain('emphasis-sunken')
+    expect(classes).toContain('emphasis-field')
     expect(classes).toContain('is-interactive-field-group')
     expect(classes).not.toContain('intent-neutral')
   })
@@ -39,7 +39,7 @@ describe('Combobox', () => {
 
   it('renders InputGroup with different emphasis', () => {
     expect(comboboxInputGroupVariants({ emphasis: 'normal' })).toContain(
-      'emphasis-sunken'
+      'emphasis-field'
     )
     expect(comboboxInputGroupVariants({ emphasis: 'subtle' })).toContain(
       'bg-subtle'

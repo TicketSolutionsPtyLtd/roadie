@@ -65,8 +65,15 @@ const emphasisPresets = [
   {
     name: 'emphasis-sunken',
     description:
-      'Recessed surface with inset shadow. Used for input wells and sunken panels.',
+      'Recessed surface with inset shadow. Used for wells and sunken panels.',
     className: 'emphasis-sunken',
+    interactive: false
+  },
+  {
+    name: 'emphasis-field',
+    description:
+      'Sunken fill with a translucent edge and a single inset line. For text fields; pair with is-interactive-field.',
+    className: 'emphasis-field',
     interactive: false
   },
   {
@@ -251,6 +258,14 @@ export default function ElevationPage() {
                 <td className='py-2 pr-4 font-mono'>emphasis-sunken</td>
                 <td className='py-2 pr-4'>inset-shadow-sm</td>
                 <td className='py-2 pr-4'>—</td>
+                <td className='py-2'>—</td>
+              </tr>
+              <tr>
+                <td className='py-2 pr-4 font-mono'>emphasis-field</td>
+                <td className='py-2 pr-4'>
+                  inset-shadow-xs + translucent border
+                </td>
+                <td className='py-2 pr-4'>is-interactive-field</td>
                 <td className='py-2'>—</td>
               </tr>
               <tr>
