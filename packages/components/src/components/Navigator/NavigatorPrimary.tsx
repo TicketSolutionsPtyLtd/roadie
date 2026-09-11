@@ -449,6 +449,7 @@ export function NavigatorPrimary({
                     <li>
                       <NavigatorTileTooltip
                         label={OVERFLOW_LABEL}
+                        disabled={overflowOpen}
                         render={(asTrigger) => asTrigger(verticalMoreTile)}
                       />
                     </li>

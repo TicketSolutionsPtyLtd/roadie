@@ -629,6 +629,24 @@ describe('collapsed labels', () => {
     ).toBeInTheDocument()
   })
 
+  it('keeps the More tile tooltip shut while its pane is open', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    render(<Six />)
+    await flushViewportMeasurement()
+    reportClusterHeight(192)
+    const more = within(region('cluster')).getByRole('button', {
+      name: 'More'
+    })
+    await user.click(more)
+    expect(more).toHaveAttribute('aria-expanded', 'true')
+    await user.unhover(more)
+    await user.hover(more)
+    await act(() => vi.advanceTimersByTimeAsync(1500))
+    expect(document.querySelector('[data-slot="tooltip-popup"]')).toBeNull()
+    vi.useRealTimers()
+  })
+
   it('labels the toggle with its current label', async () => {
     const user = userEvent.setup()
     render(<Expandable />)
@@ -769,5 +787,75 @@ describe('badges', () => {
     ;<Navigator.Item value='/x' badge='3'>
       X
     </Navigator.Item>
+  })
+
+  it('shows a folded item as trailing content in the More pane, not sr-only', async () => {
+    const user = userEvent.setup()
+    render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          {['/a', '/b', '/c', '/d', '/e'].map((v) => (
+            <Navigator.Item key={v} value={v} href={v}>
+              {v}
+            </Navigator.Item>
+          ))}
+          <Navigator.Item
+            value='/inbox'
+            href='/inbox'
+            visibilityPriority='low'
+            badge={
+              <Badge intent='danger' emphasis='strong'>
+                3 unread
+              </Badge>
+            }
+          >
+            Inbox
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content />
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    await user.click(within(horizontal()).getByRole('button', { name: 'More' }))
+    const pane = document.querySelector('[data-slot="pane"][id]') as HTMLElement
+    const row = within(pane).getByRole('link', { name: /Inbox/ })
+    expect(within(row).getByText('3 unread')).not.toHaveClass('sr-only')
+    expect(row).toHaveAccessibleName(/3 unread/)
+  })
+
+  it('shows a folded menu-owning item as trailing content in the More pane', async () => {
+    const user = userEvent.setup()
+    render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          {['/a', '/b', '/c', '/d', '/e'].map((v) => (
+            <Navigator.Item key={v} value={v} href={v}>
+              {v}
+            </Navigator.Item>
+          ))}
+          <Navigator.Item
+            value='account'
+            visibilityPriority='low'
+            badge={
+              <Badge intent='danger' emphasis='strong'>
+                3 unread
+              </Badge>
+            }
+          >
+            Account
+            <Navigator.Menu>
+              <Navigator.MenuItem>Sign out</Navigator.MenuItem>
+            </Navigator.Menu>
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content />
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    await user.click(within(horizontal()).getByRole('button', { name: 'More' }))
+    const pane = document.querySelector('[data-slot="pane"][id]') as HTMLElement
+    const row = within(pane).getByRole('button', { name: /Account/ })
+    expect(within(row).getByText('3 unread')).not.toHaveClass('sr-only')
+    expect(row).toHaveAccessibleName(/3 unread/)
   })
 })

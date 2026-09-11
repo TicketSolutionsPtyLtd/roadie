@@ -546,7 +546,8 @@ describe('Navigator.Menu', () => {
   })
 
   it("keeps a tile's tooltip shut while its menu is open", async () => {
-    const user = userEvent.setup()
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
     render(<Tree />)
     await flushViewportMeasurement()
     const trigger = within(vertical()).getByRole('button', { name: 'Account' })
@@ -554,8 +555,9 @@ describe('Navigator.Menu', () => {
     await screen.findByRole('menu')
     await user.unhover(trigger)
     await user.hover(trigger)
-    await act(() => new Promise((resolve) => setTimeout(resolve, 1500)))
+    await act(() => vi.advanceTimersByTimeAsync(1500))
     expect(screen.getByRole('menu')).toBeInTheDocument()
     expect(document.querySelector('[data-slot="tooltip-popup"]')).toBeNull()
+    vi.useRealTimers()
   })
 })
