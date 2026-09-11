@@ -216,6 +216,52 @@ describe('generated section pane', () => {
   })
 })
 
+describe('section pane groups', () => {
+  it('keeps an untitled group as its own group, with no empty title', async () => {
+    render(
+      <Navigator value='/a/one'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Item value='/a' href='/a'>
+            A
+            <Navigator.Secondary aria-label='A pages'>
+              <Navigator.Item value='/a/one' href='/a/one'>
+                One
+              </Navigator.Item>
+              <Navigator.Group>
+                <Navigator.Item value='/a/two' href='/a/two'>
+                  Two
+                </Navigator.Item>
+              </Navigator.Group>
+              <Navigator.Group>
+                <Navigator.GroupTitle />
+                <Navigator.Item value='/a/three' href='/a/three'>
+                  Three
+                </Navigator.Item>
+              </Navigator.Group>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Pane role='detail' current>
+            Detail
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const pane = sectionPane()!
+    const groups = pane.querySelectorAll('[data-slot="list-group"]')
+    expect(groups).toHaveLength(2)
+    expect(
+      within(groups[0] as HTMLElement).getByText('Two')
+    ).toBeInTheDocument()
+    expect(
+      within(groups[1] as HTMLElement).getByText('Three')
+    ).toBeInTheDocument()
+    expect(pane.querySelector('[data-slot="list-group-title"]')).toBeNull()
+  })
+})
+
 describe('textOf', () => {
   it('flattens strings, numbers and element children', () => {
     expect(textOf(['Icon ', <b key='b'>button</b>, 2])).toBe('Icon button2')
@@ -238,12 +284,13 @@ describe('secondaryBlocks', () => {
     ])
     expect(
       blocks.map((block) => ({
+        kind: block.kind,
         title: block.title,
         values: block.items.map((item) => item.props.value)
       }))
     ).toEqual([
-      { title: null, values: ['/a', '/b'] },
-      { title: 'Group', values: ['/c'] }
+      { kind: 'loose', title: null, values: ['/a', '/b'] },
+      { kind: 'group', title: 'Group', values: ['/c'] }
     ])
   })
 })

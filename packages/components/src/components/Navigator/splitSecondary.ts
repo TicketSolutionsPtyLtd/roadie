@@ -60,7 +60,8 @@ export function textOf(node: ReactNode): string {
 }
 
 export type SecondaryBlock = {
-  /** The group's `Navigator.GroupTitle` children; null for a run of loose items. */
+  kind: 'group' | 'loose'
+  /** The group's `Navigator.GroupTitle` children; null when it has none. */
   title: ReactNode
   items: ReactElement<NavigatorItemProps>[]
 }
@@ -78,7 +79,7 @@ export function secondaryBlocks(children: ReactNode): SecondaryBlock[] {
     if (!isValidElement(child)) return
     if (child.type === NavigatorItem) {
       if (loose === null) {
-        loose = { title: null, items: [] }
+        loose = { kind: 'loose', title: null, items: [] }
         blocks.push(loose)
       }
       loose.items.push(child as ReactElement<NavigatorItemProps>)
@@ -86,15 +87,15 @@ export function secondaryBlocks(children: ReactNode): SecondaryBlock[] {
     }
     if (child.type !== NavigatorGroup) return
     loose = null
-    const group: SecondaryBlock = { title: null, items: [] }
+    const group: SecondaryBlock = { kind: 'group', title: null, items: [] }
     Children.forEach(
       (child.props as { children?: ReactNode }).children,
       (grandChild) => {
         if (!isValidElement(grandChild)) return
         if (grandChild.type === NavigatorGroupTitle) {
-          group.title = (
-            grandChild as ReactElement<NavigatorGroupTitleProps>
-          ).props.children
+          group.title =
+            (grandChild as ReactElement<NavigatorGroupTitleProps>).props
+              .children ?? null
         } else if (grandChild.type === NavigatorItem) {
           group.items.push(grandChild as ReactElement<NavigatorItemProps>)
         }

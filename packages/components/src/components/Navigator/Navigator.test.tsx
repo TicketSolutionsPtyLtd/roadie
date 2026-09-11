@@ -3292,6 +3292,34 @@ describe('Navigator.Content no-panes warning', () => {
     warn.mockRestore()
   })
 
+  it('warns while a section pane is open if no consumer pane registers', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const tree = (children?: ReactNode) => (
+      <Navigator value='/a/one'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Item value='/a' href='/a'>
+            A
+            <Navigator.Secondary aria-label='A pages'>
+              <Navigator.Item value='/a/one' href='/a/one'>
+                One
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content>{children}</Navigator.Content>
+      </Navigator>
+    )
+    const { rerender } = render(tree())
+    await flushViewportMeasurement()
+    expect(document.querySelector('[data-navigator-section]')).not.toBeNull()
+    rerender(tree(<div>Not a pane</div>))
+    await flushViewportMeasurement()
+    expect(
+      warn.mock.calls.some((c) => String(c[0]).includes('identified no panes'))
+    ).toBe(true)
+    warn.mockRestore()
+  })
+
   it('does not warn when it has no children at all', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(

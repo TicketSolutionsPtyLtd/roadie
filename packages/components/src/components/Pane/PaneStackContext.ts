@@ -7,8 +7,8 @@ import type { PanePrimaryNav, PaneRole } from './variants'
 
 export type PaneStackPosition = 'top' | 'ahead' | 'behind'
 
-// Orchestrator bookkeeping only; lets a generated More pane tell a declared one apart.
-export type PaneKind = 'pane' | 'overflow' | 'generated-overflow'
+// Orchestrator bookkeeping only: which panes the orchestrator generated or owns.
+export type PaneKind = 'pane' | 'section' | 'overflow' | 'generated-overflow'
 
 export type PaneRegistration = {
   role: PaneRole
