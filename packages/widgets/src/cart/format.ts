@@ -1,3 +1,10 @@
+import {
+  formatLong,
+  formatTimeOfDay,
+  separators,
+  viewerTimeZone
+} from '@oztix/roadie-core/datetime'
+
 import type { CartSeat } from './types'
 
 export type CurrencyOptions = {
@@ -16,7 +23,10 @@ function collapseSeatRuns(labels: string[]): string {
   let start = sorted[0]!
   let prev = start
   const flush = () =>
-    runs.push(start === prev ? `${start}` : `${start}–${prev}`)
+    // A hyphen, not the word 'to' the date ranges use: '1 to 4' reads as prose
+    // where '1-4' reads as a compressed run, which is what a seat list is. The
+    // brand guide already spells number ranges this way.
+    runs.push(start === prev ? `${start}` : `${start}-${prev}`)
   for (let i = 1; i < sorted.length; i++) {
     const cur = sorted[i]!
     if (cur === prev + 1) {
@@ -83,41 +93,13 @@ export type TimeOptions = {
   timeZone?: string
 }
 
-// 'en-US' only fixes the digit set; null lets callers fail safe to browser-local.
-function wallClockInZone(
-  date: Date,
-  timeZone: string
-): { hour: number; minute: number } | null {
-  try {
-    const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone,
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    }).formatToParts(date)
-    const hour = Number(parts.find((p) => p.type === 'hour')?.value)
-    const minute = Number(parts.find((p) => p.type === 'minute')?.value)
-    if (Number.isNaN(hour) || Number.isNaN(minute)) return null
-    return { hour: hour % 24, minute } // 'hour12:false' can emit 24 at midnight
-  } catch {
-    return null
-  }
-}
-
 export function formatTime(date: Date, opts: TimeOptions = {}): string {
-  let hour = date.getHours()
-  let minutes = date.getMinutes()
-  if (opts.timeZone) {
-    const wc = wallClockInZone(date, opts.timeZone)
-    if (wc) {
-      hour = wc.hour
-      minutes = wc.minute
-    }
-  }
-  const ampm = hour >= 12 ? 'pm' : 'am'
-  const h = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
-  if (minutes === 0) return `${h}${ampm}`
-  return `${h}:${String(minutes).padStart(2, '0')}${ampm}`
+  return (
+    formatTimeOfDay(date, {
+      timeZone: opts.timeZone ?? viewerTimeZone(),
+      timeStyle: 'short'
+    }) ?? ''
+  )
 }
 
 function parseDateKey(dateKey: string): Date | null {
@@ -139,24 +121,25 @@ function parseDateKey(dateKey: string): Date | null {
 export function formatDayHeader(dateKey: string, opts: DateOptions): string {
   const date = parseDateKey(dateKey)
   if (!date) return dateKey
-  return new Intl.DateTimeFormat(opts.locale, {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  }).format(date)
+  return (
+    formatLong(date, {
+      locale: opts.locale,
+      timeZone: viewerTimeZone(),
+      showYear: true
+    }) ?? dateKey
+  )
 }
 
 export function formatDayShort(dateKey: string, opts: DateOptions): string {
   const date = parseDateKey(dateKey)
   if (!date) return dateKey
-  return new Intl.DateTimeFormat(opts.locale, {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short'
-  })
-    .format(date)
-    .replace(/,/g, '')
+  return (
+    formatLong(date, {
+      locale: opts.locale,
+      timeZone: viewerTimeZone(),
+      showYear: false
+    }) ?? dateKey
+  )
 }
 
 type Schedulable = {
@@ -179,11 +162,13 @@ export function formatEventSchedule(
   const end = event.eventEndAtUtc ? new Date(event.eventEndAtUtc) : null
   if (!end || Number.isNaN(end.getTime())) return startTime
   const endTime = formatTime(end, timeOpts)
+  // A half-built range reads as a stray separator, which is worse than nothing.
+  if (!startTime || !endTime) return ''
 
   const multiDay =
     !!event.eventEndDateKey && event.eventEndDateKey !== event.eventDateKey
   if (multiDay) {
-    return `${startTime} – ${formatDayShort(event.eventEndDateKey!, opts)}, ${endTime}`
+    return `${startTime} ${separators.range} ${formatDayShort(event.eventEndDateKey!, opts)}, ${endTime}`
   }
-  return `${startTime} – ${endTime}`
+  return `${startTime} ${separators.range} ${endTime}`
 }

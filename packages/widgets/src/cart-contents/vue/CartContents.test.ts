@@ -80,6 +80,33 @@ describe('CartContents', () => {
     expect(headers[1]).toMatch(/16/)
   })
 
+  // The day header is the other visible cart string, and it is the one that used
+  // to mix an abbreviated weekday with a full month.
+  it('writes the day header in one register, weekday and month both short', () => {
+    const { container } = render(CartContents, {
+      props: {
+        cart: makeDetails({
+          events: [
+            makeEvent({
+              eventDateKey: '2026-11-27',
+              eventStartAtUtc: '2026-11-27T09:30:00Z'
+            })
+          ]
+        }),
+        onNavigate: vi.fn(),
+        browseHref: '/events',
+        checkoutUrl: '/outlet/extras/c1',
+        locale: 'en-AU',
+        currency: 'AUD'
+      }
+    })
+    const header =
+      container.querySelector('[data-testid="cart-group-title"]')
+        ?.textContent ?? ''
+    expect(header).toBe('Fri 27 Nov 2026')
+    expect(header).not.toMatch(/November|,/)
+  })
+
   it('fires onNavigate with the checkout URL when the footer Checkout is clicked', async () => {
     const onNavigate = vi.fn()
     const { getByText } = render(CartContents, {
