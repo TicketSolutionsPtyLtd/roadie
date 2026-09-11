@@ -48,17 +48,34 @@ export const navigatorContentVariants = cva([
 // Not configurable — a seven-tab bar is not a shape Navigator can be talked into.
 export const MAX_TABS = 5
 
-// No padding here: Base UI pins the scrollbar to the root's inline end, so
-// padding lives on the viewport.
+// The cluster is the 1fr row, so it centres between brand and pinned.
 export const navigatorPrimaryVerticalVariants = cva([
-  'group/primary hidden min-h-0 w-(--navigator-primary-nested) md:col-start-1 md:row-start-1 md:block'
+  'group/primary hidden min-h-0 md:col-start-1 md:row-start-1 md:grid',
+  'grid-rows-[auto_minmax(0,1fr)_auto] gap-3 py-3 w-20'
 ])
 
-export const navigatorPrimaryViewportVariants = cva(['relative min-h-0 p-3'])
+export const navigatorPrimaryBrandVariants = cva([
+  'grid justify-items-center px-3'
+])
 
-// `min-h-full` so the pinned region's `mt-auto` still lands at the bottom.
-export const navigatorPrimaryContentVariants = cva([
-  'flex min-h-full flex-col gap-1'
+export const navigatorPrimaryClusterVariants = cva(['min-h-0'])
+
+// `relative` positions the cluster's pill; the viewport is what scrolls.
+export const navigatorPrimaryClusterViewportVariants = cva([
+  'relative size-full'
+])
+
+// `min-h-full` + `content-center` centres a short cluster; py-2 keeps capsule shadows off the clip edge.
+export const navigatorPrimaryClusterContentVariants = cva([
+  'grid min-h-full content-center justify-items-center gap-3 px-3 py-2'
+])
+
+export const navigatorPrimaryPinnedVariants = cva([
+  'relative grid justify-items-center gap-3 px-3'
+])
+
+export const navigatorCapsuleVariants = cva([
+  'relative grid gap-1 p-1 rounded-full emphasis-raised'
 ])
 
 // The box never changes size, so collapse animates on scale/translate/opacity
@@ -198,34 +215,25 @@ export const navigatorTabVariants = cva(
   }
 )
 
-// Pinned items sit on the vertical navigation's bottom edge; `mt-auto` pushes against the vertical navigation's flex column.
-export const navigatorPrimaryPinnedVariants = cva([
-  'mt-auto grid gap-1 border-t border-subtle pt-2'
-])
-
 export const navigatorGroupTitleVariants = cva([
-  'truncate pt-3 pr-3 pb-1 pl-12 text-xs font-semibold text-subtler'
+  'sr-only px-3 pb-1 text-xs font-semibold text-subtler'
 ])
 
-export const navigatorGroupListVariants = cva(['grid gap-1'])
-
-export const navigatorPrimaryListVariants = cva(['grid gap-1'])
-
-export const navigatorBrandVariants = cva(['flex items-center gap-2 px-3 py-2'])
+export const navigatorBrandVariants = cva([
+  'flex items-center justify-center gap-2 py-1'
+])
 
 export const navigatorItemTrailingVariants = cva(['flex items-center gap-2'])
 
+// `text-subtle` always: under the active tile's `intent-accent` it becomes the accent's subtle tone.
 export const navigatorItemVariants = cva(
   [
-    'is-interactive relative z-[1] w-full min-w-0 rounded-xl text-left text-sm font-semibold',
-    'grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3 py-2.5'
+    'is-interactive relative z-[1] grid size-12 place-items-center rounded-full text-subtle',
+    'motion-safe:transition-[background-color] motion-reduce:transition-none'
   ],
   {
     variants: {
-      active: {
-        true: 'text-strong [&_[data-slot=navigator-item-icon]]:text-accent-11',
-        false: 'text-subtle hover:bg-subtle'
-      }
+      active: { true: 'intent-accent', false: 'hover:bg-subtle' }
     },
     defaultVariants: { active: false }
   }

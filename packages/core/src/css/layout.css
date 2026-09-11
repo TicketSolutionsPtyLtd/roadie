@@ -23,9 +23,3 @@
     padding-inline: 3rem; /* lg:px-12 */
   }
 }
-
-/* Vertical Navigator.Primary widths. */
-@theme {
-  --navigator-primary-compact: 5.75rem; /* 92px — icons only */
-  --navigator-primary-nested: 15rem; /* 240px — labels + nested children */
-}
