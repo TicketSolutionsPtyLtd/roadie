@@ -36,7 +36,7 @@ async function getNavigationItems() {
     try {
       const content = await readFile(filePath, 'utf-8')
       const metadataMatch = content.match(
-        /export const metadata = ({[\s\S]*?})/m
+        /export const metadata(?:\s*:\s*[A-Za-z_$][\w$]*)?\s*=\s*({[\s\S]*?})/m
       )
 
       if (metadataMatch) {
@@ -119,7 +119,7 @@ async function getNavigationItems() {
           }
 
           const metadataMatch = content.match(
-            /export const metadata = ({[\s\S]*?})/m
+            /export const metadata(?:\s*:\s*[A-Za-z_$][\w$]*)?\s*=\s*({[\s\S]*?})/m
           )
           let metadata: ComponentMetadata = {
             name: dir.name,
