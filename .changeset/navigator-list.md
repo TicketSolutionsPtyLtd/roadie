@@ -14,5 +14,11 @@ primitive used inside those panes. `ScrollArea` gives any bounded region a
 consistent custom scrollbar, and `Drawer` is a surface that slides in from an
 edge and swipes away.
 
+`Accordion` now publishes `--content-inset` (16px) and both its trigger and
+content read it, so a `List` dropped into `Accordion.Content` lines up with the
+trigger without extra padding. Override the variable on the root to change
+both at once. In Safari, an open panel whose content changes size, such as a
+filtered list, now resizes with it instead of clipping.
+
 The Roadie docs site is the first consumer: its whole navigation is now built
 on `Navigator` + `Pane` + `List`.
