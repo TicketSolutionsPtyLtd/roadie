@@ -15,10 +15,6 @@ export type NavigatorSecondaryNav = {
   children: ReactNode
 }
 
-// Selection is controlled by the consumer; Navigator never owns routing.
-// `hasNesting` is derived once by Navigator.Primary from the declared tree
-// and decides rail form for the whole product — see the brainstorm's
-// "Derived behaviour" table.
 export type NavigatorContextValue = {
   value: string | undefined
   setValue: (next: string) => void

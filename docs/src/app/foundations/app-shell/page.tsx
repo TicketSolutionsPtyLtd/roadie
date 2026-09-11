@@ -38,11 +38,11 @@ export default function AppShellPage() {
   return (
     <div className='grid gap-12'>
       <p className='text-lg text-subtle'>
-        <Code>Navigator</Code> is a layout primitive — it renders a rail, a tab
-        bar and panes, but it does not own the URL. To get a real app shell,
-        where a list and a detail sit side by side under one URL on desktop yet
-        a reload deep-links straight to the detail, you pair Navigator with
-        Next.js <strong>parallel routes</strong> and{' '}
+        <Code>Navigator</Code> is a layout primitive — it renders the primary
+        navigation and panes, but it does not own the URL. To get a real app
+        shell, where a list and a detail sit side by side under one URL on
+        desktop yet a reload deep-links straight to the detail, you pair
+        Navigator with Next.js <strong>parallel routes</strong> and{' '}
         <strong>intercepting routes</strong>. This page documents the recipe
         that was verified for Navigator, and the one hard constraint that keeps
         it off this docs site.

@@ -23,9 +23,9 @@ import { NavigatorContext } from './NavigatorContext'
 import { type NavigatorTabSlots, deriveMobileSlots } from './NavigatorPrimary'
 import {
   navigatorIndicatorVariants,
-  navigatorRailViewportVariants,
-  navigatorSecondaryStripViewportVariants,
-  navigatorTabBarTrackVariants
+  navigatorPrimaryTrackVariants,
+  navigatorPrimaryViewportVariants,
+  navigatorSecondaryStripViewportVariants
 } from './variants'
 
 // Every pane now mounts a ScrollArea, whose Viewport measures overflow via a
@@ -51,11 +51,6 @@ const FakeIcon = ({
   <svg
     data-testid='fake-icon'
     data-weight={weight ?? 'none'}
-    // `data-classname` predates this: kept so existing exact-string
-    // assertions (e.g. 'sizes rail item icons at size-6') don't need
-    // rewriting. `className` is the real DOM class — added so a test can
-    // prove a class actually reaches a rendered element, not just that
-    // `presentNavIcon` computed the right string.
     data-classname={className ?? ''}
     className={className}
     data-slot={dataSlot}
@@ -65,6 +60,30 @@ const FakeIcon = ({
 describe('Navigator', () => {
   it('is the same reference as Navigator.Root', () => {
     expect(Navigator).toBe(Navigator.Root)
+  })
+})
+
+describe('one primary navigation, two orientations', () => {
+  it('renders navigator-primary vertically and horizontally', async () => {
+    const { container } = render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Item value='/a' href='/a'>
+            A
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const navs = Array.from(
+      container.querySelectorAll('[data-slot="navigator-primary"]')
+    )
+    expect(navs.map((nav) => nav.getAttribute('data-orientation'))).toEqual([
+      'vertical',
+      'horizontal'
+    ])
+    expect(navs[0]).toHaveAccessibleName('Main')
+    expect(navs[1]).toHaveAccessibleName('Main tabs')
   })
 })
 
@@ -203,7 +222,9 @@ describe('pane stack', () => {
       'hidden'
     )
     expect(
-      document.querySelector('[data-slot="navigator-tab-bar"]')
+      document.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      )
     ).toHaveAttribute('data-hidden', 'false')
   })
 
@@ -251,11 +272,7 @@ describe('pane stack', () => {
     )
   })
 
-  // jsdom computes no layout, so this cannot prove the behind pane stays off
-  // the rail — that's only checkable in a browser. It pins the class-level
-  // rule the geometry depends on: below `lg`, stacked panes are `absolute
-  // inset-0` against Content, so Content must clip or a translated pane
-  // paints past its own box and over the rail beside it.
+  // jsdom has no layout; this pins the class the geometry depends on.
   it('clips its box below lg, where panes stack and can translate past it', async () => {
     render(
       <Navigator value='/components'>
@@ -326,7 +343,9 @@ describe('primaryNav', () => {
     )
     await flushViewportMeasurement()
     expect(
-      document.querySelector('[data-slot="navigator-tab-bar"]')
+      document.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      )
     ).toHaveAttribute('data-hidden', 'true')
   })
 
@@ -348,7 +367,9 @@ describe('primaryNav', () => {
     )
     await flushViewportMeasurement()
     expect(
-      document.querySelector('[data-slot="navigator-tab-bar"]')
+      document.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      )
     ).toHaveAttribute('data-hidden', 'false')
   })
 
@@ -405,7 +426,9 @@ describe('primaryNav', () => {
     expect(screen.queryByRole('navigation', { name: 'Main tabs' })).toBeNull()
     // Still in the DOM, so the return from the pushed screen can animate.
     expect(
-      document.querySelector('[data-slot="navigator-tab-bar"]')
+      document.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      )
     ).toHaveAttribute('inert')
   })
 
@@ -459,7 +482,9 @@ describe('primaryNav', () => {
     await flush()
 
     expect(
-      container.querySelector('[data-slot="navigator-tab-bar"]')
+      container.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      )
     ).toHaveAttribute('data-collapsed', 'false')
   })
 
@@ -490,7 +515,9 @@ describe('primaryNav', () => {
     await flush()
 
     expect(
-      container.querySelector('[data-slot="navigator-tab-bar"]')
+      container.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      )
     ).toHaveAttribute('data-collapsed', 'false')
   })
 
@@ -557,7 +584,9 @@ describe('primaryNav', () => {
       frames.forEach((frame) => frame(0))
     })
     expect(
-      container.querySelector('[data-slot="navigator-tab-bar"]')
+      container.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      )
     ).toHaveAttribute('data-collapsed', 'true')
   })
 })
@@ -702,7 +731,7 @@ describe('deriveMobileSlots with declared tabs', () => {
     expect(slots.label).toBeUndefined()
   })
 
-  it('treats an End value named in tabs as unknown, not a rail tab', () => {
+  it('treats an End value named in tabs as unknown, not a vertical tab', () => {
     const slots = deriveMobileSlots(
       [meta('a')],
       [meta('account')],
@@ -716,7 +745,7 @@ describe('deriveMobileSlots with declared tabs', () => {
   it('caps a runtime-constructed tabs array at four slots and folds the rest', () => {
     // The `NavigatorTabSlots` union caps a typed caller at four values, but
     // `deriveMobileSlots` is exported and callable directly (a JS consumer,
-    // or a cast) with a longer array — `--navigator-tab-col` stays hardcoded
+    // or a cast) with a longer array — `--navigator-primary-col` stays hardcoded
     // to a fifth in the stylesheet, so an uncapped `chosen` here would push
     // the circle geometry off by however many tabs overran it.
     const overrun = [
@@ -810,7 +839,7 @@ describe('Navigator.Primary tabs prop', () => {
   })
 })
 
-describe('Navigator rail form', () => {
+describe('Navigator vertical form', () => {
   it('is compact when nothing in the tree nests', async () => {
     const { container } = render(
       <Navigator value='tickets'>
@@ -821,7 +850,9 @@ describe('Navigator rail form', () => {
       </Navigator>
     )
     expect(
-      container.querySelector('[data-slot="navigator-rail"]')
+      container.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="vertical"]'
+      )
     ).toHaveAttribute('data-form', 'compact')
     await flushViewportMeasurement()
   })
@@ -841,7 +872,9 @@ describe('Navigator rail form', () => {
       </Navigator>
     )
     expect(
-      container.querySelector('[data-slot="navigator-rail"]')
+      container.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="vertical"]'
+      )
     ).toHaveAttribute('data-form', 'nested')
     await flushViewportMeasurement()
   })
@@ -863,7 +896,9 @@ describe('Navigator rail form', () => {
     const { container, rerender } = render(tree('events'))
     rerender(tree('insights'))
     expect(
-      container.querySelector('[data-slot="navigator-rail"]')
+      container.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="vertical"]'
+      )
     ).toHaveAttribute('data-form', 'nested')
     await flushViewportMeasurement()
   })
@@ -885,7 +920,7 @@ describe('Navigator rail form', () => {
     await flushViewportMeasurement()
   })
 
-  it('renders both the rail and the tab bar so CSS can choose', async () => {
+  it('renders both orientations so CSS can choose', async () => {
     const { container } = render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
@@ -893,14 +928,20 @@ describe('Navigator rail form', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    expect(container.querySelector('[data-slot="navigator-rail"]')).toBeTruthy()
     expect(
-      container.querySelector('[data-slot="navigator-tab-bar"]')
+      container.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="vertical"]'
+      )
+    ).toBeTruthy()
+    expect(
+      container.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      )
     ).toBeTruthy()
     await flushViewportMeasurement()
   })
 
-  it('renders End after the primary items in the rail', async () => {
+  it('renders End after the primary items vertically', async () => {
     const { container } = render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
@@ -948,14 +989,16 @@ describe('Navigator rail form', () => {
       </Navigator>
     )
     const icons = screen.getAllByTestId('fake-icon')
-    const railIcons = icons.filter((icon) =>
-      icon.closest('[data-slot="navigator-rail"]')
+    const verticalIcons = icons.filter((icon) =>
+      icon.closest(
+        '[data-slot="navigator-primary"][data-orientation="vertical"]'
+      )
     )
-    const active = railIcons.find(
+    const active = verticalIcons.find(
       (icon) =>
         icon.closest('[data-slot="navigator-item"]')?.textContent === 'Tickets'
     )
-    const inactive = railIcons.find(
+    const inactive = verticalIcons.find(
       (icon) =>
         icon.closest('[data-slot="navigator-item"]')?.textContent === 'Discover'
     )
@@ -974,14 +1017,18 @@ describe('Navigator rail form', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const railIcon = screen
+    const verticalIcon = screen
       .getAllByTestId('fake-icon')
-      .find((icon) => icon.closest('[data-slot="navigator-rail"]'))
-    expect(railIcon).toHaveAttribute('data-weight', 'fill')
+      .find((icon) =>
+        icon.closest(
+          '[data-slot="navigator-primary"][data-orientation="vertical"]'
+        )
+      )
+    expect(verticalIcon).toHaveAttribute('data-weight', 'fill')
     await flushViewportMeasurement()
   })
 
-  it('sizes rail item icons at size-6, overriding a consumer size', async () => {
+  it('sizes vertical item icons at size-6, overriding a consumer size', async () => {
     render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
@@ -994,10 +1041,14 @@ describe('Navigator rail form', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const railIcon = screen
+    const verticalIcon = screen
       .getAllByTestId('fake-icon')
-      .find((icon) => icon.closest('[data-slot="navigator-rail"]'))
-    expect(railIcon).toHaveAttribute('data-classname', 'size-6')
+      .find((icon) =>
+        icon.closest(
+          '[data-slot="navigator-primary"][data-orientation="vertical"]'
+        )
+      )
+    expect(verticalIcon).toHaveAttribute('data-classname', 'size-6')
     await flushViewportMeasurement()
   })
 
@@ -1010,27 +1061,35 @@ describe('Navigator rail form', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const railItem = (label: string) =>
+    const verticalItem = (label: string) =>
       screen
         .getAllByText(label)
         .map((el) => el.closest('[data-slot="navigator-item"]'))
-        .find((el) => el?.closest('[data-slot="navigator-rail"]'))
+        .find((el) =>
+          el?.closest(
+            '[data-slot="navigator-primary"][data-orientation="vertical"]'
+          )
+        )
 
     // Current is a neutral raised pill, never accent-tinted.
-    expect(railItem('Tickets')).toHaveClass('text-strong')
-    expect(railItem('Tickets')).not.toHaveClass('intent-accent')
-    expect(railItem('Discover')).toHaveClass('text-subtle')
-    expect(railItem('Discover')).not.toHaveClass('emphasis-raised')
+    expect(verticalItem('Tickets')).toHaveClass('text-strong')
+    expect(verticalItem('Tickets')).not.toHaveClass('intent-accent')
+    expect(verticalItem('Discover')).toHaveClass('text-subtle')
+    expect(verticalItem('Discover')).not.toHaveClass('emphasis-raised')
     await flushViewportMeasurement()
   })
 })
 
 describe('Navigator routeless primary', () => {
-  const railItem = (label: string) =>
+  const verticalItem = (label: string) =>
     screen
       .getAllByText(label)
       .map((el) => el.closest('[data-slot="navigator-item"]'))
-      .find((el) => el?.closest('[data-slot="navigator-rail"]'))
+      .find((el) =>
+        el?.closest(
+          '[data-slot="navigator-primary"][data-orientation="vertical"]'
+        )
+      )
 
   it('delegates to the first secondary child when it has no href of its own', async () => {
     render(
@@ -1056,7 +1115,7 @@ describe('Navigator routeless primary', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const section = railItem('Foundations')
+    const section = verticalItem('Foundations')
     expect(section?.tagName).toBe('A')
     expect(section).toHaveAttribute('href', '/foundations/layout')
     await flushViewportMeasurement()
@@ -1080,7 +1139,7 @@ describe('Navigator routeless primary', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const section = railItem('Components')
+    const section = verticalItem('Components')
     expect(section?.tagName).toBe('A')
     expect(section).toHaveAttribute('href', '/components')
     await flushViewportMeasurement()
@@ -1094,7 +1153,7 @@ describe('Navigator routeless primary', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    expect(railItem('Appearance')?.tagName).toBe('BUTTON')
+    expect(verticalItem('Appearance')?.tagName).toBe('BUTTON')
     await flushViewportMeasurement()
   })
 
@@ -1116,12 +1175,12 @@ describe('Navigator routeless primary', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const section = railItem('Foundations')
+    const section = verticalItem('Foundations')
     expect(section).toHaveClass('text-strong')
     expect(section).not.toHaveClass('emphasis-raised')
     expect(section).not.toHaveAttribute('aria-current')
 
-    const current = railItem('Layout')
+    const current = verticalItem('Layout')
     expect(current).toHaveClass('text-strong')
     expect(current).toHaveAttribute('aria-current', 'page')
     await flushViewportMeasurement()
@@ -1129,7 +1188,7 @@ describe('Navigator routeless primary', () => {
 })
 
 describe('Navigator.Brand', () => {
-  it('renders at the top of the rail without becoming a destination', async () => {
+  it('renders at the top of the vertical navigation without becoming a destination', async () => {
     const { container } = render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
@@ -1139,15 +1198,17 @@ describe('Navigator.Brand', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const rail = container.querySelector('[data-slot="navigator-rail"]')
-    const railContent = container.querySelector(
-      '[data-slot="navigator-rail-viewport"] [data-slot="scroll-area-content"]'
+    const vertical = container.querySelector(
+      '[data-slot="navigator-primary"][data-orientation="vertical"]'
     )
-    const brand = rail?.querySelector('[data-slot="navigator-brand"]')
+    const verticalContent = container.querySelector(
+      '[data-slot="navigator-primary-viewport"] [data-slot="scroll-area-content"]'
+    )
+    const brand = vertical?.querySelector('[data-slot="navigator-brand"]')
     expect(brand).toBeTruthy()
     expect(brand).toHaveTextContent('Roadie')
     // First child of the scrolled content — pinned above the items.
-    expect(railContent?.firstElementChild).toBe(brand)
+    expect(verticalContent?.firstElementChild).toBe(brand)
     await flushViewportMeasurement()
   })
 
@@ -1162,13 +1223,17 @@ describe('Navigator.Brand', () => {
       </Navigator>
     )
     const bar = within(
-      container.querySelector('[data-slot="navigator-tab-bar"]') as HTMLElement
+      container.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      ) as HTMLElement
     )
     expect(bar.getAllByRole('button')).toHaveLength(2)
-    const rail = container.querySelector('[data-slot="navigator-rail"]')
-    expect(rail?.querySelectorAll('[data-slot="navigator-item"]')).toHaveLength(
-      2
+    const vertical = container.querySelector(
+      '[data-slot="navigator-primary"][data-orientation="vertical"]'
     )
+    expect(
+      vertical?.querySelectorAll('[data-slot="navigator-item"]')
+    ).toHaveLength(2)
     await flushViewportMeasurement()
   })
 
@@ -1233,11 +1298,15 @@ describe('Navigator.End stray children', () => {
 })
 
 describe('Navigator section chevron', () => {
-  const railItem = (label: string) =>
+  const verticalItem = (label: string) =>
     screen
       .getAllByText(label)
       .map((el) => el.closest('[data-slot="navigator-item"]'))
-      .find((el) => el?.closest('[data-slot="navigator-rail"]'))
+      .find((el) =>
+        el?.closest(
+          '[data-slot="navigator-primary"][data-orientation="vertical"]'
+        )
+      )
 
   const tree = (active: string) => (
     <Navigator value={active}>
@@ -1255,31 +1324,31 @@ describe('Navigator section chevron', () => {
 
   it('renders a chevron on an item that declares a Secondary', async () => {
     render(tree('tokens'))
-    expect(railItem('Components')?.querySelector('svg')).toBeTruthy()
+    expect(verticalItem('Components')?.querySelector('svg')).toBeTruthy()
     await flushViewportMeasurement()
   })
 
   it('renders no chevron on an item without a Secondary', async () => {
     render(tree('tokens'))
-    expect(railItem('Tokens')?.querySelector('svg')).toBeNull()
+    expect(verticalItem('Tokens')?.querySelector('svg')).toBeNull()
     await flushViewportMeasurement()
   })
 
   it('points the chevron down while the section is expanded', async () => {
     render(tree('button'))
-    expect(railItem('Components')?.querySelector('.rotate-90')).toBeTruthy()
+    expect(verticalItem('Components')?.querySelector('.rotate-90')).toBeTruthy()
     await flushViewportMeasurement()
   })
 
   it('points the chevron right while the section is collapsed', async () => {
     render(tree('tokens'))
-    expect(railItem('Components')?.querySelector('.rotate-0')).toBeTruthy()
+    expect(verticalItem('Components')?.querySelector('.rotate-0')).toBeTruthy()
     await flushViewportMeasurement()
   })
 })
 
 describe('Navigator active item surface', () => {
-  it('gives the active rail item the neutral raised pill classes', async () => {
+  it('gives the active vertical item the neutral raised pill classes', async () => {
     render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
@@ -1288,19 +1357,23 @@ describe('Navigator active item surface', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const railItem = (label: string) =>
+    const verticalItem = (label: string) =>
       screen
         .getAllByText(label)
         .map((el) => el.closest('[data-slot="navigator-item"]'))
-        .find((el) => el?.closest('[data-slot="navigator-rail"]'))
+        .find((el) =>
+          el?.closest(
+            '[data-slot="navigator-primary"][data-orientation="vertical"]'
+          )
+        )
 
-    expect(railItem('Tickets')).toHaveClass('text-strong')
-    expect(railItem('Tickets')).not.toHaveClass('intent-accent')
-    expect(railItem('Discover')).not.toHaveClass('emphasis-raised')
+    expect(verticalItem('Tickets')).toHaveClass('text-strong')
+    expect(verticalItem('Tickets')).not.toHaveClass('intent-accent')
+    expect(verticalItem('Discover')).not.toHaveClass('emphasis-raised')
     await flushViewportMeasurement()
   })
 
-  it('gives inactive rail items a subtle hover background', async () => {
+  it('gives inactive vertical items a subtle hover background', async () => {
     render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
@@ -1309,24 +1382,32 @@ describe('Navigator active item surface', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const railItem = (label: string) =>
+    const verticalItem = (label: string) =>
       screen
         .getAllByText(label)
         .map((el) => el.closest('[data-slot="navigator-item"]'))
-        .find((el) => el?.closest('[data-slot="navigator-rail"]'))
+        .find((el) =>
+          el?.closest(
+            '[data-slot="navigator-primary"][data-orientation="vertical"]'
+          )
+        )
 
-    expect(railItem('Discover')).toHaveClass('hover:bg-subtle')
-    expect(railItem('Tickets')).not.toHaveClass('hover:bg-subtle')
+    expect(verticalItem('Discover')).toHaveClass('hover:bg-subtle')
+    expect(verticalItem('Tickets')).not.toHaveClass('hover:bg-subtle')
     await flushViewportMeasurement()
   })
 })
 
 describe('Navigator active-state split', () => {
-  const railItem = (label: string) =>
+  const verticalItem = (label: string) =>
     screen
       .getAllByText(label)
       .map((el) => el.closest('[data-slot="navigator-item"]'))
-      .find((el) => el?.closest('[data-slot="navigator-rail"]'))
+      .find((el) =>
+        el?.closest(
+          '[data-slot="navigator-primary"][data-orientation="vertical"]'
+        )
+      )
 
   const nestedTree = (active: string) => (
     <Navigator value={active}>
@@ -1344,7 +1425,7 @@ describe('Navigator active-state split', () => {
 
   it('keeps the branch-active section flat, dark and bold — never raised or accent', async () => {
     render(nestedTree('button'))
-    const section = railItem('Components')
+    const section = verticalItem('Components')
     expect(section).toHaveClass('text-strong')
     expect(section).not.toHaveClass('intent-accent')
     expect(section).not.toHaveClass('emphasis-raised')
@@ -1353,7 +1434,7 @@ describe('Navigator active-state split', () => {
 
   it('raises the current sub-page neutrally with the accent bar on the tree-line', async () => {
     const { container } = render(nestedTree('button'))
-    const current = railItem('Button')
+    const current = verticalItem('Button')
     // Neutral raised pill — never accent-tinted, no item-level bar.
     expect(current).toHaveClass('text-strong')
     expect(current).not.toHaveClass('intent-accent')
@@ -1369,7 +1450,7 @@ describe('Navigator active-state split', () => {
     expect(secondary?.className).toContain(
       '[&_[data-slot=navigator-item][aria-current=page]]:before:bg-[var(--color-accent-9)]'
     )
-    expect(railItem('Card')).not.toHaveClass('emphasis-raised')
+    expect(verticalItem('Card')).not.toHaveClass('emphasis-raised')
     await flushViewportMeasurement()
   })
 
@@ -1382,7 +1463,7 @@ describe('Navigator active-state split', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const current = railItem('Tickets')
+    const current = verticalItem('Tickets')
     expect(current).toHaveClass('text-strong')
     expect(current).not.toHaveClass('intent-accent')
     // The current primary carries the accent-icon rule, never a left bar.
@@ -1392,7 +1473,7 @@ describe('Navigator active-state split', () => {
     expect(current?.className).not.toContain(
       'before:bg-[var(--color-accent-9)]'
     )
-    expect(railItem('Discover')).not.toHaveClass('emphasis-raised')
+    expect(verticalItem('Discover')).not.toHaveClass('emphasis-raised')
     await flushViewportMeasurement()
   })
 })
@@ -1430,8 +1511,10 @@ describe('overflow state', () => {
 })
 
 describe('Navigator mobile tab bar', () => {
-  const tabBarOf = (container: HTMLElement) =>
-    container.querySelector<HTMLElement>('[data-slot="navigator-tab-bar"]')
+  const horizontalOf = (container: HTMLElement) =>
+    container.querySelector<HTMLElement>(
+      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+    )
 
   const sixItemsAndEnd = (
     <Navigator value='events'>
@@ -1449,7 +1532,7 @@ describe('Navigator mobile tab bar', () => {
     </Navigator>
   )
 
-  it('names the tab bar distinctly from the rail', async () => {
+  it('names the horizontal navigation distinctly from the vertical', async () => {
     render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
@@ -1472,7 +1555,7 @@ describe('Navigator mobile tab bar', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const bar = tabBarOf(container)
+    const bar = horizontalOf(container)
     expect(bar).toHaveClass('max-md:absolute')
     expect(bar).toHaveClass('md:hidden')
     await flushViewportMeasurement()
@@ -1487,7 +1570,7 @@ describe('Navigator mobile tab bar', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const bar = within(tabBarOf(container) as HTMLElement)
+    const bar = within(horizontalOf(container) as HTMLElement)
     expect(bar.getAllByRole('button')).toHaveLength(2)
     expect(bar.getByText('Discover')).toBeTruthy()
     expect(bar.getByText('Tickets')).toBeTruthy()
@@ -1503,7 +1586,7 @@ describe('Navigator mobile tab bar', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const bar = within(tabBarOf(container) as HTMLElement)
+    const bar = within(horizontalOf(container) as HTMLElement)
     expect(bar.getByRole('button', { name: 'Tickets' })).toHaveAttribute(
       'aria-current',
       'page'
@@ -1529,7 +1612,7 @@ describe('Navigator mobile tab bar', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const bar = within(tabBarOf(container) as HTMLElement)
+    const bar = within(horizontalOf(container) as HTMLElement)
     expect(bar.getByRole('link', { name: 'Foundations' })).toHaveAttribute(
       'aria-current',
       'true'
@@ -1539,7 +1622,7 @@ describe('Navigator mobile tab bar', () => {
 
   it('folds the tail into a final More tab', async () => {
     const { container } = render(sixItemsAndEnd)
-    const bar = within(tabBarOf(container) as HTMLElement)
+    const bar = within(horizontalOf(container) as HTMLElement)
     expect(bar.getAllByRole('button')).toHaveLength(5)
     expect(bar.queryByText('E')).toBeNull()
     expect(bar.getByRole('button', { name: 'More' })).toBeTruthy()
@@ -1548,13 +1631,13 @@ describe('Navigator mobile tab bar', () => {
 
   it('gives the generated More tab an icon like every other tab', async () => {
     const { container } = render(sixItemsAndEnd)
-    const bar = within(tabBarOf(container) as HTMLElement)
+    const bar = within(horizontalOf(container) as HTMLElement)
     const more = bar.getByRole('button', { name: 'More' })
     expect(more.querySelector('svg')).toBeTruthy()
     await flushViewportMeasurement()
   })
 
-  it('discloses, rather than links, when declared tabs leave one rail item unnamed', async () => {
+  it('discloses, rather than links, when declared tabs leave one item unnamed', async () => {
     const { container } = render(
       <Navigator value='a'>
         <Navigator.Primary aria-label='Primary' tabs={['a', 'c']}>
@@ -1570,7 +1653,7 @@ describe('Navigator mobile tab bar', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const bar = within(tabBarOf(container) as HTMLElement)
+    const bar = within(horizontalOf(container) as HTMLElement)
     const disclosure = bar.getByRole('button', { name: 'More' })
     expect(disclosure).toHaveAttribute('aria-expanded', 'false')
     await flushViewportMeasurement()
@@ -1585,7 +1668,7 @@ describe('Navigator mobile tab bar', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const bar = within(tabBarOf(container) as HTMLElement)
+    const bar = within(horizontalOf(container) as HTMLElement)
     expect(bar.queryByRole('button', { name: 'More' })).toBeNull()
     expect(bar.getAllByRole('button')).toHaveLength(2)
     await flushViewportMeasurement()
@@ -1604,7 +1687,7 @@ describe('Navigator mobile tab bar', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const bar = within(tabBarOf(container) as HTMLElement)
+    const bar = within(horizontalOf(container) as HTMLElement)
     const active = bar
       .getByRole('button', { name: 'Tickets' })
       .querySelector('[data-testid="fake-icon"]')
@@ -1629,7 +1712,7 @@ describe('Navigator mobile tab bar', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const tabIcon = within(tabBarOf(container) as HTMLElement)
+    const tabIcon = within(horizontalOf(container) as HTMLElement)
       .getByRole('button', { name: 'Tickets' })
       .querySelector('[data-testid="fake-icon"]')
     // The sole item defaults to active, so its icon also carries the bounce
@@ -1648,7 +1731,7 @@ describe('Navigator mobile tab bar', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const bar = within(tabBarOf(container) as HTMLElement)
+    const bar = within(horizontalOf(container) as HTMLElement)
     expect(bar.getByRole('link', { name: 'Tickets' })).toHaveAttribute(
       'href',
       '/tickets'
@@ -1672,7 +1755,7 @@ describe('Navigator mobile tab bar', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const bar = within(tabBarOf(container) as HTMLElement)
+    const bar = within(horizontalOf(container) as HTMLElement)
     expect(bar.getByRole('button', { name: 'More' })).toHaveAttribute(
       'aria-current',
       'true'
@@ -1693,7 +1776,7 @@ describe('Navigator mobile tab bar', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const bar = within(tabBarOf(container) as HTMLElement)
+    const bar = within(horizontalOf(container) as HTMLElement)
     const routeTab = bar.getByRole('button', { name: 'A' })
     const disclosure = bar.getByRole('button', { name: 'More' })
 
@@ -1723,7 +1806,7 @@ describe('Navigator mobile tab bar', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const bar = tabBarOf(container) as HTMLElement
+    const bar = horizontalOf(container) as HTMLElement
     const disclosure = within(bar).getByRole('button', { name: 'More' })
 
     expect(bar.querySelectorAll('[aria-current]')).toHaveLength(1)
@@ -1751,7 +1834,7 @@ describe('Navigator mobile tab bar', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const bar = tabBarOf(container) as HTMLElement
+    const bar = horizontalOf(container) as HTMLElement
     const routeTab = within(bar).getByRole('button', { name: 'Tickets' })
     const panelTab = within(bar).getByRole('button', { name: 'Account' })
 
@@ -1800,7 +1883,7 @@ describe('Navigator mobile tab bar', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
-    const bar = tabBarOf(container) as HTMLElement
+    const bar = horizontalOf(container) as HTMLElement
     const disclosure = within(bar).getByRole('button', { name: 'More' })
     const panelTab = within(bar).getByRole('button', { name: 'Account' })
 
@@ -1834,7 +1917,7 @@ describe('Navigator mobile tab bar', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
-    const bar = tabBarOf(container) as HTMLElement
+    const bar = horizontalOf(container) as HTMLElement
     const soleFolded = within(bar).getByRole('button', { name: 'X' })
     const panelTab = within(bar).getByRole('button', { name: 'Account' })
 
@@ -2070,7 +2153,7 @@ describe('Navigator.Overflow', () => {
     warn.mockRestore()
   })
 
-  it('gives a folded destination aria-current=page, matching the rail and tab bar', async () => {
+  it('gives a folded destination aria-current=page, matching both orientations', async () => {
     render(overflowNav('/e'))
     await flushViewportMeasurement()
     await userEvent.click(screen.getByRole('button', { name: /More/ }))
@@ -2108,7 +2191,7 @@ describe('Navigator.Overflow', () => {
   // floating overflow pane — restored against the full-screen `Pane`, or (one
   // of them) retired outright. See task-5-report.md for the full mapping.
 
-  it('lists folded rail items and End contents together, excluding a kept tab', async () => {
+  it('lists folded items and End contents together, excluding a kept tab', async () => {
     render(
       <Navigator value='a'>
         <Navigator.Primary aria-label='Primary'>
@@ -2217,7 +2300,7 @@ describe('Navigator sliding indicator', () => {
     const { container } = render(tree('tickets'))
 
     const indicator = container.querySelector(
-      '[data-slot="navigator-tab-bar"] [data-slot="navigator-indicator"]'
+      '[data-slot="navigator-primary"][data-orientation="horizontal"] [data-slot="navigator-indicator"]'
     )
 
     expect(indicator).toBeInTheDocument()
@@ -2242,7 +2325,7 @@ describe('Navigator sliding indicator', () => {
     const { container } = render(tree('tickets'))
 
     const indicator = container.querySelector(
-      '[data-slot="navigator-tab-bar"] [data-slot="navigator-indicator"]'
+      '[data-slot="navigator-primary"][data-orientation="horizontal"] [data-slot="navigator-indicator"]'
     )!
 
     expect(indicator.className).toContain('bg-[var(--intent-bg-subtle)]')
@@ -2256,7 +2339,7 @@ describe('Navigator sliding indicator', () => {
     const { container } = render(tree('tickets'))
 
     const indicator = container.querySelector(
-      '[data-slot="navigator-tab-bar"] [data-slot="navigator-indicator"]'
+      '[data-slot="navigator-primary"][data-orientation="horizontal"] [data-slot="navigator-indicator"]'
     )!
 
     expect(indicator).toHaveAttribute('data-ready', 'false')
@@ -2269,7 +2352,7 @@ describe('Navigator sliding indicator', () => {
     await flushViewportMeasurement()
 
     const indicator = container.querySelector(
-      '[data-slot="navigator-tab-bar"] [data-slot="navigator-indicator"]'
+      '[data-slot="navigator-primary"][data-orientation="horizontal"] [data-slot="navigator-indicator"]'
     )!
     const transitions =
       indicator.className.match(/transition-\[[^\]]+\]/g) ?? []
@@ -2345,11 +2428,11 @@ describe('Navigator sliding indicator', () => {
     </Navigator>
   )
 
-  it('renders a sliding indicator in the rail', async () => {
+  it('renders a sliding indicator in the vertical navigation', async () => {
     const { container } = render(tree('tickets'))
 
     const indicator = container.querySelector(
-      '[data-slot="navigator-rail"] [data-slot="navigator-indicator"]'
+      '[data-slot="navigator-primary"][data-orientation="vertical"] [data-slot="navigator-indicator"]'
     )
 
     expect(indicator).toBeInTheDocument()
@@ -2358,11 +2441,11 @@ describe('Navigator sliding indicator', () => {
     await flushViewportMeasurement()
   })
 
-  it('leaves the nested sub-page as the sole aria-current element in the rail', async () => {
+  it('leaves the nested sub-page as the sole aria-current element in the vertical navigation', async () => {
     const { container } = render(nestedTree('button'))
 
     const current = container.querySelectorAll(
-      '[data-slot="navigator-rail"] [aria-current]'
+      '[data-slot="navigator-primary"][data-orientation="vertical"] [aria-current]'
     )
 
     expect(current).toHaveLength(1)
@@ -2371,12 +2454,12 @@ describe('Navigator sliding indicator', () => {
     await flushViewportMeasurement()
   })
 
-  it('mounts one indicator per rail, not one per nested group', async () => {
+  it('mounts one vertical indicator, not one per nested group', async () => {
     const { container } = render(nestedTree('button'))
 
     expect(
       container.querySelectorAll(
-        '[data-slot="navigator-rail"] [data-slot="navigator-indicator"]'
+        '[data-slot="navigator-primary"][data-orientation="vertical"] [data-slot="navigator-indicator"]'
       )
     ).toHaveLength(1)
     await flushViewportMeasurement()
@@ -2578,9 +2661,11 @@ describe('Navigator.Secondary', () => {
 
   it('nests inside its own primary item, immediately after it', async () => {
     const { container } = render(tree('events'))
-    const rail = container.querySelector('[data-slot="navigator-rail"]')
-    const nested = rail?.querySelector('[data-slot="navigator-secondary"]')
-    const parentItem = within(rail as HTMLElement)
+    const vertical = container.querySelector(
+      '[data-slot="navigator-primary"][data-orientation="vertical"]'
+    )
+    const nested = vertical?.querySelector('[data-slot="navigator-secondary"]')
+    const parentItem = within(vertical as HTMLElement)
       .getByText('Events')
       .closest('[data-slot="navigator-item"]')
     const owningLi = parentItem?.closest('li')
@@ -2605,7 +2690,7 @@ describe('Navigator.Secondary', () => {
     await flushViewportMeasurement()
   })
 
-  it('forwards className to the nested rail', async () => {
+  it('forwards className to the nested secondary', async () => {
     const { container } = render(
       <Navigator value='events'>
         <Navigator.Primary aria-label='Primary'>
@@ -2729,23 +2814,24 @@ describe('Navigator.Secondary', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    // Scoped to the rail — Navigator.Primary also renders a mobile tab bar
-    // with its own 'Components' link, which jsdom renders unconditionally.
-    const rail = within(
-      container.querySelector('[data-slot="navigator-rail"]') as HTMLElement
+    // jsdom renders both orientations, each with a 'Components' link.
+    const vertical = within(
+      container.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="vertical"]'
+      ) as HTMLElement
     )
 
     // The section is branch-active only if the walk saw the grouped child.
-    expect(rail.getByRole('link', { name: /Components/ })).toHaveClass(
+    expect(vertical.getByRole('link', { name: /Components/ })).toHaveClass(
       'text-strong'
     )
-    expect(rail.getByRole('link', { name: 'Button' })).toHaveAttribute(
+    expect(vertical.getByRole('link', { name: 'Button' })).toHaveAttribute(
       'aria-current',
       'page'
     )
   })
 
-  it('renders a group label in the rail', () => {
+  it('renders a group label in the vertical navigation', () => {
     render(
       <Navigator value='/components/button'>
         <Navigator.Primary aria-label='Docs'>
@@ -2771,7 +2857,7 @@ describe('Navigator.Secondary', () => {
   })
 })
 
-describe('rail list semantics', () => {
+describe('vertical list semantics', () => {
   it('wraps loose primary items in a list', async () => {
     render(
       <Navigator value='/a'>
@@ -2787,8 +2873,10 @@ describe('rail list semantics', () => {
     )
     await flushViewportMeasurement()
 
-    const rail = document.querySelector('[data-slot="navigator-rail"]')!
-    const list = rail.querySelector('ul')!
+    const vertical = document.querySelector(
+      '[data-slot="navigator-primary"][data-orientation="vertical"]'
+    )!
+    const list = vertical.querySelector('ul')!
     expect(list.children).toHaveLength(2)
     expect(Array.from(list.children).every((li) => li.tagName === 'LI')).toBe(
       true
@@ -2812,8 +2900,12 @@ describe('rail list semantics', () => {
     )
     await flushViewportMeasurement()
 
-    const rail = document.querySelector('[data-slot="navigator-rail"]')!
-    const secondary = rail.querySelector('[data-slot="navigator-secondary"]')!
+    const vertical = document.querySelector(
+      '[data-slot="navigator-primary"][data-orientation="vertical"]'
+    )!
+    const secondary = vertical.querySelector(
+      '[data-slot="navigator-secondary"]'
+    )!
     const owningItem = secondary.closest('li')!
     expect(owningItem.querySelector('a[href="/events"]')).not.toBeNull()
     expect(
@@ -2847,7 +2939,7 @@ describe('Navigator.Group', () => {
     error.mockRestore()
   })
 
-  it('associates its list with its title in the rail', async () => {
+  it('associates its list with its title in the vertical navigation', async () => {
     render(
       <Navigator value='/events'>
         <Navigator.Primary aria-label='Main'>
@@ -2973,7 +3065,7 @@ describe('Navigator.Primary group descent', () => {
     )
     await flushViewportMeasurement()
     const tabBar = document.querySelector(
-      '[data-slot="navigator-tab-bar"]'
+      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
     ) as HTMLElement
     expect(within(tabBar).getByRole('link', { name: 'A' })).toBeInTheDocument()
   })
@@ -3030,30 +3122,32 @@ describe('Navigator.Panel', () => {
     </Navigator>
   )
 
-  // The mobile tab bar (Task 7's below-`md` presentation) folds the same
-  // End item into a final tab labelled identically — scoped to the rail so
-  // that unrelated surface isn't what these assertions are about.
-  const railOf = (container: HTMLElement) =>
+  // The horizontal form folds the same End item into an identically labelled tab.
+  const verticalOf = (container: HTMLElement) =>
     within(
-      container.querySelector('[data-slot="navigator-rail"]') as HTMLElement
+      container.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="vertical"]'
+      ) as HTMLElement
     )
 
-  it('makes the rail row a disclosure, not a link', async () => {
+  it('makes the vertical row a disclosure, not a link', async () => {
     const { container } = render(withPanel)
     await flushViewportMeasurement()
-    const row = railOf(container).getByRole('button', { name: 'Jordan Lee' })
+    const row = verticalOf(container).getByRole('button', {
+      name: 'Jordan Lee'
+    })
     expect(row).toHaveAttribute('aria-haspopup')
     expect(row).toHaveAttribute('aria-expanded', 'false')
     expect(
-      railOf(container).queryByRole('link', { name: 'Jordan Lee' })
+      verticalOf(container).queryByRole('link', { name: 'Jordan Lee' })
     ).toBeNull()
   })
 
-  it('opens the panel content on the rail row', async () => {
+  it('opens the panel content on the vertical row', async () => {
     const { container } = render(withPanel)
     await flushViewportMeasurement()
     await userEvent.click(
-      railOf(container).getByRole('button', { name: 'Jordan Lee' })
+      verticalOf(container).getByRole('button', { name: 'Jordan Lee' })
     )
     expect(await screen.findByText('Log out')).toBeInTheDocument()
   })
@@ -3073,17 +3167,19 @@ describe('Navigator.Panel', () => {
     )
     await flushViewportMeasurement()
     expect(
-      railOf(container).queryByRole('link', { name: 'Account' })
+      verticalOf(container).queryByRole('link', { name: 'Account' })
     ).toBeNull()
     expect(
-      railOf(container).getByRole('button', { name: 'Account' })
+      verticalOf(container).getByRole('button', { name: 'Account' })
     ).toBeInTheDocument()
   })
 
   it('keeps the panel out of the row label', async () => {
     const { container } = render(withPanel)
     await flushViewportMeasurement()
-    const row = railOf(container).getByRole('button', { name: 'Jordan Lee' })
+    const row = verticalOf(container).getByRole('button', {
+      name: 'Jordan Lee'
+    })
     expect(row.textContent).toBe('Jordan Lee')
   })
 })
@@ -3118,7 +3214,9 @@ describe('Navigator.Panel below md', () => {
   )
 
   const tabBar = () =>
-    document.querySelector('[data-slot="navigator-tab-bar"]') as HTMLElement
+    document.querySelector(
+      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+    ) as HTMLElement
 
   it('gives the panel item a tab', async () => {
     render(nav())
@@ -3266,13 +3364,17 @@ describe('Navigator.Panel below md', () => {
 })
 
 describe('Navigator.Panel + Navigator.Secondary precedence', () => {
-  const railOf = (container: HTMLElement) =>
+  const verticalOf = (container: HTMLElement) =>
     within(
-      container.querySelector('[data-slot="navigator-rail"]') as HTMLElement
+      container.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="vertical"]'
+      ) as HTMLElement
     )
-  const tabBarOf = (container: HTMLElement) =>
+  const horizontalOf = (container: HTMLElement) =>
     within(
-      container.querySelector('[data-slot="navigator-tab-bar"]') as HTMLElement
+      container.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      ) as HTMLElement
     )
 
   const withBoth = (active: string) => (
@@ -3298,20 +3400,20 @@ describe('Navigator.Panel + Navigator.Secondary precedence', () => {
     await flushViewportMeasurement()
     // The section delegates to its first sub-page, so it's a link, not a
     // disclosure button — that's the point: no popover took over the row.
-    const row = railOf(container).getByRole('link', { name: 'A' })
+    const row = verticalOf(container).getByRole('link', { name: 'A' })
     expect(row.querySelector('svg')).toBeTruthy()
     expect(row).not.toHaveAttribute('aria-haspopup')
-    expect(railOf(container).queryByText('Menu')).toBeNull()
+    expect(verticalOf(container).queryByText('Menu')).toBeNull()
   })
 
   it('keeps the declared sub-pages reachable', async () => {
     const { container } = render(withBoth('/a/sub'))
     await flushViewportMeasurement()
     expect(
-      railOf(container).getByRole('link', { name: 'Sub' })
+      verticalOf(container).getByRole('link', { name: 'Sub' })
     ).toBeInTheDocument()
     expect(
-      tabBarOf(container).getByRole('link', { name: 'A' })
+      horizontalOf(container).getByRole('link', { name: 'A' })
     ).toHaveAttribute('href', '/a/sub')
   })
 
@@ -3346,17 +3448,21 @@ describe('Navigator descendant-aware active matching', () => {
     </Navigator>
   )
 
-  const railItem = (label: string) =>
+  const verticalItem = (label: string) =>
     screen
       .getAllByText(label)
       .map((el) => el.closest('[data-slot="navigator-item"]'))
-      .find((el) => el?.closest('[data-slot="navigator-rail"]'))
+      .find((el) =>
+        el?.closest(
+          '[data-slot="navigator-primary"][data-orientation="vertical"]'
+        )
+      )
 
   it('marks a section branch-active when a Secondary descendant is current', async () => {
     render(tree('button'))
     // Branch-active section reads dark and bold and reveals its children.
-    expect(railItem('Components')).toHaveClass('text-strong')
-    expect(railItem('Components')).not.toHaveClass('intent-accent')
+    expect(verticalItem('Components')).toHaveClass('text-strong')
+    expect(verticalItem('Components')).not.toHaveClass('intent-accent')
     expect(
       screen.getByRole('navigation', { name: 'Components pages' })
     ).toBeInTheDocument()
@@ -3364,16 +3470,13 @@ describe('Navigator descendant-aware active matching', () => {
   })
 
   it('keeps a section reading current on a sub-route no Secondary declares', async () => {
-    // `components/settings` sits under the section but is not one of its
-    // declared destinations, so nothing below it is lit — the section would
-    // otherwise drop to a flat header and the rail would read as though
-    // nowhere is selected. Treatment only: `aria-current` stays exact.
+    // Treatment only: `aria-current` stays exact.
     render(tree('components/settings'))
-    const section = railItem('Components')
+    const section = verticalItem('Components')
     // `data-current` is what the sliding pill measures, so this is the
     // assertion that the section actually reads as selected.
     expect(section).toHaveAttribute('data-current')
-    expect(railItem('Button')).not.toHaveAttribute('data-current')
+    expect(verticalItem('Button')).not.toHaveAttribute('data-current')
     // ...while the announcement stays with the exact page, i.e. nowhere here.
     expect(section).not.toHaveAttribute('aria-current')
     await flushViewportMeasurement()
@@ -3382,24 +3485,26 @@ describe('Navigator descendant-aware active matching', () => {
   it('hands currency to a Secondary destination when one is active', async () => {
     // Exactly one item may carry the pill, or the indicator has two targets.
     render(tree('button'))
-    expect(railItem('Button')).toHaveAttribute('data-current')
-    expect(railItem('Components')).not.toHaveAttribute('data-current')
-    expect(railItem('Button')).toHaveAttribute('aria-current', 'page')
-    expect(railItem('Components')).not.toHaveAttribute('aria-current')
+    expect(verticalItem('Button')).toHaveAttribute('data-current')
+    expect(verticalItem('Components')).not.toHaveAttribute('data-current')
+    expect(verticalItem('Button')).toHaveAttribute('aria-current', 'page')
+    expect(verticalItem('Components')).not.toHaveAttribute('aria-current')
     await flushViewportMeasurement()
   })
 
   it('gives aria-current to the exact descendant, not the branch section', async () => {
     render(tree('button'))
-    expect(railItem('Button')).toHaveAttribute('aria-current', 'page')
-    expect(railItem('Components')).not.toHaveAttribute('aria-current')
+    expect(verticalItem('Button')).toHaveAttribute('aria-current', 'page')
+    expect(verticalItem('Components')).not.toHaveAttribute('aria-current')
     await flushViewportMeasurement()
   })
 
   it('marks the section mobile tab active when a descendant is current', async () => {
     const { container } = render(tree('button'))
     const bar = within(
-      container.querySelector('[data-slot="navigator-tab-bar"]') as HTMLElement
+      container.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      ) as HTMLElement
     )
     expect(bar.getByRole('button', { name: 'Components' })).toHaveClass(
       'intent-accent'
@@ -3412,7 +3517,7 @@ describe('Navigator descendant-aware active matching', () => {
 
   it('leaves a sibling section whose subtree lacks the active value inactive', async () => {
     render(tree('button'))
-    expect(railItem('Foundations')).not.toHaveClass('intent-accent')
+    expect(verticalItem('Foundations')).not.toHaveClass('intent-accent')
     expect(
       screen.queryByRole('navigation', { name: 'Foundations pages' })
     ).toBeNull()
@@ -3422,10 +3527,6 @@ describe('Navigator descendant-aware active matching', () => {
 })
 
 describe('Navigator route-prefix section matching', () => {
-  // A section whose sub-pages live in a `Pane` of its own declares no
-  // `Navigator.Secondary` at all, so its sub-routes are values the rail can
-  // never match by equality. Prefix matching is what keeps the rail and the
-  // tab bar lit on them.
   const paneSectionTree = (value: string) => (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Docs'>
@@ -3445,25 +3546,31 @@ describe('Navigator route-prefix section matching', () => {
     </Navigator>
   )
 
-  const railItem = (label: string) =>
+  const verticalItem = (label: string) =>
     screen
       .getAllByText(label)
       .map((el) => el.closest('[data-slot="navigator-item"]'))
-      .find((el) => el?.closest('[data-slot="navigator-rail"]'))
+      .find((el) =>
+        el?.closest(
+          '[data-slot="navigator-primary"][data-orientation="vertical"]'
+        )
+      )
 
   it('keeps an undeclared sub-route branch-active on its section', async () => {
     render(paneSectionTree('/components/forms'))
     await flushViewportMeasurement()
 
-    expect(railItem('Components')).toHaveClass('text-strong')
-    expect(railItem('Tokens')).not.toHaveClass('text-strong')
+    expect(verticalItem('Components')).toHaveClass('text-strong')
+    expect(verticalItem('Tokens')).not.toHaveClass('text-strong')
   })
 
   it('marks the section tab active on an undeclared sub-route', async () => {
     const { container } = render(paneSectionTree('/components/forms'))
     await flushViewportMeasurement()
     const bar = within(
-      container.querySelector('[data-slot="navigator-tab-bar"]') as HTMLElement
+      container.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      ) as HTMLElement
     )
 
     expect(bar.getByRole('link', { name: 'Components' })).toHaveClass(
@@ -3477,10 +3584,10 @@ describe('Navigator route-prefix section matching', () => {
     render(paneSectionTree('/components/forms'))
     await flushViewportMeasurement()
 
-    expect(railItem('Components')).not.toHaveAttribute('aria-current')
+    expect(verticalItem('Components')).not.toHaveAttribute('aria-current')
   })
 
-  const railSectionTree = (value: string) => (
+  const verticalSectionTree = (value: string) => (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Docs'>
         <Navigator.Item value='/foundations' href='/foundations'>
@@ -3501,21 +3608,21 @@ describe('Navigator route-prefix section matching', () => {
     </Navigator>
   )
 
-  it('reveals a rail section on an undeclared sub-route too', async () => {
-    render(railSectionTree('/foundations/undeclared'))
+  it('reveals a vertical section on an undeclared sub-route too', async () => {
+    render(verticalSectionTree('/foundations/undeclared'))
     await flushViewportMeasurement()
 
-    expect(railItem('Foundations')).toHaveClass('text-strong')
+    expect(verticalItem('Foundations')).toHaveClass('text-strong')
     expect(
       screen.getByRole('navigation', { name: 'Foundations pages' })
     ).toBeInTheDocument()
   })
 
   it('does not match a sibling whose value is only a string prefix', async () => {
-    render(railSectionTree('/tokens-legacy'))
+    render(verticalSectionTree('/tokens-legacy'))
     await flushViewportMeasurement()
 
-    expect(railItem('Tokens')).not.toHaveClass('text-strong')
+    expect(verticalItem('Tokens')).not.toHaveClass('text-strong')
   })
 })
 
@@ -3557,8 +3664,10 @@ describe('Navigator.Primary direct-children warning', () => {
 })
 
 describe('Navigator collapsed edge circles', () => {
-  const tabBarOf = (container: HTMLElement) =>
-    container.querySelector<HTMLElement>('[data-slot="navigator-tab-bar"]')
+  const horizontalOf = (container: HTMLElement) =>
+    container.querySelector<HTMLElement>(
+      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+    )
 
   // The pane's scroll container is ScrollArea's viewport, not the <section>.
   const scrollerOf = (root: Document | HTMLElement) =>
@@ -3606,7 +3715,7 @@ describe('Navigator collapsed edge circles', () => {
   it('floats the active tab as a left circle and the final tab as a right circle', async () => {
     const { container } = render(barTree('a'))
     await collapse(container)
-    const bar = within(tabBarOf(container) as HTMLElement)
+    const bar = within(horizontalOf(container) as HTMLElement)
 
     const active = bar.getByRole('button', { name: 'A' })
     const final = bar.getByRole('button', { name: 'Account' })
@@ -3620,7 +3729,7 @@ describe('Navigator collapsed edge circles', () => {
   it('scales the non-edge tabs away but keeps them in the AT tree', async () => {
     const { container } = render(barTree('a'))
     await collapse(container)
-    const bar = within(tabBarOf(container) as HTMLElement)
+    const bar = within(horizontalOf(container) as HTMLElement)
 
     // Every destination is still reachable — no display:none, nothing unmounted.
     expect(bar.getAllByRole('button')).toHaveLength(4)
@@ -3632,7 +3741,7 @@ describe('Navigator collapsed edge circles', () => {
   it('reserves an empty middle by translating the circles apart, not spacing them', async () => {
     const { container } = render(barTree('a'))
     await collapse(container)
-    const bar = tabBarOf(container) as HTMLElement
+    const bar = horizontalOf(container) as HTMLElement
 
     const sides = Array.from(
       bar.querySelectorAll('[data-circle-side]'),
@@ -3646,8 +3755,8 @@ describe('Navigator collapsed edge circles', () => {
 
   it('fades the pill surface out on collapse without moving the bar', async () => {
     const { container } = render(barTree('a'))
-    const bar = tabBarOf(container) as HTMLElement
-    const pill = bar.querySelector('[data-slot="navigator-tab-bar-pill"]')!
+    const bar = horizontalOf(container) as HTMLElement
+    const pill = bar.querySelector('[data-slot="navigator-primary-pill"]')!
     const barClasses = bar.className
 
     expect(pill).toHaveClass('emphasis-floating', 'opacity-100')
@@ -3664,7 +3773,7 @@ describe('Navigator collapsed edge circles', () => {
   it('puts the first tab on the left and the active End tab on the right when the End tab is active', async () => {
     const { container } = render(barTree('account'))
     await collapse(container)
-    const bar = within(tabBarOf(container) as HTMLElement)
+    const bar = within(horizontalOf(container) as HTMLElement)
 
     const first = bar.getByRole('button', { name: 'A' })
     const account = bar.getByRole('button', { name: 'Account' })
@@ -3681,7 +3790,7 @@ describe('Navigator collapsed edge circles', () => {
 
   it('reads the active tab in the vivid accent while expanded', async () => {
     const { container } = render(barTree('a'))
-    const bar = within(tabBarOf(container) as HTMLElement)
+    const bar = within(horizontalOf(container) as HTMLElement)
     const active = bar.getByRole('button', { name: 'A' })
     expect(active).toHaveClass('intent-accent', 'text-accent-11')
     expect(active.className).toContain('text-accent-11')
@@ -3691,7 +3800,7 @@ describe('Navigator collapsed edge circles', () => {
   it('hides the circle tab label so only the icon shows', async () => {
     const { container } = render(barTree('a'))
     await collapse(container)
-    const active = within(tabBarOf(container) as HTMLElement).getByRole(
+    const active = within(horizontalOf(container) as HTMLElement).getByRole(
       'button',
       { name: 'A' }
     )
@@ -3702,7 +3811,7 @@ describe('Navigator collapsed edge circles', () => {
   it('gives the collapsed active circle the accent icon but no accent pill', async () => {
     const { container } = render(barTree('a'))
     await collapse(container)
-    const active = within(tabBarOf(container) as HTMLElement).getByRole(
+    const active = within(horizontalOf(container) as HTMLElement).getByRole(
       'button',
       { name: 'A' }
     )
@@ -3719,7 +3828,7 @@ describe('Navigator collapsed edge circles', () => {
     // own index rather than being moved to a known one.
     const { container } = render(barTree('b'))
     await collapse(container)
-    const bar = tabBarOf(container)!
+    const bar = horizontalOf(container)!
 
     for (const tab of bar.querySelectorAll('[data-slot="navigator-item"]')) {
       expect(tab.className).not.toMatch(/(^|\s)-?order-/)
@@ -3727,7 +3836,7 @@ describe('Navigator collapsed edge circles', () => {
     // The active tab is the second of four, and it stays the second.
     const left = bar.querySelector('[data-circle-side="left"]')!
     expect(left).toHaveAccessibleName('B')
-    expect(left.getAttribute('style')).toContain('--navigator-tab-index: 1')
+    expect(left.getAttribute('style')).toContain('--navigator-primary-index: 1')
     await flushViewportMeasurement()
   })
 
@@ -3738,16 +3847,16 @@ describe('Navigator collapsed edge circles', () => {
     // the sides correctly and dropped these would otherwise pass everything.
     const { container } = render(barTree('b'))
     await collapse(container)
-    const bar = tabBarOf(container)!
+    const bar = horizontalOf(container)!
 
     const left = bar.querySelector('[data-circle-side="left"]')!
     const right = bar.querySelector('[data-circle-side="right"]')!
 
     expect(left).toHaveClass(
-      '-translate-x-[calc(var(--navigator-tab-index)_*_var(--navigator-tab-col)_+_var(--navigator-tab-edge))]'
+      '-translate-x-[calc(var(--navigator-primary-index)_*_var(--navigator-primary-col)_+_var(--navigator-primary-edge))]'
     )
     expect(right).toHaveClass(
-      'translate-x-[calc((var(--navigator-tab-count)_-_1_-_var(--navigator-tab-index))_*_var(--navigator-tab-col)_+_var(--navigator-tab-edge))]'
+      'translate-x-[calc((var(--navigator-primary-count)_-_1_-_var(--navigator-primary-index))_*_var(--navigator-primary-col)_+_var(--navigator-primary-edge))]'
     )
     // Both descend to the bar's bottom edge rather than the row shortening.
     expect(left).toHaveClass('translate-y-1', 'self-end')
@@ -3763,8 +3872,8 @@ describe('Navigator collapsed edge circles', () => {
     // vertical padding. Height itself is measured in the browser probe; jsdom
     // reports zero for everything.
     const { container } = render(barTree('a'))
-    const bar = tabBarOf(container)!
-    const track = bar.querySelector('[data-slot="navigator-tab-bar-track"]')!
+    const bar = horizontalOf(container)!
+    const track = bar.querySelector('[data-slot="navigator-primary-track"]')!
     expect(track).toHaveClass('py-1')
 
     const expandedTab = bar.querySelector('[data-slot="navigator-item"]')!
@@ -3789,7 +3898,7 @@ describe('Navigator collapsed edge circles', () => {
     const { container } = render(barTree('a'))
     await collapse(container)
 
-    const bar = tabBarOf(container)!
+    const bar = horizontalOf(container)!
     expect(bar).toHaveClass('pointer-events-none')
     const circles = bar.querySelectorAll('[data-circle-side]')
     expect(circles).toHaveLength(2)
@@ -3808,9 +3917,9 @@ describe('Navigator collapsed edge circles', () => {
     const { container } = render(barTree('a'))
     await flushViewportMeasurement()
 
-    const bar = tabBarOf(container)!
+    const bar = horizontalOf(container)!
     expect(bar).toHaveClass('pointer-events-none')
-    const track = bar.querySelector('[data-slot="navigator-tab-bar-track"]')!
+    const track = bar.querySelector('[data-slot="navigator-primary-track"]')!
     expect(track).toHaveClass('pointer-events-auto')
   })
 
@@ -3818,7 +3927,7 @@ describe('Navigator collapsed edge circles', () => {
     const { container } = render(barTree('a'))
     await collapse(container)
 
-    const hidden = tabBarOf(container)!.querySelector(
+    const hidden = horizontalOf(container)!.querySelector(
       '[data-slot="navigator-item"]:not([data-circle-side])'
     )!
     expect(hidden).toHaveClass('scale-0', 'opacity-0')
@@ -3833,7 +3942,7 @@ describe('Navigator collapsed edge circles', () => {
     const { container } = render(barTree('a'))
     await collapse(container)
 
-    const bar = tabBarOf(container)!
+    const bar = horizontalOf(container)!
     const banned = ['padding', 'max-width', 'width', 'height', 'left', 'top']
     const classes = [
       bar.className,
@@ -3857,7 +3966,7 @@ describe('Navigator collapsed edge circles', () => {
     const pane = await collapse(container)
     const scrollToSpy = vi.fn()
     pane.scrollTo = scrollToSpy
-    const bar = tabBarOf(container) as HTMLElement
+    const bar = horizontalOf(container) as HTMLElement
     expect(bar).toHaveAttribute('data-collapsed', 'true')
 
     await userEvent.click(within(bar).getByRole('button', { name: 'A' }))
@@ -3870,7 +3979,7 @@ describe('Navigator collapsed edge circles', () => {
   it('stays expanded while the pane is still scrolled after reopening', async () => {
     const { container } = render(barTree('a'))
     const pane = await collapse(container)
-    const bar = tabBarOf(container) as HTMLElement
+    const bar = horizontalOf(container) as HTMLElement
     await userEvent.click(within(bar).getByRole('button', { name: 'A' }))
 
     // A further scroll-sync at the same still-scrolled position keeps it open.
@@ -3881,7 +3990,7 @@ describe('Navigator collapsed edge circles', () => {
   it('re-collapses when the user scrolls down again after reopening', async () => {
     const { container } = render(barTree('a'))
     const pane = await collapse(container)
-    const bar = tabBarOf(container) as HTMLElement
+    const bar = horizontalOf(container) as HTMLElement
     await userEvent.click(within(bar).getByRole('button', { name: 'A' }))
     expect(bar).toHaveAttribute('data-collapsed', 'false')
 
@@ -3895,7 +4004,7 @@ describe('Navigator collapsed edge circles', () => {
     const pane = scrollerOf(container)
     const scrollToSpy = vi.fn()
     pane.scrollTo = scrollToSpy
-    const bar = within(tabBarOf(container) as HTMLElement)
+    const bar = within(horizontalOf(container) as HTMLElement)
 
     await userEvent.click(bar.getByRole('button', { name: 'A' }))
 
@@ -3908,7 +4017,7 @@ describe('Navigator collapsed edge circles', () => {
   it('reopens on the active End circle when it sits on the right', async () => {
     const { container } = render(barTree('account'))
     await collapse(container)
-    const bar = tabBarOf(container) as HTMLElement
+    const bar = horizontalOf(container) as HTMLElement
 
     await userEvent.click(within(bar).getByRole('button', { name: 'Account' }))
     expect(bar).toHaveAttribute('data-collapsed', 'false')
@@ -3919,7 +4028,7 @@ describe('Navigator collapsed edge circles', () => {
     const { container } = render(barTree('a', onValueChange))
     await collapse(container)
 
-    const bar = within(tabBarOf(container) as HTMLElement)
+    const bar = within(horizontalOf(container) as HTMLElement)
     await userEvent.click(bar.getByRole('button', { name: 'Account' }))
 
     expect(onValueChange).toHaveBeenCalledWith('account')
@@ -3927,8 +4036,10 @@ describe('Navigator collapsed edge circles', () => {
 })
 
 describe('Navigator active-tab tap: scroll-on-landing vs navigate-up', () => {
-  const tabBarOf = (container: HTMLElement) =>
-    container.querySelector<HTMLElement>('[data-slot="navigator-tab-bar"]')
+  const horizontalOf = (container: HTMLElement) =>
+    container.querySelector<HTMLElement>(
+      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+    )
 
   // The pane's scroll container is ScrollArea's viewport, not the <section>.
   const scrollerOf = (root: Document | HTMLElement) =>
@@ -3974,7 +4085,7 @@ describe('Navigator active-tab tap: scroll-on-landing vs navigate-up', () => {
     const onValueChange = vi.fn()
     const { container } = render(sectionTree('/components', onValueChange))
     const scrollTo = paneScrollSpy(container)
-    const bar = within(tabBarOf(container) as HTMLElement)
+    const bar = within(horizontalOf(container) as HTMLElement)
 
     await userEvent.click(bar.getByRole('link', { name: 'Components' }))
 
@@ -3988,7 +4099,7 @@ describe('Navigator active-tab tap: scroll-on-landing vs navigate-up', () => {
       sectionTree('/components/button', onValueChange)
     )
     const scrollTo = paneScrollSpy(container)
-    const components = within(tabBarOf(container) as HTMLElement).getByRole(
+    const components = within(horizontalOf(container) as HTMLElement).getByRole(
       'link',
       { name: 'Components' }
     )
@@ -4004,7 +4115,7 @@ describe('Navigator active-tab tap: scroll-on-landing vs navigate-up', () => {
   it('navigates to the destination when an inactive tab is tapped', async () => {
     const onValueChange = vi.fn()
     const { container } = render(sectionTree('/components', onValueChange))
-    const bar = within(tabBarOf(container) as HTMLElement)
+    const bar = within(horizontalOf(container) as HTMLElement)
 
     await userEvent.click(bar.getByRole('link', { name: 'Tokens' }))
 
@@ -4163,7 +4274,9 @@ describe('active-tab tap on a Pane stack', () => {
     document.querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
 
   const barOf = (container: HTMLElement) =>
-    container.querySelector<HTMLElement>('[data-slot="navigator-tab-bar"]')!
+    container.querySelector<HTMLElement>(
+      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+    )!
 
   // Real frames rather than captured ones: these tests also drive user-event,
   // and a stubbed rAF would strand anything else waiting on one.
@@ -4215,8 +4328,10 @@ describe('active-tab tap on a Pane stack', () => {
 })
 
 describe('Navigator tab icon bounce', () => {
-  const tabBarOf = (container: HTMLElement) =>
-    container.querySelector<HTMLElement>('[data-slot="navigator-tab-bar"]')
+  const horizontalOf = (container: HTMLElement) =>
+    container.querySelector<HTMLElement>(
+      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+    )
 
   const tree = () => (
     <Navigator value='/'>
@@ -4240,7 +4355,7 @@ describe('Navigator tab icon bounce', () => {
     const { container } = render(tree())
     await flushViewportMeasurement()
 
-    const bar = tabBarOf(container)!
+    const bar = horizontalOf(container)!
     const activeIcon = bar
       .querySelector('[data-slot="navigator-item"][aria-current]')!
       .querySelector('[data-slot="navigator-tab-icon"]')!
@@ -4423,7 +4538,9 @@ describe('nesting acceptance criteria', () => {
       top?.querySelector('[data-slot="navigator-secondary-strip"]')
     ).toBeTruthy()
     expect(
-      document.querySelector('[data-slot="navigator-tab-bar"]')
+      document.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      )
     ).toHaveAttribute('data-hidden', 'true')
   })
 
@@ -4472,15 +4589,17 @@ describe('per-section stack memory', () => {
     </Navigator>
   )
 
-  const railLink = (name: string) =>
+  const verticalLink = (name: string) =>
     within(
-      document.querySelector('[data-slot="navigator-rail"]') as HTMLElement
+      document.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="vertical"]'
+      ) as HTMLElement
     ).getByRole('link', { name })
 
   it('starts every section on its declared href', async () => {
     render(nav('/components'))
     await flushViewportMeasurement()
-    expect(railLink('Tokens')).toHaveAttribute('href', '/tokens')
+    expect(verticalLink('Tokens')).toHaveAttribute('href', '/tokens')
   })
 
   it('retargets a section you have left to where you left it', async () => {
@@ -4490,7 +4609,7 @@ describe('per-section stack memory', () => {
     await flushViewportMeasurement()
     rerender(nav('/components/button'))
     await flushViewportMeasurement()
-    expect(railLink('Tokens')).toHaveAttribute('href', '/tokens/color')
+    expect(verticalLink('Tokens')).toHaveAttribute('href', '/tokens/color')
   })
 
   it('leaves the section you are in on its declared href', async () => {
@@ -4498,7 +4617,7 @@ describe('per-section stack memory', () => {
     await flushViewportMeasurement()
     rerender(nav('/tokens/color'))
     await flushViewportMeasurement()
-    expect(railLink('Tokens')).toHaveAttribute('href', '/tokens')
+    expect(verticalLink('Tokens')).toHaveAttribute('href', '/tokens')
   })
 
   it('never changes which pane is top', async () => {
@@ -4541,8 +4660,10 @@ describe('per-section stack memory', () => {
       </Navigator>
     )
 
-    const tabBarOf = () =>
-      document.querySelector('[data-slot="navigator-tab-bar"]') as HTMLElement
+    const horizontalOf = () =>
+      document.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      ) as HTMLElement
 
     it('does not turn a panel tab into a link after leaving a route mounted beneath it', async () => {
       const { rerender } = render(navWithPanel('/account/billing'))
@@ -4550,10 +4671,10 @@ describe('per-section stack memory', () => {
       rerender(navWithPanel('/a'))
       await flushViewportMeasurement()
       expect(
-        within(tabBarOf()).queryByRole('link', { name: 'Account' })
+        within(horizontalOf()).queryByRole('link', { name: 'Account' })
       ).toBeNull()
       expect(
-        within(tabBarOf()).getByRole('button', { name: 'Account' })
+        within(horizontalOf()).getByRole('button', { name: 'Account' })
       ).toBeInTheDocument()
     })
 
@@ -4562,7 +4683,7 @@ describe('per-section stack memory', () => {
       await flushViewportMeasurement()
       rerender(navWithPanel('/a'))
       await flushViewportMeasurement()
-      const tab = within(tabBarOf())
+      const tab = within(horizontalOf())
         .getByText('Account')
         .closest('[data-slot="navigator-item"]')
       expect(tab).not.toHaveAttribute('href')
@@ -4571,8 +4692,10 @@ describe('per-section stack memory', () => {
 })
 
 describe('a panel item is not a page', () => {
-  const tabBarOf = () =>
-    document.querySelector('[data-slot="navigator-tab-bar"]') as HTMLElement
+  const horizontalOf = () =>
+    document.querySelector(
+      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+    ) as HTMLElement
 
   const nav = (value: string) => (
     <Navigator value={value}>
@@ -4595,21 +4718,21 @@ describe('a panel item is not a page', () => {
   it('does not announce a panel tab as the current page', async () => {
     render(nav('/account/billing'))
     await flushViewportMeasurement()
-    const tab = within(tabBarOf()).getByRole('button', { name: 'Account' })
+    const tab = within(horizontalOf()).getByRole('button', { name: 'Account' })
     expect(tab).not.toHaveAttribute('aria-current', 'page')
   })
 
   it('still announces a real section as the current page', async () => {
     render(nav('/home'))
     await flushViewportMeasurement()
-    const tab = within(tabBarOf()).getByRole('link', { name: 'Home' })
+    const tab = within(horizontalOf()).getByRole('link', { name: 'Home' })
     expect(tab).toHaveAttribute('aria-current', 'page')
   })
 
   it('still announces an open panel as expanded, not current', async () => {
     render(nav('/home'))
     await flushViewportMeasurement()
-    const tab = within(tabBarOf()).getByRole('button', { name: 'Account' })
+    const tab = within(horizontalOf()).getByRole('button', { name: 'Account' })
     await userEvent.click(tab)
     expect(tab).toHaveAttribute('aria-expanded', 'true')
     expect(tab).toHaveAttribute('aria-current', 'true')
@@ -4655,11 +4778,7 @@ describe('a panel item is not a page', () => {
   })
 
   it('does not announce a lone End panel tab as the current page', async () => {
-    // No rail overflow, one End item: `generatesPane` is false, so this tab
-    // takes the destination branch — the shape a lone `Navigator.End` panel
-    // produces. It still carries `aria-expanded` (false, since the panel
-    // isn't open) because a panel tab is a disclosure regardless of which
-    // branch renders it — only `aria-current='page'` is what must never fire.
+    // No overflow, one End item: the destination branch, still a disclosure.
     const navWithEndPanel = (value: string) => (
       <Navigator value={value}>
         <Navigator.Primary aria-label='Main'>
@@ -4682,7 +4801,7 @@ describe('a panel item is not a page', () => {
 
     render(navWithEndPanel('/account/billing'))
     await flushViewportMeasurement()
-    const tab = within(tabBarOf()).getByRole('button', { name: 'Account' })
+    const tab = within(horizontalOf()).getByRole('button', { name: 'Account' })
     expect(tab).toHaveAttribute('aria-expanded', 'false')
     expect(tab).not.toHaveAttribute('aria-current', 'true')
     expect(tab).not.toHaveAttribute('aria-current', 'page')
@@ -4699,8 +4818,8 @@ describe('indicator track offsetParent guard', () => {
   // that keeps it from resurfacing — none of the three tracks silently loses
   // `relative` and falls back to the transform-inclusive rect path.
   it('keeps every indicator track position: relative', () => {
-    expect(navigatorTabBarTrackVariants()).toContain('relative')
-    expect(navigatorRailViewportVariants()).toContain('relative')
+    expect(navigatorPrimaryTrackVariants()).toContain('relative')
+    expect(navigatorPrimaryViewportVariants()).toContain('relative')
     expect(navigatorSecondaryStripViewportVariants()).toContain('relative')
   })
 })

@@ -106,7 +106,7 @@ export function NavigatorTab({
     <NavigatorDestination
       href={href}
       circleSide={presentation === 'circle' ? circleSide : undefined}
-      style={{ '--navigator-tab-index': String(index) } as CSSProperties}
+      style={{ '--navigator-primary-index': String(index) } as CSSProperties}
       ariaCurrent={ariaCurrent}
       dataCurrent={active}
       expanded={expanded}

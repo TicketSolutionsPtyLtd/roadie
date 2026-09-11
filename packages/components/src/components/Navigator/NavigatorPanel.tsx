@@ -13,12 +13,8 @@ export type NavigatorPanelProps = {
  * any `href` on it is ignored, exactly as a `Navigator.Secondary` makes the
  * item a section.
  *
- * One declaration, two presentations chosen by viewport, neither configurable:
- * a popover anchored to the rail row from `md`, and below it the item's own
- * tab in the bar toggles a full-screen `Pane`. The two triggers already live
- * in CSS-gated subtrees — the rail is `hidden md:block`, the tab bar is
- * `md:hidden` — so neither can fire in the band it does not own, and no
- * breakpoint is read in JavaScript.
+ * A popover anchored to the item's row on desktop; on phones the item's tab
+ * toggles a full-screen `Pane`.
  *
  * A pane rather than a drawer below `md`: the item already has a tab, and a
  * tab that opens something reads as another tab, not an overlay appearing

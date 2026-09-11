@@ -68,9 +68,7 @@ export function useDocHeadings(): DocHeadings {
       return
     }
 
-    // The /components index lists every component as an h3 under category
-    // h2s — surfacing those in the rail just duplicates the left-hand
-    // navigation. Keep the rail at h2 (category) granularity only.
+    // The /components index's h3s duplicate the left-hand navigation.
     const selector = pathname === '/components' ? 'h2' : 'h2, h3'
     const nodes = mainEl.querySelectorAll<HTMLHeadingElement>(selector)
 

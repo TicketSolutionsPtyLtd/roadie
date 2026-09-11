@@ -13,13 +13,9 @@ import { NavigatorSecondary } from './NavigatorSecondary'
 import type { NavigatorSecondaryProps } from './NavigatorSecondary'
 
 /**
- * Separates an item's label content from the two things it can own — a
- * `Navigator.Secondary` (sub-navigation) and a `Navigator.Panel` (a menu).
- * Every consumer of an item's children needs the same rule: the rail row is a
- * `<button>`, so neither a nested `<nav>` nor a menu can live inside it, and
- * the derived mobile label must not carry one either.
- *
- * A second panel is ignored — one item, one menu.
+ * Separates an item's label from the `Navigator.Secondary` and
+ * `Navigator.Panel` it can own, neither of which may live inside its row.
+ * A second panel is ignored.
  */
 export function splitItemChildren(children: ReactNode): {
   label: ReactNode[]

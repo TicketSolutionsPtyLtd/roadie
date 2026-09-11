@@ -37,7 +37,7 @@ const radiusScale = [
     tier: 'App shell',
     className: 'rounded-2xl',
     value: '16px',
-    useFor: 'Navigator panes and rail'
+    useFor: 'Navigator panes and primary navigation'
   },
   {
     tier: 'Large',

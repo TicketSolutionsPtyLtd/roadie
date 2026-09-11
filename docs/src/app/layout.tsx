@@ -153,9 +153,7 @@ async function getNavigationItems() {
     href: '/tokens',
     items: [
       {
-        // Hardcoded, like the Components section's own overview row — the
-        // page's own metadata.title ('Tokens') is the header's concern, not
-        // the rail's.
+        // Hardcoded: the page's metadata.title is the header's concern.
         title: 'Overview',
         href: '/tokens'
       },

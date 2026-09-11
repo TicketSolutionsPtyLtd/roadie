@@ -196,9 +196,6 @@ export function NavigatorContent({
       </GeneratedOverflowContext>
     ) : null
 
-  // The open panel's own pane — not portalled from the rail where it's
-  // declared, but re-found here by value, the same seam the overflow
-  // fallback above already reads through. Only the open one ever mounts.
   const openPanelSlot =
     openPanel === null
       ? null

@@ -1,19 +1,13 @@
 import { Children, Fragment, type ReactNode, isValidElement } from 'react'
 
 import { NavigatorItem } from './NavigatorItem'
-import { navigatorRailListVariants } from './variants'
+import { navigatorPrimaryListVariants } from './variants'
 
 /**
- * Turns a run of rail children into valid list markup: consecutive
- * `Navigator.Item`s become one `<ul>` of `<li>`s, and anything else — Brand,
- * End, Group (which emits its own title + list) — passes through as a sibling.
- *
- * A `<nav>` may hold several lists, so a group's list and a loose run's list
- * sit side by side rather than one nesting inside the other.
- *
- * Matches by element identity: author the tree in a client component.
+ * Wraps each run of consecutive `Navigator.Item`s in a `<ul>`; anything else
+ * passes through as a sibling. Matches by element identity.
  */
-export function wrapRailRun(children: ReactNode): ReactNode[] {
+export function wrapPrimaryRun(children: ReactNode): ReactNode[] {
   const out: ReactNode[] = []
   let run: ReactNode[] = []
 
@@ -22,7 +16,7 @@ export function wrapRailRun(children: ReactNode): ReactNode[] {
     const items = run
     run = []
     out.push(
-      <ul key={`run-${out.length}`} className={navigatorRailListVariants()}>
+      <ul key={`run-${out.length}`} className={navigatorPrimaryListVariants()}>
         {items.map((item, index) => (
           <li key={index}>{item}</li>
         ))}

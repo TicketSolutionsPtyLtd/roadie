@@ -11,24 +11,9 @@ import {
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 
 /**
- * Every Navigator destination carries this pair — see NavigatorDestination.
- *
- * The pill tracks `data-current`, not `aria-current`. They agree on every
- * declared destination and part on one case: a section sitting on a sub-route
- * it never declared holds the pill — otherwise the rail reads as though
- * nowhere is selected — while `aria-current` stays with the exact page,
- * because the section is where you are, not the page you are on.
- *
- * `querySelector` returns the first match in document order, which is only
- * safe because nothing upstream lets two destinations in the same track
- * carry it at once: `NavigatorPrimary` gates every route tab's currency on no
- * disclosure being open (see `disclosureOpen`), so an open panel or the More
- * overflow is the sole current tab; the rail's own panel button never sets it
- * at all. A declared Secondary takes it from its parent, so a section and its
- * child can never both hold it. If a future currency-bearing control breaks
- * that invariant, this selector silently measures the wrong element instead
- * of erroring — tighten it (e.g. scope past disclosures) if that ever needs
- * enforcing in code rather than by convention.
+ * `data-current`, not `aria-current`: a section on a sub-route it never
+ * declared holds the pill but not `aria-current`. Assumes at most one current
+ * destination per track — the first match wins.
  */
 export const ACTIVE_DESTINATION_SELECTOR =
   '[data-slot="navigator-item"][data-current]'
@@ -105,12 +90,8 @@ const rectBoxWithin = (active: HTMLElement, track: HTMLElement): Geometry => {
 }
 
 /**
- * Measures the current `[aria-current]` destination inside `trackRef` and
- * publishes its box as `--active-tab-*` custom properties — the same var names
- * Base UI's Tabs indicator uses, so the consuming CSS reads the same either way.
- *
- * Role-neutral on purpose: it reads navigation currency, never `aria-selected`,
- * so the same hook drives the tab bar, the secondary strip and the rail.
+ * Publishes the current destination's box inside `trackRef` as
+ * `--active-tab-*`, the names Base UI's Tabs indicator uses.
  */
 export function useSlidingIndicator(
   trackRef: RefObject<HTMLElement | null>
