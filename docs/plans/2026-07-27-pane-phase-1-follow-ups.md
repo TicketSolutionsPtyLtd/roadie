@@ -48,7 +48,7 @@ are recorded because the plan text still says otherwise.
 - **Resolved 2026-09-11** with `max-lg:invisible` (transitioned, so it flips after the slide), not the attribute, which can't be band-gated. ~~A covered pane is `pointer-events-none` but not `inert`~~, so it stays
   reachable by assistive tech. Explicit stack state makes real `inert`
   tractable; worth doing now the stack is proven.
-- **`NavigatorTab` marks a branch-active section `aria-current='page'`**, so on a
+- **Resolved 2026-09-11:** a tab active through a sub-page now announces `aria-current='true'`. ~~`NavigatorTab` marks a branch-active section `aria-current='page'`~~, so on a
   sub-page below `md` both the tab and the list row announce as current. The tab
   is a section and the row is the page — imprecise rather than broken.
 - **From `2xl` the detail pane's header draws an empty ~24px sticky bar.** The

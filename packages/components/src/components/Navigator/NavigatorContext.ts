@@ -122,12 +122,6 @@ export const isActiveValue = (
 // Prefix matching is what lets a section stay lit on a page it never declares
 // — a list rendered as its own `Pane` rather than a `Navigator.Secondary`, or
 // a route mounted beneath the section that the tree can't enumerate.
-//
-// A branch-active tab is announced `aria-current='page'`, not just visually
-// lit: `Navigator.Primary` passes this result as the tab's `active`, and
-// `Navigator.Tab` maps `active` straight to `aria-current`. A recorded,
-// accepted deferral — the section tab is the only reachable ancestor of the
-// current page in the mobile bar.
 export const isBranchActive = (
   itemValue: string,
   descendantValues: string[],

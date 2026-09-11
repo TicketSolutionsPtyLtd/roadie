@@ -15,6 +15,11 @@ export type NavigatorTabProps = {
   /** Same smart-href contract as `Navigator.Item`. Omit for a `<button>`. */
   href?: string
   active?: boolean
+  /**
+   * The tab's own destination is the current page. False when it is active
+   * through a sub-page, so it announces as the current section instead.
+   */
+  isPage?: boolean
   /** The bar is collapsed on scroll — drives the edge-circle presentation. */
   collapsed?: boolean
   /**
@@ -46,6 +51,7 @@ export function NavigatorTab({
   icon,
   href,
   active = false,
+  isPage = true,
   collapsed = false,
   circleSide,
   index,
@@ -87,10 +93,14 @@ export function NavigatorTab({
     navigatorTabVariants({ active, presentation, circleSide }),
     className
   )
-  // A disclosure button doesn't navigate to a page — it reveals a set that
-  // may contain the active one, so it claims 'true' currency, not 'page'.
+  // A disclosure reveals a set that may contain the page, and a section tab
+  // contains it; both claim 'true'. Only the page itself claims 'page'.
   const isDisclosure = expanded !== undefined
-  const ariaCurrent = active ? (isDisclosure ? 'true' : 'page') : undefined
+  const ariaCurrent = active
+    ? isPage && !isDisclosure
+      ? 'page'
+      : 'true'
+    : undefined
 
   return (
     <NavigatorDestination
