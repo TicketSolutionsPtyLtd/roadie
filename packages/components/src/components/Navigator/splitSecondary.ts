@@ -8,23 +8,23 @@ import {
 import { NavigatorGroup } from './NavigatorGroup'
 import { NavigatorItem } from './NavigatorItem'
 import type { NavigatorItemProps } from './NavigatorItem'
-import { NavigatorPanel } from './NavigatorPanel'
+import { NavigatorMenu, type NavigatorMenuProps } from './NavigatorMenu'
 import { NavigatorSecondary } from './NavigatorSecondary'
 import type { NavigatorSecondaryProps } from './NavigatorSecondary'
 
 /**
  * Separates an item's label from the `Navigator.Secondary` and
- * `Navigator.Panel` it can own, neither of which may live inside its row.
- * A second panel is ignored.
+ * `Navigator.Menu` it can own, neither of which renders in its row.
+ * A second menu is ignored.
  */
 export function splitItemChildren(children: ReactNode): {
   label: ReactNode[]
   secondary: ReactNode[]
-  panel: ReactNode
+  menu?: ReactElement<NavigatorMenuProps>
 } {
   const label: ReactNode[] = []
   const secondary: ReactNode[] = []
-  let panel: ReactNode = null
+  let menu: ReactElement<NavigatorMenuProps> | undefined
 
   Children.toArray(children).forEach((child) => {
     if (!isValidElement(child)) {
@@ -35,14 +35,24 @@ export function splitItemChildren(children: ReactNode): {
       secondary.push(child)
       return
     }
-    if (child.type === NavigatorPanel) {
-      panel ??= child
+    if (child.type === NavigatorMenu) {
+      menu ??= child as ReactElement<NavigatorMenuProps>
       return
     }
     label.push(child)
   })
 
-  return { label, secondary, panel }
+  return { label, secondary, menu }
+}
+
+/** The plain text of a label, for names that must be strings. */
+export function textOf(node: ReactNode): string {
+  if (typeof node === 'string' || typeof node === 'number') return String(node)
+  if (Array.isArray(node)) return node.map(textOf).join('')
+  if (isValidElement<{ children?: ReactNode }>(node)) {
+    return textOf(node.props.children)
+  }
+  return ''
 }
 
 /**

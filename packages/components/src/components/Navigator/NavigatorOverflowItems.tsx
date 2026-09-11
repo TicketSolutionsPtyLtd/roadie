@@ -1,15 +1,24 @@
 'use client'
 
-import { use } from 'react'
+import { type ReactElement, use } from 'react'
 
 import { List } from '../List'
+import {
+  listItemContentClass,
+  listItemLeadingClass,
+  listItemTitleClass,
+  listItemVariants
+} from '../List/variants'
 import {
   NavigatorContext,
   isActiveValue,
   isSectionActive
 } from './NavigatorContext'
+import type { NavigatorMenuProps } from './NavigatorMenu'
+import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
 import type { NavigatorSlotMeta } from './mobileSlots'
 import { presentNavIcon } from './presentNavIcon'
+import { textOf } from './splitSecondary'
 
 export type NavigatorOverflowItemsProps = {
   className?: string
@@ -44,12 +53,49 @@ function toRuns(slots: NavigatorSlotMeta[]): Run[] {
 export function NavigatorOverflowItems({
   className
 }: NavigatorOverflowItemsProps) {
-  const { overflowItems, value, setValue, setOverflowOpen, setOpenPanel } =
+  const { overflowItems, value, setValue, setOverflowOpen, openMenu } =
     use(NavigatorContext)
 
   if (overflowItems.length === 0) return null
 
+  // List.Item renders its own <li>, so it can't be a menu trigger.
+  const renderMenuRow = (
+    slot: NavigatorSlotMeta,
+    menu: ReactElement<NavigatorMenuProps>
+  ) => (
+    <li key={slot.value}>
+      <NavigatorMenuHost
+        surface='overflow'
+        value={slot.value}
+        menu={menu}
+        label={textOf(slot.label) || undefined}
+        trigger={
+          <button
+            type='button'
+            data-slot='list-item'
+            className={listItemVariants({
+              selected: openMenu === menuId('overflow', slot.value)
+            })}
+          >
+            {slot.icon ? (
+              <span className={listItemLeadingClass}>
+                {presentNavIcon(slot.icon, false, 'size-5')}
+              </span>
+            ) : null}
+            <span
+              data-slot='list-item-content'
+              className={listItemContentClass}
+            >
+              <span className={listItemTitleClass}>{slot.label}</span>
+            </span>
+          </button>
+        }
+      />
+    </li>
+  )
+
   const renderRow = (slot: NavigatorSlotMeta) => {
+    if (slot.menu) return renderMenuRow(slot, slot.menu)
     const active = isSectionActive(slot, value)
     return (
       <List.Item
@@ -60,11 +106,6 @@ export function NavigatorOverflowItems({
         current={active && (isActiveValue(slot.value, value) ? 'page' : true)}
         onClick={() => {
           setOverflowOpen(false)
-          // A folded panel item still owns a menu, not a page.
-          if (slot.panel) {
-            setOpenPanel(slot.value)
-            return
-          }
           setValue(slot.value)
         }}
       />

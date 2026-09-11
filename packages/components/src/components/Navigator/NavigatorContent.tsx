@@ -28,7 +28,6 @@ import { GeneratedOverflowContext } from './GeneratedOverflowContext'
 import { NavigatorContext } from './NavigatorContext'
 import { NavigatorOverflow } from './NavigatorOverflow'
 import { NavigatorOverflowItems } from './NavigatorOverflowItems'
-import { NavigatorPanelPane } from './NavigatorPanelPane'
 import { OVERFLOW_LABEL } from './mobileSlots'
 import {
   derivePositions,
@@ -42,25 +41,13 @@ export type NavigatorContentProps = ComponentProps<'main'>
 
 type RegisteredPane = { id: string; node: HTMLElement } & PaneRegistration
 
-/**
- * Arranges panes — Roadie's master–detail orchestrator.
- *
- * Owns exactly one derived value: which pane is the top of the stack. Whether
- * that matters is a CSS question, so there is no `matchMedia` here and no
- * breakpoint logic duplicated between JS and stylesheet.
- *
- * Panes announce themselves through `PaneStackContext` rather than being
- * found by walking `children` — a pane arriving inside a wrapper this
- * component did not render (a Next.js parallel-route slot node, most of all)
- * is invisible to a children walk but registers itself all the same.
- */
+/** Arranges panes and decides which is the top of the stack. */
 export function NavigatorContent({
   className,
   children,
   ...props
 }: NavigatorContentProps) {
-  const { setPrimaryNav, overflowItems, panelItems, openPanel } =
-    use(NavigatorContext)
+  const { setPrimaryNav, overflowItems } = use(NavigatorContext)
   const chrome = useTopPaneChrome()
 
   const panes = useRef(new Map<string, RegisteredPane>())
@@ -79,33 +66,17 @@ export function NavigatorContent({
     bump((n) => n + 1)
   }, [])
 
-  // `version` is the ref's change signal — the Map itself is mutated in
-  // place, so it can't be a dependency.
+  // The Map mutates in place, so `version` is its change signal.
   const ordered = useMemo(
     () => orderByDocumentPosition(Array.from(panes.current.values())),
     [version]
   )
-  // `positions` is the single definition of "who is top" — chrome and
-  // `primaryNav` read through it rather than re-deriving their own index, so
-  // an inspector-only stack (nowhere for a raw top-index to land but on a
-  // pane `derivePositions` has already excluded) can't produce a second
-  // answer that disagrees with the first.
   const positions = useMemo(() => derivePositions(ordered), [ordered])
   const topIndex = positions.indexOf('top')
   const topId = topIndex === -1 ? null : (ordered[topIndex]?.id ?? null)
-  // Same derivation as `positions` — one definition of "root", read by
-  // `isRootOf` below rather than a second walk over `ordered`.
   const rootIndex = useMemo(() => deriveRootIndex(ordered), [ordered])
 
-  // Read through a ref, not a closure over `ordered`/`positions`/`topId`
-  // directly: those are new arrays on every bump, and a `positionOf`/`chromeOf`
-  // that changed identity on every registration would change `stackValue`,
-  // which every mounted pane depends on to re-register — a registration
-  // feeding back into itself, forever.
-  // Writing a ref during render is only safe because it's read by another
-  // component's render (`PaneRoot`) synchronously in the same commit, never
-  // across a `await`/effect boundary. An abandoned concurrent render would
-  // leave this holding values no committed tree produced.
+  // A ref keeps the lookups stable; closing over fresh arrays would loop pane registration.
   const latest = useRef({ ordered, positions, topId, rootIndex })
   latest.current = { ordered, positions, topId, rootIndex }
 
@@ -126,28 +97,13 @@ export function NavigatorContent({
     return index !== -1 && index === rootIndex
   }, [])
 
-  // `version` forces a new context value on every registration change, so a
-  // pane sitting behind a bailed-out wrapper still gets scheduled to re-render
-  // and read the ref's fresh contents — Context propagation reaches consumers
-  // React would otherwise skip. `register`/`unregister`/`positionOf` are
-  // themselves permanently stable; only `chromeOf` (via `chrome`) and
-  // `version` ever change this object's identity.
+  // `version` re-renders panes behind bailed-out wrappers so they read the ref afresh.
   const stackValue = useMemo<PaneStackContextValue>(
     () => ({ register, unregister, positionOf, chromeOf, isRootOf }),
     [register, unregister, positionOf, chromeOf, isRootOf, version]
   )
 
-  // `PANE_CHROME_NONE` is also the default a covered pane legitimately gets —
-  // "never seen by the orchestrator" and "correctly behind another pane" are
-  // otherwise indistinguishable, which is exactly how this bug stayed
-  // invisible. `children != null` keeps a genuinely empty Content silent.
-  //
-  // Reads `panes.current` directly rather than the render-time `ordered`:
-  // passive effects run children-before-parent within one commit, so a
-  // mounting pane's own registration effect has already populated the ref by
-  // the time this effect runs, even though `ordered` was still empty when
-  // this render captured it. Checking `ordered.length` here would warn on
-  // every first mount and then immediately contradict itself.
+  // Reads the ref, not `ordered`: child effects have registered by now, the render hadn't.
   const hasChildren = children != null && children !== false
   useEffect(() => {
     if (!isDev() || !hasChildren || panes.current.size > 0) return
@@ -160,27 +116,13 @@ export function NavigatorContent({
     )
   }, [hasChildren, version])
 
-  // Only the top pane's declaration reaches the bar — one below it is talking
-  // about a screen the user is no longer on. In an effect because the tab bar
-  // is a sibling subtree, not a descendant.
   const topPrimaryNav =
     ordered.find((pane) => pane.id === topId)?.primaryNav ?? 'auto'
   useEffect(() => {
     setPrimaryNav(topPrimaryNav)
   }, [topPrimaryNav, setPrimaryNav])
 
-  // Two signals, not one. The children scan is a synchronous fast path: it
-  // catches the common, unwrapped case on the very first render, so a direct
-  // `Navigator.Overflow` never flickers a generated pane in before correcting
-  // itself. It can't see one behind a wrapper, which is what the
-  // registration check is for — `kind` distinguishes a consumer's own
-  // declaration (`'overflow'`) from the fallback's own registration
-  // (`'generated-overflow'`), so the fallback never mistakes itself for a
-  // declaration and toggles on and off forever. The registration check only
-  // resolves after mount, so a wrapped declaration and the generated
-  // fallback can share the DOM id for a single frame before the fallback's
-  // effect cleans it up — both start closed, so nothing is visible in that
-  // frame.
+  // The children scan avoids a first-render flicker; registration finds a wrapped declaration.
   const declaredOverflow =
     Children.toArray(children).some(
       (child) => isValidElement(child) && child.type === NavigatorOverflow
@@ -196,11 +138,6 @@ export function NavigatorContent({
       </GeneratedOverflowContext>
     ) : null
 
-  const openPanelSlot =
-    openPanel === null
-      ? null
-      : (panelItems.find((slot) => slot.value === openPanel) ?? null)
-
   return (
     <main
       data-slot='navigator-content'
@@ -214,12 +151,6 @@ export function NavigatorContent({
         <PaneContext value={null}>
           {children}
           {fallbackOverflow}
-          {openPanelSlot ? (
-            <NavigatorPanelPane
-              key={openPanelSlot.value}
-              slot={openPanelSlot}
-            />
-          ) : null}
         </PaneContext>
       </PaneStackContext>
     </main>

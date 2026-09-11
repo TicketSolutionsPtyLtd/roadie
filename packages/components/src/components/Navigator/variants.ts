@@ -404,4 +404,13 @@ export type NavigatorIndicatorSurface = 'horizontal' | 'strip' | 'vertical'
 // Only phones fold items; without `md:hidden` a closed overflow takes a column.
 export const navigatorOverflowVariants = cva(['md:hidden'])
 
-export const navigatorPanelPaneVariants = cva(['md:hidden'])
+// Same floating surface and motion as Popover.
+export const navigatorMenuPopupVariants = cva([
+  'grid min-w-48 max-h-(--available-height) origin-(--transform-origin) gap-0.5 p-1',
+  'rounded-xl emphasis-floating motion-scale outline-none'
+])
+
+export const navigatorMenuItemVariants = cva([
+  'flex cursor-default items-center gap-2 rounded-lg px-3 py-2 text-sm text-normal outline-none select-none',
+  'data-[highlighted]:bg-subtle'
+])
