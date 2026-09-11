@@ -119,9 +119,7 @@ describe('Logo', () => {
       expect(root).toHaveClass('intent-brand', 'text-subtler')
     })
 
-    // The SVGs fill with currentColor, so the root's `color` is the logo's
-    // colour. An intent class swaps the --intent-* palette that
-    // `text-subtler` reads; a text-* class replaces `text-subtler` outright.
+    // An intent class swaps the palette; a text-* class replaces text-subtler.
     it('takes a different intent from className', () => {
       render(<Logo className='intent-neutral' />)
       const root = screen.getByRole('img')
@@ -143,5 +141,55 @@ describe('Logo', () => {
     expect(root).toHaveClass('text-[3rem]', 'shrink', 'inline-flex')
     expect(root).not.toHaveClass('text-[2rem]', 'shrink-0')
     expect(root).toHaveAttribute('id', 'site-logo')
+  })
+
+  it('keeps leading-none on the product name after a resize', () => {
+    render(
+      <Logo variant='product' className='text-[3rem]'>
+        Studio
+      </Logo>
+    )
+    const product = screen.getByText('Studio')
+    expect(product).toHaveClass('leading-none')
+  })
+
+  it('warns when product children are not a plain string, e.g. array children', async () => {
+    vi.resetModules()
+    const { Logo: FreshLogo } = await import('.')
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(<FreshLogo variant='product'>{'Studio'} beta</FreshLogo>)
+    expect(warn).toHaveBeenCalledOnce()
+  })
+
+  it('warns when the product name is whitespace only', async () => {
+    vi.resetModules()
+    const { Logo: FreshLogo } = await import('.')
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(<FreshLogo variant='product'>{'   '}</FreshLogo>)
+    expect(warn).toHaveBeenCalledOnce()
+  })
+
+  it('stays silent in production', async () => {
+    vi.stubEnv('NODE_ENV', 'production')
+    vi.resetModules()
+    const { Logo: FreshLogo } = await import('.')
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(<FreshLogo variant='product' />)
+    expect(warn).not.toHaveBeenCalled()
+    vi.unstubAllEnvs()
+  })
+
+  it('keeps role=img and the accessible name when aria-hidden is the string "false"', () => {
+    render(<Logo aria-hidden='false' />)
+    expect(screen.getByRole('img', { name: 'Oztix' })).toBeInTheDocument()
+  })
+
+  it('drops role and name when aria-hidden is the string "true"', () => {
+    const { container } = render(<Logo aria-hidden='true' />)
+    const root = container.querySelector('[data-slot=logo]')!
+    expect(root).toHaveAttribute('aria-hidden', 'true')
+    expect(root).not.toHaveAttribute('role')
+    expect(root).not.toHaveAttribute('aria-label')
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
   })
 })

@@ -38,7 +38,7 @@ function LogoMark() {
       fill='currentColor'
       aria-hidden='true'
       focusable='false'
-      className='h-full w-auto shrink-0'
+      className='aspect-square h-full w-auto shrink-0'
     >
       <path d={MARK_PATH} />
     </svg>
@@ -53,7 +53,7 @@ function LogoWordmark({ className }: { className: string }) {
       fill='currentColor'
       aria-hidden='true'
       focusable='false'
-      className={cn('w-auto shrink-0', className)}
+      className={cn('aspect-[128/42] w-auto shrink-0', className)}
     >
       <path d={WORDMARK_PATH} />
     </svg>
@@ -70,7 +70,7 @@ export function Logo({
 }: LogoProps) {
   const isProduct = variant === 'product'
   const productName = isProduct ? productNameOf(children) : undefined
-  const missingProductName = isProduct && (children == null || children === '')
+  const missingProductName = isProduct && !productName
 
   if (missingProductName && isDev() && !warnedMissingProductName) {
     warnedMissingProductName = true
@@ -93,7 +93,7 @@ export function Logo({
       data-slot='logo'
       data-variant={variant}
       className={cn(
-        'inline-flex h-[1em] shrink-0 items-center gap-[calc(1em/6)] text-[2rem] leading-none text-subtler intent-brand',
+        'inline-flex h-[1em] shrink-0 items-center gap-[calc(1em/6)] text-[2rem] text-subtler intent-brand',
         className
       )}
       {...a11y}
@@ -108,7 +108,7 @@ export function Logo({
       {isProduct && (
         <span
           data-slot='logo-product'
-          className='font-sans text-[0.75em] font-black tracking-display whitespace-nowrap [text-box:trim-both_cap_alphabetic]'
+          className='font-sans text-[0.75em] leading-none font-black tracking-display whitespace-nowrap [text-box:trim-both_cap_alphabetic]'
         >
           {children}
         </span>
