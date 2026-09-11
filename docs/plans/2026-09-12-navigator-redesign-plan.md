@@ -143,10 +143,11 @@ Each is referenced by the task that implements it.
   **link** to the section route, supplied by Navigator through
   `PaneChromeContext.backHref` (a consumer's own `backHref`/`onBack` wins).
   Details:
-  - **D7a — A section tab always links to its section route.** Section memory
-    no longer retargets an item that declares a Secondary (its list pane, with
-    the current row marked, replaces what memory used to do). Memory keeps
-    working for items without a Secondary that sit over un-declared sub-routes.
+  - **D7a — A section tab always links to its section route.** *(Deliberate;
+    approved by the user.)* Section memory no longer retargets an item that
+    declares a Secondary — its list pane, with the current row marked, replaces
+    what memory used to do. Memory survives only for items without sub-pages
+    that sit over un-declared sub-routes.
   - **D7b — A Secondary section without `href` gets a dev warning** and falls
     back to today's first-sub-page link; Navigator supplies no Back for it.
   - **D7c — The optional list query.** Roadie never reads `location`. The root
@@ -216,7 +217,10 @@ Each is referenced by the task that implements it.
   on the server and pass `expanded`. The docs are a static export, so they use
   the script (Task 9B, Task 14).
 - **D15 — `Get started` keeps its Secondary** in the docs (it has one today),
-  alongside Foundations, Tokens, Widgets and Components.
+  alongside Foundations, Tokens, Widgets and Components, and gets its own
+  section route, `/get-started`. *(Decided by the user.)* The home page `/`
+  stays an ordinary page outside every section, so no list ever covers it on a
+  phone; on `/` no section tile is lit.
 
 ---
 
@@ -245,7 +249,7 @@ Each is referenced by the task that implements it.
 | `docs/src/components/useExpandedCookie.ts` | docs: cookie-backed expanded state |
 | `packages/core/src/navigator/index.ts` / `navigator-script.test.ts` | `@oztix/roadie-core/navigator`: `getNavigatorExpandedScript`, cookie constants and serializer (D14) |
 | `docs/src/components/NavListQuery.tsx` | docs: reads `?nav` inside `<Suspense>` and reports it (D7c) |
-| `docs/src/app/foundations/page.tsx` | docs: the Foundations section route (D7) |
+| `docs/src/app/foundations/page.tsx`, `docs/src/app/get-started/page.tsx` | docs: the Foundations and Get started section routes (D7, D15) |
 
 **Modified**
 
@@ -4935,7 +4939,8 @@ git commit -m "docs(navigator): document placement, priority, menus, section pan
 
 **Files:**
 - Create: `docs/src/components/useExpandedCookie.ts`,
-  `docs/src/components/NavListQuery.tsx`, `docs/src/app/foundations/page.tsx`
+  `docs/src/components/NavListQuery.tsx`, `docs/src/app/foundations/page.tsx`,
+  `docs/src/app/get-started/page.tsx`
 - Modify: `docs/src/components/Navigation.tsx`, `docs/src/app/layout.tsx`,
   `docs/src/app/components/page.tsx`
 - Delete: `docs/src/components/ComponentSkeleton.tsx`
@@ -4952,11 +4957,33 @@ Every item with a Secondary needs an `href` (D7). Today's section routes:
 
 | Section | Route | State |
 | --- | --- | --- |
-| Get started | `/` | exists (the home page) |
+| Get started | `/get-started` | **missing** — today its `href` is `/`, the home page (≈105-107) |
 | Foundations | `/foundations` | **missing** — `getNavigationItems` gives it no `href` (≈144-149) |
 | Tokens | `/tokens` | exists (`tokens/page.mdx`) |
 | Components | `/components` | exists (`components/page.tsx`, an empty state) |
 | Widgets | `/roadie-widgets` | exists (`roadie-widgets/page.mdx`) |
+
+The home page `/` leaves the Get started section and stays a normal page
+(D15). In `getNavigationItems`, change Get started's `href: '/'` to
+`href: '/get-started'`; its sub-pages (`/overview/*`, `/migration`, the
+external Changelog) are unchanged and match by exact value, so they don't need
+to live under `/get-started/`. In `Navigation.tsx`, re-key `SECTION_ICONS`
+from `'/'` to `'/get-started'` (the house icon stays). Nothing else treats `/`
+as a section: `FooterNav` already skips `/`, and `not-found.tsx`'s Home link
+and the Breadcrumb example rightly point at the home page. The static export
+has no redirect layer and nothing links to `/get-started` yet, so no redirect is
+needed — but grep before you finish:
+
+```bash
+grep -rn "href: '/'\|href='/'\|\['/'\]" docs/src
+```
+
+Expected: only the home-page links named above.
+
+Create `docs/src/app/get-started/page.tsx` the same way as the Foundations page
+below (metadata title `'Get started'`, description "Install Roadie and learn the
+ideas behind it.", `RocketLaunchIcon` from `@phosphor-icons/react/ssr`, with the title "Choose a guide" and the description "How
+to install Roadie, the philosophy behind it, and moving to v2.").
 
 Create `docs/src/app/foundations/page.tsx`:
 
@@ -5184,8 +5211,8 @@ Expected: only `ComponentSkeleton.tsx` itself.
   a row → the page pushes with a Back link to `/components`. On the page, tap
   the Components tab → the URL becomes `/components/button?nav` and the list
   covers the page with Button marked current; browser Back → the page again.
-  Tap Get started → `/` shows the Get started list over the home page (see
-  "Settled questions", item 1).
+  Tap Get started → `/get-started` shows its list; open `/` → the home page
+  shows with no list over it and no section tile lit.
 - No console warnings from Navigator (routeless sections, pinned order).
 
 - [ ] **Step 7: Commit**
@@ -5193,7 +5220,8 @@ Expected: only `ComponentSkeleton.tsx` itself.
 ```bash
 git add docs/src/components/Navigation.tsx docs/src/components/useExpandedCookie.ts \
   docs/src/components/NavListQuery.tsx docs/src/app/layout.tsx \
-  docs/src/app/foundations/page.tsx docs/src/app/components/page.tsx \
+  docs/src/app/foundations/page.tsx docs/src/app/get-started/page.tsx \
+  docs/src/app/components/page.tsx \
   docs/src/components/ComponentSkeleton.tsx
 git commit -m "docs: build the docs navigation on section routes, section panes and the expanded rail"
 ```
@@ -5399,12 +5427,12 @@ review before implementation starts:
 
 1. **Every section has a route (D7).** On the section route the list pane is
    on top on stacked layouts, whatever the consumer's detail pane says, so the
-   docs detail pane is simply always `current`. Consequence: the docs home page
-   (`/`) is Get started's section route, so on a phone the Get started list
-   covers the home page content. If that's unwanted, give Get started its own
-   route (e.g. `/overview`) and keep `/` outside any section.
+   docs detail pane is simply always `current`. *Settled by the user:* Get
+   started moves to `/get-started` so the home page `/` is never covered by a
+   list (D15, Task 14).
 2. **Section memory retires for sectioned items (D7a).** A section tab always
    links to its route; memory only retargets items without a Secondary.
+   *Approved by the user as a deliberate decision.*
 3. **Routeless sections still work, with a dev warning (D7b)**, rather than
    failing — no Back is supplied for them.
 4. **`showList` / `onShowListChange` (D7c).** Opt-in: without the callback, the
