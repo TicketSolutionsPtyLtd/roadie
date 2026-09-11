@@ -209,14 +209,14 @@ export const navigatorTabVariants = cva(
         false: ''
       },
       presentation: {
-        expanded: 'pointer-events-auto px-1 py-4 scale-100 opacity-100',
+        expanded: 'pointer-events-auto px-1 py-3.5 scale-100 opacity-100',
         circle:
           'pointer-events-auto size-14 translate-y-1 scale-100 place-content-center justify-self-center self-end bg-raised is-translucent opacity-100 shadow-xl',
-        // `py-4` holds the row's height while invisible.
-        hidden: 'scale-0 px-0 py-4 opacity-0 pointer-events-none',
-        // `p-5` = the track's `py-1` + a tab's `py-4`: square at the bar's height, sized intrinsically.
+        // `py-3.5` holds the row's height while invisible.
+        hidden: 'scale-0 px-0 py-3.5 opacity-0 pointer-events-none',
+        // `p-4.5` = the track's `py-1` + a tab's `py-3.5`: square at the bar's height, sized intrinsically.
         pinned:
-          'pointer-events-auto p-5 rounded-full emphasis-floating is-translucent place-content-center justify-self-end origin-bottom-right scale-100'
+          'pointer-events-auto p-4.5 rounded-full emphasis-floating is-translucent place-content-center justify-self-end origin-bottom-right scale-100'
       },
       circleSide: {
         left: '',
