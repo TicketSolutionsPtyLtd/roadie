@@ -11,23 +11,14 @@ import { scrollAreaContentVariants } from './variants'
 export type ScrollAreaContentProps = ScrollAreaPrimitive.Content.Props &
   RefAttributes<HTMLDivElement> & {
     /**
-     * Size the wrapper to its content's natural width — what a horizontally
-     * scrolling area needs to measure correctly. Turn it off when the wrapper
-     * is only there so the area re-measures as its content changes, and the
-     * width should still follow the viewport.
+     * Size to the content's natural width; turn off to follow the viewport's.
      *
      * @default true
      */
     fitWidth?: boolean
   }
 
-/**
- * Wraps the scrolling content. Base UI watches this element with a
- * `ResizeObserver`; the viewport alone is only observed for its own box, so
- * without this wrapper an area whose content changes height keeps whatever
- * overflow state it had — most visibly, a scrollbar that stays after the
- * content shrinks.
- */
+// Base UI only re-measures overflow on content resize through this wrapper.
 export function ScrollAreaContent({
   className,
   fitWidth = true,
@@ -38,8 +29,7 @@ export function ScrollAreaContent({
     <ScrollAreaPrimitive.Content
       data-slot='scroll-area-content'
       className={cn(scrollAreaContentVariants({ className }))}
-      // Base UI sets `min-width: fit-content` inline, so only a style can
-      // release it.
+      // Base UI sets `min-width: fit-content` inline.
       style={fitWidth ? style : { minWidth: 0, ...style }}
       {...props}
     />

@@ -1,6 +1,4 @@
-// Subpath entry for `@oztix/roadie-components/scroll-area`.
-// NO 'use client' — server-safe property-assignment layer.
-// See docs/contributing/COMPOUND_PATTERNS.md.
+// No 'use client': server-safe, see docs/contributing/COMPOUND_PATTERNS.md.
 import { ScrollAreaContent } from './ScrollAreaContent'
 import { ScrollAreaCorner } from './ScrollAreaCorner'
 import { ScrollAreaRoot } from './ScrollAreaRoot'

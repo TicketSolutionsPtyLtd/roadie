@@ -11,9 +11,7 @@ import { scrollAreaScrollbarVariants } from './variants'
 export type ScrollAreaScrollbarProps = ScrollAreaPrimitive.Scrollbar.Props &
   RefAttributes<HTMLDivElement> & {
     /**
-     * Sit hard against the area's edge instead of inset from it. The default
-     * inset keeps the bar's ends clear of a rounded corner; a square,
-     * untinted area has no corner to clear, so the inset just reads as a gap.
+     * Sit against the edge instead of inset to clear a rounded corner.
      *
      * @default false
      */

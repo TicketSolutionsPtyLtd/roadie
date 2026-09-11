@@ -5,10 +5,7 @@ import { describe, expect, it } from 'vitest'
 
 import { ScrollArea } from '.'
 
-// Base UI's Viewport measures overflow via a `queueMicrotask` scheduled from
-// a layout effect, which resolves after `render()` returns and updates
-// ScrollAreaRoot state outside of React's act() scope. Flushing that
-// microtask inside `act` keeps every mounting test's output warning-free.
+// Base UI measures overflow in a microtask after render; flush it inside act.
 async function flushViewportMeasurement() {
   await act(async () => {
     await Promise.resolve()
@@ -181,10 +178,7 @@ describe('ScrollArea', () => {
       '[data-slot="scroll-area-scrollbar"]'
     )!
 
-    // The track's own padding (p-0.5, 2px) is inside its margin, so the
-    // visible thumb inset is the sum of both — the margin has to carry the
-    // rest of the 4px target, not the padding, which is what gives the
-    // thumb its track.
+    // Track padding sits inside the margin; together they make 4px.
     expect(scrollbar).toHaveClass('p-0.5')
     expect(scrollbar).toHaveClass('me-0.5')
     expect(scrollbar).not.toHaveClass('me-1')
@@ -295,8 +289,6 @@ describe('ScrollArea edge fade', () => {
     expect(className).toContain('to_bottom')
     expect(className).toContain('to_right')
     expect(className).toContain('mask-composite:intersect')
-    // Catches a `both` mask that drifts from a stale copy of either axis's
-    // gradient — each stop var must appear, not just the direction keywords.
     expect(className).toContain('--scroll-area-fade-top')
     expect(className).toContain('--scroll-area-fade-bottom')
     expect(className).toContain('--scroll-area-fade-left')
@@ -314,8 +306,6 @@ describe('ScrollArea edge fade', () => {
     await flushViewportMeasurement()
     const className = viewportOf(container).className
 
-    // The gradient stops sit at 0 until Base UI flags the edge, so a
-    // non-overflowing area paints an inert full-opacity mask.
     expect(className).toContain('data-[overflow-y-start]')
     expect(className).toContain('data-[overflow-y-end]')
   })
@@ -338,10 +328,7 @@ describe('ScrollArea edge fade', () => {
     ).toBe('4rem')
   })
 
-  // jsdom reports every element as zero-sized, so Base UI measures no overflow
-  // and omits `data-has-overflow-*`. That is the case worth pinning: a
-  // kept-mounted bar must stay transparent until the axis it serves overflows,
-  // because `keepMounted` is exactly what stops Base UI hiding it itself.
+  // jsdom measures no overflow, so `data-has-overflow-*` is never set.
   it('reveals a kept-mounted scrollbar only when its axis overflows', async () => {
     const { container } = render(
       <ScrollArea>
@@ -362,7 +349,6 @@ describe('ScrollArea edge fade', () => {
     expect(scrollbar).toBeTruthy()
     expect(scrollbar.hasAttribute('data-has-overflow-y')).toBe(false)
     expect(scrollbar.className).toContain('opacity-0')
-    // Every reveal is qualified by the overflow attribute, so none can fire.
     for (const cls of scrollbar.className.split(/\s+/)) {
       if (cls.endsWith('opacity-100')) {
         expect(cls).toContain('has-overflow')
