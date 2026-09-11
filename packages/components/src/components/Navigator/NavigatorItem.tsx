@@ -140,6 +140,7 @@ export function NavigatorItem({
     return (
       <NavigatorTileTooltip
         label={label}
+        disabled={menuOpen}
         render={(asTrigger) => (
           <NavigatorMenuHost
             surface='vertical'

@@ -7,17 +7,19 @@ import { NavigatorContext } from './NavigatorContext'
 
 export type NavigatorTileTooltipProps = {
   label: ReactNode
+  disabled?: boolean
   render: (asTrigger: (tile: ReactElement) => ReactElement) => ReactNode
 }
 
 // aria-hidden: the tile already names itself in sr-only text.
 export function NavigatorTileTooltip({
   label,
+  disabled = false,
   render
 }: NavigatorTileTooltipProps) {
   const { expanded } = use(NavigatorContext)
   return (
-    <Tooltip disabled={expanded}>
+    <Tooltip disabled={expanded || disabled}>
       {render((tile) => (
         <Tooltip.Trigger render={tile} />
       ))}
