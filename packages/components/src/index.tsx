@@ -149,6 +149,8 @@ export {
   type NavigatorMenuProps,
   type NavigatorMenuItemProps,
   type NavigatorOverflowPaneProps,
+  type NavigatorSecondaryPaneProps,
+  type NavigatorSecondaryItemsProps,
   type NavigatorPlacement,
   type NavigatorVisibilityPriority,
   type NavigatorSlotMeta,

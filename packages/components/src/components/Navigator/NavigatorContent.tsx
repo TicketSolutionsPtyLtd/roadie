@@ -28,6 +28,7 @@ import { GeneratedOverflowContext } from './GeneratedOverflowContext'
 import { NavigatorContext } from './NavigatorContext'
 import { NavigatorOverflowItems } from './NavigatorOverflowItems'
 import { NavigatorOverflowPane } from './NavigatorOverflowPane'
+import { NavigatorSecondaryPane } from './NavigatorSecondaryPane'
 import { NavigatorSectionPane } from './NavigatorSectionPane'
 import { OVERFLOW_LABEL } from './mobileSlots'
 import {
@@ -48,8 +49,13 @@ export function NavigatorContent({
   children,
   ...props
 }: NavigatorContentProps) {
-  const { setPrimaryNav, overflowItems, overflowOpen, activeSection } =
-    use(NavigatorContext)
+  const {
+    setPrimaryNav,
+    overflowItems,
+    overflowOpen,
+    activeSection,
+    declaredSecondaryPanes
+  } = use(NavigatorContext)
   const chrome = useTopPaneChrome()
 
   const panes = useRef(new Map<string, RegisteredPane>())
@@ -119,10 +125,28 @@ export function NavigatorContent({
     ]
   )
 
+  // The children scans avoid a first-render flicker; registration finds a wrapped declaration.
+  const declaredOverflow =
+    Children.toArray(children).some(
+      (child) => isValidElement(child) && child.type === NavigatorOverflowPane
+    ) || ordered.some((pane) => pane.kind === 'overflow')
+  const directOverrides = Children.toArray(children).flatMap((child) =>
+    isValidElement<{ value: string }>(child) &&
+    child.type === NavigatorSecondaryPane
+      ? [child.props.value]
+      : []
+  )
+  const overridden =
+    activeSection !== null &&
+    (declaredSecondaryPanes.has(activeSection.value) ||
+      directOverrides.includes(activeSection.value))
+  const declaresOverride =
+    directOverrides.length > 0 || declaredSecondaryPanes.size > 0
+
   // Reads the ref, not `ordered`: child effects have registered by now, the render hadn't.
   const hasChildren = children != null && children !== false
   useEffect(() => {
-    if (!isDev() || !hasChildren) return
+    if (!isDev() || !hasChildren || declaresOverride) return
     const declared = Array.from(panes.current.values()).some(
       (pane) => pane.kind === 'pane' || pane.kind === 'overflow'
     )
@@ -134,7 +158,7 @@ export function NavigatorContent({
         'wrapper that suppresses effects, or you are rendering a Pane ' +
         'from a server component, that is the cause.'
     )
-  }, [hasChildren, version])
+  }, [hasChildren, declaresOverride, version])
 
   const topPrimaryNav =
     ordered.find((pane) => pane.id === topId)?.primaryNav ?? 'auto'
@@ -142,11 +166,6 @@ export function NavigatorContent({
     setPrimaryNav(topPrimaryNav)
   }, [topPrimaryNav, setPrimaryNav])
 
-  // The children scan avoids a first-render flicker; registration finds a wrapped declaration.
-  const declaredOverflow =
-    Children.toArray(children).some(
-      (child) => isValidElement(child) && child.type === NavigatorOverflowPane
-    ) || ordered.some((pane) => pane.kind === 'overflow')
   const fallbackOverflow =
     !declaredOverflow &&
     overflowItems.horizontal.length + overflowItems.vertical.length > 0 ? (
@@ -162,7 +181,7 @@ export function NavigatorContent({
 
   // Keyed so the search resets with the section; More replaces it while open.
   const sectionPane =
-    activeSection !== null && !overflowOpen ? (
+    activeSection !== null && !overflowOpen && !overridden ? (
       <NavigatorSectionPane key={activeSection.value} section={activeSection} />
     ) : null
 

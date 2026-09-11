@@ -56,6 +56,9 @@ export type NavigatorContextValue = {
   /** Each section's last-reached destination. Empty on reload. */
   sectionMemory: SectionMemory
   rememberSection: (section: string, href: string) => void
+  /** Sections whose generated pane a `Navigator.SecondaryPane` replaces. */
+  declaredSecondaryPanes: ReadonlySet<string>
+  declareSecondaryPane: (value: string) => () => void
 }
 
 export const NavigatorContext = createContext<NavigatorContextValue>({
@@ -81,7 +84,9 @@ export const NavigatorContext = createContext<NavigatorContextValue>({
   openMenu: null,
   setOpenMenu: () => {},
   sectionMemory: new Map(),
-  rememberSection: () => {}
+  rememberSection: () => {},
+  declaredSecondaryPanes: new Set(),
+  declareSecondaryPane: () => () => {}
 })
 
 export const isActiveValue = (
