@@ -11,7 +11,6 @@ import {
 const entry = (over: Partial<PaneEntry> = {}): PaneEntry => ({
   role: 'detail',
   current: false,
-  presentation: 'column',
   primaryNav: 'auto',
   ...over
 })

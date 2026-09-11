@@ -27,12 +27,7 @@ Pane.Search = PaneSearch
 Pane.Footer = PaneFooter
 
 export { Pane }
-export type {
-  PaneRole,
-  PanePresentation,
-  PaneEmphasis,
-  PanePrimaryNav
-} from './variants'
+export type { PaneRole, PaneEmphasis, PanePrimaryNav } from './variants'
 export type { PaneRootProps as PaneProps } from './PaneRoot'
 export type { PaneHeaderProps } from './PaneHeader'
 export type { PaneTitleProps } from './PaneTitle'

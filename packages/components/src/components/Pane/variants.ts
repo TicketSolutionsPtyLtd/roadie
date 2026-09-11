@@ -3,7 +3,6 @@ import { cva } from 'class-variance-authority'
 import { fieldSurfaceClass } from '../../variants'
 
 export type PaneRole = 'list' | 'detail' | 'inspector'
-export type PanePresentation = 'column' | 'stack' | 'sheet' | 'drawer'
 export type PaneEmphasis = 'raised' | 'normal' | 'subtle' | 'subtler'
 export type PanePrimaryNav = 'visible' | 'auto' | 'hidden'
 

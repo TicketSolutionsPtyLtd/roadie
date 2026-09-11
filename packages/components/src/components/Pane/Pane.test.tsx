@@ -40,11 +40,10 @@ const renderPane = async (ui: ReactNode) => {
 }
 
 describe('Pane', () => {
-  it('renders a section with its role and presentation', async () => {
+  it('renders a section with its role', async () => {
     await renderPane(<Pane role='detail'>Body</Pane>)
     expect(pane()?.tagName).toBe('SECTION')
     expect(pane()).toHaveAttribute('data-role', 'detail')
-    expect(pane()).toHaveAttribute('data-presentation', 'column')
   })
 
   it('defaults to a list pane in a column', async () => {
@@ -55,15 +54,6 @@ describe('Pane', () => {
   it('marks the inspector role so it yields first', async () => {
     await renderPane(<Pane role='inspector'>Contents</Pane>)
     expect(pane()).toHaveAttribute('data-role', 'inspector')
-  })
-
-  it('carries an absolute presentation through untouched', async () => {
-    await renderPane(
-      <Pane role='detail' presentation='stack'>
-        Body
-      </Pane>
-    )
-    expect(pane()).toHaveAttribute('data-presentation', 'stack')
   })
 
   it('scrolls in a nested viewport, not the section itself', async () => {

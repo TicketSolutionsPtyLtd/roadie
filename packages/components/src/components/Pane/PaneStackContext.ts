@@ -3,7 +3,7 @@
 import { createContext } from 'react'
 
 import type { PaneChromeContextValue } from './PaneChromeContext'
-import type { PanePresentation, PanePrimaryNav, PaneRole } from './variants'
+import type { PanePrimaryNav, PaneRole } from './variants'
 
 export type PaneStackPosition = 'top' | 'ahead' | 'behind'
 
@@ -21,7 +21,6 @@ export type PaneKind = 'pane' | 'overflow' | 'generated-overflow'
 export type PaneRegistration = {
   role: PaneRole
   current: boolean
-  presentation: PanePresentation
   primaryNav: PanePrimaryNav
   kind: PaneKind
 }
