@@ -477,8 +477,8 @@ export default function InteractionsPage() {
           <p className='text-subtle'>
             For form inputs — text fields, textareas, selects. Provides
             state-based colour transitions: neutral at rest, accent on focus,
-            danger when invalid. Pair with <Code>emphasis-sunken</Code> or{' '}
-            <Code>emphasis-raised</Code>.
+            danger when invalid. Pair with <Code>emphasis-field</Code> for text
+            fields, or <Code>emphasis-raised</Code> for select triggers.
           </p>
 
           <div className='rounded-xl emphasis-subtle p-6'>
@@ -488,7 +488,7 @@ export default function InteractionsPage() {
                 <input
                   type='text'
                   placeholder='e.g. Jane Smith'
-                  className='is-interactive-field rounded-lg border border-subtle emphasis-sunken px-3 py-2 text-sm'
+                  className='is-interactive-field rounded-lg emphasis-field px-3 py-2 text-sm'
                 />
               </div>
               <div className='grid gap-1'>
@@ -497,7 +497,7 @@ export default function InteractionsPage() {
                   type='text'
                   defaultValue='bad@'
                   aria-invalid='true'
-                  className='is-interactive-field rounded-lg border border-subtle emphasis-sunken px-3 py-2 text-sm'
+                  className='is-interactive-field rounded-lg emphasis-field px-3 py-2 text-sm'
                 />
               </div>
               <div className='grid gap-1'>
@@ -506,7 +506,7 @@ export default function InteractionsPage() {
                   type='text'
                   disabled
                   placeholder='Cannot edit'
-                  className='is-interactive-field rounded-lg border border-subtle emphasis-sunken px-3 py-2 text-sm'
+                  className='is-interactive-field rounded-lg emphasis-field px-3 py-2 text-sm'
                 />
               </div>
             </div>
@@ -535,13 +535,13 @@ export default function InteractionsPage() {
                 </tr>
                 <tr>
                   <td className='py-2 pr-4 text-strong'>Hover</td>
-                  <td className='py-2 pr-4'>neutral-2</td>
+                  <td className='py-2 pr-4'>neutral-3 (neutral-2 in dark)</td>
                   <td className='py-2 pr-4'>neutral-7</td>
                   <td className='py-2'>&mdash;</td>
                 </tr>
                 <tr>
                   <td className='py-2 pr-4 text-strong'>Focus</td>
-                  <td className='py-2 pr-4'>accent-2</td>
+                  <td className='py-2 pr-4'>accent-2 (accent-1 in dark)</td>
                   <td className='py-2 pr-4'>accent-9</td>
                   <td className='py-2'>accent ring</td>
                 </tr>
@@ -578,7 +578,8 @@ export default function InteractionsPage() {
           <p className='text-sm text-subtle'>
             Use on the wrapping element that contains the child inputs. Focus
             within any child triggers the accent transition on the group. Pair
-            with <Code>emphasis-raised</Code> or <Code>emphasis-sunken</Code>.
+            with <Code>emphasis-field</Code>, or <Code>emphasis-raised</Code>{' '}
+            for a button-like trigger.
           </p>
         </div>
       </section>
@@ -628,7 +629,7 @@ export default function InteractionsPage() {
             <strong className='text-strong'>Note:</strong>{' '}
             <Code>is-interactive-field</Code> provides its own hover, focus, and
             invalid logic — it does not use emphasis hover states. This is why
-            form inputs use <Code>emphasis-sunken</Code> (which has no
+            form inputs use <Code>emphasis-field</Code> (which has no
             interactive states) paired with <Code>is-interactive-field</Code>{' '}
             (which provides all of them).
           </p>
@@ -671,13 +672,14 @@ export default function InteractionsPage() {
                 <tr>
                   <td className='py-2 pr-4 text-strong'>Text input</td>
                   <td className='py-2 font-mono text-xs'>
-                    emphasis-sunken border border-subtle is-interactive-field
+                    emphasis-field is-interactive-field
                   </td>
                 </tr>
                 <tr>
                   <td className='py-2 pr-4 text-strong'>Select</td>
                   <td className='py-2 font-mono text-xs'>
-                    emphasis-raised border border-normal is-interactive-field
+                    emphasis-raised border border-transparent
+                    is-interactive-field
                   </td>
                 </tr>
                 <tr>
@@ -728,10 +730,8 @@ export default function InteractionsPage() {
                 <td className='py-2 pr-4 font-mono text-xs'>
                   is-interactive-field
                 </td>
-                <td className='py-2 pr-4 font-mono text-xs'>sunken</td>
-                <td className='py-2'>
-                  Add <Code>border border-subtle</Code>
-                </td>
+                <td className='py-2 pr-4 font-mono text-xs'>field</td>
+                <td className='py-2'>&mdash;</td>
               </tr>
               <tr>
                 <td className='py-2 pr-4 text-strong'>Select</td>
@@ -740,7 +740,8 @@ export default function InteractionsPage() {
                 </td>
                 <td className='py-2 pr-4 font-mono text-xs'>raised</td>
                 <td className='py-2'>
-                  Add <Code>border border-normal</Code>
+                  Add <Code>border border-transparent</Code>; the raised shadow
+                  is the edge
                 </td>
               </tr>
               <tr>
@@ -748,10 +749,8 @@ export default function InteractionsPage() {
                 <td className='py-2 pr-4 font-mono text-xs'>
                   is-interactive-field
                 </td>
-                <td className='py-2 pr-4 font-mono text-xs'>sunken</td>
-                <td className='py-2'>
-                  Add <Code>border border-subtle</Code>
-                </td>
+                <td className='py-2 pr-4 font-mono text-xs'>field</td>
+                <td className='py-2'>&mdash;</td>
               </tr>
               <tr>
                 <td className='py-2 pr-4 text-strong'>Clickable card</td>

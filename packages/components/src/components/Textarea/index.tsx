@@ -12,7 +12,7 @@ export const textareaVariants = cva(
     variants: {
       intent: intentVariants,
       emphasis: {
-        normal: 'emphasis-sunken border border-subtle is-interactive-field',
+        normal: 'emphasis-field is-interactive-field',
         subtle:
           'bg-subtle text-normal border border-transparent is-interactive-field'
       },

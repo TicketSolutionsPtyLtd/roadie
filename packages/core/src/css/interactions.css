@@ -20,21 +20,42 @@
     );
   outline-offset: 0;
 
+  /* Light fields sit on neutral-2, so hover steps to neutral-3 to show at
+     all; dark fields sit on neutral-0, so focus stays near that depth. Set as
+     properties so the invalid rules keep their specificity. */
+  --field-hover-bg: var(--color-neutral-3);
+  --field-focus-bg: var(--color-accent-2);
+
+  .dark & {
+    --field-hover-bg: var(--color-neutral-2);
+    --field-focus-bg: var(--color-accent-1);
+  }
+
+  /* A raised trigger's rim is a resting highlight. Once a state colours the
+     border, the border is the edge, and the rim inside it shows as a white
+     gap. */
+  &:hover,
+  &:focus,
+  &[aria-invalid='true'],
+  &[data-popup-open] {
+    --rim-light-strong: 0 0 #0000;
+  }
+
   /* Hover — neutral tint */
   &:hover {
-    background-color: var(--color-neutral-2);
+    background-color: var(--field-hover-bg);
     border-color: var(--color-neutral-7);
   }
 
   /* Focus — accent border + outline ring */
   &:focus {
-    background-color: var(--color-accent-2);
+    background-color: var(--field-focus-bg);
     border-color: var(--color-accent-9);
     outline-width: var(--focus-ring-width);
   }
 
   &:hover:focus {
-    background-color: var(--color-accent-2);
+    background-color: var(--field-focus-bg);
     border-color: var(--color-accent-9);
   }
 
@@ -100,21 +121,42 @@
     );
   outline-offset: 0;
 
+  /* Light fields sit on neutral-2, so hover steps to neutral-3 to show at
+     all; dark fields sit on neutral-0, so focus stays near that depth. Set as
+     properties so the invalid rules keep their specificity. */
+  --field-hover-bg: var(--color-neutral-3);
+  --field-focus-bg: var(--color-accent-2);
+
+  .dark & {
+    --field-hover-bg: var(--color-neutral-2);
+    --field-focus-bg: var(--color-accent-1);
+  }
+
+  /* A raised trigger's rim is a resting highlight. Once a state colours the
+     border, the border is the edge, and the rim inside it shows as a white
+     gap. */
+  &:hover,
+  &:focus-within,
+  &[aria-invalid='true'],
+  &[data-popup-open] {
+    --rim-light-strong: 0 0 #0000;
+  }
+
   /* Hover — neutral tint */
   &:hover {
-    background-color: var(--color-neutral-2);
+    background-color: var(--field-hover-bg);
     border-color: var(--color-neutral-7);
   }
 
   /* Focus-within — accent border + outline ring */
   &:focus-within {
-    background-color: var(--color-accent-2);
+    background-color: var(--field-focus-bg);
     border-color: var(--color-accent-9);
     outline-width: var(--focus-ring-width);
   }
 
   &:hover:focus-within {
-    background-color: var(--color-accent-2);
+    background-color: var(--field-focus-bg);
     border-color: var(--color-accent-9);
   }
 

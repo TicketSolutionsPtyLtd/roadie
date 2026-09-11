@@ -114,6 +114,25 @@
   color: var(--intent-text-normal);
 }
 
+/* Text fields: sunken, with one translucent edge that takes the fill's tint
+   instead of sitting on it as grey. Pair with is-interactive-field, which owns
+   hover, focus and invalid. The edge is resolved on the element so an intent
+   on the field tints it too. The mix sits in @supports with an explicit
+   fallback, or the build falls back to a solid step 9, darker than the
+   border it replaces. */
+@utility emphasis-field {
+  --field-border-color: var(--intent-border-subtle);
+
+  @supports (color: color-mix(in oklch, red, red)) {
+    --field-border-color: color-mix(in oklch, var(--intent-9) 22%, transparent);
+  }
+
+  background-color: var(--intent-bg-sunken);
+  border: 1px solid var(--field-border-color);
+  box-shadow: var(--inset-shadow-xs);
+  color: var(--intent-text-normal);
+}
+
 @utility emphasis-floating {
   background-color: var(--intent-bg-raised);
   box-shadow: var(--rim-light-strong), var(--shadow-xl);

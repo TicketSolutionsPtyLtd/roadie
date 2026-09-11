@@ -8,8 +8,7 @@ export const autocompleteInputGroupVariants = cva(
     variants: {
       intent: intentVariants,
       emphasis: {
-        normal:
-          'emphasis-sunken border border-subtle is-interactive-field-group',
+        normal: 'emphasis-field is-interactive-field-group',
         subtle:
           'bg-subtle text-normal border border-transparent is-interactive-field-group'
       },
