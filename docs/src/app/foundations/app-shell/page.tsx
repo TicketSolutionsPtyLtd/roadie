@@ -82,8 +82,11 @@ export default function AppShellPage() {
         <CodeBlock>{fileTree}</CodeBlock>
         <p className='text-subtle'>
           The layout must be a client component — the whole Navigator tree is,
-          because <Code>Navigator.Primary</Code> finds its children by element
-          reference and React Flight breaks that for server-authored trees.
+          because <Code>Navigator.Primary</Code>,{' '}
+          <Code>Navigator.Secondary</Code>, <Code>Navigator.Group</Code>,{' '}
+          <Code>Navigator.Menu</Code> and <Code>Navigator.ExpandToggle</Code>{' '}
+          are found by element reference, and React Flight breaks that for
+          server-authored trees.
         </p>
       </section>
 
@@ -227,9 +230,10 @@ export default function CatchAll() {
           </li>
           <li>
             <p>
-              <strong>On mobile</strong>, Navigator stacks the panes; the
-              single-pane push presentation is owned by Navigator&apos;s own
-              layout, not by the routing recipe.
+              <strong>On mobile</strong>, Navigator stacks the panes, and a
+              section&apos;s sub-pages open in a list pane at the root of the
+              stack; the single-pane push presentation is owned by
+              Navigator&apos;s own layout, not by the routing recipe.
             </p>
           </li>
         </ul>

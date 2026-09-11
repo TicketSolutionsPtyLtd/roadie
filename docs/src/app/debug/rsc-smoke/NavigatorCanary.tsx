@@ -7,7 +7,7 @@ import { Navigator } from '@oztix/roadie-components/navigator'
 
 // Navigator's walks match children by element identity, which Flight breaks
 // for server-authored trees, so this canary is a client component that throws
-// if the active section's pane loses its Group.
+// if the walk loses a Group or a pinned item.
 
 export function NavigatorCanary() {
   const ref = useRef<HTMLDivElement>(null)
@@ -17,16 +17,16 @@ export function NavigatorCanary() {
   // Navigator.Primary publishes the active section.
   useEffect(() => {
     const id = setTimeout(() => {
-      // A server-authored tree would lazy-wrap Navigator.Group and the walk
-      // would drop it into a loose, untitled run of rows.
-      const group = ref.current?.querySelector(
-        '[data-navigator-section] [data-slot="list-group"]'
-      )
-      if (!group) {
+      const missing = [
+        '[data-navigator-section] [data-slot="list-group"]',
+        '[data-slot="navigator-primary-pinned"] [data-slot="navigator-item"]',
+        '[data-slot="navigator-primary-cluster"] [data-slot="navigator-capsule"]'
+      ].filter((selector) => !ref.current?.querySelector(selector))
+      if (missing.length > 0) {
         setFailure(
           new Error(
-            '[Roadie] Navigator RSC canary: the active section pane must ' +
-              'render its Navigator.Group, found none.'
+            '[Roadie] Navigator RSC canary: the walk lost part of the tree, ' +
+              `found nothing for ${missing.join(', ')}.`
           )
         )
       }
@@ -43,13 +43,13 @@ export function NavigatorCanary() {
     >
       <Navigator value='catalogue-vinyl'>
         <Navigator.Primary aria-label='Canary primary'>
-          <Navigator.Item value='events'>
+          <Navigator.Item value='events' href='#events'>
             Events
             <Navigator.Secondary aria-label='Events sections'>
               <Navigator.Item value='events-upcoming'>Upcoming</Navigator.Item>
             </Navigator.Secondary>
           </Navigator.Item>
-          <Navigator.Item value='catalogue'>
+          <Navigator.Item value='catalogue' href='#catalogue'>
             Catalogue
             <Navigator.Secondary aria-label='Catalogue sections'>
               <Navigator.Group>
@@ -61,7 +61,10 @@ export function NavigatorCanary() {
               </Navigator.Group>
             </Navigator.Secondary>
           </Navigator.Item>
-          <Navigator.Item value='reports'>Reports</Navigator.Item>
+          <Navigator.Group>
+            <Navigator.GroupTitle>Insights</Navigator.GroupTitle>
+            <Navigator.Item value='reports'>Reports</Navigator.Item>
+          </Navigator.Group>
           <Navigator.Item value='settings' placement='pinned'>
             Settings
           </Navigator.Item>

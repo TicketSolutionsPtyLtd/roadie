@@ -632,10 +632,10 @@ export default function RscSmokePage() {
           doesn&apos;t stop either pane below from registering and carrying{' '}
           <code>data-stack-position</code>. Contrast this with{' '}
           <code>NavigatorCanary</code> further down:{' '}
-          <code>Navigator.Primary</code>/<code>Secondary</code>/
-          <code>Group</code> still find their children by element reference, so
-          that tree still has to be authored in a client component. See
-          COMPOUND_PATTERNS.md §1.2.
+          <code>Navigator.Primary</code>, <code>Secondary</code>,{' '}
+          <code>Group</code>, <code>Menu</code> and <code>ExpandToggle</code>{' '}
+          are still found by element reference, so that tree still has to be
+          authored in a client component. See COMPOUND_PATTERNS.md §1.2.
         </p>
         <div className='h-64 overflow-hidden rounded-2xl border border-subtle'>
           <Navigator value='overview'>
