@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 
 import {
   CaretDownIcon,
@@ -148,6 +149,14 @@ export default function IconographyPage() {
           for large, decorative icons — feature surfaces and icons inside an{' '}
           <Code>IconTile</Code> above 48px, where a bold outline alone looks
           hollow.
+        </p>
+        <p className='text-subtle'>
+          <strong className='text-normal'>Exception:</strong>{' '}
+          <Link href='/components/navigator' className='underline'>
+            Navigator
+          </Link>{' '}
+          destinations render duotone at 24px — Navigator applies the weight
+          itself, so pass it a bare icon.
         </p>
 
         <div className='overflow-x-auto'>

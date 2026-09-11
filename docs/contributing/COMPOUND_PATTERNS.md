@@ -93,13 +93,16 @@ function FooItem() {
 
 Roadie ships a dev-only warning (gated on `process.env.NODE_ENV`) when a non-Item element is found at a direct-child position, so authors find this fast.
 
-**One exception, by name.** `Navigator.Primary`'s and `Navigator.Secondary`'s
-walks both descend exactly one level into `Navigator.Group`, so
-`Navigator.Item`s may be direct children of either. `Group` is matched by
-reference like `Primary`, `Secondary`, and `Item` are, which is what keeps the
-walk sound — the rule is "these types, matched by identity", not "one level of
-any wrapper". A `<MyGroup>` wrapper is still invisible to the walk, and a tree
-authored in a server component still fails silently for all of them.
+**One exception, by name.** `Navigator.Primary`'s walk matches
+`Navigator.Item`, `Navigator.Group` (one level deep), `Navigator.Brand` and
+`Navigator.ExpandToggle`; an item's children are matched for
+`Navigator.Secondary` and `Navigator.Menu`; `Navigator.Secondary`'s rows are
+matched for `Navigator.Item` and `Navigator.Group` (again one level deep).
+Every one of those is matched by reference, like `Item` is here, which is what
+keeps the walk sound — the rule is "these types, matched by identity", not
+"one level of any wrapper". A `<MyGroup>` wrapper is still invisible to the
+walk, and a tree authored in a server component still fails silently for all
+of them.
 
 ### 1.3 Registration
 

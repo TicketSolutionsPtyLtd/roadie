@@ -1,5 +1,5 @@
 ---
-"@oztix/roadie-components": minor
+'@oztix/roadie-components': minor
 ---
 
 Add `Navigator` and `Pane`, the application frame.
@@ -13,3 +13,10 @@ searchable, and an item can own a `Navigator.Menu` instead of a destination.
 
 `Pane` is a scrolling column of that frame, with sticky chrome, a
 collapse-on-scroll header and a stack position when panes share a screen.
+
+Also ships `Navigator.Menu`/`MenuItem`, `Navigator.ExpandToggle`,
+`Navigator.OverflowPane`/`OverflowItems`,
+`Navigator.SecondaryPane`/`SecondaryItems`; `showList`/`onShowListChange` to
+show a section's list from the URL; `expandedFromDocument` with
+`getNavigatorExpandedScript` from `@oztix/roadie-core/navigator`. Navigator
+and Pane are unreleased, so there is no migration note.
