@@ -3018,6 +3018,31 @@ describe('Navigator collapsed edge circles', () => {
     await flushViewportMeasurement()
   })
 
+  it('lets the page show through every surface of the bar', async () => {
+    const { container } = render(barTree('a'))
+    const bar = horizontalOf(container)!
+    const pill = bar.querySelector('[data-slot="navigator-primary-pill"]')
+    const pinned = within(pinnedCircleOf(container)).getByRole('button', {
+      name: 'Account'
+    })
+    expect(pill).toHaveClass('emphasis-floating', 'is-translucent')
+    expect(pinned).toHaveClass('emphasis-floating', 'is-translucent')
+
+    await collapse(container)
+    const left = bar.querySelector('[data-circle-side="left"]')
+    expect(left).toHaveClass('bg-raised', 'shadow-xl', 'is-translucent')
+    await flushViewportMeasurement()
+  })
+
+  it('keeps the page from showing through a tab that is not a circle', async () => {
+    const { container } = render(barTree('a'))
+    const tab = within(horizontalOf(container)!).getByRole('button', {
+      name: 'B'
+    })
+    expect(tab).not.toHaveClass('is-translucent')
+    await flushViewportMeasurement()
+  })
+
   it('never reorders a tab to collapse it', async () => {
     // `order` can only change discretely, so pinning a circle to an end column
     // teleported it there before the translate could run. Every circle now

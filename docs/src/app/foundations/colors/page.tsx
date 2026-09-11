@@ -239,7 +239,8 @@ export default function ColorsPage() {
               <p className='text-xs text-subtle'>
                 Popovers, modals, dropdowns — anything that floats above the
                 document flow. Uses the top elevation shadow and strong rim
-                light.
+                light. Add <Code>is-translucent</Code> to let content show
+                through as it scrolls beneath.
               </p>
             </div>
           </div>

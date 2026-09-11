@@ -116,6 +116,21 @@ function Six({
 }
 
 describe('vertical regions', () => {
+  it('lets the page show through every capsule, grouped, loose or pinned', async () => {
+    render(<Six />)
+    await flushViewportMeasurement()
+    const capsules = vertical().querySelectorAll(
+      '[data-slot="navigator-capsule"]'
+    )
+    expect(
+      region('pinned').querySelector('[data-slot="navigator-capsule"]')
+    ).not.toBeNull()
+    expect(capsules.length).toBeGreaterThanOrEqual(3)
+    for (const capsule of capsules) {
+      expect(capsule).toHaveClass('emphasis-raised', 'is-translucent')
+    }
+  })
+
   it('puts brand on top, the cluster between, pinned at the bottom', async () => {
     render(<Six />)
     await flushViewportMeasurement()

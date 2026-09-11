@@ -108,7 +108,7 @@ export const navigatorPrimaryPinnedVariants = cva(['relative grid gap-3 px-3'])
 
 // `rounded-4xl` overflows a collapsed capsule's width, so the browser scales it to a pill.
 export const navigatorCapsuleVariants = cva([
-  'relative grid gap-1 p-1 rounded-4xl emphasis-raised'
+  'relative grid gap-1 p-1 rounded-4xl emphasis-raised is-translucent'
 ])
 
 // The box never changes size, so collapse animates on scale/translate/opacity
@@ -178,7 +178,7 @@ export const navigatorPrimaryTrackVariants = cva(
 
 export const navigatorPrimaryPillVariants = cva(
   [
-    'pointer-events-none absolute inset-0 rounded-full emphasis-floating',
+    'pointer-events-none absolute inset-0 rounded-full emphasis-floating is-translucent',
     'motion-safe:transition-opacity motion-reduce:transition-none'
   ],
   {
@@ -211,12 +211,12 @@ export const navigatorTabVariants = cva(
       presentation: {
         expanded: 'pointer-events-auto px-1 py-4 scale-100 opacity-100',
         circle:
-          'pointer-events-auto size-14 translate-y-1 scale-100 place-content-center justify-self-center self-end bg-raised opacity-100 shadow-xl',
+          'pointer-events-auto size-14 translate-y-1 scale-100 place-content-center justify-self-center self-end bg-raised is-translucent opacity-100 shadow-xl',
         // `py-4` holds the row's height while invisible.
         hidden: 'scale-0 px-0 py-4 opacity-0 pointer-events-none',
         // `p-5` = the track's `py-1` + a tab's `py-4`: square at the bar's height, sized intrinsically.
         pinned:
-          'pointer-events-auto p-5 rounded-full emphasis-floating place-content-center justify-self-end'
+          'pointer-events-auto p-5 rounded-full emphasis-floating is-translucent place-content-center justify-self-end'
       },
       circleSide: {
         left: '',

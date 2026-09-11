@@ -280,6 +280,33 @@ export default function ElevationPage() {
             </tbody>
           </table>
         </div>
+
+        <div className='grid gap-3'>
+          <h3 className='text-display-ui-4 text-strong'>
+            Translucent surfaces
+          </h3>
+          <p className='text-subtle'>
+            Add <Code>is-translucent</Code> to <Code>emphasis-raised</Code>,{' '}
+            <Code>emphasis-floating</Code> or <Code>bg-raised</Code> when a
+            surface floats over content that scrolls beneath it, like a tab bar.
+            The fill drops to 85% (88% in dark mode) under a 12px backdrop blur,
+            and the rim light and shadow stay. Without{' '}
+            <Code>backdrop-filter</Code> support, or when the viewer asks for
+            reduced transparency, the fill is solid.
+          </p>
+          <div className='grid overflow-hidden rounded-xl'>
+            <div className='col-start-1 row-start-1 grid grid-cols-7'>
+              {intents.map(({ name, className }) => (
+                <div key={name} className={`${className} h-24 bg-strong`} />
+              ))}
+            </div>
+            <div className='col-start-1 row-start-1 mx-6 grid place-content-center self-center rounded-full emphasis-floating is-translucent p-4'>
+              <p className='font-mono text-sm text-strong'>
+                emphasis-floating is-translucent
+              </p>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Intent tinting with emphasis presets */}
