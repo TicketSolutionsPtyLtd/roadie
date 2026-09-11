@@ -192,30 +192,39 @@ Each is referenced by the task that implements it.
   `SecondaryPane` override can still offer search.
 - **D13 — Menu-row icons inside the More pane stay List's leading size**
   (`size-5`) but duotone; tiles and tabs are `size-6`.
-- **D14 — No expanded flash: a head script, like the theme script.**
-  *(Settled by the user.)* `@oztix/roadie-core` gains a framework-agnostic
-  subpath, `@oztix/roadie-core/navigator`, beside `@oztix/roadie-core/theme`
-  rather than inside it (it isn't theming, and it keeps the theme bundle
-  unchanged):
+- **D14 — Expanded styling is CSS-first through one variant.** *(Settled by
+  the user.)* One source of truth per style: the rail carries `data-expanded`
+  from React state, and every expanded style is written once as
+  `navigator-expanded:…` next to its collapsed default — no CVA `expanded`
+  variant, no duplicated classes. Core ships the variant in
+  `@oztix/roadie-core/css` (a new `navigator.css` sheet), so every consumer's
+  Tailwind build that imports Roadie sees it:
 
-  ```ts
-  export const NAVIGATOR_EXPANDED_COOKIE = 'roadie-navigator-expanded'
-  export const NAVIGATOR_EXPANDED_ATTRIBUTE = 'data-navigator-expanded'
-  /** Blocking inline script for <head>: cookie → <html data-navigator-expanded>. */
-  export function getNavigatorExpandedScript(options?: { cookieName?: string }): string
-  /** The Set-Cookie / document.cookie string for a new value (1 year, path=/, SameSite=Lax). */
-  export function serializeNavigatorExpandedCookie(expanded: boolean, options?: { cookieName?: string }): string
+  ```css
+  @custom-variant navigator-expanded (&:where([data-slot=navigator-rail][data-expanded], [data-slot=navigator-rail][data-expanded] *, [data-navigator-expanded] [data-slot=navigator-rail][data-from-document], [data-navigator-expanded] [data-slot=navigator-rail][data-from-document] *));
   ```
 
-  Navigator opts in with a root prop, `expandedFromDocument?: boolean`. When
-  set: every collapsed-state class that expanded changes carries a twin keyed
-  on `<html data-navigator-expanded='true'>`, so the static HTML paints
-  expanded before any JS; on mount Navigator reads the attribute in a layout
-  effect and shows it until the app's own `expanded` first changes; and after
-  mount it writes the attribute whenever `expanded` changes, so the twins never
-  outlive the state. Server-rendered apps can skip all of it — read the cookie
-  on the server and pass `expanded`. The docs are a static export, so they use
-  the script (Task 9B, Task 14).
+  It is scoped to the **rail**, not the Navigator root, because every
+  expanded style lives in the rail and a Navigator rendered inside another
+  Navigator's content (the docs examples) is never inside that rail — scoping
+  to the root would let an expanded site nav expand every example. `:where()`
+  keeps the variant at zero added specificity, so `w-20
+  navigator-expanded:w-60` resolves by Tailwind's variant ordering. Presence
+  attributes (`[data-expanded]`, not `='true'`): React omits the attribute when
+  collapsed.
+
+  The second pair of selectors is an **optional static-site enhancement, not a
+  core requirement**. Server-rendered apps read the cookie on the server and
+  pass `defaultExpanded` (or `expanded`); `data-expanded` is then in the server
+  HTML and nothing else is needed. A static export (the docs) can't read the
+  cookie, so `@oztix/roadie-core/navigator` offers `getNavigatorExpandedScript()`,
+  a blocking head script that sets `data-navigator-expanded` on `<html>` before
+  paint; a Navigator opts in with `expandedFromDocument`, which renders
+  `data-from-document` on its rail (so only that Navigator follows the
+  document) and keeps the `<html>` attribute in sync after hydration. The
+  subpath sits beside `@oztix/roadie-core/theme` rather than inside it — it
+  isn't theming. Task 9 (variant, CSS-first styling), Task 9B (script), Task
+  14 (docs wiring).
 - **D15 — `Get started` keeps its Secondary** in the docs (it has one today),
   alongside Foundations, Tokens, Widgets and Components, and gets its own
   section route, `/get-started`. *(Decided by the user.)* The home page `/`
@@ -247,7 +256,8 @@ Each is referenced by the task that implements it.
 | `NavigatorExpandToggle.tsx` | `Navigator.ExpandToggle` |
 | `NavigatorRail.test.tsx` | rail regions, capsules, capacity, expanded, tooltips, badges |
 | `docs/src/components/useExpandedCookie.ts` | docs: cookie-backed expanded state |
-| `packages/core/src/navigator/index.ts` / `navigator-script.test.ts` | `@oztix/roadie-core/navigator`: `getNavigatorExpandedScript`, cookie constants and serializer (D14) |
+| `packages/core/src/css/navigator.css` / `packages/core/src/css/navigator-variant.test.ts` | the `navigator-expanded` custom variant (D14) and a compile test |
+| `packages/core/src/navigator/index.ts` / `navigator.test.ts` | `@oztix/roadie-core/navigator`: `NAVIGATOR_EXPANDED_SCOPE`; later the optional head script, cookie constants and serializer (D14) |
 | `docs/src/components/NavListQuery.tsx` | docs: reads `?nav` inside `<Suspense>` and reports it (D7c) |
 | `docs/src/app/foundations/page.tsx`, `docs/src/app/get-started/page.tsx` | docs: the Foundations and Get started section routes (D7, D15) |
 
@@ -277,6 +287,7 @@ Each is referenced by the task that implements it.
 | `Pane/PaneChromeContext.ts`, `Pane/PaneHeader.tsx`, `Pane/Pane.test.tsx` | `headerExtras` → `backHref` |
 | `packages/core/src/css/layout.css` | delete `--navigator-rail-*` |
 | `packages/core/package.json`, `packages/core/tsdown.config.ts` | `./navigator` subpath and entry |
+| `packages/core/src/css/roadie.css` | imports `navigator.css` |
 | `docs/src/app/layout.tsx` | Foundations gets `href: '/foundations'`; the expanded head script |
 | `docs/src/components/Navigation.tsx` | migration |
 | `docs/src/app/components/navigator/page.mdx`, `pane/page.mdx`, `foundations/app-shell/page.tsx`, `debug/rsc-smoke/*` | docs |
@@ -3447,10 +3458,8 @@ describe('rail regions', () => {
   it('keeps group titles for screen readers only while collapsed', async () => {
     render(<Six />)
     await flushViewportMeasurement()
-    expect(within(region('cluster')).getByText('Extra')).toHaveClass(
-      'group-data-[expanded=false]/rail:sr-only'
-    )
-    expect(rail()).toHaveAttribute('data-expanded', 'false')
+    expect(within(region('cluster')).getByText('Extra')).toHaveClass('sr-only')
+    expect(rail()).not.toHaveAttribute('data-expanded')
   })
 
   it('folds nothing until the cluster has been measured', async () => {
@@ -3548,8 +3557,7 @@ export const navigatorItemVariants = cva(
 )
 
 export const navigatorGroupTitleVariants = cva([
-  'px-3 pb-1 text-xs font-semibold text-subtler',
-  'group-data-[expanded=false]/rail:sr-only'
+  'sr-only px-3 pb-1 text-xs font-semibold text-subtler'
 ])
 
 export const navigatorBrandVariants = cva(['flex items-center justify-center gap-2 py-1'])
@@ -3718,7 +3726,6 @@ export function useRailCapacity(
   …
       <nav
         data-slot='navigator-rail'
-        data-expanded='false'
         aria-label={ariaLabel}
         className={cn(navigatorRailVariants(), className)}
       >
@@ -3803,8 +3810,8 @@ accessible name stays inside the link; no `aria-label`), no badge trailing yet
 ones. `git rm …/Navigator/railList.tsx`.
 
 `docs/src/components/Navigation.tsx`: the Brand wordmark's
-`group-data-[form=compact]/rail:hidden` becomes
-`group-data-[expanded=false]/rail:hidden`.
+`group-data-[form=compact]/rail:hidden` becomes `hidden` (Task 9 adds
+`navigator-expanded:inline`).
 
 - [ ] **Step 7: Run and migrate**
 
@@ -3832,6 +3839,11 @@ git commit -m "feat(navigator): capsule rail with brand, centred cluster and pin
 
 **Files:**
 - Create: `…/Navigator/NavigatorExpandToggle.tsx`
+- Create: `packages/core/src/css/navigator.css`,
+  `packages/core/src/css/navigator-variant.test.ts`,
+  `packages/core/src/navigator/index.ts`, `packages/core/src/navigator/navigator.test.ts`
+- Modify: `packages/core/src/css/roadie.css`, `packages/core/package.json`,
+  `packages/core/tsdown.config.ts`, `.changeset/app-frame-core-css.md`
 - Modify: `NavigatorRoot.tsx`, `NavigatorContext.ts`, `collectSlots.ts`,
   `collectSlots.test.tsx`, `capsules.tsx`, `NavigatorPrimary.tsx`,
   `NavigatorItem.tsx`, `NavigatorGroup.tsx`, `variants.ts`, `index.tsx`,
@@ -3852,15 +3864,114 @@ expanded: boolean; setExpanded: (next: boolean) => void; railId: string
 { placement?: NavigatorPlacement /* default 'automatic' */; className?: string }
 // RailEntry gains
 | { kind: 'toggle'; element: ReactElement<NavigatorExpandToggleProps> }
-// variants gain an `expanded` variant: navigatorRailVariants, navigatorRailClusterContentVariants,
-// navigatorCapsuleVariants, navigatorItemVariants; new navigatorItemLabelVariants({ expanded })
+// the rail renders data-expanded (present only while expanded); every expanded
+// style is one `navigator-expanded:` class — no CVA `expanded` variant
+// new constant: navigatorItemLabelClass
+// core (@oztix/roadie-core/css): @custom-variant navigator-expanded (D14)
+// core (@oztix/roadie-core/navigator):
+export const NAVIGATOR_EXPANDED_SCOPE: string // the variant's selector list, for tests
 ```
 
-- D3 (toggle never folds; counted as a fixed capsule when automatic).
+- D3 (toggle never folds; counted as a fixed capsule when automatic), D14.
+
+- [ ] **Step 0: The core variant, test first**
+
+`packages/core/src/css/navigator-variant.test.ts` — compile the sheet with
+Tailwind's own compiler (core depends on `tailwindcss` 4.3.3) and assert the
+selector it emits:
+
+```ts
+import { readFileSync } from 'node:fs'
+
+import { compile } from 'tailwindcss'
+import { describe, expect, it } from 'vitest'
+
+import { NAVIGATOR_EXPANDED_SCOPE } from '../navigator'
+
+const sheet = readFileSync(new URL('./navigator.css', import.meta.url), 'utf8')
+const squash = (css: string) => css.replace(/\s+/g, ' ')
+
+describe('navigator-expanded', () => {
+  it('compiles to the rail scope, wrapped in :where()', async () => {
+    const compiler = await compile(`@tailwind utilities;\n${sheet}`)
+    const css = squash(compiler.build(['navigator-expanded:grid']))
+    expect(css).toContain(squash(`:where(${NAVIGATOR_EXPANDED_SCOPE})`))
+    expect(css).toContain('display: grid')
+  })
+})
+```
+
+`packages/core/src/navigator/navigator.test.ts`:
+
+```ts
+import { describe, expect, it } from 'vitest'
+
+import { NAVIGATOR_EXPANDED_SCOPE } from './index'
+
+describe('NAVIGATOR_EXPANDED_SCOPE', () => {
+  it('is scoped to the rail, by its own state or the document', () => {
+    expect(NAVIGATOR_EXPANDED_SCOPE).toBe(
+      '[data-slot=navigator-rail][data-expanded], [data-slot=navigator-rail][data-expanded] *, [data-navigator-expanded] [data-slot=navigator-rail][data-from-document], [data-navigator-expanded] [data-slot=navigator-rail][data-from-document] *'
+    )
+  })
+})
+```
+
+Run: `pnpm --filter @oztix/roadie-core test`
+Expected: FAIL — neither file exists.
+
+`packages/core/src/navigator/index.ts`:
+
+```ts
+/** The `navigator-expanded` variant's selector list, for tests that assert it matches. */
+export const NAVIGATOR_EXPANDED_SCOPE =
+  '[data-slot=navigator-rail][data-expanded], [data-slot=navigator-rail][data-expanded] *, [data-navigator-expanded] [data-slot=navigator-rail][data-from-document], [data-navigator-expanded] [data-slot=navigator-rail][data-from-document] *'
+```
+
+`packages/core/src/css/navigator.css` (imported from `roadie.css` after
+`layout.css`):
+
+```css
+/* Navigator: the one variant every expanded-rail style is written with. */
+@custom-variant navigator-expanded (&:where([data-slot=navigator-rail][data-expanded], [data-slot=navigator-rail][data-expanded] *, [data-navigator-expanded] [data-slot=navigator-rail][data-from-document], [data-navigator-expanded] [data-slot=navigator-rail][data-from-document] *));
+```
+
+Tailwind v4.3.3's shorthand `@custom-variant name (selector);` splits the
+parenthesised selector on top-level commas only, so the commas inside
+`:where()` are safe (checked in `tailwindcss/dist/lib.js`). If the compile
+test shows Tailwind rewrote the selector beyond whitespace, change
+`NAVIGATOR_EXPANDED_SCOPE` and the sheet together — never loosen the test.
+
+Wire the subpath: `packages/core/tsdown.config.ts` entry
+`'navigator/index': './src/navigator/index.ts'`; `packages/core/package.json`
+exports beside `./theme`:
+
+```json
+    "./navigator": {
+      "types": "./dist/navigator/index.d.ts",
+      "import": "./dist/navigator/index.js"
+    },
+```
+
+No safelist entry: the variant only matters where component class strings
+use it, and consumers compile those from `@oztix/roadie-core/css` plus
+`@oztix/roadie-components/css` (which carries the components' `@source`).
+`dist/roadie.compiled.css` is built from `safelist.html`, which contains no
+Navigator classes, so it simply omits them, as it already does for every
+component class.
+
+Run: `pnpm --filter @oztix/roadie-core test && pnpm --filter @oztix/roadie-core build`
+Expected: PASS; `ls packages/core/dist/navigator/index.js`.
+
+`.changeset/app-frame-core-css.md` — append: "…and the `navigator-expanded`
+variant, which Navigator's expanded rail is styled with, plus
+`@oztix/roadie-core/navigator`."
 
 - [ ] **Step 1: Failing tests**
 
-Append to `NavigatorRail.test.tsx`:
+Append to `NavigatorRail.test.tsx` (and import
+`NAVIGATOR_EXPANDED_SCOPE` from `@oztix/roadie-core/navigator` and the variants
+named below from `./variants` at the top of the file):
 
 ```tsx
 function Expandable(props: {
@@ -3893,7 +4004,7 @@ describe('expanded rail', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
     expect(toggle).toHaveAttribute('aria-controls', rail().id)
     await user.click(toggle)
-    expect(rail()).toHaveAttribute('data-expanded', 'true')
+    expect(rail()).toHaveAttribute('data-expanded')
     expect(toggle).toHaveAccessibleName('Collapse sidebar')
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
   })
@@ -3905,14 +4016,54 @@ describe('expanded rail', () => {
     await flushViewportMeasurement()
     await user.click(within(region('pinned')).getByRole('button', { name: 'Collapse sidebar' }))
     expect(onExpandedChange).toHaveBeenCalledWith(false)
-    expect(rail()).toHaveAttribute('data-expanded', 'true')
+    expect(rail()).toHaveAttribute('data-expanded')
   })
 
-  it('shows labels and group titles when expanded', async () => {
-    render(<Expandable defaultExpanded />)
+  it('matches navigator-expanded inside the rail only while expanded', async () => {
+    const scope = `:where(${NAVIGATOR_EXPANDED_SCOPE})`
+    const { rerender } = render(<Expandable expanded />)
     await flushViewportMeasurement()
-    expect(within(region('cluster')).getByText('Alpha')).not.toHaveClass('sr-only')
-    expect(rail()).toHaveAttribute('data-expanded', 'true')
+    expect(within(region('cluster')).getByText('Alpha').matches(scope)).toBe(true)
+    expect(within(region('cluster')).getByText('Docs').matches(scope)).toBe(true)
+    rerender(<Expandable expanded={false} />)
+    expect(rail()).not.toHaveAttribute('data-expanded')
+    expect(within(region('cluster')).getByText('Alpha').matches(scope)).toBe(false)
+  })
+
+  it('never expands a Navigator nested in an expanded one', async () => {
+    const scope = `:where(${NAVIGATOR_EXPANDED_SCOPE})`
+    render(
+      <Navigator value='/a' expanded>
+        <Navigator.Primary aria-label='Outer'>
+          <Navigator.Item value='/a' href='/a'>Outer</Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Navigator value='/x'>
+            <Navigator.Primary aria-label='Inner'>
+              <Navigator.Item value='/x' href='/x'>Inner</Navigator.Item>
+            </Navigator.Primary>
+          </Navigator>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const inner = screen.getByRole('navigation', { name: 'Inner' })
+    expect(within(inner).getByText('Inner').matches(scope)).toBe(false)
+  })
+
+  it('writes each expanded style once, through the variant', () => {
+    const classes = [
+      navigatorRailVariants(),
+      navigatorRailClusterContentVariants(),
+      navigatorRailPinnedVariants(),
+      navigatorCapsuleVariants(),
+      navigatorItemVariants(),
+      navigatorItemLabelClass,
+      navigatorGroupTitleVariants()
+    ].join(' ')
+    expect(classes).toContain('navigator-expanded:w-60')
+    expect(classes).toContain('navigator-expanded:not-sr-only')
+    expect(classes).not.toMatch(/\[html\[|data-\[expanded|expanded=false/)
   })
 
   it('folds nothing while expanded', async () => {
@@ -3990,7 +4141,7 @@ import { cn } from '@oztix/roadie-core/utils'
 import { NavigatorContext } from './NavigatorContext'
 import type { NavigatorPlacement } from './mobileSlots'
 import { presentNavIcon } from './presentNavIcon'
-import { navigatorItemLabelVariants, navigatorItemVariants } from './variants'
+import { navigatorItemLabelClass, navigatorItemVariants } from './variants'
 
 export type NavigatorExpandToggleProps = {
   /** Placed like an item; never folds into More. @default 'automatic' */
@@ -4007,13 +4158,13 @@ export function NavigatorExpandToggle({ className }: NavigatorExpandToggleProps)
       data-slot='navigator-expand-toggle'
       aria-expanded={expanded}
       aria-controls={railId}
-      className={cn(navigatorItemVariants({ active: false, expanded }), className)}
+      className={cn(navigatorItemVariants({ active: false }), className)}
       onClick={() => setExpanded(!expanded)}
     >
       <span data-slot='navigator-item-icon'>
         {presentNavIcon(<SidebarSimpleIcon />, false, 'size-6')}
       </span>
-      <span className={navigatorItemLabelVariants({ expanded })}>{label}</span>
+      <span className={navigatorItemLabelClass}>{label}</span>
     </button>
   )
 }
@@ -4030,46 +4181,44 @@ toggle written before cluster items warns too).
 `navigator-capsule` `ul`; `railCapsules` skips it; add
 `export const fixedCapsules = (entries: RailEntry[]) => entries.filter((e) => e.kind === 'toggle').map(() => 1)`.
 
-- [ ] **Step 4: Expanded variants and wiring**
+- [ ] **Step 4: Expanded styles and wiring**
 
-`variants.ts` — add `expanded` to the rail pieces (default `false`):
+`variants.ts` — each expanded style sits beside its collapsed default,
+written once with the variant:
 
 ```ts
-navigatorRailVariants:               expanded: { true: 'w-60', false: 'w-20' }   // move w-20 out of the base
-navigatorRailClusterContentVariants: expanded: { true: 'content-start justify-items-stretch', false: 'content-center justify-items-center' }
-navigatorRailPinnedVariants:         expanded: { true: 'justify-items-stretch', false: 'justify-items-center' }
-navigatorCapsuleVariants:            expanded: { true: 'rounded-4xl', false: 'rounded-full' }   // move rounded-full out of the base
-navigatorItemVariants:               expanded: {
-  true: 'h-12 w-full grid-cols-[auto_1fr_auto] items-center justify-items-start gap-3 px-3 text-sm font-semibold',
-  false: 'size-12 place-items-center'
-}                                    // move size-12/place-items-center out of the base
-export const navigatorItemLabelVariants = cva('truncate', {
-  variants: {
-    // Fades in on opacity as the rail snaps wide; `starting:` is @starting-style.
-    expanded: {
-      true: 'motion-safe:transition-opacity motion-safe:starting:opacity-0',
-      false: 'sr-only'
-    }
-  },
-  defaultVariants: { expanded: false }
-})
+navigatorRailVariants base:                'w-20 navigator-expanded:w-60'
+navigatorRailClusterContentVariants base:  'content-center justify-items-center navigator-expanded:content-start navigator-expanded:justify-items-stretch'
+navigatorRailPinnedVariants base:          'justify-items-center navigator-expanded:justify-items-stretch'
+navigatorCapsuleVariants base:             'rounded-full navigator-expanded:rounded-4xl'
+navigatorItemVariants base:                'size-12 place-items-center navigator-expanded:h-12 navigator-expanded:w-full navigator-expanded:grid-cols-[auto_1fr_auto] navigator-expanded:justify-items-start navigator-expanded:gap-3 navigator-expanded:px-3 navigator-expanded:text-sm navigator-expanded:font-semibold'
+navigatorGroupTitleVariants base:          'sr-only navigator-expanded:not-sr-only …'
+
+// `starting:` is @starting-style, so labels fade in as the rail snaps wide.
+export const navigatorItemLabelClass =
+  'sr-only navigator-expanded:not-sr-only navigator-expanded:truncate motion-safe:navigator-expanded:transition-opacity motion-safe:navigator-expanded:starting:opacity-0'
 ```
 
-Update `railCapacity.test.ts`'s class guard to call
-`navigatorItemVariants({ expanded: false })`,
-`navigatorCapsuleVariants({ expanded: false })` and
-`navigatorRailClusterContentVariants({ expanded: false })`.
+(Replace the classes they supersede in each base string rather than
+appending: `w-20`, `rounded-full`, `size-12 place-items-center`,
+`content-center justify-items-center` and `justify-items-center` each appear
+once.) The class guard in `railCapacity.test.ts` keeps its no-argument calls —
+the collapsed defaults are still in each base string.
 
 `NavigatorPrimary.tsx`: read `expanded` and `railId`; the rail gets
-`id={railId}`, `data-expanded={String(expanded)}` and the variant; capacity is
-`useRailCapacity(clusterRef, capsules, fixedCapsules(collected.cluster), !expanded)`;
-every `navigatorCapsuleVariants`/`navigatorItemVariants`/label call passes
-`expanded`. `wrapCapsules` gains an `expanded: boolean` third parameter for its
-capsule class. `NavigatorItem` and `NavigatorGroup` read `expanded` from
-context. The tab bar never sees the toggle (it has no slot).
+`id={railId}` and `data-expanded={expanded ? '' : undefined}` — the only place
+expanded reaches the DOM; capacity is
+`useRailCapacity(clusterRef, capsules, fixedCapsules(collected.cluster), !expanded)`.
+Tile labels (`NavigatorItem`, rail More, `NavigatorExpandToggle`) use
+`navigatorItemLabelClass`. JS still reads `expanded` for behaviour — folding,
+tooltips (Task 11), the toggle's name and `aria-expanded` — never for styling.
+The tab bar never sees the toggle (it has no slot).
+
+`docs/src/components/Navigation.tsx`: the Brand wordmark becomes
+`hidden navigator-expanded:inline`.
 
 `index.tsx`: `ExpandToggle` attachment, `NavigatorExpandToggleProps` type,
-`navigatorItemLabelVariants`; barrel adds the type.
+`navigatorItemLabelClass`; barrel adds the type.
 
 Run: `cd packages/components && pnpm vitest run src/components/Navigator`
 Expected: PASS.
@@ -4077,25 +4226,33 @@ Expected: PASS.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/components/src/components/Navigator packages/components/src/index.tsx
-git commit -m "feat(navigator): expanded rail with labels and Navigator.ExpandToggle"
+git add packages/core/src/css packages/core/src/navigator packages/core/package.json \
+  packages/core/tsdown.config.ts .changeset/app-frame-core-css.md \
+  packages/components/src/components/Navigator packages/components/src/index.tsx \
+  docs/src/components/Navigation.tsx
+git commit -m "feat(navigator): expanded rail styled through navigator-expanded, and Navigator.ExpandToggle"
 ```
 
 ---
 
-## Task 9B: Paint the persisted expanded state before hydration (D14)
+## Task 9B: Optional pre-hydration expanded state for static sites (D14)
+
+Server-rendered apps skip this task's feature entirely: read the cookie on the
+server and pass `defaultExpanded` (or `expanded`); the rail's `data-expanded`
+is in the server HTML, so `navigator-expanded:` styles paint on the first frame
+with no script. This task is for static exports like the docs.
 
 **Files:**
-- Create: `packages/core/src/navigator/index.ts`,
-  `packages/core/src/navigator/navigator-script.test.ts`
-- Modify: `packages/core/package.json` (exports), `packages/core/tsdown.config.ts`
-  (entry), `.changeset/app-frame-core-css.md`
-- Modify: `…/Navigator/NavigatorRoot.tsx`, `variants.ts`,
-  `NavigatorRail.test.tsx`
+- Modify: `packages/core/src/navigator/index.ts` (created in Task 9),
+  `packages/core/src/navigator/navigator.test.ts`,
+  `.changeset/app-frame-core-css.md`
+- Modify: `…/Navigator/NavigatorRoot.tsx`, `NavigatorContext.ts`,
+  `NavigatorPrimary.tsx`, `NavigatorRail.test.tsx`
 
 **Interfaces:**
-- Produces (`@oztix/roadie-core/navigator`, framework-agnostic like
-  `@oztix/roadie-core/theme`):
+- Consumes: `navigator-expanded` and `NAVIGATOR_EXPANDED_SCOPE` (Task 9) — the
+  scope's second pair of selectors is what this task switches on.
+- Produces (`@oztix/roadie-core/navigator`):
 
 ```ts
 export const NAVIGATOR_EXPANDED_COOKIE = 'roadie-navigator-expanded'
@@ -4107,28 +4264,17 @@ export function serializeNavigatorExpandedCookie(
 ): string
 ```
 
-- Produces (components): `NavigatorRootProps.expandedFromDocument?: boolean`;
-  the root renders `data-expanded-from-document` when set.
-
-Every collapsed-state class that `expanded` changes gets a twin behind one
-arbitrary variant — written out literally every time, because Tailwind can't
-see class names built by concatenation:
-
-```
-[html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:
-```
-
-Only opted-in Navigators match, so a docs example Navigator in a box never
-follows the site rail.
+- Produces (components): `NavigatorRootProps.expandedFromDocument?: boolean`.
+  When set, the rail renders `data-from-document`, which lets the variant match
+  through `<html data-navigator-expanded>`; after mount Navigator keeps that
+  attribute in sync with `expanded`. Nothing is duplicated in the class strings.
 
 - [ ] **Step 1: Failing core tests**
 
-`packages/core/src/navigator/navigator-script.test.ts` (core tests run in
+Append to `packages/core/src/navigator/navigator.test.ts` (core tests run in
 node — execute the script against a fake `document`):
 
 ```ts
-import { describe, expect, it } from 'vitest'
-
 import {
   NAVIGATOR_EXPANDED_ATTRIBUTE,
   NAVIGATOR_EXPANDED_COOKIE,
@@ -4137,31 +4283,34 @@ import {
 } from './index'
 
 const runWith = (cookie: string, script = getNavigatorExpandedScript()) => {
-  const attributes: Record<string, string> = {}
+  let attribute: string | null = null
   const document = {
     cookie,
     documentElement: {
       setAttribute: (name: string, value: string) => {
-        attributes[name] = value
+        if (name === NAVIGATOR_EXPANDED_ATTRIBUTE) attribute = value
+      },
+      removeAttribute: (name: string) => {
+        if (name === NAVIGATOR_EXPANDED_ATTRIBUTE) attribute = null
       }
     }
   }
   new Function('document', script)(document)
-  return attributes[NAVIGATOR_EXPANDED_ATTRIBUTE]
+  return attribute
 }
 
 describe('getNavigatorExpandedScript', () => {
-  it('marks the document expanded when the cookie says so', () => {
-    expect(runWith(`a=1; ${NAVIGATOR_EXPANDED_COOKIE}=1`)).toBe('true')
+  it('marks the document when the cookie says expanded', () => {
+    expect(runWith(`a=1; ${NAVIGATOR_EXPANDED_COOKIE}=1`)).toBe('')
   })
 
-  it('marks it collapsed otherwise', () => {
-    expect(runWith(`${NAVIGATOR_EXPANDED_COOKIE}=0`)).toBe('false')
-    expect(runWith('')).toBe('false')
+  it('leaves it unmarked otherwise', () => {
+    expect(runWith(`${NAVIGATOR_EXPANDED_COOKIE}=0`)).toBeNull()
+    expect(runWith('')).toBeNull()
   })
 
   it('reads a custom cookie name', () => {
-    expect(runWith('app-nav=1', getNavigatorExpandedScript({ cookieName: 'app-nav' }))).toBe('true')
+    expect(runWith('app-nav=1', getNavigatorExpandedScript({ cookieName: 'app-nav' }))).toBe('')
   })
 
   it('refuses a cookie name that could break out of the script', () => {
@@ -4186,11 +4335,11 @@ describe('serializeNavigatorExpandedCookie', () => {
 ```
 
 Run: `pnpm --filter @oztix/roadie-core test`
-Expected: FAIL — module not found.
+Expected: FAIL — the functions don't exist yet.
 
 - [ ] **Step 2: Implement core**
 
-`packages/core/src/navigator/index.ts`:
+Add to `packages/core/src/navigator/index.ts`:
 
 ```ts
 export const NAVIGATOR_EXPANDED_COOKIE = 'roadie-navigator-expanded'
@@ -4207,8 +4356,8 @@ const nameOf = (options?: { cookieName?: string }) => {
 }
 
 /**
- * Blocking inline script for `<head>` that paints a persisted expanded rail
- * before hydration. Pair with `<Navigator expandedFromDocument>`.
+ * Optional blocking `<head>` script for static sites: paints a persisted
+ * expanded rail before hydration. Pair with `<Navigator expandedFromDocument>`.
  *
  * @example
  * <script dangerouslySetInnerHTML={{ __html: getNavigatorExpandedScript() }} />
@@ -4217,7 +4366,7 @@ export function getNavigatorExpandedScript(options?: {
   cookieName?: string
 }): string {
   const name = nameOf(options)
-  return `try{var e=/(?:^|; )${name}=1(?:;|$)/.test(document.cookie);document.documentElement.setAttribute('${NAVIGATOR_EXPANDED_ATTRIBUTE}',e?'true':'false')}catch(x){}`
+  return `try{var d=document.documentElement;/(?:^|; )${name}=1(?:;|$)/.test(document.cookie)?d.setAttribute('${NAVIGATOR_EXPANDED_ATTRIBUTE}',''):d.removeAttribute('${NAVIGATOR_EXPANDED_ATTRIBUTE}')}catch(x){}`
 }
 
 /** The cookie string to write when the user toggles the rail. */
@@ -4229,91 +4378,76 @@ export function serializeNavigatorExpandedCookie(
 }
 ```
 
-`packages/core/tsdown.config.ts` entry:
-`'navigator/index': './src/navigator/index.ts'`.
-`packages/core/package.json` exports, beside `./theme`:
-
-```json
-    "./navigator": {
-      "types": "./dist/navigator/index.d.ts",
-      "import": "./dist/navigator/index.js"
-    },
-```
-
 Run: `pnpm --filter @oztix/roadie-core test && pnpm --filter @oztix/roadie-core build`
-Expected: PASS; `ls packages/core/dist/navigator/index.js` exists.
+Expected: PASS.
 
-`.changeset/app-frame-core-css.md` — append: "…and `@oztix/roadie-core/navigator`:
-`getNavigatorExpandedScript`, a blocking head script that paints a persisted
-expanded Navigator rail before hydration, with the cookie name and serializer
-it reads."
+`.changeset/app-frame-core-css.md` — append: "`@oztix/roadie-core/navigator`
+also exports `getNavigatorExpandedScript`, an optional head script that lets a
+static site paint a persisted expanded rail before hydration, with the cookie
+name and serializer it reads."
 
 - [ ] **Step 3: Failing component tests**
 
-Append to `NavigatorRail.test.tsx`:
+Append to `NavigatorRail.test.tsx` (add `expandedFromDocument?: boolean` to
+`Expandable`'s props; it already spreads them onto `Navigator`):
 
 ```tsx
 describe('expanded from the document', () => {
+  const scope = `:where(${NAVIGATOR_EXPANDED_SCOPE})`
   afterEach(() => document.documentElement.removeAttribute('data-navigator-expanded'))
 
-  it('shows the document state until the app changes expanded', async () => {
-    document.documentElement.setAttribute('data-navigator-expanded', 'true')
+  it('styles the rail expanded from the document attribute alone', async () => {
+    document.documentElement.setAttribute('data-navigator-expanded', '')
     render(<Expandable expandedFromDocument expanded={false} />)
     await flushViewportMeasurement()
-    expect(rail()).toHaveAttribute('data-expanded', 'true')
+    expect(rail()).toHaveAttribute('data-from-document')
+    expect(within(region('cluster')).getByText('Alpha').matches(scope)).toBe(true)
   })
 
-  it('writes the attribute when the rail is toggled', async () => {
+  it('treats the rail as expanded until the app changes expanded', async () => {
+    document.documentElement.setAttribute('data-navigator-expanded', '')
+    render(<Expandable expandedFromDocument expanded={false} />)
+    await flushViewportMeasurement()
+    reportClusterHeight(40)
+    expect(within(region('cluster')).queryByRole('button', { name: 'More' })).toBeNull()
+  })
+
+  it('keeps the attribute in sync after a toggle', async () => {
     const user = userEvent.setup()
-    document.documentElement.setAttribute('data-navigator-expanded', 'true')
+    document.documentElement.setAttribute('data-navigator-expanded', '')
     render(<Expandable expandedFromDocument />)
     await flushViewportMeasurement()
     await user.click(within(region('pinned')).getByRole('button', { name: 'Collapse sidebar' }))
-    expect(document.documentElement).toHaveAttribute('data-navigator-expanded', 'false')
-    expect(rail()).toHaveAttribute('data-expanded', 'false')
+    expect(document.documentElement).not.toHaveAttribute('data-navigator-expanded')
+    expect(within(region('cluster')).getByText('Alpha').matches(scope)).toBe(false)
   })
 
   it('ignores the document unless opted in', async () => {
-    document.documentElement.setAttribute('data-navigator-expanded', 'true')
-    render(
-      <Navigator value='/a'>
-        <Navigator.Primary aria-label='Main'>
-          <Navigator.Item value='/a' href='/a'>A</Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
+    document.documentElement.setAttribute('data-navigator-expanded', '')
+    render(<Expandable />)
     await flushViewportMeasurement()
-    expect(rail()).toHaveAttribute('data-expanded', 'false')
-    expect(document.querySelector('[data-expanded-from-document]')).toBeNull()
-  })
-
-  it('gives each collapsed class a pre-hydration expanded twin', () => {
-    const twin = '[html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:'
-    expect(navigatorRailVariants({ expanded: false })).toContain(`${twin}w-60`)
-    expect(navigatorItemLabelVariants({ expanded: false })).toContain(`${twin}not-sr-only`)
-    expect(navigatorCapsuleVariants({ expanded: false })).toContain(`${twin}rounded-4xl`)
+    expect(rail()).not.toHaveAttribute('data-from-document')
+    expect(within(region('cluster')).getByText('Alpha').matches(scope)).toBe(false)
   })
 })
 ```
 
-Make `Expandable` (Task 9) pass `expandedFromDocument` through to
-`Navigator` (add it to its props type). Import the three variants from
-`./variants`. Run. Expected: FAIL.
+(`NAVIGATOR_EXPANDED_SCOPE` is already imported at the top of the file from
+Task 9.) Run. Expected: FAIL.
 
 - [ ] **Step 4: Implement**
 
 `NavigatorRoot.tsx`:
 
 ```tsx
+  // JS behaviour (folding, tooltips, the toggle) must agree with what the head
+  // script painted until the app's own state takes over.
   const [documentExpanded, setDocumentExpanded] = useState(false)
   useIsomorphicLayoutEffect(() => {
     if (!expandedFromDocument) return
-    setDocumentExpanded(
-      document.documentElement.getAttribute('data-navigator-expanded') === 'true'
-    )
+    setDocumentExpanded(document.documentElement.hasAttribute('data-navigator-expanded'))
   }, [])
-  const baseExpanded = expandedProp ?? uncontrolledExpanded
-  const expanded = baseExpanded || documentExpanded
+  const expanded = (expandedProp ?? uncontrolledExpanded) || documentExpanded
 
   const setExpanded = useCallback(
     (next: boolean) => {
@@ -4326,63 +4460,30 @@ Make `Expandable` (Task 9) pass `expandedFromDocument` through to
 
   const mounted = useRef(false)
   useIsomorphicLayoutEffect(() => {
+    // Skip mount: a server-snapshot `false` must not erase what the script painted.
     if (!mounted.current) {
       mounted.current = true
       return
     }
-    if (expandedFromDocument) {
-      document.documentElement.setAttribute('data-navigator-expanded', String(expanded))
-    }
+    if (!expandedFromDocument) return
+    document.documentElement.toggleAttribute('data-navigator-expanded', expanded)
   }, [expanded, expandedFromDocument])
 ```
 
-(The first run is skipped so a server-snapshot `false` can't overwrite what
-the head script painted.) The root `div` gets
-`data-expanded-from-document={expandedFromDocument ? '' : undefined}`. JSDoc
-for the prop: "Paint the expanded state `getNavigatorExpandedScript` put on
-`<html>` until your `expanded` first changes."
-
-`variants.ts` — add the twins to the `false` branches from Task 9:
-
-```ts
-navigatorRailVariants.expanded.false:
-  'w-20 [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:w-60'
-navigatorRailClusterContentVariants.expanded.false:
-  'content-center justify-items-center [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:content-start [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:justify-items-stretch'
-navigatorRailPinnedVariants.expanded.false:
-  'justify-items-center [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:justify-items-stretch'
-navigatorCapsuleVariants.expanded.false:
-  'rounded-full [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:rounded-4xl'
-navigatorItemVariants.expanded.false:
-  'size-12 place-items-center [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:h-12 [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:w-full [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:grid-cols-[auto_1fr_auto] [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:justify-items-start [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:gap-3 [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:px-3 [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:text-sm [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:font-semibold'
-navigatorItemLabelVariants.expanded.false:
-  'sr-only [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:not-sr-only'
-navigatorGroupTitleVariants (base):
-  add '[html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:not-sr-only'
-```
-
-One line above the first twin in the file, the only comment needed:
-`// Twins let getNavigatorExpandedScript paint the expanded rail before hydration.`
+Expose `expandedFromDocument` on context; `NavigatorPrimary` renders the rail
+with `data-from-document={expandedFromDocument ? '' : undefined}`. Prop JSDoc,
+one sentence: "Follow `getNavigatorExpandedScript`'s attribute on `<html>`
+before hydration, for static sites."
 
 Run: `cd packages/components && pnpm vitest run src/components/Navigator`
-Expected: PASS. Then build and confirm the twins compiled (Tailwind drops an
-arbitrary variant it can't parse, silently):
-
-```bash
-pnpm --filter @oztix/roadie-components build
-```
-
-On the docs dev server (after Task 14 wires the script, or by hand now in
-devtools: set `data-navigator-expanded="true"` on `<html>` and add
-`data-expanded-from-document` to `[data-slot="navigator"]`), the collapsed rail
-must render at `w-60` with visible labels.
+Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/core/src/navigator packages/core/package.json packages/core/tsdown.config.ts \
-  .changeset/app-frame-core-css.md packages/components/src/components/Navigator
-git commit -m "feat(navigator): paint a persisted expanded rail before hydration"
+git add packages/core/src/navigator .changeset/app-frame-core-css.md \
+  packages/components/src/components/Navigator
+git commit -m "feat(navigator): optional head script to paint the expanded rail before hydration"
 ```
 
 ---
@@ -4806,7 +4907,11 @@ export function badgeDot(badge: ReactElement<BadgeProps>): ReactElement {
 - `NavigatorItem.tsx`: collapsed → `{badge ? badgeDot(badge) : null}` inside
   the tile (the tile is `relative`); expanded →
   `<span className={navigatorItemTrailingVariants()}>{badge}</span>` after the
-  label.
+  label. This is the one expanded difference chosen in JS rather
+  than with `navigator-expanded:` — it changes the badge's structure
+  (`hideLabel`), and rendering both forms would put its label in the
+  accessibility tree twice wherever CSS hasn't loaded. On a static site the
+  pre-hydration paint shows the dot until hydration.
 - `toSlotMeta` copies `badge` onto the slot; `NavigatorTab` gets `badge` and
   renders `badgeDot(badge)` in every presentation (tab, circle, pinned) —
   `navigatorTabVariants` base already has `relative`.
@@ -4871,7 +4976,7 @@ and `Navigator.ExpandToggle` as the parts found by reference:
 ```
 
 Replace every `group-data-[form=compact]/rail:hidden` on the page with
-`group-data-[expanded=false]/rail:hidden`.
+`hidden navigator-expanded:inline`.
 
 - [ ] **Step 2: Navigator page — examples**
 
@@ -4890,7 +4995,7 @@ and pass icons bare (Navigator applies duotone). Then:
 | Overflow (≈284-378) | rename to **Visibility priority**; the example gets eight items with `visibilityPriority='high'` on two and `'low'` on one; prose: "Whatever doesn't fit folds into More — on a phone past five slots, on a large screen when the window is too short. Priority decides membership, never order." Keep a short `Navigator.OverflowPane` + `Navigator.OverflowItems` sub-example ("Compose the More pane yourself"). |
 | Tab slots (≈379-444) | **delete** |
 | Panel (≈445-526) | **replace** with **Menu**: the Account item above with `Navigator.Menu` / `Navigator.MenuItem href` / `onClick`; prose from spec §4 (keyboard, anchoring, never navigates, "if it needs a screen's worth of content, it's a destination with its own pane"). |
-| — | **add Expanded**: a controlled example with `useState` and `Navigator.ExpandToggle placement='pinned'`; prose: "Navigator never touches storage. Persist the choice in a cookie and pass it back as `expanded`: read it on the server if you render there; on a static site, add `getNavigatorExpandedScript()` from `@oztix/roadie-core/navigator` to `<head>` and set `expandedFromDocument`, so the first paint is already expanded." Add a static `tsx` block showing the head script and `serializeNavigatorExpandedCookie` in `onExpandedChange`. |
+| — | **add Expanded**: a controlled example with `useState` and `Navigator.ExpandToggle placement='pinned'`; prose: "Navigator never touches storage. Persist the choice in a cookie; if you render on the server, read it there and pass `defaultExpanded` — the first paint is already right, no script needed. On a static site, optionally add `getNavigatorExpandedScript()` from `@oztix/roadie-core/navigator` to `<head>` and set `expandedFromDocument`." Add a static `tsx` block for each (server: `defaultExpanded={cookies().get(NAVIGATOR_EXPANDED_COOKIE)?.value === '1'}`; static: the head script plus `serializeNavigatorExpandedCookie` in `onExpandedChange`). Then a short "Styling the expanded rail" note: custom content in the rail (a Brand wordmark) uses the `navigator-expanded:` variant, e.g. `hidden navigator-expanded:inline`. |
 | — | **add Badges**: the Inbox item from Task 12; prose: "A declared `Badge` shrinks to a dot in the corner while collapsed and on the phone bar, and trails the label when expanded. Write the full meaning — its label is still announced." |
 | — | **add Section pane override**: `Navigator.SecondaryPane value='/components'` with a promo `Card` above `Navigator.SecondaryItems`; prose: "Replace one section's generated pane. Declare it before your detail pane." |
 | Panes, Pane header, Pane surfaces (≈527-764) | keep; delete the prose about the section nav in the pane header (≈626-627) |
@@ -5018,7 +5123,7 @@ section `href: '/foundations'`. `getPageTitles` picks the new page's
 is `'Foundations'`. `docs/src/app/components/page.tsx`: the description
 becomes "Browse the list, or search it by name."
 
-- [ ] **Step 2: Expanded state from the cookie, painted before hydration**
+- [ ] **Step 2: Expanded state from the cookie (and the optional head script)**
 
 `docs/src/components/useExpandedCookie.ts`:
 
@@ -5179,9 +5284,8 @@ export function NavListQuery({ onChange }: { onChange: (next: boolean) => void }
    the mapped arrays, so the walk still sees each Group and Item by reference.
 5. Pinned, written last (Task 2 warns otherwise): the Appearance item
    (`placement='pinned'`), then `<Navigator.ExpandToggle placement='pinned' />`.
-6. The Brand wordmark keeps `group-data-[expanded=false]/rail:hidden` and adds
-   its pre-hydration twin
-   `[html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:inline`.
+6. The Brand wordmark is `hidden navigator-expanded:inline` (Task 9); the
+   variant already covers the pre-hydration case, so nothing is added here.
 7. Detail pane: always `current` — Navigator puts the list on top on a section
    route and when `?nav` is set. Delete the `backHref` — Navigator links Back
    to the section route. Keep `Pane.Actions` with the On-this-page drawer.
@@ -5338,8 +5442,20 @@ With the rail expanded, reload `/foundations/colors` with the cache disabled
 and "Slow 4G" throttling, taking a screenshot as soon as anything paints:
 the first paint shows the expanded rail. Collapse, reload: the first paint is
 collapsed. A Navigator example on `/components/navigator` stays collapsed while
-the site rail is expanded (only `expandedFromDocument` Navigators follow the
-document).
+the site rail is expanded. Then confirm in the compiled CSS that the variant
+came through, by probing the live stylesheet:
+
+```js
+() => ({
+  innerWidth,
+  variantRules: [...document.styleSheets]
+    .flatMap((sheet) => { try { return [...sheet.cssRules] } catch { return [] } })
+    .filter((rule) => rule.selectorText?.includes('data-from-document')).length
+})
+```
+
+Expected: a non-zero count — every `navigator-expanded:` class the components
+use compiled to a rule scoped to the rail.
 
 - [ ] **Step 4: 900×900 — rail with stacked panes**
 
@@ -5441,12 +5557,14 @@ review before implementation starts:
    docs name the parameter `nav` and use `router.push`, so browser Back undoes
    it. `useSearchParams` sits in its own `<Suspense>` leaf so the docs stay
    prerendered.
-5. **The pre-hydration script lives at `@oztix/roadie-core/navigator` (D14)**,
-   a new subpath beside `/theme` rather than inside it. The rail's collapsed
-   classes gain long arbitrary-variant twins keyed on
-   `<html data-navigator-expanded>`, scoped to Navigators that opt in with
-   `expandedFromDocument`, and Navigator writes that attribute on every change
-   after mount. It is the most intricate part of the plan (Task 9B).
+5. **Expanded styling is one `navigator-expanded` variant (D14).** *Settled by
+   the user.* Every expanded style is written once; the variant, shipped in
+   `@oztix/roadie-core/css`, matches a rail that has `data-expanded` or — for
+   static sites that opt in — `<html data-navigator-expanded>` plus
+   `data-from-document` on the rail. It is scoped to the rail, not the root, so
+   nested example Navigators never follow the site rail. The head script at
+   `@oztix/roadie-core/navigator` (a subpath beside `/theme`) is optional; SSR
+   apps pass `defaultExpanded` from the cookie instead (Tasks 9, 9B, 14).
 6. **Pinned-first warning (D2)** covers pinned Items, Groups and a pinned
    ExpandToggle.
 7. **More pane focus (D5)** goes to its `Pane.Title` (or the pane when it has
