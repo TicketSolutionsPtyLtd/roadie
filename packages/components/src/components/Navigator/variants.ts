@@ -48,17 +48,18 @@ export const navigatorContentVariants = cva([
 // Not configurable — a seven-tab bar is not a shape Navigator can be talked into.
 export const MAX_TABS = 5
 
-// The cluster is the 1fr row, so it centres between brand and pinned.
+// Flex, not grid rows: an absent brand or pinned region leaves no gutter.
 export const navigatorPrimaryVerticalVariants = cva([
-  'group/primary hidden min-h-0 md:col-start-1 md:row-start-1 md:grid',
-  'grid-rows-[auto_minmax(0,1fr)_auto] gap-3 py-3 w-20'
+  'group/primary hidden min-h-0 md:col-start-1 md:row-start-1 md:flex',
+  'flex-col gap-3 py-3 w-20'
 ])
 
 export const navigatorPrimaryBrandVariants = cva([
   'grid justify-items-center px-3'
 ])
 
-export const navigatorPrimaryClusterVariants = cva(['min-h-0'])
+// Takes the height left between brand and pinned, so the cluster centres there.
+export const navigatorPrimaryClusterVariants = cva(['min-h-0 flex-1'])
 
 // `relative` positions the cluster's pill; the viewport is what scrolls.
 export const navigatorPrimaryClusterViewportVariants = cva([
@@ -228,8 +229,7 @@ export const navigatorItemTrailingVariants = cva(['flex items-center gap-2'])
 // `text-subtle` always: under the active tile's `intent-accent` it becomes the accent's subtle tone.
 export const navigatorItemVariants = cva(
   [
-    'is-interactive relative z-[1] grid size-12 place-items-center rounded-full text-subtle',
-    'motion-safe:transition-[background-color] motion-reduce:transition-none'
+    'is-interactive relative z-[1] grid size-12 place-items-center rounded-full text-subtle'
   ],
   {
     variants: {

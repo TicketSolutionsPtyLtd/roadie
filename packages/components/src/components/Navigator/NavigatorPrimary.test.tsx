@@ -4,6 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Navigator } from '.'
 import { FakeIcon, flushViewportMeasurement, primaryOf } from './testUtils'
+import {
+  navigatorItemVariants,
+  navigatorPrimaryClusterVariants,
+  navigatorPrimaryVerticalVariants
+} from './variants'
 
 const vertical = () => primaryOf('vertical')
 const horizontal = () => primaryOf('horizontal')
@@ -135,6 +140,31 @@ describe('vertical regions', () => {
       within(region('cluster')).queryByRole('button', { name: 'More' })
     ).toBeNull()
   })
+  it('renders only the regions it has, so no empty row adds a gutter', async () => {
+    render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
+            A
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(
+      Array.from(vertical().children).map((el) => el.getAttribute('data-slot'))
+    ).toEqual(['navigator-primary-cluster'])
+    const layout = navigatorPrimaryVerticalVariants().split(' ')
+    expect(layout).toEqual(expect.arrayContaining(['md:flex', 'flex-col']))
+    expect(layout.some((name) => name.startsWith('grid-rows-'))).toBe(false)
+    expect(navigatorPrimaryClusterVariants().split(' ')).toContain('flex-1')
+  })
+
+  it('keeps the press, colour and focus transitions of is-interactive on a tile', () => {
+    const classes = navigatorItemVariants().split(' ')
+    expect(classes).toContain('is-interactive')
+    expect(classes.filter((name) => /(^|:)transition/.test(name))).toEqual([])
+  })
 })
 
 describe('vertical capacity', () => {
@@ -235,5 +265,50 @@ describe('vertical capacity', () => {
     expect(
       within(horizontalRows!).getByRole('button', { name: 'Account' })
     ).toHaveAttribute('aria-expanded', 'false')
+  })
+  it('puts the More capsule last in the cluster', async () => {
+    render(<Six />)
+    await flushViewportMeasurement()
+    reportClusterHeight(192)
+    const content = region('cluster').querySelector(
+      '[data-slot="scroll-area-content"]'
+    )!
+    const last = content.lastElementChild as HTMLElement
+    expect(last).toHaveAttribute('data-slot', 'navigator-capsule')
+    expect(
+      within(last).getByRole('button', { name: 'More' })
+    ).toBeInTheDocument()
+  })
+
+  it('takes the pill from a visible current tile while More is open', async () => {
+    const user = userEvent.setup()
+    render(<Six />)
+    await flushViewportMeasurement()
+    reportClusterHeight(192)
+    const current = within(region('cluster')).getByRole('link', { name: '/a' })
+    const more = within(region('cluster')).getByRole('button', { name: 'More' })
+    expect(current).toHaveAttribute('data-current')
+    expect(current).toHaveClass('intent-accent')
+    await user.click(more)
+    expect(more).toHaveAttribute('data-current')
+    expect(more).toHaveClass('intent-accent')
+    expect(current).not.toHaveAttribute('data-current')
+    expect(current).not.toHaveClass('intent-accent')
+    expect(current).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('takes the pill from a current pinned tile while More is open', async () => {
+    const user = userEvent.setup()
+    render(<Six value='/me' />)
+    await flushViewportMeasurement()
+    reportClusterHeight(192)
+    const me = within(region('pinned')).getByRole('link', { name: 'Me' })
+    expect(me).toHaveAttribute('data-current')
+    await user.click(
+      within(region('cluster')).getByRole('button', { name: 'More' })
+    )
+    expect(me).not.toHaveAttribute('data-current')
+    expect(me).not.toHaveClass('intent-accent')
+    expect(me).toHaveAttribute('aria-current', 'page')
   })
 })
