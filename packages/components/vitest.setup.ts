@@ -60,6 +60,12 @@ beforeAll(() => {
     ).IntersectionObserver = IntersectionObserverMock
   }
 
+  // jsdom has no Web Animations API; Base UI's ScrollAreaViewport calls
+  // getAnimations() on a timer, which surfaces as an unhandled error.
+  if (typeof Element.prototype.getAnimations === 'undefined') {
+    Element.prototype.getAnimations = () => []
+  }
+
   if (typeof window.matchMedia === 'undefined') {
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
