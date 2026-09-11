@@ -21,7 +21,7 @@ export const badgeVariants = cva(
         sm: 'px-2 py-0.5 text-xs',
         md: 'px-2.5 py-0.5 text-sm'
       },
-      // After `size`, so `p-0` wins the merge against its padding.
+      // After `size` so `p-0` beats its padding.
       hideLabel: {
         true: 'shrink-0 gap-0 p-0',
         false: ''
@@ -48,9 +48,7 @@ export interface BadgeProps
   /** Animate the indicator with a slow pulse */
   indicatorPulse?: boolean
   /**
-   * Shrink the badge to a dot and hide the label visually. The label is still
-   * announced, so it must describe the state ("3 unread", not "3"). Implies
-   * `indicator`; `emphasis` sets the dot's look.
+   * Show only a dot; the label stays announced, so it must describe the state.
    * @default false
    */
   hideLabel?: boolean
