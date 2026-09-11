@@ -62,9 +62,6 @@ export type NavigatorContextValue = {
   /** The app asks for the active section's list on top. */
   showList: boolean
   onShowListChange?: (next: boolean) => void
-  /** Whether the stack's root is its top. Written by Content. */
-  stackAtRoot: boolean
-  setStackAtRoot: (next: boolean) => void
 }
 
 export const NavigatorContext = createContext<NavigatorContextValue>({
@@ -93,9 +90,7 @@ export const NavigatorContext = createContext<NavigatorContextValue>({
   rememberSection: () => {},
   declaredSecondaryPanes: new Set(),
   declareSecondaryPane: () => () => {},
-  showList: false,
-  stackAtRoot: true,
-  setStackAtRoot: () => {}
+  showList: false
 })
 
 export const isActiveValue = (
