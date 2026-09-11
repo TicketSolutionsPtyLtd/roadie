@@ -311,7 +311,6 @@ export default function DateAndTimePage() {
   return (
     <div className='grid gap-12'>
       <div className='grid gap-3'>
-        <h1 className='text-display-prose-1 text-strong'>Date and time</h1>
         <p className='text-lg text-subtle'>
           Someone can meet the same event half a dozen times. An event page, a
           checkout summary, a listing card, a report. They should see the date
