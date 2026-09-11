@@ -234,7 +234,9 @@ describe('Navigator.Menu', () => {
     await user.click(trigger)
     await screen.findByRole('menu')
     expect(trigger).toHaveAttribute('data-current')
+    expect(trigger).not.toHaveAttribute('aria-current')
     expect(home).not.toHaveAttribute('data-current')
+    expect(home).toHaveAttribute('aria-current', 'page')
     await user.keyboard('{Escape}')
     expect(trigger).not.toHaveAttribute('data-current')
     expect(home).toHaveAttribute('data-current')
@@ -251,6 +253,11 @@ describe('Navigator.Menu', () => {
     await user.click(circle)
     expect(await screen.findAllByRole('menu')).toHaveLength(1)
     expect(circle).toHaveAttribute('aria-expanded', 'true')
+    expect(circle).toHaveAttribute('data-current')
+    expect(circle).not.toHaveAttribute('aria-current')
+    expect(
+      within(horizontal()).getByRole('link', { name: 'Home' })
+    ).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('menu').closest('[data-side]')).toHaveAttribute(
       'data-side',
       'top'
@@ -317,7 +324,9 @@ describe('Navigator.Menu', () => {
     await screen.findByRole('menu')
     expect(tab).toHaveAttribute('aria-expanded', 'true')
     expect(tab).toHaveAttribute('data-current')
+    expect(tab).not.toHaveAttribute('aria-current')
     expect(home).not.toHaveAttribute('data-current')
+    expect(home).toHaveAttribute('aria-current', 'page')
     expect(bar.querySelectorAll('[aria-current]')).toHaveLength(1)
   })
 
@@ -353,6 +362,7 @@ describe('Navigator.Menu', () => {
       (await screen.findByRole('menu')).closest('[data-side]')
     ).toHaveAttribute('data-side', 'bottom')
     expect(row).toHaveAttribute('aria-expanded', 'true')
+    expect(row).not.toHaveAttribute('aria-current')
   })
 
   it('keeps Secondary and warns when an item declares both', async () => {

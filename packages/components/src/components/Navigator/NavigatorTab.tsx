@@ -30,6 +30,8 @@ export type NavigatorTabProps = Omit<
   /** Same smart-href contract as `Navigator.Item`. Omit for a `<button>`. */
   href?: string
   active?: boolean
+  /** Announced through `aria-current`; defaults to `active`, which only drives the pill. */
+  current?: boolean
   /** False when active through a sub-page, so it announces the section, not the page. */
   isPage?: boolean
   /** The bar is collapsed on scroll — drives the edge-circle presentation. */
@@ -54,6 +56,7 @@ export function NavigatorTab({
   icon,
   href,
   active = false,
+  current = active,
   isPage = true,
   collapsed = false,
   circleSide,
@@ -100,7 +103,7 @@ export function NavigatorTab({
   )
   // Only the page itself claims 'page'; a disclosure or section claims 'true'.
   const isDisclosure = expanded !== undefined
-  const ariaCurrent = active
+  const ariaCurrent = current
     ? isPage && !isDisclosure
       ? 'page'
       : 'true'
