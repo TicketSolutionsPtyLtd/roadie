@@ -2,11 +2,18 @@ import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { NAVIGATOR_EXPANDED_SCOPE } from '@oztix/roadie-core/navigator'
+
 import { Navigator } from '.'
 import { FakeIcon, flushViewportMeasurement, primaryOf } from './testUtils'
 import {
+  navigatorCapsuleVariants,
+  navigatorGroupTitleVariants,
+  navigatorItemLabelClass,
   navigatorItemVariants,
+  navigatorPrimaryClusterContentVariants,
   navigatorPrimaryClusterVariants,
+  navigatorPrimaryPinnedVariants,
   navigatorPrimaryVerticalVariants
 } from './variants'
 
@@ -310,5 +317,138 @@ describe('vertical capacity', () => {
     expect(me).not.toHaveAttribute('data-current')
     expect(me).not.toHaveClass('intent-accent')
     expect(me).toHaveAttribute('aria-current', 'page')
+  })
+})
+
+function Expandable(props: {
+  expanded?: boolean
+  defaultExpanded?: boolean
+  onExpandedChange?: (next: boolean) => void
+}) {
+  return (
+    <Navigator value='/a' {...props}>
+      <Navigator.Primary aria-label='Main'>
+        <Navigator.Group>
+          <Navigator.GroupTitle>Docs</Navigator.GroupTitle>
+          <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
+            Alpha
+          </Navigator.Item>
+          <Navigator.Item value='/b' href='/b' icon={<FakeIcon />}>
+            Beta
+          </Navigator.Item>
+          <Navigator.Item value='/c' href='/c' icon={<FakeIcon />}>
+            Gamma
+          </Navigator.Item>
+        </Navigator.Group>
+        <Navigator.ExpandToggle placement='pinned' />
+      </Navigator.Primary>
+      <Navigator.Content />
+    </Navigator>
+  )
+}
+
+describe('expanded vertical navigation', () => {
+  it('toggles, uncontrolled, with a labelled button that controls the vertical navigation', async () => {
+    const user = userEvent.setup()
+    render(<Expandable />)
+    await flushViewportMeasurement()
+    const toggle = within(region('pinned')).getByRole('button', {
+      name: 'Expand sidebar'
+    })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(toggle).toHaveAttribute('aria-controls', vertical().id)
+    await user.click(toggle)
+    expect(vertical()).toHaveAttribute('data-expanded')
+    expect(toggle).toHaveAccessibleName('Collapse sidebar')
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('is controlled by expanded and reports changes', async () => {
+    const user = userEvent.setup()
+    const onExpandedChange = vi.fn()
+    render(<Expandable expanded onExpandedChange={onExpandedChange} />)
+    await flushViewportMeasurement()
+    await user.click(
+      within(region('pinned')).getByRole('button', {
+        name: 'Collapse sidebar'
+      })
+    )
+    expect(onExpandedChange).toHaveBeenCalledWith(false)
+    expect(vertical()).toHaveAttribute('data-expanded')
+  })
+
+  it('matches navigator-expanded inside the vertical navigation only while expanded', async () => {
+    const scope = `:where(${NAVIGATOR_EXPANDED_SCOPE})`
+    const { rerender } = render(<Expandable expanded />)
+    await flushViewportMeasurement()
+    expect(within(region('cluster')).getByText('Alpha').matches(scope)).toBe(
+      true
+    )
+    expect(within(region('cluster')).getByText('Docs').matches(scope)).toBe(
+      true
+    )
+    rerender(<Expandable expanded={false} />)
+    expect(vertical()).not.toHaveAttribute('data-expanded')
+    expect(within(region('cluster')).getByText('Alpha').matches(scope)).toBe(
+      false
+    )
+  })
+
+  it('never expands a Navigator nested in an expanded one', async () => {
+    const scope = `:where(${NAVIGATOR_EXPANDED_SCOPE})`
+    render(
+      <Navigator value='/a' expanded>
+        <Navigator.Primary aria-label='Outer'>
+          <Navigator.Item value='/a' href='/a'>
+            Outer
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Navigator value='/x'>
+            <Navigator.Primary aria-label='Inner'>
+              <Navigator.Item value='/x' href='/x'>
+                Inner
+              </Navigator.Item>
+            </Navigator.Primary>
+          </Navigator>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const inner = screen.getByRole('navigation', { name: 'Inner' })
+    expect(within(inner).getByText('Inner').matches(scope)).toBe(false)
+  })
+
+  it('writes each expanded style once, through the variant', () => {
+    const classes = [
+      navigatorPrimaryVerticalVariants(),
+      navigatorPrimaryClusterContentVariants(),
+      navigatorPrimaryPinnedVariants(),
+      navigatorCapsuleVariants(),
+      navigatorItemVariants(),
+      navigatorItemLabelClass,
+      navigatorGroupTitleVariants()
+    ].join(' ')
+    expect(classes).toContain('navigator-expanded:w-60')
+    expect(classes).toContain('navigator-expanded:not-sr-only')
+    expect(classes).not.toMatch(/\[html\[|data-\[expanded|expanded=false/)
+  })
+
+  it('folds nothing while expanded', async () => {
+    render(<Expandable defaultExpanded />)
+    await flushViewportMeasurement()
+    reportClusterHeight(40)
+    expect(within(region('cluster')).getAllByRole('link')).toHaveLength(3)
+    expect(
+      within(region('cluster')).queryByRole('button', { name: 'More' })
+    ).toBeNull()
+  })
+
+  it('never renders the toggle on the phone bar', async () => {
+    render(<Expandable />)
+    await flushViewportMeasurement()
+    expect(
+      within(horizontal()).queryByRole('button', { name: /sidebar/ })
+    ).toBeNull()
   })
 })

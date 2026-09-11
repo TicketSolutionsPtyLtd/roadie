@@ -2473,7 +2473,7 @@ describe('Navigator.Primary direct-children warning', () => {
     )
     expect(warn).toHaveBeenCalledWith(
       expect.stringContaining(
-        'Navigator.Primary only recognises Navigator.Item, Navigator.Group and Navigator.Brand'
+        'Navigator.Primary only recognises Navigator.Item, Navigator.Group, Navigator.Brand and Navigator.ExpandToggle'
       )
     )
     warn.mockRestore()

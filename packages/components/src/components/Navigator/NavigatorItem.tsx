@@ -24,7 +24,7 @@ import {
   splitItemChildren,
   textOf
 } from './splitSecondary'
-import { navigatorItemVariants } from './variants'
+import { navigatorItemLabelClass, navigatorItemVariants } from './variants'
 
 export type NavigatorItemProps = {
   /** Identifies this destination against Navigator's `value`; unique across the tree. */
@@ -98,7 +98,10 @@ export function NavigatorItem({
           {presentNavIcon(icon, isBranch, 'size-6')}
         </span>
       ) : null}
-      <span data-slot='navigator-item-label' className='sr-only'>
+      <span
+        data-slot='navigator-item-label'
+        className={navigatorItemLabelClass}
+      >
         {label}
       </span>
     </>

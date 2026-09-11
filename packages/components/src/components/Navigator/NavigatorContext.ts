@@ -62,6 +62,11 @@ export type NavigatorContextValue = {
   /** The app asks for the active section's list on top. */
   showList: boolean
   onShowListChange?: (next: boolean) => void
+  /** Whether the vertical navigation shows labels. Behaviour only; styling reads `data-expanded`. */
+  expanded: boolean
+  setExpanded: (next: boolean) => void
+  /** Id of the vertical navigation, for the toggle's `aria-controls`. */
+  primaryId: string
 }
 
 export const NavigatorContext = createContext<NavigatorContextValue>({
@@ -90,7 +95,10 @@ export const NavigatorContext = createContext<NavigatorContextValue>({
   rememberSection: () => {},
   declaredSecondaryPanes: new Set(),
   declareSecondaryPane: () => () => {},
-  showList: false
+  showList: false,
+  expanded: false,
+  setExpanded: () => {},
+  primaryId: ''
 })
 
 export const isActiveValue = (

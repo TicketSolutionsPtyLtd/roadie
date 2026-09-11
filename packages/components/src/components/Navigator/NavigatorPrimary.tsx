@@ -34,7 +34,7 @@ import { NavigatorItem, type NavigatorItemProps } from './NavigatorItem'
 import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
 import type { NavigatorSecondaryProps } from './NavigatorSecondary'
 import { NavigatorTab, type NavigatorTabProps } from './NavigatorTab'
-import { primaryCapsules, wrapCapsules } from './capsules'
+import { fixedCapsules, primaryCapsules, wrapCapsules } from './capsules'
 import { collectSlots } from './collectSlots'
 import {
   type MobileSlots,
@@ -52,6 +52,7 @@ import {
 import { usePrimaryCapacity } from './usePrimaryCapacity'
 import {
   navigatorCapsuleVariants,
+  navigatorItemLabelClass,
   navigatorItemVariants,
   navigatorPrimaryBrandVariants,
   navigatorPrimaryCircleVariants,
@@ -100,7 +101,9 @@ export function NavigatorPrimary({
     sectionMemory,
     rememberSection,
     showList,
-    onShowListChange
+    onShowListChange,
+    expanded,
+    primaryId
   } = use(NavigatorContext)
   const tabTrackRef = useRef<HTMLDivElement>(null)
   const clusterRef = useRef<HTMLDivElement>(null)
@@ -189,15 +192,16 @@ export function NavigatorPrimary({
     if (!isDev() || !hasStrayChild) return
     console.warn(
       '[Roadie] Navigator.Primary only recognises Navigator.Item, ' +
-        'Navigator.Group and Navigator.Brand by direct element-type ' +
-        'reference, and skipped a child that is not one of those. A ' +
-        'component that renders, or merely returns, a Navigator.Item — ' +
-        'including one extracted to share it across sections — is not that ' +
-        'reference either, so it is invisible the same way. Fragments, ' +
-        'mapped wrappers, and trees authored in a server component (Flight ' +
-        'replaces each element type with a lazy reference) fail for the ' +
-        'same reason. Render Navigator.Item directly as a child. See ' +
-        'COMPOUND_PATTERNS.md §1.2.'
+        'Navigator.Group, Navigator.Brand and Navigator.ExpandToggle by ' +
+        'direct element-type reference, and skipped a child that is not ' +
+        'one of those. A component that renders, or merely returns, a ' +
+        'Navigator.Item — including one extracted to share it across ' +
+        'sections — is not that reference either, so it is invisible ' +
+        'the same way. Fragments, mapped wrappers, and trees authored ' +
+        'in a server component (Flight replaces each element type with ' +
+        'a lazy reference) fail for the same reason. Render ' +
+        'Navigator.Item directly as a child. See COMPOUND_PATTERNS.md ' +
+        '§1.2.'
     )
   }, [hasStrayChild])
 
@@ -271,8 +275,8 @@ export function NavigatorPrimary({
   const verticalFolded = usePrimaryCapacity(
     clusterRef,
     primaryCapsules(collected.cluster),
-    [],
-    true
+    fixedCapsules(collected.cluster),
+    !expanded
   )
   const verticalFoldedSlots = collected.automatic.filter((slot) =>
     verticalFolded.has(slot.value)
@@ -371,8 +375,10 @@ export function NavigatorPrimary({
   return (
     <>
       <nav
+        id={primaryId}
         data-slot='navigator-primary'
         data-orientation='vertical'
+        data-expanded={expanded ? '' : undefined}
         aria-label={ariaLabel}
         className={cn(navigatorPrimaryVerticalVariants(), className)}
       >
@@ -426,7 +432,7 @@ export function NavigatorPrimary({
                       </span>
                       <span
                         data-slot='navigator-item-label'
-                        className='sr-only'
+                        className={navigatorItemLabelClass}
                       >
                         {OVERFLOW_LABEL}
                       </span>
