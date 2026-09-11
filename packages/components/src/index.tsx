@@ -350,6 +350,29 @@ export {
   type DialogContentProps
 } from './components/Dialog'
 
+export {
+  Drawer,
+  drawerPopupVariants,
+  drawerViewportVariants,
+  type DrawerProps,
+  type DrawerTriggerProps,
+  type DrawerPortalProps,
+  type DrawerBackdropProps,
+  type DrawerViewportProps,
+  type DrawerPopupProps,
+  type DrawerSwipeAreaProps,
+  type DrawerHandleProps,
+  type DrawerTitleProps,
+  type DrawerDescriptionProps,
+  type DrawerCloseProps,
+  type DrawerHeaderProps,
+  type DrawerBodyProps,
+  type DrawerFooterProps,
+  type DrawerContentProps,
+  type DrawerSide,
+  type DrawerSize
+} from './components/Drawer'
+
 // Providers
 export {
   ThemeProvider,

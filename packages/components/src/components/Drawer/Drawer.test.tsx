@@ -1,0 +1,267 @@
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
+
+import { Drawer } from '.'
+import { List } from '../List'
+
+const slot = (name: string) =>
+  document.body.querySelector<HTMLElement>(`[data-slot="drawer-${name}"]`)
+
+function renderOpen(props: Partial<React.ComponentProps<typeof Drawer>> = {}) {
+  return render(
+    <Drawer defaultOpen {...props}>
+      <Drawer.Content>
+        <Drawer.Header>
+          <Drawer.Title>Filters</Drawer.Title>
+          <Drawer.Description>Narrow the results</Drawer.Description>
+        </Drawer.Header>
+        <Drawer.Body>Body</Drawer.Body>
+        <Drawer.Footer>
+          <Drawer.Close>Done</Drawer.Close>
+        </Drawer.Footer>
+      </Drawer.Content>
+    </Drawer>
+  )
+}
+
+describe('Drawer compound shape', () => {
+  it('exposes the root as both the bare form and the .Root alias', () => {
+    expect(Drawer).toBe(Drawer.Root)
+  })
+})
+
+describe('Drawer.Content', () => {
+  it('renders the portal parts and labels the dialog with the title', async () => {
+    renderOpen()
+    const popup = await screen.findByRole('dialog')
+    expect(popup).toBe(slot('popup'))
+    expect(slot('backdrop')).toBeInTheDocument()
+    expect(slot('viewport')).toBeInTheDocument()
+    expect(popup).toHaveAccessibleName('Filters')
+    expect(popup).toHaveAccessibleDescription('Narrow the results')
+  })
+
+  it('titles with the shared surface title class, not a pane-sized one', async () => {
+    renderOpen()
+    await screen.findByRole('dialog')
+    expect(slot('title')).toHaveClass('text-display-ui-4')
+  })
+
+  it('renders nothing when closed', () => {
+    render(
+      <Drawer>
+        <Drawer.Content>
+          <Drawer.Title>Filters</Drawer.Title>
+        </Drawer.Content>
+      </Drawer>
+    )
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('marks the body as drawer content so a drag there scrolls', async () => {
+    renderOpen()
+    await screen.findByRole('dialog')
+    expect(slot('body')).toHaveAttribute('data-drawer-content')
+  })
+})
+
+describe('Drawer content inset', () => {
+  it('publishes one inset the header and body both resolve against', async () => {
+    renderOpen()
+    const popup = await screen.findByRole('dialog')
+    expect(popup).toHaveClass('[--content-inset:--spacing(6)]')
+    expect(slot('header')).toHaveClass('px-(--content-inset)')
+    expect(slot('body')).toHaveClass('px-(--content-inset)')
+  })
+
+  it('lands a List in the body on the same edge as the title', async () => {
+    render(
+      <Drawer defaultOpen>
+        <Drawer.Content>
+          <Drawer.Header>
+            <Drawer.Title>Filters</Drawer.Title>
+          </Drawer.Header>
+          <Drawer.Body>
+            <List>
+              <List.Item title='Music' />
+            </List>
+          </Drawer.Body>
+        </Drawer.Content>
+      </Drawer>
+    )
+    await screen.findByRole('dialog')
+
+    // The row's fill bleeds out by its own padding, so its text meets the inset.
+    expect(document.querySelector('[data-slot="list-item"]')).toHaveClass(
+      'px-3',
+      'group-data-[emphasis=subtler]/list:-mx-3'
+    )
+  })
+})
+
+describe('Drawer side', () => {
+  it('swipes down and anchors to the bottom edge by default', async () => {
+    renderOpen()
+    const popup = await screen.findByRole('dialog')
+    expect(popup).toHaveAttribute('data-swipe-direction', 'down')
+    expect(slot('viewport')).toHaveClass('items-end')
+  })
+
+  it('side="right" swipes right and anchors to the trailing edge', async () => {
+    renderOpen({ side: 'right' })
+    const popup = await screen.findByRole('dialog')
+    expect(popup).toHaveAttribute('data-swipe-direction', 'right')
+    expect(slot('viewport')).toHaveClass('justify-items-end')
+  })
+
+  it('side="left" swipes left', async () => {
+    renderOpen({ side: 'left' })
+    expect(await screen.findByRole('dialog')).toHaveAttribute(
+      'data-swipe-direction',
+      'left'
+    )
+  })
+
+  it('side="top" swipes up', async () => {
+    renderOpen({ side: 'top' })
+    expect(await screen.findByRole('dialog')).toHaveAttribute(
+      'data-swipe-direction',
+      'up'
+    )
+  })
+})
+
+describe('Drawer.Handle', () => {
+  it('is present by default on a bottom drawer', async () => {
+    renderOpen()
+    await screen.findByRole('dialog')
+    expect(slot('handle')).toBeInTheDocument()
+  })
+
+  it('is absent by default on a side drawer', async () => {
+    renderOpen({ side: 'right' })
+    await screen.findByRole('dialog')
+    expect(slot('handle')).not.toBeInTheDocument()
+  })
+
+  it('can be forced on for a side drawer', async () => {
+    render(
+      <Drawer defaultOpen side='right'>
+        <Drawer.Content handle>
+          <Drawer.Title>Filters</Drawer.Title>
+        </Drawer.Content>
+      </Drawer>
+    )
+    await screen.findByRole('dialog')
+    expect(slot('handle')).toBeInTheDocument()
+  })
+
+  it('is hidden from assistive tech', async () => {
+    renderOpen()
+    await screen.findByRole('dialog')
+    expect(slot('handle')).toHaveAttribute('aria-hidden', 'true')
+  })
+})
+
+describe('Drawer open and close', () => {
+  it('opens from the trigger and closes from Drawer.Close', async () => {
+    const user = userEvent.setup()
+    render(
+      <Drawer>
+        <Drawer.Trigger>Open</Drawer.Trigger>
+        <Drawer.Content>
+          <Drawer.Title>Filters</Drawer.Title>
+          <Drawer.Footer>
+            <Drawer.Close>Done</Drawer.Close>
+          </Drawer.Footer>
+        </Drawer.Content>
+      </Drawer>
+    )
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Open' }))
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Done' }))
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    )
+  })
+
+  it('closes on Escape and reports the reason', async () => {
+    const user = userEvent.setup()
+    const onOpenChange = vi.fn()
+    render(
+      <Drawer defaultOpen onOpenChange={onOpenChange}>
+        <Drawer.Content>
+          <Drawer.Title>Filters</Drawer.Title>
+        </Drawer.Content>
+      </Drawer>
+    )
+    await screen.findByRole('dialog')
+
+    await user.keyboard('{Escape}')
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    )
+    expect(onOpenChange).toHaveBeenCalledWith(
+      false,
+      expect.objectContaining({ reason: 'escape-key' })
+    )
+  })
+
+  it('moves focus into the drawer when it opens', async () => {
+    const user = userEvent.setup()
+    render(
+      <Drawer>
+        <Drawer.Trigger>Open</Drawer.Trigger>
+        <Drawer.Content>
+          <Drawer.Title>Filters</Drawer.Title>
+          <Drawer.Body>
+            <button type='button'>First</button>
+          </Drawer.Body>
+        </Drawer.Content>
+      </Drawer>
+    )
+    await user.click(screen.getByRole('button', { name: 'Open' }))
+    const popup = await screen.findByRole('dialog')
+    await waitFor(() =>
+      expect(popup).toContainElement(document.activeElement as HTMLElement)
+    )
+  })
+})
+
+describe('Drawer surface', () => {
+  it('carries the drawer motion utility rather than a transform-only one', async () => {
+    renderOpen()
+    expect(await screen.findByRole('dialog')).toHaveClass('motion-drawer')
+  })
+
+  it('layers the surface above the scrim', async () => {
+    renderOpen()
+    await screen.findByRole('dialog')
+    expect(slot('viewport')).toHaveClass('z-modal')
+    expect(slot('backdrop')).toHaveClass('z-overlay')
+  })
+
+  it('applies the intent class when intent is set', async () => {
+    render(
+      <Drawer defaultOpen>
+        <Drawer.Content intent='danger'>
+          <Drawer.Title>Filters</Drawer.Title>
+        </Drawer.Content>
+      </Drawer>
+    )
+    expect(await screen.findByRole('dialog')).toHaveClass('intent-danger')
+  })
+
+  it('sizes along its own axis — height when bottom, width when side', async () => {
+    const { unmount } = renderOpen({ side: 'bottom' })
+    expect(await screen.findByRole('dialog')).toHaveClass('max-h-[75dvh]')
+    unmount()
+
+    renderOpen({ side: 'right' })
+    expect(await screen.findByRole('dialog')).toHaveClass('max-w-md')
+  })
+})

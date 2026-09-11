@@ -1,0 +1,162 @@
+export const metadata = {
+  title: 'Drawer',
+  description: 'A surface that slides in from an edge and swipes away',
+  status: 'beta',
+  category: 'Overlays',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+# Drawer
+
+A surface that slides in from an edge and swipes away, built on Base UI's drawer primitive.
+
+## Import
+
+```tsx
+import { Drawer } from '@oztix/roadie-components/drawer'
+```
+
+## Examples
+
+### Default
+
+A bottom sheet. `Drawer.Content` collapses the underlying `Portal`, `Backdrop`, `Viewport` and `Popup` into one element, and adds the grab handle because the swipe axis is vertical.
+
+```tsx-live
+<Drawer>
+  <Drawer.Trigger render={<Button>Open drawer</Button>} />
+  <Drawer.Content>
+    <Drawer.Header>
+      <Drawer.Title>Filters</Drawer.Title>
+      <Drawer.Description>Narrow the results.</Drawer.Description>
+    </Drawer.Header>
+    <Drawer.Body>
+      <p>Drag the sheet down, press Escape, or tap outside the surface to dismiss it.</p>
+    </Drawer.Body>
+    <Drawer.Footer>
+      <Drawer.Close render={<Button>Cancel</Button>} />
+      <Button intent='accent' emphasis='strong'>Apply</Button>
+    </Drawer.Footer>
+  </Drawer.Content>
+</Drawer>
+```
+
+`Drawer.Content` publishes `--content-inset`, so its header, body and footer share one horizontal inset — override the variable on `Drawer.Content` to change all three.
+
+### Sides
+
+`side` picks the edge, and with it the dismiss gesture — a `bottom` drawer swipes down, a `right` drawer swipes right. It is a single value, not a breakpoint list: Base UI owns the gesture in JavaScript, so the edge and the swipe have to agree.
+
+```tsx-live
+<div className='flex flex-wrap gap-3'>
+  {['bottom', 'right', 'left', 'top'].map((side) => (
+    <Drawer key={side} side={side}>
+      <Drawer.Trigger render={<Button>{side}</Button>} />
+      <Drawer.Content>
+        <Drawer.Header>
+          <Drawer.Title>From the {side}</Drawer.Title>
+        </Drawer.Header>
+        <Drawer.Body>
+          <p>Swipe towards the {side} edge to dismiss.</p>
+        </Drawer.Body>
+      </Drawer.Content>
+    </Drawer>
+  ))}
+</div>
+```
+
+### Sizes
+
+`size` sets the drawer's extent along its own axis — height for a bottom or top drawer, width for a side one. Defaults to `md`.
+
+```tsx-live
+<div className='flex flex-wrap gap-3'>
+  {['sm', 'md', 'lg'].map((size) => (
+    <Drawer key={size} side='right'>
+      <Drawer.Trigger render={<Button>{size}</Button>} />
+      <Drawer.Content size={size}>
+        <Drawer.Header>
+          <Drawer.Title>Size {size}</Drawer.Title>
+        </Drawer.Header>
+        <Drawer.Body>
+          <p>A side drawer sizes by width.</p>
+        </Drawer.Body>
+      </Drawer.Content>
+    </Drawer>
+  ))}
+</div>
+```
+
+### Composition
+
+The collapsed `Drawer.Content` covers the common case. Compose the parts directly when you need to reach the backdrop, the viewport or the popup separately.
+
+```tsx-live
+<Drawer side='right'>
+  <Drawer.Trigger render={<Button>Compose the parts</Button>} />
+  <Drawer.Portal>
+    <Drawer.Backdrop />
+    <Drawer.Viewport>
+      <Drawer.Popup>
+        <Drawer.Handle />
+        <Drawer.Header>
+          <Drawer.Title>Composed</Drawer.Title>
+        </Drawer.Header>
+        <Drawer.Body>
+          <p>Portal, Backdrop, Viewport and Popup, wired by hand.</p>
+        </Drawer.Body>
+      </Drawer.Popup>
+    </Drawer.Viewport>
+  </Drawer.Portal>
+</Drawer>
+```
+
+## Guidelines
+
+<Guideline title='Long content scrolls in the body'>
+  <Guideline.Do code={`<Drawer.Content>\n  <Drawer.Header>…</Drawer.Header>\n  <Drawer.Body>\n    {rows}\n  </Drawer.Body>\n</Drawer.Content>`}>
+    `Drawer.Body` is the scroll region, and it tells the primitive that a drag
+    starting there is a scroll rather than a dismiss. Long content belongs
+    inside it.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Drawer.Body>\n  <div className='overflow-y-auto'>\n    {rows}\n  </div>\n</Drawer.Body>`}>
+    A second scroller inside the body competes with the swipe gesture, and the
+    sheet stops tracking the thumb.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='The handle belongs on the swipe edge'>
+  <Guideline.Do code={`<Drawer side='bottom'>\n  <Drawer.Content>…</Drawer.Content>\n</Drawer>`}>
+    `Drawer.Content` places it for you — on a bottom sheet it reads as the grab
+    affordance iOS users reach for, and it is off by default where the swipe
+    axis is horizontal.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Drawer side='right'>\n  <Drawer.Content handle>…</Drawer.Content>\n</Drawer>`}>
+    A horizontal swipe has no matching affordance in the platform, and a stray
+    pill at the top of a side drawer reads as decoration.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='One side, declared on the root'>
+  <Guideline.Do code={`<Drawer side='right'>\n  <Drawer.Content>…</Drawer.Content>\n</Drawer>`}>
+    The root sets the edge and the dismiss gesture together, and every part
+    reads it from there. No part takes a `side` of its own, so the two can
+    never disagree.
+  </Guideline.Do>
+  <Guideline.Dont code={`const side = isMobile ? 'bottom' : 'right'\n\n<Drawer side={side}>…</Drawer>\n\n// not a breakpoint list:\n<Drawer side={{ base: 'bottom', md: 'right' }} />`}>
+    `side` is a single value, not a breakpoint list — Base UI owns the gesture
+    in JavaScript. Pick it from your own media query in application code and
+    pass the result.
+  </Guideline.Dont>
+</Guideline>
+
+## Accessibility
+
+- Base UI owns the focus trap, the return focus, the `Escape` handling and the `role='dialog'` wiring.
+- `Drawer.Title` and `Drawer.Description` supply the accessible name and description. A drawer without a title has no name.
+- `Drawer.Handle` is `aria-hidden` — the gesture it hints at is not the only way to dismiss, so it carries no semantics of its own.
+- Enter and exit motion is transition-based and disabled under `prefers-reduced-motion: reduce`.
+
+<PropsDefinitions componentPath='packages/components/src/components/Drawer' />

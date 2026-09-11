@@ -12,6 +12,7 @@ import { StarIcon } from '@phosphor-icons/react/ssr'
 
 import {
   Dialog as DialogViaBarrel,
+  Drawer as DrawerViaBarrel,
   Fieldset as FieldsetViaBarrel,
   List as ListViaBarrel,
   Popover as PopoverViaBarrel,
@@ -26,6 +27,7 @@ import { Card } from '@oztix/roadie-components/card'
 import { Carousel } from '@oztix/roadie-components/carousel'
 import { Combobox } from '@oztix/roadie-components/combobox'
 import { Dialog } from '@oztix/roadie-components/dialog'
+import { Drawer } from '@oztix/roadie-components/drawer'
 import { Field } from '@oztix/roadie-components/field'
 import { Fieldset } from '@oztix/roadie-components/fieldset'
 import { IconTile } from '@oztix/roadie-components/icon-tile'
@@ -495,6 +497,37 @@ export default function RscSmokePage() {
             </Dialog.Description>
           </Dialog.Content>
         </Dialog>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Drawer — subpath</h2>
+        <Drawer>
+          <Drawer.Trigger>Open drawer</Drawer.Trigger>
+          <Drawer.Content>
+            <Drawer.Header>
+              <Drawer.Title>Drawer title</Drawer.Title>
+              <Drawer.Description>
+                Rendered from a server component.
+              </Drawer.Description>
+            </Drawer.Header>
+            <Drawer.Body>Body</Drawer.Body>
+          </Drawer.Content>
+        </Drawer>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Drawer — barrel</h2>
+        <DrawerViaBarrel side='right'>
+          <DrawerViaBarrel.Trigger>Open drawer</DrawerViaBarrel.Trigger>
+          <DrawerViaBarrel.Content>
+            <DrawerViaBarrel.Header>
+              <DrawerViaBarrel.Title>Drawer title</DrawerViaBarrel.Title>
+            </DrawerViaBarrel.Header>
+            <DrawerViaBarrel.Body>
+              Imported from the root barrel.
+            </DrawerViaBarrel.Body>
+          </DrawerViaBarrel.Content>
+        </DrawerViaBarrel>
       </section>
 
       <section className='grid gap-2'>
