@@ -18,7 +18,7 @@ import type {
   NavigatorPlacement,
   NavigatorVisibilityPriority
 } from './mobileSlots'
-import { badgeDot, presentNavIcon } from './presentNavIcon'
+import { badgeDot, badgeSmall, presentNavIcon } from './presentNavIcon'
 import { rememberedHref } from './sectionMemory'
 import {
   firstSecondaryHref,
@@ -39,7 +39,7 @@ export type NavigatorItemProps = {
   href?: string
   /** Leading icon. Phosphor `Icon`-suffixed export, sized with className. */
   icon?: ReactNode
-  /** A `Badge`. Collapsed and on the phone bar it shrinks to a dot in the corner (`hideLabel`); expanded it trails the label as declared. */
+  /** A `Badge`. Collapsed and on the phone bar it shrinks to a dot in the corner (`hideLabel`); expanded it trails the label at `size='sm'`. */
   badge?: ReactElement<BadgeProps>
   /** `pinned` anchors it to the vertical navigation's bottom and the bar's trailing circle. @default 'automatic' */
   placement?: NavigatorPlacement
@@ -122,7 +122,7 @@ export function NavigatorItem({
               data-slot='navigator-item-trailing'
               className={navigatorItemTrailingVariants()}
             >
-              {badge}
+              {badgeSmall(badge)}
             </span>
           ) : (
             badgeDot(badge)

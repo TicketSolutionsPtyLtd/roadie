@@ -36,3 +36,7 @@ export function badgeDot(badge: ReactElement<BadgeProps>): ReactElement {
     className: cn(badge.props.className, 'absolute end-1 top-1')
   })
 }
+
+export function badgeSmall(badge: ReactElement<BadgeProps>): ReactElement {
+  return cloneElement(badge, { size: 'sm' })
+}
