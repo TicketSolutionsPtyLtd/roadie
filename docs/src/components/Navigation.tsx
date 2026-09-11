@@ -287,12 +287,15 @@ export function DocsNavigator({
           <Navigator.Brand>
             <Image
               src='/roadie-logo.png'
-              alt=''
+              alt='Roadie'
               width={32}
               height={32}
               className='size-8 shrink-0'
             />
-            <span className='hidden truncate text-base font-semibold text-strong navigator-expanded:inline'>
+            <span
+              aria-hidden
+              className='hidden truncate text-base font-semibold text-strong navigator-expanded:inline'
+            >
               Roadie
             </span>
           </Navigator.Brand>

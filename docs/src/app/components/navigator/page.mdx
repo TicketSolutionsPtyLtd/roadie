@@ -66,8 +66,12 @@ and pinned and shows icon tiles labelled by a tooltip. Expanded, it stays
 centred and shows labels beside the icons; only when it outgrows the space does
 it top-align and scroll on its own.
 
-`Navigator.Brand` is large-screen only — the tab bar has no brand slot. Its
-first child, the mark, sits on the icon column in both states, so it never
+`Navigator.Brand` is large-screen only — the tab bar has no brand slot. It
+links home: `href` defaults to `'/'` and routes through `RoadieLinkProvider`
+like every Navigator destination; pass `href` to point it elsewhere. Its
+content names the link, so label the mark (`alt`, or `role='img'` with an
+`aria-label`) and hide a wordmark that repeats it with `aria-hidden`. The
+mark, its first child, sits on the icon column in both states, so it never
 moves; anything after it fades in once expanded. Hide a wordmark until then
 with `hidden navigator-expanded:inline`.
 
@@ -671,10 +675,10 @@ function ExpandedNav() {
       >
         <Navigator.Primary aria-label='Main'>
           <Navigator.Brand>
-            <IconTile intent='brand' emphasis='strong'>
+            <IconTile intent='brand' emphasis='strong' role='img' aria-label='Oztix'>
               <TicketIcon weight='bold' />
             </IconTile>
-            <span className='hidden truncate text-base font-semibold text-strong navigator-expanded:inline'>
+            <span aria-hidden className='hidden truncate text-base font-semibold text-strong navigator-expanded:inline'>
               Oztix
             </span>
           </Navigator.Brand>
@@ -1126,6 +1130,9 @@ documented there. The two facts worth knowing from here:
 - **`Navigator.ExpandToggle`** is a button with `aria-expanded` and
   `aria-controls`, labelled "Expand sidebar" or "Collapse sidebar" in visually
   hidden text, with the same label in its tooltip in both states.
+- **`Navigator.Brand`** is a link home named by its content — the mark's
+  `alt` or `aria-label`, or its text — so it needs one that reads in both
+  states.
 - **Tab order** follows the vertical navigation's regions — brand and its
   toggle, cluster, pinned.
 - **Menus** are Base UI menus: arrow keys move between rows, typeahead jumps to

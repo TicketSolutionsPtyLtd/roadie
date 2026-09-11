@@ -5,6 +5,10 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Navigator } from '.'
+import {
+  type RoadieLinkComponent,
+  RoadieLinkProvider
+} from '../../providers/RoadieLinkProvider'
 import { Pane } from '../Pane'
 import { NavigatorContext } from './NavigatorContext'
 import { FakeIcon, flushViewportMeasurement, primaryOf } from './testUtils'
@@ -905,6 +909,62 @@ describe('Navigator.Brand', () => {
       vertical?.querySelectorAll('[data-slot="navigator-item"]')
     ).toHaveLength(2)
     await flushViewportMeasurement()
+  })
+
+  const brandTree = (brand: ReactNode) => (
+    <Navigator value='tickets'>
+      <Navigator.Primary aria-label='Primary'>
+        {brand}
+        <Navigator.Item value='tickets'>Tickets</Navigator.Item>
+      </Navigator.Primary>
+    </Navigator>
+  )
+  const brandLink = (name: string) =>
+    within(primaryOf('vertical')).getByRole('link', { name })
+
+  it('links home by default, named by its text', async () => {
+    render(brandTree(<Navigator.Brand>Roadie</Navigator.Brand>))
+    await flushViewportMeasurement()
+    const link = brandLink('Roadie')
+    expect(link).toHaveAttribute('href', '/')
+    expect(link).toHaveAttribute('data-slot', 'navigator-brand')
+    expect(link).toHaveClass('is-interactive')
+  })
+
+  it('takes its name from a logo’s label', async () => {
+    render(
+      brandTree(
+        <Navigator.Brand>
+          <svg role='img' aria-label='Oztix' data-slot='logo' />
+          <span aria-hidden data-slot='wordmark'>
+            Oztix
+          </span>
+        </Navigator.Brand>
+      )
+    )
+    await flushViewportMeasurement()
+    expect(brandLink('Oztix')).toHaveAttribute('href', '/')
+  })
+
+  it('links wherever href points', async () => {
+    render(brandTree(<Navigator.Brand href='/home'>Roadie</Navigator.Brand>))
+    await flushViewportMeasurement()
+    expect(brandLink('Roadie')).toHaveAttribute('href', '/home')
+  })
+
+  it('routes through RoadieLinkProvider', async () => {
+    const StubLink: RoadieLinkComponent = ({ href, children, ...rest }) => (
+      <a data-testid='stub-link' href={href} {...rest}>
+        {children}
+      </a>
+    )
+    render(
+      <RoadieLinkProvider Link={StubLink}>
+        {brandTree(<Navigator.Brand>Roadie</Navigator.Brand>)}
+      </RoadieLinkProvider>
+    )
+    await flushViewportMeasurement()
+    expect(brandLink('Roadie')).toHaveAttribute('data-testid', 'stub-link')
   })
 
   it('does not warn about a stray child', async () => {
