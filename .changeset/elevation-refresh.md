@@ -29,10 +29,6 @@ server-rendered markup gets the same look with
 uses `accent-1` in dark mode so a focused field stays close to its resting
 depth.
 
-In dark mode every intent's sunken background moves from step 0 to step 1.
-Step 0 is near-black, so sunken panels, code blocks and fields read as holes
-rather than recesses.
-
 The `Select` trigger drops its solid `border-normal`: the raised shadow's
 hairline now draws its edge, and a solid border beside it read as a double
 outline. Its open state uses the same fill as a focused field.

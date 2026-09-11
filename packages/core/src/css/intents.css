@@ -55,12 +55,11 @@
   --intent-mark-text: var(--color-neutral-0);
 }
 
-/* Dark mode: bump surfaces up for depth separation. Sunken stops at step 1:
-   step 0 is near-black and read as a hole rather than a recess. */
+/* Dark mode: bump surfaces up for depth separation */
 .dark {
   --intent-bg-normal: var(--color-neutral-2);
   --intent-bg-raised: var(--color-neutral-3);
-  --intent-bg-sunken: var(--color-neutral-1);
+  --intent-bg-sunken: var(--color-neutral-0);
 }
 
 /* ═══ Intent: neutral ═══ */
@@ -114,7 +113,7 @@
   .dark & {
     --intent-bg-normal: var(--color-neutral-2);
     --intent-bg-raised: var(--color-neutral-3);
-    --intent-bg-sunken: var(--color-neutral-1);
+    --intent-bg-sunken: var(--color-neutral-0);
   }
 }
 
@@ -169,7 +168,7 @@
   .dark & {
     --intent-bg-normal: var(--color-brand-2);
     --intent-bg-raised: var(--color-brand-2);
-    --intent-bg-sunken: var(--color-brand-1);
+    --intent-bg-sunken: var(--color-brand-0);
   }
 }
 
@@ -240,7 +239,7 @@
   .dark & {
     --intent-bg-normal: var(--color-brand-secondary-2);
     --intent-bg-raised: var(--color-brand-secondary-2);
-    --intent-bg-sunken: var(--color-brand-secondary-1);
+    --intent-bg-sunken: var(--color-brand-secondary-0);
   }
 }
 
@@ -295,7 +294,7 @@
   .dark & {
     --intent-bg-normal: var(--color-accent-2);
     --intent-bg-raised: var(--color-accent-2);
-    --intent-bg-sunken: var(--color-accent-1);
+    --intent-bg-sunken: var(--color-accent-0);
   }
 }
 
@@ -350,7 +349,7 @@
   .dark & {
     --intent-bg-normal: var(--color-danger-2);
     --intent-bg-raised: var(--color-danger-2);
-    --intent-bg-sunken: var(--color-danger-1);
+    --intent-bg-sunken: var(--color-danger-0);
   }
 }
 
@@ -405,7 +404,7 @@
   .dark & {
     --intent-bg-normal: var(--color-success-2);
     --intent-bg-raised: var(--color-success-2);
-    --intent-bg-sunken: var(--color-success-1);
+    --intent-bg-sunken: var(--color-success-0);
   }
 }
 
@@ -460,7 +459,7 @@
   .dark & {
     --intent-bg-normal: var(--color-warning-2);
     --intent-bg-raised: var(--color-warning-2);
-    --intent-bg-sunken: var(--color-warning-1);
+    --intent-bg-sunken: var(--color-warning-0);
   }
 }
 
@@ -515,6 +514,6 @@
   .dark & {
     --intent-bg-normal: var(--color-info-2);
     --intent-bg-raised: var(--color-info-2);
-    --intent-bg-sunken: var(--color-info-1);
+    --intent-bg-sunken: var(--color-info-0);
   }
 }
