@@ -65,6 +65,8 @@ export type NavigatorContextValue = {
   /** Whether the vertical navigation shows labels. Behaviour only; styling reads `data-expanded`. */
   expanded: boolean
   setExpanded: (next: boolean) => void
+  /** The vertical navigation also follows `<html data-navigator-expanded>`. */
+  expandedFromDocument: boolean
   /** Id of the vertical navigation, for the toggle's `aria-controls`. */
   primaryId: string
 }
@@ -98,6 +100,7 @@ export const NavigatorContext = createContext<NavigatorContextValue>({
   showList: false,
   expanded: false,
   setExpanded: () => {},
+  expandedFromDocument: false,
   primaryId: ''
 })
 
