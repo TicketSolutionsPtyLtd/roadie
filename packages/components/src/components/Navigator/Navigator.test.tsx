@@ -1594,6 +1594,21 @@ describe('Navigator.OverflowPane', () => {
     expect(more).toHaveFocus()
   })
 
+  it('focuses the More pane only once it is the top of the stack', async () => {
+    const user = userEvent.setup()
+    const { container } = render(overflowNav('/a'))
+    await flushViewportMeasurement()
+    const pane = document.querySelector('[data-slot="pane"][id]') as HTMLElement
+    const positionsAtFocus: (string | null)[] = []
+    pane.addEventListener('focusin', () =>
+      positionsAtFocus.push(pane.getAttribute('data-stack-position'))
+    )
+    await user.click(
+      within(horizontalOf(container)!).getByRole('button', { name: 'More' })
+    )
+    expect(positionsAtFocus).toEqual(['top'])
+  })
+
   it('focuses a declared OverflowPane with no title itself', async () => {
     const user = userEvent.setup()
     const { container } = render(

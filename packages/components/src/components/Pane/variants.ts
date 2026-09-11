@@ -89,7 +89,10 @@ export const paneVariants = cva(
           // and not `ease-spring` — the spring token peaks at 1.017, and
           // 1.7% of a viewport is a visible bounce at the end of a slide iOS
           // does not have.
-          'motion-safe:max-lg:transition-[translate,opacity,visibility]',
+          //
+          // No `visibility` here: a transition into the top starts hidden,
+          // which makes the arriving pane unfocusable until its first frame.
+          'motion-safe:max-lg:transition-[translate,opacity]',
           'motion-safe:max-lg:duration-slow motion-safe:max-lg:ease-enter',
           // Not `max-lg:` gated, unlike everything else here: this guard has
           // to hold at every breakpoint, not just the stacked one, so a
