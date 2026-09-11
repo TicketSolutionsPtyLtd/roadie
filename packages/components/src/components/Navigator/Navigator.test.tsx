@@ -1893,6 +1893,66 @@ describe('Navigator.Overflow', () => {
     expect(panes()[1]).toHaveAttribute('data-primary-nav', 'visible')
   })
 
+  it('titles the generated overflow like any other pane', async () => {
+    render(overflowNav('/a'))
+    await flushViewportMeasurement()
+    expect(
+      within(panes()[1] as HTMLElement).getByRole('heading', { name: 'More' })
+    ).toBeTruthy()
+  })
+
+  const groupedOverflowNav = (value: string) => (
+    <Navigator value={value}>
+      <Navigator.Primary aria-label='Main'>
+        {['/a', '/b', '/c', '/d'].map((v) => (
+          <Navigator.Item key={v} value={v} href={v}>
+            {v}
+          </Navigator.Item>
+        ))}
+        <Navigator.Group>
+          <Navigator.GroupTitle>Settings</Navigator.GroupTitle>
+          <Navigator.Item value='/e' href='/e'>
+            /e
+          </Navigator.Item>
+          <Navigator.Item value='/f' href='/f'>
+            /f
+          </Navigator.Item>
+        </Navigator.Group>
+        <Navigator.End>
+          <Navigator.Item value='/account' href='/account'>
+            Account
+          </Navigator.Item>
+        </Navigator.End>
+      </Navigator.Primary>
+      <Navigator.Content>
+        <Pane role='detail' current>
+          Detail
+        </Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+
+  it('keeps a folded group as a titled section of the overflow', async () => {
+    render(groupedOverflowNav('/a'))
+    await flushViewportMeasurement()
+    const overflow = within(panes()[1] as HTMLElement)
+    const settings = within(overflow.getByRole('list', { name: 'Settings' }))
+    expect(settings.getByRole('link', { name: '/e' })).toBeTruthy()
+    expect(settings.getByRole('link', { name: '/f' })).toBeTruthy()
+    expect(settings.queryByRole('link', { name: 'Account' })).toBeNull()
+    expect(overflow.getByRole('link', { name: 'Account' })).toBeTruthy()
+  })
+
+  it('marks an overflow row active through a sub-page as the current section', async () => {
+    render(groupedOverflowNav('/e/deep'))
+    await flushViewportMeasurement()
+    const overflow = within(panes()[1] as HTMLElement)
+    expect(overflow.getByRole('link', { name: '/e' })).toHaveAttribute(
+      'aria-current',
+      'true'
+    )
+  })
+
   it('lists the folded items, and selecting one closes it', async () => {
     const onValueChange = vi.fn()
     render(

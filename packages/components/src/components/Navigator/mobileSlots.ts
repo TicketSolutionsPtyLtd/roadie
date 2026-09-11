@@ -2,6 +2,14 @@ import type { ReactNode } from 'react'
 
 import { MAX_TABS } from './variants'
 
+export const OVERFLOW_LABEL = 'More'
+
+/** The section an item was declared in, so the overflow can keep it. */
+export type NavigatorSlotGroup = {
+  key: string
+  title?: ReactNode
+}
+
 export type NavigatorSlotMeta = {
   value: string
   label: ReactNode
@@ -13,6 +21,7 @@ export type NavigatorSlotMeta = {
   topValue: string
   /** Values of the section's `Navigator.Secondary` items, for branch-active. */
   descendants: string[]
+  group?: NavigatorSlotGroup
 }
 
 /**
@@ -119,7 +128,7 @@ export function deriveMobileSlots(
           ? undefined
           : overflow.length === 0 && endItems.length === 1
             ? endItems[0]?.label
-            : 'More',
+            : OVERFLOW_LABEL,
       unknownTabs,
       repeatedTabs,
       overflowTabs
@@ -133,7 +142,7 @@ export function deriveMobileSlots(
       tabs: items.slice(0, MAX_TABS - 1),
       overflow: items.slice(MAX_TABS - 1),
       end: endItems,
-      label: 'More',
+      label: OVERFLOW_LABEL,
       unknownTabs: [],
       repeatedTabs: [],
       overflowTabs: []
@@ -148,7 +157,7 @@ export function deriveMobileSlots(
       endItems.length === 0
         ? undefined
         : endItems.length > 1
-          ? 'More'
+          ? OVERFLOW_LABEL
           : endItems[0]?.label,
     unknownTabs: [],
     repeatedTabs: [],

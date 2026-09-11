@@ -15,8 +15,10 @@ import {
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isDev } from '../../utils/isDev'
+import { PaneBodyTitle } from '../Pane/PaneBodyTitle'
 import { PANE_CHROME_NONE } from '../Pane/PaneChromeContext'
 import { PaneContext } from '../Pane/PaneContext'
+import { PaneHeader } from '../Pane/PaneHeader'
 import {
   type PaneRegistration,
   PaneStackContext,
@@ -27,6 +29,7 @@ import { NavigatorContext } from './NavigatorContext'
 import { NavigatorOverflow } from './NavigatorOverflow'
 import { NavigatorOverflowItems } from './NavigatorOverflowItems'
 import { NavigatorPanelPane } from './NavigatorPanelPane'
+import { OVERFLOW_LABEL } from './mobileSlots'
 import {
   derivePositions,
   deriveRootIndex,
@@ -186,6 +189,8 @@ export function NavigatorContent({
     !declaredOverflow && overflowItems.length > 0 ? (
       <GeneratedOverflowContext value key='__navigator-overflow'>
         <NavigatorOverflow>
+          <PaneHeader />
+          <PaneBodyTitle className='pb-3'>{OVERFLOW_LABEL}</PaneBodyTitle>
           <NavigatorOverflowItems />
         </NavigatorOverflow>
       </GeneratedOverflowContext>

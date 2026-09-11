@@ -14,7 +14,7 @@ with `data-stack-position`.
 - **`Pane.SecondaryNav` was not built.** The automatic header injection covers
   every consumer that shipped on this branch, and the override case it would
   exist for has no consumer asking for it.
-- **Grouping does not carry into the overflow.** A `Navigator.Group` whose
+- **Resolved 2026-09-11:** folded groups render as titled `List.Group`s. ~~Grouping does not carry into the overflow.~~ A `Navigator.Group` whose
   items fold into the "More" pane does not render as a `List.Group` there —
   the folded items appear as a flat list. `NavigatorSlotMeta` carries no group
   membership, so building this would mean threading a group id through the
