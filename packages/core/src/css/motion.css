@@ -237,6 +237,57 @@
   }
 }
 
+/* Drawer surface — slides off its anchored edge and tracks Base UI's live
+   swipe offset. `transform`, not `translate`: Base UI writes an inline
+   `transform` mid-swipe, which must override the resting value, not compose. */
+@utility motion-drawer {
+  transition-property: transform, opacity;
+  transition-timing-function: var(--ease-enter);
+  transition-duration: var(--duration-slow);
+
+  &[data-swipe-direction='down'],
+  &[data-swipe-direction='up'] {
+    transform: translateY(
+      calc(
+        var(--drawer-snap-point-offset, 0px) +
+          var(--drawer-swipe-movement-y, 0px)
+      )
+    );
+  }
+
+  &[data-swipe-direction='left'],
+  &[data-swipe-direction='right'] {
+    transform: translateX(var(--drawer-swipe-movement-x, 0px));
+  }
+
+  &[data-starting-style][data-swipe-direction='down'],
+  &[data-ending-style][data-swipe-direction='down'] {
+    transform: translateY(100%);
+  }
+
+  &[data-starting-style][data-swipe-direction='up'],
+  &[data-ending-style][data-swipe-direction='up'] {
+    transform: translateY(-100%);
+  }
+
+  &[data-starting-style][data-swipe-direction='right'],
+  &[data-ending-style][data-swipe-direction='right'] {
+    transform: translateX(100%);
+  }
+
+  &[data-starting-style][data-swipe-direction='left'],
+  &[data-ending-style][data-swipe-direction='left'] {
+    transform: translateX(-100%);
+  }
+
+  /* Release velocity shortens the settle so a flick doesn't linger. */
+  &[data-ending-style] {
+    transition-duration: calc(
+      var(--drawer-swipe-strength, 1) * var(--duration-slow)
+    );
+  }
+}
+
 /* ─── Reduced motion ───
    Global reset for users who prefer reduced motion.
    Uses 0.01ms (not 0ms) so JS transition/animation events still fire.

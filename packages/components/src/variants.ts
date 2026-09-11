@@ -11,3 +11,9 @@ export const intentVariants = {
   warning: 'intent-warning',
   info: 'intent-info'
 } as const
+
+/** The title style for a surface that owns a region of the screen. */
+export const surfaceTitleClass = 'text-display-ui-4 text-strong'
+
+/** A literal union, because `react-docgen-typescript` can't read CVA types. */
+export type RoadieIntent = keyof typeof intentVariants
