@@ -163,8 +163,7 @@ export const navigatorTabVariants = cva(
     'is-interactive relative z-[1] min-w-0 overflow-hidden rounded-full',
     // Every presentation carries the same border so the row never changes height.
     'border border-transparent',
-    'grid justify-items-center gap-1',
-    'text-center text-[0.625rem]/tight font-medium',
+    'grid justify-items-center text-subtle',
     'motion-safe:transition-[scale,translate,opacity,background-color] motion-reduce:transition-none'
   ],
   {
@@ -174,11 +173,11 @@ export const navigatorTabVariants = cva(
         false: ''
       },
       presentation: {
-        expanded: 'pointer-events-auto px-1 py-1.5 scale-100 opacity-100',
+        expanded: 'pointer-events-auto px-1 py-4 scale-100 opacity-100',
         circle:
           'pointer-events-auto size-14 translate-y-1 scale-100 place-content-center justify-self-center self-end bg-raised opacity-100 shadow-xl',
-        // `py-1.5` holds the row's height while invisible.
-        hidden: 'scale-0 px-0 py-1.5 opacity-0 pointer-events-none',
+        // `py-4` holds the row's height while invisible.
+        hidden: 'scale-0 px-0 py-4 opacity-0 pointer-events-none',
         pinned:
           'pointer-events-auto aspect-square h-full rounded-full emphasis-floating place-content-center justify-self-end'
       },
@@ -188,18 +187,6 @@ export const navigatorTabVariants = cva(
       }
     },
     compoundVariants: [
-      {
-        active: true,
-        presentation: 'expanded',
-        class: 'text-accent-11'
-      },
-      {
-        active: false,
-        presentation: 'expanded',
-        class: 'emphasis-subtler text-subtle'
-      },
-      { active: true, presentation: 'circle', class: 'text-accent-11' },
-      { active: false, presentation: 'circle', class: 'text-subtle' },
       {
         presentation: 'circle',
         circleSide: 'left',
@@ -258,7 +245,7 @@ export const navigatorIndicatorVariants = cva(
   {
     variants: {
       surface: {
-        // Inflated 0.25rem per side so the pill doesn't crowd the label.
+        // Inflated 0.25rem per side so the pill doesn't crowd the icon.
         horizontal: [
           'intent-accent bg-[var(--intent-bg-subtle)]',
           'left-0 top-0',
@@ -268,12 +255,12 @@ export const navigatorIndicatorVariants = cva(
           'translate-y-[var(--active-tab-top)]',
           'motion-safe:data-[ready=true]:transition-[translate]'
         ].join(' '),
-        // Variable-width items: this one still transitions layout properties.
+        // Width and height snap: they change only when the vertical navigation snaps between widths.
         vertical: [
-          'emphasis-raised rounded-xl',
-          'top-[var(--active-tab-top)] h-[var(--active-tab-height)]',
-          'left-[var(--active-tab-left)] w-[var(--active-tab-width)]',
-          'motion-safe:data-[ready=true]:transition-[left,top,width,height]'
+          'intent-accent bg-[var(--intent-bg-subtle)]',
+          'left-0 top-0 h-[var(--active-tab-height)] w-[var(--active-tab-width)]',
+          'translate-x-[var(--active-tab-left)] translate-y-[var(--active-tab-top)]',
+          'motion-safe:data-[ready=true]:transition-[translate]'
         ].join(' ')
       },
       visible: {

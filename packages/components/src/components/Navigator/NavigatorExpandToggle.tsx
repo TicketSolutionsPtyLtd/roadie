@@ -32,7 +32,7 @@ export function NavigatorExpandToggle({
       onClick={() => setExpanded(!expanded)}
     >
       <span data-slot='navigator-item-icon'>
-        {presentNavIcon(<SidebarSimpleIcon />, false, 'size-6')}
+        {presentNavIcon(<SidebarSimpleIcon />, 'size-6')}
       </span>
       <span
         data-slot='navigator-item-label'

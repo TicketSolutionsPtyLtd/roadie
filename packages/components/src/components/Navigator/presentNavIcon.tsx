@@ -13,21 +13,16 @@ type NavIconProps = {
   'data-slot'?: string
 }
 
-/**
- * Navigator owns its destinations' icon weight and size, overriding the
- * consumer's. Only horizontal tabs pass `dataSlot`; other surfaces slot a
- * wrapper instead.
- */
+// Duotone is the Navigator exception to the bold default (AGENTS.md → Iconography).
 export function presentNavIcon(
   icon: ReactNode,
-  active: boolean,
   size: string,
   dataSlot?: string
 ): ReactNode {
   if (!isValidElement<NavIconProps>(icon)) return icon
   const el = icon as ReactElement<NavIconProps>
   return cloneElement(el, {
-    weight: active ? 'fill' : 'bold',
+    weight: 'duotone',
     className: cn(el.props.className, size),
     ...(dataSlot ? { 'data-slot': dataSlot } : {})
   })

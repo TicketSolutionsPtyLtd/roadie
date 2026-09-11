@@ -198,6 +198,27 @@ describe('vertical capacity', () => {
     expect(within(verticalRows).getAllByRole('link')).toHaveLength(4)
   })
 
+  it('renders More duotone at size-6 and its rows duotone at size-5', async () => {
+    const user = userEvent.setup()
+    render(<Six />)
+    await flushViewportMeasurement()
+    reportClusterHeight(192)
+    const more = within(region('cluster')).getByRole('button', { name: 'More' })
+    const moreIcon = more.querySelector('svg')!
+    expect(moreIcon).toHaveClass('size-6')
+    // Phosphor draws duotone's second tone as a 0.2-opacity path.
+    expect(moreIcon.querySelector('[opacity="0.2"]')).not.toBeNull()
+    await user.click(more)
+    const rowIcons = document.querySelectorAll(
+      '[data-slot="navigator-overflow-items"] [data-testid="fake-icon"]'
+    )
+    expect(rowIcons.length).toBeGreaterThan(0)
+    for (const icon of rowIcons) {
+      expect(icon).toHaveAttribute('data-weight', 'duotone')
+      expect(icon).toHaveClass('size-5')
+    }
+  })
+
   it('removes a capsule whose items all fold', async () => {
     render(<Six lowGroup />)
     await flushViewportMeasurement()
@@ -364,6 +385,18 @@ describe('expanded vertical navigation', () => {
     expect(vertical()).toHaveAttribute('data-expanded')
     expect(toggle).toHaveAccessibleName('Collapse sidebar')
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('draws the toggle icon duotone at size-6, subtle', async () => {
+    render(<Expandable />)
+    await flushViewportMeasurement()
+    const toggle = within(region('pinned')).getByRole('button', {
+      name: 'Expand sidebar'
+    })
+    const icon = toggle.querySelector('svg')!
+    expect(icon).toHaveClass('size-6')
+    expect(icon.querySelector('[opacity="0.2"]')).not.toBeNull()
+    expect(toggle).toHaveClass('text-subtle')
   })
 
   it('is controlled by expanded and reports changes', async () => {
