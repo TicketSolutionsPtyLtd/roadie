@@ -1,0 +1,305 @@
+export const metadata = {
+  title: 'Countdown',
+  description: 'Time remaining, rendered as a time element',
+  status: 'beta',
+  category: 'Content'
+}
+
+import { Guideline } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Countdown
+
+Time remaining, rendered as a `time` element.
+
+## Import
+
+```tsx
+import { Countdown } from '@oztix/roadie-components/countdown'
+```
+
+## Examples
+
+### Default
+
+Counts minutes while there is time, then switches to a clock under five minutes. See [Date and time](/foundations/date-and-time).
+
+```tsx-live
+<Countdown until={new Date(Date.now() + 8 * 60000)} />
+```
+
+### Seconds
+
+A ticking clock is not neutral. It changes how the wait feels, and the direction depends on what is at the end of it.
+
+```tsx-live
+<div className='grid grid-cols-[auto_auto] items-baseline justify-start gap-2'>
+  <Countdown until={new Date(Date.now() + 8 * 60000)} seconds='urgent' />
+  <span className='text-sm text-subtle'>urgent, the default</span>
+  <Countdown until={new Date(Date.now() + 8 * 60000)} seconds='always' />
+  <span className='text-sm text-subtle'>always</span>
+  <Countdown until={new Date(Date.now() + 8 * 60000)} seconds='never' />
+  <span className='text-sm text-subtle'>never</span>
+</div>
+```
+
+The labels sit in their own column. With three rows of flex the ticking count
+pushes its own label sideways, so the one thing the example is comparing moves
+while you read it.
+
+### A long wait
+
+Past an hour, a ticking count breaks into segments so the scale stays visible. A bare clock would bury the days.
+
+```tsx-live
+<Countdown
+  until={new Date(Date.now() + 3 * 86400000 + 4 * 3600000 + 12 * 60000)}
+  seconds='always'
+/>
+```
+
+### Display
+
+`display` picks the shape of the count. Leave it on `auto`, which reads the
+time remaining and switches for you: segments above an hour, a clock below it,
+and a coarse count when the seconds are not ticking.
+
+Set it only where the shape must not move. A dashboard column stays legible if
+every row is the same shape, even when one of them is hours from expiring.
+
+```tsx-live
+<div className='grid gap-2'>
+  <Countdown until={new Date(Date.now() + 3 * 86400000)} display='coarse' />
+  <Countdown until={new Date(Date.now() + 3 * 86400000)} display='clock' />
+  <Countdown until={new Date(Date.now() + 3 * 86400000)} display='segments' />
+</div>
+```
+
+### Urgency
+
+Under five minutes the coarse count gives way to a clock. This one starts inside that window.
+
+```tsx-live
+<Countdown until={new Date(Date.now() + 4 * 60000 + 32000)} />
+```
+
+### Wording
+
+The coarse register uses the same words as `Duration` and `formatDuration`.
+
+```tsx-live
+<div className='grid gap-2'>
+  <Countdown until={new Date(Date.now() + 8 * 60000)} seconds='never' />
+  <Countdown
+    until={new Date(Date.now() + 8 * 60000)}
+    seconds='never'
+    durationStyle='medium'
+  />
+  <Countdown
+    until={new Date(Date.now() + 8 * 60000)}
+    seconds='never'
+    durationStyle='short'
+  />
+</div>
+```
+
+This only reaches the coarse register. The segmented display always uses single
+letters, because they sit against the digits rather than in a sentence.
+
+### Expired
+
+```tsx-live
+<Countdown until={new Date(Date.now() - 1000)} expiredLabel='Expired' />
+```
+
+A value that cannot be read as an instant reads as expired too. Failing to a
+deadline that has passed is safer than failing to one that has not.
+
+### Escalating urgency
+
+Colour belongs on the container, never on the digits. A Badge or a Card carries intent. A `time` element is text, and colouring it directly means every surface invents its own scale.
+
+`useCountdownUrgency` shares the same page-wide ticker, so escalating costs no extra timer. It only changes at a threshold, so the parent re-renders three times across a whole countdown rather than once a second.
+
+```tsx-live
+<div className='flex flex-wrap gap-3'>
+  <Badge intent='success' size='sm' indicator>
+    <Countdown until={new Date(Date.now() + 8 * 60000)} />
+  </Badge>
+  <Badge intent='warning' size='sm' indicator>
+    <Countdown until={new Date(Date.now() + 4 * 60000)} />
+  </Badge>
+  <Badge intent='danger' size='sm' indicator indicatorPulse>
+    <Countdown until={new Date(Date.now() + 90000)} expiredLabel='Expired' />
+  </Badge>
+</div>
+```
+
+Drive the intent from the same moment, so the badge and the digits never disagree:
+
+```tsx
+function CartBadge({ until }) {
+  const urgency = useCountdownUrgency(until)
+  const intent = urgency === 'expired' ? 'danger' : urgency
+
+  return (
+    <Badge
+      intent={intent}
+      size='sm'
+      indicator
+      indicatorPulse={intent === 'danger'}
+    >
+      <Countdown until={until} expiredLabel='Expired' />
+    </Badge>
+  )
+}
+```
+
+The thresholds are five minutes to `warning` and two minutes to `danger`, matching the cart. Override them per surface where the window is a different shape.
+
+### Scale
+
+A countdown is interface, not prose, so it takes the `ui` display scale. The `prose` scale is for article headings and runs larger than anything an interface needs.
+
+Size says how much attention the moment deserves, and most countdowns are small. A row in a list wants `text-sm` inside a Badge. The most prominent one on a page tops out around `text-display-ui-4`. Past that a countdown stops reading as interface.
+
+```tsx-live
+<div className='grid gap-4'>
+  <div className='text-sm text-subtle'>
+    <Countdown until={new Date(Date.now() + 8 * 60000)} /> inline, in a row
+  </div>
+  <div className='text-display-ui-5 text-strong'>
+    <Countdown until={new Date(Date.now() + 8 * 60000)} seconds='always' />
+  </div>
+  <div className='text-display-ui-4 text-strong'>
+    <Countdown
+      until={new Date(Date.now() + 3 * 86400000 + 4 * 3600000)}
+      seconds='always'
+    />
+  </div>
+</div>
+```
+
+The countdown inherits type from its container, so there is nothing to configure. Set the scale on the parent and the digits follow.
+
+### A prominent countdown
+
+A registration opening is the reason somebody is on the page, so it reads as a heading. Run it inline at `text-display-ui-4`, with the count picking up the accent colour.
+
+```tsx-live
+<div className='flex items-center gap-3'>
+  <IconTile shape='circle' intent='accent'>
+    <BellRingingIcon weight='bold' />
+  </IconTile>
+  <h2 className='text-display-ui-4 text-strong'>
+    On-sale in{' '}
+    <span className='intent-accent text-subtle'>
+      <Countdown
+        until={new Date(Date.now() + 3 * 86400000 + 4 * 3600000 + 11 * 60000)}
+        seconds='always'
+      />
+    </span>
+  </h2>
+</div>
+```
+
+Note it sits inside the heading rather than under a label. The count is part of the sentence, so it inherits the heading's size and only the colour changes.
+
+## Guidelines
+
+Pick `seconds` from what is at the end of the wait, not from how long it is.
+
+| What is at the end                                         | `seconds` |
+| ---------------------------------------------------------- | --------- |
+| Something you might lose, like a held cart                 | `urgent`  |
+| Something you are waiting for, like a registration opening | `always`  |
+| Something measured in hours or days                        | `never`   |
+
+Counting seconds on a held cart creates anxiety. The reader might lose something, and watching the seconds go makes an ordinary wait feel like a threat. Counting seconds on a registration opening creates anticipation. The reader is waiting for something good, and the seconds are the point.
+
+### Styling
+
+| Decision             | Where it goes                           |
+| -------------------- | --------------------------------------- |
+| Colour and urgency   | The container, via `intent`             |
+| Size                 | The container, via the display scale    |
+| Emphasis and surface | The container, via `emphasis`           |
+| Digit alignment      | Handled. Do not override `tabular-nums` |
+
+Three things follow from that.
+
+Do not set a colour on the countdown itself. An escalating cart badge changes the Badge's intent, so the text, the border and the indicator all move together. Colouring the digits alone leaves the container behind and the pairing breaks.
+
+Do not set a font size on the digits. The component inherits, so a parent on `text-display-ui-4` gives a prominent countdown and a parent on `text-sm` gives an inline one. Sizing the digits alone breaks the baseline against neighbouring text.
+
+Reach for the `ui` scale, never `prose`. A countdown is interface even when it sits inside a heading, and the prose scale is tuned for running text at sizes no interface needs.
+
+Do not override `tabular-nums` or set a width. Each field already sits in a fixed character box, which is what stops a label beside the clock moving as digits roll.
+
+### System waits
+
+A queue or a throttle is a third case. The wait is short, the seconds tick, and
+something happens automatically at zero. It is neither a threat nor a treat, so
+the tone should be plain.
+
+<Guideline
+  title='Say what happens at zero'
+  description='A number counting down on its own is a puzzle. The reader needs to know whether to sit still or do something.'
+>
+  <Guideline.Do code={`Checking again in 0:20\nYour place is held.`}>
+    The count and the consequence together. Nobody has to guess whether to
+    reload.
+  </Guideline.Do>
+  <Guideline.Dont code={`0:20`}>
+    A bare number. Is it a deadline? Does the reader need to act?
+  </Guideline.Dont>
+</Guideline>
+
+Never make the countdown responsible for the thing that happens. It is a
+display, it stops while the tab is hidden, and whatever occurs at zero must
+occur on its own, with the count reporting rather than driving.
+
+## Without React
+
+`Countdown` needs a timer and a render loop, so there is no server-rendered
+equivalent. A template can only print the moment the count runs out, which is
+[`DateTime`](/components/date-time) rather than a countdown.
+
+`Countdown` itself words its coarse register with `formatDuration`, the same
+function `Duration` uses. Two more are exported for the cases that are not a
+ticking clock on a page.
+
+```tsx
+import { countdownUrgency } from '@oztix/roadie-components/countdown'
+import { formatCountdown } from '@oztix/roadie-core/datetime'
+
+formatCountdown(272000)
+// → '4:32'
+
+countdownUrgency(272000)
+// → 'warning'
+```
+
+Reach for `formatCountdown` where the output is a string rather than an
+element, such as a document title counting down in a tab. Reach for
+`countdownUrgency` to pick a container's intent outside a render, where
+`useCountdownUrgency` cannot run. It takes the same thresholds as the hook and
+returns `expired` for anything at or below zero.
+
+## Accessibility
+
+The visible clock ticks. What is spoken does not.
+
+Progress is announced through a visually hidden live region, on a minute boundary at most. A live region that fires every second interrupts the screen reader continuously and drowns out the rest of the page. The digits themselves are `aria-hidden`, so nothing is announced twice.
+
+Digits carry `tabular-nums`, so the row does not jitter as values change. Animation respects the reader's motion preference, which NumberFlow handles by default.
+
+## Performance
+
+A countdown runs for as long as the page is open, so the cost compounds. Three things keep it cheap, and this component does all three.
+
+Every countdown on the page shares one interval, so a list of twenty cards starts one timer rather than twenty. The timer stops entirely while the tab is hidden. And the value React watches is bucketed to what is on screen, so a coarse countdown re-renders once a minute rather than sixty times.
+
+That last one is the difference that matters. Subscribing to raw seconds re-renders every second no matter what is displayed.
+
+<PropsDefinitions componentPath='packages/components/src/components/Countdown/index.tsx' />

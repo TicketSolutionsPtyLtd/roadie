@@ -1,8 +1,9 @@
 export const metadata = {
   title: 'Card',
-  description: 'A container for grouping related content with optional header and footer',
+  description:
+    'A container for grouping related content with optional header and footer',
   status: 'beta',
-  category: 'Content',
+  category: 'Content'
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
@@ -121,7 +122,13 @@ The subtler card has padding around the image, giving it inset rounded corners. 
     />
     <Card.Header>
       <Card.Title>Sunset Harbour Cruise</Card.Title>
-      <Card.Description>17 May &middot; 6:00 PM</Card.Description>
+      <Card.Description>
+        <DateTime
+          at={new Date('2026-05-17T08:00:00Z')}
+          timeZone='Australia/Brisbane'
+          timeStyle='medium'
+        />
+      </Card.Description>
       <Card.Description>Riverside Wharf</Card.Description>
     </Card.Header>
     <Card.Footer>
@@ -139,7 +146,10 @@ The subtler card has padding around the image, giving it inset rounded corners. 
     <Card.Header>
       <Card.Description>Dining &amp; Social</Card.Description>
       <Card.Title>Long Table Dinner with Marco Bellucci</Card.Title>
-      <Card.Description>24 May &middot; 3 hrs</Card.Description>
+      <Card.Description>
+        <DateTime at={new Date('2026-05-24T08:00:00Z')} timeZone='Australia/Brisbane' />{' '}
+        &middot; <Duration of='PT3H' durationStyle='medium' />
+      </Card.Description>
     </Card.Header>
   </Card>
 </div>

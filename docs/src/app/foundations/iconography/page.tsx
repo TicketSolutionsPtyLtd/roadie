@@ -112,9 +112,10 @@ export default function IconographyPage() {
           </li>
           <li>
             <p>
-              <strong>Keep it consistent.</strong> Always Bold weight. Only use
-              Fill for active or selected states. Never mix Regular, Thin, or
-              Light weights.
+              <strong>Keep it consistent.</strong> Bold by default. Fill only
+              for active or selected states, and Duotone only for large
+              decorative icons above 48px. Never mix Regular, Thin, or Light
+              weights.
             </p>
           </li>
         </ul>
