@@ -12,7 +12,10 @@ export function AccordionContent({
   return (
     <div
       data-slot='accordion-content'
-      className={cn('min-h-0 overflow-hidden px-4 pt-1 pb-3', className)}
+      className={cn(
+        'min-h-0 overflow-hidden px-(--content-inset) pt-1 pb-3',
+        className
+      )}
       {...props}
     >
       {children}

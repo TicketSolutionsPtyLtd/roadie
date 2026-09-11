@@ -111,6 +111,10 @@
       "types": "./dist/components/LinkButton/index.d.ts",
       "import": "./dist/components/LinkButton/index.js"
     },
+    "./list": {
+      "types": "./dist/components/List/index.d.ts",
+      "import": "./dist/components/List/index.js"
+    },
     "./mark": {
       "types": "./dist/components/Mark/index.d.ts",
       "import": "./dist/components/Mark/index.js"
@@ -130,6 +134,10 @@
     "./radio-group": {
       "types": "./dist/components/RadioGroup/index.d.ts",
       "import": "./dist/components/RadioGroup/index.js"
+    },
+    "./scroll-area": {
+      "types": "./dist/components/ScrollArea/index.d.ts",
+      "import": "./dist/components/ScrollArea/index.js"
     },
     "./select": {
       "types": "./dist/components/Select/index.d.ts",

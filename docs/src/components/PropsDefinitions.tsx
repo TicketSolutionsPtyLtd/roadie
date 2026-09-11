@@ -503,7 +503,11 @@ function parseComponentProps(componentPath: string) {
         seen.set(key, info)
       }
     })
-    const components = Array.from(seen.values())
+    // An `X.Root` displayName dodges the suffix guard and duplicates bare `X`.
+    const hasBareRoot = compoundName && seen.has(compoundName.toLowerCase())
+    const components = Array.from(seen.values()).filter(
+      (info) => !(hasBareRoot && info.displayName === `${compoundName}.Root`)
+    )
 
     if (!components.length) return null
     return components

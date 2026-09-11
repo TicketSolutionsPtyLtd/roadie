@@ -1,5 +1,9 @@
+import { type ReactElement, cloneElement } from 'react'
+
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
+
+import { cn } from '@oztix/roadie-core/utils'
 
 import { Badge } from '.'
 
@@ -64,6 +68,107 @@ describe('Badge', () => {
     const badge = getByText('Test')
     expect(badge).toHaveAttribute('data-testid', 'my-badge')
     expect(badge).toHaveAttribute('id', 'badge-1')
+  })
+
+  describe('hideLabel', () => {
+    const renderDot = (ui: ReactElement) => {
+      const { container, getByText } = render(ui)
+      const badge = container.querySelector('[data-slot="badge"]')!
+      return { badge, getByText }
+    }
+
+    it('keeps the label in the DOM but visually hidden', () => {
+      const { getByText } = renderDot(<Badge hideLabel>3 unread</Badge>)
+      expect(getByText('3 unread')).toHaveClass('sr-only')
+    })
+
+    it('shrinks the badge to a dot with no inner indicator', () => {
+      const { badge } = renderDot(<Badge hideLabel>3 unread</Badge>)
+      expect(badge).toHaveClass('size-2.5', 'rounded-full', 'p-0', 'gap-0')
+      expect(badge).not.toHaveClass('px-2.5', 'py-0.5')
+      expect(badge.querySelector('[aria-hidden="true"]')).toBeNull()
+    })
+
+    it('sizes the dot from size', () => {
+      const { badge } = renderDot(
+        <Badge hideLabel size='sm'>
+          New
+        </Badge>
+      )
+      expect(badge).toHaveClass('size-2')
+      expect(badge).not.toHaveClass('size-2.5', 'px-2')
+    })
+
+    it.each(['strong', 'normal', 'subtle', 'subtler'] as const)(
+      'paints the dot with emphasis %s',
+      (emphasis) => {
+        const { badge } = renderDot(
+          <Badge hideLabel emphasis={emphasis}>
+            New
+          </Badge>
+        )
+        expect(badge).toHaveClass(`emphasis-${emphasis}`)
+      }
+    )
+
+    it('survives cloneElement with a merged className', () => {
+      const consumerBadge = (
+        <Badge intent='danger' emphasis='strong' className='custom'>
+          3 unread
+        </Badge>
+      )
+      const { badge, getByText } = renderDot(
+        cloneElement(consumerBadge, {
+          hideLabel: true,
+          className: cn(consumerBadge.props.className, 'absolute end-1 top-1')
+        })
+      )
+      expect(badge).toHaveClass(
+        'custom',
+        'absolute',
+        'end-1',
+        'top-1',
+        'size-2.5',
+        'intent-danger',
+        'emphasis-strong'
+      )
+      expect(getByText('3 unread')).toHaveClass('sr-only')
+    })
+
+    it('ignores indicator because the badge is the dot', () => {
+      const { badge } = renderDot(
+        <Badge hideLabel indicator>
+          3 unread
+        </Badge>
+      )
+      expect(badge.querySelector('[aria-hidden="true"]')).toBeNull()
+    })
+
+    it('keeps intent and emphasis', () => {
+      const { badge } = renderDot(
+        <Badge hideLabel intent='danger' emphasis='strong'>
+          3 unread
+        </Badge>
+      )
+      expect(badge).toHaveClass('intent-danger', 'emphasis-strong')
+    })
+
+    it('pulses the badge itself with indicatorPulse', () => {
+      const { badge } = renderDot(
+        <Badge hideLabel indicatorPulse>
+          Live
+        </Badge>
+      )
+      expect(badge).toHaveClass('animate-pulse')
+    })
+
+    it('leaves the default badge unchanged', () => {
+      const { badge, getByText } = renderDot(<Badge indicator>Active</Badge>)
+      expect(badge).toHaveClass('px-2.5', 'py-0.5', 'text-sm')
+      expect(badge).not.toHaveClass('size-2.5', 'animate-pulse')
+      expect(getByText('Active')).not.toHaveClass('sr-only')
+      expect(badge.querySelector('[aria-hidden="true"]')).not.toBeNull()
+    })
   })
 
   it('combines multiple props', () => {
