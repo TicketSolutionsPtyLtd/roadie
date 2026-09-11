@@ -62,7 +62,7 @@ are recorded because the plan text still says otherwise.
 - **`docs/src/app/debug/rsc-smoke` predates this work and is broken.** Its
   Navigator section also server-authors panes, which is the exact silent-failure
   shape it exists to detect; the prose now says so.
-- **`Drawer.Body`'s list unwind reaches direct children only.** A `List` nested
+- **Moot as of 2026-09-11:** the unwind was removed; a `subtler` `List` bleeds its own row padding, so nothing needs offsetting. ~~`Drawer.Body`'s list unwind reaches direct children only.~~ A `List` nested
   inside a wrapper lands one inset off, silently. `Pane` has no such limit
   because its body never pads.
 
