@@ -20,12 +20,7 @@ export function AccordionItem({
   const ref = useRef<HTMLDetailsElement>(null)
   const mergedRef = useMemo(() => mergeRefs(ref, forwardedRef), [forwardedRef])
 
-  // Safari only. Without `interpolate-size` the open height is pinned to a
-  // measured `--content-height`, and `Accordion.Trigger` can only take that
-  // measurement as the panel opens. Anything that changes the content while
-  // it is already open — filtering a list inside it, paging in more rows —
-  // would keep the stale height and clip or pad the panel. Watching the
-  // content keeps the variable honest for as long as the panel is open.
+  // Safari lacks `interpolate-size`; keep `--content-height` current while open
   useEffect(() => {
     if (
       typeof CSS !== 'undefined' &&
@@ -40,8 +35,7 @@ export function AccordionItem({
     if (!details || !content) return
 
     const sync = () => {
-      // Closed, the content is hidden and measures 0 — keeping the last known
-      // height is what lets it animate back open.
+      // Closed content measures 0; keep the last height so it animates open.
       if (!details.open) return
       details.style.setProperty('--content-height', `${content.scrollHeight}px`)
     }
