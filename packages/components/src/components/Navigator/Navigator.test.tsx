@@ -9,8 +9,9 @@ import { Pane } from '../Pane'
 import { NavigatorContext } from './NavigatorContext'
 import { FakeIcon, flushViewportMeasurement, primaryOf } from './testUtils'
 import {
-  navigatorPrimaryTrackVariants,
-  navigatorPrimaryViewportVariants
+  navigatorPrimaryClusterViewportVariants,
+  navigatorPrimaryPinnedVariants,
+  navigatorPrimaryTrackVariants
 } from './variants'
 
 describe('Navigator', () => {
@@ -680,7 +681,7 @@ describe('Navigator vertical form', () => {
     await flushViewportMeasurement()
   })
 
-  it('raises the current destination neutrally and leaves the inactive one muted', async () => {
+  it('tints the current tile with the accent and leaves the inactive one subtle', async () => {
     render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
@@ -699,11 +700,9 @@ describe('Navigator vertical form', () => {
           )
         )
 
-    // Current is a neutral raised pill, never accent-tinted.
-    expect(verticalItem('Tickets')).toHaveClass('text-strong')
-    expect(verticalItem('Tickets')).not.toHaveClass('intent-accent')
+    expect(verticalItem('Tickets')).toHaveClass('intent-accent', 'text-subtle')
     expect(verticalItem('Discover')).toHaveClass('text-subtle')
-    expect(verticalItem('Discover')).not.toHaveClass('emphasis-raised')
+    expect(verticalItem('Discover')).not.toHaveClass('intent-accent')
     await flushViewportMeasurement()
   })
 })
@@ -814,7 +813,7 @@ describe('Navigator routeless primary', () => {
     )
     await flushViewportMeasurement()
     const section = verticalItem('Foundations')
-    expect(section).toHaveClass('text-strong')
+    expect(section).toHaveClass('intent-accent')
     expect(section).toHaveAttribute('aria-current', 'true')
 
     const pane = document.querySelector<HTMLElement>(
@@ -830,8 +829,8 @@ describe('Navigator routeless primary', () => {
 })
 
 describe('Navigator.Brand', () => {
-  it('renders at the top of the vertical navigation without becoming a destination', async () => {
-    const { container } = render(
+  it('renders in the brand region above the cluster without becoming a destination', async () => {
+    render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
           <Navigator.Brand>Roadie</Navigator.Brand>
@@ -840,18 +839,19 @@ describe('Navigator.Brand', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const vertical = container.querySelector(
-      '[data-slot="navigator-primary"][data-orientation="vertical"]'
-    )
-    const verticalContent = container.querySelector(
-      '[data-slot="navigator-primary-viewport"] [data-slot="scroll-area-content"]'
-    )
-    const brand = vertical?.querySelector('[data-slot="navigator-brand"]')
-    expect(brand).toBeTruthy()
-    expect(brand).toHaveTextContent('Roadie')
-    // First child of the scrolled content — pinned above the items.
-    expect(verticalContent?.firstElementChild).toBe(brand)
     await flushViewportMeasurement()
+    const vertical = primaryOf('vertical')
+    const region = vertical.querySelector(
+      '[data-slot="navigator-primary-brand"]'
+    )
+    const brand = region?.querySelector('[data-slot="navigator-brand"]')
+    expect(brand).toHaveTextContent('Roadie')
+    expect(vertical.firstElementChild).toBe(region)
+    expect(
+      vertical.querySelector(
+        '[data-slot="navigator-primary-cluster"] [data-slot="navigator-brand"]'
+      )
+    ).toBeNull()
   })
 
   it('leaves item and tab counts unchanged when a Brand is present', async () => {
@@ -896,31 +896,6 @@ describe('Navigator.Brand', () => {
 })
 
 describe('Navigator active item surface', () => {
-  it('gives the active vertical item the neutral raised pill classes', async () => {
-    render(
-      <Navigator value='tickets'>
-        <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item value='discover'>Discover</Navigator.Item>
-          <Navigator.Item value='tickets'>Tickets</Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    const verticalItem = (label: string) =>
-      screen
-        .getAllByText(label)
-        .map((el) => el.closest('[data-slot="navigator-item"]'))
-        .find((el) =>
-          el?.closest(
-            '[data-slot="navigator-primary"][data-orientation="vertical"]'
-          )
-        )
-
-    expect(verticalItem('Tickets')).toHaveClass('text-strong')
-    expect(verticalItem('Tickets')).not.toHaveClass('intent-accent')
-    expect(verticalItem('Discover')).not.toHaveClass('emphasis-raised')
-    await flushViewportMeasurement()
-  })
-
   it('gives inactive vertical items a subtle hover background', async () => {
     render(
       <Navigator value='tickets'>
@@ -971,31 +946,11 @@ describe('Navigator active-state split', () => {
     </Navigator>
   )
 
-  it('keeps the branch-active section flat, dark and bold — never raised or accent', async () => {
+  it('tints the branch-active section like the current page but never claims the page', async () => {
     render(sectionTree('button'))
     const section = verticalItem('Components')
-    expect(section).toHaveClass('text-strong')
-    expect(section).not.toHaveClass('intent-accent')
-    expect(section).not.toHaveClass('emphasis-raised')
-    await flushViewportMeasurement()
-  })
-
-  it('raises the selected primary as current with an accent icon', async () => {
-    render(
-      <Navigator value='tickets'>
-        <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item value='discover'>Discover</Navigator.Item>
-          <Navigator.Item value='tickets'>Tickets</Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    const current = verticalItem('Tickets')
-    expect(current).toHaveClass('text-strong')
-    expect(current).not.toHaveClass('intent-accent')
-    expect(current?.className).toContain(
-      '[&_[data-slot=navigator-item-icon]]:text-accent-11'
-    )
-    expect(verticalItem('Discover')).not.toHaveClass('emphasis-raised')
+    expect(section).toHaveClass('intent-accent')
+    expect(section).toHaveAttribute('aria-current', 'true')
     await flushViewportMeasurement()
   })
 })
@@ -2089,7 +2044,8 @@ describe('vertical list semantics', () => {
     const vertical = document.querySelector(
       '[data-slot="navigator-primary"][data-orientation="vertical"]'
     )!
-    const list = vertical.querySelector('ul')!
+    const list = vertical.querySelector('[data-slot="navigator-capsule"]')!
+    expect(list.tagName).toBe('UL')
     expect(list.children).toHaveLength(2)
     expect(Array.from(list.children).every((li) => li.tagName === 'LI')).toBe(
       true
@@ -2137,7 +2093,7 @@ describe('Navigator.Group', () => {
     await flushViewportMeasurement()
 
     const title = screen.getByRole('heading', { name: 'Formats', level: 2 })
-    const list = document.querySelector('[data-slot="navigator-group-list"]')
+    const list = document.querySelector('[data-slot="navigator-capsule"]')
     expect(list).not.toBeNull()
     expect(list).toHaveAttribute('aria-labelledby', title.id)
     expect(title.id).not.toBe('')
@@ -2148,7 +2104,7 @@ describe('Navigator.Group', () => {
     await flushViewportMeasurement()
 
     const title = screen.getByRole('heading', { name: 'Formats' })
-    const list = document.querySelector('[data-slot="navigator-group-list"]')
+    const list = document.querySelector('[data-slot="navigator-capsule"]')
     expect(list?.contains(title)).toBe(false)
     expect(title.nextElementSibling).toBe(list)
   })
@@ -2347,8 +2303,8 @@ describe('Navigator descendant-aware active matching', () => {
   it('marks a section branch-active when a Secondary descendant is current', async () => {
     render(tree('button'))
     await flushViewportMeasurement()
-    expect(verticalItem('Components')).toHaveClass('text-strong')
-    expect(verticalItem('Components')).not.toHaveClass('intent-accent')
+    expect(verticalItem('Components')).toHaveClass('intent-accent')
+    expect(verticalItem('Foundations')).not.toHaveClass('intent-accent')
     expect(
       screen.getByRole('navigation', { name: 'Components pages' })
     ).toBeInTheDocument()
@@ -2434,8 +2390,8 @@ describe('Navigator route-prefix section matching', () => {
     render(paneSectionTree('/components/forms'))
     await flushViewportMeasurement()
 
-    expect(verticalItem('Components')).toHaveClass('text-strong')
-    expect(verticalItem('Tokens')).not.toHaveClass('text-strong')
+    expect(verticalItem('Components')).toHaveClass('intent-accent')
+    expect(verticalItem('Tokens')).not.toHaveClass('intent-accent')
   })
 
   it('marks the section tab active on an undeclared sub-route', async () => {
@@ -2491,7 +2447,7 @@ describe('Navigator route-prefix section matching', () => {
     render(verticalSectionTree('/foundations/undeclared'))
     await flushViewportMeasurement()
 
-    expect(verticalItem('Foundations')).toHaveClass('text-strong')
+    expect(verticalItem('Foundations')).toHaveClass('intent-accent')
     expect(
       document.querySelector('[data-navigator-section="/foundations"]')
     ).not.toBeNull()
@@ -2501,7 +2457,7 @@ describe('Navigator route-prefix section matching', () => {
     render(verticalSectionTree('/tokens-legacy'))
     await flushViewportMeasurement()
 
-    expect(verticalItem('Tokens')).not.toHaveClass('text-strong')
+    expect(verticalItem('Tokens')).not.toHaveClass('intent-accent')
   })
 })
 
@@ -3591,16 +3547,14 @@ describe('per-section stack memory', () => {
 })
 
 describe('indicator track offsetParent guard', () => {
-  // `useSlidingIndicator` measures via `offsetLeft`/`offsetTop` up the
-  // `offsetParent` chain rather than `getBoundingClientRect()`, precisely
-  // because that survives a `translate`/`scale` in the collapse animation —
-  // but only because every track below is `position: relative`, so it is
-  // itself an `offsetParent`. jsdom always reports a null `offsetParent`, so
-  // that regression can't be caught live here; this guards the one thing
-  // that keeps it from resurfacing — neither track silently loses `relative`
-  // and falls back to the transform-inclusive rect path.
+  // jsdom has no offsetParent; a track without `relative` falls back to transform-inclusive rects.
   it('keeps every indicator track position: relative', () => {
-    expect(navigatorPrimaryTrackVariants()).toContain('relative')
-    expect(navigatorPrimaryViewportVariants()).toContain('relative')
+    for (const track of [
+      navigatorPrimaryTrackVariants(),
+      navigatorPrimaryClusterViewportVariants(),
+      navigatorPrimaryPinnedVariants()
+    ]) {
+      expect(track.split(' ')).toContain('relative')
+    }
   })
 })

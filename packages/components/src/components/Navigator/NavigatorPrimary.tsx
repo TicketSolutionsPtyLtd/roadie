@@ -26,12 +26,15 @@ import {
   isBranchActive,
   isSectionActive
 } from './NavigatorContext'
+import { NavigatorDestination } from './NavigatorDestination'
+import { NavigatorFoldedContext } from './NavigatorFoldedContext'
 import { NavigatorGroup } from './NavigatorGroup'
 import { NavigatorIndicator } from './NavigatorIndicator'
 import { NavigatorItem, type NavigatorItemProps } from './NavigatorItem'
 import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
 import type { NavigatorSecondaryProps } from './NavigatorSecondary'
 import { NavigatorTab, type NavigatorTabProps } from './NavigatorTab'
+import { primaryCapsules, wrapCapsules } from './capsules'
 import { collectSlots } from './collectSlots'
 import {
   type MobileSlots,
@@ -39,22 +42,27 @@ import {
   OVERFLOW_LABEL,
   deriveMobileSlots
 } from './mobileSlots'
-import { wrapPrimaryRun } from './primaryList'
+import { presentNavIcon } from './presentNavIcon'
 import { activeHref, rememberedHref } from './sectionMemory'
 import {
   secondaryDescendantValues,
   splitItemChildren,
   textOf
 } from './splitSecondary'
+import { usePrimaryCapacity } from './usePrimaryCapacity'
 import {
+  navigatorCapsuleVariants,
+  navigatorItemVariants,
+  navigatorPrimaryBrandVariants,
   navigatorPrimaryCircleVariants,
-  navigatorPrimaryContentVariants,
+  navigatorPrimaryClusterContentVariants,
+  navigatorPrimaryClusterVariants,
+  navigatorPrimaryClusterViewportVariants,
   navigatorPrimaryHorizontalVariants,
   navigatorPrimaryPillVariants,
   navigatorPrimaryPinnedVariants,
   navigatorPrimaryTrackVariants,
-  navigatorPrimaryVerticalVariants,
-  navigatorPrimaryViewportVariants
+  navigatorPrimaryVerticalVariants
 } from './variants'
 
 export type { MobileSlots, NavigatorSlotMeta }
@@ -95,8 +103,8 @@ export function NavigatorPrimary({
     onShowListChange
   } = use(NavigatorContext)
   const tabTrackRef = useRef<HTMLDivElement>(null)
-  // The viewport, not the `<nav>`: it is what scrolls.
-  const verticalRef = useRef<HTMLDivElement>(null)
+  const clusterRef = useRef<HTMLDivElement>(null)
+  const pinnedRef = useRef<HTMLDivElement>(null)
 
   const collected = useMemo(() => collectSlots(children), [children])
   const items = [...collected.automatic, ...collected.pinnedSlots]
@@ -260,6 +268,26 @@ export function NavigatorPrimary({
     setOverflowItems('horizontal', folded)
   }, [foldedKey, setOverflowItems])
 
+  const verticalFolded = usePrimaryCapacity(
+    clusterRef,
+    primaryCapsules(collected.cluster),
+    [],
+    true
+  )
+  const verticalFoldedSlots = collected.automatic.filter((slot) =>
+    verticalFolded.has(slot.value)
+  )
+  const verticalFoldedKey = verticalFoldedSlots
+    .map((slot) => slot.value)
+    .join(',')
+  useEffect(() => {
+    setOverflowItems('vertical', verticalFoldedSlots)
+  }, [verticalFoldedKey, setOverflowItems])
+  const verticalMoreActive =
+    overflowOpen ||
+    (verticalFoldedSlots.some((slot) => isSectionActive(slot, activeValue)) &&
+      !disclosureOpen)
+
   const foldedWithNoHost = hasMore && !hasContent
   useEffect(() => {
     if (!isDev() || !foldedWithNoHost) return
@@ -342,45 +370,84 @@ export function NavigatorPrimary({
 
   return (
     <>
-      <ScrollArea
-        // `ScrollAreaRoot` hard-codes `role: 'presentation'`, which would
-        // otherwise stick to this landmark.
-        render={(renderProps) => <nav {...renderProps} role={undefined} />}
+      <nav
         data-slot='navigator-primary'
         data-orientation='vertical'
         aria-label={ariaLabel}
         className={cn(navigatorPrimaryVerticalVariants(), className)}
       >
-        <ScrollArea.Viewport
-          ref={verticalRef}
-          data-slot='navigator-primary-viewport'
-          className={navigatorPrimaryViewportVariants()}
+        <div
+          data-slot='navigator-primary-brand'
+          className={navigatorPrimaryBrandVariants()}
         >
-          {/* Wrapped so the bar re-measures as sections expand and collapse —
-              the viewport's own box never changes. */}
-          <ScrollArea.Content
-            fitWidth={false}
-            className={navigatorPrimaryContentVariants()}
+          {collected.brand}
+        </div>
+        <ScrollArea
+          data-slot='navigator-primary-cluster'
+          className={navigatorPrimaryClusterVariants()}
+        >
+          <ScrollArea.Viewport
+            ref={clusterRef}
+            data-slot='navigator-primary-cluster-viewport'
+            className={navigatorPrimaryClusterViewportVariants()}
           >
-            {wrapPrimaryRun([
-              ...collected.brand,
-              ...collected.cluster.map((entry) => entry.element)
-            ])}
-            {collected.pinned.length > 0 ? (
-              <div
-                data-slot='navigator-primary-pinned'
-                className={navigatorPrimaryPinnedVariants()}
-              >
-                {wrapPrimaryRun(collected.pinned.map((entry) => entry.element))}
-              </div>
-            ) : null}
-          </ScrollArea.Content>
-          <NavigatorIndicator trackRef={verticalRef} surface='vertical' />
-        </ScrollArea.Viewport>
-        <ScrollArea.Scrollbar flush>
-          <ScrollArea.Thumb />
-        </ScrollArea.Scrollbar>
-      </ScrollArea>
+            <ScrollArea.Content
+              fitWidth={false}
+              className={navigatorPrimaryClusterContentVariants()}
+            >
+              <NavigatorFoldedContext value={verticalFolded}>
+                {wrapCapsules(collected.cluster, verticalFolded)}
+              </NavigatorFoldedContext>
+              {verticalFoldedSlots.length > 0 ? (
+                <ul
+                  data-slot='navigator-capsule'
+                  className={navigatorCapsuleVariants()}
+                >
+                  <li>
+                    <NavigatorDestination
+                      ariaCurrent={verticalMoreActive ? 'true' : undefined}
+                      dataCurrent={verticalMoreActive}
+                      expanded={overflowOpen}
+                      controls={overflowOpen ? overflowPaneId : undefined}
+                      className={navigatorItemVariants({
+                        active: verticalMoreActive
+                      })}
+                      onClick={(event) => {
+                        overflowOpener.current =
+                          event.currentTarget as HTMLElement
+                        setOpenMenu(null)
+                        setOverflowOpen(!overflowOpen)
+                      }}
+                    >
+                      <span data-slot='navigator-item-icon'>
+                        {presentNavIcon(<DotsThreeIcon />, false, 'size-6')}
+                      </span>
+                      <span
+                        data-slot='navigator-item-label'
+                        className='sr-only'
+                      >
+                        {OVERFLOW_LABEL}
+                      </span>
+                    </NavigatorDestination>
+                  </li>
+                </ul>
+              ) : null}
+            </ScrollArea.Content>
+            <NavigatorIndicator trackRef={clusterRef} surface='vertical' />
+          </ScrollArea.Viewport>
+          <ScrollArea.Scrollbar flush>
+            <ScrollArea.Thumb />
+          </ScrollArea.Scrollbar>
+        </ScrollArea>
+        <div
+          ref={pinnedRef}
+          data-slot='navigator-primary-pinned'
+          className={navigatorPrimaryPinnedVariants()}
+        >
+          {wrapCapsules(collected.pinned, new Set())}
+          <NavigatorIndicator trackRef={pinnedRef} surface='vertical' />
+        </div>
+      </nav>
       <nav
         data-slot='navigator-primary'
         data-orientation='horizontal'

@@ -13,6 +13,7 @@ import {
 } from '../List/variants'
 import {
   NavigatorContext,
+  type NavigatorOverflowSets,
   isActiveValue,
   isSectionActive
 } from './NavigatorContext'
@@ -60,12 +61,13 @@ export function NavigatorOverflowItems({
 
   // List.Item renders its own <li>, so it can't be a menu trigger.
   const renderMenuRow = (
+    set: keyof NavigatorOverflowSets,
     slot: NavigatorSlotMeta,
     menu: ReactElement<NavigatorMenuProps>
   ) => (
     <li key={slot.value}>
       <NavigatorMenuHost
-        surface='overflow'
+        surface={`overflow-${set}`}
         value={slot.value}
         menu={menu}
         label={textOf(slot.label) || undefined}
@@ -74,7 +76,7 @@ export function NavigatorOverflowItems({
             type='button'
             data-slot='list-item'
             className={listItemVariants({
-              selected: openMenu === menuId('overflow', slot.value)
+              selected: openMenu === menuId(`overflow-${set}`, slot.value)
             })}
           >
             {slot.icon ? (
@@ -94,8 +96,11 @@ export function NavigatorOverflowItems({
     </li>
   )
 
-  const renderRow = (slot: NavigatorSlotMeta) => {
-    if (slot.menu) return renderMenuRow(slot, slot.menu)
+  const renderRow = (
+    set: keyof NavigatorOverflowSets,
+    slot: NavigatorSlotMeta
+  ) => {
+    if (slot.menu) return renderMenuRow(set, slot, slot.menu)
     const active = isSectionActive(slot, value)
     return (
       <List.Item
@@ -112,8 +117,9 @@ export function NavigatorOverflowItems({
     )
   }
 
-  const renderSet = (slots: NavigatorSlotMeta[], gate: string) =>
-    slots.length === 0 ? null : (
+  const renderSet = (set: keyof NavigatorOverflowSets, gate: string) => {
+    const slots = overflowItems[set]
+    return slots.length === 0 ? null : (
       <List
         data-slot='navigator-overflow-items'
         className={cn(gate, className)}
@@ -124,19 +130,20 @@ export function NavigatorOverflowItems({
               {run.group.title != null ? (
                 <List.GroupTitle>{run.group.title}</List.GroupTitle>
               ) : null}
-              {run.slots.map(renderRow)}
+              {run.slots.map((slot) => renderRow(set, slot))}
             </List.Group>
           ) : (
-            run.slots.map(renderRow)
+            run.slots.map((slot) => renderRow(set, slot))
           )
         )}
       </List>
     )
+  }
 
   return (
     <>
-      {renderSet(overflowItems.horizontal, 'md:hidden')}
-      {renderSet(overflowItems.vertical, 'max-md:hidden')}
+      {renderSet('horizontal', 'md:hidden')}
+      {renderSet('vertical', 'max-md:hidden')}
     </>
   )
 }

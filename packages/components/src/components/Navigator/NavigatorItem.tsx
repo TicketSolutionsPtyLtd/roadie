@@ -24,10 +24,7 @@ import {
   splitItemChildren,
   textOf
 } from './splitSecondary'
-import {
-  navigatorItemTrailingVariants,
-  navigatorItemVariants
-} from './variants'
+import { navigatorItemVariants } from './variants'
 
 export type NavigatorItemProps = {
   /** Identifies this destination against Navigator's `value`; unique across the tree. */
@@ -51,7 +48,6 @@ export function NavigatorItem({
   value,
   href,
   icon,
-  badge,
   className,
   children,
   onClick
@@ -94,15 +90,6 @@ export function NavigatorItem({
     )
   }, [declaresMenuWithSecondary, value])
 
-  const trailing = badge ? (
-    <span
-      data-slot='navigator-item-trailing'
-      className={navigatorItemTrailingVariants()}
-    >
-      {badge}
-    </span>
-  ) : null
-
   const content = (
     <>
       {icon ? (
@@ -110,10 +97,9 @@ export function NavigatorItem({
           {presentNavIcon(icon, isBranch, 'size-6')}
         </span>
       ) : null}
-      <span data-slot='navigator-item-label' className='max-w-full truncate'>
+      <span data-slot='navigator-item-label' className='sr-only'>
         {label}
       </span>
-      {trailing}
     </>
   )
 

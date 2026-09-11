@@ -5,11 +5,13 @@ import {
   type ReactNode,
   cloneElement,
   isValidElement,
+  use,
   useId
 } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { NavigatorFoldedContext } from './NavigatorFoldedContext'
 import {
   NavigatorGroupTitle,
   type NavigatorGroupTitleProps
@@ -18,7 +20,7 @@ import type {
   NavigatorPlacement,
   NavigatorVisibilityPriority
 } from './mobileSlots'
-import { navigatorGroupListVariants } from './variants'
+import { navigatorCapsuleVariants } from './variants'
 
 export type NavigatorGroupProps = {
   /** `Navigator.GroupTitle` followed by the group's `Navigator.Item`s. */
@@ -37,8 +39,9 @@ export type NavigatorGroupProps = {
  */
 export function NavigatorGroup({ children, className }: NavigatorGroupProps) {
   const titleId = useId()
+  const folded = use(NavigatorFoldedContext)
   let title: ReactNode = null
-  const rows: ReactNode[] = []
+  const rows: { key: string | number; row: ReactNode }[] = []
 
   Children.forEach(children, (child) => {
     if (
@@ -48,19 +51,28 @@ export function NavigatorGroup({ children, className }: NavigatorGroupProps) {
       title = cloneElement(child, { id: titleId })
       return
     }
-    rows.push(child)
+    const value = isValidElement<{ value?: unknown }>(child)
+      ? child.props.value
+      : undefined
+    if (typeof value === 'string' && folded.has(value)) return
+    rows.push({
+      key: typeof value === 'string' ? value : rows.length,
+      row: child
+    })
   })
+
+  if (rows.length === 0) return null
 
   return (
     <>
       {title}
       <ul
-        data-slot='navigator-group-list'
+        data-slot='navigator-capsule'
         aria-labelledby={title !== null ? titleId : undefined}
-        className={cn(navigatorGroupListVariants(), className)}
+        className={cn(navigatorCapsuleVariants(), className)}
       >
-        {rows.map((row, index) => (
-          <li key={index}>{row}</li>
+        {rows.map(({ key, row }) => (
+          <li key={key}>{row}</li>
         ))}
       </ul>
     </>

@@ -6,11 +6,16 @@ import { Menu } from '@base-ui/react/menu'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { NavigatorContext } from './NavigatorContext'
+import {
+  NavigatorContext,
+  type NavigatorOverflowSets
+} from './NavigatorContext'
 import type { NavigatorMenuProps } from './NavigatorMenu'
 import { navigatorMenuPopupVariants } from './variants'
 
-export type NavigatorMenuSurface = 'vertical' | 'horizontal' | 'overflow'
+// Each folded row set is its own surface, so a row folded in both opens one popup.
+export type NavigatorMenuSurface =
+  'vertical' | 'horizontal' | `overflow-${keyof NavigatorOverflowSets}`
 
 export const menuId = (surface: NavigatorMenuSurface, value: string) =>
   `${surface}:${value}`
@@ -18,7 +23,8 @@ export const menuId = (surface: NavigatorMenuSurface, value: string) =>
 const PLACEMENT = {
   vertical: { side: 'inline-end', align: 'start' },
   horizontal: { side: 'top', align: 'center' },
-  overflow: { side: 'bottom', align: 'start' }
+  'overflow-horizontal': { side: 'bottom', align: 'start' },
+  'overflow-vertical': { side: 'bottom', align: 'start' }
 } as const
 
 export type NavigatorMenuHostProps = {
@@ -47,7 +53,7 @@ export function NavigatorMenuHost({
       open={openMenu === id}
       onOpenChange={(open, { reason }) => {
         setOpenMenu(open ? id : null)
-        if (surface === 'overflow' && reason === 'item-press') {
+        if (surface.startsWith('overflow') && reason === 'item-press') {
           setOverflowOpen(false)
         }
       }}
