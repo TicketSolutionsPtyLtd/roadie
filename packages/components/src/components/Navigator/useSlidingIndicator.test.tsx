@@ -337,6 +337,49 @@ describe('useSlidingIndicator ResizeObserver integration', () => {
     })
   })
 
+  it('snaps a destination that resizes in place and slides to a new one', () => {
+    globalThis.ResizeObserver =
+      StubResizeObserver as unknown as typeof ResizeObserver
+    const { trackRef, first, second } = setup()
+    first.setAttribute('data-current', '')
+    const states: HarnessState[] = []
+    const harness = () => (
+      <Harness trackRef={trackRef} onState={(state) => states.push(state)} />
+    )
+    const { rerender } = render(harness())
+    expect(states.at(-1)).toMatchObject({ ready: true, settled: true })
+
+    stubRect(first, { left: 110, top: 55, width: 160, height: 50 })
+    act(() => {
+      StubResizeObserver.instances[0]!.trigger()
+    })
+    expect(states.at(-1)).toMatchObject({ ready: true, settled: false })
+    expect(states.at(-1)!.style).toMatchObject({
+      '--active-tab-width': '160px'
+    })
+
+    first.removeAttribute('data-current')
+    second.setAttribute('data-current', '')
+    rerender(harness())
+    expect(states.at(-1)).toMatchObject({ ready: true, settled: true })
+  })
+
+  it('publishes the right inset so a pill can follow its track in CSS', () => {
+    const { trackRef, track, second } = setup()
+    Object.defineProperty(track, 'clientWidth', { value: 300 })
+    second.setAttribute('data-current', '')
+    let captured: HarnessState = { ready: false, settled: false }
+    render(
+      <Harness
+        trackRef={trackRef}
+        onState={(state) => {
+          captured = state
+        }}
+      />
+    )
+    expect(captured.style).toMatchObject({ '--active-tab-right': '120px' })
+  })
+
   it('disconnects observers on unmount', () => {
     globalThis.ResizeObserver =
       StubResizeObserver as unknown as typeof ResizeObserver

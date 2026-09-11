@@ -13,7 +13,6 @@ const rootFontSize = () =>
 export function usePrimaryCapacity(
   viewportRef: RefObject<HTMLElement | null>,
   capsules: PrimaryCapsule[],
-  fixed: number[],
   enabled: boolean
 ): ReadonlySet<string> {
   const [available, setAvailable] = useState(0)
@@ -28,17 +27,16 @@ export function usePrimaryCapacity(
     return () => observer.disconnect()
   }, [viewportRef])
 
-  // `capsules` and `fixed` are rebuilt every render; this string is their identity.
-  const shape = `${capsules
+  // `capsules` is rebuilt every render; this string is its identity.
+  const shape = capsules
     .map(
       (capsule) =>
         `${capsule.key}:${capsule.slots.map((slot) => `${slot.value}/${slot.priority}`).join(',')}`
     )
-    .join('|')}#${fixed.join(',')}`
+    .join('|')
 
   return useMemo(
-    () =>
-      enabled ? fitPrimaryCluster(capsules, available, fixed).folded : NONE,
+    () => (enabled ? fitPrimaryCluster(capsules, available).folded : NONE),
     [shape, available, enabled]
   )
 }

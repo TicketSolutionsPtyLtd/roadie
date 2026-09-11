@@ -49,37 +49,64 @@ export const navigatorContentVariants = cva([
 export const MAX_TABS = 5
 
 // Flex, not grid rows: an absent brand or pinned region leaves no gutter.
+// Width is the one layout transition: the panes beside it follow the track.
 export const navigatorPrimaryVerticalVariants = cva([
   'group/primary hidden min-h-0 md:col-start-1 md:row-start-1 md:flex',
-  'flex-col gap-3 py-3 w-20 navigator-expanded:w-60'
+  'flex-col gap-3 py-3 w-20 navigator-expanded:w-60',
+  '[--navigator-primary-motion:var(--duration-slow)_var(--ease-standard)]',
+  'motion-safe:[transition:width_var(--navigator-primary-motion)]'
 ])
 
-export const navigatorPrimaryBrandVariants = cva([
-  'grid justify-items-center px-3 navigator-expanded:justify-items-stretch'
+// The toggle is out of flow: collapsed, `pb-12` makes its row under the brand;
+// expanded, `pe-15` keeps the brand clear of it.
+export const navigatorPrimaryBrandVariants = cva(
+  [
+    'relative grid min-h-10 px-3',
+    'motion-safe:[transition:padding_var(--navigator-primary-motion)]'
+  ],
+  {
+    variants: {
+      toggle: {
+        true: 'pb-12 navigator-expanded:pb-0 navigator-expanded:pe-15',
+        false: ''
+      }
+    },
+    defaultVariants: { toggle: false }
+  }
+)
+
+// Percentages of the brand region, which resizes with the navigation, so the
+// toggle travels continuously from under the brand to its trailing edge.
+export const navigatorExpandToggleAnchorVariants = cva([
+  'absolute left-1/2 top-full -translate-x-1/2 -translate-y-full',
+  'navigator-expanded:left-[calc(100%-1rem)] navigator-expanded:top-1/2 navigator-expanded:-translate-x-full navigator-expanded:-translate-y-1/2',
+  'motion-safe:[transition:left_var(--navigator-primary-motion),top_var(--navigator-primary-motion),translate_var(--navigator-primary-motion)]'
+])
+
+export const navigatorExpandToggleVariants = cva([
+  'is-interactive grid size-10 place-items-center rounded-full text-subtle hover:bg-subtle'
 ])
 
 // Takes the height left between brand and pinned, so the cluster centres there.
 export const navigatorPrimaryClusterVariants = cva(['min-h-0 flex-1'])
 
-// `relative` positions the cluster's pill; the viewport is what scrolls.
-export const navigatorPrimaryClusterViewportVariants = cva([
-  'relative size-full'
-])
+export const navigatorPrimaryClusterViewportVariants = cva(['size-full'])
 
 // `min-h-full` + `content-center` centres a short cluster and top-aligns a tall
-// one, since the grid then grows past the viewport; py-2 keeps capsule shadows
-// off the clip edge.
+// one; py-2 keeps capsule shadows off the clip edge.
 export const navigatorPrimaryClusterContentVariants = cva([
-  'grid min-h-full content-center justify-items-center gap-3 px-3 py-2',
-  'navigator-expanded:justify-items-stretch'
+  'grid min-h-full content-center px-3 py-2'
 ])
 
-export const navigatorPrimaryPinnedVariants = cva([
-  'relative grid justify-items-center gap-3 px-3 navigator-expanded:justify-items-stretch'
-])
+// The pill's track: it moves with the centred capsules, so the pill does too.
+// Capsules stretch in both states, so they widen with the navigation.
+export const navigatorPrimaryClusterTrackVariants = cva(['relative grid gap-3'])
 
+export const navigatorPrimaryPinnedVariants = cva(['relative grid gap-3 px-3'])
+
+// `rounded-4xl` overflows a collapsed capsule's width, so the browser scales it to a pill.
 export const navigatorCapsuleVariants = cva([
-  'relative grid gap-1 p-1 rounded-full emphasis-raised navigator-expanded:rounded-4xl'
+  'relative grid gap-1 p-1 rounded-4xl emphasis-raised'
 ])
 
 // The box never changes size, so collapse animates on scale/translate/opacity
@@ -212,25 +239,38 @@ export const navigatorTabVariants = cva(
   }
 )
 
-// `not-sr-only` zeroes padding, so the padding rides the same variant.
+// Rows `0fr` → `1fr` grows the title open; `-mb-3` cancels the cluster gap while it's shut.
 export const navigatorGroupTitleVariants = cva([
-  'sr-only text-xs font-semibold text-subtler',
-  'navigator-expanded:not-sr-only navigator-expanded:px-3 navigator-expanded:pb-1'
+  'grid grid-rows-[0fr] self-start -mb-3 px-3 text-xs font-semibold text-subtler opacity-0',
+  'navigator-expanded:grid-rows-[1fr] navigator-expanded:mb-1 navigator-expanded:opacity-100',
+  'motion-safe:[transition:grid-template-rows_var(--navigator-primary-motion),margin_var(--navigator-primary-motion),opacity_var(--navigator-primary-motion)]'
 ])
 
-// Expanded `px-4` = a capsule's `p-1` + an item's `px-3`, so the brand starts on the icon column.
+export const navigatorGroupTitleTextVariants = cva(['min-h-0 overflow-hidden'])
+
+// `ps-1` + a tile-wide first column keep the mark on the icon column in both
+// states. The rest fades in once the toggle has crossed its row; `starting:`
+// covers a wordmark that was `display: none`.
 export const navigatorBrandVariants = cva([
-  'flex items-center justify-center gap-2 py-1',
-  'navigator-expanded:justify-start navigator-expanded:px-4'
+  'grid grid-flow-col grid-cols-[minmax(3rem,auto)] auto-cols-[minmax(0,1fr)] items-center justify-start justify-items-start gap-2 py-1 ps-1',
+  '[&>:first-child]:justify-self-center',
+  '[&>:not(:first-child)]:opacity-0 navigator-expanded:[&>:not(:first-child)]:opacity-100',
+  'navigator-expanded:[&>:not(:first-child)]:starting:opacity-0',
+  'motion-safe:[&>:not(:first-child)]:[transition:opacity_var(--duration-fast)_var(--ease-exit)]',
+  'motion-safe:navigator-expanded:[&>:not(:first-child)]:[transition:opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-moderate)]'
 ])
 
-export const navigatorItemTrailingVariants = cva(['flex items-center gap-2'])
+export const navigatorItemTrailingVariants = cva([
+  'col-start-3 ms-3 flex items-center gap-2'
+])
 
-// `text-subtle` always: under the active tile's `intent-accent` it becomes the accent's subtle tone.
+// One geometry in both states; collapsed, the label's column is zero wide.
+// Margins, not `gap`, space the label, so that column can't squeeze the icon.
+// `text-subtle` always: under `intent-accent` it becomes the accent's tone.
 export const navigatorItemVariants = cva(
   [
-    'is-interactive relative z-[1] grid size-12 place-items-center rounded-full text-subtle',
-    'navigator-expanded:h-12 navigator-expanded:w-full navigator-expanded:grid-cols-[auto_1fr_auto] navigator-expanded:justify-items-start navigator-expanded:gap-3 navigator-expanded:px-3 navigator-expanded:text-sm navigator-expanded:font-semibold'
+    'is-interactive relative z-[1] grid h-12 w-full grid-cols-[1.5rem_minmax(0,1fr)_auto] items-center rounded-full px-3 text-start text-subtle',
+    'navigator-expanded:text-sm navigator-expanded:font-semibold'
   ],
   {
     variants: {
@@ -240,9 +280,9 @@ export const navigatorItemVariants = cva(
   }
 )
 
-// A transition, not `starting:`: the label is always rendered, so @starting-style never fires.
+// Always laid out, so it fades both ways; the delay hides the ellipsis while its column opens.
 export const navigatorItemLabelClass =
-  'sr-only opacity-0 navigator-expanded:not-sr-only navigator-expanded:max-w-full navigator-expanded:truncate navigator-expanded:opacity-100 motion-safe:navigator-expanded:transition-opacity'
+  'col-start-2 ms-3 truncate opacity-0 navigator-expanded:opacity-100 motion-safe:[transition:opacity_var(--duration-fast)_var(--ease-exit)] motion-safe:navigator-expanded:[transition:opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-fast)]'
 
 // Opacity always fades; translate slides only once settled, so a pill that
 // appears (or moves between vertical tracks) cross-fades in place.
@@ -266,11 +306,11 @@ export const navigatorIndicatorVariants = cva(
           'translate-x-[calc(var(--active-tab-left)-0.25rem)]',
           'translate-y-[var(--active-tab-top)]'
         ].join(' '),
-        // Size snaps; it changes only when the navigation snaps widths.
+        // Insets, not a width, so the pill widens with the navigation in CSS.
         vertical: [
           'intent-accent bg-[var(--intent-bg-subtle)]',
-          'left-0 top-0 h-[var(--active-tab-height)] w-[var(--active-tab-width)]',
-          'translate-x-[var(--active-tab-left)] translate-y-[var(--active-tab-top)]'
+          'left-[var(--active-tab-left)] right-[var(--active-tab-right)] top-0 h-[var(--active-tab-height)]',
+          'translate-y-[var(--active-tab-top)]'
         ].join(' ')
       },
       visible: {

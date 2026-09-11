@@ -8,47 +8,56 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { NavigatorContext } from './NavigatorContext'
 import { NavigatorTileTooltip } from './NavigatorTileTooltip'
-import type { NavigatorPlacement } from './mobileSlots'
 import { presentNavIcon } from './presentNavIcon'
-import { navigatorItemLabelClass, navigatorItemVariants } from './variants'
+import {
+  navigatorExpandToggleAnchorVariants,
+  navigatorExpandToggleVariants
+} from './variants'
 
 export type NavigatorExpandToggleProps = {
-  /** Placed like an item; never folds into More. @default 'automatic' */
-  placement?: NavigatorPlacement
   className?: string
 }
 
+/** Icon-only; always renders beside `Navigator.Brand`, wherever it is written. */
 export function NavigatorExpandToggle({
   className
 }: NavigatorExpandToggleProps) {
   const { expanded, setExpanded, primaryId } = use(NavigatorContext)
   const label = expanded ? 'Collapse sidebar' : 'Expand sidebar'
   return (
-    <NavigatorTileTooltip
-      label={label}
-      render={(asTrigger) =>
-        asTrigger(
-          <button
-            type='button'
-            data-slot='navigator-expand-toggle'
-            aria-expanded={expanded}
-            aria-controls={primaryId}
-            className={cn(navigatorItemVariants({ active: false }), className)}
-            onClick={() => setExpanded(!expanded)}
-          >
-            <span data-slot='navigator-item-icon'>
-              {presentNavIcon(<SidebarSimpleIcon />, 'size-6')}
-            </span>
-            <span
-              data-slot='navigator-item-label'
-              className={navigatorItemLabelClass}
+    <div
+      data-slot='navigator-expand-toggle-anchor'
+      className={navigatorExpandToggleAnchorVariants()}
+    >
+      <NavigatorTileTooltip
+        label={label}
+        iconOnly
+        render={(asTrigger) =>
+          asTrigger(
+            <button
+              type='button'
+              data-slot='navigator-expand-toggle'
+              aria-expanded={expanded}
+              aria-controls={primaryId}
+              className={cn(navigatorExpandToggleVariants(), className)}
+              onClick={() => setExpanded(!expanded)}
             >
-              {label}
-            </span>
-          </button>
-        )
-      }
-    />
+              {presentNavIcon(
+                <SidebarSimpleIcon />,
+                'size-5',
+                'navigator-expand-toggle-icon'
+              )}
+              <span
+                data-slot='navigator-expand-toggle-label'
+                className='sr-only'
+              >
+                {label}
+              </span>
+            </button>
+          )
+        }
+      />
+    </div>
   )
 }
 

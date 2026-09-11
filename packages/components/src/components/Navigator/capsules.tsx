@@ -6,12 +6,10 @@ import { navigatorCapsuleVariants } from './variants'
 
 type ItemEntry = Extract<PrimaryEntry, { kind: 'item' }>
 type GroupEntry = Extract<PrimaryEntry, { kind: 'group' }>
-type ToggleEntry = Extract<PrimaryEntry, { kind: 'toggle' }>
 
 type EntryCapsule =
   | { kind: 'run'; key: string; items: ItemEntry[] }
   | { kind: 'group'; key: string; entry: GroupEntry }
-  | { kind: 'toggle'; key: string; entry: ToggleEntry }
 
 function groupEntries(entries: PrimaryEntry[]): EntryCapsule[] {
   const capsules: EntryCapsule[] = []
@@ -26,34 +24,20 @@ function groupEntries(entries: PrimaryEntry[]): EntryCapsule[] {
       return
     }
     run = null
-    capsules.push(
-      entry.kind === 'group'
-        ? { kind: 'group', key: entry.group.key, entry }
-        : { kind: 'toggle', key: `toggle-${index}`, entry }
-    )
+    capsules.push({ kind: 'group', key: entry.group.key, entry })
   })
   return capsules
 }
 
 export function primaryCapsules(entries: PrimaryEntry[]): PrimaryCapsule[] {
-  return groupEntries(entries).flatMap((capsule) =>
-    capsule.kind === 'toggle'
-      ? []
-      : [
-          {
-            key: capsule.key,
-            slots:
-              capsule.kind === 'run'
-                ? capsule.items.map((item) => item.slot)
-                : capsule.entry.slots
-          }
-        ]
-  )
+  return groupEntries(entries).map((capsule) => ({
+    key: capsule.key,
+    slots:
+      capsule.kind === 'run'
+        ? capsule.items.map((item) => item.slot)
+        : capsule.entry.slots
+  }))
 }
-
-/** Capsules capacity counts but never folds: one tile each. */
-export const fixedCapsules = (entries: PrimaryEntry[]) =>
-  entries.filter((entry) => entry.kind === 'toggle').map(() => 1)
 
 const capsuleList = (key: string, rows: { key: string; node: ReactNode }[]) => (
   <ul
@@ -73,13 +57,6 @@ export function wrapCapsules(
   folded: ReadonlySet<string>
 ): ReactNode[] {
   return groupEntries(entries).flatMap((capsule) => {
-    if (capsule.kind === 'toggle') {
-      return [
-        capsuleList(capsule.key, [
-          { key: capsule.key, node: capsule.entry.element }
-        ])
-      ]
-    }
     if (capsule.kind === 'group') {
       const allFolded = capsule.entry.slots.every((slot) =>
         folded.has(slot.value)

@@ -10,7 +10,7 @@ import { NavigatorContext } from './NavigatorContext'
 import { FakeIcon, flushViewportMeasurement, primaryOf } from './testUtils'
 import {
   navigatorIndicatorVariants,
-  navigatorPrimaryClusterViewportVariants,
+  navigatorPrimaryClusterTrackVariants,
   navigatorPrimaryPinnedVariants,
   navigatorPrimaryTrackVariants
 } from './variants'
@@ -3569,7 +3569,7 @@ describe('indicator track offsetParent guard', () => {
   it('keeps every indicator track position: relative', () => {
     for (const track of [
       navigatorPrimaryTrackVariants(),
-      navigatorPrimaryClusterViewportVariants(),
+      navigatorPrimaryClusterTrackVariants(),
       navigatorPrimaryPinnedVariants()
     ]) {
       expect(track.split(' ')).toContain('relative')

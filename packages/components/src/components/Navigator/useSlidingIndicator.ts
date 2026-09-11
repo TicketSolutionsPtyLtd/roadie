@@ -5,6 +5,7 @@ import {
   type RefObject,
   useCallback,
   useEffect,
+  useRef,
   useState
 } from 'react'
 
@@ -21,11 +22,12 @@ export const ACTIVE_DESTINATION_SELECTOR =
 export type SlidingIndicatorState = {
   style: CSSProperties | undefined
   ready: boolean
-  /** Ready since an earlier commit, so a move may slide rather than jump. */
+  /** Ready since an earlier commit and last moved to another destination, so it slides rather than jumps. */
   settled: boolean
 }
 
-type Geometry = { left: number; top: number; width: number; height: number }
+type Box = { left: number; top: number; width: number; height: number }
+type Geometry = Box & { right: number }
 
 const sameGeometry = (a: Geometry | null, b: Geometry | null) =>
   a === b ||
@@ -33,6 +35,7 @@ const sameGeometry = (a: Geometry | null, b: Geometry | null) =>
     b !== null &&
     a.left === b.left &&
     a.top === b.top &&
+    a.right === b.right &&
     a.width === b.width &&
     a.height === b.height)
 
@@ -56,7 +59,7 @@ const sameGeometry = (a: Geometry | null, b: Geometry | null) =>
 const layoutBoxWithin = (
   active: HTMLElement,
   track: HTMLElement
-): Geometry | null => {
+): Box | null => {
   let left = 0
   let top = 0
   let node: Element | null = active
@@ -79,7 +82,7 @@ const layoutBoxWithin = (
  * positioned in the track's content space, so a scrolled track needs its
  * offset added back.
  */
-const rectBoxWithin = (active: HTMLElement, track: HTMLElement): Geometry => {
+const rectBoxWithin = (active: HTMLElement, track: HTMLElement): Box => {
   const trackRect = track.getBoundingClientRect()
   const activeRect = active.getBoundingClientRect()
 
@@ -101,25 +104,35 @@ export function useSlidingIndicator(
   const [geometry, setGeometry] = useState<Geometry | null>(null)
   const [ready, setReady] = useState(false)
   const [settled, setSettled] = useState(false)
+  // A destination resizing or reflowing in place snaps; only a change of destination slides.
+  const [slides, setSlides] = useState(true)
+  const geometryRef = useRef<Geometry | null>(null)
+  const destinationRef = useRef<HTMLElement | null>(null)
 
   const measure = useCallback(() => {
     const track = trackRef.current
     const active = track?.querySelector<HTMLElement>(
       ACTIVE_DESTINATION_SELECTOR
     )
-    const next =
+    const box =
       track && active
         ? (layoutBoxWithin(active, track) ?? rectBoxWithin(active, track))
         : null
-    const visible = next !== null && next.width > 0 && next.height > 0
+    const visible = box !== null && box.width > 0 && box.height > 0
 
     setReady(visible)
     // The last box is kept while unready so the pill fades out where it was.
-    if (visible) {
-      setGeometry((previous) =>
-        sameGeometry(previous, next) ? previous : next
-      )
+    if (!visible || !track || !active) return
+    const next = {
+      ...box,
+      right: track.clientWidth - box.left - box.width
     }
+    if (!sameGeometry(geometryRef.current, next)) {
+      geometryRef.current = next
+      setGeometry(next)
+      setSlides(active !== destinationRef.current)
+    }
+    destinationRef.current = active
   }, [trackRef])
 
   // The indicator is a child of the element `trackRef` points at, so React
@@ -161,11 +174,12 @@ export function useSlidingIndicator(
 
   return {
     ready,
-    settled: ready && settled,
+    settled: ready && settled && slides,
     style: geometry
       ? ({
           '--active-tab-left': `${geometry.left}px`,
           '--active-tab-top': `${geometry.top}px`,
+          '--active-tab-right': `${geometry.right}px`,
           '--active-tab-width': `${geometry.width}px`,
           '--active-tab-height': `${geometry.height}px`
         } as CSSProperties)
