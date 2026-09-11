@@ -11,8 +11,10 @@ import {
   useState
 } from 'react'
 
+import { NAVIGATOR_EXPANDED_ATTRIBUTE } from '@oztix/roadie-core/navigator'
 import { cn } from '@oztix/roadie-core/utils'
 
+import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import type { PanePrimaryNav } from '../Pane/variants'
 import { NavigatorContent } from './NavigatorContent'
 import {
@@ -50,6 +52,8 @@ export type NavigatorRootProps = {
   defaultExpanded?: boolean
   /** Called when `Navigator.ExpandToggle` asks to expand or collapse. */
   onExpandedChange?: (next: boolean) => void
+  /** Follow `getNavigatorExpandedScript`'s attribute on `<html>` before hydration, for static sites. */
+  expandedFromDocument?: boolean
   className?: string
   children?: ReactNode
 }
@@ -62,20 +66,43 @@ export function NavigatorRoot({
   expanded: expandedProp,
   defaultExpanded,
   onExpandedChange,
+  expandedFromDocument = false,
   className,
   children
 }: NavigatorRootProps) {
   const [uncontrolledExpanded, setUncontrolledExpanded] = useState(
     defaultExpanded ?? false
   )
-  const expanded = expandedProp ?? uncontrolledExpanded
+  // Unread until mount, so a server-rendered `false` never erases what the head script painted.
+  const [documentExpanded, setDocumentExpanded] = useState<boolean>()
+  const [lastExpandedProp, setLastExpandedProp] = useState(expandedProp)
+  if (lastExpandedProp !== expandedProp) {
+    setLastExpandedProp(expandedProp)
+    if (documentExpanded) setDocumentExpanded(false)
+  }
+  const expanded =
+    (expandedProp ?? uncontrolledExpanded) || documentExpanded === true
   const setExpanded = useCallback(
     (next: boolean) => {
+      setDocumentExpanded((current) => current && false)
       if (expandedProp === undefined) setUncontrolledExpanded(next)
       onExpandedChange?.(next)
     },
     [expandedProp, onExpandedChange]
   )
+  useIsomorphicLayoutEffect(() => {
+    if (!expandedFromDocument) return
+    setDocumentExpanded(
+      document.documentElement.hasAttribute(NAVIGATOR_EXPANDED_ATTRIBUTE)
+    )
+  }, [expandedFromDocument])
+  useIsomorphicLayoutEffect(() => {
+    if (!expandedFromDocument || documentExpanded === undefined) return
+    const root = document.documentElement
+    if (root.hasAttribute(NAVIGATOR_EXPANDED_ATTRIBUTE) !== expanded) {
+      root.toggleAttribute(NAVIGATOR_EXPANDED_ATTRIBUTE, expanded)
+    }
+  }, [expanded, expandedFromDocument, documentExpanded])
   const primaryId = useId()
   const [navCollapsed, setNavCollapsed] = useState(false)
   const [primaryNav, setPrimaryNav] = useState<PanePrimaryNav>('auto')
@@ -163,6 +190,7 @@ export function NavigatorRoot({
       onShowListChange,
       expanded,
       setExpanded,
+      expandedFromDocument,
       primaryId
     }),
     [
@@ -188,6 +216,7 @@ export function NavigatorRoot({
       onShowListChange,
       expanded,
       setExpanded,
+      expandedFromDocument,
       primaryId
     ]
   )

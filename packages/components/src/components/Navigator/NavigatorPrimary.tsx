@@ -103,6 +103,7 @@ export function NavigatorPrimary({
     showList,
     onShowListChange,
     expanded,
+    expandedFromDocument,
     primaryId
   } = use(NavigatorContext)
   const tabTrackRef = useRef<HTMLDivElement>(null)
@@ -379,6 +380,7 @@ export function NavigatorPrimary({
         data-slot='navigator-primary'
         data-orientation='vertical'
         data-expanded={expanded ? '' : undefined}
+        data-from-document={expandedFromDocument ? '' : undefined}
         aria-label={ariaLabel}
         className={cn(navigatorPrimaryVerticalVariants(), className)}
       >

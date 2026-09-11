@@ -1,3 +1,5 @@
+import { StrictMode } from 'react'
+
 import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -324,6 +326,7 @@ function Expandable(props: {
   expanded?: boolean
   defaultExpanded?: boolean
   onExpandedChange?: (next: boolean) => void
+  expandedFromDocument?: boolean
 }) {
   return (
     <Navigator value='/a' {...props}>
@@ -450,5 +453,102 @@ describe('expanded vertical navigation', () => {
     expect(
       within(horizontal()).queryByRole('button', { name: /sidebar/ })
     ).toBeNull()
+  })
+})
+
+describe('expanded from the document', () => {
+  const scope = `:where(${NAVIGATOR_EXPANDED_SCOPE})`
+  const fromDocument =
+    '[data-navigator-expanded] [data-slot=navigator-primary][data-orientation=vertical][data-from-document]'
+  const markDocument = () =>
+    document.documentElement.setAttribute('data-navigator-expanded', '')
+  afterEach(() =>
+    document.documentElement.removeAttribute('data-navigator-expanded')
+  )
+
+  it('styles the vertical navigation expanded from the document attribute alone', async () => {
+    markDocument()
+    render(<Expandable expandedFromDocument expanded={false} />)
+    await flushViewportMeasurement()
+    expect(vertical()).toHaveAttribute('data-from-document')
+    expect(vertical().matches(fromDocument)).toBe(true)
+    expect(within(region('cluster')).getByText('Alpha').matches(scope)).toBe(
+      true
+    )
+    expect(document.documentElement).toHaveAttribute('data-navigator-expanded')
+  })
+
+  it('never touches the painted attribute while mounting, in StrictMode', async () => {
+    markDocument()
+    const toggleAttribute = vi.spyOn(
+      document.documentElement,
+      'toggleAttribute'
+    )
+    const removeAttribute = vi.spyOn(
+      document.documentElement,
+      'removeAttribute'
+    )
+    render(
+      <StrictMode>
+        <Expandable expandedFromDocument />
+      </StrictMode>
+    )
+    await flushViewportMeasurement()
+    expect(toggleAttribute).not.toHaveBeenCalled()
+    expect(removeAttribute).not.toHaveBeenCalled()
+    expect(vertical()).toHaveAttribute('data-expanded')
+  })
+
+  it('treats the vertical navigation as expanded until the app changes expanded', async () => {
+    markDocument()
+    const { rerender } = render(
+      <Expandable expandedFromDocument expanded={false} />
+    )
+    await flushViewportMeasurement()
+    reportClusterHeight(40)
+    expect(
+      within(region('cluster')).queryByRole('button', { name: 'More' })
+    ).toBeNull()
+    rerender(<Expandable expandedFromDocument expanded />)
+    rerender(<Expandable expandedFromDocument expanded={false} />)
+    expect(vertical()).not.toHaveAttribute('data-expanded')
+    expect(document.documentElement).not.toHaveAttribute(
+      'data-navigator-expanded'
+    )
+  })
+
+  it('keeps the attribute in sync after a toggle', async () => {
+    const user = userEvent.setup()
+    markDocument()
+    render(<Expandable expandedFromDocument />)
+    await flushViewportMeasurement()
+    await user.click(
+      within(region('pinned')).getByRole('button', {
+        name: 'Collapse sidebar'
+      })
+    )
+    expect(document.documentElement).not.toHaveAttribute(
+      'data-navigator-expanded'
+    )
+    expect(within(region('cluster')).getByText('Alpha').matches(scope)).toBe(
+      false
+    )
+    await user.click(
+      within(region('pinned')).getByRole('button', { name: 'Expand sidebar' })
+    )
+    expect(document.documentElement).toHaveAttribute('data-navigator-expanded')
+  })
+
+  it('ignores the document unless opted in', async () => {
+    markDocument()
+    render(<Expandable />)
+    await flushViewportMeasurement()
+    expect(vertical()).not.toHaveAttribute('data-from-document')
+    expect(within(region('cluster')).getByText('Alpha').matches(scope)).toBe(
+      false
+    )
+    expect(
+      within(region('pinned')).getByRole('button', { name: 'Expand sidebar' })
+    ).toBeInTheDocument()
   })
 })
