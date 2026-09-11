@@ -1,3 +1,5 @@
+import { createRef } from 'react'
+
 import { act, render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -38,6 +40,30 @@ describe('Accordion', () => {
       'px-(--content-inset)'
     )
     expect(getByText('Content 1')).toHaveClass('px-(--content-inset)')
+  })
+
+  it('forwards an object ref on Accordion.Item to the details element', () => {
+    const ref = createRef<HTMLDetailsElement>()
+    render(
+      <Accordion>
+        <Accordion.Item ref={ref}>
+          <Accordion.Trigger>Trigger</Accordion.Trigger>
+        </Accordion.Item>
+      </Accordion>
+    )
+    expect(ref.current).toBeInstanceOf(HTMLDetailsElement)
+  })
+
+  it('forwards a function ref on Accordion.Item to the details element', () => {
+    const ref = vi.fn()
+    render(
+      <Accordion>
+        <Accordion.Item ref={ref}>
+          <Accordion.Trigger>Trigger</Accordion.Trigger>
+        </Accordion.Item>
+      </Accordion>
+    )
+    expect(ref).toHaveBeenCalledWith(expect.any(HTMLDetailsElement))
   })
 
   it('renders with default emphasis variant', () => {
@@ -223,6 +249,31 @@ describe('Accordion', () => {
       height = 240
       act(() => resize?.())
       expect(details.style.getPropertyValue('--content-height')).toBe('240px')
+    })
+
+    it('keeps --content-height current when a consumer passes a ref', () => {
+      let height = 120
+      vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
+        () => height
+      )
+      const ref = createRef<HTMLDetailsElement>()
+      render(
+        <Accordion>
+          <Accordion.Item ref={ref} open>
+            <Accordion.Trigger>Trigger</Accordion.Trigger>
+            <Accordion.Content>Content</Accordion.Content>
+          </Accordion.Item>
+        </Accordion>
+      )
+      expect(ref.current?.style.getPropertyValue('--content-height')).toBe(
+        '120px'
+      )
+
+      height = 240
+      act(() => resize?.())
+      expect(ref.current?.style.getPropertyValue('--content-height')).toBe(
+        '240px'
+      )
     })
 
     it('keeps the last height while closed so it can animate back open', () => {

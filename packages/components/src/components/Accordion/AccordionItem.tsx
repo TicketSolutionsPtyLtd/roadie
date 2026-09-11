@@ -1,9 +1,10 @@
 'use client'
 
-import { type ComponentProps, use, useEffect, useRef } from 'react'
+import { type ComponentProps, use, useEffect, useMemo, useRef } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { mergeRefs } from '../../utils/mergeRefs'
 import { AccordionContext, accordionItemVariants } from './AccordionContext'
 
 export type AccordionItemProps = ComponentProps<'details'>
@@ -11,11 +12,13 @@ export type AccordionItemProps = ComponentProps<'details'>
 export function AccordionItem({
   className,
   children,
+  ref: forwardedRef,
   ...props
 }: AccordionItemProps) {
   const { name, emphasis } = use(AccordionContext)
   const itemEmphasis = accordionItemVariants[emphasis ?? 'normal']
   const ref = useRef<HTMLDetailsElement>(null)
+  const mergedRef = useMemo(() => mergeRefs(ref, forwardedRef), [forwardedRef])
 
   // Safari only. Without `interpolate-size` the open height is pinned to a
   // measured `--content-height`, and `Accordion.Trigger` can only take that
@@ -51,7 +54,7 @@ export function AccordionItem({
 
   return (
     <details
-      ref={ref}
+      ref={mergedRef}
       name={name}
       data-slot='accordion-item'
       className={cn(
