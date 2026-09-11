@@ -81,10 +81,10 @@ export const navigatorCapsuleVariants = cva([
 ])
 
 // The box never changes size, so collapse animates on scale/translate/opacity
-// alone. `--navigator-primary-col` is one of five columns of the root's width
-// less the 2rem inset and the pinned circle's width; `--navigator-primary-edge`
-// is the fixed part of a collapsed circle's travel. `Navigator.Primary` sets
-// the count and the pinned width inline.
+// alone. `--navigator-primary-col` is one of the bar's slots across the root's
+// width less the 2rem inset and the pinned circle's width;
+// `--navigator-primary-edge` is the fixed part of a collapsed circle's travel.
+// `Navigator.Primary` sets the count, the slots and the pinned width inline.
 export const navigatorPrimaryHorizontalVariants = cva(
   [
     'max-md:absolute max-md:inset-x-2 max-md:bottom-[max(1rem,env(safe-area-inset-bottom))] max-md:z-sticky md:hidden',
@@ -92,9 +92,10 @@ export const navigatorPrimaryHorizontalVariants = cva(
     // The track and circles restore input; the gutters beside them stay inert.
     'pointer-events-none',
     '[--navigator-primary-count:5]',
+    '[--navigator-primary-slots:5]',
     '[--navigator-primary-pinned:0rem]',
-    '[--navigator-primary-col:calc((100cqw-2rem-var(--navigator-primary-pinned))/5)]',
-    '[--navigator-primary-edge:calc((5_-_var(--navigator-primary-count))_*_var(--navigator-primary-col)_/_2_+_(var(--navigator-primary-col)_-_3.5rem)_/_2)]',
+    '[--navigator-primary-col:calc((100cqw-2rem-var(--navigator-primary-pinned))/var(--navigator-primary-slots))]',
+    '[--navigator-primary-edge:calc((var(--navigator-primary-slots)_-_var(--navigator-primary-count))_*_var(--navigator-primary-col)_/_2_+_(var(--navigator-primary-col)_-_3.5rem)_/_2)]',
     // `translate`, not `transform`: the hide state is `max-md:translate-y-[…]`,
     // which Tailwind v4 emits as the independent `translate` property, so
     // naming `transform` transitioned nothing and the bar snapped away.

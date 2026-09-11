@@ -42,7 +42,8 @@ import {
   type MobileSlots,
   type NavigatorSlotMeta,
   OVERFLOW_LABEL,
-  deriveMobileSlots
+  deriveMobileSlots,
+  phoneBarCapacity
 } from './mobileSlots'
 import { presentNavIcon } from './presentNavIcon'
 import { activeHref, rememberedHref } from './sectionMemory'
@@ -483,6 +484,9 @@ export function NavigatorPrimary({
         style={
           {
             '--navigator-primary-count': String(tabCount),
+            '--navigator-primary-slots': String(
+              phoneBarCapacity(pinnedTab !== undefined)
+            ),
             '--navigator-primary-pinned': pinnedTab ? '4rem' : '0rem'
           } as CSSProperties
         }

@@ -97,12 +97,23 @@ describe('deriveMobileSlots', () => {
     expect(values(slots.overflow)).toEqual(['/d', '/e'])
   })
 
-  it('gives the first pinned item a circle outside the five', () => {
+  it('counts the pinned circle as one of the five', () => {
     const account = meta('account', 'automatic', 'pinned')
-    const slots = deriveMobileSlots(many(5), [account])
-    expect(slots.tabs).toHaveLength(5)
+    const slots = deriveMobileSlots(many(4), [account])
+    expect(values(slots.tabs)).toEqual(['/a', '/b', '/c', '/d'])
     expect(slots.pinned).toBe(account)
     expect(slots.overflow).toEqual([])
+  })
+
+  it('keeps the top three and folds the lowest two beside a circle', () => {
+    const items = many(5)
+    items[0] = meta('/a', 'low')
+    items[4] = meta('/e', 'high')
+    const slots = deriveMobileSlots(items, [
+      meta('account', 'automatic', 'pinned')
+    ])
+    expect(values(slots.tabs)).toEqual(['/b', '/c', '/e'])
+    expect(values(slots.overflow)).toEqual(['/a', '/d'])
   })
 
   it('folds further pinned items into More', () => {
@@ -119,7 +130,7 @@ describe('deriveMobileSlots', () => {
       meta('one', 'automatic', 'pinned'),
       meta('two', 'automatic', 'pinned')
     ])
-    expect(values(slots.tabs)).toEqual(['/a', '/b', '/c', '/d'])
-    expect(values(slots.overflow)).toEqual(['/e', 'two'])
+    expect(values(slots.tabs)).toEqual(['/a', '/b', '/c'])
+    expect(values(slots.overflow)).toEqual(['/d', '/e', 'two'])
   })
 })

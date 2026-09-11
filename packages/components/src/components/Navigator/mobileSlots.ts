@@ -72,14 +72,18 @@ export type MobileSlots = {
   pinned?: NavigatorSlotMeta
 }
 
+export const phoneBarCapacity = (hasCircle: boolean) =>
+  hasCircle ? MAX_TABS - 1 : MAX_TABS
+
 // Lives outside NavigatorPrimary.tsx: a second exported function there empties its docgen props table.
 export function deriveMobileSlots(
   automatic: NavigatorSlotMeta[],
   pinned: NavigatorSlotMeta[]
 ): MobileSlots {
   const [circle, ...extraPinned] = pinned
-  const needsMore = automatic.length > MAX_TABS || extraPinned.length > 0
+  const capacity = phoneBarCapacity(circle !== undefined)
+  const needsMore = automatic.length > capacity || extraPinned.length > 0
   if (!needsMore) return { tabs: automatic, overflow: [], pinned: circle }
-  const { kept, folded } = keepTopRanked(automatic, MAX_TABS - 1)
+  const { kept, folded } = keepTopRanked(automatic, capacity - 1)
   return { tabs: kept, overflow: [...folded, ...extraPinned], pinned: circle }
 }
