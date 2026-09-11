@@ -37,10 +37,6 @@ describe('List', () => {
     expect(item('Valley Live')).toBeTruthy()
   })
 
-  // The row text has to land on the container's content edge while the row's
-  // own interactive pill still bleeds past it. Both come off one custom
-  // property, so a `List` in a `Pane` aligns with nothing declared at the call
-  // site and a standalone `List` is untouched.
   describe('container alignment', () => {
     it('gives a row a plain 12px box that bleeds sideways, like a subtler Card', () => {
       render(
@@ -48,9 +44,6 @@ describe('List', () => {
           <List.Item title='Notifications' />
         </List>
       )
-      // `p-3 -mx-3` is the same shape as Card's `p-2 -m-2`: the text sits where
-      // the list does, and only the fill reaches wider. No variable, so a
-      // container aligns rows simply by padding its own content.
       expect(item('Notifications')).toHaveClass(
         'px-3',
         'group-data-[emphasis=subtler]/list:-mx-3'
@@ -63,8 +56,6 @@ describe('List', () => {
           <List.Item title='Notifications' />
         </List>
       )
-      // A width would over-constrain the box and the negative margin would
-      // shift it instead. The section stretches the row instead.
       expect(item('Notifications')).not.toHaveClass('w-full')
       expect(screen.getByRole('list')).toHaveClass('[&>li]:grid')
     })
@@ -75,8 +66,6 @@ describe('List', () => {
           <List.Item title='Notifications' />
         </List>
       )
-      // The pull is gated on the root's emphasis, so a subtle or contained list
-      // never widens its rows past itself; they indent their content instead.
       expect(screen.getByRole('list')).toHaveAttribute(
         'data-emphasis',
         'subtler'
@@ -195,7 +184,6 @@ describe('List', () => {
         'data-slot',
         'list-group-title'
       )
-      // The title is a sibling of the section, not a row inside it.
       expect(section).not.toContainElement(screen.getByText('Account'))
       expect(section?.querySelectorAll('li')).toHaveLength(2)
     })
@@ -212,8 +200,7 @@ describe('List', () => {
       const root = container.querySelector('[data-slot="list"]')
       const section = container.querySelector('[data-slot="list-section"]')
 
-      // The root still carries the class; `not-has-*` is what disarms it once a
-      // group is present, so assert the guard rather than its absence.
+      // `not-has-*` disarms the root's card once a group is present.
       expect(root).toHaveClass(
         'not-has-[>[data-slot=list-group]]:emphasis-subtle'
       )
@@ -236,8 +223,6 @@ describe('List', () => {
         '[data-slot="list-item-content"]'
       )
       expect(dividers).toHaveLength(2)
-      // A pseudo-element, not a border — it sits between the rows rather than
-      // at one row's edge, and takes no height whatever its colour.
       dividers.forEach((d) =>
         expect(d).toHaveClass(
           'after:absolute',
@@ -245,8 +230,6 @@ describe('List', () => {
           'after:-bottom-px'
         )
       )
-      // The last item's divider goes transparent via the section's last-child
-      // rule — a selector, so nothing re-renders to make it happen.
       const group = container.querySelector('[data-slot="list"]')
       expect(group).toHaveClass(
         '[&>li:last-child>*>[data-slot=list-item-content]]:after:bg-transparent'
@@ -348,8 +331,7 @@ describe('List', () => {
     const row = item('Valley Live')
     expect(row).toHaveAttribute('aria-current', 'true')
     expect(row).toHaveClass('intent-accent', 'emphasis-subtle')
-    // The accent fill must not be reachable by the group's emphasis rules,
-    // which are more specific and would win it back to transparent.
+    // The more specific group emphasis would override the accent fill.
     expect(row).not.toHaveClass(
       'group-data-[emphasis=subtle]/list:emphasis-subtle'
     )
@@ -363,10 +345,7 @@ describe('List', () => {
       </List>
     )
     const group = container.querySelector('[data-slot="list"]')
-    // The row's own hairline, and the one belonging to the row above it. The
-    // second is split across three selectors because `:has()` cannot nest —
-    // spelt as one nested rule it parsed (`:is()` is forgiving) but never
-    // matched, so a selected row kept the divider above it.
+    // `:has()` can't nest, so the row-above rule is split three ways.
     expect(group).toHaveClass(
       '[&>li:is(:hover,:has(>:is(:focus-visible,[aria-current])))>*>[data-slot=list-item-content]]:after:bg-transparent',
       '[&>li:has(+li:hover)>*>[data-slot=list-item-content]]:after:bg-transparent',
@@ -382,8 +361,6 @@ describe('List', () => {
         <List.Item title='Second' />
       </List>
     )
-    // The only place a gap survives: with no hairline, it's what separates the
-    // rows.
     const group = container.querySelector('[data-slot="list"]')
     expect(group).toHaveClass(
       'gap-1',

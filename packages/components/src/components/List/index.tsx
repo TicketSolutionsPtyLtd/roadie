@@ -1,5 +1,4 @@
-// Subpath entry for `@oztix/roadie-components/list`.
-// NO `'use client'` — server-safe property-assignment layer.
+// No `'use client'`: server-safe property-assignment layer.
 import { ListGroup } from './ListGroup'
 import { ListGroupTitle } from './ListGroupTitle'
 import { ListItem } from './ListItem'

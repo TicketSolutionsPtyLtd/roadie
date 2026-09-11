@@ -7,16 +7,10 @@ import { listVariants } from './variants'
 export type ListEmphasis = 'subtler' | 'subtle' | 'normal'
 
 export type ListRootProps = ComponentProps<'ul'> & {
-  /**
-   * Surface, mirroring Roadie's emphasis shortcuts — `subtler` (default) no
-   * fill, `subtle` tinted, `normal` a bordered normal surface. Applied to each
-   * row, or to the card when `contained`.
-   */
+  /** Surface for each row, or for the card when `contained`. */
   emphasis?: ListEmphasis
   /**
-   * Draw the rows as a card — a single surface with square, flush rows inside
-   * it — instead of individually rounded rows. With `List.Group`s, each group
-   * gets its own card and the titles sit above them.
+   * Draw the rows as one card; each `List.Group` gets its own.
    *
    * @default false
    */
@@ -32,10 +26,7 @@ export function ListRoot({
   return (
     <ul
       data-slot='list'
-      // Exactly one of these is ever set, which is what lets the section and
-      // item rules key off them without fighting: uncontained, the rows wear
-      // the emphasis; contained, the sections do and the rows stay transparent
-      // against the card.
+      // Mutually exclusive, so section and item rules never fight.
       data-emphasis={contained ? undefined : emphasis}
       data-contained={contained ? emphasis : undefined}
       className={cn(listVariants({ emphasis, contained }), className)}

@@ -5,15 +5,11 @@ import { cn } from '@oztix/roadie-core/utils'
 import { listGroupTitleVariants } from './variants'
 
 export type ListGroupTitleProps = ComponentProps<'h2'> & {
-  /**
-   * Replace the rendered element. The default `<h2>` matches `Pane.Header`,
-   * so it never collides with the page's `<h1>` — pass `render` when the
-   * page's outline needs a different level.
-   */
+  /** Replace the default `<h2>`, e.g. for a different heading level. */
   render?: (props: ComponentProps<'h2'>) => ReactElement
 }
 
-/** Label for a `List.Group`. Declare it as the group's first child. */
+/** Label for a `List.Group`. */
 export function ListGroupTitle({
   className,
   render,

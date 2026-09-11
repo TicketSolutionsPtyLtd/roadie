@@ -22,14 +22,10 @@ export type ListGroupProps = {
 }
 
 /**
- * A titled section of rows inside a `List`. Renders an `<li>` holding the title
- * and its own `<ul>`, so a list can mix loose rows and groups and stay valid
- * HTML. When the list is `contained`, each group is its own card.
+ * A titled section of rows inside a `List`.
  *
- * Author inside a client component. The title is found by element reference,
- * and Flight replaces the type of every element authored in a server component
- * with a `React.lazy` wrapper — a title declared there would land inside the
- * section instead of above it. See COMPOUND_PATTERNS.md §1.2.
+ * Author inside a client component: Flight wraps server-authored element types,
+ * so the title isn't found by reference.
  */
 export function ListGroup({ children, className }: ListGroupProps) {
   const generatedId = useId()
@@ -42,9 +38,6 @@ export function ListGroup({ children, className }: ListGroupProps) {
       isValidElement<ListGroupTitleProps>(child) &&
       child.type === ListGroupTitle
     ) {
-      // The id is injected rather than required from the consumer: the
-      // association is what makes the section announce as a named list, and
-      // it should not be something a call site can forget.
       titleId = child.props.id ?? generatedId
       title = cloneElement(child, { id: titleId })
       return

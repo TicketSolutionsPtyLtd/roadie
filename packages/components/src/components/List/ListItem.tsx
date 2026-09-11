@@ -17,34 +17,19 @@ import {
 } from './variants'
 
 export type ListItemProps = {
-  /** The only required prop. An item with nothing else renders correctly. */
+  /** Primary text; the only required prop. */
   title: ReactNode
   /** Secondary line beneath the title. */
   subtitle?: ReactNode
   /** Leading slot — an `IconTile`, `Image`, or avatar. */
   leading?: ReactNode
-  /** Trailing slot — a count, `Badge`, value, or selected check. Sits to the
-   * left of the chevron when both are shown. */
+  /** Trailing slot — a count, `Badge`, value, or selected check. */
   trailing?: ReactNode
-  /**
-   * Show the trailing drill-in chevron. Defaults to `true` when `href` is set
-   * and `false` otherwise — force it on an `onClick`-only row with `chevron`,
-   * or suppress it on a link with `chevron={false}`.
-   */
+  /** Show the drill-in chevron; defaults to whether `href` is set. */
   chevron?: boolean
-  /**
-   * Routes through `RoadieLinkProvider` — same smart-href contract as
-   * `Card`: internal hrefs route through the provider, `http(s)://` /
-   * `//` render `<a target='_blank' rel='noopener noreferrer'>`,
-   * `mailto:` / `tel:` / `sms:` render plain anchors. Omit to render a
-   * `<button>`.
-   */
+  /** Link target, routed like `Card`'s `href`; omit to render a `<button>`. */
   href?: string
-  /**
-   * Marks the item as current. `true` emits `aria-current="true"` — the right
-   * choice for a selection such as an org picker. A token emits itself:
-   * `current='page'` for a navigation row pointing at the current page.
-   */
+  /** Marks the item as current; `true` or a token sets `aria-current`. */
   current?: ListItemCurrent
   className?: string
   onClick?: () => void
@@ -52,15 +37,7 @@ export type ListItemProps = {
 
 export type ListItemCurrent = boolean | 'page' | 'step' | 'location'
 
-/**
- * List item.
- *
- * `href` set → delegates to `RoadieRoutedLink`, the same primitive `Card`
- * uses for smart-href routing. No `href` → plain `<button>`.
- *
- * Stays server-safe like `CardRoot` — `RoadieRoutedLink` is the
- * `'use client'` boundary and only loads when `href` is actually set.
- */
+/** A row in a `List`: a link when `href` is set, otherwise a `<button>`. */
 export function ListItem({
   title,
   subtitle,
