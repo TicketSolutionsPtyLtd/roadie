@@ -119,6 +119,10 @@
       "types": "./dist/components/List/index.d.ts",
       "import": "./dist/components/List/index.js"
     },
+    "./logo": {
+      "types": "./dist/components/Logo/index.d.ts",
+      "import": "./dist/components/Logo/index.js"
+    },
     "./mark": {
       "types": "./dist/components/Mark/index.d.ts",
       "import": "./dist/components/Mark/index.js"

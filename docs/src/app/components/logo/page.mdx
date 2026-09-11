@@ -1,0 +1,116 @@
+export const metadata = {
+  title: 'Logo',
+  description: 'The Oztix logo, in its brand colour by default',
+  status: 'beta',
+  category: 'Content',
+}
+
+import { Logo } from '@oztix/roadie-components/logo'
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+# Logo
+
+The Oztix logo, in its brand colour by default.
+
+## Import
+
+```tsx
+import { Logo } from '@oztix/roadie-components/logo'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<Logo />
+```
+
+### Variants
+
+`normal` is the mark and the wordmark together. `logomark` is the mark alone, for tight spaces such as an app icon or a collapsed rail. `wordmark` is the word alone. `product` pairs the mark with a product name, passed as children and rendered as live text.
+
+```tsx-live
+<div className='grid justify-items-start gap-6'>
+  <Logo variant='normal' />
+  <Logo variant='logomark' />
+  <Logo variant='wordmark' />
+  <Logo variant='product'>Studio</Logo>
+</div>
+```
+
+### Sizes
+
+The logo's height is its font size, so one value scales the mark, the gap and the product name together. The default is `2rem` (32px). Set a different height with a font-size class such as `text-[3rem]`.
+
+```tsx-live
+<div className='grid justify-items-start gap-6'>
+  <Logo className='text-[1.5rem]' />
+  <Logo />
+  <Logo className='text-[3rem]' />
+  <Logo variant='product' className='text-[3rem]'>Studio</Logo>
+</div>
+```
+
+### Colour
+
+The logo sets `intent-brand` and fills with `currentColor`, so it reads as the brand blue in light and dark mode. Give it another intent class to change the palette, or a `text-*` class to change the colour directly.
+
+```tsx-live
+<div className='flex flex-wrap items-center gap-6'>
+  <Logo />
+  <Logo className='intent-neutral' />
+  <Logo className='text-strong' />
+  <Logo className='intent-accent' />
+</div>
+```
+
+### On a strong surface
+
+On a solid brand surface, use `text-inverted` so the logo takes the same colour as the surface's text, like a strong button's label.
+
+```tsx-live
+<div className='intent-brand emphasis-strong grid place-content-center rounded-xl p-8'>
+  <Logo className='text-inverted' />
+</div>
+```
+
+## Guidelines
+
+<Guideline title='Size the logo with its height'>
+  <Guideline.Do code={`<Logo className='text-[3rem]' />`}>
+    Set one height through the font size. The width follows the logo's proportions.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Logo className='h-12 w-40' />`}>
+    Don't set a width or a separate height. That stretches or crops the artwork and leaves the gap and product name at the old size.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep product names short'>
+  <Guideline.Do example={<Logo variant='product'>Studio</Logo>}>
+    Use the product's one- or two-word name, in title case.
+  </Guideline.Do>
+  <Guideline.Dont example={<Logo variant='product'>Oztix Studio</Logo>}>
+    Don't repeat "Oztix" or add a tagline. The mark already says Oztix, and the name never wraps.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Recolour with tokens'>
+  <Guideline.Do code={`<Logo className='text-inverted' />`}>
+    Change the colour with an intent or a semantic <code>text-*</code> class so it follows dark mode.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Logo className='text-[#0191eb]' />`}>
+    Don't hard-code a colour. It won't change with the theme.
+  </Guideline.Dont>
+</Guideline>
+
+## Accessibility
+
+- The logo is one image with the accessible name "Oztix". A product logo is named from its children, such as "Oztix Studio", when they are a string.
+- Pass `aria-label` to name it something else, such as "Oztix home" inside a link.
+- When the logo sits next to text that already says Oztix, pass `aria-hidden` and it drops its role and name.
+- The inner SVGs are always hidden from assistive technology.
+
+<PropsDefinitions componentPath='packages/components/src/components/Logo/index.tsx' />
