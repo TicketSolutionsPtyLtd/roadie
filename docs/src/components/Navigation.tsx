@@ -132,7 +132,7 @@ function AccentPicker() {
 
 function AppearancePane() {
   return (
-    <div className='mx-auto grid w-full max-w-[40rem] gap-6 px-6 py-6 md:px-10 md:py-12'>
+    <div className='mx-auto grid w-full max-w-[35rem] gap-6 py-6 md:py-12'>
       <div className='grid gap-1'>
         <h1 className='text-display-ui-3 text-strong'>Appearance</h1>
         <p className='text-subtle'>
@@ -378,7 +378,7 @@ export function DocsNavigator({
             ) : (
               <div
                 id='docs-content'
-                className='mx-auto grid w-full max-w-[56rem] gap-0 px-6 py-6 md:px-10 md:py-12 lg:px-12 [&_:is(h1,h2,h3,h4)]:scroll-mt-6'
+                className='mx-auto grid w-full max-w-[50rem] gap-0 py-6 md:py-12 [&_:is(h1,h2,h3,h4)]:scroll-mt-6'
               >
                 {/* The homepage and debug routes have no metadata.title and keep their own h1. */}
                 {pageTitles[pathname] ? (
