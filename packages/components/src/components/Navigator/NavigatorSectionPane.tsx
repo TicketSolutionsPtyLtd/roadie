@@ -6,10 +6,10 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { PaneHeader } from '../Pane/PaneHeader'
 import { PaneRoot } from '../Pane/PaneRoot'
-import { PaneSearch } from '../Pane/PaneSearch'
 import { PaneKindContext } from '../Pane/PaneStackContext'
 import { PaneTitle } from '../Pane/PaneTitle'
 import type { NavigatorActiveSection } from './NavigatorContext'
+import { NavigatorSearch } from './NavigatorSearch'
 import { NavigatorSecondaryItems } from './NavigatorSecondaryItems'
 import { textOf } from './splitSecondary'
 
@@ -28,10 +28,10 @@ export function NavigatorSectionPane({
         <PaneHeader>
           <PaneTitle>{label}</PaneTitle>
           {secondary.searchable ? (
-            <PaneSearch
+            <NavigatorSearch
               value={query}
               onValueChange={setQuery}
-              placeholder={`Search ${textOf(label).toLowerCase()}`}
+              label={`Search ${textOf(label).toLowerCase()}`}
             />
           ) : null}
         </PaneHeader>

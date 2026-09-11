@@ -138,7 +138,7 @@ Presets combining bg + text + border + interactive states:
 - `emphasis-floating` — raised bg, rim-light-strong, shadow-xl
 - `emphasis-inverted` — inverted bg + text
 - `emphasis-overlay` — dark overlay with backdrop blur
-- `is-translucent` — add to `emphasis-raised`, `emphasis-floating` or `bg-raised` so content shows through: 85% fill (88% dark) under a 12px backdrop blur, rim light and shadow kept; solid without `backdrop-filter` support or under `prefers-reduced-transparency`
+- `is-translucent` — add to `emphasis-raised`, `emphasis-floating` or `bg-raised` so content shows through: 85% fill (88% dark) under a 12px backdrop blur, rim light and shadow kept; solid without `backdrop-filter` support or under `prefers-reduced-transparency`; an `is-interactive-field`'s hover, focus and invalid fills still win
 
 ### Interaction states
 

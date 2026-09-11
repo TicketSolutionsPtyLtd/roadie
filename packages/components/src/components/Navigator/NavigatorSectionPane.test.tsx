@@ -1,6 +1,6 @@
 import { type ReactNode, useLayoutEffect, useRef } from 'react'
 
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -259,6 +259,96 @@ describe('generated section pane', () => {
     await flushViewportMeasurement()
     expect(sectionPane()).toBeNull()
     expect(screen.getByRole('heading', { name: 'More' })).toBeInTheDocument()
+  })
+})
+
+describe('section pane search', () => {
+  const search = async () => {
+    const user = userEvent.setup()
+    render(<Docs />)
+    await flushViewportMeasurement()
+    const pane = sectionPane()!
+    return {
+      user,
+      pane,
+      root: pane.querySelector<HTMLElement>('[data-slot="navigator-search"]')!,
+      field: within(pane).getByRole('searchbox', { name: 'Search components' }),
+      cancel: within(pane).getByRole('button', { name: 'Cancel search' })
+    }
+  }
+
+  it('is a full-size pill, at 16px so iOS never zooms it', async () => {
+    const { field } = await search()
+    expect(field).toHaveAttribute('data-slot', 'navigator-search-field')
+    expect(field).toHaveAttribute('placeholder', 'Search')
+    expect(field).toHaveClass(
+      'h-12',
+      'text-base',
+      'rounded-full',
+      'emphasis-raised',
+      'is-translucent',
+      'is-interactive-field'
+    )
+    expect(field).not.toHaveClass('text-sm', 'rounded-lg', 'bg-subtle')
+  })
+
+  it('leads with a hidden magnifying glass', async () => {
+    const { root } = await search()
+    const icon = root.querySelector('[data-slot="navigator-search-icon"]')
+    expect(icon?.tagName.toLowerCase()).toBe('svg')
+    expect(icon).toHaveAttribute('aria-hidden', 'true')
+    expect(icon).toHaveClass('size-5', 'text-subtle')
+  })
+
+  it('hides Cancel until focus is inside the search', async () => {
+    const { user, root, field, cancel } = await search()
+    const slot = cancel.parentElement!
+    expect(slot).toHaveAttribute('data-slot', 'navigator-search-cancel-slot')
+    expect(slot).toHaveClass(
+      'invisible',
+      'opacity-0',
+      'w-0',
+      'group-focus-within/search:visible',
+      'group-focus-within/search:opacity-100',
+      'motion-reduce:transition-none'
+    )
+    expect(root).toHaveClass('group/search')
+    expect(root.matches(':focus-within')).toBe(false)
+
+    await user.click(field)
+    expect(root.matches(':focus-within')).toBe(true)
+    await user.tab()
+    expect(cancel).toHaveFocus()
+    expect(root.matches(':focus-within')).toBe(true)
+  })
+
+  it('keeps focus in the field when Cancel is pressed', async () => {
+    const { cancel } = await search()
+    expect(fireEvent.pointerDown(cancel)).toBe(false)
+  })
+
+  it('clears the query, restores every row and leaves the field on Cancel', async () => {
+    const { user, pane, root, field, cancel } = await search()
+    await user.type(field, 'inp')
+    expect(within(pane).queryByRole('link', { name: 'Button' })).toBeNull()
+
+    await user.click(cancel)
+    expect(field).toHaveValue('')
+    expect(root.matches(':focus-within')).toBe(false)
+    for (const name of ['Button', 'Icon button', 'Input']) {
+      expect(within(pane).getByRole('link', { name })).toBeInTheDocument()
+    }
+  })
+
+  it('clears the query and leaves the field on Escape', async () => {
+    const { user, pane, field } = await search()
+    await user.type(field, 'inp')
+    await user.keyboard('{Escape}')
+    expect(field).toHaveValue('')
+    expect(field).not.toHaveFocus()
+    expect(
+      within(pane).getByRole('link', { name: 'Button' })
+    ).toBeInTheDocument()
   })
 })
 
