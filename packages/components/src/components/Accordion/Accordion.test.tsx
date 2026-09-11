@@ -1,6 +1,6 @@
-import { render } from '@testing-library/react'
+import { act, render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Accordion, accordionVariants } from '.'
 
@@ -20,6 +20,24 @@ describe('Accordion', () => {
       'w-full',
       'emphasis-normal'
     )
+  })
+
+  it('publishes its own content inset so trigger and content align outside a pane', () => {
+    const { container, getByText } = render(
+      <Accordion>
+        <Accordion.Item>
+          <Accordion.Trigger>Trigger 1</Accordion.Trigger>
+          <Accordion.Content>Content 1</Accordion.Content>
+        </Accordion.Item>
+      </Accordion>
+    )
+    expect(container.firstElementChild).toHaveClass(
+      '[--content-inset:--spacing(4)]'
+    )
+    expect(getByText('Trigger 1').closest('summary')).toHaveClass(
+      'px-(--content-inset)'
+    )
+    expect(getByText('Content 1')).toHaveClass('px-(--content-inset)')
   })
 
   it('renders with default emphasis variant', () => {
@@ -157,5 +175,67 @@ describe('Accordion', () => {
   it('applies custom className to root', () => {
     const classes = accordionVariants({ className: 'custom-class' })
     expect(classes).toContain('custom-class')
+  })
+
+  describe('without interpolate-size', () => {
+    let resize: (() => void) | undefined
+    const originalResizeObserver = globalThis.ResizeObserver
+    const originalSupports = CSS.supports
+
+    beforeEach(() => {
+      CSS.supports = () => false
+      globalThis.ResizeObserver = class {
+        constructor(callback: () => void) {
+          resize = callback
+        }
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      } as unknown as typeof ResizeObserver
+    })
+
+    afterEach(() => {
+      CSS.supports = originalSupports
+      globalThis.ResizeObserver = originalResizeObserver
+      resize = undefined
+      vi.restoreAllMocks()
+    })
+
+    const openItem = () =>
+      render(
+        <Accordion>
+          <Accordion.Item open>
+            <Accordion.Trigger>Trigger</Accordion.Trigger>
+            <Accordion.Content>Content</Accordion.Content>
+          </Accordion.Item>
+        </Accordion>
+      )
+
+    it('keeps --content-height current while an open panel changes size', () => {
+      let height = 120
+      vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
+        () => height
+      )
+      const { container } = openItem()
+      const details = container.querySelector('details')!
+      expect(details.style.getPropertyValue('--content-height')).toBe('120px')
+
+      height = 240
+      act(() => resize?.())
+      expect(details.style.getPropertyValue('--content-height')).toBe('240px')
+    })
+
+    it('keeps the last height while closed so it can animate back open', () => {
+      let height = 120
+      vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
+        () => height
+      )
+      const { container } = openItem()
+      const details = container.querySelector('details')!
+      details.open = false
+      height = 0
+      act(() => resize?.())
+      expect(details.style.getPropertyValue('--content-height')).toBe('120px')
+    })
   })
 })
