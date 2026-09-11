@@ -578,7 +578,8 @@ export default function InteractionsPage() {
           <p className='text-sm text-subtle'>
             Use on the wrapping element that contains the child inputs. Focus
             within any child triggers the accent transition on the group. Pair
-            with <Code>emphasis-raised</Code> or <Code>emphasis-sunken</Code>.
+            with <Code>emphasis-field</Code>, or <Code>emphasis-raised</Code>{' '}
+            for a button-like trigger.
           </p>
         </div>
       </section>
@@ -628,7 +629,7 @@ export default function InteractionsPage() {
             <strong className='text-strong'>Note:</strong>{' '}
             <Code>is-interactive-field</Code> provides its own hover, focus, and
             invalid logic — it does not use emphasis hover states. This is why
-            form inputs use <Code>emphasis-sunken</Code> (which has no
+            form inputs use <Code>emphasis-field</Code> (which has no
             interactive states) paired with <Code>is-interactive-field</Code>{' '}
             (which provides all of them).
           </p>
@@ -671,7 +672,7 @@ export default function InteractionsPage() {
                 <tr>
                   <td className='py-2 pr-4 text-strong'>Text input</td>
                   <td className='py-2 font-mono text-xs'>
-                    emphasis-sunken border border-subtle is-interactive-field
+                    emphasis-field is-interactive-field
                   </td>
                 </tr>
                 <tr>

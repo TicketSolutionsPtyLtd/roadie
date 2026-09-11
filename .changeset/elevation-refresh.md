@@ -28,3 +28,7 @@ server-rendered markup gets the same look with
 `neutral-3` in light mode — it previously matched the resting fill — and focus
 uses `accent-1` in dark mode so a focused field stays close to its resting
 depth.
+
+In dark mode every intent's sunken background moves from step 0 to step 1.
+Step 0 is near-black, so sunken panels, code blocks and fields read as holes
+rather than recesses.
