@@ -157,7 +157,7 @@ render(<Roles />)
 
 Surface treatment, mirroring `Card`'s names with one difference: a pane's
 `subtler` is **no surface at all** — not a faint tint plus a hairline. It sits
-directly on the frame behind it, the way the primary navigation does.
+directly on the frame behind it.
 
 ```tsx-live
 <div className='grid grid-cols-2 gap-3 rounded-2xl bg-sunken p-3 lg:grid-cols-4'>
@@ -450,7 +450,7 @@ to the console in development.
   <Guideline.Dont code={`<Navigator.Content>\n  {/* renders children but no <Pane> anywhere */}\n  <div>Not a pane</div>\n</Navigator.Content>`}>
     What still breaks is having **no `Pane` at all** reachable in the
     subtree — nothing registers, so stack position, push/pop motion, the
-    mobile section nav and `primaryNav` all stay inert. In development,
+    section's list pane and `primaryNav` all stay inert. In development,
     `Navigator.Content` warns to the console when this happens.
   </Guideline.Dont>
 </Guideline>
