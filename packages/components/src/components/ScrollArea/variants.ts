@@ -16,22 +16,26 @@ export type ScrollAreaFade = 'none' | 'y' | 'x' | 'both'
 //
 // They snap rather than transition — animating would lag the exact moment
 // Base UI flips the attribute.
+//
+// Each mask is one static literal: Tailwind scans the dist as plain text, so
+// a class assembled by interpolation never reaches the consumer's CSS.
 const fadeYStops = [
   'data-[overflow-y-start]:[--scroll-area-fade-top:var(--scroll-area-fade-size)]',
   'data-[overflow-y-end]:[--scroll-area-fade-bottom:var(--scroll-area-fade-size)]'
 ]
-const fadeYGradient =
-  'linear-gradient(to_bottom,transparent_0,black_var(--scroll-area-fade-top),black_calc(100%-var(--scroll-area-fade-bottom)),transparent_100%)'
-
 const fadeXStops = [
   'data-[overflow-x-start]:[--scroll-area-fade-left:var(--scroll-area-fade-size)]',
   'data-[overflow-x-end]:[--scroll-area-fade-right:var(--scroll-area-fade-size)]'
 ]
-const fadeXGradient =
-  'linear-gradient(to_right,transparent_0,black_var(--scroll-area-fade-left),black_calc(100%-var(--scroll-area-fade-right)),transparent_100%)'
 
-const fadeY = [...fadeYStops, `[mask-image:${fadeYGradient}]`]
-const fadeX = [...fadeXStops, `[mask-image:${fadeXGradient}]`]
+const fadeY = [
+  ...fadeYStops,
+  '[mask-image:linear-gradient(to_bottom,transparent_0,black_var(--scroll-area-fade-top),black_calc(100%-var(--scroll-area-fade-bottom)),transparent_100%)]'
+]
+const fadeX = [
+  ...fadeXStops,
+  '[mask-image:linear-gradient(to_right,transparent_0,black_var(--scroll-area-fade-left),black_calc(100%-var(--scroll-area-fade-right)),transparent_100%)]'
+]
 
 // Base UI sets `overflow: scroll` inline here — a Tailwind `overflow-*` class
 // can't beat it, clamp an axis via the `style` prop instead.
@@ -57,7 +61,7 @@ export const scrollAreaViewportVariants = cva(
         both: [
           ...fadeYStops,
           ...fadeXStops,
-          `[mask-image:${fadeYGradient},${fadeXGradient}]`,
+          '[mask-image:linear-gradient(to_bottom,transparent_0,black_var(--scroll-area-fade-top),black_calc(100%-var(--scroll-area-fade-bottom)),transparent_100%),linear-gradient(to_right,transparent_0,black_var(--scroll-area-fade-left),black_calc(100%-var(--scroll-area-fade-right)),transparent_100%)]',
           '[mask-composite:intersect]'
         ]
       }

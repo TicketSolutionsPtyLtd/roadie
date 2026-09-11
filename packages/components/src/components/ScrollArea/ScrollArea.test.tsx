@@ -110,6 +110,43 @@ describe('ScrollArea', () => {
     expect(viewport.style.overflowX).toBe('clip')
   })
 
+  it('releases the content min-width when fitWidth is off, keeping consumer styles', async () => {
+    const { container } = render(
+      <ScrollArea>
+        <ScrollArea.Viewport>
+          <ScrollArea.Content fitWidth={false} style={{ paddingTop: '8px' }}>
+            <p>Content</p>
+          </ScrollArea.Content>
+        </ScrollArea.Viewport>
+      </ScrollArea>
+    )
+    await flushViewportMeasurement()
+    const content = container.querySelector<HTMLElement>(
+      '[data-slot="scroll-area-content"]'
+    )!
+
+    expect(content.style.minWidth).toBe('0px')
+    expect(content.style.paddingTop).toBe('8px')
+  })
+
+  it('keeps the content at its natural width by default', async () => {
+    const { container } = render(
+      <ScrollArea>
+        <ScrollArea.Viewport>
+          <ScrollArea.Content>
+            <p>Content</p>
+          </ScrollArea.Content>
+        </ScrollArea.Viewport>
+      </ScrollArea>
+    )
+    await flushViewportMeasurement()
+    const content = container.querySelector<HTMLElement>(
+      '[data-slot="scroll-area-content"]'
+    )!
+
+    expect(content.style.minWidth).not.toBe('0px')
+  })
+
   it('merges consumer classes onto every part', async () => {
     const { container } = render(
       <ScrollArea className='custom-root'>

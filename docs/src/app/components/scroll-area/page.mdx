@@ -92,16 +92,17 @@ Render both scrollbars plus a `Corner` so they don't overlap where they meet.
 </ScrollArea>
 ```
 
-### Always-visible scrollbar
+### Kept-mounted scrollbar
 
 Base UI unmounts the scrollbar entirely when its axis has no overflow.
-`keepMounted` opts out of that, so the bar stays in the DOM — and stays
-visible on hover — even over content that doesn't yet overflow.
+`keepMounted` opts out of that, so the bar stays in the DOM for anything that
+needs to bind to it before content overflows. It is not an always-visible bar:
+it stays transparent, even on hover, until its axis overflows.
 
 ```tsx-live
 <ScrollArea className='h-48 rounded-xl border border-subtle'>
   <ScrollArea.Viewport className='p-4'>
-    <p>Short content — the bar stays mounted.</p>
+    <p>Short content — the bar stays mounted but hidden.</p>
   </ScrollArea.Viewport>
   <ScrollArea.Scrollbar keepMounted>
     <ScrollArea.Thumb />
