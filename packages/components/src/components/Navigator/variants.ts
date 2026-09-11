@@ -1,9 +1,5 @@
 import { cva } from 'class-variance-authority'
 
-import { cn } from '@oztix/roadie-core/utils'
-
-import { tabsIndicatorSurfaceClass, tabsListVariants } from '../Tabs/variants'
-
 // `100dvh` so collapsing mobile browser chrome doesn't crop the horizontal
 // navigation. `container-type` lets it size tabs off the root's own width, so
 // an embedded Navigator measures its box, not the viewport.
@@ -54,18 +50,9 @@ export const MAX_TABS = 5
 
 // No padding here: Base UI pins the scrollbar to the root's inline end, so
 // padding lives on the viewport.
-export const navigatorPrimaryVerticalVariants = cva(
-  ['group/primary hidden min-h-0 md:col-start-1 md:row-start-1 md:block'],
-  {
-    variants: {
-      form: {
-        compact: 'w-(--navigator-primary-compact)',
-        nested: 'w-(--navigator-primary-nested)'
-      }
-    },
-    defaultVariants: { form: 'compact' }
-  }
-)
+export const navigatorPrimaryVerticalVariants = cva([
+  'group/primary hidden min-h-0 w-(--navigator-primary-nested) md:col-start-1 md:row-start-1 md:block'
+])
 
 export const navigatorPrimaryViewportVariants = cva(['relative min-h-0 p-3'])
 
@@ -216,142 +203,31 @@ export const navigatorPrimaryPinnedVariants = cva([
   'mt-auto grid gap-1 border-t border-subtle pt-2'
 ])
 
-// `1.5rem` puts the tree-line under the parent's icon centre; `pl-12` aligns
-// sub-page labels with the primary labels.
-export const navigatorSecondaryVariants = cva([
-  'relative grid gap-0 py-1',
-  'before:absolute before:top-1 before:bottom-1 before:left-[1.5rem] before:w-px before:bg-subtle before:content-[""]',
-  'group-data-[form=compact]/primary:hidden',
-  '[&_[data-slot=navigator-item]]:py-1.5',
-  '[&_[data-slot=navigator-item]]:pl-12',
-  '[&_[data-slot=navigator-item]]:font-normal',
-  '[&_[data-slot=navigator-item][aria-current=page]]:before:absolute',
-  '[&_[data-slot=navigator-item][aria-current=page]]:before:top-1/2',
-  '[&_[data-slot=navigator-item][aria-current=page]]:before:left-[1.5rem]',
-  '[&_[data-slot=navigator-item][aria-current=page]]:before:h-5',
-  '[&_[data-slot=navigator-item][aria-current=page]]:before:w-0.5',
-  '[&_[data-slot=navigator-item][aria-current=page]]:before:-translate-y-1/2',
-  '[&_[data-slot=navigator-item][aria-current=page]]:before:rounded-full',
-  '[&_[data-slot=navigator-item][aria-current=page]]:before:bg-[var(--color-accent-9)]',
-  '[&_[data-slot=navigator-item][aria-current=page]]:before:content-[""]'
-])
-
-// Compact has no icon column for `pl-12`, so the title centres and truncates.
 export const navigatorGroupTitleVariants = cva([
-  'truncate pt-3 pr-3 pb-1 pl-12 text-xs font-semibold text-subtler',
-  'group-data-[form=compact]/primary:px-2 group-data-[form=compact]/primary:text-center'
+  'truncate pt-3 pr-3 pb-1 pl-12 text-xs font-semibold text-subtler'
 ])
 
 export const navigatorGroupListVariants = cva(['grid gap-1'])
 
 export const navigatorPrimaryListVariants = cva(['grid gap-1'])
 
-export const navigatorBrandVariants = cva([
-  'flex items-center gap-2 px-3 py-2',
-  'group-data-[form=compact]/primary:justify-center group-data-[form=compact]/primary:px-2'
-])
+export const navigatorBrandVariants = cva(['flex items-center gap-2 px-3 py-2'])
 
 export const navigatorItemTrailingVariants = cva(['flex items-center gap-2'])
 
-// Section chevron. `CaretRight` points right at rest; rotating a quarter turn
-// points it down while the section is expanded (branch-active). Inherits the
-// row's colour so it goes accent on the active pill.
-export const navigatorChevronVariants = cva(
-  [
-    'size-4 shrink-0',
-    'group-data-[form=compact]/primary:hidden',
-    'motion-safe:transition-transform motion-reduce:transition-none'
-  ],
-  {
-    variants: {
-      expanded: {
-        true: 'rotate-90',
-        false: 'rotate-0'
-      }
-    },
-    defaultVariants: { expanded: false }
-  }
-)
-
-// The mobile face of the same declaration: a horizontally scrolling row that
-// lives inside the top pane's `Pane.Header`. The root (a ScrollArea, rendered as
-// the `<nav>`) bleeds back out of the header's own padding so its horizontal
-// scrollbar sits at the header's true edges, not inset from them.
-//
-// Both cancellations read the header's own custom properties rather than
-// restating its numbers: `--content-inset` is a variable precisely so it can
-// change, and a hardcoded `-mx-4` would silently stop meeting the pane's edges
-// the moment it did. Same for the bottom — the strip *is* the header's bottom
-// edge, so it cancels `--pane-header-pad-b` to sit flush with no gap beneath.
-export const navigatorSecondaryStripVariants = cva([
-  'flex md:hidden',
-  '-mx-(--content-inset) mb-[calc(var(--pane-header-pad-b)*-1)]'
-])
-
-// The scrolling box, and nothing else. The row itself belongs to the content
-// wrapper below: `ScrollArea.Content` sits between this element and the items,
-// so flex classes here would lay out a single block child, and the inline-flex
-// items inside that child would wrap as inline content — which is exactly the
-// bug this split fixes.
-export const navigatorSecondaryStripViewportVariants = cva([
-  'relative overflow-x-auto overscroll-x-contain'
-])
-
-// The row. `flex` overrides `tabsListVariants`' `inline-flex`, and the
-// horizontal inset lives here rather than on the viewport so it scrolls with
-// the items and the last one can still reach the pane's edge. Base UI sets
-// `min-width: fit-content` inline on this element, which is what lets the row
-// exceed the viewport instead of being clamped to it — do not pass
-// `fitWidth={false}`, which is the opposite of what a horizontal scroller wants.
-// `min-w-max` is a class-level backstop for that same inline style:
-// `scrollAreaContentVariants` (`ScrollArea/variants.ts`) sets `min-w-0` on
-// this same element via `ScrollAreaContent`, so if Base UI ever drops the
-// inline `min-width: fit-content`, the class alone would clamp the row to
-// the viewport and the items would compress instead of scrolling.
-// `min-w-max` wins the tailwind-merge against `min-w-0` and is a no-op while
-// the inline style still wins.
-export const navigatorSecondaryStripContentVariants = cva([
-  cn(
-    tabsListVariants({ emphasis: 'subtle' }),
-    'flex min-w-max',
-    'px-[calc(var(--content-inset)+var(--spacing))]'
-  )
-])
-
 export const navigatorItemVariants = cva(
   [
-    // `relative` keeps the row a positioning context for the current
-    // sub-page's accent bar (applied via navigatorSecondaryVariants).
     'is-interactive relative z-[1] w-full min-w-0 rounded-xl text-left text-sm font-semibold',
-    'grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3 py-2.5',
-    'group-data-[form=compact]/primary:grid-cols-1',
-    'group-data-[form=compact]/primary:justify-items-center',
-    'group-data-[form=compact]/primary:gap-1',
-    'group-data-[form=compact]/primary:px-2',
-    'group-data-[form=compact]/primary:text-center',
-    'group-data-[form=compact]/primary:text-xs'
+    'grid grid-cols-[auto_1fr_auto] items-center gap-3 px-3 py-2.5'
   ],
   {
     variants: {
-      // Three-way currency splits the raised treatment off from the section
-      // header, matching Fin: only the page you are on is a raised pill.
-      // - current: exact destination — the raised pill lives on the sliding
-      //   indicator (see navigatorIndicatorVariants), not this class; a
-      //   primary also lights its leading icon accent, and a nested sub-page
-      //   additionally gets an accent bar on the secondary tree-line (see
-      //   navigatorSecondaryVariants).
-      // - section: a branch-active ancestor — flat, dark and bold, no surface.
-      // - idle: neither — muted text with a subtle hover.
-      state: {
-        current: [
-          'text-strong',
-          '[&_[data-slot=navigator-item-icon]]:text-accent-11'
-        ],
-        section: 'text-strong hover:bg-subtle',
-        idle: 'text-subtle hover:bg-subtle'
+      active: {
+        true: 'text-strong [&_[data-slot=navigator-item-icon]]:text-accent-11',
+        false: 'text-subtle hover:bg-subtle'
       }
     },
-    defaultVariants: { state: 'idle' }
+    defaultVariants: { active: false }
   }
 )
 
@@ -376,13 +252,7 @@ export const navigatorIndicatorVariants = cva(
           'translate-y-[var(--active-tab-top)]',
           'motion-safe:data-[ready=true]:transition-[translate]'
         ].join(' '),
-        // Variable-width items: these two still transition layout properties.
-        strip: [
-          tabsIndicatorSurfaceClass,
-          'top-[var(--active-tab-top)] h-[var(--active-tab-height)]',
-          'left-[var(--active-tab-left)] w-[var(--active-tab-width)]',
-          'motion-safe:data-[ready=true]:transition-[left,top,width,height]'
-        ].join(' '),
+        // Variable-width items: this one still transitions layout properties.
         vertical: [
           'emphasis-raised rounded-xl',
           'top-[var(--active-tab-top)] h-[var(--active-tab-height)]',
@@ -399,7 +269,7 @@ export const navigatorIndicatorVariants = cva(
   }
 )
 
-export type NavigatorIndicatorSurface = 'horizontal' | 'strip' | 'vertical'
+export type NavigatorIndicatorSurface = 'horizontal' | 'vertical'
 
 // Rendered after the consumer's panes so it stays the deepest `current` when
 // stacked; `order` moves it to the leading column once panes are columns.

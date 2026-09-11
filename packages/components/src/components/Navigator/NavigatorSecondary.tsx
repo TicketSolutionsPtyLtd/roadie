@@ -1,36 +1,22 @@
 import type { ReactNode } from 'react'
 
-import { cn } from '@oztix/roadie-core/utils'
-
-import { wrapPrimaryRun } from './primaryList'
-import { navigatorSecondaryVariants } from './variants'
-
 export type NavigatorSecondaryProps = {
-  /** Names the nested landmark, e.g. 'Events sections'. */
+  /** Names the section's navigation landmark, e.g. 'Events pages'. */
   'aria-label': string
+  /** Adds a search field to the section's pane that filters rows by label. */
+  searchable?: boolean
   className?: string
   children?: ReactNode
 }
 
 /**
- * An item's sub-pages: beneath its row on desktop, a strip in the top pane's
- * header on phones. Author the tree in a client component — it is found by
- * element identity.
+ * A section's sub-pages, declared inside its `Navigator.Item` and read by
+ * `Navigator.Primary`. They open in a list pane that `Navigator.Content`
+ * generates; override one section with `Navigator.SecondaryPane`. Author the
+ * tree in a client component — it is found by element identity.
  */
-export function NavigatorSecondary({
-  'aria-label': ariaLabel,
-  className,
-  children
-}: NavigatorSecondaryProps) {
-  return (
-    <nav
-      data-slot='navigator-secondary'
-      aria-label={ariaLabel}
-      className={cn(navigatorSecondaryVariants(), className)}
-    >
-      {wrapPrimaryRun(children)}
-    </nav>
-  )
+export function NavigatorSecondary(_props: NavigatorSecondaryProps): null {
+  return null
 }
 
 NavigatorSecondary.displayName = 'Navigator.Secondary'

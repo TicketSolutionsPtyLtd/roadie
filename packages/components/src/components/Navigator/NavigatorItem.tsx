@@ -2,12 +2,9 @@
 
 import { type ReactNode, use, useEffect } from 'react'
 
-import { CaretRightIcon } from '@phosphor-icons/react'
-
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isDev } from '../../utils/isDev'
-import { tabsTabVariants } from '../Tabs/variants'
 import {
   NavigatorContext,
   isActiveValue,
@@ -15,7 +12,6 @@ import {
 } from './NavigatorContext'
 import { NavigatorDestination } from './NavigatorDestination'
 import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
-import { NavigatorPresentationContext } from './NavigatorPresentationContext'
 import type {
   NavigatorPlacement,
   NavigatorVisibilityPriority
@@ -29,7 +25,6 @@ import {
   textOf
 } from './splitSecondary'
 import {
-  navigatorChevronVariants,
   navigatorItemTrailingVariants,
   navigatorItemVariants
 } from './variants'
@@ -67,7 +62,6 @@ export function NavigatorItem({
     sectionMemory,
     openMenu
   } = use(NavigatorContext)
-  const presentation = use(NavigatorPresentationContext)
   const { label, secondary, menu: declaredMenu } = splitItemChildren(children)
   const isSection = secondary.length > 0
   const declaresMenuWithSecondary = isSection && declaredMenu !== undefined
@@ -79,14 +73,8 @@ export function NavigatorItem({
   // A menu opens rather than navigates, so no route lights it.
   const isCurrent = !menu && isActiveValue(value, active)
   const isBranch = !menu && isBranchActive(value, descendants, active)
-  const hasActiveSecondary = descendants.some((descendant) =>
-    isActiveValue(descendant, active)
-  )
-  // `data-current` drives the pill; `aria-current` stays exact. An open menu takes the pill.
-  const isCurrentish =
-    menuOpen ||
-    (openMenu === null && (isCurrent || (isBranch && !hasActiveSecondary)))
-  const state = isCurrentish ? 'current' : isBranch ? 'section' : 'idle'
+  // `data-current` drives the pill. An open menu takes it.
+  const hasPill = menuOpen || (openMenu === null && isBranch)
   const targetHref = rememberedHref(
     sectionMemory,
     value,
@@ -109,19 +97,14 @@ export function NavigatorItem({
     )
   }, [declaresMenuWithSecondary, value])
 
-  const trailing =
-    badge || isSection ? (
-      <span className={navigatorItemTrailingVariants()}>
-        {badge}
-        {isSection ? (
-          <CaretRightIcon
-            weight='bold'
-            aria-hidden='true'
-            className={navigatorChevronVariants({ expanded: isBranch })}
-          />
-        ) : null}
-      </span>
-    ) : null
+  const trailing = badge ? (
+    <span
+      data-slot='navigator-item-trailing'
+      className={navigatorItemTrailingVariants()}
+    >
+      {badge}
+    </span>
+  ) : null
 
   const content = (
     <>
@@ -130,23 +113,16 @@ export function NavigatorItem({
           {presentNavIcon(icon, isBranch, 'size-6')}
         </span>
       ) : null}
-      {/* `truncate` alone sizes to max-content in the compact column. */}
-      <span className='max-w-full truncate'>{label}</span>
+      <span data-slot='navigator-item-label' className='max-w-full truncate'>
+        {label}
+      </span>
       {trailing}
     </>
   )
 
-  const ariaCurrent = isCurrent ? 'page' : undefined
-
-  // Tabs' active colour keys off Base UI's `data-[active]`, which a link never gets.
+  const ariaCurrent = isCurrent ? 'page' : isBranch ? 'true' : undefined
   const finalClassName = cn(
-    presentation === 'strip'
-      ? cn(
-          tabsTabVariants({ emphasis: 'subtle', size: 'sm' }),
-          'shrink-0',
-          isCurrent && 'text-strong'
-        )
-      : navigatorItemVariants({ state }),
+    navigatorItemVariants({ active: isBranch }),
     className
   )
 
@@ -170,18 +146,15 @@ export function NavigatorItem({
   }
 
   return (
-    <>
-      <NavigatorDestination
-        href={targetHref}
-        ariaCurrent={ariaCurrent}
-        dataCurrent={isCurrentish}
-        className={finalClassName}
-        onClick={handleClick}
-      >
-        {content}
-      </NavigatorDestination>
-      {isBranch && isSection ? secondary : null}
-    </>
+    <NavigatorDestination
+      href={targetHref}
+      ariaCurrent={ariaCurrent}
+      dataCurrent={hasPill}
+      className={finalClassName}
+      onClick={handleClick}
+    >
+      {content}
+    </NavigatorDestination>
   )
 }
 

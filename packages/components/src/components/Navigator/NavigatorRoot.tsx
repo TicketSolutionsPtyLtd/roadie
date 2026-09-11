@@ -16,10 +16,10 @@ import { cn } from '@oztix/roadie-core/utils'
 import type { PanePrimaryNav } from '../Pane/variants'
 import { NavigatorContent } from './NavigatorContent'
 import {
+  type NavigatorActiveSection,
   NavigatorContext,
   type NavigatorContextValue,
-  type NavigatorOverflowSets,
-  type NavigatorSecondaryNav
+  type NavigatorOverflowSets
 } from './NavigatorContext'
 import type { NavigatorSlotMeta } from './NavigatorPrimary'
 import { type SectionMemory, nextMemory } from './sectionMemory'
@@ -46,12 +46,11 @@ export function NavigatorRoot({
   className,
   children
 }: NavigatorRootProps) {
-  const [hasNesting, setHasNesting] = useState(false)
   const [navCollapsed, setNavCollapsed] = useState(false)
   const [primaryNav, setPrimaryNav] = useState<PanePrimaryNav>('auto')
   const [pinExpanded, setPinExpanded] = useState(false)
-  const [secondaryNav, setSecondaryNav] =
-    useState<NavigatorSecondaryNav | null>(null)
+  const [activeSection, setActiveSection] =
+    useState<NavigatorActiveSection | null>(null)
   const [overflowOpen, setOverflowOpen] = useState(false)
   const [overflowItems, setOverflowItemsState] =
     useState<NavigatorOverflowSets>({ horizontal: [], vertical: [] })
@@ -94,8 +93,6 @@ export function NavigatorRoot({
     () => ({
       value,
       setValue: (next: string) => onValueChange?.(next),
-      hasNesting,
-      setHasNesting,
       navCollapsed,
       setNavCollapsed,
       primaryNav,
@@ -104,8 +101,8 @@ export function NavigatorRoot({
       setPinExpanded,
       scrollActivePaneToTop,
       setActivePaneScroller,
-      secondaryNav,
-      setSecondaryNav,
+      activeSection,
+      setActiveSection,
       overflowOpen,
       setOverflowOpen,
       overflowPaneId,
@@ -121,13 +118,12 @@ export function NavigatorRoot({
     [
       value,
       onValueChange,
-      hasNesting,
       navCollapsed,
       primaryNav,
       pinExpanded,
       scrollActivePaneToTop,
       setActivePaneScroller,
-      secondaryNav,
+      activeSection,
       overflowOpen,
       overflowPaneId,
       overflowItems,

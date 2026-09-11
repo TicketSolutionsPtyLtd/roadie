@@ -193,8 +193,8 @@ export const paneHeaderVariants = cva(
     'gap-x-(--pane-header-gap)',
     PANE_CHROME_SURFACE,
     // Published rather than applied literally so content that has to sit flush
-    // against the header's lower boundary — the Navigator strip — can cancel it
-    // by reading the same value instead of restating the number.
+    // against the header's lower boundary can cancel it by reading the same
+    // value instead of restating the number.
     '[--pane-header-pad-b:--spacing(2)]',
     '-mx-(--content-inset) px-(--content-inset) pt-4 pb-(--pane-header-pad-b)',
     'rounded-t-(--pane-radius)',

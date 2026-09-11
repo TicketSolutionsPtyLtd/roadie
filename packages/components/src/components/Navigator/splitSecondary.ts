@@ -6,6 +6,10 @@ import {
 } from 'react'
 
 import { NavigatorGroup } from './NavigatorGroup'
+import {
+  NavigatorGroupTitle,
+  type NavigatorGroupTitleProps
+} from './NavigatorGroupTitle'
 import { NavigatorItem } from './NavigatorItem'
 import type { NavigatorItemProps } from './NavigatorItem'
 import { NavigatorMenu, type NavigatorMenuProps } from './NavigatorMenu'
@@ -45,7 +49,7 @@ export function splitItemChildren(children: ReactNode): {
   return { label, secondary, menu }
 }
 
-/** The plain text of a label, for names that must be strings. */
+/** The plain text of a label, for accessible names and search. */
 export function textOf(node: ReactNode): string {
   if (typeof node === 'string' || typeof node === 'number') return String(node)
   if (Array.isArray(node)) return node.map(textOf).join('')
@@ -55,38 +59,62 @@ export function textOf(node: ReactNode): string {
   return ''
 }
 
+export type SecondaryBlock = {
+  /** The group's `Navigator.GroupTitle` children; null for a run of loose items. */
+  title: ReactNode
+  items: ReactElement<NavigatorItemProps>[]
+}
+
 /**
- * The direct `Navigator.Item` children of a `Navigator.Secondary`, plus those
- * one level inside a `Navigator.Group`.
- *
- * This is a deliberate, single-type exception to the one-level rule: `Group`
- * is matched by reference exactly as `Secondary` and `Item` are, so the walk
- * stays immune to everything except server-authored trees. It is NOT a licence
- * for arbitrary component wrappers — those are still invisible.
+ * A `Navigator.Secondary`'s children as runs of loose `Navigator.Item`s and
+ * `Navigator.Group`s, in authored order. `Group` is the one wrapper matched
+ * by reference, one level deep.
  */
+export function secondaryBlocks(children: ReactNode): SecondaryBlock[] {
+  const blocks: SecondaryBlock[] = []
+  let loose: SecondaryBlock | null = null
+
+  Children.forEach(children, (child) => {
+    if (!isValidElement(child)) return
+    if (child.type === NavigatorItem) {
+      if (loose === null) {
+        loose = { title: null, items: [] }
+        blocks.push(loose)
+      }
+      loose.items.push(child as ReactElement<NavigatorItemProps>)
+      return
+    }
+    if (child.type !== NavigatorGroup) return
+    loose = null
+    const group: SecondaryBlock = { title: null, items: [] }
+    Children.forEach(
+      (child.props as { children?: ReactNode }).children,
+      (grandChild) => {
+        if (!isValidElement(grandChild)) return
+        if (grandChild.type === NavigatorGroupTitle) {
+          group.title = (
+            grandChild as ReactElement<NavigatorGroupTitleProps>
+          ).props.children
+        } else if (grandChild.type === NavigatorItem) {
+          group.items.push(grandChild as ReactElement<NavigatorItemProps>)
+        }
+      }
+    )
+    blocks.push(group)
+  })
+
+  return blocks
+}
+
+/** Every `Navigator.Item` `secondaryBlocks` finds, flattened. */
 export function secondaryItems(
   secondary: ReactNode[]
 ): ReactElement<NavigatorItemProps>[] {
-  const [nested] = secondary
-  if (!isValidElement<NavigatorSecondaryProps>(nested)) return []
-
-  const items: ReactElement<NavigatorItemProps>[] = []
-  Children.forEach(nested.props.children, (child) => {
-    if (!isValidElement(child)) return
-    if (child.type === NavigatorItem) {
-      items.push(child as ReactElement<NavigatorItemProps>)
-      return
-    }
-    if (child.type === NavigatorGroup) {
-      const groupProps = child.props as { children?: ReactNode }
-      Children.forEach(groupProps.children, (grandChild) => {
-        if (isValidElement(grandChild) && grandChild.type === NavigatorItem) {
-          items.push(grandChild as ReactElement<NavigatorItemProps>)
-        }
-      })
-    }
-  })
-  return items
+  const [declaration] = secondary
+  if (!isValidElement<NavigatorSecondaryProps>(declaration)) return []
+  return secondaryBlocks(declaration.props.children).flatMap(
+    (block) => block.items
+  )
 }
 
 /**

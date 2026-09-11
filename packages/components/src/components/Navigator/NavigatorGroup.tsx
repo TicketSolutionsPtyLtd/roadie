@@ -5,7 +5,6 @@ import {
   type ReactNode,
   cloneElement,
   isValidElement,
-  use,
   useId
 } from 'react'
 
@@ -15,7 +14,6 @@ import {
   NavigatorGroupTitle,
   type NavigatorGroupTitleProps
 } from './NavigatorGroupTitle'
-import { NavigatorPresentationContext } from './NavigatorPresentationContext'
 import type {
   NavigatorPlacement,
   NavigatorVisibilityPriority
@@ -34,49 +32,24 @@ export type NavigatorGroupProps = {
 
 /**
  * A headed run of `Navigator.Item`s, in the primary navigation or inside a
- * `Navigator.Secondary`. Emits its title and its own `<ul>` as siblings.
- *
- * On the mobile strip the group flattens: the title renders as `sr-only`
- * text (not the `<h2>` itself — `sr-only` keeps content in the accessibility
- * tree, so the heading would still land in a screen reader's outline for what
- * is otherwise a single horizontal control row) and the items render inline.
- *
- * Author inside a client component. The title is found by element reference,
- * and Flight replaces the type of every element authored in a server component
- * with a `React.lazy` wrapper. See COMPOUND_PATTERNS.md §1.2.
+ * `Navigator.Secondary`. Author inside a client component: the title is found
+ * by element reference. See COMPOUND_PATTERNS.md §1.2.
  */
 export function NavigatorGroup({ children, className }: NavigatorGroupProps) {
-  const presentation = use(NavigatorPresentationContext)
   const titleId = useId()
   let title: ReactNode = null
   const rows: ReactNode[] = []
-  let titleChildren: ReactNode = null
 
   Children.forEach(children, (child) => {
     if (
       isValidElement<NavigatorGroupTitleProps>(child) &&
       child.type === NavigatorGroupTitle
     ) {
-      // Injected rather than required from the call site: the association is
-      // what makes the run announce as a named list, and it should not be
-      // something a consumer can forget.
       title = cloneElement(child, { id: titleId })
-      titleChildren = child.props.children
       return
     }
     rows.push(child)
   })
-
-  if (presentation === 'strip') {
-    return (
-      <>
-        {titleChildren !== null ? (
-          <span className='sr-only'>{titleChildren}</span>
-        ) : null}
-        {rows}
-      </>
-    )
-  }
 
   return (
     <>

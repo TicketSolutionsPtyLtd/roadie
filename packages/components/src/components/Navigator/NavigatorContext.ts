@@ -4,13 +4,15 @@ import { type ReactNode, type RefObject, createContext } from 'react'
 
 import type { PanePrimaryNav } from '../Pane/variants'
 import type { NavigatorSlotMeta } from './NavigatorPrimary'
+import type { NavigatorSecondaryProps } from './NavigatorSecondary'
 import type { SectionMemory } from './sectionMemory'
 
-// Lifted so the top pane's header, a different subtree, can render it.
-export type NavigatorSecondaryNav = {
-  'aria-label': string
-  className?: string
-  children: ReactNode
+export type NavigatorActiveSection = {
+  value: string
+  /** The section route; undefined only for a routeless section. */
+  href?: string
+  label: ReactNode
+  secondary: NavigatorSecondaryProps
 }
 
 export type NavigatorOverflowSets = {
@@ -21,8 +23,6 @@ export type NavigatorOverflowSets = {
 export type NavigatorContextValue = {
   value: string | undefined
   setValue: (next: string) => void
-  hasNesting: boolean
-  setHasNesting: (next: boolean) => void
   navCollapsed: boolean
   setNavCollapsed: (next: boolean) => void
   // The top pane's declaration, republished by Navigator.Content.
@@ -33,8 +33,9 @@ export type NavigatorContextValue = {
   setPinExpanded: (next: boolean) => void
   scrollActivePaneToTop: () => void
   setActivePaneScroller: (scroller: (() => void) | null) => void
-  secondaryNav: NavigatorSecondaryNav | null
-  setSecondaryNav: (next: NavigatorSecondaryNav | null) => void
+  /** The branch-active item's Secondary, published by Primary. */
+  activeSection: NavigatorActiveSection | null
+  setActiveSection: (next: NavigatorActiveSection | null) => void
   overflowOpen: boolean
   setOverflowOpen: (next: boolean) => void
   /** Id the More tab points `aria-controls` at, and the overflow pane carries. */
@@ -60,8 +61,6 @@ export type NavigatorContextValue = {
 export const NavigatorContext = createContext<NavigatorContextValue>({
   value: undefined,
   setValue: () => {},
-  hasNesting: false,
-  setHasNesting: () => {},
   navCollapsed: false,
   setNavCollapsed: () => {},
   primaryNav: 'auto',
@@ -70,8 +69,8 @@ export const NavigatorContext = createContext<NavigatorContextValue>({
   setPinExpanded: () => {},
   scrollActivePaneToTop: () => {},
   setActivePaneScroller: () => {},
-  secondaryNav: null,
-  setSecondaryNav: () => {},
+  activeSection: null,
+  setActiveSection: () => {},
   overflowOpen: false,
   setOverflowOpen: () => {},
   overflowPaneId: '',

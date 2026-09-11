@@ -28,6 +28,7 @@ import { GeneratedOverflowContext } from './GeneratedOverflowContext'
 import { NavigatorContext } from './NavigatorContext'
 import { NavigatorOverflowItems } from './NavigatorOverflowItems'
 import { NavigatorOverflowPane } from './NavigatorOverflowPane'
+import { NavigatorSectionPane } from './NavigatorSectionPane'
 import { OVERFLOW_LABEL } from './mobileSlots'
 import {
   derivePositions,
@@ -47,7 +48,8 @@ export function NavigatorContent({
   children,
   ...props
 }: NavigatorContentProps) {
-  const { setPrimaryNav, overflowItems, overflowOpen } = use(NavigatorContext)
+  const { setPrimaryNav, overflowItems, overflowOpen, activeSection } =
+    use(NavigatorContext)
   const chrome = useTopPaneChrome()
 
   const panes = useRef(new Map<string, RegisteredPane>())
@@ -121,10 +123,10 @@ export function NavigatorContent({
     if (!isDev() || !hasChildren || panes.current.size > 0) return
     console.warn(
       '[Roadie] Navigator.Content rendered children but identified no ' +
-        'panes. Stack position, push/pop motion, the mobile section nav ' +
-        'and primaryNav are all inert until a Pane registers. If your ' +
-        'panes render inside a wrapper that suppresses effects, or you are ' +
-        'rendering a Pane from a server component, that is the cause.'
+        'panes. Stack position, push/pop motion and primaryNav are all ' +
+        'inert until a Pane registers. If your panes render inside a ' +
+        'wrapper that suppresses effects, or you are rendering a Pane ' +
+        'from a server component, that is the cause.'
     )
   }, [hasChildren, version])
 
@@ -152,6 +154,12 @@ export function NavigatorContent({
       </GeneratedOverflowContext>
     ) : null
 
+  // Keyed so the search resets with the section; More replaces it while open.
+  const sectionPane =
+    activeSection !== null && !overflowOpen ? (
+      <NavigatorSectionPane key={activeSection.value} section={activeSection} />
+    ) : null
+
   return (
     <main
       data-slot='navigator-content'
@@ -161,6 +169,7 @@ export function NavigatorContent({
       <PaneStackContext value={stackValue}>
         {/* Resets to stack level so a nested Navigator registers its own panes. */}
         <PaneContext value={null}>
+          {sectionPane}
           {children}
           {fallbackOverflow}
         </PaneContext>
