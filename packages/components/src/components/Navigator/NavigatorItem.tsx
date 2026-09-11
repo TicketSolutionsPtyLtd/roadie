@@ -92,10 +92,7 @@ export function NavigatorItem({
   const descendants = secondaryDescendantValues(secondary)
   const isCurrent = isActiveValue(value, active)
   const isBranch = isBranchActive(value, descendants, active)
-  // A declared Secondary destination takes the pill from its parent — the nav
-  // names something deeper, so that is what reads as current. A bare sub-route
-  // does not: nothing below this item is lit, so dropping it to a flat header
-  // would leave the whole rail looking like nowhere is selected.
+  // A bare sub-route keeps the pill here, or nothing would read as selected.
   const hasActiveSecondary = descendants.some((descendant) =>
     isActiveValue(descendant, active)
   )
@@ -128,7 +125,7 @@ export function NavigatorItem({
     )
   }, [declaresPanelWithSecondary, value])
 
-  const railTrailing =
+  const trailing =
     badge || isSection ? (
       <span className={navigatorItemTrailingVariants()}>
         {badge}
@@ -149,10 +146,9 @@ export function NavigatorItem({
           {presentNavIcon(icon, isBranch, 'size-6')}
         </span>
       ) : null}
-      {/* `max-w-full` so the compact rail's centred column can clip the
-          label — `truncate` alone lets it size to max-content and scroll. */}
+      {/* `truncate` alone sizes to max-content in the compact column. */}
       <span className='max-w-full truncate'>{label}</span>
-      {railTrailing}
+      {trailing}
     </>
   )
 

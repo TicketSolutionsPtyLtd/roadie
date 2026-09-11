@@ -12,7 +12,7 @@
 export type SectionMemory = ReadonlyMap<string, string>
 
 /**
- * Where a section's rail row and tab should point. The section you are in
+ * Where a section's row and tab should point. The section you are in
  * keeps its declared href: retargeting it would fight the URL, which wins.
  */
 export function rememberedHref(

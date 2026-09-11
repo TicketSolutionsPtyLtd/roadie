@@ -300,7 +300,7 @@ export function DocsNavigator({
             height={32}
             className='size-8 shrink-0'
           />
-          <span className='truncate text-base font-semibold text-strong group-data-[form=compact]/rail:hidden'>
+          <span className='truncate text-base font-semibold text-strong group-data-[form=compact]/primary:hidden'>
             Roadie
           </span>
         </Navigator.Brand>
@@ -327,9 +327,7 @@ export function DocsNavigator({
               icon={SECTION_ICONS[sectionPrefix] ?? <HouseIcon />}
             >
               {section.title}
-              {/* Components has no Secondary: its sub-nav is the list pane, and
-                  a section's value matches sub-routes as a prefix, so the rail
-                  and tab bar still light up on `/components/<name>`. */}
+              {/* Components' sub-nav is its list pane; prefix matching lights it. */}
               {sectionPrefix !== '/components' && subItems.length > 0 ? (
                 <Navigator.Secondary aria-label={`${section.title} pages`}>
                   {subItems.map((item) => (

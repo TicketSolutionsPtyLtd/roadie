@@ -5,28 +5,18 @@ import { useEffect, useRef } from 'react'
 import { Pane } from '@oztix/roadie-components'
 import { Navigator } from '@oztix/roadie-components/navigator'
 
-// Navigator's RSC canary. Unlike every other compound on this page,
-// Navigator CANNOT be authored in a server component: `splitItemChildren` and
-// `Navigator.Primary`'s walk find their children by element reference, and
-// Flight replaces the type of every element authored in a server component
-// with a `React.lazy` wrapper. Server-authored, the rail silently derives
-// `data-form='compact'`, the tab bar comes out empty, the nested `<nav>`
-// lands inside the item's `<button>`, and a `Navigator.Group` renders as a
-// loose, unheaded run of items. A `'use client'` directive on the leaves does
-// not help — the wrapper is applied at the boundary.
-//
-// So the canary is this client component, rendered from the RSC page: it
-// covers the server-safe re-export chain the way the rest of the page does
-// (a break surfaces as "Element type is invalid" and fails the docs build),
-// and asserts the nested rail form and a rendered Group on view so a silent
-// fallback is loud rather than invisible.
+// Navigator's walks match children by element identity, which Flight breaks
+// for server-authored trees, so this canary is a client component that throws
+// if the vertical navigation loses its nested form or its Group.
 
 export function NavigatorCanary() {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const form = ref.current
-      ?.querySelector('[data-slot=navigator-rail]')
+      ?.querySelector(
+        '[data-slot=navigator-primary][data-orientation=vertical]'
+      )
       ?.getAttribute('data-form')
     if (form !== 'nested') {
       throw new Error(

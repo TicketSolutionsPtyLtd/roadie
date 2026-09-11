@@ -14,14 +14,9 @@ type NavIconProps = {
 }
 
 /**
- * Navigator owns its destinations' icon presentation: weight follows active
- * state (active ⇒ `fill`, else `bold`) and size follows context, both
- * overriding whatever the consumer passed. This injects onto the single icon
- * element handed to us — not the banned "clone children to derive structure".
- *
- * `dataSlot` is optional because rail and strip icons already carry their own
- * slot on a wrapping element — only the tab bar tags the icon itself, which is
- * what the tap-bounce utility targets.
+ * Navigator owns its destinations' icon weight and size, overriding the
+ * consumer's. Only horizontal tabs pass `dataSlot`; other surfaces slot a
+ * wrapper instead.
  */
 export function presentNavIcon(
   icon: ReactNode,

@@ -142,7 +142,7 @@ async function walkPageTitles(
 /**
  * Route → page title, sourced from every page's own `metadata.title`, `.mdx`
  * and `.tsx` alike across the whole site — not just `/components/*`. This is
- * the header's source of truth: the nav rail can shorten a label for its own
+ * the header's source of truth: the navigation can shorten a label for its own
  * row (see the hardcoded 'Overview' rows in `layout.tsx`), but the page
  * heading must not silently inherit that shortening.
  */

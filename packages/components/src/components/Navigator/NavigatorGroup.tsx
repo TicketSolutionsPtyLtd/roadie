@@ -25,13 +25,8 @@ export type NavigatorGroupProps = {
 }
 
 /**
- * A headed run of `Navigator.Item`s, in the primary rail or inside a
- * `Navigator.Secondary`.
- *
- * Emits a fragment of two siblings — its title and its own `<ul>` — which the
- * rail lays out directly. `Navigator`'s root is a landmark rather than a list,
- * so a group has no `<li>` to nest inside the way `List.Group` does; a `<nav>`
- * may hold several lists. The authoring convention is identical either way.
+ * A headed run of `Navigator.Item`s, in the primary navigation or inside a
+ * `Navigator.Secondary`. Emits its title and its own `<ul>` as siblings.
  *
  * On the mobile strip the group flattens: the title renders as `sr-only`
  * text (not the `<h2>` itself — `sr-only` keeps content in the accessibility

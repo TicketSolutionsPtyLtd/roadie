@@ -24,13 +24,7 @@ export type NavigatorSlotMeta = {
   group?: NavigatorSlotGroup
 }
 
-/**
- * The tab bar's slots, declared explicitly. Four route tabs plus the More
- * slot is the full five, so the cap is expressed as a union of tuples and
- * caught by the compiler — a `tab` boolean scattered across the tree could
- * only be counted at runtime, and could not express a tab order that differs
- * from rail order.
- */
+/** The horizontal slots, declared explicitly; the fifth is always More. */
 export type NavigatorTabSlots =
   | readonly [string]
   | readonly [string, string]
@@ -98,12 +92,7 @@ export function deriveMobileSlots(
         return
       }
       named.add(value)
-      // `NavigatorTabSlots` caps a typed caller at MAX_TABS - 1 (the fifth
-      // slot is always the generated final tab) — but this function is
-      // exported and callable directly with a longer array, and
-      // `--navigator-tab-col` in the stylesheet stays hardcoded to a fifth
-      // regardless. Without this cap an overrun tab count desyncs the
-      // circle-travel geometry from the grid it actually renders.
+      // Untyped callers can pass more; the stylesheet assumes five columns.
       if (chosen.length >= MAX_TABS - 1) {
         overflowTabs.push(value)
         return
@@ -121,8 +110,7 @@ export function deriveMobileSlots(
       tabs: chosen,
       overflow,
       end: endItems,
-      // Same rule as the source-order path below: a lone End item lends its
-      // own label; any rail overflow, alone or not, is `More`.
+      // A lone End item lends its own label; any overflow is `More`.
       label:
         foldedCount === 0
           ? undefined

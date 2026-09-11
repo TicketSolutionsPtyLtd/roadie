@@ -61,9 +61,7 @@ export const paneVariants = cva(
         raised: 'emphasis-raised [--pane-surface:var(--intent-bg-raised)]',
         normal: 'emphasis-normal [--pane-surface:var(--intent-bg-normal)]',
         subtle: 'emphasis-subtle',
-        // A pane's `subtler` is no surface at all — not Card's faint tint plus
-        // hairline. The recessive pane sits directly on the sunken frame the
-        // way the rail does.
+        // No surface at all: the pane sits directly on the sunken frame.
         subtler: ''
       },
       // Below `lg` the panes stack and only the top one is visible; from `lg`

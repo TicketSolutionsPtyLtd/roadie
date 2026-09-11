@@ -24,9 +24,8 @@
   }
 }
 
-/* Navigator rail widths. Two forms, chosen once per product by whether
-   anything in the tree declares a Secondary — never a prop. */
+/* Vertical Navigator.Primary widths. */
 @theme {
-  --navigator-rail-compact: 5.75rem; /* 92px — icons only */
-  --navigator-rail-nested: 15rem; /* 240px — labels + nested children */
+  --navigator-primary-compact: 5.75rem; /* 92px — icons only */
+  --navigator-primary-nested: 15rem; /* 240px — labels + nested children */
 }

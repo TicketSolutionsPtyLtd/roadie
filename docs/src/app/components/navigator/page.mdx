@@ -1,7 +1,7 @@
 export const metadata = {
   title: 'Navigator',
   description:
-    'A full-height application frame — a rail on desktop, a tab bar on mobile — that adapts to whether the product has nested sections',
+    'A full-height application frame — vertical navigation on desktop, a tab bar on mobile — that adapts to whether the product has nested sections',
   status: 'alpha',
   category: 'Navigation',
 }
@@ -9,8 +9,8 @@ export const metadata = {
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 import { Guideline } from '@/components/Guideline'
 
-A full-height application frame — a rail on desktop, a tab bar on
-mobile — that adapts to whether the product has nested sections.
+A full-height application frame — vertical navigation on desktop, a tab
+bar on mobile — that adapts to whether the product has nested sections.
 
 ## Import
 
@@ -21,20 +21,20 @@ import { Navigator } from '@oztix/roadie-components/navigator'
 ## Anatomy
 
 Navigator owns the whole viewport (`100dvh`). `Navigator.Primary` is the
-top-level navigation: a vertical rail on desktop and a floating tab bar
-on mobile — both are derived from the same `Navigator.Item` children, so
+primary navigation: vertical on desktop and a floating horizontal tab bar
+on phones — both are derived from the same `Navigator.Item` children, so
 you author the destinations once. `Navigator.Content` arranges one or more
 [`Pane`](/components/pane)s, each of which owns its own scroll.
 
 Two slots mark position rather than declaring destinations.
-`Navigator.Brand` pins a logo or wordmark to the top of the rail, and
+`Navigator.Brand` pins a logo or wordmark to the top of the primary navigation, and
 `Navigator.End` anchors a group — account, settings — to the bottom.
 Both are found by reference and skipped in the item walk, so neither
-counts toward rail form or nesting. `Navigator.Brand` is desktop-only:
+counts toward the navigation's form or nesting. `Navigator.Brand` is desktop-only:
 the tab bar has no brand slot, so it renders nothing below `md`. Give it
-a mark that survives the compact rail — that form centres its contents
+a mark that survives the compact form — it centres its contents
 and hides anything you mark
-`group-data-[form=compact]/rail:hidden`.
+`group-data-[form=compact]/primary:hidden`.
 
 Navigator is always **controlled** — the active `value` belongs to your
 router. The examples below hold it in `useState` to stay
@@ -45,14 +45,14 @@ Every example is wrapped in a fixed-height, `overflow-hidden` box so the
 frame renders whole inside the page. The floating tab bar and the
 overflow fold are the **mobile** presentation — narrow your viewport (or
 open the example on a phone) to see them; a wide viewport shows the
-desktop rail.
+vertical navigation.
 
 **Keep the whole tree in a client component.** `Navigator.Primary`,
 `Navigator.Secondary`, `Navigator.Group` and `Navigator.Panel` all find
 something by element reference — items, a group's title, a panel's own
 props — rather than by walking rendered output. React Flight replaces the
 type of every element authored in a server component with a lazy wrapper,
-so a server-authored tree silently renders the wrong rail form, drops
+so a server-authored tree silently renders the wrong navigation form, drops
 group titles, and produces an empty tab bar. Author the whole Navigator
 inside a `'use client'` component — `Navigator.Content` and `Pane` are the
 only pieces that are server-safe on their own. See
@@ -63,8 +63,8 @@ only pieces that are server-safe on their own. See
 ### Default
 
 The consumer shape: a handful of primary destinations and an
-`Navigator.End` group anchored to the bottom of the rail. No nesting, so
-the rail stays in its compact, icon-first form.
+`Navigator.End` group anchored to the bottom of the primary navigation. No
+nesting, so it stays in its compact, icon-first form.
 
 ```tsx-live-noinline
 function ConsumerNav() {
@@ -136,7 +136,7 @@ render(<ConsumerNav />)
 ### Nested
 
 The organiser shape: a primary item declares a `Navigator.Secondary`.
-Declaring one anywhere in the tree switches the whole rail to its wider,
+Declaring one anywhere in the tree switches the whole vertical navigation to its wider,
 labelled form (240px), and the secondary layer appears indented under
 its parent when that parent is active. On mobile the same declaration
 becomes a horizontally scrolling strip above the content.
@@ -162,7 +162,7 @@ function OrganiserNav() {
             <IconTile intent='brand' emphasis='strong'>
               <TicketIcon weight='bold' />
             </IconTile>
-            <span className='truncate text-base font-semibold text-strong group-data-[form=compact]/rail:hidden'>
+            <span className='truncate text-base font-semibold text-strong group-data-[form=compact]/primary:hidden'>
               Oztix
             </span>
           </Navigator.Brand>
@@ -294,7 +294,7 @@ there is no floating surface to tap outside of.
 Declaring `Navigator.Overflow` yourself — with a `Pane.Header` for a title —
 is the composable form, and the one on this page. Omit it and
 `Navigator.Content` generates one titled "More", with a `Pane.Header` and
-`Navigator.OverflowItems` beneath it. The desktop rail always shows every item — narrow your
+`Navigator.OverflowItems` beneath it. The vertical navigation always shows every item — narrow your
 viewport to see the fold.
 
 ```tsx-live-noinline
@@ -379,12 +379,12 @@ render(<OverflowNav />)
 ### Tab slots
 
 `Navigator.Primary`'s `tabs` prop picks which items take the tab bar's slots,
-in tab order — independent of rail order. Omit it and the bar uses source
+in tab order — independent of source order. Omit it and the bar uses source
 order, folding the tail past four into More, which is what every example
 above does. `tabs` is a tuple type capped at four values, because the fifth
 slot is always More; TypeScript rejects a fifth.
 
-Declaring `tabs` declares the whole membership: any rail item not named in the
+Declaring `tabs` declares the whole membership: any item not named in the
 array folds into the overflow, even if it would otherwise have fit — a lone
 unnamed item still discloses rather than getting its own tab. A value in
 `tabs` that doesn't match any `Navigator.Item`'s `value` is a dev-mode
@@ -430,7 +430,7 @@ function TabSlotsNav() {
               <p className='text-subtle'>
                 `tabs` fixes the mobile order to Home, Calendar, Listings,
                 Messages — Reports isn't named, so it folds into the final tab
-                even though the rail shows all five in a different order.
+                even though desktop shows all five in a different order.
               </p>
             </div>
           </Pane>
@@ -450,7 +450,7 @@ switcher, a settings menu. Declaring one makes the item a **disclosure**: any
 section. It works on any item, primary or `Navigator.End`.
 
 One declaration, two presentations, neither configurable: a popover anchored
-to the rail row from `md`, and below it the item's own tab in the bar toggles
+to the item's row from `md`, and below it the item's own tab in the bar toggles
 a full-screen pane — the same tab, not a separate overlay. Put the panel's
 `List` at its own top level — below `md` it renders inside the pane, whose
 list unwind reaches direct children only.
@@ -510,7 +510,7 @@ function PanelNav() {
             <div className='grid gap-3 p-4'>
               <h2 className='text-display-ui-4 text-strong'>{labels[active]}</h2>
               <p className='text-subtle'>
-                Account owns a menu, not a page — open it from the rail row
+                Account owns a menu, not a page — open it from its row
                 (a popover) or its own tab (a full-screen pane); it never
                 navigates.
               </p>
@@ -711,7 +711,7 @@ render(<DrillInNav />)
 
 `Navigator.Secondary` is right for a handful of flat sub-pages. Once a section's
 list is long enough to scroll on its own, needs grouping, needs filtering, or its
-rows carry more than a label, it wants a column rather than a nested run of rail
+rows carry more than a label, it wants a column rather than a nested run of
 rows — so declare a [`Pane`](/components/pane) of your own inside
 `Navigator.Content` and leave the section without a `Navigator.Secondary`.
 
@@ -722,7 +722,7 @@ rows — so declare a [`Pane`](/components/pane) of your own inside
     no layout.
   </Guideline.Do>
   <Guideline.Dont code={`<Navigator.Secondary aria-label='Catalogue sections'>\n  <Navigator.Item value='/catalogue/tshirts'>T-shirts</Navigator.Item>\n  ... 40 more rows ...\n</Navigator.Secondary>`}>
-    Forty rows in the rail is not a nested section, it is a list. Give it
+    Forty rows in the primary navigation is not a nested section, it is a list. Give it
     a `Pane` with a `List` inside instead — it costs a column, so it suits
     a section a user dwells in rather than passes through.
   </Guideline.Dont>
@@ -733,8 +733,8 @@ filterable, or thumbnail-bearing, a `Pane`. A heuristic, not a rule.
 
 A section with no `Navigator.Secondary` still lights up on its sub-pages: a
 section's `value` is matched as a **route prefix**, so any destination whose
-value starts with `${value}/` keeps the section branch-active in the rail and
-the tab bar. `Navigator.Primary` passes that branch-active state straight
+value starts with `${value}/` keeps the section branch-active in both
+orientations. `Navigator.Primary` passes that branch-active state straight
 through as the tab's `aria-current='page'`, so the section tab announces
 itself as the current page too, alongside whatever destination is actually
 selected inside it — a recorded, accepted imprecision rather than a
@@ -769,7 +769,7 @@ documented there. The two facts worth knowing from here:
   deep links work; reach for `onValueChange` only when there is no route
   to own the state.
 - **Use `Navigator.End` for account and settings**, not another primary
-  item — it anchors to the bottom of the rail and becomes the final
+  item — it anchors to the bottom of the primary navigation and becomes the final
   mobile tab.
 - **Let the top pane declare what the mobile bar does.** `Pane`'s `primaryNav`
   is `auto` by default: the bar collapses to the active tab as the pane
@@ -788,7 +788,7 @@ documented there. The two facts worth knowing from here:
 
 ## Accessibility
 
-- **Landmarks**: the rail, the mobile tab bar, and each declared
+- **Landmarks**: the vertical navigation, the mobile tab bar, and each declared
   secondary render as distinct `<nav>` elements. `aria-label` on
   `Navigator.Primary` and `Navigator.Secondary` is **required** so screen
   readers can tell them apart.

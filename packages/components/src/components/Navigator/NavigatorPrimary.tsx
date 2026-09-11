@@ -40,7 +40,7 @@ import {
   type NavigatorTabSlots,
   deriveMobileSlots
 } from './mobileSlots'
-import { wrapRailRun } from './railList'
+import { wrapPrimaryRun } from './primaryList'
 import { activeHref, rememberedHref } from './sectionMemory'
 import {
   firstSecondaryHref,
@@ -49,12 +49,12 @@ import {
   splitItemChildren
 } from './splitSecondary'
 import {
-  navigatorRailContentVariants,
-  navigatorRailVariants,
-  navigatorRailViewportVariants,
-  navigatorTabBarPillVariants,
-  navigatorTabBarTrackVariants,
-  navigatorTabBarVariants
+  navigatorPrimaryContentVariants,
+  navigatorPrimaryHorizontalVariants,
+  navigatorPrimaryPillVariants,
+  navigatorPrimaryTrackVariants,
+  navigatorPrimaryVerticalVariants,
+  navigatorPrimaryViewportVariants
 } from './variants'
 
 // Re-exported so existing imports of these types/values from
@@ -85,8 +85,6 @@ const toSlotMeta = (
     value: props.value,
     label,
     icon: props.icon,
-    // A section without its own route (no `href`) links to its first
-    // sub-page, same as the rail's `NavigatorItem` — so its mobile tab works.
     href,
     panel,
     // Its landing is itself when routed; otherwise the sub-page its href
@@ -106,14 +104,8 @@ export type NavigatorPrimaryProps = {
   className?: string
   children?: ReactNode
   /**
-   * Which items take the tab-bar slots below `md`, in tab order. Omit and the
-   * bar uses source order, folding the tail past four into More — exactly as
-   * it does today. Provide it when rail order is chosen for the rail and the
-   * bar deserves its own answer: the named values become the tabs, and
-   * everything else folds into the overflow.
-   *
-   * Four is the cap because the fifth slot is More. The tuple union makes
-   * that a compile-time error.
+   * Which items take the horizontal slots on phones, in tab order; the rest
+   * fold into More. Omit to use source order.
    */
   tabs?:
     | readonly [string]
@@ -149,13 +141,9 @@ export function NavigatorPrimary({
     sectionMemory,
     rememberSection
   } = use(NavigatorContext)
-  // The tabs' hugging row, not the bar: the indicator's geometry has to
-  // resolve against the box that actually tracks the tabs' width.
   const tabTrackRef = useRef<HTMLDivElement>(null)
-  // Points at the rail's ScrollArea Viewport, not its `<nav>` root: the
-  // viewport is what actually scrolls, and `useSlidingIndicator` reads
-  // `scrollLeft`/`scrollTop` off whatever `trackRef` points at.
-  const railRef = useRef<HTMLDivElement>(null)
+  // The viewport, not the `<nav>`: it is what scrolls.
+  const verticalRef = useRef<HTMLDivElement>(null)
 
   const { items, endItems, nests, hasStrayChild } = useMemo(() => {
     const items: NavigatorSlotMeta[] = []
@@ -174,8 +162,6 @@ export function NavigatorPrimary({
     Children.forEach(children, (child) => {
       if (!isValidElement(child)) return
 
-      // Rendered at the top of the rail (author order) but never a
-      // destination — skip it so it doesn't count toward nesting or tabs.
       if (child.type === NavigatorBrand) return
 
       if (child.type === NavigatorEnd) {
@@ -251,9 +237,6 @@ export function NavigatorPrimary({
     rememberSection(branchValue, deepHref)
   }, [branchValue, deepHref, rememberSection])
 
-  // Re-walked rather than folded into the memo above: the derivation that
-  // shapes the rail and tab bar is deliberately independent of which item is
-  // active, and the hoisted section nav is the one thing that isn't.
   const activeSecondary = useMemo(() => {
     let active: NavigatorSecondaryProps | undefined
 
@@ -403,13 +386,8 @@ export function NavigatorPrimary({
   const navHidden = primaryNav === 'hidden'
 
   const folded = [...slots.overflow, ...slots.end]
-  // A final tab holding one End destination is that destination. Anything
-  // that folded out of the rail needs somewhere to live, so it discloses —
-  // including a single item, because declaring `tabs` declares the whole
-  // membership and an unnamed item is not a tab.
+  // A lone folded End item is that destination; any overflow discloses.
   const generatesPane = folded.length > 1 || slots.overflow.length > 0
-  // The destination branch runs only when the sole folded slot is an End
-  // item — any rail overflow, alone or not, takes the disclosure branch above.
   const soleFolded = folded[0]
   const foldedIsActive = folded.some((slot) =>
     isSectionActive(slot, activeValue)
@@ -424,8 +402,6 @@ export function NavigatorPrimary({
   // Left circle is the active tab, unless the active tab is the final/End tab —
   // then the first tab takes the left so two circles always show.
   const activeIsFinal = hasFinalTab && foldedIsActive
-  // How many grid columns the bar's track ends up with. The collapsed
-  // circles' travel is derived from it in CSS — see `navigatorTabBarVariants`.
   const tabCount = slots.tabs.length + (hasFinalTab ? 1 : 0)
 
   // `foldedKey` is the identity of the set; `folded` is a fresh array every
@@ -513,64 +489,64 @@ export function NavigatorPrimary({
   return (
     <>
       <ScrollArea
-        // A function render, not `<nav />`: `ScrollAreaRoot` hard-codes
-        // `role: 'presentation'` on its own props, which would otherwise
-        // stick to this landmark. See `NavigatorPane` for the same pattern.
+        // `ScrollAreaRoot` hard-codes `role: 'presentation'`, which would
+        // otherwise stick to this landmark.
         render={(renderProps) => <nav {...renderProps} role={undefined} />}
-        data-slot='navigator-rail'
+        data-slot='navigator-primary'
+        data-orientation='vertical'
         data-form={form}
         aria-label={ariaLabel}
-        className={cn(navigatorRailVariants({ form }), className)}
+        className={cn(navigatorPrimaryVerticalVariants({ form }), className)}
       >
         <ScrollArea.Viewport
-          ref={railRef}
-          data-slot='navigator-rail-viewport'
-          className={navigatorRailViewportVariants()}
+          ref={verticalRef}
+          data-slot='navigator-primary-viewport'
+          className={navigatorPrimaryViewportVariants()}
         >
           {/* Wrapped so the bar re-measures as sections expand and collapse —
               the viewport's own box never changes. */}
           <ScrollArea.Content
             fitWidth={false}
-            className={navigatorRailContentVariants()}
+            className={navigatorPrimaryContentVariants()}
           >
-            {wrapRailRun(children)}
+            {wrapPrimaryRun(children)}
           </ScrollArea.Content>
-          <NavigatorIndicator trackRef={railRef} surface='rail' />
+          <NavigatorIndicator trackRef={verticalRef} surface='vertical' />
         </ScrollArea.Viewport>
-        {/* The rail is transparent and square — nothing for the bar to clear. */}
         <ScrollArea.Scrollbar flush>
           <ScrollArea.Thumb />
         </ScrollArea.Scrollbar>
       </ScrollArea>
       <nav
-        data-slot='navigator-tab-bar'
+        data-slot='navigator-primary'
+        data-orientation='horizontal'
         data-collapsed={String(collapsed)}
         data-hidden={String(navHidden)}
         aria-label={`${ariaLabel} tabs`}
-        // The one piece of the bar's geometry the stylesheet can't derive.
-        // See `navigatorTabBarVariants` for what reads it.
-        style={{ '--navigator-tab-count': String(tabCount) } as CSSProperties}
-        // A bar the design says is not there must not be tabbable or
-        // announced. `inert` blocks focus and pointer interaction; the
-        // `aria-hidden` pairing is what takes it out of the accessibility
-        // tree everywhere, not only where `visibility: hidden` applies.
+        style={
+          { '--navigator-primary-count': String(tabCount) } as CSSProperties
+        }
+        // `aria-hidden` too: `inert` alone doesn't leave every AT tree.
         inert={navHidden}
         aria-hidden={navHidden || undefined}
-        className={navigatorTabBarVariants({ collapsed, hidden: navHidden })}
+        className={navigatorPrimaryHorizontalVariants({
+          collapsed,
+          hidden: navHidden
+        })}
       >
         <div
           ref={tabTrackRef}
-          data-slot='navigator-tab-bar-track'
-          className={navigatorTabBarTrackVariants({ collapsed })}
+          data-slot='navigator-primary-track'
+          className={navigatorPrimaryTrackVariants({ collapsed })}
         >
           <div
             aria-hidden
-            data-slot='navigator-tab-bar-pill'
-            className={navigatorTabBarPillVariants({ collapsed })}
+            data-slot='navigator-primary-pill'
+            className={navigatorPrimaryPillVariants({ collapsed })}
           />
           <NavigatorIndicator
             trackRef={tabTrackRef}
-            surface='tab'
+            surface='horizontal'
             hidden={collapsed}
           />
           {slots.tabs.map((tab, tabIndex) => {
