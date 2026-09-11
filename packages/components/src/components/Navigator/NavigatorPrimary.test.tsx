@@ -587,3 +587,81 @@ describe('expanded from the document', () => {
     ).toBeInTheDocument()
   })
 })
+
+describe('collapsed labels', () => {
+  it('labels a tile in an aria-hidden tooltip, inline-end, on focus', async () => {
+    const user = userEvent.setup()
+    render(<Six />)
+    await flushViewportMeasurement()
+    await user.tab()
+    const tile = within(region('cluster')).getByRole('link', { name: '/a' })
+    expect(tile).toHaveFocus()
+    expect(tile).not.toHaveAttribute('aria-label')
+    expect(tile).toHaveAttribute('data-slot', 'navigator-item')
+    const popup = await screen.findByText(
+      '/a',
+      { selector: '[data-slot="tooltip-popup"]' },
+      { timeout: 2000 }
+    )
+    expect(popup).toHaveAttribute('aria-hidden', 'true')
+    expect(popup).toHaveClass('pointer-coarse:hidden')
+    expect(popup.closest('[data-slot="tooltip-positioner"]')).toHaveAttribute(
+      'data-side',
+      'inline-end'
+    )
+  })
+
+  it('labels the More tile', async () => {
+    const user = userEvent.setup()
+    render(<Six />)
+    await flushViewportMeasurement()
+    reportClusterHeight(192)
+    await user.hover(
+      within(region('cluster')).getByRole('button', { name: 'More' })
+    )
+    expect(
+      await screen.findByText(
+        'More',
+        { selector: '[data-slot="tooltip-popup"]' },
+        { timeout: 2000 }
+      )
+    ).toBeInTheDocument()
+  })
+
+  it('labels the toggle with its current label', async () => {
+    const user = userEvent.setup()
+    render(<Expandable />)
+    await flushViewportMeasurement()
+    const toggle = within(region('pinned')).getByRole('button', {
+      name: 'Expand sidebar'
+    })
+    expect(toggle).toHaveAttribute('data-slot', 'navigator-expand-toggle')
+    await user.hover(toggle)
+    expect(
+      await screen.findByText(
+        'Expand sidebar',
+        { selector: '[data-slot="tooltip-popup"]' },
+        { timeout: 2000 }
+      )
+    ).toBeInTheDocument()
+  })
+
+  it('shows no tooltip while expanded', async () => {
+    const user = userEvent.setup()
+    render(<Expandable defaultExpanded />)
+    await flushViewportMeasurement()
+    await user.hover(
+      within(region('cluster')).getByRole('link', { name: 'Alpha' })
+    )
+    await act(() => new Promise((resolve) => setTimeout(resolve, 700)))
+    expect(document.querySelector('[data-slot="tooltip-popup"]')).toBeNull()
+  })
+
+  it('never puts a tooltip on the phone bar', async () => {
+    render(<Six />)
+    await flushViewportMeasurement()
+    const trigger = '[data-base-ui-tooltip-trigger]'
+    expect(vertical().querySelector(trigger)).not.toBeNull()
+    expect(horizontal().querySelector(trigger)).toBeNull()
+  })
+})

@@ -12,6 +12,7 @@ import {
 } from './NavigatorContext'
 import { NavigatorDestination } from './NavigatorDestination'
 import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
+import { NavigatorTileTooltip } from './NavigatorTileTooltip'
 import type {
   NavigatorPlacement,
   NavigatorVisibilityPriority
@@ -115,33 +116,45 @@ export function NavigatorItem({
 
   if (menu) {
     return (
-      <NavigatorMenuHost
-        surface='vertical'
-        value={value}
-        menu={menu}
-        label={textOf(label) || undefined}
-        trigger={
-          <NavigatorDestination
-            dataCurrent={menuOpen}
-            className={finalClassName}
-          >
-            {content}
-          </NavigatorDestination>
-        }
+      <NavigatorTileTooltip
+        label={label}
+        render={(asTrigger) => (
+          <NavigatorMenuHost
+            surface='vertical'
+            value={value}
+            menu={menu}
+            label={textOf(label) || undefined}
+            trigger={asTrigger(
+              <NavigatorDestination
+                dataCurrent={menuOpen}
+                className={finalClassName}
+              >
+                {content}
+              </NavigatorDestination>
+            )}
+          />
+        )}
       />
     )
   }
 
   return (
-    <NavigatorDestination
-      href={targetHref}
-      ariaCurrent={ariaCurrent}
-      dataCurrent={hasPill}
-      className={finalClassName}
-      onClick={handleClick}
-    >
-      {content}
-    </NavigatorDestination>
+    <NavigatorTileTooltip
+      label={label}
+      render={(asTrigger) =>
+        asTrigger(
+          <NavigatorDestination
+            href={targetHref}
+            ariaCurrent={ariaCurrent}
+            dataCurrent={hasPill}
+            className={finalClassName}
+            onClick={handleClick}
+          >
+            {content}
+          </NavigatorDestination>
+        )
+      }
+    />
   )
 }
 

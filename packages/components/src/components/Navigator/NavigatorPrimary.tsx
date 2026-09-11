@@ -19,6 +19,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { isDev } from '../../utils/isDev'
 import { ScrollArea } from '../ScrollArea'
+import { Tooltip } from '../Tooltip'
 import {
   type NavigatorActiveSection,
   NavigatorContext,
@@ -34,6 +35,7 @@ import { NavigatorItem, type NavigatorItemProps } from './NavigatorItem'
 import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
 import type { NavigatorSecondaryProps } from './NavigatorSecondary'
 import { NavigatorTab, type NavigatorTabProps } from './NavigatorTab'
+import { NavigatorTileTooltip } from './NavigatorTileTooltip'
 import { fixedCapsules, primaryCapsules, wrapCapsules } from './capsules'
 import { collectSlots } from './collectSlots'
 import {
@@ -293,6 +295,36 @@ export function NavigatorPrimary({
     (verticalFoldedSlots.some((slot) => isSectionActive(slot, activeValue)) &&
       !disclosureOpen)
 
+  const verticalMoreTile = (
+    <NavigatorDestination
+      ariaCurrent={verticalMoreActive ? 'true' : undefined}
+      dataCurrent={verticalMoreActive}
+      expanded={overflowOpen}
+      controls={overflowOpen ? overflowPaneId : undefined}
+      className={navigatorItemVariants({
+        active: verticalMoreActive
+      })}
+      onClick={(event) => {
+        overflowOpener.current = event.currentTarget as HTMLElement
+        setOpenMenu(null)
+        setOverflowOpen(!overflowOpen)
+      }}
+    >
+      <span data-slot='navigator-item-icon'>
+        {presentNavIcon(
+          <DotsThreeIcon />,
+          cn('size-6', verticalMoreActive && 'animate-pop-tap')
+        )}
+      </span>
+      <span
+        data-slot='navigator-item-label'
+        className={navigatorItemLabelClass}
+      >
+        {OVERFLOW_LABEL}
+      </span>
+    </NavigatorDestination>
+  )
+
   const foldedWithNoHost = hasMore && !hasContent
   useEffect(() => {
     if (!isDev() || !foldedWithNoHost) return
@@ -384,84 +416,62 @@ export function NavigatorPrimary({
         aria-label={ariaLabel}
         className={cn(navigatorPrimaryVerticalVariants(), className)}
       >
-        {collected.brand.length > 0 ? (
-          <div
-            data-slot='navigator-primary-brand'
-            className={navigatorPrimaryBrandVariants()}
-          >
-            {collected.brand}
-          </div>
-        ) : null}
-        <ScrollArea
-          data-slot='navigator-primary-cluster'
-          className={navigatorPrimaryClusterVariants()}
-        >
-          <ScrollArea.Viewport
-            ref={clusterRef}
-            data-slot='navigator-primary-cluster-viewport'
-            className={navigatorPrimaryClusterViewportVariants()}
-          >
-            <ScrollArea.Content
-              fitWidth={false}
-              className={navigatorPrimaryClusterContentVariants()}
+        <Tooltip.Provider>
+          {collected.brand.length > 0 ? (
+            <div
+              data-slot='navigator-primary-brand'
+              className={navigatorPrimaryBrandVariants()}
             >
-              <NavigatorFoldedContext value={verticalFolded}>
-                {wrapCapsules(collected.cluster, verticalFolded)}
-              </NavigatorFoldedContext>
-              {verticalFoldedSlots.length > 0 ? (
-                <ul
-                  data-slot='navigator-capsule'
-                  className={navigatorCapsuleVariants()}
-                >
-                  <li>
-                    <NavigatorDestination
-                      ariaCurrent={verticalMoreActive ? 'true' : undefined}
-                      dataCurrent={verticalMoreActive}
-                      expanded={overflowOpen}
-                      controls={overflowOpen ? overflowPaneId : undefined}
-                      className={navigatorItemVariants({
-                        active: verticalMoreActive
-                      })}
-                      onClick={(event) => {
-                        overflowOpener.current =
-                          event.currentTarget as HTMLElement
-                        setOpenMenu(null)
-                        setOverflowOpen(!overflowOpen)
-                      }}
-                    >
-                      <span data-slot='navigator-item-icon'>
-                        {presentNavIcon(
-                          <DotsThreeIcon />,
-                          cn('size-6', verticalMoreActive && 'animate-pop-tap')
-                        )}
-                      </span>
-                      <span
-                        data-slot='navigator-item-label'
-                        className={navigatorItemLabelClass}
-                      >
-                        {OVERFLOW_LABEL}
-                      </span>
-                    </NavigatorDestination>
-                  </li>
-                </ul>
-              ) : null}
-            </ScrollArea.Content>
-            <NavigatorIndicator trackRef={clusterRef} surface='vertical' />
-          </ScrollArea.Viewport>
-          <ScrollArea.Scrollbar flush>
-            <ScrollArea.Thumb />
-          </ScrollArea.Scrollbar>
-        </ScrollArea>
-        {collected.pinned.length > 0 ? (
-          <div
-            ref={pinnedRef}
-            data-slot='navigator-primary-pinned'
-            className={navigatorPrimaryPinnedVariants()}
+              {collected.brand}
+            </div>
+          ) : null}
+          <ScrollArea
+            data-slot='navigator-primary-cluster'
+            className={navigatorPrimaryClusterVariants()}
           >
-            {wrapCapsules(collected.pinned, new Set())}
-            <NavigatorIndicator trackRef={pinnedRef} surface='vertical' />
-          </div>
-        ) : null}
+            <ScrollArea.Viewport
+              ref={clusterRef}
+              data-slot='navigator-primary-cluster-viewport'
+              className={navigatorPrimaryClusterViewportVariants()}
+            >
+              <ScrollArea.Content
+                fitWidth={false}
+                className={navigatorPrimaryClusterContentVariants()}
+              >
+                <NavigatorFoldedContext value={verticalFolded}>
+                  {wrapCapsules(collected.cluster, verticalFolded)}
+                </NavigatorFoldedContext>
+                {verticalFoldedSlots.length > 0 ? (
+                  <ul
+                    data-slot='navigator-capsule'
+                    className={navigatorCapsuleVariants()}
+                  >
+                    <li>
+                      <NavigatorTileTooltip
+                        label={OVERFLOW_LABEL}
+                        render={(asTrigger) => asTrigger(verticalMoreTile)}
+                      />
+                    </li>
+                  </ul>
+                ) : null}
+              </ScrollArea.Content>
+              <NavigatorIndicator trackRef={clusterRef} surface='vertical' />
+            </ScrollArea.Viewport>
+            <ScrollArea.Scrollbar flush>
+              <ScrollArea.Thumb />
+            </ScrollArea.Scrollbar>
+          </ScrollArea>
+          {collected.pinned.length > 0 ? (
+            <div
+              ref={pinnedRef}
+              data-slot='navigator-primary-pinned'
+              className={navigatorPrimaryPinnedVariants()}
+            >
+              {wrapCapsules(collected.pinned, new Set())}
+              <NavigatorIndicator trackRef={pinnedRef} surface='vertical' />
+            </div>
+          ) : null}
+        </Tooltip.Provider>
       </nav>
       <nav
         data-slot='navigator-primary'
