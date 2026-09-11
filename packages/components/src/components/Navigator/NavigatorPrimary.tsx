@@ -28,12 +28,14 @@ import {
 } from './NavigatorContext'
 import { NavigatorEnd } from './NavigatorEnd'
 import { NavigatorGroup } from './NavigatorGroup'
+import { NavigatorGroupTitle } from './NavigatorGroupTitle'
 import { NavigatorIndicator } from './NavigatorIndicator'
 import { NavigatorItem, type NavigatorItemProps } from './NavigatorItem'
 import type { NavigatorSecondaryProps } from './NavigatorSecondary'
 import { NavigatorTab } from './NavigatorTab'
 import {
   type MobileSlots,
+  type NavigatorSlotGroup,
   type NavigatorSlotMeta,
   type NavigatorTabSlots,
   deriveMobileSlots
@@ -62,7 +64,12 @@ import {
 export type { MobileSlots, NavigatorSlotMeta, NavigatorTabSlots }
 export { deriveMobileSlots }
 
-const toSlotMeta = (props: NavigatorItemProps): NavigatorSlotMeta => {
+const END_GROUP: NavigatorSlotGroup = { key: 'end' }
+
+const toSlotMeta = (
+  props: NavigatorItemProps,
+  group?: NavigatorSlotGroup
+): NavigatorSlotMeta => {
   const {
     label,
     secondary,
@@ -88,7 +95,8 @@ const toSlotMeta = (props: NavigatorItemProps): NavigatorSlotMeta => {
       props.href !== undefined
         ? props.value
         : (firstSecondaryValue(secondary) ?? props.value),
-    descendants: secondaryDescendantValues(secondary)
+    descendants: secondaryDescendantValues(secondary),
+    group
   }
 }
 
@@ -154,10 +162,11 @@ export function NavigatorPrimary({
     const endItems: NavigatorSlotMeta[] = []
     let foundNesting = false
     let foundStray = false
+    let groupCount = 0
 
-    const visitItem = (child: ReactElement) => {
+    const visitItem = (child: ReactElement, group?: NavigatorSlotGroup) => {
       const itemProps = child.props as NavigatorItemProps
-      items.push(toSlotMeta(itemProps))
+      items.push(toSlotMeta(itemProps, group))
       const { secondary } = splitItemChildren(itemProps.children)
       if (secondary.length > 0) foundNesting = true
     }
@@ -174,7 +183,9 @@ export function NavigatorPrimary({
         Children.forEach(endProps.children, (endChild) => {
           if (!isValidElement(endChild)) return
           if (endChild.type === NavigatorItem) {
-            endItems.push(toSlotMeta(endChild.props as NavigatorItemProps))
+            endItems.push(
+              toSlotMeta(endChild.props as NavigatorItemProps, END_GROUP)
+            )
             return
           }
           foundStray = true
@@ -188,9 +199,15 @@ export function NavigatorPrimary({
       // is NOT a licence for arbitrary wrappers.
       if (child.type === NavigatorGroup) {
         const groupProps = child.props as { children?: ReactNode }
+        const group: NavigatorSlotGroup = { key: `group-${groupCount++}` }
         Children.forEach(groupProps.children, (grandChild) => {
-          if (isValidElement(grandChild) && grandChild.type === NavigatorItem) {
-            visitItem(grandChild)
+          if (!isValidElement(grandChild)) return
+          if (grandChild.type === NavigatorGroupTitle) {
+            group.title = (
+              grandChild.props as { children?: ReactNode }
+            ).children
+          } else if (grandChild.type === NavigatorItem) {
+            visitItem(grandChild, group)
           }
         })
         return

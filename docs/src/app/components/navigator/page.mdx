@@ -223,7 +223,9 @@ screen reader users hear "Manage, list, 2 items" rather than an unlabelled run.
 Groups flatten where there's no room for a heading: on the mobile strip and in
 the tab bar's first four slots, the items render inline in author order and
 the title is dropped — the destinations are still reachable, just without the
-grouping.
+grouping. Items that fold into the More pane keep their group there, as a
+titled `List.Group`, and `Navigator.End` items follow as a section of their
+own.
 
 ```tsx-live-noinline
 function GroupedNav() {
@@ -291,8 +293,8 @@ there is no floating surface to tap outside of.
 
 Declaring `Navigator.Overflow` yourself — with a `Pane.Header` for a title —
 is the composable form, and the one on this page. Omit it and
-`Navigator.Content` generates one holding just a bare `Navigator.OverflowItems`,
-with no header. The desktop rail always shows every item — narrow your
+`Navigator.Content` generates one titled "More", with a `Pane.Header` and
+`Navigator.OverflowItems` beneath it. The desktop rail always shows every item — narrow your
 viewport to see the fold.
 
 ```tsx-live-noinline
