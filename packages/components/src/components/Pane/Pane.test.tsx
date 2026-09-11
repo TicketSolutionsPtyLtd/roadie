@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { Pane } from '.'
 import { Navigator } from '../Navigator'
+import { testBrand } from '../Navigator/testUtils'
 import {
   PANE_CHROME_NONE,
   type PaneChromeContextValue
@@ -1127,6 +1128,7 @@ describe('pane registration through a wrapper', () => {
     render(
       <Navigator value='/foundations/colors'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/foundations' href='/foundations'>
             Foundations
             <Navigator.Secondary aria-label='Foundations pages'>

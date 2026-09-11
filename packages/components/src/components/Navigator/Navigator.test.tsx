@@ -11,7 +11,12 @@ import {
 } from '../../providers/RoadieLinkProvider'
 import { Pane } from '../Pane'
 import { NavigatorContext } from './NavigatorContext'
-import { FakeIcon, flushViewportMeasurement, primaryOf } from './testUtils'
+import {
+  FakeIcon,
+  flushViewportMeasurement,
+  primaryOf,
+  testBrand
+} from './testUtils'
 import {
   navigatorContentVariants,
   navigatorIndicatorVariants,
@@ -31,6 +36,7 @@ describe('one primary navigation, two orientations', () => {
     const { container } = render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/a' href='/a'>
             A
           </Navigator.Item>
@@ -156,6 +162,7 @@ describe('pane stack', () => {
     render(
       <Navigator value='/foundations'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/foundations' href='/foundations'>
             Foundations
           </Navigator.Item>
@@ -207,6 +214,7 @@ describe('pane stack', () => {
     render(
       <Navigator value='/foundations'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/foundations' href='/foundations'>
             Foundations
           </Navigator.Item>
@@ -292,6 +300,7 @@ describe('primaryNav', () => {
     render(
       <Navigator value='/'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/' icon={<FakeIcon />}>
             Home
           </Navigator.Item>
@@ -316,6 +325,7 @@ describe('primaryNav', () => {
     render(
       <Navigator value='/'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/' icon={<FakeIcon />}>
             Home
           </Navigator.Item>
@@ -372,6 +382,7 @@ describe('primaryNav', () => {
     render(
       <Navigator value='/'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/' icon={<FakeIcon />}>
             Home
           </Navigator.Item>
@@ -399,6 +410,7 @@ describe('primaryNav', () => {
     render(
       <Navigator value='/'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/' icon={<FakeIcon />}>
             Home
           </Navigator.Item>
@@ -421,6 +433,7 @@ describe('primaryNav', () => {
     const { container } = render(
       <Navigator value='/'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/' icon={<FakeIcon />}>
             Home
           </Navigator.Item>
@@ -456,6 +469,7 @@ describe('primaryNav', () => {
     const { container } = render(
       <Navigator value='/'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/' icon={<FakeIcon />}>
             Home
           </Navigator.Item>
@@ -518,6 +532,7 @@ describe('primaryNav', () => {
     const { container } = render(
       <Navigator value='/'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/' icon={<FakeIcon />}>
             Home
           </Navigator.Item>
@@ -559,6 +574,7 @@ describe('Navigator vertical form', () => {
     render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <Navigator.Item value='discover'>Discover</Navigator.Item>
           <Navigator.Item value='tickets'>Tickets</Navigator.Item>
         </Navigator.Primary>
@@ -576,6 +592,7 @@ describe('Navigator vertical form', () => {
     const { container } = render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <Navigator.Item value='tickets'>Tickets</Navigator.Item>
         </Navigator.Primary>
       </Navigator>
@@ -597,6 +614,7 @@ describe('Navigator vertical form', () => {
     render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <Navigator.Item value='tickets' href='/tickets'>
             Tickets
           </Navigator.Item>
@@ -614,6 +632,7 @@ describe('Navigator vertical form', () => {
     render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <Navigator.Item value='discover'>Discover</Navigator.Item>
           <Navigator.Item value='tickets'>Tickets</Navigator.Item>
         </Navigator.Primary>
@@ -645,6 +664,7 @@ describe('destination visuals', () => {
   const tree = (value = '/a') => (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Main'>
+        {testBrand}
         <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
           A
         </Navigator.Item>
@@ -702,6 +722,7 @@ describe('destination visuals', () => {
     render(
       <Navigator value='/c'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/c' href='/c'>
             C
             <Navigator.Secondary aria-label='C pages'>
@@ -755,6 +776,7 @@ describe('Navigator routeless primary', () => {
     render(
       <Navigator value='/other'>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <Navigator.Item value='foundations'>
             Foundations
             <Navigator.Secondary aria-label='Foundations pages'>
@@ -787,6 +809,7 @@ describe('Navigator routeless primary', () => {
     render(
       <Navigator value='/other'>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <Navigator.Item value='components' href='/components'>
             Components
             <Navigator.Secondary aria-label='Components pages'>
@@ -811,6 +834,7 @@ describe('Navigator routeless primary', () => {
     render(
       <Navigator value='/other'>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <Navigator.Item value='appearance'>Appearance</Navigator.Item>
         </Navigator.Primary>
       </Navigator>
@@ -824,6 +848,7 @@ describe('Navigator routeless primary', () => {
     render(
       <Navigator value='/foundations/layout'>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <Navigator.Item value='foundations'>
             Foundations
             <Navigator.Secondary aria-label='Foundations pages'>
@@ -914,6 +939,7 @@ describe('Navigator.Brand', () => {
   const brandTree = (brand: ReactNode) => (
     <Navigator value='tickets'>
       <Navigator.Primary aria-label='Primary'>
+        {testBrand}
         {brand}
         <Navigator.Item value='tickets'>Tickets</Navigator.Item>
       </Navigator.Primary>
@@ -997,6 +1023,7 @@ describe('Navigator active-state split', () => {
   const sectionTree = (active: string) => (
     <Navigator value={active}>
       <Navigator.Primary aria-label='Primary'>
+        {testBrand}
         <Navigator.Item value='components' href='/components'>
           Components
           <Navigator.Secondary aria-label='Components pages'>
@@ -1032,6 +1059,7 @@ describe('overflow state', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           {['/a', '/b', '/c', '/d', '/e', '/f'].map((value) => (
             <Navigator.Item key={value} value={value} href={value}>
               {value}
@@ -1063,6 +1091,7 @@ describe('Navigator mobile tab bar', () => {
   const sixItemsAndPinned = (
     <Navigator value='events'>
       <Navigator.Primary aria-label='Primary'>
+        {testBrand}
         <Navigator.Item value='a'>A</Navigator.Item>
         <Navigator.Item value='b'>B</Navigator.Item>
         <Navigator.Item value='c'>C</Navigator.Item>
@@ -1080,6 +1109,7 @@ describe('Navigator mobile tab bar', () => {
     render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <Navigator.Item value='tickets'>Tickets</Navigator.Item>
         </Navigator.Primary>
       </Navigator>
@@ -1095,6 +1125,7 @@ describe('Navigator mobile tab bar', () => {
     const { container } = render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <Navigator.Item value='tickets'>Tickets</Navigator.Item>
         </Navigator.Primary>
       </Navigator>
@@ -1109,6 +1140,7 @@ describe('Navigator mobile tab bar', () => {
     const { container } = render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <Navigator.Item value='discover'>Discover</Navigator.Item>
           <Navigator.Item value='tickets'>Tickets</Navigator.Item>
         </Navigator.Primary>
@@ -1125,6 +1157,7 @@ describe('Navigator mobile tab bar', () => {
     const { container } = render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <Navigator.Item value='discover'>Discover</Navigator.Item>
           <Navigator.Item value='tickets'>Tickets</Navigator.Item>
         </Navigator.Primary>
@@ -1147,6 +1180,7 @@ describe('Navigator mobile tab bar', () => {
     const { container } = render(
       <Navigator value='/foundations/layout'>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <Navigator.Item value='/discover' href='/discover'>
             Discover
           </Navigator.Item>
@@ -1188,6 +1222,7 @@ describe('Navigator mobile tab bar', () => {
     const { container } = render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <Navigator.Item value='discover'>Discover</Navigator.Item>
           <Navigator.Item value='tickets'>Tickets</Navigator.Item>
         </Navigator.Primary>
@@ -1203,6 +1238,7 @@ describe('Navigator mobile tab bar', () => {
     const { container } = render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <Navigator.Item value='tickets' href='/tickets'>
             Tickets
           </Navigator.Item>
@@ -1221,6 +1257,7 @@ describe('Navigator mobile tab bar', () => {
     const { container } = render(
       <Navigator value='e'>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <Navigator.Item value='a'>A</Navigator.Item>
           <Navigator.Item value='b'>B</Navigator.Item>
           <Navigator.Item value='c'>C</Navigator.Item>
@@ -1245,6 +1282,7 @@ describe('Navigator mobile tab bar', () => {
     const { container } = render(
       <Navigator value='a'>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <Navigator.Item value='a'>A</Navigator.Item>
           <Navigator.Item value='b'>B</Navigator.Item>
           <Navigator.Item value='c'>C</Navigator.Item>
@@ -1275,6 +1313,7 @@ describe('Navigator mobile tab bar', () => {
     const { container } = render(
       <Navigator value='a'>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <Navigator.Item value='a'>A</Navigator.Item>
           <Navigator.Item value='b'>B</Navigator.Item>
           <Navigator.Item value='c'>C</Navigator.Item>
@@ -1300,6 +1339,7 @@ describe('Navigator mobile tab bar', () => {
     const { container } = render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           {['/a', '/b', '/c', '/d'].map((v) => (
             <Navigator.Item key={v} value={v} href={v} icon={<FakeIcon />}>
               {v}
@@ -1331,6 +1371,7 @@ describe('Navigator mobile tab bar', () => {
     const { container } = render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
             A
           </Navigator.Item>
@@ -1362,6 +1403,7 @@ describe('Navigator mobile tab bar', () => {
     const { container } = render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
             A
           </Navigator.Item>
@@ -1385,6 +1427,7 @@ describe('Navigator mobile tab bar', () => {
     const { container } = render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/me' href='/me' placement='pinned'>
             Me
           </Navigator.Item>
@@ -1411,6 +1454,7 @@ describe('Navigator.OverflowPane', () => {
   const overflowNav = (value: string, extra?: ReactNode) => (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Main'>
+        {testBrand}
         {['/a', '/b', '/c', '/d', '/e', '/f'].map((v) => (
           <Navigator.Item key={v} value={v} href={v}>
             {v}
@@ -1553,6 +1597,7 @@ describe('Navigator.OverflowPane', () => {
   const groupedOverflowNav = (value: string) => (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Main'>
+        {testBrand}
         {['/a', '/b', '/c', '/d'].map((v) => (
           <Navigator.Item key={v} value={v} href={v}>
             {v}
@@ -1609,6 +1654,7 @@ describe('Navigator.OverflowPane', () => {
     render(
       <Navigator value='/a' onValueChange={onValueChange}>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           {['/a', '/b', '/c', '/d', '/e', '/f'].map((v) => (
             <Navigator.Item key={v} value={v} href={v}>
               {v}
@@ -1702,6 +1748,7 @@ describe('Navigator.OverflowPane', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           {['/a', '/b', '/c', '/d', '/e', '/f'].map((v) => (
             <Navigator.Item key={v} value={v} href={v}>
               {v}
@@ -1757,6 +1804,7 @@ describe('Navigator.OverflowPane', () => {
     render(
       <Navigator value='a'>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <Navigator.Item value='a'>A</Navigator.Item>
           <Navigator.Item value='b'>B</Navigator.Item>
           <Navigator.Item value='c'>C</Navigator.Item>
@@ -1792,6 +1840,7 @@ describe('Navigator.OverflowPane', () => {
     render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <Navigator.Item value='discover'>Discover</Navigator.Item>
           <Navigator.Item value='tickets'>Tickets</Navigator.Item>
         </Navigator.Primary>
@@ -1920,6 +1969,7 @@ describe('Navigator sliding indicator', () => {
   const tree = (active: string) => (
     <Navigator value={active}>
       <Navigator.Primary aria-label='Primary'>
+        {testBrand}
         <Navigator.Item value='discover'>Discover</Navigator.Item>
         <Navigator.Item value='tickets'>Tickets</Navigator.Item>
       </Navigator.Primary>
@@ -2024,6 +2074,7 @@ describe('Navigator.Secondary', () => {
   const tree = (active: string) => (
     <Navigator value={active}>
       <Navigator.Primary aria-label='Primary'>
+        {testBrand}
         <Navigator.Item value='events' href='/events'>
           Events
           <Navigator.Secondary
@@ -2104,6 +2155,7 @@ describe('Navigator.Secondary', () => {
     render(
       <Navigator value='all' onValueChange={onValueChange}>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <Navigator.Item value='events' href='/events'>
             Events
             <Navigator.Secondary aria-label='Events sections'>
@@ -2129,6 +2181,7 @@ describe('Navigator.Secondary', () => {
   const groupedTree = (
     <Navigator value='/components/button'>
       <Navigator.Primary aria-label='Docs'>
+        {testBrand}
         <Navigator.Item value='/components' href='/components'>
           Components
           <Navigator.Secondary aria-label='Components'>
@@ -2176,6 +2229,7 @@ describe('vertical list semantics', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/a' href='/a'>
             A
           </Navigator.Item>
@@ -2203,6 +2257,7 @@ describe('Navigator.Group', () => {
   const groupTree = (title: ReactNode = 'Formats') => (
     <Navigator value='/events/live'>
       <Navigator.Primary aria-label='Main'>
+        {testBrand}
         <Navigator.Group>
           <Navigator.GroupTitle>{title}</Navigator.GroupTitle>
           <Navigator.Item value='/events' href='/events'>
@@ -2259,6 +2314,7 @@ describe('Navigator.Group', () => {
     render(
       <Navigator value='/events'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Group>
             <Navigator.GroupTitle render={(p) => <h3 {...p} />}>
               Formats
@@ -2282,6 +2338,7 @@ describe('Navigator.Primary group descent', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Group>
             <Navigator.GroupTitle>Section</Navigator.GroupTitle>
             <Navigator.Item value='/a' href='/a'>
@@ -2302,6 +2359,7 @@ describe('Navigator.Primary group descent', () => {
     render(
       <Navigator value='/a/sub'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Group>
             <Navigator.GroupTitle>Section</Navigator.GroupTitle>
             <Navigator.Item value='/a' href='/a'>
@@ -2349,6 +2407,7 @@ describe('Navigator.Menu + Navigator.Secondary precedence', () => {
   const withBoth = (active: string) => (
     <Navigator value={active}>
       <Navigator.Primary aria-label='Main'>
+        {testBrand}
         <Navigator.Item value='/a'>
           A
           <Navigator.Secondary aria-label='A sections'>
@@ -2415,6 +2474,7 @@ describe('Navigator descendant-aware active matching', () => {
   const tree = (active: string) => (
     <Navigator value={active}>
       <Navigator.Primary aria-label='Primary'>
+        {testBrand}
         <Navigator.Item value='components' href='/components'>
           Components
           <Navigator.Secondary aria-label='Components pages'>
@@ -2506,6 +2566,7 @@ describe('Navigator route-prefix section matching', () => {
   const paneSectionTree = (value: string) => (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Docs'>
+        {testBrand}
         <Navigator.Item value='/components' href='/components'>
           Components
         </Navigator.Item>
@@ -2566,6 +2627,7 @@ describe('Navigator route-prefix section matching', () => {
   const verticalSectionTree = (value: string) => (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Docs'>
+        {testBrand}
         <Navigator.Item value='/foundations' href='/foundations'>
           Foundations
           <Navigator.Secondary aria-label='Foundations pages'>
@@ -2608,11 +2670,48 @@ describe('Navigator route-prefix section matching', () => {
 })
 
 describe('Navigator.Primary direct-children warning', () => {
+  it('warns when there is no Navigator.Brand', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Navigator value='tickets'>
+        <Navigator.Primary aria-label='Primary'>
+          <Navigator.Item value='tickets'>Tickets</Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('Navigator.Primary has no Navigator.Brand')
+    )
+    warn.mockRestore()
+    await flushViewportMeasurement()
+  })
+
+  it('does not count a Brand hidden in a Fragment', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Navigator value='tickets'>
+        <Navigator.Primary aria-label='Primary'>
+          <>
+            <Navigator.Brand>Roadie</Navigator.Brand>
+          </>
+          <Navigator.Item value='tickets'>Tickets</Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('Navigator.Primary has no Navigator.Brand')
+    )
+    warn.mockRestore()
+    await flushViewportMeasurement()
+  })
+
   it('warns when a non-Item element sits at a direct-child position', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <div>Not an item</div>
         </Navigator.Primary>
       </Navigator>
@@ -2631,6 +2730,7 @@ describe('Navigator.Primary direct-children warning', () => {
     render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
+          {testBrand}
           <Navigator.Item value='tickets'>Tickets</Navigator.Item>
           <Navigator.Item value='account' placement='pinned'>
             Account
@@ -2648,6 +2748,7 @@ describe('Navigator.Primary direct-children warning', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/me' href='/me' placement='pinned'>
             Me
           </Navigator.Item>
@@ -2669,6 +2770,7 @@ describe('Navigator.Primary direct-children warning', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Group>
             <Navigator.Item value='/a' href='/a' placement='pinned'>
               A
@@ -2699,6 +2801,7 @@ describe('Navigator collapsed edge circles', () => {
   const barTree = (active: string, onValueChange = vi.fn()) => (
     <Navigator value={active} onValueChange={onValueChange}>
       <Navigator.Primary aria-label='Primary'>
+        {testBrand}
         <Navigator.Item value='a'>A</Navigator.Item>
         <Navigator.Item value='b'>B</Navigator.Item>
         <Navigator.Item value='c'>C</Navigator.Item>
@@ -2716,6 +2819,7 @@ describe('Navigator collapsed edge circles', () => {
   const moreTree = (active: string, withPinned = false) => (
     <Navigator value={active}>
       <Navigator.Primary aria-label='Primary'>
+        {testBrand}
         {['a', 'b', 'c', 'd', 'e', 'f'].map((v) => (
           <Navigator.Item key={v} value={v}>
             {v.toUpperCase()}
@@ -3147,6 +3251,7 @@ describe('Navigator active-tab tap: scroll-on-landing vs navigate-up', () => {
   const sectionTree = (active: string, onValueChange = vi.fn()) => (
     <Navigator value={active} onValueChange={onValueChange}>
       <Navigator.Primary aria-label='Primary'>
+        {testBrand}
         <Navigator.Item value='/components' href='/components'>
           Components
           <Navigator.Secondary aria-label='Components pages'>
@@ -3225,6 +3330,7 @@ describe('pane header inside Navigator', () => {
     render(
       <Navigator value='/'>
         <Navigator.Primary aria-label='Docs'>
+          {testBrand}
           <Navigator.Item value='/' icon={<FakeIcon />}>
             Home
           </Navigator.Item>
@@ -3274,6 +3380,7 @@ describe('active-tab tap on a Pane stack', () => {
   const tree = (onValueChange = vi.fn()) => (
     <Navigator value='/' onValueChange={onValueChange}>
       <Navigator.Primary aria-label='Main'>
+        {testBrand}
         <Navigator.Item value='/' icon={<FakeIcon />}>
           Home
         </Navigator.Item>
@@ -3355,6 +3462,7 @@ describe('Navigator tab icon bounce', () => {
   const tree = () => (
     <Navigator value='/'>
       <Navigator.Primary aria-label='Main'>
+        {testBrand}
         <Navigator.Item value='/' icon={<FakeIcon />}>
           Home
         </Navigator.Item>
@@ -3414,6 +3522,7 @@ describe('Navigator.Content no-panes warning', () => {
     const tree = (children?: ReactNode) => (
       <Navigator value='/a/one'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/a' href='/a'>
             A
             <Navigator.Secondary aria-label='A pages'>
@@ -3558,6 +3667,7 @@ describe('nesting acceptance criteria', () => {
     render(
       <Navigator value='/foundations/colors'>
         <Navigator.Primary aria-label='Docs'>
+          {testBrand}
           <Navigator.Item
             value='/foundations'
             href='/foundations'
@@ -3615,6 +3725,7 @@ describe('per-section stack memory', () => {
   const nav = (value: string) => (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Main'>
+        {testBrand}
         <Navigator.Item value='/components' href='/components'>
           Components
           <Navigator.Secondary aria-label='Component pages'>

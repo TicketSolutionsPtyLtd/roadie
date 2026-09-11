@@ -66,7 +66,8 @@ and pinned and shows icon tiles labelled by a tooltip. Expanded, it stays
 centred and shows labels beside the icons; only when it outgrows the space does
 it top-align and scroll on its own.
 
-`Navigator.Brand` is large-screen only — the tab bar has no brand slot. It
+`Navigator.Brand` is large-screen only — the tab bar has no brand slot. Every
+Navigator has one, and in development `Navigator.Primary` warns without it. It
 links home: `href` defaults to `'/'` and routes through `RoadieLinkProvider`
 like every Navigator destination; pass `href` to point it elsewhere. Its
 content names the link, so label the mark (`alt`, or `role='img'` with an
@@ -128,6 +129,11 @@ function ConsumerNav() {
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
       <Navigator value={active} onValueChange={setActive} className='h-full'>
         <Navigator.Primary aria-label='Main'>
+          <Navigator.Brand>
+            <IconTile intent='brand' emphasis='strong' role='img' aria-label='Oztix'>
+              <TicketIcon weight='bold' />
+            </IconTile>
+          </Navigator.Brand>
           <Navigator.Item value='discover' icon={<MagnifyingGlassIcon />}>
             Discover
           </Navigator.Item>
@@ -194,6 +200,11 @@ function SectionsNav() {
         {(path) => (
           <Navigator value={path} className='h-full'>
             <Navigator.Primary aria-label='Organiser'>
+              <Navigator.Brand href='/events'>
+                <IconTile intent='brand' emphasis='strong' role='img' aria-label='Oztix'>
+                  <TicketIcon weight='bold' />
+                </IconTile>
+              </Navigator.Brand>
               <Navigator.Item value='/events' href='/events' icon={<TicketIcon />}>
                 Events
                 <Navigator.Secondary aria-label='Events pages'>
@@ -262,6 +273,11 @@ function ListFromUrlNav() {
             className='h-full'
           >
             <Navigator.Primary aria-label='Organiser'>
+              <Navigator.Brand href='/events'>
+                <IconTile intent='brand' emphasis='strong' role='img' aria-label='Oztix'>
+                  <TicketIcon weight='bold' />
+                </IconTile>
+              </Navigator.Brand>
               <Navigator.Item value='/events' href='/events' icon={<TicketIcon />}>
                 Events
                 <Navigator.Secondary aria-label='Events pages'>
@@ -360,6 +376,11 @@ function SearchableNav() {
         {(path) => (
           <Navigator value={path} className='h-full'>
             <Navigator.Primary aria-label='Organiser'>
+              <Navigator.Brand href='/events'>
+                <IconTile intent='brand' emphasis='strong' role='img' aria-label='Oztix'>
+                  <TicketIcon weight='bold' />
+                </IconTile>
+              </Navigator.Brand>
               <Navigator.Item value='/events' href='/events' icon={<TicketIcon />}>
                 Events
                 <Navigator.Secondary aria-label='Events pages' searchable>
@@ -427,6 +448,11 @@ function GroupedNav() {
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
       <Navigator value={active} onValueChange={setActive} className='h-full'>
         <Navigator.Primary aria-label='Admin'>
+          <Navigator.Brand>
+            <IconTile intent='brand' emphasis='strong' role='img' aria-label='Oztix'>
+              <TicketIcon weight='bold' />
+            </IconTile>
+          </Navigator.Brand>
           <Navigator.Item value='overview' icon={<MagnifyingGlassIcon />}>
             Overview
           </Navigator.Item>
@@ -489,6 +515,11 @@ function PriorityNav() {
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
       <Navigator value={active} onValueChange={setActive} className='h-full'>
         <Navigator.Primary aria-label='Main'>
+          <Navigator.Brand>
+            <IconTile intent='brand' emphasis='strong' role='img' aria-label='Oztix'>
+              <TicketIcon weight='bold' />
+            </IconTile>
+          </Navigator.Brand>
           <Navigator.Item value='discover' icon={<MagnifyingGlassIcon />}>
             Discover
           </Navigator.Item>
@@ -558,6 +589,11 @@ function OverflowPaneNav() {
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
       <Navigator value={active} onValueChange={setActive} className='h-full'>
         <Navigator.Primary aria-label='Main'>
+          <Navigator.Brand>
+            <IconTile intent='brand' emphasis='strong' role='img' aria-label='Oztix'>
+              <TicketIcon weight='bold' />
+            </IconTile>
+          </Navigator.Brand>
           {items.map(([value, label, icon]) => (
             <Navigator.Item key={value} value={value} icon={icon}>
               {label}
@@ -604,6 +640,11 @@ function MenuNav() {
         {(path) => (
           <Navigator value={path} className='h-full'>
             <Navigator.Primary aria-label='Main'>
+              <Navigator.Brand href='/discover'>
+                <IconTile intent='brand' emphasis='strong' role='img' aria-label='Oztix'>
+                  <TicketIcon weight='bold' />
+                </IconTile>
+              </Navigator.Brand>
               <Navigator.Item value='/discover' href='/discover' icon={<MagnifyingGlassIcon />}>
                 Discover
               </Navigator.Item>
@@ -790,6 +831,14 @@ function BadgeNav() {
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
       <Navigator value={active} onValueChange={setActive} className='h-full'>
         <Navigator.Primary aria-label='Main'>
+          <Navigator.Brand>
+            <IconTile intent='brand' emphasis='strong' role='img' aria-label='Oztix'>
+              <TicketIcon weight='bold' />
+            </IconTile>
+            <span aria-hidden className='hidden truncate text-base font-semibold text-strong navigator-expanded:inline'>
+              Oztix
+            </span>
+          </Navigator.Brand>
           <Navigator.Item value='/home' icon={<MagnifyingGlassIcon />}>
             Home
           </Navigator.Item>
@@ -828,6 +877,11 @@ function SectionOverrideNav() {
         {(path) => (
           <Navigator value={path} className='h-full'>
             <Navigator.Primary aria-label='Documentation'>
+              <Navigator.Brand href='/get-started'>
+                <IconTile intent='brand' emphasis='strong' role='img' aria-label='Oztix'>
+                  <TicketIcon weight='bold' />
+                </IconTile>
+              </Navigator.Brand>
               <Navigator.Item value='/get-started' href='/get-started' icon={<PlayIcon />}>
                 Get started
               </Navigator.Item>
