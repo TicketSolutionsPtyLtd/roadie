@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { NAVIGATOR_EXPANDED_SCOPE } from '@oztix/roadie-core/navigator'
 
 import { Navigator } from '.'
+import { Badge } from '../Badge'
 import { FakeIcon, flushViewportMeasurement, primaryOf } from './testUtils'
 import {
   navigatorCapsuleVariants,
@@ -663,5 +664,110 @@ describe('collapsed labels', () => {
     const trigger = '[data-base-ui-tooltip-trigger]'
     expect(vertical().querySelector(trigger)).not.toBeNull()
     expect(horizontal().querySelector(trigger)).toBeNull()
+  })
+})
+
+function WithBadge(props: { defaultExpanded?: boolean }) {
+  return (
+    <Navigator value='/a' {...props}>
+      <Navigator.Primary aria-label='Main'>
+        <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
+          Home
+        </Navigator.Item>
+        <Navigator.Item
+          value='/inbox'
+          href='/inbox'
+          icon={<FakeIcon />}
+          badge={
+            <Badge intent='danger' emphasis='strong'>
+              3 unread
+            </Badge>
+          }
+        >
+          Inbox
+        </Navigator.Item>
+      </Navigator.Primary>
+    </Navigator>
+  )
+}
+
+function PinnedMenuBadge() {
+  return (
+    <Navigator value='/a'>
+      <Navigator.Primary aria-label='Main'>
+        <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
+          Home
+        </Navigator.Item>
+        <Navigator.Item
+          value='account'
+          icon={<FakeIcon />}
+          placement='pinned'
+          badge={<Badge intent='danger'>Action needed</Badge>}
+        >
+          Account
+          <Navigator.Menu>
+            <Navigator.MenuItem href='/profile'>Profile</Navigator.MenuItem>
+          </Navigator.Menu>
+        </Navigator.Item>
+      </Navigator.Primary>
+    </Navigator>
+  )
+}
+
+const dotOf = (tile: HTMLElement) => tile.querySelector('[data-slot="badge"]')
+
+describe('badges', () => {
+  it('shrinks to a dot in the tile corner while collapsed, still announced', async () => {
+    render(<WithBadge />)
+    await flushViewportMeasurement()
+    const tile = within(region('cluster')).getByRole('link', { name: /Inbox/ })
+    expect(dotOf(tile)).toHaveClass('size-2.5', 'absolute', 'end-1', 'top-1')
+    expect(within(tile).getByText('3 unread')).toHaveClass('sr-only')
+    expect(tile).toHaveAccessibleName('Inbox 3 unread')
+  })
+
+  it('trails the label as declared when expanded', async () => {
+    render(<WithBadge defaultExpanded />)
+    await flushViewportMeasurement()
+    const tile = within(region('cluster')).getByRole('link', { name: /Inbox/ })
+    const badge = within(tile).getByText('3 unread')
+    expect(badge).not.toHaveClass('sr-only')
+    expect(badge).not.toHaveClass('absolute')
+    expect(badge.parentElement).toHaveAttribute(
+      'data-slot',
+      'navigator-item-trailing'
+    )
+    expect(tile).toHaveAccessibleName('Inbox 3 unread')
+  })
+
+  it('is a dot on the phone bar', async () => {
+    render(<WithBadge />)
+    await flushViewportMeasurement()
+    const tab = within(horizontal()).getByRole('link', { name: /Inbox/ })
+    expect(dotOf(tab)).toHaveClass('size-2.5', 'absolute', 'end-1', 'top-1')
+    expect(tab).toHaveAccessibleName('Inbox 3 unread')
+  })
+
+  it('is a dot on a pinned menu tile and the bar circle', async () => {
+    render(<PinnedMenuBadge />)
+    await flushViewportMeasurement()
+    const tile = within(region('pinned')).getByRole('button', {
+      name: 'Account Action needed'
+    })
+    expect(dotOf(tile)).toHaveClass('absolute', 'end-1', 'top-1')
+    const circle = horizontal().querySelector<HTMLElement>(
+      '[data-slot="navigator-primary-circle"]'
+    )!
+    const tab = within(circle).getByRole('button', {
+      name: 'Account Action needed'
+    })
+    expect(dotOf(tab)).toHaveClass('absolute', 'end-1', 'top-1')
+  })
+
+  it('types badge as a Badge element', () => {
+    // @ts-expect-error a string can't be given hideLabel
+    ;<Navigator.Item value='/x' badge='3'>
+      X
+    </Navigator.Item>
   })
 })

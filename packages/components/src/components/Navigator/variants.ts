@@ -232,7 +232,7 @@ export const navigatorItemVariants = cva(
 
 // A transition, not `starting:`: the label is always rendered, so @starting-style never fires.
 export const navigatorItemLabelClass =
-  'sr-only opacity-0 navigator-expanded:not-sr-only navigator-expanded:truncate navigator-expanded:opacity-100 motion-safe:navigator-expanded:transition-opacity'
+  'sr-only opacity-0 navigator-expanded:not-sr-only navigator-expanded:max-w-full navigator-expanded:truncate navigator-expanded:opacity-100 motion-safe:navigator-expanded:transition-opacity'
 
 // Opacity always fades; translate slides only once settled, so a pill that
 // appears (or moves between vertical tracks) cross-fades in place.

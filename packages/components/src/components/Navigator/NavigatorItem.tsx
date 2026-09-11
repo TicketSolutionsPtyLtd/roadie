@@ -1,10 +1,11 @@
 'use client'
 
-import { type ReactNode, use, useEffect } from 'react'
+import { type ReactElement, type ReactNode, use, useEffect } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isDev } from '../../utils/isDev'
+import type { BadgeProps } from '../Badge'
 import {
   NavigatorContext,
   isActiveValue,
@@ -17,7 +18,7 @@ import type {
   NavigatorPlacement,
   NavigatorVisibilityPriority
 } from './mobileSlots'
-import { presentNavIcon } from './presentNavIcon'
+import { badgeDot, presentNavIcon } from './presentNavIcon'
 import { rememberedHref } from './sectionMemory'
 import {
   firstSecondaryHref,
@@ -25,7 +26,11 @@ import {
   splitItemChildren,
   textOf
 } from './splitSecondary'
-import { navigatorItemLabelClass, navigatorItemVariants } from './variants'
+import {
+  navigatorItemLabelClass,
+  navigatorItemTrailingVariants,
+  navigatorItemVariants
+} from './variants'
 
 export type NavigatorItemProps = {
   /** Identifies this destination against Navigator's `value`; unique across the tree. */
@@ -34,8 +39,8 @@ export type NavigatorItemProps = {
   href?: string
   /** Leading icon. Phosphor `Icon`-suffixed export, sized with className. */
   icon?: ReactNode
-  /** Count or status shown alongside the label. */
-  badge?: ReactNode
+  /** A `Badge`. Collapsed and on the phone bar it shrinks to a dot in the corner (`hideLabel`); expanded it trails the label as declared. */
+  badge?: ReactElement<BadgeProps>
   /** `pinned` anchors it to the vertical navigation's bottom and the bar's trailing circle. @default 'automatic' */
   placement?: NavigatorPlacement
   /** Which items stay visible when space runs out; falls back to the group's. @default 'automatic' */
@@ -49,6 +54,7 @@ export function NavigatorItem({
   value,
   href,
   icon,
+  badge,
   className,
   children,
   onClick
@@ -58,7 +64,8 @@ export function NavigatorItem({
     setValue,
     sectionMemory,
     openMenu,
-    overflowOpen
+    overflowOpen,
+    expanded
   } = use(NavigatorContext)
   const { label, secondary, menu: declaredMenu } = splitItemChildren(children)
   const isSection = secondary.length > 0
@@ -105,6 +112,21 @@ export function NavigatorItem({
       >
         {label}
       </span>
+      {badge ? (
+        <>
+          {' '}
+          {expanded ? (
+            <span
+              data-slot='navigator-item-trailing'
+              className={navigatorItemTrailingVariants()}
+            >
+              {badge}
+            </span>
+          ) : (
+            badgeDot(badge)
+          )}
+        </>
+      ) : null}
     </>
   )
 
