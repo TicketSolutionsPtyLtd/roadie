@@ -60,6 +60,20 @@ describe('Navigator.Menu', () => {
     )
   })
 
+  it('opens from the keyboard with the tooltip merged onto the tile', async () => {
+    const user = userEvent.setup()
+    render(<Tree />)
+    await flushViewportMeasurement()
+    const trigger = within(vertical()).getByRole('button', { name: 'Account' })
+    expect(trigger).toHaveAttribute('data-slot', 'navigator-item')
+    expect(trigger).toHaveAttribute('data-base-ui-tooltip-trigger')
+    trigger.focus()
+    await user.keyboard('{Enter}')
+    const menu = await screen.findByRole('menu')
+    expect(trigger).toHaveAttribute('aria-expanded', 'true')
+    expect(trigger).toHaveAttribute('aria-controls', menu.id)
+  })
+
   it('names the menu after its item unless it declares a label', async () => {
     const user = userEvent.setup()
     render(<Tree />)
