@@ -436,6 +436,37 @@ describe('List', () => {
       expect(title.id).not.toBe('')
     })
 
+    it('keeps a consumer id on the title and labels the section with it', () => {
+      render(
+        <List>
+          <List.Group>
+            <List.GroupTitle id='inputs-title'>Inputs</List.GroupTitle>
+            <List.Item title='Button' />
+          </List.Group>
+        </List>
+      )
+      expect(screen.getByText('Inputs')).toHaveAttribute('id', 'inputs-title')
+      expect(screen.getByRole('list', { name: 'Inputs' })).toHaveAttribute(
+        'aria-labelledby',
+        'inputs-title'
+      )
+    })
+
+    it('insets the title to the rows’ text column, bleeding only for subtler', () => {
+      render(
+        <List>
+          <List.Group>
+            <List.GroupTitle>Inputs</List.GroupTitle>
+            <List.Item title='Button' />
+          </List.Group>
+        </List>
+      )
+      expect(screen.getByText('Inputs')).toHaveClass(
+        'px-3',
+        'group-data-[emphasis=subtler]/list:-mx-3'
+      )
+    })
+
     it('renders the title as a heading by default', () => {
       render(
         <List>

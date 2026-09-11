@@ -32,7 +32,8 @@ export type ListGroupProps = {
  * section instead of above it. See COMPOUND_PATTERNS.md §1.2.
  */
 export function ListGroup({ children, className }: ListGroupProps) {
-  const titleId = useId()
+  const generatedId = useId()
+  let titleId = generatedId
   let title: ReactNode = null
   const rows: ReactNode[] = []
 
@@ -44,6 +45,7 @@ export function ListGroup({ children, className }: ListGroupProps) {
       // The id is injected rather than required from the consumer: the
       // association is what makes the section announce as a named list, and
       // it should not be something a call site can forget.
+      titleId = child.props.id ?? generatedId
       title = cloneElement(child, { id: titleId })
       return
     }

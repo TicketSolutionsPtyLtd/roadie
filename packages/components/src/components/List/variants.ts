@@ -137,7 +137,8 @@ export const listGroupVariants = cva(['grid gap-1.5 mt-6'])
 // in the same column as their titles — including when the group is a card,
 // which the title sits above rather than inside.
 export const listGroupTitleVariants = cva([
-  'text-sm font-semibold text-subtler'
+  'px-3 text-sm font-semibold text-subtler',
+  'group-data-[emphasis=subtler]/list:-mx-3'
 ])
 
 // One row. The surface comes from the emphasis shortcuts rather than
