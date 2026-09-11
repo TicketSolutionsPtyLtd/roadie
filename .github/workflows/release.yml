@@ -18,6 +18,10 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    # npm's trusted publisher for all three packages is pinned to this
+    # environment. GitHub only puts an `environment` claim in the OIDC token
+    # when the job declares one, and npm rejects the token without it.
+    environment: production
     permissions:
       contents: write
       pull-requests: write
@@ -39,6 +43,7 @@ jobs:
           pr-title: 'chore: version packages'
           commit-message: 'chore: version packages'
         env:
+          # No NODE_AUTH_TOKEN: publishing authenticates through OIDC, so the
+          # secret is dead weight. Provenance is automatic under trusted
+          # publishing, so that flag is redundant too.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
