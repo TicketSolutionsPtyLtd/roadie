@@ -1,0 +1,165 @@
+export const metadata = {
+  title: 'Duration',
+  description: 'A length of time, rendered as a time element',
+  status: 'beta',
+  category: 'Content'
+}
+
+import { Guideline } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Duration
+
+A length of time, rendered as a `time` element.
+
+## Import
+
+```tsx
+import { Duration } from '@oztix/roadie-components/duration'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<Duration of='PT2H30M' />
+```
+
+### The length
+
+`of` takes three forms. A string is an ISO 8601 duration, which is the language the `time` element's own attribute speaks. A number is milliseconds, because that is what `end - start` gives you. The object form is what `Temporal.Duration` exposes, so a Temporal value works here today.
+
+```tsx-live
+<div className='grid gap-2'>
+  <Duration of='PT2H30M' />
+  <Duration of={9000000} />
+  <Duration of={{ hours: 2, minutes: 30 }} />
+</div>
+```
+
+Years and months render nothing. Neither has a fixed length, so `P1M` cannot become a number without a calendar and a start date. For a run of calendar days use `formatDurationDays`, which counts them against real dates.
+
+### Units
+
+Coarse on purpose. Seconds appear only under a minute, where they are the whole answer. Minutes fall away once there are days.
+
+```tsx-live
+<div className='grid gap-2'>
+  <Duration of='PT30S' />
+  <Duration of='PT45M' />
+  <Duration of='PT2H' />
+  <Duration of='PT2H30M' />
+  <Duration of='P3D' />
+  <Duration of='P3DT4H' />
+</div>
+```
+
+### Style
+
+One scale, from spelled out to compressed, the same shape as the date scale.
+
+```tsx-live
+<div className='grid gap-2'>
+  <Duration of='PT2H30M' />
+  <Duration of='PT2H30M' durationStyle='medium' />
+  <Duration of='PT2H30M' durationStyle='short' />
+</div>
+```
+
+## Guidelines
+
+A duration is a length, not a moment. Four of them come up and they are not interchangeable.
+
+| What you mean              | Use                                  | Reads                | When                                                       |
+| -------------------------- | ------------------------------------ | -------------------- | ---------------------------------------------------------- |
+| How long a thing runs      | `Duration`                           | `2 hours 30 minutes` | A running time, a support window. Measured, not scheduled. |
+| How many days a run covers | `formatDurationDays`                 | `3 days`             | A festival or a season. Calendar days, not elapsed hours.  |
+| How much time is left      | [`Countdown`](/components/countdown) | `4:32`               | A held cart, a registration opening.                       |
+| The machine value          | `formatMachineDuration`              | `PT2H30M`            | A `time` element carrying a length rather than a moment.   |
+
+### Picking a style
+
+The style is a question about the room the surface has, not about the value. The
+same two and a half hours is `2 hours 30 minutes` in a sentence and `2h 30m` in
+a badge.
+
+| Style    | Reads                | Reach for it when                                                                       |
+| -------- | -------------------- | --------------------------------------------------------------------------------------- |
+| `long`   | `2 hours 30 minutes` | The default. Prose, a detail line, anywhere the reader is reading rather than scanning. |
+| `medium` | `2 hrs 30 mins`      | A card, a table cell, a list row. Space is tight but it still has to read as words.     |
+| `short`  | `2h 30m`             | A badge, a chip, a chart tooltip, a dense column. Every character is paid for.          |
+
+Under a second, each style has its own way of saying so: `less than a minute`,
+`under a min`, `0m`. None of them say `0 minutes`, because the answer is nearly
+nothing rather than nothing. Between one second and a minute the seconds are
+the whole answer, so `PT30S` reads `30 seconds`.
+
+Pick one style per view and keep it. Two registers in one list reads as two
+systems, which is the same mistake as mixing an abbreviated weekday with a full
+month. See [Date and time](/foundations/date-and-time).
+
+<Guideline
+  title='Say the largest unit that answers the question'
+  description='A running time is planning information. A person deciding whether to book a sitter does not need the seconds.'
+>
+  <Guideline.Do code={`2 hours\n1 hour 30 minutes\n3 days`}>
+    Enough to plan around. Nothing spare.
+  </Guideline.Do>
+  <Guideline.Dont code={`2 hours 31 minutes 12 seconds\n150 minutes\n0.5 days`}>
+    False precision. A unit nobody converts in their head. And a fraction of a
+    unit, which is not how anyone says it.
+  </Guideline.Dont>
+</Guideline>
+
+Attach it to the range it describes with a middot, which is the separator for a date and an adjacent fact.
+
+```tsx
+Fri 27 to Sun 29 Nov 2026 · 3 days
+Doors 7:30pm · runs 2 hours
+```
+
+### Days are not hours
+
+Do not compute a day count by passing elapsed milliseconds. A festival running Friday night to Sunday night is three days, not two and a bit. That is `formatDurationDays`, which counts calendar days and knows a set finishing at 3am belongs to the night before.
+
+It returns nothing in two cases, and both are deliberate. A range inside a single day has no day count worth stating. So does a range past 30 days, because `365 days` tells a reader nothing they wanted to know. Render whatever you get back, and show nothing when it is `null`.
+
+On a range, [`DateTime`](/components/date-time) calls it for you through `showDuration`.
+
+## Without React
+
+Reach for the formatter where the output never becomes an element on the page. A tooltip string, an export column, a `datetime` attribute written by hand.
+
+```tsx
+import {
+  formatDuration,
+  formatDurationDays,
+  formatMachineDuration
+} from '@oztix/roadie-core/datetime'
+
+formatDuration('PT2H30M')
+// → '2 hours 30 minutes'
+
+formatDuration(endsAt - startsAt, 'short')
+// → '2h 30m'
+
+formatDurationDays(startsAt, endsAt, { timeZone: venue.timeZone })
+// → '3 days', or null inside one day and past 30
+
+formatMachineDuration({ hours: 2, minutes: 30 })
+// → 'PT2H30M'
+```
+
+`formatDurationDays` takes a `timeZone` because a calendar day only exists in one. The other two take the same three forms as `of`.
+
+## Accessibility
+
+The `dateTime` attribute is an ISO 8601 duration, so the markup says how long rather than when.
+
+```html
+<time datetime="PT2H30M">2 hours 30 minutes</time>
+<time datetime="P3D">3 days</time>
+```
+
+<PropsDefinitions componentPath='packages/components/src/components/Duration/index.tsx' />

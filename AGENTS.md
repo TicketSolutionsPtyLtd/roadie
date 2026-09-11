@@ -233,7 +233,9 @@ the brand radius stays consistent across components.
 ### Iconography
 
 - **Library:** Phosphor Icons (`@phosphor-icons/react`)
-- **Weight:** Always `bold`. Use `fill` only for active/selected states.
+- **Weight:** `bold` by default. `fill` only for active/selected states, and
+  `duotone` only for large decorative icons above 48px, such as inside a big
+  `IconTile` or an `EmptyState`. Never Regular, Thin or Light.
 - **Import convention:** Use the `Icon` suffix export — `import { HeartIcon } from '@phosphor-icons/react/ssr'` (bare names like `Heart` are deprecated)
 - **SSR:** Use `@phosphor-icons/react/ssr` in server components, `@phosphor-icons/react` in client components
 - **Sizing:** XS=`size-3` (badges, tags), SM=`size-4` (buttons, inline — default), MD=`size-5` (nav, standalone), LG=`size-6` (headers, cards). Use Tailwind `className`, not the Phosphor `size` prop.

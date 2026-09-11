@@ -1,0 +1,291 @@
+export const metadata = {
+  title: 'DateTime',
+  description: 'A date or a time, rendered as a time element',
+  status: 'beta',
+  category: 'Content'
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# DateTime
+
+A moment, or a span between two, rendered as a `time` element.
+
+## Import
+
+```tsx
+import { DateTime } from '@oztix/roadie-components/date-time'
+```
+
+## Examples
+
+### Default
+
+Renders the `long` style. The `timeZone` is the venue's for an event time, and the viewer's for a timestamp. See [Date and time](/foundations/date-and-time).
+
+```tsx-live
+<DateTime at={new Date('2026-11-27T09:30:00Z')} timeZone='Australia/Brisbane' />
+```
+
+### Styles
+
+`dateStyle` and `timeStyle` are independent. Any date style can carry a time.
+
+```tsx-live
+<div className='grid gap-2'>
+  <DateTime
+    at={new Date('2026-11-27T09:30:00Z')}
+    timeZone='Australia/Brisbane'
+    dateStyle='full'
+  />
+  <DateTime
+    at={new Date('2026-11-27T09:30:00Z')}
+    timeZone='Australia/Brisbane'
+    dateStyle='long'
+  />
+  <DateTime
+    at={new Date('2026-11-27T09:30:00Z')}
+    timeZone='Australia/Brisbane'
+    dateStyle='medium'
+  />
+  <DateTime
+    at={new Date('2026-11-27T09:30:00Z')}
+    timeZone='Australia/Brisbane'
+    dateStyle='short'
+  />
+</div>
+```
+
+### With a time
+
+```tsx-live
+<div className='grid gap-2'>
+  <DateTime
+    at={new Date('2026-11-27T09:30:00Z')}
+    timeZone='Australia/Brisbane'
+    timeStyle='medium'
+  />
+  <DateTime
+    at={new Date('2026-11-27T09:30:00Z')}
+    timeZone='Australia/Brisbane'
+    timeStyle='short'
+  />
+</div>
+```
+
+### Venue timezone
+
+The same instant, in two venues. This is why `timeZone` is required.
+
+```tsx-live
+<div className='grid gap-2'>
+  <DateTime
+    at={new Date('2026-11-27T15:00:00Z')}
+    timeZone='Australia/Perth'
+    timeStyle='medium'
+  />
+  <DateTime
+    at={new Date('2026-11-27T15:00:00Z')}
+    timeZone='Australia/Sydney'
+    timeStyle='medium'
+  />
+</div>
+```
+
+### A range
+
+Pass `to` for a span. It renders one `time` element per end, joined by the word "to", because HTML has no element for a range. The ends are formatted together, so the year rides on the later date.
+
+```tsx-live
+<div className='grid gap-2'>
+  <DateTime
+    at={new Date('2026-11-27T09:30:00Z')}
+    to={new Date('2026-11-29T12:00:00Z')}
+    timeZone='Australia/Brisbane'
+  />
+  <DateTime
+    at={new Date('2026-11-27T09:30:00Z')}
+    to={new Date('2026-11-29T12:00:00Z')}
+    timeZone='Australia/Brisbane'
+    showDuration
+  />
+</div>
+```
+
+`showDuration` counts calendar days rather than elapsed hours, so a run from Friday night to Sunday night is three days. It shows nothing for a range inside a single day, and nothing past 30 days, where a count stops telling the reader anything.
+
+### One night
+
+A gig running 10pm to 3am is Saturday's gig. Repeating the date makes it look like a two day event, so `sameNight` says the date once and leaves the end as a bare time. Both `time` elements still carry their real instant, so the markup keeps the truth the text compresses.
+
+```tsx-live
+<div className='grid gap-2'>
+  <DateTime
+    at={new Date('2026-11-28T12:00:00Z')}
+    to={new Date('2026-11-28T17:00:00Z')}
+    timeZone='Australia/Brisbane'
+    timeStyle='medium'
+  />
+  <DateTime
+    at={new Date('2026-11-28T12:00:00Z')}
+    to={new Date('2026-11-28T17:00:00Z')}
+    timeZone='Australia/Brisbane'
+    timeStyle='medium'
+    sameNight
+  />
+</div>
+```
+
+This is a fact about the event, not a formatting choice, so it is passed in rather than worked out here. Whether a programme belongs to the night before is a business rule, and where a night ends is a question only the event can answer. A club night and a family show would draw the line differently.
+
+### Relative
+
+For timestamps only. The text re-renders on a timer, and the absolute date stays in `title`.
+
+```tsx-live
+<div className='grid gap-2'>
+  <DateTime
+    at={new Date(Date.now() - 3 * 60000)}
+    timeZone='Australia/Brisbane'
+    relative
+  />
+  <DateTime
+    at={new Date(Date.now() - 5 * 60 * 60000)}
+    timeZone='Australia/Brisbane'
+    relative
+  />
+  <DateTime
+    at={new Date(Date.now() - 26 * 60 * 60000)}
+    timeZone='Australia/Brisbane'
+    relative
+  />
+</div>
+```
+
+## Guidelines
+
+Set `timeZone` from the moment itself. An event time belongs to its venue. A timestamp belongs to whoever is reading it, so use `viewerTimeZone()`.
+
+```tsx
+import { viewerTimeZone } from '@oztix/roadie-core/datetime'
+
+// An event time belongs to the venue
+<DateTime at={event.startsAt} timeZone={event.venue.timeZone} timeStyle='medium' />
+
+// A timestamp belongs to the reader
+<DateTime at={note.addedAt} timeZone={viewerTimeZone()} relative />
+```
+
+Use `relative` only for timestamps. Something a person has to turn up to wants a date, not a countdown.
+
+### Picking a style
+
+`dateStyle` and `timeStyle` are independent, and both read as one scale from
+spelled out to compressed. Pick each from what the reader needs, not from the
+space available.
+
+| `dateStyle` | Reads                      | Reach for it when                                               |
+| ----------- | -------------------------- | --------------------------------------------------------------- |
+| `full`      | `Friday, 27 November 2026` | The date is the point of the page, with room around it.         |
+| `long`      | `Fri 27 Nov 2026`          | The default. Lists, cards, table rows, summaries.               |
+| `medium`    | `27 Nov 2026`              | The weekday does not help. Order dates, settlement dates.       |
+| `short`     | `27 Nov`                   | Context already supplies the year. Chart ticks, group headings. |
+| `iso`       | `2026-11-27`               | Exports and filenames. Never shown to a customer.               |
+
+| `timeStyle` | Reads           | Reach for it when                                                |
+| ----------- | --------------- | ---------------------------------------------------------------- |
+| `long`      | `7:30pm AEDT`   | The reader may be elsewhere and has to act on it.                |
+| `medium`    | `7:30pm`        | The default. The reader is in the venue's zone, or it is nearby. |
+| `short`     | `7:30pm`, `7pm` | A dense row. The one style that drops the zero minutes.          |
+| `numeric`   | `19:30`         | Charts, dense tables, exports. A buyer never meets it.           |
+| _(omitted)_ |                 | The date alone is the answer.                                    |
+
+Omit `timeStyle` unless the reader can act on the time. A date range needs no
+`12:00am` on either end.
+
+### The year looks after itself
+
+The year is dropped when it is the current year and the date stands alone, and
+kept in a list where siblings may span years. `context` decides which, and it
+defaults to `'list'`, so a forgotten context gives a slightly verbose date
+rather than an ambiguous one. Pass `context='standalone'` where the date is the
+only one on the page.
+
+For the reasoning behind any of this, see [Date and time](/foundations/date-and-time).
+
+## Render
+
+Swap the element with `render`, in the same element, component or function form every Roadie component takes.
+
+Inside an SVG chart a `time` element is not valid, so an axis tick has to be a text node. Use the function form there to drop the machine-readable attribute, since only `time` can carry one.
+
+```tsx
+<DateTime
+  at={point.at}
+  timeZone={venue.timeZone}
+  dateStyle='short'
+  timeStyle='numeric'
+  render={({ dateTime, ...rest }) => <text {...rest} />}
+/>
+```
+
+On a range, `render` swaps the wrapper rather than the `time` elements inside it.
+
+## Without React
+
+Every prop on this component is a thin call into a formatter, and the formatters are exported. Reach for one only where the output never becomes an element on the page: an `aria-label` or a `title`, a spreadsheet cell or a filename, an API payload or a document title, a server-rendered template.
+
+```tsx
+import {
+  formatDateTime,
+  formatIso,
+  formatLong,
+  formatMachine,
+  formatTimeRange,
+  viewerTimeZone
+} from '@oztix/roadie-core/datetime'
+
+formatLong(event.startsAt, { timeZone: event.venue.timeZone })
+// → 'Fri 27 Nov 2026'
+
+formatDateTime(event.startsAt, {
+  timeZone,
+  dateStyle: 'short',
+  timeStyle: 'short'
+})
+// → '27 Nov, 7:30pm'
+
+formatTimeRange(doorsAt, closesAt, { timeZone })
+// → '7:30pm to 11:00pm'
+```
+
+`formatFull`, `formatLong`, `formatMedium`, `formatShort` and `formatIso` are named presets over `formatDateTime`. Reach for the core function when you need a pairing the presets do not cover.
+
+Three of them answer questions the component cannot.
+
+| Function          | For                                                                                   |
+| ----------------- | ------------------------------------------------------------------------------------- |
+| `formatTimeRange` | Two times where the date is already established. No component renders this.           |
+| `formatIso`       | An export cell or a filename. Sorts lexicographically, and never shown to a customer. |
+| `formatMachine`   | A `datetime` attribute you are writing by hand. Carries the offset.                   |
+
+`formatIso` and `formatMachine` look similar and are not interchangeable. `formatIso` renders `2026-11-27` on its own, or `2026-11-27 19:30` when a `timeStyle` comes with it: a space and no offset, which is right for a spreadsheet and wrong for markup. `formatMachine` renders `2026-11-27T19:30:00+10:00`, which is the only one of the two that identifies an instant.
+
+`formatDateRangeParts` returns each end separately, so a caller outside React can put each one in its own `time` element the way this component does.
+
+Skip `formatRelative` in a server-rendered template. It is stale the moment it is sent, and there is nothing to re-render it.
+
+## Accessibility
+
+The `dateTime` attribute is set for you. With a time it carries the zone's offset, so the markup identifies an instant. Without one it is a plain calendar date, which genuinely has no zone.
+
+```html
+<time datetime="2026-11-27T19:30:00+10:00">Fri 27 Nov 2026, 7:30pm</time>
+<time datetime="2026-11-27">Fri 27 Nov 2026</time>
+```
+
+Writing that value by hand is easy to get wrong, and wrong silently. A local time with no offset parses to a different instant in every timezone.
+
+Relative text renders on the server as the absolute date and swaps after mount. That avoids a hydration mismatch without hiding real ones.
+
+<PropsDefinitions componentPath='packages/components/src/components/DateTime/index.tsx' />

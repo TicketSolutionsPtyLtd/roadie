@@ -450,6 +450,37 @@ function ComponentSkeleton({ name }: { name: string }) {
           <div className='mt-1 h-6 w-20 emphasis-normal rounded-full' />
         </div>
       )
+    case 'calendar-tile':
+      return (
+        <div className='grid w-14 overflow-hidden rounded-xl emphasis-subtle text-center intent-accent'>
+          <div className='emphasis-strong py-0.5 text-[10px] leading-none font-bold tracking-wide'>
+            NOV
+          </div>
+          <div className='py-1.5 text-xl leading-none font-bold'>27</div>
+        </div>
+      )
+    case 'date-time':
+      return (
+        <div className='grid w-40 justify-items-center gap-1.5'>
+          <p className='text-sm font-semibold text-strong'>Fri 27 Nov 2026</p>
+          <p className='text-xs text-subtle'>7:30pm AEDT</p>
+        </div>
+      )
+    case 'countdown':
+      return (
+        <div className='flex items-center gap-2 rounded-full emphasis-subtle px-3 py-1 intent-danger'>
+          <div className='size-1.5 rounded-full bg-current' />
+          <span className='text-sm font-semibold tabular-nums'>4:32</span>
+        </div>
+      )
+    case 'duration':
+      return (
+        <div className='flex items-center gap-2'>
+          <Skel className='h-2 w-14' />
+          <span className='text-xs text-subtle'>&middot;</span>
+          <span className='text-sm font-semibold text-strong'>2 hours</span>
+        </div>
+      )
     default:
       return (
         <div className='grid w-40 gap-1.5'>

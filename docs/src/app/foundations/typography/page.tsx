@@ -326,6 +326,34 @@ export default function TypographyPage() {
         </div>
       </section>
 
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>Numerals</h2>
+        <p className='text-subtle'>
+          Intermission has two sets of figures. Proportional is the default, and
+          each digit takes the width its shape wants. Tabular gives every digit
+          the same width, so values line up in a column.
+        </p>
+        <Guideline
+          title='Tabular figures where numbers stack, proportional where they do not'
+          description='Equal-width digits are for columns and ticks. On a large standalone figure they read as gappy, because the 1s carry the same width as the 0s with nothing to line up against.'
+        >
+          <Guideline.Do
+            code={`table column   tabular-nums\naxis ticks     tabular-nums\nticking clock  tabular-nums\nhero figure    proportional`}
+          >
+            Tabular where values sit above one another, or where a digit changes
+            under the eye. Proportional everywhere else.
+          </Guideline.Do>
+          <Guideline.Dont code={`hero figure    tabular-nums`}>
+            A large static number with gaps where the narrow digits are.
+          </Guideline.Dont>
+        </Guideline>
+        <p className='text-subtle'>
+          A ticking countdown is the exception that proves the rule. Its digits
+          do not align with anything, but they change while somebody is
+          watching, so tabular figures stop the row shifting on every tick.
+        </p>
+      </section>
+
       {/* Guidelines */}
       <section className='grid gap-6'>
         <h2 className='text-display-ui-3 text-strong'>Guidelines</h2>

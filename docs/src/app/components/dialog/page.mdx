@@ -226,7 +226,14 @@ Dialog is a compound component. Use `Dialog.Header`, `Dialog.Body`, and `Dialog.
         <Ticket weight='duotone' />
       </IconTile>
       <Dialog.Title>Order #1024</Dialog.Title>
-      <Dialog.Description>Placed on 14 June 2026</Dialog.Description>
+      <Dialog.Description>
+        Placed on{' '}
+        <DateTime
+          at={new Date('2026-06-14T04:30:00Z')}
+          timeZone='Australia/Brisbane'
+          dateStyle='medium'
+        />
+      </Dialog.Description>
     </Dialog.Header>
     <Dialog.Body>
       <p className='text-sm text-subtle text-center'>Two tickets to the Saturday show, collected at the door.</p>
