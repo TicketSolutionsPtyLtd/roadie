@@ -231,7 +231,7 @@ export function NavigatorPrimary({
   )
   const pinnedIsActive =
     pinnedTab !== undefined && isSectionActive(pinnedTab, activeValue)
-  // An open disclosure takes currency from every route tab until it closes.
+  // An open disclosure takes the pill from every route tab; only More also takes aria-current.
   const disclosureOpen = overflowOpen || openMenu !== null
   // The pinned circle already sits at the trailing edge, so it is the right circle.
   const activeIsRight = pinnedTab ? pinnedIsActive : hasMore && foldedIsActive
@@ -303,7 +303,7 @@ export function NavigatorPrimary({
             {...tabProps}
             href={undefined}
             active={openMenu === menuId('horizontal', tab.value)}
-            isPage={false}
+            current={false}
             onSelect={undefined}
             onClick={() => setOverflowOpen(false)}
           />
@@ -402,6 +402,7 @@ export function NavigatorPrimary({
               icon: tab.icon,
               href: rememberedHref(sectionMemory, tab.value, tab.href, active),
               active: active && !disclosureOpen,
+              current: active && !overflowOpen,
               isPage: isActiveValue(tab.value, activeValue),
               collapsed,
               circleSide: isLeftCircle ? 'left' : undefined,
@@ -441,6 +442,7 @@ export function NavigatorPrimary({
                 pinnedIsActive
               ),
               active: pinnedIsActive && !disclosureOpen,
+              current: pinnedIsActive && !overflowOpen,
               isPage: isActiveValue(pinnedTab.value, activeValue),
               pinned: true,
               index: 0,
