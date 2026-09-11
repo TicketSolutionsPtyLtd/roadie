@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { StrictMode, useState } from 'react'
 
 import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -8,7 +8,12 @@ import { NAVIGATOR_EXPANDED_SCOPE } from '@oztix/roadie-core/navigator'
 
 import { Navigator } from '.'
 import { Badge } from '../Badge'
-import { FakeIcon, flushViewportMeasurement, primaryOf } from './testUtils'
+import {
+  FakeIcon,
+  flushViewportMeasurement,
+  primaryOf,
+  withStubLink
+} from './testUtils'
 import {
   navigatorBrandVariants,
   navigatorCapsuleVariants,
@@ -70,13 +75,15 @@ afterEach(() => {
 
 function Six({
   value = '/a',
-  lowGroup = false
+  lowGroup = false,
+  onValueChange
 }: {
   value?: string
   lowGroup?: boolean
+  onValueChange?: (next: string) => void
 }) {
   return (
-    <Navigator value={value}>
+    <Navigator value={value} onValueChange={onValueChange}>
       <Navigator.Primary aria-label='Main'>
         <Navigator.Brand>Logo</Navigator.Brand>
         {['/a', '/b', '/c', '/d'].map((v) => (
@@ -353,6 +360,142 @@ describe('vertical capacity', () => {
     expect(me).not.toHaveAttribute('data-current')
     expect(me).not.toHaveClass('intent-accent')
     expect(me).toHaveAttribute('aria-current', 'page')
+  })
+})
+
+function RoutedSix() {
+  const [value, setValue] = useState('/a')
+  return withStubLink(<Six value={value} onValueChange={setValue} />)
+}
+
+const overflowPane = () =>
+  document.querySelector<HTMLElement>('[data-slot="pane"][id]')!
+
+describe('choosing a primary item closes More', () => {
+  it('moves the pill from the More tile to the chosen cluster item', async () => {
+    const user = userEvent.setup()
+    render(<RoutedSix />)
+    await flushViewportMeasurement()
+    reportClusterHeight(192)
+    const more = within(region('cluster')).getByRole('button', { name: 'More' })
+    await user.click(more)
+    expect(overflowPane()).not.toHaveClass('lg:hidden')
+    const b = within(region('cluster')).getByRole('link', { name: '/b' })
+    await user.click(b)
+    expect(more).toHaveAttribute('aria-expanded', 'false')
+    expect(more).not.toHaveAttribute('data-current')
+    expect(b).toHaveAttribute('data-current')
+    expect(b).toHaveAttribute('aria-current', 'page')
+    expect(overflowPane()).toHaveClass('lg:hidden')
+  })
+
+  it('closes More when the already-current item is chosen', async () => {
+    const user = userEvent.setup()
+    render(withStubLink(<Six />))
+    await flushViewportMeasurement()
+    reportClusterHeight(192)
+    const more = within(region('cluster')).getByRole('button', { name: 'More' })
+    await user.click(more)
+    const a = within(region('cluster')).getByRole('link', { name: '/a' })
+    await user.click(a)
+    expect(more).toHaveAttribute('aria-expanded', 'false')
+    expect(a).toHaveAttribute('data-current')
+  })
+
+  it('closes More when the pinned tile is chosen', async () => {
+    const user = userEvent.setup()
+    render(<RoutedSix />)
+    await flushViewportMeasurement()
+    reportClusterHeight(192)
+    const more = within(region('cluster')).getByRole('button', { name: 'More' })
+    await user.click(more)
+    await user.click(within(region('pinned')).getByRole('link', { name: 'Me' }))
+    expect(more).toHaveAttribute('aria-expanded', 'false')
+    expect(
+      within(region('pinned')).getByRole('link', { name: 'Me' })
+    ).toHaveAttribute('data-current')
+  })
+
+  it('closes More when the value changes from outside, e.g. Back', async () => {
+    const user = userEvent.setup()
+    const { rerender } = render(<Six />)
+    await flushViewportMeasurement()
+    reportClusterHeight(192)
+    const more = within(region('cluster')).getByRole('button', { name: 'More' })
+    await user.click(more)
+    rerender(<Six value='/b' />)
+    expect(more).toHaveAttribute('aria-expanded', 'false')
+    expect(
+      within(region('cluster')).getByRole('link', { name: '/b' })
+    ).toHaveAttribute('data-current')
+  })
+
+  it('brings back the chosen section’s own pane', async () => {
+    function Sectioned() {
+      const [value, setValue] = useState('/a')
+      return withStubLink(
+        <Navigator value={value} onValueChange={setValue}>
+          <Navigator.Primary aria-label='Main'>
+            <Navigator.Brand>Logo</Navigator.Brand>
+            <Navigator.Item
+              value='/s'
+              href='/s'
+              icon={<FakeIcon />}
+              visibilityPriority='high'
+            >
+              Section
+              <Navigator.Secondary aria-label='Section pages'>
+                <Navigator.Item value='/s/one' href='/s/one'>
+                  One
+                </Navigator.Item>
+              </Navigator.Secondary>
+            </Navigator.Item>
+            {['/a', '/b', '/c', '/d', '/e'].map((v) => (
+              <Navigator.Item key={v} value={v} href={v} icon={<FakeIcon />}>
+                {v}
+              </Navigator.Item>
+            ))}
+          </Navigator.Primary>
+          <Navigator.Content />
+        </Navigator>
+      )
+    }
+    const user = userEvent.setup()
+    render(<Sectioned />)
+    await flushViewportMeasurement()
+    reportClusterHeight(192)
+    await user.click(
+      within(region('cluster')).getByRole('button', { name: 'More' })
+    )
+    expect(document.querySelector('[data-navigator-section]')).toBeNull()
+    await user.click(
+      within(region('cluster')).getByRole('link', { name: 'Section' })
+    )
+    expect(
+      document.querySelector('[data-navigator-section="/s"]')
+    ).toBeInTheDocument()
+    expect(overflowPane()).toHaveClass('lg:hidden')
+  })
+
+  it('closes More when a bar tab or the pinned circle is tapped', async () => {
+    const user = userEvent.setup()
+    render(<RoutedSix />)
+    await flushViewportMeasurement()
+    const more = within(horizontal()).getByRole('button', { name: 'More' })
+    await user.click(more)
+    expect(more).toHaveAttribute('aria-expanded', 'true')
+    const b = within(horizontal()).getByRole('link', { name: '/b' })
+    await user.click(b)
+    expect(more).toHaveAttribute('aria-expanded', 'false')
+    expect(b).toHaveAttribute('data-current')
+    expect(overflowPane()).toHaveClass('lg:hidden')
+
+    await user.click(more)
+    expect(more).toHaveAttribute('aria-expanded', 'true')
+    const me = within(horizontal()).getByRole('link', { name: 'Me' })
+    await user.click(me)
+    expect(more).toHaveAttribute('aria-expanded', 'false')
+    expect(me).toHaveAttribute('data-current')
   })
 })
 

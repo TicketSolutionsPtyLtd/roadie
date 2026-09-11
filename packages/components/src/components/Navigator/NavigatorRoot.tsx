@@ -110,6 +110,12 @@ export function NavigatorRoot({
   const [activeSection, setActiveSection] =
     useState<NavigatorActiveSection | null>(null)
   const [overflowOpen, setOverflowOpen] = useState(false)
+  // A new destination from anywhere, Back included, leaves More.
+  const [lastValue, setLastValue] = useState(value)
+  if (lastValue !== value) {
+    setLastValue(value)
+    setOverflowOpen(false)
+  }
   const [overflowItems, setOverflowItemsState] =
     useState<NavigatorOverflowSets>({ horizontal: [], vertical: [] })
   const setOverflowItems = useCallback(

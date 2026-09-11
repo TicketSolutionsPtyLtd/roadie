@@ -530,7 +530,8 @@ render(<PriorityNav />)
 #### Compose the More pane yourself
 
 More opens a list pane — pushed over the stack on a phone, the leading column
-beside your detail from `lg`. Omit it and `Navigator.Content` generates one
+beside your detail from `lg`. Choosing any destination closes it: a row, a
+primary item or tab, or a new `value` from your router, like Back. Omit it and `Navigator.Content` generates one
 titled "More"; declare `Navigator.OverflowPane` with `Navigator.OverflowItems`
 inside to write your own header or add content around the rows.
 
