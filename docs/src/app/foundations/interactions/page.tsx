@@ -678,7 +678,8 @@ export default function InteractionsPage() {
                 <tr>
                   <td className='py-2 pr-4 text-strong'>Select</td>
                   <td className='py-2 font-mono text-xs'>
-                    emphasis-raised border border-normal is-interactive-field
+                    emphasis-raised border border-transparent
+                    is-interactive-field
                   </td>
                 </tr>
                 <tr>
@@ -729,10 +730,8 @@ export default function InteractionsPage() {
                 <td className='py-2 pr-4 font-mono text-xs'>
                   is-interactive-field
                 </td>
-                <td className='py-2 pr-4 font-mono text-xs'>sunken</td>
-                <td className='py-2'>
-                  Add <Code>border border-subtle</Code>
-                </td>
+                <td className='py-2 pr-4 font-mono text-xs'>field</td>
+                <td className='py-2'>&mdash;</td>
               </tr>
               <tr>
                 <td className='py-2 pr-4 text-strong'>Select</td>
@@ -741,7 +740,8 @@ export default function InteractionsPage() {
                 </td>
                 <td className='py-2 pr-4 font-mono text-xs'>raised</td>
                 <td className='py-2'>
-                  Add <Code>border border-normal</Code>
+                  Add <Code>border border-transparent</Code>; the raised shadow
+                  is the edge
                 </td>
               </tr>
               <tr>
@@ -749,10 +749,8 @@ export default function InteractionsPage() {
                 <td className='py-2 pr-4 font-mono text-xs'>
                   is-interactive-field
                 </td>
-                <td className='py-2 pr-4 font-mono text-xs'>sunken</td>
-                <td className='py-2'>
-                  Add <Code>border border-subtle</Code>
-                </td>
+                <td className='py-2 pr-4 font-mono text-xs'>field</td>
+                <td className='py-2'>&mdash;</td>
               </tr>
               <tr>
                 <td className='py-2 pr-4 text-strong'>Clickable card</td>
