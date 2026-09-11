@@ -1,5 +1,8 @@
 # Navigator Phase 3 — queued work
 
+> **Status (2026-09-11):** the tab bar and Q1–Q4 have all landed. Q1's
+> reduced-motion behaviour is still unverified with the OS setting on.
+
 Running order. Items are taken top-down; nothing here is started until the item
 above it is merged-ready.
 
