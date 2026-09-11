@@ -140,13 +140,11 @@ export function NavigatorContent({
     activeSection !== null &&
     (declaredSecondaryPanes.has(activeSection.value) ||
       directOverrides.includes(activeSection.value))
-  const declaresOverride =
-    directOverrides.length > 0 || declaredSecondaryPanes.size > 0
 
   // Reads the ref, not `ordered`: child effects have registered by now, the render hadn't.
   const hasChildren = children != null && children !== false
   useEffect(() => {
-    if (!isDev() || !hasChildren || declaresOverride) return
+    if (!isDev() || !hasChildren) return
     const declared = Array.from(panes.current.values()).some(
       (pane) => pane.kind === 'pane' || pane.kind === 'overflow'
     )
@@ -158,7 +156,7 @@ export function NavigatorContent({
         'wrapper that suppresses effects, or you are rendering a Pane ' +
         'from a server component, that is the cause.'
     )
-  }, [hasChildren, declaresOverride, version])
+  }, [hasChildren, version])
 
   const topPrimaryNav =
     ordered.find((pane) => pane.id === topId)?.primaryNav ?? 'auto'

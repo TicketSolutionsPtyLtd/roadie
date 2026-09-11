@@ -381,6 +381,9 @@ describe('Navigator.SecondaryPane', () => {
           <Navigator.SecondaryPane value='/components'>
             <p>Promo</p>
           </Navigator.SecondaryPane>
+          <Pane role='detail' current>
+            Start
+          </Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -438,22 +441,39 @@ describe('Navigator.SecondaryPane and the no-panes warning', () => {
     vi.restoreAllMocks()
   })
 
-  it('counts as a declared pane while its section is inactive', async () => {
+  it('warns when the only pane is an inactive override', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(<InactiveOverride value='/start' />)
     await flushViewportMeasurement()
-    expect(warn).not.toHaveBeenCalled()
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('identified no panes')
+    )
   })
 
-  it('counts when wrapped and its section becomes inactive', async () => {
+  it('warns once a wrapped override goes inactive with no other pane', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { rerender } = render(
       <InactiveOverride value='/components/button' wrapped detail />
     )
     await flushViewportMeasurement()
+    expect(warn).not.toHaveBeenCalled()
     rerender(<InactiveOverride value='/start' wrapped />)
     await flushViewportMeasurement()
     expect(screen.queryByText('Promo')).toBeNull()
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('identified no panes')
+    )
+  })
+
+  it('counts as a consumer pane while its section is active', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { rerender } = render(
+      <InactiveOverride value='/components/button' wrapped detail />
+    )
+    await flushViewportMeasurement()
+    rerender(<InactiveOverride value='/components/button' wrapped />)
+    await flushViewportMeasurement()
+    expect(screen.getByText('Promo')).toBeInTheDocument()
     expect(warn).not.toHaveBeenCalled()
   })
 })
