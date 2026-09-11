@@ -168,7 +168,6 @@ export {
   type PaneSearchProps,
   type PaneFooterProps,
   type PaneRole,
-  type PanePresentation,
   type PaneEmphasis,
   type PanePrimaryNav
 } from './components/Pane'

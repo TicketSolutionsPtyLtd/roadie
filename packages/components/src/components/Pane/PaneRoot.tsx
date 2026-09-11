@@ -22,7 +22,6 @@ import { PaneContext } from './PaneContext'
 import { PaneKindContext, PaneStackContext } from './PaneStackContext'
 import {
   type PaneEmphasis,
-  type PanePresentation,
   type PanePrimaryNav,
   type PaneRole,
   paneVariants,
@@ -46,15 +45,6 @@ export type PaneRootProps = Omit<ComponentProps<'section'>, 'role'> & {
    * @default 'list'
    */
   role?: PaneRole
-  /**
-   * How the pane materialises. `column` is the only value the orchestrator
-   * resolves: it means "beside my siblings where there is room, over them
-   * where there isn't". `'stack' | 'sheet' | 'drawer'` are reserved for
-   * future layout behaviour — today they only echo onto `data-presentation`.
-   *
-   * @default 'column'
-   */
-  presentation?: PanePresentation
   /**
    * This pane holds what the user is currently looking at. The deepest
    * `current` pane is the top of the stack. Affects only the stacked bands —
@@ -108,7 +98,6 @@ export const EXPAND_AT = 40
 export function PaneRoot({
   className,
   role = 'list',
-  presentation = 'column',
   current = false,
   emphasis = 'raised',
   primaryNav = 'auto',
@@ -164,18 +153,9 @@ export function PaneRoot({
   useEffect(() => {
     const node = paneRef.current
     if (!register || !unregister || !node) return
-    register(paneId, node, { role, current, presentation, primaryNav, kind })
+    register(paneId, node, { role, current, primaryNav, kind })
     return () => unregister(paneId)
-  }, [
-    register,
-    unregister,
-    paneId,
-    role,
-    current,
-    presentation,
-    primaryNav,
-    kind
-  ])
+  }, [register, unregister, paneId, role, current, primaryNav, kind])
 
   const position = stack?.positionOf(paneId) ?? null
   const chrome = stack?.chromeOf(paneId) ?? PANE_CHROME_NONE
@@ -253,7 +233,6 @@ export function PaneRoot({
       render={(renderProps) => <section {...renderProps} role={undefined} />}
       data-slot='pane'
       data-role={role}
-      data-presentation={presentation}
       data-stack-position={position ?? undefined}
       data-primary-nav={primaryNav}
       className={cn(

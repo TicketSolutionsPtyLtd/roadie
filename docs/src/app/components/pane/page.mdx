@@ -190,12 +190,8 @@ directly on the frame behind it, the way the rail does.
 
 ### Stacking
 
-`column` means "beside my siblings where there is room, over them where there
-isn't" — columns from `lg` up, a stack below it. It is the only value the
-orchestrator arranges by. `Pane` also accepts a `presentation` prop of
-`'stack' | 'sheet' | 'drawer'`, but nothing in `Pane` or `Navigator.Content`
-currently reads it beyond echoing it onto `data-presentation` — treat those
-values as reserved, not implemented, until they grow real layout behaviour.
+A pane sits beside its siblings where there is room and over them where there
+isn't: columns from `lg` up, a stack below it.
 
 In the stacked bands one pane is visible at a time and `current` picks it: the
 deepest `current` pane is the top of the stack, and push and pop between them

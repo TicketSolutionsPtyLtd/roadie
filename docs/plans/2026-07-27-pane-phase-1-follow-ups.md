@@ -68,7 +68,7 @@ are recorded because the plan text still says otherwise.
 
 ## Open design questions
 
-- **Should `Pane` keep `presentation='sheet' | 'drawer'`?** Those values are now
+- **Resolved 2026-09-11: removed.** ~~Should `Pane` keep `presentation='sheet' | 'drawer'`?~~ Those values are now
   vestigial: the yielded inspector became a consumer-declared `Drawer`, and
   `role='inspector'` means only "a column from `2xl`, hidden below". Either the
   values become a thin deferral to `Drawer`/`Sheet`, or they go.

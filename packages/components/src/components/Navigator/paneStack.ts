@@ -1,14 +1,9 @@
 import type { PaneStackPosition } from '../Pane/PaneStackContext'
-import type {
-  PanePresentation,
-  PanePrimaryNav,
-  PaneRole
-} from '../Pane/variants'
+import type { PanePrimaryNav, PaneRole } from '../Pane/variants'
 
 export type PaneEntry = {
   role: PaneRole
   current: boolean
-  presentation: PanePresentation
   primaryNav: PanePrimaryNav
 }
 
