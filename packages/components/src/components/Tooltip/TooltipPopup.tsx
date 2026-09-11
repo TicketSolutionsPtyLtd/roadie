@@ -10,13 +10,7 @@ import { type TooltipEmphasis, tooltipPopupVariants } from './variants'
 
 export type TooltipPopupProps = TooltipPrimitive.Popup.Props &
   RefAttributes<HTMLDivElement> & {
-    /**
-     * `strong` is the high-contrast chip; `floating` matches Popover's surface
-     * for a tooltip over dark content. The popup is portaled, so an intent
-     * class must go on it directly to colour `strong`.
-     *
-     * @default 'strong'
-     */
+    /** Portaled, so colour `strong` with an intent class here. @default 'strong' */
     emphasis?: TooltipEmphasis
   }
 

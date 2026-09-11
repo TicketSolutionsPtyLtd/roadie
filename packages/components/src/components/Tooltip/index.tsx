@@ -1,5 +1,4 @@
-// NO 'use client' — server-safe property-assignment layer.
-// See docs/contributing/COMPOUND_PATTERNS.md.
+// No 'use client': dot access must work from server components.
 import { TooltipArrow } from './TooltipArrow'
 import { TooltipContent } from './TooltipContent'
 import { TooltipPopup } from './TooltipPopup'

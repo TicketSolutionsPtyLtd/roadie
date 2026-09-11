@@ -9,10 +9,7 @@ import { cn } from '@oztix/roadie-core/utils'
 export type TooltipArrowProps = TooltipPrimitive.Arrow.Props &
   RefAttributes<HTMLDivElement>
 
-// Popover.Arrow's geometry (see its comment for the offsets), smaller. The
-// open path strokes only the slanted edges, so the floating surface's rim
-// carries onto the arrow. Base UI keeps inline-* sides logical, so those
-// use logical insets and flip their rotation in RTL.
+// Open path: the rim strokes only the slanted edges. inline-* sides are logical.
 export function TooltipArrow({ className, ...props }: TooltipArrowProps) {
   return (
     <TooltipPrimitive.Arrow

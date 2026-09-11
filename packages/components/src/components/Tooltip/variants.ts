@@ -5,10 +5,7 @@ export type TooltipEmphasis = 'strong' | 'floating'
 export type TooltipSide =
   'top' | 'bottom' | 'left' | 'right' | 'inline-start' | 'inline-end'
 
-// `--tooltip-surface` and `--tooltip-rim` let the portaled arrow match
-// whichever surface the popup resolved to. `data-[instant]` is Base UI's
-// signal that a grouped neighbour opened this one instantly — scaling in
-// again would flicker.
+// --tooltip-* feed the portaled arrow; data-[instant] skips a flickery scale-in.
 export const tooltipPopupVariants = cva(
   [
     'max-w-[min(18rem,var(--available-width))] origin-[var(--transform-origin)]',
