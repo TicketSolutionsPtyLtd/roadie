@@ -39,55 +39,31 @@ debugging in documented areas.
 
 ### Core Package (`packages/core/`)
 
-```
-src/
-├── css/
-│   ├── roadie.css          # Main entry (imports all below + tailwindcss)
-│   ├── reset.css           # CSS reset and global defaults
-│   ├── tokens.css          # Color scales (OKLCH), typography, @theme registrations
-│   ├── intents.css         # @utility intent-* (set color context)
-│   ├── emphasis.css        # @utility emphasis-* (combined shortcuts)
-│   ├── elevation.css       # Shadow scale, rim-light, inset shadows
-│   ├── typography.css      # @utility text-display-*, text-ui, text-prose
-│   ├── layout.css          # @utility view (flex column layout primitive)
-│   ├── interactions.css    # @utility is-interactive (hover/focus/disabled)
-│   ├── fonts.css           # @font-face declarations
-│   └── safelist.html       # Ensures all utilities in compiled CSS output
-├── colors/
-│   ├── color-scale-generator.ts  # OKLCH curve-based scale from hex input
-│   └── contrast.ts               # WCAG contrast check
-├── utils/
-│   └── cn.ts               # clsx + tailwind-merge (with semantic color config)
-└── index.ts                # JS re-exports
-```
+No file list here, because it goes stale. The directory is the list.
+
+- **CSS utilities** live in `packages/core/src/css/`. `roadie.css` imports every
+  other sheet in order, so it is the index; each sheet's header comment says
+  what it owns.
+- **The public API** is the `exports` block in `packages/core/package.json`.
+  Every subpath there is importable and nothing else is.
+
+Anything new has to be wired in two more places or it will not ship: a JS
+subpath needs an entry in `tsdown.config.ts`, and a CSS `@utility` needs its
+class named in `src/css/safelist.html`, or Tailwind purges the definition and
+the compiled sheet comes out empty.
 
 ### Components Package (`packages/components/`)
 
-```
-src/
-├── components/
-│   ├── Button/             # Base UI Button + CVA
-│   ├── Code/               # Inline code with emphasis
-│   ├── Mark/               # Highlighted text with intent
-│   ├── Highlight/          # String highlighting (in-house useHighlight)
-│   ├── Prose/              # Rich content container (sm/md/lg)
-│   ├── Card/               # Card with elevation
-│   ├── Badge/              # Status badges
-│   ├── Accordion/          # Collapsible sections
-│   ├── Breadcrumb/         # Navigation breadcrumbs
-│   ├── Separator/          # Visual divider
-│   ├── Input/              # Text input
-│   ├── Textarea/           # Multi-line input
-│   ├── Select/             # Dropdown select
-│   ├── Field/              # Form field (label + input + helper)
-│   ├── Fieldset/           # Form group
-│   ├── RadioGroup/         # Radio button group
-│   ├── Carousel/           # Compound carousel built on Embla
-│   └── SpotIllustration/   # Themed SVG illustrations
-├── providers/
-│   └── ThemeProvider.tsx    # Dynamic accent color + dark mode
-└── index.tsx               # Component re-exports
-```
+- **Components** live in `packages/components/src/components/`, one folder each,
+  with an `index.tsx` and a co-located `*.test.tsx`.
+- **The public API** is the `exports` block in
+  `packages/components/package.json`. Docs and consumers import the
+  per-component subpath, never the root barrel.
+- **Providers** live in `packages/components/src/providers/`.
+
+For what a finished component looks like, read `Badge/index.tsx`. It is the
+reference for cva structure, variant naming, and letting children inherit their
+colour from the root's emphasis rather than setting their own.
 
 ## Common Commands
 
@@ -516,6 +492,7 @@ For detailed guidance on styling conventions, read the foundation pages:
 - Colors: `docs/src/app/foundations/colors/page.tsx`
 - Elevation: `docs/src/app/foundations/elevation/page.tsx`
 - Iconography: `docs/src/app/foundations/iconography/page.tsx`
+- Date and time: `docs/src/app/foundations/date-and-time/page.tsx`
 
 ### Guideline component (docs-only)
 
