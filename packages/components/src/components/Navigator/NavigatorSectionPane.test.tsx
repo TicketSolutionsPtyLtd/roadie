@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, useLayoutEffect, useRef } from 'react'
 
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -482,12 +482,14 @@ function Routed({
   value,
   showList,
   onShowListChange,
-  detailBackHref
+  detailBackHref,
+  detailExtra
 }: {
   value: string
   showList?: boolean
   onShowListChange?: (next: boolean) => void
   detailBackHref?: string
+  detailExtra?: ReactNode
 }) {
   return (
     <Navigator
@@ -512,10 +514,28 @@ function Routed({
         <Pane role='detail' current>
           <Pane.Header backHref={detailBackHref} />
           Detail
+          {detailExtra}
         </Pane>
       </Navigator.Content>
     </Navigator>
   )
+}
+
+// Records, at each commit it renders in, what its pane shows.
+function CommitProbe({
+  log
+}: {
+  log: { position: string | null; back: boolean }[]
+}) {
+  const ref = useRef<HTMLSpanElement>(null)
+  useLayoutEffect(() => {
+    const pane = ref.current?.closest<HTMLElement>('[data-slot="pane"]')
+    log.push({
+      position: pane?.getAttribute('data-stack-position') ?? null,
+      back: pane?.querySelector('[aria-label="Back"]') != null
+    })
+  })
+  return <span ref={ref} data-slot='commit-probe' />
 }
 
 const horizontal = () => primaryOf('horizontal')
@@ -541,6 +561,86 @@ describe('section routes', () => {
     const detail = panes()[1]!
     expect(detail).toHaveAttribute('data-stack-position', 'top')
     expect(backOf(detail)).toHaveAttribute('href', '/components')
+  })
+
+  it('draws Back in the same commit that makes the sub-page the top', async () => {
+    const log: { position: string | null; back: boolean }[] = []
+    const { rerender } = render(
+      <Routed value='/components' detailExtra={<CommitProbe log={log} />} />
+    )
+    await flushViewportMeasurement()
+    log.length = 0
+    rerender(
+      <Routed value='/components/a' detailExtra={<CommitProbe log={log} />} />
+    )
+    expect(log[0]).toEqual({ position: 'top', back: true })
+    await flushViewportMeasurement()
+  })
+
+  it('gives no Back on a sub-page of a routeless section', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Navigator value='/x/one'>
+        <Navigator.Primary aria-label='Docs'>
+          <Navigator.Item value='/x'>
+            X
+            <Navigator.Secondary aria-label='X pages'>
+              <Navigator.Item value='/x/one' href='/x/one'>
+                One
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Pane role='detail' current>
+            <Pane.Header />
+            Detail
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(panes()[1]).toHaveAttribute('data-stack-position', 'top')
+    expect(screen.queryByLabelText('Back')).toBeNull()
+    warn.mockRestore()
+  })
+
+  it('lets an open More pane suppress both the reveal and the Back', async () => {
+    const user = userEvent.setup()
+    render(
+      <Navigator value='/a/one' showList>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Item value='/a' href='/a'>
+            A
+            <Navigator.Secondary aria-label='A pages'>
+              <Navigator.Item value='/a/one' href='/a/one'>
+                One
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+          {['/b', '/c', '/d', '/e', '/f'].map((value) => (
+            <Navigator.Item key={value} value={value} href={value}>
+              {value.slice(1).toUpperCase()}
+            </Navigator.Item>
+          ))}
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Pane role='detail' current>
+            <Pane.Header />
+            Detail
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    await user.click(within(horizontal()).getByRole('button', { name: 'More' }))
+    await flushViewportMeasurement()
+    const more = screen
+      .getByRole('heading', { name: 'More' })
+      .closest<HTMLElement>('[data-slot="pane"]')
+    expect(more).toHaveAttribute('data-stack-position', 'top')
+    expect(panes()[0]).not.toHaveAttribute('data-stack-position', 'top')
+    expect(screen.queryByLabelText('Back')).toBeNull()
   })
 
   it("lets a consumer's backHref win", async () => {

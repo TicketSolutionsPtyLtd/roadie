@@ -36,19 +36,9 @@ export type NavigatorRootProps = {
    * `href` and the router drives selection.
    */
   onValueChange?: (next: string) => void
-  /**
-   * Show the active section's list pane on top of a stacked layout, even
-   * on a sub-page. Derive it from your URL (e.g. `?nav`) so "show me the
-   * list" is linkable and Back-able. On the section route the list is on
-   * top regardless. No effect once panes are columns (`lg`).
-   */
+  /** Puts the active section's list on top of a stacked layout; derive it from your URL, e.g. `?nav`. */
   showList?: boolean
-  /**
-   * Called with `true` when the active section's tab is tapped on a
-   * sub-page, and `false` when it's tapped again while the list is
-   * showing. Turn it into a URL update. Omit it and that tap navigates to
-   * the section route instead.
-   */
+  /** Called when the active section's tab asks to show or hide the list; omit it and the tab links to the section route. */
   onShowListChange?: (next: boolean) => void
   className?: string
   children?: ReactNode
@@ -78,7 +68,6 @@ export function NavigatorRoot({
   const overflowOpener = useRef<HTMLElement | null>(null)
   const overflowPaneId = useId()
   const [openMenu, setOpenMenu] = useState<string | null>(null)
-  const [stackAtRoot, setStackAtRoot] = useState(true)
   const [sectionMemory, setSectionMemory] = useState<SectionMemory>(
     () => new Map()
   )
@@ -146,9 +135,7 @@ export function NavigatorRoot({
       declaredSecondaryPanes,
       declareSecondaryPane,
       showList: showList ?? false,
-      onShowListChange,
-      stackAtRoot,
-      setStackAtRoot
+      onShowListChange
     }),
     [
       value,
@@ -170,8 +157,7 @@ export function NavigatorRoot({
       declaredSecondaryPanes,
       declareSecondaryPane,
       showList,
-      onShowListChange,
-      stackAtRoot
+      onShowListChange
     ]
   )
 

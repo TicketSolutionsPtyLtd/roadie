@@ -720,6 +720,7 @@ describe('Navigator routeless primary', () => {
       )
 
   it('delegates to the first secondary child when it has no href of its own', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
       <Navigator value='/other'>
         <Navigator.Primary aria-label='Primary'>
@@ -747,6 +748,8 @@ describe('Navigator routeless primary', () => {
     expect(section?.tagName).toBe('A')
     expect(section).toHaveAttribute('href', '/foundations/layout')
     await flushViewportMeasurement()
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('its own route'))
+    warn.mockRestore()
   })
 
   it('links to itself when it has its own href', async () => {
@@ -786,6 +789,7 @@ describe('Navigator routeless primary', () => {
   })
 
   it('lights the routeless section and marks its landing row in the section pane', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
       <Navigator value='/foundations/layout'>
         <Navigator.Primary aria-label='Primary'>
@@ -820,6 +824,8 @@ describe('Navigator routeless primary', () => {
       'aria-current',
       'page'
     )
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('its own route'))
+    warn.mockRestore()
   })
 })
 
@@ -954,7 +960,7 @@ describe('Navigator active-state split', () => {
   const sectionTree = (active: string) => (
     <Navigator value={active}>
       <Navigator.Primary aria-label='Primary'>
-        <Navigator.Item value='components'>
+        <Navigator.Item value='components' href='/components'>
           Components
           <Navigator.Secondary aria-label='Components pages'>
             <Navigator.Item value='button'>Button</Navigator.Item>
@@ -1917,7 +1923,7 @@ describe('Navigator.Secondary', () => {
   const tree = (active: string) => (
     <Navigator value={active}>
       <Navigator.Primary aria-label='Primary'>
-        <Navigator.Item value='events'>
+        <Navigator.Item value='events' href='/events'>
           Events
           <Navigator.Secondary
             aria-label='Events sections'
@@ -1997,7 +2003,7 @@ describe('Navigator.Secondary', () => {
     render(
       <Navigator value='all' onValueChange={onValueChange}>
         <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item value='events'>
+          <Navigator.Item value='events' href='/events'>
             Events
             <Navigator.Secondary aria-label='Events sections'>
               <Navigator.Item value='all'>All events</Navigator.Item>
@@ -2196,7 +2202,7 @@ describe('Navigator.Primary group descent', () => {
         <Navigator.Primary aria-label='Main'>
           <Navigator.Group>
             <Navigator.GroupTitle>Section</Navigator.GroupTitle>
-            <Navigator.Item value='/a'>
+            <Navigator.Item value='/a' href='/a'>
               A
               <Navigator.Secondary aria-label='A sections'>
                 <Navigator.Item value='/a/sub' href='/a/sub'>
@@ -2262,6 +2268,7 @@ describe('Navigator.Menu + Navigator.Secondary precedence', () => {
   )
 
   it('renders as a section, not a menu, when both are declared', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = render(withBoth('/a'))
     await flushViewportMeasurement()
     // A routeless section links to its first sub-page, so no menu took over the row.
@@ -2269,9 +2276,12 @@ describe('Navigator.Menu + Navigator.Secondary precedence', () => {
     expect(row).toHaveAttribute('href', '/a/sub')
     expect(row).not.toHaveAttribute('aria-haspopup')
     expect(verticalOf(container).queryByText('Menu')).toBeNull()
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('its own route'))
+    warn.mockRestore()
   })
 
   it('keeps the declared sub-pages reachable', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = render(withBoth('/a/sub'))
     await flushViewportMeasurement()
     expect(
@@ -2282,6 +2292,8 @@ describe('Navigator.Menu + Navigator.Secondary precedence', () => {
     expect(
       horizontalOf(container).getByRole('link', { name: 'A' })
     ).toHaveAttribute('href', '/a/sub')
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('its own route'))
+    warn.mockRestore()
   })
 
   it('warns once, naming the item, that the Menu is ignored', async () => {
@@ -2301,14 +2313,14 @@ describe('Navigator descendant-aware active matching', () => {
   const tree = (active: string) => (
     <Navigator value={active}>
       <Navigator.Primary aria-label='Primary'>
-        <Navigator.Item value='components'>
+        <Navigator.Item value='components' href='/components'>
           Components
           <Navigator.Secondary aria-label='Components pages'>
             <Navigator.Item value='button'>Button</Navigator.Item>
             <Navigator.Item value='card'>Card</Navigator.Item>
           </Navigator.Secondary>
         </Navigator.Item>
-        <Navigator.Item value='foundations'>
+        <Navigator.Item value='foundations' href='/foundations'>
           Foundations
           <Navigator.Secondary aria-label='Foundations pages'>
             <Navigator.Item value='layout'>Layout</Navigator.Item>
@@ -2369,10 +2381,10 @@ describe('Navigator descendant-aware active matching', () => {
     render(tree('button'))
     await flushViewportMeasurement()
     const bar = within(primaryOf('horizontal'))
-    expect(bar.getByRole('button', { name: 'Components' })).toHaveClass(
+    expect(bar.getByRole('link', { name: 'Components' })).toHaveClass(
       'intent-accent'
     )
-    expect(bar.getByRole('button', { name: 'Foundations' })).not.toHaveClass(
+    expect(bar.getByRole('link', { name: 'Foundations' })).not.toHaveClass(
       'intent-accent'
     )
   })
@@ -3443,7 +3455,11 @@ describe('nesting acceptance criteria', () => {
     render(
       <Navigator value='/foundations/colors'>
         <Navigator.Primary aria-label='Docs'>
-          <Navigator.Item value='/foundations' icon={<FakeIcon />}>
+          <Navigator.Item
+            value='/foundations'
+            href='/foundations'
+            icon={<FakeIcon />}
+          >
             Foundations
             <Navigator.Secondary aria-label='Foundations pages'>
               <Navigator.Item value='/foundations/colors'>

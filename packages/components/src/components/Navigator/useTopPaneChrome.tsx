@@ -9,7 +9,11 @@ import { NavigatorContext } from './NavigatorContext'
 export const NAV_COLLAPSE_THRESHOLD = 24
 
 /** What the orchestrator hands the top pane of the stack. */
-export function useTopPaneChrome(): PaneChromeContextValue {
+export function useTopPaneChrome({
+  atRoot
+}: {
+  atRoot: boolean
+}): PaneChromeContextValue {
   const {
     navCollapsed,
     setNavCollapsed,
@@ -17,8 +21,7 @@ export function useTopPaneChrome(): PaneChromeContextValue {
     setPinExpanded,
     setActivePaneScroller,
     activeSection,
-    overflowOpen,
-    stackAtRoot
+    overflowOpen
   } = use(NavigatorContext)
   const prevScrollTop = useRef(0)
 
@@ -42,7 +45,7 @@ export function useTopPaneChrome(): PaneChromeContextValue {
   )
 
   const backHref =
-    activeSection?.href !== undefined && !overflowOpen && !stackAtRoot
+    activeSection?.href !== undefined && !overflowOpen && !atRoot
       ? activeSection.href
       : undefined
 

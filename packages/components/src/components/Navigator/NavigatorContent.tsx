@@ -56,10 +56,8 @@ export function NavigatorContent({
     overflowOpen,
     activeSection,
     declaredSecondaryPanes,
-    showList,
-    setStackAtRoot
+    showList
   } = use(NavigatorContext)
-  const chrome = useTopPaneChrome()
 
   const panes = useRef(new Map<string, RegisteredPane>())
   const [version, bump] = useState(0)
@@ -100,10 +98,7 @@ export function NavigatorContent({
   const topId = topIndex === -1 ? null : (ordered[topIndex]?.id ?? null)
   const rootIndex = useMemo(() => deriveRootIndex(ordered), [ordered])
 
-  const atRoot = topIndex === rootIndex
-  useEffect(() => {
-    setStackAtRoot(atRoot)
-  }, [atRoot, setStackAtRoot])
+  const chrome = useTopPaneChrome({ atRoot: topIndex === rootIndex })
 
   // A ref keeps the lookups stable; closing over fresh arrays would loop pane registration.
   const latest = useRef({ ordered, positions, topId, rootIndex })
