@@ -47,9 +47,12 @@ pnpm-lock.yaml
 *.swp
 *.swo
 
-# Live-demo MDX — prettier's plugin chain mangles the embedded tsx-live
-# code fences and emits an empty file. Keep these out of the formatter.
-docs/src/app/roadie-widgets/**/*.mdx
+# Docs MDX — prettier's plugin chain rewrites the embedded tsx-live code
+# fences: it turns {/* comments */} into block statements, prepends ASI
+# semicolons, reorders Tailwind classes on the pages that teach class order,
+# and on the widget pages emits an empty file. The examples are the content
+# here, so none of these files go through the formatter.
+docs/**/*.mdx
 
 # Misc
 .DS_Store
