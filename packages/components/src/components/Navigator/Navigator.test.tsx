@@ -2,13 +2,14 @@ import { type ReactNode, use } from 'react'
 
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Navigator } from '.'
 import { Pane } from '../Pane'
 import { NavigatorContext } from './NavigatorContext'
 import { FakeIcon, flushViewportMeasurement, primaryOf } from './testUtils'
 import {
+  navigatorContentVariants,
   navigatorIndicatorVariants,
   navigatorPrimaryClusterTrackVariants,
   navigatorPrimaryPinnedVariants,
@@ -1780,6 +1781,74 @@ describe('Navigator.OverflowPane', () => {
 
     await userEvent.keyboard('{Escape}')
     expect(panes()[1]).toHaveAttribute('data-stack-position', 'ahead')
+  })
+
+  describe('switches without sliding', () => {
+    const frames: ((time: number) => void)[] = []
+    const flushFrame = () =>
+      act(() => {
+        for (const callback of frames.splice(0)) callback(0)
+      })
+    const content = () =>
+      document.querySelector<HTMLElement>('[data-slot="navigator-content"]')!
+
+    beforeEach(() => {
+      frames.length = 0
+      vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) =>
+        frames.push(callback)
+      )
+      vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {})
+    })
+    afterEach(() => {
+      vi.restoreAllMocks()
+    })
+
+    it('holds pane transitions off for two frames as More opens and closes from the bar', async () => {
+      render(overflowNav('/a'))
+      await flushViewportMeasurement()
+      expect(content()).not.toHaveAttribute('data-instant')
+      const tabBar = within(
+        screen.getByRole('navigation', { name: 'Main tabs' })
+      )
+      fireEvent.click(tabBar.getByRole('button', { name: /More/ }))
+      expect(panes()[1]).toHaveAttribute('data-stack-position', 'top')
+      expect(content()).toHaveAttribute('data-instant')
+      flushFrame()
+      expect(content()).toHaveAttribute('data-instant')
+      flushFrame()
+      expect(content()).not.toHaveAttribute('data-instant')
+
+      fireEvent.click(tabBar.getByRole('button', { name: /More/ }))
+      expect(panes()[1]).toHaveAttribute('data-stack-position', 'ahead')
+      expect(content()).toHaveAttribute('data-instant')
+      flushFrame()
+      flushFrame()
+      expect(content()).not.toHaveAttribute('data-instant')
+    })
+
+    it('keeps the slide for a push within the stack', async () => {
+      const tree = (current: boolean) => (
+        <Navigator value='/a'>
+          <Navigator.Content>
+            <Pane role='list'>List</Pane>
+            <Pane role='detail' current={current}>
+              Detail
+            </Pane>
+          </Navigator.Content>
+        </Navigator>
+      )
+      const { rerender } = render(tree(false))
+      await flushViewportMeasurement()
+      rerender(tree(true))
+      expect(panes()[1]).toHaveAttribute('data-stack-position', 'top')
+      expect(content()).not.toHaveAttribute('data-instant')
+    })
+
+    it('turns off every pane transition while set', () => {
+      expect(navigatorContentVariants().split(' ')).toContain(
+        'data-instant:[&_[data-slot=pane]]:transition-none'
+      )
+    })
   })
 
   // Retired, not restored: the pinned outside-click dismissal assumed a

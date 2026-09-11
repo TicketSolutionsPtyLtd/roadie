@@ -7,6 +7,7 @@ import {
   use,
   useCallback,
   useEffect,
+  useInsertionEffect,
   useMemo,
   useRef,
   useState
@@ -15,6 +16,7 @@ import {
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isDev } from '../../utils/isDev'
+import { mergeRefs } from '../../utils/mergeRefs'
 import { PANE_CHROME_NONE } from '../Pane/PaneChromeContext'
 import { PaneContext } from '../Pane/PaneContext'
 import { PaneHeader } from '../Pane/PaneHeader'
@@ -47,6 +49,7 @@ type RegisteredPane = { id: string; node: HTMLElement } & PaneRegistration
 export function NavigatorContent({
   className,
   children,
+  ref: forwardedRef,
   ...props
 }: NavigatorContentProps) {
   const {
@@ -58,6 +61,24 @@ export function NavigatorContent({
     declaredSecondaryPanes,
     showList
   } = use(NavigatorContext)
+
+  const contentRef = useRef<HTMLElement | null>(null)
+  const ref = useMemo(() => mergeRefs(contentRef, forwardedRef), [forwardedRef])
+
+  // More is a tab switch, not a push: the stack flips without sliding. An
+  // insertion effect runs before any layout effect can flush styles mid-flip.
+  const wasOverflowOpen = useRef(overflowOpen)
+  useInsertionEffect(() => {
+    if (wasOverflowOpen.current === overflowOpen) return
+    wasOverflowOpen.current = overflowOpen
+    const node = contentRef.current
+    if (!node) return
+    node.setAttribute('data-instant', '')
+    let frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => node.removeAttribute('data-instant'))
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [overflowOpen])
 
   const panes = useRef(new Map<string, RegisteredPane>())
   const [version, bump] = useState(0)
@@ -195,6 +216,7 @@ export function NavigatorContent({
 
   return (
     <main
+      ref={ref}
       data-slot='navigator-content'
       className={cn(navigatorContentVariants(), className)}
       {...props}

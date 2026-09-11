@@ -42,7 +42,9 @@ export const navigatorContentVariants = cva([
   // the registration seam this stylesheet now defers to.
   //
   // Clips a `behind` pane's translate, which can outrun the navigation beside it.
-  'max-lg:relative max-lg:overflow-hidden'
+  'max-lg:relative max-lg:overflow-hidden',
+  // Set for two frames while More opens or closes.
+  'data-instant:[&_[data-slot=pane]]:transition-none'
 ])
 
 // Not configurable — a seven-tab bar is not a shape Navigator can be talked into.
