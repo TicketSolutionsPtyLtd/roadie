@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import Link from 'next/link'
 
 import {
@@ -12,6 +11,8 @@ import {
   TrashIcon,
   WheelchairMotionIcon
 } from '@phosphor-icons/react/ssr'
+
+import { Image } from '@/components/Image'
 
 import { Button, Code } from '@oztix/roadie-components'
 import { Card } from '@oztix/roadie-components/card'
@@ -34,7 +35,7 @@ export default function Home() {
       <section className='grid gap-8'>
         <div className='relative aspect-square w-40'>
           <Image
-            src='roadie-logo.png'
+            src='/roadie-logo.png'
             alt='Roadie Design System'
             fill
             priority
