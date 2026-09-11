@@ -4,10 +4,15 @@ import { MAX_TABS } from './variants'
 
 export const OVERFLOW_LABEL = 'More'
 
+export type NavigatorPlacement = 'automatic' | 'pinned'
+export type NavigatorVisibilityPriority = 'low' | 'automatic' | 'high'
+
 /** The section an item was declared in, so the overflow can keep it. */
 export type NavigatorSlotGroup = {
   key: string
   title?: ReactNode
+  placement?: NavigatorPlacement
+  priority?: NavigatorVisibilityPriority
 }
 
 export type NavigatorSlotMeta = {
@@ -22,6 +27,38 @@ export type NavigatorSlotMeta = {
   /** Values of the section's `Navigator.Secondary` items, for branch-active. */
   descendants: string[]
   group?: NavigatorSlotGroup
+  placement: NavigatorPlacement
+  priority: NavigatorVisibilityPriority
+}
+
+const RANK: Record<NavigatorVisibilityPriority, number> = {
+  high: 2,
+  automatic: 1,
+  low: 0
+}
+
+/** Highest priority first; ties keep source order. */
+export function rankSlots<T extends { priority: NavigatorVisibilityPriority }>(
+  slots: readonly T[]
+): T[] {
+  return slots
+    .map((slot, index) => ({ slot, index }))
+    .sort(
+      (a, b) =>
+        RANK[b.slot.priority] - RANK[a.slot.priority] || a.index - b.index
+    )
+    .map(({ slot }) => slot)
+}
+
+// Kept slots come back in source order: priority picks members, not positions.
+export function keepTopRanked<
+  T extends { priority: NavigatorVisibilityPriority }
+>(slots: readonly T[], count: number): { kept: T[]; folded: T[] } {
+  const keep = new Set(rankSlots(slots).slice(0, Math.max(0, count)))
+  return {
+    kept: slots.filter((slot) => keep.has(slot)),
+    folded: slots.filter((slot) => !keep.has(slot))
+  }
 }
 
 /** The horizontal slots, declared explicitly; the fifth is always More. */
