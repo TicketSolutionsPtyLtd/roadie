@@ -944,9 +944,6 @@ describe('orchestrator chrome', () => {
     )
   }
 
-  const actionsHosts = () =>
-    document.querySelectorAll('[data-slot="pane-actions"]')
-
   // rAF is what the pane coalesces scroll reports through, so the test has to
   // drive it rather than wait on it.
   const captureFrames = () => {
@@ -989,19 +986,6 @@ describe('orchestrator chrome', () => {
     await scrollViewport(80, flush)
     expect(onViewportScroll).not.toHaveBeenCalled()
   })
-
-  it('leaves header extras in the body, below the top row', async () => {
-    await withChrome(
-      <Pane role='detail'>
-        <Pane.Header />
-      </Pane>,
-      { headerExtras: <div data-testid='strip' /> }
-    )
-    expect(screen.getByTestId('strip').parentElement).toBe(
-      document.querySelector('[data-slot="pane-header"]')
-    )
-    expect(actionsHosts()).toHaveLength(0)
-  })
 })
 
 describe('Pane.Search', () => {
@@ -1041,6 +1025,10 @@ describe('pane registration through a wrapper', () => {
   // Stands in for a Next.js parallel-route slot node: an opaque component
   // whose type is not PaneRoot and which the orchestrator cannot see through.
   const Slot = ({ children }: { children: ReactNode }) => <>{children}</>
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
 
   const positions = () =>
     Array.from(document.querySelectorAll('[data-slot="pane"]')).map((p) =>
@@ -1107,6 +1095,10 @@ describe('pane registration through a wrapper', () => {
   })
 
   it('hands chrome to the wrapped top pane', async () => {
+    const frames: ((time: number) => void)[] = []
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) =>
+      frames.push(callback)
+    )
     render(
       <Navigator value='/foundations'>
         <Navigator.Primary aria-label='Main'>
@@ -1134,9 +1126,17 @@ describe('pane registration through a wrapper', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
+    const viewport = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-slot="pane-viewport"]')
+    ).at(-1)!
+    Object.defineProperty(viewport, 'scrollTop', { value: 80, writable: true })
+    fireEvent.scroll(viewport)
+    await act(async () => frames.splice(0).forEach((frame) => frame(0)))
     expect(
-      document.querySelector('[data-slot="navigator-secondary-strip"]')
-    ).not.toBeNull()
+      document.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      )
+    ).toHaveAttribute('data-collapsed', 'true')
   })
 })
 

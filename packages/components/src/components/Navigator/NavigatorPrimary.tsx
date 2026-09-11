@@ -20,6 +20,7 @@ import { cn } from '@oztix/roadie-core/utils'
 import { isDev } from '../../utils/isDev'
 import { ScrollArea } from '../ScrollArea'
 import {
+  type NavigatorActiveSection,
   NavigatorContext,
   isActiveValue,
   isBranchActive,
@@ -74,8 +75,7 @@ export function NavigatorPrimary({
   const {
     value: activeValue,
     setValue,
-    setHasNesting,
-    setSecondaryNav,
+    setActiveSection,
     navCollapsed,
     setNavCollapsed,
     primaryNav,
@@ -98,7 +98,6 @@ export function NavigatorPrimary({
 
   const collected = useMemo(() => collectSlots(children), [children])
   const items = [...collected.automatic, ...collected.pinnedSlots]
-  const nests = items.some((slot) => slot.descendants.length > 0)
 
   // Only a destination deeper than the branch-active section's landing is worth remembering.
   const branchSection = items.find((item) => isSectionActive(item, activeValue))
@@ -113,22 +112,26 @@ export function NavigatorPrimary({
     rememberSection(branchValue, deepHref)
   }, [branchValue, deepHref, rememberSection])
 
-  const activeSecondary = useMemo(() => {
-    let active: NavigatorSecondaryProps | undefined
+  const activeSection = useMemo(() => {
+    let active: NavigatorActiveSection | null = null
 
     const visitItem = (child: ReactElement) => {
       const itemProps = child.props as NavigatorItemProps
-      const { secondary } = splitItemChildren(itemProps.children)
+      const { label, secondary } = splitItemChildren(itemProps.children)
+      const [declaration] = secondary
+      if (!isValidElement<NavigatorSecondaryProps>(declaration)) return
       const branchActive = isBranchActive(
         itemProps.value,
         secondaryDescendantValues(secondary),
         activeValue
       )
       if (!branchActive) return
-
-      const [nested] = secondary
-      if (!isValidElement<NavigatorSecondaryProps>(nested)) return
-      active ??= nested.props
+      active ??= {
+        value: itemProps.value,
+        href: itemProps.href,
+        label,
+        secondary: declaration.props
+      }
     }
 
     Children.forEach(children, (child) => {
@@ -154,10 +157,6 @@ export function NavigatorPrimary({
   const slots = deriveMobileSlots(collected.automatic, collected.pinnedSlots)
 
   useEffect(() => {
-    setHasNesting(nests)
-  }, [nests, setHasNesting])
-
-  useEffect(() => {
     // An open menu is the topmost layer; its own Escape closes it first.
     if (!overflowOpen || openMenu !== null) return
     const onKeyDown = (event: KeyboardEvent) => {
@@ -170,16 +169,8 @@ export function NavigatorPrimary({
   }, [overflowOpen, openMenu, setOverflowOpen, overflowOpener])
 
   useEffect(() => {
-    setSecondaryNav(
-      activeSecondary
-        ? {
-            'aria-label': activeSecondary['aria-label'],
-            className: activeSecondary.className,
-            children: activeSecondary.children
-          }
-        : null
-    )
-  }, [activeSecondary, setSecondaryNav])
+    setActiveSection(activeSection)
+  }, [activeSection, setActiveSection])
 
   // Warnings live in effects, not the walk: React 19 StrictMode double-invokes render.
   const hasStrayChild = collected.hasStrayChild
@@ -220,8 +211,6 @@ export function NavigatorPrimary({
         'pinned items last.'
     )
   }, [pinnedFirst])
-
-  const form = nests ? 'nested' : 'compact'
 
   // Masks `navCollapsed` rather than resetting it, so `auto` snaps back to the state it hid.
   const collapsed = navCollapsed && primaryNav === 'auto'
@@ -325,9 +314,8 @@ export function NavigatorPrimary({
         render={(renderProps) => <nav {...renderProps} role={undefined} />}
         data-slot='navigator-primary'
         data-orientation='vertical'
-        data-form={form}
         aria-label={ariaLabel}
-        className={cn(navigatorPrimaryVerticalVariants({ form }), className)}
+        className={cn(navigatorPrimaryVerticalVariants(), className)}
       >
         <ScrollArea.Viewport
           ref={verticalRef}

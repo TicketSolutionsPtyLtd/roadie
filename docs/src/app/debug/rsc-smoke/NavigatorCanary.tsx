@@ -1,44 +1,40 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Pane } from '@oztix/roadie-components'
 import { Navigator } from '@oztix/roadie-components/navigator'
 
 // Navigator's walks match children by element identity, which Flight breaks
 // for server-authored trees, so this canary is a client component that throws
-// if the vertical navigation loses its nested form or its Group.
+// if the active section's pane loses its Group.
 
 export function NavigatorCanary() {
   const ref = useRef<HTMLDivElement>(null)
+  const [failure, setFailure] = useState<Error | null>(null)
 
+  // A timeout, not the effect itself: the section pane mounts a commit after
+  // Navigator.Primary publishes the active section.
   useEffect(() => {
-    const form = ref.current
-      ?.querySelector(
-        '[data-slot=navigator-primary][data-orientation=vertical]'
+    const id = setTimeout(() => {
+      // A server-authored tree would lazy-wrap Navigator.Group and the walk
+      // would drop it into a loose, untitled run of rows.
+      const group = ref.current?.querySelector(
+        '[data-navigator-section] [data-slot="list-group"]'
       )
-      ?.getAttribute('data-form')
-    if (form !== 'nested') {
-      throw new Error(
-        '[Roadie] Navigator RSC canary: a declared Navigator.Secondary must ' +
-          `derive data-form='nested', got '${form}'.`
-      )
-    }
-
-    // Navigator.Group is matched by reference in `secondaryItems`, the same
-    // identity-walk hazard as Navigator.Primary. A server-authored tree would
-    // lazy-wrap the type and the walk would silently drop the group into a
-    // loose, unheaded run of items instead of a titled list.
-    const group = ref.current?.querySelector(
-      '[data-slot=navigator-secondary] [data-slot=navigator-group-list]'
-    )
-    if (!group) {
-      throw new Error(
-        '[Roadie] Navigator RSC canary: an active Navigator.Secondary must ' +
-          'render its Navigator.Group, found none.'
-      )
-    }
+      if (!group) {
+        setFailure(
+          new Error(
+            '[Roadie] Navigator RSC canary: the active section pane must ' +
+              'render its Navigator.Group, found none.'
+          )
+        )
+      }
+    })
+    return () => clearTimeout(id)
   }, [])
+
+  if (failure) throw failure
 
   return (
     <div

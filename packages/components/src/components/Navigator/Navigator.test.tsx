@@ -2,29 +2,15 @@ import { type ReactNode, use } from 'react'
 
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  describe,
-  expect,
-  it,
-  vi
-} from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { Navigator } from '.'
 import { Pane } from '../Pane'
-import {
-  tabsIndicatorSurfaceClass,
-  tabsIndicatorVariants
-} from '../Tabs/variants'
 import { NavigatorContext } from './NavigatorContext'
-import { FakeIcon, flushViewportMeasurement } from './testUtils'
+import { FakeIcon, flushViewportMeasurement, primaryOf } from './testUtils'
 import {
-  navigatorIndicatorVariants,
   navigatorPrimaryTrackVariants,
-  navigatorPrimaryViewportVariants,
-  navigatorSecondaryStripViewportVariants
+  navigatorPrimaryViewportVariants
 } from './variants'
 
 describe('Navigator', () => {
@@ -60,6 +46,10 @@ describe('one primary navigation, two orientations', () => {
 describe('pane stack', () => {
   const panes = () =>
     Array.from(document.querySelectorAll('[data-slot="pane"]'))
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
 
   it('marks the list as top when no deeper pane is current', async () => {
     render(
@@ -161,14 +151,6 @@ describe('pane stack', () => {
         <Navigator.Primary aria-label='Main'>
           <Navigator.Item value='/foundations' href='/foundations'>
             Foundations
-            <Navigator.Secondary aria-label='Foundations pages'>
-              <Navigator.Item
-                value='/foundations/colors'
-                href='/foundations/colors'
-              >
-                Colors
-              </Navigator.Item>
-            </Navigator.Secondary>
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
@@ -181,9 +163,6 @@ describe('pane stack', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
-    expect(
-      document.querySelector('[data-slot="navigator-secondary-strip"]')
-    ).toBeNull()
     // The tab bar reads the top pane's `primaryNav` off context; an
     // inspector's `hidden` declaration must not reach it since no pane there
     // is eligible to be top.
@@ -202,19 +181,27 @@ describe('pane stack', () => {
   // the fix (`deriveTopIndex` itself has always skipped an inspector) — this
   // pins that a single shared "who is top" answer keeps it that way.
   it('still never lets an inspector take chrome when real panes are present', async () => {
+    const frames: ((time: number) => void)[] = []
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) =>
+      frames.push(callback)
+    )
+    const scroll = async (viewport: HTMLElement) => {
+      Object.defineProperty(viewport, 'scrollTop', {
+        value: 80,
+        writable: true
+      })
+      fireEvent.scroll(viewport)
+      await act(async () => frames.splice(0).forEach((frame) => frame(0)))
+    }
+    const bar = () =>
+      document.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      )
     render(
       <Navigator value='/foundations'>
         <Navigator.Primary aria-label='Main'>
           <Navigator.Item value='/foundations' href='/foundations'>
             Foundations
-            <Navigator.Secondary aria-label='Foundations pages'>
-              <Navigator.Item
-                value='/foundations/colors'
-                href='/foundations/colors'
-              >
-                Colors
-              </Navigator.Item>
-            </Navigator.Secondary>
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
@@ -232,14 +219,13 @@ describe('pane stack', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
-    const strips = document.querySelectorAll(
-      '[data-slot="navigator-secondary-strip"]'
+    const [inspector, list] = document.querySelectorAll<HTMLElement>(
+      '[data-slot="pane-viewport"]'
     )
-    expect(strips).toHaveLength(1)
-    expect(strips[0]!.closest('[data-slot="pane"]')).toHaveAttribute(
-      'data-role',
-      'list'
-    )
+    await scroll(inspector!)
+    expect(bar()).toHaveAttribute('data-collapsed', 'false')
+    await scroll(list!)
+    expect(bar()).toHaveAttribute('data-collapsed', 'true')
   })
 
   // jsdom has no layout; this pins the class the geometry depends on.
@@ -562,69 +548,6 @@ describe('primaryNav', () => {
 })
 
 describe('Navigator vertical form', () => {
-  it('is compact when nothing in the tree nests', async () => {
-    const { container } = render(
-      <Navigator value='tickets'>
-        <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item value='discover'>Discover</Navigator.Item>
-          <Navigator.Item value='tickets'>Tickets</Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    expect(
-      container.querySelector(
-        '[data-slot="navigator-primary"][data-orientation="vertical"]'
-      )
-    ).toHaveAttribute('data-form', 'compact')
-    await flushViewportMeasurement()
-  })
-
-  it('is nested when any item declares a Secondary', async () => {
-    const { container } = render(
-      <Navigator value='events'>
-        <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item value='events'>
-            Events
-            <Navigator.Secondary aria-label='Events sections'>
-              <Navigator.Item value='all'>All events</Navigator.Item>
-            </Navigator.Secondary>
-          </Navigator.Item>
-          <Navigator.Item value='insights'>Insights</Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    expect(
-      container.querySelector(
-        '[data-slot="navigator-primary"][data-orientation="vertical"]'
-      )
-    ).toHaveAttribute('data-form', 'nested')
-    await flushViewportMeasurement()
-  })
-
-  it('does not change form when the active item changes', async () => {
-    const tree = (value: string) => (
-      <Navigator value={value}>
-        <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item value='events'>
-            Events
-            <Navigator.Secondary aria-label='Events sections'>
-              <Navigator.Item value='all'>All events</Navigator.Item>
-            </Navigator.Secondary>
-          </Navigator.Item>
-          <Navigator.Item value='insights'>Insights</Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    const { container, rerender } = render(tree('events'))
-    rerender(tree('insights'))
-    expect(
-      container.querySelector(
-        '[data-slot="navigator-primary"][data-orientation="vertical"]'
-      )
-    ).toHaveAttribute('data-form', 'nested')
-    await flushViewportMeasurement()
-  })
-
   it('marks the active destination with aria-current', async () => {
     render(
       <Navigator value='tickets'>
@@ -862,7 +785,7 @@ describe('Navigator routeless primary', () => {
     await flushViewportMeasurement()
   })
 
-  it('leaves the routeless section flat and raises the navigated first child', async () => {
+  it('lights the routeless section and marks its landing row in the section pane', async () => {
     render(
       <Navigator value='/foundations/layout'>
         <Navigator.Primary aria-label='Primary'>
@@ -878,17 +801,25 @@ describe('Navigator routeless primary', () => {
             </Navigator.Secondary>
           </Navigator.Item>
         </Navigator.Primary>
+        <Navigator.Content>
+          <Pane role='detail' current>
+            Detail
+          </Pane>
+        </Navigator.Content>
       </Navigator>
     )
+    await flushViewportMeasurement()
     const section = verticalItem('Foundations')
     expect(section).toHaveClass('text-strong')
-    expect(section).not.toHaveClass('emphasis-raised')
-    expect(section).not.toHaveAttribute('aria-current')
+    expect(section).toHaveAttribute('aria-current', 'true')
 
-    const current = verticalItem('Layout')
-    expect(current).toHaveClass('text-strong')
-    expect(current).toHaveAttribute('aria-current', 'page')
-    await flushViewportMeasurement()
+    const pane = document.querySelector<HTMLElement>(
+      '[data-navigator-section="foundations"]'
+    )!
+    expect(within(pane).getByRole('link', { name: 'Layout' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    )
   })
 })
 
@@ -958,56 +889,6 @@ describe('Navigator.Brand', () => {
   })
 })
 
-describe('Navigator section chevron', () => {
-  const verticalItem = (label: string) =>
-    screen
-      .getAllByText(label)
-      .map((el) => el.closest('[data-slot="navigator-item"]'))
-      .find((el) =>
-        el?.closest(
-          '[data-slot="navigator-primary"][data-orientation="vertical"]'
-        )
-      )
-
-  const tree = (active: string) => (
-    <Navigator value={active}>
-      <Navigator.Primary aria-label='Primary'>
-        <Navigator.Item value='components'>
-          Components
-          <Navigator.Secondary aria-label='Components pages'>
-            <Navigator.Item value='button'>Button</Navigator.Item>
-          </Navigator.Secondary>
-        </Navigator.Item>
-        <Navigator.Item value='tokens'>Tokens</Navigator.Item>
-      </Navigator.Primary>
-    </Navigator>
-  )
-
-  it('renders a chevron on an item that declares a Secondary', async () => {
-    render(tree('tokens'))
-    expect(verticalItem('Components')?.querySelector('svg')).toBeTruthy()
-    await flushViewportMeasurement()
-  })
-
-  it('renders no chevron on an item without a Secondary', async () => {
-    render(tree('tokens'))
-    expect(verticalItem('Tokens')?.querySelector('svg')).toBeNull()
-    await flushViewportMeasurement()
-  })
-
-  it('points the chevron down while the section is expanded', async () => {
-    render(tree('button'))
-    expect(verticalItem('Components')?.querySelector('.rotate-90')).toBeTruthy()
-    await flushViewportMeasurement()
-  })
-
-  it('points the chevron right while the section is collapsed', async () => {
-    render(tree('tokens'))
-    expect(verticalItem('Components')?.querySelector('.rotate-0')).toBeTruthy()
-    await flushViewportMeasurement()
-  })
-})
-
 describe('Navigator active item surface', () => {
   it('gives the active vertical item the neutral raised pill classes', async () => {
     render(
@@ -1070,7 +951,7 @@ describe('Navigator active-state split', () => {
         )
       )
 
-  const nestedTree = (active: string) => (
+  const sectionTree = (active: string) => (
     <Navigator value={active}>
       <Navigator.Primary aria-label='Primary'>
         <Navigator.Item value='components'>
@@ -1085,7 +966,7 @@ describe('Navigator active-state split', () => {
   )
 
   it('keeps the branch-active section flat, dark and bold — never raised or accent', async () => {
-    render(nestedTree('button'))
+    render(sectionTree('button'))
     const section = verticalItem('Components')
     expect(section).toHaveClass('text-strong')
     expect(section).not.toHaveClass('intent-accent')
@@ -1093,29 +974,7 @@ describe('Navigator active-state split', () => {
     await flushViewportMeasurement()
   })
 
-  it('raises the current sub-page neutrally with the accent bar on the tree-line', async () => {
-    const { container } = render(nestedTree('button'))
-    const current = verticalItem('Button')
-    // Neutral raised pill — never accent-tinted, no item-level bar.
-    expect(current).toHaveClass('text-strong')
-    expect(current).not.toHaveClass('intent-accent')
-    expect(current?.className).not.toContain(
-      'before:bg-[var(--color-accent-9)]'
-    )
-    expect(current).toHaveAttribute('aria-current', 'page')
-    // The accent bar lives on the secondary container, scoped to the current
-    // nested item via aria-current.
-    const secondary = container.querySelector(
-      '[data-slot="navigator-secondary"]'
-    )
-    expect(secondary?.className).toContain(
-      '[&_[data-slot=navigator-item][aria-current=page]]:before:bg-[var(--color-accent-9)]'
-    )
-    expect(verticalItem('Card')).not.toHaveClass('emphasis-raised')
-    await flushViewportMeasurement()
-  })
-
-  it('raises the selected primary as current with an accent icon and no bar', async () => {
+  it('raises the selected primary as current with an accent icon', async () => {
     render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
@@ -1127,12 +986,8 @@ describe('Navigator active-state split', () => {
     const current = verticalItem('Tickets')
     expect(current).toHaveClass('text-strong')
     expect(current).not.toHaveClass('intent-accent')
-    // The current primary carries the accent-icon rule, never a left bar.
     expect(current?.className).toContain(
       '[&_[data-slot=navigator-item-icon]]:text-accent-11'
-    )
-    expect(current?.className).not.toContain(
-      'before:bg-[var(--color-accent-9)]'
     )
     expect(verticalItem('Discover')).not.toHaveClass('emphasis-raised')
     await flushViewportMeasurement()
@@ -2044,68 +1899,6 @@ describe('Navigator sliding indicator', () => {
     }
   })
 
-  const stripTree = () => (
-    <Navigator value='button'>
-      <Navigator.Primary aria-label='Primary'>
-        <Navigator.Item value='components'>
-          Components
-          <Navigator.Secondary aria-label='Components pages'>
-            <Navigator.Item value='button'>Button</Navigator.Item>
-            <Navigator.Item value='card'>Card</Navigator.Item>
-          </Navigator.Secondary>
-        </Navigator.Item>
-      </Navigator.Primary>
-      <Navigator.Content>
-        <Pane>
-          <Pane.Header>
-            <Pane.Title>Button</Pane.Title>
-          </Pane.Header>
-        </Pane>
-      </Navigator.Content>
-    </Navigator>
-  )
-
-  it('renders a sliding indicator in the secondary strip', async () => {
-    const { container } = render(stripTree())
-
-    const indicator = container.querySelector(
-      '[data-slot="navigator-secondary-strip"] [data-slot="navigator-indicator"]'
-    )
-
-    expect(indicator).toBeInTheDocument()
-    expect(indicator).toHaveAttribute('aria-hidden', 'true')
-    await flushViewportMeasurement()
-  })
-
-  it('styles strip items with the Tabs subtle pill vocabulary', async () => {
-    const { container } = render(stripTree())
-
-    const item = container.querySelector(
-      '[data-slot="navigator-secondary-strip"] [data-slot="navigator-item"]'
-    )!
-
-    expect(item.className).toContain('rounded-full')
-    expect(item).toHaveClass('is-interactive')
-    // Still navigation, not a tab.
-    expect(item).not.toHaveAttribute('role', 'tab')
-    expect(item).not.toHaveAttribute('aria-selected')
-    await flushViewportMeasurement()
-  })
-
-  const nestedTree = (active: string) => (
-    <Navigator value={active}>
-      <Navigator.Primary aria-label='Primary'>
-        <Navigator.Item value='components'>
-          Components
-          <Navigator.Secondary aria-label='Components pages'>
-            <Navigator.Item value='button'>Button</Navigator.Item>
-            <Navigator.Item value='card'>Card</Navigator.Item>
-          </Navigator.Secondary>
-        </Navigator.Item>
-      </Navigator.Primary>
-    </Navigator>
-  )
-
   it('renders a sliding indicator in the vertical navigation', async () => {
     const { container } = render(tree('tickets'))
 
@@ -2118,154 +1911,18 @@ describe('Navigator sliding indicator', () => {
     expect(indicator?.className).toContain('emphasis-raised')
     await flushViewportMeasurement()
   })
-
-  it('leaves the nested sub-page as the sole aria-current element in the vertical navigation', async () => {
-    const { container } = render(nestedTree('button'))
-
-    const current = container.querySelectorAll(
-      '[data-slot="navigator-primary"][data-orientation="vertical"] [aria-current]'
-    )
-
-    expect(current).toHaveLength(1)
-    expect(current[0]).toHaveAttribute('data-slot', 'navigator-item')
-    expect(current[0]).toHaveTextContent('Button')
-    await flushViewportMeasurement()
-  })
-
-  it('mounts one vertical indicator, not one per nested group', async () => {
-    const { container } = render(nestedTree('button'))
-
-    expect(
-      container.querySelectorAll(
-        '[data-slot="navigator-primary"][data-orientation="vertical"] [data-slot="navigator-indicator"]'
-      )
-    ).toHaveLength(1)
-    await flushViewportMeasurement()
-  })
-
-  // The strip's contents come from `NavigatorPrimary`'s `setSecondaryNav`
-  // effect, which lands one commit after `value` changes — so switching to a
-  // different section's landing renders the OLD section's strip on the same
-  // commit as the new `value`, then swaps to the NEW section's items on the
-  // next commit with `value` unchanged. The indicator must still pick up the
-  // new `aria-current` item on that second commit. Needs non-zero rects
-  // (jsdom reports every element as zero-size) to reach `ready`.
-  describe('across a cross-section switch', () => {
-    const originalGetBoundingClientRect =
-      Element.prototype.getBoundingClientRect
-    // Captured inside `beforeAll`, not at collection time: the setup file
-    // installs the jsdom ResizeObserver mock in its own `beforeAll`, so a
-    // module-scope read here sees `undefined` and `afterAll` restores that —
-    // leaving every later test in the file with no ResizeObserver at all.
-    let originalResizeObserver: typeof ResizeObserver
-
-    beforeAll(() => {
-      originalResizeObserver = globalThis.ResizeObserver
-      Element.prototype.getBoundingClientRect = () =>
-        ({
-          left: 0,
-          top: 0,
-          right: 100,
-          bottom: 30,
-          width: 100,
-          height: 30,
-          x: 0,
-          y: 0,
-          toJSON: () => ({})
-        }) as DOMRect
-      // Real ResizeObserver delivers an initial observation synchronously
-      // enough to rescue first paint (see useSlidingIndicator's comment on
-      // `trackRef.current` being null on mount); the global jsdom mock is a
-      // no-op, so the strip's first mount would otherwise never go ready.
-      globalThis.ResizeObserver = class {
-        constructor(private cb: () => void) {}
-        observe() {
-          this.cb()
-        }
-        unobserve() {}
-        disconnect() {}
-      } as unknown as typeof ResizeObserver
-    })
-
-    afterAll(() => {
-      Element.prototype.getBoundingClientRect = originalGetBoundingClientRect
-      globalThis.ResizeObserver = originalResizeObserver
-    })
-
-    const twoSectionTree = (active: string) => (
-      <Navigator value={active}>
-        <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item value='events'>
-            Events
-            <Navigator.Secondary aria-label='Events sections'>
-              <Navigator.Item value='a1'>A one</Navigator.Item>
-              <Navigator.Item value='a2'>A two</Navigator.Item>
-            </Navigator.Secondary>
-          </Navigator.Item>
-          <Navigator.Item value='insights'>
-            Insights
-            <Navigator.Secondary aria-label='Insights sections'>
-              <Navigator.Item value='b1'>B one</Navigator.Item>
-              <Navigator.Item value='b2'>B two</Navigator.Item>
-            </Navigator.Secondary>
-          </Navigator.Item>
-        </Navigator.Primary>
-        <Navigator.Content>
-          <Pane role='detail'>
-            <Pane.Header />
-          </Pane>
-        </Navigator.Content>
-      </Navigator>
-    )
-
-    const stripIndicator = (container: HTMLElement) =>
-      container.querySelector<HTMLElement>(
-        '[data-slot="navigator-secondary-strip"] [data-slot="navigator-indicator"]'
-      )
-
-    it('stays ready once the strip has rendered the new section', async () => {
-      const { container, rerender } = render(twoSectionTree('a1'))
-      expect(stripIndicator(container)).toHaveAttribute('data-ready', 'true')
-
-      rerender(twoSectionTree('b1'))
-
-      expect(
-        container.querySelector(
-          '[data-slot="navigator-secondary-strip"] [data-slot="navigator-item"]'
-        )
-      ).toHaveTextContent('B one')
-      expect(stripIndicator(container)).toHaveAttribute('data-ready', 'true')
-      await flushViewportMeasurement()
-    })
-  })
-})
-
-describe('Navigator strip indicator surface', () => {
-  it('shares its indicator surface with Tabs instead of tracking it by eye', () => {
-    // The strip cannot use Tabs.Indicator (its positioning and var mapping
-    // are Navigator's own), so the appearance is imported instead of
-    // copied. This pins that it is genuinely one source: a change to the
-    // fragment reaches both, and neither may inline its own copy.
-    expect(tabsIndicatorSurfaceClass).not.toBe('')
-    expect(tabsIndicatorVariants({ emphasis: 'subtle' })).toContain(
-      tabsIndicatorSurfaceClass
-    )
-    expect(navigatorIndicatorVariants({ surface: 'strip' })).toContain(
-      tabsIndicatorSurfaceClass
-    )
-  })
 })
 
 describe('Navigator.Secondary', () => {
-  // The strip now lives inside a Pane.Header, fed the active
-  // section's secondary nav through context. Both the Primary (writer) and a
-  // Header (reader) must be present for the mobile strip to appear.
   const tree = (active: string) => (
     <Navigator value={active}>
       <Navigator.Primary aria-label='Primary'>
         <Navigator.Item value='events'>
           Events
-          <Navigator.Secondary aria-label='Events sections'>
+          <Navigator.Secondary
+            aria-label='Events sections'
+            className='custom-secondary'
+          >
             <Navigator.Item value='all'>All events</Navigator.Item>
             <Navigator.Item value='drafts'>Drafts</Navigator.Item>
           </Navigator.Secondary>
@@ -2273,185 +1930,74 @@ describe('Navigator.Secondary', () => {
         <Navigator.Item value='insights'>Insights</Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='detail'>
-          <Pane.Header />
+        <Pane role='detail' current>
+          Detail
         </Pane>
       </Navigator.Content>
     </Navigator>
   )
 
-  const stripOf = (container: HTMLElement) =>
-    container.querySelector<HTMLElement>(
-      '[data-slot="navigator-secondary-strip"]'
-    )
+  const sectionPane = () =>
+    document.querySelector<HTMLElement>('[data-navigator-section]')
 
-  const stripViewportOf = (container: HTMLElement) =>
-    container.querySelector<HTMLElement>(
-      '[data-slot="navigator-secondary-strip-viewport"]'
-    )
-
-  it('lays the strip row out on the scrolling content, not the viewport', async () => {
-    // Regression guard for the wrap. ScrollArea.Content sits between the
-    // viewport and the items, so a row declared on the viewport lays out one
-    // block child, and the inline-flex items inside that child wrap as inline
-    // content — 14 items over 4 rows, with no gap and nothing to scroll.
-    const { container } = render(tree('events'))
-    await flushViewportMeasurement()
-
-    const viewport = stripViewportOf(container)!
-    const content = viewport.querySelector<HTMLElement>(
-      '[data-slot="scroll-area-content"]'
-    )!
-
-    expect(content).toHaveClass(
-      'flex',
-      'items-center',
-      'gap-1',
-      'px-[calc(var(--content-inset)+var(--spacing))]'
-    )
-    expect(viewport).toHaveClass('overflow-x-auto')
-    expect(viewport).not.toHaveClass('gap-1')
-    expect(viewport).not.toHaveClass('items-center')
-    expect(
-      content.querySelectorAll('[data-slot="navigator-item"]')
-    ).toHaveLength(2)
-  })
-
-  it('renders its children when its parent item is active', async () => {
+  it('renders its children in the section pane when its parent item is active', async () => {
     render(tree('events'))
-    expect(screen.getAllByText('All events').length).toBeGreaterThan(0)
     await flushViewportMeasurement()
+    expect(
+      within(
+        within(sectionPane()!).getByRole('navigation', {
+          name: 'Events sections'
+        })
+      )
+        .getAllByRole('button')
+        .map((el) => el.textContent)
+    ).toEqual(['All events', 'Drafts'])
   })
 
   it('renders nothing when its parent item is not active', async () => {
     render(tree('insights'))
-    expect(screen.queryByText('All events')).toBeNull()
     await flushViewportMeasurement()
+    expect(screen.queryByText('All events')).toBeNull()
   })
 
   it('is a labelled navigation landmark', async () => {
     render(tree('events'))
+    await flushViewportMeasurement()
     expect(
       screen.getByRole('navigation', { name: 'Events sections' })
     ).toBeInTheDocument()
-    await flushViewportMeasurement()
   })
 
-  it('nests inside its own primary item, immediately after it', async () => {
-    const { container } = render(tree('events'))
-    const vertical = container.querySelector(
-      '[data-slot="navigator-primary"][data-orientation="vertical"]'
-    )
-    const nested = vertical?.querySelector('[data-slot="navigator-secondary"]')
-    const parentItem = within(vertical as HTMLElement)
-      .getByText('Events')
-      .closest('[data-slot="navigator-item"]')
-    const owningLi = parentItem?.closest('li')
-
-    expect(owningLi?.tagName).toBe('LI')
-    expect(nested?.parentElement).toBe(owningLi)
-    expect(parentItem?.nextElementSibling).toBe(nested)
-    await flushViewportMeasurement()
-  })
-
-  it('renders the strip inside the pane header as a scrolling row of the declared items', async () => {
-    const { container } = render(tree('events'))
-    const strip = stripOf(container) as HTMLElement
-
-    expect(strip.closest('[data-slot="pane-header"]')).toBeTruthy()
-    expect(stripViewportOf(container)?.className).toContain('overflow-x-auto')
-    expect(
-      within(strip)
-        .getAllByRole('button')
-        .map((el) => el.textContent)
-    ).toEqual(['All events', 'Drafts'])
-    await flushViewportMeasurement()
-  })
-
-  it('forwards className to the nested secondary', async () => {
-    const { container } = render(
-      <Navigator value='events'>
-        <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item value='events'>
-            Events
-            <Navigator.Secondary
-              aria-label='Events sections'
-              className='custom-secondary'
-            >
-              <Navigator.Item value='all'>All events</Navigator.Item>
-            </Navigator.Secondary>
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-
-    expect(
-      container.querySelector('[data-slot="navigator-secondary"]')
-    ).toHaveClass('custom-secondary')
-    await flushViewportMeasurement()
-  })
-
-  it('forwards a Secondary className to the mobile strip in the header', async () => {
-    const { container } = render(
-      <Navigator value='events'>
-        <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item value='events'>
-            Events
-            <Navigator.Secondary
-              aria-label='Events sections'
-              className='custom-strip'
-            >
-              <Navigator.Item value='all'>All events</Navigator.Item>
-            </Navigator.Secondary>
-          </Navigator.Item>
-        </Navigator.Primary>
-        <Navigator.Content>
-          <Pane role='detail'>
-            <Pane.Header />
-          </Pane>
-        </Navigator.Content>
-      </Navigator>
-    )
-    const strip = stripOf(container) as HTMLElement
-    // Consumer class lands on the root; the scroll layout class lives on
-    // the viewport now that the strip is a ScrollArea.
-    expect(strip).toHaveClass('custom-strip')
-    expect(stripViewportOf(container)).toHaveClass('overflow-x-auto')
-    await flushViewportMeasurement()
-  })
-
-  it('marks the current sub-page active in the header strip', async () => {
-    const { container } = render(tree('all'))
-    const strip = within(stripOf(container) as HTMLElement)
-    expect(strip.getByRole('button', { name: 'All events' })).toHaveAttribute(
-      'aria-current',
-      'page'
-    )
-    expect(strip.getByRole('button', { name: 'Drafts' })).not.toHaveAttribute(
-      'aria-current'
-    )
-    await flushViewportMeasurement()
-  })
-
-  it('renders no strip when the active item declares no Secondary', async () => {
-    const { container } = render(tree('insights'))
-    expect(stripOf(container)).toBeNull()
-    await flushViewportMeasurement()
-  })
-
-  it('names the strip distinctly from the nested landmark', async () => {
+  it('forwards className to the section navigation', async () => {
     render(tree('events'))
-    expect(
-      screen.getByRole('navigation', { name: 'Events sections tabs' })
-    ).toBeInTheDocument()
     await flushViewportMeasurement()
+    expect(
+      screen.getByRole('navigation', { name: 'Events sections' })
+    ).toHaveClass('custom-secondary')
   })
 
   it('marks the active secondary destination with aria-current', async () => {
+    render(tree('drafts'))
+    await flushViewportMeasurement()
+    const sectionNav = within(
+      screen.getByRole('navigation', { name: 'Events sections' })
+    )
+    expect(sectionNav.getByRole('button', { name: 'Drafts' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    )
+    expect(
+      sectionNav.getByRole('button', { name: 'All events' })
+    ).not.toHaveAttribute('aria-current')
+  })
+
+  it('selects a sub-page through onValueChange', async () => {
+    const user = userEvent.setup()
+    const onValueChange = vi.fn()
     render(
-      <Navigator value='drafts'>
+      <Navigator value='all' onValueChange={onValueChange}>
         <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item value='drafts'>
+          <Navigator.Item value='events'>
             Events
             <Navigator.Secondary aria-label='Events sections'>
               <Navigator.Item value='all'>All events</Navigator.Item>
@@ -2459,79 +2005,62 @@ describe('Navigator.Secondary', () => {
             </Navigator.Secondary>
           </Navigator.Item>
         </Navigator.Primary>
+        <Navigator.Content>
+          <Pane role='detail' current>
+            Detail
+          </Pane>
+        </Navigator.Content>
       </Navigator>
-    )
-    const nested = within(
-      screen.getByRole('navigation', { name: 'Events sections' })
-    )
-    expect(nested.getByText('Drafts').closest('button')).toHaveAttribute(
-      'aria-current',
-      'page'
     )
     await flushViewportMeasurement()
+    await user.click(
+      within(sectionPane()!).getByRole('button', { name: 'Drafts' })
+    )
+    expect(onValueChange).toHaveBeenCalledWith('drafts')
   })
 
-  it('finds items nested inside a group when collecting descendants', () => {
-    const { container } = render(
-      <Navigator value='/components/button'>
-        <Navigator.Primary aria-label='Docs'>
-          <Navigator.Item value='/components' href='/components'>
-            Components
-            <Navigator.Secondary aria-label='Components'>
-              <Navigator.Group>
-                <Navigator.GroupTitle>Actions</Navigator.GroupTitle>
-                <Navigator.Item
-                  value='/components/button'
-                  href='/components/button'
-                >
-                  Button
-                </Navigator.Item>
-              </Navigator.Group>
-            </Navigator.Secondary>
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    // jsdom renders both orientations, each with a 'Components' link.
-    const vertical = within(
-      container.querySelector(
-        '[data-slot="navigator-primary"][data-orientation="vertical"]'
-      ) as HTMLElement
-    )
+  const groupedTree = (
+    <Navigator value='/components/button'>
+      <Navigator.Primary aria-label='Docs'>
+        <Navigator.Item value='/components' href='/components'>
+          Components
+          <Navigator.Secondary aria-label='Components'>
+            <Navigator.Group>
+              <Navigator.GroupTitle>Actions</Navigator.GroupTitle>
+              <Navigator.Item
+                value='/components/button'
+                href='/components/button'
+              >
+                Button
+              </Navigator.Item>
+            </Navigator.Group>
+          </Navigator.Secondary>
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Navigator.Content>
+        <Pane role='detail' current>
+          Detail
+        </Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
 
+  it('finds items nested inside a group when collecting descendants', async () => {
+    render(groupedTree)
+    await flushViewportMeasurement()
     // The section is branch-active only if the walk saw the grouped child.
-    expect(vertical.getByRole('link', { name: /Components/ })).toHaveClass(
-      'text-strong'
-    )
-    expect(vertical.getByRole('link', { name: 'Button' })).toHaveAttribute(
-      'aria-current',
-      'page'
-    )
+    expect(
+      within(primaryOf('vertical')).getByRole('link', { name: 'Components' })
+    ).toHaveAttribute('aria-current', 'true')
+    expect(
+      within(sectionPane()!).getByRole('link', { name: 'Button' })
+    ).toHaveAttribute('aria-current', 'page')
   })
 
-  it('renders a group label in the vertical navigation', () => {
-    render(
-      <Navigator value='/components/button'>
-        <Navigator.Primary aria-label='Docs'>
-          <Navigator.Item value='/components' href='/components'>
-            Components
-            <Navigator.Secondary aria-label='Components'>
-              <Navigator.Group>
-                <Navigator.GroupTitle>Actions</Navigator.GroupTitle>
-                <Navigator.Item
-                  value='/components/button'
-                  href='/components/button'
-                >
-                  Button
-                </Navigator.Item>
-              </Navigator.Group>
-            </Navigator.Secondary>
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-
-    expect(screen.getByText('Actions')).toBeVisible()
+  it('renders a group label in the section pane', async () => {
+    render(groupedTree)
+    await flushViewportMeasurement()
+    expect(within(sectionPane()!).getByText('Actions')).toBeVisible()
   })
 })
 
@@ -2560,81 +2089,45 @@ describe('vertical list semantics', () => {
       true
     )
   })
-
-  it('nests a secondary inside its own primary list item', async () => {
-    render(
-      <Navigator value='/events/live'>
-        <Navigator.Primary aria-label='Main'>
-          <Navigator.Item value='/events' href='/events'>
-            Events
-            <Navigator.Secondary aria-label='Events sections'>
-              <Navigator.Item value='/events/live' href='/events/live'>
-                Live
-              </Navigator.Item>
-            </Navigator.Secondary>
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-
-    const vertical = document.querySelector(
-      '[data-slot="navigator-primary"][data-orientation="vertical"]'
-    )!
-    const secondary = vertical.querySelector(
-      '[data-slot="navigator-secondary"]'
-    )!
-    const owningItem = secondary.closest('li')!
-    expect(owningItem.querySelector('a[href="/events"]')).not.toBeNull()
-    expect(
-      secondary.querySelector('ul > li a[href="/events/live"]')
-    ).not.toBeNull()
-  })
 })
 
 describe('Navigator.Group', () => {
-  it('renders a titled group without a key warning', async () => {
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-    render(
-      <Navigator value='/events'>
-        <Navigator.Primary aria-label='Main'>
+  const groupTree = (title: ReactNode = 'Formats') => (
+    <Navigator value='/events/live'>
+      <Navigator.Primary aria-label='Main'>
+        <Navigator.Group>
+          <Navigator.GroupTitle>{title}</Navigator.GroupTitle>
           <Navigator.Item value='/events' href='/events'>
             Events
             <Navigator.Secondary aria-label='Events sections'>
               <Navigator.Group>
-                <Navigator.GroupTitle>Formats</Navigator.GroupTitle>
+                <Navigator.GroupTitle>Live formats</Navigator.GroupTitle>
                 <Navigator.Item value='/events/live' href='/events/live'>
                   Live
                 </Navigator.Item>
               </Navigator.Group>
             </Navigator.Secondary>
           </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
+        </Navigator.Group>
+      </Navigator.Primary>
+      <Navigator.Content>
+        <Pane role='detail' current>
+          Detail
+        </Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+
+  it('renders a titled group without a key warning', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(groupTree())
     await flushViewportMeasurement()
     expect(error).not.toHaveBeenCalled()
     error.mockRestore()
   })
 
   it('associates its list with its title in the vertical navigation', async () => {
-    render(
-      <Navigator value='/events'>
-        <Navigator.Primary aria-label='Main'>
-          <Navigator.Item value='/events' href='/events'>
-            Events
-            <Navigator.Secondary aria-label='Events sections'>
-              <Navigator.Group>
-                <Navigator.GroupTitle>Formats</Navigator.GroupTitle>
-                <Navigator.Item value='/events/live' href='/events/live'>
-                  Live
-                </Navigator.Item>
-              </Navigator.Group>
-            </Navigator.Secondary>
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
+    render(groupTree())
     await flushViewportMeasurement()
 
     const title = screen.getByRole('heading', { name: 'Formats', level: 2 })
@@ -2645,23 +2138,7 @@ describe('Navigator.Group', () => {
   })
 
   it('renders the title and the list as siblings, not nested', async () => {
-    render(
-      <Navigator value='/events'>
-        <Navigator.Primary aria-label='Main'>
-          <Navigator.Item value='/events' href='/events'>
-            Events
-            <Navigator.Secondary aria-label='Events sections'>
-              <Navigator.Group>
-                <Navigator.GroupTitle>Formats</Navigator.GroupTitle>
-                <Navigator.Item value='/events/live' href='/events/live'>
-                  Live
-                </Navigator.Item>
-              </Navigator.Group>
-            </Navigator.Secondary>
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
+    render(groupTree())
     await flushViewportMeasurement()
 
     const title = screen.getByRole('heading', { name: 'Formats' })
@@ -2674,19 +2151,14 @@ describe('Navigator.Group', () => {
     render(
       <Navigator value='/events'>
         <Navigator.Primary aria-label='Main'>
-          <Navigator.Item value='/events' href='/events'>
-            Events
-            <Navigator.Secondary aria-label='Events sections'>
-              <Navigator.Group>
-                <Navigator.GroupTitle render={(p) => <h3 {...p} />}>
-                  Formats
-                </Navigator.GroupTitle>
-                <Navigator.Item value='/events/live' href='/events/live'>
-                  Live
-                </Navigator.Item>
-              </Navigator.Group>
-            </Navigator.Secondary>
-          </Navigator.Item>
+          <Navigator.Group>
+            <Navigator.GroupTitle render={(p) => <h3 {...p} />}>
+              Formats
+            </Navigator.GroupTitle>
+            <Navigator.Item value='/events' href='/events'>
+              Events
+            </Navigator.Item>
+          </Navigator.Group>
         </Navigator.Primary>
       </Navigator>
     )
@@ -2694,36 +2166,6 @@ describe('Navigator.Group', () => {
     expect(
       screen.getByRole('heading', { name: 'Formats', level: 3 })
     ).toBeInTheDocument()
-  })
-
-  it('renders the title as text, not a heading, in the mobile strip', async () => {
-    const { container } = render(
-      <Navigator value='events'>
-        <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item value='events'>
-            Events
-            <Navigator.Secondary aria-label='Events sections'>
-              <Navigator.Group>
-                <Navigator.GroupTitle>Formats</Navigator.GroupTitle>
-                <Navigator.Item value='events-live'>Live</Navigator.Item>
-              </Navigator.Group>
-            </Navigator.Secondary>
-          </Navigator.Item>
-        </Navigator.Primary>
-        <Navigator.Content>
-          <Pane role='detail'>
-            <Pane.Header />
-          </Pane>
-        </Navigator.Content>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-
-    const strip = container.querySelector(
-      '[data-slot="navigator-secondary-strip"]'
-    ) as HTMLElement
-    expect(within(strip).queryByRole('heading')).toBeNull()
-    expect(within(strip).getByText('Formats')).toBeInTheDocument()
   })
 })
 
@@ -2766,16 +2208,19 @@ describe('Navigator.Primary group descent', () => {
         </Navigator.Primary>
         <Navigator.Content>
           <Pane role='detail' current>
-            <Pane.Header />
+            Detail
           </Pane>
         </Navigator.Content>
       </Navigator>
     )
     await flushViewportMeasurement()
-    const top = document.querySelector('[data-slot="pane"]')
-    expect(
-      top?.querySelector('[data-slot="navigator-secondary-strip"]')
-    ).toBeTruthy()
+    const pane = document.querySelector<HTMLElement>(
+      '[data-navigator-section="/a"]'
+    )!
+    expect(within(pane).getByRole('link', { name: 'Sub' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    )
   })
 })
 
@@ -2808,6 +2253,11 @@ describe('Navigator.Menu + Navigator.Secondary precedence', () => {
           </Navigator.Menu>
         </Navigator.Item>
       </Navigator.Primary>
+      <Navigator.Content>
+        <Pane role='detail' current>
+          Detail
+        </Pane>
+      </Navigator.Content>
     </Navigator>
   )
 
@@ -2816,7 +2266,7 @@ describe('Navigator.Menu + Navigator.Secondary precedence', () => {
     await flushViewportMeasurement()
     // A routeless section links to its first sub-page, so no menu took over the row.
     const row = verticalOf(container).getByRole('link', { name: 'A' })
-    expect(row.querySelector('svg')).toBeTruthy()
+    expect(row).toHaveAttribute('href', '/a/sub')
     expect(row).not.toHaveAttribute('aria-haspopup')
     expect(verticalOf(container).queryByText('Menu')).toBeNull()
   })
@@ -2825,7 +2275,9 @@ describe('Navigator.Menu + Navigator.Secondary precedence', () => {
     const { container } = render(withBoth('/a/sub'))
     await flushViewportMeasurement()
     expect(
-      verticalOf(container).getByRole('link', { name: 'Sub' })
+      within(
+        document.querySelector<HTMLElement>('[data-navigator-section="/a"]')!
+      ).getByRole('link', { name: 'Sub' })
     ).toBeInTheDocument()
     expect(
       horizontalOf(container).getByRole('link', { name: 'A' })
@@ -2861,84 +2313,76 @@ describe('Navigator descendant-aware active matching', () => {
           </Navigator.Secondary>
         </Navigator.Item>
       </Navigator.Primary>
+      <Navigator.Content>
+        <Pane role='detail' current>
+          Detail
+        </Pane>
+      </Navigator.Content>
     </Navigator>
   )
 
   const verticalItem = (label: string) =>
-    screen
-      .getAllByText(label)
-      .map((el) => el.closest('[data-slot="navigator-item"]'))
-      .find((el) =>
-        el?.closest(
-          '[data-slot="navigator-primary"][data-orientation="vertical"]'
-        )
-      )
+    within(primaryOf('vertical'))
+      .getByText(label)
+      .closest('[data-slot="navigator-item"]')
+  const sectionRow = (label: string) =>
+    within(
+      document.querySelector<HTMLElement>('[data-navigator-section]')!
+    ).getByRole('button', { name: label })
 
   it('marks a section branch-active when a Secondary descendant is current', async () => {
     render(tree('button'))
-    // Branch-active section reads dark and bold and reveals its children.
+    await flushViewportMeasurement()
     expect(verticalItem('Components')).toHaveClass('text-strong')
     expect(verticalItem('Components')).not.toHaveClass('intent-accent')
     expect(
       screen.getByRole('navigation', { name: 'Components pages' })
     ).toBeInTheDocument()
-    await flushViewportMeasurement()
   })
 
   it('keeps a section reading current on a sub-route no Secondary declares', async () => {
-    // Treatment only: `aria-current` stays exact.
     render(tree('components/settings'))
+    await flushViewportMeasurement()
     const section = verticalItem('Components')
-    // `data-current` is what the sliding pill measures, so this is the
-    // assertion that the section actually reads as selected.
+    // `data-current` is what the sliding pill measures.
     expect(section).toHaveAttribute('data-current')
-    expect(verticalItem('Button')).not.toHaveAttribute('data-current')
-    // ...while the announcement stays with the exact page, i.e. nowhere here.
-    expect(section).not.toHaveAttribute('aria-current')
-    await flushViewportMeasurement()
+    expect(section).toHaveAttribute('aria-current', 'true')
   })
 
-  it('hands currency to a Secondary destination when one is active', async () => {
-    // Exactly one item may carry the pill, or the indicator has two targets.
+  it('keeps the pill on the section while a sub-page is current', async () => {
     render(tree('button'))
-    expect(verticalItem('Button')).toHaveAttribute('data-current')
-    expect(verticalItem('Components')).not.toHaveAttribute('data-current')
-    expect(verticalItem('Button')).toHaveAttribute('aria-current', 'page')
-    expect(verticalItem('Components')).not.toHaveAttribute('aria-current')
     await flushViewportMeasurement()
+    expect(verticalItem('Components')).toHaveAttribute('data-current')
+    expect(verticalItem('Foundations')).not.toHaveAttribute('data-current')
   })
 
-  it('gives aria-current to the exact descendant, not the branch section', async () => {
+  it('gives aria-current=page to the exact descendant, not the branch section', async () => {
     render(tree('button'))
-    expect(verticalItem('Button')).toHaveAttribute('aria-current', 'page')
-    expect(verticalItem('Components')).not.toHaveAttribute('aria-current')
     await flushViewportMeasurement()
+    expect(sectionRow('Button')).toHaveAttribute('aria-current', 'page')
+    expect(verticalItem('Components')).toHaveAttribute('aria-current', 'true')
   })
 
   it('marks the section mobile tab active when a descendant is current', async () => {
-    const { container } = render(tree('button'))
-    const bar = within(
-      container.querySelector(
-        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
-      ) as HTMLElement
-    )
+    render(tree('button'))
+    await flushViewportMeasurement()
+    const bar = within(primaryOf('horizontal'))
     expect(bar.getByRole('button', { name: 'Components' })).toHaveClass(
       'intent-accent'
     )
     expect(bar.getByRole('button', { name: 'Foundations' })).not.toHaveClass(
       'intent-accent'
     )
-    await flushViewportMeasurement()
   })
 
   it('leaves a sibling section whose subtree lacks the active value inactive', async () => {
     render(tree('button'))
-    expect(verticalItem('Foundations')).not.toHaveClass('intent-accent')
+    await flushViewportMeasurement()
+    expect(verticalItem('Foundations')).not.toHaveAttribute('aria-current')
     expect(
       screen.queryByRole('navigation', { name: 'Foundations pages' })
     ).toBeNull()
     expect(screen.queryByText('Layout')).toBeNull()
-    await flushViewportMeasurement()
   })
 })
 
@@ -2995,12 +2439,12 @@ describe('Navigator route-prefix section matching', () => {
   })
 
   // Branch-active is not exact currency: the section is where you are, not
-  // the page you are on, so nothing announces it as current.
-  it('gives the section no aria-current on a sub-route', async () => {
+  // the page you are on.
+  it('announces the section as current, never as the page, on a sub-route', async () => {
     render(paneSectionTree('/components/forms'))
     await flushViewportMeasurement()
 
-    expect(verticalItem('Components')).not.toHaveAttribute('aria-current')
+    expect(verticalItem('Components')).toHaveAttribute('aria-current', 'true')
   })
 
   const verticalSectionTree = (value: string) => (
@@ -3021,17 +2465,22 @@ describe('Navigator route-prefix section matching', () => {
           Tokens
         </Navigator.Item>
       </Navigator.Primary>
+      <Navigator.Content>
+        <Pane role='detail' current>
+          Doc
+        </Pane>
+      </Navigator.Content>
     </Navigator>
   )
 
-  it('reveals a vertical section on an undeclared sub-route too', async () => {
+  it('opens the section pane on an undeclared sub-route too', async () => {
     render(verticalSectionTree('/foundations/undeclared'))
     await flushViewportMeasurement()
 
     expect(verticalItem('Foundations')).toHaveClass('text-strong')
     expect(
-      screen.getByRole('navigation', { name: 'Foundations pages' })
-    ).toBeInTheDocument()
+      document.querySelector('[data-navigator-section="/foundations"]')
+    ).not.toBeNull()
   })
 
   it('does not match a sibling whose value is only a string prefix', async () => {
@@ -3654,68 +3103,8 @@ describe('Navigator active-tab tap: scroll-on-landing vs navigate-up', () => {
   })
 })
 
-describe('section nav in the pane header', () => {
-  it('renders the active section nav in the top pane header', async () => {
-    render(
-      <Navigator value='/foundations/colors'>
-        <Navigator.Primary aria-label='Docs'>
-          <Navigator.Item value='/foundations' icon={<FakeIcon />}>
-            Foundations
-            <Navigator.Secondary aria-label='Foundations pages'>
-              <Navigator.Item value='/foundations/colors'>
-                Colors
-              </Navigator.Item>
-            </Navigator.Secondary>
-          </Navigator.Item>
-        </Navigator.Primary>
-        <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' current>
-            <Pane.Header />
-            Detail
-          </Pane>
-        </Navigator.Content>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    const top = document.querySelectorAll('[data-slot="pane"]')[1]
-    expect(
-      top?.querySelector('[data-slot="navigator-secondary-strip"]')
-    ).toBeTruthy()
-  })
-
-  it('does not duplicate the strip into a non-top pane header', async () => {
-    render(
-      <Navigator value='/foundations/colors'>
-        <Navigator.Primary aria-label='Docs'>
-          <Navigator.Item value='/foundations' icon={<FakeIcon />}>
-            Foundations
-            <Navigator.Secondary aria-label='Foundations pages'>
-              <Navigator.Item value='/foundations/colors'>
-                Colors
-              </Navigator.Item>
-            </Navigator.Secondary>
-          </Navigator.Item>
-        </Navigator.Primary>
-        <Navigator.Content>
-          <Pane role='list'>
-            <Pane.Header />
-            List
-          </Pane>
-          <Pane role='detail' current>
-            <Pane.Header />
-            Detail
-          </Pane>
-        </Navigator.Content>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    expect(
-      document.querySelectorAll('[data-slot="navigator-secondary-strip"]')
-    ).toHaveLength(1)
-  })
-
-  it('draws no header at all when there is no section nav to host', async () => {
+describe('pane header inside Navigator', () => {
+  it('draws no header at all when it has nothing to show', async () => {
     render(
       <Navigator value='/'>
         <Navigator.Primary aria-label='Docs'>
@@ -3732,53 +3121,35 @@ describe('section nav in the pane header', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
-    // An element that renders nothing is not the same as no chrome — a header
-    // with neither would be ~24px of empty sticky bar.
     expect(document.querySelector('[data-slot="pane-header"]')).toBeNull()
   })
 
-  // Panes stay mounted as the stack moves, so the header's measurement effect
-  // has to follow its own visibility rather than its mount.
-  it('moves the published header height as the top of the stack moves', async () => {
-    const tree = (current: boolean) => (
-      <Navigator value='/foundations/colors'>
-        <Navigator.Primary aria-label='Docs'>
-          <Navigator.Item value='/foundations' icon={<FakeIcon />}>
-            Foundations
-            <Navigator.Secondary aria-label='Foundations pages'>
-              <Navigator.Item value='/foundations/colors'>
-                Colors
-              </Navigator.Item>
-            </Navigator.Secondary>
-          </Navigator.Item>
-        </Navigator.Primary>
+  // Panes stay mounted, so the header's measurement follows its own visibility.
+  it('publishes the header height only while the header draws', async () => {
+    const tree = (titled: boolean) => (
+      <Navigator value='/'>
         <Navigator.Content>
-          <Pane role='list'>
-            <Pane.Header />
-            List
-          </Pane>
-          <Pane role='detail' current={current}>
-            <Pane.Header />
-            Detail
+          <Pane role='detail' current>
+            <Pane.Header>
+              {titled ? <Pane.Title>Detail</Pane.Title> : null}
+            </Pane.Header>
           </Pane>
         </Navigator.Content>
       </Navigator>
     )
-    const heights = () =>
-      Array.from(
-        document.querySelectorAll<HTMLElement>('[data-slot="pane"]')
-      ).map((pane) => pane.style.getPropertyValue('--pane-header-height'))
+    const height = () =>
+      document
+        .querySelector<HTMLElement>('[data-slot="pane"]')!
+        .style.getPropertyValue('--pane-header-height')
 
     const { rerender } = render(tree(true))
     await flushViewportMeasurement()
-    // jsdom measures 0, but the property's presence is what sticky content
-    // offsets against.
-    expect(heights()).toEqual(['', '0px'])
+    // jsdom measures 0; the property's presence is what sticky content reads.
+    expect(height()).toBe('0px')
 
     rerender(tree(false))
     await flushViewportMeasurement()
-
-    expect(heights()).toEqual(['0px', ''])
+    expect(height()).toBe('')
   })
 })
 
@@ -4036,9 +3407,9 @@ describe('nesting acceptance criteria', () => {
     expect(positions()).toEqual(['behind', 'top'])
   })
 
-  // Criterion 5: primaryNav and the mobile section nav resolve against the
-  // true top pane, even when that pane is wrapped.
-  it('resolves primaryNav and the section nav against a wrapped top pane', async () => {
+  // Criterion 5: primaryNav resolves against the true top pane, even when that
+  // pane is wrapped and the generated section pane leads the stack.
+  it('resolves primaryNav against a wrapped top pane', async () => {
     render(
       <Navigator value='/foundations/colors'>
         <Navigator.Primary aria-label='Docs'>
@@ -4063,11 +3434,9 @@ describe('nesting acceptance criteria', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
-    const top = document.querySelectorAll('[data-slot="pane"]')[1]
+    expect(positions()).toEqual(['behind', 'behind', 'top'])
+    const top = document.querySelectorAll('[data-slot="pane"]')[2]
     expect(top).toHaveAttribute('data-primary-nav', 'hidden')
-    expect(
-      top?.querySelector('[data-slot="navigator-secondary-strip"]')
-    ).toBeTruthy()
     expect(
       document.querySelector(
         '[data-slot="navigator-primary"][data-orientation="horizontal"]'
@@ -4179,11 +3548,10 @@ describe('indicator track offsetParent guard', () => {
   // but only because every track below is `position: relative`, so it is
   // itself an `offsetParent`. jsdom always reports a null `offsetParent`, so
   // that regression can't be caught live here; this guards the one thing
-  // that keeps it from resurfacing — none of the three tracks silently loses
-  // `relative` and falls back to the transform-inclusive rect path.
+  // that keeps it from resurfacing — neither track silently loses `relative`
+  // and falls back to the transform-inclusive rect path.
   it('keeps every indicator track position: relative', () => {
     expect(navigatorPrimaryTrackVariants()).toContain('relative')
     expect(navigatorPrimaryViewportVariants()).toContain('relative')
-    expect(navigatorSecondaryStripViewportVariants()).toContain('relative')
   })
 })

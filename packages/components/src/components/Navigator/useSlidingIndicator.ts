@@ -120,12 +120,9 @@ export function useSlidingIndicator(
   // recovers it. Don't drop the `typeof ResizeObserver` guard or "simplify"
   // this effect on that assumption: without it there is no indicator, ever.
   //
-  // No dependency array on purpose: the track's contents (which destination
-  // is `[aria-current]`) can change on a commit that leaves the active value
-  // untouched — e.g. the secondary strip swapping to a new section's items,
-  // published a tick after the value change by a sibling's effect. Re-running
-  // on every commit is what catches that; `measure` only calls `setGeometry`
-  // when the box actually moved, so this can't loop.
+  // No dependency array: which destination holds the pill can change on a
+  // commit that leaves the active value untouched (a menu opening). `measure`
+  // only sets geometry when the box moved, so this can't loop.
   useIsomorphicLayoutEffect(measure)
 
   useEffect(() => {

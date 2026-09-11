@@ -16,7 +16,6 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { isDev } from '../../utils/isDev'
 import { IconButton } from '../Button/IconButton'
-import { PaneChromeContext } from './PaneChromeContext'
 import { PaneContext } from './PaneContext'
 import { PaneTitle } from './PaneTitle'
 import { PaneTitleCompact } from './PaneTitleCompact'
@@ -71,7 +70,6 @@ export function PaneHeader({
   className
 }: PaneHeaderProps) {
   const pane = use(PaneContext)
-  const { headerExtras } = use(PaneChromeContext)
   const headerRef = useRef<HTMLElement>(null)
 
   // A `list` pane is the root of the stack — there is nothing to go back to.
@@ -113,12 +111,9 @@ export function PaneHeader({
     )
   }, [bothTitles])
 
-  // A header with nothing of its own and no orchestrator chrome to host would
-  // be an empty sticky bar taking up room at the top of the pane.
-  // A content-placed body title counts: its echo is the header's own
-  // content, even though the title itself lives in the scrolling body.
-  const noChrome = headerExtras === null
-  const hasOtherContent = children != null || !noChrome || bodyTitle !== null
+  // A header with nothing of its own would be an empty sticky bar. A
+  // content-placed body title counts: its echo is the header's own content.
+  const hasOtherContent = children != null || bodyTitle !== null
   const visible = showBack || showClose || hasOtherContent
   // Back and Close occupy the same cell at opposite bands, so the header can
   // only fully hide at a width when the cell is its sole content *and* only
@@ -212,7 +207,6 @@ export function PaneHeader({
       {bodyTitle !== null && !hasHeaderTitle ? (
         <PaneTitleCompact>{bodyTitle}</PaneTitleCompact>
       ) : null}
-      {headerExtras}
     </header>
   )
 }

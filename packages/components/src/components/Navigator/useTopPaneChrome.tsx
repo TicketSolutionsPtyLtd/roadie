@@ -4,16 +4,10 @@ import { use, useCallback, useMemo, useRef } from 'react'
 
 import type { PaneChromeContextValue } from '../Pane/PaneChromeContext'
 import { NavigatorContext } from './NavigatorContext'
-import { NavigatorPaneChrome } from './NavigatorPaneChrome'
 
 // Small enough that a nudge collapses the bar, large enough that overscroll
 // rubber-banding at the top doesn't flicker it.
 export const NAV_COLLAPSE_THRESHOLD = 24
-
-// One element for the life of the module: the chrome value is rebuilt whenever
-// bar state changes, and a fresh element here would remount the strip — and
-// with it the indicator's measurements — on every scroll frame.
-const stripElement = <NavigatorPaneChrome />
 
 /**
  * What the orchestrator hands the top pane of the stack.
@@ -29,8 +23,7 @@ export function useTopPaneChrome(): PaneChromeContextValue {
     setNavCollapsed,
     pinExpanded,
     setPinExpanded,
-    setActivePaneScroller,
-    secondaryNav
+    setActivePaneScroller
   } = use(NavigatorContext)
   const prevScrollTop = useRef(0)
 
@@ -60,15 +53,8 @@ export function useTopPaneChrome(): PaneChromeContextValue {
     [navCollapsed, pinExpanded, setNavCollapsed, setPinExpanded]
   )
 
-  // Null rather than an element that renders nothing: `Pane.Header` decides
-  // whether it has anything to draw by looking at this value, so an element
-  // standing in for "no chrome" would leave it drawing an empty sticky bar.
   return useMemo(
-    () => ({
-      headerExtras: secondaryNav === null ? null : stripElement,
-      onViewportScroll,
-      registerScroller: setActivePaneScroller
-    }),
-    [secondaryNav, onViewportScroll, setActivePaneScroller]
+    () => ({ onViewportScroll, registerScroller: setActivePaneScroller }),
+    [onViewportScroll, setActivePaneScroller]
   )
 }
