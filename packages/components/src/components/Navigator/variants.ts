@@ -216,14 +216,24 @@ export const navigatorTabVariants = cva(
         hidden: 'scale-0 px-0 py-4 opacity-0 pointer-events-none',
         // `p-5` = the track's `py-1` + a tab's `py-4`: square at the bar's height, sized intrinsically.
         pinned:
-          'pointer-events-auto p-5 rounded-full emphasis-floating is-translucent place-content-center justify-self-end'
+          'pointer-events-auto p-5 rounded-full emphasis-floating is-translucent place-content-center justify-self-end origin-bottom-right scale-100'
       },
       circleSide: {
         left: '',
         right: ''
+      },
+      collapsed: {
+        true: '',
+        false: ''
       }
     },
     compoundVariants: [
+      // Down to the edge circle's 3.5rem from its 4.125rem, and in to its 1rem inset.
+      {
+        presentation: 'pinned',
+        collapsed: true,
+        class: '-translate-x-2 scale-[calc(3.5/4.125)]'
+      },
       {
         presentation: 'circle',
         circleSide: 'left',
@@ -237,7 +247,29 @@ export const navigatorTabVariants = cva(
           'translate-x-[calc((var(--navigator-primary-count)_-_1_-_var(--navigator-primary-index))_*_var(--navigator-primary-col)_+_var(--navigator-primary-edge))]'
       }
     ],
-    defaultVariants: { active: false, presentation: 'expanded' }
+    defaultVariants: {
+      active: false,
+      presentation: 'expanded',
+      collapsed: false
+    }
+  }
+)
+
+// A tile-sized box, so the badge dot sits as on the vertical tile. Scaled
+// against the collapsed pinned circle, so its icon matches the edge circle's.
+export const navigatorTabIconFrameVariants = cva(
+  [
+    'relative -m-3 grid p-3',
+    'motion-safe:transition-[scale] motion-reduce:transition-none'
+  ],
+  {
+    variants: {
+      counterScaled: {
+        true: 'scale-[calc(4.125/3.5)]',
+        false: 'scale-100'
+      }
+    },
+    defaultVariants: { counterScaled: false }
   }
 )
 

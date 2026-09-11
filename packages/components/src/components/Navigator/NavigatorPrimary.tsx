@@ -551,6 +551,7 @@ export function NavigatorPrimary({
               current: pinnedIsActive && !overflowOpen,
               isPage: isActiveValue(pinnedTab.value, activeValue),
               pinned: true,
+              collapsed,
               index: 0,
               onSelect: (event) =>
                 selectDestination(event, pinnedTab, pinnedIsActive)

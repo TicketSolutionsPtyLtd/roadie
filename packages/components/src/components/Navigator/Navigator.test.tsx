@@ -2893,6 +2893,25 @@ describe('Navigator collapsed edge circles', () => {
     await flushViewportMeasurement()
   })
 
+  it('shrinks the pinned circle to the edge circle, keeping its icon size', async () => {
+    const { container } = render(barTree('a'))
+    const pinned = within(pinnedCircleOf(container)).getByRole('button', {
+      name: 'Account'
+    })
+    const frame = pinned.querySelector('[data-slot="navigator-tab-icon-frame"]')
+    const shrink = ['-translate-x-2', 'scale-[calc(3.5/4.125)]']
+    expect(pinned).toHaveClass('origin-bottom-right', 'scale-100')
+    for (const cls of shrink) expect(pinned).not.toHaveClass(cls)
+    expect(frame).toHaveClass('scale-100')
+
+    await collapse(container)
+    expect(pinned).toHaveClass('origin-bottom-right', ...shrink)
+    expect(frame).toHaveClass('scale-[calc(4.125/3.5)]')
+    expect(pinned).toHaveClass('motion-reduce:transition-none')
+    expect(frame).toHaveClass('motion-reduce:transition-none')
+    await flushViewportMeasurement()
+  })
+
   it('scales the non-edge tabs away but keeps them in the AT tree', async () => {
     const { container } = render(barTree('a'))
     await collapse(container)

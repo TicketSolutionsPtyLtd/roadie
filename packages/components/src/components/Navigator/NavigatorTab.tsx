@@ -8,7 +8,7 @@ import {
   type NavigatorDestinationProps
 } from './NavigatorDestination'
 import { badgeDot, presentNavIcon } from './presentNavIcon'
-import { navigatorTabVariants } from './variants'
+import { navigatorTabIconFrameVariants, navigatorTabVariants } from './variants'
 
 /** When the bar is collapsed, which edge this tab floats to as a circle. */
 export type NavigatorTabCircleSide = 'left' | 'right'
@@ -43,7 +43,7 @@ export type NavigatorTabProps = Omit<
   circleSide?: NavigatorTabCircleSide
   /** The track column, which a collapsed circle travels from. */
   index: number
-  /** The trailing circle outside the track; it never collapses. */
+  /** The trailing circle outside the track; collapsed, it shrinks to the edge circles' size. */
   pinned?: boolean
   /** Set only on the generated final tab, which discloses a pane. */
   expanded?: boolean
@@ -86,10 +86,11 @@ export function NavigatorTab({
         {label}
       </span>
       {badge ? ' ' : null}
-      {/* A tile-sized box, so the dot sits as on the vertical tile, inside the tab's rounded clip. */}
       <span
         data-slot='navigator-tab-icon-frame'
-        className='relative -m-3 grid p-3'
+        className={navigatorTabIconFrameVariants({
+          counterScaled: pinned && collapsed
+        })}
       >
         {/* A CSS animation, so re-tapping an already-active tab doesn't re-bounce. */}
         {presentNavIcon(
@@ -103,7 +104,7 @@ export function NavigatorTab({
   )
 
   const finalClassName = cn(
-    navigatorTabVariants({ active, presentation, circleSide }),
+    navigatorTabVariants({ active, presentation, circleSide, collapsed }),
     className
   )
   // Only the page itself claims 'page'; a disclosure or section claims 'true'.
