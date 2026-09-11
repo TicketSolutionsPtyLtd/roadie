@@ -9,6 +9,7 @@ import { Pane } from '../Pane'
 import { NavigatorContext } from './NavigatorContext'
 import { FakeIcon, flushViewportMeasurement, primaryOf } from './testUtils'
 import {
+  navigatorIndicatorVariants,
   navigatorPrimaryClusterViewportVariants,
   navigatorPrimaryPinnedVariants,
   navigatorPrimaryTrackVariants
@@ -604,83 +605,6 @@ describe('Navigator vertical form', () => {
     await flushViewportMeasurement()
   })
 
-  it('fills the active item icon and keeps the inactive one bold', async () => {
-    render(
-      <Navigator value='tickets'>
-        <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item value='discover' icon={<FakeIcon />}>
-            Discover
-          </Navigator.Item>
-          <Navigator.Item value='tickets' icon={<FakeIcon />}>
-            Tickets
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    const icons = screen.getAllByTestId('fake-icon')
-    const verticalIcons = icons.filter((icon) =>
-      icon.closest(
-        '[data-slot="navigator-primary"][data-orientation="vertical"]'
-      )
-    )
-    const active = verticalIcons.find(
-      (icon) =>
-        icon.closest('[data-slot="navigator-item"]')?.textContent === 'Tickets'
-    )
-    const inactive = verticalIcons.find(
-      (icon) =>
-        icon.closest('[data-slot="navigator-item"]')?.textContent === 'Discover'
-    )
-    expect(active).toHaveAttribute('data-weight', 'fill')
-    expect(inactive).toHaveAttribute('data-weight', 'bold')
-    await flushViewportMeasurement()
-  })
-
-  it('overrides a consumer-set weight on the active item icon', async () => {
-    render(
-      <Navigator value='tickets'>
-        <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item value='tickets' icon={<FakeIcon weight='bold' />}>
-            Tickets
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    const verticalIcon = screen
-      .getAllByTestId('fake-icon')
-      .find((icon) =>
-        icon.closest(
-          '[data-slot="navigator-primary"][data-orientation="vertical"]'
-        )
-      )
-    expect(verticalIcon).toHaveAttribute('data-weight', 'fill')
-    await flushViewportMeasurement()
-  })
-
-  it('sizes vertical item icons at size-6, overriding a consumer size', async () => {
-    render(
-      <Navigator value='tickets'>
-        <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item
-            value='tickets'
-            icon={<FakeIcon className='size-10' />}
-          >
-            Tickets
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    const verticalIcon = screen
-      .getAllByTestId('fake-icon')
-      .find((icon) =>
-        icon.closest(
-          '[data-slot="navigator-primary"][data-orientation="vertical"]'
-        )
-      )
-    expect(verticalIcon).toHaveAttribute('data-classname', 'size-6')
-    await flushViewportMeasurement()
-  })
-
   it('tints the current tile with the accent and leaves the inactive one subtle', async () => {
     render(
       <Navigator value='tickets'>
@@ -704,6 +628,95 @@ describe('Navigator vertical form', () => {
     expect(verticalItem('Discover')).toHaveClass('text-subtle')
     expect(verticalItem('Discover')).not.toHaveClass('intent-accent')
     await flushViewportMeasurement()
+  })
+})
+
+describe('destination visuals', () => {
+  const horizontalOf = (container: HTMLElement) =>
+    container.querySelector<HTMLElement>(
+      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+    )
+
+  const tree = (value = '/a') => (
+    <Navigator value={value}>
+      <Navigator.Primary aria-label='Main'>
+        <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
+          A
+        </Navigator.Item>
+        <Navigator.Item value='/b' href='/b' icon={<FakeIcon />}>
+          B
+        </Navigator.Item>
+      </Navigator.Primary>
+    </Navigator>
+  )
+
+  it('renders every destination icon duotone at size-6', async () => {
+    const { container } = render(tree())
+    await flushViewportMeasurement()
+    const icons = container.querySelectorAll('[data-testid="fake-icon"]')
+    expect(icons.length).toBeGreaterThan(0)
+    for (const icon of icons) {
+      expect(icon).toHaveAttribute('data-weight', 'duotone')
+      expect(icon).toHaveClass('size-6')
+    }
+  })
+
+  it('colours the active destination through intent-accent, never a raw step', async () => {
+    const { container } = render(tree())
+    await flushViewportMeasurement()
+    const active = container.querySelectorAll(
+      '[data-slot="navigator-item"][data-current]'
+    )
+    expect(active.length).toBe(2)
+    for (const item of active) {
+      expect(item).toHaveClass('intent-accent', 'text-subtle')
+      expect(item.className).not.toMatch(/accent-\d+/)
+    }
+  })
+
+  it('bounces the icon as a vertical tile becomes active', async () => {
+    const { container } = render(tree())
+    await flushViewportMeasurement()
+    const verticalIcon = container.querySelector(
+      '[data-slot="navigator-primary"][data-orientation="vertical"] [data-current] [data-testid="fake-icon"]'
+    )
+    expect(verticalIcon).toHaveClass('animate-pop-tap')
+  })
+
+  it('keeps the tab bar icon-only, with the name inside the link', async () => {
+    const { container } = render(tree())
+    await flushViewportMeasurement()
+    const tab = within(horizontalOf(container)!).getByRole('link', {
+      name: 'A'
+    })
+    expect(tab).not.toHaveAttribute('aria-label')
+    expect(within(tab).getByText('A')).toHaveClass('sr-only')
+  })
+
+  it('renders section-pane rows duotone at size-5', async () => {
+    render(
+      <Navigator value='/c'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Item value='/c' href='/c'>
+            C
+            <Navigator.Secondary aria-label='C pages'>
+              <Navigator.Item value='/c/x' href='/c/x' icon={<FakeIcon />}>
+                X
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Pane role='detail'>Detail</Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const icon = document.querySelector(
+      '[data-slot="navigator-secondary-items"] [data-testid="fake-icon"]'
+    )
+    expect(icon).toHaveAttribute('data-weight', 'duotone')
+    expect(icon).toHaveClass('size-5')
   })
 })
 
@@ -891,32 +904,6 @@ describe('Navigator.Brand', () => {
     )
     expect(warn).not.toHaveBeenCalled()
     warn.mockRestore()
-    await flushViewportMeasurement()
-  })
-})
-
-describe('Navigator active item surface', () => {
-  it('gives inactive vertical items a subtle hover background', async () => {
-    render(
-      <Navigator value='tickets'>
-        <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item value='discover'>Discover</Navigator.Item>
-          <Navigator.Item value='tickets'>Tickets</Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    const verticalItem = (label: string) =>
-      screen
-        .getAllByText(label)
-        .map((el) => el.closest('[data-slot="navigator-item"]'))
-        .find((el) =>
-          el?.closest(
-            '[data-slot="navigator-primary"][data-orientation="vertical"]'
-          )
-        )
-
-    expect(verticalItem('Discover')).toHaveClass('hover:bg-subtle')
-    expect(verticalItem('Tickets')).not.toHaveClass('hover:bg-subtle')
     await flushViewportMeasurement()
   })
 })
@@ -1134,53 +1121,6 @@ describe('Navigator mobile tab bar', () => {
     const bar = within(horizontalOf(container) as HTMLElement)
     expect(bar.queryByRole('button', { name: 'More' })).toBeNull()
     expect(bar.getAllByRole('button')).toHaveLength(2)
-    await flushViewportMeasurement()
-  })
-
-  it('fills the active tab icon and keeps the inactive one bold', async () => {
-    const { container } = render(
-      <Navigator value='tickets'>
-        <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item value='discover' icon={<FakeIcon />}>
-            Discover
-          </Navigator.Item>
-          <Navigator.Item value='tickets' icon={<FakeIcon />}>
-            Tickets
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    const bar = within(horizontalOf(container) as HTMLElement)
-    const active = bar
-      .getByRole('button', { name: 'Tickets' })
-      .querySelector('[data-testid="fake-icon"]')
-    const inactive = bar
-      .getByRole('button', { name: 'Discover' })
-      .querySelector('[data-testid="fake-icon"]')
-    expect(active).toHaveAttribute('data-weight', 'fill')
-    expect(inactive).toHaveAttribute('data-weight', 'bold')
-    await flushViewportMeasurement()
-  })
-
-  it('sizes tab icons at size-7, overriding a consumer size', async () => {
-    const { container } = render(
-      <Navigator value='tickets'>
-        <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item
-            value='tickets'
-            icon={<FakeIcon className='size-2' />}
-          >
-            Tickets
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    const tabIcon = within(horizontalOf(container) as HTMLElement)
-      .getByRole('button', { name: 'Tickets' })
-      .querySelector('[data-testid="fake-icon"]')
-    // The sole item defaults to active, so its icon also carries the bounce
-    // class — asserting the leading token keeps this test about sizing.
-    expect(tabIcon?.getAttribute('data-classname')).toMatch(/^size-7\b/)
     await flushViewportMeasurement()
   })
 
@@ -1869,8 +1809,20 @@ describe('Navigator sliding indicator', () => {
 
     expect(indicator).toBeInTheDocument()
     expect(indicator).toHaveAttribute('aria-hidden', 'true')
-    expect(indicator?.className).toContain('emphasis-raised')
+    expect(indicator?.className).toContain('bg-[var(--intent-bg-subtle)]')
     await flushViewportMeasurement()
+  })
+
+  it('slides the vertical pill on translate only', () => {
+    const classes = navigatorIndicatorVariants({
+      surface: 'vertical',
+      visible: true
+    })
+    expect(classes).toContain(
+      'motion-safe:data-[ready=true]:transition-[translate]'
+    )
+    expect(classes).not.toMatch(/transition-\[[^\]]*(left|top|width|height)/)
+    expect(classes).toContain('intent-accent')
   })
 })
 
@@ -2734,15 +2686,6 @@ describe('Navigator collapsed edge circles', () => {
     await flushViewportMeasurement()
   })
 
-  it('reads the active tab in the vivid accent while expanded', async () => {
-    const { container } = render(barTree('a'))
-    const bar = within(horizontalOf(container) as HTMLElement)
-    const active = bar.getByRole('button', { name: 'A' })
-    expect(active).toHaveClass('intent-accent', 'text-accent-11')
-    expect(active.className).toContain('text-accent-11')
-    await flushViewportMeasurement()
-  })
-
   it('hides the circle tab label so only the icon shows', async () => {
     const { container } = render(barTree('a'))
     await collapse(container)
@@ -2754,6 +2697,16 @@ describe('Navigator collapsed edge circles', () => {
     await flushViewportMeasurement()
   })
 
+  it('colours the idle pinned circle subtle, like every destination', async () => {
+    const { container } = render(barTree('a'))
+    const circle = pinnedCircleOf(container).querySelector(
+      '[data-slot="navigator-item"]'
+    )
+    expect(circle).toHaveClass('text-subtle')
+    expect(circle).not.toHaveClass('intent-accent')
+    await flushViewportMeasurement()
+  })
+
   it('gives the collapsed active circle the accent icon but no accent pill', async () => {
     const { container } = render(barTree('a'))
     await collapse(container)
@@ -2762,7 +2715,7 @@ describe('Navigator collapsed edge circles', () => {
       { name: 'A' }
     )
     // Neutral round surface with an accent icon — the tinted pill is expanded-only.
-    expect(active).toHaveClass('text-accent-11', 'bg-raised')
+    expect(active).toHaveClass('intent-accent', 'text-subtle', 'bg-raised')
     expect(active.className).not.toContain('bg-[var(--intent-bg-subtle)]')
     await flushViewportMeasurement()
   })
@@ -2823,7 +2776,7 @@ describe('Navigator collapsed edge circles', () => {
     expect(track).toHaveClass('py-1')
 
     const expandedTab = track.querySelector('[data-slot="navigator-item"]')!
-    expect(expandedTab).toHaveClass('py-1.5')
+    expect(expandedTab).toHaveClass('py-4')
 
     await collapse(container)
     // The track's own padding never changed, so nothing to transition.
@@ -2831,7 +2784,7 @@ describe('Navigator collapsed edge circles', () => {
     for (const tab of track.querySelectorAll(
       '[data-slot="navigator-item"]:not([data-circle-side])'
     )) {
-      expect(tab).toHaveClass('py-1.5')
+      expect(tab).toHaveClass('py-4')
     }
     await flushViewportMeasurement()
   })

@@ -95,7 +95,7 @@ export function NavigatorItem({
     <>
       {icon ? (
         <span data-slot='navigator-item-icon'>
-          {presentNavIcon(icon, isBranch, 'size-6')}
+          {presentNavIcon(icon, cn('size-6', hasPill && 'animate-pop-tap'))}
         </span>
       ) : null}
       <span

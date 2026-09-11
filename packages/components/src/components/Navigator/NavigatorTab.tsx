@@ -81,17 +81,10 @@ export function NavigatorTab({
       {/* A CSS animation, so re-tapping an already-active tab doesn't re-bounce. */}
       {presentNavIcon(
         icon,
-        active,
-        cn('size-7', active && 'animate-pop-tap'),
+        cn('size-6', active && 'animate-pop-tap'),
         'navigator-tab-icon'
       )}
-      <span
-        className={
-          presentation === 'circle' || presentation === 'pinned'
-            ? 'sr-only'
-            : 'max-w-full truncate'
-        }
-      >
+      <span data-slot='navigator-tab-label' className='sr-only'>
         {label}
       </span>
     </>

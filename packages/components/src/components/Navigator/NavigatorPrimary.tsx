@@ -430,7 +430,7 @@ export function NavigatorPrimary({
                       }}
                     >
                       <span data-slot='navigator-item-icon'>
-                        {presentNavIcon(<DotsThreeIcon />, false, 'size-6')}
+                        {presentNavIcon(<DotsThreeIcon />, 'size-6')}
                       </span>
                       <span
                         data-slot='navigator-item-label'
