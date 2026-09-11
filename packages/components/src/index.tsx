@@ -116,6 +116,14 @@ export {
 export { Marquee, type MarqueeProps } from './components/Marquee'
 
 export {
+  List,
+  type ListProps,
+  type ListItemProps,
+  type ListItemCurrent,
+  type ListEmphasis
+} from './components/List'
+
+export {
   Steps,
   stepsVariants,
   useSteps,

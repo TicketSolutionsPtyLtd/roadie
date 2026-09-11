@@ -13,6 +13,7 @@ import { StarIcon } from '@phosphor-icons/react/ssr'
 import {
   Dialog as DialogViaBarrel,
   Fieldset as FieldsetViaBarrel,
+  List as ListViaBarrel,
   Popover as PopoverViaBarrel,
   Tabs as TabsViaBarrel
 } from '@oztix/roadie-components'
@@ -26,6 +27,7 @@ import { Dialog } from '@oztix/roadie-components/dialog'
 import { Field } from '@oztix/roadie-components/field'
 import { Fieldset } from '@oztix/roadie-components/fieldset'
 import { IconTile } from '@oztix/roadie-components/icon-tile'
+import { List } from '@oztix/roadie-components/list'
 import { Popover } from '@oztix/roadie-components/popover'
 import { RadioGroup } from '@oztix/roadie-components/radio-group'
 import { Select } from '@oztix/roadie-components/select'
@@ -507,6 +509,36 @@ export default function RscSmokePage() {
         <IconTile intent='accent'>
           <StarIcon weight='bold' />
         </IconTile>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>List — subpath</h2>
+        <p className='text-sm text-subtle'>
+          <code>
+            import &#123; List &#125; from
+            &apos;@oztix/roadie-components/list&apos;
+          </code>
+        </p>
+        <List>
+          <List.Item title='Upcoming events' />
+          <List.Item
+            title='Reports'
+            subtitle='Rendered from a server component via the subpath import.'
+          />
+        </List>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>List — barrel</h2>
+        <p className='text-sm text-subtle'>
+          <code>
+            import &#123; List &#125; from &apos;@oztix/roadie-components&apos;
+          </code>
+        </p>
+        <ListViaBarrel>
+          <ListViaBarrel.Item title='Imported from the root barrel' />
+          <ListViaBarrel.Item title='Second item' />
+        </ListViaBarrel>
       </section>
 
       {/*

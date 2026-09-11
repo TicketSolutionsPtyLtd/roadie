@@ -111,6 +111,10 @@
       "types": "./dist/components/LinkButton/index.d.ts",
       "import": "./dist/components/LinkButton/index.js"
     },
+    "./list": {
+      "types": "./dist/components/List/index.d.ts",
+      "import": "./dist/components/List/index.js"
+    },
     "./mark": {
       "types": "./dist/components/Mark/index.d.ts",
       "import": "./dist/components/Mark/index.js"

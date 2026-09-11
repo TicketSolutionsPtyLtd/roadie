@@ -318,7 +318,7 @@ export const buttonVariants = cva('base-classes is-interactive', {
 ### Linking
 
 Every link-bearing Roadie component (`Button`, `IconButton`, `Card`,
-`Breadcrumb.Link`, `Carousel.TitleLink`, `Tabs.Tab`) accepts a single
+`Breadcrumb.Link`, `Carousel.TitleLink`, `Tabs.Tab`, `List.Item`) accepts a single
 `href` prop. Internal hrefs route through the configured
 `RoadieLinkProvider`; external hrefs (`http(s)://`, `//…`) auto-render
 `<a target='_blank' rel='noopener noreferrer'>`; `mailto:` / `tel:` /
@@ -354,6 +354,8 @@ Key conventions:
    `Breadcrumb.Link`, `Carousel.TitleLink`) compose the `resolveRender`
    helper from `packages/components/src/utils/resolveRender.tsx` to deliver
    the same contract.
+   `List.Item` is `href`-only — no `render` prop — so a case `href` can't
+   express means composing your own row rather than escaping into `render`.
 3. **`render` always wins over `href` smart-routing.** Pass `render`
    when you need a non-anchor or want to bypass provider routing
    entirely. When both `href` and `render` are passed to Button, Button

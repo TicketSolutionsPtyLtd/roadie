@@ -1,0 +1,278 @@
+export const metadata = {
+  title: 'List',
+  description:
+    'An iOS-style list — rows with inset hairline dividers, leading tiles, and auto chevrons — for menus, pickers, and settings',
+  status: 'alpha',
+  category: 'Navigation',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# List
+
+An iOS-style list. Rows are separated by inset hairline dividers that
+begin at the title, and each takes an optional leading tile, a subtitle, a
+trailing slot, and an automatic drill-in chevron. `contained` draws the
+rows as a card, and `List.Group` breaks them into titled sections.
+
+## Import
+
+```tsx
+import { List } from '@oztix/roadie-components/list'
+```
+
+## Examples
+
+### Default
+
+A row needs only a `title`. With no `href` it renders as a `<button>`.
+Rows sit flush, divided by an inset hairline, and are individually
+rounded — the rounding shows as soon as a row picks up a fill on hover or
+selection, and the hairlines either side of it turn transparent.
+
+```tsx-live
+<List>
+  <List.Item title='Account' />
+  <List.Item title='Notifications' />
+  <List.Item title='Privacy' />
+</List>
+```
+
+### Emphasis
+
+`emphasis` names the surface — `subtler` (default, no fill), `subtle`
+(tinted), or `normal` (bordered). It lands on each row, so the rows read
+as a run of pills. The values are Roadie's own emphasis shortcuts, not a
+List-local palette, so a row's rest, hover and press states come from the
+same place as a Button's.
+
+`subtler` rows sit flush and lean on the inset hairline to separate them;
+the hairline turns transparent around any row wearing a fill, so it never
+cuts through one. A filled emphasis needs no hairline at all — those rows
+are visible surfaces, so they gap apart instead and drop the dividers.
+
+All of it is selectors — `:hover`, `:focus-visible`, `aria-current` — so
+hovering or selecting a row in a long list never re-renders anything.
+
+```tsx-live
+<div className='grid gap-4'>
+  <List emphasis='subtler'>
+    <List.Item title='Subtler' subtitle='No fill — the default' />
+    <List.Item title='Notifications' />
+  </List>
+  <List emphasis='subtle'>
+    <List.Item title='Subtle' subtitle='Tinted rows' />
+    <List.Item title='Notifications' />
+  </List>
+  <List emphasis='normal'>
+    <List.Item title='Normal' subtitle='Bordered rows' />
+    <List.Item title='Notifications' />
+  </List>
+</div>
+```
+
+### Contained
+
+`contained` draws the rows as a card: the `emphasis` surface moves from
+the rows to the container, and the rows go square and flush inside it. The
+iOS Settings shape — reach for it when the rows are one unit rather than a
+menu of separate destinations.
+
+```tsx-live
+<div className='grid gap-4'>
+  <List contained emphasis='subtle'>
+    <List.Item title='Subtle' subtitle='Tinted card' />
+    <List.Item title='Notifications' />
+  </List>
+  <List contained emphasis='normal'>
+    <List.Item title='Normal' subtitle='Bordered card' />
+    <List.Item title='Notifications' />
+  </List>
+</div>
+```
+
+### Groups
+
+`List.Group` wraps a run of rows with a `List.GroupTitle`. A list can mix
+loose rows and groups in any order — each group renders its own section,
+so the markup stays a valid `<ul>` either way. When the list is
+`contained`, every group is its own card and the titles sit above them.
+
+Author groups inside a client component — `List.Group` finds its title by
+element reference, which a server component's Flight boundary hides. A
+`List` of plain `List.Item`s stays server-safe.
+
+```tsx-live
+<List contained emphasis='subtle'>
+  <List.Item title='Search' href='#' />
+  <List.Group>
+    <List.GroupTitle>Account</List.GroupTitle>
+    <List.Item title='Profile' href='#' />
+    <List.Item title='Security' href='#' />
+  </List.Group>
+  <List.Group>
+    <List.GroupTitle>Privacy</List.GroupTitle>
+    <List.Item title='Data sharing' href='#' />
+  </List.Group>
+</List>
+```
+
+### Settings
+
+A leading `IconTile`, a title, and — because each row links — an
+automatic chevron. `contained` makes it the iOS Settings shape: one
+aligned column of rows sharing a single card.
+
+```tsx-live
+<List contained emphasis='subtle'>
+  <List.Item
+    title='Account'
+    subtitle='Profile, security, sign-in'
+    href='#'
+    leading={
+      <IconTile intent='accent'>
+        <GearIcon weight='bold' />
+      </IconTile>
+    }
+  />
+  <List.Item
+    title='Notifications'
+    subtitle='Email and push alerts'
+    href='#'
+    leading={
+      <IconTile intent='brand'>
+        <EnvelopeIcon weight='bold' />
+      </IconTile>
+    }
+  />
+  <List.Item
+    title='Saved events'
+    subtitle='Your wishlist'
+    href='#'
+    leading={
+      <IconTile intent='danger'>
+        <HeartIcon weight='bold' />
+      </IconTile>
+    }
+  />
+</List>
+```
+
+### Picker
+
+`current` marks the current row — for example the active option in an
+organisation picker. It sets an accent-tinted fill and `aria-current`.
+Pair it with a trailing `CheckIcon`; a picked row shows no chevron.
+
+`current` takes `true` for a plain selection, or one of `'page'`, `'step'`
+and `'location'` when the row points at the current page, step or place.
+
+```tsx-live
+<List>
+  <List.Item
+    title='Oztix'
+    subtitle='oztix.com.au'
+    leading={
+      <IconTile intent='accent'>
+        <StarIcon weight='bold' />
+      </IconTile>
+    }
+    trailing={<CheckIcon className='size-5' weight='bold' />}
+    current
+  />
+  <List.Item
+    title='The Triffid'
+    subtitle='thetriffid.com.au'
+    leading={
+      <IconTile>
+        <StarIcon weight='bold' />
+      </IconTile>
+    }
+  />
+</List>
+```
+
+### Trailing value with chevron
+
+A `trailing` node and the chevron coexist — the trailing value (a
+`Badge`, count, or status) sits to the left of the chevron, the iOS
+"value › chevron" pattern.
+
+```tsx-live
+<List>
+  <List.Item
+    title='Tickets'
+    href='#'
+    leading={
+      <IconTile intent='accent'>
+        <TicketIcon weight='bold' />
+      </IconTile>
+    }
+    trailing={<Badge intent='accent' emphasis='subtle' size='sm'>3</Badge>}
+  />
+  <List.Item
+    title='Orders'
+    href='#'
+    leading={
+      <IconTile intent='brand'>
+        <ShoppingCartIcon weight='bold' />
+      </IconTile>
+    }
+    trailing={<span className='text-sm text-subtle'>12</span>}
+  />
+</List>
+```
+
+### Linked
+
+Pass `href` and the row routes through `RoadieLinkProvider` — the same
+smart-href contract as `Card`. External and `mailto:` / `tel:` hrefs pick
+the right element and `target` / `rel` defaults automatically. Links get
+a chevron by default; suppress it with `chevron={false}`.
+
+```tsx-live
+<List>
+  <List.Item
+    title='View your tickets'
+    subtitle='Internal route — through the app router'
+    href='#'
+  />
+  <List.Item
+    title='Oztix help centre'
+    subtitle='External — opens in a new tab'
+    href='https://help.oztix.com.au'
+    chevron={false}
+    trailing={<ArrowSquareOutIcon className='size-4 text-subtle' weight='bold' />}
+  />
+</List>
+```
+
+## Guidelines
+
+- **One list is one run of rows.** Keep related rows in a single `List` so
+  the dividers and aligned column read as a unit — don't wrap each row in
+  its own `List`.
+- **Contain when the rows are one thing.** Reach for `contained` when the
+  rows belong together as a settings card; leave it off when they're
+  separate destinations, where individually rounded rows read better.
+- **Group to break up a long list.** `List.Group` is for sections a reader
+  scans — Account, Privacy, Danger zone. A list of three rows doesn't need
+  one.
+- **Let the chevron be automatic.** A row with `href` gets a drill-in
+  chevron for free. Force one on an `onClick`-only row with `chevron`, or
+  suppress it with `chevron={false}`.
+- **Plain `current` is for pickers.** Use `current` for the chosen option in
+  a single-select list, paired with a trailing check. Reach for
+  `current='page'` only when the row really is the page the reader is on.
+
+## Accessibility
+
+- **Semantics**: renders a `<ul>` of `<li>` rows. Each row is a
+  `<button>` or, with `href`, a link — so keyboard focus and activation
+  work out of the box.
+- **Groups**: a `List.Group` is an `<li>` holding its title and a nested
+  `<ul>`, so screen readers announce each section as its own list.
+- **Selection**: `current` sets `aria-current` on the row so screen
+  readers announce the active choice.
+
+<PropsDefinitions componentPath='packages/components/src/components/List' />
