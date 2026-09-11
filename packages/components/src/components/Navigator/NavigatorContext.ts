@@ -62,8 +62,8 @@ export type NavigatorContextValue = {
   openPanel: string | null
   setOpenPanel: (next: string | null) => void
   /**
-   * Every declared panel item's meta — tab, folded, and `Navigator.End` alike
-   * — so `Navigator.Content` can find the open one's content by value.
+   * Every declared panel item's meta — tab, folded, and pinned alike — so
+   * `Navigator.Content` can find the open one's content by value.
    * `overflowItems` only carries folded items, which isn't every panel.
    * Written by `Navigator.Primary`.
    */

@@ -20,7 +20,6 @@ import {
   tabsIndicatorVariants
 } from '../Tabs/variants'
 import { NavigatorContext } from './NavigatorContext'
-import { type NavigatorTabSlots, deriveMobileSlots } from './NavigatorPrimary'
 import {
   navigatorIndicatorVariants,
   navigatorPrimaryTrackVariants,
@@ -591,262 +590,6 @@ describe('primaryNav', () => {
   })
 })
 
-describe('deriveMobileSlots', () => {
-  const items = (n: number) =>
-    Array.from({ length: n }, (_, i) => ({
-      value: `s${i}`,
-      label: `S${i}`,
-      topValue: `s${i}`,
-      descendants: [],
-      placement: 'automatic' as const,
-      priority: 'automatic' as const
-    }))
-
-  const account = {
-    value: 'account',
-    label: 'Account',
-    topValue: 'account',
-    descendants: [],
-    placement: 'automatic' as const,
-    priority: 'automatic' as const
-  }
-  const orgs = {
-    value: 'orgs',
-    label: 'Organisations',
-    topValue: 'orgs',
-    descendants: [],
-    placement: 'automatic' as const,
-    priority: 'automatic' as const
-  }
-
-  it('renders every item as authored when slots fit', () => {
-    const result = deriveMobileSlots(items(3), [account])
-    expect(result.tabs).toHaveLength(3)
-    expect(result.overflow).toHaveLength(0)
-  })
-
-  it('fits exactly five slots without folding', () => {
-    const result = deriveMobileSlots(items(4), [account])
-    expect(result.tabs).toHaveLength(4)
-    expect(result.overflow).toHaveLength(0)
-  })
-
-  it('folds the tail once slots exceed five', () => {
-    const result = deriveMobileSlots(items(6), [account])
-    expect(result.tabs).toHaveLength(4)
-    expect(result.overflow.map((i) => i.value)).toEqual(['s4', 's5'])
-  })
-
-  it('lends a lone End item its own label to the final tab', () => {
-    expect(deriveMobileSlots(items(3), [account]).label).toBe('Account')
-  })
-
-  it('labels the final tab More when End holds more than one item', () => {
-    expect(deriveMobileSlots(items(3), [orgs, account]).label).toBe('More')
-  })
-
-  it('labels the final tab More once anything folds', () => {
-    expect(deriveMobileSlots(items(6), [account]).label).toBe('More')
-  })
-
-  it('has no final tab when nothing folds and there is no End', () => {
-    const result = deriveMobileSlots(items(4), [])
-    expect(result.tabs).toHaveLength(4)
-    expect(result.overflow).toHaveLength(0)
-    expect(result.label).toBeUndefined()
-  })
-
-  it('still folds into More when there is no End', () => {
-    const result = deriveMobileSlots(items(6), [])
-    expect(result.tabs).toHaveLength(4)
-    expect(result.overflow).toHaveLength(2)
-    expect(result.label).toBe('More')
-  })
-
-  it("exposes End's items for the generated pane", () => {
-    const result = deriveMobileSlots(items(6), [orgs, account])
-    expect(result.end.map((i) => i.value)).toEqual(['orgs', 'account'])
-  })
-})
-
-describe('deriveMobileSlots with declared tabs', () => {
-  const meta = (value: string) => ({
-    value,
-    label: value,
-    topValue: value,
-    descendants: [],
-    placement: 'automatic' as const,
-    priority: 'automatic' as const
-  })
-
-  it('uses source order when tabs is omitted', () => {
-    const slots = deriveMobileSlots([meta('a'), meta('b')], [])
-    expect(slots.tabs.map((t) => t.value)).toEqual(['a', 'b'])
-    expect(slots.overflow).toEqual([])
-  })
-
-  it('takes the declared values in declared order', () => {
-    const slots = deriveMobileSlots(
-      [meta('a'), meta('b'), meta('c')],
-      [],
-      ['c', 'a']
-    )
-    expect(slots.tabs.map((t) => t.value)).toEqual(['c', 'a'])
-    expect(slots.overflow.map((t) => t.value)).toEqual(['b'])
-    expect(slots.label).toBe('More')
-  })
-
-  it('folds everything the array does not name, End included', () => {
-    const slots = deriveMobileSlots(
-      [meta('a'), meta('b')],
-      [meta('account')],
-      ['a']
-    )
-    expect(slots.tabs.map((t) => t.value)).toEqual(['a'])
-    expect(slots.overflow.map((t) => t.value)).toEqual(['b'])
-    expect(slots.end.map((t) => t.value)).toEqual(['account'])
-  })
-
-  it('ignores a declared value that is not in the tree', () => {
-    const slots = deriveMobileSlots([meta('a')], [], ['a', 'ghost'])
-    expect(slots.tabs.map((t) => t.value)).toEqual(['a'])
-    expect(slots.unknownTabs).toEqual(['ghost'])
-  })
-
-  it('collapses a repeated value to one tab at its first occurrence', () => {
-    const slots = deriveMobileSlots(
-      [meta('a'), meta('b'), meta('c')],
-      [],
-      ['a', 'a', 'b']
-    )
-    expect(slots.tabs.map((t) => t.value)).toEqual(['a', 'b'])
-    expect(slots.overflow.map((t) => t.value)).toEqual(['c'])
-    expect(slots.repeatedTabs).toEqual(['a'])
-    expect(slots.unknownTabs).toEqual([])
-  })
-
-  it('names a single item without folding anything', () => {
-    const slots = deriveMobileSlots([meta('a')], [], ['a'])
-    expect(slots.tabs.map((t) => t.value)).toEqual(['a'])
-    expect(slots.overflow).toEqual([])
-    expect(slots.label).toBeUndefined()
-  })
-
-  it('has no final tab when tabs names every item and there is no End', () => {
-    const slots = deriveMobileSlots([meta('a'), meta('b')], [], ['a', 'b'])
-    expect(slots.tabs.map((t) => t.value)).toEqual(['a', 'b'])
-    expect(slots.overflow).toEqual([])
-    expect(slots.label).toBeUndefined()
-  })
-
-  it('treats an End value named in tabs as unknown, not a vertical tab', () => {
-    const slots = deriveMobileSlots(
-      [meta('a')],
-      [meta('account')],
-      ['a', 'account']
-    )
-    expect(slots.tabs.map((t) => t.value)).toEqual(['a'])
-    expect(slots.unknownTabs).toEqual(['account'])
-    expect(slots.end.map((t) => t.value)).toEqual(['account'])
-  })
-
-  it('caps a runtime-constructed tabs array at four slots and folds the rest', () => {
-    // The `NavigatorTabSlots` union caps a typed caller at four values, but
-    // `deriveMobileSlots` is exported and callable directly (a JS consumer,
-    // or a cast) with a longer array — `--navigator-primary-col` stays hardcoded
-    // to a fifth in the stylesheet, so an uncapped `chosen` here would push
-    // the circle geometry off by however many tabs overran it.
-    const overrun = [
-      'a',
-      'b',
-      'c',
-      'd',
-      'e',
-      'f'
-    ] as unknown as NavigatorTabSlots
-    const slots = deriveMobileSlots(
-      [meta('a'), meta('b'), meta('c'), meta('d'), meta('e'), meta('f')],
-      [],
-      overrun
-    )
-    expect(slots.tabs.map((t) => t.value)).toEqual(['a', 'b', 'c', 'd'])
-    expect(slots.overflow.map((t) => t.value)).toEqual(['e', 'f'])
-    expect(slots.overflowTabs).toEqual(['e', 'f'])
-  })
-})
-
-describe('Navigator.Primary tabs prop', () => {
-  it('warns once about a value that is not declared', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    render(
-      <Navigator value='/a'>
-        <Navigator.Primary aria-label='Main' tabs={['/a', '/ghost']}>
-          <Navigator.Item value='/a' href='/a'>
-            A
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    expect(warn).toHaveBeenCalledTimes(1)
-    expect(warn.mock.calls[0]?.[0]).toContain('/ghost')
-    warn.mockRestore()
-  })
-
-  it('warns once about a value repeated in tabs', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    render(
-      <Navigator value='/a'>
-        <Navigator.Primary aria-label='Main' tabs={['/a', '/a']}>
-          <Navigator.Item value='/a' href='/a'>
-            A
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    expect(warn).toHaveBeenCalledTimes(1)
-    expect(warn.mock.calls[0]?.[0]).toContain('/a')
-    warn.mockRestore()
-  })
-
-  it('warns once and folds the rest when tabs names more than four values', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const overrun = [
-      '/a',
-      '/b',
-      '/c',
-      '/d',
-      '/e'
-    ] as unknown as NavigatorTabSlots
-    render(
-      <Navigator value='/a'>
-        <Navigator.Primary aria-label='Main' tabs={overrun}>
-          <Navigator.Item value='/a' href='/a'>
-            A
-          </Navigator.Item>
-          <Navigator.Item value='/b' href='/b'>
-            B
-          </Navigator.Item>
-          <Navigator.Item value='/c' href='/c'>
-            C
-          </Navigator.Item>
-          <Navigator.Item value='/d' href='/d'>
-            D
-          </Navigator.Item>
-          <Navigator.Item value='/e' href='/e'>
-            E
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    expect(warn).toHaveBeenCalledTimes(1)
-    expect(warn.mock.calls[0]?.[0]).toContain('/e')
-    warn.mockRestore()
-  })
-})
-
 describe('Navigator vertical form', () => {
   it('is compact when nothing in the tree nests', async () => {
     const { container } = render(
@@ -946,23 +689,6 @@ describe('Navigator vertical form', () => {
         '[data-slot="navigator-primary"][data-orientation="horizontal"]'
       )
     ).toBeTruthy()
-    await flushViewportMeasurement()
-  })
-
-  it('renders End after the primary items vertically', async () => {
-    const { container } = render(
-      <Navigator value='tickets'>
-        <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item value='tickets'>Tickets</Navigator.Item>
-          <Navigator.End>
-            <Navigator.Item value='account'>Account</Navigator.Item>
-          </Navigator.End>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    const end = container.querySelector('[data-slot="navigator-end"]')
-    expect(end).toBeTruthy()
-    expect(end?.querySelector('[data-slot="navigator-item"]')).toBeTruthy()
     await flushViewportMeasurement()
   })
 
@@ -1261,50 +987,6 @@ describe('Navigator.Brand', () => {
   })
 })
 
-describe('Navigator.End stray children', () => {
-  it('warns about a stray child inside Navigator.End', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const NotAnItem = () => <div>Account</div>
-    render(
-      <Navigator value='/a'>
-        <Navigator.Primary aria-label='Main'>
-          <Navigator.Item value='/a' href='/a'>
-            A
-          </Navigator.Item>
-          <Navigator.End>
-            <NotAnItem />
-          </Navigator.End>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    expect(warn).toHaveBeenCalled()
-    expect(String(warn.mock.calls[0]?.[0])).toContain('Navigator.End')
-    warn.mockRestore()
-  })
-
-  it('does not warn about a well-formed End', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    render(
-      <Navigator value='/a'>
-        <Navigator.Primary aria-label='Main'>
-          <Navigator.Item value='/a' href='/a'>
-            A
-          </Navigator.Item>
-          <Navigator.End>
-            <Navigator.Item value='/account' href='/account'>
-              Account
-            </Navigator.Item>
-          </Navigator.End>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    expect(warn).not.toHaveBeenCalled()
-    warn.mockRestore()
-  })
-})
-
 describe('Navigator section chevron', () => {
   const verticalItem = (label: string) =>
     screen
@@ -1524,7 +1206,7 @@ describe('Navigator mobile tab bar', () => {
       '[data-slot="navigator-primary"][data-orientation="horizontal"]'
     )
 
-  const sixItemsAndEnd = (
+  const sixItemsAndPinned = (
     <Navigator value='events'>
       <Navigator.Primary aria-label='Primary'>
         <Navigator.Item value='a'>A</Navigator.Item>
@@ -1533,9 +1215,9 @@ describe('Navigator mobile tab bar', () => {
         <Navigator.Item value='d'>D</Navigator.Item>
         <Navigator.Item value='e'>E</Navigator.Item>
         <Navigator.Item value='f'>F</Navigator.Item>
-        <Navigator.End>
-          <Navigator.Item value='account'>Account</Navigator.Item>
-        </Navigator.End>
+        <Navigator.Item value='account' placement='pinned'>
+          Account
+        </Navigator.Item>
       </Navigator.Primary>
     </Navigator>
   )
@@ -1629,8 +1311,11 @@ describe('Navigator mobile tab bar', () => {
   })
 
   it('folds the tail into a final More tab', async () => {
-    const { container } = render(sixItemsAndEnd)
-    const bar = within(horizontalOf(container) as HTMLElement)
+    const { container } = render(sixItemsAndPinned)
+    const track = horizontalOf(container)!.querySelector<HTMLElement>(
+      '[data-slot="navigator-primary-track"]'
+    )!
+    const bar = within(track)
     expect(bar.getAllByRole('button')).toHaveLength(5)
     expect(bar.queryByText('E')).toBeNull()
     expect(bar.getByRole('button', { name: 'More' })).toBeTruthy()
@@ -1638,32 +1323,10 @@ describe('Navigator mobile tab bar', () => {
   })
 
   it('gives the generated More tab an icon like every other tab', async () => {
-    const { container } = render(sixItemsAndEnd)
+    const { container } = render(sixItemsAndPinned)
     const bar = within(horizontalOf(container) as HTMLElement)
     const more = bar.getByRole('button', { name: 'More' })
     expect(more.querySelector('svg')).toBeTruthy()
-    await flushViewportMeasurement()
-  })
-
-  it('discloses, rather than links, when declared tabs leave one item unnamed', async () => {
-    const { container } = render(
-      <Navigator value='a'>
-        <Navigator.Primary aria-label='Primary' tabs={['a', 'c']}>
-          <Navigator.Item value='a' href='/a'>
-            A
-          </Navigator.Item>
-          <Navigator.Item value='b' href='/b'>
-            B
-          </Navigator.Item>
-          <Navigator.Item value='c' href='/c'>
-            C
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    const bar = within(horizontalOf(container) as HTMLElement)
-    const disclosure = bar.getByRole('button', { name: 'More' })
-    expect(disclosure).toHaveAttribute('aria-expanded', 'false')
     await flushViewportMeasurement()
   })
 
@@ -1757,9 +1420,9 @@ describe('Navigator mobile tab bar', () => {
           <Navigator.Item value='d'>D</Navigator.Item>
           <Navigator.Item value='e'>E</Navigator.Item>
           <Navigator.Item value='f'>F</Navigator.Item>
-          <Navigator.End>
-            <Navigator.Item value='account'>Account</Navigator.Item>
-          </Navigator.End>
+          <Navigator.Item value='account' placement='pinned'>
+            Account
+          </Navigator.Item>
         </Navigator.Primary>
       </Navigator>
     )
@@ -1863,14 +1526,10 @@ describe('Navigator mobile tab bar', () => {
     expect(bar.querySelectorAll('[aria-current]')).toHaveLength(1)
   })
 
-  // These two exercise the yield inside the More disclosure and the
-  // sole-folded branch specifically — a panel opening elsewhere while a
-  // *different*, route-active folded/final tab is the one currently
-  // showing `aria-current`. The route-tab-map test above never reaches
-  // either branch, so it can't stand in for them.
+  // The route-tab map above never reaches the More or pinned-circle branches.
   it('with a route-active More disclosure, yields it to a panel opened elsewhere', async () => {
     const { container } = render(
-      <Navigator value='x'>
+      <Navigator value='y'>
         <Navigator.Primary aria-label='Primary'>
           <Navigator.Item value='tickets'>Tickets</Navigator.Item>
           <Navigator.Item value='account'>
@@ -1881,12 +1540,13 @@ describe('Navigator mobile tab bar', () => {
               </List>
             </Navigator.Panel>
           </Navigator.Item>
-          {/* Two End items so `folded.length > 1`, forcing the More
-              disclosure branch rather than the sole-folded one. */}
-          <Navigator.End>
-            <Navigator.Item value='x'>X</Navigator.Item>
-            <Navigator.Item value='y'>Y</Navigator.Item>
-          </Navigator.End>
+          {/* The second pinned item folds into More. */}
+          <Navigator.Item value='x' placement='pinned'>
+            X
+          </Navigator.Item>
+          <Navigator.Item value='y' placement='pinned'>
+            Y
+          </Navigator.Item>
         </Navigator.Primary>
       </Navigator>
     )
@@ -1904,7 +1564,7 @@ describe('Navigator mobile tab bar', () => {
     expect(bar.querySelectorAll('[aria-current]')).toHaveLength(1)
   })
 
-  it('with a route-active sole-folded tab, yields it to a panel opened elsewhere', async () => {
+  it('with a route-active pinned circle, yields it to a panel opened elsewhere', async () => {
     const { container } = render(
       <Navigator value='x'>
         <Navigator.Primary aria-label='Primary'>
@@ -1916,26 +1576,84 @@ describe('Navigator mobile tab bar', () => {
               </List>
             </Navigator.Panel>
           </Navigator.Item>
-          {/* A single, non-panel End item renders through the sole-folded
-              branch, not the More disclosure. */}
-          <Navigator.End>
-            <Navigator.Item value='x'>X</Navigator.Item>
-          </Navigator.End>
+          <Navigator.Item value='x' placement='pinned'>
+            X
+          </Navigator.Item>
         </Navigator.Primary>
       </Navigator>
     )
     await flushViewportMeasurement()
     const bar = horizontalOf(container) as HTMLElement
-    const soleFolded = within(bar).getByRole('button', { name: 'X' })
+    const circle = within(bar).getByRole('button', { name: 'X' })
     const panelTab = within(bar).getByRole('button', { name: 'Account' })
 
-    expect(soleFolded).toHaveAttribute('aria-current', 'page')
+    expect(
+      circle.closest('[data-slot="navigator-primary-circle"]')
+    ).toBeTruthy()
+    expect(circle).toHaveAttribute('aria-current', 'page')
     expect(bar.querySelectorAll('[aria-current]')).toHaveLength(1)
 
     await userEvent.click(panelTab)
     expect(panelTab).toHaveAttribute('aria-current', 'true')
-    expect(soleFolded).not.toHaveAttribute('aria-current')
+    expect(circle).not.toHaveAttribute('aria-current')
     expect(bar.querySelectorAll('[aria-current]')).toHaveLength(1)
+  })
+
+  it('floats the first pinned item in a circle outside the tabs', async () => {
+    const { container } = render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          {['/a', '/b', '/c', '/d', '/e'].map((v) => (
+            <Navigator.Item key={v} value={v} href={v} icon={<FakeIcon />}>
+              {v}
+            </Navigator.Item>
+          ))}
+          <Navigator.Item
+            value='/me'
+            href='/me'
+            icon={<FakeIcon />}
+            placement='pinned'
+          >
+            Me
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const bar = horizontalOf(container)!
+    const track = bar.querySelector('[data-slot="navigator-primary-track"]')!
+    expect(within(track as HTMLElement).queryByText('Me')).toBeNull()
+    expect(within(track as HTMLElement).queryByText('More')).toBeNull()
+    const circle = bar.querySelector('[data-slot="navigator-primary-circle"]')!
+    expect(
+      within(circle as HTMLElement).getByRole('link', { name: 'Me' })
+    ).toBeInTheDocument()
+  })
+
+  it('renders pinned items at the bottom of the vertical navigation', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Item value='/me' href='/me' placement='pinned'>
+            Me
+          </Navigator.Item>
+          <Navigator.Item value='/a' href='/a'>
+            A
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const vertical = container.querySelector(
+      '[data-slot="navigator-primary"][data-orientation="vertical"]'
+    )!
+    const pinned = vertical.querySelector(
+      '[data-slot="navigator-primary-pinned"]'
+    )!
+    expect(within(pinned as HTMLElement).getByText('Me')).toBeInTheDocument()
+    expect(within(pinned as HTMLElement).queryByText('A')).toBeNull()
+    warn.mockRestore()
   })
 })
 
@@ -2009,11 +1727,12 @@ describe('Navigator.Overflow', () => {
             /f
           </Navigator.Item>
         </Navigator.Group>
-        <Navigator.End>
-          <Navigator.Item value='/account' href='/account'>
-            Account
-          </Navigator.Item>
-        </Navigator.End>
+        <Navigator.Item value='/account' placement='pinned' href='/account'>
+          Account
+        </Navigator.Item>
+        <Navigator.Item value='/help' placement='pinned' href='/help'>
+          Help
+        </Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
         <Pane role='detail' current>
@@ -2030,8 +1749,9 @@ describe('Navigator.Overflow', () => {
     const settings = within(overflow.getByRole('list', { name: 'Settings' }))
     expect(settings.getByRole('link', { name: '/e' })).toBeTruthy()
     expect(settings.getByRole('link', { name: '/f' })).toBeTruthy()
-    expect(settings.queryByRole('link', { name: 'Account' })).toBeNull()
-    expect(overflow.getByRole('link', { name: 'Account' })).toBeTruthy()
+    expect(settings.queryByRole('link', { name: 'Help' })).toBeNull()
+    expect(overflow.getByRole('link', { name: 'Help' })).toBeTruthy()
+    expect(overflow.queryByRole('link', { name: 'Account' })).toBeNull()
   })
 
   it('marks an overflow row active through a sub-page as the current section', async () => {
@@ -2195,11 +1915,7 @@ describe('Navigator.Overflow', () => {
     warn.mockRestore()
   })
 
-  // The seven tests below are inherited from Task 4's deletion of the
-  // floating overflow pane — restored against the full-screen `Pane`, or (one
-  // of them) retired outright. See task-5-report.md for the full mapping.
-
-  it('lists folded items and End contents together, excluding a kept tab', async () => {
+  it('lists folded items and extra pinned items together, excluding kept tabs', async () => {
     render(
       <Navigator value='a'>
         <Navigator.Primary aria-label='Primary'>
@@ -2209,9 +1925,12 @@ describe('Navigator.Overflow', () => {
           <Navigator.Item value='d'>D</Navigator.Item>
           <Navigator.Item value='e'>E</Navigator.Item>
           <Navigator.Item value='f'>F</Navigator.Item>
-          <Navigator.End>
-            <Navigator.Item value='account'>Account</Navigator.Item>
-          </Navigator.End>
+          <Navigator.Item value='account' placement='pinned'>
+            Account
+          </Navigator.Item>
+          <Navigator.Item value='help' placement='pinned'>
+            Help
+          </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
           <Pane role='detail' current>
@@ -2226,7 +1945,8 @@ describe('Navigator.Overflow', () => {
     const overflow = within(panes()[1] as HTMLElement)
     expect(overflow.getByText('E')).toBeTruthy()
     expect(overflow.getByText('F')).toBeTruthy()
-    expect(overflow.getByText('Account')).toBeTruthy()
+    expect(overflow.getByText('Help')).toBeTruthy()
+    expect(overflow.queryByText('Account')).toBeNull()
     expect(overflow.queryByText('A')).toBeNull()
   })
 
@@ -3116,16 +2836,14 @@ describe('Navigator.Panel', () => {
         <Navigator.Item value='/a' href='/a'>
           A
         </Navigator.Item>
-        <Navigator.End>
-          <Navigator.Item value='account'>
-            Jordan Lee
-            <Navigator.Panel aria-label='Account'>
-              <List>
-                <List.Item title='Log out' />
-              </List>
-            </Navigator.Panel>
-          </Navigator.Item>
-        </Navigator.End>
+        <Navigator.Item value='account' placement='pinned'>
+          Jordan Lee
+          <Navigator.Panel aria-label='Account'>
+            <List>
+              <List.Item title='Log out' />
+            </List>
+          </Navigator.Panel>
+        </Navigator.Item>
       </Navigator.Primary>
     </Navigator>
   )
@@ -3202,16 +2920,14 @@ describe('Navigator.Panel below md', () => {
         <Navigator.Item value='/b' href='/b'>
           B
         </Navigator.Item>
-        <Navigator.End>
-          <Navigator.Item value='account'>
-            Jordan Lee
-            <Navigator.Panel aria-label='Account'>
-              <List>
-                <List.Item title='Log out' />
-              </List>
-            </Navigator.Panel>
-          </Navigator.Item>
-        </Navigator.End>
+        <Navigator.Item value='account' placement='pinned'>
+          Jordan Lee
+          <Navigator.Panel aria-label='Account'>
+            <List>
+              <List.Item title='Log out' />
+            </List>
+          </Navigator.Panel>
+        </Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
         <Pane role='detail' current>
@@ -3646,28 +3362,69 @@ describe('Navigator.Primary direct-children warning', () => {
     )
     expect(warn).toHaveBeenCalledWith(
       expect.stringContaining(
-        'Navigator.Primary and Navigator.End only recognise Navigator.Item'
+        'Navigator.Primary only recognises Navigator.Item, Navigator.Group and Navigator.Brand'
       )
     )
     warn.mockRestore()
     await flushViewportMeasurement()
   })
 
-  it('stays quiet for Item and End children', async () => {
+  it('stays quiet for Item children with a pinned item last', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
       <Navigator value='tickets'>
         <Navigator.Primary aria-label='Primary'>
           <Navigator.Item value='tickets'>Tickets</Navigator.Item>
-          <Navigator.End>
-            <Navigator.Item value='account'>Account</Navigator.Item>
-          </Navigator.End>
+          <Navigator.Item value='account' placement='pinned'>
+            Account
+          </Navigator.Item>
         </Navigator.Primary>
       </Navigator>
     )
     expect(warn).not.toHaveBeenCalled()
     warn.mockRestore()
     await flushViewportMeasurement()
+  })
+
+  it('warns when a pinned item is written before the cluster', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Item value='/me' href='/me' placement='pinned'>
+            Me
+          </Navigator.Item>
+          <Navigator.Item value='/a' href='/a'>
+            A
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('Write pinned items last')
+    )
+    warn.mockRestore()
+  })
+
+  it("warns when an item's placement differs from its group's", async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Group>
+            <Navigator.Item value='/a' href='/a' placement='pinned'>
+              A
+            </Navigator.Item>
+          </Navigator.Group>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("The group's placement wins")
+    )
+    warn.mockRestore()
   })
 })
 
@@ -3681,22 +3438,43 @@ describe('Navigator collapsed edge circles', () => {
   const scrollerOf = (root: Document | HTMLElement) =>
     root.querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
 
-  // A three-primary bar with an End tab: A/B/C plus a final Account tab.
+  // A/B/C plus a pinned Account circle.
   const barTree = (active: string, onValueChange = vi.fn()) => (
     <Navigator value={active} onValueChange={onValueChange}>
       <Navigator.Primary aria-label='Primary'>
         <Navigator.Item value='a'>A</Navigator.Item>
         <Navigator.Item value='b'>B</Navigator.Item>
         <Navigator.Item value='c'>C</Navigator.Item>
-        <Navigator.End>
-          <Navigator.Item value='account'>Account</Navigator.Item>
-        </Navigator.End>
+        <Navigator.Item value='account' placement='pinned'>
+          Account
+        </Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
         <Pane role='list'>Content</Pane>
       </Navigator.Content>
     </Navigator>
   )
+
+  // A/B/C/D plus More, so the right circle is a track tab.
+  const moreTree = (active: string) => (
+    <Navigator value={active}>
+      <Navigator.Primary aria-label='Primary'>
+        {['a', 'b', 'c', 'd', 'e', 'f'].map((v) => (
+          <Navigator.Item key={v} value={v}>
+            {v.toUpperCase()}
+          </Navigator.Item>
+        ))}
+      </Navigator.Primary>
+      <Navigator.Content>
+        <Pane role='list'>Content</Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+
+  const pinnedCircleOf = (container: HTMLElement) =>
+    horizontalOf(container)!.querySelector<HTMLElement>(
+      '[data-slot="navigator-primary-circle"]'
+    )!
 
   // `Pane` coalesces scroll reports through a rAF, so the bar state lands a
   // frame after the event rather than synchronously.
@@ -3721,16 +3499,31 @@ describe('Navigator collapsed edge circles', () => {
   }
 
   it('floats the active tab as a left circle and the final tab as a right circle', async () => {
-    const { container } = render(barTree('a'))
+    const { container } = render(moreTree('a'))
     await collapse(container)
     const bar = within(horizontalOf(container) as HTMLElement)
 
     const active = bar.getByRole('button', { name: 'A' })
-    const final = bar.getByRole('button', { name: 'Account' })
+    const final = bar.getByRole('button', { name: 'More' })
     expect(active).toHaveClass('size-14')
     expect(active).toHaveAttribute('data-circle-side', 'left')
     expect(final).toHaveClass('size-14')
     expect(final).toHaveAttribute('data-circle-side', 'right')
+    await flushViewportMeasurement()
+  })
+
+  it('keeps the pinned circle as the right circle while collapsed', async () => {
+    const { container } = render(barTree('a'))
+    await collapse(container)
+    const bar = horizontalOf(container)!
+
+    expect(
+      within(pinnedCircleOf(container)).getByRole('button', { name: 'Account' })
+    ).not.toHaveClass('scale-0')
+    expect(bar.querySelector('[data-circle-side="right"]')).toBeNull()
+    expect(bar.querySelector('[data-circle-side="left"]')).toHaveAccessibleName(
+      'A'
+    )
     await flushViewportMeasurement()
   })
 
@@ -3747,7 +3540,7 @@ describe('Navigator collapsed edge circles', () => {
   })
 
   it('reserves an empty middle by translating the circles apart, not spacing them', async () => {
-    const { container } = render(barTree('a'))
+    const { container } = render(moreTree('a'))
     await collapse(container)
     const bar = horizontalOf(container) as HTMLElement
 
@@ -3778,21 +3571,35 @@ describe('Navigator collapsed edge circles', () => {
     await flushViewportMeasurement()
   })
 
-  it('puts the first tab on the left and the active End tab on the right when the End tab is active', async () => {
+  it('puts the first tab on the left when the pinned item is active', async () => {
     const { container } = render(barTree('account'))
     await collapse(container)
     const bar = within(horizontalOf(container) as HTMLElement)
 
     const first = bar.getByRole('button', { name: 'A' })
-    const account = bar.getByRole('button', { name: 'Account' })
-    // First tab takes the left so two circles always show; the active End tab
-    // keeps the right and carries the current-page marker.
+    const account = within(pinnedCircleOf(container)).getByRole('button', {
+      name: 'Account'
+    })
     expect(first).toHaveClass('size-14')
     expect(first).toHaveAttribute('data-circle-side', 'left')
-    expect(account).toHaveClass('size-14')
-    expect(account).toHaveAttribute('data-circle-side', 'right')
     expect(account).toHaveAttribute('aria-current', 'page')
     expect(first).not.toHaveAttribute('aria-current')
+    await flushViewportMeasurement()
+  })
+
+  it('puts the first tab on the left when a folded item is active', async () => {
+    const { container } = render(moreTree('e'))
+    await collapse(container)
+    const bar = within(horizontalOf(container) as HTMLElement)
+
+    expect(bar.getByRole('button', { name: 'A' })).toHaveAttribute(
+      'data-circle-side',
+      'left'
+    )
+    expect(bar.getByRole('button', { name: 'More' })).toHaveAttribute(
+      'data-circle-side',
+      'right'
+    )
     await flushViewportMeasurement()
   })
 
@@ -3853,7 +3660,7 @@ describe('Navigator collapsed edge circles', () => {
     // probe owns the measurement — what this can guard is that the translate
     // that does the carrying is actually emitted. A component that assigned
     // the sides correctly and dropped these would otherwise pass everything.
-    const { container } = render(barTree('b'))
+    const { container } = render(moreTree('b'))
     await collapse(container)
     const bar = horizontalOf(container)!
 
@@ -3884,13 +3691,13 @@ describe('Navigator collapsed edge circles', () => {
     const track = bar.querySelector('[data-slot="navigator-primary-track"]')!
     expect(track).toHaveClass('py-1')
 
-    const expandedTab = bar.querySelector('[data-slot="navigator-item"]')!
+    const expandedTab = track.querySelector('[data-slot="navigator-item"]')!
     expect(expandedTab).toHaveClass('py-1.5')
 
     await collapse(container)
     // The track's own padding never changed, so nothing to transition.
     expect(track).toHaveClass('py-1')
-    for (const tab of bar.querySelectorAll(
+    for (const tab of track.querySelectorAll(
       '[data-slot="navigator-item"]:not([data-circle-side])'
     )) {
       expect(tab).toHaveClass('py-1.5')
@@ -3903,7 +3710,7 @@ describe('Navigator collapsed edge circles', () => {
     // Everything between them must reach the page beneath — jsdom has no hit
     // testing, so this pins the mechanism: the bar itself takes no pointer
     // events and each circle puts them back.
-    const { container } = render(barTree('a'))
+    const { container } = render(moreTree('a'))
     await collapse(container)
 
     const bar = horizontalOf(container)!
@@ -3916,12 +3723,16 @@ describe('Navigator collapsed edge circles', () => {
     await flushViewportMeasurement()
   })
 
+  it('keeps the pinned circle reachable while collapsed', async () => {
+    const { container } = render(barTree('a'))
+    await collapse(container)
+    expect(pinnedCircleOf(container)).toHaveClass('pointer-events-auto')
+    await flushViewportMeasurement()
+  })
+
   it('leaves the expanded bar transparent to input outside the tabs, below five tabs', async () => {
-    // `barTree` renders four tabs (A, B, C, Account) — one short of the five
-    // that happen to make the hugging track exactly as wide as the bar. At
-    // any lower count the bar's own box is wider than the track, so the bar
-    // itself must not swallow input in that gutter while expanded — only the
-    // hugging track (and, collapsed, each circle) should.
+    // Below five tabs the bar is wider than the hugging track, so only the
+    // track (and, collapsed, each circle) may take input.
     const { container } = render(barTree('a'))
     await flushViewportMeasurement()
 
@@ -4022,7 +3833,7 @@ describe('Navigator collapsed edge circles', () => {
     expect(onValueChange).not.toHaveBeenCalled()
   })
 
-  it('reopens on the active End circle when it sits on the right', async () => {
+  it('reopens on the active pinned circle', async () => {
     const { container } = render(barTree('account'))
     await collapse(container)
     const bar = horizontalOf(container) as HTMLElement
@@ -4751,11 +4562,14 @@ describe('a panel item is not a page', () => {
   it('does not render a folded panel item as current in the overflow list', async () => {
     const navWithOverflow = (value: string) => (
       <Navigator value={value}>
-        <Navigator.Primary aria-label='Main' tabs={['/home']}>
+        <Navigator.Primary aria-label='Main'>
           <Navigator.Item value='/home' href='/home'>
             Home
           </Navigator.Item>
-          <Navigator.Item value='/account'>
+          <Navigator.Item value='/help' href='/help' placement='pinned'>
+            Help
+          </Navigator.Item>
+          <Navigator.Item value='/account' placement='pinned'>
             Account
             <Navigator.Panel aria-label='Account'>
               <List>
@@ -4785,29 +4599,26 @@ describe('a panel item is not a page', () => {
     expect(item).not.toHaveAttribute('aria-current')
   })
 
-  it('does not announce a lone End panel tab as the current page', async () => {
-    // No overflow, one End item: the destination branch, still a disclosure.
-    const navWithEndPanel = (value: string) => (
+  it('does not announce a pinned panel circle as the current page', async () => {
+    const navWithPinnedPanel = (value: string) => (
       <Navigator value={value}>
         <Navigator.Primary aria-label='Main'>
           <Navigator.Item value='/home' href='/home'>
             Home
           </Navigator.Item>
-          <Navigator.End>
-            <Navigator.Item value='/account'>
-              Account
-              <Navigator.Panel aria-label='Account'>
-                <List>
-                  <List.Item title='Log out' />
-                </List>
-              </Navigator.Panel>
-            </Navigator.Item>
-          </Navigator.End>
+          <Navigator.Item value='/account' placement='pinned'>
+            Account
+            <Navigator.Panel aria-label='Account'>
+              <List>
+                <List.Item title='Log out' />
+              </List>
+            </Navigator.Panel>
+          </Navigator.Item>
         </Navigator.Primary>
       </Navigator>
     )
 
-    render(navWithEndPanel('/account/billing'))
+    render(navWithPinnedPanel('/account/billing'))
     await flushViewportMeasurement()
     const tab = within(horizontalOf()).getByRole('button', { name: 'Account' })
     expect(tab).toHaveAttribute('aria-expanded', 'false')

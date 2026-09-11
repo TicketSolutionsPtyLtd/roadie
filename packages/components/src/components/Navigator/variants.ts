@@ -49,8 +49,7 @@ export const navigatorContentVariants = cva([
   'max-lg:relative max-lg:overflow-hidden'
 ])
 
-// Primary items plus one slot for End. Not configurable — a seven-tab bar
-// is not a shape Navigator can be talked into.
+// Not configurable — a seven-tab bar is not a shape Navigator can be talked into.
 export const MAX_TABS = 5
 
 // No padding here: Base UI pins the scrollbar to the root's inline end, so
@@ -70,15 +69,16 @@ export const navigatorPrimaryVerticalVariants = cva(
 
 export const navigatorPrimaryViewportVariants = cva(['relative min-h-0 p-3'])
 
-// `min-h-full` so `Navigator.End`'s `mt-auto` still lands at the bottom.
+// `min-h-full` so the pinned region's `mt-auto` still lands at the bottom.
 export const navigatorPrimaryContentVariants = cva([
   'flex min-h-full flex-col gap-1'
 ])
 
 // The box never changes size, so collapse animates on scale/translate/opacity
 // alone. `--navigator-primary-col` is one of five columns of the root's width
-// less the 2rem inset; `--navigator-primary-edge` is the fixed part of a
-// collapsed circle's travel. `Navigator.Primary` sets the count inline.
+// less the 2rem inset and the pinned circle's width; `--navigator-primary-edge`
+// is the fixed part of a collapsed circle's travel. `Navigator.Primary` sets
+// the count and the pinned width inline.
 export const navigatorPrimaryHorizontalVariants = cva(
   [
     'max-md:absolute max-md:inset-x-2 max-md:bottom-[max(1rem,env(safe-area-inset-bottom))] max-md:z-sticky md:hidden',
@@ -86,7 +86,8 @@ export const navigatorPrimaryHorizontalVariants = cva(
     // The track and circles restore input; the gutters beside them stay inert.
     'pointer-events-none',
     '[--navigator-primary-count:5]',
-    '[--navigator-primary-col:calc((100cqw-2rem)/5)]',
+    '[--navigator-primary-pinned:0rem]',
+    '[--navigator-primary-col:calc((100cqw-2rem-var(--navigator-primary-pinned))/5)]',
     '[--navigator-primary-edge:calc((5_-_var(--navigator-primary-count))_*_var(--navigator-primary-col)_/_2_+_(var(--navigator-primary-col)_-_3.5rem)_/_2)]',
     // `translate`, not `transform`: the hide state is `max-md:translate-y-[…]`,
     // which Tailwind v4 emits as the independent `translate` property, so
@@ -102,11 +103,19 @@ export const navigatorPrimaryHorizontalVariants = cva(
       collapsed: {
         true: '',
         false: ''
+      },
+      pinned: {
+        true: 'grid-cols-[1fr_auto] gap-2',
+        false: ''
       }
     },
-    defaultVariants: { collapsed: false, hidden: false }
+    defaultVariants: { collapsed: false, hidden: false, pinned: false }
   }
 )
+
+export const navigatorPrimaryCircleVariants = cva([
+  'pointer-events-auto grid self-stretch'
+])
 
 // Hugs the tabs, so the indicator and pill resolve against it. Collapsed it
 // can span the full width, so input stays off and each circle restores its own.
@@ -163,7 +172,9 @@ export const navigatorTabVariants = cva(
         circle:
           'pointer-events-auto size-14 translate-y-1 scale-100 place-content-center justify-self-center self-end bg-raised opacity-100 shadow-xl',
         // `py-1.5` holds the row's height while invisible.
-        hidden: 'scale-0 px-0 py-1.5 opacity-0 pointer-events-none'
+        hidden: 'scale-0 px-0 py-1.5 opacity-0 pointer-events-none',
+        pinned:
+          'pointer-events-auto aspect-square h-full rounded-full emphasis-floating place-content-center justify-self-end'
       },
       circleSide: {
         left: '',
@@ -200,7 +211,8 @@ export const navigatorTabVariants = cva(
   }
 )
 
-export const navigatorEndVariants = cva([
+// Pinned items sit on the vertical navigation's bottom edge; `mt-auto` pushes against the vertical navigation's flex column.
+export const navigatorPrimaryPinnedVariants = cva([
   'mt-auto grid gap-1 border-t border-subtle pt-2'
 ])
 

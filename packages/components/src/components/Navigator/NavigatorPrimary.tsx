@@ -13,114 +13,58 @@ import {
   useRef
 } from 'react'
 
-import { ListIcon } from '@phosphor-icons/react'
+import { DotsThreeIcon } from '@phosphor-icons/react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isDev } from '../../utils/isDev'
 import { ScrollArea } from '../ScrollArea'
-import { NavigatorBrand } from './NavigatorBrand'
 import {
   NavigatorContext,
   isActiveValue,
   isBranchActive,
   isSectionActive
 } from './NavigatorContext'
-import { NavigatorEnd } from './NavigatorEnd'
 import { NavigatorGroup } from './NavigatorGroup'
-import { NavigatorGroupTitle } from './NavigatorGroupTitle'
 import { NavigatorIndicator } from './NavigatorIndicator'
 import { NavigatorItem, type NavigatorItemProps } from './NavigatorItem'
 import type { NavigatorSecondaryProps } from './NavigatorSecondary'
 import { NavigatorTab } from './NavigatorTab'
+import { collectSlots } from './collectSlots'
 import {
   type MobileSlots,
-  type NavigatorSlotGroup,
   type NavigatorSlotMeta,
-  type NavigatorTabSlots,
+  OVERFLOW_LABEL,
   deriveMobileSlots
 } from './mobileSlots'
 import { wrapPrimaryRun } from './primaryList'
 import { activeHref, rememberedHref } from './sectionMemory'
+import { secondaryDescendantValues, splitItemChildren } from './splitSecondary'
 import {
-  firstSecondaryHref,
-  firstSecondaryValue,
-  secondaryDescendantValues,
-  splitItemChildren
-} from './splitSecondary'
-import {
+  navigatorPrimaryCircleVariants,
   navigatorPrimaryContentVariants,
   navigatorPrimaryHorizontalVariants,
   navigatorPrimaryPillVariants,
+  navigatorPrimaryPinnedVariants,
   navigatorPrimaryTrackVariants,
   navigatorPrimaryVerticalVariants,
   navigatorPrimaryViewportVariants
 } from './variants'
 
-// Re-exported so existing imports of these types/values from
-// `./NavigatorPrimary` keep working — the derivation itself lives in
-// `./mobileSlots` so it doesn't share a file (and confuse
-// `react-docgen-typescript`) with the `NavigatorPrimary` component.
-export type { MobileSlots, NavigatorSlotMeta, NavigatorTabSlots }
+export type { MobileSlots, NavigatorSlotMeta }
 export { deriveMobileSlots }
-
-const END_GROUP: NavigatorSlotGroup = { key: 'end' }
-
-const toSlotMeta = (
-  props: NavigatorItemProps,
-  group?: NavigatorSlotGroup
-): NavigatorSlotMeta => {
-  const {
-    label,
-    secondary,
-    panel: declaredPanel
-  } = splitItemChildren(props.children)
-  // Navigation outranks a menu: a Secondary makes the item a section
-  // regardless of a Panel also being declared — NavigatorItem warns and
-  // ignores the Panel the same way.
-  const panel = secondary.length > 0 ? null : declaredPanel
-  // A panel makes the item a disclosure: it owns a menu, not a destination.
-  const href = panel ? undefined : (props.href ?? firstSecondaryHref(secondary))
-  return {
-    value: props.value,
-    label,
-    icon: props.icon,
-    href,
-    panel,
-    // Its landing is itself when routed; otherwise the sub-page its href
-    // points at, so tap-behaviour can tell "on the landing" from "on a sub-page".
-    topValue:
-      props.href !== undefined
-        ? props.value
-        : (firstSecondaryValue(secondary) ?? props.value),
-    descendants: secondaryDescendantValues(secondary),
-    group,
-    placement: 'automatic',
-    priority: 'automatic'
-  }
-}
 
 export type NavigatorPrimaryProps = {
   /** Names the navigation landmark, e.g. 'Primary'. */
   'aria-label': string
   className?: string
   children?: ReactNode
-  /**
-   * Which items take the horizontal slots on phones, in tab order; the rest
-   * fold into More. Omit to use source order.
-   */
-  tabs?:
-    | readonly [string]
-    | readonly [string, string]
-    | readonly [string, string, string]
-    | readonly [string, string, string, string]
 }
 
 export function NavigatorPrimary({
   'aria-label': ariaLabel,
   className,
-  children,
-  tabs
+  children
 }: NavigatorPrimaryProps) {
   const {
     value: activeValue,
@@ -147,88 +91,13 @@ export function NavigatorPrimary({
   // The viewport, not the `<nav>`: it is what scrolls.
   const verticalRef = useRef<HTMLDivElement>(null)
 
-  const { items, endItems, nests, hasStrayChild } = useMemo(() => {
-    const items: NavigatorSlotMeta[] = []
-    const endItems: NavigatorSlotMeta[] = []
-    let foundNesting = false
-    let foundStray = false
-    let groupCount = 0
+  const collected = useMemo(() => collectSlots(children), [children])
+  const items = [...collected.automatic, ...collected.pinnedSlots]
+  const nests = items.some((slot) => slot.descendants.length > 0)
 
-    const visitItem = (child: ReactElement, group?: NavigatorSlotGroup) => {
-      const itemProps = child.props as NavigatorItemProps
-      items.push(toSlotMeta(itemProps, group))
-      const { secondary } = splitItemChildren(itemProps.children)
-      if (secondary.length > 0) foundNesting = true
-    }
-
-    Children.forEach(children, (child) => {
-      if (!isValidElement(child)) return
-
-      if (child.type === NavigatorBrand) return
-
-      if (child.type === NavigatorEnd) {
-        const endProps = child.props as { children?: ReactNode }
-        Children.forEach(endProps.children, (endChild) => {
-          if (!isValidElement(endChild)) return
-          if (endChild.type === NavigatorItem) {
-            endItems.push(
-              toSlotMeta(endChild.props as NavigatorItemProps, END_GROUP)
-            )
-            return
-          }
-          foundStray = true
-        })
-        return
-      }
-
-      // A deliberate, single-type exception to the one-level rule, matching
-      // `secondaryItems`: Group is matched by reference exactly as Item is, so
-      // the walk stays immune to everything except server-authored trees. It
-      // is NOT a licence for arbitrary wrappers.
-      if (child.type === NavigatorGroup) {
-        const groupProps = child.props as { children?: ReactNode }
-        const group: NavigatorSlotGroup = { key: `group-${groupCount++}` }
-        Children.forEach(groupProps.children, (grandChild) => {
-          if (!isValidElement(grandChild)) return
-          if (grandChild.type === NavigatorGroupTitle) {
-            group.title = (
-              grandChild.props as { children?: ReactNode }
-            ).children
-          } else if (grandChild.type === NavigatorItem) {
-            visitItem(grandChild, group)
-          }
-        })
-        return
-      }
-
-      if (child.type !== NavigatorItem) {
-        foundStray = true
-        return
-      }
-
-      visitItem(child)
-    })
-
-    return { items, endItems, nests: foundNesting, hasStrayChild: foundStray }
-  }, [children])
-
-  // Recorded from an effect, not the walk: this is a write to shared state
-  // during render otherwise, and React 19 double-invokes render in StrictMode.
-  //
-  // Only the branch-active section records, and only a destination deeper than
-  // its own landing — a section sitting at its landing has nothing to remember.
-  //
-  // A panel item is excluded even when a route mounted beneath its value
-  // makes `isBranchActive` true via the prefix clause — it owns a menu, not
-  // a destination, and must never become a memory key or its tab picks up a
-  // stale href after the click handler's `preventDefault` no longer applies
-  // (middle-click, copy-link-address).
+  // Only a destination deeper than the branch-active section's landing is worth remembering.
   const branchSection = items.find((item) => isSectionActive(item, activeValue))
   const branchValue = branchSection?.value
-  // The declared href of the active descendant is not on the slot meta —
-  // `descendants` is values only — so the value itself is the target, which
-  // is what the design says to store. `activeHref` refuses a value that is
-  // not path-shaped rather than producing a broken link.
   const deepHref =
     branchValue !== undefined && activeValue !== branchValue
       ? activeHref(activeValue, undefined)
@@ -277,14 +146,12 @@ export function NavigatorPrimary({
     return active
   }, [children, activeValue])
 
-  const slots = deriveMobileSlots(items, endItems, tabs)
+  const slots = deriveMobileSlots(collected.automatic, collected.pinnedSlots)
 
   useEffect(() => {
     setHasNesting(nests)
   }, [nests, setHasNesting])
 
-  // Escape still dismisses; there is no outside-click any more — from Task 5
-  // the overflow is a full-screen pane, not a popup floating over the bar.
   useEffect(() => {
     if (!overflowOpen) return
     const onKeyDown = (event: KeyboardEvent) => {
@@ -294,8 +161,6 @@ export function NavigatorPrimary({
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [overflowOpen, setOverflowOpen])
 
-  // Same contract for an open panel: it's now a full-screen pane below `md`
-  // rather than a Drawer, so it no longer gets Escape for free from Base UI.
   useEffect(() => {
     if (openPanel === null) return
     const onKeyDown = (event: KeyboardEvent) => {
@@ -305,9 +170,6 @@ export function NavigatorPrimary({
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [openPanel, setOpenPanel])
 
-  // Lifted to context so the top pane's header — which lives in a different
-  // subtree — can render the active section's nav as the mobile nav row. An
-  // effect, not the walk, for the same StrictMode reason.
   useEffect(() => {
     setSecondaryNav(
       activeSecondary
@@ -320,116 +182,79 @@ export function NavigatorPrimary({
     )
   }, [activeSecondary, setSecondaryNav])
 
-  // In an effect, not the walk: React 19 strict mode double-invokes render.
+  // Warnings live in effects, not the walk: React 19 StrictMode double-invokes render.
+  const hasStrayChild = collected.hasStrayChild
   useEffect(() => {
     if (!isDev() || !hasStrayChild) return
     console.warn(
-      '[Roadie] Navigator.Primary and Navigator.End only recognise ' +
-        'Navigator.Item by direct element-type reference — Navigator.Primary ' +
-        'also recognises Navigator.Group, but Navigator.End does not — and ' +
-        'skipped a child that is not one of those. A component that ' +
-        'renders, or merely returns, a Navigator.Item — including one ' +
-        'extracted to share it across sections — is not that reference ' +
-        'either, so it is invisible the same way. Fragments, mapped ' +
-        'wrappers, and trees authored in a server component (Flight ' +
+      '[Roadie] Navigator.Primary only recognises Navigator.Item, ' +
+        'Navigator.Group and Navigator.Brand by direct element-type ' +
+        'reference, and skipped a child that is not one of those. A ' +
+        'component that renders, or merely returns, a Navigator.Item — ' +
+        'including one extracted to share it across sections — is not that ' +
+        'reference either, so it is invisible the same way. Fragments, ' +
+        'mapped wrappers, and trees authored in a server component (Flight ' +
         'replaces each element type with a lazy reference) fail for the ' +
         'same reason. Render Navigator.Item directly as a child. See ' +
         'COMPOUND_PATTERNS.md §1.2.'
     )
   }, [hasStrayChild])
 
-  // In an effect, not the walk: React 19 strict mode double-invokes render.
-  // Loud because this is the one real cost of naming values away from the
-  // items they refer to — a typo silently drops a destination from the bar,
-  // and a repeat silently collapses to its first occurrence.
-  const unknownTabs = slots.unknownTabs.join(', ')
-  const repeatedTabs = slots.repeatedTabs.join(', ')
-  const overflowTabs = slots.overflowTabs.join(', ')
+  const conflicting = collected.conflictingPlacement.join(', ')
   useEffect(() => {
-    if (
-      !isDev() ||
-      (unknownTabs === '' && repeatedTabs === '' && overflowTabs === '')
-    )
-      return
-    const problems: string[] = []
-    if (unknownTabs !== '') {
-      problems.push(
-        `names ${unknownTabs}, which is not a declared Navigator.Item ` +
-          'value — that slot is dropped'
-      )
-    }
-    if (repeatedTabs !== '') {
-      problems.push(
-        `repeats ${repeatedTabs} after its first occurrence — the repeat ` +
-          'is ignored'
-      )
-    }
-    if (overflowTabs !== '') {
-      problems.push(
-        `names more tabs than the bar can hold (${overflowTabs}) — only ` +
-          'the first four are kept, and the rest fold into the final tab'
-      )
-    }
+    if (!isDev() || conflicting === '') return
     console.warn(
-      `[Roadie] Navigator.Primary's \`tabs\` ${problems.join('; and ')}. ` +
-        'Note that items authored in a server component are invisible to ' +
-        'the walk — see COMPOUND_PATTERNS.md §1.2.'
+      `[Roadie] Navigator.Item ${conflicting} declares a placement that ` +
+        "differs from its Navigator.Group's. The group's placement wins — " +
+        'move the item out of the group to place it on its own.'
     )
-  }, [unknownTabs, repeatedTabs, overflowTabs])
+  }, [conflicting])
+
+  const pinnedFirst = collected.pinnedBeforeCluster
+  useEffect(() => {
+    if (!isDev() || !pinnedFirst) return
+    console.warn(
+      '[Roadie] Navigator.Primary has a pinned item written before other ' +
+        'items. Pinned items render at the bottom of the vertical ' +
+        "navigation and in the phone bar's trailing circle, so keyboard and " +
+        'screen-reader order follows that, not your source order. Write ' +
+        'pinned items last.'
+    )
+  }, [pinnedFirst])
 
   const form = nests ? 'nested' : 'compact'
 
-  // `visible` means the bar stays full whatever scroll position a sibling pane
-  // left in shared state; `hidden` takes the bar out, so collapse is moot.
-  // This masks `navCollapsed` rather than resetting it — a top pane that flips
-  // from `visible` back to `auto` snaps straight back to the state it was
-  // hiding.
+  // Masks `navCollapsed` rather than resetting it, so `auto` snaps back to the state it hid.
   const collapsed = navCollapsed && primaryNav === 'auto'
   const navHidden = primaryNav === 'hidden'
 
-  const folded = [...slots.overflow, ...slots.end]
-  // A lone folded End item is that destination; any overflow discloses.
-  const generatesPane = folded.length > 1 || slots.overflow.length > 0
-  const soleFolded = folded[0]
+  const folded = slots.overflow
+  const hasMore = folded.length > 0
+  const pinnedTab = slots.pinned
   const foldedIsActive = folded.some((slot) =>
     isSectionActive(slot, activeValue)
   )
-  // Any open disclosure — the overflow pane or a panel — supersedes route
-  // currency: exactly one tab reads as current, the open disclosure, until
-  // it closes and the route reclaims its pill. `overflowOpen` and `openPanel`
-  // are two instances of the same rule, so they resolve to one flag here
-  // rather than two `&&` clauses scattered across the branches below.
+  const pinnedIsActive =
+    pinnedTab !== undefined && isSectionActive(pinnedTab, activeValue)
+  // An open disclosure takes currency from every route tab until it closes.
   const disclosureOpen = overflowOpen || openPanel !== null
-  const hasFinalTab = slots.label !== undefined
-  // Left circle is the active tab, unless the active tab is the final/End tab —
-  // then the first tab takes the left so two circles always show.
-  const activeIsFinal = hasFinalTab && foldedIsActive
-  const tabCount = slots.tabs.length + (hasFinalTab ? 1 : 0)
+  // The pinned circle already sits at the trailing edge, so it is the right circle.
+  const activeIsRight = pinnedTab ? pinnedIsActive : hasMore && foldedIsActive
+  const tabCount = slots.tabs.length + (hasMore ? 1 : 0)
 
-  // `foldedKey` is the identity of the set; `folded` is a fresh array every
-  // render, so depending on it directly would loop. (No eslint-disable here:
-  // this package's lint config doesn't register react-hooks/exhaustive-deps —
-  // see the task report for why.)
+  // `folded` is a fresh array every render; its key is the stable identity.
   const foldedKey = folded.map((slot) => slot.value).join(',')
   useEffect(() => {
     setOverflowItems(folded)
   }, [foldedKey, setOverflowItems])
 
-  // Every declared panel item, not just the folded ones — a panel that is a
-  // tab or lives in a lone End slot never reaches `overflowItems`, but
-  // `Navigator.Content` needs its content reachable by value all the same.
-  // Same stable-key discipline as `foldedKey`: `panelSlots` is a fresh array
-  // every render.
-  const panelSlots = [...slots.tabs, ...folded].filter((slot) => slot.panel)
+  const panelSlots = items.filter((slot) => slot.panel)
   const panelKey = panelSlots.map((slot) => slot.value).join(',')
   useEffect(() => {
     setPanelItems(panelSlots)
   }, [panelKey, setPanelItems])
 
-  // Folded items with nowhere to render is silent otherwise — the shape of
-  // mistake this branch has paid for repeatedly. In an effect, not the walk:
-  // React 19 strict mode double-invokes render.
-  const foldedWithNoHost = folded.length > 1 && !hasContent
+  const foldedWithNoHost = hasMore && !hasContent
   useEffect(() => {
     if (!isDev() || !foldedWithNoHost) return
     console.warn(
@@ -440,29 +265,19 @@ export function NavigatorPrimary({
     )
   }, [foldedWithNoHost])
 
-  // Tapping the active tab. Collapsed, the first tap only reopens the bar
-  // (pinned so the still-scrolled pane can't re-collapse it). Expanded, it
-  // depends on where you are: on the section's own landing it scrolls the pane
-  // to the top; on a sub-page it pops up to the landing (the tab's href already
-  // points there, so the link navigates itself). Inactive tabs navigate as
-  // usual; disclosure tabs keep opening the overflow.
+  // Tapping the active tab: collapsed, it reopens the bar; on the landing, it
+  // scrolls to top; on a sub-page, its href already points up to the landing.
   const selectDestination = (
     event: MouseEvent,
     tab: NavigatorSlotMeta,
     active: boolean
   ) => {
-    // Any destination tap dismisses an open overflow pane.
     setOverflowOpen(false)
-    // A panel item owns a menu, not a page — and it's a tab, not a screen
-    // pushed on top of one: tapping it toggles the panel pane rather than
-    // navigating, and a second tap on the same tab closes it again.
     if (tab.panel) {
       event.preventDefault()
       setOpenPanel(openPanel === tab.value ? null : tab.value)
       return
     }
-    // Any other destination clears an open panel — tapping a different tab
-    // leaves the one you were on, exactly like switching any other tab.
     setOpenPanel(null)
     if (!active) {
       setValue(tab.value)
@@ -479,9 +294,6 @@ export function NavigatorPrimary({
       scrollActivePaneToTop()
       return
     }
-    // On a sub-page: navigate up to the landing. The link's href is the
-    // landing, so let it navigate; only a section with sub-pages but no
-    // resolvable href needs the manual fallback.
     if (tab.href === undefined) {
       event.preventDefault()
       setValue(tab.topValue)
@@ -511,7 +323,18 @@ export function NavigatorPrimary({
             fitWidth={false}
             className={navigatorPrimaryContentVariants()}
           >
-            {wrapPrimaryRun(children)}
+            {wrapPrimaryRun([
+              ...collected.brand,
+              ...collected.cluster.map((entry) => entry.element)
+            ])}
+            {collected.pinned.length > 0 ? (
+              <div
+                data-slot='navigator-primary-pinned'
+                className={navigatorPrimaryPinnedVariants()}
+              >
+                {wrapPrimaryRun(collected.pinned.map((entry) => entry.element))}
+              </div>
+            ) : null}
           </ScrollArea.Content>
           <NavigatorIndicator trackRef={verticalRef} surface='vertical' />
         </ScrollArea.Viewport>
@@ -526,14 +349,18 @@ export function NavigatorPrimary({
         data-hidden={String(navHidden)}
         aria-label={`${ariaLabel} tabs`}
         style={
-          { '--navigator-primary-count': String(tabCount) } as CSSProperties
+          {
+            '--navigator-primary-count': String(tabCount),
+            '--navigator-primary-pinned': pinnedTab ? '4rem' : '0rem'
+          } as CSSProperties
         }
         // `aria-hidden` too: `inert` alone doesn't leave every AT tree.
         inert={navHidden}
         aria-hidden={navHidden || undefined}
         className={navigatorPrimaryHorizontalVariants({
           collapsed,
-          hidden: navHidden
+          hidden: navHidden,
+          pinned: pinnedTab !== undefined
         })}
       >
         <div
@@ -552,19 +379,12 @@ export function NavigatorPrimary({
             hidden={collapsed}
           />
           {slots.tabs.map((tab, tabIndex) => {
-            // A panel tab reads active while its own panel is the open one —
-            // it's a disclosure, not a destination, so `isSectionActive` (which
-            // deliberately excludes a panel) never applies to it.
             const active = tab.panel
               ? openPanel === tab.value
               : isSectionActive(tab, activeValue)
-            // While any disclosure is open — the overflow pane or a panel — it
-            // is the selected tab; a route tab yields its pill and currency to
-            // it so exactly one tab reads as active, then reclaims them on
-            // close. A panel tab's own `active` already IS the disclosure, so
-            // it never yields to itself.
             const visualActive = tab.panel ? active : active && !disclosureOpen
-            const isLeftCircle = activeIsFinal
+            // With the right circle taken, the first tab floats left so two circles always show.
+            const isLeftCircle = activeIsRight
               ? tab.value === slots.tabs[0]?.value
               : active
             return (
@@ -588,59 +408,58 @@ export function NavigatorPrimary({
               />
             )
           })}
-
-          {/* The final tab, which collapse always floats as the right circle —
-              the left one being the active tab, or the first tab when the
-              active tab IS this one. */}
-          {slots.label !== undefined ? (
-            <>
-              {generatesPane ? (
-                <NavigatorTab
-                  label={slots.label}
-                  icon={<ListIcon />}
-                  active={overflowOpen || (foldedIsActive && !disclosureOpen)}
-                  collapsed={collapsed}
-                  circleSide='right'
-                  index={slots.tabs.length}
-                  expanded={overflowOpen}
-                  controls={overflowOpen ? overflowPaneId : undefined}
-                  onSelect={() => {
-                    // Opening the overflow leaves any open panel behind —
-                    // two disclosures can't both claim the top of the stack.
-                    setOpenPanel(null)
-                    setOverflowOpen(!overflowOpen)
-                  }}
-                />
-              ) : (
-                <NavigatorTab
-                  label={slots.label}
-                  icon={soleFolded?.icon}
-                  href={soleFolded?.panel ? undefined : soleFolded?.href}
-                  active={
-                    soleFolded?.panel
-                      ? openPanel === soleFolded.value
-                      : foldedIsActive && !disclosureOpen
-                  }
-                  isPage={
-                    soleFolded !== undefined &&
-                    isActiveValue(soleFolded.value, activeValue)
-                  }
-                  collapsed={collapsed}
-                  circleSide='right'
-                  index={slots.tabs.length}
-                  expanded={
-                    soleFolded?.panel
-                      ? openPanel === soleFolded.value
-                      : undefined
-                  }
-                  onSelect={(event) =>
-                    selectDestination(event, soleFolded!, foldedIsActive)
-                  }
-                />
-              )}
-            </>
+          {hasMore ? (
+            <NavigatorTab
+              label={OVERFLOW_LABEL}
+              icon={<DotsThreeIcon />}
+              active={overflowOpen || (foldedIsActive && !disclosureOpen)}
+              collapsed={collapsed}
+              circleSide={pinnedTab ? undefined : 'right'}
+              index={slots.tabs.length}
+              expanded={overflowOpen}
+              controls={overflowOpen ? overflowPaneId : undefined}
+              onSelect={() => {
+                setOpenPanel(null)
+                setOverflowOpen(!overflowOpen)
+              }}
+            />
           ) : null}
         </div>
+        {pinnedTab ? (
+          <div
+            data-slot='navigator-primary-circle'
+            className={navigatorPrimaryCircleVariants()}
+          >
+            <NavigatorTab
+              label={pinnedTab.label}
+              icon={pinnedTab.icon}
+              href={
+                pinnedTab.panel
+                  ? undefined
+                  : rememberedHref(
+                      sectionMemory,
+                      pinnedTab.value,
+                      pinnedTab.href,
+                      pinnedIsActive
+                    )
+              }
+              active={
+                pinnedTab.panel
+                  ? openPanel === pinnedTab.value
+                  : pinnedIsActive && !disclosureOpen
+              }
+              isPage={isActiveValue(pinnedTab.value, activeValue)}
+              pinned
+              index={0}
+              expanded={
+                pinnedTab.panel ? openPanel === pinnedTab.value : undefined
+              }
+              onSelect={(event) =>
+                selectDestination(event, pinnedTab, pinnedIsActive)
+              }
+            />
+          </div>
+        ) : null}
       </nav>
     </>
   )

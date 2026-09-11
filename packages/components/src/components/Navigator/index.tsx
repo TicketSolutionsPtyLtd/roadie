@@ -4,7 +4,6 @@
 // See docs/contributing/COMPOUND_PATTERNS.md.
 import { NavigatorBrand } from './NavigatorBrand'
 import { NavigatorContent } from './NavigatorContent'
-import { NavigatorEnd } from './NavigatorEnd'
 import { NavigatorGroup } from './NavigatorGroup'
 import { NavigatorGroupTitle } from './NavigatorGroupTitle'
 import { NavigatorItem } from './NavigatorItem'
@@ -25,7 +24,6 @@ const Navigator = NavigatorRoot as typeof NavigatorRoot & {
   GroupTitle: typeof NavigatorGroupTitle
   Panel: typeof NavigatorPanel
   Brand: typeof NavigatorBrand
-  End: typeof NavigatorEnd
   Overflow: typeof NavigatorOverflow
   OverflowItems: typeof NavigatorOverflowItems
 }
@@ -39,7 +37,6 @@ Navigator.Group = NavigatorGroup
 Navigator.GroupTitle = NavigatorGroupTitle
 Navigator.Panel = NavigatorPanel
 Navigator.Brand = NavigatorBrand
-Navigator.End = NavigatorEnd
 Navigator.Overflow = NavigatorOverflow
 Navigator.OverflowItems = NavigatorOverflowItems
 
@@ -49,16 +46,18 @@ export type { NavigatorContentProps } from './NavigatorContent'
 export type {
   MobileSlots,
   NavigatorPrimaryProps,
-  NavigatorSlotMeta,
-  NavigatorTabSlots
+  NavigatorSlotMeta
 } from './NavigatorPrimary'
+export type {
+  NavigatorPlacement,
+  NavigatorVisibilityPriority
+} from './mobileSlots'
 export type { NavigatorSecondaryProps } from './NavigatorSecondary'
 export type { NavigatorItemProps } from './NavigatorItem'
 export type { NavigatorGroupProps } from './NavigatorGroup'
 export type { NavigatorGroupTitleProps } from './NavigatorGroupTitle'
 export type { NavigatorPanelProps } from './NavigatorPanel'
 export type { NavigatorBrandProps } from './NavigatorBrand'
-export type { NavigatorEndProps } from './NavigatorEnd'
 export type { NavigatorOverflowProps } from './NavigatorOverflow'
 export type { NavigatorOverflowItemsProps } from './NavigatorOverflowItems'
 export type { NavigatorIndicatorSurface } from './variants'
@@ -68,6 +67,8 @@ export {
   navigatorContentVariants,
   navigatorPrimaryVerticalVariants,
   navigatorPrimaryHorizontalVariants,
+  navigatorPrimaryCircleVariants,
+  navigatorPrimaryPinnedVariants,
   navigatorPrimaryTrackVariants,
   navigatorPrimaryPillVariants,
   navigatorTabVariants,

@@ -27,7 +27,7 @@ export type NavigatorPanelProps = {
  * subtree from the stack `Navigator.Content` orchestrates. Its content isn't
  * portalled there — a portal only relocates DOM, not the React context a
  * pane's stack registration depends on. Instead `Navigator.Primary` publishes
- * every declared panel's meta (tab, folded, or in `Navigator.End` alike) onto
+ * every declared panel's meta (tab, folded, or pinned alike) onto
  * `NavigatorContext`, and `Navigator.Content` renders the open one's pane
  * itself, reading that meta by value — the same seam it already uses for the
  * generated overflow fallback.

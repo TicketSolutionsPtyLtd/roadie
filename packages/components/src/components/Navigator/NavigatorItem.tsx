@@ -17,6 +17,10 @@ import {
 import { NavigatorDestination } from './NavigatorDestination'
 import type { NavigatorPanelProps } from './NavigatorPanel'
 import { NavigatorPresentationContext } from './NavigatorPresentationContext'
+import type {
+  NavigatorPlacement,
+  NavigatorVisibilityPriority
+} from './mobileSlots'
 import { presentNavIcon } from './presentNavIcon'
 import { rememberedHref } from './sectionMemory'
 import {
@@ -53,6 +57,10 @@ export type NavigatorItemProps = {
   icon?: ReactNode
   /** Count or status shown alongside the label. */
   badge?: ReactNode
+  /** `pinned` anchors it to the vertical navigation's bottom and the bar's trailing circle. @default 'automatic' */
+  placement?: NavigatorPlacement
+  /** Which items stay visible when space runs out; falls back to the group's. @default 'automatic' */
+  visibilityPriority?: NavigatorVisibilityPriority
   className?: string
   children?: ReactNode
   onClick?: () => void
