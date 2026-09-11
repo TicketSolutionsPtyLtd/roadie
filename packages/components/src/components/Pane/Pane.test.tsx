@@ -1161,7 +1161,7 @@ describe('stack geometry', () => {
   // so scoping it here would be a silent narrowing, not a move.
   const expectSharedTransition = (pane: Element | undefined) => {
     expect(pane).toHaveClass(
-      'motion-safe:max-lg:transition-[translate,opacity]'
+      'motion-safe:max-lg:transition-[translate,opacity,visibility]'
     )
     expect(pane).toHaveClass('motion-safe:max-lg:duration-slow')
     expect(pane).toHaveClass('motion-safe:max-lg:ease-enter')
@@ -1187,6 +1187,7 @@ describe('stack geometry', () => {
     expect(top).toHaveClass('max-lg:inset-0')
     expect(top).not.toHaveClass('max-lg:-translate-x-1/3')
     expect(top).not.toHaveClass('max-lg:translate-x-full')
+    expect(top).not.toHaveClass('max-lg:invisible')
     expectSharedTransition(top)
   })
 
@@ -1208,6 +1209,7 @@ describe('stack geometry', () => {
     expect(behind).toHaveClass('max-lg:-translate-x-1/3')
     expect(behind).toHaveClass('max-lg:opacity-90')
     expect(behind).toHaveClass('max-lg:pointer-events-none')
+    expect(behind).toHaveClass('max-lg:invisible')
     expectSharedTransition(behind)
   })
 
@@ -1229,6 +1231,7 @@ describe('stack geometry', () => {
     expect(ahead).toHaveClass('max-lg:translate-x-full')
     expect(ahead).toHaveClass('max-lg:opacity-100')
     expect(ahead).toHaveClass('max-lg:pointer-events-none')
+    expect(ahead).toHaveClass('max-lg:invisible')
     expectSharedTransition(ahead)
   })
 

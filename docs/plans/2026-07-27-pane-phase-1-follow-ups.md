@@ -45,7 +45,7 @@ are recorded because the plan text still says otherwise.
   onto `auto-cols-max` plus the tabs' already-interpolating `max-w`, then drop
   `padding` from the transition — is a change to the bar's layout model, not a
   token swap.
-- **A covered pane is `pointer-events-none` but not `inert`**, so it stays
+- **Resolved 2026-09-11** with `max-lg:invisible` (transitioned, so it flips after the slide), not the attribute, which can't be band-gated. ~~A covered pane is `pointer-events-none` but not `inert`~~, so it stays
   reachable by assistive tech. Explicit stack state makes real `inert`
   tractable; worth doing now the stack is proven.
 - **`NavigatorTab` marks a branch-active section `aria-current='page'`**, so on a

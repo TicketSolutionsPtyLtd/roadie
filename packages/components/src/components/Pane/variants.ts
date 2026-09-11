@@ -91,7 +91,7 @@ export const paneVariants = cva(
           // and not `ease-spring` — the spring token peaks at 1.017, and
           // 1.7% of a viewport is a visible bounce at the end of a slide iOS
           // does not have.
-          'motion-safe:max-lg:transition-[translate,opacity]',
+          'motion-safe:max-lg:transition-[translate,opacity,visibility]',
           'motion-safe:max-lg:duration-slow motion-safe:max-lg:ease-enter',
           // Not `max-lg:` gated, unlike everything else here: this guard has
           // to hold at every breakpoint, not just the stacked one, so a
@@ -107,9 +107,13 @@ export const paneVariants = cva(
           // second painted layer; 0.6 ghosted the frame straight through the
           // pane.
           'max-lg:-translate-x-1/3 max-lg:opacity-90',
-          // Stops taps reaching the covered pane. Reduces but does not close
-          // the AT-reachability gap — full `inert` is deferred.
           'max-lg:pointer-events-none',
+          // Not the `inert` attribute: that can't be gated to the stacked
+          // band, and above `lg` this pane is a live column. Hidden drops it
+          // from the AT tree and tab order; transitioning `visibility` flips
+          // it after the slide out and before the slide in, while the top
+          // pane covers it.
+          'max-lg:invisible',
           // A covered pane is not visible, so let the browser skip its
           // layout and paint entirely. Measured as a no-op at -22% — a pane
           // that far over was still ~78% on screen, so the browser kept its
@@ -117,7 +121,7 @@ export const paneVariants = cva(
           // this; it only started paying off once ahead-panes parked fully
           // off-screen.
           'max-lg:[content-visibility:auto]',
-          'motion-safe:max-lg:transition-[translate,opacity]',
+          'motion-safe:max-lg:transition-[translate,opacity,visibility]',
           'motion-safe:max-lg:duration-slow motion-safe:max-lg:ease-enter',
           'motion-reduce:transition-none'
         ].join(' '),
@@ -127,9 +131,9 @@ export const paneVariants = cva(
         ahead: [
           'max-lg:absolute! max-lg:inset-0',
           'max-lg:translate-x-full max-lg:opacity-100',
-          'max-lg:pointer-events-none',
+          'max-lg:pointer-events-none max-lg:invisible',
           'max-lg:[content-visibility:auto]',
-          'motion-safe:max-lg:transition-[translate,opacity]',
+          'motion-safe:max-lg:transition-[translate,opacity,visibility]',
           'motion-safe:max-lg:duration-slow motion-safe:max-lg:ease-enter',
           'motion-reduce:transition-none'
         ].join(' ')
