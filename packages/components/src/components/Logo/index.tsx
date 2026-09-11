@@ -11,6 +11,7 @@ const WORDMARK_PATH =
   'M15.6 41.9q-7.25 0-11.21-4.14T.42 25.94a20 20 0 0 1 1.06-6.63 14 14 0 0 1 3.05-5c1.36-1.37 3-2.43 4.8-3.12a18.8 18.8 0 0 1 12.59 0 13 13 0 0 1 7.82 8.12 20 20 0 0 1 1.03 6.63q.05 3.44-1.06 6.7a13.17 13.17 0 0 1-7.84 8.18c-2 .73-4.13 1.1-6.27 1.08m0-6.43A5.9 5.9 0 0 0 20.72 33q1.7-2.47 1.7-7.06t-1.7-7q-1.7-2.4-5.12-2.4c-2.28 0-4.02.8-5.12 2.4s-1.7 3.94-1.7 7 .56 5.46 1.67 7.1q1.65 2.43 5.15 2.43M33.58 35.53l14.63-18.26H33.87v-6.25h24.55v5.45L43.87 34.73h15.24l-.73 6.25h-24.8zM65.94 17.28h-4.72v-6.26h4.72V3.04h8.04v7.98h6.9v6.26h-6.9V31.1q0 2.36.98 3.2c.72.57 1.61.87 2.53.83q.83 0 1.64-.09.83-.1 1.63-.32l1.16 5.91q-1.6.52-3.25.73-1.5.2-3.02.2-4.94 0-7.31-2.34-2.37-2.35-2.39-7.93zM85.3 0h8.28v7.24H85.3zm.12 11.02h8.04v29.93h-8.04zM107.9 25.6 98.05 11h9.51l5.12 8.55 5.75-8.55h8.4l-9.72 14.12 10.46 15.83h-9.35l-6.09-9.7-6.38 9.75H97z'
 
 export type LogoVariant = 'normal' | 'logomark' | 'wordmark' | 'product'
+export type LogoSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 
 export type LogoProps = ComponentProps<'span'> & {
   /**
@@ -19,6 +20,20 @@ export type LogoProps = ComponentProps<'span'> & {
    * @default 'normal'
    */
   variant?: 'normal' | 'logomark' | 'wordmark' | 'product'
+  /**
+   * The logo's height: `xs` 20px, `sm` 24px, `md` 32px, `lg` 40px, `xl` 48px.
+   * The gap and product name scale with it.
+   * @default 'md'
+   */
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+}
+
+const sizeClassName: Record<LogoSize, string> = {
+  xs: 'text-[20px]',
+  sm: 'text-[24px]',
+  md: 'text-[32px]',
+  lg: 'text-[40px]',
+  xl: 'text-[48px]'
 }
 
 let warnedMissingProductName = false
@@ -62,6 +77,7 @@ function LogoWordmark({ className }: { className: string }) {
 
 export function Logo({
   variant = 'normal',
+  size = 'md',
   className,
   children,
   'aria-label': ariaLabel,
@@ -93,7 +109,8 @@ export function Logo({
       data-slot='logo'
       data-variant={variant}
       className={cn(
-        'inline-flex h-[1em] shrink-0 items-center gap-[calc(1em/6)] text-[2rem] text-subtler intent-brand',
+        'inline-flex h-[1em] shrink-0 items-center gap-[calc(1em/6)] text-brand-9',
+        sizeClassName[size],
         className
       )}
       {...a11y}

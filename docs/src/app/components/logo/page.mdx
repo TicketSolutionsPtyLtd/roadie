@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Logo',
-  description: 'The Oztix logo, in its brand colour by default',
+  description: 'The Oztix logo, always in its fixed brand colour',
   status: 'beta',
   category: 'Content',
 }
@@ -12,7 +12,7 @@ import { Guideline } from '@/components/Guideline'
 
 # Logo
 
-The Oztix logo, in its brand colour by default.
+The Oztix logo, always in its fixed brand colour.
 
 ## Import
 
@@ -43,45 +43,37 @@ import { Logo } from '@oztix/roadie-components/logo'
 
 ### Sizes
 
-The logo's height is its font size, so one value scales the mark, the gap and the product name together. The default is `2rem` (32px). Set a different height with a font-size class such as `text-[3rem]`.
+The logo's height is set with the `size` prop, not a className. One value scales the mark, the gap and the product name together. `xs` is 20px, `sm` 24px, `md` 32px (the default), `lg` 40px, `xl` 48px.
 
 ```tsx-live
 <div className='grid justify-items-start gap-6'>
-  <Logo className='text-[1.5rem]' />
-  <Logo />
-  <Logo className='text-[3rem]' />
-  <Logo variant='product' className='text-[3rem]'>Studio</Logo>
+  <Logo size='xs' />
+  <Logo size='sm' />
+  <Logo size='md' />
+  <Logo size='lg' />
+  <Logo size='xl' />
+  <Logo variant='product' size='lg'>Studio</Logo>
 </div>
 ```
 
 ### Colour
 
-The logo sets `intent-brand` and fills with `currentColor`, so it reads as the brand blue in light and dark mode. Give it another intent class to change the palette, or a `text-*` class to change the colour directly.
+The logo's colour is fixed — always Oztix blue, identical in light and dark mode, and unaffected by a surrounding intent.
 
 ```tsx-live
 <div className='flex flex-wrap items-center gap-6'>
   <Logo />
-  <Logo className='intent-neutral' />
-  <Logo className='text-strong' />
-  <Logo className='intent-accent' />
-</div>
-```
-
-### On a strong surface
-
-On a solid brand surface, use `text-inverted` so the logo takes the same colour as the surface's text, like a strong button's label.
-
-```tsx-live
-<div className='intent-brand emphasis-strong grid place-content-center rounded-xl p-8'>
-  <Logo className='text-inverted' />
+  <div className='intent-danger'>
+    <Logo />
+  </div>
 </div>
 ```
 
 ## Guidelines
 
-<Guideline title='Size the logo with its height'>
-  <Guideline.Do code={`<Logo className='text-[3rem]' />`}>
-    Set one height through the font size. The width follows the logo's proportions.
+<Guideline title='Size the logo with the size prop'>
+  <Guideline.Do code={`<Logo size='lg' />`}>
+    Set one height through <code>size</code>. The width follows the logo's proportions.
   </Guideline.Do>
   <Guideline.Dont code={`<Logo className='h-12 w-40' />`}>
     Don't set a width or a separate height. That stretches or crops the artwork and leaves the gap and product name at the old size.
@@ -97,9 +89,9 @@ On a solid brand surface, use `text-inverted` so the logo takes the same colour 
   </Guideline.Dont>
 </Guideline>
 
-<Guideline title='Recolour with tokens'>
-  <Guideline.Do code={`<Logo className='text-inverted' />`}>
-    Change the colour with an intent or a semantic <code>text-*</code> class so it follows dark mode.
+<Guideline title='The logo colour is fixed'>
+  <Guideline.Do code={`<Logo />`}>
+    The logo is always Oztix blue. It doesn't take an intent or a colour prop, and it doesn't follow a surrounding intent.
   </Guideline.Do>
   <Guideline.Dont code={`<Logo className='text-[#0191eb]' />`}>
     Don't hard-code a colour. It won't change with the theme.

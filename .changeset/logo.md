@@ -2,7 +2,7 @@
 '@oztix/roadie-components': minor
 ---
 
-Add `Logo`, the Oztix logo in the brand colour, with `normal`, `logomark`,
+Add `Logo`, the Oztix logo in a fixed brand colour, with `normal`, `logomark`,
 `wordmark` and `product` variants. `product` pairs the mark with its children as
-live text, such as `<Logo variant='product'>Studio</Logo>`, and one font size
-scales the whole logo.
+live text, such as `<Logo variant='product'>Studio</Logo>`, and a `size` prop
+(`xs`–`xl`, default `md`) scales the whole logo by its height.

@@ -113,25 +113,33 @@ describe('Logo', () => {
   })
 
   describe('colour', () => {
-    it('defaults to the brand intent with a semantic text colour', () => {
+    it('is brand-9, fixed regardless of a surrounding intent or dark mode', () => {
+      render(
+        <div className='dark intent-danger'>
+          <Logo />
+        </div>
+      )
+      const root = screen.getByRole('img')
+      expect(root).toHaveClass('text-brand-9')
+      expect(root).not.toHaveClass('intent-danger')
+    })
+  })
+
+  describe('size', () => {
+    it.each([
+      ['xs', 'text-[20px]'],
+      ['sm', 'text-[24px]'],
+      ['md', 'text-[32px]'],
+      ['lg', 'text-[40px]'],
+      ['xl', 'text-[48px]']
+    ] as const)('maps size=%s to %s', (size, expectedClass) => {
+      render(<Logo size={size} />)
+      expect(screen.getByRole('img')).toHaveClass(expectedClass)
+    })
+
+    it('defaults to md', () => {
       render(<Logo />)
-      const root = screen.getByRole('img')
-      expect(root).toHaveClass('intent-brand', 'text-subtler')
-    })
-
-    // An intent class swaps the palette; a text-* class replaces text-subtler.
-    it('takes a different intent from className', () => {
-      render(<Logo className='intent-neutral' />)
-      const root = screen.getByRole('img')
-      expect(root).toHaveClass('intent-neutral', 'text-subtler')
-      expect(root).not.toHaveClass('intent-brand')
-    })
-
-    it('takes a different text colour from className', () => {
-      render(<Logo className='text-inverted' />)
-      const root = screen.getByRole('img')
-      expect(root).toHaveClass('intent-brand', 'text-inverted')
-      expect(root).not.toHaveClass('text-subtler')
+      expect(screen.getByRole('img')).toHaveClass('text-[32px]')
     })
   })
 
@@ -139,7 +147,7 @@ describe('Logo', () => {
     render(<Logo className='shrink text-[3rem]' id='site-logo' />)
     const root = screen.getByRole('img')
     expect(root).toHaveClass('text-[3rem]', 'shrink', 'inline-flex')
-    expect(root).not.toHaveClass('text-[2rem]', 'shrink-0')
+    expect(root).not.toHaveClass('text-[32px]', 'shrink-0')
     expect(root).toHaveAttribute('id', 'site-logo')
   })
 
