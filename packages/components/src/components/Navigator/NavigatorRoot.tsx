@@ -18,6 +18,7 @@ import { NavigatorContent } from './NavigatorContent'
 import {
   NavigatorContext,
   type NavigatorContextValue,
+  type NavigatorOverflowSets,
   type NavigatorSecondaryNav
 } from './NavigatorContext'
 import type { NavigatorSlotMeta } from './NavigatorPrimary'
@@ -52,7 +53,14 @@ export function NavigatorRoot({
   const [secondaryNav, setSecondaryNav] =
     useState<NavigatorSecondaryNav | null>(null)
   const [overflowOpen, setOverflowOpen] = useState(false)
-  const [overflowItems, setOverflowItems] = useState<NavigatorSlotMeta[]>([])
+  const [overflowItems, setOverflowItemsState] =
+    useState<NavigatorOverflowSets>({ horizontal: [], vertical: [] })
+  const setOverflowItems = useCallback(
+    (surface: keyof NavigatorOverflowSets, next: NavigatorSlotMeta[]) =>
+      setOverflowItemsState((current) => ({ ...current, [surface]: next })),
+    []
+  )
+  const overflowOpener = useRef<HTMLElement | null>(null)
   const overflowPaneId = useId()
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [sectionMemory, setSectionMemory] = useState<SectionMemory>(
@@ -103,6 +111,7 @@ export function NavigatorRoot({
       overflowPaneId,
       overflowItems,
       setOverflowItems,
+      overflowOpener,
       hasContent,
       openMenu,
       setOpenMenu,
@@ -122,6 +131,7 @@ export function NavigatorRoot({
       overflowOpen,
       overflowPaneId,
       overflowItems,
+      setOverflowItems,
       hasContent,
       openMenu,
       sectionMemory,

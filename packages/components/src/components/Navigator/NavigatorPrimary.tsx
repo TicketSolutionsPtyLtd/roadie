@@ -85,6 +85,7 @@ export function NavigatorPrimary({
     setOverflowOpen,
     overflowPaneId,
     setOverflowItems,
+    overflowOpener,
     hasContent,
     openMenu,
     setOpenMenu,
@@ -159,11 +160,13 @@ export function NavigatorPrimary({
   useEffect(() => {
     if (!overflowOpen) return
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOverflowOpen(false)
+      if (event.key !== 'Escape') return
+      setOverflowOpen(false)
+      overflowOpener.current?.focus()
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [overflowOpen, setOverflowOpen])
+  }, [overflowOpen, setOverflowOpen, overflowOpener])
 
   useEffect(() => {
     setSecondaryNav(
@@ -246,7 +249,7 @@ export function NavigatorPrimary({
   // `folded` is a fresh array every render; its key is the stable identity.
   const foldedKey = folded.map((slot) => slot.value).join(',')
   useEffect(() => {
-    setOverflowItems(folded)
+    setOverflowItems('horizontal', folded)
   }, [foldedKey, setOverflowItems])
 
   const foldedWithNoHost = hasMore && !hasContent
@@ -256,7 +259,7 @@ export function NavigatorPrimary({
       '[Roadie] Navigator.Primary folded items into a More tab, but no ' +
         'Navigator.Content is mounted to host the overflow pane. The ' +
         'folded destinations are unreachable below `md`. Render a ' +
-        'Navigator.Content, optionally with a Navigator.Overflow inside it.'
+        'Navigator.Content, optionally with a Navigator.OverflowPane inside it.'
     )
   }, [foldedWithNoHost])
 
@@ -421,7 +424,10 @@ export function NavigatorPrimary({
               index={slots.tabs.length}
               expanded={overflowOpen}
               controls={overflowOpen ? overflowPaneId : undefined}
-              onSelect={() => {
+              onSelect={(event) => {
+                if (event.currentTarget instanceof HTMLElement) {
+                  overflowOpener.current = event.currentTarget
+                }
                 setOpenMenu(null)
                 setOverflowOpen(!overflowOpen)
               }}

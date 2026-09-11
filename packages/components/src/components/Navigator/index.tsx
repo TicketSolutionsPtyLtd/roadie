@@ -9,8 +9,8 @@ import { NavigatorGroupTitle } from './NavigatorGroupTitle'
 import { NavigatorItem } from './NavigatorItem'
 import { NavigatorMenu } from './NavigatorMenu'
 import { NavigatorMenuItem } from './NavigatorMenuItem'
-import { NavigatorOverflow } from './NavigatorOverflow'
 import { NavigatorOverflowItems } from './NavigatorOverflowItems'
+import { NavigatorOverflowPane } from './NavigatorOverflowPane'
 import { NavigatorPrimary } from './NavigatorPrimary'
 import { NavigatorRoot } from './NavigatorRoot'
 import { NavigatorSecondary } from './NavigatorSecondary'
@@ -26,7 +26,7 @@ const Navigator = NavigatorRoot as typeof NavigatorRoot & {
   Menu: typeof NavigatorMenu
   MenuItem: typeof NavigatorMenuItem
   Brand: typeof NavigatorBrand
-  Overflow: typeof NavigatorOverflow
+  OverflowPane: typeof NavigatorOverflowPane
   OverflowItems: typeof NavigatorOverflowItems
 }
 
@@ -40,7 +40,7 @@ Navigator.GroupTitle = NavigatorGroupTitle
 Navigator.Menu = NavigatorMenu
 Navigator.MenuItem = NavigatorMenuItem
 Navigator.Brand = NavigatorBrand
-Navigator.Overflow = NavigatorOverflow
+Navigator.OverflowPane = NavigatorOverflowPane
 Navigator.OverflowItems = NavigatorOverflowItems
 
 export { Navigator }
@@ -62,7 +62,7 @@ export type { NavigatorGroupTitleProps } from './NavigatorGroupTitle'
 export type { NavigatorMenuProps } from './NavigatorMenu'
 export type { NavigatorMenuItemProps } from './NavigatorMenuItem'
 export type { NavigatorBrandProps } from './NavigatorBrand'
-export type { NavigatorOverflowProps } from './NavigatorOverflow'
+export type { NavigatorOverflowPaneProps } from './NavigatorOverflowPane'
 export type { NavigatorOverflowItemsProps } from './NavigatorOverflowItems'
 export type { NavigatorIndicatorSurface } from './variants'
 export {

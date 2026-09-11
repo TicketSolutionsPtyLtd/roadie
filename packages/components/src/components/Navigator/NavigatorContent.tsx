@@ -15,7 +15,6 @@ import {
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isDev } from '../../utils/isDev'
-import { PaneBodyTitle } from '../Pane/PaneBodyTitle'
 import { PANE_CHROME_NONE } from '../Pane/PaneChromeContext'
 import { PaneContext } from '../Pane/PaneContext'
 import { PaneHeader } from '../Pane/PaneHeader'
@@ -24,10 +23,11 @@ import {
   PaneStackContext,
   type PaneStackContextValue
 } from '../Pane/PaneStackContext'
+import { PaneTitle } from '../Pane/PaneTitle'
 import { GeneratedOverflowContext } from './GeneratedOverflowContext'
 import { NavigatorContext } from './NavigatorContext'
-import { NavigatorOverflow } from './NavigatorOverflow'
 import { NavigatorOverflowItems } from './NavigatorOverflowItems'
+import { NavigatorOverflowPane } from './NavigatorOverflowPane'
 import { OVERFLOW_LABEL } from './mobileSlots'
 import {
   derivePositions,
@@ -125,16 +125,18 @@ export function NavigatorContent({
   // The children scan avoids a first-render flicker; registration finds a wrapped declaration.
   const declaredOverflow =
     Children.toArray(children).some(
-      (child) => isValidElement(child) && child.type === NavigatorOverflow
+      (child) => isValidElement(child) && child.type === NavigatorOverflowPane
     ) || ordered.some((pane) => pane.kind === 'overflow')
   const fallbackOverflow =
-    !declaredOverflow && overflowItems.length > 0 ? (
+    !declaredOverflow &&
+    overflowItems.horizontal.length + overflowItems.vertical.length > 0 ? (
       <GeneratedOverflowContext value key='__navigator-overflow'>
-        <NavigatorOverflow>
-          <PaneHeader />
-          <PaneBodyTitle className='pb-3'>{OVERFLOW_LABEL}</PaneBodyTitle>
+        <NavigatorOverflowPane>
+          <PaneHeader>
+            <PaneTitle>{OVERFLOW_LABEL}</PaneTitle>
+          </PaneHeader>
           <NavigatorOverflowItems />
-        </NavigatorOverflow>
+        </NavigatorOverflowPane>
       </GeneratedOverflowContext>
     ) : null
 
@@ -145,9 +147,7 @@ export function NavigatorContent({
       {...props}
     >
       <PaneStackContext value={stackValue}>
-        {/* Entering an orchestrator puts you back at stack level, even
-            nested inside someone else's pane — otherwise a Navigator
-            declared as pane content could never register its own panes. */}
+        {/* Resets to stack level so a nested Navigator registers its own panes. */}
         <PaneContext value={null}>
           {children}
           {fallbackOverflow}

@@ -401,8 +401,15 @@ export const navigatorIndicatorVariants = cva(
 
 export type NavigatorIndicatorSurface = 'horizontal' | 'strip' | 'vertical'
 
-// Only phones fold items; without `md:hidden` a closed overflow takes a column.
-export const navigatorOverflowVariants = cva(['md:hidden'])
+// Rendered after the consumer's panes so it stays the deepest `current` when
+// stacked; `order` moves it to the leading column once panes are columns.
+export const navigatorOverflowVariants = cva(['lg:-order-1'], {
+  variants: {
+    // One list pane at a time: closed, it gives its column back.
+    open: { true: '', false: 'lg:hidden' }
+  },
+  defaultVariants: { open: false }
+})
 
 // Same floating surface and motion as Popover.
 export const navigatorMenuPopupVariants = cva([

@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, createContext } from 'react'
+import { type ReactNode, type RefObject, createContext } from 'react'
 
 import type { PanePrimaryNav } from '../Pane/variants'
 import type { NavigatorSlotMeta } from './NavigatorPrimary'
@@ -11,6 +11,11 @@ export type NavigatorSecondaryNav = {
   'aria-label': string
   className?: string
   children: ReactNode
+}
+
+export type NavigatorOverflowSets = {
+  horizontal: NavigatorSlotMeta[]
+  vertical: NavigatorSlotMeta[]
 }
 
 export type NavigatorContextValue = {
@@ -34,9 +39,14 @@ export type NavigatorContextValue = {
   setOverflowOpen: (next: boolean) => void
   /** Id the More tab points `aria-controls` at, and the overflow pane carries. */
   overflowPaneId: string
-  /** Folded items in author order. Written by Primary. */
-  overflowItems: NavigatorSlotMeta[]
-  setOverflowItems: (next: NavigatorSlotMeta[]) => void
+  /** Folded items in author order, per orientation. Written by Primary. */
+  overflowItems: NavigatorOverflowSets
+  setOverflowItems: (
+    surface: keyof NavigatorOverflowSets,
+    next: NavigatorSlotMeta[]
+  ) => void
+  /** The More control that opened the pane, for returning focus. */
+  overflowOpener: RefObject<HTMLElement | null>
   /** Whether a `Navigator.Content` is a direct child of the root. */
   hasContent: boolean
   /** `menuId(surface, value)` of the open menu, or null. */
@@ -65,8 +75,9 @@ export const NavigatorContext = createContext<NavigatorContextValue>({
   overflowOpen: false,
   setOverflowOpen: () => {},
   overflowPaneId: '',
-  overflowItems: [],
+  overflowItems: { horizontal: [], vertical: [] },
   setOverflowItems: () => {},
+  overflowOpener: { current: null },
   hasContent: false,
   openMenu: null,
   setOpenMenu: () => {},
