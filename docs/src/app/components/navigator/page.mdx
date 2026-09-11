@@ -1,7 +1,7 @@
 export const metadata = {
   title: 'Navigator',
   description:
-    'A full-height application frame — floating capsules in a vertical navigation on large screens, a floating tab bar on phones — with one navigation model at every size.',
+    'A full-height application frame — floating capsules in a vertical navigation on large screens, a floating tab bar on phones — with one navigation model at every size',
   status: 'alpha',
   category: 'Navigation',
 }
@@ -9,9 +9,9 @@ export const metadata = {
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 import { Guideline } from '@/components/Guideline'
 
-A full-height application frame — floating capsules in a vertical navigation on large
-screens, a floating tab bar on phones — with one navigation model at every
-size.
+A full-height application frame — floating capsules in a vertical navigation
+on large screens, a floating tab bar on phones — with one navigation model at
+every size.
 
 ## Import
 
@@ -70,8 +70,8 @@ with `hidden navigator-expanded:inline`.
 
 Navigator is always **controlled** — the active `value` belongs to your
 router. The examples below hold it in `useState` to stay self-contained. The
-ones with routes also wrap Navigator in a `RoadieLinkProvider` whose link
-updates that state instead of the URL, standing in for your router.
+ones with routes use `DemoRouter` instead, a docs-only stand-in for your router
+that holds the path and whose links change it rather than the URL.
 
 Every example is wrapped in a fixed-height, `overflow-hidden` box so the
 frame renders whole inside the page. Narrow your viewport, or open the page on a
@@ -168,30 +168,11 @@ render(<ConsumerNav />)
 Give an item an `href` and a `Navigator.Secondary` and it becomes a section.
 Every section has its own route. There, `Navigator.Content` generates the
 section's list pane — titled with the item's label, groups kept, the current
-row marked — beside your overview on a large screen and on top of it on a
-phone. A sub-page pushes over the list with a Back link to the section route.
+row marked — beside your overview from `lg` and on top of it when panes
+stack. A sub-page pushes over the list with a Back link to the section route.
 
 ```tsx-live-noinline
-const Router = React.createContext(null)
-
-function RouterLink({ href, onClick, ...props }) {
-  const navigate = React.use(Router)
-  return (
-    <a
-      {...props}
-      href={href}
-      onClick={(event) => {
-        onClick?.(event)
-        if (event.defaultPrevented) return
-        event.preventDefault()
-        navigate(href)
-      }}
-    />
-  )
-}
-
 function SectionsNav() {
-  const [path, setPath] = useState('/events/upcoming')
   const titles = {
     '/events': 'Events',
     '/events/upcoming': 'Upcoming',
@@ -202,8 +183,8 @@ function SectionsNav() {
   }
   return (
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
-      <RoadieLinkProvider Link={RouterLink}>
-        <Router value={setPath}>
+      <DemoRouter initialPath='/events/upcoming'>
+        {(path) => (
           <Navigator value={path} className='h-full'>
             <Navigator.Primary aria-label='Organiser'>
               <Navigator.Item value='/events' href='/events' icon={<TicketIcon />}>
@@ -240,8 +221,8 @@ function SectionsNav() {
               </Pane>
             </Navigator.Content>
           </Navigator>
-        </Router>
-      </RoadieLinkProvider>
+        )}
+      </DemoRouter>
     </div>
   )
 }
@@ -258,35 +239,15 @@ route. Here `useState` stands in for the query string; navigating clears it,
 as a new URL would. Narrow your viewport and tap Events on a sub-page.
 
 ```tsx-live-noinline
-const Router = React.createContext(null)
-
-function RouterLink({ href, onClick, ...props }) {
-  const navigate = React.use(Router)
-  return (
-    <a
-      {...props}
-      href={href}
-      onClick={(event) => {
-        onClick?.(event)
-        if (event.defaultPrevented) return
-        event.preventDefault()
-        navigate(href)
-      }}
-    />
-  )
-}
-
 function ListFromUrlNav() {
-  const [path, setPath] = useState('/events/upcoming')
   const [showList, setShowList] = useState(false)
-  const navigate = (href) => {
-    setPath(href)
-    setShowList(false)
-  }
   return (
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
-      <RoadieLinkProvider Link={RouterLink}>
-        <Router value={navigate}>
+      <DemoRouter
+        initialPath='/events/upcoming'
+        onNavigate={() => setShowList(false)}
+      >
+        {(path) => (
           <Navigator
             value={path}
             showList={showList}
@@ -320,8 +281,8 @@ function ListFromUrlNav() {
               </Pane>
             </Navigator.Content>
           </Navigator>
-        </Router>
-      </RoadieLinkProvider>
+        )}
+      </DemoRouter>
     </div>
   )
 }
@@ -385,30 +346,11 @@ export function AppNavigator() {
 label and hides groups left empty.
 
 ```tsx-live-noinline
-const Router = React.createContext(null)
-
-function RouterLink({ href, onClick, ...props }) {
-  const navigate = React.use(Router)
-  return (
-    <a
-      {...props}
-      href={href}
-      onClick={(event) => {
-        onClick?.(event)
-        if (event.defaultPrevented) return
-        event.preventDefault()
-        navigate(href)
-      }}
-    />
-  )
-}
-
 function SearchableNav() {
-  const [path, setPath] = useState('/events')
   return (
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
-      <RoadieLinkProvider Link={RouterLink}>
-        <Router value={setPath}>
+      <DemoRouter initialPath='/events'>
+        {(path) => (
           <Navigator value={path} className='h-full'>
             <Navigator.Primary aria-label='Organiser'>
               <Navigator.Item value='/events' href='/events' icon={<TicketIcon />}>
@@ -450,8 +392,8 @@ function SearchableNav() {
               </Pane>
             </Navigator.Content>
           </Navigator>
-        </Router>
-      </RoadieLinkProvider>
+        )}
+      </DemoRouter>
     </div>
   )
 }
@@ -524,10 +466,11 @@ screen when the window is too short. Priority decides membership, never order.
 
 `visibilityPriority` is `'low'`, `'automatic'` or `'high'`, on an item or a
 group (an item's own wins). Items rank by priority, ties by source order, and
-the kept items render in source order. On a phone the bar keeps all items when
-five or fewer fit, otherwise the top four plus More; the first pinned item takes
-the trailing circle and further pinned items fold into More. Nothing folds while
-the vertical navigation is expanded — the cluster scrolls instead. Here Orders
+the kept items render in source order. On a phone the bar keeps every item when
+there are five or fewer items, otherwise the top four plus More; the first
+pinned item takes the trailing circle and further pinned items fold into More.
+Nothing folds while the vertical navigation is expanded — the cluster scrolls
+instead. Here Orders
 and Messages keep their place on the phone bar; on a large screen all eight fit
 this frame, and Help would be the first to fold in a shorter one.
 
@@ -643,31 +586,12 @@ only while its menu is open. If it needs a screen's worth of content, it's a
 destination with its own pane, not a menu.
 
 ```tsx-live-noinline
-const Router = React.createContext(null)
-
-function RouterLink({ href, onClick, ...props }) {
-  const navigate = React.use(Router)
-  return (
-    <a
-      {...props}
-      href={href}
-      onClick={(event) => {
-        onClick?.(event)
-        if (event.defaultPrevented) return
-        event.preventDefault()
-        navigate(href)
-      }}
-    />
-  )
-}
-
 function MenuNav() {
-  const [path, setPath] = useState('/discover')
   const [signedOut, setSignedOut] = useState(false)
   return (
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
-      <RoadieLinkProvider Link={RouterLink}>
-        <Router value={setPath}>
+      <DemoRouter initialPath='/discover'>
+        {(path) => (
           <Navigator value={path} className='h-full'>
             <Navigator.Primary aria-label='Main'>
               <Navigator.Item value='/discover' href='/discover' icon={<MagnifyingGlassIcon />}>
@@ -680,17 +604,17 @@ function MenuNav() {
                 value='account'
                 icon={<GearIcon />}
                 placement='pinned'
-                badge={<Badge intent='danger' emphasis='strong'>3</Badge>}
+                badge={<Badge intent='danger' emphasis='strong'>3 alerts</Badge>}
               >
                 Account
                 <Navigator.Menu>
-                  <Navigator.MenuItem href='/profile' icon={<PencilSimpleIcon />}>
+                  <Navigator.MenuItem href='/profile' icon={<PencilSimpleIcon weight='bold' className='size-4' />}>
                     Profile
                   </Navigator.MenuItem>
-                  <Navigator.MenuItem href='/notifications' icon={<BellRingingIcon />}>
+                  <Navigator.MenuItem href='/notifications' icon={<BellRingingIcon weight='bold' className='size-4' />}>
                     Notifications
                   </Navigator.MenuItem>
-                  <Navigator.MenuItem onClick={() => setSignedOut(true)} icon={<XIcon />}>
+                  <Navigator.MenuItem onClick={() => setSignedOut(true)} icon={<XIcon weight='bold' className='size-4' />}>
                     Sign out
                   </Navigator.MenuItem>
                 </Navigator.Menu>
@@ -707,8 +631,8 @@ function MenuNav() {
               </Pane>
             </Navigator.Content>
           </Navigator>
-        </Router>
-      </RoadieLinkProvider>
+        )}
+      </DemoRouter>
     </div>
   )
 }
@@ -799,6 +723,8 @@ export default async function Layout({ children }) {
 }
 
 // AppNavigator.tsx — 'use client'
+import { serializeNavigatorExpandedCookie } from '@oztix/roadie-core/navigator'
+
 <Navigator
   defaultExpanded={defaultExpanded}
   onExpandedChange={(next) => {
@@ -880,30 +806,11 @@ Replace one section's generated pane. Declare it before your detail pane.
 optional `query`, so your own pane can still offer search.
 
 ```tsx-live-noinline
-const Router = React.createContext(null)
-
-function RouterLink({ href, onClick, ...props }) {
-  const navigate = React.use(Router)
-  return (
-    <a
-      {...props}
-      href={href}
-      onClick={(event) => {
-        onClick?.(event)
-        if (event.defaultPrevented) return
-        event.preventDefault()
-        navigate(href)
-      }}
-    />
-  )
-}
-
 function SectionOverrideNav() {
-  const [path, setPath] = useState('/components')
   return (
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
-      <RoadieLinkProvider Link={RouterLink}>
-        <Router value={setPath}>
+      <DemoRouter initialPath='/components'>
+        {(path) => (
           <Navigator value={path} className='h-full'>
             <Navigator.Primary aria-label='Documentation'>
               <Navigator.Item value='/get-started' href='/get-started' icon={<PlayIcon />}>
@@ -948,8 +855,8 @@ function SectionOverrideNav() {
               </Pane>
             </Navigator.Content>
           </Navigator>
-        </Router>
-      </RoadieLinkProvider>
+        )}
+      </DemoRouter>
     </div>
   )
 }
@@ -1161,8 +1068,10 @@ documented there. The two facts worth knowing from here:
   order — brand, cluster, pinned — so a pinned item is always tabbed after the
   cluster, wherever you write it. Write it last so source order matches; one
   written before the cluster warns in development.
-- **Pass bare icons.** Navigator renders destinations duotone at `size-6`, so
-  pass `<TicketIcon />` without a `weight` or size class.
+- **Pass bare icons to destinations.** Navigator renders an item's `icon`
+  duotone at `size-6`, so pass `<TicketIcon />` without a `weight` or size
+  class. `Navigator.MenuItem` icons aren't included — give them `weight='bold'`
+  and `size-4` like any other icon.
 - **Let the top pane declare what the mobile bar does.** `Pane`'s `primaryNav`
   is `auto` by default: the bar collapses to the active tab as the pane
   scrolls and returns at the top. `visible` pins it, `hidden` takes it away
@@ -1191,9 +1100,10 @@ documented there. The two facts worth knowing from here:
 
 ## Accessibility
 
-- **Landmark**: the primary navigation is a `<nav>` that keeps its
-  `aria-label`, in both orientations. `aria-label` on `Navigator.Primary` and
-  `Navigator.Secondary` is **required**.
+- **Landmarks**: `Navigator.Primary` renders one `<nav>` per orientation. The
+  vertical one carries your `aria-label`; the phone bar's appends " tabs", so
+  `aria-label='Main'` gives "Main" and "Main tabs". `aria-label` on
+  `Navigator.Primary` and `Navigator.Secondary` is **required**.
 - **Capsules** are lists named by their group's `GroupTitle`, which stays in
   the accessibility tree while collapsed.
 - **Tile names** are visually hidden text inside each tile, not `aria-label`,

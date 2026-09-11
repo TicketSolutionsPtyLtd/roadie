@@ -1,5 +1,5 @@
 import { ArrowSquareOutIcon } from '@phosphor-icons/react/ssr'
-import { readdirSync, statSync } from 'fs'
+import { existsSync, readFileSync, readdirSync, statSync } from 'fs'
 import path from 'path'
 import type { PropItem } from 'react-docgen-typescript'
 import { withCustomConfig } from 'react-docgen-typescript'
@@ -374,6 +374,19 @@ type ParseTargets = {
   files: string[]
   /** Non-null when componentPath is a per-file compound folder. */
   compoundName: string | null
+  /** The parts `index.tsx` assigns (`X.Part = …`); null when it assigns none. */
+  publicParts: Set<string> | null
+}
+
+function readPublicParts(folder: string, compoundName: string) {
+  const indexPath = path.join(folder, 'index.tsx')
+  if (!existsSync(indexPath)) return null
+  const assignment = new RegExp(`^${compoundName}\\.([A-Z]\\w*)\\s*=`, 'gm')
+  const parts = Array.from(
+    readFileSync(indexPath, 'utf8').matchAll(assignment),
+    (match) => match[1]!
+  )
+  return parts.length > 0 ? new Set(parts) : null
 }
 
 function resolveParseTargets(componentPath: string): ParseTargets {
@@ -391,7 +404,7 @@ function resolveParseTargets(componentPath: string): ParseTargets {
   const stats = statSync(absolutePath)
 
   if (stats.isFile()) {
-    return { files: [absolutePath], compoundName: null }
+    return { files: [absolutePath], compoundName: null, publicParts: null }
   }
 
   const files = readdirSync(absolutePath)
@@ -399,11 +412,20 @@ function resolveParseTargets(componentPath: string): ParseTargets {
     .sort()
     .map((name) => path.join(absolutePath, name))
 
-  return { files, compoundName: path.basename(absolutePath) }
+  const compoundName = path.basename(absolutePath)
+  return {
+    files,
+    compoundName,
+    publicParts: readPublicParts(absolutePath, compoundName)
+  }
 }
 
 function parseComponentProps(componentPath: string) {
-  const { files: targets, compoundName } = resolveParseTargets(componentPath)
+  const {
+    files: targets,
+    compoundName,
+    publicParts
+  } = resolveParseTargets(componentPath)
 
   try {
     const workspaceRoot = path.resolve(process.cwd(), '..')
@@ -505,8 +527,16 @@ function parseComponentProps(componentPath: string) {
     })
     // An `X.Root` displayName dodges the suffix guard and duplicates bare `X`.
     const hasBareRoot = compoundName && seen.has(compoundName.toLowerCase())
+    const partPrefix = `${compoundName}.`
+    const isPublic = (displayName: string) =>
+      !publicParts ||
+      displayName === compoundName ||
+      (displayName.startsWith(partPrefix) &&
+        publicParts.has(displayName.slice(partPrefix.length)))
     const components = Array.from(seen.values()).filter(
-      (info) => !(hasBareRoot && info.displayName === `${compoundName}.Root`)
+      (info) =>
+        !(hasBareRoot && info.displayName === `${compoundName}.Root`) &&
+        isPublic(info.displayName)
     )
 
     if (!components.length) return null

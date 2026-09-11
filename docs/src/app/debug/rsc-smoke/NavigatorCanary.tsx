@@ -20,7 +20,7 @@ export function NavigatorCanary() {
       const missing = [
         '[data-navigator-section] [data-slot="list-group"]',
         '[data-slot="navigator-primary-pinned"] [data-slot="navigator-item"]',
-        '[data-slot="navigator-primary-cluster"] [data-slot="navigator-capsule"]'
+        '[data-slot="navigator-primary-cluster"] [data-slot="navigator-capsule"][aria-labelledby]'
       ].filter((selector) => !ref.current?.querySelector(selector))
       if (missing.length > 0) {
         setFailure(
