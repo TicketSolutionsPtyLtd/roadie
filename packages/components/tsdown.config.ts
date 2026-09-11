@@ -22,7 +22,7 @@ import { defineConfig } from 'tsdown'
 // `"use client";` at the top. Verify after build with:
 //   head -c 13 dist/components/Fieldset/FieldsetRoot.js   # → "use client";
 export default defineConfig(({ watch }) => ({
-  entry: ['src/**/*.{ts,tsx}', '!**/*.test.{ts,tsx}'],
+  entry: ['src/**/*.{ts,tsx}', '!**/*.test.{ts,tsx}', '!**/testUtils.tsx'],
   unbundle: true,
   format: ['esm'],
   platform: 'neutral',

@@ -153,6 +153,8 @@ export {
   type NavigatorSecondaryProps,
   type NavigatorItemProps,
   type NavigatorGroupProps,
+  type NavigatorMenuProps,
+  type NavigatorMenuItemProps,
   type NavigatorPlacement,
   type NavigatorVisibilityPriority,
   type NavigatorSlotMeta,

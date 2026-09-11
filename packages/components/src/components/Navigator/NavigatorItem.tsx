@@ -1,13 +1,12 @@
 'use client'
 
-import { type ReactNode, isValidElement, use, useEffect } from 'react'
+import { type ReactNode, use, useEffect } from 'react'
 
 import { CaretRightIcon } from '@phosphor-icons/react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isDev } from '../../utils/isDev'
-import { Popover } from '../Popover'
 import { tabsTabVariants } from '../Tabs/variants'
 import {
   NavigatorContext,
@@ -15,7 +14,7 @@ import {
   isBranchActive
 } from './NavigatorContext'
 import { NavigatorDestination } from './NavigatorDestination'
-import type { NavigatorPanelProps } from './NavigatorPanel'
+import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
 import { NavigatorPresentationContext } from './NavigatorPresentationContext'
 import type {
   NavigatorPlacement,
@@ -26,7 +25,8 @@ import { rememberedHref } from './sectionMemory'
 import {
   firstSecondaryHref,
   secondaryDescendantValues,
-  splitItemChildren
+  splitItemChildren,
+  textOf
 } from './splitSecondary'
 import {
   navigatorChevronVariants,
@@ -35,23 +35,9 @@ import {
 } from './variants'
 
 export type NavigatorItemProps = {
-  /**
-   * Identifies this destination. Compared against Navigator's `value`.
-   * Must be unique across the whole tree — matching is value-equality, so
-   * two items sharing a value both light up. Using each item's `href` is
-   * the reliable choice when destinations map to routes.
-   */
+  /** Identifies this destination against Navigator's `value`; unique across the tree. */
   value: string
-  /**
-   * Routes through `RoadieLinkProvider` — the same smart-href contract as
-   * `Card` and `List.Item`: internal hrefs route through the provider,
-   * `http(s)://` / `//` render `<a target='_blank' rel='noopener
-   * noreferrer'>`, `mailto:` / `tel:` / `sms:` render plain anchors. Omit
-   * to render a `<button>`.
-   *
-   * A section with no landing page of its own: omit `href` and give it a
-   * `Navigator.Secondary`; selecting it navigates to the first sub-page.
-   */
+  /** Routes through `RoadieLinkProvider`; omit for a `<button>`, ignored when the item has a `Navigator.Menu`. */
   href?: string
   /** Leading icon. Phosphor `Icon`-suffixed export, sized with className. */
   icon?: ReactNode
@@ -75,41 +61,31 @@ export function NavigatorItem({
   children,
   onClick
 }: NavigatorItemProps) {
-  const { value: active, setValue, sectionMemory } = use(NavigatorContext)
+  const {
+    value: active,
+    setValue,
+    sectionMemory,
+    openMenu
+  } = use(NavigatorContext)
   const presentation = use(NavigatorPresentationContext)
-  const { label, secondary, panel } = splitItemChildren(children)
-  // A section — an item that declares a Secondary — carries a chevron that
-  // points down while it is expanded (branch-active) and right while collapsed.
+  const { label, secondary, menu: declaredMenu } = splitItemChildren(children)
   const isSection = secondary.length > 0
-  // Navigation outranks a menu: a Secondary makes the item a section
-  // regardless of a Panel also being declared, so the Panel is only read
-  // when there is no Secondary to contend with.
-  const declaresPanelWithSecondary = isSection && isValidElement(panel)
-  const panelProps =
-    !isSection && isValidElement<NavigatorPanelProps>(panel)
-      ? panel.props
-      : null
-  // A section with no route of its own delegates to its first sub-page, so
-  // selecting it lands on a real page routed through the provider. A panel
-  // makes the item a disclosure: it owns a menu, not a destination.
-  const effectiveHref = panelProps
-    ? undefined
-    : (href ?? firstSecondaryHref(secondary))
-  // Exact drives currency; branch drives the Secondary reveal + chevron so a
-  // section stays expanded while the active destination is one of its children.
+  const declaresMenuWithSecondary = isSection && declaredMenu !== undefined
+  const menu = isSection ? undefined : declaredMenu
+  const menuOpen = menu !== undefined && openMenu === menuId('vertical', value)
+  // A routeless section lands on its first sub-page.
+  const effectiveHref = href ?? firstSecondaryHref(secondary)
   const descendants = secondaryDescendantValues(secondary)
-  const isCurrent = isActiveValue(value, active)
-  const isBranch = isBranchActive(value, descendants, active)
-  // A bare sub-route keeps the pill here, or nothing would read as selected.
+  // A menu opens rather than navigates, so no route lights it.
+  const isCurrent = !menu && isActiveValue(value, active)
+  const isBranch = !menu && isBranchActive(value, descendants, active)
   const hasActiveSecondary = descendants.some((descendant) =>
     isActiveValue(descendant, active)
   )
-  // Visual currency: the treatment and the sliding pill, published as
-  // `data-current`. `aria-current` stays exact — a section is where you are,
-  // not the page you are on — so the two are tracked separately. Exactly one
-  // item holds this: a declared Secondary takes it from its parent, and a bare
-  // sub-route leaves it with the section.
-  const isCurrentish = isCurrent || (isBranch && !hasActiveSecondary)
+  // `data-current` drives the pill; `aria-current` stays exact. An open menu takes the pill.
+  const isCurrentish =
+    menuOpen ||
+    (openMenu === null && (isCurrent || (isBranch && !hasActiveSecondary)))
   const state = isCurrentish ? 'current' : isBranch ? 'section' : 'idle'
   const targetHref = rememberedHref(
     sectionMemory,
@@ -125,13 +101,13 @@ export function NavigatorItem({
 
   // In an effect, not the walk: React 19 strict mode double-invokes render.
   useEffect(() => {
-    if (!isDev() || !declaresPanelWithSecondary) return
+    if (!isDev() || !declaresMenuWithSecondary) return
     console.warn(
       `[Roadie] Navigator.Item value='${value}' declares both a ` +
-        'Navigator.Secondary and a Navigator.Panel. The Panel is ignored — ' +
+        'Navigator.Secondary and a Navigator.Menu. The Menu is ignored — ' +
         'an item with sub-navigation is a section, not a menu.'
     )
-  }, [declaresPanelWithSecondary, value])
+  }, [declaresMenuWithSecondary, value])
 
   const trailing =
     badge || isSection ? (
@@ -162,10 +138,7 @@ export function NavigatorItem({
 
   const ariaCurrent = isCurrent ? 'page' : undefined
 
-  // The strip reads as a Tabs `subtle` pill row — same class vocabulary, but
-  // still a <nav> of routed links, so currency stays `aria-current`. Tabs'
-  // own active colour keys off `data-[active]`, which only Base UI sets, so
-  // the current item's `text-strong` is applied here instead.
+  // Tabs' active colour keys off Base UI's `data-[active]`, which a link never gets.
   const finalClassName = cn(
     presentation === 'strip'
       ? cn(
@@ -177,28 +150,22 @@ export function NavigatorItem({
     className
   )
 
-  if (panelProps) {
+  if (menu) {
     return (
-      <Popover>
-        <Popover.Trigger
-          render={
-            <button
-              type='button'
-              data-slot='navigator-item'
-              className={finalClassName}
-            />
-          }
-        >
-          {content}
-        </Popover.Trigger>
-        <Popover.Content
-          aria-label={panelProps['aria-label']}
-          positionerProps={{ side: 'right', align: 'end', sideOffset: 8 }}
-          className={cn('grid w-64 gap-1.5 p-2', panelProps.className)}
-        >
-          {panelProps.children}
-        </Popover.Content>
-      </Popover>
+      <NavigatorMenuHost
+        surface='vertical'
+        value={value}
+        menu={menu}
+        label={textOf(label) || undefined}
+        trigger={
+          <NavigatorDestination
+            dataCurrent={menuOpen}
+            className={finalClassName}
+          >
+            {content}
+          </NavigatorDestination>
+        }
+      />
     )
   }
 
@@ -213,9 +180,6 @@ export function NavigatorItem({
       >
         {content}
       </NavigatorDestination>
-      {/* Gated here rather than inside `Navigator.Secondary` so the same
-          element can also be read by `Navigator.Primary` for the strip.
-          Branch-active so a section reveals its children while one is current. */}
       {isBranch && isSection ? secondary : null}
     </>
   )

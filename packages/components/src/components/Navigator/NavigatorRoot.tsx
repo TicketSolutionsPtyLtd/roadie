@@ -54,8 +54,7 @@ export function NavigatorRoot({
   const [overflowOpen, setOverflowOpen] = useState(false)
   const [overflowItems, setOverflowItems] = useState<NavigatorSlotMeta[]>([])
   const overflowPaneId = useId()
-  const [openPanel, setOpenPanel] = useState<string | null>(null)
-  const [panelItems, setPanelItems] = useState<NavigatorSlotMeta[]>([])
+  const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [sectionMemory, setSectionMemory] = useState<SectionMemory>(
     () => new Map()
   )
@@ -63,16 +62,7 @@ export function NavigatorRoot({
     setSectionMemory((memory) => nextMemory(memory, section, href))
   }, [])
 
-  // Derived synchronously from Root's own children, not from a child-effect
-  // registering itself: that raced against Navigator.Primary's "no host"
-  // warning — on the very first commit Content's registration effect hadn't
-  // landed yet, so even a valid mount warned once. Root's single render sees
-  // both siblings already, so there is no second commit to race.
-  //
-  // Trade-off: a walk, unlike context, only sees direct children. A
-  // Navigator.Content wrapped in Suspense, a layout div, or any helper
-  // component is invisible here — `hasContent` reads false and the "no host"
-  // warning fires even though Content is mounted and working via context.
+  // A walk, not a child registration, which raced Primary's "no host" warning on first commit.
   const hasContent = useMemo(() => {
     let found = false
     Children.forEach(children, (child) => {
@@ -83,8 +73,7 @@ export function NavigatorRoot({
     return found
   }, [children])
 
-  // Ref, not state: the visible pane overwrites its scroller every render and
-  // the tab bar reads it imperatively on tap — no re-render needs to observe it.
+  // Ref, not state: read imperatively on tap, never rendered.
   const activePaneScroller = useRef<(() => void) | null>(null)
   const setActivePaneScroller = useCallback((scroller: (() => void) | null) => {
     activePaneScroller.current = scroller
@@ -115,10 +104,8 @@ export function NavigatorRoot({
       overflowItems,
       setOverflowItems,
       hasContent,
-      openPanel,
-      setOpenPanel,
-      panelItems,
-      setPanelItems,
+      openMenu,
+      setOpenMenu,
       sectionMemory,
       rememberSection
     }),
@@ -136,8 +123,7 @@ export function NavigatorRoot({
       overflowPaneId,
       overflowItems,
       hasContent,
-      openPanel,
-      panelItems,
+      openMenu,
       sectionMemory,
       rememberSection
     ]

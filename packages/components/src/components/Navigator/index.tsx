@@ -7,9 +7,10 @@ import { NavigatorContent } from './NavigatorContent'
 import { NavigatorGroup } from './NavigatorGroup'
 import { NavigatorGroupTitle } from './NavigatorGroupTitle'
 import { NavigatorItem } from './NavigatorItem'
+import { NavigatorMenu } from './NavigatorMenu'
+import { NavigatorMenuItem } from './NavigatorMenuItem'
 import { NavigatorOverflow } from './NavigatorOverflow'
 import { NavigatorOverflowItems } from './NavigatorOverflowItems'
-import { NavigatorPanel } from './NavigatorPanel'
 import { NavigatorPrimary } from './NavigatorPrimary'
 import { NavigatorRoot } from './NavigatorRoot'
 import { NavigatorSecondary } from './NavigatorSecondary'
@@ -22,7 +23,8 @@ const Navigator = NavigatorRoot as typeof NavigatorRoot & {
   Item: typeof NavigatorItem
   Group: typeof NavigatorGroup
   GroupTitle: typeof NavigatorGroupTitle
-  Panel: typeof NavigatorPanel
+  Menu: typeof NavigatorMenu
+  MenuItem: typeof NavigatorMenuItem
   Brand: typeof NavigatorBrand
   Overflow: typeof NavigatorOverflow
   OverflowItems: typeof NavigatorOverflowItems
@@ -35,7 +37,8 @@ Navigator.Secondary = NavigatorSecondary
 Navigator.Item = NavigatorItem
 Navigator.Group = NavigatorGroup
 Navigator.GroupTitle = NavigatorGroupTitle
-Navigator.Panel = NavigatorPanel
+Navigator.Menu = NavigatorMenu
+Navigator.MenuItem = NavigatorMenuItem
 Navigator.Brand = NavigatorBrand
 Navigator.Overflow = NavigatorOverflow
 Navigator.OverflowItems = NavigatorOverflowItems
@@ -56,7 +59,8 @@ export type { NavigatorSecondaryProps } from './NavigatorSecondary'
 export type { NavigatorItemProps } from './NavigatorItem'
 export type { NavigatorGroupProps } from './NavigatorGroup'
 export type { NavigatorGroupTitleProps } from './NavigatorGroupTitle'
-export type { NavigatorPanelProps } from './NavigatorPanel'
+export type { NavigatorMenuProps } from './NavigatorMenu'
+export type { NavigatorMenuItemProps } from './NavigatorMenuItem'
 export type { NavigatorBrandProps } from './NavigatorBrand'
 export type { NavigatorOverflowProps } from './NavigatorOverflow'
 export type { NavigatorOverflowItemsProps } from './NavigatorOverflowItems'
@@ -84,5 +88,7 @@ export {
   navigatorItemTrailingVariants,
   navigatorChevronVariants,
   navigatorIndicatorVariants,
-  navigatorOverflowVariants
+  navigatorOverflowVariants,
+  navigatorMenuPopupVariants,
+  navigatorMenuItemVariants
 } from './variants'

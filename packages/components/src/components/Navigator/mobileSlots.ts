@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 
+import type { NavigatorMenuProps } from './NavigatorMenu'
 import { MAX_TABS } from './variants'
 
 export const OVERFLOW_LABEL = 'More'
@@ -20,8 +21,8 @@ export type NavigatorSlotMeta = {
   label: ReactNode
   icon?: ReactNode
   href?: string
-  /** The item's menu, when it declares one. A panel item never navigates. */
-  panel?: ReactNode
+  /** The item's menu, when it declares one. A menu item never navigates. */
+  menu?: ReactElement<NavigatorMenuProps>
   /** The section's landing value — itself if routed, else its first sub-page. */
   topValue: string
   /** Values of the section's `Navigator.Secondary` items, for branch-active. */

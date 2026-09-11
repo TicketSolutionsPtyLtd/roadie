@@ -13,48 +13,19 @@ import {
 } from 'vitest'
 
 import { Navigator } from '.'
-import { List } from '../List'
 import { Pane } from '../Pane'
 import {
   tabsIndicatorSurfaceClass,
   tabsIndicatorVariants
 } from '../Tabs/variants'
 import { NavigatorContext } from './NavigatorContext'
+import { FakeIcon, flushViewportMeasurement } from './testUtils'
 import {
   navigatorIndicatorVariants,
   navigatorPrimaryTrackVariants,
   navigatorPrimaryViewportVariants,
   navigatorSecondaryStripViewportVariants
 } from './variants'
-
-// Every pane now mounts a ScrollArea, whose Viewport measures overflow via a
-// `queueMicrotask` scheduled from a layout effect — it resolves after
-// `render()` returns and updates ScrollAreaRoot state outside of React's
-// act() scope. Flushing that microtask inside `act` keeps synchronous tests'
-// output warning-free; tests that already `await` a user-event don't need it.
-async function flushViewportMeasurement() {
-  await act(async () => {
-    await Promise.resolve()
-  })
-}
-
-const FakeIcon = ({
-  weight,
-  className,
-  'data-slot': dataSlot
-}: {
-  weight?: string
-  className?: string
-  'data-slot'?: string
-}) => (
-  <svg
-    data-testid='fake-icon'
-    data-weight={weight ?? 'none'}
-    data-classname={className ?? ''}
-    className={className}
-    data-slot={dataSlot}
-  />
-)
 
 describe('Navigator', () => {
   it('is the same reference as Navigator.Root', () => {
@@ -1489,116 +1460,6 @@ describe('Navigator mobile tab bar', () => {
     expect(bar.querySelectorAll('[aria-current]')).toHaveLength(1)
   })
 
-  it('yields the route tab to a panel opened as a regular tab (not folded)', async () => {
-    const { container } = render(
-      <Navigator value='tickets'>
-        <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item value='tickets'>Tickets</Navigator.Item>
-          <Navigator.Item value='account'>
-            Account
-            <Navigator.Panel aria-label='Account'>
-              <List>
-                <List.Item title='Log out' />
-              </List>
-            </Navigator.Panel>
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    const bar = horizontalOf(container) as HTMLElement
-    const routeTab = within(bar).getByRole('button', { name: 'Tickets' })
-    const panelTab = within(bar).getByRole('button', { name: 'Account' })
-
-    expect(routeTab).toHaveAttribute('aria-current', 'page')
-    expect(bar.querySelectorAll('[aria-current]')).toHaveLength(1)
-
-    await userEvent.click(panelTab)
-    // The panel superseding the route is the same rule the More disclosure
-    // already follows — exactly one tab should read as current, and it
-    // should be the panel, not both.
-    expect(panelTab).toHaveAttribute('aria-current', 'true')
-    expect(routeTab).not.toHaveAttribute('aria-current')
-    expect(bar.querySelectorAll('[aria-current]')).toHaveLength(1)
-
-    await userEvent.click(panelTab)
-    expect(routeTab).toHaveAttribute('aria-current', 'page')
-    expect(panelTab).not.toHaveAttribute('aria-current')
-    expect(bar.querySelectorAll('[aria-current]')).toHaveLength(1)
-  })
-
-  // The route-tab map above never reaches the More or pinned-circle branches.
-  it('with a route-active More disclosure, yields it to a panel opened elsewhere', async () => {
-    const { container } = render(
-      <Navigator value='y'>
-        <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item value='tickets'>Tickets</Navigator.Item>
-          <Navigator.Item value='account'>
-            Account
-            <Navigator.Panel aria-label='Account'>
-              <List>
-                <List.Item title='Log out' />
-              </List>
-            </Navigator.Panel>
-          </Navigator.Item>
-          {/* The second pinned item folds into More. */}
-          <Navigator.Item value='x' placement='pinned'>
-            X
-          </Navigator.Item>
-          <Navigator.Item value='y' placement='pinned'>
-            Y
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    const bar = horizontalOf(container) as HTMLElement
-    const disclosure = within(bar).getByRole('button', { name: 'More' })
-    const panelTab = within(bar).getByRole('button', { name: 'Account' })
-
-    expect(disclosure).toHaveAttribute('aria-current', 'true')
-    expect(bar.querySelectorAll('[aria-current]')).toHaveLength(1)
-
-    await userEvent.click(panelTab)
-    expect(panelTab).toHaveAttribute('aria-current', 'true')
-    expect(disclosure).not.toHaveAttribute('aria-current')
-    expect(bar.querySelectorAll('[aria-current]')).toHaveLength(1)
-  })
-
-  it('with a route-active pinned circle, yields it to a panel opened elsewhere', async () => {
-    const { container } = render(
-      <Navigator value='x'>
-        <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item value='account'>
-            Account
-            <Navigator.Panel aria-label='Account'>
-              <List>
-                <List.Item title='Log out' />
-              </List>
-            </Navigator.Panel>
-          </Navigator.Item>
-          <Navigator.Item value='x' placement='pinned'>
-            X
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    const bar = horizontalOf(container) as HTMLElement
-    const circle = within(bar).getByRole('button', { name: 'X' })
-    const panelTab = within(bar).getByRole('button', { name: 'Account' })
-
-    expect(
-      circle.closest('[data-slot="navigator-primary-circle"]')
-    ).toBeTruthy()
-    expect(circle).toHaveAttribute('aria-current', 'page')
-    expect(bar.querySelectorAll('[aria-current]')).toHaveLength(1)
-
-    await userEvent.click(panelTab)
-    expect(panelTab).toHaveAttribute('aria-current', 'true')
-    expect(circle).not.toHaveAttribute('aria-current')
-    expect(bar.querySelectorAll('[aria-current]')).toHaveLength(1)
-  })
-
   it('floats the first pinned item in a circle outside the tabs', async () => {
     const { container } = render(
       <Navigator value='/a'>
@@ -2829,265 +2690,7 @@ describe('Navigator.Primary group descent', () => {
   })
 })
 
-describe('Navigator.Panel', () => {
-  const withPanel = (
-    <Navigator value='/a'>
-      <Navigator.Primary aria-label='Main'>
-        <Navigator.Item value='/a' href='/a'>
-          A
-        </Navigator.Item>
-        <Navigator.Item value='account' placement='pinned'>
-          Jordan Lee
-          <Navigator.Panel aria-label='Account'>
-            <List>
-              <List.Item title='Log out' />
-            </List>
-          </Navigator.Panel>
-        </Navigator.Item>
-      </Navigator.Primary>
-    </Navigator>
-  )
-
-  // The horizontal form folds the same End item into an identically labelled tab.
-  const verticalOf = (container: HTMLElement) =>
-    within(
-      container.querySelector(
-        '[data-slot="navigator-primary"][data-orientation="vertical"]'
-      ) as HTMLElement
-    )
-
-  it('makes the vertical row a disclosure, not a link', async () => {
-    const { container } = render(withPanel)
-    await flushViewportMeasurement()
-    const row = verticalOf(container).getByRole('button', {
-      name: 'Jordan Lee'
-    })
-    expect(row).toHaveAttribute('aria-haspopup')
-    expect(row).toHaveAttribute('aria-expanded', 'false')
-    expect(
-      verticalOf(container).queryByRole('link', { name: 'Jordan Lee' })
-    ).toBeNull()
-  })
-
-  it('opens the panel content on the vertical row', async () => {
-    const { container } = render(withPanel)
-    await flushViewportMeasurement()
-    await userEvent.click(
-      verticalOf(container).getByRole('button', { name: 'Jordan Lee' })
-    )
-    expect(await screen.findByText('Log out')).toBeInTheDocument()
-  })
-
-  it('ignores href when a panel is declared', async () => {
-    const { container } = render(
-      <Navigator value='/a'>
-        <Navigator.Primary aria-label='Main'>
-          <Navigator.Item value='account' href='/account'>
-            Account
-            <Navigator.Panel aria-label='Account'>
-              <p>Menu</p>
-            </Navigator.Panel>
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    expect(
-      verticalOf(container).queryByRole('link', { name: 'Account' })
-    ).toBeNull()
-    expect(
-      verticalOf(container).getByRole('button', { name: 'Account' })
-    ).toBeInTheDocument()
-  })
-
-  it('keeps the panel out of the row label', async () => {
-    const { container } = render(withPanel)
-    await flushViewportMeasurement()
-    const row = verticalOf(container).getByRole('button', {
-      name: 'Jordan Lee'
-    })
-    expect(row.textContent).toBe('Jordan Lee')
-  })
-})
-
-describe('Navigator.Panel below md', () => {
-  const nav = (onValueChange?: (next: string) => void) => (
-    <Navigator value='/a' onValueChange={onValueChange}>
-      <Navigator.Primary aria-label='Main'>
-        <Navigator.Item value='/a' href='/a'>
-          A
-        </Navigator.Item>
-        <Navigator.Item value='/b' href='/b'>
-          B
-        </Navigator.Item>
-        <Navigator.Item value='account' placement='pinned'>
-          Jordan Lee
-          <Navigator.Panel aria-label='Account'>
-            <List>
-              <List.Item title='Log out' />
-            </List>
-          </Navigator.Panel>
-        </Navigator.Item>
-      </Navigator.Primary>
-      <Navigator.Content>
-        <Pane role='detail' current>
-          Detail
-        </Pane>
-      </Navigator.Content>
-    </Navigator>
-  )
-
-  const tabBar = () =>
-    document.querySelector(
-      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
-    ) as HTMLElement
-
-  it('gives the panel item a tab', async () => {
-    render(nav())
-    await flushViewportMeasurement()
-    expect(
-      within(tabBar()).getByRole('button', { name: 'Jordan Lee' })
-    ).toBeInTheDocument()
-  })
-
-  it('is a tab, not a link', async () => {
-    render(nav())
-    await flushViewportMeasurement()
-    expect(
-      within(tabBar()).queryByRole('link', { name: 'Jordan Lee' })
-    ).toBeNull()
-  })
-
-  it('opens a full-screen pane rather than navigating, and mounts no dialog', async () => {
-    const onValueChange = vi.fn()
-    render(nav(onValueChange))
-    await flushViewportMeasurement()
-    await userEvent.click(
-      within(tabBar()).getByRole('button', { name: 'Jordan Lee' })
-    )
-    const paneWithContent = (await screen.findByText('Log out')).closest(
-      '[data-slot="pane"]'
-    ) as HTMLElement
-    expect(paneWithContent).toHaveAttribute('data-stack-position', 'top')
-    expect(paneWithContent).toHaveClass('md:hidden')
-    expect(paneWithContent).toHaveAttribute('data-primary-nav', 'visible')
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(onValueChange).not.toHaveBeenCalled()
-  })
-
-  it('marks its own tab expanded and current while open, not as a page', async () => {
-    render(nav())
-    await flushViewportMeasurement()
-    const tab = within(tabBar()).getByRole('button', { name: 'Jordan Lee' })
-    expect(tab).toHaveAttribute('aria-expanded', 'false')
-    await userEvent.click(tab)
-    expect(tab).toHaveAttribute('aria-expanded', 'true')
-    expect(tab).toHaveAttribute('aria-current', 'true')
-    expect(tab).not.toHaveAttribute('aria-current', 'page')
-  })
-
-  it('yields the route tab to the panel when it is the sole folded tab, and back on close', async () => {
-    render(nav())
-    await flushViewportMeasurement()
-    const bar = tabBar()
-    const routeTab = within(bar).getByRole('link', { name: 'A' })
-    const panelTab = within(bar).getByRole('button', { name: 'Jordan Lee' })
-
-    expect(routeTab).toHaveAttribute('aria-current', 'page')
-    expect(bar.querySelectorAll('[aria-current]')).toHaveLength(1)
-
-    await userEvent.click(panelTab)
-    expect(panelTab).toHaveAttribute('aria-current', 'true')
-    expect(routeTab).not.toHaveAttribute('aria-current')
-    expect(bar.querySelectorAll('[aria-current]')).toHaveLength(1)
-
-    await userEvent.click(panelTab)
-    expect(routeTab).toHaveAttribute('aria-current', 'page')
-    expect(panelTab).not.toHaveAttribute('aria-current')
-    expect(bar.querySelectorAll('[aria-current]')).toHaveLength(1)
-  })
-
-  it('tapping another tab clears the open panel', async () => {
-    render(nav())
-    await flushViewportMeasurement()
-    await userEvent.click(
-      within(tabBar()).getByRole('button', { name: 'Jordan Lee' })
-    )
-    await screen.findByText('Log out')
-    await userEvent.click(within(tabBar()).getByRole('link', { name: 'B' }))
-    expect(screen.queryByText('Log out')).not.toBeInTheDocument()
-  })
-
-  it('tapping the panel tab again toggles the panel closed', async () => {
-    render(nav())
-    await flushViewportMeasurement()
-    const tab = within(tabBar()).getByRole('button', { name: 'Jordan Lee' })
-    await userEvent.click(tab)
-    await screen.findByText('Log out')
-    await userEvent.click(tab)
-    expect(screen.queryByText('Log out')).not.toBeInTheDocument()
-    expect(tab).toHaveAttribute('aria-expanded', 'false')
-  })
-
-  it('dismisses on Escape', async () => {
-    render(nav())
-    await flushViewportMeasurement()
-    await userEvent.click(
-      within(tabBar()).getByRole('button', { name: 'Jordan Lee' })
-    )
-    await screen.findByText('Log out')
-    await userEvent.keyboard('{Escape}')
-    expect(screen.queryByText('Log out')).not.toBeInTheDocument()
-  })
-
-  it('opens the same pane from the overflow row without navigating', async () => {
-    const onValueChange = vi.fn()
-    render(
-      <Navigator value='/a' onValueChange={onValueChange}>
-        <Navigator.Primary aria-label='Main'>
-          {['/a', '/b', '/c', '/d', '/e'].map((v) => (
-            <Navigator.Item key={v} value={v} href={v}>
-              {v}
-            </Navigator.Item>
-          ))}
-          <Navigator.Item value='account'>
-            Jordan Lee
-            <Navigator.Panel aria-label='Account'>
-              <List>
-                <List.Item title='Log out' />
-              </List>
-            </Navigator.Panel>
-          </Navigator.Item>
-        </Navigator.Primary>
-        <Navigator.Content>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
-        </Navigator.Content>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    // Six items and no End pushes the panel item past the 5-tab cap, so it
-    // folds alongside '/e' into the generated overflow pane.
-    await userEvent.click(
-      within(tabBar()).getByRole('button', { name: /More/ })
-    )
-    const overflow = document.querySelectorAll('[data-slot="pane"]')[1]
-    await userEvent.click(
-      within(overflow as HTMLElement).getByRole('button', {
-        name: 'Jordan Lee'
-      })
-    )
-    const paneWithContent = (await screen.findByText('Log out')).closest(
-      '[data-slot="pane"]'
-    ) as HTMLElement
-    expect(paneWithContent).toHaveAttribute('data-stack-position', 'top')
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(onValueChange).not.toHaveBeenCalled()
-  })
-})
-
-describe('Navigator.Panel + Navigator.Secondary precedence', () => {
+describe('Navigator.Menu + Navigator.Secondary precedence', () => {
   const verticalOf = (container: HTMLElement) =>
     within(
       container.querySelector(
@@ -3111,19 +2714,18 @@ describe('Navigator.Panel + Navigator.Secondary precedence', () => {
               Sub
             </Navigator.Item>
           </Navigator.Secondary>
-          <Navigator.Panel aria-label='Menu'>
-            <p>Menu</p>
-          </Navigator.Panel>
+          <Navigator.Menu aria-label='Menu'>
+            <Navigator.MenuItem>Menu</Navigator.MenuItem>
+          </Navigator.Menu>
         </Navigator.Item>
       </Navigator.Primary>
     </Navigator>
   )
 
-  it('renders as a section, not a popover, when both are declared', async () => {
+  it('renders as a section, not a menu, when both are declared', async () => {
     const { container } = render(withBoth('/a'))
     await flushViewportMeasurement()
-    // The section delegates to its first sub-page, so it's a link, not a
-    // disclosure button — that's the point: no popover took over the row.
+    // A routeless section links to its first sub-page, so no menu took over the row.
     const row = verticalOf(container).getByRole('link', { name: 'A' })
     expect(row.querySelector('svg')).toBeTruthy()
     expect(row).not.toHaveAttribute('aria-haspopup')
@@ -3141,12 +2743,13 @@ describe('Navigator.Panel + Navigator.Secondary precedence', () => {
     ).toHaveAttribute('href', '/a/sub')
   })
 
-  it('warns once, naming the item, that the Panel is ignored', async () => {
+  it('warns once, naming the item, that the Menu is ignored', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(withBoth('/a'))
     await flushViewportMeasurement()
     expect(warn).toHaveBeenCalledTimes(1)
     expect(warn.mock.calls[0]?.[0]).toContain("value='/a'")
+    expect(warn.mock.calls[0]?.[0]).toContain('The Menu is ignored')
     warn.mockRestore()
   })
 })
@@ -4477,173 +4080,6 @@ describe('per-section stack memory', () => {
     const panes = document.querySelectorAll('[data-slot="pane"]')
     expect(panes[0]).toHaveAttribute('data-stack-position', 'top')
     expect(panes[1]).toHaveAttribute('data-stack-position', 'ahead')
-  })
-
-  // A panel item has no Secondary, so `isBranchActive` can still light it up
-  // via the route-prefix clause when a page mounts beneath its value outside
-  // the declared tree — that must not make it a section for memory purposes.
-  describe('panel items', () => {
-    const navWithPanel = (value: string) => (
-      <Navigator value={value}>
-        <Navigator.Primary aria-label='Main'>
-          <Navigator.Item value='/a' href='/a'>
-            A
-          </Navigator.Item>
-          <Navigator.Item value='/account'>
-            Account
-            <Navigator.Panel aria-label='Account menu'>
-              <p>Menu</p>
-            </Navigator.Panel>
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-
-    const horizontalOf = () =>
-      document.querySelector(
-        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
-      ) as HTMLElement
-
-    it('does not turn a panel tab into a link after leaving a route mounted beneath it', async () => {
-      const { rerender } = render(navWithPanel('/account/billing'))
-      await flushViewportMeasurement()
-      rerender(navWithPanel('/a'))
-      await flushViewportMeasurement()
-      expect(
-        within(horizontalOf()).queryByRole('link', { name: 'Account' })
-      ).toBeNull()
-      expect(
-        within(horizontalOf()).getByRole('button', { name: 'Account' })
-      ).toBeInTheDocument()
-    })
-
-    it('never gives the panel tab an href, so the Map never held its value', async () => {
-      const { rerender } = render(navWithPanel('/account/billing'))
-      await flushViewportMeasurement()
-      rerender(navWithPanel('/a'))
-      await flushViewportMeasurement()
-      const tab = within(horizontalOf())
-        .getByText('Account')
-        .closest('[data-slot="navigator-item"]')
-      expect(tab).not.toHaveAttribute('href')
-    })
-  })
-})
-
-describe('a panel item is not a page', () => {
-  const horizontalOf = () =>
-    document.querySelector(
-      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
-    ) as HTMLElement
-
-  const nav = (value: string) => (
-    <Navigator value={value}>
-      <Navigator.Primary aria-label='Main'>
-        <Navigator.Item value='/home' href='/home'>
-          Home
-        </Navigator.Item>
-        <Navigator.Item value='/account'>
-          Account
-          <Navigator.Panel aria-label='Account'>
-            <List>
-              <List.Item title='Log out' />
-            </List>
-          </Navigator.Panel>
-        </Navigator.Item>
-      </Navigator.Primary>
-    </Navigator>
-  )
-
-  it('does not announce a panel tab as the current page', async () => {
-    render(nav('/account/billing'))
-    await flushViewportMeasurement()
-    const tab = within(horizontalOf()).getByRole('button', { name: 'Account' })
-    expect(tab).not.toHaveAttribute('aria-current', 'page')
-  })
-
-  it('still announces a real section as the current page', async () => {
-    render(nav('/home'))
-    await flushViewportMeasurement()
-    const tab = within(horizontalOf()).getByRole('link', { name: 'Home' })
-    expect(tab).toHaveAttribute('aria-current', 'page')
-  })
-
-  it('still announces an open panel as expanded, not current', async () => {
-    render(nav('/home'))
-    await flushViewportMeasurement()
-    const tab = within(horizontalOf()).getByRole('button', { name: 'Account' })
-    await userEvent.click(tab)
-    expect(tab).toHaveAttribute('aria-expanded', 'true')
-    expect(tab).toHaveAttribute('aria-current', 'true')
-    expect(tab).not.toHaveAttribute('aria-current', 'page')
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-  })
-
-  it('does not render a folded panel item as current in the overflow list', async () => {
-    const navWithOverflow = (value: string) => (
-      <Navigator value={value}>
-        <Navigator.Primary aria-label='Main'>
-          <Navigator.Item value='/home' href='/home'>
-            Home
-          </Navigator.Item>
-          <Navigator.Item value='/help' href='/help' placement='pinned'>
-            Help
-          </Navigator.Item>
-          <Navigator.Item value='/account' placement='pinned'>
-            Account
-            <Navigator.Panel aria-label='Account'>
-              <List>
-                <List.Item title='Log out' />
-              </List>
-            </Navigator.Panel>
-          </Navigator.Item>
-        </Navigator.Primary>
-        <Navigator.Content>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
-          <Navigator.Overflow>
-            <Navigator.OverflowItems />
-          </Navigator.Overflow>
-        </Navigator.Content>
-      </Navigator>
-    )
-
-    render(navWithOverflow('/account/billing'))
-    await flushViewportMeasurement()
-    await userEvent.click(screen.getByRole('button', { name: /More/ }))
-    const overflow = document.querySelectorAll('[data-slot="pane"]')[1]!
-    const item = within(overflow as HTMLElement).getByRole('button', {
-      name: 'Account'
-    })
-    expect(item).not.toHaveAttribute('aria-current')
-  })
-
-  it('does not announce a pinned panel circle as the current page', async () => {
-    const navWithPinnedPanel = (value: string) => (
-      <Navigator value={value}>
-        <Navigator.Primary aria-label='Main'>
-          <Navigator.Item value='/home' href='/home'>
-            Home
-          </Navigator.Item>
-          <Navigator.Item value='/account' placement='pinned'>
-            Account
-            <Navigator.Panel aria-label='Account'>
-              <List>
-                <List.Item title='Log out' />
-              </List>
-            </Navigator.Panel>
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-
-    render(navWithPinnedPanel('/account/billing'))
-    await flushViewportMeasurement()
-    const tab = within(horizontalOf()).getByRole('button', { name: 'Account' })
-    expect(tab).toHaveAttribute('aria-expanded', 'false')
-    expect(tab).not.toHaveAttribute('aria-current', 'true')
-    expect(tab).not.toHaveAttribute('aria-current', 'page')
   })
 })
 

@@ -28,8 +28,9 @@ import {
 import { NavigatorGroup } from './NavigatorGroup'
 import { NavigatorIndicator } from './NavigatorIndicator'
 import { NavigatorItem, type NavigatorItemProps } from './NavigatorItem'
+import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
 import type { NavigatorSecondaryProps } from './NavigatorSecondary'
-import { NavigatorTab } from './NavigatorTab'
+import { NavigatorTab, type NavigatorTabProps } from './NavigatorTab'
 import { collectSlots } from './collectSlots'
 import {
   type MobileSlots,
@@ -39,7 +40,11 @@ import {
 } from './mobileSlots'
 import { wrapPrimaryRun } from './primaryList'
 import { activeHref, rememberedHref } from './sectionMemory'
-import { secondaryDescendantValues, splitItemChildren } from './splitSecondary'
+import {
+  secondaryDescendantValues,
+  splitItemChildren,
+  textOf
+} from './splitSecondary'
 import {
   navigatorPrimaryCircleVariants,
   navigatorPrimaryContentVariants,
@@ -81,9 +86,8 @@ export function NavigatorPrimary({
     overflowPaneId,
     setOverflowItems,
     hasContent,
-    openPanel,
-    setOpenPanel,
-    setPanelItems,
+    openMenu,
+    setOpenMenu,
     sectionMemory,
     rememberSection
   } = use(NavigatorContext)
@@ -162,15 +166,6 @@ export function NavigatorPrimary({
   }, [overflowOpen, setOverflowOpen])
 
   useEffect(() => {
-    if (openPanel === null) return
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpenPanel(null)
-    }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [openPanel, setOpenPanel])
-
-  useEffect(() => {
     setSecondaryNav(
       activeSecondary
         ? {
@@ -237,7 +232,7 @@ export function NavigatorPrimary({
   const pinnedIsActive =
     pinnedTab !== undefined && isSectionActive(pinnedTab, activeValue)
   // An open disclosure takes currency from every route tab until it closes.
-  const disclosureOpen = overflowOpen || openPanel !== null
+  const disclosureOpen = overflowOpen || openMenu !== null
   // The pinned circle already sits at the trailing edge, so it is the right circle.
   const activeIsRight = pinnedTab ? pinnedIsActive : hasMore && foldedIsActive
   // With the pinned circle on the right, an active folded item makes More the left circle.
@@ -253,12 +248,6 @@ export function NavigatorPrimary({
   useEffect(() => {
     setOverflowItems(folded)
   }, [foldedKey, setOverflowItems])
-
-  const panelSlots = items.filter((slot) => slot.panel)
-  const panelKey = panelSlots.map((slot) => slot.value).join(',')
-  useEffect(() => {
-    setPanelItems(panelSlots)
-  }, [panelKey, setPanelItems])
 
   const foldedWithNoHost = hasMore && !hasContent
   useEffect(() => {
@@ -279,12 +268,7 @@ export function NavigatorPrimary({
     active: boolean
   ) => {
     setOverflowOpen(false)
-    if (tab.panel) {
-      event.preventDefault()
-      setOpenPanel(openPanel === tab.value ? null : tab.value)
-      return
-    }
-    setOpenPanel(null)
+    setOpenMenu(null)
     if (!active) {
       setValue(tab.value)
       return
@@ -305,6 +289,29 @@ export function NavigatorPrimary({
       setValue(tab.topValue)
     }
   }
+
+  const renderTab = (tab: NavigatorSlotMeta, tabProps: NavigatorTabProps) =>
+    tab.menu ? (
+      <NavigatorMenuHost
+        key={tab.value}
+        surface='horizontal'
+        value={tab.value}
+        menu={tab.menu}
+        label={textOf(tab.label) || undefined}
+        trigger={
+          <NavigatorTab
+            {...tabProps}
+            href={undefined}
+            active={openMenu === menuId('horizontal', tab.value)}
+            isPage={false}
+            onSelect={undefined}
+            onClick={() => setOverflowOpen(false)}
+          />
+        }
+      />
+    ) : (
+      <NavigatorTab key={tab.value} {...tabProps} />
+    )
 
   return (
     <>
@@ -385,34 +392,22 @@ export function NavigatorPrimary({
             hidden={collapsed}
           />
           {slots.tabs.map((tab, tabIndex) => {
-            const active = tab.panel
-              ? openPanel === tab.value
-              : isSectionActive(tab, activeValue)
-            const visualActive = tab.panel ? active : active && !disclosureOpen
+            const active = isSectionActive(tab, activeValue)
             // With the right circle taken, the first tab floats left so two circles always show.
             const isLeftCircle = activeIsRight
               ? tab.value === slots.tabs[0]?.value
               : active
-            return (
-              <NavigatorTab
-                key={tab.value}
-                label={tab.label}
-                icon={tab.icon}
-                href={rememberedHref(
-                  sectionMemory,
-                  tab.value,
-                  tab.href,
-                  active
-                )}
-                active={visualActive}
-                isPage={isActiveValue(tab.value, activeValue)}
-                collapsed={collapsed}
-                circleSide={isLeftCircle ? 'left' : undefined}
-                index={tabIndex}
-                expanded={tab.panel ? active : undefined}
-                onSelect={(event) => selectDestination(event, tab, active)}
-              />
-            )
+            return renderTab(tab, {
+              label: tab.label,
+              icon: tab.icon,
+              href: rememberedHref(sectionMemory, tab.value, tab.href, active),
+              active: active && !disclosureOpen,
+              isPage: isActiveValue(tab.value, activeValue),
+              collapsed,
+              circleSide: isLeftCircle ? 'left' : undefined,
+              index: tabIndex,
+              onSelect: (event) => selectDestination(event, tab, active)
+            })
           })}
           {hasMore ? (
             <NavigatorTab
@@ -425,7 +420,7 @@ export function NavigatorPrimary({
               expanded={overflowOpen}
               controls={overflowOpen ? overflowPaneId : undefined}
               onSelect={() => {
-                setOpenPanel(null)
+                setOpenMenu(null)
                 setOverflowOpen(!overflowOpen)
               }}
             />
@@ -436,34 +431,22 @@ export function NavigatorPrimary({
             data-slot='navigator-primary-circle'
             className={navigatorPrimaryCircleVariants()}
           >
-            <NavigatorTab
-              label={pinnedTab.label}
-              icon={pinnedTab.icon}
-              href={
-                pinnedTab.panel
-                  ? undefined
-                  : rememberedHref(
-                      sectionMemory,
-                      pinnedTab.value,
-                      pinnedTab.href,
-                      pinnedIsActive
-                    )
-              }
-              active={
-                pinnedTab.panel
-                  ? openPanel === pinnedTab.value
-                  : pinnedIsActive && !disclosureOpen
-              }
-              isPage={isActiveValue(pinnedTab.value, activeValue)}
-              pinned
-              index={0}
-              expanded={
-                pinnedTab.panel ? openPanel === pinnedTab.value : undefined
-              }
-              onSelect={(event) =>
+            {renderTab(pinnedTab, {
+              label: pinnedTab.label,
+              icon: pinnedTab.icon,
+              href: rememberedHref(
+                sectionMemory,
+                pinnedTab.value,
+                pinnedTab.href,
+                pinnedIsActive
+              ),
+              active: pinnedIsActive && !disclosureOpen,
+              isPage: isActiveValue(pinnedTab.value, activeValue),
+              pinned: true,
+              index: 0,
+              onSelect: (event) =>
                 selectDestination(event, pinnedTab, pinnedIsActive)
-              }
-            />
+            })}
           </div>
         ) : null}
       </nav>

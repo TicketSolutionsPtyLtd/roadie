@@ -48,17 +48,17 @@ export function toSlotMeta(
   const {
     label,
     secondary,
-    panel: declaredPanel
+    menu: declaredMenu
   } = splitItemChildren(props.children)
-  // A Secondary outranks a Panel; NavigatorItem ignores the Panel the same way.
-  const panel = secondary.length > 0 ? null : declaredPanel
-  const href = panel ? undefined : (props.href ?? firstSecondaryHref(secondary))
+  // A Secondary outranks a Menu; NavigatorItem ignores the Menu the same way.
+  const menu = secondary.length > 0 ? undefined : declaredMenu
+  const href = menu ? undefined : (props.href ?? firstSecondaryHref(secondary))
   return {
     value: props.value,
     label,
     icon: props.icon,
     href,
-    panel,
+    menu,
     topValue:
       props.href !== undefined
         ? props.value

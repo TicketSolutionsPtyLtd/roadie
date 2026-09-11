@@ -1,26 +1,28 @@
 'use client'
 
-import type { CSSProperties, MouseEvent, ReactNode } from 'react'
+import type {
+  AnchorHTMLAttributes,
+  CSSProperties,
+  ComponentProps,
+  MouseEvent,
+  ReactNode,
+  Ref
+} from 'react'
 
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 
-export type NavigatorDestinationProps = {
+export type NavigatorDestinationProps = Omit<
+  ComponentProps<'button'>,
+  'children' | 'onClick' | 'style' | 'className' | 'ref'
+> & {
   /** Omit to render a `<button>`. */
   href?: string
-  /**
-   * Set only on a tab-bar tab that is currently a collapsed edge circle —
-   * the one selector that finds the two circles without reading classes.
-   */
+  /** Set only on a collapsed edge circle, so the two circles are findable without classes. */
   circleSide?: 'left' | 'right'
-  /** Carries the tab's column index to the collapse geometry. */
   style?: CSSProperties
   /** `'page'` for a real destination, `'true'` for the More disclosure. */
   ariaCurrent?: 'page' | 'true'
-  /**
-   * Visual currency — what the sliding indicator tracks. Deliberately separate
-   * from `aria-current`: a section sitting on a sub-route it never declared
-   * should hold the pill without announcing itself as the page you are on.
-   */
+  /** What the sliding indicator tracks; separate from `aria-current` so a section on an undeclared sub-route holds the pill without claiming the page. */
   dataCurrent?: boolean
   /** Set only on the disclosure, which is never a link. */
   expanded?: boolean
@@ -28,13 +30,13 @@ export type NavigatorDestinationProps = {
   className?: string
   children: ReactNode
   onClick?: (event: MouseEvent) => void
+  ref?: Ref<HTMLElement>
 }
 
 /**
- * The single link-vs-button fork for every Navigator destination. Owning
- * `data-slot` and `aria-current` in one place is what lets the sliding
- * indicator find the active element with one selector across all three
- * surfaces.
+ * The single link-vs-button fork for every Navigator destination, so the
+ * sliding indicator finds the active element with one selector on every
+ * surface. Forwards the props and ref a Base UI `render` merges in.
  */
 export function NavigatorDestination({
   href,
@@ -46,11 +48,15 @@ export function NavigatorDestination({
   controls,
   className,
   children,
-  onClick
+  onClick,
+  ref,
+  ...rest
 }: NavigatorDestinationProps) {
   if (href !== undefined) {
     return (
       <RoadieRoutedLink
+        {...(rest as AnchorHTMLAttributes<HTMLAnchorElement>)}
+        ref={ref as Ref<HTMLAnchorElement>}
         data-slot='navigator-item'
         data-circle-side={circleSide}
         style={style}
@@ -68,13 +74,15 @@ export function NavigatorDestination({
   return (
     <button
       type='button'
+      {...rest}
+      aria-expanded={expanded ?? rest['aria-expanded']}
+      aria-controls={controls ?? rest['aria-controls']}
+      ref={ref as Ref<HTMLButtonElement>}
       data-slot='navigator-item'
       data-circle-side={circleSide}
       style={style}
       aria-current={ariaCurrent}
       data-current={dataCurrent || undefined}
-      aria-expanded={expanded}
-      aria-controls={controls}
       className={className}
       onClick={onClick}
     >
