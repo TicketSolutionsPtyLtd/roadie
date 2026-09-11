@@ -597,20 +597,26 @@ describe('deriveMobileSlots', () => {
       value: `s${i}`,
       label: `S${i}`,
       topValue: `s${i}`,
-      descendants: []
+      descendants: [],
+      placement: 'automatic' as const,
+      priority: 'automatic' as const
     }))
 
   const account = {
     value: 'account',
     label: 'Account',
     topValue: 'account',
-    descendants: []
+    descendants: [],
+    placement: 'automatic' as const,
+    priority: 'automatic' as const
   }
   const orgs = {
     value: 'orgs',
     label: 'Organisations',
     topValue: 'orgs',
-    descendants: []
+    descendants: [],
+    placement: 'automatic' as const,
+    priority: 'automatic' as const
   }
 
   it('renders every item as authored when slots fit', () => {
@@ -668,7 +674,9 @@ describe('deriveMobileSlots with declared tabs', () => {
     value,
     label: value,
     topValue: value,
-    descendants: []
+    descendants: [],
+    placement: 'automatic' as const,
+    priority: 'automatic' as const
   })
 
   it('uses source order when tabs is omitted', () => {

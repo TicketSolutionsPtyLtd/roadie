@@ -94,7 +94,9 @@ const toSlotMeta = (
         ? props.value
         : (firstSecondaryValue(secondary) ?? props.value),
     descendants: secondaryDescendantValues(secondary),
-    group
+    group,
+    placement: 'automatic',
+    priority: 'automatic'
   }
 }
 
