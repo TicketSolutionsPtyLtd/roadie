@@ -58,6 +58,7 @@ export function toSlotMeta(
     label,
     icon: props.icon,
     href,
+    declaredHref: props.href,
     menu,
     topValue:
       props.href !== undefined

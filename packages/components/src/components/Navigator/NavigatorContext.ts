@@ -59,6 +59,12 @@ export type NavigatorContextValue = {
   /** Sections whose generated pane a `Navigator.SecondaryPane` replaces. */
   declaredSecondaryPanes: ReadonlySet<string>
   declareSecondaryPane: (value: string) => () => void
+  /** The app asks for the active section's list on top. */
+  showList: boolean
+  onShowListChange?: (next: boolean) => void
+  /** Whether the stack's root is its top. Written by Content. */
+  stackAtRoot: boolean
+  setStackAtRoot: (next: boolean) => void
 }
 
 export const NavigatorContext = createContext<NavigatorContextValue>({
@@ -86,7 +92,10 @@ export const NavigatorContext = createContext<NavigatorContextValue>({
   sectionMemory: new Map(),
   rememberSection: () => {},
   declaredSecondaryPanes: new Set(),
-  declareSecondaryPane: () => () => {}
+  declareSecondaryPane: () => () => {},
+  showList: false,
+  stackAtRoot: true,
+  setStackAtRoot: () => {}
 })
 
 export const isActiveValue = (

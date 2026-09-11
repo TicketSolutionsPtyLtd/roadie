@@ -477,3 +477,151 @@ describe('Navigator.SecondaryPane and the no-panes warning', () => {
     expect(warn).not.toHaveBeenCalled()
   })
 })
+
+function Routed({
+  value,
+  showList,
+  onShowListChange,
+  detailBackHref
+}: {
+  value: string
+  showList?: boolean
+  onShowListChange?: (next: boolean) => void
+  detailBackHref?: string
+}) {
+  return (
+    <Navigator
+      value={value}
+      showList={showList}
+      onShowListChange={onShowListChange}
+    >
+      <Navigator.Primary aria-label='Docs'>
+        <Navigator.Item value='/components' href='/components'>
+          Components
+          <Navigator.Secondary aria-label='Components'>
+            <Navigator.Item value='/components/a' href='/components/a'>
+              A
+            </Navigator.Item>
+            <Navigator.Item value='/components/b' href='/components/b'>
+              B
+            </Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Navigator.Content>
+        <Pane role='detail' current>
+          <Pane.Header backHref={detailBackHref} />
+          Detail
+        </Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+}
+
+const horizontal = () => primaryOf('horizontal')
+
+// Base UI's Button keeps role="button" on the anchor it renders for an href.
+const backOf = (pane: HTMLElement) => {
+  const back = within(pane).getByLabelText('Back')
+  expect(back.tagName).toBe('A')
+  return back
+}
+
+describe('section routes', () => {
+  it('puts the list on top on the section route, even with a current detail', async () => {
+    render(<Routed value='/components' />)
+    await flushViewportMeasurement()
+    expect(sectionPane()).toHaveAttribute('data-stack-position', 'top')
+    expect(panes()[1]).toHaveAttribute('data-stack-position', 'ahead')
+  })
+
+  it('puts the page on top on a sub-page, with Back linking to the section route', async () => {
+    render(<Routed value='/components/a' />)
+    await flushViewportMeasurement()
+    const detail = panes()[1]!
+    expect(detail).toHaveAttribute('data-stack-position', 'top')
+    expect(backOf(detail)).toHaveAttribute('href', '/components')
+  })
+
+  it("lets a consumer's backHref win", async () => {
+    render(<Routed value='/components/a' detailBackHref='/elsewhere' />)
+    await flushViewportMeasurement()
+    expect(backOf(panes()[1]!)).toHaveAttribute('href', '/elsewhere')
+  })
+
+  it('shows the list over a sub-page while showList is set', async () => {
+    render(<Routed value='/components/a' showList />)
+    await flushViewportMeasurement()
+    expect(sectionPane()).toHaveAttribute('data-stack-position', 'top')
+    expect(
+      within(sectionPane()!).getByRole('link', { name: 'A' })
+    ).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('links the active tab to the section route when showList is not wired', async () => {
+    render(<Routed value='/components/a' />)
+    await flushViewportMeasurement()
+    expect(
+      within(horizontal()).getByRole('link', { name: 'Components' })
+    ).toHaveAttribute('href', '/components')
+  })
+
+  it('asks for the list instead when onShowListChange is wired', async () => {
+    const user = userEvent.setup()
+    const onShowListChange = vi.fn()
+    render(<Routed value='/components/a' onShowListChange={onShowListChange} />)
+    await flushViewportMeasurement()
+    await user.click(
+      within(horizontal()).getByRole('link', { name: 'Components' })
+    )
+    expect(onShowListChange).toHaveBeenCalledWith(true)
+  })
+
+  it('asks to hide the list when the active tab is tapped again', async () => {
+    const user = userEvent.setup()
+    const onShowListChange = vi.fn()
+    render(
+      <Routed
+        value='/components/a'
+        showList
+        onShowListChange={onShowListChange}
+      />
+    )
+    await flushViewportMeasurement()
+    await user.click(
+      within(horizontal()).getByRole('link', { name: 'Components' })
+    )
+    expect(onShowListChange).toHaveBeenCalledWith(false)
+  })
+
+  it('links an inactive section tab to its route, never a remembered page', async () => {
+    const { rerender } = render(<Routed value='/components/b' />)
+    await flushViewportMeasurement()
+    rerender(<Routed value='/other' />)
+    await flushViewportMeasurement()
+    expect(
+      within(horizontal()).getByRole('link', { name: 'Components' })
+    ).toHaveAttribute('href', '/components')
+  })
+
+  it('warns when a section has no route', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Navigator value='/x/one'>
+        <Navigator.Primary aria-label='Docs'>
+          <Navigator.Item value='/x'>
+            X
+            <Navigator.Secondary aria-label='X pages'>
+              <Navigator.Item value='/x/one' href='/x/one'>
+                One
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('its own route'))
+    warn.mockRestore()
+  })
+})

@@ -1,20 +1,11 @@
 /**
- * Per-section stack memory: the last destination the user reached inside each
- * primary section, so returning to that section lands where they left it —
- * the way each iOS tab owns its own `NavigationStack`.
- *
- * The **URL is the only source of truth** for the current section's depth.
- * This Map supplies a target only for sections the user is not currently in,
- * so it affects link targets and never rendered arrangement. On reload it is
- * empty and every section link falls back to its declared href — no
- * persistence, and therefore no hydration mismatch.
+ * The last sub-route reached under each primary item without a
+ * `Navigator.Secondary`. It only retargets links, never depth, and is empty on
+ * reload, so it can't cause a hydration mismatch.
  */
 export type SectionMemory = ReadonlyMap<string, string>
 
-/**
- * Where a section's row and tab should point. The section you are in
- * keeps its declared href: retargeting it would fight the URL, which wins.
- */
+/** The item you are in keeps its declared href: the URL wins. */
 export function rememberedHref(
   memory: SectionMemory,
   section: string,
