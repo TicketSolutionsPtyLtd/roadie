@@ -65,6 +65,7 @@ export function NavigatorItem({
     sectionMemory,
     openMenu,
     overflowOpen,
+    setOverflowOpen,
     expanded
   } = use(NavigatorContext)
   const { label, secondary, menu: declaredMenu } = splitItemChildren(children)
@@ -85,6 +86,7 @@ export function NavigatorItem({
     : rememberedHref(sectionMemory, value, effectiveHref, isBranch)
 
   const handleClick = () => {
+    setOverflowOpen(false)
     setValue(value)
     onClick?.()
   }
