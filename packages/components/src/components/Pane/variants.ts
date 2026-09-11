@@ -383,8 +383,6 @@ export const paneActionsVariants = cva([
   'justify-self-end'
 ])
 
-// The field surface is shared with `Input` — a search field in a pane header is
-// still a field, and a bespoke copy of the surface only drifts from it.
 export const paneSearchVariants = cva([
   fieldSurfaceClass,
   'h-9 w-full rounded-lg px-3',
