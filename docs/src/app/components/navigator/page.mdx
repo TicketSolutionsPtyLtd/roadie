@@ -366,7 +366,8 @@ export function AppNavigator() {
 ### Searchable
 
 `searchable` adds a search field to the section's pane that filters rows by
-label and hides groups left empty.
+label and hides groups left empty. While the field has focus, a Cancel button
+beside it clears the search and leaves the field, as Escape does.
 
 ```tsx-live-noinline
 function SearchableNav() {

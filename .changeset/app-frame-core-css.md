@@ -16,4 +16,5 @@ Add `is-translucent`, which lets content show through a raised or floating
 surface's fill under a backdrop blur. It pairs with `emphasis-raised`,
 `emphasis-floating` or `bg-raised`, keeps their rim light and shadow, and falls
 back to the solid fill without `backdrop-filter` support or under
-`prefers-reduced-transparency: reduce`.
+`prefers-reduced-transparency: reduce`. On an `is-interactive-field`, the
+field's hover, focus and invalid fills still win.

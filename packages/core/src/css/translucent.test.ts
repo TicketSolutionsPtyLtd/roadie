@@ -27,8 +27,16 @@ describe('is-translucent', () => {
     const reduced = css.slice(
       css.indexOf('@media (prefers-reduced-transparency: reduce)')
     )
-    expect(reduced).toContain('background-color: var(--intent-bg-raised)')
+    expect(reduced).toContain('--translucent-fill: 100%')
     expect(reduced).toContain('backdrop-filter: none')
+  })
+
+  it("yields to a field's hover, focus and invalid fills", async () => {
+    expect(
+      (await build()).replace(/\(\s+/g, '(').replace(/\s+\)/g, ')')
+    ).toContain(
+      ":not(.is-interactive-field:is(:hover, :focus, [aria-invalid='true']))"
+    )
   })
 
   it('leaves the shadow and rim light to the surface it pairs with', async () => {

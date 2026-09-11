@@ -142,7 +142,8 @@
 /* Lets what scrolls beneath a raised or floating surface show through its fill.
    Pairs with emphasis-raised, emphasis-floating or bg-raised and leaves their
    rim light and shadow alone. The doubled selector outranks the fill it pairs
-   with whichever order Tailwind emits them in. */
+   with whichever order Tailwind emits them in; a field's hover, focus and
+   invalid fills still win, so it keeps reading as a field. */
 @utility is-translucent {
   --translucent-fill: 85%;
 
@@ -151,7 +152,9 @@
   }
 
   @supports ((backdrop-filter: blur(0)) or (-webkit-backdrop-filter: blur(0))) {
-    &:is(&) {
+    &:is(&):not(
+        .is-interactive-field:is(:hover, :focus, [aria-invalid='true'])
+      ) {
       background-color: color-mix(
         in oklch,
         var(--intent-bg-raised) var(--translucent-fill),
@@ -164,7 +167,7 @@
 
   @media (prefers-reduced-transparency: reduce) {
     &:is(&) {
-      background-color: var(--intent-bg-raised);
+      --translucent-fill: 100%;
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
     }
