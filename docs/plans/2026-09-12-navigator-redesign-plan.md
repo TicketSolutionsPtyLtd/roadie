@@ -44,6 +44,8 @@ Every task's requirements implicitly include this section.
   `rotate` as independent properties** — a `transition-[transform]` paired with
   a translate utility animates nothing. Read the emitted `transition-property`.
   The rail width **snaps** on expand/collapse; labels fade on opacity.
+- **Roadie never reads `location`.** Depth comes from `value` and `showList`,
+  both derived by the app from its URL.
 - **`Navigator` imports from `Pane`, never the reverse.** Pane defines seams
   (`PaneStackContext`, `PaneChromeContext`), Navigator fills them.
 - **Identity walks.** `Primary` and `Secondary` match `Navigator.Item`,
@@ -63,9 +65,17 @@ Every task's requirements implicitly include this section.
 - **`react-hooks/exhaustive-deps` is not registered** in
   `packages/components` — an `eslint-disable` for it is a lint error.
 - **Every rendered leaf carries a kebab-case `data-slot`.**
-- **Comments explain *why*, never *what*.** Terse. A comment a change makes
-  false is a defect — when deleting behaviour, grep for comments describing it
-  (`nested`, `strip`, `End`, `Panel`, `tabs`, `compact`) and fix them.
+- **Comments are minimal — ideally none.** Write one only for what the code
+  can't say (a quirk, a workaround, a non-obvious why), as one terse line.
+  Public-prop JSDoc is one short sentence (the docs Props table reads it), plus
+  `@default` where it applies. No comments that narrate, restate the code, or
+  reference plans, task or decision numbers, or branches. The snippets in this
+  plan follow that; where one doesn't, the rule wins. **Apply it to the existing
+  Navigator and Pane code each task touches** — trim the long comment blocks in
+  the files you edit as you go (this branch has many); no separate sweep. A
+  comment a change makes false is a defect: when deleting behaviour, grep for
+  comments describing it (`nested`, `strip`, `End`, `Panel`, `tabs`, `compact`)
+  and delete or fix them.
 - **No raw scale steps** (`text-accent-11`, `bg-accent-9`) in Navigator. Colour
   comes from `text-subtle` under `intent-accent`.
 - **Icons:** Navigator destinations render Phosphor `duotone` at `size-6`,
@@ -102,7 +112,10 @@ Each is referenced by the task that implements it.
 - **D2 — DOM order is region order.** The rail renders brand, cluster, pinned;
   the bar renders capsule, pinned circle. Within a region, source order holds.
   Authors put pinned items last (the spec's example does); a pinned item
-  authored first is still tabbed after the cluster. Docs guideline says so.
+  authored first is still tabbed after the cluster. *(Settled by the user:)* a
+  pinned Item, Group or ExpandToggle written before any cluster entry gets a
+  dev warning (Task 2), gated by `isDev()` (`utils/isDev.ts`, the
+  `process.env.NODE_ENV` pattern AGENTS.md prescribes). Docs guideline says so.
 - **D3 — `ExpandToggle` never folds.** Default `placement='automatic'` like any
   item; when automatic it is a fixed one-tile capsule at the end of the cluster
   that capacity counts but never folds. It isn't a destination, so it's outside
@@ -113,22 +126,59 @@ Each is referenced by the task that implements it.
 - **D5 — The More pane is `role='list'`, rendered after the consumer's panes**
   (so it stays the deepest `current` and pushes on top when stacked) and moved
   to the leading column from `lg` with `lg:-order-1`. Trade-off: at `lg` its tab
-  order follows the detail pane. It replaces the section pane while open (one
-  list pane at a time), and its generated form uses `Pane.Title` like a section
-  pane.
+  order follows the detail pane. *(Accepted by the user on one condition:)*
+  opening More moves focus into the pane — to its `Pane.Title` when it has one,
+  else the pane itself — and closing it with Escape returns focus to the More
+  tile or tab that opened it. Tested in Task 4. It replaces the section pane
+  while open (one list pane at a time), and its generated form uses `Pane.Title`
+  like a section pane.
 - **D6 — One More pane, two row sets.** The bar and the rail fold different
   items. `Navigator.OverflowItems` renders the bar's set `md:hidden` and the
   rail's set `max-md:hidden` — no breakpoint in JS.
-- **D7 — Back to the section list is Navigator state, not a URL.** Foundations
-  has no landing route, so on stacked layouts nothing could ever reveal its list
-  pane. Navigator supplies an `onBack` to the top pane through
-  `PaneChromeContext` whenever a generated section pane is mounted beneath it;
-  Back (and tapping the active tab) sets `rootRevealed`, which makes the stack's
-  root the top. Any `value` change clears it. This is the one exception to "the
-  URL is the only source of truth for depth" (`sectionMemory.ts`).
+- **D7 — The URL decides depth; every section has its own route.** *(Settled
+  by the user.)* An Item with a `Navigator.Secondary` declares an `href` — its
+  section route. On the section route the section's list pane is the top of the
+  stack; on desktop the consumer's detail/overview pane for that route sits
+  beside it. On a sub-page the detail pane is on top and its header gets a Back
+  **link** to the section route, supplied by Navigator through
+  `PaneChromeContext.backHref` (a consumer's own `backHref`/`onBack` wins).
+  Details:
+  - **D7a — A section tab always links to its section route.** Section memory
+    no longer retargets an item that declares a Secondary (its list pane, with
+    the current row marked, replaces what memory used to do). Memory keeps
+    working for items without a Secondary that sit over un-declared sub-routes.
+  - **D7b — A Secondary section without `href` gets a dev warning** and falls
+    back to today's first-sub-page link; Navigator supplies no Back for it.
+  - **D7c — The optional list query.** Roadie never reads `location`. The root
+    takes a controlled boolean, like `value`/`onValueChange`:
+
+    ```tsx
+    type NavigatorRootProps = {
+      // …existing
+      /**
+       * Show the active section's list pane on top of a stacked layout, even
+       * on a sub-page. Derive it from your URL (e.g. `?nav`) so "show me the
+       * list" is linkable and Back-able. On the section route the list is on
+       * top regardless. No effect once panes are columns (`lg`).
+       */
+      showList?: boolean
+      /**
+       * Called with `true` when the active section's tab is tapped on a
+       * sub-page, and `false` when it's tapped again while the list is
+       * showing. Turn it into a URL update. Omit it and that tap navigates to
+       * the section route instead.
+       */
+      onShowListChange?: (next: boolean) => void
+    }
+    ```
+
+    The app names the parameter; Roadie's docs use `?nav`. Selecting a row
+    navigates to its own URL, which drops the parameter, so Navigator never has
+    to call `onShowListChange(false)` for that.
 - **D8 — The generated section pane is never `current`.** It is first in DOM
-  order, so it is the stack's root: the top when no consumer pane is current
-  (e.g. `/components`), behind a `current` detail pane otherwise.
+  order, so it is the stack's root: the top when no consumer pane is current,
+  when the value is the section route, or when `showList` is set; behind a
+  `current` detail pane otherwise.
 - **D9 — Two pill tracks on the rail.** The cluster scrolls and the pinned
   region doesn't, so each gets its own `NavigatorIndicator`; moving between them
   cross-fades instead of sliding.
@@ -141,10 +191,30 @@ Each is referenced by the task that implements it.
   `SecondaryPane` override can still offer search.
 - **D13 — Menu-row icons inside the More pane stay List's leading size**
   (`size-5`) but duotone; tiles and tabs are `size-6`.
-- **D14 — The expanded cookie is read on the client** in the docs (static
-  export): `useSyncExternalStore` with a `false` server snapshot. A returning
-  expanded user sees one collapsed frame before hydration. Apps that server-render
-  read the cookie on the server and pass `expanded` in.
+- **D14 — No expanded flash: a head script, like the theme script.**
+  *(Settled by the user.)* `@oztix/roadie-core` gains a framework-agnostic
+  subpath, `@oztix/roadie-core/navigator`, beside `@oztix/roadie-core/theme`
+  rather than inside it (it isn't theming, and it keeps the theme bundle
+  unchanged):
+
+  ```ts
+  export const NAVIGATOR_EXPANDED_COOKIE = 'roadie-navigator-expanded'
+  export const NAVIGATOR_EXPANDED_ATTRIBUTE = 'data-navigator-expanded'
+  /** Blocking inline script for <head>: cookie → <html data-navigator-expanded>. */
+  export function getNavigatorExpandedScript(options?: { cookieName?: string }): string
+  /** The Set-Cookie / document.cookie string for a new value (1 year, path=/, SameSite=Lax). */
+  export function serializeNavigatorExpandedCookie(expanded: boolean, options?: { cookieName?: string }): string
+  ```
+
+  Navigator opts in with a root prop, `expandedFromDocument?: boolean`. When
+  set: every collapsed-state class that expanded changes carries a twin keyed
+  on `<html data-navigator-expanded='true'>`, so the static HTML paints
+  expanded before any JS; on mount Navigator reads the attribute in a layout
+  effect and shows it until the app's own `expanded` first changes; and after
+  mount it writes the attribute whenever `expanded` changes, so the twins never
+  outlive the state. Server-rendered apps can skip all of it — read the cookie
+  on the server and pass `expanded`. The docs are a static export, so they use
+  the script (Task 9B, Task 14).
 - **D15 — `Get started` keeps its Secondary** in the docs (it has one today),
   alongside Foundations, Tokens, Widgets and Components.
 
@@ -173,6 +243,9 @@ Each is referenced by the task that implements it.
 | `NavigatorExpandToggle.tsx` | `Navigator.ExpandToggle` |
 | `NavigatorRail.test.tsx` | rail regions, capsules, capacity, expanded, tooltips, badges |
 | `docs/src/components/useExpandedCookie.ts` | docs: cookie-backed expanded state |
+| `packages/core/src/navigator/index.ts` / `navigator-script.test.ts` | `@oztix/roadie-core/navigator`: `getNavigatorExpandedScript`, cookie constants and serializer (D14) |
+| `docs/src/components/NavListQuery.tsx` | docs: reads `?nav` inside `<Suspense>` and reports it (D7c) |
+| `docs/src/app/foundations/page.tsx` | docs: the Foundations section route (D7) |
 
 **Modified**
 
@@ -180,12 +253,12 @@ Each is referenced by the task that implements it.
 | --- | --- |
 | `mobileSlots.ts` | priority types + ranking; `deriveMobileSlots(automatic, pinned)` |
 | `NavigatorPrimary.tsx` | walk via `collectSlots`; rail regions; tab bar pinned circle + More; capacity; `tabs` prop gone |
-| `NavigatorRoot.tsx` / `NavigatorContext.ts` | `expanded` state; `activeSection`; `openMenu`; `overflowItems: { bar, rail }`; `rootRevealed`; `declaredSecondaryPanes`; drop `hasNesting`, `secondaryNav`, `openPanel`, `panelItems` |
+| `NavigatorRoot.tsx` / `NavigatorContext.ts` | `expanded` state; `activeSection`; `openMenu`; `overflowItems: { bar, rail }`; `showList`/`onShowListChange`, `stackAtRoot`; `declaredSecondaryPanes`; drop `hasNesting`, `secondaryNav`, `openPanel`, `panelItems` |
 | `NavigatorItem.tsx` | `placement`, `visibilityPriority`, typed `badge`; tile/row; tooltip; menu host; no inline Secondary |
 | `NavigatorGroup.tsx` | `placement`, `visibilityPriority`; capsule list; folded filtering |
 | `NavigatorGroupTitle.tsx` / variants | `sr-only` while collapsed |
 | `NavigatorSecondary.tsx` | renders null; `searchable` |
-| `NavigatorContent.tsx` | generated section pane; More pane; `rootRevealed`; no Panel pane |
+| `NavigatorContent.tsx` | generated section pane; More pane; list on top on the section route or with `showList`; no Panel pane |
 | `NavigatorTab.tsx` | icon-only; `pinned` presentation; badge dot |
 | `NavigatorDestination.tsx` | forwards `ref` and rest props (for Tooltip/Menu `render`) |
 | `NavigatorOverflowItems.tsx` | two gated row sets; menu rows |
@@ -193,12 +266,14 @@ Each is referenced by the task that implements it.
 | `presentNavIcon.tsx` | always `duotone` |
 | `splitSecondary.ts` | `menu` replaces `panel`; `textOf` for search |
 | `paneStack.ts` / `paneStack.test.ts` | `derivePositions(entries, revealRoot)` |
-| `useTopPaneChrome.tsx` | no strip; supplies `onBack` |
+| `useTopPaneChrome.tsx` | no strip; supplies the section route as `backHref` |
 | `variants.ts` | rail, capsule, tile, tab, indicator, More variants; deletions |
 | `index.tsx` + `packages/components/src/index.tsx` | new/removed parts and types |
 | `Navigator.test.tsx` | delete/migrate per task |
-| `Pane/PaneChromeContext.ts`, `Pane/PaneHeader.tsx`, `Pane/Pane.test.tsx` | `headerExtras` → `onBack` |
+| `Pane/PaneChromeContext.ts`, `Pane/PaneHeader.tsx`, `Pane/Pane.test.tsx` | `headerExtras` → `backHref` |
 | `packages/core/src/css/layout.css` | delete `--navigator-rail-*` |
+| `packages/core/package.json`, `packages/core/tsdown.config.ts` | `./navigator` subpath and entry |
+| `docs/src/app/layout.tsx` | Foundations gets `href: '/foundations'`; the expanded head script |
 | `docs/src/components/Navigation.tsx` | migration |
 | `docs/src/app/components/navigator/page.mdx`, `pane/page.mdx`, `foundations/app-shell/page.tsx`, `debug/rsc-smoke/*` | docs |
 | `AGENTS.md`, `docs/contributing/COMPOUND_PATTERNS.md` | iconography exception; walk exceptions |
@@ -457,10 +532,7 @@ export function rankSlots<T extends { priority: NavigatorVisibilityPriority }>(
     .map(({ slot }) => slot)
 }
 
-/**
- * Priority decides membership, never order: the kept slots come back in
- * source order, so a high-priority item never jumps ahead of its neighbours.
- */
+// Kept slots come back in source order: priority picks members, not positions.
 export function keepTopRanked<
   T extends { priority: NavigatorVisibilityPriority }
 >(slots: readonly T[], count: number): { kept: T[]; folded: T[] } {
@@ -529,7 +601,8 @@ export type CollectedSlots = {
   automatic: NavigatorSlotMeta[]  // every destination in `cluster`, flattened
   pinnedSlots: NavigatorSlotMeta[]
   hasStrayChild: boolean
-  conflictingPlacement: string[]  // D1: item values overridden by their group
+  conflictingPlacement: string[]  // item values overridden by their group
+  pinnedBeforeCluster: boolean    // a pinned entry is written before a cluster entry
 }
 export function collectSlots(children: ReactNode): CollectedSlots
 export function toSlotMeta(props: NavigatorItemProps, group?: NavigatorSlotGroup): NavigatorSlotMeta
@@ -637,14 +710,7 @@ export type MobileSlots = {
   pinned?: NavigatorSlotMeta
 }
 
-/**
- * The bar holds five slots: every automatic item when five or fewer fit,
- * otherwise the top four by rank plus More. The first pinned item floats in a
- * circle outside the five; any further pinned item folds into More.
- *
- * Kept out of `NavigatorPrimary.tsx`: a second substantial exported function
- * there confuses `react-docgen-typescript` and empties the docs props table.
- */
+// Lives outside NavigatorPrimary.tsx: a second exported function there empties its docgen props table.
 export function deriveMobileSlots(
   automatic: NavigatorSlotMeta[],
   pinned: NavigatorSlotMeta[]
@@ -726,6 +792,23 @@ describe('collectSlots', () => {
     expect(result.conflictingPlacement).toEqual(['/a'])
   })
 
+  it('notices a pinned entry written before the cluster', () => {
+    const first = collectSlots(
+      <>
+        <Navigator.Item value='/me' placement='pinned'>Me</Navigator.Item>
+        <Navigator.Item value='/a'>A</Navigator.Item>
+      </>
+    )
+    const last = collectSlots(
+      <>
+        <Navigator.Item value='/a'>A</Navigator.Item>
+        <Navigator.Item value='/me' placement='pinned'>Me</Navigator.Item>
+      </>
+    )
+    expect(first.pinnedBeforeCluster).toBe(true)
+    expect(last.pinnedBeforeCluster).toBe(false)
+  })
+
   it('collects Brand without counting it as a destination', () => {
     const result = collectSlots(
       <>
@@ -761,21 +844,9 @@ Expected: FAIL — module not found; `placement`/`visibilityPriority` unknown pr
 `NavigatorItem.tsx` — add to `NavigatorItemProps`:
 
 ```ts
-  /**
-   * `pinned` anchors the item to the rail's bottom edge and gives it the phone
-   * bar's trailing circle. Inside a `Navigator.Group`, the group's placement
-   * wins.
-   *
-   * @default 'automatic'
-   */
+  /** `pinned` anchors it to the rail's bottom and the bar's trailing circle. @default 'automatic' */
   placement?: NavigatorPlacement
-  /**
-   * Which items stay visible when space runs out — at every size. Ranked by
-   * priority, ties by source order; priority decides membership, never order.
-   * Falls back to the group's.
-   *
-   * @default 'automatic'
-   */
+  /** Which items stay visible when space runs out; falls back to the group's. @default 'automatic' */
   visibilityPriority?: NavigatorVisibilityPriority
 ```
 
@@ -828,6 +899,7 @@ export type CollectedSlots = {
   pinnedSlots: NavigatorSlotMeta[]
   hasStrayChild: boolean
   conflictingPlacement: string[]
+  pinnedBeforeCluster: boolean
 }
 
 export function toSlotMeta(
@@ -839,11 +911,7 @@ export function toSlotMeta(
   //   priority: props.visibilityPriority ?? group?.priority ?? 'automatic',
 }
 
-/**
- * The one walk over `Navigator.Primary`'s children. Matches by element type,
- * descending exactly one level into `Navigator.Group` — see
- * COMPOUND_PATTERNS.md §1.2.
- */
+// Matches by element type, one level into Group — see COMPOUND_PATTERNS.md §1.2.
 export function collectSlots(children: ReactNode): CollectedSlots {
   const result: CollectedSlots = {
     brand: [],
@@ -852,12 +920,15 @@ export function collectSlots(children: ReactNode): CollectedSlots {
     automatic: [],
     pinnedSlots: [],
     hasStrayChild: false,
-    conflictingPlacement: []
+    conflictingPlacement: [],
+    pinnedBeforeCluster: false
   }
   let groupCount = 0
 
   const place = (entry: RailEntry, slots: NavigatorSlotMeta[]) => {
     const pinned = slots[0]?.placement === 'pinned'
+    // Pinned renders after the cluster, so writing it first misleads tab order.
+    if (!pinned && result.pinned.length > 0) result.pinnedBeforeCluster = true
     ;(pinned ? result.pinned : result.cluster).push(entry)
     ;(pinned ? result.pinnedSlots : result.automatic).push(...slots)
   }
@@ -943,7 +1014,41 @@ In `NavigatorPrimary.tsx`:
         'move the item out of the group to place it on its own.'
     )
   }, [conflicting])
+
+  const pinnedFirst = collected.pinnedBeforeCluster
+  useEffect(() => {
+    if (!isDev() || !pinnedFirst) return
+    console.warn(
+      '[Roadie] Navigator.Primary has a pinned item written before other ' +
+        'items. Pinned items render at the bottom of the rail and in the ' +
+        "phone bar's trailing circle, so keyboard and screen-reader order " +
+        'follows that, not your source order. Write pinned items last.'
+    )
+  }, [pinnedFirst])
 ```
+
+   Add to `Navigator.test.tsx`'s dev-warning tests:
+
+```tsx
+  it('warns when a pinned item is written before the cluster', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Item value='/me' href='/me' placement='pinned'>Me</Navigator.Item>
+          <Navigator.Item value='/a' href='/a'>A</Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('Write pinned items last'))
+    warn.mockRestore()
+  })
+```
+
+   The "renders pinned items at the bottom of the rail" test in step 7 writes
+   the pinned item first on purpose; spy on `console.warn` there too so the
+   warning doesn't leak into the output.
 
 5. Rail: render the cluster where the rows were, then a pinned region last:
 
@@ -975,7 +1080,7 @@ In `NavigatorPrimary.tsx`:
   const foldedIsActive = folded.some((slot) => isSectionActive(slot, activeValue))
   const pinnedIsActive =
     pinnedTab !== undefined && isSectionActive(pinnedTab, activeValue)
-  // D4: the right-hand circle is the pinned circle when there is one.
+  // The pinned circle already sits at the trailing edge, so it is the right circle.
   const activeIsRight = pinnedTab ? pinnedIsActive : hasMore && foldedIsActive
   const tabCount = slots.tabs.length + (hasMore ? 1 : 0)
 ```
@@ -1356,15 +1461,7 @@ export type NavigatorMenuProps = {
   children?: ReactNode
 }
 
-/**
- * A menu owned by a `Navigator.Item` — account, organisation switcher. The item
- * becomes a menu trigger: it never navigates and never lights from the route.
- * If it needs a screen's worth of content, it's a destination with its own
- * pane, not a menu.
- *
- * Renders nothing — `Navigator.Item`, `Navigator.Primary` and the More pane
- * read it by reference, so author the tree in a client component.
- */
+/** A menu owned by a `Navigator.Item`; the item opens it instead of navigating. */
 export function NavigatorMenu(_props: NavigatorMenuProps): null {
   return null
 }
@@ -1507,11 +1604,7 @@ export type NavigatorMenuHostProps = {
   trigger: ReactElement
 }
 
-/**
- * One Base UI menu around whichever element owns it — a rail tile, a tab, a
- * More-pane row. Open state lives on context so the owner can read active and
- * every route destination can yield its pill while a menu is open.
- */
+// Open state lives on context so route destinations can yield the pill while a menu is open.
 export function NavigatorMenuHost({
   surface,
   value,
@@ -1739,7 +1832,7 @@ Rewrite `describe('Panel + Secondary precedence')` (≈3268-3326) with
     render(
       <Navigator value='/x/one'>
         <Navigator.Primary aria-label='Main'>
-          <Navigator.Item value='/x'>
+          <Navigator.Item value='/x' href='/x'>
             X
             <Navigator.Secondary aria-label='X pages'>
               <Navigator.Item value='/x/one' href='/x/one'>One</Navigator.Item>
@@ -1786,8 +1879,9 @@ git commit -m "feat(navigator)!: Navigator.Menu on Base UI Menu replaces Navigat
 - Produces: `Navigator.OverflowPane` / `NavigatorOverflowPaneProps` (same props
   as before); context `overflowItems: { bar: NavigatorSlotMeta[]; rail: NavigatorSlotMeta[] }`
   and `setOverflowItems(surface: 'bar' | 'rail', next: NavigatorSlotMeta[])`
-  (Task 8 writes `rail`).
-- D5, D6.
+  (Task 8 writes `rail`); context `overflowOpener: RefObject<HTMLElement | null>`
+  (the More control that opened the pane, for returning focus).
+- D5 (including its focus condition), D6.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -1813,6 +1907,32 @@ with `Navigator.OverflowPane` in it. Add:
     ).toHaveAttribute('data-slot', 'pane-title')
   })
 
+  it('moves focus to the More pane title on open, and back on Escape', async () => {
+    const user = userEvent.setup()
+    const { container } = render(overflowNav('/a'))
+    await flushViewportMeasurement()
+    const more = within(tabBarOf(container)!).getByRole('button', { name: 'More' })
+    await user.click(more)
+    const pane = document.querySelector('[data-slot="pane"][id]') as HTMLElement
+    expect(within(pane).getByRole('heading', { name: 'More' })).toHaveFocus()
+    await user.keyboard('{Escape}')
+    expect(more).toHaveFocus()
+  })
+
+  it('focuses a declared OverflowPane with no title itself', async () => {
+    const user = userEvent.setup()
+    const { container } = render(
+      overflowNav('/a', (
+        <Navigator.OverflowPane aria-label='More'>
+          <Navigator.OverflowItems />
+        </Navigator.OverflowPane>
+      ))
+    )
+    await flushViewportMeasurement()
+    await user.click(within(tabBarOf(container)!).getByRole('button', { name: 'More' }))
+    expect(document.querySelector('[data-slot="pane"][id]')).toHaveFocus()
+  })
+
   it("renders the bar's folded rows below md only", async () => {
     render(overflowNav('/a'))
     await flushViewportMeasurement()
@@ -1823,7 +1943,9 @@ with `Navigator.OverflowPane` in it. Add:
   })
 ```
 
-(`overflowNav` is the describe's existing fixture.) Run:
+(`overflowNav(value, extra?)` is the describe's existing fixture — check that
+its second argument is placed inside `Navigator.Content` and adjust the call if
+not; define `tabBarOf` in the describe if it isn't in scope.) Run:
 `cd packages/components && pnpm vitest run src/components/Navigator/Navigator.test.tsx -t OverflowPane`
 Expected: FAIL.
 
@@ -1857,6 +1979,34 @@ when stacked; `order` moves it to the leading column once panes are columns.").
 
 (import `PaneTitle` from `../Pane/PaneTitle`; drop `PaneBodyTitle`), and the
 declared-overflow scan matches `NavigatorOverflowPane`.
+
+- [ ] **Step 2b: Focus into the pane**
+
+In `NavigatorOverflowPane.tsx`, move focus when the pane opens — in a layout
+effect so it lands before paint, keyed on the open transition only:
+
+```tsx
+  const paneRef = useRef<HTMLElement | null>(null)
+  const wasOpen = useRef(overflowOpen)
+  useIsomorphicLayoutEffect(() => {
+    const opened = overflowOpen && !wasOpen.current
+    wasOpen.current = overflowOpen
+    if (!opened || !paneRef.current) return
+    // After the detail in the DOM, so a keyboard user would otherwise stay behind.
+    const title = paneRef.current.querySelector<HTMLElement>('[data-slot="pane-title"]')
+    const target = title ?? paneRef.current
+    target.tabIndex = -1
+    target.focus({ preventScroll: true })
+  }, [overflowOpen])
+```
+
+and pass `ref={paneRef}` to `PaneRoot` (it forwards). For Escape, record the
+opener: `NavigatorContext` gains `overflowOpener: RefObject<HTMLElement | null>`
+(a ref created in `NavigatorRoot`); the More tab and the rail More tile set
+`overflowOpener.current = event.currentTarget` before opening. The existing
+Escape effect in `NavigatorPrimary` closes the pane and then calls
+`overflowOpener.current?.focus()`. Closing by selecting a row navigates, so it
+doesn't restore focus.
 
 - [ ] **Step 3: Two row sets**
 
@@ -1936,6 +2086,8 @@ git commit -m "feat(navigator)!: rename Overflow to OverflowPane and make it a l
 // context (replaces secondaryNav/setSecondaryNav and hasNesting/setHasNesting)
 export type NavigatorActiveSection = {
   value: string
+  /** The section route; undefined only for a routeless section. */
+  href?: string
   label: ReactNode
   secondary: NavigatorSecondaryProps
 }
@@ -1992,7 +2144,7 @@ function Docs({
         <Navigator.Item value='/start' href='/start' icon={<FakeIcon />}>
           Get started
         </Navigator.Item>
-        <Navigator.Item value='/components' icon={<FakeIcon />}>
+        <Navigator.Item value='/components' href='/components' icon={<FakeIcon />}>
           Components
           <Navigator.Secondary aria-label='Components' searchable={searchable}>
             <Navigator.Group>
@@ -2058,7 +2210,6 @@ describe('generated section pane', () => {
   it('lights the section tile as the section, not the page', async () => {
     render(<Docs />)
     await flushViewportMeasurement()
-    // A routeless section links to its first sub-page.
     expect(within(rail()).getByRole('link', { name: 'Components' })).toHaveAttribute(
       'aria-current',
       'true'
@@ -2153,11 +2304,7 @@ export type NavigatorSecondaryItemsProps = {
   query?: string
 }
 
-/**
- * The active section's sub-pages as a `List`, groups kept. The generated
- * section pane renders it; place it yourself inside a
- * `Navigator.SecondaryPane` to compose around it.
- */
+/** The active section's sub-pages as a `List`, for composing a `Navigator.SecondaryPane`. */
 export function NavigatorSecondaryItems({
   className,
   query = ''
@@ -2256,11 +2403,7 @@ import type { NavigatorActiveSection } from './NavigatorContext'
 import { NavigatorSecondaryItems } from './NavigatorSecondaryItems'
 import { textOf } from './splitSecondary'
 
-/**
- * The active section's list pane, generated from its `Navigator.Secondary`.
- * Never `current` (D8): it is first in the stack, so it is the root — the top
- * only when no consumer pane is current.
- */
+// Never `current`: first in the stack, so it is the root.
 export function NavigatorSectionPane({
   section
 }: {
@@ -2305,7 +2448,7 @@ NavigatorSectionPane.displayName = 'NavigatorSectionPane'
   `hasNesting` (and their setters and the `NavigatorSecondaryNav` type) with
   `activeSection` / `setActiveSection` typed as above.
 - `NavigatorPrimary.tsx`: the `activeSecondary` memo becomes `activeSection`,
-  returning `{ value: itemProps.value, label, secondary: nested.props }` for the
+  returning `{ value: itemProps.value, href: itemProps.href, label, secondary: nested.props }` for the
   first branch-active item with a Secondary (use `splitItemChildren` for
   `label`). The publishing effect calls `setActiveSection(activeSection)`.
   Delete `nests`, `setHasNesting`, `form` and `data-form`; the rail's class call
@@ -2456,7 +2599,7 @@ function Override({ wrapped = false }: { wrapped?: boolean }) {
   return (
     <Navigator value='/components/button'>
       <Navigator.Primary aria-label='Docs'>
-        <Navigator.Item value='/components'>
+        <Navigator.Item value='/components' href='/components'>
           Components
           <Navigator.Secondary aria-label='Components'>
             <Navigator.Item value='/components/button' href='/components/button'>Button</Navigator.Item>
@@ -2538,11 +2681,7 @@ export type NavigatorSecondaryPaneProps = Omit<
   value: string
 }
 
-/**
- * Replaces one section's generated list pane. Compose it around
- * `Navigator.SecondaryItems`. Declare it before your detail pane — it is the
- * stack's root and the leading column.
- */
+/** Replaces one section's generated list pane; declare it before your detail pane. */
 export function NavigatorSecondaryPane({
   value,
   ...props
@@ -2610,29 +2749,39 @@ git commit -m "feat(navigator): override a section's pane with SecondaryPane and
 
 ---
 
-## Task 7: Back reveals the section list on stacked layouts (D7)
+## Task 7: Section routes decide depth; Back links to the section; `showList` (D7)
 
 **Files:**
 - Modify: `…/Navigator/paneStack.ts`, `paneStack.test.ts`,
   `NavigatorContext.ts`, `NavigatorRoot.tsx`, `NavigatorContent.tsx`,
-  `useTopPaneChrome.tsx`, `NavigatorPrimary.tsx`,
-  `NavigatorSectionPane.test.tsx`
+  `useTopPaneChrome.tsx`, `NavigatorPrimary.tsx`, `NavigatorItem.tsx`,
+  `NavigatorSectionPane.test.tsx`, `Navigator.test.tsx`
 - Modify: `…/Pane/PaneChromeContext.ts`, `…/Pane/PaneHeader.tsx`,
   `…/Pane/Pane.test.tsx`
 
 **Interfaces:**
+- Consumes: `NavigatorActiveSection.href` (Task 5).
 - Produces:
 
 ```ts
+// paneStack.ts
 export function deriveTopIndex(entries: readonly PaneEntry[], revealRoot?: boolean): number
 export function derivePositions(entries: readonly PaneEntry[], revealRoot?: boolean): (PaneStackPosition | null)[]
 // PaneChromeContextValue gains
-onBack?: () => void // orchestrator-supplied Back; a consumer's backHref/onBack wins
+backHref?: string // orchestrator-supplied Back link; the header's own backHref/onBack win
+// NavigatorRootProps gains (D7c)
+showList?: boolean
+onShowListChange?: (next: boolean) => void
 // context
-rootRevealed: boolean                 // derived: revealedFor === value
-revealRoot: () => void
-stackAtRoot: boolean; setStackAtRoot: (next: boolean) => void // published by Content
+showList: boolean
+onShowListChange?: (next: boolean) => void
+stackAtRoot: boolean
+setStackAtRoot: (next: boolean) => void // published by Content
 ```
+
+The URL is the only source of truth for depth. Navigator derives "list on top"
+from the value (the section route) or from `showList` (which the app derives
+from its URL); it never holds that state itself.
 
 - [ ] **Step 1: Failing pure tests**
 
@@ -2688,157 +2837,215 @@ export function derivePositions(
 }
 ```
 
-Update `deriveTopIndex`'s JSDoc: "…or the root, when Navigator has revealed it
-(Back from a section's detail on a stacked layout)." Run: PASS.
+`deriveTopIndex`'s JSDoc gains: "…or the root, when the orchestrator reveals it
+— on a section's own route, or when the app asks for the list (`showList`)."
+Run: PASS.
 
 - [ ] **Step 3: Failing integration tests**
 
 Append to `NavigatorSectionPane.test.tsx`:
 
 ```tsx
-describe('Back to the section list', () => {
-  it('gives the detail pane a Back that reveals the list', async () => {
-    const user = userEvent.setup()
-    render(
-      <Navigator value='/components/button'>
-        <Navigator.Primary aria-label='Docs'>
-          <Navigator.Item value='/components'>
-            Components
-            <Navigator.Secondary aria-label='Components'>
-              <Navigator.Item value='/components/button' href='/components/button'>Button</Navigator.Item>
-            </Navigator.Secondary>
-          </Navigator.Item>
-        </Navigator.Primary>
-        <Navigator.Content>
-          <Pane role='detail' current>
-            <Pane.Header />
-            Detail
-          </Pane>
-        </Navigator.Content>
-      </Navigator>
-    )
+function Routed({
+  value,
+  showList,
+  onShowListChange,
+  detailBackHref
+}: {
+  value: string
+  showList?: boolean
+  onShowListChange?: (next: boolean) => void
+  detailBackHref?: string
+}) {
+  return (
+    <Navigator value={value} showList={showList} onShowListChange={onShowListChange}>
+      <Navigator.Primary aria-label='Docs'>
+        <Navigator.Item value='/components' href='/components'>
+          Components
+          <Navigator.Secondary aria-label='Components'>
+            <Navigator.Item value='/components/a' href='/components/a'>A</Navigator.Item>
+            <Navigator.Item value='/components/b' href='/components/b'>B</Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Navigator.Content>
+        <Pane role='detail' current>
+          <Pane.Header backHref={detailBackHref} />
+          Detail
+        </Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+}
+
+const tabBar = () =>
+  document.querySelector('[data-slot="navigator-tab-bar"]') as HTMLElement
+
+describe('section routes', () => {
+  it('puts the list on top on the section route, even with a current detail', async () => {
+    render(<Routed value='/components' />)
     await flushViewportMeasurement()
-    const detail = panes()[1]!
-    await user.click(within(detail).getByRole('button', { name: 'Back' }))
     expect(sectionPane()).toHaveAttribute('data-stack-position', 'top')
-    expect(detail).toHaveAttribute('data-stack-position', 'ahead')
+    expect(panes()[1]).toHaveAttribute('data-stack-position', 'ahead')
   })
 
-  it('clears the reveal when the value changes', async () => {
-    const user = userEvent.setup()
-    const tree = (value: string) => (
-      <Navigator value={value}>
-        <Navigator.Primary aria-label='Docs'>
-          <Navigator.Item value='/components'>
-            Components
-            <Navigator.Secondary aria-label='Components'>
-              <Navigator.Item value='/components/a' href='/components/a'>A</Navigator.Item>
-              <Navigator.Item value='/components/b' href='/components/b'>B</Navigator.Item>
-            </Navigator.Secondary>
-          </Navigator.Item>
-        </Navigator.Primary>
-        <Navigator.Content>
-          <Pane role='detail' current><Pane.Header />Detail</Pane>
-        </Navigator.Content>
-      </Navigator>
+  it('puts the page on top on a sub-page, with Back linking to the section route', async () => {
+    render(<Routed value='/components/a' />)
+    await flushViewportMeasurement()
+    const detail = panes()[1]!
+    expect(detail).toHaveAttribute('data-stack-position', 'top')
+    expect(within(detail).getByRole('link', { name: 'Back' })).toHaveAttribute(
+      'href',
+      '/components'
     )
-    const { rerender } = render(tree('/components/a'))
-    await flushViewportMeasurement()
-    await user.click(within(panes()[1]!).getByRole('button', { name: 'Back' }))
-    rerender(tree('/components/b'))
-    await flushViewportMeasurement()
-    expect(panes()[1]).toHaveAttribute('data-stack-position', 'top')
   })
 
   it("lets a consumer's backHref win", async () => {
-    render(
-      <Navigator value='/components/button'>
+    render(<Routed value='/components/a' detailBackHref='/elsewhere' />)
+    await flushViewportMeasurement()
+    expect(within(panes()[1]!).getByRole('link', { name: 'Back' })).toHaveAttribute(
+      'href',
+      '/elsewhere'
+    )
+  })
+
+  it('shows the list over a sub-page while showList is set', async () => {
+    render(<Routed value='/components/a' showList />)
+    await flushViewportMeasurement()
+    expect(sectionPane()).toHaveAttribute('data-stack-position', 'top')
+    expect(within(sectionPane()!).getByRole('link', { name: 'A' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    )
+  })
+
+  it('links the active tab to the section route when showList is not wired', async () => {
+    render(<Routed value='/components/a' />)
+    await flushViewportMeasurement()
+    expect(within(tabBar()).getByRole('link', { name: 'Components' })).toHaveAttribute(
+      'href',
+      '/components'
+    )
+  })
+
+  it('asks for the list instead when onShowListChange is wired', async () => {
+    const user = userEvent.setup()
+    const onShowListChange = vi.fn()
+    render(<Routed value='/components/a' onShowListChange={onShowListChange} />)
+    await flushViewportMeasurement()
+    await user.click(within(tabBar()).getByRole('link', { name: 'Components' }))
+    expect(onShowListChange).toHaveBeenCalledWith(true)
+  })
+
+  it('asks to hide the list when the active tab is tapped again', async () => {
+    const user = userEvent.setup()
+    const onShowListChange = vi.fn()
+    render(<Routed value='/components/a' showList onShowListChange={onShowListChange} />)
+    await flushViewportMeasurement()
+    await user.click(within(tabBar()).getByRole('link', { name: 'Components' }))
+    expect(onShowListChange).toHaveBeenCalledWith(false)
+  })
+
+  it('links an inactive section tab to its route, never a remembered page', async () => {
+    const { rerender } = render(<Routed value='/components/b' />)
+    await flushViewportMeasurement()
+    rerender(
+      <Navigator value='/other'>
         <Navigator.Primary aria-label='Docs'>
-          <Navigator.Item value='/components'>
+          <Navigator.Item value='/components' href='/components'>
             Components
             <Navigator.Secondary aria-label='Components'>
-              <Navigator.Item value='/components/button' href='/components/button'>Button</Navigator.Item>
+              <Navigator.Item value='/components/b' href='/components/b'>B</Navigator.Item>
             </Navigator.Secondary>
           </Navigator.Item>
+          <Navigator.Item value='/other' href='/other'>Other</Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane role='detail' current><Pane.Header backHref='/elsewhere' />Detail</Pane>
-        </Navigator.Content>
       </Navigator>
     )
     await flushViewportMeasurement()
-    expect(within(panes()[1]!).getByRole('link', { name: 'Back' })).toHaveAttribute('href', '/elsewhere')
+    expect(within(tabBar()).getByRole('link', { name: 'Components' })).toHaveAttribute(
+      'href',
+      '/components'
+    )
   })
 
-  it('reveals the list when the active tab is tapped on a sub-page', async () => {
-    const user = userEvent.setup()
-    render(<Docs />)
+  it('warns when a section has no route', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Navigator value='/x/one'>
+        <Navigator.Primary aria-label='Docs'>
+          <Navigator.Item value='/x'>
+            X
+            <Navigator.Secondary aria-label='X pages'>
+              <Navigator.Item value='/x/one' href='/x/one'>One</Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
     await flushViewportMeasurement()
-    const bar = document.querySelector('[data-slot="navigator-tab-bar"]') as HTMLElement
-    await user.click(within(bar).getByRole('link', { name: 'Components' }))
-    expect(sectionPane()).toHaveAttribute('data-stack-position', 'top')
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('its own route'))
+    warn.mockRestore()
   })
 })
 ```
 
-And in `Pane.test.tsx`'s `orchestrator chrome` describe, using its `withChrome`
-helper:
+Add `vi` to the file's vitest import. In `Pane.test.tsx`'s `orchestrator
+chrome` describe, using its `withChrome` helper (≈931-945; adapt to its actual
+signature):
 
 ```tsx
-  it('draws Back from orchestrator chrome, never Close', async () => {
-    const onBack = vi.fn()
+  it('draws a Back link from orchestrator chrome, never a Close', async () => {
     render(
       withChrome(
         <Pane role='detail'>
           <Pane.Header />
         </Pane>,
-        { onViewportScroll: () => {}, registerScroller: () => {}, onBack }
+        { onViewportScroll: () => {}, registerScroller: () => {}, backHref: '/section' }
       )
     )
     await flushViewportMeasurement()
-    await userEvent.click(screen.getByRole('button', { name: 'Back' }))
-    expect(onBack).toHaveBeenCalledOnce()
+    expect(screen.getByRole('link', { name: 'Back' })).toHaveAttribute('href', '/section')
     expect(screen.queryByRole('button', { name: 'Close' })).toBeNull()
   })
 ```
 
-(Adapt the call to `withChrome`'s actual signature at ≈931-945.) Run both files.
-Expected: FAIL.
+Run both files. Expected: FAIL.
+
+The existing section-memory tests in `Navigator.test.tsx`
+(`per-section stack memory`, ≈4449-4522) that expect a Secondary section's tab
+to retarget to a remembered page contradict D7a — rewrite them onto an item
+*without* a Secondary sitting over un-declared sub-routes (the case memory
+still serves), and keep one assertion that a Secondary section is never
+retargeted.
 
 - [ ] **Step 4: Implement**
 
-- `PaneChromeContext.ts`: add `onBack?: () => void` to the type with the
-  comment "An orchestrator's Back for a pane it knows sits above a root —
-  `backHref` and `onBack` on the header still win."
+- `PaneChromeContext.ts`: add `backHref?: string` with the comment "An
+  orchestrator's Back link — the section route above a sub-page. The header's
+  own `backHref` and `onBack` still win."
 - `PaneHeader.tsx`:
 
 ```tsx
   const chrome = use(PaneChromeContext)
-  const back = onBack ?? chrome.onBack
-  const hasTarget = backHref !== undefined || back !== undefined
-  // …
-  // Close stays the consumer's alone: an orchestrator's Back reveals the
-  // stack's root, and an ✕ that did that would misname itself.
-  const closeHandler = onClose ?? onBack
+  // A consumer's onBack is a handler and outranks the orchestrator's link.
+  const resolvedBackHref = backHref ?? (onBack === undefined ? chrome.backHref : undefined)
+  const hasTarget = resolvedBackHref !== undefined || onBack !== undefined
 ```
 
-  and the Back button's `onClick={back}`.
-- `NavigatorRoot.tsx`:
-
-```tsx
-  // Keyed to the value it was revealed at, so any navigation clears it
-  // without an effect.
-  const [revealedFor, setRevealedFor] = useState<string | undefined>()
-  const rootRevealed = revealedFor !== undefined && revealedFor === value
-  const revealRoot = useCallback(() => setRevealedFor(value), [value])
-  const [stackAtRoot, setStackAtRoot] = useState(true)
-```
-
-  exposed on context with defaults `false` / no-op / `true` / no-op.
+  render the Back `IconButton` with `href={resolvedBackHref}` in the link
+  branch; `closeHandler` stays `onClose ?? onBack` (a link never supplies
+  Close).
+- `NavigatorRoot.tsx`: accept `showList` and `onShowListChange` (JSDoc as in
+  D7c), expose `showList: showList ?? false` and `onShowListChange` on context,
+  plus `const [stackAtRoot, setStackAtRoot] = useState(true)`.
 - `NavigatorContent.tsx`:
 
 ```tsx
-  const revealing = rootRevealed && activeSection !== null && !overflowOpen
+  const onSectionRoute =
+    activeSection !== null && isActiveValue(activeSection.value, value)
+  const revealing =
+    activeSection !== null && !overflowOpen && (onSectionRoute || showList)
   const positions = useMemo(
     () => derivePositions(ordered, revealing),
     [ordered, revealing]
@@ -2849,39 +3056,67 @@ Expected: FAIL.
   }, [atRoot, setStackAtRoot])
 ```
 
-  (Keep `latest.current` fed from the new `positions`.)
-- `useTopPaneChrome.tsx`: when `activeSection !== null && !overflowOpen &&
-  !stackAtRoot`, include `onBack: revealRoot` in the returned value (memoised
-  on those inputs); otherwise omit it.
-- `NavigatorPrimary.tsx` `selectDestination`, on an active, expanded tab:
+  (keep `latest.current` fed from the new `positions`).
+- `useTopPaneChrome.tsx`: when `activeSection?.href !== undefined &&
+  !overflowOpen && !stackAtRoot`, include `backHref: activeSection.href` in the
+  memoised value.
+- Section tabs and tiles (`NavigatorPrimary` for tabs, `NavigatorItem` for rail
+  tiles): an item whose slot has `descendants.length > 0` links to its declared
+  `href` (D7a), not `rememberedHref(…)`; items without a Secondary keep
+  `rememberedHref`. Delete the `rememberSection` effect's recording for
+  branch sections that own a Secondary (they don't need it); keep it for the
+  prefix-matched case.
+- `selectDestination`, on an active, expanded tab that owns the active section:
 
 ```ts
-    const ownsSectionPane = activeSection?.value === tab.value
-    if (ownsSectionPane && !stackAtRoot) {
+    const ownsSection = activeSection?.value === tab.value
+    if (ownsSection && onShowListChange && !isActiveValue(tab.value, activeValue)) {
       event.preventDefault()
-      revealRoot()
+      onShowListChange(!showList)
       return
     }
-    if (ownsSectionPane || isActiveValue(tab.topValue, activeValue)) {
+    if (ownsSection && isActiveValue(tab.value, activeValue)) {
       event.preventDefault()
       scrollActivePaneToTop()
       return
     }
 ```
 
-  replacing the old "on the landing → scroll / on a sub-page → navigate up"
-  split for sections that own a pane; sections without one keep it.
+  Without `onShowListChange`, the tab's `href` is the section route, so the
+  link navigates there by itself — no manual branch needed. Sections without a
+  Secondary keep today's landing/scroll behaviour.
+- D7b warning in `NavigatorPrimary` (effect, `isDev()`), listing every item
+  with descendants and no `href`:
+
+```ts
+  const routeless = [...collected.automatic, ...collected.pinnedSlots]
+    .filter((slot) => slot.descendants.length > 0 && slot.declaredHref === undefined)
+    .map((slot) => slot.value)
+    .join(', ')
+  useEffect(() => {
+    if (!isDev() || routeless === '') return
+    console.warn(
+      `[Roadie] Navigator.Item ${routeless} declares a Navigator.Secondary ` +
+        'but no href. Every section needs its own route: it shows the ' +
+        "section's list pane, and it is where Back goes from a sub-page."
+    )
+  }, [routeless])
+```
+
+  `NavigatorSlotMeta` gains `declaredHref?: string` (the item's own `href`,
+  set in `toSlotMeta`), because `href` there already falls back to the first
+  sub-page.
 
 Run: `cd packages/components && pnpm vitest run src/components/Navigator src/components/Pane`
 Expected: PASS. The `active-tab tap: scroll vs navigate-up` describe
-(≈3929-4013) needs its sub-page expectations updated for sections with a
-Secondary: the first tap now reveals the list instead of navigating.
+(≈3929-4013) needs its expectations for Secondary sections updated: the tab
+now links to the section route, and with `onShowListChange` wired it calls it.
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add packages/components/src/components/Navigator packages/components/src/components/Pane
-git commit -m "feat(navigator): Back and the active tab reveal the section list when panes stack"
+git commit -m "feat(navigator): section routes decide depth; Back links to the section; showList"
 ```
 
 ---
@@ -2905,7 +3140,7 @@ git commit -m "feat(navigator): Back and the active tab reveal the section list 
 - Produces:
 
 ```ts
-// railCapacity.ts — rem throughout (D11)
+// railCapacity.ts — rem throughout
 export const RAIL_METRICS: { tile: 3; tileGap: 0.25; capsulePad: 0.25; capsuleGap: 0.75; clusterPad: 0.5 }
 export type RailMetrics = typeof RAIL_METRICS
 export type RailCapsule = { key: string; slots: { value: string; priority: NavigatorVisibilityPriority }[] }
@@ -2914,7 +3149,7 @@ export function clusterHeight(tileCounts: number[], metrics?: RailMetrics): numb
 export function fitRailCluster(
   capsules: RailCapsule[],
   available: number,          // rem; <= 0 means unmeasured → fold nothing
-  fixed?: number[],           // never-folding capsules (tile counts), D3
+  fixed?: number[],           // never-folding capsules (tile counts)
   metrics?: RailMetrics
 ): { folded: Set<string> }
 // capsules.tsx
@@ -3081,11 +3316,6 @@ export function clusterHeight(counts: number[], m: RailMetrics = RAIL_METRICS) {
   )
 }
 
-/**
- * Which cluster items fold into More, from nothing but the height available.
- * Tile and gap sizes are fixed, so this is arithmetic — no per-item
- * measurement, so nothing renders just to be measured and removed.
- */
 export function fitRailCluster(
   capsules: RailCapsule[],
   available: number,
@@ -3270,9 +3500,7 @@ Run the file. Expected: FAIL — no regions, no capsules.
 Replace in `variants.ts` (keep the file's comment style — say *why*):
 
 ```ts
-// Brand, cluster, pinned. The cluster is the 1fr row, so centring inside it
-// centres between brand and pinned rather than in the viewport. Widths are
-// classes (D10); the rail snaps between them.
+// The cluster is the 1fr row, so it centres between brand and pinned.
 export const navigatorRailVariants = cva([
   'group/rail hidden min-h-0 md:col-start-1 md:row-start-1 md:grid',
   'grid-rows-[auto_minmax(0,1fr)_auto] gap-3 py-3 w-20'
@@ -3357,11 +3585,7 @@ import { navigatorCapsuleVariants } from './variants'
 
 type ItemEntry = Extract<RailEntry, { kind: 'item' }>
 
-/**
- * Consecutive loose items share one capsule; each group is its own. Kept in
- * step with `wrapCapsules` — capacity arithmetic must see the same capsules
- * the rail draws.
- */
+// Must group exactly as wrapCapsules draws, or the arithmetic measures the wrong rail.
 export function railCapsules(entries: RailEntry[]): RailCapsule[] {
   const capsules: RailCapsule[] = []
   let run: RailCapsule | null = null
@@ -3519,7 +3743,8 @@ export function useRailCapacity(
                       expanded={overflowOpen}
                       controls={overflowOpen ? overflowPaneId : undefined}
                       className={navigatorItemVariants({ active: railMoreActive })}
-                      onClick={() => {
+                      onClick={(event) => {
+                        overflowOpener.current = event.currentTarget as HTMLElement
                         setOpenMenu(null)
                         setOverflowOpen(!overflowOpen)
                       }}
@@ -3764,12 +3989,7 @@ import { presentNavIcon } from './presentNavIcon'
 import { navigatorItemLabelVariants, navigatorItemVariants } from './variants'
 
 export type NavigatorExpandToggleProps = {
-  /**
-   * Placed like an item. Never folds into More; absent on the phone bar,
-   * which has no expanded state.
-   *
-   * @default 'automatic'
-   */
+  /** Placed like an item; never folds into More. @default 'automatic' */
   placement?: NavigatorPlacement
   className?: string
 }
@@ -3799,7 +4019,9 @@ NavigatorExpandToggle.displayName = 'Navigator.ExpandToggle'
 
 `collectSlots.ts`: a `NavigatorExpandToggle` child becomes
 `{ kind: 'toggle', element }`, pushed to `pinned` or `cluster` by
-`element.props.placement ?? 'automatic'`, contributing no slot.
+`element.props.placement ?? 'automatic'`, contributing no slot. Route it
+through the same `pinnedBeforeCluster` check as items and groups (a pinned
+toggle written before cluster items warns too).
 `capsules.tsx`: `wrapCapsules` renders a toggle entry in its own
 `navigator-capsule` `ul`; `railCapsules` skips it; add
 `export const fixedCapsules = (entries: RailEntry[]) => entries.filter((e) => e.kind === 'toggle').map(() => 1)`.
@@ -3853,6 +4075,310 @@ Expected: PASS.
 ```bash
 git add packages/components/src/components/Navigator packages/components/src/index.tsx
 git commit -m "feat(navigator): expanded rail with labels and Navigator.ExpandToggle"
+```
+
+---
+
+## Task 9B: Paint the persisted expanded state before hydration (D14)
+
+**Files:**
+- Create: `packages/core/src/navigator/index.ts`,
+  `packages/core/src/navigator/navigator-script.test.ts`
+- Modify: `packages/core/package.json` (exports), `packages/core/tsdown.config.ts`
+  (entry), `.changeset/app-frame-core-css.md`
+- Modify: `…/Navigator/NavigatorRoot.tsx`, `variants.ts`,
+  `NavigatorRail.test.tsx`
+
+**Interfaces:**
+- Produces (`@oztix/roadie-core/navigator`, framework-agnostic like
+  `@oztix/roadie-core/theme`):
+
+```ts
+export const NAVIGATOR_EXPANDED_COOKIE = 'roadie-navigator-expanded'
+export const NAVIGATOR_EXPANDED_ATTRIBUTE = 'data-navigator-expanded'
+export function getNavigatorExpandedScript(options?: { cookieName?: string }): string
+export function serializeNavigatorExpandedCookie(
+  expanded: boolean,
+  options?: { cookieName?: string }
+): string
+```
+
+- Produces (components): `NavigatorRootProps.expandedFromDocument?: boolean`;
+  the root renders `data-expanded-from-document` when set.
+
+Every collapsed-state class that `expanded` changes gets a twin behind one
+arbitrary variant — written out literally every time, because Tailwind can't
+see class names built by concatenation:
+
+```
+[html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:
+```
+
+Only opted-in Navigators match, so a docs example Navigator in a box never
+follows the site rail.
+
+- [ ] **Step 1: Failing core tests**
+
+`packages/core/src/navigator/navigator-script.test.ts` (core tests run in
+node — execute the script against a fake `document`):
+
+```ts
+import { describe, expect, it } from 'vitest'
+
+import {
+  NAVIGATOR_EXPANDED_ATTRIBUTE,
+  NAVIGATOR_EXPANDED_COOKIE,
+  getNavigatorExpandedScript,
+  serializeNavigatorExpandedCookie
+} from './index'
+
+const runWith = (cookie: string, script = getNavigatorExpandedScript()) => {
+  const attributes: Record<string, string> = {}
+  const document = {
+    cookie,
+    documentElement: {
+      setAttribute: (name: string, value: string) => {
+        attributes[name] = value
+      }
+    }
+  }
+  new Function('document', script)(document)
+  return attributes[NAVIGATOR_EXPANDED_ATTRIBUTE]
+}
+
+describe('getNavigatorExpandedScript', () => {
+  it('marks the document expanded when the cookie says so', () => {
+    expect(runWith(`a=1; ${NAVIGATOR_EXPANDED_COOKIE}=1`)).toBe('true')
+  })
+
+  it('marks it collapsed otherwise', () => {
+    expect(runWith(`${NAVIGATOR_EXPANDED_COOKIE}=0`)).toBe('false')
+    expect(runWith('')).toBe('false')
+  })
+
+  it('reads a custom cookie name', () => {
+    expect(runWith('app-nav=1', getNavigatorExpandedScript({ cookieName: 'app-nav' }))).toBe('true')
+  })
+
+  it('refuses a cookie name that could break out of the script', () => {
+    expect(() => getNavigatorExpandedScript({ cookieName: "x';alert(1)//" })).toThrow()
+  })
+
+  it('never throws at runtime', () => {
+    expect(() => new Function('document', getNavigatorExpandedScript())(undefined)).not.toThrow()
+  })
+})
+
+describe('serializeNavigatorExpandedCookie', () => {
+  it('writes a year-long, site-wide, lax cookie', () => {
+    expect(serializeNavigatorExpandedCookie(true)).toBe(
+      `${NAVIGATOR_EXPANDED_COOKIE}=1; path=/; max-age=31536000; samesite=lax`
+    )
+    expect(serializeNavigatorExpandedCookie(false, { cookieName: 'app-nav' })).toBe(
+      'app-nav=0; path=/; max-age=31536000; samesite=lax'
+    )
+  })
+})
+```
+
+Run: `pnpm --filter @oztix/roadie-core test`
+Expected: FAIL — module not found.
+
+- [ ] **Step 2: Implement core**
+
+`packages/core/src/navigator/index.ts`:
+
+```ts
+export const NAVIGATOR_EXPANDED_COOKIE = 'roadie-navigator-expanded'
+export const NAVIGATOR_EXPANDED_ATTRIBUTE = 'data-navigator-expanded'
+
+const COOKIE_NAME = /^[\w-]+$/
+
+const nameOf = (options?: { cookieName?: string }) => {
+  const name = options?.cookieName ?? NAVIGATOR_EXPANDED_COOKIE
+  if (!COOKIE_NAME.test(name)) {
+    throw new Error(`Invalid Navigator cookie name: ${name}`)
+  }
+  return name
+}
+
+/**
+ * Blocking inline script for `<head>` that paints a persisted expanded rail
+ * before hydration. Pair with `<Navigator expandedFromDocument>`.
+ *
+ * @example
+ * <script dangerouslySetInnerHTML={{ __html: getNavigatorExpandedScript() }} />
+ */
+export function getNavigatorExpandedScript(options?: {
+  cookieName?: string
+}): string {
+  const name = nameOf(options)
+  return `try{var e=/(?:^|; )${name}=1(?:;|$)/.test(document.cookie);document.documentElement.setAttribute('${NAVIGATOR_EXPANDED_ATTRIBUTE}',e?'true':'false')}catch(x){}`
+}
+
+/** The cookie string to write when the user toggles the rail. */
+export function serializeNavigatorExpandedCookie(
+  expanded: boolean,
+  options?: { cookieName?: string }
+): string {
+  return `${nameOf(options)}=${expanded ? 1 : 0}; path=/; max-age=31536000; samesite=lax`
+}
+```
+
+`packages/core/tsdown.config.ts` entry:
+`'navigator/index': './src/navigator/index.ts'`.
+`packages/core/package.json` exports, beside `./theme`:
+
+```json
+    "./navigator": {
+      "types": "./dist/navigator/index.d.ts",
+      "import": "./dist/navigator/index.js"
+    },
+```
+
+Run: `pnpm --filter @oztix/roadie-core test && pnpm --filter @oztix/roadie-core build`
+Expected: PASS; `ls packages/core/dist/navigator/index.js` exists.
+
+`.changeset/app-frame-core-css.md` — append: "…and `@oztix/roadie-core/navigator`:
+`getNavigatorExpandedScript`, a blocking head script that paints a persisted
+expanded Navigator rail before hydration, with the cookie name and serializer
+it reads."
+
+- [ ] **Step 3: Failing component tests**
+
+Append to `NavigatorRail.test.tsx`:
+
+```tsx
+describe('expanded from the document', () => {
+  afterEach(() => document.documentElement.removeAttribute('data-navigator-expanded'))
+
+  it('shows the document state until the app changes expanded', async () => {
+    document.documentElement.setAttribute('data-navigator-expanded', 'true')
+    render(<Expandable expandedFromDocument expanded={false} />)
+    await flushViewportMeasurement()
+    expect(rail()).toHaveAttribute('data-expanded', 'true')
+  })
+
+  it('writes the attribute when the rail is toggled', async () => {
+    const user = userEvent.setup()
+    document.documentElement.setAttribute('data-navigator-expanded', 'true')
+    render(<Expandable expandedFromDocument />)
+    await flushViewportMeasurement()
+    await user.click(within(region('pinned')).getByRole('button', { name: 'Collapse sidebar' }))
+    expect(document.documentElement).toHaveAttribute('data-navigator-expanded', 'false')
+    expect(rail()).toHaveAttribute('data-expanded', 'false')
+  })
+
+  it('ignores the document unless opted in', async () => {
+    document.documentElement.setAttribute('data-navigator-expanded', 'true')
+    render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Item value='/a' href='/a'>A</Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(rail()).toHaveAttribute('data-expanded', 'false')
+    expect(document.querySelector('[data-expanded-from-document]')).toBeNull()
+  })
+
+  it('gives each collapsed class a pre-hydration expanded twin', () => {
+    const twin = '[html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:'
+    expect(navigatorRailVariants({ expanded: false })).toContain(`${twin}w-60`)
+    expect(navigatorItemLabelVariants({ expanded: false })).toContain(`${twin}not-sr-only`)
+    expect(navigatorCapsuleVariants({ expanded: false })).toContain(`${twin}rounded-4xl`)
+  })
+})
+```
+
+Make `Expandable` (Task 9) pass `expandedFromDocument` through to
+`Navigator` (add it to its props type). Import the three variants from
+`./variants`. Run. Expected: FAIL.
+
+- [ ] **Step 4: Implement**
+
+`NavigatorRoot.tsx`:
+
+```tsx
+  const [documentExpanded, setDocumentExpanded] = useState(false)
+  useIsomorphicLayoutEffect(() => {
+    if (!expandedFromDocument) return
+    setDocumentExpanded(
+      document.documentElement.getAttribute('data-navigator-expanded') === 'true'
+    )
+  }, [])
+  const baseExpanded = expandedProp ?? uncontrolledExpanded
+  const expanded = baseExpanded || documentExpanded
+
+  const setExpanded = useCallback(
+    (next: boolean) => {
+      setDocumentExpanded(false)
+      if (expandedProp === undefined) setUncontrolledExpanded(next)
+      onExpandedChange?.(next)
+    },
+    [expandedProp, onExpandedChange]
+  )
+
+  const mounted = useRef(false)
+  useIsomorphicLayoutEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true
+      return
+    }
+    if (expandedFromDocument) {
+      document.documentElement.setAttribute('data-navigator-expanded', String(expanded))
+    }
+  }, [expanded, expandedFromDocument])
+```
+
+(The first run is skipped so a server-snapshot `false` can't overwrite what
+the head script painted.) The root `div` gets
+`data-expanded-from-document={expandedFromDocument ? '' : undefined}`. JSDoc
+for the prop: "Paint the expanded state `getNavigatorExpandedScript` put on
+`<html>` until your `expanded` first changes."
+
+`variants.ts` — add the twins to the `false` branches from Task 9:
+
+```ts
+navigatorRailVariants.expanded.false:
+  'w-20 [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:w-60'
+navigatorRailClusterContentVariants.expanded.false:
+  'content-center justify-items-center [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:content-start [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:justify-items-stretch'
+navigatorRailPinnedVariants.expanded.false:
+  'justify-items-center [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:justify-items-stretch'
+navigatorCapsuleVariants.expanded.false:
+  'rounded-full [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:rounded-4xl'
+navigatorItemVariants.expanded.false:
+  'size-12 place-items-center [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:h-12 [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:w-full [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:grid-cols-[auto_1fr_auto] [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:justify-items-start [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:gap-3 [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:px-3 [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:text-sm [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:font-semibold'
+navigatorItemLabelVariants.expanded.false:
+  'sr-only [html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:not-sr-only'
+navigatorGroupTitleVariants (base):
+  add '[html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:not-sr-only'
+```
+
+One line above the first twin in the file, the only comment needed:
+`// Twins let getNavigatorExpandedScript paint the expanded rail before hydration.`
+
+Run: `cd packages/components && pnpm vitest run src/components/Navigator`
+Expected: PASS. Then build and confirm the twins compiled (Tailwind drops an
+arbitrary variant it can't parse, silently):
+
+```bash
+pnpm --filter @oztix/roadie-components build
+```
+
+On the docs dev server (after Task 14 wires the script, or by hand now in
+devtools: set `data-navigator-expanded="true"` on `<html>` and add
+`data-expanded-from-document` to `[data-slot="navigator"]`), the collapsed rail
+must render at `w-60` with visible labels.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add packages/core/src/navigator packages/core/package.json packages/core/tsdown.config.ts \
+  .changeset/app-frame-core-css.md packages/components/src/components/Navigator
+git commit -m "feat(navigator): paint a persisted expanded rail before hydration"
 ```
 
 ---
@@ -3950,13 +4476,7 @@ label is visible, the rail pill transitions `left,top,width,height`.
 `presentNavIcon.tsx`:
 
 ```tsx
-/**
- * Navigator owns its destinations' icons: Phosphor `duotone` at the size the
- * surface needs, overriding whatever the consumer passed — the one exception
- * to Roadie's bold default (AGENTS.md → Iconography). Colour is never set
- * here; it inherits `text-subtle`, which the active tile's `intent-accent`
- * turns into the accent tone.
- */
+// Duotone is the Navigator exception to the bold default (AGENTS.md → Iconography).
 export function presentNavIcon(
   icon: ReactNode,
   size: string,
@@ -4134,13 +4654,7 @@ import { type ReactElement, type ReactNode, use } from 'react'
 import { Tooltip } from '../Tooltip'
 import { NavigatorContext } from './NavigatorContext'
 
-/**
- * A collapsed tile's label. `aria-hidden` because the name already lives in
- * the tile as visually hidden text — which is what translates with the page —
- * and announcing both would say it twice. Disabled while the rail is expanded
- * and its labels are visible; hidden on coarse pointers, where a long-press
- * tooltip only gets in the way.
- */
+// aria-hidden: the tile already carries its name as hidden text; both would announce twice.
 export function NavigatorTileTooltip({
   label,
   render
@@ -4274,11 +4788,6 @@ until the type narrows — `pnpm typecheck` reports it).
 `presentNavIcon.tsx` — add:
 
 ```tsx
-/**
- * A collapsed tile or tab can't fit a labelled badge, so it wears the
- * declared one as a dot in its top-end corner. The consumer's intent and
- * emphasis still decide the dot's look; its label stays announced.
- */
 export function badgeDot(badge: ReactElement<BadgeProps>): ReactElement {
   return cloneElement(badge, {
     hideLabel: true,
@@ -4370,13 +4879,14 @@ and pass icons bare (Navigator applies duotone). Then:
 | Section | Action |
 | --- | --- |
 | Default (≈63-135) | keep; Account becomes `placement='pinned'`; prose: "Pinned items sit at the bottom of the rail and in the phone bar's trailing circle." |
-| Nested (≈136-214) | **replace** with **Sections**: a `Navigator.Item` with a `Navigator.Secondary` and a detail pane; prose: "Selecting a section opens its sub-pages in a list pane that `Navigator.Content` generates — titled with the item's label, groups kept, the current row marked. On a phone the list is the tab's root and a sub-page pushes on top of it, with Back." |
+| Nested (≈136-214) | **replace** with **Sections**: a `Navigator.Item` with an `href` and a `Navigator.Secondary`, and a detail pane; prose: "Every section has its own route. There, `Navigator.Content` generates the section's list pane — titled with the item's label, groups kept, the current row marked — beside your overview on a large screen and on top of it on a phone. A sub-page pushes over the list with a Back link to the section route." |
+| — | **add Showing the list from the URL**: the Sections example driven by `showList`/`onShowListChange` from a `useState` standing in for a query string; prose: "Roadie never reads the URL. To let a phone user see the list over a sub-page without leaving it, derive `showList` from a query parameter and turn `onShowListChange` into a URL update — the docs use `?nav`. With it wired, tapping the active section's tab shows the list instead of going to the section route." Include the Next.js snippet from Task 14 Step 3–4 as a static `tsx` block (the `Suspense` + `useSearchParams` leaf and `router.push`). |
 | — | **add Searchable**: the Sections example with `searchable` and two `Navigator.Group`s inside the Secondary |
 | Grouping (≈215-283) | keep the example; rewrite the prose: "Each group is its own floating capsule, named by its `GroupTitle` for screen readers; consecutive loose items share one. Titles show when the rail is expanded and in the More pane." |
 | Overflow (≈284-378) | rename to **Visibility priority**; the example gets eight items with `visibilityPriority='high'` on two and `'low'` on one; prose: "Whatever doesn't fit folds into More — on a phone past five slots, on a large screen when the window is too short. Priority decides membership, never order." Keep a short `Navigator.OverflowPane` + `Navigator.OverflowItems` sub-example ("Compose the More pane yourself"). |
 | Tab slots (≈379-444) | **delete** |
 | Panel (≈445-526) | **replace** with **Menu**: the Account item above with `Navigator.Menu` / `Navigator.MenuItem href` / `onClick`; prose from spec §4 (keyboard, anchoring, never navigates, "if it needs a screen's worth of content, it's a destination with its own pane"). |
-| — | **add Expanded**: a controlled example with `useState` and `Navigator.ExpandToggle placement='pinned'`; prose: "Navigator never touches storage. Persist the choice — a cookie, so a server-rendered page doesn't flash — and pass it back as `expanded`." |
+| — | **add Expanded**: a controlled example with `useState` and `Navigator.ExpandToggle placement='pinned'`; prose: "Navigator never touches storage. Persist the choice in a cookie and pass it back as `expanded`: read it on the server if you render there; on a static site, add `getNavigatorExpandedScript()` from `@oztix/roadie-core/navigator` to `<head>` and set `expandedFromDocument`, so the first paint is already expanded." Add a static `tsx` block showing the head script and `serializeNavigatorExpandedCookie` in `onExpandedChange`. |
 | — | **add Badges**: the Inbox item from Task 12; prose: "A declared `Badge` shrinks to a dot in the corner while collapsed and on the phone bar, and trails the label when expanded. Write the full meaning — its label is still announced." |
 | — | **add Section pane override**: `Navigator.SecondaryPane value='/components'` with a promo `Card` above `Navigator.SecondaryItems`; prose: "Replace one section's generated pane. Declare it before your detail pane." |
 | Panes, Pane header, Pane surfaces (≈527-764) | keep; delete the prose about the section nav in the pane header (≈626-627) |
@@ -4424,17 +4934,64 @@ git commit -m "docs(navigator): document placement, priority, menus, section pan
 ## Task 14: Migrate the docs site onto the redesign
 
 **Files:**
-- Create: `docs/src/components/useExpandedCookie.ts`
-- Modify: `docs/src/components/Navigation.tsx`
-- Modify: `docs/src/app/components/page.tsx`
+- Create: `docs/src/components/useExpandedCookie.ts`,
+  `docs/src/components/NavListQuery.tsx`, `docs/src/app/foundations/page.tsx`
+- Modify: `docs/src/components/Navigation.tsx`, `docs/src/app/layout.tsx`,
+  `docs/src/app/components/page.tsx`
 - Delete: `docs/src/components/ComponentSkeleton.tsx`
 
 **Interfaces:**
-- Consumes: everything above. `componentCategories: ComponentCategory[]` from
+- Consumes: everything above; `@oztix/roadie-core/navigator` (Task 9B);
+  `componentCategories: ComponentCategory[]` from
   `docs/src/lib/component-manifest.ts` (`{ name, components: { name, title }[], overviewHref? }`).
-- D14, D15.
+- D7, D7c, D14, D15.
 
-- [ ] **Step 1: The cookie hook**
+- [ ] **Step 1: A route for every section**
+
+Every item with a Secondary needs an `href` (D7). Today's section routes:
+
+| Section | Route | State |
+| --- | --- | --- |
+| Get started | `/` | exists (the home page) |
+| Foundations | `/foundations` | **missing** — `getNavigationItems` gives it no `href` (≈144-149) |
+| Tokens | `/tokens` | exists (`tokens/page.mdx`) |
+| Components | `/components` | exists (`components/page.tsx`, an empty state) |
+| Widgets | `/roadie-widgets` | exists (`roadie-widgets/page.mdx`) |
+
+Create `docs/src/app/foundations/page.tsx`:
+
+```tsx
+import { CompassIcon } from '@phosphor-icons/react/ssr'
+
+import { EmptyState } from '@oztix/roadie-components/empty-state'
+
+export const metadata = {
+  title: 'Foundations',
+  description: 'The principles and conventions every Roadie component builds on.'
+}
+
+export default function FoundationsPage() {
+  return (
+    <EmptyState>
+      <EmptyState.IconTile>
+        <CompassIcon weight='bold' />
+      </EmptyState.IconTile>
+      <EmptyState.Title>Choose a foundation</EmptyState.Title>
+      <EmptyState.Description>
+        Layout, colour, type, motion and the rest of the system's groundwork.
+      </EmptyState.Description>
+    </EmptyState>
+  )
+}
+```
+
+In `docs/src/app/layout.tsx` `getNavigationItems`, give the Foundations
+section `href: '/foundations'`. `getPageTitles` picks the new page's
+`metadata.title` up from the filesystem; confirm `pageTitles['/foundations']`
+is `'Foundations'`. `docs/src/app/components/page.tsx`: the description
+becomes "Browse the list, or search it by name."
+
+- [ ] **Step 2: Expanded state from the cookie, painted before hydration**
 
 `docs/src/components/useExpandedCookie.ts`:
 
@@ -4443,52 +5000,120 @@ git commit -m "docs(navigator): document placement, priority, menus, section pan
 
 import { useCallback, useSyncExternalStore } from 'react'
 
-const COOKIE = 'roadie-docs-nav-expanded'
+import {
+  NAVIGATOR_EXPANDED_COOKIE,
+  serializeNavigatorExpandedCookie
+} from '@oztix/roadie-core/navigator'
+
 const listeners = new Set<() => void>()
 
 const read = () =>
-  document.cookie.split('; ').some((pair) => pair === `${COOKIE}=1`)
+  document.cookie.split('; ').includes(`${NAVIGATOR_EXPANDED_COOKIE}=1`)
 
 const subscribe = (listener: () => void) => {
   listeners.add(listener)
   return () => listeners.delete(listener)
 }
 
-/**
- * The docs are a static export, so the server can't read this cookie: the
- * first paint is collapsed and hydration corrects it. A server-rendered app
- * reads the cookie on the server and passes `expanded` straight in.
- */
 export function useExpandedCookie() {
   const expanded = useSyncExternalStore(subscribe, read, () => false)
   const setExpanded = useCallback((next: boolean) => {
-    document.cookie = `${COOKIE}=${next ? 1 : 0}; path=/; max-age=31536000; samesite=lax`
+    document.cookie = serializeNavigatorExpandedCookie(next)
     listeners.forEach((listener) => listener())
   }, [])
   return [expanded, setExpanded] as const
 }
 ```
 
-- [ ] **Step 2: `Navigation.tsx`**
+`docs/src/app/layout.tsx` `<head>`, after the theme script:
 
-1. Imports: drop `ComponentThumbnail`, `List`, `ListIcon` if unused after the
-   edit; keep `Drawer`, `IconButton`, `Pane`. Add `useExpandedCookie`.
+```tsx
+import { getNavigatorExpandedScript } from '@oztix/roadie-core/navigator'
+// …
+        <script dangerouslySetInnerHTML={{ __html: getNavigatorExpandedScript() }} />
+```
+
+- [ ] **Step 3: `?nav` shows the section list over a sub-page**
+
+Next's `useSearchParams` in a prerendered page client-renders everything up to
+the nearest `<Suspense>` (see
+`docs/node_modules/next/dist/docs/01-app/03-api-reference/04-functions/use-search-params.md`),
+so read it in a leaf that sits inside its own boundary rather than in
+`DocsNavigator`, which wraps every page.
+
+`docs/src/components/NavListQuery.tsx`:
+
+```tsx
+'use client'
+
+import { useEffect } from 'react'
+
+import { useSearchParams } from 'next/navigation'
+
+export const NAV_LIST_PARAM = 'nav'
+
+export function NavListQuery({ onChange }: { onChange: (next: boolean) => void }) {
+  const showList = useSearchParams().has(NAV_LIST_PARAM)
+  useEffect(() => {
+    onChange(showList)
+  }, [showList, onChange])
+  return null
+}
+```
+
+- [ ] **Step 4: `Navigation.tsx`**
+
+1. Imports: drop `ComponentThumbnail`, and `List`/`ListIcon` if unused after
+   the edit; add `Suspense`, `useRouter`, `useExpandedCookie`, `NavListQuery`,
+   `NAV_LIST_PARAM`.
 2. Delete `query`, `shownCategories`, `showComponentList` and the hand-authored
    `<Pane role='list' className='lg:w-72'>…</Pane>` (≈359-407).
-3. `<Navigator value={value} onValueChange={handleValueChange} expanded={expanded} onExpandedChange={setExpanded}>`
-   with `const [expanded, setExpanded] = useExpandedCookie()`.
-4. Sections: every section with sub-items gets a `Secondary` (D15). Components
-   is searchable and grouped by category:
+3. State and wiring:
+
+```tsx
+  const router = useRouter()
+  const [expanded, setExpanded] = useExpandedCookie()
+  const [showList, setShowList] = useState(false)
+  const handleShowListChange = useCallback(
+    (next: boolean) => {
+      router.push(next ? `${pathname}?${NAV_LIST_PARAM}` : pathname, { scroll: false })
+    },
+    [router, pathname]
+  )
+
+  return (
+    <>
+      <Suspense fallback={null}>
+        <NavListQuery onChange={setShowList} />
+      </Suspense>
+      <Navigator
+        value={value}
+        onValueChange={handleValueChange}
+        expanded={expanded}
+        onExpandedChange={setExpanded}
+        expandedFromDocument
+        showList={showList}
+        onShowListChange={handleShowListChange}
+      >
+        …
+      </Navigator>
+    </>
+  )
+```
+
+   `router.push` (not `replace`), so the browser's Back undoes "show the list".
+4. Sections: every section with sub-items gets a `Secondary` (D15) and its
+   `href` (Step 1). Components is searchable and grouped by category:
 
 ```tsx
             <Navigator.Item
-              key={sectionPrefix}
-              value={sectionPrefix}
+              key={section.href}
+              value={section.href}
               href={section.href}
-              icon={SECTION_ICONS[sectionPrefix] ?? <HouseIcon />}
+              icon={SECTION_ICONS[section.href] ?? <HouseIcon />}
             >
               {section.title}
-              {sectionPrefix === '/components' ? (
+              {section.href === '/components' ? (
                 <Navigator.Secondary aria-label='Components' searchable>
                   {componentCategories.map((category) => (
                     <Navigator.Group key={category.name}>
@@ -4522,44 +5147,55 @@ export function useExpandedCookie() {
             </Navigator.Item>
 ```
 
-   `Children.forEach` flattens the mapped arrays, so the walk still sees each
-   `Navigator.Group` and `Navigator.Item` by reference.
-5. Pinned: Appearance keeps `placement='pinned'` (Task 2), followed by
-   `<Navigator.ExpandToggle placement='pinned' />` as the last child.
-6. Detail pane: `current={pathname !== '/components' || showAppearance}` —
-   `/components` is the empty-state landing, so the generated list is the top
-   of the stack there (D8). Delete the `backHref` — Navigator supplies Back
-   (D7). Keep `Pane.Actions` with the On-this-page drawer.
-7. Fix the comment at ≈330-332 (Components now has a Secondary) and ≈356-357
-   (panes register; they aren't matched by identity).
+   The routeless `sectionPrefix` derivation (≈311-316) goes: every section now
+   has a route, so `NavigationSection.href` becomes required and is the value. `Children.forEach` flattens
+   the mapped arrays, so the walk still sees each Group and Item by reference.
+5. Pinned, written last (Task 2 warns otherwise): the Appearance item
+   (`placement='pinned'`), then `<Navigator.ExpandToggle placement='pinned' />`.
+6. The Brand wordmark keeps `group-data-[expanded=false]/rail:hidden` and adds
+   its pre-hydration twin
+   `[html[data-navigator-expanded=true]_[data-expanded-from-document]_&]:inline`.
+7. Detail pane: always `current` — Navigator puts the list on top on a section
+   route and when `?nav` is set. Delete the `backHref` — Navigator links Back
+   to the section route. Keep `Pane.Actions` with the On-this-page drawer.
+8. Delete the comments at ≈330-332 and ≈356-357 (both describe code that no
+   longer exists); add none.
 
-- [ ] **Step 3: The `/components` landing and thumbnails**
-
-`docs/src/app/components/page.tsx`: the description becomes
-"Browse the list, or search it by name." Then:
+- [ ] **Step 5: The landing thumbnails**
 
 ```bash
 grep -rn "ComponentSkeleton\|ComponentThumbnail" docs/src
 ```
 
-Expected: only `ComponentSkeleton.tsx` itself. `git rm docs/src/components/ComponentSkeleton.tsx`.
+Expected: only `ComponentSkeleton.tsx` itself.
+`git rm docs/src/components/ComponentSkeleton.tsx`.
 
-- [ ] **Step 4: Verify**
+- [ ] **Step 6: Verify**
 
-`pnpm typecheck && pnpm lint`. With the dev server on 9614, at 1440×900:
-`/components/button` shows the rail, the Components list pane (searchable,
-grouped, Button marked current) and the detail; typing "inp" filters to Input.
-`/foundations/colors` shows the Foundations list pane. Toggle ExpandToggle,
-reload: the rail comes back expanded after one collapsed frame (D14). At
-390×844: the Components tab lands on the list at `/components`; tapping a row
-pushes the page with Back; Back returns to the list.
+`pnpm typecheck && pnpm lint`. With the dev server on 9614:
 
-- [ ] **Step 5: Commit**
+- 1440×900: `/components/button` shows the rail, the Components list (grouped,
+  searchable, Button current) and the page; "inp" filters to Input.
+  `/foundations` shows the Foundations list beside its empty state.
+- Toggle ExpandToggle, reload with the cache disabled and the network throttled
+  to "Slow 4G": the very first paint is already expanded — no collapsed frame.
+  Collapse, reload: first paint collapsed.
+- 390×844: tapping Components lands on `/components` with the list on top. Tap
+  a row → the page pushes with a Back link to `/components`. On the page, tap
+  the Components tab → the URL becomes `/components/button?nav` and the list
+  covers the page with Button marked current; browser Back → the page again.
+  Tap Get started → `/` shows the Get started list over the home page (see
+  "Settled questions", item 1).
+- No console warnings from Navigator (routeless sections, pinned order).
+
+- [ ] **Step 7: Commit**
 
 ```bash
 git add docs/src/components/Navigation.tsx docs/src/components/useExpandedCookie.ts \
-  docs/src/app/components/page.tsx docs/src/components/ComponentSkeleton.tsx
-git commit -m "docs: build the docs navigation on section panes, pinned items and the expanded rail"
+  docs/src/components/NavListQuery.tsx docs/src/app/layout.tsx \
+  docs/src/app/foundations/page.tsx docs/src/app/components/page.tsx \
+  docs/src/components/ComponentSkeleton.tsx
+git commit -m "docs: build the docs navigation on section routes, section panes and the expanded rail"
 ```
 
 ---
@@ -4606,7 +5242,9 @@ same server-component caveat.
 Re-read `.changeset/navigator-list.md` (Task 0) against what shipped and add a
 last paragraph naming the parts: "`Navigator.Menu`/`MenuItem`,
 `Navigator.ExpandToggle`, `Navigator.OverflowPane`/`OverflowItems`,
-`Navigator.SecondaryPane`/`SecondaryItems`." Navigator and Pane are unreleased,
+`Navigator.SecondaryPane`/`SecondaryItems`; `showList`/`onShowListChange` to
+show a section's list from the URL; `expandedFromDocument` with
+`getNavigatorExpandedScript` from `@oztix/roadie-core/navigator`." Navigator and Pane are unreleased,
 so there is no migration note.
 
 - [ ] **Step 5: Commit**
@@ -4666,25 +5304,38 @@ top-align under the brand, the cluster scrolls while brand and pinned stay put,
 More disappears (nothing folds), the pill tracks full-width rows, tooltips no
 longer appear. Menus still open inline-end of their row.
 
+- [ ] **Step 3b: Expanded before hydration**
+
+With the rail expanded, reload `/foundations/colors` with the cache disabled
+and "Slow 4G" throttling, taking a screenshot as soon as anything paints:
+the first paint shows the expanded rail. Collapse, reload: the first paint is
+collapsed. A Navigator example on `/components/navigator` stays collapsed while
+the site rail is expanded (only `expandedFromDocument` Navigators follow the
+document).
+
 - [ ] **Step 4: 900×900 — rail with stacked panes**
 
 On `/components/button`: rail visible, the Components list pane and the detail
-stack (only the detail visible), Back in the detail header reveals the list;
-tapping a row pushes the detail again. Probe that covered panes report
+stack (only the detail visible); Back in the detail header is a link to
+`/components`, where the list is on top; tapping a row pushes the detail again. Probe that covered panes report
 `getComputedStyle(pane).visibility === 'hidden'`.
 
 - [ ] **Step 5: 1600×900 — columns**
 
 List pane, detail and (from `2xl`, 1536) the inspector sit side by side; the
-list pane is 24rem; More, when opened, takes the leading column instead of the
-section pane.
+list pane is 24rem; More, when opened from the keyboard (shorten the window
+until it appears, then Tab to it and press Enter), takes the leading column
+instead of the section pane and focus lands on its "More" title; Escape
+returns focus to the More tile.
 
 - [ ] **Step 6: 390×844 — the phone bar**
 
 Icon-only bar, five slots at most, More shows the ellipsis, the pinned item is a
-circle on the trailing edge, badges are corner dots. Tap Components → the list
-pane is the tab root; tap a row → detail pushes with Back; tap the active tab →
-back to the list. Scroll the detail → the bar collapses to the active circle
+circle on the trailing edge, badges are corner dots. Tap Components → the URL is
+`/components` and its list pane is on top; tap a row → the detail pushes with a
+Back link to `/components`; tap the active Components tab → the URL gains
+`?nav` and the list covers the page with the row current; browser Back → the
+page; tap the tab again with the list showing → `?nav` is removed. Scroll the detail → the bar collapses to the active circle
 and the pinned circle (D4), and the middle stays transparent to taps (the Phase
 3 `elementFromPoint` probe, `docs/plans/2026-07-28-navigator-phase-3-tab-bar-plan.md`
 Task 1 Step 1). Open a pinned item's menu → it opens above the tab. Open More,
@@ -4723,12 +5374,12 @@ breakpoint's probe output and any by-hand check not done.
 | §1 Small: floating bar, groups flatten, pinned circle, ellipsis More, no ExpandToggle | 2, 9, 10 |
 | §2 Removed: End, `tabs`, Panel, Overflow rename, nested rail, strip | 2, 3, 4, 5 |
 | §2 New: `placement`, `visibilityPriority` | 1, 2 |
-| §2 New: `expanded`/`defaultExpanded`/`onExpandedChange`, `ExpandToggle` | 9 |
+| §2 New: `expanded`/`defaultExpanded`/`onExpandedChange`, `ExpandToggle`; persisted state without a flash | 9, 9B, 14 |
 | §2 New: `searchable`; `SecondaryPane` + `SecondaryItems`; `Menu` + `MenuItem` | 5, 6, 3 |
 | §2 GroupTitle visible expanded / in More, sr-only collapsed | 8, 9, 4 |
 | §3 Ranking pure function; small capacity; large capacity from height; expanded no fold | 1, 2, 8, 9 |
 | §3 Edges: folded Menu row anchors to row; folded current section lights More; ≤5 no More | 3, 8, 2 |
-| §4 Section selection, generated pane, stacking, one pane at a time, no pane without Secondary, override, currency | 5, 6, 7 |
+| §4 Section selection, generated pane, stacking, one pane at a time, no pane without Secondary, override, currency; section routes, Back link, `showList` | 5, 6, 7, 14 |
 | §4 Menu behaviour, anchoring, never navigates, Secondary wins | 3 |
 | §5 Colour, duotone, More/Expand icons, pop-tap, AGENTS exception | 10, 9, 15 |
 | §5 Pill everywhere | 10 |
@@ -4740,18 +5391,35 @@ breakpoint's probe output and any by-hand check not done.
 | Docs-site migration | 14 |
 | Testing: unit, browser per breakpoint, by hand | every task; 16 |
 
-## Open questions for the user
+## Settled questions
 
-1. **D7 (Back reveals the list as state, not a URL)** breaks the "URL is the
-   only source of truth for depth" rule for sections without a landing route.
-   The alternative is to require every sectioned item to have a landing route
-   whose page renders no current detail pane. Confirm D7.
-2. **D14** — accept one collapsed frame before hydration for returning expanded
-   users on the static docs, or add a pre-hydration script that sets
-   `data-navigator-expanded` on `<html>` with CSS keyed off it (more code in the
-   docs, none in Roadie)?
-3. **D2** — should a pinned item authored before cluster items dev-warn, given
-   the spec says tab order follows source order?
-4. **D5** — the More pane keeps DOM-last order (stack correctness) at the cost of
-   tab order at `lg`. Acceptable, or move it DOM-first and teach the stack that
-   an open disclosure is always the top?
+The user answered the four open questions on 2026-09-12; the decisions above
+and the tasks now carry the answers. What was decided in carrying them out —
+review before implementation starts:
+
+1. **Every section has a route (D7).** On the section route the list pane is
+   on top on stacked layouts, whatever the consumer's detail pane says, so the
+   docs detail pane is simply always `current`. Consequence: the docs home page
+   (`/`) is Get started's section route, so on a phone the Get started list
+   covers the home page content. If that's unwanted, give Get started its own
+   route (e.g. `/overview`) and keep `/` outside any section.
+2. **Section memory retires for sectioned items (D7a).** A section tab always
+   links to its route; memory only retargets items without a Secondary.
+3. **Routeless sections still work, with a dev warning (D7b)**, rather than
+   failing — no Back is supplied for them.
+4. **`showList` / `onShowListChange` (D7c).** Opt-in: without the callback, the
+   active section tab links to the section route; with it, the tab asks for the
+   list over the current page. Selecting a row clears it by navigating. The
+   docs name the parameter `nav` and use `router.push`, so browser Back undoes
+   it. `useSearchParams` sits in its own `<Suspense>` leaf so the docs stay
+   prerendered.
+5. **The pre-hydration script lives at `@oztix/roadie-core/navigator` (D14)**,
+   a new subpath beside `/theme` rather than inside it. The rail's collapsed
+   classes gain long arbitrary-variant twins keyed on
+   `<html data-navigator-expanded>`, scoped to Navigators that opt in with
+   `expandedFromDocument`, and Navigator writes that attribute on every change
+   after mount. It is the most intricate part of the plan (Task 9B).
+6. **Pinned-first warning (D2)** covers pinned Items, Groups and a pinned
+   ExpandToggle.
+7. **More pane focus (D5)** goes to its `Pane.Title` (or the pane when it has
+   none) on open; Escape returns focus to whichever More control opened it.
