@@ -1514,6 +1514,29 @@ describe('Navigator mobile tab bar', () => {
     await flushViewportMeasurement()
   })
 
+  // The tab is the section, not the page — the pane's list row is the page,
+  // and two elements announcing "current page" is one too many.
+  it('marks a tab active through a sub-page as the current section', async () => {
+    const { container } = render(
+      <Navigator value='/foundations/layout'>
+        <Navigator.Primary aria-label='Primary'>
+          <Navigator.Item value='/discover' href='/discover'>
+            Discover
+          </Navigator.Item>
+          <Navigator.Item value='/foundations' href='/foundations'>
+            Foundations
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    const bar = within(tabBarOf(container) as HTMLElement)
+    expect(bar.getByRole('link', { name: 'Foundations' })).toHaveAttribute(
+      'aria-current',
+      'true'
+    )
+    await flushViewportMeasurement()
+  })
+
   it('folds the tail into a final More tab', async () => {
     const { container } = render(sixItemsAndEnd)
     const bar = within(tabBarOf(container) as HTMLElement)

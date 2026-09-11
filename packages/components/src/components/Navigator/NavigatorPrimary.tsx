@@ -584,6 +584,7 @@ export function NavigatorPrimary({
                   active
                 )}
                 active={visualActive}
+                isPage={isActiveValue(tab.value, activeValue)}
                 collapsed={collapsed}
                 circleSide={isLeftCircle ? 'left' : undefined}
                 index={tabIndex}
@@ -624,6 +625,10 @@ export function NavigatorPrimary({
                     soleFolded?.panel
                       ? openPanel === soleFolded.value
                       : foldedIsActive && !disclosureOpen
+                  }
+                  isPage={
+                    soleFolded !== undefined &&
+                    isActiveValue(soleFolded.value, activeValue)
                   }
                   collapsed={collapsed}
                   circleSide='right'
