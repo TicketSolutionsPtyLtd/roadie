@@ -295,6 +295,11 @@ function zoneOffset(date: Date, timeZone: string): string | null {
  * is for a spreadsheet cell and deliberately has no offset, which makes it
  * wrong for `datetime` because a reader cannot tell which 7:30pm it was.
  *
+ * Seconds are always `00`, deliberately. The attribute is the machine-readable
+ * equivalent of the text beside it, and the text never shows seconds, so a
+ * truer value here would disagree with what the reader can see. Where the exact
+ * instant matters more than the pairing, carry it separately.
+ *
  * Prefer the DateTime component, which sets this for you.
  */
 export function formatMachine(

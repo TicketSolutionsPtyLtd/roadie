@@ -1,0 +1,100 @@
+/* ═══════════════════════════════════════════════════════════
+   Calendar Tile
+   The calendar tile. See /foundations/date-and-time.
+
+   Mirrors the <CalendarTile> React component so server-rendered templates get
+   the identical tile without React. Pair with intent-* + emphasis-* utilities,
+   exactly as the component does. The tile owns the surface; the two rows take
+   their colours from it.
+
+     <div class="calendar-tile intent-accent emphasis-subtle" aria-hidden="true">
+       <span class="calendar-tile-top">NOV</span>
+       <span class="calendar-tile-day">27</span>
+     </div>
+
+   Radius defaults to xl; override with any rounded-* utility.
+
+   The tile carries a month and a day, never a year. Whatever sits beside it
+   owns the full date.
+
+   PARITY: the size, radius and emphasis matrices here must match
+   packages/components/src/components/CalendarTile/index.tsx. Changing one
+   without the other is how a server-rendered tile drifts from a React one.
+   ═══════════════════════════════════════════════════════════ */
+
+@utility calendar-tile {
+  display: inline-grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+  text-align: center;
+  line-height: 1;
+  width: calc(var(--spacing) * 12);
+  height: calc(var(--spacing) * 12);
+  border-radius: var(--radius-xl);
+}
+
+@utility calendar-tile-sm {
+  width: calc(var(--spacing) * 10);
+  height: calc(var(--spacing) * 10);
+}
+
+@utility calendar-tile-lg {
+  width: calc(var(--spacing) * 14);
+  height: calc(var(--spacing) * 14);
+}
+
+@utility calendar-tile-top {
+  padding-block: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: var(--intent-bg-strong);
+  color: var(--intent-text-inverted);
+
+  /* These are the colours of emphasis-strong, and of emphasis-normal below,
+     which is what the React component applies. The presets also set a
+     transparent border and a rim highlight; both are invisible on an inner
+     band, so they are left out rather than duplicated here.
+
+     On a strong tile the body already carries the saturated fill, so the band
+     inverts: a light cap over a saturated body. The light step is bg-normal,
+     not bg-subtle, because the subtle steps are alpha and would composite back
+     over the fill underneath. */
+  .emphasis-strong > & {
+    background-color: var(--intent-bg-normal);
+    color: var(--intent-text-normal);
+  }
+
+  /* The box scales, so the type scales with it. */
+  .calendar-tile-sm > & {
+    font-size: 9px;
+  }
+
+  .calendar-tile-lg > & {
+    font-size: 11px;
+  }
+}
+
+@utility calendar-tile-day {
+  display: grid;
+  place-content: center;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--intent-text-subtle);
+
+  /* The React component gets this by inheritance, because its root variant
+     sets the foreground per emphasis. A template applies emphasis-* itself, so
+     there is nothing to inherit from and the rule has to be explicit. */
+  .emphasis-strong > & {
+    color: var(--intent-text-inverted);
+  }
+
+  .calendar-tile-sm > & {
+    font-size: var(--text-base);
+  }
+
+  .calendar-tile-lg > & {
+    font-size: var(--text-xl);
+  }
+}

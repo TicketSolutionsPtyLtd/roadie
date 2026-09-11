@@ -178,6 +178,9 @@ importers:
 
   packages/components:
     dependencies:
+      '@number-flow/react':
+        specifier: 0.6.2
+        version: 0.6.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@oztix/roadie-core':
         specifier: workspace:*
         version: link:../core

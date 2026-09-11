@@ -39,6 +39,10 @@
       "types": "./dist/components/Button/index.d.ts",
       "import": "./dist/components/Button/index.js"
     },
+    "./calendar-tile": {
+      "types": "./dist/components/CalendarTile/index.d.ts",
+      "import": "./dist/components/CalendarTile/index.js"
+    },
     "./card": {
       "types": "./dist/components/Card/index.d.ts",
       "import": "./dist/components/Card/index.js"
@@ -55,9 +59,21 @@
       "types": "./dist/components/Combobox/index.d.ts",
       "import": "./dist/components/Combobox/index.js"
     },
+    "./countdown": {
+      "types": "./dist/components/Countdown/index.d.ts",
+      "import": "./dist/components/Countdown/index.js"
+    },
+    "./date-time": {
+      "types": "./dist/components/DateTime/index.d.ts",
+      "import": "./dist/components/DateTime/index.js"
+    },
     "./dialog": {
       "types": "./dist/components/Dialog/index.d.ts",
       "import": "./dist/components/Dialog/index.js"
+    },
+    "./duration": {
+      "types": "./dist/components/Duration/index.d.ts",
+      "import": "./dist/components/Duration/index.js"
     },
     "./empty-state": {
       "types": "./dist/components/EmptyState/index.d.ts",
@@ -178,6 +194,7 @@
     "react-dom": "^19.0.0"
   },
   "dependencies": {
+    "@number-flow/react": "0.6.2",
     "@oztix/roadie-core": "workspace:*",
     "embla-carousel": "9.0.0-rc03",
     "embla-carousel-autoplay": "9.0.0-rc03",
