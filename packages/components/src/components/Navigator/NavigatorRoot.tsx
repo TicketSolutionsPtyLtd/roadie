@@ -2,6 +2,7 @@
 
 import {
   Children,
+  type ReactElement,
   type ReactNode,
   isValidElement,
   useCallback,
@@ -23,7 +24,12 @@ import {
   type NavigatorContextValue,
   type NavigatorOverflowSets
 } from './NavigatorContext'
-import type { NavigatorSlotMeta } from './NavigatorPrimary'
+import {
+  NavigatorPrimary,
+  type NavigatorPrimaryProps,
+  type NavigatorSlotMeta
+} from './NavigatorPrimary'
+import { findActiveSection } from './activeSection'
 import { type SectionMemory, nextMemory } from './sectionMemory'
 import { navigatorRootVariants } from './variants'
 
@@ -107,7 +113,7 @@ export function NavigatorRoot({
   const [navCollapsed, setNavCollapsed] = useState(false)
   const [primaryNav, setPrimaryNav] = useState<PanePrimaryNav>('auto')
   const [pinExpanded, setPinExpanded] = useState(false)
-  const [activeSection, setActiveSection] =
+  const [publishedSection, setActiveSection] =
     useState<NavigatorActiveSection | null>(null)
   const [overflowOpen, setOverflowOpen] = useState(false)
   // A new destination from anywhere, Back included, leaves More.
@@ -146,15 +152,29 @@ export function NavigatorRoot({
   }, [])
 
   // A walk, not a child registration, which raced Primary's "no host" warning on first commit.
-  const hasContent = useMemo(() => {
-    let found = false
+  const { hasContent, primary } = useMemo(() => {
+    let hasContent = false
+    let primary: ReactElement<NavigatorPrimaryProps> | undefined
     Children.forEach(children, (child) => {
-      if (isValidElement(child) && child.type === NavigatorContent) {
-        found = true
+      if (!isValidElement(child)) return
+      if (child.type === NavigatorContent) hasContent = true
+      if (child.type === NavigatorPrimary) {
+        primary ??= child as ReactElement<NavigatorPrimaryProps>
       }
     })
-    return found
+    return { hasContent, primary }
   }, [children])
+
+  // During render, not from Primary's effect, so the server renders the section's list pane.
+  const derivedSection = useMemo(
+    () =>
+      primary === undefined
+        ? undefined
+        : findActiveSection(primary.props.children, value),
+    [primary, value]
+  )
+  const activeSection =
+    derivedSection === undefined ? publishedSection : derivedSection
 
   // Ref, not state: read imperatively on tap, never rendered.
   const activePaneScroller = useRef<(() => void) | null>(null)

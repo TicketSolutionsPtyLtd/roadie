@@ -8,7 +8,8 @@ import type { PanePrimaryNav, PaneRole } from './variants'
 export type PaneStackPosition = 'top' | 'ahead' | 'behind'
 
 // Orchestrator bookkeeping only: which panes the orchestrator generated or owns.
-export type PaneKind = 'pane' | 'section' | 'overflow' | 'generated-overflow'
+export type PaneKind =
+  'pane' | 'section' | 'generated-section' | 'overflow' | 'generated-overflow'
 
 export type PaneRegistration = {
   role: PaneRole
@@ -20,7 +21,8 @@ export type PaneRegistration = {
 export type PaneStackContextValue = {
   register: (id: string, node: HTMLElement, entry: PaneRegistration) => void
   unregister: (id: string) => void
-  positionOf: (id: string) => PaneStackPosition | null
+  /** `entry` places a pane that has not registered yet, as in the server render. */
+  positionOf: (id: string, entry: PaneRegistration) => PaneStackPosition | null
   chromeOf: (id: string) => PaneChromeContextValue
   /** Is this the base of the stack — the one pane a Close would never suit. */
   isRootOf: (id: string) => boolean

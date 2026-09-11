@@ -23,7 +23,7 @@ export function NavigatorSectionPane({
   const { label, secondary } = section
 
   return (
-    <PaneKindContext value='section'>
+    <PaneKindContext value='generated-section'>
       <PaneRoot role='list' data-navigator-section={section.value}>
         <PaneHeader>
           <PaneTitle>{label}</PaneTitle>
