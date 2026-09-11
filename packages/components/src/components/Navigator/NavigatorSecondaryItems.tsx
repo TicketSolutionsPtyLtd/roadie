@@ -58,7 +58,6 @@ export function NavigatorSecondaryItems({
       }
       trailing={props.badge}
       href={props.href}
-      chevron={false}
       current={isActiveValue(props.value, value) && 'page'}
       onClick={() => {
         setValue(props.value)
