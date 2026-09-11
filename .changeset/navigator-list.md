@@ -5,7 +5,7 @@
 Add `Navigator` and `Pane`, the application frame.
 
 `Navigator` is one navigation model at every size: icon-only floating capsules
-down the side of the screen from `md` (brand on top, pinned items at the bottom, an
+down the side of the screen from `md` (a brand linking home on top, pinned items at the bottom, an
 optional expanded state with labels), and a floating tab bar below it. Items
 declare `placement` and `visibilityPriority`; whatever doesn't fit folds into
 a More pane. A section's sub-pages open in a generated list pane, optionally

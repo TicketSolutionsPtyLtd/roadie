@@ -899,6 +899,10 @@ describe('collapsed labels', () => {
     render(<Six />)
     await flushViewportMeasurement()
     await user.tab()
+    expect(
+      within(region('brand')).getByRole('link', { name: 'Logo' })
+    ).toHaveFocus()
+    await user.tab()
     const tile = within(region('cluster')).getByRole('link', { name: '/a' })
     expect(tile).toHaveFocus()
     expect(tile).not.toHaveAttribute('aria-label')

@@ -254,6 +254,7 @@ export const navigatorGroupTitleTextVariants = cva(['min-h-0 overflow-hidden'])
 // states. The rest fades in once the toggle has crossed its row; `starting:`
 // covers a wordmark that was `display: none`.
 export const navigatorBrandVariants = cva([
+  'is-interactive rounded-xl',
   'grid grid-flow-col grid-cols-[minmax(3rem,auto)] auto-cols-[minmax(0,1fr)] items-center justify-start justify-items-start gap-2 py-1 ps-1',
   '[&>:first-child]:justify-self-center',
   '[&>:not(:first-child)]:opacity-0 navigator-expanded:[&>:not(:first-child)]:opacity-100',
