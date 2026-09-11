@@ -529,8 +529,9 @@ render(<PriorityNav />)
 
 #### Compose the More pane yourself
 
-More opens a list pane — pushed over the stack on a phone, the leading column
-beside your detail from `lg`. Choosing any destination closes it: a row, a
+More opens a list pane — over the stack on a phone, switching in place like
+any tab rather than sliding, the leading column beside your detail from `lg`.
+Choosing any destination closes it: a row, a
 primary item or tab, or a new `value` from your router, like Back. Omit it and `Navigator.Content` generates one
 titled "More"; declare `Navigator.OverflowPane` with `Navigator.OverflowItems`
 inside to write your own header or add content around the rows.
@@ -1057,7 +1058,7 @@ Both belong to [`Pane`](/components/pane) rather than to Navigator, so they are
 documented there. The two facts worth knowing from here:
 
 - **Below `lg` panes stack**, full-bleed, one visible at a time, and push/pop
-  between them animates. Which pane is on top is derived from the deepest pane
+  between them animates. Opening or closing More switches instantly. Which pane is on top is derived from the deepest pane
   marked `current` — declare it, and the arrangement follows.
 - **`Navigator.Content` is the orchestrator.** Panes announce themselves to
   the nearest `Navigator.Content` through context, wherever they sit in its
