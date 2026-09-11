@@ -56,7 +56,10 @@ docs site built on them, and this redesign.
 ### Large screens, expanded — a remembered user toggle
 
 - Capsules widen to show labels beside icons.
-- The cluster **top-aligns** under the brand.
+- The brand left-aligns on the rows' icon column.
+- The cluster **stays centred** between brand and pinned, so toggling never
+  moves it vertically. Only when it outgrows that space does it top-align and
+  scroll.
 - Brand stays top and pinned stays bottom; only the cluster between them
   scrolls (`ScrollArea`). Nothing overflows into More while expanded.
 

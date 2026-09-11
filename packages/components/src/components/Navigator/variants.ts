@@ -55,7 +55,7 @@ export const navigatorPrimaryVerticalVariants = cva([
 ])
 
 export const navigatorPrimaryBrandVariants = cva([
-  'grid justify-items-center px-3'
+  'grid justify-items-center px-3 navigator-expanded:justify-items-stretch'
 ])
 
 // Takes the height left between brand and pinned, so the cluster centres there.
@@ -66,10 +66,12 @@ export const navigatorPrimaryClusterViewportVariants = cva([
   'relative size-full'
 ])
 
-// `min-h-full` + `content-center` centres a short cluster; py-2 keeps capsule shadows off the clip edge.
+// `min-h-full` + `content-center` centres a short cluster and top-aligns a tall
+// one, since the grid then grows past the viewport; py-2 keeps capsule shadows
+// off the clip edge.
 export const navigatorPrimaryClusterContentVariants = cva([
   'grid min-h-full content-center justify-items-center gap-3 px-3 py-2',
-  'navigator-expanded:content-start navigator-expanded:justify-items-stretch'
+  'navigator-expanded:justify-items-stretch'
 ])
 
 export const navigatorPrimaryPinnedVariants = cva([
@@ -216,8 +218,10 @@ export const navigatorGroupTitleVariants = cva([
   'navigator-expanded:not-sr-only navigator-expanded:px-3 navigator-expanded:pb-1'
 ])
 
+// Expanded `px-4` = a capsule's `p-1` + an item's `px-3`, so the brand starts on the icon column.
 export const navigatorBrandVariants = cva([
-  'flex items-center justify-center gap-2 py-1'
+  'flex items-center justify-center gap-2 py-1',
+  'navigator-expanded:justify-start navigator-expanded:px-4'
 ])
 
 export const navigatorItemTrailingVariants = cva(['flex items-center gap-2'])
