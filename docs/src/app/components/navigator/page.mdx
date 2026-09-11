@@ -61,12 +61,13 @@ more [`Pane`](/components/pane)s, each of which owns its own scroll.
 The vertical navigation has three regions, top to bottom: `Navigator.Brand`, the
 cluster of capsules, and the pinned items. Each `Navigator.Group` is a capsule;
 consecutive loose items share one. Collapsed, the cluster centres between brand
-and pinned and shows icon tiles labelled by a tooltip. Expanded, it top-aligns,
-shows labels beside the icons and scrolls on its own.
+and pinned and shows icon tiles labelled by a tooltip. Expanded, it stays
+centred and shows labels beside the icons; only when it outgrows the space does
+it top-align and scroll on its own.
 
 `Navigator.Brand` is large-screen only — the tab bar has no brand slot. It
-centres a mark while collapsed; hide a wordmark until the navigation expands
-with `hidden navigator-expanded:inline`.
+centres a mark while collapsed and left-aligns it on the icon column once
+expanded; hide a wordmark until then with `hidden navigator-expanded:inline`.
 
 Navigator is always **controlled** — the active `value` belongs to your
 router. The examples below hold it in `useState` to stay self-contained. The

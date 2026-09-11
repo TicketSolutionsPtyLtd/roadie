@@ -374,6 +374,20 @@ function Expandable(props: {
   )
 }
 
+function BrandedExpandable({ expanded }: { expanded: boolean }) {
+  return (
+    <Navigator value='/a' expanded={expanded}>
+      <Navigator.Primary aria-label='Main'>
+        <Navigator.Brand>Logo</Navigator.Brand>
+        <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
+          Alpha
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Navigator.Content />
+    </Navigator>
+  )
+}
+
 describe('expanded vertical navigation', () => {
   it('toggles, uncontrolled, with a labelled button that controls the vertical navigation', async () => {
     const user = userEvent.setup()
@@ -471,6 +485,41 @@ describe('expanded vertical navigation', () => {
     expect(classes).toContain('navigator-expanded:w-60')
     expect(classes).toContain('navigator-expanded:not-sr-only')
     expect(classes).not.toMatch(/\[html\[|data-\[expanded|expanded=false/)
+  })
+
+  it('left-aligns the brand only while expanded', async () => {
+    const scope = `:where(${NAVIGATOR_EXPANDED_SCOPE})`
+    const { rerender } = render(<BrandedExpandable expanded={false} />)
+    await flushViewportMeasurement()
+    const brand = region('brand').querySelector<HTMLElement>(
+      '[data-slot="navigator-brand"]'
+    )!
+    expect(region('brand')).toHaveClass(
+      'justify-items-center',
+      'navigator-expanded:justify-items-stretch'
+    )
+    expect(brand).toHaveClass(
+      'justify-center',
+      'navigator-expanded:justify-start',
+      'navigator-expanded:px-4'
+    )
+    expect(brand.matches(scope)).toBe(false)
+    rerender(<BrandedExpandable expanded />)
+    expect(brand.matches(scope)).toBe(true)
+  })
+
+  it('centres the cluster in both states', async () => {
+    const { rerender } = render(<Expandable expanded={false} />)
+    await flushViewportMeasurement()
+    const content = () =>
+      region('cluster').querySelector<HTMLElement>(
+        '[data-slot="scroll-area-content"]'
+      )!
+    for (const expanded of [false, true]) {
+      rerender(<Expandable expanded={expanded} />)
+      expect(content()).toHaveClass('min-h-full', 'content-center')
+      expect(content().className).not.toMatch(/content-start/)
+    }
   })
 
   it('folds nothing while expanded', async () => {
