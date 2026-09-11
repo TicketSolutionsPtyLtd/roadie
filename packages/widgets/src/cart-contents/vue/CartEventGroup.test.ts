@@ -41,6 +41,68 @@ describe('CartEventGroup', () => {
     expect(getByText('Free')).toBeTruthy()
   })
 
+  // The Vue and React skins render through one formatter, so these assertions
+  // are what would catch the two drifting apart.
+  describe('formatted strings', () => {
+    const withTimes = {
+      eventStartAtUtc: '2026-11-27T09:30:00Z',
+      eventEndAtUtc: '2026-11-27T13:00:00Z',
+      eventDateKey: '2026-11-27',
+      eventTimeZone: 'Australia/Brisbane'
+    }
+
+    it('joins a time range with the word to, never a dash', () => {
+      const { getByText } = render(CartEventGroup, {
+        props: {
+          event: makeEvent(withTimes),
+          locale: 'en-AU',
+          currency: 'AUD'
+        }
+      })
+      expect(getByText('7:30pm to 11pm')).toBeTruthy()
+    })
+
+    it('names the later day on a multi-day range', () => {
+      const { getByText } = render(CartEventGroup, {
+        props: {
+          event: makeEvent({
+            ...withTimes,
+            eventEndAtUtc: '2026-11-29T13:00:00Z',
+            eventEndDateKey: '2026-11-29'
+          }),
+          locale: 'en-AU',
+          currency: 'AUD'
+        }
+      })
+      expect(getByText('7:30pm to Sun 29 Nov, 11pm')).toBeTruthy()
+    })
+
+    it('collapses a seat run with a hyphen, not an en dash', () => {
+      const { getByText } = render(CartEventGroup, {
+        props: {
+          event: makeEvent({
+            tickets: [
+              {
+                name: 'GA',
+                quantity: 4,
+                priceEach: 25,
+                seats: [
+                  { section: 'A', row: '12', seat: '1' },
+                  { section: 'A', row: '12', seat: '2' },
+                  { section: 'A', row: '12', seat: '3' },
+                  { section: 'A', row: '12', seat: '4' }
+                ]
+              }
+            ]
+          }),
+          locale: 'en-AU',
+          currency: 'AUD'
+        }
+      })
+      expect(getByText(/1-4/)).toBeTruthy()
+    })
+  })
+
   it('renders the event + venue names', () => {
     const { getByText } = render(CartEventGroup, {
       props: { event: makeEvent(), locale: 'en-AU', currency: 'AUD' }

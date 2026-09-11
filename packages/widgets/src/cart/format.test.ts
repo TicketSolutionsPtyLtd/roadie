@@ -64,10 +64,13 @@ describe('formatTime', () => {
         })
       ).toBe('5am')
     })
-    it('falls back to browser-local (no throw) for an invalid tz id', () => {
+    // An unusable zone renders nothing rather than the browser's own time. A
+    // plausible time in the wrong zone is the silent wrong answer the standard
+    // exists to prevent; an empty slot is at least visible.
+    it('renders nothing, without throwing, for an invalid tz id', () => {
       const date = new Date(2026, 0, 1, 19, 30)
       expect(() => formatTime(date, { timeZone: 'Not/AZone' })).not.toThrow()
-      expect(formatTime(date, { timeZone: 'Not/AZone' })).toBe(formatTime(date))
+      expect(formatTime(date, { timeZone: 'Not/AZone' })).toBe('')
     })
   })
 })
@@ -132,7 +135,7 @@ describe('formatEventSchedule', () => {
     ).toBe('7pm')
   })
 
-  it('shows start – finish for a same-day finish time', () => {
+  it('shows start to finish for a same-day finish time', () => {
     expect(
       formatEventSchedule(
         {
@@ -142,7 +145,7 @@ describe('formatEventSchedule', () => {
         },
         opts
       )
-    ).toBe('7pm – 11pm')
+    ).toBe('7pm to 11pm')
   })
 
   it('adds the end date for a multi-day run', () => {
@@ -155,7 +158,7 @@ describe('formatEventSchedule', () => {
       },
       opts
     )
-    expect(out).toMatch(/^6:30pm – /)
+    expect(out).toMatch(/^6:30pm to /)
     expect(out).toContain('Oct')
     expect(out).toContain('4')
     expect(out).toMatch(/9pm$/)
@@ -173,7 +176,7 @@ describe('formatEventSchedule', () => {
   describe('with eventTimeZone (venue-local times)', () => {
     // Absolute instants (Z) + an explicit venue tz → runner-tz-independent.
     it('renders same-day start/finish in the venue tz', () => {
-      // 09:00–13:00 UTC = 19:00–23:00 Brisbane (UTC+10).
+      // 09:00 to 13:00 UTC = 19:00 to 23:00 Brisbane (UTC+10).
       expect(
         formatEventSchedule(
           {
@@ -184,7 +187,7 @@ describe('formatEventSchedule', () => {
           },
           opts
         )
-      ).toBe('7pm – 11pm')
+      ).toBe('7pm to 11pm')
     })
 
     it('threads the venue tz through the multi-day branch', () => {
@@ -199,21 +202,43 @@ describe('formatEventSchedule', () => {
         },
         opts
       )
-      expect(out).toMatch(/^6:30pm – /)
+      expect(out).toMatch(/^6:30pm to /)
       expect(out).toContain('Oct')
       expect(out).toMatch(/9pm$/)
     })
 
-    it('falls back to browser-local for an invalid tz (no throw)', () => {
-      // Local-naive start + bogus tz → fallback parses local wall-clock = 7pm,
-      // independent of the runner tz.
+    // A half-built range is worse than none: ' to ' is truthy, so both skins
+    // render an empty separator where a schedule should be.
+    it('renders nothing rather than a bare separator when the zone fails', () => {
+      const sameDay = {
+        eventStartAtUtc: '2026-11-27T09:30:00Z',
+        eventEndAtUtc: '2026-11-27T13:00:00Z',
+        eventDateKey: '2026-11-27',
+        eventTimeZone: 'Bogus/Zone'
+      }
+      expect(formatEventSchedule(sameDay, opts)).toBe('')
+      expect(
+        formatEventSchedule(
+          {
+            ...sameDay,
+            eventEndAtUtc: '2026-11-29T13:00:00Z',
+            eventEndDateKey: '2026-11-29'
+          },
+          opts
+        )
+      ).toBe('')
+    })
+
+    // Same contract as formatTime: an unusable zone yields no time, never a
+    // browser-local one dressed as the venue's.
+    it('renders no time, without throwing, for an invalid tz', () => {
       const event = {
         eventStartAtUtc: '2026-10-03T19:00:00',
         eventDateKey: '2026-10-03',
         eventTimeZone: 'Bogus/Zone'
       }
       expect(() => formatEventSchedule(event, opts)).not.toThrow()
-      expect(formatEventSchedule(event, opts)).toBe('7pm')
+      expect(formatEventSchedule(event, opts)).toBe('')
     })
 
     // Forcing the runner tz proves the time is the VENUE's, not the runner's:
@@ -257,7 +282,7 @@ describe('formatSeatRange', () => {
         { section: 'Stalls', row: 'B', seat: '11' },
         { section: 'Stalls', row: 'B', seat: '12' }
       ])
-    ).toBe('Stalls B11–12')
+    ).toBe('Stalls B11-12')
   })
 
   it('handles a section without a row', () => {
@@ -271,7 +296,7 @@ describe('formatSeatRange', () => {
         { row: 'B', seat: '12' },
         { row: 'B', seat: '15' }
       ])
-    ).toBe('B11–12, 15')
+    ).toBe('B11-12, 15')
   })
 
   it('collapses a gap of 1 but splits a gap of 2', () => {
@@ -281,7 +306,7 @@ describe('formatSeatRange', () => {
         { row: 'A', seat: '2' },
         { row: 'A', seat: '4' }
       ])
-    ).toBe('A1–2, 4')
+    ).toBe('A1-2, 4')
   })
 
   it('joins separate section/row groups with a middle dot', () => {
@@ -291,7 +316,7 @@ describe('formatSeatRange', () => {
         { section: 'Stalls', row: 'B', seat: '12' },
         { section: 'Mezzanine', row: 'M', seat: '3' }
       ])
-    ).toBe('Stalls B11–12 · Mezzanine M3')
+    ).toBe('Stalls B11-12 · Mezzanine M3')
   })
 
   it('sorts unordered numeric seats before collapsing', () => {
@@ -301,7 +326,7 @@ describe('formatSeatRange', () => {
         { row: 'A', seat: '1' },
         { row: 'A', seat: '2' }
       ])
-    ).toBe('A1–3')
+    ).toBe('A1-3')
   })
 
   it('falls back to a comma list for non-integer labels', () => {
@@ -321,6 +346,6 @@ describe('formatSeatRange', () => {
         { section: 'Stalls', row: 'B', seat: '11' },
         { section: 'Stalls', row: 'B', seat: '12' }
       ])
-    ).toBe('Stalls B11–12')
+    ).toBe('Stalls B11-12')
   })
 })
