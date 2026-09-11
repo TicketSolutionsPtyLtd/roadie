@@ -306,6 +306,9 @@ export function DocsNavigator({
                 value={section.href}
                 href={section.href}
                 icon={SECTION_ICONS[section.href] ?? <HouseIcon />}
+                visibilityPriority={
+                  section.href === '/tokens' ? 'low' : undefined
+                }
               >
                 {section.title}
                 {section.href === '/components' ? (
