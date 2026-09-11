@@ -1001,7 +1001,7 @@ function WithBadge(props: { defaultExpanded?: boolean }) {
           href='/inbox'
           icon={<FakeIcon />}
           badge={
-            <Badge intent='danger' emphasis='strong'>
+            <Badge intent='danger' emphasis='strong' className='consumer-badge'>
               3 unread
             </Badge>
           }
@@ -1043,18 +1043,26 @@ describe('badges', () => {
     render(<WithBadge />)
     await flushViewportMeasurement()
     const tile = within(region('cluster')).getByRole('link', { name: /Inbox/ })
-    expect(dotOf(tile)).toHaveClass('size-2.5', 'absolute', 'end-1', 'top-1')
+    expect(dotOf(tile)).toHaveClass(
+      'size-2.5',
+      'absolute',
+      'end-1',
+      'top-1',
+      'consumer-badge'
+    )
     expect(within(tile).getByText('3 unread')).toHaveClass('sr-only')
     expect(tile).toHaveAccessibleName('Inbox 3 unread')
   })
 
-  it('trails the label as declared when expanded', async () => {
+  it('trails the label at the small size when expanded, keeping its className', async () => {
     render(<WithBadge defaultExpanded />)
     await flushViewportMeasurement()
     const tile = within(region('cluster')).getByRole('link', { name: /Inbox/ })
     const badge = within(tile).getByText('3 unread')
     expect(badge).not.toHaveClass('sr-only')
     expect(badge).not.toHaveClass('absolute')
+    expect(badge).toHaveClass('text-xs', 'px-2', 'consumer-badge')
+    expect(badge).not.toHaveClass('text-sm')
     expect(badge.parentElement).toHaveAttribute(
       'data-slot',
       'navigator-item-trailing'
@@ -1124,6 +1132,7 @@ describe('badges', () => {
     const pane = document.querySelector('[data-slot="pane"][id]') as HTMLElement
     const row = within(pane).getByRole('link', { name: /Inbox/ })
     expect(within(row).getByText('3 unread')).not.toHaveClass('sr-only')
+    expect(within(row).getByText('3 unread')).toHaveClass('text-sm')
     expect(row).toHaveAccessibleName(/3 unread/)
   })
 
