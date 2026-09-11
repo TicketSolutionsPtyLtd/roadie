@@ -318,6 +318,21 @@ export {
 } from './components/Popover'
 
 export {
+  Tooltip,
+  tooltipPopupVariants,
+  type TooltipProps,
+  type TooltipProviderProps,
+  type TooltipTriggerProps,
+  type TooltipPortalProps,
+  type TooltipPositionerProps,
+  type TooltipPopupProps,
+  type TooltipArrowProps,
+  type TooltipContentProps,
+  type TooltipEmphasis,
+  type TooltipSide
+} from './components/Tooltip'
+
+export {
   Dialog,
   dialogPopupVariants,
   type DialogProps,
