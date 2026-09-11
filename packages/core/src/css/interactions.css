@@ -31,6 +31,16 @@
     --field-focus-bg: var(--color-accent-1);
   }
 
+  /* A raised trigger's rim is a resting highlight. Once a state colours the
+     border, the border is the edge, and the rim inside it shows as a white
+     gap. */
+  &:hover,
+  &:focus,
+  &[aria-invalid='true'],
+  &[data-popup-open] {
+    --rim-light-strong: 0 0 #0000;
+  }
+
   /* Hover — neutral tint */
   &:hover {
     background-color: var(--field-hover-bg);
@@ -120,6 +130,16 @@
   .dark & {
     --field-hover-bg: var(--color-neutral-2);
     --field-focus-bg: var(--color-accent-1);
+  }
+
+  /* A raised trigger's rim is a resting highlight. Once a state colours the
+     border, the border is the edge, and the rim inside it shows as a white
+     gap. */
+  &:hover,
+  &:focus-within,
+  &[aria-invalid='true'],
+  &[data-popup-open] {
+    --rim-light-strong: 0 0 #0000;
   }
 
   /* Hover — neutral tint */

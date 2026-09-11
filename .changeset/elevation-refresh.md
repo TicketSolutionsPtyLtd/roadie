@@ -36,3 +36,5 @@ rather than recesses.
 The `Select` trigger drops its solid `border-normal`: the raised shadow's
 hairline now draws its edge, and a solid border beside it read as a double
 outline. Its open state uses the same fill as a focused field.
+While a field state colours its border, `is-interactive-field` switches off
+the raised rim light, which otherwise showed as a white gap inside the border.
