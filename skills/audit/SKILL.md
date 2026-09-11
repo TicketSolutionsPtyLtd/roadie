@@ -321,6 +321,26 @@ For each match, check whether a Tailwind utility exists:
 
 **Note:** Dynamic values from JS (e.g., `style={{ width: calculatedWidth }}`) are legitimate. Only flag styles that have static Tailwind equivalents.
 
+#### F3. Hand-rolled field surface [Warning]
+
+A text field built from parts instead of `emphasis-field`. The old recipe,
+`emphasis-sunken border border-subtle`, stacks a grey border on an inset
+shadow and reads muddy. Server templates need it as much as JSX does —
+`emphasis-field` is plain CSS precisely so they can use it — so widen this
+check's glob to `*.{tsx,jsx,vue,cshtml,razor,html}`.
+
+```
+emphasis-sunken[^"'\n]*border|border[^"'\n]*emphasis-sunken|is-interactive-field
+```
+
+For `is-interactive-field` hits, flag the ones without `emphasis-field` on the
+same element. A select trigger pairing it with `emphasis-raised` is correct.
+Roadie's own `Input`, `Textarea`, `Combobox` and `Autocomplete` already use it.
+
+**Fix:** `emphasis-field is-interactive-field` on the field (or
+`is-interactive-field-group` on a composite's wrapper), and drop any `border`,
+`border-*` and `inset-shadow-*` classes on it.
+
 ---
 
 ### Group G: Setup
@@ -683,6 +703,7 @@ the `iso` style, which has no offset and uses a space rather than a `T`.
 | `style={{ flexGrow: 1 }}` | `grow` | F2 |
 | `<div onClick={...}>` | `<button onClick={...}>` | E5 |
 | `hover:bg-* + focus:ring-*` on button | `is-interactive` | F1 |
+| `emphasis-sunken border border-subtle` on a field | `emphasis-field` | F3 |
 | `toLocaleDateString()` in JSX | `<DateTime at={d} timeZone={tz} />` | H1 |
 | `toLocaleDateString()` outside JSX | `formatLong(d, { timeZone })` | H1 |
 | `{formatLong(d, o)}` in JSX | `<DateTime at={d} timeZone={tz} />` | H7 |
@@ -722,6 +743,7 @@ Run independent checks in parallel by issuing multiple Grep calls in a single me
 - E2: `colorPalette=`
 - E4: `Select\.Portal|Select\.Positioner|Select\.Popup`
 - F2: `style=\{\{`
+- F3: `emphasis-sunken[^"'\n]*border|border[^"'\n]*emphasis-sunken|is-interactive-field` (then check each field for `emphasis-field`)
 
 **Batch 4** (dates and times):
 - H1: `toLocale(Date|Time)?String|Intl\.DateTimeFormat|\.format\(['"]`
