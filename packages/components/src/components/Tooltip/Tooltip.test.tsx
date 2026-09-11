@@ -94,7 +94,8 @@ describe('Tooltip', () => {
     expect(trigger).not.toHaveAttribute('aria-describedby')
   })
 
-  it('groups tooltips under a Provider', () => {
+  it('opens a grouped neighbour instantly, without the scale-in', async () => {
+    const user = userEvent.setup()
     render(
       <Tooltip.Provider delay={0}>
         <Tooltip>
@@ -107,7 +108,35 @@ describe('Tooltip', () => {
         </Tooltip>
       </Tooltip.Provider>
     )
-    expect(screen.getByRole('button', { name: 'One' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Two' })).toBeInTheDocument()
+    await user.hover(screen.getByRole('button', { name: 'One' }))
+    const first = await screen.findByText('First')
+    expect(first).not.toHaveAttribute('data-instant')
+
+    await user.hover(screen.getByRole('button', { name: 'Two' }))
+    const second = await screen.findByText('Second')
+    expect(second).toHaveAttribute('data-instant', 'delay')
+    expect(second).toHaveClass('data-[instant]:transition-none')
+  })
+
+  it('places the arrow on logical edges so inline sides flip in RTL', async () => {
+    render(
+      <Tooltip defaultOpen>
+        <Tooltip.Trigger>Home</Tooltip.Trigger>
+        <Tooltip.Content side='inline-start'>
+          <Tooltip.Arrow />
+          Home page
+        </Tooltip.Content>
+      </Tooltip>
+    )
+    await screen.findByText('Home page')
+    const arrow = document.querySelector('[data-slot="tooltip-arrow"]')
+    const classes = [...(arrow?.classList ?? [])]
+    const inlineRules = classes.filter((c) => c.includes('side=inline-'))
+    expect(inlineRules.some((c) => /:(left|right)-/.test(c))).toBe(false)
+    expect(
+      classes.some((c) => c.startsWith('data-[side=inline-start]:end-'))
+    ).toBe(true)
+    expect(classes).toContain('rtl:data-[side=inline-start]:-rotate-90')
+    expect(classes).toContain('rtl:data-[side=inline-end]:rotate-90')
   })
 })

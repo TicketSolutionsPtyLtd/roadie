@@ -11,7 +11,8 @@ export type TooltipArrowProps = TooltipPrimitive.Arrow.Props &
 
 // Popover.Arrow's geometry (see its comment for the offsets), smaller. The
 // open path strokes only the slanted edges, so the floating surface's rim
-// carries onto the arrow. The inline-* offsets assume LTR.
+// carries onto the arrow. Base UI keeps inline-* sides logical, so those
+// use logical insets and flip their rotation in RTL.
 export function TooltipArrow({ className, ...props }: TooltipArrowProps) {
   return (
     <TooltipPrimitive.Arrow
@@ -22,8 +23,8 @@ export function TooltipArrow({ className, ...props }: TooltipArrowProps) {
         'data-[side=top]:bottom-[calc(1px-var(--arrow-h))] data-[side=top]:rotate-180',
         'data-[side=left]:right-[calc(1px-(var(--arrow-w)+var(--arrow-h))/2)] data-[side=left]:rotate-90',
         'data-[side=right]:left-[calc(1px-(var(--arrow-w)+var(--arrow-h))/2)] data-[side=right]:-rotate-90',
-        'data-[side=inline-start]:right-[calc(1px-(var(--arrow-w)+var(--arrow-h))/2)] data-[side=inline-start]:rotate-90',
-        'data-[side=inline-end]:left-[calc(1px-(var(--arrow-w)+var(--arrow-h))/2)] data-[side=inline-end]:-rotate-90',
+        'data-[side=inline-start]:end-[calc(1px-(var(--arrow-w)+var(--arrow-h))/2)] data-[side=inline-start]:rotate-90 rtl:data-[side=inline-start]:-rotate-90',
+        'data-[side=inline-end]:start-[calc(1px-(var(--arrow-w)+var(--arrow-h))/2)] data-[side=inline-end]:-rotate-90 rtl:data-[side=inline-end]:rotate-90',
         className
       )}
       {...props}
