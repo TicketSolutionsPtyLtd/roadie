@@ -146,6 +146,7 @@
    invalid fills still win, so it keeps reading as a field. */
 @utility is-translucent {
   --translucent-fill: 85%;
+  --translucent-backdrop: blur(12px);
 
   .dark & {
     --translucent-fill: 88%;
@@ -160,16 +161,15 @@
         var(--intent-bg-raised) var(--translucent-fill),
         transparent
       );
-      -webkit-backdrop-filter: blur(12px);
-      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: var(--translucent-backdrop);
+      backdrop-filter: var(--translucent-backdrop);
     }
   }
 
   @media (prefers-reduced-transparency: reduce) {
     &:is(&) {
       --translucent-fill: 100%;
-      -webkit-backdrop-filter: none;
-      backdrop-filter: none;
+      --translucent-backdrop: none;
     }
   }
 }
