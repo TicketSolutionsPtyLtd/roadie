@@ -158,7 +158,8 @@ export function NavigatorPrimary({
   }, [nests, setHasNesting])
 
   useEffect(() => {
-    if (!overflowOpen) return
+    // An open menu is the topmost layer; its own Escape closes it first.
+    if (!overflowOpen || openMenu !== null) return
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return
       setOverflowOpen(false)
@@ -166,7 +167,7 @@ export function NavigatorPrimary({
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [overflowOpen, setOverflowOpen, overflowOpener])
+  }, [overflowOpen, openMenu, setOverflowOpen, overflowOpener])
 
   useEffect(() => {
     setSecondaryNav(

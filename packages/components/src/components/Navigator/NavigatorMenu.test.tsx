@@ -1,4 +1,10 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -424,6 +430,76 @@ describe('Navigator.Menu', () => {
     await user.click(await screen.findByRole('menuitem', { name: 'Sign out' }))
     await waitForMenuToClose()
     expect(more).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('closes only the topmost layer on each Escape', async () => {
+    const user = userEvent.setup()
+    render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          {['/a', '/b', '/c', '/d', '/e'].map((v) => (
+            <Navigator.Item key={v} value={v} href={v}>
+              {v}
+            </Navigator.Item>
+          ))}
+          <Navigator.Item value='account' visibilityPriority='low'>
+            Account
+            <Navigator.Menu>
+              <Navigator.MenuItem>Sign out</Navigator.MenuItem>
+            </Navigator.Menu>
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content />
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const more = within(horizontal()).getByRole('button', { name: 'More' })
+    await user.click(more)
+    const pane = document.querySelector('[data-slot="pane"][id]') as HTMLElement
+    const row = within(pane).getByRole('button', { name: 'Account' })
+    await user.click(row)
+    await screen.findByRole('menu')
+
+    await user.keyboard('{Escape}')
+    await waitForMenuToClose()
+    expect(more).toHaveAttribute('aria-expanded', 'true')
+    expect(row).toHaveFocus()
+
+    await user.keyboard('{Escape}')
+    expect(more).toHaveAttribute('aria-expanded', 'false')
+    expect(more).toHaveFocus()
+  })
+
+  it('leaves More open when Escape closes a menu from outside it', async () => {
+    const user = userEvent.setup()
+    render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          {['/a', '/b', '/c', '/d', '/e'].map((v) => (
+            <Navigator.Item key={v} value={v} href={v}>
+              {v}
+            </Navigator.Item>
+          ))}
+          <Navigator.Item value='account' visibilityPriority='low'>
+            Account
+            <Navigator.Menu>
+              <Navigator.MenuItem>Sign out</Navigator.MenuItem>
+            </Navigator.Menu>
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content />
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const more = within(horizontal()).getByRole('button', { name: 'More' })
+    await user.click(more)
+    const pane = document.querySelector('[data-slot="pane"][id]') as HTMLElement
+    await user.click(within(pane).getByRole('button', { name: 'Account' }))
+    await screen.findByRole('menu')
+
+    fireEvent.keyDown(document.body, { key: 'Escape' })
+    await waitForMenuToClose()
+    expect(more).toHaveAttribute('aria-expanded', 'true')
   })
 
   it('keeps Secondary and warns when an item declares both', async () => {
