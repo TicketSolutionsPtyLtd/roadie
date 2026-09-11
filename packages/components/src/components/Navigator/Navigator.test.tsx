@@ -1109,8 +1109,8 @@ describe('Navigator mobile tab bar', () => {
       '[data-slot="navigator-primary-track"]'
     )!
     const bar = within(track)
-    expect(bar.getAllByRole('button')).toHaveLength(5)
-    expect(bar.queryByText('E')).toBeNull()
+    expect(bar.getAllByRole('button')).toHaveLength(4)
+    expect(bar.queryByText('D')).toBeNull()
     expect(bar.getByRole('button', { name: 'More' })).toBeTruthy()
     await flushViewportMeasurement()
   })
@@ -1239,7 +1239,7 @@ describe('Navigator mobile tab bar', () => {
     const { container } = render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
-          {['/a', '/b', '/c', '/d', '/e'].map((v) => (
+          {['/a', '/b', '/c', '/d'].map((v) => (
             <Navigator.Item key={v} value={v} href={v} icon={<FakeIcon />}>
               {v}
             </Navigator.Item>

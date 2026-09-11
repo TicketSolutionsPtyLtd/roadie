@@ -96,7 +96,7 @@ that are server-safe on their own. See `docs/contributing/COMPOUND_PATTERNS.md`
 
 A handful of destinations and an Account item with `placement='pinned'`.
 Pinned items sit at the bottom of the vertical navigation and in the phone bar's
-trailing circle.
+trailing circle, which counts as one of the bar's five slots.
 
 ```tsx-live-noinline
 function ConsumerNav() {
@@ -461,14 +461,15 @@ render(<GroupedNav />)
 
 ### Visibility priority
 
-Whatever doesn't fit folds into More — on a phone past five slots, on a large
-screen when the window is too short. Priority decides membership, never order.
+Whatever doesn't fit folds into More — on a phone past five slots, the pinned
+circle included, on a large screen when the window is too short. Priority decides membership, never order.
 
 `visibilityPriority` is `'low'`, `'automatic'` or `'high'`, on an item or a
 group (an item's own wins). Items rank by priority, ties by source order, and
-the kept items render in source order. On a phone the bar keeps every item when
-there are five or fewer items, otherwise the top four plus More; the first
-pinned item takes the trailing circle and further pinned items fold into More.
+the kept items render in source order. On a phone the bar holds five slots and
+the first pinned item's trailing circle takes one of them: every item fits when
+there are few enough, otherwise the top four plus More — three beside the
+circle. Further pinned items fold into More.
 Nothing folds while the vertical navigation is expanded — the cluster scrolls
 instead. Here Orders
 and Messages keep their place on the phone bar; on a large screen all eight fit

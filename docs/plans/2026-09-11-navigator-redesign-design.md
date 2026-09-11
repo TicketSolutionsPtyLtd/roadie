@@ -161,10 +161,10 @@ group's, else `automatic`. Rank by priority, ties by source order. Priority
 decides *membership*, never *order*: kept items always render in source order.
 A capsule whose items all fold disappears.
 
-**Small screens — fixed capacity.** The capsule holds five slots: all items if
-five or fewer fit, otherwise the top four by rank plus More. The first pinned
-item takes the trailing circle outside the five; further pinned items fold
-into More.
+**Small screens — fixed capacity.** The bar holds five slots: all items if
+they fit, otherwise the top four by rank plus More. The first pinned item's
+trailing circle takes one of the five (so three plus More beside it); further
+pinned items fold into More.
 
 **Large screens, collapsed — capacity from height.** Tile and gap sizes are
 fixed tokens, so capacity is arithmetic on the height between brand and
@@ -180,7 +180,7 @@ vertical navigation — the same model as a section pane. Rows keep their groups
 - A folded `Menu` item's row opens its menu anchored to the row.
 - If the current section has folded, the More tile reads active and the
   section's pane still opens.
-- Five or fewer items on small screens: no More.
+- Five or fewer items on small screens (four with a pinned circle): no More.
 
 The ranking is a pure function beside `deriveMobileSlots`, tested directly.
 
