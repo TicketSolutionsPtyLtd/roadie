@@ -37,6 +37,7 @@ export function FooterNav({ items }: FooterNavProps) {
   )
 
   const currentIndex = flatNav.findIndex((item) => item.href === pathname)
+  if (currentIndex === -1) return null
 
   const prev = currentIndex > 0 ? flatNav[currentIndex - 1] : undefined
   const next =

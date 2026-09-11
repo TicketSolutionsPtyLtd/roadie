@@ -13,6 +13,7 @@ import {
 } from '@/lib/component-manifest'
 import { getAssetPath } from '@/utils/getAssetPath'
 
+import { getNavigatorExpandedScript } from '@oztix/roadie-core/navigator'
 import { getThemeScript } from '@oztix/roadie-core/theme'
 
 import './globals.css'
@@ -99,12 +100,12 @@ async function getNavigationItems() {
 
   const navigationItems: {
     title: string
-    href?: string
+    href: string
     items: { title: string; href?: string; label?: boolean }[]
   }[] = [
     {
       title: 'Get started',
-      href: '/',
+      href: '/get-started',
       items: [
         philosophyMetadata
           ? {
@@ -139,11 +140,10 @@ async function getNavigationItems() {
     }
   ]
 
-  // No /foundations index route — Navigator.Item routes a section with no
-  // href to its first sub-page.
   if (foundationPages.length > 0) {
     navigationItems.push({
       title: 'Foundations',
+      href: '/foundations',
       items: foundationPages
     })
   }
@@ -277,6 +277,9 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{
             __html: getThemeScript({ followSystem: true })
           }}
+        />
+        <script
+          dangerouslySetInnerHTML={{ __html: getNavigatorExpandedScript() }}
         />
       </head>
       <body className='isolate'>

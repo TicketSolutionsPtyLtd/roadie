@@ -16,7 +16,7 @@ export default function ComponentsPage() {
       </EmptyState.IconTile>
       <EmptyState.Title>Select a component</EmptyState.Title>
       <EmptyState.Description>
-        Browse the list, or filter it by name.
+        Browse the list, or search it by name.
       </EmptyState.Description>
     </EmptyState>
   )
