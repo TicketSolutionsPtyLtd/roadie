@@ -19,7 +19,8 @@ describe('is-translucent', () => {
     expect(css).toContain(
       'color-mix( in oklch, var(--intent-bg-raised) var(--translucent-fill), transparent )'
     )
-    expect(css).toContain('backdrop-filter: blur(12px)')
+    expect(css).toContain('--translucent-backdrop: blur(12px)')
+    expect(css).toContain('backdrop-filter: var(--translucent-backdrop)')
   })
 
   it('goes solid under reduced transparency', async () => {
@@ -28,7 +29,7 @@ describe('is-translucent', () => {
       css.indexOf('@media (prefers-reduced-transparency: reduce)')
     )
     expect(reduced).toContain('--translucent-fill: 100%')
-    expect(reduced).toContain('backdrop-filter: none')
+    expect(reduced).toContain('--translucent-backdrop: none')
   })
 
   it("yields to a field's hover, focus and invalid fills", async () => {
