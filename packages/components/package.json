@@ -131,6 +131,10 @@
       "types": "./dist/components/RadioGroup/index.d.ts",
       "import": "./dist/components/RadioGroup/index.js"
     },
+    "./scroll-area": {
+      "types": "./dist/components/ScrollArea/index.d.ts",
+      "import": "./dist/components/ScrollArea/index.js"
+    },
     "./select": {
       "types": "./dist/components/Select/index.d.ts",
       "import": "./dist/components/Select/index.js"
