@@ -139,6 +139,38 @@
   color: var(--intent-text-normal);
 }
 
+/* Lets what scrolls beneath a raised or floating surface show through its fill.
+   Pairs with emphasis-raised, emphasis-floating or bg-raised and leaves their
+   rim light and shadow alone. The doubled selector outranks the fill it pairs
+   with whichever order Tailwind emits them in. */
+@utility is-translucent {
+  --translucent-fill: 85%;
+
+  .dark & {
+    --translucent-fill: 88%;
+  }
+
+  @supports ((backdrop-filter: blur(0)) or (-webkit-backdrop-filter: blur(0))) {
+    &:is(&) {
+      background-color: color-mix(
+        in oklch,
+        var(--intent-bg-raised) var(--translucent-fill),
+        transparent
+      );
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    &:is(&) {
+      background-color: var(--intent-bg-raised);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+}
+
 @utility emphasis-overlay {
   /* Fixed-dark so it stays a scrim in both themes (the intent scale flips
      light/dark), tinted by the intent hue — neutral ≈ near-black, danger a
