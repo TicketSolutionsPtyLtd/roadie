@@ -25,7 +25,7 @@ import {
 } from '../Pane/PaneStackContext'
 import { PaneTitle } from '../Pane/PaneTitle'
 import { GeneratedOverflowContext } from './GeneratedOverflowContext'
-import { NavigatorContext } from './NavigatorContext'
+import { NavigatorContext, isActiveValue } from './NavigatorContext'
 import { NavigatorOverflowItems } from './NavigatorOverflowItems'
 import { NavigatorOverflowPane } from './NavigatorOverflowPane'
 import { NavigatorSecondaryPane } from './NavigatorSecondaryPane'
@@ -50,11 +50,14 @@ export function NavigatorContent({
   ...props
 }: NavigatorContentProps) {
   const {
+    value,
     setPrimaryNav,
     overflowItems,
     overflowOpen,
     activeSection,
-    declaredSecondaryPanes
+    declaredSecondaryPanes,
+    showList,
+    setStackAtRoot
   } = use(NavigatorContext)
   const chrome = useTopPaneChrome()
 
@@ -85,10 +88,22 @@ export function NavigatorContent({
       ),
     [version, overflowOpen]
   )
-  const positions = useMemo(() => derivePositions(ordered), [ordered])
+  const onSectionRoute =
+    activeSection !== null && isActiveValue(activeSection.value, value)
+  const revealing =
+    activeSection !== null && !overflowOpen && (onSectionRoute || showList)
+  const positions = useMemo(
+    () => derivePositions(ordered, revealing),
+    [ordered, revealing]
+  )
   const topIndex = positions.indexOf('top')
   const topId = topIndex === -1 ? null : (ordered[topIndex]?.id ?? null)
   const rootIndex = useMemo(() => deriveRootIndex(ordered), [ordered])
+
+  const atRoot = topIndex === rootIndex
+  useEffect(() => {
+    setStackAtRoot(atRoot)
+  }, [atRoot, setStackAtRoot])
 
   // A ref keeps the lookups stable; closing over fresh arrays would loop pane registration.
   const latest = useRef({ ordered, positions, topId, rootIndex })

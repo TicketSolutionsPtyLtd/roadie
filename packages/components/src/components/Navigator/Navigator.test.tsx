@@ -2288,9 +2288,11 @@ describe('Navigator.Menu + Navigator.Secondary precedence', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(withBoth('/a'))
     await flushViewportMeasurement()
-    expect(warn).toHaveBeenCalledTimes(1)
-    expect(warn.mock.calls[0]?.[0]).toContain("value='/a'")
-    expect(warn.mock.calls[0]?.[0]).toContain('The Menu is ignored')
+    const menuWarnings = warn.mock.calls
+      .map((call) => String(call[0]))
+      .filter((message) => message.includes('The Menu is ignored'))
+    expect(menuWarnings).toHaveLength(1)
+    expect(menuWarnings[0]).toContain("value='/a'")
     warn.mockRestore()
   })
 })
@@ -3507,11 +3509,6 @@ describe('per-section stack memory', () => {
         </Navigator.Item>
         <Navigator.Item value='/tokens' href='/tokens'>
           Tokens
-          <Navigator.Secondary aria-label='Token pages'>
-            <Navigator.Item value='/tokens/color' href='/tokens/color'>
-              Color
-            </Navigator.Item>
-          </Navigator.Secondary>
         </Navigator.Item>
       </Navigator.Primary>
     </Navigator>
@@ -3530,7 +3527,7 @@ describe('per-section stack memory', () => {
     expect(verticalLink('Tokens')).toHaveAttribute('href', '/tokens')
   })
 
-  it('retargets a section you have left to where you left it', async () => {
+  it('retargets a section you have left to the sub-route you left it on', async () => {
     const { rerender } = render(nav('/components'))
     await flushViewportMeasurement()
     rerender(nav('/tokens/color'))
@@ -3546,6 +3543,14 @@ describe('per-section stack memory', () => {
     rerender(nav('/tokens/color'))
     await flushViewportMeasurement()
     expect(verticalLink('Tokens')).toHaveAttribute('href', '/tokens')
+  })
+
+  it('never retargets a section that declares a Secondary', async () => {
+    const { rerender } = render(nav('/components/button'))
+    await flushViewportMeasurement()
+    rerender(nav('/tokens'))
+    await flushViewportMeasurement()
+    expect(verticalLink('Components')).toHaveAttribute('href', '/components')
   })
 
   it('never changes which pane is top', async () => {

@@ -2,20 +2,15 @@
 
 import { createContext } from 'react'
 
-// The seams between a pane and an orchestrator: the pane reports where it is
-// scrolled, and hands back a way to scroll it.
-//
-// `Pane` defines it and renders whatever it holds; it never fills it. That
-// one-way dependency is what lets `Pane` work with no `Navigator` present, and
-// it keeps `Navigator -> Pane` a single direction with no module cycle.
+// Pane defines this seam and never fills it, so Navigator -> Pane stays one-way.
 export type PaneChromeContextValue = {
   onViewportScroll: (scrollTop: number) => void
   registerScroller: (scroller: (() => void) | null) => void
+  /** An orchestrator's Back link — the section route above a sub-page. The header's own `backHref` and `onBack` still win. */
+  backHref?: string
 }
 
-// Also what an orchestrator hands every pane that is not the top of the stack.
-// An inert reporter is the top-pane gate expressed as data, so a covered pane
-// cannot write shared nav state — no DOM walk, no breakpoint reading.
+// Also what a covered pane gets, so it cannot write shared nav state.
 export const PANE_CHROME_NONE: PaneChromeContextValue = {
   onViewportScroll: () => {},
   registerScroller: () => {}

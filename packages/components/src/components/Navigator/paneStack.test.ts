@@ -158,3 +158,29 @@ describe('derivePositions', () => {
     ).toEqual(['top', 'ahead'])
   })
 })
+
+describe('revealRoot', () => {
+  const list = { role: 'list', current: false, primaryNav: 'auto' } as const
+  const detail = { role: 'detail', current: true, primaryNav: 'auto' } as const
+  const inspector = {
+    role: 'inspector',
+    current: false,
+    primaryNav: 'auto'
+  } as const
+
+  it('makes the root the top and everything after it ahead', () => {
+    expect(derivePositions([list, detail], true)).toEqual(['top', 'ahead'])
+  })
+
+  it('skips a leading inspector', () => {
+    expect(derivePositions([inspector, list, detail], true)).toEqual([
+      null,
+      'top',
+      'ahead'
+    ])
+  })
+
+  it('changes nothing when off', () => {
+    expect(derivePositions([list, detail])).toEqual(['behind', 'top'])
+  })
+})

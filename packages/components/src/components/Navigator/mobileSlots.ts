@@ -21,6 +21,8 @@ export type NavigatorSlotMeta = {
   label: ReactNode
   icon?: ReactNode
   href?: string
+  /** The item's own `href`; `href` falls back to the first sub-page. */
+  declaredHref?: string
   /** The item's menu, when it declares one. A menu item never navigates. */
   menu?: ReactElement<NavigatorMenuProps>
   /** The section's landing value — itself if routed, else its first sub-page. */

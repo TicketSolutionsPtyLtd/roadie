@@ -986,6 +986,31 @@ describe('orchestrator chrome', () => {
     await scrollViewport(80, flush)
     expect(onViewportScroll).not.toHaveBeenCalled()
   })
+
+  it('draws a Back link from orchestrator chrome, never a Close', async () => {
+    await withChrome(
+      <Pane role='detail'>
+        <Pane.Header />
+      </Pane>,
+      { backHref: '/section' }
+    )
+    const back = screen.getByLabelText('Back')
+    expect(back.tagName).toBe('A')
+    expect(back).toHaveAttribute('href', '/section')
+    expect(screen.queryByLabelText('Close')).toBeNull()
+  })
+
+  it("lets a consumer's onBack outrank the orchestrator's link", async () => {
+    await withChrome(
+      <Pane role='detail'>
+        <Pane.Header onBack={() => {}} />
+      </Pane>,
+      { backHref: '/section' }
+    )
+    const back = screen.getByLabelText('Back')
+    expect(back.tagName).toBe('BUTTON')
+    expect(back).not.toHaveAttribute('href')
+  })
 })
 
 describe('Pane.Search', () => {
@@ -1100,7 +1125,7 @@ describe('pane registration through a wrapper', () => {
       frames.push(callback)
     )
     render(
-      <Navigator value='/foundations'>
+      <Navigator value='/foundations/colors'>
         <Navigator.Primary aria-label='Main'>
           <Navigator.Item value='/foundations' href='/foundations'>
             Foundations

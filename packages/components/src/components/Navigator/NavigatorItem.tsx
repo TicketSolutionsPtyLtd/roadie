@@ -75,12 +75,9 @@ export function NavigatorItem({
   const isBranch = !menu && isBranchActive(value, descendants, active)
   // `data-current` drives the pill. An open menu takes it.
   const hasPill = menuOpen || (openMenu === null && isBranch)
-  const targetHref = rememberedHref(
-    sectionMemory,
-    value,
-    effectiveHref,
-    isBranch
-  )
+  const targetHref = isSection
+    ? effectiveHref
+    : rememberedHref(sectionMemory, value, effectiveHref, isBranch)
 
   const handleClick = () => {
     setValue(value)

@@ -90,7 +90,9 @@ export function NavigatorPrimary({
     openMenu,
     setOpenMenu,
     sectionMemory,
-    rememberSection
+    rememberSection,
+    showList,
+    onShowListChange
   } = use(NavigatorContext)
   const tabTrackRef = useRef<HTMLDivElement>(null)
   // The viewport, not the `<nav>`: it is what scrolls.
@@ -99,9 +101,10 @@ export function NavigatorPrimary({
   const collected = useMemo(() => collectSlots(children), [children])
   const items = [...collected.automatic, ...collected.pinnedSlots]
 
-  // Only a destination deeper than the branch-active section's landing is worth remembering.
+  // Only an item without a Secondary, deep in an undeclared sub-route, is worth remembering.
   const branchSection = items.find((item) => isSectionActive(item, activeValue))
-  const branchValue = branchSection?.value
+  const branchValue =
+    branchSection?.descendants.length === 0 ? branchSection.value : undefined
   const deepHref =
     branchValue !== undefined && activeValue !== branchValue
       ? activeHref(activeValue, undefined)
@@ -112,7 +115,7 @@ export function NavigatorPrimary({
     rememberSection(branchValue, deepHref)
   }, [branchValue, deepHref, rememberSection])
 
-  const activeSection = useMemo(() => {
+  const activeSection = useMemo<NavigatorActiveSection | null>(() => {
     let active: NavigatorActiveSection | null = null
 
     const visitItem = (child: ReactElement) => {
@@ -200,6 +203,21 @@ export function NavigatorPrimary({
     )
   }, [conflicting])
 
+  const routeless = items
+    .filter(
+      (slot) => slot.descendants.length > 0 && slot.declaredHref === undefined
+    )
+    .map((slot) => slot.value)
+    .join(', ')
+  useEffect(() => {
+    if (!isDev() || routeless === '') return
+    console.warn(
+      `[Roadie] Navigator.Item ${routeless} declares a Navigator.Secondary ` +
+        'but no href. Every section needs its own route: it shows the ' +
+        "section's list pane, and it is where Back goes from a sub-page."
+    )
+  }, [routeless])
+
   const pinnedFirst = collected.pinnedBeforeCluster
   useEffect(() => {
     if (!isDev() || !pinnedFirst) return
@@ -253,8 +271,7 @@ export function NavigatorPrimary({
     )
   }, [foldedWithNoHost])
 
-  // Tapping the active tab: collapsed, it reopens the bar; on the landing, it
-  // scrolls to top; on a sub-page, its href already points up to the landing.
+  // Without `onShowListChange`, a section tab's href already leads up to its route.
   const selectDestination = (
     event: MouseEvent,
     tab: NavigatorSlotMeta,
@@ -272,6 +289,18 @@ export function NavigatorPrimary({
       setNavCollapsed(false)
       return
     }
+    const ownsSection = activeSection?.value === tab.value
+    const onSectionRoute = isActiveValue(tab.value, activeValue)
+    if (ownsSection && onShowListChange && !onSectionRoute) {
+      event.preventDefault()
+      onShowListChange(!showList)
+      return
+    }
+    if (ownsSection && onSectionRoute) {
+      event.preventDefault()
+      scrollActivePaneToTop()
+      return
+    }
     if (isActiveValue(tab.topValue, activeValue)) {
       event.preventDefault()
       scrollActivePaneToTop()
@@ -282,6 +311,11 @@ export function NavigatorPrimary({
       setValue(tab.topValue)
     }
   }
+
+  const tabHref = (tab: NavigatorSlotMeta, active: boolean) =>
+    tab.descendants.length > 0
+      ? tab.href
+      : rememberedHref(sectionMemory, tab.value, tab.href, active)
 
   const renderTab = (tab: NavigatorSlotMeta, tabProps: NavigatorTabProps) =>
     tab.menu ? (
@@ -392,7 +426,7 @@ export function NavigatorPrimary({
             return renderTab(tab, {
               label: tab.label,
               icon: tab.icon,
-              href: rememberedHref(sectionMemory, tab.value, tab.href, active),
+              href: tabHref(tab, active),
               active: active && !disclosureOpen,
               current: active && !overflowOpen,
               isPage: isActiveValue(tab.value, activeValue),
@@ -431,12 +465,7 @@ export function NavigatorPrimary({
             {renderTab(pinnedTab, {
               label: pinnedTab.label,
               icon: pinnedTab.icon,
-              href: rememberedHref(
-                sectionMemory,
-                pinnedTab.value,
-                pinnedTab.href,
-                pinnedIsActive
-              ),
+              href: tabHref(pinnedTab, pinnedIsActive),
               active: pinnedIsActive && !disclosureOpen,
               current: pinnedIsActive && !overflowOpen,
               isPage: isActiveValue(pinnedTab.value, activeValue),

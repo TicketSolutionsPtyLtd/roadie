@@ -8,25 +8,24 @@ export type PaneEntry = {
 }
 
 /**
- * Which declared pane is the top of the stack.
- *
- * The declared pane order **is** the stack; what varies is how deep you are in
- * it. The deepest `current` pane wins, and an `inspector` never participates —
- * it is a column beside the stack or it is nothing.
- *
- * Deliberately band-independent. Whether depth matters at all is a CSS
- * question (stack styling applies only below `lg`), which is what keeps this
- * from becoming a rule expressed in two languages that must be kept in sync —
- * the failure mode of the DOM-reading helper + `:has()` pair this replaces.
+ * Which declared pane is the top of the stack: the deepest `current` pane, or
+ * the root when the orchestrator reveals it — on a section's own route, or
+ * when the app asks for the list (`showList`). An `inspector` never
+ * participates. Band-independent: whether depth matters is CSS's call.
  */
-export function deriveTopIndex(entries: readonly PaneEntry[]): number {
+export function deriveTopIndex(
+  entries: readonly PaneEntry[],
+  revealRoot = false
+): number {
+  if (revealRoot) {
+    const root = deriveRootIndex(entries)
+    if (root !== -1) return root
+  }
   let top = -1
   for (let index = 0; index < entries.length; index += 1) {
     const entry = entries[index]
     if (!entry || entry.role === 'inspector') continue
-    // The floor is the first pane that can hold the top, not index 0 — an
-    // inspector declared first would otherwise take a slot it never occupies
-    // and leave every real pane marked as covered.
+    // A leading inspector must not become the floor.
     if (top === -1 || entry.current) top = index
   }
   return top === -1 ? 0 : top
@@ -70,9 +69,10 @@ export function orderByDocumentPosition<T extends { node: HTMLElement }>(
  * before it is `behind` (already visited). An `inspector` never participates.
  */
 export function derivePositions(
-  entries: readonly PaneEntry[]
+  entries: readonly PaneEntry[],
+  revealRoot = false
 ): (PaneStackPosition | null)[] {
-  const top = deriveTopIndex(entries)
+  const top = deriveTopIndex(entries, revealRoot)
   return entries.map((entry, index) =>
     entry.role === 'inspector'
       ? null
