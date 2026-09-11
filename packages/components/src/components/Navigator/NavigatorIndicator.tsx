@@ -29,7 +29,7 @@ export function NavigatorIndicator({
   hidden = false,
   className
 }: NavigatorIndicatorProps) {
-  const { style, ready } = useSlidingIndicator(trackRef)
+  const { style, ready, settled } = useSlidingIndicator(trackRef)
   const visible = ready && !hidden
 
   return (
@@ -37,6 +37,7 @@ export function NavigatorIndicator({
       aria-hidden='true'
       data-slot='navigator-indicator'
       data-ready={String(ready)}
+      data-settled={String(settled)}
       style={style}
       className={cn(
         navigatorIndicatorVariants({ surface, visible }),

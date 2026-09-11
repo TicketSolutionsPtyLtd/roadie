@@ -716,7 +716,21 @@ describe('destination visuals', () => {
       '[data-slot="navigator-secondary-items"] [data-testid="fake-icon"]'
     )
     expect(icon).toHaveAttribute('data-weight', 'duotone')
-    expect(icon).toHaveClass('size-5')
+    expect(icon).toHaveClass('size-5', 'text-subtle')
+  })
+
+  it('gives idle vertical tiles a hover surface, and the current tile none', async () => {
+    const { container } = render(tree())
+    await flushViewportMeasurement()
+    const tile = (name: string) =>
+      within(
+        container.querySelector<HTMLElement>(
+          '[data-slot="navigator-primary"][data-orientation="vertical"]'
+        )!
+      ).getByRole('link', { name })
+    expect(tile('A')).toHaveAttribute('data-current')
+    expect(tile('A')).not.toHaveClass('hover:bg-subtle')
+    expect(tile('B')).toHaveClass('hover:bg-subtle')
   })
 })
 
@@ -1767,9 +1781,7 @@ describe('Navigator sliding indicator', () => {
   })
 
   // jsdom reports zero rects, so the indicator can never measure a real box.
-  // That is the correct first-paint state and worth pinning: no transition
-  // until a measurement exists, so the pill never slides in from (0,0).
-  it('stays unready while nothing can be measured', async () => {
+  it('stays unready and unsettled while nothing can be measured', async () => {
     const { container } = render(tree('tickets'))
 
     const indicator = container.querySelector(
@@ -1777,27 +1789,9 @@ describe('Navigator sliding indicator', () => {
     )!
 
     expect(indicator).toHaveAttribute('data-ready', 'false')
+    expect(indicator).toHaveAttribute('data-settled', 'false')
     expect(indicator.className).toContain('opacity-0')
     await flushViewportMeasurement()
-  })
-
-  it('slides the tab bar indicator on translate, not on layout properties', async () => {
-    const { container } = render(tree('tickets'))
-    await flushViewportMeasurement()
-
-    const indicator = container.querySelector(
-      '[data-slot="navigator-primary"][data-orientation="horizontal"] [data-slot="navigator-indicator"]'
-    )!
-    const transitions =
-      indicator.className.match(/transition-\[[^\]]+\]/g) ?? []
-    expect(transitions.length).toBeGreaterThan(0)
-    for (const transition of transitions) {
-      expect(transition).toContain('translate')
-      for (const property of ['left', 'top', 'width', 'height']) {
-        expect(transition).not.toContain(property)
-      }
-      expect(transition).not.toContain('transform')
-    }
   })
 
   it('renders a sliding indicator in the vertical navigation', async () => {
@@ -1813,16 +1807,34 @@ describe('Navigator sliding indicator', () => {
     await flushViewportMeasurement()
   })
 
-  it('slides the vertical pill on translate only', () => {
+  const transitionClasses = (classes: string) =>
+    classes.split(' ').filter((name) => /(^|:)\[?transition/.test(name))
+
+  it.each(['vertical', 'horizontal'] as const)(
+    'transitions the %s pill on translate/opacity only, never left/top/width/height',
+    (surface) => {
+      const classes = navigatorIndicatorVariants({ surface, visible: true })
+      expect(transitionClasses(classes)).toEqual([
+        'motion-safe:transition-opacity',
+        'motion-safe:data-[settled=true]:[transition-property:opacity,translate]',
+        'motion-reduce:transition-none'
+      ])
+      expect(classes).toContain('intent-accent')
+    }
+  )
+
+  // The first box after none must not slide: it appears in place and fades in.
+  it('gates the translate transition on data-settled, not data-ready', () => {
     const classes = navigatorIndicatorVariants({
       surface: 'vertical',
       visible: true
     })
-    expect(classes).toContain(
-      'motion-safe:data-[ready=true]:transition-[translate]'
+    const translating = transitionClasses(classes).filter((name) =>
+      name.includes('translate')
     )
-    expect(classes).not.toMatch(/transition-\[[^\]]*(left|top|width|height)/)
-    expect(classes).toContain('intent-accent')
+    expect(translating).toEqual([
+      'motion-safe:data-[settled=true]:[transition-property:opacity,translate]'
+    ])
   })
 })
 

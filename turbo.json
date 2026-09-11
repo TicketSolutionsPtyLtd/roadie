@@ -10,6 +10,7 @@
       "dependsOn": ["^build"],
       "inputs": [
         "src/**/*.{js,jsx,ts,tsx,css,json}",
+        "src/**/*.html",
         "package.json",
         "tsconfig.json"
       ],
@@ -26,6 +27,7 @@
       "dependsOn": ["^build:quiet"],
       "inputs": [
         "src/**/*.{js,jsx,ts,tsx,css,json}",
+        "src/**/*.html",
         "package.json",
         "tsconfig.json"
       ],

@@ -56,9 +56,15 @@ const stubLayout = (
   })
 }
 
+type HarnessState = {
+  style?: Record<string, string>
+  ready: boolean
+  settled: boolean
+}
+
 type HarnessProps = {
   trackRef: RefObject<HTMLDivElement | null>
-  onState?: (state: { style?: Record<string, string>; ready: boolean }) => void
+  onState?: (state: HarnessState) => void
 }
 
 function Harness({ trackRef, onState }: HarnessProps) {
@@ -178,6 +184,69 @@ describe('useSlidingIndicator rect fallback', () => {
     )
 
     expect(captured.ready).toBe(false)
+  })
+
+  it('keeps the last box while unready, so the pill fades out in place', () => {
+    const { trackRef, second } = setup()
+    second.setAttribute('data-current', '')
+    const states: HarnessState[] = []
+    const { rerender } = render(
+      <Harness trackRef={trackRef} onState={(state) => states.push(state)} />
+    )
+    const box = states.at(-1)!.style
+
+    second.removeAttribute('data-current')
+    rerender(
+      <Harness trackRef={trackRef} onState={(state) => states.push(state)} />
+    )
+
+    expect(states.at(-1)).toMatchObject({ ready: false, settled: false })
+    expect(states.at(-1)!.style).toEqual(box)
+  })
+
+  it('settles only after the first box commits, each time the pill appears', () => {
+    const { trackRef, first, second } = setup()
+    const states: HarnessState[] = []
+    const harness = () => (
+      <Harness trackRef={trackRef} onState={(state) => states.push(state)} />
+    )
+    const { rerender } = render(harness())
+    const firstReady = () => states.find((state) => state.ready)!
+
+    first.setAttribute('data-current', '')
+    rerender(harness())
+    expect(firstReady()).toMatchObject({ settled: false })
+    expect(firstReady().style).toMatchObject({ '--active-tab-left': '10px' })
+    expect(states.at(-1)).toMatchObject({ ready: true, settled: true })
+
+    first.removeAttribute('data-current')
+    rerender(harness())
+    expect(states.at(-1)).toMatchObject({ ready: false, settled: false })
+
+    states.length = 0
+    second.setAttribute('data-current', '')
+    rerender(harness())
+    expect(firstReady()).toMatchObject({ settled: false })
+    expect(firstReady().style).toMatchObject({ '--active-tab-left': '100px' })
+    expect(states.at(-1)).toMatchObject({ ready: true, settled: true })
+  })
+
+  it('stays settled while the pill moves within its track', () => {
+    const { trackRef, first, second } = setup()
+    first.setAttribute('data-current', '')
+    const states: HarnessState[] = []
+    const harness = () => (
+      <Harness trackRef={trackRef} onState={(state) => states.push(state)} />
+    )
+    const { rerender } = render(harness())
+    expect(states.at(-1)).toMatchObject({ ready: true, settled: true })
+
+    states.length = 0
+    first.removeAttribute('data-current')
+    second.setAttribute('data-current', '')
+    rerender(harness())
+    expect(states.every((state) => state.settled)).toBe(true)
+    expect(states.at(-1)!.style).toMatchObject({ '--active-tab-left': '100px' })
   })
 })
 

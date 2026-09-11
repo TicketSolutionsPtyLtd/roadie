@@ -234,12 +234,14 @@ export const navigatorItemVariants = cva(
 export const navigatorItemLabelClass =
   'sr-only opacity-0 navigator-expanded:not-sr-only navigator-expanded:truncate navigator-expanded:opacity-100 motion-safe:navigator-expanded:transition-opacity'
 
-// `data-[ready=false]` skips the transition on first paint, so the pill never
-// slides in from (0,0).
+// Opacity always fades; translate slides only once settled, so a pill that
+// appears (or moves between vertical tracks) cross-fades in place.
 export const navigatorIndicatorVariants = cva(
   [
     'pointer-events-none absolute z-0 rounded-full',
-    'motion-safe:data-[ready=true]:duration-slow motion-safe:data-[ready=true]:ease-enter',
+    'motion-safe:transition-opacity motion-safe:duration-slow motion-safe:ease-enter',
+    // Property only: a `transition-*` utility would reset the duration.
+    'motion-safe:data-[settled=true]:[transition-property:opacity,translate]',
     'motion-reduce:transition-none'
   ],
   {
@@ -252,15 +254,13 @@ export const navigatorIndicatorVariants = cva(
           'h-[var(--active-tab-height)]',
           'w-[calc(var(--active-tab-width)+0.5rem)]',
           'translate-x-[calc(var(--active-tab-left)-0.25rem)]',
-          'translate-y-[var(--active-tab-top)]',
-          'motion-safe:data-[ready=true]:transition-[translate]'
+          'translate-y-[var(--active-tab-top)]'
         ].join(' '),
-        // Width and height snap: they change only when the vertical navigation snaps between widths.
+        // Size snaps; it changes only when the navigation snaps widths.
         vertical: [
           'intent-accent bg-[var(--intent-bg-subtle)]',
           'left-0 top-0 h-[var(--active-tab-height)] w-[var(--active-tab-width)]',
-          'translate-x-[var(--active-tab-left)] translate-y-[var(--active-tab-top)]',
-          'motion-safe:data-[ready=true]:transition-[translate]'
+          'translate-x-[var(--active-tab-left)] translate-y-[var(--active-tab-top)]'
         ].join(' ')
       },
       visible: {
