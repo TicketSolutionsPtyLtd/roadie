@@ -68,8 +68,8 @@ interface NavigationSection {
 interface NavigationProps {
   items: NavigationSection[]
   componentCategories: ComponentCategory[]
-  /** Route → page title, from `getPageTitles` — the detail pane header's
-   * only source for the page's `<h1>`. */
+  /** Route → page title, from `getPageTitles`. `Pane.BodyTitle` renders it as
+   * the page's `<h1>`; the header echoes it once collapsed. */
   pageTitles: Record<string, string>
   children: ReactNode
 }

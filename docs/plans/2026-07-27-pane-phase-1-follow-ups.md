@@ -80,7 +80,7 @@ are recorded because the plan text still says otherwise.
   [`docs/brainstorms/2026-07-27-cart-drawer-prompt.md`](../brainstorms/2026-07-27-cart-drawer-prompt.md).
 - **Interactive edge-swipe back.** The largest remaining gap between the stack's
   motion and a native push/pop, and not something CSS transitions can express.
-  `packages/components/src/utils/paneMotion.ts` is kept for this;
-  `animatePaneTransform` currently has no consumer.
+  `paneMotion.ts` was deleted when the branch dropped `motion`, so this now
+  needs its own implementation.
 - **iOS collapse-on-scroll for `Pane.Header`** — the large title shrinking into a
-  small centred title in the top row. Deferred by request.
+  small centred title in the top row. Landed in Phase 3 as `Pane.BodyTitle`.

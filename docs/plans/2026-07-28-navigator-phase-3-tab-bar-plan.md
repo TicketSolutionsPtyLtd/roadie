@@ -1,5 +1,7 @@
 # Navigator Phase 3 — the tab bar stops animating layout
 
+> **Status (2026-09-11): landed.** All four tasks. Checkboxes below were never ticked; the code is the record.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Remove all three of the mobile tab bar's layout-property animations,

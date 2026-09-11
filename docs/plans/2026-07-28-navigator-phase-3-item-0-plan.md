@@ -1,5 +1,7 @@
 # Navigator Phase 3, item 0: two visible regressions
 
+> **Status (2026-09-11): landed.** Checkboxes below were never ticked; the code is the record.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Fix the two user-visible regressions named as item 0 of
