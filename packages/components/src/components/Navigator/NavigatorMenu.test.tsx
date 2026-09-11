@@ -1,4 +1,5 @@
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -542,5 +543,19 @@ describe('Navigator.Menu', () => {
     expect(warn).toHaveBeenCalledWith(
       expect.stringContaining('The Menu is ignored')
     )
+  })
+
+  it("keeps a tile's tooltip shut while its menu is open", async () => {
+    const user = userEvent.setup()
+    render(<Tree />)
+    await flushViewportMeasurement()
+    const trigger = within(vertical()).getByRole('button', { name: 'Account' })
+    await user.click(trigger)
+    await screen.findByRole('menu')
+    await user.unhover(trigger)
+    await user.hover(trigger)
+    await act(() => new Promise((resolve) => setTimeout(resolve, 1500)))
+    expect(screen.getByRole('menu')).toBeInTheDocument()
+    expect(document.querySelector('[data-slot="tooltip-popup"]')).toBeNull()
   })
 })
