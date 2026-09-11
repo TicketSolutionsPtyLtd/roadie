@@ -415,6 +415,7 @@ export function NavigatorPrimary({
               label={OVERFLOW_LABEL}
               icon={<DotsThreeIcon />}
               active={overflowOpen || (foldedIsActive && !disclosureOpen)}
+              current={overflowOpen || foldedIsActive}
               collapsed={collapsed}
               circleSide={moreCircleSide}
               index={slots.tabs.length}

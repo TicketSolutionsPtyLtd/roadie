@@ -298,6 +298,37 @@ describe('Navigator.Menu', () => {
     expect(more).toHaveAttribute('aria-expanded', 'false')
   })
 
+  it('keeps More announcing a folded current page while a menu is open', async () => {
+    const user = userEvent.setup()
+    render(
+      <Navigator value='/e'>
+        <Navigator.Primary aria-label='Main'>
+          {['/a', '/b', '/c', '/d', '/e'].map((v) => (
+            <Navigator.Item key={v} value={v} href={v}>
+              {v}
+            </Navigator.Item>
+          ))}
+          <Navigator.Item value='account' visibilityPriority='high'>
+            Account
+            <Navigator.Menu>
+              <Navigator.MenuItem>Sign out</Navigator.MenuItem>
+            </Navigator.Menu>
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content />
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const bar = horizontal()
+    const more = within(bar).getByRole('button', { name: 'More' })
+    expect(more).toHaveAttribute('aria-current', 'true')
+    await user.click(within(bar).getByRole('button', { name: 'Account' }))
+    await screen.findByRole('menu')
+    expect(more).not.toHaveAttribute('data-current')
+    expect(more).toHaveAttribute('aria-current', 'true')
+    expect(bar.querySelectorAll('[aria-current]')).toHaveLength(1)
+  })
+
   it("yields the bar's route tab while a tab's menu is open", async () => {
     const user = userEvent.setup()
     render(
