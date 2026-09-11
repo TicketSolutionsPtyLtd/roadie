@@ -6,6 +6,7 @@ import { join } from 'path'
 import { DocsNavigator } from '@/components/Navigation'
 import { Providers } from '@/components/Providers'
 import {
+  METADATA_RE,
   getComponentManifest,
   getPageTitles,
   groupByCategory
@@ -28,9 +29,7 @@ async function getNavigationItems() {
   ): Promise<{ title: string; description: string } | null> {
     try {
       const content = await readFile(filePath, 'utf-8')
-      const metadataMatch = content.match(
-        /export const metadata = ({[\s\S]*?})/m
-      )
+      const metadataMatch = content.match(METADATA_RE)
 
       if (metadataMatch) {
         try {

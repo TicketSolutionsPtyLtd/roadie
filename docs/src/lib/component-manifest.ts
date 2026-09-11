@@ -31,7 +31,7 @@ const APP_DIR = join(process.cwd(), 'src/app')
 // Pages write either `export const metadata = {` or, in TypeScript,
 // `export const metadata: Metadata = {`. Both have to match, or a page
 // silently resolves no title.
-const METADATA_RE =
+export const METADATA_RE =
   /export const metadata(?:\s*:\s*[\w.]+)?\s*=\s*({[\s\S]*?})/m
 
 async function readMetadata(dir: string): Promise<ComponentSummary | null> {
