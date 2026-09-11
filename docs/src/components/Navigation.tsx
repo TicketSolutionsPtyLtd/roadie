@@ -235,7 +235,7 @@ export function DocsNavigator({
   const pathname = usePathname()
   const router = useRouter()
 
-  // Appearance has no route, so `override` only ever holds APPEARANCE_VALUE and clears on navigation.
+  // `override` only ever holds APPEARANCE_VALUE (no route) and clears on nav.
   const [override, setOverride] = useState<string | null>(null)
   const value = override ?? pathname
 
@@ -249,7 +249,13 @@ export function DocsNavigator({
   }, [])
 
   const [expanded, setExpanded] = useExpandedCookie()
-  const [showList, setShowList] = useState(false)
+  const [listState, setListState] = useState({ pathname: '', show: false })
+  const showList = listState.show && listState.pathname === pathname
+  const handleNavListChange = useCallback(
+    (show: boolean, atPathname: string) =>
+      setListState({ pathname: atPathname, show }),
+    []
+  )
   const handleShowListChange = useCallback(
     (next: boolean) => {
       router.push(next ? `${pathname}?${NAV_LIST_PARAM}` : pathname, {
@@ -266,7 +272,7 @@ export function DocsNavigator({
   return (
     <>
       <Suspense fallback={null}>
-        <NavListQuery onChange={setShowList} />
+        <NavListQuery onChange={handleNavListChange} />
       </Suspense>
       <Navigator
         value={value}
