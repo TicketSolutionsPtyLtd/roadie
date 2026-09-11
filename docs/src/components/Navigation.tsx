@@ -3,14 +3,14 @@
 import {
   type MouseEvent,
   type ReactNode,
+  Suspense,
   useCallback,
   useEffect,
-  useMemo,
   useState,
   useSyncExternalStore
 } from 'react'
 
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 import {
   CheckIcon,
@@ -32,16 +32,16 @@ import {
   DEFAULT_ACCENT_COLOR,
   Drawer,
   IconButton,
-  List,
   Navigator,
   Pane,
   useTheme
 } from '@oztix/roadie-components'
 
-import { ComponentThumbnail } from './ComponentSkeleton'
 import { FooterNav } from './FooterNav'
 import { Image } from './Image'
+import { NAV_LIST_PARAM, NavListQuery } from './NavListQuery'
 import { type DocHeadings, OnThisPage, useDocHeadings } from './OnThisPage'
+import { useExpandedCookie } from './useExpandedCookie'
 
 const ACCENT_PRESETS = [
   { label: 'Blue (default)', hex: DEFAULT_ACCENT_COLOR },
@@ -61,7 +61,7 @@ interface NavigationItem {
 
 interface NavigationSection {
   title: string
-  href?: string
+  href: string
   items: NavigationItem[]
 }
 
@@ -74,12 +74,8 @@ interface NavigationProps {
   children: ReactNode
 }
 
-// Icon per top-level section, keyed by the section root href the filesystem
-// walker emits so the mapping stays in sync with getNavigationItems. Values
-// are hrefs — Navigator matches value-equality over the declared tree, and a
-// section is branch-active when the current href is one of its sub-pages.
 const SECTION_ICONS: Record<string, ReactNode> = {
-  '/': <HouseIcon />,
+  '/get-started': <HouseIcon />,
   '/foundations': <CompassIcon />,
   '/tokens': <PaletteIcon />,
   '/components': <CubeIcon />,
@@ -237,219 +233,166 @@ export function DocsNavigator({
   children
 }: NavigationProps) {
   const pathname = usePathname()
-  // Navigator is controlled by a single `value`; the router owns it. The
-  // current pathname is the exact-current destination — its item highlights
-  // and its ancestor section goes branch-active. Sub-page items are authored
-  // directly under Navigator.Secondary (no wrapper component) so the walk
-  // that collects descendant values can see them.
-  const routeValue = pathname
-  const inComponentPage = pathname.startsWith('/components/')
+  const router = useRouter()
 
-  // The appearance destination has no route — it toggles a pane. Everything
-  // else is router-owned, so `override` only ever holds APPEARANCE_VALUE and
-  // clears on any real navigation.
+  // Appearance has no route, so `override` only ever holds APPEARANCE_VALUE and clears on navigation.
   const [override, setOverride] = useState<string | null>(null)
   const value = override ?? pathname
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- clear the appearance pane when the route changes (incl. back/forward)
     setOverride(null)
-  }, [routeValue])
+  }, [pathname])
 
   const handleValueChange = useCallback((next: string) => {
     setOverride(next === APPEARANCE_VALUE ? APPEARANCE_VALUE : null)
   }, [])
 
+  const [expanded, setExpanded] = useExpandedCookie()
+  const [showList, setShowList] = useState(false)
+  const handleShowListChange = useCallback(
+    (next: boolean) => {
+      router.push(next ? `${pathname}?${NAV_LIST_PARAM}` : pathname, {
+        scroll: false
+      })
+    },
+    [router, pathname]
+  )
+
   const showAppearance = value === APPEARANCE_VALUE
-
-  const [query, setQuery] = useState('')
-
-  const shownCategories = useMemo(() => {
-    const needle = query.trim().toLowerCase()
-    if (needle === '') return componentCategories
-    // A category's overview row is not a component, so a component filter
-    // should not keep it alive.
-    return componentCategories
-      .map((category) => ({
-        ...category,
-        overviewHref: undefined,
-        components: category.components.filter(
-          (component) =>
-            component.title.toLowerCase().includes(needle) ||
-            component.name.toLowerCase().includes(needle)
-        )
-      }))
-      .filter((category) => category.components.length > 0)
-  }, [componentCategories, query])
-
-  const showComponentList =
-    pathname.startsWith('/components') && !showAppearance
-  // Declared only when there is a contents list — an empty drawer is worse
-  // than no toggle.
   const toc = useDocHeadings()
   const showInspector = toc.headings.length >= 2 && !showAppearance
 
   return (
-    <Navigator value={value} onValueChange={handleValueChange}>
-      <Navigator.Primary aria-label='Documentation'>
-        <Navigator.Brand>
-          <Image
-            src='/roadie-logo.png'
-            alt=''
-            width={32}
-            height={32}
-            className='size-8 shrink-0'
-          />
-          <span className='hidden truncate text-base font-semibold text-strong navigator-expanded:inline'>
-            Roadie
-          </span>
-        </Navigator.Brand>
-        {items.map((section) => {
-          // A routeless section (no own page) derives a stable key/value and
-          // icon from its route prefix; Navigator routes it to its first
-          // sub-page. See Navigator.Item's routeless-primary behaviour.
-          const firstPageHref = section.items.find(
-            (item) => item.href && !item.label
-          )?.href
-          const sectionPrefix =
-            section.href ??
-            (firstPageHref ? `/${firstPageHref.split('/')[1]}` : section.title)
-          // The primary link is the overview, so a sub-item that repeats the
-          // section's own href is redundant — drop it.
-          const subItems = section.items.filter(
-            (item) => item.href !== section.href
-          )
-          return (
-            <Navigator.Item
-              key={sectionPrefix}
-              value={sectionPrefix}
-              href={section.href}
-              icon={SECTION_ICONS[sectionPrefix] ?? <HouseIcon />}
-            >
-              {section.title}
-              {/* Components' sub-nav is its list pane; prefix matching lights it. */}
-              {sectionPrefix !== '/components' && subItems.length > 0 ? (
-                <Navigator.Secondary aria-label={`${section.title} pages`}>
-                  {subItems.map((item) => (
-                    <Navigator.Item
-                      key={item.href ?? item.title}
-                      value={item.href ?? item.title}
-                      href={item.href}
-                    >
-                      {item.title}
-                    </Navigator.Item>
-                  ))}
-                </Navigator.Secondary>
-              ) : null}
-            </Navigator.Item>
-          )
-        })}
-        <Navigator.Item
-          value={APPEARANCE_VALUE}
-          icon={<PaintBrushIcon />}
-          placement='pinned'
-        >
-          Appearance
-        </Navigator.Item>
-      </Navigator.Primary>
+    <>
+      <Suspense fallback={null}>
+        <NavListQuery onChange={setShowList} />
+      </Suspense>
+      <Navigator
+        value={value}
+        onValueChange={handleValueChange}
+        expanded={expanded}
+        onExpandedChange={setExpanded}
+        expandedFromDocument
+        showList={showList}
+        onShowListChange={handleShowListChange}
+      >
+        <Navigator.Primary aria-label='Documentation'>
+          <Navigator.Brand>
+            <Image
+              src='/roadie-logo.png'
+              alt=''
+              width={32}
+              height={32}
+              className='size-8 shrink-0'
+            />
+            <span className='hidden truncate text-base font-semibold text-strong navigator-expanded:inline'>
+              Roadie
+            </span>
+          </Navigator.Brand>
+          {items.map((section) => {
+            const subItems = section.items.filter(
+              (item) => item.href !== section.href
+            )
+            return (
+              <Navigator.Item
+                key={section.href}
+                value={section.href}
+                href={section.href}
+                icon={SECTION_ICONS[section.href] ?? <HouseIcon />}
+              >
+                {section.title}
+                {section.href === '/components' ? (
+                  <Navigator.Secondary aria-label='Components' searchable>
+                    {componentCategories.map((category) => (
+                      <Navigator.Group key={category.name}>
+                        <Navigator.GroupTitle>
+                          {category.name}
+                        </Navigator.GroupTitle>
+                        {category.overviewHref ? (
+                          <Navigator.Item
+                            value={category.overviewHref}
+                            href={category.overviewHref}
+                          >
+                            Overview
+                          </Navigator.Item>
+                        ) : null}
+                        {category.components.map((component) => (
+                          <Navigator.Item
+                            key={component.name}
+                            value={`/components/${component.name}`}
+                            href={`/components/${component.name}`}
+                          >
+                            {component.title}
+                          </Navigator.Item>
+                        ))}
+                      </Navigator.Group>
+                    ))}
+                  </Navigator.Secondary>
+                ) : subItems.length > 0 ? (
+                  <Navigator.Secondary aria-label={`${section.title} pages`}>
+                    {subItems.map((item) => (
+                      <Navigator.Item
+                        key={item.href ?? item.title}
+                        value={item.href ?? item.title}
+                        href={item.href}
+                      >
+                        {item.title}
+                      </Navigator.Item>
+                    ))}
+                  </Navigator.Secondary>
+                ) : null}
+              </Navigator.Item>
+            )
+          })}
+          <Navigator.Item
+            value={APPEARANCE_VALUE}
+            icon={<PaintBrushIcon />}
+            placement='pinned'
+          >
+            Appearance
+          </Navigator.Item>
+          <Navigator.ExpandToggle placement='pinned' />
+        </Navigator.Primary>
 
-      {/* Panes are direct children — Navigator.Content matches them by element
-          identity and skips anything wrapped in a fragment. */}
-      <Navigator.Content>
-        {showComponentList ? (
-          <Pane role='list' className='lg:w-72'>
+        <Navigator.Content>
+          <Pane role='detail' current className='scroll-pt-6'>
             <Pane.Header>
-              <Pane.Title>Components</Pane.Title>
-              <Pane.Search
-                value={query}
-                onValueChange={setQuery}
-                placeholder='Filter components'
-              />
+              {showInspector ? (
+                <Pane.Actions>
+                  <OnThisPageDrawer {...toc} />
+                </Pane.Actions>
+              ) : null}
             </Pane.Header>
-            {/* No chevrons: at this width the thumbnail is the row's trailing
-                content, and a caret beside it is one affordance too many. */}
-            <nav aria-label='Components' className='pb-4'>
-              <List>
-                {shownCategories.map((category) => (
-                  <List.Group key={category.name}>
-                    <List.GroupTitle>{category.name}</List.GroupTitle>
-                    {category.overviewHref ? (
-                      <List.Item
-                        title='Overview'
-                        href={category.overviewHref}
-                        chevron={false}
-                        current={pathname === category.overviewHref && 'page'}
-                      />
-                    ) : null}
-                    {category.components.map((component) => {
-                      const href = `/components/${component.name}`
-                      return (
-                        <List.Item
-                          key={component.name}
-                          title={component.title}
-                          href={href}
-                          chevron={false}
-                          current={pathname === href && 'page'}
-                          trailing={
-                            <ComponentThumbnail name={component.name} />
-                          }
-                        />
-                      )
-                    })}
-                  </List.Group>
-                ))}
-              </List>
-              {shownCategories.length === 0 ? (
-                <p className='px-4 py-3 text-sm text-subtle'>No matches</p>
-              ) : null}
-            </nav>
+            {showAppearance ? (
+              <AppearancePane />
+            ) : (
+              <div
+                id='docs-content'
+                className='mx-auto grid w-full max-w-[56rem] gap-0 px-6 py-6 md:px-10 md:py-12 lg:px-12 [&_:is(h1,h2,h3,h4)]:scroll-mt-6'
+              >
+                {/* The homepage and debug routes have no metadata.title and keep their own h1. */}
+                {pageTitles[pathname] ? (
+                  <Pane.BodyTitle className='mb-6 text-display-prose-1'>
+                    {pageTitles[pathname]}
+                  </Pane.BodyTitle>
+                ) : null}
+                {children}
+                <FooterNav items={items} />
+              </div>
+            )}
           </Pane>
-        ) : null}
 
-        <Pane
-          role='detail'
-          current={inComponentPage || showAppearance}
-          className='scroll-pt-6'
-        >
-          {/* backHref only turns on when a component sub-page is active. */}
-          <Pane.Header backHref={inComponentPage ? '/components' : undefined}>
-            {showInspector ? (
-              <Pane.Actions>
-                <OnThisPageDrawer {...toc} />
-              </Pane.Actions>
-            ) : null}
-          </Pane.Header>
-          {showAppearance ? (
-            <AppearancePane />
-          ) : (
-            <div
-              id='docs-content'
-              className='mx-auto grid w-full max-w-[56rem] gap-0 px-6 py-6 md:px-10 md:py-12 lg:px-12 [&_:is(h1,h2,h3,h4)]:scroll-mt-6'
-            >
-              {/* The homepage and the debug routes declare no metadata.title,
-                  so they render no large title and keep their own in-content
-                  h1 — one h1 per page either way. */}
-              {!showAppearance && pageTitles[pathname] ? (
-                <Pane.BodyTitle className='mb-6 text-display-prose-1'>
-                  {pageTitles[pathname]}
-                </Pane.BodyTitle>
-              ) : null}
-              {children}
-              <FooterNav items={items} />
-            </div>
-          )}
-        </Pane>
-
-        {/* A column from 2xl up and nothing below it — the drawer in the
-            detail pane's actions is what keeps it reachable. */}
-        {showInspector ? (
-          <Pane role='inspector' aria-label='On this page'>
-            <div className='px-4 py-6'>
-              <OnThisPage {...toc} />
-            </div>
-          </Pane>
-        ) : null}
-      </Navigator.Content>
-    </Navigator>
+          {/* A column from 2xl up; below it the drawer in the detail pane's actions reaches it. */}
+          {showInspector ? (
+            <Pane role='inspector' aria-label='On this page'>
+              <div className='px-4 py-6'>
+                <OnThisPage {...toc} />
+              </div>
+            </Pane>
+          ) : null}
+        </Navigator.Content>
+      </Navigator>
+    </>
   )
 }
