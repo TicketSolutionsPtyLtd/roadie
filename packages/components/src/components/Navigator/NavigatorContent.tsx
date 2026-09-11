@@ -47,7 +47,7 @@ export function NavigatorContent({
   children,
   ...props
 }: NavigatorContentProps) {
-  const { setPrimaryNav, overflowItems } = use(NavigatorContext)
+  const { setPrimaryNav, overflowItems, overflowOpen } = use(NavigatorContext)
   const chrome = useTopPaneChrome()
 
   const panes = useRef(new Map<string, RegisteredPane>())
@@ -66,10 +66,14 @@ export function NavigatorContent({
     bump((n) => n + 1)
   }, [])
 
-  // The Map mutates in place, so `version` is its change signal.
+  // The Map mutates in place, so `version` is its change signal. More's
+  // `current` is read live so it is top in the commit it opens, not one later.
   const ordered = useMemo(
-    () => orderByDocumentPosition(Array.from(panes.current.values())),
-    [version]
+    () =>
+      orderByDocumentPosition(Array.from(panes.current.values())).map((pane) =>
+        pane.kind === 'pane' ? pane : { ...pane, current: overflowOpen }
+      ),
+    [version, overflowOpen]
   )
   const positions = useMemo(() => derivePositions(ordered), [ordered])
   const topIndex = positions.indexOf('top')
@@ -97,10 +101,18 @@ export function NavigatorContent({
     return index !== -1 && index === rootIndex
   }, [])
 
-  // `version` re-renders panes behind bailed-out wrappers so they read the ref afresh.
+  // `version` and `overflowOpen` re-render panes behind bailed-out wrappers so they read the ref afresh.
   const stackValue = useMemo<PaneStackContextValue>(
     () => ({ register, unregister, positionOf, chromeOf, isRootOf }),
-    [register, unregister, positionOf, chromeOf, isRootOf, version]
+    [
+      register,
+      unregister,
+      positionOf,
+      chromeOf,
+      isRootOf,
+      version,
+      overflowOpen
+    ]
   )
 
   // Reads the ref, not `ordered`: child effects have registered by now, the render hadn't.

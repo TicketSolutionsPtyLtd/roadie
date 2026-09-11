@@ -1159,10 +1159,11 @@ describe('stack geometry', () => {
   // of the geometry, it must hold at every breakpoint. It is the one rule
   // moved from Navigator.Content that was never scoped to the stacked band,
   // so scoping it here would be a silent narrowing, not a move.
-  const expectSharedTransition = (pane: Element | undefined) => {
-    expect(pane).toHaveClass(
-      'motion-safe:max-lg:transition-[translate,opacity,visibility]'
-    )
+  const expectSharedTransition = (
+    pane: Element | undefined,
+    properties = 'translate,opacity,visibility'
+  ) => {
+    expect(pane).toHaveClass(`motion-safe:max-lg:transition-[${properties}]`)
     expect(pane).toHaveClass('motion-safe:max-lg:duration-slow')
     expect(pane).toHaveClass('motion-safe:max-lg:ease-enter')
     expect(pane).toHaveClass('motion-reduce:transition-none')
@@ -1188,7 +1189,10 @@ describe('stack geometry', () => {
     expect(top).not.toHaveClass('max-lg:-translate-x-1/3')
     expect(top).not.toHaveClass('max-lg:translate-x-full')
     expect(top).not.toHaveClass('max-lg:invisible')
-    expectSharedTransition(top)
+    expectSharedTransition(top, 'translate,opacity')
+    expect(top).not.toHaveClass(
+      'motion-safe:max-lg:transition-[translate,opacity,visibility]'
+    )
   })
 
   it('parks the behind pane left and dimmed', async () => {
