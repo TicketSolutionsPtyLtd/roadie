@@ -42,7 +42,7 @@ describe('Drawer.Content', () => {
     expect(popup).toHaveAccessibleDescription('Narrow the results')
   })
 
-  it('titles with the shared surface title class, not a pane-sized one', async () => {
+  it('titles with the shared surface title class', async () => {
     renderOpen()
     await screen.findByRole('dialog')
     expect(slot('title')).toHaveClass('text-display-ui-4')
@@ -243,6 +243,12 @@ describe('Drawer surface', () => {
     await screen.findByRole('dialog')
     expect(slot('viewport')).toHaveClass('z-modal')
     expect(slot('backdrop')).toHaveClass('z-overlay')
+  })
+
+  it('drops the scrim transition mid-swipe so it tracks the drag', async () => {
+    renderOpen()
+    await screen.findByRole('dialog')
+    expect(slot('backdrop')).toHaveClass('data-[swiping]:duration-0')
   })
 
   it('applies the intent class when intent is set', async () => {

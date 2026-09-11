@@ -17,7 +17,7 @@ export function DrawerBackdrop({ className, ...props }: DrawerBackdropProps) {
         'fixed inset-0 z-overlay emphasis-overlay',
         // Fades with the live swipe, not only on release.
         'opacity-[calc(1_-_var(--drawer-swipe-progress,0))]',
-        'transition-opacity duration-slow ease-enter',
+        'transition-opacity duration-slow ease-enter data-[swiping]:duration-0',
         'data-[ending-style]:opacity-0 data-[starting-style]:opacity-0',
         className
       )}
