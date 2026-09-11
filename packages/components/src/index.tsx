@@ -148,6 +148,7 @@ export {
   type NavigatorGroupProps,
   type NavigatorMenuProps,
   type NavigatorMenuItemProps,
+  type NavigatorExpandToggleProps,
   type NavigatorOverflowPaneProps,
   type NavigatorSecondaryPaneProps,
   type NavigatorSecondaryItemsProps,

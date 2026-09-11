@@ -40,6 +40,16 @@ export type NavigatorRootProps = {
   showList?: boolean
   /** Called when the active section's tab asks to show or hide the list; omit it and the tab links to the section route. */
   onShowListChange?: (next: boolean) => void
+  /**
+   * The large-screen vertical navigation shows labels beside icons. Navigator
+   * never touches storage — persist the choice yourself (a cookie reads on the
+   * server without a flash) and pass it back.
+   */
+  expanded?: boolean
+  /** The uncontrolled starting state of `expanded`. @default false */
+  defaultExpanded?: boolean
+  /** Called when `Navigator.ExpandToggle` asks to expand or collapse. */
+  onExpandedChange?: (next: boolean) => void
   className?: string
   children?: ReactNode
 }
@@ -49,9 +59,24 @@ export function NavigatorRoot({
   onValueChange,
   showList,
   onShowListChange,
+  expanded: expandedProp,
+  defaultExpanded,
+  onExpandedChange,
   className,
   children
 }: NavigatorRootProps) {
+  const [uncontrolledExpanded, setUncontrolledExpanded] = useState(
+    defaultExpanded ?? false
+  )
+  const expanded = expandedProp ?? uncontrolledExpanded
+  const setExpanded = useCallback(
+    (next: boolean) => {
+      if (expandedProp === undefined) setUncontrolledExpanded(next)
+      onExpandedChange?.(next)
+    },
+    [expandedProp, onExpandedChange]
+  )
+  const primaryId = useId()
   const [navCollapsed, setNavCollapsed] = useState(false)
   const [primaryNav, setPrimaryNav] = useState<PanePrimaryNav>('auto')
   const [pinExpanded, setPinExpanded] = useState(false)
@@ -135,7 +160,10 @@ export function NavigatorRoot({
       declaredSecondaryPanes,
       declareSecondaryPane,
       showList: showList ?? false,
-      onShowListChange
+      onShowListChange,
+      expanded,
+      setExpanded,
+      primaryId
     }),
     [
       value,
@@ -157,7 +185,10 @@ export function NavigatorRoot({
       declaredSecondaryPanes,
       declareSecondaryPane,
       showList,
-      onShowListChange
+      onShowListChange,
+      expanded,
+      setExpanded,
+      primaryId
     ]
   )
 

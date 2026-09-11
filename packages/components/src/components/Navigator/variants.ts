@@ -51,7 +51,7 @@ export const MAX_TABS = 5
 // Flex, not grid rows: an absent brand or pinned region leaves no gutter.
 export const navigatorPrimaryVerticalVariants = cva([
   'group/primary hidden min-h-0 md:col-start-1 md:row-start-1 md:flex',
-  'flex-col gap-3 py-3 w-20'
+  'flex-col gap-3 py-3 w-20 navigator-expanded:w-60'
 ])
 
 export const navigatorPrimaryBrandVariants = cva([
@@ -68,15 +68,16 @@ export const navigatorPrimaryClusterViewportVariants = cva([
 
 // `min-h-full` + `content-center` centres a short cluster; py-2 keeps capsule shadows off the clip edge.
 export const navigatorPrimaryClusterContentVariants = cva([
-  'grid min-h-full content-center justify-items-center gap-3 px-3 py-2'
+  'grid min-h-full content-center justify-items-center gap-3 px-3 py-2',
+  'navigator-expanded:content-start navigator-expanded:justify-items-stretch'
 ])
 
 export const navigatorPrimaryPinnedVariants = cva([
-  'relative grid justify-items-center gap-3 px-3'
+  'relative grid justify-items-center gap-3 px-3 navigator-expanded:justify-items-stretch'
 ])
 
 export const navigatorCapsuleVariants = cva([
-  'relative grid gap-1 p-1 rounded-full emphasis-raised'
+  'relative grid gap-1 p-1 rounded-full emphasis-raised navigator-expanded:rounded-4xl'
 ])
 
 // The box never changes size, so collapse animates on scale/translate/opacity
@@ -216,8 +217,10 @@ export const navigatorTabVariants = cva(
   }
 )
 
+// `not-sr-only` zeroes padding, so the padding rides the same variant.
 export const navigatorGroupTitleVariants = cva([
-  'sr-only px-3 pb-1 text-xs font-semibold text-subtler'
+  'sr-only text-xs font-semibold text-subtler',
+  'navigator-expanded:not-sr-only navigator-expanded:px-3 navigator-expanded:pb-1'
 ])
 
 export const navigatorBrandVariants = cva([
@@ -229,7 +232,8 @@ export const navigatorItemTrailingVariants = cva(['flex items-center gap-2'])
 // `text-subtle` always: under the active tile's `intent-accent` it becomes the accent's subtle tone.
 export const navigatorItemVariants = cva(
   [
-    'is-interactive relative z-[1] grid size-12 place-items-center rounded-full text-subtle'
+    'is-interactive relative z-[1] grid size-12 place-items-center rounded-full text-subtle',
+    'navigator-expanded:h-12 navigator-expanded:w-full navigator-expanded:grid-cols-[auto_1fr_auto] navigator-expanded:justify-items-start navigator-expanded:gap-3 navigator-expanded:px-3 navigator-expanded:text-sm navigator-expanded:font-semibold'
   ],
   {
     variants: {
@@ -238,6 +242,10 @@ export const navigatorItemVariants = cva(
     defaultVariants: { active: false }
   }
 )
+
+// A transition, not `starting:`: the label is always rendered, so @starting-style never fires.
+export const navigatorItemLabelClass =
+  'sr-only opacity-0 navigator-expanded:not-sr-only navigator-expanded:truncate navigator-expanded:opacity-100 motion-safe:navigator-expanded:transition-opacity'
 
 // `data-[ready=false]` skips the transition on first paint, so the pill never
 // slides in from (0,0).

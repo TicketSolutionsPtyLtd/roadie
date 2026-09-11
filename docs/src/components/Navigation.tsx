@@ -300,7 +300,7 @@ export function DocsNavigator({
             height={32}
             className='size-8 shrink-0'
           />
-          <span className='hidden truncate text-base font-semibold text-strong'>
+          <span className='hidden truncate text-base font-semibold text-strong navigator-expanded:inline'>
             Roadie
           </span>
         </Navigator.Brand>

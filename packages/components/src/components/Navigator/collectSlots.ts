@@ -6,6 +6,10 @@ import {
 } from 'react'
 
 import { NavigatorBrand } from './NavigatorBrand'
+import {
+  NavigatorExpandToggle,
+  type NavigatorExpandToggleProps
+} from './NavigatorExpandToggle'
 import { NavigatorGroup, type NavigatorGroupProps } from './NavigatorGroup'
 import { NavigatorGroupTitle } from './NavigatorGroupTitle'
 import { NavigatorItem, type NavigatorItemProps } from './NavigatorItem'
@@ -29,6 +33,7 @@ export type PrimaryEntry =
       group: NavigatorSlotGroup
       slots: NavigatorSlotMeta[]
     }
+  | { kind: 'toggle'; element: ReactElement<NavigatorExpandToggleProps> }
 
 export type CollectedSlots = {
   brand: ReactElement[]
@@ -85,8 +90,11 @@ export function collectSlots(children: ReactNode): CollectedSlots {
   }
   let groupCount = 0
 
-  const place = (entry: PrimaryEntry, slots: NavigatorSlotMeta[]) => {
-    const pinned = slots[0]?.placement === 'pinned'
+  const place = (
+    entry: PrimaryEntry,
+    slots: NavigatorSlotMeta[],
+    pinned = slots[0]?.placement === 'pinned'
+  ) => {
     if (!pinned && result.pinned.length > 0) result.pinnedBeforeCluster = true
     ;(pinned ? result.pinned : result.cluster).push(entry)
     ;(pinned ? result.pinnedSlots : result.automatic).push(...slots)
@@ -102,6 +110,15 @@ export function collectSlots(children: ReactNode): CollectedSlots {
       const element = child as ReactElement<NavigatorItemProps>
       const slot = toSlotMeta(element.props)
       place({ kind: 'item', element, slot }, [slot])
+      return
+    }
+    if (child.type === NavigatorExpandToggle) {
+      const element = child as ReactElement<NavigatorExpandToggleProps>
+      place(
+        { kind: 'toggle', element },
+        [],
+        element.props.placement === 'pinned'
+      )
       return
     }
     if (child.type === NavigatorGroup) {
