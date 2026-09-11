@@ -212,6 +212,17 @@ export function NavigatorPrimary({
     )
   }, [hasStrayChild])
 
+  const brandless = collected.brand.length === 0
+  useEffect(() => {
+    if (!isDev() || !brandless) return
+    console.warn(
+      '[Roadie] Navigator.Primary has no Navigator.Brand. The vertical ' +
+        'navigation expects one at its top — a mark linking home, which ' +
+        'Navigator.ExpandToggle sits beside. Add a Navigator.Brand as a ' +
+        'direct child; a Brand inside a Fragment or wrapper is skipped.'
+    )
+  }, [brandless])
+
   const conflicting = collected.conflictingPlacement.join(', ')
   useEffect(() => {
     if (!isDev() || conflicting === '') return

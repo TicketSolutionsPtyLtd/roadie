@@ -14,7 +14,12 @@ import {
   type RoadieLinkComponent,
   RoadieLinkProvider
 } from '../../providers/RoadieLinkProvider'
-import { FakeIcon, flushViewportMeasurement, primaryOf } from './testUtils'
+import {
+  FakeIcon,
+  flushViewportMeasurement,
+  primaryOf,
+  testBrand
+} from './testUtils'
 
 // Base UI unmounts the popup after its exit transition, a tick after close.
 const waitForMenuToClose = () =>
@@ -27,6 +32,7 @@ function Tree({ value = '/home', signOut = () => {} }) {
   return (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Main'>
+        {testBrand}
         <Navigator.Item value='/home' href='/home' icon={<FakeIcon />}>
           Home
         </Navigator.Item>
@@ -174,6 +180,7 @@ describe('Navigator.Menu', () => {
     render(
       <Navigator value='/home'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='account'>
             Account
             <Navigator.Menu>
@@ -214,6 +221,7 @@ describe('Navigator.Menu', () => {
     render(
       <Navigator value='me/billing/2024'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/home' href='/home'>
             Home
           </Navigator.Item>
@@ -293,6 +301,7 @@ describe('Navigator.Menu', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           {['/a', '/b', '/c', '/d', '/e'].map((v) => (
             <Navigator.Item key={v} value={v} href={v}>
               {v}
@@ -324,6 +333,7 @@ describe('Navigator.Menu', () => {
     render(
       <Navigator value='/e'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           {['/a', '/b', '/c', '/d', '/e'].map((v) => (
             <Navigator.Item key={v} value={v} href={v}>
               {v}
@@ -355,6 +365,7 @@ describe('Navigator.Menu', () => {
     render(
       <Navigator value='/home'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/home' href='/home'>
             Home
           </Navigator.Item>
@@ -387,6 +398,7 @@ describe('Navigator.Menu', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           {['/a', '/b', '/c', '/d', '/e'].map((v) => (
             <Navigator.Item key={v} value={v} href={v}>
               {v}
@@ -422,6 +434,7 @@ describe('Navigator.Menu', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           {['/a', '/b', '/c', '/d', '/e'].map((v) => (
             <Navigator.Item key={v} value={v} href={v}>
               {v}
@@ -452,6 +465,7 @@ describe('Navigator.Menu', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           {['/a', '/b', '/c', '/d', '/e'].map((v) => (
             <Navigator.Item key={v} value={v} href={v}>
               {v}
@@ -490,6 +504,7 @@ describe('Navigator.Menu', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           {['/a', '/b', '/c', '/d', '/e'].map((v) => (
             <Navigator.Item key={v} value={v} href={v}>
               {v}
@@ -522,6 +537,7 @@ describe('Navigator.Menu', () => {
     render(
       <Navigator value='/x/one'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/x' href='/x'>
             X
             <Navigator.Secondary aria-label='X pages'>

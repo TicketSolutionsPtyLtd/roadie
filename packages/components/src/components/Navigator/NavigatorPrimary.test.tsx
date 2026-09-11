@@ -12,6 +12,7 @@ import {
   FakeIcon,
   flushViewportMeasurement,
   primaryOf,
+  testBrand,
   withStubLink
 } from './testUtils'
 import {
@@ -165,6 +166,7 @@ describe('vertical regions', () => {
     ).toBeNull()
   })
   it('renders only the regions it has, so no empty row adds a gutter', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
@@ -278,6 +280,7 @@ describe('vertical capacity', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           {['/a', '/b', '/c', '/d', '/e'].map((v) => (
             <Navigator.Item key={v} value={v} href={v}>
               {v}
@@ -508,6 +511,7 @@ function Expandable(props: {
   return (
     <Navigator value='/a' {...props}>
       <Navigator.Primary aria-label='Main'>
+        {testBrand}
         <Navigator.Group>
           <Navigator.GroupTitle>Docs</Navigator.GroupTitle>
           <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
@@ -605,6 +609,7 @@ describe('expanded vertical navigation', () => {
     render(
       <Navigator value='/a' expanded>
         <Navigator.Primary aria-label='Outer'>
+          {testBrand}
           <Navigator.Item value='/a' href='/a'>
             Outer
           </Navigator.Item>
@@ -612,6 +617,7 @@ describe('expanded vertical navigation', () => {
         <Navigator.Content>
           <Navigator value='/x'>
             <Navigator.Primary aria-label='Inner'>
+              {testBrand}
               <Navigator.Item value='/x' href='/x'>
                 Inner
               </Navigator.Item>
@@ -706,6 +712,7 @@ describe('expanded vertical navigation', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.ExpandToggle />
           <Navigator.Brand>Logo</Navigator.Brand>
           <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
@@ -997,6 +1004,7 @@ function WithBadge(props: { defaultExpanded?: boolean }) {
   return (
     <Navigator value='/a' {...props}>
       <Navigator.Primary aria-label='Main'>
+        {testBrand}
         <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
           Home
         </Navigator.Item>
@@ -1021,6 +1029,7 @@ function PinnedMenuBadge() {
   return (
     <Navigator value='/a'>
       <Navigator.Primary aria-label='Main'>
+        {testBrand}
         <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
           Home
         </Navigator.Item>
@@ -1110,6 +1119,7 @@ describe('badges', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           {['/a', '/b', '/c', '/d', '/e'].map((v) => (
             <Navigator.Item key={v} value={v} href={v}>
               {v}
@@ -1145,6 +1155,7 @@ describe('badges', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           {['/a', '/b', '/c', '/d', '/e'].map((v) => (
             <Navigator.Item key={v} value={v} href={v}>
               {v}

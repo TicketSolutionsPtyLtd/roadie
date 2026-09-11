@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 
 import { act } from '@testing-library/react'
 
+import { Navigator } from '.'
 import {
   type RoadieLinkComponent,
   RoadieLinkProvider
@@ -55,3 +56,6 @@ export const StubLink: RoadieLinkComponent = ({ href, children, ...rest }) => (
 export const withStubLink = (ui: ReactNode) => (
   <RoadieLinkProvider Link={StubLink}>{ui}</RoadieLinkProvider>
 )
+
+// An element, not a component, so Primary's type walk still recognises it.
+export const testBrand = <Navigator.Brand>Brand</Navigator.Brand>

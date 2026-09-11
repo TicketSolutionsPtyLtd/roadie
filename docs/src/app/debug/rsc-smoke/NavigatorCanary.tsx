@@ -7,7 +7,7 @@ import { Navigator } from '@oztix/roadie-components/navigator'
 
 // Navigator's walks match children by element identity, which Flight breaks
 // for server-authored trees, so this canary is a client component that throws
-// if the walk loses a Group or a pinned item.
+// if the walk loses the Brand, a Group or a pinned item.
 
 export function NavigatorCanary() {
   const ref = useRef<HTMLDivElement>(null)
@@ -19,6 +19,7 @@ export function NavigatorCanary() {
     const id = setTimeout(() => {
       const missing = [
         '[data-navigator-section] [data-slot="list-group"]',
+        '[data-slot="navigator-primary-brand"] [data-slot="navigator-brand"]',
         '[data-slot="navigator-primary-pinned"] [data-slot="navigator-item"]',
         '[data-slot="navigator-primary-cluster"] [data-slot="navigator-capsule"][aria-labelledby]'
       ].filter((selector) => !ref.current?.querySelector(selector))
@@ -43,6 +44,9 @@ export function NavigatorCanary() {
     >
       <Navigator value='catalogue-vinyl'>
         <Navigator.Primary aria-label='Canary primary'>
+          <Navigator.Brand>
+            <span className='text-sm font-semibold text-strong'>RSC</span>
+          </Navigator.Brand>
           <Navigator.Item value='events' href='#events'>
             Events
             <Navigator.Secondary aria-label='Events sections'>

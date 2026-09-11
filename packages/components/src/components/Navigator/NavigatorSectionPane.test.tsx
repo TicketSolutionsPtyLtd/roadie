@@ -7,7 +7,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Navigator } from '.'
 import { Pane } from '../Pane'
 import { secondaryBlocks, textOf } from './splitSecondary'
-import { FakeIcon, flushViewportMeasurement, primaryOf } from './testUtils'
+import {
+  FakeIcon,
+  flushViewportMeasurement,
+  primaryOf,
+  testBrand
+} from './testUtils'
 
 const panes = () =>
   Array.from(document.querySelectorAll<HTMLElement>('[data-slot="pane"]'))
@@ -28,6 +33,7 @@ function Docs({
   return (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Docs'>
+        {testBrand}
         <Navigator.Item value='/start' href='/start' icon={<FakeIcon />}>
           Get started
         </Navigator.Item>
@@ -176,6 +182,7 @@ describe('generated section pane', () => {
     render(
       <Navigator value='/a/one'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/a' href='/a'>
             A
             <Navigator.Secondary aria-label='A pages'>
@@ -223,6 +230,7 @@ describe('section pane groups', () => {
     render(
       <Navigator value='/a/one'>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/a' href='/a'>
             A
             <Navigator.Secondary aria-label='A pages'>
@@ -309,6 +317,7 @@ function Override({ wrapped = false }: { wrapped?: boolean }) {
   return (
     <Navigator value='/components/button'>
       <Navigator.Primary aria-label='Docs'>
+        {testBrand}
         <Navigator.Item value='/components' href='/components'>
           Components
           <Navigator.Secondary aria-label='Components'>
@@ -373,6 +382,7 @@ describe('Navigator.SecondaryPane', () => {
     rerender(
       <Navigator value='/start'>
         <Navigator.Primary aria-label='Docs'>
+          {testBrand}
           <Navigator.Item value='/start' href='/start'>
             Start
           </Navigator.Item>
@@ -409,6 +419,7 @@ function InactiveOverride({
   return (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Docs'>
+        {testBrand}
         <Navigator.Item value='/components' href='/components'>
           Components
           <Navigator.Secondary aria-label='Components'>
@@ -498,6 +509,7 @@ function Routed({
       onShowListChange={onShowListChange}
     >
       <Navigator.Primary aria-label='Docs'>
+        {testBrand}
         <Navigator.Item value='/components' href='/components'>
           Components
           <Navigator.Secondary aria-label='Components'>
@@ -582,6 +594,7 @@ describe('section routes', () => {
     render(
       <Navigator value='/x/one'>
         <Navigator.Primary aria-label='Docs'>
+          {testBrand}
           <Navigator.Item value='/x'>
             X
             <Navigator.Secondary aria-label='X pages'>
@@ -610,6 +623,7 @@ describe('section routes', () => {
     render(
       <Navigator value='/a/one' showList>
         <Navigator.Primary aria-label='Main'>
+          {testBrand}
           <Navigator.Item value='/a' href='/a'>
             A
             <Navigator.Secondary aria-label='A pages'>
@@ -709,6 +723,7 @@ describe('section routes', () => {
     render(
       <Navigator value='/x/one'>
         <Navigator.Primary aria-label='Docs'>
+          {testBrand}
           <Navigator.Item value='/x'>
             X
             <Navigator.Secondary aria-label='X pages'>
