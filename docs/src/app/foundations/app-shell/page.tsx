@@ -230,10 +230,10 @@ export default function CatchAll() {
           </li>
           <li>
             <p>
-              <strong>On mobile</strong>, Navigator stacks the panes, and a
-              section&apos;s sub-pages open in a list pane at the root of the
-              stack; the single-pane push presentation is owned by
-              Navigator&apos;s own layout, not by the routing recipe.
+              <strong>On mobile</strong>, Navigator stacks the panes: a
+              section&apos;s list pane sits at the root of the stack, and its
+              sub-pages push over it. The single-pane push presentation is owned
+              by Navigator&apos;s own layout, not by the routing recipe.
             </p>
           </li>
         </ul>

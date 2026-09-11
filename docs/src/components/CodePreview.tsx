@@ -48,6 +48,7 @@ import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
 
+import { DemoRouter } from './DemoRouter'
 import { createDemoCart } from './cartDrawerDemo'
 
 // Bare-name keys so MDX live examples can use `<CheckCircle />` etc.
@@ -103,6 +104,7 @@ const scope = {
   QueryClient,
   QueryClientProvider,
   createDemoCart,
+  DemoRouter,
   Link,
   use,
   useState,
