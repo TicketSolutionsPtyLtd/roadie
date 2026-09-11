@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  type NavigatorSlotMeta,
   type NavigatorVisibilityPriority,
+  deriveMobileSlots,
   keepTopRanked,
   rankSlots
 } from './mobileSlots'
@@ -55,5 +57,69 @@ describe('keepTopRanked', () => {
 
   it('folds everything at zero', () => {
     expect(values(keepTopRanked([slot('a')], 0).folded)).toEqual(['a'])
+  })
+})
+
+const meta = (
+  value: string,
+  priority: NavigatorVisibilityPriority = 'automatic',
+  placement: 'automatic' | 'pinned' = 'automatic'
+): NavigatorSlotMeta => ({
+  value,
+  label: value,
+  topValue: value,
+  descendants: [],
+  placement,
+  priority
+})
+const many = (n: number) =>
+  Array.from({ length: n }, (_, i) => meta(`/${String.fromCharCode(97 + i)}`))
+
+describe('deriveMobileSlots', () => {
+  it('renders five or fewer as tabs with no More', () => {
+    const slots = deriveMobileSlots(many(5), [])
+    expect(values(slots.tabs)).toEqual(['/a', '/b', '/c', '/d', '/e'])
+    expect(slots.overflow).toEqual([])
+    expect(slots.pinned).toBeUndefined()
+  })
+
+  it('keeps the top four by rank and folds the rest past five', () => {
+    const slots = deriveMobileSlots(many(6), [])
+    expect(values(slots.tabs)).toEqual(['/a', '/b', '/c', '/d'])
+    expect(values(slots.overflow)).toEqual(['/e', '/f'])
+  })
+
+  it('keeps a high-priority item in source position', () => {
+    const items = many(6)
+    items[5] = meta('/f', 'high')
+    const slots = deriveMobileSlots(items, [])
+    expect(values(slots.tabs)).toEqual(['/a', '/b', '/c', '/f'])
+    expect(values(slots.overflow)).toEqual(['/d', '/e'])
+  })
+
+  it('gives the first pinned item a circle outside the five', () => {
+    const account = meta('account', 'automatic', 'pinned')
+    const slots = deriveMobileSlots(many(5), [account])
+    expect(slots.tabs).toHaveLength(5)
+    expect(slots.pinned).toBe(account)
+    expect(slots.overflow).toEqual([])
+  })
+
+  it('folds further pinned items into More', () => {
+    const one = meta('one', 'automatic', 'pinned')
+    const two = meta('two', 'automatic', 'pinned')
+    const slots = deriveMobileSlots(many(3), [one, two])
+    expect(values(slots.tabs)).toEqual(['/a', '/b', '/c'])
+    expect(slots.pinned).toBe(one)
+    expect(values(slots.overflow)).toEqual(['two'])
+  })
+
+  it('makes room for More when an extra pinned item forces it', () => {
+    const slots = deriveMobileSlots(many(5), [
+      meta('one', 'automatic', 'pinned'),
+      meta('two', 'automatic', 'pinned')
+    ])
+    expect(values(slots.tabs)).toEqual(['/a', '/b', '/c', '/d'])
+    expect(values(slots.overflow)).toEqual(['/e', 'two'])
   })
 })

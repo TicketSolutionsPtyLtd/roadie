@@ -146,7 +146,8 @@ export {
   type NavigatorSecondaryProps,
   type NavigatorItemProps,
   type NavigatorGroupProps,
-  type NavigatorEndProps,
+  type NavigatorPlacement,
+  type NavigatorVisibilityPriority,
   type NavigatorSlotMeta,
   type MobileSlots
 } from './components/Navigator'

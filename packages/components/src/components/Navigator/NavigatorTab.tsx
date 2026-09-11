@@ -34,6 +34,8 @@ export type NavigatorTabProps = {
    * translates to the edge from its own column, so the travel needs it.
    */
   index: number
+  /** The trailing circle outside the track; it never collapses. */
+  pinned?: boolean
   /** Set only on the generated final tab, which discloses a pane. */
   expanded?: boolean
   /** Id of the pane this tab discloses. Only meaningful while `expanded`. */
@@ -54,17 +56,20 @@ export function NavigatorTab({
   isPage = true,
   collapsed = false,
   circleSide,
+  pinned = false,
   index,
   expanded,
   controls,
   className,
   onSelect
 }: NavigatorTabProps) {
-  const presentation = !collapsed
-    ? 'expanded'
-    : circleSide
-      ? 'circle'
-      : 'hidden'
+  const presentation = pinned
+    ? 'pinned'
+    : !collapsed
+      ? 'expanded'
+      : circleSide
+        ? 'circle'
+        : 'hidden'
   const content = (
     <>
       {/* size-7 icon in both presentations — the collapsed circle grows to
@@ -81,7 +86,9 @@ export function NavigatorTab({
       )}
       <span
         className={
-          presentation === 'circle' ? 'sr-only' : 'max-w-full truncate'
+          presentation === 'circle' || presentation === 'pinned'
+            ? 'sr-only'
+            : 'max-w-full truncate'
         }
       >
         {label}

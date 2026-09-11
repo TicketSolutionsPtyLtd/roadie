@@ -344,11 +344,13 @@ export function DocsNavigator({
             </Navigator.Item>
           )
         })}
-        <Navigator.End>
-          <Navigator.Item value={APPEARANCE_VALUE} icon={<PaintBrushIcon />}>
-            Appearance
-          </Navigator.Item>
-        </Navigator.End>
+        <Navigator.Item
+          value={APPEARANCE_VALUE}
+          icon={<PaintBrushIcon />}
+          placement='pinned'
+        >
+          Appearance
+        </Navigator.Item>
       </Navigator.Primary>
 
       {/* Panes are direct children — Navigator.Content matches them by element

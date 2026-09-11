@@ -16,12 +16,20 @@ import {
   type NavigatorGroupTitleProps
 } from './NavigatorGroupTitle'
 import { NavigatorPresentationContext } from './NavigatorPresentationContext'
+import type {
+  NavigatorPlacement,
+  NavigatorVisibilityPriority
+} from './mobileSlots'
 import { navigatorGroupListVariants } from './variants'
 
 export type NavigatorGroupProps = {
   /** `Navigator.GroupTitle` followed by the group's `Navigator.Item`s. */
   children?: ReactNode
   className?: string
+  /** Every item in the group follows it. @default 'automatic' */
+  placement?: NavigatorPlacement
+  /** Which items stay visible when space runs out; an item's own wins. @default 'automatic' */
+  visibilityPriority?: NavigatorVisibilityPriority
 }
 
 /**

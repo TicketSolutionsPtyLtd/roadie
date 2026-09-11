@@ -66,9 +66,9 @@ export function NavigatorCanary() {
             </Navigator.Secondary>
           </Navigator.Item>
           <Navigator.Item value='reports'>Reports</Navigator.Item>
-          <Navigator.End>
-            <Navigator.Item value='settings'>Settings</Navigator.Item>
-          </Navigator.End>
+          <Navigator.Item value='settings' placement='pinned'>
+            Settings
+          </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
           <Pane>
