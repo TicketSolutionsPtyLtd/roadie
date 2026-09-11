@@ -240,6 +240,12 @@ export function NavigatorPrimary({
   const disclosureOpen = overflowOpen || openPanel !== null
   // The pinned circle already sits at the trailing edge, so it is the right circle.
   const activeIsRight = pinnedTab ? pinnedIsActive : hasMore && foldedIsActive
+  // With the pinned circle on the right, an active folded item makes More the left circle.
+  const moreCircleSide = !pinnedTab
+    ? 'right'
+    : foldedIsActive && !pinnedIsActive
+      ? 'left'
+      : undefined
   const tabCount = slots.tabs.length + (hasMore ? 1 : 0)
 
   // `folded` is a fresh array every render; its key is the stable identity.
@@ -414,7 +420,7 @@ export function NavigatorPrimary({
               icon={<DotsThreeIcon />}
               active={overflowOpen || (foldedIsActive && !disclosureOpen)}
               collapsed={collapsed}
-              circleSide={pinnedTab ? undefined : 'right'}
+              circleSide={moreCircleSide}
               index={slots.tabs.length}
               expanded={overflowOpen}
               controls={overflowOpen ? overflowPaneId : undefined}

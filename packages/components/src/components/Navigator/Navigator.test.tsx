@@ -3456,7 +3456,7 @@ describe('Navigator collapsed edge circles', () => {
   )
 
   // A/B/C/D plus More, so the right circle is a track tab.
-  const moreTree = (active: string) => (
+  const moreTree = (active: string, withPinned = false) => (
     <Navigator value={active}>
       <Navigator.Primary aria-label='Primary'>
         {['a', 'b', 'c', 'd', 'e', 'f'].map((v) => (
@@ -3464,6 +3464,11 @@ describe('Navigator collapsed edge circles', () => {
             {v.toUpperCase()}
           </Navigator.Item>
         ))}
+        {withPinned ? (
+          <Navigator.Item value='account' placement='pinned'>
+            Account
+          </Navigator.Item>
+        ) : null}
       </Navigator.Primary>
       <Navigator.Content>
         <Pane role='list'>Content</Pane>
@@ -3584,6 +3589,21 @@ describe('Navigator collapsed edge circles', () => {
     expect(first).toHaveAttribute('data-circle-side', 'left')
     expect(account).toHaveAttribute('aria-current', 'page')
     expect(first).not.toHaveAttribute('aria-current')
+    await flushViewportMeasurement()
+  })
+
+  it('floats More as the left circle when a folded item is active beside a pinned circle', async () => {
+    const { container } = render(moreTree('e', true))
+    await collapse(container)
+    const bar = within(horizontalOf(container) as HTMLElement)
+
+    expect(bar.getByRole('button', { name: 'More' })).toHaveAttribute(
+      'data-circle-side',
+      'left'
+    )
+    expect(
+      within(pinnedCircleOf(container)).getByRole('button', { name: 'Account' })
+    ).not.toHaveAttribute('aria-current')
     await flushViewportMeasurement()
   })
 
