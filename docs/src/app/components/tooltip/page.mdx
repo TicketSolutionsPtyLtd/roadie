@@ -1,0 +1,133 @@
+export const metadata = {
+  title: 'Tooltip',
+  description: 'A short label that appears beside a control on hover or focus',
+  status: 'beta',
+  category: 'Overlays',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+# Tooltip
+
+A short label that appears beside a control on hover or keyboard focus, built on Base UI's tooltip primitive.
+
+## Import
+
+```tsx
+import { Tooltip } from '@oztix/roadie-components/tooltip'
+```
+
+## Examples
+
+### Default
+
+Pass the control to `Tooltip.Trigger` with `render`. The control keeps its own accessible name — here the icon button's `aria-label` — and the tooltip repeats it for pointer users.
+
+```tsx-live
+<Tooltip>
+  <Tooltip.Trigger render={<IconButton aria-label='Edit'><PencilSimple weight='bold' className='size-4' /></IconButton>} />
+  <Tooltip.Content>
+    <Tooltip.Arrow />
+    Edit
+  </Tooltip.Content>
+</Tooltip>
+```
+
+### Side
+
+`side` places the tooltip. Beside a vertical toolbar, prefer `inline-start` and `inline-end` so the placement follows the reading direction.
+
+```tsx-live
+<div className='flex flex-wrap gap-3'>
+  {['top', 'bottom', 'inline-start', 'inline-end'].map((side) => (
+    <Tooltip key={side}>
+      <Tooltip.Trigger render={<Button>{side}</Button>} />
+      <Tooltip.Content side={side}>
+        <Tooltip.Arrow />
+        Placed {side}
+      </Tooltip.Content>
+    </Tooltip>
+  ))}
+</div>
+```
+
+### Emphasis
+
+`strong` is the default high-contrast chip, neutral unless you give it an intent. The tooltip renders in a portal, outside the page's intent context, so put the intent class on `Tooltip.Content`. Use `floating`, the same surface as a popover, over dark or busy content where a dark chip would disappear.
+
+```tsx-live
+<div className='flex flex-wrap gap-3'>
+  <Tooltip>
+    <Tooltip.Trigger render={<Button>Strong</Button>} />
+    <Tooltip.Content>
+      <Tooltip.Arrow />
+      Strong
+    </Tooltip.Content>
+  </Tooltip>
+  <Tooltip>
+    <Tooltip.Trigger render={<Button>Strong, accent</Button>} />
+    <Tooltip.Content className='intent-accent'>
+      <Tooltip.Arrow />
+      Strong, accent
+    </Tooltip.Content>
+  </Tooltip>
+  <Tooltip>
+    <Tooltip.Trigger render={<Button>Floating</Button>} />
+    <Tooltip.Content emphasis='floating'>
+      <Tooltip.Arrow />
+      Floating
+    </Tooltip.Content>
+  </Tooltip>
+</div>
+```
+
+### Delay group
+
+Wrap related controls in `Tooltip.Provider`. The first tooltip waits for the delay; moving to a neighbour while one is open shows it straight away.
+
+```tsx-live
+<Tooltip.Provider>
+  <div className='flex gap-2'>
+    {[
+      ['Edit', <PencilSimple weight='bold' className='size-4' />],
+      ['Favourite', <Heart weight='bold' className='size-4' />],
+      ['Settings', <Gear weight='bold' className='size-4' />],
+      ['Delete', <Trash weight='bold' className='size-4' />]
+    ].map(([label, icon]) => (
+      <Tooltip key={label}>
+        <Tooltip.Trigger render={<IconButton aria-label={label}>{icon}</IconButton>} />
+        <Tooltip.Content>{label}</Tooltip.Content>
+      </Tooltip>
+    ))}
+  </div>
+</Tooltip.Provider>
+```
+
+## Guidelines
+
+<Guideline title='Keep a tooltip to a label'>
+  <Guideline.Do code={`<Tooltip.Trigger render={<IconButton aria-label='Edit'>…</IconButton>} />`}>
+    Label icon-only controls. Give the control its own accessible name and let the tooltip repeat it.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Tooltip.Content><Button>Undo</Button></Tooltip.Content>`}>
+    Don't put actions or essential detail in a tooltip. It can't be reached on touch and closes when the pointer leaves. Use a Popover.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Write for a glance'>
+  <Guideline.Do>
+    Keep it to a few words. A tooltip names or briefly clarifies. Sentence case, no full stop.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't rely on it on touch screens. Touch has no hover, so a tap won't show it. Where a tooltip must never appear on touch, add <code>className='pointer-coarse:hidden'</code> to <code>Tooltip.Content</code>.
+  </Guideline.Dont>
+</Guideline>
+
+## Accessibility
+
+- The tooltip isn't announced. The trigger carries its own name — an `aria-label` on an icon-only control, or visible or visually hidden text.
+- Keyboard focus opens the tooltip; Escape closes it.
+- Hover and focus only. Don't use a tooltip for anything a keyboard, screen reader or touch user needs.
+
+<PropsDefinitions componentPath='packages/components/src/components/Tooltip' />

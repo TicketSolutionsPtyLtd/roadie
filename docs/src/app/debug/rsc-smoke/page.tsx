@@ -14,7 +14,8 @@ import {
   Dialog as DialogViaBarrel,
   Fieldset as FieldsetViaBarrel,
   Popover as PopoverViaBarrel,
-  Tabs as TabsViaBarrel
+  Tabs as TabsViaBarrel,
+  Tooltip as TooltipViaBarrel
 } from '@oztix/roadie-components'
 import { Accordion } from '@oztix/roadie-components/accordion'
 import { Autocomplete } from '@oztix/roadie-components/autocomplete'
@@ -31,6 +32,7 @@ import { RadioGroup } from '@oztix/roadie-components/radio-group'
 import { Select } from '@oztix/roadie-components/select'
 import { Steps } from '@oztix/roadie-components/steps'
 import { Tabs } from '@oztix/roadie-components/tabs'
+import { Tooltip } from '@oztix/roadie-components/tooltip'
 
 export default function RscSmokePage() {
   return (
@@ -456,6 +458,26 @@ export default function RscSmokePage() {
             </Popover.Description>
           </Popover.Content>
         </Popover.Root>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Tooltip — bare root (canonical)
+        </h2>
+        <Tooltip>
+          <Tooltip.Trigger>Hover for a label</Tooltip.Trigger>
+          <Tooltip.Content>
+            <Tooltip.Arrow />A label
+          </Tooltip.Content>
+        </Tooltip>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Tooltip — barrel</h2>
+        <TooltipViaBarrel>
+          <TooltipViaBarrel.Trigger>Hover for a label</TooltipViaBarrel.Trigger>
+          <TooltipViaBarrel.Content>A label</TooltipViaBarrel.Content>
+        </TooltipViaBarrel>
       </section>
 
       <section className='grid gap-2'>
