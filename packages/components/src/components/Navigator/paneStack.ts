@@ -1,4 +1,7 @@
-import type { PaneStackPosition } from '../Pane/PaneStackContext'
+import type {
+  PaneRegistration,
+  PaneStackPosition
+} from '../Pane/PaneStackContext'
 import type { PanePrimaryNav, PaneRole } from '../Pane/variants'
 
 export type PaneEntry = {
@@ -82,4 +85,25 @@ export function derivePositions(
           ? 'ahead'
           : 'behind'
   )
+}
+
+/**
+ * A pane's position before it registers — in the server render and the one
+ * that hydrates it — when DOM order is not yet known. The section's list pane
+ * renders first, so it is the root; More renders last. Any other pane that
+ * is neither `current` nor behind a revealed root stays unplaced.
+ */
+export function provisionalPosition(
+  { role, current, kind }: PaneRegistration,
+  revealRoot: boolean
+): PaneStackPosition | null {
+  if (role === 'inspector') return null
+  if (kind === 'section' || kind === 'generated-section') {
+    return revealRoot ? 'top' : 'behind'
+  }
+  if (kind === 'overflow' || kind === 'generated-overflow') {
+    return current ? 'top' : 'ahead'
+  }
+  if (revealRoot) return 'ahead'
+  return current ? 'top' : null
 }

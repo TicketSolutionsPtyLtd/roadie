@@ -36,7 +36,8 @@ import { OVERFLOW_LABEL } from './mobileSlots'
 import {
   derivePositions,
   deriveRootIndex,
-  orderByDocumentPosition
+  orderByDocumentPosition,
+  provisionalPosition
 } from './paneStack'
 import { useTopPaneChrome } from './useTopPaneChrome'
 import { navigatorContentVariants } from './variants'
@@ -122,13 +123,15 @@ export function NavigatorContent({
   const chrome = useTopPaneChrome({ atRoot: topIndex === rootIndex })
 
   // A ref keeps the lookups stable; closing over fresh arrays would loop pane registration.
-  const latest = useRef({ ordered, positions, topId, rootIndex })
-  latest.current = { ordered, positions, topId, rootIndex }
+  const latest = useRef({ ordered, positions, topId, rootIndex, revealing })
+  latest.current = { ordered, positions, topId, rootIndex, revealing }
 
-  const positionOf = useCallback((id: string) => {
-    const { ordered, positions } = latest.current
+  const positionOf = useCallback((id: string, entry: PaneRegistration) => {
+    const { ordered, positions, revealing } = latest.current
     const index = ordered.findIndex((pane) => pane.id === id)
-    return index === -1 ? null : (positions[index] ?? null)
+    return index === -1
+      ? provisionalPosition(entry, revealing)
+      : (positions[index] ?? null)
   }, [])
 
   const chromeOf = useCallback(
@@ -177,7 +180,10 @@ export function NavigatorContent({
   useEffect(() => {
     if (!isDev() || !hasChildren) return
     const declared = Array.from(panes.current.values()).some(
-      (pane) => pane.kind === 'pane' || pane.kind === 'overflow'
+      (pane) =>
+        pane.kind === 'pane' ||
+        pane.kind === 'section' ||
+        pane.kind === 'overflow'
     )
     if (declared) return
     console.warn(

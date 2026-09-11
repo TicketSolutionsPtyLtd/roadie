@@ -5,7 +5,8 @@ import {
   derivePositions,
   deriveRootIndex,
   deriveTopIndex,
-  orderByDocumentPosition
+  orderByDocumentPosition,
+  provisionalPosition
 } from './paneStack'
 
 const entry = (over: Partial<PaneEntry> = {}): PaneEntry => ({
@@ -182,5 +183,49 @@ describe('revealRoot', () => {
 
   it('changes nothing when off', () => {
     expect(derivePositions([list, detail])).toEqual(['behind', 'top'])
+  })
+})
+
+describe('provisionalPosition', () => {
+  const section = {
+    role: 'list',
+    current: false,
+    primaryNav: 'auto',
+    kind: 'generated-section'
+  } as const
+  const detail = {
+    role: 'detail',
+    current: true,
+    primaryNav: 'auto',
+    kind: 'pane'
+  } as const
+  const inspector = { ...detail, role: 'inspector', current: false } as const
+  const stack = [section, detail, inspector]
+
+  it.each([true, false])(
+    'agrees with derivePositions once registered (revealed: %s)',
+    (revealRoot) => {
+      expect(
+        stack.map((pane) => provisionalPosition(pane, revealRoot))
+      ).toEqual(derivePositions(stack, revealRoot))
+    }
+  )
+
+  it('treats a SecondaryPane override as the root', () => {
+    expect(provisionalPosition({ ...section, kind: 'section' }, true)).toBe(
+      'top'
+    )
+  })
+
+  it('parks More ahead until it opens', () => {
+    const more = { ...section, kind: 'generated-overflow' } as const
+    expect(provisionalPosition(more, false)).toBe('ahead')
+    expect(provisionalPosition({ ...more, current: true }, false)).toBe('top')
+  })
+
+  it('leaves a pane whose place depends on DOM order unplaced', () => {
+    expect(
+      provisionalPosition({ ...detail, role: 'list', current: false }, false)
+    ).toBeNull()
   })
 })

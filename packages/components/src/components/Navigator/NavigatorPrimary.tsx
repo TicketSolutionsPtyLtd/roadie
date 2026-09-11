@@ -2,11 +2,8 @@
 
 import {
   type CSSProperties,
-  Children,
   type MouseEvent,
-  type ReactElement,
   type ReactNode,
-  isValidElement,
   use,
   useEffect,
   useMemo,
@@ -21,21 +18,17 @@ import { isDev } from '../../utils/isDev'
 import { ScrollArea } from '../ScrollArea'
 import { Tooltip } from '../Tooltip'
 import {
-  type NavigatorActiveSection,
   NavigatorContext,
   isActiveValue,
-  isBranchActive,
   isSectionActive
 } from './NavigatorContext'
 import { NavigatorDestination } from './NavigatorDestination'
 import { NavigatorFoldedContext } from './NavigatorFoldedContext'
-import { NavigatorGroup } from './NavigatorGroup'
 import { NavigatorIndicator } from './NavigatorIndicator'
-import { NavigatorItem, type NavigatorItemProps } from './NavigatorItem'
 import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
-import type { NavigatorSecondaryProps } from './NavigatorSecondary'
 import { NavigatorTab, type NavigatorTabProps } from './NavigatorTab'
 import { NavigatorTileTooltip } from './NavigatorTileTooltip'
+import { findActiveSection } from './activeSection'
 import { primaryCapsules, wrapCapsules } from './capsules'
 import { collectSlots } from './collectSlots'
 import {
@@ -47,11 +40,7 @@ import {
 } from './mobileSlots'
 import { presentNavIcon } from './presentNavIcon'
 import { activeHref, rememberedHref } from './sectionMemory'
-import {
-  secondaryDescendantValues,
-  splitItemChildren,
-  textOf
-} from './splitSecondary'
+import { textOf } from './splitSecondary'
 import { usePrimaryCapacity } from './usePrimaryCapacity'
 import {
   navigatorCapsuleVariants,
@@ -133,47 +122,10 @@ export function NavigatorPrimary({
     rememberSection(branchValue, deepHref)
   }, [branchValue, deepHref, rememberSection])
 
-  const activeSection = useMemo<NavigatorActiveSection | null>(() => {
-    let active: NavigatorActiveSection | null = null
-
-    const visitItem = (child: ReactElement) => {
-      const itemProps = child.props as NavigatorItemProps
-      const { label, secondary } = splitItemChildren(itemProps.children)
-      const [declaration] = secondary
-      if (!isValidElement<NavigatorSecondaryProps>(declaration)) return
-      const branchActive = isBranchActive(
-        itemProps.value,
-        secondaryDescendantValues(secondary),
-        activeValue
-      )
-      if (!branchActive) return
-      active ??= {
-        value: itemProps.value,
-        href: itemProps.href,
-        label,
-        secondary: declaration.props
-      }
-    }
-
-    Children.forEach(children, (child) => {
-      if (!isValidElement(child)) return
-
-      if (child.type === NavigatorGroup) {
-        const groupProps = child.props as { children?: ReactNode }
-        Children.forEach(groupProps.children, (grandChild) => {
-          if (isValidElement(grandChild) && grandChild.type === NavigatorItem) {
-            visitItem(grandChild)
-          }
-        })
-        return
-      }
-
-      if (child.type !== NavigatorItem) return
-      visitItem(child)
-    })
-
-    return active
-  }, [children, activeValue])
+  const activeSection = useMemo(
+    () => findActiveSection(children, activeValue),
+    [children, activeValue]
+  )
 
   const slots = deriveMobileSlots(collected.automatic, collected.pinnedSlots)
 
@@ -189,6 +141,7 @@ export function NavigatorPrimary({
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [overflowOpen, openMenu, setOverflowOpen, overflowOpener])
 
+  // Root derives it during render when this is its direct child; only a wrapped Primary needs this.
   useEffect(() => {
     setActiveSection(activeSection)
   }, [activeSection, setActiveSection])

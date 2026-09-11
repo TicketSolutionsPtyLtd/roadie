@@ -33,7 +33,7 @@ export type NavigatorContextValue = {
   setPinExpanded: (next: boolean) => void
   scrollActivePaneToTop: () => void
   setActivePaneScroller: (scroller: (() => void) | null) => void
-  /** The branch-active item's Secondary, published by Primary. */
+  /** The branch-active item's Secondary. Derived by Root; published by a wrapped Primary. */
   activeSection: NavigatorActiveSection | null
   setActiveSection: (next: NavigatorActiveSection | null) => void
   overflowOpen: boolean

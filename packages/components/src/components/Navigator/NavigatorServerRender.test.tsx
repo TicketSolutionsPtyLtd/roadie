@@ -1,0 +1,228 @@
+import { type ReactElement, type ReactNode, StrictMode } from 'react'
+
+import { act, render, within } from '@testing-library/react'
+import { type Root, hydrateRoot } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+
+import { Navigator } from '.'
+import { Pane } from '../Pane'
+import { FakeIcon, flushViewportMeasurement, testBrand } from './testUtils'
+
+const Wrapper = ({ children }: { children: ReactNode }) => <>{children}</>
+
+function Docs({
+  value,
+  showList,
+  override = false,
+  wrapPrimary = false
+}: {
+  value: string
+  showList?: boolean
+  override?: boolean
+  wrapPrimary?: boolean
+}) {
+  const primary = (
+    <Navigator.Primary aria-label='Docs'>
+      {testBrand}
+      <Navigator.Item value='/' href='/' icon={<FakeIcon />}>
+        Home
+      </Navigator.Item>
+      <Navigator.Item
+        value='/components'
+        href='/components'
+        icon={<FakeIcon />}
+      >
+        Components
+        <Navigator.Secondary aria-label='Components'>
+          <Navigator.Group>
+            <Navigator.GroupTitle>Actions</Navigator.GroupTitle>
+            <Navigator.Item
+              value='/components/button'
+              href='/components/button'
+            >
+              Button
+            </Navigator.Item>
+            <Navigator.Item value='/components/input' href='/components/input'>
+              Input
+            </Navigator.Item>
+          </Navigator.Group>
+        </Navigator.Secondary>
+      </Navigator.Item>
+    </Navigator.Primary>
+  )
+  return (
+    <Navigator value={value} showList={showList}>
+      {wrapPrimary ? <Wrapper>{primary}</Wrapper> : primary}
+      <Navigator.Content>
+        {override ? (
+          <Navigator.SecondaryPane value='/components'>
+            <p>Promo</p>
+            <Navigator.SecondaryItems />
+          </Navigator.SecondaryPane>
+        ) : null}
+        <Pane role='detail' current>
+          Detail
+        </Pane>
+        <Pane role='inspector' aria-label='On this page'>
+          Contents
+        </Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+}
+
+const serverRender = (ui: ReactElement) => {
+  const container = document.createElement('div')
+  container.innerHTML = renderToString(ui)
+  document.body.append(container)
+  return container
+}
+
+const paneOf = (container: HTMLElement, role: string) =>
+  container.querySelector<HTMLElement>(
+    `[data-slot="pane"][data-role="${role}"]`
+  )
+
+const positions = (container: HTMLElement) =>
+  Array.from(
+    container.querySelectorAll<HTMLElement>('[data-slot="pane"]'),
+    (pane) => [
+      pane.dataset.navigatorSection ?? pane.dataset.role,
+      pane.dataset.stackPosition ?? null
+    ]
+  )
+
+afterEach(() => {
+  document.body.replaceChildren()
+})
+
+describe('Navigator server render', () => {
+  it("renders the section's list pane, rows and all, on its own route", () => {
+    const container = serverRender(<Docs value='/components' />)
+    const list = paneOf(container, 'list')!
+    expect(list).toHaveAttribute('data-navigator-section', '/components')
+    expect(
+      within(list).getByRole('heading', { name: 'Components' })
+    ).toBeInTheDocument()
+    expect(within(list).getByText('Actions')).toBeInTheDocument()
+    expect(within(list).getByRole('link', { name: 'Button' })).toHaveAttribute(
+      'href',
+      '/components/button'
+    )
+    expect(
+      within(list).getByRole('link', { name: 'Input' })
+    ).toBeInTheDocument()
+    expect(positions(container)).toEqual([
+      ['/components', 'top'],
+      ['detail', 'ahead'],
+      ['inspector', null]
+    ])
+  })
+
+  it('puts the list behind the detail on a sub-page', () => {
+    const container = serverRender(<Docs value='/components/button' />)
+    expect(positions(container)).toEqual([
+      ['/components', 'behind'],
+      ['detail', 'top'],
+      ['inspector', null]
+    ])
+    expect(
+      within(paneOf(container, 'list')!).getByRole('link', { name: 'Button' })
+    ).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('puts the list on top of a sub-page when showList is set', () => {
+    const container = serverRender(<Docs value='/components/button' showList />)
+    expect(positions(container)).toEqual([
+      ['/components', 'top'],
+      ['detail', 'ahead'],
+      ['inspector', null]
+    ])
+  })
+
+  it('renders only the detail on a route with no section', () => {
+    const container = serverRender(<Docs value='/' />)
+    expect(positions(container)).toEqual([
+      ['detail', 'top'],
+      ['inspector', null]
+    ])
+  })
+
+  it('renders a SecondaryPane override in place of the generated pane', () => {
+    const container = serverRender(<Docs value='/components' override />)
+    expect(container.querySelectorAll('[data-navigator-section]')).toHaveLength(
+      1
+    )
+    const list = paneOf(container, 'list')!
+    expect(within(list).getByText('Promo')).toBeInTheDocument()
+    expect(
+      within(list).getByRole('link', { name: 'Input' })
+    ).toBeInTheDocument()
+    expect(positions(container)).toEqual([
+      ['/components', 'top'],
+      ['detail', 'ahead'],
+      ['inspector', null]
+    ])
+
+    const subPage = serverRender(<Docs value='/components/button' override />)
+    expect(positions(subPage)).toEqual([
+      ['/components', 'behind'],
+      ['detail', 'top'],
+      ['inspector', null]
+    ])
+  })
+})
+
+describe('Navigator hydration', () => {
+  let root: Root | null = null
+
+  afterEach(() => {
+    act(() => root?.unmount())
+    root = null
+    vi.restoreAllMocks()
+  })
+
+  it.each([
+    ['/components', undefined],
+    ['/components/button', undefined],
+    ['/components/button', true],
+    ['/', undefined]
+  ])(
+    'hydrates %s (showList %s) without a mismatch or a position change',
+    async (value, showList) => {
+      const ui = (
+        <StrictMode>
+          <Docs value={value} showList={showList} />
+        </StrictMode>
+      )
+      const host = serverRender(ui)
+      const before = positions(host)
+      const listNode = paneOf(host, 'list')
+      const error = vi.spyOn(console, 'error')
+      const recoverable = vi.fn()
+
+      await act(async () => {
+        root = hydrateRoot(host, ui, { onRecoverableError: recoverable })
+      })
+      await flushViewportMeasurement()
+
+      expect(recoverable).not.toHaveBeenCalled()
+      expect(error).not.toHaveBeenCalled()
+      expect(positions(host)).toEqual(before)
+      expect(paneOf(host, 'list')).toBe(listNode)
+    }
+  )
+})
+
+describe('Navigator with a wrapped Primary', () => {
+  it('gets its section pane from the client once Primary publishes it', async () => {
+    render(<Docs value='/components' wrapPrimary />)
+    await flushViewportMeasurement()
+    expect(positions(document.body)).toEqual([
+      ['/components', 'top'],
+      ['detail', 'ahead'],
+      ['inspector', null]
+    ])
+  })
+})

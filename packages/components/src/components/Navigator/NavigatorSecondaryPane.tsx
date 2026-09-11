@@ -3,6 +3,7 @@
 import { use, useEffect } from 'react'
 
 import { PaneRoot, type PaneRootProps } from '../Pane/PaneRoot'
+import { PaneKindContext } from '../Pane/PaneStackContext'
 import { NavigatorContext } from './NavigatorContext'
 
 export type NavigatorSecondaryPaneProps = Omit<
@@ -24,7 +25,11 @@ export function NavigatorSecondaryPane({
   useEffect(() => declareSecondaryPane(value), [value, declareSecondaryPane])
 
   if (activeSection?.value !== value || overflowOpen) return null
-  return <PaneRoot role='list' data-navigator-section={value} {...props} />
+  return (
+    <PaneKindContext value='section'>
+      <PaneRoot role='list' data-navigator-section={value} {...props} />
+    </PaneKindContext>
+  )
 }
 
 NavigatorSecondaryPane.displayName = 'Navigator.SecondaryPane'
