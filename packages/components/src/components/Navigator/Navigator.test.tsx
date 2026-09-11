@@ -1266,6 +1266,59 @@ describe('Navigator mobile tab bar', () => {
     ).toBeInTheDocument()
   })
 
+  it('sets the pinned circle apart from the tabs by a gap', async () => {
+    const { container } = render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
+            A
+          </Navigator.Item>
+          <Navigator.Item
+            value='/me'
+            href='/me'
+            icon={<FakeIcon />}
+            placement='pinned'
+          >
+            Me
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const bar = horizontalOf(container)!
+    const parts = [...bar.children].map((child) =>
+      child.getAttribute('data-slot')
+    )
+    expect(parts).toEqual([
+      'navigator-primary-lane',
+      'navigator-primary-circle'
+    ])
+    expect(bar).toHaveClass('grid-cols-[minmax(0,1fr)_auto]', 'gap-3')
+    expect(bar.style.getPropertyValue('--navigator-primary-slots')).toBe('4')
+  })
+
+  it('gives the tabs the whole bar, with no gap, without a pinned item', async () => {
+    const { container } = render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
+            A
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const bar = horizontalOf(container)!
+    expect(bar.children).toHaveLength(1)
+    expect(bar.firstElementChild).toHaveAttribute(
+      'data-slot',
+      'navigator-primary-lane'
+    )
+    expect(bar).not.toHaveClass('gap-3')
+    expect(bar.className).not.toMatch(/grid-cols-/)
+    expect(bar.style.getPropertyValue('--navigator-primary-slots')).toBe('5')
+  })
+
   it('renders pinned items at the bottom of the vertical navigation', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = render(
