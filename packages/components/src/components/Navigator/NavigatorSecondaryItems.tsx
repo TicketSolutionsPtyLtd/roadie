@@ -19,7 +19,7 @@ export function NavigatorSecondaryItems({
   className,
   query = ''
 }: NavigatorSecondaryItemsProps) {
-  const { activeSection, value, setValue } = use(NavigatorContext)
+  const { activeSection, value, setValue, activateItem } = use(NavigatorContext)
   if (activeSection === null) return null
 
   const needle = query.trim().toLowerCase()
@@ -61,7 +61,7 @@ export function NavigatorSecondaryItems({
       current={isActiveValue(props.value, value) && 'page'}
       onClick={() => {
         setValue(props.value)
-        props.onClick?.()
+        activateItem(props.value)
       }}
     />
   )
