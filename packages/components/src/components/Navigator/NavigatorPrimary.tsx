@@ -39,6 +39,7 @@ import {
   phoneBarCapacity
 } from './mobileSlots'
 import { presentNavIcon } from './presentNavIcon'
+import { PRIMARY_METRICS } from './primaryCapacity'
 import { activeHref, rememberedHref } from './sectionMemory'
 import { textOf } from './splitSecondary'
 import { usePrimaryCapacity } from './usePrimaryCapacity'
@@ -104,6 +105,7 @@ export function NavigatorPrimary({
   const clusterRef = useRef<HTMLDivElement>(null)
   const clusterTrackRef = useRef<HTMLDivElement>(null)
   const pinnedRef = useRef<HTMLDivElement>(null)
+  const brandRef = useRef<HTMLDivElement>(null)
 
   const collected = useMemo(() => collectSlots(children), [children])
   const items = [...collected.automatic, ...collected.pinnedSlots]
@@ -243,9 +245,12 @@ export function NavigatorPrimary({
     setOverflowItems('horizontal', folded)
   }, [foldedKey, setOverflowItems])
 
+  const hasToggle = collected.toggles.length > 0
   const { folded: verticalFolded, shown: verticalShown } = usePrimaryCapacity(
     clusterRef,
+    brandRef,
     primaryCapsules(collected.cluster),
+    hasToggle && !expanded ? PRIMARY_METRICS.toggleRow : 0,
     !expanded
   )
   const verticalFoldedSlots = collected.automatic.filter((slot) =>
@@ -392,10 +397,9 @@ export function NavigatorPrimary({
         <Tooltip.Provider>
           {collected.brand.length > 0 || collected.toggles.length > 0 ? (
             <div
+              ref={brandRef}
               data-slot='navigator-primary-brand'
-              className={navigatorPrimaryBrandVariants({
-                toggle: collected.toggles.length > 0
-              })}
+              className={navigatorPrimaryBrandVariants({ toggle: hasToggle })}
             >
               {collected.brand}
               {collected.toggles}

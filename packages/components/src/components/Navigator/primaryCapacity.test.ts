@@ -9,6 +9,7 @@ import {
 import {
   navigatorCapsuleVariants,
   navigatorItemVariants,
+  navigatorPrimaryBrandVariants,
   navigatorPrimaryClusterContentVariants,
   navigatorPrimaryClusterTrackVariants
 } from './variants'
@@ -88,7 +89,8 @@ describe('vertical navigation arithmetic', () => {
       tileGap: 0.25,
       capsulePad: 0.25,
       capsuleGap: 0.75,
-      clusterPad: 0.5
+      clusterPad: 0.5,
+      toggleRow: 3
     })
     expect(classesOf(navigatorItemVariants())).toContain('h-12')
     expect(classesOf(navigatorCapsuleVariants())).toEqual(
@@ -98,5 +100,8 @@ describe('vertical navigation arithmetic', () => {
       'py-2'
     )
     expect(classesOf(navigatorPrimaryClusterTrackVariants())).toContain('gap-3')
+    expect(classesOf(navigatorPrimaryBrandVariants({ toggle: true }))).toEqual(
+      expect.arrayContaining(['pb-12', 'navigator-expanded:pb-0'])
+    )
   })
 })

@@ -934,6 +934,28 @@ describe('expanded vertical navigation', () => {
     ).toBeNull()
   })
 
+  it('folds once on collapse, against the height the cluster settles at', async () => {
+    const { rerender } = render(<Expandable expanded />)
+    await flushViewportMeasurement()
+    reportClusterHeight(12 * 16)
+    rerender(<Expandable expanded={false} />)
+    const tiles = () => within(region('cluster')).getAllByRole('link')
+    const more = () =>
+      within(region('cluster')).queryByRole('button', { name: 'More' })
+    // Collapsed, the toggle row takes 3rem: 9rem fits one tile and More.
+    expect(tiles()).toHaveLength(1)
+    expect(more()).not.toBeNull()
+
+    // Mid-collapse the brand's padding is part-way to its resting 3rem.
+    region('brand').style.paddingBottom = '24px'
+    reportClusterHeight(10.5 * 16)
+    expect(tiles()).toHaveLength(1)
+    region('brand').style.paddingBottom = '48px'
+    reportClusterHeight(9 * 16)
+    expect(tiles()).toHaveLength(1)
+    expect(more()).not.toBeNull()
+  })
+
   it('never renders the toggle on the phone bar', async () => {
     render(<Expandable />)
     await flushViewportMeasurement()
