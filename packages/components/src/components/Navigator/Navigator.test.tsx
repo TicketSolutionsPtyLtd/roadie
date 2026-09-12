@@ -3548,6 +3548,63 @@ describe('active-tab tap on a Pane stack', () => {
   })
 })
 
+describe('scroll-to-top as the top pane changes', () => {
+  const tree = (panes: ('a' | 'b')[]) => (
+    <Navigator value='/'>
+      <Navigator.Primary aria-label='Main'>
+        {testBrand}
+        <Navigator.Item value='/' icon={<FakeIcon />}>
+          Home
+        </Navigator.Item>
+        <Navigator.Item value='/settings' icon={<FakeIcon />}>
+          Settings
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Navigator.Content>
+        {panes.map((id) => (
+          <Pane key={id} role='detail' current data-testid={id}>
+            {id}
+          </Pane>
+        ))}
+      </Navigator.Content>
+    </Navigator>
+  )
+
+  const viewportOf = (id: string) =>
+    screen
+      .getByTestId(id)
+      .querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
+
+  it.each([
+    ['stays mounted', ['a', 'b'] as ('a' | 'b')[]],
+    ['then unmounts', ['b'] as ('a' | 'b')[]]
+  ])(
+    'scrolls a newly mounted top pane while the old one %s',
+    async (_, final) => {
+      const { container, rerender } = render(tree(['a']))
+      await flushViewportMeasurement()
+      rerender(tree(['a', 'b']))
+      await flushViewportMeasurement()
+      rerender(tree(final))
+      await flushViewportMeasurement()
+      expect(screen.getByTestId('b')).toHaveAttribute(
+        'data-stack-position',
+        'top'
+      )
+      const scrollTo = vi.fn()
+      viewportOf('b').scrollTo = scrollTo
+      await userEvent.click(
+        within(
+          container.querySelector<HTMLElement>(
+            '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+          )!
+        ).getByRole('button', { name: 'Home' })
+      )
+      expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }))
+    }
+  )
+})
+
 describe('Navigator tab icon bounce', () => {
   const horizontalOf = (container: HTMLElement) =>
     container.querySelector<HTMLElement>(

@@ -43,7 +43,7 @@ export type NavigatorContextValue = {
   pinExpanded: boolean
   setPinExpanded: (next: boolean) => void
   scrollActivePaneToTop: () => void
-  setActivePaneScroller: (scroller: (() => void) | null) => void
+  registerActivePaneScroller: (scroller: () => void) => () => void
   /** A direct-child Primary's children, or those a wrapped Primary published. */
   primaryChildren: ReactNode
   setPrimaryChildren: (next: ReactNode) => void
@@ -104,7 +104,7 @@ export const NavigatorContext = createContext<NavigatorContextValue>({
   pinExpanded: false,
   setPinExpanded: () => {},
   scrollActivePaneToTop: () => {},
-  setActivePaneScroller: () => {},
+  registerActivePaneScroller: () => () => {},
   primaryChildren: null,
   setPrimaryChildren: () => {},
   primaryDerived: false,

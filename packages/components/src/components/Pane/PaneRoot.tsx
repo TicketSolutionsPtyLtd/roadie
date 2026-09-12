@@ -207,10 +207,10 @@ export function PaneRoot({
   // to the top of the stack. The pane calls the same `scrollToTop` on itself
   // for its own compact title, so there is one definition rather than two
   // that can drift.
-  useLayoutEffect(() => {
-    registerScroller(scrollToTop)
-    return () => registerScroller(null)
-  }, [registerScroller, scrollToTop])
+  useLayoutEffect(
+    () => registerScroller(scrollToTop),
+    [registerScroller, scrollToTop]
+  )
 
   return (
     <ScrollArea
