@@ -62,6 +62,7 @@ function Docs({
           </Navigator.SecondaryPane>
         ) : null}
         <Pane role='detail' current>
+          <Pane.Header />
           Detail
         </Pane>
         <Pane role='inspector' aria-label='On this page'>
@@ -130,6 +131,23 @@ describe('Navigator server render', () => {
     expect(
       within(paneOf(container, 'list')!).getByRole('link', { name: 'Button' })
     ).toHaveAttribute('aria-current', 'page')
+    expect(
+      within(paneOf(container, 'detail')!).getByLabelText('Back')
+    ).toHaveAttribute('href', '/components')
+  })
+
+  it('gives the detail no Back link where it is the root', () => {
+    for (const ui of [
+      <Docs key='route' value='/components' />,
+      <Docs key='list' value='/components/button' showList />,
+      <Docs key='none' value='/' />
+    ]) {
+      const container = serverRender(ui)
+      expect(
+        within(paneOf(container, 'detail')!).queryByLabelText('Back')
+      ).toBeNull()
+      container.remove()
+    }
   })
 
   it('puts the list on top of a sub-page when showList is set', () => {
@@ -198,6 +216,11 @@ describe('Navigator hydration', () => {
       )
       const host = serverRender(ui)
       const before = positions(host)
+      const backOf = () =>
+        paneOf(host, 'detail')!
+          .querySelector('[aria-label="Back"]')
+          ?.getAttribute('href') ?? null
+      const back = backOf()
       const listNode = paneOf(host, 'list')
       const error = vi.spyOn(console, 'error')
       const recoverable = vi.fn()
@@ -210,6 +233,7 @@ describe('Navigator hydration', () => {
       expect(recoverable).not.toHaveBeenCalled()
       expect(error).not.toHaveBeenCalled()
       expect(positions(host)).toEqual(before)
+      expect(backOf()).toBe(back)
       expect(paneOf(host, 'list')).toBe(listNode)
     }
   )

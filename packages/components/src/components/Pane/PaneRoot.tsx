@@ -157,9 +157,9 @@ export function PaneRoot({
     return () => unregister(paneId)
   }, [register, unregister, paneId, role, current, primaryNav, kind])
 
-  const position =
-    stack?.positionOf(paneId, { role, current, primaryNav, kind }) ?? null
-  const chrome = stack?.chromeOf(paneId) ?? PANE_CHROME_NONE
+  const entry = { role, current, primaryNav, kind }
+  const position = stack?.positionOf(paneId, entry) ?? null
+  const chrome = stack?.chromeOf(paneId, entry) ?? PANE_CHROME_NONE
   // No `stack` means no orchestrator to be non-root of — default to root so
   // the close affordance stays off rather than closing a stack that doesn't
   // exist.
