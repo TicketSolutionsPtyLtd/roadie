@@ -55,11 +55,7 @@ Navigator.SecondaryItems = NavigatorSecondaryItems
 export { Navigator }
 export type { NavigatorRootProps as NavigatorProps } from './NavigatorRoot'
 export type { NavigatorContentProps } from './NavigatorContent'
-export type {
-  MobileSlots,
-  NavigatorPrimaryProps,
-  NavigatorSlotMeta
-} from './NavigatorPrimary'
+export type { NavigatorPrimaryProps } from './NavigatorPrimary'
 export type {
   NavigatorPlacement,
   NavigatorVisibilityPriority
@@ -76,30 +72,4 @@ export type { NavigatorOverflowPaneProps } from './NavigatorOverflowPane'
 export type { NavigatorOverflowItemsProps } from './NavigatorOverflowItems'
 export type { NavigatorSecondaryPaneProps } from './NavigatorSecondaryPane'
 export type { NavigatorSecondaryItemsProps } from './NavigatorSecondaryItems'
-export type { NavigatorIndicatorSurface } from './variants'
-export {
-  MAX_TABS,
-  navigatorRootVariants,
-  navigatorContentVariants,
-  navigatorPrimaryVerticalVariants,
-  navigatorPrimaryBrandVariants,
-  navigatorPrimaryClusterVariants,
-  navigatorPrimaryClusterViewportVariants,
-  navigatorPrimaryClusterContentVariants,
-  navigatorCapsuleVariants,
-  navigatorPrimaryHorizontalVariants,
-  navigatorPrimaryCircleVariants,
-  navigatorPrimaryPinnedVariants,
-  navigatorPrimaryTrackVariants,
-  navigatorPrimaryPillVariants,
-  navigatorTabVariants,
-  navigatorGroupTitleVariants,
-  navigatorItemVariants,
-  navigatorItemLabelClass,
-  navigatorBrandVariants,
-  navigatorItemTrailingVariants,
-  navigatorIndicatorVariants,
-  navigatorOverflowVariants,
-  navigatorMenuPopupVariants,
-  navigatorMenuItemVariants
-} from './variants'
+export { navigatorRootVariants, navigatorContentVariants } from './variants'

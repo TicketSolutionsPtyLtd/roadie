@@ -153,9 +153,7 @@ export {
   type NavigatorSecondaryPaneProps,
   type NavigatorSecondaryItemsProps,
   type NavigatorPlacement,
-  type NavigatorVisibilityPriority,
-  type NavigatorSlotMeta,
-  type MobileSlots
+  type NavigatorVisibilityPriority
 } from './components/Navigator'
 
 export {
