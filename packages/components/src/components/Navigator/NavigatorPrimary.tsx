@@ -327,23 +327,27 @@ export function NavigatorPrimary({
       setValue(tab.value)
       return
     }
-    if (collapsed) {
-      event.preventDefault()
+    const expandBar = () => {
       setPinExpanded(true)
       setNavCollapsed(false)
-      return
     }
     const ownsSection = activeSection?.value === tab.value
     const onSectionRoute = isActiveValue(tab.value, activeValue)
     const pageRoot = ownsSection && activeSection?.root === 'page'
+    if (ownsSection && onSectionRoute) {
+      event.preventDefault()
+      if (collapsed) expandBar()
+      scrollActivePaneToTop()
+      return
+    }
+    if (collapsed) {
+      event.preventDefault()
+      expandBar()
+      return
+    }
     if (ownsSection && !pageRoot && onShowListChange && !onSectionRoute) {
       event.preventDefault()
       onShowListChange(!showList)
-      return
-    }
-    if (ownsSection && onSectionRoute) {
-      event.preventDefault()
-      scrollActivePaneToTop()
       return
     }
     if (pageRoot) {
