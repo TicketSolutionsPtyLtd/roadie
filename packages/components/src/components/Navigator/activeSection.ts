@@ -95,8 +95,9 @@ export function findItem(
 ): NavigatorItemProps | undefined {
   let found: NavigatorItemProps | undefined
   forEachPrimaryItem(primaryChildren, (props) => {
+    if (found) return
     const { secondary } = splitItemChildren(props.children)
-    found ??= [
+    found = [
       props,
       ...secondaryItems(secondary).map((item) => item.props)
     ].find((candidate) => candidate.value === itemValue)
