@@ -203,8 +203,14 @@ export function NavigatorRoot({
 
   // Ref, not state: read imperatively on tap, never rendered.
   const activePaneScroller = useRef<(() => void) | null>(null)
-  const setActivePaneScroller = useCallback((scroller: (() => void) | null) => {
+  // A pane that stops being top can clean up after the next top registered; it must not clear that one.
+  const registerActivePaneScroller = useCallback((scroller: () => void) => {
     activePaneScroller.current = scroller
+    return () => {
+      if (activePaneScroller.current === scroller) {
+        activePaneScroller.current = null
+      }
+    }
   }, [])
   const scrollActivePaneToTop = useCallback(() => {
     activePaneScroller.current?.()
@@ -221,7 +227,7 @@ export function NavigatorRoot({
       pinExpanded,
       setPinExpanded,
       scrollActivePaneToTop,
-      setActivePaneScroller,
+      registerActivePaneScroller,
       primaryChildren,
       setPrimaryChildren,
       primaryDerived: primary !== undefined,
@@ -257,7 +263,7 @@ export function NavigatorRoot({
       primaryNav,
       pinExpanded,
       scrollActivePaneToTop,
-      setActivePaneScroller,
+      registerActivePaneScroller,
       primaryChildren,
       setPrimaryChildren,
       primary,

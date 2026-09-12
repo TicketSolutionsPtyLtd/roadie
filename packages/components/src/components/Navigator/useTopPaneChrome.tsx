@@ -19,7 +19,7 @@ export function useTopPaneChrome({
     setNavCollapsed,
     pinExpanded,
     setPinExpanded,
-    setActivePaneScroller,
+    registerActivePaneScroller,
     activeSection,
     overflowOpen
   } = use(NavigatorContext)
@@ -52,9 +52,9 @@ export function useTopPaneChrome({
   return useMemo(
     () => ({
       onViewportScroll,
-      registerScroller: setActivePaneScroller,
+      registerScroller: registerActivePaneScroller,
       backHref
     }),
-    [onViewportScroll, setActivePaneScroller, backHref]
+    [onViewportScroll, registerActivePaneScroller, backHref]
   )
 }
