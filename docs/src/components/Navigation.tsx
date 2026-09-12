@@ -328,7 +328,7 @@ export function DocsNavigator({
                             value={category.overviewHref}
                             href={category.overviewHref}
                           >
-                            Overview
+                            {`${category.name} overview`}
                           </Navigator.Item>
                         ) : null}
                         {category.components.map((component) => (
