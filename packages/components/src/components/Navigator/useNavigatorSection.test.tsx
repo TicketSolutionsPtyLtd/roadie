@@ -214,20 +214,23 @@ describe('useNavigatorSection', () => {
     const error = vi.spyOn(console, 'error')
     const recoverable = vi.fn()
     let root: Root | null = null
-    await act(async () => {
-      root = hydrateRoot(host, ui(log), { onRecoverableError: recoverable })
-    })
-    await flushViewportMeasurement()
-    expect(recoverable).not.toHaveBeenCalled()
-    expect(error).not.toHaveBeenCalled()
-    expect(log[0]).toBeNull()
-    expect(log.at(-1)).toMatchObject({ value: '/' })
-    expect(host.querySelector('[data-testid="probe"]')).toHaveTextContent(
-      '/overview/philosophy*'
-    )
-    act(() => root?.unmount())
-    host.remove()
-    error.mockRestore()
+    try {
+      await act(async () => {
+        root = hydrateRoot(host, ui(log), { onRecoverableError: recoverable })
+      })
+      await flushViewportMeasurement()
+      expect(recoverable).not.toHaveBeenCalled()
+      expect(error).not.toHaveBeenCalled()
+      expect(log[0]).toBeNull()
+      expect(log.at(-1)).toMatchObject({ value: '/' })
+      expect(host.querySelector('[data-testid="probe"]')).toHaveTextContent(
+        '/overview/philosophy*'
+      )
+    } finally {
+      act(() => root?.unmount())
+      host.remove()
+      error.mockRestore()
+    }
   })
 
   it('follows a value change after mount with a wrapped Primary', async () => {
