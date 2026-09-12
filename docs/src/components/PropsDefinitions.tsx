@@ -195,14 +195,17 @@ function groupPropsBySource(
   }
 
   Object.entries(props).forEach(([name, prop]) => {
-    // An HTML element's `className` is the component's own, not a one-row React section.
-    const reactClassName =
-      name === 'className' && prop.parent?.fileName.includes('@types/react')
-    if (
-      prop.parent?.name &&
-      !reactClassName &&
-      !prop.parent.name.startsWith(componentName)
-    ) {
+    // A plain, undocumented `className: string` forwarded straight from
+    // `@types/react` is true of every part and carries no signal — drop it.
+    // One documented locally (a real description) or typed as a Base UI
+    // state function still earns its row.
+    const isPlainForwardedClassName =
+      name === 'className' &&
+      prop.parent?.fileName.includes('@types/react') &&
+      prop.type.name === 'string' &&
+      !prop.description
+    if (isPlainForwardedClassName) return
+    if (prop.parent?.name && !prop.parent.name.startsWith(componentName)) {
       const parentName = prop.parent.name
       if (!result.inheritedProps[parentName]) {
         result.inheritedProps[parentName] = {
