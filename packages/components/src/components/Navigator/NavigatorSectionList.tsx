@@ -33,7 +33,7 @@ export function NavigatorSectionList({
     .map((group) => ({
       ...group,
       rows: group.rows.filter(
-        ({ item }) =>
+        (item) =>
           needle === '' || textOf(item.label).toLowerCase().includes(needle)
       )
     }))
@@ -50,7 +50,7 @@ export function NavigatorSectionList({
     )
   }
 
-  const row = ({ item }: SectionRow) => (
+  const row = (item: SectionRow) => (
     <List.Item
       key={item.value}
       title={item.label}
