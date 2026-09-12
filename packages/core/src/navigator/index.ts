@@ -1,9 +1,11 @@
-/** The `navigator-expanded` variant's selector list, for tests that assert it matches. */
-export const NAVIGATOR_EXPANDED_SCOPE =
-  '[data-slot=navigator-primary][data-orientation=vertical][data-expanded], [data-slot=navigator-primary][data-orientation=vertical][data-expanded] *, [data-navigator-expanded] [data-slot=navigator-primary][data-orientation=vertical][data-from-document], [data-navigator-expanded] [data-slot=navigator-primary][data-orientation=vertical][data-from-document] *'
-
 export const NAVIGATOR_EXPANDED_COOKIE = 'roadie-navigator-expanded'
 export const NAVIGATOR_EXPANDED_ATTRIBUTE = 'data-navigator-expanded'
+
+const VERTICAL = '[data-slot=navigator-primary][data-orientation=vertical]'
+const FROM_DOCUMENT = `[${NAVIGATOR_EXPANDED_ATTRIBUTE}] ${VERTICAL}[data-from-document]`
+
+/** The `navigator-expanded` variant's selector list, for tests that assert it matches. */
+export const NAVIGATOR_EXPANDED_SCOPE = `${VERTICAL}[data-expanded], ${VERTICAL}[data-expanded] *, ${FROM_DOCUMENT}, ${FROM_DOCUMENT} *`
 
 type NavigatorCookieOptions = { cookieName?: string }
 
