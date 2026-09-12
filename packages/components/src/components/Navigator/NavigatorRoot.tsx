@@ -28,7 +28,7 @@ import {
   NavigatorPrimary,
   type NavigatorPrimaryProps
 } from './NavigatorPrimary'
-import { findActiveSection } from './activeSection'
+import { findActiveSection, findItem } from './activeSection'
 import type { NavigatorSlotMeta } from './mobileSlots'
 import { primarySignature } from './primarySignature'
 import { type SectionMemory, nextMemory } from './sectionMemory'
@@ -119,8 +119,10 @@ export function NavigatorRoot({
     signature: string
     children: ReactNode
   }>({ signature: '', children: null })
+  const latestPrimaryChildren = useRef<ReactNode>(null)
   // A wrapper reading this context re-renders Primary with fresh elements; republishing them loops.
   const setPrimaryChildren = useCallback((next: ReactNode) => {
+    latestPrimaryChildren.current = next
     const signature = primarySignature(next)
     setPublished((current) =>
       current.signature === signature ? current : { signature, children: next }
@@ -183,6 +185,13 @@ export function NavigatorRoot({
     () => findActiveSection(primaryChildren, value),
     [primaryChildren, value]
   )
+  useIsomorphicLayoutEffect(() => {
+    if (primary === undefined) return
+    latestPrimaryChildren.current = primary.props.children
+  }, [primary])
+  const activateItem = useCallback((itemValue: string) => {
+    findItem(latestPrimaryChildren.current, itemValue)?.onClick?.()
+  }, [])
   const listPaneShows =
     activeSection !== null &&
     !(
@@ -213,6 +222,7 @@ export function NavigatorRoot({
       primaryChildren,
       setPrimaryChildren,
       primaryDerived: primary !== undefined,
+      activateItem,
       activeSection,
       listPaneShows,
       overflowOpen,
@@ -247,6 +257,7 @@ export function NavigatorRoot({
       primaryChildren,
       setPrimaryChildren,
       primary,
+      activateItem,
       activeSection,
       listPaneShows,
       overflowOpen,

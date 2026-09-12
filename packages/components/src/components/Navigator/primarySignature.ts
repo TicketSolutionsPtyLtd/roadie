@@ -25,8 +25,9 @@ function serialize(node: unknown): string {
 }
 
 /**
- * The authored structure of Primary's children — types, primitive props and
- * nested elements — ignoring element identity and functions.
+ * The authored structure of Primary's children, ignoring element identity and
+ * functions. Trees differing only in a non-primitive prop or an unnamed type
+ * stay stale until the next structural change; handlers resolve at click time.
  */
 export function primarySignature(children: ReactNode): string {
   return serialize(children)

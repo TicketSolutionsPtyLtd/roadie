@@ -139,6 +139,10 @@ export function NavigatorPrimary({
   useEffect(() => {
     if (!primaryDerived) setPrimaryChildren(children)
   }, [primaryDerived, children, setPrimaryChildren])
+  useEffect(() => {
+    if (primaryDerived) return
+    return () => setPrimaryChildren(null)
+  }, [primaryDerived, setPrimaryChildren])
 
   // Warnings live in effects, not the walk: React 19 StrictMode double-invokes render.
   const hasStrayChild = collected.hasStrayChild

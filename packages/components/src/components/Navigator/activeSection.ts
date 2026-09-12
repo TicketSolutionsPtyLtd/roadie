@@ -1,20 +1,38 @@
-import {
-  Children,
-  type ReactElement,
-  type ReactNode,
-  isValidElement
-} from 'react'
+import { Children, type ReactNode, isValidElement } from 'react'
 
 import { type NavigatorActiveSection, isBranchActive } from './NavigatorContext'
 import { NavigatorGroup } from './NavigatorGroup'
 import { NavigatorItem, type NavigatorItemProps } from './NavigatorItem'
 import type { NavigatorSecondaryProps } from './NavigatorSecondary'
-import { secondaryDescendantValues, splitItemChildren } from './splitSecondary'
+import {
+  secondaryDescendantValues,
+  secondaryItems,
+  splitItemChildren
+} from './splitSecondary'
 
 type SectionMatch = (
   props: NavigatorItemProps,
   descendants: string[]
 ) => boolean
+
+function forEachPrimaryItem(
+  primaryChildren: ReactNode,
+  visit: (props: NavigatorItemProps) => void
+) {
+  Children.forEach(primaryChildren, (child) => {
+    if (!isValidElement(child)) return
+    if (child.type === NavigatorGroup) {
+      const groupProps = child.props as { children?: ReactNode }
+      Children.forEach(groupProps.children, (grandChild) => {
+        if (isValidElement(grandChild) && grandChild.type === NavigatorItem) {
+          visit(grandChild.props as NavigatorItemProps)
+        }
+      })
+      return
+    }
+    if (child.type === NavigatorItem) visit(child.props as NavigatorItemProps)
+  })
+}
 
 function findSection(
   primaryChildren: ReactNode,
@@ -22,8 +40,7 @@ function findSection(
 ): NavigatorActiveSection | null {
   let found: NavigatorActiveSection | null = null
 
-  const visitItem = (child: ReactElement) => {
-    const itemProps = child.props as NavigatorItemProps
+  forEachPrimaryItem(primaryChildren, (itemProps) => {
     const { label, secondary } = splitItemChildren(itemProps.children)
     const [declaration] = secondary
     if (!isValidElement<NavigatorSecondaryProps>(declaration)) return
@@ -38,20 +55,6 @@ function findSection(
           ? 'page'
           : 'list'
     }
-  }
-
-  Children.forEach(primaryChildren, (child) => {
-    if (!isValidElement(child)) return
-    if (child.type === NavigatorGroup) {
-      const groupProps = child.props as { children?: ReactNode }
-      Children.forEach(groupProps.children, (grandChild) => {
-        if (isValidElement(grandChild) && grandChild.type === NavigatorItem) {
-          visitItem(grandChild)
-        }
-      })
-      return
-    }
-    if (child.type === NavigatorItem) visitItem(child)
   })
 
   return found
@@ -73,4 +76,20 @@ export function findSectionByValue(
   itemValue: string
 ): NavigatorActiveSection | null {
   return findSection(primaryChildren, (props) => props.value === itemValue)
+}
+
+/** The `Navigator.Item` whose `value` is `itemValue`, in Primary or any Secondary. */
+export function findItem(
+  primaryChildren: ReactNode,
+  itemValue: string
+): NavigatorItemProps | undefined {
+  let found: NavigatorItemProps | undefined
+  forEachPrimaryItem(primaryChildren, (props) => {
+    const { secondary } = splitItemChildren(props.children)
+    found ??= [
+      props,
+      ...secondaryItems(secondary).map((item) => item.props)
+    ].find((candidate) => candidate.value === itemValue)
+  })
+  return found
 }

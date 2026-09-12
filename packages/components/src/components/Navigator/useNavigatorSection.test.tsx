@@ -40,12 +40,14 @@ function Docs({
   value,
   probeValue,
   log,
-  wrapPrimary = false
+  wrapPrimary = false,
+  primaryShown = true
 }: {
   value: string
   probeValue?: string
   log: (NavigatorSectionData | null)[]
   wrapPrimary?: boolean
+  primaryShown?: boolean
 }) {
   const primary = (
     <Navigator.Primary aria-label='Docs'>
@@ -91,7 +93,7 @@ function Docs({
   )
   return (
     <Navigator value={value}>
-      {wrapPrimary ? <Wrapper>{primary}</Wrapper> : primary}
+      {primaryShown && (wrapPrimary ? <Wrapper>{primary}</Wrapper> : primary)}
       <Navigator.Content>
         <Pane role='detail' current>
           <Probe value={probeValue} log={log} />
@@ -204,6 +206,29 @@ describe('useNavigatorSection', () => {
     rerender(<Docs value='/components/button' log={log} wrapPrimary />)
     await flushViewportMeasurement()
     expect(log.at(-1)).toMatchObject({ value: '/components' })
+  })
+
+  it('clears the section when a wrapped Primary unmounts', async () => {
+    const log: (NavigatorSectionData | null)[] = []
+    const { rerender } = render(
+      <StrictMode>
+        <Docs value='/overview/philosophy' log={log} wrapPrimary />
+      </StrictMode>
+    )
+    await flushViewportMeasurement()
+    expect(log.at(-1)).toMatchObject({ value: '/' })
+    rerender(
+      <StrictMode>
+        <Docs
+          value='/overview/philosophy'
+          log={log}
+          wrapPrimary
+          primaryShown={false}
+        />
+      </StrictMode>
+    )
+    await flushViewportMeasurement()
+    expect(log.at(-1)).toBeNull()
   })
 })
 

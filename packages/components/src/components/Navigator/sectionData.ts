@@ -28,7 +28,7 @@ export type NavigatorSectionData = {
   groups: NavigatorSectionGroup[]
 }
 
-export type SectionRow = { item: NavigatorSectionItem; onClick?: () => void }
+export type SectionRow = { item: NavigatorSectionItem }
 
 export type SectionRowGroup = {
   kind: 'group' | 'loose'
@@ -52,8 +52,7 @@ export function sectionRows(
         description: props.description,
         badge: props.badge,
         current: isActiveValue(props.value, activeValue)
-      },
-      onClick: props.onClick
+      }
     }))
   }))
 }

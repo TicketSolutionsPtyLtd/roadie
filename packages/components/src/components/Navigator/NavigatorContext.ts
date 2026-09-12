@@ -49,6 +49,8 @@ export type NavigatorContextValue = {
   setPrimaryChildren: (next: ReactNode) => void
   /** Root read the Primary's children during render, so Primary needn't publish them. */
   primaryDerived: boolean
+  /** Calls the current `onClick` of the item with this `value`, read at click time. */
+  activateItem: (value: string) => void
   /** The branch-active section, walked from `primaryChildren`. */
   activeSection: NavigatorActiveSection | null
   /** The active section shows a list pane: not a page-first section on its own route. */
@@ -104,6 +106,7 @@ export const NavigatorContext = createContext<NavigatorContextValue>({
   primaryChildren: null,
   setPrimaryChildren: () => {},
   primaryDerived: false,
+  activateItem: () => {},
   activeSection: null,
   listPaneShows: false,
   overflowOpen: false,
