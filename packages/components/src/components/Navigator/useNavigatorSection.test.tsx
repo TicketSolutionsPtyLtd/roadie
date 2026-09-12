@@ -1,0 +1,198 @@
+import { type ReactNode, StrictMode } from 'react'
+
+import { act, render, screen } from '@testing-library/react'
+import { renderToString } from 'react-dom/server'
+import { describe, expect, it } from 'vitest'
+
+import { Navigator } from '.'
+import { Badge } from '../Badge'
+import { Pane } from '../Pane'
+import { FakeIcon, flushViewportMeasurement, testBrand } from './testUtils'
+import {
+  type NavigatorSectionData,
+  useNavigatorSection
+} from './useNavigatorSection'
+
+const Wrapper = ({ children }: { children: ReactNode }) => <>{children}</>
+
+const badge = <Badge>New</Badge>
+
+function Probe({
+  value,
+  log
+}: {
+  value?: string
+  log: (NavigatorSectionData | null)[]
+}) {
+  const data = useNavigatorSection(value)
+  log.push(data)
+  return (
+    <span data-testid='probe'>
+      {data === null
+        ? 'none'
+        : data.groups
+            .flatMap((group) => group.items)
+            .map((item) => `${item.value}${item.current ? '*' : ''}`)
+            .join(' ')}
+    </span>
+  )
+}
+
+function Docs({
+  value,
+  probeValue,
+  log,
+  wrapPrimary = false
+}: {
+  value: string
+  probeValue?: string
+  log: (NavigatorSectionData | null)[]
+  wrapPrimary?: boolean
+}) {
+  const primary = (
+    <Navigator.Primary aria-label='Docs'>
+      {testBrand}
+      <Navigator.Item value='/' href='/' icon={<FakeIcon />}>
+        Home
+        <Navigator.Secondary aria-label='Home pages' root='page'>
+          <Navigator.Item
+            value='/overview/installation'
+            href='/overview/installation'
+            description='Set up the packages'
+            icon={<FakeIcon />}
+            badge={badge}
+          >
+            Installation
+          </Navigator.Item>
+          <Navigator.Item
+            value='/overview/philosophy'
+            href='/overview/philosophy'
+          >
+            Philosophy
+          </Navigator.Item>
+          <Navigator.Group>
+            <Navigator.GroupTitle>Reference</Navigator.GroupTitle>
+            <Navigator.Item value='/migration' href='/migration'>
+              Migrating to v2
+            </Navigator.Item>
+          </Navigator.Group>
+        </Navigator.Secondary>
+      </Navigator.Item>
+      <Navigator.Item value='/components' href='/components'>
+        Components
+        <Navigator.Secondary aria-label='Components'>
+          <Navigator.Item value='/components/button' href='/components/button'>
+            Button
+          </Navigator.Item>
+        </Navigator.Secondary>
+      </Navigator.Item>
+      <Navigator.Item value='/about' href='/about'>
+        About
+      </Navigator.Item>
+    </Navigator.Primary>
+  )
+  return (
+    <Navigator value={value}>
+      {wrapPrimary ? <Wrapper>{primary}</Wrapper> : primary}
+      <Navigator.Content>
+        <Pane role='detail' current>
+          <Probe value={probeValue} log={log} />
+        </Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+}
+
+describe('useNavigatorSection', () => {
+  it('returns the active section: loose items as an untitled group, the current row marked', async () => {
+    const log: (NavigatorSectionData | null)[] = []
+    render(<Docs value='/overview/philosophy' log={log} />)
+    await flushViewportMeasurement()
+    const data = log.at(-1)!
+    expect(data).toMatchObject({ value: '/', href: '/' })
+    expect(data.label).toEqual(['Home'])
+    expect(data.groups.map((group) => group.title)).toEqual([
+      undefined,
+      'Reference'
+    ])
+    expect(
+      data.groups.map((group) => group.items.map((item) => item.value))
+    ).toEqual([
+      ['/overview/installation', '/overview/philosophy'],
+      ['/migration']
+    ])
+    expect(data.groups[0]!.items.map((item) => item.current)).toEqual([
+      false,
+      true
+    ])
+  })
+
+  it('carries label, href, icon, description and the badge element', async () => {
+    const log: (NavigatorSectionData | null)[] = []
+    render(<Docs value='/' log={log} />)
+    await flushViewportMeasurement()
+    const installation = log.at(-1)!.groups[0]!.items[0]!
+    expect(installation).toMatchObject({
+      value: '/overview/installation',
+      href: '/overview/installation',
+      description: 'Set up the packages',
+      current: false
+    })
+    expect(installation.label).toEqual(['Installation'])
+    expect(installation.icon?.type).toBe(FakeIcon)
+    expect(installation.badge).toBe(badge)
+    expect(log.at(-1)!.groups[0]!.items[1]!.description).toBeUndefined()
+  })
+
+  it('looks any section up by its item value', async () => {
+    const log: (NavigatorSectionData | null)[] = []
+    render(<Docs value='/' probeValue='/components' log={log} />)
+    await flushViewportMeasurement()
+    expect(log.at(-1)).toMatchObject({
+      value: '/components',
+      href: '/components'
+    })
+    expect(screen.getByTestId('probe')).toHaveTextContent('/components/button')
+  })
+
+  it('returns null for an unknown value, an item without a Secondary, or outside every section', async () => {
+    const log: (NavigatorSectionData | null)[] = []
+    const { rerender } = render(
+      <Docs value='/about' probeValue='/nowhere' log={log} />
+    )
+    await flushViewportMeasurement()
+    expect(log.at(-1)).toBeNull()
+    rerender(<Docs value='/about' probeValue='/about' log={log} />)
+    expect(log.at(-1)).toBeNull()
+    rerender(<Docs value='/about' log={log} />)
+    expect(log.at(-1)).toBeNull()
+  })
+
+  it('is computed in the server render', () => {
+    const log: (NavigatorSectionData | null)[] = []
+    const html = renderToString(<Docs value='/overview/philosophy' log={log} />)
+    expect(html).toContain(
+      '/overview/installation /overview/philosophy* /migration'
+    )
+  })
+
+  it('falls back to what a wrapped Primary publishes after mount', async () => {
+    const log: (NavigatorSectionData | null)[] = []
+    render(
+      <StrictMode>
+        <Docs
+          value='/overview/philosophy'
+          probeValue='/components'
+          log={log}
+          wrapPrimary
+        />
+      </StrictMode>
+    )
+    expect(log[0]).toBeNull()
+    await act(async () => {
+      await Promise.resolve()
+    })
+    await flushViewportMeasurement()
+    expect(log.at(-1)).toMatchObject({ value: '/components' })
+  })
+})

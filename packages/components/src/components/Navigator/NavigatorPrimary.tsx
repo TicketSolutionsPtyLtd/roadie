@@ -28,7 +28,6 @@ import { NavigatorIndicator } from './NavigatorIndicator'
 import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
 import { NavigatorTab, type NavigatorTabProps } from './NavigatorTab'
 import { NavigatorTileTooltip } from './NavigatorTileTooltip'
-import { findActiveSection } from './activeSection'
 import { primaryCapsules, wrapCapsules } from './capsules'
 import { collectSlots } from './collectSlots'
 import {
@@ -76,8 +75,8 @@ export function NavigatorPrimary({
     value: activeValue,
     setValue,
     activeSection,
-    setActiveSection,
-    sectionDerived,
+    setPrimaryChildren,
+    primaryDerived,
     navCollapsed,
     setNavCollapsed,
     primaryNav,
@@ -122,12 +121,6 @@ export function NavigatorPrimary({
     rememberSection(branchValue, deepHref)
   }, [branchValue, deepHref, rememberSection])
 
-  // Root derives it during render when this is its direct child; only a wrapped Primary publishes it.
-  const wrappedSection = useMemo(
-    () => (sectionDerived ? null : findActiveSection(children, activeValue)),
-    [sectionDerived, children, activeValue]
-  )
-
   const slots = deriveMobileSlots(collected.automatic, collected.pinnedSlots)
 
   useEffect(() => {
@@ -142,9 +135,10 @@ export function NavigatorPrimary({
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [overflowOpen, openMenu, setOverflowOpen, overflowOpener])
 
+  // Root reads a direct child's children itself; only a wrapped Primary has to publish them.
   useEffect(() => {
-    if (!sectionDerived) setActiveSection(wrappedSection)
-  }, [sectionDerived, wrappedSection, setActiveSection])
+    if (!primaryDerived) setPrimaryChildren(children)
+  }, [primaryDerived, children, setPrimaryChildren])
 
   // Warnings live in effects, not the walk: React 19 StrictMode double-invokes render.
   const hasStrayChild = collected.hasStrayChild

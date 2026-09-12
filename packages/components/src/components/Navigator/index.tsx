@@ -53,6 +53,12 @@ Navigator.SecondaryPane = NavigatorSecondaryPane
 Navigator.SecondaryItems = NavigatorSecondaryItems
 
 export { Navigator }
+export { useNavigatorSection } from './useNavigatorSection'
+export type {
+  NavigatorSectionData,
+  NavigatorSectionGroup,
+  NavigatorSectionItem
+} from './sectionData'
 export type { NavigatorRootProps as NavigatorProps } from './NavigatorRoot'
 export type { NavigatorContentProps } from './NavigatorContent'
 export type { NavigatorPrimaryProps } from './NavigatorPrimary'

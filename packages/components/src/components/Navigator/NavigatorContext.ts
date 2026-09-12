@@ -44,11 +44,15 @@ export type NavigatorContextValue = {
   setPinExpanded: (next: boolean) => void
   scrollActivePaneToTop: () => void
   setActivePaneScroller: (scroller: (() => void) | null) => void
-  /** The branch-active item's Secondary. Derived by Root; published by a wrapped Primary. */
+  /** A direct-child Primary's children, or those a wrapped Primary published. */
+  primaryChildren: ReactNode
+  setPrimaryChildren: (next: ReactNode) => void
+  /** Root read the Primary's children during render, so Primary needn't publish them. */
+  primaryDerived: boolean
+  /** The branch-active section, walked from `primaryChildren`. */
   activeSection: NavigatorActiveSection | null
-  setActiveSection: (next: NavigatorActiveSection | null) => void
-  /** Root derived `activeSection` from a direct-child Primary, so Primary needn't publish it. */
-  sectionDerived: boolean
+  /** The active section shows a list pane: not a page-first section on its own route. */
+  listPaneShows: boolean
   overflowOpen: boolean
   setOverflowOpen: (next: boolean) => void
   /** Id the More tab points `aria-controls` at, and the overflow pane carries. */
@@ -97,9 +101,11 @@ export const NavigatorContext = createContext<NavigatorContextValue>({
   setPinExpanded: () => {},
   scrollActivePaneToTop: () => {},
   setActivePaneScroller: () => {},
+  primaryChildren: null,
+  setPrimaryChildren: () => {},
+  primaryDerived: false,
   activeSection: null,
-  setActiveSection: () => {},
-  sectionDerived: false,
+  listPaneShows: false,
   overflowOpen: false,
   setOverflowOpen: () => {},
   overflowPaneId: '',

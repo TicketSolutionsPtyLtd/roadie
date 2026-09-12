@@ -4,7 +4,7 @@ import { use, useEffect } from 'react'
 
 import { PaneRoot, type PaneRootProps } from '../Pane/PaneRoot'
 import { PaneKindContext } from '../Pane/PaneStackContext'
-import { NavigatorContext, isActiveValue } from './NavigatorContext'
+import { NavigatorContext } from './NavigatorContext'
 
 export type NavigatorSecondaryPaneProps = Omit<
   PaneRootProps,
@@ -19,18 +19,14 @@ export function NavigatorSecondaryPane({
   value,
   ...props
 }: NavigatorSecondaryPaneProps) {
-  const {
-    activeSection,
-    overflowOpen,
-    declareSecondaryPane,
-    value: activeValue
-  } = use(NavigatorContext)
+  const { activeSection, listPaneShows, overflowOpen, declareSecondaryPane } =
+    use(NavigatorContext)
 
   useEffect(() => declareSecondaryPane(value), [value, declareSecondaryPane])
 
-  const onPageRoot =
-    activeSection?.root === 'page' && isActiveValue(value, activeValue)
-  if (activeSection?.value !== value || overflowOpen || onPageRoot) return null
+  if (activeSection?.value !== value || overflowOpen || !listPaneShows) {
+    return null
+  }
   return (
     <PaneKindContext value='section'>
       <PaneRoot role='list' data-navigator-section={value} {...props} />

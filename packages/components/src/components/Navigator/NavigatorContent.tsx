@@ -59,6 +59,7 @@ export function NavigatorContent({
     overflowItems,
     overflowOpen,
     activeSection,
+    listPaneShows,
     declaredSecondaryPanes,
     showList
   } = use(NavigatorContext)
@@ -110,8 +111,6 @@ export function NavigatorContent({
   )
   const onSectionRoute =
     activeSection !== null && isActiveValue(activeSection.value, value)
-  const listPaneShows =
-    activeSection !== null && !(activeSection.root === 'page' && onSectionRoute)
   const revealing =
     listPaneShows && !overflowOpen && (onSectionRoute || showList)
   const positions = useMemo(
@@ -222,7 +221,7 @@ export function NavigatorContent({
 
   // Keyed so the search resets with the section; More replaces it while open.
   const sectionPane =
-    listPaneShows && !overflowOpen && !overridden ? (
+    activeSection !== null && listPaneShows && !overflowOpen && !overridden ? (
       <NavigatorSectionPane key={activeSection.value} section={activeSection} />
     ) : null
 

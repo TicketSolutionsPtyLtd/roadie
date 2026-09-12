@@ -147,11 +147,15 @@ export {
 
 export {
   Navigator,
+  useNavigatorSection,
   type NavigatorProps,
   type NavigatorContentProps,
   type NavigatorPrimaryProps,
   type NavigatorSecondaryProps,
   type NavigatorSecondaryRoot,
+  type NavigatorSectionData,
+  type NavigatorSectionGroup,
+  type NavigatorSectionItem,
   type NavigatorItemProps,
   type NavigatorGroupProps,
   type NavigatorMenuProps,
