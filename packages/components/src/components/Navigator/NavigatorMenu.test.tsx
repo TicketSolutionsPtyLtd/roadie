@@ -198,6 +198,7 @@ describe('Navigator.Menu', () => {
     )
     const menu = await screen.findByRole('menu')
     expect(menu).toHaveAttribute('data-slot', 'navigator-menu')
+    expect(menu).toHaveClass('emphasis-floating', 'is-translucent')
     const item = within(menu).getByRole('menuitem', { name: 'Sign out' })
     expect(item).toHaveAttribute('data-slot', 'navigator-menu-item')
     expect(
