@@ -1,6 +1,6 @@
 import { type ReactNode, useLayoutEffect, useRef } from 'react'
 
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -1088,6 +1088,70 @@ describe('page root tab', () => {
     await user.click(within(horizontal()).getByRole('link', { name: 'Home' }))
     expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }))
     expect(onShowListChange).not.toHaveBeenCalled()
+    expect(onValueChange).not.toHaveBeenCalled()
+  })
+
+  const collapseBar = async () => {
+    const viewport = document.querySelector<HTMLElement>(
+      '[data-stack-position="top"] [data-slot="pane-viewport"]'
+    )!
+    Object.defineProperty(viewport, 'scrollTop', { value: 400, writable: true })
+    fireEvent.scroll(viewport)
+    await act(
+      () =>
+        new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+    )
+    expect(horizontal()).toHaveAttribute('data-collapsed', 'true')
+    const scrollTo = vi.fn()
+    viewport.scrollTo = scrollTo
+    return { viewport, scrollTo }
+  }
+
+  it.each([
+    ['a page root', <PageRooted key='page' value='/' />, 'Home'],
+    [
+      'a list section on its route',
+      <Routed key='list' value='/components' />,
+      'Components'
+    ]
+  ])(
+    'scrolls to the top and reopens the collapsed bar in one tap on %s',
+    async (_, ui, tabName) => {
+      const user = userEvent.setup()
+      render(withStubLink(ui))
+      await flushViewportMeasurement()
+      const { viewport, scrollTo } = await collapseBar()
+      await user.click(
+        within(horizontal()).getByRole('link', { name: tabName })
+      )
+      expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }))
+      expect(horizontal()).toHaveAttribute('data-collapsed', 'false')
+      viewport.scrollTop = 200
+      fireEvent.scroll(viewport)
+      await act(
+        () =>
+          new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+      )
+      expect(horizontal()).toHaveAttribute('data-collapsed', 'false')
+    }
+  )
+
+  it('only reopens the collapsed bar from a sub-page', async () => {
+    const user = userEvent.setup()
+    const onValueChange = vi.fn()
+    render(
+      withStubLink(
+        <PageRooted
+          value='/overview/philosophy'
+          onValueChange={onValueChange}
+        />
+      )
+    )
+    await flushViewportMeasurement()
+    const { scrollTo } = await collapseBar()
+    await user.click(within(horizontal()).getByRole('link', { name: 'Home' }))
+    expect(horizontal()).toHaveAttribute('data-collapsed', 'false')
+    expect(scrollTo).not.toHaveBeenCalled()
     expect(onValueChange).not.toHaveBeenCalled()
   })
 
