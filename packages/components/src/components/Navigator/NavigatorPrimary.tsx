@@ -139,6 +139,7 @@ export function NavigatorPrimary({
   useEffect(() => {
     if (!primaryDerived) setPrimaryChildren(children)
   }, [primaryDerived, children, setPrimaryChildren])
+  // Kept apart from the publish: merged, StrictMode batches clear-then-publish and loops.
   useEffect(() => {
     if (primaryDerived) return
     return () => setPrimaryChildren(null)

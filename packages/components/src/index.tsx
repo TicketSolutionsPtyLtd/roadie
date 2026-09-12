@@ -157,6 +157,7 @@ export {
   type NavigatorOverflowPaneProps,
   type NavigatorSecondaryPaneProps,
   type NavigatorSecondaryItemsProps,
+  type NavigatorSectionItemsProps,
   type NavigatorPlacement,
   type NavigatorVisibilityPriority
 } from './components/Navigator'
