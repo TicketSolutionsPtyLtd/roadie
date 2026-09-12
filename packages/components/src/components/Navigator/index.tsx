@@ -17,6 +17,7 @@ import { NavigatorRoot } from './NavigatorRoot'
 import { NavigatorSecondary } from './NavigatorSecondary'
 import { NavigatorSecondaryItems } from './NavigatorSecondaryItems'
 import { NavigatorSecondaryPane } from './NavigatorSecondaryPane'
+import { NavigatorSectionItems } from './NavigatorSectionItems'
 
 const Navigator = NavigatorRoot as typeof NavigatorRoot & {
   Root: typeof NavigatorRoot
@@ -34,6 +35,7 @@ const Navigator = NavigatorRoot as typeof NavigatorRoot & {
   OverflowItems: typeof NavigatorOverflowItems
   SecondaryPane: typeof NavigatorSecondaryPane
   SecondaryItems: typeof NavigatorSecondaryItems
+  SectionItems: typeof NavigatorSectionItems
 }
 
 Navigator.Root = NavigatorRoot
@@ -51,6 +53,7 @@ Navigator.OverflowPane = NavigatorOverflowPane
 Navigator.OverflowItems = NavigatorOverflowItems
 Navigator.SecondaryPane = NavigatorSecondaryPane
 Navigator.SecondaryItems = NavigatorSecondaryItems
+Navigator.SectionItems = NavigatorSectionItems
 
 export { Navigator }
 export { useNavigatorSection } from './useNavigatorSection'
@@ -81,4 +84,5 @@ export type { NavigatorOverflowPaneProps } from './NavigatorOverflowPane'
 export type { NavigatorOverflowItemsProps } from './NavigatorOverflowItems'
 export type { NavigatorSecondaryPaneProps } from './NavigatorSecondaryPane'
 export type { NavigatorSecondaryItemsProps } from './NavigatorSecondaryItems'
+export type { NavigatorSectionItemsProps } from './NavigatorSectionItems'
 export { navigatorRootVariants, navigatorContentVariants } from './variants'
