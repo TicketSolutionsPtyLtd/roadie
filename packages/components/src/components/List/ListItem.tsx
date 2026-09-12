@@ -37,6 +37,73 @@ export type ListItemProps = {
 
 export type ListItemCurrent = boolean | 'page' | 'step' | 'location'
 
+export type ListItemContentProps = Pick<
+  ListItemProps,
+  'title' | 'subtitle' | 'leading' | 'trailing'
+> & {
+  chevron: boolean
+  /** Moves the subtitle out of the name, for a row that points `aria-describedby` at this id. */
+  subtitleId?: string
+}
+
+/** A row's anatomy, for a row whose element `List.Item` can't render, e.g. a menu trigger. */
+export function ListItemContent({
+  title,
+  subtitle,
+  leading,
+  trailing,
+  chevron,
+  subtitleId
+}: ListItemContentProps) {
+  const hasTrailing = trailing != null || chevron
+  return (
+    <>
+      {leading != null ? (
+        <span data-slot='list-item-leading' className={listItemLeadingClass}>
+          {leading}
+        </span>
+      ) : null}
+      <span data-slot='list-item-content' className={listItemContentClass}>
+        {subtitle != null ? (
+          <span data-slot='list-item-body' className={listItemBodyClass}>
+            <span data-slot='list-item-title' className={listItemTitleClass}>
+              {title}
+            </span>
+            {/* Out of the name; `aria-describedby` still reads a hidden target. */}
+            <span
+              data-slot='list-item-subtitle'
+              id={subtitleId}
+              aria-hidden={subtitleId != null ? 'true' : undefined}
+              className={listItemSubtitleClass}
+            >
+              {subtitle}
+            </span>
+          </span>
+        ) : (
+          <span data-slot='list-item-title' className={listItemTitleClass}>
+            {title}
+          </span>
+        )}
+        {hasTrailing ? (
+          <span
+            data-slot='list-item-trailing'
+            className={listItemTrailingClass}
+          >
+            {trailing}
+            {chevron ? (
+              <CaretRightIcon
+                weight='bold'
+                data-slot='list-item-chevron'
+                className={listItemChevronClass}
+              />
+            ) : null}
+          </span>
+        ) : null}
+      </span>
+    </>
+  )
+}
+
 /** A row in a `List`: a link when `href` is set, otherwise a `<button>`. */
 export function ListItem({
   title,
@@ -49,48 +116,18 @@ export function ListItem({
   className,
   onClick
 }: ListItemProps) {
-  const showChevron = chevron ?? href !== undefined
-  const hasTrailing = trailing != null || showChevron
-  const hasLeading = leading != null
   const subtitleId = useId()
   const describedBy = subtitle != null ? subtitleId : undefined
 
   const content = (
-    <>
-      {hasLeading ? (
-        <span data-slot='list-item-leading' className={listItemLeadingClass}>
-          {leading}
-        </span>
-      ) : null}
-      <span data-slot='list-item-content' className={listItemContentClass}>
-        {subtitle != null ? (
-          <span className={listItemBodyClass}>
-            <span className={listItemTitleClass}>{title}</span>
-            {/* Out of the name; `aria-describedby` still reads a hidden target. */}
-            <span
-              id={subtitleId}
-              aria-hidden='true'
-              className={listItemSubtitleClass}
-            >
-              {subtitle}
-            </span>
-          </span>
-        ) : (
-          <span className={listItemTitleClass}>{title}</span>
-        )}
-        {hasTrailing ? (
-          <span
-            data-slot='list-item-trailing'
-            className={listItemTrailingClass}
-          >
-            {trailing}
-            {showChevron ? (
-              <CaretRightIcon weight='bold' className={listItemChevronClass} />
-            ) : null}
-          </span>
-        ) : null}
-      </span>
-    </>
+    <ListItemContent
+      title={title}
+      subtitle={subtitle}
+      subtitleId={subtitleId}
+      leading={leading}
+      trailing={trailing}
+      chevron={chevron ?? href !== undefined}
+    />
   )
 
   const finalClassName = cn(

@@ -247,6 +247,34 @@ describe('List', () => {
     })
   })
 
+  it('marks every part of a row with its slot', () => {
+    const { container } = render(
+      <List>
+        <List.Item
+          title='Title'
+          subtitle='Subtitle'
+          leading={<span>L</span>}
+          trailing='3'
+          href='/x'
+        />
+      </List>
+    )
+    const slots = Array.from(
+      container.querySelectorAll('[data-slot^="list-item"]'),
+      (node) => node.getAttribute('data-slot')
+    )
+    expect(slots).toEqual([
+      'list-item',
+      'list-item-leading',
+      'list-item-content',
+      'list-item-body',
+      'list-item-title',
+      'list-item-subtitle',
+      'list-item-trailing',
+      'list-item-chevron'
+    ])
+  })
+
   describe('divider', () => {
     it('renders an inset divider between items but not after the last', () => {
       const { container } = render(
