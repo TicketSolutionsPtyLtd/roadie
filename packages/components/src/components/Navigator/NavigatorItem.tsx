@@ -117,7 +117,10 @@ export function NavigatorItem({
         <span
           aria-hidden
           data-slot='navigator-item-initial'
-          className={navigatorItemInitialClass}
+          className={cn(
+            navigatorItemInitialClass,
+            hasPill && 'animate-pop-tap'
+          )}
         >
           {initialOf(label)}
         </span>

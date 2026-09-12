@@ -9,7 +9,11 @@ import {
 } from './NavigatorDestination'
 import { badgeDot, presentNavIcon } from './presentNavIcon'
 import { initialOf } from './splitSecondary'
-import { navigatorTabIconFrameVariants, navigatorTabVariants } from './variants'
+import {
+  navigatorTabIconFrameVariants,
+  navigatorTabInitialClass,
+  navigatorTabVariants
+} from './variants'
 
 /** When the bar is collapsed, which edge this tab floats to as a circle. */
 export type NavigatorTabCircleSide = 'start' | 'end'
@@ -104,7 +108,10 @@ export function NavigatorTab({
           <span
             aria-hidden
             data-slot='navigator-tab-initial'
-            className='grid size-7 place-items-center text-lg font-bold'
+            className={cn(
+              navigatorTabInitialClass,
+              active && 'animate-pop-tap'
+            )}
           >
             {initialOf(label)}
           </span>
