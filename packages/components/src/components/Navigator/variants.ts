@@ -211,7 +211,7 @@ export const navigatorTabVariants = cva(
       presentation: {
         expanded: 'pointer-events-auto px-1 py-3.5 scale-100 opacity-100',
         circle:
-          'pointer-events-auto size-14 translate-y-1 scale-100 place-content-center justify-self-center self-end bg-raised is-translucent opacity-100 shadow-xl',
+          'pointer-events-auto size-14 translate-y-1 scale-100 place-content-center justify-self-center self-end emphasis-floating is-translucent opacity-100',
         // `py-3.5` holds the row's height while invisible.
         hidden: 'scale-0 px-0 py-3.5 opacity-0 pointer-events-none',
         // `p-4.5` = the track's `py-1` + a tab's `py-3.5`: square at the bar's height, sized intrinsically.
