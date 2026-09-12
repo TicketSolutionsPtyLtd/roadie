@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefAttributes, useEffect, useRef } from 'react'
+import { type MouseEvent, type RefAttributes, useEffect, useRef } from 'react'
 
 import { Button as ButtonPrimitive } from '@base-ui/react/button'
 import { type VariantProps, cva } from 'class-variance-authority'
@@ -38,10 +38,9 @@ export const buttonVariants = cva('btn is-interactive', {
 })
 
 /**
- * Smart-href props layered on top of the Base UI Button. When `href` is
- * present and the consumer hasn't supplied their own `render`, Button
- * synthesises `render={<RoadieRoutedLink href={…} … />}` so the right
- * element + routing is picked automatically.
+ * Smart-href props. When `href` is present and the consumer hasn't supplied
+ * their own `render`, Button renders a `RoadieRoutedLink` styled as a button,
+ * with native link semantics, instead of the Base UI Button.
  */
 export type ButtonHrefProps = {
   /**
@@ -63,6 +62,8 @@ export type ButtonHrefProps = {
   target?: string
   /** Override the auto `rel='noopener noreferrer'` default on external hrefs. */
   rel?: string
+  /** Download the `href` instead of navigating, optionally as this filename. */
+  download?: boolean | string
 }
 
 export type ButtonProps = ButtonPrimitive.Props &
@@ -79,11 +80,13 @@ export function Button({
   external,
   target,
   rel,
+  download,
+  nativeButton,
   ...props
 }: ButtonProps) {
   // Consumer `render` always wins — it's the canonical escape hatch for
-  // full element control. When `href` is also passed, the synthesized
-  // routing is bypassed; warn in dev once per mount so the silent
+  // full element control. When `href` is also passed, the routed link is
+  // bypassed; warn in dev once per mount so the silent
   // disable doesn't get shipped accidentally. Use a ref so StrictMode's
   // double-render and ordinary re-renders don't multiply the warn.
   const hasWarnedRef = useRef(false)
@@ -98,34 +101,52 @@ export function Button({
     }
   }, [props.render, href])
 
-  // If consumer didn't supply `render` and `href` is set, synthesize a
-  // routed anchor. RoadieRoutedLink applies external/target/rel rules and
-  // reads the configured Link from context.
-  const synthesizedRender =
-    !props.render && href !== undefined ? (
+  const classes = cn(buttonVariants({ intent, emphasis, size, className }))
+
+  if (!props.render && href !== undefined) {
+    const {
+      disabled = false,
+      focusableWhenDisabled,
+      style,
+      tabIndex,
+      onClick,
+      ref,
+      ...rest
+    } = props
+
+    return (
       <RoadieRoutedLink
+        data-slot='button'
+        className={classes}
         href={href}
         external={external}
         target={target}
         rel={rel}
+        download={download}
+        {...(rest as Record<string, unknown>)}
+        ref={ref as RefAttributes<HTMLAnchorElement>['ref']}
+        style={typeof style === 'function' ? style({ disabled }) : style}
+        {...(disabled
+          ? {
+              'aria-disabled': true,
+              'data-disabled': '',
+              tabIndex: focusableWhenDisabled ? tabIndex : -1,
+              onClick: (event: MouseEvent) => event.preventDefault()
+            }
+          : {
+              tabIndex,
+              onClick: onClick as (event: MouseEvent) => void
+            })}
       />
-    ) : undefined
-
-  // Base UI's `nativeButton` defaults to `true`; when render is set
-  // (synthesized or consumer-provided), flip to false so it renders as
-  // the chosen element instead of a `<button>`.
-  const finalRender = props.render ?? synthesizedRender
+    )
+  }
 
   return (
     <ButtonPrimitive
-      nativeButton={!finalRender}
+      nativeButton={nativeButton ?? !props.render}
       data-slot='button'
-      className={cn(buttonVariants({ intent, emphasis, size, className }))}
-      // Base UI gives any non-native element `role="button"`; an explicit
-      // `undefined` outranks it, so a link is announced as a link.
-      {...(synthesizedRender ? { role: undefined } : null)}
+      className={classes}
       {...props}
-      render={finalRender}
     />
   )
 }

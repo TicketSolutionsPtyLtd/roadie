@@ -170,6 +170,95 @@ describe('Button', () => {
       expect(screen.getByRole('link', { name: 'Events' })).toHaveFocus()
     })
 
+    it('leaves Space to scroll the page instead of following the link', async () => {
+      const onClick = vi.fn((event: React.MouseEvent) => event.preventDefault())
+      render(
+        <Button href='/events/123' onClick={onClick}>
+          Events
+        </Button>
+      )
+      const link = screen.getByRole('link', { name: 'Events' })
+      link.focus()
+      expect(fireEvent.keyDown(link, { key: ' ', code: 'Space' })).toBe(true)
+      await userEvent.keyboard(' ')
+      expect(onClick).not.toHaveBeenCalled()
+    })
+
+    it('calls onClick when the link is enabled', async () => {
+      const onClick = vi.fn((event: React.MouseEvent) => event.preventDefault())
+      render(
+        <Button href='/events/123' onClick={onClick}>
+          Events
+        </Button>
+      )
+      await userEvent.click(screen.getByRole('link', { name: 'Events' }))
+      expect(onClick).toHaveBeenCalledTimes(1)
+    })
+
+    it('passes download through to the link', () => {
+      render(
+        <Button href='/spec.pdf' download='spec.pdf'>
+          Download spec
+        </Button>
+      )
+      expect(
+        screen.getByRole('link', { name: 'Download spec' })
+      ).toHaveAttribute('download', 'spec.pdf')
+    })
+
+    it('keeps a disabled link focusable with focusableWhenDisabled', () => {
+      render(
+        <Button href='/events/123' disabled focusableWhenDisabled>
+          Events
+        </Button>
+      )
+      const link = screen.getByRole('link', { name: 'Events' })
+      expect(link).not.toHaveAttribute('tabindex')
+      expect(link).toHaveAttribute('aria-disabled', 'true')
+    })
+
+    it('takes a disabled link out of the tab order', () => {
+      render(
+        <Button href='/events/123' disabled>
+          Events
+        </Button>
+      )
+      expect(screen.getByRole('link', { name: 'Events' })).toHaveAttribute(
+        'tabindex',
+        '-1'
+      )
+    })
+
+    it('forwards a ref to the anchor', () => {
+      let node: Element | null = null
+      render(
+        <Button
+          href='/events/123'
+          ref={(el: Element | null) => {
+            node = el
+          }}
+        >
+          Events
+        </Button>
+      )
+      expect(node).toBe(screen.getByRole('link', { name: 'Events' }))
+    })
+
+    it('resolves a style function against the disabled state', () => {
+      render(
+        <Button
+          href='/events/123'
+          disabled
+          style={(state) => ({ opacity: state.disabled ? 0.5 : 1 })}
+        >
+          Events
+        </Button>
+      )
+      expect(screen.getByRole('link', { name: 'Events' })).toHaveStyle({
+        opacity: '0.5'
+      })
+    })
+
     it('marks a disabled link aria-disabled and stops navigation', () => {
       const onClick = vi.fn()
       render(

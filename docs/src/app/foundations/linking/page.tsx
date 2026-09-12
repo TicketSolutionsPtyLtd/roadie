@@ -265,8 +265,8 @@ export function Providers({ children }) {
   …
 </Card>
 
-{/* Button: typed access to anchor-only DOM props */}
-<Button render={<a href='/file.pdf' download='spec.pdf' />}>
+{/* Button: \`download\` goes with \`href\` — no render needed */}
+<Button href='/file.pdf' download='spec.pdf'>
   Download spec
 </Button>
 
