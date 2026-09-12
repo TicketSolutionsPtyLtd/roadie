@@ -262,7 +262,9 @@ Actions use each control's default size. The top row is chrome a user acts on,
 not a dense toolbar, so a `<Button>` or `<IconButton>` sits there unsized.
 
 `Pane.Search` is a styled controlled input and nothing more. Filtering is a
-plain `.filter()` over your own data before you render the rows.
+plain `.filter()` over your own data before you render the rows. A searchable
+`Navigator.Secondary` renders its own pill search with a Cancel button, not
+`Pane.Search`.
 
 ```tsx-live-noinline
 function Composed() {
