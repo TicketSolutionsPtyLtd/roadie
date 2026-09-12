@@ -73,6 +73,8 @@ export type NavigatorContextValue = {
   setExpanded: (next: boolean) => void
   /** The vertical navigation also follows `<html data-navigator-expanded>`. */
   expandedFromDocument: boolean
+  /** Following the document, which has not been read yet — the server render and hydration. */
+  expandedPending: boolean
   /** Id of the vertical navigation, for the toggle's `aria-controls`. */
   primaryId: string
 }
@@ -107,6 +109,7 @@ export const NavigatorContext = createContext<NavigatorContextValue>({
   expanded: false,
   setExpanded: () => {},
   expandedFromDocument: false,
+  expandedPending: false,
   primaryId: ''
 })
 
