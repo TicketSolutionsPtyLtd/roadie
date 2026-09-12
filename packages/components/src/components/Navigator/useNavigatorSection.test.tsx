@@ -67,6 +67,7 @@ function Docs({
           <Navigator.Item
             value='/overview/philosophy'
             href='/overview/philosophy'
+            icon='📖'
           >
             Philosophy
           </Navigator.Item>
@@ -142,6 +143,7 @@ describe('useNavigatorSection', () => {
     expect(installation.icon?.type).toBe(FakeIcon)
     expect(installation.badge).toBe(badge)
     expect(log.at(-1)!.groups[0]!.items[1]!.description).toBeUndefined()
+    expect(log.at(-1)!.groups[0]!.items[1]!.icon).toBeUndefined()
   })
 
   it('looks any section up by its item value', async () => {

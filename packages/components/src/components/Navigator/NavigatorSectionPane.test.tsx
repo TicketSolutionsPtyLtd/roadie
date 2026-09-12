@@ -158,6 +158,29 @@ describe('generated section pane', () => {
     expect(beta[0]).toHaveTextContent('New')
   })
 
+  it('renders a non-element icon in its row', async () => {
+    render(
+      <Navigator value='/c'>
+        <Navigator.Primary aria-label='Docs'>
+          {testBrand}
+          <Navigator.Item value='/c' href='/c'>
+            Components
+            <Navigator.Secondary aria-label='Components'>
+              <Navigator.Item value='/c/a' href='/c/a' icon='🎸'>
+                Alpha
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content />
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(
+      within(sectionPane()!).getByRole('link', { name: /Alpha/ })
+    ).toHaveTextContent('🎸')
+  })
+
   it('lights the section tile as the section, not the page', async () => {
     render(<Docs />)
     await flushViewportMeasurement()
