@@ -1221,14 +1221,16 @@ describe('collapsed labels', () => {
   })
 
   it('shows no tooltip while expanded', async () => {
-    const user = userEvent.setup()
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
     render(<Expandable defaultExpanded />)
     await flushViewportMeasurement()
     await user.hover(
       within(region('cluster')).getByRole('link', { name: 'Alpha' })
     )
-    await act(() => new Promise((resolve) => setTimeout(resolve, 700)))
+    await act(() => vi.advanceTimersByTimeAsync(1500))
     expect(document.querySelector('[data-slot="tooltip-popup"]')).toBeNull()
+    vi.useRealTimers()
   })
 
   it('never puts a tooltip on the phone bar', async () => {
