@@ -285,11 +285,13 @@ export function DocsNavigator({
       >
         <Navigator.Primary aria-label='Documentation'>
           <Navigator.Brand>
+            {/* Eager: Next keys its LCP check by src, and this shares the home hero's. */}
             <Image
               src='/roadie-logo.png'
               alt='Roadie'
               width={32}
               height={32}
+              loading='eager'
               className='size-8 shrink-0'
             />
             <span
