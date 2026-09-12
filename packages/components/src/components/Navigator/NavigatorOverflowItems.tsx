@@ -1,6 +1,12 @@
 'use client'
 
-import { type ReactElement, use } from 'react'
+import {
+  Children,
+  type ReactElement,
+  cloneElement,
+  isValidElement,
+  use
+} from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -15,6 +21,10 @@ import {
 } from './NavigatorContext'
 import type { NavigatorMenuProps } from './NavigatorMenu'
 import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
+import {
+  NavigatorMenuItem,
+  type NavigatorMenuItemProps
+} from './NavigatorMenuItem'
 import type { NavigatorSlotMeta } from './mobileSlots'
 import { presentNavIcon } from './presentNavIcon'
 import { textOf } from './splitSecondary'
@@ -58,8 +68,28 @@ export function NavigatorOverflowItems({
     setValue,
     setOverflowOpen,
     openMenu,
-    activateItem
+    activateItem,
+    activateMenuItem
   } = use(NavigatorContext)
+
+  // A folded menu is as old as the last structural change, so its items call through to the current tree.
+  const withCurrentHandlers = (
+    value: string,
+    menu: ReactElement<NavigatorMenuProps>
+  ) => {
+    let position = 0
+    return cloneElement(menu, {
+      children: Children.map(menu.props.children, (child) => {
+        if (!isValidElement(child) || child.type !== NavigatorMenuItem) {
+          return child
+        }
+        const index = position++
+        return cloneElement(child as ReactElement<NavigatorMenuItemProps>, {
+          onClick: () => activateMenuItem(value, index)
+        })
+      })
+    })
+  }
 
   // List.Item renders its own <li>, so it can't be a menu trigger.
   const renderMenuRow = (
@@ -71,7 +101,7 @@ export function NavigatorOverflowItems({
       <NavigatorMenuHost
         surface={`overflow-${set}`}
         value={slot.value}
-        menu={menu}
+        menu={withCurrentHandlers(slot.value, menu)}
         label={textOf(slot.label) || undefined}
         trigger={
           <button

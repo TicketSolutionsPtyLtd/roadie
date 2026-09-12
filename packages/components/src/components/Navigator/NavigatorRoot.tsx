@@ -28,7 +28,7 @@ import {
   NavigatorPrimary,
   type NavigatorPrimaryProps
 } from './NavigatorPrimary'
-import { findActiveSection, findItem } from './activeSection'
+import { findActiveSection, findItem, findMenuItem } from './activeSection'
 import type { NavigatorSlotMeta } from './mobileSlots'
 import { primarySignature } from './primarySignature'
 import { type SectionMemory, nextMemory } from './sectionMemory'
@@ -192,6 +192,9 @@ export function NavigatorRoot({
   const activateItem = useCallback((itemValue: string) => {
     findItem(latestPrimaryChildren.current, itemValue)?.onClick?.()
   }, [])
+  const activateMenuItem = useCallback((itemValue: string, index: number) => {
+    findMenuItem(latestPrimaryChildren.current, itemValue, index)?.onClick?.()
+  }, [])
   const listPaneShows =
     activeSection !== null &&
     !(
@@ -223,6 +226,7 @@ export function NavigatorRoot({
       setPrimaryChildren,
       primaryDerived: primary !== undefined,
       activateItem,
+      activateMenuItem,
       activeSection,
       listPaneShows,
       overflowOpen,
@@ -258,6 +262,7 @@ export function NavigatorRoot({
       setPrimaryChildren,
       primary,
       activateItem,
+      activateMenuItem,
       activeSection,
       listPaneShows,
       overflowOpen,

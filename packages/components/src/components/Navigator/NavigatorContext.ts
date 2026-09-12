@@ -51,6 +51,8 @@ export type NavigatorContextValue = {
   primaryDerived: boolean
   /** Calls the current `onClick` of the item with this `value`, read at click time. */
   activateItem: (value: string) => void
+  /** Calls the current `onClick` of the `index`th `Navigator.MenuItem` in that item's menu. */
+  activateMenuItem: (value: string, index: number) => void
   /** The branch-active section, walked from `primaryChildren`. */
   activeSection: NavigatorActiveSection | null
   /** The active section shows a list pane: not a page-first section on its own route. */
@@ -107,6 +109,7 @@ export const NavigatorContext = createContext<NavigatorContextValue>({
   setPrimaryChildren: () => {},
   primaryDerived: false,
   activateItem: () => {},
+  activateMenuItem: () => {},
   activeSection: null,
   listPaneShows: false,
   overflowOpen: false,

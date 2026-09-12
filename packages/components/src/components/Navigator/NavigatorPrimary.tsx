@@ -38,6 +38,7 @@ import {
 } from './mobileSlots'
 import { presentNavIcon } from './presentNavIcon'
 import { PRIMARY_METRICS } from './primaryCapacity'
+import { slotsSignature } from './primarySignature'
 import { activeHref, rememberedHref } from './sectionMemory'
 import { textOf } from './splitSecondary'
 import { usePrimaryCapacity } from './usePrimaryCapacity'
@@ -236,11 +237,12 @@ export function NavigatorPrimary({
       : undefined
   const tabCount = slots.tabs.length + (hasMore ? 1 : 0)
 
-  // `folded` is a fresh array every render; its key is the stable identity.
+  // `folded` is a fresh array every render; its signature is the stable identity.
   const foldedKey = folded.map((slot) => slot.value).join(',')
+  const foldedSignature = slotsSignature(folded)
   useEffect(() => {
     setOverflowItems('horizontal', folded)
-  }, [foldedKey, setOverflowItems])
+  }, [foldedSignature, setOverflowItems])
 
   const hasToggle = collected.toggles.length > 0
   const { folded: verticalFolded, shown: verticalShown } = usePrimaryCapacity(
@@ -256,9 +258,10 @@ export function NavigatorPrimary({
   const verticalFoldedKey = verticalFoldedSlots
     .map((slot) => slot.value)
     .join(',')
+  const verticalFoldedSignature = slotsSignature(verticalFoldedSlots)
   useEffect(() => {
     setOverflowItems('vertical', verticalFoldedSlots)
-  }, [verticalFoldedKey, setOverflowItems])
+  }, [verticalFoldedSignature, setOverflowItems])
 
   // Once the navigation in view folds nothing, no More control is left to close More.
   const shownFoldedKey = verticalShown ? verticalFoldedKey : foldedKey

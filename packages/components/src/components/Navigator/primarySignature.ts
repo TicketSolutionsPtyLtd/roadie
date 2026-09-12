@@ -1,5 +1,7 @@
 import { type ReactNode, isValidElement } from 'react'
 
+import type { NavigatorSlotMeta } from './mobileSlots'
+
 const typeName = (type: unknown): string => {
   if (typeof type === 'string') return type
   if (typeof type === 'symbol') return type.description ?? ''
@@ -31,4 +33,21 @@ function serialize(node: unknown): string {
  */
 export function primarySignature(children: ReactNode): string {
   return serialize(children)
+}
+
+/** What a folded row renders, so More republishes when any of it changes. */
+export function slotsSignature(slots: NavigatorSlotMeta[]): string {
+  return serialize(
+    slots.map((slot) => [
+      slot.value,
+      slot.label,
+      slot.icon,
+      slot.badge,
+      slot.href,
+      slot.menu,
+      slot.descendants,
+      slot.group?.key,
+      slot.group?.title
+    ])
+  )
 }
