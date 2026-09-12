@@ -44,7 +44,14 @@ export function NavigatorOverflowPane({
       '[data-slot="pane-title"]'
     )
     const target = title ?? paneRef.current
-    target.tabIndex = -1
+    if (!target.hasAttribute('tabindex')) {
+      target.tabIndex = -1
+      target.addEventListener(
+        'blur',
+        () => target.removeAttribute('tabindex'),
+        { once: true }
+      )
+    }
     target.focus({ preventScroll: true })
   }, [overflowOpen])
 
