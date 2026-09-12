@@ -322,6 +322,48 @@ describe('List', () => {
     expect(link).toHaveAttribute('rel', 'noopener noreferrer')
   })
 
+  describe('subtitle', () => {
+    it('describes a link row rather than naming it', () => {
+      render(
+        <List>
+          <List.Item title='Tickets' subtitle='3 upcoming' href='/tickets' />
+        </List>
+      )
+      const link = screen.getByRole('link')
+      expect(link).toHaveAccessibleName('Tickets')
+      expect(link).toHaveAccessibleDescription('3 upcoming')
+    })
+
+    it('describes a button row rather than naming it', () => {
+      render(
+        <List>
+          <List.Item title='Account' subtitle='Profile, security, sign-in' />
+        </List>
+      )
+      const button = screen.getByRole('button')
+      expect(button).toHaveAccessibleName('Account')
+      expect(button).toHaveAccessibleDescription('Profile, security, sign-in')
+    })
+
+    it('keeps the subtitle visible on the row', () => {
+      render(
+        <List>
+          <List.Item title='Account' subtitle='Profile' />
+        </List>
+      )
+      expect(screen.getByText('Profile')).toBeVisible()
+    })
+
+    it('leaves a row without a subtitle undescribed', () => {
+      render(
+        <List>
+          <List.Item title='Account' />
+        </List>
+      )
+      expect(screen.getByRole('button')).not.toHaveAttribute('aria-describedby')
+    })
+  })
+
   it('applies a distinct highlight and aria-current when current', () => {
     render(
       <List>
