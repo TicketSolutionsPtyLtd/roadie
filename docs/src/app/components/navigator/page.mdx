@@ -34,8 +34,9 @@ more [`Pane`](/components/pane)s, each of which owns its own scroll.
     <Navigator.ExpandToggle />
     <Navigator.Group visibilityPriority='high'>
       <Navigator.GroupTitle>Docs</Navigator.GroupTitle>
-      <Navigator.Item value='/get-started' href='/get-started' icon={<HouseIcon />}>
-        Get started
+      <Navigator.Item value='/' href='/' icon={<HouseIcon />}>
+        Home
+        <Navigator.Secondary aria-label='Home pages' root='page'>…</Navigator.Secondary>
       </Navigator.Item>
       <Navigator.Item value='/components' href='/components' icon={<CubeIcon />}>
         Components
@@ -368,6 +369,185 @@ export function AppNavigator() {
     </>
   )
 }
+```
+
+### Section roots
+
+A section's route shows its generated list by default. `root='page'` on
+`Navigator.Secondary` shows the page alone there instead, full width at every
+size — no list pane and no Back. Sub-pages behave the same in both kinds: a
+list column beside the page from `lg`, the page on top with Back to the section
+route when panes stack. On a phone, tapping a page-first section's tab on a
+sub-page goes to its root, like iOS; on the root it scrolls the page to the top.
+`showList` still shows the list over a sub-page, and is ignored on a page root.
+
+Use a page root when the section has an overview worth reading — Home, a
+dashboard. Use a list root when the section is a catalogue you pick from —
+Components. A page root needs the section's `href`; without one the section
+gets the routeless warning and behaves as a list root.
+
+```tsx-live-noinline
+function PageRootNav() {
+  const titles = {
+    '/': 'Home',
+    '/overview/installation': 'Installation',
+    '/overview/philosophy': 'Philosophy',
+    '/components': 'Components'
+  }
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <DemoRouter initialPath='/'>
+        {(path) => (
+          <Navigator value={path} className='h-full'>
+            <Navigator.Primary aria-label='Documentation'>
+              <Navigator.Brand />
+              <Navigator.Item value='/' href='/' icon={<HouseIcon />}>
+                Home
+                <Navigator.Secondary aria-label='Home pages' root='page'>
+                  <Navigator.Item
+                    value='/overview/installation'
+                    href='/overview/installation'
+                    description='Install the packages and wire up the CSS.'
+                  >
+                    Installation
+                  </Navigator.Item>
+                  <Navigator.Item
+                    value='/overview/philosophy'
+                    href='/overview/philosophy'
+                    description='The goals and the mental model.'
+                  >
+                    Philosophy
+                  </Navigator.Item>
+                </Navigator.Secondary>
+              </Navigator.Item>
+              <Navigator.Item value='/components' href='/components' icon={<CubeIcon />}>
+                Components
+              </Navigator.Item>
+            </Navigator.Primary>
+            <Navigator.Content>
+              <Pane role='detail' current>
+                <Pane.Header>
+                  <Pane.Title>{titles[path]}</Pane.Title>
+                </Pane.Header>
+                {path === '/' ? (
+                  <div className='grid gap-3 pb-4'>
+                    <p className='px-4 text-subtle'>
+                      The root shows the page alone. Its items, declared once in the
+                      navigation, render here through Navigator.SectionItems.
+                    </p>
+                    <Navigator.SectionItems />
+                  </div>
+                ) : (
+                  <p className='px-4 pb-4 text-subtle'>The page at {path}.</p>
+                )}
+              </Pane>
+            </Navigator.Content>
+          </Navigator>
+        )}
+      </DemoRouter>
+    </div>
+  )
+}
+render(<PageRootNav />)
+```
+
+#### Items inside a page
+
+`Navigator.SectionItems` renders a section's items as a grouped `List` — the
+same rows as the generated list pane, with each item's `description` as
+secondary text. It takes `value` (a section's item value; omit it for the
+active section), `className` and `List`'s props, and renders nothing when the
+section isn't found.
+
+For anything richer, `useNavigatorSection(value?)` returns the same data for
+you to lay out. It is computed during render from the navigation you declared,
+so it works in the server render; with a `Navigator.Primary` that is not a
+direct child of `Navigator`, it returns `null` until the Primary mounts. The
+result is a fresh object each render — read its fields rather than keying an
+effect on it.
+
+```ts
+type NavigatorSectionData = {
+  value: string
+  label: ReactNode
+  href?: string
+  groups: {
+    title?: ReactNode
+    items: {
+      value: string
+      label: ReactNode
+      href?: string
+      icon?: ReactElement
+      description?: string
+      badge?: ReactElement<BadgeProps>
+      current: boolean
+    }[]
+  }[]
+}
+```
+
+Loose items come back as a group with no title, in source order. `description`
+is shown only by `SectionItems` and returned by the hook — never on a tile, the
+bar, the list pane or More.
+
+```tsx-live-noinline
+function HomeCards() {
+  const section = useNavigatorSection('/')
+  if (!section) return null
+  return (
+    <div className='grid grid-cols-2 gap-3 px-4 pb-4'>
+      {section.groups.flatMap((group) => group.items).map((item) => (
+        <Card key={item.value} href={item.href} className='grid gap-1 p-4 no-underline'>
+          <h3 className='text-display-ui-6 text-strong'>{item.label}</h3>
+          <p className='text-sm text-subtle'>{item.description}</p>
+        </Card>
+      ))}
+    </div>
+  )
+}
+function HookNav() {
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <DemoRouter initialPath='/'>
+        {(path) => (
+          <Navigator value={path} className='h-full'>
+            <Navigator.Primary aria-label='Documentation'>
+              <Navigator.Brand />
+              <Navigator.Item value='/' href='/' icon={<HouseIcon />}>
+                Home
+                <Navigator.Secondary aria-label='Home pages' root='page'>
+                  <Navigator.Item
+                    value='/overview/installation'
+                    href='/overview/installation'
+                    description='Install the packages and wire up the CSS.'
+                  >
+                    Installation
+                  </Navigator.Item>
+                  <Navigator.Item
+                    value='/overview/philosophy'
+                    href='/overview/philosophy'
+                    description='The goals and the mental model.'
+                  >
+                    Philosophy
+                  </Navigator.Item>
+                </Navigator.Secondary>
+              </Navigator.Item>
+            </Navigator.Primary>
+            <Navigator.Content>
+              <Pane role='detail' current>
+                <Pane.Header>
+                  <Pane.Title>{path === '/' ? 'Home' : path}</Pane.Title>
+                </Pane.Header>
+                {path === '/' ? <HomeCards /> : <p className='px-4 pb-4 text-subtle'>The page at {path}.</p>}
+              </Pane>
+            </Navigator.Content>
+          </Navigator>
+        )}
+      </DemoRouter>
+    </div>
+  )
+}
+render(<HookNav />)
 ```
 
 ### Searchable
@@ -851,10 +1031,8 @@ function SectionOverrideNav() {
         {(path) => (
           <Navigator value={path} className='h-full'>
             <Navigator.Primary aria-label='Documentation'>
-              <Navigator.Brand href='/get-started' />
-              <Navigator.Item value='/get-started' href='/get-started' icon={<PlayIcon />}>
-                Get started
-              </Navigator.Item>
+              <Navigator.Brand />
+              <Navigator.Item value='/' href='/' icon={<HouseIcon />}>Home</Navigator.Item>
               <Navigator.Item value='/components' href='/components' icon={<StarIcon />}>
                 Components
                 <Navigator.Secondary aria-label='Components'>
@@ -1137,6 +1315,17 @@ documented there. The two facts worth knowing from here:
   </Guideline.Dont>
 </Guideline>
 
+<Guideline title='Section roots'>
+  <Guideline.Do code={`<Navigator.Item value='/' href='/' icon={<HouseIcon />}>\n  Home\n  <Navigator.Secondary aria-label='Home pages' root='page'>…</Navigator.Secondary>\n</Navigator.Item>`}>
+    Use a page root when the section has an overview worth reading, such as
+    Home or a dashboard.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Navigator.Item value='/components' href='/components' icon={<CubeIcon />}>\n  Components\n  <Navigator.Secondary aria-label='Components' root='page' searchable>…</Navigator.Secondary>\n</Navigator.Item>`}>
+    Give a catalogue you pick from a page root. Components is a list you
+    search and choose from — keep the list root.
+  </Guideline.Dont>
+</Guideline>
+
 ## Accessibility
 
 - **Landmarks**: `Navigator.Primary` renders one `<nav>` per orientation. The
@@ -1151,6 +1340,9 @@ documented there. The two facts worth knowing from here:
 - **Current destination**: the page's own item or row carries
   `aria-current='page'`; a section's tile reads current while you are anywhere
   in the section.
+- **Page roots**: on a page-first section's own route the page is the root of
+  the stack, so it shows no Back; its sub-pages get Back to the section route
+  like any other.
 - **`Navigator.ExpandToggle`** is a button with `aria-expanded` and
   `aria-controls`, labelled "Expand sidebar" or "Collapse sidebar" in visually
   hidden text, with the same label in its tooltip in both states.
