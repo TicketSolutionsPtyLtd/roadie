@@ -28,7 +28,9 @@ export type NavigatorSectionData = {
   groups: NavigatorSectionGroup[]
 }
 
-export type SectionRow = { item: NavigatorSectionItem }
+export type SectionRow = {
+  item: Omit<NavigatorSectionItem, 'icon'> & { icon?: ReactNode }
+}
 
 export type SectionRowGroup = {
   kind: 'group' | 'loose'
@@ -48,7 +50,7 @@ export function sectionRows(
         value: props.value,
         label: splitItemChildren(props.children).label,
         href: props.href,
-        icon: isValidElement(props.icon) ? props.icon : undefined,
+        icon: props.icon,
         description: props.description,
         badge: props.badge,
         current: isActiveValue(props.value, activeValue)
@@ -67,7 +69,10 @@ export function toSectionData(
     href: section.href,
     groups: sectionRows(section, activeValue).map((group) => ({
       title: group.title,
-      items: group.rows.map((row) => row.item)
+      items: group.rows.map(({ item }) => ({
+        ...item,
+        icon: isValidElement(item.icon) ? item.icon : undefined
+      }))
     }))
   }
 }
