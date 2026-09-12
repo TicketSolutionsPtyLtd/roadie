@@ -1605,3 +1605,75 @@ describe('badges', () => {
     expect(row).toHaveAccessibleName(/3 unread/)
   })
 })
+
+describe('items without an icon', () => {
+  const tree = (
+    <Navigator value='/settings'>
+      <Navigator.Primary aria-label='Main'>
+        {testBrand}
+        <Navigator.Item value='/home' href='/home' icon={<FakeIcon />}>
+          Home
+        </Navigator.Item>
+        <Navigator.Item value='/about' href='/about'>
+          about us
+        </Navigator.Item>
+        <Navigator.Group>
+          <Navigator.Item value='/settings' href='/settings'>
+            Settings
+          </Navigator.Item>
+          <Navigator.Item value='/billing' href='/billing'>
+            Billing
+          </Navigator.Item>
+        </Navigator.Group>
+      </Navigator.Primary>
+    </Navigator>
+  )
+
+  const tile = (name: string) => within(vertical()).getByRole('link', { name })
+
+  it('shows the label’s initial on the tile, hidden from assistive tech', async () => {
+    render(tree)
+    await flushViewportMeasurement()
+    const initial = tile('about us').querySelector(
+      '[data-slot="navigator-item-initial"]'
+    )
+    expect(initial).toHaveTextContent('A')
+    expect(initial).toHaveAttribute('aria-hidden', 'true')
+    expect(initial).toHaveClass('navigator-expanded:opacity-0')
+    expect(
+      tile('about us').querySelector('[data-slot="navigator-item-icon"]')
+    ).toBeNull()
+    expect(
+      tile('Home').querySelector('[data-slot="navigator-item-initial"]')
+    ).toBeNull()
+  })
+
+  it('gives the label the icon column, unless a capsule sibling has an icon', async () => {
+    render(tree)
+    await flushViewportMeasurement()
+    const label = (name: string) =>
+      tile(name).querySelector('[data-slot="navigator-item-label"]')!
+    expect(label('Home')).toHaveClass('col-start-2', 'ms-3')
+    expect(label('Settings')).toHaveClass('col-start-1', 'col-span-2', 'ms-0')
+    expect(label('Settings')).not.toHaveClass('col-start-2')
+    expect(label('about us')).toHaveClass(
+      'col-start-1',
+      'group-has-[[data-slot=navigator-item-icon]]/capsule:col-start-2'
+    )
+    for (const capsule of vertical().querySelectorAll(
+      '[data-slot="navigator-capsule"]'
+    )) {
+      expect(capsule).toHaveClass('group/capsule')
+    }
+  })
+
+  it('shows the initial on the phone bar tab', async () => {
+    render(tree)
+    await flushViewportMeasurement()
+    const tab = within(horizontal()).getByRole('link', { name: 'Billing' })
+    expect(
+      tab.querySelector('[data-slot="navigator-tab-initial"]')
+    ).toHaveTextContent('B')
+    expect(tab.querySelector('[data-slot="navigator-tab-icon"]')).toBeNull()
+  })
+})

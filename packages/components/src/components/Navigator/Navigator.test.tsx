@@ -3027,7 +3027,11 @@ describe('Navigator collapsed edge circles', () => {
       'button',
       { name: 'A' }
     )
-    expect(within(active).getByText('A')).toHaveClass('sr-only')
+    expect(
+      within(active).getByText('A', {
+        selector: '[data-slot="navigator-tab-label"]'
+      })
+    ).toHaveClass('sr-only')
     await flushViewportMeasurement()
   })
 

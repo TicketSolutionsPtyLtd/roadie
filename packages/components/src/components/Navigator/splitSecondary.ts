@@ -59,6 +59,11 @@ export function textOf(node: ReactNode): string {
   return ''
 }
 
+/** The label's first character, capitalised — the glyph for an item without an icon. */
+export function initialOf(node: ReactNode): string {
+  return Array.from(textOf(node).trim())[0]?.toLocaleUpperCase() ?? ''
+}
+
 export type SecondaryBlock = {
   kind: 'group' | 'loose'
   /** The group's `Navigator.GroupTitle` children; null when it has none. */

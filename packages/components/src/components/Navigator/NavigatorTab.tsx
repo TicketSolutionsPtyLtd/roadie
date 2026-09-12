@@ -8,6 +8,7 @@ import {
   type NavigatorDestinationProps
 } from './NavigatorDestination'
 import { badgeDot, presentNavIcon } from './presentNavIcon'
+import { initialOf } from './splitSecondary'
 import { navigatorTabIconFrameVariants, navigatorTabVariants } from './variants'
 
 /** When the bar is collapsed, which edge this tab floats to as a circle. */
@@ -93,10 +94,20 @@ export function NavigatorTab({
         })}
       >
         {/* A CSS animation, so re-tapping an already-active tab doesn't re-bounce. */}
-        {presentNavIcon(
-          icon,
-          cn('size-7', active && 'animate-pop-tap'),
-          'navigator-tab-icon'
+        {icon ? (
+          presentNavIcon(
+            icon,
+            cn('size-7', active && 'animate-pop-tap'),
+            'navigator-tab-icon'
+          )
+        ) : (
+          <span
+            aria-hidden
+            data-slot='navigator-tab-initial'
+            className='grid size-7 place-items-center text-lg font-bold'
+          >
+            {initialOf(label)}
+          </span>
         )}
         {badge ? badgeDot(badge) : null}
       </span>
