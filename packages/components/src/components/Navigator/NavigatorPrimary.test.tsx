@@ -522,6 +522,85 @@ describe('choosing a primary item closes More', () => {
   })
 })
 
+function SectionedMore({ expanded = false }: { expanded?: boolean }) {
+  return (
+    <Navigator value='/s' expanded={expanded}>
+      <Navigator.Primary aria-label='Main'>
+        {testBrand}
+        <Navigator.Item
+          value='/s'
+          href='/s'
+          icon={<FakeIcon />}
+          visibilityPriority='high'
+        >
+          Section
+          <Navigator.Secondary aria-label='Section pages'>
+            <Navigator.Item value='/s/one' href='/s/one'>
+              One
+            </Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+        {['/a', '/b', '/c'].map((v) => (
+          <Navigator.Item key={v} value={v} href={v} icon={<FakeIcon />}>
+            {v}
+          </Navigator.Item>
+        ))}
+      </Navigator.Primary>
+      <Navigator.Content />
+    </Navigator>
+  )
+}
+
+describe('More with nothing left folded', () => {
+  const openVerticalMore = async () => {
+    const user = userEvent.setup()
+    reportClusterHeight(192)
+    await user.click(
+      within(region('cluster')).getByRole('button', { name: 'More' })
+    )
+    expect(document.querySelector('[data-navigator-section]')).toBeNull()
+  }
+
+  const expectMoreClosed = () => {
+    expect(
+      within(region('cluster')).queryByRole('button', { name: 'More' })
+    ).toBeNull()
+    expect(document.querySelector('[aria-expanded="true"]')).toBeNull()
+    expect(
+      document.querySelector('[data-navigator-section="/s"]')
+    ).toHaveAttribute('data-stack-position', 'top')
+  }
+
+  it('closes when expanding unfolds every item', async () => {
+    const { rerender } = render(<SectionedMore />)
+    await flushViewportMeasurement()
+    await openVerticalMore()
+    rerender(<SectionedMore expanded />)
+    expectMoreClosed()
+  })
+
+  it('closes when the window grows until every item fits', async () => {
+    render(<SectionedMore />)
+    await flushViewportMeasurement()
+    await openVerticalMore()
+    reportClusterHeight(1000)
+    expectMoreClosed()
+  })
+
+  it('stays open when the vertical navigation hides and the bar still folds', async () => {
+    render(<Six />)
+    await flushViewportMeasurement()
+    reportClusterHeight(192)
+    const user = userEvent.setup()
+    const tile = within(region('cluster')).getByRole('button', { name: 'More' })
+    await user.click(tile)
+    reportClusterHeight(0)
+    expect(
+      within(horizontal()).getByRole('button', { name: 'More' })
+    ).toHaveAttribute('aria-expanded', 'true')
+  })
+})
+
 function Expandable(props: {
   expanded?: boolean
   defaultExpanded?: boolean
