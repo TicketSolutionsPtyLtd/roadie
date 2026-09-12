@@ -27,7 +27,8 @@ export function FooterNav({ items }: FooterNavProps) {
       return [
         ...acc,
         ...(section.items.filter(
-          (item) => !item.label && item.href
+          (item) =>
+            !item.label && item.href && !/^(https?:)?\/\//.test(item.href)
         ) as (NavItem & { href: string })[])
       ]
     },
