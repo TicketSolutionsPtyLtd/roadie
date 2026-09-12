@@ -23,7 +23,7 @@ export type PaneStackContextValue = {
   unregister: (id: string) => void
   /** `entry` places a pane that has not registered yet, as in the server render. */
   positionOf: (id: string, entry: PaneRegistration) => PaneStackPosition | null
-  chromeOf: (id: string) => PaneChromeContextValue
+  chromeOf: (id: string, entry: PaneRegistration) => PaneChromeContextValue
   /** Is this the base of the stack — the one pane a Close would never suit. */
   isRootOf: (id: string) => boolean
 }

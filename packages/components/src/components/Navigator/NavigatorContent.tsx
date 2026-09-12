@@ -120,7 +120,12 @@ export function NavigatorContent({
   const topId = topIndex === -1 ? null : (ordered[topIndex]?.id ?? null)
   const rootIndex = useMemo(() => deriveRootIndex(ordered), [ordered])
 
-  const chrome = useTopPaneChrome({ atRoot: topIndex === rootIndex })
+  // Unregistered, as on the server: the section pane is the root, top only while revealed.
+  const atRoot =
+    ordered.length === 0
+      ? revealing || activeSection === null
+      : topIndex === rootIndex
+  const chrome = useTopPaneChrome({ atRoot })
 
   // A ref keeps the lookups stable; closing over fresh arrays would loop pane registration.
   const latest = useRef({ ordered, positions, topId, rootIndex, revealing })
@@ -135,8 +140,9 @@ export function NavigatorContent({
   }, [])
 
   const chromeOf = useCallback(
-    (id: string) => (id === latest.current.topId ? chrome : PANE_CHROME_NONE),
-    [chrome]
+    (id: string, entry: PaneRegistration) =>
+      positionOf(id, entry) === 'top' ? chrome : PANE_CHROME_NONE,
+    [chrome, positionOf]
   )
 
   const isRootOf = useCallback((id: string) => {
