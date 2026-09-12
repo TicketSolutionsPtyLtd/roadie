@@ -250,3 +250,78 @@ describe('Navigator with a wrapped Primary', () => {
     ])
   })
 })
+
+function PageRootDocs({ value }: { value: string }) {
+  return (
+    <Navigator value={value}>
+      <Navigator.Primary aria-label='Docs'>
+        {testBrand}
+        <Navigator.Item value='/' href='/' icon={<FakeIcon />}>
+          Home
+          <Navigator.Secondary aria-label='Home pages' root='page'>
+            <Navigator.Item
+              value='/overview/philosophy'
+              href='/overview/philosophy'
+            >
+              Philosophy
+            </Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Navigator.Content>
+        <Pane role='detail' current>
+          <Pane.Header />
+          Detail
+        </Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+}
+
+describe('Navigator server render of a page root', () => {
+  it('renders no list pane on the root, where the page is top with no Back', () => {
+    const container = serverRender(<PageRootDocs value='/' />)
+    expect(positions(container)).toEqual([['detail', 'top']])
+    expect(
+      within(paneOf(container, 'detail')!).queryByLabelText('Back')
+    ).toBeNull()
+  })
+
+  it('renders the list behind the page on a sub-page, with Back to the root', () => {
+    const container = serverRender(
+      <PageRootDocs value='/overview/philosophy' />
+    )
+    expect(positions(container)).toEqual([
+      ['/', 'behind'],
+      ['detail', 'top']
+    ])
+    expect(
+      within(paneOf(container, 'detail')!).getByLabelText('Back')
+    ).toHaveAttribute('href', '/')
+  })
+
+  it.each(['/', '/overview/philosophy'])(
+    'hydrates %s without a mismatch or a position change',
+    async (value) => {
+      const ui = (
+        <StrictMode>
+          <PageRootDocs value={value} />
+        </StrictMode>
+      )
+      const host = serverRender(ui)
+      const before = positions(host)
+      const error = vi.spyOn(console, 'error')
+      const recoverable = vi.fn()
+      let root: Root | null = null
+      await act(async () => {
+        root = hydrateRoot(host, ui, { onRecoverableError: recoverable })
+      })
+      await flushViewportMeasurement()
+      expect(recoverable).not.toHaveBeenCalled()
+      expect(error).not.toHaveBeenCalled()
+      expect(positions(host)).toEqual(before)
+      act(() => root?.unmount())
+      vi.restoreAllMocks()
+    }
+  )
+})

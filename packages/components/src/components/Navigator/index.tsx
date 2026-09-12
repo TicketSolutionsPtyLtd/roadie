@@ -60,7 +60,10 @@ export type {
   NavigatorPlacement,
   NavigatorVisibilityPriority
 } from './mobileSlots'
-export type { NavigatorSecondaryProps } from './NavigatorSecondary'
+export type {
+  NavigatorSecondaryProps,
+  NavigatorSecondaryRoot
+} from './NavigatorSecondary'
 export type { NavigatorItemProps } from './NavigatorItem'
 export type { NavigatorGroupProps } from './NavigatorGroup'
 export type { NavigatorGroupTitleProps } from './NavigatorGroupTitle'

@@ -33,7 +33,11 @@ export function findActiveSection(
       value: itemProps.value,
       href: itemProps.href,
       label,
-      secondary: declaration.props
+      secondary: declaration.props,
+      root:
+        itemProps.href !== undefined && declaration.props.root === 'page'
+          ? 'page'
+          : 'list'
     }
   }
 

@@ -110,8 +110,10 @@ export function NavigatorContent({
   )
   const onSectionRoute =
     activeSection !== null && isActiveValue(activeSection.value, value)
+  const listPaneShows =
+    activeSection !== null && !(activeSection.root === 'page' && onSectionRoute)
   const revealing =
-    activeSection !== null && !overflowOpen && (onSectionRoute || showList)
+    listPaneShows && !overflowOpen && (onSectionRoute || showList)
   const positions = useMemo(
     () => derivePositions(ordered, revealing),
     [ordered, revealing]
@@ -120,11 +122,9 @@ export function NavigatorContent({
   const topId = topIndex === -1 ? null : (ordered[topIndex]?.id ?? null)
   const rootIndex = useMemo(() => deriveRootIndex(ordered), [ordered])
 
-  // Unregistered, as on the server: the section pane is the root, top only while revealed.
+  // Unregistered, as on the server: a list pane is the root, top only while revealed.
   const atRoot =
-    ordered.length === 0
-      ? revealing || activeSection === null
-      : topIndex === rootIndex
+    ordered.length === 0 ? revealing || !listPaneShows : topIndex === rootIndex
   const chrome = useTopPaneChrome({ atRoot })
 
   // A ref keeps the lookups stable; closing over fresh arrays would loop pane registration.
@@ -222,7 +222,7 @@ export function NavigatorContent({
 
   // Keyed so the search resets with the section; More replaces it while open.
   const sectionPane =
-    activeSection !== null && !overflowOpen && !overridden ? (
+    listPaneShows && !overflowOpen && !overridden ? (
       <NavigatorSectionPane key={activeSection.value} section={activeSection} />
     ) : null
 

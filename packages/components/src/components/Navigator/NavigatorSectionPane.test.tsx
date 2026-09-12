@@ -877,3 +877,143 @@ describe('section routes', () => {
     warn.mockRestore()
   })
 })
+
+function PageRooted({
+  value,
+  showList,
+  onShowListChange,
+  onValueChange,
+  override = false
+}: {
+  value: string
+  showList?: boolean
+  onShowListChange?: (next: boolean) => void
+  onValueChange?: (next: string) => void
+  override?: boolean
+}) {
+  return (
+    <Navigator
+      value={value}
+      showList={showList}
+      onShowListChange={onShowListChange}
+      onValueChange={onValueChange}
+    >
+      <Navigator.Primary aria-label='Docs'>
+        {testBrand}
+        <Navigator.Item value='/' href='/'>
+          Home
+          <Navigator.Secondary aria-label='Home pages' root='page'>
+            <Navigator.Item
+              value='/overview/installation'
+              href='/overview/installation'
+            >
+              Installation
+            </Navigator.Item>
+            <Navigator.Item
+              value='/overview/philosophy'
+              href='/overview/philosophy'
+            >
+              Philosophy
+            </Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+        <Navigator.Item value='/components' href='/components'>
+          Components
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Navigator.Content>
+        {override ? (
+          <Navigator.SecondaryPane value='/'>
+            <p>Promo</p>
+            <Navigator.SecondaryItems />
+          </Navigator.SecondaryPane>
+        ) : null}
+        <Pane role='detail' current>
+          <Pane.Header />
+          Detail
+        </Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+}
+
+describe('page roots', () => {
+  it('mounts no list pane on the section route, where the page is the root with no Back', async () => {
+    render(<PageRooted value='/' />)
+    await flushViewportMeasurement()
+    expect(sectionPane()).toBeNull()
+    expect(panes()).toHaveLength(1)
+    expect(panes()[0]).toHaveAttribute('data-stack-position', 'top')
+    expect(screen.queryByLabelText('Back')).toBeNull()
+  })
+
+  it('pushes a sub-page over the list, with Back to the section route', async () => {
+    render(<PageRooted value='/overview/philosophy' />)
+    await flushViewportMeasurement()
+    expect(sectionPane()).toHaveAttribute('data-stack-position', 'behind')
+    const detail = panes()[1]!
+    expect(detail).toHaveAttribute('data-stack-position', 'top')
+    expect(backOf(detail)).toHaveAttribute('href', '/')
+    expect(
+      within(sectionPane()!).getByRole('link', { name: 'Philosophy' })
+    ).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('ignores showList on the root', async () => {
+    render(<PageRooted value='/' showList />)
+    await flushViewportMeasurement()
+    expect(sectionPane()).toBeNull()
+    expect(panes()[0]).toHaveAttribute('data-stack-position', 'top')
+    expect(screen.queryByLabelText('Back')).toBeNull()
+  })
+
+  it('still shows the list over a sub-page with showList', async () => {
+    render(<PageRooted value='/overview/philosophy' showList />)
+    await flushViewportMeasurement()
+    expect(sectionPane()).toHaveAttribute('data-stack-position', 'top')
+  })
+
+  it('applies a SecondaryPane override only on sub-pages', async () => {
+    const { rerender } = render(<PageRooted value='/' override />)
+    await flushViewportMeasurement()
+    expect(document.querySelector('[data-navigator-section]')).toBeNull()
+    expect(screen.queryByText('Promo')).toBeNull()
+    expect(panes()[0]).toHaveAttribute('data-stack-position', 'top')
+    rerender(<PageRooted value='/overview/installation' override />)
+    await flushViewportMeasurement()
+    expect(screen.getByText('Promo')).toBeInTheDocument()
+    expect(sectionPane()).toHaveAttribute('data-stack-position', 'behind')
+    expect(document.querySelectorAll('[data-navigator-section]')).toHaveLength(
+      1
+    )
+  })
+
+  it('treats a routeless page root as a list root', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Navigator value='/x'>
+        <Navigator.Primary aria-label='Docs'>
+          {testBrand}
+          <Navigator.Item value='/x'>
+            X
+            <Navigator.Secondary aria-label='X pages' root='page'>
+              <Navigator.Item value='/x/one' href='/x/one'>
+                One
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Pane role='detail' current>
+            Detail
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(sectionPane()).toHaveAttribute('data-stack-position', 'top')
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('its own route'))
+    expect(warn).toHaveBeenCalledTimes(1)
+    warn.mockRestore()
+  })
+})

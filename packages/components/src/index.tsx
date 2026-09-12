@@ -151,6 +151,7 @@ export {
   type NavigatorContentProps,
   type NavigatorPrimaryProps,
   type NavigatorSecondaryProps,
+  type NavigatorSecondaryRoot,
   type NavigatorItemProps,
   type NavigatorGroupProps,
   type NavigatorMenuProps,
