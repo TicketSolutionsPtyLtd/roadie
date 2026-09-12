@@ -12,6 +12,7 @@ import {
   WheelchairMotionIcon
 } from '@phosphor-icons/react/ssr'
 
+import { HomeGuides } from '@/components/HomeGuides'
 import { Image } from '@/components/Image'
 
 import { Button, Code } from '@oztix/roadie-components'
@@ -54,15 +55,26 @@ export default function Home() {
           <Button
             intent='accent'
             emphasis='strong'
-            render={<Link href='/overview/getting-started' />}
+            href='/overview/getting-started'
           >
             Get started
           </Button>
-          <Button emphasis='normal' render={<Link href='/components' />}>
+          <Button emphasis='normal' href='/components'>
             Browse components
             <ArrowRightIcon weight='bold' className='size-4' />
           </Button>
         </div>
+      </section>
+
+      {/* Get started */}
+      <section className='grid gap-6'>
+        <div className='grid gap-1'>
+          <h2 className='text-display-ui-3 text-strong'>Get started</h2>
+          <p className='text-subtle'>
+            Install Roadie, learn the ideas behind it, and move from v1.
+          </p>
+        </div>
+        <HomeGuides />
       </section>
 
       {/* Foundations */}
@@ -377,7 +389,7 @@ export default function Home() {
           <Button
             intent='accent'
             emphasis='strong'
-            render={<Link href='/overview/getting-started' />}
+            href='/overview/getting-started'
           >
             Getting started guide
           </Button>

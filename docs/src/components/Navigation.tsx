@@ -57,6 +57,7 @@ interface NavigationItem {
   title: string
   href?: string
   label?: boolean
+  description?: string
 }
 
 interface NavigationSection {
@@ -75,7 +76,7 @@ interface NavigationProps {
 }
 
 const SECTION_ICONS: Record<string, ReactNode> = {
-  '/get-started': <HouseIcon />,
+  '/': <HouseIcon />,
   '/foundations': <CompassIcon />,
   '/tokens': <PaletteIcon />,
   '/components': <CubeIcon />,
@@ -344,12 +345,16 @@ export function DocsNavigator({
                     ))}
                   </Navigator.Secondary>
                 ) : subItems.length > 0 ? (
-                  <Navigator.Secondary aria-label={`${section.title} pages`}>
+                  <Navigator.Secondary
+                    aria-label={`${section.title} pages`}
+                    root={section.href === '/' ? 'page' : undefined}
+                  >
                     {subItems.map((item) => (
                       <Navigator.Item
                         key={item.href ?? item.title}
                         value={item.href ?? item.title}
                         href={item.href}
+                        description={item.description}
                       >
                         {item.title}
                       </Navigator.Item>
