@@ -289,8 +289,8 @@ a chevron by default; suppress it with `chevron={false}`.
 - **Groups**: a `List.Group` is an `<li>` holding its title and a nested
   `<ul>`, so screen readers announce each section as its own list. The
   title is an `<h2>` that labels its section; `render` sets another level.
-- **Subtitle**: the row's name is its `title`; the `subtitle` is read
-  after it as the description, so it is announced once.
+- **Subtitle**: the `subtitle` is read as the row's description, not part
+  of its name, so it is announced once.
 - **Selection**: `current` sets `aria-current` on the row so screen
   readers announce the active choice.
 

@@ -7,7 +7,7 @@ import { listGroupTitleVariants } from './variants'
 
 export type ListGroupTitleProps = ComponentProps<'h2'> & {
   /** Change the heading level, e.g. `render={<h3 />}`. Defaults to `<h2>`. */
-  render?: RoadieRenderProp
+  render?: RoadieRenderProp<ComponentProps<'h2'>>
 }
 
 /** Label for a `List.Group`. */

@@ -1,3 +1,5 @@
+import type { ComponentProps } from 'react'
+
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -552,7 +554,9 @@ describe('List', () => {
       render(
         <List>
           <List.Group>
-            <List.GroupTitle render={(p) => <h4 {...p} />}>
+            <List.GroupTitle
+              render={(p: ComponentProps<'h2'>) => <h4 {...p} />}
+            >
               Inputs
             </List.GroupTitle>
           </List.Group>
