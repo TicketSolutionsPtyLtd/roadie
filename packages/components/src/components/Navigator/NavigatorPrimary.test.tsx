@@ -1,4 +1,4 @@
-import { StrictMode, useState } from 'react'
+import { type ReactNode, StrictMode, useState } from 'react'
 
 import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -9,6 +9,7 @@ import { NAVIGATOR_EXPANDED_SCOPE } from '@oztix/roadie-core/navigator'
 
 import { Navigator } from '.'
 import { Badge } from '../Badge'
+import { Logo } from '../Logo'
 import {
   FakeIcon,
   flushViewportMeasurement,
@@ -1022,6 +1023,140 @@ describe('expanded vertical navigation', () => {
     expect(
       within(horizontal()).queryByRole('button', { name: /sidebar/ })
     ).toBeNull()
+  })
+})
+
+describe('default brand', () => {
+  const scope = `:where(${NAVIGATOR_EXPANDED_SCOPE})`
+  const logoPart = '[data-slot="logo-wordmark"], [data-slot="logo-product"]'
+
+  function BrandNav({
+    brand = <Navigator.Brand />,
+    expanded = false
+  }: {
+    brand?: ReactNode
+    expanded?: boolean
+  }) {
+    return (
+      <Navigator value='/a' expanded={expanded}>
+        <Navigator.Primary aria-label='Main'>
+          {brand}
+          <Navigator.ExpandToggle />
+          <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
+            Alpha
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content />
+      </Navigator>
+    )
+  }
+
+  const brandLink = () =>
+    region('brand').querySelector<HTMLElement>('[data-slot="navigator-brand"]')!
+
+  it('renders the Oztix logo, linking home and named by it', async () => {
+    render(<BrandNav />)
+    await flushViewportMeasurement()
+    const link = within(region('brand')).getByRole('link', { name: 'Oztix' })
+    expect(link).toBe(brandLink())
+    expect(link).toHaveAttribute('href', '/')
+    expect(link.querySelectorAll('[data-slot="logo"]')).toHaveLength(1)
+    expect(link.querySelector('[data-slot="logo-mark"]')).not.toBeNull()
+  })
+
+  it('shows only the mark collapsed and opens the wordmark expanded, without display: none', async () => {
+    const { rerender } = render(<BrandNav />)
+    await flushViewportMeasurement()
+    const wordmark = () =>
+      brandLink().querySelector<HTMLElement>('[data-slot="logo-wordmark"]')!
+    expect(brandLink()).toHaveClass(
+      '[&>[data-slot=logo]]:mx-[calc((3rem-1em)/2)]',
+      '[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:grid-cols-[0fr]',
+      '[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:opacity-0',
+      'navigator-expanded:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:grid-cols-[1fr]',
+      'navigator-expanded:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:opacity-100'
+    )
+    expect(wordmark().matches(scope)).toBe(false)
+    rerender(<BrandNav expanded />)
+    expect(wordmark().matches(scope)).toBe(true)
+    expect(brandLink().className).not.toMatch(/logo[^\s]*:hidden/)
+    expect(wordmark().className).not.toMatch(/(^|\s)hidden/)
+  })
+
+  it('fades the wordmark on the labels’ timing as the navigation’s width opens it', () => {
+    const labelTransitions =
+      navigatorItemLabelClass.match(/opacity_var\([^\]]+/g)!
+    const brand = navigatorBrandVariants()
+    expect(labelTransitions).toHaveLength(2)
+    for (const opacity of labelTransitions) {
+      expect(brand).toContain(
+        `[transition:grid-template-columns_var(--navigator-primary-motion),${opacity}]`
+      )
+    }
+    expect(navigatorPrimaryVerticalVariants()).toContain(
+      'motion-safe:[transition:width_var(--navigator-primary-motion)]'
+    )
+  })
+
+  it('takes a product logo in its place', async () => {
+    render(
+      <BrandNav
+        brand={
+          <Navigator.Brand>
+            <Logo product='Studio' />
+          </Navigator.Brand>
+        }
+      />
+    )
+    await flushViewportMeasurement()
+    const link = within(region('brand')).getByRole('link', {
+      name: 'Oztix Studio'
+    })
+    expect(link.querySelectorAll('[data-slot="logo"]')).toHaveLength(1)
+    expect(link.querySelector(logoPart)).toHaveAttribute(
+      'data-slot',
+      'logo-product'
+    )
+  })
+
+  it('renders custom children instead of the logo', async () => {
+    render(<BrandNav brand={<Navigator.Brand>Acme</Navigator.Brand>} />)
+    await flushViewportMeasurement()
+    const link = within(region('brand')).getByRole('link', { name: 'Acme' })
+    expect(link.querySelector('[data-slot="logo"]')).toBeNull()
+  })
+
+  it('counts a childless Brand as the brand', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(<BrandNav />)
+    await flushViewportMeasurement()
+    expect(warn).not.toHaveBeenCalledWith(
+      expect.stringContaining('has no Navigator.Brand')
+    )
+  })
+
+  it('paints the wordmark open before hydration from the document attribute', () => {
+    document.documentElement.setAttribute('data-navigator-expanded', '')
+    const host = document.createElement('div')
+    host.innerHTML = renderToString(
+      <Navigator value='/a' expandedFromDocument>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Brand />
+          <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
+            Alpha
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content />
+      </Navigator>
+    )
+    document.body.append(host)
+    try {
+      const wordmark = host.querySelector('[data-slot="logo-wordmark"]')!
+      expect(wordmark.matches(scope)).toBe(true)
+    } finally {
+      host.remove()
+      document.documentElement.removeAttribute('data-navigator-expanded')
+    }
   })
 })
 

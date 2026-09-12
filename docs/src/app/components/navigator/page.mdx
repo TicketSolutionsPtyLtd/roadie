@@ -30,7 +30,7 @@ more [`Pane`](/components/pane)s, each of which owns its own scroll.
 ```tsx
 <Navigator value={path} expanded={open} onExpandedChange={setOpen}>
   <Navigator.Primary aria-label='Documentation'>
-    <Navigator.Brand>…</Navigator.Brand>
+    <Navigator.Brand />
     <Navigator.ExpandToggle />
     <Navigator.Group visibilityPriority='high'>
       <Navigator.GroupTitle>Docs</Navigator.GroupTitle>
@@ -69,12 +69,31 @@ it top-align and scroll on its own.
 `Navigator.Brand` is large-screen only — the tab bar has no brand slot. Every
 Navigator has one, and in development `Navigator.Primary` warns without it. It
 links home: `href` defaults to `'/'` and routes through `RoadieLinkProvider`
-like every Navigator destination; pass `href` to point it elsewhere. Its
-content names the link, so label the mark (`alt`, or `role='img'` with an
-`aria-label`) and hide a wordmark that repeats it with `aria-hidden`. The
-mark, its first child, sits on the icon column in both states, so it never
-moves; anything after it fades in once expanded. Hide a wordmark until then
-with `hidden navigator-expanded:inline`.
+like every Navigator destination; pass `href` to point it elsewhere.
+
+With no children it renders the Oztix [`Logo`](/components/logo), which names
+the link "Oztix". Collapsed, only the mark shows; expanded, the wordmark opens
+beside it with the labels. A `Logo` with a `product` opens its product name the
+same way.
+
+Your own brand goes in as children. Its content names the link, so label the
+mark (`alt`, or `role='img'` with an `aria-label`) and hide a wordmark that
+repeats it with `aria-hidden`. The mark, its first child, sits on the icon
+column in both states, so it never moves; anything after it fades in once
+expanded. Hide a wordmark until then with `hidden navigator-expanded:inline`.
+
+```tsx
+<Navigator.Brand />
+
+<Navigator.Brand>
+  <Logo product='Studio' />
+</Navigator.Brand>
+
+<Navigator.Brand>
+  <img src='/mark.svg' alt='Acme' className='size-8' />
+  <span aria-hidden className='hidden navigator-expanded:inline'>Acme</span>
+</Navigator.Brand>
+```
 
 Navigator is always **controlled** — the active `value` belongs to your
 router. The examples below hold it in `useState` to stay self-contained. The
@@ -129,11 +148,7 @@ function ConsumerNav() {
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
       <Navigator value={active} onValueChange={setActive} className='h-full'>
         <Navigator.Primary aria-label='Main'>
-          <Navigator.Brand>
-            <IconTile intent='brand' emphasis='strong' role='img' aria-label='Oztix'>
-              <TicketIcon weight='bold' />
-            </IconTile>
-          </Navigator.Brand>
+          <Navigator.Brand />
           <Navigator.Item value='discover' icon={<MagnifyingGlassIcon />}>
             Discover
           </Navigator.Item>
@@ -200,11 +215,7 @@ function SectionsNav() {
         {(path) => (
           <Navigator value={path} className='h-full'>
             <Navigator.Primary aria-label='Organiser'>
-              <Navigator.Brand href='/events'>
-                <IconTile intent='brand' emphasis='strong' role='img' aria-label='Oztix'>
-                  <TicketIcon weight='bold' />
-                </IconTile>
-              </Navigator.Brand>
+              <Navigator.Brand href='/events' />
               <Navigator.Item value='/events' href='/events' icon={<TicketIcon />}>
                 Events
                 <Navigator.Secondary aria-label='Events pages'>
@@ -273,11 +284,7 @@ function ListFromUrlNav() {
             className='h-full'
           >
             <Navigator.Primary aria-label='Organiser'>
-              <Navigator.Brand href='/events'>
-                <IconTile intent='brand' emphasis='strong' role='img' aria-label='Oztix'>
-                  <TicketIcon weight='bold' />
-                </IconTile>
-              </Navigator.Brand>
+              <Navigator.Brand href='/events' />
               <Navigator.Item value='/events' href='/events' icon={<TicketIcon />}>
                 Events
                 <Navigator.Secondary aria-label='Events pages'>
@@ -377,11 +384,7 @@ function SearchableNav() {
         {(path) => (
           <Navigator value={path} className='h-full'>
             <Navigator.Primary aria-label='Organiser'>
-              <Navigator.Brand href='/events'>
-                <IconTile intent='brand' emphasis='strong' role='img' aria-label='Oztix'>
-                  <TicketIcon weight='bold' />
-                </IconTile>
-              </Navigator.Brand>
+              <Navigator.Brand href='/events' />
               <Navigator.Item value='/events' href='/events' icon={<TicketIcon />}>
                 Events
                 <Navigator.Secondary aria-label='Events pages' searchable>
@@ -449,11 +452,7 @@ function GroupedNav() {
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
       <Navigator value={active} onValueChange={setActive} className='h-full'>
         <Navigator.Primary aria-label='Admin'>
-          <Navigator.Brand>
-            <IconTile intent='brand' emphasis='strong' role='img' aria-label='Oztix'>
-              <TicketIcon weight='bold' />
-            </IconTile>
-          </Navigator.Brand>
+          <Navigator.Brand />
           <Navigator.Item value='overview' icon={<MagnifyingGlassIcon />}>
             Overview
           </Navigator.Item>
@@ -516,11 +515,7 @@ function PriorityNav() {
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
       <Navigator value={active} onValueChange={setActive} className='h-full'>
         <Navigator.Primary aria-label='Main'>
-          <Navigator.Brand>
-            <IconTile intent='brand' emphasis='strong' role='img' aria-label='Oztix'>
-              <TicketIcon weight='bold' />
-            </IconTile>
-          </Navigator.Brand>
+          <Navigator.Brand />
           <Navigator.Item value='discover' icon={<MagnifyingGlassIcon />}>
             Discover
           </Navigator.Item>
@@ -590,11 +585,7 @@ function OverflowPaneNav() {
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
       <Navigator value={active} onValueChange={setActive} className='h-full'>
         <Navigator.Primary aria-label='Main'>
-          <Navigator.Brand>
-            <IconTile intent='brand' emphasis='strong' role='img' aria-label='Oztix'>
-              <TicketIcon weight='bold' />
-            </IconTile>
-          </Navigator.Brand>
+          <Navigator.Brand />
           {items.map(([value, label, icon]) => (
             <Navigator.Item key={value} value={value} icon={icon}>
               {label}
@@ -641,11 +632,7 @@ function MenuNav() {
         {(path) => (
           <Navigator value={path} className='h-full'>
             <Navigator.Primary aria-label='Main'>
-              <Navigator.Brand href='/discover'>
-                <IconTile intent='brand' emphasis='strong' role='img' aria-label='Oztix'>
-                  <TicketIcon weight='bold' />
-                </IconTile>
-              </Navigator.Brand>
+              <Navigator.Brand href='/discover' />
               <Navigator.Item value='/discover' href='/discover' icon={<MagnifyingGlassIcon />}>
                 Discover
               </Navigator.Item>
@@ -716,14 +703,7 @@ function ExpandedNav() {
         className='h-full'
       >
         <Navigator.Primary aria-label='Main'>
-          <Navigator.Brand>
-            <IconTile intent='brand' emphasis='strong' role='img' aria-label='Oztix'>
-              <TicketIcon weight='bold' />
-            </IconTile>
-            <span aria-hidden className='hidden truncate text-base font-semibold text-strong navigator-expanded:inline'>
-              Oztix
-            </span>
-          </Navigator.Brand>
+          <Navigator.Brand />
           <Navigator.Group>
             <Navigator.GroupTitle>Browse</Navigator.GroupTitle>
             <Navigator.Item value='discover' icon={<MagnifyingGlassIcon />}>
@@ -832,14 +812,7 @@ function BadgeNav() {
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
       <Navigator value={active} onValueChange={setActive} className='h-full'>
         <Navigator.Primary aria-label='Main'>
-          <Navigator.Brand>
-            <IconTile intent='brand' emphasis='strong' role='img' aria-label='Oztix'>
-              <TicketIcon weight='bold' />
-            </IconTile>
-            <span aria-hidden className='hidden truncate text-base font-semibold text-strong navigator-expanded:inline'>
-              Oztix
-            </span>
-          </Navigator.Brand>
+          <Navigator.Brand />
           <Navigator.Item value='/home' icon={<MagnifyingGlassIcon />}>
             Home
           </Navigator.Item>
@@ -878,11 +851,7 @@ function SectionOverrideNav() {
         {(path) => (
           <Navigator value={path} className='h-full'>
             <Navigator.Primary aria-label='Documentation'>
-              <Navigator.Brand href='/get-started'>
-                <IconTile intent='brand' emphasis='strong' role='img' aria-label='Oztix'>
-                  <TicketIcon weight='bold' />
-                </IconTile>
-              </Navigator.Brand>
+              <Navigator.Brand href='/get-started' />
               <Navigator.Item value='/get-started' href='/get-started' icon={<PlayIcon />}>
                 Get started
               </Navigator.Item>
@@ -1185,9 +1154,9 @@ documented there. The two facts worth knowing from here:
 - **`Navigator.ExpandToggle`** is a button with `aria-expanded` and
   `aria-controls`, labelled "Expand sidebar" or "Collapse sidebar" in visually
   hidden text, with the same label in its tooltip in both states.
-- **`Navigator.Brand`** is a link home named by its content — the mark's
-  `alt` or `aria-label`, or its text — so it needs one that reads in both
-  states.
+- **`Navigator.Brand`** is a link home named by its content — "Oztix" (or
+  "Oztix Studio") from the default `Logo`, or your mark's `alt` or
+  `aria-label`, or its text — so it needs one that reads in both states.
 - **Tab order** follows the vertical navigation's regions — brand and its
   toggle, cluster, pinned.
 - **Menus** are Base UI menus: arrow keys move between rows, typeahead jumps to
