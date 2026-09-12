@@ -9,8 +9,7 @@
     "jsxImportSource": "react",
     "types": ["vitest/globals", "@testing-library/jest-dom/vitest"],
     "skipLibCheck": true,
-    "incremental": true,
-    "preserveSymlinks": false
+    "incremental": true
   },
   "include": [
     "src/**/*.ts",
