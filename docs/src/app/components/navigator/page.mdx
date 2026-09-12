@@ -465,8 +465,9 @@ section isn't found.
 For anything richer, `useNavigatorSection(value?)` returns the same data for
 you to lay out. It is computed during render from the navigation you declared,
 so it works in the server render; with a `Navigator.Primary` that is not a
-direct child of `Navigator`, it returns `null` until the Primary mounts. The
-result is a fresh object each render — read its fields rather than keying an
+direct child of `Navigator`, it returns `null` until the Primary mounts, then
+refreshes when a primitive prop or the structure changes — not when only an
+object-valued prop does, such as an icon's `style`. The result is a fresh object each render — read its fields rather than keying an
 effect on it.
 
 ```ts
