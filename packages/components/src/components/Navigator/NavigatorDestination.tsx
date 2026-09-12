@@ -18,7 +18,7 @@ export type NavigatorDestinationProps = Omit<
   /** Omit to render a `<button>`. */
   href?: string
   /** Set only on a collapsed edge circle, so the two circles are findable without classes. */
-  circleSide?: 'left' | 'right'
+  circleSide?: 'start' | 'end'
   style?: CSSProperties
   /** `'page'` for a real destination, `'true'` for the More disclosure. */
   ariaCurrent?: 'page' | 'true'

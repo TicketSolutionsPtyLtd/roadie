@@ -2832,7 +2832,7 @@ describe('Navigator collapsed edge circles', () => {
     </Navigator>
   )
 
-  // A/B/C/D plus More, so the right circle is a track tab.
+  // A/B/C/D plus More, so the end circle is a track tab.
   const moreTree = (active: string, withPinned = false) => (
     <Navigator value={active}>
       <Navigator.Primary aria-label='Primary'>
@@ -2881,7 +2881,7 @@ describe('Navigator collapsed edge circles', () => {
     return pane
   }
 
-  it('floats the active tab as a left circle and the final tab as a right circle', async () => {
+  it('floats the active tab as the start circle and the final tab as the end circle', async () => {
     const { container } = render(moreTree('a'))
     await collapse(container)
     const bar = within(horizontalOf(container) as HTMLElement)
@@ -2889,13 +2889,13 @@ describe('Navigator collapsed edge circles', () => {
     const active = bar.getByRole('button', { name: 'A' })
     const final = bar.getByRole('button', { name: 'More' })
     expect(active).toHaveClass('size-14')
-    expect(active).toHaveAttribute('data-circle-side', 'left')
+    expect(active).toHaveAttribute('data-circle-side', 'start')
     expect(final).toHaveClass('size-14')
-    expect(final).toHaveAttribute('data-circle-side', 'right')
+    expect(final).toHaveAttribute('data-circle-side', 'end')
     await flushViewportMeasurement()
   })
 
-  it('keeps the pinned circle as the right circle while collapsed', async () => {
+  it('keeps the pinned circle as the end circle while collapsed', async () => {
     const { container } = render(barTree('a'))
     await collapse(container)
     const bar = horizontalOf(container)!
@@ -2903,10 +2903,10 @@ describe('Navigator collapsed edge circles', () => {
     expect(
       within(pinnedCircleOf(container)).getByRole('button', { name: 'Account' })
     ).not.toHaveClass('scale-0')
-    expect(bar.querySelector('[data-circle-side="right"]')).toBeNull()
-    expect(bar.querySelector('[data-circle-side="left"]')).toHaveAccessibleName(
-      'A'
-    )
+    expect(bar.querySelector('[data-circle-side="end"]')).toBeNull()
+    expect(
+      bar.querySelector('[data-circle-side="start"]')
+    ).toHaveAccessibleName('A')
     await flushViewportMeasurement()
   })
 
@@ -2950,7 +2950,7 @@ describe('Navigator collapsed edge circles', () => {
       bar.querySelectorAll('[data-circle-side]'),
       (circle) => circle.getAttribute('data-circle-side')
     )
-    expect(sides).toEqual(['left', 'right'])
+    expect(sides).toEqual(['start', 'end'])
     // Nothing is pushing them apart — no spacer, no growing box.
     expect(bar.querySelector('.flex-1')).toBeNull()
     await flushViewportMeasurement()
@@ -2973,7 +2973,7 @@ describe('Navigator collapsed edge circles', () => {
     await flushViewportMeasurement()
   })
 
-  it('puts the first tab on the left when the pinned item is active', async () => {
+  it('puts the first tab at the start when the pinned item is active', async () => {
     const { container } = render(barTree('account'))
     await collapse(container)
     const bar = within(horizontalOf(container) as HTMLElement)
@@ -2983,20 +2983,20 @@ describe('Navigator collapsed edge circles', () => {
       name: 'Account'
     })
     expect(first).toHaveClass('size-14')
-    expect(first).toHaveAttribute('data-circle-side', 'left')
+    expect(first).toHaveAttribute('data-circle-side', 'start')
     expect(account).toHaveAttribute('aria-current', 'page')
     expect(first).not.toHaveAttribute('aria-current')
     await flushViewportMeasurement()
   })
 
-  it('floats More as the left circle when a folded item is active beside a pinned circle', async () => {
+  it('floats More as the start circle when a folded item is active beside a pinned circle', async () => {
     const { container } = render(moreTree('e', true))
     await collapse(container)
     const bar = within(horizontalOf(container) as HTMLElement)
 
     expect(bar.getByRole('button', { name: 'More' })).toHaveAttribute(
       'data-circle-side',
-      'left'
+      'start'
     )
     expect(
       within(pinnedCircleOf(container)).getByRole('button', { name: 'Account' })
@@ -3004,18 +3004,18 @@ describe('Navigator collapsed edge circles', () => {
     await flushViewportMeasurement()
   })
 
-  it('puts the first tab on the left when a folded item is active', async () => {
+  it('puts the first tab at the start when a folded item is active', async () => {
     const { container } = render(moreTree('e'))
     await collapse(container)
     const bar = within(horizontalOf(container) as HTMLElement)
 
     expect(bar.getByRole('button', { name: 'A' })).toHaveAttribute(
       'data-circle-side',
-      'left'
+      'start'
     )
     expect(bar.getByRole('button', { name: 'More' })).toHaveAttribute(
       'data-circle-side',
-      'right'
+      'end'
     )
     await flushViewportMeasurement()
   })
@@ -3069,8 +3069,8 @@ describe('Navigator collapsed edge circles', () => {
     expect(pinned).toHaveClass('emphasis-floating', 'is-translucent')
 
     await collapse(container)
-    const left = bar.querySelector('[data-circle-side="left"]')
-    expect(left).toHaveClass('emphasis-floating', 'is-translucent')
+    const start = bar.querySelector('[data-circle-side="start"]')
+    expect(start).toHaveClass('emphasis-floating', 'is-translucent')
     await flushViewportMeasurement()
   })
 
@@ -3096,9 +3096,11 @@ describe('Navigator collapsed edge circles', () => {
       expect(tab.className).not.toMatch(/(^|\s)-?order-/)
     }
     // The active tab is the second of four, and it stays the second.
-    const left = bar.querySelector('[data-circle-side="left"]')!
-    expect(left).toHaveAccessibleName('B')
-    expect(left.getAttribute('style')).toContain('--navigator-primary-index: 1')
+    const start = bar.querySelector('[data-circle-side="start"]')!
+    expect(start).toHaveAccessibleName('B')
+    expect(start.getAttribute('style')).toContain(
+      '--navigator-primary-index: 1'
+    )
     await flushViewportMeasurement()
   })
 
@@ -3111,18 +3113,42 @@ describe('Navigator collapsed edge circles', () => {
     await collapse(container)
     const bar = horizontalOf(container)!
 
-    const left = bar.querySelector('[data-circle-side="left"]')!
-    const right = bar.querySelector('[data-circle-side="right"]')!
+    const start = bar.querySelector('[data-circle-side="start"]')!
+    const end = bar.querySelector('[data-circle-side="end"]')!
 
-    expect(left).toHaveClass(
+    expect(start).toHaveClass(
       '-translate-x-[calc(var(--navigator-primary-index)_*_var(--navigator-primary-col)_+_var(--navigator-primary-edge))]'
     )
-    expect(right).toHaveClass(
+    expect(end).toHaveClass(
       'translate-x-[calc((var(--navigator-primary-count)_-_1_-_var(--navigator-primary-index))_*_var(--navigator-primary-col)_+_var(--navigator-primary-edge))]'
     )
     // Both descend to the bar's bottom edge rather than the row shortening.
-    expect(left).toHaveClass('translate-y-1', 'self-end')
-    expect(right).toHaveClass('translate-y-1', 'self-end')
+    expect(start).toHaveClass('translate-y-1', 'self-end')
+    expect(end).toHaveClass('translate-y-1', 'self-end')
+    await flushViewportMeasurement()
+  })
+
+  it('mirrors each circle’s travel under dir=rtl', async () => {
+    const { container } = render(<div dir='rtl'>{moreTree('b')}</div>)
+    await collapse(container)
+    const bar = horizontalOf(container)!
+
+    expect(bar.querySelector('[data-circle-side="start"]')).toHaveClass(
+      'rtl:translate-x-[calc(var(--navigator-primary-index)_*_var(--navigator-primary-col)_+_var(--navigator-primary-edge))]'
+    )
+    expect(bar.querySelector('[data-circle-side="end"]')).toHaveClass(
+      'rtl:-translate-x-[calc((var(--navigator-primary-count)_-_1_-_var(--navigator-primary-index))_*_var(--navigator-primary-col)_+_var(--navigator-primary-edge))]'
+    )
+    await flushViewportMeasurement()
+  })
+
+  it('shrinks the pinned circle toward the inline end under dir=rtl', async () => {
+    const { container } = render(<div dir='rtl'>{barTree('a')}</div>)
+    await collapse(container)
+    const pinned = within(pinnedCircleOf(container)).getByRole('button', {
+      name: 'Account'
+    })
+    expect(pinned).toHaveClass('rtl:translate-x-2', 'rtl:origin-bottom-left')
     await flushViewportMeasurement()
   })
 

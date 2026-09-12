@@ -31,8 +31,8 @@ export const navigatorContentVariants = cva([
   // sunken gap around an otherwise full-bleed pane.
   'grid min-h-0 min-w-0 gap-3 lg:p-3',
   // Guards the `lg:p-3` above, so it has to fire at the same breakpoint — at
-  // `md` there is no left padding for it to zero.
-  'lg:group-has-[[data-slot=navigator-primary][data-orientation=vertical]]/navigator:pl-0',
+  // `md` there is no start padding for it to zero.
+  'lg:group-has-[[data-slot=navigator-primary][data-orientation=vertical]]/navigator:ps-0',
   'grid-cols-1 lg:flex lg:flex-row',
   // Stack geometry is `paneVariants`' own: no selector here reaches a pane inside a wrapper.
   // Clips a `behind` pane's translate, which can outrun the navigation beside it.
@@ -73,10 +73,11 @@ export const navigatorPrimaryBrandVariants = cva(
 
 // Percentages of the brand region, which resizes with the navigation, so the
 // toggle travels continuously from under the brand to its trailing edge.
+// `translate` has no logical form, so `rtl:` mirrors it.
 export const navigatorExpandToggleAnchorVariants = cva([
-  'absolute left-1/2 top-full -translate-x-1/2 -translate-y-full',
-  'navigator-expanded:left-[calc(100%-1rem)] navigator-expanded:top-1/2 navigator-expanded:-translate-x-full navigator-expanded:-translate-y-1/2',
-  'motion-safe:[transition:left_var(--navigator-primary-motion),top_var(--navigator-primary-motion),translate_var(--navigator-primary-motion)]'
+  'absolute start-1/2 top-full -translate-x-1/2 rtl:translate-x-1/2 -translate-y-full',
+  'navigator-expanded:start-[calc(100%-1rem)] navigator-expanded:top-1/2 navigator-expanded:-translate-x-full rtl:navigator-expanded:translate-x-full navigator-expanded:-translate-y-1/2',
+  'motion-safe:[transition:inset-inline-start_var(--navigator-primary-motion),top_var(--navigator-primary-motion),translate_var(--navigator-primary-motion)]'
 ])
 
 export const navigatorExpandToggleVariants = cva([
@@ -187,7 +188,8 @@ export const navigatorPrimaryPillVariants = cva(
 )
 
 // Collapsed, the active and final tabs become circles that translate to the
-// edges; the rest scale away but stay in the accessibility tree.
+// edges; the rest scale away but stay in the accessibility tree. `translate`
+// has no logical form, so `rtl:` mirrors every horizontal travel.
 export const navigatorTabVariants = cva(
   [
     'is-interactive relative z-[1] min-w-0 overflow-hidden rounded-full',
@@ -210,11 +212,11 @@ export const navigatorTabVariants = cva(
         hidden: 'scale-0 px-0 py-3.5 opacity-0 pointer-events-none',
         // `p-4.5` = the track's `py-1` + a tab's `py-3.5`: square at the bar's height, sized intrinsically.
         pinned:
-          'pointer-events-auto p-4.5 rounded-full emphasis-floating is-translucent place-content-center justify-self-end origin-bottom-right scale-100'
+          'pointer-events-auto p-4.5 rounded-full emphasis-floating is-translucent place-content-center justify-self-end origin-bottom-right rtl:origin-bottom-left scale-100'
       },
       circleSide: {
-        left: '',
-        right: ''
+        start: '',
+        end: ''
       },
       collapsed: {
         true: '',
@@ -226,19 +228,23 @@ export const navigatorTabVariants = cva(
       {
         presentation: 'pinned',
         collapsed: true,
-        class: '-translate-x-2 scale-[calc(3.5/4.125)]'
+        class: '-translate-x-2 rtl:translate-x-2 scale-[calc(3.5/4.125)]'
       },
       {
         presentation: 'circle',
-        circleSide: 'left',
-        class:
-          '-translate-x-[calc(var(--navigator-primary-index)_*_var(--navigator-primary-col)_+_var(--navigator-primary-edge))]'
+        circleSide: 'start',
+        class: [
+          '-translate-x-[calc(var(--navigator-primary-index)_*_var(--navigator-primary-col)_+_var(--navigator-primary-edge))]',
+          'rtl:translate-x-[calc(var(--navigator-primary-index)_*_var(--navigator-primary-col)_+_var(--navigator-primary-edge))]'
+        ]
       },
       {
         presentation: 'circle',
-        circleSide: 'right',
-        class:
-          'translate-x-[calc((var(--navigator-primary-count)_-_1_-_var(--navigator-primary-index))_*_var(--navigator-primary-col)_+_var(--navigator-primary-edge))]'
+        circleSide: 'end',
+        class: [
+          'translate-x-[calc((var(--navigator-primary-count)_-_1_-_var(--navigator-primary-index))_*_var(--navigator-primary-col)_+_var(--navigator-primary-edge))]',
+          'rtl:-translate-x-[calc((var(--navigator-primary-count)_-_1_-_var(--navigator-primary-index))_*_var(--navigator-primary-col)_+_var(--navigator-primary-edge))]'
+        ]
       }
     ],
     defaultVariants: {
