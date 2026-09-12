@@ -58,7 +58,9 @@ export function ListItem({
   const content = (
     <>
       {hasLeading ? (
-        <span className={listItemLeadingClass}>{leading}</span>
+        <span data-slot='list-item-leading' className={listItemLeadingClass}>
+          {leading}
+        </span>
       ) : null}
       <span data-slot='list-item-content' className={listItemContentClass}>
         {subtitle != null ? (
@@ -77,7 +79,10 @@ export function ListItem({
           <span className={listItemTitleClass}>{title}</span>
         )}
         {hasTrailing ? (
-          <span className={listItemTrailingClass}>
+          <span
+            data-slot='list-item-trailing'
+            className={listItemTrailingClass}
+          >
             {trailing}
             {showChevron ? (
               <CaretRightIcon weight='bold' className={listItemChevronClass} />

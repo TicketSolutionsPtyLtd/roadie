@@ -37,6 +37,40 @@ describe('List', () => {
     expect(item('Valley Live')).toBeTruthy()
   })
 
+  it('names the leading and trailing slots', () => {
+    render(
+      <List>
+        <List.Item
+          title='Tickets'
+          href='/tickets'
+          leading={<span data-testid='leading' />}
+          trailing={<span data-testid='trailing' />}
+        />
+      </List>
+    )
+    expect(screen.getByTestId('leading').parentElement).toHaveAttribute(
+      'data-slot',
+      'list-item-leading'
+    )
+    const trailing = screen.getByTestId('trailing').parentElement
+    expect(trailing).toHaveAttribute('data-slot', 'list-item-trailing')
+    expect(trailing?.parentElement).toHaveAttribute(
+      'data-slot',
+      'list-item-content'
+    )
+  })
+
+  it('names the trailing slot when it holds only the chevron', () => {
+    const { container } = render(
+      <List>
+        <List.Item title='Tickets' href='/tickets' />
+      </List>
+    )
+    expect(
+      container.querySelector('[data-slot="list-item-trailing"] svg')
+    ).toBeTruthy()
+  })
+
   describe('container alignment', () => {
     it('gives a row a plain 12px box that bleeds sideways, like a subtler Card', () => {
       render(
