@@ -30,6 +30,7 @@ import {
 } from './NavigatorPrimary'
 import { findActiveSection } from './activeSection'
 import type { NavigatorSlotMeta } from './mobileSlots'
+import { primarySignature } from './primarySignature'
 import { type SectionMemory, nextMemory } from './sectionMemory'
 import { navigatorRootVariants } from './variants'
 
@@ -114,11 +115,17 @@ export function NavigatorRoot({
   const [navCollapsed, setNavCollapsed] = useState(false)
   const [primaryNav, setPrimaryNav] = useState<PanePrimaryNav>('auto')
   const [pinExpanded, setPinExpanded] = useState(false)
-  const [publishedChildren, setPrimaryChildrenState] = useState<ReactNode>(null)
-  const setPrimaryChildren = useCallback(
-    (next: ReactNode) => setPrimaryChildrenState(() => next),
-    []
-  )
+  const [published, setPublished] = useState<{
+    signature: string
+    children: ReactNode
+  }>({ signature: '', children: null })
+  // A wrapper reading this context re-renders Primary with fresh elements; republishing them loops.
+  const setPrimaryChildren = useCallback((next: ReactNode) => {
+    const signature = primarySignature(next)
+    setPublished((current) =>
+      current.signature === signature ? current : { signature, children: next }
+    )
+  }, [])
   const [overflowOpen, setOverflowOpen] = useState(false)
   // A new destination from anywhere, Back included, leaves More.
   const [lastValue, setLastValue] = useState(value)
@@ -171,7 +178,7 @@ export function NavigatorRoot({
 
   // During render, not from Primary's effect, so the server renders the section's list pane.
   const primaryChildren =
-    primary === undefined ? publishedChildren : primary.props.children
+    primary === undefined ? published.children : primary.props.children
   const activeSection = useMemo(
     () => findActiveSection(primaryChildren, value),
     [primaryChildren, value]

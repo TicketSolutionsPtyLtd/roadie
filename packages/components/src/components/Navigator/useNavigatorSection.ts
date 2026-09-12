@@ -6,12 +6,6 @@ import { NavigatorContext } from './NavigatorContext'
 import { findSectionByValue } from './activeSection'
 import { type NavigatorSectionData, toSectionData } from './sectionData'
 
-export type {
-  NavigatorSectionData,
-  NavigatorSectionGroup,
-  NavigatorSectionItem
-} from './sectionData'
-
 /** A section's declared items — the active section's without a `value` — or null when none is found. */
 export function useNavigatorSection(
   value?: string

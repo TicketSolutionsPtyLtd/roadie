@@ -2,16 +2,14 @@ import { type ReactNode, StrictMode } from 'react'
 
 import { act, render, screen } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { Navigator } from '.'
 import { Badge } from '../Badge'
 import { Pane } from '../Pane'
+import type { NavigatorSectionData } from './sectionData'
 import { FakeIcon, flushViewportMeasurement, testBrand } from './testUtils'
-import {
-  type NavigatorSectionData,
-  useNavigatorSection
-} from './useNavigatorSection'
+import { useNavigatorSection } from './useNavigatorSection'
 
 const Wrapper = ({ children }: { children: ReactNode }) => <>{children}</>
 
@@ -194,5 +192,91 @@ describe('useNavigatorSection', () => {
     })
     await flushViewportMeasurement()
     expect(log.at(-1)).toMatchObject({ value: '/components' })
+  })
+
+  it('follows a value change after mount with a wrapped Primary', async () => {
+    const log: (NavigatorSectionData | null)[] = []
+    const { rerender } = render(
+      <Docs value='/overview/philosophy' log={log} wrapPrimary />
+    )
+    await flushViewportMeasurement()
+    expect(log.at(-1)).toMatchObject({ value: '/' })
+    rerender(<Docs value='/components/button' log={log} wrapPrimary />)
+    await flushViewportMeasurement()
+    expect(log.at(-1)).toMatchObject({ value: '/components' })
+  })
+})
+
+describe('useNavigatorSection in the component that wraps Primary', () => {
+  function AppNav({
+    badgeText,
+    log
+  }: {
+    badgeText: string
+    log: (NavigatorSectionData | null)[]
+  }) {
+    log.push(useNavigatorSection())
+    return (
+      <Navigator.Primary aria-label='Docs'>
+        {testBrand}
+        <Navigator.Item value='/' href='/' icon={<FakeIcon />}>
+          Home
+          <Navigator.Secondary aria-label='Home pages' root='page'>
+            <Navigator.Item
+              value='/overview/installation'
+              href='/overview/installation'
+              icon={<FakeIcon />}
+              badge={<Badge>{badgeText}</Badge>}
+            >
+              Installation
+            </Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+      </Navigator.Primary>
+    )
+  }
+
+  const App = ({
+    badgeText = 'New',
+    log
+  }: {
+    badgeText?: string
+    log: (NavigatorSectionData | null)[]
+  }) => (
+    <StrictMode>
+      <Navigator value='/overview/installation'>
+        <AppNav badgeText={badgeText} log={log} />
+        <Navigator.Content>
+          <Pane role='detail' current>
+            Detail
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    </StrictMode>
+  )
+
+  const badgeTextOf = (data: NavigatorSectionData | null | undefined) =>
+    (data?.groups[0]?.items[0]?.badge?.props as { children?: ReactNode })
+      ?.children
+
+  it('settles instead of republishing fresh children forever', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const log: (NavigatorSectionData | null)[] = []
+    render(<App log={log} />)
+    await flushViewportMeasurement()
+    expect(error).not.toHaveBeenCalled()
+    error.mockRestore()
+    expect(log.at(-1)).toMatchObject({ value: '/', href: '/' })
+    expect(log.length).toBeLessThan(20)
+  })
+
+  it('updates when the structure changes, such as a badge text', async () => {
+    const log: (NavigatorSectionData | null)[] = []
+    const { rerender } = render(<App log={log} />)
+    await flushViewportMeasurement()
+    expect(badgeTextOf(log.at(-1))).toBe('New')
+    rerender(<App badgeText='Updated' log={log} />)
+    await flushViewportMeasurement()
+    expect(badgeTextOf(log.at(-1))).toBe('Updated')
   })
 })
