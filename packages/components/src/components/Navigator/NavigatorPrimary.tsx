@@ -79,7 +79,9 @@ export function NavigatorPrimary({
   const {
     value: activeValue,
     setValue,
+    activeSection,
     setActiveSection,
+    sectionDerived,
     navCollapsed,
     setNavCollapsed,
     primaryNav,
@@ -124,9 +126,10 @@ export function NavigatorPrimary({
     rememberSection(branchValue, deepHref)
   }, [branchValue, deepHref, rememberSection])
 
-  const activeSection = useMemo(
-    () => findActiveSection(children, activeValue),
-    [children, activeValue]
+  // Root derives it during render when this is its direct child; only a wrapped Primary publishes it.
+  const wrappedSection = useMemo(
+    () => (sectionDerived ? null : findActiveSection(children, activeValue)),
+    [sectionDerived, children, activeValue]
   )
 
   const slots = deriveMobileSlots(collected.automatic, collected.pinnedSlots)
@@ -143,10 +146,9 @@ export function NavigatorPrimary({
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [overflowOpen, openMenu, setOverflowOpen, overflowOpener])
 
-  // Root derives it during render when this is its direct child; only a wrapped Primary needs this.
   useEffect(() => {
-    setActiveSection(activeSection)
-  }, [activeSection, setActiveSection])
+    if (!sectionDerived) setActiveSection(wrappedSection)
+  }, [sectionDerived, wrappedSection, setActiveSection])
 
   // Warnings live in effects, not the walk: React 19 StrictMode double-invokes render.
   const hasStrayChild = collected.hasStrayChild
