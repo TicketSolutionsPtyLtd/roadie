@@ -333,7 +333,8 @@ export function NavigatorPrimary({
     }
     const ownsSection = activeSection?.value === tab.value
     const onSectionRoute = isActiveValue(tab.value, activeValue)
-    if (ownsSection && onShowListChange && !onSectionRoute) {
+    const pageRoot = ownsSection && activeSection?.root === 'page'
+    if (ownsSection && !pageRoot && onShowListChange && !onSectionRoute) {
       event.preventDefault()
       onShowListChange(!showList)
       return
@@ -341,6 +342,10 @@ export function NavigatorPrimary({
     if (ownsSection && onSectionRoute) {
       event.preventDefault()
       scrollActivePaneToTop()
+      return
+    }
+    if (pageRoot) {
+      setValue(tab.value)
       return
     }
     if (isActiveValue(tab.topValue, activeValue)) {
