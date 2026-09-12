@@ -121,6 +121,9 @@ export function Button({
       nativeButton={!finalRender}
       data-slot='button'
       className={cn(buttonVariants({ intent, emphasis, size, className }))}
+      // Base UI gives any non-native element `role="button"`; an explicit
+      // `undefined` outranks it, so a link is announced as a link.
+      {...(synthesizedRender ? { role: undefined } : null)}
       {...props}
       render={finalRender}
     />

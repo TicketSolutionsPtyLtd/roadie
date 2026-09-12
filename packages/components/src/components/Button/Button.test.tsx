@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -144,6 +144,52 @@ describe('Button', () => {
       expect(link.tagName.toLowerCase()).toBe('a')
       expect(link).toHaveAttribute('href', '/events/123')
       expect(link).toHaveClass('btn', 'is-interactive')
+    })
+
+    it('is announced as a link, not a button', () => {
+      render(<Button href='/events/123'>Events</Button>)
+      const link = screen.getByRole('link', { name: 'Events' })
+      expect(link).not.toHaveAttribute('role')
+      expect(screen.queryByRole('button')).not.toBeInTheDocument()
+    })
+
+    it('keeps link semantics through the configured Link', () => {
+      render(
+        <RoadieLinkProvider Link={StubLink}>
+          <Button href='/events/123'>Events</Button>
+        </RoadieLinkProvider>
+      )
+      expect(screen.getByRole('link', { name: 'Events' })).not.toHaveAttribute(
+        'role'
+      )
+    })
+
+    it('is reachable by keyboard', async () => {
+      render(<Button href='/events/123'>Events</Button>)
+      await userEvent.tab()
+      expect(screen.getByRole('link', { name: 'Events' })).toHaveFocus()
+    })
+
+    it('marks a disabled link aria-disabled and stops navigation', () => {
+      const onClick = vi.fn()
+      render(
+        <Button href='/events/123' disabled onClick={onClick}>
+          Events
+        </Button>
+      )
+      const link = screen.getByRole('link', { name: 'Events' })
+      expect(link).toHaveAttribute('aria-disabled', 'true')
+      expect(link).toHaveAttribute('data-disabled')
+      expect(fireEvent.click(link)).toBe(false)
+      expect(onClick).not.toHaveBeenCalled()
+    })
+
+    it('leaves role="button" on a consumer-rendered non-button', () => {
+      render(<Button render={<div />}>Custom</Button>)
+      expect(screen.getByRole('button', { name: 'Custom' })).toHaveAttribute(
+        'role',
+        'button'
+      )
     })
 
     it('renders through the configured Link when provider is wired', () => {
