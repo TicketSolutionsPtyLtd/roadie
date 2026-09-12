@@ -117,6 +117,22 @@ element reference, which a server component's Flight boundary hides. A
 </List>
 ```
 
+### Group title level
+
+`List.GroupTitle` is an `<h2>` by default. When the list sits under a
+page's own `<h2>`, pass `render` to set the level that fits the outline —
+the title keeps its styles and still labels its section.
+
+```tsx-live
+<List contained emphasis='subtle'>
+  <List.Group>
+    <List.GroupTitle render={<h3 />}>Account</List.GroupTitle>
+    <List.Item title='Profile' href='#' />
+    <List.Item title='Security' href='#' />
+  </List.Group>
+</List>
+```
+
 ### Settings
 
 A leading `IconTile`, a title, and — because each row links — an
@@ -271,7 +287,8 @@ a chevron by default; suppress it with `chevron={false}`.
   `<button>` or, with `href`, a link — so keyboard focus and activation
   work out of the box.
 - **Groups**: a `List.Group` is an `<li>` holding its title and a nested
-  `<ul>`, so screen readers announce each section as its own list.
+  `<ul>`, so screen readers announce each section as its own list. The
+  title is an `<h2>` that labels its section; `render` sets another level.
 - **Subtitle**: the row's name is its `title`; the `subtitle` is read
   after it as the description, so it is announced once.
 - **Selection**: `current` sets `aria-current` on the row so screen

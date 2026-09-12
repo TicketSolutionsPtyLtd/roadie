@@ -499,18 +499,33 @@ describe('List', () => {
       ).toBeInTheDocument()
     })
 
-    it('honours a render override', () => {
+    it('changes the heading level with an element render', () => {
       render(
         <List>
           <List.Group>
-            <List.GroupTitle render={(p) => <h3 {...p} />}>
+            <List.GroupTitle render={<h3 />}>Inputs</List.GroupTitle>
+            <List.Item title='Text field' />
+          </List.Group>
+        </List>
+      )
+      const heading = screen.getByRole('heading', { level: 3, name: 'Inputs' })
+      expect(heading).toHaveAttribute('data-slot', 'list-group-title')
+      expect(heading).toHaveClass('text-subtler')
+      expect(screen.getByRole('list', { name: 'Inputs' })).toBeInTheDocument()
+    })
+
+    it('honours a function render', () => {
+      render(
+        <List>
+          <List.Group>
+            <List.GroupTitle render={(p) => <h4 {...p} />}>
               Inputs
             </List.GroupTitle>
           </List.Group>
         </List>
       )
       expect(
-        screen.getByRole('heading', { level: 3, name: 'Inputs' })
+        screen.getByRole('heading', { level: 4, name: 'Inputs' })
       ).toBeInTheDocument()
     })
   })
