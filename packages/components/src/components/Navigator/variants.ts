@@ -284,7 +284,9 @@ export const navigatorGroupTitleTextVariants = cva(['min-h-0 overflow-hidden'])
 
 // `ps-1` + a tile-wide first column keep the mark on the icon column in both
 // states. The rest fades in once the toggle has crossed its row; `starting:`
-// covers a wordmark that was `display: none`.
+// covers a wordmark that was `display: none`. A `Logo`'s margins fill the tile,
+// so its mark stays centred while its wordmark or product opens beside it on
+// the navigation's width and the labels' fade.
 export const navigatorBrandVariants = cva([
   'is-interactive rounded-xl',
   'grid grid-flow-col grid-cols-[minmax(3rem,auto)] auto-cols-[minmax(0,1fr)] items-center justify-start justify-items-start gap-2 py-1 ps-1',
@@ -292,7 +294,12 @@ export const navigatorBrandVariants = cva([
   '[&>:not(:first-child)]:opacity-0 navigator-expanded:[&>:not(:first-child)]:opacity-100',
   'navigator-expanded:[&>:not(:first-child)]:starting:opacity-0',
   'motion-safe:[&>:not(:first-child)]:[transition:opacity_var(--duration-fast)_var(--ease-exit)]',
-  'motion-safe:navigator-expanded:[&>:not(:first-child)]:[transition:opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-moderate)]'
+  'motion-safe:navigator-expanded:[&>:not(:first-child)]:[transition:opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-moderate)]',
+  '[&>[data-slot=logo]]:mx-[calc((3rem-1em)/2)]',
+  '[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:grid-cols-[0fr] [&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:opacity-0',
+  'navigator-expanded:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:grid-cols-[1fr] navigator-expanded:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:opacity-100',
+  'motion-safe:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:[transition:grid-template-columns_var(--navigator-primary-motion),opacity_var(--duration-fast)_var(--ease-exit)]',
+  'motion-safe:navigator-expanded:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:[transition:grid-template-columns_var(--navigator-primary-motion),opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-fast)]'
 ])
 
 export const navigatorItemTrailingVariants = cva([
