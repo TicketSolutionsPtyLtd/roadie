@@ -299,7 +299,12 @@ export const navigatorBrandVariants = cva([
   '[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:grid-cols-[0fr] [&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:opacity-0',
   'navigator-expanded:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:grid-cols-[1fr] navigator-expanded:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:opacity-100',
   'motion-safe:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:[transition:grid-template-columns_var(--navigator-primary-motion),opacity_var(--duration-fast)_var(--ease-exit)]',
-  'motion-safe:navigator-expanded:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:[transition:grid-template-columns_var(--navigator-primary-motion),opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-fast)]'
+  'motion-safe:navigator-expanded:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:[transition:grid-template-columns_var(--navigator-primary-motion),opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-fast)]',
+  // A Logo without a mark keeps its wordmark collapsed, shrunk to the mark's column.
+  '[&>[data-slot=logo]:not(:has([data-slot=logo-mark]))]:mx-0',
+  '[&_[data-slot=logo]:not(:has([data-slot=logo-mark]))_[data-slot=logo-wordmark]]:h-[min(1em,calc(3rem*42/128))] [&_[data-slot=logo]:not(:has([data-slot=logo-mark]))_[data-slot=logo-wordmark]]:opacity-100',
+  'navigator-expanded:[&_[data-slot=logo]:not(:has([data-slot=logo-mark]))_[data-slot=logo-wordmark]]:h-[1em]',
+  'motion-safe:[&_[data-slot=logo]:not(:has([data-slot=logo-mark]))_[data-slot=logo-wordmark]]:[transition:height_var(--navigator-primary-motion)]'
 ])
 
 export const navigatorItemTrailingVariants = cva([
