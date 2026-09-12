@@ -96,6 +96,7 @@ const twMerge = extendTailwindMerge<
         'emphasis-subtler',
         'emphasis-raised',
         'emphasis-sunken',
+        'emphasis-field',
         'emphasis-floating',
         'emphasis-inverted',
         'emphasis-overlay'
