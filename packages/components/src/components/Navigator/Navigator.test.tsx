@@ -1532,9 +1532,11 @@ describe('Navigator.OverflowPane', () => {
     })
     await user.click(more)
     const pane = document.querySelector('[data-slot="pane"][id]') as HTMLElement
-    expect(within(pane).getByRole('heading', { name: 'More' })).toHaveFocus()
+    const title = within(pane).getByRole('heading', { name: 'More' })
+    expect(title).toHaveFocus()
     await user.keyboard('{Escape}')
     expect(more).toHaveFocus()
+    expect(title).not.toHaveAttribute('tabindex')
   })
 
   it('focuses the More pane only once it is the top of the stack', async () => {
