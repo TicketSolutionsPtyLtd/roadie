@@ -300,7 +300,8 @@ export const navigatorBrandVariants = cva([
   'navigator-expanded:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:grid-cols-[1fr] navigator-expanded:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:opacity-100',
   'motion-safe:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:[transition:grid-template-columns_var(--navigator-primary-motion),opacity_var(--duration-fast)_var(--ease-exit)]',
   'motion-safe:navigator-expanded:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:[transition:grid-template-columns_var(--navigator-primary-motion),opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-fast)]',
-  // A Logo without a mark keeps its wordmark collapsed, shrunk to the mark's column.
+  // The general rules above hide a wordmark while collapsed; a wordmark-only
+  // Logo has nothing else to show, so this overrides them to keep it visible.
   '[&>[data-slot=logo]:not(:has([data-slot=logo-mark]))]:mx-0',
   '[&_[data-slot=logo]:not(:has([data-slot=logo-mark]))_[data-slot=logo-wordmark]]:h-[min(1em,calc(3rem*42/128))] [&_[data-slot=logo]:not(:has([data-slot=logo-mark]))_[data-slot=logo-wordmark]]:opacity-100',
   'navigator-expanded:[&_[data-slot=logo]:not(:has([data-slot=logo-mark]))_[data-slot=logo-wordmark]]:h-[1em]',
@@ -337,9 +338,14 @@ export const navigatorItemIconlessLabelClass = [
   'group-has-[[data-slot=navigator-item-icon]]/capsule:col-span-1 group-has-[[data-slot=navigator-item-icon]]/capsule:col-start-2 group-has-[[data-slot=navigator-item-icon]]/capsule:ms-3'
 ].join(' ')
 
-// The collapsed tile's glyph when there is no icon; it fades out as the label fades in.
+// Mirrors the label's fade, inverted: visible collapsed, so its fade-in on
+// collapse waits like the label's does on expand, and they never overlap.
 export const navigatorItemInitialClass =
-  'col-start-1 row-start-1 grid size-6 place-items-center text-base font-bold navigator-expanded:opacity-0 motion-safe:[transition:opacity_var(--duration-fast)_var(--ease-exit)]'
+  'col-start-1 row-start-1 grid size-6 place-items-center text-base font-bold navigator-expanded:opacity-0 motion-safe:[transition:opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-fast)] motion-safe:navigator-expanded:[transition:opacity_var(--duration-fast)_var(--ease-exit)]'
+
+// The pinned tab's glyph when there is no icon.
+export const navigatorTabInitialClass =
+  'grid size-7 place-items-center text-lg font-bold'
 
 // Opacity always fades; translate slides only once settled, so a pill that
 // appears (or moves between vertical tracks) cross-fades in place.
