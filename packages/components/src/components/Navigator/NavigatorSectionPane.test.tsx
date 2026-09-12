@@ -12,7 +12,8 @@ import {
   FakeIcon,
   flushViewportMeasurement,
   primaryOf,
-  testBrand
+  testBrand,
+  withStubLink
 } from './testUtils'
 
 const panes = () =>
@@ -1015,5 +1016,66 @@ describe('page roots', () => {
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('its own route'))
     expect(warn).toHaveBeenCalledTimes(1)
     warn.mockRestore()
+  })
+})
+
+describe('page root tab', () => {
+  const viewportScrollSpy = () => {
+    const scrollTo = vi.fn()
+    document.querySelector<HTMLElement>(
+      '[data-slot="pane-viewport"]'
+    )!.scrollTo = scrollTo
+    return scrollTo
+  }
+
+  it('goes to the root from a sub-page, even with onShowListChange wired', async () => {
+    const user = userEvent.setup()
+    const onShowListChange = vi.fn()
+    const onValueChange = vi.fn()
+    render(
+      withStubLink(
+        <PageRooted
+          value='/overview/philosophy'
+          onShowListChange={onShowListChange}
+          onValueChange={onValueChange}
+        />
+      )
+    )
+    await flushViewportMeasurement()
+    const home = within(horizontal()).getByRole('link', { name: 'Home' })
+    expect(home).toHaveAttribute('href', '/')
+    await user.click(home)
+    expect(onShowListChange).not.toHaveBeenCalled()
+    expect(onValueChange).toHaveBeenCalledWith('/')
+  })
+
+  it('scrolls the page to the top on the root', async () => {
+    const user = userEvent.setup()
+    const onShowListChange = vi.fn()
+    const onValueChange = vi.fn()
+    render(
+      <PageRooted
+        value='/'
+        onShowListChange={onShowListChange}
+        onValueChange={onValueChange}
+      />
+    )
+    await flushViewportMeasurement()
+    const scrollTo = viewportScrollSpy()
+    await user.click(within(horizontal()).getByRole('link', { name: 'Home' }))
+    expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }))
+    expect(onShowListChange).not.toHaveBeenCalled()
+    expect(onValueChange).not.toHaveBeenCalled()
+  })
+
+  it('still toggles the list for a list-first section', async () => {
+    const user = userEvent.setup()
+    const onShowListChange = vi.fn()
+    render(<Routed value='/components/a' onShowListChange={onShowListChange} />)
+    await flushViewportMeasurement()
+    await user.click(
+      within(horizontal()).getByRole('link', { name: 'Components' })
+    )
+    expect(onShowListChange).toHaveBeenCalledWith(true)
   })
 })
