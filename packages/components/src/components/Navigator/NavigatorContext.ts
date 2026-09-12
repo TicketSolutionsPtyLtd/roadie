@@ -42,6 +42,8 @@ export type NavigatorContextValue = {
   /** The branch-active item's Secondary. Derived by Root; published by a wrapped Primary. */
   activeSection: NavigatorActiveSection | null
   setActiveSection: (next: NavigatorActiveSection | null) => void
+  /** Root derived `activeSection` from a direct-child Primary, so Primary needn't publish it. */
+  sectionDerived: boolean
   overflowOpen: boolean
   setOverflowOpen: (next: boolean) => void
   /** Id the More tab points `aria-controls` at, and the overflow pane carries. */
@@ -92,6 +94,7 @@ export const NavigatorContext = createContext<NavigatorContextValue>({
   setActivePaneScroller: () => {},
   activeSection: null,
   setActiveSection: () => {},
+  sectionDerived: false,
   overflowOpen: false,
   setOverflowOpen: () => {},
   overflowPaneId: '',
