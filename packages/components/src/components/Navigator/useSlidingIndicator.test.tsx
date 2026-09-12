@@ -64,11 +64,12 @@ type HarnessState = {
 
 type HarnessProps = {
   trackRef: RefObject<HTMLDivElement | null>
+  intent?: string
   onState?: (state: HarnessState) => void
 }
 
-function Harness({ trackRef, onState }: HarnessProps) {
-  const state = useSlidingIndicator(trackRef)
+function Harness({ trackRef, intent = 'initial', onState }: HarnessProps) {
+  const state = useSlidingIndicator(trackRef, intent)
   onState?.(state as never)
   return null
 }
@@ -235,8 +236,12 @@ describe('useSlidingIndicator rect fallback', () => {
     const { trackRef, first, second } = setup()
     first.setAttribute('data-current', '')
     const states: HarnessState[] = []
-    const harness = () => (
-      <Harness trackRef={trackRef} onState={(state) => states.push(state)} />
+    const harness = (intent = 'first') => (
+      <Harness
+        trackRef={trackRef}
+        intent={intent}
+        onState={(state) => states.push(state)}
+      />
     )
     const { rerender } = render(harness())
     expect(states.at(-1)).toMatchObject({ ready: true, settled: true })
@@ -244,7 +249,7 @@ describe('useSlidingIndicator rect fallback', () => {
     states.length = 0
     first.removeAttribute('data-current')
     second.setAttribute('data-current', '')
-    rerender(harness())
+    rerender(harness('second'))
     expect(states.every((state) => state.settled)).toBe(true)
     expect(states.at(-1)!.style).toMatchObject({ '--active-tab-left': '100px' })
   })
@@ -343,8 +348,12 @@ describe('useSlidingIndicator ResizeObserver integration', () => {
     const { trackRef, first, second } = setup()
     first.setAttribute('data-current', '')
     const states: HarnessState[] = []
-    const harness = () => (
-      <Harness trackRef={trackRef} onState={(state) => states.push(state)} />
+    const harness = (intent = 'first') => (
+      <Harness
+        trackRef={trackRef}
+        intent={intent}
+        onState={(state) => states.push(state)}
+      />
     )
     const { rerender } = render(harness())
     expect(states.at(-1)).toMatchObject({ ready: true, settled: true })
@@ -360,7 +369,42 @@ describe('useSlidingIndicator ResizeObserver integration', () => {
 
     first.removeAttribute('data-current')
     second.setAttribute('data-current', '')
+    rerender(harness('second'))
+    expect(states.at(-1)).toMatchObject({ ready: true, settled: true })
+  })
+
+  it('snaps to a new destination the user did not ask for, e.g. a fold into More', () => {
+    globalThis.ResizeObserver =
+      StubResizeObserver as unknown as typeof ResizeObserver
+    const { trackRef, first, second } = setup()
+    first.setAttribute('data-current', '')
+    const states: HarnessState[] = []
+    const harness = (intent = 'first') => (
+      <Harness
+        trackRef={trackRef}
+        intent={intent}
+        onState={(state) => states.push(state)}
+      />
+    )
+    const { rerender } = render(harness())
+    expect(states.at(-1)).toMatchObject({ ready: true, settled: true })
+
+    first.removeAttribute('data-current')
+    second.setAttribute('data-current', '')
+    act(() => {
+      StubResizeObserver.instances[0]!.trigger()
+    })
+    expect(states.at(-1)).toMatchObject({ ready: true, settled: false })
+    expect(states.at(-1)!.style).toMatchObject({ '--active-tab-left': '100px' })
+
+    second.removeAttribute('data-current')
+    first.setAttribute('data-current', '')
     rerender(harness())
+    expect(states.at(-1)).toMatchObject({ ready: true, settled: false })
+
+    second.setAttribute('data-current', '')
+    first.removeAttribute('data-current')
+    rerender(harness('second'))
     expect(states.at(-1)).toMatchObject({ ready: true, settled: true })
   })
 
