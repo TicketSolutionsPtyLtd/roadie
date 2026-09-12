@@ -50,7 +50,8 @@
   ],
   "files": [
     "dist",
-    "src/css"
+    "src/css",
+    "!src/css/**/*.test.ts"
   ],
   "publishConfig": {
     "access": "public"
