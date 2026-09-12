@@ -195,7 +195,14 @@ function groupPropsBySource(
   }
 
   Object.entries(props).forEach(([name, prop]) => {
-    if (prop.parent?.name && !prop.parent.name.startsWith(componentName)) {
+    // An HTML element's `className` is the component's own, not a one-row React section.
+    const reactClassName =
+      name === 'className' && prop.parent?.fileName.includes('@types/react')
+    if (
+      prop.parent?.name &&
+      !reactClassName &&
+      !prop.parent.name.startsWith(componentName)
+    ) {
       const parentName = prop.parent.name
       if (!result.inheritedProps[parentName]) {
         result.inheritedProps[parentName] = {
@@ -307,9 +314,19 @@ function PropsList({
 
 function ComponentPropsBody({ groupedProps }: { groupedProps: GroupedProps }) {
   const hasOwnProps = Object.keys(groupedProps.ownProps).length > 0
-  const hasInheritedProps = Object.keys(groupedProps.inheritedProps).length > 0
+  const allProps = [
+    ...Object.entries(groupedProps.ownProps),
+    ...Object.values(groupedProps.inheritedProps).flatMap(({ props }) =>
+      Object.entries(props)
+    )
+  ]
+  const onlyForwardedClassName = allProps.every(
+    ([name, prop]) =>
+      name === 'className' &&
+      prop.declarations?.every((d) => d.fileName.includes('node_modules'))
+  )
 
-  if (!hasOwnProps && !hasInheritedProps) {
+  if (onlyForwardedClassName) {
     return (
       <p className='text-sm text-subtle'>
         No additional props — forwards all standard HTML attributes to the
@@ -444,6 +461,7 @@ function parseComponentProps(componentPath: string) {
             'dangerouslySetInnerHTML'
           ])
           if (skipProps.has(prop.name)) return false
+          if (prop.name === 'className') return true
 
           if (!prop.declarations?.length) {
             return true
