@@ -47,6 +47,7 @@ export type NavigatorItemProps = {
   visibilityPriority?: NavigatorVisibilityPriority
   className?: string
   children?: ReactNode
+  /** Called when the item is activated on any surface, including when it opens its menu. */
   onClick?: () => void
 }
 
@@ -153,6 +154,7 @@ export function NavigatorItem({
               <NavigatorDestination
                 dataCurrent={menuOpen}
                 className={finalClassName}
+                onClick={onClick}
               >
                 {content}
               </NavigatorDestination>

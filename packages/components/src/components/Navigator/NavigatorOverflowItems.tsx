@@ -71,6 +71,7 @@ export function NavigatorOverflowItems({
           <button
             type='button'
             data-slot='list-item'
+            onClick={slot.onClick}
             className={listItemVariants({
               selected: openMenu === menuId(`overflow-${set}`, slot.value)
             })}
@@ -102,6 +103,7 @@ export function NavigatorOverflowItems({
         href={slot.href}
         current={active && (isActiveValue(slot.value, value) ? 'page' : true)}
         onClick={() => {
+          slot.onClick?.()
           setOverflowOpen(false)
           setValue(slot.value)
         }}

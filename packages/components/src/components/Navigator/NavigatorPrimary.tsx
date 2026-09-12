@@ -322,6 +322,7 @@ export function NavigatorPrimary({
     tab: NavigatorSlotMeta,
     active: boolean
   ) => {
+    tab.onClick?.()
     setOverflowOpen(false)
     setOpenMenu(null)
     if (!active) {
@@ -377,7 +378,10 @@ export function NavigatorPrimary({
             active={openMenu === menuId('horizontal', tab.value)}
             current={false}
             onSelect={undefined}
-            onClick={() => setOverflowOpen(false)}
+            onClick={() => {
+              tab.onClick?.()
+              setOverflowOpen(false)
+            }}
           />
         }
       />

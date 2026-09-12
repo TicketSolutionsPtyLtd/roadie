@@ -564,6 +564,65 @@ describe('choosing a primary item closes More', () => {
   })
 })
 
+describe('an item’s onClick', () => {
+  it('fires from the tile, the bar, a More row and a menu trigger', async () => {
+    const user = userEvent.setup()
+    const clicked = vi.fn()
+    render(
+      withStubLink(
+        <Navigator value='/a'>
+          <Navigator.Primary aria-label='Main'>
+            {testBrand}
+            {['/a', '/b', '/c', '/d', '/e'].map((v) => (
+              <Navigator.Item
+                key={v}
+                value={v}
+                href={v}
+                icon={<FakeIcon />}
+                visibilityPriority={v === '/e' ? 'low' : undefined}
+                onClick={() => clicked(v)}
+              >
+                {v}
+              </Navigator.Item>
+            ))}
+            <Navigator.Item
+              value='account'
+              icon={<FakeIcon />}
+              onClick={() => clicked('account')}
+            >
+              Account
+              <Navigator.Menu>
+                <Navigator.MenuItem>Sign out</Navigator.MenuItem>
+              </Navigator.Menu>
+            </Navigator.Item>
+          </Navigator.Primary>
+          <Navigator.Content />
+        </Navigator>
+      )
+    )
+    await flushViewportMeasurement()
+    reportClusterHeight(1000)
+    await user.click(
+      within(region('cluster')).getByRole('link', { name: '/b' })
+    )
+    await user.click(within(horizontal()).getByRole('link', { name: '/c' }))
+    await user.click(within(horizontal()).getByRole('button', { name: 'More' }))
+    await user.click(
+      within(overflowPane()).getAllByRole('link', { name: '/e' })[0]!
+    )
+    await user.click(
+      within(region('cluster')).getByRole('button', { name: 'Account' })
+    )
+    expect(await screen.findByRole('menu')).toBeInTheDocument()
+    expect(clicked.mock.calls.map(([value]) => value)).toEqual([
+      '/b',
+      '/c',
+      '/e',
+      'account'
+    ])
+  })
+})
+
 function SectionedMore({ expanded = false }: { expanded?: boolean }) {
   return (
     <Navigator value='/s' expanded={expanded}>
