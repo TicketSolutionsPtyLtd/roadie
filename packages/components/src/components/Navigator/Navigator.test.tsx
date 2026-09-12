@@ -3047,7 +3047,11 @@ describe('Navigator collapsed edge circles', () => {
       { name: 'A' }
     )
     // Neutral round surface with an accent icon — the tinted pill is expanded-only.
-    expect(active).toHaveClass('intent-accent', 'text-subtle', 'bg-raised')
+    expect(active).toHaveClass(
+      'intent-accent',
+      'text-subtle',
+      'emphasis-floating'
+    )
     expect(active.className).not.toContain('bg-[var(--intent-bg-subtle)]')
     await flushViewportMeasurement()
   })
@@ -3064,7 +3068,7 @@ describe('Navigator collapsed edge circles', () => {
 
     await collapse(container)
     const left = bar.querySelector('[data-circle-side="left"]')
-    expect(left).toHaveClass('bg-raised', 'shadow-xl', 'is-translucent')
+    expect(left).toHaveClass('emphasis-floating', 'is-translucent')
     await flushViewportMeasurement()
   })
 
