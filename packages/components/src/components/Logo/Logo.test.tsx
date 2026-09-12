@@ -1,7 +1,13 @@
 import { render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 
-import { Logo } from '.'
+import { Logo, type LogoProps, type LogoSize, type LogoVariant } from '.'
+import * as barrel from '../../index'
+import type {
+  LogoProps as BarrelLogoProps,
+  LogoSize as BarrelLogoSize,
+  LogoVariant as BarrelLogoVariant
+} from '../../index'
 
 function slots(root: Element) {
   return [...root.querySelectorAll('[data-slot]')].map((el) =>
@@ -10,10 +16,6 @@ function slots(root: Element) {
 }
 
 describe('Logo', () => {
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
-
   it('renders the mark and the wordmark as separate SVGs by default', () => {
     render(<Logo />)
     const root = screen.getByRole('img', { name: 'Oztix' })
@@ -23,16 +25,58 @@ describe('Logo', () => {
     expect(slots(root)).toEqual(['logo-mark', 'logo-wordmark'])
 
     const mark = root.querySelector('[data-slot=logo-mark]')!
-    const wordmark = root.querySelector('[data-slot=logo-wordmark]')!
+    const wordmark = root.querySelector('[data-slot=logo-wordmark] svg')!
     expect(mark.tagName.toLowerCase()).toBe('svg')
-    expect(wordmark.tagName.toLowerCase()).toBe('svg')
     expect(mark.contains(wordmark)).toBe(false)
     expect(mark).toHaveAttribute('viewBox', '0 0 48 48')
     expect(wordmark).toHaveAttribute('viewBox', '0 0 128 42')
   })
 
-  it('renders only the mark for logomark', () => {
-    render(<Logo variant='logomark' />)
+  describe('collapsible part', () => {
+    it.each([
+      ['logo-wordmark', <Logo key='normal' />],
+      ['logo-product', <Logo key='product' product='Studio' />]
+    ])(
+      'gives %s its own leading gap and a clipped 1fr column',
+      (slot, logo) => {
+        render(logo)
+        const root = screen.getByRole('img')
+        const part = root.querySelector(`[data-slot=${slot}]`)!
+
+        expect(root).not.toHaveClass('gap-[calc(1em/6)]')
+        expect(part.parentElement).toBe(root)
+        expect(part).toHaveClass(
+          'grid',
+          'grid-cols-[1fr]',
+          'min-w-0',
+          'overflow-hidden'
+        )
+        expect(part.firstElementChild).toHaveClass(
+          'min-w-0',
+          'before:w-[calc(1em/6)]'
+        )
+      }
+    )
+
+    it('keeps the mark outside the collapsible part', () => {
+      render(<Logo />)
+      const root = screen.getByRole('img')
+      const mark = root.querySelector('[data-slot=logo-mark]')!
+      expect(mark.parentElement).toBe(root)
+      expect(mark).toHaveClass('size-[1em]', 'shrink-0')
+    })
+
+    it('has no gap or wrapper when the wordmark stands alone', () => {
+      render(<Logo variant='wordmark' />)
+      const root = screen.getByRole('img')
+      const wordmark = root.querySelector('[data-slot=logo-wordmark]')!
+      expect(wordmark.tagName.toLowerCase()).toBe('svg')
+      expect(wordmark.parentElement).toBe(root)
+    })
+  })
+
+  it('renders only the mark for mark', () => {
+    render(<Logo variant='mark' />)
     const root = screen.getByRole('img', { name: 'Oztix' })
     expect(slots(root)).toEqual(['logo-mark'])
     expect(root.querySelectorAll('path')).toHaveLength(1)
@@ -45,20 +89,36 @@ describe('Logo', () => {
     expect(root.querySelectorAll('path')).toHaveLength(1)
   })
 
-  it('renders the mark and the product name as live text for product', () => {
-    render(<Logo variant='product'>Studio</Logo>)
-    const root = screen.getByRole('img', { name: 'Oztix Studio' })
-    expect(slots(root)).toEqual(['logo-mark', 'logo-product'])
+  describe('product', () => {
+    it('renders the mark and the product name as live text', () => {
+      render(<Logo product='Studio' />)
+      const root = screen.getByRole('img', { name: 'Oztix Studio' })
+      expect(slots(root)).toEqual(['logo-mark', 'logo-product'])
 
-    const product = root.querySelector('[data-slot=logo-product]')!
-    expect(product.tagName.toLowerCase()).toBe('span')
-    expect(product).toHaveTextContent('Studio')
-  })
+      const product = root.querySelector('[data-slot=logo-product]')!
+      expect(product.tagName.toLowerCase()).toBe('span')
+      expect(product).toHaveTextContent('Studio')
+    })
 
-  it('ignores children outside the product variant', () => {
-    render(<Logo>Studio</Logo>)
-    const root = screen.getByRole('img', { name: 'Oztix' })
-    expect(root).not.toHaveTextContent('Studio')
+    it.each(['normal', 'mark', 'wordmark'] as const)(
+      'takes precedence over variant=%s',
+      (variant) => {
+        render(<Logo variant={variant} product='Studio' />)
+        const root = screen.getByRole('img', { name: 'Oztix Studio' })
+        expect(slots(root)).toEqual(['logo-mark', 'logo-product'])
+      }
+    )
+
+    it.each(['', '   '])('is ignored when blank (%j)', (product) => {
+      render(<Logo product={product} />)
+      const root = screen.getByRole('img', { name: 'Oztix' })
+      expect(slots(root)).toEqual(['logo-mark', 'logo-wordmark'])
+    })
+
+    it('keeps leading-none on the name after a resize', () => {
+      render(<Logo product='Studio' className='text-[3rem]' />)
+      expect(screen.getByText('Studio')).toHaveClass('leading-none')
+    })
   })
 
   it('fills every SVG with currentColor and hides it from assistive tech', () => {
@@ -71,21 +131,8 @@ describe('Logo', () => {
     }
   })
 
-  it('names a product logo "Oztix" when its children are not a string', () => {
-    render(
-      <Logo variant='product'>
-        <em>Studio</em>
-      </Logo>
-    )
-    expect(screen.getByRole('img', { name: 'Oztix' })).toBeInTheDocument()
-  })
-
   it('lets the consumer override the accessible name', () => {
-    render(
-      <Logo variant='product' aria-label='Oztix Studio home'>
-        Studio
-      </Logo>
-    )
+    render(<Logo product='Studio' aria-label='Oztix Studio home' />)
     expect(
       screen.getByRole('img', { name: 'Oztix Studio home' })
     ).toBeInTheDocument()
@@ -98,18 +145,6 @@ describe('Logo', () => {
     expect(root).not.toHaveAttribute('role')
     expect(root).not.toHaveAttribute('aria-label')
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
-  })
-
-  it('warns once in development when a product logo has no name', async () => {
-    vi.resetModules()
-    const { Logo: FreshLogo } = await import('.')
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    render(<FreshLogo variant='product' />)
-    render(<FreshLogo variant='product' />)
-    expect(warn).toHaveBeenCalledOnce()
-    expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining("variant='product'")
-    )
   })
 
   describe('colour', () => {
@@ -151,42 +186,6 @@ describe('Logo', () => {
     expect(root).toHaveAttribute('id', 'site-logo')
   })
 
-  it('keeps leading-none on the product name after a resize', () => {
-    render(
-      <Logo variant='product' className='text-[3rem]'>
-        Studio
-      </Logo>
-    )
-    const product = screen.getByText('Studio')
-    expect(product).toHaveClass('leading-none')
-  })
-
-  it('warns when product children are not a plain string, e.g. array children', async () => {
-    vi.resetModules()
-    const { Logo: FreshLogo } = await import('.')
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    render(<FreshLogo variant='product'>{'Studio'} beta</FreshLogo>)
-    expect(warn).toHaveBeenCalledOnce()
-  })
-
-  it('warns when the product name is whitespace only', async () => {
-    vi.resetModules()
-    const { Logo: FreshLogo } = await import('.')
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    render(<FreshLogo variant='product'>{'   '}</FreshLogo>)
-    expect(warn).toHaveBeenCalledOnce()
-  })
-
-  it('stays silent in production', async () => {
-    vi.stubEnv('NODE_ENV', 'production')
-    vi.resetModules()
-    const { Logo: FreshLogo } = await import('.')
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    render(<FreshLogo variant='product' />)
-    expect(warn).not.toHaveBeenCalled()
-    vi.unstubAllEnvs()
-  })
-
   it('keeps role=img and the accessible name when aria-hidden is the string "false"', () => {
     render(<Logo aria-hidden='false' />)
     expect(screen.getByRole('img', { name: 'Oztix' })).toBeInTheDocument()
@@ -199,5 +198,14 @@ describe('Logo', () => {
     expect(root).not.toHaveAttribute('role')
     expect(root).not.toHaveAttribute('aria-label')
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
+  })
+
+  it('exports the component and its types from the subpath and the barrel', () => {
+    expect(barrel.Logo).toBe(Logo)
+    expectTypeOf<BarrelLogoProps>().toEqualTypeOf<LogoProps>()
+    expectTypeOf<BarrelLogoVariant>().toEqualTypeOf<LogoVariant>()
+    expectTypeOf<BarrelLogoSize>().toEqualTypeOf<LogoSize>()
+    expectTypeOf<LogoVariant>().toEqualTypeOf<'normal' | 'mark' | 'wordmark'>()
+    expectTypeOf<LogoProps>().not.toHaveProperty('children')
   })
 })

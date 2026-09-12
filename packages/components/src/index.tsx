@@ -49,7 +49,12 @@ export {
 
 export { Image, type ImageProps, type ImageSource } from './components/Image'
 
-export { Logo, type LogoProps, type LogoVariant } from './components/Logo'
+export {
+  Logo,
+  type LogoProps,
+  type LogoSize,
+  type LogoVariant
+} from './components/Logo'
 
 export {
   EmptyState,

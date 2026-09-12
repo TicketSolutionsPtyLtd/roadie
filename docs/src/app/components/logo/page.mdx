@@ -30,20 +30,29 @@ import { Logo } from '@oztix/roadie-components/logo'
 
 ### Variants
 
-`normal` is the mark and the wordmark together. `logomark` is the mark alone, for tight spaces such as an app icon or a collapsed rail. `wordmark` is the word alone. `product` pairs the mark with a product name, passed as children and rendered as live text.
+`normal` is the mark and the wordmark together. `mark` is the mark alone, for tight spaces such as an app icon or a collapsed rail. `wordmark` is the word alone.
 
 ```tsx-live
 <div className='grid justify-items-start gap-6'>
   <Logo variant='normal' />
-  <Logo variant='logomark' />
+  <Logo variant='mark' />
   <Logo variant='wordmark' />
-  <Logo variant='product'>Studio</Logo>
 </div>
+```
+
+### Product
+
+`product` pairs the mark with a product name, rendered as live text in place of the wordmark. When it's set, `variant` is ignored.
+
+```tsx-live
+<Logo product='Studio' />
 ```
 
 ### Sizes
 
 The logo's height is set with the `size` prop, not a className. One value scales the mark, the gap and the product name together. `xs` is 20px, `sm` 24px, `md` 32px (the default), `lg` 40px, `xl` 48px.
+
+Logo sizes sit one step below Button and IconTile, whose `md` is 40px, so a `size='md'` logo pairs with a `size='sm'` button.
 
 ```tsx-live
 <div className='grid justify-items-start gap-6'>
@@ -52,7 +61,7 @@ The logo's height is set with the `size` prop, not a className. One value scales
   <Logo size='md' />
   <Logo size='lg' />
   <Logo size='xl' />
-  <Logo variant='product' size='lg'>Studio</Logo>
+  <Logo product='Studio' size='lg' />
 </div>
 ```
 
@@ -69,6 +78,10 @@ The logo's colour is fixed — always Oztix blue, identical in light and dark mo
 </div>
 ```
 
+### Collapsing
+
+The `logo-wordmark` and `logo-product` slots hold their own gap and clip, so a parent can collapse either to the mark's square by animating its `grid-template-columns` from `1fr` to `0fr`.
+
 ## Guidelines
 
 <Guideline title='Size the logo with the size prop'>
@@ -81,10 +94,10 @@ The logo's colour is fixed — always Oztix blue, identical in light and dark mo
 </Guideline>
 
 <Guideline title='Keep product names short'>
-  <Guideline.Do example={<Logo variant='product'>Studio</Logo>}>
+  <Guideline.Do example={<Logo product='Studio' />}>
     Use the product's one- or two-word name, in title case.
   </Guideline.Do>
-  <Guideline.Dont example={<Logo variant='product'>Oztix Studio</Logo>}>
+  <Guideline.Dont example={<Logo product='Oztix Studio' />}>
     Don't repeat "Oztix" or add a tagline. The mark already says Oztix, and the name never wraps.
   </Guideline.Dont>
 </Guideline>
@@ -100,7 +113,7 @@ The logo's colour is fixed — always Oztix blue, identical in light and dark mo
 
 ## Accessibility
 
-- The logo is one image with the accessible name "Oztix". A product logo is named from its children, such as "Oztix Studio", when they are a string.
+- The logo is one image with the accessible name "Oztix". A product logo is named "Oztix" plus the product, such as "Oztix Studio".
 - Pass `aria-label` to name it something else, such as "Oztix home" inside a link.
 - When the logo sits next to text that already says Oztix, pass `aria-hidden` and it drops its role and name.
 - The inner SVGs are always hidden from assistive technology.

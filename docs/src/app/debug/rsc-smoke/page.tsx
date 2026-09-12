@@ -32,6 +32,7 @@ import { Field } from '@oztix/roadie-components/field'
 import { Fieldset } from '@oztix/roadie-components/fieldset'
 import { IconTile } from '@oztix/roadie-components/icon-tile'
 import { List } from '@oztix/roadie-components/list'
+import { Logo } from '@oztix/roadie-components/logo'
 import { Popover } from '@oztix/roadie-components/popover'
 import { RadioGroup } from '@oztix/roadie-components/radio-group'
 import { ScrollArea } from '@oztix/roadie-components/scroll-area'
@@ -566,6 +567,15 @@ export default function RscSmokePage() {
         <IconTile intent='accent'>
           <StarIcon weight='bold' />
         </IconTile>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Logo</h2>
+        <div className='flex flex-wrap items-center gap-6'>
+          <Logo />
+          <Logo variant='mark' />
+          <Logo product='Studio' />
+        </div>
       </section>
 
       <section className='grid gap-4'>
