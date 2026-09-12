@@ -2,6 +2,7 @@ import { StrictMode, useState } from 'react'
 
 import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { renderToString } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { NAVIGATOR_EXPANDED_SCOPE } from '@oztix/roadie-core/navigator'
@@ -1046,6 +1047,24 @@ describe('expanded from the document', () => {
       within(region('brand')).getByRole('button', { name: 'Expand sidebar' })
     )
     expect(document.documentElement).toHaveAttribute('data-navigator-expanded')
+  })
+
+  it('names the toggle through CSS until the document is read', async () => {
+    const labels = (root: Element) =>
+      Array.from(
+        root.querySelectorAll('[data-slot="navigator-expand-toggle-label"]'),
+        (label) => [label.textContent, label.className]
+      )
+    const host = document.createElement('div')
+    host.innerHTML = renderToString(<Expandable expandedFromDocument />)
+    expect(labels(host)).toEqual([
+      ['Expand sidebar', 'sr-only navigator-expanded:hidden'],
+      ['Collapse sidebar', 'sr-only hidden navigator-expanded:inline']
+    ])
+
+    render(<Expandable expandedFromDocument />)
+    await flushViewportMeasurement()
+    expect(labels(region('brand'))).toEqual([['Expand sidebar', 'sr-only']])
   })
 
   it('ignores the document unless opted in', async () => {

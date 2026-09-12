@@ -109,6 +109,7 @@ export function NavigatorRoot({
       root.toggleAttribute(NAVIGATOR_EXPANDED_ATTRIBUTE, expanded)
     }
   }, [expanded, expandedFromDocument, documentExpanded])
+  const expandedPending = expandedFromDocument && documentExpanded === undefined
   const primaryId = useId()
   const [navCollapsed, setNavCollapsed] = useState(false)
   const [primaryNav, setPrimaryNav] = useState<PanePrimaryNav>('auto')
@@ -217,6 +218,7 @@ export function NavigatorRoot({
       expanded,
       setExpanded,
       expandedFromDocument,
+      expandedPending,
       primaryId
     }),
     [
@@ -243,6 +245,7 @@ export function NavigatorRoot({
       expanded,
       setExpanded,
       expandedFromDocument,
+      expandedPending,
       primaryId
     ]
   )

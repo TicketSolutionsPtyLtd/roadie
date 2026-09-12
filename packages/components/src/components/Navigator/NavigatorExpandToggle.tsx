@@ -22,7 +22,8 @@ export type NavigatorExpandToggleProps = {
 export function NavigatorExpandToggle({
   className
 }: NavigatorExpandToggleProps) {
-  const { expanded, setExpanded, primaryId } = use(NavigatorContext)
+  const { expanded, expandedPending, setExpanded, primaryId } =
+    use(NavigatorContext)
   const label = expanded ? 'Collapse sidebar' : 'Expand sidebar'
   return (
     <div
@@ -47,12 +48,30 @@ export function NavigatorExpandToggle({
                 'size-5',
                 'navigator-expand-toggle-icon'
               )}
-              <span
-                data-slot='navigator-expand-toggle-label'
-                className='sr-only'
-              >
-                {label}
-              </span>
+              {expandedPending ? (
+                // Until hydration only CSS knows the state; `display: none` drops the wrong name.
+                <>
+                  <span
+                    data-slot='navigator-expand-toggle-label'
+                    className='sr-only navigator-expanded:hidden'
+                  >
+                    Expand sidebar
+                  </span>
+                  <span
+                    data-slot='navigator-expand-toggle-label'
+                    className='sr-only hidden navigator-expanded:inline'
+                  >
+                    Collapse sidebar
+                  </span>
+                </>
+              ) : (
+                <span
+                  data-slot='navigator-expand-toggle-label'
+                  className='sr-only'
+                >
+                  {label}
+                </span>
+              )}
             </button>
           )
         }
