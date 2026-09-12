@@ -14,7 +14,7 @@ export function usePrimaryCapacity(
   viewportRef: RefObject<HTMLElement | null>,
   capsules: PrimaryCapsule[],
   enabled: boolean
-): ReadonlySet<string> {
+): { folded: ReadonlySet<string>; shown: boolean } {
   const [available, setAvailable] = useState(0)
 
   useEffect(() => {
@@ -35,8 +35,10 @@ export function usePrimaryCapacity(
     )
     .join('|')
 
-  return useMemo(
+  const folded = useMemo(
     () => (enabled ? fitPrimaryCluster(capsules, available).folded : NONE),
     [shape, available, enabled]
   )
+  // A hidden viewport measures zero.
+  return { folded, shown: available > 0 }
 }

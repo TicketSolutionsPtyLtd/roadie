@@ -243,7 +243,7 @@ export function NavigatorPrimary({
     setOverflowItems('horizontal', folded)
   }, [foldedKey, setOverflowItems])
 
-  const verticalFolded = usePrimaryCapacity(
+  const { folded: verticalFolded, shown: verticalShown } = usePrimaryCapacity(
     clusterRef,
     primaryCapsules(collected.cluster),
     !expanded
@@ -257,6 +257,12 @@ export function NavigatorPrimary({
   useEffect(() => {
     setOverflowItems('vertical', verticalFoldedSlots)
   }, [verticalFoldedKey, setOverflowItems])
+
+  // Once the navigation in view folds nothing, no More control is left to close More.
+  const shownFoldedKey = verticalShown ? verticalFoldedKey : foldedKey
+  useEffect(() => {
+    if (overflowOpen && shownFoldedKey === '') setOverflowOpen(false)
+  }, [overflowOpen, shownFoldedKey, setOverflowOpen])
   const verticalMoreActive =
     overflowOpen ||
     (verticalFoldedSlots.some((slot) => isSectionActive(slot, activeValue)) &&
