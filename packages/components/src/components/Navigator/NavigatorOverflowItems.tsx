@@ -5,13 +5,8 @@ import { type ReactElement, use } from 'react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { List } from '../List'
-import {
-  listItemContentClass,
-  listItemLeadingClass,
-  listItemTitleClass,
-  listItemTrailingClass,
-  listItemVariants
-} from '../List/variants'
+import { ListItemContent } from '../List/ListItem'
+import { listItemVariants } from '../List/variants'
 import {
   NavigatorContext,
   type NavigatorOverflowSets,
@@ -80,20 +75,12 @@ export function NavigatorOverflowItems({
               selected: openMenu === menuId(`overflow-${set}`, slot.value)
             })}
           >
-            {slot.icon ? (
-              <span className={listItemLeadingClass}>
-                {presentNavIcon(slot.icon, 'size-5 text-subtle')}
-              </span>
-            ) : null}
-            <span
-              data-slot='list-item-content'
-              className={listItemContentClass}
-            >
-              <span className={listItemTitleClass}>{slot.label}</span>
-              {slot.badge ? (
-                <span className={listItemTrailingClass}>{slot.badge}</span>
-              ) : null}
-            </span>
+            <ListItemContent
+              title={slot.label}
+              leading={presentNavIcon(slot.icon, 'size-5 text-subtle')}
+              trailing={slot.badge}
+              chevron={false}
+            />
           </button>
         }
       />

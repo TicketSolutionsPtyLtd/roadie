@@ -422,6 +422,10 @@ describe('Navigator.Menu', () => {
     expect(
       row.querySelector('[data-slot="list-item-content"]')
     ).toBeInTheDocument()
+    expect(
+      row.querySelector('[data-slot="list-item-title"]')
+    ).toHaveTextContent('Account')
+    expect(row.querySelector('[data-slot="list-item-chevron"]')).toBeNull()
     await user.click(row)
     expect(
       (await screen.findByRole('menu')).closest('[data-side]')
