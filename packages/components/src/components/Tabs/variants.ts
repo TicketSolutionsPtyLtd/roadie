@@ -95,14 +95,6 @@ export const tabsTabVariants = cva(
 //
 // In vertical orientation the underline variants swap from a
 // bottom-edge bar to a left-edge bar by re-mapping the same vars.
-//
-// Appearance only — no positioning, no `--active-tab-*` mapping — so
-// Navigator's strip surface (`navigatorIndicatorVariants` in
-// `Navigator/variants.ts`) can import the same pill instead of
-// hand-copying it. Positioning stays out deliberately: the strip
-// measures and maps its own track, which is Navigator's, not Tabs'.
-export const tabsIndicatorSurfaceClass = 'rounded-full emphasis-subtle'
-
 export const tabsIndicatorVariants = cva(
   [
     'pointer-events-none absolute z-0',
@@ -124,7 +116,7 @@ export const tabsIndicatorVariants = cva(
         subtle: [
           'left-[var(--active-tab-left)] top-[var(--active-tab-top)]',
           'h-[var(--active-tab-height)] w-[var(--active-tab-width)]',
-          tabsIndicatorSurfaceClass
+          'rounded-full emphasis-subtle'
         ].join(' '),
         subtler: [
           'bottom-0 left-[var(--active-tab-left)] h-[2px] w-[var(--active-tab-width)]',
