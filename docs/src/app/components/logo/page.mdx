@@ -117,5 +117,6 @@ The `logo-wordmark` and `logo-product` slots hold their own gap and clip, so a p
 - Pass `aria-label` to name it something else, such as "Oztix home" inside a link.
 - When the logo sits next to text that already says Oztix, pass `aria-hidden` and it drops its role and name.
 - The inner SVGs are always hidden from assistive technology.
+- The logo is always left to right, so a right-to-left page never mirrors the lockup. It takes no `dir` prop.
 
 <PropsDefinitions componentPath='packages/components/src/components/Logo/index.tsx' />

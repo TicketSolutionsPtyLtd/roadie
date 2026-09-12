@@ -186,6 +186,39 @@ describe('Logo', () => {
     expect(root).toHaveAttribute('id', 'site-logo')
   })
 
+  describe('direction', () => {
+    it('stays left to right inside a right-to-left page', () => {
+      render(
+        <div dir='rtl'>
+          <Logo />
+        </div>
+      )
+      expect(screen.getByRole('img')).toHaveAttribute('dir', 'ltr')
+    })
+
+    it('keeps the product lockup left to right too', () => {
+      render(
+        <div dir='rtl'>
+          <Logo product='Studio' />
+        </div>
+      )
+      expect(screen.getByRole('img', { name: 'Oztix Studio' })).toHaveAttribute(
+        'dir',
+        'ltr'
+      )
+    })
+
+    it('ignores a dir passed at runtime', () => {
+      const props = { dir: 'rtl' } as LogoProps
+      render(<Logo {...props} />)
+      expect(screen.getByRole('img')).toHaveAttribute('dir', 'ltr')
+    })
+
+    it('takes no dir prop', () => {
+      expectTypeOf<LogoProps>().not.toHaveProperty('dir')
+    })
+  })
+
   it('keeps role=img and the accessible name when aria-hidden is the string "false"', () => {
     render(<Logo aria-hidden='false' />)
     expect(screen.getByRole('img', { name: 'Oztix' })).toBeInTheDocument()
