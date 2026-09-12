@@ -3642,12 +3642,8 @@ describe('Navigator.Content no-panes warning', () => {
   })
 })
 
-// Pins the bug report's acceptance criteria directly, so a future change that
-// silently reopens any one of them fails a named test rather than waiting to
-// be rediscovered by a consumer. Criterion 1 — a pane nested inside a
-// wrapper receives a stack position — is Task 13's
-// `describe('pane registration through a wrapper', ...)` in Pane.test.tsx;
-// not duplicated here.
+// A pane in a wrapper getting a stack position is covered by Pane.test.tsx's
+// 'pane registration through a wrapper'.
 describe('nesting acceptance criteria', () => {
   const positions = () =>
     Array.from(document.querySelectorAll('[data-slot="pane"]')).map((p) =>

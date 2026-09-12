@@ -34,13 +34,7 @@ export const navigatorContentVariants = cva([
   // `md` there is no left padding for it to zero.
   'lg:group-has-[[data-slot=navigator-primary][data-orientation=vertical]]/navigator:pl-0',
   'grid-cols-1 lg:flex lg:flex-row',
-  // The stack geometry itself — position, translate, opacity, transition —
-  // now lives on `paneVariants`' `stackPosition` variant, keyed off the
-  // pane's own `data-stack-position`. A direct-child selector here could
-  // never reach a pane arriving through a wrapper the orchestrator did not
-  // render (a Next.js parallel-route slot, most of all), which is exactly
-  // the registration seam this stylesheet now defers to.
-  //
+  // Stack geometry is `paneVariants`' own: no selector here reaches a pane inside a wrapper.
   // Clips a `behind` pane's translate, which can outrun the navigation beside it.
   'max-lg:relative max-lg:overflow-hidden',
   // Set for two frames while More opens or closes.

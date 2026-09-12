@@ -103,32 +103,18 @@ export const paneVariants = cva(
         // Already visited: parked to the left and dimmed.
         behind: [
           'max-lg:absolute! max-lg:inset-0',
-          // iOS dims the covered view with a scrim rather than fading it
-          // out. 0.9 over the sunken frame lands in the same place without a
-          // second painted layer; 0.6 ghosted the frame straight through the
-          // pane.
+          // A scrim-like dim, as iOS does; lower ghosts the frame through it.
           'max-lg:-translate-x-1/3 max-lg:opacity-90',
           'max-lg:pointer-events-none',
-          // Not the `inert` attribute: that can't be gated to the stacked
-          // band, and above `lg` this pane is a live column. Hidden drops it
-          // from the AT tree and tab order; transitioning `visibility` flips
-          // it after the slide out and before the slide in, while the top
-          // pane covers it.
+          // Not `inert`, which can't be gated to the stacked band.
           'max-lg:invisible',
-          // A covered pane is not visible, so let the browser skip its
-          // layout and paint entirely. Measured as a no-op at -22% — a pane
-          // that far over was still ~78% on screen, so the browser kept its
-          // subtree relevant. A behind-pane at -1/3 still does not engage
-          // this; it only started paying off once ahead-panes parked fully
-          // off-screen.
+          // Pays off for panes parked fully off-screen.
           'max-lg:[content-visibility:auto]',
           'motion-safe:max-lg:transition-[translate,opacity,visibility]',
           'motion-safe:max-lg:duration-slow motion-safe:max-lg:ease-enter',
           'motion-reduce:transition-none'
         ].join(' '),
-        // Not yet reached: parked fully off-screen right. Explicit now,
-        // rather than derived from a sibling combinator reading DOM order —
-        // that is the point of the pane carrying its own position.
+        // Not yet reached: parked fully off-screen right.
         ahead: [
           'max-lg:absolute! max-lg:inset-0',
           'max-lg:translate-x-full max-lg:opacity-100',
@@ -171,11 +157,7 @@ const PANE_CHROME_SURFACE =
 // the width its own content needs, so nothing can grow into another's space.
 // `auto` columns collapse to zero when empty, so a header with neither
 // neighbour still gives the title the full row.
-// The docked shadow. `box-shadow` is a paint property, not a layout one, so
-// transitioning it is allowed where the header's own `height` is not — the
-// same reason the tab bar already transitions its own. The header never sizes
-// itself through the collapse; the title's row is what closes, and pays for
-// its layout transition with the reasoning recorded there.
+// Only the docked shadow transitions, a paint property; the title's row does the resizing.
 export const paneHeaderVariants = cva(
   [
     'sticky top-0 z-sticky grid grid-cols-[auto_minmax(0,1fr)_auto]',
@@ -255,46 +237,14 @@ export const paneHeaderCloseVariants = cva([
   `${paneHeaderEdgeCellClasses} max-lg:hidden`
 ])
 
-// The large title. It leaves on `scale` and `opacity`, and the row it sits in
-// closes underneath it.
-//
-// **`grid-template-rows` and `margin-top` are layout properties, and
-// transitioning them here is deliberate.** Nothing else can reclaim the row's
-// space: transforms move pixels without releasing layout, so `scale` alone
-// left the header at full height until `display: none` dropped it in a single
-// frame — the snap this replaces, measured at 46px on four different header
-// heights. The cost is the one the mobile tab bar's `padding` carried: they
-// run once per collapse toggle, not once per scroll frame, and over one small
-// subtree. Do not "optimise" this back to a discrete `display` change.
-//
-// `1fr → 0fr` rather than a measured height, so it holds for any heading size
-// and any header contents with nothing to observe: against an auto-height
-// container an `fr` row resolves to its content, so the expanded state is the
-// title's own height whatever that is. The row only reaches zero if the item
-// in it may be smaller than its content, which is what `paneTitleClipClass`
-// is for — an anonymous grid item cannot be told to clip, so the title's
-// children need a real element around them.
-//
-// The margin is the row gap above the title, which the header hands to its
-// rows rather than declaring as `row-gap` precisely so this one can close with
-// the row instead of outliving it as an 8px ledge. It cannot be folded into
-// the row as padding on the clipped item either: padding is never clipped, so
-// it would survive the collapse as the same ledge one element further in.
-//
-// Not `surfaceTitleClass`: that's shared with `Dialog.Title` and
-// `Drawer.Title`, which head compact overlay surfaces where `ui-4` is
-// correctly sized. A pane title heads a full column or page, so it takes its
-// own, larger token instead of bumping the shared one for all three.
-//
-// Collapsed, this stays in the accessibility tree — `overflow-hidden` on
-// `paneTitleClipClass` plus a zeroed row clips it visually, but an `<h2>` at
-// zero pixels is still announced and reachable by heading navigation. That's
-// the opposite choice from the compact echo below, which uses `invisible` to
-// leave the tree entirely — deliberately: `visibility` here would kill the
-// `opacity` fade this collapse depends on, so the title has to stay visible
-// (in the accessibility sense) through it. One consequence either title
-// carries: interactive content a consumer nests inside it is
-// keyboard-focusable while clipped and invisible.
+// The large title fades and scales while its row closes underneath.
+// Transitioning `grid-template-rows` and `margin-top` is deliberate: transforms
+// don't release layout, so the header would snap by the title's height. It
+// runs once per toggle, not per scroll frame. `1fr → 0fr` fits any title with
+// nothing to measure, and the margin is the row gap, so it closes with the row.
+// A pane title heads a column, so it takes a larger token than
+// `surfaceTitleClass`. Collapsed, it stays in the accessibility tree:
+// `visibility` would kill the fade.
 export const paneTitleVariants = cva(
   ['text-display-ui-3 text-strong', 'origin-left'],
   {
