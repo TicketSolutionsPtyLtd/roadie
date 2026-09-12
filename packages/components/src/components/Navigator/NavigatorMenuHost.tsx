@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactElement, use } from 'react'
+import { type ReactElement, use, useEffect } from 'react'
 
 import { Menu } from '@base-ui/react/menu'
 
@@ -19,6 +19,10 @@ export type NavigatorMenuSurface =
 
 export const menuId = (surface: NavigatorMenuSurface, value: string) =>
   `${surface}:${value}`
+
+// Functional, so closing one menu never clobbers another that opened since.
+const release = (id: string) => (current: string | null) =>
+  current === id ? null : current
 
 const PLACEMENT = {
   vertical: { side: 'inline-end', align: 'start' },
@@ -48,11 +52,14 @@ export function NavigatorMenuHost({
   const id = menuId(surface, value)
   const { side, align } = PLACEMENT[surface]
 
+  // A host can unmount while open, e.g. when its item folds into More.
+  useEffect(() => () => setOpenMenu(release(id)), [id, setOpenMenu])
+
   return (
     <Menu.Root
       open={openMenu === id}
       onOpenChange={(open, { reason }) => {
-        setOpenMenu(open ? id : null)
+        setOpenMenu(open ? id : release(id))
         if (surface.startsWith('overflow') && reason === 'item-press') {
           setOverflowOpen(false)
         }

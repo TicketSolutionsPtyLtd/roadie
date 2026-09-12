@@ -1,6 +1,12 @@
 'use client'
 
-import { type ReactNode, type RefObject, createContext } from 'react'
+import {
+  type Dispatch,
+  type ReactNode,
+  type RefObject,
+  type SetStateAction,
+  createContext
+} from 'react'
 
 import type { PanePrimaryNav } from '../Pane/variants'
 import type { NavigatorSlotMeta } from './NavigatorPrimary'
@@ -52,7 +58,7 @@ export type NavigatorContextValue = {
   hasContent: boolean
   /** `menuId(surface, value)` of the open menu, or null. */
   openMenu: string | null
-  setOpenMenu: (next: string | null) => void
+  setOpenMenu: Dispatch<SetStateAction<string | null>>
   /** Each section's last-reached destination. Empty on reload. */
   sectionMemory: SectionMemory
   rememberSection: (section: string, href: string) => void

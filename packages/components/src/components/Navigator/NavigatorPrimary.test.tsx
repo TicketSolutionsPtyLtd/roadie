@@ -336,6 +336,47 @@ describe('vertical capacity', () => {
       within(horizontalRows!).getByRole('button', { name: 'Account' })
     ).toHaveAttribute('aria-expanded', 'false')
   })
+  it('gives the pill back when an open menu’s tile folds away', async () => {
+    const user = userEvent.setup()
+    render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          {['/a', '/b', '/c', '/d', '/e'].map((v) => (
+            <Navigator.Item key={v} value={v} href={v}>
+              {v}
+            </Navigator.Item>
+          ))}
+          <Navigator.Item value='account' visibilityPriority='low'>
+            Account
+            <Navigator.Menu>
+              <Navigator.MenuItem>Sign out</Navigator.MenuItem>
+            </Navigator.Menu>
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content />
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    reportClusterHeight(1000)
+    const a = within(region('cluster')).getByRole('link', { name: '/a' })
+    await user.click(
+      within(region('cluster')).getByRole('button', { name: 'Account' })
+    )
+    await screen.findByRole('menu')
+    expect(a).not.toHaveAttribute('data-current')
+
+    reportClusterHeight(18.5 * 16)
+    await flushViewportMeasurement()
+    expect(
+      within(region('cluster')).queryByRole('button', { name: 'Account' })
+    ).toBeNull()
+    expect(a).toHaveAttribute('data-current')
+    expect(
+      within(horizontal()).getByRole('link', { name: '/a' })
+    ).toHaveAttribute('data-current')
+  })
+
   it('puts the More capsule last in the cluster', async () => {
     render(<Six />)
     await flushViewportMeasurement()
