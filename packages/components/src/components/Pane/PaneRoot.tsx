@@ -77,21 +77,9 @@ export type PaneRootProps = Omit<ComponentProps<'section'>, 'role'> & {
   primaryNav?: PanePrimaryNav
 }
 
-// Hysteresis, not one threshold: a header that toggles on a 1px scroll
-// oscillates, and the cross-fade makes that obvious. The band between the two
-// holds whatever state it is already in.
-//
-// Both sit near the title's own height rather than at the very top, so the
-// cross-fade is keyed to the large title leaving and re-entering. `EXPAND_AT`
-// was 8, which meant scrolling back up changed nothing until the last 8px —
-// the fade then played after the scroll had already stopped, and read as a
-// lag before the transition rather than as part of it.
-//
-// `EXPAND_AT` must stay below `COLLAPSE_AT`; if they meet or cross, the band
-// disappears and the header oscillates on a single-pixel scroll.
-// Exported for the tests, which derive their scroll positions from these
-// rather than hardcoding numbers that silently stop meaning what they said
-// when the thresholds move. Not re-exported from `index.tsx` — internal.
+// Hysteresis near the large title's height, so the cross-fade follows the
+// title and a 1px scroll can't oscillate it. `EXPAND_AT` must stay below
+// `COLLAPSE_AT`. Exported for the tests only.
 export const COLLAPSE_AT = 64
 export const EXPAND_AT = 40
 
@@ -262,19 +250,9 @@ export function PaneRoot({
           </PaneChromeContext>
         </ScrollArea.Content>
       </ScrollArea.Viewport>
-      {/* `keepMounted`: without it Base UI unmounts the track until it has
-          measured real overflow, which the offset below has nothing to bind
-          to yet — mounting it up front lets the `visibility` it already
-          manages cover the same flash of an unmeasured bar.
-          The top margin reads `--pane-header-height` (published by
-          `Pane.Header`, `0px` with none present) rather than `ScrollArea`
-          knowing about panes: the header's own height is what the bar has to
-          clear, not a constant — Task 4 made the collapse continuous, so a
-          fixed number would clear it expanded and leave a gap collapsed.
-          `--pane-header-height` is rewritten every frame the header resizes
-          (a `ResizeObserver`, not a CSS transition), so the margin already
-          tracks the collapse without a transition of its own — adding one
-          here would double-animate a value that is already moving. */}
+      {/* `keepMounted` so the margin binds before overflow is measured. The
+          margin clears the header's live height, which `Pane.Header`
+          republishes as it resizes, so it needs no transition of its own. */}
       <ScrollArea.Scrollbar
         keepMounted
         className='mt-[calc(var(--pane-header-height,0px)_+_--spacing(1))]'
