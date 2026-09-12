@@ -1,11 +1,8 @@
 'use client'
 
-import { use } from 'react'
-
 import type { ListProps } from '../List'
-import { NavigatorContext } from './NavigatorContext'
 import { NavigatorSectionList } from './NavigatorSectionList'
-import { findSectionByValue } from './activeSection'
+import { useSection } from './useNavigatorSection'
 
 export type NavigatorSectionItemsProps = Omit<ListProps, 'children'> & {
   /** The section's item value; omit for the active section. */
@@ -17,11 +14,7 @@ export function NavigatorSectionItems({
   value,
   ...props
 }: NavigatorSectionItemsProps) {
-  const { primaryChildren, activeSection } = use(NavigatorContext)
-  const section =
-    value === undefined
-      ? activeSection
-      : findSectionByValue(primaryChildren, value)
+  const section = useSection(value)
   if (section === null) return null
   return (
     <NavigatorSectionList

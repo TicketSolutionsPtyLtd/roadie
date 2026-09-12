@@ -21,7 +21,7 @@ import {
 
 type SectionMatch = (
   props: NavigatorItemProps,
-  descendants: string[]
+  descendants: () => string[]
 ) => boolean
 
 function forEachPrimaryItem(
@@ -50,11 +50,12 @@ function findSection(
   let found: NavigatorActiveSection | null = null
 
   forEachPrimaryItem(primaryChildren, (itemProps) => {
+    if (found !== null) return
     const { label, secondary } = splitItemChildren(itemProps.children)
     const [declaration] = secondary
     if (!isValidElement<NavigatorSecondaryProps>(declaration)) return
-    if (!matches(itemProps, secondaryDescendantValues(secondary))) return
-    found ??= {
+    if (!matches(itemProps, () => secondaryDescendantValues(secondary))) return
+    found = {
       value: itemProps.value,
       href: itemProps.href,
       label,
@@ -75,7 +76,7 @@ export function findActiveSection(
   value: string | undefined
 ): NavigatorActiveSection | null {
   return findSection(primaryChildren, (props, descendants) =>
-    isBranchActive(props.value, descendants, value)
+    isBranchActive(props.value, descendants(), value)
   )
 }
 
