@@ -78,7 +78,8 @@ like every Navigator destination; pass `href` to point it elsewhere.
 With no children it renders the Oztix [`Logo`](/components/logo), which names
 the link "Oztix". Collapsed, only the mark shows; expanded, the wordmark opens
 beside it with the labels. A `Logo` with a `product` opens its product name the
-same way.
+same way. A `Logo variant='wordmark'` has no mark, so it stays in view collapsed,
+shrunk to the mark's width, and grows to its size once expanded.
 
 Your own brand goes in as children. Its content names the link, so label the
 mark (`alt`, or `role='img'` with an `aria-label`) and hide a wordmark that

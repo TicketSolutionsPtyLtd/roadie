@@ -1083,6 +1083,31 @@ describe('default brand', () => {
     expect(wordmark().className).not.toMatch(/(^|\s)hidden/)
   })
 
+  it('keeps a wordmark-only Logo visible collapsed, shrunk to the mark’s column', async () => {
+    const markless =
+      '[data-slot=logo]:not(:has([data-slot=logo-mark])) [data-slot=logo-wordmark]'
+    const { rerender } = render(
+      <BrandNav
+        brand={
+          <Navigator.Brand>
+            <Logo variant='wordmark' />
+          </Navigator.Brand>
+        }
+      />
+    )
+    await flushViewportMeasurement()
+    const wordmark = () =>
+      brandLink().querySelector<HTMLElement>('[data-slot="logo-wordmark"]')!
+    expect(wordmark().matches(markless)).toBe(true)
+    expect(brandLink()).toHaveClass(
+      `[&_${markless.replaceAll(' ', '_')}]:opacity-100`,
+      `[&_${markless.replaceAll(' ', '_')}]:h-[min(1em,calc(3rem*42/128))]`,
+      `navigator-expanded:[&_${markless.replaceAll(' ', '_')}]:h-[1em]`
+    )
+    rerender(<BrandNav />)
+    expect(wordmark().matches(markless)).toBe(false)
+  })
+
   it('fades the wordmark on the labels’ timing as the navigation’s width opens it', () => {
     const labelTransitions =
       navigatorItemLabelClass.match(/opacity_var\([^\]]+/g)!
