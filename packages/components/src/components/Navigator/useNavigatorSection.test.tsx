@@ -1,6 +1,7 @@
 import { type ReactNode, StrictMode } from 'react'
 
 import { act, render, screen } from '@testing-library/react'
+import { type Root, hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -191,11 +192,42 @@ describe('useNavigatorSection', () => {
       </StrictMode>
     )
     expect(log[0]).toBeNull()
-    await act(async () => {
-      await Promise.resolve()
-    })
     await flushViewportMeasurement()
     expect(log.at(-1)).toMatchObject({ value: '/components' })
+  })
+
+  it('hydrates with a wrapped Primary: null on the server and first client render, then the section', async () => {
+    const ui = (log: (NavigatorSectionData | null)[]) => (
+      <StrictMode>
+        <Docs value='/overview/philosophy' log={log} wrapPrimary />
+      </StrictMode>
+    )
+    const serverLog: (NavigatorSectionData | null)[] = []
+    const host = document.createElement('div')
+    host.innerHTML = renderToString(ui(serverLog))
+    document.body.appendChild(host)
+    expect(serverLog.every((data) => data === null)).toBe(true)
+    expect(host.querySelector('[data-testid="probe"]')).toHaveTextContent(
+      'none'
+    )
+    const log: (NavigatorSectionData | null)[] = []
+    const error = vi.spyOn(console, 'error')
+    const recoverable = vi.fn()
+    let root: Root | null = null
+    await act(async () => {
+      root = hydrateRoot(host, ui(log), { onRecoverableError: recoverable })
+    })
+    await flushViewportMeasurement()
+    expect(recoverable).not.toHaveBeenCalled()
+    expect(error).not.toHaveBeenCalled()
+    expect(log[0]).toBeNull()
+    expect(log.at(-1)).toMatchObject({ value: '/' })
+    expect(host.querySelector('[data-testid="probe"]')).toHaveTextContent(
+      '/overview/philosophy*'
+    )
+    act(() => root?.unmount())
+    host.remove()
+    error.mockRestore()
   })
 
   it('follows a value change after mount with a wrapped Primary', async () => {
