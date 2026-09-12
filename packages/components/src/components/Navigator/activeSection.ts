@@ -1,8 +1,17 @@
-import { Children, type ReactNode, isValidElement } from 'react'
+import {
+  Children,
+  type ReactElement,
+  type ReactNode,
+  isValidElement
+} from 'react'
 
 import { type NavigatorActiveSection, isBranchActive } from './NavigatorContext'
 import { NavigatorGroup } from './NavigatorGroup'
 import { NavigatorItem, type NavigatorItemProps } from './NavigatorItem'
+import {
+  NavigatorMenuItem,
+  type NavigatorMenuItemProps
+} from './NavigatorMenuItem'
 import type { NavigatorSecondaryProps } from './NavigatorSecondary'
 import {
   secondaryDescendantValues,
@@ -92,4 +101,20 @@ export function findItem(
     ].find((candidate) => candidate.value === itemValue)
   })
   return found
+}
+
+/** The `index`th `Navigator.MenuItem` written directly in the menu of the item whose `value` is `itemValue`. */
+export function findMenuItem(
+  primaryChildren: ReactNode,
+  itemValue: string,
+  index: number
+): NavigatorMenuItemProps | undefined {
+  const item = findItem(primaryChildren, itemValue)
+  const menu = item && splitItemChildren(item.children).menu
+  if (!menu) return undefined
+  const menuItems = Children.toArray(menu.props.children).filter(
+    (child): child is ReactElement<NavigatorMenuItemProps> =>
+      isValidElement(child) && child.type === NavigatorMenuItem
+  )
+  return menuItems[index]?.props
 }
