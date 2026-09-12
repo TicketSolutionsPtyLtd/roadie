@@ -9,8 +9,8 @@ import {
 } from 'react'
 
 import type { PanePrimaryNav } from '../Pane/variants'
-import type { NavigatorSlotMeta } from './NavigatorPrimary'
 import type { NavigatorSecondaryProps } from './NavigatorSecondary'
+import type { NavigatorSlotMeta } from './mobileSlots'
 import type { SectionMemory } from './sectionMemory'
 
 export type NavigatorActiveSection = {

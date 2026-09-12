@@ -26,10 +26,10 @@ import {
 } from './NavigatorContext'
 import {
   NavigatorPrimary,
-  type NavigatorPrimaryProps,
-  type NavigatorSlotMeta
+  type NavigatorPrimaryProps
 } from './NavigatorPrimary'
 import { findActiveSection } from './activeSection'
+import type { NavigatorSlotMeta } from './mobileSlots'
 import { type SectionMemory, nextMemory } from './sectionMemory'
 import { navigatorRootVariants } from './variants'
 

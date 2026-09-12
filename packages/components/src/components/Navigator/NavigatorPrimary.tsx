@@ -32,7 +32,6 @@ import { findActiveSection } from './activeSection'
 import { primaryCapsules, wrapCapsules } from './capsules'
 import { collectSlots } from './collectSlots'
 import {
-  type MobileSlots,
   type NavigatorSlotMeta,
   OVERFLOW_LABEL,
   deriveMobileSlots,
@@ -60,9 +59,6 @@ import {
   navigatorPrimaryTrackVariants,
   navigatorPrimaryVerticalVariants
 } from './variants'
-
-export type { MobileSlots, NavigatorSlotMeta }
-export { deriveMobileSlots }
 
 export type NavigatorPrimaryProps = {
   /** Names the navigation landmark, e.g. 'Primary'. */
