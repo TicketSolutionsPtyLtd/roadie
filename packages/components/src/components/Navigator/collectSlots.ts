@@ -69,6 +69,7 @@ export function toSlotMeta(
         : (firstSecondaryValue(secondary) ?? props.value),
     descendants: secondaryDescendantValues(secondary),
     group,
+    onClick: props.onClick,
     placement: group?.placement ?? props.placement ?? 'automatic',
     priority: props.visibilityPriority ?? group?.priority ?? 'automatic'
   }

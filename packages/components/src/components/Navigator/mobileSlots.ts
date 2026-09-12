@@ -32,6 +32,8 @@ export type NavigatorSlotMeta = {
   /** Values of the section's `Navigator.Secondary` items, for branch-active. */
   descendants: string[]
   group?: NavigatorSlotGroup
+  /** The item's `onClick`, called wherever the item is activated. */
+  onClick?: () => void
   placement: NavigatorPlacement
   priority: NavigatorVisibilityPriority
 }
