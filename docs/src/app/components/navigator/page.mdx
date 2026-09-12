@@ -379,11 +379,12 @@ export function AppNavigator() {
 
 A section's route shows its generated list by default. `root='page'` on
 `Navigator.Secondary` shows the page alone there instead, full width at every
-size — no list pane and no Back. Sub-pages behave the same in both kinds: a
-list column beside the page from `lg`, the page on top with Back to the section
-route when panes stack. On a phone, tapping a page-first section's tab on a
-sub-page goes to its root, like iOS; on the root it scrolls the page to the top,
-reopening a collapsed bar in the same tap. `showList` still shows the list over a sub-page, and is ignored on a page root.
+size — no list pane and no Back. Sub-pages behave the same in both kinds: a list
+column beside the page from `lg`, the page on top with Back to the section route
+when panes stack. On a phone, tapping a page-first section's tab on a sub-page
+goes to its root, like iOS; on the root it scrolls the page to the top,
+reopening a collapsed bar in the same tap. `showList` still shows the list over
+a sub-page, and is ignored on a page root.
 
 Use a page root when the section has an overview worth reading — Home, a
 dashboard. Use a list root when the section is a catalogue you pick from —
@@ -463,13 +464,13 @@ secondary text. It takes `value` (a section's item value; omit it for the
 active section), `className` and `List`'s props, and renders nothing when the
 section isn't found.
 
-For anything richer, `useNavigatorSection(value?)` returns the same data for
-you to lay out. It is computed during render from the navigation you declared,
-so it works in the server render; with a `Navigator.Primary` that is not a
-direct child of `Navigator`, it returns `null` until the Primary mounts, then
-refreshes when a primitive prop or the structure changes — not when only an
-object-valued prop does, such as an icon's `style`. The result is a fresh object each render — read its fields rather than keying an
-effect on it.
+For anything richer, `useNavigatorSection(value?)` returns the same data for you
+to lay out. It is computed during render from the navigation you declared, so it
+works in the server render; with a `Navigator.Primary` that is not a direct
+child of `Navigator`, it returns `null` until the Primary mounts, then refreshes
+when a primitive prop or the structure changes — not when only an object-valued
+prop does, such as an icon's `style`. The result is a fresh object each render —
+read its fields rather than keying an effect on it.
 
 ```ts
 type NavigatorSectionData = {
