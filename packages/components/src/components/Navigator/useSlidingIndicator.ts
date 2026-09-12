@@ -22,7 +22,7 @@ export const ACTIVE_DESTINATION_SELECTOR =
 export type SlidingIndicatorState = {
   style: CSSProperties | undefined
   ready: boolean
-  /** Ready since an earlier commit and last moved to another destination, so it slides rather than jumps. */
+  /** Ready since an earlier commit and last moved to another destination on `intent`, so it slides rather than jumps. */
   settled: boolean
 }
 
@@ -96,18 +96,23 @@ const rectBoxWithin = (active: HTMLElement, track: HTMLElement): Box => {
 
 /**
  * Publishes the current destination's box inside `trackRef` as
- * `--active-tab-*`, the names Base UI's Tabs indicator uses.
+ * `--active-tab-*`, the names Base UI's Tabs indicator uses. `intent` changes
+ * with what the user asked for; the pill slides only to a destination reached
+ * that way.
  */
 export function useSlidingIndicator(
-  trackRef: RefObject<HTMLElement | null>
+  trackRef: RefObject<HTMLElement | null>,
+  intent: string
 ): SlidingIndicatorState {
   const [geometry, setGeometry] = useState<Geometry | null>(null)
   const [ready, setReady] = useState(false)
   const [settled, setSettled] = useState(false)
-  // A destination resizing or reflowing in place snaps; only a change of destination slides.
+  // A destination resizing, reflowing or folding into More snaps.
   const [slides, setSlides] = useState(true)
   const geometryRef = useRef<Geometry | null>(null)
   const destinationRef = useRef<HTMLElement | null>(null)
+  const intentRef = useRef(intent)
+  const measuredIntentRef = useRef(intent)
 
   const measure = useCallback(() => {
     const track = trackRef.current
@@ -122,18 +127,29 @@ export function useSlidingIndicator(
 
     setReady(visible)
     // The last box is kept while unready so the pill fades out where it was.
-    if (!visible || !track || !active) return
+    if (!visible || !track || !active) {
+      destinationRef.current = null
+      return
+    }
     const next = {
       ...box,
       right: track.clientWidth - box.left - box.width
     }
+    const asked = intentRef.current !== measuredIntentRef.current
+    const previous = destinationRef.current
     if (!sameGeometry(geometryRef.current, next)) {
       geometryRef.current = next
       setGeometry(next)
-      setSlides(active !== destinationRef.current)
+      setSlides(previous === null || (asked && active !== previous))
     }
     destinationRef.current = active
+    measuredIntentRef.current = intentRef.current
   }, [trackRef])
+
+  // Declared before the measuring effect, so it sees this commit's intent.
+  useIsomorphicLayoutEffect(() => {
+    intentRef.current = intent
+  }, [intent])
 
   // The indicator is a child of the element `trackRef` points at, so React
   // attaches the track's ref after this first layout effect — `trackRef.current`
