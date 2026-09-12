@@ -22,8 +22,6 @@ interface FooterNavProps {
 export function FooterNav({ items }: FooterNavProps) {
   const pathname = usePathname()
 
-  if (pathname === '/') return null
-
   const flatNav = items.reduce<(NavItem & { href: string })[]>(
     (acc, section) => {
       return [

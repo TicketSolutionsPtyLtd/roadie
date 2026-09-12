@@ -98,43 +98,50 @@ async function getNavigationItems() {
     'Reference'
   )
 
+  const migrationMetadata = await getMetadataFromFile(
+    join(process.cwd(), 'src/app/migration/page.tsx'),
+    'Migrating to v2'
+  )
+
   const navigationItems: {
     title: string
     href: string
-    items: { title: string; href?: string; label?: boolean }[]
+    items: {
+      title: string
+      href?: string
+      label?: boolean
+      description?: string
+    }[]
   }[] = [
     {
-      title: 'Get started',
-      href: '/get-started',
+      title: 'Home',
+      href: '/',
       items: [
-        philosophyMetadata
-          ? {
-              title: philosophyMetadata.title,
-              href: '/overview/philosophy'
-            }
-          : { title: 'Philosophy', href: '/overview/philosophy' },
-        gettingStartedMetadata
-          ? {
-              title: gettingStartedMetadata.title,
-              href: '/overview/getting-started'
-            }
-          : { title: 'Getting Started', href: '/overview/getting-started' },
-        vueIntegrationMetadata
-          ? {
-              title: vueIntegrationMetadata.title,
-              href: '/overview/vue-integration'
-            }
-          : {
-              title: 'Vue Integration',
-              href: '/overview/vue-integration'
-            },
+        {
+          // Hardcoded: the page's metadata.title is the header's concern.
+          title: 'Installation',
+          href: '/overview/getting-started',
+          description: gettingStartedMetadata?.description
+        },
+        {
+          title: philosophyMetadata?.title ?? 'Philosophy',
+          href: '/overview/philosophy',
+          description: philosophyMetadata?.description
+        },
+        {
+          title: vueIntegrationMetadata?.title ?? 'Vue integration',
+          href: '/overview/vue-integration',
+          description: vueIntegrationMetadata?.description
+        },
         {
           title: 'Migrating to v2',
-          href: '/migration'
+          href: '/migration',
+          description: migrationMetadata?.description
         },
         {
           title: 'Changelog',
-          href: 'https://github.com/ticketsolutionsptyltd/roadie/blob/main/packages/components/CHANGELOG.md'
+          href: 'https://github.com/ticketsolutionsptyltd/roadie/blob/main/packages/components/CHANGELOG.md',
+          description: 'Every release, on GitHub.'
         }
       ]
     }
