@@ -6,7 +6,9 @@ export const PRIMARY_METRICS = {
   tileGap: 0.25,
   capsulePad: 0.25,
   capsuleGap: 0.75,
-  clusterPad: 0.5
+  clusterPad: 0.5,
+  // The collapsed brand region's bottom padding, the row the toggle sits in.
+  toggleRow: 3
 } as const
 
 export type PrimaryMetrics = typeof PRIMARY_METRICS
