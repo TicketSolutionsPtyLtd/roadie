@@ -19,3 +19,9 @@ Also ships `Navigator.Menu`/`MenuItem`, `Navigator.ExpandToggle`,
 `Navigator.SecondaryPane`/`SecondaryItems`; `showList`/`onShowListChange` to
 show a section's list from the URL; `expandedFromDocument` with
 `getNavigatorExpandedScript` from `@oztix/roadie-core/navigator`.
+
+A section chooses what its route shows with `root` on `Navigator.Secondary`:
+the generated list (`'list'`, default) or the page alone (`'page'`). A page
+can render a section's items itself — `Navigator.SectionItems` for the same
+rows as the list pane with each item's `description`, or `useNavigatorSection`
+for the data. `Navigator.Item` takes `description`, shown only there.

@@ -16,12 +16,14 @@ import {
   CheckCircleIcon,
   CheckIcon,
   CopyIcon,
+  CubeIcon,
   DownloadIcon,
   EnvelopeIcon,
   EyeIcon,
   EyeSlashIcon,
   GearIcon,
   HeartIcon,
+  HouseIcon,
   InfoIcon,
   LinkSimpleIcon,
   MagnifyingGlassIcon,
@@ -85,7 +87,9 @@ const PhosphorIcons = {
   Envelope: EnvelopeIcon,
   Phone: PhoneIcon,
   ShoppingCart: ShoppingCartIcon,
-  Download: DownloadIcon
+  Download: DownloadIcon,
+  House: HouseIcon,
+  Cube: CubeIcon
 }
 
 // Icon-suffixed keys (`<TicketIcon />`) derived from the bare map.
