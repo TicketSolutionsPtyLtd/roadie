@@ -61,7 +61,7 @@ export function textOf(node: ReactNode): string {
 
 /** The label's first character, capitalised — the glyph for an item without an icon. */
 export function initialOf(node: ReactNode): string {
-  return Array.from(textOf(node).trim())[0]?.toLocaleUpperCase() ?? ''
+  return Array.from(textOf(node).trim())[0]?.toUpperCase() ?? ''
 }
 
 export type SecondaryBlock = {
