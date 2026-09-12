@@ -41,6 +41,8 @@ export type NavigatorItemProps = {
   icon?: ReactNode
   /** A `Badge`. Collapsed and on the phone bar it shrinks to a dot in the corner (`hideLabel`); expanded it trails the label at `size='sm'`. */
   badge?: ReactElement<BadgeProps>
+  /** Secondary text for `Navigator.SectionItems` and `useNavigatorSection`; the navigation never shows it. */
+  description?: string
   /** `pinned` anchors it to the vertical navigation's bottom and the bar's trailing circle. @default 'automatic' */
   placement?: NavigatorPlacement
   /** Which items stay visible when space runs out; falls back to the group's. @default 'automatic' */

@@ -19,10 +19,10 @@ import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect
 import type { PanePrimaryNav } from '../Pane/variants'
 import { NavigatorContent } from './NavigatorContent'
 import {
-  type NavigatorActiveSection,
   NavigatorContext,
   type NavigatorContextValue,
-  type NavigatorOverflowSets
+  type NavigatorOverflowSets,
+  isActiveValue
 } from './NavigatorContext'
 import {
   NavigatorPrimary,
@@ -114,8 +114,11 @@ export function NavigatorRoot({
   const [navCollapsed, setNavCollapsed] = useState(false)
   const [primaryNav, setPrimaryNav] = useState<PanePrimaryNav>('auto')
   const [pinExpanded, setPinExpanded] = useState(false)
-  const [publishedSection, setActiveSection] =
-    useState<NavigatorActiveSection | null>(null)
+  const [publishedChildren, setPrimaryChildrenState] = useState<ReactNode>(null)
+  const setPrimaryChildren = useCallback(
+    (next: ReactNode) => setPrimaryChildrenState(() => next),
+    []
+  )
   const [overflowOpen, setOverflowOpen] = useState(false)
   // A new destination from anywhere, Back included, leaves More.
   const [lastValue, setLastValue] = useState(value)
@@ -167,15 +170,17 @@ export function NavigatorRoot({
   }, [children])
 
   // During render, not from Primary's effect, so the server renders the section's list pane.
-  const derivedSection = useMemo(
-    () =>
-      primary === undefined
-        ? undefined
-        : findActiveSection(primary.props.children, value),
-    [primary, value]
+  const primaryChildren =
+    primary === undefined ? publishedChildren : primary.props.children
+  const activeSection = useMemo(
+    () => findActiveSection(primaryChildren, value),
+    [primaryChildren, value]
   )
-  const activeSection =
-    derivedSection === undefined ? publishedSection : derivedSection
+  const listPaneShows =
+    activeSection !== null &&
+    !(
+      activeSection.root === 'page' && isActiveValue(activeSection.value, value)
+    )
 
   // Ref, not state: read imperatively on tap, never rendered.
   const activePaneScroller = useRef<(() => void) | null>(null)
@@ -198,9 +203,11 @@ export function NavigatorRoot({
       setPinExpanded,
       scrollActivePaneToTop,
       setActivePaneScroller,
+      primaryChildren,
+      setPrimaryChildren,
+      primaryDerived: primary !== undefined,
       activeSection,
-      setActiveSection,
-      sectionDerived: derivedSection !== undefined,
+      listPaneShows,
       overflowOpen,
       setOverflowOpen,
       overflowPaneId,
@@ -230,8 +237,11 @@ export function NavigatorRoot({
       pinExpanded,
       scrollActivePaneToTop,
       setActivePaneScroller,
+      primaryChildren,
+      setPrimaryChildren,
+      primary,
       activeSection,
-      derivedSection,
+      listPaneShows,
       overflowOpen,
       overflowPaneId,
       overflowItems,
