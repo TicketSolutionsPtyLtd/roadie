@@ -11,7 +11,7 @@ import { badgeDot, presentNavIcon } from './presentNavIcon'
 import { navigatorTabIconFrameVariants, navigatorTabVariants } from './variants'
 
 /** When the bar is collapsed, which edge this tab floats to as a circle. */
-export type NavigatorTabCircleSide = 'left' | 'right'
+export type NavigatorTabCircleSide = 'start' | 'end'
 
 export type NavigatorTabProps = Omit<
   NavigatorDestinationProps,

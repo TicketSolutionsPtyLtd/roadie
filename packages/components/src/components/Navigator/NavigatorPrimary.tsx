@@ -227,13 +227,13 @@ export function NavigatorPrimary({
     pinnedTab !== undefined && isSectionActive(pinnedTab, activeValue)
   // An open disclosure takes the pill from every route tab; only More also takes aria-current.
   const disclosureOpen = overflowOpen || openMenu !== null
-  // The pinned circle already sits at the trailing edge, so it is the right circle.
-  const activeIsRight = pinnedTab ? pinnedIsActive : hasMore && foldedIsActive
-  // With the pinned circle on the right, an active folded item makes More the left circle.
+  // The pinned circle already sits at the trailing edge, so it is the end circle.
+  const activeIsEnd = pinnedTab ? pinnedIsActive : hasMore && foldedIsActive
+  // With the pinned circle at the end, an active folded item makes More the start circle.
   const moreCircleSide = !pinnedTab
-    ? 'right'
+    ? 'end'
     : foldedIsActive && !pinnedIsActive
-      ? 'left'
+      ? 'start'
       : undefined
   const tabCount = slots.tabs.length + (hasMore ? 1 : 0)
 
@@ -509,8 +509,8 @@ export function NavigatorPrimary({
             />
             {slots.tabs.map((tab, tabIndex) => {
               const active = isSectionActive(tab, activeValue)
-              // With the right circle taken, the first tab floats left so two circles always show.
-              const isLeftCircle = activeIsRight
+              // With the end circle taken, the first tab floats to the start so two circles always show.
+              const isStartCircle = activeIsEnd
                 ? tab.value === slots.tabs[0]?.value
                 : active
               return renderTab(tab, {
@@ -522,7 +522,7 @@ export function NavigatorPrimary({
                 current: active && !overflowOpen,
                 isPage: isActiveValue(tab.value, activeValue),
                 collapsed,
-                circleSide: isLeftCircle ? 'left' : undefined,
+                circleSide: isStartCircle ? 'start' : undefined,
                 index: tabIndex,
                 onSelect: (event) => selectDestination(event, tab, active)
               })
