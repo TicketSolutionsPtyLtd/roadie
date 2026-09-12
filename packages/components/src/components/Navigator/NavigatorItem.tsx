@@ -22,11 +22,14 @@ import { badgeDot, badgeSmall, presentNavIcon } from './presentNavIcon'
 import { rememberedHref } from './sectionMemory'
 import {
   firstSecondaryHref,
+  initialOf,
   secondaryDescendantValues,
   splitItemChildren,
   textOf
 } from './splitSecondary'
 import {
+  navigatorItemIconlessLabelClass,
+  navigatorItemInitialClass,
   navigatorItemLabelClass,
   navigatorItemTrailingVariants,
   navigatorItemVariants
@@ -37,7 +40,7 @@ export type NavigatorItemProps = {
   value: string
   /** Routes through `RoadieLinkProvider`; omit for a `<button>`, ignored when the item has a `Navigator.Menu`. */
   href?: string
-  /** Leading icon. Phosphor `Icon`-suffixed export, sized with className. */
+  /** Leading icon. Phosphor `Icon`-suffixed export; without one, a tile shows the label's initial. */
   icon?: ReactNode
   /** A `Badge`. Collapsed and on the phone bar it shrinks to a dot in the corner (`hideLabel`); expanded it trails the label at `size='sm'`. */
   badge?: ReactElement<BadgeProps>
@@ -110,10 +113,21 @@ export function NavigatorItem({
         <span data-slot='navigator-item-icon'>
           {presentNavIcon(icon, cn('size-6', hasPill && 'animate-pop-tap'))}
         </span>
-      ) : null}
+      ) : (
+        <span
+          aria-hidden
+          data-slot='navigator-item-initial'
+          className={navigatorItemInitialClass}
+        >
+          {initialOf(label)}
+        </span>
+      )}
       <span
         data-slot='navigator-item-label'
-        className={navigatorItemLabelClass}
+        className={cn(
+          navigatorItemLabelClass,
+          !icon && navigatorItemIconlessLabelClass
+        )}
       >
         {label}
       </span>

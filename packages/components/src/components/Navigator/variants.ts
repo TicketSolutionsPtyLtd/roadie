@@ -103,7 +103,7 @@ export const navigatorPrimaryPinnedVariants = cva(['relative grid gap-3 px-3'])
 
 // `rounded-4xl` overflows a collapsed capsule's width, so the browser scales it to a pill.
 export const navigatorCapsuleVariants = cva([
-  'relative grid gap-1 p-1 rounded-4xl emphasis-raised is-translucent'
+  'group/capsule relative grid gap-1 p-1 rounded-4xl emphasis-raised is-translucent'
 ])
 
 // The box never changes size, so collapse animates on scale/translate/opacity
@@ -324,7 +324,17 @@ export const navigatorItemVariants = cva(
 
 // Always laid out, so it fades both ways; the delay hides the ellipsis while its column opens.
 export const navigatorItemLabelClass =
-  'col-start-2 ms-3 truncate opacity-0 navigator-expanded:opacity-100 motion-safe:[transition:opacity_var(--duration-fast)_var(--ease-exit)] motion-safe:navigator-expanded:[transition:opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-fast)]'
+  'col-start-2 row-start-1 ms-3 truncate opacity-0 navigator-expanded:opacity-100 motion-safe:[transition:opacity_var(--duration-fast)_var(--ease-exit)] motion-safe:navigator-expanded:[transition:opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-fast)]'
+
+// Without an icon the label takes the icon column, unless a capsule sibling's icon needs it for alignment.
+export const navigatorItemIconlessLabelClass = [
+  'col-span-2 col-start-1 ms-0',
+  'group-has-[[data-slot=navigator-item-icon]]/capsule:col-span-1 group-has-[[data-slot=navigator-item-icon]]/capsule:col-start-2 group-has-[[data-slot=navigator-item-icon]]/capsule:ms-3'
+].join(' ')
+
+// The collapsed tile's glyph when there is no icon; it fades out as the label fades in.
+export const navigatorItemInitialClass =
+  'col-start-1 row-start-1 grid size-6 place-items-center text-base font-bold navigator-expanded:opacity-0 motion-safe:[transition:opacity_var(--duration-fast)_var(--ease-exit)]'
 
 // Opacity always fades; translate slides only once settled, so a pill that
 // appears (or moves between vertical tracks) cross-fades in place.

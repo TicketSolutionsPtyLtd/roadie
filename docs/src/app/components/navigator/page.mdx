@@ -1292,7 +1292,9 @@ documented there. The two facts worth knowing from here:
 - **Pass bare icons to destinations.** Navigator renders an item's `icon`
   duotone at `size-6`, so pass `<TicketIcon />` without a `weight` or size
   class. `Navigator.MenuItem` icons aren't included — give them `weight='bold'`
-  and `size-4` like any other icon.
+  and `size-4` like any other icon. An item without an icon shows its label's
+  first letter on the tile and the bar; expanded, its label starts where the
+  icon would, unless another item in its capsule has one.
 - **Let the top pane declare what the mobile bar does.** `Pane`'s `primaryNav`
   is `auto` by default: the bar collapses to the active tab as the pane
   scrolls and returns at the top. `visible` pins it, `hidden` takes it away
