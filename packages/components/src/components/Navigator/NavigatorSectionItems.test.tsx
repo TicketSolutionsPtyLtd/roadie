@@ -1,7 +1,8 @@
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
-import { Navigator } from '.'
+import { Navigator, type NavigatorSectionItemsProps } from '.'
 import { Badge } from '../Badge'
 import { Pane } from '../Pane'
 import { flushViewportMeasurement, primaryOf, testBrand } from './testUtils'
@@ -9,11 +10,13 @@ import { flushViewportMeasurement, primaryOf, testBrand } from './testUtils'
 function Docs({
   value,
   itemsValue,
-  withItems = true
+  withItems = true,
+  itemsProps
 }: {
   value: string
   itemsValue?: string
   withItems?: boolean
+  itemsProps?: Omit<NavigatorSectionItemsProps, 'value'>
 }) {
   return (
     <Navigator value={value}>
@@ -58,7 +61,11 @@ function Docs({
       <Navigator.Content>
         <Pane role='detail' current>
           {withItems ? (
-            <Navigator.SectionItems value={itemsValue} className='mt-2' />
+            <Navigator.SectionItems
+              value={itemsValue}
+              className='mt-2'
+              {...itemsProps}
+            />
           ) : null}
         </Pane>
       </Navigator.Content>
@@ -132,5 +139,57 @@ describe('Navigator.SectionItems', () => {
       within(pane).getByRole('link', { name: /Installation/ })
     ).toBeInTheDocument()
     expect(pane.querySelector('[data-slot="list-item-subtitle"]')).toBeNull()
+  })
+
+  it('passes List props through', async () => {
+    const { rerender } = render(
+      <Docs value='/' itemsProps={{ emphasis: 'normal' }} />
+    )
+    await flushViewportMeasurement()
+    expect(sectionItems()).toHaveAttribute('data-emphasis', 'normal')
+    expect(sectionItems()).not.toHaveAttribute('data-contained')
+    rerender(
+      <Docs value='/' itemsProps={{ contained: true, emphasis: 'subtle' }} />
+    )
+    expect(sectionItems()).toHaveAttribute('data-contained', 'subtle')
+    expect(sectionItems()).not.toHaveAttribute('data-emphasis')
+    expect(sectionItems()).toHaveAttribute(
+      'data-slot',
+      'navigator-section-items'
+    )
+  })
+
+  it('never shows a Primary item description on a tile, the bar or More', async () => {
+    const user = userEvent.setup()
+    render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Docs'>
+          {testBrand}
+          {['/a', '/b', '/c', '/d', '/e', '/f'].map((v) => (
+            <Navigator.Item
+              key={v}
+              value={v}
+              href={v}
+              description={`About ${v}`}
+            >
+              {v}
+            </Navigator.Item>
+          ))}
+        </Navigator.Primary>
+        <Navigator.Content />
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    await user.click(
+      within(primaryOf('horizontal')).getByRole('button', { name: 'More' })
+    )
+    const more = document.querySelector<HTMLElement>(
+      '[data-slot="navigator-overflow-items"]:not(.max-md\\:hidden)'
+    )!
+    expect(within(more).getByRole('link', { name: '/f' })).toBeInTheDocument()
+    expect(
+      within(primaryOf('vertical')).getByRole('link', { name: '/f' })
+    ).toBeInTheDocument()
+    expect(document.body.innerHTML).not.toContain('About')
   })
 })
