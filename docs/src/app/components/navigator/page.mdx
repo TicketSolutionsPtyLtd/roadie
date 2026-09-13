@@ -804,7 +804,8 @@ switcher, a settings menu. The item's tile, tab or row opens it: inline-end of
 the tile or row on a large screen, above the tab on a phone, and below the row
 when opened from the More pane. It is a Base UI menu — arrow keys, typeahead,
 Escape returns focus to the trigger. `Navigator.MenuItem` takes an `href`,
-routed through `RoadieLinkProvider`, or an `onClick`, plus an optional `icon`.
+routed through `RoadieLinkProvider`, or an `onClick`, plus an optional `icon`
+and `description` — secondary text under the label, e.g. an account email.
 
 The item itself never navigates and never lights from the route; it reads active
 only while its menu is open. If it needs a screen's worth of content, it's a
@@ -834,7 +835,7 @@ function MenuNav() {
               >
                 Account
                 <Navigator.Menu>
-                  <Navigator.MenuItem href='/profile' icon={<PencilSimpleIcon weight='bold' className='size-4' />}>
+                  <Navigator.MenuItem href='/profile' icon={<PencilSimpleIcon weight='bold' className='size-4' />} description='luke@example.com'>
                     Profile
                   </Navigator.MenuItem>
                   <Navigator.MenuItem href='/notifications' icon={<BellRingingIcon weight='bold' className='size-4' />}>
