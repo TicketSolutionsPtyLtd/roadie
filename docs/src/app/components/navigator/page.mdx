@@ -169,7 +169,7 @@ function ConsumerNav() {
         </Navigator.Primary>
         <Navigator.Content>
           <Pane role='detail'>
-            <div className='grid gap-3 p-4'>
+            <div className='grid gap-3 py-4'>
               <h2 className='text-display-ui-4 text-strong'>{labels[active]}</h2>
               <List>
                 {upcoming.map((event) => (
@@ -247,7 +247,7 @@ function SectionsNav() {
                 <Pane.Header>
                   <Pane.Title>{titles[path]}</Pane.Title>
                 </Pane.Header>
-                <p className='px-4 pb-4 text-subtle'>
+                <p className='pb-4 text-subtle'>
                   {path === '/events'
                     ? 'The section route: your overview, beside the list.'
                     : `The page at ${path}.`}
@@ -310,7 +310,7 @@ function ListFromUrlNav() {
                 <Pane.Header>
                   <Pane.Title>{path}</Pane.Title>
                 </Pane.Header>
-                <p className='px-4 pb-4 text-subtle'>
+                <p className='pb-4 text-subtle'>
                   {showList ? 'The list is showing (?nav).' : 'No ?nav in the URL.'}
                 </p>
               </Pane>
@@ -606,7 +606,7 @@ function SearchableNav() {
                 <Pane.Header>
                   <Pane.Title>{path}</Pane.Title>
                 </Pane.Header>
-                <p className='px-4 pb-4 text-subtle'>Type in the list's search field.</p>
+                <p className='pb-4 text-subtle'>Type in the list's search field.</p>
               </Pane>
             </Navigator.Content>
           </Navigator>
@@ -663,7 +663,7 @@ function GroupedNav() {
         </Navigator.Primary>
         <Navigator.Content>
           <Pane role='detail'>
-            <div className='grid gap-3 p-4'>
+            <div className='grid gap-3 py-4'>
               <h2 className='text-display-ui-4 text-strong'>{labels[active]}</h2>
               <p className='text-subtle'>
                 Three capsules: Overview on its own, then Manage and Insights.
@@ -729,7 +729,7 @@ function PriorityNav() {
         </Navigator.Primary>
         <Navigator.Content>
           <Pane role='detail'>
-            <div className='grid gap-3 p-4'>
+            <div className='grid gap-3 py-4'>
               <h2 className='text-display-ui-4 text-strong'>{active}</h2>
               <p className='text-subtle'>
                 Eight items. Orders and Messages are high priority, Help is low.
@@ -781,7 +781,7 @@ function OverflowPaneNav() {
         </Navigator.Primary>
         <Navigator.Content>
           <Pane role='detail'>
-            <h2 className='p-4 text-display-ui-4 text-strong'>{active}</h2>
+            <h2 className='py-4 text-display-ui-4 text-strong'>{active}</h2>
           </Pane>
           <Navigator.OverflowPane>
             <Pane.Header>
@@ -848,7 +848,7 @@ function MenuNav() {
             </Navigator.Primary>
             <Navigator.Content>
               <Pane role='detail' current>
-                <div className='grid gap-3 p-4'>
+                <div className='grid gap-3 py-4'>
                   <h2 className='text-display-ui-4 text-strong'>{path}</h2>
                   <p className='text-subtle'>
                     {signedOut ? 'Signed out.' : 'Open Account to see its menu.'}
@@ -910,7 +910,7 @@ function ExpandedNav() {
         </Navigator.Primary>
         <Navigator.Content>
           <Pane role='detail'>
-            <div className='grid gap-3 p-4'>
+            <div className='grid gap-3 py-4'>
               <h2 className='text-display-ui-4 text-strong'>
                 {expanded ? 'Expanded' : 'Collapsed'}
               </h2>
@@ -1014,7 +1014,7 @@ function BadgeNav() {
         </Navigator.Primary>
         <Navigator.Content>
           <Pane role='detail'>
-            <p className='p-4 text-subtle'>Expand the navigation to see the full badge.</p>
+            <p className='py-4 text-subtle'>Expand the navigation to see the full badge.</p>
           </Pane>
         </Navigator.Content>
       </Navigator>
@@ -1110,7 +1110,7 @@ function PanesLayout() {
       <Navigator className='h-full'>
         <Navigator.Content>
           <Pane role='list'>
-            <div className='p-4'>
+            <div className='py-4'>
               <List emphasis='subtler'>
                 {Object.entries(events).map(([value, { title, subtitle }]) => (
                 <List.Item
@@ -1130,7 +1130,7 @@ function PanesLayout() {
             </div>
           </Pane>
           <Pane role='detail' current={event != null}>
-            <div className='grid gap-3 p-4'>
+            <div className='grid gap-3 py-4'>
               <h2 className='text-display-ui-4 text-strong'>{event.title}</h2>
               <p className='text-subtle'>{event.subtitle}</p>
               <List>
@@ -1237,7 +1237,7 @@ function DrillInNav() {
                 </Pane.Actions>
               </Pane.Header>
               <div className='grid gap-3 py-4'>
-                <p className='px-4 text-subtle'>{event.subtitle}</p>
+                <p className='text-subtle'>{event.subtitle}</p>
                 <List>
                   {tiers.map((tier) => (
                     <List.Item
