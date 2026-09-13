@@ -403,7 +403,7 @@ export function DocsNavigator({
           {/* A column from 2xl up; below it the drawer in the detail pane's actions reaches it. */}
           {showInspector ? (
             <Pane role='inspector' aria-label='On this page'>
-              <div className='px-4 py-6'>
+              <div className='py-6'>
                 <OnThisPage {...toc} />
               </div>
             </Pane>

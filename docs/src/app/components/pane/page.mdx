@@ -166,25 +166,25 @@ directly on the frame behind it.
     <Pane.Header>
       <Pane.Title>Raised</Pane.Title>
     </Pane.Header>
-    <p className='px-4 pb-4 text-sm text-subtle'>The default.</p>
+    <p className='pb-4 text-sm text-subtle'>The default.</p>
   </Pane>
   <Pane emphasis='normal' className='h-40 lg:w-auto'>
     <Pane.Header>
       <Pane.Title>Normal</Pane.Title>
     </Pane.Header>
-    <p className='px-4 pb-4 text-sm text-subtle'>Flat surface, visible border.</p>
+    <p className='pb-4 text-sm text-subtle'>Flat surface, visible border.</p>
   </Pane>
   <Pane emphasis='subtle' className='h-40 lg:w-auto'>
     <Pane.Header>
       <Pane.Title>Subtle</Pane.Title>
     </Pane.Header>
-    <p className='px-4 pb-4 text-sm text-subtle'>A tint over what is behind it.</p>
+    <p className='pb-4 text-sm text-subtle'>A tint over what is behind it.</p>
   </Pane>
   <Pane emphasis='subtler' className='h-40 lg:w-auto'>
     <Pane.Header>
       <Pane.Title>Subtler</Pane.Title>
     </Pane.Header>
-    <p className='px-4 pb-4 text-sm text-subtle'>No surface at all.</p>
+    <p className='pb-4 text-sm text-subtle'>No surface at all.</p>
   </Pane>
 </div>
 ```
@@ -238,7 +238,7 @@ function Stacking() {
             <Pane.Header onBack={() => setSelected(null)}>
               <Pane.Title>{event ? event.title : 'Nothing selected'}</Pane.Title>
             </Pane.Header>
-            <div className='grid gap-3 px-4 pb-4'>
+            <div className='grid gap-3 pb-4'>
               <p className='text-subtle'>
                 {event ? event.subtitle : 'Pick an event from the list.'}
               </p>
@@ -303,7 +303,7 @@ function Composed() {
           ))}
         </List>
         {shown.length === 0 ? (
-          <p className='px-4 py-3 text-sm text-subtle'>No matches</p>
+          <p className='py-3 text-sm text-subtle'>No matches</p>
         ) : null}
         <Pane.Footer>
           <Button size='sm' emphasis='normal'>
@@ -398,7 +398,7 @@ the same compact echo a `Pane.Title` would have rendered itself — declare
 <div className='h-80 rounded-2xl bg-sunken p-3'>
   <Pane role='detail' className='h-full'>
     <Pane.Header />
-    <div className='grid gap-3 px-4 pb-4'>
+    <div className='grid gap-3 pb-4'>
       <Pane.BodyTitle>Midnight Frequency</Pane.BodyTitle>
       <p className='text-subtle'>Sat 14 Feb · The Tivoli · 60 remaining</p>
     </div>
@@ -417,11 +417,10 @@ utility through `className` to size it differently — Tailwind's merge
 replaces the default rather than joining it, so there is no separate size
 prop to reach for.
 
-`Pane.BodyTitle` applies no inset of its own, unlike the pane's chrome, which
-reads `--content-inset` for you. It is content, not chrome — what it has to
-align with is its content neighbours, not the pane's edge — so the caller
-places it inside whatever padding wraps the rest of the body, the same way the
-example above relies on the wrapping `div`'s `px-4`.
+`Pane.BodyTitle` applies no inset of its own. It is content, not chrome — what
+it has to align with is its content neighbours, not the pane's edge — so it
+takes the pane's content inset with the rest of the body, as in the example
+above, and a container that republishes `--content-inset` carries it along.
 
 Declaring both is a mistake, not a fallback: if a `Pane.Header` contains a
 `Pane.Title` **and** the pane also has a `Pane.BodyTitle` in its content,
