@@ -30,7 +30,7 @@ import { Logo } from '@oztix/roadie-components/logo'
 
 ### Variants
 
-`normal` is the mark and the wordmark together. `mark` is the mark alone, for tight spaces such as an app icon or a collapsed rail. `wordmark` is the word alone.
+`normal` is the mark and the wordmark together. `mark` is the mark alone, for tight spaces such as an app icon or a collapsed navigation. `wordmark` is the word alone.
 
 ```tsx-live
 <div className='grid justify-items-start gap-6'>
@@ -117,5 +117,6 @@ The `logo-wordmark` and `logo-product` slots hold their own gap and clip, so a p
 - Pass `aria-label` to name it something else, such as "Oztix home" inside a link.
 - When the logo sits next to text that already says Oztix, pass `aria-hidden` and it drops its role and name.
 - The inner SVGs are always hidden from assistive technology.
+- The logo is always left to right, so a right-to-left page never mirrors the lockup. It takes no `dir` prop.
 
 <PropsDefinitions componentPath='packages/components/src/components/Logo/index.tsx' />

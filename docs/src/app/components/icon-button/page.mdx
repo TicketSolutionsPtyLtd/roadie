@@ -141,15 +141,19 @@ Pass `href` to render the icon button as a routed anchor. Roadie picks the right
 
 Hover each button — the browser status bar shows the resolved `href` exactly as Roadie rendered it (note the `mailto:` / `tel:` URLs vs the routed paths). See [Linking](/foundations/linking) for the full reference, including `external` / `target` / `rel` overrides.
 
-### Escape hatch
+### Download
 
-For typed access to anchor-only DOM props (e.g. `download` on a file link) or full element control, use Base UI's `render` prop. Passing both `href` and `render` triggers a one-shot dev warning — `render` wins.
+Add `download` to an `href` icon button to save the file instead of opening it, optionally under a filename.
 
 ```tsx-live
-<IconButton aria-label='Download spec' render={<a href='/spec.pdf' download='spec.pdf' />}>
+<IconButton aria-label='Download spec' href='/spec.pdf' download='spec.pdf'>
   <Download weight='bold' />
 </IconButton>
 ```
+
+### Escape hatch
+
+For full element control, or anchor props `href` doesn't cover (`hreflang`, `referrerPolicy`), use Base UI's `render` prop. It keeps Base UI's button semantics — `role='button'` and `Space` activation — so the element you pass is yours to make accessible. Passing both `href` and `render` triggers a one-shot dev warning — `render` wins, provider routing is silently disabled.
 
 ## Guidelines
 

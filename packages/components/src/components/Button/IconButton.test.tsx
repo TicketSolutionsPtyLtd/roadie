@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react'
+import { fireEvent, render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -113,6 +113,27 @@ describe('IconButton', () => {
     expect(link.tagName.toLowerCase()).toBe('a')
     expect(link).toHaveAttribute('href', '/cart')
     expect(link).toHaveClass('btn-icon-md', 'is-interactive')
+  })
+
+  it('is announced as a link when given href', () => {
+    const { getByRole, queryByRole } = render(
+      <IconButton aria-label='Cart' href='/cart'>
+        +
+      </IconButton>
+    )
+    expect(getByRole('link', { name: 'Cart' })).not.toHaveAttribute('role')
+    expect(queryByRole('button')).not.toBeInTheDocument()
+  })
+
+  it('marks a disabled link aria-disabled and stops navigation', () => {
+    const { getByRole } = render(
+      <IconButton aria-label='Cart' href='/cart' disabled>
+        +
+      </IconButton>
+    )
+    const link = getByRole('link', { name: 'Cart' })
+    expect(link).toHaveAttribute('aria-disabled', 'true')
+    expect(fireEvent.click(link)).toBe(false)
   })
 
   describe('size prop', () => {

@@ -11,7 +11,7 @@ const WORDMARK_PATH =
 export type LogoVariant = 'normal' | 'mark' | 'wordmark'
 export type LogoSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 
-export type LogoProps = Omit<ComponentProps<'span'>, 'children'> & {
+export type LogoProps = Omit<ComponentProps<'span'>, 'children' | 'dir'> & {
   /**
    * `normal` is the mark and wordmark; `mark` and `wordmark` are one part each.
    * @default 'normal'
@@ -115,6 +115,8 @@ export function Logo({
       )}
       {...a11y}
       {...props}
+      // The lockup is a fixed brand shape; RTL pages must not mirror it.
+      dir='ltr'
     >
       {parts !== 'wordmark' && <LogoMark />}
       {parts === 'normal' && (

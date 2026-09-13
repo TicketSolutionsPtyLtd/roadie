@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 import { cn } from './cn'
@@ -12,6 +14,29 @@ describe('cn', () => {
   it('dedupes intent and emphasis presets', () => {
     expect(cn('intent-neutral', 'intent-accent')).toBe('intent-accent')
     expect(cn('emphasis-subtle', 'emphasis-strong')).toBe('emphasis-strong')
+  })
+
+  it('dedupes emphasis-field against the other emphasis presets', () => {
+    expect(cn('emphasis-field', 'emphasis-subtle')).toBe('emphasis-subtle')
+    expect(cn('emphasis-sunken', 'emphasis-field')).toBe('emphasis-field')
+  })
+
+  it('merges every emphasis preset in emphasis.css', () => {
+    const presets = readFileSync(
+      fileURLToPath(new URL('../css/emphasis.css', import.meta.url)),
+      'utf8'
+    ).match(/(?<=@utility )emphasis-[\w-]+/g)
+
+    expect(presets?.length).toBeGreaterThan(0)
+    for (const preset of presets ?? []) {
+      expect(cn(preset, 'emphasis-normal')).toBe('emphasis-normal')
+    }
+  })
+
+  it('keeps interaction utilities alongside an emphasis preset', () => {
+    expect(cn('emphasis-field', 'is-interactive-field')).toBe(
+      'emphasis-field is-interactive-field'
+    )
   })
 
   it('dedupes Roadie named duration tokens', () => {

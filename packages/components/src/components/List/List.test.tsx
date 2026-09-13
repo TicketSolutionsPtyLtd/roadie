@@ -1,3 +1,5 @@
+import type { ComponentProps } from 'react'
+
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -35,6 +37,40 @@ describe('List', () => {
     expect(screen.getByTestId('leading')).toBeInTheDocument()
     expect(screen.getByTestId('trailing')).toBeInTheDocument()
     expect(item('Valley Live')).toBeTruthy()
+  })
+
+  it('names the leading and trailing slots', () => {
+    render(
+      <List>
+        <List.Item
+          title='Tickets'
+          href='/tickets'
+          leading={<span data-testid='leading' />}
+          trailing={<span data-testid='trailing' />}
+        />
+      </List>
+    )
+    expect(screen.getByTestId('leading').parentElement).toHaveAttribute(
+      'data-slot',
+      'list-item-leading'
+    )
+    const trailing = screen.getByTestId('trailing').parentElement
+    expect(trailing).toHaveAttribute('data-slot', 'list-item-trailing')
+    expect(trailing?.parentElement).toHaveAttribute(
+      'data-slot',
+      'list-item-content'
+    )
+  })
+
+  it('names the trailing slot when it holds only the chevron', () => {
+    const { container } = render(
+      <List>
+        <List.Item title='Tickets' href='/tickets' />
+      </List>
+    )
+    expect(
+      container.querySelector('[data-slot="list-item-trailing"] svg')
+    ).toBeTruthy()
   })
 
   describe('container alignment', () => {
@@ -322,6 +358,48 @@ describe('List', () => {
     expect(link).toHaveAttribute('rel', 'noopener noreferrer')
   })
 
+  describe('subtitle', () => {
+    it('describes a link row rather than naming it', () => {
+      render(
+        <List>
+          <List.Item title='Tickets' subtitle='3 upcoming' href='/tickets' />
+        </List>
+      )
+      const link = screen.getByRole('link')
+      expect(link).toHaveAccessibleName('Tickets')
+      expect(link).toHaveAccessibleDescription('3 upcoming')
+    })
+
+    it('describes a button row rather than naming it', () => {
+      render(
+        <List>
+          <List.Item title='Account' subtitle='Profile, security, sign-in' />
+        </List>
+      )
+      const button = screen.getByRole('button')
+      expect(button).toHaveAccessibleName('Account')
+      expect(button).toHaveAccessibleDescription('Profile, security, sign-in')
+    })
+
+    it('keeps the subtitle visible on the row', () => {
+      render(
+        <List>
+          <List.Item title='Account' subtitle='Profile' />
+        </List>
+      )
+      expect(screen.getByText('Profile')).toBeVisible()
+    })
+
+    it('leaves a row without a subtitle undescribed', () => {
+      render(
+        <List>
+          <List.Item title='Account' />
+        </List>
+      )
+      expect(screen.getByRole('button')).not.toHaveAttribute('aria-describedby')
+    })
+  })
+
   it('applies a distinct highlight and aria-current when current', () => {
     render(
       <List>
@@ -457,18 +535,35 @@ describe('List', () => {
       ).toBeInTheDocument()
     })
 
-    it('honours a render override', () => {
+    it('changes the heading level with an element render', () => {
       render(
         <List>
           <List.Group>
-            <List.GroupTitle render={(p) => <h3 {...p} />}>
+            <List.GroupTitle render={<h3 />}>Inputs</List.GroupTitle>
+            <List.Item title='Text field' />
+          </List.Group>
+        </List>
+      )
+      const heading = screen.getByRole('heading', { level: 3, name: 'Inputs' })
+      expect(heading).toHaveAttribute('data-slot', 'list-group-title')
+      expect(heading).toHaveClass('text-subtler')
+      expect(screen.getByRole('list', { name: 'Inputs' })).toBeInTheDocument()
+    })
+
+    it('honours a function render', () => {
+      render(
+        <List>
+          <List.Group>
+            <List.GroupTitle
+              render={(p: ComponentProps<'h2'>) => <h4 {...p} />}
+            >
               Inputs
             </List.GroupTitle>
           </List.Group>
         </List>
       )
       expect(
-        screen.getByRole('heading', { level: 3, name: 'Inputs' })
+        screen.getByRole('heading', { level: 4, name: 'Inputs' })
       ).toBeInTheDocument()
     })
   })

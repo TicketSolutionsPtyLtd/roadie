@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, useId } from 'react'
 
 import { CaretRightIcon } from '@phosphor-icons/react/ssr'
 
@@ -52,23 +52,37 @@ export function ListItem({
   const showChevron = chevron ?? href !== undefined
   const hasTrailing = trailing != null || showChevron
   const hasLeading = leading != null
+  const subtitleId = useId()
+  const describedBy = subtitle != null ? subtitleId : undefined
 
   const content = (
     <>
       {hasLeading ? (
-        <span className={listItemLeadingClass}>{leading}</span>
+        <span data-slot='list-item-leading' className={listItemLeadingClass}>
+          {leading}
+        </span>
       ) : null}
       <span data-slot='list-item-content' className={listItemContentClass}>
         {subtitle != null ? (
           <span className={listItemBodyClass}>
             <span className={listItemTitleClass}>{title}</span>
-            <span className={listItemSubtitleClass}>{subtitle}</span>
+            {/* Out of the name; `aria-describedby` still reads a hidden target. */}
+            <span
+              id={subtitleId}
+              aria-hidden='true'
+              className={listItemSubtitleClass}
+            >
+              {subtitle}
+            </span>
           </span>
         ) : (
           <span className={listItemTitleClass}>{title}</span>
         )}
         {hasTrailing ? (
-          <span className={listItemTrailingClass}>
+          <span
+            data-slot='list-item-trailing'
+            className={listItemTrailingClass}
+          >
             {trailing}
             {showChevron ? (
               <CaretRightIcon weight='bold' className={listItemChevronClass} />
@@ -91,6 +105,7 @@ export function ListItem({
         <RoadieRoutedLink
           data-slot='list-item'
           aria-current={ariaCurrent}
+          aria-describedby={describedBy}
           className={finalClassName}
           href={href}
           onClick={onClick}
@@ -102,6 +117,7 @@ export function ListItem({
           type='button'
           data-slot='list-item'
           aria-current={ariaCurrent}
+          aria-describedby={describedBy}
           className={finalClassName}
           onClick={onClick}
         >

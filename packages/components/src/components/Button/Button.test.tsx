@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -144,6 +144,141 @@ describe('Button', () => {
       expect(link.tagName.toLowerCase()).toBe('a')
       expect(link).toHaveAttribute('href', '/events/123')
       expect(link).toHaveClass('btn', 'is-interactive')
+    })
+
+    it('is announced as a link, not a button', () => {
+      render(<Button href='/events/123'>Events</Button>)
+      const link = screen.getByRole('link', { name: 'Events' })
+      expect(link).not.toHaveAttribute('role')
+      expect(screen.queryByRole('button')).not.toBeInTheDocument()
+    })
+
+    it('keeps link semantics through the configured Link', () => {
+      render(
+        <RoadieLinkProvider Link={StubLink}>
+          <Button href='/events/123'>Events</Button>
+        </RoadieLinkProvider>
+      )
+      expect(screen.getByRole('link', { name: 'Events' })).not.toHaveAttribute(
+        'role'
+      )
+    })
+
+    it('is reachable by keyboard', async () => {
+      render(<Button href='/events/123'>Events</Button>)
+      await userEvent.tab()
+      expect(screen.getByRole('link', { name: 'Events' })).toHaveFocus()
+    })
+
+    it('leaves Space to scroll the page instead of following the link', async () => {
+      const onClick = vi.fn((event: React.MouseEvent) => event.preventDefault())
+      render(
+        <Button href='/events/123' onClick={onClick}>
+          Events
+        </Button>
+      )
+      const link = screen.getByRole('link', { name: 'Events' })
+      link.focus()
+      expect(fireEvent.keyDown(link, { key: ' ', code: 'Space' })).toBe(true)
+      await userEvent.keyboard(' ')
+      expect(onClick).not.toHaveBeenCalled()
+    })
+
+    it('calls onClick when the link is enabled', async () => {
+      const onClick = vi.fn((event: React.MouseEvent) => event.preventDefault())
+      render(
+        <Button href='/events/123' onClick={onClick}>
+          Events
+        </Button>
+      )
+      await userEvent.click(screen.getByRole('link', { name: 'Events' }))
+      expect(onClick).toHaveBeenCalledTimes(1)
+    })
+
+    it('passes download through to the link', () => {
+      render(
+        <Button href='/spec.pdf' download='spec.pdf'>
+          Download spec
+        </Button>
+      )
+      expect(
+        screen.getByRole('link', { name: 'Download spec' })
+      ).toHaveAttribute('download', 'spec.pdf')
+    })
+
+    it('keeps a disabled link focusable with focusableWhenDisabled', () => {
+      render(
+        <Button href='/events/123' disabled focusableWhenDisabled>
+          Events
+        </Button>
+      )
+      const link = screen.getByRole('link', { name: 'Events' })
+      expect(link).not.toHaveAttribute('tabindex')
+      expect(link).toHaveAttribute('aria-disabled', 'true')
+    })
+
+    it('takes a disabled link out of the tab order', () => {
+      render(
+        <Button href='/events/123' disabled>
+          Events
+        </Button>
+      )
+      expect(screen.getByRole('link', { name: 'Events' })).toHaveAttribute(
+        'tabindex',
+        '-1'
+      )
+    })
+
+    it('forwards a ref to the anchor', () => {
+      let node: Element | null = null
+      render(
+        <Button
+          href='/events/123'
+          ref={(el: Element | null) => {
+            node = el
+          }}
+        >
+          Events
+        </Button>
+      )
+      expect(node).toBe(screen.getByRole('link', { name: 'Events' }))
+    })
+
+    it('resolves a style function against the disabled state', () => {
+      render(
+        <Button
+          href='/events/123'
+          disabled
+          style={(state) => ({ opacity: state.disabled ? 0.5 : 1 })}
+        >
+          Events
+        </Button>
+      )
+      expect(screen.getByRole('link', { name: 'Events' })).toHaveStyle({
+        opacity: '0.5'
+      })
+    })
+
+    it('marks a disabled link aria-disabled and stops navigation', () => {
+      const onClick = vi.fn()
+      render(
+        <Button href='/events/123' disabled onClick={onClick}>
+          Events
+        </Button>
+      )
+      const link = screen.getByRole('link', { name: 'Events' })
+      expect(link).toHaveAttribute('aria-disabled', 'true')
+      expect(link).toHaveAttribute('data-disabled')
+      expect(fireEvent.click(link)).toBe(false)
+      expect(onClick).not.toHaveBeenCalled()
+    })
+
+    it('leaves role="button" on a consumer-rendered non-button', () => {
+      render(<Button render={<div />}>Custom</Button>)
+      expect(screen.getByRole('button', { name: 'Custom' })).toHaveAttribute(
+        'role',
+        'button'
+      )
     })
 
     it('renders through the configured Link when provider is wired', () => {

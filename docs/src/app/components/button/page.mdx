@@ -134,20 +134,25 @@ Pass `href` to render the button as a routed anchor. Roadie picks the right elem
 
 Hover each button — the browser status bar shows the resolved `href` exactly as Roadie rendered it. See [Linking](/foundations/linking) for the full reference: provider setup, the external/internal/protocol decision tree, and the `external`/`target`/`rel` overrides.
 
-### Escape hatch
+### Download
 
-For typed access to anchor-only DOM props (`download`, `hreflang`, `referrerPolicy`) or full element control, use Base UI's `render` prop. Passing both `href` and `render` triggers a one-shot dev warning — `render` wins, provider routing is silently disabled.
+Add `download` to an `href` button to save the file instead of opening it, optionally under a filename.
 
 ```tsx-live
-<Button render={<a href='/spec.pdf' download='spec.pdf' />}>
+<Button href='/spec.pdf' download='spec.pdf'>
+  <DownloadIcon weight='bold' className='size-4' />
   Download spec
 </Button>
 ```
 
+### Escape hatch
+
+For full element control, or anchor props `href` doesn't cover (`hreflang`, `referrerPolicy`), use Base UI's `render` prop. It keeps Base UI's button semantics — `role='button'` and `Space` activation — so the element you pass is yours to make accessible. Passing both `href` and `render` triggers a one-shot dev warning — `render` wins, provider routing is silently disabled.
+
 ## Accessibility
 
-- **Keyboard**: `Enter` or `Space` activates the button. Focus is indicated by a semi-transparent ring via `is-interactive`.
-- **ARIA**: Uses native `<button>` element. `disabled` sets `aria-disabled` automatically.
+- **Keyboard**: `Enter` or `Space` activates the button. With `href` it is a link, so `Enter` follows it and `Space` scrolls the page. Focus is indicated by a semi-transparent ring via `is-interactive`.
+- **ARIA**: Renders a native `<button>`, or an `<a>` with `href`. A disabled link gets `aria-disabled`, leaves the tab order and doesn't navigate.
 - **IconButton**: Requires an `aria-label` prop (enforced by TypeScript) since there is no visible text.
 
 <PropsDefinitions componentPath='packages/components/src/components/Button/index.tsx' />

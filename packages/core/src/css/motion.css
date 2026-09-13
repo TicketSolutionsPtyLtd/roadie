@@ -126,44 +126,19 @@
 }
 
 /* ─── Duration utilities ───
-   Tailwind v4 auto-generates `ease-{name}` utilities from `--ease-*`
-   theme tokens, but it does NOT auto-generate `duration-{name}` from
-   `--duration-*`. Without these explicit `@utility` blocks, classes
-   like `duration-moderate` or `duration-slow` compile to nothing,
-   and any component using them silently inherits whatever
-   transition-duration its parent provides. Declare each named token
-   so the utility actually emits CSS. */
+   Tailwind's `duration-*` reads `--transition-duration-*`. Generated
+   natively, it also sets `--tw-duration`, which a variant-scoped
+   `transition-[…]` needs to keep the duration. */
 
-@utility duration-instant {
-  transition-duration: var(--duration-instant);
-}
-
-@utility duration-fastest {
-  transition-duration: var(--duration-fastest);
-}
-
-@utility duration-fast {
-  transition-duration: var(--duration-fast);
-}
-
-@utility duration-normal {
-  transition-duration: var(--duration-normal);
-}
-
-@utility duration-moderate {
-  transition-duration: var(--duration-moderate);
-}
-
-@utility duration-slow {
-  transition-duration: var(--duration-slow);
-}
-
-@utility duration-slower {
-  transition-duration: var(--duration-slower);
-}
-
-@utility duration-slowest {
-  transition-duration: var(--duration-slowest);
+@theme inline {
+  --transition-duration-instant: var(--duration-instant);
+  --transition-duration-fastest: var(--duration-fastest);
+  --transition-duration-fast: var(--duration-fast);
+  --transition-duration-normal: var(--duration-normal);
+  --transition-duration-moderate: var(--duration-moderate);
+  --transition-duration-slow: var(--duration-slow);
+  --transition-duration-slower: var(--duration-slower);
+  --transition-duration-slowest: var(--duration-slowest);
 }
 
 /* ─── Motion utilities ─── */
