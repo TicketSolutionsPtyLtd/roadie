@@ -436,14 +436,14 @@ function PageRootNav() {
                 </Pane.Header>
                 {path === '/' ? (
                   <div className='grid gap-3 pb-4'>
-                    <p className='px-4 text-subtle'>
+                    <p className='text-subtle'>
                       The root shows the page alone. Its items, declared once in the
                       navigation, render here through Navigator.SectionItems.
                     </p>
                     <Navigator.SectionItems />
                   </div>
                 ) : (
-                  <p className='px-4 pb-4 text-subtle'>The page at {path}.</p>
+                  <p className='pb-4 text-subtle'>The page at {path}.</p>
                 )}
               </Pane>
             </Navigator.Content>
@@ -501,7 +501,7 @@ function HomeCards() {
   const section = useNavigatorSection('/')
   if (!section) return null
   return (
-    <div className='grid grid-cols-2 gap-3 px-4 pb-4'>
+    <div className='grid grid-cols-2 gap-3 pb-4'>
       {section.groups.flatMap((group) => group.items).map((item) => (
         <Card key={item.value} href={item.href} className='grid gap-1 p-4 no-underline'>
           <h3 className='text-display-ui-6 text-strong'>{item.label}</h3>
@@ -544,7 +544,7 @@ function HookNav() {
                 <Pane.Header>
                   <Pane.Title>{path === '/' ? 'Home' : path}</Pane.Title>
                 </Pane.Header>
-                {path === '/' ? <HomeCards /> : <p className='px-4 pb-4 text-subtle'>The page at {path}.</p>}
+                {path === '/' ? <HomeCards /> : <p className='pb-4 text-subtle'>The page at {path}.</p>}
               </Pane>
             </Navigator.Content>
           </Navigator>
