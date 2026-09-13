@@ -584,6 +584,106 @@ describe('Navigator.Menu', () => {
   })
 })
 
+describe('Navigator.MenuItem description', () => {
+  it('renders the description beneath the label', async () => {
+    const user = userEvent.setup()
+    render(
+      <Navigator value='/home'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='account'>
+            Account
+            <Navigator.Menu>
+              <Navigator.MenuItem description='luke@example.com'>
+                Profile
+              </Navigator.MenuItem>
+            </Navigator.Menu>
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    await user.click(
+      within(vertical()).getByRole('button', { name: 'Account' })
+    )
+    const item = await screen.findByRole('menuitem', { name: 'Profile' })
+    expect(
+      item.querySelector('[data-slot="navigator-menu-item-description"]')
+    ).toHaveTextContent('luke@example.com')
+  })
+
+  it('names the item by its label and describes it by its description', async () => {
+    const user = userEvent.setup()
+    render(
+      <Navigator value='/home'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='account'>
+            Account
+            <Navigator.Menu>
+              <Navigator.MenuItem description='luke@example.com'>
+                Profile
+              </Navigator.MenuItem>
+            </Navigator.Menu>
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    await user.click(
+      within(vertical()).getByRole('button', { name: 'Account' })
+    )
+    const item = await screen.findByRole('menuitem', { name: 'Profile' })
+    expect(item).toHaveAccessibleName('Profile')
+    expect(item).toHaveAccessibleDescription('luke@example.com')
+  })
+
+  it('has no description slot or aria-describedby when none is given', async () => {
+    const user = userEvent.setup()
+    render(<Tree />)
+    await flushViewportMeasurement()
+    await user.click(
+      within(vertical()).getByRole('button', { name: 'Account' })
+    )
+    const item = await screen.findByRole('menuitem', { name: 'Profile' })
+    expect(item).not.toHaveAttribute('aria-describedby')
+    expect(
+      item.querySelector('[data-slot="navigator-menu-item-description"]')
+    ).toBeNull()
+  })
+
+  it('carries the description through a folded menu row', async () => {
+    const user = userEvent.setup()
+    render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          {['/a', '/b', '/c', '/d', '/e'].map((v) => (
+            <Navigator.Item key={v} value={v} href={v}>
+              {v}
+            </Navigator.Item>
+          ))}
+          <Navigator.Item value='account' visibilityPriority='low'>
+            Account
+            <Navigator.Menu>
+              <Navigator.MenuItem description='luke@example.com'>
+                Profile
+              </Navigator.MenuItem>
+            </Navigator.Menu>
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content />
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    await user.click(within(horizontal()).getByRole('button', { name: 'More' }))
+    const pane = document.querySelector('[data-slot="pane"][id]') as HTMLElement
+    await user.click(within(pane).getByRole('button', { name: 'Account' }))
+    const item = await screen.findByRole('menuitem', { name: 'Profile' })
+    expect(item).toHaveAccessibleDescription('luke@example.com')
+  })
+})
+
 describe('folded rows stay current', () => {
   function Folded({ count, seen }: { count: number; seen: number[] }) {
     return (

@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { type ReactNode, useId } from 'react'
 
 import { Menu } from '@base-ui/react/menu'
 
@@ -15,6 +15,8 @@ export type NavigatorMenuItemProps = {
   onClick?: () => void
   /** Leading icon. Bold weight, like any icon outside Navigator's destinations. */
   icon?: ReactNode
+  /** Secondary text beneath the label, e.g. an account email under a name. */
+  description?: string
   className?: string
   children: ReactNode
 }
@@ -23,9 +25,13 @@ export function NavigatorMenuItem({
   href,
   onClick,
   icon,
+  description,
   className,
   children
 }: NavigatorMenuItemProps) {
+  const descriptionId = useId()
+  const describedBy = description !== undefined ? descriptionId : undefined
+
   const content = (
     <>
       {icon ? (
@@ -36,8 +42,21 @@ export function NavigatorMenuItem({
           {icon}
         </span>
       ) : null}
-      <span data-slot='navigator-menu-item-label' className='truncate'>
-        {children}
+      <span className='grid min-w-0 flex-1 gap-0.5'>
+        <span data-slot='navigator-menu-item-label' className='truncate'>
+          {children}
+        </span>
+        {description !== undefined ? (
+          // Out of the name; `aria-describedby` still reads a hidden target.
+          <span
+            data-slot='navigator-menu-item-description'
+            id={descriptionId}
+            aria-hidden='true'
+            className='truncate text-sm text-subtle'
+          >
+            {description}
+          </span>
+        ) : null}
       </span>
     </>
   )
@@ -52,6 +71,7 @@ export function NavigatorMenuItem({
         render={<RoadieRoutedLink href={href} />}
         closeOnClick
         onClick={onClick}
+        aria-describedby={describedBy}
       >
         {content}
       </Menu.LinkItem>
@@ -63,6 +83,7 @@ export function NavigatorMenuItem({
       data-slot='navigator-menu-item'
       className={finalClassName}
       onClick={onClick}
+      aria-describedby={describedBy}
     >
       {content}
     </Menu.Item>
