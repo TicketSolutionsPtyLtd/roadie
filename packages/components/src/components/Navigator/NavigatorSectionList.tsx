@@ -1,6 +1,6 @@
 'use client'
 
-import { use } from 'react'
+import { Fragment, use } from 'react'
 
 import { List, type ListProps } from '../List'
 import {
@@ -72,7 +72,7 @@ export function NavigatorSectionList({
     <List {...props}>
       {groups.map((group, index) =>
         group.kind === 'loose' ? (
-          group.rows.map(row)
+          <Fragment key={`loose-${index}`}>{group.rows.map(row)}</Fragment>
         ) : (
           <List.Group key={`group-${index}`}>
             {group.title !== undefined ? (
