@@ -297,6 +297,25 @@ describe('vertical capacity', () => {
     expect(tile).toHaveFocus()
   })
 
+  it('scrolls an open More to the top when its tile is chosen again, and stays open', async () => {
+    const user = userEvent.setup()
+    render(<Six />)
+    await flushViewportMeasurement()
+    reportClusterHeight(192)
+    const tile = within(region('cluster')).getByRole('button', { name: 'More' })
+    await user.click(tile)
+    const scrollTo = vi.fn()
+    document.querySelector<HTMLElement>(
+      '[data-slot="pane"][id] [data-slot="pane-viewport"]'
+    )!.scrollTo = scrollTo
+
+    await user.click(tile)
+
+    expect(tile).toHaveAttribute('aria-expanded', 'true')
+    expect(tile).toHaveAttribute('data-current')
+    expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }))
+  })
+
   it('opens one menu from a row folded in both orientations', async () => {
     const user = userEvent.setup()
     render(

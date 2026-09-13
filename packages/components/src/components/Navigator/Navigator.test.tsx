@@ -1319,7 +1319,7 @@ describe('Navigator mobile tab bar', () => {
     expect(disclosure).toHaveAttribute('aria-current', 'true')
     expect(routeTab).not.toHaveAttribute('aria-current')
 
-    await userEvent.click(disclosure)
+    await userEvent.click(routeTab)
     expect(routeTab).toHaveAttribute('aria-current', 'page')
     expect(disclosure).not.toHaveAttribute('aria-current')
   })
@@ -1586,6 +1586,29 @@ describe('Navigator.OverflowPane', () => {
     // Two panes: the detail on top, and the generated overflow queued after it.
     expect(panes()).toHaveLength(2)
     expect(panes()[1]).toHaveAttribute('data-stack-position', 'ahead')
+  })
+
+  const morePaneViewport = () =>
+    document.querySelector<HTMLElement>(
+      '[data-slot="pane"][id] [data-slot="pane-viewport"]'
+    )!
+
+  it('scrolls an open More to the top when its tab is tapped again, and stays open', async () => {
+    const user = userEvent.setup()
+    const { container } = render(overflowNav('/a'))
+    await flushViewportMeasurement()
+    const more = within(horizontalOf(container)!).getByRole('button', {
+      name: 'More'
+    })
+    await user.click(more)
+    const scrollTo = vi.fn()
+    morePaneViewport().scrollTo = scrollTo
+
+    await user.click(more)
+
+    expect(more).toHaveAttribute('aria-expanded', 'true')
+    expect(panes()[1]).toHaveAttribute('data-stack-position', 'top')
+    expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }))
   })
 
   it('takes the top of the stack when opened', async () => {
@@ -1929,7 +1952,7 @@ describe('Navigator.OverflowPane', () => {
       vi.restoreAllMocks()
     })
 
-    it('holds pane transitions off for two frames as More opens and closes from the bar', async () => {
+    it('holds pane transitions off for two frames as More opens from the bar and closes', async () => {
       render(overflowNav('/a'))
       await flushViewportMeasurement()
       expect(content()).not.toHaveAttribute('data-instant')
@@ -1944,7 +1967,7 @@ describe('Navigator.OverflowPane', () => {
       flushFrame()
       expect(content()).not.toHaveAttribute('data-instant')
 
-      fireEvent.click(tabBar.getByRole('button', { name: /More/ }))
+      fireEvent.keyDown(document, { key: 'Escape' })
       expect(panes()[1]).toHaveAttribute('data-stack-position', 'ahead')
       expect(content()).toHaveAttribute('data-instant')
       flushFrame()
