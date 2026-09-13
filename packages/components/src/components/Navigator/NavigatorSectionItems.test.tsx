@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { Navigator, type NavigatorSectionItemsProps } from '.'
 import { Badge } from '../Badge'
@@ -191,5 +191,71 @@ describe('Navigator.SectionItems', () => {
       within(primaryOf('vertical')).getByRole('link', { name: '/f' })
     ).toBeInTheDocument()
     expect(document.body.innerHTML).not.toContain('About')
+  })
+})
+
+function StudioApp({ value }: { value: string }) {
+  return (
+    <Navigator value={value}>
+      <Navigator.Primary aria-label='Studio'>
+        {testBrand}
+        <Navigator.Item value='/studio/events' href='/studio/events'>
+          Events
+          <Navigator.Secondary aria-label='Events pages' root='page'>
+            <Navigator.Item
+              value='/studio/events/a'
+              href='/studio/events/a'
+              description='First'
+            >
+              Alpha
+            </Navigator.Item>
+            <Navigator.Item
+              value='/studio/events/b'
+              href='/studio/events/b'
+              description='Second'
+            >
+              Beta
+            </Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Navigator.Content>
+        <Pane role='detail' current>
+          <Navigator.SectionItems />
+        </Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+}
+
+const generatedSectionPane = () =>
+  document.querySelector<HTMLElement>('[data-navigator-section]')
+
+describe('loose rows key warning', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('keys loose rows through Navigator.SectionItems and the generated section pane', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const { rerender } = render(<StudioApp value='/studio/events' />)
+    await flushViewportMeasurement()
+    expect(
+      within(sectionItems()!).getByRole('link', { name: 'Alpha' })
+    ).toBeInTheDocument()
+    expect(
+      within(sectionItems()!).getByRole('link', { name: 'Beta' })
+    ).toBeInTheDocument()
+
+    rerender(<StudioApp value='/studio/events/a' />)
+    await flushViewportMeasurement()
+    expect(
+      within(generatedSectionPane()!).getByRole('link', { name: 'Alpha' })
+    ).toBeInTheDocument()
+    expect(
+      within(generatedSectionPane()!).getByRole('link', { name: 'Beta' })
+    ).toBeInTheDocument()
+
+    expect(error).not.toHaveBeenCalled()
   })
 })
