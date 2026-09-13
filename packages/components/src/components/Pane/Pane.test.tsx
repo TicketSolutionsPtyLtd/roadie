@@ -52,6 +52,11 @@ describe('Pane', () => {
     expect(pane()).toHaveAttribute('data-role', 'list')
   })
 
+  it('caps a list pane at a share of the row, so a narrow frame still leaves the detail room', async () => {
+    await renderPane(<Pane role='list'>Body</Pane>)
+    expect(pane()).toHaveClass('lg:w-[clamp(16rem,40%,24rem)]', 'lg:shrink-0')
+  })
+
   it('marks the inspector role so it yields first', async () => {
     await renderPane(<Pane role='inspector'>Contents</Pane>)
     expect(pane()).toHaveAttribute('data-role', 'inspector')

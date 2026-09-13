@@ -37,7 +37,8 @@ export const paneVariants = cva(
   {
     variants: {
       role: {
-        list: 'lg:w-96 lg:shrink-0',
+        // A share of the row, so a narrow frame still leaves the detail room.
+        list: 'lg:w-[clamp(16rem,40%,24rem)] lg:shrink-0',
         detail: 'lg:min-w-0 lg:flex-1',
         // Below 2xl the inspector yields its column and is gone. Yielding is
         // still not disappearing — but the affordance that keeps it reachable
