@@ -273,6 +273,19 @@ export function NavigatorPrimary({
     (verticalFoldedSlots.some((slot) => isSectionActive(slot, activeValue)) &&
       !disclosureOpen)
 
+  // Like an active tab, an open More scrolls to the top; choosing a destination closes it.
+  const selectMore = (event: MouseEvent) => {
+    if (event.currentTarget instanceof HTMLElement) {
+      overflowOpener.current = event.currentTarget
+    }
+    setOpenMenu(null)
+    if (!overflowOpen) {
+      setOverflowOpen(true)
+      return
+    }
+    scrollActivePaneToTop()
+  }
+
   const verticalMoreTile = (
     <NavigatorDestination
       ariaCurrent={verticalMoreActive ? 'true' : undefined}
@@ -282,11 +295,7 @@ export function NavigatorPrimary({
       className={navigatorItemVariants({
         active: verticalMoreActive
       })}
-      onClick={(event) => {
-        overflowOpener.current = event.currentTarget as HTMLElement
-        setOpenMenu(null)
-        setOverflowOpen(!overflowOpen)
-      }}
+      onClick={selectMore}
     >
       <span data-slot='navigator-item-icon'>
         {presentNavIcon(
@@ -549,13 +558,7 @@ export function NavigatorPrimary({
                 index={slots.tabs.length}
                 expanded={overflowOpen}
                 controls={overflowOpen ? overflowPaneId : undefined}
-                onSelect={(event) => {
-                  if (event.currentTarget instanceof HTMLElement) {
-                    overflowOpener.current = event.currentTarget
-                  }
-                  setOpenMenu(null)
-                  setOverflowOpen(!overflowOpen)
-                }}
+                onSelect={selectMore}
               />
             ) : null}
           </div>
