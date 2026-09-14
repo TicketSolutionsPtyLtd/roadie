@@ -78,18 +78,14 @@ export default [
     ...reactHooks.configs.flat['recommended-latest']
   },
   {
+    // Hydration-time syncs from the DOM, storage or Embla. Each needs a
+    // useSyncExternalStore rework, not a one-line fix.
     files: [
-      'packages/components/src/components/Carousel/Carousel.test.tsx',
       'packages/components/src/components/Carousel/CarouselRoot.tsx',
       'packages/components/src/components/Image/index.tsx',
-      'packages/components/src/components/Link/RoadieRoutedLink.tsx',
       'packages/components/src/providers/ThemeProvider.tsx'
     ],
-    rules: Object.fromEntries(
-      Object.keys(reactHooks.configs.flat['recommended-latest'].rules).map(
-        (rule) => [rule, 'warn']
-      )
-    )
+    rules: { 'react-hooks/set-state-in-effect': 'warn' }
   },
 
   // JavaScript files configuration

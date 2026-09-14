@@ -1,3 +1,5 @@
+import { useLayoutEffect } from 'react'
+
 import { waitFor } from '@testing-library/dom'
 import { act, render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -101,10 +103,11 @@ type Captured = {
 function makeCapture() {
   const ref: { current: Captured | null } = { current: null }
   function Spy() {
-    ref.current = {
-      carousel: useCarousel(),
-      api: useCarouselUnsafeEmbla()
-    }
+    const carousel = useCarousel()
+    const api = useCarouselUnsafeEmbla()
+    useLayoutEffect(() => {
+      ref.current = { carousel, api }
+    })
     return null
   }
   return { ref, Spy }
