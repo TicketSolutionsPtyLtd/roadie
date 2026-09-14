@@ -272,15 +272,15 @@ export function ComponentSkeleton({ name }: { name: string }) {
     case 'steps':
       return (
         <div className='flex items-center gap-1.5'>
-          <div className='grid size-5 emphasis-strong place-content-center rounded-full text-[10px] font-bold intent-accent'>
+          <div className='grid size-5 emphasis-strong place-content-center rounded-full text-xs font-bold intent-accent'>
             1
           </div>
           <Skel className='h-0.5 w-6' />
-          <div className='grid size-5 emphasis-strong place-content-center rounded-full text-[10px] font-bold intent-accent'>
+          <div className='grid size-5 emphasis-strong place-content-center rounded-full text-xs font-bold intent-accent'>
             2
           </div>
           <Skel className='h-0.5 w-6' />
-          <div className='grid size-5 place-content-center rounded-full border-2 border-subtle text-[10px] font-bold text-subtle'>
+          <div className='grid size-5 place-content-center rounded-full border-2 border-subtle text-xs font-bold text-subtle'>
             3
           </div>
         </div>
@@ -300,7 +300,7 @@ export function ComponentSkeleton({ name }: { name: string }) {
     case 'popover':
       return (
         <div className='relative w-36 emphasis-raised rounded-xl p-3'>
-          <div className='absolute -top-1 left-6 size-2 rotate-45 rounded-[1px] bg-raised' />
+          <div className='absolute -top-1 left-6 size-2 rotate-45 rounded-xs bg-raised' />
           <Skel className='mb-1.5 h-2 w-16' />
           <Skel className='h-1.5 w-24' />
         </div>
@@ -317,7 +317,7 @@ export function ComponentSkeleton({ name }: { name: string }) {
     case 'calendar-tile':
       return (
         <div className='grid w-14 overflow-hidden rounded-xl emphasis-subtle text-center intent-accent'>
-          <div className='emphasis-strong py-0.5 text-[10px] leading-none font-bold tracking-wide'>
+          <div className='emphasis-strong py-0.5 text-xs leading-none font-bold tracking-wide'>
             NOV
           </div>
           <div className='py-1.5 text-xl leading-none font-bold'>27</div>
@@ -368,10 +368,10 @@ export function ComponentSkeleton({ name }: { name: string }) {
     case 'list':
       return (
         <div className='grid w-44 divide-y divide-subtle rounded-lg border border-subtle bg-normal px-3'>
-          {[20, 16, 24].map((width) => (
+          {['w-20', 'w-16', 'w-24'].map((width) => (
             <div key={width} className='flex items-center gap-2 py-2'>
               <div className='size-4 rounded-full bg-subtle' />
-              <Skel className='h-2' style={{ width: `${width * 0.25}rem` }} />
+              <Skel className={`h-2 ${width}`} />
             </div>
           ))}
         </div>
@@ -436,7 +436,7 @@ export function ComponentSkeleton({ name }: { name: string }) {
         <div className='grid justify-items-center gap-2'>
           <div className='relative rounded-md emphasis-inverted px-2 py-1 text-xs'>
             Add to cart
-            <div className='absolute -bottom-1 left-1/2 size-2 -translate-x-1/2 rotate-45 rounded-[1px] bg-inverted' />
+            <div className='absolute -bottom-1 left-1/2 size-2 -translate-x-1/2 rotate-45 rounded-xs bg-inverted' />
           </div>
           <div className='grid size-8 emphasis-normal place-content-center rounded-full'>
             <Skel className='size-3.5 rounded-full' />
