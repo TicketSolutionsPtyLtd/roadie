@@ -252,8 +252,7 @@ states for every stack it can produce).
 - **A page-first section's own route** renders the page alone: provisional
   depth 1 (role default), resolved 0. Nothing visible changes and no warning
   fires (the pane resolved shallower, not deeper).
-- **A fifth stack pane** (resolved depth 4) matches no rule: it falls to the
-  standalone defaults and warns in development.
+- **A fifth stack pane** (resolved depth 4) is written `data-depth="deep"`: it covers the row above every column while current, draws Back and never Close, and warns once in development.
 - **A third nesting level** likewise warns; two levels are generated.
 - **`onClose` with no Back target** draws Close only; the header hides with it
   where Close does not show.

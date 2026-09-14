@@ -22,7 +22,7 @@ import { ScrollArea } from '../ScrollArea'
 import { PANE_CHROME_NONE, PaneChromeContext } from './PaneChromeContext'
 import { PaneContext } from './PaneContext'
 import { PaneKindContext, PaneStackContext } from './PaneStackContext'
-import { PANE_MAX_DEPTH, ROLE_DEPTH } from './paneColumns'
+import { PANE_DEEP, PANE_MAX_DEPTH, ROLE_DEPTH } from './paneColumns'
 import {
   type PaneEmphasis,
   type PanePrimaryNav,
@@ -190,9 +190,7 @@ export function PaneRoot({
   // the close affordance stays off rather than closing a stack that doesn't
   // exist.
   const isRoot = stack === null ? true : stack.isRootOf(paneId)
-  // No column past the deepest depth: the pane takes the standalone defaults.
-  const pastColumns = depth !== null && depth > PANE_MAX_DEPTH
-  const inStack = stack !== null && role !== 'inspector' && !pastColumns
+  const inStack = stack !== null && role !== 'inspector'
   const isOverflow = kind === 'overflow' || kind === 'generated-overflow'
   const { scrollPastAt, onScrollPast, onScrollDown, registerScroller } = chrome
   // A pane that has opted out of `auto` describes no scroll-linked nav at all.
@@ -317,10 +315,12 @@ export function PaneRoot({
       data-slot='pane'
       data-role={role}
       data-stack-position={position ?? undefined}
-      data-depth={depth === null || pastColumns ? undefined : depth}
+      data-depth={
+        depth === null ? undefined : depth > PANE_MAX_DEPTH ? PANE_DEEP : depth
+      }
       data-stack={inStack ? '' : undefined}
       data-current={current ? '' : undefined}
-      data-level={pastColumns ? undefined : stack?.level}
+      data-level={stack?.level}
       data-overflow={isOverflow ? '' : undefined}
       data-primary-nav={primaryNav}
       className={cn(paneVariants({ emphasis }), className)}

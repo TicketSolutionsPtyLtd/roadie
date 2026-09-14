@@ -304,27 +304,47 @@ describe('the rules a real row matches', () => {
     expect(slotOf(at(2, detail)[0]!.body)).toBe('fill')
   })
 
-  it('leaves a pane past depth 3 to the standalone defaults', () => {
-    const $ = html(stackRow(0, [false, false, false, false, true], false))
-    const fifth = $('[data-depth="4"]')
-    expect(
-      rules
-        .filter((rule) => fifth.matches(rule.selector))
-        .map((rule) => rule.selector)
-    ).toEqual([
-      '[data-slot="pane"][data-depth]',
-      '[data-slot="pane"][data-depth]:not([data-depth="0"])'
+  it('covers the row with a current pane past depth 3, drawing Back and never Close', () => {
+    const matched = (pane: Element) =>
+      rules.filter((rule) => pane.matches(rule.selector))
+    const shows = (pane: Element) =>
+      matched(pane).some((rule) => rule.body.includes('visibility: visible'))
+
+    const deepRow = (current: boolean[], reveal: boolean) =>
+      html(
+        stackRow(0, current, reveal).replace(
+          'data-depth="4"',
+          'data-depth="deep"'
+        )
+      )
+    let $ = deepRow([false, false, false, false, true], false)
+    const fifth = $('[data-depth="deep"]')
+    const own = matched(fifth)
+    expect(own.map((rule) => rule.body)).toEqual([
+      '--pane-back: none; --pane-close: none; --pane-edge: none;',
+      '--pane-back: grid; --pane-edge: grid;',
+      'position: absolute !important; inset: var(--pane-stack-inset, 0px); inset-inline-start: var(--pane-stack-inset-start, var(--pane-stack-inset, 0px)); z-index: 3; visibility: hidden; pointer-events: none;',
+      'visibility: visible; pointer-events: auto;'
     ])
+    expect(own.some((rule) => rule.body.includes('--pane-close: grid'))).toBe(
+      false
+    )
     for (let depth = 0; depth <= PANE_MAX_DEPTH; depth += 1) {
       const pane = $(`[data-depth="${depth}"]`)
       expect(
-        rules.filter(
-          (rule) =>
-            rule.body.startsWith('position: absolute') &&
-            pane.matches(rule.selector)
+        matched(pane).filter((rule) =>
+          rule.body.startsWith('position: absolute')
         )
       ).toHaveLength(1)
+      expect(
+        matched(pane).some((rule) => rule.body.includes('z-index: 3'))
+      ).toBe(false)
     }
+
+    $ = deepRow([false, false, false, true, false], false)
+    expect(shows($('[data-depth="deep"]'))).toBe(false)
+    $ = deepRow([false, false, false, false, true], true)
+    expect(shows($('[data-depth="deep"]'))).toBe(false)
   })
 })
 
@@ -648,7 +668,7 @@ describe('the stacked tier keeps the md inset and the edge cover', () => {
     const base = rules.filter((rule) =>
       rule.body.startsWith('position: absolute !important;')
     )
-    expect(base).toHaveLength(PANE_MAX_LEVELS)
+    expect(base).toHaveLength(2 * PANE_MAX_LEVELS)
     for (const rule of base) {
       expect(rule.body).toContain('inset: var(--pane-stack-inset, 0px);')
       expect(rule.body).toContain(

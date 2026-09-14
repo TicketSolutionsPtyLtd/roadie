@@ -10,6 +10,8 @@ export const PANE_MAX_DEPTH = 3
 export const PANE_MAX_LEVELS = 2
 
 export type PaneDepth = 0 | 1 | 2 | 3
+// Named, not the number: Chrome drops every `data-depth` rule for a value no selector names.
+export const PANE_DEEP = 'deep'
 
 export const ROLE_DEPTH: Record<PaneRole, PaneDepth | null> = {
   list: 0,
@@ -259,11 +261,16 @@ function inspectorVariant(): string {
 function levelRules(level: number): string {
   const stacked = `[data-stack][data-level="${level}"]:is(${tableDepths})`
   const pane = `${row(level)} ${stacked}`
+  const inset = `inset: var(--pane-stack-inset, 0px); inset-inline-start: var(--pane-stack-inset-start, var(--pane-stack-inset, 0px));`
+  // Past the deepest column: covers the row, over every column, while current.
+  const deep = `[data-stack][data-level="${level}"][data-depth="${PANE_DEEP}"]`
   return [
     // Reset per row, or a nested row inherits its outer row's value.
     `  ${row(level)} { --pane-stack-inset-start: var(--pane-stack-inset); }`,
     `  ${besideVerticalPrimary(level)} { --pane-stack-inset-start: 0px; }`,
-    `  ${pane} { position: absolute !important; inset: var(--pane-stack-inset, 0px); inset-inline-start: var(--pane-stack-inset-start, var(--pane-stack-inset, 0px)); }`,
+    `  ${pane} { position: absolute !important; ${inset} }`,
+    `  ${row(level)} ${deep} { position: absolute !important; ${inset} z-index: 3; visibility: hidden; pointer-events: none; }`,
+    `  ${row(level)}:not([data-reveal]) ${deep}[data-current] { visibility: visible; pointer-events: auto; }`,
     `  @media (prefers-reduced-motion: no-preference) { ${row(level)}[data-pushing] ${stacked} { transition-duration: var(--duration-slow); } }`,
     `  ${row(level)} [data-role="inspector"][data-level="${level}"] { display: none; order: 99; flex: 0 0 ${rem(PANE_INSPECTOR)}; }`,
     `  ${row(level)}:not([data-overflow]) [data-stack][data-level="${level}"][data-overflow] { display: none; }`,
