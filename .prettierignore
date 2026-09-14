@@ -9,6 +9,7 @@ build
 **/build/**
 out
 **/out/**
+packages/components/src/css/pane-columns.css
 
 # Test coverage
 coverage

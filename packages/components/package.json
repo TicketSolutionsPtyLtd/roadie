@@ -197,9 +197,10 @@
     "access": "public"
   },
   "scripts": {
-    "build": "pnpm generate:exports && tsdown && pnpm check:dts && pnpm check:exports",
+    "build": "pnpm generate:exports && pnpm generate:pane-css && tsdown && pnpm check:dts && pnpm check:exports",
     "build:quiet": "pnpm generate:exports && tsdown --log-level warn",
     "generate:exports": "node scripts/generate-package-exports.mjs",
+    "generate:pane-css": "node scripts/generate-pane-columns.mjs",
     "check:dts": "node scripts/check-dts.mjs",
     "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css",
     "build:spotillustration": "node scripts/svg-to-spot-illustration.cjs",
