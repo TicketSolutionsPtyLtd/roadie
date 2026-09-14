@@ -12,6 +12,7 @@
     "incremental": true
   },
   "include": [
+    "raw.d.ts",
     "src/**/*.ts",
     "src/**/*.tsx",
     "src/components/**/*.ts",
