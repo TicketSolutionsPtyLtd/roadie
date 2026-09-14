@@ -68,7 +68,7 @@ export type NavigatorContextValue = {
     next: NavigatorSlotMeta[]
   ) => void
   /** The More control that opened the pane, for returning focus. */
-  overflowOpener: RefObject<HTMLElement | null>
+  overflowOpenerRef: RefObject<HTMLElement | null>
   /** Whether a `Navigator.Content` is a direct child of the root. */
   hasContent: boolean
   /** `menuId(surface, value)` of the open menu, or null. */
@@ -117,7 +117,7 @@ export const NavigatorContext = createContext<NavigatorContextValue>({
   overflowPaneId: '',
   overflowItems: { horizontal: [], vertical: [] },
   setOverflowItems: () => {},
-  overflowOpener: { current: null },
+  overflowOpenerRef: { current: null },
   hasContent: false,
   openMenu: null,
   setOpenMenu: () => {},

@@ -30,7 +30,7 @@ import {
 } from './NavigatorPrimary'
 import { findActiveSection, findItem, findMenuItem } from './activeSection'
 import type { NavigatorSlotMeta } from './mobileSlots'
-import { primarySignature } from './primarySignature'
+import { primarySignature, slotsSignature } from './primarySignature'
 import { type SectionMemory, nextMemory } from './sectionMemory'
 import { navigatorRootVariants } from './variants'
 
@@ -137,12 +137,17 @@ export function NavigatorRoot({
   }
   const [overflowItems, setOverflowItemsState] =
     useState<NavigatorOverflowSets>({ horizontal: [], vertical: [] })
+  // Primary hands over a fresh array every render; only a new signature republishes.
   const setOverflowItems = useCallback(
     (surface: keyof NavigatorOverflowSets, next: NavigatorSlotMeta[]) =>
-      setOverflowItemsState((current) => ({ ...current, [surface]: next })),
+      setOverflowItemsState((current) =>
+        slotsSignature(current[surface]) === slotsSignature(next)
+          ? current
+          : { ...current, [surface]: next }
+      ),
     []
   )
-  const overflowOpener = useRef<HTMLElement | null>(null)
+  const overflowOpenerRef = useRef<HTMLElement | null>(null)
   const overflowPaneId = useId()
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [sectionMemory, setSectionMemory] = useState<SectionMemory>(
@@ -166,16 +171,12 @@ export function NavigatorRoot({
 
   // A walk, not a child registration, which raced Primary's "no host" warning on first commit.
   const { hasContent, primary } = useMemo(() => {
-    let hasContent = false
-    let primary: ReactElement<NavigatorPrimaryProps> | undefined
-    Children.forEach(children, (child) => {
-      if (!isValidElement(child)) return
-      if (child.type === NavigatorContent) hasContent = true
-      if (child.type === NavigatorPrimary) {
-        primary ??= child as ReactElement<NavigatorPrimaryProps>
-      }
-    })
-    return { hasContent, primary }
+    const elements = Children.toArray(children).filter(isValidElement)
+    return {
+      hasContent: elements.some((child) => child.type === NavigatorContent),
+      primary: elements.find((child) => child.type === NavigatorPrimary) as
+        ReactElement<NavigatorPrimaryProps> | undefined
+    }
   }, [children])
 
   // During render, not from Primary's effect, so the server renders the section's list pane.
@@ -240,7 +241,7 @@ export function NavigatorRoot({
       overflowPaneId,
       overflowItems,
       setOverflowItems,
-      overflowOpener,
+      overflowOpenerRef,
       hasContent,
       openMenu,
       setOpenMenu,

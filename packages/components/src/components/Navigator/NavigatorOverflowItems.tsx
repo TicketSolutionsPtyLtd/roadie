@@ -54,6 +54,26 @@ function toRuns(slots: NavigatorSlotMeta[]): Run[] {
   return runs
 }
 
+// A folded menu is as old as the last structural change, so its items call
+// through to the current tree.
+function withCurrentHandlers(
+  menu: ReactElement<NavigatorMenuProps>,
+  activate: (index: number) => void
+) {
+  let position = 0
+  return cloneElement(menu, {
+    children: Children.map(menu.props.children, (child) => {
+      if (!isValidElement(child) || child.type !== NavigatorMenuItem) {
+        return child
+      }
+      const index = position++
+      return cloneElement(child as ReactElement<NavigatorMenuItemProps>, {
+        onClick: () => activate(index)
+      })
+    })
+  })
+}
+
 /**
  * The folded destinations as a `List`, placed by the consumer inside
  * `Navigator.OverflowPane`. Each orientation's rows show only where that
@@ -72,25 +92,6 @@ export function NavigatorOverflowItems({
     activateMenuItem
   } = use(NavigatorContext)
 
-  // A folded menu is as old as the last structural change, so its items call through to the current tree.
-  const withCurrentHandlers = (
-    value: string,
-    menu: ReactElement<NavigatorMenuProps>
-  ) => {
-    let position = 0
-    return cloneElement(menu, {
-      children: Children.map(menu.props.children, (child) => {
-        if (!isValidElement(child) || child.type !== NavigatorMenuItem) {
-          return child
-        }
-        const index = position++
-        return cloneElement(child as ReactElement<NavigatorMenuItemProps>, {
-          onClick: () => activateMenuItem(value, index)
-        })
-      })
-    })
-  }
-
   // List.Item renders its own <li>, so it can't be a menu trigger.
   const renderMenuRow = (
     set: keyof NavigatorOverflowSets,
@@ -101,7 +102,9 @@ export function NavigatorOverflowItems({
       <NavigatorMenuHost
         surface={`overflow-${set}`}
         value={slot.value}
-        menu={withCurrentHandlers(slot.value, menu)}
+        menu={withCurrentHandlers(menu, (index) =>
+          activateMenuItem(slot.value, index)
+        )}
         label={textOf(slot.label) || undefined}
         trigger={
           <button
