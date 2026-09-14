@@ -1931,7 +1931,9 @@ describe('depth attributes', () => {
         .map((rule) => rule.body)
     const own = bodies(fifth)
     expect(own.some((body) => body.includes('z-index: 3'))).toBe(true)
-    expect(own).toContain('visibility: visible; pointer-events: auto;')
+    expect(own).toContain(
+      'translate: 0 0; visibility: visible; pointer-events: auto;'
+    )
     expect(own).toContain('--pane-back: grid; --pane-edge: grid;')
     expect(own.some((body) => body.includes('--pane-close: grid'))).toBe(false)
     const cell = (slot: string) => fifth.querySelector(`[data-slot="${slot}"]`)!

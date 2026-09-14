@@ -277,7 +277,7 @@ function levelRules(level: number): string {
   const stacked = `[data-stack][data-level="${level}"]:is(${tableDepths})`
   const pane = `${row(level)} ${stacked}`
   const inset = `inset: var(--pane-stack-inset, 0px); inset-inline-start: var(--pane-stack-inset-start, var(--pane-stack-inset, 0px));`
-  // Past the deepest column: covers the row, over every column, while current.
+  // Past the deepest column: slides in over every column while current.
   const deep = `[data-stack][data-level="${level}"][data-depth="${PANE_DEEP}"]`
   return [
     // Reset per row, or a nested row inherits its outer row's value.
@@ -287,9 +287,9 @@ function levelRules(level: number): string {
     `  [dir="rtl"] [dir="ltr"] ${row(level)} { --pane-dir: 1; }`,
     `  ${besideVerticalPrimary(level)} { --pane-stack-inset-start: 0px; }`,
     `  ${pane} { position: absolute !important; ${inset} }`,
-    `  ${row(level)} ${deep} { position: absolute !important; ${inset} z-index: 3; visibility: hidden; pointer-events: none; }`,
-    `  ${row(level)}:not([data-reveal]) ${deep}[data-current] { visibility: visible; pointer-events: auto; }`,
-    `  @media (prefers-reduced-motion: no-preference) { ${row(level)}[data-pushing] ${stacked} { transition-duration: var(--duration-slow); } }`,
+    `  ${row(level)} ${deep} { position: absolute !important; ${inset} z-index: 3; ${AHEAD} visibility: hidden; pointer-events: none; transition-property: translate, visibility; transition-timing-function: var(--ease-enter); }`,
+    `  ${row(level)}:not([data-reveal]) ${deep}[data-current] { translate: 0 0; visibility: visible; pointer-events: auto; }`,
+    `  @media (prefers-reduced-motion: no-preference) { ${row(level)}[data-pushing] :is(${stacked}, ${deep}) { transition-duration: var(--duration-slow); } }`,
     `  ${row(level)} [data-role="inspector"][data-level="${level}"] { order: 99; flex: 0 0 ${rem(PANE_INSPECTOR)}; }`,
     `  ${row(level)}:not([data-overflow]) [data-stack][data-level="${level}"][data-overflow] { ${HIDDEN} }`,
     `  ${row(level)}[data-overflow] ${stackPane(level, 0)}:not([data-overflow]) { ${HIDDEN} }`
