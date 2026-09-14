@@ -38,7 +38,6 @@ import {
 } from './mobileSlots'
 import { presentNavIcon } from './presentNavIcon'
 import { PRIMARY_METRICS } from './primaryCapacity'
-import { slotsSignature } from './primarySignature'
 import { activeHref, rememberedHref } from './sectionMemory'
 import { textOf } from './splitSecondary'
 import { usePrimaryCapacity } from './usePrimaryCapacity'
@@ -87,7 +86,7 @@ export function NavigatorPrimary({
     setOverflowOpen,
     overflowPaneId,
     setOverflowItems,
-    overflowOpener,
+    overflowOpenerRef,
     hasContent,
     openMenu,
     setOpenMenu,
@@ -130,11 +129,11 @@ export function NavigatorPrimary({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return
       setOverflowOpen(false)
-      overflowOpener.current?.focus()
+      overflowOpenerRef.current?.focus()
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [overflowOpen, openMenu, setOverflowOpen, overflowOpener])
+  }, [overflowOpen, openMenu, setOverflowOpen, overflowOpenerRef])
 
   // Root reads a direct child's children itself; only a wrapped Primary has to publish them.
   useEffect(() => {
@@ -237,18 +236,20 @@ export function NavigatorPrimary({
       : undefined
   const tabCount = slots.tabs.length + (hasMore ? 1 : 0)
 
-  // `folded` is a fresh array every render; its signature is the stable identity.
   const foldedKey = folded.map((slot) => slot.value).join(',')
-  const foldedSignature = slotsSignature(folded)
   useEffect(() => {
     setOverflowItems('horizontal', folded)
-  }, [foldedSignature, setOverflowItems])
+  }, [folded, setOverflowItems])
 
   const hasToggle = collected.toggles.length > 0
+  const clusterCapsules = useMemo(
+    () => primaryCapsules(collected.cluster),
+    [collected.cluster]
+  )
   const { folded: verticalFolded, shown: verticalShown } = usePrimaryCapacity(
     clusterRef,
     brandRef,
-    primaryCapsules(collected.cluster),
+    clusterCapsules,
     hasToggle && !expanded ? PRIMARY_METRICS.toggleRow : 0,
     !expanded
   )
@@ -258,10 +259,9 @@ export function NavigatorPrimary({
   const verticalFoldedKey = verticalFoldedSlots
     .map((slot) => slot.value)
     .join(',')
-  const verticalFoldedSignature = slotsSignature(verticalFoldedSlots)
   useEffect(() => {
     setOverflowItems('vertical', verticalFoldedSlots)
-  }, [verticalFoldedSignature, setOverflowItems])
+  }, [verticalFoldedSlots, setOverflowItems])
 
   // Once the navigation in view folds nothing, no More control is left to close More.
   const shownFoldedKey = verticalShown ? verticalFoldedKey : foldedKey
@@ -276,7 +276,7 @@ export function NavigatorPrimary({
   // Like an active tab, an open More scrolls to the top; choosing a destination closes it.
   const selectMore = (event: MouseEvent) => {
     if (event.currentTarget instanceof HTMLElement) {
-      overflowOpener.current = event.currentTarget
+      overflowOpenerRef.current = event.currentTarget
     }
     setOpenMenu(null)
     if (!overflowOpen) {

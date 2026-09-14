@@ -15,7 +15,8 @@ type Measured = { viewport: number; brandPadding: number }
  * One observer on the cluster's viewport; everything else is arithmetic.
  * `restingBrandPadding` is the brand region's bottom padding, in rem, once it
  * stops animating: capacity is measured against where the viewport settles,
- * so an expand or collapse folds once rather than frame by frame.
+ * so an expand or collapse folds once rather than frame by frame. Pass
+ * `capsules` memoised, or the fit reruns every render.
  */
 export function usePrimaryCapacity(
   viewportRef: RefObject<HTMLElement | null>,
@@ -48,14 +49,6 @@ export function usePrimaryCapacity(
     return () => observer.disconnect()
   }, [viewportRef, brandRef])
 
-  // `capsules` is rebuilt every render; this string is its identity.
-  const shape = capsules
-    .map(
-      (capsule) =>
-        `${capsule.key}:${capsule.slots.map((slot) => `${slot.value}/${slot.priority}`).join(',')}`
-    )
-    .join('|')
-
   // A hidden viewport measures zero.
   const shown = measured.viewport > 0
   const available = shown
@@ -64,7 +57,7 @@ export function usePrimaryCapacity(
 
   const folded = useMemo(
     () => (enabled ? fitPrimaryCluster(capsules, available).folded : NONE),
-    [shape, available, enabled]
+    [capsules, available, enabled]
   )
   return { folded, shown }
 }
