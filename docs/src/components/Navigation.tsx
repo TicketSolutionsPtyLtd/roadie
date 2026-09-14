@@ -235,7 +235,11 @@ export function DocsNavigator({
               >
                 {section.title}
                 {section.href === '/components' ? (
-                  <Navigator.Secondary aria-label='Components' searchable>
+                  <Navigator.Secondary
+                    aria-label='Components'
+                    root='page'
+                    searchable
+                  >
                     {componentCategories.map((category) => (
                       <Navigator.Group key={category.name}>
                         <Navigator.GroupTitle>

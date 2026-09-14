@@ -1,6 +1,5 @@
-import { CubeIcon } from '@phosphor-icons/react/ssr'
-
-import { EmptyState } from '@oztix/roadie-components/empty-state'
+import { ComponentBrowser } from '@/components/ComponentBrowser'
+import { getComponentManifest, groupByCategory } from '@/lib/component-manifest'
 
 export const metadata = {
   title: 'Components',
@@ -8,16 +7,13 @@ export const metadata = {
     'Accessible React components built on Base UI, styled with intent and emphasis.'
 }
 
-export default function ComponentsPage() {
+export default async function ComponentsPage() {
+  const categories = await groupByCategory(await getComponentManifest())
+
   return (
-    <EmptyState>
-      <EmptyState.IconTile>
-        <CubeIcon weight='bold' />
-      </EmptyState.IconTile>
-      <EmptyState.Title>Select a component</EmptyState.Title>
-      <EmptyState.Description>
-        Browse the list, or search it by name.
-      </EmptyState.Description>
-    </EmptyState>
+    <div className='grid gap-8'>
+      <p className='text-lg text-subtle'>{metadata.description}</p>
+      <ComponentBrowser categories={categories} />
+    </div>
   )
 }
