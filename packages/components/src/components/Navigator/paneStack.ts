@@ -136,7 +136,8 @@ export function provisionalDepth({
 
 /**
  * Depths once registered: declared or role default first, document order only
- * between equals, with no gaps. More and the section list sit at 0 and take no rank.
+ * between equals, with no gaps. More and the section list sit at 0 and take no
+ * rank; open More pushes the ranked panes down one only when the root is empty.
  */
 export function resolveDepths(
   entries: readonly DepthEntry[]

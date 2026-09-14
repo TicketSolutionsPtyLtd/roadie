@@ -186,6 +186,13 @@ export function panesShownAt(columns: number) {
           ))
   )
   const hiding = rules.filter((rule) => rule.body === 'display: none;')
+  if (
+    hiding.some((rule) => rule.conditions.some((c) => !c.startsWith('@layer')))
+  ) {
+    throw new Error(
+      'panesShownAt reads display: none from unconditional rules only'
+    )
+  }
   return Array.from(
     document.querySelectorAll<HTMLElement>(
       '[data-slot="pane"][data-stack][data-level="0"]'

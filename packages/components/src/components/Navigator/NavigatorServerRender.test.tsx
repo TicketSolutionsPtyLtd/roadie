@@ -1,4 +1,11 @@
-import { type ReactElement, type ReactNode, StrictMode } from 'react'
+import {
+  type ReactElement,
+  type ReactNode,
+  StrictMode,
+  use,
+  useLayoutEffect,
+  useRef
+} from 'react'
 
 import { act, render, within } from '@testing-library/react'
 import { type Root, hydrateRoot } from 'react-dom/client'
@@ -7,7 +14,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { Navigator } from '.'
 import { Pane } from '../Pane'
-import { FakeIcon, flushViewportMeasurement, testBrand } from './testUtils'
+import { PaneContext } from '../Pane/PaneContext'
+import {
+  FakeIcon,
+  flushViewportMeasurement,
+  panesShownAt,
+  testBrand
+} from './testUtils'
 
 const Wrapper = ({ children }: { children: ReactNode }) => <>{children}</>
 
@@ -399,5 +412,73 @@ describe('Navigator server render of depths', () => {
     expect(depths(host)).toEqual(before)
     act(() => root?.unmount())
     vi.restoreAllMocks()
+  })
+})
+
+describe('More open from the first render', () => {
+  function DepthProbe({ log }: { log: (string | null)[] }) {
+    use(PaneContext)
+    const ref = useRef<HTMLSpanElement>(null)
+    useLayoutEffect(() => {
+      log.push(
+        ref.current
+          ?.closest('[data-slot="pane"]')
+          ?.getAttribute('data-depth') ?? null
+      )
+    })
+    return <span ref={ref} data-slot='depth-probe' />
+  }
+
+  const PageFirst = ({ log }: { log: (string | null)[] }) => (
+    <Navigator value='/a' showMore>
+      <Navigator.Primary aria-label='Main'>
+        {testBrand}
+        {['/a', '/b', '/c', '/d', '/e', '/f'].map((v) => (
+          <Navigator.Item key={v} value={v} href={v} icon={<FakeIcon />}>
+            {v}
+          </Navigator.Item>
+        ))}
+      </Navigator.Primary>
+      <Navigator.Content>
+        <Pane role='detail' current>
+          <DepthProbe log={log} />
+        </Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+
+  it('keeps a page-first detail beside More from its first client commit', async () => {
+    const log: (string | null)[] = []
+    render(<PageFirst log={log} />)
+    await flushViewportMeasurement()
+    await flushViewportMeasurement()
+    expect(log).not.toContain('0')
+    expect(log.at(-1)).toBe('1')
+    expect(panesShownAt(2)).toEqual(['detail', 'More'])
+  })
+
+  it('keeps it there through hydration', async () => {
+    const serverLog: (string | null)[] = []
+    const host = serverRender(<PageFirst log={serverLog} />)
+    expect(
+      host
+        .querySelector('[data-slot="depth-probe"]')
+        ?.closest('[data-slot="pane"]')
+    ).toHaveAttribute('data-depth', '1')
+    const log: (string | null)[] = []
+    const recoverable = vi.fn()
+    let root: Root | null = null
+    await act(async () => {
+      root = hydrateRoot(host, <PageFirst log={log} />, {
+        onRecoverableError: recoverable
+      })
+    })
+    await flushViewportMeasurement()
+    await flushViewportMeasurement()
+    expect(recoverable).not.toHaveBeenCalled()
+    expect(log).not.toContain('0')
+    expect(log.at(-1)).toBe('1')
+    expect(panesShownAt(2)).toEqual(['detail', 'More'])
+    act(() => root?.unmount())
   })
 })

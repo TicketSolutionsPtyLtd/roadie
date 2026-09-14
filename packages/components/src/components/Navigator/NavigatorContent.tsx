@@ -56,6 +56,11 @@ export type NavigatorContentProps = ComponentProps<'main'>
 type RegisteredPane = { id: string; node: HTMLElement } & PaneRegistration
 
 const SECTION_ROOT: DepthEntry = { role: 'list', kind: 'generated-section' }
+const OPEN_MORE: DepthEntry = {
+  role: 'list',
+  kind: 'generated-overflow',
+  current: true
+}
 
 type Drawn = {
   /** The active section has a list, drawn or displaced by More. */
@@ -63,6 +68,7 @@ type Drawn = {
   rootListDrawn: boolean
   sectionPane: boolean
   overflow: boolean
+  moreOpen: boolean
 }
 
 // What this render draws, not the snapshot, which learns of a pane a commit late.
@@ -78,8 +84,17 @@ function depthsOf(panes: readonly RegisteredPane[], draws: Drawn) {
     !drawn.some(
       (pane) => pane.kind === 'section' || pane.kind === 'generated-section'
     )
-  const resolved = resolveDepths(rootPending ? [SECTION_ROOT, ...drawn] : drawn)
-  const shift = rootPending ? 1 : 0
+  const morePending =
+    draws.moreOpen &&
+    !drawn.some(
+      (pane) => pane.kind === 'overflow' || pane.kind === 'generated-overflow'
+    )
+  const held = [
+    ...(rootPending ? [SECTION_ROOT] : []),
+    ...(morePending ? [OPEN_MORE] : [])
+  ]
+  const resolved = resolveDepths([...held, ...drawn])
+  const shift = held.length
   return new Map(
     drawn.map((pane, index) => [pane.id, resolved[index + shift] ?? null])
   )
@@ -181,6 +196,7 @@ export function NavigatorContent({
   const generatesOverflow =
     !declaredOverflow &&
     overflowItems.horizontal.length + overflowItems.vertical.length > 0
+  const moreOpen = overflowOpen && (declaredOverflow || generatesOverflow)
 
   const depths = useMemo(
     () =>
@@ -188,9 +204,17 @@ export function NavigatorContent({
         rootList,
         rootListDrawn,
         sectionPane: showsSectionPane,
-        overflow: generatesOverflow
+        overflow: generatesOverflow,
+        moreOpen
       }),
-    [ordered, rootList, rootListDrawn, showsSectionPane, generatesOverflow]
+    [
+      ordered,
+      rootList,
+      rootListDrawn,
+      showsSectionPane,
+      generatesOverflow,
+      moreOpen
+    ]
   )
 
   const onSectionRoute =
@@ -293,7 +317,8 @@ export function NavigatorContent({
       rootList,
       rootListDrawn,
       sectionPane: showsSectionPane,
-      overflow: generatesOverflow
+      overflow: generatesOverflow,
+      moreOpen
     })
     const warnOnce = (message: string) => {
       if (warned.current.has(message)) return
@@ -314,7 +339,14 @@ export function NavigatorContent({
         )
       }
     }
-  }, [registered, rootList, rootListDrawn, showsSectionPane, generatesOverflow])
+  }, [
+    registered,
+    rootList,
+    rootListDrawn,
+    showsSectionPane,
+    generatesOverflow,
+    moreOpen
+  ])
 
   const topPrimaryNav =
     ordered.find((pane) => pane.id === topId)?.primaryNav ?? 'auto'
