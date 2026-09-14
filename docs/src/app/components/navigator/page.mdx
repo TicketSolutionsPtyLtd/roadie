@@ -375,6 +375,38 @@ export function AppNavigator() {
 }
 ```
 
+### Showing More from the URL
+
+More works the same way. Pass `showMore` and `onShowMoreChange` and More opens
+only when you say so; without them it keeps its own state. Every tap that opens
+or closes it asks through `onShowMoreChange`: More, Escape, a row or menu that
+doesn't navigate, and a new `value` while `showMore` is still true. A row or tab
+that navigates doesn't ask — its route closes More as it commits, so the old page
+never shows in between. The docs use `?more`: push to open it, so Back closes
+it, and link each row to its own route without the parameter.
+
+```tsx
+function NavMoreQuery({ onChange }: { onChange: (next: boolean) => void }) {
+  const showMore = useSearchParams().has('more')
+  useEffect(() => {
+    onChange(showMore)
+  }, [showMore, onChange])
+  return null
+}
+
+<Navigator
+  value={pathname}
+  showMore={showMore}
+  onShowMoreChange={(next) =>
+    router.push(next ? `${pathname}?more` : pathname, { scroll: false })
+  }
+>
+  …
+</Navigator>
+```
+
+Render `NavMoreQuery` inside the same `Suspense` boundary as `NavListQuery`.
+
 ### Section roots
 
 A section's route shows its generated list by default. `root='page'` on
@@ -750,7 +782,8 @@ More opens a list pane — over the stack on a phone, switching in place like
 any tab rather than sliding, the leading column beside your detail from `lg`.
 Like an active tab, tapping More again scrolls it to the top rather than
 closing it. Choosing any destination closes it: a row, a
-primary item or tab, or a new `value` from your router, like Back. Omit it and `Navigator.Content` generates one
+primary item or tab, or a new `value` from your router, like Back. To keep it
+in the URL, see [Showing More from the URL](#showing-more-from-the-url). Omit it and `Navigator.Content` generates one
 titled "More"; declare `Navigator.OverflowPane` with `Navigator.OverflowItems`
 inside to write your own header or add content around the rows.
 

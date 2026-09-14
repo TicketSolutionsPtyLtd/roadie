@@ -17,7 +17,8 @@ collapse-on-scroll header and a stack position when panes share a screen.
 Also ships `Navigator.Menu`/`MenuItem`, `Navigator.ExpandToggle`,
 `Navigator.OverflowPane`/`OverflowItems`,
 `Navigator.SecondaryPane`/`SecondaryItems`; `showList`/`onShowListChange` to
-show a section's list from the URL; `expandedFromDocument` with
+show a section's list from the URL; `showMore`/`onShowMoreChange` to keep More
+in the URL too; `expandedFromDocument` with
 `getNavigatorExpandedScript` from `@oztix/roadie-core/navigator`.
 
 A section chooses what its route shows with `root` on `Navigator.Secondary`:

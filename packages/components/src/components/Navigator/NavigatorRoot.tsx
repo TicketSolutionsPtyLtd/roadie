@@ -6,6 +6,7 @@ import {
   type ReactNode,
   isValidElement,
   useCallback,
+  useEffect,
   useId,
   useMemo,
   useRef,
@@ -63,6 +64,10 @@ export type NavigatorRootProps = {
   showList?: boolean
   /** Called when the active section's tab asks to show or hide the list; omit it and the tab links to the section route. */
   onShowListChange?: (next: boolean) => void
+  /** Opens the More pane; derive it from your URL, e.g. `?more`. Omit it and More keeps its own state. */
+  showMore?: boolean
+  /** Called when More asks to open or close. A routed choice closes it with the route instead. */
+  onShowMoreChange?: (next: boolean) => void
   /**
    * The large-screen vertical navigation shows labels beside icons. Navigator
    * never touches storage — persist the choice yourself (a cookie reads on the
@@ -84,6 +89,8 @@ export function NavigatorRoot({
   onValueChange,
   showList,
   onShowListChange,
+  showMore,
+  onShowMoreChange,
   expanded: expandedProp,
   defaultExpanded,
   onExpandedChange,
@@ -92,9 +99,19 @@ export function NavigatorRoot({
   children
 }: NavigatorRootProps) {
   // Handlers are read at call time, so the actions context never changes with them.
-  const handlers = useRef({ onValueChange, onExpandedChange, onShowListChange })
+  const handlers = useRef({
+    onValueChange,
+    onExpandedChange,
+    onShowListChange,
+    onShowMoreChange
+  })
   useIsomorphicLayoutEffect(() => {
-    handlers.current = { onValueChange, onExpandedChange, onShowListChange }
+    handlers.current = {
+      onValueChange,
+      onExpandedChange,
+      onShowListChange,
+      onShowMoreChange
+    }
   })
 
   const [uncontrolledExpanded, setUncontrolledExpanded] = useState(
@@ -148,12 +165,38 @@ export function NavigatorRoot({
       current.signature === signature ? current : { signature, children: next }
     )
   }
-  const [overflowOpen, setOverflowOpen] = useState(false)
-  // A new destination from anywhere, Back included, leaves More.
-  const [lastValue, setLastValue] = useState(value)
-  if (lastValue !== value) {
-    setLastValue(value)
-    setOverflowOpen(false)
+  const moreControlled = showMore !== undefined
+  const [uncontrolledMore, setUncontrolledMore] = useState(false)
+  // The app kept More open across a new destination; hidden until it answers.
+  const [moreClosing, setMoreClosing] = useState(false)
+  const overflowOpen = moreControlled
+    ? showMore && !moreClosing
+    : uncontrolledMore
+  // A new destination from anywhere, Back included, leaves More, unless the same update opened it.
+  const [seen, setSeen] = useState({ value, showMore })
+  if (seen.value !== value || seen.showMore !== showMore) {
+    setSeen({ value, showMore })
+    if (seen.showMore !== showMore) setMoreClosing(false)
+    else if (!moreControlled) setUncontrolledMore(false)
+    else if (showMore) setMoreClosing(true)
+  }
+  useEffect(() => {
+    if (moreClosing) handlers.current.onShowMoreChange?.(false)
+  }, [moreClosing])
+  const overflowOpenNow = useRef(overflowOpen)
+  useIsomorphicLayoutEffect(() => {
+    overflowOpenNow.current = overflowOpen
+  })
+  const setOverflowOpen = (next: boolean) => {
+    setMoreClosing(false)
+    if (!moreControlled) setUncontrolledMore(next)
+    if (overflowOpenNow.current !== next) {
+      handlers.current.onShowMoreChange?.(next)
+    }
+  }
+  // A routed choice: the route that follows closes a controlled More.
+  const closeOverflowOnRoute = () => {
+    if (!moreControlled) setOverflowOpen(false)
   }
   const [overflowItems, setOverflowItemsState] =
     useState<NavigatorOverflowSets>({ horizontal: [], vertical: [] })
@@ -269,6 +312,7 @@ export function NavigatorRoot({
     activateItem,
     activateMenuItem,
     setOverflowOpen,
+    closeOverflowOnRoute,
     overflowPaneId,
     setOverflowItems,
     overflowOpenerRef,

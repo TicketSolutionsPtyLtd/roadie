@@ -54,7 +54,7 @@ function toRuns(slots: NavigatorSlotMeta[]): Run[] {
 export function NavigatorOverflowItems({
   className
 }: NavigatorOverflowItemsProps) {
-  const { setValue, setOverflowOpen, activateItem } = use(
+  const { setValue, setOverflowOpen, closeOverflowOnRoute, activateItem } = use(
     NavigatorActionsContext
   )
   const { value } = use(NavigatorSelectionContext)
@@ -109,7 +109,9 @@ export function NavigatorOverflowItems({
         current={active && (isActiveValue(slot.value, value) ? 'page' : true)}
         onClick={() => {
           activateItem(slot.value)
-          setOverflowOpen(false)
+          if (slot.href === undefined || isActiveValue(slot.value, value)) {
+            setOverflowOpen(false)
+          } else closeOverflowOnRoute()
           setValue(slot.value)
         }}
       />

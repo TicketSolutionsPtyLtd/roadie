@@ -80,14 +80,23 @@ afterEach(() => {
 function Six({
   value = '/a',
   lowGroup = false,
-  onValueChange
+  onValueChange,
+  showMore,
+  onShowMoreChange
 }: {
   value?: string
   lowGroup?: boolean
   onValueChange?: (next: string) => void
+  showMore?: boolean
+  onShowMoreChange?: (next: boolean) => void
 }) {
   return (
-    <Navigator value={value} onValueChange={onValueChange}>
+    <Navigator
+      value={value}
+      onValueChange={onValueChange}
+      showMore={showMore}
+      onShowMoreChange={onShowMoreChange}
+    >
       <Navigator.Primary aria-label='Main'>
         <Navigator.Brand>Logo</Navigator.Brand>
         {['/a', '/b', '/c', '/d'].map((v) => (
@@ -585,6 +594,133 @@ describe('choosing a primary item closes More', () => {
     await user.click(me)
     expect(more).toHaveAttribute('aria-expanded', 'false')
     expect(me).toHaveAttribute('data-current')
+  })
+})
+
+describe('More from the app’s state', () => {
+  const barMore = () =>
+    within(horizontal()).getByRole('button', { name: 'More' })
+  const moreRow = (name: string) =>
+    within(overflowPane()).getByRole('link', { name })
+
+  it('opens and closes with showMore alone', async () => {
+    const { rerender } = render(withStubLink(<Six showMore={false} />))
+    await flushViewportMeasurement()
+    expect(barMore()).toHaveAttribute('aria-expanded', 'false')
+    rerender(withStubLink(<Six showMore />))
+    expect(barMore()).toHaveAttribute('aria-expanded', 'true')
+    expect(overflowPane()).toHaveAttribute('data-stack-position', 'top')
+    rerender(withStubLink(<Six showMore={false} />))
+    expect(barMore()).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('asks the app to open More, and waits for it', async () => {
+    const user = userEvent.setup()
+    const onShowMoreChange = vi.fn()
+    render(
+      withStubLink(<Six showMore={false} onShowMoreChange={onShowMoreChange} />)
+    )
+    await flushViewportMeasurement()
+    await user.click(barMore())
+    expect(onShowMoreChange).toHaveBeenCalledExactlyOnceWith(true)
+    expect(barMore()).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('scrolls on a re-tap without asking to close', async () => {
+    const user = userEvent.setup()
+    const onShowMoreChange = vi.fn()
+    render(withStubLink(<Six showMore onShowMoreChange={onShowMoreChange} />))
+    await flushViewportMeasurement()
+    const scrollTo = vi.fn()
+    overflowPane().querySelector<HTMLElement>(
+      '[data-slot="pane-viewport"]'
+    )!.scrollTo = scrollTo
+    await user.click(barMore())
+    expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }))
+    expect(onShowMoreChange).not.toHaveBeenCalled()
+    expect(barMore()).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('asks to close on Escape', async () => {
+    const user = userEvent.setup()
+    const onShowMoreChange = vi.fn()
+    render(withStubLink(<Six showMore onShowMoreChange={onShowMoreChange} />))
+    await flushViewportMeasurement()
+    await user.keyboard('{Escape}')
+    expect(onShowMoreChange).toHaveBeenCalledExactlyOnceWith(false)
+  })
+
+  it('asks to close when the current item is chosen from More', async () => {
+    const user = userEvent.setup()
+    const onShowMoreChange = vi.fn()
+    render(
+      withStubLink(
+        <Six value='/e' showMore onShowMoreChange={onShowMoreChange} />
+      )
+    )
+    await flushViewportMeasurement()
+    await user.click(moreRow('/e'))
+    expect(onShowMoreChange).toHaveBeenCalledExactlyOnceWith(false)
+  })
+
+  it('leaves a routed choice to the route, which closes More as it commits', async () => {
+    const user = userEvent.setup()
+    const onShowMoreChange = vi.fn()
+    const { rerender } = render(
+      withStubLink(<Six showMore onShowMoreChange={onShowMoreChange} />)
+    )
+    await flushViewportMeasurement()
+    await user.click(moreRow('/e'))
+    await user.click(within(horizontal()).getByRole('link', { name: '/b' }))
+    expect(onShowMoreChange).not.toHaveBeenCalled()
+    expect(barMore()).toHaveAttribute('aria-expanded', 'true')
+
+    rerender(
+      withStubLink(
+        <Six value='/e' showMore={false} onShowMoreChange={onShowMoreChange} />
+      )
+    )
+    expect(barMore()).toHaveAttribute('aria-expanded', 'false')
+    expect(onShowMoreChange).not.toHaveBeenCalled()
+  })
+
+  it('asks to close when the value changes while the app keeps More open', async () => {
+    const onShowMoreChange = vi.fn()
+    const { rerender } = render(
+      withStubLink(<Six showMore onShowMoreChange={onShowMoreChange} />)
+    )
+    await flushViewportMeasurement()
+    rerender(
+      withStubLink(
+        <Six value='/b' showMore onShowMoreChange={onShowMoreChange} />
+      )
+    )
+    expect(barMore()).toHaveAttribute('aria-expanded', 'false')
+    expect(onShowMoreChange).toHaveBeenCalledExactlyOnceWith(false)
+  })
+
+  it('stays open when the same update changes the value and opens More, e.g. Back', async () => {
+    const onShowMoreChange = vi.fn()
+    const { rerender } = render(
+      withStubLink(
+        <Six value='/e' showMore={false} onShowMoreChange={onShowMoreChange} />
+      )
+    )
+    await flushViewportMeasurement()
+    rerender(withStubLink(<Six showMore onShowMoreChange={onShowMoreChange} />))
+    expect(barMore()).toHaveAttribute('aria-expanded', 'true')
+    expect(onShowMoreChange).not.toHaveBeenCalled()
+  })
+
+  it('reports an uncontrolled More without needing showMore', async () => {
+    const user = userEvent.setup()
+    const onShowMoreChange = vi.fn()
+    render(withStubLink(<Six onShowMoreChange={onShowMoreChange} />))
+    await flushViewportMeasurement()
+    await user.click(barMore())
+    expect(barMore()).toHaveAttribute('aria-expanded', 'true')
+    await user.keyboard('{Escape}')
+    expect(onShowMoreChange.mock.calls).toEqual([[true], [false]])
   })
 })
 
