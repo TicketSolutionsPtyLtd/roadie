@@ -368,6 +368,53 @@ describe('the rules a real row matches', () => {
   })
 })
 
+describe('a page step', () => {
+  const animating = rules.filter((rule) => rule.body.includes('animation:'))
+  const animationOf = (element: Element) =>
+    animating.find((rule) => element.matches(rule.selector))?.body ?? null
+  const stepRow = (step?: 'push' | 'pop', level = 0) =>
+    html(
+      `<div data-slot="navigator-panes" data-level="${level}" ${step ? `data-page-step="${step}"` : ''}><div data-slot="pane" data-stack data-level="${level}" data-depth="0" data-stack-position="behind"></div><div data-slot="pane" data-stack data-level="${level}" data-depth="1" data-current data-stack-position="top"></div><div data-slot="navigator-page-ghost"></div></div>`
+    )
+
+  it('slides only a stacked row, and only with motion allowed', () => {
+    expect(animating.length).toBeGreaterThan(0)
+    for (const rule of animating) {
+      expect(rule.conditions).toContain(
+        `@container panes (width < ${columnTier(2)}rem)`
+      )
+      expect(rule.conditions).toContain(
+        '@media (prefers-reduced-motion: no-preference)'
+      )
+    }
+  })
+
+  it('pushes the top pane in over the ghost, and pops it back from under', () => {
+    for (const level of [0, 1]) {
+      let $ = stepRow('push', level)
+      expect(animationOf($('[data-stack-position="top"]'))).toContain(
+        'navigator-page-enter'
+      )
+      expect(animationOf($('[data-slot="navigator-page-ghost"]'))).toContain(
+        'navigator-page-behind'
+      )
+      expect(animationOf($('[data-stack-position="behind"]'))).toBeNull()
+
+      $ = stepRow('pop', level)
+      expect(animationOf($('[data-stack-position="top"]'))).toContain(
+        'navigator-page-return'
+      )
+      const leave = animationOf($('[data-slot="navigator-page-ghost"]'))
+      expect(leave).toContain('navigator-page-leave')
+      expect(leave).toContain('z-index: 3')
+
+      $ = stepRow(undefined, level)
+      expect(animationOf($('[data-stack-position="top"]'))).toBeNull()
+      expect(animationOf($('[data-slot="navigator-page-ghost"]'))).toBeNull()
+    }
+  })
+})
+
 describe('parent tracks follow the columns a row shows', () => {
   // Resolves a generated track at a content width, in px.
   const trackPx = (track: string, contentPx: number) => {
@@ -907,6 +954,7 @@ describe('panes without the new attributes', () => {
   it('gates every generated rule on data-depth or data-level', () => {
     expect(rules.length).toBeGreaterThan(0)
     for (const rule of rules) {
+      if (rule.conditions.some((c) => c.startsWith('@keyframes'))) continue
       expect(rule.selector).toMatch(/\[data-depth|\[data-level="/)
     }
   })

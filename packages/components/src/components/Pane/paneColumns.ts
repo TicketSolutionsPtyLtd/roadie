@@ -273,6 +273,30 @@ function inspectorVariant(): string {
   return `@custom-variant pane-inspector-yielded {\n${branches.join('\n')}\n}`
 }
 
+const PAGE_GHOST = '[data-slot="navigator-page-ghost"]'
+const PAGE_STEP = 'var(--duration-slow) var(--ease-enter)'
+// Opaque, as the section list parks behind the ghost. The returning pane holds
+// z-index 0, under the ghost and Content's edge cover, as a landing pane does.
+const PAGE_STEP_KEYFRAMES = `  @keyframes navigator-page-enter { from { ${AHEAD} } }
+  @keyframes navigator-page-behind { to { ${BEHIND} } }
+  @keyframes navigator-page-return { from { ${BEHIND} opacity: 0.9; z-index: 0; } to { z-index: 0; } }
+  @keyframes navigator-page-leave { to { ${AHEAD} } }`
+
+// Stacked rows only: columns cut.
+function pageStepRules(level: number): string {
+  const step = (kind: 'push' | 'pop') =>
+    `${row(level)}[data-page-step="${kind}"]`
+  const top = `[data-stack][data-level="${level}"][data-stack-position="top"]`
+  return [
+    `  @container panes (width < ${rem(columnTier(2))}) { @media (prefers-reduced-motion: no-preference) {`,
+    `    ${step('push')} ${top} { animation: navigator-page-enter ${PAGE_STEP}; }`,
+    `    ${step('push')} > ${PAGE_GHOST} { animation: navigator-page-behind ${PAGE_STEP} forwards; }`,
+    `    ${step('pop')} ${top} { animation: navigator-page-return ${PAGE_STEP}; }`,
+    `    ${step('pop')} > ${PAGE_GHOST} { z-index: 3; animation: navigator-page-leave ${PAGE_STEP} forwards; }`,
+    '  } }'
+  ].join('\n')
+}
+
 function levelRules(level: number): string {
   const stacked = `[data-stack][data-level="${level}"]:is(${tableDepths})`
   const pane = `${row(level)} ${stacked}`
@@ -290,6 +314,8 @@ function levelRules(level: number): string {
     `  ${row(level)} ${deep} { position: absolute !important; ${inset} z-index: 3; ${AHEAD} visibility: hidden; pointer-events: none; transition-property: translate, visibility; transition-timing-function: var(--ease-enter); }`,
     `  ${row(level)}:not([data-reveal]) ${deep}[data-current] { translate: 0 0; visibility: visible; pointer-events: auto; }`,
     `  @media (prefers-reduced-motion: no-preference) { ${row(level)}[data-pushing] :is(${stacked}, ${deep}) { transition-duration: var(--duration-slow); } }`,
+    `  ${row(level)} > ${PAGE_GHOST} { position: absolute; ${inset} z-index: 0; }`,
+    pageStepRules(level),
     `  ${row(level)} [data-role="inspector"][data-level="${level}"] { order: 99; flex: 0 0 ${rem(PANE_INSPECTOR)}; }`,
     `  ${row(level)}:not([data-overflow]) [data-stack][data-level="${level}"][data-overflow] { ${HIDDEN} }`,
     `  ${row(level)}[data-overflow] ${stackPane(level, 0)}:not([data-overflow]) { ${HIDDEN} }`
@@ -303,7 +329,7 @@ const PANE_RULES = `  [data-slot="pane"][data-depth] { --pane-back: none; --pane
 
 /** The stylesheet `scripts/generate-pane-columns.mjs` writes. */
 export function renderPaneColumnsCss(): string {
-  const blocks: string[] = [PANE_RULES]
+  const blocks: string[] = [PANE_RULES, PAGE_STEP_KEYFRAMES]
   for (let level = 0; level < PANE_MAX_LEVELS; level += 1) {
     blocks.push(levelRules(level))
     for (let columns = 1; columns <= PANE_MAX_COLUMNS; columns += 1) {
