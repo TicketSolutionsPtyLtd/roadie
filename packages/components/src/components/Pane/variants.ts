@@ -153,7 +153,6 @@ export const paneHeaderCloseVariants = cva([paneHeaderEdgeCellClasses])
 // A container query reads the content box: a 24rem header less its 1.5rem insets.
 export const paneBackLabelClass =
   'hidden max-w-[12ch] truncate @min-[21rem]/pane-header:inline'
-
 export const paneBackLabelledClass = '@max-[21rem]/pane-header:btn-icon-md'
 
 // The large title fades and scales while its row closes underneath.

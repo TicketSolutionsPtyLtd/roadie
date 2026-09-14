@@ -48,6 +48,7 @@ import {
   provisionalPosition,
   resolveDepths
 } from './paneStack'
+import { textOf } from './splitSecondary'
 import { useTopPaneChrome } from './useTopPaneChrome'
 import { navigatorContentVariants, navigatorPanesVariants } from './variants'
 
@@ -229,10 +230,20 @@ export function NavigatorContent({
   const topId = topIndex === -1 ? null : (ordered[topIndex]?.id ?? null)
   const rootIndex = useMemo(() => deriveRootIndex(ordered), [ordered])
 
-  // Unregistered, as on the server: a list pane is the root, top only while revealed.
-  const atRoot =
-    ordered.length === 0 ? revealing || !listPaneShows : topIndex === rootIndex
-  const chrome = useTopPaneChrome({ atRoot })
+  const topChrome = useTopPaneChrome()
+  const sectionBack = useMemo(() => {
+    if (!listPaneShows || overflowOpen || activeSection?.href === undefined) {
+      return null
+    }
+    const back = {
+      backHref: activeSection.href,
+      backLabel: textOf(activeSection.label)
+    }
+    return {
+      top: { ...topChrome, ...back },
+      below: { ...PANE_CHROME_NONE, ...back }
+    }
+  }, [listPaneShows, overflowOpen, activeSection, topChrome])
 
   // Panes register through `register` and `unregister` alone, which stay
   // stable, so these lookups can change with the stack without looping.
@@ -255,9 +266,19 @@ export function NavigatorContent({
   )
 
   const chromeOf = useCallback(
-    (id: string, entry: PaneRegistration) =>
-      positionOf(id, entry) === 'top' ? chrome : PANE_CHROME_NONE,
-    [chrome, positionOf]
+    (id: string, entry: PaneRegistration) => {
+      const position = positionOf(id, entry)
+      const top = position === 'top'
+      if (
+        sectionBack === null ||
+        position === 'ahead' ||
+        depthOf(id, entry) !== 1
+      ) {
+        return top ? topChrome : PANE_CHROME_NONE
+      }
+      return top ? sectionBack.top : sectionBack.below
+    },
+    [positionOf, depthOf, topChrome, sectionBack]
   )
 
   const isRootOf = useCallback(

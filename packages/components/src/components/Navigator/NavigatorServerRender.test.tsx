@@ -147,7 +147,7 @@ describe('Navigator server render', () => {
       within(paneOf(container, 'list')!).getByRole('link', { name: 'Button' })
     ).toHaveAttribute('aria-current', 'page')
     expect(
-      within(paneOf(container, 'detail')!).getByLabelText('Back')
+      within(paneOf(container, 'detail')!).getByLabelText(/^Back\b/)
     ).toHaveAttribute('href', '/components')
   })
 
@@ -159,7 +159,7 @@ describe('Navigator server render', () => {
     ]) {
       const container = serverRender(ui)
       expect(
-        within(paneOf(container, 'detail')!).queryByLabelText('Back')
+        within(paneOf(container, 'detail')!).queryByLabelText(/^Back\b/)
       ).toBeNull()
       container.remove()
     }
@@ -233,7 +233,7 @@ describe('Navigator hydration', () => {
       const before = positions(host)
       const backOf = () =>
         paneOf(host, 'detail')!
-          .querySelector('[aria-label="Back"]')
+          .querySelector('[aria-label^="Back"]')
           ?.getAttribute('href') ?? null
       const back = backOf()
       const listNode = paneOf(host, 'list')
@@ -298,7 +298,7 @@ describe('Navigator server render of a page root', () => {
     const container = serverRender(<PageRootDocs value='/' />)
     expect(positions(container)).toEqual([['detail', 'top']])
     expect(
-      within(paneOf(container, 'detail')!).queryByLabelText('Back')
+      within(paneOf(container, 'detail')!).queryByLabelText(/^Back\b/)
     ).toBeNull()
   })
 
@@ -311,7 +311,7 @@ describe('Navigator server render of a page root', () => {
       ['detail', 'top']
     ])
     expect(
-      within(paneOf(container, 'detail')!).getByLabelText('Back')
+      within(paneOf(container, 'detail')!).getByLabelText(/^Back\b/)
     ).toHaveAttribute('href', '/')
   })
 
@@ -409,6 +409,22 @@ describe('Navigator server render of depths', () => {
     expect(sam.querySelector('[data-slot="pane-header"]')).toHaveClass(
       '[display:var(--pane-edge)]'
     )
+  })
+
+  it('gives the depth-1 pane the section route and label, and the deeper pane its own', () => {
+    const container = serverRender(<ThreeLevels value='/tickets/glamping' />)
+    const [glamping, sam] = Array.from(
+      container.querySelectorAll('[data-slot="pane"][data-role="detail"]')
+    )
+    expect(
+      within(glamping as HTMLElement).getByLabelText('Back to Tickets')
+    ).toHaveAttribute('href', '/tickets')
+    expect(
+      within(sam as HTMLElement).getByLabelText('Back to Glamping')
+    ).toHaveAttribute('href', '/tickets/glamping')
+    expect(
+      within(glamping as HTMLElement).getByLabelText('Close')
+    ).toHaveAttribute('href', '/tickets')
   })
 
   it('hydrates without a mismatch or a depth change', async () => {
