@@ -447,6 +447,51 @@ describe('a page step', () => {
       expect(animationOf($('[data-slot="navigator-page-ghost"]'))).toBeNull()
     }
   })
+
+  it('stops where the first column tier starts', () => {
+    const tiers = rules
+      .flatMap((rule) => rule.conditions)
+      .map((condition) => condition.match(/\(width >= ([\d.]+)rem\)/)?.[1])
+      .filter((width) => width !== undefined)
+      .map(Number)
+    expect(Math.min(...tiers)).toBe(columnTier(2))
+  })
+
+  it('slides with the reading direction, and picks up a reversed step', () => {
+    const frames = rules.filter((rule) =>
+      rule.conditions.some((c) => c.startsWith('@keyframes navigator-page-'))
+    )
+    const parked = frames.filter((frame) => /calc\(.*%/.test(frame.body))
+    expect(parked.length).toBe(4)
+    for (const frame of parked) {
+      expect(frame.body).toContain('var(--pane-dir, 1)')
+    }
+    const starts = frames.filter((frame) => frame.selector === 'from')
+    expect(
+      starts.map((frame) => frame.body.match(/var\((--[\w-]+)/)?.[1])
+    ).toEqual([
+      '--page-step-pane-from',
+      '--page-step-ghost-from',
+      '--page-step-pane-from',
+      '--page-step-ghost-from'
+    ])
+
+    const $ = html(
+      '<div dir="rtl"><div data-slot="navigator-panes" data-level="0"><div data-slot="navigator-panes" data-level="1"></div></div></div>'
+    )
+    const set = (row: Element, property: string) =>
+      rules
+        .filter((rule) => row.matches(rule.selector))
+        .map((rule) => rule.body)
+        .join(' ')
+        .includes(property)
+    for (const level of [0, 1]) {
+      const own = $(`[data-level="${level}"]`)
+      expect(set(own, '--pane-dir: -1')).toBe(true)
+      expect(set(own, '--page-step-ghost-from: initial')).toBe(true)
+      expect(set(own, '--page-step-pane-from: initial')).toBe(true)
+    }
+  })
 })
 
 describe('parent tracks follow the columns a row shows', () => {

@@ -1,9 +1,27 @@
+import { createElement } from 'react'
+
 import { act, render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Navigator } from '.'
+import { List } from '../List'
 import { Pane } from '../Pane'
+import { markCurrent } from './NavigatorPageStep'
 import { flushViewportMeasurement, testBrand } from './testUtils'
+
+const upgrades = { constructed: 0, connected: 0 }
+class LivePlayer extends HTMLElement {
+  constructor() {
+    super()
+    upgrades.constructed += 1
+  }
+  connectedCallback() {
+    upgrades.connected += 1
+  }
+}
+if (!customElements.get('live-player')) {
+  customElements.define('live-player', LivePlayer)
+}
 
 function Docs({
   value,
@@ -57,8 +75,18 @@ function Docs({
         <Pane role='detail' current>
           {value === '/' ? (
             <div id='home' data-testid='home'>
-              <input name='query' />
+              <form id='search'>
+                <input name='query' />
+              </form>
+              <input form='search' data-testid='outside' />
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: '<img alt="" src="data:," onerror="void 0">'
+                }}
+              />
               <iframe title='embed' className='aspect-video' />
+              <canvas className='chart' />
+              {createElement('live-player', { className: 'player' })}
               <Navigator.SectionItems />
             </div>
           ) : (
@@ -80,23 +108,34 @@ const row = () =>
 const ghost = () =>
   document.querySelector<HTMLElement>('[data-slot="navigator-page-ghost"]')!
 
+// What the stacked tier of the pane columns sheet does to a stack pane.
+const stacked = document.createElement('style')
+stacked.textContent =
+  '[data-slot="pane"][data-stack] { position: absolute !important; }'
+
 let finish: () => void = () => {}
-let animating = true
+const setReducedMotion = (value: boolean) =>
+  (
+    globalThis as unknown as { __setReducedMotion?: (v: boolean) => void }
+  ).__setReducedMotion?.(value)
 
 beforeEach(() => {
-  animating = true
   const finished = new Promise<void>((resolve) => {
     finish = resolve
   })
   Element.prototype.getAnimations = vi.fn(function (this: Element) {
-    return animating && this.matches('[data-slot="navigator-page-ghost"]')
+    return this.matches('[data-slot="navigator-page-ghost"]:not(:empty)')
       ? [{ finished } as unknown as Animation]
       : []
   })
+  document.head.append(stacked)
 })
 
 afterEach(() => {
   delete (Element.prototype as Partial<Element>).getAnimations
+  stacked.remove()
+  setReducedMotion(false)
+  vi.restoreAllMocks()
 })
 
 async function navigate(from: string, to: string) {
@@ -135,19 +174,45 @@ describe('a page-root section', () => {
     expect(ghost()).toBeEmptyDOMElement()
   })
 
-  it('draws no ghost where nothing animates, in columns or with reduced motion', async () => {
-    animating = false
+  it('makes no ghost where panes sit in columns', async () => {
+    stacked.remove()
+    const importNode = vi.spyOn(Document.prototype, 'importNode')
     await navigate('/', '/overview/installation')
+    expect(importNode).not.toHaveBeenCalled()
     expect(row()).not.toHaveAttribute('data-page-step')
     expect(ghost()).toBeEmptyDOMElement()
   })
 
-  it('leaves no ids, form names or embeds to collide with the real page', async () => {
+  it('makes no ghost with reduced motion', async () => {
+    setReducedMotion(true)
+    const importNode = vi.spyOn(Document.prototype, 'importNode')
     await navigate('/', '/overview/installation')
-    expect(ghost().querySelector('[id]')).toBeNull()
-    expect(ghost().querySelector('[name]')).toBeNull()
-    expect(ghost().querySelector('iframe')).toBeNull()
-    expect(ghost().querySelector('.aspect-video')).not.toBeNull()
+    expect(importNode).not.toHaveBeenCalled()
+    expect(row()).not.toHaveAttribute('data-page-step')
+  })
+
+  it('leaves nothing in the ghost to collide with the real page', async () => {
+    await navigate('/', '/overview/installation')
+    expect(ghost().querySelector('[data-testid="home"]')).not.toBeNull()
+    for (const attribute of ['id', 'name', 'form', 'onerror']) {
+      expect(ghost().querySelector(`[${attribute}]`)).toBeNull()
+    }
+    expect(ghost().querySelector('script')).toBeNull()
+  })
+
+  it('stands in for anything that runs or draws once connected', async () => {
+    const view = render(<Docs value='/' />)
+    await flushViewportMeasurement()
+    const counted = { ...upgrades }
+    view.rerender(<Docs value='/overview/installation' />)
+    await flushViewportMeasurement()
+    expect(upgrades).toEqual(counted)
+    for (const tag of ['iframe', 'canvas', 'live-player']) {
+      expect(ghost().querySelector(tag)).toBeNull()
+    }
+    for (const kept of ['.aspect-video', '.chart', '.player']) {
+      expect(ghost().querySelector(kept)).not.toBeNull()
+    }
   })
 
   it('shows the picked row current, as the list pane does', async () => {
@@ -172,6 +237,33 @@ describe('a page-root section', () => {
       ghost().querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
         .scrollTop
     ).toBe(240)
+  })
+
+  it('pops from where a push had reached', async () => {
+    const view = await navigate('/', '/overview/installation')
+    view.rerender(<Docs value='/' />)
+    await flushViewportMeasurement()
+    expect(row()).toHaveAttribute('data-page-step', 'pop')
+    expect(ghost().children).toHaveLength(1)
+    expect(ghost()).toHaveTextContent('The page at /overview/installation')
+    expect(row().style.getPropertyValue('--page-step-ghost-from')).not.toBe('')
+    expect(row().style.getPropertyValue('--page-step-pane-from')).not.toBe('')
+  })
+
+  it('starts a fresh step from the keyframes', async () => {
+    await navigate('/', '/overview/installation')
+    expect(row().style.getPropertyValue('--page-step-ghost-from')).toBe('')
+    expect(row().style.getPropertyValue('--page-step-pane-from')).toBe('')
+  })
+
+  it('clears the ghost when Navigator unmounts mid-step', async () => {
+    const view = await navigate('/', '/overview/installation')
+    const panes = row()
+    const host = ghost()
+    view.unmount()
+    expect(panes).not.toHaveAttribute('data-page-step')
+    expect(host).toBeEmptyDOMElement()
+    await act(async () => finish())
   })
 
   it.each([
@@ -200,5 +292,56 @@ describe('a page-root section', () => {
     await flushViewportMeasurement()
     expect(row()).not.toHaveAttribute('data-page-step')
     expect(ghost()).toBeEmptyDOMElement()
+  })
+
+  describe('drops a step still sliding', () => {
+    it('when More opens', async () => {
+      const view = render(<Docs value='/' showMore={false} />)
+      await flushViewportMeasurement()
+      view.rerender(<Docs value='/overview/installation' showMore={false} />)
+      await flushViewportMeasurement()
+      expect(row()).toHaveAttribute('data-page-step', 'push')
+      view.rerender(<Docs value='/overview/installation' showMore />)
+      await flushViewportMeasurement()
+      expect(row()).toHaveAttribute('data-overflow')
+      expect(row()).not.toHaveAttribute('data-page-step')
+      expect(ghost()).toBeEmptyDOMElement()
+    })
+
+    it('when the list shows over the sub-page', async () => {
+      const view = await navigate('/', '/overview/installation')
+      expect(row()).toHaveAttribute('data-page-step', 'push')
+      view.rerender(<Docs value='/overview/installation' showList />)
+      await flushViewportMeasurement()
+      expect(row()).toHaveAttribute('data-reveal')
+      expect(row()).not.toHaveAttribute('data-page-step')
+      expect(ghost()).toBeEmptyDOMElement()
+    })
+
+    it('when the section changes', async () => {
+      const view = await navigate('/overview/installation', '/')
+      expect(row()).toHaveAttribute('data-page-step', 'pop')
+      view.rerender(<Docs value='/components/button' />)
+      await flushViewportMeasurement()
+      expect(row()).not.toHaveAttribute('data-page-step')
+      expect(ghost()).toBeEmptyDOMElement()
+    })
+  })
+})
+
+describe('markCurrent', () => {
+  it('gives a row exactly the look List.Item gives a current one', () => {
+    render(
+      <List>
+        <List.Item title='Picked' href='/picked' current='page' />
+        <List.Item title='Other' href='/other' />
+      </List>
+    )
+    const [current, other] = document.querySelectorAll(
+      '[data-slot="list-item"]'
+    )
+    markCurrent(other!)
+    expect(new Set(other!.classList)).toEqual(new Set(current!.classList))
+    expect(other).toHaveAttribute('aria-current', 'page')
   })
 })

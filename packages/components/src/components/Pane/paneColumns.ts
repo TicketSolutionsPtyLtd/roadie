@@ -366,12 +366,15 @@ function inspectorVariant(): string {
 
 const PAGE_GHOST = '[data-slot="navigator-page-ghost"]'
 const PAGE_STEP = 'var(--duration-slow) var(--ease-enter)'
-// Opaque, as the section list parks behind the ghost. The returning pane holds
+const from = (fallback: string, name: string) =>
+  `translate: var(${name}, ${fallback.slice('translate: '.length, -1)});`
+// A reversed step starts each layer where the other left off. The ghost stays
+// opaque, as the section list parks behind it. The returning pane holds
 // z-index 0, under the ghost and Content's edge cover, as a landing pane does.
-const PAGE_STEP_KEYFRAMES = `  @keyframes navigator-page-enter { from { ${AHEAD} } }
-  @keyframes navigator-page-behind { to { ${BEHIND} } }
-  @keyframes navigator-page-return { from { ${BEHIND} opacity: 0.9; z-index: 0; } to { z-index: 0; } }
-  @keyframes navigator-page-leave { to { ${AHEAD} } }`
+const PAGE_STEP_KEYFRAMES = `  @keyframes navigator-page-enter { from { ${from(AHEAD, '--page-step-pane-from')} } }
+  @keyframes navigator-page-behind { from { ${from('translate: 0 0;', '--page-step-ghost-from')} } to { ${BEHIND} } }
+  @keyframes navigator-page-return { from { ${from(BEHIND, '--page-step-pane-from')} z-index: 0; } to { z-index: 0; } }
+  @keyframes navigator-page-leave { from { ${from('translate: 0 0;', '--page-step-ghost-from')} } to { ${AHEAD} } }`
 
 // Stacked rows only: columns cut.
 function pageStepRules(level: number): string {
@@ -411,6 +414,7 @@ function levelRules(level: number): string {
   return [
     // Reset per row, or a nested row inherits its outer row's value.
     `  ${row(level)} { --pane-stack-inset-start: var(--pane-stack-inset); }`,
+    `  ${row(level)} { --page-step-ghost-from: initial; --page-step-pane-from: initial; }`,
     // Attributes, not `:dir()`: Lightning CSS lowers `:dir()` to a `:lang()` list.
     `  [dir="rtl"] ${row(level)} { --pane-dir: -1; }`,
     `  [dir="rtl"] [dir="ltr"] ${row(level)} { --pane-dir: 1; }`,
