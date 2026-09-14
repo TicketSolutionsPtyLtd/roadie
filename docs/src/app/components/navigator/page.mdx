@@ -419,10 +419,11 @@ on a sub-page goes to its root, like iOS; on the root it scrolls the page to
 the top, reopening a collapsed bar in the same tap. `showList` still shows the
 list over a sub-page, and is ignored on a page root.
 
-Use a page root when the section has an overview worth reading — Home, a
-dashboard. Use a list root when the section is a catalogue you pick from —
-Components. A page root needs the section's `href`; without one the section
-gets the routeless warning and behaves as a list root.
+Use a page root when the section has an overview worth reading or scanning —
+Home, a dashboard, a gallery like this site's Components. Use a list root when
+the list is the section, and its route would only say "pick one" — an inbox,
+settings. A page root needs the section's `href`; without one the section gets
+the routeless warning and behaves as a list root.
 
 ```tsx-live-noinline
 function PageRootNav() {
@@ -1372,12 +1373,12 @@ documented there. The two facts worth knowing from here:
 
 <Guideline title='Section roots'>
   <Guideline.Do code={`<Navigator.Item value='/' href='/' icon={<HouseIcon />}>\n  Home\n  <Navigator.Secondary aria-label='Home pages' root='page'>…</Navigator.Secondary>\n</Navigator.Item>`}>
-    Use a page root when the section has an overview worth reading, such as
-    Home or a dashboard.
+    Use a page root when the section has an overview worth reading or
+    scanning, such as Home, a dashboard or a gallery of previews.
   </Guideline.Do>
-  <Guideline.Dont code={`<Navigator.Item value='/components' href='/components' icon={<CubeIcon />}>\n  Components\n  <Navigator.Secondary aria-label='Components' root='page' searchable>…</Navigator.Secondary>\n</Navigator.Item>`}>
-    Give a catalogue you pick from a page root. Components is a list you
-    search and choose from — keep the list root.
+  <Guideline.Dont code={`<Navigator.Item value='/inbox' href='/inbox' icon={<TrayIcon />}>\n  Inbox\n  <Navigator.Secondary aria-label='Messages' root='page' searchable>…</Navigator.Secondary>\n</Navigator.Item>`}>
+    Give a page root to a section whose route would only say "pick one". An
+    inbox is the list you choose from — keep the list root.
   </Guideline.Dont>
 </Guideline>
 
