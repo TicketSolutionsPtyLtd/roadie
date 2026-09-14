@@ -16,6 +16,8 @@ import { subscribeToTicker } from '../../utils/ticker'
 
 /** Below this, a deadline is urgent enough to warrant a ticking clock. */
 const DEFAULT_URGENT_BELOW_MS = 5 * 60_000
+const DEFAULT_WARN_BELOW_MS = 5 * 60_000
+const DEFAULT_DANGER_BELOW_MS = 2 * 60_000
 
 export type CountdownSeconds = 'urgent' | 'always' | 'never'
 
@@ -39,8 +41,8 @@ export type UrgencyThresholds = {
 export function countdownUrgency(
   ms: number | null,
   {
-    warnBelowMs = 5 * 60_000,
-    dangerBelowMs = 2 * 60_000
+    warnBelowMs = DEFAULT_WARN_BELOW_MS,
+    dangerBelowMs = DEFAULT_DANGER_BELOW_MS
   }: UrgencyThresholds = {}
 ): CountdownUrgency {
   if (ms === null) return 'success'
@@ -64,7 +66,10 @@ export function useCountdownUrgency(
   thresholds: UrgencyThresholds = {}
 ): CountdownUrgency {
   const target = toMs(until)
-  const { warnBelowMs = 5 * 60_000, dangerBelowMs = 2 * 60_000 } = thresholds
+  const {
+    warnBelowMs = DEFAULT_WARN_BELOW_MS,
+    dangerBelowMs = DEFAULT_DANGER_BELOW_MS
+  } = thresholds
   return useSyncExternalStore(
     subscribeToTicker,
     () => countdownUrgency(target - Date.now(), { warnBelowMs, dangerBelowMs }),
