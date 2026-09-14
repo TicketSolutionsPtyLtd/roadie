@@ -32,6 +32,7 @@ import { findActiveSection, findItem, findMenuItem } from './activeSection'
 import type { NavigatorSlotMeta } from './mobileSlots'
 import { primarySignature } from './primarySignature'
 import { type SectionMemory, nextMemory } from './sectionMemory'
+import { useExpandMotion } from './useExpandMotion'
 import { navigatorRootVariants } from './variants'
 
 export type NavigatorRootProps = {
@@ -111,6 +112,8 @@ export function NavigatorRoot({
     }
   }, [expanded, expandedFromDocument, documentExpanded])
   const expandedPending = expandedFromDocument && documentExpanded === undefined
+  const rootRef = useRef<HTMLDivElement>(null)
+  useExpandMotion(rootRef, expanded, expandedPending)
   const primaryId = useId()
   const [navCollapsed, setNavCollapsed] = useState(false)
   const [primaryNav, setPrimaryNav] = useState<PanePrimaryNav>('auto')
@@ -290,6 +293,7 @@ export function NavigatorRoot({
   return (
     <NavigatorContext value={contextValue}>
       <div
+        ref={rootRef}
         data-slot='navigator'
         className={cn(navigatorRootVariants(), className)}
       >
