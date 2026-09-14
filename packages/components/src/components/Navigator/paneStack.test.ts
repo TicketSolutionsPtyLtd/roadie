@@ -6,7 +6,9 @@ import {
   deriveRootIndex,
   deriveTopIndex,
   orderByDocumentPosition,
-  provisionalPosition
+  provisionalDepth,
+  provisionalPosition,
+  resolveDepths
 } from './paneStack'
 
 const entry = (over: Partial<PaneEntry> = {}): PaneEntry => ({
@@ -227,5 +229,54 @@ describe('provisionalPosition', () => {
     expect(
       provisionalPosition({ ...detail, role: 'list', current: false }, false)
     ).toBeNull()
+  })
+})
+
+describe('provisionalDepth', () => {
+  const pane = (role: 'list' | 'detail' | 'inspector', depth?: 0 | 1 | 2 | 3) =>
+    ({ role, kind: 'pane', depth }) as const
+
+  it('takes the declaration, else the role default', () => {
+    expect(provisionalDepth(pane('list'))).toBe(0)
+    expect(provisionalDepth(pane('detail'))).toBe(1)
+    expect(provisionalDepth(pane('detail', 2))).toBe(2)
+    expect(provisionalDepth(pane('inspector'))).toBeNull()
+  })
+
+  it('keeps the generated panes at the root', () => {
+    expect(provisionalDepth({ role: 'list', kind: 'generated-section' })).toBe(
+      0
+    )
+    expect(provisionalDepth({ role: 'list', kind: 'section' })).toBe(0)
+    expect(
+      provisionalDepth({ role: 'list', kind: 'generated-overflow', depth: 2 })
+    ).toBe(0)
+  })
+})
+
+describe('resolveDepths', () => {
+  it('counts stack panes up in document order, whatever they declared', () => {
+    expect(
+      resolveDepths([
+        { role: 'list', kind: 'generated-section' },
+        { role: 'detail', kind: 'pane', depth: 1 },
+        { role: 'inspector', kind: 'pane' },
+        { role: 'detail', kind: 'pane', depth: 1 }
+      ])
+    ).toEqual([0, 1, null, 2])
+  })
+
+  it('makes a lone detail the root', () => {
+    expect(resolveDepths([{ role: 'detail', kind: 'pane' }])).toEqual([0])
+  })
+
+  it('keeps More at the root wherever it renders', () => {
+    expect(
+      resolveDepths([
+        { role: 'list', kind: 'pane' },
+        { role: 'detail', kind: 'pane' },
+        { role: 'list', kind: 'generated-overflow' }
+      ])
+    ).toEqual([0, 1, 0])
   })
 })

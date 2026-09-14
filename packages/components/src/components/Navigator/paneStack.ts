@@ -1,7 +1,9 @@
 import type {
+  PaneKind,
   PaneRegistration,
   PaneStackPosition
 } from '../Pane/PaneStackContext'
+import { type PaneDepth, ROLE_DEPTH } from '../Pane/paneColumns'
 import type { PanePrimaryNav, PaneRole } from '../Pane/variants'
 
 export type PaneEntry = {
@@ -106,4 +108,34 @@ export function provisionalPosition(
   }
   if (revealRoot) return 'ahead'
   return current ? 'top' : null
+}
+
+export type DepthEntry = { role: PaneRole; kind: PaneKind; depth?: PaneDepth }
+
+const isOverflow = (kind: PaneKind) =>
+  kind === 'overflow' || kind === 'generated-overflow'
+
+/** A pane's depth before it registers: declared, else its role's default. More is always the root. */
+export function provisionalDepth({
+  role,
+  kind,
+  depth
+}: DepthEntry): number | null {
+  if (role === 'inspector') return null
+  if (isOverflow(kind)) return 0
+  return depth ?? ROLE_DEPTH[role]
+}
+
+/** Depths once registered: stack panes count up in document order; More stays the root. */
+export function resolveDepths(
+  entries: readonly DepthEntry[]
+): (number | null)[] {
+  let next = 0
+  return entries.map((entry) => {
+    if (entry.role === 'inspector') return null
+    if (isOverflow(entry.kind)) return 0
+    const depth = next
+    next += 1
+    return depth
+  })
 }

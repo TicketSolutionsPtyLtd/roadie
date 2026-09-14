@@ -173,7 +173,8 @@ export {
   type PaneFooterProps,
   type PaneRole,
   type PaneEmphasis,
-  type PanePrimaryNav
+  type PanePrimaryNav,
+  type PaneDepth
 } from './components/Pane'
 
 export { Marquee, type MarqueeProps } from './components/Marquee'

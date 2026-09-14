@@ -3,6 +3,7 @@
 import { createContext } from 'react'
 
 import type { PaneChromeContextValue } from './PaneChromeContext'
+import type { PaneDepth } from './paneColumns'
 import type { PanePrimaryNav, PaneRole } from './variants'
 
 export type PaneStackPosition = 'top' | 'ahead' | 'behind'
@@ -16,6 +17,7 @@ export type PaneRegistration = {
   current: boolean
   primaryNav: PanePrimaryNav
   kind: PaneKind
+  depth?: PaneDepth
 }
 
 export type PaneStackContextValue = {
@@ -26,6 +28,10 @@ export type PaneStackContextValue = {
   chromeOf: (id: string, entry: PaneRegistration) => PaneChromeContextValue
   /** Is this the base of the stack — the one pane a Close would never suit. */
   isRootOf: (id: string) => boolean
+  /** Resolved from document order once registered; declared or role default before. `null` for an inspector. */
+  depthOf: (id: string, entry: PaneRegistration) => number | null
+  /** 0 for the outermost `Navigator.Content`. */
+  level: number
 }
 
 // Registration, not an element-identity walk: an orchestrator cannot see

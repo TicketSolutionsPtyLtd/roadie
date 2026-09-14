@@ -44,6 +44,9 @@ export const navigatorContentVariants = cva([
   'data-instant:[&_[data-slot=pane]]:transition-none'
 ])
 
+// Box-less while Content still lays the panes out itself.
+export const navigatorPanesVariants = cva(['contents'])
+
 // Not configurable — a seven-tab bar is not a shape Navigator can be talked into.
 export const MAX_TABS = 5
 

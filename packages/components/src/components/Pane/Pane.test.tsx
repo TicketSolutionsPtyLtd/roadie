@@ -955,7 +955,9 @@ describe('orchestrator chrome', () => {
       unregister: () => {},
       positionOf: () => null,
       chromeOf: () => ({ ...PANE_CHROME_NONE, ...chrome }),
-      isRootOf: () => false
+      isRootOf: () => false,
+      depthOf: () => 1,
+      level: 0
     }
     return renderPane(
       <PaneStackContext value={fakeStack}>{ui}</PaneStackContext>
@@ -1630,5 +1632,185 @@ describe('Pane chrome clipping', () => {
     expect(pane).toHaveClass('rounded-(--pane-radius)')
     expect(header).toHaveClass('rounded-t-(--pane-radius)')
     expect(footer).toHaveClass('rounded-b-(--pane-radius)')
+  })
+})
+
+describe('depth attributes', () => {
+  it('writes the role default on a standalone pane, with no stack membership', async () => {
+    await renderPane(<Pane role='detail'>Alone</Pane>)
+    expect(pane()).toHaveAttribute('data-depth', '1')
+    expect(pane()).not.toHaveAttribute('data-stack')
+    expect(pane()).not.toHaveAttribute('data-level')
+  })
+
+  it('writes a declared depth', async () => {
+    await renderPane(
+      <Pane role='detail' depth={2}>
+        Sub
+      </Pane>
+    )
+    expect(pane()).toHaveAttribute('data-depth', '2')
+  })
+
+  it('gives an inspector no depth', async () => {
+    await renderPane(<Pane role='inspector'>Details</Pane>)
+    expect(pane()).not.toHaveAttribute('data-depth')
+  })
+
+  it('resolves depth from document order inside a stack, and marks the current pane', async () => {
+    render(
+      <Navigator value='/a'>
+        <Navigator.Content>
+          <Pane role='list'>List</Pane>
+          <Pane role='detail' current>
+            Detail
+          </Pane>
+          <Pane role='detail' current>
+            Sub
+          </Pane>
+          <Pane role='inspector'>Details</Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const panes = Array.from(document.querySelectorAll('[data-slot="pane"]'))
+    expect(panes.map((p) => p.getAttribute('data-depth'))).toEqual([
+      '0',
+      '1',
+      '2',
+      null
+    ])
+    expect(panes.map((p) => p.hasAttribute('data-stack'))).toEqual([
+      true,
+      true,
+      true,
+      false
+    ])
+    expect(panes.map((p) => p.getAttribute('data-level'))).toEqual([
+      '0',
+      '0',
+      '0',
+      '0'
+    ])
+    expect(panes.map((p) => p.hasAttribute('data-current'))).toEqual([
+      false,
+      true,
+      true,
+      false
+    ])
+  })
+
+  it('warns when a pane lands deeper than it declared', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Navigator value='/a'>
+        <Navigator.Content>
+          <Pane role='list'>List</Pane>
+          <Pane role='detail' current>
+            Detail
+          </Pane>
+          <Pane role='detail' depth={1} current>
+            Sub
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(
+      warn.mock.calls.some((c) => String(c[0]).includes('depth={2}'))
+    ).toBe(true)
+    warn.mockRestore()
+  })
+
+  it('stays quiet when two undeclared details resolve by order', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Navigator value='/a'>
+        <Navigator.Content>
+          <Pane role='list'>List</Pane>
+          <Pane role='detail' current>
+            Detail
+          </Pane>
+          <Pane role='detail' current>
+            Sub
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(warn.mock.calls.some((c) => String(c[0]).includes('depth'))).toBe(
+      true
+    )
+    warn.mockRestore()
+  })
+
+  it('writes a fifth stack pane at the deepest column, and warns', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Navigator value='/a'>
+        <Navigator.Content>
+          <Pane role='list'>A</Pane>
+          <Pane role='detail'>B</Pane>
+          <Pane role='detail' depth={2}>
+            C
+          </Pane>
+          <Pane role='detail' depth={3}>
+            D
+          </Pane>
+          <Pane role='detail' depth={3} current>
+            E
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const panes = Array.from(document.querySelectorAll('[data-slot="pane"]'))
+    expect(panes.map((p) => p.getAttribute('data-depth'))).toEqual([
+      '0',
+      '1',
+      '2',
+      '3',
+      '3'
+    ])
+    expect(
+      warn.mock.calls.some((c) => String(c[0]).includes('fifth stack pane'))
+    ).toBe(true)
+    warn.mockRestore()
+  })
+
+  it('nests a second Navigator one level down', async () => {
+    render(
+      <Navigator value='/a'>
+        <Navigator.Content>
+          <Pane role='detail' current>
+            Outer
+            <Navigator value='/x'>
+              <Navigator.Content>
+                <Pane role='list'>Inner list</Pane>
+                <Pane role='detail' current>
+                  Inner detail
+                </Pane>
+              </Navigator.Content>
+            </Navigator>
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const rows = Array.from(
+      document.querySelectorAll('[data-slot="navigator-panes"]')
+    )
+    expect(rows.map((r) => r.getAttribute('data-level'))).toEqual(['0', '1'])
+    const panes = Array.from(document.querySelectorAll('[data-slot="pane"]'))
+    expect(panes.map((p) => p.getAttribute('data-level'))).toEqual([
+      '0',
+      '1',
+      '1'
+    ])
+    expect(panes.map((p) => p.getAttribute('data-depth'))).toEqual([
+      '0',
+      '0',
+      '1'
+    ])
   })
 })

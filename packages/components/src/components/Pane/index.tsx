@@ -28,6 +28,7 @@ Pane.Footer = PaneFooter
 
 export { Pane }
 export type { PaneRole, PaneEmphasis, PanePrimaryNav } from './variants'
+export type { PaneDepth } from './paneColumns'
 export type { PaneRootProps as PaneProps } from './PaneRoot'
 export type { PaneHeaderProps } from './PaneHeader'
 export type { PaneTitleProps } from './PaneTitle'

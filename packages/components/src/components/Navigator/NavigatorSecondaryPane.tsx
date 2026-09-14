@@ -12,7 +12,7 @@ import {
 
 export type NavigatorSecondaryPaneProps = Omit<
   PaneRootProps,
-  'role' | 'current' | 'primaryNav' | 'id'
+  'role' | 'current' | 'depth' | 'primaryNav' | 'id'
 > & {
   /** The section whose generated pane this replaces. */
   value: string

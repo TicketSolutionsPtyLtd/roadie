@@ -18,7 +18,7 @@ import { navigatorOverflowVariants } from './variants'
 
 export type NavigatorOverflowPaneProps = Omit<
   PaneRootProps,
-  'role' | 'presentation' | 'current' | 'primaryNav' | 'id'
+  'role' | 'presentation' | 'current' | 'depth' | 'primaryNav' | 'id'
 >
 
 /**
