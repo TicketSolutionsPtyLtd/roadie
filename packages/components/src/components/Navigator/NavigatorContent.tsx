@@ -264,20 +264,7 @@ export function NavigatorContent({
   const topId = topIndex === -1 ? null : (stack[topIndex]?.id ?? null)
   const rootIndex = useMemo(() => deriveRootIndex(stack), [stack])
 
-  const paneChrome = useTopPaneChrome()
-  const topKnown = topId !== null
-  // Before registration two panes can both be provisionally top; the one that
-  // loses would release the scroller the other still holds.
-  const topChrome = useMemo(
-    () =>
-      topKnown
-        ? paneChrome
-        : {
-            ...paneChrome,
-            registerScroller: PANE_CHROME_NONE.registerScroller
-          },
-    [paneChrome, topKnown]
-  )
+  const topChrome = useTopPaneChrome()
   const sectionBack = useMemo(() => {
     if (!listPaneShows || moreOpen || activeSection?.href === undefined) {
       return null

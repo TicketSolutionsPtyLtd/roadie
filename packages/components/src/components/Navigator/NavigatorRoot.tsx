@@ -285,18 +285,19 @@ export function NavigatorRoot({
     )
 
   // Ref, not state: read imperatively on tap, never rendered.
-  const activePaneScroller = useRef<(() => void) | null>(null)
-  // A pane that stops being top can clean up after the next top registered; it must not clear that one.
+  const activePaneScrollers = useRef<(() => void)[]>([])
+  // The latest one still held wins. Two panes can both be provisionally top
+  // before registration; the one that steps down releases only its own.
   const registerActivePaneScroller = (scroller: () => void) => {
-    activePaneScroller.current = scroller
+    activePaneScrollers.current.push(scroller)
     return () => {
-      if (activePaneScroller.current === scroller) {
-        activePaneScroller.current = null
-      }
+      const held = activePaneScrollers.current
+      const at = held.lastIndexOf(scroller)
+      if (at !== -1) held.splice(at, 1)
     }
   }
   const scrollActivePaneToTop = () => {
-    activePaneScroller.current?.()
+    activePaneScrollers.current.at(-1)?.()
   }
 
   const handlesShowList = onShowListChange !== undefined
