@@ -489,6 +489,48 @@ describe('a declared depth out of document order', () => {
   })
 })
 
+describe('a page-first root with its own backHref', () => {
+  const PageFirst = () => (
+    <Navigator value='/a'>
+      <Navigator.Content>
+        <Pane role='detail' current>
+          <Pane.Header backHref='/elsewhere' />
+          Page
+        </Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+  const tierRules = paneColumnsRulesOf(renderPaneColumnsCss()).filter(
+    (rule) =>
+      rule.body.includes('--pane-back') &&
+      rule.selector.startsWith('[data-slot="navigator-panes"][data-level="0"]')
+  )
+
+  it('never draws Back or Close, before or after hydration', async () => {
+    const host = serverRender(<PageFirst />)
+    const pane = paneOf(host, 'detail')!
+    expect(pane).toHaveAttribute('data-depth', '1')
+    const drawn = tierRules
+      .filter((rule) => pane.matches(rule.selector))
+      .map((rule) => rule.body)
+    expect(drawn).toHaveLength(3)
+    for (const body of drawn) {
+      expect(body).toContain(
+        '--pane-back: none; --pane-close: none; --pane-edge: none;'
+      )
+    }
+    let root: Root | null = null
+    await act(async () => {
+      root = hydrateRoot(host, <PageFirst />)
+    })
+    await flushViewportMeasurement()
+    expect(pane).toHaveAttribute('data-depth', '0')
+    expect(pane.querySelector('[data-slot="pane-back"]')).toBeNull()
+    expect(pane.querySelector('[data-slot="pane-close"]')).toBeNull()
+    act(() => root?.unmount())
+  })
+})
+
 describe('a lone pane that is not current', () => {
   const Lone = () => (
     <Navigator value='/a'>
