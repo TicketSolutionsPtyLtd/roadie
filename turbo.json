@@ -61,6 +61,7 @@
         "src/**/*.{js,jsx,ts,tsx}",
         "**/*.test.{js,jsx,ts,tsx}",
         "jest.config.*",
+        "*.config.{js,mjs,cjs,ts}",
         "package.json"
       ],
       "outputs": []
