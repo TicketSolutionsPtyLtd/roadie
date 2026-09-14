@@ -266,22 +266,6 @@
     "email": "mail@lukebrooker.com"
   },
   "license": "ISC",
-  "size-limit": [
-    {
-      "name": "Carousel",
-      "path": "dist/components/Carousel/index.js",
-      "limit": "9 KB",
-      "ignore": [
-        "react",
-        "react-dom",
-        "@oztix/roadie-core",
-        "@phosphor-icons/react",
-        "embla-carousel",
-        "embla-carousel-react",
-        "embla-carousel-autoplay"
-      ]
-    }
-  ],
   "turbo": {
     "build": {
       "dependsOn": [
