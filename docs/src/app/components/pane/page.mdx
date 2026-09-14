@@ -73,10 +73,11 @@ the text without moving it.
 root (depth 0), `detail` sits under it (depth 1), and `inspector` is a fixed
 14rem track off the stack that yields first — it shows only once every level
 of the stack fits beside it, at 46.25rem with one level, 69rem with two,
-93.75rem with three and 101.75rem with four. Column widths come from position
+99.75rem with three and 105.75rem with four. Column widths come from position
 and depth, not role: the right-most visible pane fills, and every pane to its
 left takes a parent track — the root a narrow one, at least 16rem, and a pane
-under it a wider one, at least 20rem in three columns.
+under it a wider one. Three columns give the root at least 20rem and the pane
+under it at least 25rem.
 
 Yielding is not disappearing. The **consumer** declares the small-screen
 affordance, and the natural one is a [`Drawer`](/components/drawer) in the
@@ -201,7 +202,7 @@ directly on the frame behind it.
 
 Panes are columns where there is room and a stack where there isn't, and
 `Navigator.Content` decides from its own width: two columns from 46.25rem,
-three from 67rem (71rem once the window slides past the root), one below
+three from 76rem (81rem once the window slides past the root), one below
 that. The right-most column fills; the ones to its left take a parent track,
 wider for a detail than for the root, so a detail in the middle column keeps
 room for its content and the left-most pane drops before it squeezes.

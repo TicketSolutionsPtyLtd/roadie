@@ -21,11 +21,11 @@ type Track = { min: number; share: number; max: number }
 export const PARENT_TRACKS = {
   2: {
     root: { min: 16, share: 40, max: 24 },
-    detail: { min: 16, share: 40, max: 28 }
+    detail: { min: 16, share: 40, max: 30 }
   },
   3: {
-    root: { min: 16, share: 25, max: 20 },
-    detail: { min: 20, share: 30, max: 28 }
+    root: { min: 20, share: 25, max: 24 },
+    detail: { min: 25, share: 32, max: 30 }
   }
 } as const satisfies Record<2 | 3, Record<'root' | 'detail', Track>>
 
