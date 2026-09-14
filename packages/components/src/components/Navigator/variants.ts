@@ -36,9 +36,7 @@ export const navigatorContentVariants = cva([
 // phones, inset from `md`.
 export const navigatorPanesVariants = cva([
   'relative flex h-full min-h-0 min-w-0',
-  '[--pane-stack-inset:0px] md:[--pane-stack-inset:--spacing(3)]',
-  '[--pane-stack-inset-start:var(--pane-stack-inset)]',
-  'group-has-[[data-slot=navigator-primary][data-orientation=vertical]]/navigator:[--pane-stack-inset-start:0px]'
+  '[--pane-stack-inset:0px] md:[--pane-stack-inset:--spacing(3)]'
 ])
 
 // Not configurable — a seven-tab bar is not a shape Navigator can be talked into.
