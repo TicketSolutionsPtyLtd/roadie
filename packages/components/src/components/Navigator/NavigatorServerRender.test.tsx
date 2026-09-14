@@ -513,7 +513,8 @@ describe('a page-first root with its own backHref', () => {
     const drawn = tierRules
       .filter((rule) => pane.matches(rule.selector))
       .map((rule) => rule.body)
-    expect(drawn).toHaveLength(3)
+    // Stacked, and columns: a lone pane has no third column to take.
+    expect(drawn).toHaveLength(2)
     for (const body of drawn) {
       expect(body).toContain(
         '--pane-back: none; --pane-close: none; --pane-edge: none;'

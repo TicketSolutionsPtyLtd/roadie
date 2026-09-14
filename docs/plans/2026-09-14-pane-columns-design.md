@@ -26,7 +26,7 @@ can't read `var()`, so they compile to literals):
 
 | Constant | Value | Meaning |
 | --- | --- | --- |
-| `PANE_MIN_PARENT` | `16rem` | Minimum for any column left of the filling one |
+| `PARENT_TRACKS` | see below | Each parent track's minimum, share and maximum, by tier and depth |
 | `PANE_MIN_FILL` | `28rem` | Minimum for the right-most (filling) column |
 | `PANE_INSPECTOR` | `14rem` | The inspector track (today's `w-56`) |
 | `PANE_GAP` | `0.75rem` | Column gap and row padding (today's `gap-3` / `p-3`) |
@@ -40,22 +40,47 @@ Tiers, measured on Content's inline size:
 | --- | --- | --- |
 | 1 (stacked) | below 46.25rem | below about 840px |
 | 2 | `≥ 46.25rem` (740px) | 1024 |
-| 3 | `≥ 63rem` (1008px) | 1280, and 1280 with the sidebar expanded |
+| 3 | `≥ 67rem` (1072px), from the root; `≥ 71rem` (1136px) once the window slides past it | 1280, and 1440 with the sidebar expanded |
 
-Formula: `tier(C) = (C−1)·16 + 28 + (C−1)·0.75 + 1.5` rem. There is no tier
-4: the window never shows more than three navigation columns.
+Formula: `tier = Σ parent minimums + 28 + (C−1)·0.75 + 1.5` rem, the parents
+being the visible columns left of the fill. There is no tier 4: the window
+never shows more than three navigation columns. Below a row's tier the
+left-most pane drops, so a detail in the middle column is never squeezed under
+its minimum: it becomes the left column of two instead.
 
-**Sizing is by position, not role.** The right-most visible column fills
-(`flex: 1 1 0`). Every visible column to its left takes the parent track of
+**Sizing is by position and depth.** The right-most visible column fills
+(`flex: 1 1 0`). Every visible column to its left takes a parent track of
 `min(C, N)` columns, N the stack levels in the row, so a two-level row keeps
-the wider `C=2` list at `C=3`:
+the wider `C=2` list at `C=3`. The row's root (depth 0) navigates and takes
+the narrow track; a pane under it holds content and takes the wider one.
+Depth, not `role`: `role` is a default depth, and a page-first root that
+lists its own items is a root.
 
-- `C=2`: `clamp(16rem, min(40cqi, 100cqi − 30.25rem), 24rem)`
-- `C=3`: `clamp(16rem, min(25cqi, (100cqi − 31rem) / 2), 20rem)`
+| Tier | Root | Under the root |
+| --- | --- | --- |
+| `C=2` | `16rem`, `40cqi`, `24rem` | `16rem`, `40cqi`, `28rem` |
+| `C=3` | `16rem`, `25cqi`, `20rem` | `20rem`, `30cqi`, `28rem` |
+
+(minimum, share, maximum). Each track is
+`clamp(min, min(share, (100cqi − reserved) × min / Σ min), max)`: the room
+beside the fill's minimum is split by the parents' minimums, so every parent
+reaches its own at the tier and the fill never drops below 28rem. Two columns
+keep one floor, because below it the parent leaves the screen rather than
+handing its room to a pane beside it. A 30% share is the largest that leaves
+the fill growing from the `C=3` tier (20rem at 67rem).
+
+Measured on a Tickets → event → ticket row (Content beside an 80px
+navigation at 1000, 1200 and 1440, and a 240px one at 1440):
+
+| Content | Before | After |
+| --- | --- | --- |
+| 920px | 368 \| 528 | 368 \| 528 |
+| 1120px | 280 \| 280 \| 524 | 277 \| 336 \| 471 |
+| 1360px | 320 \| 320 \| 684 | 320 \| 408 \| 596 |
+| 1200px | 300 \| 300 \| 564 | 300 \| 360 \| 504 |
 
 When a sub-detail opens, the detail stops being "the detail" and becomes a
-parent column. `role` keeps meaning sizing defaults plus yield order and
-supplies the default depth (§2); it no longer picks a width.
+parent column, and keeps the wider track.
 
 ## 2. Which panes show
 
@@ -97,9 +122,10 @@ C=1                     C=2
   and that is what makes the server HTML exact for the cases that need it.
 - **The inspector is never ranked.** It shows only when every stack level that
   exists fits beside it, and it yields first: `inspectorTier(N)` is the
-  narrowest Content at which the fill keeps 28rem beside the parent track's
-  actual width, not its 16rem minimum — 46.25rem with one level, 69rem with
-  two, 85.75rem with three or more. It takes a column only once the row has
+  narrowest Content at which the fill keeps 28rem beside the parent tracks'
+  actual widths, not their minimums, whichever pane is the top — 46.25rem
+  with one level, 69rem with two, 93.75rem with three and 101.75rem with
+  four. It takes a column only once the row has
   columns: the stacked tier positions its panes absolutely, so a one-level
   row waits for the two-column tier. It never outranks the root. Its
   small-screen affordance stays the consumer's `Drawer`, and Roadie ships a `pane-inspector-yielded:` variant from the same
@@ -170,9 +196,11 @@ the committed file drifts. Per `(level, C, N, T, depth)` one rule, keyed with
 the row, sets three custom properties (`--pane-back`, `--pane-close`,
 `--pane-edge`, each `grid` or `none`) and the geometry (stacked: `translate`
 and `visibility`; columns: `position: relative`, `flex`, `order`). The header
-and its two cells read the properties as their `display`. Two levels × three
-tiers × 44 combinations (two root bases) is 264 pane rules plus the statics,
-about 4KB gzipped. The file is
+and its two cells read the properties as their `display`. Each row's
+rules sit under its own tier, ascending, so a wider tier wins; a row with fewer
+levels than three is left to the two-column rules it already fills. Two levels
+× 122 combinations (two root bases) is 244 pane rules plus the statics, about
+4KB gzipped. The file is
 wrapped in `@layer components`, so Tailwind utilities on a pane (a consumer's
 `className`, the `data-instant` transition cut) still win, while the `!important`
 on `position` beats Base UI's inline `position: relative`. The rules that hide

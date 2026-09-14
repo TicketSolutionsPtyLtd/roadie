@@ -1,6 +1,5 @@
 import type { PaneRole } from './variants'
 
-export const PANE_MIN_PARENT = 16
 export const PANE_MIN_FILL = 28
 export const PANE_INSPECTOR = 14
 export const PANE_GAP = 0.75
@@ -8,6 +7,25 @@ export const PANE_ROW_PADDING = 1.5
 export const PANE_MAX_COLUMNS = 3
 export const PANE_MAX_DEPTH = 3
 export const PANE_MAX_LEVELS = 2
+
+type Track = { min: number; share: number; max: number }
+
+/**
+ * A parent column's track, by the columns shown and whether it is the row's
+ * root. The root navigates; a pane drilled into from it holds content. Two
+ * columns keep one floor, because below it the parent leaves the screen
+ * rather than a column to its left.
+ */
+export const PARENT_TRACKS = {
+  2: {
+    root: { min: 16, share: 40, max: 24 },
+    detail: { min: 16, share: 40, max: 28 }
+  },
+  3: {
+    root: { min: 16, share: 25, max: 20 },
+    detail: { min: 20, share: 30, max: 28 }
+  }
+} as const satisfies Record<2 | 3, Record<'root' | 'detail', Track>>
 
 export type PaneDepth = 0 | 1 | 2 | 3
 // Named, not the number: Chrome drops every `data-depth` rule for a value no selector names.
@@ -19,11 +37,23 @@ export const ROLE_DEPTH: Record<PaneRole, PaneDepth | null> = {
   inspector: null
 }
 
-/** Content width, in rem, at which `columns` navigation columns fit. */
-export function columnTier(columns: number): number {
+const trackOf = (columns: number, depth: number) =>
+  PARENT_TRACKS[columns === 2 ? 2 : 3][depth === 0 ? 'root' : 'detail']
+
+const rootward = (columns: number) =>
+  Array.from({ length: columns - 1 }, (_, depth) => depth)
+
+const minsOf = (columns: number, parents: readonly number[]) =>
+  parents.reduce((sum, depth) => sum + trackOf(columns, depth).min, 0)
+
+/** Content width, in rem, at which `columns` columns fit with parents at these depths, by default a row from its root. */
+export function columnTier(
+  columns: number,
+  parents: readonly number[] = rootward(columns)
+): number {
   if (columns === 1) return 0
   return (
-    (columns - 1) * PANE_MIN_PARENT +
+    minsOf(columns, parents) +
     PANE_MIN_FILL +
     (columns - 1) * PANE_GAP +
     PANE_ROW_PADDING
@@ -35,53 +65,76 @@ export function visibleColumns(columns: number, levels: number): number {
   return Math.min(columns, levels)
 }
 
-const TRACK = {
-  2: { share: 40, max: 24 },
-  3: { share: 25, max: 20 }
-} as const
-
-const trackOf = (columns: number) => TRACK[columns === 2 ? 2 : 3]
-
 const reservedBeside = (columns: number) =>
   PANE_MIN_FILL + (columns - 1) * PANE_GAP + PANE_ROW_PADDING
 
-export function parentTrack(columns: number): string {
-  const { share, max } = trackOf(columns)
-  const reserved = reservedBeside(columns)
-  const room =
-    columns === 2
-      ? `100cqi - ${reserved}rem`
-      : `(100cqi - ${reserved}rem) / ${columns - 1}`
-  return `clamp(${PANE_MIN_PARENT}rem, min(${share}cqi, ${room}), ${max}rem)`
+// Room left beside the fill's minimum is split by the parents' minimums, so they all reach theirs at the tier.
+export function parentTrack(
+  columns: number,
+  depth: number,
+  parents: readonly number[] = rootward(columns)
+): string {
+  const { min, share, max } = trackOf(columns, depth)
+  const total = minsOf(columns, parents)
+  const room = `100cqi - ${reservedBeside(columns)}rem`
+  const split = total === min ? room : `(${room}) * ${min} / ${total}`
+  return `clamp(${min}rem, min(${share}cqi, ${split}), ${max}rem)`
 }
 
 /** `parentTrack` resolved at a content width, both in rem. */
-export function parentTrackWidth(columns: number, content: number): number {
-  const { share, max } = trackOf(columns)
-  const room = (content - reservedBeside(columns)) / (columns - 1)
-  return Math.min(
-    Math.max(Math.min((share * content) / 100, room), PANE_MIN_PARENT),
-    max
+export function parentTrackWidth(
+  columns: number,
+  depth: number,
+  parents: readonly number[],
+  content: number
+): number {
+  const { min, share, max } = trackOf(columns, depth)
+  const room =
+    ((content - reservedBeside(columns)) * min) / minsOf(columns, parents)
+  return Math.min(Math.max(Math.min((share * content) / 100, room), min), max)
+}
+
+/** The depths a row lays out in parent tracks. */
+export function parentsOf(
+  columns: number,
+  top: number,
+  levels: number
+): number[] {
+  return Array.from({ length: levels }, (_, depth) => depth).filter(
+    (depth) => paneCell(columns, top, depth, levels).slot === 'parent'
+  )
+}
+
+/** Content width, in rem, from which a row lays out `columns` columns with this top: never below two columns' tier, which a one-level row fills alone. */
+export function rowTier(columns: number, top: number, levels: number): number {
+  return Math.max(
+    columnTier(2),
+    columnTier(visibleColumns(columns, levels), parentsOf(columns, top, levels))
   )
 }
 
 const inspectorFits = (levels: number, content: number) => {
   const shown = Math.min(levels, PANE_MAX_COLUMNS)
-  // One column stacks its panes absolutely, so nothing sits beside them.
-  if (content < columnTier(Math.max(shown, 2))) return false
-  const parents =
-    shown === 1 ? 0 : (shown - 1) * parentTrackWidth(shown, content)
-  const fill =
-    content - PANE_ROW_PADDING - parents - PANE_INSPECTOR - shown * PANE_GAP
-  return fill >= PANE_MIN_FILL
+  return Array.from({ length: levels }, (_, top) => top).every((top) => {
+    const parents = parentsOf(shown, top, levels)
+    // One column stacks its panes absolutely, so nothing sits beside them.
+    if (content < rowTier(shown, top, levels)) return false
+    const tracks = parents.reduce(
+      (sum, depth) => sum + parentTrackWidth(shown, depth, parents, content),
+      0
+    )
+    const fill =
+      content - PANE_ROW_PADDING - tracks - PANE_INSPECTOR - shown * PANE_GAP
+    return fill >= PANE_MIN_FILL
+  })
 }
 
 // 1px: the fill only grows with the content within a tier, so the first fit holds from there up.
 const PX = 1 / 16
 
-/** Content width, in rem, from which the inspector fits beside every level present and the fill keeps its minimum. */
+/** Content width, in rem, from which the inspector fits beside every level present, at any top, and the fill keeps its minimum. */
 export function inspectorTier(levels: number): number {
-  let content = columnTier(Math.max(Math.min(levels, PANE_MAX_COLUMNS), 2))
+  let content = columnTier(2)
   while (!inspectorFits(levels, content)) content += PX
   return content
 }
@@ -185,7 +238,8 @@ function geometry(
   columns: number,
   cell: PaneCell,
   depth: number,
-  levels: number
+  levels: number,
+  track: string
 ): string {
   const parked = `visibility: hidden; pointer-events: none; content-visibility: auto; ${PARKED} ${columns > 1 ? 'transition: none;' : LEAVING}`
   switch (cell.slot) {
@@ -198,7 +252,7 @@ function geometry(
     case 'fill':
       return `position: relative !important; inset: auto; flex: 1 1 0; order: ${depth}; ${COLUMN}`
     case 'parent':
-      return `position: relative !important; inset: auto; flex: 0 0 ${parentTrack(visibleColumns(columns, levels))}; order: ${depth}; ${COLUMN}`
+      return `position: relative !important; inset: auto; flex: 0 0 ${track}; order: ${depth}; ${COLUMN}`
   }
 }
 
@@ -211,31 +265,63 @@ function paneRule(
   base: number
 ): string {
   const cell = paneCell(columns, top, depth, levels)
+  const shown = visibleColumns(columns, levels)
+  const track = parentTrack(shown, depth, parentsOf(columns, top, levels))
   const selector = `${row(level)}${baseIs(level, base)}${topIs(level, top, base)}${levelsIs(level, levels, base)} ${stackPane(level, base + depth)}`
   const vars = `--pane-back: ${display(cell.back)}; --pane-close: ${display(cell.close)}; --pane-edge: ${display(cell.back || cell.close)};`
-  return `  ${selector} { ${vars} ${geometry(columns, cell, base + depth, levels)} }`
+  return `  ${selector} { ${vars} ${geometry(columns, cell, base + depth, levels, track)} }`
 }
 
-function tierRules(level: number, columns: number): string {
+function stackRules(level: number): string {
   const rules: string[] = []
   for (const base of BASES) {
     for (const levels of levelCounts(base)) {
       for (let top = 0; top < levels; top += 1) {
         for (let depth = 0; depth < levels; depth += 1) {
-          rules.push(paneRule(level, columns, levels, top, depth, base))
+          rules.push(paneRule(level, 1, levels, top, depth, base))
         }
       }
     }
   }
-  const body = rules.join('\n')
-  if (columns === 1) return body
-  return [
-    `@container panes (width >= ${rem(columnTier(columns))}) {`,
-    `  ${row(level)} { padding: ${rem(PANE_GAP)}; gap: ${rem(PANE_GAP)}; }`,
-    `  @media (width >= 48rem) { ${besideVerticalPrimary(level)} { padding-inline-start: 0; } }`,
-    body,
-    '}'
-  ].join('\n')
+  return rules.join('\n')
+}
+
+// Grouped by the width each row needs, ascending, so a wider tier's rule comes
+// later and wins. A row with fewer levels than columns is already laid out by
+// the tier its levels fill.
+function columnRules(level: number): string {
+  const tiers = new Map<number, string[]>()
+  for (let columns = 2; columns <= PANE_MAX_COLUMNS; columns += 1) {
+    for (const base of BASES) {
+      for (const levels of levelCounts(base)) {
+        if (columns > 2 && levels < columns) continue
+        for (let top = 0; top < levels; top += 1) {
+          const tier = rowTier(columns, top, levels)
+          const rules = tiers.get(tier) ?? []
+          for (let depth = 0; depth < levels; depth += 1) {
+            rules.push(paneRule(level, columns, levels, top, depth, base))
+          }
+          tiers.set(tier, rules)
+        }
+      }
+    }
+  }
+  return [...tiers.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([tier, rules]) =>
+      [
+        `@container panes (width >= ${rem(tier)}) {`,
+        ...(tier === columnTier(2)
+          ? [
+              `  ${row(level)} { padding: ${rem(PANE_GAP)}; gap: ${rem(PANE_GAP)}; }`,
+              `  @media (width >= 48rem) { ${besideVerticalPrimary(level)} { padding-inline-start: 0; } }`
+            ]
+          : []),
+        ...rules,
+        '}'
+      ].join('\n')
+    )
+    .join('\n')
 }
 
 // Hides, never shows: `!important` so a consumer's display utility can't keep
@@ -332,9 +418,7 @@ export function renderPaneColumnsCss(): string {
   const blocks: string[] = [PANE_RULES, PAGE_STEP_KEYFRAMES]
   for (let level = 0; level < PANE_MAX_LEVELS; level += 1) {
     blocks.push(levelRules(level))
-    for (let columns = 1; columns <= PANE_MAX_COLUMNS; columns += 1) {
-      blocks.push(tierRules(level, columns))
-    }
+    blocks.push(stackRules(level), columnRules(level))
     blocks.push(inspectorRules(level))
   }
   return [

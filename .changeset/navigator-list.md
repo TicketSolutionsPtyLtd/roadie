@@ -34,8 +34,8 @@ just as picking from the list does.
 label and read as its accessible description.
 
 `Navigator.Content` decides how many pane columns fit from its own width:
-two from 46.25rem, three from 63rem, stacked below. The left-most pane drops
-first. Back sits on the left-most visible pane and Close on the top pane when
+two from 46.25rem, three from 67rem, stacked below. The root takes a narrow
+column and a detail beside it a wider one; the left-most pane drops first. Back sits on the left-most visible pane and Close on the top pane when
 its parent is beside it; both go up one level. `Pane` takes `depth`
 (defaulting from `role`), and `Pane.Header`'s `backLabel` names Back for
 assistive tech. The inspector yields first; `pane-inspector-yielded:` styles

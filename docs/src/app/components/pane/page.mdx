@@ -72,10 +72,11 @@ the text without moving it.
 `role` is a default depth plus a yield order, not a taxonomy. `list` is the
 root (depth 0), `detail` sits under it (depth 1), and `inspector` is a fixed
 14rem track off the stack that yields first — it shows only once every level
-of the stack fits beside it, at 46.25rem with one level, 69rem with two and
-85.75rem with three. Column widths come from position, not role: the
-right-most visible pane fills and every pane to its left takes a parent
-track, at least 16rem.
+of the stack fits beside it, at 46.25rem with one level, 69rem with two,
+93.75rem with three and 101.75rem with four. Column widths come from position
+and depth, not role: the right-most visible pane fills, and every pane to its
+left takes a parent track — the root a narrow one, at least 16rem, and a pane
+under it a wider one, at least 20rem in three columns.
 
 Yielding is not disappearing. The **consumer** declares the small-screen
 affordance, and the natural one is a [`Drawer`](/components/drawer) in the
@@ -200,8 +201,10 @@ directly on the frame behind it.
 
 Panes are columns where there is room and a stack where there isn't, and
 `Navigator.Content` decides from its own width: two columns from 46.25rem,
-three from 63rem, one below that. The right-most column fills; the ones to
-its left take a parent track.
+three from 67rem (71rem once the window slides past the root), one below
+that. The right-most column fills; the ones to its left take a parent track,
+wider for a detail than for the root, so a detail in the middle column keeps
+room for its content and the left-most pane drops before it squeezes.
 
 Every pane has a `depth` — `list` defaults to 0, `detail` to 1, a sub-detail
 declares `depth={2}` — and the deepest `current` pane is the top. The top is

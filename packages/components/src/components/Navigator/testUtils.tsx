@@ -178,21 +178,39 @@ export function paneColumnsRulesOf(css: string): PaneColumnsRule[] {
   return rules
 }
 
-/** The level-0 stack panes the generated stylesheet would put on screen at `columns` columns. */
+const holdsAt = (condition: string, contentRem: number) => {
+  const query = condition.match(
+    /^@container panes \(width (>=|<) ([\d.]+)rem\)/
+  )
+  if (!query) return true
+  return query[1] === '>='
+    ? contentRem >= Number(query[2])
+    : contentRem < Number(query[2])
+}
+
+/** The column rule that wins for a level's stack pane at a content width: pane rules share a specificity, so the last that applies. */
+export function paneRuleAt(
+  rules: PaneColumnsRule[],
+  pane: Element,
+  contentRem: number,
+  level = 0
+) {
+  return rules
+    .filter(
+      (rule) =>
+        rule.body.includes('--pane-back') &&
+        rule.selector.startsWith(
+          `[data-slot="navigator-panes"][data-level="${level}"]`
+        ) &&
+        rule.conditions.every((condition) => holdsAt(condition, contentRem)) &&
+        pane.matches(rule.selector)
+    )
+    .at(-1)
+}
+
+/** The level-0 stack panes the generated stylesheet would put on screen where `columns` columns first fit. */
 export function panesShownAt(columns: number) {
   const rules = paneColumnsRulesOf(renderPaneColumnsCss())
-  const tier = rules.filter(
-    (rule) =>
-      rule.body.includes('--pane-back') &&
-      rule.selector.startsWith(
-        '[data-slot="navigator-panes"][data-level="0"]'
-      ) &&
-      (columns === 1
-        ? !rule.conditions.some((c) => c.startsWith('@container'))
-        : rule.conditions.includes(
-            `@container panes (width >= ${columnTier(columns)}rem)`
-          ))
-  )
   const hiding = rules.filter(
     (rule) =>
       rule.body === 'display: none !important;' &&
@@ -210,15 +228,14 @@ export function panesShownAt(columns: number) {
       '[data-slot="pane"][data-stack][data-level="0"]'
     )
   )
-    .filter(
-      (pane) =>
-        !hiding.some((rule) => pane.matches(rule.selector)) &&
-        tier.some(
-          (rule) =>
-            pane.matches(rule.selector) &&
-            !rule.body.includes('visibility: hidden')
-        )
-    )
+    .filter((pane) => {
+      const rule = paneRuleAt(rules, pane, columnTier(columns))
+      return (
+        !hiding.some((hides) => pane.matches(hides.selector)) &&
+        rule !== undefined &&
+        !rule.body.includes('visibility: hidden')
+      )
+    })
     .map((pane) =>
       pane.hasAttribute('data-overflow')
         ? 'More'

@@ -4,7 +4,8 @@ import committedCss from '../../css/pane-columns.css?raw'
 import { type PaneEntry, derivePositions } from '../Navigator/paneStack'
 import {
   type PaneColumnsRule,
-  paneColumnsRulesOf
+  paneColumnsRulesOf,
+  paneRuleAt
 } from '../Navigator/testUtils'
 import {
   PANE_MAX_COLUMNS,
@@ -15,6 +16,7 @@ import {
   paneCell,
   parentTrack,
   renderPaneColumnsCss,
+  rowTier,
   visibleColumns
 } from './paneColumns'
 
@@ -95,25 +97,40 @@ const shown = (columns: number, top: number, levels: number) =>
     .join(' | ')
 
 describe('tiers', () => {
-  it('fits two columns at 46.25rem and three at 63rem', () => {
+  it('fits two columns at 46.25rem and three at 67rem, 71rem once the window slides past the root', () => {
     expect(columnTier(1)).toBe(0)
     expect(columnTier(2)).toBe(46.25)
-    expect(columnTier(3)).toBe(63)
+    expect(columnTier(2, [1])).toBe(46.25)
+    expect(columnTier(3)).toBe(67)
+    expect(columnTier(3, [1, 2])).toBe(71)
+    expect(rowTier(3, 2, 3)).toBe(67)
+    expect(rowTier(3, 3, 4)).toBe(71)
+    expect(rowTier(3, 1, 2)).toBe(46.25)
+    expect(rowTier(2, 0, 1)).toBe(46.25)
   })
 
-  it('fits the inspector once every level present fits beside it at its minimum', () => {
+  it('fits the inspector once every level present fits beside it at its minimum, at any top', () => {
     expect(inspectorTier(1)).toBe(46.25)
     expect(inspectorTier(2)).toBe(69)
-    expect(inspectorTier(3)).toBe(85.75)
-    expect(inspectorTier(4)).toBe(85.75)
+    expect(inspectorTier(3)).toBe(93.75)
+    expect(inspectorTier(4)).toBe(101.75)
   })
 
-  it('never starves the fill below its minimum', () => {
-    expect(parentTrack(2)).toBe(
+  it('gives the root a narrow track and a pane under it a wider one, never starving the fill', () => {
+    expect(parentTrack(2, 0)).toBe(
       'clamp(16rem, min(40cqi, 100cqi - 30.25rem), 24rem)'
     )
-    expect(parentTrack(3)).toBe(
-      'clamp(16rem, min(25cqi, (100cqi - 31rem) / 2), 20rem)'
+    expect(parentTrack(2, 1, [1])).toBe(
+      'clamp(16rem, min(40cqi, 100cqi - 30.25rem), 28rem)'
+    )
+    expect(parentTrack(3, 0)).toBe(
+      'clamp(16rem, min(25cqi, (100cqi - 31rem) * 16 / 36), 20rem)'
+    )
+    expect(parentTrack(3, 1)).toBe(
+      'clamp(20rem, min(30cqi, (100cqi - 31rem) * 20 / 36), 28rem)'
+    )
+    expect(parentTrack(3, 2, [1, 2])).toBe(
+      'clamp(20rem, min(30cqi, (100cqi - 31rem) * 20 / 40), 28rem)'
     )
   })
 })
@@ -224,43 +241,64 @@ describe('agreement with derivePositions, in every current and reveal state', ()
 })
 
 describe('the rules a real row matches', () => {
-  const tierRules = (columns: number) =>
-    rules.filter(
-      (rule) =>
-        rule.body.includes('--pane-back') &&
-        rule.selector.startsWith(
-          '[data-slot="navigator-panes"][data-level="0"]'
-        ) &&
-        (columns === 1
-          ? !rule.conditions.some((c) => c.startsWith('@container'))
-          : rule.conditions.includes(
-              `@container panes (width >= ${columnTier(columns)}rem)`
-            ))
-    )
+  const PX = 1 / REM
+  // Where a row takes `columns` columns, and just short of it, where it keeps one fewer.
+  const widthsOf = (columns: number, top: number, levels: number) =>
+    columns === 1
+      ? [{ at: 0, columns: 1 }]
+      : [
+          { at: rowTier(columns, top, levels), columns },
+          {
+            at: rowTier(columns, top, levels) - PX,
+            columns: Math.min(columns, Math.max(levels, 2)) - 1
+          }
+        ]
 
-  it('gives every stack pane exactly one rule per tier, in the slot paneCell names', () => {
+  const expectCell = (
+    pane: Element,
+    at: number,
+    cell: ReturnType<typeof paneCell>,
+    state: string
+  ) => {
+    const rule = paneRuleAt(rules, pane, at)
+    expect(rule, state).toBeDefined()
+    expect(slotOf(rule!.body), state).toBe(cell.slot)
+    expect(rule!.body, state).toContain(
+      `--pane-back: ${cell.back ? 'grid' : 'none'}; --pane-close: ${cell.close ? 'grid' : 'none'};`
+    )
+  }
+
+  it('lays every stack pane out in the slot paneCell names from its tier, and one column fewer just short of it', () => {
     for (let levels = 1; levels <= PANE_MAX_DEPTH + 1; levels += 1) {
       for (const { reveal, current } of stackStates(levels)) {
         const $ = html(stackRow(0, current, reveal))
         const top = reveal ? 0 : Math.max(0, current.lastIndexOf(true))
         for (let columns = 1; columns <= PANE_MAX_COLUMNS; columns += 1) {
-          const candidates = tierRules(columns)
-          for (let depth = 0; depth < levels; depth += 1) {
-            const pane = $(`[data-depth="${depth}"]`)
-            const matched = candidates.filter((rule) =>
-              pane.matches(rule.selector)
-            )
-            const state = `levels ${levels}, reveal ${reveal}, current ${current}, C=${columns}, depth ${depth}`
-            expect(matched, state).toHaveLength(1)
-            const cell = paneCell(columns, top, depth, levels)
-            expect(slotOf(matched[0]!.body), state).toBe(cell.slot)
-            expect(matched[0]!.body, state).toContain(
-              `--pane-back: ${cell.back ? 'grid' : 'none'}; --pane-close: ${cell.close ? 'grid' : 'none'};`
-            )
+          for (const width of widthsOf(columns, top, levels)) {
+            for (let depth = 0; depth < levels; depth += 1) {
+              expectCell(
+                $(`[data-depth="${depth}"]`),
+                width.at,
+                paneCell(width.columns, top, depth, levels),
+                `levels ${levels}, reveal ${reveal}, current ${current}, ${width.at}rem, depth ${depth}`
+              )
+            }
           }
         }
       }
     }
+  })
+
+  it('drops the left-most pane rather than squeeze a detail in the middle', () => {
+    const $ = html(stackRow(0, [false, false, true], false))
+    const shownAt = (at: number) =>
+      [0, 1, 2]
+        .map((depth) =>
+          slotOf(paneRuleAt(rules, $(`[data-depth="${depth}"]`), at)!.body)
+        )
+        .join(' ')
+    expect(shownAt(66.9)).toBe('behind parent fill')
+    expect(shownAt(67)).toBe('parent parent fill')
   })
 
   it('reads a row with nothing at depth 0 one depth shallower, so its first pane is the root', () => {
@@ -270,19 +308,15 @@ describe('the rules a real row matches', () => {
           const $ = html(stackRow(0, current, reveal, { base: 1, closedMore }))
           const top = reveal ? 0 : Math.max(0, current.lastIndexOf(true))
           for (let columns = 1; columns <= PANE_MAX_COLUMNS; columns += 1) {
-            const candidates = tierRules(columns)
-            for (let depth = 0; depth < levels; depth += 1) {
-              const pane = $(`[data-depth="${depth + 1}"]:not([data-overflow])`)
-              const matched = candidates.filter((rule) =>
-                pane.matches(rule.selector)
-              )
-              const state = `closed More ${closedMore}, levels ${levels}, reveal ${reveal}, current ${current}, C=${columns}, written depth ${depth + 1}`
-              expect(matched, state).toHaveLength(1)
-              const cell = paneCell(columns, top, depth, levels)
-              expect(slotOf(matched[0]!.body), state).toBe(cell.slot)
-              expect(matched[0]!.body, state).toContain(
-                `--pane-back: ${cell.back ? 'grid' : 'none'}; --pane-close: ${cell.close ? 'grid' : 'none'};`
-              )
+            for (const width of widthsOf(columns, top, levels)) {
+              for (let depth = 0; depth < levels; depth += 1) {
+                expectCell(
+                  $(`[data-depth="${depth + 1}"]:not([data-overflow])`),
+                  width.at,
+                  paneCell(width.columns, top, depth, levels),
+                  `closed More ${closedMore}, levels ${levels}, reveal ${reveal}, current ${current}, ${width.at}rem, written depth ${depth + 1}`
+                )
+              }
             }
           }
         }
@@ -297,11 +331,11 @@ describe('the rules a real row matches', () => {
     const more = $('[data-overflow][data-depth="0"]')
     const detail = $('[data-depth="1"]')
     const at = (columns: number, pane: HTMLElement) =>
-      tierRules(columns).filter((rule) => pane.matches(rule.selector))
-    expect(slotOf(at(1, more)[0]!.body)).toBe('top')
-    expect(slotOf(at(1, detail)[0]!.body)).toBe('ahead')
-    expect(slotOf(at(2, more)[0]!.body)).toBe('parent')
-    expect(slotOf(at(2, detail)[0]!.body)).toBe('fill')
+      slotOf(paneRuleAt(rules, pane, columnTier(columns))!.body)
+    expect(at(1, more)).toBe('top')
+    expect(at(1, detail)).toBe('ahead')
+    expect(at(2, more)).toBe('parent')
+    expect(at(2, detail)).toBe('fill')
   })
 
   it('covers the row with a current pane past depth 3, drawing Back and never Close', () => {
@@ -429,23 +463,18 @@ describe('parent tracks follow the columns a row shows', () => {
     ) as number
   }
 
-  const listTrackAt = (levels: number, contentPx: number) => {
-    const columns = columnsAt(contentPx)
+  const trackAt = (levels: number, contentPx: number, depth = 0) => {
     const $ = html(
       stackRow(
         0,
-        Array.from({ length: levels }, (_, depth) => depth === levels - 1),
+        Array.from({ length: levels }, (_, at) => at === levels - 1),
         false
       )
     )
-    const list = $('[data-depth="0"]')
-    const [rule] = rules.filter(
-      (candidate) =>
-        candidate.conditions.includes(
-          `@container panes (width >= ${columnTier(columns)}rem)`
-        ) &&
-        candidate.body.includes('--pane-back') &&
-        list.matches(candidate.selector)
+    const rule = paneRuleAt(
+      rules,
+      $(`[data-depth="${depth}"]`),
+      contentPx / REM
     )
     const track = rule!.body.match(/flex: 0 0 (.*?); order/)![1]!
     return Math.round(trackPx(track, contentPx))
@@ -491,7 +520,7 @@ describe('parent tracks follow the columns a row shows', () => {
   )
 
   // Every 1px of content from a single column to past the widest tier.
-  it.each([1, 2, 3])(
+  it.each([1, 2, 3, 4])(
     'never squeezes the fill below its minimum beside a shown inspector, %i levels',
     (levels) => {
       const $ = inspectorRow(levels)
@@ -501,20 +530,12 @@ describe('parent tracks follow the columns a row shows', () => {
       )
       let shownAt = 0
       for (let contentPx = 600; contentPx <= 1800; contentPx += 1) {
-        const columns = columnsAt(contentPx)
-        if (columns === 1) continue
+        if (columnsAt(contentPx) === 1) continue
         if (!inspectorShownAt(inspector, contentPx)) continue
         shownAt += 1
-        const tier = rules.filter(
-          (rule) =>
-            rule.body.includes('--pane-back') &&
-            rule.conditions.includes(
-              `@container panes (width >= ${columnTier(columns)}rem)`
-            )
+        const bodies = panes.map(
+          (pane) => paneRuleAt(rules, pane, contentPx / REM)!.body
         )
-        const bodies = panes
-          .map((pane) => tier.find((rule) => pane.matches(rule.selector))!)
-          .map((rule) => rule.body)
         const parents = bodies
           .map((body) => body.match(/flex: 0 0 (.*?); order/)?.[1])
           .filter((track): track is string => track !== undefined)
@@ -544,19 +565,29 @@ describe('parent tracks follow the columns a row shows', () => {
     'keeps a two-level list on the two-column track at %ipx of content',
     (contentPx, expected) => {
       expect(columnsAt(contentPx)).toBe(3)
-      expect(listTrackAt(2, contentPx)).toBe(expected)
+      expect(trackAt(2, contentPx)).toBe(expected)
     }
   )
 
+  // Beside an 80px navigation at 1000, 1200 and 1440, and a 240px one at 1440.
   it.each([
-    [1108, 277],
-    [1360, 320]
+    [920, [368]],
+    [1120, [277, 336]],
+    [1360, [320, 408]],
+    [1200, [300, 360]]
   ])(
-    'gives a three-level list the three-column track at %ipx of content',
+    'widens a detail in the middle past the list at %ipx of content',
     (contentPx, expected) => {
-      expect(listTrackAt(3, contentPx)).toBe(expected)
+      const parents = expected.length === 1 ? [1] : [0, 1]
+      expect(parents.map((depth) => trackAt(3, contentPx, depth))).toEqual(
+        expected
+      )
     }
   )
+
+  it('gives both parents the detail track once the window slides past the root', () => {
+    expect([1, 2].map((depth) => trackAt(4, 1360, depth))).toEqual([408, 408])
+  })
 })
 
 describe('the generated stylesheet', () => {
