@@ -90,32 +90,34 @@ export function NavigatorContent({
     return () => cancelAnimationFrame(frame)
   }, [overflowOpen, sectionValue])
 
+  // The Map serves effects, which run before the snapshot re-renders; render
+  // reads the snapshot.
   const panes = useRef(new Map<string, RegisteredPane>())
-  const [version, bump] = useState(0)
+  const [registered, setRegistered] = useState<readonly RegisteredPane[]>([])
 
   const register = useCallback(
     (id: string, node: HTMLElement, entry: PaneRegistration) => {
       panes.current.set(id, { id, node, ...entry })
-      bump((n) => n + 1)
+      setRegistered(Array.from(panes.current.values()))
     },
     []
   )
 
   const unregister = useCallback((id: string) => {
     panes.current.delete(id)
-    bump((n) => n + 1)
+    setRegistered(Array.from(panes.current.values()))
   }, [])
 
-  // The Map mutates in place, so `version` is its change signal. More's
-  // `current` is read live so it is top in the commit it opens, not one later.
+  // More's `current` follows `overflowOpen` so it is top in the commit it
+  // opens, not one later.
   const ordered = useMemo(
     () =>
-      orderByDocumentPosition(Array.from(panes.current.values())).map((pane) =>
+      orderByDocumentPosition(registered).map((pane) =>
         pane.kind === 'overflow' || pane.kind === 'generated-overflow'
           ? { ...pane, current: overflowOpen }
           : pane
       ),
-    [version, overflowOpen]
+    [registered, overflowOpen]
   )
   const onSectionRoute =
     activeSection !== null && isActiveValue(activeSection.value, value)
@@ -134,17 +136,17 @@ export function NavigatorContent({
     ordered.length === 0 ? revealing || !listPaneShows : topIndex === rootIndex
   const chrome = useTopPaneChrome({ atRoot })
 
-  // A ref keeps the lookups stable; closing over fresh arrays would loop pane registration.
-  const latest = useRef({ ordered, positions, topId, rootIndex, revealing })
-  latest.current = { ordered, positions, topId, rootIndex, revealing }
-
-  const positionOf = useCallback((id: string, entry: PaneRegistration) => {
-    const { ordered, positions, revealing } = latest.current
-    const index = ordered.findIndex((pane) => pane.id === id)
-    return index === -1
-      ? provisionalPosition(entry, revealing)
-      : (positions[index] ?? null)
-  }, [])
+  // Panes register through `register` and `unregister` alone, which stay
+  // stable, so these lookups can change with the stack without looping.
+  const positionOf = useCallback(
+    (id: string, entry: PaneRegistration) => {
+      const index = ordered.findIndex((pane) => pane.id === id)
+      return index === -1
+        ? provisionalPosition(entry, revealing)
+        : (positions[index] ?? null)
+    },
+    [ordered, positions, revealing]
+  )
 
   const chromeOf = useCallback(
     (id: string, entry: PaneRegistration) =>
@@ -152,24 +154,17 @@ export function NavigatorContent({
     [chrome, positionOf]
   )
 
-  const isRootOf = useCallback((id: string) => {
-    const { ordered, rootIndex } = latest.current
-    const index = ordered.findIndex((pane) => pane.id === id)
-    return index !== -1 && index === rootIndex
-  }, [])
+  const isRootOf = useCallback(
+    (id: string) => {
+      const index = ordered.findIndex((pane) => pane.id === id)
+      return index !== -1 && index === rootIndex
+    },
+    [ordered, rootIndex]
+  )
 
-  // `version` and `overflowOpen` re-render panes behind bailed-out wrappers so they read the ref afresh.
   const stackValue = useMemo<PaneStackContextValue>(
     () => ({ register, unregister, positionOf, chromeOf, isRootOf }),
-    [
-      register,
-      unregister,
-      positionOf,
-      chromeOf,
-      isRootOf,
-      version,
-      overflowOpen
-    ]
+    [register, unregister, positionOf, chromeOf, isRootOf]
   )
 
   // The children scans avoid a first-render flicker; registration finds a wrapped declaration.
@@ -206,7 +201,7 @@ export function NavigatorContent({
         'wrapper that suppresses effects, or you are rendering a Pane ' +
         'from a server component, that is the cause.'
     )
-  }, [hasChildren, version])
+  }, [hasChildren, registered])
 
   const topPrimaryNav =
     ordered.find((pane) => pane.id === topId)?.primaryNav ?? 'auto'

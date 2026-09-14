@@ -83,7 +83,6 @@ export default [
       'packages/components/src/components/Carousel/CarouselRoot.tsx',
       'packages/components/src/components/Image/index.tsx',
       'packages/components/src/components/Link/RoadieRoutedLink.tsx',
-      'packages/components/src/components/Navigator/NavigatorContent.tsx',
       'packages/components/src/components/Navigator/NavigatorPrimary.tsx',
       'packages/components/src/providers/ThemeProvider.tsx'
     ],
