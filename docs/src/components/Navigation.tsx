@@ -5,6 +5,8 @@ import {
   type ReactNode,
   Suspense,
   useCallback,
+  useEffect,
+  useRef,
   useState,
   useSyncExternalStore
 } from 'react'
@@ -150,10 +152,28 @@ export function DocsNavigator({
   const [expanded, setExpanded] = useExpandedCookie()
   const [showList, reportShowList] = useNavQueryFlag(pathname)
   const [showMore, reportShowMore] = useNavQueryFlag(pathname)
-  // Pushed, so Back undoes it. A routed choice from More drops `?more` with its own URL.
+
+  // Params we pushed this session, so closing can pop that entry instead of
+  // adding a new one. A deep-linked/reloaded flag isn't in here, so closing
+  // it replaces instead — no dead history entry, no Back into the page.
+  const pushedFlags = useRef(new Set<string>())
+  useEffect(() => {
+    pushedFlags.current.clear()
+  }, [pathname])
+
   const pushFlag = useCallback(
-    (param: string, on: boolean) =>
-      router.push(on ? `${pathname}?${param}` : pathname, { scroll: false }),
+    (param: string, on: boolean) => {
+      if (on) {
+        pushedFlags.current.add(param)
+        router.push(`${pathname}?${param}`, { scroll: false })
+        return
+      }
+      if (pushedFlags.current.delete(param)) {
+        router.back()
+      } else {
+        router.replace(pathname, { scroll: false })
+      }
+    },
     [router, pathname]
   )
   const handleShowListChange = useCallback(
