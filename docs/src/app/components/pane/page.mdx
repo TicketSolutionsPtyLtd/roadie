@@ -196,8 +196,9 @@ isn't: columns from `lg` up, a stack below it.
 
 In the stacked bands one pane is visible at a time and `current` picks it: the
 deepest `current` pane is the top of the stack, and push and pop between them
-animate. Above `lg` `current` does nothing at all, because every pane is a
-column beside its siblings.
+animate. On phones the stack is edge to edge; from `md` it is inset and
+rounded like the columns. Above `lg` `current` does nothing at all, because
+every pane is a column beside its siblings.
 
 Select a row below, then resize the window across `lg` and select again — the
 same declaration reads as a side-by-side reveal on a wide screen and a push on

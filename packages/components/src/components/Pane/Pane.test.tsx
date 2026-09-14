@@ -1217,13 +1217,36 @@ describe('stack geometry', () => {
       (p) => p.getAttribute('data-stack-position') === 'top'
     )
     expect(top).toHaveClass('max-lg:absolute!')
-    expect(top).toHaveClass('max-lg:inset-0')
+    expect(top).toHaveClass('max-lg:inset-(--pane-stack-inset)')
+    expect(top).toHaveClass('max-lg:start-(--pane-stack-inset-start)')
     expect(top).not.toHaveClass('max-lg:-translate-x-1/3')
-    expect(top).not.toHaveClass('max-lg:translate-x-full')
+    expect(top).not.toHaveClass(
+      'max-lg:translate-x-[calc(100%+var(--pane-stack-inset))]'
+    )
     expect(top).not.toHaveClass('max-lg:invisible')
     expectSharedTransition(top, 'translate,opacity')
     expect(top).not.toHaveClass(
       'motion-safe:max-lg:transition-[translate,opacity,visibility]'
+    )
+  })
+
+  it('insets the stack by the gutter Content pads itself with, from md', async () => {
+    render(
+      <Navigator value='/a'>
+        <Navigator.Content>
+          <Pane role='detail' current>
+            Detail
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const content = document.querySelector('[data-slot="navigator-content"]')
+    expect(content).toHaveClass(
+      '[--pane-stack-inset:0px]',
+      'md:[--pane-stack-inset:--spacing(3)]',
+      'p-(--pane-stack-inset)',
+      'ps-(--pane-stack-inset-start)'
     )
   })
 
@@ -1264,7 +1287,9 @@ describe('stack geometry', () => {
     const ahead = paneEls().find(
       (p) => p.getAttribute('data-stack-position') === 'ahead'
     )
-    expect(ahead).toHaveClass('max-lg:translate-x-full')
+    expect(ahead).toHaveClass(
+      'max-lg:translate-x-[calc(100%+var(--pane-stack-inset))]'
+    )
     expect(ahead).toHaveClass('max-lg:opacity-100')
     expect(ahead).toHaveClass('max-lg:pointer-events-none')
     expect(ahead).toHaveClass('max-lg:invisible')
@@ -1277,7 +1302,9 @@ describe('stack geometry', () => {
     expect(standalone).not.toHaveAttribute('data-stack-position')
     expect(standalone).not.toHaveClass('max-lg:absolute!')
     expect(standalone).not.toHaveClass('max-lg:-translate-x-1/3')
-    expect(standalone).not.toHaveClass('max-lg:translate-x-full')
+    expect(standalone).not.toHaveClass(
+      'max-lg:translate-x-[calc(100%+var(--pane-stack-inset))]'
+    )
   })
 
   it('gives an inspector none of the stack geometry inside a Navigator', async () => {
@@ -1527,7 +1554,7 @@ describe('Pane chrome clipping', () => {
     const header = container.querySelector('[data-slot="pane-header"]')!
     const footer = container.querySelector('[data-slot="pane-footer"]')!
 
-    expect(pane.className).toContain('--pane-radius')
+    expect(pane).toHaveClass('max-md:[--pane-radius:0px]')
     expect(pane).toHaveClass('rounded-(--pane-radius)')
     expect(header).toHaveClass('rounded-t-(--pane-radius)')
     expect(footer).toHaveClass('rounded-b-(--pane-radius)')

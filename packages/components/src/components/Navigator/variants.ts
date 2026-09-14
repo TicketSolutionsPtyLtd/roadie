@@ -26,13 +26,13 @@ export const navigatorContentVariants = cva([
   // mixes against what is actually behind it rather than a guess baked into
   // the pane.
   '[--pane-surface:var(--intent-bg-sunken)]',
-  // Padding is desktop-only: stacked panes are `absolute inset-0`, which
-  // resolves against Content's padding box, so padding here would leave a
-  // sunken gap around an otherwise full-bleed pane.
-  'grid min-h-0 min-w-0 gap-3 lg:p-3',
-  // Guards the `lg:p-3` above, so it has to fire at the same breakpoint — at
-  // `md` there is no start padding for it to zero.
-  'lg:group-has-[[data-slot=navigator-primary][data-orientation=vertical]]/navigator:ps-0',
+  // Full-bleed on phones, inset from `md`. Published because a stacked pane is
+  // `absolute` and ignores this padding, so it insets itself by the same amount.
+  '[--pane-stack-inset:0px] md:[--pane-stack-inset:--spacing(3)]',
+  '[--pane-stack-inset-start:var(--pane-stack-inset)]',
+  'group-has-[[data-slot=navigator-primary][data-orientation=vertical]]/navigator:[--pane-stack-inset-start:0px]',
+  'grid min-h-0 min-w-0 gap-3',
+  'p-(--pane-stack-inset) ps-(--pane-stack-inset-start)',
   'grid-cols-1 lg:flex lg:flex-row',
   // Stack geometry is `paneVariants`' own: no selector here reaches a pane inside a wrapper.
   // Clips a `behind` pane's translate, which can outrun the navigation beside it.

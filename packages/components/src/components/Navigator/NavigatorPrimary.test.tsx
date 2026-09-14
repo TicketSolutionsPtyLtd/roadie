@@ -1239,8 +1239,9 @@ describe('right to left', () => {
       '[data-slot="navigator-content"]'
     )!
     expect(content.className).toContain(
-      'group-has-[[data-slot=navigator-primary][data-orientation=vertical]]/navigator:ps-0'
+      'group-has-[[data-slot=navigator-primary][data-orientation=vertical]]/navigator:[--pane-stack-inset-start:0px]'
     )
+    expect(content).toHaveClass('ps-(--pane-stack-inset-start)')
     expect(content.className).not.toMatch(physicalInset)
   })
 })
