@@ -323,8 +323,8 @@ describe('the rules a real row matches', () => {
     expect(own.map((rule) => rule.body)).toEqual([
       '--pane-back: none; --pane-close: none; --pane-edge: none;',
       '--pane-back: grid; --pane-edge: grid;',
-      'position: absolute !important; inset: var(--pane-stack-inset, 0px); inset-inline-start: var(--pane-stack-inset-start, var(--pane-stack-inset, 0px)); z-index: 3; visibility: hidden; pointer-events: none;',
-      'visibility: visible; pointer-events: auto;'
+      'position: absolute !important; inset: var(--pane-stack-inset, 0px); inset-inline-start: var(--pane-stack-inset-start, var(--pane-stack-inset, 0px)); z-index: 3; translate: calc((100% + var(--pane-stack-inset, 0px)) * var(--pane-dir, 1)) 0; visibility: hidden; pointer-events: none; transition-property: translate, visibility; transition-timing-function: var(--ease-enter);',
+      'translate: 0 0; visibility: visible; pointer-events: auto;'
     ])
     expect(own.some((rule) => rule.body.includes('--pane-close: grid'))).toBe(
       false
@@ -345,6 +345,26 @@ describe('the rules a real row matches', () => {
     expect(shows($('[data-depth="deep"]'))).toBe(false)
     $ = deepRow([false, false, false, false, true], true)
     expect(shows($('[data-depth="deep"]'))).toBe(false)
+  })
+
+  it('slides a pane past depth 3 like a push, and only while pushing', () => {
+    const slides = (pane: Element) =>
+      rules.some(
+        (rule) =>
+          rule.body.includes('transition-duration') &&
+          pane.matches(rule.selector)
+      )
+    const row = (pushing: boolean) =>
+      html(
+        stackRow(0, [false, false, false, false, true], false)
+          .replace('data-depth="4"', 'data-depth="deep"')
+          .replace(
+            'data-level="0" ',
+            `data-level="0" ${pushing ? 'data-pushing' : ''} `
+          )
+      )
+    expect(slides(row(true)('[data-depth="deep"]'))).toBe(true)
+    expect(slides(row(false)('[data-depth="deep"]'))).toBe(false)
   })
 })
 
