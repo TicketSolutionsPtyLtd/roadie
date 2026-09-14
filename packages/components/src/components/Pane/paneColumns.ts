@@ -89,17 +89,26 @@ const levelsIs = (level: number, levels: number) => {
     : `${has}:not(:has(${stackPane(level, levels)}))`
 }
 
-const topIs = (level: number, top: number) => {
-  if (top === 0) {
-    return `:is([data-reveal], :not(:has([data-stack][data-level="${level}"][data-current])))`
-  }
+const currentBelow = (level: number, top: number) => {
   const deeper: string[] = []
   for (let d = top + 1; d <= PANE_MAX_DEPTH; d += 1) {
     deeper.push(stackPane(level, d, '[data-current]'))
   }
-  const not = deeper.length === 0 ? '' : `:not(:has(${deeper.join(', ')}))`
-  return `:not([data-reveal]):has(${stackPane(level, top, '[data-current]')})${not}`
+  return deeper.length === 0 ? '' : `:not(:has(${deeper.join(', ')}))`
 }
+
+const topIs = (level: number, top: number) =>
+  top === 0
+    ? `:is([data-reveal], ${currentBelow(level, 0)})`
+    : `:not([data-reveal]):has(${stackPane(level, top, '[data-current]')})${currentBelow(level, top)}`
+
+const ownedBy = (level: number) =>
+  `${level > 0 ? `:is(${row(level - 1)} *)` : ''}:not(${row(level)} *)`
+
+const tableDepths = Array.from(
+  { length: PANE_MAX_DEPTH + 1 },
+  (_, depth) => `[data-depth="${depth}"]`
+).join(', ')
 
 const LANDED = 'z-index: 2;'
 const PARKED = 'z-index: 0;'
@@ -153,7 +162,7 @@ function tierRules(level: number, columns: number): string {
   return [
     `@container panes (width >= ${rem(columnTier(columns))}) {`,
     `  ${row(level)} { padding: ${rem(PANE_GAP)}; gap: ${rem(PANE_GAP)}; }`,
-    `  @media (width >= 48rem) { [data-slot="navigator"]:has([data-slot="navigator-primary"][data-orientation="vertical"]) ${row(level)} { padding-inline-start: 0; } }`,
+    `  @media (width >= 48rem) { [data-slot="navigator"]${ownedBy(level)}:has([data-slot="navigator-primary"][data-orientation="vertical"]${ownedBy(level)}) ${row(level)} { padding-inline-start: 0; } }`,
     body,
     '}'
   ].join('\n')
@@ -180,7 +189,7 @@ function inspectorVariant(): string {
 }
 
 function levelRules(level: number): string {
-  const pane = `${row(level)} [data-stack][data-level="${level}"][data-depth]`
+  const pane = `${row(level)} [data-stack][data-level="${level}"]:is(${tableDepths})`
   return [
     `  ${pane} { position: absolute !important; inset: var(--pane-stack-inset, 0px); inset-inline-start: var(--pane-stack-inset-start, var(--pane-stack-inset, 0px)); }`,
     `  @media (prefers-reduced-motion: no-preference) { ${pane} { transition-duration: var(--duration-slow); } }`,
@@ -191,7 +200,7 @@ function levelRules(level: number): string {
 }
 
 const PANE_RULES = `  [data-slot="pane"][data-depth] { --pane-back: none; --pane-close: none; --pane-edge: none; }
-  [data-slot="pane"][data-depth]:not([data-stack]):not([data-depth="0"]) { --pane-back: grid; --pane-edge: grid; }
+  [data-slot="pane"][data-depth]:not([data-depth="0"]) { --pane-back: grid; --pane-edge: grid; }
   [data-slot="pane"][data-depth] [data-slot="pane-back"] { display: var(--pane-back); }
   [data-slot="pane"][data-depth] [data-slot="pane-close"] { display: var(--pane-close); }`
 
