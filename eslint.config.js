@@ -4,6 +4,7 @@ import typescriptParser from '@typescript-eslint/parser'
 import prettierConfig from 'eslint-config-prettier'
 import prettierPlugin from 'eslint-plugin-prettier'
 import reactPlugin from 'eslint-plugin-react'
+import reactHooks from 'eslint-plugin-react-hooks'
 import globals from 'globals'
 
 export default [
@@ -70,6 +71,27 @@ export default [
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-empty-object-type': 'off'
     }
+  },
+
+  {
+    files: ['packages/components/**/*.{ts,tsx}'],
+    ...reactHooks.configs.flat['recommended-latest']
+  },
+  {
+    files: [
+      'packages/components/src/components/Carousel/Carousel.test.tsx',
+      'packages/components/src/components/Carousel/CarouselRoot.tsx',
+      'packages/components/src/components/Image/index.tsx',
+      'packages/components/src/components/Link/RoadieRoutedLink.tsx',
+      'packages/components/src/components/Navigator/NavigatorContent.tsx',
+      'packages/components/src/components/Navigator/NavigatorPrimary.tsx',
+      'packages/components/src/providers/ThemeProvider.tsx'
+    ],
+    rules: Object.fromEntries(
+      Object.keys(reactHooks.configs.flat['recommended-latest'].rules).map(
+        (rule) => [rule, 'warn']
+      )
+    )
   },
 
   // JavaScript files configuration
