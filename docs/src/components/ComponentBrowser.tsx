@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { ArrowRightIcon, MagnifyingGlassIcon } from '@phosphor-icons/react'
 
@@ -41,7 +41,6 @@ export function ComponentBrowser({
 }) {
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
-  const headingIdPrefix = useId()
   const results = filterCategories(categories, query)
   const count = countComponents(results)
 
@@ -94,7 +93,7 @@ export function ComponentBrowser({
         </EmptyState>
       ) : (
         results.map((category) => {
-          const headingId = `${headingIdPrefix}-${category.name.replace(/\W+/g, '-')}`
+          const headingId = category.name.toLowerCase().replace(/\W+/g, '-')
           return (
             <section
               key={category.name}
@@ -125,7 +124,7 @@ export function ComponentBrowser({
                       className='overflow-hidden no-underline'
                     >
                       <ComponentThumbnail name={component.name} />
-                      <h3 className='px-3 py-2.5 text-sm font-semibold text-strong'>
+                      <h3 className='px-3 py-2.5 text-display-ui-6 text-strong'>
                         {component.title}
                       </h3>
                     </Card>
