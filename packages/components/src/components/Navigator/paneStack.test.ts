@@ -317,6 +317,16 @@ describe('resolveDepths', () => {
     expect(resolveDepths([detail, { ...more, current: false }])).toEqual([0, 0])
   })
 
+  it('never lets open More displace a list', () => {
+    expect(
+      resolveDepths([
+        { role: 'list', kind: 'pane' },
+        { role: 'detail', kind: 'pane' },
+        { role: 'list', kind: 'generated-overflow', current: true }
+      ])
+    ).toEqual([0, 1, 0])
+  })
+
   it('gives every root list one depth, so a handover pushes nothing deeper', () => {
     expect(
       resolveDepths([

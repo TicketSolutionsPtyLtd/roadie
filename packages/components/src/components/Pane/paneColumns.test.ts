@@ -3,6 +3,10 @@ import { describe, expect, it } from 'vitest'
 import committedCss from '../../css/pane-columns.css?raw'
 import { type PaneEntry, derivePositions } from '../Navigator/paneStack'
 import {
+  type PaneColumnsRule,
+  paneColumnsRulesOf
+} from '../Navigator/testUtils'
+import {
   PANE_MAX_COLUMNS,
   PANE_MAX_DEPTH,
   PANE_MAX_LEVELS,
@@ -13,36 +17,8 @@ import {
   renderPaneColumnsCss
 } from './paneColumns'
 
-type Rule = { selector: string; body: string; conditions: string[] }
-
-function rulesOf(css: string): Rule[] {
-  const text = css.slice(css.indexOf('@layer components {'))
-  const rules: Rule[] = []
-  const conditions: string[] = []
-  const token = /([^{}]*)([{}])/g
-  let match: RegExpExecArray | null
-  while ((match = token.exec(text))) {
-    const [, before = '', brace] = match
-    const prelude = before.trim()
-    if (brace === '}') {
-      conditions.pop()
-    } else if (prelude.startsWith('@')) {
-      conditions.push(prelude)
-    } else {
-      const close = text.indexOf('}', token.lastIndex)
-      rules.push({
-        selector: prelude,
-        body: text.slice(token.lastIndex, close).trim(),
-        conditions: [...conditions]
-      })
-      token.lastIndex = close + 1
-    }
-  }
-  return rules
-}
-
-const rules = rulesOf(renderPaneColumnsCss())
-const stacked = (rule: Rule) =>
+const rules = paneColumnsRulesOf(renderPaneColumnsCss())
+const stacked = (rule: PaneColumnsRule) =>
   /\[data-depth="\d"\]$/.test(rule.selector) &&
   rule.body.includes('--pane-back') &&
   !rule.conditions.some((condition) => condition.startsWith('@container'))

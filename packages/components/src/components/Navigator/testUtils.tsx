@@ -8,6 +8,7 @@ import {
   type RoadieLinkComponent,
   RoadieLinkProvider
 } from '../../providers/RoadieLinkProvider'
+import { columnTier, renderPaneColumnsCss } from '../Pane/paneColumns'
 
 // A ScrollArea Viewport measures in a microtask scheduled from a layout
 // effect, outside act(); flushing it here keeps synchronous tests quiet.
@@ -135,4 +136,73 @@ export function scrollViewport(viewport: HTMLElement, top: number) {
     watch.callback(entries, watch.observer)
   }
   fireEvent.scroll(viewport)
+}
+
+export type PaneColumnsRule = {
+  selector: string
+  body: string
+  conditions: string[]
+}
+
+export function paneColumnsRulesOf(css: string): PaneColumnsRule[] {
+  const text = css.slice(css.indexOf('@layer components {'))
+  const rules: PaneColumnsRule[] = []
+  const conditions: string[] = []
+  const token = /([^{}]*)([{}])/g
+  let match: RegExpExecArray | null
+  while ((match = token.exec(text))) {
+    const [, before = '', brace] = match
+    const prelude = before.trim()
+    if (brace === '}') {
+      conditions.pop()
+    } else if (prelude.startsWith('@')) {
+      conditions.push(prelude)
+    } else {
+      const close = text.indexOf('}', token.lastIndex)
+      rules.push({
+        selector: prelude,
+        body: text.slice(token.lastIndex, close).trim(),
+        conditions: [...conditions]
+      })
+      token.lastIndex = close + 1
+    }
+  }
+  return rules
+}
+
+/** The level-0 stack panes the generated stylesheet would put on screen at `columns` columns. */
+export function panesShownAt(columns: number) {
+  const rules = paneColumnsRulesOf(renderPaneColumnsCss())
+  const tier = rules.filter(
+    (rule) =>
+      rule.body.includes('--pane-back') &&
+      rule.selector.startsWith(
+        '[data-slot="navigator-panes"][data-level="0"]'
+      ) &&
+      (columns === 1
+        ? !rule.conditions.some((c) => c.startsWith('@container'))
+        : rule.conditions.includes(
+            `@container panes (width >= ${columnTier(columns)}rem)`
+          ))
+  )
+  const hiding = rules.filter((rule) => rule.body === 'display: none;')
+  return Array.from(
+    document.querySelectorAll<HTMLElement>(
+      '[data-slot="pane"][data-stack][data-level="0"]'
+    )
+  )
+    .filter(
+      (pane) =>
+        !hiding.some((rule) => pane.matches(rule.selector)) &&
+        tier.some(
+          (rule) =>
+            pane.matches(rule.selector) &&
+            !rule.body.includes('visibility: hidden')
+        )
+    )
+    .map((pane) =>
+      pane.hasAttribute('data-overflow')
+        ? 'More'
+        : (pane.dataset.navigatorSection ?? pane.dataset.role)
+    )
 }

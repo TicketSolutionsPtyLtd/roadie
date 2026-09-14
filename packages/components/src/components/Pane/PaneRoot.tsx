@@ -54,7 +54,7 @@ export type PaneRootProps = Omit<ComponentProps<'section'>, 'role'> & {
    * @default false
    */
   current?: boolean
-  /** Where this pane sits in the drill-down: 0 is the root. Defaults from `role` — `list` 0, `detail` 1. */
+  /** Where this pane sits in the drill-down, from 0 at the root, compacted so there are no gaps. Defaults from `role` — `list` 0, `detail` 1. */
   depth?: 0 | 1 | 2 | 3
   /**
    * Surface treatment. Mirrors `Card`'s names, except that a pane's `subtler`
