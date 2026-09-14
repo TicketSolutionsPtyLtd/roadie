@@ -558,6 +558,29 @@ describe('the generated stylesheet', () => {
     expect(css.match(/@container panes \(width < /g)).toHaveLength(7)
     expect(css).toContain('@custom-variant pane-inspector-yielded {')
   })
+
+  it('counts and places panes of one level only', () => {
+    const css = renderPaneColumnsCss()
+    const rules = css
+      .split('\n')
+      .filter((line) => line.includes('[data-stack]'))
+    for (const rule of rules) {
+      const levels = new Set(rule.match(/\[data-level="(\d)"\]/g))
+      expect(levels.size).toBe(1)
+    }
+  })
+
+  it('reaches the inspector of its own level only', () => {
+    const css = renderPaneColumnsCss()
+    const rules = css
+      .split('\n')
+      .filter((line) => line.includes('[data-role="inspector"][data-level'))
+    expect(rules).toHaveLength(8 * PANE_MAX_LEVELS)
+    for (const rule of rules) {
+      const levels = new Set(rule.match(/\[data-level="(\d)"\]/g))
+      expect(levels.size).toBe(1)
+    }
+  })
 })
 
 describe('the stacked tier keeps the md inset and the edge cover', () => {
