@@ -1644,6 +1644,25 @@ describe('Navigator.OverflowPane', () => {
     expect(more).not.toHaveClass('lg:hidden')
   })
 
+  it('marks the row and the More pane while More is open', async () => {
+    const user = userEvent.setup()
+    const { container } = render(overflowNav('/a'))
+    await flushViewportMeasurement()
+    const row = document.querySelector('[data-slot="navigator-panes"]')!
+    const more = document.querySelector('[data-slot="pane"][id]')!
+    expect(more).toHaveAttribute('data-overflow')
+    expect(more).toHaveAttribute('data-depth', '0')
+    expect(more).not.toHaveAttribute('data-current')
+    expect(row).not.toHaveAttribute('data-overflow')
+    expect(row).not.toHaveAttribute('data-reveal')
+    await user.click(
+      within(horizontalOf(container)!).getByRole('button', { name: 'More' })
+    )
+    expect(more).toHaveAttribute('data-current')
+    expect(row).toHaveAttribute('data-overflow')
+    expect(row).toHaveAttribute('data-reveal')
+  })
+
   it('titles the generated pane in its header, like a section pane', async () => {
     render(overflowNav('/a'))
     await flushViewportMeasurement()

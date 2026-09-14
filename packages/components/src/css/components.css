@@ -2,4 +2,3 @@
    default). Path is relative to this file so it resolves from inside
    node_modules. */
 @source '../../dist';
-@import './pane-columns.css';

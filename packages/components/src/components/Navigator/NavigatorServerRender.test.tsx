@@ -325,3 +325,79 @@ describe('Navigator server render of a page root', () => {
     }
   )
 })
+
+const depths = (container: HTMLElement) =>
+  Array.from(container.querySelectorAll('[data-slot="pane"]')).map((pane) => [
+    pane.getAttribute('data-navigator-section') ??
+      pane.getAttribute('data-role'),
+    pane.getAttribute('data-depth'),
+    pane.hasAttribute('data-current')
+  ])
+
+function ThreeLevels({ value }: { value: string }) {
+  return (
+    <Navigator value={value}>
+      <Navigator.Primary aria-label='Docs'>
+        {testBrand}
+        <Navigator.Item value='/tickets' href='/tickets' icon={<FakeIcon />}>
+          Tickets
+          <Navigator.Secondary aria-label='Events'>
+            <Navigator.Item value='/tickets/glamping' href='/tickets/glamping'>
+              Glamping
+            </Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Navigator.Content>
+        <Pane role='detail' current>
+          <Pane.Header />
+          Glamping
+        </Pane>
+        <Pane role='detail' depth={2} current>
+          <Pane.Header backHref='/tickets/glamping' />
+          Sam
+        </Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+}
+
+describe('Navigator server render of depths', () => {
+  it('writes declared and default depths, and the reveal, before any pane registers', () => {
+    const container = serverRender(<ThreeLevels value='/tickets/glamping' />)
+    expect(depths(container)).toEqual([
+      ['/tickets', '0', false],
+      ['detail', '1', true],
+      ['detail', '2', true]
+    ])
+    expect(
+      container.querySelector('[data-slot="navigator-panes"]')
+    ).not.toHaveAttribute('data-reveal')
+    const revealed = serverRender(<ThreeLevels value='/tickets' />)
+    expect(
+      revealed.querySelector('[data-slot="navigator-panes"]')
+    ).toHaveAttribute('data-reveal')
+  })
+
+  it('hydrates without a mismatch or a depth change', async () => {
+    const ui = (
+      <StrictMode>
+        <ThreeLevels value='/tickets/glamping' />
+      </StrictMode>
+    )
+    const host = serverRender(ui)
+    const before = depths(host)
+    const error = vi.spyOn(console, 'error')
+    const recoverable = vi.fn()
+    let root: Root | null = null
+    await act(async () => {
+      root = hydrateRoot(host, ui, { onRecoverableError: recoverable })
+    })
+    await flushViewportMeasurement()
+    expect(recoverable).not.toHaveBeenCalled()
+    expect(error).not.toHaveBeenCalled()
+    expect(depths(host)).toEqual(before)
+    act(() => root?.unmount())
+    vi.restoreAllMocks()
+  })
+})

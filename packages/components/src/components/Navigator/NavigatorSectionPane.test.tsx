@@ -910,6 +910,20 @@ describe('section routes', () => {
   })
 })
 
+describe('the row reveals the root', () => {
+  const row = () => document.querySelector('[data-slot="navigator-panes"]')!
+
+  it('on the section route and with showList, not on a sub-page', async () => {
+    const { rerender } = render(<Routed value='/components' />)
+    await flushViewportMeasurement()
+    expect(row()).toHaveAttribute('data-reveal')
+    rerender(<Routed value='/components/a' />)
+    expect(row()).not.toHaveAttribute('data-reveal')
+    rerender(<Routed value='/components/a' showList />)
+    expect(row()).toHaveAttribute('data-reveal')
+  })
+})
+
 function PageRooted({
   value,
   showList,

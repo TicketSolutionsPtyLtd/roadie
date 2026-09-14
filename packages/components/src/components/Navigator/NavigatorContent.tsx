@@ -26,6 +26,7 @@ import {
   type PaneStackContextValue
 } from '../Pane/PaneStackContext'
 import { PaneTitle } from '../Pane/PaneTitle'
+import { PANE_MAX_DEPTH, PANE_MAX_LEVELS } from '../Pane/paneColumns'
 import { GeneratedOverflowContext } from './GeneratedOverflowContext'
 import {
   NavigatorActionsContext,
@@ -42,10 +43,12 @@ import {
   derivePositions,
   deriveRootIndex,
   orderByDocumentPosition,
-  provisionalPosition
+  provisionalDepth,
+  provisionalPosition,
+  resolveDepths
 } from './paneStack'
 import { useTopPaneChrome } from './useTopPaneChrome'
-import { navigatorContentVariants } from './variants'
+import { navigatorContentVariants, navigatorPanesVariants } from './variants'
 
 export type NavigatorContentProps = ComponentProps<'main'>
 
@@ -67,6 +70,8 @@ export function NavigatorContent({
     showList
   } = use(NavigatorSelectionContext)
   const { overflowItems, overflowOpen } = use(NavigatorDisclosureContext)
+  const parentStack = use(PaneStackContext)
+  const level = parentStack === null ? 0 : parentStack.level + 1
 
   const contentRef = useRef<HTMLElement | null>(null)
   const ref = useMemo(() => mergeRefs(contentRef, forwardedRef), [forwardedRef])
@@ -131,6 +136,7 @@ export function NavigatorContent({
     () => derivePositions(ordered, revealing),
     [ordered, revealing]
   )
+  const depths = useMemo(() => resolveDepths(ordered), [ordered])
   const topIndex = positions.indexOf('top')
   const topId = topIndex === -1 ? null : (ordered[topIndex]?.id ?? null)
   const rootIndex = useMemo(() => deriveRootIndex(ordered), [ordered])
@@ -152,6 +158,14 @@ export function NavigatorContent({
     [ordered, positions, revealing]
   )
 
+  const depthOf = useCallback(
+    (id: string, entry: PaneRegistration) => {
+      const index = ordered.findIndex((pane) => pane.id === id)
+      return index === -1 ? provisionalDepth(entry) : (depths[index] ?? null)
+    },
+    [ordered, depths]
+  )
+
   const chromeOf = useCallback(
     (id: string, entry: PaneRegistration) =>
       positionOf(id, entry) === 'top' ? chrome : PANE_CHROME_NONE,
@@ -167,8 +181,16 @@ export function NavigatorContent({
   )
 
   const stackValue = useMemo<PaneStackContextValue>(
-    () => ({ register, unregister, positionOf, chromeOf, isRootOf }),
-    [register, unregister, positionOf, chromeOf, isRootOf]
+    () => ({
+      register,
+      unregister,
+      positionOf,
+      chromeOf,
+      isRootOf,
+      depthOf,
+      level
+    }),
+    [register, unregister, positionOf, chromeOf, isRootOf, depthOf, level]
   )
 
   // The children scans avoid a first-render flicker; registration finds a wrapped declaration.
@@ -207,6 +229,39 @@ export function NavigatorContent({
     )
   }, [hasChildren, registered])
 
+  useEffect(() => {
+    if (!isDev() || level < PANE_MAX_LEVELS) return
+    console.warn(
+      `[Roadie] Navigator.Content is nested ${level} deep; the pane columns stylesheet covers ${PANE_MAX_LEVELS} levels.`
+    )
+  }, [level])
+
+  // The live Map, not `ordered`: a pane unmounting this commit is still in the render's snapshot.
+  useEffect(() => {
+    if (!isDev()) return
+    const live = orderByDocumentPosition(Array.from(panes.current.values()))
+    // A generated section pane gives way to a wrapped override a commit late.
+    const sections = live.filter(
+      (pane) => pane.kind === 'section' || pane.kind === 'generated-section'
+    )
+    if (sections.length > 1) return
+    const resolved = resolveDepths(live)
+    live.forEach((pane, index) => {
+      const depth = resolved[index] ?? null
+      const declared = provisionalDepth(pane)
+      if (depth === null || declared === null) return
+      if (depth > PANE_MAX_DEPTH) {
+        console.warn(
+          `[Roadie] A fifth stack pane (depth ${depth}) has no column. Flatten the navigation.`
+        )
+      } else if (depth > declared) {
+        console.warn(
+          `[Roadie] A Pane declared or defaulted to depth ${declared} but sits at depth ${depth}. Declare depth={${depth}} so the server render matches.`
+        )
+      }
+    })
+  }, [registered])
+
   const topPrimaryNav =
     ordered.find((pane) => pane.id === topId)?.primaryNav ?? 'auto'
   useEffect(() => {
@@ -242,9 +297,17 @@ export function NavigatorContent({
       <PaneStackContext value={stackValue}>
         {/* Resets to stack level so a nested Navigator registers its own panes. */}
         <PaneContext value={null}>
-          {sectionPane}
-          {children}
-          {fallbackOverflow}
+          <div
+            data-slot='navigator-panes'
+            data-level={level}
+            data-reveal={revealing || overflowOpen ? '' : undefined}
+            data-overflow={overflowOpen ? '' : undefined}
+            className={navigatorPanesVariants()}
+          >
+            {sectionPane}
+            {children}
+            {fallbackOverflow}
+          </div>
         </PaneContext>
       </PaneStackContext>
     </main>

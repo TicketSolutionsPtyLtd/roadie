@@ -21,6 +21,7 @@ import { ScrollArea } from '../ScrollArea'
 import { PANE_CHROME_NONE, PaneChromeContext } from './PaneChromeContext'
 import { PaneContext } from './PaneContext'
 import { PaneKindContext, PaneStackContext } from './PaneStackContext'
+import { PANE_MAX_DEPTH, ROLE_DEPTH } from './paneColumns'
 import {
   type PaneEmphasis,
   type PanePrimaryNav,
@@ -47,13 +48,14 @@ export type PaneRootProps = Omit<ComponentProps<'section'>, 'role'> & {
    */
   role?: PaneRole
   /**
-   * This pane holds what the user is currently looking at. The deepest
-   * `current` pane is the top of the stack. Affects only the stacked bands —
-   * from `lg` up every pane is a column regardless.
+   * The deepest `current` pane is the top of the stack, which decides which
+   * panes are on screen at every width.
    *
    * @default false
    */
   current?: boolean
+  /** Where this pane sits in the drill-down: 0 is the root. Defaults from `role` — `list` 0, `detail` 1. */
+  depth?: 0 | 1 | 2 | 3
   /**
    * Surface treatment. Mirrors `Card`'s names, except that a pane's `subtler`
    * is **no surface at all**, so it sits directly on the sunken frame.
@@ -88,6 +90,7 @@ export function PaneRoot({
   className,
   role = 'list',
   current = false,
+  depth: declaredDepth,
   emphasis = 'raised',
   primaryNav = 'auto',
   ref: forwardedRef,
@@ -142,17 +145,45 @@ export function PaneRoot({
   useEffect(() => {
     const node = paneRef.current
     if (!register || !unregister || !node) return
-    register(paneId, node, { role, current, primaryNav, kind })
+    register(paneId, node, {
+      role,
+      current,
+      primaryNav,
+      kind,
+      depth: declaredDepth
+    })
     return () => unregister(paneId)
-  }, [register, unregister, paneId, role, current, primaryNav, kind])
+  }, [
+    register,
+    unregister,
+    paneId,
+    role,
+    current,
+    primaryNav,
+    kind,
+    declaredDepth
+  ])
 
-  const entry = { role, current, primaryNav, kind }
+  // Its own entry: one shared with the calls below costs the context memo under the compiler.
+  const depth =
+    stack === null
+      ? (declaredDepth ?? ROLE_DEPTH[role])
+      : stack.depthOf(paneId, {
+          role,
+          current,
+          primaryNav,
+          kind,
+          depth: declaredDepth
+        })
+  const entry = { role, current, primaryNav, kind, depth: declaredDepth }
   const position = stack?.positionOf(paneId, entry) ?? null
   const chrome = stack?.chromeOf(paneId, entry) ?? PANE_CHROME_NONE
   // No `stack` means no orchestrator to be non-root of — default to root so
   // the close affordance stays off rather than closing a stack that doesn't
   // exist.
   const isRoot = stack === null ? true : stack.isRootOf(paneId)
+  const inStack = stack !== null && role !== 'inspector'
+  const isOverflow = kind === 'overflow' || kind === 'generated-overflow'
   const { scrollPastAt, onScrollPast, onScrollDown, registerScroller } = chrome
   // A pane that has opted out of `auto` describes no scroll-linked nav at all.
   const reportsNav = primaryNav === 'auto' && onScrollPast !== undefined
@@ -168,8 +199,16 @@ export function PaneRoot({
   }, [])
 
   const context = useMemo(
-    () => ({ role, collapsed, scrollToTop, isRoot, bodyTitle, setBodyTitle }),
-    [role, collapsed, scrollToTop, isRoot, bodyTitle, setBodyTitle]
+    () => ({
+      role,
+      depth,
+      collapsed,
+      scrollToTop,
+      isRoot,
+      bodyTitle,
+      setBodyTitle
+    }),
+    [role, depth, collapsed, scrollToTop, isRoot, bodyTitle, setBodyTitle]
   )
 
   // Sentinels, not scroll reads: reading `scrollTop` in the scroll event forced
@@ -268,6 +307,12 @@ export function PaneRoot({
       data-slot='pane'
       data-role={role}
       data-stack-position={position ?? undefined}
+      // The stylesheet has no column past the deepest depth.
+      data-depth={depth === null ? undefined : Math.min(depth, PANE_MAX_DEPTH)}
+      data-stack={inStack ? '' : undefined}
+      data-current={current ? '' : undefined}
+      data-level={stack?.level}
+      data-overflow={isOverflow ? '' : undefined}
       data-primary-nav={primaryNav}
       className={cn(
         paneVariants({ role, emphasis, stackPosition: position ?? undefined }),
