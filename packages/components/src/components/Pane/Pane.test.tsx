@@ -58,9 +58,9 @@ describe('Pane', () => {
     expect(pane()).toHaveAttribute('data-role', 'list')
   })
 
-  it('caps a list pane at a share of the row, so a narrow frame still leaves the detail room', async () => {
+  it('leaves column width to the stylesheet', async () => {
     await renderPane(<Pane role='list'>Body</Pane>)
-    expect(pane()).toHaveClass('lg:w-[clamp(16rem,40%,24rem)]', 'lg:shrink-0')
+    expect(pane()).not.toHaveClass('lg:w-[clamp(16rem,40%,24rem)]')
   })
 
   it('marks the inspector role so it yields first', async () => {
@@ -393,7 +393,7 @@ describe('Pane.Header', () => {
     expect(screen.queryByLabelText('Back')).toBeNull()
   })
 
-  it('drops the back row from lg up, where the pane is a column', async () => {
+  it("leaves the back cell's display to the stylesheet", async () => {
     await renderPane(
       <Pane role='detail'>
         <Pane.Header backHref='/components'>
@@ -401,9 +401,9 @@ describe('Pane.Header', () => {
         </Pane.Header>
       </Pane>
     )
-    expect(screen.getByLabelText('Back').closest('div')).toHaveClass(
-      'lg:hidden'
-    )
+    const cell = screen.getByLabelText('Back').closest('div')
+    expect(cell).not.toHaveClass('lg:hidden')
+    expect(cell).toHaveAttribute('data-slot', 'pane-back')
   })
 
   it('takes the whole header with it when the back row is all there was', async () => {
@@ -413,7 +413,8 @@ describe('Pane.Header', () => {
       </Pane>
     )
     const header = () => document.querySelector('[data-slot="pane-header"]')
-    expect(header()).toHaveClass('lg:hidden')
+    expect(header()).toHaveClass('[display:var(--pane-back)]')
+    expect(header()).not.toHaveClass('grid')
 
     rerender(
       <Pane role='detail'>
@@ -423,7 +424,8 @@ describe('Pane.Header', () => {
       </Pane>
     )
     await flush()
-    expect(header()).not.toHaveClass('lg:hidden')
+    expect(header()).toHaveClass('grid')
+    expect(header()).not.toHaveClass('[display:var(--pane-back)]')
   })
 })
 
@@ -500,7 +502,7 @@ describe('Pane.Header close affordance', () => {
     expect(screen.queryByLabelText('Close')).toBeNull()
   })
 
-  it('shares the back affordance cell, gated to the opposite band', async () => {
+  it('shares the back affordance cell', async () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
@@ -516,13 +518,11 @@ describe('Pane.Header close affordance', () => {
     await flushViewportMeasurement()
     expect(screen.getByLabelText('Back').closest('div')).toHaveClass(
       'col-start-1',
-      'row-start-1',
-      'lg:hidden'
+      'row-start-1'
     )
     expect(screen.getByLabelText('Close').closest('div')).toHaveClass(
       'col-start-1',
-      'row-start-1',
-      'max-lg:hidden'
+      'row-start-1'
     )
   })
 
@@ -1238,47 +1238,10 @@ describe('pane registration through a wrapper', () => {
 })
 
 describe('stack geometry', () => {
-  // The geometry itself now lives on `paneVariants`' `stackPosition` variant,
-  // keyed off the pane's own `data-stack-position` rather than a direct-child
-  // selector on Navigator.Content — see variants.ts. jsdom never compiles
-  // Tailwind, so this only proves the class strings landed on the right
-  // element, including the transition and motion-reduce ones below — it
-  // cannot see the resolved `transition-property` the way a real browser
-  // can, which is the one property this rework exists to fix (Tailwind v4
-  // emits `translate` as its own property, not `transform`, and a
-  // class-string match can't tell those two apart, nor can it catch
-  // Tailwind itself failing to emit a named property). That gap was checked
-  // by hand in the browser instead; see the task report.
   const paneEls = () =>
     Array.from(document.querySelectorAll('[data-slot="pane"]'))
 
-  // `motion-reduce:transition-none` has no `max-lg:` gate — unlike the rest
-  // of the geometry, it must hold at every breakpoint. It is the one rule
-  // moved from Navigator.Content that was never scoped to the stacked band,
-  // so scoping it here would be a silent narrowing, not a move.
-  // z-index steps rather than eases: the top pane rises over Content's edge
-  // cover as it lands, a parked pane drops under it as it leaves.
-  const expectSharedTransition = (
-    pane: Element | undefined,
-    position: 'top' | 'parked' = 'parked'
-  ) => {
-    const top = position === 'top'
-    expect(pane).toHaveClass(
-      top
-        ? 'motion-safe:max-lg:transition-[translate,opacity,z-index]'
-        : 'motion-safe:max-lg:transition-[translate,opacity,visibility,z-index]'
-    )
-    expect(pane).toHaveClass('motion-safe:max-lg:duration-slow')
-    expect(pane).toHaveClass(
-      top
-        ? 'motion-safe:max-lg:[transition-timing-function:var(--ease-enter),var(--ease-enter),step-end]'
-        : 'motion-safe:max-lg:[transition-timing-function:var(--ease-enter),var(--ease-enter),var(--ease-enter),step-start]'
-    )
-    expect(pane).toHaveClass(top ? 'max-lg:z-2' : 'max-lg:z-0')
-    expect(pane).toHaveClass('motion-reduce:transition-none')
-  }
-
-  it('gives the top pane the shared stack geometry with no translate', async () => {
+  it('writes no geometry classes; the stylesheet keys on the attributes', async () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
@@ -1286,25 +1249,20 @@ describe('stack geometry', () => {
           <Pane role='detail' current>
             Detail
           </Pane>
+          <Pane role='inspector'>Details</Pane>
         </Navigator.Content>
       </Navigator>
     )
     await flushViewportMeasurement()
-    const top = paneEls().find(
-      (p) => p.getAttribute('data-stack-position') === 'top'
-    )
-    expect(top).toHaveClass('max-lg:absolute!')
-    expect(top).toHaveClass('max-lg:inset-(--pane-stack-inset)')
-    expect(top).toHaveClass('max-lg:start-(--pane-stack-inset-start)')
-    expect(top).not.toHaveClass('max-lg:-translate-x-1/3')
-    expect(top).not.toHaveClass(
-      'max-lg:translate-x-[calc(100%+var(--pane-stack-inset))]'
-    )
-    expect(top).not.toHaveClass('max-lg:invisible')
-    expectSharedTransition(top, 'top')
+    for (const el of paneEls()) {
+      expect(el.className).not.toMatch(/max-lg:|lg:|2xl:/)
+    }
+    expect(paneEls()[0]).toHaveAttribute('data-stack-position', 'behind')
+    expect(paneEls()[1]).toHaveAttribute('data-stack-position', 'top')
+    expect(paneEls()[2]).not.toHaveAttribute('data-stack')
   })
 
-  it('insets the stack by the gutter Content pads itself with, from md', async () => {
+  it('insets the stack from md by a gutter the row publishes', async () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
@@ -1315,89 +1273,10 @@ describe('stack geometry', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
-    const content = document.querySelector('[data-slot="navigator-content"]')
-    expect(content).toHaveClass(
+    expect(document.querySelector('[data-slot="navigator-panes"]')).toHaveClass(
       '[--pane-stack-inset:0px]',
-      'md:[--pane-stack-inset:--spacing(3)]',
-      'p-(--pane-stack-inset)',
-      'ps-(--pane-stack-inset-start)'
+      'md:[--pane-stack-inset:--spacing(3)]'
     )
-  })
-
-  it('parks the behind pane left and dimmed', async () => {
-    render(
-      <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
-        </Navigator.Content>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    const behind = paneEls().find(
-      (p) => p.getAttribute('data-stack-position') === 'behind'
-    )
-    expect(behind).toHaveClass('max-lg:-translate-x-1/3')
-    expect(behind).toHaveClass('max-lg:opacity-90')
-    expect(behind).toHaveClass('max-lg:pointer-events-none')
-    expect(behind).toHaveClass('max-lg:invisible')
-    expectSharedTransition(behind)
-  })
-
-  it('parks the ahead pane fully off-screen right', async () => {
-    render(
-      <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane role='list' current>
-            List
-          </Pane>
-          <Pane role='detail'>Detail</Pane>
-        </Navigator.Content>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    const ahead = paneEls().find(
-      (p) => p.getAttribute('data-stack-position') === 'ahead'
-    )
-    expect(ahead).toHaveClass(
-      'max-lg:translate-x-[calc(100%+var(--pane-stack-inset))]'
-    )
-    expect(ahead).toHaveClass('max-lg:opacity-100')
-    expect(ahead).toHaveClass('max-lg:pointer-events-none')
-    expect(ahead).toHaveClass('max-lg:invisible')
-    expectSharedTransition(ahead)
-  })
-
-  it('gives a standalone pane none of the stack geometry', async () => {
-    await renderPane(<Pane role='detail'>Standalone</Pane>)
-    const standalone = pane()
-    expect(standalone).not.toHaveAttribute('data-stack-position')
-    expect(standalone).not.toHaveClass('max-lg:absolute!')
-    expect(standalone).not.toHaveClass('max-lg:-translate-x-1/3')
-    expect(standalone).not.toHaveClass(
-      'max-lg:translate-x-[calc(100%+var(--pane-stack-inset))]'
-    )
-  })
-
-  it('gives an inspector none of the stack geometry inside a Navigator', async () => {
-    render(
-      <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane role='list' current>
-            List
-          </Pane>
-          <Pane role='inspector'>Inspector</Pane>
-        </Navigator.Content>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    const inspector = paneEls().find(
-      (p) => p.getAttribute('data-role') === 'inspector'
-    )
-    expect(inspector).not.toHaveAttribute('data-stack-position')
-    expect(inspector).not.toHaveClass('max-lg:absolute!')
   })
 
   describe('a pane inside a pane', () => {

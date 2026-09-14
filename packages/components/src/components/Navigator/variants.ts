@@ -11,14 +11,8 @@ export const navigatorRootVariants = cva([
   'pt-[env(safe-area-inset-top)]'
 ])
 
-// Below `lg` the panes stack: each fills Content and only the top one is
-// visible. `relative` makes Content the positioning context so panes resolve
-// against it, not the viewport. From `lg` they lay out side by side and every
-// stacking rule is inert.
-//
-// Flex, not an equal-fr grid: a capped `list` pane takes only its own width
-// and `detail` fills the remainder. An fr grid would split the row evenly and
-// strand the list's spare column while half-starving detail.
+// The `panes` container the pane columns stylesheet queries. Column padding
+// lives on the row inside, because a container can't query itself.
 export const navigatorContentVariants = cva([
   'row-start-1 md:col-start-2',
   // The frame behind the panes. A pane that paints no opaque surface of its
@@ -26,26 +20,26 @@ export const navigatorContentVariants = cva([
   // mixes against what is actually behind it rather than a guess baked into
   // the pane.
   '[--pane-surface:var(--intent-bg-sunken)]',
-  // Full-bleed on phones, inset from `md`. Published because a stacked pane is
-  // `absolute` and ignores this padding, so it insets itself by the same amount.
-  '[--pane-stack-inset:0px] md:[--pane-stack-inset:--spacing(3)]',
-  '[--pane-stack-inset-start:var(--pane-stack-inset)]',
-  'group-has-[[data-slot=navigator-primary][data-orientation=vertical]]/navigator:[--pane-stack-inset-start:0px]',
-  'grid min-h-0 min-w-0 gap-3',
-  'p-(--pane-stack-inset) ps-(--pane-stack-inset-start)',
-  'grid-cols-1 lg:flex lg:flex-row',
-  // Stack geometry is `paneVariants`' own: no selector here reaches a pane inside a wrapper.
-  // Clips a `behind` pane's translate, which can outrun the navigation beside
-  // it. The margin lets the landed top pane's shadow out; a cover under it
-  // keeps a sliding pane out of that margin.
-  'max-lg:relative max-lg:overflow-clip max-lg:[overflow-clip-margin:--spacing(1)]',
-  "max-lg:before:pointer-events-none max-lg:before:absolute max-lg:before:inset-y-0 max-lg:before:-start-1 max-lg:before:z-1 max-lg:before:w-1 max-lg:before:bg-sunken max-lg:before:content-['']",
+  'relative grid min-h-0 min-w-0',
+  '[container:panes/inline-size]',
+  // Clips a parked pane's translate, which can outrun the navigation beside
+  // it. The margin lets a landed pane's shadow out; a cover under it keeps a
+  // sliding pane out of that margin.
+  'overflow-clip [overflow-clip-margin:--spacing(1)]',
+  "before:pointer-events-none before:absolute before:inset-y-0 before:-start-1 before:z-1 before:w-1 before:bg-sunken before:content-['']",
   // Set for two frames while More opens or closes.
   'data-instant:[&_[data-slot=pane]]:transition-none'
 ])
 
-// Box-less while Content still lays the panes out itself.
-export const navigatorPanesVariants = cva(['contents'])
+// The row the stylesheet keys on. A stacked pane is `absolute` and ignores
+// padding, so it insets itself by the gutter published here: full-bleed on
+// phones, inset from `md`.
+export const navigatorPanesVariants = cva([
+  'relative flex h-full min-h-0 min-w-0',
+  '[--pane-stack-inset:0px] md:[--pane-stack-inset:--spacing(3)]',
+  '[--pane-stack-inset-start:var(--pane-stack-inset)]',
+  'group-has-[[data-slot=navigator-primary][data-orientation=vertical]]/navigator:[--pane-stack-inset-start:0px]'
+])
 
 // Not configurable — a seven-tab bar is not a shape Navigator can be talked into.
 export const MAX_TABS = 5
@@ -402,16 +396,6 @@ export const navigatorIndicatorVariants = cva(
 )
 
 export type NavigatorIndicatorSurface = 'horizontal' | 'vertical'
-
-// Rendered after the consumer's panes so it stays the deepest `current` when
-// stacked; `order` moves it to the leading column once panes are columns.
-export const navigatorOverflowVariants = cva(['lg:-order-1'], {
-  variants: {
-    // One list pane at a time: closed, it gives its column back.
-    open: { true: '', false: 'lg:hidden' }
-  },
-  defaultVariants: { open: false }
-})
 
 // Same floating surface and motion as Popover.
 export const navigatorMenuPopupVariants = cva([

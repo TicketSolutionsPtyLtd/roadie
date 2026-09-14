@@ -1130,6 +1130,7 @@ the remaining space; each pane scrolls independently.
 ```tsx-live-noinline
 function PanesLayout() {
   const [selected, setSelected] = useState('midnight')
+  const [open, setOpen] = useState(true)
   const events = {
     midnight: { title: 'Midnight Frequency', subtitle: 'Sat 12 Jul · The Tivoli' },
     sunset: { title: 'Sunset Sounds', subtitle: 'Fri 18 Jul · Riverstage' },
@@ -1159,15 +1160,20 @@ function PanesLayout() {
                     </IconTile>
                   }
                     current={selected === value}
-                    onClick={() => setSelected(value)}
+                    onClick={() => {
+                      setSelected(value)
+                      setOpen(true)
+                    }}
                   />
                 ))}
               </List>
             </div>
           </Pane>
-          <Pane role='detail' current={event != null}>
-            <div className='grid gap-3 py-4'>
-              <h2 className='text-display-ui-4 text-strong'>{event.title}</h2>
+          <Pane role='detail' current={open}>
+            <Pane.Header onBack={() => setOpen(false)}>
+              <Pane.Title>{event.title}</Pane.Title>
+            </Pane.Header>
+            <div className='grid gap-3 pb-4'>
               <p className='text-subtle'>{event.subtitle}</p>
               <List>
                 <List.Item

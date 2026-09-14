@@ -82,7 +82,6 @@ export function PaneHeader({
 
   const hasOtherContent = children != null || bodyTitle !== null
   const visible = showBack || showClose || hasOtherContent
-  // Back and Close share one cell at opposite bands; with both, it is never empty.
   const edgeOnly =
     hasOtherContent || (showBack && showClose)
       ? 'none'

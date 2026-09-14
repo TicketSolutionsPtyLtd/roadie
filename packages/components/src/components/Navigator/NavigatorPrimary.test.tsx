@@ -10,6 +10,7 @@ import { NAVIGATOR_EXPANDED_SCOPE } from '@oztix/roadie-core/navigator'
 import { Navigator } from '.'
 import { Badge } from '../Badge'
 import { Logo } from '../Logo'
+import { renderPaneColumnsCss } from '../Pane/paneColumns'
 import {
   FakeIcon,
   flushViewportMeasurement,
@@ -477,14 +478,18 @@ describe('choosing a primary item closes More', () => {
     reportClusterHeight(192)
     const more = within(region('cluster')).getByRole('button', { name: 'More' })
     await user.click(more)
-    expect(overflowPane()).not.toHaveClass('lg:hidden')
+    expect(
+      document.querySelector('[data-slot="navigator-panes"]')
+    ).toHaveAttribute('data-overflow')
     const b = within(region('cluster')).getByRole('link', { name: '/b' })
     await user.click(b)
     expect(more).toHaveAttribute('aria-expanded', 'false')
     expect(more).not.toHaveAttribute('data-current')
     expect(b).toHaveAttribute('data-current')
     expect(b).toHaveAttribute('aria-current', 'page')
-    expect(overflowPane()).toHaveClass('lg:hidden')
+    expect(
+      document.querySelector('[data-slot="navigator-panes"]')
+    ).not.toHaveAttribute('data-overflow')
   })
 
   it('closes More when the already-current item is chosen', async () => {
@@ -572,7 +577,9 @@ describe('choosing a primary item closes More', () => {
     expect(
       document.querySelector('[data-navigator-section="/s"]')
     ).toBeInTheDocument()
-    expect(overflowPane()).toHaveClass('lg:hidden')
+    expect(
+      document.querySelector('[data-slot="navigator-panes"]')
+    ).not.toHaveAttribute('data-overflow')
   })
 
   it('closes More when a bar tab or the pinned circle is tapped', async () => {
@@ -586,7 +593,9 @@ describe('choosing a primary item closes More', () => {
     await user.click(b)
     expect(more).toHaveAttribute('aria-expanded', 'false')
     expect(b).toHaveAttribute('data-current')
-    expect(overflowPane()).toHaveClass('lg:hidden')
+    expect(
+      document.querySelector('[data-slot="navigator-panes"]')
+    ).not.toHaveAttribute('data-overflow')
 
     await user.click(more)
     expect(more).toHaveAttribute('aria-expanded', 'true')
@@ -1549,11 +1558,18 @@ describe('right to left', () => {
     const content = document.querySelector<HTMLElement>(
       '[data-slot="navigator-content"]'
     )!
-    expect(content.className).toContain(
+    const row = document.querySelector<HTMLElement>(
+      '[data-slot="navigator-panes"]'
+    )!
+    expect(row.className).toContain(
       'group-has-[[data-slot=navigator-primary][data-orientation=vertical]]/navigator:[--pane-stack-inset-start:0px]'
     )
-    expect(content).toHaveClass('ps-(--pane-stack-inset-start)')
     expect(content.className).not.toMatch(physicalInset)
+    expect(row.className).not.toMatch(physicalInset)
+    const css = renderPaneColumnsCss()
+    expect(css).toContain('inset-inline-start: var(--pane-stack-inset-start')
+    expect(css).toContain('padding-inline-start: 0')
+    expect(css).not.toMatch(/(padding|margin)-(left|right)|[\s;{](left|right):/)
   })
 })
 
