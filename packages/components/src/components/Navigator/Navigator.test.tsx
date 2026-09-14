@@ -257,7 +257,32 @@ describe('pane stack', () => {
     )
     await flushViewportMeasurement()
     const content = document.querySelector('[data-slot="navigator-content"]')
-    expect(content).toHaveClass('max-lg:overflow-hidden')
+    expect(content).toHaveClass(
+      'max-lg:overflow-clip',
+      'max-lg:[overflow-clip-margin:--spacing(1)]',
+      'max-lg:before:z-1'
+    )
+  })
+
+  it('lifts the top pane over the edge cover only once it lands', async () => {
+    render(
+      <Navigator value='/components'>
+        <Navigator.Content>
+          <Pane role='list'>List</Pane>
+          <Pane role='detail' current>
+            Detail
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const [list, detail] = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-slot="pane"]')
+    )
+    expect(detail).toHaveAttribute('data-stack-position', 'top')
+    expect(detail!.className).toMatch(/max-lg:z-2 .*step-end\]/)
+    expect(list).toHaveAttribute('data-stack-position', 'behind')
+    expect(list!.className).toMatch(/max-lg:z-0 .*step-start\]/)
   })
 })
 

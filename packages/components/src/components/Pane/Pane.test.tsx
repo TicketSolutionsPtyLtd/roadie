@@ -1254,13 +1254,25 @@ describe('stack geometry', () => {
   // of the geometry, it must hold at every breakpoint. It is the one rule
   // moved from Navigator.Content that was never scoped to the stacked band,
   // so scoping it here would be a silent narrowing, not a move.
+  // z-index steps rather than eases: the top pane rises over Content's edge
+  // cover as it lands, a parked pane drops under it as it leaves.
   const expectSharedTransition = (
     pane: Element | undefined,
-    properties = 'translate,opacity,visibility'
+    position: 'top' | 'parked' = 'parked'
   ) => {
-    expect(pane).toHaveClass(`motion-safe:max-lg:transition-[${properties}]`)
+    const top = position === 'top'
+    expect(pane).toHaveClass(
+      top
+        ? 'motion-safe:max-lg:transition-[translate,opacity,z-index]'
+        : 'motion-safe:max-lg:transition-[translate,opacity,visibility,z-index]'
+    )
     expect(pane).toHaveClass('motion-safe:max-lg:duration-slow')
-    expect(pane).toHaveClass('motion-safe:max-lg:ease-enter')
+    expect(pane).toHaveClass(
+      top
+        ? 'motion-safe:max-lg:[transition-timing-function:var(--ease-enter),var(--ease-enter),step-end]'
+        : 'motion-safe:max-lg:[transition-timing-function:var(--ease-enter),var(--ease-enter),var(--ease-enter),step-start]'
+    )
+    expect(pane).toHaveClass(top ? 'max-lg:z-2' : 'max-lg:z-0')
     expect(pane).toHaveClass('motion-reduce:transition-none')
   }
 
@@ -1287,10 +1299,7 @@ describe('stack geometry', () => {
       'max-lg:translate-x-[calc(100%+var(--pane-stack-inset))]'
     )
     expect(top).not.toHaveClass('max-lg:invisible')
-    expectSharedTransition(top, 'translate,opacity')
-    expect(top).not.toHaveClass(
-      'motion-safe:max-lg:transition-[translate,opacity,visibility]'
-    )
+    expectSharedTransition(top, 'top')
   })
 
   it('insets the stack by the gutter Content pads itself with, from md', async () => {
