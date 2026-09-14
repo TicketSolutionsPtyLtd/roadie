@@ -449,6 +449,46 @@ describe('Navigator server render of depths', () => {
   })
 })
 
+describe('a declared depth out of document order', () => {
+  const OutOfOrder = () => (
+    <StrictMode>
+      <Navigator value='/a'>
+        <Navigator.Content>
+          <Pane role='list'>List</Pane>
+          <Pane role='detail' depth={2} current>
+            Sub
+          </Pane>
+          <Pane role='detail' current>
+            Detail
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    </StrictMode>
+  )
+
+  it('writes the declared depths and hydrates to the same top', async () => {
+    const host = serverRender(<OutOfOrder />)
+    const before = depths(host)
+    expect(before.map(([, depth]) => depth)).toEqual(['0', '2', '1'])
+    const recoverable = vi.fn()
+    let root: Root | null = null
+    await act(async () => {
+      root = hydrateRoot(host, <OutOfOrder />, {
+        onRecoverableError: recoverable
+      })
+    })
+    await flushViewportMeasurement()
+    expect(recoverable).not.toHaveBeenCalled()
+    expect(depths(host)).toEqual(before)
+    expect(positions(host).map(([, position]) => position)).toEqual([
+      'behind',
+      'top',
+      'behind'
+    ])
+    act(() => root?.unmount())
+  })
+})
+
 describe('a lone pane that is not current', () => {
   const Lone = () => (
     <Navigator value='/a'>

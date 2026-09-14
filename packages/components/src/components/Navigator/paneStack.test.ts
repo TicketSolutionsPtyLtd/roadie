@@ -160,6 +160,21 @@ describe('derivePositions', () => {
       derivePositions([entry({ role: 'list' }), entry({ role: 'detail' })])
     ).toEqual(['top', 'ahead'])
   })
+
+  it('orders by rank, document order only between equals', () => {
+    const stack = [
+      entry({ role: 'list', rank: 0 }),
+      entry({ current: true, rank: 2 }),
+      entry({ current: true, rank: 1 }),
+      entry({ rank: 3 })
+    ]
+    expect(deriveTopIndex(stack)).toBe(1)
+    expect(derivePositions(stack)).toEqual(['behind', 'top', 'behind', 'ahead'])
+    expect(deriveRootIndex([entry({ rank: 1 }), entry({ rank: 0 })])).toBe(1)
+    expect(
+      derivePositions([entry({ current: true, rank: 1 }), entry({ rank: 1 })])
+    ).toEqual(['top', 'ahead'])
+  })
 })
 
 describe('revealRoot', () => {

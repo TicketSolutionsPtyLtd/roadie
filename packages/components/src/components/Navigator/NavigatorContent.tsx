@@ -240,16 +240,44 @@ export function NavigatorContent({
   const onSectionRoute =
     activeSection !== null && isActiveValue(activeSection.value, value)
   const revealing = listPaneShows && !moreOpen && (onSectionRoute || showList)
+  // Open More is the root and the top; closed, it is never reached.
+  const revealRoot = revealing || moreOpen
+  const stack = useMemo(
+    () =>
+      ordered.map((pane) => ({
+        ...pane,
+        rank:
+          pane.kind === 'overflow' || pane.kind === 'generated-overflow'
+            ? pane.current
+              ? -1
+              : Infinity
+            : (depths.get(pane.id) ?? provisionalDepth(pane) ?? Infinity)
+      })),
+    [ordered, depths]
+  )
   const positions = useMemo(
-    () => derivePositions(ordered, revealing),
-    [ordered, revealing]
+    () => derivePositions(stack, revealRoot),
+    [stack, revealRoot]
   )
   useInsertionEffect(() => markPushing(), [markPushing, revealing])
   const topIndex = positions.indexOf('top')
-  const topId = topIndex === -1 ? null : (ordered[topIndex]?.id ?? null)
-  const rootIndex = useMemo(() => deriveRootIndex(ordered), [ordered])
+  const topId = topIndex === -1 ? null : (stack[topIndex]?.id ?? null)
+  const rootIndex = useMemo(() => deriveRootIndex(stack), [stack])
 
-  const topChrome = useTopPaneChrome()
+  const paneChrome = useTopPaneChrome()
+  const topKnown = topId !== null
+  // Before registration two panes can both be provisionally top; the one that
+  // loses would release the scroller the other still holds.
+  const topChrome = useMemo(
+    () =>
+      topKnown
+        ? paneChrome
+        : {
+            ...paneChrome,
+            registerScroller: PANE_CHROME_NONE.registerScroller
+          },
+    [paneChrome, topKnown]
+  )
   const sectionBack = useMemo(() => {
     if (!listPaneShows || moreOpen || activeSection?.href === undefined) {
       return null
@@ -268,12 +296,12 @@ export function NavigatorContent({
   // stable, so these lookups can change with the stack without looping.
   const positionOf = useCallback(
     (id: string, entry: PaneRegistration) => {
-      const index = ordered.findIndex((pane) => pane.id === id)
+      const index = stack.findIndex((pane) => pane.id === id)
       return index === -1
-        ? provisionalPosition(entry, revealing)
+        ? provisionalPosition(entry, revealRoot)
         : (positions[index] ?? null)
     },
-    [ordered, positions, revealing]
+    [stack, positions, revealRoot]
   )
 
   const depthOf = useCallback(
@@ -302,10 +330,10 @@ export function NavigatorContent({
 
   const isRootOf = useCallback(
     (id: string) => {
-      const index = ordered.findIndex((pane) => pane.id === id)
+      const index = stack.findIndex((pane) => pane.id === id)
       return index !== -1 && index === rootIndex
     },
-    [ordered, rootIndex]
+    [stack, rootIndex]
   )
 
   const stackValue = useMemo<PaneStackContextValue>(
@@ -401,7 +429,7 @@ export function NavigatorContent({
   ])
 
   const topPrimaryNav =
-    ordered.find((pane) => pane.id === topId)?.primaryNav ?? 'auto'
+    stack.find((pane) => pane.id === topId)?.primaryNav ?? 'auto'
   useEffect(() => {
     setPrimaryNav(topPrimaryNav)
   }, [topPrimaryNav, setPrimaryNav])
