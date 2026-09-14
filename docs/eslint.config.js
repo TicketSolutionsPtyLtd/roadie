@@ -1,5 +1,6 @@
 import prettierConfig from 'eslint-config-prettier'
 import { flatCodeBlocks, flat as mdxFlat } from 'eslint-plugin-mdx'
+import reactHooks from 'eslint-plugin-react-hooks'
 import { createRequire } from 'module'
 
 const require = createRequire(import.meta.url)
@@ -13,6 +14,12 @@ const config = [
 
   // Next.js config (native flat config)
   ...nextConfig,
+
+  // eslint-config-next already registers the plugin, so only the rules
+  {
+    files: ['**/*.{js,jsx,mjs,ts,tsx,mts,cts}'],
+    rules: reactHooks.configs.flat['recommended-latest'].rules
+  },
 
   // MDX plugin config
   mdxFlat,

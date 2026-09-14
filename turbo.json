@@ -47,12 +47,22 @@
     },
     "lint": {
       "dependsOn": ["^build"],
-      "inputs": ["src/**/*.{js,jsx,ts,tsx}", ".eslintrc.*", "package.json"],
+      "inputs": [
+        "src/**/*.{js,jsx,ts,tsx}",
+        "eslint.config.js",
+        "$TURBO_ROOT$/eslint.config.js",
+        "package.json"
+      ],
       "outputs": []
     },
     "lint:fix": {
       "dependsOn": ["^build"],
-      "inputs": ["src/**/*.{js,jsx,ts,tsx}", ".eslintrc.*", "package.json"],
+      "inputs": [
+        "src/**/*.{js,jsx,ts,tsx}",
+        "eslint.config.js",
+        "$TURBO_ROOT$/eslint.config.js",
+        "package.json"
+      ],
       "outputs": ["src/**/*"]
     },
     "test": {

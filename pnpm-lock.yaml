@@ -45,6 +45,9 @@ importers:
       eslint-plugin-react:
         specifier: 7.37.5
         version: 7.37.5(eslint@9.39.5(jiti@2.7.0)(supports-color@9.4.0))
+      eslint-plugin-react-hooks:
+        specifier: 7.1.1
+        version: 7.1.1(eslint@9.39.5(jiti@2.7.0)(supports-color@9.4.0))(supports-color@9.4.0)
       globals:
         specifier: 17.12.0
         version: 17.12.0
@@ -160,6 +163,9 @@ importers:
       eslint-plugin-mdx:
         specifier: 3.8.1
         version: 3.8.1(eslint@9.39.5(jiti@2.7.0)(supports-color@9.4.0))(supports-color@9.4.0)
+      eslint-plugin-react-hooks:
+        specifier: 7.1.1
+        version: 7.1.1(eslint@9.39.5(jiti@2.7.0)(supports-color@9.4.0))(supports-color@9.4.0)
       react-docgen-typescript:
         specifier: 2.4.0
         version: 2.4.0(typescript@6.0.3)
