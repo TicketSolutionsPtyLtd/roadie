@@ -88,6 +88,17 @@ export default function AppShellPage() {
           are found by element reference, and React Flight breaks that for
           server-authored trees.
         </p>
+        <p className='text-subtle'>
+          <Code>children</Code> and <Code>@detail</Code> are both
+          server-rendered slots — wrap each in its own fragment when passing
+          them to <Code>Navigator.Content</Code>, not an array. An unresolved
+          RSC placeholder in an array trips Next 16&apos;s spurious &quot;unique
+          key&quot; warning.
+        </p>
+        <CodeBlock>{`<Navigator.Content>
+  <>{children}</>
+  <>{detail}</>
+</Navigator.Content>`}</CodeBlock>
       </section>
 
       {/* Matcher rule */}
