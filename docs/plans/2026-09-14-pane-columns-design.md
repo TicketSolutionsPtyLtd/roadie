@@ -98,8 +98,10 @@ C=1                     C=2
 - **The inspector is never ranked.** It shows only when every stack level that
   exists fits beside it, and it yields first: `inspectorTier(N)` is the
   narrowest Content at which the fill keeps 28rem beside the parent track's
-  actual width, not its 16rem minimum — 44.25rem with one level, 69rem with
-  two, 85.75rem with three or more. It never outranks the root. Its
+  actual width, not its 16rem minimum — 46.25rem with one level, 69rem with
+  two, 85.75rem with three or more. It takes a column only once the row has
+  columns: the stacked tier positions its panes absolutely, so a one-level
+  row waits for the two-column tier. It never outranks the root. Its
   small-screen affordance stays the consumer's `Drawer`, and Roadie ships a `pane-inspector-yielded:` variant from the same
   conditions so the trigger shows exactly when the column is gone.
 - **More** opens as a revealed depth-0 pane (T=0), the same mechanism as
