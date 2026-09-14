@@ -28,27 +28,59 @@ export function columnTier(columns: number): number {
   )
 }
 
-/** Content width, in rem, at which the inspector fits beside every level present. */
-export function inspectorTier(levels: number): number {
-  const stack =
-    levels === 1
-      ? PANE_MIN_FILL + PANE_ROW_PADDING
-      : columnTier(Math.min(levels, PANE_MAX_COLUMNS))
-  return stack + PANE_INSPECTOR + PANE_GAP
-}
-
 /** How many columns a row shows: never more than it has levels. */
 export function visibleColumns(columns: number, levels: number): number {
   return Math.min(columns, levels)
 }
 
+const TRACK = {
+  2: { share: 40, max: 24 },
+  3: { share: 25, max: 20 }
+} as const
+
+const trackOf = (columns: number) => TRACK[columns === 2 ? 2 : 3]
+
+const reservedBeside = (columns: number) =>
+  PANE_MIN_FILL + (columns - 1) * PANE_GAP + PANE_ROW_PADDING
+
 export function parentTrack(columns: number): string {
-  if (columns === 2) {
-    const reserved = PANE_MIN_FILL + PANE_GAP + PANE_ROW_PADDING
-    return `clamp(${PANE_MIN_PARENT}rem, min(40cqi, 100cqi - ${reserved}rem), 24rem)`
-  }
-  const reserved = PANE_MIN_FILL + (columns - 1) * PANE_GAP + PANE_ROW_PADDING
-  return `clamp(${PANE_MIN_PARENT}rem, min(25cqi, (100cqi - ${reserved}rem) / ${columns - 1}), 20rem)`
+  const { share, max } = trackOf(columns)
+  const reserved = reservedBeside(columns)
+  const room =
+    columns === 2
+      ? `100cqi - ${reserved}rem`
+      : `(100cqi - ${reserved}rem) / ${columns - 1}`
+  return `clamp(${PANE_MIN_PARENT}rem, min(${share}cqi, ${room}), ${max}rem)`
+}
+
+/** `parentTrack` resolved at a content width, both in rem. */
+export function parentTrackWidth(columns: number, content: number): number {
+  const { share, max } = trackOf(columns)
+  const room = (content - reservedBeside(columns)) / (columns - 1)
+  return Math.min(
+    Math.max(Math.min((share * content) / 100, room), PANE_MIN_PARENT),
+    max
+  )
+}
+
+const inspectorFits = (levels: number, content: number) => {
+  const shown = Math.min(levels, PANE_MAX_COLUMNS)
+  if (content < columnTier(shown)) return false
+  const parents =
+    shown === 1 ? 0 : (shown - 1) * parentTrackWidth(shown, content)
+  const fill =
+    content - PANE_ROW_PADDING - parents - PANE_INSPECTOR - shown * PANE_GAP
+  return fill >= PANE_MIN_FILL
+}
+
+// 1px: the fill only grows with the content within a tier, so the first fit holds from there up.
+const PX = 1 / 16
+
+/** Content width, in rem, from which the inspector fits beside every level present and the fill keeps its minimum. */
+export function inspectorTier(levels: number): number {
+  let content = columnTier(Math.min(levels, PANE_MAX_COLUMNS))
+  while (!inspectorFits(levels, content)) content += PX
+  return content
 }
 
 export type PaneSlot = 'top' | 'parent' | 'fill' | 'behind' | 'ahead'

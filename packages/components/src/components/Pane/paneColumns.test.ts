@@ -101,11 +101,11 @@ describe('tiers', () => {
     expect(columnTier(3)).toBe(63)
   })
 
-  it('fits the inspector once every level present fits beside it', () => {
+  it('fits the inspector once every level present fits beside it at its minimum', () => {
     expect(inspectorTier(1)).toBe(44.25)
-    expect(inspectorTier(2)).toBe(61)
-    expect(inspectorTier(3)).toBe(77.75)
-    expect(inspectorTier(4)).toBe(77.75)
+    expect(inspectorTier(2)).toBe(69)
+    expect(inspectorTier(3)).toBe(85.75)
+    expect(inspectorTier(4)).toBe(85.75)
   })
 
   it('never starves the fill below its minimum', () => {
@@ -363,6 +363,66 @@ describe('parent tracks follow the columns a row shows', () => {
     const track = rule!.body.match(/flex: 0 0 (.*?); order/)![1]!
     return Math.round(trackPx(track, contentPx))
   }
+
+  // Every 1px of content from a single column to past the widest tier.
+  it.each([2, 3])(
+    'never squeezes the fill below its minimum beside a shown inspector, %i levels',
+    (levels) => {
+      const $ = html(
+        stackRow(
+          0,
+          Array.from({ length: levels }, (_, depth) => depth === levels - 1),
+          false
+        ).replace(
+          '</div></div>',
+          '</div><div data-slot="pane" data-role="inspector" data-level="0"></div></div>'
+        )
+      )
+      const inspector = $('[data-role="inspector"]')
+      const panes = Array.from({ length: levels }, (_, depth) =>
+        $(`[data-depth="${depth}"]`)
+      )
+      let shownAt = 0
+      for (let contentPx = 600; contentPx <= 1800; contentPx += 1) {
+        const columns = columnsAt(contentPx)
+        if (columns === 1) continue
+        const inspectorShown = rules.some(
+          (rule) =>
+            rule.body === 'display: block;' &&
+            inspector.matches(rule.selector) &&
+            rule.conditions.some((condition) => {
+              const width = condition.match(
+                /@container panes \(width >= ([\d.]+)rem\)/
+              )?.[1]
+              return width !== undefined && contentPx >= Number(width) * REM
+            })
+        )
+        if (!inspectorShown) continue
+        shownAt += 1
+        const tier = rules.filter(
+          (rule) =>
+            rule.body.includes('--pane-back') &&
+            rule.conditions.includes(
+              `@container panes (width >= ${columnTier(columns)}rem)`
+            )
+        )
+        const bodies = panes
+          .map((pane) => tier.find((rule) => pane.matches(rule.selector))!)
+          .map((rule) => rule.body)
+        const parents = bodies
+          .map((body) => body.match(/flex: 0 0 (.*?); order/)?.[1])
+          .filter((track): track is string => track !== undefined)
+          .reduce((sum, track) => sum + trackPx(track, contentPx), 0)
+        const shown = bodies.filter(
+          (body) => !body.includes('visibility: hidden')
+        ).length
+        const fill =
+          contentPx - 1.5 * REM - parents - 14 * REM - shown * 0.75 * REM
+        expect(fill, `${contentPx}px`).toBeGreaterThanOrEqual(28 * REM)
+      }
+      expect(shownAt).toBeGreaterThan(0)
+    }
+  )
 
   it('never uses more columns than the row has levels', () => {
     expect(visibleColumns(3, 2)).toBe(2)

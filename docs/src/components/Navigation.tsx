@@ -122,7 +122,6 @@ function OnThisPageDrawer({ headings, onSelect }: DocHeadings) {
           <IconButton
             aria-label='On this page'
             emphasis='normal'
-            // Shown exactly while the inspector column has yielded.
             className='pane-inspector-yielded:inline-flex hidden'
           >
             <ListIcon weight='bold' className='size-5' />
