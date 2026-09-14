@@ -122,6 +122,7 @@ export function NavigatorContent({
 
   const contentRef = useRef<HTMLElement | null>(null)
   const ref = useMemo(() => mergeRefs(contentRef, forwardedRef), [forwardedRef])
+  const rowRef = useRef<HTMLDivElement | null>(null)
 
   // More and a change of section are tab switches, not pushes: the stack flips
   // without sliding. An insertion effect runs before any layout effect can
@@ -145,6 +146,23 @@ export function NavigatorContent({
     })
     return () => cancelAnimationFrame(frame)
   }, [overflowOpen, sectionValue])
+
+  // Panes slide only on a push or pop; a resize that changes the columns
+  // cuts. Set in the commit that changes the stack, as the pane that changed
+  // knows first; a transition, once started, outlives the attribute.
+  const pushFrame = useRef(0)
+  const markPushing = useCallback(() => {
+    const row = rowRef.current
+    if (!row) return
+    row.setAttribute('data-pushing', '')
+    cancelAnimationFrame(pushFrame.current)
+    pushFrame.current = requestAnimationFrame(() => {
+      pushFrame.current = requestAnimationFrame(() =>
+        row.removeAttribute('data-pushing')
+      )
+    })
+  }, [])
+  useEffect(() => () => cancelAnimationFrame(pushFrame.current), [])
 
   // The Map serves effects, which run before the snapshot re-renders; render
   // reads the snapshot.
@@ -226,6 +244,7 @@ export function NavigatorContent({
     () => derivePositions(ordered, revealing),
     [ordered, revealing]
   )
+  useInsertionEffect(() => markPushing(), [markPushing, revealing])
   const topIndex = positions.indexOf('top')
   const topId = topIndex === -1 ? null : (ordered[topIndex]?.id ?? null)
   const rootIndex = useMemo(() => deriveRootIndex(ordered), [ordered])
@@ -297,9 +316,19 @@ export function NavigatorContent({
       chromeOf,
       isRootOf,
       depthOf,
+      markPushing,
       level
     }),
-    [register, unregister, positionOf, chromeOf, isRootOf, depthOf, level]
+    [
+      register,
+      unregister,
+      positionOf,
+      chromeOf,
+      isRootOf,
+      depthOf,
+      markPushing,
+      level
+    ]
   )
 
   // Reads the ref, not `ordered`: child effects have registered by now, the render hadn't.
@@ -402,6 +431,7 @@ export function NavigatorContent({
         {/* Resets to stack level so a nested Navigator registers its own panes. */}
         <PaneContext value={null}>
           <div
+            ref={rowRef}
             data-slot='navigator-panes'
             data-level={level}
             data-reveal={revealing || overflowOpen ? '' : undefined}

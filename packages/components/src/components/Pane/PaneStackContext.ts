@@ -30,6 +30,8 @@ export type PaneStackContextValue = {
   isRootOf: (id: string) => boolean
   /** Resolved from document order once registered; declared or role default before. `null` for an inspector. */
   depthOf: (id: string, entry: PaneRegistration) => number | null
+  /** Lets the stack slide for the change this commit makes. */
+  markPushing: () => void
   /** 0 for the outermost `Navigator.Content`. */
   level: number
 }

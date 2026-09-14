@@ -702,12 +702,43 @@ describe('the stacked tier keeps the md inset and the edge cover', () => {
         '@layer components',
         '@media (prefers-reduced-motion: no-preference)'
       ])
+      expect(rule.selector).toContain('[data-pushing]')
     }
     expect(columnRules.length).toBeGreaterThan(0)
     for (const rule of columnRules) {
       expect(rule.body).toMatch(/transition: none;$/)
       expect(rule.body).not.toContain('transition-property')
     }
+  })
+
+  it('slides only while its own row is pushing', () => {
+    const sliding = (pane: Element) =>
+      rules.some(
+        (rule) =>
+          rule.body.includes('transition-duration') &&
+          pane.matches(rule.selector)
+      )
+    const nested = (outer: string, inner: string) =>
+      html(`
+        <div data-slot="navigator-panes" data-level="0" ${outer}>
+          <div data-slot="pane" data-stack data-level="0" data-depth="0" id="outer-pane">
+            <div data-slot="navigator-panes" data-level="1" ${inner}>
+              <div data-slot="pane" data-stack data-level="1" data-depth="0" id="inner-pane"></div>
+            </div>
+          </div>
+        </div>`)
+
+    let $ = nested('', '')
+    expect(sliding($('#outer-pane'))).toBe(false)
+    expect(sliding($('#inner-pane'))).toBe(false)
+
+    $ = nested('data-pushing', '')
+    expect(sliding($('#outer-pane'))).toBe(true)
+    expect(sliding($('#inner-pane'))).toBe(false)
+
+    $ = nested('', 'data-pushing')
+    expect(sliding($('#outer-pane'))).toBe(false)
+    expect(sliding($('#inner-pane'))).toBe(true)
   })
 
   it('keeps landed columns over the cover', () => {

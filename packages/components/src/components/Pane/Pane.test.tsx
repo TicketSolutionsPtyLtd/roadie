@@ -763,6 +763,7 @@ describe('Pane.Header back name', () => {
       }),
       isRootOf: () => false,
       depthOf: () => 1,
+      markPushing: () => {},
       level: 0
     }
     const { rerender } = await renderPane(
@@ -1086,6 +1087,7 @@ describe('orchestrator chrome', () => {
       chromeOf: () => ({ ...PANE_CHROME_NONE, ...chrome }),
       isRootOf: () => false,
       depthOf: () => 1,
+      markPushing: () => {},
       level: 0
     }
     return renderPane(

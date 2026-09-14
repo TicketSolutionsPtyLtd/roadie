@@ -8,6 +8,7 @@ import {
   useEffect,
   useEffectEvent,
   useId,
+  useInsertionEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -175,6 +176,13 @@ export function PaneRoot({
           kind,
           depth: declaredDepth
         })
+  // Mounting, unmounting or moving a pane is a navigation; the stack slides for it.
+  const markPushing = stack?.markPushing
+  useInsertionEffect(() => {
+    markPushing?.()
+    return () => markPushing?.()
+  }, [markPushing, current, depth])
+
   const entry = { role, current, primaryNav, kind, depth: declaredDepth }
   const position = stack?.positionOf(paneId, entry) ?? null
   const chrome = stack?.chromeOf(paneId, entry) ?? PANE_CHROME_NONE
