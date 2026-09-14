@@ -71,7 +71,7 @@ export function useExpandMotion(
         )) *
       (navStyle.direction === 'rtl' ? -1 : 1)
     // Reduced motion, or hidden below `md`: the track just changes.
-    if (duration === 0 || travel === 0 || nav.offsetWidth === 0) {
+    if (duration === 0 || travel === 0 || navStyle.display === 'none') {
       nav.removeAttribute('data-motion')
       return
     }
