@@ -725,6 +725,75 @@ describe('the generated stylesheet', () => {
     expect(padded($('#inner-row')).length).toBeGreaterThan(0)
   })
 
+  it("widens a navigator's clip into its vertical primary's gutter, from md, for its own Content only", () => {
+    const widened = (content: Element) =>
+      rules.filter(
+        (rule) =>
+          rule.body ===
+            'margin-inline-start: -0.5rem; padding-inline-start: 0.5rem;' &&
+          content.matches(rule.selector)
+      )
+    const covered = (content: Element) =>
+      rules.filter(
+        (rule) =>
+          rule.selector.endsWith('::before') &&
+          content.matches(rule.selector.replace('::before', ''))
+      )
+    const nested = (outer: string, inner: string) =>
+      html(`
+        <div data-slot="navigator">
+          ${outer === 'none' ? '' : `<div data-slot="navigator-primary" data-orientation="${outer}"></div>`}
+          <main data-slot="navigator-content" id="outer">
+            <div data-slot="navigator-panes" data-level="0">
+              <div data-slot="pane" data-stack data-level="0" data-depth="0">
+                <div data-slot="navigator">
+                  ${inner === 'none' ? '' : `<div data-slot="navigator-primary" data-orientation="${inner}"></div>`}
+                  <main data-slot="navigator-content" id="inner">
+                    <div data-slot="navigator-panes" data-level="1"></div>
+                  </main>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>`)
+
+    let $ = nested('vertical', 'none')
+    expect(widened($('#outer'))).toHaveLength(1)
+    expect(covered($('#outer'))).toHaveLength(1)
+    expect(widened($('#inner'))).toHaveLength(0)
+    expect(covered($('#inner'))).toHaveLength(0)
+    for (const rule of [...widened($('#outer')), ...covered($('#outer'))]) {
+      expect(rule.conditions).toContain('@media (width >= 48rem)')
+    }
+    const [cover] = covered($('#outer'))
+    expect(cover!.body).toContain('inline-size: 0.5rem;')
+    expect(cover!.body).toContain('z-index: 1;')
+
+    $ = nested('horizontal', 'vertical')
+    expect(widened($('#outer'))).toHaveLength(0)
+    expect(widened($('#inner'))).toHaveLength(1)
+    $ = nested('none', 'none')
+    expect(widened($('#outer'))).toHaveLength(0)
+  })
+
+  it('keeps the cover under a landed pane and over a sliding one', () => {
+    const cover = rules.find((rule) => rule.selector.endsWith('::before'))!
+    const z = (body: string) => Number(body.match(/z-index: (\d)/)?.[1])
+    expect(z(cover.body)).toBe(1)
+    const landed = rules.filter(
+      (rule) =>
+        rule.body.includes('--pane-back') &&
+        rule.body.includes('visibility: visible')
+    )
+    const parked = rules.filter(
+      (rule) =>
+        rule.body.includes('--pane-back') &&
+        rule.body.includes('visibility: hidden')
+    )
+    for (const rule of landed) expect(z(rule.body)).toBeGreaterThan(1)
+    for (const rule of parked) expect(z(rule.body)).toBeLessThan(1)
+  })
+
   it("keeps a navigator's flush start edge to its own row", () => {
     const flush = (row: Element) =>
       rules

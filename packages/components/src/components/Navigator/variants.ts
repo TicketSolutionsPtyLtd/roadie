@@ -23,10 +23,9 @@ export const navigatorContentVariants = cva([
   'relative grid min-h-0 min-w-0',
   '[container:panes/inline-size]',
   // Clips a parked pane's translate, which can outrun the navigation beside
-  // it. The margin lets a landed pane's shadow out; a cover under it keeps a
-  // sliding pane out of that margin.
-  'overflow-clip [overflow-clip-margin:--spacing(1)]',
-  "before:pointer-events-none before:absolute before:inset-y-0 before:-start-1 before:z-1 before:w-1 before:bg-sunken before:content-['']",
+  // it. Beside a vertical primary the pane columns stylesheet widens it into
+  // the primary's gutter, so pointer events belong to the row alone.
+  'overflow-clip pointer-events-none',
   // Set for two frames while More opens or closes.
   'data-instant:[&_[data-slot=pane]]:transition-none'
 ])
@@ -35,7 +34,7 @@ export const navigatorContentVariants = cva([
 // padding, so it insets itself by the gutter published here: full-bleed on
 // phones, inset from `md`.
 export const navigatorPanesVariants = cva([
-  'relative flex h-full min-h-0 min-w-0',
+  'pointer-events-auto relative flex h-full min-h-0 min-w-0',
   '[--pane-stack-inset:0px] md:[--pane-stack-inset:--spacing(3)]'
 ])
 
