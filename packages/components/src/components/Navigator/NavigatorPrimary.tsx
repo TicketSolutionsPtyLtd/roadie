@@ -6,6 +6,7 @@ import {
   type ReactNode,
   use,
   useEffect,
+  useEffectEvent,
   useMemo,
   useRef
 } from 'react'
@@ -38,6 +39,7 @@ import {
 } from './mobileSlots'
 import { presentNavIcon } from './presentNavIcon'
 import { PRIMARY_METRICS } from './primaryCapacity'
+import { slotsSignature } from './primarySignature'
 import { activeHref, rememberedHref } from './sectionMemory'
 import { textOf } from './splitSecondary'
 import { usePrimaryCapacity } from './usePrimaryCapacity'
@@ -237,9 +239,13 @@ export function NavigatorPrimary({
   const tabCount = slots.tabs.length + (hasMore ? 1 : 0)
 
   const foldedKey = folded.map((slot) => slot.value).join(',')
-  useEffect(() => {
+  const foldedSignature = slotsSignature(folded)
+  const publishFolded = useEffectEvent(() =>
     setOverflowItems('horizontal', folded)
-  }, [folded, setOverflowItems])
+  )
+  useEffect(() => {
+    publishFolded()
+  }, [foldedSignature])
 
   const hasToggle = collected.toggles.length > 0
   const clusterCapsules = useMemo(
@@ -259,9 +265,13 @@ export function NavigatorPrimary({
   const verticalFoldedKey = verticalFoldedSlots
     .map((slot) => slot.value)
     .join(',')
-  useEffect(() => {
+  const verticalFoldedSignature = slotsSignature(verticalFoldedSlots)
+  const publishVerticalFolded = useEffectEvent(() =>
     setOverflowItems('vertical', verticalFoldedSlots)
-  }, [verticalFoldedSlots, setOverflowItems])
+  )
+  useEffect(() => {
+    publishVerticalFolded()
+  }, [verticalFoldedSignature])
 
   // Once the navigation in view folds nothing, no More control is left to close More.
   const shownFoldedKey = verticalShown ? verticalFoldedKey : foldedKey

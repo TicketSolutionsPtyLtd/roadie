@@ -75,7 +75,10 @@ export default [
 
   {
     files: ['packages/components/**/*.{ts,tsx}'],
-    ...reactHooks.configs.flat['recommended-latest']
+    ...reactHooks.configs.flat['recommended-latest'],
+    settings: {
+      'react-hooks': { additionalEffectHooks: '^useIsomorphicLayoutEffect$' }
+    }
   },
   {
     // Hydration-time syncs from the DOM, storage or Embla. Each needs a
