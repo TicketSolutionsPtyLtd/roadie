@@ -202,9 +202,11 @@ describe('Navigator.Menu', () => {
     expect(menu).toHaveClass('emphasis-floating', 'is-translucent')
     const item = within(menu).getByRole('menuitem', { name: 'Sign out' })
     expect(item).toHaveAttribute('data-slot', 'navigator-menu-item')
-    expect(
-      item.querySelector('[data-slot="navigator-menu-item-icon"]')
-    ).toBeInTheDocument()
+    const iconTile = item.querySelector(
+      '[data-slot="navigator-menu-item-icon"]'
+    )
+    expect(iconTile).toBeInTheDocument()
+    expect(iconTile).toHaveClass('size-6', 'emphasis-subtle')
     expect(
       item.querySelector('[data-slot="navigator-menu-item-label"]')
     ).toHaveTextContent('Sign out')

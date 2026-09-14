@@ -6,6 +6,7 @@ import { Menu } from '@base-ui/react/menu'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { IconTile } from '../IconTile'
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 import { navigatorMenuItemVariants } from './variants'
 
@@ -13,7 +14,7 @@ export type NavigatorMenuItemProps = {
   /** Routes through `RoadieLinkProvider`, like `Navigator.Item`. */
   href?: string
   onClick?: () => void
-  /** Leading icon. Bold weight, like any icon outside Navigator's destinations. */
+  /** Leading icon, shown in a small `IconTile`. Bold weight. */
   icon?: ReactNode
   /** Secondary text beneath the label, e.g. an account email under a name. */
   description?: string
@@ -35,12 +36,13 @@ export function NavigatorMenuItem({
   const content = (
     <>
       {icon ? (
-        <span
+        <IconTile
           data-slot='navigator-menu-item-icon'
-          className='grid size-4 place-items-center'
+          size='xs'
+          className='shrink-0'
         >
           {icon}
-        </span>
+        </IconTile>
       ) : null}
       <span className='grid min-w-0 flex-1 gap-0.5'>
         <span data-slot='navigator-menu-item-label' className='truncate'>
