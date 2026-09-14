@@ -633,10 +633,50 @@ describe('the generated stylesheet', () => {
     expect(flush($('#inner-row'))).toHaveLength(1)
   })
 
-  it('offers the inspector variant with one branch per level count and root depth', () => {
+  it('offers the inspector variant with one branch per level, level count and root depth', () => {
     const css = renderPaneColumnsCss()
-    expect(css.match(/@container panes \(width < /g)).toHaveLength(7)
+    expect(css.match(/@container panes \(width < /g)).toHaveLength(
+      7 * PANE_MAX_LEVELS
+    )
     expect(css).toContain('@custom-variant pane-inspector-yielded {')
+  })
+
+  it('reads the inspector variant from the row the element sits in', () => {
+    const branches = Array.from(
+      renderPaneColumnsCss().matchAll(
+        /@container panes \(width < ([\d.]+)rem\) \{ (.*) \{ @slot; \} \}/g
+      ),
+      ([, width, selector]) => ({
+        width: Number(width),
+        selector: selector!.replace('&', '#trigger')
+      })
+    )
+    const yieldedAt = (trigger: Element) =>
+      branches
+        .filter((branch) => trigger.matches(branch.selector))
+        .map((branch) => branch.width)
+    const row = (level: number, levels: number, inner: string) =>
+      `<div data-slot="navigator-panes" data-level="${level}">${Array.from(
+        { length: levels },
+        (_, depth) =>
+          `<div data-slot="pane" data-stack data-level="${level}" data-depth="${depth}" ${depth === levels - 1 ? 'data-current' : ''}>${depth === levels - 1 ? inner : ''}</div>`
+      ).join('')}</div>`
+    const trigger = '<button id="trigger"></button>'
+
+    let $ = html(row(0, 3, trigger))
+    expect(yieldedAt($('#trigger'))).toEqual([inspectorTier(3)])
+
+    $ = html(row(0, 3, row(1, 2, trigger)))
+    expect(yieldedAt($('#trigger'))).toEqual([inspectorTier(2)])
+    expect(
+      branches.filter((branch) => $('#trigger').matches(branch.selector))
+    ).toEqual([
+      expect.objectContaining({
+        selector: expect.stringMatching(
+          /^\[data-slot="navigator-panes"\]\[data-level="1"\]/
+        )
+      })
+    ])
   })
 
   it('counts and places panes of one level only', () => {
@@ -644,6 +684,13 @@ describe('the generated stylesheet', () => {
     const rules = css
       .split('\n')
       .filter((line) => line.includes('[data-stack]'))
+      // The variant's guard names the nested row only to step out of it.
+      .map((line) =>
+        line.replace(
+          /:not\(\[data-slot="navigator-panes"\]\[data-level="\d"\] \*\)/g,
+          ''
+        )
+      )
     for (const rule of rules) {
       const levels = new Set(rule.match(/\[data-level="(\d)"\]/g))
       expect(levels.size).toBe(1)

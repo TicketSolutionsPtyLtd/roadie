@@ -213,7 +213,7 @@ states for every stack it can produce).
 - **Changed `Pane.current`.** It decides T, and so which columns are in the
   window at every width — it no longer "does nothing above `lg`".
 - **New `pane-inspector-yielded:` variant** (`@oztix/roadie-components/css`),
-  scoped to the outermost `Navigator.Content`.
+  read from the row of the nearest `Navigator.Content`, one per level.
 - **No `minWidth` prop.** Container conditions can't read `var()`; the tokens
   are build-time constants.
 - **Migration of the viewport rules:**
