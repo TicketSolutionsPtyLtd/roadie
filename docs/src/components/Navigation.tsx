@@ -99,9 +99,9 @@ function useDrawerSide(): 'bottom' | 'right' {
 
 /**
  * The small-screen affordance for the inspector pane, which yields its column
- * below `2xl`. Declared by the consumer in `Pane.Actions` — Roadie stopped
- * inventing the overlay, so Base UI owns the scrim, the focus trap, Escape and
- * the swipe.
+ * when the stack no longer fits beside it. Declared by the consumer in
+ * `Pane.Actions` — Roadie stopped inventing the overlay, so Base UI owns the
+ * scrim, the focus trap, Escape and the swipe.
  */
 function OnThisPageDrawer({ headings, onSelect }: DocHeadings) {
   const [open, setOpen] = useState(false)
@@ -316,7 +316,7 @@ export function DocsNavigator({
             </div>
           </Pane>
 
-          {/* A column from 2xl up; below it the drawer in the detail pane's actions reaches it. */}
+          {/* A column once every stack level fits beside it; otherwise the drawer in the detail pane's actions reaches it. */}
           {showInspector ? (
             <Pane role='inspector' aria-label='On this page'>
               <div className='py-6'>
