@@ -297,9 +297,15 @@ export function NavigatorContent({
   const positionOf = useCallback(
     (id: string, entry: PaneRegistration) => {
       const index = stack.findIndex((pane) => pane.id === id)
-      return index === -1
-        ? provisionalPosition(entry, revealRoot)
-        : (positions[index] ?? null)
+      if (index === -1) return provisionalPosition(entry, revealRoot)
+      // The snapshot learns of a `current` flip a commit late; the pane knows now.
+      if (stack[index]?.current === entry.current) {
+        return positions[index] ?? null
+      }
+      const flipped = stack.map((pane, at) =>
+        at === index ? { ...pane, current: entry.current } : pane
+      )
+      return derivePositions(flipped, revealRoot)[index] ?? null
     },
     [stack, positions, revealRoot]
   )

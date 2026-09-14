@@ -1,4 +1,4 @@
-import { type ReactNode, use } from 'react'
+import { type ReactNode, use, useLayoutEffect, useRef } from 'react'
 
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -102,6 +102,43 @@ describe('pane stack', () => {
     await flushViewportMeasurement()
     expect(panes()[0]).toHaveAttribute('data-stack-position', 'behind')
     expect(panes()[1]).toHaveAttribute('data-stack-position', 'top')
+  })
+
+  it('places a pane by the current it renders, in the commit that flips it', async () => {
+    const seen: (string | null)[] = []
+    function Probe() {
+      const ref = useRef<HTMLSpanElement>(null)
+      useLayoutEffect(() => {
+        const pane = ref.current?.closest('[data-slot="pane"]')
+        seen.push(
+          `${pane?.hasAttribute('data-current')} ${pane?.getAttribute('data-stack-position')}`
+        )
+      })
+      return <span ref={ref} />
+    }
+    const tree = (current: boolean) => (
+      <Navigator value='/components'>
+        <Navigator.Content>
+          <Pane role='list'>List</Pane>
+          <Pane role='detail' current={current}>
+            <Pane.Header backHref='/components'>
+              <Pane.Title>Detail</Pane.Title>
+            </Pane.Header>
+            <Probe />
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    const { rerender } = render(tree(false))
+    await flushViewportMeasurement()
+    seen.length = 0
+    rerender(tree(true))
+    await flushViewportMeasurement()
+    expect(seen[0]).toBe('true top')
+    seen.length = 0
+    rerender(tree(false))
+    await flushViewportMeasurement()
+    expect(seen[0]).toBe('false ahead')
   })
 
   it('leaves an inspector out of the stack entirely', async () => {
