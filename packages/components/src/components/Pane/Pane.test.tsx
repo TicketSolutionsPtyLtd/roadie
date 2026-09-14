@@ -1818,7 +1818,9 @@ describe('depth attributes', () => {
           D
         </Pane>
         <Pane role='detail' depth={3} current={current === 'E'}>
-          E
+          <Pane.Header onBack={() => {}}>
+            <Pane.Title>E</Pane.Title>
+          </Pane.Header>
         </Pane>
       </Navigator.Content>
     </Navigator>
@@ -1826,7 +1828,7 @@ describe('depth attributes', () => {
   const stackPanes = () =>
     Array.from(document.querySelectorAll<HTMLElement>('[data-slot="pane"]'))
 
-  it('leaves a fifth stack pane without stack attributes', async () => {
+  it('writes a fifth stack pane at its resolved depth, in the stack', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(fivePanes())
     await flushViewportMeasurement()
@@ -1836,28 +1838,32 @@ describe('depth attributes', () => {
       '1',
       '2',
       '3',
-      null
+      'deep'
     ])
     const fifth = panes[4]!
-    expect(fifth).not.toHaveAttribute('data-stack')
-    expect(fifth).not.toHaveAttribute('data-level')
+    expect(fifth).toHaveAttribute('data-stack')
+    expect(fifth).toHaveAttribute('data-level', '0')
     warn.mockRestore()
   })
 
-  it('matches no stack geometry rule with a fifth pane', async () => {
+  it('covers the row with a current fifth pane that offers Back, never Close', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(fivePanes())
     await flushViewportMeasurement()
-    const [, , , fourth, fifth] = stackPanes()
+    const fifth = stackPanes()[4]!
     const rules = paneColumnsRulesOf(renderPaneColumnsCss())
-    expect(rules.filter((rule) => fifth!.matches(rule.selector))).toEqual([])
-    expect(
-      rules.some(
-        (rule) =>
-          rule.body.startsWith('position: absolute') &&
-          fourth!.matches(rule.selector)
-      )
-    ).toBe(true)
+    const bodies = (element: Element) =>
+      rules
+        .filter((rule) => element.matches(rule.selector))
+        .map((rule) => rule.body)
+    const own = bodies(fifth)
+    expect(own.some((body) => body.includes('z-index: 3'))).toBe(true)
+    expect(own).toContain('visibility: visible; pointer-events: auto;')
+    expect(own).toContain('--pane-back: grid; --pane-edge: grid;')
+    expect(own.some((body) => body.includes('--pane-close: grid'))).toBe(false)
+    const cell = (slot: string) => fifth.querySelector(`[data-slot="${slot}"]`)!
+    expect(bodies(cell('pane-back'))).toEqual(['display: var(--pane-back);'])
+    expect(bodies(cell('pane-close'))).toEqual(['display: var(--pane-close);'])
     warn.mockRestore()
   })
 
