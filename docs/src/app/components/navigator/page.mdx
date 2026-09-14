@@ -1317,7 +1317,8 @@ documented there. The two facts worth knowing from here:
 
 - **Where columns don't fit, panes stack**, one visible at a time (edge to
   edge on phones, inset from `md`), and push/pop between them animates.
-  Opening or closing More switches instantly. Which pane is on top is
+  A page root and its sub-pages push and pop the same way, though one pane
+  shows them both. Opening or closing More switches instantly. Which pane is on top is
   derived from the deepest pane marked `current`; how many of the panes
   behind it stay on screen is `Navigator.Content`'s width. Documented under
   [`Pane`](/components/pane).

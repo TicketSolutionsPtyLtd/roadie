@@ -27,7 +27,9 @@ A section chooses what its route shows with `root` on `Navigator.Secondary`:
 the generated list (`'list'`, default) or the page alone (`'page'`). A page
 can render a section's items itself — `Navigator.SectionItems` for the same
 rows as the list pane with each item's `description`, or `useNavigatorSection`
-for the data. `Navigator.Item` takes `description`, shown only there.
+for the data. `Navigator.Item` takes `description`, shown only there. Picking
+one of those items from the page, and going back, slides in a single column
+just as picking from the list does.
 `Navigator.MenuItem` also takes an optional `description`, shown under its
 label and read as its accessible description.
 

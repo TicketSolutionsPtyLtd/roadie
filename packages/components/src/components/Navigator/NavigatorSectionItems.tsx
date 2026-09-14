@@ -19,6 +19,7 @@ export function NavigatorSectionItems({
   return (
     <NavigatorSectionList
       data-slot='navigator-section-items'
+      data-navigator-items={section.value}
       section={section}
       descriptions
       {...props}
