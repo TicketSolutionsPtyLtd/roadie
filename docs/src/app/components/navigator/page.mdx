@@ -1270,7 +1270,7 @@ render(<DrillInNav />)
 Both belong to [`Pane`](/components/pane) rather than to Navigator, so they are
 documented there. The two facts worth knowing from here:
 
-- **Below `lg` panes stack**, full-bleed, one visible at a time, and push/pop
+- **Below `lg` panes stack**, one visible at a time (edge to edge on phones, inset from `md`), and push/pop
   between them animates within a section. Changing section, or opening or closing More, switches instantly, as tabs do. Which pane is on top is derived from the deepest pane
   marked `current` — declare it, and the arrangement follows.
 - **`Navigator.Content` is the orchestrator.** Panes announce themselves to

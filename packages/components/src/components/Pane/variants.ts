@@ -23,7 +23,7 @@ export const paneVariants = cva(
     // `backdrop-filter` paints outside an ancestor's rounded clip, so a
     // square-cornered header would show its corners past the pane's curve.
     // Header and footer round their own outer edge from this instead.
-    '[--pane-radius:var(--radius-2xl)] max-lg:[--pane-radius:0px]',
+    '[--pane-radius:var(--radius-2xl)] max-md:[--pane-radius:0px]',
     'overflow-hidden rounded-(--pane-radius)',
     // How far the pane's own content sits from its edge. Published rather
     // than applied because the pane cannot pad itself — its chrome is sticky
@@ -75,7 +75,7 @@ export const paneVariants = cva(
           // `!` forces `position: absolute` past the inline `position:
           // relative` Base UI's ScrollArea Root sets on every pane — a class
           // alone loses to an inline style regardless of source order.
-          'max-lg:absolute! max-lg:inset-0',
+          'max-lg:absolute! max-lg:inset-(--pane-stack-inset) max-lg:start-(--pane-stack-inset-start)',
           // The stack position flip is the whole animation: only translate
           // and opacity change, both compositor-friendly, so no JS drives
           // the motion.
@@ -103,7 +103,7 @@ export const paneVariants = cva(
         ].join(' '),
         // Already visited: parked to the left and dimmed.
         behind: [
-          'max-lg:absolute! max-lg:inset-0',
+          'max-lg:absolute! max-lg:inset-(--pane-stack-inset) max-lg:start-(--pane-stack-inset-start)',
           // A scrim-like dim, as iOS does; lower ghosts the frame through it.
           'max-lg:-translate-x-1/3 max-lg:opacity-90',
           'max-lg:pointer-events-none',
@@ -115,10 +115,10 @@ export const paneVariants = cva(
           'motion-safe:max-lg:duration-slow motion-safe:max-lg:ease-enter',
           'motion-reduce:transition-none'
         ].join(' '),
-        // Not yet reached: parked fully off-screen right.
+        // Not yet reached: parked right, clear of the gutter as well.
         ahead: [
-          'max-lg:absolute! max-lg:inset-0',
-          'max-lg:translate-x-full max-lg:opacity-100',
+          'max-lg:absolute! max-lg:inset-(--pane-stack-inset) max-lg:start-(--pane-stack-inset-start)',
+          'max-lg:translate-x-[calc(100%+var(--pane-stack-inset))] max-lg:opacity-100',
           'max-lg:pointer-events-none max-lg:invisible',
           'max-lg:[content-visibility:auto]',
           'motion-safe:max-lg:transition-[translate,opacity,visibility]',
