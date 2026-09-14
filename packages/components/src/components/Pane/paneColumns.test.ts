@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import committedCss from '../../css/pane-columns.css?raw'
 import { type PaneEntry, derivePositions } from '../Navigator/paneStack'
 import {
+  PANE_MAX_COLUMNS,
   PANE_MAX_DEPTH,
   PANE_MAX_LEVELS,
   columnTier,
@@ -62,6 +63,36 @@ const hiddenBy = (element: Element) =>
     .filter((rule) => rule.body === 'display: none;')
     .filter((rule) => element.matches(rule.selector))
 
+const stackStates = (levels: number) =>
+  [false, true].flatMap((reveal) =>
+    Array.from({ length: 2 ** levels }, (_, bits) => ({
+      reveal,
+      current: Array.from(
+        { length: levels },
+        (_, depth) => (bits & (1 << depth)) !== 0
+      )
+    }))
+  )
+
+const stackRow = (level: number, current: boolean[], reveal: boolean) =>
+  `<div data-slot="navigator-panes" data-level="${level}" ${reveal ? 'data-reveal' : ''}>${current
+    .map(
+      (isCurrent, depth) =>
+        `<div data-slot="pane" data-stack data-level="${level}" data-depth="${depth}" ${isCurrent ? 'data-current' : ''}></div>`
+    )
+    .join('')}</div>`
+
+const slotOf = (body: string) =>
+  body.includes('flex: 1 1 0')
+    ? 'fill'
+    : body.includes('flex: 0 0 ')
+      ? 'parent'
+      : body.includes('translate: -33%')
+        ? 'behind'
+        : body.includes('translate: calc(100%')
+          ? 'ahead'
+          : 'top'
+
 // Content widths, in rem, that the prototype frames measured at 16px/rem.
 const REM = 16
 const columnsAt = (px: number) =>
@@ -113,12 +144,19 @@ describe('paneCell — the prototype evidence', () => {
   })
 
   it('two levels: Close on the detail, no Back', () => {
-    expect(shown(columnsAt(760), 1, 2)).toBe('0 | 1[Close]')
     expect(shown(columnsAt(375), 1, 2)).toBe('1[Back]')
+    expect(shown(columnsAt(760), 1, 2)).toBe('0 | 1[Close]')
+    expect(shown(columnsAt(932), 1, 2)).toBe('0 | 1[Close]')
+    expect(shown(columnsAt(1188), 1, 2)).toBe('0 | 1[Close]')
+    expect(shown(columnsAt(1348), 1, 2)).toBe('0 | 1[Close]')
   })
 
   it('three levels with the root revealed: Sam parked ahead', () => {
+    expect(shown(columnsAt(375), 0, 3)).toBe('0')
     expect(shown(columnsAt(760), 0, 3)).toBe('0 | 1')
+    expect(shown(columnsAt(932), 0, 3)).toBe('0 | 1')
+    expect(shown(columnsAt(1188), 0, 3)).toBe('0 | 1 | 2')
+    expect(shown(columnsAt(1348), 0, 3)).toBe('0 | 1 | 2')
     expect(paneCell(2, 0, 2, 3)).toEqual({
       slot: 'ahead',
       back: false,
@@ -168,6 +206,99 @@ describe('agreement with derivePositions', () => {
           expect(paneCell(1, top, depth, levels).slot).toBe(position)
         })
       }
+    }
+  })
+})
+
+describe('agreement with derivePositions, in every current and reveal state', () => {
+  it('puts the top where deriveTopIndex does, a current root included', () => {
+    for (let levels = 1; levels <= PANE_MAX_DEPTH + 1; levels += 1) {
+      for (const { reveal, current } of stackStates(levels)) {
+        const entries = current.map((isCurrent): PaneEntry => ({
+          role: 'detail',
+          current: isCurrent,
+          primaryNav: 'auto'
+        }))
+        const positions = derivePositions(entries, reveal)
+        const top = positions.indexOf('top')
+        positions.forEach((position, depth) => {
+          expect(paneCell(1, top, depth, levels).slot).toBe(position)
+        })
+      }
+    }
+  })
+
+  it('treats a current root as the top of its stack', () => {
+    const entries: PaneEntry[] = [
+      { role: 'list', current: true, primaryNav: 'auto' },
+      { role: 'detail', current: false, primaryNav: 'auto' }
+    ]
+    expect(derivePositions(entries)).toEqual(['top', 'ahead'])
+    expect(paneCell(1, 0, 0, 2).slot).toBe('top')
+    expect(paneCell(1, 0, 1, 2).slot).toBe('ahead')
+  })
+})
+
+describe('the rules a real row matches', () => {
+  const tierRules = (columns: number) =>
+    rules.filter(
+      (rule) =>
+        rule.body.includes('--pane-back') &&
+        rule.selector.startsWith(
+          '[data-slot="navigator-panes"][data-level="0"]'
+        ) &&
+        (columns === 1
+          ? !rule.conditions.some((c) => c.startsWith('@container'))
+          : rule.conditions.includes(
+              `@container panes (width >= ${columnTier(columns)}rem)`
+            ))
+    )
+
+  it('gives every stack pane exactly one rule per tier, in the slot paneCell names', () => {
+    for (let levels = 2; levels <= 3; levels += 1) {
+      for (const { reveal, current } of stackStates(levels)) {
+        const $ = html(stackRow(0, current, reveal))
+        const top = reveal ? 0 : Math.max(0, current.lastIndexOf(true))
+        for (let columns = 1; columns <= PANE_MAX_COLUMNS; columns += 1) {
+          const candidates = tierRules(columns)
+          for (let depth = 0; depth < levels; depth += 1) {
+            const pane = $(`[data-depth="${depth}"]`)
+            const matched = candidates.filter((rule) =>
+              pane.matches(rule.selector)
+            )
+            const state = `levels ${levels}, reveal ${reveal}, current ${current}, C=${columns}, depth ${depth}`
+            expect(matched, state).toHaveLength(1)
+            const cell = paneCell(columns, top, depth, levels)
+            expect(slotOf(matched[0]!.body), state).toBe(cell.slot)
+            expect(matched[0]!.body, state).toContain(
+              `--pane-back: ${cell.back ? 'grid' : 'none'}; --pane-close: ${cell.close ? 'grid' : 'none'};`
+            )
+          }
+        }
+      }
+    }
+  })
+
+  it('leaves a pane past depth 3 to the standalone defaults', () => {
+    const $ = html(stackRow(0, [false, false, false, false, true], false))
+    const fifth = $('[data-depth="4"]')
+    expect(
+      rules
+        .filter((rule) => fifth.matches(rule.selector))
+        .map((rule) => rule.selector)
+    ).toEqual([
+      '[data-slot="pane"][data-depth]',
+      '[data-slot="pane"][data-depth]:not([data-depth="0"])'
+    ])
+    for (let depth = 0; depth <= PANE_MAX_DEPTH; depth += 1) {
+      const pane = $(`[data-depth="${depth}"]`)
+      expect(
+        rules.filter(
+          (rule) =>
+            rule.body.startsWith('position: absolute') &&
+            pane.matches(rule.selector)
+        )
+      ).toHaveLength(1)
     }
   })
 })
@@ -238,6 +369,38 @@ describe('the generated stylesheet', () => {
     expect(hiddenBy($('#outer-more'))).toHaveLength(1)
     expect(hiddenBy($('#inner-root'))).toHaveLength(1)
     expect(hiddenBy($('#inner-more'))).toHaveLength(0)
+  })
+
+  it("keeps a navigator's md padding to its own row", () => {
+    const padded = (row: Element) =>
+      rules
+        .filter((rule) => rule.body === 'padding-inline-start: 0;')
+        .filter((rule) => row.matches(rule.selector))
+    const nested = (outer: string, inner: string) =>
+      html(`
+        <div data-slot="navigator">
+          <nav data-slot="navigator-primary" data-orientation="${outer}"></nav>
+          <main data-slot="navigator-content">
+            <div data-slot="navigator-panes" data-level="0" id="outer-row">
+              <div data-slot="pane" data-stack data-level="0" data-depth="0">
+                <div data-slot="navigator">
+                  <nav data-slot="navigator-primary" data-orientation="${inner}"></nav>
+                  <main data-slot="navigator-content">
+                    <div data-slot="navigator-panes" data-level="1" id="inner-row"></div>
+                  </main>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>`)
+
+    let $ = nested('vertical', 'horizontal')
+    expect(padded($('#outer-row')).length).toBeGreaterThan(0)
+    expect(padded($('#inner-row'))).toHaveLength(0)
+
+    $ = nested('horizontal', 'vertical')
+    expect(padded($('#outer-row'))).toHaveLength(0)
+    expect(padded($('#inner-row')).length).toBeGreaterThan(0)
   })
 
   it('offers the inspector variant with one branch per level count', () => {
