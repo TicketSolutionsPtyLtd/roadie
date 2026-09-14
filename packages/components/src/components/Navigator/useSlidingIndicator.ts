@@ -3,8 +3,8 @@
 import {
   type CSSProperties,
   type RefObject,
-  useCallback,
   useEffect,
+  useEffectEvent,
   useRef,
   useState
 } from 'react'
@@ -111,10 +111,9 @@ export function useSlidingIndicator(
   const [slides, setSlides] = useState(true)
   const geometryRef = useRef<Geometry | null>(null)
   const destinationRef = useRef<HTMLElement | null>(null)
-  const intentRef = useRef(intent)
   const measuredIntentRef = useRef(intent)
 
-  const measure = useCallback(() => {
+  const measure = useEffectEvent(() => {
     const track = trackRef.current
     const active = track?.querySelector<HTMLElement>(
       ACTIVE_DESTINATION_SELECTOR
@@ -135,7 +134,7 @@ export function useSlidingIndicator(
       ...box,
       right: track.clientWidth - box.left - box.width
     }
-    const asked = intentRef.current !== measuredIntentRef.current
+    const asked = intent !== measuredIntentRef.current
     const previous = destinationRef.current
     if (!sameGeometry(geometryRef.current, next)) {
       geometryRef.current = next
@@ -143,13 +142,8 @@ export function useSlidingIndicator(
       setSlides(previous === null || (asked && active !== previous))
     }
     destinationRef.current = active
-    measuredIntentRef.current = intentRef.current
-  }, [trackRef])
-
-  // Declared before the measuring effect, so it sees this commit's intent.
-  useIsomorphicLayoutEffect(() => {
-    intentRef.current = intent
-  }, [intent])
+    measuredIntentRef.current = intent
+  })
 
   // The indicator is a child of the element `trackRef` points at, so React
   // attaches the track's ref after this first layout effect — `trackRef.current`
@@ -160,13 +154,13 @@ export function useSlidingIndicator(
   // No dependency array: which destination holds the pill can change on a
   // commit that leaves the active value untouched (a menu opening). `measure`
   // only sets geometry when the box moved, so this can't loop.
-  useIsomorphicLayoutEffect(measure)
+  useIsomorphicLayoutEffect(() => measure())
 
   useEffect(() => {
     const track = trackRef.current
     if (!track || typeof ResizeObserver === 'undefined') return
 
-    const observer = new ResizeObserver(measure)
+    const observer = new ResizeObserver(() => measure())
     observer.observe(track)
     for (const destination of track.querySelectorAll<HTMLElement>(
       '[data-slot="navigator-item"]'
@@ -174,7 +168,7 @@ export function useSlidingIndicator(
       observer.observe(destination)
     }
     return () => observer.disconnect()
-  }, [trackRef, measure])
+  }, [trackRef])
 
   useIsomorphicLayoutEffect(() => {
     if (!ready) {

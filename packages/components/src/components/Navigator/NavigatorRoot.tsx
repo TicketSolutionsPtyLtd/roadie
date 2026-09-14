@@ -30,7 +30,7 @@ import {
 } from './NavigatorPrimary'
 import { findActiveSection, findItem, findMenuItem } from './activeSection'
 import type { NavigatorSlotMeta } from './mobileSlots'
-import { primarySignature, slotsSignature } from './primarySignature'
+import { primarySignature } from './primarySignature'
 import { type SectionMemory, nextMemory } from './sectionMemory'
 import { navigatorRootVariants } from './variants'
 
@@ -137,14 +137,9 @@ export function NavigatorRoot({
   }
   const [overflowItems, setOverflowItemsState] =
     useState<NavigatorOverflowSets>({ horizontal: [], vertical: [] })
-  // Primary hands over a fresh array every render; only a new signature republishes.
   const setOverflowItems = useCallback(
     (surface: keyof NavigatorOverflowSets, next: NavigatorSlotMeta[]) =>
-      setOverflowItemsState((current) =>
-        slotsSignature(current[surface]) === slotsSignature(next)
-          ? current
-          : { ...current, [surface]: next }
-      ),
+      setOverflowItemsState((current) => ({ ...current, [surface]: next })),
     []
   )
   const overflowOpenerRef = useRef<HTMLElement | null>(null)

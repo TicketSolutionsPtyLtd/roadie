@@ -10,7 +10,10 @@ import {
   RoadieLinkProvider
 } from '../../providers/RoadieLinkProvider'
 import { Pane } from '../Pane'
-import { NavigatorContext } from './NavigatorContext'
+import {
+  NavigatorContext,
+  type NavigatorOverflowSets
+} from './NavigatorContext'
 import {
   FakeIcon,
   flushViewportMeasurement,
@@ -1094,6 +1097,44 @@ describe('overflow state', () => {
 
     await userEvent.click(screen.getByRole('button', { name: /More/ }))
     expect(seen.at(-1)!.open).toBe(true)
+  })
+
+  it('republishes folded items only when what a folded row shows changes', async () => {
+    const published: NavigatorOverflowSets[] = []
+    function Probe() {
+      const { overflowItems } = use(NavigatorContext)
+      if (published.at(-1) !== overflowItems) published.push(overflowItems)
+      return null
+    }
+    function Six({ label }: { label: string }) {
+      return (
+        <Navigator value='/a'>
+          <Navigator.Primary aria-label='Main'>
+            {testBrand}
+            {['/a', '/b', '/c', '/d', '/e'].map((value) => (
+              <Navigator.Item key={value} value={value} href={value}>
+                {value}
+              </Navigator.Item>
+            ))}
+            <Navigator.Item value='/f' href='/f'>
+              {label}
+            </Navigator.Item>
+          </Navigator.Primary>
+          <Probe />
+        </Navigator>
+      )
+    }
+    const { rerender } = render(<Six label='Foxtrot' />)
+    await flushViewportMeasurement()
+    const settled = published.length
+    rerender(<Six label='Foxtrot' />)
+    await flushViewportMeasurement()
+    expect(published).toHaveLength(settled)
+
+    rerender(<Six label='Golf' />)
+    await flushViewportMeasurement()
+    expect(published).toHaveLength(settled + 1)
+    expect(published.at(-1)!.horizontal.at(-1)!.label).toEqual(['Golf'])
   })
 })
 
