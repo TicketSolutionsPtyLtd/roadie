@@ -245,8 +245,8 @@ describe('pane stack', () => {
     expect(bar()).toHaveAttribute('data-collapsed', 'true')
   })
 
-  // jsdom has no layout; this pins the class the geometry depends on.
-  it('clips its box below lg, where panes stack and can translate past it', async () => {
+  // jsdom has no layout; this pins the classes the geometry depends on.
+  it('is the panes container, clipping at every width so a stacked pane can translate past it', async () => {
     render(
       <Navigator value='/components'>
         <Navigator.Content>
@@ -258,13 +258,15 @@ describe('pane stack', () => {
     await flushViewportMeasurement()
     const content = document.querySelector('[data-slot="navigator-content"]')
     expect(content).toHaveClass(
-      'max-lg:overflow-clip',
-      'max-lg:[overflow-clip-margin:--spacing(1)]',
-      'max-lg:before:z-1'
+      'overflow-clip',
+      '[overflow-clip-margin:--spacing(1)]',
+      'before:z-1',
+      '[container:panes/inline-size]'
     )
+    expect(content!.className).not.toMatch(/max-lg:|lg:/)
   })
 
-  it('lifts the top pane over the edge cover only once it lands', async () => {
+  it('leaves layering over the edge cover to the stylesheet', async () => {
     render(
       <Navigator value='/components'>
         <Navigator.Content>
@@ -280,9 +282,10 @@ describe('pane stack', () => {
       document.querySelectorAll<HTMLElement>('[data-slot="pane"]')
     )
     expect(detail).toHaveAttribute('data-stack-position', 'top')
-    expect(detail!.className).toMatch(/max-lg:z-2 .*step-end\]/)
     expect(list).toHaveAttribute('data-stack-position', 'behind')
-    expect(list!.className).toMatch(/max-lg:z-0 .*step-start\]/)
+    for (const pane of [list!, detail!]) {
+      expect(pane.className).not.toMatch(/\bz-\d|step-(end|start)/)
+    }
   })
 })
 
@@ -1624,24 +1627,25 @@ describe('Navigator.OverflowPane', () => {
       '[data-slot="navigator-primary"][data-orientation="horizontal"]'
     )
 
-  it('is a list pane that leads the columns from lg', async () => {
+  it('is a list pane at the root', async () => {
     render(overflowNav('/a'))
     await flushViewportMeasurement()
     const more = document.querySelector('[data-slot="pane"][id]')!
-    expect(more).toHaveClass('lg:-order-1')
+    expect(more).toHaveAttribute('data-depth', '0')
+    expect(more).not.toHaveClass('lg:-order-1')
     expect(more).not.toHaveClass('md:hidden')
   })
 
-  it('hides from lg while closed, so one list pane shows at a time', async () => {
+  it('hides while closed, so one list pane shows at a time', async () => {
     const user = userEvent.setup()
     const { container } = render(overflowNav('/a'))
     await flushViewportMeasurement()
-    const more = document.querySelector('[data-slot="pane"][id]')!
-    expect(more).toHaveClass('lg:hidden')
+    const row = document.querySelector('[data-slot="navigator-panes"]')
+    expect(row).not.toHaveAttribute('data-overflow')
     await user.click(
       within(horizontalOf(container)!).getByRole('button', { name: 'More' })
     )
-    expect(more).not.toHaveClass('lg:hidden')
+    expect(row).toHaveAttribute('data-overflow')
   })
 
   it('marks the row and the More pane while More is open', async () => {
@@ -4092,7 +4096,7 @@ describe('nesting acceptance criteria', () => {
   })
 
   // Criterion 3: a covered pane is not interactive.
-  it('marks a covered pane pointer-events-none', async () => {
+  it('marks the covered pane behind', async () => {
     render(
       <Navigator value='/a/detail'>
         <Navigator.Content>
@@ -4106,9 +4110,7 @@ describe('nesting acceptance criteria', () => {
     await flushViewportMeasurement()
     const panes = document.querySelectorAll('[data-slot="pane"]')
     expect(panes[0]).toHaveAttribute('data-stack-position', 'behind')
-    expect(panes[0]).toHaveClass('max-lg:pointer-events-none')
     expect(panes[1]).toHaveAttribute('data-stack-position', 'top')
-    expect(panes[1]).not.toHaveClass('max-lg:pointer-events-none')
   })
 
   // Criterion 4: two panes contributed by one slot stack correctly relative

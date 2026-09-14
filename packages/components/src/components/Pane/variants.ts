@@ -6,16 +6,8 @@ export type PaneRole = 'list' | 'detail' | 'inspector'
 export type PaneEmphasis = 'raised' | 'normal' | 'subtle' | 'subtler'
 export type PanePrimaryNav = 'visible' | 'auto' | 'hidden'
 
-// The pane is a ScrollArea root: it owns the surface, the shape and the
-// sizing; its viewport owns the scroll. The page itself never scrolls.
-//
-// Role is three sizing defaults plus a yield order, not a taxonomy:
-//   list      capped track
-//   detail    takes the remaining space
-//   inspector fixed track, and the first to yield when space runs short
-//
-// Sizing applies from `lg`, the arrangement breakpoint — NOT `md`, which is
-// the nav-form breakpoint. Between them the panes are still stacked.
+// The pane is a ScrollArea root: it owns the surface and the shape; its
+// viewport owns the scroll. The page itself never scrolls.
 export const paneVariants = cva(
   [
     'relative min-h-0 min-w-0',
@@ -36,17 +28,6 @@ export const paneVariants = cva(
   ],
   {
     variants: {
-      role: {
-        // A share of the row, so a narrow frame still leaves the detail room.
-        list: 'lg:w-[clamp(16rem,40%,24rem)] lg:shrink-0',
-        detail: 'lg:min-w-0 lg:flex-1',
-        // Below 2xl the inspector yields its column and is gone. Yielding is
-        // still not disappearing — but the affordance that keeps it reachable
-        // is a `Drawer` the consumer declares in `Pane.Actions`, not an
-        // overlay Roadie invents here. Only an application knows its own
-        // breakpoints, and a drawer's dismiss gesture is a JS value.
-        inspector: '2xl:w-56 2xl:shrink-0 max-2xl:hidden'
-      },
       // `--pane-surface` is the nearest *opaque* token behind the pane's
       // sticky chrome. Sticky chrome can't use `bg-inherit` — the ScrollArea
       // viewport and content between it and this element declare no
@@ -64,75 +45,9 @@ export const paneVariants = cva(
         subtle: 'emphasis-subtle',
         // No surface at all: the pane sits directly on the sunken frame.
         subtler: ''
-      },
-      // Below `lg` the panes stack and only the top one is visible; from `lg`
-      // they are columns and this whole variant is inert. A pane with no
-      // stack position — standalone, or an inspector, which never
-      // participates — matches none of it: the attribute's absence is the
-      // gate, not a JS breakpoint check.
-      stackPosition: {
-        top: [
-          // `!` forces `position: absolute` past the inline `position:
-          // relative` Base UI's ScrollArea Root sets on every pane — a class
-          // alone loses to an inline style regardless of source order.
-          'max-lg:absolute! max-lg:inset-(--pane-stack-inset) max-lg:start-(--pane-stack-inset-start)',
-          // The stack position flip is the whole animation: only translate
-          // and opacity change, both compositor-friendly, so no JS drives
-          // the motion.
-          //
-          // `translate`, not `transform`: Tailwind v4's translate utilities
-          // emit the independent `translate` property, so naming `transform`
-          // here transitions nothing and the push/pop would cross-fade
-          // without ever sliding.
-          //
-          // A pane transition is a page transition, not a micro-interaction:
-          // the default 150ms it inherited read as a jump cut. `ease-enter`
-          // and not `ease-spring` — the spring token peaks at 1.017, and
-          // 1.7% of a viewport is a visible bounce at the end of a slide iOS
-          // does not have.
-          //
-          // No `visibility` here: a transition into the top starts hidden,
-          // which makes the arriving pane unfocusable until its first frame.
-          'motion-safe:max-lg:transition-[translate,opacity,z-index]',
-          'motion-safe:max-lg:duration-slow',
-          // Rises over Content's edge cover only once it lands, so its shadow
-          // shows there but no pane in motion does.
-          'max-lg:z-2 motion-safe:max-lg:[transition-timing-function:var(--ease-enter),var(--ease-enter),step-end]',
-          // Not `max-lg:` gated, unlike everything else here: this guard has
-          // to hold at every breakpoint, not just the stacked one, so a
-          // reduced-motion user is never left relying on some other rule to
-          // cancel a transition this component might add above `lg`.
-          'motion-reduce:transition-none'
-        ].join(' '),
-        // Already visited: parked to the left and dimmed.
-        behind: [
-          'max-lg:absolute! max-lg:inset-(--pane-stack-inset) max-lg:start-(--pane-stack-inset-start)',
-          // A scrim-like dim, as iOS does; lower ghosts the frame through it.
-          'max-lg:-translate-x-1/3 max-lg:opacity-90',
-          'max-lg:pointer-events-none',
-          // Not `inert`, which can't be gated to the stacked band.
-          'max-lg:invisible',
-          // Pays off for panes parked fully off-screen.
-          'max-lg:[content-visibility:auto]',
-          'motion-safe:max-lg:transition-[translate,opacity,visibility,z-index]',
-          'motion-safe:max-lg:duration-slow',
-          'max-lg:z-0 motion-safe:max-lg:[transition-timing-function:var(--ease-enter),var(--ease-enter),var(--ease-enter),step-start]',
-          'motion-reduce:transition-none'
-        ].join(' '),
-        // Not yet reached: parked right, clear of the gutter as well.
-        ahead: [
-          'max-lg:absolute! max-lg:inset-(--pane-stack-inset) max-lg:start-(--pane-stack-inset-start)',
-          'max-lg:translate-x-[calc(100%+var(--pane-stack-inset))] max-lg:opacity-100',
-          'max-lg:pointer-events-none max-lg:invisible',
-          'max-lg:[content-visibility:auto]',
-          'motion-safe:max-lg:transition-[translate,opacity,visibility,z-index]',
-          'motion-safe:max-lg:duration-slow',
-          'max-lg:z-0 motion-safe:max-lg:[transition-timing-function:var(--ease-enter),var(--ease-enter),var(--ease-enter),step-start]',
-          'motion-reduce:transition-none'
-        ].join(' ')
       }
     },
-    defaultVariants: { role: 'list', emphasis: 'raised' }
+    defaultVariants: { emphasis: 'raised' }
   }
 )
 
@@ -168,7 +83,7 @@ const PANE_CHROME_SURFACE =
 // resizing.
 export const paneHeaderVariants = cva(
   [
-    'sticky top-0 z-sticky grid grid-cols-[auto_minmax(0,1fr)_auto]',
+    'sticky top-0 z-sticky grid-cols-[auto_minmax(0,1fr)_auto]',
     // Published for the same reason as the bottom padding below: the stacked
     // rows apply it themselves, and a restated `2` would drift from this one
     // the first time either moved.
@@ -214,37 +129,24 @@ export const paneHeaderVariants = cva(
   ],
   {
     variants: {
-      // A header whose only content is the back/close cell has nothing left
-      // to draw once that cell's occupant does, so it goes with it rather
-      // than leaving an empty sticky bar at the top of the pane. `'back'` and
-      // `'close'` are each `lg:hidden`/`max-lg:hidden` on their own, so the
-      // header only needs to echo whichever one is present alone; when both
-      // are (a non-root pane with `onClose`), one or the other always draws,
-      // so the header stays put at every width.
-      edgeOnly: { back: 'lg:hidden', close: 'max-lg:hidden', none: '' },
+      // The leading cell's occupant decides whether an otherwise-empty header draws.
+      edgeOnly: {
+        none: 'grid',
+        back: '[display:var(--pane-back)]',
+        close: '[display:var(--pane-close)]'
+      },
       collapsed: { true: 'after:opacity-100', false: 'after:opacity-0' }
     },
     defaultVariants: { edgeOnly: 'none', collapsed: false }
   }
 )
 
-// The back/close cell, leading end of the header's top row. Back and Close
-// are the same slot at different sizes — `lg` is the arrangement breakpoint,
-// so below it panes cover each other and Back pops the stack; from it panes
-// are columns with nothing covering them, and Close dismisses one instead.
-// The two gates are mutually exclusive, so neither can ever collide with the
-// other or with the compact title's centre column. Expressed here rather
-// than in `PaneHeader` because which band the panes stack in is a stylesheet
-// fact; the component must not know it.
+// Back and Close share the leading cell; the stylesheet draws at most one.
 const paneHeaderEdgeCellClasses = 'col-start-1 row-start-1 justify-self-start'
 
-export const paneHeaderBackVariants = cva([
-  `${paneHeaderEdgeCellClasses} lg:hidden`
-])
+export const paneHeaderBackVariants = cva([paneHeaderEdgeCellClasses])
 
-export const paneHeaderCloseVariants = cva([
-  `${paneHeaderEdgeCellClasses} max-lg:hidden`
-])
+export const paneHeaderCloseVariants = cva([paneHeaderEdgeCellClasses])
 
 // The large title fades and scales while its row closes underneath.
 // Transitioning `grid-template-rows` and `margin-top` is deliberate: transforms

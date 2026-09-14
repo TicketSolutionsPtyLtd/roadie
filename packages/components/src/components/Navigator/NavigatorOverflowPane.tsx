@@ -2,8 +2,6 @@
 
 import { use, useEffect, useRef } from 'react'
 
-import { cn } from '@oztix/roadie-core/utils'
-
 import { isDev } from '../../utils/isDev'
 import { mergeRefs } from '../../utils/mergeRefs'
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
@@ -14,7 +12,6 @@ import {
   NavigatorActionsContext,
   NavigatorDisclosureContext
 } from './NavigatorContext'
-import { navigatorOverflowVariants } from './variants'
 
 export type NavigatorOverflowPaneProps = Omit<
   PaneRootProps,
@@ -23,8 +20,8 @@ export type NavigatorOverflowPaneProps = Omit<
 
 /**
  * The More pane at every size: a pushed full-screen pane while stacked, the
- * leading list column from `lg`. Omit it and `Navigator.Content` generates
- * one holding just the folded rows.
+ * root column otherwise. Omit it and `Navigator.Content` generates one
+ * holding just the folded rows.
  */
 export function NavigatorOverflowPane({
   className,
@@ -83,10 +80,7 @@ export function NavigatorOverflowPane({
         role='list'
         current={overflowOpen}
         primaryNav='visible'
-        className={cn(
-          navigatorOverflowVariants({ open: overflowOpen }),
-          className
-        )}
+        className={className}
         {...props}
       >
         {children}

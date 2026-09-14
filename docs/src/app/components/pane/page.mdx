@@ -84,6 +84,7 @@ own breakpoints; Roadie's internals do not.
 ```tsx-live-noinline
 function Roles() {
   const [open, setOpen] = useState(false)
+  const [showDetail, setShowDetail] = useState(true)
   const tiers = [
     { title: 'General admission', subtitle: '$68.00 · on sale' },
     { title: 'Early bird', subtitle: '$54.00 · sold out' },
@@ -95,25 +96,25 @@ function Roles() {
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
       <Navigator className='h-full'>
         <Navigator.Content>
-          <Pane role='list' aria-label='Events' className='lg:w-56'>
+          <Pane role='list' aria-label='Events'>
             <Pane.Header>
               <Pane.Title>Events</Pane.Title>
             </Pane.Header>
             <List>
-              <List.Item title='Midnight Frequency' subtitle='60 remaining' current />
+              <List.Item title='Midnight Frequency' subtitle='60 remaining' current onClick={() => setShowDetail(true)} />
               <List.Item title='Sunset Sounds' subtitle='180 remaining' />
               <List.Item title='Neon Dusk' subtitle='460 remaining' />
               <List.Item title='Harbour Lights' subtitle='sold out' />
             </List>
           </Pane>
-          <Pane role='detail' aria-label='Midnight Frequency'>
-            <Pane.Header>
+          <Pane role='detail' aria-label='Midnight Frequency' current={showDetail}>
+            <Pane.Header onBack={() => setShowDetail(false)}>
               <Pane.Title>Midnight Frequency</Pane.Title>
               <Pane.Actions>
                 <Drawer open={open} onOpenChange={setOpen} side='bottom'>
                   <Drawer.Trigger
                     render={
-                      <IconButton aria-label='Event details' emphasis='normal' className='2xl:hidden'>
+                      <IconButton aria-label='Event details' emphasis='normal'>
                         <InfoIcon weight='bold' className='size-5' />
                       </IconButton>
                     }
@@ -218,7 +219,7 @@ function Stacking() {
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
       <Navigator className='h-full'>
         <Navigator.Content>
-          <Pane role='list' aria-label='Events' className='lg:w-56'>
+          <Pane role='list' aria-label='Events'>
             <Pane.Header>
               <Pane.Title>Events</Pane.Title>
             </Pane.Header>

@@ -122,8 +122,8 @@ function OnThisPageDrawer({ headings, onSelect }: DocHeadings) {
           <IconButton
             aria-label='On this page'
             emphasis='normal'
-            // From 2xl the inspector is a column of its own — nothing to reveal.
-            className='2xl:hidden'
+            // Shown exactly while the inspector column has yielded.
+            className='pane-inspector-yielded:inline-flex hidden'
           >
             <ListIcon weight='bold' className='size-5' />
           </IconButton>

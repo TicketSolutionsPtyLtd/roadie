@@ -314,10 +314,7 @@ export function PaneRoot({
       data-level={stack?.level}
       data-overflow={isOverflow ? '' : undefined}
       data-primary-nav={primaryNav}
-      className={cn(
-        paneVariants({ role, emphasis, stackPosition: position ?? undefined }),
-        className
-      )}
+      className={cn(paneVariants({ emphasis }), className)}
       {...props}
       ref={setPaneRef}
     >
