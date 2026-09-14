@@ -40,7 +40,7 @@ Tiers, measured on Content's inline size:
 | --- | --- | --- |
 | 1 (stacked) | below 46.25rem | below about 840px |
 | 2 | `≥ 46.25rem` (740px) | 1024 |
-| 3 | `≥ 67rem` (1072px), from the root; `≥ 71rem` (1136px) once the window slides past it | 1280, and 1440 with the sidebar expanded |
+| 3 | `≥ 76rem` (1216px), from the root; `≥ 81rem` (1296px) once the window slides past it | 1296, and 1456 with the sidebar expanded |
 
 Formula: `tier = Σ parent minimums + 28 + (C−1)·0.75 + 1.5` rem, the parents
 being the visible columns left of the fill. There is no tier 4: the window
@@ -58,26 +58,32 @@ lists its own items is a root.
 
 | Tier | Root | Under the root |
 | --- | --- | --- |
-| `C=2` | `16rem`, `40cqi`, `24rem` | `16rem`, `40cqi`, `28rem` |
-| `C=3` | `16rem`, `25cqi`, `20rem` | `20rem`, `30cqi`, `28rem` |
+| `C=2` | `16rem`, `40cqi`, `24rem` | `16rem`, `40cqi`, `30rem` |
+| `C=3` | `20rem`, `25cqi`, `24rem` | `25rem`, `32cqi`, `30rem` |
 
 (minimum, share, maximum). Each track is
 `clamp(min, min(share, (100cqi − reserved) × min / Σ min), max)`: the room
 beside the fill's minimum is split by the parents' minimums, so every parent
 reaches its own at the tier and the fill never drops below 28rem. Two columns
 keep one floor, because below it the parent leaves the screen rather than
-handing its room to a pane beside it. A 30% share is the largest that leaves
-the fill growing from the `C=3` tier (20rem at 67rem).
+handing its room to a pane beside it. The `C=3` minimums are what a list's
+titles and a detail's rows need before they truncate, so three columns wait
+until both fit beside the fill: 20 + 25 + 28 + 3 = 76rem. Each share is the
+largest whole percentage that reaches its minimum no sooner than that tier,
+so the fill grows from it.
 
 Measured on a Tickets → event → ticket row (Content beside an 80px
 navigation at 1000, 1200 and 1440, and a 240px one at 1440):
 
-| Content | Before | After |
+| Content | By position alone | By depth |
 | --- | --- | --- |
 | 920px | 368 \| 528 | 368 \| 528 |
-| 1120px | 280 \| 280 \| 524 | 277 \| 336 \| 471 |
-| 1360px | 320 \| 320 \| 684 | 320 \| 408 \| 596 |
-| 1200px | 300 \| 300 \| 564 | 300 \| 360 \| 504 |
+| 1120px | 280 \| 280 \| 524 | 448 \| 648 |
+| 1360px | 320 \| 320 \| 684 | 340 \| 435 \| 549 |
+| 1200px | 300 \| 300 \| 564 | 480 \| 696 |
+
+At 1120px and 1200px the list drops and the detail becomes the left column of
+two.
 
 When a sub-detail opens, the detail stops being "the detail" and becomes a
 parent column, and keeps the wider track.
@@ -124,7 +130,7 @@ C=1                     C=2
   exists fits beside it, and it yields first: `inspectorTier(N)` is the
   narrowest Content at which the fill keeps 28rem beside the parent tracks'
   actual widths, not their minimums, whichever pane is the top — 46.25rem
-  with one level, 69rem with two, 93.75rem with three and 101.75rem with
+  with one level, 69rem with two, 99.75rem with three and 105.75rem with
   four. It takes a column only once the row has
   columns: the stacked tier positions its panes absolutely, so a one-level
   row waits for the two-column tier. It never outranks the root. Its

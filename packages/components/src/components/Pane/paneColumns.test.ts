@@ -97,14 +97,14 @@ const shown = (columns: number, top: number, levels: number) =>
     .join(' | ')
 
 describe('tiers', () => {
-  it('fits two columns at 46.25rem and three at 67rem, 71rem once the window slides past the root', () => {
+  it('fits two columns at 46.25rem and three at 76rem, 81rem once the window slides past the root', () => {
     expect(columnTier(1)).toBe(0)
     expect(columnTier(2)).toBe(46.25)
     expect(columnTier(2, [1])).toBe(46.25)
-    expect(columnTier(3)).toBe(67)
-    expect(columnTier(3, [1, 2])).toBe(71)
-    expect(rowTier(3, 2, 3)).toBe(67)
-    expect(rowTier(3, 3, 4)).toBe(71)
+    expect(columnTier(3)).toBe(76)
+    expect(columnTier(3, [1, 2])).toBe(81)
+    expect(rowTier(3, 2, 3)).toBe(76)
+    expect(rowTier(3, 3, 4)).toBe(81)
     expect(rowTier(3, 1, 2)).toBe(46.25)
     expect(rowTier(2, 0, 1)).toBe(46.25)
   })
@@ -112,8 +112,8 @@ describe('tiers', () => {
   it('fits the inspector once every level present fits beside it at its minimum, at any top', () => {
     expect(inspectorTier(1)).toBe(46.25)
     expect(inspectorTier(2)).toBe(69)
-    expect(inspectorTier(3)).toBe(93.75)
-    expect(inspectorTier(4)).toBe(101.75)
+    expect(inspectorTier(3)).toBe(99.75)
+    expect(inspectorTier(4)).toBe(105.75)
   })
 
   it('gives the root a narrow track and a pane under it a wider one, never starving the fill', () => {
@@ -121,16 +121,16 @@ describe('tiers', () => {
       'clamp(16rem, min(40cqi, 100cqi - 30.25rem), 24rem)'
     )
     expect(parentTrack(2, 1, [1])).toBe(
-      'clamp(16rem, min(40cqi, 100cqi - 30.25rem), 28rem)'
+      'clamp(16rem, min(40cqi, 100cqi - 30.25rem), 30rem)'
     )
     expect(parentTrack(3, 0)).toBe(
-      'clamp(16rem, min(25cqi, (100cqi - 31rem) * 16 / 36), 20rem)'
+      'clamp(20rem, min(25cqi, (100cqi - 31rem) * 20 / 45), 24rem)'
     )
     expect(parentTrack(3, 1)).toBe(
-      'clamp(20rem, min(30cqi, (100cqi - 31rem) * 20 / 36), 28rem)'
+      'clamp(25rem, min(32cqi, (100cqi - 31rem) * 25 / 45), 30rem)'
     )
     expect(parentTrack(3, 2, [1, 2])).toBe(
-      'clamp(20rem, min(30cqi, (100cqi - 31rem) * 20 / 40), 28rem)'
+      'clamp(25rem, min(32cqi, (100cqi - 31rem) * 25 / 50), 30rem)'
     )
   })
 })
@@ -140,7 +140,7 @@ describe('paneCell — the prototype evidence', () => {
     expect(shown(columnsAt(375), 2, 3)).toBe('2[Back]')
     expect(shown(columnsAt(760), 2, 3)).toBe('1[Back] | 2[Close]')
     expect(shown(columnsAt(932), 2, 3)).toBe('1[Back] | 2[Close]')
-    expect(shown(columnsAt(1188), 2, 3)).toBe('0 | 1 | 2[Close]')
+    expect(shown(columnsAt(1188), 2, 3)).toBe('1[Back] | 2[Close]')
     expect(shown(columnsAt(1348), 2, 3)).toBe('0 | 1 | 2[Close]')
   })
 
@@ -156,7 +156,7 @@ describe('paneCell — the prototype evidence', () => {
     expect(shown(columnsAt(375), 0, 3)).toBe('0')
     expect(shown(columnsAt(760), 0, 3)).toBe('0 | 1')
     expect(shown(columnsAt(932), 0, 3)).toBe('0 | 1')
-    expect(shown(columnsAt(1188), 0, 3)).toBe('0 | 1 | 2')
+    expect(shown(columnsAt(1188), 0, 3)).toBe('0 | 1')
     expect(shown(columnsAt(1348), 0, 3)).toBe('0 | 1 | 2')
     expect(paneCell(2, 0, 2, 3)).toEqual({
       slot: 'ahead',
@@ -297,8 +297,8 @@ describe('the rules a real row matches', () => {
           slotOf(paneRuleAt(rules, $(`[data-depth="${depth}"]`), at)!.body)
         )
         .join(' ')
-    expect(shownAt(66.9)).toBe('behind parent fill')
-    expect(shownAt(67)).toBe('parent parent fill')
+    expect(shownAt(75.9)).toBe('behind parent fill')
+    expect(shownAt(76)).toBe('parent parent fill')
   })
 
   it('reads a row with nothing at depth 0 one depth shallower, so its first pane is the root', () => {
@@ -602,9 +602,9 @@ describe('parent tracks follow the columns a row shows', () => {
     expect(visibleColumns(2, 1)).toBe(1)
   })
 
-  // Content widths beside an 80px navigation at 1188 and 1440.
+  // Content widths beside an 80px navigation at 1320 and 1440.
   it.each([
-    [1108, 384],
+    [1240, 384],
     [1360, 384]
   ])(
     'keeps a two-level list on the two-column track at %ipx of content',
@@ -617,9 +617,9 @@ describe('parent tracks follow the columns a row shows', () => {
   // Beside an 80px navigation at 1000, 1200 and 1440, and a 240px one at 1440.
   it.each([
     [920, [368]],
-    [1120, [277, 336]],
-    [1360, [320, 408]],
-    [1200, [300, 360]]
+    [1120, [448]],
+    [1360, [340, 435]],
+    [1200, [480]]
   ])(
     'widens a detail in the middle past the list at %ipx of content',
     (contentPx, expected) => {
@@ -631,7 +631,7 @@ describe('parent tracks follow the columns a row shows', () => {
   )
 
   it('gives both parents the detail track once the window slides past the root', () => {
-    expect([1, 2].map((depth) => trackAt(4, 1360, depth))).toEqual([408, 408])
+    expect([1, 2].map((depth) => trackAt(4, 1360, depth))).toEqual([432, 432])
   })
 })
 
