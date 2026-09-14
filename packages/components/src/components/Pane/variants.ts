@@ -84,6 +84,7 @@ const PANE_CHROME_SURFACE =
 export const paneHeaderVariants = cva(
   [
     'sticky top-0 z-sticky grid-cols-[auto_minmax(0,1fr)_auto]',
+    '[container:pane-header/inline-size]',
     // Published for the same reason as the bottom padding below: the stacked
     // rows apply it themselves, and a restated `2` would drift from this one
     // the first time either moved.
@@ -133,7 +134,8 @@ export const paneHeaderVariants = cva(
       edgeOnly: {
         none: 'grid',
         back: '[display:var(--pane-back)]',
-        close: '[display:var(--pane-close)]'
+        close: '[display:var(--pane-close)]',
+        both: '[display:var(--pane-edge)]'
       },
       collapsed: { true: 'after:opacity-100', false: 'after:opacity-0' }
     },
@@ -147,6 +149,12 @@ const paneHeaderEdgeCellClasses = 'col-start-1 row-start-1 justify-self-start'
 export const paneHeaderBackVariants = cva([paneHeaderEdgeCellClasses])
 
 export const paneHeaderCloseVariants = cva([paneHeaderEdgeCellClasses])
+
+// A container query reads the content box: a 24rem header less its 1.5rem insets.
+export const paneBackLabelClass =
+  'hidden max-w-[12ch] truncate @min-[21rem]/pane-header:inline'
+
+export const paneBackLabelledClass = '@max-[21rem]/pane-header:btn-icon-md'
 
 // The large title fades and scales while its row closes underneath.
 // Transitioning `grid-template-rows` and `margin-top` is deliberate: transforms

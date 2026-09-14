@@ -15,23 +15,28 @@ import { CaretLeftIcon, XIcon } from '@phosphor-icons/react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isDev } from '../../utils/isDev'
+import { Button } from '../Button/Button'
 import { IconButton } from '../Button/IconButton'
 import { PaneChromeContext } from './PaneChromeContext'
 import { PaneContext } from './PaneContext'
 import { PaneTitle } from './PaneTitle'
 import { PaneTitleCompact } from './PaneTitleCompact'
 import {
+  paneBackLabelClass,
+  paneBackLabelledClass,
   paneHeaderBackVariants,
   paneHeaderCloseVariants,
   paneHeaderVariants
 } from './variants'
 
 export type PaneHeaderProps = {
-  /** Back target, as a routed link. Wins over `onBack`. */
+  /** Back target, as a routed link. Wins over `onBack`; also Close's target unless `onClose` is given. */
   backHref?: string
-  /** Back target, as a `<button>`; also closes the column from `lg` up unless `onClose` is given. */
+  /** The parent's title, shown beside the caret where the header is at least 24rem wide. */
+  backLabel?: string
+  /** Back target, as a `<button>`; also Close's handler unless `onClose` is given. */
   onBack?: () => void
-  /** Closes this column from `lg` up, overriding `onBack` for Close; never shown on the root pane. */
+  /** Close's handler, overriding `onBack` and `backHref` for Close; never shown on the root pane. */
   onClose?: () => void
   children?: ReactNode
   className?: string
@@ -43,6 +48,7 @@ const closeIcon = <XIcon weight='bold' className='size-5' />
 /** Sticky chrome at the top of a pane: Back, a compact title, and actions. */
 export function PaneHeader({
   backHref,
+  backLabel,
   onBack,
   onClose,
   children,
@@ -55,12 +61,19 @@ export function PaneHeader({
   // A consumer's onBack is a handler and outranks the orchestrator's link.
   const resolvedBackHref =
     backHref ?? (onBack === undefined ? chrome.backHref : undefined)
+  const label =
+    backLabel ??
+    (backHref === undefined && onBack === undefined
+      ? chrome.backLabel
+      : undefined)
   const hasTarget = resolvedBackHref !== undefined || onBack !== undefined
-  const showBack = hasTarget && pane !== null && pane.role !== 'list'
-  // A link never supplies Close: an ✕ that navigates would misrepresent itself.
+  // An inspector has no depth and never goes up a level.
+  const showBack =
+    hasTarget && pane !== null && pane.depth !== null && pane.depth !== 0
   const closeHandler = onClose ?? onBack
+  const closeHref = closeHandler === undefined ? resolvedBackHref : undefined
   const showClose =
-    closeHandler !== undefined &&
+    (closeHandler !== undefined || closeHref !== undefined) &&
     pane !== null &&
     pane.role !== 'inspector' &&
     !pane.isRoot
@@ -82,9 +95,10 @@ export function PaneHeader({
 
   const hasOtherContent = children != null || bodyTitle !== null
   const visible = showBack || showClose || hasOtherContent
-  const edgeOnly =
-    hasOtherContent || (showBack && showClose)
-      ? 'none'
+  const edgeOnly = hasOtherContent
+    ? 'none'
+    : showBack && showClose
+      ? 'both'
       : showBack
         ? 'back'
         : showClose
@@ -126,30 +140,62 @@ export function PaneHeader({
     >
       {showBack ? (
         <div data-slot='pane-back' className={paneHeaderBackVariants()}>
-          {resolvedBackHref !== undefined ? (
-            <IconButton
+          {label === undefined ? (
+            resolvedBackHref !== undefined ? (
+              <IconButton
+                href={resolvedBackHref}
+                aria-label='Back'
+                emphasis='normal'
+              >
+                {backIcon}
+              </IconButton>
+            ) : (
+              <IconButton onClick={onBack} aria-label='Back' emphasis='normal'>
+                {backIcon}
+              </IconButton>
+            )
+          ) : resolvedBackHref !== undefined ? (
+            <Button
               href={resolvedBackHref}
-              aria-label='Back'
+              aria-label={`Back to ${label}`}
               emphasis='normal'
+              className={paneBackLabelledClass}
             >
               {backIcon}
-            </IconButton>
+              <span data-slot='pane-back-label' className={paneBackLabelClass}>
+                {label}
+              </span>
+            </Button>
           ) : (
-            <IconButton onClick={onBack} aria-label='Back' emphasis='normal'>
+            <Button
+              onClick={onBack}
+              aria-label={`Back to ${label}`}
+              emphasis='normal'
+              className={paneBackLabelledClass}
+            >
               {backIcon}
-            </IconButton>
+              <span data-slot='pane-back-label' className={paneBackLabelClass}>
+                {label}
+              </span>
+            </Button>
           )}
         </div>
       ) : null}
       {showClose ? (
         <div data-slot='pane-close' className={paneHeaderCloseVariants()}>
-          <IconButton
-            onClick={closeHandler}
-            aria-label='Close'
-            emphasis='normal'
-          >
-            {closeIcon}
-          </IconButton>
+          {closeHandler !== undefined ? (
+            <IconButton
+              onClick={closeHandler}
+              aria-label='Close'
+              emphasis='normal'
+            >
+              {closeIcon}
+            </IconButton>
+          ) : (
+            <IconButton href={closeHref} aria-label='Close' emphasis='normal'>
+              {closeIcon}
+            </IconButton>
+          )}
         </div>
       ) : null}
       {children}
