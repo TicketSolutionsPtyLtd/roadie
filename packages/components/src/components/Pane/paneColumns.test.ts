@@ -364,20 +364,50 @@ describe('parent tracks follow the columns a row shows', () => {
     return Math.round(trackPx(track, contentPx))
   }
 
+  const inspectorRow = (levels: number) =>
+    html(
+      stackRow(
+        0,
+        Array.from({ length: levels }, (_, depth) => depth === levels - 1),
+        false
+      ).replace(
+        '</div></div>',
+        '</div><div data-slot="pane" data-role="inspector" data-level="0"></div></div>'
+      )
+    )
+
+  const inspectorShownAt = (inspector: Element, contentPx: number) =>
+    rules.some(
+      (rule) =>
+        rule.body === 'display: block;' &&
+        inspector.matches(rule.selector) &&
+        rule.conditions.some((condition) => {
+          const width = condition.match(
+            /@container panes \(width >= ([\d.]+)rem\)/
+          )?.[1]
+          return width !== undefined && contentPx >= Number(width) * REM
+        })
+    )
+
+  // A stacked row positions its panes absolutely, so nothing can sit beside them.
+  it.each([1, 2, 3])(
+    'never shows the inspector while the row is stacked, %i levels',
+    (levels) => {
+      const inspector = inspectorRow(levels)('[data-role="inspector"]')
+      for (let contentPx = 600; contentPx <= 1800; contentPx += 1) {
+        if (columnsAt(contentPx) > 1) continue
+        expect(inspectorShownAt(inspector, contentPx), `${contentPx}px`).toBe(
+          false
+        )
+      }
+    }
+  )
+
   // Every 1px of content from a single column to past the widest tier.
-  it.each([2, 3])(
+  it.each([1, 2, 3])(
     'never squeezes the fill below its minimum beside a shown inspector, %i levels',
     (levels) => {
-      const $ = html(
-        stackRow(
-          0,
-          Array.from({ length: levels }, (_, depth) => depth === levels - 1),
-          false
-        ).replace(
-          '</div></div>',
-          '</div><div data-slot="pane" data-role="inspector" data-level="0"></div></div>'
-        )
-      )
+      const $ = inspectorRow(levels)
       const inspector = $('[data-role="inspector"]')
       const panes = Array.from({ length: levels }, (_, depth) =>
         $(`[data-depth="${depth}"]`)
@@ -386,18 +416,7 @@ describe('parent tracks follow the columns a row shows', () => {
       for (let contentPx = 600; contentPx <= 1800; contentPx += 1) {
         const columns = columnsAt(contentPx)
         if (columns === 1) continue
-        const inspectorShown = rules.some(
-          (rule) =>
-            rule.body === 'display: block;' &&
-            inspector.matches(rule.selector) &&
-            rule.conditions.some((condition) => {
-              const width = condition.match(
-                /@container panes \(width >= ([\d.]+)rem\)/
-              )?.[1]
-              return width !== undefined && contentPx >= Number(width) * REM
-            })
-        )
-        if (!inspectorShown) continue
+        if (!inspectorShownAt(inspector, contentPx)) continue
         shownAt += 1
         const tier = rules.filter(
           (rule) =>
