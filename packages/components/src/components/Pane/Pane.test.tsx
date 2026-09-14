@@ -1854,7 +1854,7 @@ describe('depth attributes', () => {
       stacked.filter((rule) => element.matches(rule.selector))[0]!.body
     expect(bodyOf(sub!)).toContain('translate: 0 0;')
     expect(bodyOf(sub!)).toContain('--pane-back: grid;')
-    expect(bodyOf(detail!)).toContain('translate: -33%')
+    expect(bodyOf(detail!)).toContain('translate: calc(-33%')
 
     const scrolled = [sub!, detail!].map((p) => {
       const spy = vi.fn()
