@@ -1871,4 +1871,38 @@ describe('depth attributes', () => {
       '1'
     ])
   })
+
+  it('reveals the inner root without revealing the outer one', async () => {
+    render(
+      <Navigator value='/a'>
+        <Navigator.Content>
+          <Pane role='list'>Outer list</Pane>
+          <Pane role='detail' current>
+            Outer
+            <Navigator value='/x'>
+              <Navigator.Content>
+                <Pane role='list' current>
+                  Inner list
+                </Pane>
+                <Pane role='detail'>Inner detail</Pane>
+              </Navigator.Content>
+            </Navigator>
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const [outer, inner] = Array.from(
+      document.querySelectorAll('[data-slot="navigator-panes"]')
+    )
+    expect(outer).not.toHaveAttribute('data-reveal')
+    expect(inner).not.toHaveAttribute('data-reveal')
+    const panes = Array.from(document.querySelectorAll('[data-slot="pane"]'))
+    expect(panes.map((p) => p.getAttribute('data-stack-position'))).toEqual([
+      'behind',
+      'top',
+      'top',
+      'ahead'
+    ])
+  })
 })
