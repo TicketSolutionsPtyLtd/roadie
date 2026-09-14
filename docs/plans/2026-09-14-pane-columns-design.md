@@ -155,12 +155,12 @@ table:
 
 | Attribute | On | Meaning |
 | --- | --- | --- |
-| `data-depth="0..3"` | every non-inspector pane | resolved depth (declared or role default before registration, DOM order after) |
+| `data-depth="0..3" \| "deep"` | every non-inspector pane | resolved depth (declared or role default before registration, DOM order between equals after); `deep` past 3 |
 | `data-current` | a pane | `current` (More: `overflowOpen`) |
-| `data-reveal` | the row | the root is revealed: section route, `showList`, or More open |
+| `data-reveal` | the row | the root is revealed: section route, `showList`, or More open with a pane to show |
 | `data-stack` | a pane inside an orchestrator | participates in the stack (never an inspector, never a pane inside another pane's content) |
 | `data-level="0|1"` | the row and each stack pane | nesting level, from context |
-| `data-overflow` | the More pane, and the row while More is open | More's identity and state |
+| `data-overflow` | the More pane, and the row while More is open | More's identity, and More open with a pane to show |
 
 **Generated CSS.** `packages/components/src/css/pane-columns.css` is emitted
 by `scripts/generate-pane-columns.mjs` from `paneColumns.ts` — the one table —
@@ -171,7 +171,8 @@ the row, sets three custom properties (`--pane-back`, `--pane-close`,
 `--pane-edge`, each `grid` or `none`) and the geometry (stacked: `translate`
 and `visibility`; columns: `position: relative`, `flex`, `order`). The header
 and its two cells read the properties as their `display`. Two levels × three
-tiers × 30 combinations is about 180 rules, roughly 3KB gzipped. The file is
+tiers × 44 combinations (two root bases) is 264 pane rules plus the statics,
+about 4KB gzipped. The file is
 wrapped in `@layer components`, so Tailwind utilities on a pane (a consumer's
 `className`, the `data-instant` transition cut) still win, while the `!important`
 on `position` beats Base UI's inline `position: relative`. The rules that hide
