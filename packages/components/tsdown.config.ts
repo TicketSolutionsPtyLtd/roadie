@@ -1,4 +1,7 @@
+import babel from '@rolldown/plugin-babel'
 import { defineConfig } from 'tsdown'
+
+import { reactCompilerPreset } from './react-compiler.config.ts'
 
 // Unbundle mode: every source file under `src/` emits as its own output
 // file, preserving the source directory structure 1:1. This is load-bearing
@@ -40,6 +43,7 @@ export default defineConfig(({ watch }) => ({
   shims: true,
   outDir: 'dist',
   outExtensions: () => ({ js: '.js' }),
+  plugins: [babel({ presets: [reactCompilerPreset] })],
   deps: {
     neverBundle: [
       'react',
