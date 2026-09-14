@@ -27,6 +27,7 @@ import {
   navigatorPrimaryBrandVariants,
   navigatorPrimaryClusterContentVariants,
   navigatorPrimaryClusterVariants,
+  navigatorPrimaryFrameVariants,
   navigatorPrimaryPinnedVariants,
   navigatorPrimaryVerticalVariants
 } from './variants'
@@ -136,7 +137,7 @@ describe('vertical regions', () => {
   it('puts brand on top, the cluster between, pinned at the bottom', async () => {
     render(<Six />)
     await flushViewportMeasurement()
-    const children = Array.from(vertical().children).map((el) =>
+    const children = Array.from(region('frame').children).map((el) =>
       el.getAttribute('data-slot')
     )
     expect(children).toEqual([
@@ -195,10 +196,12 @@ describe('vertical regions', () => {
     )
     await flushViewportMeasurement()
     expect(
-      Array.from(vertical().children).map((el) => el.getAttribute('data-slot'))
+      Array.from(region('frame').children).map((el) =>
+        el.getAttribute('data-slot')
+      )
     ).toEqual(['navigator-primary-cluster'])
-    const layout = navigatorPrimaryVerticalVariants().split(' ')
-    expect(layout).toEqual(expect.arrayContaining(['md:flex', 'flex-col']))
+    const layout = navigatorPrimaryFrameVariants().split(' ')
+    expect(layout).toEqual(expect.arrayContaining(['flex', 'flex-col']))
     expect(layout.some((name) => name.startsWith('grid-rows-'))).toBe(false)
     expect(navigatorPrimaryClusterVariants().split(' ')).toContain('flex-1')
   })
@@ -854,6 +857,7 @@ describe('expanded vertical navigation', () => {
   it('writes each expanded style once, through the variant', () => {
     const classes = [
       navigatorPrimaryVerticalVariants(),
+      navigatorPrimaryFrameVariants(),
       navigatorPrimaryClusterContentVariants(),
       navigatorPrimaryPinnedVariants(),
       navigatorCapsuleVariants(),
@@ -864,7 +868,9 @@ describe('expanded vertical navigation', () => {
       navigatorBrandVariants(),
       navigatorExpandToggleAnchorVariants()
     ].join(' ')
-    expect(classes).toContain('navigator-expanded:w-60')
+    expect(classes).toContain(
+      'navigator-expanded:w-(--navigator-primary-expanded)'
+    )
     expect(classes).toContain('navigator-expanded:opacity-100')
     expect(classes).not.toMatch(/\[html\[|data-\[expanded|expanded=false/)
   })
@@ -1045,6 +1051,142 @@ describe('expanded vertical navigation', () => {
   })
 })
 
+describe('expand motion', () => {
+  type AnimateArgs = Parameters<Element['animate']>
+  type FakeAnimation = {
+    target: Element
+    keyframes: AnimateArgs[0]
+    options: Exclude<AnimateArgs[1], number | undefined>
+    onfinish: (() => void) | null
+    cancel: ReturnType<typeof vi.fn>
+  }
+  let animations: FakeAnimation[] = []
+
+  beforeEach(() => {
+    animations = []
+    Element.prototype.animate = function (
+      this: Element,
+      keyframes: AnimateArgs[0],
+      options?: AnimateArgs[1]
+    ) {
+      const animation: FakeAnimation = {
+        target: this,
+        keyframes,
+        options: options as FakeAnimation['options'],
+        onfinish: null,
+        cancel: vi.fn()
+      }
+      animations.push(animation)
+      return animation as unknown as Animation
+    }
+  })
+  afterEach(() => {
+    delete (Element.prototype as Partial<Element>).animate
+  })
+
+  const content = () =>
+    document.querySelector<HTMLElement>('[data-slot="navigator-content"]')!
+  const toggle = () =>
+    region('frame').querySelector<HTMLElement>(
+      '[data-slot="navigator-expand-toggle"]'
+    )!
+
+  // jsdom has no layout or stylesheet, so give the hook what the browser would.
+  function laidOut({ duration = '400ms' }: { duration?: string } = {}) {
+    const nav = vertical()
+    nav.style.setProperty('--navigator-primary-collapsed', '5rem')
+    nav.style.setProperty('--navigator-primary-expanded', '15rem')
+    Object.defineProperty(nav, 'offsetWidth', { configurable: true, value: 80 })
+    region('frame').style.transitionDuration = duration
+    region('frame').style.transitionTimingFunction = 'ease-out'
+  }
+
+  it('translates the content while expanding, then widens the track once, at the end', async () => {
+    const user = userEvent.setup()
+    render(<Expandable />)
+    await flushViewportMeasurement()
+    laidOut()
+    await user.click(toggle())
+
+    expect(animations).toHaveLength(1)
+    const expand = animations[0]!
+    expect(expand.target).toBe(content())
+    expect(expand.keyframes).toEqual({ translate: ['0px', '160px'] })
+    expect(expand.options).toMatchObject({
+      duration: 400,
+      easing: 'ease-out',
+      fill: 'forwards'
+    })
+    expect(vertical()).toHaveAttribute('data-expanded')
+    expect(vertical()).toHaveAttribute('data-motion', 'expand')
+
+    act(() => expand.onfinish?.())
+    expect(vertical()).not.toHaveAttribute('data-motion')
+    expect(expand.cancel).toHaveBeenCalled()
+  })
+
+  it('narrows the track at once and slides the content in while collapsing', async () => {
+    const user = userEvent.setup()
+    render(<Expandable defaultExpanded />)
+    await flushViewportMeasurement()
+    laidOut()
+    await user.click(toggle())
+
+    expect(animations).toHaveLength(1)
+    expect(animations[0]!.keyframes).toEqual({ translate: ['160px', '0px'] })
+    expect(vertical()).not.toHaveAttribute('data-expanded')
+    expect(vertical()).not.toHaveAttribute('data-motion')
+  })
+
+  it('mirrors the travel right to left', async () => {
+    const user = userEvent.setup()
+    render(<Expandable />)
+    await flushViewportMeasurement()
+    laidOut()
+    vertical().style.direction = 'rtl'
+    await user.click(toggle())
+    expect(animations[0]!.keyframes).toEqual({ translate: ['0px', '-160px'] })
+  })
+
+  it('reverses from where an interrupted motion reached', async () => {
+    const user = userEvent.setup()
+    render(<Expandable />)
+    await flushViewportMeasurement()
+    laidOut()
+    await user.click(toggle())
+    content().style.translate = '40px'
+    await user.click(toggle())
+
+    expect(animations[0]!.cancel).toHaveBeenCalled()
+    expect(animations[1]!.keyframes).toEqual({ translate: ['40px', '0px'] })
+    expect(animations[1]!.options.duration).toBe(100)
+    expect(vertical()).not.toHaveAttribute('data-motion')
+  })
+
+  it('changes the track without motion when motion is reduced', async () => {
+    const user = userEvent.setup()
+    render(<Expandable />)
+    await flushViewportMeasurement()
+    laidOut({ duration: '0s' })
+    await user.click(toggle())
+    expect(animations).toHaveLength(0)
+    expect(vertical()).toHaveAttribute('data-expanded')
+    expect(vertical()).not.toHaveAttribute('data-motion')
+  })
+
+  it('plays nothing on mount or when the document is read', async () => {
+    document.documentElement.setAttribute('data-navigator-expanded', '')
+    try {
+      render(<Expandable expandedFromDocument />)
+      await flushViewportMeasurement()
+      expect(vertical()).toHaveAttribute('data-expanded')
+      expect(animations).toHaveLength(0)
+    } finally {
+      document.documentElement.removeAttribute('data-navigator-expanded')
+    }
+  })
+})
+
 describe('default brand', () => {
   const scope = `:where(${NAVIGATOR_EXPANDED_SCOPE})`
   const logoPart = '[data-slot="logo-wordmark"], [data-slot="logo-product"]'
@@ -1137,7 +1279,7 @@ describe('default brand', () => {
         `[transition:grid-template-columns_var(--navigator-primary-motion),${opacity}]`
       )
     }
-    expect(navigatorPrimaryVerticalVariants()).toContain(
+    expect(navigatorPrimaryFrameVariants()).toContain(
       'motion-safe:[transition:width_var(--navigator-primary-motion)]'
     )
   })

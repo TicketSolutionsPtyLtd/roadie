@@ -921,7 +921,7 @@ describe('Navigator.Brand', () => {
     )
     const brand = region?.querySelector('[data-slot="navigator-brand"]')
     expect(brand).toHaveTextContent('Roadie')
-    expect(vertical.firstElementChild).toBe(region)
+    expect(vertical.firstElementChild?.firstElementChild).toBe(region)
     expect(
       vertical.querySelector(
         '[data-slot="navigator-primary-cluster"] [data-slot="navigator-brand"]'

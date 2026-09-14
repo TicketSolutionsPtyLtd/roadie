@@ -44,12 +44,21 @@ export const navigatorContentVariants = cva([
 // Not configurable — a seven-tab bar is not a shape Navigator can be talked into.
 export const MAX_TABS = 5
 
-// Flex, not grid rows: an absent brand or pinned region leaves no gutter.
-// Width is the one layout transition: the panes beside it follow the track.
+// The box is the grid track, so it never animates: it changes once, at the end
+// of an expand (held collapsed by `data-motion`) or the start of a collapse.
+// The frame inside animates and overflows it while the content translates.
 export const navigatorPrimaryVerticalVariants = cva([
   'group/primary hidden min-h-0 md:col-start-1 md:row-start-1 md:flex',
-  'flex-col gap-3 py-3 w-20 navigator-expanded:w-60',
-  '[--navigator-primary-motion:var(--duration-slow)_var(--ease-standard)]',
+  '[--navigator-primary-collapsed:5rem] [--navigator-primary-expanded:15rem]',
+  'w-(--navigator-primary-collapsed) navigator-expanded:w-(--navigator-primary-expanded)',
+  'data-[motion=expand]:w-(--navigator-primary-collapsed)',
+  '[--navigator-primary-motion:var(--duration-slow)_var(--ease-standard)]'
+])
+
+// Flex, not grid rows: an absent brand or pinned region leaves no gutter.
+export const navigatorPrimaryFrameVariants = cva([
+  'flex min-h-0 shrink-0 flex-col gap-3 py-3',
+  'w-(--navigator-primary-collapsed) navigator-expanded:w-(--navigator-primary-expanded)',
   'motion-safe:[transition:width_var(--navigator-primary-motion)]'
 ])
 

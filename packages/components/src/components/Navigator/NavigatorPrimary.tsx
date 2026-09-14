@@ -53,6 +53,7 @@ import {
   navigatorPrimaryClusterTrackVariants,
   navigatorPrimaryClusterVariants,
   navigatorPrimaryClusterViewportVariants,
+  navigatorPrimaryFrameVariants,
   navigatorPrimaryHorizontalVariants,
   navigatorPrimaryLaneVariants,
   navigatorPrimaryPillVariants,
@@ -426,74 +427,79 @@ export function NavigatorPrimary({
         aria-label={ariaLabel}
         className={cn(navigatorPrimaryVerticalVariants(), className)}
       >
-        <Tooltip.Provider>
-          {collected.brand.length > 0 || collected.toggles.length > 0 ? (
-            <div
-              ref={brandRef}
-              data-slot='navigator-primary-brand'
-              className={navigatorPrimaryBrandVariants({ toggle: hasToggle })}
-            >
-              {collected.brand}
-              {collected.toggles}
-            </div>
-          ) : null}
-          <ScrollArea
-            data-slot='navigator-primary-cluster'
-            className={navigatorPrimaryClusterVariants()}
-          >
-            <ScrollArea.Viewport
-              ref={clusterRef}
-              data-slot='navigator-primary-cluster-viewport'
-              className={navigatorPrimaryClusterViewportVariants()}
-            >
-              <ScrollArea.Content
-                fitWidth={false}
-                className={navigatorPrimaryClusterContentVariants()}
+        <div
+          data-slot='navigator-primary-frame'
+          className={navigatorPrimaryFrameVariants()}
+        >
+          <Tooltip.Provider>
+            {collected.brand.length > 0 || collected.toggles.length > 0 ? (
+              <div
+                ref={brandRef}
+                data-slot='navigator-primary-brand'
+                className={navigatorPrimaryBrandVariants({ toggle: hasToggle })}
               >
-                <div
-                  ref={clusterTrackRef}
-                  data-slot='navigator-primary-cluster-track'
-                  className={navigatorPrimaryClusterTrackVariants()}
-                >
-                  <NavigatorFoldedContext value={verticalFolded}>
-                    {wrapCapsules(collected.cluster, verticalFolded)}
-                  </NavigatorFoldedContext>
-                  {verticalFoldedSlots.length > 0 ? (
-                    <ul
-                      data-slot='navigator-capsule'
-                      className={navigatorCapsuleVariants()}
-                    >
-                      <li>
-                        <NavigatorTileTooltip
-                          label={OVERFLOW_LABEL}
-                          disabled={overflowOpen}
-                          render={(asTrigger) => asTrigger(verticalMoreTile)}
-                        />
-                      </li>
-                    </ul>
-                  ) : null}
-                  <NavigatorIndicator
-                    trackRef={clusterTrackRef}
-                    surface='vertical'
-                  />
-                </div>
-              </ScrollArea.Content>
-            </ScrollArea.Viewport>
-            <ScrollArea.Scrollbar flush>
-              <ScrollArea.Thumb />
-            </ScrollArea.Scrollbar>
-          </ScrollArea>
-          {collected.pinned.length > 0 ? (
-            <div
-              ref={pinnedRef}
-              data-slot='navigator-primary-pinned'
-              className={navigatorPrimaryPinnedVariants()}
+                {collected.brand}
+                {collected.toggles}
+              </div>
+            ) : null}
+            <ScrollArea
+              data-slot='navigator-primary-cluster'
+              className={navigatorPrimaryClusterVariants()}
             >
-              {wrapCapsules(collected.pinned, new Set())}
-              <NavigatorIndicator trackRef={pinnedRef} surface='vertical' />
-            </div>
-          ) : null}
-        </Tooltip.Provider>
+              <ScrollArea.Viewport
+                ref={clusterRef}
+                data-slot='navigator-primary-cluster-viewport'
+                className={navigatorPrimaryClusterViewportVariants()}
+              >
+                <ScrollArea.Content
+                  fitWidth={false}
+                  className={navigatorPrimaryClusterContentVariants()}
+                >
+                  <div
+                    ref={clusterTrackRef}
+                    data-slot='navigator-primary-cluster-track'
+                    className={navigatorPrimaryClusterTrackVariants()}
+                  >
+                    <NavigatorFoldedContext value={verticalFolded}>
+                      {wrapCapsules(collected.cluster, verticalFolded)}
+                    </NavigatorFoldedContext>
+                    {verticalFoldedSlots.length > 0 ? (
+                      <ul
+                        data-slot='navigator-capsule'
+                        className={navigatorCapsuleVariants()}
+                      >
+                        <li>
+                          <NavigatorTileTooltip
+                            label={OVERFLOW_LABEL}
+                            disabled={overflowOpen}
+                            render={(asTrigger) => asTrigger(verticalMoreTile)}
+                          />
+                        </li>
+                      </ul>
+                    ) : null}
+                    <NavigatorIndicator
+                      trackRef={clusterTrackRef}
+                      surface='vertical'
+                    />
+                  </div>
+                </ScrollArea.Content>
+              </ScrollArea.Viewport>
+              <ScrollArea.Scrollbar flush>
+                <ScrollArea.Thumb />
+              </ScrollArea.Scrollbar>
+            </ScrollArea>
+            {collected.pinned.length > 0 ? (
+              <div
+                ref={pinnedRef}
+                data-slot='navigator-primary-pinned'
+                className={navigatorPrimaryPinnedVariants()}
+              >
+                {wrapCapsules(collected.pinned, new Set())}
+                <NavigatorIndicator trackRef={pinnedRef} surface='vertical' />
+              </div>
+            ) : null}
+          </Tooltip.Provider>
+        </div>
       </nav>
       <nav
         data-slot='navigator-primary'
