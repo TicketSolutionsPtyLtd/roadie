@@ -73,7 +73,7 @@ export function NavigatorItem({
   className,
   children
 }: NavigatorItemProps) {
-  const { setValue, setOverflowOpen, activateItem } = use(
+  const { setValue, setOverflowOpen, closeOverflowOnRoute, activateItem } = use(
     NavigatorActionsContext
   )
   const { value: active, sectionMemory } = use(NavigatorSelectionContext)
@@ -111,7 +111,8 @@ export function NavigatorItem({
 
   // The element can be Root's structural copy, so its handler resolves through the current tree.
   const handleClick = () => {
-    setOverflowOpen(false)
+    if (targetHref === undefined || isCurrent) setOverflowOpen(false)
+    else closeOverflowOnRoute()
     setValue(value)
     activateItem(value)
   }

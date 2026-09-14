@@ -49,6 +49,8 @@ export type NavigatorActions = {
   /** Calls the current `onClick` of the `index`th `Navigator.MenuItem` in that item's menu. */
   activateMenuItem: (value: string, index: number) => void
   setOverflowOpen: (next: boolean) => void
+  /** Closes More for a destination that navigates: at once when uncontrolled, by the route when controlled. */
+  closeOverflowOnRoute: () => void
   /** Id the More tab points `aria-controls` at, and the overflow pane carries. */
   overflowPaneId: string
   setOverflowItems: (
@@ -127,6 +129,7 @@ export const NavigatorActionsContext = createContext<NavigatorActions>({
   activateItem: noop,
   activateMenuItem: noop,
   setOverflowOpen: noop,
+  closeOverflowOnRoute: noop,
   overflowPaneId: '',
   setOverflowItems: noop,
   overflowOpenerRef: { current: null },

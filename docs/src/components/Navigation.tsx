@@ -39,7 +39,12 @@ import {
 
 import { FooterNav } from './FooterNav'
 import { Image } from './Image'
-import { NAV_LIST_PARAM, NavListQuery } from './NavListQuery'
+import {
+  NAV_LIST_PARAM,
+  NAV_MORE_PARAM,
+  NavQueryFlag,
+  useNavQueryFlag
+} from './NavQueryFlag'
 import { type DocHeadings, OnThisPage, useDocHeadings } from './OnThisPage'
 import { useExpandedCookie } from './useExpandedCookie'
 
@@ -246,24 +251,21 @@ export function DocsNavigator({
   }, [])
 
   const [expanded, setExpanded] = useExpandedCookie()
-  const [listState, setListState] = useState({ pathname: '', show: false })
-  const showList = listState.show && listState.pathname === pathname
-  const handleNavListChange = useCallback(
-    (show: boolean, atPathname: string) =>
-      setListState((current) =>
-        current.pathname === atPathname && current.show === show
-          ? current
-          : { pathname: atPathname, show }
-      ),
-    []
+  const [showList, reportShowList] = useNavQueryFlag(pathname)
+  const [showMore, reportShowMore] = useNavQueryFlag(pathname)
+  // Pushed, so Back undoes it. A routed choice from More drops `?more` with its own URL.
+  const pushFlag = useCallback(
+    (param: string, on: boolean) =>
+      router.push(on ? `${pathname}?${param}` : pathname, { scroll: false }),
+    [router, pathname]
   )
   const handleShowListChange = useCallback(
-    (next: boolean) => {
-      router.push(next ? `${pathname}?${NAV_LIST_PARAM}` : pathname, {
-        scroll: false
-      })
-    },
-    [router, pathname]
+    (next: boolean) => pushFlag(NAV_LIST_PARAM, next),
+    [pushFlag]
+  )
+  const handleShowMoreChange = useCallback(
+    (next: boolean) => pushFlag(NAV_MORE_PARAM, next),
+    [pushFlag]
   )
 
   const showAppearance = value === APPEARANCE_VALUE
@@ -273,7 +275,8 @@ export function DocsNavigator({
   return (
     <>
       <Suspense fallback={null}>
-        <NavListQuery onChange={handleNavListChange} />
+        <NavQueryFlag name={NAV_LIST_PARAM} onChange={reportShowList} />
+        <NavQueryFlag name={NAV_MORE_PARAM} onChange={reportShowMore} />
       </Suspense>
       <Navigator
         value={value}
@@ -283,6 +286,8 @@ export function DocsNavigator({
         expandedFromDocument
         showList={showList}
         onShowListChange={handleShowListChange}
+        showMore={showMore}
+        onShowMoreChange={handleShowMoreChange}
       >
         <Navigator.Primary aria-label='Documentation'>
           <Navigator.Brand>

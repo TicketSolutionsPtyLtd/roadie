@@ -86,6 +86,7 @@ export function NavigatorPrimary({
     setPinExpanded,
     scrollActivePaneToTop,
     setOverflowOpen,
+    closeOverflowOnRoute,
     overflowPaneId,
     setOverflowItems,
     overflowOpenerRef,
@@ -352,12 +353,22 @@ export function NavigatorPrimary({
     const selectDestination = (
       event: MouseEvent,
       tab: NavigatorSlotMeta,
-      active: boolean
+      active: boolean,
+      href: string | undefined
     ) => {
       activateItem(tab.value)
-      setOverflowOpen(false)
       setOpenMenu(null)
+      // A tap that stays on this route closes More now; one that navigates leaves it to the route.
+      const stay = () => {
+        event.preventDefault()
+        setOverflowOpen(false)
+      }
+      const go = () => {
+        if (href === undefined) setOverflowOpen(false)
+        else closeOverflowOnRoute()
+      }
       if (!active) {
+        go()
         setValue(tab.value)
         return
       }
@@ -369,34 +380,37 @@ export function NavigatorPrimary({
       const onSectionRoute = isActiveValue(tab.value, activeValue)
       const pageRoot = ownsSection && activeSection?.root === 'page'
       if (ownsSection && onSectionRoute) {
-        event.preventDefault()
+        stay()
         if (collapsed) expandBar()
         scrollActivePaneToTop()
         return
       }
       if (collapsed) {
-        event.preventDefault()
+        stay()
         expandBar()
         return
       }
       if (ownsSection && !pageRoot && onShowListChange && !onSectionRoute) {
-        event.preventDefault()
+        stay()
         onShowListChange(!showList)
         return
       }
       if (pageRoot) {
+        go()
         setValue(tab.value)
         return
       }
       if (isActiveValue(tab.topValue, activeValue)) {
-        event.preventDefault()
+        stay()
         scrollActivePaneToTop()
         return
       }
       if (tab.href === undefined) {
-        event.preventDefault()
+        stay()
         setValue(tab.topValue)
+        return
       }
+      go()
     }
 
     const tabHref = (tab: NavigatorSlotMeta, active: boolean) =>
@@ -432,6 +446,7 @@ export function NavigatorPrimary({
 
     const tabs = slots.tabs.map((tab, tabIndex) => {
       const active = isSectionActive(tab, activeValue)
+      const href = tabHref(tab, active)
       // With the end circle taken, the first tab floats to the start so two circles always show.
       const isStartCircle = activeIsEnd
         ? tab.value === slots.tabs[0]?.value
@@ -440,22 +455,23 @@ export function NavigatorPrimary({
         label: tab.label,
         icon: tab.icon,
         badge: tab.badge,
-        href: tabHref(tab, active),
+        href,
         active: active && !disclosureOpen,
         current: active && !overflowOpen,
         isPage: isActiveValue(tab.value, activeValue),
         collapsed,
         circleSide: isStartCircle ? 'start' : undefined,
         index: tabIndex,
-        onSelect: (event) => selectDestination(event, tab, active)
+        onSelect: (event) => selectDestination(event, tab, active, href)
       })
     })
+    const pinnedHref = pinnedTab && tabHref(pinnedTab, pinnedIsActive)
     const pinned = pinnedTab
       ? renderTab(pinnedTab, {
           label: pinnedTab.label,
           icon: pinnedTab.icon,
           badge: pinnedTab.badge,
-          href: tabHref(pinnedTab, pinnedIsActive),
+          href: pinnedHref,
           active: pinnedIsActive && !disclosureOpen,
           current: pinnedIsActive && !overflowOpen,
           isPage: isActiveValue(pinnedTab.value, activeValue),
@@ -463,7 +479,7 @@ export function NavigatorPrimary({
           collapsed,
           index: 0,
           onSelect: (event) =>
-            selectDestination(event, pinnedTab, pinnedIsActive)
+            selectDestination(event, pinnedTab, pinnedIsActive, pinnedHref)
         })
       : null
     return { tabs, pinned }
@@ -483,6 +499,7 @@ export function NavigatorPrimary({
     onShowListChange,
     activateItem,
     setOverflowOpen,
+    closeOverflowOnRoute,
     setOpenMenu,
     setValue,
     setPinExpanded,
