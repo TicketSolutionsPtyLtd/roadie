@@ -67,12 +67,20 @@ export function NavigatorContent({
   const contentRef = useRef<HTMLElement | null>(null)
   const ref = useMemo(() => mergeRefs(contentRef, forwardedRef), [forwardedRef])
 
-  // More is a tab switch, not a push: the stack flips without sliding. An
-  // insertion effect runs before any layout effect can flush styles mid-flip.
-  const wasOverflowOpen = useRef(overflowOpen)
+  // More and a change of section are tab switches, not pushes: the stack flips
+  // without sliding. An insertion effect runs before any layout effect can
+  // flush styles mid-flip.
+  const sectionValue = activeSection?.value ?? null
+  const lastTab = useRef({ overflowOpen, sectionValue })
   useInsertionEffect(() => {
-    if (wasOverflowOpen.current === overflowOpen) return
-    wasOverflowOpen.current = overflowOpen
+    const last = lastTab.current
+    if (
+      last.overflowOpen === overflowOpen &&
+      last.sectionValue === sectionValue
+    ) {
+      return
+    }
+    lastTab.current = { overflowOpen, sectionValue }
     const node = contentRef.current
     if (!node) return
     node.setAttribute('data-instant', '')
@@ -80,7 +88,7 @@ export function NavigatorContent({
       frame = requestAnimationFrame(() => node.removeAttribute('data-instant'))
     })
     return () => cancelAnimationFrame(frame)
-  }, [overflowOpen])
+  }, [overflowOpen, sectionValue])
 
   const panes = useRef(new Map<string, RegisteredPane>())
   const [version, bump] = useState(0)

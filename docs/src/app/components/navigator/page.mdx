@@ -1271,7 +1271,7 @@ Both belong to [`Pane`](/components/pane) rather than to Navigator, so they are
 documented there. The two facts worth knowing from here:
 
 - **Below `lg` panes stack**, full-bleed, one visible at a time, and push/pop
-  between them animates. Opening or closing More switches instantly. Which pane is on top is derived from the deepest pane
+  between them animates within a section. Changing section, or opening or closing More, switches instantly, as tabs do. Which pane is on top is derived from the deepest pane
   marked `current` — declare it, and the arrangement follows.
 - **`Navigator.Content` is the orchestrator.** Panes announce themselves to
   the nearest `Navigator.Content` through context, wherever they sit in its

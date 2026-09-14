@@ -1993,6 +1993,67 @@ describe('Navigator.OverflowPane', () => {
       expect(content()).not.toHaveAttribute('data-instant')
     })
 
+    const sectionsNav = (value: string) => (
+      <Navigator value={value}>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/' href='/'>
+            Home
+          </Navigator.Item>
+          {['a', 'b'].map((section) => (
+            <Navigator.Item
+              key={section}
+              value={`/${section}`}
+              href={`/${section}`}
+            >
+              {section}
+              <Navigator.Secondary aria-label={`${section} pages`}>
+                <Navigator.Item value={`/${section}/1`} href={`/${section}/1`}>
+                  {`${section} 1`}
+                </Navigator.Item>
+              </Navigator.Secondary>
+            </Navigator.Item>
+          ))}
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Pane role='detail' current>
+            Detail
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+
+    it.each([
+      ['one section to another', '/a/1', '/b'],
+      ['a section to none', '/a', '/'],
+      ['none to a section', '/', '/b/1']
+    ])(
+      'holds pane transitions off for two frames from %s',
+      async (_, from, to) => {
+        const { rerender } = render(sectionsNav(from))
+        await flushViewportMeasurement()
+        expect(content()).not.toHaveAttribute('data-instant')
+
+        rerender(sectionsNav(to))
+        expect(content()).toHaveAttribute('data-instant')
+        flushFrame()
+        flushFrame()
+        expect(content()).not.toHaveAttribute('data-instant')
+        await flushViewportMeasurement()
+      }
+    )
+
+    it.each([
+      ['a push', '/a', '/a/1'],
+      ['a pop', '/a/1', '/a']
+    ])('keeps the slide for %s within a section', async (_, from, to) => {
+      const { rerender } = render(sectionsNav(from))
+      await flushViewportMeasurement()
+      rerender(sectionsNav(to))
+      expect(content()).not.toHaveAttribute('data-instant')
+      await flushViewportMeasurement()
+    })
+
     it('turns off every pane transition while set', () => {
       expect(navigatorContentVariants().split(' ')).toContain(
         'data-instant:[&_[data-slot=pane]]:transition-none'
