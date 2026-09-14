@@ -239,7 +239,7 @@ describe('the rules a real row matches', () => {
     )
 
   it('gives every stack pane exactly one rule per tier, in the slot paneCell names', () => {
-    for (let levels = 2; levels <= 3; levels += 1) {
+    for (let levels = 1; levels <= PANE_MAX_DEPTH + 1; levels += 1) {
       for (const { reveal, current } of stackStates(levels)) {
         const $ = html(stackRow(0, current, reveal))
         const top = reveal ? 0 : Math.max(0, current.lastIndexOf(true))

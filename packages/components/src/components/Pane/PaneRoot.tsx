@@ -176,8 +176,10 @@ export function PaneRoot({
           kind,
           depth: declaredDepth
         })
-  // Mounting, unmounting or moving a pane is a navigation; the stack slides for it.
-  const markPushing = stack?.markPushing
+  const isOverflow = kind === 'overflow' || kind === 'generated-overflow'
+  // Mounting, unmounting or moving a pane is a navigation; the stack slides for
+  // it. Not More: it mounts when a resize folds items, and opens as a tab switch.
+  const markPushing = isOverflow ? undefined : stack?.markPushing
   useInsertionEffect(() => {
     markPushing?.()
     return () => markPushing?.()
@@ -191,7 +193,6 @@ export function PaneRoot({
   // exist.
   const isRoot = stack === null ? true : stack.isRootOf(paneId)
   const inStack = stack !== null && role !== 'inspector'
-  const isOverflow = kind === 'overflow' || kind === 'generated-overflow'
   const { scrollPastAt, onScrollPast, onScrollDown, registerScroller } = chrome
   // A pane that has opted out of `auto` describes no scroll-linked nav at all.
   const reportsNav = primaryNav === 'auto' && onScrollPast !== undefined

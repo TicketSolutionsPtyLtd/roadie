@@ -2317,7 +2317,7 @@ describe('Navigator.OverflowPane', () => {
       expect(row()).toHaveAttribute('data-pushing')
     })
 
-    it('never marks a push for a resize or a render that keeps the top', async () => {
+    it('never marks a push for a render that keeps the top', async () => {
       const tree = (
         <Navigator value='/a'>
           <Navigator.Content>
@@ -2333,11 +2333,65 @@ describe('Navigator.OverflowPane', () => {
       flushFrame()
       flushFrame()
       expect(row()).not.toHaveAttribute('data-pushing')
-      act(() => {
-        window.dispatchEvent(new Event('resize'))
-      })
       rerender(tree)
       expect(row()).not.toHaveAttribute('data-pushing')
+    })
+
+    it('never marks a push for a resize that folds items into More', async () => {
+      const observed = new Map<
+        Element,
+        ConstructorParameters<typeof ResizeObserver>[0]
+      >()
+      vi.stubGlobal(
+        'ResizeObserver',
+        class {
+          constructor(
+            private callback: ConstructorParameters<typeof ResizeObserver>[0]
+          ) {}
+          observe(target: Element) {
+            observed.set(target, this.callback)
+          }
+          unobserve() {}
+          disconnect() {}
+        }
+      )
+      render(
+        <Navigator value='/a'>
+          <Navigator.Primary aria-label='Main'>
+            {testBrand}
+            {['/a', '/b', '/c', '/d'].map((v) => (
+              <Navigator.Item key={v} value={v} href={v}>
+                {v}
+              </Navigator.Item>
+            ))}
+          </Navigator.Primary>
+          <Navigator.Content>
+            <Pane role='list'>List</Pane>
+            <Pane role='detail' current>
+              Detail
+            </Pane>
+          </Navigator.Content>
+        </Navigator>
+      )
+      await flushViewportMeasurement()
+      flushFrame()
+      flushFrame()
+      const more = () =>
+        document.querySelector('[data-slot="pane"][data-overflow]')
+      expect(more()).toBeNull()
+      const viewport = document.querySelector(
+        '[data-slot="navigator-primary-cluster-viewport"]'
+      )!
+      act(() => {
+        observed.get(viewport)?.(
+          [{ contentRect: { height: 96 } } as ResizeObserverEntry],
+          {} as ResizeObserver
+        )
+      })
+      await flushViewportMeasurement()
+      expect(more()).not.toBeNull()
+      expect(row()).not.toHaveAttribute('data-pushing')
+      vi.unstubAllGlobals()
     })
 
     const sectionsNav = (value: string) => (
