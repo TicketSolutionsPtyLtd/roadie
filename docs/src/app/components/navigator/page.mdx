@@ -425,6 +425,11 @@ the list is the section, and its route would only say "pick one" — an inbox,
 settings. A page root needs the section's `href`; without one the section gets
 the routeless warning and behaves as a list root.
 
+Stacked, moving between a page root and its sub-pages slides like any push or
+pop, though one pane shows both: the page as it was stands in for the one it
+leaves. That needs `value` to come from the same route that renders the page's
+content, such as `usePathname()`, so the two change in one render.
+
 ```tsx-live-noinline
 function PageRootNav() {
   const titles = {
@@ -1316,12 +1321,11 @@ Both belong to [`Pane`](/components/pane) rather than to Navigator, so they are
 documented there. The two facts worth knowing from here:
 
 - **Where columns don't fit, panes stack**, one visible at a time (edge to
-  edge on phones, inset from `md`), and push/pop between them animates.
-  A page root and its sub-pages push and pop the same way, though one pane
-  shows them both. Opening or closing More switches instantly. Which pane is on top is
-  derived from the deepest pane marked `current`; how many of the panes
-  behind it stay on screen is `Navigator.Content`'s width. Documented under
-  [`Pane`](/components/pane).
+  edge on phones, inset from `md`), and push/pop between them animates,
+  a page root and its sub-pages included. Opening or closing More switches
+  instantly. Which pane is on top is derived from the deepest pane marked
+  `current`; how many of the panes behind it stay on screen is
+  `Navigator.Content`'s width. Documented under [`Pane`](/components/pane).
 - **`Navigator.Content` is the orchestrator.** Panes announce themselves to
   the nearest `Navigator.Content` through context, wherever they sit in its
   subtree — a pane returned by a route, a Next.js parallel-route slot, or a

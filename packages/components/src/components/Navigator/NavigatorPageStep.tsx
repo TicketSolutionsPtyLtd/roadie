@@ -2,6 +2,7 @@
 
 import { Component, createRef } from 'react'
 
+import { prefersReducedMotion } from '../../utils/reducedMotion'
 import { listItemVariants } from '../List/variants'
 import { type NavigatorActiveSection, isActiveValue } from './NavigatorContext'
 import { sectionRows } from './sectionData'
@@ -20,30 +21,74 @@ type Snapshot = {
   step: 'push' | 'pop'
   ghost: HTMLElement
   scrollTop: number
+  /** Where a reversed step picks up: the pane and the ghost as they were mid-slide. */
+  from: { ghost: string; pane: string } | null
 } | null
 
-const EMBEDS = 'iframe, video, audio, object, embed'
+const GHOST_FROM = '--page-step-ghost-from'
+const PANE_FROM = '--page-step-pane-from'
+
+// Anything that runs code once connected, or draws what a copy can't.
+const LIVE = new Set(['iframe', 'video', 'audio', 'object', 'embed', 'canvas'])
+const isLive = (element: Element) =>
+  LIVE.has(element.localName) || element.localName.includes('-')
+
 const UNSELECTED = listItemVariants({ selected: false }).split(' ')
 const SELECTED = listItemVariants({ selected: true }).split(' ')
 
-// A look-alike, never a second live copy: no ids or form names to collide
-// with the real page, no embeds to load again, and out of the stack's counts.
+let inertDocument: Document | null = null
+
+// Imported into a document with no browsing context, so nothing upgrades,
+// loads or fires until it is stripped. No ids, names or `form` owners to
+// collide with the real page, and out of the stack's counts.
 function ghostOf(pane: HTMLElement) {
-  const ghost = pane.cloneNode(true) as HTMLElement
+  inertDocument ??= document.implementation.createHTMLDocument('')
+  const ghost = inertDocument.importNode(pane, true)
   for (const name of ['data-stack', 'data-current', 'data-stack-position']) {
     ghost.removeAttribute(name)
   }
-  for (const node of ghost.querySelectorAll('[id]')) node.removeAttribute('id')
-  for (const node of ghost.querySelectorAll('[name]')) {
-    node.removeAttribute('name')
-  }
-  for (const node of ghost.querySelectorAll<HTMLElement>(EMBEDS)) {
-    const stand = document.createElement('div')
-    stand.className = node.className
-    stand.style.cssText = node.style.cssText
-    node.replaceWith(stand)
+  const originals = pane.querySelectorAll('*')
+  const copies = ghost.querySelectorAll('*')
+  const live: [Element, Element][] = []
+  copies.forEach((copy, index) => {
+    for (const { name } of Array.from(copy.attributes)) {
+      if (
+        name.startsWith('on') ||
+        name === 'id' ||
+        name === 'name' ||
+        name === 'form'
+      ) {
+        copy.removeAttribute(name)
+      }
+    }
+    const original = originals[index]
+    if (original && isLive(copy)) live.push([original, copy])
+    else if (copy.localName === 'script') copy.remove()
+  })
+  for (const [original, copy] of live) {
+    if (!ghost.contains(copy)) continue
+    copy.replaceWith(standIn(original, copy))
   }
   return ghost
+}
+
+function standIn(original: Element, copy: Element) {
+  const { width, height } = original.getBoundingClientRect()
+  const display = getComputedStyle(original).display
+  const stand = copy.ownerDocument.createElement('div')
+  stand.setAttribute('class', copy.getAttribute('class') ?? '')
+  stand.setAttribute('style', copy.getAttribute('style') ?? '')
+  stand.style.display = display === 'inline' ? 'inline-block' : display
+  stand.style.width = `${width}px`
+  stand.style.height = `${height}px`
+  return stand
+}
+
+/** Swaps a `List.Item` row to its selected look. */
+export function markCurrent(row: Element) {
+  row.classList.remove(...UNSELECTED)
+  row.classList.add(...SELECTED)
+  row.setAttribute('aria-current', 'page')
 }
 
 // The list pane's row turns current as it slides away; so does the page's.
@@ -61,14 +106,11 @@ function selectPicked(
   )) {
     if (list.getAttribute('data-navigator-items') !== section.value) continue
     const row = list.querySelectorAll('[data-slot="list-item"]')[picked]
-    if (!row) continue
-    row.classList.remove(...UNSELECTED)
-    row.classList.add(...SELECTED)
-    row.setAttribute('aria-current', 'page')
+    if (row) markCurrent(row)
   }
 }
 
-const viewportOf = (pane: HTMLElement) =>
+const viewportOf = (pane: Element) =>
   pane.querySelector<HTMLElement>('[data-slot="pane-viewport"]')
 
 // A page-root section's route and sub-pages share one pane, so a move between
@@ -87,28 +129,45 @@ export class NavigatorPageStep extends Component<NavigatorPageStepProps> {
       previous.section?.value !== section.value ||
       previous.at === null ||
       at === null ||
-      previous.at === at
+      previous.at === at ||
+      prefersReducedMotion()
     ) {
       return null
     }
-    const top = this.host.current?.parentElement?.querySelector<HTMLElement>(
+    const host = this.host.current
+    const top = host?.parentElement?.querySelector<HTMLElement>(
       `[data-stack][data-level="${level}"][data-stack-position="top"]`
     )
-    if (!top) return null
+    // Columns lay panes out in flow; only a stacked pane slides.
+    if (!host || !top || getComputedStyle(top).position !== 'absolute') {
+      return null
+    }
+    const from =
+      this.finish === null
+        ? null
+        : {
+            ghost: getComputedStyle(top).translate,
+            pane: getComputedStyle(host).translate
+          }
     const ghost = ghostOf(top)
     if (at === 'child') selectPicked(ghost, section, value)
     return {
       step: at === 'child' ? 'push' : 'pop',
       ghost,
-      scrollTop: viewportOf(top)?.scrollTop ?? 0
+      scrollTop: viewportOf(top)?.scrollTop ?? 0,
+      from
     }
   }
 
   componentDidUpdate(
-    _previous: NavigatorPageStepProps,
+    previous: NavigatorPageStepProps,
     _state: unknown,
     snapshot: Snapshot
   ) {
+    const { section, at } = this.props
+    if (at === null || previous.section?.value !== section?.value) {
+      this.finish?.()
+    }
     const host = this.host.current
     const row = host?.parentElement
     if (!snapshot || !host || !row) return
@@ -116,15 +175,19 @@ export class NavigatorPageStep extends Component<NavigatorPageStepProps> {
     host.append(snapshot.ghost)
     const viewport = viewportOf(snapshot.ghost)
     if (viewport) viewport.scrollTop = snapshot.scrollTop
+    const from = snapshot.from
+    if (from?.ghost) row.style.setProperty(GHOST_FROM, from.ghost)
+    if (from?.pane) row.style.setProperty(PANE_FROM, from.pane)
     row.setAttribute('data-page-step', snapshot.step)
     const finish = () => {
       if (this.finish !== finish) return
       this.finish = null
       host.replaceChildren()
       row.removeAttribute('data-page-step')
+      row.style.removeProperty(GHOST_FROM)
+      row.style.removeProperty(PANE_FROM)
     }
     this.finish = finish
-    // The sheet animates a stacked row with motion allowed; nothing else waits.
     const running =
       typeof host.getAnimations === 'function' ? host.getAnimations() : []
     if (running.length === 0) finish()
