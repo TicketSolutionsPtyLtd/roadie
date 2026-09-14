@@ -15,9 +15,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Navigator } from '.'
 import { Pane } from '../Pane'
 import { PaneContext } from '../Pane/PaneContext'
+import { renderPaneColumnsCss } from '../Pane/paneColumns'
 import {
   FakeIcon,
   flushViewportMeasurement,
+  paneColumnsRulesOf,
   panesShownAt,
   testBrand
 } from './testUtils'
@@ -412,6 +414,62 @@ describe('Navigator server render of depths', () => {
     expect(depths(host)).toEqual(before)
     act(() => root?.unmount())
     vi.restoreAllMocks()
+  })
+})
+
+describe('a lone pane that is not current', () => {
+  const Lone = () => (
+    <Navigator value='/a'>
+      <Navigator.Content>
+        <Pane role='detail'>Solo</Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+
+  const stackedRules = paneColumnsRulesOf(renderPaneColumnsCss()).filter(
+    (rule) =>
+      rule.body.includes('--pane-back') &&
+      rule.selector.startsWith(
+        '[data-slot="navigator-panes"][data-level="0"]'
+      ) &&
+      !rule.conditions.some((condition) => condition.startsWith('@container'))
+  )
+  const stackedBodyOf = (pane: Element) =>
+    stackedRules
+      .filter((rule) => pane.matches(rule.selector))
+      .map((rule) => rule.body)
+
+  it('is on screen in the server HTML', () => {
+    const host = serverRender(<Lone />)
+    const pane = paneOf(host, 'detail')!
+    expect(pane).toHaveAttribute('data-depth', '1')
+    expect(pane).not.toHaveAttribute('data-current')
+    expect(panesShownAt(1)).toEqual(['detail'])
+    expect(stackedBodyOf(pane)).toEqual([
+      expect.stringContaining('translate: 0 0;')
+    ])
+  })
+
+  it('stays put through hydration, so nothing slides in', async () => {
+    const host = serverRender(<Lone />)
+    const pane = paneOf(host, 'detail')!
+    const seen: string[][] = [stackedBodyOf(pane)]
+    const observer = new MutationObserver(() => seen.push(stackedBodyOf(pane)))
+    observer.observe(host, { attributes: true, subtree: true })
+    const recoverable = vi.fn()
+    let root: Root | null = null
+    await act(async () => {
+      root = hydrateRoot(host, <Lone />, { onRecoverableError: recoverable })
+    })
+    await flushViewportMeasurement()
+    observer.disconnect()
+    expect(recoverable).not.toHaveBeenCalled()
+    expect(pane).toHaveAttribute('data-depth', '0')
+    for (const bodies of seen) {
+      expect(bodies).toEqual([expect.stringContaining('translate: 0 0;')])
+    }
+    expect(panesShownAt(1)).toEqual(['detail'])
+    act(() => root?.unmount())
   })
 })
 
