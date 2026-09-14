@@ -1561,12 +1561,10 @@ describe('right to left', () => {
     const row = document.querySelector<HTMLElement>(
       '[data-slot="navigator-panes"]'
     )!
-    expect(row.className).toContain(
-      'group-has-[[data-slot=navigator-primary][data-orientation=vertical]]/navigator:[--pane-stack-inset-start:0px]'
-    )
     expect(content.className).not.toMatch(physicalInset)
     expect(row.className).not.toMatch(physicalInset)
     const css = renderPaneColumnsCss()
+    expect(css).toContain('--pane-stack-inset-start: 0px;')
     expect(css).toContain('inset-inline-start: var(--pane-stack-inset-start')
     expect(css).toContain('padding-inline-start: 0')
     expect(css).not.toMatch(/(padding|margin)-(left|right)|[\s;{](left|right):/)

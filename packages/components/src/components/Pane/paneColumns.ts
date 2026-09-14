@@ -158,6 +158,9 @@ const levelCounts = (base: number) =>
 const ownedBy = (level: number) =>
   `${level > 0 ? `:is(${row(level - 1)} *)` : ''}:not(${row(level)} *)`
 
+const besideVerticalPrimary = (level: number) =>
+  `[data-slot="navigator"]${ownedBy(level)}:has([data-slot="navigator-primary"][data-orientation="vertical"]${ownedBy(level)}) ${row(level)}`
+
 const tableDepths = Array.from(
   { length: PANE_MAX_DEPTH + 1 },
   (_, depth) => `[data-depth="${depth}"]`
@@ -223,7 +226,7 @@ function tierRules(level: number, columns: number): string {
   return [
     `@container panes (width >= ${rem(columnTier(columns))}) {`,
     `  ${row(level)} { padding: ${rem(PANE_GAP)}; gap: ${rem(PANE_GAP)}; }`,
-    `  @media (width >= 48rem) { [data-slot="navigator"]${ownedBy(level)}:has([data-slot="navigator-primary"][data-orientation="vertical"]${ownedBy(level)}) ${row(level)} { padding-inline-start: 0; } }`,
+    `  @media (width >= 48rem) { ${besideVerticalPrimary(level)} { padding-inline-start: 0; } }`,
     body,
     '}'
   ].join('\n')
@@ -256,6 +259,9 @@ function inspectorVariant(): string {
 function levelRules(level: number): string {
   const pane = `${row(level)} [data-stack][data-level="${level}"]:is(${tableDepths})`
   return [
+    // Reset per row, or a nested row inherits its outer row's value.
+    `  ${row(level)} { --pane-stack-inset-start: var(--pane-stack-inset); }`,
+    `  ${besideVerticalPrimary(level)} { --pane-stack-inset-start: 0px; }`,
     `  ${pane} { position: absolute !important; inset: var(--pane-stack-inset, 0px); inset-inline-start: var(--pane-stack-inset-start, var(--pane-stack-inset, 0px)); }`,
     `  @media (prefers-reduced-motion: no-preference) { ${pane} { transition-duration: var(--duration-slow); } }`,
     `  ${row(level)} [data-role="inspector"][data-level="${level}"] { display: none; order: 99; flex: 0 0 ${rem(PANE_INSPECTOR)}; }`,

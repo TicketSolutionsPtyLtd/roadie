@@ -572,6 +572,47 @@ describe('the generated stylesheet', () => {
     expect(padded($('#inner-row')).length).toBeGreaterThan(0)
   })
 
+  it("keeps a navigator's flush start edge to its own row", () => {
+    const flush = (row: Element) =>
+      rules
+        .filter((rule) => rule.body === '--pane-stack-inset-start: 0px;')
+        .filter((rule) => row.matches(rule.selector))
+    const reset = (row: Element) =>
+      rules.filter(
+        (rule) =>
+          rule.body === '--pane-stack-inset-start: var(--pane-stack-inset);' &&
+          row.matches(rule.selector)
+      )
+    const nested = (outer: string, inner: string) =>
+      html(`
+        <div data-slot="navigator">
+          <div data-slot="navigator-primary" data-orientation="${outer}"></div>
+          <main data-slot="navigator-content">
+            <div data-slot="navigator-panes" data-level="0" id="outer-row">
+              <div data-slot="pane" data-stack data-level="0" data-depth="0">
+                <div data-slot="navigator">
+                  ${inner === 'none' ? '' : `<div data-slot="navigator-primary" data-orientation="${inner}"></div>`}
+                  <main data-slot="navigator-content">
+                    <div data-slot="navigator-panes" data-level="1" id="inner-row"></div>
+                  </main>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>`)
+
+    for (const inner of ['none', 'horizontal']) {
+      const $ = nested('vertical', inner)
+      expect(flush($('#outer-row'))).toHaveLength(1)
+      expect(flush($('#inner-row')), inner).toHaveLength(0)
+      expect(reset($('#inner-row'))).toHaveLength(1)
+    }
+
+    const $ = nested('horizontal', 'vertical')
+    expect(flush($('#outer-row'))).toHaveLength(0)
+    expect(flush($('#inner-row'))).toHaveLength(1)
+  })
+
   it('offers the inspector variant with one branch per level count and root depth', () => {
     const css = renderPaneColumnsCss()
     expect(css.match(/@container panes \(width < /g)).toHaveLength(7)
