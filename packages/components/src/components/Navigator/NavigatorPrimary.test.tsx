@@ -1043,6 +1043,29 @@ describe('expanded vertical navigation', () => {
     expect(more()).not.toBeNull()
   })
 
+  it('holds the cluster’s measurements while the navigation animates, then folds once', async () => {
+    const transition = (type: string) => {
+      const event = new Event(type, { bubbles: true })
+      Object.defineProperty(event, 'propertyName', { value: 'width' })
+      act(() => {
+        region('frame').dispatchEvent(event)
+      })
+    }
+    render(<Expandable expanded={false} />)
+    await flushViewportMeasurement()
+    region('brand').style.paddingBottom = '48px'
+    reportClusterHeight(30 * 16)
+    const tiles = () => within(region('cluster')).getAllByRole('link')
+    expect(tiles()).toHaveLength(3)
+
+    transition('transitionrun')
+    reportClusterHeight(12 * 16)
+    reportClusterHeight(9 * 16)
+    expect(tiles()).toHaveLength(3)
+    transition('transitionend')
+    expect(tiles()).toHaveLength(1)
+  })
+
   it('never renders the toggle on the phone bar', async () => {
     render(<Expandable />)
     await flushViewportMeasurement()
@@ -1097,7 +1120,6 @@ describe('expand motion', () => {
     const nav = vertical()
     nav.style.setProperty('--navigator-primary-collapsed', '5rem')
     nav.style.setProperty('--navigator-primary-expanded', '15rem')
-    Object.defineProperty(nav, 'offsetWidth', { configurable: true, value: 80 })
     region('frame').style.transitionDuration = duration
     region('frame').style.transitionTimingFunction = 'ease-out'
   }
@@ -1172,6 +1194,16 @@ describe('expand motion', () => {
     await user.click(toggle())
     expect(animations).toHaveLength(0)
     expect(vertical()).toHaveAttribute('data-expanded')
+    expect(vertical()).not.toHaveAttribute('data-motion')
+  })
+
+  it('changes the track without motion while the vertical navigation is hidden', async () => {
+    const { rerender } = render(<Expandable expanded={false} />)
+    await flushViewportMeasurement()
+    laidOut()
+    vertical().style.display = 'none'
+    rerender(<Expandable expanded />)
+    expect(animations).toHaveLength(0)
     expect(vertical()).not.toHaveAttribute('data-motion')
   })
 

@@ -3,13 +3,17 @@
 import { type RefObject, useEffect, useMemo, useState } from 'react'
 
 import { type PrimaryCapsule, fitPrimaryCluster } from './primaryCapacity'
+import { holdDuringLayoutTransitions } from './transitionHold'
 
 const NONE: ReadonlySet<string> = new Set()
 
-const rootFontSize = () =>
-  parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
-
 type Measured = { viewport: number; brandPadding: number }
+
+// Half-pixel steps in rem, so sub-pixel jitter never republishes.
+const quantize = (px: number, rem: number) => Math.round(px * 2) / 2 / rem
+
+const sameMembers = (a: ReadonlySet<string>, b: ReadonlySet<string>) =>
+  a.size === b.size && [...a].every((value) => b.has(value))
 
 /**
  * One observer on the cluster's viewport; everything else is arithmetic.
@@ -33,20 +37,40 @@ export function usePrimaryCapacity(
   useEffect(() => {
     const node = viewportRef.current
     if (!node || typeof ResizeObserver === 'undefined') return
-    const observer = new ResizeObserver(([entry]) => {
-      if (!entry) return
-      const rem = rootFontSize()
+    const rem =
+      parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+    let height = 0
+    const publish = () => {
       const brand = brandRef.current
       const padding = brand
         ? parseFloat(getComputedStyle(brand).paddingBottom) || 0
         : 0
-      setMeasured({
-        viewport: entry.contentRect.height / rem,
-        brandPadding: padding / rem
-      })
+      const next = {
+        viewport: quantize(height, rem),
+        brandPadding: quantize(padding, rem)
+      }
+      setMeasured((current) =>
+        current.viewport === next.viewport &&
+        current.brandPadding === next.brandPadding
+          ? current
+          : next
+      )
+    }
+    // An expand or collapse resizes the viewport every frame; only where it lands counts.
+    const hold = holdDuringLayoutTransitions(
+      node.closest('[data-slot="navigator-primary"]') ?? node,
+      publish
+    )
+    const observer = new ResizeObserver(([entry]) => {
+      if (!entry) return
+      height = entry.contentRect.height
+      hold.schedule()
     })
     observer.observe(node)
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      hold.dispose()
+    }
   }, [viewportRef, brandRef])
 
   // A hidden viewport measures zero.
@@ -55,9 +79,13 @@ export function usePrimaryCapacity(
     ? measured.viewport + measured.brandPadding - restingBrandPadding
     : 0
 
-  const folded = useMemo(
+  const fitted = useMemo(
     () => (enabled ? fitPrimaryCluster(capsules, available).folded : NONE),
     [capsules, available, enabled]
   )
-  return { folded, shown }
+  // The previous set while its members hold, so a new height alone re-renders no Group.
+  const [kept, setKept] = useState(fitted)
+  const unchanged = sameMembers(kept, fitted)
+  if (!unchanged) setKept(fitted)
+  return { folded: unchanged ? kept : fitted, shown }
 }

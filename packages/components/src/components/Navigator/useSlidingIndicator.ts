@@ -10,6 +10,7 @@ import {
 } from 'react'
 
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
+import { holdDuringLayoutTransitions } from './transitionHold'
 
 /**
  * `data-current`, not `aria-current`: a section on a sub-route it never
@@ -160,14 +161,22 @@ export function useSlidingIndicator(
     const track = trackRef.current
     if (!track || typeof ResizeObserver === 'undefined') return
 
-    const observer = new ResizeObserver(() => measure())
+    // Resized every frame of an expand; the pill snaps to where it lands.
+    const hold = holdDuringLayoutTransitions(
+      track.closest('[data-slot="navigator-primary"]') ?? track,
+      () => measure()
+    )
+    const observer = new ResizeObserver(() => hold.schedule())
     observer.observe(track)
     for (const destination of track.querySelectorAll<HTMLElement>(
       '[data-slot="navigator-item"]'
     )) {
       observer.observe(destination)
     }
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      hold.dispose()
+    }
   }, [trackRef])
 
   useIsomorphicLayoutEffect(() => {
