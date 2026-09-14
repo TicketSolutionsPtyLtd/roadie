@@ -111,8 +111,9 @@ export const navigatorPrimaryClusterTrackVariants = cva(['relative grid gap-3'])
 export const navigatorPrimaryPinnedVariants = cva(['relative grid gap-3 px-3'])
 
 // `rounded-4xl` overflows a collapsed capsule's width, so the browser scales it to a pill.
+// Opaque: nothing scrolls beneath it, so a blur would cost the GPU and show nothing.
 export const navigatorCapsuleVariants = cva([
-  'group/capsule relative grid gap-1 p-1 rounded-4xl emphasis-raised is-translucent'
+  'group/capsule relative grid gap-1 p-1 rounded-4xl emphasis-raised'
 ])
 
 // The box never changes size, so collapse animates on scale/translate/opacity
@@ -422,10 +423,11 @@ export const navigatorSearchVariants = cva(['group/search flex items-center'])
 
 export const navigatorSearchBoxVariants = cva(['relative grid min-w-0 flex-1'])
 
-// The capsules' surface, keeping the field's hover, focus and ring. The
-// browser's own clear button would be a second ✕ beside Cancel.
+// The capsules' surface, keeping the field's hover, focus and ring. Opaque,
+// because the header it sits in already blurs. The browser's own clear button
+// would be a second ✕ beside Cancel.
 export const navigatorSearchFieldVariants = cva([
-  'rounded-full bg-raised emphasis-raised is-translucent ps-11 pe-4',
+  'rounded-full bg-raised emphasis-raised ps-11 pe-4',
   'placeholder:text-subtler [&::-webkit-search-cancel-button]:appearance-none'
 ])
 
@@ -443,5 +445,5 @@ export const navigatorSearchCancelSlotVariants = cva([
 ])
 
 export const navigatorSearchCancelVariants = cva([
-  'absolute end-0 top-0 emphasis-raised is-translucent'
+  'absolute end-0 top-0 emphasis-raised'
 ])

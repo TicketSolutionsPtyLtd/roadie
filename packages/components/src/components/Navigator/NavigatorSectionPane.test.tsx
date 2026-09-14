@@ -310,10 +310,14 @@ describe('section pane search', () => {
       'text-base',
       'rounded-full',
       'emphasis-raised',
-      'is-translucent',
       'is-interactive-field'
     )
-    expect(field).not.toHaveClass('text-sm', 'rounded-lg', 'bg-subtle')
+    expect(field).not.toHaveClass(
+      'text-sm',
+      'rounded-lg',
+      'bg-subtle',
+      'is-translucent'
+    )
   })
 
   it('leads with a hidden magnifying glass', async () => {
