@@ -12,20 +12,21 @@ export const PANE_SHADOW_ROOM = 0.5
 
 type Track = { min: number; share: number; max: number }
 
+// Content needs the same room beside one column as beside two.
+const DETAIL = { min: 25, max: 30 } as const
+
 /**
  * A parent column's track, by the columns shown and whether it is the row's
- * root. The root navigates; a pane drilled into from it holds content. Two
- * columns keep one floor, because below it the parent leaves the screen
- * rather than a column to its left.
+ * root. The root navigates; a pane drilled into from it holds content.
  */
 export const PARENT_TRACKS = {
   2: {
     root: { min: 16, share: 40, max: 24 },
-    detail: { min: 16, share: 40, max: 30 }
+    detail: { ...DETAIL, share: 40 }
   },
   3: {
     root: { min: 20, share: 25, max: 24 },
-    detail: { min: 25, share: 32, max: 30 }
+    detail: { ...DETAIL, share: 32 }
   }
 } as const satisfies Record<2 | 3, Record<'root' | 'detail', Track>>
 
@@ -376,13 +377,26 @@ const PAGE_STEP_KEYFRAMES = `  @keyframes navigator-page-enter { from { ${from(A
   @keyframes navigator-page-return { from { ${from(BEHIND, '--page-step-pane-from')} z-index: 0; } to { z-index: 0; } }
   @keyframes navigator-page-leave { from { ${from('translate: 0 0;', '--page-step-ghost-from')} } to { ${AHEAD} } }`
 
-// Stacked rows only: columns cut.
+/** The widest content at which some row still stacks: its two columns need the most room. */
+export function stackedUntil(): number {
+  let widest = columnTier(2)
+  for (let levels = 1; levels <= PANE_MAX_DEPTH + 1; levels += 1) {
+    for (let top = 0; top < levels; top += 1) {
+      widest = Math.max(widest, rowTier(2, top, levels))
+    }
+  }
+  return widest
+}
+
+// Stacked rows only: columns cut. Up to the widest two-column start, since a
+// row whose parent is a detail stacks longer; a page step starts only on a
+// pane that is absolute, so a row already in columns never sets one.
 function pageStepRules(level: number): string {
   const step = (kind: 'push' | 'pop') =>
     `${row(level)}[data-page-step="${kind}"]`
   const top = `[data-stack][data-level="${level}"][data-stack-position="top"]`
   return [
-    `  @container panes (width < ${rem(columnTier(2))}) { @media (prefers-reduced-motion: no-preference) {`,
+    `  @container panes (width < ${rem(stackedUntil())}) { @media (prefers-reduced-motion: no-preference) {`,
     `    ${step('push')} ${top} { animation: navigator-page-enter ${PAGE_STEP}; }`,
     `    ${step('push')} > ${PAGE_GHOST} { animation: navigator-page-behind ${PAGE_STEP} forwards; }`,
     `    ${step('pop')} ${top} { animation: navigator-page-return ${PAGE_STEP}; }`,

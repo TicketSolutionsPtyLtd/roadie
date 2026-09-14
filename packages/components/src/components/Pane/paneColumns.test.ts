@@ -17,6 +17,7 @@ import {
   parentTrack,
   renderPaneColumnsCss,
   rowTier,
+  stackedUntil,
   visibleColumns
 } from './paneColumns'
 
@@ -81,8 +82,13 @@ const slotOf = (body: string) =>
 
 // Content widths, in rem, that the prototype frames measured at 16px/rem.
 const REM = 16
-const columnsAt = (px: number) =>
-  px / REM >= columnTier(3) ? 3 : px / REM >= columnTier(2) ? 2 : 1
+// A row from its root by default; pass its top and levels for any other.
+const columnsAt = (px: number, top = 0, levels = PANE_MAX_COLUMNS) =>
+  px / REM >= rowTier(3, top, levels)
+    ? 3
+    : px / REM >= rowTier(2, top, levels)
+      ? 2
+      : 1
 
 const shown = (columns: number, top: number, levels: number) =>
   Array.from({ length: levels }, (_, depth) =>
@@ -97,16 +103,19 @@ const shown = (columns: number, top: number, levels: number) =>
     .join(' | ')
 
 describe('tiers', () => {
-  it('fits two columns at 46.25rem and three at 76rem, 81rem once the window slides past the root', () => {
+  it('fits two columns at 46.25rem beside the root and 55.25rem beside a detail, and three at 76rem, 81rem once the window slides past the root', () => {
     expect(columnTier(1)).toBe(0)
     expect(columnTier(2)).toBe(46.25)
-    expect(columnTier(2, [1])).toBe(46.25)
+    expect(columnTier(2, [1])).toBe(55.25)
     expect(columnTier(3)).toBe(76)
     expect(columnTier(3, [1, 2])).toBe(81)
     expect(rowTier(3, 2, 3)).toBe(76)
     expect(rowTier(3, 3, 4)).toBe(81)
     expect(rowTier(3, 1, 2)).toBe(46.25)
     expect(rowTier(2, 0, 1)).toBe(46.25)
+    expect(rowTier(2, 1, 3)).toBe(46.25)
+    expect(rowTier(2, 2, 3)).toBe(55.25)
+    expect(rowTier(2, 3, 4)).toBe(55.25)
   })
 
   it('fits the inspector once every level present fits beside it at its minimum, at any top', () => {
@@ -121,7 +130,7 @@ describe('tiers', () => {
       'clamp(16rem, min(40cqi, 100cqi - 30.25rem), 24rem)'
     )
     expect(parentTrack(2, 1, [1])).toBe(
-      'clamp(16rem, min(40cqi, 100cqi - 30.25rem), 30rem)'
+      'clamp(25rem, min(40cqi, 100cqi - 30.25rem), 30rem)'
     )
     expect(parentTrack(3, 0)).toBe(
       'clamp(20rem, min(25cqi, (100cqi - 31rem) * 20 / 45), 24rem)'
@@ -137,27 +146,27 @@ describe('tiers', () => {
 
 describe('paneCell — the prototype evidence', () => {
   it('Tickets → Glamping → Sam, Sam current', () => {
-    expect(shown(columnsAt(375), 2, 3)).toBe('2[Back]')
-    expect(shown(columnsAt(760), 2, 3)).toBe('1[Back] | 2[Close]')
-    expect(shown(columnsAt(932), 2, 3)).toBe('1[Back] | 2[Close]')
-    expect(shown(columnsAt(1188), 2, 3)).toBe('1[Back] | 2[Close]')
-    expect(shown(columnsAt(1348), 2, 3)).toBe('0 | 1 | 2[Close]')
+    expect(shown(columnsAt(375, 2, 3), 2, 3)).toBe('2[Back]')
+    expect(shown(columnsAt(760, 2, 3), 2, 3)).toBe('2[Back]')
+    expect(shown(columnsAt(932, 2, 3), 2, 3)).toBe('1[Back] | 2[Close]')
+    expect(shown(columnsAt(1188, 2, 3), 2, 3)).toBe('1[Back] | 2[Close]')
+    expect(shown(columnsAt(1348, 2, 3), 2, 3)).toBe('0 | 1 | 2[Close]')
   })
 
   it('two levels: Close on the detail, no Back', () => {
-    expect(shown(columnsAt(375), 1, 2)).toBe('1[Back]')
-    expect(shown(columnsAt(760), 1, 2)).toBe('0 | 1[Close]')
-    expect(shown(columnsAt(932), 1, 2)).toBe('0 | 1[Close]')
-    expect(shown(columnsAt(1188), 1, 2)).toBe('0 | 1[Close]')
-    expect(shown(columnsAt(1348), 1, 2)).toBe('0 | 1[Close]')
+    expect(shown(columnsAt(375, 1, 2), 1, 2)).toBe('1[Back]')
+    expect(shown(columnsAt(760, 1, 2), 1, 2)).toBe('0 | 1[Close]')
+    expect(shown(columnsAt(932, 1, 2), 1, 2)).toBe('0 | 1[Close]')
+    expect(shown(columnsAt(1188, 1, 2), 1, 2)).toBe('0 | 1[Close]')
+    expect(shown(columnsAt(1348, 1, 2), 1, 2)).toBe('0 | 1[Close]')
   })
 
   it('three levels with the root revealed: Sam parked ahead', () => {
-    expect(shown(columnsAt(375), 0, 3)).toBe('0')
-    expect(shown(columnsAt(760), 0, 3)).toBe('0 | 1')
-    expect(shown(columnsAt(932), 0, 3)).toBe('0 | 1')
-    expect(shown(columnsAt(1188), 0, 3)).toBe('0 | 1')
-    expect(shown(columnsAt(1348), 0, 3)).toBe('0 | 1 | 2')
+    expect(shown(columnsAt(375, 0, 3), 0, 3)).toBe('0')
+    expect(shown(columnsAt(760, 0, 3), 0, 3)).toBe('0 | 1')
+    expect(shown(columnsAt(932, 0, 3), 0, 3)).toBe('0 | 1')
+    expect(shown(columnsAt(1188, 0, 3), 0, 3)).toBe('0 | 1')
+    expect(shown(columnsAt(1348, 0, 3), 0, 3)).toBe('0 | 1 | 2')
     expect(paneCell(2, 0, 2, 3)).toEqual({
       slot: 'ahead',
       back: false,
@@ -297,6 +306,8 @@ describe('the rules a real row matches', () => {
           slotOf(paneRuleAt(rules, $(`[data-depth="${depth}"]`), at)!.body)
         )
         .join(' ')
+    expect(shownAt(55.2)).toBe('behind behind top')
+    expect(shownAt(55.25)).toBe('behind parent fill')
     expect(shownAt(75.9)).toBe('behind parent fill')
     expect(shownAt(76)).toBe('parent parent fill')
   })
@@ -415,7 +426,7 @@ describe('a page step', () => {
     expect(animating.length).toBeGreaterThan(0)
     for (const rule of animating) {
       expect(rule.conditions).toContain(
-        `@container panes (width < ${columnTier(2)}rem)`
+        `@container panes (width < ${stackedUntil()}rem)`
       )
       expect(rule.conditions).toContain(
         '@media (prefers-reduced-motion: no-preference)'
@@ -448,13 +459,22 @@ describe('a page step', () => {
     }
   })
 
-  it('stops where the first column tier starts', () => {
+  it('stops where the last row to take two columns starts them', () => {
     const tiers = rules
       .flatMap((rule) => rule.conditions)
       .map((condition) => condition.match(/\(width >= ([\d.]+)rem\)/)?.[1])
       .filter((width) => width !== undefined)
       .map(Number)
+    const twoColumnStarts = Array.from(
+      { length: PANE_MAX_DEPTH + 1 },
+      (_, index) => index + 1
+    ).flatMap((levels) =>
+      Array.from({ length: levels }, (_, top) => rowTier(2, top, levels))
+    )
+    expect(new Set(twoColumnStarts)).toEqual(new Set([46.25, 55.25]))
     expect(Math.min(...tiers)).toBe(columnTier(2))
+    expect(tiers).toContain(55.25)
+    expect(stackedUntil()).toBe(Math.max(...twoColumnStarts))
   })
 
   it('slides with the reading direction, and picks up a reversed step', () => {
@@ -556,7 +576,7 @@ describe('parent tracks follow the columns a row shows', () => {
     (levels) => {
       const inspector = inspectorRow(levels)('[data-role="inspector"]')
       for (let contentPx = 600; contentPx <= 1800; contentPx += 1) {
-        if (columnsAt(contentPx) > 1) continue
+        if (columnsAt(contentPx, levels - 1, levels) > 1) continue
         expect(inspectorShownAt(inspector, contentPx), `${contentPx}px`).toBe(
           false
         )
@@ -575,7 +595,7 @@ describe('parent tracks follow the columns a row shows', () => {
       )
       let shownAt = 0
       for (let contentPx = 600; contentPx <= 1800; contentPx += 1) {
-        if (columnsAt(contentPx) === 1) continue
+        if (columnsAt(contentPx, levels - 1, levels) === 1) continue
         if (!inspectorShownAt(inspector, contentPx)) continue
         shownAt += 1
         const bodies = panes.map(
@@ -616,7 +636,7 @@ describe('parent tracks follow the columns a row shows', () => {
 
   // Beside an 80px navigation at 1000, 1200 and 1440, and a 240px one at 1440.
   it.each([
-    [920, [368]],
+    [920, [400]],
     [1120, [448]],
     [1360, [340, 435]],
     [1200, [480]]

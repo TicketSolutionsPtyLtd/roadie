@@ -38,8 +38,8 @@ Tiers, measured on Content's inline size:
 
 | `C` | Condition | ≈ viewport with an 80px rail |
 | --- | --- | --- |
-| 1 (stacked) | below 46.25rem | below about 840px |
-| 2 | `≥ 46.25rem` (740px) | 1024 |
+| 1 (stacked) | below the row's two-column tier | below about 840px, or 960px beside a detail |
+| 2 | `≥ 46.25rem` (740px) beside the root; `≥ 55.25rem` (884px) beside a detail | 1024 |
 | 3 | `≥ 76rem` (1216px), from the root; `≥ 81rem` (1296px) once the window slides past it | 1296, and 1456 with the sidebar expanded |
 
 Formula: `tier = Σ parent minimums + 28 + (C−1)·0.75 + 1.5` rem, the parents
@@ -58,32 +58,40 @@ lists its own items is a root.
 
 | Tier | Root | Under the root |
 | --- | --- | --- |
-| `C=2` | `16rem`, `40cqi`, `24rem` | `16rem`, `40cqi`, `30rem` |
+| `C=2` | `16rem`, `40cqi`, `24rem` | `25rem`, `40cqi`, `30rem` |
 | `C=3` | `20rem`, `25cqi`, `24rem` | `25rem`, `32cqi`, `30rem` |
 
 (minimum, share, maximum). Each track is
 `clamp(min, min(share, (100cqi − reserved) × min / Σ min), max)`: the room
 beside the fill's minimum is split by the parents' minimums, so every parent
-reaches its own at the tier and the fill never drops below 28rem. Two columns
-keep one floor, because below it the parent leaves the screen rather than
-handing its room to a pane beside it. The `C=3` minimums are what a list's
-titles and a detail's rows need before they truncate, so three columns wait
-until both fit beside the fill: 20 + 25 + 28 + 3 = 76rem. Each share is the
-largest whole percentage that reaches its minimum no sooner than that tier,
-so the fill grows from it.
+reaches its own at the tier and the fill never drops below 28rem. The
+minimums are what a list's titles and a detail's rows need before they
+truncate. A detail needs 25rem whatever is beside it, so a row whose parent is
+a detail takes two columns at 25 + 28 + 2.25 = 55.25rem and stacks below that,
+with Back on its one pane; a row whose parent is the root still takes them at
+46.25rem. Three columns wait until the list and the detail both fit beside the
+fill: 20 + 25 + 28 + 3 = 76rem. Each `C=3` share is the largest whole
+percentage that reaches its minimum no sooner than that tier, so the fill
+grows from it.
+
+Everything a stacked row does holds up to its own two-column tier: the push
+and pop slides and Back come from the same per-row rules, and the page step's
+slides run below the widest two-column start (55.25rem), started only on a
+pane the stylesheet has made absolute.
 
 Measured on a Tickets → event → ticket row (Content beside an 80px
 navigation at 1000, 1200 and 1440, and a 240px one at 1440):
 
 | Content | By position alone | By depth |
 | --- | --- | --- |
-| 920px | 368 \| 528 | 368 \| 528 |
+| 752px | 260 \| 460 | 740 (stacked) |
+| 920px | 368 \| 528 | 400 \| 496 |
 | 1120px | 280 \| 280 \| 524 | 448 \| 648 |
 | 1360px | 320 \| 320 \| 684 | 340 \| 435 \| 549 |
 | 1200px | 300 \| 300 \| 564 | 480 \| 696 |
 
 At 1120px and 1200px the list drops and the detail becomes the left column of
-two.
+two; at 752px the detail drops too.
 
 When a sub-detail opens, the detail stops being "the detail" and becomes a
 parent column, and keeps the wider track.

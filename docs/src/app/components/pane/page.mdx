@@ -76,8 +76,8 @@ of the stack fits beside it, at 46.25rem with one level, 69rem with two,
 99.75rem with three and 105.75rem with four. Column widths come from position
 and depth, not role: the right-most visible pane fills, and every pane to its
 left takes a parent track — the root a narrow one, at least 16rem, and a pane
-under it a wider one. Three columns give the root at least 20rem and the pane
-under it at least 25rem.
+under it a wider one, at least 25rem. Three columns give the root at least
+20rem.
 
 Yielding is not disappearing. The **consumer** declares the small-screen
 affordance, and the natural one is a [`Drawer`](/components/drawer) in the
@@ -201,9 +201,9 @@ directly on the frame behind it.
 ### Stacking
 
 Panes are columns where there is room and a stack where there isn't, and
-`Navigator.Content` decides from its own width: two columns from 46.25rem,
-three from 76rem (81rem once the window slides past the root), one below
-that. The right-most column fills; the ones to its left take a parent track,
+`Navigator.Content` decides from its own width: two columns from 46.25rem
+beside the root and 55.25rem beside a detail, three from 76rem (81rem once
+the window slides past the root), one below that. The right-most column fills; the ones to its left take a parent track,
 wider for a detail than for the root, so a detail in the middle column keeps
 room for its content and the left-most pane drops before it squeezes.
 
