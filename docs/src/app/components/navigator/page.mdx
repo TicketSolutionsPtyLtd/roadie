@@ -835,13 +835,13 @@ function MenuNav() {
               >
                 Account
                 <Navigator.Menu>
-                  <Navigator.MenuItem href='/profile' icon={<PencilSimpleIcon weight='bold' className='size-4' />} description='luke@example.com'>
+                  <Navigator.MenuItem href='/profile' icon={<PencilSimpleIcon weight='bold' />} description='luke@example.com'>
                     Profile
                   </Navigator.MenuItem>
-                  <Navigator.MenuItem href='/notifications' icon={<BellRingingIcon weight='bold' className='size-4' />}>
+                  <Navigator.MenuItem href='/notifications' icon={<BellRingingIcon weight='bold' />}>
                     Notifications
                   </Navigator.MenuItem>
-                  <Navigator.MenuItem onClick={() => setSignedOut(true)} icon={<XIcon weight='bold' className='size-4' />}>
+                  <Navigator.MenuItem onClick={() => setSignedOut(true)} icon={<XIcon weight='bold' />}>
                     Sign out
                   </Navigator.MenuItem>
                 </Navigator.Menu>
@@ -1293,8 +1293,8 @@ documented there. The two facts worth knowing from here:
   written before the cluster warns in development.
 - **Pass bare icons to destinations.** Navigator renders an item's `icon`
   duotone at `size-6`, so pass `<TicketIcon />` without a `weight` or size
-  class. `Navigator.MenuItem` icons aren't included — give them `weight='bold'`
-  and `size-4` like any other icon. An item without an icon shows its label's
+  class. `Navigator.MenuItem` icons sit in a small `IconTile` — give them
+  `weight='bold'` and let the tile size them. An item without an icon shows its label's
   first letter on the tile and the bar; expanded, its label starts where the
   icon would, unless another item in its capsule has one.
 - **Let the top pane declare what the mobile bar does.** `Pane`'s `primaryNav`
