@@ -12,6 +12,7 @@ import { secondaryBlocks, textOf } from './splitSecondary'
 import {
   FakeIcon,
   flushViewportMeasurement,
+  panesShownAt,
   primaryOf,
   scrollViewport,
   testBrand,
@@ -925,6 +926,102 @@ describe('the row reveals the root', () => {
   })
 })
 
+describe('More open over the root', () => {
+  const moreNav = ({ list = false, section = false }) => (
+    <Navigator value={section ? '/s/x' : '/a'}>
+      <Navigator.Primary aria-label='Main'>
+        {testBrand}
+        {section ? (
+          <Navigator.Item value='/s' href='/s'>
+            S
+            <Navigator.Secondary aria-label='S'>
+              <Navigator.Item value='/s/x' href='/s/x'>
+                X
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        ) : null}
+        {['/a', '/b', '/c', '/d', '/e', '/f'].map((v) => (
+          <Navigator.Item key={v} value={v} href={v}>
+            {v}
+          </Navigator.Item>
+        ))}
+      </Navigator.Primary>
+      <Navigator.Content>
+        {list ? <Pane role='list'>List</Pane> : null}
+        <Pane role='detail' current>
+          Detail
+        </Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+
+  const depths = () =>
+    Array.from(
+      document.querySelectorAll<HTMLElement>('[data-slot="pane"][data-stack]'),
+      (pane) => [
+        pane.hasAttribute('data-overflow')
+          ? 'More'
+          : (pane.dataset.navigatorSection ?? pane.dataset.role),
+        pane.dataset.depth
+      ]
+    )
+
+  const openMore = async () => {
+    const user = userEvent.setup()
+    await flushViewportMeasurement()
+    await user.click(within(horizontal()).getByRole('button', { name: 'More' }))
+    await flushViewportMeasurement()
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('keeps a consumer list at 0 and the detail at 1, silently', async () => {
+    const warn = vi.spyOn(console, 'warn')
+    render(moreNav({ list: true }))
+    await openMore()
+    expect(depths()).toEqual([
+      ['list', '0'],
+      ['detail', '1'],
+      ['More', '0']
+    ])
+    expect(panesShownAt(2)).toEqual(['detail', 'More'])
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('keeps the detail at 1 where More displaced the section list', async () => {
+    const warn = vi.spyOn(console, 'warn')
+    render(moreNav({ section: true }))
+    await openMore()
+    expect(depths()).toEqual([
+      ['detail', '1'],
+      ['More', '0']
+    ])
+    expect(panesShownAt(2)).toEqual(['detail', 'More'])
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('puts a page-first detail beside More at its role depth', async () => {
+    const warn = vi.spyOn(console, 'warn')
+    render(moreNav({}))
+    await flushViewportMeasurement()
+    expect(depths()).toEqual([
+      ['detail', '0'],
+      ['More', '0']
+    ])
+    expect(panesShownAt(2)).toEqual(['detail'])
+    await openMore()
+    expect(depths()).toEqual([
+      ['detail', '1'],
+      ['More', '0']
+    ])
+    expect(panesShownAt(2)).toEqual(['detail', 'More'])
+    expect(warn).not.toHaveBeenCalled()
+  })
+})
+
 describe('depth while panes come and go', () => {
   // Every value a detail's depth takes, including ones no paint would show.
   const watchDetailDepth = (root: Node) => {
@@ -965,64 +1062,75 @@ describe('depth while panes come and go', () => {
     expect(stop()).not.toContain('2')
   })
 
-  it('moves the detail in the commit the section list comes or goes', async () => {
-    const log: [boolean, string | null][] = []
-    function Probe() {
-      use(NavigatorSelectionContext)
-      const ref = useRef<HTMLSpanElement>(null)
-      useLayoutEffect(() => {
-        log.push([
-          document.querySelector('[data-navigator-section]') !== null,
-          ref.current
-            ?.closest('[data-slot="pane"]')
-            ?.getAttribute('data-depth') ?? null
-        ])
-      })
-      return <span ref={ref} data-slot='depth-probe' />
+  it.each([
+    ['a generated', false],
+    ['an overriding', true]
+  ])(
+    'moves the detail in the commit %s section list comes or goes',
+    async (_, override) => {
+      const log: [boolean, string | null][] = []
+      function Probe() {
+        use(NavigatorSelectionContext)
+        const ref = useRef<HTMLSpanElement>(null)
+        useLayoutEffect(() => {
+          log.push([
+            document.querySelector('[data-navigator-section]') !== null,
+            ref.current
+              ?.closest('[data-slot="pane"]')
+              ?.getAttribute('data-depth') ?? null
+          ])
+        })
+        return <span ref={ref} data-slot='depth-probe' />
+      }
+      const ui = (value: string) => (
+        <Navigator value={value}>
+          <Navigator.Primary aria-label='Docs'>
+            {testBrand}
+            <Navigator.Item value='/p' href='/p'>
+              Page
+            </Navigator.Item>
+            <Navigator.Item value='/s' href='/s'>
+              Section
+              <Navigator.Secondary aria-label='Section'>
+                <Navigator.Item value='/s/x' href='/s/x'>
+                  X
+                </Navigator.Item>
+              </Navigator.Secondary>
+            </Navigator.Item>
+          </Navigator.Primary>
+          <Navigator.Content>
+            {override ? (
+              <Navigator.SecondaryPane value='/s'>
+                <p>Promo</p>
+              </Navigator.SecondaryPane>
+            ) : null}
+            <Pane role='detail' current>
+              <Probe />
+            </Pane>
+          </Navigator.Content>
+        </Navigator>
+      )
+      const { rerender } = render(ui('/p'))
+      await flushViewportMeasurement()
+      const depth = () =>
+        document
+          .querySelector('[data-slot="depth-probe"]')
+          ?.closest('[data-slot="pane"]')
+          ?.getAttribute('data-depth')
+      expect(depth()).toBe('0')
+      rerender(ui('/s/x'))
+      await flushViewportMeasurement()
+      expect(depth()).toBe('1')
+      expect(log).toContainEqual([true, '1'])
+      expect(log).not.toContainEqual([true, '0'])
+      const back = log.length
+      rerender(ui('/p'))
+      await flushViewportMeasurement()
+      expect(depth()).toBe('0')
+      expect(log.slice(back)).toContainEqual([false, '0'])
+      expect(log.slice(back)).not.toContainEqual([false, '1'])
     }
-    const ui = (value: string) => (
-      <Navigator value={value}>
-        <Navigator.Primary aria-label='Docs'>
-          {testBrand}
-          <Navigator.Item value='/p' href='/p'>
-            Page
-          </Navigator.Item>
-          <Navigator.Item value='/s' href='/s'>
-            Section
-            <Navigator.Secondary aria-label='Section'>
-              <Navigator.Item value='/s/x' href='/s/x'>
-                X
-              </Navigator.Item>
-            </Navigator.Secondary>
-          </Navigator.Item>
-        </Navigator.Primary>
-        <Navigator.Content>
-          <Pane role='detail' current>
-            <Probe />
-          </Pane>
-        </Navigator.Content>
-      </Navigator>
-    )
-    const { rerender } = render(ui('/p'))
-    await flushViewportMeasurement()
-    const depth = () =>
-      document
-        .querySelector('[data-slot="depth-probe"]')
-        ?.closest('[data-slot="pane"]')
-        ?.getAttribute('data-depth')
-    expect(depth()).toBe('0')
-    rerender(ui('/s/x'))
-    await flushViewportMeasurement()
-    expect(depth()).toBe('1')
-    expect(log).toContainEqual([true, '1'])
-    expect(log).not.toContainEqual([true, '0'])
-    const back = log.length
-    rerender(ui('/p'))
-    await flushViewportMeasurement()
-    expect(depth()).toBe('0')
-    expect(log.slice(back)).toContainEqual([false, '0'])
-    expect(log.slice(back)).not.toContainEqual([false, '1'])
-  })
+  )
 
   it('keeps the detail at depth 1 while More opens over the section list', async () => {
     const user = userEvent.setup()

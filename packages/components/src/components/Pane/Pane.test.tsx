@@ -1722,7 +1722,36 @@ describe('depth attributes', () => {
     warn.mockRestore()
   })
 
-  it('stays quiet when two undeclared details resolve by order', async () => {
+  it('warns once per message as the stack changes', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const ui = (listCurrent: boolean) => (
+      <Navigator value='/a'>
+        <Navigator.Content>
+          <Pane role='list' current={listCurrent}>
+            List
+          </Pane>
+          <Pane role='detail' current>
+            Detail
+          </Pane>
+          <Pane role='detail' current>
+            Sub
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    const { rerender } = render(ui(false))
+    await flushViewportMeasurement()
+    rerender(ui(true))
+    await flushViewportMeasurement()
+    rerender(ui(false))
+    await flushViewportMeasurement()
+    expect(
+      warn.mock.calls.filter((c) => String(c[0]).includes('depth={2}'))
+    ).toHaveLength(1)
+    warn.mockRestore()
+  })
+
+  it('warns when two undeclared details resolve by order', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
       <Navigator value='/a'>

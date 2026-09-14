@@ -57,6 +57,34 @@ type RegisteredPane = { id: string; node: HTMLElement } & PaneRegistration
 
 const SECTION_ROOT: DepthEntry = { role: 'list', kind: 'generated-section' }
 
+type Drawn = {
+  /** The active section has a list, drawn or displaced by More. */
+  rootList: boolean
+  rootListDrawn: boolean
+  sectionPane: boolean
+  overflow: boolean
+}
+
+// What this render draws, not the snapshot, which learns of a pane a commit late.
+function depthsOf(panes: readonly RegisteredPane[], draws: Drawn) {
+  const drawn = panes.filter((pane) => {
+    if (pane.kind === 'generated-section') return draws.sectionPane
+    if (pane.kind === 'section') return draws.rootListDrawn
+    if (pane.kind === 'generated-overflow') return draws.overflow
+    return true
+  })
+  const rootPending =
+    draws.rootList &&
+    !drawn.some(
+      (pane) => pane.kind === 'section' || pane.kind === 'generated-section'
+    )
+  const resolved = resolveDepths(rootPending ? [SECTION_ROOT, ...drawn] : drawn)
+  const shift = rootPending ? 1 : 0
+  return new Map(
+    drawn.map((pane, index) => [pane.id, resolved[index + shift] ?? null])
+  )
+}
+
 /** Arranges panes and decides which is the top of the stack. */
 export function NavigatorContent({
   className,
@@ -147,30 +175,23 @@ export function NavigatorContent({
     (declaredSecondaryPanes.has(activeSection.value) ||
       directOverrides.includes(activeSection.value))
 
-  const showsSectionPane =
-    activeSection !== null && listPaneShows && !overflowOpen && !overridden
+  const rootList = activeSection !== null && listPaneShows
+  const rootListDrawn = rootList && !overflowOpen
+  const showsSectionPane = rootListDrawn && !overridden
   const generatesOverflow =
     !declaredOverflow &&
     overflowItems.horizontal.length + overflowItems.vertical.length > 0
 
-  // What this render draws, not the snapshot, which learns of a generated pane a commit late.
-  const depths = useMemo(() => {
-    const drawn = ordered.filter(
-      (pane) =>
-        (pane.kind !== 'generated-section' || showsSectionPane) &&
-        (pane.kind !== 'generated-overflow' || generatesOverflow)
-    )
-    const sectionPending =
-      showsSectionPane &&
-      !drawn.some((pane) => pane.kind === 'generated-section')
-    const resolved = resolveDepths(
-      sectionPending ? [SECTION_ROOT, ...drawn] : drawn
-    )
-    const shift = sectionPending ? 1 : 0
-    return new Map(
-      drawn.map((pane, index) => [pane.id, resolved[index + shift] ?? null])
-    )
-  }, [ordered, showsSectionPane, generatesOverflow])
+  const depths = useMemo(
+    () =>
+      depthsOf(ordered, {
+        rootList,
+        rootListDrawn,
+        sectionPane: showsSectionPane,
+        overflow: generatesOverflow
+      }),
+    [ordered, rootList, rootListDrawn, showsSectionPane, generatesOverflow]
+  )
 
   const onSectionRoute =
     activeSection !== null && isActiveValue(activeSection.value, value)
@@ -264,25 +285,36 @@ export function NavigatorContent({
   }, [level])
 
   // The live Map, not `ordered`: a pane unmounting this commit is still in the render's snapshot.
+  const warned = useRef(new Set<string>())
   useEffect(() => {
     if (!isDev()) return
     const live = orderByDocumentPosition(Array.from(panes.current.values()))
-    const resolved = resolveDepths(live)
-    live.forEach((pane, index) => {
-      const depth = resolved[index] ?? null
+    const resolved = depthsOf(live, {
+      rootList,
+      rootListDrawn,
+      sectionPane: showsSectionPane,
+      overflow: generatesOverflow
+    })
+    const warnOnce = (message: string) => {
+      if (warned.current.has(message)) return
+      warned.current.add(message)
+      console.warn(message)
+    }
+    for (const pane of live) {
+      const depth = resolved.get(pane.id) ?? null
       const declared = provisionalDepth(pane)
-      if (depth === null || declared === null) return
+      if (depth === null || declared === null) continue
       if (depth > PANE_MAX_DEPTH) {
-        console.warn(
+        warnOnce(
           `[Roadie] A fifth stack pane (depth ${depth}) has no column. Flatten the navigation.`
         )
       } else if (depth > declared) {
-        console.warn(
+        warnOnce(
           `[Roadie] A Pane declared or defaulted to depth ${declared} but sits at depth ${depth}. Declare depth={${depth}} so the server render matches.`
         )
       }
-    })
-  }, [registered])
+    }
+  }, [registered, rootList, rootListDrawn, showsSectionPane, generatesOverflow])
 
   const topPrimaryNav =
     ordered.find((pane) => pane.id === topId)?.primaryNav ?? 'auto'
