@@ -35,8 +35,11 @@ export const navigatorContentVariants = cva([
   'p-(--pane-stack-inset) ps-(--pane-stack-inset-start)',
   'grid-cols-1 lg:flex lg:flex-row',
   // Stack geometry is `paneVariants`' own: no selector here reaches a pane inside a wrapper.
-  // Clips a `behind` pane's translate, which can outrun the navigation beside it.
-  'max-lg:relative max-lg:overflow-hidden',
+  // Clips a `behind` pane's translate, which can outrun the navigation beside
+  // it. The margin lets the landed top pane's shadow out; a cover under it
+  // keeps a sliding pane out of that margin.
+  'max-lg:relative max-lg:overflow-clip max-lg:[overflow-clip-margin:--spacing(1)]',
+  "max-lg:before:pointer-events-none max-lg:before:absolute max-lg:before:inset-y-0 max-lg:before:-start-1 max-lg:before:z-1 max-lg:before:w-1 max-lg:before:bg-sunken max-lg:before:content-['']",
   // Set for two frames while More opens or closes.
   'data-instant:[&_[data-slot=pane]]:transition-none'
 ])

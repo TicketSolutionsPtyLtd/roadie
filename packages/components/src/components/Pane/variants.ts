@@ -93,8 +93,11 @@ export const paneVariants = cva(
           //
           // No `visibility` here: a transition into the top starts hidden,
           // which makes the arriving pane unfocusable until its first frame.
-          'motion-safe:max-lg:transition-[translate,opacity]',
-          'motion-safe:max-lg:duration-slow motion-safe:max-lg:ease-enter',
+          'motion-safe:max-lg:transition-[translate,opacity,z-index]',
+          'motion-safe:max-lg:duration-slow',
+          // Rises over Content's edge cover only once it lands, so its shadow
+          // shows there but no pane in motion does.
+          'max-lg:z-2 motion-safe:max-lg:[transition-timing-function:var(--ease-enter),var(--ease-enter),step-end]',
           // Not `max-lg:` gated, unlike everything else here: this guard has
           // to hold at every breakpoint, not just the stacked one, so a
           // reduced-motion user is never left relying on some other rule to
@@ -111,8 +114,9 @@ export const paneVariants = cva(
           'max-lg:invisible',
           // Pays off for panes parked fully off-screen.
           'max-lg:[content-visibility:auto]',
-          'motion-safe:max-lg:transition-[translate,opacity,visibility]',
-          'motion-safe:max-lg:duration-slow motion-safe:max-lg:ease-enter',
+          'motion-safe:max-lg:transition-[translate,opacity,visibility,z-index]',
+          'motion-safe:max-lg:duration-slow',
+          'max-lg:z-0 motion-safe:max-lg:[transition-timing-function:var(--ease-enter),var(--ease-enter),var(--ease-enter),step-start]',
           'motion-reduce:transition-none'
         ].join(' '),
         // Not yet reached: parked right, clear of the gutter as well.
@@ -121,8 +125,9 @@ export const paneVariants = cva(
           'max-lg:translate-x-[calc(100%+var(--pane-stack-inset))] max-lg:opacity-100',
           'max-lg:pointer-events-none max-lg:invisible',
           'max-lg:[content-visibility:auto]',
-          'motion-safe:max-lg:transition-[translate,opacity,visibility]',
-          'motion-safe:max-lg:duration-slow motion-safe:max-lg:ease-enter',
+          'motion-safe:max-lg:transition-[translate,opacity,visibility,z-index]',
+          'motion-safe:max-lg:duration-slow',
+          'max-lg:z-0 motion-safe:max-lg:[transition-timing-function:var(--ease-enter),var(--ease-enter),var(--ease-enter),step-start]',
           'motion-reduce:transition-none'
         ].join(' ')
       }
