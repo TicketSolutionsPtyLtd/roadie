@@ -12,7 +12,9 @@ a More pane. A section's sub-pages open in a generated list pane, optionally
 searchable, and an item can own a `Navigator.Menu` instead of a destination.
 
 `Pane` is a scrolling column of that frame, with sticky chrome, a
-collapse-on-scroll header and a stack position when panes share a screen.
+collapse-on-scroll header and a stack position when panes share a screen. A
+new `value` starts the page at its top, while the list it was picked from
+keeps its place.
 
 Also ships `Navigator.Menu`/`MenuItem`, `Navigator.ExpandToggle`,
 `Navigator.OverflowPane`/`OverflowItems`,

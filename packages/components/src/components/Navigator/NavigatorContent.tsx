@@ -348,7 +348,8 @@ export function NavigatorContent({
       depthOf,
       markPushing,
       moreOpen,
-      level
+      level,
+      destination: value
     }),
     [
       register,
@@ -359,7 +360,8 @@ export function NavigatorContent({
       depthOf,
       markPushing,
       moreOpen,
-      level
+      level,
+      value
     ]
   )
 

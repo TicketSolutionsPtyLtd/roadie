@@ -115,13 +115,21 @@ export function withScrollSentinels() {
   })
 }
 
-/** Scrolls a pane viewport to `top`: its sentinels report as a browser's would, then it fires `scroll`. */
+/** Scrolls a pane viewport to `top`: its sentinels report as a browser's would, then it fires `scroll`. Writing `scrollTop` afterwards does the same. */
 export function scrollViewport(viewport: HTMLElement, top: number) {
+  let current = top
   Object.defineProperty(viewport, 'scrollTop', {
-    value: top,
     configurable: true,
-    writable: true
+    get: () => current,
+    set: (next: number) => {
+      current = next
+      reportScroll(viewport, next)
+    }
   })
+  reportScroll(viewport, top)
+}
+
+function reportScroll(viewport: HTMLElement, top: number) {
   for (const watch of sentinelWatches) {
     if (watch.root !== viewport) continue
     const entries = Array.from(watch.targets, (target) => {
