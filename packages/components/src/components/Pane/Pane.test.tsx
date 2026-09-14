@@ -718,8 +718,8 @@ describe('Pane.Header close affordance', () => {
   })
 })
 
-describe('Pane.Header back label', () => {
-  it('renders the label beside the caret, named "Back to …"', async () => {
+describe('Pane.Header back name', () => {
+  it('names the round icon Back "Back to …" and shows no label', async () => {
     await renderPane(
       <Pane role='detail'>
         <Pane.Header backHref='/tickets' backLabel='Tickets'>
@@ -730,17 +730,9 @@ describe('Pane.Header back label', () => {
     const back = screen.getByLabelText('Back to Tickets')
     expect(back.tagName).toBe('A')
     expect(back).toHaveAttribute('href', '/tickets')
-    const label = back.querySelector('[data-slot="pane-back-label"]')
-    expect(label).toHaveTextContent('Tickets')
-    expect(label).toHaveClass(
-      'hidden',
-      '@min-[21rem]/pane-header:inline',
-      'truncate'
-    )
-    expect(back).toHaveClass('@max-[21rem]/pane-header:btn-icon-md')
-    expect(document.querySelector('[data-slot="pane-header"]')).toHaveClass(
-      '[container:pane-header/inline-size]'
-    )
+    expect(back).toHaveAttribute('data-slot', 'icon-button')
+    expect(back).toHaveClass('btn-icon-md')
+    expect(back).toHaveTextContent('')
   })
 
   it('names a handler Back with the label too', async () => {
@@ -752,6 +744,7 @@ describe('Pane.Header back label', () => {
     )
     const back = screen.getByLabelText('Back to Tickets')
     expect(back.tagName).toBe('BUTTON')
+    expect(back).toHaveAttribute('data-slot', 'icon-button')
     await userEvent.click(back)
     expect(onBack).toHaveBeenCalledOnce()
   })
@@ -792,14 +785,16 @@ describe('Pane.Header back label', () => {
     expect(screen.getByLabelText('Back').tagName).toBe('BUTTON')
   })
 
-  it('stays icon-only with no label', async () => {
+  it('is named plain "Back" with no label', async () => {
     await renderPane(
       <Pane role='detail'>
         <Pane.Header backHref='/tickets' />
       </Pane>
     )
-    expect(screen.getByLabelText('Back')).toBeInTheDocument()
-    expect(document.querySelector('[data-slot="pane-back-label"]')).toBeNull()
+    expect(screen.getByLabelText('Back')).toHaveAttribute(
+      'data-slot',
+      'icon-button'
+    )
   })
 
   it('never offers Back on a depth-0 pane, whatever its role', async () => {

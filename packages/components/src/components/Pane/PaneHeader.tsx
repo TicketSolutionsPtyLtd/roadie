@@ -15,15 +15,12 @@ import { CaretLeftIcon, XIcon } from '@phosphor-icons/react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isDev } from '../../utils/isDev'
-import { Button } from '../Button/Button'
 import { IconButton } from '../Button/IconButton'
 import { PaneChromeContext } from './PaneChromeContext'
 import { PaneContext } from './PaneContext'
 import { PaneTitle } from './PaneTitle'
 import { PaneTitleCompact } from './PaneTitleCompact'
 import {
-  paneBackLabelClass,
-  paneBackLabelledClass,
   paneHeaderBackVariants,
   paneHeaderCloseVariants,
   paneHeaderVariants
@@ -32,7 +29,7 @@ import {
 export type PaneHeaderProps = {
   /** Back target, as a routed link. Wins over `onBack`; also Close's target unless `onClose` is given. */
   backHref?: string
-  /** The parent's title, shown beside the caret where the header is at least 24rem wide. */
+  /** Names the Back button for assistive tech, as "Back to {label}". */
   backLabel?: string
   /** Back target, as a `<button>`; also Close's handler unless `onClose` is given. */
   onBack?: () => void
@@ -66,6 +63,7 @@ export function PaneHeader({
     (backHref === undefined && onBack === undefined
       ? chrome.backLabel
       : undefined)
+  const backName = label === undefined ? 'Back' : `Back to ${label}`
   const hasTarget = resolvedBackHref !== undefined || onBack !== undefined
   // An inspector has no depth and never goes up a level.
   const showBack =
@@ -140,44 +138,22 @@ export function PaneHeader({
     >
       {showBack ? (
         <div data-slot='pane-back' className={paneHeaderBackVariants()}>
-          {label === undefined ? (
-            resolvedBackHref !== undefined ? (
-              <IconButton
-                href={resolvedBackHref}
-                aria-label='Back'
-                emphasis='normal'
-              >
-                {backIcon}
-              </IconButton>
-            ) : (
-              <IconButton onClick={onBack} aria-label='Back' emphasis='normal'>
-                {backIcon}
-              </IconButton>
-            )
-          ) : resolvedBackHref !== undefined ? (
-            <Button
+          {resolvedBackHref !== undefined ? (
+            <IconButton
               href={resolvedBackHref}
-              aria-label={`Back to ${label}`}
+              aria-label={backName}
               emphasis='normal'
-              className={paneBackLabelledClass}
             >
               {backIcon}
-              <span data-slot='pane-back-label' className={paneBackLabelClass}>
-                {label}
-              </span>
-            </Button>
+            </IconButton>
           ) : (
-            <Button
+            <IconButton
               onClick={onBack}
-              aria-label={`Back to ${label}`}
+              aria-label={backName}
               emphasis='normal'
-              className={paneBackLabelledClass}
             >
               {backIcon}
-              <span data-slot='pane-back-label' className={paneBackLabelClass}>
-                {label}
-              </span>
-            </Button>
+            </IconButton>
           )}
         </div>
       ) : null}

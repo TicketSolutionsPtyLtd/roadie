@@ -14,7 +14,7 @@ export type PaneChromeContextValue = {
   registerScroller: (scroller: () => void) => () => void
   /** An orchestrator's Back link — the parent route. The header's own `backHref` and `onBack` still win. */
   backHref?: string
-  /** The parent's title for that link. */
+  /** The parent's title, naming that link "Back to {label}". */
   backLabel?: string
 }
 

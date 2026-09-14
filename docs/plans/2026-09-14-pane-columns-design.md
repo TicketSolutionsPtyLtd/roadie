@@ -140,14 +140,7 @@ table:
   `onBack`. The orchestrator supplies the section route to the **depth-1**
   pane under a generated (or overridden) section list, whether or not it is
   the top, except while that pane is `ahead`. Scroll chrome stays top-only.
-- **The label.** `backLabel` on `Pane.Header` renders `‹ Tickets`, truncated
-  at 12ch, with `aria-label="Back to Tickets"`. The orchestrator fills it for
-  the depth-1 pane from the active section's label, which is known during
-  render. The text shows only while the pane's header is at least 24rem wide
-  (a header-scoped container query), on phones included; below that, and
-  with no label, the Back is icon-only. Deriving a label from a parent's
-  registered title is not done: it would arrive after mount and resize the
-  button.
+- **The label.** Back is always the round icon button; `backLabel` (the orchestrator fills it for the depth-1 pane from the active section) only names it `Back to Tickets`.
 - **The header collapse.** A header whose only content is the leading cell
   hides with it, through a third variable, so a middle column's header with no
   title disappears in the same tier.
