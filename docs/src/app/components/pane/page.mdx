@@ -24,14 +24,14 @@ A pane is a `<section>` that owns a surface, a shape and a scroll. Its body
 scrolls beneath a sticky `Pane.Header` and above a sticky `Pane.Footer`; the
 page itself never scrolls.
 
-A pane works on its own — everything below the Roles example is a standalone
-pane in a fixed-height box. Put panes side by side inside
+A pane works on its own — every example but Roles and Stacking is a
+standalone pane in a fixed-height box. Put panes side by side inside
 [`Navigator.Content`](/components/navigator) and they gain an arrangement: a
 row of columns where there is room, a stack where there isn't.
 
-Because a docs example is a box inside a page, its breakpoints are still the
-**viewport's**. Narrow the window to see the stacked bands; widen it past
-`2xl` to see an `inspector` take a column.
+A docs frame is its own container: the columns below respond to the frame's
+width, not the window's. Narrow the window to see the stack; widen it to see
+the columns arrive.
 
 ## Examples
 
@@ -69,17 +69,19 @@ the text without moving it.
 
 ### Roles
 
-`role` is sizing plus yield order, not a taxonomy. `list` is a capped track,
-40% of the row between 16rem and 24rem; `detail` takes the remaining space;
-and `inspector` is a fixed track that yields first — a column once the
-container keeps room for it beside its siblings, and nothing when it doesn't.
+`role` is a default depth plus a yield order, not a taxonomy. `list` is the
+root (depth 0), `detail` sits under it (depth 1), and `inspector` is a fixed
+14rem track off the stack that yields first — it shows only once every level
+of the stack fits beside it, at 44.25rem with one level, 69rem with two and
+85.75rem with three. Column widths come from position, not role: the
+right-most visible pane fills and every pane to its left takes a parent
+track, at least 16rem.
 
 Yielding is not disappearing. The **consumer** declares the small-screen
 affordance, and the natural one is a [`Drawer`](/components/drawer) in the
 detail pane's `Pane.Actions`. That hands dismissal, focus trapping, Escape and
-the scrim to Base UI instead of a hand-rolled overlay, and it lets the
-application own the media query that picks the drawer's side — an app knows its
-own breakpoints; Roadie's internals do not.
+the scrim to Base UI instead of a hand-rolled overlay, and
+`pane-inspector-yielded:` shows the trigger exactly while the column is gone.
 
 ```tsx-live-noinline
 function Roles() {
@@ -114,7 +116,11 @@ function Roles() {
                 <Drawer open={open} onOpenChange={setOpen} side='bottom'>
                   <Drawer.Trigger
                     render={
-                      <IconButton aria-label='Event details' emphasis='normal'>
+                      <IconButton
+                        aria-label='Event details'
+                        emphasis='normal'
+                        className='pane-inspector-yielded:inline-flex hidden'
+                      >
                         <InfoIcon weight='bold' className='size-5' />
                       </IconButton>
                     }
@@ -192,18 +198,19 @@ directly on the frame behind it.
 
 ### Stacking
 
-A pane sits beside its siblings where there is room and over them where there
-isn't: columns from `lg` up, a stack below it.
+Panes are columns where there is room and a stack where there isn't, and
+`Navigator.Content` decides from its own width: two columns from 46.25rem,
+three from 63rem, one below that. The right-most column fills; the ones to
+its left take a parent track.
 
-In the stacked bands one pane is visible at a time and `current` picks it: the
-deepest `current` pane is the top of the stack, and push and pop between them
-animate. On phones the stack is edge to edge; from `md` it is inset and
-rounded like the columns. Above `lg` `current` does nothing at all, because
-every pane is a column beside its siblings.
+Every pane has a `depth` — `list` defaults to 0, `detail` to 1, a sub-detail
+declares `depth={2}` — and the deepest `current` pane is the top. The top is
+always on screen; the panes behind it fill the remaining columns nearest
+first, so the left-most pane drops first. In the stack only the top shows,
+and push and pop between depths slide. In the columns nothing animates.
 
-Select a row below, then resize the window across `lg` and select again — the
-same declaration reads as a side-by-side reveal on a wide screen and a push on
-a narrow one.
+Select a row below, then resize the window — the same declaration is a
+side-by-side reveal where two columns fit and a push where they don't.
 
 ```tsx-live-noinline
 function Stacking() {
@@ -237,7 +244,7 @@ function Stacking() {
             </List>
           </Pane>
           <Pane role='detail' current={event != null} aria-label='Event'>
-            <Pane.Header onBack={() => setSelected(null)}>
+            <Pane.Header onBack={() => setSelected(null)} backLabel='Events'>
               <Pane.Title>{event ? event.title : 'Nothing selected'}</Pane.Title>
             </Pane.Header>
             <div className='grid gap-3 pb-4'>
@@ -319,33 +326,44 @@ function Composed() {
 render(<Composed />)
 ```
 
-The back affordance appears only on a non-`list` pane — a `list` is the root of
-the stack, so there is nothing to go back to — and only in the stacked bands.
-Widen the window past `lg` and it goes.
+The back affordance appears on a non-root pane with a target. On its own, as
+here, a pane is the left-most thing on screen, so it shows Back at every
+width; inside `Navigator.Content` the columns decide, below.
 
-### Closing a column
+### Back, Close, or nothing
 
-From `lg` up, panes stop covering each other and become columns instead — so
-the back affordance, which only exists in the stacked bands, has nothing to
-pop. A consumer who drills list → detail → detail can end up with three
-columns and no way back to two.
+One leading cell, at most one glyph, decided by where the pane sits in the
+columns:
 
-`Pane.Header` covers that from `onBack` alone: a drill-down's "go back" and a
-column's "close" are almost always the same intent, so `onBack` renders Back
-in the stacked bands and Close from `lg` up, calling the same handler either
-way. Close renders in the same cell as Back — the same slot at a different
-size — gated to the opposite band, so the two can never collide.
+| The pane is… | It shows |
+| --- | --- |
+| the root (depth 0) | nothing, ever |
+| the left-most visible pane, with a parent that dropped | **Back**, to that parent |
+| the top pane, with its parent visible beside it | **Close** |
+| a middle column | nothing |
+| not yet reached (a placeholder detail) | nothing |
+
+On a phone the only visible pane is the top, so it is also the left-most: it
+gets Back. Both buttons go to the same place — one level up. Back
+navigates because the parent is off screen; Close only ever draws where
+going up removes that column, so `backHref` drives both:
 
 ```tsx
-<Pane role='detail' current={event != null}>
-  <Pane.Header onBack={() => setSelected(null)}>
-    <Pane.Title>{event?.title}</Pane.Title>
+<Pane role='detail' depth={2} current>
+  <Pane.Header backHref='/tickets/glamping' backLabel='Glamping'>
+    <Pane.Title>Sam Okafor</Pane.Title>
   </Pane.Header>
 </Pane>
 ```
 
-Pass `onClose` when closing a column should do something different from going
-back — it overrides `onBack`'s handler for Close, but leaves Back alone:
+Back is always the round caret button. `backLabel` is the parent's title, and
+it names Back for assistive tech — "Back to Glamping" — without showing on
+screen; without it the button reads "Back". Under a section's generated list
+the depth-1 pane gets the section route and label from `Navigator` with
+nothing declared.
+
+`onBack` is the same target as a handler, and `onClose` overrides it for
+Close alone:
 
 ```tsx
 <Pane role='detail' current={event != null}>
@@ -355,16 +373,11 @@ back — it overrides `onBack`'s handler for Close, but leaves Back alone:
 </Pane>
 ```
 
-`backHref` does **not** imply a Close. A link-based back navigates somewhere;
-an ✕ that navigates would misrepresent itself as dismissal. A pane using
-`backHref` needs an explicit `onClose`, or to move to `onBack`.
-
-Roadie can't close a pane it doesn't own — whether a column disappears is your
-own routing or state, so the affordance only appears once you supply `onBack`
-or `onClose`. And it never appears on the root pane, even if you thread the
-same handler to every pane uniformly (the natural shape when panes come from a
-map): the component knows which pane is the base of the stack and withholds
-Close there itself, so passing the same prop everywhere is safe.
+Roadie can't close a pane it doesn't own — whether a column disappears is
+your own routing or state, so the affordance only appears once you supply a
+target. It never appears on the root pane, even if you thread the same handler
+to every pane uniformly: the component knows which pane is the base of the
+stack and withholds Close there itself.
 
 ### Collapse on scroll
 
@@ -433,9 +446,9 @@ to the console in development.
 
 <Guideline title='Declaration order is stack depth'>
   <Guideline.Do code={`<Navigator.Content>\n  <Pane role='list' />\n  <Pane role='detail' current={selected != null} />\n</Navigator.Content>`}>
-    Author panes shallowest first. The arrangement uses DOM order to tell
-    *ahead* from *behind*: a pane after the top one is ahead and parks
-    off-screen right, a pane before it is behind and parks a third left.
+    Author panes shallowest first. Document order is depth once panes have
+    mounted; `depth` (defaulting from `role`) is what the server render
+    uses, so declare `depth={2}` on a sub-detail.
   </Guideline.Do>
   <Guideline.Dont code={`<Navigator.Content>\n  <Pane role='detail' current />\n  <Pane role='list' />\n</Navigator.Content>`}>
     A pane authored out of depth order parks on the wrong side, so the push
@@ -470,17 +483,29 @@ to the console in development.
   </Guideline.Dont>
 </Guideline>
 
-- **`role` is sizing plus yield order.** Three tracks, not a taxonomy of what a
-  pane contains: a capped `list`, a `detail` that takes the remainder, and an
-  `inspector` that is fixed and yields first. Pick the one that describes how
-  the pane should behave when space runs short.
-- **An `inspector` needs an affordance you declare.** It is a column from `2xl`
-  and hidden below it. Put a [`Drawer`](/components/drawer) in the detail
-  pane's `Pane.Actions` to keep its contents reachable, and choose the drawer's
-  side from your own breakpoints.
-- **`current` only matters in the stacked bands.** From `lg` up every pane is a
-  column regardless, so a `current` that never changes is only ever read below
-  `lg`.
+<Guideline title='Give the root route a placeholder detail'>
+  <Guideline.Do code={`<Navigator.Content>\n  <Pane role='list' />\n  <Pane role='detail' current={event != null}>\n    {event ? <EventDetail /> : <EmptyState title='No event selected' />}\n  </Pane>\n</Navigator.Content>`}>
+    Render the detail pane on the root route too, as Mail's "No message
+    selected". Unreached panes fill the leftover columns, so the row reads as
+    a list beside an empty detail.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Navigator.Content>\n  <Pane role='list' />\n  {event ? <Pane role='detail' current /> : null}\n</Navigator.Content>`}>
+    Mount the detail only once something is selected. With one pane in the
+    stack the list fills the whole row alone, then jumps to a parent track
+    when the detail appears.
+  </Guideline.Dont>
+</Guideline>
+
+- **`role` is a default depth plus yield order.** `list` is the root,
+  `detail` sits under it, and an `inspector` is off the stack and yields
+  first. Width comes from position: the right-most visible pane fills.
+- **An `inspector` needs an affordance you declare.** It is a column only once
+  every stack level fits beside it. Put a [`Drawer`](/components/drawer) in
+  the detail pane's `Pane.Actions` and show its trigger with
+  `pane-inspector-yielded:`.
+- **`current` decides the top at every width.** The deepest `current` pane
+  is always on screen; which of the panes behind it still fit is the
+  container's call.
 - **Filtering is your own `.filter()`.** `Pane.Search` carries no filter
   machinery on purpose. The predicate registry it replaces existed only so
   filtered-out rows could stay declared and keep navigation state alive — a
@@ -504,17 +529,16 @@ to the console in development.
   own `<h1>`. `Pane.BodyTitle` defaults to `<h1>` instead — it is the page's
   own heading, not a heading nested under one, so declare at most one per
   pane and none of your own alongside it.
-- The back affordance is a labelled `IconButton` ("Back"). It appears only on a
-  non-`list` pane and only in the stacked bands, because above `lg` there is
-  nothing covering the pane it would return to.
-- The close affordance is a labelled `IconButton` ("Close"), given via
-  `onBack` or `onClose` (`onClose` wins when both are supplied). It appears
-  only from `lg` up — the reverse of Back — and never on the root pane,
-  whether or not you pass it a handler. `backHref` alone never produces one.
+- The back affordance is a labelled `IconButton` — "Back", or "Back to
+  Events" with `backLabel='Events'`. It appears on the left-most visible non-root
+  pane: the top pane on a phone, or a parent column whose own parent has
+  dropped.
+- The close affordance is a labelled `IconButton` ("Close"), from `onClose`,
+  `onBack` or `backHref` in that order. It appears only on the top pane while
+  its parent is visible beside it, and never on the root pane.
 - `Pane.Search` is a `type='search'` input named by its `placeholder`, so it
   reads as a searchbox with an accessible name.
-- **Known gap:** a covered pane is `pointer-events-none`, so taps cannot reach
-  it, but it is not `inert` — it remains reachable by assistive technology.
-  This is a recorded, deliberate deferral, not an oversight.
+- A pane that doesn't fit — covered in the stack, or dropped from the
+  columns — is hidden, so neither taps nor assistive technology reach it.
 
 <PropsDefinitions componentPath='packages/components/src/components/Pane' />

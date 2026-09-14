@@ -201,8 +201,9 @@ render(<ConsumerNav />)
 Give an item an `href` and a `Navigator.Secondary` and it becomes a section.
 Every section has its own route. There, `Navigator.Content` generates the
 section's list pane — titled with the item's label, groups kept, the current
-row marked — beside your overview from `lg` and on top of it when panes
-stack. A sub-page pushes over the list with a Back link to the section route.
+row marked — beside your overview where two columns fit and on top of it when
+panes stack. A sub-page pushes over the list with a Back link to the section
+route.
 
 ```tsx-live-noinline
 function SectionsNav() {
@@ -412,11 +413,11 @@ Render `NavMoreQuery` inside the same `Suspense` boundary as `NavListQuery`.
 A section's route shows its generated list by default. `root='page'` on
 `Navigator.Secondary` shows the page alone there instead, full width at every
 size — no list pane and no Back. Sub-pages behave the same in both kinds: a list
-column beside the page from `lg`, the page on top with Back to the section route
-when panes stack. On a phone, tapping a page-first section's tab on a sub-page
-goes to its root, like iOS; on the root it scrolls the page to the top,
-reopening a collapsed bar in the same tap. `showList` still shows the list over
-a sub-page, and is ignored on a page root.
+column beside the page where two columns fit, the page on top with Back to the
+section route when panes stack. On a phone, tapping a page-first section's tab
+on a sub-page goes to its root, like iOS; on the root it scrolls the page to
+the top, reopening a collapsed bar in the same tap. `showList` still shows the
+list over a sub-page, and is ignored on a page root.
 
 Use a page root when the section has an overview worth reading — Home, a
 dashboard. Use a list root when the section is a catalogue you pick from —
@@ -779,7 +780,8 @@ render(<PriorityNav />)
 #### Compose the More pane yourself
 
 More opens a list pane — over the stack on a phone, switching in place like
-any tab rather than sliding, the leading column beside your detail from `lg`.
+any tab rather than sliding, the leading column beside your detail where two
+columns fit.
 Like an active tab, tapping More again scrolls it to the top rather than
 closing it. Choosing any destination closes it: a row, a
 primary item or tab, or a new `value` from your router, like Back. A row with
@@ -1123,9 +1125,9 @@ render(<SectionOverrideNav />)
 
 ### Panes
 
-`Navigator.Content` lays panes out side by side on desktop and stacks
-them on mobile. A `list` pane is width-capped so the `detail` pane takes
-the remaining space; each pane scrolls independently.
+`Navigator.Content` lays panes out as columns where they fit and stacks
+them where they don't, from its own width. The right-most column fills and
+the ones before it take a parent track; each pane scrolls independently.
 
 ```tsx-live-noinline
 function PanesLayout() {
@@ -1221,9 +1223,10 @@ render(<PanesLayout />)
 `Pane.Title`, a back affordance (top-left, from `backHref` or `onBack`), and a
 `Pane.Actions` slot (top-right). Body content scrolls beneath it. Here a `list`
 pane drills into a `detail` pane — selecting a row reveals the detail, and the
-back control clears the selection. It is depth-aware: a `list` (first) pane has
-nothing to go back to and shows none, and the back row hides from `lg` up, where
-every pane is a column beside its siblings rather than stacked over them.
+back control clears the selection. It is depth-aware: the root pane has nothing
+to go back to and shows none; a pane whose parent is beside it shows Close
+instead, and a pane whose parent has dropped shows Back — the same declaration,
+decided by how many columns fit.
 
 ```tsx-live-noinline
 function DrillInNav() {
@@ -1311,9 +1314,12 @@ render(<DrillInNav />)
 Both belong to [`Pane`](/components/pane) rather than to Navigator, so they are
 documented there. The two facts worth knowing from here:
 
-- **Below `lg` panes stack**, one visible at a time (edge to edge on phones, inset from `md`), and push/pop
-  between them animates within a section. Changing section, or opening or closing More, switches instantly, as tabs do. Which pane is on top is derived from the deepest pane
-  marked `current` — declare it, and the arrangement follows.
+- **Where columns don't fit, panes stack**, one visible at a time (edge to
+  edge on phones, inset from `md`), and push/pop between them animates.
+  Opening or closing More switches instantly. Which pane is on top is
+  derived from the deepest pane marked `current`; how many of the panes
+  behind it stay on screen is `Navigator.Content`'s width. Documented under
+  [`Pane`](/components/pane).
 - **`Navigator.Content` is the orchestrator.** Panes announce themselves to
   the nearest `Navigator.Content` through context, wherever they sit in its
   subtree — a pane returned by a route, a Next.js parallel-route slot, or a
@@ -1402,7 +1408,7 @@ documented there. The two facts worth knowing from here:
   toggle, cluster, pinned.
 - **Menus** are Base UI menus: arrow keys move between rows, typeahead jumps to
   one, and Escape closes the menu and returns focus to its trigger.
-- **Covered panes** are hidden from assistive tech below `lg`, where panes
-  stack.
+- **Panes that don't fit** — covered in the stack, or dropped from the
+  columns — are hidden from assistive tech.
 
 <PropsDefinitions componentPath='packages/components/src/components/Navigator' />
