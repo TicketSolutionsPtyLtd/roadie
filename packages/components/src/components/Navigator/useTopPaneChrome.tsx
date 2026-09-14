@@ -6,26 +6,18 @@ import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect
 import type { PaneChromeContextValue } from '../Pane/PaneChromeContext'
 import {
   NavigatorActionsContext,
-  NavigatorBarContext,
-  NavigatorDisclosureContext,
-  NavigatorSelectionContext
+  NavigatorBarContext
 } from './NavigatorContext'
 
 // Large enough that overscroll rubber-banding at the top doesn't flicker the bar.
 export const NAV_COLLAPSE_THRESHOLD = 24
 
-/** What the orchestrator hands the top pane of the stack. */
-export function useTopPaneChrome({
-  atRoot
-}: {
-  atRoot: boolean
-}): PaneChromeContextValue {
+/** The scroll chrome the orchestrator hands the top pane. */
+export function useTopPaneChrome(): PaneChromeContextValue {
   const { setNavCollapsed, setPinExpanded, registerActivePaneScroller } = use(
     NavigatorActionsContext
   )
   const { pinExpanded } = use(NavigatorBarContext)
-  const { activeSection } = use(NavigatorSelectionContext)
-  const { overflowOpen } = use(NavigatorDisclosureContext)
   // Read at scroll time, so the chrome keeps one identity while the bar toggles.
   const bar = useRef({ pinExpanded, past: false })
   useIsomorphicLayoutEffect(() => {
@@ -48,17 +40,11 @@ export function useTopPaneChrome({
     if (bar.current.past) setNavCollapsed(true)
   }
 
-  const backHref =
-    activeSection?.href !== undefined && !overflowOpen && !atRoot
-      ? activeSection.href
-      : undefined
-
   return {
     scrollPastAt: NAV_COLLAPSE_THRESHOLD,
     onScrollPast,
     // Direction matters only to a pinned bar, so only then does the pane read it.
     onScrollDown: pinExpanded ? onScrollDown : undefined,
-    registerScroller: registerActivePaneScroller,
-    backHref
+    registerScroller: registerActivePaneScroller
   }
 }

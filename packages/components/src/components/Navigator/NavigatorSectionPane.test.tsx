@@ -715,7 +715,7 @@ function CommitProbe({
     const pane = ref.current?.closest<HTMLElement>('[data-slot="pane"]')
     log.push({
       position: pane?.getAttribute('data-stack-position') ?? null,
-      back: pane?.querySelector('[aria-label="Back"]') != null
+      back: pane?.querySelector('[aria-label^="Back"]') != null
     })
   })
   return <span ref={ref} data-slot='commit-probe' />
@@ -725,7 +725,7 @@ const horizontal = () => primaryOf('horizontal')
 
 // Base UI's Button keeps role="button" on the anchor it renders for an href.
 const backOf = (pane: HTMLElement) => {
-  const back = within(pane).getByLabelText('Back')
+  const back = within(pane).getByLabelText(/^Back\b/)
   expect(back.tagName).toBe('A')
   return back
 }
@@ -785,7 +785,7 @@ describe('section routes', () => {
     )
     await flushViewportMeasurement()
     expect(panes()[1]).toHaveAttribute('data-stack-position', 'top')
-    expect(screen.queryByLabelText('Back')).toBeNull()
+    expect(screen.queryByLabelText(/^Back\b/)).toBeNull()
     warn.mockRestore()
   })
 
@@ -825,7 +825,7 @@ describe('section routes', () => {
       .closest<HTMLElement>('[data-slot="pane"]')
     expect(more).toHaveAttribute('data-stack-position', 'top')
     expect(panes()[0]).not.toHaveAttribute('data-stack-position', 'top')
-    expect(screen.queryByLabelText('Back')).toBeNull()
+    expect(screen.queryByLabelText(/^Back\b/)).toBeNull()
   })
 
   it("lets a consumer's backHref win", async () => {
@@ -909,6 +909,77 @@ describe('section routes', () => {
     await flushViewportMeasurement()
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('its own route'))
     warn.mockRestore()
+  })
+})
+
+describe('back chrome by depth', () => {
+  function ThreeLevels({ value }: { value: string }) {
+    return (
+      <Navigator value={value}>
+        <Navigator.Primary aria-label='Docs'>
+          {testBrand}
+          <Navigator.Item value='/tickets' href='/tickets' icon={<FakeIcon />}>
+            Tickets
+            <Navigator.Secondary aria-label='Events'>
+              <Navigator.Item
+                value='/tickets/glamping'
+                href='/tickets/glamping'
+              >
+                Glamping
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Pane role='detail' current aria-label='Glamping'>
+            <Pane.Header />
+          </Pane>
+          <Pane role='detail' depth={2} current aria-label='Sam'>
+            <Pane.Header backHref='/tickets/glamping' backLabel='Glamping' />
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+  }
+
+  it('gives the depth-1 pane the section route and label even when it is not the top', async () => {
+    render(<ThreeLevels value='/tickets/glamping' />)
+    await flushViewportMeasurement()
+    const glamping = screen.getByLabelText('Glamping', { selector: 'section' })
+    const back = within(glamping).getByLabelText('Back to Tickets')
+    expect(back).toHaveAttribute('href', '/tickets')
+    const sam = screen.getByLabelText('Sam', { selector: 'section' })
+    expect(within(sam).getByLabelText('Back to Glamping')).toHaveAttribute(
+      'href',
+      '/tickets/glamping'
+    )
+    expect(within(sam).getByLabelText('Close')).toHaveAttribute(
+      'href',
+      '/tickets/glamping'
+    )
+    expect(within(glamping).getByLabelText('Close')).toHaveAttribute(
+      'href',
+      '/tickets'
+    )
+  })
+
+  it('withholds it while the depth-1 pane is ahead of a revealed root', async () => {
+    render(<ThreeLevels value='/tickets' />)
+    await flushViewportMeasurement()
+    const glamping = screen.getByLabelText('Glamping', { selector: 'section' })
+    expect(glamping).toHaveAttribute('data-stack-position', 'ahead')
+    expect(within(glamping).queryByLabelText(/^Back\b/)).toBeNull()
+    expect(within(glamping).queryByLabelText('Close')).toBeNull()
+  })
+
+  it('labels the sub-page Back with the section', async () => {
+    render(<Routed value='/components/a' />)
+    await flushViewportMeasurement()
+    const back = within(panes()[1]!).getByLabelText('Back to Components')
+    expect(back).toHaveAttribute('href', '/components')
+    expect(
+      back.querySelector('[data-slot="pane-back-label"]')
+    ).toHaveTextContent('Components')
   })
 })
 
@@ -1246,7 +1317,7 @@ describe('page roots', () => {
     expect(sectionPane()).toBeNull()
     expect(panes()).toHaveLength(1)
     expect(panes()[0]).toHaveAttribute('data-stack-position', 'top')
-    expect(screen.queryByLabelText('Back')).toBeNull()
+    expect(screen.queryByLabelText(/^Back\b/)).toBeNull()
   })
 
   it('pushes a sub-page over the list, with Back to the section route', async () => {
@@ -1266,7 +1337,7 @@ describe('page roots', () => {
     await flushViewportMeasurement()
     expect(sectionPane()).toBeNull()
     expect(panes()[0]).toHaveAttribute('data-stack-position', 'top')
-    expect(screen.queryByLabelText('Back')).toBeNull()
+    expect(screen.queryByLabelText(/^Back\b/)).toBeNull()
   })
 
   it('still shows the list over a sub-page with showList', async () => {
