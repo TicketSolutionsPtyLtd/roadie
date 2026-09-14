@@ -158,7 +158,9 @@ const PANE_CHROME_SURFACE =
 // the width its own content needs, so nothing can grow into another's space.
 // `auto` columns collapse to zero when empty, so a header with neither
 // neighbour still gives the title the full row.
-// Only the docked shadow transitions, a paint property; the title's row does the resizing.
+// The docked shadow is a pseudo-element's opacity, so it fades on the
+// compositor instead of repainting under the blur; the title's row does the
+// resizing.
 export const paneHeaderVariants = cva(
   [
     'sticky top-0 z-sticky grid grid-cols-[auto_minmax(0,1fr)_auto]',
@@ -201,8 +203,9 @@ export const paneHeaderVariants = cva(
     // the plain `row-gap` this rule replaced never did, since gap isn't a
     // per-child property a consumer can override with a class.
     '[&>*:not([data-slot=pane-back]):not([data-slot=pane-close]):not([data-slot=pane-title-compact]):not([data-slot=pane-actions]):not([data-slot=pane-title])]:mt-(--pane-header-gap)',
-    'motion-safe:transition-[box-shadow] motion-safe:duration-slow motion-safe:ease-enter',
-    'motion-reduce:transition-none'
+    "after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:shadow-md after:content-['']",
+    'motion-safe:after:transition-opacity motion-safe:after:duration-slow motion-safe:after:ease-enter',
+    'motion-reduce:after:transition-none'
   ],
   {
     variants: {
@@ -214,7 +217,7 @@ export const paneHeaderVariants = cva(
       // are (a non-root pane with `onClose`), one or the other always draws,
       // so the header stays put at every width.
       edgeOnly: { back: 'lg:hidden', close: 'max-lg:hidden', none: '' },
-      collapsed: { true: 'shadow-md', false: 'shadow-none' }
+      collapsed: { true: 'after:opacity-100', false: 'after:opacity-0' }
     },
     defaultVariants: { edgeOnly: 'none', collapsed: false }
   }

@@ -130,7 +130,8 @@ describe('vertical regions', () => {
     ).not.toBeNull()
     expect(capsules.length).toBeGreaterThanOrEqual(3)
     for (const capsule of capsules) {
-      expect(capsule).toHaveClass('emphasis-raised', 'is-translucent')
+      expect(capsule).toHaveClass('emphasis-raised')
+      expect(capsule).not.toHaveClass('is-translucent')
     }
   })
 

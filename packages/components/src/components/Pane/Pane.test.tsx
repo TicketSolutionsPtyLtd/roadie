@@ -731,6 +731,18 @@ describe('Pane.Header collapse on scroll', () => {
     expect(headerOf()).toHaveAttribute('data-collapsed', 'true')
   })
 
+  it('fades its docked shadow in on a pseudo-element, never transitioning box-shadow', async () => {
+    await renderPane(titled)
+    expect(headerOf()).toHaveClass('after:shadow-md', 'after:opacity-0')
+    expect(headerOf().className).not.toMatch(/transition-\[box-shadow\]/)
+    expect(headerOf().className).not.toMatch(/(^|\s)shadow-/)
+    await act(async () => {
+      scrolled(viewportOf(), COLLAPSE_AT + 1)
+      await Promise.resolve()
+    })
+    expect(headerOf()).toHaveClass('after:opacity-100')
+  })
+
   it('does not flap between the two thresholds', async () => {
     await renderPane(
       <Pane>
@@ -1462,7 +1474,7 @@ describe('Pane.BodyTitle', () => {
 
   // No test asserts "the header's own classes never vary by `collapsed` in a
   // way that changes its box" — `paneHeaderVariants`' `collapsed` variant has
-  // only ever produced `shadow-md`/`shadow-none` (see variants.ts), for both
+  // only ever toggled its docked shadow's opacity (see variants.ts), for both
   // arrangements, so a jsdom class-string assertion here could never fail: it
   // would be pinning an invariant nothing in this file threatens. The real
   // claim — that a `Pane.BodyTitle` header holds a *constant height* across
