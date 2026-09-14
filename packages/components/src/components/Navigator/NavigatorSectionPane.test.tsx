@@ -12,7 +12,9 @@ import {
   FakeIcon,
   flushViewportMeasurement,
   primaryOf,
+  scrollViewport,
   testBrand,
+  withScrollSentinels,
   withStubLink
 } from './testUtils'
 
@@ -81,6 +83,8 @@ function Docs({
     </Navigator>
   )
 }
+
+withScrollSentinels()
 
 describe('generated section pane', () => {
   it('leads the stack as a list pane titled with the section label', async () => {
@@ -1099,8 +1103,7 @@ describe('page root tab', () => {
     const viewport = document.querySelector<HTMLElement>(
       '[data-stack-position="top"] [data-slot="pane-viewport"]'
     )!
-    Object.defineProperty(viewport, 'scrollTop', { value: 400, writable: true })
-    fireEvent.scroll(viewport)
+    act(() => scrollViewport(viewport, 400))
     await act(
       () =>
         new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
@@ -1130,8 +1133,7 @@ describe('page root tab', () => {
       )
       expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }))
       expect(horizontal()).toHaveAttribute('data-collapsed', 'false')
-      viewport.scrollTop = 200
-      fireEvent.scroll(viewport)
+      act(() => scrollViewport(viewport, 200))
       await act(
         () =>
           new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))

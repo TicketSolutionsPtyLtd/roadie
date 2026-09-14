@@ -19,8 +19,11 @@ import {
   FakeIcon,
   flushViewportMeasurement,
   primaryOf,
-  testBrand
+  scrollViewport,
+  testBrand,
+  withScrollSentinels
 } from './testUtils'
+import { NAV_COLLAPSE_THRESHOLD } from './useTopPaneChrome'
 import {
   navigatorContentVariants,
   navigatorIndicatorVariants,
@@ -28,6 +31,8 @@ import {
   navigatorPrimaryPinnedVariants,
   navigatorPrimaryTrackVariants
 } from './variants'
+
+withScrollSentinels()
 
 describe('Navigator', () => {
   it('is the same reference as Navigator.Root', () => {
@@ -199,18 +204,10 @@ describe('pane stack', () => {
   // the fix (`deriveTopIndex` itself has always skipped an inspector) — this
   // pins that a single shared "who is top" answer keeps it that way.
   it('still never lets an inspector take chrome when real panes are present', async () => {
-    const frames: ((time: number) => void)[] = []
-    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) =>
-      frames.push(callback)
-    )
-    const scroll = async (viewport: HTMLElement) => {
-      Object.defineProperty(viewport, 'scrollTop', {
-        value: 80,
-        writable: true
+    const scroll = (viewport: HTMLElement) =>
+      act(async () => {
+        scrollViewport(viewport, 80)
       })
-      fireEvent.scroll(viewport)
-      await act(async () => frames.splice(0).forEach((frame) => frame(0)))
-    }
     const bar = () =>
       document.querySelector(
         '[data-slot="navigator-primary"][data-orientation="horizontal"]'
@@ -264,19 +261,6 @@ describe('pane stack', () => {
 })
 
 describe('primaryNav', () => {
-  // Captures rAF callbacks instead of scheduling them, so a burst can be
-  // counted before anything runs and then flushed inside `act`.
-  const captureFrames = () => {
-    const frames: ((time: number) => void)[] = []
-    const raf = vi
-      .spyOn(window, 'requestAnimationFrame')
-      .mockImplementation((callback) => frames.push(callback))
-    return {
-      raf,
-      flush: () => act(async () => frames.splice(0).forEach((f) => f(0)))
-    }
-  }
-
   // Restores the rAF spies even when an expectation throws mid-test — a leaked
   // mock would silently break every later test in the file.
   afterEach(() => {
@@ -433,7 +417,6 @@ describe('primaryNav', () => {
   })
 
   it('keeps the bar expanded while the top pane declares it visible', async () => {
-    const { flush } = captureFrames()
     const { container } = render(
       <Navigator value='/'>
         <Navigator.Primary aria-label='Main'>
@@ -457,9 +440,9 @@ describe('primaryNav', () => {
     const top = document.querySelectorAll<HTMLElement>(
       '[data-slot="pane-viewport"]'
     )[1]!
-    Object.defineProperty(top, 'scrollTop', { value: 80, writable: true })
-    fireEvent.scroll(top)
-    await flush()
+    await act(async () => {
+      scrollViewport(top, 80)
+    })
 
     expect(
       container.querySelector(
@@ -469,7 +452,6 @@ describe('primaryNav', () => {
   })
 
   it('ignores a scroll on a pane the stack has covered', async () => {
-    const { flush } = captureFrames()
     const { container } = render(
       <Navigator value='/'>
         <Navigator.Primary aria-label='Main'>
@@ -491,9 +473,9 @@ describe('primaryNav', () => {
     const covered = document.querySelectorAll<HTMLElement>(
       '[data-slot="pane-viewport"]'
     )[0]!
-    Object.defineProperty(covered, 'scrollTop', { value: 80, writable: true })
-    fireEvent.scroll(covered)
-    await flush()
+    await act(async () => {
+      scrollViewport(covered, 80)
+    })
 
     expect(
       container.querySelector(
@@ -502,37 +484,7 @@ describe('primaryNav', () => {
     ).toHaveAttribute('data-collapsed', 'false')
   })
 
-  it('cancels a pending frame when the pane unmounts', async () => {
-    const { raf } = captureFrames()
-    const cancel = vi.spyOn(window, 'cancelAnimationFrame')
-    const { unmount } = render(
-      <Navigator value='/'>
-        <Navigator.Content>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
-        </Navigator.Content>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-
-    const viewport = document.querySelector<HTMLElement>(
-      '[data-slot="pane-viewport"]'
-    )!
-    raf.mockClear()
-    fireEvent.scroll(viewport)
-    const handle = raf.mock.results[0]?.value as number
-
-    unmount()
-    expect(cancel).toHaveBeenCalledWith(handle)
-  })
-
-  it('coalesces a burst of scroll events into one update', async () => {
-    const frames: ((time: number) => void)[] = []
-    const raf = vi
-      .spyOn(window, 'requestAnimationFrame')
-      .mockImplementation((callback) => frames.push(callback))
-
+  it('collapses as the top pane scrolls past the threshold and reopens back within it', async () => {
     const { container } = render(
       <Navigator value='/'>
         <Navigator.Primary aria-label='Main'>
@@ -549,27 +501,24 @@ describe('primaryNav', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
-
     const viewport = document.querySelector<HTMLElement>(
       '[data-slot="pane-viewport"]'
     )!
-    Object.defineProperty(viewport, 'scrollTop', { value: 80, writable: true })
-    raf.mockClear()
-    frames.length = 0
-
-    fireEvent.scroll(viewport)
-    fireEvent.scroll(viewport)
-    fireEvent.scroll(viewport)
-    expect(raf).toHaveBeenCalledTimes(1)
-
+    const bar = container.querySelector(
+      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+    )
     await act(async () => {
-      frames.forEach((frame) => frame(0))
+      scrollViewport(viewport, NAV_COLLAPSE_THRESHOLD)
     })
-    expect(
-      container.querySelector(
-        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
-      )
-    ).toHaveAttribute('data-collapsed', 'true')
+    expect(bar).toHaveAttribute('data-collapsed', 'false')
+    await act(async () => {
+      scrollViewport(viewport, NAV_COLLAPSE_THRESHOLD + 1)
+    })
+    expect(bar).toHaveAttribute('data-collapsed', 'true')
+    await act(async () => {
+      scrollViewport(viewport, 0)
+    })
+    expect(bar).toHaveAttribute('data-collapsed', 'false')
   })
 })
 
@@ -3110,8 +3059,7 @@ describe('Navigator collapsed edge circles', () => {
     )
 
   const scrollTo = async (pane: HTMLElement, top: number) => {
-    Object.defineProperty(pane, 'scrollTop', { value: top, writable: true })
-    fireEvent.scroll(pane)
+    act(() => scrollViewport(pane, top))
     await settleFrame()
   }
 
@@ -3770,8 +3718,7 @@ describe('active-tab tap on a Pane stack', () => {
     await flushViewportMeasurement()
 
     const viewport = viewportOf()
-    Object.defineProperty(viewport, 'scrollTop', { value: 80, writable: true })
-    fireEvent.scroll(viewport)
+    act(() => scrollViewport(viewport, 80))
     await settleFrame()
 
     const bar = barOf(container)

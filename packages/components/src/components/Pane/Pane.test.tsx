@@ -6,7 +6,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { Pane } from '.'
 import { Navigator } from '../Navigator'
-import { testBrand } from '../Navigator/testUtils'
+import {
+  scrollViewport,
+  testBrand,
+  withScrollSentinels
+} from '../Navigator/testUtils'
 import {
   PANE_CHROME_NONE,
   type PaneChromeContextValue
@@ -33,6 +37,8 @@ const flush = () =>
   act(async () => {
     await Promise.resolve()
   })
+
+withScrollSentinels()
 
 const renderPane = async (ui: ReactNode) => {
   const result = render(ui)
@@ -675,13 +681,7 @@ describe('Pane.Header close affordance', () => {
 })
 
 describe('Pane.Header collapse on scroll', () => {
-  const scrolled = (viewport: HTMLElement, top: number) => {
-    Object.defineProperty(viewport, 'scrollTop', {
-      value: top,
-      configurable: true
-    })
-    fireEvent.scroll(viewport)
-  }
+  const scrolled = scrollViewport
 
   const viewportOf = () =>
     document.querySelector('[data-slot="pane-viewport"]') as HTMLElement
@@ -962,47 +962,102 @@ describe('orchestrator chrome', () => {
     )
   }
 
-  // rAF is what the pane coalesces scroll reports through, so the test has to
-  // drive it rather than wait on it.
-  const captureFrames = () => {
-    const frames: ((time: number) => void)[] = []
-    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) =>
-      frames.push(callback)
-    )
-    return {
-      flush: () => act(async () => frames.splice(0).forEach((f) => f(0)))
-    }
-  }
+  const viewport = () =>
+    document.querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
+  const scroll = (top: number) =>
+    act(async () => {
+      scrollViewport(viewport(), top)
+    })
 
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
-  const scrollViewport = async (top: number, flush: () => Promise<void>) => {
-    const viewport = document.querySelector<HTMLElement>(
-      '[data-slot="pane-viewport"]'
-    )!
-    Object.defineProperty(viewport, 'scrollTop', { value: top, writable: true })
-    fireEvent.scroll(viewport)
-    await flush()
-  }
+  it('reports crossing its threshold while it describes auto nav behaviour', async () => {
+    const onScrollPast = vi.fn()
+    await withChrome(<Pane>Body</Pane>, { scrollPastAt: 24, onScrollPast })
+    await scroll(80)
+    expect(onScrollPast).toHaveBeenLastCalledWith(true)
+    await scroll(24)
+    expect(onScrollPast).toHaveBeenLastCalledWith(false)
+  })
 
-  it('reports its scroll position while it describes auto nav behaviour', async () => {
-    const onViewportScroll = vi.fn()
-    const { flush } = captureFrames()
-    await withChrome(<Pane>Body</Pane>, { onViewportScroll })
-    await scrollViewport(80, flush)
-    expect(onViewportScroll).toHaveBeenCalledWith(80)
+  it('reports nothing until it is first scrolled, as a pane newly on top', async () => {
+    const onScrollPast = vi.fn()
+    await withChrome(<Pane>Body</Pane>, { scrollPastAt: 24, onScrollPast })
+    expect(onScrollPast).not.toHaveBeenCalled()
+    await scroll(10)
+    expect(onScrollPast).toHaveBeenCalledWith(false)
+  })
+
+  it('schedules no frame on scroll unless the orchestrator asks for direction', async () => {
+    await withChrome(<Pane>Body</Pane>, {
+      scrollPastAt: 24,
+      onScrollPast: () => {}
+    })
+    const raf = vi.spyOn(window, 'requestAnimationFrame')
+    await scroll(80)
+    fireEvent.scroll(viewport())
+    expect(raf).not.toHaveBeenCalled()
+  })
+
+  it('reads direction once a frame, and reports each frame that scrolled down', async () => {
+    const frames: ((time: number) => void)[] = []
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) =>
+      frames.push(callback)
+    )
+    const flush = () =>
+      act(async () => frames.splice(0).forEach((frame) => frame(0)))
+    const onScrollDown = vi.fn()
+    await withChrome(<Pane>Body</Pane>, {
+      scrollPastAt: 24,
+      onScrollPast: () => {},
+      onScrollDown
+    })
+    await flush()
+    let top = 100
+    Object.defineProperty(viewport(), 'scrollTop', {
+      configurable: true,
+      get: () => top
+    })
+    await flush()
+    top = 140
+    fireEvent.scroll(viewport())
+    fireEvent.scroll(viewport())
+    expect(frames).toHaveLength(1)
+    await flush()
+    expect(onScrollDown).toHaveBeenCalledOnce()
+    top = 90
+    fireEvent.scroll(viewport())
+    await flush()
+    expect(onScrollDown).toHaveBeenCalledOnce()
+  })
+
+  it('cancels a pending direction frame when it unmounts', async () => {
+    const raf = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation(() => 7)
+    const cancel = vi.spyOn(window, 'cancelAnimationFrame')
+    const { unmount } = await withChrome(<Pane>Body</Pane>, {
+      scrollPastAt: 24,
+      onScrollPast: () => {},
+      onScrollDown: () => {}
+    })
+    raf.mockClear()
+    fireEvent.scroll(viewport())
+    expect(raf).toHaveBeenCalledOnce()
+    unmount()
+    expect(cancel).toHaveBeenCalledWith(7)
   })
 
   it('stays silent when it has opted out of auto', async () => {
-    const onViewportScroll = vi.fn()
-    const { flush } = captureFrames()
+    const onScrollPast = vi.fn()
     await withChrome(<Pane primaryNav='visible'>Body</Pane>, {
-      onViewportScroll
+      scrollPastAt: 24,
+      onScrollPast
     })
-    await scrollViewport(80, flush)
-    expect(onViewportScroll).not.toHaveBeenCalled()
+    await scroll(80)
+    expect(onScrollPast).not.toHaveBeenCalled()
   })
 
   it('draws a Back link from orchestrator chrome, never a Close', async () => {
@@ -1138,10 +1193,6 @@ describe('pane registration through a wrapper', () => {
   })
 
   it('hands chrome to the wrapped top pane', async () => {
-    const frames: ((time: number) => void)[] = []
-    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) =>
-      frames.push(callback)
-    )
     render(
       <Navigator value='/foundations/colors'>
         <Navigator.Primary aria-label='Main'>
@@ -1173,9 +1224,9 @@ describe('pane registration through a wrapper', () => {
     const viewport = Array.from(
       document.querySelectorAll<HTMLElement>('[data-slot="pane-viewport"]')
     ).at(-1)!
-    Object.defineProperty(viewport, 'scrollTop', { value: 80, writable: true })
-    fireEvent.scroll(viewport)
-    await act(async () => frames.splice(0).forEach((frame) => frame(0)))
+    await act(async () => {
+      scrollViewport(viewport, 80)
+    })
     expect(
       document.querySelector(
         '[data-slot="navigator-primary"][data-orientation="horizontal"]'
