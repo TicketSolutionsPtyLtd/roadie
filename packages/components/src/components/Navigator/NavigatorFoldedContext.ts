@@ -6,3 +6,4 @@ import { createContext } from 'react'
 export const NavigatorFoldedContext = createContext<ReadonlySet<string>>(
   new Set()
 )
+NavigatorFoldedContext.displayName = 'NavigatorFoldedContext'

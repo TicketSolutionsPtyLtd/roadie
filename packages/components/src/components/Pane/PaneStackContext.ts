@@ -36,5 +36,7 @@ export type PaneStackContextValue = {
 export const PaneStackContext = createContext<PaneStackContextValue | null>(
   null
 )
+PaneStackContext.displayName = 'PaneStackContext'
 
 export const PaneKindContext = createContext<PaneKind>('pane')
+PaneKindContext.displayName = 'PaneKindContext'

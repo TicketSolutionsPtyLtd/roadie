@@ -28,3 +28,4 @@ export type PaneContextValue = {
 }
 
 export const PaneContext = createContext<PaneContextValue | null>(null)
+PaneContext.displayName = 'PaneContext'
