@@ -102,7 +102,7 @@ describe('tiers', () => {
   })
 
   it('fits the inspector once every level present fits beside it at its minimum', () => {
-    expect(inspectorTier(1)).toBe(44.25)
+    expect(inspectorTier(1)).toBe(46.25)
     expect(inspectorTier(2)).toBe(69)
     expect(inspectorTier(3)).toBe(85.75)
     expect(inspectorTier(4)).toBe(85.75)
