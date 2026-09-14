@@ -17,7 +17,9 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
-    globals: true
+    globals: true,
+    // Stubbed CSS would make `pane-columns.css?raw` empty.
+    css: { include: [/pane-columns\.css/] }
   },
   ssr: {
     noExternal: ['@oztix/roadie-core']

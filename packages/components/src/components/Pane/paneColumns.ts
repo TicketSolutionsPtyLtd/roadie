@@ -101,17 +101,24 @@ const topIs = (level: number, top: number) => {
   return `:not([data-reveal]):has(${stackPane(level, top, '[data-current]')})${not}`
 }
 
-const COLUMN =
-  'translate: none; opacity: 1; visibility: visible; pointer-events: auto; content-visibility: visible; transition: none;'
+const LANDED = 'z-index: 2;'
+const PARKED = 'z-index: 0;'
+// z-index steps: a pane rises over Content's edge cover as it lands and drops under it as it leaves.
+const LANDING =
+  'transition-property: translate, opacity, z-index; transition-timing-function: var(--ease-enter), var(--ease-enter), step-end;'
+const LEAVING =
+  'transition-property: translate, opacity, visibility, z-index; transition-timing-function: var(--ease-enter), var(--ease-enter), var(--ease-enter), step-start;'
+const COLUMN = `translate: none; opacity: 1; visibility: visible; pointer-events: auto; content-visibility: visible; ${LANDED} transition: none;`
 
 function geometry(columns: number, cell: PaneCell, depth: number): string {
+  const parked = `visibility: hidden; pointer-events: none; content-visibility: auto; ${PARKED} ${columns > 1 ? 'transition: none;' : LEAVING}`
   switch (cell.slot) {
     case 'behind':
-      return `translate: -33% 0; opacity: 0.9; visibility: hidden; pointer-events: none; content-visibility: auto;${columns > 1 ? ' transition: none;' : ''}`
+      return `translate: -33% 0; opacity: 0.9; ${parked}`
     case 'ahead':
-      return `translate: 100% 0; opacity: 1; visibility: hidden; pointer-events: none; content-visibility: auto;${columns > 1 ? ' transition: none;' : ''}`
+      return `translate: calc(100% + var(--pane-stack-inset, 0px)) 0; opacity: 1; ${parked}`
     case 'top':
-      return 'translate: 0 0; opacity: 1; visibility: visible; pointer-events: auto; content-visibility: visible;'
+      return `translate: 0 0; opacity: 1; visibility: visible; pointer-events: auto; content-visibility: visible; ${LANDED} ${LANDING}`
     case 'fill':
       return `position: relative !important; inset: auto; flex: 1 1 0; order: ${depth}; ${COLUMN}`
     case 'parent':
@@ -172,22 +179,27 @@ function inspectorVariant(): string {
   return `@custom-variant pane-inspector-yielded {\n${branches.join('\n')}\n}`
 }
 
-const STATIC = `  [data-slot="navigator-panes"] [data-stack] { position: absolute !important; inset: 0; --pane-back: none; --pane-close: none; --pane-edge: none; }
-  @media (prefers-reduced-motion: no-preference) {
-    [data-slot="navigator-panes"] [data-stack] { transition: translate var(--duration-slow) var(--ease-enter), opacity var(--duration-slow) var(--ease-enter), visibility var(--duration-slow) var(--ease-enter); }
-  }
-  [data-slot="navigator-panes"] [data-role="inspector"] { display: none; order: 99; flex: 0 0 ${rem(PANE_INSPECTOR)}; }
-  [data-slot="navigator-panes"]:not([data-overflow]) [data-stack][data-overflow] { display: none; }
-  [data-slot="navigator-panes"][data-overflow] [data-stack][data-depth="0"]:not([data-overflow]) { display: none; }
-  [data-slot="pane"] { --pane-back: none; --pane-close: none; --pane-edge: none; }
-  [data-slot="pane"]:not([data-stack]):not([data-depth="0"]) { --pane-back: grid; --pane-edge: grid; }
-  [data-slot="pane-back"] { display: var(--pane-back); }
-  [data-slot="pane-close"] { display: var(--pane-close); }`
+function levelRules(level: number): string {
+  const pane = `${row(level)} [data-stack][data-level="${level}"][data-depth]`
+  return [
+    `  ${pane} { position: absolute !important; inset: var(--pane-stack-inset, 0px); inset-inline-start: var(--pane-stack-inset-start, var(--pane-stack-inset, 0px)); }`,
+    `  @media (prefers-reduced-motion: no-preference) { ${pane} { transition-duration: var(--duration-slow); } }`,
+    `  ${row(level)} [data-role="inspector"][data-level="${level}"] { display: none; order: 99; flex: 0 0 ${rem(PANE_INSPECTOR)}; }`,
+    `  ${row(level)}:not([data-overflow]) [data-stack][data-level="${level}"][data-overflow] { display: none; }`,
+    `  ${row(level)}[data-overflow] ${stackPane(level, 0)}:not([data-overflow]) { display: none; }`
+  ].join('\n')
+}
+
+const PANE_RULES = `  [data-slot="pane"][data-depth] { --pane-back: none; --pane-close: none; --pane-edge: none; }
+  [data-slot="pane"][data-depth]:not([data-stack]):not([data-depth="0"]) { --pane-back: grid; --pane-edge: grid; }
+  [data-slot="pane"][data-depth] [data-slot="pane-back"] { display: var(--pane-back); }
+  [data-slot="pane"][data-depth] [data-slot="pane-close"] { display: var(--pane-close); }`
 
 /** The stylesheet `scripts/generate-pane-columns.mjs` writes. */
 export function renderPaneColumnsCss(): string {
-  const blocks: string[] = []
+  const blocks: string[] = [PANE_RULES]
   for (let level = 0; level < PANE_MAX_LEVELS; level += 1) {
+    blocks.push(levelRules(level))
     for (let columns = 1; columns <= PANE_MAX_COLUMNS; columns += 1) {
       blocks.push(tierRules(level, columns))
     }
@@ -197,7 +209,6 @@ export function renderPaneColumnsCss(): string {
     '/* Generated by scripts/generate-pane-columns.mjs from paneColumns.ts. Do not edit. */',
     inspectorVariant(),
     '@layer components {',
-    STATIC,
     blocks.join('\n'),
     '}',
     ''
