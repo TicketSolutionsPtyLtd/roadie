@@ -369,7 +369,7 @@ function ThreeLevels({ value }: { value: string }) {
           Glamping
         </Pane>
         <Pane role='detail' depth={2} current>
-          <Pane.Header backHref='/tickets/glamping' />
+          <Pane.Header backHref='/tickets/glamping' backLabel='Glamping' />
           Sam
         </Pane>
       </Navigator.Content>
@@ -392,6 +392,23 @@ describe('Navigator server render of depths', () => {
     expect(
       revealed.querySelector('[data-slot="navigator-panes"]')
     ).toHaveAttribute('data-reveal')
+  })
+
+  it('writes the back label and the Close link from backHref', () => {
+    const container = serverRender(<ThreeLevels value='/tickets/glamping' />)
+    const sam = container.querySelectorAll('[data-slot="pane"]')[2]!
+    const back = sam.querySelector('[aria-label="Back to Glamping"]')
+    expect(back).toHaveAttribute('href', '/tickets/glamping')
+    expect(
+      back?.querySelector('[data-slot="pane-back-label"]')
+    ).toHaveTextContent('Glamping')
+    expect(sam.querySelector('[aria-label="Close"]')).toHaveAttribute(
+      'href',
+      '/tickets/glamping'
+    )
+    expect(sam.querySelector('[data-slot="pane-header"]')).toHaveClass(
+      '[display:var(--pane-edge)]'
+    )
   })
 
   it('hydrates without a mismatch or a depth change', async () => {

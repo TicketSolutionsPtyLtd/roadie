@@ -627,7 +627,7 @@ describe('Pane.Header close affordance', () => {
     expect(rootHeader?.querySelector('[aria-label="Close"]')).toBeNull()
   })
 
-  it('renders no close control from backHref alone', async () => {
+  it('renders a close link from backHref alone', async () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
@@ -641,7 +641,43 @@ describe('Pane.Header close affordance', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
+    expect(screen.getByLabelText('Close')).toHaveAttribute('href', '/a')
+  })
+
+  it('leaves a header of only Back and Close to the edge property', async () => {
+    render(
+      <Navigator value='/a'>
+        <Navigator.Content>
+          <Pane role='list'>List</Pane>
+          <Pane role='detail' current>
+            <Pane.Header backHref='/a' />
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const header = document.querySelector('[data-slot="pane-header"]')
+    expect(header).toHaveClass('[display:var(--pane-edge)]')
+    expect(header).not.toHaveClass('grid')
+  })
+
+  it('never offers Back or Close on an inspector, and draws no header for them alone', async () => {
+    render(
+      <Navigator value='/a'>
+        <Navigator.Content>
+          <Pane role='list' current>
+            List
+          </Pane>
+          <Pane role='inspector'>
+            <Pane.Header backHref='/a' onBack={vi.fn()} />
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(screen.queryByLabelText(/^Back/)).toBeNull()
     expect(screen.queryByLabelText('Close')).toBeNull()
+    expect(document.querySelector('[data-slot="pane-header"]')).toBeNull()
   })
 
   it('never renders a close control on an inspector from onBack alone', async () => {
@@ -675,8 +711,104 @@ describe('Pane.Header close affordance', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
-    expect(document.querySelector('[data-slot="pane-header"]')).toBeTruthy()
+    expect(document.querySelector('[data-slot="pane-header"]')).toHaveClass(
+      '[display:var(--pane-close)]'
+    )
     expect(screen.getByLabelText('Close')).toBeInTheDocument()
+  })
+})
+
+describe('Pane.Header back label', () => {
+  it('renders the label beside the caret, named "Back to …"', async () => {
+    await renderPane(
+      <Pane role='detail'>
+        <Pane.Header backHref='/tickets' backLabel='Tickets'>
+          <Pane.Title>Glamping</Pane.Title>
+        </Pane.Header>
+      </Pane>
+    )
+    const back = screen.getByLabelText('Back to Tickets')
+    expect(back.tagName).toBe('A')
+    expect(back).toHaveAttribute('href', '/tickets')
+    const label = back.querySelector('[data-slot="pane-back-label"]')
+    expect(label).toHaveTextContent('Tickets')
+    expect(label).toHaveClass(
+      'hidden',
+      '@min-[21rem]/pane-header:inline',
+      'truncate'
+    )
+    expect(back).toHaveClass('@max-[21rem]/pane-header:btn-icon-md')
+    expect(document.querySelector('[data-slot="pane-header"]')).toHaveClass(
+      '[container:pane-header/inline-size]'
+    )
+  })
+
+  it('names a handler Back with the label too', async () => {
+    const onBack = vi.fn()
+    await renderPane(
+      <Pane role='detail'>
+        <Pane.Header onBack={onBack} backLabel='Tickets' />
+      </Pane>
+    )
+    const back = screen.getByLabelText('Back to Tickets')
+    expect(back.tagName).toBe('BUTTON')
+    await userEvent.click(back)
+    expect(onBack).toHaveBeenCalledOnce()
+  })
+
+  it('takes the orchestrator label only when the header supplies no target of its own', async () => {
+    const fakeStack: PaneStackContextValue = {
+      register: () => {},
+      unregister: () => {},
+      positionOf: () => null,
+      chromeOf: () => ({
+        ...PANE_CHROME_NONE,
+        backHref: '/tickets',
+        backLabel: 'Tickets'
+      }),
+      isRootOf: () => false,
+      depthOf: () => 1,
+      level: 0
+    }
+    const { rerender } = await renderPane(
+      <PaneStackContext value={fakeStack}>
+        <Pane role='detail'>
+          <Pane.Header />
+        </Pane>
+      </PaneStackContext>
+    )
+    expect(screen.getByLabelText('Back to Tickets')).toHaveAttribute(
+      'href',
+      '/tickets'
+    )
+    rerender(
+      <PaneStackContext value={fakeStack}>
+        <Pane role='detail'>
+          <Pane.Header onBack={() => {}} />
+        </Pane>
+      </PaneStackContext>
+    )
+    await flush()
+    expect(screen.getByLabelText('Back').tagName).toBe('BUTTON')
+  })
+
+  it('stays icon-only with no label', async () => {
+    await renderPane(
+      <Pane role='detail'>
+        <Pane.Header backHref='/tickets' />
+      </Pane>
+    )
+    expect(screen.getByLabelText('Back')).toBeInTheDocument()
+    expect(document.querySelector('[data-slot="pane-back-label"]')).toBeNull()
+  })
+
+  it('never offers Back on a depth-0 pane, whatever its role', async () => {
+    await renderPane(
+      <Pane role='detail' depth={0}>
+        <Pane.Header backHref='/' />
+      </Pane>
+    )
+    expect(screen.queryByLabelText(/^Back/)).toBeNull()
   })
 })
 
@@ -1062,7 +1194,7 @@ describe('orchestrator chrome', () => {
     expect(onScrollPast).not.toHaveBeenCalled()
   })
 
-  it('draws a Back link from orchestrator chrome, never a Close', async () => {
+  it('draws Back and Close links from orchestrator chrome', async () => {
     await withChrome(
       <Pane role='detail'>
         <Pane.Header />
@@ -1072,7 +1204,7 @@ describe('orchestrator chrome', () => {
     const back = screen.getByLabelText('Back')
     expect(back.tagName).toBe('A')
     expect(back).toHaveAttribute('href', '/section')
-    expect(screen.queryByLabelText('Close')).toBeNull()
+    expect(screen.getByLabelText('Close')).toHaveAttribute('href', '/section')
   })
 
   it("lets a consumer's onBack outrank the orchestrator's link", async () => {
