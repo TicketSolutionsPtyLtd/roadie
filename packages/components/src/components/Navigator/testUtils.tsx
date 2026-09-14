@@ -185,7 +185,11 @@ export function panesShownAt(columns: number) {
             `@container panes (width >= ${columnTier(columns)}rem)`
           ))
   )
-  const hiding = rules.filter((rule) => rule.body === 'display: none;')
+  const hiding = rules.filter(
+    (rule) =>
+      rule.body === 'display: none !important;' &&
+      !rule.selector.includes('[data-role="inspector"]')
+  )
   if (
     hiding.some((rule) => rule.conditions.some((c) => !c.startsWith('@layer')))
   ) {

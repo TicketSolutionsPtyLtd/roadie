@@ -37,7 +37,7 @@ function html(markup: string) {
 
 const hiddenBy = (element: Element) =>
   rules
-    .filter((rule) => rule.body === 'display: none;')
+    .filter((rule) => rule.body === 'display: none !important;')
     .filter((rule) => element.matches(rule.selector))
 
 const stackStates = (levels: number) =>
@@ -397,15 +397,15 @@ describe('parent tracks follow the columns a row shows', () => {
     )
 
   const inspectorShownAt = (inspector: Element, contentPx: number) =>
-    rules.some(
+    !rules.some(
       (rule) =>
-        rule.body === 'display: block;' &&
+        rule.body === 'display: none !important;' &&
         inspector.matches(rule.selector) &&
-        rule.conditions.some((condition) => {
+        rule.conditions.every((condition) => {
           const width = condition.match(
-            /@container panes \(width >= ([\d.]+)rem\)/
+            /@container panes \(width < ([\d.]+)rem\)/
           )?.[1]
-          return width !== undefined && contentPx >= Number(width) * REM
+          return width === undefined || contentPx < Number(width) * REM
         })
     )
 
@@ -523,12 +523,47 @@ describe('the generated stylesheet', () => {
       const row = `[data-slot="navigator-panes"][data-level="${level}"]`
       const pane = `[data-stack][data-level="${level}"]`
       expect(css).toContain(
-        `${row}:not([data-overflow]) ${pane}[data-overflow] { display: none; }`
+        `${row}:not([data-overflow]) ${pane}[data-overflow] { display: none !important; }`
       )
       expect(css).toContain(
-        `${row}[data-overflow] ${pane}[data-depth="0"]:not([data-overflow]) { display: none; }`
+        `${row}[data-overflow] ${pane}[data-depth="0"]:not([data-overflow]) { display: none !important; }`
       )
     }
+  })
+
+  it('hides past any display utility and never sets a display of its own', () => {
+    const displays = rules.filter(
+      (rule) =>
+        /(^|; )display:/.test(rule.body) &&
+        !/pane-(back|close)"\]$/.test(rule.selector)
+    )
+    expect(displays.length).toBeGreaterThan(0)
+    for (const rule of displays) {
+      expect(rule.body, rule.selector).toBe('display: none !important;')
+    }
+
+    const hiddenAt = (element: Element, contentPx: number) =>
+      hiddenBy(element).some((rule) =>
+        rule.conditions.every((condition) => {
+          const width = condition.match(/\(width < ([\d.]+)rem\)/)?.[1]
+          return width === undefined || contentPx < Number(width) * REM
+        })
+      )
+    const tier = inspectorTier(2) * REM
+    let $ = html(
+      stackRow(0, [false, true], false, { closedMore: true }).replace(
+        '</div></div>',
+        '</div><div data-slot="pane" data-role="inspector" data-level="0" class="grid"></div></div>'
+      )
+    )
+    expect(hiddenAt($('[data-role="inspector"]'), tier - 1)).toBe(true)
+    expect(hiddenAt($('[data-role="inspector"]'), tier)).toBe(false)
+    expect(hiddenAt($('[data-overflow]'), tier)).toBe(true)
+
+    $ = html(
+      '<div data-slot="navigator-panes" data-level="0"><div data-slot="pane" data-role="inspector" data-level="0"></div></div>'
+    )
+    expect(hiddenAt($('[data-role="inspector"]'), 2000)).toBe(true)
   })
 
   it("keeps an outer More's state out of a nested row", () => {
@@ -635,7 +670,8 @@ describe('the generated stylesheet', () => {
 
   it('offers the inspector variant with one branch per level, level count and root depth', () => {
     const css = renderPaneColumnsCss()
-    expect(css.match(/@container panes \(width < /g)).toHaveLength(
+    const variant = css.slice(0, css.indexOf('@layer components {'))
+    expect(variant.match(/@container panes \(width < /g)).toHaveLength(
       7 * PANE_MAX_LEVELS
     )
     expect(css).toContain('@custom-variant pane-inspector-yielded {')
@@ -702,7 +738,7 @@ describe('the generated stylesheet', () => {
     const rules = css
       .split('\n')
       .filter((line) => line.includes('[data-role="inspector"][data-level'))
-    expect(rules).toHaveLength(8 * PANE_MAX_LEVELS)
+    expect(rules).toHaveLength(9 * PANE_MAX_LEVELS)
     for (const rule of rules) {
       const levels = new Set(rule.match(/\[data-level="(\d)"\]/g))
       expect(levels.size).toBe(1)
