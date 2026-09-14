@@ -132,6 +132,7 @@ export const NavigatorContext = createContext<NavigatorContextValue>({
   expandedPending: false,
   primaryId: ''
 })
+NavigatorContext.displayName = 'NavigatorContext'
 
 export const isActiveValue = (
   itemValue: string,

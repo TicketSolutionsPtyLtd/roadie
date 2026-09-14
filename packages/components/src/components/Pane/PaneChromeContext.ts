@@ -18,3 +18,4 @@ export const PANE_CHROME_NONE: PaneChromeContextValue = {
 }
 
 export const PaneChromeContext = createContext(PANE_CHROME_NONE)
+PaneChromeContext.displayName = 'PaneChromeContext'
