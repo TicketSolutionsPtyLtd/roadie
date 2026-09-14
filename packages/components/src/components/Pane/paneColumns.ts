@@ -65,7 +65,8 @@ export function parentTrackWidth(columns: number, content: number): number {
 
 const inspectorFits = (levels: number, content: number) => {
   const shown = Math.min(levels, PANE_MAX_COLUMNS)
-  if (content < columnTier(shown)) return false
+  // One column stacks its panes absolutely, so nothing sits beside them.
+  if (content < columnTier(Math.max(shown, 2))) return false
   const parents =
     shown === 1 ? 0 : (shown - 1) * parentTrackWidth(shown, content)
   const fill =
@@ -78,7 +79,7 @@ const PX = 1 / 16
 
 /** Content width, in rem, from which the inspector fits beside every level present and the fill keeps its minimum. */
 export function inspectorTier(levels: number): number {
-  let content = columnTier(Math.min(levels, PANE_MAX_COLUMNS))
+  let content = columnTier(Math.max(Math.min(levels, PANE_MAX_COLUMNS), 2))
   while (!inspectorFits(levels, content)) content += PX
   return content
 }
