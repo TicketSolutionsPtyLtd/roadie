@@ -123,29 +123,7 @@ export function NavigatorContent({
   const contentRef = useRef<HTMLElement | null>(null)
   const ref = useMemo(() => mergeRefs(contentRef, forwardedRef), [forwardedRef])
   const rowRef = useRef<HTMLDivElement | null>(null)
-
-  // More and a change of section are tab switches, not pushes: the stack flips
-  // without sliding. An insertion effect runs before any layout effect can
-  // flush styles mid-flip.
   const sectionValue = activeSection?.value ?? null
-  const lastTab = useRef({ overflowOpen, sectionValue })
-  useInsertionEffect(() => {
-    const last = lastTab.current
-    if (
-      last.overflowOpen === overflowOpen &&
-      last.sectionValue === sectionValue
-    ) {
-      return
-    }
-    lastTab.current = { overflowOpen, sectionValue }
-    const node = contentRef.current
-    if (!node) return
-    node.setAttribute('data-instant', '')
-    let frame = requestAnimationFrame(() => {
-      frame = requestAnimationFrame(() => node.removeAttribute('data-instant'))
-    })
-    return () => cancelAnimationFrame(frame)
-  }, [overflowOpen, sectionValue])
 
   // Panes slide only on a push or pop; a resize that changes the columns
   // cuts. Set in the commit that changes the stack, as the pane that changed
@@ -214,6 +192,7 @@ export function NavigatorContent({
     overflowItems.horizontal.length + overflowItems.vertical.length > 0
   // `showMore` with nothing folded has no pane to show; the row stays as if closed.
   const moreOpen = overflowOpen && (declaredOverflow || generatesOverflow)
+
   const rootList = activeSection !== null && listPaneShows
   const rootListDrawn = rootList && !moreOpen
   const showsSectionPane = rootListDrawn && !overridden
@@ -260,6 +239,36 @@ export function NavigatorContent({
     [stack, revealRoot]
   )
   useInsertionEffect(() => markPushing(), [markPushing, revealing])
+
+  // More and a change of section are tab switches, not pushes: the stack flips
+  // without sliding. Keyed on `moreOpen`, not `overflowOpen`: a resize or
+  // hydration mismatch can flip whether a More pane actually exists without
+  // `overflowOpen` changing at all, and that still counts as a tab switch.
+  // Declared after every `markPushing` call above, so it runs last this
+  // commit and can cancel a push those calls marked for the same flip — a
+  // pane mounting or unmounting as the section list gives way to More, or
+  // back, is not a real push.
+  const lastTab = useRef({ moreOpen, sectionValue })
+  useInsertionEffect(() => {
+    const last = lastTab.current
+    if (last.moreOpen === moreOpen && last.sectionValue === sectionValue) {
+      return
+    }
+    lastTab.current = { moreOpen, sectionValue }
+    const row = rowRef.current
+    if (row) {
+      cancelAnimationFrame(pushFrame.current)
+      row.removeAttribute('data-pushing')
+    }
+    const node = contentRef.current
+    if (!node) return
+    node.setAttribute('data-instant', '')
+    let frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => node.removeAttribute('data-instant'))
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [moreOpen, sectionValue])
+
   const topIndex = positions.indexOf('top')
   const topId = topIndex === -1 ? null : (stack[topIndex]?.id ?? null)
   const rootIndex = useMemo(() => deriveRootIndex(stack), [stack])

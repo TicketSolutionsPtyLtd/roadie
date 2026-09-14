@@ -2394,8 +2394,74 @@ describe('Navigator.OverflowPane', () => {
       vi.unstubAllGlobals()
     })
 
-    const sectionsNav = (value: string) => (
-      <Navigator value={value}>
+    it('switches instantly, never pushing, when a controlled More folds a section list in or out of view', async () => {
+      // A section (`/s0`) keeps its own list pane on screen; padding the tab
+      // count past MAX_TABS folds later sections into More without touching
+      // `/s0` or `showMore` itself — the fold alone flips `moreOpen`.
+      const foldingSectionsNav = (folded: boolean) => (
+        <Navigator value='/s0' showMore>
+          <Navigator.Primary aria-label='Main'>
+            {testBrand}
+            <Navigator.Item value='/' href='/'>
+              Home
+            </Navigator.Item>
+            {Array.from({ length: folded ? 6 : 2 }, (_, i) => `s${i}`).map(
+              (section) => (
+                <Navigator.Item
+                  key={section}
+                  value={`/${section}`}
+                  href={`/${section}`}
+                >
+                  {section}
+                  <Navigator.Secondary aria-label={`${section} pages`}>
+                    <Navigator.Item
+                      value={`/${section}/1`}
+                      href={`/${section}/1`}
+                    >
+                      {`${section} 1`}
+                    </Navigator.Item>
+                  </Navigator.Secondary>
+                </Navigator.Item>
+              )
+            )}
+          </Navigator.Primary>
+          <Navigator.Content>
+            <Pane role='detail' current>
+              Detail
+            </Pane>
+          </Navigator.Content>
+        </Navigator>
+      )
+      const more = () =>
+        document.querySelector('[data-slot="pane"][data-overflow]')
+
+      const { rerender } = render(foldingSectionsNav(false))
+      await flushViewportMeasurement()
+      flushFrame()
+      flushFrame()
+      expect(more()).toBeNull()
+
+      rerender(foldingSectionsNav(true))
+      expect(more()).not.toBeNull()
+      expect(content()).toHaveAttribute('data-instant')
+      expect(row()).not.toHaveAttribute('data-pushing')
+      flushFrame()
+      flushFrame()
+      expect(content()).not.toHaveAttribute('data-instant')
+      await flushViewportMeasurement()
+
+      rerender(foldingSectionsNav(false))
+      expect(more()).toBeNull()
+      expect(content()).toHaveAttribute('data-instant')
+      expect(row()).not.toHaveAttribute('data-pushing')
+      flushFrame()
+      flushFrame()
+      expect(content()).not.toHaveAttribute('data-instant')
+      await flushViewportMeasurement()
+    })
+
+    const sectionsNav = (value: string, showMore?: boolean) => (
+      <Navigator value={value} showMore={showMore}>
         <Navigator.Primary aria-label='Main'>
           {testBrand}
           <Navigator.Item value='/' href='/'>
@@ -2451,6 +2517,15 @@ describe('Navigator.OverflowPane', () => {
       const { rerender } = render(sectionsNav(from))
       await flushViewportMeasurement()
       rerender(sectionsNav(to))
+      expect(content()).not.toHaveAttribute('data-instant')
+      expect(row()).toHaveAttribute('data-pushing')
+      await flushViewportMeasurement()
+    })
+
+    it('still marks a real push within a section while a controlled More stays open', async () => {
+      const { rerender } = render(sectionsNav('/a', true))
+      await flushViewportMeasurement()
+      rerender(sectionsNav('/a/1', true))
       expect(content()).not.toHaveAttribute('data-instant')
       expect(row()).toHaveAttribute('data-pushing')
       await flushViewportMeasurement()
