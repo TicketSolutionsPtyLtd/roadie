@@ -71,9 +71,9 @@ const slotOf = (body: string) =>
     ? 'fill'
     : body.includes('flex: 0 0 ')
       ? 'parent'
-      : body.includes('translate: -33%')
+      : body.includes('translate: calc(-33%')
         ? 'behind'
-        : body.includes('translate: calc(100%')
+        : body.includes('translate: calc((100%')
           ? 'ahead'
           : 'top'
 
@@ -763,13 +763,43 @@ describe('the stacked tier keeps the md inset and the edge cover', () => {
   it('parks an ahead pane clear of the gutter', () => {
     const ahead = rules
       .filter(stacked)
-      .filter((rule) => rule.body.includes('translate: calc(100%'))
+      .filter((rule) => rule.body.includes('translate: calc((100%'))
     expect(ahead.length).toBeGreaterThan(0)
     for (const rule of ahead) {
       expect(rule.body).toContain(
-        'translate: calc(100% + var(--pane-stack-inset, 0px)) 0;'
+        'translate: calc((100% + var(--pane-stack-inset, 0px)) * var(--pane-dir, 1)) 0;'
       )
     }
+  })
+
+  it('mirrors the parked translates in a right-to-left row, per row', () => {
+    const behind = rules
+      .filter(stacked)
+      .filter((rule) => slotOf(rule.body) === 'behind')
+    expect(behind.length).toBeGreaterThan(0)
+    for (const rule of behind) {
+      expect(rule.body).toContain(
+        'translate: calc(-33% * var(--pane-dir, 1)) 0;'
+      )
+    }
+    const dirOf = (row: Element) =>
+      rules
+        .filter(
+          (rule) =>
+            rule.body.startsWith('--pane-dir:') && row.matches(rule.selector)
+        )
+        .map((rule) => rule.body)
+        .at(-1)
+    const $ = html(`
+      <div dir="rtl">
+        <div data-slot="navigator-panes" data-level="0" id="outer-row">
+          <div data-slot="pane" data-stack data-level="0" data-depth="0" dir="ltr">
+            <div data-slot="navigator-panes" data-level="1" id="inner-row"></div>
+          </div>
+        </div>
+      </div>`)
+    expect(dirOf($('#outer-row'))).toBe('--pane-dir: -1;')
+    expect(dirOf($('#inner-row'))).toBe('--pane-dir: 1;')
   })
 
   it('lifts the top pane over the cover once it lands and drops a leaving pane at once', () => {

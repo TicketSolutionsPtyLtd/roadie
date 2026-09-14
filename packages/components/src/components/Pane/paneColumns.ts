@@ -175,6 +175,10 @@ const LANDING =
   'transition-property: translate, opacity, z-index; transition-timing-function: var(--ease-enter), var(--ease-enter), step-end;'
 const LEAVING =
   'transition-property: translate, opacity, visibility, z-index; transition-timing-function: var(--ease-enter), var(--ease-enter), var(--ease-enter), step-start;'
+// `--pane-dir` flips the parked translates under `dir="rtl"`.
+const BEHIND = 'translate: calc(-33% * var(--pane-dir, 1)) 0;'
+const AHEAD =
+  'translate: calc((100% + var(--pane-stack-inset, 0px)) * var(--pane-dir, 1)) 0;'
 const COLUMN = `translate: none; opacity: 1; visibility: visible; pointer-events: auto; content-visibility: visible; ${LANDED} transition: none;`
 
 function geometry(
@@ -186,9 +190,9 @@ function geometry(
   const parked = `visibility: hidden; pointer-events: none; content-visibility: auto; ${PARKED} ${columns > 1 ? 'transition: none;' : LEAVING}`
   switch (cell.slot) {
     case 'behind':
-      return `translate: -33% 0; opacity: 0.9; ${parked}`
+      return `${BEHIND} opacity: 0.9; ${parked}`
     case 'ahead':
-      return `translate: calc(100% + var(--pane-stack-inset, 0px)) 0; opacity: 1; ${parked}`
+      return `${AHEAD} opacity: 1; ${parked}`
     case 'top':
       return `translate: 0 0; opacity: 1; visibility: visible; pointer-events: auto; content-visibility: visible; ${LANDED} ${LANDING}`
     case 'fill':
@@ -278,6 +282,9 @@ function levelRules(level: number): string {
   return [
     // Reset per row, or a nested row inherits its outer row's value.
     `  ${row(level)} { --pane-stack-inset-start: var(--pane-stack-inset); }`,
+    // Attributes, not `:dir()`: Lightning CSS lowers `:dir()` to a `:lang()` list.
+    `  [dir="rtl"] ${row(level)} { --pane-dir: -1; }`,
+    `  [dir="rtl"] [dir="ltr"] ${row(level)} { --pane-dir: 1; }`,
     `  ${besideVerticalPrimary(level)} { --pane-stack-inset-start: 0px; }`,
     `  ${pane} { position: absolute !important; ${inset} }`,
     `  ${row(level)} ${deep} { position: absolute !important; ${inset} z-index: 3; visibility: hidden; pointer-events: none; }`,
