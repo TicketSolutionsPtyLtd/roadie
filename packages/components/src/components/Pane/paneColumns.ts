@@ -234,12 +234,19 @@ function tierRules(level: number, columns: number): string {
   ].join('\n')
 }
 
+// Hides, never shows: `!important` so a consumer's display utility can't keep
+// a yielded inspector on screen, while a shown one keeps the consumer's display.
+const HIDDEN = 'display: none !important;'
+
 function inspectorRules(level: number): string {
-  const rules: string[] = []
+  const inspector = `[data-role="inspector"][data-level="${level}"]`
+  const rules = [
+    `  ${row(level)}:not([data-overflow]):not(:has([data-stack][data-level="${level}"]:not([data-overflow]))) ${inspector} { ${HIDDEN} }`
+  ]
   for (const base of BASES) {
     for (const levels of levelCounts(base)) {
       rules.push(
-        `@container panes (width >= ${rem(inspectorTier(levels))}) { ${row(level)}${baseIs(level, base)}${levelsIs(level, levels, base)} [data-role="inspector"][data-level="${level}"] { display: block; } }`
+        `@container panes (width < ${rem(inspectorTier(levels))}) { ${row(level)}${baseIs(level, base)}${levelsIs(level, levels, base)} ${inspector} { ${HIDDEN} } }`
       )
     }
   }
@@ -276,9 +283,9 @@ function levelRules(level: number): string {
     `  ${row(level)} ${deep} { position: absolute !important; ${inset} z-index: 3; visibility: hidden; pointer-events: none; }`,
     `  ${row(level)}:not([data-reveal]) ${deep}[data-current] { visibility: visible; pointer-events: auto; }`,
     `  @media (prefers-reduced-motion: no-preference) { ${row(level)}[data-pushing] ${stacked} { transition-duration: var(--duration-slow); } }`,
-    `  ${row(level)} [data-role="inspector"][data-level="${level}"] { display: none; order: 99; flex: 0 0 ${rem(PANE_INSPECTOR)}; }`,
-    `  ${row(level)}:not([data-overflow]) [data-stack][data-level="${level}"][data-overflow] { display: none; }`,
-    `  ${row(level)}[data-overflow] ${stackPane(level, 0)}:not([data-overflow]) { display: none; }`
+    `  ${row(level)} [data-role="inspector"][data-level="${level}"] { order: 99; flex: 0 0 ${rem(PANE_INSPECTOR)}; }`,
+    `  ${row(level)}:not([data-overflow]) [data-stack][data-level="${level}"][data-overflow] { ${HIDDEN} }`,
+    `  ${row(level)}[data-overflow] ${stackPane(level, 0)}:not([data-overflow]) { ${HIDDEN} }`
   ].join('\n')
 }
 

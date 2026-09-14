@@ -174,7 +174,10 @@ and its two cells read the properties as their `display`. Two levels × three
 tiers × 30 combinations is about 180 rules, roughly 3KB gzipped. The file is
 wrapped in `@layer components`, so Tailwind utilities on a pane (a consumer's
 `className`, the `data-instant` transition cut) still win, while the `!important`
-on `position` beats Base UI's inline `position: relative`.
+on `position` beats Base UI's inline `position: relative`. The rules that hide
+(a closed More, the root under an open More, a yielded inspector) are
+`display: none !important`, so a display utility can't keep them on screen; a
+shown inspector gets no display from the sheet and keeps the consumer's.
 
 **Standalone defaults.** A pane with no orchestrator sets the same properties
 from its own depth: depth 0 draws nothing, any other depth draws Back and
