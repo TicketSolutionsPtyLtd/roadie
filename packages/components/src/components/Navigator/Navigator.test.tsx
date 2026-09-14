@@ -21,7 +21,8 @@ import {
   primaryOf,
   scrollViewport,
   testBrand,
-  withScrollSentinels
+  withScrollSentinels,
+  withStubLink
 } from './testUtils'
 import { NAV_COLLAPSE_THRESHOLD } from './useTopPaneChrome'
 import {
@@ -1794,14 +1795,81 @@ describe('Navigator.OverflowPane', () => {
     )
   })
 
-  it('lists the folded items, and selecting one closes it', async () => {
+  it('lists the folded items, and a routed row closes it once its route commits', async () => {
     const onValueChange = vi.fn()
+    const nav = (value: string) =>
+      withStubLink(
+        <Navigator value={value} onValueChange={onValueChange}>
+          <Navigator.Primary aria-label='Main'>
+            {testBrand}
+            {['/a', '/b', '/c', '/d', '/e', '/f'].map((v) => (
+              <Navigator.Item key={v} value={v} href={v}>
+                {v}
+              </Navigator.Item>
+            ))}
+          </Navigator.Primary>
+          <Navigator.Content>
+            <Pane role='detail' current>
+              Detail
+            </Pane>
+          </Navigator.Content>
+        </Navigator>
+      )
+    const { rerender } = render(nav('/a'))
+    await flushViewportMeasurement()
+    await userEvent.click(screen.getByRole('button', { name: /More/ }))
+
+    const more = () => document.querySelectorAll('[data-slot="pane"]')[1]!
+    await userEvent.click(
+      within(more() as HTMLElement).getByRole('link', { name: '/e' })
+    )
+    expect(onValueChange).toHaveBeenCalledWith('/e')
+    expect(more()).toHaveAttribute('data-stack-position', 'top')
+
+    rerender(nav('/e'))
+    expect(more()).toHaveAttribute('data-stack-position', 'ahead')
+  })
+
+  it('defers the same way from a declared More pane', async () => {
+    const nav = (value: string) =>
+      withStubLink(
+        <Navigator value={value}>
+          <Navigator.Primary aria-label='Main'>
+            {testBrand}
+            {['/a', '/b', '/c', '/d', '/e', '/f'].map((v) => (
+              <Navigator.Item key={v} value={v} href={v}>
+                {v}
+              </Navigator.Item>
+            ))}
+          </Navigator.Primary>
+          <Navigator.Content>
+            <Pane role='detail' current>
+              Detail
+            </Pane>
+            <Navigator.OverflowPane aria-label='Everything else'>
+              <Navigator.OverflowItems />
+            </Navigator.OverflowPane>
+          </Navigator.Content>
+        </Navigator>
+      )
+    const { rerender } = render(nav('/a'))
+    await flushViewportMeasurement()
+    await userEvent.click(screen.getByRole('button', { name: /More/ }))
+    const more = () =>
+      screen.getByRole('region', { name: 'Everything else', hidden: true })
+    await userEvent.click(within(more()).getByRole('link', { name: '/f' }))
+    expect(more()).toHaveAttribute('data-stack-position', 'top')
+    rerender(nav('/f'))
+    expect(more()).toHaveAttribute('data-stack-position', 'ahead')
+  })
+
+  it('closes at once for a routeless row, which no route will follow', async () => {
     render(
-      <Navigator value='/a' onValueChange={onValueChange}>
+      <Navigator value='a'>
         <Navigator.Primary aria-label='Main'>
           {testBrand}
-          {['/a', '/b', '/c', '/d', '/e', '/f'].map((v) => (
-            <Navigator.Item key={v} value={v} href={v}>
+          {['a', 'b', 'c', 'd', 'e', 'f'].map((v) => (
+            <Navigator.Item key={v} value={v}>
               {v}
             </Navigator.Item>
           ))}
@@ -1815,17 +1883,40 @@ describe('Navigator.OverflowPane', () => {
     )
     await flushViewportMeasurement()
     await userEvent.click(screen.getByRole('button', { name: /More/ }))
-
-    const overflow = document.querySelectorAll('[data-slot="pane"]')[1]!
-    const row = within(overflow as HTMLElement).getByRole('link', {
-      name: '/e'
-    })
-    await userEvent.click(row)
-    expect(onValueChange).toHaveBeenCalledWith('/e')
-    expect(document.querySelectorAll('[data-slot="pane"]')[1]).toHaveAttribute(
-      'data-stack-position',
-      'ahead'
+    const more = () => document.querySelectorAll('[data-slot="pane"]')[1]!
+    await userEvent.click(
+      within(more() as HTMLElement).getByRole('button', { name: 'e' })
     )
+    expect(more()).toHaveAttribute('data-stack-position', 'ahead')
+  })
+
+  it('closes at once when the current route is chosen from More', async () => {
+    render(
+      withStubLink(
+        <Navigator value='/e'>
+          <Navigator.Primary aria-label='Main'>
+            {testBrand}
+            {['/a', '/b', '/c', '/d', '/e', '/f'].map((v) => (
+              <Navigator.Item key={v} value={v} href={v}>
+                {v}
+              </Navigator.Item>
+            ))}
+          </Navigator.Primary>
+          <Navigator.Content>
+            <Pane role='detail' current>
+              Detail
+            </Pane>
+          </Navigator.Content>
+        </Navigator>
+      )
+    )
+    await flushViewportMeasurement()
+    await userEvent.click(screen.getByRole('button', { name: /More/ }))
+    const more = () => document.querySelectorAll('[data-slot="pane"]')[1]!
+    await userEvent.click(
+      within(more() as HTMLElement).getByRole('link', { name: '/e' })
+    )
+    expect(more()).toHaveAttribute('data-stack-position', 'ahead')
   })
 
   it('renders consumer content around the generated list', async () => {

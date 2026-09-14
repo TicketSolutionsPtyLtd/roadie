@@ -782,7 +782,9 @@ More opens a list pane — over the stack on a phone, switching in place like
 any tab rather than sliding, the leading column beside your detail from `lg`.
 Like an active tab, tapping More again scrolls it to the top rather than
 closing it. Choosing any destination closes it: a row, a
-primary item or tab, or a new `value` from your router, like Back. To keep it
+primary item or tab, or a new `value` from your router, like Back. A row with
+an `href` keeps More open until `value` changes, so the old page never shows
+while its route loads; a row without one closes it at once. To keep it
 in the URL, see [Showing More from the URL](#showing-more-from-the-url). Omit it and `Navigator.Content` generates one
 titled "More"; declare `Navigator.OverflowPane` with `Navigator.OverflowItems`
 inside to write your own header or add content around the rows.
