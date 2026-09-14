@@ -40,6 +40,7 @@ import { NavigatorSecondaryPane } from './NavigatorSecondaryPane'
 import { NavigatorSectionPane } from './NavigatorSectionPane'
 import { OVERFLOW_LABEL } from './mobileSlots'
 import {
+  type DepthEntry,
   derivePositions,
   deriveRootIndex,
   orderByDocumentPosition,
@@ -53,6 +54,8 @@ import { navigatorContentVariants, navigatorPanesVariants } from './variants'
 export type NavigatorContentProps = ComponentProps<'main'>
 
 type RegisteredPane = { id: string; node: HTMLElement } & PaneRegistration
+
+const SECTION_ROOT: DepthEntry = { role: 'list', kind: 'generated-section' }
 
 /** Arranges panes and decides which is the top of the stack. */
 export function NavigatorContent({
@@ -128,6 +131,47 @@ export function NavigatorContent({
       ),
     [registered, overflowOpen]
   )
+  // The children scans avoid a first-render flicker; registration finds a wrapped declaration.
+  const declaredOverflow =
+    Children.toArray(children).some(
+      (child) => isValidElement(child) && child.type === NavigatorOverflowPane
+    ) || ordered.some((pane) => pane.kind === 'overflow')
+  const directOverrides = Children.toArray(children).flatMap((child) =>
+    isValidElement<{ value: string }>(child) &&
+    child.type === NavigatorSecondaryPane
+      ? [child.props.value]
+      : []
+  )
+  const overridden =
+    activeSection !== null &&
+    (declaredSecondaryPanes.has(activeSection.value) ||
+      directOverrides.includes(activeSection.value))
+
+  const showsSectionPane =
+    activeSection !== null && listPaneShows && !overflowOpen && !overridden
+  const generatesOverflow =
+    !declaredOverflow &&
+    overflowItems.horizontal.length + overflowItems.vertical.length > 0
+
+  // What this render draws, not the snapshot, which learns of a generated pane a commit late.
+  const depths = useMemo(() => {
+    const drawn = ordered.filter(
+      (pane) =>
+        (pane.kind !== 'generated-section' || showsSectionPane) &&
+        (pane.kind !== 'generated-overflow' || generatesOverflow)
+    )
+    const sectionPending =
+      showsSectionPane &&
+      !drawn.some((pane) => pane.kind === 'generated-section')
+    const resolved = resolveDepths(
+      sectionPending ? [SECTION_ROOT, ...drawn] : drawn
+    )
+    const shift = sectionPending ? 1 : 0
+    return new Map(
+      drawn.map((pane, index) => [pane.id, resolved[index + shift] ?? null])
+    )
+  }, [ordered, showsSectionPane, generatesOverflow])
+
   const onSectionRoute =
     activeSection !== null && isActiveValue(activeSection.value, value)
   const revealing =
@@ -136,7 +180,6 @@ export function NavigatorContent({
     () => derivePositions(ordered, revealing),
     [ordered, revealing]
   )
-  const depths = useMemo(() => resolveDepths(ordered), [ordered])
   const topIndex = positions.indexOf('top')
   const topId = topIndex === -1 ? null : (ordered[topIndex]?.id ?? null)
   const rootIndex = useMemo(() => deriveRootIndex(ordered), [ordered])
@@ -160,10 +203,10 @@ export function NavigatorContent({
 
   const depthOf = useCallback(
     (id: string, entry: PaneRegistration) => {
-      const index = ordered.findIndex((pane) => pane.id === id)
-      return index === -1 ? provisionalDepth(entry) : (depths[index] ?? null)
+      const depth = depths.get(id)
+      return depth === undefined ? provisionalDepth(entry) : depth
     },
-    [ordered, depths]
+    [depths]
   )
 
   const chromeOf = useCallback(
@@ -192,22 +235,6 @@ export function NavigatorContent({
     }),
     [register, unregister, positionOf, chromeOf, isRootOf, depthOf, level]
   )
-
-  // The children scans avoid a first-render flicker; registration finds a wrapped declaration.
-  const declaredOverflow =
-    Children.toArray(children).some(
-      (child) => isValidElement(child) && child.type === NavigatorOverflowPane
-    ) || ordered.some((pane) => pane.kind === 'overflow')
-  const directOverrides = Children.toArray(children).flatMap((child) =>
-    isValidElement<{ value: string }>(child) &&
-    child.type === NavigatorSecondaryPane
-      ? [child.props.value]
-      : []
-  )
-  const overridden =
-    activeSection !== null &&
-    (declaredSecondaryPanes.has(activeSection.value) ||
-      directOverrides.includes(activeSection.value))
 
   // Reads the ref, not `ordered`: child effects have registered by now, the render hadn't.
   const hasChildren = children != null && children !== false
@@ -240,11 +267,6 @@ export function NavigatorContent({
   useEffect(() => {
     if (!isDev()) return
     const live = orderByDocumentPosition(Array.from(panes.current.values()))
-    // A generated section pane gives way to a wrapped override a commit late.
-    const sections = live.filter(
-      (pane) => pane.kind === 'section' || pane.kind === 'generated-section'
-    )
-    if (sections.length > 1) return
     const resolved = resolveDepths(live)
     live.forEach((pane, index) => {
       const depth = resolved[index] ?? null
@@ -268,24 +290,21 @@ export function NavigatorContent({
     setPrimaryNav(topPrimaryNav)
   }, [topPrimaryNav, setPrimaryNav])
 
-  const fallbackOverflow =
-    !declaredOverflow &&
-    overflowItems.horizontal.length + overflowItems.vertical.length > 0 ? (
-      <GeneratedOverflowContext value key='__navigator-overflow'>
-        <NavigatorOverflowPane>
-          <PaneHeader>
-            <PaneTitle>{OVERFLOW_LABEL}</PaneTitle>
-          </PaneHeader>
-          <NavigatorOverflowItems />
-        </NavigatorOverflowPane>
-      </GeneratedOverflowContext>
-    ) : null
+  const fallbackOverflow = generatesOverflow ? (
+    <GeneratedOverflowContext value key='__navigator-overflow'>
+      <NavigatorOverflowPane>
+        <PaneHeader>
+          <PaneTitle>{OVERFLOW_LABEL}</PaneTitle>
+        </PaneHeader>
+        <NavigatorOverflowItems />
+      </NavigatorOverflowPane>
+    </GeneratedOverflowContext>
+  ) : null
 
   // Keyed so the search resets with the section; More replaces it while open.
-  const sectionPane =
-    activeSection !== null && listPaneShows && !overflowOpen && !overridden ? (
-      <NavigatorSectionPane key={activeSection.value} section={activeSection} />
-    ) : null
+  const sectionPane = showsSectionPane ? (
+    <NavigatorSectionPane key={activeSection.value} section={activeSection} />
+  ) : null
 
   return (
     <main

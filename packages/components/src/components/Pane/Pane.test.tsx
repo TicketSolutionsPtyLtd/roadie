@@ -1744,6 +1744,29 @@ describe('depth attributes', () => {
     warn.mockRestore()
   })
 
+  it('lets an explicit depth outrank the role and document order', async () => {
+    render(
+      <Navigator value='/a'>
+        <Navigator.Content>
+          <Pane role='list'>List</Pane>
+          <Pane role='detail' depth={2} current>
+            Sub
+          </Pane>
+          <Pane role='detail' current>
+            Detail
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const panes = Array.from(document.querySelectorAll('[data-slot="pane"]'))
+    expect(panes.map((p) => p.getAttribute('data-depth'))).toEqual([
+      '0',
+      '2',
+      '1'
+    ])
+  })
+
   it('writes a fifth stack pane at the deepest column, and warns', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(

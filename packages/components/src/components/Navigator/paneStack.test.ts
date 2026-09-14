@@ -279,4 +279,52 @@ describe('resolveDepths', () => {
       ])
     ).toEqual([0, 1, 0])
   })
+
+  it('separates panes that share a depth by document order', () => {
+    expect(
+      resolveDepths([
+        { role: 'list', kind: 'pane' },
+        { role: 'detail', kind: 'pane' },
+        { role: 'detail', kind: 'pane' },
+        { role: 'detail', kind: 'pane' }
+      ])
+    ).toEqual([0, 1, 2, 3])
+  })
+
+  it('lets a declared depth outrank document order', () => {
+    expect(
+      resolveDepths([
+        { role: 'list', kind: 'pane' },
+        { role: 'detail', kind: 'pane', depth: 2 },
+        { role: 'detail', kind: 'pane' }
+      ])
+    ).toEqual([0, 2, 1])
+  })
+
+  it('closes the gap under a declared depth', () => {
+    expect(
+      resolveDepths([
+        { role: 'list', kind: 'pane' },
+        { role: 'detail', kind: 'pane', depth: 2 }
+      ])
+    ).toEqual([0, 1])
+  })
+
+  it('makes open More the root beside the detail, and closed More nothing', () => {
+    const detail = { role: 'detail', kind: 'pane' } as const
+    const more = { role: 'list', kind: 'generated-overflow' } as const
+    expect(resolveDepths([detail, { ...more, current: true }])).toEqual([1, 0])
+    expect(resolveDepths([detail, { ...more, current: false }])).toEqual([0, 0])
+  })
+
+  it('gives every root list one depth, so a handover pushes nothing deeper', () => {
+    expect(
+      resolveDepths([
+        { role: 'list', kind: 'generated-section' },
+        { role: 'list', kind: 'section' },
+        { role: 'detail', kind: 'pane' },
+        { role: 'list', kind: 'overflow', current: true }
+      ])
+    ).toEqual([0, 0, 1, 0])
+  })
 })
