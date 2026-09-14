@@ -246,13 +246,17 @@ function inspectorRules(level: number): string {
   return rules.join('\n')
 }
 
+// `@container panes` finds the nearest Content, so each level reads its own row.
 function inspectorVariant(): string {
   const branches: string[] = []
-  for (const base of BASES) {
-    for (const levels of levelCounts(base)) {
-      branches.push(
-        `  @container panes (width < ${rem(inspectorTier(levels))}) { ${row(0)}${baseIs(0, base)}${levelsIs(0, levels, base)} & { @slot; } }`
-      )
+  for (let level = 0; level < PANE_MAX_LEVELS; level += 1) {
+    const own = level + 1 < PANE_MAX_LEVELS ? `:not(${row(level + 1)} *)` : ''
+    for (const base of BASES) {
+      for (const levels of levelCounts(base)) {
+        branches.push(
+          `  @container panes (width < ${rem(inspectorTier(levels))}) { ${row(level)}${baseIs(level, base)}${levelsIs(level, levels, base)} &${own} { @slot; } }`
+        )
+      }
     }
   }
   return `@custom-variant pane-inspector-yielded {\n${branches.join('\n')}\n}`
