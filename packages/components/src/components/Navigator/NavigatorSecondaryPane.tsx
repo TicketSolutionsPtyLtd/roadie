@@ -4,7 +4,11 @@ import { use, useEffect } from 'react'
 
 import { PaneRoot, type PaneRootProps } from '../Pane/PaneRoot'
 import { PaneKindContext } from '../Pane/PaneStackContext'
-import { NavigatorContext } from './NavigatorContext'
+import {
+  NavigatorActionsContext,
+  NavigatorDisclosureContext,
+  NavigatorSelectionContext
+} from './NavigatorContext'
 
 export type NavigatorSecondaryPaneProps = Omit<
   PaneRootProps,
@@ -19,8 +23,9 @@ export function NavigatorSecondaryPane({
   value,
   ...props
 }: NavigatorSecondaryPaneProps) {
-  const { activeSection, listPaneShows, overflowOpen, declareSecondaryPane } =
-    use(NavigatorContext)
+  const { declareSecondaryPane } = use(NavigatorActionsContext)
+  const { activeSection, listPaneShows } = use(NavigatorSelectionContext)
+  const { overflowOpen } = use(NavigatorDisclosureContext)
 
   useEffect(() => declareSecondaryPane(value), [value, declareSecondaryPane])
 

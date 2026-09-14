@@ -4,7 +4,10 @@ import { type RefObject, use } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { NavigatorContext } from './NavigatorContext'
+import {
+  NavigatorDisclosureContext,
+  NavigatorSelectionContext
+} from './NavigatorContext'
 import { useSlidingIndicator } from './useSlidingIndicator'
 import {
   type NavigatorIndicatorSurface,
@@ -30,7 +33,8 @@ export function NavigatorIndicator({
   hidden = false,
   className
 }: NavigatorIndicatorProps) {
-  const { value, openMenu, overflowOpen } = use(NavigatorContext)
+  const { value } = use(NavigatorSelectionContext)
+  const { openMenu, overflowOpen } = use(NavigatorDisclosureContext)
   const { style, ready, settled } = useSlidingIndicator(
     trackRef,
     `${value}|${openMenu}|${overflowOpen}`

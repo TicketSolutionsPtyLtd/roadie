@@ -4,14 +4,14 @@ import { use } from 'react'
 
 import {
   type NavigatorActiveSection,
-  NavigatorContext
+  NavigatorSelectionContext
 } from './NavigatorContext'
 import { findSectionByValue } from './activeSection'
 import { type NavigatorSectionData, toSectionData } from './sectionData'
 
 /** The section with this `value`, or the active one without it. */
 export function useSection(value?: string): NavigatorActiveSection | null {
-  const { primaryChildren, activeSection } = use(NavigatorContext)
+  const { primaryChildren, activeSection } = use(NavigatorSelectionContext)
   return value === undefined
     ? activeSection
     : findSectionByValue(primaryChildren, value)
@@ -21,7 +21,7 @@ export function useSection(value?: string): NavigatorActiveSection | null {
 export function useNavigatorSection(
   value?: string
 ): NavigatorSectionData | null {
-  const { value: activeValue } = use(NavigatorContext)
+  const { value: activeValue } = use(NavigatorSelectionContext)
   const section = useSection(value)
   return section === null ? null : toSectionData(section, activeValue)
 }

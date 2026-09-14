@@ -6,7 +6,10 @@ import { SidebarSimpleIcon } from '@phosphor-icons/react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { NavigatorContext } from './NavigatorContext'
+import {
+  NavigatorActionsContext,
+  NavigatorExpansionContext
+} from './NavigatorContext'
 import { NavigatorTileTooltip } from './NavigatorTileTooltip'
 import { presentNavIcon } from './presentNavIcon'
 import {
@@ -22,8 +25,8 @@ export type NavigatorExpandToggleProps = {
 export function NavigatorExpandToggle({
   className
 }: NavigatorExpandToggleProps) {
-  const { expanded, expandedPending, setExpanded, primaryId } =
-    use(NavigatorContext)
+  const { setExpanded, primaryId } = use(NavigatorActionsContext)
+  const { expanded, expandedPending } = use(NavigatorExpansionContext)
   const label = expanded ? 'Collapse sidebar' : 'Expand sidebar'
   return (
     <div

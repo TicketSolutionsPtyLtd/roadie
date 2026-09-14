@@ -27,7 +27,12 @@ import {
 } from '../Pane/PaneStackContext'
 import { PaneTitle } from '../Pane/PaneTitle'
 import { GeneratedOverflowContext } from './GeneratedOverflowContext'
-import { NavigatorContext, isActiveValue } from './NavigatorContext'
+import {
+  NavigatorActionsContext,
+  NavigatorDisclosureContext,
+  NavigatorSelectionContext,
+  isActiveValue
+} from './NavigatorContext'
 import { NavigatorOverflowItems } from './NavigatorOverflowItems'
 import { NavigatorOverflowPane } from './NavigatorOverflowPane'
 import { NavigatorSecondaryPane } from './NavigatorSecondaryPane'
@@ -53,16 +58,15 @@ export function NavigatorContent({
   ref: forwardedRef,
   ...props
 }: NavigatorContentProps) {
+  const { setPrimaryNav } = use(NavigatorActionsContext)
   const {
     value,
-    setPrimaryNav,
-    overflowItems,
-    overflowOpen,
     activeSection,
     listPaneShows,
     declaredSecondaryPanes,
     showList
-  } = use(NavigatorContext)
+  } = use(NavigatorSelectionContext)
+  const { overflowItems, overflowOpen } = use(NavigatorDisclosureContext)
 
   const contentRef = useRef<HTMLElement | null>(null)
   const ref = useMemo(() => mergeRefs(contentRef, forwardedRef), [forwardedRef])

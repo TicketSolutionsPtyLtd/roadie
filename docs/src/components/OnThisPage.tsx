@@ -5,7 +5,8 @@ import {
   useCallback,
   useEffect,
   useRef,
-  useState
+  useState,
+  useSyncExternalStore
 } from 'react'
 
 import { usePathname } from 'next/navigation'
@@ -21,9 +22,33 @@ type Heading = { id: string; text: string; level: 2 | 3 }
 
 export type DocHeadings = {
   headings: Heading[]
-  activeId: string | null
   onSelect: (event: MouseEvent<HTMLAnchorElement>, id: string) => void
 }
+
+// Outside React state, so a highlight change re-renders only the lists that
+// show it, not the navigation that declares them.
+let activeHeading: string | null = null
+const activeListeners = new Set<() => void>()
+
+function setActiveHeading(id: string) {
+  if (activeHeading === id) return
+  activeHeading = id
+  activeListeners.forEach((listener) => listener())
+}
+
+const subscribeActiveHeading = (listener: () => void) => {
+  activeListeners.add(listener)
+  return () => {
+    activeListeners.delete(listener)
+  }
+}
+
+const useActiveHeading = () =>
+  useSyncExternalStore(
+    subscribeActiveHeading,
+    () => activeHeading,
+    () => null
+  )
 
 function slugify(text: string): string {
   return text
@@ -43,7 +68,6 @@ function slugify(text: string): string {
 export function useDocHeadings(): DocHeadings {
   const pathname = usePathname()
   const [headings, setHeadings] = useState<Heading[]>([])
-  const [activeId, setActiveId] = useState<string | null>(null)
 
   // Tracks programmatic (click-driven) scrolls so the IntersectionObserver
   // doesn't briefly highlight headings that pass through the active band
@@ -136,7 +160,7 @@ export function useDocHeadings(): DocHeadings {
               a.target.getBoundingClientRect().top -
               b.target.getBoundingClientRect().top
           )
-        if (visible[0]) setActiveId(visible[0].target.id)
+        if (visible[0]) setActiveHeading(visible[0].target.id)
       },
       { rootMargin: `-${SCROLL_OFFSET_PX}px 0px -70% 0px`, threshold: 0 }
     )
@@ -169,7 +193,7 @@ export function useDocHeadings(): DocHeadings {
       // walks up to that scroll container; the pane's scroll-pt keeps the
       // heading clear of the top edge.
       target.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      setActiveId(id)
+      setActiveHeading(id)
       if (window.history.replaceState) {
         window.history.replaceState(null, '', `#${id}`)
       }
@@ -177,14 +201,15 @@ export function useDocHeadings(): DocHeadings {
     []
   )
 
-  return { headings, activeId, onSelect: handleClick }
+  return { headings, onSelect: handleClick }
 }
 
 /**
  * The table of contents itself. Visibility and stickiness belong to the
  * enclosing inspector pane, so this carries neither.
  */
-export function OnThisPage({ headings, activeId, onSelect }: DocHeadings) {
+export function OnThisPage({ headings, onSelect }: DocHeadings) {
+  const activeId = useActiveHeading()
   return (
     <nav aria-label='On this page'>
       <p className='mb-3 text-sm font-semibold text-strong'>On this page</p>

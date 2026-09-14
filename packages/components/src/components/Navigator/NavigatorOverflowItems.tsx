@@ -1,12 +1,6 @@
 'use client'
 
-import {
-  Children,
-  type ReactElement,
-  cloneElement,
-  isValidElement,
-  use
-} from 'react'
+import { type ReactElement, use } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -14,17 +8,15 @@ import { List } from '../List'
 import { ListItemContent } from '../List/ListItem'
 import { listItemVariants } from '../List/variants'
 import {
-  NavigatorContext,
+  NavigatorActionsContext,
+  NavigatorDisclosureContext,
   type NavigatorOverflowSets,
+  NavigatorSelectionContext,
   isActiveValue,
   isSectionActive
 } from './NavigatorContext'
 import type { NavigatorMenuProps } from './NavigatorMenu'
 import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
-import {
-  NavigatorMenuItem,
-  type NavigatorMenuItemProps
-} from './NavigatorMenuItem'
 import type { NavigatorSlotMeta } from './mobileSlots'
 import { presentNavIcon } from './presentNavIcon'
 import { textOf } from './splitSecondary'
@@ -54,26 +46,6 @@ function toRuns(slots: NavigatorSlotMeta[]): Run[] {
   return runs
 }
 
-// A folded menu is as old as the last structural change, so its items call
-// through to the current tree.
-function withCurrentHandlers(
-  menu: ReactElement<NavigatorMenuProps>,
-  activate: (index: number) => void
-) {
-  let position = 0
-  return cloneElement(menu, {
-    children: Children.map(menu.props.children, (child) => {
-      if (!isValidElement(child) || child.type !== NavigatorMenuItem) {
-        return child
-      }
-      const index = position++
-      return cloneElement(child as ReactElement<NavigatorMenuItemProps>, {
-        onClick: () => activate(index)
-      })
-    })
-  })
-}
-
 /**
  * The folded destinations as a `List`, placed by the consumer inside
  * `Navigator.OverflowPane`. Each orientation's rows show only where that
@@ -82,15 +54,11 @@ function withCurrentHandlers(
 export function NavigatorOverflowItems({
   className
 }: NavigatorOverflowItemsProps) {
-  const {
-    overflowItems,
-    value,
-    setValue,
-    setOverflowOpen,
-    openMenu,
-    activateItem,
-    activateMenuItem
-  } = use(NavigatorContext)
+  const { setValue, setOverflowOpen, activateItem } = use(
+    NavigatorActionsContext
+  )
+  const { value } = use(NavigatorSelectionContext)
+  const { overflowItems, openMenu } = use(NavigatorDisclosureContext)
 
   // List.Item renders its own <li>, so it can't be a menu trigger.
   const renderMenuRow = (
@@ -102,9 +70,7 @@ export function NavigatorOverflowItems({
       <NavigatorMenuHost
         surface={`overflow-${set}`}
         value={slot.value}
-        menu={withCurrentHandlers(menu, (index) =>
-          activateMenuItem(slot.value, index)
-        )}
+        menu={menu}
         label={textOf(slot.label) || undefined}
         trigger={
           <button
