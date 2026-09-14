@@ -394,14 +394,13 @@ describe('Navigator server render of depths', () => {
     ).toHaveAttribute('data-reveal')
   })
 
-  it('writes the back label and the Close link from backHref', () => {
+  it('writes the Back name and the Close link from backHref', () => {
     const container = serverRender(<ThreeLevels value='/tickets/glamping' />)
     const sam = container.querySelectorAll('[data-slot="pane"]')[2]!
     const back = sam.querySelector('[aria-label="Back to Glamping"]')
     expect(back).toHaveAttribute('href', '/tickets/glamping')
-    expect(
-      back?.querySelector('[data-slot="pane-back-label"]')
-    ).toHaveTextContent('Glamping')
+    expect(back).toHaveAttribute('data-slot', 'icon-button')
+    expect(back).toHaveTextContent('')
     expect(sam.querySelector('[aria-label="Close"]')).toHaveAttribute(
       'href',
       '/tickets/glamping'

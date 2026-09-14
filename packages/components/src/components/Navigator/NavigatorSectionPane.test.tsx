@@ -972,14 +972,13 @@ describe('back chrome by depth', () => {
     expect(within(glamping).queryByLabelText('Close')).toBeNull()
   })
 
-  it('labels the sub-page Back with the section', async () => {
+  it('names the sub-page Back after the section, as the round icon button', async () => {
     render(<Routed value='/components/a' />)
     await flushViewportMeasurement()
     const back = within(panes()[1]!).getByLabelText('Back to Components')
     expect(back).toHaveAttribute('href', '/components')
-    expect(
-      back.querySelector('[data-slot="pane-back-label"]')
-    ).toHaveTextContent('Components')
+    expect(back).toHaveAttribute('data-slot', 'icon-button')
+    expect(back).toHaveTextContent('')
   })
 })
 
