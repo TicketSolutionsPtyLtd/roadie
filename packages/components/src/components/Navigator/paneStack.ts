@@ -110,10 +110,21 @@ export function provisionalPosition(
   return current ? 'top' : null
 }
 
-export type DepthEntry = { role: PaneRole; kind: PaneKind; depth?: PaneDepth }
+export type DepthEntry = {
+  role: PaneRole
+  kind: PaneKind
+  depth?: PaneDepth
+  current?: boolean
+}
 
 const isOverflow = (kind: PaneKind) =>
   kind === 'overflow' || kind === 'generated-overflow'
+
+// The section list, its override and open More are one root: a handover never pushes the others deeper.
+const isRootList = ({ kind, current }: DepthEntry) =>
+  kind === 'section' ||
+  kind === 'generated-section' ||
+  (isOverflow(kind) && current === true)
 
 /** A pane's depth before it registers: declared, else its role's default. More is always the root. */
 export function provisionalDepth({
@@ -126,16 +137,27 @@ export function provisionalDepth({
   return depth ?? ROLE_DEPTH[role]
 }
 
-/** Depths once registered: stack panes count up in document order; More stays the root. */
+/**
+ * Depths once registered: declared or role default first, document order only
+ * between equals, with no gaps. Closed More stays at the root without taking a depth.
+ */
 export function resolveDepths(
   entries: readonly DepthEntry[]
 ): (number | null)[] {
-  let next = 0
-  return entries.map((entry) => {
-    if (entry.role === 'inspector') return null
-    if (isOverflow(entry.kind)) return 0
-    const depth = next
-    next += 1
-    return depth
+  const offset = entries.some(isRootList) ? 1 : 0
+  const ranked = entries
+    .flatMap((entry, index) => {
+      const depth = provisionalDepth(entry)
+      return depth === null || isOverflow(entry.kind) || isRootList(entry)
+        ? []
+        : [{ index, depth }]
+    })
+    .sort((a, b) => a.depth - b.depth || a.index - b.index)
+  const depths = entries.map((entry): number | null =>
+    entry.role === 'inspector' ? null : 0
+  )
+  ranked.forEach(({ index }, rank) => {
+    depths[index] = rank + offset
   })
+  return depths
 }

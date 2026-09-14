@@ -1,4 +1,4 @@
-import { type ReactNode, useLayoutEffect, useRef } from 'react'
+import { type ReactNode, use, useLayoutEffect, useRef } from 'react'
 
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Navigator } from '.'
 import { Badge } from '../Badge'
 import { Pane } from '../Pane'
+import { NavigatorSelectionContext } from './NavigatorContext'
 import { secondaryBlocks, textOf } from './splitSecondary'
 import {
   FakeIcon,
@@ -921,6 +922,153 @@ describe('the row reveals the root', () => {
     expect(row()).not.toHaveAttribute('data-reveal')
     rerender(<Routed value='/components/a' showList />)
     expect(row()).toHaveAttribute('data-reveal')
+  })
+})
+
+describe('depth while panes come and go', () => {
+  // Every value a detail's depth takes, including ones no paint would show.
+  const watchDetailDepth = (root: Node) => {
+    const seen: (string | null)[] = []
+    const observer = new MutationObserver((records) => {
+      for (const record of records) {
+        if ((record.target as Element).getAttribute('data-role') === 'detail') {
+          seen.push(record.oldValue)
+        }
+      }
+    })
+    observer.observe(root, {
+      subtree: true,
+      attributeFilter: ['data-depth'],
+      attributeOldValue: true
+    })
+    return () => {
+      const records = observer.takeRecords()
+      observer.disconnect()
+      for (const record of records) {
+        if ((record.target as Element).getAttribute('data-role') === 'detail') {
+          seen.push(record.oldValue)
+        }
+      }
+      return seen
+    }
+  }
+
+  it('never pushes the detail to depth 2 while a wrapped override takes over', async () => {
+    const stop = watchDetailDepth(document.body)
+    render(<InactiveOverride value='/components/button' wrapped detail />)
+    await flushViewportMeasurement()
+    await flushViewportMeasurement()
+    const detail = document.querySelector(
+      '[data-slot="pane"][data-role="detail"]'
+    )
+    expect(detail).toHaveAttribute('data-depth', '1')
+    expect(stop()).not.toContain('2')
+  })
+
+  it('moves the detail in the commit the section list comes or goes', async () => {
+    const log: [boolean, string | null][] = []
+    function Probe() {
+      use(NavigatorSelectionContext)
+      const ref = useRef<HTMLSpanElement>(null)
+      useLayoutEffect(() => {
+        log.push([
+          document.querySelector('[data-navigator-section]') !== null,
+          ref.current
+            ?.closest('[data-slot="pane"]')
+            ?.getAttribute('data-depth') ?? null
+        ])
+      })
+      return <span ref={ref} data-slot='depth-probe' />
+    }
+    const ui = (value: string) => (
+      <Navigator value={value}>
+        <Navigator.Primary aria-label='Docs'>
+          {testBrand}
+          <Navigator.Item value='/p' href='/p'>
+            Page
+          </Navigator.Item>
+          <Navigator.Item value='/s' href='/s'>
+            Section
+            <Navigator.Secondary aria-label='Section'>
+              <Navigator.Item value='/s/x' href='/s/x'>
+                X
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Pane role='detail' current>
+            <Probe />
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    const { rerender } = render(ui('/p'))
+    await flushViewportMeasurement()
+    const depth = () =>
+      document
+        .querySelector('[data-slot="depth-probe"]')
+        ?.closest('[data-slot="pane"]')
+        ?.getAttribute('data-depth')
+    expect(depth()).toBe('0')
+    rerender(ui('/s/x'))
+    await flushViewportMeasurement()
+    expect(depth()).toBe('1')
+    expect(log).toContainEqual([true, '1'])
+    expect(log).not.toContainEqual([true, '0'])
+    const back = log.length
+    rerender(ui('/p'))
+    await flushViewportMeasurement()
+    expect(depth()).toBe('0')
+    expect(log.slice(back)).toContainEqual([false, '0'])
+    expect(log.slice(back)).not.toContainEqual([false, '1'])
+  })
+
+  it('keeps the detail at depth 1 while More opens over the section list', async () => {
+    const user = userEvent.setup()
+    const { container } = render(
+      <Navigator value='/a/x'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/a' href='/a'>
+            A
+            <Navigator.Secondary aria-label='A'>
+              <Navigator.Item value='/a/x' href='/a/x'>
+                X
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+          {['/b', '/c', '/d', '/e', '/f'].map((v) => (
+            <Navigator.Item key={v} value={v} href={v}>
+              {v}
+            </Navigator.Item>
+          ))}
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Pane role='detail' current>
+            Detail
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const detail = container.querySelector(
+      '[data-slot="pane"][data-role="detail"]'
+    )!
+    const stop = watchDetailDepth(container)
+    await user.click(
+      within(
+        container.querySelector<HTMLElement>(
+          '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+        )!
+      ).getByRole('button', { name: 'More' })
+    )
+    await flushViewportMeasurement()
+    const more = container.querySelector('[data-slot="pane"][data-overflow]')
+    expect(more).toHaveAttribute('data-current')
+    expect(more).toHaveAttribute('data-depth', '0')
+    expect(detail).toHaveAttribute('data-depth', '1')
+    expect(stop()).not.toContain('0')
   })
 })
 
