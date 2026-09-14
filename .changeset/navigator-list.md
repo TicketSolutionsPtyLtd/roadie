@@ -29,16 +29,11 @@ for the data. `Navigator.Item` takes `description`, shown only there.
 `Navigator.MenuItem` also takes an optional `description`, shown under its
 label and read as its accessible description.
 
-`Navigator.Content` now decides how many pane columns fit from its own width,
-with container queries: two columns from 46.25rem, three from 63rem, and a
-stack below that (a generated stylesheet, about 4KB gzipped). The left-most
-pane drops first, and one rule picks each header's leading button at every
-width — Back on the left-most visible pane, Close on the top pane when its
-parent is beside it, nothing on a middle column. `Pane` takes `depth`
-(defaulting from `role`), `Pane.Header`'s `backLabel` names Back's accessible
-name only (it stays the round icon-only `IconButton`) and `backHref` drives
-Close, and the section route reaches the depth-1 pane whether or not it is
-the top. The inspector yields when the stack no longer fits beside it;
-`pane-inspector-yielded:` styles its affordance. Consumers relying on the old
-viewport `lg` breakpoint for columns will see columns switch by container
-width instead.
+`Navigator.Content` decides how many pane columns fit from its own width:
+two from 46.25rem, three from 63rem, stacked below. The left-most pane drops
+first. Back sits on the left-most visible pane and Close on the top pane when
+its parent is beside it; both go up one level. `Pane` takes `depth`
+(defaulting from `role`), and `Pane.Header`'s `backLabel` names Back for
+assistive tech. The inspector yields first; `pane-inspector-yielded:` styles
+its affordance. The column rules are a generated stylesheet, about 4KB
+gzipped.
