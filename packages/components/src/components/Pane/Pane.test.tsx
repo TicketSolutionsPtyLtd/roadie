@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Pane } from '.'
 import { Navigator } from '../Navigator'
 import {
+  paneColumnsRulesOf,
   scrollViewport,
   testBrand,
   withScrollSentinels
@@ -20,6 +21,7 @@ import {
   PaneStackContext,
   type PaneStackContextValue
 } from './PaneStackContext'
+import { renderPaneColumnsCss } from './paneColumns'
 
 // The pane's stack position resolves after Navigator.Content registers it and
 // a render settles — a plain `flush()` (one microtask) isn't reliably enough
@@ -1802,37 +1804,72 @@ describe('depth attributes', () => {
     ])
   })
 
-  it('writes a fifth stack pane at the deepest column, and warns', async () => {
+  const fivePanes = (current: 'D' | 'E' = 'E') => (
+    <Navigator value='/a'>
+      <Navigator.Content>
+        <Pane role='list'>A</Pane>
+        <Pane role='detail'>B</Pane>
+        <Pane role='detail' depth={2}>
+          C
+        </Pane>
+        <Pane role='detail' depth={3} current={current === 'D'}>
+          D
+        </Pane>
+        <Pane role='detail' depth={3} current={current === 'E'}>
+          E
+        </Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+  const stackPanes = () =>
+    Array.from(document.querySelectorAll<HTMLElement>('[data-slot="pane"]'))
+
+  it('leaves a fifth stack pane without stack attributes', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    render(
-      <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane role='list'>A</Pane>
-          <Pane role='detail'>B</Pane>
-          <Pane role='detail' depth={2}>
-            C
-          </Pane>
-          <Pane role='detail' depth={3}>
-            D
-          </Pane>
-          <Pane role='detail' depth={3} current>
-            E
-          </Pane>
-        </Navigator.Content>
-      </Navigator>
-    )
+    render(fivePanes())
     await flushViewportMeasurement()
-    const panes = Array.from(document.querySelectorAll('[data-slot="pane"]'))
+    const panes = stackPanes()
     expect(panes.map((p) => p.getAttribute('data-depth'))).toEqual([
       '0',
       '1',
       '2',
       '3',
-      '3'
+      null
     ])
+    const fifth = panes[4]!
+    expect(fifth).not.toHaveAttribute('data-stack')
+    expect(fifth).not.toHaveAttribute('data-level')
+    warn.mockRestore()
+  })
+
+  it('matches no stack geometry rule with a fifth pane', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(fivePanes())
+    await flushViewportMeasurement()
+    const [, , , fourth, fifth] = stackPanes()
+    const rules = paneColumnsRulesOf(renderPaneColumnsCss())
+    expect(rules.filter((rule) => fifth!.matches(rule.selector))).toEqual([])
     expect(
-      warn.mock.calls.some((c) => String(c[0]).includes('fifth stack pane'))
+      rules.some(
+        (rule) =>
+          rule.body.startsWith('position: absolute') &&
+          fourth!.matches(rule.selector)
+      )
     ).toBe(true)
+    warn.mockRestore()
+  })
+
+  it('warns once about a fifth stack pane', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { rerender } = render(fivePanes())
+    await flushViewportMeasurement()
+    rerender(fivePanes('D'))
+    await flushViewportMeasurement()
+    rerender(fivePanes('E'))
+    await flushViewportMeasurement()
+    expect(
+      warn.mock.calls.filter((c) => String(c[0]).includes('fifth stack pane'))
+    ).toHaveLength(1)
     warn.mockRestore()
   })
 
