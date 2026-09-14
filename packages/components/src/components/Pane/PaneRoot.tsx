@@ -6,6 +6,7 @@ import {
   use,
   useCallback,
   useEffect,
+  useEffectEvent,
   useId,
   useLayoutEffect,
   useMemo,
@@ -152,12 +153,11 @@ export function PaneRoot({
   // the close affordance stays off rather than closing a stack that doesn't
   // exist.
   const isRoot = stack === null ? true : stack.isRootOf(paneId)
-  const { onViewportScroll, registerScroller } = chrome
+  const { scrollPastAt, onScrollPast, onScrollDown, registerScroller } = chrome
+  // A pane that has opted out of `auto` describes no scroll-linked nav at all.
+  const reportsNav = primaryNav === 'auto' && onScrollPast !== undefined
+  const navAt = reportsNav ? scrollPastAt : undefined
 
-  // The pane owns the coalescing because it owns the viewport; what a scroll
-  // position *means* for the nav belongs to whoever filled the chrome
-  // context. Collapse, though, is the pane's own state — it must be computed
-  // even for a pane that has opted out of reporting to the orchestrator.
   const scrollToTop = useCallback(() => {
     const viewport = viewportRef.current
     if (!viewport) return
@@ -172,35 +172,80 @@ export function PaneRoot({
     [role, collapsed, scrollToTop, isRoot, bodyTitle, setBodyTitle]
   )
 
-  // Collapse is read straight off the event — it's a cheap comparison React
-  // already batches, and the cross-fade should track the same frame the
-  // browser paints the scroll in. Reporting to the orchestrator is the
-  // expensive part worth coalescing: one frame in flight at a time, since a
-  // scroll fires many times per frame on a phone and an uncoalesced
-  // read-then-report would re-render the orchestrator on each one.
-  const handleScroll = () => {
+  // Sentinels, not scroll reads: reading `scrollTop` in the scroll event forced
+  // a style recalc straight after Base UI's own writes, on every event. What a
+  // position means for the nav belongs to whoever filled the chrome context;
+  // collapse is the pane's own, reported or not.
+  const reportPast = useEffectEvent((past: boolean) => onScrollPast?.(past))
+  useEffect(() => {
     const viewport = viewportRef.current
-    if (!viewport) return
-    const top = viewport.scrollTop
-    setCollapsed((was) => (was ? top > EXPAND_AT : top > COLLAPSE_AT))
-
-    if (frame.current !== null) return
-    frame.current = requestAnimationFrame(() => {
-      frame.current = null
-      // A pane that has opted out of `auto` is not describing scroll-linked
-      // nav behaviour at all, so it stays silent rather than reporting a
-      // position the orchestrator would have to learn to ignore.
-      if (primaryNav !== 'auto') return
-      onViewportScroll(viewport.scrollTop)
+    if (!viewport || typeof IntersectionObserver === 'undefined') return
+    const past = new Map<number, boolean>()
+    const beyond = (at: number) => past.get(at) ?? false
+    // A pane that becomes top reports on its first scroll, as a scroll read did.
+    let navSeen = false
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const at = Number((entry.target as HTMLElement).dataset.scrollAt)
+          past.set(
+            at,
+            !entry.isIntersecting &&
+              entry.rootBounds !== null &&
+              entry.boundingClientRect.bottom <= entry.rootBounds.top + 0.5
+          )
+        }
+        setCollapsed((was) => (was ? beyond(EXPAND_AT) : beyond(COLLAPSE_AT)))
+        if (navAt !== undefined && navSeen) reportPast(beyond(navAt))
+      },
+      { root: viewport }
+    )
+    for (const sentinel of viewport.querySelectorAll<HTMLElement>(
+      '[data-slot="pane-scroll-sentinel"]'
+    )) {
+      if (sentinel.closest('[data-slot="pane-viewport"]') === viewport) {
+        observer.observe(sentinel)
+      }
+    }
+    const onFirstScroll = () => {
+      navSeen = true
+      if (navAt !== undefined) reportPast(beyond(navAt))
+    }
+    viewport.addEventListener('scroll', onFirstScroll, {
+      passive: true,
+      once: true
     })
-  }
+    return () => {
+      observer.disconnect()
+      viewport.removeEventListener('scroll', onFirstScroll)
+    }
+  }, [navAt])
 
-  useEffect(
-    () => () => {
+  // Direction, only while asked for: one read per frame, inside the frame,
+  // never interleaved with the scroll handlers' writes.
+  const reportDown = useEffectEvent(() => onScrollDown?.())
+  const wantsDirection = reportsNav && onScrollDown !== undefined
+  useEffect(() => {
+    const viewport = viewportRef.current
+    if (!viewport || !wantsDirection) return
+    // Once, as the pin lands; after that only inside a frame.
+    let last = viewport.scrollTop
+    const onScroll = () => {
+      if (frame.current !== null) return
+      frame.current = requestAnimationFrame(() => {
+        frame.current = null
+        const top = viewport.scrollTop
+        if (top > last) reportDown()
+        last = top
+      })
+    }
+    viewport.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      viewport.removeEventListener('scroll', onScroll)
       if (frame.current !== null) cancelAnimationFrame(frame.current)
-    },
-    []
-  )
+      frame.current = null
+    }
+  }, [wantsDirection])
 
   // The viewport is what scrolls, so scrolling it is the pane's job; deciding
   // when belongs to the orchestrator, which only hands a live `registerScroller`
@@ -238,13 +283,29 @@ export function PaneRoot({
           clearsPrimaryNav: primaryNav !== 'hidden'
         })}
         style={CLIP_HORIZONTAL}
-        onScroll={handleScroll}
       >
         {/* Wrapped so the scrollbar re-measures as content swaps — the
             viewport's own box never changes. `fitWidth={false}` keeps the
             wrapper at the viewport's width so wide children stay clipped
             rather than stretching it. */}
         <ScrollArea.Content fitWidth={false} className='px-(--content-inset)'>
+          <div
+            aria-hidden
+            data-slot='pane-scroll-sentinels'
+            className='pointer-events-none relative h-0'
+          >
+            {[EXPAND_AT, COLLAPSE_AT, navAt].map((at) =>
+              at === undefined ? null : (
+                <div
+                  key={at}
+                  data-slot='pane-scroll-sentinel'
+                  data-scroll-at={at}
+                  className='absolute inset-x-0 top-0'
+                  style={{ height: at }}
+                />
+              )
+            )}
+          </div>
           <PaneChromeContext value={chrome}>
             <PaneContext value={context}>{children}</PaneContext>
           </PaneChromeContext>

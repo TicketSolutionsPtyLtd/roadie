@@ -23,31 +23,29 @@ export function useTopPaneChrome({
   const { setNavCollapsed, setPinExpanded, registerActivePaneScroller } = use(
     NavigatorActionsContext
   )
-  const { navCollapsed, pinExpanded } = use(NavigatorBarContext)
+  const { pinExpanded } = use(NavigatorBarContext)
   const { activeSection } = use(NavigatorSelectionContext)
   const { overflowOpen } = use(NavigatorDisclosureContext)
-  const prevScrollTop = useRef(0)
   // Read at scroll time, so the chrome keeps one identity while the bar toggles.
-  const bar = useRef({ navCollapsed, pinExpanded })
+  const bar = useRef({ pinExpanded, past: false })
   useIsomorphicLayoutEffect(() => {
-    bar.current = { navCollapsed, pinExpanded }
+    bar.current.pinExpanded = pinExpanded
   })
 
-  const onViewportScroll = (scrollTop: number) => {
-    const scrolledDown = scrollTop > prevScrollTop.current
-    prevScrollTop.current = scrollTop
-    const { navCollapsed, pinExpanded } = bar.current
-
+  const onScrollPast = (past: boolean) => {
+    bar.current.past = past
     // The pin holds the bar open until the next scroll down, or the top.
-    const clearsPin =
-      pinExpanded && (scrolledDown || scrollTop <= NAV_COLLAPSE_THRESHOLD)
-    if (clearsPin) setPinExpanded(false)
+    if (!past) {
+      if (bar.current.pinExpanded) setPinExpanded(false)
+      setNavCollapsed(false)
+    } else if (!bar.current.pinExpanded) {
+      setNavCollapsed(true)
+    }
+  }
 
-    // A cleared pin applies to this scroll, not the next.
-    const pinned = pinExpanded && !clearsPin
-
-    const next = scrollTop > NAV_COLLAPSE_THRESHOLD && !pinned
-    if (next !== navCollapsed) setNavCollapsed(next)
+  const onScrollDown = () => {
+    setPinExpanded(false)
+    if (bar.current.past) setNavCollapsed(true)
   }
 
   const backHref =
@@ -56,7 +54,10 @@ export function useTopPaneChrome({
       : undefined
 
   return {
-    onViewportScroll,
+    scrollPastAt: NAV_COLLAPSE_THRESHOLD,
+    onScrollPast,
+    // Direction matters only to a pinned bar, so only then does the pane read it.
+    onScrollDown: pinExpanded ? onScrollDown : undefined,
     registerScroller: registerActivePaneScroller,
     backHref
   }
