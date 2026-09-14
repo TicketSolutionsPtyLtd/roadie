@@ -235,8 +235,10 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
     "@ark-ui/react": "5.39.1",
+    "@babel/core": "7.29.7",
     "@base-ui/react": "1.8.0",
     "@phosphor-icons/react": "2.1.10",
+    "@rolldown/plugin-babel": "0.2.4",
     "@size-limit/preset-small-lib": "13.1.1",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "7.0.1",
@@ -248,6 +250,7 @@
     "@vitejs/plugin-react": "6.1.1",
     "@vitest/coverage-v8": "5.0.0",
     "@vitest/ui": "5.0.0",
+    "babel-plugin-react-compiler": "1.0.0",
     "class-variance-authority": "0.7.1",
     "jsdom": "30.0.1",
     "react": "19.3.0",
@@ -267,7 +270,7 @@
     {
       "name": "Carousel",
       "path": "dist/components/Carousel/index.js",
-      "limit": "6 KB",
+      "limit": "9 KB",
       "ignore": [
         "react",
         "react-dom",
