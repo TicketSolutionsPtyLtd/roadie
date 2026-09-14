@@ -209,13 +209,14 @@ export function NavigatorContent({
     (declaredSecondaryPanes.has(activeSection.value) ||
       directOverrides.includes(activeSection.value))
 
-  const rootList = activeSection !== null && listPaneShows
-  const rootListDrawn = rootList && !overflowOpen
-  const showsSectionPane = rootListDrawn && !overridden
   const generatesOverflow =
     !declaredOverflow &&
     overflowItems.horizontal.length + overflowItems.vertical.length > 0
+  // `showMore` with nothing folded has no pane to show; the row stays as if closed.
   const moreOpen = overflowOpen && (declaredOverflow || generatesOverflow)
+  const rootList = activeSection !== null && listPaneShows
+  const rootListDrawn = rootList && !moreOpen
+  const showsSectionPane = rootListDrawn && !overridden
 
   const depths = useMemo(
     () =>
@@ -238,8 +239,7 @@ export function NavigatorContent({
 
   const onSectionRoute =
     activeSection !== null && isActiveValue(activeSection.value, value)
-  const revealing =
-    listPaneShows && !overflowOpen && (onSectionRoute || showList)
+  const revealing = listPaneShows && !moreOpen && (onSectionRoute || showList)
   const positions = useMemo(
     () => derivePositions(ordered, revealing),
     [ordered, revealing]
@@ -251,7 +251,7 @@ export function NavigatorContent({
 
   const topChrome = useTopPaneChrome()
   const sectionBack = useMemo(() => {
-    if (!listPaneShows || overflowOpen || activeSection?.href === undefined) {
+    if (!listPaneShows || moreOpen || activeSection?.href === undefined) {
       return null
     }
     const back = {
@@ -262,7 +262,7 @@ export function NavigatorContent({
       top: { ...topChrome, ...back },
       below: { ...PANE_CHROME_NONE, ...back }
     }
-  }, [listPaneShows, overflowOpen, activeSection, topChrome])
+  }, [listPaneShows, moreOpen, activeSection, topChrome])
 
   // Panes register through `register` and `unregister` alone, which stay
   // stable, so these lookups can change with the stack without looping.
@@ -317,6 +317,7 @@ export function NavigatorContent({
       isRootOf,
       depthOf,
       markPushing,
+      moreOpen,
       level
     }),
     [
@@ -327,6 +328,7 @@ export function NavigatorContent({
       isRootOf,
       depthOf,
       markPushing,
+      moreOpen,
       level
     ]
   )
@@ -434,8 +436,8 @@ export function NavigatorContent({
             ref={rowRef}
             data-slot='navigator-panes'
             data-level={level}
-            data-reveal={revealing || overflowOpen ? '' : undefined}
-            data-overflow={overflowOpen ? '' : undefined}
+            data-reveal={revealing || moreOpen ? '' : undefined}
+            data-overflow={moreOpen ? '' : undefined}
             className={navigatorPanesVariants()}
           >
             {sectionPane}

@@ -3,7 +3,7 @@
 import { use, useEffect } from 'react'
 
 import { PaneRoot, type PaneRootProps } from '../Pane/PaneRoot'
-import { PaneKindContext } from '../Pane/PaneStackContext'
+import { PaneKindContext, PaneStackContext } from '../Pane/PaneStackContext'
 import {
   NavigatorActionsContext,
   NavigatorDisclosureContext,
@@ -26,10 +26,12 @@ export function NavigatorSecondaryPane({
   const { declareSecondaryPane } = use(NavigatorActionsContext)
   const { activeSection, listPaneShows } = use(NavigatorSelectionContext)
   const { overflowOpen } = use(NavigatorDisclosureContext)
+  const stack = use(PaneStackContext)
+  const moreOpen = stack === null ? overflowOpen : stack.moreOpen
 
   useEffect(() => declareSecondaryPane(value), [value, declareSecondaryPane])
 
-  if (activeSection?.value !== value || overflowOpen || !listPaneShows) {
+  if (activeSection?.value !== value || moreOpen || !listPaneShows) {
     return null
   }
   return (
