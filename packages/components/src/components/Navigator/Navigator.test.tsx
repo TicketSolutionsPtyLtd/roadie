@@ -296,11 +296,14 @@ describe('pane stack', () => {
     const content = document.querySelector('[data-slot="navigator-content"]')
     expect(content).toHaveClass(
       'overflow-clip',
-      '[overflow-clip-margin:--spacing(1)]',
-      'before:z-1',
+      'pointer-events-none',
       '[container:panes/inline-size]'
     )
-    expect(content!.className).not.toMatch(/max-lg:|lg:/)
+    // WebKit has no `overflow-clip-margin`; the stylesheet widens the clip instead.
+    expect(content!.className).not.toMatch(/max-lg:|lg:|overflow-clip-margin/)
+    expect(document.querySelector('[data-slot="navigator-panes"]')).toHaveClass(
+      'pointer-events-auto'
+    )
   })
 
   it('leaves layering over the edge cover to the stylesheet', async () => {

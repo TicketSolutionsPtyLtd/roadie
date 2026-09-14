@@ -290,6 +290,13 @@ states for every stack it can produce).
   where Close does not show.
 - **Reduced motion:** the stacked transition is inside
   `prefers-reduced-motion: no-preference`.
+- **A flush pane's shadow.** Beside a vertical primary the left-most pane
+  sits on Content's edge, and Content clips so parked panes can't slide over
+  the navigation. From `md` the stylesheet widens Content 0.5rem into the
+  primary's gutter and pads it back, so the clip clears the pane's shadow
+  (WebKit has no `overflow-clip-margin`), with a sunken cover over that strip
+  between a sliding pane (z-index 0) and a landed one (2). Content takes no
+  pointer events, so the strip stays the primary's.
 
 ## 8. Testing
 

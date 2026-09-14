@@ -7,6 +7,8 @@ export const PANE_ROW_PADDING = 1.5
 export const PANE_MAX_COLUMNS = 3
 export const PANE_MAX_DEPTH = 3
 export const PANE_MAX_LEVELS = 2
+// Beside a vertical primary the left-most pane sits flush with Content's edge.
+export const PANE_SHADOW_ROOM = 0.5
 
 type Track = { min: number; share: number; max: number }
 
@@ -213,8 +215,11 @@ const levelCounts = (base: number) =>
 const ownedBy = (level: number) =>
   `${level > 0 ? `:is(${row(level - 1)} *)` : ''}:not(${row(level)} *)`
 
-const besideVerticalPrimary = (level: number) =>
-  `[data-slot="navigator"]${ownedBy(level)}:has([data-slot="navigator-primary"][data-orientation="vertical"]${ownedBy(level)}) ${row(level)}`
+const besideVerticalPrimary = (level: number, target = row(level)) =>
+  `[data-slot="navigator"]${ownedBy(level)}:has([data-slot="navigator-primary"][data-orientation="vertical"]${ownedBy(level)}) ${target}`
+
+const contentOf = (level: number) =>
+  `[data-slot="navigator-content"]:has(> ${row(level)})`
 
 const tableDepths = Array.from(
   { length: PANE_MAX_DEPTH + 1 },
@@ -383,6 +388,20 @@ function pageStepRules(level: number): string {
   ].join('\n')
 }
 
+// Content reaches into the primary's gutter, padded back, so its clip leaves a
+// flush pane's shadow room without `overflow-clip-margin`, which WebKit lacks.
+// The cover over that room sits under a landed pane and over a sliding one.
+function shadowRoomRules(level: number): string {
+  const content = besideVerticalPrimary(level, contentOf(level))
+  const room = rem(PANE_SHADOW_ROOM)
+  return [
+    `  @media (width >= 48rem) {`,
+    `    ${content} { margin-inline-start: -${room}; padding-inline-start: ${room}; }`,
+    `    ${content}::before { content: ''; position: absolute; inset-block: 0; inset-inline-start: 0; inline-size: ${room}; z-index: 1; background-color: var(--intent-bg-sunken); pointer-events: none; }`,
+    '  }'
+  ].join('\n')
+}
+
 function levelRules(level: number): string {
   const stacked = `[data-stack][data-level="${level}"]:is(${tableDepths})`
   const pane = `${row(level)} ${stacked}`
@@ -396,6 +415,7 @@ function levelRules(level: number): string {
     `  [dir="rtl"] ${row(level)} { --pane-dir: -1; }`,
     `  [dir="rtl"] [dir="ltr"] ${row(level)} { --pane-dir: 1; }`,
     `  ${besideVerticalPrimary(level)} { --pane-stack-inset-start: 0px; }`,
+    shadowRoomRules(level),
     `  ${pane} { position: absolute !important; ${inset} }`,
     `  ${row(level)} ${deep} { position: absolute !important; ${inset} z-index: 3; ${AHEAD} visibility: hidden; pointer-events: none; transition-property: translate, visibility; transition-timing-function: var(--ease-enter); }`,
     `  ${row(level)}:not([data-reveal]) ${deep}[data-current] { translate: 0 0; visibility: visible; pointer-events: auto; }`,
