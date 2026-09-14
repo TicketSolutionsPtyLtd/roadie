@@ -2184,6 +2184,8 @@ describe('Navigator.OverflowPane', () => {
       })
     const content = () =>
       document.querySelector<HTMLElement>('[data-slot="navigator-content"]')!
+    const row = () =>
+      document.querySelector<HTMLElement>('[data-slot="navigator-panes"]')!
 
     beforeEach(() => {
       frames.length = 0
@@ -2235,6 +2237,68 @@ describe('Navigator.OverflowPane', () => {
       rerender(tree(true))
       expect(panes()[1]).toHaveAttribute('data-stack-position', 'top')
       expect(content()).not.toHaveAttribute('data-instant')
+      expect(row()).toHaveAttribute('data-pushing')
+      flushFrame()
+      expect(row()).toHaveAttribute('data-pushing')
+      flushFrame()
+      expect(row()).not.toHaveAttribute('data-pushing')
+
+      rerender(tree(false))
+      expect(panes()[1]).toHaveAttribute('data-stack-position', 'ahead')
+      expect(row()).toHaveAttribute('data-pushing')
+    })
+
+    it('marks a push as a current pane mounts and a pop as it unmounts', async () => {
+      const tree = (open: boolean) => (
+        <Navigator value='/a'>
+          <Navigator.Content>
+            <Pane role='list'>List</Pane>
+            {open ? (
+              <Pane role='detail' current>
+                Detail
+              </Pane>
+            ) : null}
+          </Navigator.Content>
+        </Navigator>
+      )
+      const { rerender } = render(tree(false))
+      await flushViewportMeasurement()
+      flushFrame()
+      flushFrame()
+      expect(row()).not.toHaveAttribute('data-pushing')
+      rerender(tree(true))
+      expect(row()).toHaveAttribute('data-pushing')
+      flushFrame()
+      flushFrame()
+      await flushViewportMeasurement()
+      flushFrame()
+      flushFrame()
+      expect(row()).not.toHaveAttribute('data-pushing')
+      rerender(tree(false))
+      expect(row()).toHaveAttribute('data-pushing')
+    })
+
+    it('never marks a push for a resize or a render that keeps the top', async () => {
+      const tree = (
+        <Navigator value='/a'>
+          <Navigator.Content>
+            <Pane role='list'>List</Pane>
+            <Pane role='detail' current>
+              Detail
+            </Pane>
+          </Navigator.Content>
+        </Navigator>
+      )
+      const { rerender } = render(tree)
+      await flushViewportMeasurement()
+      flushFrame()
+      flushFrame()
+      expect(row()).not.toHaveAttribute('data-pushing')
+      act(() => {
+        window.dispatchEvent(new Event('resize'))
+      })
+      rerender(tree)
+      expect(row()).not.toHaveAttribute('data-pushing')
     })
 
     const sectionsNav = (value: string) => (
@@ -2295,6 +2359,7 @@ describe('Navigator.OverflowPane', () => {
       await flushViewportMeasurement()
       rerender(sectionsNav(to))
       expect(content()).not.toHaveAttribute('data-instant')
+      expect(row()).toHaveAttribute('data-pushing')
       await flushViewportMeasurement()
     })
 

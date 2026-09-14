@@ -257,13 +257,14 @@ function inspectorVariant(): string {
 }
 
 function levelRules(level: number): string {
-  const pane = `${row(level)} [data-stack][data-level="${level}"]:is(${tableDepths})`
+  const stacked = `[data-stack][data-level="${level}"]:is(${tableDepths})`
+  const pane = `${row(level)} ${stacked}`
   return [
     // Reset per row, or a nested row inherits its outer row's value.
     `  ${row(level)} { --pane-stack-inset-start: var(--pane-stack-inset); }`,
     `  ${besideVerticalPrimary(level)} { --pane-stack-inset-start: 0px; }`,
     `  ${pane} { position: absolute !important; inset: var(--pane-stack-inset, 0px); inset-inline-start: var(--pane-stack-inset-start, var(--pane-stack-inset, 0px)); }`,
-    `  @media (prefers-reduced-motion: no-preference) { ${pane} { transition-duration: var(--duration-slow); } }`,
+    `  @media (prefers-reduced-motion: no-preference) { ${row(level)}[data-pushing] ${stacked} { transition-duration: var(--duration-slow); } }`,
     `  ${row(level)} [data-role="inspector"][data-level="${level}"] { display: none; order: 99; flex: 0 0 ${rem(PANE_INSPECTOR)}; }`,
     `  ${row(level)}:not([data-overflow]) [data-stack][data-level="${level}"][data-overflow] { display: none; }`,
     `  ${row(level)}[data-overflow] ${stackPane(level, 0)}:not([data-overflow]) { display: none; }`
