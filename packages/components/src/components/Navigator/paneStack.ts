@@ -10,6 +10,15 @@ export type PaneEntry = {
   role: PaneRole
   current: boolean
   primaryNav: PanePrimaryNav
+  /** Place in the drill-down; document order breaks ties. */
+  rank?: number
+}
+
+// Rank first, document order between equals.
+function stackOrder(entries: readonly PaneEntry[]): number[] {
+  return entries
+    .map((_, index) => index)
+    .sort((a, b) => (entries[a]?.rank ?? 0) - (entries[b]?.rank ?? 0) || a - b)
 }
 
 /**
@@ -27,7 +36,7 @@ export function deriveTopIndex(
     if (root !== -1) return root
   }
   let top = -1
-  for (let index = 0; index < entries.length; index += 1) {
+  for (const index of stackOrder(entries)) {
     const entry = entries[index]
     if (!entry || entry.role === 'inspector') continue
     // A leading inspector must not become the floor.
@@ -37,13 +46,16 @@ export function deriveTopIndex(
 }
 
 /**
- * The base of the stack — the first entry that can hold a position at all.
- * An `inspector` never participates, the same exclusion `deriveTopIndex` and
- * `derivePositions` apply to every other entry. Unlike `deriveTopIndex`,
+ * The base of the stack — the shallowest entry that can hold a position at
+ * all. An `inspector` never participates, the same exclusion `deriveTopIndex`
+ * and `derivePositions` apply to every other entry. Unlike `deriveTopIndex`,
  * there is no non-empty fallback: a stack of only inspectors has no root.
  */
 export function deriveRootIndex(entries: readonly PaneEntry[]): number {
-  return entries.findIndex((entry) => entry.role !== 'inspector')
+  return (
+    stackOrder(entries).find((index) => entries[index]?.role !== 'inspector') ??
+    -1
+  )
 }
 
 /**
@@ -69,21 +81,26 @@ export function orderByDocumentPosition<T extends { node: HTMLElement }>(
 }
 
 /**
- * Each pane's position, given the ordered stack. `top` is the deepest
- * `current` pane; anything after it is `ahead` (not yet reached), anything
- * before it is `behind` (already visited). An `inspector` never participates.
+ * Each pane's position, given the stack. `top` is the deepest `current` pane;
+ * anything deeper is `ahead` (not yet reached), anything shallower `behind`
+ * (already visited). An `inspector` never participates.
  */
 export function derivePositions(
   entries: readonly PaneEntry[],
   revealRoot = false
 ): (PaneStackPosition | null)[] {
   const top = deriveTopIndex(entries, revealRoot)
+  const place: number[] = []
+  stackOrder(entries).forEach((index, at) => {
+    place[index] = at
+  })
+  const topPlace = place[top] ?? 0
   return entries.map((entry, index) =>
     entry.role === 'inspector'
       ? null
       : index === top
         ? 'top'
-        : index > top
+        : (place[index] ?? 0) > topPlace
           ? 'ahead'
           : 'behind'
   )

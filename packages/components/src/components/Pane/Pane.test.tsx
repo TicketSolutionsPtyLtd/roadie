@@ -1808,6 +1808,77 @@ describe('depth attributes', () => {
     ])
   })
 
+  const declaredFirst = (primaryNav: 'auto' | 'hidden' = 'auto') => (
+    <Navigator value='a'>
+      <Navigator.Primary aria-label='Main'>
+        {testBrand}
+        <Navigator.Item value='a'>A</Navigator.Item>
+      </Navigator.Primary>
+      <Navigator.Content>
+        <Pane role='list'>List</Pane>
+        <Pane role='detail' depth={2} current primaryNav={primaryNav}>
+          <Pane.Header onBack={() => {}}>
+            <Pane.Title>Sub</Pane.Title>
+          </Pane.Header>
+        </Pane>
+        <Pane role='detail' current>
+          <Pane.Header onBack={() => {}}>
+            <Pane.Title>Detail</Pane.Title>
+          </Pane.Header>
+        </Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+  const horizontalBar = () =>
+    document.querySelector<HTMLElement>(
+      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+    )!
+
+  it('tops the stack with the deepest declared depth, wherever it sits', async () => {
+    render(declaredFirst())
+    await flushViewportMeasurement()
+    const [list, sub, detail] = stackPanes()
+    expect(
+      [list, sub, detail].map((p) => p!.getAttribute('data-stack-position'))
+    ).toEqual(['behind', 'top', 'behind'])
+
+    const stacked = paneColumnsRulesOf(renderPaneColumnsCss()).filter(
+      (rule) =>
+        rule.body.includes('--pane-back') &&
+        rule.selector.startsWith(
+          '[data-slot="navigator-panes"][data-level="0"]'
+        ) &&
+        !rule.conditions.some((c) => c.startsWith('@container'))
+    )
+    const bodyOf = (element: Element) =>
+      stacked.filter((rule) => element.matches(rule.selector))[0]!.body
+    expect(bodyOf(sub!)).toContain('translate: 0 0;')
+    expect(bodyOf(sub!)).toContain('--pane-back: grid;')
+    expect(bodyOf(detail!)).toContain('translate: -33%')
+
+    const scrolled = [sub!, detail!].map((p) => {
+      const spy = vi.fn()
+      p.querySelector<HTMLElement>('[data-slot="pane-viewport"]')!.scrollTo =
+        spy
+      return spy
+    })
+    await userEvent.click(
+      screen
+        .getAllByRole('button', { name: 'A' })
+        .find((tab) => horizontalBar().contains(tab))!
+    )
+    expect(scrolled[0]).toHaveBeenCalledWith(
+      expect.objectContaining({ top: 0 })
+    )
+    expect(scrolled[1]).not.toHaveBeenCalled()
+  })
+
+  it('reads primaryNav from the deepest declared depth, wherever it sits', async () => {
+    render(declaredFirst('hidden'))
+    await flushViewportMeasurement()
+    expect(horizontalBar()).toHaveAttribute('data-hidden', 'true')
+  })
+
   const fivePanes = (current: 'D' | 'E' = 'E') => (
     <Navigator value='/a'>
       <Navigator.Content>

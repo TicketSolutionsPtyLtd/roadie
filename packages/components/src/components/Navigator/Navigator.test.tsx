@@ -1765,12 +1765,14 @@ describe('Navigator.OverflowPane', () => {
     expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }))
   })
 
-  it('takes the top of the stack when opened', async () => {
+  it('takes the root and the top of the stack when opened, the page past it', async () => {
     render(overflowNav('/a'))
     await flushViewportMeasurement()
     await userEvent.click(screen.getByRole('button', { name: /More/ }))
     expect(panes()[1]).toHaveAttribute('data-stack-position', 'top')
-    expect(panes()[0]).toHaveAttribute('data-stack-position', 'behind')
+    expect(panes()[1]).toHaveAttribute('data-depth', '0')
+    expect(panes()[0]).toHaveAttribute('data-stack-position', 'ahead')
+    expect(panes()[0]).toHaveAttribute('data-depth', '1')
   })
 
   it('keeps the primary nav visible while it is top', async () => {
