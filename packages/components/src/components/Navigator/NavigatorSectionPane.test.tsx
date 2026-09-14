@@ -1,6 +1,13 @@
 import { type ReactNode, use, useLayoutEffect, useRef } from 'react'
 
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -1089,6 +1096,58 @@ describe('More open over the root', () => {
     ])
     expect(panesShownAt(2)).toEqual(['detail', 'More'])
     expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('lays out as if closed when showMore is set and nothing is folded', async () => {
+    const fits = (showMore: boolean, value: string, override: boolean) => (
+      <Navigator value={value} showMore={showMore}>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/s' href='/s'>
+            S
+            <Navigator.Secondary aria-label='S'>
+              <Navigator.Item value='/s/x' href='/s/x'>
+                X
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+          {['/a', '/b', '/c'].map((v) => (
+            <Navigator.Item key={v} value={v} href={v}>
+              {v}
+            </Navigator.Item>
+          ))}
+        </Navigator.Primary>
+        <Navigator.Content>
+          {override ? (
+            <Navigator.SecondaryPane value='/s'>
+              Own list
+            </Navigator.SecondaryPane>
+          ) : null}
+          <Pane role='detail' current>
+            Detail
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    const row = () => document.querySelector('[data-slot="navigator-panes"]')!
+    const layout = () => ({
+      overflow: row().hasAttribute('data-overflow'),
+      reveal: row().hasAttribute('data-reveal'),
+      depths: depths(),
+      shown: [1, 2, 3].map((columns) => panesShownAt(columns))
+    })
+    for (const override of [false, true]) {
+      for (const value of ['/s', '/s/x', '/a']) {
+        const { unmount } = render(fits(false, value, override))
+        await flushViewportMeasurement()
+        const closed = layout()
+        unmount()
+        render(fits(true, value, override))
+        await flushViewportMeasurement()
+        expect(layout(), `${value}, override ${override}`).toEqual(closed)
+        cleanup()
+      }
+    }
   })
 })
 

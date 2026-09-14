@@ -32,6 +32,8 @@ export type PaneStackContextValue = {
   depthOf: (id: string, entry: PaneRegistration) => number | null
   /** Lets the stack slide for the change this commit makes. */
   markPushing: () => void
+  /** More is open and has a pane to show. */
+  moreOpen: boolean
   /** 0 for the outermost `Navigator.Content`. */
   level: number
 }
