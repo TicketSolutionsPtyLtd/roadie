@@ -46,7 +46,9 @@ Formula: `tier(C) = (C−1)·16 + 28 + (C−1)·0.75 + 1.5` rem. There is no tie
 4: the window never shows more than three navigation columns.
 
 **Sizing is by position, not role.** The right-most visible column fills
-(`flex: 1 1 0`). Every visible column to its left takes the parent track:
+(`flex: 1 1 0`). Every visible column to its left takes the parent track of
+`min(C, N)` columns, N the stack levels in the row, so a two-level row keeps
+the wider `C=2` list at `C=3`:
 
 - `C=2`: `clamp(16rem, min(40cqi, 100cqi − 30.25rem), 24rem)`
 - `C=3`: `clamp(16rem, min(25cqi, (100cqi − 31rem) / 2), 20rem)`
@@ -76,7 +78,7 @@ Tickets → Glamping → Sam (Sam current, T=2)
 
 C=1                     C=2                               C=3
 ┌────────────────┐      ┌──────────┬──────────────────┐   ┌────────┬────────┬───────────────┐
-│ ‹ Glamping     │      │ ‹ Tickets│ ✕                │   │ Tickets│Glamping│ ✕             │
+│ ‹              │      │ ‹        │ ✕                │   │ Tickets│Glamping│ ✕             │
 │ Sam Okafor     │      │ Glamping │ Sam Okafor       │   │        │        │ Sam Okafor    │
 └────────────────┘      └──────────┴──────────────────┘   └────────┴────────┴───────────────┘
 
@@ -88,22 +90,22 @@ C=1                     C=2
 └────────────────┘      └──────────┴──────────────────┘   no Back, no Close
 ```
 
-- **Depth after registration is DOM order.** Once panes have registered, the
-  n-th stack pane in document order is depth n, exactly as `deriveRootIndex`
-  already finds the root by depth rather than by role. There are never holes.
-  A declared `depth` or a role default matters **before** registration — the
-  server render and the hydrating render — and that is what makes the server
-  HTML exact for the cases that need it.
+- **Depth after registration is compacted.** Once panes have registered,
+  they are ordered by declared `depth` (or the role default), DOM order
+  breaking ties, and numbered from 0, so there are never holes. The same
+  declared or default depth is what the server and hydrating renders write,
+  and that is what makes the server HTML exact for the cases that need it.
 - **The inspector is never ranked.** It shows only when every stack level that
-  exists fits beside it: width ≥ `tier(min(N, 3)) + 14.75rem`, where N is the
-  number of stack levels present (44.25rem with one level, 61rem with two,
-  77.75rem with three or more). It yields before any navigation pane and never
-  outranks the root. Its small-screen affordance stays the consumer's
-  `Drawer`, and Roadie ships a `pane-inspector-yielded:` variant from the same
+  exists fits beside it, and it yields first: `inspectorTier(N)` is the
+  narrowest Content at which the fill keeps 28rem beside the parent track's
+  actual width, not its 16rem minimum — 44.25rem with one level, 69rem with
+  two, 85.75rem with three or more. It never outranks the root. Its
+  small-screen affordance stays the consumer's `Drawer`, and Roadie ships a `pane-inspector-yielded:` variant from the same
   conditions so the trigger shows exactly when the column is gone.
 - **More** opens as a revealed depth-0 pane (T=0), the same mechanism as
   `showList`. While open it replaces the row's other depth-0 pane; closed, it
-  is not drawn at all.
+  is not drawn at all. It never takes a rank: the consumer's panes keep their
+  depths, so a page-first detail stays depth 1 (`More | detail` from `C=2`).
 - **Four levels** (depths 0–3) work by sliding the window: A → B → C → D with
   D current at `C=3` shows `B | C | D`, Back on B to A. A fifth stack pane is a
   dev warning; that is a navigation design problem, not a layout one.
@@ -118,7 +120,7 @@ table:
 | Pane is… | Leading cell |
 | --- | --- |
 | Root (depth 0) | nothing, ever |
-| **Left-most visible**, non-root, at or behind top | **Back** `‹ <parent>` |
+| **Left-most visible**, non-root, at or behind top | **Back** `‹` |
 | Top, with its parent visible to its left | **Close** `✕` |
 | A middle column (parent visible, not top) | nothing |
 | Ahead (unreached or placeholder) | nothing |
@@ -200,10 +202,11 @@ states for every stack it can produce).
 - **New `Pane depth?: 0 | 1 | 2 | 3`.** Defaults: `list` → 0, `detail` → 1,
   the generated section pane, a `SecondaryPane` override and More → 0,
   `inspector` → none. A sub-detail declares `depth={2}`. After registration
-  DOM order wins; a pane whose resolved depth is deeper than it declared gets
-  a dev warning.
-- **New `Pane.Header backLabel?: string`.** The orchestrator fills it for the
-  depth-1 pane under a section list.
+  depths compact (§2); a pane whose resolved depth is deeper than it declared
+  gets a dev warning.
+- **New `Pane.Header backLabel?: string`.** Back's accessible name only; Back
+  is always the round icon button. The orchestrator fills it for the depth-1
+  pane under a section list.
 - **Changed `Pane.Header backHref`.** Also drives Close where Close shows.
 - **Changed `Pane.current`.** It decides T, and so which columns are in the
   window at every width — it no longer "does nothing above `lg`".
@@ -218,7 +221,7 @@ states for every stack it can produce).
   | `paneVariants.stackPosition` `max-lg:*` | the stacked tier, generated from depth and T |
   | Content `lg:flex lg:p-3 lg:ps-0`, `gap-3` | the row, column tiers |
   | list `lg:w-[clamp(16rem,40%,24rem)]`, detail `lg:flex-1` | parent track and fill, by position |
-  | inspector `2xl:w-56 max-2xl:hidden` | the inspector rule, `tier(min(N,3)) + 14.75rem` |
+  | inspector `2xl:w-56 max-2xl:hidden` | the inspector rule, `inspectorTier(N)` |
   | Header Back `lg:hidden` / Close `max-lg:hidden`, `edgeOnly` | `display: var(--pane-back / --pane-close / --pane-edge)` |
   | Overflow `lg:-order-1 lg:hidden` | `data-overflow` on the pane and the row |
   | Consumer `2xl:hidden` on the inspector drawer trigger | `hidden pane-inspector-yielded:inline-flex` |
@@ -231,7 +234,7 @@ states for every stack it can produce).
 
 - Pane: delete "a docs example's breakpoints are still the viewport's" —
   frames respond to their own width. Rewrite Roles (inspector), Stacking and
-  "Closing a column" around the §3 table; add the `backLabel` example and the
+  "Closing a column" around the §3 table; say `backLabel` names Back; add the
   guideline "render a placeholder detail on the root route (Mail's 'No message
   selected'), or the list fills the row alone". Update Guidelines and
   Accessibility.
@@ -263,8 +266,8 @@ states for every stack it can produce).
   committed CSS equals the render.
 - `paneStack.test.ts`: `provisionalDepth` and `resolveDepths`.
 - `Pane.test.tsx`: `data-depth` / `data-stack` / `data-current` / `data-level`;
-  standalone defaults; Back from depth, Close from `backHref`; `backLabel`
-  rendering and `aria-label`; the header's edge-only display variable.
+  standalone defaults; Back from depth, Close from `backHref`; `backLabel` as
+  Back's `aria-label`; the header's edge-only display variable.
 - Navigator tests: the row's `data-reveal` / `data-overflow`; More's
   attributes; the depth-1 pane's `backHref` and `backLabel` under a section
   list, including a three-level stack; the nested level attribute; server
