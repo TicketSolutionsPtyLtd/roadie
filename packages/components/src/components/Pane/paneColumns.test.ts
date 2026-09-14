@@ -14,7 +14,8 @@ import {
   inspectorTier,
   paneCell,
   parentTrack,
-  renderPaneColumnsCss
+  renderPaneColumnsCss,
+  visibleColumns
 } from './paneColumns'
 
 const rules = paneColumnsRulesOf(renderPaneColumnsCss())
@@ -50,13 +51,20 @@ const stackStates = (levels: number) =>
     }))
   )
 
-const stackRow = (level: number, current: boolean[], reveal: boolean) =>
+const stackRow = (
+  level: number,
+  current: boolean[],
+  reveal: boolean,
+  { base = 0, closedMore = false } = {}
+) =>
   `<div data-slot="navigator-panes" data-level="${level}" ${reveal ? 'data-reveal' : ''}>${current
     .map(
       (isCurrent, depth) =>
-        `<div data-slot="pane" data-stack data-level="${level}" data-depth="${depth}" ${isCurrent ? 'data-current' : ''}></div>`
+        `<div data-slot="pane" data-stack data-level="${level}" data-depth="${base + depth}" ${isCurrent ? 'data-current' : ''}></div>`
     )
-    .join('')}</div>`
+    .join(
+      ''
+    )}${closedMore ? `<div data-slot="pane" data-stack data-level="${level}" data-depth="0" data-overflow></div>` : ''}</div>`
 
 const slotOf = (body: string) =>
   body.includes('flex: 1 1 0')
@@ -255,6 +263,47 @@ describe('the rules a real row matches', () => {
     }
   })
 
+  it('reads a row with nothing at depth 0 one depth shallower, so its first pane is the root', () => {
+    for (const closedMore of [false, true]) {
+      for (let levels = 1; levels <= 3; levels += 1) {
+        for (const { reveal, current } of stackStates(levels)) {
+          const $ = html(stackRow(0, current, reveal, { base: 1, closedMore }))
+          const top = reveal ? 0 : Math.max(0, current.lastIndexOf(true))
+          for (let columns = 1; columns <= PANE_MAX_COLUMNS; columns += 1) {
+            const candidates = tierRules(columns)
+            for (let depth = 0; depth < levels; depth += 1) {
+              const pane = $(`[data-depth="${depth + 1}"]:not([data-overflow])`)
+              const matched = candidates.filter((rule) =>
+                pane.matches(rule.selector)
+              )
+              const state = `closed More ${closedMore}, levels ${levels}, reveal ${reveal}, current ${current}, C=${columns}, written depth ${depth + 1}`
+              expect(matched, state).toHaveLength(1)
+              const cell = paneCell(columns, top, depth, levels)
+              expect(slotOf(matched[0]!.body), state).toBe(cell.slot)
+              expect(matched[0]!.body, state).toContain(
+                `--pane-back: ${cell.back ? 'grid' : 'none'}; --pane-close: ${cell.close ? 'grid' : 'none'};`
+              )
+            }
+          }
+        }
+      }
+    }
+  })
+
+  it('keeps an open More as the root of a row with no list', () => {
+    const $ = html(
+      `<div data-slot="navigator-panes" data-level="0" data-reveal data-overflow><div data-slot="pane" data-stack data-level="0" data-depth="1" data-current></div><div data-slot="pane" data-stack data-level="0" data-depth="0" data-overflow data-current></div></div>`
+    )
+    const more = $('[data-overflow][data-depth="0"]')
+    const detail = $('[data-depth="1"]')
+    const at = (columns: number, pane: HTMLElement) =>
+      tierRules(columns).filter((rule) => pane.matches(rule.selector))
+    expect(slotOf(at(1, more)[0]!.body)).toBe('top')
+    expect(slotOf(at(1, detail)[0]!.body)).toBe('ahead')
+    expect(slotOf(at(2, more)[0]!.body)).toBe('parent')
+    expect(slotOf(at(2, detail)[0]!.body)).toBe('fill')
+  })
+
   it('leaves a pane past depth 3 to the standalone defaults', () => {
     const $ = html(stackRow(0, [false, false, false, false, true], false))
     const fifth = $('[data-depth="4"]')
@@ -277,6 +326,71 @@ describe('the rules a real row matches', () => {
       ).toHaveLength(1)
     }
   })
+})
+
+describe('parent tracks follow the columns a row shows', () => {
+  // Resolves a generated track at a content width, in px.
+  const trackPx = (track: string, contentPx: number) => {
+    const expression = track
+      .replace(/(\d+(?:\.\d+)?)cqi/g, `($1 * ${contentPx} / 100)`)
+      .replace(/(\d+(?:\.\d+)?)rem/g, `($1 * ${REM})`)
+    const clamp = (low: number, value: number, high: number) =>
+      Math.min(Math.max(value, low), high)
+    return new Function('clamp', 'min', `return ${expression}`)(
+      clamp,
+      Math.min
+    ) as number
+  }
+
+  const listTrackAt = (levels: number, contentPx: number) => {
+    const columns = columnsAt(contentPx)
+    const $ = html(
+      stackRow(
+        0,
+        Array.from({ length: levels }, (_, depth) => depth === levels - 1),
+        false
+      )
+    )
+    const list = $('[data-depth="0"]')
+    const [rule] = rules.filter(
+      (candidate) =>
+        candidate.conditions.includes(
+          `@container panes (width >= ${columnTier(columns)}rem)`
+        ) &&
+        candidate.body.includes('--pane-back') &&
+        list.matches(candidate.selector)
+    )
+    const track = rule!.body.match(/flex: 0 0 (.*?); order/)![1]!
+    return Math.round(trackPx(track, contentPx))
+  }
+
+  it('never uses more columns than the row has levels', () => {
+    expect(visibleColumns(3, 2)).toBe(2)
+    expect(visibleColumns(3, 4)).toBe(3)
+    expect(visibleColumns(2, 1)).toBe(1)
+  })
+
+  // Content widths beside an 80px navigation at 1188 and 1440.
+  it.each([
+    [1108, 384],
+    [1360, 384]
+  ])(
+    'keeps a two-level list on the two-column track at %ipx of content',
+    (contentPx, expected) => {
+      expect(columnsAt(contentPx)).toBe(3)
+      expect(listTrackAt(2, contentPx)).toBe(expected)
+    }
+  )
+
+  it.each([
+    [1108, 277],
+    [1360, 320]
+  ])(
+    'gives a three-level list the three-column track at %ipx of content',
+    (contentPx, expected) => {
+      expect(listTrackAt(3, contentPx)).toBe(expected)
+    }
+  )
 })
 
 describe('the generated stylesheet', () => {
@@ -379,9 +493,9 @@ describe('the generated stylesheet', () => {
     expect(padded($('#inner-row')).length).toBeGreaterThan(0)
   })
 
-  it('offers the inspector variant with one branch per level count', () => {
+  it('offers the inspector variant with one branch per level count and root depth', () => {
     const css = renderPaneColumnsCss()
-    expect(css.match(/@container panes \(width < /g)).toHaveLength(4)
+    expect(css.match(/@container panes \(width < /g)).toHaveLength(7)
     expect(css).toContain('@custom-variant pane-inspector-yielded {')
   })
 })

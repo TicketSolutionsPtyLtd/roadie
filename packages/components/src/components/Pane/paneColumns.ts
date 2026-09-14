@@ -37,6 +37,11 @@ export function inspectorTier(levels: number): number {
   return stack + PANE_INSPECTOR + PANE_GAP
 }
 
+/** How many columns a row shows: never more than it has levels. */
+export function visibleColumns(columns: number, levels: number): number {
+  return Math.min(columns, levels)
+}
+
 export function parentTrack(columns: number): string {
   if (columns === 2) {
     const reserved = PANE_MIN_FILL + PANE_GAP + PANE_ROW_PADDING
@@ -82,11 +87,23 @@ const row = (level: number) =>
 const stackPane = (level: number, depth: number, extra = '') =>
   `[data-stack][data-level="${level}"][data-depth="${depth}"]${extra}`
 
-const levelsIs = (level: number, levels: number) => {
-  const has = `:has(${stackPane(level, levels - 1)})`
-  return levels > PANE_MAX_DEPTH
+// Before panes register, a lone `detail` is written at its role default, 1,
+// with nothing at 0. Such a row is read one depth shallower, so its first
+// pane is still the root. Closed More holds no root.
+const BASES = [0, 1] as const
+const baseIs = (level: number, base: number) => {
+  const root = `:has(${stackPane(level, 0, ':not([data-overflow])')})`
+  return base === 0
+    ? `:is([data-overflow], ${root})`
+    : `:not([data-overflow]):not(${root})`
+}
+
+const levelsIs = (level: number, levels: number, base: number) => {
+  const deepest = base + levels - 1
+  const has = `:has(${stackPane(level, deepest)})`
+  return deepest >= PANE_MAX_DEPTH
     ? has
-    : `${has}:not(:has(${stackPane(level, levels)}))`
+    : `${has}:not(:has(${stackPane(level, deepest + 1)}))`
 }
 
 const currentBelow = (level: number, top: number) => {
@@ -97,10 +114,13 @@ const currentBelow = (level: number, top: number) => {
   return deeper.length === 0 ? '' : `:not(:has(${deeper.join(', ')}))`
 }
 
-const topIs = (level: number, top: number) =>
+const topIs = (level: number, top: number, base: number) =>
   top === 0
-    ? `:is([data-reveal], ${currentBelow(level, 0)})`
-    : `:not([data-reveal]):has(${stackPane(level, top, '[data-current]')})${currentBelow(level, top)}`
+    ? `:is([data-reveal], ${currentBelow(level, base)})`
+    : `:not([data-reveal]):has(${stackPane(level, base + top, '[data-current]')})${currentBelow(level, base + top)}`
+
+const levelCounts = (base: number) =>
+  Array.from({ length: PANE_MAX_DEPTH + 1 - base }, (_, index) => index + 1)
 
 const ownedBy = (level: number) =>
   `${level > 0 ? `:is(${row(level - 1)} *)` : ''}:not(${row(level)} *)`
@@ -119,7 +139,12 @@ const LEAVING =
   'transition-property: translate, opacity, visibility, z-index; transition-timing-function: var(--ease-enter), var(--ease-enter), var(--ease-enter), step-start;'
 const COLUMN = `translate: none; opacity: 1; visibility: visible; pointer-events: auto; content-visibility: visible; ${LANDED} transition: none;`
 
-function geometry(columns: number, cell: PaneCell, depth: number): string {
+function geometry(
+  columns: number,
+  cell: PaneCell,
+  depth: number,
+  levels: number
+): string {
   const parked = `visibility: hidden; pointer-events: none; content-visibility: auto; ${PARKED} ${columns > 1 ? 'transition: none;' : LEAVING}`
   switch (cell.slot) {
     case 'behind':
@@ -131,7 +156,7 @@ function geometry(columns: number, cell: PaneCell, depth: number): string {
     case 'fill':
       return `position: relative !important; inset: auto; flex: 1 1 0; order: ${depth}; ${COLUMN}`
     case 'parent':
-      return `position: relative !important; inset: auto; flex: 0 0 ${parentTrack(columns)}; order: ${depth}; ${COLUMN}`
+      return `position: relative !important; inset: auto; flex: 0 0 ${parentTrack(visibleColumns(columns, levels))}; order: ${depth}; ${COLUMN}`
   }
 }
 
@@ -140,20 +165,23 @@ function paneRule(
   columns: number,
   levels: number,
   top: number,
-  depth: number
+  depth: number,
+  base: number
 ): string {
   const cell = paneCell(columns, top, depth, levels)
-  const selector = `${row(level)}${topIs(level, top)}${levelsIs(level, levels)} ${stackPane(level, depth)}`
+  const selector = `${row(level)}${baseIs(level, base)}${topIs(level, top, base)}${levelsIs(level, levels, base)} ${stackPane(level, base + depth)}`
   const vars = `--pane-back: ${display(cell.back)}; --pane-close: ${display(cell.close)}; --pane-edge: ${display(cell.back || cell.close)};`
-  return `  ${selector} { ${vars} ${geometry(columns, cell, depth)} }`
+  return `  ${selector} { ${vars} ${geometry(columns, cell, base + depth, levels)} }`
 }
 
 function tierRules(level: number, columns: number): string {
   const rules: string[] = []
-  for (let levels = 1; levels <= PANE_MAX_DEPTH + 1; levels += 1) {
-    for (let top = 0; top < levels; top += 1) {
-      for (let depth = 0; depth < levels; depth += 1) {
-        rules.push(paneRule(level, columns, levels, top, depth))
+  for (const base of BASES) {
+    for (const levels of levelCounts(base)) {
+      for (let top = 0; top < levels; top += 1) {
+        for (let depth = 0; depth < levels; depth += 1) {
+          rules.push(paneRule(level, columns, levels, top, depth, base))
+        }
       }
     }
   }
@@ -170,20 +198,24 @@ function tierRules(level: number, columns: number): string {
 
 function inspectorRules(level: number): string {
   const rules: string[] = []
-  for (let levels = 1; levels <= PANE_MAX_DEPTH + 1; levels += 1) {
-    rules.push(
-      `@container panes (width >= ${rem(inspectorTier(levels))}) { ${row(level)}${levelsIs(level, levels)} [data-role="inspector"][data-level="${level}"] { display: block; } }`
-    )
+  for (const base of BASES) {
+    for (const levels of levelCounts(base)) {
+      rules.push(
+        `@container panes (width >= ${rem(inspectorTier(levels))}) { ${row(level)}${baseIs(level, base)}${levelsIs(level, levels, base)} [data-role="inspector"][data-level="${level}"] { display: block; } }`
+      )
+    }
   }
   return rules.join('\n')
 }
 
 function inspectorVariant(): string {
   const branches: string[] = []
-  for (let levels = 1; levels <= PANE_MAX_DEPTH + 1; levels += 1) {
-    branches.push(
-      `  @container panes (width < ${rem(inspectorTier(levels))}) { ${row(0)}${levelsIs(0, levels)} & { @slot; } }`
-    )
+  for (const base of BASES) {
+    for (const levels of levelCounts(base)) {
+      branches.push(
+        `  @container panes (width < ${rem(inspectorTier(levels))}) { ${row(0)}${baseIs(0, base)}${levelsIs(0, levels, base)} & { @slot; } }`
+      )
+    }
   }
   return `@custom-variant pane-inspector-yielded {\n${branches.join('\n')}\n}`
 }
