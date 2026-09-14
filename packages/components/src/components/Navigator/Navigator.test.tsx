@@ -4426,6 +4426,115 @@ describe('nesting acceptance criteria', () => {
   })
 })
 
+describe('a new destination starts at the top', () => {
+  const nav = (value: string, showList = false) => (
+    <Navigator value={value} showList={showList} onShowListChange={() => {}}>
+      <Navigator.Primary aria-label='Main'>
+        {testBrand}
+        <Navigator.Item value='/' href='/' icon={<FakeIcon />}>
+          Home
+        </Navigator.Item>
+        <Navigator.Item value='/s' href='/s' icon={<FakeIcon />}>
+          Section
+          <Navigator.Secondary aria-label='Section pages'>
+            <Navigator.Item value='/s/a' href='/s/a'>
+              A
+            </Navigator.Item>
+            <Navigator.Item value='/s/b' href='/s/b'>
+              B
+            </Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Navigator.Content>
+        <Pane role='detail' current data-testid='page'>
+          <Pane.Header>
+            <Pane.Title>Page</Pane.Title>
+          </Pane.Header>
+          Page
+        </Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+
+  const viewportOf = (pane: HTMLElement) =>
+    pane.querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
+  const page = () => viewportOf(screen.getByTestId('page'))
+  const list = () =>
+    viewportOf(
+      document.querySelector<HTMLElement>('[data-navigator-section="/s"]')!
+    )
+  const scroll = (viewport: HTMLElement, top: number) =>
+    act(async () => scrollViewport(viewport, top))
+  const header = () =>
+    screen
+      .getByTestId('page')
+      .querySelector<HTMLElement>('[data-slot="pane-header"]')!
+
+  it('scrolls the page up for a sibling, while the list it came from keeps its place', async () => {
+    const { rerender } = render(nav('/s/a'))
+    await flushViewportMeasurement()
+    await scroll(page(), 900)
+    await scroll(list(), 300)
+    expect(header()).toHaveAttribute('data-collapsed', 'true')
+    rerender(nav('/s/b'))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(0)
+    expect(list().scrollTop).toBe(300)
+    expect(header()).toHaveAttribute('data-collapsed', 'false')
+  })
+
+  it('scrolls the page up on a section switch', async () => {
+    const { rerender } = render(nav('/'))
+    await flushViewportMeasurement()
+    await scroll(page(), 900)
+    rerender(nav('/s/a'))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(0)
+  })
+
+  it('keeps the place of a list that pushed the page', async () => {
+    const { rerender } = render(nav('/s/a', true))
+    await flushViewportMeasurement()
+    expect(list().closest('[data-slot="pane"]')).toHaveAttribute(
+      'data-stack-position',
+      'top'
+    )
+    await scroll(page(), 900)
+    await scroll(list(), 300)
+    rerender(nav('/s/b'))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(0)
+    expect(list().scrollTop).toBe(300)
+  })
+
+  it('keeps the place of a list popped back to', async () => {
+    const { rerender } = render(nav('/s/a'))
+    await flushViewportMeasurement()
+    await scroll(page(), 900)
+    await scroll(list(), 300)
+    rerender(nav('/s'))
+    await flushViewportMeasurement()
+    expect(list().closest('[data-slot="pane"]')).toHaveAttribute(
+      'data-stack-position',
+      'top'
+    )
+    expect(list().scrollTop).toBe(300)
+    expect(page().scrollTop).toBe(0)
+  })
+
+  it('leaves every pane alone while the destination holds', async () => {
+    const { rerender } = render(nav('/s/a'))
+    await flushViewportMeasurement()
+    await scroll(page(), 900)
+    rerender(nav('/s/a', true))
+    await flushViewportMeasurement()
+    rerender(nav('/s/a'))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(900)
+  })
+})
+
 describe('per-section stack memory', () => {
   const nav = (value: string) => (
     <Navigator value={value}>

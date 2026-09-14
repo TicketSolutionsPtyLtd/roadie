@@ -36,6 +36,8 @@ export type PaneStackContextValue = {
   moreOpen: boolean
   /** 0 for the outermost `Navigator.Content`. */
   level: number
+  /** The active destination; a new one scrolls every pane not behind the top back to its top. */
+  destination?: string
 }
 
 // Registration, not an element-identity walk: an orchestrator cannot see

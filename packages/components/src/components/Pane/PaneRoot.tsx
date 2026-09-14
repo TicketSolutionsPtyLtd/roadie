@@ -295,6 +295,24 @@ export function PaneRoot({
     }
   }, [wantsDirection])
 
+  // Behind the top is the pane picked from or popped back to; it keeps its place.
+  const destination = stack?.destination
+  const shown = useRef({ destination, position })
+  useLayoutEffect(() => {
+    const last = shown.current
+    shown.current = { destination, position }
+    const viewport = viewportRef.current
+    if (
+      !viewport ||
+      last.destination === destination ||
+      last.position === 'behind' ||
+      position === 'behind'
+    ) {
+      return
+    }
+    viewport.scrollTop = 0
+  }, [destination, position])
+
   // The viewport is what scrolls, so scrolling it is the pane's job; deciding
   // when belongs to the orchestrator, which only hands a live `registerScroller`
   // to the top of the stack. The pane calls the same `scrollToTop` on itself
