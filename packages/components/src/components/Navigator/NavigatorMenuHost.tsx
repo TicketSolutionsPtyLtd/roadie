@@ -1,16 +1,29 @@
 'use client'
 
-import { type ReactElement, use, useEffect } from 'react'
+import {
+  Children,
+  type ReactElement,
+  type ReactNode,
+  cloneElement,
+  isValidElement,
+  use,
+  useEffect
+} from 'react'
 
 import { Menu } from '@base-ui/react/menu'
 
 import { cn } from '@oztix/roadie-core/utils'
 
 import {
-  NavigatorContext,
+  NavigatorActionsContext,
+  NavigatorDisclosureContext,
   type NavigatorOverflowSets
 } from './NavigatorContext'
 import type { NavigatorMenuProps } from './NavigatorMenu'
+import {
+  NavigatorMenuItem,
+  type NavigatorMenuItemProps
+} from './NavigatorMenuItem'
 import { navigatorMenuPopupVariants } from './variants'
 
 // Each folded row set is its own surface, so a row folded in both opens one popup.
@@ -40,6 +53,24 @@ export type NavigatorMenuHostProps = {
   trigger: ReactElement
 }
 
+// A menu's elements are as old as the last structural change, so its items
+// call through to the current tree.
+function withCurrentHandlers(
+  children: ReactNode,
+  activate: (index: number) => void
+) {
+  let position = 0
+  return Children.map(children, (child) => {
+    if (!isValidElement(child) || child.type !== NavigatorMenuItem) {
+      return child
+    }
+    const index = position++
+    return cloneElement(child as ReactElement<NavigatorMenuItemProps>, {
+      onClick: () => activate(index)
+    })
+  })
+}
+
 // Open state lives on context so route destinations can yield the pill while a menu is open.
 export function NavigatorMenuHost({
   surface,
@@ -48,7 +79,10 @@ export function NavigatorMenuHost({
   label,
   trigger
 }: NavigatorMenuHostProps) {
-  const { openMenu, setOpenMenu, setOverflowOpen } = use(NavigatorContext)
+  const { setOpenMenu, setOverflowOpen, activateMenuItem } = use(
+    NavigatorActionsContext
+  )
+  const { openMenu } = use(NavigatorDisclosureContext)
   const id = menuId(surface, value)
   const { side, align } = PLACEMENT[surface]
 
@@ -79,7 +113,9 @@ export function NavigatorMenuHost({
             aria-label={menu.props['aria-label'] ?? label}
             className={cn(navigatorMenuPopupVariants(), menu.props.className)}
           >
-            {menu.props.children}
+            {withCurrentHandlers(menu.props.children, (index) =>
+              activateMenuItem(value, index)
+            )}
           </Menu.Popup>
         </Menu.Positioner>
       </Menu.Portal>

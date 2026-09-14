@@ -19,7 +19,11 @@ import { isDev } from '../../utils/isDev'
 import { ScrollArea } from '../ScrollArea'
 import { Tooltip } from '../Tooltip'
 import {
-  NavigatorContext,
+  NavigatorActionsContext,
+  NavigatorBarContext,
+  NavigatorDisclosureContext,
+  NavigatorExpansionContext,
+  NavigatorSelectionContext,
   isActiveValue,
   isSectionActive
 } from './NavigatorContext'
@@ -75,39 +79,43 @@ export function NavigatorPrimary({
   children
 }: NavigatorPrimaryProps) {
   const {
-    value: activeValue,
     setValue,
-    activeSection,
     setPrimaryChildren,
     primaryDerived,
-    navCollapsed,
     setNavCollapsed,
-    primaryNav,
     setPinExpanded,
     scrollActivePaneToTop,
-    overflowOpen,
     setOverflowOpen,
     overflowPaneId,
     setOverflowItems,
     overflowOpenerRef,
     hasContent,
-    openMenu,
     setOpenMenu,
-    sectionMemory,
     rememberSection,
-    showList,
     onShowListChange,
-    expanded,
+    activateItem,
     expandedFromDocument,
     primaryId
-  } = use(NavigatorContext)
+  } = use(NavigatorActionsContext)
+  const {
+    value: activeValue,
+    activeSection,
+    primaryChildren,
+    sectionMemory,
+    showList
+  } = use(NavigatorSelectionContext)
+  const { overflowOpen, openMenu } = use(NavigatorDisclosureContext)
+  const { expanded } = use(NavigatorExpansionContext)
+  const { navCollapsed, primaryNav } = use(NavigatorBarContext)
   const tabTrackRef = useRef<HTMLDivElement>(null)
   const clusterRef = useRef<HTMLDivElement>(null)
   const clusterTrackRef = useRef<HTMLDivElement>(null)
   const pinnedRef = useRef<HTMLDivElement>(null)
   const brandRef = useRef<HTMLDivElement>(null)
 
-  const collected = useMemo(() => collectSlots(children), [children])
+  // Root's copy keeps its identity across parent renders, so the walk and every item element do too.
+  const source = primaryDerived ? primaryChildren : children
+  const collected = useMemo(() => collectSlots(source), [source])
   const items = [...collected.automatic, ...collected.pinnedSlots]
 
   // Only an item without a Secondary, deep in an undeclared sub-route, is worth remembering.
@@ -124,7 +132,10 @@ export function NavigatorPrimary({
     rememberSection(branchValue, deepHref)
   }, [branchValue, deepHref, rememberSection])
 
-  const slots = deriveMobileSlots(collected.automatic, collected.pinnedSlots)
+  const slots = useMemo(
+    () => deriveMobileSlots(collected.automatic, collected.pinnedSlots),
+    [collected]
+  )
 
   useEffect(() => {
     // An open menu is the topmost layer; its own Escape closes it first.
@@ -334,87 +345,150 @@ export function NavigatorPrimary({
     )
   }, [foldedWithNoHost])
 
-  // Without `onShowListChange`, a section tab's href already leads up to its route.
-  const selectDestination = (
-    event: MouseEvent,
-    tab: NavigatorSlotMeta,
-    active: boolean
-  ) => {
-    tab.onClick?.()
-    setOverflowOpen(false)
-    setOpenMenu(null)
-    if (!active) {
-      setValue(tab.value)
-      return
+  // By hand: the compiler leaves the bar's tab list unmemoised, and each tab
+  // is a server-safe, uncompiled component, so every Primary render re-rendered them all.
+  const { tabs, pinned } = useMemo(() => {
+    // Without `onShowListChange`, a section tab's href already leads up to its route.
+    const selectDestination = (
+      event: MouseEvent,
+      tab: NavigatorSlotMeta,
+      active: boolean
+    ) => {
+      activateItem(tab.value)
+      setOverflowOpen(false)
+      setOpenMenu(null)
+      if (!active) {
+        setValue(tab.value)
+        return
+      }
+      const expandBar = () => {
+        setPinExpanded(true)
+        setNavCollapsed(false)
+      }
+      const ownsSection = activeSection?.value === tab.value
+      const onSectionRoute = isActiveValue(tab.value, activeValue)
+      const pageRoot = ownsSection && activeSection?.root === 'page'
+      if (ownsSection && onSectionRoute) {
+        event.preventDefault()
+        if (collapsed) expandBar()
+        scrollActivePaneToTop()
+        return
+      }
+      if (collapsed) {
+        event.preventDefault()
+        expandBar()
+        return
+      }
+      if (ownsSection && !pageRoot && onShowListChange && !onSectionRoute) {
+        event.preventDefault()
+        onShowListChange(!showList)
+        return
+      }
+      if (pageRoot) {
+        setValue(tab.value)
+        return
+      }
+      if (isActiveValue(tab.topValue, activeValue)) {
+        event.preventDefault()
+        scrollActivePaneToTop()
+        return
+      }
+      if (tab.href === undefined) {
+        event.preventDefault()
+        setValue(tab.topValue)
+      }
     }
-    const expandBar = () => {
-      setPinExpanded(true)
-      setNavCollapsed(false)
-    }
-    const ownsSection = activeSection?.value === tab.value
-    const onSectionRoute = isActiveValue(tab.value, activeValue)
-    const pageRoot = ownsSection && activeSection?.root === 'page'
-    if (ownsSection && onSectionRoute) {
-      event.preventDefault()
-      if (collapsed) expandBar()
-      scrollActivePaneToTop()
-      return
-    }
-    if (collapsed) {
-      event.preventDefault()
-      expandBar()
-      return
-    }
-    if (ownsSection && !pageRoot && onShowListChange && !onSectionRoute) {
-      event.preventDefault()
-      onShowListChange(!showList)
-      return
-    }
-    if (pageRoot) {
-      setValue(tab.value)
-      return
-    }
-    if (isActiveValue(tab.topValue, activeValue)) {
-      event.preventDefault()
-      scrollActivePaneToTop()
-      return
-    }
-    if (tab.href === undefined) {
-      event.preventDefault()
-      setValue(tab.topValue)
-    }
-  }
 
-  const tabHref = (tab: NavigatorSlotMeta, active: boolean) =>
-    tab.descendants.length > 0
-      ? tab.href
-      : rememberedHref(sectionMemory, tab.value, tab.href, active)
+    const tabHref = (tab: NavigatorSlotMeta, active: boolean) =>
+      tab.descendants.length > 0
+        ? tab.href
+        : rememberedHref(sectionMemory, tab.value, tab.href, active)
 
-  const renderTab = (tab: NavigatorSlotMeta, tabProps: NavigatorTabProps) =>
-    tab.menu ? (
-      <NavigatorMenuHost
-        key={tab.value}
-        surface='horizontal'
-        value={tab.value}
-        menu={tab.menu}
-        label={textOf(tab.label) || undefined}
-        trigger={
-          <NavigatorTab
-            {...tabProps}
-            href={undefined}
-            active={openMenu === menuId('horizontal', tab.value)}
-            current={false}
-            onSelect={undefined}
-            onClick={() => {
-              tab.onClick?.()
-              setOverflowOpen(false)
-            }}
-          />
-        }
-      />
-    ) : (
-      <NavigatorTab key={tab.value} {...tabProps} />
-    )
+    const renderTab = (tab: NavigatorSlotMeta, tabProps: NavigatorTabProps) =>
+      tab.menu ? (
+        <NavigatorMenuHost
+          key={tab.value}
+          surface='horizontal'
+          value={tab.value}
+          menu={tab.menu}
+          label={textOf(tab.label) || undefined}
+          trigger={
+            <NavigatorTab
+              {...tabProps}
+              href={undefined}
+              active={openMenu === menuId('horizontal', tab.value)}
+              current={false}
+              onSelect={undefined}
+              onClick={() => {
+                activateItem(tab.value)
+                setOverflowOpen(false)
+              }}
+            />
+          }
+        />
+      ) : (
+        <NavigatorTab key={tab.value} {...tabProps} />
+      )
+
+    const tabs = slots.tabs.map((tab, tabIndex) => {
+      const active = isSectionActive(tab, activeValue)
+      // With the end circle taken, the first tab floats to the start so two circles always show.
+      const isStartCircle = activeIsEnd
+        ? tab.value === slots.tabs[0]?.value
+        : active
+      return renderTab(tab, {
+        label: tab.label,
+        icon: tab.icon,
+        badge: tab.badge,
+        href: tabHref(tab, active),
+        active: active && !disclosureOpen,
+        current: active && !overflowOpen,
+        isPage: isActiveValue(tab.value, activeValue),
+        collapsed,
+        circleSide: isStartCircle ? 'start' : undefined,
+        index: tabIndex,
+        onSelect: (event) => selectDestination(event, tab, active)
+      })
+    })
+    const pinned = pinnedTab
+      ? renderTab(pinnedTab, {
+          label: pinnedTab.label,
+          icon: pinnedTab.icon,
+          badge: pinnedTab.badge,
+          href: tabHref(pinnedTab, pinnedIsActive),
+          active: pinnedIsActive && !disclosureOpen,
+          current: pinnedIsActive && !overflowOpen,
+          isPage: isActiveValue(pinnedTab.value, activeValue),
+          pinned: true,
+          collapsed,
+          index: 0,
+          onSelect: (event) =>
+            selectDestination(event, pinnedTab, pinnedIsActive)
+        })
+      : null
+    return { tabs, pinned }
+  }, [
+    slots.tabs,
+    pinnedTab,
+    pinnedIsActive,
+    activeValue,
+    activeIsEnd,
+    activeSection,
+    disclosureOpen,
+    overflowOpen,
+    openMenu,
+    collapsed,
+    sectionMemory,
+    showList,
+    onShowListChange,
+    activateItem,
+    setOverflowOpen,
+    setOpenMenu,
+    setValue,
+    setPinExpanded,
+    setNavCollapsed,
+    scrollActivePaneToTop
+  ])
 
   return (
     <>
@@ -543,26 +617,7 @@ export function NavigatorPrimary({
               surface='horizontal'
               hidden={collapsed}
             />
-            {slots.tabs.map((tab, tabIndex) => {
-              const active = isSectionActive(tab, activeValue)
-              // With the end circle taken, the first tab floats to the start so two circles always show.
-              const isStartCircle = activeIsEnd
-                ? tab.value === slots.tabs[0]?.value
-                : active
-              return renderTab(tab, {
-                label: tab.label,
-                icon: tab.icon,
-                badge: tab.badge,
-                href: tabHref(tab, active),
-                active: active && !disclosureOpen,
-                current: active && !overflowOpen,
-                isPage: isActiveValue(tab.value, activeValue),
-                collapsed,
-                circleSide: isStartCircle ? 'start' : undefined,
-                index: tabIndex,
-                onSelect: (event) => selectDestination(event, tab, active)
-              })
-            })}
+            {tabs}
             {hasMore ? (
               <NavigatorTab
                 label={OVERFLOW_LABEL}
@@ -584,20 +639,7 @@ export function NavigatorPrimary({
             data-slot='navigator-primary-circle'
             className={navigatorPrimaryCircleVariants()}
           >
-            {renderTab(pinnedTab, {
-              label: pinnedTab.label,
-              icon: pinnedTab.icon,
-              badge: pinnedTab.badge,
-              href: tabHref(pinnedTab, pinnedIsActive),
-              active: pinnedIsActive && !disclosureOpen,
-              current: pinnedIsActive && !overflowOpen,
-              isPage: isActiveValue(pinnedTab.value, activeValue),
-              pinned: true,
-              collapsed,
-              index: 0,
-              onSelect: (event) =>
-                selectDestination(event, pinnedTab, pinnedIsActive)
-            })}
+            {pinned}
           </div>
         ) : null}
       </nav>

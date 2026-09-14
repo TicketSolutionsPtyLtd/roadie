@@ -9,9 +9,10 @@ import {
   type RoadieLinkComponent,
   RoadieLinkProvider
 } from '../../providers/RoadieLinkProvider'
+import { List } from '../List'
 import { Pane } from '../Pane'
 import {
-  NavigatorContext,
+  NavigatorDisclosureContext,
   type NavigatorOverflowSets
 } from './NavigatorContext'
 import {
@@ -1062,11 +1063,125 @@ describe('Navigator active-state split', () => {
   })
 })
 
+describe('render fan-out', () => {
+  const counts = { tile: 0, row: 0, detail: 0 }
+  const TileIcon = () => {
+    counts.tile++
+    return <svg />
+  }
+  // A list row renders a `List.Item`; counting those counts rows.
+  const ListItem = List.Item
+  beforeEach(() => {
+    List.Item = Object.assign(
+      (props: Parameters<typeof ListItem>[0]) => {
+        counts.row++
+        return <ListItem {...props} />
+      },
+      { displayName: ListItem.displayName }
+    )
+  })
+  afterEach(() => {
+    List.Item = ListItem
+  })
+  const Detail = () => {
+    counts.detail++
+    return null
+  }
+  const reset = () => Object.assign(counts, { tile: 0, row: 0, detail: 0 })
+  // Hoisted, as a compiled or memoised app would: the consumer's own content is not Navigator's to re-render.
+  const detail = <Detail />
+  const rows = Array.from({ length: 20 }, (_, index) => `/s/r${index}`)
+
+  function App({
+    value,
+    expanded = false,
+    onClick
+  }: {
+    value: string
+    expanded?: boolean
+    onClick?: () => void
+  }) {
+    return (
+      <Navigator value={value} expanded={expanded}>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/s' href='/s' icon={<TileIcon />}>
+            Section
+            <Navigator.Secondary aria-label='Section'>
+              {rows.map((row) => (
+                <Navigator.Item key={row} value={row} href={row}>
+                  {row}
+                </Navigator.Item>
+              ))}
+            </Navigator.Secondary>
+          </Navigator.Item>
+          <Navigator.Item
+            value='/t'
+            href='/t'
+            icon={<TileIcon />}
+            onClick={onClick}
+          >
+            Other
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Pane role='detail' current>
+            {detail}
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+  }
+
+  it('re-renders none of the navigation when its parent re-renders with the same tree', async () => {
+    const { rerender } = render(<App value='/s/r3' />)
+    await flushViewportMeasurement()
+    reset()
+    rerender(<App value='/s/r3' />)
+    await flushViewportMeasurement()
+    expect(counts).toEqual({ tile: 0, row: 0, detail: 0 })
+  })
+
+  it('re-renders only the two rows whose current changes on a new value', async () => {
+    const { rerender } = render(<App value='/s/r3' />)
+    await flushViewportMeasurement()
+    reset()
+    rerender(<App value='/s/r7' />)
+    await flushViewportMeasurement()
+    expect(counts.row).toBe(2)
+    expect(counts.detail).toBe(0)
+  })
+
+  it('re-renders no row when the vertical navigation expands', async () => {
+    const { rerender } = render(<App value='/s/r3' />)
+    await flushViewportMeasurement()
+    reset()
+    rerender(<App value='/s/r3' expanded />)
+    await flushViewportMeasurement()
+    expect(counts.row).toBe(0)
+    expect(counts.detail).toBe(0)
+  })
+
+  it('calls the handler from the latest render, though the tree kept its identity', async () => {
+    const first = vi.fn()
+    const latest = vi.fn()
+    const { rerender } = render(<App value='/s/r3' onClick={first} />)
+    await flushViewportMeasurement()
+    rerender(<App value='/s/r3' onClick={latest} />)
+    await flushViewportMeasurement()
+    await userEvent.click(
+      within(primaryOf('vertical')).getByRole('link', { name: 'Other' })
+    )
+    expect(latest).toHaveBeenCalledOnce()
+    expect(first).not.toHaveBeenCalled()
+  })
+})
+
 describe('overflow state', () => {
   it('publishes the folded items and the open flag on context', async () => {
     const seen: { open: boolean; horizontal: number; vertical: number }[] = []
     function Probe() {
-      const { overflowOpen, overflowItems } = use(NavigatorContext)
+      const { overflowOpen, overflowItems } = use(NavigatorDisclosureContext)
       seen.push({
         open: overflowOpen,
         horizontal: overflowItems.horizontal.length,
@@ -1102,7 +1217,7 @@ describe('overflow state', () => {
   it('republishes folded items only when what a folded row shows changes', async () => {
     const published: NavigatorOverflowSets[] = []
     function Probe() {
-      const { overflowItems } = use(NavigatorContext)
+      const { overflowItems } = use(NavigatorDisclosureContext)
       if (published.at(-1) !== overflowItems) published.push(overflowItems)
       return null
     }

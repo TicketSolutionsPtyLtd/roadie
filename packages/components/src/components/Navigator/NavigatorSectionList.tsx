@@ -1,11 +1,13 @@
 'use client'
 
-import { Fragment, use } from 'react'
+import { Fragment, memo, use, useMemo } from 'react'
 
 import { List, type ListProps } from '../List'
 import {
+  NavigatorActionsContext,
   type NavigatorActiveSection,
-  NavigatorContext
+  NavigatorSelectionContext,
+  isActiveValue
 } from './NavigatorContext'
 import { presentNavIcon } from './presentNavIcon'
 import { type SectionRow, sectionRows } from './sectionData'
@@ -20,6 +22,38 @@ export type NavigatorSectionListProps = Omit<ListProps, 'children'> & {
   'data-slot': string
 }
 
+type SectionListRowProps = {
+  row: SectionRow
+  current: boolean
+  descriptions: boolean
+}
+
+// Memoised by hand: rows come out of a `map`, which the compiler caches only
+// as a whole, so a new `value` would otherwise re-render every row.
+const SectionListRow = memo(function SectionListRow({
+  row,
+  current,
+  descriptions
+}: SectionListRowProps) {
+  const { setValue, activateItem } = use(NavigatorActionsContext)
+  return (
+    <List.Item
+      title={row.label}
+      subtitle={descriptions ? row.description : undefined}
+      leading={
+        row.icon ? presentNavIcon(row.icon, 'size-5 text-subtle') : undefined
+      }
+      trailing={row.badge}
+      href={row.href}
+      current={current && 'page'}
+      onClick={() => {
+        setValue(row.value)
+        activateItem(row.value)
+      }}
+    />
+  )
+})
+
 /** A section's rows as a `List`, shared by the list pane and `Navigator.SectionItems`. */
 export function NavigatorSectionList({
   section,
@@ -27,9 +61,11 @@ export function NavigatorSectionList({
   descriptions = false,
   ...props
 }: NavigatorSectionListProps) {
-  const { value, setValue, activateItem } = use(NavigatorContext)
+  const { value } = use(NavigatorSelectionContext)
   const needle = query.trim().toLowerCase()
-  const groups = sectionRows(section, value)
+  // Keyed on the section alone, so a new `value` keeps every row's identity.
+  const rows = useMemo(() => sectionRows(section, undefined), [section])
+  const groups = rows
     .map((group) => ({
       ...group,
       rows: group.rows.filter(
@@ -51,20 +87,11 @@ export function NavigatorSectionList({
   }
 
   const row = (item: SectionRow) => (
-    <List.Item
+    <SectionListRow
       key={item.value}
-      title={item.label}
-      subtitle={descriptions ? item.description : undefined}
-      leading={
-        item.icon ? presentNavIcon(item.icon, 'size-5 text-subtle') : undefined
-      }
-      trailing={item.badge}
-      href={item.href}
-      current={item.current && 'page'}
-      onClick={() => {
-        setValue(item.value)
-        activateItem(item.value)
-      }}
+      row={item}
+      current={isActiveValue(item.value, value)}
+      descriptions={descriptions}
     />
   )
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useEffect, useMemo, useRef } from 'react'
+import { use, useEffect, useRef } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -10,7 +10,10 @@ import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect
 import { PaneRoot, type PaneRootProps } from '../Pane/PaneRoot'
 import { PaneKindContext } from '../Pane/PaneStackContext'
 import { GeneratedOverflowContext } from './GeneratedOverflowContext'
-import { NavigatorContext } from './NavigatorContext'
+import {
+  NavigatorActionsContext,
+  NavigatorDisclosureContext
+} from './NavigatorContext'
 import { navigatorOverflowVariants } from './variants'
 
 export type NavigatorOverflowPaneProps = Omit<
@@ -29,10 +32,11 @@ export function NavigatorOverflowPane({
   ref: forwardedRef,
   ...props
 }: NavigatorOverflowPaneProps) {
-  const { overflowOpen, overflowPaneId } = use(NavigatorContext)
+  const { overflowPaneId } = use(NavigatorActionsContext)
+  const { overflowOpen } = use(NavigatorDisclosureContext)
   const generated = use(GeneratedOverflowContext)
   const paneRef = useRef<HTMLElement | null>(null)
-  const ref = useMemo(() => mergeRefs(paneRef, forwardedRef), [forwardedRef])
+  const ref = mergeRefs(paneRef, forwardedRef)
   const wasOpen = useRef(overflowOpen)
 
   useIsomorphicLayoutEffect(() => {

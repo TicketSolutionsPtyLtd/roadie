@@ -2,7 +2,7 @@
 
 import { use } from 'react'
 
-import { NavigatorContext } from './NavigatorContext'
+import { NavigatorSelectionContext } from './NavigatorContext'
 import { NavigatorSectionList } from './NavigatorSectionList'
 
 export type NavigatorSecondaryItemsProps = {
@@ -16,7 +16,7 @@ export function NavigatorSecondaryItems({
   className,
   query
 }: NavigatorSecondaryItemsProps) {
-  const { activeSection } = use(NavigatorContext)
+  const { activeSection } = use(NavigatorSelectionContext)
   if (activeSection === null) return null
   return (
     <NavigatorSectionList

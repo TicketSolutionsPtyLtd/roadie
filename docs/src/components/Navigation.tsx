@@ -186,7 +186,7 @@ function useDrawerSide(): 'bottom' | 'right' {
  * inventing the overlay, so Base UI owns the scrim, the focus trap, Escape and
  * the swipe.
  */
-function OnThisPageDrawer({ headings, activeId, onSelect }: DocHeadings) {
+function OnThisPageDrawer({ headings, onSelect }: DocHeadings) {
   const [open, setOpen] = useState(false)
   const side = useDrawerSide()
 
@@ -216,11 +216,7 @@ function OnThisPageDrawer({ headings, activeId, onSelect }: DocHeadings) {
           already prints its own heading, and two would say it twice. */}
       <Drawer.Content aria-label='On this page'>
         <Drawer.Body className='py-4'>
-          <OnThisPage
-            headings={headings}
-            activeId={activeId}
-            onSelect={selectAndClose}
-          />
+          <OnThisPage headings={headings} onSelect={selectAndClose} />
         </Drawer.Body>
       </Drawer.Content>
     </Drawer>
@@ -254,7 +250,11 @@ export function DocsNavigator({
   const showList = listState.show && listState.pathname === pathname
   const handleNavListChange = useCallback(
     (show: boolean, atPathname: string) =>
-      setListState({ pathname: atPathname, show }),
+      setListState((current) =>
+        current.pathname === atPathname && current.show === show
+          ? current
+          : { pathname: atPathname, show }
+      ),
     []
   )
   const handleShowListChange = useCallback(

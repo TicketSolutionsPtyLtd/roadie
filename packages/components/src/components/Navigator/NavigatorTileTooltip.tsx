@@ -3,7 +3,7 @@
 import { type ReactElement, type ReactNode, use } from 'react'
 
 import { Tooltip } from '../Tooltip'
-import { NavigatorContext } from './NavigatorContext'
+import { NavigatorExpansionContext } from './NavigatorContext'
 
 export type NavigatorTileTooltipProps = {
   label: ReactNode
@@ -20,7 +20,7 @@ export function NavigatorTileTooltip({
   iconOnly = false,
   render
 }: NavigatorTileTooltipProps) {
-  const { expanded } = use(NavigatorContext)
+  const { expanded } = use(NavigatorExpansionContext)
   return (
     <Tooltip disabled={(expanded && !iconOnly) || disabled}>
       {render((tile) => (

@@ -1,13 +1,22 @@
 'use client'
 
-import { type ReactElement, type ReactNode, use, useEffect } from 'react'
+import {
+  type ReactElement,
+  type ReactNode,
+  use,
+  useEffect,
+  useMemo
+} from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isDev } from '../../utils/isDev'
 import type { BadgeProps } from '../Badge'
 import {
-  NavigatorContext,
+  NavigatorActionsContext,
+  NavigatorDisclosureContext,
+  NavigatorExpansionContext,
+  NavigatorSelectionContext,
   isActiveValue,
   isBranchActive
 } from './NavigatorContext'
@@ -62,26 +71,35 @@ export function NavigatorItem({
   icon,
   badge,
   className,
-  children,
-  onClick
+  children
 }: NavigatorItemProps) {
+  const { setValue, setOverflowOpen, activateItem } = use(
+    NavigatorActionsContext
+  )
+  const { value: active, sectionMemory } = use(NavigatorSelectionContext)
+  const { openMenu, overflowOpen } = use(NavigatorDisclosureContext)
+  const { expanded } = use(NavigatorExpansionContext)
+  // By hand: the compiler re-runs these walks every render, handing the tile a new label.
   const {
-    value: active,
-    setValue,
-    sectionMemory,
-    openMenu,
-    overflowOpen,
-    setOverflowOpen,
-    expanded
-  } = use(NavigatorContext)
-  const { label, secondary, menu: declaredMenu } = splitItemChildren(children)
+    label,
+    secondary,
+    menu: declaredMenu,
+    firstHref,
+    descendants
+  } = useMemo(() => {
+    const split = splitItemChildren(children)
+    return {
+      ...split,
+      firstHref: firstSecondaryHref(split.secondary),
+      descendants: secondaryDescendantValues(split.secondary)
+    }
+  }, [children])
   const isSection = secondary.length > 0
   const declaresMenuWithSecondary = isSection && declaredMenu !== undefined
   const menu = isSection ? undefined : declaredMenu
   const menuOpen = menu !== undefined && openMenu === menuId('vertical', value)
   // A routeless section lands on its first sub-page.
-  const effectiveHref = href ?? firstSecondaryHref(secondary)
-  const descendants = secondaryDescendantValues(secondary)
+  const effectiveHref = href ?? firstHref
   // A menu opens rather than navigates, so no route lights it.
   const isCurrent = !menu && isActiveValue(value, active)
   const isBranch = !menu && isBranchActive(value, descendants, active)
@@ -91,10 +109,11 @@ export function NavigatorItem({
     ? effectiveHref
     : rememberedHref(sectionMemory, value, effectiveHref, isBranch)
 
+  // The element can be Root's structural copy, so its handler resolves through the current tree.
   const handleClick = () => {
     setOverflowOpen(false)
     setValue(value)
-    onClick?.()
+    activateItem(value)
   }
 
   // In an effect, not the walk: React 19 strict mode double-invokes render.
@@ -107,49 +126,53 @@ export function NavigatorItem({
     )
   }, [declaresMenuWithSecondary, value])
 
-  const content = (
-    <>
-      {icon ? (
-        <span data-slot='navigator-item-icon'>
-          {presentNavIcon(icon, cn('size-6', hasPill && 'animate-pop-tap'))}
-        </span>
-      ) : (
+  // By hand: the compiler left this unmemoised, so every value change re-rendered each tile's tooltip.
+  const content = useMemo(
+    () => (
+      <>
+        {icon ? (
+          <span data-slot='navigator-item-icon'>
+            {presentNavIcon(icon, cn('size-6', hasPill && 'animate-pop-tap'))}
+          </span>
+        ) : (
+          <span
+            aria-hidden
+            data-slot='navigator-item-initial'
+            className={cn(
+              navigatorItemInitialClass,
+              hasPill && 'animate-pop-tap'
+            )}
+          >
+            {initialOf(label)}
+          </span>
+        )}
         <span
-          aria-hidden
-          data-slot='navigator-item-initial'
+          data-slot='navigator-item-label'
           className={cn(
-            navigatorItemInitialClass,
-            hasPill && 'animate-pop-tap'
+            navigatorItemLabelClass,
+            !icon && navigatorItemIconlessLabelClass
           )}
         >
-          {initialOf(label)}
+          {label}
         </span>
-      )}
-      <span
-        data-slot='navigator-item-label'
-        className={cn(
-          navigatorItemLabelClass,
-          !icon && navigatorItemIconlessLabelClass
-        )}
-      >
-        {label}
-      </span>
-      {badge ? (
-        <>
-          {' '}
-          {expanded ? (
-            <span
-              data-slot='navigator-item-trailing'
-              className={navigatorItemTrailingVariants()}
-            >
-              {badgeSmall(badge)}
-            </span>
-          ) : (
-            badgeDot(badge)
-          )}
-        </>
-      ) : null}
-    </>
+        {badge ? (
+          <>
+            {' '}
+            {expanded ? (
+              <span
+                data-slot='navigator-item-trailing'
+                className={navigatorItemTrailingVariants()}
+              >
+                {badgeSmall(badge)}
+              </span>
+            ) : (
+              badgeDot(badge)
+            )}
+          </>
+        ) : null}
+      </>
+    ),
+    [icon, hasPill, label, badge, expanded]
   )
 
   const ariaCurrent = isCurrent ? 'page' : isBranch ? 'true' : undefined
@@ -173,7 +196,7 @@ export function NavigatorItem({
               <NavigatorDestination
                 dataCurrent={menuOpen}
                 className={finalClassName}
-                onClick={onClick}
+                onClick={() => activateItem(value)}
               >
                 {content}
               </NavigatorDestination>

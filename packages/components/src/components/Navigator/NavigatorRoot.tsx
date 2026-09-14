@@ -19,16 +19,29 @@ import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect
 import type { PanePrimaryNav } from '../Pane/variants'
 import { NavigatorContent } from './NavigatorContent'
 import {
-  NavigatorContext,
-  type NavigatorContextValue,
+  type NavigatorActions,
+  NavigatorActionsContext,
+  type NavigatorBar,
+  NavigatorBarContext,
+  type NavigatorDisclosure,
+  NavigatorDisclosureContext,
+  type NavigatorExpansion,
+  NavigatorExpansionContext,
   type NavigatorOverflowSets,
+  type NavigatorSelection,
+  NavigatorSelectionContext,
   isActiveValue
 } from './NavigatorContext'
 import {
   NavigatorPrimary,
   type NavigatorPrimaryProps
 } from './NavigatorPrimary'
-import { findActiveSection, findItem, findMenuItem } from './activeSection'
+import {
+  findActiveSection,
+  findItem,
+  findMenuItem,
+  findSectionByValue
+} from './activeSection'
 import type { NavigatorSlotMeta } from './mobileSlots'
 import { primarySignature } from './primarySignature'
 import { type SectionMemory, nextMemory } from './sectionMemory'
@@ -78,6 +91,12 @@ export function NavigatorRoot({
   className,
   children
 }: NavigatorRootProps) {
+  // Handlers are read at call time, so the actions context never changes with them.
+  const handlers = useRef({ onValueChange, onExpandedChange, onShowListChange })
+  useIsomorphicLayoutEffect(() => {
+    handlers.current = { onValueChange, onExpandedChange, onShowListChange }
+  })
+
   const [uncontrolledExpanded, setUncontrolledExpanded] = useState(
     defaultExpanded ?? false
   )
@@ -90,14 +109,12 @@ export function NavigatorRoot({
   }
   const expanded =
     (expandedProp ?? uncontrolledExpanded) || documentExpanded === true
-  const setExpanded = useCallback(
-    (next: boolean) => {
-      setDocumentExpanded((current) => current && false)
-      if (expandedProp === undefined) setUncontrolledExpanded(next)
-      onExpandedChange?.(next)
-    },
-    [expandedProp, onExpandedChange]
-  )
+  const expandedControlled = expandedProp !== undefined
+  const setExpanded = (next: boolean) => {
+    setDocumentExpanded((current) => current && false)
+    if (!expandedControlled) setUncontrolledExpanded(next)
+    handlers.current.onExpandedChange?.(next)
+  }
   useIsomorphicLayoutEffect(() => {
     if (!expandedFromDocument) return
     setDocumentExpanded(
@@ -124,13 +141,13 @@ export function NavigatorRoot({
   }>({ signature: '', children: null })
   const latestPrimaryChildren = useRef<ReactNode>(null)
   // A wrapper reading this context re-renders Primary with fresh elements; republishing them loops.
-  const setPrimaryChildren = useCallback((next: ReactNode) => {
+  const setPrimaryChildren = (next: ReactNode) => {
     latestPrimaryChildren.current = next
     const signature = primarySignature(next)
     setPublished((current) =>
       current.signature === signature ? current : { signature, children: next }
     )
-  }, [])
+  }
   const [overflowOpen, setOverflowOpen] = useState(false)
   // A new destination from anywhere, Back included, leaves More.
   const [lastValue, setLastValue] = useState(value)
@@ -140,24 +157,23 @@ export function NavigatorRoot({
   }
   const [overflowItems, setOverflowItemsState] =
     useState<NavigatorOverflowSets>({ horizontal: [], vertical: [] })
-  const setOverflowItems = useCallback(
-    (surface: keyof NavigatorOverflowSets, next: NavigatorSlotMeta[]) =>
-      setOverflowItemsState((current) => ({ ...current, [surface]: next })),
-    []
-  )
+  const setOverflowItems = (
+    surface: keyof NavigatorOverflowSets,
+    next: NavigatorSlotMeta[]
+  ) => setOverflowItemsState((current) => ({ ...current, [surface]: next }))
   const overflowOpenerRef = useRef<HTMLElement | null>(null)
   const overflowPaneId = useId()
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [sectionMemory, setSectionMemory] = useState<SectionMemory>(
     () => new Map()
   )
-  const rememberSection = useCallback((section: string, href: string) => {
+  const rememberSection = (section: string, href: string) => {
     setSectionMemory((memory) => nextMemory(memory, section, href))
-  }, [])
+  }
   const [declaredSecondaryPanes, setDeclaredSecondaryPanes] = useState<
     ReadonlySet<string>
   >(() => new Set())
-  const declareSecondaryPane = useCallback((value: string) => {
+  const declareSecondaryPane = (value: string) => {
     setDeclaredSecondaryPanes((current) => new Set(current).add(value))
     return () =>
       setDeclaredSecondaryPanes((current) => {
@@ -165,7 +181,7 @@ export function NavigatorRoot({
         next.delete(value)
         return next
       })
-  }, [])
+  }
 
   // A walk, not a child registration, which raced Primary's "no host" warning on first commit.
   const { hasContent, primary } = useMemo(() => {
@@ -176,18 +192,43 @@ export function NavigatorRoot({
         ReactElement<NavigatorPrimaryProps> | undefined
     }
   }, [children])
+  const primaryDerived = primary !== undefined
 
+  // A parent re-render hands over new elements for the same tree; only a new
+  // structure republishes, so nothing derived from them changes identity.
+  const derivedChildren = primary?.props.children
+  const derivedSignature = useMemo(
+    () => (primaryDerived ? primarySignature(derivedChildren) : ''),
+    [primaryDerived, derivedChildren]
+  )
+  const [derived, setDerived] = useState({
+    signature: derivedSignature,
+    children: derivedChildren
+  })
+  if (primaryDerived && derived.signature !== derivedSignature) {
+    setDerived({ signature: derivedSignature, children: derivedChildren })
+  }
   // During render, not from Primary's effect, so the server renders the section's list pane.
-  const primaryChildren =
-    primary === undefined ? published.children : primary.props.children
-  const activeSection = useMemo(
-    () => findActiveSection(primaryChildren, value),
+  const primaryChildren = !primaryDerived
+    ? published.children
+    : derived.signature === derivedSignature
+      ? derived.children
+      : derivedChildren
+  // Keyed on which section is active, so moving between its rows keeps its identity.
+  const activeSectionValue = useMemo(
+    () => findActiveSection(primaryChildren, value)?.value ?? null,
     [primaryChildren, value]
   )
+  const activeSection = useMemo(
+    () =>
+      activeSectionValue === null
+        ? null
+        : findSectionByValue(primaryChildren, activeSectionValue),
+    [primaryChildren, activeSectionValue]
+  )
   useIsomorphicLayoutEffect(() => {
-    if (primary === undefined) return
-    latestPrimaryChildren.current = primary.props.children
-  }, [primary])
+    if (primaryDerived) latestPrimaryChildren.current = derivedChildren
+  }, [primaryDerived, derivedChildren])
   const activateItem = useCallback((itemValue: string) => {
     findItem(latestPrimaryChildren.current, itemValue)?.onClick?.()
   }, [])
@@ -203,103 +244,80 @@ export function NavigatorRoot({
   // Ref, not state: read imperatively on tap, never rendered.
   const activePaneScroller = useRef<(() => void) | null>(null)
   // A pane that stops being top can clean up after the next top registered; it must not clear that one.
-  const registerActivePaneScroller = useCallback((scroller: () => void) => {
+  const registerActivePaneScroller = (scroller: () => void) => {
     activePaneScroller.current = scroller
     return () => {
       if (activePaneScroller.current === scroller) {
         activePaneScroller.current = null
       }
     }
-  }, [])
-  const scrollActivePaneToTop = useCallback(() => {
+  }
+  const scrollActivePaneToTop = () => {
     activePaneScroller.current?.()
-  }, [])
+  }
 
-  const contextValue = useMemo<NavigatorContextValue>(
-    () => ({
-      value,
-      setValue: (next: string) => onValueChange?.(next),
-      navCollapsed,
-      setNavCollapsed,
-      primaryNav,
-      setPrimaryNav,
-      pinExpanded,
-      setPinExpanded,
-      scrollActivePaneToTop,
-      registerActivePaneScroller,
-      primaryChildren,
-      setPrimaryChildren,
-      primaryDerived: primary !== undefined,
-      activateItem,
-      activateMenuItem,
-      activeSection,
-      listPaneShows,
-      overflowOpen,
-      setOverflowOpen,
-      overflowPaneId,
-      overflowItems,
-      setOverflowItems,
-      overflowOpenerRef,
-      hasContent,
-      openMenu,
-      setOpenMenu,
-      sectionMemory,
-      rememberSection,
-      declaredSecondaryPanes,
-      declareSecondaryPane,
-      showList: showList ?? false,
-      onShowListChange,
-      expanded,
-      setExpanded,
-      expandedFromDocument,
-      expandedPending,
-      primaryId
-    }),
-    [
-      value,
-      onValueChange,
-      navCollapsed,
-      primaryNav,
-      pinExpanded,
-      scrollActivePaneToTop,
-      registerActivePaneScroller,
-      primaryChildren,
-      setPrimaryChildren,
-      primary,
-      activateItem,
-      activateMenuItem,
-      activeSection,
-      listPaneShows,
-      overflowOpen,
-      overflowPaneId,
-      overflowItems,
-      setOverflowItems,
-      hasContent,
-      openMenu,
-      sectionMemory,
-      rememberSection,
-      declaredSecondaryPanes,
-      declareSecondaryPane,
-      showList,
-      onShowListChange,
-      expanded,
-      setExpanded,
-      expandedFromDocument,
-      expandedPending,
-      primaryId
-    ]
-  )
+  const handlesShowList = onShowListChange !== undefined
+  const actions: NavigatorActions = {
+    setValue: (next) => handlers.current.onValueChange?.(next),
+    setNavCollapsed,
+    setPrimaryNav,
+    setPinExpanded,
+    scrollActivePaneToTop,
+    registerActivePaneScroller,
+    setPrimaryChildren,
+    primaryDerived,
+    activateItem,
+    activateMenuItem,
+    setOverflowOpen,
+    overflowPaneId,
+    setOverflowItems,
+    overflowOpenerRef,
+    hasContent,
+    setOpenMenu,
+    rememberSection,
+    declareSecondaryPane,
+    onShowListChange: handlesShowList
+      ? (next) => handlers.current.onShowListChange?.(next)
+      : undefined,
+    setExpanded,
+    expandedFromDocument,
+    primaryId
+  }
+  const selection: NavigatorSelection = {
+    value,
+    primaryChildren,
+    activeSection,
+    listPaneShows,
+    showList: showList ?? false,
+    sectionMemory,
+    declaredSecondaryPanes
+  }
+  const disclosure: NavigatorDisclosure = {
+    overflowOpen,
+    openMenu,
+    overflowItems
+  }
+  const expansion: NavigatorExpansion = { expanded, expandedPending }
+  const bar: NavigatorBar = { navCollapsed, primaryNav, pinExpanded }
 
   return (
-    <NavigatorContext value={contextValue}>
-      <div
-        ref={rootRef}
-        data-slot='navigator'
-        className={cn(navigatorRootVariants(), className)}
-      >
-        {children}
-      </div>
-    </NavigatorContext>
+    <NavigatorActionsContext value={actions}>
+      <NavigatorSelectionContext value={selection}>
+        <NavigatorDisclosureContext value={disclosure}>
+          <NavigatorExpansionContext value={expansion}>
+            <NavigatorBarContext value={bar}>
+              <div
+                ref={rootRef}
+                data-slot='navigator'
+                className={cn(navigatorRootVariants(), className)}
+              >
+                {children}
+              </div>
+            </NavigatorBarContext>
+          </NavigatorExpansionContext>
+        </NavigatorDisclosureContext>
+      </NavigatorSelectionContext>
+    </NavigatorActionsContext>
   )
 }
 
