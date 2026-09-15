@@ -21,6 +21,7 @@ coverage
 
 # Build artifacts
 **/trace-output/
+packages/core/src/tokens/tokens.json
 # npm/pnpm pack output (publish-prep tarballs)
 *.tgz
 

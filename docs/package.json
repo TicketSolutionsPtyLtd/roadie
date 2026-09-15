@@ -4,8 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "prebuild": "pnpm --filter @oztix/roadie-core generate:tokens",
     "build": "next build",
     "clean": "rm -rf node_modules .next out",
+    "predev": "pnpm --filter @oztix/roadie-core generate:tokens",
     "dev": "next dev --port 9614",
     "start": "next start",
     "format": "prettier --ignore-path ../.prettierignore --write \"**/*.{ts,tsx,js,jsx,cjs,mjs,json,css,md}\"",

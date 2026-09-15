@@ -14,9 +14,6 @@ const tailwindTheme = readFileSync(
   'utf8'
 )
 const manifest = parseTokenManifest(sheets, tailwindTheme)
-const committed = JSON.parse(
-  readFileSync(new URL('./tokens.json', import.meta.url), 'utf8')
-)
 
 const find = (name: string, kind: TokenEntry['kind'] = 'variable') => {
   const entry = manifest.tokens.find((t) => t.name === name && t.kind === kind)
@@ -34,12 +31,6 @@ const INTERNAL = [
   '--tw-shadow'
 ]
 
-describe('tokens.json', () => {
-  it('matches the CSS — run `pnpm --filter @oztix/roadie-core generate:tokens`', () => {
-    expect(committed).toEqual(JSON.parse(JSON.stringify(manifest)))
-  })
-})
-
 describe('coverage', () => {
   const source = sheets
     .map(([, css]) => css.replace(/\/\*[\s\S]*?\*\//g, ''))
@@ -51,10 +42,14 @@ describe('coverage', () => {
       .filter((t) => t.kind === kind && t.source === 'roadie')
       .map((t) => t.name)
 
-  it('lists every custom property once, and only the known knobs as internal', () => {
+  it('lists nothing twice', () => {
+    const keys = manifest.tokens.map((t) => `${t.kind}:${t.name}`)
+    expect(keys.filter((key, i) => keys.indexOf(key) !== i)).toEqual([])
+  })
+
+  it('lists every custom property, and only the known knobs as internal', () => {
     const declared = names(/(--[\w-]+[\w])\s*:/g)
     const variables = listed('variable')
-    expect(new Set(variables).size).toBe(variables.length)
     expect(manifest.internal).toEqual(INTERNAL)
     expect([...variables, ...manifest.internal].sort()).toEqual(
       [...declared].sort()
