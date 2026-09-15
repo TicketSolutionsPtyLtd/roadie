@@ -1,5 +1,48 @@
 # @oztix/roadie-components
 
+## 2.13.0
+
+### Minor Changes
+
+- a234c45: `Accordion` now publishes `--content-inset` (16px) and both its trigger and
+  content read it, so content dropped into `Accordion.Content` lines up with the
+  trigger without extra padding. Override the variable on the root to change both
+  at once. In Safari, an open panel whose content changes size, such as a filtered
+  list, now resizes with it instead of clipping.
+- 0c826c5: Add `hideLabel` to `Badge`. It shrinks the badge to a dot, sized by `size` and
+  painted by `intent` and `emphasis`, and keeps the label visually hidden so
+  screen readers still announce it. It implies `indicator`, and `indicatorPulse`
+  pulses the dot.
+- 65ba926: Add `Drawer`, a surface that slides in from any edge and swipes away, built on
+  Base UI's drawer primitive. Core gains the `motion-drawer` utility, which drives
+  a drawer's edge transition and tracks Base UI's live swipe offset.
+- db10921: Add `List`, the vertical row primitive: a title with optional subtitle, leading
+  and trailing slots, a drill-in chevron, grouped sections with titles, and
+  `href` rows that route through `RoadieLinkProvider`. The subtitle is read as the
+  row's description rather than part of its name, the leading and trailing slots
+  carry `data-slot`, and `List.GroupTitle` is an `<h2>` whose level `render`
+  changes, such as `render={<h3 />}`.
+- 857ade4: Add `Logo`, the Oztix logo in a fixed brand colour, with `normal`, `mark` and
+  `wordmark` variants. `product` pairs the mark with a product name as live text,
+  such as `<Logo product='Studio' />`, and a `size` prop (`xs`–`xl`, default `md`)
+  scales the whole logo by its height. The lockup is always left to right, so
+  right-to-left pages never mirror it.
+- dc7588b: Add `ScrollArea`, which gives any bounded region a consistent custom scrollbar.
+- 6fda90c: Add `Tooltip`, a short label that appears beside a control on hover or keyboard
+  focus, built on Base UI's tooltip primitive. `Tooltip.Content` takes `side`,
+  `align` and `sideOffset` directly, `emphasis` switches between the `strong` chip
+  (the default; give `Tooltip.Content` an intent class to colour it) and the
+  `floating` popover surface, and `Tooltip.Provider` groups tooltips so moving
+  between neighbours is instant.
+
+### Patch Changes
+
+- 4deb856: `Button` and `IconButton` with `href` render a link, not a button: Enter follows it, Space scrolls the page, and `download` is accepted.
+- Updated dependencies [65ba926]
+- Updated dependencies [4deb856]
+- Updated dependencies [8c2ca73]
+  - @oztix/roadie-core@2.8.0
+
 ## 2.12.1
 
 ### Patch Changes

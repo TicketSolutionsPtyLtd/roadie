@@ -1,5 +1,14 @@
 # @oztix/roadie-widgets
 
+## 3.5.2
+
+### Patch Changes
+
+- Updated dependencies [65ba926]
+- Updated dependencies [4deb856]
+- Updated dependencies [8c2ca73]
+  - @oztix/roadie-core@2.8.0
+
 ## 3.5.1
 
 ### Patch Changes
