@@ -83,8 +83,11 @@ export function useDocHeadings(): DocHeadings {
       return
     }
 
-    // The /components index's h3s duplicate the left-hand navigation.
-    const selector = pathname === '/components' ? 'h2' : 'h2, h3'
+    // The /components index's h3s duplicate the left-hand navigation, and the
+    // token reference's h3s are dozens of groups.
+    const selector = ['/components', '/tokens/reference'].includes(pathname)
+      ? 'h2'
+      : 'h2, h3'
     const nodes = mainEl.querySelectorAll<HTMLHeadingElement>(selector)
 
     // Seed with every id on the page, so an assigned id never collides.
