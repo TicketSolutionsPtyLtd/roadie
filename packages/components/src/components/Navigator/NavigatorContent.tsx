@@ -243,6 +243,7 @@ export function NavigatorContent({
 
   // More and a section change are tab switches, not pushes. Declared after every
   // markPushing call, so it cancels a push marked this commit.
+  // Keyed on moreOpen, not overflowOpen: a resize or hydration can add or drop More without overflowOpen changing.
   const lastTab = useRef({ moreOpen, sectionValue })
   useInsertionEffect(() => {
     const last = lastTab.current

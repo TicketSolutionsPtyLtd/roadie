@@ -171,7 +171,7 @@ describe('pane stack', () => {
     expect(panes()[0]).toHaveAttribute('data-stack-position', 'behind')
   })
 
-  // `positionOf` already nulls out an inspector via `derivePositions`. Chrome
+  // `placeOf` already nulls out an inspector via `derivePositions`. Chrome
   // and `primaryNav` must read the same "who is top" answer, not a second,
   // independent one — a raw `deriveTopIndex` fallback to index 0 would grant
   // an inspector-only stack live chrome even though no pane there qualifies.
