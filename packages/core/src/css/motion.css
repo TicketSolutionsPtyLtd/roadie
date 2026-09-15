@@ -143,24 +143,41 @@
 
 /* ─── Motion utilities ─── */
 
-@utility motion-fade-in {
+@utility animate-fade-in {
   animation: fade-in var(--duration-normal) var(--ease-enter) both;
 }
 
-@utility motion-fade-out {
-  animation: fade-out var(--duration-fast) var(--ease-exit) both;
-}
-
-@utility motion-scale-in {
+@utility animate-scale-in {
   animation: scale-in var(--duration-normal) var(--ease-spring) both;
-}
-
-@utility motion-scale-out {
-  animation: scale-out var(--duration-fast) var(--ease-exit) both;
 }
 
 /* Entrance: fade + slide-up + slight scale. Pair with `origin-bottom`
    (or any `origin-*`) to grow from a specific edge. */
+@utility animate-pop-in {
+  animation: pop-in var(--duration-slow) var(--ease-enter) both;
+}
+
+/* @deprecated use animate-fade-in, remove in v3 */
+@utility motion-fade-in {
+  animation: fade-in var(--duration-normal) var(--ease-enter) both;
+}
+
+/* @deprecated no replacement, use motion-scale or motion-slide, remove in v3 */
+@utility motion-fade-out {
+  animation: fade-out var(--duration-fast) var(--ease-exit) both;
+}
+
+/* @deprecated use animate-scale-in, remove in v3 */
+@utility motion-scale-in {
+  animation: scale-in var(--duration-normal) var(--ease-spring) both;
+}
+
+/* @deprecated no replacement, use motion-scale or motion-slide, remove in v3 */
+@utility motion-scale-out {
+  animation: scale-out var(--duration-fast) var(--ease-exit) both;
+}
+
+/* @deprecated use animate-pop-in, remove in v3 */
 @utility motion-pop-in {
   animation: pop-in var(--duration-slow) var(--ease-enter) both;
 }

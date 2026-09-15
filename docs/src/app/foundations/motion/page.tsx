@@ -88,42 +88,54 @@ const easingTokens = [
   }
 ]
 
-const animationUtilities = [
+const playsNowUtilities = [
   {
-    name: 'motion-fade-in',
-    description: 'Fade in from transparent',
-    use: 'motion-fade-in'
+    name: 'animate-fade-in',
+    description: 'Fade in from transparent'
   },
   {
-    name: 'motion-fade-out',
-    description: 'Fade out to transparent',
-    use: 'motion-fade-out'
+    name: 'animate-scale-in',
+    description: 'Scale up from 95% with fade — popups, dropdowns'
   },
   {
-    name: 'motion-scale-in',
-    description: 'Scale up from 95% with fade — popups, dropdowns',
-    use: 'motion-scale-in'
+    name: 'animate-pop-in',
+    description: 'Fade + slide-up + scale entrance — pair with origin-*'
   },
   {
-    name: 'motion-scale-out',
-    description: 'Scale down to 95% with fade — popup dismiss',
-    use: 'motion-scale-out'
-  },
-  {
-    name: 'motion-pop-in',
-    description: 'Fade + slide-up + scale entrance — pair with origin-*',
-    use: 'motion-pop-in'
+    name: 'animate-shake',
+    description: 'Horizontal shake — validation error, invalid input'
   },
   {
     name: 'animate-nudge',
-    description: 'One-shot vertical nudge — attention cue (cart bump)',
-    use: 'animate-nudge'
+    description: 'One-shot vertical nudge — attention cue (cart bump)'
   },
   {
     name: 'animate-pop',
-    description: 'One-shot scale pop — attention cue (badge update)',
-    use: 'animate-pop'
+    description: 'One-shot scale pop — attention cue (badge update)'
   }
+]
+
+const entersLeavesUtilities = [
+  {
+    name: 'motion-scale',
+    description: 'Scale + fade transition on Base UI start/end style'
+  },
+  {
+    name: 'motion-slide',
+    description: 'Fade + slide transition on Base UI start/end style'
+  },
+  {
+    name: 'motion-drawer',
+    description: 'Anchored-edge slide, tracks live swipe offset'
+  }
+]
+
+const deprecatedUtilities = [
+  { name: 'motion-fade-in', replacement: 'animate-fade-in' },
+  { name: 'motion-fade-out', replacement: 'motion-scale or motion-slide' },
+  { name: 'motion-scale-in', replacement: 'animate-scale-in' },
+  { name: 'motion-scale-out', replacement: 'motion-scale or motion-slide' },
+  { name: 'motion-pop-in', replacement: 'animate-pop-in' }
 ]
 
 const brandValues = [
@@ -337,33 +349,77 @@ export default function MotionPage() {
       <section className='grid gap-6'>
         <h2 className='text-display-ui-3 text-strong'>The toolkit</h2>
         <p className='text-subtle'>
-          Pre-built animation utilities for common patterns. These compose with
-          Tailwind&apos;s <Code>motion-safe:</Code> and{' '}
+          One rule covers both prefixes. <Code>animate-*</Code> plays now, once
+          &mdash; a keyframe animation. <Code>motion-*</Code> plays as something
+          enters or leaves &mdash; a transition on Base UI&apos;s{' '}
+          <Code>data-starting-style</Code> / <Code>data-ending-style</Code>.
+          Both compose with Tailwind&apos;s <Code>motion-safe:</Code> and{' '}
           <Code>motion-reduce:</Code> variants and are automatically neutralised
           by the global reduced motion reset.
         </p>
 
-        <div className='overflow-x-auto'>
-          <table className='w-full text-sm'>
-            <thead>
-              <tr className='border-b border-subtle text-left'>
-                <th className='py-2 pr-4 font-semibold'>Utility</th>
-                <th className='py-2 pr-4 font-semibold'>What it does</th>
-                <th className='py-2 font-semibold'>Usage</th>
-              </tr>
-            </thead>
-            <tbody className='divide-y divide-subtler text-subtle'>
-              {animationUtilities.map(({ name, description, use }) => (
-                <tr key={name}>
-                  <td className='py-2 pr-4 text-strong'>
-                    <Code>{name}</Code>
-                  </td>
-                  <td className='py-2 pr-4'>{description}</td>
-                  <td className='py-2 font-mono text-xs'>{use}</td>
+        <div className='grid gap-2'>
+          <h3 className='text-display-ui-5 text-strong'>
+            Plays now &mdash; <Code>animate-*</Code>
+          </h3>
+          <div className='overflow-x-auto'>
+            <table className='w-full text-sm'>
+              <thead>
+                <tr className='border-b border-subtle text-left'>
+                  <th className='py-2 pr-4 font-semibold'>Utility</th>
+                  <th className='py-2 font-semibold'>What it does</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className='divide-y divide-subtler text-subtle'>
+                {playsNowUtilities.map(({ name, description }) => (
+                  <tr key={name}>
+                    <td className='py-2 pr-4 whitespace-nowrap text-strong'>
+                      <Code>{name}</Code>
+                    </td>
+                    <td className='py-2'>{description}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className='grid gap-2'>
+          <h3 className='text-display-ui-5 text-strong'>
+            Enters &amp; exits &mdash; <Code>motion-*</Code>
+          </h3>
+          <div className='overflow-x-auto'>
+            <table className='w-full text-sm'>
+              <thead>
+                <tr className='border-b border-subtle text-left'>
+                  <th className='py-2 pr-4 font-semibold'>Utility</th>
+                  <th className='py-2 font-semibold'>What it does</th>
+                </tr>
+              </thead>
+              <tbody className='divide-y divide-subtler text-subtle'>
+                {entersLeavesUtilities.map(({ name, description }) => (
+                  <tr key={name}>
+                    <td className='py-2 pr-4 whitespace-nowrap text-strong'>
+                      <Code>{name}</Code>
+                    </td>
+                    <td className='py-2'>{description}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className='rounded-xl emphasis-subtle p-4'>
+          <p className='text-sm text-subtle'>
+            <strong className='text-strong'>Deprecated, removed in v3:</strong>{' '}
+            {deprecatedUtilities.map(({ name, replacement }, i) => (
+              <span key={name}>
+                <Code>{name}</Code> &rarr; <Code>{replacement}</Code>
+                {i < deprecatedUtilities.length - 1 ? ', ' : '.'}
+              </span>
+            ))}
+          </p>
         </div>
 
         <div className='grid gap-2'>
@@ -373,8 +429,8 @@ export default function MotionPage() {
               { label: 'animate-nudge', className: 'hover:animate-nudge' },
               { label: 'animate-pop', className: 'hover:animate-pop' },
               {
-                label: 'motion-pop-in',
-                className: 'origin-bottom hover:motion-pop-in'
+                label: 'animate-pop-in',
+                className: 'origin-bottom hover:animate-pop-in'
               }
             ].map(({ label, className }) => (
               <div
@@ -763,9 +819,9 @@ transition: all 150ms ease-out;`}
               <tr>
                 <td className='py-2 pr-4 text-strong'>Popup enter/exit</td>
                 <td className='py-2 pr-4 font-mono text-xs'>duration-normal</td>
-                <td className='py-2 pr-4 font-mono text-xs'>ease-spring</td>
+                <td className='py-2 pr-4 font-mono text-xs'>ease-standard</td>
                 <td className='py-2'>
-                  <Code>motion-scale-in</Code> / <Code>motion-scale-out</Code>
+                  <Code>motion-scale</Code>
                 </td>
               </tr>
               <tr>

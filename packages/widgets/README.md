@@ -98,7 +98,7 @@ Each widget is internally organised as three layers under `src/<widget>/`:
 - **`vue/`** — Vue 3 SFC skin. Like the React skin, it emits raw
   Roadie/Tailwind utility classes compiled by the **host's** Tailwind v4 +
   `@oztix/roadie-core` build (single source of truth — core/React/Vue stay in
-  sync), including animation (`animate-nudge`, `animate-pop`, `motion-pop-in`).
+  sync), including animation (`animate-nudge`, `animate-pop`, `animate-pop-in`).
   The package ships no stylesheet of its own.
 
 Subpath exports mean consumers pay only for what they import:
