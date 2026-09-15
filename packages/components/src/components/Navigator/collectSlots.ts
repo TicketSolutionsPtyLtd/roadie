@@ -38,6 +38,8 @@ export type CollectedSlots = {
   pinned: PrimaryEntry[]
   automatic: NavigatorSlotMeta[]
   pinnedSlots: NavigatorSlotMeta[]
+  /** Every slot in document order, for lookups that take the first match. */
+  ordered: NavigatorSlotMeta[]
   hasStrayChild: boolean
 }
 
@@ -102,6 +104,7 @@ export function collectSlots(children: ReactNode): CollectedSlots {
     pinned: [],
     automatic: [],
     pinnedSlots: [],
+    ordered: [],
     hasStrayChild: false
   }
   let groupCount = 0
@@ -110,6 +113,7 @@ export function collectSlots(children: ReactNode): CollectedSlots {
     const pinned = slots[0]?.placement === 'pinned'
     ;(pinned ? result.pinned : result.cluster).push(entry)
     ;(pinned ? result.pinnedSlots : result.automatic).push(...slots)
+    result.ordered.push(...slots)
   }
 
   Children.forEach(children, (child) => {

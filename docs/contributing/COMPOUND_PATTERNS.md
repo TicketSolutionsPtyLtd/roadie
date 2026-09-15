@@ -103,7 +103,9 @@ keeps the walk sound — the rule is "these types, matched by identity", not
 "one level of any wrapper". A `<MyGroup>` wrapper is still invisible to the
 walk, and a tree authored in a server component still fails silently for all
 of them. `Navigator.Primary` itself must be a direct child of `Navigator`, which
-reads its children during render so the server render has its sections.
+reads its children during render so the server render has its sections. A
+Fragment or wrapper around it counts as not direct: the Primary draws nothing
+and warns in development.
 
 ### 1.3 Registration
 

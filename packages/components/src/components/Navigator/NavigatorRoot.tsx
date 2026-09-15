@@ -42,8 +42,7 @@ import {
   findActiveSection,
   findItem,
   findMenuItem,
-  findSectionByValue,
-  slotsOf
+  findSectionByValue
 } from './activeSection'
 import { collectSlots } from './collectSlots'
 import type { NavigatorSlotMeta } from './mobileSlots'
@@ -237,21 +236,21 @@ export function NavigatorRoot({
     () => collectSlots(primaryChildren),
     [primaryChildren]
   )
-  const slots = useMemo(() => slotsOf(collected), [collected])
   // Keyed on which section is active, so moving between its rows keeps its identity.
-  const activeSectionValue = findActiveSection(slots, value)?.value ?? null
+  const activeSectionValue =
+    findActiveSection(collected.ordered, value)?.value ?? null
   const activeSection = useMemo(
     () =>
       activeSectionValue === null
         ? null
-        : findSectionByValue(slots, activeSectionValue),
-    [slots, activeSectionValue]
+        : findSectionByValue(collected.ordered, activeSectionValue),
+    [collected, activeSectionValue]
   )
   useIsomorphicLayoutEffect(() => {
     latestPrimaryChildren.current = derivedChildren
   }, [derivedChildren])
   // The latest elements, not the structural copy, so handlers are current at click time.
-  const latestSlots = () => slotsOf(collectSlots(latestPrimaryChildren.current))
+  const latestSlots = () => collectSlots(latestPrimaryChildren.current).ordered
   const activateItem = useCallback((itemValue: string) => {
     findItem(latestSlots(), itemValue)?.onClick?.()
   }, [])
@@ -307,7 +306,6 @@ export function NavigatorRoot({
   const selection: NavigatorSelection = {
     value,
     collected,
-    slots,
     activeSection,
     listPaneShows,
     showList: showList ?? false,

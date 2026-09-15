@@ -2730,6 +2730,75 @@ describe('Navigator descendant-aware active matching', () => {
   })
 })
 
+describe('Navigator lookups follow document order', () => {
+  it('resolves the section written first, even when it is pinned', async () => {
+    render(
+      <Navigator value='/settings/team/members'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/settings' href='/settings' placement='pinned'>
+            Settings
+            <Navigator.Secondary aria-label='Settings pages'>
+              <Navigator.Item
+                value='/settings/profile'
+                href='/settings/profile'
+              >
+                Profile
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+          <Navigator.Item value='/settings/team' href='/settings/team'>
+            Team
+            <Navigator.Secondary aria-label='Team pages'>
+              <Navigator.Item
+                value='/settings/team/roles'
+                href='/settings/team/roles'
+              >
+                Roles
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Pane role='detail' current>
+            Detail
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(document.querySelector('[data-navigator-section]')).toHaveAttribute(
+      'data-navigator-section',
+      '/settings'
+    )
+  })
+})
+
+describe('a Primary that is not a direct child', () => {
+  it('draws no destinations and warns', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const Wrapper = ({ children }: { children: ReactNode }) => <>{children}</>
+    render(
+      <Navigator value='/a'>
+        <Wrapper>
+          <Navigator.Primary aria-label='Main'>
+            {testBrand}
+            <Navigator.Item value='/a' href='/a'>
+              A
+            </Navigator.Item>
+          </Navigator.Primary>
+        </Wrapper>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(document.querySelector('[data-slot="navigator-item"]')).toBeNull()
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('must be a direct child of Navigator')
+    )
+    warn.mockRestore()
+  })
+})
+
 describe('Navigator route-prefix section matching', () => {
   const verticalItem = (label: string) =>
     screen

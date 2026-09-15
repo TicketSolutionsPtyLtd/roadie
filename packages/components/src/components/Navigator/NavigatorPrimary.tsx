@@ -34,7 +34,6 @@ import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
 import { NavigatorTab, type NavigatorTabProps } from './NavigatorTab'
 import { NavigatorTileTooltip } from './NavigatorTileTooltip'
 import { primaryCapsules, wrapCapsules } from './capsules'
-import { collectSlots } from './collectSlots'
 import {
   type NavigatorSlotMeta,
   OVERFLOW_LABEL,
@@ -75,8 +74,7 @@ export type NavigatorPrimaryProps = {
 
 export function NavigatorPrimary({
   'aria-label': ariaLabel,
-  className,
-  children
+  className
 }: NavigatorPrimaryProps) {
   const {
     setValue,
@@ -100,7 +98,7 @@ export function NavigatorPrimary({
   const {
     value: activeValue,
     activeSection,
-    collected: rootCollected,
+    collected,
     sectionMemory,
     showList
   } = use(NavigatorSelectionContext)
@@ -113,13 +111,8 @@ export function NavigatorPrimary({
   const pinnedRef = useRef<HTMLDivElement>(null)
   const brandRef = useRef<HTMLDivElement>(null)
 
-  // Root's walk keeps its identity across parent renders, and every item element with it.
-  const ownCollected = useMemo(
-    () => (primaryDerived ? null : collectSlots(children)),
-    [primaryDerived, children]
-  )
-  const collected = ownCollected ?? rootCollected
-  const items = [...collected.automatic, ...collected.pinnedSlots]
+  // Root's walk: a Primary that isn't its direct child finds nothing, and warns.
+  const items = collected.ordered
 
   // Only an item without a Secondary, deep in an undeclared sub-route, is worth remembering.
   const branchSection = items.find((item) => isSectionActive(item, activeValue))
