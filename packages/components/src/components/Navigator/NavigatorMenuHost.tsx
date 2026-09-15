@@ -85,6 +85,7 @@ export function NavigatorMenuHost({
   const { openMenu } = use(NavigatorDisclosureContext)
   const id = menuId(surface, value)
   const { side, align } = PLACEMENT[surface]
+  const declaredLabel = menu.props['aria-label']
 
   // A host can unmount while open, e.g. when its item folds into More.
   useEffect(() => () => setOpenMenu(release(id)), [id, setOpenMenu])
@@ -110,7 +111,11 @@ export function NavigatorMenuHost({
         >
           <Menu.Popup
             data-slot='navigator-menu'
-            aria-label={menu.props['aria-label'] ?? label}
+            aria-label={declaredLabel ?? label}
+            // Base UI labels the popup by its trigger, which outranks aria-label.
+            {...(declaredLabel !== undefined && {
+              'aria-labelledby': undefined
+            })}
             className={cn(navigatorMenuPopupClass, menu.props.className)}
           >
             {withCurrentHandlers(menu.props.children, (index) =>
