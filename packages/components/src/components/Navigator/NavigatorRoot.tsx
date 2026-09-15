@@ -16,6 +16,7 @@ import {
 import { NAVIGATOR_EXPANDED_ATTRIBUTE } from '@oztix/roadie-core/navigator'
 import { cn } from '@oztix/roadie-core/utils'
 
+import { scrollToTop } from '../../utils/reducedMotion'
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import type { PanePrimaryNav } from '../Pane/variants'
 import { NavigatorContent } from './NavigatorContent'
@@ -275,21 +276,13 @@ export function NavigatorRoot({
       activeSection.root === 'page' && isActiveValue(activeSection.value, value)
     )
 
-  // Ref, not state: read imperatively on tap, never rendered.
-  const activePaneScrollers = useRef<(() => void)[]>([])
-  // The latest one still held wins. Two panes can both be provisionally top
-  // before registration; the one that steps down releases only its own.
-  const registerActivePaneScroller = (scroller: () => void) => {
-    activePaneScrollers.current.push(scroller)
-    return () => {
-      const held = activePaneScrollers.current
-      const at = held.lastIndexOf(scroller)
-      if (at !== -1) held.splice(at, 1)
-    }
-  }
-  const scrollActivePaneToTop = () => {
-    activePaneScrollers.current.at(-1)?.()
-  }
+  // Read at tap time from what the stack already published; level 0 skips nested Navigators.
+  const scrollActivePaneToTop = () =>
+    scrollToTop(
+      rootRef.current?.querySelector(
+        '[data-stack][data-level="0"][data-stack-position="top"] [data-slot="pane-viewport"]'
+      )
+    )
 
   const handlesShowList = onShowListChange !== undefined
   const actions: NavigatorActions = {
@@ -298,7 +291,6 @@ export function NavigatorRoot({
     setPrimaryNav,
     setPinExpanded,
     scrollActivePaneToTop,
-    registerActivePaneScroller,
     primaryDerived,
     activateItem,
     activateMenuItem,

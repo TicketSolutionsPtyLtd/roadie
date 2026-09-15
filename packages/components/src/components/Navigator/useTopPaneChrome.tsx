@@ -14,9 +14,7 @@ export const NAV_COLLAPSE_THRESHOLD = 24
 
 /** The scroll chrome the orchestrator hands the top pane. */
 export function useTopPaneChrome(): PaneChromeContextValue {
-  const { setNavCollapsed, setPinExpanded, registerActivePaneScroller } = use(
-    NavigatorActionsContext
-  )
+  const { setNavCollapsed, setPinExpanded } = use(NavigatorActionsContext)
   const { pinExpanded } = use(NavigatorBarContext)
   // Read at scroll time, so the chrome keeps one identity while the bar toggles.
   const bar = useRef({ pinExpanded, past: false })
@@ -44,7 +42,6 @@ export function useTopPaneChrome(): PaneChromeContextValue {
     scrollPastAt: NAV_COLLAPSE_THRESHOLD,
     onScrollPast,
     // Direction matters only to a pinned bar, so only then does the pane read it.
-    onScrollDown: pinExpanded ? onScrollDown : undefined,
-    registerScroller: registerActivePaneScroller
+    onScrollDown: pinExpanded ? onScrollDown : undefined
   }
 }

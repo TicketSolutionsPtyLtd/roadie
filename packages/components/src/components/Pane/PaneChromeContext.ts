@@ -10,8 +10,6 @@ export type PaneChromeContextValue = {
   onScrollPast?: (past: boolean) => void
   /** Wanted only while the orchestrator needs direction: called on each frame that scrolled down. */
   onScrollDown?: () => void
-  /** Makes `scroller` the one scroll-to-top; the returned release clears it only while it is still the one. */
-  registerScroller: (scroller: () => void) => () => void
   /** An orchestrator's Back link — the parent route. The header's own `backHref` and `onBack` still win. */
   backHref?: string
   /** The parent's title, naming that link "Back to {label}". */
@@ -19,9 +17,7 @@ export type PaneChromeContextValue = {
 }
 
 // Also what a covered pane gets, so it cannot write shared nav state.
-export const PANE_CHROME_NONE: PaneChromeContextValue = {
-  registerScroller: () => () => {}
-}
+export const PANE_CHROME_NONE: PaneChromeContextValue = {}
 
 export const PaneChromeContext = createContext(PANE_CHROME_NONE)
 PaneChromeContext.displayName = 'PaneChromeContext'
