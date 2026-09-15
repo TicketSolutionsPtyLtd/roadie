@@ -27,7 +27,7 @@ export function CopyChip({
       onClick={() => copy(value)}
       aria-label={`Copy ${value}`}
       className={cn(
-        'is-interactive inline-flex min-w-0 items-center gap-1.5 rounded-md emphasis-subtler px-1.5 py-0.5 text-start font-mono text-sm',
+        'is-interactive inline-flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-0.5 text-start font-mono text-sm select-none hover:bg-subtle',
         className
       )}
     >

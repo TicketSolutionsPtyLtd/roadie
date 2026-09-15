@@ -7,10 +7,14 @@ import type { Intent } from '@roadie-core/tokens'
 import type { TokenEntry } from '@/lib/tokens'
 
 import { Badge } from '@oztix/roadie-components/badge'
+import { Code } from '@oztix/roadie-components/code'
 import { Highlight } from '@oztix/roadie-components/highlight'
 
 import { CopyChip } from './CopyChip'
 import { TokenPreview } from './TokenPreview'
+
+/** Families whose samples render at their real size, wider than the default column. */
+const WIDE_PREVIEWS = new Set(['component-utilities'])
 
 function copyTarget({ name, kind }: TokenEntry) {
   if (kind === 'variable') return `var(${name})`
@@ -60,6 +64,23 @@ function Values({ token, intent }: { token: TokenEntry; intent: Intent }) {
   )
 }
 
+/** A CSS comment's `code` spans as inline code, the rest as text. */
+function Description({ text }: { text: string }) {
+  return (
+    <p className='text-sm text-subtle'>
+      {text
+        .split(/(`[^`]+`)/)
+        .map((part, index) =>
+          part.startsWith('`') && part.endsWith('`') ? (
+            <Code key={index}>{part.slice(1, -1)}</Code>
+          ) : (
+            part
+          )
+        )}
+    </p>
+  )
+}
+
 /** One token: a live preview, copyable names, its value in each mode and what it's for. */
 export const TokenRow = memo(function TokenRow({
   token,
@@ -75,8 +96,20 @@ export const TokenRow = memo(function TokenRow({
   const classes = token.kind === 'variable' ? token.classes : undefined
 
   return (
-    <li className='grid grid-cols-[3rem_minmax(0,1fr)] items-start gap-x-3 gap-y-1.5 py-3'>
-      <div className='row-span-4 grid size-12 place-items-center'>
+    <li
+      className={`grid items-start gap-x-3 gap-y-1.5 py-3 ${
+        WIDE_PREVIEWS.has(token.family)
+          ? 'grid-cols-[5rem_minmax(0,1fr)]'
+          : 'grid-cols-[3rem_minmax(0,1fr)]'
+      }`}
+    >
+      <div
+        className={`row-span-4 grid min-h-12 items-center ${
+          WIDE_PREVIEWS.has(token.family)
+            ? 'justify-items-start'
+            : 'justify-items-center'
+        }`}
+      >
         <TokenPreview token={token} />
       </div>
       <div className='flex min-w-0 flex-wrap items-center gap-1'>
@@ -103,9 +136,7 @@ export const TokenRow = memo(function TokenRow({
         ) : null}
       </div>
       <Values token={token} intent={intent} />
-      {token.description ? (
-        <p className='text-sm text-subtle'>{token.description}</p>
-      ) : null}
+      {token.description ? <Description text={token.description} /> : null}
       {caption ? <p className='text-xs text-subtler'>{caption}</p> : null}
     </li>
   )
