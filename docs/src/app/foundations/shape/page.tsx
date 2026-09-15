@@ -5,7 +5,8 @@ import { Code } from '@oztix/roadie-components'
 export const metadata = {
   title: 'Shape',
   description:
-    'Border-radius scale for consistent, soft corners across all components.'
+    'Border-radius scale for consistent, soft corners across all components.',
+  category: 'Visual'
 }
 
 const radiusScale = [

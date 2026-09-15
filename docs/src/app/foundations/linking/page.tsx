@@ -7,7 +7,8 @@ import { Code } from '@oztix/roadie-components'
 export const metadata = {
   title: 'Linking',
   description:
-    'A single href prop, automatic external-link safety, and one-line client routing through next/link via RoadieLinkProvider — across every link-bearing Roadie component.'
+    'A single href prop, automatic external-link safety, and one-line client routing through next/link via RoadieLinkProvider — across every link-bearing Roadie component.',
+  category: 'Building apps'
 }
 
 export default function LinkingPage() {

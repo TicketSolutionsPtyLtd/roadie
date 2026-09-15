@@ -23,7 +23,7 @@ import {
   SquaresFourIcon
 } from '@phosphor-icons/react'
 
-import type { ComponentCategory } from '@/lib/component-manifest'
+import type { CatalogueCategory } from '@/lib/page-manifest'
 
 import { Drawer, IconButton, Navigator, Pane } from '@oztix/roadie-components'
 import { serializeNavigatorExpandedCookie } from '@oztix/roadie-core/navigator'
@@ -38,21 +38,25 @@ import {
 } from './NavQueryFlag'
 import { type DocHeadings, OnThisPage, useDocHeadings } from './OnThisPage'
 
-interface NavigationItem {
+export type NavigationItem = {
   title: string
   href?: string
   description?: string
 }
 
-interface NavigationSection {
+export type NavigationSection = {
   title: string
   href: string
+  /** Flat, in reading order; `FooterNav` walks these. */
   items: NavigationItem[]
+  /** When set, the secondary list renders these groups instead of `items`. */
+  groups?: CatalogueCategory[]
+  root?: 'page'
+  searchable?: boolean
 }
 
-interface NavigationProps {
+type NavigationProps = {
   items: NavigationSection[]
-  componentCategories: ComponentCategory[]
   /** Route → page title, rendered as `Pane.BodyTitle`. */
   pageTitles: Record<string, string>
   children: ReactNode
@@ -130,7 +134,6 @@ function OnThisPageDrawer({ headings, onSelect }: DocHeadings) {
 
 export function DocsNavigator({
   items,
-  componentCategories,
   pageTitles,
   children
 }: NavigationProps) {
@@ -219,32 +222,33 @@ export function DocsNavigator({
                 }
               >
                 {section.title}
-                {section.href === '/components' ? (
+                {section.groups ? (
                   <Navigator.Secondary
-                    aria-label='Components'
-                    root='page'
-                    searchable
+                    aria-label={section.title}
+                    root={section.root}
+                    searchable={section.searchable}
                   >
-                    {componentCategories.map((category) => (
-                      <Navigator.Group key={category.name}>
+                    {section.groups.map((group) => (
+                      <Navigator.Group key={group.name}>
                         <Navigator.GroupTitle>
-                          {category.name}
+                          {group.name}
                         </Navigator.GroupTitle>
-                        {category.overviewHref ? (
+                        {group.overviewHref ? (
                           <Navigator.Item
-                            value={category.overviewHref}
-                            href={category.overviewHref}
+                            value={group.overviewHref}
+                            href={group.overviewHref}
                           >
-                            {`${category.name} overview`}
+                            {`${group.name} overview`}
                           </Navigator.Item>
                         ) : null}
-                        {category.components.map((component) => (
+                        {group.entries.map((entry) => (
                           <Navigator.Item
-                            key={component.name}
-                            value={`/components/${component.name}`}
-                            href={`/components/${component.name}`}
+                            key={entry.name}
+                            value={entry.href}
+                            href={entry.href}
+                            description={entry.description}
                           >
-                            {component.title}
+                            {entry.title}
                           </Navigator.Item>
                         ))}
                       </Navigator.Group>
@@ -253,7 +257,7 @@ export function DocsNavigator({
                 ) : subItems.length > 0 ? (
                   <Navigator.Secondary
                     aria-label={`${section.title} pages`}
-                    root={section.href === '/' ? 'page' : undefined}
+                    root={section.root}
                   >
                     {subItems.map((item) => (
                       <Navigator.Item

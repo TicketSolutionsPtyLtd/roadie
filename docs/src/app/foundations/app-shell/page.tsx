@@ -5,7 +5,8 @@ import { Code } from '@oztix/roadie-components'
 export const metadata = {
   title: 'App shell',
   description:
-    'The Next.js parallel-routes + intercepting-routes recipe that turns Navigator into a real, URL-addressable app shell: list and detail in one URL on desktop, standalone detail on reload.'
+    'The Next.js parallel-routes + intercepting-routes recipe that turns Navigator into a real, URL-addressable app shell: list and detail in one URL on desktop, standalone detail on reload.',
+  category: 'Building apps'
 }
 
 function CodeBlock({ children }: { children: ReactNode }) {

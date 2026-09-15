@@ -7,7 +7,8 @@ import { Code } from '@oztix/roadie-components'
 export const metadata = {
   title: 'Performance',
   description:
-    'Frontend performance principles for building fast, responsive Oztix applications.'
+    'Frontend performance principles for building fast, responsive Oztix applications.',
+  category: 'Building apps'
 }
 
 export default function PerformancePage() {

@@ -4,45 +4,45 @@ import { useRef, useState } from 'react'
 
 import { ArrowRightIcon, MagnifyingGlassIcon } from '@phosphor-icons/react'
 
-import type { ComponentCategory } from '@/lib/component-manifest'
+import type { CatalogueCategory } from '@/lib/page-manifest'
 
 import { Button } from '@oztix/roadie-components/button'
-import { Card } from '@oztix/roadie-components/card'
 import { EmptyState } from '@oztix/roadie-components/empty-state'
 import { Input } from '@oztix/roadie-components/input'
 
-import { ComponentThumbnail } from './ComponentSkeleton'
+import { ComponentSkeleton } from './ComponentSkeleton'
+import { PreviewCard, PreviewSection } from './PreviewGrid'
 
 function filterCategories(
-  categories: ComponentCategory[],
+  categories: CatalogueCategory[],
   query: string
-): ComponentCategory[] {
+): CatalogueCategory[] {
   const needle = query.trim().toLowerCase()
   if (needle === '') return categories
   return categories.flatMap((category) => {
     if (category.name.toLowerCase().includes(needle)) return [category]
-    const components = category.components.filter(
-      (component) =>
-        component.title.toLowerCase().includes(needle) ||
-        component.name.includes(needle)
+    const entries = category.entries.filter(
+      (entry) =>
+        entry.title.toLowerCase().includes(needle) ||
+        entry.name.includes(needle)
     )
-    return components.length > 0 ? [{ ...category, components }] : []
+    return entries.length > 0 ? [{ ...category, entries }] : []
   })
 }
 
-const countComponents = (categories: ComponentCategory[]) =>
-  categories.reduce((total, { components }) => total + components.length, 0)
+const countEntries = (categories: CatalogueCategory[]) =>
+  categories.reduce((total, { entries }) => total + entries.length, 0)
 
 /** Every component as a preview card, grouped by category and filtered by a search. */
 export function ComponentBrowser({
   categories
 }: {
-  categories: ComponentCategory[]
+  categories: CatalogueCategory[]
 }) {
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
   const results = filterCategories(categories, query)
-  const count = countComponents(results)
+  const count = countEntries(results)
 
   return (
     <div className='@container grid gap-10'>
@@ -92,48 +92,35 @@ export function ComponentBrowser({
           </EmptyState.Actions>
         </EmptyState>
       ) : (
-        results.map((category) => {
-          const headingId = category.name.toLowerCase().replace(/\W+/g, '-')
-          return (
-            <section
-              key={category.name}
-              aria-labelledby={headingId}
-              className='grid gap-4'
-            >
-              <div className='flex items-center justify-between gap-4'>
-                <h2 id={headingId} className='text-display-ui-4 text-strong'>
-                  {category.name}
-                </h2>
-                {category.overviewHref ? (
-                  <Button
-                    href={category.overviewHref}
-                    emphasis='subtler'
-                    size='sm'
-                    aria-label={`${category.name} overview`}
-                  >
-                    Overview
-                    <ArrowRightIcon weight='bold' className='size-4' />
-                  </Button>
-                ) : null}
-              </div>
-              <ul className='grid grid-cols-2 gap-3 @md:grid-cols-3 @2xl:grid-cols-4 @2xl:gap-4'>
-                {category.components.map((component) => (
-                  <li key={component.name} className='grid'>
-                    <Card
-                      href={`/components/${component.name}`}
-                      className='overflow-hidden no-underline'
-                    >
-                      <ComponentThumbnail name={component.name} />
-                      <h3 className='px-3 py-2.5 text-display-ui-6 text-strong'>
-                        {component.title}
-                      </h3>
-                    </Card>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )
-        })
+        results.map((category) => (
+          <PreviewSection
+            key={category.name}
+            title={category.name}
+            action={
+              category.overviewHref ? (
+                <Button
+                  href={category.overviewHref}
+                  emphasis='subtler'
+                  size='sm'
+                  aria-label={`${category.name} overview`}
+                >
+                  Overview
+                  <ArrowRightIcon weight='bold' className='size-4' />
+                </Button>
+              ) : null
+            }
+          >
+            {category.entries.map((entry) => (
+              <PreviewCard
+                key={entry.name}
+                href={entry.href}
+                title={entry.title}
+              >
+                <ComponentSkeleton name={entry.name} />
+              </PreviewCard>
+            ))}
+          </PreviewSection>
+        ))
       )}
     </div>
   )

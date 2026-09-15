@@ -1,5 +1,5 @@
 import { ComponentBrowser } from '@/components/ComponentBrowser'
-import { getComponentManifest, groupByCategory } from '@/lib/component-manifest'
+import { COMPONENTS, getCatalogue } from '@/lib/page-manifest'
 
 export const metadata = {
   title: 'Components',
@@ -8,7 +8,7 @@ export const metadata = {
 }
 
 export default async function ComponentsPage() {
-  const categories = await groupByCategory(await getComponentManifest())
+  const categories = await getCatalogue(COMPONENTS)
 
   return (
     <div className='grid gap-8'>

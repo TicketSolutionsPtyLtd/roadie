@@ -6,7 +6,8 @@ import { Guideline } from '@/components/Guideline'
 export const metadata: Metadata = {
   title: 'Date and time',
   description:
-    'One scale, seven rules, and one implementation for every date and time we show.'
+    'One scale, seven rules, and one implementation for every date and time we show.',
+  category: 'Content'
 }
 
 const DATE_TIME = '/components/date-time'
