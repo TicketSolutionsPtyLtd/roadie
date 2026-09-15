@@ -5,3 +5,6 @@
    render React widgets (which use components) plus components on their own. */
 @import '@oztix/roadie-components/css';
 @import '@oztix/roadie-widgets/css';
+
+/* The tokens reference draws each utility by name from the manifest. */
+@source '../../../packages/core/src/css/safelist.html';

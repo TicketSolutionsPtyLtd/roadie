@@ -52,6 +52,7 @@ import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
 
 import { DemoRouter } from './DemoRouter'
 import { createDemoCart } from './cartDrawerDemo'
+import { useCopy } from './useCopy'
 
 // Bare-name keys so MDX live examples can use `<CheckCircle />` etc.
 const PhosphorIcons = {
@@ -178,18 +179,12 @@ function ViewCodeShade({
 }
 
 function CopyButton({ code }: { code: string }) {
-  const [copied, setCopied] = useState(false)
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(code)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+  const { copied, copy } = useCopy()
 
   return (
     <div className='absolute top-2 right-2 z-docked'>
       <Button
-        onClick={handleCopy}
+        onClick={() => copy(code)}
         size='sm'
         emphasis='normal'
         aria-label='Copy code to clipboard'
