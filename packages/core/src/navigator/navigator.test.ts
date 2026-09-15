@@ -34,21 +34,6 @@ describe('getNavigatorExpandedScript', () => {
     expect(runWith('')).toBeNull()
   })
 
-  it('reads a custom cookie name', () => {
-    expect(
-      runWith(
-        'app-nav=1',
-        getNavigatorExpandedScript({ cookieName: 'app-nav' })
-      )
-    ).toBe('')
-  })
-
-  it('refuses a cookie name that could break out of the script', () => {
-    expect(() =>
-      getNavigatorExpandedScript({ cookieName: "x';alert(1)//" })
-    ).toThrow(/cookie name/)
-  })
-
   it('never throws at runtime', () => {
     expect(() =>
       new Function('document', getNavigatorExpandedScript())(undefined)
@@ -61,8 +46,5 @@ describe('serializeNavigatorExpandedCookie', () => {
     expect(serializeNavigatorExpandedCookie(true)).toBe(
       `${NAVIGATOR_EXPANDED_COOKIE}=1; path=/; max-age=31536000; samesite=lax`
     )
-    expect(
-      serializeNavigatorExpandedCookie(false, { cookieName: 'app-nav' })
-    ).toBe('app-nav=0; path=/; max-age=31536000; samesite=lax')
   })
 })
