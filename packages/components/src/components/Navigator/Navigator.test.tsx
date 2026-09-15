@@ -3378,6 +3378,57 @@ describe('Navigator active-tab tap: scroll-on-landing vs navigate-up', () => {
   })
 })
 
+describe('scroll-to-top in a nested Navigator', () => {
+  // The outer pane holding it isn't the outer top, so only the inner level finds it.
+  it("scrolls the inner Navigator's own top pane when its active tab is re-tapped", async () => {
+    render(
+      <Navigator value='/outer'>
+        <Navigator.Primary aria-label='Outer'>
+          {testBrand}
+          <Navigator.Item value='/outer'>Outer</Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Pane role='list' data-testid='outer-pane'>
+            <Navigator value='/inner'>
+              <Navigator.Primary aria-label='Inner'>
+                {testBrand}
+                <Navigator.Item value='/inner'>Inner</Navigator.Item>
+              </Navigator.Primary>
+              <Navigator.Content>
+                <Pane role='detail' current data-testid='inner-pane'>
+                  Inner detail
+                </Pane>
+              </Navigator.Content>
+            </Navigator>
+          </Pane>
+          <Pane role='detail' current>
+            Outer detail
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const viewportOf = (testId: string) =>
+      screen
+        .getByTestId(testId)
+        .querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
+    const inner = vi.fn()
+    const outer = vi.fn()
+    viewportOf('inner-pane').scrollTo = inner
+    viewportOf('outer-pane').scrollTo = outer
+
+    await userEvent.click(
+      within(screen.getByRole('navigation', { name: 'Inner tabs' })).getByRole(
+        'button',
+        { name: 'Inner' }
+      )
+    )
+
+    expect(inner).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }))
+    expect(outer).not.toHaveBeenCalled()
+  })
+})
+
 describe('pane header inside Navigator', () => {
   // Panes stay mounted, so the header's measurement follows its own visibility.
   it('publishes the header height only while the header draws', async () => {
