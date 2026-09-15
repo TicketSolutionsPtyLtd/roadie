@@ -655,7 +655,7 @@ describe('destination visuals', () => {
     )
     await flushViewportMeasurement()
     const icon = document.querySelector(
-      '[data-slot="navigator-secondary-items"] [data-testid="fake-icon"]'
+      '[data-slot="navigator-section-items"] [data-testid="fake-icon"]'
     )
     expect(icon).toHaveAttribute('data-weight', 'duotone')
     expect(icon).toHaveClass('size-5', 'text-subtle')

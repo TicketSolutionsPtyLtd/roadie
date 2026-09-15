@@ -214,7 +214,7 @@ describe('generated section pane', () => {
     await user.type(within(pane).getByRole('searchbox'), 'zzz')
     expect(within(pane).getByText('No matches')).toHaveAttribute(
       'data-slot',
-      'navigator-secondary-empty'
+      'navigator-section-empty'
     )
   })
 
@@ -433,7 +433,7 @@ function Override({ wrapped = false }: { wrapped?: boolean }) {
   const pane = (
     <Navigator.SecondaryPane value='/components'>
       <p>Promo</p>
-      <Navigator.SecondaryItems query='in' />
+      <Navigator.SectionItems descriptions={false} query='in' />
     </Navigator.SecondaryPane>
   )
   return (
@@ -479,7 +479,7 @@ describe('Navigator.SecondaryPane', () => {
     ).toBeInTheDocument()
   })
 
-  it('ends its SecondaryItems rows with a chevron', async () => {
+  it('ends its SectionItems rows with a chevron', async () => {
     render(<Override />)
     await flushViewportMeasurement()
     expect(
@@ -489,7 +489,7 @@ describe('Navigator.SecondaryPane', () => {
     ).not.toBeNull()
   })
 
-  it('filters SecondaryItems by query', async () => {
+  it('filters SectionItems by query', async () => {
     render(<Override />)
     await flushViewportMeasurement()
     const pane = sectionPane()!
@@ -1278,7 +1278,7 @@ function PageRooted({
         {override ? (
           <Navigator.SecondaryPane value='/'>
             <p>Promo</p>
-            <Navigator.SecondaryItems />
+            <Navigator.SectionItems descriptions={false} />
           </Navigator.SecondaryPane>
         ) : null}
         <Pane role='detail' current>
