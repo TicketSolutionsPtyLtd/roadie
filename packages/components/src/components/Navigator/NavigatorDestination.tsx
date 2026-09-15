@@ -24,9 +24,6 @@ export type NavigatorDestinationProps = Omit<
   ariaCurrent?: 'page' | 'true'
   /** What the sliding indicator tracks; separate from `aria-current` so a section on an undeclared sub-route holds the pill without claiming the page. */
   dataCurrent?: boolean
-  /** Set only on the disclosure, which is never a link. */
-  expanded?: boolean
-  controls?: string
   className?: string
   children: ReactNode
   onClick?: (event: MouseEvent) => void
@@ -41,30 +38,25 @@ export type NavigatorDestinationProps = Omit<
 export function NavigatorDestination({
   href,
   circleSide,
-  style,
   ariaCurrent,
   dataCurrent,
-  expanded,
-  controls,
-  className,
   children,
-  onClick,
   ref,
   ...rest
 }: NavigatorDestinationProps) {
+  const shared = {
+    'data-slot': 'navigator-item',
+    'data-circle-side': circleSide,
+    'aria-current': ariaCurrent,
+    'data-current': dataCurrent || undefined
+  }
   if (href !== undefined) {
     return (
       <RoadieRoutedLink
         {...(rest as AnchorHTMLAttributes<HTMLAnchorElement>)}
+        {...shared}
         ref={ref as Ref<HTMLAnchorElement>}
-        data-slot='navigator-item'
-        data-circle-side={circleSide}
-        style={style}
-        aria-current={ariaCurrent}
-        data-current={dataCurrent || undefined}
-        className={className}
         href={href}
-        onClick={onClick}
       >
         {children}
       </RoadieRoutedLink>
@@ -75,16 +67,8 @@ export function NavigatorDestination({
     <button
       type='button'
       {...rest}
-      aria-expanded={expanded ?? rest['aria-expanded']}
-      aria-controls={controls ?? rest['aria-controls']}
+      {...shared}
       ref={ref as Ref<HTMLButtonElement>}
-      data-slot='navigator-item'
-      data-circle-side={circleSide}
-      style={style}
-      aria-current={ariaCurrent}
-      data-current={dataCurrent || undefined}
-      className={className}
-      onClick={onClick}
     >
       {children}
     </button>

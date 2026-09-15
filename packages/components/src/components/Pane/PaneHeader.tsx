@@ -19,11 +19,7 @@ import { PaneChromeContext } from './PaneChromeContext'
 import { PaneContext } from './PaneContext'
 import { PaneTitle } from './PaneTitle'
 import { PaneTitleCompact } from './PaneTitleCompact'
-import {
-  paneHeaderBackVariants,
-  paneHeaderCloseVariants,
-  paneHeaderVariants
-} from './variants'
+import { paneHeaderEdgeClass, paneHeaderVariants } from './variants'
 
 export type PaneHeaderProps = {
   /** Back target, as a routed link. Wins over `onBack`; also Close's target unless `onClose` is given. */
@@ -134,41 +130,27 @@ export function PaneHeader({
       className={cn(paneHeaderVariants({ edgeOnly, collapsed }), className)}
     >
       {showBack ? (
-        <div data-slot='pane-back' className={paneHeaderBackVariants()}>
-          {resolvedBackHref !== undefined ? (
-            <IconButton
-              href={resolvedBackHref}
-              aria-label={backName}
-              emphasis='normal'
-            >
-              {backIcon}
-            </IconButton>
-          ) : (
-            <IconButton
-              onClick={onBack}
-              aria-label={backName}
-              emphasis='normal'
-            >
-              {backIcon}
-            </IconButton>
-          )}
+        <div data-slot='pane-back' className={paneHeaderEdgeClass}>
+          <IconButton
+            href={resolvedBackHref}
+            onClick={resolvedBackHref === undefined ? onBack : undefined}
+            aria-label={backName}
+            emphasis='normal'
+          >
+            {backIcon}
+          </IconButton>
         </div>
       ) : null}
       {showClose ? (
-        <div data-slot='pane-close' className={paneHeaderCloseVariants()}>
-          {closeHandler !== undefined ? (
-            <IconButton
-              onClick={closeHandler}
-              aria-label='Close'
-              emphasis='normal'
-            >
-              {closeIcon}
-            </IconButton>
-          ) : (
-            <IconButton href={closeHref} aria-label='Close' emphasis='normal'>
-              {closeIcon}
-            </IconButton>
-          )}
+        <div data-slot='pane-close' className={paneHeaderEdgeClass}>
+          <IconButton
+            href={closeHref}
+            onClick={closeHandler}
+            aria-label='Close'
+            emphasis='normal'
+          >
+            {closeIcon}
+          </IconButton>
         </div>
       ) : null}
       {children}

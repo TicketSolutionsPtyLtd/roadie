@@ -260,8 +260,8 @@ export function NavigatorPrimary({
     <NavigatorDestination
       ariaCurrent={verticalMoreActive ? 'true' : undefined}
       dataCurrent={verticalMoreActive}
-      expanded={overflowOpen}
-      controls={overflowOpen ? overflowPaneId : undefined}
+      aria-expanded={overflowOpen}
+      aria-controls={overflowOpen ? overflowPaneId : undefined}
       className={navigatorItemVariants({
         active: verticalMoreActive
       })}
@@ -374,7 +374,6 @@ export function NavigatorPrimary({
               href={undefined}
               active={openMenu === menuId('horizontal', tab.value)}
               current={false}
-              onSelect={undefined}
               onClick={() => {
                 activateItem(tab.value)
                 setOverflowOpen(false)
@@ -404,7 +403,7 @@ export function NavigatorPrimary({
         collapsed,
         circleSide: isStartCircle ? 'start' : undefined,
         index: tabIndex,
-        onSelect: (event) => selectDestination(event, tab, active, href)
+        onClick: (event) => selectDestination(event, tab, active, href)
       })
     })
     const pinnedHref = pinnedTab && tabHref(pinnedTab, pinnedIsActive)
@@ -420,7 +419,7 @@ export function NavigatorPrimary({
           pinned: true,
           collapsed,
           index: 0,
-          onSelect: (event) =>
+          onClick: (event) =>
             selectDestination(event, pinnedTab, pinnedIsActive, pinnedHref)
         })
       : null
@@ -585,9 +584,9 @@ export function NavigatorPrimary({
                 collapsed={collapsed}
                 circleSide={moreCircleSide}
                 index={slots.tabs.length}
-                expanded={overflowOpen}
-                controls={overflowOpen ? overflowPaneId : undefined}
-                onSelect={selectMore}
+                aria-expanded={overflowOpen}
+                aria-controls={overflowOpen ? overflowPaneId : undefined}
+                onClick={selectMore}
               />
             ) : null}
           </div>
