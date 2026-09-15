@@ -8,7 +8,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { IconTile } from '../IconTile'
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
-import { navigatorMenuItemVariants } from './variants'
+import { navigatorMenuItemClass } from './variants'
 
 export type NavigatorMenuItemProps = {
   /** Routes through `RoadieLinkProvider`, like `Navigator.Item`. */
@@ -62,7 +62,7 @@ export function NavigatorMenuItem({
       </span>
     </>
   )
-  const finalClassName = cn(navigatorMenuItemVariants(), className)
+  const finalClassName = cn(navigatorMenuItemClass, className)
 
   if (href !== undefined) {
     return (

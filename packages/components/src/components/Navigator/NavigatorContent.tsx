@@ -52,7 +52,7 @@ import {
 } from './paneStack'
 import { textOf } from './splitSecondary'
 import { useTopPaneChrome } from './useTopPaneChrome'
-import { navigatorContentVariants, navigatorPanesVariants } from './variants'
+import { navigatorContentClass, navigatorPanesClass } from './variants'
 
 export type NavigatorContentProps = ComponentProps<'main'>
 
@@ -426,7 +426,7 @@ export function NavigatorContent({
     <main
       ref={ref}
       data-slot='navigator-content'
-      className={cn(navigatorContentVariants(), className)}
+      className={cn(navigatorContentClass, className)}
       {...props}
     >
       <PaneStackContext value={stackValue}>
@@ -438,7 +438,7 @@ export function NavigatorContent({
             data-level={level}
             data-reveal={revealRoot ? '' : undefined}
             data-overflow={moreOpen ? '' : undefined}
-            className={navigatorPanesVariants()}
+            className={navigatorPanesClass}
           >
             {sectionPane}
             {children}

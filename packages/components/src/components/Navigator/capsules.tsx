@@ -2,7 +2,7 @@ import { Fragment, type ReactNode } from 'react'
 
 import type { PrimaryEntry } from './collectSlots'
 import type { PrimaryCapsule } from './primaryCapacity'
-import { navigatorCapsuleVariants } from './variants'
+import { navigatorCapsuleClass } from './variants'
 
 type ItemEntry = Extract<PrimaryEntry, { kind: 'item' }>
 type GroupEntry = Extract<PrimaryEntry, { kind: 'group' }>
@@ -60,7 +60,7 @@ export function wrapCapsules(
           <ul
             key={capsule.key}
             data-slot='navigator-capsule'
-            className={navigatorCapsuleVariants()}
+            className={navigatorCapsuleClass}
           >
             {items.map((item) => (
               <li key={item.slot.value}>{item.element}</li>

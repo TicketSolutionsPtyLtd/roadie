@@ -3,17 +3,17 @@ import { cva } from 'class-variance-authority'
 // `100dvh` so collapsing mobile browser chrome doesn't crop the horizontal
 // navigation. `container-type` lets it size tabs off the root's own width, so
 // an embedded Navigator measures its box, not the viewport.
-export const navigatorRootVariants = cva([
+export const navigatorRootClass = [
   'group/navigator',
   'relative grid h-[100dvh] w-full overflow-hidden bg-sunken',
   '[container-type:inline-size]',
   'grid-rows-1 md:grid-cols-[auto_1fr]',
   'pt-[env(safe-area-inset-top)]'
-])
+].join(' ')
 
 // The `panes` container the pane columns stylesheet queries. Column padding
 // lives on the row inside, because a container can't query itself.
-export const navigatorContentVariants = cva([
+export const navigatorContentClass = [
   'row-start-1 md:col-start-2',
   // The frame behind the panes. A pane that paints no opaque surface of its
   // own (`subtle`, `subtler`) inherits this for its sticky chrome, so the bar
@@ -28,33 +28,33 @@ export const navigatorContentVariants = cva([
   'overflow-clip pointer-events-none',
   // Set for two frames while More opens or closes.
   'data-instant:[&_[data-slot=pane]]:transition-none'
-])
+].join(' ')
 
 // The row the stylesheet keys on. A stacked pane is `absolute` and ignores
 // padding, so it insets itself by the gutter published here: full-bleed on
 // phones, inset from `md`.
-export const navigatorPanesVariants = cva([
+export const navigatorPanesClass = [
   'pointer-events-auto relative flex h-full min-h-0 min-w-0',
   '[--pane-stack-inset:0px] md:[--pane-stack-inset:--spacing(3)]'
-])
+].join(' ')
 
 // The box is the grid track, so it never animates: it changes once, at the end
 // of an expand (held collapsed by `data-motion`) or the start of a collapse.
 // The frame inside animates and overflows it while the content translates.
-export const navigatorPrimaryVerticalVariants = cva([
+export const navigatorPrimaryVerticalClass = [
   'group/primary hidden min-h-0 md:col-start-1 md:row-start-1 md:flex',
   '[--navigator-primary-collapsed:5rem] [--navigator-primary-expanded:15rem]',
   'w-(--navigator-primary-collapsed) navigator-expanded:w-(--navigator-primary-expanded)',
   'data-[motion=expand]:w-(--navigator-primary-collapsed)',
   '[--navigator-primary-motion:var(--duration-slow)_var(--ease-standard)]'
-])
+].join(' ')
 
 // Flex, not grid rows: an absent brand or pinned region leaves no gutter.
-export const navigatorPrimaryFrameVariants = cva([
+export const navigatorPrimaryFrameClass = [
   'flex min-h-0 shrink-0 flex-col gap-3 py-3',
   'w-(--navigator-primary-collapsed) navigator-expanded:w-(--navigator-primary-expanded)',
   'motion-safe:[transition:width_var(--navigator-primary-motion)]'
-])
+].join(' ')
 
 // The toggle is out of flow: collapsed, `pb-12` makes its row under the brand;
 // expanded, `pe-15` keeps the brand clear of it.
@@ -77,38 +77,35 @@ export const navigatorPrimaryBrandVariants = cva(
 // Percentages of the brand region, which resizes with the navigation, so the
 // toggle travels continuously from under the brand to its trailing edge.
 // `translate` has no logical form, so `rtl:` mirrors it.
-export const navigatorExpandToggleAnchorVariants = cva([
+export const navigatorExpandToggleAnchorClass = [
   'absolute start-1/2 top-full -translate-x-1/2 rtl:translate-x-1/2 -translate-y-full',
   'navigator-expanded:start-[calc(100%-1rem)] navigator-expanded:top-1/2 navigator-expanded:-translate-x-full rtl:navigator-expanded:translate-x-full navigator-expanded:-translate-y-1/2',
   'motion-safe:[transition:inset-inline-start_var(--navigator-primary-motion),top_var(--navigator-primary-motion),translate_var(--navigator-primary-motion)]'
-])
+].join(' ')
 
-export const navigatorExpandToggleVariants = cva([
+export const navigatorExpandToggleClass =
   'is-interactive grid size-10 place-items-center rounded-full text-subtle hover:bg-subtle'
-])
 
 // Takes the height left between brand and pinned, so the cluster centres there.
-export const navigatorPrimaryClusterVariants = cva(['min-h-0 flex-1'])
+export const navigatorPrimaryClusterClass = 'min-h-0 flex-1'
 
-export const navigatorPrimaryClusterViewportVariants = cva(['size-full'])
+export const navigatorPrimaryClusterViewportClass = 'size-full'
 
 // `min-h-full` + `content-center` centres a short cluster and top-aligns a tall
 // one; py-2 keeps capsule shadows off the clip edge.
-export const navigatorPrimaryClusterContentVariants = cva([
+export const navigatorPrimaryClusterContentClass =
   'grid min-h-full content-center px-3 py-2'
-])
 
 // The pill's track: it moves with the centred capsules, so the pill does too.
 // Capsules stretch in both states, so they widen with the navigation.
-export const navigatorPrimaryClusterTrackVariants = cva(['relative grid gap-3'])
+export const navigatorPrimaryClusterTrackClass = 'relative grid gap-3'
 
-export const navigatorPrimaryPinnedVariants = cva(['relative grid gap-3 px-3'])
+export const navigatorPrimaryPinnedClass = 'relative grid gap-3 px-3'
 
 // `rounded-4xl` overflows a collapsed capsule's width, so the browser scales it to a pill.
 // Opaque: nothing scrolls beneath it, so a blur would cost the GPU and show nothing.
-export const navigatorCapsuleVariants = cva([
+export const navigatorCapsuleClass =
   'group/capsule relative grid gap-1 p-1 rounded-4xl emphasis-raised'
-])
 
 // The box never changes size, so collapse animates on scale/translate/opacity
 // alone. `--navigator-primary-col` is one of the bar's slots across the lane
@@ -144,13 +141,10 @@ export const navigatorPrimaryHorizontalVariants = cva(
 )
 
 // A size container, so the tabs share what the pinned circle and gap leave.
-export const navigatorPrimaryLaneVariants = cva([
-  '[container-type:inline-size]'
-])
+export const navigatorPrimaryLaneClass = '[container-type:inline-size]'
 
-export const navigatorPrimaryCircleVariants = cva([
+export const navigatorPrimaryCircleClass =
   'pointer-events-auto grid self-stretch'
-])
 
 // Hugs the tabs, so the indicator and pill resolve against it. Collapsed it
 // can span the full width, so input stays off and each circle restores its own.
@@ -272,20 +266,20 @@ export const navigatorTabIconFrameVariants = cva(
 )
 
 // Rows `0fr` → `1fr` grows the title open; `-mb-3` cancels the cluster gap while it's shut.
-export const navigatorGroupTitleVariants = cva([
+export const navigatorGroupTitleClass = [
   'grid grid-rows-[0fr] self-start -mb-3 px-3 text-xs font-semibold text-subtler opacity-0',
   'navigator-expanded:grid-rows-[1fr] navigator-expanded:mb-1 navigator-expanded:opacity-100',
   'motion-safe:[transition:grid-template-rows_var(--navigator-primary-motion),margin_var(--navigator-primary-motion),opacity_var(--navigator-primary-motion)]'
-])
+].join(' ')
 
-export const navigatorGroupTitleTextVariants = cva(['min-h-0 overflow-hidden'])
+export const navigatorGroupTitleTextClass = 'min-h-0 overflow-hidden'
 
 // `ps-1` + a tile-wide first column keep the mark on the icon column in both
 // states. The rest fades in once the toggle has crossed its row; `starting:`
 // covers a wordmark that was `display: none`. A `Logo`'s margins fill the tile,
 // so its mark stays centred while its wordmark or product opens beside it on
 // the navigation's width and the labels' fade.
-export const navigatorBrandVariants = cva([
+export const navigatorBrandClass = [
   'is-interactive rounded-xl',
   'grid grid-flow-col grid-cols-[minmax(3rem,auto)] auto-cols-[minmax(0,1fr)] items-center justify-start justify-items-start gap-2 py-1 ps-1',
   '[&>:first-child]:justify-self-center',
@@ -304,11 +298,10 @@ export const navigatorBrandVariants = cva([
   '[&_[data-slot=logo]:not(:has([data-slot=logo-mark]))_[data-slot=logo-wordmark]]:h-[min(1em,calc(3rem*42/128))] [&_[data-slot=logo]:not(:has([data-slot=logo-mark]))_[data-slot=logo-wordmark]]:opacity-100',
   'navigator-expanded:[&_[data-slot=logo]:not(:has([data-slot=logo-mark]))_[data-slot=logo-wordmark]]:h-[1em]',
   'motion-safe:[&_[data-slot=logo]:not(:has([data-slot=logo-mark]))_[data-slot=logo-wordmark]]:[transition:height_var(--navigator-primary-motion)]'
-])
+].join(' ')
 
-export const navigatorItemTrailingVariants = cva([
+export const navigatorItemTrailingClass =
   'col-start-3 ms-3 flex items-center gap-2'
-])
 
 // One geometry in both states; collapsed, the label's column is zero wide.
 // Margins, not `gap`, space the label, so that column can't squeeze the icon.
@@ -386,42 +379,39 @@ export const navigatorIndicatorVariants = cva(
 export type NavigatorIndicatorSurface = 'horizontal' | 'vertical'
 
 // Same floating surface and motion as Popover.
-export const navigatorMenuPopupVariants = cva([
+export const navigatorMenuPopupClass = [
   'grid min-w-48 max-h-(--available-height) origin-(--transform-origin) gap-0.5 p-1',
   'rounded-xl emphasis-floating is-translucent motion-scale outline-none'
-])
+].join(' ')
 
-export const navigatorMenuItemVariants = cva([
+export const navigatorMenuItemClass = [
   'flex cursor-default items-center gap-2 rounded-lg px-3 py-2 text-sm text-normal outline-none select-none',
   'data-[highlighted]:bg-subtle'
-])
+].join(' ')
 
 // Flex: the field takes what Cancel leaves as it opens.
-export const navigatorSearchVariants = cva(['group/search flex items-center'])
+export const navigatorSearchClass = 'group/search flex items-center'
 
-export const navigatorSearchBoxVariants = cva(['relative grid min-w-0 flex-1'])
+export const navigatorSearchBoxClass = 'relative grid min-w-0 flex-1'
 
 // The capsules' surface, keeping the field's hover, focus and ring. Opaque,
 // because the header it sits in already blurs. The browser's own clear button
 // would be a second ✕ beside Cancel.
-export const navigatorSearchFieldVariants = cva([
+export const navigatorSearchFieldClass = [
   'rounded-full bg-raised emphasis-raised ps-11 pe-4',
   'placeholder:text-subtler [&::-webkit-search-cancel-button]:appearance-none'
-])
+].join(' ')
 
-export const navigatorSearchIconVariants = cva([
+export const navigatorSearchIconClass =
   'pointer-events-none absolute start-4 top-1/2 size-5 -translate-y-1/2 text-subtle'
-])
 
 // Opens while focus is anywhere in the search, so tabbing from the field
 // reaches it. Cancel is pinned to the end, so the slot's width reveals it
 // over the field's end rather than overflowing the pane.
-export const navigatorSearchCancelSlotVariants = cva([
+export const navigatorSearchCancelSlotClass = [
   'relative h-12 w-0 ms-0 invisible scale-75 opacity-0',
   'group-focus-within/search:visible group-focus-within/search:ms-2 group-focus-within/search:w-12 group-focus-within/search:scale-100 group-focus-within/search:opacity-100',
   'motion-safe:transition-[width,margin,scale,opacity,visibility] motion-safe:transition-discrete motion-safe:duration-moderate motion-safe:ease-standard motion-reduce:transition-none'
-])
+].join(' ')
 
-export const navigatorSearchCancelVariants = cva([
-  'absolute end-0 top-0 emphasis-raised'
-])
+export const navigatorSearchCancelClass = 'absolute end-0 top-0 emphasis-raised'

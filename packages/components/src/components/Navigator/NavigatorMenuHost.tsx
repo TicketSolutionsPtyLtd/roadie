@@ -24,7 +24,7 @@ import {
   NavigatorMenuItem,
   type NavigatorMenuItemProps
 } from './NavigatorMenuItem'
-import { navigatorMenuPopupVariants } from './variants'
+import { navigatorMenuPopupClass } from './variants'
 
 // Each folded row set is its own surface, so a row folded in both opens one popup.
 export type NavigatorMenuSurface =
@@ -111,7 +111,7 @@ export function NavigatorMenuHost({
           <Menu.Popup
             data-slot='navigator-menu'
             aria-label={menu.props['aria-label'] ?? label}
-            className={cn(navigatorMenuPopupVariants(), menu.props.className)}
+            className={cn(navigatorMenuPopupClass, menu.props.className)}
           >
             {withCurrentHandlers(menu.props.children, (index) =>
               activateMenuItem(value, index)

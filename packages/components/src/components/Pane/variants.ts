@@ -189,7 +189,7 @@ export const paneTitleVariants = cva(
 // republish `--content-inset` for its own subtree. Self-insetting would land
 // the title on the pane's edge instead of its neighbours'. The caller places
 // it.
-export const paneBodyTitleVariants = cva(['text-display-ui-3 text-strong'])
+export const paneBodyTitleClass = 'text-display-ui-3 text-strong'
 
 // The compact echo: its own middle column, filling it and centring its text —
 // which, since that column is exactly the row's remaining width, reads as
@@ -231,20 +231,20 @@ export const paneTitleCompactVariants = cva(
 // element, so no walk over the header's children is needed and the row simply
 // doesn't exist when nothing occupies it. Placement only works on a direct
 // child of `Pane.Header`.
-export const paneActionsVariants = cva([
+export const paneActionsClass = [
   'col-start-3 row-start-1 flex flex-wrap items-center justify-end gap-1',
   'justify-self-end'
-])
+].join(' ')
 
-export const paneSearchVariants = cva([
+export const paneSearchClass = [
   fieldSurfaceClass,
   'h-9 w-full rounded-lg px-3',
   'text-sm placeholder:text-subtler'
-])
+].join(' ')
 
-export const paneFooterVariants = cva([
+export const paneFooterClass = [
   'sticky bottom-0 z-sticky',
   PANE_CHROME_SURFACE,
   'rounded-b-(--pane-radius)',
   '-mx-(--content-inset) px-(--content-inset) pt-2 pb-4'
-])
+].join(' ')

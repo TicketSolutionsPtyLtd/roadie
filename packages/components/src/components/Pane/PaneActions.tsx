@@ -4,7 +4,7 @@ import type { ComponentProps } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { paneActionsVariants } from './variants'
+import { paneActionsClass } from './variants'
 
 export type PaneActionsProps = ComponentProps<'div'>
 
@@ -25,7 +25,7 @@ export function PaneActions({
   return (
     <div
       data-slot='pane-actions'
-      className={cn(paneActionsVariants(), className)}
+      className={cn(paneActionsClass, className)}
       {...props}
     >
       {children}

@@ -2,7 +2,7 @@ import type { ComponentProps } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { paneFooterVariants } from './variants'
+import { paneFooterClass } from './variants'
 
 export type PaneFooterProps = ComponentProps<'div'>
 
@@ -11,7 +11,7 @@ export function PaneFooter({ className, ...props }: PaneFooterProps) {
   return (
     <div
       data-slot='pane-footer'
-      className={cn(paneFooterVariants(), className)}
+      className={cn(paneFooterClass, className)}
       {...props}
     />
   )

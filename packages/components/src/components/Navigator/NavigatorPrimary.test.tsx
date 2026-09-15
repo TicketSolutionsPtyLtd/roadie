@@ -19,18 +19,18 @@ import {
   withStubLink
 } from './testUtils'
 import {
-  navigatorBrandVariants,
-  navigatorCapsuleVariants,
-  navigatorExpandToggleAnchorVariants,
-  navigatorGroupTitleVariants,
+  navigatorBrandClass,
+  navigatorCapsuleClass,
+  navigatorExpandToggleAnchorClass,
+  navigatorGroupTitleClass,
   navigatorItemLabelClass,
   navigatorItemVariants,
   navigatorPrimaryBrandVariants,
-  navigatorPrimaryClusterContentVariants,
-  navigatorPrimaryClusterVariants,
-  navigatorPrimaryFrameVariants,
-  navigatorPrimaryPinnedVariants,
-  navigatorPrimaryVerticalVariants
+  navigatorPrimaryClusterClass,
+  navigatorPrimaryClusterContentClass,
+  navigatorPrimaryFrameClass,
+  navigatorPrimaryPinnedClass,
+  navigatorPrimaryVerticalClass
 } from './variants'
 
 const vertical = () => primaryOf('vertical')
@@ -211,10 +211,10 @@ describe('vertical regions', () => {
         el.getAttribute('data-slot')
       )
     ).toEqual(['navigator-primary-cluster'])
-    const layout = navigatorPrimaryFrameVariants().split(' ')
+    const layout = navigatorPrimaryFrameClass.split(' ')
     expect(layout).toEqual(expect.arrayContaining(['flex', 'flex-col']))
     expect(layout.some((name) => name.startsWith('grid-rows-'))).toBe(false)
-    expect(navigatorPrimaryClusterVariants().split(' ')).toContain('flex-1')
+    expect(navigatorPrimaryClusterClass.split(' ')).toContain('flex-1')
   })
 
   it('keeps the press, colour and focus transitions of is-interactive on a tile', () => {
@@ -1002,17 +1002,17 @@ describe('expanded vertical navigation', () => {
 
   it('writes each expanded style once, through the variant', () => {
     const classes = [
-      navigatorPrimaryVerticalVariants(),
-      navigatorPrimaryFrameVariants(),
-      navigatorPrimaryClusterContentVariants(),
-      navigatorPrimaryPinnedVariants(),
-      navigatorCapsuleVariants(),
+      navigatorPrimaryVerticalClass,
+      navigatorPrimaryFrameClass,
+      navigatorPrimaryClusterContentClass,
+      navigatorPrimaryPinnedClass,
+      navigatorCapsuleClass,
       navigatorItemVariants(),
       navigatorItemLabelClass,
-      navigatorGroupTitleVariants(),
+      navigatorGroupTitleClass,
       navigatorPrimaryBrandVariants({ toggle: true }),
-      navigatorBrandVariants(),
-      navigatorExpandToggleAnchorVariants()
+      navigatorBrandClass,
+      navigatorExpandToggleAnchorClass
     ].join(' ')
     expect(classes).toContain(
       'navigator-expanded:w-(--navigator-primary-expanded)'
@@ -1458,14 +1458,14 @@ describe('default brand', () => {
   it('fades the wordmark on the labels’ timing as the navigation’s width opens it', () => {
     const labelTransitions =
       navigatorItemLabelClass.match(/opacity_var\([^\]]+/g)!
-    const brand = navigatorBrandVariants()
+    const brand = navigatorBrandClass
     expect(labelTransitions).toHaveLength(2)
     for (const opacity of labelTransitions) {
       expect(brand).toContain(
         `[transition:grid-template-columns_var(--navigator-primary-motion),${opacity}]`
       )
     }
-    expect(navigatorPrimaryFrameVariants()).toContain(
+    expect(navigatorPrimaryFrameClass).toContain(
       'motion-safe:[transition:width_var(--navigator-primary-motion)]'
     )
   })

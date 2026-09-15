@@ -26,10 +26,10 @@ import {
 } from './testUtils'
 import { NAV_COLLAPSE_THRESHOLD } from './useTopPaneChrome'
 import {
-  navigatorContentVariants,
+  navigatorContentClass,
   navigatorIndicatorVariants,
-  navigatorPrimaryClusterTrackVariants,
-  navigatorPrimaryPinnedVariants,
+  navigatorPrimaryClusterTrackClass,
+  navigatorPrimaryPinnedClass,
   navigatorPrimaryTrackVariants
 } from './variants'
 
@@ -2188,7 +2188,7 @@ describe('Navigator.OverflowPane', () => {
     })
 
     it('turns off every pane transition while set', () => {
-      expect(navigatorContentVariants().split(' ')).toContain(
+      expect(navigatorContentClass.split(' ')).toContain(
         'data-instant:[&_[data-slot=pane]]:transition-none'
       )
     })
@@ -3842,8 +3842,8 @@ describe('indicator track offsetParent guard', () => {
   it('keeps every indicator track position: relative', () => {
     for (const track of [
       navigatorPrimaryTrackVariants(),
-      navigatorPrimaryClusterTrackVariants(),
-      navigatorPrimaryPinnedVariants()
+      navigatorPrimaryClusterTrackClass,
+      navigatorPrimaryPinnedClass
     ]) {
       expect(track.split(' ')).toContain('relative')
     }
