@@ -95,3 +95,41 @@ export function relatedLinks(
     ? { label: 'Reference', links: references }
     : null
 }
+
+/** One line under a group's heading, for groups whose tokens carry no comment of their own. */
+export const GROUP_NOTES: Record<string, string> = {
+  'Pinned light steps':
+    'Light values that stay light in dark mode, for marks and illustrations.',
+  Illustration: 'Fixed spot illustration colours; they ignore dark mode.',
+  'Accent parameters':
+    'The hue and chroma the accent and neutral scales are built from.',
+  Backgrounds: 'Surface roles, read by the bg-* utilities.',
+  Text: 'Foreground roles, read by the text-* utilities.',
+  Borders: 'Edge roles, read by the border-* and divide-* utilities.',
+  Mark: 'Highlight colours for mark and search matches.',
+  'Semantic utilities': 'The Tailwind classes that read the roles above.',
+  'Raw steps':
+    "The active intent's 14 scale steps, for states a role doesn't cover.",
+  'Alpha steps': 'Translucent steps that read on any surface.',
+  'Intent utilities': 'Point every role at one scale; children inherit it.',
+  'Emphasis presets':
+    'Background, text, border and shadow in one class. Add is-interactive for states.',
+  'Interaction states':
+    'Hover, press, focus ring and disabled. Fields shift neutral, then accent, then danger.',
+  'Font size line heights':
+    'Size classes set no line height, so pair them with leading-*.',
+  'Display styles':
+    'Size, weight, leading and tracking for headings, in UI and prose flavours.',
+  'Body styles': 'Composed body text for interfaces, prose and code.',
+  Shadows: 'Tinted by the surrounding intent. Inset shadows recess a surface.',
+  'Rim light': 'A top-edge highlight that lifts a raised or strong surface.',
+  Layering: 'Named stacking tiers; use z-popover, never a raw number.',
+  Animations:
+    'Play once when the class is applied. Press a preview to replay it.',
+  'Enter and exit transitions':
+    'Driven by data-starting-style and data-ending-style. Press a preview to toggle it.',
+  Keyframes: 'The keyframes the animation classes run.',
+  Buttons: 'Pair btn with a size, an intent and an emphasis.',
+  'Calendar tile':
+    'A month and day tile for templates; the parts are dimmed to show which one a class styles.'
+}
