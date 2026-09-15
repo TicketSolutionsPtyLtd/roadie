@@ -19,6 +19,7 @@ import type { NavigatorMenuProps } from './NavigatorMenu'
 import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
 import type { NavigatorSlotMeta } from './mobileSlots'
 import { presentNavIcon } from './presentNavIcon'
+import { slotHref } from './sectionMemory'
 import { textOf } from './splitSecondary'
 
 export type NavigatorOverflowItemsProps = {
@@ -53,7 +54,7 @@ export function NavigatorOverflowItems({
   const { setValue, setOverflowOpen, activateItem } = use(
     NavigatorActionsContext
   )
-  const { value } = use(NavigatorSelectionContext)
+  const { value, sectionMemory } = use(NavigatorSelectionContext)
   const { overflowItems, openMenu } = use(NavigatorDisclosureContext)
 
   // List.Item renders its own <li>, so it can't be a menu trigger.
@@ -95,18 +96,19 @@ export function NavigatorOverflowItems({
   ) => {
     if (slot.menu) return renderMenuRow(set, slot, slot.menu)
     const active = isSectionActive(slot, value)
+    const href = slotHref(sectionMemory, slot, active)
     return (
       <List.Item
         key={slot.value}
         title={slot.label}
         leading={presentNavIcon(slot.icon, 'size-5 text-subtle')}
         trailing={slot.badge}
-        href={slot.href}
+        href={href}
         current={active && (isActiveValue(slot.value, value) ? 'page' : true)}
         onClick={() => {
           activateItem(slot.value)
           // A routed row leaves More to the route, so the old page never shows between.
-          if (slot.href === undefined || isActiveValue(slot.value, value)) {
+          if (href === undefined || isActiveValue(slot.value, value)) {
             setOverflowOpen(false)
           }
           setValue(slot.value)
