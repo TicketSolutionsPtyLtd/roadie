@@ -39,13 +39,8 @@ import {
 // Base UI writes overflow inline, so a class can't clip the x axis.
 const CLIP_HORIZONTAL = { overflowX: 'clip' } as const
 
-// ScrollArea hard-codes role=presentation; undefined removes it. A property key
-// keeps the function's name lowercase once minified, which Base UI checks.
-const renderers = {
-  section: (props: ComponentProps<'section'>) => (
-    <section {...props} role={undefined} />
-  )
-}
+// ScrollArea hard-codes role=presentation; the element's own undefined role removes it.
+const SECTION = <section role={undefined} />
 
 // Omit, not intersect: a duplicate declaration drops the prop from docgen.
 export type PaneRootProps = Omit<ComponentProps<'section'>, 'role'> & {
@@ -258,7 +253,7 @@ export function PaneRoot({
 
   return (
     <ScrollArea
-      render={renderers.section}
+      render={SECTION}
       data-slot='pane'
       data-role={role}
       data-stack-position={position ?? undefined}
