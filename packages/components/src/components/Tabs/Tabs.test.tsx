@@ -207,6 +207,38 @@ describe('Tabs', () => {
     )
   })
 
+  it('a horizontal list scrolls sideways instead of overflowing', () => {
+    const { getByRole } = render(<ThreeTabs />)
+    expect(getByRole('tablist')).toHaveClass(
+      'data-[orientation=horizontal]:overflow-x-auto'
+    )
+  })
+
+  it('scrolls the list to show a newly active tab', async () => {
+    const user = userEvent.setup()
+    const rects: Record<string, Partial<DOMRect>> = {
+      tablist: { left: 0, right: 200 },
+      Overview: { left: 0, right: 100 },
+      Details: { left: 100, right: 200 },
+      History: { left: 200, right: 300 }
+    }
+    const spy = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        const key =
+          this.getAttribute('role') === 'tablist'
+            ? 'tablist'
+            : (this.textContent ?? '')
+        return (rects[key] ?? { left: 0, right: 0 }) as DOMRect
+      })
+    const { getByRole } = render(<ThreeTabs />)
+    const list = getByRole('tablist')
+
+    await user.click(getByRole('tab', { name: 'History' }))
+    await vi.waitFor(() => expect(list.scrollLeft).toBe(100))
+    spy.mockRestore()
+  })
+
   it('direction="vertical" applies the column-flow utility to the list', () => {
     const { container } = render(
       <Tabs defaultValue='a' direction='vertical'>
