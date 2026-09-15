@@ -71,7 +71,7 @@ export default function Home() {
         <div className='grid gap-1'>
           <h2 className='text-display-ui-3 text-strong'>Get started</h2>
           <p className='text-subtle'>
-            Install Roadie, learn the ideas behind it, and move from v1.
+            Install Roadie and learn the ideas behind it.
           </p>
         </div>
         <HomeGuides />
