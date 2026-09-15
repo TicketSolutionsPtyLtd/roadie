@@ -3,7 +3,7 @@ import type {
   PaneRegistration,
   PaneStackPosition
 } from '../Pane/PaneStackContext'
-import { type PaneDepth, ROLE_DEPTH } from '../Pane/paneColumns'
+import { type PaneDepth, ROLE_DEPTH } from '../Pane/paneDepth'
 import type { PanePrimaryNav, PaneRole } from '../Pane/variants'
 
 export type PaneEntry = {

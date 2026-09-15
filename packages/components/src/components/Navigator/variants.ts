@@ -38,9 +38,6 @@ export const navigatorPanesVariants = cva([
   '[--pane-stack-inset:0px] md:[--pane-stack-inset:--spacing(3)]'
 ])
 
-// Not configurable — a seven-tab bar is not a shape Navigator can be talked into.
-export const MAX_TABS = 5
-
 // The box is the grid track, so it never animates: it changes once, at the end
 // of an expand (held collapsed by `data-motion`) or the start of a collapse.
 // The frame inside animates and overflows it while the content translates.

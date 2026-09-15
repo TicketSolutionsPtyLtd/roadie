@@ -3,7 +3,7 @@
 import { createContext } from 'react'
 
 import type { PaneChromeContextValue } from './PaneChromeContext'
-import type { PaneDepth } from './paneColumns'
+import type { PaneDepth } from './paneDepth'
 import type { PanePrimaryNav, PaneRole } from './variants'
 
 export type PaneStackPosition = 'top' | 'ahead' | 'behind'
