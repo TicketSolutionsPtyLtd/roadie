@@ -7,7 +7,7 @@
     "noEmit": false,
     "jsx": "react-jsx",
     "jsxImportSource": "react",
-    "types": ["vitest/globals", "@testing-library/jest-dom"],
+    "types": ["vitest/globals", "@testing-library/jest-dom/vitest"],
     "skipLibCheck": true,
     "incremental": true
   },
