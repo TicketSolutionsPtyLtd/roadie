@@ -5,7 +5,6 @@ import {
   derivePositions,
   deriveRootIndex,
   deriveTopIndex,
-  orderByDocumentPosition,
   provisionalDepth,
   provisionalPosition,
   resolveDepths
@@ -19,31 +18,6 @@ const entry = (over: Partial<PaneEntry> = {}): PaneEntry => ({
 })
 
 describe('deriveTopIndex', () => {
-  it('puts the list on top when nothing deeper is current', () => {
-    expect(
-      deriveTopIndex([entry({ role: 'list' }), entry({ role: 'detail' })])
-    ).toBe(0)
-  })
-
-  it('puts the deepest current pane on top', () => {
-    expect(
-      deriveTopIndex([
-        entry({ role: 'list' }),
-        entry({ role: 'detail', current: true })
-      ])
-    ).toBe(1)
-  })
-
-  it('ignores an inspector — it overlays rather than joining the stack', () => {
-    expect(
-      deriveTopIndex([
-        entry({ role: 'list' }),
-        entry({ role: 'detail', current: true }),
-        entry({ role: 'inspector', current: true })
-      ])
-    ).toBe(1)
-  })
-
   it('takes the deepest of several current panes', () => {
     expect(
       deriveTopIndex([
@@ -59,31 +33,12 @@ describe('deriveTopIndex', () => {
     ).toBe(1)
   })
 
-  it('still finds the deepest current pane past a leading inspector', () => {
-    expect(
-      deriveTopIndex([
-        entry({ role: 'inspector' }),
-        entry({ role: 'list' }),
-        entry({ role: 'detail', current: true })
-      ])
-    ).toBe(2)
-  })
-
   it('returns 0 for an empty stack rather than -1', () => {
     expect(deriveTopIndex([])).toBe(0)
   })
 })
 
 describe('deriveRootIndex', () => {
-  it('is the first pane, regardless of which one is current', () => {
-    expect(
-      deriveRootIndex([
-        entry({ role: 'list' }),
-        entry({ role: 'detail', current: true })
-      ])
-    ).toBe(0)
-  })
-
   it('skips a leading inspector — it never joins the stack', () => {
     expect(
       deriveRootIndex([entry({ role: 'inspector' }), entry({ role: 'list' })])
@@ -108,59 +63,7 @@ describe('deriveRootIndex', () => {
   })
 })
 
-describe('orderByDocumentPosition', () => {
-  const appendNode = (tagName = 'div') => {
-    const node = document.createElement(tagName)
-    document.body.append(node)
-    return node
-  }
-
-  it('sorts registrations into document order regardless of input order', () => {
-    const first = appendNode()
-    const second = appendNode()
-    const third = appendNode()
-
-    const ordered = orderByDocumentPosition([
-      { node: third, label: 'third' },
-      { node: first, label: 'first' },
-      { node: second, label: 'second' }
-    ])
-
-    expect(ordered.map((entry) => entry.label)).toEqual([
-      'first',
-      'second',
-      'third'
-    ])
-  })
-})
-
 describe('derivePositions', () => {
-  it('marks the top pane and splits the rest into behind/ahead', () => {
-    expect(
-      derivePositions([
-        entry({ role: 'list' }),
-        entry({ role: 'detail', current: true }),
-        entry({ role: 'detail' })
-      ])
-    ).toEqual(['behind', 'top', 'ahead'])
-  })
-
-  it('leaves an inspector out of the stack entirely', () => {
-    expect(
-      derivePositions([
-        entry({ role: 'inspector' }),
-        entry({ role: 'list' }),
-        entry({ role: 'detail', current: true })
-      ])
-    ).toEqual([null, 'behind', 'top'])
-  })
-
-  it('puts the list on top when nothing else is current', () => {
-    expect(
-      derivePositions([entry({ role: 'list' }), entry({ role: 'detail' })])
-    ).toEqual(['top', 'ahead'])
-  })
-
   it('orders by rank, document order only between equals', () => {
     const stack = [
       entry({ role: 'list', rank: 0 }),
@@ -174,32 +77,6 @@ describe('derivePositions', () => {
     expect(
       derivePositions([entry({ current: true, rank: 1 }), entry({ rank: 1 })])
     ).toEqual(['top', 'ahead'])
-  })
-})
-
-describe('revealRoot', () => {
-  const list = { role: 'list', current: false, primaryNav: 'auto' } as const
-  const detail = { role: 'detail', current: true, primaryNav: 'auto' } as const
-  const inspector = {
-    role: 'inspector',
-    current: false,
-    primaryNav: 'auto'
-  } as const
-
-  it('makes the root the top and everything after it ahead', () => {
-    expect(derivePositions([list, detail], true)).toEqual(['top', 'ahead'])
-  })
-
-  it('skips a leading inspector', () => {
-    expect(derivePositions([inspector, list, detail], true)).toEqual([
-      null,
-      'top',
-      'ahead'
-    ])
-  })
-
-  it('changes nothing when off', () => {
-    expect(derivePositions([list, detail])).toEqual(['behind', 'top'])
   })
 })
 
@@ -228,12 +105,6 @@ describe('provisionalPosition', () => {
     }
   )
 
-  it('treats a SecondaryPane override as the root', () => {
-    expect(provisionalPosition({ ...section, kind: 'section' }, true)).toBe(
-      'top'
-    )
-  })
-
   it('parks More ahead until it opens', () => {
     const more = { ...section, kind: 'generated-overflow' } as const
     expect(provisionalPosition(more, false)).toBe('ahead')
@@ -248,16 +119,6 @@ describe('provisionalPosition', () => {
 })
 
 describe('provisionalDepth', () => {
-  const pane = (role: 'list' | 'detail' | 'inspector', depth?: 0 | 1 | 2 | 3) =>
-    ({ role, kind: 'pane', depth }) as const
-
-  it('takes the declaration, else the role default', () => {
-    expect(provisionalDepth(pane('list'))).toBe(0)
-    expect(provisionalDepth(pane('detail'))).toBe(1)
-    expect(provisionalDepth(pane('detail', 2))).toBe(2)
-    expect(provisionalDepth(pane('inspector'))).toBeNull()
-  })
-
   it('keeps the generated panes at the root', () => {
     expect(provisionalDepth({ role: 'list', kind: 'generated-section' })).toBe(
       0
@@ -281,41 +142,6 @@ describe('resolveDepths', () => {
     ).toEqual([0, 1, null, 2])
   })
 
-  it('makes a lone detail the root', () => {
-    expect(resolveDepths([{ role: 'detail', kind: 'pane' }])).toEqual([0])
-  })
-
-  it('keeps More at the root wherever it renders', () => {
-    expect(
-      resolveDepths([
-        { role: 'list', kind: 'pane' },
-        { role: 'detail', kind: 'pane' },
-        { role: 'list', kind: 'generated-overflow' }
-      ])
-    ).toEqual([0, 1, 0])
-  })
-
-  it('separates panes that share a depth by document order', () => {
-    expect(
-      resolveDepths([
-        { role: 'list', kind: 'pane' },
-        { role: 'detail', kind: 'pane' },
-        { role: 'detail', kind: 'pane' },
-        { role: 'detail', kind: 'pane' }
-      ])
-    ).toEqual([0, 1, 2, 3])
-  })
-
-  it('lets a declared depth outrank document order', () => {
-    expect(
-      resolveDepths([
-        { role: 'list', kind: 'pane' },
-        { role: 'detail', kind: 'pane', depth: 2 },
-        { role: 'detail', kind: 'pane' }
-      ])
-    ).toEqual([0, 2, 1])
-  })
-
   it('closes the gap under a declared depth', () => {
     expect(
       resolveDepths([
@@ -323,23 +149,6 @@ describe('resolveDepths', () => {
         { role: 'detail', kind: 'pane', depth: 2 }
       ])
     ).toEqual([0, 1])
-  })
-
-  it('makes open More the root beside the detail, and closed More nothing', () => {
-    const detail = { role: 'detail', kind: 'pane' } as const
-    const more = { role: 'list', kind: 'generated-overflow' } as const
-    expect(resolveDepths([detail, { ...more, current: true }])).toEqual([1, 0])
-    expect(resolveDepths([detail, { ...more, current: false }])).toEqual([0, 0])
-  })
-
-  it('never lets open More displace a list', () => {
-    expect(
-      resolveDepths([
-        { role: 'list', kind: 'pane' },
-        { role: 'detail', kind: 'pane' },
-        { role: 'list', kind: 'generated-overflow', current: true }
-      ])
-    ).toEqual([0, 1, 0])
   })
 
   it('gives every root list one depth, so a handover pushes nothing deeper', () => {

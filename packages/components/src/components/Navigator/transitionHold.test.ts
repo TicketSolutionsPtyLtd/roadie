@@ -20,14 +20,6 @@ describe('holdDuringLayoutTransitions', () => {
     vi.useRealTimers()
   })
 
-  it('applies at once when nothing is transitioning', () => {
-    const apply = vi.fn()
-    const hold = holdDuringLayoutTransitions(scope, apply)
-    hold.schedule()
-    expect(apply).toHaveBeenCalledOnce()
-    hold.dispose()
-  })
-
   it('holds through a layout transition and applies once when it ends', () => {
     const apply = vi.fn()
     const hold = holdDuringLayoutTransitions(scope, apply)

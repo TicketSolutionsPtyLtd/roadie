@@ -394,36 +394,32 @@ describe('Navigator server render of depths', () => {
     ).toHaveAttribute('data-reveal')
   })
 
-  it('writes the Back name and the Close link from backHref', () => {
+  it('gives the depth-1 pane the section route and label, and the deeper pane its own from backHref', () => {
     const container = serverRender(<ThreeLevels value='/tickets/glamping' />)
-    const sam = container.querySelectorAll('[data-slot="pane"]')[2]!
-    const back = sam.querySelector('[aria-label="Back to Glamping"]')
+    const [glamping, sam] = Array.from(
+      container.querySelectorAll<HTMLElement>(
+        '[data-slot="pane"][data-role="detail"]'
+      )
+    )
+    expect(within(glamping!).getByLabelText('Back to Tickets')).toHaveAttribute(
+      'href',
+      '/tickets'
+    )
+    expect(within(glamping!).getByLabelText('Close')).toHaveAttribute(
+      'href',
+      '/tickets'
+    )
+    const back = within(sam!).getByLabelText('Back to Glamping')
     expect(back).toHaveAttribute('href', '/tickets/glamping')
     expect(back).toHaveAttribute('data-slot', 'icon-button')
     expect(back).toHaveTextContent('')
-    expect(sam.querySelector('[aria-label="Close"]')).toHaveAttribute(
+    expect(within(sam!).getByLabelText('Close')).toHaveAttribute(
       'href',
       '/tickets/glamping'
     )
-    expect(sam.querySelector('[data-slot="pane-header"]')).toHaveClass(
+    expect(sam!.querySelector('[data-slot="pane-header"]')).toHaveClass(
       '[display:var(--pane-edge)]'
     )
-  })
-
-  it('gives the depth-1 pane the section route and label, and the deeper pane its own', () => {
-    const container = serverRender(<ThreeLevels value='/tickets/glamping' />)
-    const [glamping, sam] = Array.from(
-      container.querySelectorAll('[data-slot="pane"][data-role="detail"]')
-    )
-    expect(
-      within(glamping as HTMLElement).getByLabelText('Back to Tickets')
-    ).toHaveAttribute('href', '/tickets')
-    expect(
-      within(sam as HTMLElement).getByLabelText('Back to Glamping')
-    ).toHaveAttribute('href', '/tickets/glamping')
-    expect(
-      within(glamping as HTMLElement).getByLabelText('Close')
-    ).toHaveAttribute('href', '/tickets')
   })
 
   it('hydrates without a mismatch or a depth change', async () => {

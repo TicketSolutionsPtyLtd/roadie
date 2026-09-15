@@ -81,7 +81,8 @@ function Docs({
               <input form='search' data-testid='outside' />
               <div
                 dangerouslySetInnerHTML={{
-                  __html: '<img alt="" src="data:," onerror="void 0">'
+                  __html:
+                    '<img alt="" src="data:," onerror="void 0"><script>void 0</script>'
                 }}
               />
               <iframe title='embed' className='aspect-video' />
@@ -147,7 +148,7 @@ async function navigate(from: string, to: string) {
 }
 
 describe('a page-root section', () => {
-  it('pushes a sub-page over a ghost of the page it leaves', async () => {
+  it('pushes a sub-page over a ghost of the page it leaves, from the keyframes', async () => {
     await navigate('/', '/overview/installation')
     expect(row()).toHaveAttribute('data-page-step', 'push')
     const page = ghost().firstElementChild as HTMLElement
@@ -158,6 +159,8 @@ describe('a page-root section', () => {
     expect(ghost()).toHaveAttribute('aria-hidden', 'true')
     expect(ghost()).toHaveAttribute('inert')
     expect(document.querySelector('[data-testid="page"]')).toBeInTheDocument()
+    expect(row().style.getPropertyValue('--page-step-ghost-from')).toBe('')
+    expect(row().style.getPropertyValue('--page-step-pane-from')).toBe('')
   })
 
   it('pops back to the page from under a ghost of the sub-page', async () => {
@@ -248,12 +251,6 @@ describe('a page-root section', () => {
     expect(ghost()).toHaveTextContent('The page at /overview/installation')
     expect(row().style.getPropertyValue('--page-step-ghost-from')).not.toBe('')
     expect(row().style.getPropertyValue('--page-step-pane-from')).not.toBe('')
-  })
-
-  it('starts a fresh step from the keyframes', async () => {
-    await navigate('/', '/overview/installation')
-    expect(row().style.getPropertyValue('--page-step-ghost-from')).toBe('')
-    expect(row().style.getPropertyValue('--page-step-pane-from')).toBe('')
   })
 
   it('clears the ghost when Navigator unmounts mid-step', async () => {

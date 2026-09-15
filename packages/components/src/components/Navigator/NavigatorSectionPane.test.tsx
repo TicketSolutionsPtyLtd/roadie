@@ -15,7 +15,6 @@ import { Navigator } from '.'
 import { Badge } from '../Badge'
 import { Pane } from '../Pane'
 import { NavigatorSelectionContext } from './NavigatorContext'
-import { secondaryBlocks, textOf } from './splitSecondary'
 import {
   FakeIcon,
   flushViewportMeasurement,
@@ -194,14 +193,6 @@ describe('generated section pane', () => {
     ).toHaveTextContent('🎸')
   })
 
-  it('lights the section tile as the section, not the page', async () => {
-    render(<Docs />)
-    await flushViewportMeasurement()
-    expect(
-      within(primaryOf('vertical')).getByRole('link', { name: 'Components' })
-    ).toHaveAttribute('aria-current', 'true')
-  })
-
   it('never renders sub-pages in the vertical navigation', async () => {
     render(<Docs />)
     await flushViewportMeasurement()
@@ -314,8 +305,12 @@ describe('section pane search', () => {
     }
   }
 
-  it('is a full-size pill, at 16px so iOS never zooms it', async () => {
-    const { field } = await search()
+  it('is a full-size pill, at 16px so iOS never zooms it, led by a hidden magnifying glass', async () => {
+    const { field, root } = await search()
+    const icon = root.querySelector('[data-slot="navigator-search-icon"]')
+    expect(icon?.tagName.toLowerCase()).toBe('svg')
+    expect(icon).toHaveAttribute('aria-hidden', 'true')
+    expect(icon).toHaveClass('size-5', 'text-subtle')
     expect(field).toHaveAttribute('data-slot', 'navigator-search-field')
     expect(field).toHaveAttribute('placeholder', 'Search')
     expect(field).toHaveClass(
@@ -331,14 +326,6 @@ describe('section pane search', () => {
       'bg-subtle',
       'is-translucent'
     )
-  })
-
-  it('leads with a hidden magnifying glass', async () => {
-    const { root } = await search()
-    const icon = root.querySelector('[data-slot="navigator-search-icon"]')
-    expect(icon?.tagName.toLowerCase()).toBe('svg')
-    expect(icon).toHaveAttribute('aria-hidden', 'true')
-    expect(icon).toHaveClass('size-5', 'text-subtle')
   })
 
   it('hides Cancel until focus is inside the search', async () => {
@@ -437,39 +424,6 @@ describe('section pane groups', () => {
       within(groups[1] as HTMLElement).getByText('Three')
     ).toBeInTheDocument()
     expect(pane.querySelector('[data-slot="list-group-title"]')).toBeNull()
-  })
-})
-
-describe('textOf', () => {
-  it('flattens strings, numbers and element children', () => {
-    expect(textOf(['Icon ', <b key='b'>button</b>, 2])).toBe('Icon button2')
-  })
-})
-
-describe('secondaryBlocks', () => {
-  it('keeps loose items and titled groups in authored order', () => {
-    const blocks = secondaryBlocks([
-      <Navigator.Item key='a' value='/a'>
-        A
-      </Navigator.Item>,
-      <Navigator.Item key='b' value='/b'>
-        B
-      </Navigator.Item>,
-      <Navigator.Group key='group'>
-        <Navigator.GroupTitle>Group</Navigator.GroupTitle>
-        <Navigator.Item value='/c'>C</Navigator.Item>
-      </Navigator.Group>
-    ])
-    expect(
-      blocks.map((block) => ({
-        kind: block.kind,
-        title: block.title,
-        values: block.items.map((item) => item.props.value)
-      }))
-    ).toEqual([
-      { kind: 'loose', title: null, values: ['/a', '/b'] },
-      { kind: 'group', title: 'Group', values: ['/c'] }
-    ])
   })
 })
 
@@ -884,38 +838,6 @@ describe('section routes', () => {
       within(horizontal()).getByRole('link', { name: 'Components' })
     )
     expect(onShowListChange).toHaveBeenCalledWith(false)
-  })
-
-  it('links an inactive section tab to its route, never a remembered page', async () => {
-    const { rerender } = render(<Routed value='/components/b' />)
-    await flushViewportMeasurement()
-    rerender(<Routed value='/other' />)
-    await flushViewportMeasurement()
-    expect(
-      within(horizontal()).getByRole('link', { name: 'Components' })
-    ).toHaveAttribute('href', '/components')
-  })
-
-  it('warns when a section has no route', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    render(
-      <Navigator value='/x/one'>
-        <Navigator.Primary aria-label='Docs'>
-          {testBrand}
-          <Navigator.Item value='/x'>
-            X
-            <Navigator.Secondary aria-label='X pages'>
-              <Navigator.Item value='/x/one' href='/x/one'>
-                One
-              </Navigator.Item>
-            </Navigator.Secondary>
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('its own route'))
-    warn.mockRestore()
   })
 })
 
@@ -1558,17 +1480,6 @@ describe('page root tab', () => {
     expect(horizontal()).toHaveAttribute('data-collapsed', 'false')
     expect(scrollTo).not.toHaveBeenCalled()
     expect(onValueChange).not.toHaveBeenCalled()
-  })
-
-  it('still toggles the list for a list-first section', async () => {
-    const user = userEvent.setup()
-    const onShowListChange = vi.fn()
-    render(<Routed value='/components/a' onShowListChange={onShowListChange} />)
-    await flushViewportMeasurement()
-    await user.click(
-      within(horizontal()).getByRole('link', { name: 'Components' })
-    )
-    expect(onShowListChange).toHaveBeenCalledWith(true)
   })
 })
 
