@@ -7,6 +7,7 @@ export type CatalogueEntry = {
   description: string
   category: string
   href: string
+  order?: number
 }
 
 export type CatalogueCategory = {
@@ -39,6 +40,16 @@ export const FOUNDATIONS: Catalogue = {
   categories: ['Visual', 'Content', 'Behaviour', 'Building apps']
 }
 
+export const TOKENS: Catalogue = {
+  route: '/tokens',
+  categories: [
+    'Reference',
+    'Color',
+    'Type, shape and depth',
+    'Motion and utilities'
+  ]
+}
+
 export const WIDGETS: Catalogue = { route: '/roadie-widgets', categories: [] }
 
 const APP_DIR = join(process.cwd(), 'src/app')
@@ -51,6 +62,7 @@ type PageMetadata = Record<string, unknown> & {
   title?: string
   description?: string
   category?: string
+  order?: number
   hidden?: boolean
 }
 
@@ -93,7 +105,8 @@ async function readEntry(
       href: `${route}/${name}`,
       title: metadata?.title ?? name,
       description: metadata?.description ?? '',
-      category: metadata?.category ?? 'Other'
+      category: metadata?.category ?? 'Other',
+      order: metadata?.order
     }
   }
   return null
@@ -112,7 +125,7 @@ async function overviewHref(
   }
 }
 
-/** A catalogue's visible pages, grouped in its category order and sorted by title within. */
+/** A catalogue's visible pages, grouped in its category order and sorted by `order`, then title, within. */
 export async function getCatalogue({
   route,
   categories
@@ -134,6 +147,7 @@ export async function getCatalogue({
     (a, b) =>
       rank(a.category) - rank(b.category) ||
       a.category.localeCompare(b.category) ||
+      (a.order ?? Infinity) - (b.order ?? Infinity) ||
       a.title.localeCompare(b.title)
   )
 
