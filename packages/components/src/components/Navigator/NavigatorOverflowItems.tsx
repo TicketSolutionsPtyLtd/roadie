@@ -18,6 +18,7 @@ import {
 import type { NavigatorMenuProps } from './NavigatorMenu'
 import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
 import type { NavigatorSlotMeta } from './mobileSlots'
+import { opensElsewhere } from './opensElsewhere'
 import { presentNavIcon } from './presentNavIcon'
 import { slotHref } from './sectionMemory'
 import { textOf } from './splitSecondary'
@@ -105,8 +106,9 @@ export function NavigatorOverflowItems({
         trailing={slot.badge}
         href={href}
         current={active && (isActiveValue(slot.value, value) ? 'page' : true)}
-        onClick={() => {
+        onClick={(event) => {
           activateItem(slot.value)
+          if (opensElsewhere(event)) return
           // A routed row leaves More to the route, so the old page never shows between.
           if (href === undefined || isActiveValue(slot.value, value)) {
             setOverflowOpen(false)

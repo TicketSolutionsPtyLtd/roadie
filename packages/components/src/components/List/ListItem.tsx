@@ -1,4 +1,4 @@
-import { type ReactNode, useId } from 'react'
+import { type MouseEvent, type ReactNode, useId } from 'react'
 
 import { CaretRightIcon } from '@phosphor-icons/react/ssr'
 
@@ -32,7 +32,7 @@ export type ListItemProps = {
   /** Marks the item as current; `true` or a token sets `aria-current`. */
   current?: ListItemCurrent
   className?: string
-  onClick?: () => void
+  onClick?: (event: MouseEvent<HTMLElement>) => void
 }
 
 export type ListItemCurrent = boolean | 'page' | 'step' | 'location'

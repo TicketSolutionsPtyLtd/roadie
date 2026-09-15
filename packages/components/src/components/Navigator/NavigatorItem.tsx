@@ -1,6 +1,7 @@
 'use client'
 
 import {
+  type MouseEvent,
   type ReactElement,
   type ReactNode,
   cloneElement,
@@ -27,6 +28,7 @@ import type {
   NavigatorPlacement,
   NavigatorVisibilityPriority
 } from './mobileSlots'
+import { opensElsewhere } from './opensElsewhere'
 import { badgeDot, presentNavIcon } from './presentNavIcon'
 import { rememberedHref } from './sectionMemory'
 import {
@@ -110,10 +112,12 @@ export function NavigatorItem({
     : rememberedHref(sectionMemory, value, effectiveHref, isBranch)
 
   // The element can be Root's structural copy, so its handler resolves through the current tree.
-  const handleClick = () => {
-    if (targetHref === undefined || isCurrent) setOverflowOpen(false)
-    else closeOverflowOnRoute()
-    setValue(value)
+  const handleClick = (event: MouseEvent) => {
+    if (!opensElsewhere(event)) {
+      if (targetHref === undefined || isCurrent) setOverflowOpen(false)
+      else closeOverflowOnRoute()
+      setValue(value)
+    }
     activateItem(value)
   }
 
