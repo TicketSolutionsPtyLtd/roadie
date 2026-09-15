@@ -331,6 +331,21 @@ describe('Pane.Header', () => {
   })
 })
 
+describe('the pane element', () => {
+  it('is a section with no role, and Base UI stays quiet about it', async () => {
+    const warn = vi.spyOn(console, 'warn')
+    const error = vi.spyOn(console, 'error')
+    await renderPane(<Pane>Body</Pane>)
+    const pane = document.querySelector('[data-slot="pane"]')!
+    expect(pane.tagName).toBe('SECTION')
+    expect(pane).not.toHaveAttribute('role')
+    expect(warn).not.toHaveBeenCalled()
+    expect(error).not.toHaveBeenCalled()
+    warn.mockRestore()
+    error.mockRestore()
+  })
+})
+
 describe('an inspector', () => {
   it('never shows Back, even with a declared depth', async () => {
     await renderPane(
