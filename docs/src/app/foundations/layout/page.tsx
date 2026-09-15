@@ -5,7 +5,8 @@ import { Code } from '@oztix/roadie-components'
 export const metadata = {
   title: 'Layout',
   description:
-    'Layout principles, spacing scale, and best practices for building resilient layouts.'
+    'Layout principles, spacing scale, and best practices for building resilient layouts.',
+  category: 'Content'
 }
 
 const spacingScale = [

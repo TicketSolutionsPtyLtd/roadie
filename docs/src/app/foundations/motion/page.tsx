@@ -7,7 +7,8 @@ import { Code } from '@oztix/roadie-components'
 export const metadata = {
   title: 'Motion',
   description:
-    'Duration, easing, and animation tokens for purposeful, accessible motion.'
+    'Duration, easing, and animation tokens for purposeful, accessible motion.',
+  category: 'Behaviour'
 }
 
 const durationTokens = [

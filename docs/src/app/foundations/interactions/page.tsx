@@ -5,7 +5,8 @@ import { Code } from '@oztix/roadie-components'
 export const metadata = {
   title: 'Interactions',
   description:
-    'Interaction design principles and CSS utilities for building accessible, responsive UI.'
+    'Interaction design principles and CSS utilities for building accessible, responsive UI.',
+  category: 'Behaviour'
 }
 
 const intents = [

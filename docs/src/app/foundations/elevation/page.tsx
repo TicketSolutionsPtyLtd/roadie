@@ -5,7 +5,8 @@ import { Code } from '@oztix/roadie-components'
 export const metadata: Metadata = {
   title: 'Elevation',
   description:
-    'Intent-tinted shadow scale for depth and hierarchy in light and dark modes.'
+    'Intent-tinted shadow scale for depth and hierarchy in light and dark modes.',
+  category: 'Visual'
 }
 
 const shadowScale = [

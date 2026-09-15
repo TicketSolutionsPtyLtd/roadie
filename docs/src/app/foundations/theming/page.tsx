@@ -7,7 +7,8 @@ import { Code } from '@oztix/roadie-components'
 export const metadata = {
   title: 'Theming',
   description:
-    'ThemeProvider, dynamic accent colour, dark mode, and pre-hydration bootstrap — everything you need to theme a Roadie app at runtime or at build time.'
+    'ThemeProvider, dynamic accent colour, dark mode, and pre-hydration bootstrap — everything you need to theme a Roadie app at runtime or at build time.',
+  category: 'Visual'
 }
 
 export default function ThemingPage() {

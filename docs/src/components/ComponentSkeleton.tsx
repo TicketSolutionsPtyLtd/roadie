@@ -1,6 +1,6 @@
 import { Logo } from '@oztix/roadie-components/logo'
 
-function Skel({ className, ...props }: React.ComponentProps<'div'>) {
+export function Skel({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div className={`rounded-sm bg-strong/15 ${className ?? ''}`} {...props} />
   )
@@ -452,22 +452,4 @@ export function ComponentSkeleton({ name }: { name: string }) {
         </div>
       )
   }
-}
-
-/**
- * A component's skeleton at card scale. The skeletons are authored at roughly
- * `w-40`, so the frame scales them to its own width rather than each case
- * being resized.
- */
-export function ComponentThumbnail({ name }: { name: string }) {
-  return (
-    <span
-      aria-hidden
-      className='@container grid aspect-4/3 place-content-center overflow-hidden bg-subtle'
-    >
-      <span className='pointer-events-none grid scale-[0.8] place-items-center @[11rem]:scale-90 @[13rem]:scale-100'>
-        <ComponentSkeleton name={name} />
-      </span>
-    </span>
-  )
 }

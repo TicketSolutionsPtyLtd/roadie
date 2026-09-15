@@ -3,7 +3,8 @@ import { Code } from '@oztix/roadie-components'
 export const metadata = {
   title: 'Colors',
   description:
-    'OKLCH color system with intent-based semantic tokens for consistent theming.'
+    'OKLCH color system with intent-based semantic tokens for consistent theming.',
+  category: 'Visual'
 }
 
 const intents = [

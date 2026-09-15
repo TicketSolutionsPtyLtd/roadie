@@ -7,7 +7,8 @@ import { Code } from '@oztix/roadie-components'
 export const metadata = {
   title: 'Accessibility',
   description:
-    'Accessibility principles and testing guidance for building inclusive Oztix applications.'
+    'Accessibility principles and testing guidance for building inclusive Oztix applications.',
+  category: 'Behaviour'
 }
 
 export default function AccessibilityPage() {

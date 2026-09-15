@@ -25,7 +25,8 @@ import {
 export const metadata: Metadata = {
   title: 'Iconography',
   description:
-    'Icon library, weight conventions, sizing scale, and import patterns for Phosphor Bold icons.'
+    'Icon library, weight conventions, sizing scale, and import patterns for Phosphor Bold icons.',
+  category: 'Visual'
 }
 
 const sizingScale = [

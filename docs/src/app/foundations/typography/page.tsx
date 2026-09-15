@@ -6,7 +6,8 @@ import { Code } from '@oztix/roadie-components'
 export const metadata = {
   title: 'Typography',
   description:
-    'Fluid type scale, pre-composed text styles, and semantic text colors.'
+    'Fluid type scale, pre-composed text styles, and semantic text colors.',
+  category: 'Content'
 }
 
 const typeScale = [

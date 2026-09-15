@@ -7,7 +7,8 @@ import { Code } from '@oztix/roadie-components'
 export const metadata = {
   title: 'View transitions',
   description:
-    'Patterns for using the CSS View Transitions API with Roadie layouts — z-index layering, named groups, keyframes, and search-param navigation.'
+    'Patterns for using the CSS View Transitions API with Roadie layouts — z-index layering, named groups, keyframes, and search-param navigation.',
+  category: 'Behaviour'
 }
 
 export default function ViewTransitionsPage() {
