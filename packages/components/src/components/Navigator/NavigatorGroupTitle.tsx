@@ -8,11 +8,7 @@ import {
 } from './variants'
 
 export type NavigatorGroupTitleProps = ComponentProps<'h2'> & {
-  /**
-   * Replace the rendered element. The default `<h2>` matches `Pane.Header`
-   * and `List.GroupTitle`, so it never collides with the page's `<h1>` —
-   * pass `render` when the page's outline needs a different level.
-   */
+  /** Replace the h2 when the outline needs another level. */
   render?: (props: ComponentProps<'h2'>) => ReactElement
 }
 

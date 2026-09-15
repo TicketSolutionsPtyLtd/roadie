@@ -1,8 +1,4 @@
-/**
- * The last sub-route reached under each primary item without a
- * `Navigator.Secondary`. It only retargets links, never depth, and is empty on
- * reload, so it can't cause a hydration mismatch.
- */
+/** The last sub-route per item without a Secondary. Empty on reload, so no hydration mismatch. */
 export type SectionMemory = ReadonlyMap<string, string>
 
 /** The item you are in keeps its declared href: the URL wins. */

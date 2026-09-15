@@ -51,7 +51,7 @@ export type NavigatorItemProps = {
   href?: string
   /** Leading icon. Phosphor `Icon`-suffixed export; without one, a tile shows the label's initial. */
   icon?: ReactNode
-  /** A `Badge`. Collapsed and on the phone bar it shrinks to a dot in the corner (`hideLabel`); expanded it trails the label at `size='sm'`. */
+  /** A `Badge`: a dot when collapsed and on the bar, trailing at `sm` when expanded. */
   badge?: ReactElement<BadgeProps>
   /** Secondary text for `Navigator.SectionItems` and `useNavigatorSection`; the navigation never shows it. */
   description?: string
@@ -103,7 +103,7 @@ export function NavigatorItem({
   // A menu opens rather than navigates, so no route lights it.
   const isCurrent = !menu && isActiveValue(value, active)
   const isBranch = !menu && isBranchActive(value, descendants, active)
-  // `data-current` drives the pill. An open menu or More takes it.
+  // An open menu or More takes the pill.
   const hasPill = menuOpen || (openMenu === null && !overflowOpen && isBranch)
   const targetHref = isSection
     ? effectiveHref

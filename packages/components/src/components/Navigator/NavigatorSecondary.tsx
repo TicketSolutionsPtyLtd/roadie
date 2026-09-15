@@ -13,12 +13,7 @@ export type NavigatorSecondaryProps = {
   children?: ReactNode
 }
 
-/**
- * A section's sub-pages, declared inside its `Navigator.Item` and read by
- * `Navigator.Primary`. They open in a list pane that `Navigator.Content`
- * generates; override one section with `Navigator.SecondaryPane`. Author the
- * tree in a client component — it is found by element identity.
- */
+/** A section's sub-pages, declared inside its item; author the tree in a client component. */
 export function NavigatorSecondary(_props: NavigatorSecondaryProps): null {
   return null
 }

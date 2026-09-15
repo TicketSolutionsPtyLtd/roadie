@@ -8,15 +8,7 @@ import { paneActionsClass } from './variants'
 
 export type PaneActionsProps = ComponentProps<'div'>
 
-/**
- * Trailing slot in the header's top row, opposite the back affordance.
- *
- * Must be a **direct child** of `Pane.Header` — it places itself in the
- * header's grid, and grid placement only reaches direct children.
- *
- * Where a small-screen affordance for a pane that yielded belongs: a
- * `Drawer` re-presenting the inspector is declared here, by the consumer.
- */
+/** Trailing slot in the header's top row. Direct child of `Pane.Header`. */
 export function PaneActions({
   className,
   children,

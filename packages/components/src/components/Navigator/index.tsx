@@ -1,7 +1,4 @@
-// Subpath entry for `@oztix/roadie-components/navigator`.
-//
-// NO `'use client'` — server-safe property-assignment layer.
-// See docs/contributing/COMPOUND_PATTERNS.md.
+// Server-safe property-assignment layer; see COMPOUND_PATTERNS.md.
 import { NavigatorBrand } from './NavigatorBrand'
 import { NavigatorContent } from './NavigatorContent'
 import { NavigatorExpandToggle } from './NavigatorExpandToggle'

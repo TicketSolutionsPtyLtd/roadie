@@ -12,7 +12,6 @@ const MAX_TABS = 5
 export type NavigatorPlacement = 'automatic' | 'pinned'
 export type NavigatorVisibilityPriority = 'low' | 'automatic' | 'high'
 
-/** The section an item was declared in, so the overflow can keep it. */
 export type NavigatorSlotGroup = {
   key: string
   title?: ReactNode
@@ -48,7 +47,6 @@ const RANK: Record<NavigatorVisibilityPriority, number> = {
   low: 0
 }
 
-/** Highest priority first; ties keep source order. */
 export function rankSlots<T extends { priority: NavigatorVisibilityPriority }>(
   slots: readonly T[]
 ): T[] {

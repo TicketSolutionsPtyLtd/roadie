@@ -16,11 +16,7 @@ import { NavigatorMenu, type NavigatorMenuProps } from './NavigatorMenu'
 import { NavigatorSecondary } from './NavigatorSecondary'
 import type { NavigatorSecondaryProps } from './NavigatorSecondary'
 
-/**
- * Separates an item's label from the `Navigator.Secondary` and
- * `Navigator.Menu` it can own, neither of which renders in its row.
- * A second menu is ignored.
- */
+/** An item's label, apart from its Secondary and Menu. A second menu is ignored. */
 export function splitItemChildren(children: ReactNode): {
   label: ReactNode[]
   secondary: ReactNode[]
@@ -71,11 +67,7 @@ export type SecondaryBlock = {
   items: ReactElement<NavigatorItemProps>[]
 }
 
-/**
- * A `Navigator.Secondary`'s children as runs of loose `Navigator.Item`s and
- * `Navigator.Group`s, in authored order. `Group` is the one wrapper matched
- * by reference, one level deep.
- */
+/** A Secondary's items and groups in authored order, one level deep. */
 export function secondaryBlocks(children: ReactNode): SecondaryBlock[] {
   const blocks: SecondaryBlock[] = []
   let loose: SecondaryBlock | null = null
@@ -112,7 +104,6 @@ export function secondaryBlocks(children: ReactNode): SecondaryBlock[] {
   return blocks
 }
 
-/** Every `Navigator.Item` `secondaryBlocks` finds, flattened. */
 export function secondaryItems(
   secondary: ReactNode[]
 ): ReactElement<NavigatorItemProps>[] {
@@ -123,10 +114,6 @@ export function secondaryItems(
   )
 }
 
-/**
- * The values of the `Navigator.Item`s `secondaryItems` finds — the section's
- * declared sub-destinations.
- */
 export function secondaryDescendantValues(secondary: ReactNode[]): string[] {
   return secondaryItems(secondary).map((item) => item.props.value)
 }

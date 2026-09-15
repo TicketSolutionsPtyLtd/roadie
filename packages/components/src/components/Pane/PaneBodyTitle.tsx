@@ -13,18 +13,7 @@ export type PaneBodyTitleProps = ComponentProps<'h1'> & {
   render?: (props: ComponentProps<'h1'>) => ReactElement
 }
 
-/**
- * The view's heading, placed in the pane's scrolling content so it scrolls
- * away as the reader moves down — the arrangement iOS uses for large titles.
- *
- * The header keeps a constant height and cross-fades in a compact echo of this
- * text instead. Nothing resizes at all, so no layout property is animated —
- * an in-header `Pane.Title` still has to close its own row to reclaim the
- * space, and animates `grid-template-rows` to do it smoothly.
- *
- * Defaults to `<h1>` rather than `Pane.Title`'s `<h2>`: a content-placed title
- * is the view's own heading, with no page heading above it to collide with.
- */
+/** The view's h1, in the scrolling content; the header echoes it once scrolled away. */
 export function PaneBodyTitle({
   className,
   children,
@@ -34,11 +23,7 @@ export function PaneBodyTitle({
   const pane = use(PaneContext)
   const setBodyTitle = pane?.setBodyTitle
 
-  // From an effect, never render: React 19 double-invokes render in
-  // StrictMode, and a parent cannot be written to while a child renders.
-  // Layout, not passive: a passive effect registers after first paint, so the
-  // header (which renders `null` until `bodyTitle` is set) would commit
-  // headerless, then pop in on the next frame and shove the content down.
+  // Layout, not passive: a passive effect paints the header late and shoves content down.
   useIsomorphicLayoutEffect(() => {
     if (!setBodyTitle) return
     setBodyTitle(children)

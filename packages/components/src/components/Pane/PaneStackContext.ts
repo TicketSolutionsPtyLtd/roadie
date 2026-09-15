@@ -8,7 +8,6 @@ import type { PanePrimaryNav, PaneRole } from './variants'
 
 export type PaneStackPosition = 'top' | 'ahead' | 'behind'
 
-// Orchestrator bookkeeping only: which panes the orchestrator generated or owns.
 export type PaneKind =
   'pane' | 'section' | 'generated-section' | 'overflow' | 'generated-overflow'
 
@@ -50,11 +49,8 @@ export type PaneStackContextValue = {
   destination?: string
 }
 
-// Registration, not an element-identity walk: an orchestrator cannot see
-// through a wrapper it did not render — a Next.js parallel-route slot node
-// most of all — so panes announce themselves instead of being found. `Pane`
-// defines this and fills nothing; `Navigator.Content` provides it. That keeps
-// `Pane` usable with no `Navigator` anywhere and the dependency one-way.
+// Registration, not an element walk: an orchestrator can't see through slots it
+// didn't render. Pane defines it; Navigator.Content fills it.
 export const PaneStackContext = createContext<PaneStackContextValue | null>(
   null
 )

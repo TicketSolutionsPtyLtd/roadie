@@ -17,9 +17,8 @@ export type NavigatorOverflowPaneProps = Omit<
 >
 
 /**
- * The More pane at every size: a pushed full-screen pane while stacked, the
- * root column otherwise. Omit it and `Navigator.Content` generates one
- * holding just the folded rows.
+ * The More pane: pushed full-screen while stacked, the root column otherwise. Omit it
+ * and `Navigator.Content` generates one.
  */
 export function NavigatorOverflowPane({
   className,

@@ -12,7 +12,6 @@ import {
 // Large enough that overscroll rubber-banding at the top doesn't flicker the bar.
 export const NAV_COLLAPSE_THRESHOLD = 24
 
-/** The scroll chrome the orchestrator hands the top pane. */
 export function useTopPaneChrome(): PaneChromeContextValue {
   const { setNavCollapsed, setPinExpanded } = use(NavigatorActionsContext)
   const { pinExpanded } = use(NavigatorBarContext)

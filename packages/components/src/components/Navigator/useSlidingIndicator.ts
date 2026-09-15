@@ -12,11 +12,7 @@ import {
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { holdDuringLayoutTransitions } from './transitionHold'
 
-/**
- * `data-current`, not `aria-current`: a section on a sub-route it never
- * declared holds the pill but not `aria-current`. Assumes at most one current
- * destination per track — the first match wins.
- */
+/** `data-current`, not `aria-current`: a section on an undeclared sub-route holds the pill. */
 export const ACTIVE_DESTINATION_SELECTOR =
   '[data-slot="navigator-item"][data-current]'
 
@@ -40,23 +36,8 @@ const sameGeometry = (a: Geometry | null, b: Geometry | null) =>
     a.width === b.width &&
     a.height === b.height)
 
-/**
- * The active element's layout box in the track's content space, or null when
- * the `offsetParent` chain doesn't reach the track.
- *
- * Offsets rather than rects because a rect includes `translate`/`scale`: the
- * tab bar's collapse animates its tabs on transforms alone, so a rect sampled
- * while that transition runs reports the travelling circle — a full column
- * left of the tab — and nothing corrects it once the bar expands, because no
- * border box ever changed for the ResizeObserver to see. Offsets are layout,
- * which changes discretely on the commit that swaps the classes, so they are
- * already final whenever this runs. They are also already in content space,
- * which is why no `scrollLeft`/`scrollTop` correction belongs here.
- *
- * Each surface's track is `relative` — it has to be, since the indicator is
- * absolutely positioned inside it — so it is normally the `offsetParent`
- * directly. The walk covers a positioned wrapper appearing in between.
- */
+// Offsets, not rects: rects include the bar's collapse transforms and freeze
+// mid-travel. Null when the offsetParent chain misses the track.
 const layoutBoxWithin = (
   active: HTMLElement,
   track: HTMLElement
@@ -76,13 +57,7 @@ const layoutBoxWithin = (
     : null
 }
 
-/**
- * Fallback for a track the `offsetParent` chain can't reach — one made a
- * containing block by `transform`/`filter` rather than `position`, and jsdom,
- * which has no layout at all. Rect deltas are viewport-space; the indicator is
- * positioned in the track's content space, so a scrolled track needs its
- * offset added back.
- */
+/** Fallback where offsetParent can't reach the track (a transform containing block, jsdom). */
 const rectBoxWithin = (active: HTMLElement, track: HTMLElement): Box => {
   const trackRect = track.getBoundingClientRect()
   const activeRect = active.getBoundingClientRect()
@@ -95,12 +70,7 @@ const rectBoxWithin = (active: HTMLElement, track: HTMLElement): Box => {
   }
 }
 
-/**
- * Publishes the current destination's box inside `trackRef` as
- * `--active-tab-*`, the names Base UI's Tabs indicator uses. `intent` changes
- * with what the user asked for; the pill slides only to a destination reached
- * that way.
- */
+/** Publishes the current destination's box as `--active-tab-*`; slides only on a change of `intent`. */
 export function useSlidingIndicator(
   trackRef: RefObject<HTMLElement | null>,
   intent: string
@@ -146,15 +116,8 @@ export function useSlidingIndicator(
     measuredIntentRef.current = intent
   })
 
-  // The indicator is a child of the element `trackRef` points at, so React
-  // attaches the track's ref after this first layout effect — `trackRef.current`
-  // is null on mount and only the ResizeObserver's initial observation (below)
-  // recovers it. Don't drop the `typeof ResizeObserver` guard or "simplify"
-  // this effect on that assumption: without it there is no indicator, ever.
-  //
-  // No dependency array: which destination holds the pill can change on a
-  // commit that leaves the active value untouched (a menu opening). `measure`
-  // only sets geometry when the box moved, so this can't loop.
+  // No deps: the pill can move without the value changing. The track ref is null on
+  // first run; the ResizeObserver's first callback recovers it.
   useIsomorphicLayoutEffect(() => measure())
 
   useEffect(() => {

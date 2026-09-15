@@ -194,10 +194,7 @@ type CompiledRule = {
   holds: (contentRem: number) => boolean
 }
 
-// A sweep calls this per 1px step; re-parsing every rule's conditions and
-// re-running `Element.matches` on every candidate each step made those sweeps
-// the slowest tests in the file. Both are pane/rules-invariant across a
-// sweep, so each is compiled and matched once, then cached.
+// Cached per sweep: re-parsing and re-matching every 1px step was the slowest test.
 const candidatesByLevel = new WeakMap<
   PaneColumnsRule[],
   Map<number, CompiledRule[]>

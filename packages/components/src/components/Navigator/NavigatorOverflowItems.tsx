@@ -46,11 +46,7 @@ function toRuns(slots: NavigatorSlotMeta[]): Run[] {
   return runs
 }
 
-/**
- * The folded destinations as a `List`, placed by the consumer inside
- * `Navigator.OverflowPane`. Each orientation's rows show only where that
- * orientation shows.
- */
+/** The folded destinations as a `List`, each orientation's rows where it shows. */
 export function NavigatorOverflowItems({
   className
 }: NavigatorOverflowItemsProps) {

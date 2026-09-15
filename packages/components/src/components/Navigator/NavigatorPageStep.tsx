@@ -38,9 +38,7 @@ const SELECTED = listItemVariants({ selected: true }).split(' ')
 
 let inertDocument: Document | null = null
 
-// Imported into a document with no browsing context, so nothing upgrades,
-// loads or fires until it is stripped. No ids, names or `form` owners to
-// collide with the real page, and out of the stack's counts.
+// An inert document: nothing upgrades or loads; ids, names and form owners are stripped.
 function ghostOf(pane: HTMLElement) {
   inertDocument ??= document.implementation.createHTMLDocument('')
   const ghost = inertDocument.importNode(pane, true)

@@ -60,7 +60,6 @@ export function PaneHeader({
       : undefined)
   const backName = label === undefined ? 'Back' : `Back to ${label}`
   const hasTarget = resolvedBackHref !== undefined || onBack !== undefined
-  // An inspector has no depth and never goes up a level.
   const showBack =
     hasTarget && pane !== null && pane.depth !== null && pane.depth !== 0
   const closeHandler = onClose ?? onBack
@@ -96,8 +95,7 @@ export function PaneHeader({
           ? 'close'
           : 'none'
 
-  // Walks the DOM: the pane's ref attaches in an ancestor layout effect, after this one.
-  // Keyed on `visible` because panes stay mounted while their header comes and goes.
+  // DOM walk: the pane's ref attaches after this effect. Keyed on `visible`, as headers come and go.
   useLayoutEffect(() => {
     const header = headerRef.current
     const paneEl = header?.closest<HTMLElement>('[data-slot="pane"]')

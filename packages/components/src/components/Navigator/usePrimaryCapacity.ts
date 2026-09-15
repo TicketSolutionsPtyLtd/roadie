@@ -16,11 +16,8 @@ const sameMembers = (a: ReadonlySet<string>, b: ReadonlySet<string>) =>
   a.size === b.size && [...a].every((value) => b.has(value))
 
 /**
- * One observer on the cluster's viewport; everything else is arithmetic.
- * `restingBrandPadding` is the brand region's bottom padding, in rem, once it
- * stops animating: capacity is measured against where the viewport settles,
- * so an expand or collapse folds once rather than frame by frame. Pass
- * `capsules` memoised, or the fit reruns every render.
+ * Folds by arithmetic against the resting viewport height, so an expand folds once.
+ * Pass `capsules` memoised.
  */
 export function usePrimaryCapacity(
   viewportRef: RefObject<HTMLElement | null>,

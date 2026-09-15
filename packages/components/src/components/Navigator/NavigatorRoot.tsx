@@ -53,15 +53,9 @@ import { useExpandMotion } from './useExpandMotion'
 import { navigatorRootClass } from './variants'
 
 export type NavigatorRootProps = {
-  /**
-   * The active destination's `value`. Navigator is always controlled —
-   * selection belongs to the app's router, not to Navigator.
-   */
+  /** The active destination's `value`; selection belongs to your router. */
   value?: string
-  /**
-   * Called when a destination is activated. Omit when every item carries an
-   * `href` and the router drives selection.
-   */
+  /** Called when a destination is activated; omit when hrefs drive selection. */
   onValueChange?: (next: string) => void
   /** Puts the active section's list on top of a stacked layout; derive it from your URL, e.g. `?nav`. */
   showList?: boolean
@@ -71,11 +65,7 @@ export type NavigatorRootProps = {
   showMore?: boolean
   /** Called when More asks to open or close. A routed choice closes it with the route instead. */
   onShowMoreChange?: (next: boolean) => void
-  /**
-   * The large-screen vertical navigation shows labels beside icons. Navigator
-   * never touches storage — persist the choice yourself (a cookie reads on the
-   * server without a flash) and pass it back.
-   */
+  /** Large-screen labels beside icons. Persist it yourself; a cookie reads on the server. */
   expanded?: boolean
   /** The uncontrolled starting state of `expanded`. @default false */
   defaultExpanded?: boolean
@@ -185,7 +175,6 @@ export function NavigatorRoot({
       handlers.current.onShowMoreChange?.(next)
     }
   }
-  // A routed choice: the route that follows closes a controlled More.
   const closeOverflowOnRoute = () => {
     if (!moreControlled) setOverflowOpen(false)
   }
@@ -228,8 +217,7 @@ export function NavigatorRoot({
   }, [children])
   const primaryDerived = primary !== undefined
 
-  // A parent re-render hands over new elements for the same tree; only a new
-  // structure republishes, so nothing derived from them changes identity.
+  // Only a new structure republishes, so nothing derived changes identity.
   const derivedChildren = primary?.props.children
   const derivedSignature = useMemo(
     () => primarySignature(derivedChildren),
