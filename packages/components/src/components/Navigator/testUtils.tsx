@@ -178,14 +178,83 @@ export function paneColumnsRulesOf(css: string): PaneColumnsRule[] {
   return rules
 }
 
-const holdsAt = (condition: string, contentRem: number) => {
+const compileCondition = (condition: string) => {
   const query = condition.match(
     /^@container panes \(width (>=|<) ([\d.]+)rem\)/
   )
-  if (!query) return true
+  if (!query) return () => true
+  const value = Number(query[2])
   return query[1] === '>='
-    ? contentRem >= Number(query[2])
-    : contentRem < Number(query[2])
+    ? (contentRem: number) => contentRem >= value
+    : (contentRem: number) => contentRem < value
+}
+
+type CompiledRule = {
+  rule: PaneColumnsRule
+  holds: (contentRem: number) => boolean
+}
+
+// A sweep calls this per 1px step; re-parsing every rule's conditions and
+// re-running `Element.matches` on every candidate each step made those sweeps
+// the slowest tests in the file. Both are pane/rules-invariant across a
+// sweep, so each is compiled and matched once, then cached.
+const candidatesByLevel = new WeakMap<
+  PaneColumnsRule[],
+  Map<number, CompiledRule[]>
+>()
+const candidateRulesFor = (rules: PaneColumnsRule[], level: number) => {
+  let byLevel = candidatesByLevel.get(rules)
+  if (!byLevel) {
+    byLevel = new Map()
+    candidatesByLevel.set(rules, byLevel)
+  }
+  let candidates = byLevel.get(level)
+  if (!candidates) {
+    const prefix = `[data-slot="navigator-panes"][data-level="${level}"]`
+    candidates = rules
+      .filter(
+        (rule) =>
+          rule.body.includes('--pane-back') && rule.selector.startsWith(prefix)
+      )
+      .map((rule) => {
+        const conditions = rule.conditions.map(compileCondition)
+        return {
+          rule,
+          holds: (contentRem: number) =>
+            conditions.every((holds) => holds(contentRem))
+        }
+      })
+    byLevel.set(level, candidates)
+  }
+  return candidates
+}
+
+const matchesByPane = new WeakMap<
+  Element,
+  WeakMap<PaneColumnsRule[], Map<number, boolean[]>>
+>()
+const matchFlagsFor = (
+  rules: PaneColumnsRule[],
+  pane: Element,
+  level: number,
+  candidates: CompiledRule[]
+) => {
+  let byRules = matchesByPane.get(pane)
+  if (!byRules) {
+    byRules = new WeakMap()
+    matchesByPane.set(pane, byRules)
+  }
+  let byLevel = byRules.get(rules)
+  if (!byLevel) {
+    byLevel = new Map()
+    byRules.set(rules, byLevel)
+  }
+  let flags = byLevel.get(level)
+  if (!flags) {
+    flags = candidates.map(({ rule }) => pane.matches(rule.selector))
+    byLevel.set(level, flags)
+  }
+  return flags
 }
 
 /** The column rule that wins for a level's stack pane at a content width: pane rules share a specificity, so the last that applies. */
@@ -195,17 +264,13 @@ export function paneRuleAt(
   contentRem: number,
   level = 0
 ) {
-  return rules
-    .filter(
-      (rule) =>
-        rule.body.includes('--pane-back') &&
-        rule.selector.startsWith(
-          `[data-slot="navigator-panes"][data-level="${level}"]`
-        ) &&
-        rule.conditions.every((condition) => holdsAt(condition, contentRem)) &&
-        pane.matches(rule.selector)
-    )
-    .at(-1)
+  const candidates = candidateRulesFor(rules, level)
+  const flags = matchFlagsFor(rules, pane, level, candidates)
+  let result: PaneColumnsRule | undefined
+  for (const [index, candidate] of candidates.entries()) {
+    if (flags[index] && candidate.holds(contentRem)) result = candidate.rule
+  }
+  return result
 }
 
 /** The level-0 stack panes the generated stylesheet would put on screen where `columns` columns first fit. */

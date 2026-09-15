@@ -557,18 +557,37 @@ describe('parent tracks follow the columns a row shows', () => {
       )
     )
 
+  // A sweep calls this every 1px, so the hide threshold is resolved from the
+  // matching rules once per inspector element rather than re-scanning and
+  // re-matching every rule on every step: hidden below the widest threshold
+  // any matching rule names, shown at or above it.
+  const inspectorHideThresholds = new WeakMap<Element, number>()
+  const inspectorHideThreshold = (inspector: Element) => {
+    const cached = inspectorHideThresholds.get(inspector)
+    if (cached !== undefined) return cached
+    const threshold = rules
+      .filter(
+        (rule) =>
+          rule.body === 'display: none !important;' &&
+          inspector.matches(rule.selector)
+      )
+      .reduce((widest, rule) => {
+        const widths = rule.conditions
+          .map(
+            (condition) =>
+              condition.match(/@container panes \(width < ([\d.]+)rem\)/)?.[1]
+          )
+          .filter((width): width is string => width !== undefined)
+          .map(Number)
+        const ruleThreshold =
+          widths.length > 0 ? Math.min(...widths) * REM : Infinity
+        return Math.max(widest, ruleThreshold)
+      }, -Infinity)
+    inspectorHideThresholds.set(inspector, threshold)
+    return threshold
+  }
   const inspectorShownAt = (inspector: Element, contentPx: number) =>
-    !rules.some(
-      (rule) =>
-        rule.body === 'display: none !important;' &&
-        inspector.matches(rule.selector) &&
-        rule.conditions.every((condition) => {
-          const width = condition.match(
-            /@container panes \(width < ([\d.]+)rem\)/
-          )?.[1]
-          return width === undefined || contentPx < Number(width) * REM
-        })
-    )
+    contentPx >= inspectorHideThreshold(inspector)
 
   // A stacked row positions its panes absolutely, so nothing can sit beside them.
   it.each([1, 2, 3])(
