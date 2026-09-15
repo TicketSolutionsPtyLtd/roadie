@@ -98,11 +98,6 @@ async function getNavigationItems() {
     'Reference'
   )
 
-  const migrationMetadata = await getMetadataFromFile(
-    join(process.cwd(), 'src/app/migration/page.tsx'),
-    'Migrating to v2'
-  )
-
   const navigationItems: {
     title: string
     href: string
@@ -132,11 +127,6 @@ async function getNavigationItems() {
           title: vueIntegrationMetadata?.title ?? 'Vue integration',
           href: '/overview/vue-integration',
           description: vueIntegrationMetadata?.description
-        },
-        {
-          title: 'Migrating to v2',
-          href: '/migration',
-          description: migrationMetadata?.description
         },
         {
           title: 'Changelog',
