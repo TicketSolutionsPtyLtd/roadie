@@ -40,6 +40,7 @@ import {
   deriveMobileSlots,
   phoneBarCapacity
 } from './mobileSlots'
+import { opensElsewhere } from './opensElsewhere'
 import { presentNavIcon } from './presentNavIcon'
 import { PRIMARY_METRICS } from './primaryCapacity'
 import { slotsSignature } from './primarySignature'
@@ -288,6 +289,7 @@ export function NavigatorPrimary({
       href: string | undefined
     ) => {
       activateItem(tab.value)
+      if (opensElsewhere(event)) return
       setOpenMenu(null)
       // A tap that stays on this route closes More now; one that navigates leaves it to the route.
       const stay = () => {

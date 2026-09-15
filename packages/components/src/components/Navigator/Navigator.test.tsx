@@ -3447,6 +3447,86 @@ describe('Navigator active-tab tap: scroll-on-landing vs navigate-up', () => {
   })
 })
 
+describe('a click the browser opens elsewhere', () => {
+  const tree = (active: string, onValueChange = vi.fn()) => (
+    <Navigator value={active} onValueChange={onValueChange}>
+      <Navigator.Primary aria-label='Primary'>
+        {testBrand}
+        {['/a', '/b', '/c', '/d', '/e', '/f'].map((v) => (
+          <Navigator.Item key={v} value={v} href={v}>
+            {v}
+          </Navigator.Item>
+        ))}
+      </Navigator.Primary>
+      <Navigator.Content>
+        <Pane role='detail'>
+          <Pane.Header />
+          Content
+        </Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+
+  const horizontal = () => within(primaryOf('horizontal'))
+
+  type ClickInit = Parameters<typeof fireEvent.click>[1]
+
+  // Records whether Navigator prevented the click, then stops jsdom navigating.
+  const leftToBrowser = (target: HTMLElement, init: ClickInit) => {
+    let prevented = true
+    const record = (event: Event) => {
+      prevented = event.defaultPrevented
+      event.preventDefault()
+    }
+    window.addEventListener('click', record, { once: true })
+    fireEvent.click(target, init)
+    return !prevented
+  }
+
+  const modifiers: ClickInit[] = [
+    { metaKey: true },
+    { ctrlKey: true },
+    { shiftKey: true },
+    { altKey: true },
+    { button: 1 }
+  ]
+
+  it('opens the active tab elsewhere instead of re-tapping it', async () => {
+    const { container } = render(tree('/a'))
+    await flushViewportMeasurement()
+    const scrollTo = vi.fn()
+    container.querySelector<HTMLElement>(
+      '[data-slot="pane-viewport"]'
+    )!.scrollTo = scrollTo
+    const tab = horizontal().getByRole('link', { name: '/a' })
+    for (const init of modifiers) expect(leftToBrowser(tab, init)).toBe(true)
+    expect(scrollTo).not.toHaveBeenCalled()
+  })
+
+  it('leaves the selection alone for a tab, a vertical item or a More row', async () => {
+    const onValueChange = vi.fn()
+    render(tree('/a', onValueChange))
+    await flushViewportMeasurement()
+    await userEvent.click(horizontal().getByRole('button', { name: 'More' }))
+    const more = document.querySelector('[data-slot="pane"][id]')!
+    const row = within(
+      document.querySelector<HTMLElement>(
+        '[data-slot="navigator-overflow-items"].md\\:hidden'
+      )!
+    ).getByRole('link', { name: '/f' })
+
+    for (const target of [
+      horizontal().getByRole('link', { name: '/b' }),
+      within(primaryOf('vertical')).getByRole('link', { name: '/c' }),
+      row
+    ]) {
+      expect(leftToBrowser(target, { metaKey: true })).toBe(true)
+    }
+    expect(onValueChange).not.toHaveBeenCalled()
+    expect(more).toHaveAttribute('data-current')
+  })
+})
+
 describe('scroll-to-top in a nested Navigator', () => {
   // The outer pane holding it isn't the outer top, so only the inner level finds it.
   it("scrolls the inner Navigator's own top pane when its active tab is re-tapped", async () => {

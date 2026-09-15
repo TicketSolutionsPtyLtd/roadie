@@ -8,6 +8,7 @@ import {
   NavigatorSelectionContext,
   isActiveValue
 } from './NavigatorContext'
+import { opensElsewhere } from './opensElsewhere'
 import { presentNavIcon } from './presentNavIcon'
 import { type SectionRow, sectionRows } from './sectionData'
 import { textOf } from './splitSecondary'
@@ -46,8 +47,8 @@ const SectionItemsRow = memo(function SectionItemsRow({
       trailing={row.badge}
       href={row.href}
       current={current && 'page'}
-      onClick={() => {
-        setValue(row.value)
+      onClick={(event) => {
+        if (!opensElsewhere(event)) setValue(row.value)
         activateItem(row.value)
       }}
     />
