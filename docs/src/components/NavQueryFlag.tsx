@@ -7,35 +7,35 @@ import { usePathname, useSearchParams } from 'next/navigation'
 export const NAV_LIST_PARAM = 'nav'
 export const NAV_MORE_PARAM = 'more'
 
-type Report = (on: boolean, pathname: string) => void
+type NavQuery = { nav: boolean; more: boolean }
+type Report = (query: NavQuery, pathname: string) => void
 
-/** Reports whether `name` is in the query; render inside a `Suspense` so the page still prerenders. */
-export function NavQueryFlag({
-  name,
-  onChange
-}: {
-  name: string
-  onChange: Report
-}) {
-  const on = useSearchParams().has(name)
+/** Reports the nav query flags; render inside a `Suspense` so the page still prerenders. */
+export function NavQueryFlags({ onChange }: { onChange: Report }) {
+  const params = useSearchParams()
   const pathname = usePathname()
+  const nav = params.has(NAV_LIST_PARAM)
+  const more = params.has(NAV_MORE_PARAM)
   useEffect(() => {
-    onChange(on, pathname)
-  }, [on, pathname, onChange])
+    onChange({ nav, more }, pathname)
+  }, [nav, more, pathname, onChange])
   return null
 }
 
 // Keyed by pathname, so a new route reads false before its query is reported.
-export function useNavQueryFlag(pathname: string): [boolean, Report] {
-  const [state, setState] = useState({ pathname: '', on: false })
+export function useNavQuery(pathname: string): [NavQuery, Report] {
+  const [state, setState] = useState({ pathname: '', nav: false, more: false })
   const report = useCallback<Report>(
-    (on, atPathname) =>
+    ({ nav, more }, atPathname) =>
       setState((current) =>
-        current.pathname === atPathname && current.on === on
+        current.pathname === atPathname &&
+        current.nav === nav &&
+        current.more === more
           ? current
-          : { pathname: atPathname, on }
+          : { pathname: atPathname, nav, more }
       ),
     []
   )
-  return [state.on && state.pathname === pathname, report]
+  const current = state.pathname === pathname
+  return [{ nav: current && state.nav, more: current && state.more }, report]
 }

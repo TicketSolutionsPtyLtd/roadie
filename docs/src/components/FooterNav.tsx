@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation'
 interface NavItem {
   title: string
   href?: string
-  label?: boolean
 }
 
 interface NavSection {
@@ -27,8 +26,7 @@ export function FooterNav({ items }: FooterNavProps) {
       return [
         ...acc,
         ...(section.items.filter(
-          (item) =>
-            !item.label && item.href && !/^(https?:)?\/\//.test(item.href)
+          (item) => item.href && !/^(https?:)?\/\//.test(item.href)
         ) as (NavItem & { href: string })[])
       ]
     },

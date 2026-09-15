@@ -28,34 +28,53 @@ export const CATEGORY_ORDER = [
 const COMPONENTS_DIR = join(process.cwd(), 'src/app/components')
 const APP_DIR = join(process.cwd(), 'src/app')
 
-// Pages write either `export const metadata = {` or, in TypeScript,
-// `export const metadata: Metadata = {`. Both have to match, or a page
-// silently resolves no title.
+// Matches both `metadata = {` and `metadata: Metadata = {`.
 export const METADATA_RE =
   /export const metadata(?:\s*:\s*[\w.]+)?\s*=\s*({[\s\S]*?})/m
 
+type PageMetadata = Record<string, unknown> & {
+  title?: string
+  description?: string
+  hidden?: boolean
+}
+
+/** A page's `metadata`: undefined when the file is missing, null when it has none. */
+export async function readPageMetadata(
+  path: string
+): Promise<PageMetadata | null | undefined> {
+  let content: string
+  try {
+    content = await readFile(path, 'utf-8')
+  } catch {
+    return undefined
+  }
+  const match = content.match(METADATA_RE)
+  if (!match) {
+    // Only a page that declares metadata but fails to match is an error.
+    if (content.includes('export const metadata')) {
+      console.error(`No metadata match for ${path}`)
+    }
+    return null
+  }
+  try {
+    return new Function(`return ${match[1]}`)()
+  } catch {
+    console.error(`Error parsing metadata for ${path}`)
+    return null
+  }
+}
+
 async function readMetadata(dir: string): Promise<ComponentSummary | null> {
   for (const file of ['page.mdx', 'page.tsx']) {
-    try {
-      const content = await readFile(join(COMPONENTS_DIR, dir, file), 'utf-8')
-      const match = content.match(METADATA_RE)
-      const fallback = {
-        name: dir,
-        title: dir,
-        description: '',
-        category: 'Other'
-      }
-      if (!match) return fallback
-      try {
-        const parsed = new Function(`return ${match[1]}`)()
-        if (parsed.hidden) return null
-        return { ...fallback, ...parsed, name: dir }
-      } catch {
-        console.error(`Error parsing metadata for ${dir}`)
-        return fallback
-      }
-    } catch {
-      // Try the next filename.
+    const metadata = await readPageMetadata(join(COMPONENTS_DIR, dir, file))
+    if (metadata === undefined) continue
+    if (metadata?.hidden) return null
+    return {
+      title: dir,
+      description: '',
+      category: 'Other',
+      ...metadata,
+      name: dir
     }
   }
   return null
@@ -83,38 +102,10 @@ async function collectPageTitle(
   route: string,
   out: Record<string, string>
 ): Promise<void> {
-  // `.mdx` first: if a route somehow had both, the authored content page
-  // wins. In practice this never happens — Next.js App Router forbids both
-  // a `page.mdx` and a `page.tsx` in the same route directory — so the loop
-  // is defensive, not load-bearing.
   for (const file of ['page.mdx', 'page.tsx']) {
-    let content: string
-    try {
-      content = await readFile(join(dir, file), 'utf-8')
-    } catch {
-      continue // No page of this kind in this directory.
-    }
-    const match = content.match(METADATA_RE)
-    if (!match) {
-      // A page with no `metadata` export at all (the homepage's own
-      // in-body `<h1>`, the `/debug/*` routes) is normal and expected —
-      // silent. But a page that *does* declare `export const metadata`
-      // and still fails to match is the real failure: the pane header
-      // renders this title as the page's only `<h1>`, so a miss there
-      // means the page silently ships with no heading at all. Shout only
-      // for that case, or the warning fires on every render of the known
-      // exceptions and trains readers to ignore it.
-      if (content.includes('export const metadata')) {
-        console.error(`No metadata match for ${route}`)
-      }
-      return
-    }
-    try {
-      const parsed = new Function(`return ${match[1]}`)()
-      if (parsed.title) out[route] = parsed.title
-    } catch {
-      console.error(`Error parsing metadata for ${route}`)
-    }
+    const metadata = await readPageMetadata(join(dir, file))
+    if (metadata === undefined) continue
+    if (metadata?.title) out[route] = metadata.title
     return
   }
 }
@@ -139,13 +130,7 @@ async function walkPageTitles(
   )
 }
 
-/**
- * Route → page title, sourced from every page's own `metadata.title`, `.mdx`
- * and `.tsx` alike across the whole site — not just `/components/*`. This is
- * the header's source of truth: the navigation can shorten a label for its own
- * row (see the hardcoded 'Overview' rows in `layout.tsx`), but the page
- * heading must not silently inherit that shortening.
- */
+/** Route → `metadata.title` for every page; the header's title, never the nav's shortened label. */
 export async function getPageTitles(): Promise<Record<string, string>> {
   const titles: Record<string, string> = {}
   await walkPageTitles(APP_DIR, '/', titles)

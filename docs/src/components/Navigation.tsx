@@ -26,22 +26,21 @@ import {
 import type { ComponentCategory } from '@/lib/component-manifest'
 
 import { Drawer, IconButton, Navigator, Pane } from '@oztix/roadie-components'
+import { serializeNavigatorExpandedCookie } from '@oztix/roadie-core/navigator'
 
 import { FooterNav } from './FooterNav'
 import { Image } from './Image'
 import {
   NAV_LIST_PARAM,
   NAV_MORE_PARAM,
-  NavQueryFlag,
-  useNavQueryFlag
+  NavQueryFlags,
+  useNavQuery
 } from './NavQueryFlag'
 import { type DocHeadings, OnThisPage, useDocHeadings } from './OnThisPage'
-import { useExpandedCookie } from './useExpandedCookie'
 
 interface NavigationItem {
   title: string
   href?: string
-  label?: boolean
   description?: string
 }
 
@@ -54,8 +53,7 @@ interface NavigationSection {
 interface NavigationProps {
   items: NavigationSection[]
   componentCategories: ComponentCategory[]
-  /** Route → page title, from `getPageTitles`. `Pane.BodyTitle` renders it as
-   * the page's `<h1>`; the header echoes it once collapsed. */
+  /** Route → page title, rendered as `Pane.BodyTitle`. */
   pageTitles: Record<string, string>
   children: ReactNode
 }
@@ -66,6 +64,10 @@ const SECTION_ICONS: Record<string, ReactNode> = {
   '/tokens': <PaletteIcon />,
   '/components': <CubeIcon />,
   '/roadie-widgets': <SquaresFourIcon />
+}
+
+const persistExpanded = (next: boolean) => {
+  document.cookie = serializeNavigatorExpandedCookie(next)
 }
 
 // The nav-form breakpoint, and the natural phone/tablet split for the sheet.
@@ -80,14 +82,7 @@ const subscribeTabletUp = (onChange: () => void) => {
   return () => query.removeEventListener('change', onChange)
 }
 
-/**
- * Bottom sheet on a phone, side drawer from a tablet up.
- *
- * A drawer's edge is CSS but its dismiss gesture is a JavaScript value, so the
- * two can only agree if one discrete side is chosen in JS. The breakpoint lives
- * here, in the application: an app is allowed to know its own bands, and Roadie
- * is not.
- */
+/** Drawer side is a JS value, so the app picks its band here; Roadie knows no bands. */
 function useDrawerSide(): 'bottom' | 'right' {
   const tabletUp = useSyncExternalStore(
     subscribeTabletUp,
@@ -97,12 +92,6 @@ function useDrawerSide(): 'bottom' | 'right' {
   return tabletUp ? 'right' : 'bottom'
 }
 
-/**
- * The small-screen affordance for the inspector pane, which yields its column
- * when the stack no longer fits beside it. Declared by the consumer in
- * `Pane.Actions` — Roadie stopped inventing the overlay, so Base UI owns the
- * scrim, the focus trap, Escape and the swipe.
- */
 function OnThisPageDrawer({ headings, onSelect }: DocHeadings) {
   const [open, setOpen] = useState(false)
   const side = useDrawerSide()
@@ -148,9 +137,7 @@ export function DocsNavigator({
   const pathname = usePathname()
   const router = useRouter()
 
-  const [expanded, setExpanded] = useExpandedCookie()
-  const [showList, reportShowList] = useNavQueryFlag(pathname)
-  const [showMore, reportShowMore] = useNavQueryFlag(pathname)
+  const [query, reportQuery] = useNavQuery(pathname)
 
   // Params we pushed this session, so closing can pop that entry instead of
   // adding a new one. A deep-linked/reloaded flag isn't in here, so closing
@@ -190,17 +177,15 @@ export function DocsNavigator({
   return (
     <>
       <Suspense fallback={null}>
-        <NavQueryFlag name={NAV_LIST_PARAM} onChange={reportShowList} />
-        <NavQueryFlag name={NAV_MORE_PARAM} onChange={reportShowMore} />
+        <NavQueryFlags onChange={reportQuery} />
       </Suspense>
       <Navigator
         value={pathname}
-        expanded={expanded}
-        onExpandedChange={setExpanded}
+        onExpandedChange={persistExpanded}
         expandedFromDocument
-        showList={showList}
+        showList={query.nav}
         onShowListChange={handleShowListChange}
-        showMore={showMore}
+        showMore={query.more}
         onShowMoreChange={handleShowMoreChange}
       >
         <Navigator.Primary aria-label='Documentation'>
@@ -320,7 +305,7 @@ export function DocsNavigator({
             </div>
           </Pane>
 
-          {/* A column once every stack level fits beside it; otherwise the drawer in the detail pane's actions reaches it. */}
+          {/* A column once it fits; otherwise the drawer in Pane.Actions. */}
           {showInspector ? (
             <Pane role='inspector' aria-label='On this page'>
               <div className='py-6'>

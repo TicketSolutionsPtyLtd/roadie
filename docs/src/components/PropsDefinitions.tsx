@@ -195,10 +195,7 @@ function groupPropsBySource(
   }
 
   Object.entries(props).forEach(([name, prop]) => {
-    // A plain, undocumented `className: string` forwarded straight from
-    // `@types/react` is true of every part and carries no signal — drop it.
-    // One documented locally (a real description) or typed as a Base UI
-    // state function still earns its row.
+    // A plain forwarded className carries no signal.
     const isPlainForwardedClassName =
       name === 'className' &&
       prop.parent?.fileName.includes('@types/react') &&

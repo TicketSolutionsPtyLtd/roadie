@@ -59,12 +59,7 @@ function slugify(text: string): string {
     .replace(/-+/g, '-')
 }
 
-/**
- * Lifted out of the view so the inspector pane can be declared only when there
- * is a table of contents — a declared inspector puts a reveal toggle in the top
- * pane's header, and below 2xl that toggle would otherwise open an empty
- * drawer.
- */
+/** Headings and a scroll-to handler, lifted so the inspector renders only with two or more. */
 export function useDocHeadings(): DocHeadings {
   const pathname = usePathname()
   const [headings, setHeadings] = useState<Heading[]>([])
@@ -75,17 +70,13 @@ export function useDocHeadings(): DocHeadings {
   const programmaticScrollLockRef = useRef<number>(0)
 
   useEffect(() => {
-    // Every bail-out clears first. The count is what declares the inspector
-    // pane, so a route with no contents that returned early would leave the
-    // previous page's headings standing — links to ids that no longer exist.
+    // Clear on every bail-out, or the last page's headings linger.
     if (pathname === '/') {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- reading DOM state on mount
       setHeadings([])
       return
     }
-    // Navigator wraps the page in a scrolling pane, so scope to the content
-    // wrapper rather than <main> (which is now Navigator.Content and carries a
-    // data-slot the skip below would otherwise trip on).
+    // Scope to the content wrapper; <main> is Navigator.Content.
     const mainEl = document.getElementById('docs-content')
     if (!mainEl) {
       setHeadings([])
@@ -96,18 +87,7 @@ export function useDocHeadings(): DocHeadings {
     const selector = pathname === '/components' ? 'h2' : 'h2, h3'
     const nodes = mainEl.querySelectorAll<HTMLHeadingElement>(selector)
 
-    // Seed with every existing id already on the page — not just the ids
-    // we assign this pass. This used to guard against a specific collision:
-    // the MDX page title rendered an h1 (e.g. "Select") that rehype-slug
-    // tagged with id="select", and a later same-text h3 — typically the
-    // root entry in `<PropsDefinitions>`'s API reference section — could
-    // steal it at runtime if this seed didn't already know "select" was
-    // taken. The title now renders via React as `Pane.BodyTitle`, not MDX,
-    // so it never receives a rehype-slug id — and the `h2, h3` selector
-    // above skips it regardless of where it lives — so that specific
-    // collision can't recur. The seed stays anyway: it is the only thing
-    // that protects a same-text h3 from colliding with any other id already
-    // on the page, from any source.
+    // Seed with every id on the page, so an assigned id never collides.
     const usedIds = new Set<string>(
       Array.from(document.querySelectorAll<HTMLElement>('[id]')).map(
         (node) => node.id
@@ -119,10 +99,7 @@ export function useDocHeadings(): DocHeadings {
       const text = el.textContent?.trim() ?? ''
       if (!text) return
 
-      // Skip headings rendered inside component examples (Roadie leaves carry
-      // data-slot); real section headings never do. Bound the check to the
-      // content wrapper — the enclosing `Pane` carries a data-slot too, and
-      // every heading is inside it.
+      // Skip example headings (Roadie parts carry data-slot) inside the content only.
       const slot = el.closest('[data-slot]')
       if (slot && mainEl.contains(slot)) return
 
@@ -189,9 +166,7 @@ export function useDocHeadings(): DocHeadings {
       event.preventDefault()
       programmaticScrollLockRef.current =
         Date.now() + PROGRAMMATIC_SCROLL_LOCK_MS
-      // The page no longer scrolls — the content Pane does. scrollIntoView
-      // walks up to that scroll container; the pane's scroll-pt keeps the
-      // heading clear of the top edge.
+      // The pane scrolls, not the window; its scroll-pt keeps the heading clear.
       target.scrollIntoView({ behavior: 'smooth', block: 'start' })
       setActiveHeading(id)
       if (window.history.replaceState) {
@@ -204,10 +179,6 @@ export function useDocHeadings(): DocHeadings {
   return { headings, onSelect: handleClick }
 }
 
-/**
- * The table of contents itself. Visibility and stickiness belong to the
- * enclosing inspector pane, so this carries neither.
- */
 export function OnThisPage({ headings, onSelect }: DocHeadings) {
   const activeId = useActiveHeading()
   return (
