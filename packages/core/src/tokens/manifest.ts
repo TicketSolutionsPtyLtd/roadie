@@ -24,6 +24,8 @@ export const INTENTS = [
 
 export type Intent = (typeof INTENTS)[number]
 
+const KIND_ORDER = ['variable', 'utility', 'class', 'variant', 'keyframes']
+
 export type TokenKind =
   'variable' | 'utility' | 'variant' | 'keyframes' | 'class'
 
@@ -64,32 +66,32 @@ const sentence = (s: string) =>
 
 const VARIABLE_RULES: Rule[] = [
   [
-    new RegExp(`^--color-(${SCALES})-light-\\d+$`),
-    'color-scales',
-    'Pinned light steps'
-  ],
-  [
     new RegExp(`^--color-(${SCALES})-\\d+$`),
     'color-scales',
     (m) => sentence(m[1]!)
   ],
-  [/^--accent-(hue|chroma)$/, 'color-scales', 'Accent parameters'],
+  [
+    new RegExp(`^--color-(${SCALES})-light-\\d+$`),
+    'color-scales',
+    'Pinned light steps'
+  ],
   [/^--color-illustration-/, 'color-scales', 'Illustration'],
-  [/^--intent-\d+$/, 'intents', 'Raw steps'],
-  [/^--intent-\d+a$/, 'intents', 'Alpha steps'],
+  [/^--accent-(hue|chroma)$/, 'color-scales', 'Accent parameters'],
   [/^--intent-bg-/, 'intents', 'Backgrounds'],
   [/^--intent-text-/, 'intents', 'Text'],
   [/^--intent-border-/, 'intents', 'Borders'],
   [/^--intent-mark-/, 'intents', 'Mark'],
-  [/^--intent-hue$/, 'intents', 'Hue'],
   [/^--(background|text|border)-color-/, 'intents', 'Semantic utilities'],
+  [/^--intent-hue$/, 'intents', 'Hue'],
+  [/^--intent-\d+$/, 'intents', 'Raw steps'],
+  [/^--intent-\d+a$/, 'intents', 'Alpha steps'],
   [/^--focus-ring-/, 'emphasis', 'Focus ring'],
   [/^--(inset-)?shadow-/, 'elevation', 'Shadows'],
   [/^--rim-light/, 'elevation', 'Rim light'],
   [/^--z-index-/, 'elevation', 'Layering'],
   [/^--font-/, 'typography', 'Font families'],
-  [/^--text-[\w]+--line-height$/, 'typography', 'Font size line heights'],
-  [/^--text-/, 'typography', 'Font sizes'],
+  [/^--text-[^-]+$/, 'typography', 'Font sizes'],
+  [/^--text-.+--line-height$/, 'typography', 'Font size line heights'],
   [/^--leading-/, 'typography', 'Line heights'],
   [/^--tracking-/, 'typography', 'Letter spacing'],
   [/^--radius-/, 'shape', 'Radius'],
@@ -107,25 +109,26 @@ const UTILITY_RULES: Rule[] = [
   [/^rim-light$/, 'elevation', 'Rim light'],
   [/^text-display-/, 'typography', 'Display styles'],
   [/^text-(ui|ui-meta|prose|code)$/, 'typography', 'Body styles'],
+  [/^(animate-|motion-[\w]+-(in|out)$)/, 'motion', 'Animations'],
   [
     /^(motion-(scale|slide|drawer)$|is-disclosure-animated$)/,
     'motion',
     'Enter and exit transitions'
   ],
-  [/^(motion|animate)-/, 'motion', 'Animations'],
   [/^container-/, 'shape', 'Containers'],
   [/^btn/, 'component-utilities', 'Buttons'],
   [/^calendar-tile/, 'component-utilities', 'Calendar tile']
 ]
 
 function classify(name: string, rules: Rule[]) {
-  for (const [pattern, family, group] of rules) {
+  for (const [rank, [pattern, family, group]] of rules.entries()) {
     const match = name.match(pattern)
     if (match) {
-      return { family, group: typeof group === 'string' ? group : group(match) }
+      const title = typeof group === 'string' ? group : group(match)
+      return { family, group: title, rank }
     }
   }
-  return { family: 'unclassified' as const, group: 'Unclassified' }
+  return { family: 'unclassified' as const, group: 'Unclassified', rank: -1 }
 }
 
 const NAMESPACE_CLASSES: [RegExp, (key: string) => string[]][] = [
@@ -289,6 +292,7 @@ export function parseTokenManifest(
     (list.findLast((d) => d.modern) ?? list.at(-1))?.value
 
   const variables = new Map<string, TokenEntry>()
+  const sortKey = new Map<TokenEntry, [rule: number, order: number]>()
   const valueOf = new Map<string, ModeValue>()
 
   for (const name of publicNames) {
@@ -321,22 +325,21 @@ export function parseTokenManifest(
       byIntent[intent] = compact(values)
     }
 
-    const { family, group } = classify(name, VARIABLE_RULES)
-    variables.set(
+    const { family, group, rank } = classify(name, VARIABLE_RULES)
+    const entry: TokenEntry = compact({
       name,
-      compact({
-        name,
-        kind: 'variable' as const,
-        family,
-        group,
-        sheet: own[0]!.sheet,
-        source: 'roadie' as const,
-        value: compact({ light: lightValue, dark: darkValue, fallback }),
-        byIntent: Object.keys(byIntent).length > 0 ? byIntent : undefined,
-        classes: own.some((d) => d.theme) ? classesFor(name) : undefined,
-        description: descriptions.get(name)
-      })
-    )
+      kind: 'variable' as const,
+      family,
+      group,
+      sheet: own[0]!.sheet,
+      source: 'roadie' as const,
+      value: compact({ light: lightValue, dark: darkValue, fallback }),
+      byIntent: Object.keys(byIntent).length > 0 ? byIntent : undefined,
+      classes: own.some((d) => d.theme) ? classesFor(name) : undefined,
+      description: descriptions.get(name)
+    })
+    variables.set(name, entry)
+    sortKey.set(entry, [rank, declarations.indexOf(real[0] ?? own[0]!)])
   }
 
   const resolve = (name: string, mode: keyof ModeValue) => {
@@ -369,7 +372,7 @@ export function parseTokenManifest(
     /^\s*(--radius-[\w-]+)\s*:\s*([^;]+);/gm
   )) {
     if (variables.has(m[1]!)) continue
-    tailwind.push({
+    const entry: TokenEntry = {
       name: m[1]!,
       kind: 'variable',
       family: 'shape',
@@ -378,16 +381,23 @@ export function parseTokenManifest(
       source: 'tailwind',
       value: { light: m[2]!.trim() },
       classes: classesFor(m[1]!)
-    })
+    }
+    tailwind.push(entry)
+    sortKey.set(entry, [
+      classify(m[1]!, VARIABLE_RULES).rank,
+      tailwind.length - 1000
+    ])
   }
 
   const rules: TokenEntry[] = []
   const seen = new Set<string>()
-  const add = (entry: TokenEntry) => {
+  const add = (entry: TokenEntry, rank: number) => {
     const key = `${entry.kind}:${entry.name}`
     if (seen.has(key)) return
     seen.add(key)
-    rules.push(compact(entry))
+    const compacted = compact(entry)
+    rules.push(compacted)
+    sortKey.set(compacted, [rank, rules.length])
   }
 
   for (const { sheet, prelude, offset, css } of blocks) {
@@ -402,33 +412,39 @@ export function parseTokenManifest(
       : keyframes
         ? 'keyframes'
         : 'class'
-    const { family, group } =
+    const { family, group, rank } =
       kind === 'keyframes'
-        ? { family: 'motion' as const, group: 'Keyframes' }
+        ? { family: 'motion' as const, group: 'Keyframes', rank: 0 }
         : classify(name, UTILITY_RULES)
-    add({
-      name,
-      kind,
-      family,
-      group,
-      sheet,
-      source: 'roadie',
-      description: commentBefore(css, offset)
-    })
+    add(
+      {
+        name,
+        kind,
+        family,
+        group,
+        sheet,
+        source: 'roadie',
+        description: commentBefore(css, offset)
+      },
+      rank
+    )
   }
 
   for (const [sheet, css] of sheets) {
     const clean = blankComments(css)
     for (const m of clean.matchAll(/@custom-variant ([\w-]+)/g)) {
-      add({
-        name: m[1]!,
-        kind: 'variant',
-        family: 'component-utilities',
-        group: 'Variants',
-        sheet,
-        source: 'roadie',
-        description: commentBefore(css, m.index)
-      })
+      add(
+        {
+          name: m[1]!,
+          kind: 'variant',
+          family: 'component-utilities',
+          group: 'Variants',
+          sheet,
+          source: 'roadie',
+          description: commentBefore(css, m.index)
+        },
+        0
+      )
     }
   }
 
@@ -441,13 +457,16 @@ export function parseTokenManifest(
   return {
     generated:
       'By packages/core/scripts/generate-tokens.mjs from src/css. Do not edit.',
-    tokens: all
-      .map((entry, order) => ({ entry, order }))
-      .sort(
-        (a, b) =>
-          rank(a.entry.family) - rank(b.entry.family) || a.order - b.order
+    tokens: all.sort((a, b) => {
+      const [ruleA, orderA] = sortKey.get(a)!
+      const [ruleB, orderB] = sortKey.get(b)!
+      return (
+        rank(a.family) - rank(b.family) ||
+        KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind) ||
+        ruleA - ruleB ||
+        orderA - orderB
       )
-      .map(({ entry }) => entry),
+    }),
     internal
   }
 }
