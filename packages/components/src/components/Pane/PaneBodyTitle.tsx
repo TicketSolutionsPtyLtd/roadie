@@ -13,7 +13,7 @@ export type PaneBodyTitleProps = ComponentProps<'h1'> & {
   render?: (props: ComponentProps<'h1'>) => ReactElement
 }
 
-/** The view's h1, in the scrolling content; the header echoes it once scrolled away. */
+/** The view's h1, in the scrolling body. The header shows a compact copy once it scrolls away. */
 export function PaneBodyTitle({
   className,
   children,

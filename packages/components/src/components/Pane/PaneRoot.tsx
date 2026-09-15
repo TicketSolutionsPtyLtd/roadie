@@ -44,15 +44,15 @@ const SECTION = <section role={undefined} />
 
 // Omit, not intersect: a duplicate declaration drops the prop from docgen.
 export type PaneRootProps = Omit<ComponentProps<'section'>, 'role'> & {
-  /** Default depth and yield order; an `inspector` yields first. @default 'list' */
+  /** Sets the default depth. An `inspector` gives up its column first. @default 'list' */
   role?: PaneRole
   /** The deepest `current` pane is the top of the stack. @default false */
   current?: boolean
-  /** Place in the drill-down from 0, with no gaps; defaults from `role`. */
+  /** Position in the drill-down, from 0 with no gaps. Defaults from `role`. */
   depth?: 0 | 1 | 2 | 3
-  /** Surface; `subtler` paints none. @default 'raised' */
+  /** The surface. `subtler` paints none. @default 'raised' */
   emphasis?: PaneEmphasis
-  /** What the phone bar does while this pane is top: `auto` collapses it on scroll, `hidden` removes it. @default 'auto' */
+  /** What the phone bar does while this pane is on top. `auto` collapses it on scroll. @default 'auto' */
   primaryNav?: PanePrimaryNav
 }
 
