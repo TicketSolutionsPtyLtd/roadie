@@ -14,6 +14,7 @@ import {
   type Catalogue,
   type CatalogueCategory,
   FOUNDATIONS,
+  TOKENS,
   WIDGETS,
   getCatalogue,
   getPageTitles,
@@ -79,14 +80,7 @@ async function getNavigationItems(): Promise<NavigationSection[]> {
       ])
     },
     await catalogueSection('Foundations', FOUNDATIONS, { root: 'page' }),
-    {
-      title: 'Tokens',
-      href: '/tokens',
-      items: [
-        { title: 'Overview', href: '/tokens' },
-        await guide('/tokens/reference', 'tokens/reference/page.tsx')
-      ]
-    },
+    await catalogueSection('Tokens', TOKENS, { root: 'page' }),
     await catalogueSection('Components', COMPONENTS, {
       root: 'page',
       searchable: true
