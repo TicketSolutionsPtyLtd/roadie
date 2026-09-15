@@ -290,80 +290,54 @@ export function NavigatorContent({
   }, [listPaneShows, moreOpen, activeSection, topChrome])
 
   // Panes register through `register` and `unregister` alone, which stay
-  // stable, so these lookups can change with the stack without looping.
-  const positionOf = useCallback(
+  // stable, so this lookup can change with the stack without looping.
+  const placeOf = useCallback(
     (id: string, entry: PaneRegistration) => {
       const index = stack.findIndex((pane) => pane.id === id)
-      if (index === -1) return provisionalPosition(entry, revealRoot)
-      // The snapshot learns of a `current` flip a commit late; the pane knows now.
-      if (stack[index]?.current === entry.current) {
-        return positions[index] ?? null
-      }
-      const flipped = stack.map((pane, at) =>
-        at === index ? { ...pane, current: entry.current } : pane
-      )
-      return derivePositions(flipped, revealRoot)[index] ?? null
-    },
-    [stack, positions, revealRoot]
-  )
-
-  const depthOf = useCallback(
-    (id: string, entry: PaneRegistration) => {
-      const depth = depths.get(id)
-      return depth === undefined ? provisionalDepth(entry) : depth
-    },
-    [depths]
-  )
-
-  const chromeOf = useCallback(
-    (id: string, entry: PaneRegistration) => {
-      const position = positionOf(id, entry)
+      const position =
+        index === -1
+          ? provisionalPosition(entry, revealRoot)
+          : // The snapshot learns of a `current` flip a commit late; the pane knows now.
+            stack[index]?.current === entry.current
+            ? (positions[index] ?? null)
+            : (derivePositions(
+                stack.map((pane, at) =>
+                  at === index ? { ...pane, current: entry.current } : pane
+                ),
+                revealRoot
+              )[index] ?? null)
+      const resolved = depths.get(id)
+      const depth = resolved === undefined ? provisionalDepth(entry) : resolved
       const top = position === 'top'
-      if (
-        sectionBack === null ||
-        position === 'ahead' ||
-        depthOf(id, entry) !== 1
-      ) {
-        return top ? topChrome : PANE_CHROME_NONE
+      const chrome =
+        sectionBack === null || position === 'ahead' || depth !== 1
+          ? top
+            ? topChrome
+            : PANE_CHROME_NONE
+          : top
+            ? sectionBack.top
+            : sectionBack.below
+      return {
+        position,
+        depth,
+        chrome,
+        isRoot: index !== -1 && index === rootIndex
       }
-      return top ? sectionBack.top : sectionBack.below
     },
-    [positionOf, depthOf, topChrome, sectionBack]
-  )
-
-  const isRootOf = useCallback(
-    (id: string) => {
-      const index = stack.findIndex((pane) => pane.id === id)
-      return index !== -1 && index === rootIndex
-    },
-    [stack, rootIndex]
+    [stack, positions, revealRoot, depths, topChrome, sectionBack, rootIndex]
   )
 
   const stackValue = useMemo<PaneStackContextValue>(
     () => ({
       register,
       unregister,
-      positionOf,
-      chromeOf,
-      isRootOf,
-      depthOf,
+      placeOf,
       markPushing,
       moreOpen,
       level,
       destination: value
     }),
-    [
-      register,
-      unregister,
-      positionOf,
-      chromeOf,
-      isRootOf,
-      depthOf,
-      markPushing,
-      moreOpen,
-      level,
-      value
-    ]
+    [register, unregister, placeOf, markPushing, moreOpen, level, value]
   )
 
   // Reads the ref, not `ordered`: child effects have registered by now, the render hadn't.

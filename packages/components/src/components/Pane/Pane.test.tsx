@@ -610,14 +610,12 @@ describe('Pane.Header back name', () => {
     const fakeStack: PaneStackContextValue = {
       register: () => {},
       unregister: () => {},
-      positionOf: () => null,
-      chromeOf: () => ({
-        ...PANE_CHROME_NONE,
-        backHref: '/tickets',
-        backLabel: 'Tickets'
+      placeOf: () => ({
+        position: null,
+        depth: 1,
+        chrome: { backHref: '/tickets', backLabel: 'Tickets' },
+        isRoot: false
       }),
-      isRootOf: () => false,
-      depthOf: () => 1,
       markPushing: () => {},
       moreOpen: false,
       level: 0
@@ -910,10 +908,12 @@ describe('orchestrator chrome', () => {
     const fakeStack: PaneStackContextValue = {
       register: () => {},
       unregister: () => {},
-      positionOf: () => null,
-      chromeOf: () => ({ ...PANE_CHROME_NONE, ...chrome }),
-      isRootOf: () => false,
-      depthOf: () => 1,
+      placeOf: () => ({
+        position: null,
+        depth: 1,
+        chrome: { ...PANE_CHROME_NONE, ...chrome },
+        isRoot: false
+      }),
       markPushing: () => {},
       moreOpen: false,
       level: 0

@@ -26,16 +26,20 @@ export type PaneRegistration = {
   depth?: PaneDepth
 }
 
+export type PanePlace = {
+  position: PaneStackPosition | null
+  /** Resolved from document order once registered; declared or role default before. `null` for an inspector. */
+  depth: number | null
+  chrome: PaneChromeContextValue
+  /** The base of the stack, where Close never shows. */
+  isRoot: boolean
+}
+
 export type PaneStackContextValue = {
   register: (id: string, node: HTMLElement, entry: PaneRegistration) => void
   unregister: (id: string) => void
-  /** `entry` places a pane that has not registered yet, as in the server render. */
-  positionOf: (id: string, entry: PaneRegistration) => PaneStackPosition | null
-  chromeOf: (id: string, entry: PaneRegistration) => PaneChromeContextValue
-  /** Is this the base of the stack — the one pane a Close would never suit. */
-  isRootOf: (id: string) => boolean
-  /** Resolved from document order once registered; declared or role default before. `null` for an inspector. */
-  depthOf: (id: string, entry: PaneRegistration) => number | null
+  /** Where a pane sits; `entry` places one that has not registered yet, as in the server render. */
+  placeOf: (id: string, entry: PaneRegistration) => PanePlace
   /** Lets the stack slide for the change this commit makes. */
   markPushing: () => void
   /** More is open and has a pane to show. */
