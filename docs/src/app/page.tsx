@@ -33,7 +33,7 @@ export default async function Home() {
 
   return (
     <div className='@container grid gap-16'>
-      <section className='grid items-center gap-6 @xl:grid-cols-[auto_1fr]'>
+      <section className='grid justify-items-start gap-6'>
         <Image
           src='/roadie-logo.png'
           alt=''
