@@ -24,14 +24,9 @@ A pane is a `<section>` that owns a surface, a shape and a scroll. Its body
 scrolls beneath a sticky `Pane.Header` and above a sticky `Pane.Footer`; the
 page itself never scrolls.
 
-A pane works on its own — every example but Roles and Stacking is a
-standalone pane in a fixed-height box. Put panes side by side inside
-[`Navigator.Content`](/components/navigator) and they gain an arrangement: a
-row of columns where there is room, a stack where there isn't.
-
-A docs frame is its own container: the columns below respond to the frame's
-width, not the window's. Narrow the window to see the stack; widen it to see
-the columns arrive.
+A pane works on its own. Inside [`Navigator.Content`](/components/navigator)
+panes gain an arrangement: columns where there is room, a stack where there
+isn't, measured from the frame's width, not the window's.
 
 ## Examples
 
@@ -71,9 +66,8 @@ the text without moving it.
 
 `role` is a default depth plus a yield order, not a taxonomy. `list` is the
 root (depth 0), `detail` sits under it (depth 1), and `inspector` is a fixed
-14rem track off the stack that yields first — it shows only once every level
-of the stack fits beside it, at 46.25rem with one level, 69rem with two,
-99.75rem with three and 105.75rem with four. Column widths come from position
+14rem track off the stack that yields first: it shows only once every level of
+the stack fits beside it. Column widths come from position
 and depth, not role: the right-most visible pane fills, and every pane to its
 left takes a parent track — the root a narrow one, at least 16rem, and a pane
 under it a wider one, at least 25rem. Three columns give the root at least
@@ -275,10 +269,9 @@ pane.
 Actions use each control's default size. The top row is chrome a user acts on,
 not a dense toolbar, so a `<Button>` or `<IconButton>` sits there unsized.
 
-`Pane.Search` is a styled controlled input and nothing more. Filtering is a
-plain `.filter()` over your own data before you render the rows. A searchable
-`Navigator.Secondary` renders its own pill search with a Cancel button, not
-`Pane.Search`.
+`Pane.Search` is the pill search a searchable `Navigator.Secondary` uses, with a
+Cancel that shows while it has focus. It holds no filtering: `.filter()` your
+own rows.
 
 ```tsx-live-noinline
 function Composed() {
@@ -396,15 +389,6 @@ no-op, so only the collapsed echo is reachable.
 `Pane.Actions` — the compact echo places itself in the header's grid, and grid
 placement only reaches direct children.
 
-The header's height change is animated too, not just the cross-fade — the
-title's row transitions `grid-template-rows` (`1fr` → `0fr`) and its own top
-margin alongside the `scale`/`opacity` fade, so the header shrinks
-continuously instead of snapping. Those are layout properties, and animating
-them is a deliberate, commented exception to this design system's
-translate/scale/opacity-only rule: nothing else can reclaim the row's space,
-and it costs one transition per collapse toggle rather than one per scroll
-frame. The title itself never leaves the flow; its row closes underneath it.
-
 ### Body title
 
 `Pane.BodyTitle` is the alternative: instead of living in `Pane.Header`, it
@@ -425,21 +409,16 @@ the same compact echo a `Pane.Title` would have rendered itself — declare
 </div>
 ```
 
-**Recommended.** Nothing about the header's box depends on the title, so
-there is nothing to animate at all — the header holds one constant height for
-the whole cross-fade, where the in-header arrangement above still pays for a
-`grid-template-rows` transition on every collapse toggle, the one layout
-property this design system otherwise never animates.
+**Recommended.** The header keeps one height through the cross-fade, so there
+is no layout to animate.
 
 `Pane.BodyTitle` defaults to `text-display-ui-3`. Pass a `text-display-*`
 utility through `className` to size it differently — Tailwind's merge
 replaces the default rather than joining it, so there is no separate size
 prop to reach for.
 
-`Pane.BodyTitle` applies no inset of its own. It is content, not chrome — what
-it has to align with is its content neighbours, not the pane's edge — so it
-takes the pane's content inset with the rest of the body, as in the example
-above, and a container that republishes `--content-inset` carries it along.
+`Pane.BodyTitle` applies no inset of its own: it is content, so it takes the
+pane's content inset with the rest of the body.
 
 Declaring both is a mistake, not a fallback: if a `Pane.Header` contains a
 `Pane.Title` **and** the pane also has a `Pane.BodyTitle` in its content,
@@ -500,29 +479,13 @@ to the console in development.
   </Guideline.Dont>
 </Guideline>
 
-- **`role` is a default depth plus yield order.** `list` is the root,
-  `detail` sits under it, and an `inspector` is off the stack and yields
-  first. Width comes from position: the right-most visible pane fills.
-- **An `inspector` needs an affordance you declare.** It is a column only once
-  every stack level fits beside it. Put a [`Drawer`](/components/drawer) in
-  the detail pane's `Pane.Actions` and show its trigger with
-  `pane-inspector-yielded:`.
 - **`current` decides the top at every width.** The deepest `current` pane
   is always on screen; which of the panes behind it still fit is the
   container's call.
-- **Filtering is your own `.filter()`.** `Pane.Search` carries no filter
-  machinery on purpose. The predicate registry it replaces existed only so
-  filtered-out rows could stay declared and keep navigation state alive — a
-  constraint that no longer exists.
 - **A pane scrolls natively, and `List` does not virtualise.** That is fine
   into the hundreds of rows. A list in the thousands wants virtualisation,
   which `Pane` neither provides nor prevents — the scroll container is the
   viewport at `[data-slot="pane-viewport"]`.
-- **`--content-inset` is the pane's one alignment number.** The pane pads its
-  scrolling content by it and its chrome reads it back, so a `List` dropped
-  straight in aligns with the header title without declaring padding. It is
-  the same contract `Drawer` and `Accordion` publish, so a component
-  written against it works in any of them.
 
 ## Accessibility
 
@@ -540,8 +503,8 @@ to the console in development.
 - The close affordance is a labelled `IconButton` ("Close"), from `onClose`,
   `onBack` or `backHref` in that order. It appears only on the top pane while
   its parent is visible beside it, and never on the root pane.
-- `Pane.Search` is a `type='search'` input named by its `placeholder`, so it
-  reads as a searchbox with an accessible name.
+- `Pane.Search` is a searchbox named by its `aria-label`, or its placeholder.
+  Its Cancel is a labelled button, and Escape clears the field.
 - A pane that doesn't fit — covered in the stack, or dropped from the
   columns — is hidden, so neither taps nor assistive technology reach it.
 

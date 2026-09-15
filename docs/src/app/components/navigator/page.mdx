@@ -64,28 +64,17 @@ more [`Pane`](/components/pane)s, each of which owns its own scroll.
 
 The vertical navigation has three regions, top to bottom: `Navigator.Brand` with
 the expand toggle, the cluster of capsules, and the pinned items. Each
-`Navigator.Group` is a capsule;
-consecutive loose items share one. Collapsed, the cluster centres between brand
-and pinned and shows icon tiles labelled by a tooltip. Expanded, it stays
-centred and shows labels beside the icons; only when it outgrows the space does
-it top-align and scroll on its own.
+`Navigator.Group` is a capsule; consecutive loose items share one. Collapsed,
+the cluster shows icon tiles labelled by a tooltip; expanded, it shows labels
+beside the icons, and scrolls on its own only when it outgrows the space.
 
-`Navigator.Brand` is large-screen only — the tab bar has no brand slot. Every
-Navigator has one, and in development `Navigator.Primary` warns without it. It
-links home: `href` defaults to `'/'` and routes through `RoadieLinkProvider`
-like every Navigator destination; pass `href` to point it elsewhere.
-
-With no children it renders the Oztix [`Logo`](/components/logo), which names
-the link "Oztix". Collapsed, only the mark shows; expanded, the wordmark opens
-beside it with the labels. A `Logo` with a `product` opens its product name the
-same way. A `Logo variant='wordmark'` has no mark, so it stays in view collapsed,
-shrunk to the mark's width, and grows to its size once expanded.
-
-Your own brand goes in as children. Its content names the link, so label the
-mark (`alt`, or `role='img'` with an `aria-label`) and hide a wordmark that
-repeats it with `aria-hidden`. The mark, its first child, sits on the icon
-column in both states, so it never moves; anything after it fades in once
-expanded. Hide a wordmark until then with `hidden navigator-expanded:inline`.
+`Navigator.Brand` is large-screen only. It links home (`href` defaults to
+`'/'`) and, with no children, renders the Oztix [`Logo`](/components/logo):
+the mark collapsed, the wordmark opening beside it expanded. Your own brand goes
+in as children and names the link, so label the mark and hide a repeated
+wordmark with `aria-hidden`. The first child stays on the icon column; anything
+after it fades in once expanded, and `hidden navigator-expanded:inline` hides a
+wordmark until then.
 
 ```tsx
 <Navigator.Brand />
@@ -100,27 +89,18 @@ expanded. Hide a wordmark until then with `hidden navigator-expanded:inline`.
 </Navigator.Brand>
 ```
 
-Navigator is always **controlled** — the active `value` belongs to your
-router. The examples below hold it in `useState` to stay self-contained. The
-ones with routes use `DemoRouter` instead, a docs-only stand-in for your router
-that holds the path and whose links change it rather than the URL.
+Navigator is always **controlled**: the active `value` belongs to your router.
+The examples hold it in `useState`, or in `DemoRouter`, a docs-only stand-in
+for your router. Narrow your viewport to see the tab bar and the stacked panes.
 
-Every example is wrapped in a fixed-height, `overflow-hidden` box so the
-frame renders whole inside the page. Narrow your viewport, or open the page on a
-phone, to see the tab bar and the stacked panes.
-
-**Keep the whole tree in a client component.** `Navigator.Primary`,
-`Navigator.Secondary`, `Navigator.Group`, `Navigator.Menu` and
-`Navigator.ExpandToggle` are all found by element reference — items, a group's
-title, a menu's rows — rather than by walking rendered output. React Flight
-replaces the type of every element authored in a server component with a lazy
-wrapper, so a server-authored tree silently loses its items, group titles and
-menus. The same walk means items must be direct children of `Primary`, a
-`Group` or a `Secondary` (mapped arrays are fine); an item inside a Fragment or
-your own wrapper component is skipped. Author the whole Navigator inside a
-`'use client'` component — `Navigator.Content` and `Pane` are the only pieces
-that are server-safe on their own. See `docs/contributing/COMPOUND_PATTERNS.md`
-§1.2.
+**Keep the whole tree in a client component.** Navigator finds its parts by
+element reference, and React Flight replaces every element type authored in a
+server component, so a server-authored tree silently loses its items, group
+titles and menus. The same walk means `Navigator.Primary` must be a direct
+child of `Navigator`, and items direct children of `Primary`, a `Group` or a
+`Secondary` (mapped arrays are fine); an item inside a Fragment or your own
+wrapper component is skipped. `Navigator.Content` and `Pane` are server-safe on
+their own. See `docs/contributing/COMPOUND_PATTERNS.md` §1.2.
 
 ## Examples
 
@@ -332,42 +312,40 @@ push rather than replace, so the browser's Back undoes "show the list".
 ```tsx
 'use client'
 
-import { Suspense, useCallback, useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 import { Navigator } from '@oztix/roadie-components/navigator'
 
-const NAV_LIST_PARAM = 'nav'
+type NavQuery = { nav: boolean; more: boolean }
 
-function NavListQuery({ onChange }: { onChange: (next: boolean) => void }) {
-  const showList = useSearchParams().has(NAV_LIST_PARAM)
-  useEffect(() => {
-    onChange(showList)
-  }, [showList, onChange])
+function NavQueryFlags({ onChange }: { onChange: (next: NavQuery) => void }) {
+  const params = useSearchParams()
+  const nav = params.has('nav')
+  const more = params.has('more')
+  useEffect(() => onChange({ nav, more }), [nav, more, onChange])
   return null
 }
 
 export function AppNavigator() {
   const pathname = usePathname()
   const router = useRouter()
-  const [showList, setShowList] = useState(false)
-  const handleShowListChange = useCallback(
-    (next: boolean) => {
-      router.push(next ? `${pathname}?${NAV_LIST_PARAM}` : pathname, { scroll: false })
-    },
-    [router, pathname]
-  )
+  const [query, setQuery] = useState<NavQuery>({ nav: false, more: false })
+  const toggle = (param: string) => (next: boolean) =>
+    router.push(next ? `${pathname}?${param}` : pathname, { scroll: false })
 
   return (
     <>
       <Suspense fallback={null}>
-        <NavListQuery onChange={setShowList} />
+        <NavQueryFlags onChange={setQuery} />
       </Suspense>
       <Navigator
         value={pathname}
-        showList={showList}
-        onShowListChange={handleShowListChange}
+        showList={query.nav}
+        onShowListChange={toggle('nav')}
+        showMore={query.more}
+        onShowMoreChange={toggle('more')}
       >
         …
       </Navigator>
@@ -376,37 +354,17 @@ export function AppNavigator() {
 }
 ```
 
+The docs site's own `Navigation.tsx` is the full version: it pops the history
+entry it pushed instead of pushing a second one.
+
 ### Showing More from the URL
 
-More works the same way. Pass `showMore` and `onShowMoreChange` and More opens
-only when you say so; without them it keeps its own state. Every tap that opens
-or closes it asks through `onShowMoreChange`: More, Escape, a row or menu that
-doesn't navigate, and a new `value` while `showMore` is still true. A row or tab
-that navigates doesn't ask — its route closes More as it commits, so the old page
-never shows in between. The docs use `?more`: push to open it, so Back closes
-it, and link each row to its own route without the parameter.
-
-```tsx
-function NavMoreQuery({ onChange }: { onChange: (next: boolean) => void }) {
-  const showMore = useSearchParams().has('more')
-  useEffect(() => {
-    onChange(showMore)
-  }, [showMore, onChange])
-  return null
-}
-
-<Navigator
-  value={pathname}
-  showMore={showMore}
-  onShowMoreChange={(next) =>
-    router.push(next ? `${pathname}?more` : pathname, { scroll: false })
-  }
->
-  …
-</Navigator>
-```
-
-Render `NavMoreQuery` inside the same `Suspense` boundary as `NavListQuery`.
+More works the same way, and the snippet above wires it too. Pass `showMore`
+and `onShowMoreChange` and More opens only when you say so; without them it
+keeps its own state. Every tap that opens or closes it asks through
+`onShowMoreChange`: More, Escape, a row or menu that doesn't navigate, and a new
+`value` while `showMore` is still true. A row or tab that navigates doesn't ask:
+its route closes More as it commits, so the old page never shows in between.
 
 ### Section roots
 
@@ -497,43 +455,18 @@ render(<PageRootNav />)
 
 #### Items inside a page
 
-`Navigator.SectionItems` renders a section's items as a grouped `List` — the
+`Navigator.SectionItems` renders a section's items as a grouped `List`, the
 same rows as the generated list pane, with each item's `description` as
-secondary text. It takes `value` (a section's item value; omit it for the
-active section), `className` and `List`'s props, and renders nothing when the
-section isn't found.
+secondary text. It takes `value` (omit it for the active section), `query` to
+filter rows by label, `descriptions={false}` to drop the secondary text, and
+`List`'s props. It renders nothing when the section isn't found.
 
-For anything richer, `useNavigatorSection(value?)` returns the same data for you
-to lay out. It is computed during render from the navigation you declared, so it
-works in the server render; with a `Navigator.Primary` that is not a direct
-child of `Navigator`, it returns `null` until the Primary mounts, then refreshes
-when a primitive prop or the structure changes — not when only an object-valued
-prop does, such as an icon's `style`. The result is a fresh object each render —
-read its fields rather than keying an effect on it.
-
-```ts
-type NavigatorSectionData = {
-  value: string
-  label: ReactNode
-  href?: string
-  groups: {
-    title?: ReactNode
-    items: {
-      value: string
-      label: ReactNode
-      href?: string
-      icon?: ReactElement
-      description?: string
-      badge?: ReactElement<BadgeProps>
-      current: boolean
-    }[]
-  }[]
-}
-```
-
-Loose items come back as a group with no title, in source order. `description`
-is shown only by `SectionItems` and returned by the hook — never on a tile, the
-bar, the list pane or More.
+For anything richer, `useNavigatorSection(value?)` returns the same data
+(`NavigatorSectionData`) for you to lay out. It is computed during render, so
+it works in the server render, and refreshes when a primitive prop or the
+structure changes, not when only an object-valued prop does. Loose items come
+back as a group with no title. `description` is shown only by `SectionItems`
+and returned by the hook, never on a tile, the bar, the list pane or More.
 
 ```tsx-live-noinline
 function HomeCards() {
@@ -1071,8 +1004,8 @@ render(<BadgeNav />)
 ### Section pane override
 
 Replace one section's generated pane. Declare it before your detail pane.
-`Navigator.SecondaryItems` renders the section's rows as a `List` and takes an
-optional `query`, so your own pane can still offer search.
+`<Navigator.SectionItems descriptions={false} />` renders the same rows, and
+takes a `query`, so your own pane can still offer search.
 
 ```tsx-live-noinline
 function SectionOverrideNav() {
@@ -1111,7 +1044,7 @@ function SectionOverrideNav() {
                       <Card.Description>Labels for icon-only controls.</Card.Description>
                     </Card.Content>
                   </Card>
-                  <Navigator.SecondaryItems />
+                  <Navigator.SectionItems descriptions={false} />
                 </div>
               </Navigator.SecondaryPane>
               <Pane role='detail' current>
@@ -1131,9 +1064,8 @@ render(<SectionOverrideNav />)
 
 ### Panes
 
-`Navigator.Content` lays panes out as columns where they fit and stacks
-them where they don't, from its own width. The right-most column fills and
-the ones before it take a parent track; each pane scrolls independently.
+`Navigator.Content` lays panes out as columns where they fit and stacks them
+where they don't, from its own width.
 
 ```tsx-live-noinline
 function PanesLayout() {
@@ -1223,116 +1155,11 @@ function PanesLayout() {
 render(<PanesLayout />)
 ```
 
-### Pane header
-
-[`Pane.Header`](/components/pane) is sticky chrome at the top of a pane: a
-`Pane.Title`, a back affordance (top-left, from `backHref` or `onBack`), and a
-`Pane.Actions` slot (top-right). Body content scrolls beneath it. Here a `list`
-pane drills into a `detail` pane — selecting a row reveals the detail, and the
-back control clears the selection. It is depth-aware: the root pane has nothing
-to go back to and shows none; a pane whose parent is beside it shows Close
-instead, and a pane whose parent has dropped shows Back — the same declaration,
-decided by how many columns fit.
-
-```tsx-live-noinline
-function DrillInNav() {
-  const [selected, setSelected] = useState(null)
-  const events = [
-    { id: 'midnight', title: 'Midnight Frequency', subtitle: '1,240 sold · 60 remaining' },
-    { id: 'sunset', title: 'Sunset Sounds', subtitle: '820 sold · 180 remaining' },
-    { id: 'neon', title: 'Neon Dusk', subtitle: '540 sold · 460 remaining' },
-    { id: 'harbour', title: 'Harbour Lights', subtitle: '2,010 sold · sold out' },
-    { id: 'analog', title: 'Analog Bloom', subtitle: '310 sold · 690 remaining' },
-    { id: 'coastal', title: 'Coastal Echo', subtitle: '95 sold · 405 remaining' }
-  ]
-  const event = events.find((e) => e.id === selected)
-  const tiers = [
-    { title: 'General admission', subtitle: '$68.00 · on sale' },
-    { title: 'Early bird', subtitle: '$54.00 · sold out' },
-    { title: 'VIP booth', subtitle: '$180.00 · 6 remaining' },
-    { title: 'Group of 6', subtitle: '$360.00 · on sale' },
-    { title: 'Accessible seating', subtitle: '$68.00 · on sale' },
-    { title: 'Companion', subtitle: '$0.00 · on request' }
-  ]
-  return (
-    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
-      <Navigator className='h-full'>
-        <Navigator.Content>
-          <Pane role='list'>
-            <List>
-              {events.map((e) => (
-                <List.Item
-                  key={e.id}
-                  title={e.title}
-                  subtitle={e.subtitle}
-                  leading={
-                    <IconTile intent='accent' emphasis='subtle'>
-                      <TicketIcon weight='bold' />
-                    </IconTile>
-                  }
-                  chevron
-                  current={selected === e.id}
-                  onClick={() => setSelected(e.id)}
-                />
-              ))}
-            </List>
-          </Pane>
-          {event ? (
-            <Pane role='detail' current={event != null}>
-              <Pane.Header onBack={() => setSelected(null)}>
-                <Pane.Title>{event.title}</Pane.Title>
-                <Pane.Actions>
-                  <Button intent='accent' emphasis='strong'>
-                    Publish
-                  </Button>
-                </Pane.Actions>
-              </Pane.Header>
-              <div className='grid gap-3 py-4'>
-                <p className='text-subtle'>{event.subtitle}</p>
-                <List>
-                  {tiers.map((tier) => (
-                    <List.Item
-                      key={tier.title}
-                      title={tier.title}
-                      subtitle={tier.subtitle}
-                      leading={
-                        <IconTile intent='brand' emphasis='subtle'>
-                          <TicketIcon weight='bold' />
-                        </IconTile>
-                      }
-                      chevron
-                    />
-                  ))}
-                </List>
-              </div>
-            </Pane>
-          ) : null}
-        </Navigator.Content>
-      </Navigator>
-    </div>
-  )
-}
-render(<DrillInNav />)
-```
-
-## Pane surfaces and the mobile stack
-
-Both belong to [`Pane`](/components/pane) rather than to Navigator, so they are
-documented there. The two facts worth knowing from here:
-
-- **Where columns don't fit, panes stack**, one visible at a time (edge to
-  edge on phones, inset from `md`), and push/pop between them animates,
-  a page root and its sub-pages included. Opening or closing More switches
-  instantly. Which pane is on top is derived from the deepest pane marked
-  `current`; how many of the panes behind it stay on screen is
-  `Navigator.Content`'s width. Documented under [`Pane`](/components/pane).
-- **`Navigator.Content` is the orchestrator.** Panes announce themselves to
-  the nearest `Navigator.Content` through context, wherever they sit in its
-  subtree — a pane returned by a route, a Next.js parallel-route slot, or a
-  wrapper component all participate normally. What still breaks is having no
-  `Pane` reachable at all: nothing registers, so stack position, push/pop
-  motion and `primaryNav` all stay inert, and `Navigator.Content` warns to
-  the console about it in development.
+Pane headers, Back and Close, collapse on scroll and the mobile stack belong to
+[`Pane`](/components/pane) and are documented there. Panes register with the
+nearest `Navigator.Content` wherever they sit in its subtree, including inside
+a route or a parallel-route slot; with no `Pane` at all, it warns in
+development.
 
 ## Guidelines
 
@@ -1342,28 +1169,18 @@ documented there. The two facts worth knowing from here:
   to own the state.
 - **Put pinned items last.** The vertical navigation renders its regions in
   order — brand, cluster, pinned — so a pinned item is always tabbed after the
-  cluster, wherever you write it. Write it last so source order matches; one
-  written before the cluster warns in development.
+  cluster, wherever you write it. Write it last so source order matches.
 - **Pass bare icons to destinations.** Navigator renders an item's `icon`
   duotone at `size-6`, so pass `<TicketIcon />` without a `weight` or size
-  class. `Navigator.MenuItem` icons sit in a small `IconTile` — give them
-  `weight='bold'` and let the tile size them. An item without an icon shows its label's
-  first letter on the tile and the bar; expanded, its label starts where the
-  icon would, unless another item in its capsule has one.
+  class. `Navigator.MenuItem` icons sit in a small `IconTile`: give them
+  `weight='bold'`. An item without an icon shows its label's first letter.
 - **Let the top pane declare what the mobile bar does.** `Pane`'s `primaryNav`
   is `auto` by default: the bar collapses to the active tab as the pane
   scrolls and returns at the top. `visible` pins it, `hidden` takes it away
   for the pushed screen (iOS's `hidesBottomBarWhenPushed`).
-- **Panes scroll through a `ScrollArea` viewport.** `Pane` renders a
-  [`ScrollArea`](/components/scroll-area) whose viewport
-  (`[data-slot="pane-viewport"]`) is the real scroll container — anything
-  reading `scrollTop` or calling `scrollTo` on a pane must target the
-  viewport, not the `<section>`.
 - **Sections without a list remember where you left them.** An item with no
   `Navigator.Secondary` that sits over sub-routes returns you to the one you
-  last visited, not its `href`. That memory lives only in the running app, so a
-  reload starts at the declared `href`. A section with a `Navigator.Secondary`
-  always links to its section route, where its list marks the current row.
+  last visited, not its `href`, until a reload.
 
 <Guideline title='Menus'>
   <Guideline.Do code={`<Navigator.Item value='account' icon={<UserIcon />} placement='pinned'>\n  Account\n  <Navigator.Menu>\n    <Navigator.MenuItem href='/profile'>Profile</Navigator.MenuItem>\n    <Navigator.MenuItem onClick={signOut}>Sign out</Navigator.MenuItem>\n  </Navigator.Menu>\n</Navigator.Item>`}>
@@ -1401,9 +1218,6 @@ documented there. The two facts worth knowing from here:
 - **Current destination**: the page's own item or row carries
   `aria-current='page'`; a section's tile reads current while you are anywhere
   in the section.
-- **Page roots**: on a page-first section's own route the page is the root of
-  the stack, so it shows no Back; its sub-pages get Back to the section route
-  like any other.
 - **`Navigator.ExpandToggle`** is a button with `aria-expanded` and
   `aria-controls`, labelled "Expand sidebar" or "Collapse sidebar" in visually
   hidden text, with the same label in its tooltip in both states.
@@ -1413,8 +1227,7 @@ documented there. The two facts worth knowing from here:
 - **Tab order** follows the vertical navigation's regions — brand and its
   toggle, cluster, pinned.
 - **Menus** are Base UI menus: arrow keys move between rows, typeahead jumps to
-  one, and Escape closes the menu and returns focus to its trigger.
-- **Panes that don't fit** — covered in the stack, or dropped from the
-  columns — are hidden from assistive tech.
+  one, and Escape closes the menu and returns focus to its trigger. A menu is
+  named by its item, or by its own `aria-label`.
 
 <PropsDefinitions componentPath='packages/components/src/components/Navigator' />

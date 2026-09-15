@@ -102,7 +102,8 @@ Every one of those is matched by reference, like `Item` is here, which is what
 keeps the walk sound — the rule is "these types, matched by identity", not
 "one level of any wrapper". A `<MyGroup>` wrapper is still invisible to the
 walk, and a tree authored in a server component still fails silently for all
-of them.
+of them. `Navigator.Primary` itself must be a direct child of `Navigator`, which
+reads its children during render so the server render has its sections.
 
 ### 1.3 Registration
 
