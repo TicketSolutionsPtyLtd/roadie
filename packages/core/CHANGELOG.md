@@ -1,5 +1,32 @@
 # @oztix/roadie-core
 
+## 2.8.0
+
+### Minor Changes
+
+- 65ba926: Add `Drawer`, a surface that slides in from any edge and swipes away, built on
+  Base UI's drawer primitive. Core gains the `motion-drawer` utility, which drives
+  a drawer's edge transition and tracks Base UI's live swipe offset.
+- 8c2ca73: One rule for the two motion prefixes: `animate-*` plays now, once, as a
+  keyframe animation; `motion-*` is state-driven enter/exit only, a transition
+  on Base UI's `data-starting-style` / `data-ending-style`.
+
+  Renamed the keyframe mount animations to match:
+
+  - `motion-fade-in` → `animate-fade-in`
+  - `motion-scale-in` → `animate-scale-in`
+  - `motion-pop-in` → `animate-pop-in`
+
+  `motion-fade-out` and `motion-scale-out` are deprecated with no replacement —
+  use `motion-scale` or `motion-slide` for the exit instead.
+
+  All five old names remain as deprecated aliases until v3.
+
+### Patch Changes
+
+- 4deb856: - Named `duration-*` utilities set `--tw-duration`, so a variant-scoped `transition-[…]` keeps their duration, and they now ship in `roadie.compiled.css`.
+  - `cn` merges `emphasis-field` with the other emphasis presets.
+
 ## 2.7.0
 
 ### Minor Changes
