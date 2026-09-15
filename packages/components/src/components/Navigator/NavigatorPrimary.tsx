@@ -240,7 +240,7 @@ export function NavigatorPrimary({
     (verticalFoldedSlots.some((slot) => isSectionActive(slot, activeValue)) &&
       !disclosureOpen)
 
-  // Like an active tab, an open More scrolls to the top; choosing a destination closes it.
+  // An open More scrolls to top on re-tap.
   const selectMore = (event: MouseEvent) => {
     if (event.currentTarget instanceof HTMLElement) {
       overflowOpenerRef.current = event.currentTarget
@@ -285,8 +285,7 @@ export function NavigatorPrimary({
       '[Roadie] Navigator.Primary folded items into More but no Navigator.Content hosts the pane.'
   )
 
-  // By hand: the compiler leaves the bar's tab list unmemoised, and each tab
-  // is a server-safe, uncompiled component, so every Primary render re-rendered them all.
+  // By hand: the compiler leaves the tab list unmemoised, and tabs are uncompiled.
   const { tabs, pinned } = useMemo(() => {
     // Without `onShowListChange`, a section tab's href already leads up to its route.
     const selectDestination = (

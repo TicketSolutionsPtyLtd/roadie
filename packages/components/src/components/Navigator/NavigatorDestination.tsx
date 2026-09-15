@@ -30,11 +30,7 @@ export type NavigatorDestinationProps = Omit<
   ref?: Ref<HTMLElement>
 }
 
-/**
- * The single link-vs-button fork for every Navigator destination, so the
- * sliding indicator finds the active element with one selector on every
- * surface. Forwards the props and ref a Base UI `render` merges in.
- */
+/** The one link-or-button for every destination, so the indicator finds it with one selector. */
 export function NavigatorDestination({
   href,
   circleSide,

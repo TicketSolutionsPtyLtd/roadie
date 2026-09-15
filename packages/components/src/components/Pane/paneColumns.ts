@@ -15,10 +15,7 @@ type Track = { min: number; share: number; max: number }
 // Content needs the same room beside one column as beside two.
 const DETAIL = { min: 25, max: 30 } as const
 
-/**
- * A parent column's track, by the columns shown and whether it is the row's
- * root. The root navigates; a pane drilled into from it holds content.
- */
+/** Parent track widths by columns shown and whether it is the root. */
 export const PARENT_TRACKS = {
   2: {
     root: { min: 16, share: 40, max: 24 },
@@ -53,7 +50,6 @@ export function columnTier(
   )
 }
 
-/** How many columns a row shows: never more than it has levels. */
 export function visibleColumns(columns: number, levels: number): number {
   return Math.min(columns, levels)
 }
@@ -87,7 +83,6 @@ export function parentTrackWidth(
   return Math.min(Math.max(Math.min((share * content) / 100, room), min), max)
 }
 
-/** The depths a row lays out in parent tracks. */
 export function parentsOf(
   columns: number,
   top: number,
@@ -289,9 +284,7 @@ function stackRules(level: number): string {
   return ROW_SHAPES.flatMap((shape) => rowRules(level, 1, shape)).join('\n')
 }
 
-// Grouped by the width each row needs, ascending, so a wider tier's rule comes
-// later and wins. A row with fewer levels than columns is already laid out by
-// the tier its levels fill.
+// Ascending tiers, so a wider tier's rule wins.
 function columnRules(level: number): string {
   const tiers = new Map<number, string[]>()
   for (let columns = 2; columns <= PANE_MAX_COLUMNS; columns += 1) {
@@ -353,9 +346,7 @@ const PAGE_GHOST = '[data-slot="navigator-page-ghost"]'
 const PAGE_STEP = 'var(--duration-slow) var(--ease-enter)'
 const from = (fallback: string, name: string) =>
   `translate: var(${name}, ${fallback.slice('translate: '.length, -1)});`
-// A reversed step starts each layer where the other left off. The ghost stays
-// opaque, as the section list parks behind it. The returning pane holds
-// z-index 0, under the ghost and Content's edge cover, as a landing pane does.
+// A reversed step starts each layer where the other left off.
 const PAGE_STEP_KEYFRAMES = `  @keyframes navigator-page-enter { from { ${from(AHEAD, '--page-step-pane-from')} } }
   @keyframes navigator-page-behind { from { ${from('translate: 0 0;', '--page-step-ghost-from')} } to { ${BEHIND} } }
   @keyframes navigator-page-return { from { ${from(BEHIND, '--page-step-pane-from')} z-index: 0; } to { z-index: 0; } }
@@ -372,9 +363,7 @@ export function stackedUntil(): number {
   return widest
 }
 
-// Stacked rows only: columns cut. Up to the widest two-column start, since a
-// row whose parent is a detail stacks longer; a page step starts only on a
-// pane that is absolute, so a row already in columns never sets one.
+// Stacked rows only; columns cut.
 function pageStepRules(level: number): string {
   const step = (kind: 'push' | 'pop') =>
     `${row(level)}[data-page-step="${kind}"]`
@@ -389,9 +378,8 @@ function pageStepRules(level: number): string {
   ].join('\n')
 }
 
-// Content reaches into the primary's gutter, padded back, so its clip leaves a
+// Content reaches into the primary's gutter and pads back, so its clip leaves a
 // flush pane's shadow room without `overflow-clip-margin`, which WebKit lacks.
-// The cover over that room sits under a landed pane and over a sliding one.
 function shadowRoomRules(level: number): string {
   const content = besideVerticalPrimary(level, contentOf(level))
   const room = rem(PANE_SHADOW_ROOM)
@@ -435,7 +423,6 @@ const PANE_RULES = `  [data-slot="pane"][data-depth] { --pane-back: none; --pane
   [data-slot="pane"][data-depth] [data-slot="pane-back"] { display: var(--pane-back); }
   [data-slot="pane"][data-depth] [data-slot="pane-close"] { display: var(--pane-close); }`
 
-/** The stylesheet `scripts/generate-pane-columns.mjs` writes. */
 export function renderPaneColumnsCss(): string {
   const blocks: string[] = [PANE_RULES, PAGE_STEP_KEYFRAMES]
   for (let level = 0; level < PANE_MAX_LEVELS; level += 1) {

@@ -16,19 +16,13 @@ export type PaneEntry = {
   rank?: number
 }
 
-// Rank first, document order between equals.
 function stackOrder(entries: readonly PaneEntry[]): number[] {
   return entries
     .map((_, index) => index)
     .sort((a, b) => (entries[a]?.rank ?? 0) - (entries[b]?.rank ?? 0) || a - b)
 }
 
-/**
- * Which declared pane is the top of the stack: the deepest `current` pane, or
- * the root when the orchestrator reveals it — on a section's own route, or
- * when the app asks for the list (`showList`). An `inspector` never
- * participates. Band-independent: whether depth matters is CSS's call.
- */
+/** The deepest `current` pane, or the root when revealed. Inspectors never count. */
 export function deriveTopIndex(
   entries: readonly PaneEntry[],
   revealRoot = false
@@ -47,12 +41,7 @@ export function deriveTopIndex(
   return top === -1 ? 0 : top
 }
 
-/**
- * The base of the stack — the shallowest entry that can hold a position at
- * all. An `inspector` never participates, the same exclusion `deriveTopIndex`
- * and `derivePositions` apply to every other entry. Unlike `deriveTopIndex`,
- * there is no non-empty fallback: a stack of only inspectors has no root.
- */
+/** The shallowest non-inspector; -1 when none. */
 export function deriveRootIndex(entries: readonly PaneEntry[]): number {
   return (
     stackOrder(entries).find((index) => entries[index]?.role !== 'inspector') ??
@@ -60,15 +49,7 @@ export function deriveRootIndex(entries: readonly PaneEntry[]): number {
   )
 }
 
-/**
- * Registered panes in document order. Mount order is not visual order when
- * panes arrive through slots the orchestrator did not render, so the DOM is
- * the authority on which pane is ahead of which.
- *
- * Assumes every node is attached — registration only runs post-mount, so
- * `compareDocumentPosition`'s undefined ordering for detached nodes doesn't
- * apply here.
- */
+/** Document order: mount order isn't visual order through slots. */
 export function orderByDocumentPosition<T extends { node: HTMLElement }>(
   entries: readonly T[]
 ): T[] {
@@ -82,11 +63,7 @@ export function orderByDocumentPosition<T extends { node: HTMLElement }>(
   )
 }
 
-/**
- * Each pane's position, given the stack. `top` is the deepest `current` pane;
- * anything deeper is `ahead` (not yet reached), anything shallower `behind`
- * (already visited). An `inspector` never participates.
- */
+/** `top`, `ahead` (deeper) or `behind`; null for an inspector. */
 export function derivePositions(
   entries: readonly PaneEntry[],
   revealRoot = false
@@ -108,12 +85,7 @@ export function derivePositions(
   )
 }
 
-/**
- * A pane's position before it registers — in the server render and the one
- * that hydrates it — when DOM order is not yet known. The section's list pane
- * renders first, so it is the root; More renders last. Any other pane that
- * is neither `current` nor behind a revealed root stays unplaced.
- */
+/** Position before registration (SSR, hydration): the section list is root, More last. */
 export function provisionalPosition(
   { role, current, kind }: PaneRegistration,
   revealRoot: boolean
@@ -147,11 +119,7 @@ export function provisionalDepth({
   return depth ?? ROLE_DEPTH[role]
 }
 
-/**
- * Depths once registered: declared or role default first, document order only
- * between equals, with no gaps. More and the section list sit at 0 and take no
- * rank; open More pushes the ranked panes down one only when the root is empty.
- */
+/** Registered depths: declared or role default, document order between equals, no gaps. */
 export function resolveDepths(
   entries: readonly DepthEntry[]
 ): (number | null)[] {

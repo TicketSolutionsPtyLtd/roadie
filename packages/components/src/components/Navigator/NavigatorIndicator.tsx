@@ -20,10 +20,7 @@ export type NavigatorIndicatorProps = {
   hidden?: boolean
 }
 
-/**
- * Purely presentational: `aria-hidden` because `aria-current` on the
- * destination itself is what conveys currency. The pill is decoration.
- */
+/** Decorative; aria-current on the destination conveys currency. */
 export function NavigatorIndicator({
   trackRef,
   surface,

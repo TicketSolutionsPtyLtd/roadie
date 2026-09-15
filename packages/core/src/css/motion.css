@@ -178,9 +178,7 @@
   animation: pop var(--duration-slowest) var(--ease-standard);
 }
 
-/* A tap response, not an attention cue: `animate-pop` runs the same keyframe
-   at 600ms, which reads as a notification. Selecting a tab wants the bounce to
-   land under the finger. `--ease-spring` is the file's transform easing. */
+/* A tap response: `animate-pop` at 600ms reads as a notification. */
 @utility animate-pop-tap {
   animation: pop var(--duration-moderate) var(--ease-spring);
 }

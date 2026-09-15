@@ -1,8 +1,7 @@
 import { cva } from 'class-variance-authority'
 
-// `100dvh` so collapsing mobile browser chrome doesn't crop the horizontal
-// navigation. `container-type` lets it size tabs off the root's own width, so
-// an embedded Navigator measures its box, not the viewport.
+// dvh so collapsing browser chrome doesn't crop the bar; an inline-size container
+// so an embedded Navigator measures itself.
 export const navigatorRootClass = [
   'group/navigator',
   'relative grid h-[100dvh] w-full overflow-hidden bg-sunken',
@@ -15,24 +14,17 @@ export const navigatorRootClass = [
 // lives on the row inside, because a container can't query itself.
 export const navigatorContentClass = [
   'row-start-1 md:col-start-2',
-  // The frame behind the panes. A pane that paints no opaque surface of its
-  // own (`subtle`, `subtler`) inherits this for its sticky chrome, so the bar
-  // mixes against what is actually behind it rather than a guess baked into
-  // the pane.
+  // Subtle panes' chrome mixes against this.
   '[--pane-surface:var(--intent-bg-sunken)]',
   'relative grid min-h-0 min-w-0',
   '[container:panes/inline-size]',
-  // Clips a parked pane's translate, which can outrun the navigation beside
-  // it. Beside a vertical primary the pane columns stylesheet widens it into
-  // the primary's gutter, so pointer events belong to the row alone.
+  // Clips parked panes; pointer events belong to the row.
   'overflow-clip pointer-events-none',
   // Set for two frames while More opens or closes.
   'data-instant:[&_[data-slot=pane]]:transition-none'
 ].join(' ')
 
-// The row the stylesheet keys on. A stacked pane is `absolute` and ignores
-// padding, so it insets itself by the gutter published here: full-bleed on
-// phones, inset from `md`.
+// A stacked pane is absolute, so it insets itself by this gutter: flush on phones.
 export const navigatorPanesClass = [
   'pointer-events-auto relative flex h-full min-h-0 min-w-0',
   '[--pane-stack-inset:0px] md:[--pane-stack-inset:--spacing(3)]'
@@ -74,9 +66,7 @@ export const navigatorPrimaryBrandVariants = cva(
   }
 )
 
-// Percentages of the brand region, which resizes with the navigation, so the
-// toggle travels continuously from under the brand to its trailing edge.
-// `translate` has no logical form, so `rtl:` mirrors it.
+// Percentages of the brand region, so the toggle travels with it. `rtl:` mirrors translate.
 export const navigatorExpandToggleAnchorClass = [
   'absolute start-1/2 top-full -translate-x-1/2 rtl:translate-x-1/2 -translate-y-full',
   'navigator-expanded:start-[calc(100%-1rem)] navigator-expanded:top-1/2 navigator-expanded:-translate-x-full rtl:navigator-expanded:translate-x-full navigator-expanded:-translate-y-1/2',
@@ -96,8 +86,6 @@ export const navigatorPrimaryClusterViewportClass = 'size-full'
 export const navigatorPrimaryClusterContentClass =
   'grid min-h-full content-center px-3 py-2'
 
-// The pill's track: it moves with the centred capsules, so the pill does too.
-// Capsules stretch in both states, so they widen with the navigation.
 export const navigatorPrimaryClusterTrackClass = 'relative grid gap-3'
 
 export const navigatorPrimaryPinnedClass = 'relative grid gap-3 px-3'
@@ -107,11 +95,8 @@ export const navigatorPrimaryPinnedClass = 'relative grid gap-3 px-3'
 export const navigatorCapsuleClass =
   'group/capsule relative grid gap-1 p-1 rounded-4xl emphasis-raised'
 
-// The box never changes size, so collapse animates on scale/translate/opacity
-// alone. `--navigator-primary-col` is one of the bar's slots across the lane
-// (its `cqw` resolves where it is used) less the track's inset;
-// `--navigator-primary-edge` is the fixed part of a collapsed circle's travel.
-// `Navigator.Primary` sets the count and the slots inline.
+// The box never resizes, so collapse is scale/translate/opacity alone.
+// --navigator-primary-col is one bar slot; -edge is a collapsed circle's fixed travel.
 export const navigatorPrimaryHorizontalVariants = cva(
   [
     'max-md:absolute max-md:inset-x-2 max-md:bottom-[max(1rem,env(safe-area-inset-bottom))] max-md:z-sticky md:hidden',
@@ -120,9 +105,7 @@ export const navigatorPrimaryHorizontalVariants = cva(
     'pointer-events-none',
     '[--navigator-primary-col:calc((100cqw-1rem)/var(--navigator-primary-slots))]',
     '[--navigator-primary-edge:calc((var(--navigator-primary-slots)_-_var(--navigator-primary-count))_*_var(--navigator-primary-col)_/_2_+_(var(--navigator-primary-col)_-_3.5rem)_/_2)]',
-    // `translate`, not `transform`: the hide state is `max-md:translate-y-[…]`,
-    // which Tailwind v4 emits as the independent `translate` property, so
-    // naming `transform` transitioned nothing and the bar snapped away.
+    // translate, not transform: Tailwind v4 emits translate-* as the translate property.
     'motion-safe:transition-[translate,opacity,visibility] motion-safe:transition-discrete motion-reduce:transition-none'
   ],
   {
@@ -274,11 +257,7 @@ export const navigatorGroupTitleClass = [
 
 export const navigatorGroupTitleTextClass = 'min-h-0 overflow-hidden'
 
-// `ps-1` + a tile-wide first column keep the mark on the icon column in both
-// states. The rest fades in once the toggle has crossed its row; `starting:`
-// covers a wordmark that was `display: none`. A `Logo`'s margins fill the tile,
-// so its mark stays centred while its wordmark or product opens beside it on
-// the navigation's width and the labels' fade.
+// The mark stays on the icon column; the rest fades in once expanded.
 export const navigatorBrandClass = [
   'is-interactive rounded-xl',
   'grid grid-flow-col grid-cols-[minmax(3rem,auto)] auto-cols-[minmax(0,1fr)] items-center justify-start justify-items-start gap-2 py-1 ps-1',
@@ -334,7 +313,6 @@ export const navigatorItemIconlessLabelClass = [
 export const navigatorItemInitialClass =
   'col-start-1 row-start-1 grid size-6 place-items-center text-base font-bold navigator-expanded:opacity-0 motion-safe:[transition:opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-fast)] motion-safe:navigator-expanded:[transition:opacity_var(--duration-fast)_var(--ease-exit)]'
 
-// The pinned tab's glyph when there is no icon.
 export const navigatorTabInitialClass =
   'grid size-7 place-items-center text-lg font-bold'
 

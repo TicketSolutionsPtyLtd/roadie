@@ -32,11 +32,7 @@ export type NavigatorGroupProps = {
   visibilityPriority?: NavigatorVisibilityPriority
 }
 
-/**
- * A headed run of `Navigator.Item`s, in the primary navigation or inside a
- * `Navigator.Secondary`. Author inside a client component: the title is found
- * by element reference. See COMPOUND_PATTERNS.md §1.2.
- */
+/** A headed run of items; author in a client component, as it's found by reference. */
 export function NavigatorGroup({ children, className }: NavigatorGroupProps) {
   const titleId = useId()
   const folded = use(NavigatorFoldedContext)

@@ -1,5 +1,4 @@
-// Subpath entry for `@oztix/roadie-components/pane`.
-// NO `'use client'` — server-safe property-assignment layer.
+// Server-safe property-assignment layer; see COMPOUND_PATTERNS.md.
 import { PaneActions } from './PaneActions'
 import { PaneBodyTitle } from './PaneBodyTitle'
 import { PaneFooter } from './PaneFooter'

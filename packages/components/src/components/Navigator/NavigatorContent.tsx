@@ -134,9 +134,7 @@ export function NavigatorContent({
   const rowRef = useRef<HTMLDivElement | null>(null)
   const sectionValue = activeSection?.value ?? null
 
-  // Panes slide only on a push or pop; a resize that changes the columns
-  // cuts. Set in the commit that changes the stack, as the pane that changed
-  // knows first; a transition, once started, outlives the attribute.
+  // Panes slide only on a push or pop; a resize cuts.
   const pushFrame = useRef(0)
   const instantFrame = useRef(0)
   const markPushing = useCallback(() => {
@@ -151,8 +149,7 @@ export function NavigatorContent({
     []
   )
 
-  // The Map serves effects, which run before the snapshot re-renders; render
-  // reads the snapshot.
+  // The Map serves effects, which run before the snapshot re-renders.
   const panes = useRef(new Map<string, RegisteredPane>())
   const [registered, setRegistered] = useState<readonly RegisteredPane[]>([])
 
@@ -169,8 +166,7 @@ export function NavigatorContent({
     setRegistered(Array.from(panes.current.values()))
   }, [])
 
-  // More's `current` follows `overflowOpen` so it is top in the commit it
-  // opens, not one later.
+  // More's `current` follows overflowOpen so it is top in the commit it opens.
   const ordered = useMemo(
     () =>
       orderByDocumentPosition(registered).map((pane) =>
@@ -245,14 +241,8 @@ export function NavigatorContent({
   )
   useInsertionEffect(() => markPushing(), [markPushing, revealing])
 
-  // More and a change of section are tab switches, not pushes: the stack flips
-  // without sliding. Keyed on `moreOpen`, not `overflowOpen`: a resize or
-  // hydration mismatch can flip whether a More pane actually exists without
-  // `overflowOpen` changing at all, and that still counts as a tab switch.
-  // Declared after every `markPushing` call above, so it runs last this
-  // commit and can cancel a push those calls marked for the same flip — a
-  // pane mounting or unmounting as the section list gives way to More, or
-  // back, is not a real push.
+  // More and a section change are tab switches, not pushes. Declared after every
+  // markPushing call, so it cancels a push marked this commit.
   const lastTab = useRef({ moreOpen, sectionValue })
   useInsertionEffect(() => {
     const last = lastTab.current

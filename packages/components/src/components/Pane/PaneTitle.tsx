@@ -9,33 +9,13 @@ import { PaneTitleCompact } from './PaneTitleCompact'
 import { paneTitleVariants } from './variants'
 
 export type PaneTitleProps = ComponentProps<'h2'> & {
-  /**
-   * Replace the rendered element. The default `<h2>` matches
-   * `List.GroupTitle` and `Navigator.GroupTitle`, so it never collides with
-   * the page's `<h1>` — pass `render` when the page's outline needs a
-   * different level. Only replaces the heading; the compact echo Pane.Title
-   * also renders is unaffected.
-   */
+  /** Replace the h2; the compact echo is unaffected. */
   render?: (props: ComponentProps<'h2'>) => ReactElement
 }
 
 /**
- * Rendered as an `<h2>` by default so it never collides with the page's own
- * `<h1>` — pass `render` to change the element.
- *
- * Inside a `Pane`, also emits a compact echo that fades into the header's top
- * row as the pane scrolls, and scrolls the pane back to the top when tapped.
- * The two are separate elements rather than one that travels: they sit in
- * different grid cells, and crossing between them on transform alone would
- * need measured endpoints and a `ResizeObserver` on every neighbour.
- *
- * The `<h2>` stays the heading; the echo is a button labelled for what it
- * does, with its own text hidden, so assistive tech hears one heading and one
- * purposeful control rather than the same words twice.
- *
- * Must be a **direct child** of `Pane.Header` — the echo places itself in the
- * header's grid, and grid placement only reaches direct children, same as
- * `Pane.Actions`.
+ * The pane's heading; inside a Pane it also renders a compact echo that scrolls to
+ * top. Direct child of `Pane.Header`.
  */
 export function PaneTitle({
   className,

@@ -45,12 +45,12 @@ export type NavigatorActions = {
   primaryDerived: boolean
   /** Calls the current `onClick` of the item with this `value`, read at click time. */
   activateItem: (value: string) => void
-  /** Calls the current `onClick` of the `index`th `Navigator.MenuItem` in that item's menu. */
+  /** Calls the current `onClick` of that item's `index`th `Navigator.MenuItem`. */
   activateMenuItem: (value: string, index: number) => void
   setOverflowOpen: (next: boolean) => void
   /** Closes More for a destination that navigates: at once when uncontrolled, by the route when controlled. */
   closeOverflowOnRoute: () => void
-  /** Id the More tab points `aria-controls` at, and the overflow pane carries. */
+  /** More pane id, for `aria-controls`. */
   overflowPaneId: string
   setOverflowItems: (
     surface: keyof NavigatorOverflowSets,
@@ -75,7 +75,7 @@ export type NavigatorActions = {
 /** What is selected, and the section it belongs to. */
 export type NavigatorSelection = {
   value: string | undefined
-  /** The direct-child Primary's children; a new identity only when their structure changes. */
+  /** The direct-child Primary's walk; a new identity only when its structure changes. */
   collected: CollectedSlots
   slots: readonly NavigatorSlotMeta[]
   /** The branch-active section. */
@@ -109,7 +109,6 @@ export type NavigatorExpansion = {
 /** The phone bar's scroll-driven state. */
 export type NavigatorBar = {
   navCollapsed: boolean
-  // The top pane's declaration, republished by Navigator.Content.
   primaryNav: PanePrimaryNav
   // Holds the bar open after tapping the collapsed active circle, until the next scroll down.
   pinExpanded: boolean
