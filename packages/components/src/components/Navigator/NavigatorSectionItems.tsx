@@ -16,7 +16,7 @@ import { useSection } from './useNavigatorSection'
 export type NavigatorSectionItemsProps = Omit<ListProps, 'children'> & {
   /** The section's item value; omit for the active section. */
   value?: string
-  /** Filters rows by label, case-insensitive; groups left empty hide. */
+  /** Filters rows by label, ignoring case. Empty groups hide. */
   query?: string
   /** Show each item's `description` beneath its label. @default true */
   descriptions?: boolean

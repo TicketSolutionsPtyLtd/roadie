@@ -14,7 +14,7 @@ export type NavigatorMenuItemProps = {
   /** Routes through `RoadieLinkProvider`, like `Navigator.Item`. */
   href?: string
   onClick?: () => void
-  /** Leading icon, shown in a small `IconTile`. Bold weight. */
+  /** Leading icon in a small `IconTile`. Pass `weight='bold'`. */
   icon?: ReactNode
   /** Secondary text beneath the label, e.g. an account email under a name. */
   description?: string

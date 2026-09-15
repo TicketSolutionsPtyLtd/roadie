@@ -7,10 +7,7 @@ export type NavigatorMenuProps = {
   children?: ReactNode
 }
 
-/**
- * A menu an item opens instead of navigating. Direct-child MenuItems only; author
- * the tree in a client component (COMPOUND_PATTERNS.md §1.2).
- */
+/** A menu an item opens instead of navigating. Takes `Navigator.MenuItem`s as direct children. */
 export function NavigatorMenu(_props: NavigatorMenuProps): null {
   return null
 }
