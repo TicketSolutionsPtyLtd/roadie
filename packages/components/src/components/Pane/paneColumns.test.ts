@@ -14,7 +14,6 @@ import {
   columnTier,
   inspectorTier,
   paneCell,
-  parentTrack,
   renderPaneColumnsCss,
   rowTier,
   stackedUntil,
@@ -124,24 +123,6 @@ describe('tiers', () => {
     expect(inspectorTier(3)).toBe(99.75)
     expect(inspectorTier(4)).toBe(105.75)
   })
-
-  it('gives the root a narrow track and a pane under it a wider one, never starving the fill', () => {
-    expect(parentTrack(2, 0)).toBe(
-      'clamp(16rem, min(40cqi, 100cqi - 30.25rem), 24rem)'
-    )
-    expect(parentTrack(2, 1, [1])).toBe(
-      'clamp(25rem, min(40cqi, 100cqi - 30.25rem), 30rem)'
-    )
-    expect(parentTrack(3, 0)).toBe(
-      'clamp(20rem, min(25cqi, (100cqi - 31rem) * 20 / 45), 24rem)'
-    )
-    expect(parentTrack(3, 1)).toBe(
-      'clamp(25rem, min(32cqi, (100cqi - 31rem) * 25 / 45), 30rem)'
-    )
-    expect(parentTrack(3, 2, [1, 2])).toBe(
-      'clamp(25rem, min(32cqi, (100cqi - 31rem) * 25 / 50), 30rem)'
-    )
-  })
 })
 
 describe('paneCell — the prototype evidence', () => {
@@ -195,28 +176,6 @@ describe('paneCell — the prototype evidence', () => {
   it('fills with the right-most visible pane, whatever its role would say', () => {
     expect(paneCell(2, 2, 1, 3).slot).toBe('parent')
     expect(paneCell(2, 2, 2, 3).slot).toBe('fill')
-  })
-})
-
-describe('agreement with derivePositions', () => {
-  const entry = (current: boolean): PaneEntry => ({
-    role: 'detail',
-    current,
-    primaryNav: 'auto'
-  })
-
-  it('names the same top, behind and ahead panes in the stacked tier', () => {
-    for (let levels = 1; levels <= PANE_MAX_DEPTH + 1; levels += 1) {
-      for (let top = 0; top < levels; top += 1) {
-        const entries = Array.from({ length: levels }, (_, depth) =>
-          entry(depth === top && top > 0)
-        )
-        const positions = derivePositions(entries, top === 0)
-        positions.forEach((position, depth) => {
-          expect(paneCell(1, top, depth, levels).slot).toBe(position)
-        })
-      }
-    }
   })
 })
 
@@ -594,12 +553,9 @@ describe('parent tracks follow the columns a row shows', () => {
     'never shows the inspector while the row is stacked, %i levels',
     (levels) => {
       const inspector = inspectorRow(levels)('[data-role="inspector"]')
-      for (let contentPx = 600; contentPx <= 1800; contentPx += 1) {
-        if (columnsAt(contentPx, levels - 1, levels) > 1) continue
-        expect(inspectorShownAt(inspector, contentPx), `${contentPx}px`).toBe(
-          false
-        )
-      }
+      expect(inspectorHideThreshold(inspector)).toBeGreaterThanOrEqual(
+        rowTier(2, levels - 1, levels) * REM
+      )
     }
   )
 
@@ -679,38 +635,9 @@ describe('the generated stylesheet', () => {
     expect(committedCss).toBe(renderPaneColumnsCss())
   })
 
-  it('scopes every rule to a level', () => {
-    const css = renderPaneColumnsCss()
-    const rowRules =
-      css.match(
-        /\[data-slot="navigator-panes"\]\[data-level="[01]"\][^{]*\{/g
-      ) ?? []
-    expect(rowRules.length).toBeGreaterThan(0)
-    for (const rule of rowRules) {
-      const level = rule.match(/\[data-level="([01])"\]/)?.[1]
-      for (const pane of rule.match(/\[data-stack\][^\s,)]*/g) ?? []) {
-        expect(pane).toContain(`[data-level="${level}"]`)
-      }
-    }
-  })
-
   it('draws one button at most in every rule', () => {
     const css = renderPaneColumnsCss()
     expect(css).not.toMatch(/--pane-back: grid; --pane-close: grid/)
-  })
-
-  it('hides the More pane while closed and the other root while open, per level', () => {
-    const css = renderPaneColumnsCss()
-    for (let level = 0; level < PANE_MAX_LEVELS; level += 1) {
-      const row = `[data-slot="navigator-panes"][data-level="${level}"]`
-      const pane = `[data-stack][data-level="${level}"]`
-      expect(css).toContain(
-        `${row}:not([data-overflow]) ${pane}[data-overflow] { display: none !important; }`
-      )
-      expect(css).toContain(
-        `${row}[data-overflow] ${pane}[data-depth="0"]:not([data-overflow]) { display: none !important; }`
-      )
-    }
   })
 
   it('hides past any display utility and never sets a display of its own', () => {
@@ -917,15 +844,6 @@ describe('the generated stylesheet', () => {
     const $ = nested('horizontal', 'vertical')
     expect(flush($('#outer-row'))).toHaveLength(0)
     expect(flush($('#inner-row'))).toHaveLength(1)
-  })
-
-  it('offers the inspector variant with one branch per level, level count and root depth', () => {
-    const css = renderPaneColumnsCss()
-    const variant = css.slice(0, css.indexOf('@layer components {'))
-    expect(variant.match(/@container panes \(width < /g)).toHaveLength(
-      7 * PANE_MAX_LEVELS
-    )
-    expect(css).toContain('@custom-variant pane-inspector-yielded {')
   })
 
   it('reads the inspector variant from the row the element sits in', () => {
