@@ -48,7 +48,6 @@ export default function AppShellPage() {
         it off this docs site.
       </p>
 
-      {/* Blocking constraint — stated first, on purpose */}
       <section className='grid gap-4'>
         <div className='grid gap-2 rounded-xl emphasis-subtle border border-subtle p-4 intent-warning'>
           <h2 className='text-display-ui-4 text-strong'>
@@ -70,7 +69,6 @@ export default function AppShellPage() {
         </div>
       </section>
 
-      {/* The folder tree */}
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>The folder tree</h2>
         <p className='text-subtle'>
@@ -101,7 +99,6 @@ export default function AppShellPage() {
 </Navigator.Content>`}</CodeBlock>
       </section>
 
-      {/* Matcher rule */}
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>
           The <Code>(.)</Code> vs <Code>(..)</Code> matcher
@@ -145,7 +142,6 @@ export default function AppShellPage() {
         </div>
       </section>
 
-      {/* Three constraints */}
       <section className='grid gap-6'>
         <h2 className='text-display-ui-3 text-strong'>
           Three constraints you cannot skip
@@ -215,7 +211,6 @@ export default function CatchAll() {
         </div>
       </section>
 
-      {/* Behaviour summary */}
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>What you get</h2>
         <ul className='grid list-disc gap-2 pl-5'>

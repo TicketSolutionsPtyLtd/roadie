@@ -74,11 +74,7 @@ const components = {
       </a>
     )
   },
-  // The default MDX code-fence wrapper is an unstyled `<pre>` with
-  // `white-space: pre` and `min-width: auto`, so a long line (`pnpm add …`)
-  // sets a huge min-content width that stretches the whole content column and
-  // clips every sibling on mobile. CodePreview owns its own scrolling `<pre>`,
-  // so the outer wrapper only needs to not force width.
+  // A long code line would set the column's min-content width; CodePreview scrolls its own pre.
   pre: ({ children }: ComponentPropsWithoutRef<'pre'>) => (
     <div className='min-w-0'>{children}</div>
   ),
