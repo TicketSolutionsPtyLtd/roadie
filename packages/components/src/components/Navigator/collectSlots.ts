@@ -12,8 +12,7 @@ import { NavigatorGroupTitle } from './NavigatorGroupTitle'
 import { NavigatorItem, type NavigatorItemProps } from './NavigatorItem'
 import type { NavigatorSlotGroup, NavigatorSlotMeta } from './mobileSlots'
 import {
-  firstSecondaryHref,
-  firstSecondaryValue,
+  firstRoutedSecondary,
   secondaryDescendantValues,
   splitItemChildren
 } from './splitSecondary'
@@ -52,7 +51,8 @@ export function toSlotMeta(
   } = splitItemChildren(props.children)
   // A Secondary outranks a Menu; NavigatorItem ignores the Menu the same way.
   const menu = secondary.length > 0 ? undefined : declaredMenu
-  const href = menu ? undefined : (props.href ?? firstSecondaryHref(secondary))
+  const landing = firstRoutedSecondary(secondary)
+  const href = menu ? undefined : (props.href ?? landing?.href)
   return {
     value: props.value,
     label,
@@ -62,9 +62,7 @@ export function toSlotMeta(
     declaredHref: props.href,
     menu,
     topValue:
-      props.href !== undefined
-        ? props.value
-        : (firstSecondaryValue(secondary) ?? props.value),
+      props.href !== undefined ? props.value : (landing?.value ?? props.value),
     descendants: secondaryDescendantValues(secondary),
     group,
     onClick: props.onClick,

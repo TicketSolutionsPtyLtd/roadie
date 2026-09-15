@@ -72,7 +72,7 @@ export function PaneHeader({
   const showClose =
     (closeHandler !== undefined || closeHref !== undefined) &&
     pane !== null &&
-    pane.role !== 'inspector' &&
+    pane.depth !== null &&
     !pane.isRoot
   const collapsed = pane?.collapsed ?? false
 

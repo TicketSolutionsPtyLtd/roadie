@@ -1,7 +1,9 @@
-import type {
-  PaneKind,
-  PaneRegistration,
-  PaneStackPosition
+import {
+  type PaneKind,
+  type PaneRegistration,
+  type PaneStackPosition,
+  isOverflowKind,
+  isSectionKind
 } from '../Pane/PaneStackContext'
 import { type PaneDepth, ROLE_DEPTH } from '../Pane/paneDepth'
 import type { PanePrimaryNav, PaneRole } from '../Pane/variants'
@@ -117,10 +119,10 @@ export function provisionalPosition(
   revealRoot: boolean
 ): PaneStackPosition | null {
   if (role === 'inspector') return null
-  if (kind === 'section' || kind === 'generated-section') {
+  if (isSectionKind(kind)) {
     return revealRoot ? 'top' : 'behind'
   }
-  if (kind === 'overflow' || kind === 'generated-overflow') {
+  if (isOverflowKind(kind)) {
     return current ? 'top' : 'ahead'
   }
   if (revealRoot) return 'ahead'
@@ -134,12 +136,6 @@ export type DepthEntry = {
   current?: boolean
 }
 
-const isOverflow = (kind: PaneKind) =>
-  kind === 'overflow' || kind === 'generated-overflow'
-
-const isSectionList = (kind: PaneKind) =>
-  kind === 'section' || kind === 'generated-section'
-
 /** A pane's depth before it registers: declared, else its role's default. More is always the root. */
 export function provisionalDepth({
   role,
@@ -147,7 +143,7 @@ export function provisionalDepth({
   depth
 }: DepthEntry): number | null {
   if (role === 'inspector') return null
-  if (isOverflow(kind)) return 0
+  if (isOverflowKind(kind)) return 0
   return depth ?? ROLE_DEPTH[role]
 }
 
@@ -163,17 +159,18 @@ export function resolveDepths(
     .flatMap((entry, index) => {
       const depth = provisionalDepth(entry)
       return depth === null ||
-        isOverflow(entry.kind) ||
-        isSectionList(entry.kind)
+        isOverflowKind(entry.kind) ||
+        isSectionKind(entry.kind)
         ? []
         : [{ index, depth }]
     })
     .sort((a, b) => a.depth - b.depth || a.index - b.index)
-  const sectionList = entries.some((entry) => isSectionList(entry.kind))
+  const sectionList = entries.some((entry) => isSectionKind(entry.kind))
   // Open More fills a vacant root; it never displaces a list.
   const moreFillsRoot =
-    entries.some((entry) => isOverflow(entry.kind) && entry.current === true) &&
-    (ranked[0]?.depth ?? 0) > 0
+    entries.some(
+      (entry) => isOverflowKind(entry.kind) && entry.current === true
+    ) && (ranked[0]?.depth ?? 0) > 0
   const offset = sectionList || moreFillsRoot ? 1 : 0
   const depths = entries.map((entry): number | null =>
     entry.role === 'inspector' ? null : 0

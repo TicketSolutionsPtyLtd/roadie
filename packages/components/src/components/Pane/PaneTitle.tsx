@@ -6,7 +6,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { PaneContext } from './PaneContext'
 import { PaneTitleCompact } from './PaneTitleCompact'
-import { paneTitleClipClass, paneTitleVariants } from './variants'
+import { paneTitleVariants } from './variants'
 
 export type PaneTitleProps = ComponentProps<'h2'> & {
   /**
@@ -51,7 +51,8 @@ export function PaneTitle({
     'data-slot': 'pane-title',
     className: cn(paneTitleVariants({ collapsible, collapsed }), className),
     children: collapsible ? (
-      <span className={paneTitleClipClass}>{children}</span>
+      // A clipping item, or the row can't shrink below its content.
+      <span className='overflow-hidden'>{children}</span>
     ) : (
       children
     ),

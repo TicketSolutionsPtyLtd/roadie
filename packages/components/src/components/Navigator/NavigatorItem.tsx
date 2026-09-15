@@ -1,6 +1,12 @@
 'use client'
 
-import { type ReactElement, type ReactNode, use, useMemo } from 'react'
+import {
+  type ReactElement,
+  type ReactNode,
+  cloneElement,
+  use,
+  useMemo
+} from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -21,10 +27,10 @@ import type {
   NavigatorPlacement,
   NavigatorVisibilityPriority
 } from './mobileSlots'
-import { badgeDot, badgeSmall, presentNavIcon } from './presentNavIcon'
+import { badgeDot, presentNavIcon } from './presentNavIcon'
 import { rememberedHref } from './sectionMemory'
 import {
-  firstSecondaryHref,
+  firstRoutedSecondary,
   initialOf,
   secondaryDescendantValues,
   splitItemChildren,
@@ -84,7 +90,7 @@ export function NavigatorItem({
     const split = splitItemChildren(children)
     return {
       ...split,
-      firstHref: firstSecondaryHref(split.secondary),
+      firstHref: firstRoutedSecondary(split.secondary)?.href,
       descendants: secondaryDescendantValues(split.secondary)
     }
   }, [children])
@@ -153,7 +159,7 @@ export function NavigatorItem({
                 data-slot='navigator-item-trailing'
                 className={navigatorItemTrailingVariants()}
               >
-                {badgeSmall(badge)}
+                {cloneElement(badge, { size: 'sm' })}
               </span>
             ) : (
               badgeDot(badge)

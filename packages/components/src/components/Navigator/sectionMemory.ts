@@ -27,20 +27,3 @@ export function nextMemory(
   next.set(section, href)
   return next
 }
-
-/**
- * The href to remember for the destination the user is on. A declared href
- * wins; otherwise the value itself, but only when it is path-shaped — an
- * opaque value like `'orders'` is not something a link can point at, and
- * guessing would produce a broken target rather than no target.
- */
-export function activeHref(
-  activeValue: string | undefined,
-  declaredHref: string | undefined
-): string | undefined {
-  if (declaredHref !== undefined) return declaredHref
-  if (activeValue !== undefined && activeValue.startsWith('/')) {
-    return activeValue
-  }
-  return undefined
-}

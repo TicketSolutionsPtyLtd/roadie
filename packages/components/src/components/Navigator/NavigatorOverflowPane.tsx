@@ -6,7 +6,6 @@ import { mergeRefs } from '../../utils/mergeRefs'
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { PaneRoot, type PaneRootProps } from '../Pane/PaneRoot'
 import { PaneKindContext } from '../Pane/PaneStackContext'
-import { GeneratedOverflowContext } from './GeneratedOverflowContext'
 import {
   NavigatorActionsContext,
   NavigatorDisclosureContext
@@ -30,7 +29,7 @@ export function NavigatorOverflowPane({
 }: NavigatorOverflowPaneProps) {
   const { overflowPaneId } = use(NavigatorActionsContext)
   const { overflowOpen } = use(NavigatorDisclosureContext)
-  const generated = use(GeneratedOverflowContext)
+  const generated = use(PaneKindContext) === 'generated-overflow'
   const paneRef = useRef<HTMLElement | null>(null)
   const ref = mergeRefs(paneRef, forwardedRef)
   const wasOpen = useRef(overflowOpen)

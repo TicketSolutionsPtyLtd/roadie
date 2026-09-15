@@ -12,6 +12,12 @@ export type PaneStackPosition = 'top' | 'ahead' | 'behind'
 export type PaneKind =
   'pane' | 'section' | 'generated-section' | 'overflow' | 'generated-overflow'
 
+export const isOverflowKind = (kind: PaneKind) =>
+  kind === 'overflow' || kind === 'generated-overflow'
+
+export const isSectionKind = (kind: PaneKind) =>
+  kind === 'section' || kind === 'generated-section'
+
 export type PaneRegistration = {
   role: PaneRole
   current: boolean

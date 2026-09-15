@@ -131,23 +131,10 @@ export function secondaryDescendantValues(secondary: ReactNode[]): string[] {
   return secondaryItems(secondary).map((item) => item.props.value)
 }
 
-/**
- * The href of the first item `secondaryItems` finds that has one — the
- * landing page a routeless section delegates to.
- */
-export function firstSecondaryHref(secondary: ReactNode[]): string | undefined {
-  return secondaryItems(secondary).find((item) => item.props.href !== undefined)
-    ?.props.href
-}
-
-/**
- * The `value` of the first item `secondaryItems` finds that has an `href` —
- * the routeless section's landing value, paired with the href
- * `firstSecondaryHref` returns for that same item.
- */
-export function firstSecondaryValue(
+/** The first sub-page with an href: where a routeless section lands. */
+export function firstRoutedSecondary(
   secondary: ReactNode[]
-): string | undefined {
+): NavigatorItemProps | undefined {
   return secondaryItems(secondary).find((item) => item.props.href !== undefined)
-    ?.props.value
+    ?.props
 }

@@ -11,17 +11,14 @@ export const PRIMARY_METRICS = {
   toggleRow: 3
 } as const
 
-export type PrimaryMetrics = typeof PRIMARY_METRICS
-
 export type PrimaryCapsule = {
   key: string
   slots: { value: string; priority: NavigatorVisibilityPriority }[]
 }
 
-export function capsuleHeight(
-  tiles: number,
-  metrics: PrimaryMetrics = PRIMARY_METRICS
-) {
+const metrics = PRIMARY_METRICS
+
+function capsuleHeight(tiles: number) {
   if (tiles <= 0) return 0
   return (
     tiles * metrics.tile +
@@ -30,13 +27,10 @@ export function capsuleHeight(
   )
 }
 
-export function clusterHeight(
-  tileCounts: number[],
-  metrics: PrimaryMetrics = PRIMARY_METRICS
-) {
+function clusterHeight(tileCounts: number[]) {
   const present = tileCounts.filter((count) => count > 0)
   return (
-    present.reduce((sum, count) => sum + capsuleHeight(count, metrics), 0) +
+    present.reduce((sum, count) => sum + capsuleHeight(count), 0) +
     Math.max(0, present.length - 1) * metrics.capsuleGap +
     2 * metrics.clusterPad
   )
@@ -44,8 +38,7 @@ export function clusterHeight(
 
 export function fitPrimaryCluster(
   capsules: PrimaryCapsule[],
-  available: number,
-  metrics: PrimaryMetrics = PRIMARY_METRICS
+  available: number
 ): { folded: Set<string> } {
   const all = capsules.flatMap((capsule) => capsule.slots)
   if (available <= 0) return { folded: new Set() }
@@ -56,7 +49,7 @@ export function fitPrimaryCluster(
       (capsule) => capsule.slots.filter((slot) => kept.has(slot.value)).length
     )
     const more = keep < all.length ? [1] : []
-    if (clusterHeight([...counts, ...more], metrics) <= available) {
+    if (clusterHeight([...counts, ...more]) <= available) {
       return {
         folded: new Set(
           all.filter((slot) => !kept.has(slot.value)).map((slot) => slot.value)

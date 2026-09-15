@@ -21,12 +21,14 @@ import { PANE_CHROME_NONE } from '../Pane/PaneChromeContext'
 import { PaneContext } from '../Pane/PaneContext'
 import { PaneHeader } from '../Pane/PaneHeader'
 import {
+  PaneKindContext,
   type PaneRegistration,
   PaneStackContext,
-  type PaneStackContextValue
+  type PaneStackContextValue,
+  isOverflowKind,
+  isSectionKind
 } from '../Pane/PaneStackContext'
 import { PaneTitle } from '../Pane/PaneTitle'
-import { GeneratedOverflowContext } from './GeneratedOverflowContext'
 import {
   NavigatorActionsContext,
   NavigatorDisclosureContext,
@@ -81,15 +83,9 @@ function depthsOf(panes: readonly RegisteredPane[], draws: Drawn) {
     return true
   })
   const rootPending =
-    draws.rootList &&
-    !drawn.some(
-      (pane) => pane.kind === 'section' || pane.kind === 'generated-section'
-    )
+    draws.rootList && !drawn.some((pane) => isSectionKind(pane.kind))
   const morePending =
-    draws.moreOpen &&
-    !drawn.some(
-      (pane) => pane.kind === 'overflow' || pane.kind === 'generated-overflow'
-    )
+    draws.moreOpen && !drawn.some((pane) => isOverflowKind(pane.kind))
   const held = [
     ...(rootPending ? [SECTION_ROOT] : []),
     ...(morePending ? [OPEN_MORE] : [])
@@ -165,9 +161,7 @@ export function NavigatorContent({
   const ordered = useMemo(
     () =>
       orderByDocumentPosition(registered).map((pane) =>
-        pane.kind === 'overflow' || pane.kind === 'generated-overflow'
-          ? { ...pane, current: overflowOpen }
-          : pane
+        isOverflowKind(pane.kind) ? { ...pane, current: overflowOpen } : pane
       ),
     [registered, overflowOpen]
   )
@@ -224,12 +218,11 @@ export function NavigatorContent({
     () =>
       ordered.map((pane) => ({
         ...pane,
-        rank:
-          pane.kind === 'overflow' || pane.kind === 'generated-overflow'
-            ? pane.current
-              ? -1
-              : Infinity
-            : (depths.get(pane.id) ?? provisionalDepth(pane) ?? Infinity)
+        rank: isOverflowKind(pane.kind)
+          ? pane.current
+            ? -1
+            : Infinity
+          : (depths.get(pane.id) ?? provisionalDepth(pane) ?? Infinity)
       })),
     [ordered, depths]
   )
@@ -405,14 +398,14 @@ export function NavigatorContent({
   }, [topPrimaryNav, setPrimaryNav])
 
   const fallbackOverflow = generatesOverflow ? (
-    <GeneratedOverflowContext value key='__navigator-overflow'>
+    <PaneKindContext value='generated-overflow' key='__navigator-overflow'>
       <NavigatorOverflowPane>
         <PaneHeader>
           <PaneTitle>{OVERFLOW_LABEL}</PaneTitle>
         </PaneHeader>
         <NavigatorOverflowItems />
       </NavigatorOverflowPane>
-    </GeneratedOverflowContext>
+    </PaneKindContext>
   ) : null
 
   // Keyed so the search resets with the section; More replaces it while open.
