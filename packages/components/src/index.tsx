@@ -151,10 +151,13 @@ export {
   type NavigatorSectionItem,
   type NavigatorItemProps,
   type NavigatorGroupProps,
+  type NavigatorGroupTitleProps,
   type NavigatorMenuProps,
   type NavigatorMenuItemProps,
+  type NavigatorBrandProps,
   type NavigatorExpandToggleProps,
   type NavigatorOverflowPaneProps,
+  type NavigatorOverflowItemsProps,
   type NavigatorSecondaryPaneProps,
   type NavigatorSectionItemsProps,
   type NavigatorPlacement,
@@ -180,10 +183,16 @@ export { Marquee, type MarqueeProps } from './components/Marquee'
 
 export {
   List,
+  listVariants,
+  listItemVariants,
+  listGroupVariants,
+  listGroupTitleVariants,
   type ListProps,
   type ListItemProps,
   type ListItemCurrent,
-  type ListEmphasis
+  type ListEmphasis,
+  type ListGroupProps,
+  type ListGroupTitleProps
 } from './components/List'
 
 export {
