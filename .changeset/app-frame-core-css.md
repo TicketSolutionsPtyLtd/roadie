@@ -10,7 +10,8 @@ navigation is styled with, plus `@oztix/roadie-core/navigator`.
 
 `@oztix/roadie-core/navigator` also exports `getNavigatorExpandedScript`, an
 optional head script that lets a static site paint a persisted expanded vertical
-navigation before hydration, with the cookie name and serializer it reads.
+navigation before hydration, with the cookie name it reads and a serializer to
+write it.
 
 Add `is-translucent`, which lets content show through a raised or floating
 surface's fill under a backdrop blur. It pairs with `emphasis-raised`,
