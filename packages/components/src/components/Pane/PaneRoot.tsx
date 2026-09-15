@@ -161,17 +161,18 @@ export function PaneRoot({
     declaredDepth
   ])
 
-  // Its own entry: one shared with the calls below costs the context memo under the compiler.
-  const depth =
-    stack === null
-      ? (declaredDepth ?? ROLE_DEPTH[role])
-      : stack.depthOf(paneId, {
-          role,
-          current,
-          primaryNav,
-          kind,
-          depth: declaredDepth
-        })
+  const place = stack?.placeOf(paneId, {
+    role,
+    current,
+    primaryNav,
+    kind,
+    depth: declaredDepth
+  })
+  const depth = place ? place.depth : (declaredDepth ?? ROLE_DEPTH[role])
+  const position = place?.position ?? null
+  const chrome = place?.chrome ?? PANE_CHROME_NONE
+  // No orchestrator, nothing to close back to.
+  const isRoot = place?.isRoot ?? true
   const isOverflow = isOverflowKind(kind)
   // Mounting, unmounting or moving a pane is a navigation; the stack slides for
   // it. Not More: it mounts when a resize folds items, and opens as a tab switch.
@@ -181,13 +182,6 @@ export function PaneRoot({
     return () => markPushing?.()
   }, [markPushing, current, depth])
 
-  const entry = { role, current, primaryNav, kind, depth: declaredDepth }
-  const position = stack?.positionOf(paneId, entry) ?? null
-  const chrome = stack?.chromeOf(paneId, entry) ?? PANE_CHROME_NONE
-  // No `stack` means no orchestrator to be non-root of — default to root so
-  // the close affordance stays off rather than closing a stack that doesn't
-  // exist.
-  const isRoot = stack === null ? true : stack.isRootOf(paneId)
   const inStack = stack !== null && role !== 'inspector'
   const { scrollPastAt, onScrollPast, onScrollDown } = chrome
   // A pane that has opted out of `auto` describes no scroll-linked nav at all.
