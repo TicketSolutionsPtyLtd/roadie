@@ -1,12 +1,12 @@
-import type { PaneRole } from './variants'
+import { PANE_DEEP, PANE_MAX_DEPTH, PANE_MAX_LEVELS } from './paneDepth'
+
+export { PANE_MAX_DEPTH, PANE_MAX_LEVELS }
 
 export const PANE_MIN_FILL = 28
 export const PANE_INSPECTOR = 14
 export const PANE_GAP = 0.75
 export const PANE_ROW_PADDING = 1.5
 export const PANE_MAX_COLUMNS = 3
-export const PANE_MAX_DEPTH = 3
-export const PANE_MAX_LEVELS = 2
 // Beside a vertical primary the left-most pane sits flush with Content's edge.
 export const PANE_SHADOW_ROOM = 0.5
 
@@ -29,16 +29,6 @@ export const PARENT_TRACKS = {
     detail: { ...DETAIL, share: 32 }
   }
 } as const satisfies Record<2 | 3, Record<'root' | 'detail', Track>>
-
-export type PaneDepth = 0 | 1 | 2 | 3
-// Named, not the number: Chrome drops every `data-depth` rule for a value no selector names.
-export const PANE_DEEP = 'deep'
-
-export const ROLE_DEPTH: Record<PaneRole, PaneDepth | null> = {
-  list: 0,
-  detail: 1,
-  inspector: null
-}
 
 const trackOf = (columns: number, depth: number) =>
   PARENT_TRACKS[columns === 2 ? 2 : 3][depth === 0 ? 'root' : 'detail']

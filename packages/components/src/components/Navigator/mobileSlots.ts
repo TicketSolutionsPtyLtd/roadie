@@ -2,9 +2,11 @@ import type { ReactElement, ReactNode } from 'react'
 
 import type { BadgeProps } from '../Badge'
 import type { NavigatorMenuProps } from './NavigatorMenu'
-import { MAX_TABS } from './variants'
 
 export const OVERFLOW_LABEL = 'More'
+
+// Not configurable: a seven-tab bar is not a shape Navigator can be talked into.
+const MAX_TABS = 5
 
 export type NavigatorPlacement = 'automatic' | 'pinned'
 export type NavigatorVisibilityPriority = 'low' | 'automatic' | 'high'

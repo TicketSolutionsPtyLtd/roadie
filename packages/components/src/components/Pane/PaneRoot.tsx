@@ -22,7 +22,7 @@ import { ScrollArea } from '../ScrollArea'
 import { PANE_CHROME_NONE, PaneChromeContext } from './PaneChromeContext'
 import { PaneContext } from './PaneContext'
 import { PaneKindContext, PaneStackContext } from './PaneStackContext'
-import { PANE_DEEP, PANE_MAX_DEPTH, ROLE_DEPTH } from './paneColumns'
+import { PANE_DEEP, PANE_MAX_DEPTH, ROLE_DEPTH } from './paneDepth'
 import {
   type PaneEmphasis,
   type PanePrimaryNav,
