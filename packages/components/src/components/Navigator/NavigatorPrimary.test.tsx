@@ -129,7 +129,7 @@ function Six({
 }
 
 describe('vertical regions', () => {
-  it('lets the page show through every capsule, grouped, loose or pinned', async () => {
+  it('keeps every capsule a solid raised surface, grouped, loose or pinned', async () => {
     render(<Six />)
     await flushViewportMeasurement()
     const capsules = vertical().querySelectorAll(
@@ -1135,21 +1135,29 @@ describe('expanded vertical navigation', () => {
     ).toBeNull()
   })
 
-  it('labels the toggle with a tooltip while expanded too', async () => {
-    const user = userEvent.setup()
-    render(<Expandable defaultExpanded />)
-    await flushViewportMeasurement()
-    await user.hover(
-      within(region('brand')).getByRole('button', { name: 'Collapse sidebar' })
-    )
-    expect(
-      await screen.findByText(
-        'Collapse sidebar',
-        { selector: '[data-slot="tooltip-popup"]' },
-        { timeout: 2000 }
-      )
-    ).toBeInTheDocument()
-  })
+  it.each([
+    ['Expand sidebar', false],
+    ['Collapse sidebar', true]
+  ])(
+    'labels the toggle with a tooltip of its current label (%s)',
+    async (label, defaultExpanded) => {
+      const user = userEvent.setup()
+      render(<Expandable defaultExpanded={defaultExpanded} />)
+      await flushViewportMeasurement()
+      const toggle = within(region('brand')).getByRole('button', {
+        name: label
+      })
+      expect(toggle).toHaveAttribute('data-slot', 'navigator-expand-toggle')
+      await user.hover(toggle)
+      expect(
+        await screen.findByText(
+          label,
+          { selector: '[data-slot="tooltip-popup"]' },
+          { timeout: 2000 }
+        )
+      ).toBeInTheDocument()
+    }
+  )
 
   it('takes no placement on the toggle', () => {
     // @ts-expect-error the toggle always sits beside the brand
@@ -1746,24 +1754,6 @@ describe('collapsed labels', () => {
     await act(() => vi.advanceTimersByTimeAsync(1500))
     expect(document.querySelector('[data-slot="tooltip-popup"]')).toBeNull()
     vi.useRealTimers()
-  })
-
-  it('labels the toggle with its current label', async () => {
-    const user = userEvent.setup()
-    render(<Expandable />)
-    await flushViewportMeasurement()
-    const toggle = within(region('brand')).getByRole('button', {
-      name: 'Expand sidebar'
-    })
-    expect(toggle).toHaveAttribute('data-slot', 'navigator-expand-toggle')
-    await user.hover(toggle)
-    expect(
-      await screen.findByText(
-        'Expand sidebar',
-        { selector: '[data-slot="tooltip-popup"]' },
-        { timeout: 2000 }
-      )
-    ).toBeInTheDocument()
   })
 
   it('shows no tooltip while expanded', async () => {

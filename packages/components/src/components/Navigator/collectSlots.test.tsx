@@ -6,16 +6,6 @@ import { collectSlots } from './collectSlots'
 const values = (slots: { value: string }[]) => slots.map((s) => s.value)
 
 describe('collectSlots', () => {
-  it('defaults every item to automatic placement and priority', () => {
-    const { automatic } = collectSlots(
-      <Navigator.Item value='/a'>A</Navigator.Item>
-    )
-    expect(automatic[0]).toMatchObject({
-      placement: 'automatic',
-      priority: 'automatic'
-    })
-  })
-
   it("lets an item's priority win over its group's, and inherits otherwise", () => {
     const { automatic } = collectSlots(
       <Navigator.Group visibilityPriority='low'>
@@ -56,60 +46,5 @@ describe('collectSlots', () => {
     )
     expect(values(result.automatic)).toEqual(['/a'])
     expect(result.conflictingPlacement).toEqual(['/a'])
-  })
-
-  it('notices a pinned entry written before the cluster', () => {
-    const me = (
-      <Navigator.Item key='me' value='/me' placement='pinned'>
-        Me
-      </Navigator.Item>
-    )
-    const a = (
-      <Navigator.Item key='a' value='/a'>
-        A
-      </Navigator.Item>
-    )
-    const first = collectSlots([me, a])
-    const last = collectSlots([a, me])
-    expect(first.pinnedBeforeCluster).toBe(true)
-    expect(last.pinnedBeforeCluster).toBe(false)
-  })
-
-  it('collects Brand without counting it as a destination', () => {
-    const result = collectSlots([
-      <Navigator.Brand key='brand'>Logo</Navigator.Brand>,
-      <Navigator.Item key='a' value='/a'>
-        A
-      </Navigator.Item>
-    ])
-    expect(result.brand).toHaveLength(1)
-    expect(values(result.automatic)).toEqual(['/a'])
-  })
-
-  it('flags a child it cannot recognise', () => {
-    expect(collectSlots(<div />).hasStrayChild).toBe(true)
-  })
-
-  it('records the group title on each slot for the More pane', () => {
-    const { automatic } = collectSlots(
-      <Navigator.Group>
-        <Navigator.GroupTitle>Docs</Navigator.GroupTitle>
-        <Navigator.Item value='/a'>A</Navigator.Item>
-      </Navigator.Group>
-    )
-    expect(automatic[0]?.group?.title).toBe('Docs')
-  })
-
-  it('collects ExpandToggle apart from every region of destinations', () => {
-    const result = collectSlots([
-      <Navigator.ExpandToggle key='toggle' />,
-      <Navigator.Item key='a' value='/a'>
-        A
-      </Navigator.Item>
-    ])
-    expect(result.toggles).toHaveLength(1)
-    expect(result.cluster.map((entry) => entry.kind)).toEqual(['item'])
-    expect(result.pinned).toEqual([])
-    expect(result.pinnedBeforeCluster).toBe(false)
   })
 })

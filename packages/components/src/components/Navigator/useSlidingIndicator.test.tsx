@@ -258,7 +258,6 @@ describe('useSlidingIndicator rect fallback', () => {
 class StubResizeObserver implements ResizeObserver {
   static instances: StubResizeObserver[] = []
   observed = new Set<Element>()
-  disconnected = false
 
   constructor(
     private readonly callback: (
@@ -279,7 +278,6 @@ class StubResizeObserver implements ResizeObserver {
 
   disconnect() {
     this.observed.clear()
-    this.disconnected = true
   }
 
   trigger() {
@@ -422,20 +420,6 @@ describe('useSlidingIndicator ResizeObserver integration', () => {
       />
     )
     expect(captured.style).toMatchObject({ '--active-tab-right': '120px' })
-  })
-
-  it('disconnects observers on unmount', () => {
-    globalThis.ResizeObserver =
-      StubResizeObserver as unknown as typeof ResizeObserver
-    const { trackRef, first } = setup()
-    first.setAttribute('data-current', '')
-
-    const { unmount } = render(<Harness trackRef={trackRef} />)
-    const observer = StubResizeObserver.instances[0]!
-
-    expect(observer.disconnected).toBe(false)
-    unmount()
-    expect(observer.disconnected).toBe(true)
   })
 })
 

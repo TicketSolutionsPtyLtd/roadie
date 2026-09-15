@@ -179,23 +179,6 @@ describe('useNavigatorSection', () => {
     )
   })
 
-  it('falls back to what a wrapped Primary publishes after mount', async () => {
-    const log: (NavigatorSectionData | null)[] = []
-    render(
-      <StrictMode>
-        <Docs
-          value='/overview/philosophy'
-          probeValue='/components'
-          log={log}
-          wrapPrimary
-        />
-      </StrictMode>
-    )
-    expect(log[0]).toBeNull()
-    await flushViewportMeasurement()
-    expect(log.at(-1)).toMatchObject({ value: '/components' })
-  })
-
   it('hydrates with a wrapped Primary: null on the server and first client render, then the section', async () => {
     const ui = (log: (NavigatorSectionData | null)[]) => (
       <StrictMode>

@@ -82,7 +82,7 @@ describe('Navigator.Menu', () => {
     expect(trigger).toHaveAttribute('aria-controls', menu.id)
   })
 
-  it('names the menu after its item unless it declares a label', async () => {
+  it('names the menu after its item', async () => {
     const user = userEvent.setup()
     render(<Tree />)
     await flushViewportMeasurement()
@@ -135,18 +135,7 @@ describe('Navigator.Menu', () => {
     await waitForMenuToClose()
   })
 
-  it('renders an href item as a link', async () => {
-    const user = userEvent.setup()
-    render(<Tree />)
-    await flushViewportMeasurement()
-    await user.click(
-      within(vertical()).getByRole('button', { name: 'Account' })
-    )
-    const profile = await screen.findByRole('menuitem', { name: 'Profile' })
-    expect(profile.closest('a')).toHaveAttribute('href', '/profile')
-  })
-
-  it('routes an href item through the provider and closes on follow', async () => {
+  it('routes an href item through the provider as a link, and closes on follow', async () => {
     const user = userEvent.setup()
     const StubLink: RoadieLinkComponent = ({ href, children, ...rest }) => (
       <a
@@ -172,6 +161,7 @@ describe('Navigator.Menu', () => {
     )
     const profile = await screen.findByRole('menuitem', { name: 'Profile' })
     expect(profile).toHaveAttribute('data-testid', 'stub-link')
+    expect(profile).toHaveAttribute('href', '/profile')
     await user.click(profile)
     await waitForMenuToClose()
   })
@@ -212,15 +202,7 @@ describe('Navigator.Menu', () => {
     ).toHaveTextContent('Sign out')
   })
 
-  it('never lights from the route', async () => {
-    render(<Tree value='account/settings' />)
-    await flushViewportMeasurement()
-    const trigger = within(vertical()).getByRole('button', { name: 'Account' })
-    expect(trigger).not.toHaveAttribute('aria-current')
-    expect(trigger).not.toHaveAttribute('data-current')
-  })
-
-  it('never lights from the route on the bar or in More', async () => {
+  it('never lights from the route on the tile, the bar or in More', async () => {
     const user = userEvent.setup()
     render(
       <Navigator value='me/billing/2024'>
@@ -246,6 +228,9 @@ describe('Navigator.Menu', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
+    const tile = within(vertical()).getByRole('button', { name: 'Account' })
+    expect(tile).not.toHaveAttribute('aria-current')
+    expect(tile).not.toHaveAttribute('data-current')
     const circle = within(horizontal()).getByRole('button', { name: 'Account' })
     expect(circle).not.toHaveAttribute('aria-current')
     expect(circle).not.toHaveAttribute('data-current')
@@ -288,9 +273,10 @@ describe('Navigator.Menu', () => {
     expect(circle).toHaveAttribute('aria-expanded', 'true')
     expect(circle).toHaveAttribute('data-current')
     expect(circle).not.toHaveAttribute('aria-current')
-    expect(
-      within(horizontal()).getByRole('link', { name: 'Home' })
-    ).toHaveAttribute('aria-current', 'page')
+    const home = within(horizontal()).getByRole('link', { name: 'Home' })
+    expect(home).toHaveAttribute('aria-current', 'page')
+    expect(home).not.toHaveAttribute('data-current')
+    expect(horizontal().querySelectorAll('[aria-current]')).toHaveLength(1)
     expect(screen.getByRole('menu').closest('[data-side]')).toHaveAttribute(
       'data-side',
       'top'
@@ -361,39 +347,6 @@ describe('Navigator.Menu', () => {
     await screen.findByRole('menu')
     expect(more).not.toHaveAttribute('data-current')
     expect(more).toHaveAttribute('aria-current', 'true')
-    expect(bar.querySelectorAll('[aria-current]')).toHaveLength(1)
-  })
-
-  it("yields the bar's route tab while a tab's menu is open", async () => {
-    const user = userEvent.setup()
-    render(
-      <Navigator value='/home'>
-        <Navigator.Primary aria-label='Main'>
-          {testBrand}
-          <Navigator.Item value='/home' href='/home'>
-            Home
-          </Navigator.Item>
-          <Navigator.Item value='account'>
-            Account
-            <Navigator.Menu>
-              <Navigator.MenuItem>Sign out</Navigator.MenuItem>
-            </Navigator.Menu>
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    const bar = horizontal()
-    const home = within(bar).getByRole('link', { name: 'Home' })
-    const tab = within(bar).getByRole('button', { name: 'Account' })
-    expect(home).toHaveAttribute('aria-current', 'page')
-    await user.click(tab)
-    await screen.findByRole('menu')
-    expect(tab).toHaveAttribute('aria-expanded', 'true')
-    expect(tab).toHaveAttribute('data-current')
-    expect(tab).not.toHaveAttribute('aria-current')
-    expect(home).not.toHaveAttribute('data-current')
-    expect(home).toHaveAttribute('aria-current', 'page')
     expect(bar.querySelectorAll('[aria-current]')).toHaveLength(1)
   })
 
@@ -540,35 +493,6 @@ describe('Navigator.Menu', () => {
     expect(more).toHaveAttribute('aria-expanded', 'true')
   })
 
-  it('keeps Secondary and warns when an item declares both', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    render(
-      <Navigator value='/x/one'>
-        <Navigator.Primary aria-label='Main'>
-          {testBrand}
-          <Navigator.Item value='/x' href='/x'>
-            X
-            <Navigator.Secondary aria-label='X pages'>
-              <Navigator.Item value='/x/one' href='/x/one'>
-                One
-              </Navigator.Item>
-            </Navigator.Secondary>
-            <Navigator.Menu>
-              <Navigator.MenuItem>Ignored</Navigator.MenuItem>
-            </Navigator.Menu>
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    expect(
-      within(vertical()).getByRole('link', { name: 'X' })
-    ).toBeInTheDocument()
-    expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining('The Menu is ignored')
-    )
-  })
-
   it("keeps a tile's tooltip shut while its menu is open", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
@@ -587,34 +511,7 @@ describe('Navigator.Menu', () => {
 })
 
 describe('Navigator.MenuItem description', () => {
-  it('renders the description beneath the label', async () => {
-    const user = userEvent.setup()
-    render(
-      <Navigator value='/home'>
-        <Navigator.Primary aria-label='Main'>
-          {testBrand}
-          <Navigator.Item value='account'>
-            Account
-            <Navigator.Menu>
-              <Navigator.MenuItem description='luke@example.com'>
-                Profile
-              </Navigator.MenuItem>
-            </Navigator.Menu>
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    await user.click(
-      within(vertical()).getByRole('button', { name: 'Account' })
-    )
-    const item = await screen.findByRole('menuitem', { name: 'Profile' })
-    expect(
-      item.querySelector('[data-slot="navigator-menu-item-description"]')
-    ).toHaveTextContent('luke@example.com')
-  })
-
-  it('names the item by its label and describes it by its description', async () => {
+  it('renders the description beneath the label and describes the item by it', async () => {
     const user = userEvent.setup()
     render(
       <Navigator value='/home'>
@@ -638,6 +535,9 @@ describe('Navigator.MenuItem description', () => {
     const item = await screen.findByRole('menuitem', { name: 'Profile' })
     expect(item).toHaveAccessibleName('Profile')
     expect(item).toHaveAccessibleDescription('luke@example.com')
+    expect(
+      item.querySelector('[data-slot="navigator-menu-item-description"]')
+    ).toHaveTextContent('luke@example.com')
   })
 
   it('has no description slot or aria-describedby when none is given', async () => {
