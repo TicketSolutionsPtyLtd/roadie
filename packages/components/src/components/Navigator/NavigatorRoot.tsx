@@ -264,13 +264,19 @@ export function NavigatorRoot({
       activeSection.root === 'page' && isActiveValue(activeSection.value, value)
     )
 
-  // Read at tap time from what the stack already published; level 0 skips nested Navigators.
-  const scrollActivePaneToTop = () =>
+  // Read at tap time from what the stack published. The first row is this
+  // Navigator's own; its level skips the panes of any Navigator nested in it.
+  // A pane portalled out of the row isn't reached, but the stack can't lay it out either.
+  const scrollActivePaneToTop = () => {
+    const row = rootRef.current?.querySelector<HTMLElement>(
+      '[data-slot="navigator-panes"]'
+    )
     scrollToTop(
-      rootRef.current?.querySelector(
-        '[data-stack][data-level="0"][data-stack-position="top"] [data-slot="pane-viewport"]'
+      row?.querySelector(
+        `[data-stack][data-level="${row.dataset.level}"][data-stack-position="top"] [data-slot="pane-viewport"]`
       )
     )
+  }
 
   const handlesShowList = onShowListChange !== undefined
   const actions: NavigatorActions = {
