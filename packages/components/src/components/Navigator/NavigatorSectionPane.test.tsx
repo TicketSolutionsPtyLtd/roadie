@@ -299,7 +299,7 @@ describe('section pane search', () => {
     return {
       user,
       pane,
-      root: pane.querySelector<HTMLElement>('[data-slot="navigator-search"]')!,
+      root: pane.querySelector<HTMLElement>('[data-slot="pane-search"]')!,
       field: within(pane).getByRole('searchbox', { name: 'Search components' }),
       cancel: within(pane).getByRole('button', { name: 'Cancel search' })
     }
@@ -307,11 +307,11 @@ describe('section pane search', () => {
 
   it('is a full-size pill, at 16px so iOS never zooms it, led by a hidden magnifying glass', async () => {
     const { field, root } = await search()
-    const icon = root.querySelector('[data-slot="navigator-search-icon"]')
+    const icon = root.querySelector('[data-slot="pane-search-icon"]')
     expect(icon?.tagName.toLowerCase()).toBe('svg')
     expect(icon).toHaveAttribute('aria-hidden', 'true')
     expect(icon).toHaveClass('size-5', 'text-subtle')
-    expect(field).toHaveAttribute('data-slot', 'navigator-search-field')
+    expect(field).toHaveAttribute('data-slot', 'pane-search-field')
     expect(field).toHaveAttribute('placeholder', 'Search')
     expect(field).toHaveClass(
       'h-12',
@@ -331,7 +331,7 @@ describe('section pane search', () => {
   it('hides Cancel until focus is inside the search', async () => {
     const { user, root, field, cancel } = await search()
     const slot = cancel.parentElement!
-    expect(slot).toHaveAttribute('data-slot', 'navigator-search-cancel-slot')
+    expect(slot).toHaveAttribute('data-slot', 'pane-search-cancel-slot')
     expect(slot).toHaveClass(
       'invisible',
       'opacity-0',

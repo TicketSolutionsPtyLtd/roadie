@@ -388,30 +388,3 @@ export const navigatorMenuItemClass = [
   'flex cursor-default items-center gap-2 rounded-lg px-3 py-2 text-sm text-normal outline-none select-none',
   'data-[highlighted]:bg-subtle'
 ].join(' ')
-
-// Flex: the field takes what Cancel leaves as it opens.
-export const navigatorSearchClass = 'group/search flex items-center'
-
-export const navigatorSearchBoxClass = 'relative grid min-w-0 flex-1'
-
-// The capsules' surface, keeping the field's hover, focus and ring. Opaque,
-// because the header it sits in already blurs. The browser's own clear button
-// would be a second ✕ beside Cancel.
-export const navigatorSearchFieldClass = [
-  'rounded-full bg-raised emphasis-raised ps-11 pe-4',
-  'placeholder:text-subtler [&::-webkit-search-cancel-button]:appearance-none'
-].join(' ')
-
-export const navigatorSearchIconClass =
-  'pointer-events-none absolute start-4 top-1/2 size-5 -translate-y-1/2 text-subtle'
-
-// Opens while focus is anywhere in the search, so tabbing from the field
-// reaches it. Cancel is pinned to the end, so the slot's width reveals it
-// over the field's end rather than overflowing the pane.
-export const navigatorSearchCancelSlotClass = [
-  'relative h-12 w-0 ms-0 invisible scale-75 opacity-0',
-  'group-focus-within/search:visible group-focus-within/search:ms-2 group-focus-within/search:w-12 group-focus-within/search:scale-100 group-focus-within/search:opacity-100',
-  'motion-safe:transition-[width,margin,scale,opacity,visibility] motion-safe:transition-discrete motion-safe:duration-moderate motion-safe:ease-standard motion-reduce:transition-none'
-].join(' ')
-
-export const navigatorSearchCancelClass = 'absolute end-0 top-0 emphasis-raised'
