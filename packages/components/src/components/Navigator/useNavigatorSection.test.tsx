@@ -1,9 +1,8 @@
 import { type ReactNode, StrictMode } from 'react'
 
-import { act, render, screen } from '@testing-library/react'
-import { type Root, hydrateRoot } from 'react-dom/client'
+import { render, screen } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { Navigator } from '.'
 import { Badge } from '../Badge'
@@ -11,8 +10,6 @@ import { Pane } from '../Pane'
 import type { NavigatorSectionData } from './sectionData'
 import { FakeIcon, flushViewportMeasurement, testBrand } from './testUtils'
 import { useNavigatorSection } from './useNavigatorSection'
-
-const Wrapper = ({ children }: { children: ReactNode }) => <>{children}</>
 
 const badge = <Badge>New</Badge>
 
@@ -40,15 +37,11 @@ function Probe({
 function Docs({
   value,
   probeValue,
-  log,
-  wrapPrimary = false,
-  primaryShown = true
+  log
 }: {
   value: string
   probeValue?: string
   log: (NavigatorSectionData | null)[]
-  wrapPrimary?: boolean
-  primaryShown?: boolean
 }) {
   const primary = (
     <Navigator.Primary aria-label='Docs'>
@@ -95,7 +88,7 @@ function Docs({
   )
   return (
     <Navigator value={value}>
-      {primaryShown && (wrapPrimary ? <Wrapper>{primary}</Wrapper> : primary)}
+      {primary}
       <Navigator.Content>
         <Pane role='detail' current>
           <Probe value={probeValue} log={log} />
@@ -178,122 +171,37 @@ describe('useNavigatorSection', () => {
       '/overview/installation /overview/philosophy* /migration'
     )
   })
-
-  it('hydrates with a wrapped Primary: null on the server and first client render, then the section', async () => {
-    const ui = (log: (NavigatorSectionData | null)[]) => (
-      <StrictMode>
-        <Docs value='/overview/philosophy' log={log} wrapPrimary />
-      </StrictMode>
-    )
-    const serverLog: (NavigatorSectionData | null)[] = []
-    const host = document.createElement('div')
-    host.innerHTML = renderToString(ui(serverLog))
-    document.body.appendChild(host)
-    expect(serverLog.every((data) => data === null)).toBe(true)
-    expect(host.querySelector('[data-testid="probe"]')).toHaveTextContent(
-      'none'
-    )
-    const log: (NavigatorSectionData | null)[] = []
-    const error = vi.spyOn(console, 'error')
-    const recoverable = vi.fn()
-    let root: Root | null = null
-    try {
-      await act(async () => {
-        root = hydrateRoot(host, ui(log), { onRecoverableError: recoverable })
-      })
-      await flushViewportMeasurement()
-      expect(recoverable).not.toHaveBeenCalled()
-      expect(error).not.toHaveBeenCalled()
-      expect(log[0]).toBeNull()
-      expect(log.at(-1)).toMatchObject({ value: '/' })
-      expect(host.querySelector('[data-testid="probe"]')).toHaveTextContent(
-        '/overview/philosophy*'
-      )
-    } finally {
-      act(() => root?.unmount())
-      host.remove()
-      error.mockRestore()
-    }
-  })
-
-  it('follows a value change after mount with a wrapped Primary', async () => {
-    const log: (NavigatorSectionData | null)[] = []
-    const { rerender } = render(
-      <Docs value='/overview/philosophy' log={log} wrapPrimary />
-    )
-    await flushViewportMeasurement()
-    expect(log.at(-1)).toMatchObject({ value: '/' })
-    rerender(<Docs value='/components/button' log={log} wrapPrimary />)
-    await flushViewportMeasurement()
-    expect(log.at(-1)).toMatchObject({ value: '/components' })
-  })
-
-  it('clears the section when a wrapped Primary unmounts', async () => {
-    const log: (NavigatorSectionData | null)[] = []
-    const { rerender } = render(
-      <StrictMode>
-        <Docs value='/overview/philosophy' log={log} wrapPrimary />
-      </StrictMode>
-    )
-    await flushViewportMeasurement()
-    expect(log.at(-1)).toMatchObject({ value: '/' })
-    rerender(
-      <StrictMode>
-        <Docs
-          value='/overview/philosophy'
-          log={log}
-          wrapPrimary
-          primaryShown={false}
-        />
-      </StrictMode>
-    )
-    await flushViewportMeasurement()
-    expect(log.at(-1)).toBeNull()
-  })
 })
 
-describe('useNavigatorSection in the component that wraps Primary', () => {
-  function AppNav({
+describe('useNavigatorSection when the declaration changes', () => {
+  const App = ({
     badgeText,
     log
   }: {
     badgeText: string
     log: (NavigatorSectionData | null)[]
-  }) {
-    log.push(useNavigatorSection())
-    return (
-      <Navigator.Primary aria-label='Docs'>
-        {testBrand}
-        <Navigator.Item value='/' href='/' icon={<FakeIcon />}>
-          Home
-          <Navigator.Secondary aria-label='Home pages' root='page'>
-            <Navigator.Item
-              value='/overview/installation'
-              href='/overview/installation'
-              icon={<FakeIcon />}
-              badge={<Badge>{badgeText}</Badge>}
-            >
-              Installation
-            </Navigator.Item>
-          </Navigator.Secondary>
-        </Navigator.Item>
-      </Navigator.Primary>
-    )
-  }
-
-  const App = ({
-    badgeText = 'New',
-    log
-  }: {
-    badgeText?: string
-    log: (NavigatorSectionData | null)[]
   }) => (
     <StrictMode>
       <Navigator value='/overview/installation'>
-        <AppNav badgeText={badgeText} log={log} />
+        <Navigator.Primary aria-label='Docs'>
+          {testBrand}
+          <Navigator.Item value='/' href='/' icon={<FakeIcon />}>
+            Home
+            <Navigator.Secondary aria-label='Home pages' root='page'>
+              <Navigator.Item
+                value='/overview/installation'
+                href='/overview/installation'
+                icon={<FakeIcon />}
+                badge={<Badge>{badgeText}</Badge>}
+              >
+                Installation
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        </Navigator.Primary>
         <Navigator.Content>
           <Pane role='detail' current>
-            Detail
+            <Probe log={log} />
           </Pane>
         </Navigator.Content>
       </Navigator>
@@ -304,20 +212,9 @@ describe('useNavigatorSection in the component that wraps Primary', () => {
     (data?.groups[0]?.items[0]?.badge?.props as { children?: ReactNode })
       ?.children
 
-  it('settles instead of republishing fresh children forever', async () => {
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-    const log: (NavigatorSectionData | null)[] = []
-    render(<App log={log} />)
-    await flushViewportMeasurement()
-    expect(error).not.toHaveBeenCalled()
-    error.mockRestore()
-    expect(log.at(-1)).toMatchObject({ value: '/', href: '/' })
-    expect(log.length).toBeLessThan(20)
-  })
-
   it('updates when the structure changes, such as a badge text', async () => {
     const log: (NavigatorSectionData | null)[] = []
-    const { rerender } = render(<App log={log} />)
+    const { rerender } = render(<App badgeText='New' log={log} />)
     await flushViewportMeasurement()
     expect(badgeTextOf(log.at(-1))).toBe('New')
     rerender(<App badgeText='Updated' log={log} />)

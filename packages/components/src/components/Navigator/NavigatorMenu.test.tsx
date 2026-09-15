@@ -616,9 +616,9 @@ describe('folded rows stay current', () => {
     )
   }
 
-  const app = (count: number, seen: number[], wrapped: boolean) => (
+  const app = (count: number, seen: number[]) => (
     <Navigator value='/a'>
-      {wrapped ? <Folded count={count} seen={seen} /> : Folded({ count, seen })}
+      {Folded({ count, seen })}
       <Navigator.Content />
     </Navigator>
   )
@@ -628,47 +628,34 @@ describe('folded rows stay current', () => {
       '[data-slot="navigator-overflow-items"]:not(.max-md\\:hidden)'
     )!
 
-  it.each([
-    ['wrapped', true],
-    ['direct', false]
-  ])("updates a folded item's badge (%s Primary)", async (_, wrapped) => {
+  it("updates a folded item's badge", async () => {
     const user = userEvent.setup()
-    const { rerender } = render(app(1, [], wrapped))
+    const { rerender } = render(app(1, []))
     await flushViewportMeasurement()
     await user.click(within(horizontal()).getByRole('button', { name: 'More' }))
     const inbox = within(morePane()).getByRole('link', { name: /Inbox/ })
     expect(inbox).toHaveTextContent('1')
-    rerender(app(7, [], wrapped))
+    rerender(app(7, []))
     await flushViewportMeasurement()
     expect(
       within(morePane()).getByRole('link', { name: /Inbox/ })
     ).toHaveTextContent('7')
   })
 
-  it.each([
-    ['wrapped', true],
-    ['direct', false]
-  ])(
-    "calls a folded menu item's current onClick (%s Primary)",
-    async (_, wrapped) => {
-      const user = userEvent.setup()
-      const seen: number[] = []
-      const { rerender } = render(app(0, seen, wrapped))
-      await flushViewportMeasurement()
-      rerender(app(1, seen, wrapped))
-      rerender(app(2, seen, wrapped))
-      await flushViewportMeasurement()
-      await user.click(
-        within(horizontal()).getByRole('button', { name: 'More' })
-      )
-      await user.click(
-        within(morePane()).getByRole('button', { name: 'Account' })
-      )
-      await user.click(
-        await screen.findByRole('menuitem', { name: 'Sign out' })
-      )
-      await waitForMenuToClose()
-      expect(seen).toEqual([2])
-    }
-  )
+  it("calls a folded menu item's current onClick", async () => {
+    const user = userEvent.setup()
+    const seen: number[] = []
+    const { rerender } = render(app(0, seen))
+    await flushViewportMeasurement()
+    rerender(app(1, seen))
+    rerender(app(2, seen))
+    await flushViewportMeasurement()
+    await user.click(within(horizontal()).getByRole('button', { name: 'More' }))
+    await user.click(
+      within(morePane()).getByRole('button', { name: 'Account' })
+    )
+    await user.click(await screen.findByRole('menuitem', { name: 'Sign out' }))
+    await waitForMenuToClose()
+    expect(seen).toEqual([2])
+  })
 })

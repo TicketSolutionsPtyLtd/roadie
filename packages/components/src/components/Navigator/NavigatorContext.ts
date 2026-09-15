@@ -41,8 +41,7 @@ export type NavigatorActions = {
   setPinExpanded: (next: boolean) => void
   scrollActivePaneToTop: () => void
   registerActivePaneScroller: (scroller: () => void) => () => void
-  setPrimaryChildren: (next: ReactNode) => void
-  /** Root read the Primary's children during render, so Primary needn't publish them. */
+  /** Root found a direct-child Primary and reads its children. */
   primaryDerived: boolean
   /** Calls the current `onClick` of the item with this `value`, read at click time. */
   activateItem: (value: string) => void
@@ -76,7 +75,7 @@ export type NavigatorActions = {
 /** What is selected, and the section it belongs to. */
 export type NavigatorSelection = {
   value: string | undefined
-  /** A direct-child Primary's children, or those a wrapped Primary published; a new identity only when their structure changes. */
+  /** The direct-child Primary's children; a new identity only when their structure changes. */
   primaryChildren: ReactNode
   /** The branch-active section, walked from `primaryChildren`. */
   activeSection: NavigatorActiveSection | null
@@ -124,7 +123,6 @@ export const NavigatorActionsContext = createContext<NavigatorActions>({
   setPinExpanded: noop,
   scrollActivePaneToTop: noop,
   registerActivePaneScroller: () => noop,
-  setPrimaryChildren: noop,
   primaryDerived: false,
   activateItem: noop,
   activateMenuItem: noop,

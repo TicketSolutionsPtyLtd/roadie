@@ -152,19 +152,7 @@ export function NavigatorRoot({
   const [navCollapsed, setNavCollapsed] = useState(false)
   const [primaryNav, setPrimaryNav] = useState<PanePrimaryNav>('auto')
   const [pinExpanded, setPinExpanded] = useState(false)
-  const [published, setPublished] = useState<{
-    signature: string
-    children: ReactNode
-  }>({ signature: '', children: null })
   const latestPrimaryChildren = useRef<ReactNode>(null)
-  // A wrapper reading this context re-renders Primary with fresh elements; republishing them loops.
-  const setPrimaryChildren = (next: ReactNode) => {
-    latestPrimaryChildren.current = next
-    const signature = primarySignature(next)
-    setPublished((current) =>
-      current.signature === signature ? current : { signature, children: next }
-    )
-  }
   const moreControlled = showMore !== undefined
   const [uncontrolledMore, setUncontrolledMore] = useState(false)
   // The app kept More open across a new destination; hidden until it answers.
@@ -241,22 +229,19 @@ export function NavigatorRoot({
   // structure republishes, so nothing derived from them changes identity.
   const derivedChildren = primary?.props.children
   const derivedSignature = useMemo(
-    () => (primaryDerived ? primarySignature(derivedChildren) : ''),
-    [primaryDerived, derivedChildren]
+    () => primarySignature(derivedChildren),
+    [derivedChildren]
   )
   const [derived, setDerived] = useState({
     signature: derivedSignature,
     children: derivedChildren
   })
-  if (primaryDerived && derived.signature !== derivedSignature) {
+  if (derived.signature !== derivedSignature) {
     setDerived({ signature: derivedSignature, children: derivedChildren })
   }
   // During render, not from Primary's effect, so the server renders the section's list pane.
-  const primaryChildren = !primaryDerived
-    ? published.children
-    : derived.signature === derivedSignature
-      ? derived.children
-      : derivedChildren
+  const primaryChildren =
+    derived.signature === derivedSignature ? derived.children : derivedChildren
   // Keyed on which section is active, so moving between its rows keeps its identity.
   const activeSectionValue = useMemo(
     () => findActiveSection(primaryChildren, value)?.value ?? null,
@@ -270,8 +255,8 @@ export function NavigatorRoot({
     [primaryChildren, activeSectionValue]
   )
   useIsomorphicLayoutEffect(() => {
-    if (primaryDerived) latestPrimaryChildren.current = derivedChildren
-  }, [primaryDerived, derivedChildren])
+    latestPrimaryChildren.current = derivedChildren
+  }, [derivedChildren])
   const activateItem = useCallback((itemValue: string) => {
     findItem(latestPrimaryChildren.current, itemValue)?.onClick?.()
   }, [])
@@ -308,7 +293,6 @@ export function NavigatorRoot({
     setPinExpanded,
     scrollActivePaneToTop,
     registerActivePaneScroller,
-    setPrimaryChildren,
     primaryDerived,
     activateItem,
     activateMenuItem,

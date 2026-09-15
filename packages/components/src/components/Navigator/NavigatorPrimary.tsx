@@ -80,7 +80,6 @@ export function NavigatorPrimary({
 }: NavigatorPrimaryProps) {
   const {
     setValue,
-    setPrimaryChildren,
     primaryDerived,
     setNavCollapsed,
     setPinExpanded,
@@ -153,15 +152,10 @@ export function NavigatorPrimary({
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [overflowOpen, openMenu, setOverflowOpen, overflowOpenerRef])
 
-  // Root reads a direct child's children itself; only a wrapped Primary has to publish them.
-  useEffect(() => {
-    if (!primaryDerived) setPrimaryChildren(children)
-  }, [primaryDerived, children, setPrimaryChildren])
-  // Separate from the publish: merged, StrictMode's clear-then-publish loops.
-  useEffect(() => {
-    if (primaryDerived) return
-    return () => setPrimaryChildren(null)
-  }, [primaryDerived, setPrimaryChildren])
+  useDevWarning(
+    !primaryDerived &&
+      '[Roadie] Navigator.Primary must be a direct child of Navigator; sections and More need it there.'
+  )
 
   useDevWarning(
     collected.hasStrayChild &&
