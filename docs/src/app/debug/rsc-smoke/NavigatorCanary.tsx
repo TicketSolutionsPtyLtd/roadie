@@ -13,8 +13,8 @@ export function NavigatorCanary() {
   const ref = useRef<HTMLDivElement>(null)
   const [failure, setFailure] = useState<Error | null>(null)
 
-  // A timeout, not the effect itself: the section pane mounts a commit after
-  // Navigator.Primary publishes the active section.
+  // A timeout, not the effect itself, so anything the children render after
+  // their first commit is in the DOM before the check.
   useEffect(() => {
     const id = setTimeout(() => {
       const missing = [
