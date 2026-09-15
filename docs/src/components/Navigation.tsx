@@ -24,6 +24,7 @@ import {
 } from '@phosphor-icons/react'
 
 import type { CatalogueCategory } from '@/lib/page-manifest'
+import { relatedLinks } from '@/lib/token-families'
 
 import { Drawer, IconButton, Navigator, Pane } from '@oztix/roadie-components'
 import { serializeNavigatorExpandedCookie } from '@oztix/roadie-core/navigator'
@@ -37,6 +38,7 @@ import {
   useNavQuery
 } from './NavQueryFlag'
 import { type DocHeadings, OnThisPage, useDocHeadings } from './OnThisPage'
+import { RelatedLinks } from './RelatedLinks'
 
 export type NavigationItem = {
   title: string
@@ -174,6 +176,7 @@ export function DocsNavigator({
     [pushFlag]
   )
 
+  const related = relatedLinks(pathname)
   const toc = useDocHeadings()
   const showInspector = toc.headings.length >= 2
 
@@ -303,6 +306,9 @@ export function DocsNavigator({
                 <Pane.BodyTitle className='mb-6 text-display-prose-1'>
                   {pageTitles[pathname]}
                 </Pane.BodyTitle>
+              ) : null}
+              {related ? (
+                <RelatedLinks {...related} className='-mt-3 mb-6' />
               ) : null}
               {children}
               <FooterNav items={items} />
