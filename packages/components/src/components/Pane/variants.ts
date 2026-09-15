@@ -1,7 +1,5 @@
 import { cva } from 'class-variance-authority'
 
-import { fieldSurfaceClass } from '../../variants'
-
 export type PaneRole = 'list' | 'detail' | 'inspector'
 export type PaneEmphasis = 'raised' | 'normal' | 'subtle' | 'subtler'
 export type PanePrimaryNav = 'visible' | 'auto' | 'hidden'
@@ -236,11 +234,28 @@ export const paneActionsClass = [
   'justify-self-end'
 ].join(' ')
 
-export const paneSearchClass = [
-  fieldSurfaceClass,
-  'h-9 w-full rounded-lg px-3',
-  'text-sm placeholder:text-subtler'
+// Flex: the field takes what Cancel leaves as it opens.
+export const paneSearchClass = 'group/search flex items-center'
+
+export const paneSearchBoxClass = 'relative grid min-w-0 flex-1'
+
+// Opaque: the header already blurs. The native clear button would be a second ✕ beside Cancel.
+export const paneSearchFieldClass = [
+  'rounded-full bg-raised emphasis-raised ps-11 pe-4',
+  'placeholder:text-subtler [&::-webkit-search-cancel-button]:appearance-none'
 ].join(' ')
+
+export const paneSearchIconClass =
+  'pointer-events-none absolute start-4 top-1/2 size-5 -translate-y-1/2 text-subtle'
+
+// Opens while focus is in the search, so Tab reaches Cancel.
+export const paneSearchCancelSlotClass = [
+  'relative h-12 w-0 ms-0 invisible scale-75 opacity-0',
+  'group-focus-within/search:visible group-focus-within/search:ms-2 group-focus-within/search:w-12 group-focus-within/search:scale-100 group-focus-within/search:opacity-100',
+  'motion-safe:transition-[width,margin,scale,opacity,visibility] motion-safe:transition-discrete motion-safe:duration-moderate motion-safe:ease-standard motion-reduce:transition-none'
+].join(' ')
+
+export const paneSearchCancelClass = 'absolute end-0 top-0 emphasis-raised'
 
 export const paneFooterClass = [
   'sticky bottom-0 z-sticky',

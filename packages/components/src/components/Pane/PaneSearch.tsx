@@ -1,43 +1,97 @@
-import type { ComponentProps } from 'react'
+'use client'
+
+import { useRef } from 'react'
+
+import { MagnifyingGlassIcon, XIcon } from '@phosphor-icons/react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { paneSearchClass } from './variants'
+import { IconButton } from '../Button/IconButton'
+import { Input } from '../Input'
+import {
+  paneSearchBoxClass,
+  paneSearchCancelClass,
+  paneSearchCancelSlotClass,
+  paneSearchClass,
+  paneSearchFieldClass,
+  paneSearchIconClass
+} from './variants'
 
-export type PaneSearchProps = Omit<
-  ComponentProps<'input'>,
-  'onChange' | 'value' | 'type'
-> & {
+export type PaneSearchProps = {
   value: string
   onValueChange: (next: string) => void
+  /** Names the field; defaults to the placeholder. */
+  'aria-label'?: string
+  /** @default 'Search' */
+  placeholder?: string
+  className?: string
 }
 
-/**
- * Search field styled for a pane header.
- *
- * Deliberately carries no filtering behaviour: filtering a pane's list is a
- * plain `.filter()` on the consumer's own data. The predicate registry this
- * replaces existed only because filtered-out rows had to stay declared to keep
- * navigation state alive — a constraint that no longer exists.
- */
+/** A search field for a pane header, with a Cancel that shows while it has focus. Filter your own data. */
 export function PaneSearch({
-  className,
   value,
   onValueChange,
-  placeholder,
-  ...props
+  'aria-label': ariaLabel,
+  placeholder = 'Search',
+  className
 }: PaneSearchProps) {
+  const rootRef = useRef<HTMLDivElement>(null)
+
+  const cancel = () => {
+    onValueChange('')
+    const focused = document.activeElement
+    if (focused instanceof HTMLElement && rootRef.current?.contains(focused)) {
+      focused.blur()
+    }
+  }
+
   return (
-    <input
-      type='search'
+    <div
+      ref={rootRef}
       data-slot='pane-search'
-      aria-label={placeholder}
-      placeholder={placeholder}
-      value={value}
-      onChange={(event) => onValueChange(event.target.value)}
       className={cn(paneSearchClass, className)}
-      {...props}
-    />
+    >
+      <div data-slot='pane-search-box' className={paneSearchBoxClass}>
+        <Input
+          type='search'
+          size='lg'
+          emphasis='subtle'
+          data-slot='pane-search-field'
+          aria-label={ariaLabel ?? placeholder}
+          placeholder={placeholder}
+          value={value}
+          onChange={(event) => onValueChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key !== 'Escape') return
+            event.preventDefault()
+            cancel()
+          }}
+          className={paneSearchFieldClass}
+        />
+        <MagnifyingGlassIcon
+          aria-hidden
+          weight='bold'
+          data-slot='pane-search-icon'
+          className={paneSearchIconClass}
+        />
+      </div>
+      <div
+        data-slot='pane-search-cancel-slot'
+        className={paneSearchCancelSlotClass}
+      >
+        <IconButton
+          data-slot='pane-search-cancel'
+          aria-label='Cancel search'
+          size='lg'
+          className={paneSearchCancelClass}
+          // Keeps focus in the field, so Cancel is still showing when the click lands.
+          onPointerDown={(event) => event.preventDefault()}
+          onClick={cancel}
+        >
+          <XIcon aria-hidden weight='bold' className='size-5' />
+        </IconButton>
+      </div>
+    </div>
   )
 }
 
