@@ -143,11 +143,7 @@ export const paneHeaderVariants = cva(
 )
 
 // Back and Close share the leading cell; the stylesheet draws at most one.
-const paneHeaderEdgeCellClasses = 'col-start-1 row-start-1 justify-self-start'
-
-export const paneHeaderBackVariants = cva([paneHeaderEdgeCellClasses])
-
-export const paneHeaderCloseVariants = cva([paneHeaderEdgeCellClasses])
+export const paneHeaderEdgeClass = 'col-start-1 row-start-1 justify-self-start'
 
 // The large title fades and scales while its row closes underneath.
 // Transitioning `grid-template-rows` and `margin-top` is deliberate: transforms

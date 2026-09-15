@@ -2,8 +2,6 @@
 
 import { type RefObject, use } from 'react'
 
-import { cn } from '@oztix/roadie-core/utils'
-
 import {
   NavigatorDisclosureContext,
   NavigatorSelectionContext
@@ -20,7 +18,6 @@ export type NavigatorIndicatorProps = {
   surface: NavigatorIndicatorSurface
   /** Suppress without unmounting, e.g. while the tab bar is collapsed. */
   hidden?: boolean
-  className?: string
 }
 
 /**
@@ -30,8 +27,7 @@ export type NavigatorIndicatorProps = {
 export function NavigatorIndicator({
   trackRef,
   surface,
-  hidden = false,
-  className
+  hidden = false
 }: NavigatorIndicatorProps) {
   const { value } = use(NavigatorSelectionContext)
   const { openMenu, overflowOpen } = use(NavigatorDisclosureContext)
@@ -48,10 +44,7 @@ export function NavigatorIndicator({
       data-ready={String(ready)}
       data-settled={String(settled)}
       style={style}
-      className={cn(
-        navigatorIndicatorVariants({ surface, visible }),
-        className
-      )}
+      className={navigatorIndicatorVariants({ surface, visible })}
     />
   )
 }

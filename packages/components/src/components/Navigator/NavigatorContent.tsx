@@ -65,6 +65,19 @@ const OPEN_MORE: DepthEntry = {
   current: true
 }
 
+// Long enough for the style change to land; a transition, once started, outlives it.
+function flagForTwoFrames(
+  node: Element,
+  name: string,
+  frame: { current: number }
+) {
+  node.setAttribute(name, '')
+  cancelAnimationFrame(frame.current)
+  frame.current = requestAnimationFrame(() => {
+    frame.current = requestAnimationFrame(() => node.removeAttribute(name))
+  })
+}
+
 type Drawn = {
   /** The active section has a list, drawn or displaced by More. */
   rootList: boolean
@@ -125,18 +138,18 @@ export function NavigatorContent({
   // cuts. Set in the commit that changes the stack, as the pane that changed
   // knows first; a transition, once started, outlives the attribute.
   const pushFrame = useRef(0)
+  const instantFrame = useRef(0)
   const markPushing = useCallback(() => {
-    const row = rowRef.current
-    if (!row) return
-    row.setAttribute('data-pushing', '')
-    cancelAnimationFrame(pushFrame.current)
-    pushFrame.current = requestAnimationFrame(() => {
-      pushFrame.current = requestAnimationFrame(() =>
-        row.removeAttribute('data-pushing')
-      )
-    })
+    if (rowRef.current)
+      flagForTwoFrames(rowRef.current, 'data-pushing', pushFrame)
   }, [])
-  useEffect(() => () => cancelAnimationFrame(pushFrame.current), [])
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(pushFrame.current)
+      cancelAnimationFrame(instantFrame.current)
+    },
+    []
+  )
 
   // The Map serves effects, which run before the snapshot re-renders; render
   // reads the snapshot.
@@ -252,13 +265,9 @@ export function NavigatorContent({
       cancelAnimationFrame(pushFrame.current)
       row.removeAttribute('data-pushing')
     }
-    const node = contentRef.current
-    if (!node) return
-    node.setAttribute('data-instant', '')
-    let frame = requestAnimationFrame(() => {
-      frame = requestAnimationFrame(() => node.removeAttribute('data-instant'))
-    })
-    return () => cancelAnimationFrame(frame)
+    if (contentRef.current) {
+      flagForTwoFrames(contentRef.current, 'data-instant', instantFrame)
+    }
   }, [moreOpen, sectionValue])
 
   const topIndex = positions.indexOf('top')
@@ -427,7 +436,7 @@ export function NavigatorContent({
             ref={rowRef}
             data-slot='navigator-panes'
             data-level={level}
-            data-reveal={revealing || moreOpen ? '' : undefined}
+            data-reveal={revealRoot ? '' : undefined}
             data-overflow={moreOpen ? '' : undefined}
             className={navigatorPanesVariants()}
           >
