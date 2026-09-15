@@ -10,7 +10,7 @@ import { PaneSearch } from '../Pane/PaneSearch'
 import { PaneKindContext } from '../Pane/PaneStackContext'
 import { PaneTitle } from '../Pane/PaneTitle'
 import type { NavigatorActiveSection } from './NavigatorContext'
-import { NavigatorSecondaryItems } from './NavigatorSecondaryItems'
+import { NavigatorSectionItems } from './NavigatorSectionItems'
 import { textOf } from './splitSecondary'
 
 // Never `current`: first in the stack, so it is the root.
@@ -40,7 +40,7 @@ export function NavigatorSectionPane({
           aria-label={secondary['aria-label']}
           className={cn('pb-4', secondary.className)}
         >
-          <NavigatorSecondaryItems query={query} />
+          <NavigatorSectionItems descriptions={false} query={query} />
         </nav>
       </PaneRoot>
     </PaneKindContext>
