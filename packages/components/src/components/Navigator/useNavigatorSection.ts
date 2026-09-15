@@ -11,10 +11,8 @@ import { type NavigatorSectionData, toSectionData } from './sectionData'
 
 /** The section with this `value`, or the active one without it. */
 export function useSection(value?: string): NavigatorActiveSection | null {
-  const { primaryChildren, activeSection } = use(NavigatorSelectionContext)
-  return value === undefined
-    ? activeSection
-    : findSectionByValue(primaryChildren, value)
+  const { slots, activeSection } = use(NavigatorSelectionContext)
+  return value === undefined ? activeSection : findSectionByValue(slots, value)
 }
 
 /** A section's declared items — the active section's without a `value` — or null when none is found. */

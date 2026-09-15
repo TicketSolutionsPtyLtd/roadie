@@ -1,122 +1,79 @@
-import {
-  Children,
-  type ReactElement,
-  type ReactNode,
-  isValidElement
-} from 'react'
+import { Children, type ReactElement, isValidElement } from 'react'
 
 import { type NavigatorActiveSection, isBranchActive } from './NavigatorContext'
-import { NavigatorGroup } from './NavigatorGroup'
-import { NavigatorItem, type NavigatorItemProps } from './NavigatorItem'
+import type { NavigatorItemProps } from './NavigatorItem'
 import {
   NavigatorMenuItem,
   type NavigatorMenuItemProps
 } from './NavigatorMenuItem'
-import type { NavigatorSecondaryProps } from './NavigatorSecondary'
-import {
-  secondaryDescendantValues,
-  secondaryItems,
-  splitItemChildren
-} from './splitSecondary'
+import type { CollectedSlots } from './collectSlots'
+import type { NavigatorSlotMeta } from './mobileSlots'
+import { secondaryBlocks } from './splitSecondary'
 
-type SectionMatch = (
-  props: NavigatorItemProps,
-  descendants: () => string[]
-) => boolean
+export const slotsOf = (collected: CollectedSlots) => [
+  ...collected.automatic,
+  ...collected.pinnedSlots
+]
 
-function forEachPrimaryItem(
-  primaryChildren: ReactNode,
-  visit: (props: NavigatorItemProps) => void
-) {
-  Children.forEach(primaryChildren, (child) => {
-    if (!isValidElement(child)) return
-    if (child.type === NavigatorGroup) {
-      const groupProps = child.props as { children?: ReactNode }
-      Children.forEach(groupProps.children, (grandChild) => {
-        if (isValidElement(grandChild) && grandChild.type === NavigatorItem) {
-          visit(grandChild.props as NavigatorItemProps)
-        }
-      })
-      return
-    }
-    if (child.type === NavigatorItem) visit(child.props as NavigatorItemProps)
-  })
-}
-
-function findSection(
-  primaryChildren: ReactNode,
-  matches: SectionMatch
+function sectionWhere(
+  slots: readonly NavigatorSlotMeta[],
+  matches: (slot: NavigatorSlotMeta) => boolean
 ): NavigatorActiveSection | null {
-  let found: NavigatorActiveSection | null = null
-
-  forEachPrimaryItem(primaryChildren, (itemProps) => {
-    if (found !== null) return
-    const { label, secondary } = splitItemChildren(itemProps.children)
-    const [declaration] = secondary
-    if (!isValidElement<NavigatorSecondaryProps>(declaration)) return
-    if (!matches(itemProps, () => secondaryDescendantValues(secondary))) return
-    found = {
-      value: itemProps.value,
-      href: itemProps.href,
-      label,
-      secondary: declaration.props,
-      root:
-        itemProps.href !== undefined && declaration.props.root === 'page'
-          ? 'page'
-          : 'list'
-    }
-  })
-
-  return found
-}
-
-/** The branch-active item with a `Navigator.Secondary`, from Primary's children. */
-export function findActiveSection(
-  primaryChildren: ReactNode,
-  value: string | undefined
-): NavigatorActiveSection | null {
-  return findSection(primaryChildren, (props, descendants) =>
-    isBranchActive(props.value, descendants(), value)
+  const slot = slots.find(
+    (candidate) => candidate.secondary && matches(candidate)
   )
+  if (!slot?.secondary) return null
+  return {
+    value: slot.value,
+    href: slot.declaredHref,
+    label: slot.label,
+    secondary: slot.secondary,
+    root:
+      slot.declaredHref !== undefined && slot.secondary.root === 'page'
+        ? 'page'
+        : 'list'
+  }
 }
+
+/** The branch-active item with a `Navigator.Secondary`. */
+export const findActiveSection = (
+  slots: readonly NavigatorSlotMeta[],
+  value: string | undefined
+) =>
+  sectionWhere(slots, (slot) =>
+    isBranchActive(slot.value, slot.descendants, value)
+  )
 
 /** The item with a `Navigator.Secondary` whose `value` is `itemValue`. */
-export function findSectionByValue(
-  primaryChildren: ReactNode,
+export const findSectionByValue = (
+  slots: readonly NavigatorSlotMeta[],
   itemValue: string
-): NavigatorActiveSection | null {
-  return findSection(primaryChildren, (props) => props.value === itemValue)
-}
+) => sectionWhere(slots, (slot) => slot.value === itemValue)
 
 /** The `Navigator.Item` whose `value` is `itemValue`, in Primary or any Secondary. */
 export function findItem(
-  primaryChildren: ReactNode,
+  slots: readonly NavigatorSlotMeta[],
   itemValue: string
-): NavigatorItemProps | undefined {
-  let found: NavigatorItemProps | undefined
-  forEachPrimaryItem(primaryChildren, (props) => {
-    if (found) return
-    const { secondary } = splitItemChildren(props.children)
-    found = [
-      props,
-      ...secondaryItems(secondary).map((item) => item.props)
-    ].find((candidate) => candidate.value === itemValue)
-  })
-  return found
+): Pick<NavigatorItemProps, 'onClick'> | undefined {
+  for (const slot of slots) {
+    if (slot.value === itemValue) return slot
+    const sub = secondaryBlocks(slot.secondary?.children)
+      .flatMap((block) => block.items)
+      .find((item) => item.props.value === itemValue)
+    if (sub) return sub.props
+  }
+  return undefined
 }
 
-/** The `index`th `Navigator.MenuItem` written directly in the menu of the item whose `value` is `itemValue`. */
+/** The `index`th `Navigator.MenuItem` written directly in that item's menu. */
 export function findMenuItem(
-  primaryChildren: ReactNode,
+  slots: readonly NavigatorSlotMeta[],
   itemValue: string,
   index: number
 ): NavigatorMenuItemProps | undefined {
-  const item = findItem(primaryChildren, itemValue)
-  const menu = item && splitItemChildren(item.children).menu
-  if (!menu) return undefined
-  const menuItems = Children.toArray(menu.props.children).filter(
+  const menu = slots.find((slot) => slot.value === itemValue)?.menu
+  return Children.toArray(menu?.props.children).filter(
     (child): child is ReactElement<NavigatorMenuItemProps> =>
       isValidElement(child) && child.type === NavigatorMenuItem
-  )
-  return menuItems[index]?.props
+  )[index]?.props
 }

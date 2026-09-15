@@ -10,6 +10,7 @@ import { NavigatorExpandToggle } from './NavigatorExpandToggle'
 import { NavigatorGroup, type NavigatorGroupProps } from './NavigatorGroup'
 import { NavigatorGroupTitle } from './NavigatorGroupTitle'
 import { NavigatorItem, type NavigatorItemProps } from './NavigatorItem'
+import type { NavigatorSecondaryProps } from './NavigatorSecondary'
 import type { NavigatorSlotGroup, NavigatorSlotMeta } from './mobileSlots'
 import {
   firstRoutedSecondary,
@@ -64,6 +65,9 @@ export function toSlotMeta(
     topValue:
       props.href !== undefined ? props.value : (landing?.value ?? props.value),
     descendants: secondaryDescendantValues(secondary),
+    secondary: isValidElement<NavigatorSecondaryProps>(secondary[0])
+      ? secondary[0].props
+      : undefined,
     group,
     onClick: props.onClick,
     placement: group?.placement ?? props.placement ?? 'automatic',

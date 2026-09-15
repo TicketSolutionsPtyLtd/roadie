@@ -2,6 +2,7 @@ import type { ReactElement, ReactNode } from 'react'
 
 import type { BadgeProps } from '../Badge'
 import type { NavigatorMenuProps } from './NavigatorMenu'
+import type { NavigatorSecondaryProps } from './NavigatorSecondary'
 
 export const OVERFLOW_LABEL = 'More'
 
@@ -33,6 +34,7 @@ export type NavigatorSlotMeta = {
   topValue: string
   /** Values of the section's `Navigator.Secondary` items, for branch-active. */
   descendants: string[]
+  secondary?: NavigatorSecondaryProps
   group?: NavigatorSlotGroup
   /** The item's `onClick`, called wherever the item is activated. */
   onClick?: () => void

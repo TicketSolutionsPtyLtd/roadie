@@ -13,6 +13,7 @@ import type {
   NavigatorSecondaryProps,
   NavigatorSecondaryRoot
 } from './NavigatorSecondary'
+import type { CollectedSlots } from './collectSlots'
 import type { NavigatorSlotMeta } from './mobileSlots'
 import type { SectionMemory } from './sectionMemory'
 
@@ -76,8 +77,9 @@ export type NavigatorActions = {
 export type NavigatorSelection = {
   value: string | undefined
   /** The direct-child Primary's children; a new identity only when their structure changes. */
-  primaryChildren: ReactNode
-  /** The branch-active section, walked from `primaryChildren`. */
+  collected: CollectedSlots
+  slots: readonly NavigatorSlotMeta[]
+  /** The branch-active section. */
   activeSection: NavigatorActiveSection | null
   /** The active section shows a list pane: not a page-first section on its own route. */
   listPaneShows: boolean
@@ -143,7 +145,16 @@ NavigatorActionsContext.displayName = 'NavigatorActionsContext'
 
 export const NavigatorSelectionContext = createContext<NavigatorSelection>({
   value: undefined,
-  primaryChildren: null,
+  collected: {
+    brand: [],
+    toggles: [],
+    cluster: [],
+    pinned: [],
+    automatic: [],
+    pinnedSlots: [],
+    hasStrayChild: false
+  },
+  slots: [],
   activeSection: null,
   listPaneShows: false,
   showList: false,
