@@ -76,6 +76,14 @@ const persistExpanded = (next: boolean) => {
   document.cookie = serializeNavigatorExpandedCookie(next)
 }
 
+// From the live query, so the page's own params, like the token filters, survive.
+function hrefWithFlag(pathname: string, param: string, on: boolean) {
+  const params = new URLSearchParams(window.location.search)
+  params.delete(param)
+  const search = [params.toString(), on ? param : ''].filter(Boolean).join('&')
+  return search ? `${pathname}?${search}` : pathname
+}
+
 // The nav-form breakpoint, and the natural phone/tablet split for the sheet.
 const TABLET_UP = '(min-width: 48rem)'
 
@@ -156,13 +164,13 @@ export function DocsNavigator({
     (param: string, on: boolean) => {
       if (on) {
         pushedFlags.current.add(param)
-        router.push(`${pathname}?${param}`, { scroll: false })
+        router.push(hrefWithFlag(pathname, param, true), { scroll: false })
         return
       }
       if (pushedFlags.current.delete(param)) {
         router.back()
       } else {
-        router.replace(pathname, { scroll: false })
+        router.replace(hrefWithFlag(pathname, param, false), { scroll: false })
       }
     },
     [router, pathname]
