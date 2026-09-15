@@ -268,18 +268,25 @@ function paneRule(
   return `  ${selector} { ${vars} ${geometry(columns, cell, base + depth, levels, track)} }`
 }
 
+type RowSize = { base: number; levels: number }
+type RowShape = RowSize & { top: number }
+
+const range = (length: number) => Array.from({ length }, (_, index) => index)
+
+const ROW_SIZES: RowSize[] = BASES.flatMap((base) =>
+  levelCounts(base).map((levels) => ({ base, levels }))
+)
+const ROW_SHAPES: RowShape[] = ROW_SIZES.flatMap((size) =>
+  range(size.levels).map((top) => ({ ...size, top }))
+)
+
+const rowRules = (level: number, columns: number, shape: RowShape) =>
+  range(shape.levels).map((depth) =>
+    paneRule(level, columns, shape.levels, shape.top, depth, shape.base)
+  )
+
 function stackRules(level: number): string {
-  const rules: string[] = []
-  for (const base of BASES) {
-    for (const levels of levelCounts(base)) {
-      for (let top = 0; top < levels; top += 1) {
-        for (let depth = 0; depth < levels; depth += 1) {
-          rules.push(paneRule(level, 1, levels, top, depth, base))
-        }
-      }
-    }
-  }
-  return rules.join('\n')
+  return ROW_SHAPES.flatMap((shape) => rowRules(level, 1, shape)).join('\n')
 }
 
 // Grouped by the width each row needs, ascending, so a wider tier's rule comes
@@ -288,18 +295,13 @@ function stackRules(level: number): string {
 function columnRules(level: number): string {
   const tiers = new Map<number, string[]>()
   for (let columns = 2; columns <= PANE_MAX_COLUMNS; columns += 1) {
-    for (const base of BASES) {
-      for (const levels of levelCounts(base)) {
-        if (columns > 2 && levels < columns) continue
-        for (let top = 0; top < levels; top += 1) {
-          const tier = rowTier(columns, top, levels)
-          const rules = tiers.get(tier) ?? []
-          for (let depth = 0; depth < levels; depth += 1) {
-            rules.push(paneRule(level, columns, levels, top, depth, base))
-          }
-          tiers.set(tier, rules)
-        }
-      }
+    for (const shape of ROW_SHAPES) {
+      if (columns > 2 && shape.levels < columns) continue
+      const tier = rowTier(columns, shape.top, shape.levels)
+      tiers.set(tier, [
+        ...(tiers.get(tier) ?? []),
+        ...rowRules(level, columns, shape)
+      ])
     }
   }
   return [...tiers.entries()]
@@ -326,32 +328,24 @@ const HIDDEN = 'display: none !important;'
 
 function inspectorRules(level: number): string {
   const inspector = `[data-role="inspector"][data-level="${level}"]`
-  const rules = [
-    `  ${row(level)}:not([data-overflow]):not(:has([data-stack][data-level="${level}"]:not([data-overflow]))) ${inspector} { ${HIDDEN} }`
-  ]
-  for (const base of BASES) {
-    for (const levels of levelCounts(base)) {
-      rules.push(
+  return [
+    `  ${row(level)}:not([data-overflow]):not(:has([data-stack][data-level="${level}"]:not([data-overflow]))) ${inspector} { ${HIDDEN} }`,
+    ...ROW_SIZES.map(
+      ({ base, levels }) =>
         `@container panes (width < ${rem(inspectorTier(levels))}) { ${row(level)}${baseIs(level, base)}${levelsIs(level, levels, base)} ${inspector} { ${HIDDEN} } }`
-      )
-    }
-  }
-  return rules.join('\n')
+    )
+  ].join('\n')
 }
 
 // `@container panes` finds the nearest Content, so each level reads its own row.
 function inspectorVariant(): string {
-  const branches: string[] = []
-  for (let level = 0; level < PANE_MAX_LEVELS; level += 1) {
+  const branches = range(PANE_MAX_LEVELS).flatMap((level) => {
     const own = level + 1 < PANE_MAX_LEVELS ? `:not(${row(level + 1)} *)` : ''
-    for (const base of BASES) {
-      for (const levels of levelCounts(base)) {
-        branches.push(
-          `  @container panes (width < ${rem(inspectorTier(levels))}) { ${row(level)}${baseIs(level, base)}${levelsIs(level, levels, base)} &${own} { @slot; } }`
-        )
-      }
-    }
-  }
+    return ROW_SIZES.map(
+      ({ base, levels }) =>
+        `  @container panes (width < ${rem(inspectorTier(levels))}) { ${row(level)}${baseIs(level, base)}${levelsIs(level, levels, base)} &${own} { @slot; } }`
+    )
+  })
   return `@custom-variant pane-inspector-yielded {\n${branches.join('\n')}\n}`
 }
 

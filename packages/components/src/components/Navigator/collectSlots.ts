@@ -71,6 +71,24 @@ export function toSlotMeta(
   }
 }
 
+function groupSlots(element: ReactElement<NavigatorGroupProps>, key: string) {
+  const group: NavigatorSlotGroup = {
+    key,
+    placement: element.props.placement ?? 'automatic',
+    priority: element.props.visibilityPriority
+  }
+  const slots: NavigatorSlotMeta[] = []
+  Children.forEach(element.props.children, (child) => {
+    if (!isValidElement(child)) return
+    if (child.type === NavigatorGroupTitle) {
+      group.title = (child.props as { children?: ReactNode }).children
+    } else if (child.type === NavigatorItem) {
+      slots.push(toSlotMeta(child.props as NavigatorItemProps, group))
+    }
+  })
+  return { group, slots }
+}
+
 // Matches by element type, one level into Group — see COMPOUND_PATTERNS.md §1.2.
 export function collectSlots(children: ReactNode): CollectedSlots {
   const result: CollectedSlots = {
@@ -108,20 +126,7 @@ export function collectSlots(children: ReactNode): CollectedSlots {
     }
     if (child.type === NavigatorGroup) {
       const element = child as ReactElement<NavigatorGroupProps>
-      const group: NavigatorSlotGroup = {
-        key: `group-${groupCount++}`,
-        placement: element.props.placement ?? 'automatic',
-        priority: element.props.visibilityPriority
-      }
-      const slots: NavigatorSlotMeta[] = []
-      Children.forEach(element.props.children, (grandChild) => {
-        if (!isValidElement(grandChild)) return
-        if (grandChild.type === NavigatorGroupTitle) {
-          group.title = (grandChild.props as { children?: ReactNode }).children
-        } else if (grandChild.type === NavigatorItem) {
-          slots.push(toSlotMeta(grandChild.props as NavigatorItemProps, group))
-        }
-      })
+      const { group, slots } = groupSlots(element, `group-${groupCount++}`)
       if (slots.length > 0) {
         place({ kind: 'group', element, group, slots }, slots)
       }
