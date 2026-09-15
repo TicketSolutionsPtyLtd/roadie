@@ -52,6 +52,11 @@ subpath needs an entry in `tsdown.config.ts`, and a CSS `@utility` needs its
 class named in `src/css/safelist.html`, or Tailwind purges the definition and
 the compiled sheet comes out empty.
 
+Any change to a token, utility, variant or keyframe in `src/css/` also needs
+`pnpm --filter @oztix/roadie-core generate:tokens`. It rewrites
+`src/tokens/tokens.json`, the docs-only manifest the tokens reference renders
+from, and `src/tokens/manifest.test.ts` fails until the two agree.
+
 ### Components Package (`packages/components/`)
 
 - **Components** live in `packages/components/src/components/`, one folder each,
