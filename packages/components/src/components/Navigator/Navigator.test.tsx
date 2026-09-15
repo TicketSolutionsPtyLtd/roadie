@@ -3031,6 +3031,59 @@ describe('Navigator collapsed edge circles', () => {
     await flushViewportMeasurement()
   })
 
+  it('takes the tabs it scales away out of the tab order until it expands', async () => {
+    const { container } = render(barTree('a'))
+    const bar = within(horizontalOf(container) as HTMLElement)
+    const tabbable = () =>
+      bar
+        .getAllByRole('button')
+        .filter((tab) => tab.tabIndex >= 0)
+        .map(
+          (tab) =>
+            tab.querySelector('[data-slot="navigator-tab-label"]')?.textContent
+        )
+
+    expect(tabbable()).toEqual(['A', 'B', 'C', 'Account'])
+    const pane = await collapse(container)
+    expect(tabbable()).toEqual(['A', 'Account'])
+    expect(bar.getByRole('button', { name: 'B' })).toHaveAttribute(
+      'tabindex',
+      '-1'
+    )
+
+    await scrollTo(pane, 0)
+    expect(tabbable()).toEqual(['A', 'B', 'C', 'Account'])
+    await flushViewportMeasurement()
+  })
+
+  it('takes a menu tab it scales away out of the tab order too', async () => {
+    const { container } = render(
+      <Navigator value='a'>
+        <Navigator.Primary aria-label='Primary'>
+          {testBrand}
+          <Navigator.Item value='a'>A</Navigator.Item>
+          <Navigator.Item value='b'>
+            B
+            <Navigator.Menu>
+              <Navigator.MenuItem>Menu item</Navigator.MenuItem>
+            </Navigator.Menu>
+          </Navigator.Item>
+          <Navigator.Item value='c'>C</Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Pane role='list'>Content</Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await collapse(container)
+    const bar = within(horizontalOf(container) as HTMLElement)
+    expect(bar.getByRole('button', { name: 'B' })).toHaveAttribute(
+      'tabindex',
+      '-1'
+    )
+    await flushViewportMeasurement()
+  })
+
   it('fades the pill surface out on collapse without moving the bar', async () => {
     const { container } = render(barTree('a'))
     const bar = horizontalOf(container) as HTMLElement

@@ -41,7 +41,7 @@ export type NavigatorTabProps = Omit<
   isPage?: boolean
   /** The bar is collapsed on scroll — drives the edge-circle presentation. */
   collapsed?: boolean
-  /** When collapsed, the edge this tab floats to; omitted, it shrinks away but stays in the AT tree. */
+  /** When collapsed, the edge this tab floats to; omitted, it shrinks away and leaves the tab order but stays in the AT tree. */
   circleSide?: NavigatorTabCircleSide
   /** The track column, which a collapsed circle travels from. */
   index: number
@@ -125,6 +125,7 @@ export function NavigatorTab({
     <NavigatorDestination
       {...rest}
       href={href}
+      tabIndex={presentation === 'hidden' ? -1 : undefined}
       circleSide={presentation === 'circle' ? circleSide : undefined}
       style={{ '--navigator-primary-index': String(index) } as CSSProperties}
       ariaCurrent={ariaCurrent}
