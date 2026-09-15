@@ -21,7 +21,7 @@ export type NavigatorExpandToggleProps = {
   className?: string
 }
 
-/** Icon-only; always renders beside `Navigator.Brand`, wherever it is written. */
+/** Icon-only. Renders beside `Navigator.Brand` wherever you write it. */
 export function NavigatorExpandToggle({
   className
 }: NavigatorExpandToggleProps) {

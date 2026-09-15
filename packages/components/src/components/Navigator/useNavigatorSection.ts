@@ -17,7 +17,7 @@ export function useSection(value?: string): NavigatorActiveSection | null {
     : findSectionByValue(collected.ordered, value)
 }
 
-/** A section's declared items — the active section's without a `value` — or null when none is found. */
+/** A section's declared items, or null when none is found. Omit `value` for the active section. */
 export function useNavigatorSection(
   value?: string
 ): NavigatorSectionData | null {

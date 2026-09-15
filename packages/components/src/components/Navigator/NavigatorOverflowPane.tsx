@@ -16,10 +16,7 @@ export type NavigatorOverflowPaneProps = Omit<
   'role' | 'current' | 'depth' | 'primaryNav' | 'id'
 >
 
-/**
- * The More pane: pushed full-screen while stacked, the root column otherwise. Omit it
- * and `Navigator.Content` generates one.
- */
+/** Your own More pane. Without it, `Navigator.Content` generates one. */
 export function NavigatorOverflowPane({
   className,
   children,

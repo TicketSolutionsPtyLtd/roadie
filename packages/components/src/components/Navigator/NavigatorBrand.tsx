@@ -12,7 +12,7 @@ export type NavigatorBrandProps = Omit<
 > & {
   /** Where the brand leads; routes through `RoadieLinkProvider`. @default '/' */
   href?: string
-  /** The mark, then anything that shows once expanded; it names the link. @default <Logo /> */
+  /** The mark, then anything shown once expanded. Names the link. @default <Logo /> */
   children?: ReactNode
 }
 

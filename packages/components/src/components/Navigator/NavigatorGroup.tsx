@@ -28,11 +28,11 @@ export type NavigatorGroupProps = {
   className?: string
   /** Every item in the group follows it. @default 'automatic' */
   placement?: NavigatorPlacement
-  /** Which items stay visible when space runs out; an item's own wins. @default 'automatic' */
+  /** Which items stay when space runs out. An item's own wins. @default 'automatic' */
   visibilityPriority?: NavigatorVisibilityPriority
 }
 
-/** A headed run of items; author in a client component, as it's found by reference. */
+/** A titled capsule of items. Author it in a client component. */
 export function NavigatorGroup({ children, className }: NavigatorGroupProps) {
   const titleId = useId()
   const folded = use(NavigatorFoldedContext)

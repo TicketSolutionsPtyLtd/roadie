@@ -13,7 +13,7 @@ export type NavigatorSecondaryProps = {
   children?: ReactNode
 }
 
-/** A section's sub-pages, declared inside its item; author the tree in a client component. */
+/** A section's sub-pages, declared inside its item. Author it in a client component. */
 export function NavigatorSecondary(_props: NavigatorSecondaryProps): null {
   return null
 }

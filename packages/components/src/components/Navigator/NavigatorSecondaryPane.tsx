@@ -18,7 +18,7 @@ export type NavigatorSecondaryPaneProps = Omit<
   value: string
 }
 
-/** Replaces one section's generated list pane; declare it before your detail pane. */
+/** Replaces one section's generated list pane. Declare it before your detail pane. */
 export function NavigatorSecondaryPane({
   value,
   ...props

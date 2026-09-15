@@ -56,21 +56,21 @@ export type NavigatorRootProps = {
   value?: string
   /** Called when a destination is activated; omit when hrefs drive selection. */
   onValueChange?: (next: string) => void
-  /** Puts the active section's list on top of a stacked layout; derive it from your URL, e.g. `?nav`. */
+  /** Shows the active section's list over a stacked sub-page. Derive it from the URL, such as `?nav`. */
   showList?: boolean
-  /** Called when the active section's tab asks to show or hide the list; omit it and the tab links to the section route. */
+  /** Called when the active section's tab asks to show or hide the list. Without it, the tab links to the section route. */
   onShowListChange?: (next: boolean) => void
-  /** Opens the More pane; derive it from your URL, e.g. `?more`. Omit it and More keeps its own state. */
+  /** Opens the More pane. Derive it from the URL, such as `?more`. Without it, More keeps its own state. */
   showMore?: boolean
-  /** Called when More asks to open or close. A routed choice closes it with the route instead. */
+  /** Called when More asks to open or close. A tap that navigates closes it with the route instead. */
   onShowMoreChange?: (next: boolean) => void
-  /** Large-screen labels beside icons. Persist it yourself; a cookie reads on the server. */
+  /** Shows labels beside the icons on large screens. Persist it yourself, such as in a cookie. */
   expanded?: boolean
   /** The uncontrolled starting state of `expanded`. @default false */
   defaultExpanded?: boolean
   /** Called when `Navigator.ExpandToggle` asks to expand or collapse. */
   onExpandedChange?: (next: boolean) => void
-  /** Follow `getNavigatorExpandedScript`'s attribute on `<html>` before hydration, for static sites. */
+  /** Reads the state `getNavigatorExpandedScript` sets on `<html>` before hydration. For static sites. */
   expandedFromDocument?: boolean
   className?: string
   children?: ReactNode

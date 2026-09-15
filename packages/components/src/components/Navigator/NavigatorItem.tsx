@@ -47,21 +47,21 @@ import {
 export type NavigatorItemProps = {
   /** Identifies this destination against Navigator's `value`; unique across the tree. */
   value: string
-  /** Routes through `RoadieLinkProvider`; omit for a `<button>`, ignored when the item has a `Navigator.Menu`. */
+  /** Routes through `RoadieLinkProvider`. Omit it for a `<button>`. Ignored with a `Navigator.Menu`. */
   href?: string
-  /** Leading icon. Phosphor `Icon`-suffixed export; without one, a tile shows the label's initial. */
+  /** A bare Phosphor icon. Without one, the tile shows the label's first letter. */
   icon?: ReactNode
-  /** A `Badge`: a dot when collapsed and on the bar, trailing at `sm` when expanded. */
+  /** A `Badge`. Shows as a dot when collapsed and on the phone bar. */
   badge?: ReactElement<BadgeProps>
-  /** Secondary text for `Navigator.SectionItems` and `useNavigatorSection`; the navigation never shows it. */
+  /** Secondary text for `Navigator.SectionItems` and `useNavigatorSection`. The navigation never shows it. */
   description?: string
-  /** `pinned` anchors it to the vertical navigation's bottom and the bar's trailing circle. @default 'automatic' */
+  /** `pinned` puts it at the bottom of the vertical navigation and in the phone bar's circle. @default 'automatic' */
   placement?: NavigatorPlacement
-  /** Which items stay visible when space runs out; falls back to the group's. @default 'automatic' */
+  /** Which items stay when space runs out. Falls back to the group's. @default 'automatic' */
   visibilityPriority?: NavigatorVisibilityPriority
   className?: string
   children?: ReactNode
-  /** Called when the item is activated on any surface, including when it opens its menu. */
+  /** Called on every activation, including when it opens its menu. */
   onClick?: () => void
 }
 
