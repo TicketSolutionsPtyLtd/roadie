@@ -130,7 +130,13 @@ export function PaneRoot({
     kind,
     depth: declaredDepth
   })
-  const depth = place ? place.depth : (declaredDepth ?? ROLE_DEPTH[role])
+  // An inspector sits off the stack whatever depth it declares, so it never goes up a level.
+  const depth =
+    role === 'inspector'
+      ? null
+      : place
+        ? place.depth
+        : (declaredDepth ?? ROLE_DEPTH[role])
   const position = place?.position ?? null
   const chrome = place?.chrome ?? PANE_CHROME_NONE
   // No orchestrator, nothing to close back to.

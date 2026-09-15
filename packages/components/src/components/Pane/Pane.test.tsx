@@ -331,6 +331,19 @@ describe('Pane.Header', () => {
   })
 })
 
+describe('an inspector', () => {
+  it('never shows Back, even with a declared depth', async () => {
+    await renderPane(
+      <Pane role='inspector' depth={1}>
+        <Pane.Header backHref='/events'>
+          <Pane.Title>On this page</Pane.Title>
+        </Pane.Header>
+      </Pane>
+    )
+    expect(screen.queryByRole('link', { name: /Back/ })).toBeNull()
+  })
+})
+
 describe('Pane.Header close affordance', () => {
   const renderTwoColumnStack = async (onClose: () => void) => {
     render(
