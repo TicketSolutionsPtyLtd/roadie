@@ -1,3 +1,5 @@
+import type { TokenEntry } from '@/lib/tokens'
+
 const SCALES = [
   'neutral',
   'brand',
@@ -12,6 +14,7 @@ const SCALES = [
 const INTENTS = [
   'neutral',
   'brand',
+  'brand-secondary',
   'accent',
   'danger',
   'success',
@@ -70,64 +73,92 @@ export function ScaleGrid() {
   )
 }
 
-const ROLES: [label: string, className: string][] = [
-  ['bg-normal', 'bg-normal border border-subtler'],
-  ['bg-subtle', 'bg-subtle'],
-  ['bg-strong', 'bg-strong'],
-  ['bg-inverted', 'bg-inverted'],
-  ['border-normal', 'border-2 border-normal'],
-  ['text-subtle', 'text-subtle'],
-  ['text-normal', 'text-normal']
-]
+const ROLE_GROUPS = ['Backgrounds', 'Borders', 'Text']
 
-/** Each semantic role, resolved under every intent. */
-export function IntentMatrix() {
+function RoleSample({ name, group }: { name: string; group: string }) {
+  if (group === 'Text')
+    return (
+      <span
+        className='block text-center text-base font-bold'
+        style={{ color: `var(${name})` }}
+      >
+        Aa
+      </span>
+    )
+  return group === 'Borders' ? (
+    <span
+      className='block h-7 rounded-md border-2'
+      style={{ borderColor: `var(${name})` }}
+    />
+  ) : (
+    <span
+      className='block h-7 rounded-md border border-subtler'
+      style={{ backgroundColor: `var(${name})` }}
+    />
+  )
+}
+
+/** Every semantic role in the manifest, resolved under every intent. */
+export function IntentMatrix({ roles }: { roles: TokenEntry[] }) {
   return (
-    <div className='overflow-x-auto'>
-      <table className='w-full min-w-[30rem] table-fixed border-separate border-spacing-1 text-xs'>
-        <caption className='sr-only'>Semantic roles by intent</caption>
-        <thead>
-          <tr>
-            <th
-              scope='col'
-              className='w-28 text-start font-normal text-subtler'
-            >
-              <span className='sr-only'>Role</span>
-            </th>
-            {INTENTS.map((intent) => (
-              <th key={intent} scope='col' className='font-normal text-subtle'>
-                {sentence(intent)}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {ROLES.map(([label, className]) => (
-            <tr key={label}>
+    <figure className='grid gap-2'>
+      <div className='overflow-x-auto'>
+        <table className='w-full min-w-[30rem] table-fixed border-separate border-spacing-1 text-xs'>
+          <thead>
+            <tr>
               <th
-                scope='row'
-                className='pe-2 text-start font-mono font-normal whitespace-nowrap text-subtle'
+                scope='col'
+                className='w-28 text-start font-normal text-subtler'
               >
-                {label}
+                <span className='sr-only'>Role</span>
               </th>
               {INTENTS.map((intent) => (
-                <td key={intent} className={`intent-${intent}`}>
-                  {label.startsWith('text-') ? (
-                    <span
-                      className={`block text-center text-base font-bold ${className}`}
-                    >
-                      Aa
-                    </span>
-                  ) : (
-                    <span className={`block h-7 rounded-md ${className}`} />
-                  )}
-                </td>
+                <th
+                  key={intent}
+                  scope='col'
+                  className='font-normal text-subtle'
+                >
+                  {sentence(intent)}
+                </th>
               ))}
             </tr>
+          </thead>
+          {ROLE_GROUPS.map((group) => (
+            <tbody key={group}>
+              <tr>
+                <th
+                  scope='rowgroup'
+                  colSpan={INTENTS.length + 1}
+                  className='pt-3 text-start text-sm font-semibold text-strong'
+                >
+                  {group}
+                </th>
+              </tr>
+              {roles
+                .filter((role) => role.group === group)
+                .map(({ name }) => (
+                  <tr key={name}>
+                    <th
+                      scope='row'
+                      className='pe-2 text-start font-mono font-normal whitespace-nowrap text-subtle'
+                    >
+                      {name.replace('--intent-', '')}
+                    </th>
+                    {INTENTS.map((intent) => (
+                      <td key={intent} className={`intent-${intent}`}>
+                        <RoleSample name={name} group={group} />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+            </tbody>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </table>
+      </div>
+      <figcaption className='text-sm text-subtle'>
+        Every intent sets the same roles, so any role works under any intent.
+      </figcaption>
+    </figure>
   )
 }
 
