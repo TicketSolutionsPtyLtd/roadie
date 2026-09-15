@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react'
 
+import Link from 'next/link'
+
 import { ArrowRightIcon } from '@phosphor-icons/react/ssr'
 import type { TokenFamily } from '@roadie-core/tokens'
 
 import { TOKEN_FAMILY_PAGES } from '@/lib/token-families'
 import { getFamilyTokens } from '@/lib/tokens'
-
-import { Button } from '@oztix/roadie-components/button'
 
 import { TokenBrowser } from './TokenBrowser'
 
@@ -26,19 +26,18 @@ export async function TokenFamilyPage({
   const { title } = TOKEN_FAMILY_PAGES[family]
 
   return (
-    <div className='@container grid gap-10'>
-      <div className='grid gap-3'>
+    <div className='@container grid gap-8'>
+      <div className='grid gap-2'>
         <p className='text-lg text-subtle [&_code]:whitespace-nowrap'>
           {intro}
         </p>
-        <Button
+        <Link
           href={`/tokens/reference?family=${family}`}
-          emphasis='subtler'
-          size='sm'
+          className='inline-flex items-center gap-1 justify-self-start text-sm font-medium text-strong underline-offset-4 hover:underline'
         >
           Open in all tokens
-          <ArrowRightIcon weight='bold' className='size-4' />
-        </Button>
+          <ArrowRightIcon weight='bold' className='size-3' />
+        </Link>
       </div>
       {children}
       <TokenBrowser

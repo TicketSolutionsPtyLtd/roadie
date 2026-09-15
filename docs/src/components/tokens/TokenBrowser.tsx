@@ -1,6 +1,7 @@
 'use client'
 
 import {
+  type ReactNode,
   useCallback,
   useDeferredValue,
   useEffect,
@@ -13,13 +14,18 @@ import {
 import { MagnifyingGlassIcon } from '@phosphor-icons/react'
 import type { Intent, TokenFamily } from '@roadie-core/tokens'
 
-import { TOKEN_FAMILY_ORDER, TOKEN_FAMILY_PAGES } from '@/lib/token-families'
+import {
+  GROUP_NOTES,
+  TOKEN_FAMILY_ORDER,
+  TOKEN_FAMILY_PAGES
+} from '@/lib/token-families'
 import type { TokenEntry } from '@/lib/tokens'
 
 import { Button } from '@oztix/roadie-components/button'
 import { EmptyState } from '@oztix/roadie-components/empty-state'
 import { Input } from '@oztix/roadie-components/input'
 import { Select } from '@oztix/roadie-components/select'
+import { Tabs } from '@oztix/roadie-components/tabs'
 
 import { RelatedLinks } from '../RelatedLinks'
 import { TokenRow } from './TokenRow'
@@ -163,6 +169,21 @@ function useFilters(inUrl: boolean) {
   return [filters, update] as const
 }
 
+const REDUCED_MOTION = '(prefers-reduced-motion: reduce)'
+
+function subscribeToReducedMotion(listener: () => void) {
+  const query = window.matchMedia(REDUCED_MOTION)
+  query.addEventListener('change', listener)
+  return () => query.removeEventListener('change', listener)
+}
+
+const useReducedMotion = () =>
+  useSyncExternalStore(
+    subscribeToReducedMotion,
+    () => window.matchMedia(REDUCED_MOTION).matches,
+    () => false
+  )
+
 /**
  * Searchable token list. On the reference it filters by family and kind and
  * keeps its state in the URL; on a family page it lists that family by group.
@@ -180,6 +201,7 @@ export function TokenBrowser({
 }) {
   const [{ query, family, kind, intent }, update] = useFilters(reference)
   const inputRef = useRef<HTMLInputElement>(null)
+  const reducedMotion = useReducedMotion()
 
   useEffect(() => {
     const focusSearch = (event: KeyboardEvent) => {
@@ -238,8 +260,19 @@ export function TokenBrowser({
   const list = 'grid divide-y divide-subtler'
   const GroupHeading = reference ? 'h3' : 'h2'
 
-  return (
-    <div className='grid gap-6'>
+  const familyTabs = reference ? (
+    <Tabs.List aria-label='Token family' className='w-full'>
+      {(['all', ...TOKEN_FAMILY_ORDER] as Family[]).map((option) => (
+        <Tabs.Tab key={option} value={option}>
+          {option === 'all' ? 'All' : TOKEN_FAMILY_PAGES[option].title}
+        </Tabs.Tab>
+      ))}
+      <Tabs.Indicator />
+    </Tabs.List>
+  ) : null
+
+  const body = (
+    <div className='grid gap-5'>
       <div className='grid gap-3'>
         <div role='search' className='relative grid'>
           <Input
@@ -259,25 +292,7 @@ export function TokenBrowser({
           />
         </div>
 
-        {reference ? (
-          <div
-            role='group'
-            aria-label='Family'
-            className='flex flex-wrap gap-1.5'
-          >
-            {(['all', ...TOKEN_FAMILY_ORDER] as Family[]).map((option) => (
-              <Button
-                key={option}
-                size='xs'
-                emphasis={family === option ? 'strong' : 'subtle'}
-                aria-pressed={family === option}
-                onClick={() => update({ family: option })}
-              >
-                {option === 'all' ? 'All' : TOKEN_FAMILY_PAGES[option].title}
-              </Button>
-            ))}
-          </div>
-        ) : null}
+        {familyTabs}
 
         {reference || intentPicker ? (
           <div className='flex flex-wrap items-center gap-3'>
@@ -333,7 +348,14 @@ export function TokenBrowser({
         ) : null}
       </div>
 
-      <div
+      {reducedMotion && tokens.some((token) => token.family === 'motion') ? (
+        <p className='text-sm text-subtle'>
+          Reduced motion is on, so previews jump to their end state.
+        </p>
+      ) : null}
+
+      <Results
+        panel={reference ? family : undefined}
         className={
           intent === 'neutral' ? 'grid gap-10' : `grid gap-10 intent-${intent}`
         }
@@ -376,6 +398,9 @@ export function TokenBrowser({
                     </GroupHeading>
                     <p className='text-sm text-subtler'>{entries.length}</p>
                   </div>
+                  {GROUP_NOTES[group] ? (
+                    <p className='text-sm text-subtle'>{GROUP_NOTES[group]}</p>
+                  ) : null}
                   <ul className={list}>{entries.map((token) => row(token))}</ul>
                 </section>
               )
@@ -397,7 +422,39 @@ export function TokenBrowser({
             )
           })
         )}
-      </div>
+      </Results>
     </div>
+  )
+
+  return reference ? (
+    <Tabs
+      value={family}
+      onValueChange={(value) => update({ family: value as Family })}
+      emphasis='subtler'
+      size='sm'
+    >
+      {body}
+    </Tabs>
+  ) : (
+    body
+  )
+}
+
+/** The result list; on the reference it is the family tabs' panel. */
+function Results({
+  panel,
+  className,
+  children
+}: {
+  panel?: string
+  className: string
+  children: ReactNode
+}) {
+  return panel ? (
+    <Tabs.Panel value={panel} className={className}>
+      {children}
+    </Tabs.Panel>
+  ) : (
+    <div className={className}>{children}</div>
   )
 }
