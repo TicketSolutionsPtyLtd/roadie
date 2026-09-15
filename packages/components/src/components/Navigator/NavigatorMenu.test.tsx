@@ -1,3 +1,5 @@
+import type { ReactElement } from 'react'
+
 import {
   act,
   fireEvent,
@@ -29,7 +31,15 @@ const waitForMenuToClose = () =>
 const vertical = () => primaryOf('vertical')
 const horizontal = () => primaryOf('horizontal')
 
-function Tree({ value = '/home', signOut = () => {} }) {
+function Tree({
+  value = '/home',
+  signOut = () => {},
+  menuLabel
+}: {
+  value?: string
+  signOut?: () => void
+  menuLabel?: string
+}) {
   return (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Main'>
@@ -39,7 +49,7 @@ function Tree({ value = '/home', signOut = () => {} }) {
         </Navigator.Item>
         <Navigator.Item value='account' icon={<FakeIcon />} placement='pinned'>
           Account
-          <Navigator.Menu>
+          <Navigator.Menu aria-label={menuLabel}>
             <Navigator.MenuItem href='/profile'>Profile</Navigator.MenuItem>
             <Navigator.MenuItem onClick={signOut}>Sign out</Navigator.MenuItem>
           </Navigator.Menu>
@@ -82,14 +92,22 @@ describe('Navigator.Menu', () => {
     expect(trigger).toHaveAttribute('aria-controls', menu.id)
   })
 
-  it('names the menu after its item', async () => {
+  it('names the menu after its item, unless it declares its own', async () => {
     const user = userEvent.setup()
-    render(<Tree />)
-    await flushViewportMeasurement()
-    await user.click(
-      within(vertical()).getByRole('button', { name: 'Account' })
-    )
-    expect(await screen.findByRole('menu')).toHaveAccessibleName('Account')
+    const openMenu = async (ui: ReactElement) => {
+      const { unmount } = render(ui)
+      await flushViewportMeasurement()
+      await user.click(
+        within(vertical()).getByRole('button', { name: 'Account' })
+      )
+      const menu = await screen.findByRole('menu')
+      return { menu, unmount }
+    }
+    const byItem = await openMenu(<Tree />)
+    expect(byItem.menu).toHaveAccessibleName('Account')
+    byItem.unmount()
+    const declared = await openMenu(<Tree menuLabel='Your account' />)
+    expect(declared.menu).toHaveAccessibleName('Your account')
   })
 
   it('moves with the arrow keys and typeahead', async () => {
