@@ -2,12 +2,9 @@
 
 import { type ReactNode, createContext } from 'react'
 
-import type { PaneRole } from './variants'
-
 // A `null` context means "no surrounding pane", which is why `Pane.Header`
 // tests the role explicitly rather than through optional chaining.
 export type PaneContextValue = {
-  role: PaneRole
   /** 0 is the root of its stack, or a standalone `list`. `null` for an inspector. */
   depth: number | null
   /** The pane is scrolled past the collapse threshold. */

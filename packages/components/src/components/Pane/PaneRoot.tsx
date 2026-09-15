@@ -17,11 +17,16 @@ import {
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { mergeRefs } from '../../utils/mergeRefs'
 import { prefersReducedMotion } from '../../utils/reducedMotion'
 import { ScrollArea } from '../ScrollArea'
 import { PANE_CHROME_NONE, PaneChromeContext } from './PaneChromeContext'
 import { PaneContext } from './PaneContext'
-import { PaneKindContext, PaneStackContext } from './PaneStackContext'
+import {
+  PaneKindContext,
+  PaneStackContext,
+  isOverflowKind
+} from './PaneStackContext'
 import { PANE_DEEP, PANE_MAX_DEPTH, ROLE_DEPTH } from './paneDepth'
 import {
   type PaneEmphasis,
@@ -108,7 +113,6 @@ export function PaneRoot({
   const paneId = useId()
   const paneRef = useRef<HTMLElement | null>(null)
   const viewportRef = useRef<HTMLDivElement | null>(null)
-  const frame = useRef<number | null>(null)
   const [collapsed, setCollapsed] = useState(false)
   const [bodyTitle, setBodyTitleState] = useState<ReactNode | null>(null)
 
@@ -121,16 +125,8 @@ export function PaneRoot({
     []
   )
 
-  // Forwards a consumer ref through Base UI's own ref slot, and captures the
-  // node locally for registration. Base UI's ref type assumes the default
-  // `<div>`; the render prop actually renders a `<section>`, which is what
-  // both the consumer's ref and the registration hold.
-  const setPaneRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      paneRef.current = node as HTMLElement | null
-      if (typeof forwardedRef === 'function') forwardedRef(node)
-      else if (forwardedRef) forwardedRef.current = node
-    },
+  const setPaneRef = useMemo(
+    () => mergeRefs<HTMLElement>(paneRef, forwardedRef),
     [forwardedRef]
   )
 
@@ -176,7 +172,7 @@ export function PaneRoot({
           kind,
           depth: declaredDepth
         })
-  const isOverflow = kind === 'overflow' || kind === 'generated-overflow'
+  const isOverflow = isOverflowKind(kind)
   // Mounting, unmounting or moving a pane is a navigation; the stack slides for
   // it. Not More: it mounts when a resize folds items, and opens as a tab switch.
   const markPushing = isOverflow ? undefined : stack?.markPushing
@@ -209,7 +205,6 @@ export function PaneRoot({
 
   const context = useMemo(
     () => ({
-      role,
       depth,
       collapsed,
       scrollToTop,
@@ -217,7 +212,7 @@ export function PaneRoot({
       bodyTitle,
       setBodyTitle
     }),
-    [role, depth, collapsed, scrollToTop, isRoot, bodyTitle, setBodyTitle]
+    [depth, collapsed, scrollToTop, isRoot, bodyTitle, setBodyTitle]
   )
 
   // Sentinels, not scroll reads: reading `scrollTop` in the scroll event forced
@@ -278,10 +273,11 @@ export function PaneRoot({
     if (!viewport || !wantsDirection) return
     // Once, as the pin lands; after that only inside a frame.
     let last = viewport.scrollTop
+    let frame: number | null = null
     const onScroll = () => {
-      if (frame.current !== null) return
-      frame.current = requestAnimationFrame(() => {
-        frame.current = null
+      if (frame !== null) return
+      frame = requestAnimationFrame(() => {
+        frame = null
         const top = viewport.scrollTop
         if (top > last) reportDown()
         last = top
@@ -290,8 +286,7 @@ export function PaneRoot({
     viewport.addEventListener('scroll', onScroll, { passive: true })
     return () => {
       viewport.removeEventListener('scroll', onScroll)
-      if (frame.current !== null) cancelAnimationFrame(frame.current)
-      frame.current = null
+      if (frame !== null) cancelAnimationFrame(frame)
     }
   }, [wantsDirection])
 

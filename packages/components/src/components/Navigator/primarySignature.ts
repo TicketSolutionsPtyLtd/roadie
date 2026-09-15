@@ -1,4 +1,4 @@
-import { type ReactNode, isValidElement } from 'react'
+import { isValidElement } from 'react'
 
 import type { NavigatorSlotMeta } from './mobileSlots'
 
@@ -12,32 +12,28 @@ const typeName = (type: unknown): string => {
   return '?'
 }
 
-function serialize(node: unknown): string {
-  if (node === null || node === undefined) return ''
-  if (typeof node === 'string') return JSON.stringify(node)
-  if (typeof node === 'number' || typeof node === 'boolean') {
-    return String(node)
-  }
-  if (Array.isArray(node)) return `[${node.map(serialize).join(',')}]`
-  if (!isValidElement<Record<string, unknown>>(node)) return ''
-  const props = Object.entries(node.props)
-    .filter(([, value]) => typeof value !== 'function')
-    .map(([name, value]) => `${name}=${serialize(value)}`)
-  return `<${typeName(node.type)} ${props.join(' ')}>`
-}
-
 /**
  * The authored structure of Primary's children, ignoring element identity and
  * functions. Trees differing only in a non-primitive prop or an unnamed type
  * stay stale until the next structural change; handlers resolve at click time.
  */
-export function primarySignature(children: ReactNode): string {
-  return serialize(children)
+export function primarySignature(node: unknown): string {
+  if (node === null || node === undefined) return ''
+  if (typeof node === 'string') return JSON.stringify(node)
+  if (typeof node === 'number' || typeof node === 'boolean') {
+    return String(node)
+  }
+  if (Array.isArray(node)) return `[${node.map(primarySignature).join(',')}]`
+  if (!isValidElement<Record<string, unknown>>(node)) return ''
+  const props = Object.entries(node.props)
+    .filter(([, value]) => typeof value !== 'function')
+    .map(([name, value]) => `${name}=${primarySignature(value)}`)
+  return `<${typeName(node.type)} ${props.join(' ')}>`
 }
 
 /** What a folded row renders, so More republishes when any of it changes. */
 export function slotsSignature(slots: NavigatorSlotMeta[]): string {
-  return serialize(
+  return primarySignature(
     slots.map((slot) => [
       slot.value,
       slot.label,

@@ -39,18 +39,6 @@ export function primaryCapsules(entries: PrimaryEntry[]): PrimaryCapsule[] {
   }))
 }
 
-const capsuleList = (key: string, rows: { key: string; node: ReactNode }[]) => (
-  <ul
-    key={key}
-    data-slot='navigator-capsule'
-    className={navigatorCapsuleVariants()}
-  >
-    {rows.map((row) => (
-      <li key={row.key}>{row.node}</li>
-    ))}
-  </ul>
-)
-
 /** Folded items drop out; a capsule left empty disappears. */
 export function wrapCapsules(
   entries: PrimaryEntry[],
@@ -69,10 +57,15 @@ export function wrapCapsules(
     return items.length === 0
       ? []
       : [
-          capsuleList(
-            capsule.key,
-            items.map((item) => ({ key: item.slot.value, node: item.element }))
-          )
+          <ul
+            key={capsule.key}
+            data-slot='navigator-capsule'
+            className={navigatorCapsuleVariants()}
+          >
+            {items.map((item) => (
+              <li key={item.slot.value}>{item.element}</li>
+            ))}
+          </ul>
         ]
   })
 }

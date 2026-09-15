@@ -183,12 +183,6 @@ export const paneTitleVariants = cva(
   }
 )
 
-// Wraps a collapsible title's children so the row has an item that can clip.
-// A grid item's automatic minimum size is its content unless it clips, and a
-// row cannot shrink below the item in it — so without this the track holds at
-// full height and nothing collapses.
-export const paneTitleClipClass = 'overflow-hidden'
-
 // The content-placed large title. No collapse variant and no transition: it
 // scrolls out of view on the pane's own scroll, which is the point — the
 // header's echo is what fades. Nothing about the header's box depends on it,

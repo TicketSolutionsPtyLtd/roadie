@@ -121,8 +121,6 @@ export const navigatorPrimaryHorizontalVariants = cva(
     'grid',
     // The track and circles restore input; the gutters beside them stay inert.
     'pointer-events-none',
-    '[--navigator-primary-count:5]',
-    '[--navigator-primary-slots:5]',
     '[--navigator-primary-col:calc((100cqw-1rem)/var(--navigator-primary-slots))]',
     '[--navigator-primary-edge:calc((var(--navigator-primary-slots)_-_var(--navigator-primary-count))_*_var(--navigator-primary-col)_/_2_+_(var(--navigator-primary-col)_-_3.5rem)_/_2)]',
     // `translate`, not `transform`: the hide state is `max-md:translate-y-[…]`,
@@ -136,16 +134,12 @@ export const navigatorPrimaryHorizontalVariants = cva(
         true: 'max-md:invisible max-md:translate-y-[calc(100%+2rem)] max-md:opacity-0',
         false: ''
       },
-      collapsed: {
-        true: '',
-        false: ''
-      },
       pinned: {
         true: 'grid-cols-[minmax(0,1fr)_auto] gap-3',
         false: ''
       }
     },
-    defaultVariants: { collapsed: false, hidden: false, pinned: false }
+    defaultVariants: { hidden: false, pinned: false }
   }
 )
 

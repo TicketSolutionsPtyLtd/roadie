@@ -44,7 +44,7 @@ import {
 import { presentNavIcon } from './presentNavIcon'
 import { PRIMARY_METRICS } from './primaryCapacity'
 import { slotsSignature } from './primarySignature'
-import { activeHref, rememberedHref } from './sectionMemory'
+import { rememberedHref } from './sectionMemory'
 import { textOf } from './splitSecondary'
 import { usePrimaryCapacity } from './usePrimaryCapacity'
 import {
@@ -123,9 +123,12 @@ export function NavigatorPrimary({
   const branchSection = items.find((item) => isSectionActive(item, activeValue))
   const branchValue =
     branchSection?.descendants.length === 0 ? branchSection.value : undefined
+  // Only a path-shaped value is something a link can point at.
   const deepHref =
-    branchValue !== undefined && activeValue !== branchValue
-      ? activeHref(activeValue, undefined)
+    branchValue !== undefined &&
+    activeValue !== branchValue &&
+    activeValue?.startsWith('/')
+      ? activeValue
       : undefined
 
   useEffect(() => {
@@ -199,7 +202,6 @@ export function NavigatorPrimary({
       : undefined
   const tabCount = slots.tabs.length + (hasMore ? 1 : 0)
 
-  const foldedKey = folded.map((slot) => slot.value).join(',')
   const foldedSignature = slotsSignature(folded)
   const publishFolded = useEffectEvent(() =>
     setOverflowItems('horizontal', folded)
@@ -223,9 +225,6 @@ export function NavigatorPrimary({
   const verticalFoldedSlots = collected.automatic.filter((slot) =>
     verticalFolded.has(slot.value)
   )
-  const verticalFoldedKey = verticalFoldedSlots
-    .map((slot) => slot.value)
-    .join(',')
   const verticalFoldedSignature = slotsSignature(verticalFoldedSlots)
   const publishVerticalFolded = useEffectEvent(() =>
     setOverflowItems('vertical', verticalFoldedSlots)
@@ -235,10 +234,10 @@ export function NavigatorPrimary({
   }, [verticalFoldedSignature])
 
   // Once the navigation in view folds nothing, no More control is left to close More.
-  const shownFoldedKey = verticalShown ? verticalFoldedKey : foldedKey
+  const shownFolded = verticalShown ? verticalFoldedSlots.length : folded.length
   useEffect(() => {
-    if (overflowOpen && shownFoldedKey === '') setOverflowOpen(false)
-  }, [overflowOpen, shownFoldedKey, setOverflowOpen])
+    if (overflowOpen && shownFolded === 0) setOverflowOpen(false)
+  }, [overflowOpen, shownFolded, setOverflowOpen])
   const verticalMoreActive =
     overflowOpen ||
     (verticalFoldedSlots.some((slot) => isSectionActive(slot, activeValue)) &&
@@ -553,7 +552,6 @@ export function NavigatorPrimary({
         inert={navHidden}
         aria-hidden={navHidden || undefined}
         className={navigatorPrimaryHorizontalVariants({
-          collapsed,
           hidden: navHidden,
           pinned: pinnedTab !== undefined
         })}
