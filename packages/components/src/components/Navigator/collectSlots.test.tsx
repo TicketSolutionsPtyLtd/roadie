@@ -36,7 +36,7 @@ describe('collectSlots', () => {
     expect(result.pinnedSlots[1]).toMatchObject({ placement: 'pinned' })
   })
 
-  it("keeps an item in its group's placement and reports the conflict", () => {
+  it("keeps an item in its group's placement", () => {
     const result = collectSlots(
       <Navigator.Group>
         <Navigator.Item value='/a' placement='pinned'>
@@ -45,6 +45,5 @@ describe('collectSlots', () => {
       </Navigator.Group>
     )
     expect(values(result.automatic)).toEqual(['/a'])
-    expect(result.conflictingPlacement).toEqual(['/a'])
   })
 })

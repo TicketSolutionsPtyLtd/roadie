@@ -39,8 +39,6 @@ export type CollectedSlots = {
   automatic: NavigatorSlotMeta[]
   pinnedSlots: NavigatorSlotMeta[]
   hasStrayChild: boolean
-  conflictingPlacement: string[]
-  pinnedBeforeCluster: boolean
 }
 
 export function toSlotMeta(
@@ -84,15 +82,12 @@ export function collectSlots(children: ReactNode): CollectedSlots {
     pinned: [],
     automatic: [],
     pinnedSlots: [],
-    hasStrayChild: false,
-    conflictingPlacement: [],
-    pinnedBeforeCluster: false
+    hasStrayChild: false
   }
   let groupCount = 0
 
   const place = (entry: PrimaryEntry, slots: NavigatorSlotMeta[]) => {
     const pinned = slots[0]?.placement === 'pinned'
-    if (!pinned && result.pinned.length > 0) result.pinnedBeforeCluster = true
     ;(pinned ? result.pinned : result.cluster).push(entry)
     ;(pinned ? result.pinnedSlots : result.automatic).push(...slots)
   }
@@ -126,14 +121,7 @@ export function collectSlots(children: ReactNode): CollectedSlots {
         if (grandChild.type === NavigatorGroupTitle) {
           group.title = (grandChild.props as { children?: ReactNode }).children
         } else if (grandChild.type === NavigatorItem) {
-          const itemProps = grandChild.props as NavigatorItemProps
-          if (
-            itemProps.placement !== undefined &&
-            itemProps.placement !== group.placement
-          ) {
-            result.conflictingPlacement.push(itemProps.value)
-          }
-          slots.push(toSlotMeta(itemProps, group))
+          slots.push(toSlotMeta(grandChild.props as NavigatorItemProps, group))
         }
       })
       if (slots.length > 0) {

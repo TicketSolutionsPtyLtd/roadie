@@ -589,7 +589,7 @@ describe('Navigator.SecondaryPane and the no-panes warning', () => {
     render(<InactiveOverride value='/start' />)
     await flushViewportMeasurement()
     expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining('identified no panes')
+      expect.stringContaining('no Pane registered')
     )
   })
 
@@ -604,7 +604,7 @@ describe('Navigator.SecondaryPane and the no-panes warning', () => {
     await flushViewportMeasurement()
     expect(screen.queryByText('Promo')).toBeNull()
     expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining('identified no panes')
+      expect.stringContaining('no Pane registered')
     )
   })
 
@@ -1365,7 +1365,7 @@ describe('page roots', () => {
     )
     await flushViewportMeasurement()
     expect(sectionPane()).toHaveAttribute('data-stack-position', 'top')
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('its own route'))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('but no href'))
     expect(warn).toHaveBeenCalledTimes(1)
     warn.mockRestore()
   })

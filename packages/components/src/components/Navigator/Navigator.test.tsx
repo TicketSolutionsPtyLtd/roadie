@@ -717,7 +717,7 @@ describe('Navigator routeless primary', () => {
     expect(section?.tagName).toBe('A')
     expect(section).toHaveAttribute('href', '/foundations/layout')
     await flushViewportMeasurement()
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('its own route'))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('but no href'))
     warn.mockRestore()
   })
 
@@ -796,7 +796,7 @@ describe('Navigator routeless primary', () => {
       'aria-current',
       'page'
     )
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('its own route'))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('but no href'))
     warn.mockRestore()
   })
 })
@@ -1789,30 +1789,6 @@ describe('Navigator.OverflowPane', () => {
     expect(row).toHaveAttribute('aria-current', 'page')
   })
 
-  it('warns in dev when two Navigator.OverflowPane are declared, sharing one DOM id', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    render(
-      overflowNav(
-        '/a',
-        <>
-          <Navigator.OverflowPane>
-            <Navigator.OverflowItems />
-          </Navigator.OverflowPane>
-          <Navigator.OverflowPane>
-            <Navigator.OverflowItems />
-          </Navigator.OverflowPane>
-        </>
-      )
-    )
-    await flushViewportMeasurement()
-    expect(
-      warn.mock.calls.some((c) =>
-        String(c[0]).includes('Navigator.OverflowPane')
-      )
-    ).toBe(true)
-    warn.mockRestore()
-  })
-
   it('lists folded items and extra pinned items together, excluding kept tabs', async () => {
     render(
       <Navigator value='a'>
@@ -2639,7 +2615,7 @@ describe('Navigator.Menu + Navigator.Secondary precedence', () => {
     expect(row).toHaveAttribute('href', '/a/sub')
     expect(row).not.toHaveAttribute('aria-haspopup')
     expect(verticalOf(container).queryByText('Menu')).toBeNull()
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('its own route'))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('but no href'))
     warn.mockRestore()
   })
 
@@ -2655,7 +2631,7 @@ describe('Navigator.Menu + Navigator.Secondary precedence', () => {
     expect(
       horizontalOf(container).getByRole('link', { name: 'A' })
     ).toHaveAttribute('href', '/a/sub')
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('its own route'))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('but no href'))
     warn.mockRestore()
   })
 
@@ -2665,9 +2641,9 @@ describe('Navigator.Menu + Navigator.Secondary precedence', () => {
     await flushViewportMeasurement()
     const menuWarnings = warn.mock.calls
       .map((call) => String(call[0]))
-      .filter((message) => message.includes('The Menu is ignored'))
+      .filter((message) => message.includes('the Menu is ignored'))
     expect(menuWarnings).toHaveLength(1)
-    expect(menuWarnings[0]).toContain("value='/a'")
+    expect(menuWarnings[0]).toContain("'/a'")
     warn.mockRestore()
   })
 })
@@ -2811,42 +2787,6 @@ describe('Navigator route-prefix section matching', () => {
 })
 
 describe('Navigator.Primary direct-children warning', () => {
-  it('warns when there is no Navigator.Brand', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    render(
-      <Navigator value='tickets'>
-        <Navigator.Primary aria-label='Primary'>
-          <Navigator.Item value='tickets'>Tickets</Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    expect(warn).toHaveBeenCalledTimes(1)
-    expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining('Navigator.Primary has no Navigator.Brand')
-    )
-    warn.mockRestore()
-    await flushViewportMeasurement()
-  })
-
-  it('does not count a Brand hidden in a Fragment', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    render(
-      <Navigator value='tickets'>
-        <Navigator.Primary aria-label='Primary'>
-          <>
-            <Navigator.Brand>Roadie</Navigator.Brand>
-          </>
-          <Navigator.Item value='tickets'>Tickets</Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining('Navigator.Primary has no Navigator.Brand')
-    )
-    warn.mockRestore()
-    await flushViewportMeasurement()
-  })
-
   it('warns when a non-Item element sits at a direct-child position', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
@@ -2858,9 +2798,7 @@ describe('Navigator.Primary direct-children warning', () => {
       </Navigator>
     )
     expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining(
-        'Navigator.Primary only recognises Navigator.Item, Navigator.Group, Navigator.Brand and Navigator.ExpandToggle'
-      )
+      expect.stringContaining('Navigator.Primary skipped a child')
     )
     warn.mockRestore()
     await flushViewportMeasurement()
@@ -2882,49 +2820,6 @@ describe('Navigator.Primary direct-children warning', () => {
     expect(warn).not.toHaveBeenCalled()
     warn.mockRestore()
     await flushViewportMeasurement()
-  })
-
-  it('warns when a pinned item is written before the cluster', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    render(
-      <Navigator value='/a'>
-        <Navigator.Primary aria-label='Main'>
-          {testBrand}
-          <Navigator.Item value='/me' href='/me' placement='pinned'>
-            Me
-          </Navigator.Item>
-          <Navigator.Item value='/a' href='/a'>
-            A
-          </Navigator.Item>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining('Write pinned items last')
-    )
-    warn.mockRestore()
-  })
-
-  it("warns when an item's placement differs from its group's", async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    render(
-      <Navigator value='/a'>
-        <Navigator.Primary aria-label='Main'>
-          {testBrand}
-          <Navigator.Group>
-            <Navigator.Item value='/a' href='/a' placement='pinned'>
-              A
-            </Navigator.Item>
-          </Navigator.Group>
-        </Navigator.Primary>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining("The group's placement wins")
-    )
-    warn.mockRestore()
   })
 })
 
@@ -3582,7 +3477,7 @@ describe('Navigator.Content no-panes warning', () => {
     )
     await flushViewportMeasurement()
     expect(
-      warn.mock.calls.some((c) => String(c[0]).includes('identified no panes'))
+      warn.mock.calls.some((c) => String(c[0]).includes('no Pane registered'))
     ).toBe(true)
     warn.mockRestore()
   })
@@ -3611,7 +3506,7 @@ describe('Navigator.Content no-panes warning', () => {
     rerender(tree(<div>Not a pane</div>))
     await flushViewportMeasurement()
     expect(
-      warn.mock.calls.some((c) => String(c[0]).includes('identified no panes'))
+      warn.mock.calls.some((c) => String(c[0]).includes('no Pane registered'))
     ).toBe(true)
     warn.mockRestore()
   })
@@ -3625,7 +3520,7 @@ describe('Navigator.Content no-panes warning', () => {
     )
     await flushViewportMeasurement()
     expect(
-      warn.mock.calls.some((c) => String(c[0]).includes('identified no panes'))
+      warn.mock.calls.some((c) => String(c[0]).includes('no Pane registered'))
     ).toBe(false)
     warn.mockRestore()
   })
@@ -3643,7 +3538,7 @@ describe('Navigator.Content no-panes warning', () => {
     )
     await flushViewportMeasurement()
     expect(
-      warn.mock.calls.some((c) => String(c[0]).includes('identified no panes'))
+      warn.mock.calls.some((c) => String(c[0]).includes('no Pane registered'))
     ).toBe(false)
     warn.mockRestore()
   })

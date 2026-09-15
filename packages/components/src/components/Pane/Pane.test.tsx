@@ -1279,9 +1279,7 @@ describe('stack geometry', () => {
       )
       await flushViewportMeasurement()
       expect(
-        warn.mock.calls.some((c) =>
-          String(c[0]).includes('identified no panes')
-        )
+        warn.mock.calls.some((c) => String(c[0]).includes('no Pane registered'))
       ).toBe(false)
       warn.mockRestore()
     })
@@ -1734,20 +1732,6 @@ describe('depth attributes', () => {
     const cell = (slot: string) => fifth.querySelector(`[data-slot="${slot}"]`)!
     expect(bodies(cell('pane-back'))).toEqual(['display: var(--pane-back);'])
     expect(bodies(cell('pane-close'))).toEqual(['display: var(--pane-close);'])
-    warn.mockRestore()
-  })
-
-  it('warns once about a fifth stack pane', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const { rerender } = render(fivePanes())
-    await flushViewportMeasurement()
-    rerender(fivePanes('D'))
-    await flushViewportMeasurement()
-    rerender(fivePanes('E'))
-    await flushViewportMeasurement()
-    expect(
-      warn.mock.calls.filter((c) => String(c[0]).includes('fifth stack pane'))
-    ).toHaveLength(1)
     warn.mockRestore()
   })
 

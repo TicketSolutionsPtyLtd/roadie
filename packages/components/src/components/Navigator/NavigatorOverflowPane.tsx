@@ -1,8 +1,7 @@
 'use client'
 
-import { use, useEffect, useRef } from 'react'
+import { use, useRef } from 'react'
 
-import { isDev } from '../../utils/isDev'
 import { mergeRefs } from '../../utils/mergeRefs'
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { PaneRoot, type PaneRootProps } from '../Pane/PaneRoot'
@@ -15,7 +14,7 @@ import {
 
 export type NavigatorOverflowPaneProps = Omit<
   PaneRootProps,
-  'role' | 'presentation' | 'current' | 'depth' | 'primaryNav' | 'id'
+  'role' | 'current' | 'depth' | 'primaryNav' | 'id'
 >
 
 /**
@@ -55,22 +54,6 @@ export function NavigatorOverflowPane({
     }
     target.focus({ preventScroll: true })
   }, [overflowOpen])
-
-  // A DOM scan: two declarations share `overflowPaneId`, which render can't see.
-  useEffect(() => {
-    if (!isDev() || typeof document === 'undefined') return
-    const matches = document.querySelectorAll(`[id="${overflowPaneId}"]`).length
-    if (matches > 1) {
-      console.warn(
-        `[Roadie] Navigator.OverflowPane: found ${matches} elements sharing ` +
-          `id='${overflowPaneId}' — more than one Navigator.OverflowPane is ` +
-          'declared under this Navigator. This produces a duplicate DOM id ' +
-          'and a non-deterministic aria-controls target for the More tab. ' +
-          'Declare at most one Navigator.OverflowPane, or omit it entirely ' +
-          'and let Navigator.Content generate one.'
-      )
-    }
-  }, [overflowPaneId])
 
   return (
     <PaneKindContext value={generated ? 'generated-overflow' : 'overflow'}>
