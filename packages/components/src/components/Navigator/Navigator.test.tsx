@@ -3936,6 +3936,37 @@ describe('per-section stack memory', () => {
     expect(verticalLink('Components')).toHaveAttribute('href', '/components')
   })
 
+  it('retargets a folded section’s More row like its tab', async () => {
+    const folded = (value: string) => (
+      <Navigator value={value}>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          {['/a', '/b', '/c', '/d', '/e', '/f'].map((v) => (
+            <Navigator.Item key={v} value={v} href={v}>
+              {v}
+            </Navigator.Item>
+          ))}
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Pane role='detail' current>
+            Detail
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    const { rerender } = render(folded('/f/deep'))
+    await flushViewportMeasurement()
+    rerender(folded('/a'))
+    await flushViewportMeasurement()
+    const moreRows = document.querySelector<HTMLElement>(
+      '[data-slot="navigator-overflow-items"].md\\:hidden'
+    )!
+    expect(within(moreRows).getByRole('link', { name: '/f' })).toHaveAttribute(
+      'href',
+      '/f/deep'
+    )
+  })
+
   it('never changes which pane is top', async () => {
     const withPanes = (value: string) => (
       <Navigator value={value}>

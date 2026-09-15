@@ -43,7 +43,7 @@ import {
 import { presentNavIcon } from './presentNavIcon'
 import { PRIMARY_METRICS } from './primaryCapacity'
 import { slotsSignature } from './primarySignature'
-import { rememberedHref } from './sectionMemory'
+import { slotHref } from './sectionMemory'
 import { textOf } from './splitSecondary'
 import { usePrimaryCapacity } from './usePrimaryCapacity'
 import {
@@ -344,11 +344,6 @@ export function NavigatorPrimary({
       go()
     }
 
-    const tabHref = (tab: NavigatorSlotMeta, active: boolean) =>
-      tab.descendants.length > 0
-        ? tab.href
-        : rememberedHref(sectionMemory, tab.value, tab.href, active)
-
     const renderTab = (tab: NavigatorSlotMeta, tabProps: NavigatorTabProps) =>
       tab.menu ? (
         <NavigatorMenuHost
@@ -376,7 +371,7 @@ export function NavigatorPrimary({
 
     const tabs = slots.tabs.map((tab, tabIndex) => {
       const active = isSectionActive(tab, activeValue)
-      const href = tabHref(tab, active)
+      const href = slotHref(sectionMemory, tab, active)
       // With the end circle taken, the first tab floats to the start so two circles always show.
       const isStartCircle = activeIsEnd
         ? tab.value === slots.tabs[0]?.value
@@ -395,7 +390,8 @@ export function NavigatorPrimary({
         onClick: (event) => selectDestination(event, tab, active, href)
       })
     })
-    const pinnedHref = pinnedTab && tabHref(pinnedTab, pinnedIsActive)
+    const pinnedHref =
+      pinnedTab && slotHref(sectionMemory, pinnedTab, pinnedIsActive)
     const pinned = pinnedTab
       ? renderTab(pinnedTab, {
           label: pinnedTab.label,
