@@ -18,7 +18,7 @@ import {
 import { cn } from '@oztix/roadie-core/utils'
 
 import { mergeRefs } from '../../utils/mergeRefs'
-import { prefersReducedMotion } from '../../utils/reducedMotion'
+import { scrollToTop as scrollToTopOf } from '../../utils/reducedMotion'
 import { ScrollArea } from '../ScrollArea'
 import { PANE_CHROME_NONE, PaneChromeContext } from './PaneChromeContext'
 import { PaneContext } from './PaneContext'
@@ -189,19 +189,12 @@ export function PaneRoot({
   // exist.
   const isRoot = stack === null ? true : stack.isRootOf(paneId)
   const inStack = stack !== null && role !== 'inspector'
-  const { scrollPastAt, onScrollPast, onScrollDown, registerScroller } = chrome
+  const { scrollPastAt, onScrollPast, onScrollDown } = chrome
   // A pane that has opted out of `auto` describes no scroll-linked nav at all.
   const reportsNav = primaryNav === 'auto' && onScrollPast !== undefined
   const navAt = reportsNav ? scrollPastAt : undefined
 
-  const scrollToTop = useCallback(() => {
-    const viewport = viewportRef.current
-    if (!viewport) return
-    viewport.scrollTo({
-      top: 0,
-      behavior: prefersReducedMotion() ? 'auto' : 'smooth'
-    })
-  }, [])
+  const scrollToTop = useCallback(() => scrollToTopOf(viewportRef.current), [])
 
   const context = useMemo(
     () => ({
@@ -307,16 +300,6 @@ export function PaneRoot({
     }
     viewport.scrollTop = 0
   }, [destination, position])
-
-  // The viewport is what scrolls, so scrolling it is the pane's job; deciding
-  // when belongs to the orchestrator, which only hands a live `registerScroller`
-  // to the top of the stack. The pane calls the same `scrollToTop` on itself
-  // for its own compact title, so there is one definition rather than two
-  // that can drift.
-  useLayoutEffect(
-    () => registerScroller(scrollToTop),
-    [registerScroller, scrollToTop]
-  )
 
   return (
     <ScrollArea

@@ -41,7 +41,6 @@ export type NavigatorActions = {
   setPrimaryNav: (next: PanePrimaryNav) => void
   setPinExpanded: (next: boolean) => void
   scrollActivePaneToTop: () => void
-  registerActivePaneScroller: (scroller: () => void) => () => void
   /** Root found a direct-child Primary and reads its children. */
   primaryDerived: boolean
   /** Calls the current `onClick` of the item with this `value`, read at click time. */
@@ -124,7 +123,6 @@ export const NavigatorActionsContext = createContext<NavigatorActions>({
   setPrimaryNav: noop,
   setPinExpanded: noop,
   scrollActivePaneToTop: noop,
-  registerActivePaneScroller: () => noop,
   primaryDerived: false,
   activateItem: noop,
   activateMenuItem: noop,
