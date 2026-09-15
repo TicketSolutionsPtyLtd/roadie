@@ -7,12 +7,12 @@ import { MagnifyingGlassIcon, XIcon } from '@phosphor-icons/react'
 import { IconButton } from '../Button/IconButton'
 import { Input } from '../Input'
 import {
-  navigatorSearchBoxVariants,
-  navigatorSearchCancelSlotVariants,
-  navigatorSearchCancelVariants,
-  navigatorSearchFieldVariants,
-  navigatorSearchIconVariants,
-  navigatorSearchVariants
+  navigatorSearchBoxClass,
+  navigatorSearchCancelClass,
+  navigatorSearchCancelSlotClass,
+  navigatorSearchClass,
+  navigatorSearchFieldClass,
+  navigatorSearchIconClass
 } from './variants'
 
 export type NavigatorSearchProps = {
@@ -42,12 +42,9 @@ export function NavigatorSearch({
     <div
       ref={rootRef}
       data-slot='navigator-search'
-      className={navigatorSearchVariants()}
+      className={navigatorSearchClass}
     >
-      <div
-        data-slot='navigator-search-box'
-        className={navigatorSearchBoxVariants()}
-      >
+      <div data-slot='navigator-search-box' className={navigatorSearchBoxClass}>
         <Input
           type='search'
           size='lg'
@@ -62,24 +59,24 @@ export function NavigatorSearch({
             event.preventDefault()
             cancel()
           }}
-          className={navigatorSearchFieldVariants()}
+          className={navigatorSearchFieldClass}
         />
         <MagnifyingGlassIcon
           aria-hidden
           weight='bold'
           data-slot='navigator-search-icon'
-          className={navigatorSearchIconVariants()}
+          className={navigatorSearchIconClass}
         />
       </div>
       <div
         data-slot='navigator-search-cancel-slot'
-        className={navigatorSearchCancelSlotVariants()}
+        className={navigatorSearchCancelSlotClass}
       >
         <IconButton
           data-slot='navigator-search-cancel'
           aria-label='Cancel search'
           size='lg'
-          className={navigatorSearchCancelVariants()}
+          className={navigatorSearchCancelClass}
           // Keeps focus in the field, so Cancel is still showing when the click lands.
           onPointerDown={(event) => event.preventDefault()}
           onClick={cancel}

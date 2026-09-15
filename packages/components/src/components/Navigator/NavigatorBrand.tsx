@@ -4,7 +4,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 import { Logo } from '../Logo'
-import { navigatorBrandVariants } from './variants'
+import { navigatorBrandClass } from './variants'
 
 export type NavigatorBrandProps = Omit<
   ComponentProps<'a'>,
@@ -27,7 +27,7 @@ export function NavigatorBrand({
     <RoadieRoutedLink
       data-slot='navigator-brand'
       href={href}
-      className={cn(navigatorBrandVariants(), className)}
+      className={cn(navigatorBrandClass, className)}
       {...props}
     >
       {children}

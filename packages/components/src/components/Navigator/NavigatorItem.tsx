@@ -40,7 +40,7 @@ import {
   navigatorItemIconlessLabelClass,
   navigatorItemInitialClass,
   navigatorItemLabelClass,
-  navigatorItemTrailingVariants,
+  navigatorItemTrailingClass,
   navigatorItemVariants
 } from './variants'
 
@@ -157,7 +157,7 @@ export function NavigatorItem({
             {expanded ? (
               <span
                 data-slot='navigator-item-trailing'
-                className={navigatorItemTrailingVariants()}
+                className={navigatorItemTrailingClass}
               >
                 {cloneElement(badge, { size: 'sm' })}
               </span>

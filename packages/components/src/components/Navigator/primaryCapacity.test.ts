@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest'
 
 import { PRIMARY_METRICS, fitPrimaryCluster } from './primaryCapacity'
 import {
-  navigatorCapsuleVariants,
+  navigatorCapsuleClass,
   navigatorItemVariants,
   navigatorPrimaryBrandVariants,
-  navigatorPrimaryClusterContentVariants,
-  navigatorPrimaryClusterTrackVariants
+  navigatorPrimaryClusterContentClass,
+  navigatorPrimaryClusterTrackClass
 } from './variants'
 
 const s = (
@@ -61,13 +61,11 @@ describe('vertical navigation arithmetic', () => {
       toggleRow: 3
     })
     expect(classesOf(navigatorItemVariants())).toContain('h-12')
-    expect(classesOf(navigatorCapsuleVariants())).toEqual(
+    expect(classesOf(navigatorCapsuleClass)).toEqual(
       expect.arrayContaining(['p-1', 'gap-1'])
     )
-    expect(classesOf(navigatorPrimaryClusterContentVariants())).toContain(
-      'py-2'
-    )
-    expect(classesOf(navigatorPrimaryClusterTrackVariants())).toContain('gap-3')
+    expect(classesOf(navigatorPrimaryClusterContentClass)).toContain('py-2')
+    expect(classesOf(navigatorPrimaryClusterTrackClass)).toContain('gap-3')
     expect(classesOf(navigatorPrimaryBrandVariants({ toggle: true }))).toEqual(
       expect.arrayContaining(['pb-12', 'navigator-expanded:pb-0'])
     )

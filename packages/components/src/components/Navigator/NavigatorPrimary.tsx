@@ -48,22 +48,22 @@ import { rememberedHref } from './sectionMemory'
 import { textOf } from './splitSecondary'
 import { usePrimaryCapacity } from './usePrimaryCapacity'
 import {
-  navigatorCapsuleVariants,
+  navigatorCapsuleClass,
   navigatorItemLabelClass,
   navigatorItemVariants,
   navigatorPrimaryBrandVariants,
-  navigatorPrimaryCircleVariants,
-  navigatorPrimaryClusterContentVariants,
-  navigatorPrimaryClusterTrackVariants,
-  navigatorPrimaryClusterVariants,
-  navigatorPrimaryClusterViewportVariants,
-  navigatorPrimaryFrameVariants,
+  navigatorPrimaryCircleClass,
+  navigatorPrimaryClusterClass,
+  navigatorPrimaryClusterContentClass,
+  navigatorPrimaryClusterTrackClass,
+  navigatorPrimaryClusterViewportClass,
+  navigatorPrimaryFrameClass,
   navigatorPrimaryHorizontalVariants,
-  navigatorPrimaryLaneVariants,
+  navigatorPrimaryLaneClass,
   navigatorPrimaryPillVariants,
-  navigatorPrimaryPinnedVariants,
+  navigatorPrimaryPinnedClass,
   navigatorPrimaryTrackVariants,
-  navigatorPrimaryVerticalVariants
+  navigatorPrimaryVerticalClass
 } from './variants'
 
 export type NavigatorPrimaryProps = {
@@ -457,11 +457,11 @@ export function NavigatorPrimary({
         data-expanded={expanded ? '' : undefined}
         data-from-document={expandedFromDocument ? '' : undefined}
         aria-label={ariaLabel}
-        className={cn(navigatorPrimaryVerticalVariants(), className)}
+        className={cn(navigatorPrimaryVerticalClass, className)}
       >
         <div
           data-slot='navigator-primary-frame'
-          className={navigatorPrimaryFrameVariants()}
+          className={navigatorPrimaryFrameClass}
         >
           <Tooltip.Provider>
             {collected.brand.length > 0 || collected.toggles.length > 0 ? (
@@ -476,21 +476,21 @@ export function NavigatorPrimary({
             ) : null}
             <ScrollArea
               data-slot='navigator-primary-cluster'
-              className={navigatorPrimaryClusterVariants()}
+              className={navigatorPrimaryClusterClass}
             >
               <ScrollArea.Viewport
                 ref={clusterRef}
                 data-slot='navigator-primary-cluster-viewport'
-                className={navigatorPrimaryClusterViewportVariants()}
+                className={navigatorPrimaryClusterViewportClass}
               >
                 <ScrollArea.Content
                   fitWidth={false}
-                  className={navigatorPrimaryClusterContentVariants()}
+                  className={navigatorPrimaryClusterContentClass}
                 >
                   <div
                     ref={clusterTrackRef}
                     data-slot='navigator-primary-cluster-track'
-                    className={navigatorPrimaryClusterTrackVariants()}
+                    className={navigatorPrimaryClusterTrackClass}
                   >
                     <NavigatorFoldedContext value={verticalFolded}>
                       {wrapCapsules(collected.cluster, verticalFolded)}
@@ -498,7 +498,7 @@ export function NavigatorPrimary({
                     {verticalFoldedSlots.length > 0 ? (
                       <ul
                         data-slot='navigator-capsule'
-                        className={navigatorCapsuleVariants()}
+                        className={navigatorCapsuleClass}
                       >
                         <li>
                           <NavigatorTileTooltip
@@ -524,7 +524,7 @@ export function NavigatorPrimary({
               <div
                 ref={pinnedRef}
                 data-slot='navigator-primary-pinned'
-                className={navigatorPrimaryPinnedVariants()}
+                className={navigatorPrimaryPinnedClass}
               >
                 {wrapCapsules(collected.pinned, new Set())}
                 <NavigatorIndicator trackRef={pinnedRef} surface='vertical' />
@@ -557,7 +557,7 @@ export function NavigatorPrimary({
       >
         <div
           data-slot='navigator-primary-lane'
-          className={navigatorPrimaryLaneVariants()}
+          className={navigatorPrimaryLaneClass}
         >
           <div
             ref={tabTrackRef}
@@ -594,7 +594,7 @@ export function NavigatorPrimary({
         {pinnedTab ? (
           <div
             data-slot='navigator-primary-circle'
-            className={navigatorPrimaryCircleVariants()}
+            className={navigatorPrimaryCircleClass}
           >
             {pinned}
           </div>

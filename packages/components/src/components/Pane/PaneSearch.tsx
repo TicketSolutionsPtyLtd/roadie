@@ -2,7 +2,7 @@ import type { ComponentProps } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { paneSearchVariants } from './variants'
+import { paneSearchClass } from './variants'
 
 export type PaneSearchProps = Omit<
   ComponentProps<'input'>,
@@ -35,7 +35,7 @@ export function PaneSearch({
       placeholder={placeholder}
       value={value}
       onChange={(event) => onValueChange(event.target.value)}
-      className={cn(paneSearchVariants(), className)}
+      className={cn(paneSearchClass, className)}
       {...props}
     />
   )

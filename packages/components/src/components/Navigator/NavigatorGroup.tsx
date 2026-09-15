@@ -20,7 +20,7 @@ import type {
   NavigatorPlacement,
   NavigatorVisibilityPriority
 } from './mobileSlots'
-import { navigatorCapsuleVariants } from './variants'
+import { navigatorCapsuleClass } from './variants'
 
 export type NavigatorGroupProps = {
   /** `Navigator.GroupTitle` followed by the group's `Navigator.Item`s. */
@@ -69,7 +69,7 @@ export function NavigatorGroup({ children, className }: NavigatorGroupProps) {
       <ul
         data-slot='navigator-capsule'
         aria-labelledby={title !== null ? titleId : undefined}
-        className={cn(navigatorCapsuleVariants(), className)}
+        className={cn(navigatorCapsuleClass, className)}
       >
         {rows.map(({ key, row }) => (
           <li key={key}>{row}</li>

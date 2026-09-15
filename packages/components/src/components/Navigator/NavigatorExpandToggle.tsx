@@ -13,8 +13,8 @@ import {
 import { NavigatorTileTooltip } from './NavigatorTileTooltip'
 import { presentNavIcon } from './presentNavIcon'
 import {
-  navigatorExpandToggleAnchorVariants,
-  navigatorExpandToggleVariants
+  navigatorExpandToggleAnchorClass,
+  navigatorExpandToggleClass
 } from './variants'
 
 export type NavigatorExpandToggleProps = {
@@ -31,7 +31,7 @@ export function NavigatorExpandToggle({
   return (
     <div
       data-slot='navigator-expand-toggle-anchor'
-      className={navigatorExpandToggleAnchorVariants()}
+      className={navigatorExpandToggleAnchorClass}
     >
       <NavigatorTileTooltip
         label={label}
@@ -43,7 +43,7 @@ export function NavigatorExpandToggle({
               data-slot='navigator-expand-toggle'
               aria-expanded={expanded}
               aria-controls={primaryId}
-              className={cn(navigatorExpandToggleVariants(), className)}
+              className={cn(navigatorExpandToggleClass, className)}
               onClick={() => setExpanded(!expanded)}
             >
               {presentNavIcon(

@@ -47,7 +47,7 @@ import type { NavigatorSlotMeta } from './mobileSlots'
 import { primarySignature } from './primarySignature'
 import { type SectionMemory, nextMemory } from './sectionMemory'
 import { useExpandMotion } from './useExpandMotion'
-import { navigatorRootVariants } from './variants'
+import { navigatorRootClass } from './variants'
 
 export type NavigatorRootProps = {
   /**
@@ -354,7 +354,7 @@ export function NavigatorRoot({
               <div
                 ref={rootRef}
                 data-slot='navigator'
-                className={cn(navigatorRootVariants(), className)}
+                className={cn(navigatorRootClass, className)}
               >
                 {children}
               </div>

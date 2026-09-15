@@ -6,7 +6,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { PaneContext } from './PaneContext'
-import { paneBodyTitleVariants } from './variants'
+import { paneBodyTitleClass } from './variants'
 
 export type PaneBodyTitleProps = ComponentProps<'h1'> & {
   /** Replace the rendered element. */
@@ -47,7 +47,7 @@ export function PaneBodyTitle({
 
   const resolved = {
     'data-slot': 'pane-body-title',
-    className: cn(paneBodyTitleVariants(), className),
+    className: cn(paneBodyTitleClass, className),
     children,
     ...props
   }
