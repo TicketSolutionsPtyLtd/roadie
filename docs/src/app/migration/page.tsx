@@ -1024,9 +1024,9 @@ import { HeartIcon } from '@phosphor-icons/react'
     transform var(--duration-slow) var(--ease-enter);
 }
 
-/* Or use built-in motion utilities */
+/* Or use a built-in animate-* utility */
 .entering {
-  animation: animate-fade-in var(--duration-slow) var(--ease-enter);
+  animation: fade-in var(--duration-slow) var(--ease-enter);
 }`}</code>
           </pre>
           <p className='text-sm text-subtle'>

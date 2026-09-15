@@ -819,7 +819,7 @@ transition: all 150ms ease-out;`}
               <tr>
                 <td className='py-2 pr-4 text-strong'>Popup enter/exit</td>
                 <td className='py-2 pr-4 font-mono text-xs'>duration-normal</td>
-                <td className='py-2 pr-4 font-mono text-xs'>ease-spring</td>
+                <td className='py-2 pr-4 font-mono text-xs'>ease-standard</td>
                 <td className='py-2'>
                   <Code>motion-scale</Code>
                 </td>
