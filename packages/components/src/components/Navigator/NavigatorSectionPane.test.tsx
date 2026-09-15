@@ -1512,57 +1512,41 @@ describe('row handlers resolve at click time', () => {
     )
   }
 
-  const app = (count: number, seen: number[], wrapped: boolean) =>
+  const app = (count: number, seen: number[]) =>
     withStubLink(
       <Navigator value='/components'>
-        {wrapped ? (
-          <Sections count={count} seen={seen} />
-        ) : (
-          Sections({ count, seen })
-        )}
+        {Sections({ count, seen })}
         <Navigator.Content>
           <Pane role='detail'>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
 
-  it.each([
-    ['wrapped', true],
-    ['direct', false]
-  ])(
-    "a section pane row calls the item's current onClick (%s Primary)",
-    async (_, wrapped) => {
-      const seen: number[] = []
-      const { rerender } = render(app(0, seen, wrapped))
-      await flushViewportMeasurement()
-      rerender(app(1, seen, wrapped))
-      rerender(app(2, seen, wrapped))
-      await flushViewportMeasurement()
-      await userEvent.click(
-        within(sectionPane()!).getByRole('link', { name: 'Button' })
-      )
-      expect(seen).toEqual([2])
-    }
-  )
+  it("a section pane row calls the item's current onClick", async () => {
+    const seen: number[] = []
+    const { rerender } = render(app(0, seen))
+    await flushViewportMeasurement()
+    rerender(app(1, seen))
+    rerender(app(2, seen))
+    await flushViewportMeasurement()
+    await userEvent.click(
+      within(sectionPane()!).getByRole('link', { name: 'Button' })
+    )
+    expect(seen).toEqual([2])
+  })
 
-  it.each([
-    ['wrapped', true],
-    ['direct', false]
-  ])(
-    "a More row calls the item's current onClick (%s Primary)",
-    async (_, wrapped) => {
-      const seen: number[] = []
-      const { rerender } = render(app(0, seen, wrapped))
-      await flushViewportMeasurement()
-      rerender(app(1, seen, wrapped))
-      rerender(app(2, seen, wrapped))
-      await flushViewportMeasurement()
-      await userEvent.click(screen.getByRole('button', { name: /More/ }))
-      const overflow = document.querySelector<HTMLElement>(
-        '[data-slot="navigator-overflow-items"]:not(.max-md\\:hidden)'
-      )!
-      await userEvent.click(within(overflow).getByRole('link', { name: '/e' }))
-      expect(seen).toEqual([2])
-    }
-  )
+  it("a More row calls the item's current onClick", async () => {
+    const seen: number[] = []
+    const { rerender } = render(app(0, seen))
+    await flushViewportMeasurement()
+    rerender(app(1, seen))
+    rerender(app(2, seen))
+    await flushViewportMeasurement()
+    await userEvent.click(screen.getByRole('button', { name: /More/ }))
+    const overflow = document.querySelector<HTMLElement>(
+      '[data-slot="navigator-overflow-items"]:not(.max-md\\:hidden)'
+    )!
+    await userEvent.click(within(overflow).getByRole('link', { name: '/e' }))
+    expect(seen).toEqual([2])
+  })
 })

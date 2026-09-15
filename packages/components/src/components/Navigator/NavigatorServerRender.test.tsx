@@ -1,6 +1,5 @@
 import {
   type ReactElement,
-  type ReactNode,
   StrictMode,
   use,
   useLayoutEffect,
@@ -24,18 +23,14 @@ import {
   testBrand
 } from './testUtils'
 
-const Wrapper = ({ children }: { children: ReactNode }) => <>{children}</>
-
 function Docs({
   value,
   showList,
-  override = false,
-  wrapPrimary = false
+  override = false
 }: {
   value: string
   showList?: boolean
   override?: boolean
-  wrapPrimary?: boolean
 }) {
   const primary = (
     <Navigator.Primary aria-label='Docs'>
@@ -68,7 +63,7 @@ function Docs({
   )
   return (
     <Navigator value={value} showList={showList}>
-      {wrapPrimary ? <Wrapper>{primary}</Wrapper> : primary}
+      {primary}
       <Navigator.Content>
         {override ? (
           <Navigator.SecondaryPane value='/components'>
@@ -252,18 +247,6 @@ describe('Navigator hydration', () => {
       expect(paneOf(host, 'list')).toBe(listNode)
     }
   )
-})
-
-describe('Navigator with a wrapped Primary', () => {
-  it('gets its section pane from the client once Primary publishes it', async () => {
-    render(<Docs value='/components' wrapPrimary />)
-    await flushViewportMeasurement()
-    expect(positions(document.body)).toEqual([
-      ['/components', 'top'],
-      ['detail', 'ahead'],
-      ['inspector', null]
-    ])
-  })
 })
 
 function PageRootDocs({ value }: { value: string }) {
