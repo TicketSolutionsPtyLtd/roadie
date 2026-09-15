@@ -13,7 +13,7 @@ const radiusScale = [
   {
     tier: 'Inline',
     className: 'rounded-sm',
-    value: '2px',
+    value: '4px',
     useFor: 'Marks, highlights'
   },
   {
@@ -35,16 +35,10 @@ const radiusScale = [
     useFor: 'Cards, select popups, radio cards, popovers'
   },
   {
-    tier: 'App shell',
-    className: 'rounded-2xl',
-    value: '16px',
-    useFor: 'Navigator panes and primary navigation'
-  },
-  {
     tier: 'Large',
     className: 'rounded-2xl',
     value: '16px',
-    useFor: 'Modals, dialogs, drawers'
+    useFor: 'Modals, dialogs, drawers, Navigator panes'
   },
   {
     tier: 'Hero',
@@ -352,8 +346,8 @@ export default function ShapePage() {
           <li>
             <p>
               <Code>rounded-2xl</Code> is reserved for{' '}
-              <strong>top-layer UI</strong> (modals, dialogs, drawers). Do not
-              use it on inline components.
+              <strong>top-layer UI</strong> (modals, dialogs, drawers) and the
+              Navigator&apos;s panes. Do not use it on inline components.
             </p>
           </li>
           <li>
