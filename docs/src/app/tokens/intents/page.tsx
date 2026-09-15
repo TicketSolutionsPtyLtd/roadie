@@ -1,5 +1,6 @@
 import { IntentMatrix } from '@/components/tokens/FamilyVisuals'
 import { TokenFamilyPage } from '@/components/tokens/TokenFamilyPage'
+import { getFamilyTokens } from '@/lib/tokens'
 
 import { Code } from '@oztix/roadie-components/code'
 
@@ -11,7 +12,9 @@ export const metadata = {
   order: 2
 }
 
-export default function IntentsTokensPage() {
+export default async function IntentsTokensPage() {
+  const roles = await getFamilyTokens('intents')
+
   return (
     <TokenFamilyPage
       family='intents'
@@ -25,7 +28,7 @@ export default function IntentsTokensPage() {
         </>
       }
     >
-      <IntentMatrix />
+      <IntentMatrix roles={roles} />
     </TokenFamilyPage>
   )
 }
