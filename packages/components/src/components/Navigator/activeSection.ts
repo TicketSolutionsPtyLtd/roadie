@@ -6,14 +6,8 @@ import {
   NavigatorMenuItem,
   type NavigatorMenuItemProps
 } from './NavigatorMenuItem'
-import type { CollectedSlots } from './collectSlots'
 import type { NavigatorSlotMeta } from './mobileSlots'
 import { secondaryBlocks } from './splitSecondary'
-
-export const slotsOf = (collected: CollectedSlots) => [
-  ...collected.automatic,
-  ...collected.pinnedSlots
-]
 
 function sectionWhere(
   slots: readonly NavigatorSlotMeta[],
