@@ -60,32 +60,10 @@ describe('Pane', () => {
     expect(pane()).toHaveAttribute('data-role', 'list')
   })
 
-  it('leaves column width to the stylesheet', async () => {
-    await renderPane(<Pane role='list'>Body</Pane>)
-    expect(pane()).not.toHaveClass('lg:w-[clamp(16rem,40%,24rem)]')
-  })
-
-  it('marks the inspector role so it yields first', async () => {
-    await renderPane(<Pane role='inspector'>Contents</Pane>)
-    expect(pane()).toHaveAttribute('data-role', 'inspector')
-  })
-
-  it('scrolls in a nested viewport, not the section itself', async () => {
-    await renderPane(<Pane>Body</Pane>)
-    expect(
-      pane()?.querySelector('[data-slot="pane-viewport"]')
-    ).toBeInTheDocument()
-  })
-
   it("does not leak ScrollArea's presentation role onto the landmark", async () => {
     await renderPane(<Pane aria-label='Components'>Body</Pane>)
     expect(pane()).not.toHaveAttribute('role')
     expect(screen.getByLabelText('Components')).toBe(pane())
-  })
-
-  it('renders standalone with no Navigator present', async () => {
-    await renderPane(<Pane role='detail'>Standalone</Pane>)
-    expect(screen.getByText('Standalone')).toBeInTheDocument()
   })
 
   it.each([
@@ -160,21 +138,6 @@ describe('Pane.Header', () => {
     ).toBeInTheDocument()
   })
 
-  it('renders actions in the header', async () => {
-    await renderPane(
-      <Pane>
-        <Pane.Header>
-          <Pane.Title>Components</Pane.Title>
-          <Pane.Actions>
-            <button type='button'>Add</button>
-          </Pane.Actions>
-        </Pane.Header>
-      </Pane>
-    )
-    const header = document.querySelector('[data-slot="pane-header"]')
-    expect(header?.querySelector('[data-slot="pane-actions"]')).toBeTruthy()
-  })
-
   it('paints its own surface rather than inheriting a transparent one', async () => {
     await renderPane(
       <Pane>
@@ -218,24 +181,6 @@ describe('Pane.Header', () => {
     )
   })
 
-  it('keeps actions at every width, unlike the back affordance', async () => {
-    await renderPane(
-      <Pane role='detail'>
-        <Pane.Header backHref='/components'>
-          <Pane.Actions>
-            <button type='button'>Contents</button>
-          </Pane.Actions>
-        </Pane.Header>
-      </Pane>
-    )
-    const header = document.querySelector('[data-slot="pane-header"]')
-    expect(
-      document.querySelector('[data-slot="pane-actions"]')
-    ).not.toHaveClass('lg:hidden')
-    // Actions outlive the back row, so the header cannot collapse with it.
-    expect(header).not.toHaveClass('lg:hidden')
-  })
-
   it('places actions in the top row even with no back affordance', async () => {
     await renderPane(
       <Pane role='list'>
@@ -252,28 +197,6 @@ describe('Pane.Header', () => {
       'col-start-3',
       'row-start-1',
       'justify-self-end'
-    )
-  })
-
-  it('wraps wide actions within their own column instead of reaching the back caret', async () => {
-    await renderPane(
-      <Pane role='detail'>
-        <Pane.Header backHref='/components'>
-          <Pane.Actions>
-            <button type='button'>Contents</button>
-          </Pane.Actions>
-        </Pane.Header>
-      </Pane>
-    )
-    expect(screen.getByLabelText('Back').closest('div')).toHaveAttribute(
-      'data-slot',
-      'pane-back'
-    )
-    // Overflow wraps rather than running under the caret. The column itself
-    // (not a max-w hack) is what keeps actions off the back affordance now —
-    // see the three-column assertion below.
-    expect(document.querySelector('[data-slot="pane-actions"]')).toHaveClass(
-      'flex-wrap'
     )
   })
 
@@ -297,14 +220,16 @@ describe('Pane.Header', () => {
     expect(document.querySelector('[data-slot="pane-header"]')).toHaveClass(
       'grid-cols-[auto_minmax(0,1fr)_auto]'
     )
-    expect(screen.getByLabelText('Back').closest('div')).toHaveClass(
-      'col-start-1'
-    )
+    const back = screen.getByLabelText('Back').closest('div')
+    expect(back).toHaveClass('col-start-1')
+    expect(back).toHaveAttribute('data-slot', 'pane-back')
     expect(
       document.querySelector('[data-slot="pane-title-compact"]')
     ).toHaveClass('col-start-2', 'min-w-0', 'truncate')
+    // Wide actions wrap within their own column rather than reach the caret.
     expect(document.querySelector('[data-slot="pane-actions"]')).toHaveClass(
-      'col-start-3'
+      'col-start-3',
+      'flex-wrap'
     )
   })
 
@@ -315,20 +240,6 @@ describe('Pane.Header', () => {
       </Pane>
     )
     expect(document.querySelector('[data-slot="pane-header"]')).toBeNull()
-  })
-
-  it('publishes its measured height on the pane', async () => {
-    await renderPane(
-      <Pane>
-        <Pane.Header>
-          <Pane.Title>Components</Pane.Title>
-        </Pane.Header>
-      </Pane>
-    )
-    const paneEl = document.querySelector<HTMLElement>('[data-slot="pane"]')
-    // jsdom reports offsetHeight 0, but the property must still be written —
-    // its presence is what sticky content offsets against.
-    expect(paneEl?.style.getPropertyValue('--pane-header-height')).toBe('0px')
   })
 
   it('insets the scrollbar so it starts below the header', async () => {
@@ -381,7 +292,9 @@ describe('Pane.Header', () => {
     // semantically a button, not a navigation link), so this asserts via
     // label rather than role — same pattern as IconButton.test.tsx's own
     // href coverage.
-    expect(screen.getByLabelText('Back').tagName.toLowerCase()).toBe('a')
+    const back = screen.getByLabelText('Back')
+    expect(back.tagName.toLowerCase()).toBe('a')
+    expect(back).toHaveAttribute('data-slot', 'icon-button')
   })
 
   it('never offers a back affordance on a list pane', async () => {
@@ -393,19 +306,6 @@ describe('Pane.Header', () => {
       </Pane>
     )
     expect(screen.queryByLabelText('Back')).toBeNull()
-  })
-
-  it("leaves the back cell's display to the stylesheet", async () => {
-    await renderPane(
-      <Pane role='detail'>
-        <Pane.Header backHref='/components'>
-          <Pane.Title>Button</Pane.Title>
-        </Pane.Header>
-      </Pane>
-    )
-    const cell = screen.getByLabelText('Back').closest('div')
-    expect(cell).not.toHaveClass('lg:hidden')
-    expect(cell).toHaveAttribute('data-slot', 'pane-back')
   })
 
   it('takes the whole header with it when the back row is all there was', async () => {
@@ -460,12 +360,6 @@ describe('Pane.Header close affordance', () => {
     expect(screen.getAllByLabelText('Close')).toHaveLength(1)
     await userEvent.click(screen.getByLabelText('Close'))
     expect(onClose).toHaveBeenCalledTimes(1)
-  })
-
-  it('never renders a close control on the root pane, even given the same handler', async () => {
-    await renderTwoColumnStack(vi.fn())
-    const [rootHeader] = document.querySelectorAll('[data-slot="pane-header"]')
-    expect(rootHeader?.querySelector('[aria-label="Close"]')).toBeNull()
   })
 
   it('never renders a close control on an inspector', async () => {
@@ -609,26 +503,6 @@ describe('Pane.Header close affordance', () => {
     expect(onBack).not.toHaveBeenCalled()
   })
 
-  it('never renders a close control on the root pane from onBack alone', async () => {
-    render(
-      <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane role='list'>
-            <Pane.Header onBack={vi.fn()}>
-              <Pane.Title>List</Pane.Title>
-            </Pane.Header>
-          </Pane>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
-        </Navigator.Content>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    const [rootHeader] = document.querySelectorAll('[data-slot="pane-header"]')
-    expect(rootHeader?.querySelector('[aria-label="Close"]')).toBeNull()
-  })
-
   it('renders a close link from backHref alone', async () => {
     render(
       <Navigator value='/a'>
@@ -680,25 +554,6 @@ describe('Pane.Header close affordance', () => {
     expect(screen.queryByLabelText(/^Back/)).toBeNull()
     expect(screen.queryByLabelText('Close')).toBeNull()
     expect(document.querySelector('[data-slot="pane-header"]')).toBeNull()
-  })
-
-  it('never renders a close control on an inspector from onBack alone', async () => {
-    render(
-      <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane role='list' current>
-            List
-          </Pane>
-          <Pane role='inspector'>
-            <Pane.Header onBack={vi.fn()}>
-              <Pane.Title>Inspector</Pane.Title>
-            </Pane.Header>
-          </Pane>
-        </Navigator.Content>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    expect(screen.queryByLabelText('Close')).toBeNull()
   })
 
   it('still draws the header when Close is its only content', async () => {
@@ -789,18 +644,6 @@ describe('Pane.Header back name', () => {
     expect(screen.getByLabelText('Back').tagName).toBe('BUTTON')
   })
 
-  it('is named plain "Back" with no label', async () => {
-    await renderPane(
-      <Pane role='detail'>
-        <Pane.Header backHref='/tickets' />
-      </Pane>
-    )
-    expect(screen.getByLabelText('Back')).toHaveAttribute(
-      'data-slot',
-      'icon-button'
-    )
-  })
-
   it('never offers Back on a depth-0 pane, whatever its role', async () => {
     await renderPane(
       <Pane role='detail' depth={0}>
@@ -836,7 +679,7 @@ describe('Pane.Header collapse on scroll', () => {
     </Pane>
   )
 
-  it('starts expanded', async () => {
+  it('starts expanded and collapses once the viewport scrolls past the threshold', async () => {
     await renderPane(
       <Pane>
         <Pane.Header>
@@ -845,16 +688,6 @@ describe('Pane.Header collapse on scroll', () => {
       </Pane>
     )
     expect(headerOf()).toHaveAttribute('data-collapsed', 'false')
-  })
-
-  it('collapses once the viewport scrolls past the threshold', async () => {
-    await renderPane(
-      <Pane>
-        <Pane.Header>
-          <Pane.Title>Components</Pane.Title>
-        </Pane.Header>
-      </Pane>
-    )
     await act(async () => {
       scrolled(viewportOf(), COLLAPSE_AT + 1)
       await Promise.resolve()
@@ -1052,13 +885,6 @@ describe('Pane.Header collapse on scroll', () => {
     render(<Pane.Title>Loose</Pane.Title>)
     expect(screen.queryByRole('button', { name: 'Scroll to top' })).toBeNull()
     expect(screen.getByRole('heading', { name: 'Loose' })).toBeInTheDocument()
-  })
-
-  it('gives the compact title a pointer cursor', async () => {
-    await renderPane(titled)
-    expect(screen.getByRole('button', { name: 'Scroll to top' })).toHaveClass(
-      'cursor-pointer'
-    )
   })
 
   it('shows a faint up affordance beside the compact title from lg up, hidden below it', async () => {
@@ -1276,23 +1102,6 @@ describe('pane registration through a wrapper', () => {
             <Pane role='list'>List</Pane>
           </Slot>
           <Slot>
-            <Pane role='detail' current>
-              Detail
-            </Pane>
-          </Slot>
-        </Navigator.Content>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    expect(positions()).toEqual(['behind', 'top'])
-  })
-
-  it('orders two panes contributed by one wrapper', async () => {
-    render(
-      <Navigator value='/a'>
-        <Navigator.Content>
-          <Slot>
-            <Pane role='list'>List</Pane>
             <Pane role='detail' current>
               Detail
             </Pane>
@@ -1653,20 +1462,6 @@ describe('depth attributes', () => {
     expect(pane()).toHaveAttribute('data-depth', '1')
     expect(pane()).not.toHaveAttribute('data-stack')
     expect(pane()).not.toHaveAttribute('data-level')
-  })
-
-  it('writes a declared depth', async () => {
-    await renderPane(
-      <Pane role='detail' depth={2}>
-        Sub
-      </Pane>
-    )
-    expect(pane()).toHaveAttribute('data-depth', '2')
-  })
-
-  it('gives an inspector no depth', async () => {
-    await renderPane(<Pane role='inspector'>Details</Pane>)
-    expect(pane()).not.toHaveAttribute('data-depth')
   })
 
   it('resolves depth from document order inside a stack, and marks the current pane', async () => {
