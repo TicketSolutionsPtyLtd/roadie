@@ -1043,6 +1043,9 @@ and Close, and the header.
 - `Navigator.Brand` is a link named by its content, such as "Oztix" from the
   default `Logo`, or your mark's `alt`. Pick a name that reads in both states.
 - Tab order follows the regions: brand and toggle, cluster, then pinned items.
+- While the phone bar is collapsed, only its circles are in the tab order. The
+  tabs that scale away stay in the accessibility tree, so a screen reader still
+  has every destination.
 - Menus are Base UI menus. Arrow keys move between rows, typeahead jumps to
   one, and Escape closes the menu and returns focus to its trigger. A menu is
   named by its item, or by its own `aria-label`.

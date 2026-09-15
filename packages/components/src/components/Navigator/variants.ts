@@ -163,8 +163,9 @@ export const navigatorPrimaryPillVariants = cva(
 )
 
 // Collapsed, the active and final tabs become circles that translate to the
-// edges; the rest scale away but stay in the accessibility tree. `translate`
-// has no logical form, so `rtl:` mirrors every horizontal travel.
+// edges; the rest scale away and leave the tab order, but stay in the
+// accessibility tree. `translate` has no logical form, so `rtl:` mirrors
+// every horizontal travel.
 export const navigatorTabVariants = cva(
   [
     'is-interactive relative z-[1] min-w-0 overflow-hidden rounded-full',
