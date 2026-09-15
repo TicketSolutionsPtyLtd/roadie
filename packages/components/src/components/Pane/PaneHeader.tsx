@@ -5,7 +5,6 @@ import {
   type ReactNode,
   isValidElement,
   use,
-  useEffect,
   useLayoutEffect,
   useRef
 } from 'react'
@@ -14,7 +13,7 @@ import { CaretLeftIcon, XIcon } from '@phosphor-icons/react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { isDev } from '../../utils/isDev'
+import { useDevWarning } from '../../utils/useDevWarning'
 import { IconButton } from '../Button/IconButton'
 import { PaneChromeContext } from './PaneChromeContext'
 import { PaneContext } from './PaneContext'
@@ -84,12 +83,10 @@ export function PaneHeader({
   const bodyTitle = pane?.bodyTitle ?? null
   const bothTitles = hasHeaderTitle && bodyTitle !== null
 
-  useEffect(() => {
-    if (!isDev() || !bothTitles) return
-    console.warn(
-      'Pane: a Pane.Title in the header and a Pane.BodyTitle in the content both want the header’s compact echo. Rendering the Pane.Title’s and ignoring the Pane.BodyTitle’s — pick one arrangement.'
-    )
-  }, [bothTitles])
+  useDevWarning(
+    bothTitles &&
+      '[Roadie] Pane.Header has a Pane.Title and the pane a Pane.BodyTitle; the Pane.Title wins.'
+  )
 
   const hasOtherContent = children != null || bodyTitle !== null
   const visible = showBack || showClose || hasOtherContent

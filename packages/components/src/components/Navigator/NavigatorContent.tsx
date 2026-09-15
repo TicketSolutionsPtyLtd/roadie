@@ -26,7 +26,6 @@ import {
   type PaneStackContextValue
 } from '../Pane/PaneStackContext'
 import { PaneTitle } from '../Pane/PaneTitle'
-import { PANE_MAX_DEPTH, PANE_MAX_LEVELS } from '../Pane/paneColumns'
 import { GeneratedOverflowContext } from './GeneratedOverflowContext'
 import {
   NavigatorActionsContext,
@@ -198,24 +197,17 @@ export function NavigatorContent({
   const rootListDrawn = rootList && !moreOpen
   const showsSectionPane = rootListDrawn && !overridden
 
-  const depths = useMemo(
-    () =>
-      depthsOf(ordered, {
-        rootList,
-        rootListDrawn,
-        sectionPane: showsSectionPane,
-        overflow: generatesOverflow,
-        moreOpen
-      }),
-    [
-      ordered,
+  const draws = useMemo<Drawn>(
+    () => ({
       rootList,
       rootListDrawn,
-      showsSectionPane,
-      generatesOverflow,
+      sectionPane: showsSectionPane,
+      overflow: generatesOverflow,
       moreOpen
-    ]
+    }),
+    [rootList, rootListDrawn, showsSectionPane, generatesOverflow, moreOpen]
   )
+  const depths = useMemo(() => depthsOf(ordered, draws), [ordered, draws])
 
   const onSectionRoute =
     activeSection !== null && isActiveValue(activeSection.value, value)
@@ -382,62 +374,29 @@ export function NavigatorContent({
         pane.kind === 'section' ||
         pane.kind === 'overflow'
     )
-    if (declared) return
-    console.warn(
-      '[Roadie] Navigator.Content rendered children but identified no ' +
-        'panes. Stack position, push/pop motion and primaryNav are all ' +
-        'inert until a Pane registers. If your panes render inside a ' +
-        'wrapper that suppresses effects, or you are rendering a Pane ' +
-        'from a server component, that is the cause.'
-    )
+    if (!declared) {
+      console.warn(
+        '[Roadie] Navigator.Content has children but no Pane registered.'
+      )
+    }
   }, [hasChildren, registered])
-
-  useEffect(() => {
-    if (!isDev() || level < PANE_MAX_LEVELS) return
-    console.warn(
-      `[Roadie] Navigator.Content is nested ${level} deep; the pane columns stylesheet covers ${PANE_MAX_LEVELS} levels.`
-    )
-  }, [level])
 
   // The live Map, not `ordered`: a pane unmounting this commit is still in the render's snapshot.
   const warned = useRef(new Set<string>())
   useEffect(() => {
     if (!isDev()) return
     const live = orderByDocumentPosition(Array.from(panes.current.values()))
-    const resolved = depthsOf(live, {
-      rootList,
-      rootListDrawn,
-      sectionPane: showsSectionPane,
-      overflow: generatesOverflow,
-      moreOpen
-    })
-    const warnOnce = (message: string) => {
-      if (warned.current.has(message)) return
-      warned.current.add(message)
-      console.warn(message)
-    }
+    const resolved = depthsOf(live, draws)
     for (const pane of live) {
       const depth = resolved.get(pane.id) ?? null
       const declared = provisionalDepth(pane)
-      if (depth === null || declared === null) continue
-      if (depth > PANE_MAX_DEPTH) {
-        warnOnce(
-          `[Roadie] A fifth stack pane (depth ${depth}) has no column. Flatten the navigation.`
-        )
-      } else if (depth > declared) {
-        warnOnce(
-          `[Roadie] A Pane declared or defaulted to depth ${declared} but sits at depth ${depth}. Declare depth={${depth}} so the server render matches.`
-        )
-      }
+      if (depth === null || declared === null || depth <= declared) continue
+      const message = `[Roadie] A Pane sits at depth ${depth} but declares ${declared}; declare depth={${depth}} for SSR.`
+      if (warned.current.has(message)) continue
+      warned.current.add(message)
+      console.warn(message)
     }
-  }, [
-    registered,
-    rootList,
-    rootListDrawn,
-    showsSectionPane,
-    generatesOverflow,
-    moreOpen
-  ])
+  }, [registered, draws])
 
   const topPrimaryNav =
     stack.find((pane) => pane.id === topId)?.primaryNav ?? 'auto'

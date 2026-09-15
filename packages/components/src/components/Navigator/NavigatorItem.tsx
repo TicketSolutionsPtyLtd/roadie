@@ -1,16 +1,10 @@
 'use client'
 
-import {
-  type ReactElement,
-  type ReactNode,
-  use,
-  useEffect,
-  useMemo
-} from 'react'
+import { type ReactElement, type ReactNode, use, useMemo } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { isDev } from '../../utils/isDev'
+import { useDevWarning } from '../../utils/useDevWarning'
 import type { BadgeProps } from '../Badge'
 import {
   NavigatorActionsContext,
@@ -117,15 +111,10 @@ export function NavigatorItem({
     activateItem(value)
   }
 
-  // In an effect, not the walk: React 19 strict mode double-invokes render.
-  useEffect(() => {
-    if (!isDev() || !declaresMenuWithSecondary) return
-    console.warn(
-      `[Roadie] Navigator.Item value='${value}' declares both a ` +
-        'Navigator.Secondary and a Navigator.Menu. The Menu is ignored — ' +
-        'an item with sub-navigation is a section, not a menu.'
-    )
-  }, [declaresMenuWithSecondary, value])
+  useDevWarning(
+    declaresMenuWithSecondary &&
+      `[Roadie] Navigator.Item '${value}' has a Secondary and a Menu; the Menu is ignored.`
+  )
 
   // By hand: the compiler left this unmemoised, so every value change re-rendered each tile's tooltip.
   const content = useMemo(

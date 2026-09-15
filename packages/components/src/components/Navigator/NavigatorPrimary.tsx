@@ -15,7 +15,7 @@ import { DotsThreeIcon } from '@phosphor-icons/react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { isDev } from '../../utils/isDev'
+import { useDevWarning } from '../../utils/useDevWarning'
 import { ScrollArea } from '../ScrollArea'
 import { Tooltip } from '../Tooltip'
 import {
@@ -160,72 +160,20 @@ export function NavigatorPrimary({
     return () => setPrimaryChildren(null)
   }, [primaryDerived, setPrimaryChildren])
 
-  // Warnings live in effects, not the walk: React 19 StrictMode double-invokes render.
-  const hasStrayChild = collected.hasStrayChild
-  useEffect(() => {
-    if (!isDev() || !hasStrayChild) return
-    console.warn(
-      '[Roadie] Navigator.Primary only recognises Navigator.Item, ' +
-        'Navigator.Group, Navigator.Brand and Navigator.ExpandToggle by ' +
-        'direct element-type reference, and skipped a child that is not ' +
-        'one of those. A component that renders, or merely returns, a ' +
-        'Navigator.Item — including one extracted to share it across ' +
-        'sections — is not that reference either, so it is invisible ' +
-        'the same way. Fragments, mapped wrappers, and trees authored ' +
-        'in a server component (Flight replaces each element type with ' +
-        'a lazy reference) fail for the same reason. Render ' +
-        'Navigator.Item directly as a child. See COMPOUND_PATTERNS.md ' +
-        '§1.2.'
-    )
-  }, [hasStrayChild])
-
-  const brandless = collected.brand.length === 0
-  useEffect(() => {
-    if (!isDev() || !brandless) return
-    console.warn(
-      '[Roadie] Navigator.Primary has no Navigator.Brand. The vertical ' +
-        'navigation expects one at its top — a mark linking home, which ' +
-        'Navigator.ExpandToggle sits beside. Add a Navigator.Brand as a ' +
-        'direct child; a Brand inside a Fragment or wrapper is skipped.'
-    )
-  }, [brandless])
-
-  const conflicting = collected.conflictingPlacement.join(', ')
-  useEffect(() => {
-    if (!isDev() || conflicting === '') return
-    console.warn(
-      `[Roadie] Navigator.Item ${conflicting} declares a placement that ` +
-        "differs from its Navigator.Group's. The group's placement wins — " +
-        'move the item out of the group to place it on its own.'
-    )
-  }, [conflicting])
-
+  useDevWarning(
+    collected.hasStrayChild &&
+      '[Roadie] Navigator.Primary skipped a child it does not recognise. Render Navigator.Item directly; see COMPOUND_PATTERNS.md §1.2.'
+  )
   const routeless = items
     .filter(
       (slot) => slot.descendants.length > 0 && slot.declaredHref === undefined
     )
     .map((slot) => slot.value)
     .join(', ')
-  useEffect(() => {
-    if (!isDev() || routeless === '') return
-    console.warn(
-      `[Roadie] Navigator.Item ${routeless} declares a Navigator.Secondary ` +
-        'but no href. Every section needs its own route: it shows the ' +
-        "section's list pane, and it is where Back goes from a sub-page."
-    )
-  }, [routeless])
-
-  const pinnedFirst = collected.pinnedBeforeCluster
-  useEffect(() => {
-    if (!isDev() || !pinnedFirst) return
-    console.warn(
-      '[Roadie] Navigator.Primary has a pinned item written before other ' +
-        'items. Pinned items render at the bottom of the vertical ' +
-        "navigation and in the phone bar's trailing circle, so keyboard and " +
-        'screen-reader order follows that, not your source order. Write ' +
-        'pinned items last.'
-    )
-  }, [pinnedFirst])
+  useDevWarning(
+    routeless !== '' &&
+      `[Roadie] Navigator.Item ${routeless} has a Navigator.Secondary but no href.`
+  )
 
   // Masks `navCollapsed` rather than resetting it, so `auto` snaps back to the state it hid.
   const collapsed = navCollapsed && primaryNav === 'auto'
@@ -335,16 +283,11 @@ export function NavigatorPrimary({
     </NavigatorDestination>
   )
 
-  const foldedWithNoHost = hasMore && !hasContent
-  useEffect(() => {
-    if (!isDev() || !foldedWithNoHost) return
-    console.warn(
-      '[Roadie] Navigator.Primary folded items into a More tab, but no ' +
-        'Navigator.Content is mounted to host the overflow pane. The ' +
-        'folded destinations are unreachable below `md`. Render a ' +
-        'Navigator.Content, optionally with a Navigator.OverflowPane inside it.'
-    )
-  }, [foldedWithNoHost])
+  useDevWarning(
+    hasMore &&
+      !hasContent &&
+      '[Roadie] Navigator.Primary folded items into More but no Navigator.Content hosts the pane.'
+  )
 
   // By hand: the compiler leaves the bar's tab list unmemoised, and each tab
   // is a server-safe, uncompiled component, so every Primary render re-rendered them all.
