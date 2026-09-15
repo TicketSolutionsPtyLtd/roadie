@@ -9,14 +9,11 @@ import { PaneTitleCompact } from './PaneTitleCompact'
 import { paneTitleVariants } from './variants'
 
 export type PaneTitleProps = ComponentProps<'h2'> & {
-  /** Replace the h2; the compact echo is unaffected. */
+  /** Replaces the h2. The compact title is unaffected. */
   render?: (props: ComponentProps<'h2'>) => ReactElement
 }
 
-/**
- * The pane's heading; inside a Pane it also renders a compact echo that scrolls to
- * top. Direct child of `Pane.Header`.
- */
+/** The pane's heading, plus a compact title that scrolls the pane to the top. A direct child of `Pane.Header`. */
 export function PaneTitle({
   className,
   children,

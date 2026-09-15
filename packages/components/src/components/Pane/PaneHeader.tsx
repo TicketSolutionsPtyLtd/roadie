@@ -22,13 +22,13 @@ import { PaneTitleCompact } from './PaneTitleCompact'
 import { paneHeaderEdgeClass, paneHeaderVariants } from './variants'
 
 export type PaneHeaderProps = {
-  /** Back target, as a routed link. Wins over `onBack`; also Close's target unless `onClose` is given. */
+  /** Back's target, as a routed link. Wins over `onBack` for Back. */
   backHref?: string
   /** Names the Back button for assistive tech, as "Back to {label}". */
   backLabel?: string
-  /** Back target, as a `<button>`; also Close's handler unless `onClose` is given. */
+  /** Back's target, as a click handler. Close uses it unless `onClose` is set. */
   onBack?: () => void
-  /** Close's handler, overriding `onBack` and `backHref` for Close; never shown on the root pane. */
+  /** Close's handler. Wins over `onBack` and `backHref` for Close. */
   onClose?: () => void
   children?: ReactNode
   className?: string
