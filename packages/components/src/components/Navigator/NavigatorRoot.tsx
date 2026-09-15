@@ -41,8 +41,10 @@ import {
   findActiveSection,
   findItem,
   findMenuItem,
-  findSectionByValue
+  findSectionByValue,
+  slotsOf
 } from './activeSection'
+import { collectSlots } from './collectSlots'
 import type { NavigatorSlotMeta } from './mobileSlots'
 import { primarySignature } from './primarySignature'
 import { type SectionMemory, nextMemory } from './sectionMemory'
@@ -242,26 +244,30 @@ export function NavigatorRoot({
   // During render, not from Primary's effect, so the server renders the section's list pane.
   const primaryChildren =
     derived.signature === derivedSignature ? derived.children : derivedChildren
-  // Keyed on which section is active, so moving between its rows keeps its identity.
-  const activeSectionValue = useMemo(
-    () => findActiveSection(primaryChildren, value)?.value ?? null,
-    [primaryChildren, value]
+  const collected = useMemo(
+    () => collectSlots(primaryChildren),
+    [primaryChildren]
   )
+  const slots = useMemo(() => slotsOf(collected), [collected])
+  // Keyed on which section is active, so moving between its rows keeps its identity.
+  const activeSectionValue = findActiveSection(slots, value)?.value ?? null
   const activeSection = useMemo(
     () =>
       activeSectionValue === null
         ? null
-        : findSectionByValue(primaryChildren, activeSectionValue),
-    [primaryChildren, activeSectionValue]
+        : findSectionByValue(slots, activeSectionValue),
+    [slots, activeSectionValue]
   )
   useIsomorphicLayoutEffect(() => {
     latestPrimaryChildren.current = derivedChildren
   }, [derivedChildren])
+  // The latest elements, not the structural copy, so handlers are current at click time.
+  const latestSlots = () => slotsOf(collectSlots(latestPrimaryChildren.current))
   const activateItem = useCallback((itemValue: string) => {
-    findItem(latestPrimaryChildren.current, itemValue)?.onClick?.()
+    findItem(latestSlots(), itemValue)?.onClick?.()
   }, [])
   const activateMenuItem = useCallback((itemValue: string, index: number) => {
-    findMenuItem(latestPrimaryChildren.current, itemValue, index)?.onClick?.()
+    findMenuItem(latestSlots(), itemValue, index)?.onClick?.()
   }, [])
   const listPaneShows =
     activeSection !== null &&
@@ -314,7 +320,8 @@ export function NavigatorRoot({
   }
   const selection: NavigatorSelection = {
     value,
-    primaryChildren,
+    collected,
+    slots,
     activeSection,
     listPaneShows,
     showList: showList ?? false,

@@ -100,7 +100,7 @@ export function NavigatorPrimary({
   const {
     value: activeValue,
     activeSection,
-    primaryChildren,
+    collected: rootCollected,
     sectionMemory,
     showList
   } = use(NavigatorSelectionContext)
@@ -113,9 +113,12 @@ export function NavigatorPrimary({
   const pinnedRef = useRef<HTMLDivElement>(null)
   const brandRef = useRef<HTMLDivElement>(null)
 
-  // Root's copy keeps its identity across parent renders, so the walk and every item element do too.
-  const source = primaryDerived ? primaryChildren : children
-  const collected = useMemo(() => collectSlots(source), [source])
+  // Root's walk keeps its identity across parent renders, and every item element with it.
+  const ownCollected = useMemo(
+    () => (primaryDerived ? null : collectSlots(children)),
+    [primaryDerived, children]
+  )
+  const collected = ownCollected ?? rootCollected
   const items = [...collected.automatic, ...collected.pinnedSlots]
 
   // Only an item without a Secondary, deep in an undeclared sub-route, is worth remembering.
