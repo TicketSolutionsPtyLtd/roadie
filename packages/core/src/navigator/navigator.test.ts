@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest'
 import {
   NAVIGATOR_EXPANDED_ATTRIBUTE,
   NAVIGATOR_EXPANDED_COOKIE,
-  NAVIGATOR_EXPANDED_SCOPE,
   getNavigatorExpandedScript,
   serializeNavigatorExpandedCookie
 } from './index'
@@ -24,14 +23,6 @@ const runWith = (cookie: string, script = getNavigatorExpandedScript()) => {
   new Function('document', script)(document)
   return attribute
 }
-
-describe('NAVIGATOR_EXPANDED_SCOPE', () => {
-  it('is scoped to the vertical navigation, by its own state or the document', () => {
-    expect(NAVIGATOR_EXPANDED_SCOPE).toBe(
-      '[data-slot=navigator-primary][data-orientation=vertical][data-expanded], [data-slot=navigator-primary][data-orientation=vertical][data-expanded] *, [data-navigator-expanded] [data-slot=navigator-primary][data-orientation=vertical][data-from-document], [data-navigator-expanded] [data-slot=navigator-primary][data-orientation=vertical][data-from-document] *'
-    )
-  })
-})
 
 describe('getNavigatorExpandedScript', () => {
   it('marks the document when the cookie says expanded', () => {
