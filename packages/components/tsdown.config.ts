@@ -25,7 +25,14 @@ import { reactCompilerPreset } from './react-compiler.config.ts'
 // `"use client";` at the top. Verify after build with:
 //   head -c 13 dist/components/Fieldset/FieldsetRoot.js   # → "use client";
 export default defineConfig(({ watch }) => ({
-  entry: ['src/**/*.{ts,tsx}', '!**/*.test.{ts,tsx}', '!**/testUtils.tsx'],
+  // paneColumns generates a stylesheet at build time and nothing imports it at
+  // runtime, so shipping it would be dead weight in the tarball.
+  entry: [
+    'src/**/*.{ts,tsx}',
+    '!**/*.test.{ts,tsx}',
+    '!**/testUtils.tsx',
+    '!**/paneColumns.ts'
+  ],
   unbundle: true,
   format: ['esm'],
   platform: 'neutral',
