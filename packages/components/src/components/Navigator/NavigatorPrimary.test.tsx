@@ -733,7 +733,7 @@ describe('More from the app’s state', () => {
   })
 })
 
-describe('an item’s onClick', () => {
+describe('an item’s onSelect', () => {
   it('fires from the tile, the bar, a More row and a menu trigger', async () => {
     const user = userEvent.setup()
     const clicked = vi.fn()
@@ -749,7 +749,7 @@ describe('an item’s onClick', () => {
                 href={v}
                 icon={<FakeIcon />}
                 visibilityPriority={v === '/e' ? 'low' : undefined}
-                onClick={() => clicked(v)}
+                onSelect={() => clicked(v)}
               >
                 {v}
               </Navigator.Item>
@@ -757,7 +757,7 @@ describe('an item’s onClick', () => {
             <Navigator.Item
               value='account'
               icon={<FakeIcon />}
-              onClick={() => clicked('account')}
+              onSelect={() => clicked('account')}
             >
               Account
               <Navigator.Menu>

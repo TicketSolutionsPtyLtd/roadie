@@ -957,11 +957,11 @@ describe('render fan-out', () => {
   function App({
     value,
     expanded = false,
-    onClick
+    onSelect
   }: {
     value: string
     expanded?: boolean
-    onClick?: () => void
+    onSelect?: () => void
   }) {
     return (
       <Navigator value={value} expanded={expanded}>
@@ -981,7 +981,7 @@ describe('render fan-out', () => {
             value='/t'
             href='/t'
             icon={<TileIcon />}
-            onClick={onClick}
+            onSelect={onSelect}
           >
             Other
           </Navigator.Item>
@@ -1027,9 +1027,9 @@ describe('render fan-out', () => {
   it('calls the handler from the latest render, though the tree kept its identity', async () => {
     const first = vi.fn()
     const latest = vi.fn()
-    const { rerender } = render(<App value='/s/r3' onClick={first} />)
+    const { rerender } = render(<App value='/s/r3' onSelect={first} />)
     await flushViewportMeasurement()
-    rerender(<App value='/s/r3' onClick={latest} />)
+    rerender(<App value='/s/r3' onSelect={latest} />)
     await flushViewportMeasurement()
     await userEvent.click(
       within(primaryOf('vertical')).getByRole('link', { name: 'Other' })
