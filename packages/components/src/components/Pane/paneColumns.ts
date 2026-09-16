@@ -378,10 +378,15 @@ function enterRules(level: number): string {
         `    ${shapeSelector(level, shape, shape.top, '[data-pushing]')} { ${AHEAD} }`
     ),
     `    ${row(level)}[data-pushing]:not([data-reveal]) ${deep}${LIVE}[data-current] { ${AHEAD} }`,
-    // Stepping out of a page-root section mounts the page it returns to as the
-    // row's only pane, which the rules above skip: a root has nothing to slide
-    // in over. It comes back from behind, where the page leaving stood over it.
-    `    ${row(level)}[data-pushing][data-step="out"] ${stackPane(level, 0, '[data-stack-position="top"]')} { ${BEHIND} }`,
+    // Stepping out of a page-root section mounts the page it returns to, which
+    // comes back from behind, where the page now leaving stood over it. Every
+    // shape, the row root included: a page returned to is often the only pane.
+    // The same selectors as above, plus the step, so they outrank them, and no
+    // depth of their own: a pane is at its role's depth until it registers.
+    ...ROW_SHAPES.map(
+      (shape) =>
+        `    ${shapeSelector(level, shape, shape.top, '[data-pushing][data-step="out"]')} { ${BEHIND} }`
+    ),
     '  } } }'
   ].join('\n')
 }
@@ -405,7 +410,9 @@ function exitRules(level: number): string {
     // to and would otherwise stand beside the one that replaced it.
     `  ${row(level)} [data-slot="pane"][data-exiting]:not([data-stack]) { ${HIDDEN} }`,
     `  @container panes (width < ${rem(stackedUntil())}) { @media (prefers-reduced-motion: no-preference) {`,
-    `    ${exiting()} { ${LEAVING} transition-duration: var(--duration-slow); }`,
+    // `[data-exit]` so this ties with the parked rules on specificity and wins on
+    // order. Without it their `transition: none` outranks this and the pane cuts.
+    `    ${exiting('[data-exit]')} { ${LEAVING} transition-duration: var(--duration-slow); }`,
     '  } }'
   ].join('\n')
 }

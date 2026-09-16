@@ -3,7 +3,6 @@
 import {
   Children,
   type ComponentProps,
-  type ReactNode,
   isValidElement,
   use,
   useCallback,
@@ -128,8 +127,9 @@ type PageStep = 'in' | 'out'
 
 type Presence = {
   /** What the row last laid out, so the next render can see what left. */
-  children: ReactNode
   slots: readonly PaneSlot[]
+  /** Those slots' keys, joined: the row draws a different set or it does not. */
+  drawing: string
   /** The tab, More and section the row drew under: a change to any of them cuts. */
   tab: string
   /** The page-root step the slots are keyed by, held while More or the list covers it. */
@@ -138,6 +138,9 @@ type Presence = {
   step: PageStep | null
   held: readonly HeldSlot[]
 }
+
+const keysOf = (slots: readonly PaneSlot[]) =>
+  slots.map((slot) => slot.key).join('\u0000')
 
 /** The slots this commit dropped, ready to draw. */
 function nextHeld(
@@ -447,8 +450,8 @@ export function NavigatorContent({
   // fresh load of a deep route hold nothing.
   const tab = `${moreOpen} ${sectionValue} ${tabValue}`
   const [presence, setPresence] = useState<Presence>(() => ({
-    children,
     slots: slotsOf(children, pageAt),
+    drawing: keysOf(slotsOf(children, pageAt)),
     tab,
     page: pageAt,
     step: null,
@@ -461,7 +464,12 @@ export function NavigatorContent({
   // holds at the last one rather than reading the cover as a step.
   const page = pageAt ?? presence.page
   const slots = useMemo(() => slotsOf(children, page), [children, page])
-  if (presence.children !== children || presence.tab !== tab) {
+  // The keys, not the children: a route can hand the row a new destination and
+  // its new children in separate renders, and a slot leaves in whichever of them
+  // drops its key. Children that change with every key kept would hold nothing
+  // anyway, so this is the whole of it.
+  const drawing = keysOf(slots)
+  if (presence.drawing !== drawing || presence.tab !== tab) {
     const stepped =
       presence.page !== null && page !== null && presence.page !== page
     const step: PageStep | null = stepped
@@ -486,8 +494,8 @@ export function NavigatorContent({
     // again takes its element back mid-slide.
     const held = cutting ? [] : mergeHeld(presence.held, gone, slots)
     setPresence({
-      children,
       slots,
+      drawing,
       tab,
       page,
       // The step the panes leaving now are making, kept while they go. A pop is

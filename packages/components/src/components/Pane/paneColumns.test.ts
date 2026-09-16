@@ -25,6 +25,10 @@ const stacked = (rule: PaneColumnsRule) =>
   /\[data-depth="\d"\]:not\(\[data-exiting\]\)$/.test(rule.selector) &&
   rule.body.includes('--pane-back') &&
   !rule.conditions.some((condition) => condition.startsWith('@container'))
+// `:not([data-exiting])` names the attribute without selecting one.
+const HIDDEN_BODY = 'display: none !important;'
+const targetsLeaving = (rule: PaneColumnsRule) =>
+  rule.selector.replace(/:not\([^)]*\)/g, '').includes('[data-exiting]')
 const columnRules = rules.filter(
   (rule) =>
     rule.body.includes('--pane-back') &&
@@ -953,8 +957,7 @@ describe('the stacked tier keeps the md inset and the edge cover', () => {
     // A pane on its way out carries its own duration; it is gated separately.
     const durations = rules.filter(
       (rule) =>
-        rule.body.includes('transition-duration') &&
-        !rule.selector.endsWith('[data-exiting]')
+        rule.body.includes('transition-duration') && !targetsLeaving(rule)
     )
     expect(durations).toHaveLength(PANE_MAX_LEVELS)
     for (const rule of durations) {
@@ -1080,13 +1083,12 @@ describe('a pane that mounts as the top', () => {
 })
 
 describe('a pane held for its exit', () => {
-  const leaving = rules.filter((rule) =>
-    /\[data-exiting\](\[data-exit="\w+"\])?$/.test(rule.selector)
-  )
+  const leaving = rules.filter(targetsLeaving)
   const parked = leaving.filter((rule) => rule.selector.includes('[data-exit='))
-  const moving = leaving.filter(
-    (rule) => !rule.selector.includes('[data-exit=')
+  const moving = leaving.filter((rule) =>
+    rule.body.includes('transition-property')
   )
+  const hidden = leaving.filter((rule) => rule.body === HIDDEN_BODY)
   const AHEAD =
     'translate: calc((100% + var(--pane-stack-inset, 0px)) * var(--pane-dir, 1)) 0;'
   const BEHIND = 'translate: calc(-33% * var(--pane-dir, 1)) 0;'
@@ -1126,6 +1128,31 @@ describe('a pane held for its exit', () => {
       expect(rule.body).toContain(
         rule.selector.includes('ahead') ? 'z-index: 3;' : 'z-index: 0;'
       )
+    }
+  })
+
+  // Counting attribute selectors, which is all these use. jsdom matches
+  // selectors but cascades nothing, so only this catches a rule that is beaten.
+  const weight = (selector: string) =>
+    (selector.match(/\[[^\]]+\]/g) ?? []).length +
+    (selector.match(/:not\(/g) ?? []).length
+
+  it('hides a pane with no place in the stack, which cannot slide anywhere', () => {
+    expect(hidden).toHaveLength(PANE_MAX_LEVELS)
+    for (const rule of hidden) {
+      expect(rule.selector).toContain(':not([data-stack])')
+      expect(rule.conditions).toEqual(['@layer components'])
+    }
+  })
+
+  it('outranks the park it overrides: a lighter rule would cut instead of slide', () => {
+    for (const slide of moving) {
+      const beaten = parked.filter(
+        (rule) =>
+          rule.body.includes('transition: none;') &&
+          weight(rule.selector) > weight(slide.selector)
+      )
+      expect(beaten.map((rule) => rule.selector)).toEqual([])
     }
   })
 
