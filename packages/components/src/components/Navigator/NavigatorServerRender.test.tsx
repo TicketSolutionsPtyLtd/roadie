@@ -695,3 +695,55 @@ describe('nothing slides in or out on a server render or its hydration', () => {
     vi.restoreAllMocks()
   })
 })
+
+// Restoring reads the Navigation API, which the server has not got, and a store
+// a fresh document starts empty. Neither may reach the render.
+describe('scroll restoration stays out of the server render', () => {
+  it('renders a deep route with no history entry to read', () => {
+    const navigation = (window as { navigation?: unknown }).navigation
+    delete (window as { navigation?: unknown }).navigation
+    const container = serverRender(<Docs value='/components/button' />)
+    expect(positions(container)).toEqual([
+      ['/components', 'behind'],
+      ['detail', 'top'],
+      ['inspector', null]
+    ])
+    if (navigation !== undefined) {
+      Object.defineProperty(window, 'navigation', {
+        configurable: true,
+        value: navigation
+      })
+    }
+  })
+
+  it('hydrates a deep route with an entry no pane has been scrolled on', async () => {
+    Object.defineProperty(window, 'navigation', {
+      configurable: true,
+      writable: true,
+      value: { currentEntry: { key: 'fresh-load' } }
+    })
+    const ui = (
+      <StrictMode>
+        <Docs value='/components/button' />
+      </StrictMode>
+    )
+    const host = serverRender(ui)
+    const error = vi.spyOn(console, 'error')
+    const recoverable = vi.fn()
+    let root: Root | null = null
+    await act(async () => {
+      root = hydrateRoot(host, ui, { onRecoverableError: recoverable })
+    })
+    await flushViewportMeasurement()
+    expect(recoverable).not.toHaveBeenCalled()
+    expect(error).not.toHaveBeenCalled()
+    for (const viewport of host.querySelectorAll<HTMLElement>(
+      '[data-slot="pane-viewport"]'
+    )) {
+      expect(viewport.scrollTop).toBe(0)
+    }
+    act(() => root?.unmount())
+    delete (window as { navigation?: unknown }).navigation
+    vi.restoreAllMocks()
+  })
+})

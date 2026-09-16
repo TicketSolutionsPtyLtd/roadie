@@ -29,6 +29,12 @@ import {
 } from './PaneStackContext'
 import { PANE_DEEP, PANE_MAX_DEPTH, ROLE_DEPTH } from './paneDepth'
 import {
+  historyEntryKey,
+  recallPaneScroll,
+  rememberPaneScroll,
+  restorePaneScroll
+} from './paneScroll'
+import {
   type PaneEmphasis,
   type PanePrimaryNav,
   type PaneRole,
@@ -136,8 +142,7 @@ export function PaneRoot({
   const chrome = place?.chrome ?? PANE_CHROME_NONE
   // No orchestrator, nothing to close back to.
   const isRoot = place?.isRoot ?? true
-  // Held for its slide out: on screen, but out of the stack, out of the
-  // accessibility tree and out of reach, so nothing is announced or focused twice.
+  // On screen but out of the stack, so nothing is announced or focused twice.
   const exit = place?.exit
   const isOverflow = isOverflowKind(kind)
   // A pane mounting or moving slides; More does not, it's a tab switch.
@@ -152,6 +157,13 @@ export function PaneRoot({
   const reportsNav = primaryNav === 'auto' && onScrollPast !== undefined
   const navAt = reportsNav ? scrollPastAt : undefined
 
+  // What a pane's scroll is filed under, surviving the re-make a page step
+  // makes of it, which `useId` would not. The declared depth, not the resolved
+  // one, which is its role's default until it registers a commit later.
+  const seat = `${stack?.level ?? 0}:${role}:${declaredDepth ?? 'auto'}`
+
+  // Behind the top is the pane picked from or popped back to; it keeps its place.
+  const destination = stack?.destination
   const scrollToTop = useCallback(() => scrollToTopOf(viewportRef.current), [])
 
   const context = useMemo(
@@ -215,12 +227,15 @@ export function PaneRoot({
     }
   }, [navAt])
 
-  // One scrollTop read per frame, and only while asked.
+  // One scrollTop read per frame, whoever is asking.
   const reportDown = useEffectEvent(() => onScrollDown?.())
   const wantsDirection = reportsNav && onScrollDown !== undefined
+  // Re-made for each arrival, so it closes over the entry it writes for.
   useEffect(() => {
     const viewport = viewportRef.current
-    if (!viewport || !wantsDirection) return
+    // Read here, not while rendering. No entries, nothing to come back to.
+    const entry = historyEntryKey()
+    if (!viewport || (!wantsDirection && entry === null)) return
     let last = viewport.scrollTop
     let frame: number | null = null
     const onScroll = () => {
@@ -228,8 +243,12 @@ export function PaneRoot({
       frame = requestAnimationFrame(() => {
         frame = null
         const top = viewport.scrollTop
-        if (top > last) reportDown()
+        if (wantsDirection && top > last) reportDown()
         last = top
+        // As it happens, not when the route changes: React replaces the
+        // content before any effect runs, and the viewport clamps the scroll
+        // the new content has no room for, losing the place to come back to.
+        if (entry !== null) rememberPaneScroll(entry, seat, top)
       })
     }
     viewport.addEventListener('scroll', onScroll, { passive: true })
@@ -237,25 +256,36 @@ export function PaneRoot({
       viewport.removeEventListener('scroll', onScroll)
       if (frame !== null) cancelAnimationFrame(frame)
     }
-  }, [wantsDirection])
+  }, [wantsDirection, destination, position, seat])
 
-  // Behind the top is the pane picked from or popped back to; it keeps its place.
-  const destination = stack?.destination
   const shown = useRef({ destination, position })
+  const mounted = useRef(false)
+  const settling = useRef<() => void>(() => {})
   useLayoutEffect(() => {
     const last = shown.current
+    const entry = historyEntryKey()
     shown.current = { destination, position }
     const viewport = viewportRef.current
+    if (!viewport) return
+    settling.current()
+    const back = entry === null ? undefined : recallPaneScroll(entry, seat)
+    // Mounting at an entry already scrolled on, as a step back does.
+    if (!mounted.current) {
+      mounted.current = true
+      if (back !== undefined)
+        settling.current = restorePaneScroll(viewport, back)
+      return
+    }
     if (
-      !viewport ||
       last.destination === destination ||
       last.position === 'behind' ||
       position === 'behind'
     ) {
       return
     }
-    viewport.scrollTop = 0
-  }, [destination, position])
+    if (back === undefined) viewport.scrollTop = 0
+    else settling.current = restorePaneScroll(viewport, back)
+  }, [destination, position, seat])
 
   return (
     <ScrollArea

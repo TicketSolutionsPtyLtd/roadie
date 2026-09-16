@@ -9,6 +9,7 @@ import {
   RoadieLinkProvider
 } from '../../providers/RoadieLinkProvider'
 import { columnTier, renderPaneColumnsCss } from '../Pane/paneColumns'
+import { forgetPaneScroll } from '../Pane/paneScroll'
 
 // A ScrollArea Viewport measures in a microtask scheduled from a layout
 // effect, outside act(); flushing it here keeps synchronous tests quiet.
@@ -325,10 +326,7 @@ export function panesShownAt(columns: number) {
 
 const exitAnimations = new Set<() => void>()
 
-/**
- * jsdom runs no transitions, so a pane on its way out would settle at once.
- * This gives one a slide to wait on, ended by `endExitAnimations`.
- */
+/** jsdom runs no transitions; this gives a leaving pane a slide to wait on. */
 export function withExitAnimations() {
   beforeEach(() => {
     exitAnimations.clear()
@@ -355,5 +353,45 @@ export async function endExitAnimations() {
     exitAnimations.clear()
     await Promise.resolve()
     await Promise.resolve()
+  })
+}
+
+/** jsdom has no Navigation API; this gives the tests entries to move between. */
+export function withHistoryEntries() {
+  let minted = 0
+  const entry = { key: 'entry-0' }
+  beforeEach(() => {
+    minted = 0
+    entry.key = 'entry-0'
+    Object.defineProperty(window, 'navigation', {
+      configurable: true,
+      writable: true,
+      value: { currentEntry: entry }
+    })
+    forgetPaneScroll()
+  })
+  afterEach(() => {
+    delete (window as { navigation?: unknown }).navigation
+    forgetPaneScroll()
+  })
+  return {
+    goTo() {
+      minted += 1
+      entry.key = `entry-${minted}`
+      return entry.key
+    },
+    traverseTo(key: string) {
+      entry.key = key
+    },
+    get key() {
+      return entry.key
+    }
+  }
+}
+
+/** Lets the rAF-throttled scroll readers run: a pane takes its place down a frame late. */
+export async function flushScrollFrame() {
+  await act(async () => {
+    await new Promise((settle) => requestAnimationFrame(() => settle(null)))
   })
 }

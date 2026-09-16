@@ -19,11 +19,22 @@ and a stack position when panes share a screen. `Navigator.Content` lays panes
 out as columns from its own width (two from 46.25rem, three from 76rem) and
 stacks them below that. A stacked pane that mounts as the new top slides in
 like one that was already there, so a route-driven detail pane animates on a
-push; a first paint, hydration and reduced motion never slide. Swapping a
+push; a first paint, hydration and reduced motion never slide. A pop slides
+as well: `Navigator.Content` keeps drawing a pane the route has stopped drawing
+until its slide ends, from the element it drew last, so the pane itself goes out
+rather than a copy of it, `inert` and out of the accessibility tree while it
+goes. A section with `root='page'` draws every route in one pane, and a step
+between its pages keeps the page being left the same way. Swapping a
 sibling cuts: a commit that replaces a pane with another at the same depth,
 leaving the stack the shape it was, is not a push. Switching top-level item
 cuts too, whatever stack the incoming route draws. `Pane.Search` is
 a pill search field with a Cancel.
+
+A pane takes its scroll down against the browser's own id for the history entry
+it is on, so going back or forward through history puts every pane where it was
+while a new destination still starts at the top. Roadie reads no URL and writes
+no history state: it reads `navigation.currentEntry.key`, and where an engine
+has no Navigation API panes keep starting at the top.
 
 Also ships `Navigator.ExpandToggle`, `Navigator.OverflowPane`/`OverflowItems`,
 `Navigator.SecondaryPane`, and `Navigator.SectionItems` with

@@ -214,11 +214,26 @@ fills, at least 28rem wide. Each column to its left takes a parent track:
 The panes behind the top fill the remaining columns nearest first, so the
 left-most pane drops first. In the stack, moving between depths slides, and a
 pane that mounts as the new top slides in with it, so a route-driven detail
-animates like one that was already there. Swapping a sibling cuts: replacing a
-pane with another at the same depth leaves the stack the shape it was, so it is
-not a push. A first paint never slides. Columns
-don't animate. See [Roles](#roles) for each role's default depth, and declare
-`depth={2}` on a sub-detail.
+animates like one that was already there. A pop slides too: `Navigator.Content`
+keeps drawing the pane the route has stopped drawing until its slide ends, from
+the element it drew last, so the pane itself goes out rather than a copy of it.
+While it goes it is `inert` and `aria-hidden`, and it is out of the stack, so
+the panes that stay read as the row they now are.
+
+Swapping a sibling cuts: replacing a pane with another at the same depth leaves
+the stack the shape it was, so it is not a push. A first paint never slides, and
+neither does hydration or a fresh load of a deep route. Columns don't animate,
+and nor does anything under `prefers-reduced-motion: reduce`. See
+[Roles](#roles) for each role's default depth, and declare `depth={2}` on a
+sub-detail.
+
+A section whose `Navigator.Secondary` sets `root='page'` draws every route in
+one pane, so a step between its pages moves no pane of its own.
+`Navigator.Content` gives it one: the page being left is kept and slid away
+while the page arriving mounts over it, stepping in, or back out from behind.
+Sibling pages within such a section cut, as any sibling does. The cost is that
+the page pane is re-made on a step, which is what makes the scroll below worth
+having.
 
 Select a row, then resize the window. The same code is a side-by-side reveal
 where two columns fit and a push where they don't.
@@ -404,6 +419,28 @@ one level up. `backHref` is the target for both:
   doesn't own.
 - The root pane never shows Close, even if you pass the same handler to every
   pane.
+
+### Scroll
+
+Each pane has its own scroll, and the page never scrolls, so the browser cannot
+put a pane back where it was. `Pane` does it instead. A pane takes its place
+down as it is scrolled, against the browser's own id for the history entry it is
+on, and a back or a forward traversal puts it there again. Going forward is a
+history entry no pane has been scrolled on, so it starts at the top, as does a
+fresh load.
+
+The place is taken as the scroll happens, not when the route changes: React
+replaces a pane's content before any effect runs, and by then the viewport has
+already clamped a scroll the new content has no room for. Restoring holds the
+pane in place for a few frames while the page grows under it, and gives up the
+moment the pane is touched.
+
+Roadie reads no URL and writes no history state; the router owns both. It reads
+`navigation.currentEntry.key`, so where an engine has no Navigation API panes
+keep starting at the top. A pane is recognised across a re-make by its seat, its
+level, role and declared `depth`, which is why a page-root step restores at all:
+that step re-makes the pane. Up to 30 history entries are kept, the least
+recently written dropped first, in memory: a document reload starts over.
 
 ## Guidelines
 

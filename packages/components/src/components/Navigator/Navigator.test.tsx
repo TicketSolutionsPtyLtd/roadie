@@ -18,11 +18,13 @@ import {
 import {
   FakeIcon,
   endExitAnimations,
+  flushScrollFrame,
   flushViewportMeasurement,
   primaryOf,
   scrollViewport,
   testBrand,
   withExitAnimations,
+  withHistoryEntries,
   withScrollSentinels,
   withStubLink
 } from './testUtils'
@@ -4358,8 +4360,7 @@ describe('a pane that leaves while another is still leaving', () => {
     rerender(drill(false))
     expect(exiting()).toHaveLength(1)
 
-    // A push before the slide ended: the same slot, so the same element resumes
-    // rather than a second copy appearing beside it.
+    // The same slot, so the same element resumes rather than a copy appearing.
     rerender(drill(true, '/a/2'))
     expect(exiting()).toEqual([])
     expect(detail()).toBe(was)
@@ -4383,8 +4384,7 @@ describe('a pane that leaves while another is still leaving', () => {
 describe('a page-root section steps between its pages', () => {
   withExitAnimations()
 
-  // One pane holds every route, so a step between them moves no pane: the row
-  // has to be given the page it is leaving.
+  // One pane holds every route, so a step between them moves no pane of its own.
   const pages = (value: string) => (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Docs'>
@@ -4436,8 +4436,7 @@ describe('a page-root section steps between its pages', () => {
     rerender(withStubLink(pages('/')))
     expect(leaving()).toHaveAttribute('data-exit', 'ahead')
     expect(leaving()).toHaveTextContent('/a')
-    // The page returned to mounts as the row's only pane, so it needs telling
-    // where to come back from.
+    // The page returned to is the row's only pane; it needs telling where from.
     expect(row()).toHaveAttribute('data-step', 'out')
   })
 
@@ -4489,9 +4488,8 @@ describe('a page-root section steps between its pages', () => {
   })
 
   it('keeps the page it is leaving live, so the row it picked reads as current', async () => {
-    // A page-root section's root page lists its own pages. The clone this
-    // replaces had to re-mark the tapped row by hand; a held subtree is real
-    // React, so it re-reads the destination and marks it itself.
+    // The clone this replaces re-marked the tapped row by hand; a held subtree
+    // is real React and re-reads the destination itself.
     const listing = (value: string) => (
       <Navigator value={value}>
         <Navigator.Primary aria-label='Docs'>
@@ -4527,9 +4525,7 @@ describe('a page-root section steps between its pages', () => {
 describe('a pop after a page step', () => {
   withExitAnimations()
 
-  // The row keeps saying which way a page is stepping while it goes. A pop that
-  // follows is no step, so the pane it uncovers must not be told to come back
-  // from behind.
+  // A pop after a step is no step: the pane it uncovers must not come from behind.
   const frame = (value: string, deep: boolean) => (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Docs'>
@@ -4573,5 +4569,161 @@ describe('a pop after a page step', () => {
       document.querySelector('[data-slot="pane"][data-exiting]')
     ).toHaveAttribute('data-exit', 'ahead')
     expect(row()).not.toHaveAttribute('data-step')
+  })
+})
+
+describe('going back puts a pane where it was', () => {
+  const history = withHistoryEntries()
+
+  const nav = (value: string) => (
+    <Navigator value={value}>
+      <Navigator.Primary aria-label='Main'>
+        {testBrand}
+        <Navigator.Item value='/s' href='/s' icon={<FakeIcon />}>
+          Section
+          <Navigator.Secondary aria-label='Section pages'>
+            <Navigator.Item value='/s/a' href='/s/a'>
+              A
+            </Navigator.Item>
+            <Navigator.Item value='/s/b' href='/s/b'>
+              B
+            </Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Navigator.Content>
+        <Pane role='detail' current data-testid='page'>
+          <Pane.Header>
+            <Pane.Title>Page</Pane.Title>
+          </Pane.Header>
+          Page
+        </Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+  const page = () =>
+    screen
+      .getByTestId('page')
+      .querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
+  const scroll = async (top: number) => {
+    await act(async () => scrollViewport(page(), top))
+    await flushScrollFrame()
+  }
+
+  it('restores the scroll of the entry it goes back to', async () => {
+    const first = history.key
+    const { rerender } = render(nav('/s/a'))
+    await flushViewportMeasurement()
+    await scroll(640)
+
+    history.goTo()
+    rerender(nav('/s/b'))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(0)
+
+    history.traverseTo(first)
+    rerender(nav('/s/a'))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(640)
+  })
+
+  it('starts at the top going forward to a destination it has been to', async () => {
+    const first = history.key
+    const { rerender } = render(nav('/s/a'))
+    await flushViewportMeasurement()
+    await scroll(640)
+
+    history.goTo()
+    rerender(nav('/s/b'))
+    await flushViewportMeasurement()
+    history.traverseTo(first)
+    rerender(nav('/s/a'))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(640)
+
+    // Forward to the same page on an entry of its own: a new arrival.
+    history.goTo()
+    rerender(nav('/s/b'))
+    await flushViewportMeasurement()
+    history.goTo()
+    rerender(nav('/s/a'))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(0)
+  })
+
+  it('touches nothing on a first render, so a fresh load keeps its place', async () => {
+    render(nav('/s/a'))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(0)
+    await scroll(300)
+    // Re-rendering the same destination is not an arrival.
+    expect(page().scrollTop).toBe(300)
+  })
+
+  it('leaves panes at the top where the engine has no history entries', async () => {
+    delete (window as { navigation?: unknown }).navigation
+    const { rerender } = render(nav('/s/a'))
+    await flushViewportMeasurement()
+    await scroll(640)
+    history.goTo()
+    rerender(nav('/s/b'))
+    await flushViewportMeasurement()
+    rerender(nav('/s/a'))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(0)
+  })
+})
+
+describe('a page-root step back puts the page it returns to where it was', () => {
+  withExitAnimations()
+  const history = withHistoryEntries()
+
+  // A step re-makes the page pane, so its scroll cannot ride on the element.
+  const pages = (value: string) => (
+    <Navigator value={value}>
+      <Navigator.Primary aria-label='Docs'>
+        {testBrand}
+        <Navigator.Item value='/' href='/' icon={<FakeIcon />}>
+          Home
+          <Navigator.Secondary aria-label='Home pages' root='page'>
+            <Navigator.Item value='/a' href='/a'>
+              A
+            </Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Navigator.Content>
+        <Pane role='detail' current data-testid='page'>
+          <Pane.Header />
+          {value}
+        </Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+  const page = () =>
+    document
+      .querySelector<HTMLElement>(
+        '[data-slot="pane"][data-role="detail"]:not([data-exiting])'
+      )!
+      .querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
+
+  it('restores the root page after stepping in and back out', async () => {
+    const root = history.key
+    const { rerender } = render(withStubLink(pages('/')))
+    await flushViewportMeasurement()
+    await act(async () => scrollViewport(page(), 520))
+    await flushScrollFrame()
+
+    history.goTo()
+    rerender(withStubLink(pages('/a')))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(0)
+    await endExitAnimations()
+
+    history.traverseTo(root)
+    rerender(withStubLink(pages('/')))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(520)
+    await endExitAnimations()
   })
 })
