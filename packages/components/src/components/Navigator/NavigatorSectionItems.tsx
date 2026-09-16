@@ -40,7 +40,7 @@ const SectionItemsRow = memo(function SectionItemsRow({
   return (
     <List.Item
       title={row.label}
-      subtitle={descriptions ? row.description : undefined}
+      description={descriptions ? row.description : undefined}
       leading={
         row.icon ? presentNavIcon(row.icon, 'size-5 text-subtle') : undefined
       }

@@ -9,8 +9,8 @@ import {
   listItemBodyClass,
   listItemChevronClass,
   listItemContentClass,
+  listItemDescriptionClass,
   listItemLeadingClass,
-  listItemSubtitleClass,
   listItemTitleClass,
   listItemTrailingClass,
   listItemVariants
@@ -20,7 +20,7 @@ export type ListItemProps = {
   /** Primary text; the only required prop. */
   title: ReactNode
   /** Secondary line beneath the title. */
-  subtitle?: ReactNode
+  description?: ReactNode
   /** Leading slot — an `IconTile`, `Image`, or avatar. */
   leading?: ReactNode
   /** Trailing slot — a count, `Badge`, value, or selected check. */
@@ -39,21 +39,21 @@ export type ListItemCurrent = boolean | 'page' | 'step' | 'location'
 
 export type ListItemContentProps = Pick<
   ListItemProps,
-  'title' | 'subtitle' | 'leading' | 'trailing'
+  'title' | 'description' | 'leading' | 'trailing'
 > & {
   chevron: boolean
-  /** Moves the subtitle out of the name, for a row that points `aria-describedby` at this id. */
-  subtitleId?: string
+  /** Moves the description out of the name, for a row that points `aria-describedby` at this id. */
+  descriptionId?: string
 }
 
 /** A row's anatomy, for a row whose element `List.Item` can't render, e.g. a menu trigger. */
 export function ListItemContent({
   title,
-  subtitle,
+  description,
   leading,
   trailing,
   chevron,
-  subtitleId
+  descriptionId
 }: ListItemContentProps) {
   const hasTrailing = trailing != null || chevron
   return (
@@ -64,19 +64,19 @@ export function ListItemContent({
         </span>
       ) : null}
       <span data-slot='list-item-content' className={listItemContentClass}>
-        {subtitle != null ? (
+        {description != null ? (
           <span data-slot='list-item-body' className={listItemBodyClass}>
             <span data-slot='list-item-title' className={listItemTitleClass}>
               {title}
             </span>
             {/* Out of the name; `aria-describedby` still reads a hidden target. */}
             <span
-              data-slot='list-item-subtitle'
-              id={subtitleId}
-              aria-hidden={subtitleId != null ? 'true' : undefined}
-              className={listItemSubtitleClass}
+              data-slot='list-item-description'
+              id={descriptionId}
+              aria-hidden={descriptionId != null ? 'true' : undefined}
+              className={listItemDescriptionClass}
             >
-              {subtitle}
+              {description}
             </span>
           </span>
         ) : (
@@ -107,7 +107,7 @@ export function ListItemContent({
 /** A row in a `List`: a link when `href` is set, otherwise a `<button>`. */
 export function ListItem({
   title,
-  subtitle,
+  description,
   leading,
   trailing,
   chevron,
@@ -116,14 +116,14 @@ export function ListItem({
   className,
   onClick
 }: ListItemProps) {
-  const subtitleId = useId()
-  const describedBy = subtitle != null ? subtitleId : undefined
+  const descriptionId = useId()
+  const describedBy = description != null ? descriptionId : undefined
 
   const content = (
     <ListItemContent
       title={title}
-      subtitle={subtitle}
-      subtitleId={subtitleId}
+      description={description}
+      descriptionId={descriptionId}
       leading={leading}
       trailing={trailing}
       chevron={chevron ?? href !== undefined}

@@ -596,7 +596,7 @@ export default function RscSmokePage() {
           <List.Item title='Upcoming events' />
           <List.Item
             title='Reports'
-            subtitle='Rendered from a server component via the subpath import.'
+            description='Rendered from a server component via the subpath import.'
           />
         </List>
       </section>

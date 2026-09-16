@@ -112,7 +112,7 @@ export const listItemContentClass = [
 export const listItemBodyClass = 'grid min-w-0 flex-1 gap-0.5'
 export const listItemTitleClass =
   'min-w-0 flex-1 truncate font-semibold text-strong'
-export const listItemSubtitleClass = 'truncate text-sm text-subtle'
+export const listItemDescriptionClass = 'truncate text-sm text-subtle'
 
 export const listItemTrailingClass = 'flex shrink-0 items-center gap-2'
 export const listItemChevronClass = 'size-5 shrink-0 text-subtle'
