@@ -1131,8 +1131,8 @@ describe('a pane held for its exit', () => {
     }
   })
 
-  // Counting attribute selectors, which is all these use. jsdom matches
-  // selectors but cascades nothing, so only this catches a rule that is beaten.
+  // jsdom matches selectors but cascades nothing, so only weighing them catches
+  // a rule that is beaten. Attribute selectors are all these use.
   const weight = (selector: string) =>
     (selector.match(/\[[^\]]+\]/g) ?? []).length +
     (selector.match(/:not\(/g) ?? []).length

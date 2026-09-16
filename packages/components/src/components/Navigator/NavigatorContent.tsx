@@ -93,8 +93,7 @@ function flagForTwoFrames(
 /** A pane in the row, as the DOM holds it once the commit's mutations have run. */
 type PaneShape = { node: Element; current: boolean }
 
-// A pane on its way out is not in the row's shape: it is the shape the commit
-// before last had.
+// A pane on its way out is last commit's shape, not this one's.
 const shapeOf = (row: HTMLElement, level: number): PaneShape[] =>
   Array.from(
     row.querySelectorAll(
@@ -126,15 +125,10 @@ export type NavigatorPageAt = 'root' | 'child' | null
 type PageStep = 'in' | 'out'
 
 type Presence = {
-  /** What the row last laid out, so the next render can see what left. */
   slots: readonly PaneSlot[]
-  /** Those slots' keys, joined: the row draws a different set or it does not. */
   drawing: string
-  /** The tab, More and section the row drew under: a change to any of them cuts. */
   tab: string
-  /** The page-root step the slots are keyed by, held while More or the list covers it. */
   page: NavigatorPageAt
-  /** Which way the panes now leaving are going, for the row to say. */
   step: PageStep | null
   held: readonly HeldSlot[]
 }
@@ -151,7 +145,6 @@ function nextHeld(
 ): HeldSlot[] {
   const gone = departed(was, now)
   if (gone.length === 0) return []
-  // One stack for the commit: every slot it drops leaves the same way.
   const stack = heldStack(from, exit)
   return gone.map((slot) => ({ ...slot, exit, stack }))
 }
@@ -442,12 +435,9 @@ export function NavigatorContent({
     [register, unregister, placeOf, markPushing, moreOpen, level, value]
   )
 
-  // A slot the route has stopped drawing is redrawn from the element it drew
-  // last, so the pane it held slides out instead of vanishing on the commit
-  // frame. Derived while rendering, in the same commit that removed it: an
-  // effect would remove the element first and mount a new one, which is the
-  // copy this replaces. Seeded from the first render, so a server render and a
-  // fresh load of a deep route hold nothing.
+  // Derived while rendering, in the commit that removed the slot: an effect
+  // would take the element out and mount a new one, which is the copy this
+  // replaces. Seeded from the first render, so SSR and a fresh load hold nothing.
   const tab = `${moreOpen} ${sectionValue} ${tabValue}`
   const [presence, setPresence] = useState<Presence>(() => ({
     slots: slotsOf(children, pageAt),
@@ -457,17 +447,12 @@ export function NavigatorContent({
     step: null,
     held: []
   }))
-  // A page-root section draws every route in one pane, so a step between them
-  // moves no pane. Keying the slots by the step gives the row the second element
-  // it needs: the page being left stays, drawn from the children it had. While
-  // More or the revealed list covers the page the row draws no step, so the key
-  // holds at the last one rather than reading the cover as a step.
+  // Held at the last step while More or the revealed list covers the page, so a
+  // cover is not read as a step.
   const page = pageAt ?? presence.page
   const slots = useMemo(() => slotsOf(children, page), [children, page])
   // The keys, not the children: a route can hand the row a new destination and
-  // its new children in separate renders, and a slot leaves in whichever of them
-  // drops its key. Children that change with every key kept would hold nothing
-  // anyway, so this is the whole of it.
+  // its new children in separate renders.
   const drawing = keysOf(slots)
   if (presence.drawing !== drawing || presence.tab !== tab) {
     const stepped =
@@ -477,11 +462,9 @@ export function NavigatorContent({
         ? 'in'
         : 'out'
       : null
-    // Stepping in, the page on top goes behind the one arriving over it.
-    // Stepping out, and on a pop, it leaves forward over the one it uncovers.
     const exit: PaneExit = step === 'in' ? 'behind' : 'ahead'
+    // A tab switch, More and a section change cut, so nothing is held.
     const cutting = presence.tab !== tab
-    // A tab switch, More and a section change cut, so nothing is held to slide.
     const gone = cutting
       ? []
       : nextHeld(
@@ -490,29 +473,25 @@ export function NavigatorContent({
           { placeOf, moreOpen, level, destination: value },
           exit
         )
-    // This commit's departures join what is already leaving, and a slot drawn
-    // again takes its element back mid-slide.
     const held = cutting ? [] : mergeHeld(presence.held, gone, slots)
     setPresence({
       slots,
       drawing,
       tab,
       page,
-      // The step the panes leaving now are making, kept while they go. A pop is
-      // no step, and must not be read as the one before it.
+      // A pop is no step, and must not be read as the one before it.
       step: gone.length > 0 ? step : held.length > 0 ? presence.step : null,
       held
     })
   }
   const held = presence.held
   const drawn = useMemo(() => drawnSlots(slots, held), [slots, held])
-  // Only while a page is leaving: it tells a pane arriving as the row's only
-  // pane to start behind, which the enter rules give nothing else.
+  // Tells a pane arriving as the row's only pane to start behind, which the
+  // enter rules give nothing else.
   const step = held.length > 0 ? presence.step : null
 
   // After paint, so the slides have started. Nothing running, as in columns or
-  // under reduced motion, drops the slot at once; the ceiling covers a
-  // transition whose end never arrives.
+  // under reduced motion, drops the slot at once.
   const holding = useRef(0)
   useEffect(() => {
     if (held.length === 0) return
@@ -617,8 +596,8 @@ export function NavigatorContent({
             className={navigatorPanesClass}
           >
             {sectionPane}
-            {/* One provider per slot, always, so a slot turning into one that is
-                leaving changes props rather than element type and keeps its DOM. */}
+            {/* One provider per slot always: a slot that starts leaving then
+                changes props rather than element type, and keeps its DOM. */}
             {drawn.map((slot) => (
               <PaneStackContext
                 key={slot.key}

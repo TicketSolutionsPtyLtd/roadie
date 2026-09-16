@@ -9,20 +9,16 @@ import type {
 /** One child of `Navigator.Content`, under the key React reconciles it by. */
 export type PaneSlot = { key: string; node: ReactNode }
 
-/** A slot the row draws after React stopped: the subtree that was on screen, not a copy. */
+/** A slot the row keeps drawing while its pane slides out. */
 export type HeldSlot = PaneSlot & {
   exit: PaneExit
-  /** Where it sat, so it is redrawn in place and its element never moves. */
   at: number
   stack: PaneStackContextValue
 }
 
 // `Children.toArray` numbers by position in the original children, so a slot
-// that empties does not renumber the ones that stay, and an explicit key is
-// used as given. A slot that keeps its key keeps its fiber and its DOM.
-// `step` tells the slots of one step of a page-root section from the next, where
-// the panes are the same but the page in them is not: a changed key is what
-// gives the row two elements to move where the route gave it one.
+// that empties renumbers none of the ones that stay. `step` re-keys them for a
+// page-root step, where the route changes the page but not the pane.
 export function slotsOf(children: ReactNode, step?: string | null): PaneSlot[] {
   const at = step === null || step === undefined ? '' : `#${step}`
   return Children.toArray(children).map((node, index) => ({
@@ -42,13 +38,9 @@ export function departed(
   )
 }
 
-/**
- * What is still leaving after this commit. A slot the row draws again takes its
- * element back, mid-slide, so it stops leaving rather than being drawn twice
- * under one key; a fresh departure replaces the one before it at that slot, so
- * a row never holds two copies of the same place. Returns `was` when neither
- * happened, so a re-render does not restart the wait.
- */
+// A slot drawn again takes its element back rather than being drawn twice under
+// one key. `was` is returned unchanged when nothing moved, so a re-render does
+// not restart the wait.
 export function mergeHeld(
   was: readonly HeldSlot[],
   gone: readonly HeldSlot[],
@@ -63,10 +55,7 @@ export function mergeHeld(
   return [...kept, ...gone]
 }
 
-/**
- * The live slots with the held ones back in the places they had, so no element
- * moves: a pane on its way out would restart its slide if the row re-ordered it.
- */
+// Held slots go back where they sat: re-ordering the row would restart a slide.
 export function drawnSlots(
   slots: readonly PaneSlot[],
   held: readonly HeldSlot[]
@@ -80,18 +69,14 @@ export function drawnSlots(
 
 const nothing = () => {}
 
-/** What a held slot keeps of the row it left, none of it read again. */
+/** What a held slot keeps of the row it left. */
 export type HeldFrom = Pick<
   PaneStackContextValue,
   'placeOf' | 'moreOpen' | 'level' | 'destination'
 >
 
-/**
- * The stack a held slot reads: out of the register, so the live row's depths
- * ignore it, and holding the place it had, taken while it is still in the stack,
- * so it goes out at the depth and with the chrome it arrived with. The
- * destination is the one it left on, so it never scrolls itself back to the top.
- */
+// Registers nothing, so the live row's depths ignore it, and answers with the
+// place taken on the first ask, while the pane is still in the stack.
 export function heldStack(
   from: HeldFrom,
   exit: PaneExit

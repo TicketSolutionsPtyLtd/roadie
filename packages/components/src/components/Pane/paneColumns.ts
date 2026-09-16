@@ -160,8 +160,7 @@ const display = (on: boolean) => (on ? 'grid' : 'none')
 
 const row = (level: number) =>
   `[data-slot="navigator-panes"][data-level="${level}"]`
-// A pane React has replaced, still held for its exit, is not in the stack: it
-// must not be counted as a level, read as the top, or given a landed place.
+// A pane held for its exit is out of the stack: never a level, never the top.
 const LIVE = ':not([data-exiting])'
 const stackPane = (level: number, depth: number, extra = '') =>
   `[data-stack][data-level="${level}"][data-depth="${depth}"]${extra}${LIVE}`
@@ -378,11 +377,10 @@ function enterRules(level: number): string {
         `    ${shapeSelector(level, shape, shape.top, '[data-pushing]')} { ${AHEAD} }`
     ),
     `    ${row(level)}[data-pushing]:not([data-reveal]) ${deep}${LIVE}[data-current] { ${AHEAD} }`,
-    // Stepping out of a page-root section mounts the page it returns to, which
-    // comes back from behind, where the page now leaving stood over it. Every
-    // shape, the row root included: a page returned to is often the only pane.
-    // The same selectors as above, plus the step, so they outrank them, and no
-    // depth of their own: a pane is at its role's depth until it registers.
+    // A step out mounts the page it returns to, so it comes back from behind.
+    // Every shape, the row root included, since that page is often the only
+    // pane, and no depth of its own: a pane is at its role's depth until it
+    // registers, a commit after its starting style is read.
     ...ROW_SHAPES.map(
       (shape) =>
         `    ${shapeSelector(level, shape, shape.top, '[data-pushing][data-step="out"]')} { ${BEHIND} }`
@@ -391,13 +389,10 @@ function enterRules(level: number): string {
   ].join('\n')
 }
 
-// A pane React has replaced, kept in the row until its slide ends. It is parked
-// where it is going with no transition, so a row that cannot animate drops it
-// out of sight at once; the stacked branch adds the leaving transition that
-// carries it there. No starting style: the pane is already showing the translate
-// it leaves from, so a reversed step resumes mid-slide for free.
-// z-index, not document order: a pane leaving forward passes over the one it
-// uncovers, and a pane going behind passes under the one arriving.
+// Parked with no transition, so columns and reduced motion drop it at once;
+// the stacked branch adds the slide. No starting style is needed: the pane is
+// already showing the translate it leaves from, so a reversed step resumes.
+// z-index, not document order, decides which of the two passes over the other.
 function exitRules(level: number): string {
   const exiting = (extra = '') =>
     `${row(level)} [data-stack][data-level="${level}"][data-exiting]${extra}`
@@ -406,12 +401,11 @@ function exitRules(level: number): string {
   return [
     `  ${exiting('[data-exit="ahead"]')} { ${AHEAD} opacity: 1; z-index: 3; ${parked} }`,
     `  ${exiting('[data-exit="behind"]')} { ${BEHIND} opacity: 0.9; ${PARKED} ${parked} }`,
-    // A pane with no place in the stack, an inspector say, has nowhere to slide
-    // to and would otherwise stand beside the one that replaced it.
+    // No place in the stack, an inspector say, so nowhere to slide to.
     `  ${row(level)} [data-slot="pane"][data-exiting]:not([data-stack]) { ${HIDDEN} }`,
     `  @container panes (width < ${rem(stackedUntil())}) { @media (prefers-reduced-motion: no-preference) {`,
-    // `[data-exit]` so this ties with the parked rules on specificity and wins on
-    // order. Without it their `transition: none` outranks this and the pane cuts.
+    // `[data-exit]` ties with the park on specificity and wins on order; without
+    // it the park's `transition: none` outranks this and the pane cuts.
     `    ${exiting('[data-exit]')} { ${LEAVING} transition-duration: var(--duration-slow); }`,
     '  } }'
   ].join('\n')
