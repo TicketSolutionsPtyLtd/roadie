@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+
+import { useRoute } from '@/lib/route'
 
 interface NavItem {
   title: string
@@ -19,7 +20,7 @@ interface FooterNavProps {
 }
 
 export function FooterNav({ items }: FooterNavProps) {
-  const pathname = usePathname()
+  const route = useRoute()
 
   const flatNav = items.reduce<(NavItem & { href: string })[]>(
     (acc, section) => {
@@ -33,7 +34,7 @@ export function FooterNav({ items }: FooterNavProps) {
     []
   )
 
-  const currentIndex = flatNav.findIndex((item) => item.href === pathname)
+  const currentIndex = flatNav.findIndex((item) => item.href === route)
   if (currentIndex === -1) return null
 
   const prev = currentIndex > 0 ? flatNav[currentIndex - 1] : undefined

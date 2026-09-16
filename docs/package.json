@@ -9,6 +9,8 @@
     "clean": "rm -rf node_modules .next out",
     "predev": "pnpm --filter @oztix/roadie-core generate:tokens",
     "dev": "next dev --port 9614",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "start": "next start",
     "format": "prettier --ignore-path ../.prettierignore --write \"**/*.{ts,tsx,js,jsx,cjs,mjs,json,css,md}\"",
     "format:check": "prettier --ignore-path ../.prettierignore --check \"**/*.{ts,tsx,js,jsx,cjs,mjs,json,css,md}\"",
@@ -53,6 +55,7 @@
     "react-docgen-typescript": "2.4.0",
     "rehype-slug": "6.0.0",
     "tailwindcss": "4.3.3",
-    "unist-util-visit": "5.1.0"
+    "unist-util-visit": "5.1.0",
+    "vitest": "5.0.0"
   }
 }

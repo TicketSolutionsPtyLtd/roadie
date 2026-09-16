@@ -11,7 +11,7 @@ import {
   useSyncExternalStore
 } from 'react'
 
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 import {
   CompassIcon,
@@ -24,6 +24,7 @@ import {
 } from '@phosphor-icons/react'
 
 import type { CatalogueCategory } from '@/lib/page-manifest'
+import { useRoute } from '@/lib/route'
 import { relatedLinks } from '@/lib/token-families'
 
 import { Drawer, IconButton, Navigator, Pane } from '@oztix/roadie-components'
@@ -147,10 +148,10 @@ export function DocsNavigator({
   pageTitles,
   children
 }: NavigationProps) {
-  const pathname = usePathname()
+  const route = useRoute()
   const router = useRouter()
 
-  const [query, reportQuery] = useNavQuery(pathname)
+  const [query, reportQuery] = useNavQuery(route)
 
   // Params we pushed this session, so closing can pop that entry instead of
   // adding a new one. A deep-linked/reloaded flag isn't in here, so closing
@@ -158,22 +159,22 @@ export function DocsNavigator({
   const pushedFlags = useRef(new Set<string>())
   useEffect(() => {
     pushedFlags.current.clear()
-  }, [pathname])
+  }, [route])
 
   const pushFlag = useCallback(
     (param: string, on: boolean) => {
       if (on) {
         pushedFlags.current.add(param)
-        router.push(hrefWithFlag(pathname, param, true), { scroll: false })
+        router.push(hrefWithFlag(route, param, true), { scroll: false })
         return
       }
       if (pushedFlags.current.delete(param)) {
         router.back()
       } else {
-        router.replace(hrefWithFlag(pathname, param, false), { scroll: false })
+        router.replace(hrefWithFlag(route, param, false), { scroll: false })
       }
     },
-    [router, pathname]
+    [router, route]
   )
   const handleShowListChange = useCallback(
     (next: boolean) => pushFlag(NAV_LIST_PARAM, next),
@@ -184,13 +185,13 @@ export function DocsNavigator({
     [pushFlag]
   )
 
-  const related = relatedLinks(pathname)
+  const related = relatedLinks(route)
   const toc = useDocHeadings()
   const showInspector = toc.headings.length >= 2
 
   // The bare canary owns the whole window, because a Navigator nested in a
   // pane is not the shape an app has. See docs/src/app/debug/bare.
-  if (pathname.startsWith('/debug/bare')) return children
+  if (route.startsWith('/debug/bare')) return children
 
   return (
     <>
@@ -198,7 +199,7 @@ export function DocsNavigator({
         <NavQueryFlags onChange={reportQuery} />
       </Suspense>
       <Navigator
-        value={pathname}
+        value={route}
         onExpandedChange={persistExpanded}
         expandedFromDocument
         showList={query.nav}
@@ -314,9 +315,9 @@ export function DocsNavigator({
               className='mx-auto grid w-full max-w-[50rem] gap-0 py-6 md:py-12 [&_:is(h1,h2,h3,h4)]:scroll-mt-6'
             >
               {/* The homepage and debug routes have no metadata.title and keep their own h1. */}
-              {pageTitles[pathname] ? (
+              {pageTitles[route] ? (
                 <Pane.BodyTitle className='mb-6 text-display-prose-1'>
-                  {pageTitles[pathname]}
+                  {pageTitles[route]}
                 </Pane.BodyTitle>
               ) : null}
               {related ? (

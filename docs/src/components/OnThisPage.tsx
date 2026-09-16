@@ -9,7 +9,7 @@ import {
   useSyncExternalStore
 } from 'react'
 
-import { usePathname } from 'next/navigation'
+import { useRoute } from '@/lib/route'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -61,7 +61,7 @@ function slugify(text: string): string {
 
 /** Headings and a scroll-to handler, lifted so the inspector renders only with two or more. */
 export function useDocHeadings(): DocHeadings {
-  const pathname = usePathname()
+  const route = useRoute()
   const [headings, setHeadings] = useState<Heading[]>([])
 
   // Tracks programmatic (click-driven) scrolls so the IntersectionObserver
@@ -71,7 +71,7 @@ export function useDocHeadings(): DocHeadings {
 
   useEffect(() => {
     // Clear on every bail-out, or the last page's headings linger.
-    if (pathname === '/') {
+    if (route === '/') {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- reading DOM state on mount
       setHeadings([])
       return
@@ -85,7 +85,7 @@ export function useDocHeadings(): DocHeadings {
 
     // The /components index's h3s duplicate the left-hand navigation, and the
     // token reference's h3s are dozens of groups.
-    const selector = ['/components', '/tokens/reference'].includes(pathname)
+    const selector = ['/components', '/tokens/reference'].includes(route)
       ? 'h2'
       : 'h2, h3'
     const nodes = mainEl.querySelectorAll<HTMLHeadingElement>(selector)
@@ -149,7 +149,7 @@ export function useDocHeadings(): DocHeadings {
       if (node.id) observer.observe(node)
     })
     return () => observer.disconnect()
-  }, [pathname])
+  }, [route])
 
   const handleClick = useCallback(
     (event: MouseEvent<HTMLAnchorElement>, id: string) => {
