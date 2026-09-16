@@ -322,3 +322,38 @@ export function panesShownAt(columns: number) {
         : (pane.dataset.navigatorSection ?? pane.dataset.role)
     )
 }
+
+const exitAnimations = new Set<() => void>()
+
+/**
+ * jsdom runs no transitions, so a pane on its way out would settle at once.
+ * This gives one a slide to wait on, ended by `endExitAnimations`.
+ */
+export function withExitAnimations() {
+  beforeEach(() => {
+    exitAnimations.clear()
+    Element.prototype.getAnimations = function (this: Element) {
+      if (!this.hasAttribute('data-exiting')) return []
+      let settle = () => {}
+      const finished = new Promise<void>((resolve) => {
+        settle = resolve
+      })
+      exitAnimations.add(settle)
+      return [{ finished } as unknown as Animation]
+    }
+  })
+  afterEach(() => {
+    delete (Element.prototype as { getAnimations?: unknown }).getAnimations
+    exitAnimations.clear()
+  })
+}
+
+/** Ends every slide a held pane is waiting on. */
+export async function endExitAnimations() {
+  await act(async () => {
+    for (const settle of exitAnimations) settle()
+    exitAnimations.clear()
+    await Promise.resolve()
+    await Promise.resolve()
+  })
+}

@@ -3,6 +3,7 @@
 import {
   Children,
   type ComponentProps,
+  type ReactNode,
   isValidElement,
   use,
   useCallback,
@@ -21,6 +22,7 @@ import { PANE_CHROME_NONE } from '../Pane/PaneChromeContext'
 import { PaneContext } from '../Pane/PaneContext'
 import { PaneHeader } from '../Pane/PaneHeader'
 import {
+  type PaneExit,
   PaneKindContext,
   type PaneRegistration,
   PaneStackContext,
@@ -43,6 +45,15 @@ import { NavigatorSecondaryPane } from './NavigatorSecondaryPane'
 import { NavigatorSectionPane } from './NavigatorSectionPane'
 import { OVERFLOW_LABEL } from './mobileSlots'
 import {
+  type HeldFrom,
+  type HeldSlot,
+  type PaneSlot,
+  departed,
+  drawnSlots,
+  heldStack,
+  slotsOf
+} from './paneExit'
+import {
   type DepthEntry,
   derivePositions,
   deriveRootIndex,
@@ -52,6 +63,7 @@ import {
   resolveDepths
 } from './paneStack'
 import { textOf } from './splitSecondary'
+import { LONGEST_HOLD_MS } from './transitionHold'
 import { useTopPaneChrome } from './useTopPaneChrome'
 import { navigatorContentClass, navigatorPanesClass } from './variants'
 
@@ -82,10 +94,12 @@ function flagForTwoFrames(
 /** A pane in the row, as the DOM holds it once the commit's mutations have run. */
 type PaneShape = { node: Element; current: boolean }
 
+// A pane on its way out is not in the row's shape: it is the shape the commit
+// before last had.
 const shapeOf = (row: HTMLElement, level: number): PaneShape[] =>
   Array.from(
     row.querySelectorAll(
-      `[data-slot="pane"][data-stack][data-level="${level}"]`
+      `[data-slot="pane"][data-stack][data-level="${level}"]:not([data-exiting])`
     ),
     (node) => ({ node, current: node.hasAttribute('data-current') })
   )
@@ -104,6 +118,31 @@ function isSiblingSwap(was: readonly PaneShape[], now: readonly PaneShape[]) {
     if (next.node !== pane.node) swapped = true
   }
   return swapped
+}
+
+type Presence = {
+  /** What the row last laid out, so the next render can see what left. */
+  children: ReactNode
+  slots: readonly PaneSlot[]
+  /** The tab, More and section the row drew under: a change to any of them cuts. */
+  tab: string
+  held: readonly HeldSlot[]
+}
+
+// A pop leaves forward, over the pane it uncovers. Nothing else drops a slot
+// while the stack still slides; a section or tab change cuts before it gets here.
+const POP: PaneExit = 'ahead'
+
+/** The slots this commit dropped, ready to draw, or null when it dropped none. */
+function nextHeld(
+  was: readonly PaneSlot[],
+  now: readonly PaneSlot[],
+  from: HeldFrom
+): readonly HeldSlot[] | null {
+  const gone = departed(was, now)
+  if (gone.length === 0) return null
+  const stack = heldStack(from, POP)
+  return gone.map((slot) => ({ ...slot, exit: POP, stack }))
 }
 
 type Drawn = {
@@ -392,6 +431,73 @@ export function NavigatorContent({
     [register, unregister, placeOf, markPushing, moreOpen, level, value]
   )
 
+  // A slot the route has stopped drawing is redrawn from the element it drew
+  // last, so the pane it held slides out instead of vanishing on the commit
+  // frame. Derived while rendering, in the same commit that removed it: an
+  // effect would remove the element first and mount a new one, which is the
+  // copy this replaces. Seeded from the first render, so a server render and a
+  // fresh load of a deep route hold nothing.
+  const slots = useMemo(() => slotsOf(children), [children])
+  const tab = `${moreOpen} ${sectionValue} ${tabValue}`
+  const [presence, setPresence] = useState<Presence>(() => ({
+    children,
+    slots,
+    tab,
+    held: []
+  }))
+  if (presence.children !== children || presence.tab !== tab) {
+    setPresence({
+      children,
+      slots,
+      tab,
+      // A tab switch, More and a section change cut, so nothing is held to
+      // slide. Otherwise a departure replaces whatever was already leaving, and
+      // a render that drops nothing keeps it.
+      held:
+        presence.tab !== tab
+          ? []
+          : (nextHeld(presence.slots, slots, {
+              placeOf,
+              moreOpen,
+              level,
+              destination: value
+            }) ?? presence.held)
+    })
+  }
+  const held = presence.held
+  const drawn = useMemo(() => drawnSlots(slots, held), [slots, held])
+
+  // After paint, so the slides have started. Nothing running, as in columns or
+  // under reduced motion, drops the slot at once; the ceiling covers a
+  // transition whose end never arrives.
+  const holding = useRef(0)
+  useEffect(() => {
+    if (held.length === 0) return
+    const row = rowRef.current
+    if (!row) return
+    const mine = (holding.current += 1)
+    const done = () => {
+      if (holding.current === mine) setPresence((was) => ({ ...was, held: [] }))
+    }
+    const running = Array.from(
+      row.querySelectorAll('[data-exiting]'),
+      (pane) =>
+        typeof pane.getAnimations === 'function' ? pane.getAnimations() : []
+    ).flat()
+    if (running.length === 0) {
+      done()
+      return
+    }
+    const ceiling = setTimeout(done, LONGEST_HOLD_MS)
+    void Promise.allSettled(
+      running.map((animation) => animation.finished)
+    ).then(() => {
+      clearTimeout(ceiling)
+      done()
+    })
+    return () => clearTimeout(ceiling)
+  }, [held])
+
   // Reads the ref, not `ordered`: child effects have registered by now, the render hadn't.
   const hasChildren = children != null && children !== false
   useEffect(() => {
@@ -467,7 +573,16 @@ export function NavigatorContent({
             className={navigatorPanesClass}
           >
             {sectionPane}
-            {children}
+            {/* One provider per slot, always, so a slot turning into one that is
+                leaving changes props rather than element type and keeps its DOM. */}
+            {drawn.map((slot) => (
+              <PaneStackContext
+                key={slot.key}
+                value={'stack' in slot ? slot.stack : stackValue}
+              >
+                {slot.node}
+              </PaneStackContext>
+            ))}
             {fallbackOverflow}
             <NavigatorPageStep
               section={activeSection}

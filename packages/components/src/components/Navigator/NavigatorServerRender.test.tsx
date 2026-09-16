@@ -634,3 +634,64 @@ describe('More open from the first render', () => {
     act(() => root?.unmount())
   })
 })
+
+function Nested({ value }: { value: string }) {
+  return (
+    <Navigator value='/a'>
+      <Navigator.Content>
+        <Pane role='list'>Outer list</Pane>
+        <Pane role='detail' current>
+          <Navigator value={value}>
+            <Navigator.Content>
+              <Pane role='list'>Inner list</Pane>
+              <Pane role='detail' current>
+                Inner detail
+              </Pane>
+            </Navigator.Content>
+          </Navigator>
+        </Pane>
+      </Navigator.Content>
+    </Navigator>
+  )
+}
+
+// A slide on a first paint is the bug the exit mechanism could reintroduce: the
+// row would hold a pane that never had a place on screen to leave from.
+describe('nothing slides in or out on a server render or its hydration', () => {
+  const MOTION = [
+    '[data-exiting]',
+    '[data-exit]',
+    '[data-pushing]',
+    '[data-instant]'
+  ].join(', ')
+  const moving = (host: HTMLElement) =>
+    Array.from(host.querySelectorAll(MOTION), (node) => node.outerHTML)
+
+  it.each([
+    ['a deep route', <Docs key='deep' value='/components/button' />],
+    ['a section root', <Docs key='root' value='/components' />],
+    [
+      'a page-root sub-page',
+      <PageRootDocs key='page' value='/overview/philosophy' />
+    ],
+    ['a nested Navigator', <Nested key='nested' value='/x/1' />]
+  ])('leaves %s still, through hydration', async (_, ui) => {
+    const tree = <StrictMode>{ui}</StrictMode>
+    const host = serverRender(tree)
+    expect(moving(host)).toEqual([])
+
+    const error = vi.spyOn(console, 'error')
+    const recoverable = vi.fn()
+    let root: Root | null = null
+    await act(async () => {
+      root = hydrateRoot(host, tree, { onRecoverableError: recoverable })
+    })
+    await flushViewportMeasurement()
+
+    expect(recoverable).not.toHaveBeenCalled()
+    expect(error).not.toHaveBeenCalled()
+    expect(moving(host)).toEqual([])
+    act(() => root?.unmount())
+    vi.restoreAllMocks()
+  })
+})

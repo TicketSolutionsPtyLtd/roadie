@@ -17,10 +17,12 @@ import {
 } from './NavigatorContext'
 import {
   FakeIcon,
+  endExitAnimations,
   flushViewportMeasurement,
   primaryOf,
   scrollViewport,
   testBrand,
+  withExitAnimations,
   withScrollSentinels,
   withStubLink
 } from './testUtils'
@@ -4223,5 +4225,105 @@ describe('indicator track offsetParent guard', () => {
     ]) {
       expect(track.split(' ')).toContain('relative')
     }
+  })
+})
+
+describe('a pane held for its exit', () => {
+  withExitAnimations()
+
+  const drill = (deep: boolean, at = '/a/1') => (
+    <Navigator value={deep ? at : '/a'}>
+      <Navigator.Content>
+        <Pane role='list'>List</Pane>
+        {deep ? (
+          <Pane role='detail' current>
+            Detail
+          </Pane>
+        ) : null}
+      </Navigator.Content>
+    </Navigator>
+  )
+  const leaving = () =>
+    document.querySelector<HTMLElement>('[data-slot="pane"][data-exiting]')
+  const live = () =>
+    Array.from(
+      document.querySelectorAll<HTMLElement>(
+        '[data-slot="pane"]:not([data-exiting])'
+      )
+    )
+  const detail = () =>
+    document.querySelector<HTMLElement>(
+      '[data-slot="pane"][data-role="detail"]'
+    )
+
+  it('keeps the very element the pop removed, and slides it out forward', async () => {
+    const { rerender } = render(drill(true))
+    await flushViewportMeasurement()
+    const was = detail()
+    rerender(drill(false))
+    expect(leaving()).toBe(was)
+    expect(leaving()).toHaveAttribute('data-exit', 'ahead')
+    expect(leaving()).toHaveTextContent('Detail')
+  })
+
+  it('drops it out of the stack at once, so the row reads as the pane that stays', async () => {
+    const { rerender } = render(drill(true))
+    await flushViewportMeasurement()
+    rerender(drill(false))
+    expect(live()).toHaveLength(1)
+    expect(live()[0]).toHaveAttribute('data-role', 'list')
+    expect(live()[0]).toHaveAttribute('data-stack-position', 'top')
+  })
+
+  it('takes it out of the accessibility tree while both are on screen', async () => {
+    const { rerender } = render(drill(true))
+    await flushViewportMeasurement()
+    rerender(drill(false))
+    expect(leaving()).toHaveAttribute('inert')
+    expect(leaving()).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  it('removes it once the slide ends', async () => {
+    const { rerender } = render(drill(true))
+    await flushViewportMeasurement()
+    rerender(drill(false))
+    expect(leaving()).not.toBeNull()
+    await endExitAnimations()
+    expect(leaving()).toBeNull()
+    expect(document.querySelectorAll('[data-slot="pane"]')).toHaveLength(1)
+  })
+
+  it('holds nothing when a sibling replaces the pane at the same depth', async () => {
+    const { rerender } = render(drill(true, '/a/1'))
+    await flushViewportMeasurement()
+    rerender(drill(true, '/a/2'))
+    expect(leaving()).toBeNull()
+  })
+
+  it('holds nothing on the first render, so a deep route arrives with no exit', async () => {
+    render(drill(true))
+    expect(leaving()).toBeNull()
+    await flushViewportMeasurement()
+    expect(leaving()).toBeNull()
+  })
+
+  it('holds nothing when the pane leaves because More opened over it', async () => {
+    const tree = (more: boolean) => (
+      <Navigator value='/a' showMore={more}>
+        <Navigator.Content>
+          <Pane role='list'>List</Pane>
+          {more ? null : (
+            <Pane role='detail' current>
+              Detail
+            </Pane>
+          )}
+          <Navigator.OverflowPane>More</Navigator.OverflowPane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    const { rerender } = render(tree(false))
+    await flushViewportMeasurement()
+    rerender(tree(true))
+    expect(leaving()).toBeNull()
   })
 })
