@@ -252,7 +252,7 @@ export const navigatorTabIconFrameVariants = cva(
 // Rows `0fr` → `1fr` grows the title open; `-mb-3` cancels the cluster gap while it's shut.
 export const navigatorGroupTitleClass = [
   'grid grid-rows-[0fr] self-start -mb-3 px-3 text-xs font-semibold text-subtler opacity-0',
-  'navigator-expanded:grid-rows-[1fr] navigator-expanded:mb-1 navigator-expanded:opacity-100',
+  'navigator-expanded:grid-rows-[1fr] navigator-expanded:-mb-2 navigator-expanded:opacity-100',
   'motion-safe:[transition:grid-template-rows_var(--navigator-primary-motion),margin_var(--navigator-primary-motion),opacity_var(--navigator-primary-motion)]'
 ].join(' ')
 
