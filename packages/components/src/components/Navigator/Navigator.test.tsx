@@ -1974,6 +1974,79 @@ describe('Navigator.OverflowPane', () => {
       expect(row()).toHaveAttribute('data-pushing')
     })
 
+    const swapNav = (id: string, current = true) => (
+      <Navigator value='/a'>
+        <Navigator.Content>
+          <Pane role='list'>List</Pane>
+          <Pane key={id} role='detail' current={current}>
+            Ticket {id}
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+
+    it('cuts a sibling swap: one pane replaced at the same depth', async () => {
+      const { rerender } = render(swapNav('1'))
+      await flushViewportMeasurement()
+      flushFrame()
+      flushFrame()
+      const before = panes()[1]
+
+      rerender(swapNav('2'))
+      expect(panes()[1]).not.toBe(before)
+      expect(panes()[1]).toHaveAttribute('data-stack-position', 'top')
+      expect(row()).not.toHaveAttribute('data-pushing')
+      expect(content()).toHaveAttribute('data-instant')
+      flushFrame()
+      flushFrame()
+      expect(content()).not.toHaveAttribute('data-instant')
+    })
+
+    it('keeps the slide when the swapped-in pane is no longer the top', async () => {
+      const { rerender } = render(swapNav('1'))
+      await flushViewportMeasurement()
+      flushFrame()
+      flushFrame()
+
+      rerender(swapNav('2', false))
+      expect(row()).toHaveAttribute('data-pushing')
+      expect(content()).not.toHaveAttribute('data-instant')
+    })
+
+    it('cuts a tab switch whose route lands on a child pane', async () => {
+      const tabsNav = (value: string) => (
+        <Navigator value={value}>
+          <Navigator.Primary aria-label='Main'>
+            {testBrand}
+            <Navigator.Item value='/a' href='/a'>
+              A
+            </Navigator.Item>
+            <Navigator.Item value='/b' href='/b'>
+              B
+            </Navigator.Item>
+          </Navigator.Primary>
+          <Navigator.Content>
+            <Pane key={value.slice(0, 2)} role='list'>
+              List {value}
+            </Pane>
+            {value.length > 2 ? (
+              <Pane key={value} role='detail' current>
+                Detail {value}
+              </Pane>
+            ) : null}
+          </Navigator.Content>
+        </Navigator>
+      )
+      const { rerender } = render(tabsNav('/a'))
+      await flushViewportMeasurement()
+      flushFrame()
+      flushFrame()
+
+      rerender(tabsNav('/b/1'))
+      expect(row()).not.toHaveAttribute('data-pushing')
+      expect(content()).toHaveAttribute('data-instant')
+    })
+
     it('never marks a push for panes that mount with their row', async () => {
       render(
         <Navigator value='/a/1'>

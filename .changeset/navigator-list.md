@@ -17,7 +17,10 @@ and a stack position when panes share a screen. `Navigator.Content` lays panes
 out as columns from its own width (two from 46.25rem, three from 76rem) and
 stacks them below that. A stacked pane that mounts as the new top slides in
 like one that was already there, so a route-driven detail pane animates on a
-push; a first paint, hydration and reduced motion never slide. `Pane.Search` is
+push; a first paint, hydration and reduced motion never slide. Swapping a
+sibling cuts: a commit that replaces a pane with another at the same depth,
+leaving the stack the shape it was, is not a push. Switching top-level item
+cuts too, whatever stack the incoming route draws. `Pane.Search` is
 a pill search field with a Cancel.
 
 Also ships `Navigator.ExpandToggle`, `Navigator.OverflowPane`/`OverflowItems`,

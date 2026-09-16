@@ -33,7 +33,8 @@ import {
   NavigatorActionsContext,
   NavigatorDisclosureContext,
   NavigatorSelectionContext,
-  isActiveValue
+  isActiveValue,
+  isSectionActive
 } from './NavigatorContext'
 import { NavigatorOverflowItems } from './NavigatorOverflowItems'
 import { NavigatorOverflowPane } from './NavigatorOverflowPane'
@@ -78,6 +79,33 @@ function flagForTwoFrames(
   })
 }
 
+/** A pane in the row, as the DOM holds it once the commit's mutations have run. */
+type PaneShape = { node: Element; current: boolean }
+
+const shapeOf = (row: HTMLElement, level: number): PaneShape[] =>
+  Array.from(
+    row.querySelectorAll(
+      `[data-slot="pane"][data-stack][data-level="${level}"]`
+    ),
+    (node) => ({ node, current: node.hasAttribute('data-current') })
+  )
+
+// A sibling swap: the row's shape is unchanged — the same panes in the same
+// document order, so the same depths and the same top — and at least one of
+// them is a different element. That is a route rendering a sibling detail, as a
+// param change does, and it cuts like More and a section change do. A push adds
+// a pane and a pop drops one, so neither reaches here and both keep their slide.
+function isSiblingSwap(was: readonly PaneShape[], now: readonly PaneShape[]) {
+  if (was.length === 0 || was.length !== now.length) return false
+  let swapped = false
+  for (const [at, pane] of was.entries()) {
+    const next = now[at]
+    if (!next || next.current !== pane.current) return false
+    if (next.node !== pane.node) swapped = true
+  }
+  return swapped
+}
+
 type Drawn = {
   /** The active section has a list, drawn or displaced by More. */
   rootList: boolean
@@ -120,6 +148,7 @@ export function NavigatorContent({
   const { setPrimaryNav } = use(NavigatorActionsContext)
   const {
     value,
+    collected,
     activeSection,
     listPaneShows,
     declaredSecondaryPanes,
@@ -133,6 +162,12 @@ export function NavigatorContent({
   const ref = useMemo(() => mergeRefs(contentRef, forwardedRef), [forwardedRef])
   const rowRef = useRef<HTMLDivElement | null>(null)
   const sectionValue = activeSection?.value ?? null
+  // The top-level item the route sits under. A section is one of these, and a
+  // plain item is not, so this also catches a tab whose remembered route
+  // restores a child: the stack changes shape, but it is still a tab switch.
+  const tabValue =
+    collected.ordered.find((slot) => isSectionActive(slot, value))?.value ??
+    null
 
   // Panes slide only on a push or pop; a resize cuts.
   const pushFrame = useRef(0)
@@ -143,6 +178,17 @@ export function NavigatorContent({
   const markPushing = useCallback(() => {
     if (pushable.current && rowRef.current)
       flagForTwoFrames(rowRef.current, 'data-pushing', pushFrame)
+  }, [])
+  // Cancels a push marked this commit and holds every pane still for two frames.
+  const cut = useCallback(() => {
+    const row = rowRef.current
+    if (row) {
+      cancelAnimationFrame(pushFrame.current)
+      row.removeAttribute('data-pushing')
+    }
+    if (contentRef.current) {
+      flagForTwoFrames(contentRef.current, 'data-instant', instantFrame)
+    }
   }, [])
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -250,22 +296,31 @@ export function NavigatorContent({
   // More and a section change are tab switches, not pushes. Declared after every
   // markPushing call, so it cancels a push marked this commit.
   // Keyed on moreOpen, not overflowOpen: a resize or hydration can add or drop More without overflowOpen changing.
-  const lastTab = useRef({ moreOpen, sectionValue })
+  const lastTab = useRef({ moreOpen, sectionValue, tabValue })
   useInsertionEffect(() => {
     const last = lastTab.current
-    if (last.moreOpen === moreOpen && last.sectionValue === sectionValue) {
+    if (
+      last.moreOpen === moreOpen &&
+      last.sectionValue === sectionValue &&
+      last.tabValue === tabValue
+    ) {
       return
     }
-    lastTab.current = { moreOpen, sectionValue }
+    lastTab.current = { moreOpen, sectionValue, tabValue }
+    cut()
+  }, [moreOpen, sectionValue, tabValue, cut])
+
+  // Reads the DOM, not the snapshot, and after the children's own insertion
+  // effects: the row is mutated by now whichever order the panes registered in,
+  // so a pane that arrives before the one it replaces leaves reads the same.
+  const shape = useRef<readonly PaneShape[]>([])
+  useInsertionEffect(() => {
     const row = rowRef.current
-    if (row) {
-      cancelAnimationFrame(pushFrame.current)
-      row.removeAttribute('data-pushing')
-    }
-    if (contentRef.current) {
-      flagForTwoFrames(contentRef.current, 'data-instant', instantFrame)
-    }
-  }, [moreOpen, sectionValue])
+    if (!row) return
+    const was = shape.current
+    shape.current = shapeOf(row, level)
+    if (isSiblingSwap(was, shape.current)) cut()
+  })
 
   const topIndex = positions.indexOf('top')
   const topId = topIndex === -1 ? null : (stack[topIndex]?.id ?? null)
