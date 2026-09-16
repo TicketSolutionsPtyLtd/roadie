@@ -2,8 +2,6 @@
 
 import type { ReactNode } from 'react'
 
-import { usePathname } from 'next/navigation'
-
 import { Button, Pane } from '@oztix/roadie-components'
 
 const lines = (count: number, tag: string) =>
@@ -15,7 +13,6 @@ const lines = (count: number, tag: string) =>
 
 // Three levels, each pane in its own route segment, as an app has them.
 export default function BareEventLayout({ children }: { children: ReactNode }) {
-  const onEvent = usePathname() === '/debug/bare/evt'
   return (
     <>
       <Pane role='list' depth={0} data-testid='list-pane'>
@@ -24,7 +21,11 @@ export default function BareEventLayout({ children }: { children: ReactNode }) {
         </Pane.Header>
         <div className='grid gap-2 p-4'>{lines(30, 'list')}</div>
       </Pane>
-      <Pane role='detail' depth={1} current={onEvent} data-testid='event-pane'>
+      {/* `current` stays on, which is what a route layout does: the contract is
+          that the deepest `current` pane is the top, so there is no reason for
+          a layout to know a deeper segment rendered. `/debug/stack` toggles it
+          instead, and the two shapes have to keep behaving the same. */}
+      <Pane role='detail' depth={1} current data-testid='event-pane'>
         <Pane.Header>
           <Pane.Title>Event</Pane.Title>
         </Pane.Header>

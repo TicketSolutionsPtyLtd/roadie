@@ -4075,7 +4075,11 @@ describe('a new destination starts at the top', () => {
     expect(list().scrollTop).toBe(300)
   })
 
-  it('keeps the place of a list popped back to', async () => {
+  // Both panes go by the same rule: the one the navigation goes to starts at
+  // the top, and the one it leaves keeps its place. The list comes forward and
+  // keeps 300; the page goes behind and keeps 900, and starts at the top again
+  // only when a destination actually arrives at it.
+  it('keeps the place of a list popped back to, and of the page it covers', async () => {
     const { rerender } = render(nav('/s/a'))
     await flushViewportMeasurement()
     await scroll(page(), 900)
@@ -4087,7 +4091,7 @@ describe('a new destination starts at the top', () => {
       'top'
     )
     expect(list().scrollTop).toBe(300)
-    expect(page().scrollTop).toBe(0)
+    expect(page().scrollTop).toBe(900)
   })
 
   it('leaves every pane alone while the destination holds', async () => {
@@ -4453,6 +4457,76 @@ describe('a route-driven shell, where one slot holds every pane', () => {
     rerender(shell(false))
     await flushViewportMeasurement()
     expect(event().scrollTop).toBe(0)
+  })
+
+  // The shape a real shell has: the pane a push goes over is still `current`,
+  // because the contract is that the *deepest* `current` pane is the top and a
+  // route layout has no reason to turn the flag off on the pane it drilled
+  // from. Reading `current` alone as "this pane is the destination" zeroed
+  // every pane a push went over, which is what a prototype reported.
+  describe('with `current` left on the pane the push goes over', () => {
+    const Both = ({ deep }: { deep: boolean }) => (
+      <>
+        <Pane role='list' depth={0}>
+          List
+        </Pane>
+        <Pane role='detail' depth={1} current data-testid='event'>
+          <Pane.Header>
+            <Pane.Title>Event</Pane.Title>
+          </Pane.Header>
+          Event
+        </Pane>
+        {deep ? (
+          <Pane role='detail' depth={2} current data-testid='ticket'>
+            Ticket
+          </Pane>
+        ) : null}
+      </>
+    )
+    const both = (deep: boolean) => (
+      <Navigator value={deep ? '/e/t' : '/e'}>
+        <Navigator.Content>
+          <Both deep={deep} />
+        </Navigator.Content>
+      </Navigator>
+    )
+
+    it('keeps the place of the pane a push sends behind', async () => {
+      const { rerender } = render(both(false))
+      await flushViewportMeasurement()
+      await scroll(740)
+      history.goTo()
+      rerender(both(true))
+      await flushViewportMeasurement()
+      expect(event().scrollTop).toBe(740)
+    })
+
+    it('still starts the pane the push arrives at from the top', async () => {
+      const { rerender } = render(both(false))
+      await flushViewportMeasurement()
+      await scroll(740)
+      history.goTo()
+      rerender(both(true))
+      await flushViewportMeasurement()
+      const ticket = screen
+        .getByTestId('ticket')
+        .querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
+      expect(ticket.scrollTop).toBe(0)
+    })
+
+    it('puts the pane back where it was on the way out', async () => {
+      const entry = history.key
+      const { rerender } = render(both(false))
+      await flushViewportMeasurement()
+      await scroll(740)
+      history.goTo()
+      rerender(both(true))
+      await flushViewportMeasurement()
+      history.traverseTo(entry)
+      rerender(both(false))
+      await flushViewportMeasurement()
+      expect(event().scrollTop).toBe(740)
+    })
   })
 
   // A pop removes the pane; the one behind sliding back is what covers it.

@@ -41,6 +41,12 @@ export type PaneStackContextValue = {
   placeOf: (id: string, entry: PaneRegistration) => PanePlace
   /** Lets the stack slide for the change this commit makes. */
   markPushing: () => void
+  /**
+   * The top of the stack as the committed DOM holds it, for a layout effect to
+   * read. `placeOf` answers from a snapshot that learns of an arriving pane a
+   * commit late; this one is already right on the commit the pane arrives in.
+   */
+  topNow: () => Element | null
   /** More is open and has a pane to show. */
   moreOpen: boolean
   /** 0 for the outermost `Navigator.Content`. */

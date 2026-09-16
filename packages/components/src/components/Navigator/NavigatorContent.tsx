@@ -30,6 +30,8 @@ import {
   isSectionKind
 } from '../Pane/PaneStackContext'
 import { PaneTitle } from '../Pane/PaneTitle'
+import { PANE_DEEP, PANE_MAX_DEPTH } from '../Pane/paneDepth'
+import type { PaneRole } from '../Pane/variants'
 import {
   NavigatorActionsContext,
   NavigatorDisclosureContext,
@@ -45,8 +47,10 @@ import { NavigatorSectionPane } from './NavigatorSectionPane'
 import { OVERFLOW_LABEL } from './mobileSlots'
 import {
   type DepthEntry,
+  type PaneEntry,
   derivePositions,
   deriveRootIndex,
+  deriveTopIndex,
   orderByDocumentPosition,
   provisionalDepth,
   provisionalPosition,
@@ -81,14 +85,23 @@ function flagForTwoFrames(
 }
 
 /** A pane in the row, as the DOM holds it once the commit's mutations have run. */
-type PaneShape = { node: Element; current: boolean }
+type PaneShape = PaneEntry & { node: Element }
+
+// `deep` is past the deepest named rank, and is the one value that isn't a number.
+const rankOf = (depth: string | null) =>
+  depth === PANE_DEEP ? PANE_MAX_DEPTH + 1 : Number(depth ?? 0)
 
 const shapeOf = (row: HTMLElement, level: number): PaneShape[] =>
   Array.from(
     row.querySelectorAll(
       `[data-slot="pane"][data-stack][data-level="${level}"]`
     ),
-    (node) => ({ node, current: node.hasAttribute('data-current') })
+    (node) => ({
+      node,
+      current: node.hasAttribute('data-current'),
+      role: (node.getAttribute('data-role') ?? 'list') as PaneRole,
+      rank: rankOf(node.getAttribute('data-depth'))
+    })
   )
 
 // Nodes only, not `current`: opening More or a section list flips `current` on a
@@ -325,11 +338,18 @@ export function NavigatorContent({
   // so a pane that arrives before the one it replaces leaves reads the same.
   const shape = useRef<readonly PaneShape[]>([])
   const arrived = useRef(false)
+  // The top as the DOM holds it, for panes to read in their layout effects: the
+  // snapshot below learns of an arriving pane a commit late and still calls the
+  // pane it arrived over the top.
+  const topNode = useRef<Element | null>(null)
+  const topNow = useCallback(() => topNode.current, [])
   useInsertionEffect(() => {
     const row = rowRef.current
     if (!row) return
     const was = shape.current
     shape.current = shapeOf(row, level)
+    topNode.current =
+      shape.current[deriveTopIndex(shape.current, revealRoot)]?.node ?? null
     if (isSiblingSwap(was, shape.current)) cut()
     // A pane added, dropped or replaced is the content a navigation went for,
     // including a param change that leaves `value` alone. This is the only
@@ -409,11 +429,12 @@ export function NavigatorContent({
       unregister,
       placeOf,
       markPushing,
+      topNow,
       moreOpen,
       level,
       destination: value
     }),
-    [register, unregister, placeOf, markPushing, moreOpen, level, value]
+    [register, unregister, placeOf, markPushing, topNow, moreOpen, level, value]
   )
 
   // Reads the ref, not `ordered`: child effects have registered by now, the render hadn't.

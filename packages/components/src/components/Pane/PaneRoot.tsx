@@ -289,12 +289,17 @@ export function PaneRoot({
       settling.current = restorePaneScroll(viewport, back)
       return
     }
-    // `current`, not the position, for "this pane is the one being navigated
-    // to": the position comes from a snapshot a commit behind, so on a push the
-    // pane going behind still reads as the top and would lose its place.
+    // The pane being navigated to is the top of the stack, which is the
+    // *deepest* `current` pane — a shell that leaves `current` on the pane it
+    // drilled from has more than one, and zeroing them all loses the place of
+    // every pane a push went over. `topNow` reads the committed DOM, so it
+    // already counts the pane that arrived this commit; `position` comes from a
+    // snapshot a commit behind and still calls this pane the top.
+    const isTop =
+      stack === null ? current : current && stack.topNow() === paneRef.current
     if (
       first ||
-      !current ||
+      !isTop ||
       last.destination === destination ||
       last.position === 'behind' ||
       position === 'behind'
@@ -302,7 +307,7 @@ export function PaneRoot({
       return
     }
     viewport.scrollTop = 0
-  }, [destination, position, seat, current])
+  }, [destination, position, seat, current, stack])
 
   return (
     <ScrollArea

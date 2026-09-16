@@ -6,11 +6,12 @@ export const navigatorRootClass = [
   'group/navigator',
   // isolate: the pending indicator paints from behind, over this fill.
   // clip, not hidden: the frame is 100dvh and every pane scrolls itself, so it
-  // has no business being a scrollport. `hidden` still makes one, and a
-  // scrollport that shows no bar is one anything can scroll without a trace: a
-  // focus, a find-in-page, a router bringing an arriving segment into view. The
-  // phone pull-back insets the pane row by 2% of the frame, so a scroll like
-  // that would be absorbed here and stay behind once the scale is dropped.
+  // has no business being a scrollport, and `hidden` makes one anyway — with no
+  // bar to say so. A hidden phone bar is absolute and translated a full height
+  // past the bottom edge, which is 82px of scrollable overflow sitting there
+  // whenever the top pane sets primaryNav='hidden'. The phone pull-back then
+  // insets the pane row by 2% of the frame, so anything revealing the arriving
+  // pane mid-transform scrolled that slack and the offset outlived the scale.
   // `clip` makes no scrollport at all, as navigator-content already does. See
   // docs/solutions/pane-motion/a-transform-inside-a-scrollport.md.
   'relative isolate grid h-[100dvh] w-full overflow-clip bg-sunken',

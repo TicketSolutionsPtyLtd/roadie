@@ -646,6 +646,7 @@ describe('Pane.Header back name', () => {
         isRoot: false
       }),
       markPushing: () => {},
+      topNow: () => null,
       moreOpen: false,
       level: 0
     }
@@ -954,6 +955,7 @@ describe('orchestrator chrome', () => {
         isRoot: false
       }),
       markPushing: () => {},
+      topNow: () => null,
       moreOpen: false,
       level: 0
     }

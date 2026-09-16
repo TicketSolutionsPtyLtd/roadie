@@ -11,7 +11,8 @@ import type { PanePrimaryNav, PaneRole } from '../Pane/variants'
 export type PaneEntry = {
   role: PaneRole
   current: boolean
-  primaryNav: PanePrimaryNav
+  /** Unused here; carried because registrations are passed in whole. */
+  primaryNav?: PanePrimaryNav
   /** Place in the drill-down; document order breaks ties. */
   rank?: number
 }
