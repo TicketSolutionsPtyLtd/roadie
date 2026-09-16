@@ -3,6 +3,8 @@ import createMDX from '@next/mdx'
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
+  // GitHub Pages serves `/x/` only when `x/index.html` exists, and 301s `/x` to it.
+  trailingSlash: true,
   basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
   devIndicators: false,
   reactCompiler: true,

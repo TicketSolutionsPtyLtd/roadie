@@ -3,7 +3,8 @@
 import type { ReactNode } from 'react'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+
+import { useRoute } from '@/lib/route'
 
 import { Button, Pane } from '@oztix/roadie-components'
 
@@ -15,8 +16,7 @@ const lines = (count: number, tag: string) =>
   ))
 
 export default function EventLayout({ children }: { children: ReactNode }) {
-  const pathname = usePathname()
-  const onEvent = pathname === '/debug/stack/evt'
+  const onEvent = useRoute() === '/debug/stack/evt'
   return (
     <>
       <Pane role='list' depth={0}>

@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 
-import { usePathname } from 'next/navigation'
+import { useRoute } from '@/lib/route'
 
 import { Navigator } from '@oztix/roadie-components/navigator'
 
@@ -17,9 +17,9 @@ import { Navigator } from '@oztix/roadie-components/navigator'
 // `/debug/bare` is the same stack with the frame owning the window, which
 // is the shape an app has. Measure anything about the frame itself there.
 export default function StackLayout({ children }: { children: ReactNode }) {
-  const pathname = usePathname()
+  const route = useRoute()
   return (
-    <Navigator value={pathname}>
+    <Navigator value={route}>
       <Navigator.Primary aria-label='Debug'>
         <Navigator.Item value='/debug/stack/evt' href='/debug/stack/evt'>
           Stack

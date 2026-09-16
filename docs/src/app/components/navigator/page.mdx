@@ -63,6 +63,11 @@ The tree has three rules:
 
 - Navigator is controlled. The active `value` comes from your router. The
   examples use `useState`, or `DemoRouter`, a docs-only stand-in for a router.
+  Matching is exact, plus a `value + '/'` prefix that marks an item active for
+  the pages under it, so normalise a pathname before passing it. A trailing
+  slash misses the exact match and lands on the prefix one, and the item reads
+  as one level deeper than you are: `/events/` looks like a page below
+  `/events` rather than `/events` itself.
 - Author the whole tree in a client component. Navigator finds its parts by
   element reference, and a server component replaces those references, so
   items, group titles and menus disappear. `Navigator.Content` and

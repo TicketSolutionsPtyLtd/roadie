@@ -341,7 +341,8 @@ export function Providers({ children }) {
           <Code>Tabs.value</Code> from controlled local state, you can see a
           brief flicker between selection and route change. Recommended pattern:
           derive <Code>value</Code> from the route itself (e.g. via{' '}
-          <Code>usePathname()</Code>) so route is the source of truth.
+          <Code>usePathname()</Code>) so route is the source of truth. Normalise
+          it first — tab matching is exact, so a trailing slash selects nothing.
         </p>
       </section>
 

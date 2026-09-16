@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 
-import { usePathname } from 'next/navigation'
+import { useRoute } from '@/lib/route'
 
 import { Navigator } from '@oztix/roadie-components/navigator'
 
@@ -11,9 +11,9 @@ import { Navigator } from '@oztix/roadie-components/navigator'
 // stack nested inside the docs' own frame, which hides anything that only goes
 // wrong when the frame is the outermost thing on the page.
 export default function BareLayout({ children }: { children: ReactNode }) {
-  const pathname = usePathname()
+  const route = useRoute()
   return (
-    <Navigator value={pathname}>
+    <Navigator value={route}>
       <Navigator.Primary aria-label='Bare'>
         <Navigator.Item value='/debug/bare/evt' href='/debug/bare/evt'>
           Events
