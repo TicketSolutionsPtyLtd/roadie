@@ -41,12 +41,12 @@ One text line, as tall as the line height it inherits.
 
 ### Sizes
 
-Size a Skeleton the way you would size the content it stands in for. A `text` line tracks the type size around it, so wrap it in the element that carries the class.
+Size a Skeleton the way you would size the content it stands in for. A `text` line tracks the type size around it, so put it in an element that carries the type class. Skeleton renders a `div`, so that element cannot be the `p` it stands in for.
 
 ```tsx-live
 <div className='grid gap-4'>
-  <p className='text-sm'><Skeleton /></p>
-  <p className='text-lg'><Skeleton className='w-2/3' /></p>
+  <div className='text-sm'><Skeleton /></div>
+  <div className='text-lg'><Skeleton className='w-2/3' /></div>
   <Skeleton shape='block' className='h-40' />
   <Skeleton shape='circle' className='size-16' />
 </div>
@@ -118,16 +118,21 @@ Stop at one level of detail. A card skeleton is an image block, a title line and
 
 The root carries `aria-hidden='true'`, so a screen reader reads nothing from the placeholder itself. A row of announced bars would be noise, and the shapes carry no information.
 
-The region that owns the fetch announces the wait. Put `aria-busy='true'` on it while the request is in flight and give it an accessible name, then let the result land in the same region.
+The region that owns the fetch announces the wait. Put `aria-busy='true'` on it while the request is in flight, and add a small live region that carries the wording. `aria-busy` alone changes no announcement, so without the live region a screen reader user hears nothing until they navigate back to the section.
 
 ```tsx
 <section aria-busy={isPending} aria-labelledby='events-heading'>
   <h2 id='events-heading' className='text-display-ui-4 text-strong'>
     Upcoming events
   </h2>
+  <p role='status' className='sr-only'>
+    {isPending ? 'Loading events' : `${events.length} events loaded`}
+  </p>
   {isPending ? <Skeleton shape='block' /> : <EventList events={events} />}
 </section>
 ```
+
+Keep the live region small and separate from the content it describes. A `role='status'` on the whole section would read the entire result back once it lands.
 
 The pulse runs on the `animate-pulse-subtle` utility from the motion tokens. Under `prefers-reduced-motion: reduce` the global motion reset cuts it to a single pass, so the placeholder holds a static tint and never flickers.
 
