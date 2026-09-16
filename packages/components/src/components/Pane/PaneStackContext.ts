@@ -8,9 +8,6 @@ import type { PanePrimaryNav, PaneRole } from './variants'
 
 export type PaneStackPosition = 'top' | 'ahead' | 'behind'
 
-/** Which way a pane React has replaced slides as it goes. */
-export type PaneExit = 'ahead' | 'behind'
-
 export type PaneKind =
   'pane' | 'section' | 'generated-section' | 'overflow' | 'generated-overflow'
 
@@ -35,8 +32,6 @@ export type PanePlace = {
   chrome: PaneChromeContextValue
   /** The base of the stack, where Close never shows. */
   isRoot: boolean
-  /** Set while the row holds this pane for its slide out; it is no longer in the stack. */
-  exit?: PaneExit
 }
 
 export type PaneStackContextValue = {

@@ -160,10 +160,8 @@ const display = (on: boolean) => (on ? 'grid' : 'none')
 
 const row = (level: number) =>
   `[data-slot="navigator-panes"][data-level="${level}"]`
-// A pane held for its exit is out of the stack: never a level, never the top.
-const LIVE = ':not([data-exiting])'
 const stackPane = (level: number, depth: number, extra = '') =>
-  `[data-stack][data-level="${level}"][data-depth="${depth}"]${extra}${LIVE}`
+  `[data-stack][data-level="${level}"][data-depth="${depth}"]${extra}`
 
 // Before panes register, a lone `detail` is written at its role default, 1,
 // with nothing at 0. Such a row is read one depth shallower, so its first
@@ -332,7 +330,7 @@ const HIDDEN = 'display: none !important;'
 function inspectorRules(level: number): string {
   const inspector = `[data-role="inspector"][data-level="${level}"]`
   return [
-    `  ${row(level)}:not([data-overflow]):not(:has([data-stack][data-level="${level}"]:not([data-overflow])${LIVE})) ${inspector} { ${HIDDEN} }`,
+    `  ${row(level)}:not([data-overflow]):not(:has([data-stack][data-level="${level}"]:not([data-overflow]))) ${inspector} { ${HIDDEN} }`,
     ...ROW_SIZES.map(
       ({ base, levels }) =>
         `@container panes (width < ${rem(inspectorTier(levels))}) { ${row(level)}${baseIs(level, base)}${levelsIs(level, levels, base)} ${inspector} { ${HIDDEN} } }`
@@ -376,38 +374,8 @@ function enterRules(level: number): string {
       (shape) =>
         `    ${shapeSelector(level, shape, shape.top, '[data-pushing]')} { ${AHEAD} }`
     ),
-    `    ${row(level)}[data-pushing]:not([data-reveal]) ${deep}${LIVE}[data-current] { ${AHEAD} }`,
-    // A step out mounts the page it returns to, so it comes back from behind.
-    // Every shape, the row root included, since that page is often the only
-    // pane, and no depth of its own: a pane is at its role's depth until it
-    // registers, a commit after its starting style is read.
-    ...ROW_SHAPES.map(
-      (shape) =>
-        `    ${shapeSelector(level, shape, shape.top, '[data-pushing][data-step="out"]')} { ${BEHIND} }`
-    ),
+    `    ${row(level)}[data-pushing]:not([data-reveal]) ${deep}[data-current] { ${AHEAD} }`,
     '  } } }'
-  ].join('\n')
-}
-
-// Parked with no transition, so columns and reduced motion drop it at once;
-// the stacked branch adds the slide. No starting style is needed: the pane is
-// already showing the translate it leaves from, so a reversed step resumes.
-// z-index, not document order, decides which of the two passes over the other.
-function exitRules(level: number): string {
-  const exiting = (extra = '') =>
-    `${row(level)} [data-stack][data-level="${level}"][data-exiting]${extra}`
-  const parked =
-    'visibility: hidden; pointer-events: none; content-visibility: auto; transition: none;'
-  return [
-    `  ${exiting('[data-exit="ahead"]')} { ${AHEAD} opacity: 1; z-index: 3; ${parked} }`,
-    `  ${exiting('[data-exit="behind"]')} { ${BEHIND} opacity: 0.9; ${PARKED} ${parked} }`,
-    // No place in the stack, an inspector say, so nowhere to slide to.
-    `  ${row(level)} [data-slot="pane"][data-exiting]:not([data-stack]) { ${HIDDEN} }`,
-    `  @container panes (width < ${rem(stackedUntil())}) { @media (prefers-reduced-motion: no-preference) {`,
-    // `[data-exit]` ties with the park on specificity and wins on order; without
-    // it the park's `transition: none` outranks this and the pane cuts.
-    `    ${exiting('[data-exit]')} { ${LEAVING} transition-duration: var(--duration-slow); }`,
-    '  } }'
   ].join('\n')
 }
 
@@ -440,9 +408,8 @@ function levelRules(level: number): string {
     shadowRoomRules(level),
     `  ${pane} { position: absolute !important; ${inset} }`,
     `  ${row(level)} ${deep} { position: absolute !important; ${inset} z-index: 3; ${AHEAD} visibility: hidden; pointer-events: none; transition-property: translate, visibility; transition-timing-function: var(--ease-enter); }`,
-    `  ${row(level)}:not([data-reveal]) ${deep}${LIVE}[data-current] { translate: 0 0; visibility: visible; pointer-events: auto; }`,
-    `  @media (prefers-reduced-motion: no-preference) { ${row(level)}[data-pushing] :is(${stacked}, ${deep})${LIVE} { transition-duration: var(--duration-slow); } }`,
-    exitRules(level),
+    `  ${row(level)}:not([data-reveal]) ${deep}[data-current] { translate: 0 0; visibility: visible; pointer-events: auto; }`,
+    `  @media (prefers-reduced-motion: no-preference) { ${row(level)}[data-pushing] :is(${stacked}, ${deep}) { transition-duration: var(--duration-slow); } }`,
     `  ${row(level)} [data-role="inspector"][data-level="${level}"] { order: 99; flex: 0 0 ${rem(PANE_INSPECTOR)}; }`,
     `  ${row(level)}:not([data-overflow]) [data-stack][data-level="${level}"][data-overflow] { ${HIDDEN} }`,
     `  ${row(level)}[data-overflow] ${stackPane(level, 0)}:not([data-overflow]) { ${HIDDEN} }`

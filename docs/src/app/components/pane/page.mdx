@@ -214,11 +214,13 @@ fills, at least 28rem wide. Each column to its left takes a parent track:
 The panes behind the top fill the remaining columns nearest first, so the
 left-most pane drops first. In the stack, moving between depths slides, and a
 pane that mounts as the new top slides in with it, so a route-driven detail
-animates like one that was already there. A pop slides too: `Navigator.Content`
-keeps drawing the pane the route has stopped drawing until its slide ends, from
-the element it drew last, so the pane itself goes out rather than a copy of it.
-While it goes it is `inert` and `aria-hidden`, and it is out of the stack, so
-the panes that stay read as the row they now are.
+animates like one that was already there.
+
+A pop moves the pane behind. It slides back from its parked place as the pane
+above it is removed, and that is what covers the departure. The pane being left
+is not animated out: once a route stops rendering it, its elements are gone, and
+nothing Roadie can hold brings them back. See
+[Route-driven shells](#route-driven-shells) for why.
 
 Swapping a sibling cuts: replacing a pane with another at the same depth leaves
 the stack the shape it was, so it is not a push. A first paint never slides, and
@@ -228,12 +230,9 @@ and nor does anything under `prefers-reduced-motion: reduce`. See
 sub-detail.
 
 A section whose `Navigator.Secondary` sets `root='page'` draws every route in
-one pane, so a step between its pages moves no pane of its own.
-`Navigator.Content` gives it one: the page being left is kept and slid away
-while the page arriving mounts over it, stepping in, or back out from behind.
-Sibling pages within such a section cut, as any sibling does. The cost is that
-the page pane is re-made on a step, which is what makes the scroll below worth
-having.
+one pane. A step between its pages moves no pane of its own, so it cuts: the
+list pane appears behind the page on the way in and goes on the way out, and the
+page's own content swaps under it.
 
 Select a row, then resize the window. The same code is a side-by-side reveal
 where two columns fit and a push where they don't.
@@ -420,6 +419,22 @@ one level up. `backHref` is the target for both:
 - The root pane never shows Close, even if you pass the same handler to every
   pane.
 
+### Route-driven shells
+
+A pane the router removes is gone on the commit frame, and Roadie cannot keep
+drawing it. Keeping a React subtree alive needs the subtree to be a value
+something still holds, and in a nested route layout nothing does: a layout's
+`children` is not a value but a live view onto the router, the same element for
+every route, drawing whatever the tree currently says. Held and drawn again
+after a pop it draws the route you went **to**, not the one you left.
+
+So a pop animates the pane behind and not the pane above. At every width, on a
+push both panes move, and on a pop the pane behind slides back into place.
+
+This is measured rather than assumed, and the measurements are in
+`docs/solutions/pane-motion/route-driven-shells.md`, along with what would have
+to change for the pane being left to animate out.
+
 ### Scroll
 
 Each pane has its own scroll, and the page never scrolls, so the browser cannot
@@ -437,10 +452,10 @@ moment the pane is touched.
 
 Roadie reads no URL and writes no history state; the router owns both. It reads
 `navigation.currentEntry.key`, so where an engine has no Navigation API panes
-keep starting at the top. A pane is recognised across a re-make by its seat, its
-level, role and declared `depth`, which is why a page-root step restores at all:
-that step re-makes the pane. Up to 30 history entries are kept, the least
-recently written dropped first, in memory: a document reload starts over.
+keep starting at the top. A pane is recognised by its seat, its level, role and
+declared `depth`, rather than by its identity, so a pane the router re-makes
+still finds its place. Up to 30 history entries are kept, the least recently
+written dropped first, in memory: a document reload starts over.
 
 ## Guidelines
 

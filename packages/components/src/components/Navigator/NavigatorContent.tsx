@@ -21,7 +21,6 @@ import { PANE_CHROME_NONE } from '../Pane/PaneChromeContext'
 import { PaneContext } from '../Pane/PaneContext'
 import { PaneHeader } from '../Pane/PaneHeader'
 import {
-  type PaneExit,
   PaneKindContext,
   type PaneRegistration,
   PaneStackContext,
@@ -43,16 +42,6 @@ import { NavigatorSecondaryPane } from './NavigatorSecondaryPane'
 import { NavigatorSectionPane } from './NavigatorSectionPane'
 import { OVERFLOW_LABEL } from './mobileSlots'
 import {
-  type HeldFrom,
-  type HeldSlot,
-  type PaneSlot,
-  departed,
-  drawnSlots,
-  heldStack,
-  mergeHeld,
-  slotsOf
-} from './paneExit'
-import {
   type DepthEntry,
   derivePositions,
   deriveRootIndex,
@@ -62,7 +51,6 @@ import {
   resolveDepths
 } from './paneStack'
 import { textOf } from './splitSecondary'
-import { LONGEST_HOLD_MS } from './transitionHold'
 import { useTopPaneChrome } from './useTopPaneChrome'
 import { navigatorContentClass, navigatorPanesClass } from './variants'
 
@@ -93,11 +81,10 @@ function flagForTwoFrames(
 /** A pane in the row, as the DOM holds it once the commit's mutations have run. */
 type PaneShape = { node: Element; current: boolean }
 
-// A pane on its way out is last commit's shape, not this one's.
 const shapeOf = (row: HTMLElement, level: number): PaneShape[] =>
   Array.from(
     row.querySelectorAll(
-      `[data-slot="pane"][data-stack][data-level="${level}"]:not([data-exiting])`
+      `[data-slot="pane"][data-stack][data-level="${level}"]`
     ),
     (node) => ({ node, current: node.hasAttribute('data-current') })
   )
@@ -116,37 +103,6 @@ function isSiblingSwap(was: readonly PaneShape[], now: readonly PaneShape[]) {
     if (next.node !== pane.node) swapped = true
   }
   return swapped
-}
-
-/** Where a page-root section stands: its own route, a sub-page on top, or neither. */
-export type NavigatorPageAt = 'root' | 'child' | null
-
-/** A step deeper into a page-root section, or back out of one. */
-type PageStep = 'in' | 'out'
-
-type Presence = {
-  slots: readonly PaneSlot[]
-  drawing: string
-  tab: string
-  page: NavigatorPageAt
-  step: PageStep | null
-  held: readonly HeldSlot[]
-}
-
-const keysOf = (slots: readonly PaneSlot[]) =>
-  slots.map((slot) => slot.key).join('\u0000')
-
-/** The slots this commit dropped, ready to draw. */
-function nextHeld(
-  was: readonly PaneSlot[],
-  now: readonly PaneSlot[],
-  from: HeldFrom,
-  exit: PaneExit
-): HeldSlot[] {
-  const gone = departed(was, now)
-  if (gone.length === 0) return []
-  const stack = heldStack(from, exit)
-  return gone.map((slot) => ({ ...slot, exit, stack }))
 }
 
 type Drawn = {
@@ -310,12 +266,6 @@ export function NavigatorContent({
   const onSectionRoute =
     activeSection !== null && isActiveValue(activeSection.value, value)
   const revealing = listPaneShows && !moreOpen && (onSectionRoute || showList)
-  const pageAt: NavigatorPageAt =
-    activeSection?.root === 'page' && !moreOpen && !revealing
-      ? onSectionRoute
-        ? 'root'
-        : 'child'
-      : null
   // Open More is the root and the top; closed, it is never reached.
   const revealRoot = revealing || moreOpen
   const stack = useMemo(
@@ -435,91 +385,6 @@ export function NavigatorContent({
     [register, unregister, placeOf, markPushing, moreOpen, level, value]
   )
 
-  // Derived while rendering, in the commit that removed the slot: an effect
-  // would take the element out and mount a new one, which is the copy this
-  // replaces. Seeded from the first render, so SSR and a fresh load hold nothing.
-  const tab = `${moreOpen} ${sectionValue} ${tabValue}`
-  const [presence, setPresence] = useState<Presence>(() => ({
-    slots: slotsOf(children, pageAt),
-    drawing: keysOf(slotsOf(children, pageAt)),
-    tab,
-    page: pageAt,
-    step: null,
-    held: []
-  }))
-  // Held at the last step while More or the revealed list covers the page, so a
-  // cover is not read as a step.
-  const page = pageAt ?? presence.page
-  const slots = useMemo(() => slotsOf(children, page), [children, page])
-  // The keys, not the children: a route can hand the row a new destination and
-  // its new children in separate renders.
-  const drawing = keysOf(slots)
-  if (presence.drawing !== drawing || presence.tab !== tab) {
-    const stepped =
-      presence.page !== null && page !== null && presence.page !== page
-    const step: PageStep | null = stepped
-      ? page === 'child'
-        ? 'in'
-        : 'out'
-      : null
-    const exit: PaneExit = step === 'in' ? 'behind' : 'ahead'
-    // A tab switch, More and a section change cut, so nothing is held.
-    const cutting = presence.tab !== tab
-    const gone = cutting
-      ? []
-      : nextHeld(
-          presence.slots,
-          slots,
-          { placeOf, moreOpen, level, destination: value },
-          exit
-        )
-    const held = cutting ? [] : mergeHeld(presence.held, gone, slots)
-    setPresence({
-      slots,
-      drawing,
-      tab,
-      page,
-      // A pop is no step, and must not be read as the one before it.
-      step: gone.length > 0 ? step : held.length > 0 ? presence.step : null,
-      held
-    })
-  }
-  const held = presence.held
-  const drawn = useMemo(() => drawnSlots(slots, held), [slots, held])
-  // Tells a pane arriving as the row's only pane to start behind, which the
-  // enter rules give nothing else.
-  const step = held.length > 0 ? presence.step : null
-
-  // After paint, so the slides have started. Nothing running, as in columns or
-  // under reduced motion, drops the slot at once.
-  const holding = useRef(0)
-  useEffect(() => {
-    if (held.length === 0) return
-    const row = rowRef.current
-    if (!row) return
-    const mine = (holding.current += 1)
-    const done = () => {
-      if (holding.current === mine) setPresence((was) => ({ ...was, held: [] }))
-    }
-    const running = Array.from(
-      row.querySelectorAll('[data-exiting]'),
-      (pane) =>
-        typeof pane.getAnimations === 'function' ? pane.getAnimations() : []
-    ).flat()
-    if (running.length === 0) {
-      done()
-      return
-    }
-    const ceiling = setTimeout(done, LONGEST_HOLD_MS)
-    void Promise.allSettled(
-      running.map((animation) => animation.finished)
-    ).then(() => {
-      clearTimeout(ceiling)
-      done()
-    })
-    return () => clearTimeout(ceiling)
-  }, [held])
-
   // Reads the ref, not `ordered`: child effects have registered by now, the render hadn't.
   const hasChildren = children != null && children !== false
   useEffect(() => {
@@ -592,20 +457,10 @@ export function NavigatorContent({
             data-level={level}
             data-reveal={revealRoot ? '' : undefined}
             data-overflow={moreOpen ? '' : undefined}
-            data-step={step ?? undefined}
             className={navigatorPanesClass}
           >
             {sectionPane}
-            {/* One provider per slot always: a slot that starts leaving then
-                changes props rather than element type, and keeps its DOM. */}
-            {drawn.map((slot) => (
-              <PaneStackContext
-                key={slot.key}
-                value={'stack' in slot ? slot.stack : stackValue}
-              >
-                {slot.node}
-              </PaneStackContext>
-            ))}
+            {children}
             {fallbackOverflow}
           </div>
         </PaneContext>

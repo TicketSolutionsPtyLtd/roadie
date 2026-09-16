@@ -17,14 +17,12 @@ import {
 } from './NavigatorContext'
 import {
   FakeIcon,
-  endExitAnimations,
   flushScrollFrame,
   flushViewportMeasurement,
   primaryOf,
   restoreNavigation,
   scrollViewport,
   testBrand,
-  withExitAnimations,
   withHistoryEntries,
   withScrollSentinels,
   withStubLink
@@ -4231,348 +4229,6 @@ describe('indicator track offsetParent guard', () => {
   })
 })
 
-describe('a pane held for its exit', () => {
-  withExitAnimations()
-
-  const drill = (deep: boolean, at = '/a/1') => (
-    <Navigator value={deep ? at : '/a'}>
-      <Navigator.Content>
-        <Pane role='list'>List</Pane>
-        {deep ? (
-          <Pane role='detail' current>
-            Detail
-          </Pane>
-        ) : null}
-      </Navigator.Content>
-    </Navigator>
-  )
-  const leaving = () =>
-    document.querySelector<HTMLElement>('[data-slot="pane"][data-exiting]')
-  const live = () =>
-    Array.from(
-      document.querySelectorAll<HTMLElement>(
-        '[data-slot="pane"]:not([data-exiting])'
-      )
-    )
-  const detail = () =>
-    document.querySelector<HTMLElement>(
-      '[data-slot="pane"][data-role="detail"]'
-    )
-
-  it('keeps the very element the pop removed, and slides it out forward', async () => {
-    const { rerender } = render(drill(true))
-    await flushViewportMeasurement()
-    const was = detail()
-    rerender(drill(false))
-    expect(leaving()).toBe(was)
-    expect(leaving()).toHaveAttribute('data-exit', 'ahead')
-    expect(leaving()).toHaveTextContent('Detail')
-  })
-
-  it('drops it out of the stack at once, so the row reads as the pane that stays', async () => {
-    const { rerender } = render(drill(true))
-    await flushViewportMeasurement()
-    rerender(drill(false))
-    expect(live()).toHaveLength(1)
-    expect(live()[0]).toHaveAttribute('data-role', 'list')
-    expect(live()[0]).toHaveAttribute('data-stack-position', 'top')
-  })
-
-  it('takes it out of the accessibility tree while both are on screen', async () => {
-    const { rerender } = render(drill(true))
-    await flushViewportMeasurement()
-    rerender(drill(false))
-    expect(leaving()).toHaveAttribute('inert')
-    expect(leaving()).toHaveAttribute('aria-hidden', 'true')
-  })
-
-  it('removes it once the slide ends', async () => {
-    const { rerender } = render(drill(true))
-    await flushViewportMeasurement()
-    rerender(drill(false))
-    expect(leaving()).not.toBeNull()
-    await endExitAnimations()
-    expect(leaving()).toBeNull()
-    expect(document.querySelectorAll('[data-slot="pane"]')).toHaveLength(1)
-  })
-
-  it('holds nothing when a sibling replaces the pane at the same depth', async () => {
-    const { rerender } = render(drill(true, '/a/1'))
-    await flushViewportMeasurement()
-    rerender(drill(true, '/a/2'))
-    expect(leaving()).toBeNull()
-  })
-
-  it('holds nothing on the first render, so a deep route arrives with no exit', async () => {
-    render(drill(true))
-    expect(leaving()).toBeNull()
-    await flushViewportMeasurement()
-    expect(leaving()).toBeNull()
-  })
-
-  it('holds nothing when the pane leaves because More opened over it', async () => {
-    const tree = (more: boolean) => (
-      <Navigator value='/a' showMore={more}>
-        <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          {more ? null : (
-            <Pane role='detail' current>
-              Detail
-            </Pane>
-          )}
-          <Navigator.OverflowPane>More</Navigator.OverflowPane>
-        </Navigator.Content>
-      </Navigator>
-    )
-    const { rerender } = render(tree(false))
-    await flushViewportMeasurement()
-    rerender(tree(true))
-    expect(leaving()).toBeNull()
-  })
-})
-
-describe('a pane that leaves while another is still leaving', () => {
-  withExitAnimations()
-
-  const drill = (deep: boolean, at = '/a/1') => (
-    <Navigator value={deep ? at : '/a'}>
-      <Navigator.Content>
-        <Pane role='list'>List</Pane>
-        {deep ? (
-          <Pane role='detail' current>
-            {at}
-          </Pane>
-        ) : null}
-      </Navigator.Content>
-    </Navigator>
-  )
-  const exiting = () =>
-    Array.from(document.querySelectorAll('[data-slot="pane"][data-exiting]'))
-  const detail = () =>
-    document.querySelector<HTMLElement>(
-      '[data-slot="pane"][data-role="detail"]:not([data-exiting])'
-    )
-
-  it('takes the element back mid-slide when the route draws the slot again', async () => {
-    const warn = vi.spyOn(console, 'error')
-    const { rerender } = render(drill(true, '/a/1'))
-    await flushViewportMeasurement()
-    const was = detail()
-    rerender(drill(false))
-    expect(exiting()).toHaveLength(1)
-
-    // The same slot, so the same element resumes rather than a copy appearing.
-    rerender(drill(true, '/a/2'))
-    expect(exiting()).toEqual([])
-    expect(detail()).toBe(was)
-    expect(detail()).toHaveTextContent('/a/2')
-    expect(warn).not.toHaveBeenCalled()
-    vi.restoreAllMocks()
-  })
-
-  it('holds one copy of a slot however many times it leaves', async () => {
-    const { rerender } = render(drill(true, '/a/1'))
-    await flushViewportMeasurement()
-    rerender(drill(false))
-    rerender(drill(true, '/a/2'))
-    rerender(drill(false))
-    expect(exiting()).toHaveLength(1)
-    await endExitAnimations()
-    expect(exiting()).toEqual([])
-  })
-})
-
-describe('a page-root section steps between its pages', () => {
-  withExitAnimations()
-
-  // One pane holds every route, so a step between them moves no pane of its own.
-  const pages = (value: string) => (
-    <Navigator value={value}>
-      <Navigator.Primary aria-label='Docs'>
-        {testBrand}
-        <Navigator.Item value='/' href='/' icon={<FakeIcon />}>
-          Home
-          <Navigator.Secondary aria-label='Home pages' root='page'>
-            <Navigator.Item value='/a' href='/a'>
-              A
-            </Navigator.Item>
-            <Navigator.Item value='/b' href='/b'>
-              B
-            </Navigator.Item>
-          </Navigator.Secondary>
-        </Navigator.Item>
-      </Navigator.Primary>
-      <Navigator.Content>
-        <Pane role='detail' current>
-          <Pane.Header />
-          {value}
-        </Pane>
-      </Navigator.Content>
-    </Navigator>
-  )
-  const row = () =>
-    document.querySelector<HTMLElement>('[data-slot="navigator-panes"]')!
-  const leaving = () =>
-    document.querySelector<HTMLElement>('[data-slot="pane"][data-exiting]')
-  const page = () =>
-    document.querySelector<HTMLElement>(
-      '[data-slot="pane"][data-role="detail"]:not([data-exiting])'
-    )
-
-  it('holds the page it steps in from, and sends it behind the one arriving', async () => {
-    const { rerender } = render(withStubLink(pages('/')))
-    await flushViewportMeasurement()
-    const was = page()
-    rerender(withStubLink(pages('/a')))
-    expect(leaving()).toBe(was)
-    expect(leaving()).toHaveAttribute('data-exit', 'behind')
-    expect(leaving()).toHaveTextContent('/')
-    expect(page()).not.toBe(was)
-    expect(page()).toHaveTextContent('/a')
-  })
-
-  it('holds the page it steps out from, and sends it forward, telling the row', async () => {
-    const { rerender } = render(withStubLink(pages('/a')))
-    await flushViewportMeasurement()
-    rerender(withStubLink(pages('/')))
-    expect(leaving()).toHaveAttribute('data-exit', 'ahead')
-    expect(leaving()).toHaveTextContent('/a')
-    // The page returned to is the row's only pane; it needs telling where from.
-    expect(row()).toHaveAttribute('data-step', 'out')
-  })
-
-  it('says nothing to the row once the page has gone', async () => {
-    const { rerender } = render(withStubLink(pages('/a')))
-    await flushViewportMeasurement()
-    rerender(withStubLink(pages('/')))
-    await endExitAnimations()
-    expect(leaving()).toBeNull()
-    expect(row()).not.toHaveAttribute('data-step')
-  })
-
-  it('cuts between sibling pages, holding nothing', async () => {
-    const { rerender } = render(withStubLink(pages('/a')))
-    await flushViewportMeasurement()
-    rerender(withStubLink(pages('/b')))
-    expect(leaving()).toBeNull()
-    expect(page()).toHaveTextContent('/b')
-  })
-
-  it('reads revealing the list as no step at all', async () => {
-    const listed = (value: string, showList: boolean) => (
-      <Navigator value={value} showList={showList}>
-        <Navigator.Primary aria-label='Docs'>
-          {testBrand}
-          <Navigator.Item value='/' href='/' icon={<FakeIcon />}>
-            Home
-            <Navigator.Secondary aria-label='Home pages' root='page'>
-              <Navigator.Item value='/a' href='/a'>
-                A
-              </Navigator.Item>
-            </Navigator.Secondary>
-          </Navigator.Item>
-        </Navigator.Primary>
-        <Navigator.Content>
-          <Pane role='detail' current>
-            <Pane.Header />
-            {value}
-          </Pane>
-        </Navigator.Content>
-      </Navigator>
-    )
-    const { rerender } = render(withStubLink(listed('/a', false)))
-    await flushViewportMeasurement()
-    const was = page()
-    rerender(withStubLink(listed('/a', true)))
-    expect(leaving()).toBeNull()
-    expect(page()).toBe(was)
-  })
-
-  it('keeps the page it is leaving live, so the row it picked reads as current', async () => {
-    // The clone this replaces re-marked the tapped row by hand; a held subtree
-    // is real React and re-reads the destination itself.
-    const listing = (value: string) => (
-      <Navigator value={value}>
-        <Navigator.Primary aria-label='Docs'>
-          {testBrand}
-          <Navigator.Item value='/' href='/' icon={<FakeIcon />}>
-            Home
-            <Navigator.Secondary aria-label='Home pages' root='page'>
-              <Navigator.Item value='/a' href='/a'>
-                A
-              </Navigator.Item>
-            </Navigator.Secondary>
-          </Navigator.Item>
-        </Navigator.Primary>
-        <Navigator.Content>
-          <Pane role='detail' current>
-            <Pane.Header />
-            <Navigator.SectionItems value='/' />
-          </Pane>
-        </Navigator.Content>
-      </Navigator>
-    )
-    const { rerender } = render(withStubLink(listing('/')))
-    await flushViewportMeasurement()
-    const rowOf = (scope: HTMLElement) =>
-      within(scope).getByRole('link', { name: 'A', hidden: true })
-    expect(rowOf(page()!)).not.toHaveAttribute('aria-current')
-
-    rerender(withStubLink(listing('/a')))
-    expect(rowOf(leaving()!)).toHaveAttribute('aria-current', 'page')
-  })
-})
-
-describe('a pop after a page step', () => {
-  withExitAnimations()
-
-  // A pop after a step is no step: the pane it uncovers must not come from behind.
-  const frame = (value: string, deep: boolean) => (
-    <Navigator value={value}>
-      <Navigator.Primary aria-label='Docs'>
-        {testBrand}
-        <Navigator.Item value='/' href='/' icon={<FakeIcon />}>
-          Home
-          <Navigator.Secondary aria-label='Home pages' root='page'>
-            <Navigator.Item value='/a' href='/a'>
-              A
-            </Navigator.Item>
-          </Navigator.Secondary>
-        </Navigator.Item>
-      </Navigator.Primary>
-      <Navigator.Content>
-        <Pane role='detail' current={!deep}>
-          <Pane.Header />
-          {value}
-        </Pane>
-        {deep ? (
-          <Pane role='detail' depth={2} current>
-            Deeper
-          </Pane>
-        ) : null}
-      </Navigator.Content>
-    </Navigator>
-  )
-  const row = () =>
-    document.querySelector<HTMLElement>('[data-slot="navigator-panes"]')!
-
-  it('says no step for the pane it holds', async () => {
-    const { rerender } = render(withStubLink(frame('/a', false)))
-    await flushViewportMeasurement()
-    rerender(withStubLink(frame('/', false)))
-    expect(row()).toHaveAttribute('data-step', 'out')
-    await endExitAnimations()
-
-    rerender(withStubLink(frame('/', true)))
-    await endExitAnimations()
-    rerender(withStubLink(frame('/', false)))
-    expect(
-      document.querySelector('[data-slot="pane"][data-exiting]')
-    ).toHaveAttribute('data-exit', 'ahead')
-    expect(row()).not.toHaveAttribute('data-step')
-  })
-})
-
 describe('going back puts a pane where it was', () => {
   const history = withHistoryEntries()
 
@@ -4676,10 +4332,9 @@ describe('going back puts a pane where it was', () => {
 })
 
 describe('a page-root step back puts the page it returns to where it was', () => {
-  withExitAnimations()
   const history = withHistoryEntries()
 
-  // A step re-makes the page pane, so its scroll cannot ride on the element.
+  // One pane draws every page, so a step swaps its content under it.
   const pages = (value: string) => (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Docs'>
@@ -4703,9 +4358,7 @@ describe('a page-root step back puts the page it returns to where it was', () =>
   )
   const page = () =>
     document
-      .querySelector<HTMLElement>(
-        '[data-slot="pane"][data-role="detail"]:not([data-exiting])'
-      )!
+      .querySelector<HTMLElement>('[data-slot="pane"][data-role="detail"]')!
       .querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
 
   it('restores the root page after stepping in and back out', async () => {
@@ -4719,18 +4372,15 @@ describe('a page-root step back puts the page it returns to where it was', () =>
     rerender(withStubLink(pages('/a')))
     await flushViewportMeasurement()
     expect(page().scrollTop).toBe(0)
-    await endExitAnimations()
 
     history.traverseTo(root)
     rerender(withStubLink(pages('/')))
     await flushViewportMeasurement()
     expect(page().scrollTop).toBe(520)
-    await endExitAnimations()
   })
 })
 
 describe('a route-driven shell, where one slot holds every pane', () => {
-  withExitAnimations()
   const history = withHistoryEntries()
 
   // What a nested route layout gives Content: a single child, with the panes
@@ -4805,15 +4455,13 @@ describe('a route-driven shell, where one slot holds every pane', () => {
     expect(event().scrollTop).toBe(0)
   })
 
-  // The router drops the ticket pane from inside the one slot Content has, so
-  // there is no element left for the row to keep drawing. Remove `.fails` when
-  // a segment hands Roadie that element.
-  it.fails('cannot yet hold the pane the router removed', async () => {
+  // A pop removes the pane; the one behind sliding back is what covers it.
+  it('takes the pane the route dropped straight out of the row', async () => {
     const { rerender } = render(shell(true))
     await flushViewportMeasurement()
+    const panes = () => document.querySelectorAll('[data-slot="pane"]').length
+    expect(panes()).toBe(3)
     rerender(shell(false))
-    expect(
-      document.querySelector('[data-slot="pane"][data-exiting]')
-    ).not.toBeNull()
+    expect(panes()).toBe(2)
   })
 })

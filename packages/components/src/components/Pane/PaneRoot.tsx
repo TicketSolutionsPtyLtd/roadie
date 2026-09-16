@@ -142,8 +142,6 @@ export function PaneRoot({
   const chrome = place?.chrome ?? PANE_CHROME_NONE
   // No orchestrator, nothing to close back to.
   const isRoot = place?.isRoot ?? true
-  // On screen but out of the stack, so nothing is announced or focused twice.
-  const exit = place?.exit
   const isOverflow = isOverflowKind(kind)
   // A pane mounting or moving slides; More does not, it's a tab switch.
   const markPushing = isOverflow ? undefined : stack?.markPushing
@@ -307,10 +305,6 @@ export function PaneRoot({
       data-current={current ? '' : undefined}
       data-level={stack?.level}
       data-overflow={isOverflow ? '' : undefined}
-      data-exiting={exit === undefined ? undefined : ''}
-      data-exit={exit}
-      inert={exit === undefined ? undefined : true}
-      aria-hidden={exit === undefined ? undefined : true}
       data-primary-nav={primaryNav}
       className={cn(paneVariants({ emphasis }), className)}
       {...props}

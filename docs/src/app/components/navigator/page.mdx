@@ -121,6 +121,19 @@ mapped array of `Navigator.MenuItem`s. The walk sees what the function returned
 and flattens the array, because both land in `children` as elements. A wrapper
 component puts its own element type there instead, and the walk skips it.
 
+### Panes in route segments
+
+A shell usually draws its panes from nested route layouts, each segment adding
+one. That works, and it decides what motion you get: a push slides the arriving
+pane in over the one going behind, and a pop slides the pane behind back as the
+one above it is removed. The pane being left is not animated out, because the
+router has already removed its elements and nothing Roadie holds can draw them
+again. `Pane` has the measurements under
+[Route-driven shells](/components/pane#route-driven-shells).
+
+`value` has to come from the same route that renders the panes, such as
+`usePathname()`, or the stack reads the wrong depth.
+
 ## Examples
 
 Narrow your viewport to see the tab bar and the stacked panes.
@@ -402,8 +415,9 @@ render(<PageRootNav />)
 - On a phone, tapping the section's tab on a sub-page goes to the root. On the
   root, it scrolls the page to the top.
 - `showList` still shows the list over a sub-page. It does nothing on the root.
-- The stacked slide between the root and a sub-page needs `value` from the same
-  route that renders the page, such as `usePathname()`.
+- A step between the root and a sub-page cuts: one pane draws both, so there is
+  nothing to move. `value` still has to come from the route that renders the
+  page, such as `usePathname()`, or the list pane and Back go to the wrong place.
 
 #### Section items in a page
 

@@ -3,7 +3,7 @@ const LAYOUT_PROPERTY =
   /^(width|height|min-|max-|padding|margin|inset|top|right|bottom|left|grid-template)/
 
 // A transition that never ends, its element hidden say, can't hold forever.
-export const LONGEST_HOLD_MS = 1000
+const LONGEST_HOLD_MS = 1000
 
 type TransitionLike = Event & { propertyName?: string }
 

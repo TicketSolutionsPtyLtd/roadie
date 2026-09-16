@@ -59,3 +59,46 @@ on needs the subtree to be a value someone still holds. In an App Router shell
 nothing holds it, so the only thing left on screen to animate is the DOM node
 React detached. That is a different mechanism from retention, and the choice
 between them is a product decision, not a technical one.
+
+## The decision
+
+Retention is out. The pane behind sliding back covers the departure, and that is
+what ships.
+
+Three shapes were measured, not inferred, and it worked in none of them:
+
+- **A route-driven shell.** Nothing is held. The router's `children` is a live
+  view, so the held slot draws the new route: one slot held, zero panes under it.
+- **A docs page-root step.** A pane is held, and it draws the page you are going
+  to. `/components` to `/components/button` slid a pane reading
+  `"Components"` over `"An interactive control that triggers an action when
+pressed"`: the old chrome with the new body. That is worse than no animation,
+  and worse than the DOM clone it replaced, which copied the real thing.
+- **A single page, panes owned by the app.** The content is right, and it still
+  does not animate. A click is a discrete event, so React flushes the effect
+  that drops the held slot in the same task, before the browser computes a style
+  for it. `getAnimations()` is empty, the slot is dropped, nothing moves. A
+  one-frame wait before giving up would fix this shape alone.
+
+What would change it: something has to hold the departing subtree as a value.
+Nothing in an App Router shell does. `Navigator.Segment`, a wrapper around a
+nested layout's `children`, was built and reverted for the reason above. Holding
+the detached DOM node instead would animate the real thing without React, and
+React's own `<ViewTransition>` would sidestep the question entirely, at the cost
+of a peer bump to 19.3, a document-global single-flight transition, and frozen
+snapshots of a scrolling pane. Both are open; neither is built.
+
+A page-root step cuts as a result. It moves one pane's content, so without a
+copy of the outgoing page there is nothing to animate.
+
+## Judging the docs from a dev server
+
+Rebuilding `packages/components` under a running `pnpm --filter docs dev`
+leaves its compiled CSS missing utilities. The Navigator grid then collapses,
+`navigator-content` measures a couple of hundred pixels instead of the viewport,
+and every row falls to the narrowest tier with a zero-width container. It reads
+exactly like a pane rule regression and is not one.
+
+Restarting the dev server is not enough, and neither is clearing
+`docs/.next/cache`. `rm -rf docs/.next` is. Check a static export before
+believing a dev server about layout: `pnpm --filter docs build` and serve `out/`.

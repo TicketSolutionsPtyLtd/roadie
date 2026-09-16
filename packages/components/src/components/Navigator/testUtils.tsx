@@ -338,41 +338,6 @@ export function restoreNavigation(was: PropertyDescriptor | undefined) {
   else delete (window as { navigation?: unknown }).navigation
 }
 
-const exitAnimations = new Set<() => void>()
-
-/** jsdom runs no transitions; this gives a leaving pane a slide to wait on. */
-export function withExitAnimations() {
-  // Put back, never deleted: Base UI reads it from a timer that outlives the test.
-  let was: typeof Element.prototype.getAnimations
-  beforeEach(() => {
-    exitAnimations.clear()
-    was = Element.prototype.getAnimations
-    Element.prototype.getAnimations = function (this: Element) {
-      if (!this.hasAttribute('data-exiting')) return []
-      let settle = () => {}
-      const finished = new Promise<void>((resolve) => {
-        settle = resolve
-      })
-      exitAnimations.add(settle)
-      return [{ finished } as unknown as Animation]
-    }
-  })
-  afterEach(() => {
-    Element.prototype.getAnimations = was
-    exitAnimations.clear()
-  })
-}
-
-/** Ends every slide a held pane is waiting on. */
-export async function endExitAnimations() {
-  await act(async () => {
-    for (const settle of exitAnimations) settle()
-    exitAnimations.clear()
-    await Promise.resolve()
-    await Promise.resolve()
-  })
-}
-
 /** jsdom has no Navigation API; this gives the tests entries to move between. */
 export function withHistoryEntries() {
   let minted = 0

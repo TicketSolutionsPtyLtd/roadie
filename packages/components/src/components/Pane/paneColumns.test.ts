@@ -22,13 +22,9 @@ import {
 
 const rules = paneColumnsRulesOf(renderPaneColumnsCss())
 const stacked = (rule: PaneColumnsRule) =>
-  /\[data-depth="\d"\]:not\(\[data-exiting\]\)$/.test(rule.selector) &&
+  /\[data-depth="\d"\]$/.test(rule.selector) &&
   rule.body.includes('--pane-back') &&
   !rule.conditions.some((condition) => condition.startsWith('@container'))
-// `:not([data-exiting])` names the attribute without selecting one.
-const HIDDEN_BODY = 'display: none !important;'
-const targetsLeaving = (rule: PaneColumnsRule) =>
-  rule.selector.replace(/:not\([^)]*\)/g, '').includes('[data-exiting]')
 const columnRules = rules.filter(
   (rule) =>
     rule.body.includes('--pane-back') &&
@@ -411,32 +407,6 @@ describe('the rules a real row matches', () => {
 })
 
 describe('a page step', () => {
-  const BEHIND = 'translate: calc(-33% * var(--pane-dir, 1)) 0;'
-  const stepRow = (step: 'in' | 'out' | undefined, level = 0) =>
-    html(
-      `<div data-slot="navigator-panes" data-level="${level}" data-pushing ${
-        step ? `data-step="${step}"` : ''
-      }><div data-slot="pane" data-stack data-level="${level}" data-depth="0" data-current data-stack-position="top"></div></div>`
-    )
-  const startsFrom = (pane: Element) =>
-    rules
-      .filter((rule) => rule.conditions.includes('@starting-style'))
-      .filter((rule) => pane.matches(rule.selector))
-      .map((rule) => rule.body)
-      .at(-1) ?? null
-
-  it('brings the page a step out returns to back from behind, as the row root', () => {
-    for (const level of [0, 1]) {
-      expect(startsFrom(stepRow('out', level)('[data-depth="0"]'))).toBe(BEHIND)
-      // A step in mounts the page over the section list, which the rules for a
-      // pane arriving on top already cover.
-      expect(startsFrom(stepRow('in', level)('[data-depth="0"]'))).toBeNull()
-      expect(
-        startsFrom(stepRow(undefined, level)('[data-depth="0"]'))
-      ).toBeNull()
-    }
-  })
-
   it('leaves no keyframes behind: a held pane transitions, it is not animated', () => {
     expect(rules.filter((rule) => rule.body.includes('animation:'))).toEqual([])
     expect(
@@ -988,10 +958,8 @@ describe('the stacked tier keeps the md inset and the edge cover', () => {
   })
 
   it('animates only without a reduced-motion preference, and never in columns', () => {
-    // A pane on its way out carries its own duration; it is gated separately.
-    const durations = rules.filter(
-      (rule) =>
-        rule.body.includes('transition-duration') && !targetsLeaving(rule)
+    const durations = rules.filter((rule) =>
+      rule.body.includes('transition-duration')
     )
     expect(durations).toHaveLength(PANE_MAX_LEVELS)
     for (const rule of durations) {
@@ -1048,11 +1016,8 @@ describe('the stacked tier keeps the md inset and the edge cover', () => {
 })
 
 describe('a pane that mounts as the top', () => {
-  // A page stepping back out comes from behind instead; it has its own block.
-  const entering = rules.filter(
-    (rule) =>
-      rule.conditions.includes('@starting-style') &&
-      !rule.selector.includes('[data-step=')
+  const entering = rules.filter((rule) =>
+    rule.conditions.includes('@starting-style')
   )
   const AHEAD =
     'translate: calc((100% + var(--pane-stack-inset, 0px)) * var(--pane-dir, 1)) 0;'
@@ -1113,137 +1078,6 @@ describe('a pane that mounts as the top', () => {
       )
     expect(entersFrom(deep(true)('[data-depth="deep"]'))).toBe(true)
     expect(entersFrom(deep(false)('[data-depth="deep"]'))).toBe(false)
-  })
-})
-
-describe('a pane held for its exit', () => {
-  const leaving = rules.filter(targetsLeaving)
-  const parked = leaving.filter((rule) => rule.selector.includes('[data-exit='))
-  const moving = leaving.filter((rule) =>
-    rule.body.includes('transition-property')
-  )
-  const hidden = leaving.filter((rule) => rule.body === HIDDEN_BODY)
-  const AHEAD =
-    'translate: calc((100% + var(--pane-stack-inset, 0px)) * var(--pane-dir, 1)) 0;'
-  const BEHIND = 'translate: calc(-33% * var(--pane-dir, 1)) 0;'
-
-  const exitingRow = (exiting: boolean) =>
-    html(
-      `<div data-slot="navigator-panes" data-level="0">` +
-        `<div data-slot="pane" data-stack data-level="0" data-depth="0" data-current></div>` +
-        `<div data-slot="pane" data-stack data-level="0" data-depth="1" data-current ${
-          exiting ? 'data-exiting data-exit="ahead"' : ''
-        }></div>` +
-        `</div>`
-    )
-
-  it('places no leaving pane through a landed rule', () => {
-    const placing = rules.filter(
-      (rule) =>
-        rule.body.includes('--pane-back') &&
-        rule.selector.startsWith('[data-slot="navigator-panes"]')
-    )
-    expect(placing.length).toBeGreaterThan(0)
-    for (const rule of placing) {
-      expect(rule.selector.endsWith(':not([data-exiting])')).toBe(true)
-    }
-  })
-
-  it('parks it where it is going, and cuts with no transition', () => {
-    expect(parked).toHaveLength(2 * PANE_MAX_LEVELS)
-    for (const rule of parked) {
-      expect(rule.conditions).toEqual(['@layer components'])
-      expect(rule.body).toContain('transition: none;')
-      expect(rule.body).toContain('visibility: hidden;')
-      expect(rule.body).toContain(
-        rule.selector.includes('ahead') ? AHEAD : BEHIND
-      )
-      // Forward over the pane it uncovers, behind under the one arriving.
-      expect(rule.body).toContain(
-        rule.selector.includes('ahead') ? 'z-index: 3;' : 'z-index: 0;'
-      )
-    }
-  })
-
-  // jsdom matches selectors but cascades nothing, so only weighing them catches
-  // a rule that is beaten. Attribute selectors are all these use.
-  const weight = (selector: string) =>
-    (selector.match(/\[[^\]]+\]/g) ?? []).length +
-    (selector.match(/:not\(/g) ?? []).length
-
-  it('hides a pane with no place in the stack, which cannot slide anywhere', () => {
-    expect(hidden).toHaveLength(PANE_MAX_LEVELS)
-    for (const rule of hidden) {
-      expect(rule.selector).toContain(':not([data-stack])')
-      expect(rule.conditions).toEqual(['@layer components'])
-    }
-  })
-
-  it('outranks the park it overrides: a lighter rule would cut instead of slide', () => {
-    for (const slide of moving) {
-      const beaten = parked.filter(
-        (rule) =>
-          rule.body.includes('transition: none;') &&
-          weight(rule.selector) > weight(slide.selector)
-      )
-      expect(beaten.map((rule) => rule.selector)).toEqual([])
-    }
-  })
-
-  it('only slides while the row is stacked and motion is allowed', () => {
-    expect(moving).toHaveLength(PANE_MAX_LEVELS)
-    for (const rule of moving) {
-      expect(rule.conditions).toEqual([
-        '@layer components',
-        `@container panes (width < ${stackedUntil()}rem)`,
-        '@media (prefers-reduced-motion: no-preference)'
-      ])
-      expect(rule.body).toContain('transition-duration: var(--duration-slow);')
-      expect(rule.body).toContain('transition-property: translate')
-    }
-  })
-
-  it('reaches no pane that is staying, whatever the row shape', () => {
-    // Found by shape, not by name: a park that stopped naming `data-exiting`
-    // would drop out of `leaving` and take the test with it.
-    const parks = rules.filter(
-      (rule) =>
-        rule.conditions.length === 1 &&
-        rule.body.includes('visibility: hidden;') &&
-        rule.body.includes('transition: none;')
-    )
-    expect(parks).toHaveLength(2 * PANE_MAX_LEVELS)
-    for (let levels = 1; levels <= PANE_MAX_DEPTH + 1; levels += 1) {
-      for (const { reveal, current } of stackStates(levels)) {
-        const $ = html(stackRow(0, current, reveal))
-        for (let depth = 0; depth < levels; depth += 1) {
-          const pane = $(`[data-depth="${depth}"]`)
-          expect(
-            parks
-              .filter((rule) => pane.matches(rule.selector))
-              .map((rule) => rule.selector),
-            `levels ${levels}, reveal ${reveal}, current ${current}, depth ${depth}`
-          ).toEqual([])
-        }
-      }
-    }
-  })
-
-  it('is neither a level nor the top: the row reads as the panes that stay', () => {
-    const $ = exitingRow(true)
-    // The pane below is the whole row now, so it lands rather than sitting behind.
-    expect(paneRuleAt(rules, $('[data-depth="0"]'), 20)?.body).toContain(
-      'translate: 0 0;'
-    )
-    expect(paneRuleAt(rules, $('[data-depth="1"]'), 20)).toBeUndefined()
-  })
-
-  it('reads as two levels again once the pane stops leaving', () => {
-    const $ = exitingRow(false)
-    expect(paneRuleAt(rules, $('[data-depth="0"]'), 20)?.body).toContain(BEHIND)
-    expect(paneRuleAt(rules, $('[data-depth="1"]'), 20)?.body).toContain(
-      'translate: 0 0;'
-    )
   })
 })
 

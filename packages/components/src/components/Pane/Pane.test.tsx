@@ -19,7 +19,6 @@ import {
 } from './PaneChromeContext'
 import { COLLAPSE_AT, EXPAND_AT } from './PaneRoot'
 import {
-  type PaneExit,
   PaneStackContext,
   type PaneStackContextValue
 } from './PaneStackContext'
@@ -1843,56 +1842,5 @@ describe('depth attributes', () => {
       'top',
       'ahead'
     ])
-  })
-})
-
-describe('a pane the row holds for its exit', () => {
-  const leaving = (exit: PaneExit | undefined) => {
-    const stack: PaneStackContextValue = {
-      register: () => {},
-      unregister: () => {},
-      placeOf: () => ({
-        position: 'top',
-        depth: 1,
-        chrome: PANE_CHROME_NONE,
-        isRoot: false,
-        exit
-      }),
-      markPushing: () => {},
-      moreOpen: false,
-      level: 0
-    }
-    return (
-      <PaneStackContext value={stack}>
-        <Pane role='detail' current>
-          <Pane.Header>
-            <Pane.Title>Leaving</Pane.Title>
-          </Pane.Header>
-        </Pane>
-      </PaneStackContext>
-    )
-  }
-  const pane = () => document.querySelector('[data-slot="pane"]')!
-
-  it('says which way it goes, and keeps its depth so it stays placed', async () => {
-    await renderPane(leaving('ahead'))
-    expect(pane()).toHaveAttribute('data-exiting', '')
-    expect(pane()).toHaveAttribute('data-exit', 'ahead')
-    expect(pane()).toHaveAttribute('data-depth', '1')
-  })
-
-  it('is out of the accessibility tree and out of reach while it goes', async () => {
-    await renderPane(leaving('behind'))
-    expect(pane()).toHaveAttribute('aria-hidden', 'true')
-    expect(pane()).toHaveAttribute('inert')
-    expect(screen.queryByRole('heading', { name: 'Leaving' })).toBeNull()
-  })
-
-  it('carries none of it while it is still in the stack', async () => {
-    await renderPane(leaving(undefined))
-    expect(pane()).not.toHaveAttribute('data-exiting')
-    expect(pane()).not.toHaveAttribute('data-exit')
-    expect(pane()).not.toHaveAttribute('inert')
-    expect(screen.getByRole('heading', { name: 'Leaving' })).toBeVisible()
   })
 })
