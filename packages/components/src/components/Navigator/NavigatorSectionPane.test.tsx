@@ -433,7 +433,7 @@ function Override({ wrapped = false }: { wrapped?: boolean }) {
   const pane = (
     <Navigator.SecondaryPane value='/components'>
       <p>Promo</p>
-      <Navigator.SectionItems descriptions={false} query='in' />
+      <Navigator.SectionItems showDescriptions={false} query='in' />
     </Navigator.SecondaryPane>
   )
   return (
@@ -1278,7 +1278,7 @@ function PageRooted({
         {override ? (
           <Navigator.SecondaryPane value='/'>
             <p>Promo</p>
-            <Navigator.SectionItems descriptions={false} />
+            <Navigator.SectionItems showDescriptions={false} />
           </Navigator.SecondaryPane>
         ) : null}
         <Pane role='detail' current>

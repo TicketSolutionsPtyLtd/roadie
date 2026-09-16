@@ -414,7 +414,7 @@ rows as the list pane. Each item's `description` shows under its label.
 | --- | --- |
 | `value` | Picks the section. Defaults to the active one. |
 | `query` | Filters rows by label. |
-| `descriptions={false}` | Drops the descriptions. |
+| `showDescriptions={false}` | Drops the descriptions. |
 | Any `List` prop | Passes through to the `List`. |
 
 For your own layout, `useNavigatorSection(value?)` returns the same data. Loose
@@ -501,7 +501,7 @@ render(<SearchableNav />)
 #### Your own section pane
 
 `Navigator.SecondaryPane` replaces one section's generated pane. Declare it
-before your detail pane. `<Navigator.SectionItems descriptions={false} />`
+before your detail pane. `<Navigator.SectionItems showDescriptions={false} />`
 renders the same rows, and its `query` prop lets your pane keep search.
 
 ```tsx-live-noinline
@@ -541,7 +541,7 @@ function SectionOverrideNav() {
                       <Card.Description>Labels for icon-only controls.</Card.Description>
                     </Card.Content>
                   </Card>
-                  <Navigator.SectionItems descriptions={false} />
+                  <Navigator.SectionItems showDescriptions={false} />
                 </div>
               </Navigator.SecondaryPane>
               <Pane role='detail' current>
