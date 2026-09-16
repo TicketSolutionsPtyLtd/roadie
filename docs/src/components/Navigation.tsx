@@ -188,6 +188,10 @@ export function DocsNavigator({
   const toc = useDocHeadings()
   const showInspector = toc.headings.length >= 2
 
+  // The bare canary owns the whole window, because a Navigator nested in a
+  // pane is not the shape an app has. See docs/src/app/debug/bare.
+  if (pathname.startsWith('/debug/bare')) return children
+
   return (
     <>
       <Suspense fallback={null}>

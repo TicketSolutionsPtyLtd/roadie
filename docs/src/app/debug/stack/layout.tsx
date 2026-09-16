@@ -12,6 +12,10 @@ import { Navigator } from '@oztix/roadie-components/navigator'
 // the panes itself proves nothing about a shell, which is how a pop that did
 // not retain its pane and a scroll that reset on Back both reached a release.
 // See docs/solutions/pane-motion/route-driven-shells.md.
+//
+// This one is nested: its panes sit inside the docs' own pane viewport.
+// `/debug/bare` is the same stack with the frame owning the window, which
+// is the shape an app has. Measure anything about the frame itself there.
 export default function StackLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   return (
