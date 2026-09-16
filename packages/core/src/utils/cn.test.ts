@@ -59,6 +59,17 @@ describe('cn', () => {
     expect(cn('ease-in', 'ease-spring')).toBe('ease-spring')
   })
 
+  it('dedupes Roadie loading animations against built-in ones', () => {
+    expect(cn('animate-pulse-subtle', 'animate-none')).toBe('animate-none')
+    expect(cn('animate-shimmer', 'animate-none')).toBe('animate-none')
+    expect(cn('animate-pulse', 'animate-pulse-subtle')).toBe(
+      'animate-pulse-subtle'
+    )
+    expect(cn('animate-pulse-subtle', 'animate-shimmer')).toBe(
+      'animate-shimmer'
+    )
+  })
+
   it('dedupes Roadie named z-index tiers', () => {
     expect(cn('z-overlay', 'z-modal')).toBe('z-modal')
     expect(cn('z-popover', 'z-tooltip')).toBe('z-tooltip')

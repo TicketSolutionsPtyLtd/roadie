@@ -21,6 +21,7 @@ const twMerge = extendTailwindMerge<
         'duration-slowest'
       ],
       ease: ['ease-standard', 'ease-enter', 'ease-exit', 'ease-spring'],
+      animate: ['animate-pulse-subtle', 'animate-shimmer'],
       z: [
         'z-hide',
         'z-base',

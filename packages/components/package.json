@@ -155,6 +155,10 @@
       "types": "./dist/components/Separator/index.d.ts",
       "import": "./dist/components/Separator/index.js"
     },
+    "./skeleton": {
+      "types": "./dist/components/Skeleton/index.d.ts",
+      "import": "./dist/components/Skeleton/index.js"
+    },
     "./steps": {
       "types": "./dist/components/Steps/index.d.ts",
       "import": "./dist/components/Steps/index.js"

@@ -58,6 +58,18 @@ const durationTokens = [
     value: '600ms',
     tier: 'Page',
     use: 'Full-page transitions, complex orchestrations'
+  },
+  {
+    token: '--duration-ambient',
+    value: '1800ms',
+    tier: 'Ambient',
+    use: 'One loop of a repeating idle animation, such as a tint pulse'
+  },
+  {
+    token: '--duration-sweep',
+    value: '2400ms',
+    tier: 'Ambient',
+    use: 'One pass of a highlight across the loading surfaces on screen'
   }
 ]
 
@@ -112,6 +124,15 @@ const playsNowUtilities = [
   {
     name: 'animate-pop',
     description: 'One-shot scale pop — attention cue (badge update)'
+  },
+  {
+    name: 'animate-pulse-subtle',
+    description: 'Looping opacity pulse — a surface waiting on something'
+  },
+  {
+    name: 'animate-shimmer',
+    description:
+      'Pulse plus a viewport-anchored highlight — loading placeholders'
   }
 ]
 

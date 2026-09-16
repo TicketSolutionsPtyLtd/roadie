@@ -6,7 +6,9 @@
 
 @theme {
   /* ═══ Durations ═══
-     Micro: 50–150ms  |  Component: 200–300ms  |  Page: 400–600ms */
+     Micro: 50–150ms  |  Component: 200–300ms  |  Page: 400–600ms
+     Ambient: one loop of a repeating idle animation
+     Sweep: one pass of a highlight across a loading surface */
   --duration-instant: 0ms;
   --duration-fastest: 50ms;
   --duration-fast: 100ms;
@@ -15,6 +17,8 @@
   --duration-slow: 300ms;
   --duration-slower: 400ms;
   --duration-slowest: 600ms;
+  --duration-ambient: 1800ms;
+  --duration-sweep: 2400ms;
 
   /* ═══ Easings (color, opacity, box-shadow) ═══ */
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
@@ -114,6 +118,21 @@
   }
 }
 
+@keyframes pulse-subtle {
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes shimmer-sweep {
+  from {
+    background-position-x: 200%;
+  }
+  to {
+    background-position-x: 0%;
+  }
+}
+
 @keyframes pop-in {
   from {
     opacity: 0;
@@ -180,6 +199,51 @@
 /* @deprecated use animate-pop-in, remove in v3 */
 @utility motion-pop-in {
   animation: pop-in var(--duration-slow) var(--ease-enter) both;
+}
+
+/* Loops while content is pending. `prefers-reduced-motion` cuts it to a
+   single 0.01ms pass, which leaves the element at full opacity: a static
+   tint. */
+@utility animate-pulse-subtle {
+  animation: pulse-subtle var(--duration-ambient) var(--ease-standard) infinite;
+}
+
+/* A loading surface: a tint pulse under a highlight sweeping across it.
+   `background-attachment: fixed` anchors the gradient to the viewport, so every
+   element wearing this class shows the slice of one shared sweep that falls
+   where it sits. A one-line placeholder and a full-width block then agree,
+   which a per-element sweep cannot do: it would restart at each element's own
+   edges and run at a different apparent speed on each. The cost is that the
+   sweep paints rather than riding the compositor, since only
+   `background-position` can express a shared gradient.
+
+   The element's own fill (from `emphasis-*`) is the base; the gradient paints
+   `--sheen-shade` over it everywhere the band is not and `--sheen-highlight`
+   inside the band, so the band is the lighter of the two in both themes.
+   Radius clips the background, so a circle stays a circle. Reduced motion drops
+   the gradient and leaves the static tint. */
+@utility animate-shimmer {
+  background-image: linear-gradient(
+    100deg,
+    var(--sheen-shade) 40%,
+    var(--sheen-highlight) 50%,
+    var(--sheen-shade) 60%
+  );
+  background-size: 200% 100%;
+  background-attachment: fixed;
+  background-repeat: repeat-x;
+  /* One period moves the gradient exactly one tile width, and the tile's two
+     ends are the same flat shade, so the loop closes on itself with no seam.
+     `repeat-x` is what makes that true: with `no-repeat` the single tile runs
+     out and the wrap shows as a cut. Both animations run on one period, so the
+     pulse cannot beat against the sweep. */
+  animation:
+    pulse-subtle var(--duration-sweep) var(--ease-standard) infinite,
+    shimmer-sweep var(--duration-sweep) linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    background-image: none;
+  }
 }
 
 @utility animate-shake {
