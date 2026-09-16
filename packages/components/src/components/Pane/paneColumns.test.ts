@@ -261,6 +261,40 @@ describe('the rules a real row matches', () => {
     }
   })
 
+  // A row with nothing on screen is the failure a selector regression shows as,
+  // and the one a rule-by-rule assertion can miss.
+  it('always leaves one pane on screen, placed, at every tier and row shape', () => {
+    const shows = (pane: Element, at: number) => {
+      const rule = paneRuleAt(rules, pane, at)
+      return (
+        rule !== undefined &&
+        !rule.body.includes('visibility: hidden') &&
+        hiddenBy(pane).length === 0
+      )
+    }
+
+    for (let levels = 1; levels <= PANE_MAX_DEPTH + 1; levels += 1) {
+      for (const { reveal, current } of stackStates(levels)) {
+        const $ = html(stackRow(0, current, reveal))
+        const top = reveal ? 0 : Math.max(0, current.lastIndexOf(true))
+        const where = `levels ${levels}, reveal ${reveal}, current ${current}`
+        for (let columns = 1; columns <= PANE_MAX_COLUMNS; columns += 1) {
+          for (const width of widthsOf(columns, top, levels)) {
+            const panes = Array.from({ length: levels }, (_, depth) =>
+              $(`[data-depth="${depth}"]`)
+            )
+            const on = panes.filter((pane) => shows(pane, width.at))
+            expect(on.length, `${where}, ${width.at}rem`).toBeGreaterThan(0)
+            expect(
+              shows(panes[top]!, width.at),
+              `${where}, ${width.at}rem, top ${top}`
+            ).toBe(true)
+          }
+        }
+      }
+    }
+  })
+
   it('drops the left-most pane rather than squeeze a detail in the middle', () => {
     const $ = html(stackRow(0, [false, false, true], false))
     const shownAt = (at: number) =>
@@ -1166,6 +1200,32 @@ describe('a pane held for its exit', () => {
       ])
       expect(rule.body).toContain('transition-duration: var(--duration-slow);')
       expect(rule.body).toContain('transition-property: translate')
+    }
+  })
+
+  it('reaches no pane that is staying, whatever the row shape', () => {
+    // Found by shape, not by name: a park that stopped naming `data-exiting`
+    // would drop out of `leaving` and take the test with it.
+    const parks = rules.filter(
+      (rule) =>
+        rule.conditions.length === 1 &&
+        rule.body.includes('visibility: hidden;') &&
+        rule.body.includes('transition: none;')
+    )
+    expect(parks).toHaveLength(2 * PANE_MAX_LEVELS)
+    for (let levels = 1; levels <= PANE_MAX_DEPTH + 1; levels += 1) {
+      for (const { reveal, current } of stackStates(levels)) {
+        const $ = html(stackRow(0, current, reveal))
+        for (let depth = 0; depth < levels; depth += 1) {
+          const pane = $(`[data-depth="${depth}"]`)
+          expect(
+            parks
+              .filter((rule) => pane.matches(rule.selector))
+              .map((rule) => rule.selector),
+            `levels ${levels}, reveal ${reveal}, current ${current}, depth ${depth}`
+          ).toEqual([])
+        }
+      }
     }
   })
 
