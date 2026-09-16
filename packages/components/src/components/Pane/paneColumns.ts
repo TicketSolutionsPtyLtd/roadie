@@ -247,6 +247,14 @@ function geometry(
   }
 }
 
+const shapeSelector = (
+  level: number,
+  { base, levels, top }: RowShape,
+  depth: number,
+  extra = ''
+) =>
+  `${row(level)}${extra}${baseIs(level, base)}${topIs(level, top, base)}${levelsIs(level, levels, base)} ${stackPane(level, base + depth)}`
+
 function paneRule(
   level: number,
   columns: number,
@@ -258,7 +266,7 @@ function paneRule(
   const cell = paneCell(columns, top, depth, levels)
   const shown = visibleColumns(columns, levels)
   const track = parentTrack(shown, depth, parentsOf(columns, top, levels))
-  const selector = `${row(level)}${baseIs(level, base)}${topIs(level, top, base)}${levelsIs(level, levels, base)} ${stackPane(level, base + depth)}`
+  const selector = shapeSelector(level, { base, levels, top }, depth)
   const vars = `--pane-back: ${display(cell.back)}; --pane-close: ${display(cell.close)}; --pane-edge: ${display(cell.back || cell.close)};`
   return `  ${selector} { ${vars} ${geometry(columns, cell, base + depth, levels, track)} }`
 }
@@ -378,6 +386,24 @@ function pageStepRules(level: number): string {
   ].join('\n')
 }
 
+// A pane that mounts as the top lands at its final translate, with nothing to
+// leave, so a push reads as no motion. These give it a starting translate to
+// slide from. The selectors repeat the landed rules, plus `[data-pushing]`, so
+// they outrank them in the starting-style pass.
+function enterRules(level: number): string {
+  const deep = `[data-stack][data-level="${level}"][data-depth="${PANE_DEEP}"]`
+  return [
+    `  @container panes (width < ${rem(stackedUntil())}) { @media (prefers-reduced-motion: no-preference) { @starting-style {`,
+    // Tops only, and never a row's root: a pane slides in over a shallower one.
+    ...ROW_SHAPES.filter((shape) => shape.top > 0).map(
+      (shape) =>
+        `    ${shapeSelector(level, shape, shape.top, '[data-pushing]')} { ${AHEAD} }`
+    ),
+    `    ${row(level)}[data-pushing]:not([data-reveal]) ${deep}[data-current] { ${AHEAD} }`,
+    '  } } }'
+  ].join('\n')
+}
+
 // Content reaches into the primary's gutter and pads back, so its clip leaves a
 // flush pane's shadow room without `overflow-clip-margin`, which WebKit lacks.
 function shadowRoomRules(level: number): string {
@@ -427,7 +453,7 @@ export function renderPaneColumnsCss(): string {
   const blocks: string[] = [PANE_RULES, PAGE_STEP_KEYFRAMES]
   for (let level = 0; level < PANE_MAX_LEVELS; level += 1) {
     blocks.push(levelRules(level))
-    blocks.push(stackRules(level), columnRules(level))
+    blocks.push(stackRules(level), columnRules(level), enterRules(level))
     blocks.push(inspectorRules(level))
   }
   return [

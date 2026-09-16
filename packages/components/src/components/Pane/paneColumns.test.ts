@@ -1052,6 +1052,72 @@ describe('the stacked tier keeps the md inset and the edge cover', () => {
   })
 })
 
+describe('a pane that mounts as the top', () => {
+  const entering = rules.filter((rule) =>
+    rule.conditions.includes('@starting-style')
+  )
+  const AHEAD =
+    'translate: calc((100% + var(--pane-stack-inset, 0px)) * var(--pane-dir, 1)) 0;'
+  const entersFrom = (pane: Element) =>
+    entering.some((rule) => pane.matches(rule.selector))
+
+  it('starts ahead, in the reading direction, only stacked, pushing and with motion allowed', () => {
+    expect(entering.length).toBeGreaterThan(0)
+    for (const rule of entering) {
+      expect(rule.body).toBe(AHEAD)
+      expect(rule.selector).toContain('[data-pushing]')
+      expect(rule.conditions).toEqual([
+        '@layer components',
+        `@container panes (width < ${stackedUntil()}rem)`,
+        '@media (prefers-reduced-motion: no-preference)',
+        '@starting-style'
+      ])
+    }
+  })
+
+  it('outranks the landed rule it starts from: the same selector, plus the push', () => {
+    const landed = new Set(rules.map((rule) => rule.selector))
+    for (const rule of entering) {
+      expect(landed).toContain(rule.selector.replace('[data-pushing]', ''))
+    }
+  })
+
+  it('slides in over a shallower pane, and never as the row it arrives with', () => {
+    const row = (pushing: boolean, current: boolean[]) =>
+      html(
+        stackRow(0, current, false).replace(
+          'data-level="0" ',
+          `data-level="0" ${pushing ? 'data-pushing' : ''} `
+        )
+      )
+
+    let $ = row(true, [false, true])
+    expect(entersFrom($('[data-depth="1"]'))).toBe(true)
+    expect(entersFrom($('[data-depth="0"]'))).toBe(false)
+
+    $ = row(false, [false, true])
+    expect(entersFrom($('[data-depth="1"]'))).toBe(false)
+
+    // A row of one pane is all root: nothing to slide over.
+    $ = row(true, [true])
+    expect(entersFrom($('[data-depth="0"]'))).toBe(false)
+  })
+
+  it('slides a pane past depth 3 in as well', () => {
+    const deep = (pushing: boolean) =>
+      html(
+        stackRow(0, [false, false, false, false, true], false)
+          .replace('data-depth="4"', 'data-depth="deep"')
+          .replace(
+            'data-level="0" ',
+            `data-level="0" ${pushing ? 'data-pushing' : ''} `
+          )
+      )
+    expect(entersFrom(deep(true)('[data-depth="deep"]'))).toBe(true)
+    expect(entersFrom(deep(false)('[data-depth="deep"]'))).toBe(false)
+  })
+})
+
 describe('panes without the new attributes', () => {
   it('gates every generated rule on data-depth or data-level', () => {
     expect(rules.length).toBeGreaterThan(0)

@@ -137,17 +137,23 @@ export function NavigatorContent({
   // Panes slide only on a push or pop; a resize cuts.
   const pushFrame = useRef(0)
   const instantFrame = useRef(0)
+  // Panes arriving with the row are the first paint, not a push: a fresh load
+  // of a deep route, or hydration, must not slide.
+  const pushable = useRef(false)
   const markPushing = useCallback(() => {
-    if (rowRef.current)
+    if (pushable.current && rowRef.current)
       flagForTwoFrames(rowRef.current, 'data-pushing', pushFrame)
   }, [])
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      pushable.current = true
+    })
+    return () => {
+      cancelAnimationFrame(frame)
       cancelAnimationFrame(pushFrame.current)
       cancelAnimationFrame(instantFrame.current)
-    },
-    []
-  )
+    }
+  }, [])
 
   // The Map serves effects, which run before the snapshot re-renders.
   const panes = useRef(new Map<string, RegisteredPane>())

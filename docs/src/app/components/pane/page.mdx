@@ -212,7 +212,9 @@ fills, at least 28rem wide. Each column to its left takes a parent track:
 - a detail takes 25 to 30rem.
 
 The panes behind the top fill the remaining columns nearest first, so the
-left-most pane drops first. In the stack, moving between depths slides. Columns
+left-most pane drops first. In the stack, moving between depths slides, and a
+pane that mounts as the new top slides in with it, so a route-driven detail
+animates like one that was already there. A first paint never slides. Columns
 don't animate. See [Roles](#roles) for each role's default depth, and declare
 `depth={2}` on a sub-detail.
 

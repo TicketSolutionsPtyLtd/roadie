@@ -1929,6 +1929,7 @@ describe('Navigator.OverflowPane', () => {
       )
       const { rerender } = render(tree(false))
       await flushViewportMeasurement()
+      flushFrame()
       rerender(tree(true))
       expect(panes()[1]).toHaveAttribute('data-stack-position', 'top')
       expect(content()).not.toHaveAttribute('data-instant')
@@ -1971,6 +1972,22 @@ describe('Navigator.OverflowPane', () => {
       expect(row()).not.toHaveAttribute('data-pushing')
       rerender(tree(false))
       expect(row()).toHaveAttribute('data-pushing')
+    })
+
+    it('never marks a push for panes that mount with their row', async () => {
+      render(
+        <Navigator value='/a/1'>
+          <Navigator.Content>
+            <Pane role='list'>List</Pane>
+            <Pane role='detail' current>
+              Detail
+            </Pane>
+          </Navigator.Content>
+        </Navigator>
+      )
+      expect(row()).not.toHaveAttribute('data-pushing')
+      await flushViewportMeasurement()
+      expect(row()).not.toHaveAttribute('data-pushing')
     })
 
     it('never marks a push for a render that keeps the top', async () => {
@@ -2172,6 +2189,7 @@ describe('Navigator.OverflowPane', () => {
     ])('keeps the slide for %s within a section', async (_, from, to) => {
       const { rerender } = render(sectionsNav(from))
       await flushViewportMeasurement()
+      flushFrame()
       rerender(sectionsNav(to))
       expect(content()).not.toHaveAttribute('data-instant')
       expect(row()).toHaveAttribute('data-pushing')
@@ -2181,6 +2199,7 @@ describe('Navigator.OverflowPane', () => {
     it('still marks a real push within a section while a controlled More stays open', async () => {
       const { rerender } = render(sectionsNav('/a', true))
       await flushViewportMeasurement()
+      flushFrame()
       rerender(sectionsNav('/a/1', true))
       expect(content()).not.toHaveAttribute('data-instant')
       expect(row()).toHaveAttribute('data-pushing')

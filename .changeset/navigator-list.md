@@ -15,7 +15,10 @@ searchable, and an item can own a `Navigator.Menu` instead of a destination.
 `Pane` is a scrolling column with sticky chrome, a collapse-on-scroll header
 and a stack position when panes share a screen. `Navigator.Content` lays panes
 out as columns from its own width (two from 46.25rem, three from 76rem) and
-stacks them below that. `Pane.Search` is a pill search field with a Cancel.
+stacks them below that. A stacked pane that mounts as the new top slides in
+like one that was already there, so a route-driven detail pane animates on a
+push; a first paint, hydration and reduced motion never slide. `Pane.Search` is
+a pill search field with a Cancel.
 
 Also ships `Navigator.ExpandToggle`, `Navigator.OverflowPane`/`OverflowItems`,
 `Navigator.SecondaryPane`, and `Navigator.SectionItems` with
