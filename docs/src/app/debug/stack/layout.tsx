@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 
 import { usePathname } from 'next/navigation'
 
-import { Navigator, Pane } from '@oztix/roadie-components'
+import { Navigator } from '@oztix/roadie-components/navigator'
 
 // Permanent canary for route-driven pane motion, the shape no docs demo has:
 // `Navigator.Content` is in the outermost layout, every deeper pane is its own
