@@ -4728,3 +4728,92 @@ describe('a page-root step back puts the page it returns to where it was', () =>
     await endExitAnimations()
   })
 })
+
+describe('a route-driven shell, where one slot holds every pane', () => {
+  withExitAnimations()
+  const history = withHistoryEntries()
+
+  // What a nested route layout gives Content: a single child, with the panes
+  // inside it, so the router owns the unmount of the deepest one.
+  const Segment = ({ deep }: { deep: boolean }) => (
+    <>
+      <Pane role='list' depth={0}>
+        List
+      </Pane>
+      <Pane role='detail' depth={1} current={!deep} data-testid='event'>
+        <Pane.Header>
+          <Pane.Title>Event</Pane.Title>
+        </Pane.Header>
+        Event
+      </Pane>
+      {deep ? (
+        <Pane role='detail' depth={2} current data-testid='ticket'>
+          Ticket
+        </Pane>
+      ) : null}
+    </>
+  )
+  const shell = (deep: boolean) => (
+    <Navigator value={deep ? '/e/t' : '/e'}>
+      <Navigator.Content>
+        <Segment deep={deep} />
+      </Navigator.Content>
+    </Navigator>
+  )
+  const event = () =>
+    screen
+      .getByTestId('event')
+      .querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
+  const scroll = async (top: number) => {
+    await act(async () => scrollViewport(event(), top))
+    await flushScrollFrame()
+  }
+
+  it('keeps the place of the pane a push sends behind', async () => {
+    const { rerender } = render(shell(false))
+    await flushViewportMeasurement()
+    await scroll(740)
+    history.goTo()
+    rerender(shell(true))
+    await flushViewportMeasurement()
+    expect(event().scrollTop).toBe(740)
+  })
+
+  it('puts it back on the way out, whatever the stack says its place was', async () => {
+    const entry = history.key
+    const { rerender } = render(shell(false))
+    await flushViewportMeasurement()
+    await scroll(740)
+    history.goTo()
+    rerender(shell(true))
+    await flushViewportMeasurement()
+    await act(async () => scrollViewport(event(), 0))
+    await flushScrollFrame()
+
+    history.traverseTo(entry)
+    rerender(shell(false))
+    await flushViewportMeasurement()
+    expect(event().scrollTop).toBe(740)
+  })
+
+  it('still starts a forward arrival at the top', async () => {
+    const { rerender } = render(shell(true))
+    await flushViewportMeasurement()
+    history.goTo()
+    rerender(shell(false))
+    await flushViewportMeasurement()
+    expect(event().scrollTop).toBe(0)
+  })
+
+  // The router drops the ticket pane from inside the one slot Content has, so
+  // there is no element left for the row to keep drawing. Remove `.fails` when
+  // a segment hands Roadie that element.
+  it.fails('cannot yet hold the pane the router removed', async () => {
+    const { rerender } = render(shell(true))
+    await flushViewportMeasurement()
+    rerender(shell(false))
+    expect(
+      document.querySelector('[data-slot="pane"][data-exiting]')
+    ).not.toBeNull()
+  })
+})

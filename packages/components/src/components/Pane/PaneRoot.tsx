@@ -269,23 +269,30 @@ export function PaneRoot({
     if (!viewport) return
     settling.current()
     const back = entry === null ? undefined : recallPaneScroll(entry, seat)
-    // Mounting at an entry already scrolled on, as a step back does.
-    if (!mounted.current) {
-      mounted.current = true
-      if (back !== undefined)
-        settling.current = restorePaneScroll(viewport, back)
+    const first = !mounted.current
+    mounted.current = true
+    // An entry this pane has been scrolled on wins over every reason to start
+    // at the top: going back is the one arrival that is not new. Checked before
+    // the guards below, which read a stack snapshot a commit behind and so
+    // cannot say yet whether this pane is the one being navigated to.
+    if (back !== undefined) {
+      settling.current = restorePaneScroll(viewport, back)
       return
     }
+    // `current`, not the position, for "this pane is the one being navigated
+    // to": the position comes from a snapshot a commit behind, so on a push the
+    // pane going behind still reads as the top and would lose its place.
     if (
+      first ||
+      !current ||
       last.destination === destination ||
       last.position === 'behind' ||
       position === 'behind'
     ) {
       return
     }
-    if (back === undefined) viewport.scrollTop = 0
-    else settling.current = restorePaneScroll(viewport, back)
-  }, [destination, position, seat])
+    viewport.scrollTop = 0
+  }, [destination, position, seat, current])
 
   return (
     <ScrollArea
