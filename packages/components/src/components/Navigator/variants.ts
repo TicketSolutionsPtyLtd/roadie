@@ -4,7 +4,8 @@ import { cva } from 'class-variance-authority'
 // so an embedded Navigator measures itself.
 export const navigatorRootClass = [
   'group/navigator',
-  'relative grid h-[100dvh] w-full overflow-hidden bg-sunken',
+  // isolate: the pending indicator paints from behind, over this fill.
+  'relative isolate grid h-[100dvh] w-full overflow-hidden bg-sunken',
   '[container-type:inline-size]',
   'grid-rows-1 md:grid-cols-[auto_1fr]',
   'pt-[env(safe-area-inset-top)]'

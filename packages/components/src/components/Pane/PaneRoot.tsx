@@ -17,6 +17,7 @@ import {
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { usePendingNavigationStore } from '../../providers/PendingNavigationContext'
 import { mergeRefs } from '../../utils/mergeRefs'
 import { scrollToTop as scrollToTopOf } from '../../utils/reducedMotion'
 import { ScrollArea } from '../ScrollArea'
@@ -60,6 +61,8 @@ export type PaneRootProps = Omit<ComponentProps<'section'>, 'role'> & {
   emphasis?: PaneEmphasis
   /** What the phone bar does while this pane is on top. `auto` collapses it on scroll. @default 'auto' */
   primaryNav?: PanePrimaryNav
+  /** Reports the pane as loading, which draws the frame's pending indicator and holds it. Pass it on a route's loading pane. */
+  pending?: boolean
 }
 
 // Hysteresis, so a 1px scroll can't oscillate the title. Exported for tests.
@@ -73,6 +76,7 @@ export function PaneRoot({
   depth: declaredDepth,
   emphasis = 'raised',
   primaryNav = 'auto',
+  pending,
   ref: forwardedRef,
   children,
   ...props
@@ -151,6 +155,14 @@ export function PaneRoot({
   }, [markPushing, current, depth])
 
   const inStack = stack !== null && role !== 'inspector'
+
+  // The frame draws the waiting; a pane only reports it.
+  const store = usePendingNavigationStore()
+  useEffect(() => {
+    if (pending !== true || store === null) return
+    return store.hold()
+  }, [pending, store])
+
   const { scrollPastAt, onScrollPast, onScrollDown } = chrome
   const reportsNav = primaryNav === 'auto' && onScrollPast !== undefined
   const navAt = reportsNav ? scrollPastAt : undefined
@@ -306,6 +318,7 @@ export function PaneRoot({
       data-level={stack?.level}
       data-overflow={isOverflow ? '' : undefined}
       data-primary-nav={primaryNav}
+      aria-busy={pending || undefined}
       className={cn(paneVariants({ emphasis }), className)}
       {...props}
       ref={setPaneRef}

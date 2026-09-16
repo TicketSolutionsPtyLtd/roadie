@@ -15,6 +15,7 @@ import {
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { usePendingNavigationStore } from '../../providers/PendingNavigationContext'
 import { isDev } from '../../utils/isDev'
 import { mergeRefs } from '../../utils/mergeRefs'
 import { PANE_CHROME_NONE } from '../Pane/PaneChromeContext'
@@ -88,6 +89,13 @@ const shapeOf = (row: HTMLElement, level: number): PaneShape[] =>
       `[data-slot="pane"][data-stack][data-level="${level}"]`
     ),
     (node) => ({ node, current: node.hasAttribute('data-current') })
+  )
+
+const sameShape = (was: readonly PaneShape[], now: readonly PaneShape[]) =>
+  was.length === now.length &&
+  was.every(
+    (pane, at) =>
+      now[at]?.node === pane.node && now[at]?.current === pane.current
   )
 
 // A sibling swap: the row's shape is unchanged — the same panes in the same
@@ -317,12 +325,25 @@ export function NavigatorContent({
   // effects: the row is mutated by now whichever order the panes registered in,
   // so a pane that arrives before the one it replaces leaves reads the same.
   const shape = useRef<readonly PaneShape[]>([])
+  const arrived = useRef(false)
   useInsertionEffect(() => {
     const row = rowRef.current
     if (!row) return
     const was = shape.current
     shape.current = shapeOf(row, level)
     if (isSiblingSwap(was, shape.current)) cut()
+    // A new node, a new top or a dropped pane is content the navigation went
+    // for, including a param change that leaves `value` alone.
+    if (!sameShape(was, shape.current)) arrived.current = true
+  })
+
+  // In an effect, not the insertion effect above: settling notifies the panes,
+  // and an insertion effect must not schedule a render.
+  const pendingStore = usePendingNavigationStore()
+  useEffect(() => {
+    if (!arrived.current) return
+    arrived.current = false
+    pendingStore?.settle()
   })
 
   const topIndex = positions.indexOf('top')

@@ -5,6 +5,7 @@ import {
   type ReactElement,
   type ReactNode,
   isValidElement,
+  use,
   useCallback,
   useEffect,
   useId,
@@ -16,8 +17,10 @@ import {
 import { NAVIGATOR_EXPANDED_ATTRIBUTE } from '@oztix/roadie-core/navigator'
 import { cn } from '@oztix/roadie-core/utils'
 
+import { usePendingNavigationStore } from '../../providers/PendingNavigationContext'
 import { scrollToTop } from '../../utils/reducedMotion'
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
+import { PaneStackContext } from '../Pane/PaneStackContext'
 import type { PanePrimaryNav } from '../Pane/variants'
 import { NavigatorContent } from './NavigatorContent'
 import {
@@ -48,6 +51,7 @@ import { collectSlots } from './collectSlots'
 import type { NavigatorSlotMeta } from './mobileSlots'
 import { primarySignature } from './primarySignature'
 import { useExpandMotion } from './useExpandMotion'
+import { useFramePending } from './useFramePending'
 import { navigatorRootClass } from './variants'
 
 export type NavigatorRootProps = {
@@ -162,6 +166,14 @@ export function NavigatorRoot({
   useEffect(() => {
     if (moreClosing) handlers.current.onShowMoreChange?.(false)
   }, [moreClosing])
+  // A new destination is the navigation landing, wherever it came from.
+  const pendingStore = usePendingNavigationStore()
+  useEffect(() => {
+    pendingStore?.settle()
+  }, [value, pendingStore])
+  // A nested Navigator sits inside a pane, so the frame around it is the one
+  // that answers the tap.
+  const pending = useFramePending(use(PaneStackContext) === null)
   const overflowOpenNow = useRef(overflowOpen)
   useIsomorphicLayoutEffect(() => {
     overflowOpenNow.current = overflowOpen
@@ -320,8 +332,13 @@ export function NavigatorRoot({
               <div
                 ref={rootRef}
                 data-slot='navigator'
+                data-pending={pending === 'idle' ? undefined : pending}
+                aria-busy={pending === 'visible' || undefined}
                 className={cn(navigatorRootClass, className)}
               >
+                {pending === 'idle' ? null : (
+                  <div aria-hidden data-slot='navigator-pending' />
+                )}
                 {children}
               </div>
             </NavigatorBarContext>

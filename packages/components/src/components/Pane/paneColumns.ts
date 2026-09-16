@@ -412,7 +412,7 @@ function shadowRoomRules(level: number): string {
   return [
     `  @media (width >= 48rem) {`,
     `    ${content} { margin-inline-start: -${room}; padding-inline-start: ${room}; }`,
-    `    ${content}::before { content: ''; position: absolute; inset-block: 0; inset-inline-start: 0; inline-size: ${room}; z-index: 1; background-color: var(--intent-bg-sunken); pointer-events: none; }`,
+    `    ${content}::before { content: ''; position: absolute; inset-block: 0; inset-inline-start: 0; inline-size: ${room}; z-index: 1; background-color: var(--pane-gutter-fill, var(--intent-bg-sunken)); pointer-events: none; }`,
     '  }'
   ].join('\n')
 }

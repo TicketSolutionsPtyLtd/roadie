@@ -452,6 +452,7 @@ export {
 export {
   RoadieLinkProvider,
   useRoadieLink,
+  useReportPendingNavigation,
   type RoadieLinkProviderProps,
   type RoadieLinkComponent,
   type RoadieLinkProps

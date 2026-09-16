@@ -18,8 +18,8 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     globals: true,
-    // Stubbed CSS would make `pane-columns.css?raw` empty.
-    css: { include: [/pane-columns\.css/] }
+    // Stubbed CSS would make a `?raw` import of these sheets empty.
+    css: { include: [/(pane-columns|navigator-pending)\.css/] }
   },
   ssr: {
     noExternal: ['@oztix/roadie-core']

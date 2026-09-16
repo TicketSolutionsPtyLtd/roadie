@@ -5,7 +5,7 @@ import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-import { Pane } from '@oztix/roadie-components'
+import { Button, Pane } from '@oztix/roadie-components'
 
 const lines = (count: number, tag: string) =>
   Array.from({ length: count }, (_, at) => (
@@ -33,6 +33,9 @@ export default function EventLayout({ children }: { children: ReactNode }) {
           <Link href='/debug/stack/evt/tkt' data-testid='open-ticket'>
             Open ticket
           </Link>
+          <Button href='/debug/stack/evt/slow' data-testid='open-slow'>
+            Open slow
+          </Button>
           {lines(80, 'event')}
         </div>
       </Pane>

@@ -30,6 +30,15 @@ into an inert document and slid away while the arriving one comes over it. That
 copy is the one in the frame, and only a page-root step makes one. `Pane.Search`
 is a pill search field with a Cancel.
 
+Tap a link and, after 150ms with nothing changed yet, the frame fills with a
+slowly turning gradient of three Oztix colours behind the panes and the nav,
+and on a phone the panes pull back and round their corners to show it. It goes
+when the destination lands, and never appears for a navigation faster than that.
+`RoadieLinkProvider` marks a plain click on an internal href and takes
+`pendingIndicator={false}` to turn it off; `pending` on a `Pane` reports a wait
+Roadie cannot see, such as a route's `loading.tsx`, and
+`useReportPendingNavigation` reports one from your own `router.push`.
+
 A pane takes its scroll down against the browser's own id for the history entry
 it is on, so going back or forward through history puts every pane where it was
 while a new destination still starts at the top. Roadie reads no URL and writes

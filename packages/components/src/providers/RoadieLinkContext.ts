@@ -1,14 +1,14 @@
 'use client'
 
 // `createContext` at module scope makes this a client module under Next's
-// rules. The provider component lives in a sibling file; consumers read
-// the context through the `useRoadieLink` hook also exported from
-// `RoadieLinkProvider.tsx`.
+// rules. The provider component lives in a sibling file, and re-exports the
+// hook below as the public name.
 import {
   type AnchorHTMLAttributes,
   type ComponentType,
   type Ref,
-  createContext
+  createContext,
+  use
 } from 'react'
 
 /**
@@ -35,3 +35,14 @@ export type RoadieLinkComponent = ComponentType<RoadieLinkProps>
  * back to `<a>` when the value is `null`.
  */
 export const RoadieLinkContext = createContext<RoadieLinkComponent | null>(null)
+
+/**
+ * Returns the Link component configured by the nearest `RoadieLinkProvider`,
+ * or `null` when no provider is wired.
+ *
+ * Here rather than beside the provider so a component reading it does not pull
+ * the provider, and with it the pending navigation store, into its bundle.
+ */
+export function useRoadieLink(): RoadieLinkComponent | null {
+  return use(RoadieLinkContext)
+}

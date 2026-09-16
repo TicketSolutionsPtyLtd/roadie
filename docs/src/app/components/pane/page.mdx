@@ -475,6 +475,25 @@ declared `depth`, rather than by its identity, so a pane the router re-makes
 still finds its place. Up to 30 history entries are kept, the least recently
 written dropped first, in memory: a document reload starts over.
 
+### Loading
+
+`pending` says the pane is waiting for its content. The
+[frame draws it](/components/navigator#waiting-for-a-navigation), not the pane,
+so a pane outside a `Navigator` shows nothing. Pass it in a route's
+`loading.tsx`, where the skeletons standing in for the page would otherwise end
+the frame's indicator early.
+
+```tsx
+<Pane role='detail' depth={1} current pending>
+  <Pane.Header>
+    <Pane.Title>Loading</Pane.Title>
+  </Pane.Header>
+  <Skeleton shape='block' />
+</Pane>
+```
+
+The pane carries `aria-busy` while `pending` is true.
+
 ## Guidelines
 
 <Guideline title='Declaration order is stack depth'>

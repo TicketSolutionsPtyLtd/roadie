@@ -1055,6 +1055,63 @@ export function AppNavigator() {
 The docs site's own `Navigation.tsx` goes one step further. It pops the history
 entry it pushed instead of pushing a second one.
 
+### Waiting for a navigation
+
+Tap a link and the router may take a while. After 150ms with nothing on screen
+changed, the frame fills with a slowly turning gradient of three Oztix colours,
+behind the panes and the nav's capsules, and on a phone the panes pull back a
+little and round their corners to show it. It runs until the destination
+arrives, then fades. Anything faster than 150ms shows nothing at all, so a
+prefetched route stays quiet.
+
+Nothing to wire: `RoadieLinkProvider` marks a plain left click on an internal
+`href`, wherever it came from, and `Navigator` clears it when the destination
+lands. Turn it off with `pendingIndicator={false}` on the provider.
+
+```tsx
+<RoadieLinkProvider Link={NextLink} pendingIndicator={false}>
+```
+
+Two cases Roadie cannot see, and what to do about each.
+
+A route with a `loading.tsx` commits as soon as its skeletons are on screen, so
+the indicator stops there while the real content is still coming. Pass
+`pending` on the loading state's pane to hold it until the page lands:
+
+```tsx
+// app/events/[id]/loading.tsx
+export default function Loading() {
+  return (
+    <Pane role='detail' depth={1} current pending>
+      <Skeleton shape='block' />
+    </Pane>
+  )
+}
+```
+
+A navigation you start yourself, with `router.push` in a handler, is not a
+click Roadie saw. Report it:
+
+```tsx
+const { start, stop } = useReportPendingNavigation()
+
+const buy = async () => {
+  start()
+  await reserve()
+  router.push('/checkout') // `stop()` is not needed; the route landing clears it
+}
+```
+
+A mounted `Skeleton` is deliberately not a signal on its own. A skeleton is as
+likely to be a placeholder that never resolves, or a demo of the component
+itself, so it never starts or holds the indicator. `pending` is the one place
+that says a wait is real.
+
+The indicator ends on the first of the destination landing, a Back or Forward
+traversal, the tab going to the background, and a 10 second ceiling for a
+navigation that never arrives. Reduced motion keeps the colour and drops the
+turn. The frame carries `aria-busy` while it runs, and nothing is announced.
+
 ### Panes
 
 `Navigator.Content` lays out panes from its own width, as columns where they fit

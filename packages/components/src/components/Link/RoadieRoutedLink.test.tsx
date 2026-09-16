@@ -1,10 +1,14 @@
-import { createRef } from 'react'
+import { type ReactNode, createRef, useEffect } from 'react'
 
 import '@testing-library/jest-dom/vitest'
-import { render } from '@testing-library/react'
+import { fireEvent, render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
+import {
+  type PendingNavigationStore,
+  usePendingNavigationStore
+} from '../../providers/PendingNavigationContext'
 import {
   type RoadieLinkComponent,
   RoadieLinkProvider
@@ -220,6 +224,87 @@ describe('RoadieRoutedLink', () => {
       )
       expect(queryByTestId('stub-link')).toBeNull()
       expect(getByTestId('link')).toHaveAttribute('href', '#')
+    })
+  })
+
+  describe('marking a navigation as pending', () => {
+    const seen: { store: PendingNavigationStore | null } = { store: null }
+    const keep = (store: PendingNavigationStore | null) => {
+      seen.store = store
+    }
+    const Probe = () => {
+      const store = usePendingNavigationStore()
+      useEffect(() => keep(store), [store])
+      return null
+    }
+    const clicked = (
+      link: ReactNode,
+      init?: Parameters<typeof fireEvent.click>[1]
+    ) => {
+      const { getByTestId } = render(
+        <RoadieLinkProvider Link={StubLink}>
+          <Probe />
+          {link}
+        </RoadieLinkProvider>
+      )
+      fireEvent.click(getByTestId('stub-link'), init)
+      return seen.store?.get() ?? null
+    }
+
+    it('marks a plain click on an internal href', () => {
+      expect(clicked(<RoadieRoutedLink href='/events' />)).not.toBeNull()
+    })
+
+    it('leaves a modified click to the browser', () => {
+      expect(
+        clicked(<RoadieRoutedLink href='/events' />, { metaKey: true })
+      ).toBeNull()
+    })
+
+    it('leaves a middle click to the browser', () => {
+      expect(
+        clicked(<RoadieRoutedLink href='/events' />, { button: 1 })
+      ).toBeNull()
+    })
+
+    it('leaves a link that opens elsewhere alone', () => {
+      expect(
+        clicked(<RoadieRoutedLink href='/events' target='_blank' />)
+      ).toBeNull()
+    })
+
+    it('leaves a hash on this page alone', () => {
+      expect(clicked(<RoadieRoutedLink href='#lineup' />)).toBeNull()
+    })
+
+    it('leaves a click the consumer cancelled alone', () => {
+      expect(
+        clicked(
+          <RoadieRoutedLink
+            href='/events'
+            onClick={(event) => event.preventDefault()}
+          />
+        )
+      ).toBeNull()
+    })
+
+    it('still calls the consumer\u2019s handler', () => {
+      const onClick = vi.fn()
+      clicked(<RoadieRoutedLink href='/events' onClick={onClick} />)
+      expect(onClick).toHaveBeenCalledTimes(1)
+    })
+
+    it('marks nothing for an external or a protocol href', () => {
+      const { getByTestId } = render(
+        <RoadieLinkProvider Link={StubLink}>
+          <Probe />
+          <RoadieRoutedLink data-testid='away' href='https://oztix.com.au' />
+          <RoadieRoutedLink data-testid='mail' href='mailto:hi@oztix.com.au' />
+        </RoadieLinkProvider>
+      )
+      fireEvent.click(getByTestId('away'))
+      fireEvent.click(getByTestId('mail'))
+      expect(seen.store?.get() ?? null).toBeNull()
     })
   })
 

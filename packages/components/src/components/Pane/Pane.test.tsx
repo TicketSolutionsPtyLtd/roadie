@@ -1486,7 +1486,9 @@ describe('Pane chrome clipping', () => {
     const header = container.querySelector('[data-slot="pane-header"]')!
     const footer = container.querySelector('[data-slot="pane-footer"]')!
 
-    expect(pane).toHaveClass('max-md:[--pane-radius:0px]')
+    expect(pane).toHaveClass(
+      'max-md:[--pane-radius:var(--pane-radius-phone,0px)]'
+    )
     expect(pane).toHaveClass('rounded-(--pane-radius)')
     expect(header).toHaveClass('rounded-t-(--pane-radius)')
     expect(footer).toHaveClass('rounded-b-(--pane-radius)')

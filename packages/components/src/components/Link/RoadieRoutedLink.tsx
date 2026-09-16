@@ -1,8 +1,14 @@
 'use client'
 
-import { type AnchorHTMLAttributes, type ComponentProps, type Ref } from 'react'
+import {
+  type AnchorHTMLAttributes,
+  type ComponentProps,
+  type MouseEvent,
+  type Ref
+} from 'react'
 
-import { useRoadieLink } from '../../providers/RoadieLinkProvider'
+import { usePendingNavigationStore } from '../../providers/PendingNavigationContext'
+import { useRoadieLink } from '../../providers/RoadieLinkContext'
 import { isDev } from '../../utils/isDev'
 import { resolveLinkKind } from '../../utils/resolveLinkKind'
 
@@ -43,6 +49,18 @@ export type RoadieRoutedLinkProps = Omit<
   ref?: Ref<HTMLAnchorElement>
 }
 
+// A click the browser handles itself, or one that stays on this page, starts no
+// navigation to wait for.
+const routes = (event: MouseEvent, href: string, target?: string) =>
+  !event.defaultPrevented &&
+  event.button === 0 &&
+  !event.metaKey &&
+  !event.ctrlKey &&
+  !event.shiftKey &&
+  !event.altKey &&
+  (target === undefined || target === '_self') &&
+  !href.startsWith('#')
+
 export function RoadieRoutedLink({
   href,
   external,
@@ -53,6 +71,12 @@ export function RoadieRoutedLink({
 }: RoadieRoutedLinkProps) {
   const Link = useRoadieLink()
   const kind = resolveLinkKind(href)
+  const store = usePendingNavigationStore()
+  const consumerClick = rest.onClick
+  const onClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    consumerClick?.(event)
+    if (routes(event, href, target)) store?.start()
+  }
 
   if (kind === 'unsafe') {
     if (isDev()) {
@@ -89,7 +113,10 @@ export function RoadieRoutedLink({
       ref,
       ...(target !== undefined && { target }),
       ...(rel !== undefined && { rel }),
-      ...rest
+      ...rest,
+      // This branch only: a plain `<a>` unloads the document, and the browser
+      // reports that wait itself.
+      onClick
     }
     // The provider's component, not one made here, so its identity is stable.
     // eslint-disable-next-line react-hooks/static-components

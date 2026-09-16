@@ -8,7 +8,8 @@ export const paneVariants = cva(
   [
     'relative min-h-0 min-w-0',
     // backdrop-filter paints past an ancestor's rounded clip, so chrome rounds itself from this.
-    '[--pane-radius:var(--radius-2xl)] max-md:[--pane-radius:0px]',
+    // A phone pane is flush, until the frame pulls it back to answer a tap.
+    '[--pane-radius:var(--radius-2xl)] max-md:[--pane-radius:var(--pane-radius-phone,0px)]',
     'overflow-hidden rounded-(--pane-radius)',
     // Published, not applied: chrome is sticky and the body scrolls, so each applies it.
     '[--content-inset:--spacing(6)]'

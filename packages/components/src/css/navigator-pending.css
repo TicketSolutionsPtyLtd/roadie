@@ -1,0 +1,96 @@
+/* Waiting for a navigation: a conic gradient on a square that spins behind
+   everything the frame holds, so the colour shows in the gutters around the
+   panes and the nav's capsules. Only `rotate` animates, and the gradient is
+   painted once, so the spin stays on the compositor. */
+
+@layer components {
+  [data-slot='navigator-pending'] {
+    /* The plain steps, so each mode gets its own: the light values would glare
+       across a whole dark frame. Oztix blue is fixed in both. */
+    --pending-1: var(--color-brand-9);
+    --pending-2: var(--color-brand-secondary-5);
+    --pending-3: var(--color-info-5);
+
+    position: absolute;
+    inset: 0;
+    /* Over the frame's own fill, under everything in it. The frame's `isolate`
+       is what keeps this from falling behind the page. */
+    z-index: -1;
+    overflow: clip;
+    container-type: size;
+    pointer-events: none;
+
+    animation: fade-in var(--duration-normal) var(--ease-enter);
+    transition: opacity var(--duration-moderate) var(--ease-exit);
+  }
+
+  [data-slot='navigator'][data-pending='leaving']
+    > [data-slot='navigator-pending'] {
+    opacity: 0;
+  }
+
+  /* The band beside a vertical nav masks a flush pane's shadow with the frame's
+     own fill; while the frame glows, the glow is that fill. */
+  [data-slot='navigator'][data-pending] {
+    --pane-gutter-fill: transparent;
+  }
+
+  [data-slot='navigator-pending']::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    /* 1.5 > sqrt(2), so the square covers the frame at every angle. */
+    width: 150cqmax;
+    height: 150cqmax;
+    translate: -50% -50%;
+    background: conic-gradient(
+      from 0deg,
+      var(--pending-1),
+      var(--pending-2),
+      var(--pending-3),
+      var(--pending-1)
+    );
+    /* One period with a skeleton's shimmer, so the two cannot beat. */
+    animation: navigator-pending-spin var(--duration-sweep) linear infinite;
+    will-change: rotate;
+  }
+
+  /* Reduced motion keeps the colour and drops the spin: the tap still has its
+     answer. Explicit, but the reset in motion.css lands on the same frame. */
+  @media (prefers-reduced-motion: reduce) {
+    [data-slot='navigator-pending']::before {
+      rotate: 0.125turn;
+      animation: none;
+    }
+  }
+
+  /* A phone pane is the whole screen, so it pulls back to show the frame. */
+  @media (width < 48rem) {
+    [data-slot='navigator'][data-pending] {
+      --pane-radius-phone: var(--radius-2xl);
+    }
+
+    /* Only the frame that pulls back rounds its panes. A nested Navigator holds
+       still, and rounding its panes would show its own fill in the corners. */
+    [data-slot='navigator'] [data-slot='navigator'] {
+      --pane-radius-phone: 0px;
+    }
+
+    [data-slot='navigator-panes'][data-level='0'] {
+      transform-origin: center;
+      transition: scale var(--duration-slow) var(--ease-standard);
+    }
+
+    [data-slot='navigator'][data-pending='visible']
+      [data-slot='navigator-panes'][data-level='0'] {
+      scale: 0.96;
+    }
+  }
+}
+
+@keyframes navigator-pending-spin {
+  to {
+    rotate: 1turn;
+  }
+}
