@@ -10,27 +10,21 @@
     "path": "dist/index.js",
     "import": "{ Button }",
     "limit": "3 kB",
-    "ignore": [
-      "@oztix/roadie-core"
-    ]
+    "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "Navigator",
     "path": "dist/components/Navigator/index.js",
     "import": "*",
     "limit": "37 kB",
-    "ignore": [
-      "@oztix/roadie-core"
-    ]
+    "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "Pane",
     "path": "dist/components/Pane/index.js",
     "import": "*",
     "limit": "10 kB",
-    "ignore": [
-      "@oztix/roadie-core"
-    ]
+    "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "Carousel",
