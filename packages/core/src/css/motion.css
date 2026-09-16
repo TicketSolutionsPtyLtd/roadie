@@ -231,9 +231,14 @@
   );
   background-size: 200% 100%;
   background-attachment: fixed;
-  background-repeat: no-repeat;
+  background-repeat: repeat-x;
+  /* One period moves the gradient exactly one tile width, and the tile's two
+     ends are the same flat shade, so the loop closes on itself with no seam.
+     `repeat-x` is what makes that true: with `no-repeat` the single tile runs
+     out and the wrap shows as a cut. Both animations run on one period, so the
+     pulse cannot beat against the sweep. */
   animation:
-    pulse-subtle var(--duration-ambient) var(--ease-standard) infinite,
+    pulse-subtle var(--duration-sweep) var(--ease-standard) infinite,
     shimmer-sweep var(--duration-sweep) linear infinite;
 
   @media (prefers-reduced-motion: reduce) {

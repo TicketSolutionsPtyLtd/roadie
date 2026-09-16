@@ -63,7 +63,7 @@ const durationTokens = [
     token: '--duration-ambient',
     value: '1800ms',
     tier: 'Ambient',
-    use: 'One loop of a repeating idle animation, such as a skeleton pulse'
+    use: 'One loop of a repeating idle animation, such as a tint pulse'
   },
   {
     token: '--duration-sweep',
