@@ -353,16 +353,6 @@ function inspectorVariant(): string {
   return `@custom-variant pane-inspector-yielded {\n${branches.join('\n')}\n}`
 }
 
-const PAGE_GHOST = '[data-slot="navigator-page-ghost"]'
-const PAGE_STEP = 'var(--duration-slow) var(--ease-enter)'
-const from = (fallback: string, name: string) =>
-  `translate: var(${name}, ${fallback.slice('translate: '.length, -1)});`
-// A reversed step starts each layer where the other left off.
-const PAGE_STEP_KEYFRAMES = `  @keyframes navigator-page-enter { from { ${from(AHEAD, '--page-step-pane-from')} } }
-  @keyframes navigator-page-behind { from { ${from('translate: 0 0;', '--page-step-ghost-from')} } to { ${BEHIND} } }
-  @keyframes navigator-page-return { from { ${from(BEHIND, '--page-step-pane-from')} z-index: 0; } to { z-index: 0; } }
-  @keyframes navigator-page-leave { from { ${from('translate: 0 0;', '--page-step-ghost-from')} } to { ${AHEAD} } }`
-
 /** The widest content at which some row still stacks: its two columns need the most room. */
 export function stackedUntil(): number {
   let widest = columnTier(2)
@@ -372,21 +362,6 @@ export function stackedUntil(): number {
     }
   }
   return widest
-}
-
-// Stacked rows only; columns cut.
-function pageStepRules(level: number): string {
-  const step = (kind: 'push' | 'pop') =>
-    `${row(level)}[data-page-step="${kind}"]`
-  const top = `[data-stack][data-level="${level}"][data-stack-position="top"]`
-  return [
-    `  @container panes (width < ${rem(stackedUntil())}) { @media (prefers-reduced-motion: no-preference) {`,
-    `    ${step('push')} ${top} { animation: navigator-page-enter ${PAGE_STEP}; }`,
-    `    ${step('push')} > ${PAGE_GHOST} { animation: navigator-page-behind ${PAGE_STEP} forwards; }`,
-    `    ${step('pop')} ${top} { animation: navigator-page-return ${PAGE_STEP}; }`,
-    `    ${step('pop')} > ${PAGE_GHOST} { z-index: 3; animation: navigator-page-leave ${PAGE_STEP} forwards; }`,
-    '  } }'
-  ].join('\n')
 }
 
 // A pane that mounts as the top lands at its final translate, with nothing to
@@ -403,6 +378,10 @@ function enterRules(level: number): string {
         `    ${shapeSelector(level, shape, shape.top, '[data-pushing]')} { ${AHEAD} }`
     ),
     `    ${row(level)}[data-pushing]:not([data-reveal]) ${deep}${LIVE}[data-current] { ${AHEAD} }`,
+    // Stepping out of a page-root section mounts the page it returns to as the
+    // row's only pane, which the rules above skip: a root has nothing to slide
+    // in over. It comes back from behind, where the page leaving stood over it.
+    `    ${row(level)}[data-pushing][data-step="out"] ${stackPane(level, 0, '[data-stack-position="top"]')} { ${BEHIND} }`,
     '  } } }'
   ].join('\n')
 }
@@ -422,6 +401,9 @@ function exitRules(level: number): string {
   return [
     `  ${exiting('[data-exit="ahead"]')} { ${AHEAD} opacity: 1; z-index: 3; ${parked} }`,
     `  ${exiting('[data-exit="behind"]')} { ${BEHIND} opacity: 0.9; ${PARKED} ${parked} }`,
+    // A pane with no place in the stack, an inspector say, has nowhere to slide
+    // to and would otherwise stand beside the one that replaced it.
+    `  ${row(level)} [data-slot="pane"][data-exiting]:not([data-stack]) { ${HIDDEN} }`,
     `  @container panes (width < ${rem(stackedUntil())}) { @media (prefers-reduced-motion: no-preference) {`,
     `    ${exiting()} { ${LEAVING} transition-duration: var(--duration-slow); }`,
     '  } }'
@@ -450,7 +432,6 @@ function levelRules(level: number): string {
   return [
     // Reset per row, or a nested row inherits its outer row's value.
     `  ${row(level)} { --pane-stack-inset-start: var(--pane-stack-inset); }`,
-    `  ${row(level)} { --page-step-ghost-from: initial; --page-step-pane-from: initial; }`,
     // Attributes, not `:dir()`: Lightning CSS lowers `:dir()` to a `:lang()` list.
     `  [dir="rtl"] ${row(level)} { --pane-dir: -1; }`,
     `  [dir="rtl"] [dir="ltr"] ${row(level)} { --pane-dir: 1; }`,
@@ -461,8 +442,6 @@ function levelRules(level: number): string {
     `  ${row(level)}:not([data-reveal]) ${deep}${LIVE}[data-current] { translate: 0 0; visibility: visible; pointer-events: auto; }`,
     `  @media (prefers-reduced-motion: no-preference) { ${row(level)}[data-pushing] :is(${stacked}, ${deep})${LIVE} { transition-duration: var(--duration-slow); } }`,
     exitRules(level),
-    `  ${row(level)} > ${PAGE_GHOST} { position: absolute; ${inset} z-index: 0; }`,
-    pageStepRules(level),
     `  ${row(level)} [data-role="inspector"][data-level="${level}"] { order: 99; flex: 0 0 ${rem(PANE_INSPECTOR)}; }`,
     `  ${row(level)}:not([data-overflow]) [data-stack][data-level="${level}"][data-overflow] { ${HIDDEN} }`,
     `  ${row(level)}[data-overflow] ${stackPane(level, 0)}:not([data-overflow]) { ${HIDDEN} }`
@@ -475,7 +454,7 @@ const PANE_RULES = `  [data-slot="pane"][data-depth] { --pane-back: none; --pane
   [data-slot="pane"][data-depth] [data-slot="pane-close"] { display: var(--pane-close); }`
 
 export function renderPaneColumnsCss(): string {
-  const blocks: string[] = [PANE_RULES, PAGE_STEP_KEYFRAMES]
+  const blocks: string[] = [PANE_RULES]
   for (let level = 0; level < PANE_MAX_LEVELS; level += 1) {
     blocks.push(levelRules(level))
     blocks.push(stackRules(level), columnRules(level), enterRules(level))

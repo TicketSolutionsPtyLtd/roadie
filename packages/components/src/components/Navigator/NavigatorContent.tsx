@@ -40,7 +40,6 @@ import {
 } from './NavigatorContext'
 import { NavigatorOverflowItems } from './NavigatorOverflowItems'
 import { NavigatorOverflowPane } from './NavigatorOverflowPane'
-import { type NavigatorPageAt, NavigatorPageStep } from './NavigatorPageStep'
 import { NavigatorSecondaryPane } from './NavigatorSecondaryPane'
 import { NavigatorSectionPane } from './NavigatorSectionPane'
 import { OVERFLOW_LABEL } from './mobileSlots'
@@ -121,30 +120,37 @@ function isSiblingSwap(was: readonly PaneShape[], now: readonly PaneShape[]) {
   return swapped
 }
 
+/** Where a page-root section stands: its own route, a sub-page on top, or neither. */
+export type NavigatorPageAt = 'root' | 'child' | null
+
+/** A step deeper into a page-root section, or back out of one. */
+type PageStep = 'in' | 'out'
+
 type Presence = {
   /** What the row last laid out, so the next render can see what left. */
   children: ReactNode
   slots: readonly PaneSlot[]
   /** The tab, More and section the row drew under: a change to any of them cuts. */
   tab: string
+  /** The page-root step the slots are keyed by, held while More or the list covers it. */
+  page: NavigatorPageAt
+  /** Which way the panes now leaving are going, for the row to say. */
+  step: PageStep | null
   held: readonly HeldSlot[]
 }
-
-// A pop leaves forward, over the pane it uncovers. Nothing else drops a slot
-// while the stack still slides; a section or tab change cuts before it gets here.
-const POP: PaneExit = 'ahead'
 
 /** The slots this commit dropped, ready to draw. */
 function nextHeld(
   was: readonly PaneSlot[],
   now: readonly PaneSlot[],
-  from: HeldFrom
+  from: HeldFrom,
+  exit: PaneExit
 ): HeldSlot[] {
   const gone = departed(was, now)
   if (gone.length === 0) return []
   // One stack for the commit: every slot it drops leaves the same way.
-  const stack = heldStack(from, POP)
-  return gone.map((slot) => ({ ...slot, exit: POP, stack }))
+  const stack = heldStack(from, exit)
+  return gone.map((slot) => ({ ...slot, exit, stack }))
 }
 
 type Drawn = {
@@ -439,39 +445,62 @@ export function NavigatorContent({
   // effect would remove the element first and mount a new one, which is the
   // copy this replaces. Seeded from the first render, so a server render and a
   // fresh load of a deep route hold nothing.
-  const slots = useMemo(() => slotsOf(children), [children])
-  const tab = `${moreOpen} ${sectionValue} ${tabValue}`
+  const tab = `${moreOpen} ${sectionValue} ${tabValue}`
   const [presence, setPresence] = useState<Presence>(() => ({
     children,
-    slots,
+    slots: slotsOf(children, pageAt),
     tab,
+    page: pageAt,
+    step: null,
     held: []
   }))
+  // A page-root section draws every route in one pane, so a step between them
+  // moves no pane. Keying the slots by the step gives the row the second element
+  // it needs: the page being left stays, drawn from the children it had. While
+  // More or the revealed list covers the page the row draws no step, so the key
+  // holds at the last one rather than reading the cover as a step.
+  const page = pageAt ?? presence.page
+  const slots = useMemo(() => slotsOf(children, page), [children, page])
   if (presence.children !== children || presence.tab !== tab) {
+    const stepped =
+      presence.page !== null && page !== null && presence.page !== page
+    const step: PageStep | null = stepped
+      ? page === 'child'
+        ? 'in'
+        : 'out'
+      : null
+    // Stepping in, the page on top goes behind the one arriving over it.
+    // Stepping out, and on a pop, it leaves forward over the one it uncovers.
+    const exit: PaneExit = step === 'in' ? 'behind' : 'ahead'
+    const cutting = presence.tab !== tab
+    // A tab switch, More and a section change cut, so nothing is held to slide.
+    const gone = cutting
+      ? []
+      : nextHeld(
+          presence.slots,
+          slots,
+          { placeOf, moreOpen, level, destination: value },
+          exit
+        )
+    // This commit's departures join what is already leaving, and a slot drawn
+    // again takes its element back mid-slide.
+    const held = cutting ? [] : mergeHeld(presence.held, gone, slots)
     setPresence({
       children,
       slots,
       tab,
-      // A tab switch, More and a section change cut, so nothing is held to
-      // slide. Otherwise this commit's departures join what is already leaving,
-      // and a slot drawn again takes its element back mid-slide.
-      held:
-        presence.tab !== tab
-          ? []
-          : mergeHeld(
-              presence.held,
-              nextHeld(presence.slots, slots, {
-                placeOf,
-                moreOpen,
-                level,
-                destination: value
-              }),
-              slots
-            )
+      page,
+      // The step the panes leaving now are making, kept while they go. A pop is
+      // no step, and must not be read as the one before it.
+      step: gone.length > 0 ? step : held.length > 0 ? presence.step : null,
+      held
     })
   }
   const held = presence.held
   const drawn = useMemo(() => drawnSlots(slots, held), [slots, held])
+  // Only while a page is leaving: it tells a pane arriving as the row's only
+  // pane to start behind, which the enter rules give nothing else.
+  const step = held.length > 0 ? presence.step : null
 
   // After paint, so the slides have started. Nothing running, as in columns or
   // under reduced motion, drops the slot at once; the ceiling covers a
@@ -576,6 +605,7 @@ export function NavigatorContent({
             data-level={level}
             data-reveal={revealRoot ? '' : undefined}
             data-overflow={moreOpen ? '' : undefined}
+            data-step={step ?? undefined}
             className={navigatorPanesClass}
           >
             {sectionPane}
@@ -590,12 +620,6 @@ export function NavigatorContent({
               </PaneStackContext>
             ))}
             {fallbackOverflow}
-            <NavigatorPageStep
-              section={activeSection}
-              value={value}
-              at={pageAt}
-              level={level}
-            />
           </div>
         </PaneContext>
       </PaneStackContext>

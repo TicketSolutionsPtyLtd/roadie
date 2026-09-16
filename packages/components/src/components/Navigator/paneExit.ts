@@ -20,9 +20,13 @@ export type HeldSlot = PaneSlot & {
 // `Children.toArray` numbers by position in the original children, so a slot
 // that empties does not renumber the ones that stay, and an explicit key is
 // used as given. A slot that keeps its key keeps its fiber and its DOM.
-export function slotsOf(children: ReactNode): PaneSlot[] {
+// `step` tells the slots of one step of a page-root section from the next, where
+// the panes are the same but the page in them is not: a changed key is what
+// gives the row two elements to move where the route gave it one.
+export function slotsOf(children: ReactNode, step?: string | null): PaneSlot[] {
+  const at = step === null || step === undefined ? '' : `#${step}`
   return Children.toArray(children).map((node, index) => ({
-    key: isValidElement(node) ? String(node.key ?? index) : String(index),
+    key: `${isValidElement(node) ? (node.key ?? index) : index}${at}`,
     node
   }))
 }
