@@ -7,7 +7,8 @@
 @theme {
   /* ═══ Durations ═══
      Micro: 50–150ms  |  Component: 200–300ms  |  Page: 400–600ms
-     Ambient: one loop of a repeating idle animation */
+     Ambient: one loop of a repeating idle animation
+     Sweep: one pass of a highlight across a loading surface */
   --duration-instant: 0ms;
   --duration-fastest: 50ms;
   --duration-fast: 100ms;
@@ -17,6 +18,7 @@
   --duration-slower: 400ms;
   --duration-slowest: 600ms;
   --duration-ambient: 1800ms;
+  --duration-sweep: 2400ms;
 
   /* ═══ Easings (color, opacity, box-shadow) ═══ */
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
@@ -122,6 +124,15 @@
   }
 }
 
+@keyframes shimmer-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
 @keyframes pop-in {
   from {
     opacity: 0;
@@ -195,6 +206,39 @@
    tint. */
 @utility animate-pulse-subtle {
   animation: pulse-subtle var(--duration-ambient) var(--ease-standard) infinite;
+}
+
+/* A loading surface: the same tint pulse with a highlight sweeping across it.
+   The sweep rides an overlay that translates, so the element's own box, radius
+   and position never change; `overflow: hidden` clips the highlight to the
+   radius, including a circle. Reduced motion drops the overlay and leaves the
+   static tint. */
+@utility animate-shimmer {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  animation: pulse-subtle var(--duration-ambient) var(--ease-standard) infinite;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    /* One step past --intent-5a, mixed the same way the alpha steps are, so
+       the highlight tracks the intent and the theme instead of being white. */
+    background-image: linear-gradient(
+      90deg,
+      transparent 20%,
+      color-mix(in oklch, var(--intent-9) 34%, transparent) 50%,
+      transparent 80%
+    );
+    animation: shimmer-sweep var(--duration-sweep) var(--ease-standard) infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::after {
+      content: none;
+    }
+  }
 }
 
 @utility animate-shake {

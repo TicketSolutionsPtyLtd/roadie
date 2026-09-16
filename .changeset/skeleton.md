@@ -9,6 +9,9 @@ line height, `block` is a panel, `circle` is an avatar. Width and height come
 from Tailwind utilities, so a paragraph or a list row is several Skeletons in a
 grid. The root is `aria-hidden` and carries `data-slot='skeleton'`.
 
-Core adds the `--duration-ambient` token (1800ms) and the
-`animate-pulse-subtle` utility it drives. Under `prefers-reduced-motion` the
-pulse resolves to a static tint.
+Core adds the `--duration-ambient` (1800ms) and `--duration-sweep` (2400ms)
+tokens, the `animate-pulse-subtle` utility, and `animate-shimmer`, which adds a
+highlight sweeping across the surface on top of that pulse. The highlight is an
+overlay that translates, so it costs no layout and takes its colour from the
+intent, not from white. Under `prefers-reduced-motion` the sweep is dropped and
+the pulse resolves to a static tint.

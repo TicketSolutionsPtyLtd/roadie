@@ -114,6 +114,8 @@ Use a fixed number of rows, three or four, when the real count is unknown. A ske
 
 Stop at one level of detail. A card skeleton is an image block, a title line and a meta line, not every element the card will eventually hold.
 
+Skeletons that mount together sweep together. There is no per-element delay, on purpose: a staggered set reads as a row of separate things blinking, while a synchronised sweep reads as one surface waiting. A skeleton added later, such as a row appended to a list, joins out of phase and settles into the same tempo.
+
 ## Accessibility
 
 The root carries `aria-hidden='true'`, so a screen reader reads nothing from the placeholder itself. A row of announced bars would be noise, and the shapes carry no information.
@@ -134,6 +136,6 @@ The region that owns the fetch announces the wait. Put `aria-busy='true'` on it 
 
 Keep the live region small and separate from the content it describes. A `role='status'` on the whole section would read the entire result back once it lands.
 
-The pulse runs on the `animate-pulse-subtle` utility from the motion tokens. Under `prefers-reduced-motion: reduce` the global motion reset cuts it to a single pass, so the placeholder holds a static tint and never flickers.
+The motion runs on the `animate-shimmer` utility from the motion tokens: a tint pulse on `--duration-ambient` with a highlight sweeping across on `--duration-sweep`. Under `prefers-reduced-motion: reduce` the sweep is removed and the global motion reset cuts the pulse to a single pass, so the placeholder holds a static tint and never flickers.
 
 <PropsDefinitions componentPath='packages/components/src/components/Skeleton/index.tsx' />

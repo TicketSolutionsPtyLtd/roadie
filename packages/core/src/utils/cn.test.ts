@@ -59,10 +59,14 @@ describe('cn', () => {
     expect(cn('ease-in', 'ease-spring')).toBe('ease-spring')
   })
 
-  it('dedupes the Roadie pulse against a built-in animation', () => {
+  it('dedupes Roadie loading animations against built-in ones', () => {
     expect(cn('animate-pulse-subtle', 'animate-none')).toBe('animate-none')
+    expect(cn('animate-shimmer', 'animate-none')).toBe('animate-none')
     expect(cn('animate-pulse', 'animate-pulse-subtle')).toBe(
       'animate-pulse-subtle'
+    )
+    expect(cn('animate-pulse-subtle', 'animate-shimmer')).toBe(
+      'animate-shimmer'
     )
   })
 

@@ -64,6 +64,12 @@ const durationTokens = [
     value: '1800ms',
     tier: 'Ambient',
     use: 'One loop of a repeating idle animation, such as a skeleton pulse'
+  },
+  {
+    token: '--duration-sweep',
+    value: '2400ms',
+    tier: 'Ambient',
+    use: 'One pass of a highlight across a loading surface'
   }
 ]
 
@@ -121,7 +127,11 @@ const playsNowUtilities = [
   },
   {
     name: 'animate-pulse-subtle',
-    description: 'Looping opacity pulse — loading placeholders (Skeleton)'
+    description: 'Looping opacity pulse — a surface waiting on something'
+  },
+  {
+    name: 'animate-shimmer',
+    description: 'Pulse plus a highlight sweeping across — loading placeholders'
   }
 ]
 

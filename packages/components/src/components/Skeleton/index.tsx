@@ -14,11 +14,14 @@ import { intentVariants } from '../../variants'
  * is an avatar-sized disc. Width and height come from Tailwind utilities on
  * `className`, so a paragraph or a list row is several Skeletons in a grid.
  *
+ * A highlight sweeps across the surface over a slow tint pulse. Reduced
+ * motion drops the sweep and holds the tint.
+ *
  * The root is `aria-hidden`, so nothing is announced from here. The region
  * that owns the fetch announces the wait, usually with `aria-busy` and a live
  * region carrying the result.
  */
-export const skeletonVariants = cva('animate-pulse-subtle block', {
+export const skeletonVariants = cva('animate-shimmer block', {
   variants: {
     intent: intentVariants,
     emphasis: {
@@ -52,10 +55,12 @@ export function Skeleton({
 }: SkeletonProps) {
   return (
     <div
-      data-slot='skeleton'
       aria-hidden='true'
       className={cn(skeletonVariants({ intent, emphasis, shape, className }))}
       {...props}
+      // Pinned after the spread: the pending ring reads this to tell a pane is
+      // still loading.
+      data-slot='skeleton'
     />
   )
 }

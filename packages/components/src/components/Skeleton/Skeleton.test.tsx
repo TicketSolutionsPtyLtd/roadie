@@ -48,9 +48,14 @@ describe('Skeleton', () => {
     expect(get()).toHaveClass('rounded-sm')
   })
 
-  it('pulses with the shared motion utility rather than a raw duration', () => {
+  it('shimmers with the shared motion utility rather than a raw duration', () => {
     const { get } = renderSkeleton(<Skeleton />)
-    expect(get()).toHaveClass('animate-pulse-subtle')
+    expect(get()).toHaveClass('animate-shimmer')
+  })
+
+  it('keeps its slot marker when a consumer passes another one', () => {
+    const { get } = renderSkeleton(<Skeleton data-slot='something-else' />)
+    expect(get()).toBeInTheDocument()
   })
 
   it('takes no intent unless asked, so it inherits the one in context', () => {
