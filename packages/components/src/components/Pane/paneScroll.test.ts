@@ -1,5 +1,6 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
+import { restoreNavigation, setNavigation } from '../Navigator/testUtils'
 import {
   forgetPaneScroll,
   historyEntryKey,
@@ -7,17 +8,18 @@ import {
   rememberPaneScroll
 } from './paneScroll'
 
+let hadNavigation: PropertyDescriptor | undefined
+beforeEach(() => {
+  hadNavigation = Object.getOwnPropertyDescriptor(window, 'navigation')
+})
 afterEach(() => {
   forgetPaneScroll()
-  delete (window as { navigation?: unknown }).navigation
+  restoreNavigation(hadNavigation)
 })
 
 describe('historyEntryKey', () => {
   it('is the browser own id for the entry', () => {
-    Object.defineProperty(window, 'navigation', {
-      configurable: true,
-      value: { currentEntry: { key: 'abc' } }
-    })
+    setNavigation({ currentEntry: { key: 'abc' } })
     expect(historyEntryKey()).toBe('abc')
   })
 
@@ -26,10 +28,7 @@ describe('historyEntryKey', () => {
   })
 
   it('is null for an entry the browser gives no key', () => {
-    Object.defineProperty(window, 'navigation', {
-      configurable: true,
-      value: { currentEntry: null }
-    })
+    setNavigation({ currentEntry: null })
     expect(historyEntryKey()).toBeNull()
   })
 })

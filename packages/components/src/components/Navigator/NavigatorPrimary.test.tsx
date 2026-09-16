@@ -1239,8 +1239,10 @@ describe('expand motion', () => {
   }
   let animations: FakeAnimation[] = []
 
+  let wasAnimate: typeof Element.prototype.animate
   beforeEach(() => {
     animations = []
+    wasAnimate = Element.prototype.animate
     Element.prototype.animate = function (
       this: Element,
       keyframes: AnimateArgs[0],
@@ -1258,7 +1260,7 @@ describe('expand motion', () => {
     }
   })
   afterEach(() => {
-    delete (Element.prototype as Partial<Element>).animate
+    Element.prototype.animate = wasAnimate
   })
 
   const content = () =>

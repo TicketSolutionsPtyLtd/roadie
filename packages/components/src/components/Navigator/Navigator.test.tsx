@@ -21,6 +21,7 @@ import {
   flushScrollFrame,
   flushViewportMeasurement,
   primaryOf,
+  restoreNavigation,
   scrollViewport,
   testBrand,
   withExitAnimations,
@@ -4661,7 +4662,7 @@ describe('going back puts a pane where it was', () => {
   })
 
   it('leaves panes at the top where the engine has no history entries', async () => {
-    delete (window as { navigation?: unknown }).navigation
+    restoreNavigation(undefined)
     const { rerender } = render(nav('/s/a'))
     await flushViewportMeasurement()
     await scroll(640)

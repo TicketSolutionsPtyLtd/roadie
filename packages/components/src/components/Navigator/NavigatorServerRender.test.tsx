@@ -20,6 +20,8 @@ import {
   flushViewportMeasurement,
   paneColumnsRulesOf,
   panesShownAt,
+  restoreNavigation,
+  setNavigation,
   testBrand
 } from './testUtils'
 
@@ -700,28 +702,20 @@ describe('nothing slides in or out on a server render or its hydration', () => {
 // a fresh document starts empty. Neither may reach the render.
 describe('scroll restoration stays out of the server render', () => {
   it('renders a deep route with no history entry to read', () => {
-    const navigation = (window as { navigation?: unknown }).navigation
-    delete (window as { navigation?: unknown }).navigation
+    const was = Object.getOwnPropertyDescriptor(window, 'navigation')
+    restoreNavigation(undefined)
     const container = serverRender(<Docs value='/components/button' />)
     expect(positions(container)).toEqual([
       ['/components', 'behind'],
       ['detail', 'top'],
       ['inspector', null]
     ])
-    if (navigation !== undefined) {
-      Object.defineProperty(window, 'navigation', {
-        configurable: true,
-        value: navigation
-      })
-    }
+    restoreNavigation(was)
   })
 
   it('hydrates a deep route with an entry no pane has been scrolled on', async () => {
-    Object.defineProperty(window, 'navigation', {
-      configurable: true,
-      writable: true,
-      value: { currentEntry: { key: 'fresh-load' } }
-    })
+    const was = Object.getOwnPropertyDescriptor(window, 'navigation')
+    setNavigation({ currentEntry: { key: 'fresh-load' } })
     const ui = (
       <StrictMode>
         <Docs value='/components/button' />
@@ -743,7 +737,7 @@ describe('scroll restoration stays out of the server render', () => {
       expect(viewport.scrollTop).toBe(0)
     }
     act(() => root?.unmount())
-    delete (window as { navigation?: unknown }).navigation
+    restoreNavigation(was)
     vi.restoreAllMocks()
   })
 })

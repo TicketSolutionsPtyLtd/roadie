@@ -42,6 +42,14 @@ declare global {
   var __setReducedMotion: ((value: boolean) => void) | undefined
 }
 
+// Base UI's ScrollAreaViewport calls getAnimations() from a timer that can fire
+// after the test that mounted it, so a stub must never leave it missing.
+function keepGetAnimations() {
+  if (typeof Element.prototype.getAnimations !== 'function') {
+    Element.prototype.getAnimations = () => []
+  }
+}
+
 beforeAll(() => {
   if (typeof globalThis.ResizeObserver === 'undefined') {
     globalThis.ResizeObserver =
@@ -60,10 +68,7 @@ beforeAll(() => {
     ).IntersectionObserver = IntersectionObserverMock
   }
 
-  // Base UI's ScrollAreaViewport calls getAnimations(), which jsdom lacks.
-  if (typeof Element.prototype.getAnimations === 'undefined') {
-    Element.prototype.getAnimations = () => []
-  }
+  keepGetAnimations()
 
   if (typeof window.matchMedia === 'undefined') {
     Object.defineProperty(window, 'matchMedia', {
@@ -103,5 +108,6 @@ beforeAll(() => {
 
 afterEach(() => {
   cleanup()
+  keepGetAnimations()
   globalThis.__setReducedMotion?.(false)
 })

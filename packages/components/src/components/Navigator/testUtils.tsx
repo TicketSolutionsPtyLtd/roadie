@@ -324,12 +324,29 @@ export function panesShownAt(columns: number) {
     )
 }
 
+/** Puts a Navigation API on `window`, or takes one away, without leaving a hole. */
+export function setNavigation(value: unknown) {
+  Object.defineProperty(window, 'navigation', {
+    configurable: true,
+    writable: true,
+    value
+  })
+}
+
+export function restoreNavigation(was: PropertyDescriptor | undefined) {
+  if (was) Object.defineProperty(window, 'navigation', was)
+  else delete (window as { navigation?: unknown }).navigation
+}
+
 const exitAnimations = new Set<() => void>()
 
 /** jsdom runs no transitions; this gives a leaving pane a slide to wait on. */
 export function withExitAnimations() {
+  // Put back, never deleted: Base UI reads it from a timer that outlives the test.
+  let was: typeof Element.prototype.getAnimations
   beforeEach(() => {
     exitAnimations.clear()
+    was = Element.prototype.getAnimations
     Element.prototype.getAnimations = function (this: Element) {
       if (!this.hasAttribute('data-exiting')) return []
       let settle = () => {}
@@ -341,7 +358,7 @@ export function withExitAnimations() {
     }
   })
   afterEach(() => {
-    delete (Element.prototype as { getAnimations?: unknown }).getAnimations
+    Element.prototype.getAnimations = was
     exitAnimations.clear()
   })
 }
@@ -359,19 +376,17 @@ export async function endExitAnimations() {
 /** jsdom has no Navigation API; this gives the tests entries to move between. */
 export function withHistoryEntries() {
   let minted = 0
+  let was: PropertyDescriptor | undefined
   const entry = { key: 'entry-0' }
   beforeEach(() => {
     minted = 0
     entry.key = 'entry-0'
-    Object.defineProperty(window, 'navigation', {
-      configurable: true,
-      writable: true,
-      value: { currentEntry: entry }
-    })
+    was = Object.getOwnPropertyDescriptor(window, 'navigation')
+    setNavigation({ currentEntry: entry })
     forgetPaneScroll()
   })
   afterEach(() => {
-    delete (window as { navigation?: unknown }).navigation
+    restoreNavigation(was)
     forgetPaneScroll()
   })
   return {
