@@ -39,6 +39,27 @@ export function departed(
 }
 
 /**
+ * What is still leaving after this commit. A slot the row draws again takes its
+ * element back, mid-slide, so it stops leaving rather than being drawn twice
+ * under one key; a fresh departure replaces the one before it at that slot, so
+ * a row never holds two copies of the same place. Returns `was` when neither
+ * happened, so a re-render does not restart the wait.
+ */
+export function mergeHeld(
+  was: readonly HeldSlot[],
+  gone: readonly HeldSlot[],
+  live: readonly PaneSlot[]
+): readonly HeldSlot[] {
+  const drawn = new Set(live.map((slot) => slot.key))
+  const fresh = new Set(gone.map((slot) => slot.key))
+  const kept = was.filter(
+    (slot) => !drawn.has(slot.key) && !fresh.has(slot.key)
+  )
+  if (gone.length === 0 && kept.length === was.length) return was
+  return [...kept, ...gone]
+}
+
+/**
  * The live slots with the held ones back in the places they had, so no element
  * moves: a pane on its way out would restart its slide if the row re-ordered it.
  */

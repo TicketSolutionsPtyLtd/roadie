@@ -12,6 +12,7 @@ import {
   departed,
   drawnSlots,
   heldStack,
+  mergeHeld,
   slotsOf
 } from './paneExit'
 
@@ -132,5 +133,31 @@ describe('heldStack', () => {
 
   it('keeps the destination it left on, so the pane never scrolls itself back', () => {
     expect(heldStack(live(), 'behind').destination).toBe('/a/1')
+  })
+})
+
+describe('mergeHeld', () => {
+  const slot = (key: string) => ({ key, node: null })
+  const held = (key: string, at = 0) =>
+    ({ key, node: null, at, exit: 'ahead' }) as HeldSlot
+
+  it('keeps the same list when nothing left and nothing came back', () => {
+    const was = [held('.1', 1)]
+    expect(mergeHeld(was, [], [slot('.0')])).toBe(was)
+  })
+
+  it('stops holding a slot the row draws again, so one key is never drawn twice', () => {
+    expect(mergeHeld([held('.1', 1)], [], [slot('.0'), slot('.1')])).toEqual([])
+  })
+
+  it('replaces the copy of a slot that leaves a second time', () => {
+    const again = held('.1', 1)
+    expect(mergeHeld([held('.1', 1)], [again], [slot('.0')])).toEqual([again])
+  })
+
+  it('lets a second slot leave beside the first', () => {
+    const first = held('.2', 2)
+    const second = held('.1', 1)
+    expect(mergeHeld([first], [second], [slot('.0')])).toEqual([first, second])
   })
 })

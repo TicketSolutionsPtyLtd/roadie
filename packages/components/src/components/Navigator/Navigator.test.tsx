@@ -4327,3 +4327,55 @@ describe('a pane held for its exit', () => {
     expect(leaving()).toBeNull()
   })
 })
+
+describe('a pane that leaves while another is still leaving', () => {
+  withExitAnimations()
+
+  const drill = (deep: boolean, at = '/a/1') => (
+    <Navigator value={deep ? at : '/a'}>
+      <Navigator.Content>
+        <Pane role='list'>List</Pane>
+        {deep ? (
+          <Pane role='detail' current>
+            {at}
+          </Pane>
+        ) : null}
+      </Navigator.Content>
+    </Navigator>
+  )
+  const exiting = () =>
+    Array.from(document.querySelectorAll('[data-slot="pane"][data-exiting]'))
+  const detail = () =>
+    document.querySelector<HTMLElement>(
+      '[data-slot="pane"][data-role="detail"]:not([data-exiting])'
+    )
+
+  it('takes the element back mid-slide when the route draws the slot again', async () => {
+    const warn = vi.spyOn(console, 'error')
+    const { rerender } = render(drill(true, '/a/1'))
+    await flushViewportMeasurement()
+    const was = detail()
+    rerender(drill(false))
+    expect(exiting()).toHaveLength(1)
+
+    // A push before the slide ended: the same slot, so the same element resumes
+    // rather than a second copy appearing beside it.
+    rerender(drill(true, '/a/2'))
+    expect(exiting()).toEqual([])
+    expect(detail()).toBe(was)
+    expect(detail()).toHaveTextContent('/a/2')
+    expect(warn).not.toHaveBeenCalled()
+    vi.restoreAllMocks()
+  })
+
+  it('holds one copy of a slot however many times it leaves', async () => {
+    const { rerender } = render(drill(true, '/a/1'))
+    await flushViewportMeasurement()
+    rerender(drill(false))
+    rerender(drill(true, '/a/2'))
+    rerender(drill(false))
+    expect(exiting()).toHaveLength(1)
+    await endExitAnimations()
+    expect(exiting()).toEqual([])
+  })
+})

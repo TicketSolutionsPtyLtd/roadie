@@ -51,6 +51,7 @@ import {
   departed,
   drawnSlots,
   heldStack,
+  mergeHeld,
   slotsOf
 } from './paneExit'
 import {
@@ -133,14 +134,15 @@ type Presence = {
 // while the stack still slides; a section or tab change cuts before it gets here.
 const POP: PaneExit = 'ahead'
 
-/** The slots this commit dropped, ready to draw, or null when it dropped none. */
+/** The slots this commit dropped, ready to draw. */
 function nextHeld(
   was: readonly PaneSlot[],
   now: readonly PaneSlot[],
   from: HeldFrom
-): readonly HeldSlot[] | null {
+): HeldSlot[] {
   const gone = departed(was, now)
-  if (gone.length === 0) return null
+  if (gone.length === 0) return []
+  // One stack for the commit: every slot it drops leaves the same way.
   const stack = heldStack(from, POP)
   return gone.map((slot) => ({ ...slot, exit: POP, stack }))
 }
@@ -451,17 +453,21 @@ export function NavigatorContent({
       slots,
       tab,
       // A tab switch, More and a section change cut, so nothing is held to
-      // slide. Otherwise a departure replaces whatever was already leaving, and
-      // a render that drops nothing keeps it.
+      // slide. Otherwise this commit's departures join what is already leaving,
+      // and a slot drawn again takes its element back mid-slide.
       held:
         presence.tab !== tab
           ? []
-          : (nextHeld(presence.slots, slots, {
-              placeOf,
-              moreOpen,
-              level,
-              destination: value
-            }) ?? presence.held)
+          : mergeHeld(
+              presence.held,
+              nextHeld(presence.slots, slots, {
+                placeOf,
+                moreOpen,
+                level,
+                destination: value
+              }),
+              slots
+            )
     })
   }
   const held = presence.held
