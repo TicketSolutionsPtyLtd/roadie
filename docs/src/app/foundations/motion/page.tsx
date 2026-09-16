@@ -69,7 +69,7 @@ const durationTokens = [
     token: '--duration-sweep',
     value: '2400ms',
     tier: 'Ambient',
-    use: 'One pass of a highlight across a loading surface'
+    use: 'One pass of a highlight across the loading surfaces on screen'
   }
 ]
 
@@ -131,7 +131,8 @@ const playsNowUtilities = [
   },
   {
     name: 'animate-shimmer',
-    description: 'Pulse plus a highlight sweeping across — loading placeholders'
+    description:
+      'Pulse plus a viewport-anchored highlight — loading placeholders'
   }
 ]
 

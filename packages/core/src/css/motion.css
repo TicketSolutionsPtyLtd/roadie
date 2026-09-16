@@ -126,10 +126,10 @@
 
 @keyframes shimmer-sweep {
   from {
-    transform: translateX(-100%);
+    background-position-x: 200%;
   }
   to {
-    transform: translateX(100%);
+    background-position-x: 0%;
   }
 }
 
@@ -208,36 +208,36 @@
   animation: pulse-subtle var(--duration-ambient) var(--ease-standard) infinite;
 }
 
-/* A loading surface: the same tint pulse with a highlight sweeping across it.
-   The sweep rides an overlay that translates, so the element's own box, radius
-   and position never change; `overflow: hidden` clips the highlight to the
-   radius, including a circle. Reduced motion drops the overlay and leaves the
-   static tint. */
-@utility animate-shimmer {
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
-  animation: pulse-subtle var(--duration-ambient) var(--ease-standard) infinite;
+/* A loading surface: a tint pulse under a highlight sweeping across it.
+   `background-attachment: fixed` anchors the gradient to the viewport, so every
+   element wearing this class shows the slice of one shared sweep that falls
+   where it sits. A one-line placeholder and a full-width block then agree,
+   which a per-element sweep cannot do: it would restart at each element's own
+   edges and run at a different apparent speed on each. The cost is that the
+   sweep paints rather than riding the compositor, since only
+   `background-position` can express a shared gradient.
 
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    /* One step past --intent-5a, mixed the same way the alpha steps are, so
-       the highlight tracks the intent and the theme instead of being white. */
-    background-image: linear-gradient(
-      90deg,
-      transparent 20%,
-      color-mix(in oklch, var(--intent-9) 34%, transparent) 50%,
-      transparent 80%
-    );
-    animation: shimmer-sweep var(--duration-sweep) var(--ease-standard) infinite;
-  }
+   The element's own fill (from `emphasis-*`) is the base; the gradient paints
+   `--sheen-shade` over it everywhere the band is not and `--sheen-highlight`
+   inside the band, so the band is the lighter of the two in both themes.
+   Radius clips the background, so a circle stays a circle. Reduced motion drops
+   the gradient and leaves the static tint. */
+@utility animate-shimmer {
+  background-image: linear-gradient(
+    100deg,
+    var(--sheen-shade) 40%,
+    var(--sheen-highlight) 50%,
+    var(--sheen-shade) 60%
+  );
+  background-size: 200% 100%;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  animation:
+    pulse-subtle var(--duration-ambient) var(--ease-standard) infinite,
+    shimmer-sweep var(--duration-sweep) linear infinite;
 
   @media (prefers-reduced-motion: reduce) {
-    &::after {
-      content: none;
-    }
+    background-image: none;
   }
 }
 

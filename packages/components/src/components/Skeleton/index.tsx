@@ -14,8 +14,9 @@ import { intentVariants } from '../../variants'
  * is an avatar-sized disc. Width and height come from Tailwind utilities on
  * `className`, so a paragraph or a list row is several Skeletons in a grid.
  *
- * A highlight sweeps across the surface over a slow tint pulse. Reduced
- * motion drops the sweep and holds the tint.
+ * A highlight crosses the surface over a slow tint pulse. The highlight is
+ * anchored to the viewport, so every skeleton on screen shares one sweep
+ * whatever its size. Reduced motion drops the highlight and holds the tint.
  *
  * The root is `aria-hidden`, so nothing is announced from here. The region
  * that owns the fetch announces the wait, usually with `aria-busy` and a live
