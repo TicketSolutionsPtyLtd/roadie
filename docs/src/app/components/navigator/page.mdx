@@ -1064,8 +1064,8 @@ little and round their corners to show it. It runs until the destination
 arrives, then fades. Anything faster than 150ms shows nothing at all, so a
 prefetched route stays quiet.
 
-Nothing to wire: `RoadieLinkProvider` marks a plain left click on an internal
-`href`, wherever it came from, and `Navigator` clears it when the destination
+Nothing to wire: `RoadieLinkProvider` marks a plain left click on the internal
+`href` of any Roadie surface that takes one, and clears it when the destination
 lands. Turn it off with `pendingIndicator={false}` on the provider.
 
 ```tsx
@@ -1089,18 +1089,26 @@ export default function Loading() {
 }
 ```
 
-A navigation you start yourself, with `router.push` in a handler, is not a
-click Roadie saw. Report it:
+A navigation Roadie never saw is not marked at all: one you start with
+`router.push`, or a link that is not a Roadie surface, such as a bare
+`next/link`. Report those:
 
 ```tsx
 const { start, stop } = useReportPendingNavigation()
 
 const buy = async () => {
   start()
-  await reserve()
-  router.push('/checkout') // `stop()` is not needed; the route landing clears it
+  try {
+    await reserve()
+    router.push('/checkout')
+  } catch {
+    stop()
+  }
 }
 ```
+
+The route landing calls `stop` for you, so it is only needed on the path where
+the navigation never happens. Without it a failed attempt runs to the ceiling.
 
 A mounted `Skeleton` is deliberately not a signal on its own. A skeleton is as
 likely to be a placeholder that never resolves, or a demo of the component
@@ -1108,9 +1116,15 @@ itself, so it never starts or holds the indicator. `pending` is the one place
 that says a wait is real.
 
 The indicator ends on the first of the destination landing, a Back or Forward
-traversal, the tab going to the background, and a 10 second ceiling for a
-navigation that never arrives. Reduced motion keeps the colour and drops the
-turn. The frame carries `aria-busy` while it runs, and nothing is announced.
+traversal, the tab going to the background, and a 10 second ceiling, which also
+catches a pane left with `pending` and logs it in development. A pane still
+reporting `pending` outlasts the first three, because a Back press does not make
+its content arrive.
+
+Reduced motion keeps the colour and drops both the turn and the phone
+pull-back. The indicator announces nothing: it is `aria-hidden`, a pane with
+`pending` carries `aria-busy`, and the arrival is the router's to announce, as
+Next's own route announcer does.
 
 ### Panes
 

@@ -11,18 +11,18 @@ export const PENDING_CEILING = 10_000
 
 export function createPendingNavigationStore(): PendingNavigationStore {
   const listeners = new Set<() => void>()
+  // Tokens, not a count: the ceiling drops every hold at once, and a release
+  // that arrives after that has nothing left to take.
+  const holds = new Set<symbol>()
   let wait: { startedAt: number; settled: boolean } | null = null
-  let holds = 0
   let shown: PendingNavigation | null = null
   let ceiling: ReturnType<typeof setTimeout> | undefined
   let warned = false
 
   const publish = () => {
     // A landed route nothing is holding is not a wait any more.
-    if (wait?.settled === true && holds === 0) {
-      wait = null
-      clearTimeout(ceiling)
-    }
+    if (wait?.settled === true && holds.size === 0) wait = null
+    if (wait === null) clearTimeout(ceiling)
     const next =
       wait === null
         ? null
@@ -34,48 +34,47 @@ export function createPendingNavigationStore(): PendingNavigationStore {
     for (const listener of [...listeners]) listener()
   }
 
+  // The ceiling belongs to the wait, not to the click: a pane left reporting
+  // `pending` for ever gives up on the same terms a navigation does.
+  const open = (startedAt: number, settled: boolean) => {
+    wait = { startedAt, settled }
+    clearTimeout(ceiling)
+    ceiling = setTimeout(() => {
+      if (isDev() && !warned) {
+        warned = true
+        console.warn(
+          `[Roadie] A wait was still open after ${PENDING_CEILING}ms, so Roadie stopped reporting it. A navigation that never lands, or a Pane left with \`pending\`.`
+        )
+      }
+      holds.clear()
+      wait = null
+      publish()
+    }, PENDING_CEILING)
+    publish()
+  }
+
   return {
     subscribe: (listener) => {
       listeners.add(listener)
       return () => listeners.delete(listener)
     },
     get: () => shown,
-    start: () => {
-      clearTimeout(ceiling)
-      ceiling = setTimeout(() => {
-        if (isDev() && !warned) {
-          warned = true
-          console.warn(
-            `[Roadie] A navigation was still pending after ${PENDING_CEILING}ms, so Roadie stopped reporting it.`
-          )
-        }
-        wait = null
-        publish()
-      }, PENDING_CEILING)
-      // A second click keeps the first one's clock, so the indicator cannot
-      // blink between two slow hops.
-      wait = { startedAt: wait?.startedAt ?? Date.now(), settled: false }
-      publish()
-    },
+    // A second click keeps the first one's clock, so the indicator cannot blink
+    // between two slow hops.
+    start: () => open(wait?.startedAt ?? Date.now(), false),
     settle: () => {
       if (wait !== null) wait.settled = true
-      publish()
-    },
-    end: () => {
-      wait = null
       publish()
     },
     // With nothing in flight this is a pane reporting a wait of its own, so it
     // opens one that only the holds keep alive.
     hold: () => {
-      holds += 1
-      wait ??= { startedAt: Date.now(), settled: true }
-      publish()
-      let mine = true
+      const token = Symbol('pending hold')
+      holds.add(token)
+      if (wait === null) open(Date.now(), true)
+      else publish()
       return () => {
-        if (!mine) return
-        mine = false
-        holds -= 1
+        holds.delete(token)
         publish()
       }
     }
@@ -85,8 +84,11 @@ export function createPendingNavigationStore(): PendingNavigationStore {
 /**
  * Watches the window for the things that end a navigation whatever the router
  * does: a traversal, a document leaving, a backgrounded tab. Where the
- * Navigation API exists, a committed URL is also the route landing, which
- * covers a navigation that draws the same panes it left.
+ * Navigation API exists, a committed URL is the route landing, which covers a
+ * navigation that draws the same panes it left.
+ *
+ * Each of these settles the navigation. A pane still reporting `pending` keeps
+ * the wait open, because a Back press does not make its content arrive.
  */
 export function watchNavigation(store: PendingNavigationStore): () => void {
   if (typeof window === 'undefined') return () => {}
@@ -99,21 +101,18 @@ export function watchNavigation(store: PendingNavigationStore): () => void {
     target.addEventListener(type, run)
     off.push(() => target.removeEventListener(type, run))
   }
-  on(window, 'popstate', () => store.end())
-  on(window, 'pagehide', () => store.end())
+  const settle = () => store.settle()
+  on(window, 'popstate', settle)
+  on(window, 'pagehide', settle)
   on(document, 'visibilitychange', () => {
-    if (document.visibilityState === 'hidden') store.end()
+    if (document.visibilityState === 'hidden') settle()
   })
   const entries = (window as { navigation?: EventTarget }).navigation
   // A router pushes the URL inside React's commit and this event fires from
   // there, where telling a subscriber is an update scheduled out of an
   // insertion effect. A microtask lands after the commit instead.
   if (typeof entries?.addEventListener === 'function') {
-    on(entries, 'currententrychange', (event) => {
-      const traverse =
-        (event as { navigationType?: string }).navigationType === 'traverse'
-      queueMicrotask(() => (traverse ? store.end() : store.settle()))
-    })
+    on(entries, 'currententrychange', () => queueMicrotask(settle))
   }
   return () => off.forEach((remove) => remove())
 }

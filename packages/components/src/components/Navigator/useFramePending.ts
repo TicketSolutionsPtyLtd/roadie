@@ -7,8 +7,9 @@ import { usePendingNavigation } from '../../providers/PendingNavigationContext'
 /** `visible` draws the indicator, `leaving` fades it out, `idle` draws nothing. */
 export type FramePendingState = 'idle' | 'visible' | 'leaving'
 
-// The sheet reads the same three tokens: --duration-normal, --duration-slowest
-// and --duration-moderate. Changing one here means changing it there.
+// PENDING_FADE is the sheet's --duration-moderate, and the phone pull-back
+// transitions over the same token so the two end together. The other two are
+// this hook's alone; the sheet has no counterpart for them.
 export const PENDING_ARM = 150
 export const PENDING_MINIMUM = 600
 export const PENDING_FADE = 200
@@ -18,8 +19,8 @@ export const PENDING_FADE = 200
  * stays {@link PENDING_MINIMUM} so it reads as a pulse rather than a flicker.
  */
 export function useFramePending(enabled: boolean): FramePendingState {
-  const navigation = usePendingNavigation()
-  const waiting = enabled && navigation !== null
+  const navigation = usePendingNavigation(enabled)
+  const waiting = navigation !== null
 
   const [state, setState] = useState<FramePendingState>('idle')
   const shownAt = useRef(0)
@@ -46,11 +47,13 @@ export function useFramePending(enabled: boolean): FramePendingState {
     return () => clearTimeout(hold)
   }, [waiting, startedAt, state])
 
+  // `waiting`, so a click landing mid-fade cancels the unmount rather than
+  // racing it: the indicator has to come back without leaving first.
   useEffect(() => {
-    if (state !== 'leaving') return
+    if (state !== 'leaving' || waiting) return
     const gone = setTimeout(() => setState('idle'), PENDING_FADE)
     return () => clearTimeout(gone)
-  }, [state])
+  }, [state, waiting])
 
   return state
 }

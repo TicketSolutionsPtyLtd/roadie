@@ -33,11 +33,12 @@ is a pill search field with a Cancel.
 Tap a link and, after 150ms with nothing changed yet, the frame fills with a
 slowly turning gradient of three Oztix colours behind the panes and the nav,
 and on a phone the panes pull back and round their corners to show it. It goes
-when the destination lands, and never appears for a navigation faster than that.
-`RoadieLinkProvider` marks a plain click on an internal href and takes
-`pendingIndicator={false}` to turn it off; `pending` on a `Pane` reports a wait
-Roadie cannot see, such as a route's `loading.tsx`, and
-`useReportPendingNavigation` reports one from your own `router.push`.
+when the destination lands, and a navigation faster than 150ms shows nothing.
+`RoadieLinkProvider` marks a plain click on the internal href of any Roadie
+surface that takes one, and takes `pendingIndicator={false}` to turn it off;
+`pending` on a `Pane` reports a wait Roadie cannot see, such as a route's
+`loading.tsx`, and `useReportPendingNavigation` reports one from your own
+`router.push`.
 
 A pane takes its scroll down against the browser's own id for the history entry
 it is on, so going back or forward through history puts every pane where it was

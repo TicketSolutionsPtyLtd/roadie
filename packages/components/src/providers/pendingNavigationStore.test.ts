@@ -29,8 +29,59 @@ describe('the pending navigation store', () => {
     store.start()
     expect(listener).toHaveBeenCalledTimes(1)
     unsubscribe()
-    store.end()
+    store.settle()
     expect(listener).toHaveBeenCalledTimes(1)
+  })
+
+  // useSyncExternalStore reads this every render and loops on a fresh object.
+  it('hands out the same wait until it changes', () => {
+    const store = createPendingNavigationStore()
+    store.start()
+    const first = store.get()
+    store.start()
+    expect(store.get()).toBe(first)
+  })
+
+  it('settles nothing when no wait is open', () => {
+    const store = createPendingNavigationStore()
+    store.settle()
+    expect(store.get()).toBeNull()
+  })
+
+  it('takes one release per hold, however many times it is called', () => {
+    const store = createPendingNavigationStore()
+    store.start()
+    const first = store.hold()
+    const second = store.hold()
+    store.settle()
+    first()
+    first()
+    expect(store.get()).not.toBeNull()
+    second()
+    expect(store.get()).toBeNull()
+  })
+
+  it('drops the ceiling with the wait it belonged to', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const store = createPendingNavigationStore()
+    store.start()
+    store.settle()
+    vi.advanceTimersByTime(PENDING_CEILING * 2)
+    expect(warn).not.toHaveBeenCalled()
+    expect(store.get()).toBeNull()
+  })
+
+  it('gives up on a pane that holds a wait for ever', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const store = createPendingNavigationStore()
+    const release = store.hold()
+    vi.advanceTimersByTime(PENDING_CEILING)
+    expect(store.get()).toBeNull()
+    expect(warn).toHaveBeenCalledTimes(1)
+    release()
+    store.start()
+    store.settle()
+    expect(store.get()).toBeNull()
   })
 
   it('opens a wait of its own for a hold with nothing in flight', () => {
@@ -49,6 +100,17 @@ describe('the pending navigation store', () => {
     expect(store.get()).not.toBeNull()
     release()
     expect(store.get()).toBeNull()
+  })
+
+  it('outlasts a traversal while a pane holds it', () => {
+    const store = createPendingNavigationStore()
+    const release = store.hold()
+    const stop = watchNavigation(store)
+    window.dispatchEvent(new Event('popstate'))
+    expect(store.get()).not.toBeNull()
+    release()
+    expect(store.get()).toBeNull()
+    stop()
   })
 
   it('keeps the first click\u2019s clock and restarts the ceiling', () => {
@@ -77,7 +139,7 @@ describe('the pending navigation store', () => {
   })
 })
 
-describe('what the window ends', () => {
+describe('what the window settles', () => {
   const started = () => {
     const store = createPendingNavigationStore()
     store.start()
@@ -138,7 +200,7 @@ describe('what the window ends', () => {
       stop()
     })
 
-    it('ends on a traversal', async () => {
+    it('takes a traversal the same way', async () => {
       const store = started()
       const stop = watchNavigation(store)
       entryChange('traverse')

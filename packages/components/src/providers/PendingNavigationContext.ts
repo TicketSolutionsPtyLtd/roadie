@@ -13,10 +13,8 @@ export type PendingNavigationStore = {
   get: () => PendingNavigation | null
   /** A link was clicked. */
   start: () => void
-  /** The route landed. Over unless a pane still holds it. */
+  /** The route landed, or the navigation is off: over unless a pane holds it. */
   settle: () => void
-  /** Over outright: a traversal, a hidden tab, the ceiling. */
-  end: () => void
   /** Keeps the wait open, opening one if nothing else has. Returns the release. */
   hold: () => () => void
 }
@@ -33,12 +31,19 @@ export function usePendingNavigationStore(): PendingNavigationStore | null {
 const NO_STORE = () => () => {}
 const NO_NAVIGATION = (): PendingNavigation | null => null
 
-/** The wait being reported, or `null`. Re-renders the caller when it changes. */
-export function usePendingNavigation(): PendingNavigation | null {
+/**
+ * The wait being reported, or `null`. Re-renders the caller when it changes.
+ * `watching` false subscribes to nothing, so a frame that never draws the
+ * indicator does not re-render for one that does.
+ */
+export function usePendingNavigation(
+  watching = true
+): PendingNavigation | null {
   const store = use(PendingNavigationContext)
+  const live = watching ? store : null
   return useSyncExternalStore(
-    store?.subscribe ?? NO_STORE,
-    store?.get ?? NO_NAVIGATION,
+    live?.subscribe ?? NO_STORE,
+    live?.get ?? NO_NAVIGATION,
     NO_NAVIGATION
   )
 }

@@ -26,7 +26,7 @@ export type RoadieLinkProviderProps = {
    */
   Link: RoadieLinkComponent | null
   /**
-   * Rings the top pane of a `Navigator` stack while an internal link
+   * Draws the pending indicator on a `Navigator` frame while an internal link
    * navigation is in flight. @default true
    */
   pendingIndicator?: boolean
@@ -86,12 +86,12 @@ export function RoadieLinkProvider({
 RoadieLinkProvider.displayName = 'RoadieLinkProvider'
 
 /**
- * Reports a navigation as started or landed, for a Link shim that knows more
- * than Roadie does. A `next/link` wrapper can read `useLinkStatus()` and call
- * these, which buys per-link accuracy where a route is not prefetched.
+ * Reports a navigation Roadie cannot see: one your own code starts with
+ * `router.push`, or one from a link that is not a Roadie surface. `stop` is the
+ * same signal as the route landing, so it never cuts short a pane's `pending`.
  *
- * Roadie already marks a plain click on an internal href, so most apps never
- * call this.
+ * Call these from an event handler. Calling `start` from a layout or insertion
+ * effect schedules a render from a commit, which React refuses.
  */
 export function useReportPendingNavigation(): {
   start: () => void

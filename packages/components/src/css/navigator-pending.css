@@ -15,7 +15,7 @@
     inset: 0;
     /* Over the frame's own fill, under everything in it. The frame's `isolate`
        is what keeps this from falling behind the page. */
-    z-index: -1;
+    z-index: var(--z-index-hide);
     overflow: clip;
     container-type: size;
     pointer-events: none;
@@ -30,7 +30,8 @@
   }
 
   /* The band beside a vertical nav masks a flush pane's shadow with the frame's
-     own fill; while the frame glows, the glow is that fill. */
+     own fill; while the frame glows, the glow is that fill. A nested frame
+     inherits this and reveals its own identical fill, so it needs no reset. */
   [data-slot='navigator'][data-pending] {
     --pane-gutter-fill: transparent;
   }
@@ -56,12 +57,17 @@
     will-change: rotate;
   }
 
-  /* Reduced motion keeps the colour and drops the spin: the tap still has its
-     answer. Explicit, but the reset in motion.css lands on the same frame. */
+  /* Reduced motion keeps the colour and drops the movement: the spin, and the
+     phone pull-back, which the global reset would otherwise snap rather than
+     animate. The tap still has its answer. */
   @media (prefers-reduced-motion: reduce) {
     [data-slot='navigator-pending']::before {
       rotate: 0.125turn;
       animation: none;
+    }
+
+    [data-slot='navigator-panes'][data-level='0'] {
+      scale: none;
     }
   }
 
@@ -72,14 +78,17 @@
     }
 
     /* Only the frame that pulls back rounds its panes. A nested Navigator holds
-       still, and rounding its panes would show its own fill in the corners. */
+       still, and rounding its panes would show its own fill in the corners.
+       Same specificity as the rule above, so it has to stay after it. */
     [data-slot='navigator'] [data-slot='navigator'] {
       --pane-radius-phone: 0px;
     }
 
+    /* --duration-moderate, matching the fade: the radius above goes with
+       `data-pending`, so a slower scale would square the corners mid-return. */
     [data-slot='navigator-panes'][data-level='0'] {
       transform-origin: center;
-      transition: scale var(--duration-slow) var(--ease-standard);
+      transition: scale var(--duration-moderate) var(--ease-standard);
     }
 
     [data-slot='navigator'][data-pending='visible']

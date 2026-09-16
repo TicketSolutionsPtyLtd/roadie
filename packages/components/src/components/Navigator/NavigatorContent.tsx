@@ -91,12 +91,11 @@ const shapeOf = (row: HTMLElement, level: number): PaneShape[] =>
     (node) => ({ node, current: node.hasAttribute('data-current') })
   )
 
-const sameShape = (was: readonly PaneShape[], now: readonly PaneShape[]) =>
+// Nodes only, not `current`: opening More or a section list flips `current` on a
+// pane that was already there, and a disclosure moving is not content arriving.
+const sameNodes = (was: readonly PaneShape[], now: readonly PaneShape[]) =>
   was.length === now.length &&
-  was.every(
-    (pane, at) =>
-      now[at]?.node === pane.node && now[at]?.current === pane.current
-  )
+  was.every((pane, at) => now[at]?.node === pane.node)
 
 // A sibling swap: the row's shape is unchanged — the same panes in the same
 // document order, so the same depths and the same top — and at least one of
@@ -332,9 +331,10 @@ export function NavigatorContent({
     const was = shape.current
     shape.current = shapeOf(row, level)
     if (isSiblingSwap(was, shape.current)) cut()
-    // A new node, a new top or a dropped pane is content the navigation went
-    // for, including a param change that leaves `value` alone.
-    if (!sameShape(was, shape.current)) arrived.current = true
+    // A pane added, dropped or replaced is the content a navigation went for,
+    // including a param change that leaves `value` alone. This is the only
+    // signal for it where the engine has no Navigation API.
+    if (!sameNodes(was, shape.current)) arrived.current = true
   })
 
   // In an effect, not the insertion effect above: settling notifies the panes,

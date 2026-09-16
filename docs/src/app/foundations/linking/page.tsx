@@ -45,8 +45,19 @@ export function Providers({ children }) {
 }`}</CodePreview>
         <p className='text-subtle'>
           Now every Roadie component that accepts <Code>href</Code> routes
-          through Next&apos;s client navigation automatically — prefetch, scroll
-          restoration, view transitions all preserved.
+          through Next&apos;s client navigation automatically &mdash; prefetch,
+          scroll restoration, view transitions all preserved.
+        </p>
+        <p className='text-subtle'>
+          The provider also marks each of those clicks as a navigation in
+          flight, which is what draws{' '}
+          <Link href='/components/navigator#waiting-for-a-navigation'>
+            the pending indicator
+          </Link>{' '}
+          on a <Code>Navigator</Code> frame that is still waiting. Pass{' '}
+          <Code>pendingIndicator={'{false}'}</Code> to turn it off, and use{' '}
+          <Code>useReportPendingNavigation</Code> for a navigation Roadie never
+          sees, such as your own <Code>router.push</Code>.
         </p>
       </section>
 
