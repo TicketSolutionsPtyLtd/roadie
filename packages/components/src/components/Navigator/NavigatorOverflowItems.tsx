@@ -4,7 +4,7 @@ import { type ReactElement, use } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { List } from '../List'
+import { List, type ListProps } from '../List'
 import { ListItemContent } from '../List/ListItem'
 import { listItemVariants } from '../List/variants'
 import {
@@ -23,9 +23,7 @@ import { presentNavIcon } from './presentNavIcon'
 import { slotHref } from './sectionMemory'
 import { textOf } from './splitSecondary'
 
-export type NavigatorOverflowItemsProps = {
-  className?: string
-}
+export type NavigatorOverflowItemsProps = Omit<ListProps, 'children'>
 
 type Run = {
   key: string
@@ -50,7 +48,8 @@ function toRuns(slots: NavigatorSlotMeta[]): Run[] {
 
 /** The folded destinations as a `List`, each orientation's rows where it shows. */
 export function NavigatorOverflowItems({
-  className
+  className,
+  ...props
 }: NavigatorOverflowItemsProps) {
   const { setValue, setOverflowOpen, activateItem } = use(
     NavigatorActionsContext
@@ -125,6 +124,7 @@ export function NavigatorOverflowItems({
       <List
         data-slot='navigator-overflow-items'
         className={cn(gate, className)}
+        {...props}
       >
         {toRuns(slots).map((run) =>
           run.group ? (
