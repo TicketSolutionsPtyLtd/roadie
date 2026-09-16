@@ -89,7 +89,7 @@ describe('Navigator.SectionItems', () => {
     })
     expect(installation).toHaveAttribute('href', '/overview/installation')
     expect(
-      installation.querySelector('[data-slot="list-item-subtitle"]')
+      installation.querySelector('[data-slot="list-item-description"]')
     ).toHaveTextContent('Set up the packages')
     expect(
       installation.querySelector('[data-slot="list-item-chevron"]')
@@ -138,7 +138,7 @@ describe('Navigator.SectionItems', () => {
     expect(
       within(pane).getByRole('link', { name: /Installation/ })
     ).toBeInTheDocument()
-    expect(pane.querySelector('[data-slot="list-item-subtitle"]')).toBeNull()
+    expect(pane.querySelector('[data-slot="list-item-description"]')).toBeNull()
   })
 
   it('passes List props through', async () => {

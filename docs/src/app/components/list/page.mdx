@@ -9,7 +9,7 @@ export const metadata = {
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 An iOS-style list. Rows are separated by inset hairline dividers that
-begin at the title, and each takes an optional leading tile, a subtitle, a
+begin at the title, and each takes an optional leading tile, a description, a
 trailing slot, and an automatic drill-in chevron. `contained` draws the
 rows as a card, and `List.Group` breaks them into titled sections.
 
@@ -55,15 +55,15 @@ hovering or selecting a row in a long list never re-renders anything.
 ```tsx-live
 <div className='grid gap-4'>
   <List emphasis='subtler'>
-    <List.Item title='Subtler' subtitle='No fill — the default' />
+    <List.Item title='Subtler' description='No fill — the default' />
     <List.Item title='Notifications' />
   </List>
   <List emphasis='subtle'>
-    <List.Item title='Subtle' subtitle='Tinted rows' />
+    <List.Item title='Subtle' description='Tinted rows' />
     <List.Item title='Notifications' />
   </List>
   <List emphasis='normal'>
-    <List.Item title='Normal' subtitle='Bordered rows' />
+    <List.Item title='Normal' description='Bordered rows' />
     <List.Item title='Notifications' />
   </List>
 </div>
@@ -79,11 +79,11 @@ menu of separate destinations.
 ```tsx-live
 <div className='grid gap-4'>
   <List contained emphasis='subtle'>
-    <List.Item title='Subtle' subtitle='Tinted card' />
+    <List.Item title='Subtle' description='Tinted card' />
     <List.Item title='Notifications' />
   </List>
   <List contained emphasis='normal'>
-    <List.Item title='Normal' subtitle='Bordered card' />
+    <List.Item title='Normal' description='Bordered card' />
     <List.Item title='Notifications' />
   </List>
 </div>
@@ -141,7 +141,7 @@ aligned column of rows sharing a single card.
 <List contained emphasis='subtle'>
   <List.Item
     title='Account'
-    subtitle='Profile, security, sign-in'
+    description='Profile, security, sign-in'
     href='#'
     leading={
       <IconTile intent='accent'>
@@ -151,7 +151,7 @@ aligned column of rows sharing a single card.
   />
   <List.Item
     title='Notifications'
-    subtitle='Email and push alerts'
+    description='Email and push alerts'
     href='#'
     leading={
       <IconTile intent='brand'>
@@ -161,7 +161,7 @@ aligned column of rows sharing a single card.
   />
   <List.Item
     title='Saved events'
-    subtitle='Your wishlist'
+    description='Your wishlist'
     href='#'
     leading={
       <IconTile intent='danger'>
@@ -185,7 +185,7 @@ and `'location'` when the row points at the current page, step or place.
 <List>
   <List.Item
     title='Oztix'
-    subtitle='oztix.com.au'
+    description='oztix.com.au'
     leading={
       <IconTile intent='accent'>
         <StarIcon weight='bold' />
@@ -196,7 +196,7 @@ and `'location'` when the row points at the current page, step or place.
   />
   <List.Item
     title='The Triffid'
-    subtitle='thetriffid.com.au'
+    description='thetriffid.com.au'
     leading={
       <IconTile>
         <StarIcon weight='bold' />
@@ -248,12 +248,12 @@ a chevron by default; suppress it with `chevron={false}`.
 <List>
   <List.Item
     title='View your tickets'
-    subtitle='Internal route — through the app router'
+    description='Internal route — through the app router'
     href='#'
   />
   <List.Item
     title='Oztix help centre'
-    subtitle='External — opens in a new tab'
+    description='External — opens in a new tab'
     href='https://help.oztix.com.au'
     chevron={false}
     trailing={<ArrowSquareOutIcon className='size-4 text-subtle' weight='bold' />}
@@ -287,7 +287,7 @@ a chevron by default; suppress it with `chevron={false}`.
 - **Groups**: a `List.Group` is an `<li>` holding its title and a nested
   `<ul>`, so screen readers announce each section as its own list. The
   title is an `<h2>` that labels its section; `render` sets another level.
-- **Subtitle**: the `subtitle` is read as the row's description, not part
+- **Description**: the `description` is read as the row's description, not part
   of its name, so it is announced once.
 - **Selection**: `current` sets `aria-current` on the row so screen
   readers announce the active choice.

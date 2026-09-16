@@ -43,14 +43,14 @@ A pane in a box. Scroll it to see the body move under the sticky header.
       <Pane.Title>Midnight Frequency</Pane.Title>
     </Pane.Header>
     <List>
-      <List.Item title='General admission' subtitle='$68.00 · on sale' chevron />
-      <List.Item title='Early bird' subtitle='$54.00 · sold out' chevron />
-      <List.Item title='VIP booth' subtitle='$180.00 · 6 remaining' chevron />
-      <List.Item title='Group of 6' subtitle='$360.00 · on sale' chevron />
-      <List.Item title='Accessible seating' subtitle='$68.00 · on sale' chevron />
-      <List.Item title='Companion' subtitle='$0.00 · on request' chevron />
-      <List.Item title='Doors' subtitle='7:00 pm' />
-      <List.Item title='Support act' subtitle='The Paper Kites' />
+      <List.Item title='General admission' description='$68.00 · on sale' chevron />
+      <List.Item title='Early bird' description='$54.00 · sold out' chevron />
+      <List.Item title='VIP booth' description='$180.00 · 6 remaining' chevron />
+      <List.Item title='Group of 6' description='$360.00 · on sale' chevron />
+      <List.Item title='Accessible seating' description='$68.00 · on sale' chevron />
+      <List.Item title='Companion' description='$0.00 · on request' chevron />
+      <List.Item title='Doors' description='7:00 pm' />
+      <List.Item title='Support act' description='The Paper Kites' />
     </List>
   </Pane>
 </div>
@@ -223,10 +223,10 @@ where two columns fit and a push where they don't.
 function Stacking() {
   const [selected, setSelected] = useState(null)
   const events = [
-    { id: 'midnight', title: 'Midnight Frequency', subtitle: '1,240 sold · 60 remaining' },
-    { id: 'sunset', title: 'Sunset Sounds', subtitle: '820 sold · 180 remaining' },
-    { id: 'neon', title: 'Neon Dusk', subtitle: '540 sold · 460 remaining' },
-    { id: 'harbour', title: 'Harbour Lights', subtitle: '2,010 sold · sold out' }
+    { id: 'midnight', title: 'Midnight Frequency', description: '1,240 sold · 60 remaining' },
+    { id: 'sunset', title: 'Sunset Sounds', description: '820 sold · 180 remaining' },
+    { id: 'neon', title: 'Neon Dusk', description: '540 sold · 460 remaining' },
+    { id: 'harbour', title: 'Harbour Lights', description: '2,010 sold · sold out' }
   ]
   const event = events.find((e) => e.id === selected)
   return (
@@ -242,7 +242,7 @@ function Stacking() {
                 <List.Item
                   key={e.id}
                   title={e.title}
-                  subtitle={e.subtitle}
+                  description={e.description}
                   chevron
                   current={selected === e.id}
                   onClick={() => setSelected(e.id)}
@@ -256,7 +256,7 @@ function Stacking() {
             </Pane.Header>
             <div className='grid gap-3 pb-4'>
               <p className='text-subtle'>
-                {event ? event.subtitle : 'Pick an event from the list.'}
+                {event ? event.description : 'Pick an event from the list.'}
               </p>
             </div>
           </Pane>
@@ -288,11 +288,11 @@ function Roles() {
   const [open, setOpen] = useState(false)
   const [showDetail, setShowDetail] = useState(true)
   const tiers = [
-    { title: 'General admission', subtitle: '$68.00 · on sale' },
-    { title: 'Early bird', subtitle: '$54.00 · sold out' },
-    { title: 'VIP booth', subtitle: '$180.00 · 6 remaining' },
-    { title: 'Group of 6', subtitle: '$360.00 · on sale' },
-    { title: 'Accessible seating', subtitle: '$68.00 · on sale' }
+    { title: 'General admission', description: '$68.00 · on sale' },
+    { title: 'Early bird', description: '$54.00 · sold out' },
+    { title: 'VIP booth', description: '$180.00 · 6 remaining' },
+    { title: 'Group of 6', description: '$360.00 · on sale' },
+    { title: 'Accessible seating', description: '$68.00 · on sale' }
   ]
   return (
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
@@ -303,10 +303,10 @@ function Roles() {
               <Pane.Title>Events</Pane.Title>
             </Pane.Header>
             <List>
-              <List.Item title='Midnight Frequency' subtitle='60 remaining' current onClick={() => setShowDetail(true)} />
-              <List.Item title='Sunset Sounds' subtitle='180 remaining' />
-              <List.Item title='Neon Dusk' subtitle='460 remaining' />
-              <List.Item title='Harbour Lights' subtitle='sold out' />
+              <List.Item title='Midnight Frequency' description='60 remaining' current onClick={() => setShowDetail(true)} />
+              <List.Item title='Sunset Sounds' description='180 remaining' />
+              <List.Item title='Neon Dusk' description='460 remaining' />
+              <List.Item title='Harbour Lights' description='sold out' />
             </List>
           </Pane>
           <Pane role='detail' aria-label='Midnight Frequency' current={showDetail}>
@@ -328,9 +328,9 @@ function Roles() {
                   <Drawer.Content aria-label='Event details'>
                     <Drawer.Body className='py-4'>
                       <List emphasis='subtler'>
-                        <List.Item title='Venue' subtitle='The Tivoli' />
-                        <List.Item title='Doors' subtitle='7:00 pm' />
-                        <List.Item title='Capacity' subtitle='1,300' />
+                        <List.Item title='Venue' description='The Tivoli' />
+                        <List.Item title='Doors' description='7:00 pm' />
+                        <List.Item title='Capacity' description='1,300' />
                       </List>
                     </Drawer.Body>
                   </Drawer.Content>
@@ -339,7 +339,7 @@ function Roles() {
             </Pane.Header>
             <List>
               {tiers.map((tier) => (
-                <List.Item key={tier.title} title={tier.title} subtitle={tier.subtitle} chevron />
+                <List.Item key={tier.title} title={tier.title} description={tier.description} chevron />
               ))}
             </List>
           </Pane>
@@ -348,9 +348,9 @@ function Roles() {
               <Pane.Title>Details</Pane.Title>
             </Pane.Header>
             <List emphasis='subtler'>
-              <List.Item title='Venue' subtitle='The Tivoli' />
-              <List.Item title='Doors' subtitle='7:00 pm' />
-              <List.Item title='Capacity' subtitle='1,300' />
+              <List.Item title='Venue' description='The Tivoli' />
+              <List.Item title='Doors' description='7:00 pm' />
+              <List.Item title='Capacity' description='1,300' />
             </List>
           </Pane>
         </Navigator.Content>
