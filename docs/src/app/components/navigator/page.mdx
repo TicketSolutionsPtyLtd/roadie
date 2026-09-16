@@ -68,8 +68,58 @@ The tree has three rules:
   items, group titles and menus disappear. `Navigator.Content` and
   `Pane` are server-safe on their own.
 - `Navigator.Primary` must be a direct child of `Navigator`. Items must be
-  direct children of `Primary`, a `Group` or a `Secondary`. Mapped arrays work,
-  but an item inside a Fragment or your own component is skipped.
+  direct children of `Primary`, a `Group` or a `Secondary`. Navigator matches
+  these by element type as it walks `children`, so a mapped array works,
+  because the walk flattens it. A Fragment does not count as direct, and
+  neither does your own component. Anything inside either one is skipped. See
+  [Splitting a big tree](#splitting-a-big-tree).
+
+### Splitting a big tree
+
+A rail with several variants gets long, so it is tempting to move each variant
+into its own `UserRail` or `OrgRail` component. Doing that hides the `Primary`
+from the walk, and the bar still draws while sections, More rows and
+`useNavigatorSection` do nothing. Write each rail as a function you call, not a
+component you render. Call any hook it needs in the component and pass the
+result in as data.
+
+```tsx
+function Shell({ kind, base }: ShellProps) {
+  const pathname = usePathname()
+  const accountMenu = useAccountMenu()
+  const rail = { base, accountMenu }
+
+  return (
+    <Navigator value={pathname} className='h-dvh'>
+      {kind === 'org' ? orgRail(rail) : userRail(rail)}
+      <Navigator.Content>…</Navigator.Content>
+    </Navigator>
+  )
+}
+
+function userRail({ base, accountMenu }: RailProps) {
+  return (
+    <Navigator.Primary aria-label='Account'>
+      <Navigator.Brand href={`${base}/tickets`} />
+      <Navigator.ExpandToggle />
+      <Navigator.Item
+        value={`${base}/tickets`}
+        href={`${base}/tickets`}
+        icon={<TicketIcon />}
+      >
+        Tickets
+      </Navigator.Item>
+      {accountItem(accountMenu)}
+    </Navigator.Primary>
+  )
+}
+```
+
+The conditional between the two rails is fine, and the same split works one
+level down. `accountItem` is another called function, and its rows can be a
+mapped array of `Navigator.MenuItem`s. The walk sees what the function returned
+and flattens the array, because both land in `children` as elements. A wrapper
+component puts its own element type there instead, and the walk skips it.
 
 ## Examples
 

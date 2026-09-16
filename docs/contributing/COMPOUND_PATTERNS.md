@@ -105,7 +105,9 @@ walk, and a tree authored in a server component still fails silently for all
 of them. `Navigator.Primary` itself must be a direct child of `Navigator`, which
 reads its children during render so the server render has its sections. A
 Fragment or wrapper around it counts as not direct: the Primary draws nothing
-and warns in development.
+and warns in development. To split a long tree, write each part as a function
+you call (`{userRail(props)}`) rather than a component you render, calling any
+hook it needs in the surrounding component and passing the result in.
 
 ### 1.3 Registration
 
