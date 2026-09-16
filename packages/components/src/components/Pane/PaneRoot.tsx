@@ -175,12 +175,15 @@ export function PaneRoot({
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
+          const root = entry.rootBounds
+          // A pane an ancestor hides has no box, and its zero rects would
+          // otherwise read as scrolled past: it would open already collapsed.
+          if (root === null || root.height === 0) return
           const at = Number((entry.target as HTMLElement).dataset.scrollAt)
           past.set(
             at,
             !entry.isIntersecting &&
-              entry.rootBounds !== null &&
-              entry.boundingClientRect.bottom <= entry.rootBounds.top + 0.5
+              entry.boundingClientRect.bottom <= root.top + 0.5
           )
         }
         setCollapsed((was) => (was ? beyond(EXPAND_AT) : beyond(COLLAPSE_AT)))

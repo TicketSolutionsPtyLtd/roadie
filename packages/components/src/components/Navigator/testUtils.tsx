@@ -137,13 +137,31 @@ function reportScroll(viewport: HTMLElement, top: number) {
       return {
         target,
         isIntersecting: bottom >= 0,
-        rootBounds: { top: 0 },
+        rootBounds: { top: 0, height: VIEWPORT_HEIGHT },
         boundingClientRect: { bottom }
       } as unknown as IntersectionObserverEntry
     })
     watch.callback(entries, watch.observer)
   }
   fireEvent.scroll(viewport)
+}
+
+const VIEWPORT_HEIGHT = 600
+
+/** The first report a browser sends for a pane an ancestor hides: no box, so every rect reads zero. */
+export function reportUnrenderedSentinels(viewport: HTMLElement) {
+  for (const watch of sentinelWatches) {
+    if (watch.root !== viewport) continue
+    const entries = Array.from(watch.targets, (target) => {
+      return {
+        target,
+        isIntersecting: false,
+        rootBounds: { top: 0, height: 0 },
+        boundingClientRect: { bottom: 0 }
+      } as unknown as IntersectionObserverEntry
+    })
+    watch.callback(entries, watch.observer)
+  }
 }
 
 export type PaneColumnsRule = {

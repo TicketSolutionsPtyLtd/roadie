@@ -8,6 +8,7 @@ import { Pane } from '.'
 import { Navigator } from '../Navigator'
 import {
   paneColumnsRulesOf,
+  reportUnrenderedSentinels,
   scrollViewport,
   testBrand,
   withScrollSentinels
@@ -719,6 +720,16 @@ describe('Pane.Header collapse on scroll', () => {
       await Promise.resolve()
     })
     expect(headerOf()).toHaveAttribute('data-collapsed', 'true')
+  })
+
+  it('stays expanded when the first report comes from a pane an ancestor hides', async () => {
+    await renderPane(titled)
+    await act(async () => {
+      reportUnrenderedSentinels(viewportOf())
+      await Promise.resolve()
+    })
+    expect(headerOf()).toHaveAttribute('data-collapsed', 'false')
+    expect(titleOf()).toHaveClass('grid-rows-[1fr]')
   })
 
   it('fades its docked shadow in on a pseudo-element, never transitioning box-shadow', async () => {
