@@ -6,7 +6,8 @@
 
 @theme {
   /* ═══ Durations ═══
-     Micro: 50–150ms  |  Component: 200–300ms  |  Page: 400–600ms */
+     Micro: 50–150ms  |  Component: 200–300ms  |  Page: 400–600ms
+     Ambient: one loop of a repeating idle animation */
   --duration-instant: 0ms;
   --duration-fastest: 50ms;
   --duration-fast: 100ms;
@@ -15,6 +16,7 @@
   --duration-slow: 300ms;
   --duration-slower: 400ms;
   --duration-slowest: 600ms;
+  --duration-ambient: 1800ms;
 
   /* ═══ Easings (color, opacity, box-shadow) ═══ */
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
@@ -114,6 +116,12 @@
   }
 }
 
+@keyframes pulse-subtle {
+  50% {
+    opacity: 0.6;
+  }
+}
+
 @keyframes pop-in {
   from {
     opacity: 0;
@@ -180,6 +188,13 @@
 /* @deprecated use animate-pop-in, remove in v3 */
 @utility motion-pop-in {
   animation: pop-in var(--duration-slow) var(--ease-enter) both;
+}
+
+/* Loops while content is pending. `prefers-reduced-motion` cuts it to a
+   single 0.01ms pass, which leaves the element at full opacity: a static
+   tint. */
+@utility animate-pulse-subtle {
+  animation: pulse-subtle var(--duration-ambient) var(--ease-standard) infinite;
 }
 
 @utility animate-shake {

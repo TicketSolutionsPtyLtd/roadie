@@ -1,0 +1,134 @@
+export const metadata = {
+  title: 'Skeleton',
+  description: 'A placeholder that holds the space content will occupy while it loads',
+  status: 'beta',
+  category: 'Content',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+# Skeleton
+
+A placeholder that holds the space content will occupy while it loads.
+
+## Import
+
+```tsx
+import { Skeleton } from '@oztix/roadie-components/skeleton'
+```
+
+## Examples
+
+### Default
+
+One text line, as tall as the line height it inherits.
+
+```tsx-live
+<Skeleton />
+```
+
+### Shapes
+
+`text` is a line of copy, `block` is a panel such as an image or a card body, and `circle` is an avatar. Width and height come from Tailwind utilities, so the shape only sets the radius and a starting size.
+
+```tsx-live
+<div className='grid gap-4'>
+  <Skeleton shape='text' />
+  <Skeleton shape='block' />
+  <Skeleton shape='circle' />
+</div>
+```
+
+### Sizes
+
+Size a Skeleton the way you would size the content it stands in for. A `text` line tracks the type size around it, so wrap it in the element that carries the class.
+
+```tsx-live
+<div className='grid gap-4'>
+  <p className='text-sm'><Skeleton /></p>
+  <p className='text-lg'><Skeleton className='w-2/3' /></p>
+  <Skeleton shape='block' className='h-40' />
+  <Skeleton shape='circle' className='size-16' />
+</div>
+```
+
+### Emphasis
+
+`subtle` is the default. Use `subtler` on a raised or sunken surface where the default fill reads too loud.
+
+```tsx-live
+<div className='grid gap-4'>
+  <Skeleton emphasis='subtle' />
+  <Skeleton emphasis='subtler' />
+</div>
+```
+
+### Intents
+
+Skeleton takes its intent from context, so a placeholder inside a tinted region picks up that palette. Pass `intent` to set it directly.
+
+```tsx-live
+<div className='grid gap-4'>
+  <Skeleton />
+  <Skeleton intent='brand' />
+  <Skeleton intent='accent' />
+  <Skeleton intent='danger' />
+</div>
+```
+
+### Composition
+
+A paragraph is several text lines in a grid, with a short last line.
+
+```tsx-live
+<div className='grid gap-2'>
+  <Skeleton />
+  <Skeleton />
+  <Skeleton className='w-3/5' />
+</div>
+```
+
+A list row is a circle beside a two-line stack.
+
+```tsx-live
+<div className='grid gap-4'>
+  {[0, 1, 2].map((row) => (
+    <div key={row} className='flex items-center gap-3'>
+      <Skeleton shape='circle' />
+      <div className='grid flex-1 gap-2'>
+        <Skeleton className='w-1/3' />
+        <Skeleton className='w-2/3' />
+      </div>
+    </div>
+  ))}
+</div>
+```
+
+## Guidelines
+
+Use a Skeleton once the page is on screen and its content is still arriving, such as an event list still fetching. For a full page that has not rendered yet, show nothing rather than a screen of grey bars.
+
+Match the real layout. The skeleton should occupy the same box as the content that replaces it, so nothing jumps when the data lands.
+
+Use a fixed number of rows, three or four, when the real count is unknown. A skeleton per expected record makes the wait look longer than it is.
+
+Stop at one level of detail. A card skeleton is an image block, a title line and a meta line, not every element the card will eventually hold.
+
+## Accessibility
+
+The root carries `aria-hidden='true'`, so a screen reader reads nothing from the placeholder itself. A row of announced bars would be noise, and the shapes carry no information.
+
+The region that owns the fetch announces the wait. Put `aria-busy='true'` on it while the request is in flight and give it an accessible name, then let the result land in the same region.
+
+```tsx
+<section aria-busy={isPending} aria-labelledby='events-heading'>
+  <h2 id='events-heading' className='text-display-ui-4 text-strong'>
+    Upcoming events
+  </h2>
+  {isPending ? <Skeleton shape='block' /> : <EventList events={events} />}
+</section>
+```
+
+The pulse runs on the `animate-pulse-subtle` utility from the motion tokens. Under `prefers-reduced-motion: reduce` the global motion reset cuts it to a single pass, so the placeholder holds a static tint and never flickers.
+
+<PropsDefinitions componentPath='packages/components/src/components/Skeleton/index.tsx' />

@@ -121,6 +121,13 @@ export {
 } from './components/Separator'
 
 export {
+  Skeleton,
+  skeletonVariants,
+  type SkeletonProps,
+  type SkeletonShape
+} from './components/Skeleton'
+
+export {
   ScrollArea,
   scrollAreaRootVariants,
   scrollAreaViewportVariants,

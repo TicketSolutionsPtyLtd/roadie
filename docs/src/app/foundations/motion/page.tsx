@@ -58,6 +58,12 @@ const durationTokens = [
     value: '600ms',
     tier: 'Page',
     use: 'Full-page transitions, complex orchestrations'
+  },
+  {
+    token: '--duration-ambient',
+    value: '1800ms',
+    tier: 'Ambient',
+    use: 'One loop of a repeating idle animation, such as a skeleton pulse'
   }
 ]
 
@@ -112,6 +118,10 @@ const playsNowUtilities = [
   {
     name: 'animate-pop',
     description: 'One-shot scale pop — attention cue (badge update)'
+  },
+  {
+    name: 'animate-pulse-subtle',
+    description: 'Looping opacity pulse — loading placeholders (Skeleton)'
   }
 ]
 
