@@ -29,3 +29,33 @@ event pane in one layout and the ticket pane as its own segment, so Back makes
 the router drop a pane while Roadie keeps the others mounted. Measure with a
 per-frame trace of `getComputedStyle(pane).translate`, and read the scroll off
 `[data-slot="pane-viewport"]` before and after a traversal.
+
+## Why a wrapper around `{children}` cannot fix it
+
+The obvious fix is a `Navigator.Segment` that runs the same presence list around
+a nested layout's `{children}`, so the retained element keeps its key in its own
+parent. It works for plain React children, and a full jsdom suite for it passes.
+It does not work in the App Router, and the reason is worth writing down.
+
+A layout's `children` is not a value. It is a live view onto the router: the
+same element every route, rendering whatever the router tree currently says.
+Holding it and drawing it again after a pop draws the **new** route's content,
+not the old one. Measured in the canary, with the held slot counting the panes
+that registered under it:
+
+```
+finish-effect saw: [{ "held": 1, "nodes": [0], "panesInDoc": 4 }]
+```
+
+One slot held, zero panes drawn under it. The ticket pane was already gone.
+
+This is also why jsdom passed while the browser did not: in a test the children
+really are a value, so retaining the element retains the content. Any test for
+route-driven retention has to run against a router, not against elements a test
+wrote by hand.
+
+What follows from it: keeping a React subtree alive after the router has moved
+on needs the subtree to be a value someone still holds. In an App Router shell
+nothing holds it, so the only thing left on screen to animate is the DOM node
+React detached. That is a different mechanism from retention, and the choice
+between them is a product decision, not a technical one.
