@@ -20,13 +20,13 @@ export type NavigatorSectionItemsProps = Omit<ListProps, 'children'> & {
   /** Filters rows by label, ignoring case. Empty groups hide. */
   query?: string
   /** Show each item's `description` beneath its label. @default true */
-  descriptions?: boolean
+  showDescriptions?: boolean
 }
 
 type SectionItemsRowProps = {
   row: SectionRow
   current: boolean
-  descriptions: boolean
+  showDescriptions: boolean
 }
 
 // By hand: rows come out of a `map`, which the compiler caches only as a whole,
@@ -34,13 +34,13 @@ type SectionItemsRowProps = {
 const SectionItemsRow = memo(function SectionItemsRow({
   row,
   current,
-  descriptions
+  showDescriptions
 }: SectionItemsRowProps) {
   const { setValue, activateItem } = use(NavigatorActionsContext)
   return (
     <List.Item
       title={row.label}
-      description={descriptions ? row.description : undefined}
+      description={showDescriptions ? row.description : undefined}
       leading={
         row.icon ? presentNavIcon(row.icon, 'size-5 text-subtle') : undefined
       }
@@ -59,7 +59,7 @@ const SectionItemsRow = memo(function SectionItemsRow({
 export function NavigatorSectionItems({
   value: sectionValue,
   query = '',
-  descriptions = true,
+  showDescriptions = true,
   ...props
 }: NavigatorSectionItemsProps) {
   const section = useSection(sectionValue)
@@ -98,7 +98,7 @@ export function NavigatorSectionItems({
       key={item.value}
       row={item}
       current={isActiveValue(item.value, value)}
-      descriptions={descriptions}
+      showDescriptions={showDescriptions}
     />
   )
 

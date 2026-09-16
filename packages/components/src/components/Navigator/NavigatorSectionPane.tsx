@@ -40,7 +40,7 @@ export function NavigatorSectionPane({
           aria-label={secondary['aria-label']}
           className={cn('pb-4', secondary.className)}
         >
-          <NavigatorSectionItems descriptions={false} query={query} />
+          <NavigatorSectionItems showDescriptions={false} query={query} />
         </nav>
       </PaneRoot>
     </PaneKindContext>

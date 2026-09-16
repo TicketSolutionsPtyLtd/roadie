@@ -68,7 +68,7 @@ function Docs({
         {override ? (
           <Navigator.SecondaryPane value='/components'>
             <p>Promo</p>
-            <Navigator.SectionItems descriptions={false} />
+            <Navigator.SectionItems showDescriptions={false} />
           </Navigator.SecondaryPane>
         ) : null}
         <Pane role='detail' current>
