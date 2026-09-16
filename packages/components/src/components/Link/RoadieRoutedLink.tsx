@@ -91,6 +91,8 @@ export function RoadieRoutedLink({
       ...(rel !== undefined && { rel }),
       ...rest
     }
+    // The provider's component, not one made here, so its identity is stable.
+    // eslint-disable-next-line react-hooks/static-components
     return <Link {...linkProps} />
   }
 

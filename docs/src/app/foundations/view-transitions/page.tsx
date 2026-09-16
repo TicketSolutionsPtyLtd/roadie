@@ -7,30 +7,28 @@ import { Code } from '@oztix/roadie-components'
 export const metadata = {
   title: 'View transitions',
   description:
-    'Patterns for using the CSS View Transitions API with Roadie layouts — z-index layering, named groups, keyframes, and search-param navigation.'
+    'Patterns for using the CSS View Transitions API with Roadie layouts — z-index layering, named groups, keyframes, and search-param navigation.',
+  category: 'Behaviour'
 }
 
 export default function ViewTransitionsPage() {
   return (
     <div className='grid gap-12'>
-      <div className='grid gap-3'>
-        <h1 className='text-display-prose-1 text-strong'>View transitions</h1>
-        <p className='text-lg text-subtle'>
-          The CSS{' '}
-          <a
-            href='https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API'
-            target='_blank'
-            rel='noreferrer'
-          >
-            View Transitions API
-          </a>{' '}
-          lets you morph, slide, and fade content across navigation boundaries
-          without touching a JavaScript animation library. Roadie components
-          compose cleanly with it — but sticky headers, hero images, and
-          search-param-only navigation each have gotchas worth documenting up
-          front.
-        </p>
-      </div>
+      <p className='text-lg text-subtle'>
+        The CSS{' '}
+        <a
+          href='https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API'
+          target='_blank'
+          rel='noreferrer'
+        >
+          View Transitions API
+        </a>{' '}
+        lets you morph, slide, and fade content across navigation boundaries
+        without touching a JavaScript animation library. Roadie components
+        compose cleanly with it — but sticky headers, hero images, and
+        search-param-only navigation each have gotchas worth documenting up
+        front.
+      </p>
 
       {/* Concepts */}
       <section className='grid gap-4'>

@@ -3,17 +3,46 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "110 kB"
+    "limit": "120 kB"
   },
   {
     "name": "Single component (Button)",
     "path": "dist/index.js",
     "import": "{ Button }",
-    "limit": "15 kB"
+    "limit": "3 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "Navigator",
+    "path": "dist/components/Navigator/index.js",
+    "import": "*",
+    "limit": "37 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "Pane",
+    "path": "dist/components/Pane/index.js",
+    "import": "*",
+    "limit": "10 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "Carousel",
+    "path": "dist/components/Carousel/index.js",
+    "limit": "9 KB",
+    "ignore": [
+      "react",
+      "react-dom",
+      "@oztix/roadie-core",
+      "@phosphor-icons/react",
+      "embla-carousel",
+      "embla-carousel-react",
+      "embla-carousel-autoplay"
+    ]
   },
   {
     "name": "SpotIllustrations",
-    "path": "dist/SpotIllustration.js",
+    "path": "dist/components/SpotIllustration/index.js",
     "limit": "20 kB"
   }
 ]

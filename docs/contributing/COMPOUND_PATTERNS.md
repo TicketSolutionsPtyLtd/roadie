@@ -15,7 +15,7 @@ in both server and client components. **Bare `<Fieldset>` is the canonical root 
 
 This file covers:
 
-1. **Context wiring** — the two runtime idioms (context-only vs. index-injection). These haven't changed.
+1. **Context wiring** — the three runtime idioms (context-only, index-injection, registration).
 2. **Compound assembly** — per-file leaves + server-safe namespace re-export + tsdown unbundle mode. Rewritten April 2026.
 3. **Authoring checklist** — end-to-end steps for creating a new compound.
 
@@ -25,7 +25,7 @@ If you only need the why, read [`docs/solutions/rsc-patterns/compound-export-nam
 
 ## 1. Context wiring
 
-Pick one of the two idioms consciously when you design a compound. Both ship in Roadie today.
+Pick one of the three idioms consciously when you design a compound. All three ship in Roadie today.
 
 ### 1.1 Context-only compounds
 
@@ -93,15 +93,90 @@ function FooItem() {
 
 Roadie ships a dev-only warning (gated on `process.env.NODE_ENV`) when a non-Item element is found at a direct-child position, so authors find this fast.
 
-### 1.3 Decision matrix
+**One exception, by name.** `Navigator.Primary`'s walk matches
+`Navigator.Item`, `Navigator.Group` (one level deep), `Navigator.Brand` and
+`Navigator.ExpandToggle`; an item's children are matched for
+`Navigator.Secondary` and `Navigator.Menu`; `Navigator.Secondary`'s rows are
+matched for `Navigator.Item` and `Navigator.Group` (again one level deep).
+Every one of those is matched by reference, like `Item` is here, which is what
+keeps the walk sound — the rule is "these types, matched by identity", not
+"one level of any wrapper". A `<MyGroup>` wrapper is still invisible to the
+walk, and a tree authored in a server component still fails silently for all
+of them. `Navigator.Primary` itself must be a direct child of `Navigator`, which
+reads its children during render so the server render has its sections. A
+Fragment or wrapper around it counts as not direct: the Primary draws nothing
+and warns in development. To split a long tree, write each part as a function
+you call (`{userRail(props)}`) rather than a component you render, calling any
+hook it needs in the surrounding component and passing the result in.
 
-| Need                                              | Pattern         |
-| ------------------------------------------------- | --------------- |
-| Children share theme / intent / config            | Context-only    |
-| Items need to know their own position             | Index injection |
-| Children may include fragments or conditionals    | Context-only    |
-| Per-item ARIA labels (e.g. `aria-label="3 of 5"`) | Index injection |
-| Direct children API is acceptable                 | Either          |
+### 1.3 Registration
+
+**Example:** `Pane` / `Navigator.Content`.
+
+The child announces itself to the nearest orchestrator through context and
+receives its position back, instead of the parent finding it by walking
+`children` and matching element identity. `Pane` calls `register(id, node,
+entry)` in an effect and reads back its stack position; `Navigator.Content`
+owns the registry and provides it. See
+[`PaneStackContext.ts`](../../packages/components/src/components/Pane/PaneStackContext.ts)
+for the context shape, `PaneRoot.tsx`'s registration effect for the child
+side, and `NavigatorContent.tsx`'s provider for the orchestrator side —
+this section points at that code rather than restating it.
+
+**When to reach for it.** When children can arrive through something the
+parent did not render: a router, a parallel-route slot, a layout wrapper. An
+identity walk can only see elements the parent's own `children` prop contains
+directly; it cannot see through any of those, and it fails **silently** — no
+error, no warning, just an orchestrator that never finds anything.
+
+This is not a hypothetical. `Navigator.Content` used to find panes the same
+way `Carousel.Content` finds items: `Children.map` over direct children,
+matching `child.type === PaneRoot`. In a Next.js App Router app shell, panes
+arrive inside parallel-route slot nodes (`@primary`, `@secondary`), whose
+`type` is a Next.js-generated segment component, not `PaneRoot` — so nothing
+ever matched. No pane was recognised, no stack position was written, and every
+behaviour keyed off that silently went inert: no push/pop motion, panes
+overlapping with no ordering so taps landed on the wrong pane, covered panes
+still interactive, the mobile section nav permanently absent. It was not
+consumer misuse — Roadie's own `Pane` docs compose panes literally, which
+works fine; it's Roadie's app-shell recipe that prescribes parallel routes,
+and a layout receives slots as opaque nodes it can neither reach inside nor
+hoist the return value of. Registration is what makes that shell work: a pane
+inside a slot still runs its own effects, so it still announces itself even
+though `Navigator.Content` never rendered it directly.
+
+**What it costs.** Registration happens in an effect, so it runs after the
+first render — the parent does not know its children until they mount and
+call `register`. `NavigatorContent` accounts for this: it derives an empty
+stack on the first render and re-renders once panes register, and its dev-only
+warning waits for the registration effect to have had a chance to run before
+concluding nothing registered. Anything copying this pattern needs the same
+two things — a render that tolerates an empty registry, and a warning that
+doesn't fire before mount effects get their turn.
+
+**The seam.** `Pane` defines `PaneStackContext` and fills nothing — it only
+reads from the context if something above it provides one. `Navigator.Content`
+is the one thing that provides it. That one-way direction is what keeps `Pane`
+usable with no `Navigator` anywhere (a bare `<Pane>` outside any orchestrator
+just reads a `null` context and renders standalone) and avoids a module cycle
+between the two compounds. The same rule governs `PaneChromeContext` (the
+sibling context a pane uses to receive orchestrator-contributed header chrome)
+— and it was violated there once on this branch: `PaneRoot.tsx` briefly
+imported `NavigatorContext` from `../Navigator/NavigatorContext` directly, and
+the fix that replaced it defined `PaneChromeContext` in `Pane` instead, so
+`Navigator` fills a seam `Pane` owns rather than `Pane` reaching into
+`Navigator`.
+
+### 1.4 Decision matrix
+
+| Need                                                           | Pattern         |
+| -------------------------------------------------------------- | --------------- |
+| Children share theme / intent / config                         | Context-only    |
+| Items need to know their own position                          | Index injection |
+| Children may include fragments or conditionals                 | Context-only    |
+| Per-item ARIA labels (e.g. `aria-label="3 of 5"`)              | Index injection |
+| Direct children API is acceptable                              | Either          |
+| Children may arrive through a router or slot you don't control | Registration    |
 
 If you find yourself wanting both — items need both global state AND positional metadata — use index injection at the container level _and_ a separate root context for the global state. That's exactly what `Carousel` does (`CarouselStateContext` + `CarouselItemContext`).
 

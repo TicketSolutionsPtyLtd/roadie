@@ -7,20 +7,18 @@ import { Code } from '@oztix/roadie-components'
 export const metadata = {
   title: 'Accessibility',
   description:
-    'Accessibility principles and testing guidance for building inclusive Oztix applications.'
+    'Accessibility principles and testing guidance for building inclusive Oztix applications.',
+  category: 'Behaviour'
 }
 
 export default function AccessibilityPage() {
   return (
     <div className='grid gap-12'>
-      <div className='grid gap-3'>
-        <h1 className='text-display-prose-1 text-strong'>Accessibility</h1>
-        <p className='text-lg text-subtle'>
-          Accessibility is not a feature — it&apos;s a quality bar. HTML is the
-          accessible baseline. Browsers provide accessibility for free if you
-          use semantic elements.
-        </p>
-      </div>
+      <p className='text-lg text-subtle'>
+        Accessibility is not a feature — it&apos;s a quality bar. HTML is the
+        accessible baseline. Browsers provide accessibility for free if you use
+        semantic elements.
+      </p>
 
       {/* ── Semantic HTML first ── */}
       <section className='grid gap-6'>

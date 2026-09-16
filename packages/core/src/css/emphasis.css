@@ -139,6 +139,38 @@
   color: var(--intent-text-normal);
 }
 
+/* Pairs with a raised or floating fill. The doubled selector outranks that fill
+   in either emit order; a field's hover, focus and invalid fills still win. */
+@utility is-translucent {
+  --translucent-fill: 85%;
+  --translucent-backdrop: blur(12px);
+
+  .dark & {
+    --translucent-fill: 88%;
+  }
+
+  @supports ((backdrop-filter: blur(0)) or (-webkit-backdrop-filter: blur(0))) {
+    &:is(&):not(
+        .is-interactive-field:is(:hover, :focus, [aria-invalid='true'])
+      ) {
+      background-color: color-mix(
+        in oklch,
+        var(--intent-bg-raised) var(--translucent-fill),
+        transparent
+      );
+      -webkit-backdrop-filter: var(--translucent-backdrop);
+      backdrop-filter: var(--translucent-backdrop);
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    &:is(&) {
+      --translucent-fill: 100%;
+      --translucent-backdrop: none;
+    }
+  }
+}
+
 @utility emphasis-overlay {
   /* Fixed-dark so it stays a scrim in both themes (the intent scale flips
      light/dark), tinted by the intent hue — neutral ≈ near-black, danger a

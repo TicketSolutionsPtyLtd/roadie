@@ -74,6 +74,10 @@ const components = {
       </a>
     )
   },
+  // A long code line would set the column's min-content width; CodePreview scrolls its own pre.
+  pre: ({ children }: ComponentPropsWithoutRef<'pre'>) => (
+    <div className='min-w-0'>{children}</div>
+  ),
   code: ({ children, className }: CodeProps) => {
     if (className === undefined) {
       return <Code>{children}</Code>

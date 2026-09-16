@@ -1,6 +1,6 @@
 'use client'
 
-import { type CSSProperties, useEffect, useState } from 'react'
+import { type CSSProperties, use, useEffect, useId, useState } from 'react'
 
 import Link from 'next/link'
 
@@ -16,12 +16,14 @@ import {
   CheckCircleIcon,
   CheckIcon,
   CopyIcon,
+  CubeIcon,
   DownloadIcon,
   EnvelopeIcon,
   EyeIcon,
   EyeSlashIcon,
   GearIcon,
   HeartIcon,
+  HouseIcon,
   InfoIcon,
   LinkSimpleIcon,
   MagnifyingGlassIcon,
@@ -48,7 +50,9 @@ import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
 
+import { DemoRouter } from './DemoRouter'
 import { createDemoCart } from './cartDrawerDemo'
+import { useCopy } from './useCopy'
 
 // Bare-name keys so MDX live examples can use `<CheckCircle />` etc.
 const PhosphorIcons = {
@@ -84,7 +88,9 @@ const PhosphorIcons = {
   Envelope: EnvelopeIcon,
   Phone: PhoneIcon,
   ShoppingCart: ShoppingCartIcon,
-  Download: DownloadIcon
+  Download: DownloadIcon,
+  House: HouseIcon,
+  Cube: CubeIcon
 }
 
 // Icon-suffixed keys (`<TicketIcon />`) derived from the bare map.
@@ -103,9 +109,12 @@ const scope = {
   QueryClient,
   QueryClientProvider,
   createDemoCart,
+  DemoRouter,
   Link,
+  use,
   useState,
-  useEffect
+  useEffect,
+  useId
 }
 
 const { Button } = RoadieComponents
@@ -170,18 +179,12 @@ function ViewCodeShade({
 }
 
 function CopyButton({ code }: { code: string }) {
-  const [copied, setCopied] = useState(false)
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(code)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+  const { copied, copy } = useCopy()
 
   return (
-    <div className='absolute top-2 right-2 z-10'>
+    <div className='absolute top-2 right-2 z-docked'>
       <Button
-        onClick={handleCopy}
+        onClick={() => copy(code)}
         size='sm'
         emphasis='normal'
         aria-label='Copy code to clipboard'

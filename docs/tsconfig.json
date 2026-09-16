@@ -9,7 +9,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@roadie-core/tokens": ["../packages/core/src/tokens/manifest.ts"]
     },
     "skipLibCheck": true,
     "incremental": true

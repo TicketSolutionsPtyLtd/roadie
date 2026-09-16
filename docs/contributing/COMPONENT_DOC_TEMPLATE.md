@@ -38,6 +38,7 @@ The skeleton contains:
 - **Single component** → point at the `index.tsx` file: `componentPath='packages/components/src/components/Badge/index.tsx'`.
 - **Per-file compound** (Fieldset, and every compound migrated in Phase 3) → point at the **folder**: `componentPath='packages/components/src/components/Fieldset'`. `PropsDefinitions` enumerates every non-test `.tsx` file in the folder, rewrites the parsed leaf names from `FieldsetLegend` → `Fieldset.Legend` using the folder basename, and renders the Base UI-style API reference (section heading = dot-notation displayName, one stacked card per sub-component).
 - **Pre-Phase-3 compound** (monolithic `index.tsx` — Accordion, Card, Select, etc., while they are still being migrated) → point at the `index.tsx` file. The parser picks up the property-assignment pattern directly.
+- **`className` rows** — `PropsDefinitions` drops a plain, undocumented `className: string` forwarded from `@types/react`, since every part accepts it along with its element's other HTML attributes; that's true everywhere and doesn't need its own row. It keeps a `className` a part documents with a real description, or types as a Base UI state function.
 
 ## Section applicability by category
 

@@ -7,25 +7,23 @@ import { Code } from '@oztix/roadie-components'
 export const metadata = {
   title: 'Linking',
   description:
-    'A single href prop, automatic external-link safety, and one-line client routing through next/link via RoadieLinkProvider — across every link-bearing Roadie component.'
+    'A single href prop, automatic external-link safety, and one-line client routing through next/link via RoadieLinkProvider — across every link-bearing Roadie component.',
+  category: 'Building apps'
 }
 
 export default function LinkingPage() {
   return (
     <div className='grid gap-12'>
-      <div className='grid gap-3'>
-        <h1 className='text-display-prose-1 text-strong'>Linking</h1>
-        <p className='text-lg text-subtle'>
-          Pass <Code>href</Code> and you&apos;re done. Roadie picks the right
-          element, applies the right <Code>target</Code> / <Code>rel</Code>{' '}
-          defaults, and routes through your app&apos;s configured client router
-          via <Code>RoadieLinkProvider</Code>. Use <Code>onClick</Code> instead
-          of <Code>href</Code> and you get a real <Code>&lt;button&gt;</Code>{' '}
-          back. Everything that&apos;s link-shaped — Button, IconButton, Card,
-          Breadcrumb.Link, Carousel.TitleLink, Tabs.Tab — speaks the same
-          vocabulary.
-        </p>
-      </div>
+      <p className='text-lg text-subtle'>
+        Pass <Code>href</Code> and you&apos;re done. Roadie picks the right
+        element, applies the right <Code>target</Code> / <Code>rel</Code>{' '}
+        defaults, and routes through your app&apos;s configured client router
+        via <Code>RoadieLinkProvider</Code>. Use <Code>onClick</Code> instead of{' '}
+        <Code>href</Code> and you get a real <Code>&lt;button&gt;</Code> back.
+        Everything that&apos;s link-shaped — Button, IconButton, Card,
+        Breadcrumb.Link, Carousel.TitleLink, Tabs.Tab — speaks the same
+        vocabulary.
+      </p>
 
       {/* Quick start */}
       <section className='grid gap-4'>

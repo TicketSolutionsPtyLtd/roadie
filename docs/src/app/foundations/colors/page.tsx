@@ -3,7 +3,8 @@ import { Code } from '@oztix/roadie-components'
 export const metadata = {
   title: 'Colors',
   description:
-    'OKLCH color system with intent-based semantic tokens for consistent theming.'
+    'OKLCH color system with intent-based semantic tokens for consistent theming.',
+  category: 'Visual'
 }
 
 const intents = [
@@ -68,15 +69,12 @@ function IntentDemo({ intent }: { intent: string }) {
 export default function ColorsPage() {
   return (
     <div className='grid gap-12'>
-      <div className='grid gap-3'>
-        <h1 className='text-display-prose-1 text-strong'>Colors</h1>
-        <p className='text-lg text-subtle'>
-          Roadie uses OKLCH color scales with 14 steps (0-13) per intent. Colors
-          are applied through three utility types: <Code>bg-*</Code>,{' '}
-          <Code>text-*</Code>, and <Code>border-*</Code> — each scoped to its
-          own CSS property.
-        </p>
-      </div>
+      <p className='text-lg text-subtle'>
+        Roadie uses OKLCH color scales with 14 steps (0-13) per intent. Colors
+        are applied through three utility types: <Code>bg-*</Code>,{' '}
+        <Code>text-*</Code>, and <Code>border-*</Code> — each scoped to its own
+        CSS property.
+      </p>
 
       {/* Color scales */}
       <section className='grid gap-6'>
@@ -242,7 +240,8 @@ export default function ColorsPage() {
               <p className='text-xs text-subtle'>
                 Popovers, modals, dropdowns — anything that floats above the
                 document flow. Uses the top elevation shadow and strong rim
-                light.
+                light. Add <Code>is-translucent</Code> to let content show
+                through as it scrolls beneath.
               </p>
             </div>
           </div>

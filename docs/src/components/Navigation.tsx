@@ -1,280 +1,338 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  type MouseEvent,
+  type ReactNode,
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore
+} from 'react'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 import {
-  CheckIcon,
+  CompassIcon,
+  CubeIcon,
+  HouseIcon,
   ListIcon,
-  MoonIcon,
-  SunIcon,
-  XIcon
+  PaintBrushIcon,
+  PaletteIcon,
+  SquaresFourIcon
 } from '@phosphor-icons/react'
 
+import type { CatalogueCategory } from '@/lib/page-manifest'
+import { relatedLinks } from '@/lib/token-families'
+
+import { Drawer, IconButton, Navigator, Pane } from '@oztix/roadie-components'
+import { serializeNavigatorExpandedCookie } from '@oztix/roadie-core/navigator'
+
+import { FooterNav } from './FooterNav'
+import { Image } from './Image'
 import {
-  Button,
-  DEFAULT_ACCENT_COLOR,
-  IconButton,
-  useTheme
-} from '@oztix/roadie-components'
+  NAV_LIST_PARAM,
+  NAV_MORE_PARAM,
+  NavQueryFlags,
+  useNavQuery
+} from './NavQueryFlag'
+import { type DocHeadings, OnThisPage, useDocHeadings } from './OnThisPage'
+import { RelatedLinks } from './RelatedLinks'
 
-const ACCENT_PRESETS = [
-  { label: 'Blue (default)', hex: DEFAULT_ACCENT_COLOR },
-  { label: 'Purple', hex: '#7C3AED' },
-  { label: 'Green', hex: '#72BF44' },
-  { label: 'Orange', hex: '#EA580C' },
-  { label: 'Pink', hex: '#E83068' }
-]
-
-interface NavigationItem {
+export type NavigationItem = {
   title: string
   href?: string
-  label?: boolean
-  items?: NavigationItem[]
+  description?: string
 }
 
-interface NavigationProps {
+export type NavigationSection = {
+  title: string
+  href: string
+  /** Flat, in reading order; `FooterNav` walks these. */
   items: NavigationItem[]
+  /** When set, the secondary list renders these groups instead of `items`. */
+  groups?: CatalogueCategory[]
+  root?: 'page'
+  searchable?: boolean
 }
 
-function ThemeToggle() {
-  const { isDark, setDark } = useTheme()
+type NavigationProps = {
+  items: NavigationSection[]
+  /** Route → page title, rendered as `Pane.BodyTitle`. */
+  pageTitles: Record<string, string>
+  children: ReactNode
+}
 
-  return (
-    <Button
-      size='sm'
-      className='w-full'
-      onClick={() => setDark(!isDark)}
-      aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-    >
-      {isDark ? (
-        <SunIcon weight='bold' className='size-4' />
-      ) : (
-        <MoonIcon weight='bold' className='size-4' />
-      )}
-      <span>{isDark ? 'Light' : 'Dark'} mode</span>
-    </Button>
+const SECTION_ICONS: Record<string, ReactNode> = {
+  '/': <HouseIcon />,
+  '/foundations': <CompassIcon />,
+  '/tokens': <PaletteIcon />,
+  '/components': <CubeIcon />,
+  '/roadie-widgets': <SquaresFourIcon />
+}
+
+const persistExpanded = (next: boolean) => {
+  document.cookie = serializeNavigatorExpandedCookie(next)
+}
+
+// From the live query, so the page's own params, like the token filters, survive.
+function hrefWithFlag(pathname: string, param: string, on: boolean) {
+  const params = new URLSearchParams(window.location.search)
+  params.delete(param)
+  const search = [params.toString(), on ? param : ''].filter(Boolean).join('&')
+  return search ? `${pathname}?${search}` : pathname
+}
+
+// The nav-form breakpoint, and the natural phone/tablet split for the sheet.
+const TABLET_UP = '(min-width: 48rem)'
+
+let tabletUpQuery: MediaQueryList | null = null
+const getTabletUpQuery = () => (tabletUpQuery ??= window.matchMedia(TABLET_UP))
+
+const subscribeTabletUp = (onChange: () => void) => {
+  const query = getTabletUpQuery()
+  query.addEventListener('change', onChange)
+  return () => query.removeEventListener('change', onChange)
+}
+
+/** Drawer side is a JS value, so the app picks its band here; Roadie knows no bands. */
+function useDrawerSide(): 'bottom' | 'right' {
+  const tabletUp = useSyncExternalStore(
+    subscribeTabletUp,
+    () => getTabletUpQuery().matches,
+    () => false
   )
+  return tabletUp ? 'right' : 'bottom'
 }
 
-function AccentPicker() {
-  const { accentColor, setAccentColor } = useTheme()
-  const [isOpen, setIsOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+function OnThisPageDrawer({ headings, onSelect }: DocHeadings) {
+  const [open, setOpen] = useState(false)
+  const side = useDrawerSide()
 
-  const close = useCallback(() => setIsOpen(false), [])
-
-  useEffect(() => {
-    if (!isOpen) return
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) close()
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [isOpen, close])
+  const selectAndClose = useCallback(
+    (event: MouseEvent<HTMLAnchorElement>, id: string) => {
+      onSelect(event, id)
+      setOpen(false)
+    },
+    [onSelect]
+  )
 
   return (
-    <div ref={ref} className='relative'>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className='size-8 rounded-full border-subtle ring-0 ring-accent-6 transition-shadow hover:ring-4'
-        style={{ backgroundColor: accentColor }}
-        aria-label='Change accent color'
+    <Drawer open={open} onOpenChange={setOpen} side={side}>
+      <Drawer.Trigger
+        render={
+          <IconButton
+            aria-label='On this page'
+            emphasis='normal'
+            className='pane-inspector-yielded:inline-flex hidden'
+          >
+            <ListIcon weight='bold' className='size-5' />
+          </IconButton>
+        }
       />
-      {isOpen && (
-        <div className='absolute -right-1 bottom-full mb-2 grid justify-items-center gap-1.5 rounded-xl emphasis-floating p-2'>
-          <h3 className='text-medium text-sm'>Accent color</h3>
-          <div className='flex gap-1.5'>
-            {ACCENT_PRESETS.map((preset) => {
-              const isActive =
-                accentColor.toLowerCase() === preset.hex.toLowerCase()
-              return (
-                <button
-                  key={preset.hex}
-                  onClick={() => {
-                    setAccentColor(preset.hex)
-                    close()
-                  }}
-                  className='grid size-7 place-items-center rounded-full ring-0 ring-neutral-5 transition-transform hover:scale-110 hover:shadow-lg hover:ring-2'
-                  style={{ backgroundColor: preset.hex }}
-                  aria-label={preset.label}
-                >
-                  {isActive && (
-                    <CheckIcon
-                      weight='bold'
-                      className='size-3.5 text-neutral-0'
-                    />
-                  )}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
-    </div>
+      {/* Named on the popup rather than with a `Drawer.Title`: `OnThisPage`
+          already prints its own heading, and two would say it twice. */}
+      <Drawer.Content aria-label='On this page'>
+        <Drawer.Body className='py-4'>
+          <OnThisPage headings={headings} onSelect={selectAndClose} />
+        </Drawer.Body>
+      </Drawer.Content>
+    </Drawer>
   )
 }
 
-function NavigationGroup({
-  item,
-  onNavigate
-}: {
-  item: NavigationItem
-  onNavigate?: () => void
-}) {
-  const pathname = usePathname()
-
-  const isActiveParent = item.href
-    ? item.href === '/'
-      ? pathname === '/'
-      : pathname.startsWith(item.href)
-    : false
-
-  return (
-    <div className='grid gap-2'>
-      <Link
-        href={item.href || '#'}
-        onClick={onNavigate}
-        className={`px-2 text-sm font-semibold no-underline transition-colors hover:text-accent-11 ${
-          isActiveParent ? 'text-normal intent-accent' : 'text-normal'
-        }`}
-      >
-        {item.title}
-      </Link>
-      {item.items && (
-        <ul className='grid gap-0.5'>
-          {item.items.map((subItem) => {
-            if (subItem.label) {
-              return (
-                <li
-                  key={subItem.title}
-                  className='m-0 list-none px-2 pt-3 pb-1 text-xs font-semibold text-subtler'
-                >
-                  {subItem.href ? (
-                    <Link
-                      href={subItem.href}
-                      onClick={onNavigate}
-                      className='text-subtler no-underline transition-colors hover:text-accent-11'
-                    >
-                      {subItem.title}
-                    </Link>
-                  ) : (
-                    subItem.title
-                  )}
-                </li>
-              )
-            }
-
-            const isActive = pathname === subItem.href
-
-            return (
-              <li
-                key={subItem.href ?? subItem.title}
-                className='m-0 list-none p-0'
-              >
-                <Link
-                  href={subItem.href || '#'}
-                  onClick={onNavigate}
-                  className={`block rounded-sm px-2 py-1 text-sm no-underline transition-all hover:bg-accent-3 hover:text-accent-11 ${
-                    isActive
-                      ? 'font-semibold text-accent-11'
-                      : 'font-normal text-subtle'
-                  }`}
-                >
-                  {subItem.title}
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
-      )}
-    </div>
-  )
-}
-
-function NavigationContent({
+export function DocsNavigator({
   items,
-  onNavigate
-}: {
-  items: NavigationItem[]
-  onNavigate?: () => void
-}) {
-  return (
-    <div className='flex h-full flex-col gap-6 pt-6'>
-      <div className='flex shrink-0 grow flex-col gap-6 px-4'>
-        {items.map((item, index) => (
-          <NavigationGroup key={index} item={item} onNavigate={onNavigate} />
-        ))}
-      </div>
-      <div className='sticky bottom-0 mt-auto flex shrink-0 items-center gap-2 border border-t-subtle bg-raised p-4'>
-        <ThemeToggle />
-        <AccentPicker />
-      </div>
-    </div>
-  )
-}
-
-export function Navigation({ items }: NavigationProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  pageTitles,
+  children
+}: NavigationProps) {
   const pathname = usePathname()
+  const router = useRouter()
 
-  // Close on route change
+  const [query, reportQuery] = useNavQuery(pathname)
+
+  // Params we pushed this session, so closing can pop that entry instead of
+  // adding a new one. A deep-linked/reloaded flag isn't in here, so closing
+  // it replaces instead — no dead history entry, no Back into the page.
+  const pushedFlags = useRef(new Set<string>())
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: close nav when route changes
-    setIsOpen(false)
+    pushedFlags.current.clear()
   }, [pathname])
 
-  // Prevent body scroll when open
-  useEffect(() => {
-    document.body.style.overflow = isOpen ? 'hidden' : ''
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [isOpen])
+  const pushFlag = useCallback(
+    (param: string, on: boolean) => {
+      if (on) {
+        pushedFlags.current.add(param)
+        router.push(hrefWithFlag(pathname, param, true), { scroll: false })
+        return
+      }
+      if (pushedFlags.current.delete(param)) {
+        router.back()
+      } else {
+        router.replace(hrefWithFlag(pathname, param, false), { scroll: false })
+      }
+    },
+    [router, pathname]
+  )
+  const handleShowListChange = useCallback(
+    (next: boolean) => pushFlag(NAV_LIST_PARAM, next),
+    [pushFlag]
+  )
+  const handleShowMoreChange = useCallback(
+    (next: boolean) => pushFlag(NAV_MORE_PARAM, next),
+    [pushFlag]
+  )
+
+  const related = relatedLinks(pathname)
+  const toc = useDocHeadings()
+  const showInspector = toc.headings.length >= 2
 
   return (
     <>
-      {/* Mobile hamburger */}
-      <IconButton
-        onClick={() => setIsOpen(true)}
-        emphasis='normal'
-        className='fixed top-3 left-3 z-50 md:hidden'
-        aria-label='Open navigation'
+      <Suspense fallback={null}>
+        <NavQueryFlags onChange={reportQuery} />
+      </Suspense>
+      <Navigator
+        value={pathname}
+        onExpandedChange={persistExpanded}
+        expandedFromDocument
+        showList={query.nav}
+        onShowListChange={handleShowListChange}
+        showMore={query.more}
+        onShowMoreChange={handleShowMoreChange}
       >
-        <ListIcon weight='bold' className='size-5' />
-      </IconButton>
+        <Navigator.Primary aria-label='Documentation'>
+          <Navigator.Brand>
+            <Image
+              src='/roadie-brand.png'
+              alt='Roadie'
+              width={32}
+              height={32}
+              className='size-8 shrink-0'
+            />
+            <span
+              aria-hidden
+              className='hidden truncate text-base font-semibold text-strong navigator-expanded:inline'
+            >
+              Roadie
+            </span>
+          </Navigator.Brand>
+          {items.map((section) => {
+            const subItems = section.items.filter(
+              (item) => item.href !== section.href
+            )
+            return (
+              <Navigator.Item
+                key={section.href}
+                value={section.href}
+                href={section.href}
+                icon={SECTION_ICONS[section.href] ?? <HouseIcon />}
+                visibilityPriority={
+                  section.href === '/tokens' ? 'low' : undefined
+                }
+              >
+                {section.title}
+                {section.groups ? (
+                  <Navigator.Secondary
+                    aria-label={section.title}
+                    root={section.root}
+                    searchable={section.searchable}
+                  >
+                    {section.groups.map((group) => (
+                      <Navigator.Group key={group.name}>
+                        <Navigator.GroupTitle>
+                          {group.name}
+                        </Navigator.GroupTitle>
+                        {group.overviewHref ? (
+                          <Navigator.Item
+                            value={group.overviewHref}
+                            href={group.overviewHref}
+                          >
+                            {`${group.name} overview`}
+                          </Navigator.Item>
+                        ) : null}
+                        {group.entries.map((entry) => (
+                          <Navigator.Item
+                            key={entry.name}
+                            value={entry.href}
+                            href={entry.href}
+                            description={entry.description}
+                          >
+                            {entry.title}
+                          </Navigator.Item>
+                        ))}
+                      </Navigator.Group>
+                    ))}
+                  </Navigator.Secondary>
+                ) : subItems.length > 0 ? (
+                  <Navigator.Secondary
+                    aria-label={`${section.title} pages`}
+                    root={section.root}
+                  >
+                    {subItems.map((item) => (
+                      <Navigator.Item
+                        key={item.href ?? item.title}
+                        value={item.href ?? item.title}
+                        href={item.href}
+                        description={item.description}
+                      >
+                        {item.title}
+                      </Navigator.Item>
+                    ))}
+                  </Navigator.Secondary>
+                ) : null}
+              </Navigator.Item>
+            )
+          })}
+          <Navigator.Item
+            value='/appearance'
+            href='/appearance'
+            icon={<PaintBrushIcon />}
+            placement='pinned'
+          >
+            Appearance
+          </Navigator.Item>
+          <Navigator.ExpandToggle />
+        </Navigator.Primary>
 
-      {/* Mobile overlay */}
-      {isOpen && (
-        <div
-          className='bg-black/30 fixed inset-0 z-40 backdrop-blur-sm md:hidden'
-          onClick={() => setIsOpen(false)}
-        />
-      )}
+        <Navigator.Content>
+          <Pane role='detail' current className='scroll-pt-6'>
+            <Pane.Header>
+              {showInspector ? (
+                <Pane.Actions>
+                  <OnThisPageDrawer {...toc} />
+                </Pane.Actions>
+              ) : null}
+            </Pane.Header>
+            <div
+              id='docs-content'
+              className='mx-auto grid w-full max-w-[50rem] gap-0 py-6 md:py-12 [&_:is(h1,h2,h3,h4)]:scroll-mt-6'
+            >
+              {/* The homepage and debug routes have no metadata.title and keep their own h1. */}
+              {pageTitles[pathname] ? (
+                <Pane.BodyTitle className='mb-6 text-display-prose-1'>
+                  {pageTitles[pathname]}
+                </Pane.BodyTitle>
+              ) : null}
+              {related ? (
+                <RelatedLinks {...related} className='-mt-3 mb-6' />
+              ) : null}
+              {children}
+              <FooterNav items={items} />
+            </div>
+          </Pane>
 
-      {/* Mobile slide-out nav */}
-      <nav
-        className={`fixed top-0 left-0 z-50 h-screen w-[280px] overflow-y-auto emphasis-sunken transition-transform duration-200 ease-out md:hidden ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <IconButton
-          onClick={() => setIsOpen(false)}
-          emphasis='subtler'
-          className='absolute top-3 right-3'
-          aria-label='Close navigation'
-        >
-          <XIcon weight='bold' className='size-5' />
-        </IconButton>
-        <NavigationContent items={items} onNavigate={() => setIsOpen(false)} />
-      </nav>
-
-      {/* Desktop sidebar */}
-      <nav className='sticky top-0 hidden h-screen w-[220px] shrink-0 overflow-y-auto emphasis-sunken md:block'>
-        <NavigationContent items={items} />
-      </nav>
+          {/* A column once it fits; otherwise the drawer in Pane.Actions. */}
+          {showInspector ? (
+            <Pane role='inspector' aria-label='On this page'>
+              <div className='py-6'>
+                <OnThisPage {...toc} />
+              </div>
+            </Pane>
+          ) : null}
+        </Navigator.Content>
+      </Navigator>
     </>
   )
 }

@@ -15,6 +15,8 @@ import {
   Drawer as DrawerViaBarrel,
   Fieldset as FieldsetViaBarrel,
   List as ListViaBarrel,
+  Navigator as NavigatorViaBarrel,
+  Pane as PaneViaBarrel,
   Popover as PopoverViaBarrel,
   ScrollArea as ScrollAreaViaBarrel,
   Tabs as TabsViaBarrel,
@@ -33,6 +35,8 @@ import { Fieldset } from '@oztix/roadie-components/fieldset'
 import { IconTile } from '@oztix/roadie-components/icon-tile'
 import { List } from '@oztix/roadie-components/list'
 import { Logo } from '@oztix/roadie-components/logo'
+import { Navigator } from '@oztix/roadie-components/navigator'
+import { Pane } from '@oztix/roadie-components/pane'
 import { Popover } from '@oztix/roadie-components/popover'
 import { RadioGroup } from '@oztix/roadie-components/radio-group'
 import { ScrollArea } from '@oztix/roadie-components/scroll-area'
@@ -40,6 +44,8 @@ import { Select } from '@oztix/roadie-components/select'
 import { Steps } from '@oztix/roadie-components/steps'
 import { Tabs } from '@oztix/roadie-components/tabs'
 import { Tooltip } from '@oztix/roadie-components/tooltip'
+
+import { NavigatorCanary } from './NavigatorCanary'
 
 export default function RscSmokePage() {
   return (
@@ -590,7 +596,7 @@ export default function RscSmokePage() {
           <List.Item title='Upcoming events' />
           <List.Item
             title='Reports'
-            subtitle='Rendered from a server component via the subpath import.'
+            description='Rendered from a server component via the subpath import.'
           />
         </List>
       </section>
@@ -606,6 +612,64 @@ export default function RscSmokePage() {
           <ListViaBarrel.Item title='Imported from the root barrel' />
           <ListViaBarrel.Item title='Second item' />
         </ListViaBarrel>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Navigator — server-safe leaves
+        </h2>
+        <p className='text-sm text-subtle'>
+          The bare root, <code>Navigator.Content</code> and <code>Pane</code>,
+          rendered from the server via the subpath and the barrel. This proves
+          one thing only: those modules carry no stray{' '}
+          <code>&apos;use client&apos;</code> and import server-side.
+        </p>
+        <p className='text-sm text-subtle'>
+          It also proves the tree works: <code>Navigator.Content</code> no
+          longer matches panes by element identity — a pane registers with the
+          nearest orchestrator through context wherever it sits, so Flight
+          replacing a server-authored element&apos;s type with a lazy wrapper
+          doesn&apos;t stop either pane below from registering and carrying{' '}
+          <code>data-stack-position</code>. Contrast this with{' '}
+          <code>NavigatorCanary</code> further down:{' '}
+          <code>Navigator.Primary</code>, <code>Secondary</code>,{' '}
+          <code>Group</code>, <code>Menu</code> and <code>ExpandToggle</code>{' '}
+          are still found by element reference, so that tree still has to be
+          authored in a client component. See COMPOUND_PATTERNS.md §1.2.
+        </p>
+        <div className='h-64 overflow-hidden rounded-2xl border border-subtle'>
+          <Navigator value='overview'>
+            <Navigator.Content>
+              <Pane>
+                <p className='p-3 text-subtle'>
+                  Subpath — bare root, Content and Pane render from a server
+                  component.
+                </p>
+              </Pane>
+            </Navigator.Content>
+          </Navigator>
+        </div>
+        <div className='h-64 overflow-hidden rounded-2xl border border-subtle'>
+          <NavigatorViaBarrel value='overview'>
+            <NavigatorViaBarrel.Content>
+              <PaneViaBarrel>
+                <p className='p-3 text-subtle'>
+                  Barrel — same leaves reached through the root barrel.
+                </p>
+              </PaneViaBarrel>
+            </NavigatorViaBarrel.Content>
+          </NavigatorViaBarrel>
+        </div>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>Navigator — full tree</h2>
+        <p className='text-sm text-subtle'>
+          Rendered from a client component on purpose — Navigator finds its own
+          children by element reference, which Flight breaks for server-authored
+          trees. See <code>NavigatorCanary.tsx</code>.
+        </p>
+        <NavigatorCanary />
       </section>
 
       <section className='grid gap-4'>
