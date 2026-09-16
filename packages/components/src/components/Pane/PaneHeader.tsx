@@ -2,10 +2,11 @@
 
 import {
   Children,
-  type ReactNode,
+  type ComponentProps,
   isValidElement,
   use,
   useLayoutEffect,
+  useMemo,
   useRef
 } from 'react'
 
@@ -13,6 +14,7 @@ import { CaretLeftIcon, XIcon } from '@phosphor-icons/react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { mergeRefs } from '../../utils/mergeRefs'
 import { useDevWarning } from '../../utils/useDevWarning'
 import { IconButton } from '../Button/IconButton'
 import { PaneChromeContext } from './PaneChromeContext'
@@ -21,7 +23,7 @@ import { PaneTitle } from './PaneTitle'
 import { PaneTitleCompact } from './PaneTitleCompact'
 import { paneHeaderEdgeClass, paneHeaderVariants } from './variants'
 
-export type PaneHeaderProps = {
+export type PaneHeaderProps = ComponentProps<'header'> & {
   /** Back's target, as a routed link. Wins over `onBack` for Back. */
   backHref?: string
   /** Names the Back button for assistive tech, as "Back to {label}". */
@@ -30,8 +32,6 @@ export type PaneHeaderProps = {
   onBack?: () => void
   /** Close's handler. Wins over `onBack` and `backHref` for Close. */
   onClose?: () => void
-  children?: ReactNode
-  className?: string
 }
 
 const backIcon = <CaretLeftIcon weight='bold' className='size-5' />
@@ -44,11 +44,17 @@ export function PaneHeader({
   onBack,
   onClose,
   children,
-  className
+  className,
+  ref,
+  ...props
 }: PaneHeaderProps) {
   const pane = use(PaneContext)
   const chrome = use(PaneChromeContext)
   const headerRef = useRef<HTMLElement>(null)
+  const setHeaderRef = useMemo(
+    () => mergeRefs<HTMLElement>(headerRef, ref),
+    [ref]
+  )
 
   // A consumer's onBack is a handler and outranks the orchestrator's link.
   const resolvedBackHref =
@@ -122,10 +128,11 @@ export function PaneHeader({
 
   return (
     <header
-      ref={headerRef}
+      ref={setHeaderRef}
       data-slot='pane-header'
       data-collapsed={String(collapsed)}
       className={cn(paneHeaderVariants({ edgeOnly, collapsed }), className)}
+      {...props}
     >
       {showBack ? (
         <div data-slot='pane-back' className={paneHeaderEdgeClass}>
