@@ -38,6 +38,7 @@ import {
 } from './NavigatorContext'
 import { NavigatorOverflowItems } from './NavigatorOverflowItems'
 import { NavigatorOverflowPane } from './NavigatorOverflowPane'
+import { type NavigatorPageAt, NavigatorPageStep } from './NavigatorPageStep'
 import { NavigatorSecondaryPane } from './NavigatorSecondaryPane'
 import { NavigatorSectionPane } from './NavigatorSectionPane'
 import { OVERFLOW_LABEL } from './mobileSlots'
@@ -266,6 +267,15 @@ export function NavigatorContent({
   const onSectionRoute =
     activeSection !== null && isActiveValue(activeSection.value, value)
   const revealing = listPaneShows && !moreOpen && (onSectionRoute || showList)
+  // A page-root section draws every route in one pane, so a step between them
+  // moves no pane: the page as it was stands in, copied before React replaces
+  // it. The only copy left in the row, and only here.
+  const pageAt: NavigatorPageAt =
+    activeSection?.root === 'page' && !moreOpen && !revealing
+      ? onSectionRoute
+        ? 'root'
+        : 'child'
+      : null
   // Open More is the root and the top; closed, it is never reached.
   const revealRoot = revealing || moreOpen
   const stack = useMemo(
@@ -462,6 +472,12 @@ export function NavigatorContent({
             {sectionPane}
             {children}
             {fallbackOverflow}
+            <NavigatorPageStep
+              section={activeSection}
+              value={value}
+              at={pageAt}
+              level={level}
+            />
           </div>
         </PaneContext>
       </PaneStackContext>

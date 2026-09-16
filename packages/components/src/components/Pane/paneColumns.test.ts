@@ -407,14 +407,49 @@ describe('the rules a real row matches', () => {
 })
 
 describe('a page step', () => {
-  it('leaves no keyframes behind: a held pane transitions, it is not animated', () => {
-    expect(rules.filter((rule) => rule.body.includes('animation:'))).toEqual([])
-    expect(
-      rules.filter((rule) => rule.selector.includes('navigator-page-ghost'))
-    ).toEqual([])
-    expect(rules.filter((rule) => rule.body.includes('--page-step-'))).toEqual(
-      []
+  const animating = rules.filter((rule) => rule.body.includes('animation:'))
+  const animationOf = (element: Element) =>
+    animating.find((rule) => element.matches(rule.selector))?.body ?? null
+  const stepRow = (step?: 'push' | 'pop', level = 0) =>
+    html(
+      `<div data-slot="navigator-panes" data-level="${level}" ${step ? `data-page-step="${step}"` : ''}><div data-slot="pane" data-stack data-level="${level}" data-depth="0" data-stack-position="behind"></div><div data-slot="pane" data-stack data-level="${level}" data-depth="1" data-current data-stack-position="top"></div><div data-slot="navigator-page-ghost"></div></div>`
     )
+
+  it('slides only a stacked row, and only with motion allowed', () => {
+    expect(animating.length).toBeGreaterThan(0)
+    for (const rule of animating) {
+      expect(rule.conditions).toContain(
+        `@container panes (width < ${stackedUntil()}rem)`
+      )
+      expect(rule.conditions).toContain(
+        '@media (prefers-reduced-motion: no-preference)'
+      )
+    }
+  })
+
+  it('pushes the top pane in over the ghost, and pops it back from under', () => {
+    for (const level of [0, 1]) {
+      let $ = stepRow('push', level)
+      expect(animationOf($('[data-stack-position="top"]'))).toContain(
+        'navigator-page-enter'
+      )
+      expect(animationOf($('[data-slot="navigator-page-ghost"]'))).toContain(
+        'navigator-page-behind'
+      )
+      expect(animationOf($('[data-stack-position="behind"]'))).toBeNull()
+
+      $ = stepRow('pop', level)
+      expect(animationOf($('[data-stack-position="top"]'))).toContain(
+        'navigator-page-return'
+      )
+      const leave = animationOf($('[data-slot="navigator-page-ghost"]'))
+      expect(leave).toContain('navigator-page-leave')
+      expect(leave).toContain('z-index: 3')
+
+      $ = stepRow(undefined, level)
+      expect(animationOf($('[data-stack-position="top"]'))).toBeNull()
+      expect(animationOf($('[data-slot="navigator-page-ghost"]'))).toBeNull()
+    }
   })
 
   it('stops where the last row to take two columns starts them', () => {
@@ -433,6 +468,42 @@ describe('a page step', () => {
     expect(Math.min(...tiers)).toBe(columnTier(2))
     expect(tiers).toContain(55.25)
     expect(stackedUntil()).toBe(Math.max(...twoColumnStarts))
+  })
+
+  it('slides with the reading direction, and picks up a reversed step', () => {
+    const frames = rules.filter((rule) =>
+      rule.conditions.some((c) => c.startsWith('@keyframes navigator-page-'))
+    )
+    const parked = frames.filter((frame) => /calc\(.*%/.test(frame.body))
+    expect(parked.length).toBe(4)
+    for (const frame of parked) {
+      expect(frame.body).toContain('var(--pane-dir, 1)')
+    }
+    const starts = frames.filter((frame) => frame.selector === 'from')
+    expect(
+      starts.map((frame) => frame.body.match(/var\((--[\w-]+)/)?.[1])
+    ).toEqual([
+      '--page-step-pane-from',
+      '--page-step-ghost-from',
+      '--page-step-pane-from',
+      '--page-step-ghost-from'
+    ])
+
+    const $ = html(
+      '<div dir="rtl"><div data-slot="navigator-panes" data-level="0"><div data-slot="navigator-panes" data-level="1"></div></div></div>'
+    )
+    const set = (row: Element, property: string) =>
+      rules
+        .filter((rule) => row.matches(rule.selector))
+        .map((rule) => rule.body)
+        .join(' ')
+        .includes(property)
+    for (const level of [0, 1]) {
+      const own = $(`[data-level="${level}"]`)
+      expect(set(own, '--pane-dir: -1')).toBe(true)
+      expect(set(own, '--page-step-ghost-from: initial')).toBe(true)
+      expect(set(own, '--page-step-pane-from: initial')).toBe(true)
+    }
   })
 })
 

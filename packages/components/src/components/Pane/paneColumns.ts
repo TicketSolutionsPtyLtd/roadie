@@ -350,6 +350,16 @@ function inspectorVariant(): string {
   return `@custom-variant pane-inspector-yielded {\n${branches.join('\n')}\n}`
 }
 
+const PAGE_GHOST = '[data-slot="navigator-page-ghost"]'
+const PAGE_STEP = 'var(--duration-slow) var(--ease-enter)'
+const from = (fallback: string, name: string) =>
+  `translate: var(${name}, ${fallback.slice('translate: '.length, -1)});`
+// A reversed step starts each layer where the other left off.
+const PAGE_STEP_KEYFRAMES = `  @keyframes navigator-page-enter { from { ${from(AHEAD, '--page-step-pane-from')} } }
+  @keyframes navigator-page-behind { from { ${from('translate: 0 0;', '--page-step-ghost-from')} } to { ${BEHIND} } }
+  @keyframes navigator-page-return { from { ${from(BEHIND, '--page-step-pane-from')} z-index: 0; } to { z-index: 0; } }
+  @keyframes navigator-page-leave { from { ${from('translate: 0 0;', '--page-step-ghost-from')} } to { ${AHEAD} } }`
+
 /** The widest content at which some row still stacks: its two columns need the most room. */
 export function stackedUntil(): number {
   let widest = columnTier(2)
@@ -359,6 +369,21 @@ export function stackedUntil(): number {
     }
   }
   return widest
+}
+
+// Stacked rows only; columns cut.
+function pageStepRules(level: number): string {
+  const step = (kind: 'push' | 'pop') =>
+    `${row(level)}[data-page-step="${kind}"]`
+  const top = `[data-stack][data-level="${level}"][data-stack-position="top"]`
+  return [
+    `  @container panes (width < ${rem(stackedUntil())}) { @media (prefers-reduced-motion: no-preference) {`,
+    `    ${step('push')} ${top} { animation: navigator-page-enter ${PAGE_STEP}; }`,
+    `    ${step('push')} > ${PAGE_GHOST} { animation: navigator-page-behind ${PAGE_STEP} forwards; }`,
+    `    ${step('pop')} ${top} { animation: navigator-page-return ${PAGE_STEP}; }`,
+    `    ${step('pop')} > ${PAGE_GHOST} { z-index: 3; animation: navigator-page-leave ${PAGE_STEP} forwards; }`,
+    '  } }'
+  ].join('\n')
 }
 
 // A pane that mounts as the top lands at its final translate, with nothing to
@@ -401,6 +426,7 @@ function levelRules(level: number): string {
   return [
     // Reset per row, or a nested row inherits its outer row's value.
     `  ${row(level)} { --pane-stack-inset-start: var(--pane-stack-inset); }`,
+    `  ${row(level)} { --page-step-ghost-from: initial; --page-step-pane-from: initial; }`,
     // Attributes, not `:dir()`: Lightning CSS lowers `:dir()` to a `:lang()` list.
     `  [dir="rtl"] ${row(level)} { --pane-dir: -1; }`,
     `  [dir="rtl"] [dir="ltr"] ${row(level)} { --pane-dir: 1; }`,
@@ -410,6 +436,8 @@ function levelRules(level: number): string {
     `  ${row(level)} ${deep} { position: absolute !important; ${inset} z-index: 3; ${AHEAD} visibility: hidden; pointer-events: none; transition-property: translate, visibility; transition-timing-function: var(--ease-enter); }`,
     `  ${row(level)}:not([data-reveal]) ${deep}[data-current] { translate: 0 0; visibility: visible; pointer-events: auto; }`,
     `  @media (prefers-reduced-motion: no-preference) { ${row(level)}[data-pushing] :is(${stacked}, ${deep}) { transition-duration: var(--duration-slow); } }`,
+    `  ${row(level)} > ${PAGE_GHOST} { position: absolute; ${inset} z-index: 0; }`,
+    pageStepRules(level),
     `  ${row(level)} [data-role="inspector"][data-level="${level}"] { order: 99; flex: 0 0 ${rem(PANE_INSPECTOR)}; }`,
     `  ${row(level)}:not([data-overflow]) [data-stack][data-level="${level}"][data-overflow] { ${HIDDEN} }`,
     `  ${row(level)}[data-overflow] ${stackPane(level, 0)}:not([data-overflow]) { ${HIDDEN} }`
@@ -422,7 +450,7 @@ const PANE_RULES = `  [data-slot="pane"][data-depth] { --pane-back: none; --pane
   [data-slot="pane"][data-depth] [data-slot="pane-close"] { display: var(--pane-close); }`
 
 export function renderPaneColumnsCss(): string {
-  const blocks: string[] = [PANE_RULES]
+  const blocks: string[] = [PANE_RULES, PAGE_STEP_KEYFRAMES]
   for (let level = 0; level < PANE_MAX_LEVELS; level += 1) {
     blocks.push(levelRules(level))
     blocks.push(stackRules(level), columnRules(level), enterRules(level))

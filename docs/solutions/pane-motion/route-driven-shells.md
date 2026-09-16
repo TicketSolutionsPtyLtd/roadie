@@ -88,8 +88,19 @@ React's own `<ViewTransition>` would sidestep the question entirely, at the cost
 of a peer bump to 19.3, a document-global single-flight transition, and frozen
 snapshots of a scrolling pane. Both are open; neither is built.
 
-A page-root step cuts as a result. It moves one pane's content, so without a
-copy of the outgoing page there is nothing to animate.
+A page-root step keeps its copy, and the difference is worth being precise
+about. A pop **removes** a pane: by the time anything can react, the router has
+taken its elements and there is nothing on screen to copy. A page-root step
+**replaces** one pane's content: the page it had is still mounted at the moment
+React is about to swap it, which `getSnapshotBeforeUpdate` can reach. One has
+something to copy and the other does not.
+
+So `NavigatorPageStep` stays, scoped to that step alone, with the hardening it
+had: no copy in columns or under reduced motion, built in an inert document,
+live elements replaced by sized stand-ins, scripts and `id`, `name`, `form` and
+`on*` stripped, inert and hidden from assistive technology, dropped when its
+animation settles. What it cost when it was briefly replaced by retention is in
+the measurements above: the retained pane drew the page you were going to.
 
 ## Judging the docs from a dev server
 

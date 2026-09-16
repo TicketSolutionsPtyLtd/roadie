@@ -25,7 +25,10 @@ left is not animated out. Swapping a sibling cuts: a commit that replaces a pane
 with another at the same depth, leaving the stack the shape it was, is not a
 push. Switching top-level item cuts too, whatever stack the incoming route
 draws. A section with `root='page'` draws every route in one pane, so a step
-between its pages cuts. `Pane.Search` is a pill search field with a Cancel.
+between its pages has no pane of its own to move: the page being left is copied
+into an inert document and slid away while the arriving one comes over it. That
+copy is the one in the frame, and only a page-root step makes one. `Pane.Search`
+is a pill search field with a Cancel.
 
 A pane takes its scroll down against the browser's own id for the history entry
 it is on, so going back or forward through history puts every pane where it was

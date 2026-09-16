@@ -415,9 +415,10 @@ render(<PageRootNav />)
 - On a phone, tapping the section's tab on a sub-page goes to the root. On the
   root, it scrolls the page to the top.
 - `showList` still shows the list over a sub-page. It does nothing on the root.
-- A step between the root and a sub-page cuts: one pane draws both, so there is
-  nothing to move. `value` still has to come from the route that renders the
-  page, such as `usePathname()`, or the list pane and Back go to the wrong place.
+- A step between the root and a sub-page slides, from a copy of the page being
+  left: one pane draws both, so there is nothing else to move. `value` has to
+  come from the route that renders the page, such as `usePathname()`, or the
+  step, the list pane and Back all read the wrong route.
 
 #### Section items in a page
 

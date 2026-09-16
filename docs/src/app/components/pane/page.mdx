@@ -230,9 +230,21 @@ and nor does anything under `prefers-reduced-motion: reduce`. See
 sub-detail.
 
 A section whose `Navigator.Secondary` sets `root='page'` draws every route in
-one pane. A step between its pages moves no pane of its own, so it cuts: the
-list pane appears behind the page on the way in and goes on the way out, and the
-page's own content swaps under it.
+one pane, so a step between its pages moves no pane of its own. Roadie gives it
+one: the page being left is copied, and the copy slides behind the arriving page
+on the way in and away over it on the way out. Reversing mid-step picks up from
+where the last one reached.
+
+The copy is built in an inert document, so nothing in it loads or upgrades.
+Scripts go, `id`, `name`, `form` and every `on*` are stripped, and anything that
+runs or draws once connected, a custom element, `canvas`, `iframe`, `video`,
+`audio`, `object` or `embed`, is replaced by a sized stand-in. It carries the
+scroll the page had and shows the row you tapped as selected, and it is `inert`
+and hidden from assistive technology, so nothing is announced or focused twice.
+It goes when its animation settles.
+
+This is the only copy in the frame. Columns and reduced motion make none, and
+neither does a push, a pop, a sibling page, a section switch or More.
 
 Select a row, then resize the window. The same code is a side-by-side reveal
 where two columns fit and a push where they don't.
@@ -430,6 +442,12 @@ after a pop it draws the route you went **to**, not the one you left.
 
 So a pop animates the pane behind and not the pane above. At every width, on a
 push both panes move, and on a pop the pane behind slides back into place.
+
+A page-root step is the exception, and it is one because the case is different:
+there the pane is not being removed, it is being drawn with another page in it,
+so the page it had is still on screen to copy at the moment it is replaced. A
+pop has no such moment. That is the whole of why one keeps a copy and the other
+does not.
 
 This is measured rather than assumed, and the measurements are in
 `docs/solutions/pane-motion/route-driven-shells.md`, along with what would have
