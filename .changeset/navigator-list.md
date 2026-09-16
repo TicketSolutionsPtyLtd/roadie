@@ -6,7 +6,9 @@ Add `Navigator` and `Pane`, the application frame.
 
 `Navigator` is one navigation model at every size: floating capsules down the
 side from `md`, with a brand (the Oztix `Logo` by default), pinned items and an
-optional expanded state with labels, and a floating tab bar on phones. Items
+optional expanded state with labels, and a floating tab bar on phones. An item
+always links to its declared `href`, so tapping a top-level item goes to that
+section's root wherever you were inside it. Items
 declare `placement` and `visibilityPriority`; whatever doesn't fit folds into a
 More pane. A section's sub-pages open in a generated list pane, optionally
 searchable, and an item can own a `Navigator.Menu` instead of a destination.

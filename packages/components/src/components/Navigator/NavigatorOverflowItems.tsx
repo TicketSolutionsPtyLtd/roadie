@@ -20,7 +20,6 @@ import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
 import type { NavigatorSlotMeta } from './mobileSlots'
 import { opensElsewhere } from './opensElsewhere'
 import { presentNavIcon } from './presentNavIcon'
-import { slotHref } from './sectionMemory'
 import { textOf } from './splitSecondary'
 
 export type NavigatorOverflowItemsProps = Omit<ListProps, 'children'>
@@ -54,7 +53,7 @@ export function NavigatorOverflowItems({
   const { setValue, setOverflowOpen, activateItem } = use(
     NavigatorActionsContext
   )
-  const { value, sectionMemory } = use(NavigatorSelectionContext)
+  const { value } = use(NavigatorSelectionContext)
   const { overflowItems, openMenu } = use(NavigatorDisclosureContext)
 
   // List.Item renders its own <li>, so it can't be a menu trigger.
@@ -96,7 +95,7 @@ export function NavigatorOverflowItems({
   ) => {
     if (slot.menu) return renderMenuRow(set, slot, slot.menu)
     const active = isSectionActive(slot, value)
-    const href = slotHref(sectionMemory, slot, active)
+    const href = slot.href
     return (
       <List.Item
         key={slot.value}

@@ -30,7 +30,6 @@ import type {
 } from './mobileSlots'
 import { opensElsewhere } from './opensElsewhere'
 import { badgeDot, presentNavIcon } from './presentNavIcon'
-import { rememberedHref } from './sectionMemory'
 import {
   firstRoutedSecondary,
   initialOf,
@@ -78,7 +77,7 @@ export function NavigatorItem({
   const { setValue, setOverflowOpen, closeOverflowOnRoute, activateItem } = use(
     NavigatorActionsContext
   )
-  const { value: active, sectionMemory } = use(NavigatorSelectionContext)
+  const { value: active } = use(NavigatorSelectionContext)
   const { openMenu, overflowOpen } = use(NavigatorDisclosureContext)
   const { expanded } = use(NavigatorExpansionContext)
   // By hand: the compiler re-runs these walks every render, handing the tile a new label.
@@ -107,9 +106,7 @@ export function NavigatorItem({
   const isBranch = !menu && isBranchActive(value, descendants, active)
   // An open menu or More takes the pill.
   const hasPill = menuOpen || (openMenu === null && !overflowOpen && isBranch)
-  const targetHref = isSection
-    ? effectiveHref
-    : rememberedHref(sectionMemory, value, effectiveHref, isBranch)
+  const targetHref = effectiveHref
 
   // The element can be Root's structural copy, so its handler resolves through the current tree.
   const handleClick = (event: MouseEvent) => {

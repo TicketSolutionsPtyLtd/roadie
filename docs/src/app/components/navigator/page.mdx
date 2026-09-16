@@ -1058,8 +1058,8 @@ Next.js routing that puts a list and a detail under one URL.
 - Pass bare icons to items. Navigator renders them duotone at `size-6`. Give
   `Navigator.MenuItem` icons `weight='bold'`. An item without an icon shows its
   label's first letter.
-- An item with no `Navigator.Secondary` that sits over sub-routes remembers the
-  one you last visited. Its link goes back there, in More too, until a reload.
+- An item always links to its declared `href`, in More too, so tapping a
+  top-level item goes to that section's root wherever you were inside it.
 - The top pane's `primaryNav` decides what the phone bar does while that pane
   is on top. See [`Pane`](/components/pane).
 

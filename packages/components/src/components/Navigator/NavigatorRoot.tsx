@@ -47,7 +47,6 @@ import {
 import { collectSlots } from './collectSlots'
 import type { NavigatorSlotMeta } from './mobileSlots'
 import { primarySignature } from './primarySignature'
-import { type SectionMemory, nextMemory } from './sectionMemory'
 import { useExpandMotion } from './useExpandMotion'
 import { navigatorRootClass } from './variants'
 
@@ -186,12 +185,6 @@ export function NavigatorRoot({
   const overflowOpenerRef = useRef<HTMLElement | null>(null)
   const overflowPaneId = useId()
   const [openMenu, setOpenMenu] = useState<string | null>(null)
-  const [sectionMemory, setSectionMemory] = useState<SectionMemory>(
-    () => new Map()
-  )
-  const rememberSection = (section: string, href: string) => {
-    setSectionMemory((memory) => nextMemory(memory, section, href))
-  }
   const [declaredSecondaryPanes, setDeclaredSecondaryPanes] = useState<
     ReadonlySet<string>
   >(() => new Set())
@@ -294,7 +287,6 @@ export function NavigatorRoot({
     overflowOpenerRef,
     hasContent,
     setOpenMenu,
-    rememberSection,
     declareSecondaryPane,
     onShowListChange: handlesShowList
       ? (next) => handlers.current.onShowListChange?.(next)
@@ -309,7 +301,6 @@ export function NavigatorRoot({
     activeSection,
     listPaneShows,
     showList: showList ?? false,
-    sectionMemory,
     declaredSecondaryPanes
   }
   const disclosure: NavigatorDisclosure = {

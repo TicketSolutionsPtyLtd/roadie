@@ -162,9 +162,9 @@ export function NavigatorContent({
   const ref = useMemo(() => mergeRefs(contentRef, forwardedRef), [forwardedRef])
   const rowRef = useRef<HTMLDivElement | null>(null)
   const sectionValue = activeSection?.value ?? null
-  // The top-level item the route sits under. A section is one of these, and a
-  // plain item is not, so this also catches a tab whose remembered route
-  // restores a child: the stack changes shape, but it is still a tab switch.
+  // The top-level item the route sits under. A section is one of these and a
+  // plain item is not, so this also catches a switch that lands deep in the
+  // incoming item: the stack changes shape, but it is still a tab switch.
   const tabValue =
     collected.ordered.find((slot) => isSectionActive(slot, value))?.value ??
     null

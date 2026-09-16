@@ -44,7 +44,6 @@ import { opensElsewhere } from './opensElsewhere'
 import { presentNavIcon } from './presentNavIcon'
 import { PRIMARY_METRICS } from './primaryCapacity'
 import { slotsSignature } from './primarySignature'
-import { slotHref } from './sectionMemory'
 import { textOf } from './splitSecondary'
 import { usePrimaryCapacity } from './usePrimaryCapacity'
 import {
@@ -90,7 +89,6 @@ export function NavigatorPrimary({
     overflowOpenerRef,
     hasContent,
     setOpenMenu,
-    rememberSection,
     onShowListChange,
     activateItem,
     expandedFromDocument,
@@ -100,7 +98,6 @@ export function NavigatorPrimary({
     value: activeValue,
     activeSection,
     collected,
-    sectionMemory,
     showList
   } = use(NavigatorSelectionContext)
   const { overflowOpen, openMenu } = use(NavigatorDisclosureContext)
@@ -114,23 +111,6 @@ export function NavigatorPrimary({
 
   // Root's walk: a Primary that isn't its direct child finds nothing, and warns.
   const items = collected.ordered
-
-  // Only an item without a Secondary, deep in an undeclared sub-route, is worth remembering.
-  const branchSection = items.find((item) => isSectionActive(item, activeValue))
-  const branchValue =
-    branchSection?.descendants.length === 0 ? branchSection.value : undefined
-  // Only a path-shaped value is something a link can point at.
-  const deepHref =
-    branchValue !== undefined &&
-    activeValue !== branchValue &&
-    activeValue?.startsWith('/')
-      ? activeValue
-      : undefined
-
-  useEffect(() => {
-    if (branchValue === undefined || deepHref === undefined) return
-    rememberSection(branchValue, deepHref)
-  }, [branchValue, deepHref, rememberSection])
 
   const slots = useMemo(
     () => deriveMobileSlots(collected.automatic, collected.pinnedSlots),
@@ -373,7 +353,7 @@ export function NavigatorPrimary({
 
     const tabs = slots.tabs.map((tab, tabIndex) => {
       const active = isSectionActive(tab, activeValue)
-      const href = slotHref(sectionMemory, tab, active)
+      const href = tab.href
       // With the end circle taken, the first tab floats to the start so two circles always show.
       const isStartCircle = activeIsEnd
         ? tab.value === slots.tabs[0]?.value
@@ -392,8 +372,7 @@ export function NavigatorPrimary({
         onClick: (event) => selectDestination(event, tab, active, href)
       })
     })
-    const pinnedHref =
-      pinnedTab && slotHref(sectionMemory, pinnedTab, pinnedIsActive)
+    const pinnedHref = pinnedTab?.href
     const pinned = pinnedTab
       ? renderTab(pinnedTab, {
           label: pinnedTab.label,
@@ -422,7 +401,6 @@ export function NavigatorPrimary({
     overflowOpen,
     openMenu,
     collapsed,
-    sectionMemory,
     showList,
     onShowListChange,
     activateItem,

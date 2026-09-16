@@ -4099,7 +4099,7 @@ describe('a new destination starts at the top', () => {
   })
 })
 
-describe('per-section stack memory', () => {
+describe('per-section hrefs', () => {
   const nav = (value: string) => (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Main'>
@@ -4135,14 +4135,14 @@ describe('per-section stack memory', () => {
     expect(verticalLink('Tokens')).toHaveAttribute('href', '/tokens')
   })
 
-  it('retargets a section you have left to the sub-route you left it on', async () => {
+  it('keeps a section you have left on its declared href', async () => {
     const { rerender } = render(nav('/components'))
     await flushViewportMeasurement()
     rerender(nav('/tokens/color'))
     await flushViewportMeasurement()
     rerender(nav('/components/button'))
     await flushViewportMeasurement()
-    expect(verticalLink('Tokens')).toHaveAttribute('href', '/tokens/color')
+    expect(verticalLink('Tokens')).toHaveAttribute('href', '/tokens')
   })
 
   it('leaves the section you are in on its declared href', async () => {
@@ -4153,7 +4153,7 @@ describe('per-section stack memory', () => {
     expect(verticalLink('Tokens')).toHaveAttribute('href', '/tokens')
   })
 
-  it('never retargets a section that declares a Secondary', async () => {
+  it('keeps a section that declares a Secondary on its declared href', async () => {
     const { rerender } = render(nav('/components/button'))
     await flushViewportMeasurement()
     rerender(nav('/tokens'))
@@ -4161,7 +4161,7 @@ describe('per-section stack memory', () => {
     expect(verticalLink('Components')).toHaveAttribute('href', '/components')
   })
 
-  it('retargets a folded section’s More row like its tab', async () => {
+  it('keeps a folded section’s More row on its declared href, like its tab', async () => {
     const folded = (value: string) => (
       <Navigator value={value}>
         <Navigator.Primary aria-label='Main'>
@@ -4188,7 +4188,7 @@ describe('per-section stack memory', () => {
     )!
     expect(within(moreRows).getByRole('link', { name: '/f' })).toHaveAttribute(
       'href',
-      '/f/deep'
+      '/f'
     )
   })
 

@@ -15,7 +15,6 @@ import type {
 } from './NavigatorSecondary'
 import { type CollectedSlots, collectSlots } from './collectSlots'
 import type { NavigatorSlotMeta } from './mobileSlots'
-import type { SectionMemory } from './sectionMemory'
 
 export type NavigatorActiveSection = {
   value: string
@@ -61,7 +60,6 @@ export type NavigatorActions = {
   /** Whether a `Navigator.Content` is a direct child of the root. */
   hasContent: boolean
   setOpenMenu: Dispatch<SetStateAction<string | null>>
-  rememberSection: (section: string, href: string) => void
   declareSecondaryPane: (value: string) => () => void
   /** Present only when the app handles `showList`. */
   onShowListChange?: (next: boolean) => void
@@ -83,8 +81,6 @@ export type NavigatorSelection = {
   listPaneShows: boolean
   /** The app asks for the active section's list on top. */
   showList: boolean
-  /** Each section's last-reached destination. Empty on reload. */
-  sectionMemory: SectionMemory
   /** Sections whose generated pane a `Navigator.SecondaryPane` replaces. */
   declaredSecondaryPanes: ReadonlySet<string>
 }
@@ -131,7 +127,6 @@ export const NavigatorActionsContext = createContext<NavigatorActions>({
   overflowOpenerRef: { current: null },
   hasContent: false,
   setOpenMenu: noop,
-  rememberSection: noop,
   declareSecondaryPane: () => noop,
   setExpanded: noop,
   expandedFromDocument: false,
@@ -146,7 +141,6 @@ export const NavigatorSelectionContext = createContext<NavigatorSelection>({
   activeSection: null,
   listPaneShows: false,
   showList: false,
-  sectionMemory: new Map(),
   declaredSecondaryPanes: new Set()
 })
 NavigatorSelectionContext.displayName = 'NavigatorSelectionContext'
