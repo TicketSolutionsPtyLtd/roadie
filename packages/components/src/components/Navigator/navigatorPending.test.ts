@@ -20,6 +20,15 @@ describe('the pending indicator sheet', () => {
     expect(sheet).not.toMatch(/--color-[\w-]+-light-\d/)
   })
 
+  // The pull-back insets the pane row inside the frame. If the frame were a
+  // scrollport, anything revealing the arriving pane mid-transform would scroll
+  // it by that inset, and the offset would outlive the scale.
+  it('leaves the frame with no scrollport for the pull-back to shift', () => {
+    const classes = navigatorRootClass.split(' ')
+    expect(classes).toContain('overflow-clip')
+    expect(classes).not.toContain('overflow-hidden')
+  })
+
   it('keeps the colour and drops every movement under reduced motion', () => {
     const reduced = media('(prefers-reduced-motion: reduce)')
     expect(reduced).toContain('animation: none')

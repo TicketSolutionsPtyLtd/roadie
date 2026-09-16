@@ -5,7 +5,15 @@ import { cva } from 'class-variance-authority'
 export const navigatorRootClass = [
   'group/navigator',
   // isolate: the pending indicator paints from behind, over this fill.
-  'relative isolate grid h-[100dvh] w-full overflow-hidden bg-sunken',
+  // clip, not hidden: the frame is 100dvh and every pane scrolls itself, so it
+  // has no business being a scrollport. `hidden` still makes one, and a
+  // scrollport that shows no bar is one anything can scroll without a trace: a
+  // focus, a find-in-page, a router bringing an arriving segment into view. The
+  // phone pull-back insets the pane row by 2% of the frame, so a scroll like
+  // that would be absorbed here and stay behind once the scale is dropped.
+  // `clip` makes no scrollport at all, as navigator-content already does. See
+  // docs/solutions/pane-motion/a-transform-inside-a-scrollport.md.
+  'relative isolate grid h-[100dvh] w-full overflow-clip bg-sunken',
   '[container-type:inline-size]',
   'grid-rows-1 md:grid-cols-[auto_1fr]',
   'pt-[env(safe-area-inset-top)]'
