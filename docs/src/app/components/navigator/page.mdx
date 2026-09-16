@@ -688,7 +688,7 @@ render(<OverflowPaneNav />)
 ### Menus
 
 `Navigator.Menu` gives an item a menu instead of a destination, such as an
-account menu. `Navigator.MenuItem` takes an `href` or an `onClick`, plus an
+account menu. `Navigator.MenuItem` takes an `href` or an `onSelect`, plus an
 optional `icon` and `description`.
 
 ```tsx-live-noinline
@@ -716,7 +716,7 @@ function MenuNav() {
                   <Navigator.MenuItem href='/notifications' icon={<BellRingingIcon weight='bold' />}>
                     Notifications
                   </Navigator.MenuItem>
-                  <Navigator.MenuItem onClick={() => setSignedOut(true)} icon={<XIcon weight='bold' />}>
+                  <Navigator.MenuItem onSelect={() => setSignedOut(true)} icon={<XIcon weight='bold' />}>
                     Sign out
                   </Navigator.MenuItem>
                 </Navigator.Menu>
@@ -1064,7 +1064,7 @@ Next.js routing that puts a list and a detail under one URL.
   is on top. See [`Pane`](/components/pane).
 
 <Guideline title='Menus'>
-  <Guideline.Do code={`<Navigator.Item value='account' icon={<UserIcon />} placement='pinned'>\n  Account\n  <Navigator.Menu>\n    <Navigator.MenuItem href='/profile'>Profile</Navigator.MenuItem>\n    <Navigator.MenuItem onClick={signOut}>Sign out</Navigator.MenuItem>\n  </Navigator.Menu>\n</Navigator.Item>`}>
+  <Guideline.Do code={`<Navigator.Item value='account' icon={<UserIcon />} placement='pinned'>\n  Account\n  <Navigator.Menu>\n    <Navigator.MenuItem href='/profile'>Profile</Navigator.MenuItem>\n    <Navigator.MenuItem onSelect={signOut}>Sign out</Navigator.MenuItem>\n  </Navigator.Menu>\n</Navigator.Item>`}>
     Use a menu for a few actions, such as an account's profile and sign out.
   </Guideline.Do>
   <Guideline.Dont code={`<Navigator.Menu>\n  <Navigator.MenuItem>Notification settings</Navigator.MenuItem>\n  ... 30 more rows, toggles and a search field ...\n</Navigator.Menu>`}>

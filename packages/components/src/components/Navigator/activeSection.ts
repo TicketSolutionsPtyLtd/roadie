@@ -48,7 +48,7 @@ export const findSectionByValue = (
 export function findItem(
   slots: readonly NavigatorSlotMeta[],
   itemValue: string
-): Pick<NavigatorItemProps, 'onClick'> | undefined {
+): Pick<NavigatorItemProps, 'onSelect'> | undefined {
   for (const slot of slots) {
     if (slot.value === itemValue) return slot
     const sub = secondaryBlocks(slot.secondary?.children)

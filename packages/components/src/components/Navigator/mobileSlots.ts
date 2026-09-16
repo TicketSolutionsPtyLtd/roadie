@@ -35,8 +35,8 @@ export type NavigatorSlotMeta = {
   descendants: string[]
   secondary?: NavigatorSecondaryProps
   group?: NavigatorSlotGroup
-  /** The item's `onClick`, called wherever the item is activated. */
-  onClick?: () => void
+  /** The item's `onSelect`, called wherever the item is activated. */
+  onSelect?: () => void
   placement: NavigatorPlacement
   priority: NavigatorVisibilityPriority
 }

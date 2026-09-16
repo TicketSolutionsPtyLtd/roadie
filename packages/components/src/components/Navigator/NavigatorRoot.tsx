@@ -252,10 +252,10 @@ export function NavigatorRoot({
   // The latest elements, not the structural copy, so handlers are current at click time.
   const latestSlots = () => collectSlots(latestPrimaryChildren.current).ordered
   const activateItem = useCallback((itemValue: string) => {
-    findItem(latestSlots(), itemValue)?.onClick?.()
+    findItem(latestSlots(), itemValue)?.onSelect?.()
   }, [])
   const activateMenuItem = useCallback((itemValue: string, index: number) => {
-    findMenuItem(latestSlots(), itemValue, index)?.onClick?.()
+    findMenuItem(latestSlots(), itemValue, index)?.onSelect?.()
   }, [])
   const listPaneShows =
     activeSection !== null &&

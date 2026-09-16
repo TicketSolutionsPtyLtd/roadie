@@ -64,7 +64,7 @@ export type NavigatorItemProps = {
   className?: string
   children?: ReactNode
   /** Called on every activation, including when it opens its menu. */
-  onClick?: () => void
+  onSelect?: () => void
 }
 
 export function NavigatorItem({

@@ -66,7 +66,7 @@ function withCurrentHandlers(
     }
     const index = position++
     return cloneElement(child as ReactElement<NavigatorMenuItemProps>, {
-      onClick: () => activate(index)
+      onSelect: () => activate(index)
     })
   })
 }

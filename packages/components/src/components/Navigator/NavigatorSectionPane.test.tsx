@@ -1494,7 +1494,7 @@ describe('row handlers resolve at click time', () => {
             <Navigator.Item
               value='/components/button'
               href='/components/button'
-              onClick={() => seen.push(count)}
+              onSelect={() => seen.push(count)}
             >
               Button
             </Navigator.Item>
@@ -1505,7 +1505,7 @@ describe('row handlers resolve at click time', () => {
             {v}
           </Navigator.Item>
         ))}
-        <Navigator.Item value='/e' href='/e' onClick={() => seen.push(count)}>
+        <Navigator.Item value='/e' href='/e' onSelect={() => seen.push(count)}>
           /e
         </Navigator.Item>
       </Navigator.Primary>
@@ -1522,7 +1522,7 @@ describe('row handlers resolve at click time', () => {
       </Navigator>
     )
 
-  it("a section pane row calls the item's current onClick", async () => {
+  it("a section pane row calls the item's current onSelect", async () => {
     const seen: number[] = []
     const { rerender } = render(app(0, seen))
     await flushViewportMeasurement()
@@ -1535,7 +1535,7 @@ describe('row handlers resolve at click time', () => {
     expect(seen).toEqual([2])
   })
 
-  it("a More row calls the item's current onClick", async () => {
+  it("a More row calls the item's current onSelect", async () => {
     const seen: number[] = []
     const { rerender } = render(app(0, seen))
     await flushViewportMeasurement()

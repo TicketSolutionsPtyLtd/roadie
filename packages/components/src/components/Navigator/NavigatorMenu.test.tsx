@@ -51,7 +51,7 @@ function Tree({
           Account
           <Navigator.Menu aria-label={menuLabel}>
             <Navigator.MenuItem href='/profile'>Profile</Navigator.MenuItem>
-            <Navigator.MenuItem onClick={signOut}>Sign out</Navigator.MenuItem>
+            <Navigator.MenuItem onSelect={signOut}>Sign out</Navigator.MenuItem>
           </Navigator.Menu>
         </Navigator.Item>
       </Navigator.Primary>
@@ -140,7 +140,7 @@ describe('Navigator.Menu', () => {
     expect(trigger).toHaveFocus()
   })
 
-  it('runs onClick and closes', async () => {
+  it('runs onSelect and closes', async () => {
     const user = userEvent.setup()
     const signOut = vi.fn()
     render(<Tree signOut={signOut} />)
@@ -160,8 +160,8 @@ describe('Navigator.Menu', () => {
         data-testid='stub-link'
         href={href}
         {...rest}
-        onClick={(event) => {
-          rest.onClick?.(event)
+        onSelect={(event) => {
+          rest.onSelect?.(event)
           event.preventDefault()
         }}
       >
@@ -625,7 +625,7 @@ describe('folded rows stay current', () => {
           Account
           <Navigator.Menu>
             <Navigator.MenuItem href='/profile'>Profile</Navigator.MenuItem>
-            <Navigator.MenuItem onClick={() => seen.push(count)}>
+            <Navigator.MenuItem onSelect={() => seen.push(count)}>
               Sign out
             </Navigator.MenuItem>
           </Navigator.Menu>
@@ -660,7 +660,7 @@ describe('folded rows stay current', () => {
     ).toHaveTextContent('7')
   })
 
-  it("calls a folded menu item's current onClick", async () => {
+  it("calls a folded menu item's current onSelect", async () => {
     const user = userEvent.setup()
     const seen: number[] = []
     const { rerender } = render(app(0, seen))

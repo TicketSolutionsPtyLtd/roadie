@@ -71,7 +71,7 @@ export function toSlotMeta(
       ? secondary[0].props
       : undefined,
     group,
-    onClick: props.onClick,
+    onSelect: props.onSelect,
     placement: group?.placement ?? props.placement ?? 'automatic',
     priority: props.visibilityPriority ?? group?.priority ?? 'automatic'
   }

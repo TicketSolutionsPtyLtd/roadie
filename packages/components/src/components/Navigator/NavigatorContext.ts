@@ -43,9 +43,9 @@ export type NavigatorActions = {
   scrollActivePaneToTop: () => void
   /** Root found a direct-child Primary and reads its children. */
   primaryDerived: boolean
-  /** Calls the current `onClick` of the item with this `value`, read at click time. */
+  /** Calls the current `onSelect` of the item with this `value`, read at click time. */
   activateItem: (value: string) => void
-  /** Calls the current `onClick` of that item's `index`th `Navigator.MenuItem`. */
+  /** Calls the current `onSelect` of that item's `index`th `Navigator.MenuItem`. */
   activateMenuItem: (value: string, index: number) => void
   setOverflowOpen: (next: boolean) => void
   /** Closes More for a destination that navigates: at once when uncontrolled, by the route when controlled. */

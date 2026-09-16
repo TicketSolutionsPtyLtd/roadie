@@ -13,7 +13,8 @@ import { navigatorMenuItemClass } from './variants'
 export type NavigatorMenuItemProps = {
   /** Routes through `RoadieLinkProvider`, like `Navigator.Item`. */
   href?: string
-  onClick?: () => void
+  /** Called when the row is chosen. */
+  onSelect?: () => void
   /** Leading icon in a small `IconTile`. Pass `weight='bold'`. */
   icon?: ReactNode
   /** Secondary text beneath the label, e.g. an account email under a name. */
@@ -24,7 +25,7 @@ export type NavigatorMenuItemProps = {
 
 export function NavigatorMenuItem({
   href,
-  onClick,
+  onSelect,
   icon,
   description,
   className,
@@ -72,7 +73,7 @@ export function NavigatorMenuItem({
         className={finalClassName}
         render={<RoadieRoutedLink href={href} />}
         closeOnClick
-        onClick={onClick}
+        onClick={onSelect}
         aria-describedby={describedBy}
       >
         {content}
@@ -84,7 +85,7 @@ export function NavigatorMenuItem({
     <Menu.Item
       data-slot='navigator-menu-item'
       className={finalClassName}
-      onClick={onClick}
+      onClick={onSelect}
       aria-describedby={describedBy}
     >
       {content}
