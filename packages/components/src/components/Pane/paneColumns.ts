@@ -160,8 +160,11 @@ const display = (on: boolean) => (on ? 'grid' : 'none')
 
 const row = (level: number) =>
   `[data-slot="navigator-panes"][data-level="${level}"]`
+// A pane React has replaced, still held for its exit, is not in the stack: it
+// must not be counted as a level, read as the top, or given a landed place.
+const LIVE = ':not([data-exiting])'
 const stackPane = (level: number, depth: number, extra = '') =>
-  `[data-stack][data-level="${level}"][data-depth="${depth}"]${extra}`
+  `[data-stack][data-level="${level}"][data-depth="${depth}"]${extra}${LIVE}`
 
 // Before panes register, a lone `detail` is written at its role default, 1,
 // with nothing at 0. Such a row is read one depth shallower, so its first
@@ -330,7 +333,7 @@ const HIDDEN = 'display: none !important;'
 function inspectorRules(level: number): string {
   const inspector = `[data-role="inspector"][data-level="${level}"]`
   return [
-    `  ${row(level)}:not([data-overflow]):not(:has([data-stack][data-level="${level}"]:not([data-overflow]))) ${inspector} { ${HIDDEN} }`,
+    `  ${row(level)}:not([data-overflow]):not(:has([data-stack][data-level="${level}"]:not([data-overflow])${LIVE})) ${inspector} { ${HIDDEN} }`,
     ...ROW_SIZES.map(
       ({ base, levels }) =>
         `@container panes (width < ${rem(inspectorTier(levels))}) { ${row(level)}${baseIs(level, base)}${levelsIs(level, levels, base)} ${inspector} { ${HIDDEN} } }`
@@ -399,8 +402,29 @@ function enterRules(level: number): string {
       (shape) =>
         `    ${shapeSelector(level, shape, shape.top, '[data-pushing]')} { ${AHEAD} }`
     ),
-    `    ${row(level)}[data-pushing]:not([data-reveal]) ${deep}[data-current] { ${AHEAD} }`,
+    `    ${row(level)}[data-pushing]:not([data-reveal]) ${deep}${LIVE}[data-current] { ${AHEAD} }`,
     '  } } }'
+  ].join('\n')
+}
+
+// A pane React has replaced, kept in the row until its slide ends. It is parked
+// where it is going with no transition, so a row that cannot animate drops it
+// out of sight at once; the stacked branch adds the leaving transition that
+// carries it there. No starting style: the pane is already showing the translate
+// it leaves from, so a reversed step resumes mid-slide for free.
+// z-index, not document order: a pane leaving forward passes over the one it
+// uncovers, and a pane going behind passes under the one arriving.
+function exitRules(level: number): string {
+  const exiting = (extra = '') =>
+    `${row(level)} [data-stack][data-level="${level}"][data-exiting]${extra}`
+  const parked =
+    'visibility: hidden; pointer-events: none; content-visibility: auto; transition: none;'
+  return [
+    `  ${exiting('[data-exit="ahead"]')} { ${AHEAD} opacity: 1; z-index: 3; ${parked} }`,
+    `  ${exiting('[data-exit="behind"]')} { ${BEHIND} opacity: 0.9; ${PARKED} ${parked} }`,
+    `  @container panes (width < ${rem(stackedUntil())}) { @media (prefers-reduced-motion: no-preference) {`,
+    `    ${exiting()} { ${LEAVING} transition-duration: var(--duration-slow); }`,
+    '  } }'
   ].join('\n')
 }
 
@@ -434,8 +458,9 @@ function levelRules(level: number): string {
     shadowRoomRules(level),
     `  ${pane} { position: absolute !important; ${inset} }`,
     `  ${row(level)} ${deep} { position: absolute !important; ${inset} z-index: 3; ${AHEAD} visibility: hidden; pointer-events: none; transition-property: translate, visibility; transition-timing-function: var(--ease-enter); }`,
-    `  ${row(level)}:not([data-reveal]) ${deep}[data-current] { translate: 0 0; visibility: visible; pointer-events: auto; }`,
-    `  @media (prefers-reduced-motion: no-preference) { ${row(level)}[data-pushing] :is(${stacked}, ${deep}) { transition-duration: var(--duration-slow); } }`,
+    `  ${row(level)}:not([data-reveal]) ${deep}${LIVE}[data-current] { translate: 0 0; visibility: visible; pointer-events: auto; }`,
+    `  @media (prefers-reduced-motion: no-preference) { ${row(level)}[data-pushing] :is(${stacked}, ${deep})${LIVE} { transition-duration: var(--duration-slow); } }`,
+    exitRules(level),
     `  ${row(level)} > ${PAGE_GHOST} { position: absolute; ${inset} z-index: 0; }`,
     pageStepRules(level),
     `  ${row(level)} [data-role="inspector"][data-level="${level}"] { order: 99; flex: 0 0 ${rem(PANE_INSPECTOR)}; }`,
