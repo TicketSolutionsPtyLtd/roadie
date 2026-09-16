@@ -41,10 +41,13 @@ surface that takes one, and takes `pendingIndicator={false}` to turn it off;
 `router.push`.
 
 A pane takes its scroll down against the browser's own id for the history entry
-it is on, so going back or forward through history puts every pane where it was
-while a new destination still starts at the top. Roadie reads no URL and writes
-no history state: it reads `navigation.currentEntry.key`, and where an engine
-has no Navigation API panes keep starting at the top.
+it is on, so going back or forward through history puts every pane where it was.
+Going forward, the pane the navigation arrives at starts at the top and the pane
+it leaves keeps its place — the top of the stack is the deepest `current` pane,
+so a layout that leaves `current` on the pane it drilled from keeps that pane's
+scroll. Roadie reads no URL and writes no history state: it reads
+`navigation.currentEntry.key`, and where an engine has no Navigation API panes
+keep starting at the top.
 
 Also ships `Navigator.ExpandToggle`, `Navigator.OverflowPane`/`OverflowItems`,
 `Navigator.SecondaryPane`, and `Navigator.SectionItems` with
