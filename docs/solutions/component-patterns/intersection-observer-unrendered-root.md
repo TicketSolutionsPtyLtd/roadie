@@ -92,10 +92,13 @@ is the expanded default.
   zero rect is a legal reading, and `0 <= threshold` is true for most
   thresholds, so the degenerate case silently picks one branch.
 - **Assume a component in a hidden subtree still runs its observers.** Anything
-  that mounts hidden and measures at mount is suspect. `PaneHeader` has the same
-  shape: it publishes `--pane-header-height` from `offsetHeight` at mount, which
-  is `0` for a More pane, and its `ResizeObserver` does not fire when the
-  ancestor's `display` changes.
+  that mounts hidden and measures at mount is suspect, though a `ResizeObserver`
+  recovers on its own: it reports `0` while the element has no box and reports
+  again on the frame the ancestor's `display` changes. `PaneHeader` publishes
+  `--pane-header-height` that way, so a More pane holds `0px` while hidden and
+  the real height from its first rendered frame. `IntersectionObserver` has no
+  such recovery, because a zero rect is a legal reading rather than an absent
+  one.
 - **jsdom cannot catch this.** The regression test reproduces it through
   `reportUnrenderedSentinels` in `Navigator/testUtils`, which sends the zero-rect
   callback a browser sends.
