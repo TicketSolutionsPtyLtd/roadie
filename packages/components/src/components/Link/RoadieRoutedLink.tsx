@@ -59,6 +59,7 @@ const routes = (event: MouseEvent, href: string, target?: string) =>
   !event.shiftKey &&
   !event.altKey &&
   (target === undefined || target === '_self') &&
+  !event.currentTarget.hasAttribute('download') &&
   !href.startsWith('#')
 
 export function RoadieRoutedLink({

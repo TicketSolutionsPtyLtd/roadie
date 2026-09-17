@@ -215,7 +215,10 @@ export function NavigatorRoot({
   }, [children])
   const primaryDerived = primary !== undefined
 
-  // Only a new structure republishes, so nothing derived changes identity.
+  // Element identities change whenever a caller re-renders JSX, even when
+  // its authored tree is equivalent. Keep the derived tree stable for that
+  // case, but include object and function identities so current props and
+  // handlers always replace their earlier values.
   const derivedChildren = primary?.props.children
   const derivedSignature = useMemo(
     () => primarySignature(derivedChildren),
@@ -235,6 +238,11 @@ export function NavigatorRoot({
     () => collectSlots(primaryChildren),
     [primaryChildren]
   )
+  // The latest elements, not the structural copy, so handlers are current at click time.
+  useIsomorphicLayoutEffect(() => {
+    latestPrimaryChildren.current = derivedChildren
+  }, [derivedChildren])
+
   // Keyed on which section is active, so moving between its rows keeps its identity.
   const activeSectionValue =
     findActiveSection(collected.ordered, value)?.value ?? null
@@ -245,10 +253,7 @@ export function NavigatorRoot({
         : findSectionByValue(collected.ordered, activeSectionValue),
     [collected, activeSectionValue]
   )
-  useIsomorphicLayoutEffect(() => {
-    latestPrimaryChildren.current = derivedChildren
-  }, [derivedChildren])
-  // The latest elements, not the structural copy, so handlers are current at click time.
+
   const latestSlots = () => collectSlots(latestPrimaryChildren.current).ordered
   const activateItem = useCallback((itemValue: string) => {
     findItem(latestSlots(), itemValue)?.onSelect?.()

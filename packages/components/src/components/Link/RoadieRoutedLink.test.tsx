@@ -273,6 +273,12 @@ describe('RoadieRoutedLink', () => {
       ).toBeNull()
     })
 
+    it('leaves a download link to the browser', () => {
+      expect(
+        clicked(<RoadieRoutedLink href='/events.ics' download />)
+      ).toBeNull()
+    })
+
     it('leaves a hash on this page alone', () => {
       expect(clicked(<RoadieRoutedLink href='#lineup' />)).toBeNull()
     })

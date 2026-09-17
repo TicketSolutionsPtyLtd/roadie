@@ -912,6 +912,53 @@ describe('Navigator.Brand', () => {
     expect(brandLink('Roadie')).toHaveAttribute('data-testid', 'stub-link')
   })
 
+  it('uses the Brand click handler from the latest Primary tree', async () => {
+    const blockNavigation = vi.fn()
+    function App({ dirty }: { dirty: boolean }) {
+      return withStubLink(
+        brandTree(
+          <Navigator.Brand
+            onClick={(event) => {
+              if (!dirty) return
+              event.preventDefault()
+              blockNavigation()
+            }}
+          >
+            Roadie
+          </Navigator.Brand>
+        )
+      )
+    }
+
+    const { rerender } = render(<App dirty={false} />)
+    await flushViewportMeasurement()
+    rerender(<App dirty />)
+    await flushViewportMeasurement()
+    await userEvent.click(brandLink('Roadie'))
+
+    expect(blockNavigation).toHaveBeenCalledOnce()
+  })
+
+  it('updates a Brand child that receives a new object prop', async () => {
+    function BrandName({ account }: { account: { name: string } }) {
+      return <>{account.name}</>
+    }
+    function App({ name }: { name: string }) {
+      return brandTree(
+        <Navigator.Brand>
+          <BrandName account={{ name }} />
+        </Navigator.Brand>
+      )
+    }
+
+    const { rerender } = render(<App name='First account' />)
+    await flushViewportMeasurement()
+    rerender(<App name='Second account' />)
+    await flushViewportMeasurement()
+
+    expect(brandLink('Second account')).toBeInTheDocument()
+  })
+
   it('does not warn about a stray child', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
