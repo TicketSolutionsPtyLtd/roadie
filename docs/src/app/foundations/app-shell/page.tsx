@@ -23,7 +23,7 @@ function CodeBlock({ children }: { children: ReactNode }) {
 
 const fileTree = `app/
 └─ (shell)/
-   ├─ layout.tsx              # 'use client' — the Navigator tree
+   ├─ layout.tsx              # 'use client' — RoadieLinkProvider + Navigator
    ├─ default.tsx             # children-slot fallback
    ├─ items/
    │  ├─ page.tsx             # the list pane
@@ -85,8 +85,9 @@ const constraints = [
     breaks: 'A reload or a shared link 404s, because interception is soft-only'
   },
   {
-    constraint: 'A client component layout',
-    breaks: 'Items, group titles and menus disappear from the navigation'
+    constraint: 'A client component shell with RoadieLinkProvider',
+    breaks:
+      'Navigation items disappear, or hrefs hard-navigate instead of intercepting'
   }
 ]
 
@@ -288,9 +289,61 @@ export default function CatchAll() {
         </div>
 
         <div className='grid gap-2'>
-          <h3 className='text-display-ui-5 text-strong'>The client layout</h3>
+          <h3 className='text-display-ui-5 text-strong'>
+            The client shell and link provider
+          </h3>
           <p className='text-subtle'>
-            Author the whole Navigator tree in a client component.{' '}
+            Author the whole Navigator tree in a client component, wrapped in{' '}
+            <Link href='/foundations/linking'>RoadieLinkProvider</Link>. It
+            gives every internal <Code>href</Code> to Next&apos;s Link, so a
+            list-item tap stays a soft navigation and the <Code>@detail</Code>{' '}
+            interception can render beside it. Without it, Navigator falls back
+            to a plain anchor and reloads the standalone route instead.
+          </p>
+          <CodeBlock>{`// app/(shell)/layout.tsx
+'use client'
+
+import type { ReactNode } from 'react'
+
+import NextLink from 'next/link'
+import { usePathname } from 'next/navigation'
+
+import { RoadieLinkProvider } from '@oztix/roadie-components'
+import { Navigator } from '@oztix/roadie-components/navigator'
+
+type ShellLayoutProps = {
+  children: ReactNode
+  detail: ReactNode
+}
+
+export default function ShellLayout({
+  children,
+  detail
+}: ShellLayoutProps) {
+  const pathname = usePathname()
+
+  return (
+    <RoadieLinkProvider Link={NextLink}>
+      <Navigator value={pathname}>
+        <Navigator.Primary aria-label='Main'>
+          {/* Navigator.Item destinations */}
+        </Navigator.Primary>
+        <Navigator.Content>
+          <>{children}</>
+          <>{detail}</>
+        </Navigator.Content>
+      </Navigator>
+    </RoadieLinkProvider>
+  )
+}`}</CodeBlock>
+          <p className='text-subtle'>
+            The provider also gives the Navigator frame slow-navigation
+            feedback. It appears only after the short arm delay, disappears when
+            the route lands, and never starts for a browser-handled download.
+            Set <Code>pendingIndicator={'{false}'}</Code> when an app supplies
+            its own navigation feedback.
+          </p>
+          <p className='text-subtle'>
             <Code>Navigator.Primary</Code> must be a direct child of{' '}
             <Code>Navigator</Code>, and items must be direct children of{' '}
             <Code>Primary</Code>, a <Code>Group</Code> or a{' '}
