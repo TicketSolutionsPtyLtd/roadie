@@ -29,6 +29,19 @@ export function useFramePending(enabled: boolean): FramePendingState {
   useEffect(() => {
     if (waiting) {
       if (state === 'visible') return
+      // A second click during the fade revives the indicator immediately.
+      // Restart its minimum so the new wait reads as a complete response.
+      if (state === 'leaving') {
+        let live = true
+        queueMicrotask(() => {
+          if (!live) return
+          shownAt.current = Date.now()
+          setState('visible')
+        })
+        return () => {
+          live = false
+        }
+      }
       const now = Date.now()
       const arm = setTimeout(
         () => {

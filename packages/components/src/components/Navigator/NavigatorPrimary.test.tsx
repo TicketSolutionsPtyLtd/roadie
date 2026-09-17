@@ -930,15 +930,16 @@ describe('expanded vertical navigation', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
   })
 
-  it('draws the toggle icon duotone at size-5, subtle', async () => {
+  it('draws the toggle icon bold at size-5, subtle', async () => {
     render(<Expandable />)
     await flushViewportMeasurement()
     const toggle = within(region('brand')).getByRole('button', {
       name: 'Expand sidebar'
     })
     const icon = toggle.querySelector('svg')!
+    expect(icon).toHaveAttribute('data-slot', 'navigator-expand-toggle-icon')
     expect(icon).toHaveClass('size-5')
-    expect(icon.querySelector('[opacity="0.2"]')).not.toBeNull()
+    expect(icon.querySelector('[opacity="0.2"]')).toBeNull()
     expect(toggle).toHaveClass('text-subtle')
   })
 

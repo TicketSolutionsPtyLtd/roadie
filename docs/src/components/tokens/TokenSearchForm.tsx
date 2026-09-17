@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 
 import { MagnifyingGlassIcon } from '@phosphor-icons/react'
 
-import { Input } from '@oztix/roadie-components/input'
+import { Field } from '@oztix/roadie-components/field'
 
 /** A search box that opens the full reference with the query applied. */
 export function TokenSearchForm({ count }: { count: number }) {
@@ -27,20 +27,23 @@ export function TokenSearchForm({ count }: { count: number }) {
         )
       }}
     >
-      <Input
-        type='search'
-        size='lg'
-        aria-label='Search tokens'
-        placeholder={`Search ${count} tokens`}
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
-        className='emphasis-raised rounded-full bg-raised ps-11 pe-4 placeholder:text-subtler'
-      />
-      <MagnifyingGlassIcon
-        aria-hidden
-        weight='bold'
-        className='pointer-events-none absolute start-4 top-1/2 size-5 -translate-y-1/2 text-subtle'
-      />
+      <Field className='relative'>
+        <Field.Label className='sr-only'>Search tokens</Field.Label>
+        <Field.Input
+          type='search'
+          size='lg'
+          aria-label='Search tokens'
+          placeholder={`Search ${count} tokens`}
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          className='emphasis-raised rounded-full bg-raised ps-11 pe-4 placeholder:text-subtler'
+        />
+        <MagnifyingGlassIcon
+          aria-hidden
+          weight='bold'
+          className='pointer-events-none absolute start-4 top-1/2 size-5 -translate-y-1/2 text-subtle'
+        />
+      </Field>
     </form>
   )
 }

@@ -8,7 +8,7 @@ import type { CatalogueCategory } from '@/lib/page-manifest'
 
 import { Button } from '@oztix/roadie-components/button'
 import { EmptyState } from '@oztix/roadie-components/empty-state'
-import { Input } from '@oztix/roadie-components/input'
+import { Field } from '@oztix/roadie-components/field'
 
 import { ComponentSkeleton } from './ComponentSkeleton'
 import { PreviewCard, PreviewSection } from './PreviewGrid'
@@ -46,8 +46,9 @@ export function ComponentBrowser({
 
   return (
     <div className='@container grid gap-10'>
-      <div role='search' className='relative grid'>
-        <Input
+      <Field role='search' className='relative'>
+        <Field.Label className='sr-only'>Search components</Field.Label>
+        <Field.Input
           ref={inputRef}
           type='search'
           size='lg'
@@ -62,7 +63,7 @@ export function ComponentBrowser({
           weight='bold'
           className='pointer-events-none absolute start-4 top-1/2 size-5 -translate-y-1/2 text-subtle'
         />
-      </div>
+      </Field>
 
       <p aria-live='polite' className='sr-only'>
         {query.trim() === ''

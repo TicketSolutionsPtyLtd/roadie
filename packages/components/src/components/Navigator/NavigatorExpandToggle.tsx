@@ -11,7 +11,6 @@ import {
   NavigatorExpansionContext
 } from './NavigatorContext'
 import { NavigatorTileTooltip } from './NavigatorTileTooltip'
-import { presentNavIcon } from './presentNavIcon'
 import {
   navigatorExpandToggleAnchorClass,
   navigatorExpandToggleClass
@@ -46,11 +45,12 @@ export function NavigatorExpandToggle({
               className={cn(navigatorExpandToggleClass, className)}
               onClick={() => setExpanded(!expanded)}
             >
-              {presentNavIcon(
-                <SidebarSimpleIcon />,
-                'size-5',
-                'navigator-expand-toggle-icon'
-              )}
+              <SidebarSimpleIcon
+                aria-hidden
+                weight='bold'
+                data-slot='navigator-expand-toggle-icon'
+                className='size-5'
+              />
               {expandedPending ? (
                 // Until hydration only CSS knows the state; `display: none` drops the wrong name.
                 <>

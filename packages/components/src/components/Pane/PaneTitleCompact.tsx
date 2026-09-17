@@ -1,11 +1,20 @@
 'use client'
 
-import { type ReactNode, use } from 'react'
+import { type ReactNode, isValidElement, use } from 'react'
 
 import { CaretUpIcon } from '@phosphor-icons/react'
 
 import { PaneContext } from './PaneContext'
 import { paneTitleCompactVariants } from './variants'
+
+const plainText = (node: ReactNode): string => {
+  if (typeof node === 'string' || typeof node === 'number') return String(node)
+  if (Array.isArray(node)) return node.map(plainText).join('')
+  if (isValidElement<{ children?: ReactNode }>(node)) {
+    return plainText(node.props.children)
+  }
+  return ''
+}
 
 // The header's echo for both title arrangements. Internal.
 export function PaneTitleCompact({ children }: { children: ReactNode }) {
@@ -23,7 +32,7 @@ export function PaneTitleCompact({ children }: { children: ReactNode }) {
       className={paneTitleCompactVariants({ collapsed: pane.collapsed })}
     >
       <span aria-hidden className='min-w-0 truncate'>
-        {children}
+        {plainText(children)}
       </span>
       <CaretUpIcon
         aria-hidden

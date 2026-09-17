@@ -23,7 +23,7 @@ import type { TokenEntry } from '@/lib/tokens'
 
 import { Button } from '@oztix/roadie-components/button'
 import { EmptyState } from '@oztix/roadie-components/empty-state'
-import { Input } from '@oztix/roadie-components/input'
+import { Field } from '@oztix/roadie-components/field'
 import { Select } from '@oztix/roadie-components/select'
 import { Tabs } from '@oztix/roadie-components/tabs'
 
@@ -274,8 +274,9 @@ export function TokenBrowser({
   const body = (
     <div className='grid gap-5'>
       <div className='grid gap-3'>
-        <div role='search' className='relative grid'>
-          <Input
+        <Field role='search' className='relative'>
+          <Field.Label className='sr-only'>{label}</Field.Label>
+          <Field.Input
             ref={inputRef}
             type='search'
             size='lg'
@@ -290,7 +291,7 @@ export function TokenBrowser({
             weight='bold'
             className='pointer-events-none absolute start-4 top-1/2 size-5 -translate-y-1/2 text-subtle'
           />
-        </div>
+        </Field>
 
         {familyTabs}
 

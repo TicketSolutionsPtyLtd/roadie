@@ -108,6 +108,22 @@ describe('Pane.Header', () => {
     ).toBeInTheDocument()
   })
 
+  it('keeps interactive title children out of the compact-title button', async () => {
+    const { container } = await renderPane(
+      <Pane>
+        <Pane.Header>
+          <Pane.Title>
+            <a href='/reports'>Reports</a>
+          </Pane.Title>
+        </Pane.Header>
+      </Pane>
+    )
+
+    const compact = container.querySelector('[data-slot="pane-title-compact"]')!
+    expect(compact).toHaveTextContent('Reports')
+    expect(compact.querySelector('a, button')).toBeNull()
+  })
+
   it('sizes the title as a page heading, not a compact surface title', async () => {
     await renderPane(
       <Pane>

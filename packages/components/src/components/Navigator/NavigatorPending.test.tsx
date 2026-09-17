@@ -143,6 +143,7 @@ describe('the frame while a navigation is pending', () => {
     expect(frame()).toHaveAttribute('data-pending', 'leaving')
     await tick(PENDING_FADE - 50)
     await clickBeta()
+    expect(frame()).toHaveAttribute('data-pending', 'visible')
     await tick(PENDING_FADE)
     expect(frame()).toHaveAttribute('data-pending', 'visible')
     expect(glow()).not.toBeNull()

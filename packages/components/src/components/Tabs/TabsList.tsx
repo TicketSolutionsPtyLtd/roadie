@@ -30,13 +30,33 @@ export function TabsList({ className, ref, ...props }: TabsListProps) {
 
   const keepActiveTabInView = useCallback((list: HTMLDivElement | null) => {
     if (!list) return
-    revealActiveTab(list)
-    const observer = new MutationObserver(() => revealActiveTab(list))
-    observer.observe(list, {
+    let activeTab: HTMLElement | null = null
+    const resize =
+      typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver(() => revealActiveTab(list))
+    resize?.observe(list)
+    const observeActiveTab = () => {
+      const next = list.querySelector<HTMLElement>('[role="tab"][data-active]')
+      if (next === activeTab) return
+      if (activeTab) resize?.unobserve(activeTab)
+      activeTab = next
+      if (activeTab) resize?.observe(activeTab)
+    }
+    const mutations = new MutationObserver(() => {
+      observeActiveTab()
+      revealActiveTab(list)
+    })
+    mutations.observe(list, {
       subtree: true,
       attributeFilter: ['data-active']
     })
-    return () => observer.disconnect()
+    observeActiveTab()
+    revealActiveTab(list)
+    return () => {
+      mutations.disconnect()
+      resize?.disconnect()
+    }
   }, [])
   const mergedRef = useMemo(
     () => mergeRefs(ref, keepActiveTabInView),
