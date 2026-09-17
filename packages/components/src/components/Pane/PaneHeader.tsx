@@ -80,7 +80,7 @@ export function PaneHeader({
     resolvedBackHref === undefined
       ? undefined
       : (event: MouseEvent<HTMLElement>) => {
-          traverseToBackHref(event, resolvedBackHref)
+          traverseToBackHref(event)
         }
   const showClose =
     (closeHandler !== undefined || closeHref !== undefined) &&

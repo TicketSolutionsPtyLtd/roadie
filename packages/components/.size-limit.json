@@ -3,33 +3,33 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "121 kB"
+    "limit": "120.5 kB"
   },
   {
     "name": "Single component (Button)",
     "path": "dist/index.js",
     "import": "{ Button }",
-    "limit": "3 kB",
+    "limit": "2.5 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "Navigator",
     "path": "dist/components/Navigator/index.js",
     "import": "*",
-    "limit": "37 kB",
+    "limit": "36.5 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "Pane",
     "path": "dist/components/Pane/index.js",
     "import": "*",
-    "limit": "10 kB",
+    "limit": "9.5 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "Carousel",
     "path": "dist/components/Carousel/index.js",
-    "limit": "9 KB",
+    "limit": "8.5 kB",
     "ignore": [
       "react",
       "react-dom",

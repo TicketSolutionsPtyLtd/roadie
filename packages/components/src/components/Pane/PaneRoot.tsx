@@ -81,6 +81,8 @@ export function PaneRoot({
   children,
   ...props
 }: PaneRootProps) {
+  // Boundary values are memoized below; compiler caches only duplicate them.
+  'use no memo'
   const stackFromContext = use(PaneStackContext)
   const surroundingPane = use(PaneContext)
   // A pane inside a pane's content is content, not a stack sibling.

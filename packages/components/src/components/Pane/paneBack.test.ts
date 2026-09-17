@@ -40,6 +40,7 @@ const setNavigation = (value: Record<string, unknown> | undefined) => {
 const click = (overrides: Partial<BackClick> = {}) => {
   const preventDefault = vi.fn()
   const currentTarget = document.createElement('a')
+  currentTarget.href = '/tickets'
   const event: BackClick = {
     altKey: false,
     button: 0,
@@ -77,8 +78,9 @@ describe('traverseToBackHref', () => {
       back
     })
     const { event, preventDefault } = click()
+    event.currentTarget.setAttribute('href', '/tickets?org=oztix')
 
-    expect(traverseToBackHref(event, '/tickets?org=oztix')).toBe(true)
+    expect(traverseToBackHref(event)).toBe(true)
     expect(back).toHaveBeenCalledOnce()
     expect(preventDefault).toHaveBeenCalledOnce()
   })
@@ -92,7 +94,7 @@ describe('traverseToBackHref', () => {
     })
     const { event, preventDefault } = click()
 
-    expect(traverseToBackHref(event, '/tickets')).toBe(false)
+    expect(traverseToBackHref(event)).toBe(false)
     expect(back).not.toHaveBeenCalled()
     expect(preventDefault).not.toHaveBeenCalled()
   })
@@ -110,7 +112,7 @@ describe('traverseToBackHref', () => {
     const { event, preventDefault } = click()
     event.currentTarget.setAttribute('href', '/roadie/tickets')
 
-    expect(traverseToBackHref(event, '/tickets')).toBe(true)
+    expect(traverseToBackHref(event)).toBe(true)
     expect(back).toHaveBeenCalledOnce()
     expect(preventDefault).toHaveBeenCalledOnce()
   })
@@ -127,7 +129,7 @@ describe('traverseToBackHref', () => {
     })
     const { event, preventDefault } = click()
 
-    expect(traverseToBackHref(event, '/tickets?org=studio')).toBe(false)
+    expect(traverseToBackHref(event)).toBe(false)
     expect(back).not.toHaveBeenCalled()
     expect(preventDefault).not.toHaveBeenCalled()
   })
@@ -145,7 +147,7 @@ describe('traverseToBackHref', () => {
     })
     const { event, preventDefault } = click()
 
-    expect(traverseToBackHref(event, '/tickets')).toBe(false)
+    expect(traverseToBackHref(event)).toBe(false)
     expect(back).not.toHaveBeenCalled()
     expect(preventDefault).not.toHaveBeenCalled()
   })
@@ -159,7 +161,7 @@ describe('traverseToBackHref', () => {
     })
     const { event, preventDefault } = click()
 
-    expect(traverseToBackHref(event, '/tickets')).toBe(false)
+    expect(traverseToBackHref(event)).toBe(false)
     expect(back).not.toHaveBeenCalled()
     expect(preventDefault).not.toHaveBeenCalled()
   })
@@ -167,7 +169,7 @@ describe('traverseToBackHref', () => {
   it('falls back when the Navigation API cannot prove a safe traversal', () => {
     const unavailableClick = click()
     setNavigation(undefined)
-    expect(traverseToBackHref(unavailableClick.event, '/tickets')).toBe(false)
+    expect(traverseToBackHref(unavailableClick.event)).toBe(false)
     expect(unavailableClick.preventDefault).not.toHaveBeenCalled()
 
     const partialClick = click()
@@ -175,7 +177,7 @@ describe('traverseToBackHref', () => {
       currentEntry: entry(1, '/tickets/123'),
       entries: () => [entry(0, '/tickets'), entry(1, '/tickets/123')]
     })
-    expect(traverseToBackHref(partialClick.event, '/tickets')).toBe(false)
+    expect(traverseToBackHref(partialClick.event)).toBe(false)
     expect(partialClick.preventDefault).not.toHaveBeenCalled()
 
     const back = vi.fn()
@@ -185,7 +187,7 @@ describe('traverseToBackHref', () => {
       back
     })
     const firstEntryClick = click()
-    expect(traverseToBackHref(firstEntryClick.event, '/tickets')).toBe(false)
+    expect(traverseToBackHref(firstEntryClick.event)).toBe(false)
     expect(back).not.toHaveBeenCalled()
     expect(firstEntryClick.preventDefault).not.toHaveBeenCalled()
   })
@@ -216,13 +218,13 @@ describe('traverseToBackHref', () => {
       })
       const { event, preventDefault } = click(overrides)
 
-      expect(traverseToBackHref(event, '/tickets')).toBe(false)
+      expect(traverseToBackHref(event)).toBe(false)
       expect(back).not.toHaveBeenCalled()
       expect(preventDefault).not.toHaveBeenCalled()
     }
   )
 
-  it('honours a document-level target when the link has none', () => {
+  it('honours inherited and explicitly empty targets', () => {
     const base = document.createElement('base')
     base.target = '_blank'
     document.head.append(base)
@@ -235,9 +237,15 @@ describe('traverseToBackHref', () => {
     const { event, preventDefault } = click()
 
     try {
-      expect(traverseToBackHref(event, '/tickets')).toBe(false)
+      expect(traverseToBackHref(event)).toBe(false)
       expect(back).not.toHaveBeenCalled()
       expect(preventDefault).not.toHaveBeenCalled()
+
+      const explicit = click()
+      explicit.event.currentTarget.setAttribute('target', '')
+      expect(traverseToBackHref(explicit.event)).toBe(true)
+      expect(back).toHaveBeenCalledOnce()
+      expect(explicit.preventDefault).toHaveBeenCalledOnce()
     } finally {
       base.remove()
     }
@@ -254,7 +262,7 @@ describe('traverseToBackHref', () => {
     })
     const { event, preventDefault } = click()
 
-    expect(traverseToBackHref(event, '/tickets')).toBe(false)
+    expect(traverseToBackHref(event)).toBe(false)
     expect(preventDefault).not.toHaveBeenCalled()
   })
 })

@@ -110,6 +110,8 @@ export function CarouselRoot({
   'aria-label': ariaLabel,
   ...props
 }: CarouselRootProps) {
+  // Boundary values are memoized below; compiler caches only duplicate them.
+  'use no memo'
   const prefersReducedMotion = usePrefersReducedMotion()
   const axis: 'x' | 'y' = direction === 'vertical' ? 'y' : 'x'
   const hasAutoPlay = autoPlay !== false

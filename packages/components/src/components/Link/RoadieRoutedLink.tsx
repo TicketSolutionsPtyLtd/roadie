@@ -58,6 +58,8 @@ export function RoadieRoutedLink({
   ref,
   ...rest
 }: RoadieRoutedLinkProps) {
+  // Per-branch compiler caches outweigh this small routing adapter.
+  'use no memo'
   const Link = useRoadieLink()
   const kind = resolveLinkKind(href)
   const store = usePendingNavigationStore()
