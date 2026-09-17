@@ -406,7 +406,7 @@ sits in the columns.
 | An inspector | Nothing |
 
 On a phone the top pane is also the left-most, so it gets Back. Both buttons go
-one level up. `backHref` is the target for both:
+one level up. `backHref` is the canonical target and real link for both:
 
 ```tsx
 <Pane role='detail' depth={2} current>
@@ -415,6 +415,14 @@ one level up. `backHref` is the target for both:
   </Pane.Header>
 </Pane>
 ```
+
+On an ordinary click, Roadie traverses browser history when the immediately
+previous entry is from the current document and matches `backHref`'s origin,
+path and query. That restores the parent's existing scroll and local state
+without adding a second parent entry. A direct load, reload, unrelated previous
+route or browser without the Navigation API follows the link normally instead.
+Modified clicks also keep normal link behaviour, so opening a new tab and
+copying the link still use `backHref`.
 
 `onBack` does the same as a handler. `onClose` overrides it for Close alone:
 
@@ -468,12 +476,12 @@ already clamped a scroll the new content has no room for. Restoring holds the
 pane in place for a few frames while the page grows under it, and gives up the
 moment the pane is touched.
 
-Roadie reads no URL and writes no history state; the router owns both. It reads
-`navigation.currentEntry.key`, so where an engine has no Navigation API panes
-keep starting at the top. A pane is recognised by its seat, its level, role and
-declared `depth`, rather than by its identity, so a pane the router re-makes
-still finds its place. Up to 30 history entries are kept, the least recently
-written dropped first, in memory: a document reload starts over.
+Scroll restoration reads no URL and writes no history state; the router owns
+both. It reads `navigation.currentEntry.key`, so where an engine has no
+Navigation API panes keep starting at the top. A pane is recognised by its seat,
+its level, role and declared `depth`, rather than by its identity, so a pane the
+router re-makes still finds its place. Up to 30 history entries are kept, the
+least recently written dropped first, in memory: a document reload starts over.
 
 ### Loading
 

@@ -10,6 +10,7 @@ import {
 import { usePendingNavigationStore } from '../../providers/PendingNavigationContext'
 import { useRoadieLink } from '../../providers/RoadieLinkContext'
 import { isDev } from '../../utils/isDev'
+import { isPlainLinkClick } from '../../utils/isPlainLinkClick'
 import { resolveLinkKind } from '../../utils/resolveLinkKind'
 
 /**
@@ -49,19 +50,6 @@ export type RoadieRoutedLinkProps = Omit<
   ref?: Ref<HTMLAnchorElement>
 }
 
-// A click the browser handles itself, or one that stays on this page, starts no
-// navigation to wait for.
-const routes = (event: MouseEvent, href: string, target?: string) =>
-  !event.defaultPrevented &&
-  event.button === 0 &&
-  !event.metaKey &&
-  !event.ctrlKey &&
-  !event.shiftKey &&
-  !event.altKey &&
-  (target === undefined || target === '_self') &&
-  !event.currentTarget.hasAttribute('download') &&
-  !href.startsWith('#')
-
 export function RoadieRoutedLink({
   href,
   external,
@@ -76,7 +64,7 @@ export function RoadieRoutedLink({
   const consumerClick = rest.onClick
   const onClick = (event: MouseEvent<HTMLAnchorElement>) => {
     consumerClick?.(event)
-    if (routes(event, href, target)) store?.start()
+    if (isPlainLinkClick(event) && !href.startsWith('#')) store?.start()
   }
 
   if (kind === 'unsafe') {

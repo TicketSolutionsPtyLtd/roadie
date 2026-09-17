@@ -45,9 +45,16 @@ it is on, so going back or forward through history puts every pane where it was.
 Going forward, the pane the navigation arrives at starts at the top and the pane
 it leaves keeps its place — the top of the stack is the deepest `current` pane,
 so a layout that leaves `current` on the pane it drilled from keeps that pane's
-scroll. Roadie reads no URL and writes no history state: it reads
+scroll. Scroll restoration reads no URL and writes no history state: it reads
 `navigation.currentEntry.key`, and where an engine has no Navigation API panes
 keep starting at the top.
+
+`Pane.Header` keeps `backHref` as a real routed link, but a plain Back or Close
+click now traverses browser history when the immediately previous
+same-document entry matches its origin, path and query. That preserves the
+parent's mounted state and avoids adding a duplicate parent entry. Direct loads,
+reloads, unrelated history, modified clicks and browsers without the Navigation API keep
+following the canonical link normally.
 
 Also ships `Navigator.ExpandToggle`, `Navigator.OverflowPane`/`OverflowItems`,
 `Navigator.SecondaryPane`, and `Navigator.SectionItems` with

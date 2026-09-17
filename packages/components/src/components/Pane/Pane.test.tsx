@@ -9,7 +9,9 @@ import { Navigator } from '../Navigator'
 import {
   paneColumnsRulesOf,
   reportUnrenderedSentinels,
+  restoreNavigation,
   scrollViewport,
+  setNavigation,
   testBrand,
   withScrollSentinels
 } from '../Navigator/testUtils'
@@ -563,6 +565,54 @@ describe('Pane.Header close affordance', () => {
     )
     await flushViewportMeasurement()
     expect(screen.getByLabelText('Close')).toHaveAttribute('href', '/a')
+  })
+
+  it('uses a matching previous history entry for both Back and Close', async () => {
+    const previousNavigation = Object.getOwnPropertyDescriptor(
+      window,
+      'navigation'
+    )
+    const back = vi.spyOn(window.history, 'back').mockImplementation(() => {})
+    const parentUrl = new URL('/a', window.location.href).href
+    setNavigation({
+      activation: {
+        entry: { key: 'root' },
+        navigationType: 'push'
+      },
+      currentEntry: { index: 1 },
+      entries: () => [
+        { index: 0, sameDocument: true, url: parentUrl },
+        { index: 1, sameDocument: true, url: window.location.href }
+      ]
+    })
+
+    try {
+      render(
+        <Navigator value='/detail'>
+          <Navigator.Content>
+            <Pane role='list'>List</Pane>
+            <Pane role='detail' current>
+              <Pane.Header backHref='/a'>
+                <Pane.Title>Detail</Pane.Title>
+              </Pane.Header>
+            </Pane>
+          </Navigator.Content>
+        </Navigator>
+      )
+      await flushViewportMeasurement()
+
+      const backLink = screen.getByLabelText('Back')
+      const closeLink = screen.getByLabelText('Close')
+      expect(backLink).toHaveAttribute('href', '/a')
+      expect(closeLink).toHaveAttribute('href', '/a')
+
+      fireEvent.click(backLink)
+      fireEvent.click(closeLink)
+      expect(back).toHaveBeenCalledTimes(2)
+    } finally {
+      back.mockRestore()
+      restoreNavigation(previousNavigation)
+    }
   })
 
   it('leaves a header of only Back and Close to the edge property', async () => {

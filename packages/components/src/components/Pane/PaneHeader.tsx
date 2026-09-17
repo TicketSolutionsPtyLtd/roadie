@@ -3,6 +3,7 @@
 import {
   Children,
   type ComponentProps,
+  type MouseEvent,
   isValidElement,
   use,
   useLayoutEffect,
@@ -21,10 +22,15 @@ import { PaneChromeContext } from './PaneChromeContext'
 import { PaneContext } from './PaneContext'
 import { PaneTitle } from './PaneTitle'
 import { PaneTitleCompact } from './PaneTitleCompact'
+import { traverseToBackHref } from './paneBack'
 import { paneHeaderEdgeClass, paneHeaderVariants } from './variants'
 
 export type PaneHeaderProps = ComponentProps<'header'> & {
-  /** Back's target, as a routed link. Wins over `onBack` for Back. */
+  /**
+   * Back's canonical parent target. A plain click traverses to a matching
+   * previous same-document entry when possible, or routes to this href.
+   * Wins over `onBack` for Back.
+   */
   backHref?: string
   /** Names the Back button for assistive tech, as "Back to {label}". */
   backLabel?: string
@@ -70,6 +76,12 @@ export function PaneHeader({
     hasTarget && pane !== null && pane.depth !== null && pane.depth !== 0
   const closeHandler = onClose ?? onBack
   const closeHref = closeHandler === undefined ? resolvedBackHref : undefined
+  const followBackHref =
+    resolvedBackHref === undefined
+      ? undefined
+      : (event: MouseEvent<HTMLElement>) => {
+          traverseToBackHref(event, resolvedBackHref)
+        }
   const showClose =
     (closeHandler !== undefined || closeHref !== undefined) &&
     pane !== null &&
@@ -138,7 +150,7 @@ export function PaneHeader({
         <div data-slot='pane-back' className={paneHeaderEdgeClass}>
           <IconButton
             href={resolvedBackHref}
-            onClick={resolvedBackHref === undefined ? onBack : undefined}
+            onClick={followBackHref ?? onBack}
             aria-label={backName}
             emphasis='normal'
           >
@@ -150,7 +162,7 @@ export function PaneHeader({
         <div data-slot='pane-close' className={paneHeaderEdgeClass}>
           <IconButton
             href={closeHref}
-            onClick={closeHandler}
+            onClick={closeHref === undefined ? closeHandler : followBackHref}
             aria-label='Close'
             emphasis='normal'
           >
