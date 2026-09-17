@@ -129,16 +129,16 @@ const playsNowUtilities = [
   {
     name: 'animate-pop-tap',
     description:
-      'One-shot scale pop, faster with a spring ease — selection feedback under the tap, not a notification'
+      'One-shot scale pop, faster with a spring ease, for selection feedback under the tap rather than a notification'
   },
   {
     name: 'animate-pulse-subtle',
-    description: 'Looping opacity pulse — a surface waiting on something'
+    description: 'Looping opacity pulse, for a surface waiting on something'
   },
   {
     name: 'animate-shimmer',
     description:
-      'Pulse plus a viewport-anchored highlight — loading placeholders'
+      'Pulse plus a viewport-anchored highlight, for loading placeholders'
   }
 ]
 

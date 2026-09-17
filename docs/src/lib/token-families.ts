@@ -123,6 +123,7 @@ export const GROUP_NOTES: Record<string, string> = {
   'Body styles': 'Composed body text for interfaces, prose and code.',
   Shadows: 'Tinted by the surrounding intent. Inset shadows recess a surface.',
   'Rim light': 'A top-edge highlight that lifts a raised or strong surface.',
+  Sheen: 'The shade and highlight a loading placeholder sweeps between.',
   Layering: 'Named stacking tiers; use z-popover, never a raw number.',
   Animations:
     'Play once when the class is applied. Press a preview to replay it.',

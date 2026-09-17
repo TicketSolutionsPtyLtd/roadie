@@ -88,6 +88,7 @@ const VARIABLE_RULES: Rule[] = [
   [/^--focus-ring-/, 'emphasis', 'Focus ring'],
   [/^--(inset-)?shadow-/, 'elevation', 'Shadows'],
   [/^--rim-light/, 'elevation', 'Rim light'],
+  [/^--sheen-/, 'elevation', 'Sheen'],
   [/^--z-index-/, 'elevation', 'Layering'],
   [/^--font-/, 'typography', 'Font families'],
   [/^--text-[^-]+$/, 'typography', 'Font sizes'],

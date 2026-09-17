@@ -1,4 +1,5 @@
 import { Logo } from '@oztix/roadie-components/logo'
+import { Skeleton } from '@oztix/roadie-components/skeleton'
 
 export function Skel({ className, ...props }: React.ComponentProps<'div'>) {
   return (
@@ -312,6 +313,16 @@ export function ComponentSkeleton({ name }: { name: string }) {
           <Skel className='mt-1 h-2.5 w-24' />
           <Skel className='h-1.5 w-32' />
           <div className='mt-1 h-6 w-20 emphasis-normal rounded-full' />
+        </div>
+      )
+    case 'skeleton':
+      return (
+        <div className='flex w-40 items-center gap-3'>
+          <Skeleton shape='circle' className='size-9' />
+          <div className='grid flex-1 gap-2'>
+            <Skeleton className='h-2' />
+            <Skeleton className='h-2 w-2/3' />
+          </div>
         </div>
       )
     case 'calendar-tile':
