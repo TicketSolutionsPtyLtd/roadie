@@ -81,7 +81,6 @@ const slotOf = (body: string) =>
 
 // Content widths, in rem, that the prototype frames measured at 16px/rem.
 const REM = 16
-// A row from its root by default; pass its top and levels for any other.
 const columnsAt = (px: number, top = 0, levels = PANE_MAX_COLUMNS) =>
   px / REM >= rowTier(3, top, levels)
     ? 3

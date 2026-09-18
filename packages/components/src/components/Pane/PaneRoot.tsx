@@ -171,7 +171,6 @@ export function PaneRoot({
 
   const inStack = stack !== null && column !== 'inspector'
 
-  // The frame draws the waiting; a pane only reports it.
   const store = usePendingNavigationStore()
   useEffect(() => {
     if (pending !== true || store === null) return
@@ -259,7 +258,6 @@ export function PaneRoot({
   // Re-made for each arrival, so it closes over the entry it writes for.
   useEffect(() => {
     const viewport = viewportRef.current
-    // No entries, nothing to come back to.
     const entry = seat === null ? null : historyEntryKey()
     if (!viewport || (!wantsDirection && entry === null)) return
     let last = viewport.scrollTop
