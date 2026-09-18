@@ -169,6 +169,22 @@ function depthsOf(panes: readonly PlacedPane[], draws: Drawn) {
   )
 }
 
+// A row that opens on a detail is written from 1, as its column default was:
+// resolving compacts that gap away, so the root's rank comes back 0 while its
+// column still wanted 1. True says every rank in this row is one shallower
+// than the written scale a declared `depth` lands on.
+function liftOf(
+  panes: readonly PlacedPane[],
+  depths: ReadonlyMap<string, number | null>
+): boolean {
+  const first = panes.find((pane) => (depths.get(pane.id) ?? null) !== null)
+  return (
+    first !== undefined &&
+    depths.get(first.id) === 0 &&
+    (provisionalDepth(first) ?? 0) > 0
+  )
+}
+
 // The last pane's place among the panes rendered so far. A declared depth
 // wins. A row that opens on a detail is written from 1, as its column default
 // was: the stylesheet reads such a row one shallower, and More can take 0
@@ -184,11 +200,7 @@ function renderOrderDepth(
   }
   const depths = depthsOf(panes, draws)
   const rank = pane ? (depths.get(pane.id) ?? null) : null
-  const first = panes.find((other) => (depths.get(other.id) ?? null) !== null)
-  const lift =
-    first !== undefined &&
-    depths.get(first.id) === 0 &&
-    (provisionalDepth(first) ?? 0) > 0
+  const lift = liftOf(panes, depths)
   return { written: rank === null ? null : rank + (lift ? 1 : 0), rank }
 }
 
@@ -535,15 +547,19 @@ export function NavigatorContent({
     if (!isDev()) return
     const live = orderByDocumentPosition(Array.from(panes.current.values()))
     const resolved = depthsOf(live, draws)
+    const lift = liftOf(live, resolved)
     for (const pane of live) {
       const claim = claims.current.get(pane.id)
       if (!claim || checked.current.has(pane.id)) continue
       checked.current.add(pane.id)
-      const depth = resolved.get(pane.id) ?? null
-      if (depth === null || claim.written === null || claim.rank === depth) {
+      const rank = resolved.get(pane.id) ?? null
+      if (rank === null || claim.written === null || claim.rank === rank) {
         continue
       }
-      const message = `[Roadie] A Pane was server-rendered at depth ${claim.written} but sits at ${depth}. Render panes in document order, pass \`pending\` on a loading pane, or declare depth={${depth}}.`
+      // Both sides, and the suggestion, stay on the written scale — the one a
+      // declared `depth` lands on directly, with no lift of its own.
+      const written = rank + (lift ? 1 : 0)
+      const message = `[Roadie] A Pane was server-rendered at depth ${claim.written} but sits at ${written}. Render panes in document order, pass \`pending\` on a loading pane, or declare depth={${written}}.`
       if (warned.current.has(message)) continue
       warned.current.add(message)
       console.warn(message)
