@@ -11,10 +11,10 @@ export default function OwnPage() {
   return (
     <Navigator value={open ? '/own/deep' : '/own'}>
       <Navigator.Content>
-        <Pane role='list' depth={0}>
+        <Pane column='list' depth={0}>
           <div className='p-4'>List</div>
         </Pane>
-        <Pane role='detail' depth={1} current={!open} data-testid='one'>
+        <Pane depth={1} reached={!open} data-testid='one'>
           <div className='grid gap-2 p-4'>
             <button
               type='button'
@@ -27,7 +27,7 @@ export default function OwnPage() {
           </div>
         </Pane>
         {open ? (
-          <Pane role='detail' depth={2} current data-testid='two'>
+          <Pane depth={2} data-testid='two'>
             <div className='grid gap-2 p-4'>
               <button
                 type='button'

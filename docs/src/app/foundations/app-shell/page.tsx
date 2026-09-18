@@ -180,10 +180,10 @@ export default function AppShellPage() {
           is the pane on top of it.
         </p>
         <CodeBlock>{`// app/(shell)/items/page.tsx
-<Pane role='list'>…</Pane>
+<Pane column='list'>…</Pane>
 
 // app/(shell)/@detail/(.)items/[id]/page.tsx
-<Pane role='detail' current>…</Pane>`}</CodeBlock>
+<Pane>…</Pane>`}</CodeBlock>
         <p className='text-subtle'>
           A pane registers with the nearest <Code>Navigator.Content</Code>{' '}
           wherever it sits, so panes rendered by two different slots join one

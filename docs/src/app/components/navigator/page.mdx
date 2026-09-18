@@ -45,7 +45,7 @@ vertical navigation from `md` and as a tab bar below it. Your pages go in
     </Navigator.Item>
   </Navigator.Primary>
   <Navigator.Content>
-    <Pane role='detail' current>…</Pane>
+    <Pane>…</Pane>
   </Navigator.Content>
 </Navigator>
 ```
@@ -185,7 +185,7 @@ function ConsumerNav() {
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail'>
+          <Pane>
             <div className='grid gap-3 py-4'>
               <h2 className='text-display-ui-4 text-strong'>{labels[active]}</h2>
               <List>
@@ -257,7 +257,7 @@ function GroupedNav() {
           </Navigator.Group>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail'>
+          <Pane>
             <div className='grid gap-3 py-4'>
               <h2 className='text-display-ui-4 text-strong'>{labels[active]}</h2>
               <p className='text-subtle'>
@@ -323,7 +323,7 @@ function SectionsNav() {
               </Navigator.Item>
             </Navigator.Primary>
             <Navigator.Content>
-              <Pane role='detail' current>
+              <Pane>
                 <Pane.Header>
                   <Pane.Title>{titles[path]}</Pane.Title>
                 </Pane.Header>
@@ -389,7 +389,7 @@ function PageRootNav() {
               </Navigator.Item>
             </Navigator.Primary>
             <Navigator.Content>
-              <Pane role='detail' current>
+              <Pane>
                 <Pane.Header>
                   <Pane.Title>{titles[path]}</Pane.Title>
                 </Pane.Header>
@@ -502,7 +502,7 @@ function SearchableNav() {
               </Navigator.Item>
             </Navigator.Primary>
             <Navigator.Content>
-              <Pane role='detail' current>
+              <Pane>
                 <Pane.Header>
                   <Pane.Title>{path}</Pane.Title>
                 </Pane.Header>
@@ -564,7 +564,7 @@ function SectionOverrideNav() {
                   <Navigator.SectionItems showDescriptions={false} />
                 </div>
               </Navigator.SecondaryPane>
-              <Pane role='detail' current>
+              <Pane>
                 <Pane.Header>
                   <Pane.Title>{path}</Pane.Title>
                 </Pane.Header>
@@ -631,7 +631,7 @@ function PriorityNav() {
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail'>
+          <Pane>
             <div className='grid gap-3 py-4'>
               <h2 className='text-display-ui-4 text-strong'>{active}</h2>
               <p className='text-subtle'>
@@ -688,7 +688,7 @@ function OverflowPaneNav() {
           ))}
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail'>
+          <Pane>
             <h2 className='py-4 text-display-ui-4 text-strong'>{active}</h2>
           </Pane>
           <Navigator.OverflowPane>
@@ -743,7 +743,7 @@ function MenuNav() {
               </Navigator.Item>
             </Navigator.Primary>
             <Navigator.Content>
-              <Pane role='detail' current>
+              <Pane>
                 <div className='grid gap-3 py-4'>
                   <h2 className='text-display-ui-4 text-strong'>{path}</h2>
                   <p className='text-subtle'>
@@ -793,7 +793,7 @@ function BadgeNav() {
           <Navigator.ExpandToggle />
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail'>
+          <Pane>
             <p className='py-4 text-subtle'>Expand the navigation to see the full badge.</p>
           </Pane>
         </Navigator.Content>
@@ -844,7 +844,7 @@ function ExpandedNav() {
           <Navigator.ExpandToggle />
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail'>
+          <Pane>
             <div className='grid gap-3 py-4'>
               <h2 className='text-display-ui-4 text-strong'>
                 {expanded ? 'Expanded' : 'Collapsed'}
@@ -973,7 +973,7 @@ function ListFromUrlNav() {
               </Navigator.Item>
             </Navigator.Primary>
             <Navigator.Content>
-              <Pane role='detail' current>
+              <Pane>
                 <Pane.Header>
                   <Pane.Title>{path}</Pane.Title>
                 </Pane.Header>
@@ -1087,7 +1087,7 @@ the indicator stops there while the real content is still coming. Pass
 // app/events/[id]/loading.tsx
 export default function Loading() {
   return (
-    <Pane role='detail' depth={1} current pending>
+    <Pane depth={1} pending>
       <Skeleton shape='block' />
     </Pane>
   )
@@ -1151,7 +1151,7 @@ Next.js routing that puts a list and a detail under one URL.
   label's first letter.
 - An item always links to its declared `href`, in More too, so tapping a
   top-level item goes to that section's root wherever you were inside it.
-- The top pane's `primaryNav` decides what the phone bar does while that pane
+- The top pane's `tabBar` decides what the phone tab bar does while that pane
   is on top. See [`Pane`](/components/pane).
 
 <Guideline title='Menus'>

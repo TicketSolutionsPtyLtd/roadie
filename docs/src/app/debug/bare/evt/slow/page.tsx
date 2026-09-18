@@ -5,7 +5,7 @@ import { Pane } from '@oztix/roadie-components'
 export default async function BareSlowPage() {
   await new Promise((resolve) => setTimeout(resolve, 1500))
   return (
-    <Pane role='detail' depth={2} current data-testid='slow-pane'>
+    <Pane depth={2} data-testid='slow-pane'>
       <Pane.Header>
         <Pane.Title>Slow</Pane.Title>
       </Pane.Header>

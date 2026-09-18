@@ -3,7 +3,7 @@ import { Pane, Skeleton } from '@oztix/roadie-components'
 // `pending` holds the frame's indicator up while the skeletons stand in.
 export default function BareSlowLoading() {
   return (
-    <Pane role='detail' depth={2} current pending data-testid='slow-loading'>
+    <Pane depth={2} pending data-testid='slow-loading'>
       <Pane.Header>
         <Pane.Title>Slow</Pane.Title>
       </Pane.Header>

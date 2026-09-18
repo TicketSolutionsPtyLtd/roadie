@@ -4,7 +4,7 @@ import { Pane, Skeleton } from '@oztix/roadie-components'
 // for the page: a route's loading state is the one place that is always true.
 export default function SlowLoading() {
   return (
-    <Pane role='detail' depth={2} current pending data-testid='slow-loading'>
+    <Pane depth={2} pending data-testid='slow-loading'>
       <Pane.Header>
         <Pane.Title>Slow</Pane.Title>
       </Pane.Header>

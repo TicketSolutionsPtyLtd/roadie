@@ -302,7 +302,7 @@ export function DocsNavigator({
         </Navigator.Primary>
 
         <Navigator.Content>
-          <Pane role='detail' current className='scroll-pt-6'>
+          <Pane className='scroll-pt-6'>
             <Pane.Header>
               {showInspector ? (
                 <Pane.Actions>
@@ -330,7 +330,7 @@ export function DocsNavigator({
 
           {/* A column once it fits; otherwise the drawer in Pane.Actions. */}
           {showInspector ? (
-            <Pane role='inspector' aria-label='On this page'>
+            <Pane column='inspector' aria-label='On this page'>
               <div className='py-6'>
                 <OnThisPage {...toc} />
               </div>

@@ -27,7 +27,7 @@ import { Pane } from '@oztix/roadie-components/pane'
   panes become columns where there is room and a stack where there isn't. Two
   panes join one stack even when separate routes render them, which is what
   [App shell](/foundations/app-shell) builds on.
-- Each pane has a `depth`. The deepest `current` pane is the top, and it is
+- Each pane has a `depth`. The deepest reached pane is the top, and it is
   always on screen.
 
 ## Examples
@@ -38,7 +38,7 @@ A pane in a box. Scroll it to see the body move under the sticky header.
 
 ```tsx-live
 <div className='h-80 rounded-2xl bg-sunken p-3'>
-  <Pane role='detail' className='h-full'>
+  <Pane className='h-full'>
     <Pane.Header>
       <Pane.Title>Midnight Frequency</Pane.Title>
     </Pane.Header>
@@ -117,7 +117,7 @@ function Composed() {
   )
   return (
     <div className='h-96 rounded-2xl bg-sunken p-3'>
-      <Pane role='detail' className='h-full'>
+      <Pane className='h-full'>
         <Pane.Header onBack={() => setQuery('')}>
           <Pane.Title>Ticket types</Pane.Title>
           <Pane.Actions>
@@ -176,7 +176,7 @@ keeps one height throughout.
 
 ```tsx-live
 <div className='h-80 rounded-2xl bg-sunken p-3'>
-  <Pane role='detail' className='h-full'>
+  <Pane className='h-full'>
     <Pane.Header />
     <div className='grid gap-3 pb-4'>
       <Pane.BodyTitle>Midnight Frequency</Pane.BodyTitle>
@@ -226,7 +226,7 @@ Swapping a sibling cuts: replacing a pane with another at the same depth leaves
 the stack the shape it was, so it is not a push. A first paint never slides, and
 neither does hydration or a fresh load of a deep route. Columns don't animate,
 and nor does anything under `prefers-reduced-motion: reduce`. See
-[Roles](#roles) for each role's default depth, and declare `depth={2}` on a
+[Columns](#columns) for each column's default depth, and declare `depth={2}` on a
 sub-detail.
 
 A section whose `Navigator.Secondary` sets `root='page'` draws every route in
@@ -263,7 +263,7 @@ function Stacking() {
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
       <Navigator className='h-full'>
         <Navigator.Content>
-          <Pane role='list' aria-label='Events'>
+          <Pane column='list' aria-label='Events'>
             <Pane.Header>
               <Pane.Title>Events</Pane.Title>
             </Pane.Header>
@@ -280,7 +280,7 @@ function Stacking() {
               ))}
             </List>
           </Pane>
-          <Pane role='detail' current={event != null} aria-label='Event'>
+          <Pane reached={event != null} aria-label='Event'>
             <Pane.Header onBack={() => setSelected(null)} backLabel='Events'>
               <Pane.Title>{event ? event.title : 'Nothing selected'}</Pane.Title>
             </Pane.Header>
@@ -298,11 +298,12 @@ function Stacking() {
 render(<Stacking />)
 ```
 
-### Roles
+### Columns
 
-`role` sets a pane's default depth and when it gives up its column.
+`column` sets a pane's default depth and when it gives up its column. It
+defaults to `detail`.
 
-| Role | Default depth | Column |
+| Column | Default depth | Where it sits |
 | --- | --- | --- |
 | `list` | 0 | The root |
 | `detail` | 1 | Under the root |
@@ -314,7 +315,7 @@ handles dismissal, focus, Escape and the scrim. The `pane-inspector-yielded:`
 variant shows its trigger only while the column is hidden.
 
 ```tsx-live-noinline
-function Roles() {
+function Columns() {
   const [open, setOpen] = useState(false)
   const [showDetail, setShowDetail] = useState(true)
   const tiers = [
@@ -328,7 +329,7 @@ function Roles() {
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
       <Navigator className='h-full'>
         <Navigator.Content>
-          <Pane role='list' aria-label='Events'>
+          <Pane column='list' aria-label='Events'>
             <Pane.Header>
               <Pane.Title>Events</Pane.Title>
             </Pane.Header>
@@ -339,7 +340,7 @@ function Roles() {
               <List.Item title='Harbour Lights' description='sold out' />
             </List>
           </Pane>
-          <Pane role='detail' aria-label='Midnight Frequency' current={showDetail}>
+          <Pane aria-label='Midnight Frequency' reached={showDetail}>
             <Pane.Header onBack={() => setShowDetail(false)}>
               <Pane.Title>Midnight Frequency</Pane.Title>
               <Pane.Actions>
@@ -373,7 +374,7 @@ function Roles() {
               ))}
             </List>
           </Pane>
-          <Pane role='inspector' emphasis='subtler' aria-label='Event details'>
+          <Pane column='inspector' emphasis='subtler' aria-label='Event details'>
             <Pane.Header>
               <Pane.Title>Details</Pane.Title>
             </Pane.Header>
@@ -388,7 +389,7 @@ function Roles() {
     </div>
   )
 }
-render(<Roles />)
+render(<Columns />)
 ```
 
 ### Back and Close
@@ -409,7 +410,7 @@ On a phone the top pane is also the left-most, so it gets Back. Both buttons go
 one level up. `backHref` is the canonical target and real link for both:
 
 ```tsx
-<Pane role='detail' depth={2} current>
+<Pane depth={2}>
   <Pane.Header backHref='/tickets/glamping' backLabel='Glamping'>
     <Pane.Title>Sam Okafor</Pane.Title>
   </Pane.Header>
@@ -479,7 +480,7 @@ moment the pane is touched.
 Scroll restoration reads no URL and writes no history state; the router owns
 both. It reads `navigation.currentEntry.key`, so where an engine has no
 Navigation API panes keep starting at the top. A pane is recognised by its seat,
-its level, role and declared `depth`, rather than by its identity, so a pane the
+its level, column and declared `depth`, rather than by its identity, so a pane the
 router re-makes still finds its place. Up to 30 history entries are kept, the
 least recently written dropped first, in memory: a document reload starts over.
 
@@ -492,7 +493,7 @@ so a pane outside a `Navigator` shows nothing. Pass it in a route's
 the frame's indicator early.
 
 ```tsx
-<Pane role='detail' depth={1} current pending>
+<Pane depth={1} pending>
   <Skeleton shape='block' />
 </Pane>
 ```
@@ -502,23 +503,23 @@ The pane carries `aria-busy` while `pending` is true.
 ## Guidelines
 
 <Guideline title='Declaration order is stack depth'>
-  <Guideline.Do code={`<Navigator.Content>\n  <Pane role='list' />\n  <Pane role='detail' current={selected != null} />\n</Navigator.Content>`}>
+  <Guideline.Do code={`<Navigator.Content>\n  <Pane column='list' />\n  <Pane reached={selected != null} />\n</Navigator.Content>`}>
     Author panes shallowest first. Once panes mount, document order is depth.
-    The server render uses `depth`, which defaults from `role`, so declare
+    The server render uses `depth`, which defaults from `column`, so declare
     `depth={2}` on a sub-detail.
   </Guideline.Do>
-  <Guideline.Dont code={`<Navigator.Content>\n  <Pane role='detail' current />\n  <Pane role='list' />\n</Navigator.Content>`}>
+  <Guideline.Dont code={`<Navigator.Content>\n  <Pane />\n  <Pane column='list' />\n</Navigator.Content>`}>
     Author panes out of depth order. The pane parks on the wrong side, so the
     push slides in from the left and the pop from the right.
   </Guideline.Dont>
 </Guideline>
 
 <Guideline title='Give the root route a placeholder detail'>
-  <Guideline.Do code={`<Navigator.Content>\n  <Pane role='list' />\n  <Pane role='detail' current={event != null}>\n    {event ? <EventDetail /> : <EmptyState title='No event selected' />}\n  </Pane>\n</Navigator.Content>`}>
+  <Guideline.Do code={`<Navigator.Content>\n  <Pane column='list' />\n  <Pane reached={event != null}>\n    {event ? <EventDetail /> : <EmptyState title='No event selected' />}\n  </Pane>\n</Navigator.Content>`}>
     Render the detail pane on the root route too, like Mail's "No message
     selected". The row then reads as a list beside an empty detail.
   </Guideline.Do>
-  <Guideline.Dont code={`<Navigator.Content>\n  <Pane role='list' />\n  {event ? <Pane role='detail' current /> : null}\n</Navigator.Content>`}>
+  <Guideline.Dont code={`<Navigator.Content>\n  <Pane column='list' />\n  {event ? <Pane /> : null}\n</Navigator.Content>`}>
     Mount the detail only once something is selected. The list fills the row
     alone, then jumps to a parent track when the detail appears.
   </Guideline.Dont>
@@ -538,7 +539,7 @@ The pane carries `aria-busy` while `pending` is true.
 - A pane can sit anywhere under `Navigator.Content`, such as in a route, a
   parallel-route slot or your own component. With no `Pane` at all,
   `Navigator.Content` warns in development.
-- `primaryNav` sets what the phone bar does while the pane is on top. `auto`,
+- `tabBar` sets what the phone tab bar does while the pane is on top. `auto`,
   the default, collapses the bar to the active tab as the pane scrolls.
   `visible` keeps it, and `hidden` removes it for a pushed screen, like iOS's
   `hidesBottomBarWhenPushed`.
