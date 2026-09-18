@@ -284,7 +284,7 @@ describe('skeletons', () => {
     expect(glow()).toBeNull()
   })
 
-  it('keep it up when the loading pane says it is waiting', async () => {
+  it('keep it up while a pane says it is waiting', async () => {
     const held = (
       <>
         <Pane column='list' depth={0}>
