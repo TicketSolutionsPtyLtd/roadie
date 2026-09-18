@@ -1,4 +1,4 @@
-import { type ReactNode, lazy, use } from 'react'
+import { type ComponentType, type ReactNode, lazy, use } from 'react'
 
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -1970,9 +1970,11 @@ describe('a pane whose content suspends', () => {
     const data = later()
     // A server child still streaming arrives as a lazy node, not a lazy type:
     // `Children.map` initialises it and throws inside the pane's own render.
+    // React renders a lazy node's default as a node; the types allow only a component.
+    const loaded = (<p>Loaded</p>) as unknown as ComponentType
     const streaming = lazy(async () => {
       await data.promise
-      return { default: <p>Loaded</p> }
+      return { default: loaded }
     }) as unknown as ReactNode
     await renderPane(
       <Pane>
