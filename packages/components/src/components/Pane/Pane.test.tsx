@@ -7,6 +7,7 @@ import { renderToString } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { Pane } from '.'
+import { PendingNavigationContext } from '../../providers/PendingNavigationContext'
 import { Navigator } from '../Navigator'
 import {
   paneColumnsRulesOf,
@@ -1967,22 +1968,49 @@ describe('a pane whose content suspends', () => {
 
   it('wraps a lazy child without reading it, so the pane itself never suspends', async () => {
     const data = later()
-    const Lazy = lazy(async () => {
+    // A server child still streaming arrives as a lazy node, not a lazy type:
+    // `Children.map` initialises it and throws inside the pane's own render.
+    const streaming = lazy(async () => {
       await data.promise
-      return { default: () => <p>Loaded</p> }
-    })
+      return { default: <p>Loaded</p> }
+    }) as unknown as ReactNode
     await renderPane(
       <Pane>
         <Pane.Header>
           <Pane.Title>Ticket</Pane.Title>
         </Pane.Header>
-        <Lazy />
+        {streaming}
       </Pane>
     )
     expect(pane()).not.toBeNull()
     expect(loadingBody()).not.toBeNull()
     await act(async () => data.resolve())
     expect(screen.getByText('Loaded')).toBeInTheDocument()
+  })
+
+  it('releases its pending hold when it unmounts while suspended', async () => {
+    const data = later()
+    const release = vi.fn()
+    const store = {
+      subscribe: () => () => {},
+      get: () => null,
+      start: () => {},
+      settle: () => {},
+      hold: vi.fn(() => release)
+    }
+    const { unmount } = await renderPane(
+      <PendingNavigationContext value={store}>
+        <Pane>
+          <Pane.Body>
+            <Wait on={data.promise}>Loaded</Wait>
+          </Pane.Body>
+        </Pane>
+      </PendingNavigationContext>
+    )
+    expect(store.hold).toHaveBeenCalledTimes(1)
+    expect(release).not.toHaveBeenCalled()
+    unmount()
+    expect(release).toHaveBeenCalledTimes(1)
   })
 
   it('keeps the real header when the wait is inside Pane.Body', async () => {

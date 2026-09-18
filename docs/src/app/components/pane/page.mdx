@@ -23,6 +23,8 @@ import { Pane } from '@oztix/roadie-components/pane'
 - A pane is a `<section>` with its own surface and its own scroll. The page
   never scrolls.
 - `Pane.Header` and `Pane.Footer` stay put while the body scrolls between them.
+  `Pane.Body` holds the part that waits, so a skeleton stands in for it while
+  the header stays.
 - A pane works on its own. Inside [`Navigator.Content`](/components/navigator),
   panes become columns where there is room and a stack where there isn't. Two
   panes join one stack even when separate routes render them, which is what
