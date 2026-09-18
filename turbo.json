@@ -76,6 +76,16 @@
       ],
       "outputs": []
     },
+    "test:browser": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**/*.{js,jsx,ts,tsx,css}",
+        "*.config.{js,mjs,cjs,ts}",
+        "*.css",
+        "package.json"
+      ],
+      "outputs": []
+    },
     "clean": {
       "cache": false
     },

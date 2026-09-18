@@ -11,6 +11,7 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "test": "turbo test",
+    "test:browser": "turbo test:browser",
     "format": "turbo format",
     "format:check": "turbo format:check",
     "lint": "turbo lint",

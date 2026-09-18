@@ -29,7 +29,7 @@ export default defineConfig(({ watch }) => ({
   entry: [
     'src/**/*.{ts,tsx}',
     '!**/*.test.{ts,tsx}',
-    '!**/testUtils.tsx',
+    '!**/testUtils.{ts,tsx}',
     '!**/paneColumns.ts'
   ],
   unbundle: true,

@@ -1,8 +1,16 @@
 import babel from '@rolldown/plugin-babel'
+import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vitest/config'
+import { playwright } from '@vitest/browser-playwright'
+import { configDefaults, defineConfig } from 'vitest/config'
+import type { BrowserCommand } from 'vitest/node'
 
 import { reactCompilerPreset } from './react-compiler.config.ts'
+
+const BROWSER_TESTS = 'src/**/*.browser.test.{ts,tsx}'
+
+const reduceMotion: BrowserCommand<[reduce: boolean]> = ({ page }, reduce) =>
+  page.emulateMedia({ reducedMotion: reduce ? 'reduce' : 'no-preference' })
 
 export default defineConfig({
   plugins: [react(), babel({ presets: [reactCompilerPreset] })],
@@ -15,11 +23,51 @@ export default defineConfig({
     }
   },
   test: {
-    environment: 'jsdom',
-    setupFiles: ['./vitest.setup.ts'],
-    globals: true,
-    // Stubbed CSS would make a `?raw` import of these sheets empty.
-    css: { include: [/(pane-columns|navigator-pending)\.css/] }
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'jsdom',
+          environment: 'jsdom',
+          setupFiles: ['./vitest.setup.ts'],
+          globals: true,
+          exclude: [...configDefaults.exclude, BROWSER_TESTS],
+          // Stubbed CSS would make a `?raw` import of these sheets empty.
+          css: { include: [/(pane-columns|navigator-pending)\.css/] }
+        }
+      },
+      {
+        extends: true,
+        plugins: [tailwindcss()],
+        optimizeDeps: {
+          include: [
+            'react',
+            'react/compiler-runtime',
+            'react/jsx-dev-runtime',
+            'react/jsx-runtime',
+            'react-dom',
+            'react-dom/client',
+            'react-dom/server'
+          ]
+        },
+        test: {
+          name: 'browser',
+          include: [BROWSER_TESTS],
+          browser: {
+            enabled: true,
+            headless: true,
+            provider: playwright(),
+            viewport: { width: 1920, height: 1080 },
+            commands: { reduceMotion },
+            instances: [
+              { browser: 'chromium' },
+              { browser: 'webkit' },
+              { browser: 'firefox' }
+            ]
+          }
+        }
+      }
+    ]
   },
   ssr: {
     noExternal: ['@oztix/roadie-core']
