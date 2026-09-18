@@ -25,7 +25,7 @@ import {
   NavigatorExpansionContext,
   NavigatorSelectionContext,
   isActiveValue,
-  isSecondaryActive
+  isDestinationActive
 } from './NavigatorContext'
 import { NavigatorDestination } from './NavigatorDestination'
 import { NavigatorFoldedContext } from './NavigatorFoldedContext'
@@ -157,10 +157,10 @@ export function NavigatorPrimary({
   const hasMore = folded.length > 0
   const pinnedTab = slots.pinned
   const foldedIsActive = folded.some((slot) =>
-    isSecondaryActive(slot, activeValue)
+    isDestinationActive(slot, activeValue)
   )
   const pinnedIsActive =
-    pinnedTab !== undefined && isSecondaryActive(pinnedTab, activeValue)
+    pinnedTab !== undefined && isDestinationActive(pinnedTab, activeValue)
   // An open disclosure takes the pill from every route tab; only More also takes aria-current.
   const disclosureOpen = overflowOpen || openMenu !== null
   // The pinned circle already sits at the trailing edge, so it is the end circle.
@@ -211,7 +211,9 @@ export function NavigatorPrimary({
   }, [overflowOpen, shownFolded, setOverflowOpen])
   const verticalMoreActive =
     overflowOpen ||
-    (verticalFoldedSlots.some((slot) => isSecondaryActive(slot, activeValue)) &&
+    (verticalFoldedSlots.some((slot) =>
+      isDestinationActive(slot, activeValue)
+    ) &&
       !disclosureOpen)
 
   // An open More scrolls to top on re-tap.
@@ -261,7 +263,8 @@ export function NavigatorPrimary({
 
   // By hand: the compiler leaves the tab list unmemoised, and tabs are uncompiled.
   const { tabs, pinned } = useMemo(() => {
-    // Without `onShowListChange`, a secondary tab's href already leads up to its route.
+    // Without `onShowListChange`, a destination tab's href already leads up to
+    // its route.
     const selectDestination = (
       event: MouseEvent,
       tab: NavigatorSlotMeta,
@@ -290,9 +293,9 @@ export function NavigatorPrimary({
         setNavCollapsed(false)
       }
       const ownsSecondary = activeSecondary?.value === tab.value
-      const onSecondaryRoute = isActiveValue(tab.value, activeValue)
+      const onDestinationRoute = isActiveValue(tab.value, activeValue)
       const hasOverview = ownsSecondary && activeSecondary?.overview === true
-      if (ownsSecondary && onSecondaryRoute) {
+      if (ownsSecondary && onDestinationRoute) {
         stay()
         if (collapsed) expandBar()
         scrollActivePaneToTop()
@@ -307,7 +310,7 @@ export function NavigatorPrimary({
         ownsSecondary &&
         !hasOverview &&
         onShowListChange &&
-        !onSecondaryRoute
+        !onDestinationRoute
       ) {
         stay()
         onShowListChange(!showList)
@@ -357,7 +360,7 @@ export function NavigatorPrimary({
       )
 
     const tabs = slots.tabs.map((tab, tabIndex) => {
-      const active = isSecondaryActive(tab, activeValue)
+      const active = isDestinationActive(tab, activeValue)
       const href = tab.href
       // With the end circle taken, the first tab floats to the start so two circles always show.
       const isStartCircle = activeIsEnd

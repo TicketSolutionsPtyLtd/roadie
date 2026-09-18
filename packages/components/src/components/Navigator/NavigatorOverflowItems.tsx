@@ -13,7 +13,7 @@ import {
   type NavigatorOverflowSets,
   NavigatorSelectionContext,
   isActiveValue,
-  isSecondaryActive
+  isDestinationActive
 } from './NavigatorContext'
 import type { NavigatorMenuProps } from './NavigatorMenu'
 import { NavigatorMenuHost, menuId } from './NavigatorMenuHost'
@@ -31,7 +31,7 @@ type Run = {
 }
 
 // Consecutive slots that share a group, so a group folded whole stays one
-// secondary and loose items between groups stay loose.
+// titled group and loose items between groups stay loose.
 function toRuns(slots: NavigatorSlotMeta[]): Run[] {
   const runs: Run[] = []
   for (const slot of slots) {
@@ -94,7 +94,7 @@ export function NavigatorOverflowItems({
     slot: NavigatorSlotMeta
   ) => {
     if (slot.menu) return renderMenuRow(set, slot, slot.menu)
-    const active = isSecondaryActive(slot, value)
+    const active = isDestinationActive(slot, value)
     const href = slot.href
     return (
       <List.Item

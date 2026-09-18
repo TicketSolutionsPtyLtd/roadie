@@ -156,7 +156,7 @@ async function navigate(from: string, to: string) {
   return view
 }
 
-describe('a secondary with an overview', () => {
+describe('a destination with an overview', () => {
   it('pushes a sub-page over a ghost of the page it leaves, from the keyframes', async () => {
     await navigate('/', '/overview/installation')
     expect(row()).toHaveAttribute('data-page-step', 'push')
@@ -274,7 +274,7 @@ describe('a secondary with an overview', () => {
 
   it.each([
     ['a sibling', '/overview/installation', '/overview/philosophy'],
-    ['a secondary switch', '/', '/components/button'],
+    ['a destination switch', '/', '/components/button'],
     ['no overview', '/components', '/components/button']
   ])('stays instant for %s', async (_, from, to) => {
     await navigate(from, to)
@@ -324,7 +324,7 @@ describe('a secondary with an overview', () => {
       expect(ghost()).toBeEmptyDOMElement()
     })
 
-    it('when the secondary changes', async () => {
+    it('when the destination changes', async () => {
       const view = await navigate('/overview/installation', '/')
       expect(row()).toHaveAttribute('data-page-step', 'pop')
       view.rerender(<Docs value='/components/button' />)

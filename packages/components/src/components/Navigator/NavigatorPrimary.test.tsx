@@ -284,7 +284,7 @@ describe('vertical capacity', () => {
     ).toBeNull()
   })
 
-  it('lights More while the current secondary is folded', async () => {
+  it('lights More while the current destination is folded', async () => {
     render(<Six value='/f' />)
     await flushViewportMeasurement()
     reportClusterHeight(192)
@@ -533,7 +533,7 @@ describe('choosing a primary item closes More', () => {
     ).toHaveAttribute('data-current')
   })
 
-  it('brings back the chosen secondary’s own pane', async () => {
+  it('brings back the chosen destination’s own pane', async () => {
     function WithSecondary() {
       const [value, setValue] = useState('/a')
       return withStubLink(

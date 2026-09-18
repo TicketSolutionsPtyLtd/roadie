@@ -86,7 +86,7 @@ function Docs({
 withScrollSentinels()
 
 describe('generated secondary pane', () => {
-  it('leads the stack as a list pane titled with the secondary label', async () => {
+  it('leads the stack as a list pane titled with the destination label', async () => {
     render(<Docs />)
     await flushViewportMeasurement()
     const pane = secondaryPane()!
@@ -215,13 +215,13 @@ describe('generated secondary pane', () => {
     expect(within(secondaryPane()!).queryByRole('searchbox')).toBeNull()
   })
 
-  it('mounts only for the active secondary, and not for a secondary without Secondary', async () => {
+  it('mounts only for the active destination, and not for one without a Secondary', async () => {
     render(<Docs value='/start' />)
     await flushViewportMeasurement()
     expect(secondaryPane()).toBeNull()
   })
 
-  it('resets its search when the secondary changes', async () => {
+  it('resets its search when the destination changes', async () => {
     const user = userEvent.setup()
     const { rerender } = render(<Docs />)
     await flushViewportMeasurement()
@@ -460,7 +460,7 @@ function Override({
 }
 
 describe('Navigator.SecondaryPane', () => {
-  it("replaces that secondary's generated pane", async () => {
+  it("replaces that destination's generated pane", async () => {
     render(<Override />)
     await flushViewportMeasurement()
     const lists = document.querySelectorAll('[data-navigator-secondary]')
@@ -505,7 +505,7 @@ describe('Navigator.SecondaryPane', () => {
     expect(screen.getByText('Promo')).toBeInTheDocument()
   })
 
-  it('renders nothing while its secondary is not active', async () => {
+  it('renders nothing while its destination is not active', async () => {
     const { rerender } = render(<Override />)
     await flushViewportMeasurement()
     rerender(
@@ -599,7 +599,7 @@ describe('Navigator.SecondaryPane and the no-panes warning', () => {
     )
   })
 
-  it('counts as a consumer pane while its secondary is active', async () => {
+  it('counts as a consumer pane while its destination is active', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { rerender } = render(
       <InactiveOverride value='/components/button' wrapped detail />
@@ -682,15 +682,15 @@ const backOf = (pane: HTMLElement) => {
   return back
 }
 
-describe('secondary routes', () => {
-  it('puts the list on top on the secondary route, even with a reached detail', async () => {
+describe('destination routes', () => {
+  it('puts the list on top on the destination route, even with a reached detail', async () => {
     render(<Routed value='/components' />)
     await flushViewportMeasurement()
     expect(secondaryPane()).toHaveAttribute('data-stack-position', 'top')
     expect(panes()[1]).toHaveAttribute('data-stack-position', 'ahead')
   })
 
-  it('puts the page on top on a sub-page, with Back linking to the secondary route', async () => {
+  it('puts the page on top on a sub-page, with Back linking to the destination route', async () => {
     render(<Routed value='/components/a' />)
     await flushViewportMeasurement()
     const detail = panes()[1]!
@@ -712,7 +712,7 @@ describe('secondary routes', () => {
     await flushViewportMeasurement()
   })
 
-  it('gives no Back on a sub-page of a routeless secondary', async () => {
+  it('gives no Back on a sub-page of a routeless destination', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
       <Navigator value='/x/one'>
@@ -795,7 +795,7 @@ describe('secondary routes', () => {
     ).toHaveAttribute('aria-current', 'page')
   })
 
-  it('links the active tab to the secondary route when showList is not wired', async () => {
+  it('links the active tab to the destination route when showList is not wired', async () => {
     render(<Routed value='/components/a' />)
     await flushViewportMeasurement()
     expect(
@@ -862,7 +862,7 @@ describe('back chrome by depth', () => {
     )
   }
 
-  it('gives the depth-1 pane the secondary route and label even when it is not the top', async () => {
+  it('gives the depth-1 pane the destination route and label even when it is not the top', async () => {
     render(<ThreeLevels value='/tickets/glamping' />)
     await flushViewportMeasurement()
     const glamping = screen.getByLabelText('Glamping', { selector: 'section' })
@@ -892,7 +892,7 @@ describe('back chrome by depth', () => {
     expect(within(glamping).queryByLabelText('Close')).toBeNull()
   })
 
-  it('names the sub-page Back after the secondary, as the round icon button', async () => {
+  it('names the sub-page Back after the destination, as the round icon button', async () => {
     render(<Routed value='/components/a' />)
     await flushViewportMeasurement()
     const back = within(panes()[1]!).getByLabelText('Back to Components')
@@ -905,7 +905,7 @@ describe('back chrome by depth', () => {
 describe('the row reveals the root', () => {
   const row = () => document.querySelector('[data-slot="navigator-panes"]')!
 
-  it('on the secondary route and with showList, not on a sub-page', async () => {
+  it('on the destination route and with showList, not on a sub-page', async () => {
     const { rerender } = render(<Routed value='/components' />)
     await flushViewportMeasurement()
     expect(row()).toHaveAttribute('data-reveal')
@@ -1292,7 +1292,7 @@ function WithOverview({
 }
 
 describe('overviews', () => {
-  it('mounts no list pane on the secondary route, where the page is the root with no Back', async () => {
+  it('mounts no list pane on the destination route, where the page is the root with no Back', async () => {
     render(<WithOverview value='/' />)
     await flushViewportMeasurement()
     expect(secondaryPane()).toBeNull()
@@ -1301,7 +1301,7 @@ describe('overviews', () => {
     expect(screen.queryByLabelText(/^Back\b/)).toBeNull()
   })
 
-  it('pushes a sub-page over the list, with Back to the secondary route', async () => {
+  it('pushes a sub-page over the list, with Back to the destination route', async () => {
     render(<WithOverview value='/overview/philosophy' />)
     await flushViewportMeasurement()
     expect(secondaryPane()).toHaveAttribute('data-stack-position', 'behind')
@@ -1313,7 +1313,7 @@ describe('overviews', () => {
     ).toHaveAttribute('aria-current', 'page')
   })
 
-  it('keeps the list on the secondary route with overview off', async () => {
+  it('keeps the list on the destination route with overview off', async () => {
     render(<WithOverview value='/' overview={false} />)
     await flushViewportMeasurement()
     expect(secondaryPane()).not.toBeNull()
@@ -1349,7 +1349,7 @@ describe('overviews', () => {
     ).toHaveLength(1)
   })
 
-  it('ignores overview on a routeless secondary', async () => {
+  it('ignores overview on a routeless destination', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
       <Navigator value='/x'>
@@ -1444,7 +1444,7 @@ describe('overview tab', () => {
   it.each([
     ['an overview', <WithOverview key='page' value='/' />, 'Home'],
     [
-      'a list secondary on its route',
+      'a destination without an overview, on its route',
       <Routed key='list' value='/components' />,
       'Components'
     ]

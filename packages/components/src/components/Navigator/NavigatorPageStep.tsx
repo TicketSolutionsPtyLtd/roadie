@@ -10,7 +10,7 @@ import {
 } from './NavigatorContext'
 import { secondaryRows } from './secondaryData'
 
-/** Where a secondary with an overview stands: its own route, a sub-page on top, or neither. */
+/** Where a destination with an overview stands: its own route, a sub-page on top, or neither. */
 export type NavigatorPageAt = 'root' | 'child' | null
 
 type NavigatorPageStepProps = {

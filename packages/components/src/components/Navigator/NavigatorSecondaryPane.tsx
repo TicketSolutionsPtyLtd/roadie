@@ -14,11 +14,11 @@ export type NavigatorSecondaryPaneProps = Omit<
   PaneRootProps,
   'column' | 'reached' | 'depth' | 'tabBar' | 'id'
 > & {
-  /** The secondary whose generated pane this replaces. */
+  /** The destination whose generated pane this replaces. */
   value: string
 }
 
-/** Replaces one secondary's generated list pane. Declare it before your detail pane. */
+/** Replaces one destination's generated list pane. Declare it before your detail pane. */
 export function NavigatorSecondaryPane({
   value,
   ...props

@@ -118,7 +118,7 @@ export function secondaryDescendantValues(secondary: ReactNode[]): string[] {
   return secondaryItems(secondary).map((item) => item.props.value)
 }
 
-/** The first sub-page with an href: where a routeless secondary lands. */
+/** The first sub-page with an href: where a routeless destination lands. */
 export function firstRoutedSecondary(
   secondary: ReactNode[]
 ): NavigatorItemProps | undefined {

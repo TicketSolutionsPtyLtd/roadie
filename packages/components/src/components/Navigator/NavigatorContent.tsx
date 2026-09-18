@@ -37,7 +37,7 @@ import {
   NavigatorDisclosureContext,
   NavigatorSelectionContext,
   isActiveValue,
-  isSecondaryActive
+  isDestinationActive
 } from './NavigatorContext'
 import { NavigatorGeneratedSecondaryPane } from './NavigatorGeneratedSecondaryPane'
 import { NavigatorOverflowItems } from './NavigatorOverflowItems'
@@ -116,8 +116,9 @@ const sameNodes = (was: readonly PaneShape[], now: readonly PaneShape[]) =>
 // A sibling swap: the row's shape is unchanged — the same panes in the same
 // document order, so the same depths and the same top — and at least one of
 // them is a different element. That is a route rendering a sibling detail, as a
-// param change does, and it cuts like More and a secondary change do. A push adds
-// a pane and a pop drops one, so neither reaches here and both keep their slide.
+// param change does, and it cuts like More and a destination change do. A push
+// adds a pane and a pop drops one, so neither reaches here and both keep their
+// slide.
 function isSiblingSwap(was: readonly PaneShape[], now: readonly PaneShape[]) {
   if (was.length === 0 || was.length !== now.length) return false
   let swapped = false
@@ -185,11 +186,11 @@ export function NavigatorContent({
   const ref = useMemo(() => mergeRefs(contentRef, forwardedRef), [forwardedRef])
   const rowRef = useRef<HTMLDivElement | null>(null)
   const secondaryValue = activeSecondary?.value ?? null
-  // The top-level item the route sits under. A secondary is one of these and a
-  // plain item is not, so this also catches a switch that lands deep in the
-  // incoming item: the stack changes shape, but it is still a tab switch.
+  // The top-level destination the route sits under, so this also catches a
+  // switch that lands deep in the incoming destination: the stack changes
+  // shape, but it is still a tab switch.
   const tabValue =
-    collected.ordered.find((slot) => isSecondaryActive(slot, value))?.value ??
+    collected.ordered.find((slot) => isDestinationActive(slot, value))?.value ??
     null
 
   // Panes slide only on a push or pop; a resize cuts.
@@ -287,15 +288,16 @@ export function NavigatorContent({
   )
   const depths = useMemo(() => depthsOf(ordered, draws), [ordered, draws])
 
-  const onSecondaryRoute =
+  const onDestinationRoute =
     activeSecondary !== null && isActiveValue(activeSecondary.value, value)
-  const revealing = listPaneShows && !moreOpen && (onSecondaryRoute || showList)
-  // A secondary with an overview draws every route in one pane, so a step between them
-  // moves no pane: the page as it was stands in, copied before React replaces
-  // it. The only copy left in the row, and only here.
+  const revealing =
+    listPaneShows && !moreOpen && (onDestinationRoute || showList)
+  // A destination with an overview draws every route in one pane, so a step
+  // between them moves no pane: the page as it was stands in, copied before
+  // React replaces it. The only copy left in the row, and only here.
   const pageAt: NavigatorPageAt =
     activeSecondary?.overview && !moreOpen && !revealing
-      ? onSecondaryRoute
+      ? onDestinationRoute
         ? 'root'
         : 'child'
       : null
@@ -319,9 +321,10 @@ export function NavigatorContent({
   )
   useInsertionEffect(() => markPushing(), [markPushing, revealing])
 
-  // More and a secondary change are tab switches, not pushes. Declared after every
-  // markPushing call, so it cancels a push marked this commit.
-  // Keyed on moreOpen, not overflowOpen: a resize or hydration can add or drop More without overflowOpen changing.
+  // More and a destination change are tab switches, not pushes. Declared after
+  // every markPushing call, so it cancels a push marked this commit. Keyed on
+  // moreOpen, not overflowOpen: a resize or hydration can add or drop More
+  // without overflowOpen changing.
   const lastTab = useRef({ moreOpen, secondaryValue, tabValue })
   useInsertionEffect(() => {
     const last = lastTab.current
@@ -490,7 +493,8 @@ export function NavigatorContent({
     </PaneKindContext>
   ) : null
 
-  // Keyed so the search resets with the secondary; More replaces it while open.
+  // Keyed so the search resets with the destination; More replaces it while
+  // open.
   const secondaryPane = showsSecondaryPane ? (
     <NavigatorGeneratedSecondaryPane
       key={activeSecondary.value}

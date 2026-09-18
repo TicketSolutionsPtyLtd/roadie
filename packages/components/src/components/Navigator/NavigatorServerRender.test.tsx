@@ -111,7 +111,7 @@ afterEach(() => {
 })
 
 describe('Navigator server render', () => {
-  it("renders the secondary's list pane, rows and all, on its own route", () => {
+  it("renders the destination's list pane, rows and all, on its own route", () => {
     const container = serverRender(<Docs value='/components' />)
     const list = paneOf(container, 'list')!
     expect(list).toHaveAttribute('data-navigator-secondary', '/components')
@@ -171,7 +171,7 @@ describe('Navigator server render', () => {
     ])
   })
 
-  it('renders only the detail on a route with no secondary', () => {
+  it('renders only the detail on a route with no secondary nav', () => {
     const container = serverRender(<Docs value='/' />)
     expect(positions(container)).toEqual([
       ['detail', 'top'],
@@ -379,7 +379,7 @@ describe('Navigator server render of depths', () => {
     ).toHaveAttribute('data-reveal')
   })
 
-  it('gives the depth-1 pane the secondary route and label, and the deeper pane its own from backHref', () => {
+  it('gives the depth-1 pane the destination route and label, and the deeper pane its own from backHref', () => {
     const container = serverRender(<ThreeLevels value='/tickets/glamping' />)
     const [glamping, sam] = Array.from(
       container.querySelectorAll<HTMLElement>(
@@ -665,7 +665,7 @@ describe('nothing slides in or out on a server render or its hydration', () => {
 
   it.each([
     ['a deep route', <Docs key='deep' value='/components/button' />],
-    ['a secondary root', <Docs key='root' value='/components' />],
+    ['a destination route', <Docs key='root' value='/components' />],
     [
       'an overview sub-page',
       <PageRootDocs key='page' value='/overview/philosophy' />

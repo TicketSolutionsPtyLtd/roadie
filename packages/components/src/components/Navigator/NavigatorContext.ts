@@ -15,11 +15,11 @@ import type { NavigatorSlotMeta } from './mobileSlots'
 
 export type NavigatorActiveSecondary = {
   value: string
-  /** The secondary route; undefined only for a routeless secondary. */
+  /** The destination route; undefined only for a routeless destination. */
   href?: string
   label: ReactNode
   props: NavigatorSecondaryProps
-  /** Only with an `href`; a routeless secondary has no overview. */
+  /** Only with an `href`; a routeless destination has no overview. */
   overview: boolean
 }
 
@@ -67,18 +67,18 @@ export type NavigatorActions = {
   primaryId: string
 }
 
-/** What is selected, and the secondary it belongs to. */
+/** What is selected, and the destination it belongs to. */
 export type NavigatorSelection = {
   value: string | undefined
   /** The direct-child Primary's walk; a new identity only when its structure changes. */
   collected: CollectedSlots
-  /** The branch-active secondary. */
+  /** The branch-active destination with a secondary nav. */
   activeSecondary: NavigatorActiveSecondary | null
   /** The active secondary shows a list pane: not an overview on its own route. */
   listPaneShows: boolean
   /** The app asks for the active secondary's list on top. */
   showList: boolean
-  /** Secondaries whose generated pane a `Navigator.SecondaryPane` replaces. */
+  /** Destinations whose generated pane a `Navigator.SecondaryPane` replaces. */
   declaredSecondaryPanes: ReadonlySet<string>
 }
 
@@ -167,7 +167,8 @@ export const isActiveValue = (
   activeValue: string | undefined
 ) => itemValue === activeValue
 
-// Prefix matching keeps a secondary lit on sub-routes its tree never declares.
+// Prefix matching keeps a destination lit on sub-routes its tree never
+// declares.
 export const isBranchActive = (
   itemValue: string,
   descendantValues: string[],
@@ -178,7 +179,7 @@ export const isBranchActive = (
   (activeValue !== undefined && activeValue.startsWith(`${itemValue}/`))
 
 // A menu item owns a menu, not a destination, so no route may light it.
-export const isSecondaryActive = (
+export const isDestinationActive = (
   item: Pick<NavigatorSlotMeta, 'value' | 'descendants' | 'menu'>,
   activeValue: string | undefined
 ) => !item.menu && isBranchActive(item.value, item.descendants, activeValue)

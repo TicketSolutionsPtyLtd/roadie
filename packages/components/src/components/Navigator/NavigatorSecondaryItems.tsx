@@ -15,7 +15,7 @@ import { textOf } from './splitSecondary'
 import { useSecondary } from './useNavigatorSecondary'
 
 export type NavigatorSecondaryItemsProps = Omit<ListProps, 'children'> & {
-  /** The secondary's item value; omit for the active secondary. */
+  /** The destination's item value; omit for the active one. */
   value?: string
   /** Filters rows by label, ignoring case. Empty groups hide. */
   query?: string

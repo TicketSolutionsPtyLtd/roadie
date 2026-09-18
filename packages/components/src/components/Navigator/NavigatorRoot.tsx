@@ -60,7 +60,7 @@ export type NavigatorRootProps = {
   onValueChange?: (next: string) => void
   /** Shows the active secondary's list over a stacked sub-page. Derive it from the URL, such as `?nav`. */
   showList?: boolean
-  /** Called when the active secondary's tab asks to show or hide the list. Without it, the tab links to the secondary route. */
+  /** Called when the active destination's tab asks to show or hide the list. Without it, the tab links to the destination route. */
   onShowListChange?: (next: boolean) => void
   /** Opens the More pane. Derive it from the URL, such as `?more`. Without it, More keeps its own state. */
   showMore?: boolean

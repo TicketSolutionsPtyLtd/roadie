@@ -783,7 +783,7 @@ describe('Navigator routeless primary', () => {
     await flushViewportMeasurement()
   })
 
-  it('lights the routeless secondary and marks its landing row in the secondary pane', async () => {
+  it('lights the routeless destination and marks its landing row in the secondary pane', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
       <Navigator value='/foundations/layout'>
@@ -1205,9 +1205,9 @@ describe('Navigator mobile tab bar', () => {
     await flushViewportMeasurement()
   })
 
-  // The tab is the secondary, not the page — the pane's list row is the page,
-  // and two elements announcing "current page" is one too many.
-  it('marks a tab active through a sub-page as the current secondary', async () => {
+  // The tab is the destination, not the page — the pane's list row is the
+  // page, and two elements announcing "current page" is one too many.
+  it('marks a tab active through a sub-page as the current destination', async () => {
     const { container } = render(
       <Navigator value='/foundations/layout'>
         <Navigator.Primary aria-label='Primary'>
@@ -1620,7 +1620,7 @@ describe('NavigatorOverflowPane', () => {
     </Navigator>
   )
 
-  it('keeps a folded group as a titled secondary of the overflow', async () => {
+  it('keeps a folded group as a titled group of the overflow', async () => {
     render(groupedOverflowNav('/a'))
     await flushViewportMeasurement()
     const overflow = within(panes()[1] as HTMLElement)
@@ -1632,7 +1632,7 @@ describe('NavigatorOverflowPane', () => {
     expect(overflow.queryByRole('link', { name: 'Account' })).toBeNull()
   })
 
-  it('marks an overflow row active through a sub-page as the current secondary', async () => {
+  it('marks an overflow row active through a sub-page as the current destination', async () => {
     render(groupedOverflowNav('/e/deep'))
     await flushViewportMeasurement()
     const overflow = within(panes()[1] as HTMLElement)
@@ -2183,10 +2183,11 @@ describe('NavigatorOverflowPane', () => {
     })
 
     it('switches instantly, never pushing, when a controlled More folds a secondary list in or out of view', async () => {
-      // A secondary (`/s0`) keeps its own list pane on screen; padding the tab
-      // count past MAX_TABS folds later secondaries into More without touching
-      // `/s0` or `showMore` itself — the fold alone flips `moreOpen`.
-      const foldingSecondarysNav = (folded: boolean) => (
+      // A destination with a secondary (`/s0`) keeps its own list pane on
+      // screen; padding the tab count past MAX_TABS folds later destinations
+      // into More without touching `/s0` or `showMore` itself — the fold alone
+      // flips `moreOpen`.
+      const foldingDestinationsNav = (folded: boolean) => (
         <Navigator value='/s0' showMore>
           <Navigator.Primary aria-label='Main'>
             {testBrand}
@@ -2194,19 +2195,12 @@ describe('NavigatorOverflowPane', () => {
               Home
             </Navigator.Item>
             {Array.from({ length: folded ? 6 : 2 }, (_, i) => `s${i}`).map(
-              (secondary) => (
-                <Navigator.Item
-                  key={secondary}
-                  value={`/${secondary}`}
-                  href={`/${secondary}`}
-                >
-                  {secondary}
-                  <Navigator.Secondary aria-label={`${secondary} pages`}>
-                    <Navigator.Item
-                      value={`/${secondary}/1`}
-                      href={`/${secondary}/1`}
-                    >
-                      {`${secondary} 1`}
+              (name) => (
+                <Navigator.Item key={name} value={`/${name}`} href={`/${name}`}>
+                  {name}
+                  <Navigator.Secondary aria-label={`${name} pages`}>
+                    <Navigator.Item value={`/${name}/1`} href={`/${name}/1`}>
+                      {`${name} 1`}
                     </Navigator.Item>
                   </Navigator.Secondary>
                 </Navigator.Item>
@@ -2221,13 +2215,13 @@ describe('NavigatorOverflowPane', () => {
       const more = () =>
         document.querySelector('[data-slot="pane"][data-overflow]')
 
-      const { rerender } = render(foldingSecondarysNav(false))
+      const { rerender } = render(foldingDestinationsNav(false))
       await flushViewportMeasurement()
       flushFrame()
       flushFrame()
       expect(more()).toBeNull()
 
-      rerender(foldingSecondarysNav(true))
+      rerender(foldingDestinationsNav(true))
       expect(more()).not.toBeNull()
       expect(content()).toHaveAttribute('data-instant')
       expect(row()).not.toHaveAttribute('data-pushing')
@@ -2236,7 +2230,7 @@ describe('NavigatorOverflowPane', () => {
       expect(content()).not.toHaveAttribute('data-instant')
       await flushViewportMeasurement()
 
-      rerender(foldingSecondarysNav(false))
+      rerender(foldingDestinationsNav(false))
       expect(more()).toBeNull()
       expect(content()).toHaveAttribute('data-instant')
       expect(row()).not.toHaveAttribute('data-pushing')
@@ -2246,26 +2240,19 @@ describe('NavigatorOverflowPane', () => {
       await flushViewportMeasurement()
     })
 
-    const secondarysNav = (value: string, showMore?: boolean) => (
+    const destinationsNav = (value: string, showMore?: boolean) => (
       <Navigator value={value} showMore={showMore}>
         <Navigator.Primary aria-label='Main'>
           {testBrand}
           <Navigator.Item value='/' href='/'>
             Home
           </Navigator.Item>
-          {['a', 'b'].map((secondary) => (
-            <Navigator.Item
-              key={secondary}
-              value={`/${secondary}`}
-              href={`/${secondary}`}
-            >
-              {secondary}
-              <Navigator.Secondary aria-label={`${secondary} pages`}>
-                <Navigator.Item
-                  value={`/${secondary}/1`}
-                  href={`/${secondary}/1`}
-                >
-                  {`${secondary} 1`}
+          {['a', 'b'].map((name) => (
+            <Navigator.Item key={name} value={`/${name}`} href={`/${name}`}>
+              {name}
+              <Navigator.Secondary aria-label={`${name} pages`}>
+                <Navigator.Item value={`/${name}/1`} href={`/${name}/1`}>
+                  {`${name} 1`}
                 </Navigator.Item>
               </Navigator.Secondary>
             </Navigator.Item>
@@ -2278,17 +2265,17 @@ describe('NavigatorOverflowPane', () => {
     )
 
     it.each([
-      ['one secondary to another', '/a/1', '/b'],
-      ['a secondary to none', '/a', '/'],
-      ['none to a secondary', '/', '/b/1']
+      ['one destination to another', '/a/1', '/b'],
+      ['a destination to none', '/a', '/'],
+      ['none to a destination', '/', '/b/1']
     ])(
       'holds pane transitions off for two frames from %s',
       async (_, from, to) => {
-        const { rerender } = render(secondarysNav(from))
+        const { rerender } = render(destinationsNav(from))
         await flushViewportMeasurement()
         expect(content()).not.toHaveAttribute('data-instant')
 
-        rerender(secondarysNav(to))
+        rerender(destinationsNav(to))
         expect(content()).toHaveAttribute('data-instant')
         flushFrame()
         flushFrame()
@@ -2300,21 +2287,21 @@ describe('NavigatorOverflowPane', () => {
     it.each([
       ['a push', '/a', '/a/1'],
       ['a pop', '/a/1', '/a']
-    ])('keeps the slide for %s within a secondary', async (_, from, to) => {
-      const { rerender } = render(secondarysNav(from))
+    ])('keeps the slide for %s within a destination', async (_, from, to) => {
+      const { rerender } = render(destinationsNav(from))
       await flushViewportMeasurement()
       flushFrame()
-      rerender(secondarysNav(to))
+      rerender(destinationsNav(to))
       expect(content()).not.toHaveAttribute('data-instant')
       expect(row()).toHaveAttribute('data-pushing')
       await flushViewportMeasurement()
     })
 
-    it('still marks a real push within a secondary while a controlled More stays open', async () => {
-      const { rerender } = render(secondarysNav('/a', true))
+    it('still marks a real push within a destination while a controlled More stays open', async () => {
+      const { rerender } = render(destinationsNav('/a', true))
       await flushViewportMeasurement()
       flushFrame()
-      rerender(secondarysNav('/a/1', true))
+      rerender(destinationsNav('/a/1', true))
       expect(content()).not.toHaveAttribute('data-instant')
       expect(row()).toHaveAttribute('data-pushing')
       await flushViewportMeasurement()
@@ -2512,7 +2499,7 @@ describe('Navigator.Secondary', () => {
   it('finds items nested inside a group when collecting descendants', async () => {
     render(groupedTree)
     await flushViewportMeasurement()
-    // The secondary is branch-active only if the walk saw the grouped child.
+    // The destination is branch-active only if the walk saw the grouped child.
     expect(
       within(primaryOf('vertical')).getByRole('link', { name: 'Components' })
     ).toHaveAttribute('aria-current', 'true')
@@ -2726,11 +2713,12 @@ describe('Navigator.Menu + Navigator.Secondary precedence', () => {
     </Navigator>
   )
 
-  it('renders as a secondary, not a menu, when both are declared', async () => {
+  it('renders as a secondary nav, not a menu, when both are declared', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = render(withBoth('/a'))
     await flushViewportMeasurement()
-    // A routeless secondary links to its first sub-page, so no menu took over the row.
+    // A routeless destination links to its first sub-page, so no menu took over
+    // the row.
     const row = verticalOf(container).getByRole('link', { name: 'A' })
     expect(row).toHaveAttribute('href', '/a/sub')
     expect(row).not.toHaveAttribute('aria-haspopup')
@@ -2802,7 +2790,7 @@ describe('Navigator descendant-aware active matching', () => {
       document.querySelector<HTMLElement>('[data-navigator-secondary]')!
     ).getByRole('button', { name: label })
 
-  it('marks a secondary branch-active when a Secondary descendant is current', async () => {
+  it('marks a destination branch-active when a Secondary descendant is current', async () => {
     render(tree('button'))
     await flushViewportMeasurement()
     expect(verticalItem('Components')).toHaveClass('intent-accent')
@@ -2819,7 +2807,7 @@ describe('Navigator descendant-aware active matching', () => {
     expect(screen.queryByText('Layout')).toBeNull()
   })
 
-  it('keeps a secondary reading current on a sub-route no Secondary declares', async () => {
+  it('keeps a destination reading current on a sub-route no Secondary declares', async () => {
     render(tree('components/settings'))
     await flushViewportMeasurement()
     const secondary = verticalItem('Components')
@@ -2828,14 +2816,14 @@ describe('Navigator descendant-aware active matching', () => {
     expect(secondary).toHaveAttribute('aria-current', 'true')
   })
 
-  it('gives aria-current=page to the exact descendant, not the branch secondary', async () => {
+  it('gives aria-current=page to the exact descendant, not the branch destination', async () => {
     render(tree('button'))
     await flushViewportMeasurement()
     expect(secondaryRow('Button')).toHaveAttribute('aria-current', 'page')
     expect(verticalItem('Components')).toHaveAttribute('aria-current', 'true')
   })
 
-  it('marks the secondary mobile tab active when a descendant is current', async () => {
+  it("marks the destination's mobile tab active when a descendant is current", async () => {
     render(tree('button'))
     await flushViewportMeasurement()
     const bar = within(primaryOf('horizontal'))
@@ -2849,7 +2837,7 @@ describe('Navigator descendant-aware active matching', () => {
 })
 
 describe('Navigator lookups follow document order', () => {
-  it('resolves the secondary written first, even when it is pinned', async () => {
+  it('resolves the destination written first, even when it is pinned', async () => {
     render(
       <Navigator value='/settings/team/members'>
         <Navigator.Primary aria-label='Main'>
@@ -2914,7 +2902,7 @@ describe('a Primary that is not a direct child', () => {
   })
 })
 
-describe('Navigator route-prefix secondary matching', () => {
+describe('Navigator route-prefix destination matching', () => {
   const verticalItem = (label: string) =>
     screen
       .getAllByText(label)
@@ -3544,8 +3532,9 @@ describe('Navigator active-tab tap: scroll-on-landing vs navigate-up', () => {
   const scrollerOf = (root: Document | HTMLElement) =>
     root.querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
 
-  // A secondary with its own landing route (`/components`) and one sub-page, so
-  // the active tab can be on the landing or on a sub-page of the same secondary.
+  // A destination with its own landing route (`/components`) and one sub-page,
+  // so the active tab can be on the landing or on a sub-page of the same
+  // destination.
   const secondaryTree = (active: string, onValueChange = vi.fn()) => (
     <Navigator value={active} onValueChange={onValueChange}>
       <Navigator.Primary aria-label='Primary'>
@@ -3581,7 +3570,7 @@ describe('Navigator active-tab tap: scroll-on-landing vs navigate-up', () => {
     return scrollTo
   }
 
-  it('scrolls the pane to top when the active tab is tapped on the secondary landing', async () => {
+  it('scrolls the pane to top when the active tab is tapped on the destination landing', async () => {
     const onValueChange = vi.fn()
     const { container } = render(secondaryTree('/components', onValueChange))
     const scrollTo = paneScrollSpy(container)
@@ -3604,8 +3593,8 @@ describe('Navigator active-tab tap: scroll-on-landing vs navigate-up', () => {
       { name: 'Components' }
     )
 
-    // Its href is the secondary landing, so tapping it pops up there rather than
-    // scrolling the sub-page's pane.
+    // Its href is the destination landing, so tapping it pops up there rather
+    // than scrolling the sub-page's pane.
     expect(components).toHaveAttribute('href', '/components')
     await userEvent.click(components)
 
@@ -4059,7 +4048,7 @@ describe('a new destination starts at the top', () => {
     expect(header()).toHaveAttribute('data-collapsed', 'false')
   })
 
-  it('scrolls the page up on a secondary switch', async () => {
+  it('scrolls the page up on a destination switch', async () => {
     const { rerender } = render(nav('/'))
     await flushViewportMeasurement()
     await scroll(page(), 900)
@@ -4114,7 +4103,7 @@ describe('a new destination starts at the top', () => {
   })
 })
 
-describe('per-secondary hrefs', () => {
+describe('per-destination hrefs', () => {
   const nav = (value: string) => (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Main'>
@@ -4144,13 +4133,13 @@ describe('per-secondary hrefs', () => {
       ) as HTMLElement
     ).getByRole('link', { name })
 
-  it('starts every secondary on its declared href', async () => {
+  it('starts every destination on its declared href', async () => {
     render(nav('/components'))
     await flushViewportMeasurement()
     expect(verticalLink('Tokens')).toHaveAttribute('href', '/tokens')
   })
 
-  it('keeps a secondary you have left on its declared href', async () => {
+  it('keeps a destination you have left on its declared href', async () => {
     const { rerender } = render(nav('/components'))
     await flushViewportMeasurement()
     rerender(nav('/tokens/color'))
@@ -4160,7 +4149,7 @@ describe('per-secondary hrefs', () => {
     expect(verticalLink('Tokens')).toHaveAttribute('href', '/tokens')
   })
 
-  it('leaves the secondary you are in on its declared href', async () => {
+  it('leaves the destination you are in on its declared href', async () => {
     const { rerender } = render(nav('/tokens/color'))
     await flushViewportMeasurement()
     rerender(nav('/tokens/color'))
@@ -4168,7 +4157,7 @@ describe('per-secondary hrefs', () => {
     expect(verticalLink('Tokens')).toHaveAttribute('href', '/tokens')
   })
 
-  it('keeps a secondary that declares a Secondary on its declared href', async () => {
+  it('keeps a destination that declares a Secondary on its declared href', async () => {
     const { rerender } = render(nav('/components/button'))
     await flushViewportMeasurement()
     rerender(nav('/tokens'))
@@ -4176,7 +4165,7 @@ describe('per-secondary hrefs', () => {
     expect(verticalLink('Components')).toHaveAttribute('href', '/components')
   })
 
-  it('keeps a folded secondary’s More row on its declared href, like its tab', async () => {
+  it('keeps a folded destination’s More row on its declared href, like its tab', async () => {
     const folded = (value: string) => (
       <Navigator value={value}>
         <Navigator.Primary aria-label='Main'>

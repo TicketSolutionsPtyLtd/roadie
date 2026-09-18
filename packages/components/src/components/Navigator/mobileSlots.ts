@@ -29,9 +29,9 @@ export type NavigatorSlotMeta = {
   declaredHref?: string
   /** The item's menu, when it declares one. A menu item never navigates. */
   menu?: ReactElement<NavigatorMenuProps>
-  /** The secondary's landing value — itself if routed, else its first sub-page. */
+  /** The item's landing value: itself if routed, else its first sub-page. */
   topValue: string
-  /** Values of the secondary's `Navigator.Secondary` items, for branch-active. */
+  /** Values of the item's `Navigator.Secondary` items, for branch-active. */
   descendants: string[]
   secondary?: NavigatorSecondaryProps
   group?: NavigatorSlotGroup

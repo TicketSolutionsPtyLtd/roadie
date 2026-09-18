@@ -151,7 +151,7 @@ describe('useNavigatorSecondary', () => {
     expect(screen.getByTestId('probe')).toHaveTextContent('/components/button')
   })
 
-  it('returns null for an unknown value, an item without a Secondary, or outside every secondary', async () => {
+  it('returns null for an unknown value, an item without a Secondary, or outside every destination', async () => {
     const log: (NavigatorSecondaryData | null)[] = []
     const { rerender } = render(
       <Docs value='/about' probeValue='/nowhere' log={log} />

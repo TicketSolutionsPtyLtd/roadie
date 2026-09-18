@@ -99,7 +99,7 @@ export function NavigatorItem({
   const declaresMenuWithSecondary = hasSecondary && declaredMenu !== undefined
   const menu = hasSecondary ? undefined : declaredMenu
   const menuOpen = menu !== undefined && openMenu === menuId('vertical', value)
-  // A routeless secondary lands on its first sub-page.
+  // A routeless destination lands on its first sub-page.
   const effectiveHref = href ?? firstHref
   // A menu opens rather than navigates, so no route lights it.
   const isCurrent = !menu && isActiveValue(value, active)
