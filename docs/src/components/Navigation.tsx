@@ -47,7 +47,7 @@ export type NavigationItem = {
   description?: string
 }
 
-export type NavigationSection = {
+export type NavigationDestination = {
   title: string
   href: string
   /** Flat, in reading order; `FooterNav` walks these. */
@@ -59,13 +59,13 @@ export type NavigationSection = {
 }
 
 type NavigationProps = {
-  items: NavigationSection[]
+  items: NavigationDestination[]
   /** Route → page title, rendered as `Pane.BodyTitle`. */
   pageTitles: Record<string, string>
   children: ReactNode
 }
 
-const SECTION_ICONS: Record<string, ReactNode> = {
+const DESTINATION_ICONS: Record<string, ReactNode> = {
   '/': <HouseIcon />,
   '/foundations': <CompassIcon />,
   '/tokens': <PaletteIcon />,
@@ -220,28 +220,28 @@ export function DocsNavigator({
               Roadie
             </span>
           </Navigator.Brand>
-          {items.map((section) => {
-            const subItems = section.items.filter(
-              (item) => item.href !== section.href
+          {items.map((destination) => {
+            const subItems = destination.items.filter(
+              (item) => item.href !== destination.href
             )
             return (
               <Navigator.Item
-                key={section.href}
-                value={section.href}
-                href={section.href}
-                icon={SECTION_ICONS[section.href] ?? <HouseIcon />}
+                key={destination.href}
+                value={destination.href}
+                href={destination.href}
+                icon={DESTINATION_ICONS[destination.href] ?? <HouseIcon />}
                 visibilityPriority={
-                  section.href === '/tokens' ? 'low' : undefined
+                  destination.href === '/tokens' ? 'low' : undefined
                 }
               >
-                {section.title}
-                {section.groups ? (
+                {destination.title}
+                {destination.groups ? (
                   <Navigator.Secondary
-                    aria-label={section.title}
-                    overview={section.overview}
-                    searchable={section.searchable}
+                    aria-label={destination.title}
+                    overview={destination.overview}
+                    searchable={destination.searchable}
                   >
-                    {section.groups.map((group) => (
+                    {destination.groups.map((group) => (
                       <Navigator.Group key={group.name}>
                         <Navigator.GroupTitle>
                           {group.name}
@@ -269,8 +269,8 @@ export function DocsNavigator({
                   </Navigator.Secondary>
                 ) : subItems.length > 0 ? (
                   <Navigator.Secondary
-                    aria-label={`${section.title} pages`}
-                    overview={section.overview}
+                    aria-label={`${destination.title} pages`}
+                    overview={destination.overview}
                   >
                     {subItems.map((item) => (
                       <Navigator.Item

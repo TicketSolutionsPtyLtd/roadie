@@ -45,13 +45,13 @@ export function NavigatorCanary() {
           </Navigator.Brand>
           <Navigator.Item value='events' href='#events'>
             Events
-            <Navigator.Secondary aria-label='Events sections'>
+            <Navigator.Secondary aria-label='Events pages'>
               <Navigator.Item value='events-upcoming'>Upcoming</Navigator.Item>
             </Navigator.Secondary>
           </Navigator.Item>
           <Navigator.Item value='catalogue' href='#catalogue'>
             Catalogue
-            <Navigator.Secondary aria-label='Catalogue sections'>
+            <Navigator.Secondary aria-label='Catalogue pages'>
               <Navigator.Group>
                 <Navigator.GroupTitle>Formats</Navigator.GroupTitle>
                 <Navigator.Item value='catalogue-vinyl'>Vinyl</Navigator.Item>

@@ -4,8 +4,8 @@ import { join } from 'path'
 
 import {
   DocsNavigator,
-  type NavigationItem,
-  type NavigationSection
+  type NavigationDestination,
+  type NavigationItem
 } from '@/components/Navigation'
 import { Providers } from '@/components/Providers'
 import { CHANGELOG_URL } from '@/lib/changelog'
@@ -47,11 +47,11 @@ const flatten = (route: string, groups: CatalogueCategory[]) => [
   ])
 ]
 
-async function catalogueSection(
+async function catalogueDestination(
   title: string,
   catalogue: Catalogue,
-  options: Pick<NavigationSection, 'overview' | 'searchable'> = {}
-): Promise<NavigationSection> {
+  options: Pick<NavigationDestination, 'overview' | 'searchable'> = {}
+): Promise<NavigationDestination> {
   const groups = await getCatalogue(catalogue)
   return {
     title,
@@ -62,7 +62,7 @@ async function catalogueSection(
   }
 }
 
-async function getNavigationItems(): Promise<NavigationSection[]> {
+async function getNavigationItems(): Promise<NavigationDestination[]> {
   return [
     {
       title: 'Home',
@@ -79,9 +79,9 @@ async function getNavigationItems(): Promise<NavigationSection[]> {
         }
       ])
     },
-    await catalogueSection('Foundations', FOUNDATIONS, { overview: true }),
-    await catalogueSection('Tokens', TOKENS, { overview: true }),
-    await catalogueSection('Components', COMPONENTS, {
+    await catalogueDestination('Foundations', FOUNDATIONS, { overview: true }),
+    await catalogueDestination('Tokens', TOKENS, { overview: true }),
+    await catalogueDestination('Components', COMPONENTS, {
       overview: true,
       searchable: true
     }),
