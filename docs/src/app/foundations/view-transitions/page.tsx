@@ -206,6 +206,15 @@ function FilterButton({ href }: { href: string }) {
           you can get flickers when the new page renders faster than the old
           page&apos;s snapshot.
         </p>
+        <p className='text-sm text-subtle'>
+          Inside a{' '}
+          <Link href='/foundations/navigation'>Navigator shell</Link>,
+          Navigator animates pane-to-pane route changes itself. Don&apos;t
+          wrap a <Code>router.push</Code> that changes the active pane in{' '}
+          <Code>document.startViewTransition</Code>. Keep this pattern for
+          query-string updates within a pane&apos;s content, or for pages
+          outside a <Code>{'<Navigator>'}</Code>.
+        </p>
       </section>
 
       {/* Guidelines */}
@@ -250,6 +259,12 @@ function FilterButton({ href }: { href: string }) {
               transition produces noticeably ugly interpolation — set the new
               accent <em>before</em> the transition starts, or <em>after</em> it
               completes.
+            </p>
+          </li>
+          <li>
+            <p>
+              <strong>Skip this inside a Navigator shell.</strong> Navigator
+              owns its own pane-to-pane transitions.
             </p>
           </li>
         </ul>
