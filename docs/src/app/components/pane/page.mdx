@@ -219,6 +219,10 @@ fills, at least 28rem wide. Each column to its left takes a parent track:
 The panes behind the top fill the remaining columns nearest first, so the
 left-most pane drops first.
 
+These columns need container style queries, in Chrome 111, Safari 18 and
+Firefox 151. Older browsers get a simpler layout. They show only the top pane
+below 46.25rem, and the root beside it from there.
+
 In the stack, motion follows depth.
 
 - A push slides the arriving pane in over the one going behind.

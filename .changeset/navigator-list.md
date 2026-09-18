@@ -24,7 +24,9 @@ sets what the phone tab bar does while the pane is top, and `depth` is only for
 a pane rendered out of document order. Roadie derives depth from render order
 otherwise, on the server too. `Navigator` lays panes out as columns
 from its own width (two from 46.25rem, three from 76rem) and stacks them below
-that. A stacked pane that mounts as the new top slides in like one that was
+that. Full columns need container style queries, in Chrome 111,
+Safari 18 and Firefox 151. Older browsers get the top pane, with the root
+beside it from 46.25rem. A stacked pane that mounts as the new top slides in like one that was
 already there, so a route-driven detail pane animates on a push; a first
 paint, hydration and reduced motion never slide. A pop moves the pane behind,
 which slides back as the one above it is removed; the pane being left is not

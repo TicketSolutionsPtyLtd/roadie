@@ -17,7 +17,7 @@ keywords:
 severity: medium
 related_files:
   - packages/components/src/components/Pane/PaneRoot.tsx
-  - packages/components/src/components/Pane/paneColumns.ts
+  - packages/components/src/css/pane-columns.css
 ---
 
 # An unrendered root reports zero rects
@@ -37,7 +37,7 @@ size.
 ## Root cause
 
 A row that is not showing More hides the pane with `display: none`
-(`paneColumns.ts`), and the pane is in the DOM the whole time, so its
+(`pane-columns.css`), and the pane is in the DOM the whole time, so its
 `IntersectionObserver` starts observing while the pane has no box.
 
 Chrome still delivers the initial observation for such a target. It reports:

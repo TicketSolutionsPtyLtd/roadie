@@ -36,6 +36,9 @@ reference for each part.
 | Items that don't fit | Fold into More when the window is too short | Fold into More past five slots |
 | Your [`Pane`](/components/pane)s | Columns where they fit | One pane at a time |
 
+- Full columns need container style queries, in Chrome 111, Safari 18 and
+  Firefox 151. Older browsers show the top pane, with the root beside it once
+  two columns fit.
 - `value` is controlled and comes from your router. An item is active on an
   exact match, or on a `value + '/'` prefix for the pages under it. Normalise
   the pathname first. `/events/` misses the exact match and reads as a page
