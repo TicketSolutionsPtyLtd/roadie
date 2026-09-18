@@ -258,7 +258,7 @@ function EventPane({ event, ticketId }) {
             key={ticket.id}
             href={\`/account/tickets/\${event.id}/\${ticket.id}\`}
             title={ticket.title}
-            description={event.when}
+            description={ticket.detail}
             current={ticket.id === ticketId}
             chevron
           />
@@ -359,7 +359,19 @@ export default function AccountLayout({ children }: { children: ReactNode }) {
   )
 }`
 
-const paneLayout = `// app/account/tickets/layout.tsx
+const paneLayout = `// app/account/tickets/TicketsPane.tsx
+export function TicketsPane() {
+  return (
+    <Pane column='list'>
+      <Pane.Header>
+        <Pane.Title>Tickets</Pane.Title>
+      </Pane.Header>
+      <TicketList />
+    </Pane>
+  )
+}
+
+// app/account/tickets/layout.tsx
 export default function TicketsLayout({ children }: { children: ReactNode }) {
   return (
     <>
@@ -494,7 +506,7 @@ const buy = async () => {
 
 const withoutFramework = `const NavigateContext = createContext<(path: string) => void>(() => {})
 
-const isPlainClick = (event: MouseEvent) =>
+const isPlainClick = (event: React.MouseEvent) =>
   event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey
 
 function AppLink({ href, onClick, ...props }: RoadieLinkProps) {
@@ -779,8 +791,8 @@ export default function NavigationPage() {
           Each example adds one idea to the one before it.{' '}
           <Code>DemoRouter</Code> is a docs-only router. It keeps the path in
           state and gives it to the render function, the way a layout gets it
-          from your framework. Narrow the window to see the tab bar and the
-          stacked panes.
+          from your framework. Press Full width to see the panes as columns, and
+          narrow the window to see the tab bar and the stacked panes.
         </p>
 
         <div className='grid gap-2'>
@@ -788,7 +800,7 @@ export default function NavigationPage() {
           <p className='text-subtle'>
             Two destinations and one pane that shows the current page.
           </p>
-          <CodePreview language='tsx-live-noinline'>
+          <CodePreview language='tsx-live-noinline' expandable>
             {destinationsExample}
           </CodePreview>
         </div>
@@ -800,7 +812,7 @@ export default function NavigationPage() {
             generates its list pane, beside your page where two columns fit and
             behind it when panes stack. Your code still renders one pane.
           </p>
-          <CodePreview language='tsx-live-noinline'>
+          <CodePreview language='tsx-live-noinline' expandable>
             {secondaryExample}
           </CodePreview>
         </div>
@@ -812,7 +824,7 @@ export default function NavigationPage() {
             and an event adds a second pane after it. Choose an event, then use
             Back.
           </p>
-          <CodePreview language='tsx-live-noinline'>
+          <CodePreview language='tsx-live-noinline' expandable>
             {drillDownExample}
           </CodePreview>
         </div>
@@ -826,7 +838,7 @@ export default function NavigationPage() {
             takes the next one because it renders after the last. Choose an
             event, then a ticket.
           </p>
-          <CodePreview language='tsx-live-noinline'>
+          <CodePreview language='tsx-live-noinline' expandable>
             {threePaneExample}
           </CodePreview>
         </div>
@@ -1003,7 +1015,9 @@ export default function NavigationPage() {
         <ul className='grid list-disc gap-1 pl-5 text-subtle'>
           <li>
             Keep the path in state. Pass it as <Code>value</Code> and update it
-            from <Code>onValueChange</Code>.
+            from <Code>onValueChange</Code>. A destination with an{' '}
+            <Code>href</Code> also goes through your link, so both set the same
+            path, which is harmless.
           </li>
           <li>
             Give <Code>RoadieLinkProvider</Code> your own link, so list rows and
@@ -1023,7 +1037,7 @@ export default function NavigationPage() {
             column where two fit, but it never becomes the top pane, so a phone
             shows the list.
           </p>
-          <CodePreview language='tsx-live-noinline'>
+          <CodePreview language='tsx-live-noinline' expandable>
             {reachedExample}
           </CodePreview>
         </div>

@@ -15,7 +15,7 @@ keywords:
   - false negative
 severity: low
 related_files:
-  - docs/src/app/foundations/app-shell/page.tsx
+  - docs/src/app/foundations/navigation/page.tsx
 ---
 
 # Disabling a Next.js catch-all route
