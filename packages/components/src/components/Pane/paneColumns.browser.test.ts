@@ -77,11 +77,11 @@ function sweep(
   return mismatches
 }
 
+const familiesOf = (shapes: { name: string; spec: RowSpec }[]) =>
+  Map.groupBy(shapes, ({ name }) => name.replace(/ \/ reached \d+/, ''))
+
 describe('every row shape, at every tier and 1px short of it', () => {
-  const shapes = rowShapes()
-  const families = Map.groupBy(shapes, (shape) =>
-    shape.name.replace(/ \/ .*/, '')
-  )
+  const families = familiesOf(rowShapes())
   it.each([...families.keys()])('%s', (family) => {
     expect(sweep(families.get(family)!).slice(0, 3)).toEqual([])
   })
@@ -120,12 +120,14 @@ describe('parked panes in a stacked row', () => {
   })
 })
 
-describe('right to left', () => {
-  it('mirrors every shape of up to three levels', () => {
-    const shapes = rowShapes().filter(
+describe('right to left, every shape of up to three levels', () => {
+  const families = familiesOf(
+    rowShapes().filter(
       ({ spec }) => spec.panes.filter((pane) => !pane.overflow).length <= 3
     )
-    expect(sweep(shapes, { dir: 'rtl' }).slice(0, 3)).toEqual([])
+  )
+  it.each([...families.keys()])('mirrors %s', (family) => {
+    expect(sweep(families.get(family)!, { dir: 'rtl' }).slice(0, 3)).toEqual([])
   })
 })
 
