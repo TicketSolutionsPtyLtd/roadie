@@ -58,17 +58,15 @@ function Docs({
           </Navigator.Secondary>
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane>
-          {withItems ? (
-            <Navigator.SecondaryItems
-              value={itemsValue}
-              className='mt-2'
-              {...itemsProps}
-            />
-          ) : null}
-        </Pane>
-      </Navigator.Content>
+      <Pane>
+        {withItems ? (
+          <Navigator.SecondaryItems
+            value={itemsValue}
+            className='mt-2'
+            {...itemsProps}
+          />
+        ) : null}
+      </Pane>
     </Navigator>
   )
 }
@@ -176,7 +174,6 @@ describe('Navigator.SecondaryItems', () => {
             </Navigator.Item>
           ))}
         </Navigator.Primary>
-        <Navigator.Content />
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -219,11 +216,9 @@ function StudioApp({ value }: { value: string }) {
           </Navigator.Secondary>
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane>
-          <Navigator.SecondaryItems />
-        </Pane>
-      </Navigator.Content>
+      <Pane>
+        <Navigator.SecondaryItems />
+      </Pane>
     </Navigator>
   )
 }

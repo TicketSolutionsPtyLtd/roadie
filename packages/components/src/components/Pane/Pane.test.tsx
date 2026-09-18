@@ -361,18 +361,16 @@ describe('Pane.Header close affordance', () => {
   const renderTwoColumnStack = async (onClose: () => void) => {
     render(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list'>
-            <Pane.Header onClose={onClose}>
-              <Pane.Title>List</Pane.Title>
-            </Pane.Header>
-          </Pane>
-          <Pane>
-            <Pane.Header onClose={onClose}>
-              <Pane.Title>Detail</Pane.Title>
-            </Pane.Header>
-          </Pane>
-        </Navigator.Content>
+        <Pane column='list'>
+          <Pane.Header onClose={onClose}>
+            <Pane.Title>List</Pane.Title>
+          </Pane.Header>
+        </Pane>
+        <Pane>
+          <Pane.Header onClose={onClose}>
+            <Pane.Title>Detail</Pane.Title>
+          </Pane.Header>
+        </Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -389,14 +387,12 @@ describe('Pane.Header close affordance', () => {
   it('never renders a close control on an inspector', async () => {
     render(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane column='inspector'>
-            <Pane.Header onClose={vi.fn()}>
-              <Pane.Title>Inspector</Pane.Title>
-            </Pane.Header>
-          </Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane column='inspector'>
+          <Pane.Header onClose={vi.fn()}>
+            <Pane.Title>Inspector</Pane.Title>
+          </Pane.Header>
+        </Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -406,14 +402,12 @@ describe('Pane.Header close affordance', () => {
   it('renders no close control without a handler', async () => {
     render(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane>
-            <Pane.Header>
-              <Pane.Title>Detail</Pane.Title>
-            </Pane.Header>
-          </Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane>
+          <Pane.Header>
+            <Pane.Title>Detail</Pane.Title>
+          </Pane.Header>
+        </Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -423,14 +417,12 @@ describe('Pane.Header close affordance', () => {
   it('shares the back affordance cell', async () => {
     render(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane>
-            <Pane.Header backHref='/a' onClose={vi.fn()}>
-              <Pane.Title>Detail</Pane.Title>
-            </Pane.Header>
-          </Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane>
+          <Pane.Header backHref='/a' onClose={vi.fn()}>
+            <Pane.Title>Detail</Pane.Title>
+          </Pane.Header>
+        </Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -458,23 +450,21 @@ describe('Pane.Header close affordance', () => {
   it('finds the root by stack depth, not the list role', async () => {
     render(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane aria-label='First'>
-            <Pane.Header onClose={vi.fn()}>
-              <Pane.Title>First</Pane.Title>
-            </Pane.Header>
-          </Pane>
-          <Pane aria-label='Second'>
-            <Pane.Header onClose={vi.fn()}>
-              <Pane.Title>Second</Pane.Title>
-            </Pane.Header>
-          </Pane>
-          <Pane aria-label='Third'>
-            <Pane.Header onClose={vi.fn()}>
-              <Pane.Title>Third</Pane.Title>
-            </Pane.Header>
-          </Pane>
-        </Navigator.Content>
+        <Pane aria-label='First'>
+          <Pane.Header onClose={vi.fn()}>
+            <Pane.Title>First</Pane.Title>
+          </Pane.Header>
+        </Pane>
+        <Pane aria-label='Second'>
+          <Pane.Header onClose={vi.fn()}>
+            <Pane.Title>Second</Pane.Title>
+          </Pane.Header>
+        </Pane>
+        <Pane aria-label='Third'>
+          <Pane.Header onClose={vi.fn()}>
+            <Pane.Title>Third</Pane.Title>
+          </Pane.Header>
+        </Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -485,14 +475,12 @@ describe('Pane.Header close affordance', () => {
     const onBack = vi.fn()
     render(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane>
-            <Pane.Header onBack={onBack}>
-              <Pane.Title>Detail</Pane.Title>
-            </Pane.Header>
-          </Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane>
+          <Pane.Header onBack={onBack}>
+            <Pane.Title>Detail</Pane.Title>
+          </Pane.Header>
+        </Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -506,14 +494,12 @@ describe('Pane.Header close affordance', () => {
     const onClose = vi.fn()
     render(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane>
-            <Pane.Header onBack={onBack} onClose={onClose}>
-              <Pane.Title>Detail</Pane.Title>
-            </Pane.Header>
-          </Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane>
+          <Pane.Header onBack={onBack} onClose={onClose}>
+            <Pane.Title>Detail</Pane.Title>
+          </Pane.Header>
+        </Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -525,14 +511,12 @@ describe('Pane.Header close affordance', () => {
   it('renders a close link from backHref alone', async () => {
     render(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane>
-            <Pane.Header backHref='/a'>
-              <Pane.Title>Detail</Pane.Title>
-            </Pane.Header>
-          </Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane>
+          <Pane.Header backHref='/a'>
+            <Pane.Title>Detail</Pane.Title>
+          </Pane.Header>
+        </Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -561,14 +545,12 @@ describe('Pane.Header close affordance', () => {
     try {
       render(
         <Navigator value='/detail'>
-          <Navigator.Content>
-            <Pane column='list'>List</Pane>
-            <Pane>
-              <Pane.Header backHref='/a'>
-                <Pane.Title>Detail</Pane.Title>
-              </Pane.Header>
-            </Pane>
-          </Navigator.Content>
+          <Pane column='list'>List</Pane>
+          <Pane>
+            <Pane.Header backHref='/a'>
+              <Pane.Title>Detail</Pane.Title>
+            </Pane.Header>
+          </Pane>
         </Navigator>
       )
       await flushViewportMeasurement()
@@ -590,12 +572,10 @@ describe('Pane.Header close affordance', () => {
   it('leaves a header of only Back and Close to the edge property', async () => {
     render(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane>
-            <Pane.Header backHref='/a' />
-          </Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane>
+          <Pane.Header backHref='/a' />
+        </Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -607,12 +587,10 @@ describe('Pane.Header close affordance', () => {
   it('never offers Back or Close on an inspector, and draws no header for them alone', async () => {
     render(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane column='inspector'>
-            <Pane.Header backHref='/a' onBack={vi.fn()} />
-          </Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane column='inspector'>
+          <Pane.Header backHref='/a' onBack={vi.fn()} />
+        </Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -624,12 +602,10 @@ describe('Pane.Header close affordance', () => {
   it('still draws the header when Close is its only content', async () => {
     render(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane>
-            <Pane.Header onClose={vi.fn()} />
-          </Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane>
+          <Pane.Header onClose={vi.fn()} />
+        </Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -1153,14 +1129,12 @@ describe('pane registration through a wrapper', () => {
   it('gives a wrapped pane a stack position', async () => {
     render(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Slot>
-            <Pane column='list'>List</Pane>
-          </Slot>
-          <Slot>
-            <Pane>Detail</Pane>
-          </Slot>
-        </Navigator.Content>
+        <Slot>
+          <Pane column='list'>List</Pane>
+        </Slot>
+        <Slot>
+          <Pane>Detail</Pane>
+        </Slot>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -1170,12 +1144,10 @@ describe('pane registration through a wrapper', () => {
   it('marks a pane declared after the top one as ahead', async () => {
     render(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Slot>
-            <Pane reached={false}>Detail</Pane>
-          </Slot>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Slot>
+          <Pane reached={false}>Detail</Pane>
+        </Slot>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -1205,15 +1177,13 @@ describe('pane registration through a wrapper', () => {
             </Navigator.Secondary>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Slot>
-            <Pane>
-              <Pane.Header>
-                <Pane.Title>Foundations</Pane.Title>
-              </Pane.Header>
-            </Pane>
-          </Slot>
-        </Navigator.Content>
+        <Slot>
+          <Pane>
+            <Pane.Header>
+              <Pane.Title>Foundations</Pane.Title>
+            </Pane.Header>
+          </Pane>
+        </Slot>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -1238,11 +1208,9 @@ describe('stack geometry', () => {
   it('writes no geometry classes; the stylesheet keys on the attributes', async () => {
     render(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane>Detail</Pane>
-          <Pane column='inspector'>Details</Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane>Detail</Pane>
+        <Pane column='inspector'>Details</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -1257,9 +1225,7 @@ describe('stack geometry', () => {
   it('insets the stack from md by a gutter the row publishes', async () => {
     render(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane>Detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -1278,12 +1244,10 @@ describe('stack geometry', () => {
     it('does not join the surrounding orchestrator stack', async () => {
       render(
         <Navigator value='/a'>
-          <Navigator.Content>
-            <Pane>
-              Outer
-              <Pane column='list'>Example inside content</Pane>
-            </Pane>
-          </Navigator.Content>
+          <Pane>
+            Outer
+            <Pane column='list'>Example inside content</Pane>
+          </Pane>
         </Navigator>
       )
       await flushViewportMeasurement()
@@ -1293,17 +1257,13 @@ describe('stack geometry', () => {
     it('still registers with its own orchestrator', async () => {
       render(
         <Navigator value='/a'>
-          <Navigator.Content>
-            <Pane>
-              Outer
-              <Navigator value='/x'>
-                <Navigator.Content>
-                  <Pane column='list'>Inner list</Pane>
-                  <Pane>Inner detail</Pane>
-                </Navigator.Content>
-              </Navigator>
-            </Pane>
-          </Navigator.Content>
+          <Pane>
+            Outer
+            <Navigator value='/x'>
+              <Pane column='list'>Inner list</Pane>
+              <Pane>Inner detail</Pane>
+            </Navigator>
+          </Pane>
         </Navigator>
       )
       await flushViewportMeasurement()
@@ -1314,12 +1274,10 @@ describe('stack geometry', () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
       render(
         <Navigator value='/a'>
-          <Navigator.Content>
-            <Pane>
-              Outer
-              <Pane column='list'>Inner</Pane>
-            </Pane>
-          </Navigator.Content>
+          <Pane>
+            Outer
+            <Pane column='list'>Inner</Pane>
+          </Pane>
         </Navigator>
       )
       await flushViewportMeasurement()
@@ -1479,12 +1437,10 @@ describe('depth attributes', () => {
   it('resolves depth from document order inside a stack, and marks the reached panes', async () => {
     render(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane>Detail</Pane>
-          <Pane reached={false}>Sub</Pane>
-          <Pane column='inspector'>Details</Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane>Detail</Pane>
+        <Pane reached={false}>Sub</Pane>
+        <Pane column='inspector'>Details</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -1541,11 +1497,9 @@ describe('depth attributes', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { unmount } = await hydrateFromServer(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane>Detail</Pane>
-          <Pane depth={1}>Sub</Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane>Detail</Pane>
+        <Pane depth={1}>Sub</Pane>
       </Navigator>
     )
     expect(serverWarnings(warn).map((c) => String(c[0]))).toEqual([
@@ -1559,13 +1513,11 @@ describe('depth attributes', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const ui = (listReached: boolean) => (
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list' reached={listReached}>
-            List
-          </Pane>
-          <Pane>Detail</Pane>
-          <Pane depth={1}>Sub</Pane>
-        </Navigator.Content>
+        <Pane column='list' reached={listReached}>
+          List
+        </Pane>
+        <Pane>Detail</Pane>
+        <Pane depth={1}>Sub</Pane>
       </Navigator>
     )
     const { rerender, unmount } = await hydrateFromServer(ui(false))
@@ -1580,11 +1532,9 @@ describe('depth attributes', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { host, unmount } = await hydrateFromServer(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane>Detail</Pane>
-          <Pane>Sub</Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane>Detail</Pane>
+        <Pane>Sub</Pane>
       </Navigator>
     )
     expect(serverWarnings(warn)).toEqual([])
@@ -1601,11 +1551,9 @@ describe('depth attributes', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane>Detail</Pane>
-          <Pane depth={1}>Sub</Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane>Detail</Pane>
+        <Pane depth={1}>Sub</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -1616,11 +1564,9 @@ describe('depth attributes', () => {
   it('lets an explicit depth outrank the role and document order', async () => {
     render(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane depth={2}>Sub</Pane>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane depth={2}>Sub</Pane>
+        <Pane>Detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -1638,19 +1584,17 @@ describe('depth attributes', () => {
         {testBrand}
         <Navigator.Item value='a'>A</Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane column='list'>List</Pane>
-        <Pane depth={2} tabBar={tabBar}>
-          <Pane.Header onBack={() => {}}>
-            <Pane.Title>Sub</Pane.Title>
-          </Pane.Header>
-        </Pane>
-        <Pane>
-          <Pane.Header onBack={() => {}}>
-            <Pane.Title>Detail</Pane.Title>
-          </Pane.Header>
-        </Pane>
-      </Navigator.Content>
+      <Pane column='list'>List</Pane>
+      <Pane depth={2} tabBar={tabBar}>
+        <Pane.Header onBack={() => {}}>
+          <Pane.Title>Sub</Pane.Title>
+        </Pane.Header>
+      </Pane>
+      <Pane>
+        <Pane.Header onBack={() => {}}>
+          <Pane.Title>Detail</Pane.Title>
+        </Pane.Header>
+      </Pane>
     </Navigator>
   )
   const horizontalBar = () =>
@@ -1705,19 +1649,17 @@ describe('depth attributes', () => {
 
   const fivePanes = (reached: 'D' | 'E' = 'E') => (
     <Navigator value='/a'>
-      <Navigator.Content>
-        <Pane column='list'>A</Pane>
-        <Pane>B</Pane>
-        <Pane depth={2}>C</Pane>
-        <Pane depth={3} reached={reached === 'D'}>
-          D
-        </Pane>
-        <Pane depth={3} reached={reached === 'E'}>
-          <Pane.Header onBack={() => {}}>
-            <Pane.Title>E</Pane.Title>
-          </Pane.Header>
-        </Pane>
-      </Navigator.Content>
+      <Pane column='list'>A</Pane>
+      <Pane>B</Pane>
+      <Pane depth={2}>C</Pane>
+      <Pane depth={3} reached={reached === 'D'}>
+        D
+      </Pane>
+      <Pane depth={3} reached={reached === 'E'}>
+        <Pane.Header onBack={() => {}}>
+          <Pane.Title>E</Pane.Title>
+        </Pane.Header>
+      </Pane>
     </Navigator>
   )
   const stackPanes = () =>
@@ -1767,17 +1709,13 @@ describe('depth attributes', () => {
   it('nests a second Navigator one level down', async () => {
     render(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane>
-            Outer
-            <Navigator value='/x'>
-              <Navigator.Content>
-                <Pane column='list'>Inner list</Pane>
-                <Pane>Inner detail</Pane>
-              </Navigator.Content>
-            </Navigator>
-          </Pane>
-        </Navigator.Content>
+        <Pane>
+          Outer
+          <Navigator value='/x'>
+            <Pane column='list'>Inner list</Pane>
+            <Pane>Inner detail</Pane>
+          </Navigator>
+        </Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -1801,18 +1739,14 @@ describe('depth attributes', () => {
   it('reveals the inner root without revealing the outer one', async () => {
     render(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list'>Outer list</Pane>
-          <Pane>
-            Outer
-            <Navigator value='/x'>
-              <Navigator.Content>
-                <Pane column='list'>Inner list</Pane>
-                <Pane reached={false}>Inner detail</Pane>
-              </Navigator.Content>
-            </Navigator>
-          </Pane>
-        </Navigator.Content>
+        <Pane column='list'>Outer list</Pane>
+        <Pane>
+          Outer
+          <Navigator value='/x'>
+            <Pane column='list'>Inner list</Pane>
+            <Pane reached={false}>Inner detail</Pane>
+          </Navigator>
+        </Pane>
       </Navigator>
     )
     await flushViewportMeasurement()

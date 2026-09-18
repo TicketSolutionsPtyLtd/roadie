@@ -123,7 +123,6 @@ function Six({
           Me
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content />
     </Navigator>
   )
 }
@@ -348,7 +347,6 @@ describe('vertical capacity', () => {
             </Navigator.Menu>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content />
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -389,7 +387,6 @@ describe('vertical capacity', () => {
             </Navigator.Menu>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content />
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -559,7 +556,6 @@ describe('choosing a primary item closes More', () => {
               </Navigator.Item>
             ))}
           </Navigator.Primary>
-          <Navigator.Content />
         </Navigator>
       )
     }
@@ -765,7 +761,6 @@ describe('an item’s onSelect', () => {
               </Navigator.Menu>
             </Navigator.Item>
           </Navigator.Primary>
-          <Navigator.Content />
         </Navigator>
       )
     )
@@ -816,7 +811,6 @@ function MoreWithSecondary({ expanded = false }: { expanded?: boolean }) {
           </Navigator.Item>
         ))}
       </Navigator.Primary>
-      <Navigator.Content />
     </Navigator>
   )
 }
@@ -895,7 +889,6 @@ function Expandable(props: {
         </Navigator.Group>
         <Navigator.ExpandToggle />
       </Navigator.Primary>
-      <Navigator.Content />
     </Navigator>
   )
 }
@@ -909,7 +902,6 @@ function BrandedExpandable({ expanded }: { expanded: boolean }) {
           Alpha
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content />
     </Navigator>
   )
 }
@@ -984,16 +976,14 @@ describe('expanded vertical navigation', () => {
             Outer
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Navigator value='/x'>
-            <Navigator.Primary aria-label='Inner'>
-              {testBrand}
-              <Navigator.Item value='/x' href='/x'>
-                Inner
-              </Navigator.Item>
-            </Navigator.Primary>
-          </Navigator>
-        </Navigator.Content>
+        <Navigator value='/x'>
+          <Navigator.Primary aria-label='Inner'>
+            {testBrand}
+            <Navigator.Item value='/x' href='/x'>
+              Inner
+            </Navigator.Item>
+          </Navigator.Primary>
+        </Navigator>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -1099,7 +1089,6 @@ describe('expanded vertical navigation', () => {
             Me
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content />
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -1394,7 +1383,6 @@ describe('default brand', () => {
             Alpha
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content />
       </Navigator>
     )
   }
@@ -1519,7 +1507,6 @@ describe('default brand', () => {
             Alpha
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content />
       </Navigator>
     )
     document.body.append(host)
@@ -1917,7 +1904,6 @@ describe('badges', () => {
             Inbox
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content />
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -1955,7 +1941,6 @@ describe('badges', () => {
             </Navigator.Menu>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content />
       </Navigator>
     )
     await flushViewportMeasurement()

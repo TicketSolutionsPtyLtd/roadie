@@ -16,7 +16,7 @@ export type NavigatorOverflowPaneProps = Omit<
   'column' | 'reached' | 'depth' | 'tabBar' | 'id'
 >
 
-/** The More pane `Navigator.Content` generates. Internal: re-export it to let apps declare their own. */
+/** The More pane a Navigator generates. Internal: re-export it to let apps declare their own. */
 export function NavigatorOverflowPane({
   className,
   children,

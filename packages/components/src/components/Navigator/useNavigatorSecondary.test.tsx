@@ -89,11 +89,9 @@ function Docs({
   return (
     <Navigator value={value}>
       {primary}
-      <Navigator.Content>
-        <Pane>
-          <Probe value={probeValue} log={log} />
-        </Pane>
-      </Navigator.Content>
+      <Pane>
+        <Probe value={probeValue} log={log} />
+      </Pane>
     </Navigator>
   )
 }
@@ -199,11 +197,9 @@ describe('useNavigatorSecondary when the declaration changes', () => {
             </Navigator.Secondary>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>
-            <Probe log={log} />
-          </Pane>
-        </Navigator.Content>
+        <Pane>
+          <Probe log={log} />
+        </Pane>
       </Navigator>
     </StrictMode>
   )

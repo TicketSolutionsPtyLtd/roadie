@@ -85,11 +85,9 @@ describe('pane stack', () => {
   it('tops the deepest pane when no pane declares anything', async () => {
     render(
       <Navigator value='/tickets/glamping/sam'>
-        <Navigator.Content>
-          <Pane>Tickets</Pane>
-          <Pane>Glamping</Pane>
-          <Pane>Sam</Pane>
-        </Navigator.Content>
+        <Pane>Tickets</Pane>
+        <Pane>Glamping</Pane>
+        <Pane>Sam</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -99,10 +97,8 @@ describe('pane stack', () => {
   it('keeps an unreached empty state below the top', async () => {
     render(
       <Navigator value='/events'>
-        <Navigator.Content>
-          <Pane column='list'>Events</Pane>
-          <Pane reached={false}>Pick an event</Pane>
-        </Navigator.Content>
+        <Pane column='list'>Events</Pane>
+        <Pane reached={false}>Pick an event</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -124,15 +120,13 @@ describe('pane stack', () => {
     }
     const tree = (reached: boolean) => (
       <Navigator value='/components'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane reached={reached}>
-            <Pane.Header backHref='/components'>
-              <Pane.Title>Detail</Pane.Title>
-            </Pane.Header>
-            <Probe />
-          </Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane reached={reached}>
+          <Pane.Header backHref='/components'>
+            <Pane.Title>Detail</Pane.Title>
+          </Pane.Header>
+          <Probe />
+        </Pane>
       </Navigator>
     )
     const { rerender } = render(tree(false))
@@ -150,11 +144,9 @@ describe('pane stack', () => {
   it('leaves an inspector out of the stack entirely', async () => {
     render(
       <Navigator value='/components/button'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane>Detail</Pane>
-          <Pane column='inspector'>On this page</Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane>Detail</Pane>
+        <Pane column='inspector'>On this page</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -166,10 +158,8 @@ describe('pane stack', () => {
   it('keeps a real pane on top when an inspector is declared first', async () => {
     render(
       <Navigator value='/components'>
-        <Navigator.Content>
-          <Pane column='inspector'>On this page</Pane>
-          <Pane column='list'>List</Pane>
-        </Navigator.Content>
+        <Pane column='inspector'>On this page</Pane>
+        <Pane column='list'>List</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -180,10 +170,8 @@ describe('pane stack', () => {
   it('keeps a pane mounted when the top of the stack moves past it', async () => {
     const tree = (reached: boolean) => (
       <Navigator value={reached ? '/components/button' : '/components'}>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane reached={reached}>Detail</Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane reached={reached}>Detail</Pane>
       </Navigator>
     )
     const { rerender } = render(tree(false))
@@ -206,13 +194,11 @@ describe('pane stack', () => {
             Foundations
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane column='inspector' tabBar='hidden'>
-            <Pane.Header>
-              <Pane.Title>Inspector</Pane.Title>
-            </Pane.Header>
-          </Pane>
-        </Navigator.Content>
+        <Pane column='inspector' tabBar='hidden'>
+          <Pane.Header>
+            <Pane.Title>Inspector</Pane.Title>
+          </Pane.Header>
+        </Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -244,18 +230,16 @@ describe('pane stack', () => {
             Foundations
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane column='inspector'>
-            <Pane.Header>
-              <Pane.Title>Inspector</Pane.Title>
-            </Pane.Header>
-          </Pane>
-          <Pane column='list'>
-            <Pane.Header>
-              <Pane.Title>List</Pane.Title>
-            </Pane.Header>
-          </Pane>
-        </Navigator.Content>
+        <Pane column='inspector'>
+          <Pane.Header>
+            <Pane.Title>Inspector</Pane.Title>
+          </Pane.Header>
+        </Pane>
+        <Pane column='list'>
+          <Pane.Header>
+            <Pane.Title>List</Pane.Title>
+          </Pane.Header>
+        </Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -271,10 +255,8 @@ describe('pane stack', () => {
   it('is the panes container, clipping at every width so a stacked pane can translate past it', async () => {
     render(
       <Navigator value='/components'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane>Detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -294,10 +276,8 @@ describe('pane stack', () => {
   it('leaves layering over the edge cover to the stylesheet', async () => {
     render(
       <Navigator value='/components'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane>Detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -320,9 +300,7 @@ describe('tabBar', () => {
   it('defaults to auto', async () => {
     render(
       <Navigator value='/'>
-        <Navigator.Content>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane>Detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -341,12 +319,10 @@ describe('tabBar', () => {
             Home
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane reached={false} tabBar='hidden'>
-            Detail
-          </Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane reached={false} tabBar='hidden'>
+          Detail
+        </Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -365,9 +341,7 @@ describe('tabBar', () => {
     async (_, tabBar, padded) => {
       render(
         <Navigator value='/'>
-          <Navigator.Content>
-            <Pane tabBar={tabBar}>Detail</Pane>
-          </Navigator.Content>
+          <Pane tabBar={tabBar}>Detail</Pane>
         </Navigator>
       )
       await flushViewportMeasurement()
@@ -388,10 +362,8 @@ describe('tabBar', () => {
             Home
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane tabBar='hidden'>Detail</Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane tabBar='hidden'>Detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -420,10 +392,8 @@ describe('tabBar', () => {
             Home
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane tabBar='visible'>Detail</Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane tabBar='visible'>Detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -451,10 +421,8 @@ describe('tabBar', () => {
             Home
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane>Detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -482,9 +450,7 @@ describe('tabBar', () => {
             Home
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane>Detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -651,9 +617,7 @@ describe('destination visuals', () => {
             </Navigator.Secondary>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane>Detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -780,9 +744,7 @@ describe('Navigator routeless primary', () => {
             </Navigator.Secondary>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane>Detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -1033,9 +995,7 @@ describe('render fan-out', () => {
             Other
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>{detail}</Pane>
-        </Navigator.Content>
+        <Pane>{detail}</Pane>
       </Navigator>
     )
   }
@@ -1429,10 +1389,8 @@ describe('NavigatorOverflowPane', () => {
             </Navigator.Item>
           ))}
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>Detail</Pane>
-          {extra}
-        </Navigator.Content>
+        <Pane>Detail</Pane>
+        {extra}
       </Navigator>
     )
 
@@ -1590,9 +1548,7 @@ describe('NavigatorOverflowPane', () => {
           Help
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane>Detail</Pane>
-      </Navigator.Content>
+      <Pane>Detail</Pane>
     </Navigator>
   )
 
@@ -1631,9 +1587,7 @@ describe('NavigatorOverflowPane', () => {
               </Navigator.Item>
             ))}
           </Navigator.Primary>
-          <Navigator.Content>
-            <Pane>Detail</Pane>
-          </Navigator.Content>
+          <Pane>Detail</Pane>
         </Navigator>
       )
     const { rerender } = render(nav('/a'))
@@ -1663,12 +1617,10 @@ describe('NavigatorOverflowPane', () => {
               </Navigator.Item>
             ))}
           </Navigator.Primary>
-          <Navigator.Content>
-            <Pane>Detail</Pane>
-            <NavigatorOverflowPane aria-label='Everything else'>
-              <NavigatorOverflowItems />
-            </NavigatorOverflowPane>
-          </Navigator.Content>
+          <Pane>Detail</Pane>
+          <NavigatorOverflowPane aria-label='Everything else'>
+            <NavigatorOverflowItems />
+          </NavigatorOverflowPane>
         </Navigator>
       )
     const { rerender } = render(nav('/a'))
@@ -1693,9 +1645,7 @@ describe('NavigatorOverflowPane', () => {
             </Navigator.Item>
           ))}
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane>Detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -1719,9 +1669,7 @@ describe('NavigatorOverflowPane', () => {
               </Navigator.Item>
             ))}
           </Navigator.Primary>
-          <Navigator.Content>
-            <Pane>Detail</Pane>
-          </Navigator.Content>
+          <Pane>Detail</Pane>
         </Navigator>
       )
     )
@@ -1820,9 +1768,7 @@ describe('NavigatorOverflowPane', () => {
             Help
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane>Detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -1844,9 +1790,7 @@ describe('NavigatorOverflowPane', () => {
           <Navigator.Item value='discover'>Discover</Navigator.Item>
           <Navigator.Item value='tickets'>Tickets</Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane>Detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -1927,10 +1871,8 @@ describe('NavigatorOverflowPane', () => {
     it('keeps the slide for a push within the stack', async () => {
       const tree = (reached: boolean) => (
         <Navigator value='/a'>
-          <Navigator.Content>
-            <Pane column='list'>List</Pane>
-            <Pane reached={reached}>Detail</Pane>
-          </Navigator.Content>
+          <Pane column='list'>List</Pane>
+          <Pane reached={reached}>Detail</Pane>
         </Navigator>
       )
       const { rerender } = render(tree(false))
@@ -1953,10 +1895,8 @@ describe('NavigatorOverflowPane', () => {
     it('marks a push as a reached pane mounts and a pop as it unmounts', async () => {
       const tree = (open: boolean) => (
         <Navigator value='/a'>
-          <Navigator.Content>
-            <Pane column='list'>List</Pane>
-            {open ? <Pane>Detail</Pane> : null}
-          </Navigator.Content>
+          <Pane column='list'>List</Pane>
+          {open ? <Pane>Detail</Pane> : null}
         </Navigator>
       )
       const { rerender } = render(tree(false))
@@ -1978,12 +1918,10 @@ describe('NavigatorOverflowPane', () => {
 
     const swapNav = (id: string, reached = true) => (
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane key={id} reached={reached}>
-            Ticket {id}
-          </Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane key={id} reached={reached}>
+          Ticket {id}
+        </Pane>
       </Navigator>
     )
 
@@ -2027,12 +1965,10 @@ describe('NavigatorOverflowPane', () => {
               B
             </Navigator.Item>
           </Navigator.Primary>
-          <Navigator.Content>
-            <Pane key={value.slice(0, 2)} column='list'>
-              List {value}
-            </Pane>
-            {value.length > 2 ? <Pane key={value}>Detail {value}</Pane> : null}
-          </Navigator.Content>
+          <Pane key={value.slice(0, 2)} column='list'>
+            List {value}
+          </Pane>
+          {value.length > 2 ? <Pane key={value}>Detail {value}</Pane> : null}
         </Navigator>
       )
       const { rerender } = render(tabsNav('/a'))
@@ -2048,10 +1984,8 @@ describe('NavigatorOverflowPane', () => {
     it('never marks a push for panes that mount with their row', async () => {
       render(
         <Navigator value='/a/1'>
-          <Navigator.Content>
-            <Pane column='list'>List</Pane>
-            <Pane>Detail</Pane>
-          </Navigator.Content>
+          <Pane column='list'>List</Pane>
+          <Pane>Detail</Pane>
         </Navigator>
       )
       expect(row()).not.toHaveAttribute('data-pushing')
@@ -2062,10 +1996,8 @@ describe('NavigatorOverflowPane', () => {
     it('never marks a push for a render that keeps the top', async () => {
       const tree = (
         <Navigator value='/a'>
-          <Navigator.Content>
-            <Pane column='list'>List</Pane>
-            <Pane>Detail</Pane>
-          </Navigator.Content>
+          <Pane column='list'>List</Pane>
+          <Pane>Detail</Pane>
         </Navigator>
       )
       const { rerender } = render(tree)
@@ -2105,10 +2037,8 @@ describe('NavigatorOverflowPane', () => {
               </Navigator.Item>
             ))}
           </Navigator.Primary>
-          <Navigator.Content>
-            <Pane column='list'>List</Pane>
-            <Pane>Detail</Pane>
-          </Navigator.Content>
+          <Pane column='list'>List</Pane>
+          <Pane>Detail</Pane>
         </Navigator>
       )
       await flushViewportMeasurement()
@@ -2154,9 +2084,7 @@ describe('NavigatorOverflowPane', () => {
               )
             )}
           </Navigator.Primary>
-          <Navigator.Content>
-            <Pane>Detail</Pane>
-          </Navigator.Content>
+          <Pane>Detail</Pane>
         </Navigator>
       )
       const more = () =>
@@ -2205,9 +2133,7 @@ describe('NavigatorOverflowPane', () => {
             </Navigator.Item>
           ))}
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane>Detail</Pane>
       </Navigator>
     )
 
@@ -2335,9 +2261,7 @@ describe('Navigator.Secondary', () => {
         </Navigator.Item>
         <Navigator.Item value='insights'>Insights</Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane>Detail</Pane>
-      </Navigator.Content>
+      <Pane>Detail</Pane>
     </Navigator>
   )
 
@@ -2401,9 +2325,7 @@ describe('Navigator.Secondary', () => {
             </Navigator.Secondary>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane>Detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -2432,9 +2354,7 @@ describe('Navigator.Secondary', () => {
           </Navigator.Secondary>
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane>Detail</Pane>
-      </Navigator.Content>
+      <Pane>Detail</Pane>
     </Navigator>
   )
 
@@ -2505,9 +2425,7 @@ describe('Navigator.Group', () => {
           </Navigator.Item>
         </Navigator.Group>
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane>Detail</Pane>
-      </Navigator.Content>
+      <Pane>Detail</Pane>
     </Navigator>
   )
 
@@ -2602,9 +2520,7 @@ describe('Navigator.Primary group descent', () => {
             </Navigator.Item>
           </Navigator.Group>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane>Detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -2648,9 +2564,7 @@ describe('Navigator.Menu + Navigator.Secondary precedence', () => {
           </Navigator.Menu>
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane>Detail</Pane>
-      </Navigator.Content>
+      <Pane>Detail</Pane>
     </Navigator>
   )
 
@@ -2714,9 +2628,7 @@ describe('Navigator descendant-aware active matching', () => {
           </Navigator.Secondary>
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane>Detail</Pane>
-      </Navigator.Content>
+      <Pane>Detail</Pane>
     </Navigator>
   )
 
@@ -2803,9 +2715,7 @@ describe('Navigator lookups follow document order', () => {
             </Navigator.Secondary>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane>Detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -2870,9 +2780,7 @@ describe('Navigator route-prefix destination matching', () => {
           Tokens
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane>Doc</Pane>
-      </Navigator.Content>
+      <Pane>Doc</Pane>
     </Navigator>
   )
 
@@ -2951,9 +2859,7 @@ describe('Navigator collapsed edge circles', () => {
           Account
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane column='list'>Content</Pane>
-      </Navigator.Content>
+      <Pane column='list'>Content</Pane>
     </Navigator>
   )
 
@@ -2972,9 +2878,7 @@ describe('Navigator collapsed edge circles', () => {
           </Navigator.Item>
         ) : null}
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane column='list'>Content</Pane>
-      </Navigator.Content>
+      <Pane column='list'>Content</Pane>
     </Navigator>
   )
 
@@ -3103,9 +3007,7 @@ describe('Navigator collapsed edge circles', () => {
           </Navigator.Item>
           <Navigator.Item value='c'>C</Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane column='list'>Content</Pane>
-        </Navigator.Content>
+        <Pane column='list'>Content</Pane>
       </Navigator>
     )
     await collapse(container)
@@ -3453,12 +3355,10 @@ describe('Navigator active-tab tap: scroll-on-landing vs navigate-up', () => {
             Tokens
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>
-            <Pane.Header />
-            Content
-          </Pane>
-        </Navigator.Content>
+        <Pane>
+          <Pane.Header />
+          Content
+        </Pane>
       </Navigator>
     )
 
@@ -3510,12 +3410,10 @@ describe('a click the browser opens elsewhere', () => {
           </Navigator.Item>
         ))}
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane>
-          <Pane.Header />
-          Content
-        </Pane>
-      </Navigator.Content>
+      <Pane>
+        <Pane.Header />
+        Content
+      </Pane>
     </Navigator>
   )
 
@@ -3587,20 +3485,16 @@ describe('scroll-to-top in a nested Navigator', () => {
           {testBrand}
           <Navigator.Item value='/outer'>Outer</Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane column='list' data-testid='outer-pane'>
-            <Navigator value='/inner'>
-              <Navigator.Primary aria-label='Inner'>
-                {testBrand}
-                <Navigator.Item value='/inner'>Inner</Navigator.Item>
-              </Navigator.Primary>
-              <Navigator.Content>
-                <Pane data-testid='inner-pane'>Inner detail</Pane>
-              </Navigator.Content>
-            </Navigator>
-          </Pane>
-          <Pane>Outer detail</Pane>
-        </Navigator.Content>
+        <Pane column='list' data-testid='outer-pane'>
+          <Navigator value='/inner'>
+            <Navigator.Primary aria-label='Inner'>
+              {testBrand}
+              <Navigator.Item value='/inner'>Inner</Navigator.Item>
+            </Navigator.Primary>
+            <Pane data-testid='inner-pane'>Inner detail</Pane>
+          </Navigator>
+        </Pane>
+        <Pane>Outer detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -3629,13 +3523,11 @@ describe('pane header inside Navigator', () => {
   it('publishes the header height only while the header draws', async () => {
     const tree = (titled: boolean) => (
       <Navigator value='/'>
-        <Navigator.Content>
-          <Pane>
-            <Pane.Header>
-              {titled ? <Pane.Title>Detail</Pane.Title> : null}
-            </Pane.Header>
-          </Pane>
-        </Navigator.Content>
+        <Pane>
+          <Pane.Header>
+            {titled ? <Pane.Title>Detail</Pane.Title> : null}
+          </Pane.Header>
+        </Pane>
       </Navigator>
     )
     const height = () =>
@@ -3666,13 +3558,11 @@ describe('scroll-to-top as the top pane changes', () => {
           Settings
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        {panes.map((id) => (
-          <Pane key={id} data-testid={id}>
-            {id}
-          </Pane>
-        ))}
-      </Navigator.Content>
+      {panes.map((id) => (
+        <Pane key={id} data-testid={id}>
+          {id}
+        </Pane>
+      ))}
     </Navigator>
   )
 
@@ -3711,14 +3601,12 @@ describe('scroll-to-top as the top pane changes', () => {
   )
 })
 
-describe('Navigator.Content no-panes warning', () => {
+describe('Navigator no-panes warning', () => {
   it('warns when it renders children but no pane registers', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <div>Not a pane</div>
-        </Navigator.Content>
+        <div>Not a pane</div>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -3743,7 +3631,7 @@ describe('Navigator.Content no-panes warning', () => {
             </Navigator.Secondary>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>{children}</Navigator.Content>
+        {children}
       </Navigator>
     )
     const { rerender } = render(tree())
@@ -3759,11 +3647,7 @@ describe('Navigator.Content no-panes warning', () => {
 
   it('does not warn when it has no children at all', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    render(
-      <Navigator value='/a'>
-        <Navigator.Content />
-      </Navigator>
-    )
+    render(<Navigator value='/a'></Navigator>)
     await flushViewportMeasurement()
     expect(
       warn.mock.calls.some((c) => String(c[0]).includes('no Pane registered'))
@@ -3775,9 +3659,7 @@ describe('Navigator.Content no-panes warning', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane>Detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -3799,10 +3681,8 @@ describe('nesting acceptance criteria', () => {
   it('flips stack position on push and again on pop', async () => {
     const tree = (reached: boolean) => (
       <Navigator value={reached ? '/a/detail' : '/a'}>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane reached={reached}>Detail</Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane reached={reached}>Detail</Pane>
       </Navigator>
     )
     const { rerender } = render(tree(false))
@@ -3821,12 +3701,10 @@ describe('nesting acceptance criteria', () => {
   it('orders an event pane and a drill-down pane from the same slot', async () => {
     render(
       <Navigator value='/events/123/allocations/456'>
-        <Navigator.Content>
-          <Slot>
-            <Pane column='list'>Event allocations</Pane>
-            <Pane>Allocation drill-down</Pane>
-          </Slot>
-        </Navigator.Content>
+        <Slot>
+          <Pane column='list'>Event allocations</Pane>
+          <Pane>Allocation drill-down</Pane>
+        </Slot>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -3851,15 +3729,13 @@ describe('nesting acceptance criteria', () => {
             </Navigator.Secondary>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Slot>
-            <Pane tabBar='hidden'>
-              <Pane.Header />
-              Detail
-            </Pane>
-          </Slot>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Slot>
+          <Pane tabBar='hidden'>
+            <Pane.Header />
+            Detail
+          </Pane>
+        </Slot>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -3894,14 +3770,12 @@ describe('a new destination starts at the top', () => {
           </Navigator.Secondary>
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane data-testid='page'>
-          <Pane.Header>
-            <Pane.Title>Page</Pane.Title>
-          </Pane.Header>
-          Page
-        </Pane>
-      </Navigator.Content>
+      <Pane data-testid='page'>
+        <Pane.Header>
+          <Pane.Title>Page</Pane.Title>
+        </Pane.Header>
+        Page
+      </Pane>
     </Navigator>
   )
 
@@ -4056,9 +3930,7 @@ describe('per-destination hrefs', () => {
             </Navigator.Item>
           ))}
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane>Detail</Pane>
       </Navigator>
     )
     const { rerender } = render(folded('/f/deep'))
@@ -4077,10 +3949,8 @@ describe('per-destination hrefs', () => {
   it('never changes which pane is top', async () => {
     const withPanes = (value: string) => (
       <Navigator value={value}>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane reached={value.split('/').length > 2}>Detail</Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane reached={value.split('/').length > 2}>Detail</Pane>
       </Navigator>
     )
     const { rerender } = render(withPanes('/tokens/color'))
@@ -4125,14 +3995,12 @@ describe('going back puts a pane where it was', () => {
           </Navigator.Secondary>
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane data-testid='page'>
-          <Pane.Header>
-            <Pane.Title>Page</Pane.Title>
-          </Pane.Header>
-          Page
-        </Pane>
-      </Navigator.Content>
+      <Pane data-testid='page'>
+        <Pane.Header>
+          <Pane.Title>Page</Pane.Title>
+        </Pane.Header>
+        Page
+      </Pane>
     </Navigator>
   )
   const page = () =>
@@ -4222,12 +4090,10 @@ describe('an overview step back puts the page it returns to where it was', () =>
           </Navigator.Secondary>
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane data-testid='page'>
-          <Pane.Header />
-          {value}
-        </Pane>
-      </Navigator.Content>
+      <Pane data-testid='page'>
+        <Pane.Header />
+        {value}
+      </Pane>
     </Navigator>
   )
   const page = () =>
@@ -4272,9 +4138,7 @@ describe('a route-driven shell, where one slot holds every pane', () => {
   )
   const shell = (deep: boolean) => (
     <Navigator value={deep ? '/e/t' : '/e'}>
-      <Navigator.Content>
-        <Segment deep={deep} />
-      </Navigator.Content>
+      <Segment deep={deep} />
     </Navigator>
   )
   const event = () =>
@@ -4337,9 +4201,7 @@ describe('a route-driven shell, where one slot holds every pane', () => {
     )
     const both = (deep: boolean) => (
       <Navigator value={deep ? '/e/t' : '/e'}>
-        <Navigator.Content>
-          <Both deep={deep} />
-        </Navigator.Content>
+        <Both deep={deep} />
       </Navigator>
     )
 

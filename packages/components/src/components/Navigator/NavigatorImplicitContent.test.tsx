@@ -1,4 +1,4 @@
-import { Fragment, lazy } from 'react'
+import { Fragment } from 'react'
 
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
@@ -7,8 +7,8 @@ import { Navigator } from '.'
 import { Pane } from '../Pane'
 import { flushViewportMeasurement, testBrand } from './testUtils'
 
-describe('implicit Navigator.Content', () => {
-  it('wraps loose children in a generated Content without one written', async () => {
+describe('Navigator content', () => {
+  it('wraps its non-Primary children in the content', async () => {
     render(
       <Navigator value='/a'>
         <Navigator.Primary aria-label='Main'>
@@ -27,57 +27,6 @@ describe('implicit Navigator.Content', () => {
     const pane = screen.getByText('Detail').closest('[data-slot="pane"]')
     expect(content).toContainElement(pane as HTMLElement)
     expect(pane).toHaveAttribute('data-stack-position', 'top')
-  })
-
-  it('still honours an explicit Navigator.Content, unchanged', async () => {
-    render(
-      <Navigator value='/a'>
-        <Navigator.Primary aria-label='Main'>
-          {testBrand}
-          <Navigator.Item value='/a' href='/a'>
-            A
-          </Navigator.Item>
-        </Navigator.Primary>
-        <Navigator.Content className='custom-main'>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-
-    const content = document.querySelector('[data-slot="navigator-content"]')
-    expect(content).toHaveClass('custom-main')
-    expect(
-      document.querySelectorAll('[data-slot="navigator-content"]')
-    ).toHaveLength(1)
-  })
-
-  it('passes through a Content whose type Flight replaced with a lazy wrapper', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const ServerContent = lazy(async () => ({ default: Navigator.Content }))
-    render(
-      <Navigator value='/a'>
-        <ServerContent className='server-main'>
-          <Pane>Detail</Pane>
-        </ServerContent>
-      </Navigator>
-    )
-    await screen.findByText('Detail')
-    await flushViewportMeasurement()
-
-    const mains = document.querySelectorAll('main')
-    expect(mains).toHaveLength(1)
-    expect(
-      document.querySelectorAll('[data-slot="navigator-panes"]')
-    ).toHaveLength(1)
-    expect(
-      document.querySelector('[data-slot="navigator-panes"]')
-    ).toHaveAttribute('data-level', '0')
-    const pane = screen.getByText('Detail').closest('[data-slot="pane"]')
-    expect(pane).toHaveAttribute('data-level', '0')
-    expect(pane).toHaveAttribute('data-stack-position', 'top')
-    expect(warn).not.toHaveBeenCalled()
-    warn.mockRestore()
   })
 
   it('registers panes carried in separate fragments, as parallel-route slots arrive', async () => {
@@ -115,7 +64,7 @@ describe('implicit Navigator.Content', () => {
     expect(panes[1]).toHaveAttribute('data-stack-position', 'top')
   })
 
-  it('renders Primary before the generated Content regardless of source order', async () => {
+  it('renders Primary before the content regardless of source order', async () => {
     render(
       <Navigator value='/a'>
         <Pane>Detail</Pane>
@@ -140,7 +89,7 @@ describe('implicit Navigator.Content', () => {
     ).toBeTruthy()
   })
 
-  it('generates an (empty) Content even with no other children, so More always has a host', async () => {
+  it('renders empty content even with no other children, so More always has a host', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
       <Navigator value='/a'>

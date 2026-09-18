@@ -77,35 +77,33 @@ function Docs({
           </Navigator.Secondary>
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane>
-          {value === '/' ? (
-            <div id='home' data-testid='home'>
-              <form id='search'>
-                <input name='query' />
-              </form>
-              <input form='search' data-testid='outside' />
-              <div
-                dangerouslySetInnerHTML={{
-                  __html:
-                    '<img alt="" src="data:," onerror="void 0"><script>void 0</script>'
-                }}
-              />
-              <iframe title='embed' className='aspect-video' />
-              <canvas className='chart' />
-              {createElement('live-player', { className: 'player' })}
-              <Navigator.SecondaryItems />
-            </div>
-          ) : (
-            <p data-testid='page'>The page at {value}</p>
-          )}
-        </Pane>
-        {showMore === undefined ? null : (
-          <NavigatorOverflowPane aria-label='More'>
-            <p>More</p>
-          </NavigatorOverflowPane>
+      <Pane>
+        {value === '/' ? (
+          <div id='home' data-testid='home'>
+            <form id='search'>
+              <input name='query' />
+            </form>
+            <input form='search' data-testid='outside' />
+            <div
+              dangerouslySetInnerHTML={{
+                __html:
+                  '<img alt="" src="data:," onerror="void 0"><script>void 0</script>'
+              }}
+            />
+            <iframe title='embed' className='aspect-video' />
+            <canvas className='chart' />
+            {createElement('live-player', { className: 'player' })}
+            <Navigator.SecondaryItems />
+          </div>
+        ) : (
+          <p data-testid='page'>The page at {value}</p>
         )}
-      </Navigator.Content>
+      </Pane>
+      {showMore === undefined ? null : (
+        <NavigatorOverflowPane aria-label='More'>
+          <p>More</p>
+        </NavigatorOverflowPane>
+      )}
     </Navigator>
   )
 }
@@ -366,13 +364,11 @@ describe('nothing but an overview step gets a copy', () => {
           </Navigator.Secondary>
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane column='list' depth={0}>
-          List
-        </Pane>
-        <Pane depth={1}>Detail</Pane>
-        {deep ? <Pane depth={2}>Deeper</Pane> : null}
-      </Navigator.Content>
+      <Pane column='list' depth={0}>
+        List
+      </Pane>
+      <Pane depth={1}>Detail</Pane>
+      {deep ? <Pane depth={2}>Deeper</Pane> : null}
     </Navigator>
   )
 

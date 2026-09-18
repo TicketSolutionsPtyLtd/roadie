@@ -204,18 +204,12 @@ export function NavigatorRoot({
   }
 
   // A walk, not child registration, which raced Primary's "no host" warning on first commit.
-  const { hasExplicitContent, primary, rest } = useMemo(() => {
+  const { primary, rest } = useMemo(() => {
     const elements = Children.toArray(children).filter(isValidElement)
     const primary = elements.find(
       (child) => child.type === NavigatorPrimary
     ) as ReactElement<NavigatorPrimaryProps> | undefined
-    return {
-      hasExplicitContent: elements.some(
-        (child) => child.type === NavigatorContent
-      ),
-      primary,
-      rest: elements.filter((child) => child !== primary)
-    }
+    return { primary, rest: elements.filter((child) => child !== primary) }
   }, [children])
   const primaryDerived = primary !== undefined
 
@@ -333,16 +327,10 @@ export function NavigatorRoot({
                 {pending === 'idle' ? null : (
                   <div aria-hidden data-slot='navigator-pending' />
                 )}
-                {hasExplicitContent ? (
-                  children
-                ) : (
-                  <>
-                    {primary}
-                    <NavigatorContent>
-                      {rest.length > 0 ? rest : undefined}
-                    </NavigatorContent>
-                  </>
-                )}
+                {primary}
+                <NavigatorContent>
+                  {rest.length > 0 ? rest : undefined}
+                </NavigatorContent>
               </div>
             </NavigatorBarContext>
           </NavigatorExpansionContext>

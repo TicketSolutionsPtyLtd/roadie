@@ -76,9 +76,7 @@ function Docs({
           </Navigator.Secondary>
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane reached={detailReached}>Detail</Pane>
-      </Navigator.Content>
+      <Pane reached={detailReached}>Detail</Pane>
     </Navigator>
   )
 }
@@ -146,7 +144,6 @@ describe('generated secondary pane', () => {
             </Navigator.Secondary>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content />
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -175,7 +172,6 @@ describe('generated secondary pane', () => {
             </Navigator.Secondary>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content />
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -263,9 +259,7 @@ describe('generated secondary pane', () => {
             F
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane>Detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -395,9 +389,7 @@ describe('secondary pane groups', () => {
             </Navigator.Secondary>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane>Detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -451,10 +443,8 @@ function Override({
           Start
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        {wrapped ? <Wrapper>{pane}</Wrapper> : pane}
-        <Pane>Detail</Pane>
-      </Navigator.Content>
+      {wrapped ? <Wrapper>{pane}</Wrapper> : pane}
+      <Pane>Detail</Pane>
     </Navigator>
   )
 }
@@ -516,12 +506,10 @@ describe('Navigator.SecondaryPane', () => {
             Start
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Navigator.SecondaryPane value='/components'>
-            <p>Promo</p>
-          </Navigator.SecondaryPane>
-          <Pane>Start</Pane>
-        </Navigator.Content>
+        <Navigator.SecondaryPane value='/components'>
+          <p>Promo</p>
+        </Navigator.SecondaryPane>
+        <Pane>Start</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -562,10 +550,8 @@ function InactiveOverride({
           Start
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        {wrapped ? <Wrapper>{pane}</Wrapper> : pane}
-        {detail ? <Pane>Detail</Pane> : null}
-      </Navigator.Content>
+      {wrapped ? <Wrapper>{pane}</Wrapper> : pane}
+      {detail ? <Pane>Detail</Pane> : null}
     </Navigator>
   )
 }
@@ -645,13 +631,11 @@ function Routed({
           </Navigator.Secondary>
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane>
-          <Pane.Header backHref={detailBackHref} />
-          Detail
-          {detailExtra}
-        </Pane>
-      </Navigator.Content>
+      <Pane>
+        <Pane.Header backHref={detailBackHref} />
+        Detail
+        {detailExtra}
+      </Pane>
     </Navigator>
   )
 }
@@ -727,12 +711,10 @@ describe('destination routes', () => {
             </Navigator.Secondary>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>
-            <Pane.Header />
-            Detail
-          </Pane>
-        </Navigator.Content>
+        <Pane>
+          <Pane.Header />
+          Detail
+        </Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -761,12 +743,10 @@ describe('destination routes', () => {
             </Navigator.Item>
           ))}
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>
-            <Pane.Header />
-            Detail
-          </Pane>
-        </Navigator.Content>
+        <Pane>
+          <Pane.Header />
+          Detail
+        </Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -850,14 +830,12 @@ describe('back chrome by depth', () => {
             </Navigator.Secondary>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane aria-label='Glamping'>
-            <Pane.Header />
-          </Pane>
-          <Pane depth={2} aria-label='Sam'>
-            <Pane.Header backHref='/tickets/glamping' backLabel='Glamping' />
-          </Pane>
-        </Navigator.Content>
+        <Pane aria-label='Glamping'>
+          <Pane.Header />
+        </Pane>
+        <Pane depth={2} aria-label='Sam'>
+          <Pane.Header backHref='/tickets/glamping' backLabel='Glamping' />
+        </Pane>
       </Navigator>
     )
   }
@@ -937,10 +915,8 @@ describe('More open over the root', () => {
           </Navigator.Item>
         ))}
       </Navigator.Primary>
-      <Navigator.Content>
-        {list ? <Pane column='list'>List</Pane> : null}
-        <Pane>Detail</Pane>
-      </Navigator.Content>
+      {list ? <Pane column='list'>List</Pane> : null}
+      <Pane>Detail</Pane>
     </Navigator>
   )
 
@@ -1041,14 +1017,12 @@ describe('More open over the root', () => {
               </Navigator.Item>
             ))}
           </Navigator.Primary>
-          <Navigator.Content>
-            {override ? (
-              <Navigator.SecondaryPane value='/s'>
-                Own list
-              </Navigator.SecondaryPane>
-            ) : null}
-            <Pane>Detail</Pane>
-          </Navigator.Content>
+          {override ? (
+            <Navigator.SecondaryPane value='/s'>
+              Own list
+            </Navigator.SecondaryPane>
+          ) : null}
+          <Pane>Detail</Pane>
         </Navigator>
       )
       const row = () => document.querySelector('[data-slot="navigator-panes"]')!
@@ -1149,16 +1123,14 @@ describe('depth while panes come and go', () => {
               </Navigator.Secondary>
             </Navigator.Item>
           </Navigator.Primary>
-          <Navigator.Content>
-            {override ? (
-              <Navigator.SecondaryPane value='/s'>
-                <p>Promo</p>
-              </Navigator.SecondaryPane>
-            ) : null}
-            <Pane>
-              <Probe />
-            </Pane>
-          </Navigator.Content>
+          {override ? (
+            <Navigator.SecondaryPane value='/s'>
+              <p>Promo</p>
+            </Navigator.SecondaryPane>
+          ) : null}
+          <Pane>
+            <Probe />
+          </Pane>
         </Navigator>
       )
       const { rerender } = render(ui('/p'))
@@ -1203,9 +1175,7 @@ describe('depth while panes come and go', () => {
             </Navigator.Item>
           ))}
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane>Detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -1274,18 +1244,16 @@ function WithOverview({
           Components
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        {override ? (
-          <Navigator.SecondaryPane value='/'>
-            <p>Promo</p>
-            <Navigator.SecondaryItems showDescriptions={false} />
-          </Navigator.SecondaryPane>
-        ) : null}
-        <Pane>
-          <Pane.Header />
-          Detail
-        </Pane>
-      </Navigator.Content>
+      {override ? (
+        <Navigator.SecondaryPane value='/'>
+          <p>Promo</p>
+          <Navigator.SecondaryItems showDescriptions={false} />
+        </Navigator.SecondaryPane>
+      ) : null}
+      <Pane>
+        <Pane.Header />
+        Detail
+      </Pane>
     </Navigator>
   )
 }
@@ -1363,9 +1331,7 @@ describe('overviews', () => {
             </Navigator.Secondary>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane>Detail</Pane>
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -1521,9 +1487,7 @@ describe('row handlers resolve at click time', () => {
     withStubLink(
       <Navigator value='/components'>
         {Secondaries({ count, seen })}
-        <Navigator.Content>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane>Detail</Pane>
       </Navigator>
     )
 

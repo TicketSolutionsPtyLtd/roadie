@@ -68,7 +68,7 @@ function Shell({
             Beta
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>{children}</Navigator.Content>
+        {children}
       </Navigator>
     </RoadieLinkProvider>
   )
@@ -154,11 +154,9 @@ describe('the frame while a navigation is pending', () => {
         </Pane>
         <Pane depth={1}>
           <Navigator value='/inner'>
-            <Navigator.Content>
-              <Pane column='list' depth={0}>
-                Inner
-              </Pane>
-            </Navigator.Content>
+            <Pane column='list' depth={0}>
+              Inner
+            </Pane>
           </Navigator>
         </Pane>
       </Shell>

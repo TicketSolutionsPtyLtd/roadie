@@ -246,7 +246,6 @@ describe('Navigator.Menu', () => {
             </Navigator.Menu>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content />
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -326,7 +325,6 @@ describe('Navigator.Menu', () => {
             </Navigator.Menu>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content />
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -358,7 +356,6 @@ describe('Navigator.Menu', () => {
             </Navigator.Menu>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content />
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -390,7 +387,6 @@ describe('Navigator.Menu', () => {
             </Navigator.Menu>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content />
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -430,7 +426,6 @@ describe('Navigator.Menu', () => {
             </Navigator.Menu>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content />
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -461,7 +456,6 @@ describe('Navigator.Menu', () => {
             </Navigator.Menu>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content />
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -500,7 +494,6 @@ describe('Navigator.Menu', () => {
             </Navigator.Menu>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content />
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -596,7 +589,6 @@ describe('Navigator.MenuItem description', () => {
             </Navigator.Menu>
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content />
       </Navigator>
     )
     await flushViewportMeasurement()
@@ -639,10 +631,7 @@ describe('folded rows stay current', () => {
   }
 
   const app = (count: number, seen: number[]) => (
-    <Navigator value='/a'>
-      {Folded({ count, seen })}
-      <Navigator.Content />
-    </Navigator>
+    <Navigator value='/a'>{Folded({ count, seen })}</Navigator>
   )
 
   const morePane = () =>

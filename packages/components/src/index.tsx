@@ -149,7 +149,6 @@ export {
   Navigator,
   useNavigatorSecondary,
   type NavigatorProps,
-  type NavigatorContentProps,
   type NavigatorPrimaryProps,
   type NavigatorSecondaryProps,
   type NavigatorSecondaryData,

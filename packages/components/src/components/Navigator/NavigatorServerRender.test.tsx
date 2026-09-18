@@ -66,21 +66,19 @@ function Docs({
   return (
     <Navigator value={value} showList={showList}>
       {primary}
-      <Navigator.Content>
-        {override ? (
-          <Navigator.SecondaryPane value='/components'>
-            <p>Promo</p>
-            <Navigator.SecondaryItems showDescriptions={false} />
-          </Navigator.SecondaryPane>
-        ) : null}
-        <Pane>
-          <Pane.Header />
-          Detail
-        </Pane>
-        <Pane column='inspector' aria-label='On this page'>
-          Contents
-        </Pane>
-      </Navigator.Content>
+      {override ? (
+        <Navigator.SecondaryPane value='/components'>
+          <p>Promo</p>
+          <Navigator.SecondaryItems showDescriptions={false} />
+        </Navigator.SecondaryPane>
+      ) : null}
+      <Pane>
+        <Pane.Header />
+        Detail
+      </Pane>
+      <Pane column='inspector' aria-label='On this page'>
+        Contents
+      </Pane>
     </Navigator>
   )
 }
@@ -268,12 +266,10 @@ function PageRootDocs({ value }: { value: string }) {
           </Navigator.Secondary>
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane>
-          <Pane.Header />
-          Detail
-        </Pane>
-      </Navigator.Content>
+      <Pane>
+        <Pane.Header />
+        Detail
+      </Pane>
     </Navigator>
   )
 }
@@ -348,16 +344,14 @@ function ThreeLevels({ value }: { value: string }) {
           </Navigator.Secondary>
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane>
-          <Pane.Header />
-          Glamping
-        </Pane>
-        <Pane depth={2}>
-          <Pane.Header backHref='/tickets/glamping' backLabel='Glamping' />
-          Sam
-        </Pane>
-      </Navigator.Content>
+      <Pane>
+        <Pane.Header />
+        Glamping
+      </Pane>
+      <Pane depth={2}>
+        <Pane.Header backHref='/tickets/glamping' backLabel='Glamping' />
+        Sam
+      </Pane>
     </Navigator>
   )
 }
@@ -434,11 +428,9 @@ describe('a declared depth out of document order', () => {
   const OutOfOrder = () => (
     <StrictMode>
       <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane depth={2}>Sub</Pane>
-          <Pane>Detail</Pane>
-        </Navigator.Content>
+        <Pane column='list'>List</Pane>
+        <Pane depth={2}>Sub</Pane>
+        <Pane>Detail</Pane>
       </Navigator>
     </StrictMode>
   )
@@ -469,12 +461,10 @@ describe('a declared depth out of document order', () => {
 describe('an overview with its own backHref', () => {
   const PageFirst = () => (
     <Navigator value='/a'>
-      <Navigator.Content>
-        <Pane>
-          <Pane.Header backHref='/elsewhere' />
-          Page
-        </Pane>
-      </Navigator.Content>
+      <Pane>
+        <Pane.Header backHref='/elsewhere' />
+        Page
+      </Pane>
     </Navigator>
   )
   const tierRules = paneColumnsRulesOf(renderPaneColumnsCss()).filter(
@@ -511,9 +501,7 @@ describe('an overview with its own backHref', () => {
 describe('a lone pane that is not reached', () => {
   const Lone = () => (
     <Navigator value='/a'>
-      <Navigator.Content>
-        <Pane reached={false}>Solo</Pane>
-      </Navigator.Content>
+      <Pane reached={false}>Solo</Pane>
     </Navigator>
   )
 
@@ -588,11 +576,9 @@ describe('More open from the first render', () => {
           </Navigator.Item>
         ))}
       </Navigator.Primary>
-      <Navigator.Content>
-        <Pane>
-          <DepthProbe log={log} />
-        </Pane>
-      </Navigator.Content>
+      <Pane>
+        <DepthProbe log={log} />
+      </Pane>
     </Navigator>
   )
 
@@ -635,17 +621,13 @@ describe('More open from the first render', () => {
 function Nested({ value }: { value: string }) {
   return (
     <Navigator value='/a'>
-      <Navigator.Content>
-        <Pane column='list'>Outer list</Pane>
-        <Pane>
-          <Navigator value={value}>
-            <Navigator.Content>
-              <Pane column='list'>Inner list</Pane>
-              <Pane>Inner detail</Pane>
-            </Navigator.Content>
-          </Navigator>
-        </Pane>
-      </Navigator.Content>
+      <Pane column='list'>Outer list</Pane>
+      <Pane>
+        <Navigator value={value}>
+          <Pane column='list'>Inner list</Pane>
+          <Pane>Inner detail</Pane>
+        </Navigator>
+      </Pane>
     </Navigator>
   )
 }

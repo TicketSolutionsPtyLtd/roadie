@@ -2,7 +2,7 @@
 
 import {
   Children,
-  type ComponentProps,
+  type ReactNode,
   isValidElement,
   use,
   useCallback,
@@ -13,11 +13,8 @@ import {
   useState
 } from 'react'
 
-import { cn } from '@oztix/roadie-core/utils'
-
 import { usePendingNavigationStore } from '../../providers/PendingNavigationContext'
 import { isDev } from '../../utils/isDev'
-import { mergeRefs } from '../../utils/mergeRefs'
 import { PANE_CHROME_NONE } from '../Pane/PaneChromeContext'
 import { PaneContext } from '../Pane/PaneContext'
 import { PaneHeader } from '../Pane/PaneHeader'
@@ -59,8 +56,6 @@ import {
 import { textOf } from './splitSecondary'
 import { useTopPaneChrome } from './useTopPaneChrome'
 import { navigatorContentClass, navigatorPanesClass } from './variants'
-
-export type NavigatorContentProps = ComponentProps<'main'>
 
 type PlacedPane = { id: string } & PaneRegistration
 type RegisteredPane = PlacedPane & { node: HTMLElement }
@@ -192,20 +187,7 @@ function renderOrderDepth(
 }
 
 /** Arranges panes and decides which is the top of the stack. */
-export function NavigatorContent(props: NavigatorContentProps) {
-  const parentStack = use(PaneStackContext)
-  const pane = use(PaneContext)
-  // Under RSC the root can't see a server-authored Content's type, so it wraps one in its own.
-  const insideContent = parentStack !== null && pane === null
-  return insideContent ? props.children : <NavigatorStack {...props} />
-}
-
-function NavigatorStack({
-  className,
-  children,
-  ref: forwardedRef,
-  ...props
-}: NavigatorContentProps) {
+export function NavigatorContent({ children }: { children?: ReactNode }) {
   const { setTabBar } = use(NavigatorActionsContext)
   const {
     value,
@@ -220,7 +202,6 @@ function NavigatorStack({
   const level = parentStack === null ? 0 : parentStack.level + 1
 
   const contentRef = useRef<HTMLElement | null>(null)
-  const ref = useMemo(() => mergeRefs(contentRef, forwardedRef), [forwardedRef])
   const rowRef = useRef<HTMLDivElement | null>(null)
   const secondaryValue = activeSecondary?.value ?? null
   // So a switch landing deep in another destination still reads as a tab switch.
@@ -504,9 +485,7 @@ function NavigatorStack({
         pane.kind === 'overflow'
     )
     if (!declared) {
-      console.warn(
-        '[Roadie] Navigator.Content has children but no Pane registered.'
-      )
+      console.warn('[Roadie] Navigator has children but no Pane registered.')
     }
   }, [hasChildren, registered])
 
@@ -560,10 +539,9 @@ function NavigatorStack({
 
   return (
     <main
-      ref={ref}
+      ref={contentRef}
       data-slot='navigator-content'
-      className={cn(navigatorContentClass, className)}
-      {...props}
+      className={navigatorContentClass}
     >
       <PaneStackContext value={stackValue}>
         {/* Resets to stack level so a nested Navigator registers its own panes. */}
@@ -591,5 +569,3 @@ function NavigatorStack({
     </main>
   )
 }
-
-NavigatorContent.displayName = 'Navigator.Content'

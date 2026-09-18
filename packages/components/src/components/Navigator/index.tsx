@@ -1,6 +1,5 @@
 // Server-safe property-assignment layer; see COMPOUND_PATTERNS.md.
 import { NavigatorBrand } from './NavigatorBrand'
-import { NavigatorContent } from './NavigatorContent'
 import { NavigatorExpandToggle } from './NavigatorExpandToggle'
 import { NavigatorGroup } from './NavigatorGroup'
 import { NavigatorGroupTitle } from './NavigatorGroupTitle'
@@ -15,7 +14,6 @@ import { NavigatorSecondaryPane } from './NavigatorSecondaryPane'
 
 const Navigator = NavigatorRoot as typeof NavigatorRoot & {
   Root: typeof NavigatorRoot
-  Content: typeof NavigatorContent
   Primary: typeof NavigatorPrimary
   Secondary: typeof NavigatorSecondary
   Item: typeof NavigatorItem
@@ -30,7 +28,6 @@ const Navigator = NavigatorRoot as typeof NavigatorRoot & {
 }
 
 Navigator.Root = NavigatorRoot
-Navigator.Content = NavigatorContent
 Navigator.Primary = NavigatorPrimary
 Navigator.Secondary = NavigatorSecondary
 Navigator.Item = NavigatorItem
@@ -51,7 +48,6 @@ export type {
   NavigatorSecondaryItem
 } from './secondaryData'
 export type { NavigatorRootProps as NavigatorProps } from './NavigatorRoot'
-export type { NavigatorContentProps } from './NavigatorContent'
 export type { NavigatorPrimaryProps } from './NavigatorPrimary'
 export type {
   NavigatorPlacement,

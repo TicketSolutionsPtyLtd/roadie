@@ -55,7 +55,7 @@ export type PaneStackContextValue = {
   topNow: () => Element | null
   /** More is open and has a pane to show. */
   moreOpen: boolean
-  /** 0 for the outermost `Navigator.Content`. */
+  /** 0 for the outermost Navigator. */
   level: number
   /** The active destination; a new one scrolls every pane not behind the top back to its top. */
   destination?: string

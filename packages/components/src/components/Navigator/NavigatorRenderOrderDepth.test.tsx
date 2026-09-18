@@ -58,9 +58,7 @@ const Layout = ({
 
 const Shell = ({ lib, children }: { lib: Lib; children: ReactNode }) => (
   <StrictMode>
-    <lib.Navigator value='/a'>
-      <lib.Navigator.Content>{children}</lib.Navigator.Content>
-    </lib.Navigator>
+    <lib.Navigator value='/a'>{children}</lib.Navigator>
   </StrictMode>
 )
 
@@ -264,11 +262,9 @@ describe('depth from render order', () => {
               </lib.Navigator.Secondary>
             </lib.Navigator.Item>
           </lib.Navigator.Primary>
-          <lib.Navigator.Content>
-            <Layout pane={<lib.Pane>Event</lib.Pane>}>
-              <lib.Pane>Ticket</lib.Pane>
-            </Layout>
-          </lib.Navigator.Content>
+          <Layout pane={<lib.Pane>Event</lib.Pane>}>
+            <lib.Pane>Ticket</lib.Pane>
+          </Layout>
         </lib.Navigator>
       </StrictMode>
     )
@@ -641,7 +637,7 @@ describe('where render order is not document order', () => {
     </Shell>
   )
 
-  // Resuming re-renders Navigator.Content but not the shell's panes.
+  // Resuming re-renders the Navigator's stack but not the shell's panes.
   async function prerendered(hint: boolean) {
     const lib = await server()
     const data = later()
