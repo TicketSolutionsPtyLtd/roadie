@@ -175,7 +175,6 @@ const PRESETS = [
   'emphasis-overlay'
 ]
 
-/** Every emphasis preset side by side. */
 export function EmphasisGrid() {
   return (
     <ul className='grid grid-cols-2 gap-3 rounded-xl bg-subtle p-4 @md:grid-cols-3'>

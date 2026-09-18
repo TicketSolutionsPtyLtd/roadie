@@ -8,7 +8,6 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { useCopy } from '../useCopy'
 
-/** A token name that copies `value` when pressed. */
 export function CopyChip({
   value,
   children,

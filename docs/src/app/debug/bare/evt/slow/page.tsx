@@ -1,7 +1,6 @@
 import { Pane } from '@oztix/roadie-components'
 
-// The bare canary's slow hop, so the frame that owns the window draws a
-// pending indicator long enough to measure.
+// A slow hop, so the pending indicator shows long enough to measure.
 export default async function BareSlowPage() {
   await new Promise((resolve) => setTimeout(resolve, 1500))
   return (

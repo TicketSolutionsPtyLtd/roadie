@@ -153,9 +153,7 @@ export function DocsNavigator({
 
   const [query, reportQuery] = useNavQuery(route)
 
-  // Params we pushed this session, so closing can pop that entry instead of
-  // adding a new one. A deep-linked/reloaded flag isn't in here, so closing
-  // it replaces instead — no dead history entry, no Back into the page.
+  // Flags pushed this session, so closing pops them; a deep-linked flag is replaced instead.
   const pushedFlags = useRef(new Set<string>())
   useEffect(() => {
     pushedFlags.current.clear()
@@ -189,8 +187,7 @@ export function DocsNavigator({
   const toc = useDocHeadings()
   const showInspector = toc.headings.length >= 2
 
-  // The bare canary owns the whole window, because a Navigator nested in a
-  // pane is not the shape an app has. See docs/src/app/debug/bare.
+  // The bare canary owns the whole window; see docs/src/app/debug/bare.
   if (route.startsWith('/debug/bare')) return children
 
   return (

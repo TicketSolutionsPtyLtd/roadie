@@ -6,10 +6,7 @@ import { useRoute } from '@/lib/route'
 
 import { Navigator } from '@oztix/roadie-components/navigator'
 
-// The second canary, and the one an app matches: a top-level Navigator owning
-// the window, with no pane around it. `/debug/stack` is the same route-driven
-// stack nested inside the docs' own frame, which hides anything that only goes
-// wrong when the frame is the outermost thing on the page.
+// A top-level Navigator owning the window, as an app has it; `/debug/stack` nests one in the docs frame.
 export default function BareLayout({ children }: { children: ReactNode }) {
   const route = useRoute()
   return (

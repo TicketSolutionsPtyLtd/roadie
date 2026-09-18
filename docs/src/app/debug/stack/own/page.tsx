@@ -4,8 +4,7 @@ import { useState } from 'react'
 
 import { Navigator, Pane } from '@oztix/roadie-components'
 
-// The second shape the canary pins: the panes are the app's own children, held
-// in state, with no router under them.
+// Panes held in the app's own state, with no router under them.
 export default function OwnPage() {
   const [open, setOpen] = useState(false)
   return (

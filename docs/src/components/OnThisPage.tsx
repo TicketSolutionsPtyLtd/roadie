@@ -25,8 +25,7 @@ export type DocHeadings = {
   onSelect: (event: MouseEvent<HTMLAnchorElement>, id: string) => void
 }
 
-// Outside React state, so a highlight change re-renders only the lists that
-// show it, not the navigation that declares them.
+// Outside React state, so a highlight re-renders only the lists that show it.
 let activeHeading: string | null = null
 const activeListeners = new Set<() => void>()
 
@@ -83,8 +82,7 @@ export function useDocHeadings(): DocHeadings {
       return
     }
 
-    // The /components index's h3s duplicate the left-hand navigation, and the
-    // token reference's h3s are dozens of groups.
+    // These pages' h3s duplicate the navigation or run to dozens.
     const selector = ['/components', '/tokens/reference'].includes(route)
       ? 'h2'
       : 'h2, h3'

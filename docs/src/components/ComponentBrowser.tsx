@@ -33,7 +33,6 @@ function filterCategories(
 const countEntries = (categories: CatalogueCategory[]) =>
   categories.reduce((total, { entries }) => total + entries.length, 0)
 
-/** Every component as a preview card, grouped by category and filtered by a search. */
 export function ComponentBrowser({
   categories
 }: {

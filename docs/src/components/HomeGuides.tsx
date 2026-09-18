@@ -6,7 +6,7 @@ import {
   useNavigatorSecondary
 } from '@oztix/roadie-components/navigator'
 
-/** The Home section's pages, read from the navigation so they are declared once: rows on a phone, cards once there's room. */
+/** The Home section's pages, read from the navigation so they're declared once. */
 export function HomeGuides() {
   const secondary = useNavigatorSecondary('/')
   if (secondary === null) return null

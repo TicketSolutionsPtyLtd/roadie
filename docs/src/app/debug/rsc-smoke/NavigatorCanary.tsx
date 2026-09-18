@@ -5,16 +5,12 @@ import { useEffect, useRef, useState } from 'react'
 import { Pane } from '@oztix/roadie-components'
 import { Navigator } from '@oztix/roadie-components/navigator'
 
-// Navigator's walks match children by element identity, which Flight breaks
-// for server-authored trees, so this canary is a client component that throws
-// if the walk loses the Brand, a Group or a pinned item.
-
+// Throws if Navigator's identity walk loses the Brand, a Group or a pinned item.
 export function NavigatorCanary() {
   const ref = useRef<HTMLDivElement>(null)
   const [failure, setFailure] = useState<Error | null>(null)
 
-  // A timeout, not the effect itself, so anything the children render after
-  // their first commit is in the DOM before the check.
+  // A timeout, so whatever the children render after their first commit is in the DOM.
   useEffect(() => {
     const id = setTimeout(() => {
       const missing = [

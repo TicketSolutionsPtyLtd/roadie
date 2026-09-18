@@ -1,7 +1,6 @@
 import { Pane, Skeleton } from '@oztix/roadie-components'
 
-// `pending` is what keeps the frame's indicator up while the skeletons stand in
-// for the page: a route's loading state is the one place that is always true.
+// `pending` keeps the frame's indicator up while the skeletons stand in.
 export default function SlowLoading() {
   return (
     <Pane pending data-testid='slow-loading'>

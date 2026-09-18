@@ -184,10 +184,7 @@ const useReducedMotion = () =>
     () => false
   )
 
-/**
- * Searchable token list. On the reference it filters by family and kind and
- * keeps its state in the URL; on a family page it lists that family by group.
- */
+/** On the reference it filters by family and kind in the URL; on a family page it lists that family by group. */
 export function TokenBrowser({
   tokens,
   reference = false,

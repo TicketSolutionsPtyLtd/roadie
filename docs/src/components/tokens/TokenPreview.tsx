@@ -14,11 +14,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 const tile = 'size-10 rounded-lg'
 
-/**
- * The token's final value. Tailwind drops `@theme` variables no class
- * reads, so previews of sizes, times and curves use the literal rather
- * than `var()`, which may not exist on the page.
- */
+/** The literal value: Tailwind drops `@theme` variables no class reads, so `var()` may not exist. */
 const literal = (token: TokenEntry) =>
   token.resolved?.light ?? token.value?.light ?? ''
 
@@ -107,11 +103,7 @@ function Replay({
   )
 }
 
-/**
- * Plays an enter/exit utility the way Base UI drives it: an exit sets
- * `data-ending-style`, an enter starts from `data-starting-style` and
- * removes it a frame later.
- */
+/** Plays an enter/exit utility as Base UI drives it, through `data-starting-style` and `data-ending-style`. */
 function EnterExit({
   className,
   attributes

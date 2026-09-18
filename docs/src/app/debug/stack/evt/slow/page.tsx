@@ -1,7 +1,6 @@
 import { Pane } from '@oztix/roadie-components'
 
-// The canary's slow hop: the pending indicator has to cover the wait for this
-// segment, then the skeletons its loading state draws, as one state.
+// A slow hop: one pending state must cover this segment's wait and its loading skeletons.
 export default async function SlowPage() {
   await new Promise((resolve) => setTimeout(resolve, 1500))
   return (
