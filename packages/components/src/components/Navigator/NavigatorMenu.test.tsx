@@ -160,6 +160,10 @@ describe('Navigator.Menu', () => {
         data-testid='stub-link'
         href={href}
         {...rest}
+        onClick={(event) => {
+          rest.onClick?.(event)
+          event.preventDefault()
+        }}
         onSelect={(event) => {
           rest.onSelect?.(event)
           event.preventDefault()

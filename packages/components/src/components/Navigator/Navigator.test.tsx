@@ -1032,7 +1032,7 @@ describe('render fan-out', () => {
     expanded?: boolean
     onSelect?: () => void
   }) {
-    return (
+    return withStubLink(
       <Navigator value={value} expanded={expanded}>
         <Navigator.Primary aria-label='Main'>
           {testBrand}
@@ -1443,22 +1443,23 @@ describe('Navigator compound', () => {
 })
 
 describe('NavigatorOverflowPane', () => {
-  const overflowNav = (value: string, extra?: ReactNode) => (
-    <Navigator value={value}>
-      <Navigator.Primary aria-label='Main'>
-        {testBrand}
-        {['/a', '/b', '/c', '/d', '/e', '/f'].map((v) => (
-          <Navigator.Item key={v} value={v} href={v}>
-            {v}
-          </Navigator.Item>
-        ))}
-      </Navigator.Primary>
-      <Navigator.Content>
-        <Pane>Detail</Pane>
-        {extra}
-      </Navigator.Content>
-    </Navigator>
-  )
+  const overflowNav = (value: string, extra?: ReactNode) =>
+    withStubLink(
+      <Navigator value={value}>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          {['/a', '/b', '/c', '/d', '/e', '/f'].map((v) => (
+            <Navigator.Item key={v} value={v} href={v}>
+              {v}
+            </Navigator.Item>
+          ))}
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Pane>Detail</Pane>
+          {extra}
+        </Navigator.Content>
+      </Navigator>
+    )
 
   const panes = () =>
     Array.from(document.querySelectorAll('[data-slot="pane"]'))
@@ -3514,33 +3515,34 @@ describe('Navigator active-tab tap: scroll-on-landing vs navigate-up', () => {
   // A destination with its own landing route (`/components`) and one sub-page,
   // so the active tab can be on the landing or on a sub-page of the same
   // destination.
-  const secondaryTree = (active: string, onValueChange = vi.fn()) => (
-    <Navigator value={active} onValueChange={onValueChange}>
-      <Navigator.Primary aria-label='Primary'>
-        {testBrand}
-        <Navigator.Item value='/components' href='/components'>
-          Components
-          <Navigator.Secondary aria-label='Components pages'>
-            <Navigator.Item
-              value='/components/button'
-              href='/components/button'
-            >
-              Button
-            </Navigator.Item>
-          </Navigator.Secondary>
-        </Navigator.Item>
-        <Navigator.Item value='/tokens' href='/tokens'>
-          Tokens
-        </Navigator.Item>
-      </Navigator.Primary>
-      <Navigator.Content>
-        <Pane>
-          <Pane.Header />
-          Content
-        </Pane>
-      </Navigator.Content>
-    </Navigator>
-  )
+  const secondaryTree = (active: string, onValueChange = vi.fn()) =>
+    withStubLink(
+      <Navigator value={active} onValueChange={onValueChange}>
+        <Navigator.Primary aria-label='Primary'>
+          {testBrand}
+          <Navigator.Item value='/components' href='/components'>
+            Components
+            <Navigator.Secondary aria-label='Components pages'>
+              <Navigator.Item
+                value='/components/button'
+                href='/components/button'
+              >
+                Button
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+          <Navigator.Item value='/tokens' href='/tokens'>
+            Tokens
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Navigator.Content>
+          <Pane>
+            <Pane.Header />
+            Content
+          </Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
 
   const paneScrollSpy = (container: HTMLElement) => {
     const pane = scrollerOf(container)

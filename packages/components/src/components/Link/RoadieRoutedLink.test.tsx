@@ -3,7 +3,7 @@ import { type ReactNode, createRef, useEffect } from 'react'
 import '@testing-library/jest-dom/vitest'
 import { fireEvent, render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   type PendingNavigationStore,
@@ -22,6 +22,11 @@ const StubLink: RoadieLinkComponent = ({ href, children, ...rest }) => (
 )
 
 describe('RoadieRoutedLink', () => {
+  // Bubble phase, after RoadieRoutedLink's own onClick reads `defaultPrevented` — a capturing listener would read as already cancelled.
+  const preventNavigation = (event: Event) => event.preventDefault()
+  beforeEach(() => document.addEventListener('click', preventNavigation))
+  afterEach(() => document.removeEventListener('click', preventNavigation))
+
   describe('without provider', () => {
     it('renders a plain anchor for an internal href', () => {
       const { getByTestId } = render(
