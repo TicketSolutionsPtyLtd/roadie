@@ -113,11 +113,7 @@ async function readAll(stream: ReadableStream<Uint8Array>) {
   }
 }
 
-// `new Function` runs a script in the shared global scope, not a fresh page,
-// so Fizz's own unprefixed `$R*` runtime vars (its reveal timing included)
-// survive from one mount to the next. A stale `$RT` then reads as a moment
-// already long past, and Fizz's reveal script schedules against it with a
-// negative delay. A real navigation never carries these over, so neither should this.
+// `new Function` runs scripts in the shared global scope, not a fresh page, so a stale Fizz `$R*` var can outlive its mount and schedule a negative timeout.
 function resetFizzRuntimeGlobals() {
   for (const key of Object.keys(globalThis)) {
     if (/^\$R/.test(key)) delete (globalThis as Record<string, unknown>)[key]
@@ -548,6 +544,9 @@ describe('where render order is not document order', () => {
       }
     )
     expect(problems.errors.join('\n')).toMatch(/data-depth/)
+    expect(problems.warnings).toContain(
+      '[Roadie] A Pane was server-rendered at depth 2 but sits at 1. Render panes in document order, pass `pending` on a loading pane, or declare depth={1}.'
+    )
     unmount()
   })
 
@@ -595,10 +594,7 @@ describe('where render order is not document order', () => {
     const advice = problems.warnings.find((message) =>
       message.includes('server-rendered at depth')
     )
-    // Event is this row's root: written from 1 (no list pane), so a written
-    // depth of 1 is where it actually sits, and the only depth that doesn't
-    // collide with Ticket's own written depth once declared. A resolved
-    // (compacted) rank of 0 would collide instead.
+    // 1, not the compacted rank 0, is Event's written depth here.
     expect(advice).toMatch('server-rendered at depth 2 but sits at 1')
     expect(advice).toMatch('declare depth={1}')
   })

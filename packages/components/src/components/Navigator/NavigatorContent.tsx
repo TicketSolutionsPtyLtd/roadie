@@ -169,10 +169,7 @@ function depthsOf(panes: readonly PlacedPane[], draws: Drawn) {
   )
 }
 
-// A row that opens on a detail is written from 1, as its column default was:
-// resolving compacts that gap away, so the root's rank comes back 0 while its
-// column still wanted 1. True says every rank in this row is one shallower
-// than the written scale a declared `depth` lands on.
+// True when this row's ranks sit one shallower than the written scale.
 function liftOf(
   panes: readonly PlacedPane[],
   depths: ReadonlyMap<string, number | null>
@@ -556,8 +553,6 @@ export function NavigatorContent({
       if (rank === null || claim.written === null || claim.rank === rank) {
         continue
       }
-      // Both sides, and the suggestion, stay on the written scale — the one a
-      // declared `depth` lands on directly, with no lift of its own.
       const written = rank + (lift ? 1 : 0)
       const message = `[Roadie] A Pane was server-rendered at depth ${claim.written} but sits at ${written}. Render panes in document order, pass \`pending\` on a loading pane, or declare depth={${written}}.`
       if (warned.current.has(message)) continue
