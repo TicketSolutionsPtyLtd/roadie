@@ -28,9 +28,7 @@ import { Pane } from '@oztix/roadie-components/pane'
 - A pane is a column of an app frame. Inside a
   [`Navigator`](/components/navigator), panes become columns where there is
   room and a stack where there isn't.
-- Panes are siblings inside `Navigator.Content`, never nested. Roadie reads
-  each pane's depth from the order they render in, on the server too, even
-  when separate routes render them.
+- Panes are siblings inside `Navigator.Content`, never nested.
 - Unlike [`Card`](/components/card), a pane is not a general-purpose surface.
   Don't use one to box content inside a page.
 
@@ -226,7 +224,6 @@ In the stack, motion follows depth.
 - A push slides the arriving pane in over the one going behind.
 - A pop slides the pane behind back into place. The pane being left is not
   animated out, because once a route stops rendering it, its elements are gone.
-  `docs/solutions/pane-motion/route-driven-shells.md` has the measurements.
 - Replacing a pane with another at the same depth cuts.
 - A first paint, hydration and a fresh load of a deep route never slide.
 - Columns don't animate, and nor does anything under
@@ -289,15 +286,14 @@ render(<Stacking />)
 
 ### Columns
 
-`column` says which column a pane is: at most one list, any number of details
-and at most one inspector. It also sets the pane's default depth, and when it
-gives up its column. It defaults to `detail`.
+`column` says which column a pane is. A shell has at most one list, any number
+of details and at most one inspector. It defaults to `detail`.
 
-| Column | Default depth | Where it sits |
-| --- | --- | --- |
-| `list` | 0 | The root |
-| `detail` | 1 | Under the root |
-| `inspector` | None | A fixed 14rem column outside the stack. It shows only when every level of the stack fits beside it. |
+| Column | Where it sits |
+| --- | --- |
+| `list` | The root |
+| `detail` | Under the root |
+| `inspector` | A fixed 14rem column outside the stack. It shows only when every level of the stack fits beside it. |
 
 When the inspector's column is hidden, give people another way in. Put a
 [`Drawer`](/components/drawer) in the detail pane's `Pane.Actions`, and Base UI
@@ -430,9 +426,11 @@ copying the link still use `backHref`.
 
 ### Reached, depth and tab bar
 
-- `reached` defaults to `true`. Pass `false` only on a pane mounted before the
-  route reaches it, such as an empty detail column. It fills its column where
-  two fit, but never becomes the top pane.
+- `reached` defaults to `true`. Pass `false` on a pane mounted before the route
+  reaches it, such as
+  [an empty detail column](/foundations/navigation#an-empty-detail-column).
+  Keep that pane mounted rather than mounting it on selection, or the list
+  jumps to a parent track when it appears.
 - `depth` overrides the depth Roadie reads from render order. Pass it only for
   a pane that renders out of order, such as one streamed into a resumed
   prerender.
@@ -514,9 +512,9 @@ render(<Loading />)
 - While the skeleton shows, the
   [frame draws its pending indicator](/components/navigator#waiting-for-a-navigation).
   The pane draws only the skeleton.
-- `pending` is the manual override for a wait Roadie cannot see, such as a
-  fetch without Suspense or a mutation. It holds the frame's indicator and sets
-  `aria-busy` on the pane.
+- `pending` holds the frame's pending indicator for a wait Roadie can't see,
+  such as a fetch without Suspense or a mutation. It sets `aria-busy` on the
+  pane.
 
 ## Guidelines
 
@@ -532,22 +530,12 @@ render(<Loading />)
 </Guideline>
 
 <Guideline title='A pane is a column, not a box'>
-  <Guideline.Do code={`<Pane>\n  <Pane.Header>\n    <Pane.Title>Midnight Frequency</Pane.Title>\n  </Pane.Header>\n  <Card>…</Card>\n</Pane>`}>
-    Use a `Card` for a surface inside a page.
+  <Guideline.Do code={`<div className='grid grid-cols-3 gap-4'>\n  <Card>…</Card>\n  <Card>…</Card>\n  <Card>…</Card>\n</div>`}>
+    Use a `Card` for a surface in a page's content, such as a grid of stats.
   </Guideline.Do>
-  <Guideline.Dont code={`<Pane>\n  <Pane.Header>\n    <Pane.Title>Midnight Frequency</Pane.Title>\n  </Pane.Header>\n  <Pane emphasis='subtle'>…</Pane>\n</Pane>`}>
-    Use a `Pane` as a general-purpose surface.
-  </Guideline.Dont>
-</Guideline>
-
-<Guideline title='Give the root route a placeholder detail'>
-  <Guideline.Do code={`<>\n  <Pane column='list' />\n  <Pane reached={event != null}>\n    {event ? <EventDetail /> : <EmptyState title='No event selected' />}\n  </Pane>\n</>`}>
-    Render the detail pane on the root route too, like Mail's "No message
-    selected". The row then reads as a list beside an empty detail.
-  </Guideline.Do>
-  <Guideline.Dont code={`<>\n  <Pane column='list' />\n  {event ? <Pane /> : null}\n</>`}>
-    Mount the detail only once something is selected. The list fills the row
-    alone, then jumps to a parent track when the detail appears.
+  <Guideline.Dont code={`<div className='grid grid-cols-3 gap-4'>\n  <Pane emphasis='normal'>…</Pane>\n  <Pane emphasis='normal'>…</Pane>\n  <Pane emphasis='normal'>…</Pane>\n</div>`}>
+    Use a `Pane` as a card. It brings its own scroll, header chrome and a
+    place in the frame's stack.
   </Guideline.Dont>
 </Guideline>
 

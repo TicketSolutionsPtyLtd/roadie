@@ -58,7 +58,7 @@ export type PaneRootProps = ComponentProps<'section'> & {
   emphasis?: PaneEmphasis
   /** What the phone tab bar does while this pane is top; `auto` collapses it on scroll. @default 'auto' */
   tabBar?: 'visible' | 'auto' | 'hidden'
-  /** Holds the pending indicator for a wait Roadie can't see; on a route's loading pane it also yields that pane's depth. */
+  /** Holds the pending indicator for a wait Roadie can't see, such as a fetch without Suspense or a mutation. */
   pending?: boolean
   /** The body skeleton while the pane's content is suspended. `Pane.Body` shows it too. */
   loading?: ReactNode

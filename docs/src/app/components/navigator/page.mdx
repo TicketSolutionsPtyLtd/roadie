@@ -38,11 +38,11 @@ reference for each part.
 
 - `value` is controlled and comes from your router. An item is active on an
   exact match, or on a `value + '/'` prefix for the pages under it. Normalise
-  the pathname first: `/events/` misses the exact match and reads as a page
+  the pathname first. `/events/` misses the exact match and reads as a page
   below `/events`.
-- Author the whole tree in a client component. Navigator finds its parts by
-  element reference, and a server component replaces those references, so
-  items, group titles and menus disappear. `Pane` is server-safe.
+- Author the whole tree in a client component. Navigation's
+  [server and client](/foundations/navigation#server-and-client) table says why and what can
+  stay on the server.
 - `Navigator.Primary` must be a direct child of `Navigator`. Items must be
   direct children of `Primary`, a `Group` or a `Secondary`. A mapped array
   counts as direct. A Fragment or your own component does not, and anything
@@ -53,7 +53,8 @@ reference for each part.
 
 ### Splitting a big tree
 
-Moving each rail into its own `UserRail` component hides `Navigator.Primary`
+An app with several rails is tempting to split into components, but moving
+each rail into its own `UserRail` component hides `Navigator.Primary`
 from the walk. The bar still draws, but secondary navs, More rows and
 `useNavigatorSecondary` do nothing. Write each rail as a function you call, not
 a component you render, and call any hook it needs in the surrounding
@@ -405,8 +406,8 @@ render(<OverviewNav />)
   route. On the route itself, it scrolls the page to the top.
 - `showList` still shows the list over one of its pages. It does nothing on
   the destination's own route.
-- `value` has to come from the route that renders the page, such as
-  `usePathname()`, or the step between pages, the list pane and Back all read
+- `value` has to come from the route that renders the page, as the
+  [shell](/foundations/navigation#the-shell) passes it, or the list pane and Back read
   the wrong route.
 
 For a layout of your own, [`useNavigatorSecondary`](#hooks) returns the same
@@ -777,7 +778,7 @@ the destination's route.
 Here `useState` stands in for the query string, and navigating clears it as a
 new URL would. Narrow your viewport and tap Events on one of its pages.
 
-```tsx-live-noinline
+```tsx-live-noinline-expand
 function ListFromUrlNav() {
   const [showList, setShowList] = useState(false)
   return (
@@ -837,61 +838,9 @@ its own state. With them, More asks through `onShowMoreChange` when someone:
 It also asks when `value` changes while `showMore` is still true. A row or tab
 that navigates doesn't ask, because its route closes More as it commits.
 
-In Next.js, read the query in a leaf inside its own `Suspense` boundary, because
-`useSearchParams` client-renders a prerendered page up to the nearest one. Push
-rather than replace, so the browser's Back undoes the change. Build the new
-query from `window.location.search`, so the page's own params survive the flag.
-
-```tsx
-'use client'
-
-import { Suspense, useEffect, useState } from 'react'
-
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-
-import { Navigator } from '@oztix/roadie-components/navigator'
-
-type NavQuery = { nav: boolean; more: boolean }
-
-function NavQueryFlags({ onChange }: { onChange: (next: NavQuery) => void }) {
-  const params = useSearchParams()
-  const nav = params.has('nav')
-  const more = params.has('more')
-  useEffect(() => onChange({ nav, more }), [nav, more, onChange])
-  return null
-}
-
-export function AppNavigator() {
-  const pathname = usePathname()
-  const router = useRouter()
-  const [query, setQuery] = useState<NavQuery>({ nav: false, more: false })
-  const toggle = (param: string) => (next: boolean) => {
-    const params = new URLSearchParams(window.location.search)
-    params.delete(param)
-    const search = [params.toString(), next ? param : '']
-      .filter(Boolean)
-      .join('&')
-    router.push(search ? `${pathname}?${search}` : pathname, { scroll: false })
-  }
-
-  return (
-    <>
-      <Suspense fallback={null}>
-        <NavQueryFlags onChange={setQuery} />
-      </Suspense>
-      <Navigator
-        value={pathname}
-        showList={query.nav}
-        onShowListChange={toggle('nav')}
-        showMore={query.more}
-        onShowMoreChange={toggle('more')}
-      >
-        …
-      </Navigator>
-    </>
-  )
-}
-```
+In Next.js,
+[Navigation](/foundations/navigation#keep-the-list-and-more-in-the-url) shows
+how to keep both flags in the query string.
 
 ### Waiting for a navigation
 
@@ -906,9 +855,8 @@ any Roadie surface, and `pendingIndicator={false}` on the provider turns it
 off. For a navigation you start yourself, such as a `router.push`, use
 `usePendingNavigation`. [Linking](/foundations/linking) documents both.
 
-`pending` on a [`Pane`](/components/pane) is the manual override. It holds the
-indicator for a wait Roadie can't see, such as a client fetch without Suspense
-or a mutation. A mounted `Skeleton` never starts or holds it, because a
+For a wait Roadie can't see, pass [`pending`](/components/pane#loading) on the
+pane. A mounted `Skeleton` never starts or holds the indicator, because a
 skeleton may be a placeholder that never resolves.
 
 The indicator ends on the first of these:
@@ -926,14 +874,17 @@ turn and the phone pull-back.
 ## Guidelines
 
 - Derive `value` from the URL and give each item an `href`, so Back, forward and
-  deep links work. Use `onValueChange` only when no route owns the state.
+  deep links work, as the [shell](/foundations/navigation#the-shell) does. Use
+  `onValueChange` only when no route owns the state.
 - Write pinned items last. The vertical navigation always tabs through brand,
   cluster, then pinned items, so source order should match.
 - Pass bare icons to items. Navigator renders them duotone at `size-6`. Give
   `Navigator.MenuItem` icons `weight='bold'`. An item without an icon shows its
   label's first letter.
-- An item always links to its declared `href`, in More too, so tapping a
-  top-level item goes to that destination's route from any of its pages.
+- An item links to its declared `href`, in More too, so tapping a top-level
+  item goes to that destination's route from any of its pages. A phone has two
+  exceptions. On the destination's own route its tab scrolls the page to the
+  top, and with `onShowListChange` its tab shows the list instead.
 - The top pane's `tabBar` decides what the phone tab bar does while that pane
   is on top. See [`Pane`](/components/pane).
 

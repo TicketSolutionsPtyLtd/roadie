@@ -504,6 +504,55 @@ const buy = async () => {
   }
 }`
 
+const urlFlags = `'use client'
+
+import { Suspense, useEffect, useState } from 'react'
+
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+
+import { Navigator } from '@oztix/roadie-components/navigator'
+
+type NavQuery = { nav: boolean; more: boolean }
+
+function NavQueryFlags({ onChange }: { onChange: (next: NavQuery) => void }) {
+  const params = useSearchParams()
+  const nav = params.has('nav')
+  const more = params.has('more')
+  useEffect(() => onChange({ nav, more }), [nav, more, onChange])
+  return null
+}
+
+export function AppNavigator() {
+  const pathname = usePathname()
+  const router = useRouter()
+  const [query, setQuery] = useState<NavQuery>({ nav: false, more: false })
+  const toggle = (param: string) => (next: boolean) => {
+    const params = new URLSearchParams(window.location.search)
+    params.delete(param)
+    const search = [params.toString(), next ? param : '']
+      .filter(Boolean)
+      .join('&')
+    router.push(search ? \`\${pathname}?\${search}\` : pathname, { scroll: false })
+  }
+
+  return (
+    <>
+      <Suspense fallback={null}>
+        <NavQueryFlags onChange={setQuery} />
+      </Suspense>
+      <Navigator
+        value={pathname}
+        showList={query.nav}
+        onShowListChange={toggle('nav')}
+        showMore={query.more}
+        onShowMoreChange={toggle('more')}
+      >
+        …
+      </Navigator>
+    </>
+  )
+}`
+
 const withoutFramework = `const NavigateContext = createContext<(path: string) => void>(() => {})
 
 const isPlainClick = (event: React.MouseEvent) =>
@@ -861,7 +910,9 @@ export default function NavigationPage() {
         />
 
         <div className='grid gap-2'>
-          <h3 className='text-display-ui-5 text-strong'>The shell</h3>
+          <h3 id='the-shell' className='text-display-ui-5 text-strong'>
+            The shell
+          </h3>
           <p className='text-subtle'>
             The top layout is a client component. It passes{' '}
             <Code>usePathname()</Code> as <Code>value</Code>, so the nav and the
@@ -895,7 +946,9 @@ export default function NavigationPage() {
         </div>
 
         <div className='grid gap-2'>
-          <h3 className='text-display-ui-5 text-strong'>Server and client</h3>
+          <h3 id='server-and-client' className='text-display-ui-5 text-strong'>
+            Server and client
+          </h3>
           <Table
             head={['Piece', 'Must be', 'Why']}
             rows={splitRows.map(({ piece, must, why }) => ({
@@ -926,6 +979,42 @@ export default function NavigationPage() {
             same base path, so one tickets view serves both trees.
           </p>
           <CodePreview>{railsCode}</CodePreview>
+        </div>
+
+        <div className='grid gap-2'>
+          <h3
+            id='keep-the-list-and-more-in-the-url'
+            className='text-display-ui-5 text-strong'
+          >
+            Keep the list and More in the URL
+          </h3>
+          <p className='text-subtle'>
+            Roadie never reads the URL. To let a phone user open a
+            destination&apos;s list, or More, from a link or with Back, keep a
+            flag such as <Code>?nav</Code> or <Code>?more</Code> in the query
+            string and pass it to <Code>showList</Code> and{' '}
+            <Code>showMore</Code>. The{' '}
+            <Link href='/components/navigator#keep-the-list-and-more-in-the-url'>
+              Navigator reference
+            </Link>{' '}
+            covers the props.
+          </p>
+          <ul className='grid list-disc gap-1 pl-5 text-subtle'>
+            <li>
+              Read the query in a leaf inside its own <Code>Suspense</Code>{' '}
+              boundary. <Code>useSearchParams</Code> client-renders a
+              prerendered page up to the nearest one.
+            </li>
+            <li>
+              Push rather than replace, so the browser&apos;s Back undoes the
+              change.
+            </li>
+            <li>
+              Build the new query from <Code>window.location.search</Code>, so
+              the page&apos;s own params survive the flag.
+            </li>
+          </ul>
+          <CodePreview>{urlFlags}</CodePreview>
         </div>
 
         <div className='grid gap-2'>
@@ -1027,7 +1116,10 @@ export default function NavigationPage() {
         </ul>
         <CodePreview>{withoutFramework}</CodePreview>
         <div className='grid gap-2'>
-          <h3 className='text-display-ui-5 text-strong'>
+          <h3
+            id='an-empty-detail-column'
+            className='text-display-ui-5 text-strong'
+          >
             An empty detail column
           </h3>
           <p className='text-subtle'>
