@@ -50,6 +50,13 @@ function keepGetAnimations() {
   }
 }
 
+// jsdom has no scroll implementation; production always runs in a browser.
+function keepScrollTo() {
+  if (typeof Element.prototype.scrollTo !== 'function') {
+    Element.prototype.scrollTo = () => {}
+  }
+}
+
 beforeAll(() => {
   if (typeof globalThis.ResizeObserver === 'undefined') {
     globalThis.ResizeObserver =
@@ -69,6 +76,7 @@ beforeAll(() => {
   }
 
   keepGetAnimations()
+  keepScrollTo()
 
   if (typeof window.matchMedia === 'undefined') {
     Object.defineProperty(window, 'matchMedia', {
@@ -109,5 +117,6 @@ beforeAll(() => {
 afterEach(() => {
   cleanup()
   keepGetAnimations()
+  keepScrollTo()
   globalThis.__setReducedMotion?.(false)
 })
