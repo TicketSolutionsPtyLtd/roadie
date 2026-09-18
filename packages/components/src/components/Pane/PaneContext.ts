@@ -14,6 +14,8 @@ export type PaneContextValue = {
   /** A `Pane.BodyTitle`'s text, for the header's echo. */
   bodyTitle: ReactNode | null
   setBodyTitle: (node: ReactNode | null) => void
+  /** The pane's body skeleton, for a suspended `Pane.Body`. */
+  loading: ReactNode
 }
 
 export const PaneContext = createContext<PaneContextValue | null>(null)

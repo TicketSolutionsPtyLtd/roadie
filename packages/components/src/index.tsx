@@ -171,6 +171,7 @@ export {
 export {
   Pane,
   type PaneProps,
+  type PaneBodyProps,
   type PaneHeaderProps,
   type PaneTitleProps,
   type PaneBodyTitleProps,

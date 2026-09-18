@@ -1,5 +1,6 @@
 // Server-safe property-assignment layer; see COMPOUND_PATTERNS.md.
 import { PaneActions } from './PaneActions'
+import { PaneBody } from './PaneBody'
 import { PaneBodyTitle } from './PaneBodyTitle'
 import { PaneFooter } from './PaneFooter'
 import { PaneHeader } from './PaneHeader'
@@ -9,6 +10,7 @@ import { PaneTitle } from './PaneTitle'
 
 const Pane = PaneRoot as typeof PaneRoot & {
   Root: typeof PaneRoot
+  Body: typeof PaneBody
   Header: typeof PaneHeader
   Title: typeof PaneTitle
   BodyTitle: typeof PaneBodyTitle
@@ -18,6 +20,7 @@ const Pane = PaneRoot as typeof PaneRoot & {
 }
 
 Pane.Root = PaneRoot
+Pane.Body = PaneBody
 Pane.Header = PaneHeader
 Pane.Title = PaneTitle
 Pane.BodyTitle = PaneBodyTitle
@@ -29,6 +32,7 @@ export { Pane }
 export type { PaneColumn, PaneEmphasis, PaneTabBar } from './variants'
 export type { PaneDepth } from './paneDepth'
 export type { PaneRootProps as PaneProps } from './PaneRoot'
+export type { PaneBodyProps } from './PaneBody'
 export type { PaneHeaderProps } from './PaneHeader'
 export type { PaneTitleProps } from './PaneTitle'
 export type { PaneBodyTitleProps } from './PaneBodyTitle'

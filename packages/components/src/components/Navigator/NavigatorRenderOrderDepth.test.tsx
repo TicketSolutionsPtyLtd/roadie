@@ -350,6 +350,67 @@ describe('depth from render order', () => {
   })
 })
 
+describe('a pane whose body suspends', () => {
+  // The pane is drawn and only its body waits, so it keeps its place: unlike a
+  // loading pane, it is not standing in for another.
+  const Waiting = ({ lib, on }: { lib: Lib; on: Thenable }) => (
+    <Shell lib={lib}>
+      <Layout pane={<lib.Pane column='list'>List</lib.Pane>}>
+        <Layout
+          pane={
+            <lib.Pane>
+              <lib.Pane.Body>
+                <Wait on={on}>Event</Wait>
+              </lib.Pane.Body>
+            </lib.Pane>
+          }
+        >
+          <lib.Pane>Ticket</lib.Pane>
+        </Layout>
+      </Layout>
+    </Shell>
+  )
+
+  it('streams its skeleton at its own depth and hydrates without a mismatch', async () => {
+    const data = later()
+    const stream = await renderToReadableStream(
+      <Waiting lib={await server()} on={data.promise} />
+    )
+    let html = ''
+    const decoder = new TextDecoder()
+    const done = (async () => {
+      for await (const chunk of stream) html += decoder.decode(chunk)
+    })()
+    await new Promise((wait) => setTimeout(wait, 20))
+    const shell = document.createElement('div')
+    shell.innerHTML = html
+    expect(
+      shell
+        .querySelector('[data-slot="pane-loading"]')
+        ?.closest('[data-slot="pane"]')
+    ).toHaveAttribute('data-depth', '1')
+    data.resolve()
+    await done
+    const host = await mount(html)
+    expect(depths(host)).toEqual([
+      ['List', '0'],
+      ['Event', '1'],
+      ['Ticket', '2']
+    ])
+    const { problems, unmount } = await hydrate(
+      host,
+      <Waiting lib={client} on={settled()} />
+    )
+    expect(problems).toEqual(clean)
+    expect(depths(host)).toEqual([
+      ['List', '0'],
+      ['Event', '1'],
+      ['Ticket', '2']
+    ])
+    unmount()
+  })
+})
+
 describe('where render order is not document order', () => {
   // A fallback and the route it stands in for share a `useId` only when the
   // trees above their panes fork alike; this loading layout does not.

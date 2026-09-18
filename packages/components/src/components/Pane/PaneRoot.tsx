@@ -3,6 +3,7 @@
 import {
   type ComponentProps,
   type ReactNode,
+  Suspense,
   use,
   useCallback,
   useEffect,
@@ -24,6 +25,7 @@ import { scrollToTop as scrollToTopOf } from '../../utils/reducedMotion'
 import { ScrollArea } from '../ScrollArea'
 import { PANE_CHROME_NONE, PaneChromeContext } from './PaneChromeContext'
 import { PaneContext } from './PaneContext'
+import { PaneFallback } from './PaneFallback'
 import {
   PaneKindContext,
   PaneStackContext,
@@ -60,8 +62,15 @@ export type PaneRootProps = ComponentProps<'section'> & {
   emphasis?: PaneEmphasis
   /** What the phone tab bar does while this pane is on top. `auto` collapses it on scroll. @default 'auto' */
   tabBar?: 'visible' | 'auto' | 'hidden'
-  /** Reports the pane as loading, which draws the frame's pending indicator and holds it. Pass it on a route's loading pane. */
+  /**
+   * Holds the frame's pending indicator for a wait Roadie cannot see, such as a
+   * fetch without Suspense or a mutation. Suspended content reports itself. A
+   * route's loading pane passes it too, so it gives its depth to the pane it
+   * stands in for.
+   */
   pending?: boolean
+  /** The body skeleton while the pane's content is suspended. `Pane.Body` shows it too. */
+  loading?: ReactNode
 }
 
 const subscribeNever = () => () => {}
@@ -86,6 +95,7 @@ export function PaneRoot({
   emphasis = 'raised',
   tabBar = 'auto',
   pending,
+  loading,
   role,
   ref: forwardedRef,
   children,
@@ -205,9 +215,10 @@ export function PaneRoot({
       scrollToTop,
       isRoot,
       bodyTitle,
-      setBodyTitle
+      setBodyTitle,
+      loading
     }),
-    [depth, collapsed, scrollToTop, isRoot, bodyTitle, setBodyTitle]
+    [depth, collapsed, scrollToTop, isRoot, bodyTitle, setBodyTitle, loading]
   )
 
   // Sentinels, not scrollTop reads, which forced a recalc on every scroll event.
@@ -379,7 +390,11 @@ export function PaneRoot({
             )}
           </div>
           <PaneChromeContext value={chrome}>
-            <PaneContext value={context}>{children}</PaneContext>
+            <PaneContext value={context}>
+              {/* Wraps, never reads: a server child still streaming is a lazy
+                  element, and reading it suspends the pane itself. */}
+              <Suspense fallback={<PaneFallback header />}>{children}</Suspense>
+            </PaneContext>
           </PaneChromeContext>
         </ScrollArea.Content>
       </ScrollArea.Viewport>

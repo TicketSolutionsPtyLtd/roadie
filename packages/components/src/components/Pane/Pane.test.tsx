@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, lazy, use } from 'react'
 
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -1919,5 +1919,124 @@ describe('depth attributes', () => {
       'top',
       'ahead'
     ])
+  })
+})
+
+describe('a pane whose content suspends', () => {
+  function later() {
+    let resolve = () => {}
+    const promise = new Promise<void>((done) => {
+      resolve = done
+    })
+    return { promise, resolve }
+  }
+  const Wait = ({
+    on,
+    children
+  }: {
+    on: Promise<void>
+    children: ReactNode
+  }) => {
+    use(on)
+    return children
+  }
+  const loadingBody = () => document.querySelector('[data-slot="pane-loading"]')
+
+  it('keeps the pane on screen with a skeleton header and body', async () => {
+    const data = later()
+    await renderPane(
+      <Pane aria-label='Ticket'>
+        <Pane.Header>
+          <Pane.Title>Ticket</Pane.Title>
+        </Pane.Header>
+        <Wait on={data.promise}>Loaded</Wait>
+      </Pane>
+    )
+    expect(screen.getByRole('region', { name: 'Ticket' })).toBe(pane())
+    expect(screen.queryByText('Ticket')).toBeNull()
+    expect(document.querySelector('[data-slot="pane-header"]')).not.toBeNull()
+    expect(loadingBody()).toHaveAttribute('aria-busy', 'true')
+    expect(
+      loadingBody()?.querySelector('[data-slot="skeleton"]')
+    ).not.toBeNull()
+    await act(async () => data.resolve())
+    expect(screen.getByText('Loaded')).toBeInTheDocument()
+    expect(screen.getAllByText('Ticket').length).toBeGreaterThan(0)
+    expect(loadingBody()).toBeNull()
+  })
+
+  it('wraps a lazy child without reading it, so the pane itself never suspends', async () => {
+    const data = later()
+    const Lazy = lazy(async () => {
+      await data.promise
+      return { default: () => <p>Loaded</p> }
+    })
+    await renderPane(
+      <Pane>
+        <Pane.Header>
+          <Pane.Title>Ticket</Pane.Title>
+        </Pane.Header>
+        <Lazy />
+      </Pane>
+    )
+    expect(pane()).not.toBeNull()
+    expect(loadingBody()).not.toBeNull()
+    await act(async () => data.resolve())
+    expect(screen.getByText('Loaded')).toBeInTheDocument()
+  })
+
+  it('keeps the real header when the wait is inside Pane.Body', async () => {
+    const data = later()
+    await renderPane(
+      <Pane>
+        <Pane.Header>
+          <Pane.Title>Ticket</Pane.Title>
+        </Pane.Header>
+        <Pane.Body>
+          <Wait on={data.promise}>Loaded</Wait>
+        </Pane.Body>
+      </Pane>
+    )
+    expect(
+      screen.getByRole('heading', { name: 'Ticket', level: 2 })
+    ).toBeInTheDocument()
+    expect(document.querySelectorAll('[data-slot="pane-header"]')).toHaveLength(
+      1
+    )
+    expect(loadingBody()).toHaveAttribute('aria-busy', 'true')
+    await act(async () => data.resolve())
+    expect(screen.getByText('Loaded')).toBeInTheDocument()
+    expect(loadingBody()).toBeNull()
+  })
+
+  it("shows the pane's loading, and Pane.Body's over it", async () => {
+    const data = later()
+    const { rerender } = await renderPane(
+      <Pane loading={<p>Pane skeleton</p>}>
+        <Pane.Body>
+          <Wait on={data.promise}>Loaded</Wait>
+        </Pane.Body>
+      </Pane>
+    )
+    expect(loadingBody()).toHaveTextContent('Pane skeleton')
+    rerender(
+      <Pane loading={<p>Pane skeleton</p>}>
+        <Pane.Body loading={<p>Body skeleton</p>}>
+          <Wait on={data.promise}>Loaded</Wait>
+        </Pane.Body>
+      </Pane>
+    )
+    expect(loadingBody()).toHaveTextContent('Body skeleton')
+  })
+
+  it("puts the pane's loading under the skeleton header when the whole pane waits", async () => {
+    const data = later()
+    await renderPane(
+      <Pane loading={<p>Pane skeleton</p>}>
+        <Wait on={data.promise}>Loaded</Wait>
+      </Pane>
+    )
+    expect(loadingBody()).toHaveTextContent('Pane skeleton')
+    expect(document.querySelector('[data-slot="pane-header"]')).not.toBeNull()
   })
 })

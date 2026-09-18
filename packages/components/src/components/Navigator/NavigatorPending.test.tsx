@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, use } from 'react'
 
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -347,4 +347,50 @@ describe('a pane that says it is loading', () => {
     await tickOut()
     expect(glow()).toBeNull()
   })
+})
+
+describe('a pane whose content suspends', () => {
+  const Wait = ({ on }: { on: Promise<void> }) => {
+    use(on)
+    return 'Loaded'
+  }
+  const suspending = (on: Promise<void>, body: boolean) => (
+    <Shell>
+      <Pane column='list' depth={0}>
+        List
+      </Pane>
+      <Pane depth={1} data-testid='detail'>
+        <Pane.Header>
+          <Pane.Title>Ticket</Pane.Title>
+        </Pane.Header>
+        {body ? (
+          <Pane.Body>
+            <Wait on={on} />
+          </Pane.Body>
+        ) : (
+          <Wait on={on} />
+        )}
+      </Pane>
+    </Shell>
+  )
+
+  it.each([
+    ['anywhere in the pane', false],
+    ['in Pane.Body', true]
+  ])(
+    'reports the wait while it is %s, and ends it when the content lands',
+    async (_, body) => {
+      let resolve = () => {}
+      const data = new Promise<void>((done) => {
+        resolve = done
+      })
+      await renderShell(suspending(data, body))
+      await tick(PENDING_ARM)
+      expect(glow()).not.toBeNull()
+      await act(async () => resolve())
+      expect(screen.getByText('Loaded')).toBeInTheDocument()
+      await tickOut()
+      expect(glow()).toBeNull()
+    }
+  )
 })
