@@ -24,6 +24,7 @@ export type PaneSpec = {
   depth: number | 'deep'
   reached?: boolean
   overflow?: boolean
+  position?: 'top' | 'behind' | 'ahead'
 }
 
 export type RowSpec = {
@@ -51,7 +52,7 @@ const columnOf = (pane: PaneSpec) =>
 const flag = (on: boolean | undefined, name: string) => (on ? ` ${name}` : '')
 
 export function paneMarkup(level: number, pane: PaneSpec, inner = '') {
-  return `<section data-slot="pane" data-column="${columnOf(pane)}" data-stack data-level="${level}" data-depth="${pane.depth}"${flag(pane.reached, 'data-reached')}${flag(pane.overflow, 'data-overflow')} class="${paneVariants()}"><div data-slot="pane-back"><button>Back</button></div><div data-slot="pane-close"><button>Close</button></div>${inner}</section>`
+  return `<section data-slot="pane" data-column="${columnOf(pane)}" data-stack data-level="${level}" data-depth="${pane.depth}"${flag(pane.reached, 'data-reached')}${flag(pane.overflow, 'data-overflow')}${pane.position ? ` data-stack-position="${pane.position}"` : ''} class="${paneVariants()}"><div data-slot="pane-back"><button>Back</button></div><div data-slot="pane-close"><button>Close</button></div>${inner}</section>`
 }
 
 export function rowMarkup(spec: RowSpec) {
@@ -67,6 +68,31 @@ export function rowMarkup(spec: RowSpec) {
 
 export function contentMarkup(row: string) {
   return `<main data-slot="navigator-content" class="${navigatorContentClass}" style="height: 400px">${row}</main>`
+}
+
+/** The sheet as an engine without container style queries reads it: every such block is dropped. */
+export function withoutStyleQueries(css: string) {
+  let kept = ''
+  let at = 0
+  for (;;) {
+    const found = css.indexOf('@container', at)
+    if (found === -1) return kept + css.slice(at)
+    const open = css.indexOf('{', found)
+    if (!css.slice(found, open).includes('style(')) {
+      kept += css.slice(at, open + 1)
+      at = open + 1
+      continue
+    }
+    let depth = 1
+    let close = open + 1
+    while (depth > 0) {
+      if (css[close] === '{') depth += 1
+      if (css[close] === '}') depth -= 1
+      close += 1
+    }
+    kept += css.slice(at, found)
+    at = close
+  }
 }
 
 export function useStylesheet(css: string) {
@@ -157,6 +183,28 @@ function modelOf(spec: RowSpec): RowModel {
     }
   }
   return { levels, top, byRelativeDepth, hidden }
+}
+
+/** The positions Navigator writes once registered: the model's top, and the rest behind or ahead of it. */
+export function withPositions(spec: RowSpec): RowSpec {
+  const { top, byRelativeDepth, hidden } = modelOf(spec)
+  const topIndex = byRelativeDepth.get(top)
+  return {
+    ...spec,
+    panes: spec.panes.map((pane, index) => ({
+      ...pane,
+      position:
+        index === topIndex
+          ? 'top'
+          : hidden.has(index)
+            ? pane.overflow
+              ? 'ahead'
+              : 'behind'
+            : [...byRelativeDepth].find(([, at]) => at === index)![0] < top
+              ? 'behind'
+              : 'ahead'
+    }))
+  }
 }
 
 function columnsFor(widthPx: number, top: number, levels: number) {
