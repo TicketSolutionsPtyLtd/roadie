@@ -22,7 +22,7 @@ that lags one commit, because a pane registers after it renders. On a push the
 pane going behind still read as the top, so the scroll-to-top effect zeroed it;
 on the pop the same stale place returned early before the restore. The fix is to
 restore a remembered history entry before any guard, and to decide "this pane is
-the one being navigated to" from `current`, a prop with no lag.
+the one being navigated to" from `current` [now `reached`], a prop with no lag.
 
 `/debug/stack` is the canary. It is nested route layouts with a list pane and an
 event pane in one layout and the ticket pane as its own segment, so Back makes

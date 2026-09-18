@@ -103,7 +103,7 @@ keeps the walk sound — the rule is "these types, matched by identity", not
 "one level of any wrapper". A `<MyGroup>` wrapper is still invisible to the
 walk, and a tree authored in a server component still fails silently for all
 of them. `Navigator.Primary` itself must be a direct child of `Navigator`, which
-reads its children during render so the server render has its sections. A
+reads its children during render so the server render has its secondary navs. A
 Fragment or wrapper around it counts as not direct: the Primary draws nothing
 and warns in development. To split a long tree, write each part as a function
 you call (`{userRail(props)}`) rather than a component you render, calling any
@@ -137,7 +137,7 @@ arrive inside parallel-route slot nodes (`@primary`, `@secondary`), whose
 ever matched. No pane was recognised, no stack position was written, and every
 behaviour keyed off that silently went inert: no push/pop motion, panes
 overlapping with no ordering so taps landed on the wrong pane, covered panes
-still interactive, the mobile section nav permanently absent. It was not
+still interactive, the mobile secondary nav permanently absent. It was not
 consumer misuse — Roadie's own `Pane` docs compose panes literally, which
 works fine; it was Roadie's former app-shell recipe that prescribed parallel routes,
 and a layout receives slots as opaque nodes it can neither reach inside nor
