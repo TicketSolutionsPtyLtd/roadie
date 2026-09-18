@@ -71,11 +71,11 @@ export function Providers({ children }) {
           <p className='text-subtle'>
             Returns the <Code>Link</Code> passed to the nearest{' '}
             <Code>RoadieLinkProvider</Code>, or <Code>null</Code> when no
-            provider is mounted (or its <Code>Link</Code> is{' '}
-            <Code>null</Code>). This is how every Roadie component builds its
-            own href handling, and how you build one of your own: route
-            through the configured Link when there is one, render a plain{' '}
-            <Code>&lt;a&gt;</Code> when there isn&apos;t.
+            provider is mounted (or its <Code>Link</Code> is <Code>null</Code>).
+            This is how every Roadie component builds its own href handling, and
+            how you build one of your own: route through the configured Link
+            when there is one, render a plain <Code>&lt;a&gt;</Code> when there
+            isn&apos;t.
           </p>
           <CodePreview>{`import { useRoadieLink, type RoadieLinkProps } from '@oztix/roadie-components'
 
@@ -98,10 +98,10 @@ function TrackedLink({ href, children, ...props }: RoadieLinkProps) {
           <p className='text-subtle'>
             Reports a navigation Roadie can&apos;t see, such as your own{' '}
             <Code>router.push</Code>. Roadie&apos;s own links already call{' '}
-            <Code>start</Code> for you. Reach for this only when you start
-            the navigation yourself. Call <Code>start</Code> from the event
-            handler that kicks it off; from a layout effect it schedules a
-            render React refuses.
+            <Code>start</Code> for you. Reach for this only when you start the
+            navigation yourself. Call <Code>start</Code> from the event handler
+            that kicks it off; from a layout effect it schedules a render React
+            refuses.
           </p>
           <div className='overflow-x-auto'>
             <table className='w-full border-collapse text-sm'>
@@ -133,16 +133,15 @@ function TrackedLink({ href, children, ...props }: RoadieLinkProps) {
                     <Code>() =&gt; void</Code>
                   </td>
                   <td>
-                    Ends it early. The route landing calls this for you. Call
-                    it yourself only when the navigation never happens.
+                    Ends it early. The route landing calls this for you. Call it
+                    yourself only when the navigation never happens.
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
           <p className='text-subtle'>
-            Both are no-ops when no <Code>RoadieLinkProvider</Code> is
-            mounted.
+            Both are no-ops when no <Code>RoadieLinkProvider</Code> is mounted.
           </p>
           <CodePreview>{`const { start, stop } = usePendingNavigation()
 
@@ -163,7 +162,8 @@ const buy = async () => {
         <h2 className='text-display-ui-3 text-strong'>How href is resolved</h2>
         <p className='text-subtle'>
           The same rules apply to every link-bearing component. The decision is
-          pure and SSR-safe, with no hydration mismatches and no client-only checks.
+          pure and SSR-safe, with no hydration mismatches and no client-only
+          checks.
         </p>
         <div className='overflow-x-auto'>
           <table className='w-full border-collapse text-sm'>
@@ -439,7 +439,8 @@ const buy = async () => {
           brief flicker between selection and route change. Recommended pattern:
           derive <Code>value</Code> from the route itself (e.g. via{' '}
           <Code>usePathname()</Code>) so route is the source of truth. Normalise
-          it first, since tab matching is exact, so a trailing slash selects nothing.
+          it first, since tab matching is exact, so a trailing slash selects
+          nothing.
         </p>
       </section>
 

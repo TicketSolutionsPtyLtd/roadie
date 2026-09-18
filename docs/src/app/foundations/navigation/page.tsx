@@ -1072,8 +1072,8 @@ export default function NavigationPage() {
           yourself, such as a <Code>router.push</Code>, report it with{' '}
           <Code>usePendingNavigation</Code>, documented on{' '}
           <Link href='/foundations/linking#hooks'>Linking</Link> alongside{' '}
-          <Code>useRoadieLink</Code>. <Code>useNavigatorSecondary</Code>{' '}
-          lives on <Link href='/components/navigator#hooks'>Navigator</Link>.
+          <Code>useRoadieLink</Code>. <Code>useNavigatorSecondary</Code> lives
+          on <Link href='/components/navigator#hooks'>Navigator</Link>.
         </p>
       </section>
 

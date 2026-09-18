@@ -201,8 +201,8 @@ try {
           React hydration runs after the first paint, so an app that only sets
           the accent inside <Code>ThemeProvider</Code> will flash the default
           blue for ~200–400ms on cold loads. For apps that know the accent
-          colour on the server (per-tenant branding, promoter-branded pages,
-          SSG routes), use the synchronous bootstrap helpers to inject{' '}
+          colour on the server (per-tenant branding, promoter-branded pages, SSG
+          routes), use the synchronous bootstrap helpers to inject{' '}
           <Code>--accent-hue</Code> and <Code>--accent-chroma</Code> before the
           first paint.
         </p>
@@ -346,16 +346,16 @@ const html = getBootstrapScript({
         </CodePreview>
         <ul className='grid list-disc gap-2 pl-5 text-sm text-subtle'>
           <li>
-            <Code>followSystem</Code>: respect{' '}
-            <Code>prefers-color-scheme</Code> until the user explicitly toggles.
+            <Code>followSystem</Code>: respect <Code>prefers-color-scheme</Code>{' '}
+            until the user explicitly toggles.
           </li>
           <li>
             <Code>defaultDark</Code>: initial dark state when no preference is
             stored.
           </li>
           <li>
-            <Code>useTheme().setDark(boolean)</Code>: persist an explicit
-            choice to <Code>localStorage</Code>.
+            <Code>useTheme().setDark(boolean)</Code>: persist an explicit choice
+            to <Code>localStorage</Code>.
           </li>
           <li>
             <Code>useTheme().isDark</Code>: current state, reactive.
