@@ -64,7 +64,7 @@ jobs:
         uses: ./.github/composite-actions/setup
 
       - name: Install Playwright browsers
-        run: pnpm --filter @oztix/roadie-components exec playwright install --with-deps chromium webkit firefox
+        run: pnpm exec playwright install --with-deps chromium webkit firefox
 
       - name: Browser tests
         run: pnpm turbo test:browser --affected --framework-inference=false
