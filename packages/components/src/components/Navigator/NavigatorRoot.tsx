@@ -20,7 +20,7 @@ import { cn } from '@oztix/roadie-core/utils'
 import { scrollToTop } from '../../utils/reducedMotion'
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { PaneStackContext } from '../Pane/PaneStackContext'
-import type { PanePrimaryNav } from '../Pane/variants'
+import type { PaneTabBar } from '../Pane/variants'
 import { NavigatorContent } from './NavigatorContent'
 import {
   type NavigatorActions,
@@ -144,7 +144,7 @@ export function NavigatorRoot({
   useExpandMotion(rootRef, expanded, expandedPending)
   const primaryId = useId()
   const [navCollapsed, setNavCollapsed] = useState(false)
-  const [primaryNav, setPrimaryNav] = useState<PanePrimaryNav>('auto')
+  const [tabBar, setTabBar] = useState<PaneTabBar>('auto')
   const [pinExpanded, setPinExpanded] = useState(false)
   const latestPrimaryChildren = useRef<ReactNode>(null)
   const moreControlled = showMore !== undefined
@@ -285,7 +285,7 @@ export function NavigatorRoot({
   const actions: NavigatorActions = {
     setValue: (next) => handlers.current.onValueChange?.(next),
     setNavCollapsed,
-    setPrimaryNav,
+    setTabBar,
     setPinExpanded,
     scrollActivePaneToTop,
     primaryDerived,
@@ -320,7 +320,7 @@ export function NavigatorRoot({
     overflowItems
   }
   const expansion: NavigatorExpansion = { expanded, expandedPending }
-  const bar: NavigatorBar = { navCollapsed, primaryNav, pinExpanded }
+  const bar: NavigatorBar = { navCollapsed, tabBar, pinExpanded }
 
   return (
     <NavigatorActionsContext value={actions}>

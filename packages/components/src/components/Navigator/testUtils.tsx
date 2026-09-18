@@ -295,7 +295,7 @@ export function panesShownAt(columns: number) {
   const hiding = rules.filter(
     (rule) =>
       rule.body === 'display: none !important;' &&
-      !rule.selector.includes('[data-role="inspector"]')
+      !rule.selector.includes('[data-column="inspector"]')
   )
   if (
     hiding.some((rule) => rule.conditions.some((c) => !c.startsWith('@layer')))
@@ -320,7 +320,7 @@ export function panesShownAt(columns: number) {
     .map((pane) =>
       pane.hasAttribute('data-overflow')
         ? 'More'
-        : (pane.dataset.navigatorSection ?? pane.dataset.role)
+        : (pane.dataset.navigatorSection ?? pane.dataset.column)
     )
 }
 

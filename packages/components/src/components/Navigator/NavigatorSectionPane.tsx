@@ -13,7 +13,6 @@ import type { NavigatorActiveSection } from './NavigatorContext'
 import { NavigatorSectionItems } from './NavigatorSectionItems'
 import { textOf } from './splitSecondary'
 
-// Never `current`: first in the stack, so it is the root.
 export function NavigatorSectionPane({
   section
 }: {
@@ -24,7 +23,7 @@ export function NavigatorSectionPane({
 
   return (
     <PaneKindContext value='generated-section'>
-      <PaneRoot role='list' data-navigator-section={section.value}>
+      <PaneRoot column='list' data-navigator-section={section.value}>
         <PaneHeader>
           <PaneTitle>{label}</PaneTitle>
           {secondary.searchable ? (

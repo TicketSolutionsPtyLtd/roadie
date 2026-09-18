@@ -13,7 +13,7 @@ import {
 
 export type NavigatorOverflowPaneProps = Omit<
   PaneRootProps,
-  'role' | 'current' | 'depth' | 'primaryNav' | 'id'
+  'column' | 'reached' | 'depth' | 'tabBar' | 'id'
 >
 
 /** Your own More pane. Without it, `Navigator.Content` generates one. */
@@ -55,9 +55,9 @@ export function NavigatorOverflowPane({
       <PaneRoot
         ref={ref}
         id={overflowPaneId}
-        role='list'
-        current={overflowOpen}
-        primaryNav='visible'
+        column='list'
+        reached={overflowOpen}
+        tabBar='visible'
         className={className}
         {...props}
       >

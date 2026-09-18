@@ -90,7 +90,7 @@ function Docs({
     <Navigator value={value}>
       {primary}
       <Navigator.Content>
-        <Pane role='detail' current>
+        <Pane>
           <Probe value={probeValue} log={log} />
         </Pane>
       </Navigator.Content>
@@ -200,7 +200,7 @@ describe('useNavigatorSection when the declaration changes', () => {
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail' current>
+          <Pane>
             <Probe log={log} />
           </Pane>
         </Navigator.Content>

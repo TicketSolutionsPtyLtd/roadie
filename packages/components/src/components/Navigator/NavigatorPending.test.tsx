@@ -79,10 +79,10 @@ function Shell({
 
 const twoPanes = (
   <>
-    <Pane role='list' depth={0} data-testid='list'>
+    <Pane column='list' depth={0} data-testid='list'>
       List
     </Pane>
-    <Pane role='detail' depth={1} current data-testid='detail'>
+    <Pane depth={1} data-testid='detail'>
       Detail
     </Pane>
   </>
@@ -152,13 +152,13 @@ describe('the frame while a navigation is pending', () => {
   it('draws on the outermost frame alone', async () => {
     await renderShell(
       <Shell>
-        <Pane role='list' depth={0}>
+        <Pane column='list' depth={0}>
           List
         </Pane>
-        <Pane role='detail' depth={1} current>
+        <Pane depth={1}>
           <Navigator value='/inner'>
             <Navigator.Content>
-              <Pane role='list' depth={0}>
+              <Pane column='list' depth={0}>
                 Inner
               </Pane>
             </Navigator.Content>
@@ -178,7 +178,7 @@ describe('the frame while a navigation is pending', () => {
     await renderShell(
       <Shell>
         {twoPanes}
-        <Pane role='inspector'>Inspector</Pane>
+        <Pane column='inspector'>Inspector</Pane>
       </Shell>
     )
     await clickBeta()
@@ -209,10 +209,10 @@ describe('what ends it', () => {
   it('a sibling swapped in under the same destination', async () => {
     const swapped = (
       <>
-        <Pane role='list' depth={0}>
+        <Pane column='list' depth={0}>
           List
         </Pane>
-        <Pane key='second' role='detail' depth={1} current>
+        <Pane key='second' depth={1}>
           Another detail
         </Pane>
       </>
@@ -245,17 +245,17 @@ describe('what ends it', () => {
     expect(glow()).toBeNull()
   })
 
-  // `current` moving between panes that are all already mounted is a disclosure
+  // `reached` moving between panes that are all already mounted is a disclosure
   // opening or closing, not content arriving. More is the costly case: its pane
   // stays mounted, so a destination tapped from inside More would settle the
   // wait it just started and never show the indicator.
-  it('not `current` moving with every pane still in place', async () => {
+  it('not `reached` moving with every pane still in place', async () => {
     const row = (deep: boolean) => (
       <Shell>
-        <Pane role='list' depth={0} current={!deep} data-testid='list'>
+        <Pane column='list' depth={0} reached={!deep} data-testid='list'>
           List
         </Pane>
-        <Pane role='detail' depth={1} current={deep} data-testid='detail'>
+        <Pane depth={1} reached={deep} data-testid='detail'>
           Detail
         </Pane>
       </Shell>
@@ -274,10 +274,10 @@ describe('what ends it', () => {
 describe('skeletons', () => {
   const skeletons = (
     <>
-      <Pane role='list' depth={0}>
+      <Pane column='list' depth={0}>
         List
       </Pane>
-      <Pane role='detail' depth={1} current>
+      <Pane depth={1}>
         <Skeleton />
       </Pane>
     </>
@@ -298,10 +298,10 @@ describe('skeletons', () => {
   it('keep it up when the loading pane says it is waiting', async () => {
     const held = (
       <>
-        <Pane role='list' depth={0}>
+        <Pane column='list' depth={0}>
           List
         </Pane>
-        <Pane role='detail' depth={1} current pending>
+        <Pane depth={1} pending>
           <Skeleton />
         </Pane>
       </>
@@ -322,16 +322,10 @@ describe('skeletons', () => {
 describe('a pane that says it is loading', () => {
   const inPlace = (pending: boolean) => (
     <Shell>
-      <Pane role='list' depth={0}>
+      <Pane column='list' depth={0}>
         List
       </Pane>
-      <Pane
-        role='detail'
-        depth={1}
-        current
-        pending={pending}
-        data-testid='detail'
-      >
+      <Pane depth={1} pending={pending} data-testid='detail'>
         Detail
       </Pane>
     </Shell>

@@ -12,7 +12,7 @@ import {
 
 export type NavigatorSecondaryPaneProps = Omit<
   PaneRootProps,
-  'role' | 'current' | 'depth' | 'primaryNav' | 'id'
+  'column' | 'reached' | 'depth' | 'tabBar' | 'id'
 > & {
   /** The section whose generated pane this replaces. */
   value: string
@@ -36,7 +36,7 @@ export function NavigatorSecondaryPane({
   }
   return (
     <PaneKindContext value='section'>
-      <PaneRoot role='list' data-navigator-section={value} {...props} />
+      <PaneRoot column='list' data-navigator-section={value} {...props} />
     </PaneKindContext>
   )
 }

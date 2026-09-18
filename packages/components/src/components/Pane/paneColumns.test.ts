@@ -46,7 +46,7 @@ const stackStates = (levels: number) =>
   [false, true].flatMap((reveal) =>
     Array.from({ length: 2 ** levels }, (_, bits) => ({
       reveal,
-      current: Array.from(
+      reached: Array.from(
         { length: levels },
         (_, depth) => (bits & (1 << depth)) !== 0
       )
@@ -55,14 +55,14 @@ const stackStates = (levels: number) =>
 
 const stackRow = (
   level: number,
-  current: boolean[],
+  reached: boolean[],
   reveal: boolean,
   { base = 0, closedMore = false } = {}
 ) =>
-  `<div data-slot="navigator-panes" data-level="${level}" ${reveal ? 'data-reveal' : ''}>${current
+  `<div data-slot="navigator-panes" data-level="${level}" ${reveal ? 'data-reveal' : ''}>${reached
     .map(
-      (isCurrent, depth) =>
-        `<div data-slot="pane" data-stack data-level="${level}" data-depth="${base + depth}" ${isCurrent ? 'data-current' : ''}></div>`
+      (isReached, depth) =>
+        `<div data-slot="pane" data-stack data-level="${level}" data-depth="${base + depth}" ${isReached ? 'data-reached' : ''}></div>`
     )
     .join(
       ''
@@ -126,7 +126,7 @@ describe('tiers', () => {
 })
 
 describe('paneCell — the prototype evidence', () => {
-  it('Tickets → Glamping → Sam, Sam current', () => {
+  it('Tickets → Glamping → Sam, Sam reached', () => {
     expect(shown(columnsAt(375, 2, 3), 2, 3)).toBe('2[Back]')
     expect(shown(columnsAt(760, 2, 3), 2, 3)).toBe('2[Back]')
     expect(shown(columnsAt(932, 2, 3), 2, 3)).toBe('1[Back] | 2[Close]')
@@ -179,14 +179,14 @@ describe('paneCell — the prototype evidence', () => {
   })
 })
 
-describe('agreement with derivePositions, in every current and reveal state', () => {
-  it('puts the top where deriveTopIndex does, a current root included', () => {
+describe('agreement with derivePositions, in every reached and reveal state', () => {
+  it('puts the top where deriveTopIndex does, a reached root included', () => {
     for (let levels = 1; levels <= PANE_MAX_DEPTH + 1; levels += 1) {
-      for (const { reveal, current } of stackStates(levels)) {
-        const entries = current.map((isCurrent): PaneEntry => ({
-          role: 'detail',
-          current: isCurrent,
-          primaryNav: 'auto'
+      for (const { reveal, reached } of stackStates(levels)) {
+        const entries = reached.map((isReached): PaneEntry => ({
+          column: 'detail',
+          reached: isReached,
+          tabBar: 'auto'
         }))
         const positions = derivePositions(entries, reveal)
         const top = positions.indexOf('top')
@@ -197,10 +197,10 @@ describe('agreement with derivePositions, in every current and reveal state', ()
     }
   })
 
-  it('treats a current root as the top of its stack', () => {
+  it('treats a reached root as the top of its stack', () => {
     const entries: PaneEntry[] = [
-      { role: 'list', current: true, primaryNav: 'auto' },
-      { role: 'detail', current: false, primaryNav: 'auto' }
+      { column: 'list', reached: true, tabBar: 'auto' },
+      { column: 'detail', reached: false, tabBar: 'auto' }
     ]
     expect(derivePositions(entries)).toEqual(['top', 'ahead'])
     expect(paneCell(1, 0, 0, 2).slot).toBe('top')
@@ -238,9 +238,9 @@ describe('the rules a real row matches', () => {
 
   it('lays every stack pane out in the slot paneCell names from its tier, and one column fewer just short of it', () => {
     for (let levels = 1; levels <= PANE_MAX_DEPTH + 1; levels += 1) {
-      for (const { reveal, current } of stackStates(levels)) {
-        const $ = html(stackRow(0, current, reveal))
-        const top = reveal ? 0 : Math.max(0, current.lastIndexOf(true))
+      for (const { reveal, reached } of stackStates(levels)) {
+        const $ = html(stackRow(0, reached, reveal))
+        const top = reveal ? 0 : Math.max(0, reached.lastIndexOf(true))
         for (let columns = 1; columns <= PANE_MAX_COLUMNS; columns += 1) {
           for (const width of widthsOf(columns, top, levels)) {
             for (let depth = 0; depth < levels; depth += 1) {
@@ -248,7 +248,7 @@ describe('the rules a real row matches', () => {
                 $(`[data-depth="${depth}"]`),
                 width.at,
                 paneCell(width.columns, top, depth, levels),
-                `levels ${levels}, reveal ${reveal}, current ${current}, ${width.at}rem, depth ${depth}`
+                `levels ${levels}, reveal ${reveal}, reached ${reached}, ${width.at}rem, depth ${depth}`
               )
             }
           }
@@ -270,10 +270,10 @@ describe('the rules a real row matches', () => {
     }
 
     for (let levels = 1; levels <= PANE_MAX_DEPTH + 1; levels += 1) {
-      for (const { reveal, current } of stackStates(levels)) {
-        const $ = html(stackRow(0, current, reveal))
-        const top = reveal ? 0 : Math.max(0, current.lastIndexOf(true))
-        const where = `levels ${levels}, reveal ${reveal}, current ${current}`
+      for (const { reveal, reached } of stackStates(levels)) {
+        const $ = html(stackRow(0, reached, reveal))
+        const top = reveal ? 0 : Math.max(0, reached.lastIndexOf(true))
+        const where = `levels ${levels}, reveal ${reveal}, reached ${reached}`
         for (let columns = 1; columns <= PANE_MAX_COLUMNS; columns += 1) {
           for (const width of widthsOf(columns, top, levels)) {
             const panes = Array.from({ length: levels }, (_, depth) =>
@@ -308,9 +308,9 @@ describe('the rules a real row matches', () => {
   it('reads a row with nothing at depth 0 one depth shallower, so its first pane is the root', () => {
     for (const closedMore of [false, true]) {
       for (let levels = 1; levels <= 3; levels += 1) {
-        for (const { reveal, current } of stackStates(levels)) {
-          const $ = html(stackRow(0, current, reveal, { base: 1, closedMore }))
-          const top = reveal ? 0 : Math.max(0, current.lastIndexOf(true))
+        for (const { reveal, reached } of stackStates(levels)) {
+          const $ = html(stackRow(0, reached, reveal, { base: 1, closedMore }))
+          const top = reveal ? 0 : Math.max(0, reached.lastIndexOf(true))
           for (let columns = 1; columns <= PANE_MAX_COLUMNS; columns += 1) {
             for (const width of widthsOf(columns, top, levels)) {
               for (let depth = 0; depth < levels; depth += 1) {
@@ -318,7 +318,7 @@ describe('the rules a real row matches', () => {
                   $(`[data-depth="${depth + 1}"]:not([data-overflow])`),
                   width.at,
                   paneCell(width.columns, top, depth, levels),
-                  `closed More ${closedMore}, levels ${levels}, reveal ${reveal}, current ${current}, ${width.at}rem, written depth ${depth + 1}`
+                  `closed More ${closedMore}, levels ${levels}, reveal ${reveal}, reached ${reached}, ${width.at}rem, written depth ${depth + 1}`
                 )
               }
             }
@@ -330,7 +330,7 @@ describe('the rules a real row matches', () => {
 
   it('keeps an open More as the root of a row with no list', () => {
     const $ = html(
-      `<div data-slot="navigator-panes" data-level="0" data-reveal data-overflow><div data-slot="pane" data-stack data-level="0" data-depth="1" data-current></div><div data-slot="pane" data-stack data-level="0" data-depth="0" data-overflow data-current></div></div>`
+      `<div data-slot="navigator-panes" data-level="0" data-reveal data-overflow><div data-slot="pane" data-stack data-level="0" data-depth="1" data-reached></div><div data-slot="pane" data-stack data-level="0" data-depth="0" data-overflow data-reached></div></div>`
     )
     const more = $('[data-overflow][data-depth="0"]')
     const detail = $('[data-depth="1"]')
@@ -342,15 +342,15 @@ describe('the rules a real row matches', () => {
     expect(at(2, detail)).toBe('fill')
   })
 
-  it('covers the row with a current pane past depth 3, drawing Back and never Close', () => {
+  it('covers the row with a reached pane past depth 3, drawing Back and never Close', () => {
     const matched = (pane: Element) =>
       rules.filter((rule) => pane.matches(rule.selector))
     const shows = (pane: Element) =>
       matched(pane).some((rule) => rule.body.includes('visibility: visible'))
 
-    const deepRow = (current: boolean[], reveal: boolean) =>
+    const deepRow = (reached: boolean[], reveal: boolean) =>
       html(
-        stackRow(0, current, reveal).replace(
+        stackRow(0, reached, reveal).replace(
           'data-depth="4"',
           'data-depth="deep"'
         )
@@ -412,7 +412,7 @@ describe('a page step', () => {
     animating.find((rule) => element.matches(rule.selector))?.body ?? null
   const stepRow = (step?: 'push' | 'pop', level = 0) =>
     html(
-      `<div data-slot="navigator-panes" data-level="${level}" ${step ? `data-page-step="${step}"` : ''}><div data-slot="pane" data-stack data-level="${level}" data-depth="0" data-stack-position="behind"></div><div data-slot="pane" data-stack data-level="${level}" data-depth="1" data-current data-stack-position="top"></div><div data-slot="navigator-page-ghost"></div></div>`
+      `<div data-slot="navigator-panes" data-level="${level}" ${step ? `data-page-step="${step}"` : ''}><div data-slot="pane" data-stack data-level="${level}" data-depth="0" data-stack-position="behind"></div><div data-slot="pane" data-stack data-level="${level}" data-depth="1" data-reached data-stack-position="top"></div><div data-slot="navigator-page-ghost"></div></div>`
     )
 
   it('slides only a stacked row, and only with motion allowed', () => {
@@ -546,7 +546,7 @@ describe('parent tracks follow the columns a row shows', () => {
         false
       ).replace(
         '</div></div>',
-        '</div><div data-slot="pane" data-role="inspector" data-level="0"></div></div>'
+        '</div><div data-slot="pane" data-column="inspector" data-level="0"></div></div>'
       )
     )
 
@@ -586,7 +586,7 @@ describe('parent tracks follow the columns a row shows', () => {
   it.each([1, 2, 3])(
     'never shows the inspector while the row is stacked, %i levels',
     (levels) => {
-      const inspector = inspectorRow(levels)('[data-role="inspector"]')
+      const inspector = inspectorRow(levels)('[data-column="inspector"]')
       expect(inspectorHideThreshold(inspector)).toBeGreaterThanOrEqual(
         rowTier(2, levels - 1, levels) * REM
       )
@@ -598,7 +598,7 @@ describe('parent tracks follow the columns a row shows', () => {
     'never squeezes the fill below its minimum beside a shown inspector, %i levels',
     (levels) => {
       const $ = inspectorRow(levels)
-      const inspector = $('[data-role="inspector"]')
+      const inspector = $('[data-column="inspector"]')
       const panes = Array.from({ length: levels }, (_, depth) =>
         $(`[data-depth="${depth}"]`)
       )
@@ -696,17 +696,17 @@ describe('the generated stylesheet', () => {
     let $ = html(
       stackRow(0, [false, true], false, { closedMore: true }).replace(
         '</div></div>',
-        '</div><div data-slot="pane" data-role="inspector" data-level="0" class="grid"></div></div>'
+        '</div><div data-slot="pane" data-column="inspector" data-level="0" class="grid"></div></div>'
       )
     )
-    expect(hiddenAt($('[data-role="inspector"]'), tier - 1)).toBe(true)
-    expect(hiddenAt($('[data-role="inspector"]'), tier)).toBe(false)
+    expect(hiddenAt($('[data-column="inspector"]'), tier - 1)).toBe(true)
+    expect(hiddenAt($('[data-column="inspector"]'), tier)).toBe(false)
     expect(hiddenAt($('[data-overflow]'), tier)).toBe(true)
 
     $ = html(
-      '<div data-slot="navigator-panes" data-level="0"><div data-slot="pane" data-role="inspector" data-level="0"></div></div>'
+      '<div data-slot="navigator-panes" data-level="0"><div data-slot="pane" data-column="inspector" data-level="0"></div></div>'
     )
-    expect(hiddenAt($('[data-role="inspector"]'), 2000)).toBe(true)
+    expect(hiddenAt($('[data-column="inspector"]'), 2000)).toBe(true)
   })
 
   it("keeps an outer More's state out of a nested row", () => {
@@ -898,7 +898,7 @@ describe('the generated stylesheet', () => {
       `<div data-slot="navigator-panes" data-level="${level}">${Array.from(
         { length: levels },
         (_, depth) =>
-          `<div data-slot="pane" data-stack data-level="${level}" data-depth="${depth}" ${depth === levels - 1 ? 'data-current' : ''}>${depth === levels - 1 ? inner : ''}</div>`
+          `<div data-slot="pane" data-stack data-level="${level}" data-depth="${depth}" ${depth === levels - 1 ? 'data-reached' : ''}>${depth === levels - 1 ? inner : ''}</div>`
       ).join('')}</div>`
     const trigger = '<button id="trigger"></button>'
 
@@ -940,7 +940,7 @@ describe('the generated stylesheet', () => {
     const css = renderPaneColumnsCss()
     const rules = css
       .split('\n')
-      .filter((line) => line.includes('[data-role="inspector"][data-level'))
+      .filter((line) => line.includes('[data-column="inspector"][data-level'))
     expect(rules).toHaveLength(9 * PANE_MAX_LEVELS)
     for (const rule of rules) {
       const levels = new Set(rule.match(/\[data-level="(\d)"\]/g))
@@ -1117,9 +1117,9 @@ describe('a pane that mounts as the top', () => {
   })
 
   it('slides in over a shallower pane, and never as the row it arrives with', () => {
-    const row = (pushing: boolean, current: boolean[]) =>
+    const row = (pushing: boolean, reached: boolean[]) =>
       html(
-        stackRow(0, current, false).replace(
+        stackRow(0, reached, false).replace(
           'data-level="0" ',
           `data-level="0" ${pushing ? 'data-pushing' : ''} `
         )
@@ -1166,19 +1166,19 @@ describe('panes without the new attributes', () => {
       <div data-slot="navigator">
         <div data-slot="navigator-primary" data-orientation="vertical"></div>
         <div data-slot="navigator-content">
-          <div data-slot="pane" data-role="list" data-current>
+          <div data-slot="pane" data-column="list" data-reached>
             <div data-slot="pane-header">
               <div data-slot="pane-back"></div>
               <div data-slot="pane-close"></div>
             </div>
           </div>
-          <div data-slot="pane" data-role="detail" data-overflow>
+          <div data-slot="pane" data-column="detail" data-overflow>
             <div data-slot="pane-header">
               <div data-slot="pane-back"></div>
               <div data-slot="pane-close"></div>
             </div>
           </div>
-          <div data-slot="pane" data-role="inspector"></div>
+          <div data-slot="pane" data-column="inspector"></div>
         </div>
       </div>`)
     const elements = Array.from(

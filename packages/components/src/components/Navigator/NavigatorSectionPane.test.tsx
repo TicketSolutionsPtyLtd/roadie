@@ -29,11 +29,11 @@ const sectionPane = () =>
 function Docs({
   value = '/components/button',
   searchable = true,
-  detailCurrent = true
+  detailReached = true
 }: {
   value?: string
   searchable?: boolean
-  detailCurrent?: boolean
+  detailReached?: boolean
 }) {
   return (
     <Navigator value={value}>
@@ -77,9 +77,7 @@ function Docs({
         </Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='detail' current={detailCurrent}>
-          Detail
-        </Pane>
+        <Pane reached={detailReached}>Detail</Pane>
       </Navigator.Content>
     </Navigator>
   )
@@ -93,7 +91,7 @@ describe('generated section pane', () => {
     await flushViewportMeasurement()
     const pane = sectionPane()!
     expect(panes()[0]).toBe(pane)
-    expect(pane).toHaveAttribute('data-role', 'list')
+    expect(pane).toHaveAttribute('data-column', 'list')
     expect(pane).toHaveAttribute('data-navigator-section', '/components')
     expect(
       within(pane).getByRole('heading', { name: 'Components', level: 2 })
@@ -102,8 +100,8 @@ describe('generated section pane', () => {
     expect(panes()[1]).toHaveAttribute('data-stack-position', 'top')
   })
 
-  it('is the top of the stack when no consumer pane is current', async () => {
-    render(<Docs value='/components' detailCurrent={false} />)
+  it('is the top of the stack when no consumer pane is reached', async () => {
+    render(<Docs value='/components' detailReached={false} />)
     await flushViewportMeasurement()
     expect(sectionPane()).toHaveAttribute('data-stack-position', 'top')
   })
@@ -266,9 +264,7 @@ describe('generated section pane', () => {
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -400,9 +396,7 @@ describe('section pane groups', () => {
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -453,9 +447,7 @@ function Override({ wrapped = false }: { wrapped?: boolean }) {
       </Navigator.Primary>
       <Navigator.Content>
         {wrapped ? <Wrapper>{pane}</Wrapper> : pane}
-        <Pane role='detail' current>
-          Detail
-        </Pane>
+        <Pane>Detail</Pane>
       </Navigator.Content>
     </Navigator>
   )
@@ -516,9 +508,7 @@ describe('Navigator.SecondaryPane', () => {
           <Navigator.SecondaryPane value='/components'>
             <p>Promo</p>
           </Navigator.SecondaryPane>
-          <Pane role='detail' current>
-            Start
-          </Pane>
+          <Pane>Start</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -562,11 +552,7 @@ function InactiveOverride({
       </Navigator.Primary>
       <Navigator.Content>
         {wrapped ? <Wrapper>{pane}</Wrapper> : pane}
-        {detail ? (
-          <Pane role='detail' current>
-            Detail
-          </Pane>
-        ) : null}
+        {detail ? <Pane>Detail</Pane> : null}
       </Navigator.Content>
     </Navigator>
   )
@@ -648,7 +634,7 @@ function Routed({
         </Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='detail' current>
+        <Pane>
           <Pane.Header backHref={detailBackHref} />
           Detail
           {detailExtra}
@@ -685,7 +671,7 @@ const backOf = (pane: HTMLElement) => {
 }
 
 describe('section routes', () => {
-  it('puts the list on top on the section route, even with a current detail', async () => {
+  it('puts the list on top on the section route, even with a reached detail', async () => {
     render(<Routed value='/components' />)
     await flushViewportMeasurement()
     expect(sectionPane()).toHaveAttribute('data-stack-position', 'top')
@@ -730,7 +716,7 @@ describe('section routes', () => {
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail' current>
+          <Pane>
             <Pane.Header />
             Detail
           </Pane>
@@ -764,7 +750,7 @@ describe('section routes', () => {
           ))}
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail' current>
+          <Pane>
             <Pane.Header />
             Detail
           </Pane>
@@ -853,10 +839,10 @@ describe('back chrome by depth', () => {
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail' current aria-label='Glamping'>
+          <Pane aria-label='Glamping'>
             <Pane.Header />
           </Pane>
-          <Pane role='detail' depth={2} current aria-label='Sam'>
+          <Pane depth={2} aria-label='Sam'>
             <Pane.Header backHref='/tickets/glamping' backLabel='Glamping' />
           </Pane>
         </Navigator.Content>
@@ -940,10 +926,8 @@ describe('More open over the root', () => {
         ))}
       </Navigator.Primary>
       <Navigator.Content>
-        {list ? <Pane role='list'>List</Pane> : null}
-        <Pane role='detail' current>
-          Detail
-        </Pane>
+        {list ? <Pane column='list'>List</Pane> : null}
+        <Pane>Detail</Pane>
       </Navigator.Content>
     </Navigator>
   )
@@ -954,7 +938,7 @@ describe('More open over the root', () => {
       (pane) => [
         pane.hasAttribute('data-overflow')
           ? 'More'
-          : (pane.dataset.navigatorSection ?? pane.dataset.role),
+          : (pane.dataset.navigatorSection ?? pane.dataset.column),
         pane.dataset.depth
       ]
     )
@@ -1051,9 +1035,7 @@ describe('More open over the root', () => {
                 Own list
               </Navigator.SecondaryPane>
             ) : null}
-            <Pane role='detail' current>
-              Detail
-            </Pane>
+            <Pane>Detail</Pane>
           </Navigator.Content>
         </Navigator>
       )
@@ -1082,7 +1064,9 @@ describe('depth while panes come and go', () => {
     const seen: (string | null)[] = []
     const observer = new MutationObserver((records) => {
       for (const record of records) {
-        if ((record.target as Element).getAttribute('data-role') === 'detail') {
+        if (
+          (record.target as Element).getAttribute('data-column') === 'detail'
+        ) {
           seen.push(record.oldValue)
         }
       }
@@ -1096,7 +1080,9 @@ describe('depth while panes come and go', () => {
       const records = observer.takeRecords()
       observer.disconnect()
       for (const record of records) {
-        if ((record.target as Element).getAttribute('data-role') === 'detail') {
+        if (
+          (record.target as Element).getAttribute('data-column') === 'detail'
+        ) {
           seen.push(record.oldValue)
         }
       }
@@ -1110,7 +1096,7 @@ describe('depth while panes come and go', () => {
     await flushViewportMeasurement()
     await flushViewportMeasurement()
     const detail = document.querySelector(
-      '[data-slot="pane"][data-role="detail"]'
+      '[data-slot="pane"][data-column="detail"]'
     )
     expect(detail).toHaveAttribute('data-depth', '1')
     expect(stop()).not.toContain('2')
@@ -1158,7 +1144,7 @@ describe('depth while panes come and go', () => {
                 <p>Promo</p>
               </Navigator.SecondaryPane>
             ) : null}
-            <Pane role='detail' current>
+            <Pane>
               <Probe />
             </Pane>
           </Navigator.Content>
@@ -1207,15 +1193,13 @@ describe('depth while panes come and go', () => {
           ))}
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
     await flushViewportMeasurement()
     const detail = container.querySelector(
-      '[data-slot="pane"][data-role="detail"]'
+      '[data-slot="pane"][data-column="detail"]'
     )!
     const stop = watchDetailDepth(container)
     await user.click(
@@ -1227,7 +1211,7 @@ describe('depth while panes come and go', () => {
     )
     await flushViewportMeasurement()
     const more = container.querySelector('[data-slot="pane"][data-overflow]')
-    expect(more).toHaveAttribute('data-current')
+    expect(more).toHaveAttribute('data-reached')
     expect(more).toHaveAttribute('data-depth', '0')
     expect(detail).toHaveAttribute('data-depth', '1')
     expect(stop()).not.toContain('0')
@@ -1284,7 +1268,7 @@ function PageRooted({
             <Navigator.SectionItems showDescriptions={false} />
           </Navigator.SecondaryPane>
         ) : null}
-        <Pane role='detail' current>
+        <Pane>
           <Pane.Header />
           Detail
         </Pane>
@@ -1360,9 +1344,7 @@ describe('page roots', () => {
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -1520,7 +1502,7 @@ describe('row handlers resolve at click time', () => {
       <Navigator value='/components'>
         {Sections({ count, seen })}
         <Navigator.Content>
-          <Pane role='detail'>Detail</Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )

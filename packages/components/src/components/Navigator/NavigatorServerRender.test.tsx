@@ -73,11 +73,11 @@ function Docs({
             <Navigator.SectionItems showDescriptions={false} />
           </Navigator.SecondaryPane>
         ) : null}
-        <Pane role='detail' current>
+        <Pane>
           <Pane.Header />
           Detail
         </Pane>
-        <Pane role='inspector' aria-label='On this page'>
+        <Pane column='inspector' aria-label='On this page'>
           Contents
         </Pane>
       </Navigator.Content>
@@ -92,16 +92,16 @@ const serverRender = (ui: ReactElement) => {
   return container
 }
 
-const paneOf = (container: HTMLElement, role: string) =>
+const paneOf = (container: HTMLElement, column: string) =>
   container.querySelector<HTMLElement>(
-    `[data-slot="pane"][data-role="${role}"]`
+    `[data-slot="pane"][data-column="${column}"]`
   )
 
 const positions = (container: HTMLElement) =>
   Array.from(
     container.querySelectorAll<HTMLElement>('[data-slot="pane"]'),
     (pane) => [
-      pane.dataset.navigatorSection ?? pane.dataset.role,
+      pane.dataset.navigatorSection ?? pane.dataset.column,
       pane.dataset.stackPosition ?? null
     ]
   )
@@ -269,7 +269,7 @@ function PageRootDocs({ value }: { value: string }) {
         </Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='detail' current>
+        <Pane>
           <Pane.Header />
           Detail
         </Pane>
@@ -329,9 +329,9 @@ describe('Navigator server render of a page root', () => {
 const depths = (container: HTMLElement) =>
   Array.from(container.querySelectorAll('[data-slot="pane"]')).map((pane) => [
     pane.getAttribute('data-navigator-section') ??
-      pane.getAttribute('data-role'),
+      pane.getAttribute('data-column'),
     pane.getAttribute('data-depth'),
-    pane.hasAttribute('data-current')
+    pane.hasAttribute('data-reached')
   ])
 
 function ThreeLevels({ value }: { value: string }) {
@@ -349,11 +349,11 @@ function ThreeLevels({ value }: { value: string }) {
         </Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='detail' current>
+        <Pane>
           <Pane.Header />
           Glamping
         </Pane>
-        <Pane role='detail' depth={2} current>
+        <Pane depth={2}>
           <Pane.Header backHref='/tickets/glamping' backLabel='Glamping' />
           Sam
         </Pane>
@@ -366,7 +366,7 @@ describe('Navigator server render of depths', () => {
   it('writes declared and default depths, and the reveal, before any pane registers', () => {
     const container = serverRender(<ThreeLevels value='/tickets/glamping' />)
     expect(depths(container)).toEqual([
-      ['/tickets', '0', false],
+      ['/tickets', '0', true],
       ['detail', '1', true],
       ['detail', '2', true]
     ])
@@ -383,7 +383,7 @@ describe('Navigator server render of depths', () => {
     const container = serverRender(<ThreeLevels value='/tickets/glamping' />)
     const [glamping, sam] = Array.from(
       container.querySelectorAll<HTMLElement>(
-        '[data-slot="pane"][data-role="detail"]'
+        '[data-slot="pane"][data-column="detail"]'
       )
     )
     expect(within(glamping!).getByLabelText('Back to Tickets')).toHaveAttribute(
@@ -435,13 +435,9 @@ describe('a declared depth out of document order', () => {
     <StrictMode>
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' depth={2} current>
-            Sub
-          </Pane>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
+          <Pane column='list'>List</Pane>
+          <Pane depth={2}>Sub</Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     </StrictMode>
@@ -474,7 +470,7 @@ describe('a page-first root with its own backHref', () => {
   const PageFirst = () => (
     <Navigator value='/a'>
       <Navigator.Content>
-        <Pane role='detail' current>
+        <Pane>
           <Pane.Header backHref='/elsewhere' />
           Page
         </Pane>
@@ -513,11 +509,11 @@ describe('a page-first root with its own backHref', () => {
   })
 })
 
-describe('a lone pane that is not current', () => {
+describe('a lone pane that is not reached', () => {
   const Lone = () => (
     <Navigator value='/a'>
       <Navigator.Content>
-        <Pane role='detail'>Solo</Pane>
+        <Pane reached={false}>Solo</Pane>
       </Navigator.Content>
     </Navigator>
   )
@@ -539,7 +535,7 @@ describe('a lone pane that is not current', () => {
     const host = serverRender(<Lone />)
     const pane = paneOf(host, 'detail')!
     expect(pane).toHaveAttribute('data-depth', '1')
-    expect(pane).not.toHaveAttribute('data-current')
+    expect(pane).not.toHaveAttribute('data-reached')
     expect(panesShownAt(1)).toEqual(['detail'])
     expect(stackedBodyOf(pane)).toEqual([
       expect.stringContaining('translate: 0 0;')
@@ -594,7 +590,7 @@ describe('More open from the first render', () => {
         ))}
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='detail' current>
+        <Pane>
           <DepthProbe log={log} />
         </Pane>
       </Navigator.Content>
@@ -641,14 +637,12 @@ function Nested({ value }: { value: string }) {
   return (
     <Navigator value='/a'>
       <Navigator.Content>
-        <Pane role='list'>Outer list</Pane>
-        <Pane role='detail' current>
+        <Pane column='list'>Outer list</Pane>
+        <Pane>
           <Navigator value={value}>
             <Navigator.Content>
-              <Pane role='list'>Inner list</Pane>
-              <Pane role='detail' current>
-                Inner detail
-              </Pane>
+              <Pane column='list'>Inner list</Pane>
+              <Pane>Inner detail</Pane>
             </Navigator.Content>
           </Navigator>
         </Pane>

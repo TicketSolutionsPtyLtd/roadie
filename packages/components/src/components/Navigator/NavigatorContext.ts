@@ -8,7 +8,7 @@ import {
   createContext
 } from 'react'
 
-import type { PanePrimaryNav } from '../Pane/variants'
+import type { PaneTabBar } from '../Pane/variants'
 import type {
   NavigatorSecondaryProps,
   NavigatorSecondaryRoot
@@ -37,7 +37,7 @@ export type NavigatorOverflowSets = {
 export type NavigatorActions = {
   setValue: (next: string) => void
   setNavCollapsed: (next: boolean) => void
-  setPrimaryNav: (next: PanePrimaryNav) => void
+  setTabBar: (next: PaneTabBar) => void
   setPinExpanded: (next: boolean) => void
   scrollActivePaneToTop: () => void
   /** Root found a direct-child Primary and reads its children. */
@@ -104,7 +104,7 @@ export type NavigatorExpansion = {
 /** The phone bar's scroll-driven state. */
 export type NavigatorBar = {
   navCollapsed: boolean
-  primaryNav: PanePrimaryNav
+  tabBar: PaneTabBar
   // Holds the bar open after tapping the collapsed active circle, until the next scroll down.
   pinExpanded: boolean
 }
@@ -114,7 +114,7 @@ const noop = () => {}
 export const NavigatorActionsContext = createContext<NavigatorActions>({
   setValue: noop,
   setNavCollapsed: noop,
-  setPrimaryNav: noop,
+  setTabBar: noop,
   setPinExpanded: noop,
   scrollActivePaneToTop: noop,
   primaryDerived: false,
@@ -160,7 +160,7 @@ NavigatorExpansionContext.displayName = 'NavigatorExpansionContext'
 
 export const NavigatorBarContext = createContext<NavigatorBar>({
   navCollapsed: false,
-  primaryNav: 'auto',
+  tabBar: 'auto',
   pinExpanded: false
 })
 NavigatorBarContext.displayName = 'NavigatorBarContext'

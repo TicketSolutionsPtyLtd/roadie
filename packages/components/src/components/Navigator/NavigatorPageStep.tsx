@@ -42,7 +42,7 @@ let inertDocument: Document | null = null
 function ghostOf(pane: HTMLElement) {
   inertDocument ??= document.implementation.createHTMLDocument('')
   const ghost = inertDocument.importNode(pane, true)
-  for (const name of ['data-stack', 'data-current', 'data-stack-position']) {
+  for (const name of ['data-stack', 'data-reached', 'data-stack-position']) {
     ghost.removeAttribute(name)
   }
   const originals = pane.querySelectorAll('*')

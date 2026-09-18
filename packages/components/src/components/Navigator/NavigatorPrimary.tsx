@@ -102,7 +102,7 @@ export function NavigatorPrimary({
   } = use(NavigatorSelectionContext)
   const { overflowOpen, openMenu } = use(NavigatorDisclosureContext)
   const { expanded } = use(NavigatorExpansionContext)
-  const { navCollapsed, primaryNav } = use(NavigatorBarContext)
+  const { navCollapsed, tabBar } = use(NavigatorBarContext)
   const tabTrackRef = useRef<HTMLDivElement>(null)
   const clusterRef = useRef<HTMLDivElement>(null)
   const clusterTrackRef = useRef<HTMLDivElement>(null)
@@ -150,8 +150,8 @@ export function NavigatorPrimary({
   )
 
   // Masks `navCollapsed` rather than resetting it, so `auto` snaps back to the state it hid.
-  const collapsed = navCollapsed && primaryNav === 'auto'
-  const navHidden = primaryNav === 'hidden'
+  const collapsed = navCollapsed && tabBar === 'auto'
+  const navHidden = tabBar === 'hidden'
 
   const folded = slots.overflow
   const hasMore = folded.length > 0

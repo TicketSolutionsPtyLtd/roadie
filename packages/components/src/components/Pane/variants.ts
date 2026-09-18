@@ -1,8 +1,8 @@
 import { cva } from 'class-variance-authority'
 
-export type PaneRole = 'list' | 'detail' | 'inspector'
+export type PaneColumn = 'list' | 'detail' | 'inspector'
 export type PaneEmphasis = 'raised' | 'normal' | 'subtle' | 'subtler'
-export type PanePrimaryNav = 'visible' | 'auto' | 'hidden'
+export type PaneTabBar = 'visible' | 'auto' | 'hidden'
 
 export const paneVariants = cva(
   [
@@ -31,9 +31,9 @@ export const paneVariants = cva(
 export const paneViewportVariants = cva(['size-full overscroll-contain'], {
   variants: {
     // Clears the floating tab bar.
-    clearsPrimaryNav: { true: 'max-md:pb-24', false: '' }
+    clearsTabBar: { true: 'max-md:pb-24', false: '' }
   },
-  defaultVariants: { clearsPrimaryNav: true }
+  defaultVariants: { clearsTabBar: true }
 })
 
 // Translucent against --pane-surface; Content overrides the fallback to sunken.

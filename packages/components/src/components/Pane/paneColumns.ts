@@ -163,7 +163,7 @@ const row = (level: number) =>
 const stackPane = (level: number, depth: number, extra = '') =>
   `[data-stack][data-level="${level}"][data-depth="${depth}"]${extra}`
 
-// Before panes register, a lone `detail` is written at its role default, 1,
+// Before panes register, a lone `detail` is written at its column default, 1,
 // with nothing at 0. Such a row is read one depth shallower, so its first
 // pane is still the root. Closed More holds no root.
 const BASES = [0, 1] as const
@@ -182,18 +182,18 @@ const levelsIs = (level: number, levels: number, base: number) => {
     : `${has}:not(:has(${stackPane(level, deepest + 1)}))`
 }
 
-const currentBelow = (level: number, top: number) => {
+const reachedBelow = (level: number, top: number) => {
   const deeper: string[] = []
   for (let d = top + 1; d <= PANE_MAX_DEPTH; d += 1) {
-    deeper.push(stackPane(level, d, '[data-current]'))
+    deeper.push(stackPane(level, d, '[data-reached]'))
   }
   return deeper.length === 0 ? '' : `:not(:has(${deeper.join(', ')}))`
 }
 
 const topIs = (level: number, top: number, base: number) =>
   top === 0
-    ? `:is([data-reveal], ${currentBelow(level, base)})`
-    : `:not([data-reveal]):has(${stackPane(level, base + top, '[data-current]')})${currentBelow(level, base + top)}`
+    ? `:is([data-reveal], ${reachedBelow(level, base)})`
+    : `:not([data-reveal]):has(${stackPane(level, base + top, '[data-reached]')})${reachedBelow(level, base + top)}`
 
 const levelCounts = (base: number) =>
   Array.from({ length: PANE_MAX_DEPTH + 1 - base }, (_, index) => index + 1)
@@ -328,7 +328,7 @@ function columnRules(level: number): string {
 const HIDDEN = 'display: none !important;'
 
 function inspectorRules(level: number): string {
-  const inspector = `[data-role="inspector"][data-level="${level}"]`
+  const inspector = `[data-column="inspector"][data-level="${level}"]`
   return [
     `  ${row(level)}:not([data-overflow]):not(:has([data-stack][data-level="${level}"]:not([data-overflow]))) ${inspector} { ${HIDDEN} }`,
     ...ROW_SIZES.map(
@@ -399,7 +399,7 @@ function enterRules(level: number): string {
       (shape) =>
         `    ${shapeSelector(level, shape, shape.top, '[data-pushing]')} { ${AHEAD} }`
     ),
-    `    ${row(level)}[data-pushing]:not([data-reveal]) ${deep}[data-current] { ${AHEAD} }`,
+    `    ${row(level)}[data-pushing]:not([data-reveal]) ${deep}[data-reached] { ${AHEAD} }`,
     '  } } }'
   ].join('\n')
 }
@@ -421,7 +421,7 @@ function levelRules(level: number): string {
   const stacked = `[data-stack][data-level="${level}"]:is(${tableDepths})`
   const pane = `${row(level)} ${stacked}`
   const inset = `inset: var(--pane-stack-inset, 0px); inset-inline-start: var(--pane-stack-inset-start, var(--pane-stack-inset, 0px));`
-  // Past the deepest column: slides in over every column while current.
+  // Past the deepest column: slides in over every column while reached.
   const deep = `[data-stack][data-level="${level}"][data-depth="${PANE_DEEP}"]`
   return [
     // Reset per row, or a nested row inherits its outer row's value.
@@ -434,11 +434,11 @@ function levelRules(level: number): string {
     shadowRoomRules(level),
     `  ${pane} { position: absolute !important; ${inset} }`,
     `  ${row(level)} ${deep} { position: absolute !important; ${inset} z-index: 3; ${AHEAD} visibility: hidden; pointer-events: none; transition-property: translate, visibility; transition-timing-function: var(--ease-enter); }`,
-    `  ${row(level)}:not([data-reveal]) ${deep}[data-current] { translate: 0 0; visibility: visible; pointer-events: auto; }`,
+    `  ${row(level)}:not([data-reveal]) ${deep}[data-reached] { translate: 0 0; visibility: visible; pointer-events: auto; }`,
     `  @media (prefers-reduced-motion: no-preference) { ${row(level)}[data-pushing] :is(${stacked}, ${deep}) { transition-duration: var(--duration-slow); } }`,
     `  ${row(level)} > ${PAGE_GHOST} { position: absolute; ${inset} z-index: 0; }`,
     pageStepRules(level),
-    `  ${row(level)} [data-role="inspector"][data-level="${level}"] { order: 99; flex: 0 0 ${rem(PANE_INSPECTOR)}; }`,
+    `  ${row(level)} [data-column="inspector"][data-level="${level}"] { order: 99; flex: 0 0 ${rem(PANE_INSPECTOR)}; }`,
     `  ${row(level)}:not([data-overflow]) [data-stack][data-level="${level}"][data-overflow] { ${HIDDEN} }`,
     `  ${row(level)}[data-overflow] ${stackPane(level, 0)}:not([data-overflow]) { ${HIDDEN} }`
   ].join('\n')

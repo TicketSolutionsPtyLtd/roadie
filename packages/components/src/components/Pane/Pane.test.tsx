@@ -52,15 +52,25 @@ const renderPane = async (ui: ReactNode) => {
 }
 
 describe('Pane', () => {
-  it('renders a section with its role', async () => {
-    await renderPane(<Pane role='detail'>Body</Pane>)
+  it('renders a section with its column', async () => {
+    await renderPane(<Pane column='list'>Body</Pane>)
     expect(pane()?.tagName).toBe('SECTION')
-    expect(pane()).toHaveAttribute('data-role', 'detail')
+    expect(pane()).toHaveAttribute('data-column', 'list')
   })
 
-  it('defaults to a list pane in a column', async () => {
+  it('defaults to a detail column, a depth below the root', async () => {
     await renderPane(<Pane>Body</Pane>)
-    expect(pane()).toHaveAttribute('data-role', 'list')
+    expect(pane()).toHaveAttribute('data-column', 'detail')
+    expect(pane()).toHaveAttribute('data-depth', '1')
+  })
+
+  it('passes an ARIA role through to the section', async () => {
+    await renderPane(
+      <Pane role='region' aria-label='Events'>
+        Body
+      </Pane>
+    )
+    expect(screen.getByRole('region', { name: 'Events' })).toBe(pane())
   })
 
   it("does not leak ScrollArea's presentation role onto the landmark", async () => {
@@ -175,7 +185,7 @@ describe('Pane.Header', () => {
 
   it('lands actions opposite the back affordance in the top row', async () => {
     await renderPane(
-      <Pane role='detail'>
+      <Pane>
         <Pane.Header backHref='/components'>
           <Pane.Title>Button</Pane.Title>
           <Pane.Actions>
@@ -202,7 +212,7 @@ describe('Pane.Header', () => {
 
   it('places actions in the top row even with no back affordance', async () => {
     await renderPane(
-      <Pane role='list'>
+      <Pane column='list'>
         <Pane.Header>
           <Pane.Actions>
             <button type='button'>Contents</button>
@@ -227,7 +237,7 @@ describe('Pane.Header', () => {
     // one, rather than sharing a single cell distinguished only by
     // `justify-self` (the bug this fixes).
     await renderPane(
-      <Pane role='detail'>
+      <Pane>
         <Pane.Header backHref='/components'>
           <Pane.Title>Components</Pane.Title>
           <Pane.Actions>
@@ -254,7 +264,7 @@ describe('Pane.Header', () => {
 
   it('draws no header at all when it has no content of any kind', async () => {
     await renderPane(
-      <Pane role='detail'>
+      <Pane>
         <Pane.Header />
       </Pane>
     )
@@ -291,7 +301,7 @@ describe('Pane.Header', () => {
 
   it('renders a back affordance only when given a target', async () => {
     const { rerender } = await renderPane(
-      <Pane role='detail'>
+      <Pane>
         <Pane.Header>
           <Pane.Title>Button</Pane.Title>
         </Pane.Header>
@@ -300,7 +310,7 @@ describe('Pane.Header', () => {
     expect(screen.queryByLabelText('Back')).toBeNull()
 
     rerender(
-      <Pane role='detail'>
+      <Pane>
         <Pane.Header backHref='/components'>
           <Pane.Title>Button</Pane.Title>
         </Pane.Header>
@@ -318,7 +328,7 @@ describe('Pane.Header', () => {
 
   it('never offers a back affordance on a list pane', async () => {
     await renderPane(
-      <Pane role='list'>
+      <Pane column='list'>
         <Pane.Header backHref='/'>
           <Pane.Title>Components</Pane.Title>
         </Pane.Header>
@@ -329,7 +339,7 @@ describe('Pane.Header', () => {
 
   it('takes the whole header with it when the back row is all there was', async () => {
     const { rerender } = await renderPane(
-      <Pane role='detail'>
+      <Pane>
         <Pane.Header backHref='/components' />
       </Pane>
     )
@@ -338,7 +348,7 @@ describe('Pane.Header', () => {
     expect(header()).not.toHaveClass('grid')
 
     rerender(
-      <Pane role='detail'>
+      <Pane>
         <Pane.Header backHref='/components'>
           <Pane.Title>Button</Pane.Title>
         </Pane.Header>
@@ -368,7 +378,7 @@ describe('the pane element', () => {
 describe('an inspector', () => {
   it('never shows Back, even with a declared depth', async () => {
     await renderPane(
-      <Pane role='inspector' depth={1}>
+      <Pane column='inspector' depth={1}>
         <Pane.Header backHref='/events'>
           <Pane.Title>On this page</Pane.Title>
         </Pane.Header>
@@ -383,12 +393,12 @@ describe('Pane.Header close affordance', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='list'>
+          <Pane column='list'>
             <Pane.Header onClose={onClose}>
               <Pane.Title>List</Pane.Title>
             </Pane.Header>
           </Pane>
-          <Pane role='detail' current>
+          <Pane>
             <Pane.Header onClose={onClose}>
               <Pane.Title>Detail</Pane.Title>
             </Pane.Header>
@@ -413,10 +423,8 @@ describe('Pane.Header close affordance', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='list' current>
-            List
-          </Pane>
-          <Pane role='inspector'>
+          <Pane column='list'>List</Pane>
+          <Pane column='inspector'>
             <Pane.Header onClose={vi.fn()}>
               <Pane.Title>Inspector</Pane.Title>
             </Pane.Header>
@@ -432,8 +440,8 @@ describe('Pane.Header close affordance', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' current>
+          <Pane column='list'>List</Pane>
+          <Pane>
             <Pane.Header>
               <Pane.Title>Detail</Pane.Title>
             </Pane.Header>
@@ -449,8 +457,8 @@ describe('Pane.Header close affordance', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' current>
+          <Pane column='list'>List</Pane>
+          <Pane>
             <Pane.Header backHref='/a' onClose={vi.fn()}>
               <Pane.Title>Detail</Pane.Title>
             </Pane.Header>
@@ -471,7 +479,7 @@ describe('Pane.Header close affordance', () => {
 
   it('renders no close control on a standalone pane with no orchestrator', async () => {
     await renderPane(
-      <Pane role='detail'>
+      <Pane>
         <Pane.Header onClose={vi.fn()}>
           <Pane.Title>Detail</Pane.Title>
         </Pane.Header>
@@ -487,17 +495,17 @@ describe('Pane.Header close affordance', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='detail' current aria-label='First'>
+          <Pane aria-label='First'>
             <Pane.Header onClose={vi.fn()}>
               <Pane.Title>First</Pane.Title>
             </Pane.Header>
           </Pane>
-          <Pane role='detail' aria-label='Second'>
+          <Pane aria-label='Second'>
             <Pane.Header onClose={vi.fn()}>
               <Pane.Title>Second</Pane.Title>
             </Pane.Header>
           </Pane>
-          <Pane role='detail' aria-label='Third'>
+          <Pane aria-label='Third'>
             <Pane.Header onClose={vi.fn()}>
               <Pane.Title>Third</Pane.Title>
             </Pane.Header>
@@ -514,8 +522,8 @@ describe('Pane.Header close affordance', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' current>
+          <Pane column='list'>List</Pane>
+          <Pane>
             <Pane.Header onBack={onBack}>
               <Pane.Title>Detail</Pane.Title>
             </Pane.Header>
@@ -535,8 +543,8 @@ describe('Pane.Header close affordance', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' current>
+          <Pane column='list'>List</Pane>
+          <Pane>
             <Pane.Header onBack={onBack} onClose={onClose}>
               <Pane.Title>Detail</Pane.Title>
             </Pane.Header>
@@ -554,8 +562,8 @@ describe('Pane.Header close affordance', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' current>
+          <Pane column='list'>List</Pane>
+          <Pane>
             <Pane.Header backHref='/a'>
               <Pane.Title>Detail</Pane.Title>
             </Pane.Header>
@@ -590,8 +598,8 @@ describe('Pane.Header close affordance', () => {
       render(
         <Navigator value='/detail'>
           <Navigator.Content>
-            <Pane role='list'>List</Pane>
-            <Pane role='detail' current>
+            <Pane column='list'>List</Pane>
+            <Pane>
               <Pane.Header backHref='/a'>
                 <Pane.Title>Detail</Pane.Title>
               </Pane.Header>
@@ -619,8 +627,8 @@ describe('Pane.Header close affordance', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' current>
+          <Pane column='list'>List</Pane>
+          <Pane>
             <Pane.Header backHref='/a' />
           </Pane>
         </Navigator.Content>
@@ -636,10 +644,8 @@ describe('Pane.Header close affordance', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='list' current>
-            List
-          </Pane>
-          <Pane role='inspector'>
+          <Pane column='list'>List</Pane>
+          <Pane column='inspector'>
             <Pane.Header backHref='/a' onBack={vi.fn()} />
           </Pane>
         </Navigator.Content>
@@ -655,8 +661,8 @@ describe('Pane.Header close affordance', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' current>
+          <Pane column='list'>List</Pane>
+          <Pane>
             <Pane.Header onClose={vi.fn()} />
           </Pane>
         </Navigator.Content>
@@ -673,7 +679,7 @@ describe('Pane.Header close affordance', () => {
 describe('Pane.Header back name', () => {
   it('names the round icon Back "Back to …" and shows no label', async () => {
     await renderPane(
-      <Pane role='detail'>
+      <Pane>
         <Pane.Header backHref='/tickets' backLabel='Tickets'>
           <Pane.Title>Glamping</Pane.Title>
         </Pane.Header>
@@ -690,7 +696,7 @@ describe('Pane.Header back name', () => {
   it('names a handler Back with the label too', async () => {
     const onBack = vi.fn()
     await renderPane(
-      <Pane role='detail'>
+      <Pane>
         <Pane.Header onBack={onBack} backLabel='Tickets' />
       </Pane>
     )
@@ -718,7 +724,7 @@ describe('Pane.Header back name', () => {
     }
     const { rerender } = await renderPane(
       <PaneStackContext value={fakeStack}>
-        <Pane role='detail'>
+        <Pane>
           <Pane.Header />
         </Pane>
       </PaneStackContext>
@@ -729,7 +735,7 @@ describe('Pane.Header back name', () => {
     )
     rerender(
       <PaneStackContext value={fakeStack}>
-        <Pane role='detail'>
+        <Pane>
           <Pane.Header onBack={() => {}} />
         </Pane>
       </PaneStackContext>
@@ -740,7 +746,7 @@ describe('Pane.Header back name', () => {
 
   it('never offers Back on a depth-0 pane, whatever its role', async () => {
     await renderPane(
-      <Pane role='detail' depth={0}>
+      <Pane depth={0}>
         <Pane.Header backHref='/' />
       </Pane>
     )
@@ -908,7 +914,7 @@ describe('Pane.Header collapse on scroll', () => {
 
   it('still collapses its own header when it has opted out of auto nav', async () => {
     await renderPane(
-      <Pane primaryNav='visible'>
+      <Pane tabBar='visible'>
         <Pane.Header>
           <Pane.Title>Components</Pane.Title>
         </Pane.Header>
@@ -1120,7 +1126,7 @@ describe('orchestrator chrome', () => {
 
   it('stays silent when it has opted out of auto', async () => {
     const onScrollPast = vi.fn()
-    await withChrome(<Pane primaryNav='visible'>Body</Pane>, {
+    await withChrome(<Pane tabBar='visible'>Body</Pane>, {
       scrollPastAt: 24,
       onScrollPast
     })
@@ -1130,7 +1136,7 @@ describe('orchestrator chrome', () => {
 
   it('draws Back and Close links from orchestrator chrome', async () => {
     await withChrome(
-      <Pane role='detail'>
+      <Pane>
         <Pane.Header />
       </Pane>,
       { backHref: '/section' }
@@ -1143,7 +1149,7 @@ describe('orchestrator chrome', () => {
 
   it("lets a consumer's onBack outrank the orchestrator's link", async () => {
     await withChrome(
-      <Pane role='detail'>
+      <Pane>
         <Pane.Header onBack={() => {}} />
       </Pane>,
       { backHref: '/section' }
@@ -1206,12 +1212,10 @@ describe('pane registration through a wrapper', () => {
       <Navigator value='/a'>
         <Navigator.Content>
           <Slot>
-            <Pane role='list'>List</Pane>
+            <Pane column='list'>List</Pane>
           </Slot>
           <Slot>
-            <Pane role='detail' current>
-              Detail
-            </Pane>
+            <Pane>Detail</Pane>
           </Slot>
         </Navigator.Content>
       </Navigator>
@@ -1224,11 +1228,9 @@ describe('pane registration through a wrapper', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='list' current>
-            List
-          </Pane>
+          <Pane column='list'>List</Pane>
           <Slot>
-            <Pane role='detail'>Detail</Pane>
+            <Pane reached={false}>Detail</Pane>
           </Slot>
         </Navigator.Content>
       </Navigator>
@@ -1238,7 +1240,7 @@ describe('pane registration through a wrapper', () => {
   })
 
   it('leaves a standalone pane unpositioned', async () => {
-    render(<Pane role='list'>Alone</Pane>)
+    render(<Pane column='list'>Alone</Pane>)
     await flushViewportMeasurement()
     expect(positions()).toEqual([null])
   })
@@ -1262,7 +1264,7 @@ describe('pane registration through a wrapper', () => {
         </Navigator.Primary>
         <Navigator.Content>
           <Slot>
-            <Pane role='detail' current>
+            <Pane>
               <Pane.Header>
                 <Pane.Title>Foundations</Pane.Title>
               </Pane.Header>
@@ -1294,11 +1296,9 @@ describe('stack geometry', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
-          <Pane role='inspector'>Details</Pane>
+          <Pane column='list'>List</Pane>
+          <Pane>Detail</Pane>
+          <Pane column='inspector'>Details</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -1315,9 +1315,7 @@ describe('stack geometry', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -1338,9 +1336,9 @@ describe('stack geometry', () => {
       render(
         <Navigator value='/a'>
           <Navigator.Content>
-            <Pane role='detail' current>
+            <Pane>
               Outer
-              <Pane role='list'>Example inside content</Pane>
+              <Pane column='list'>Example inside content</Pane>
             </Pane>
           </Navigator.Content>
         </Navigator>
@@ -1354,14 +1352,12 @@ describe('stack geometry', () => {
       render(
         <Navigator value='/a'>
           <Navigator.Content>
-            <Pane role='detail' current>
+            <Pane>
               Outer
               <Navigator value='/x'>
                 <Navigator.Content>
-                  <Pane role='list'>Inner list</Pane>
-                  <Pane role='detail' current>
-                    Inner detail
-                  </Pane>
+                  <Pane column='list'>Inner list</Pane>
+                  <Pane>Inner detail</Pane>
                 </Navigator.Content>
               </Navigator>
             </Pane>
@@ -1377,9 +1373,9 @@ describe('stack geometry', () => {
       render(
         <Navigator value='/a'>
           <Navigator.Content>
-            <Pane role='detail' current>
+            <Pane>
               Outer
-              <Pane role='list'>Inner</Pane>
+              <Pane column='list'>Inner</Pane>
             </Pane>
           </Navigator.Content>
         </Navigator>
@@ -1408,7 +1404,7 @@ describe('Pane.BodyTitle', () => {
 
   it('renders in the content, not in the header', async () => {
     const { container } = render(
-      <Pane role='detail' current>
+      <Pane>
         <Pane.Header />
         <Pane.BodyTitle>Reports</Pane.BodyTitle>
       </Pane>
@@ -1425,7 +1421,7 @@ describe('Pane.BodyTitle', () => {
 
   it('gives the header a compact echo of it', async () => {
     const { container } = render(
-      <Pane role='detail' current>
+      <Pane>
         <Pane.Header />
         <Pane.BodyTitle>Reports</Pane.BodyTitle>
       </Pane>
@@ -1444,7 +1440,7 @@ describe('Pane.BodyTitle', () => {
     // `hidden` on the in-header title: `allow-discrete` held `display: block`
     // for the whole fade, then dropped the row in a single frame.
     const { container } = render(
-      <Pane role='detail' current>
+      <Pane>
         <Pane.Header />
         <Pane.BodyTitle>Reports</Pane.BodyTitle>
       </Pane>
@@ -1472,7 +1468,7 @@ describe('Pane.BodyTitle', () => {
   it('emits one echo, the in-header title winning, when both are present', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = render(
-      <Pane role='detail' current>
+      <Pane>
         <Pane.Header>
           <Pane.Title>Header title</Pane.Title>
         </Pane.Header>
@@ -1494,7 +1490,7 @@ describe('Pane.BodyTitle', () => {
 
   it('scrolls the pane to the top when the content title echo is tapped', async () => {
     render(
-      <Pane role='detail' current>
+      <Pane>
         <Pane.Header />
         <Pane.BodyTitle>Reports</Pane.BodyTitle>
       </Pane>
@@ -1518,7 +1514,7 @@ describe('Pane.BodyTitle', () => {
   // default's absence is what actually pins the merge.
   it('lets a passed display utility replace the default rather than join it', async () => {
     const { container } = render(
-      <Pane role='detail' current>
+      <Pane>
         <Pane.Header />
         <Pane.BodyTitle className='text-display-prose-2 text-subtle'>
           Reports
@@ -1565,24 +1561,20 @@ describe('Pane chrome clipping', () => {
 
 describe('depth attributes', () => {
   it('writes the role default on a standalone pane, with no stack membership', async () => {
-    await renderPane(<Pane role='detail'>Alone</Pane>)
+    await renderPane(<Pane>Alone</Pane>)
     expect(pane()).toHaveAttribute('data-depth', '1')
     expect(pane()).not.toHaveAttribute('data-stack')
     expect(pane()).not.toHaveAttribute('data-level')
   })
 
-  it('resolves depth from document order inside a stack, and marks the current pane', async () => {
+  it('resolves depth from document order inside a stack, and marks the reached panes', async () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
-          <Pane role='detail' current>
-            Sub
-          </Pane>
-          <Pane role='inspector'>Details</Pane>
+          <Pane column='list'>List</Pane>
+          <Pane>Detail</Pane>
+          <Pane reached={false}>Sub</Pane>
+          <Pane column='inspector'>Details</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -1606,11 +1598,11 @@ describe('depth attributes', () => {
       '0',
       '0'
     ])
-    expect(panes.map((p) => p.hasAttribute('data-current'))).toEqual([
+    expect(panes.map((p) => p.hasAttribute('data-reached'))).toEqual([
+      true,
+      true,
       false,
-      true,
-      true,
-      false
+      true
     ])
   })
 
@@ -1619,13 +1611,9 @@ describe('depth attributes', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
-          <Pane role='detail' depth={1} current>
-            Sub
-          </Pane>
+          <Pane column='list'>List</Pane>
+          <Pane>Detail</Pane>
+          <Pane depth={1}>Sub</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -1638,18 +1626,14 @@ describe('depth attributes', () => {
 
   it('warns once per message as the stack changes', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const ui = (listCurrent: boolean) => (
+    const ui = (listReached: boolean) => (
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='list' current={listCurrent}>
+          <Pane column='list' reached={listReached}>
             List
           </Pane>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
-          <Pane role='detail' current>
-            Sub
-          </Pane>
+          <Pane>Detail</Pane>
+          <Pane>Sub</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -1670,13 +1654,9 @@ describe('depth attributes', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
-          <Pane role='detail' current>
-            Sub
-          </Pane>
+          <Pane column='list'>List</Pane>
+          <Pane>Detail</Pane>
+          <Pane>Sub</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -1691,13 +1671,9 @@ describe('depth attributes', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' depth={2} current>
-            Sub
-          </Pane>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
+          <Pane column='list'>List</Pane>
+          <Pane depth={2}>Sub</Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -1710,20 +1686,20 @@ describe('depth attributes', () => {
     ])
   })
 
-  const declaredFirst = (primaryNav: 'auto' | 'hidden' = 'auto') => (
+  const declaredFirst = (tabBar: 'auto' | 'hidden' = 'auto') => (
     <Navigator value='a'>
       <Navigator.Primary aria-label='Main'>
         {testBrand}
         <Navigator.Item value='a'>A</Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='list'>List</Pane>
-        <Pane role='detail' depth={2} current primaryNav={primaryNav}>
+        <Pane column='list'>List</Pane>
+        <Pane depth={2} tabBar={tabBar}>
           <Pane.Header onBack={() => {}}>
             <Pane.Title>Sub</Pane.Title>
           </Pane.Header>
         </Pane>
-        <Pane role='detail' current>
+        <Pane>
           <Pane.Header onBack={() => {}}>
             <Pane.Title>Detail</Pane.Title>
           </Pane.Header>
@@ -1775,24 +1751,22 @@ describe('depth attributes', () => {
     expect(scrolled[1]).not.toHaveBeenCalled()
   })
 
-  it('reads primaryNav from the deepest declared depth, wherever it sits', async () => {
+  it('reads tabBar from the deepest declared depth, wherever it sits', async () => {
     render(declaredFirst('hidden'))
     await flushViewportMeasurement()
     expect(horizontalBar()).toHaveAttribute('data-hidden', 'true')
   })
 
-  const fivePanes = (current: 'D' | 'E' = 'E') => (
+  const fivePanes = (reached: 'D' | 'E' = 'E') => (
     <Navigator value='/a'>
       <Navigator.Content>
-        <Pane role='list'>A</Pane>
-        <Pane role='detail'>B</Pane>
-        <Pane role='detail' depth={2}>
-          C
-        </Pane>
-        <Pane role='detail' depth={3} current={current === 'D'}>
+        <Pane column='list'>A</Pane>
+        <Pane>B</Pane>
+        <Pane depth={2}>C</Pane>
+        <Pane depth={3} reached={reached === 'D'}>
           D
         </Pane>
-        <Pane role='detail' depth={3} current={current === 'E'}>
+        <Pane depth={3} reached={reached === 'E'}>
           <Pane.Header onBack={() => {}}>
             <Pane.Title>E</Pane.Title>
           </Pane.Header>
@@ -1821,7 +1795,7 @@ describe('depth attributes', () => {
     warn.mockRestore()
   })
 
-  it('covers the row with a current fifth pane that offers Back, never Close', async () => {
+  it('covers the row with a reached fifth pane that offers Back, never Close', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(fivePanes())
     await flushViewportMeasurement()
@@ -1848,14 +1822,12 @@ describe('depth attributes', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='detail' current>
+          <Pane>
             Outer
             <Navigator value='/x'>
               <Navigator.Content>
-                <Pane role='list'>Inner list</Pane>
-                <Pane role='detail' current>
-                  Inner detail
-                </Pane>
+                <Pane column='list'>Inner list</Pane>
+                <Pane>Inner detail</Pane>
               </Navigator.Content>
             </Navigator>
           </Pane>
@@ -1884,15 +1856,13 @@ describe('depth attributes', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='list'>Outer list</Pane>
-          <Pane role='detail' current>
+          <Pane column='list'>Outer list</Pane>
+          <Pane>
             Outer
             <Navigator value='/x'>
               <Navigator.Content>
-                <Pane role='list' current>
-                  Inner list
-                </Pane>
-                <Pane role='detail'>Inner detail</Pane>
+                <Pane column='list'>Inner list</Pane>
+                <Pane reached={false}>Inner detail</Pane>
               </Navigator.Content>
             </Navigator>
           </Pane>

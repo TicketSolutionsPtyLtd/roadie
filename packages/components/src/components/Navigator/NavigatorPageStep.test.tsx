@@ -77,7 +77,7 @@ function Docs({
         </Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='detail' current>
+        <Pane>
           {value === '/' ? (
             <div id='home' data-testid='home'>
               <form id='search'>
@@ -366,17 +366,13 @@ describe('nothing but a page-root step gets a copy', () => {
         </Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='list' depth={0}>
+        <Pane column='list' depth={0}>
           List
         </Pane>
-        <Pane role='detail' depth={1} current={!deep}>
+        <Pane depth={1} reached={!deep}>
           Detail
         </Pane>
-        {deep ? (
-          <Pane role='detail' depth={2} current>
-            Deeper
-          </Pane>
-        ) : null}
+        {deep ? <Pane depth={2}>Deeper</Pane> : null}
       </Navigator.Content>
     </Navigator>
   )

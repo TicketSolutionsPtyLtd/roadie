@@ -59,7 +59,7 @@ function Docs({
         </Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='detail' current>
+        <Pane>
           {withItems ? (
             <Navigator.SectionItems
               value={itemsValue}
@@ -220,7 +220,7 @@ function StudioApp({ value }: { value: string }) {
         </Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='detail' current>
+        <Pane>
           <Navigator.SectionItems />
         </Pane>
       </Navigator.Content>

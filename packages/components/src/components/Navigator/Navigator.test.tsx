@@ -77,23 +77,54 @@ describe('pane stack', () => {
     vi.restoreAllMocks()
   })
 
-  it('places a pane by the current it renders, in the commit that flips it', async () => {
+  const positions = () =>
+    panes().map((pane) => pane.getAttribute('data-stack-position'))
+
+  it('tops the deepest pane when no pane declares anything', async () => {
+    render(
+      <Navigator value='/tickets/glamping/sam'>
+        <Navigator.Content>
+          <Pane>Tickets</Pane>
+          <Pane>Glamping</Pane>
+          <Pane>Sam</Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(positions()).toEqual(['behind', 'behind', 'top'])
+  })
+
+  it('keeps an unreached empty state below the top', async () => {
+    render(
+      <Navigator value='/events'>
+        <Navigator.Content>
+          <Pane column='list'>Events</Pane>
+          <Pane reached={false}>Pick an event</Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(positions()).toEqual(['top', 'ahead'])
+    expect(panes()[1]).not.toHaveAttribute('data-reached')
+  })
+
+  it('places a pane by whether it is reached, in the commit that flips it', async () => {
     const seen: (string | null)[] = []
     function Probe() {
       const ref = useRef<HTMLSpanElement>(null)
       useLayoutEffect(() => {
         const pane = ref.current?.closest('[data-slot="pane"]')
         seen.push(
-          `${pane?.hasAttribute('data-current')} ${pane?.getAttribute('data-stack-position')}`
+          `${pane?.hasAttribute('data-reached')} ${pane?.getAttribute('data-stack-position')}`
         )
       })
       return <span ref={ref} />
     }
-    const tree = (current: boolean) => (
+    const tree = (reached: boolean) => (
       <Navigator value='/components'>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' current={current}>
+          <Pane column='list'>List</Pane>
+          <Pane reached={reached}>
             <Pane.Header backHref='/components'>
               <Pane.Title>Detail</Pane.Title>
             </Pane.Header>
@@ -118,11 +149,9 @@ describe('pane stack', () => {
     render(
       <Navigator value='/components/button'>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
-          <Pane role='inspector'>On this page</Pane>
+          <Pane column='list'>List</Pane>
+          <Pane>Detail</Pane>
+          <Pane column='inspector'>On this page</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -139,8 +168,8 @@ describe('pane stack', () => {
     render(
       <Navigator value='/components'>
         <Navigator.Content>
-          <Pane role='inspector'>On this page</Pane>
-          <Pane role='list'>List</Pane>
+          <Pane column='inspector'>On this page</Pane>
+          <Pane column='list'>List</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -153,13 +182,11 @@ describe('pane stack', () => {
   // about a pane's parent element type changes as the stack moves, so there is
   // no remount to lose scroll position over.
   it('keeps a pane mounted when the top of the stack moves past it', async () => {
-    const tree = (current: boolean) => (
-      <Navigator value={current ? '/components/button' : '/components'}>
+    const tree = (reached: boolean) => (
+      <Navigator value={reached ? '/components/button' : '/components'}>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' current={current}>
-            Detail
-          </Pane>
+          <Pane column='list'>List</Pane>
+          <Pane reached={reached}>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -175,10 +202,10 @@ describe('pane stack', () => {
   })
 
   // `placeOf` already nulls out an inspector via `derivePositions`. Chrome
-  // and `primaryNav` must read the same "who is top" answer, not a second,
+  // and `tabBar` must read the same "who is top" answer, not a second,
   // independent one — a raw `deriveTopIndex` fallback to index 0 would grant
   // an inspector-only stack live chrome even though no pane there qualifies.
-  it('grants no live chrome or primaryNav to an inspector-only stack', async () => {
+  it('grants no live chrome or tabBar to an inspector-only stack', async () => {
     render(
       <Navigator value='/foundations'>
         <Navigator.Primary aria-label='Main'>
@@ -188,7 +215,7 @@ describe('pane stack', () => {
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='inspector' primaryNav='hidden'>
+          <Pane column='inspector' tabBar='hidden'>
             <Pane.Header>
               <Pane.Title>Inspector</Pane.Title>
             </Pane.Header>
@@ -197,11 +224,11 @@ describe('pane stack', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
-    // The tab bar reads the top pane's `primaryNav` off context; an
+    // The tab bar reads the top pane's `tabBar` off context; an
     // inspector's `hidden` declaration must not reach it since no pane there
     // is eligible to be top.
     expect(document.querySelector('[data-slot="pane"]')).toHaveAttribute(
-      'data-primary-nav',
+      'data-tab-bar',
       'hidden'
     )
     expect(
@@ -232,12 +259,12 @@ describe('pane stack', () => {
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='inspector'>
+          <Pane column='inspector'>
             <Pane.Header>
               <Pane.Title>Inspector</Pane.Title>
             </Pane.Header>
           </Pane>
-          <Pane role='list' current>
+          <Pane column='list'>
             <Pane.Header>
               <Pane.Title>List</Pane.Title>
             </Pane.Header>
@@ -260,8 +287,8 @@ describe('pane stack', () => {
     render(
       <Navigator value='/components'>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail'>Detail</Pane>
+          <Pane column='list'>List</Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -283,10 +310,8 @@ describe('pane stack', () => {
     render(
       <Navigator value='/components'>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
+          <Pane column='list'>List</Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -302,7 +327,7 @@ describe('pane stack', () => {
   })
 })
 
-describe('primaryNav', () => {
+describe('tabBar', () => {
   // Restores the rAF spies even when an expectation throws mid-test — a leaked
   // mock would silently break every later test in the file.
   afterEach(() => {
@@ -313,15 +338,13 @@ describe('primaryNav', () => {
     render(
       <Navigator value='/'>
         <Navigator.Content>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
     await flushViewportMeasurement()
     expect(document.querySelector('[data-slot="pane"]')).toHaveAttribute(
-      'data-primary-nav',
+      'data-tab-bar',
       'auto'
     )
   })
@@ -336,8 +359,8 @@ describe('primaryNav', () => {
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' primaryNav='hidden'>
+          <Pane column='list'>List</Pane>
+          <Pane reached={false} tabBar='hidden'>
             Detail
           </Pane>
         </Navigator.Content>
@@ -356,13 +379,11 @@ describe('primaryNav', () => {
     ['keeps', 'visible', true]
   ] as const)(
     '%s the tab-bar clearance padding on a %s pane',
-    async (_, primaryNav, padded) => {
+    async (_, tabBar, padded) => {
       render(
         <Navigator value='/'>
           <Navigator.Content>
-            <Pane role='detail' current primaryNav={primaryNav}>
-              Detail
-            </Pane>
+            <Pane tabBar={tabBar}>Detail</Pane>
           </Navigator.Content>
         </Navigator>
       )
@@ -385,10 +406,8 @@ describe('primaryNav', () => {
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' current primaryNav='hidden'>
-            Detail
-          </Pane>
+          <Pane column='list'>List</Pane>
+          <Pane tabBar='hidden'>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -401,6 +420,12 @@ describe('primaryNav', () => {
     )
     expect(bar).toHaveAttribute('inert')
     expect(bar).toHaveAttribute('data-hidden', 'true')
+    const rail = document.querySelector(
+      '[data-slot="navigator-primary"][data-orientation="vertical"]'
+    )
+    expect(rail).not.toHaveAttribute('inert')
+    expect(rail).not.toHaveAttribute('aria-hidden')
+    expect(rail).not.toHaveAttribute('data-hidden', 'true')
   })
 
   it('keeps the bar expanded while the top pane declares it visible', async () => {
@@ -413,10 +438,8 @@ describe('primaryNav', () => {
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' current primaryNav='visible'>
-            Detail
-          </Pane>
+          <Pane column='list'>List</Pane>
+          <Pane tabBar='visible'>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -448,10 +471,8 @@ describe('primaryNav', () => {
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
+          <Pane column='list'>List</Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -481,9 +502,7 @@ describe('primaryNav', () => {
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -652,7 +671,7 @@ describe('destination visuals', () => {
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail'>Detail</Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -781,9 +800,7 @@ describe('Navigator routeless primary', () => {
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -1037,9 +1054,7 @@ describe('render fan-out', () => {
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail' current>
-            {detail}
-          </Pane>
+          <Pane>{detail}</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -1430,9 +1445,7 @@ describe('Navigator.OverflowPane', () => {
         ))}
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='detail' current>
-          Detail
-        </Pane>
+        <Pane>Detail</Pane>
         {extra}
       </Navigator.Content>
     </Navigator>
@@ -1454,13 +1467,13 @@ describe('Navigator.OverflowPane', () => {
     const more = document.querySelector('[data-slot="pane"][id]')!
     expect(more).toHaveAttribute('data-overflow')
     expect(more).toHaveAttribute('data-depth', '0')
-    expect(more).not.toHaveAttribute('data-current')
+    expect(more).not.toHaveAttribute('data-reached')
     expect(row).not.toHaveAttribute('data-overflow')
     expect(row).not.toHaveAttribute('data-reveal')
     await user.click(
       within(horizontalOf(container)!).getByRole('button', { name: 'More' })
     )
-    expect(more).toHaveAttribute('data-current')
+    expect(more).toHaveAttribute('data-reached')
     expect(row).toHaveAttribute('data-overflow')
     expect(row).toHaveAttribute('data-reveal')
   })
@@ -1555,14 +1568,14 @@ describe('Navigator.OverflowPane', () => {
     expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }))
   })
 
-  it('takes the root and the top of the stack when opened, the page past it, with the primary nav visible', async () => {
+  it('takes the root and the top of the stack when opened, the page past it, with the tab bar visible', async () => {
     render(overflowNav('/a'))
     await flushViewportMeasurement()
     expect(panes()).toHaveLength(2)
     await userEvent.click(screen.getByRole('button', { name: /More/ }))
     expect(panes()[1]).toHaveAttribute('data-stack-position', 'top')
     expect(panes()[1]).toHaveAttribute('data-depth', '0')
-    expect(panes()[1]).toHaveAttribute('data-primary-nav', 'visible')
+    expect(panes()[1]).toHaveAttribute('data-tab-bar', 'visible')
     expect(panes()[0]).toHaveAttribute('data-stack-position', 'ahead')
     expect(panes()[0]).toHaveAttribute('data-depth', '1')
   })
@@ -1593,9 +1606,7 @@ describe('Navigator.OverflowPane', () => {
         </Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='detail' current>
-          Detail
-        </Pane>
+        <Pane>Detail</Pane>
       </Navigator.Content>
     </Navigator>
   )
@@ -1636,9 +1647,7 @@ describe('Navigator.OverflowPane', () => {
             ))}
           </Navigator.Primary>
           <Navigator.Content>
-            <Pane role='detail' current>
-              Detail
-            </Pane>
+            <Pane>Detail</Pane>
           </Navigator.Content>
         </Navigator>
       )
@@ -1670,9 +1679,7 @@ describe('Navigator.OverflowPane', () => {
             ))}
           </Navigator.Primary>
           <Navigator.Content>
-            <Pane role='detail' current>
-              Detail
-            </Pane>
+            <Pane>Detail</Pane>
             <Navigator.OverflowPane aria-label='Everything else'>
               <Navigator.OverflowItems />
             </Navigator.OverflowPane>
@@ -1702,9 +1709,7 @@ describe('Navigator.OverflowPane', () => {
           ))}
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -1730,9 +1735,7 @@ describe('Navigator.OverflowPane', () => {
             ))}
           </Navigator.Primary>
           <Navigator.Content>
-            <Pane role='detail' current>
-              Detail
-            </Pane>
+            <Pane>Detail</Pane>
           </Navigator.Content>
         </Navigator>
       )
@@ -1858,9 +1861,7 @@ describe('Navigator.OverflowPane', () => {
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -1884,9 +1885,7 @@ describe('Navigator.OverflowPane', () => {
           <Navigator.Item value='tickets'>Tickets</Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -1967,13 +1966,11 @@ describe('Navigator.OverflowPane', () => {
     })
 
     it('keeps the slide for a push within the stack', async () => {
-      const tree = (current: boolean) => (
+      const tree = (reached: boolean) => (
         <Navigator value='/a'>
           <Navigator.Content>
-            <Pane role='list'>List</Pane>
-            <Pane role='detail' current={current}>
-              Detail
-            </Pane>
+            <Pane column='list'>List</Pane>
+            <Pane reached={reached}>Detail</Pane>
           </Navigator.Content>
         </Navigator>
       )
@@ -1994,16 +1991,12 @@ describe('Navigator.OverflowPane', () => {
       expect(row()).toHaveAttribute('data-pushing')
     })
 
-    it('marks a push as a current pane mounts and a pop as it unmounts', async () => {
+    it('marks a push as a reached pane mounts and a pop as it unmounts', async () => {
       const tree = (open: boolean) => (
         <Navigator value='/a'>
           <Navigator.Content>
-            <Pane role='list'>List</Pane>
-            {open ? (
-              <Pane role='detail' current>
-                Detail
-              </Pane>
-            ) : null}
+            <Pane column='list'>List</Pane>
+            {open ? <Pane>Detail</Pane> : null}
           </Navigator.Content>
         </Navigator>
       )
@@ -2024,11 +2017,11 @@ describe('Navigator.OverflowPane', () => {
       expect(row()).toHaveAttribute('data-pushing')
     })
 
-    const swapNav = (id: string, current = true) => (
+    const swapNav = (id: string, reached = true) => (
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane key={id} role='detail' current={current}>
+          <Pane column='list'>List</Pane>
+          <Pane key={id} reached={reached}>
             Ticket {id}
           </Pane>
         </Navigator.Content>
@@ -2076,14 +2069,10 @@ describe('Navigator.OverflowPane', () => {
             </Navigator.Item>
           </Navigator.Primary>
           <Navigator.Content>
-            <Pane key={value.slice(0, 2)} role='list'>
+            <Pane key={value.slice(0, 2)} column='list'>
               List {value}
             </Pane>
-            {value.length > 2 ? (
-              <Pane key={value} role='detail' current>
-                Detail {value}
-              </Pane>
-            ) : null}
+            {value.length > 2 ? <Pane key={value}>Detail {value}</Pane> : null}
           </Navigator.Content>
         </Navigator>
       )
@@ -2101,10 +2090,8 @@ describe('Navigator.OverflowPane', () => {
       render(
         <Navigator value='/a/1'>
           <Navigator.Content>
-            <Pane role='list'>List</Pane>
-            <Pane role='detail' current>
-              Detail
-            </Pane>
+            <Pane column='list'>List</Pane>
+            <Pane>Detail</Pane>
           </Navigator.Content>
         </Navigator>
       )
@@ -2117,10 +2104,8 @@ describe('Navigator.OverflowPane', () => {
       const tree = (
         <Navigator value='/a'>
           <Navigator.Content>
-            <Pane role='list'>List</Pane>
-            <Pane role='detail' current>
-              Detail
-            </Pane>
+            <Pane column='list'>List</Pane>
+            <Pane>Detail</Pane>
           </Navigator.Content>
         </Navigator>
       )
@@ -2162,10 +2147,8 @@ describe('Navigator.OverflowPane', () => {
             ))}
           </Navigator.Primary>
           <Navigator.Content>
-            <Pane role='list'>List</Pane>
-            <Pane role='detail' current>
-              Detail
-            </Pane>
+            <Pane column='list'>List</Pane>
+            <Pane>Detail</Pane>
           </Navigator.Content>
         </Navigator>
       )
@@ -2222,9 +2205,7 @@ describe('Navigator.OverflowPane', () => {
             )}
           </Navigator.Primary>
           <Navigator.Content>
-            <Pane role='detail' current>
-              Detail
-            </Pane>
+            <Pane>Detail</Pane>
           </Navigator.Content>
         </Navigator>
       )
@@ -2279,9 +2260,7 @@ describe('Navigator.OverflowPane', () => {
           ))}
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -2416,9 +2395,7 @@ describe('Navigator.Secondary', () => {
         <Navigator.Item value='insights'>Insights</Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='detail' current>
-          Detail
-        </Pane>
+        <Pane>Detail</Pane>
       </Navigator.Content>
     </Navigator>
   )
@@ -2485,9 +2462,7 @@ describe('Navigator.Secondary', () => {
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -2518,9 +2493,7 @@ describe('Navigator.Secondary', () => {
         </Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='detail' current>
-          Detail
-        </Pane>
+        <Pane>Detail</Pane>
       </Navigator.Content>
     </Navigator>
   )
@@ -2594,9 +2567,7 @@ describe('Navigator.Group', () => {
         </Navigator.Group>
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='detail' current>
-          Detail
-        </Pane>
+        <Pane>Detail</Pane>
       </Navigator.Content>
     </Navigator>
   )
@@ -2693,9 +2664,7 @@ describe('Navigator.Primary group descent', () => {
           </Navigator.Group>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -2741,9 +2710,7 @@ describe('Navigator.Menu + Navigator.Secondary precedence', () => {
         </Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='detail' current>
-          Detail
-        </Pane>
+        <Pane>Detail</Pane>
       </Navigator.Content>
     </Navigator>
   )
@@ -2810,9 +2777,7 @@ describe('Navigator descendant-aware active matching', () => {
         </Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='detail' current>
-          Detail
-        </Pane>
+        <Pane>Detail</Pane>
       </Navigator.Content>
     </Navigator>
   )
@@ -2902,9 +2867,7 @@ describe('Navigator lookups follow document order', () => {
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -2972,9 +2935,7 @@ describe('Navigator route-prefix section matching', () => {
         </Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='detail' current>
-          Doc
-        </Pane>
+        <Pane>Doc</Pane>
       </Navigator.Content>
     </Navigator>
   )
@@ -3057,7 +3018,7 @@ describe('Navigator collapsed edge circles', () => {
         </Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='list'>Content</Pane>
+        <Pane column='list'>Content</Pane>
       </Navigator.Content>
     </Navigator>
   )
@@ -3079,7 +3040,7 @@ describe('Navigator collapsed edge circles', () => {
         ) : null}
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='list'>Content</Pane>
+        <Pane column='list'>Content</Pane>
       </Navigator.Content>
     </Navigator>
   )
@@ -3213,7 +3174,7 @@ describe('Navigator collapsed edge circles', () => {
           <Navigator.Item value='c'>C</Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='list'>Content</Pane>
+          <Pane column='list'>Content</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -3595,7 +3556,7 @@ describe('Navigator active-tab tap: scroll-on-landing vs navigate-up', () => {
         </Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='detail'>
+        <Pane>
           <Pane.Header />
           Content
         </Pane>
@@ -3654,7 +3615,7 @@ describe('a click the browser opens elsewhere', () => {
         ))}
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='detail'>
+        <Pane>
           <Pane.Header />
           Content
         </Pane>
@@ -3718,7 +3679,7 @@ describe('a click the browser opens elsewhere', () => {
       expect(leftToBrowser(target, { metaKey: true })).toBe(true)
     }
     expect(onValueChange).not.toHaveBeenCalled()
-    expect(more).toHaveAttribute('data-current')
+    expect(more).toHaveAttribute('data-reached')
   })
 })
 
@@ -3732,22 +3693,18 @@ describe('scroll-to-top in a nested Navigator', () => {
           <Navigator.Item value='/outer'>Outer</Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='list' data-testid='outer-pane'>
+          <Pane column='list' data-testid='outer-pane'>
             <Navigator value='/inner'>
               <Navigator.Primary aria-label='Inner'>
                 {testBrand}
                 <Navigator.Item value='/inner'>Inner</Navigator.Item>
               </Navigator.Primary>
               <Navigator.Content>
-                <Pane role='detail' current data-testid='inner-pane'>
-                  Inner detail
-                </Pane>
+                <Pane data-testid='inner-pane'>Inner detail</Pane>
               </Navigator.Content>
             </Navigator>
           </Pane>
-          <Pane role='detail' current>
-            Outer detail
-          </Pane>
+          <Pane>Outer detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -3779,7 +3736,7 @@ describe('pane header inside Navigator', () => {
     const tree = (titled: boolean) => (
       <Navigator value='/'>
         <Navigator.Content>
-          <Pane role='detail' current>
+          <Pane>
             <Pane.Header>
               {titled ? <Pane.Title>Detail</Pane.Title> : null}
             </Pane.Header>
@@ -3817,7 +3774,7 @@ describe('scroll-to-top as the top pane changes', () => {
       </Navigator.Primary>
       <Navigator.Content>
         {panes.map((id) => (
-          <Pane key={id} role='detail' current data-testid={id}>
+          <Pane key={id} data-testid={id}>
             {id}
           </Pane>
         ))}
@@ -3925,9 +3882,7 @@ describe('Navigator.Content no-panes warning', () => {
     render(
       <Navigator value='/a'>
         <Navigator.Content>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -3954,13 +3909,11 @@ describe('nesting acceptance criteria', () => {
   // the position flip. Asserts the attribute, not the animation — jsdom
   // never runs the CSS transition.
   it('flips stack position on push and again on pop', async () => {
-    const tree = (current: boolean) => (
-      <Navigator value={current ? '/a/detail' : '/a'}>
+    const tree = (reached: boolean) => (
+      <Navigator value={reached ? '/a/detail' : '/a'}>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' current={current}>
-            Detail
-          </Pane>
+          <Pane column='list'>List</Pane>
+          <Pane reached={reached}>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -3985,10 +3938,8 @@ describe('nesting acceptance criteria', () => {
       <Navigator value='/events/123/allocations/456'>
         <Navigator.Content>
           <Slot>
-            <Pane role='list'>Event allocations</Pane>
-            <Pane role='detail' current>
-              Allocation drill-down
-            </Pane>
+            <Pane column='list'>Event allocations</Pane>
+            <Pane>Allocation drill-down</Pane>
           </Slot>
         </Navigator.Content>
       </Navigator>
@@ -3997,9 +3948,9 @@ describe('nesting acceptance criteria', () => {
     expect(positions()).toEqual(['behind', 'top'])
   })
 
-  // Criterion 5: primaryNav resolves against the true top pane, even when that
+  // Criterion 5: tabBar resolves against the true top pane, even when that
   // pane is wrapped and the generated section pane leads the stack.
-  it('resolves primaryNav against a wrapped top pane', async () => {
+  it('resolves tabBar against a wrapped top pane', async () => {
     render(
       <Navigator value='/foundations/colors'>
         <Navigator.Primary aria-label='Docs'>
@@ -4018,9 +3969,9 @@ describe('nesting acceptance criteria', () => {
           </Navigator.Item>
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
+          <Pane column='list'>List</Pane>
           <Slot>
-            <Pane role='detail' current primaryNav='hidden'>
+            <Pane tabBar='hidden'>
               <Pane.Header />
               Detail
             </Pane>
@@ -4031,7 +3982,7 @@ describe('nesting acceptance criteria', () => {
     await flushViewportMeasurement()
     expect(positions()).toEqual(['behind', 'behind', 'top'])
     const top = document.querySelectorAll('[data-slot="pane"]')[2]
-    expect(top).toHaveAttribute('data-primary-nav', 'hidden')
+    expect(top).toHaveAttribute('data-tab-bar', 'hidden')
     expect(
       document.querySelector(
         '[data-slot="navigator-primary"][data-orientation="horizontal"]'
@@ -4061,7 +4012,7 @@ describe('a new destination starts at the top', () => {
         </Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='detail' current data-testid='page'>
+        <Pane data-testid='page'>
           <Pane.Header>
             <Pane.Title>Page</Pane.Title>
           </Pane.Header>
@@ -4227,9 +4178,7 @@ describe('per-section hrefs', () => {
           ))}
         </Navigator.Primary>
         <Navigator.Content>
-          <Pane role='detail' current>
-            Detail
-          </Pane>
+          <Pane>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -4250,10 +4199,8 @@ describe('per-section hrefs', () => {
     const withPanes = (value: string) => (
       <Navigator value={value}>
         <Navigator.Content>
-          <Pane role='list'>List</Pane>
-          <Pane role='detail' current={value.split('/').length > 2}>
-            Detail
-          </Pane>
+          <Pane column='list'>List</Pane>
+          <Pane reached={value.split('/').length > 2}>Detail</Pane>
         </Navigator.Content>
       </Navigator>
     )
@@ -4300,7 +4247,7 @@ describe('going back puts a pane where it was', () => {
         </Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='detail' current data-testid='page'>
+        <Pane data-testid='page'>
           <Pane.Header>
             <Pane.Title>Page</Pane.Title>
           </Pane.Header>
@@ -4400,7 +4347,7 @@ describe('a page-root step back puts the page it returns to where it was', () =>
         </Navigator.Item>
       </Navigator.Primary>
       <Navigator.Content>
-        <Pane role='detail' current data-testid='page'>
+        <Pane data-testid='page'>
           <Pane.Header />
           {value}
         </Pane>
@@ -4409,7 +4356,7 @@ describe('a page-root step back puts the page it returns to where it was', () =>
   )
   const page = () =>
     document
-      .querySelector<HTMLElement>('[data-slot="pane"][data-role="detail"]')!
+      .querySelector<HTMLElement>('[data-slot="pane"][data-column="detail"]')!
       .querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
 
   it('restores the root page after stepping in and back out', async () => {
@@ -4438,17 +4385,17 @@ describe('a route-driven shell, where one slot holds every pane', () => {
   // inside it, so the router owns the unmount of the deepest one.
   const Segment = ({ deep }: { deep: boolean }) => (
     <>
-      <Pane role='list' depth={0}>
+      <Pane column='list' depth={0}>
         List
       </Pane>
-      <Pane role='detail' depth={1} current={!deep} data-testid='event'>
+      <Pane depth={1} reached={!deep} data-testid='event'>
         <Pane.Header>
           <Pane.Title>Event</Pane.Title>
         </Pane.Header>
         Event
       </Pane>
       {deep ? (
-        <Pane role='detail' depth={2} current data-testid='ticket'>
+        <Pane depth={2} data-testid='ticket'>
           Ticket
         </Pane>
       ) : null}
@@ -4506,25 +4453,24 @@ describe('a route-driven shell, where one slot holds every pane', () => {
     expect(event().scrollTop).toBe(0)
   })
 
-  // The shape a real shell has: the pane a push goes over is still `current`,
-  // because the contract is that the *deepest* `current` pane is the top and a
-  // route layout has no reason to turn the flag off on the pane it drilled
-  // from. Reading `current` alone as "this pane is the destination" zeroed
-  // every pane a push went over, which is what a prototype reported.
-  describe('with `current` left on the pane the push goes over', () => {
+  // The shape a real shell has: the pane a push goes over is still reached, and
+  // the *deepest* reached pane is the top. Reading `reached` alone as "this
+  // pane is the destination" zeroed every pane a push went over, which is what
+  // a prototype reported.
+  describe('with the pane the push goes over still reached', () => {
     const Both = ({ deep }: { deep: boolean }) => (
       <>
-        <Pane role='list' depth={0}>
+        <Pane column='list' depth={0}>
           List
         </Pane>
-        <Pane role='detail' depth={1} current data-testid='event'>
+        <Pane depth={1} data-testid='event'>
           <Pane.Header>
             <Pane.Title>Event</Pane.Title>
           </Pane.Header>
           Event
         </Pane>
         {deep ? (
-          <Pane role='detail' depth={2} current data-testid='ticket'>
+          <Pane depth={2} data-testid='ticket'>
             Ticket
           </Pane>
         ) : null}

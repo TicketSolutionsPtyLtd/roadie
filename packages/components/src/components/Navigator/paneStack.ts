@@ -5,14 +5,14 @@ import {
   isOverflowKind,
   isSectionKind
 } from '../Pane/PaneStackContext'
-import { type PaneDepth, ROLE_DEPTH } from '../Pane/paneDepth'
-import type { PanePrimaryNav, PaneRole } from '../Pane/variants'
+import { COLUMN_DEPTH, type PaneDepth } from '../Pane/paneDepth'
+import type { PaneColumn, PaneTabBar } from '../Pane/variants'
 
 export type PaneEntry = {
-  role: PaneRole
-  current: boolean
+  column: PaneColumn
+  reached: boolean
   /** Unused here; carried because registrations are passed in whole. */
-  primaryNav?: PanePrimaryNav
+  tabBar?: PaneTabBar
   /** Place in the drill-down; document order breaks ties. */
   rank?: number
 }
@@ -23,7 +23,7 @@ function stackOrder(entries: readonly PaneEntry[]): number[] {
     .sort((a, b) => (entries[a]?.rank ?? 0) - (entries[b]?.rank ?? 0) || a - b)
 }
 
-/** The deepest `current` pane, or the root when revealed. Inspectors never count. */
+/** The deepest reached pane, or the root when revealed. Inspectors never count. */
 export function deriveTopIndex(
   entries: readonly PaneEntry[],
   revealRoot = false
@@ -35,9 +35,9 @@ export function deriveTopIndex(
   let top = -1
   for (const index of stackOrder(entries)) {
     const entry = entries[index]
-    if (!entry || entry.role === 'inspector') continue
+    if (!entry || entry.column === 'inspector') continue
     // A leading inspector must not become the floor.
-    if (top === -1 || entry.current) top = index
+    if (top === -1 || entry.reached) top = index
   }
   return top === -1 ? 0 : top
 }
@@ -45,8 +45,9 @@ export function deriveTopIndex(
 /** The shallowest non-inspector; -1 when none. */
 export function deriveRootIndex(entries: readonly PaneEntry[]): number {
   return (
-    stackOrder(entries).find((index) => entries[index]?.role !== 'inspector') ??
-    -1
+    stackOrder(entries).find(
+      (index) => entries[index]?.column !== 'inspector'
+    ) ?? -1
   )
 }
 
@@ -76,7 +77,7 @@ export function derivePositions(
   })
   const topPlace = place[top] ?? 0
   return entries.map((entry, index) =>
-    entry.role === 'inspector'
+    entry.column === 'inspector'
       ? null
       : index === top
         ? 'top'
@@ -88,39 +89,39 @@ export function derivePositions(
 
 /** Position before registration (SSR, hydration): the section list is root, More last. */
 export function provisionalPosition(
-  { role, current, kind }: PaneRegistration,
+  { column, reached, kind }: PaneRegistration,
   revealRoot: boolean
 ): PaneStackPosition | null {
-  if (role === 'inspector') return null
+  if (column === 'inspector') return null
   if (isSectionKind(kind)) {
     return revealRoot ? 'top' : 'behind'
   }
   if (isOverflowKind(kind)) {
-    return current ? 'top' : 'ahead'
+    return reached ? 'top' : 'ahead'
   }
   if (revealRoot) return 'ahead'
-  return current ? 'top' : null
+  return reached ? 'top' : null
 }
 
 export type DepthEntry = {
-  role: PaneRole
+  column: PaneColumn
   kind: PaneKind
   depth?: PaneDepth
-  current?: boolean
+  reached?: boolean
 }
 
-/** A pane's depth before it registers: declared, else its role's default. More is always the root. */
+/** A pane's depth before it registers: declared, else its column's default. More is always the root. */
 export function provisionalDepth({
-  role,
+  column,
   kind,
   depth
 }: DepthEntry): number | null {
-  if (role === 'inspector') return null
+  if (column === 'inspector') return null
   if (isOverflowKind(kind)) return 0
-  return depth ?? ROLE_DEPTH[role]
+  return depth ?? COLUMN_DEPTH[column]
 }
 
-/** Registered depths: declared or role default, document order between equals, no gaps. */
+/** Registered depths: declared or column default, document order between equals, no gaps. */
 export function resolveDepths(
   entries: readonly DepthEntry[]
 ): (number | null)[] {
@@ -138,11 +139,11 @@ export function resolveDepths(
   // Open More fills a vacant root; it never displaces a list.
   const moreFillsRoot =
     entries.some(
-      (entry) => isOverflowKind(entry.kind) && entry.current === true
+      (entry) => isOverflowKind(entry.kind) && entry.reached === true
     ) && (ranked[0]?.depth ?? 0) > 0
   const offset = sectionList || moreFillsRoot ? 1 : 0
   const depths = entries.map((entry): number | null =>
-    entry.role === 'inspector' ? null : 0
+    entry.column === 'inspector' ? null : 0
   )
   ranked.forEach(({ index }, rank) => {
     depths[index] = rank + offset

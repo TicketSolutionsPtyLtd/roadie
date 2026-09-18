@@ -180,9 +180,9 @@ export {
   type PaneActionsProps,
   type PaneSearchProps,
   type PaneFooterProps,
-  type PaneRole,
+  type PaneColumn,
   type PaneEmphasis,
-  type PanePrimaryNav,
+  type PaneTabBar,
   type PaneDepth
 } from './components/Pane'
 

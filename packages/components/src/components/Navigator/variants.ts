@@ -9,7 +9,7 @@ export const navigatorRootClass = [
   // has no business being a scrollport, and `hidden` makes one anyway — with no
   // bar to say so. A hidden phone bar is absolute and translated a full height
   // past the bottom edge, which is 82px of scrollable overflow sitting there
-  // whenever the top pane sets primaryNav='hidden'. The phone pull-back then
+  // whenever the top pane sets tabBar='hidden'. The phone pull-back then
   // insets the pane row by 2% of the frame, so anything revealing the arriving
   // pane mid-transform scrolled that slack and the offset outlived the scale.
   // `clip` makes no scrollport at all, as navigator-content already does. See

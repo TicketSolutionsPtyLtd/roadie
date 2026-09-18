@@ -31,7 +31,7 @@ import {
 } from '../Pane/PaneStackContext'
 import { PaneTitle } from '../Pane/PaneTitle'
 import { PANE_DEEP, PANE_MAX_DEPTH } from '../Pane/paneDepth'
-import type { PaneRole } from '../Pane/variants'
+import type { PaneColumn } from '../Pane/variants'
 import {
   NavigatorActionsContext,
   NavigatorDisclosureContext,
@@ -64,11 +64,11 @@ export type NavigatorContentProps = ComponentProps<'main'>
 
 type RegisteredPane = { id: string; node: HTMLElement } & PaneRegistration
 
-const SECTION_ROOT: DepthEntry = { role: 'list', kind: 'generated-section' }
+const SECTION_ROOT: DepthEntry = { column: 'list', kind: 'generated-section' }
 const OPEN_MORE: DepthEntry = {
-  role: 'list',
+  column: 'list',
   kind: 'generated-overflow',
-  current: true
+  reached: true
 }
 
 // Long enough for the style change to land; a transition, once started, outlives it.
@@ -98,13 +98,13 @@ const shapeOf = (row: HTMLElement, level: number): PaneShape[] =>
     ),
     (node) => ({
       node,
-      current: node.hasAttribute('data-current'),
-      role: (node.getAttribute('data-role') ?? 'list') as PaneRole,
+      reached: node.hasAttribute('data-reached'),
+      column: (node.getAttribute('data-column') ?? 'detail') as PaneColumn,
       rank: rankOf(node.getAttribute('data-depth'))
     })
   )
 
-// Nodes only, not `current`: opening More or a section list flips `current` on a
+// Nodes only, not `reached`: opening More or a section list flips `reached` on a
 // pane that was already there, and a disclosure moving is not content arriving.
 const sameNodes = (was: readonly PaneShape[], now: readonly PaneShape[]) =>
   was.length === now.length &&
@@ -120,7 +120,7 @@ function isSiblingSwap(was: readonly PaneShape[], now: readonly PaneShape[]) {
   let swapped = false
   for (const [at, pane] of was.entries()) {
     const next = now[at]
-    if (!next || next.current !== pane.current) return false
+    if (!next || next.reached !== pane.reached) return false
     if (next.node !== pane.node) swapped = true
   }
   return swapped
@@ -165,7 +165,7 @@ export function NavigatorContent({
   ref: forwardedRef,
   ...props
 }: NavigatorContentProps) {
-  const { setPrimaryNav } = use(NavigatorActionsContext)
+  const { setTabBar } = use(NavigatorActionsContext)
   const {
     value,
     collected,
@@ -238,11 +238,11 @@ export function NavigatorContent({
     setRegistered(Array.from(panes.current.values()))
   }, [])
 
-  // More's `current` follows overflowOpen so it is top in the commit it opens.
+  // More's `reached` follows overflowOpen so it is top in the commit it opens.
   const ordered = useMemo(
     () =>
       orderByDocumentPosition(registered).map((pane) =>
-        isOverflowKind(pane.kind) ? { ...pane, current: overflowOpen } : pane
+        isOverflowKind(pane.kind) ? { ...pane, reached: overflowOpen } : pane
       ),
     [registered, overflowOpen]
   )
@@ -303,7 +303,7 @@ export function NavigatorContent({
       ordered.map((pane) => ({
         ...pane,
         rank: isOverflowKind(pane.kind)
-          ? pane.current
+          ? pane.reached
             ? -1
             : Infinity
           : (depths.get(pane.id) ?? provisionalDepth(pane) ?? Infinity)
@@ -393,12 +393,12 @@ export function NavigatorContent({
       const position =
         index === -1
           ? provisionalPosition(entry, revealRoot)
-          : // The snapshot learns of a `current` flip a commit late; the pane knows now.
-            stack[index]?.current === entry.current
+          : // The snapshot learns of a `reached` flip a commit late; the pane knows now.
+            stack[index]?.reached === entry.reached
             ? (positions[index] ?? null)
             : (derivePositions(
                 stack.map((pane, at) =>
-                  at === index ? { ...pane, current: entry.current } : pane
+                  at === index ? { ...pane, reached: entry.reached } : pane
                 ),
                 revealRoot
               )[index] ?? null)
@@ -471,11 +471,10 @@ export function NavigatorContent({
     }
   }, [registered, draws])
 
-  const topPrimaryNav =
-    stack.find((pane) => pane.id === topId)?.primaryNav ?? 'auto'
+  const topTabBar = stack.find((pane) => pane.id === topId)?.tabBar ?? 'auto'
   useEffect(() => {
-    setPrimaryNav(topPrimaryNav)
-  }, [topPrimaryNav, setPrimaryNav])
+    setTabBar(topTabBar)
+  }, [topTabBar, setTabBar])
 
   const fallbackOverflow = generatesOverflow ? (
     <PaneKindContext value='generated-overflow' key='__navigator-overflow'>

@@ -4,7 +4,7 @@ import { createContext } from 'react'
 
 import type { PaneChromeContextValue } from './PaneChromeContext'
 import type { PaneDepth } from './paneDepth'
-import type { PanePrimaryNav, PaneRole } from './variants'
+import type { PaneColumn, PaneTabBar } from './variants'
 
 export type PaneStackPosition = 'top' | 'ahead' | 'behind'
 
@@ -18,16 +18,16 @@ export const isSectionKind = (kind: PaneKind) =>
   kind === 'section' || kind === 'generated-section'
 
 export type PaneRegistration = {
-  role: PaneRole
-  current: boolean
-  primaryNav: PanePrimaryNav
+  column: PaneColumn
+  reached: boolean
+  tabBar: PaneTabBar
   kind: PaneKind
   depth?: PaneDepth
 }
 
 export type PanePlace = {
   position: PaneStackPosition | null
-  /** Resolved from document order once registered; declared or role default before. `null` for an inspector. */
+  /** Resolved from document order once registered; declared or column default before. `null` for an inspector. */
   depth: number | null
   chrome: PaneChromeContextValue
   /** The base of the stack, where Close never shows. */
