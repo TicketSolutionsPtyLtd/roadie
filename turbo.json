@@ -11,6 +11,7 @@
       "inputs": [
         "src/**/*.{js,jsx,ts,tsx,css,json}",
         "src/**/*.html",
+        "scripts/**/*.{js,mjs,cjs,ts}",
         "*.config.{js,mjs,cjs,ts}",
         "package.json",
         "tsconfig.json"
