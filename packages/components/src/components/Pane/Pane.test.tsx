@@ -65,12 +65,8 @@ describe('Pane', () => {
   })
 
   it('passes an ARIA role through to the section', async () => {
-    await renderPane(
-      <Pane role='region' aria-label='Events'>
-        Body
-      </Pane>
-    )
-    expect(screen.getByRole('region', { name: 'Events' })).toBe(pane())
+    await renderPane(<Pane role='navigation'>Body</Pane>)
+    expect(pane()).toHaveAttribute('role', 'navigation')
   })
 
   it("does not leak ScrollArea's presentation role onto the landmark", async () => {

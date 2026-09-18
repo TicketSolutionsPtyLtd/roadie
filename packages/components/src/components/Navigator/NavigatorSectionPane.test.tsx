@@ -416,9 +416,15 @@ describe('section pane groups', () => {
 
 const Wrapper = ({ children }: { children: ReactNode }) => <>{children}</>
 
-function Override({ wrapped = false }: { wrapped?: boolean }) {
+function Override({
+  wrapped = false,
+  role
+}: {
+  wrapped?: boolean
+  role?: string
+}) {
   const pane = (
-    <Navigator.SecondaryPane value='/components'>
+    <Navigator.SecondaryPane value='/components' role={role}>
       <p>Promo</p>
       <Navigator.SectionItems showDescriptions={false} query='in' />
     </Navigator.SecondaryPane>
@@ -462,6 +468,12 @@ describe('Navigator.SecondaryPane', () => {
     expect(
       within(lists[0] as HTMLElement).getByText('Promo')
     ).toBeInTheDocument()
+  })
+
+  it('passes an ARIA role through to its section', async () => {
+    render(<Override role='navigation' />)
+    await flushViewportMeasurement()
+    expect(sectionPane()).toHaveAttribute('role', 'navigation')
   })
 
   it('ends its SectionItems rows with a chevron', async () => {

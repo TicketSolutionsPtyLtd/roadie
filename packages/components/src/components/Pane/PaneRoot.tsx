@@ -44,9 +44,6 @@ import {
 // Base UI writes overflow inline, so a class can't clip the x axis.
 const CLIP_HORIZONTAL = { overflowX: 'clip' } as const
 
-// ScrollArea hard-codes role=presentation; the element's own undefined role removes it.
-const SECTION = <section role={undefined} />
-
 export type PaneRootProps = ComponentProps<'section'> & {
   /** The column it fills. A shell has at most one `list` and one `inspector`; an `inspector` gives up its column first. @default 'detail' */
   column?: 'list' | 'detail' | 'inspector'
@@ -78,6 +75,7 @@ export function PaneRoot({
   emphasis = 'raised',
   tabBar = 'auto',
   pending,
+  role,
   ref: forwardedRef,
   children,
   ...props
@@ -100,6 +98,10 @@ export function PaneRoot({
     (node: ReactNode | null) => setBodyTitleState(() => node),
     []
   )
+
+  // ScrollArea hard-codes role=presentation and the render element's props win,
+  // so the role goes here; undefined removes presentation.
+  const section = useMemo(() => <section role={role} />, [role])
 
   const setPaneRef = useMemo(
     () => mergeRefs<HTMLElement>(paneRef, forwardedRef),
@@ -313,7 +315,7 @@ export function PaneRoot({
 
   return (
     <ScrollArea
-      render={SECTION}
+      render={section}
       data-slot='pane'
       data-column={column}
       data-stack-position={position ?? undefined}

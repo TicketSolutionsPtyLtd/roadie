@@ -369,9 +369,7 @@ describe('nothing but a page-root step gets a copy', () => {
         <Pane column='list' depth={0}>
           List
         </Pane>
-        <Pane depth={1} reached={!deep}>
-          Detail
-        </Pane>
+        <Pane depth={1}>Detail</Pane>
         {deep ? <Pane depth={2}>Deeper</Pane> : null}
       </Navigator.Content>
     </Navigator>
