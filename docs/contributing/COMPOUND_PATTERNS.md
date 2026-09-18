@@ -139,7 +139,7 @@ behaviour keyed off that silently went inert: no push/pop motion, panes
 overlapping with no ordering so taps landed on the wrong pane, covered panes
 still interactive, the mobile section nav permanently absent. It was not
 consumer misuse — Roadie's own `Pane` docs compose panes literally, which
-works fine; it's Roadie's app-shell recipe that prescribes parallel routes,
+works fine; it was Roadie's former app-shell recipe that prescribed parallel routes,
 and a layout receives slots as opaque nodes it can neither reach inside nor
 hoist the return value of. Registration is what makes that shell work: a pane
 inside a slot still runs its own effects, so it still announces itself even

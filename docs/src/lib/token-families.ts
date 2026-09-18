@@ -70,7 +70,7 @@ export const TOKEN_FAMILY_PAGES: Record<TokenFamily, TokenFamilyPage> = {
     aliases: 'button calendar tile variant template',
     guidance: [
       foundation('Date and time', 'date-and-time'),
-      foundation('App shell', 'app-shell')
+      foundation('Navigation', 'navigation')
     ]
   }
 }

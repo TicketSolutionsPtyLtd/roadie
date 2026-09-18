@@ -193,7 +193,7 @@ export function FoundationPreview({ name }: { name: string }) {
           </div>
         </div>
       )
-    case 'app-shell':
+    case 'navigation':
       return <ComponentSkeleton name='navigator' />
     case 'linking':
       return (
