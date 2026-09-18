@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Fragment, lazy } from 'react'
 
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
@@ -50,6 +50,34 @@ describe('implicit Navigator.Content', () => {
     expect(
       document.querySelectorAll('[data-slot="navigator-content"]')
     ).toHaveLength(1)
+  })
+
+  it('passes through a Content whose type Flight replaced with a lazy wrapper', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const ServerContent = lazy(async () => ({ default: Navigator.Content }))
+    render(
+      <Navigator value='/a'>
+        <ServerContent className='server-main'>
+          <Pane>Detail</Pane>
+        </ServerContent>
+      </Navigator>
+    )
+    await screen.findByText('Detail')
+    await flushViewportMeasurement()
+
+    const mains = document.querySelectorAll('main')
+    expect(mains).toHaveLength(1)
+    expect(
+      document.querySelectorAll('[data-slot="navigator-panes"]')
+    ).toHaveLength(1)
+    expect(
+      document.querySelector('[data-slot="navigator-panes"]')
+    ).toHaveAttribute('data-level', '0')
+    const pane = screen.getByText('Detail').closest('[data-slot="pane"]')
+    expect(pane).toHaveAttribute('data-level', '0')
+    expect(pane).toHaveAttribute('data-stack-position', 'top')
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
   })
 
   it('registers panes carried in separate fragments, as parallel-route slots arrive', async () => {

@@ -192,7 +192,15 @@ function renderOrderDepth(
 }
 
 /** Arranges panes and decides which is the top of the stack. */
-export function NavigatorContent({
+export function NavigatorContent(props: NavigatorContentProps) {
+  const parentStack = use(PaneStackContext)
+  const pane = use(PaneContext)
+  // Under RSC the root can't see a server-authored Content's type, so it wraps one in its own.
+  const insideContent = parentStack !== null && pane === null
+  return insideContent ? props.children : <NavigatorStack {...props} />
+}
+
+function NavigatorStack({
   className,
   children,
   ref: forwardedRef,
