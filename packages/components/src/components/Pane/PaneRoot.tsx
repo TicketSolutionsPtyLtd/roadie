@@ -48,34 +48,24 @@ import {
 const CLIP_HORIZONTAL = { overflowX: 'clip' } as const
 
 export type PaneRootProps = ComponentProps<'section'> & {
-  /** The column it fills. A shell has at most one `list` and one `inspector`; an `inspector` gives up its column first. @default 'detail' */
+  /** The column it fills; an `inspector` gives up its column first. @default 'detail' */
   column?: 'list' | 'detail' | 'inspector'
-  /** The route has reached this pane. The deepest reached pane is the top of the stack. Pass `false` only for a pane mounted before it is reached, such as an empty detail column. @default true */
+  /** The route has reached this pane; the deepest reached pane is the top. @default true */
   reached?: boolean
-  /**
-   * Roadie works depth out from document order, on the server too. Declare it
-   * only on a pane that renders out of order, such as one streamed into a
-   * resumed prerender or behind a sibling Suspense boundary.
-   */
+  /** Only for a pane rendered out of document order, such as one streamed into a resumed prerender. */
   depth?: 0 | 1 | 2 | 3
   /** The surface. `subtler` paints none. @default 'raised' */
   emphasis?: PaneEmphasis
-  /** What the phone tab bar does while this pane is on top. `auto` collapses it on scroll. @default 'auto' */
+  /** What the phone tab bar does while this pane is top; `auto` collapses it on scroll. @default 'auto' */
   tabBar?: 'visible' | 'auto' | 'hidden'
-  /**
-   * Holds the frame's pending indicator for a wait Roadie cannot see, such as a
-   * fetch without Suspense or a mutation. Suspended content reports itself. A
-   * route's loading pane passes it too, so it gives its depth to the pane it
-   * stands in for.
-   */
+  /** Holds the frame's pending indicator for a wait Roadie can't see, such as a fetch without Suspense. */
   pending?: boolean
   /** The body skeleton while the pane's content is suspended. `Pane.Body` shows it too. */
   loading?: ReactNode
 }
 
 const subscribeNever = () => () => {}
-// True on the server and through this pane's own hydration, even when its
-// Suspense boundary hydrates after the rest of the row.
+// True on the server and through this pane's own hydration, even if its boundary hydrates late.
 const useHydrating = () =>
   useSyncExternalStore(
     subscribeNever,
@@ -121,8 +111,7 @@ export function PaneRoot({
     []
   )
 
-  // ScrollArea hard-codes role=presentation and the render element's props win,
-  // so the role goes here; undefined removes presentation.
+  // ScrollArea hard-codes role=presentation, so the role goes on the render element.
   const section = useMemo(() => <section role={role} />, [role])
 
   const setPaneRef = useMemo(
@@ -130,9 +119,7 @@ export function PaneRoot({
     [forwardedRef]
   )
 
-  // Keyed on register/unregister, not the stack object, which changes on every
-  // registration. A layout effect, so a pane the client mounts is redrawn at its
-  // place before the browser paints the column default.
+  // A layout effect, so a client-mounted pane is placed before the column default paints.
   const register = stack?.register
   const unregister = stack?.unregister
   useLayoutEffect(() => {
@@ -173,7 +160,6 @@ export function PaneRoot({
         : (declaredDepth ?? COLUMN_DEPTH[column])
   const position = place?.position ?? null
   const chrome = place?.chrome ?? PANE_CHROME_NONE
-  // No orchestrator, nothing to close back to.
   const isRoot = place?.isRoot ?? true
   const isOverflow = isOverflowKind(kind)
   // A pane mounting or moving slides; More does not, it's a tab switch.
@@ -196,9 +182,7 @@ export function PaneRoot({
   const reportsNav = tabBar === 'auto' && onScrollPast !== undefined
   const navAt = reportsNav ? scrollPastAt : undefined
 
-  // What a pane's scroll is filed under, surviving the re-make a page step
-  // makes of it, which `useId` would not. None until the pane registers: before
-  // that a pushed pane reads its column's default, the seat of the pane below.
+  // Survives a page step's re-make, which `useId` wouldn't; null until registered.
   const seat =
     place && !place.registered
       ? null
@@ -234,8 +218,7 @@ export function PaneRoot({
       (entries) => {
         for (const entry of entries) {
           const root = entry.rootBounds
-          // A pane an ancestor hides has no box, and its zero rects would
-          // otherwise read as scrolled past: it would open already collapsed.
+          // A hidden pane's zero rects would read as scrolled past.
           if (root === null || root.height === 0) return
           const at = Number((entry.target as HTMLElement).dataset.scrollAt)
           past.set(
@@ -276,7 +259,7 @@ export function PaneRoot({
   // Re-made for each arrival, so it closes over the entry it writes for.
   useEffect(() => {
     const viewport = viewportRef.current
-    // Read here, not while rendering. No entries, nothing to come back to.
+    // No entries, nothing to come back to.
     const entry = seat === null ? null : historyEntryKey()
     if (!viewport || (!wantsDirection && entry === null)) return
     let last = viewport.scrollTop
@@ -288,9 +271,7 @@ export function PaneRoot({
         const top = viewport.scrollTop
         if (wantsDirection && top > last) reportDown()
         last = top
-        // As it happens, not when the route changes: React replaces the
-        // content before any effect runs, and the viewport clamps the scroll
-        // the new content has no room for, losing the place to come back to.
+        // Now, not on route change: new content clamps the scroll before any effect runs.
         if (entry !== null && seat !== null)
           rememberPaneScroll(entry, seat, top)
       })
@@ -316,19 +297,12 @@ export function PaneRoot({
     const back = entry === null ? undefined : recallPaneScroll(entry, seat)
     const first = !mounted.current
     mounted.current = true
-    // An entry this pane has been scrolled on wins over every reason to start
-    // at the top: going back is the one arrival that is not new. Checked before
-    // the guards below, which read a stack snapshot a commit behind and so
-    // cannot say yet whether this pane is the one being navigated to.
+    // Going back is the one arrival that isn't new; checked before guards that read a stale snapshot.
     if (back !== undefined) {
       settling.current = restorePaneScroll(viewport, back)
       return
     }
-    // The pane being navigated to is the top of the stack, which is the
-    // *deepest* reached pane — every pane a push went over is reached too, and
-    // zeroing them all loses their place. `topNow` reads the committed DOM, so it
-    // already counts the pane that arrived this commit; `position` comes from a
-    // snapshot a commit behind and still calls this pane the top.
+    // The top is the deepest reached pane; `topNow` reads the committed DOM, `position` lags a commit.
     const isTop =
       stack === null ? reached : reached && stack.topNow() === paneRef.current
     if (

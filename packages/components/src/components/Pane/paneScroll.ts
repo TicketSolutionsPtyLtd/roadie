@@ -2,12 +2,7 @@
 
 type NavigationLike = { currentEntry?: { key?: string } | null }
 
-/**
- * The browser's own id for this history entry: new for every forward navigation
- * and the same one again on a traversal, so an entry never visited has nothing
- * remembered and starts at the top. `null` where the engine has no Navigation
- * API. Roadie reads no URL and writes no history state; the router owns both.
- */
+/** The Navigation API's id for this entry, stable across traversals; null without the API. */
 export function historyEntryKey(): string | null {
   if (typeof window === 'undefined') return null
   const navigation = (window as { navigation?: NavigationLike }).navigation
@@ -40,17 +35,12 @@ export function forgetPaneScroll() {
   byEntry.clear()
 }
 
-// A page mounts short and grows over the next frames, and until it does the
-// viewport clamps a scroll it has no room for.
+// A page grows over its first frames; until then the viewport clamps the scroll.
 const SETTLE_FRAMES = 10
 
 const GIVES_UP_ON = ['wheel', 'touchstart', 'pointerdown', 'keydown'] as const
 
-/**
- * Puts `viewport` back to `top`, holding it there while the page grows under it,
- * and returns a function that stops trying. Touching the pane stops it too: a
- * restore must never take the scroll off whoever is using it.
- */
+/** Holds `viewport` at `top` while the page grows; stops on user input or the returned cancel. */
 export function restorePaneScroll(viewport: HTMLElement, top: number) {
   viewport.scrollTop = top
   if (viewport.scrollTop === top) return () => {}

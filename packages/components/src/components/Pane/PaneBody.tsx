@@ -10,7 +10,7 @@ export type PaneBodyProps = {
   children?: ReactNode
 }
 
-/** The part of a pane that waits. Awaiting inside it keeps the header on screen while a skeleton stands in for the body. */
+/** The part of a pane that waits, keeping the header on screen while a skeleton stands in. */
 export function PaneBody({ loading, children }: PaneBodyProps) {
   return (
     <Suspense fallback={<PaneFallback loading={loading} />}>

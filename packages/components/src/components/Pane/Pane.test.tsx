@@ -29,9 +29,7 @@ import {
 } from './PaneStackContext'
 import { renderPaneColumnsCss } from './paneColumns'
 
-// The pane's stack position resolves after Navigator.Content registers it and
-// a render settles — a plain `flush()` (one microtask) isn't reliably enough
-// under React 19; act-await matches Navigator.test.tsx's own helper.
+// One microtask isn't enough for stack positions to settle under React 19.
 const flushViewportMeasurement = () =>
   act(async () => {
     await Promise.resolve()
@@ -39,8 +37,6 @@ const flushViewportMeasurement = () =>
 
 const pane = () => document.querySelector('[data-slot="pane"]')
 
-// The pane's viewport measures itself a microtask after mount; flushing it
-// inside `act` keeps these renders warning-free.
 const flush = () =>
   act(async () => {
     await Promise.resolve()
@@ -89,8 +85,6 @@ describe('Pane', () => {
     }
   )
 
-  // An alpha-tinted pane paints nothing opaque, so naming a surface here
-  // would be a guess about the parent. It inherits one instead.
   it.each(['subtle', 'subtler'] as const)(
     'leaves the surface to whatever it is sitting on (%s)',
     async (emphasis) => {
@@ -220,7 +214,6 @@ describe('Pane.Header', () => {
       </Pane>
     )
     expect(screen.queryByLabelText('Back')).toBeNull()
-    // The row is the placement, not a wrapper element: actions claim it alone.
     expect(document.querySelector('[data-slot="pane-actions"]')).toHaveClass(
       'col-start-3',
       'row-start-1',
@@ -229,12 +222,6 @@ describe('Pane.Header', () => {
   })
 
   it('reserves an explicit column for each of back, compact title and actions so none can overlap', async () => {
-    // Pins the class string, not the rendered layout — jsdom doesn't compute
-    // Tailwind's grid math, so this can't prove pixels never touch. See the
-    // task report for the browser check that does. What it does prove: the
-    // header declares three real tracks and each occupant claims a distinct
-    // one, rather than sharing a single cell distinguished only by
-    // `justify-self` (the bug this fixes).
     await renderPane(
       <Pane>
         <Pane.Header backHref='/components'>
@@ -254,7 +241,6 @@ describe('Pane.Header', () => {
     expect(
       document.querySelector('[data-slot="pane-title-compact"]')
     ).toHaveClass('col-start-2', 'min-w-0', 'truncate')
-    // Wide actions wrap within their own column rather than reach the caret.
     expect(document.querySelector('[data-slot="pane-actions"]')).toHaveClass(
       'col-start-3',
       'flex-wrap'
@@ -271,12 +257,6 @@ describe('Pane.Header', () => {
   })
 
   it('insets the scrollbar so it starts below the header', async () => {
-    // The bar spans the viewport, which extends under a sticky Pane.Header;
-    // without an offset it runs past the pane's rounded top corner. jsdom
-    // can't measure layout, so pin the mechanism: the scrollbar's top
-    // margin must read off the same published height Pane.Header writes,
-    // not a constant — a fixed number would clear an expanded header and
-    // leave a gap once it collapses.
     await renderPane(
       <Pane>
         <Pane.Header>
@@ -290,13 +270,6 @@ describe('Pane.Header', () => {
 
     expect(scrollbar?.className).toContain('--pane-header-height')
   })
-
-  // A headerless-pane counterpart was removed here: the offset is a single
-  // static class string with `0px` written into it as the CSS fallback, so
-  // it reads identically whether or not a header renders — jsdom can't
-  // resolve `var()`, so no assertion on this className can tell the two
-  // cases apart. The fallback itself is confirmed live in the browser
-  // (task-3-report.md), where `var()` actually resolves.
 
   it('renders a back affordance only when given a target', async () => {
     const { rerender } = await renderPane(
@@ -316,10 +289,7 @@ describe('Pane.Header', () => {
       </Pane>
     )
     await flush()
-    // Base UI's Button forces role="button" on its rendered anchor (it's
-    // semantically a button, not a navigation link), so this asserts via
-    // label rather than role — same pattern as IconButton.test.tsx's own
-    // href coverage.
+    // Base UI's Button forces role="button" on its anchor.
     const back = screen.getByLabelText('Back')
     expect(back.tagName.toLowerCase()).toBe('a')
     expect(back).toHaveAttribute('data-slot', 'icon-button')
@@ -411,8 +381,6 @@ describe('Pane.Header close affordance', () => {
   it('renders a close control on a non-root pane and calls its handler', async () => {
     const onClose = vi.fn()
     await renderTwoColumnStack(onClose)
-    // One handler threaded to both panes uniformly — only the non-root one
-    // may act on it.
     expect(screen.getAllByLabelText('Close')).toHaveLength(1)
     await userEvent.click(screen.getByLabelText('Close'))
     expect(onClose).toHaveBeenCalledTimes(1)
@@ -488,9 +456,6 @@ describe('Pane.Header close affordance', () => {
   })
 
   it('finds the root by stack depth, not the list role', async () => {
-    // Three `detail` panes, none `list` — a `role === 'list'` shortcut for
-    // root-ness would withhold Close from all three instead of just the
-    // first.
     render(
       <Navigator value='/a'>
         <Navigator.Content>
@@ -829,8 +794,6 @@ describe('Pane.Header collapse on scroll', () => {
       scrolled(viewportOf(), COLLAPSE_AT + 1)
       await Promise.resolve()
     })
-    // Between the expand and collapse thresholds: the state it is already in
-    // wins, so a scroll that crosses neither changes nothing.
     await act(async () => {
       scrolled(viewportOf(), Math.round((EXPAND_AT + COLLAPSE_AT) / 2))
       await Promise.resolve()
@@ -844,12 +807,6 @@ describe('Pane.Header collapse on scroll', () => {
     expect(headerOf()).toHaveAttribute('data-collapsed', 'false')
   })
 
-  // The one-frame drop these pin: `hidden` plus `transition-discrete` held the
-  // title's row at full height for the whole fade, then dropped it in a single
-  // frame — a 46px snap on the pane docs' own examples, at four different
-  // header heights. jsdom has no layout, so what is assertable is the
-  // mechanism: the row has to shrink over a transitioned property rather than
-  // disappear over `display`.
   it('collapses the in-header title over its own grid row, never over display', async () => {
     await renderPane(titled)
     await collapse()
@@ -873,20 +830,14 @@ describe('Pane.Header collapse on scroll', () => {
     await renderPane(titled)
     const title = titleOf()
     expect(title).toHaveClass('grid', 'grid-rows-[1fr]')
-    // The track only collapses if the item in it can be smaller than its
-    // content; an item that clips is what makes its automatic minimum zero.
+    // Clipping zeroes the item's automatic minimum, so the track can collapse.
     expect(title.firstElementChild).toHaveClass('overflow-hidden')
   })
 
-  // Closing the row alone leaves the header 8px taller than it has always been
-  // collapsed: a grid's `row-gap` outlives the row it separated, and a track
-  // floors at zero so a negative margin cannot claw it back.
   it('reclaims the row gap above the title along with the row', async () => {
     await renderPane(titled)
     const header = headerOf()
     expect(header.className).toContain('[--pane-header-gap:')
-    // Columns only — the rows space themselves, so the title's spacing is
-    // its own to animate. Both derived from the published gap, never restated.
     expect(header).toHaveClass('gap-x-(--pane-header-gap)')
     expect(header.className).toMatch(
       /\[&>\*:not\(\[data-slot=pane-back\]\).*:not\(\[data-slot=pane-title\]\)\]:mt-\(--pane-header-gap\)/
@@ -933,8 +884,6 @@ describe('Pane.Header collapse on scroll', () => {
     expect(header).toHaveClass(
       'min-h-[calc(--spacing(4)_+_--spacing(10)_+_var(--pane-header-pad-b))]'
     )
-    // A static clamp, not part of the collapse's own transition — widening
-    // that exception is exactly what this task must not do.
     const transitions = header.className.match(/transition-\[[^\]]+\]/g) ?? []
     for (const transition of transitions) {
       expect(transition).not.toContain('min-height')
@@ -951,8 +900,6 @@ describe('Pane.Header collapse on scroll', () => {
     )
     const button = screen.getByRole('button', { name: 'Scroll to top' })
     expect(button).toBeInTheDocument()
-    // The heading is the h2, not the button — the button's own text is
-    // decorative, so the accessible name comes from its label.
     expect(
       screen.getByRole('heading', { name: 'Components', level: 2 })
     ).toBeInTheDocument()
@@ -1002,17 +949,13 @@ describe('Pane.Header collapse on scroll', () => {
     const button = screen.getByRole('button', { name: 'Scroll to top' })
     const icon = button.querySelector('svg')
     expect(icon).not.toBeNull()
-    // The button already has its own accessible name; the icon must not add
-    // a second announcement.
     expect(icon).toHaveAttribute('aria-hidden', 'true')
     expect(icon).toHaveClass('hidden', 'lg:inline-block')
   })
 })
 
 describe('orchestrator chrome', () => {
-  // Chrome now reaches a pane only through registration, so simulating "an
-  // orchestrator is hosting this pane" means faking the stack, not wrapping
-  // with PaneChromeContext directly — that context is Pane's own to fill.
+  // Chrome only arrives through registration, so fake the stack, not PaneChromeContext.
   const withChrome = async (
     ui: ReactNode,
     chrome: Partial<PaneChromeContextValue>
@@ -1195,8 +1138,7 @@ describe('Pane.Footer', () => {
 })
 
 describe('pane registration through a wrapper', () => {
-  // Stands in for a Next.js parallel-route slot node: an opaque component
-  // whose type is not PaneRoot and which the orchestrator cannot see through.
+  // Stands in for a Next.js parallel-route slot, which the orchestrator can't see through.
   const Slot = ({ children }: { children: ReactNode }) => <>{children}</>
 
   afterEach(() => {
@@ -1345,7 +1287,6 @@ describe('stack geometry', () => {
         </Navigator>
       )
       await flushViewportMeasurement()
-      // The outer pane is the whole stack; the inner one is content.
       expect(positions()).toEqual(['top', null])
     })
 
@@ -1391,18 +1332,6 @@ describe('stack geometry', () => {
 })
 
 describe('Pane.BodyTitle', () => {
-  // No jsdom test covers the header-pop-in-on-mount defect this component
-  // exists to avoid (see PaneBodyTitle.tsx's `useIsomorphicLayoutEffect`
-  // comment). Testing-library's `render` calls React's `act()` synchronously,
-  // and a sync `act()` call drains the passive-effect queue before returning
-  // control — so a passive-effect registration and a layout-effect
-  // registration are indistinguishable the instant after `render()` returns;
-  // both already show the header. Bypassing `act` to observe the raw timing
-  // (via `react-dom/client`'s `createRoot` directly) doesn't help either:
-  // outside `act`, the initial render itself doesn't commit synchronously in
-  // this test environment, so there's nothing to read before microtasks run.
-  // Verified in a real browser instead — see the fix-report for the probe.
-
   it('renders in the content, not in the header', async () => {
     const { container } = render(
       <Pane>
@@ -1437,9 +1366,6 @@ describe('Pane.BodyTitle', () => {
   })
 
   it('never hides the body title with display, so the header cannot reflow', async () => {
-    // The 46px one-frame snap this arrangement exists to remove came from
-    // `hidden` on the in-header title: `allow-discrete` held `display: block`
-    // for the whole fade, then dropped the row in a single frame.
     const { container } = render(
       <Pane>
         <Pane.Header />
@@ -1456,15 +1382,6 @@ describe('Pane.BodyTitle', () => {
       expect(transition).not.toContain('height')
     }
   })
-
-  // No test asserts "the header's own classes never vary by `collapsed` in a
-  // way that changes its box" — `paneHeaderVariants`' `collapsed` variant has
-  // only ever toggled its docked shadow's opacity (see variants.ts), for both
-  // arrangements, so a jsdom class-string assertion here could never fail: it
-  // would be pinning an invariant nothing in this file threatens. The real
-  // claim — that a `Pane.BodyTitle` header holds a *constant height* across
-  // the collapse — is a rendered-layout fact jsdom cannot measure at all;
-  // it's verified in the browser instead (see the fix-report for the probe).
 
   it('emits one echo, the in-header title winning, when both are present', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
@@ -1508,11 +1425,6 @@ describe('Pane.BodyTitle', () => {
     expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' })
   })
 
-  // Sizing is a `className` a caller passes, not a prop — it relies on
-  // `packages/core`'s `cn` replacing the default display utility rather than
-  // joining it. Asserting presence of the override alone would pass even if
-  // both classes landed and CSS source order picked the winner; asserting the
-  // default's absence is what actually pins the merge.
   it('lets a passed display utility replace the default rather than join it', async () => {
     const { container } = render(
       <Pane>
@@ -1530,11 +1442,7 @@ describe('Pane.BodyTitle', () => {
   })
 })
 
-// jsdom applies no stylesheet, so the rendered corner can't be measured here —
-// this pins the wiring instead. `backdrop-filter` paints outside an ancestor's
-// rounded clip, so the pane's `overflow-hidden` does not contain its own
-// chrome: header and footer have to round their outer edge themselves, from
-// the radius the pane publishes.
+// `backdrop-filter` escapes an ancestor's rounded clip, so chrome rounds its own edge.
 describe('Pane chrome clipping', () => {
   it('rounds the sticky chrome to the radius the pane publishes', async () => {
     const { container } = await renderPane(
@@ -1968,9 +1876,7 @@ describe('a pane whose content suspends', () => {
 
   it('wraps a lazy child without reading it, so the pane itself never suspends', async () => {
     const data = later()
-    // A server child still streaming arrives as a lazy node, not a lazy type:
-    // `Children.map` initialises it and throws inside the pane's own render.
-    // React renders a lazy node's default as a node; the types allow only a component.
+    // A still-streaming server child is a lazy node, which the types don't allow.
     const loaded = (<p>Loaded</p>) as unknown as ComponentType
     const streaming = lazy(async () => {
       await data.promise

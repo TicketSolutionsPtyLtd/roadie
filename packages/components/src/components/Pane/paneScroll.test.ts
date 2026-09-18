@@ -51,7 +51,6 @@ describe('what a pane remembers', () => {
     for (let at = 0; at < 30; at += 1) {
       rememberPaneScroll(`e${at}`, 'seat', at)
     }
-    // Writing to the oldest again moves it back to the front of the queue.
     rememberPaneScroll('e0', 'seat', 999)
     rememberPaneScroll('e30', 'seat', 30)
     expect(recallPaneScroll('e0', 'seat')).toBe(999)

@@ -7,8 +7,7 @@ export type PaneTabBar = 'visible' | 'auto' | 'hidden'
 export const paneVariants = cva(
   [
     'relative min-h-0 min-w-0',
-    // backdrop-filter paints past an ancestor's rounded clip, so chrome rounds itself from this.
-    // A phone pane is flush, until the frame pulls it back to answer a tap.
+    // backdrop-filter escapes an ancestor's rounded clip, so chrome rounds itself; phone panes are flush.
     '[--pane-radius:var(--radius-2xl)] max-md:[--pane-radius:var(--pane-radius-phone,0px)]',
     'overflow-hidden rounded-(--pane-radius)',
     // Published, not applied: chrome is sticky and the body scrolls, so each applies it.
@@ -40,8 +39,7 @@ export const paneViewportVariants = cva(['size-full overscroll-contain'], {
 const PANE_CHROME_SURFACE =
   'bg-[color-mix(in_oklab,var(--pane-surface,var(--intent-bg-normal))_80%,transparent)] backdrop-blur-md'
 
-// Three real columns; auto columns collapse when empty. The shadow is a pseudo's
-// opacity, so it fades on the compositor.
+// The shadow is a pseudo's opacity, so it fades on the compositor.
 export const paneHeaderVariants = cva(
   [
     'sticky top-0 z-sticky grid-cols-[auto_minmax(0,1fr)_auto]',
@@ -80,8 +78,7 @@ export const paneHeaderVariants = cva(
 // Back and Close share the leading cell; the stylesheet draws at most one.
 export const paneHeaderEdgeClass = 'col-start-1 row-start-1 justify-self-start'
 
-// grid-template-rows 1fr→0fr closes the row with nothing to measure; transforms
-// wouldn't release layout.
+// grid rows 1fr→0fr close the row; transforms wouldn't release layout.
 export const paneTitleVariants = cva(
   ['text-display-ui-3 text-strong', 'origin-left'],
   {
@@ -107,8 +104,7 @@ export const paneTitleVariants = cva(
 // No inset of its own: it aligns with its content neighbours.
 export const paneBodyTitleClass = 'text-display-ui-3 text-strong'
 
-// Stretched, not justify-self-center: a minmax(0,1fr) track would size to the
-// untruncated title.
+// Stretched: a minmax(0,1fr) track would size to the untruncated title.
 export const paneTitleCompactVariants = cva(
   [
     'col-start-2 row-start-1 w-full',
@@ -129,7 +125,6 @@ export const paneTitleCompactVariants = cva(
   }
 )
 
-// Direct child of Pane.Header only.
 export const paneActionsClass = [
   'col-start-3 row-start-1 flex flex-wrap items-center justify-end gap-1',
   'justify-self-end'

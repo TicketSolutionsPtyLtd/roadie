@@ -39,8 +39,7 @@ export function traverseToBackHref(event: BackClick): boolean {
     )
       return false
 
-    // History.back has no NavigationResult that can reject after this handler
-    // cancels the link.
+    // history.back returns nothing that can reject after this handler cancels the link.
     window.history.back()
     event.preventDefault()
     return true

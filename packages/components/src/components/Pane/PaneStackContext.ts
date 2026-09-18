@@ -33,7 +33,7 @@ export type PaneRegistration = {
 
 export type PanePlace = {
   position: PaneStackPosition | null
-  /** Resolved from document order once registered; before that, from render order while hydrating, else declared or column default. `null` for an inspector. */
+  /** Document order once registered; before that, render order while hydrating, else declared or column default. */
   depth: number | null
   /** The pane has registered, so `depth` is its place in the row. */
   registered: boolean
@@ -45,11 +45,7 @@ export type PanePlace = {
 export type PaneStackContextValue = {
   register: (id: string, node: HTMLElement, entry: PaneRegistration) => void
   unregister: (id: string) => void
-  /**
-   * Where a pane sits; `entry` places one that has not registered yet. While
-   * `hydrating` (the server render and the pane's own hydration) it is placed by
-   * the order panes render in, which is document order.
-   */
+  /** Where a pane sits; `entry` places one not yet registered, by render order while `hydrating`. */
   placeOf: (
     id: string,
     entry: PaneRegistration,
@@ -57,11 +53,7 @@ export type PaneStackContextValue = {
   ) => PanePlace
   /** Lets the stack slide for the change this commit makes. */
   markPushing: () => void
-  /**
-   * The top of the stack as the committed DOM holds it, for a layout effect to
-   * read. `placeOf` answers from a snapshot that learns of an arriving pane a
-   * commit late; this one is already right on the commit the pane arrives in.
-   */
+  /** The top as the committed DOM holds it; `placeOf` learns of an arriving pane a commit late. */
   topNow: () => Element | null
   /** More is open and has a pane to show. */
   moreOpen: boolean
@@ -71,8 +63,7 @@ export type PaneStackContextValue = {
   destination?: string
 }
 
-// Registration, not an element walk: an orchestrator can't see through slots it
-// didn't render. Pane defines it; Navigator.Content fills it.
+// Registration, not an element walk: an orchestrator can't see through slots it didn't render.
 export const PaneStackContext = createContext<PaneStackContextValue | null>(
   null
 )

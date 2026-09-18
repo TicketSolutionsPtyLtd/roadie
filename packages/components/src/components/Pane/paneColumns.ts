@@ -93,7 +93,7 @@ export function parentsOf(
   )
 }
 
-/** Content width, in rem, from which a row lays out `columns` columns with this top: never below two columns' tier, which a one-level row fills alone. */
+/** Content width, in rem, from which a row lays out `columns` columns; never below the two-column tier. */
 export function rowTier(columns: number, top: number, levels: number): number {
   return Math.max(
     columnTier(2),
@@ -105,7 +105,6 @@ const inspectorFits = (levels: number, content: number) => {
   const shown = Math.min(levels, PANE_MAX_COLUMNS)
   return Array.from({ length: levels }, (_, top) => top).every((top) => {
     const parents = parentsOf(shown, top, levels)
-    // One column stacks its panes absolutely, so nothing sits beside them.
     if (content < rowTier(shown, top, levels)) return false
     const tracks = parents.reduce(
       (sum, depth) => sum + parentTrackWidth(shown, depth, parents, content),
@@ -163,9 +162,7 @@ const row = (level: number) =>
 const stackPane = (level: number, depth: number, extra = '') =>
   `[data-stack][data-level="${level}"][data-depth="${depth}"]${extra}`
 
-// Before panes register, a lone `detail` is written at its column default, 1,
-// with nothing at 0. Such a row is read one depth shallower, so its first
-// pane is still the root. Closed More holds no root.
+// Before registering, a lone `detail` sits at its default 1 and reads one shallower, so it stays root.
 const BASES = [0, 1] as const
 const baseIs = (level: number, base: number) => {
   const root = `:has(${stackPane(level, 0, ':not([data-overflow])')})`
@@ -323,8 +320,7 @@ function columnRules(level: number): string {
     .join('\n')
 }
 
-// Hides, never shows: `!important` so a consumer's display utility can't keep
-// a yielded inspector on screen, while a shown one keeps the consumer's display.
+// `!important` so a consumer's display utility can't keep a yielded inspector on screen.
 const HIDDEN = 'display: none !important;'
 
 function inspectorRules(level: number): string {
@@ -386,10 +382,7 @@ function pageStepRules(level: number): string {
   ].join('\n')
 }
 
-// A pane that mounts as the top lands at its final translate, with nothing to
-// leave, so a push reads as no motion. These give it a starting translate to
-// slide from. The selectors repeat the landed rules, plus `[data-pushing]`, so
-// they outrank them in the starting-style pass.
+// A pane mounting as the top has nothing to slide from; these outrank the landed rules in @starting-style.
 function enterRules(level: number): string {
   const deep = `[data-stack][data-level="${level}"][data-depth="${PANE_DEEP}"]`
   return [
@@ -404,8 +397,7 @@ function enterRules(level: number): string {
   ].join('\n')
 }
 
-// Content reaches into the primary's gutter and pads back, so its clip leaves a
-// flush pane's shadow room without `overflow-clip-margin`, which WebKit lacks.
+// Content reaches into the gutter and pads back, since WebKit lacks `overflow-clip-margin`.
 function shadowRoomRules(level: number): string {
   const content = besideVerticalPrimary(level, contentOf(level))
   const room = rem(PANE_SHADOW_ROOM)

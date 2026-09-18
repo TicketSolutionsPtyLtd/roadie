@@ -26,11 +26,7 @@ import { traverseToBackHref } from './paneBack'
 import { paneHeaderEdgeClass, paneHeaderVariants } from './variants'
 
 export type PaneHeaderProps = ComponentProps<'header'> & {
-  /**
-   * Back's canonical parent target. A plain click traverses to a matching
-   * previous same-document entry when possible, or routes to this href.
-   * Wins over `onBack` for Back.
-   */
+  /** Back's parent route; a plain click traverses to a matching previous entry when it can. Wins over `onBack`. */
   backHref?: string
   /** Names the Back button for assistive tech, as "Back to {label}". */
   backLabel?: string

@@ -257,8 +257,6 @@ describe('the rules a real row matches', () => {
     }
   })
 
-  // A row with nothing on screen is the failure a selector regression shows as,
-  // and the one a rule-by-rule assertion can miss.
   it('always leaves one pane on screen, placed, at every tier and row shape', () => {
     const shows = (pane: Element, at: number) => {
       const rule = paneRuleAt(rules, pane, at)
@@ -508,7 +506,6 @@ describe('a page step', () => {
 })
 
 describe('parent tracks follow the columns a row shows', () => {
-  // Resolves a generated track at a content width, in px.
   const trackPx = (track: string, contentPx: number) => {
     const expression = track
       .replace(/(\d+(?:\.\d+)?)cqi/g, `($1 * ${contentPx} / 100)`)
@@ -550,10 +547,7 @@ describe('parent tracks follow the columns a row shows', () => {
       )
     )
 
-  // A sweep calls this every 1px, so the hide threshold is resolved from the
-  // matching rules once per inspector element rather than re-scanning and
-  // re-matching every rule on every step: hidden below the widest threshold
-  // any matching rule names, shown at or above it.
+  // Resolved once per inspector element, since a sweep calls this every 1px.
   const inspectorHideThresholds = new WeakMap<Element, number>()
   const inspectorHideThreshold = (inspector: Element) => {
     const cached = inspectorHideThresholds.get(inspector)
@@ -582,7 +576,6 @@ describe('parent tracks follow the columns a row shows', () => {
   const inspectorShownAt = (inspector: Element, contentPx: number) =>
     contentPx >= inspectorHideThreshold(inspector)
 
-  // A stacked row positions its panes absolutely, so nothing can sit beside them.
   it.each([1, 2, 3])(
     'never shows the inspector while the row is stacked, %i levels',
     (levels) => {
@@ -593,7 +586,6 @@ describe('parent tracks follow the columns a row shows', () => {
     }
   )
 
-  // Every 1px of content from a single column to past the widest tier.
   it.each([1, 2, 3, 4])(
     'never squeezes the fill below its minimum beside a shown inspector, %i levels',
     (levels) => {
@@ -1132,7 +1124,6 @@ describe('a pane that mounts as the top', () => {
     $ = row(false, [false, true])
     expect(entersFrom($('[data-depth="1"]'))).toBe(false)
 
-    // A row of one pane is all root: nothing to slide over.
     $ = row(true, [true])
     expect(entersFrom($('[data-depth="0"]'))).toBe(false)
   })
