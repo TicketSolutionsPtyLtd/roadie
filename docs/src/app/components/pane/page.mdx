@@ -485,20 +485,57 @@ least recently written dropped first, in memory: a document reload starts over.
 
 ### Loading
 
-`pending` says the pane is waiting for its content. The
-[frame draws it](/components/navigator#waiting-for-a-navigation), not the pane,
-so a pane outside a `Navigator` shows nothing. Pass it in a route's
-`loading.tsx`, where the skeletons standing in for the page would otherwise end
-the frame's indicator early.
+Put the slow part of a pane inside `Pane.Body`. The header paints at once and a
+skeleton stands in for the body until the content lands. Press Reload to wait
+again.
 
-```tsx
-<Pane pending>
-  <Skeleton shape='block' />
-</Pane>
+```tsx-live-noinline
+const wait = () => new Promise((done) => setTimeout(done, 2000))
+
+function Tickets({ ready }) {
+  use(ready)
+  return (
+    <List>
+      <List.Item title='General admission' description='$68.00 · on sale' chevron />
+      <List.Item title='Early bird' description='$54.00 · sold out' chevron />
+      <List.Item title='VIP booth' description='$180.00 · 6 remaining' chevron />
+    </List>
+  )
+}
+
+function Loading() {
+  const [ready, setReady] = useState(wait)
+  return (
+    <div className='h-80 rounded-2xl bg-sunken p-3'>
+      <Pane className='h-full'>
+        <Pane.Header>
+          <Pane.Title>Midnight Frequency</Pane.Title>
+          <Pane.Actions>
+            <Button onClick={() => setReady(wait())}>Reload</Button>
+          </Pane.Actions>
+        </Pane.Header>
+        <Pane.Body>
+          <Tickets ready={ready} />
+        </Pane.Body>
+      </Pane>
+    </div>
+  )
+}
+render(<Loading />)
 ```
 
-The pane carries `aria-busy` while `pending` is true. On the server it takes
-no place in the row, so the page it stands in for lands at the right depth.
+- `Pane.Body` is a Suspense boundary. It renders no element of its own.
+- A pane catches a wait outside `Pane.Body` too. Then a skeleton header stands
+  in for the real one.
+- `loading` on the pane replaces the default skeleton. `loading` on
+  `Pane.Body` wins over it.
+- While the skeleton shows, the
+  [frame draws its pending indicator](/components/navigator#waiting-for-a-navigation).
+  The pane draws only the skeleton.
+- `pending` is for a wait Roadie cannot see, such as a fetch without Suspense
+  or a mutation. It holds the frame's indicator and sets `aria-busy` on the
+  pane. A route's `loading.tsx` pane passes it too, so the page it stands in
+  for lands at the right depth.
 
 ## Guidelines
 
@@ -559,6 +596,8 @@ no place in the row, so the page it stands in for lands at the right depth.
   then `backHref`.
 - `Pane.Search` is a search field named by its `aria-label` or placeholder. Its
   Cancel button is labelled "Cancel search", and Escape also clears the field.
+- The skeleton standing in for suspended content sits in an `aria-busy`
+  wrapper. The skeletons themselves are hidden from assistive technology.
 - A pane that doesn't fit, covered in the stack or dropped from the columns, is
   hidden from taps and assistive technology.
 
