@@ -367,43 +367,51 @@ export const reachedSets = (levels: number) =>
     Array.from({ length: levels }, (_, depth) => (bits & (1 << depth)) !== 0)
   )
 
-export function rowShapes(level = 0): { name: string; spec: RowSpec }[] {
-  const shapes: { name: string; spec: RowSpec }[] = []
-  for (const base of [0, 1]) {
-    for (let levels = 1; base + levels <= PANE_MAX_DEPTH + 1; levels += 1) {
-      for (const reached of reachedSets(levels)) {
-        for (const reveal of [false, true]) {
-          for (const extra of [
-            'none',
-            'inspector',
-            'closedMore',
-            'openMore'
-          ] as const) {
-            const panes: PaneSpec[] = reached.map((isReached, relative) => ({
-              depth: base + relative,
-              reached: isReached
-            }))
-            if (extra === 'closedMore' || extra === 'openMore') {
-              panes.push({
-                depth: 0,
-                overflow: true,
-                reached: extra === 'openMore'
-              })
-            }
-            shapes.push({
-              name: `${base === 0 ? 'rooted' : 'detail-first'}, ${levels} levels / reached ${reached.map(Number).join('')}${reveal ? ', revealed' : ''}, ${extra}`,
-              spec: {
-                level,
-                panes,
-                inspector: extra === 'inspector',
-                reveal: reveal || extra === 'openMore',
-                overflow: extra === 'openMore'
-              }
-            })
-          }
-        }
-      }
+function cartesianProduct<A, B>(a: readonly A[], b: readonly B[]): [A, B][] {
+  return a.flatMap((valueA) => b.map((valueB): [A, B] => [valueA, valueB]))
+}
+
+const ROW_BASES = [0, 1] as const
+const ROW_REVEALS = [false, true] as const
+const ROW_EXTRAS = ['none', 'inspector', 'closedMore', 'openMore'] as const
+
+const levelCountsFor = (base: number) =>
+  Array.from({ length: PANE_MAX_DEPTH + 1 - base }, (_, index) => index + 1)
+
+function rowShape(
+  level: number,
+  base: number,
+  reached: boolean[],
+  reveal: boolean,
+  extra: (typeof ROW_EXTRAS)[number]
+): { name: string; spec: RowSpec } {
+  const panes: PaneSpec[] = reached.map((isReached, relative) => ({
+    depth: base + relative,
+    reached: isReached
+  }))
+  if (extra === 'closedMore' || extra === 'openMore') {
+    panes.push({ depth: 0, overflow: true, reached: extra === 'openMore' })
+  }
+  return {
+    name: `${base === 0 ? 'rooted' : 'detail-first'}, ${reached.length} levels / reached ${reached.map(Number).join('')}${reveal ? ', revealed' : ''}, ${extra}`,
+    spec: {
+      level,
+      panes,
+      inspector: extra === 'inspector',
+      reveal: reveal || extra === 'openMore',
+      overflow: extra === 'openMore'
     }
   }
-  return shapes
+}
+
+export function rowShapes(level = 0): { name: string; spec: RowSpec }[] {
+  return ROW_BASES.flatMap((base) =>
+    levelCountsFor(base).flatMap((levels) =>
+      reachedSets(levels).flatMap((reached) =>
+        cartesianProduct(ROW_REVEALS, ROW_EXTRAS).map(([reveal, extra]) =>
+          rowShape(level, base, reached, reveal, extra)
+        )
+      )
+    )
+  )
 }
