@@ -1818,27 +1818,6 @@ describe('NavigatorOverflowPane', () => {
     expect(document.querySelectorAll(`[id="${controlsId}"]`)).toHaveLength(1)
   })
 
-  it('warns when items fold with no Navigator.Content to host them', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    render(
-      <Navigator value='/a'>
-        <Navigator.Primary aria-label='Main'>
-          {testBrand}
-          {['/a', '/b', '/c', '/d', '/e', '/f'].map((v) => (
-            <Navigator.Item key={v} value={v} href={v}>
-              {v}
-            </Navigator.Item>
-          ))}
-        </Navigator.Primary>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    expect(
-      warn.mock.calls.some((c) => String(c[0]).includes('Navigator.Content'))
-    ).toBe(true)
-    warn.mockRestore()
-  })
-
   it('gives a folded destination aria-current=page, matching both orientations', async () => {
     render(overflowNav('/e'))
     await flushViewportMeasurement()

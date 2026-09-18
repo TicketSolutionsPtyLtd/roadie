@@ -54,8 +54,6 @@ export type NavigatorActions = {
   ) => void
   /** The More control that opened the pane, for returning focus. */
   overflowOpenerRef: RefObject<HTMLElement | null>
-  /** Whether a `Navigator.Content` is a direct child of the root. */
-  hasContent: boolean
   setOpenMenu: Dispatch<SetStateAction<string | null>>
   declareSecondaryPane: (value: string) => () => void
   /** Present only when the app handles `showList`. */
@@ -122,7 +120,6 @@ export const NavigatorActionsContext = createContext<NavigatorActions>({
   overflowPaneId: '',
   setOverflowItems: noop,
   overflowOpenerRef: { current: null },
-  hasContent: false,
   setOpenMenu: noop,
   declareSecondaryPane: () => noop,
   setExpanded: noop,

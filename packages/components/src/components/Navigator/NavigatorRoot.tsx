@@ -205,12 +205,20 @@ export function NavigatorRoot({
   }
 
   // A walk, not a child registration, which raced Primary's "no host" warning on first commit.
-  const { hasContent, primary } = useMemo(() => {
+  // Non-Primary children become an implicit `Navigator.Content` unless the
+  // caller wrote one explicitly, which renders verbatim (props, position,
+  // everything) as the escape hatch for `className` and other passthrough.
+  const { hasExplicitContent, primary, rest } = useMemo(() => {
     const elements = Children.toArray(children).filter(isValidElement)
+    const primary = elements.find(
+      (child) => child.type === NavigatorPrimary
+    ) as ReactElement<NavigatorPrimaryProps> | undefined
     return {
-      hasContent: elements.some((child) => child.type === NavigatorContent),
-      primary: elements.find((child) => child.type === NavigatorPrimary) as
-        ReactElement<NavigatorPrimaryProps> | undefined
+      hasExplicitContent: elements.some(
+        (child) => child.type === NavigatorContent
+      ),
+      primary,
+      rest: elements.filter((child) => child !== primary)
     }
   }, [children])
   const primaryDerived = primary !== undefined
@@ -294,7 +302,6 @@ export function NavigatorRoot({
     overflowPaneId,
     setOverflowItems,
     overflowOpenerRef,
-    hasContent,
     setOpenMenu,
     declareSecondaryPane,
     onShowListChange: handlesShowList
@@ -335,7 +342,16 @@ export function NavigatorRoot({
                 {pending === 'idle' ? null : (
                   <div aria-hidden data-slot='navigator-pending' />
                 )}
-                {children}
+                {hasExplicitContent ? (
+                  children
+                ) : (
+                  <>
+                    {primary}
+                    <NavigatorContent>
+                      {rest.length > 0 ? rest : undefined}
+                    </NavigatorContent>
+                  </>
+                )}
               </div>
             </NavigatorBarContext>
           </NavigatorExpansionContext>

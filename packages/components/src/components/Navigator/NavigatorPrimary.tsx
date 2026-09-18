@@ -87,7 +87,6 @@ export function NavigatorPrimary({
     overflowPaneId,
     setOverflowItems,
     overflowOpenerRef,
-    hasContent,
     setOpenMenu,
     onShowListChange,
     activateItem,
@@ -253,12 +252,6 @@ export function NavigatorPrimary({
         {OVERFLOW_LABEL}
       </span>
     </NavigatorDestination>
-  )
-
-  useDevWarning(
-    hasMore &&
-      !hasContent &&
-      '[Roadie] Navigator.Primary folded items into More but no Navigator.Content hosts the pane.'
   )
 
   // By hand: the compiler leaves the tab list unmemoised, and tabs are uncompiled.
