@@ -45,8 +45,8 @@ export function Providers({ children }) {
 }`}</CodePreview>
         <p className='text-subtle'>
           Now every Roadie component that accepts <Code>href</Code> routes
-          through Next&apos;s client navigation automatically: prefetch,
-          scroll restoration, view transitions all preserved.
+          through Next&apos;s client navigation automatically: prefetch, scroll
+          restoration, view transitions all preserved.
         </p>
         <p className='text-subtle'>
           The provider also marks each of those clicks as a navigation in
