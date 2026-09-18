@@ -1,5 +1,65 @@
 # @oztix/roadie-core
 
+## 2.8.0
+
+### Minor Changes
+
+- f3990bd: Add `animate-pop-tap` — a 200ms tap response, where `animate-pop` at 600ms reads
+  as a notification.
+
+  Add the `navigator-expanded` variant, which Navigator's expanded vertical
+  navigation is styled with, plus `@oztix/roadie-core/navigator`.
+
+  `@oztix/roadie-core/navigator` also exports `getNavigatorExpandedScript`, an
+  optional head script that lets a static site paint a persisted expanded vertical
+  navigation before hydration, with the cookie name it reads and a serializer to
+  write it.
+
+  Add `is-translucent`, which lets content show through a raised or floating
+  surface's fill under a backdrop blur. It pairs with `emphasis-raised`,
+  `emphasis-floating` or `bg-raised`, keeps their rim light and shadow, and falls
+  back to the solid fill without `backdrop-filter` support or under
+  `prefers-reduced-transparency: reduce`. On an `is-interactive-field`, the
+  field's hover, focus and invalid fills still win.
+
+- 65ba926: Add `Drawer`, a surface that slides in from any edge and swipes away, built on
+  Base UI's drawer primitive. Core gains the `motion-drawer` utility, which drives
+  a drawer's edge transition and tracks Base UI's live swipe offset.
+- 8c2ca73: One rule for the two motion prefixes: `animate-*` plays now, once, as a
+  keyframe animation; `motion-*` is state-driven enter/exit only, a transition
+  on Base UI's `data-starting-style` / `data-ending-style`.
+
+  Renamed the keyframe mount animations to match:
+
+  - `motion-fade-in` → `animate-fade-in`
+  - `motion-scale-in` → `animate-scale-in`
+  - `motion-pop-in` → `animate-pop-in`
+
+  `motion-fade-out` and `motion-scale-out` are deprecated with no replacement —
+  use `motion-scale` or `motion-slide` for the exit instead.
+
+  All five old names remain as deprecated aliases until v3.
+
+- 5363c7a: Add `Skeleton`, a placeholder that holds the space content will occupy while it
+  loads. One component with a `shape` variant: `text` is a line at the inherited
+  line height, `block` is a panel, `circle` is an avatar. Width and height come
+  from Tailwind utilities, so a paragraph or a list row is several Skeletons in a
+  grid. The root is `aria-hidden` and carries `data-slot='skeleton'`.
+
+  Core adds the `--duration-ambient` (1800ms) and `--duration-sweep` (2400ms)
+  tokens, the `--sheen-shade` and `--sheen-highlight` colours, the
+  `animate-pulse-subtle` utility, and `animate-shimmer`, which crosses a surface
+  with a highlight over that pulse. The highlight is anchored to the viewport, so
+  every element wearing the class shares one sweep whatever its size, and it is
+  the lighter of the two tones in both themes. Under `prefers-reduced-motion` the
+  highlight is dropped and the pulse resolves to a static tint.
+
+### Patch Changes
+
+- f3990bd: `roadie.compiled.css` now ships `motion-scale`, `motion-slide`, `animate-shake`, `animate-nudge` and `animate-pop`, which the precompiled sheet had been dropping.
+- 4deb856: - Named `duration-*` utilities set `--tw-duration`, so a variant-scoped `transition-[…]` keeps their duration, and they now ship in `roadie.compiled.css`.
+  - `cn` merges `emphasis-field` with the other emphasis presets.
+
 ## 2.7.0
 
 ### Minor Changes
