@@ -62,7 +62,14 @@ import { navigatorContentClass, navigatorPanesClass } from './variants'
 
 export type NavigatorContentProps = ComponentProps<'main'>
 
-type RegisteredPane = { id: string; node: HTMLElement } & PaneRegistration
+type PlacedPane = { id: string } & PaneRegistration
+type RegisteredPane = PlacedPane & { node: HTMLElement }
+/** Where a pane rendered while hydrating: `written` is drawn, `rank` is what registration should resolve. */
+type RenderClaim = {
+  pane: PlacedPane
+  written: number | null
+  rank: number | null
+}
 
 const SECONDARY_ROOT: DepthEntry = {
   column: 'list',
@@ -140,7 +147,7 @@ type Drawn = {
 }
 
 // What this render draws, not the snapshot, which learns of a pane a commit late.
-function depthsOf(panes: readonly RegisteredPane[], draws: Drawn) {
+function depthsOf(panes: readonly PlacedPane[], draws: Drawn) {
   const drawn = panes.filter((pane) => {
     if (pane.kind === 'generated-secondary') return draws.secondaryPane
     if (pane.kind === 'secondary') return draws.rootListDrawn
@@ -160,6 +167,29 @@ function depthsOf(panes: readonly RegisteredPane[], draws: Drawn) {
   return new Map(
     drawn.map((pane, index) => [pane.id, resolved[index + shift] ?? null])
   )
+}
+
+// The last pane's place among the panes rendered so far. A declared depth
+// wins. A row that opens on a detail is written from 1, as its column default
+// was: the stylesheet reads such a row one shallower, and More can take 0
+// without the detail moving.
+function renderOrderDepth(
+  panes: readonly PlacedPane[],
+  draws: Drawn
+): Omit<RenderClaim, 'pane'> {
+  const pane = panes.at(-1)
+  if (pane?.depth !== undefined) {
+    const written = provisionalDepth(pane)
+    return { written, rank: written }
+  }
+  const depths = depthsOf(panes, draws)
+  const rank = pane ? (depths.get(pane.id) ?? null) : null
+  const first = panes.find((other) => (depths.get(other.id) ?? null) !== null)
+  const lift =
+    first !== undefined &&
+    depths.get(first.id) === 0 &&
+    (provisionalDepth(first) ?? 0) > 0
+  return { written: rank === null ? null : rank + (lift ? 1 : 0), rank }
 }
 
 /** Arranges panes and decides which is the top of the stack. */
@@ -227,6 +257,26 @@ export function NavigatorContent({
 
   // The Map serves effects, which run before the snapshot re-renders.
   const panes = useRef(new Map<string, RegisteredPane>())
+  // Fizz renders a row in document order and hydration walks it the same way,
+  // so the server and the client place each pane alike before any registers.
+  // Keyed by `useId`, so a StrictMode double render claims once.
+  const claims = useRef(new Map<string, RenderClaim>())
+  const claimRenderedDepth = useCallback(
+    (id: string, entry: PaneRegistration, draws: Drawn) => {
+      const claimed = claims.current.get(id)
+      if (claimed) return claimed.written
+      // A loading pane gives its place to the pane it stands in for.
+      const before = Array.from(
+        claims.current.values(),
+        ({ pane }) => pane
+      ).filter((pane) => !pane.pending)
+      const pane = { id, ...entry }
+      const claim = { pane, ...renderOrderDepth([...before, pane], draws) }
+      claims.current.set(id, claim)
+      return claim.written
+    },
+    []
+  )
   const [registered, setRegistered] = useState<readonly RegisteredPane[]>([])
 
   const register = useCallback(
@@ -394,7 +444,7 @@ export function NavigatorContent({
   // Panes register through `register` and `unregister` alone, which stay
   // stable, so this lookup can change with the stack without looping.
   const placeOf = useCallback(
-    (id: string, entry: PaneRegistration) => {
+    (id: string, entry: PaneRegistration, hydrating = false) => {
       const index = stack.findIndex((pane) => pane.id === id)
       const position =
         index === -1
@@ -409,7 +459,12 @@ export function NavigatorContent({
                 revealRoot
               )[index] ?? null)
       const resolved = depths.get(id)
-      const depth = resolved === undefined ? provisionalDepth(entry) : resolved
+      const registered = resolved !== undefined
+      const depth = registered
+        ? resolved
+        : hydrating
+          ? claimRenderedDepth(id, entry, draws)
+          : provisionalDepth(entry)
       const top = position === 'top'
       const chrome =
         secondaryBack === null || position === 'ahead' || depth !== 1
@@ -423,10 +478,21 @@ export function NavigatorContent({
         position,
         depth,
         chrome,
-        isRoot: index !== -1 && index === rootIndex
+        isRoot: index !== -1 && index === rootIndex,
+        registered
       }
     },
-    [stack, positions, revealRoot, depths, topChrome, secondaryBack, rootIndex]
+    [
+      stack,
+      positions,
+      revealRoot,
+      depths,
+      draws,
+      claimRenderedDepth,
+      topChrome,
+      secondaryBack,
+      rootIndex
+    ]
   )
 
   const stackValue = useMemo<PaneStackContextValue>(
@@ -460,17 +526,24 @@ export function NavigatorContent({
     }
   }, [hasChildren, registered])
 
-  // The live Map, not `ordered`: a pane unmounting this commit is still in the render's snapshot.
+  // The live Map, not `ordered`: a pane unmounting this commit is still in the
+  // render's snapshot. Each claim is checked once, as its pane first registers;
+  // the row can reshape after that without the server having been wrong.
+  const checked = useRef(new Set<string>())
   const warned = useRef(new Set<string>())
   useEffect(() => {
     if (!isDev()) return
     const live = orderByDocumentPosition(Array.from(panes.current.values()))
     const resolved = depthsOf(live, draws)
     for (const pane of live) {
+      const claim = claims.current.get(pane.id)
+      if (!claim || checked.current.has(pane.id)) continue
+      checked.current.add(pane.id)
       const depth = resolved.get(pane.id) ?? null
-      const declared = provisionalDepth(pane)
-      if (depth === null || declared === null || depth <= declared) continue
-      const message = `[Roadie] A Pane sits at depth ${depth} but declares ${declared}; declare depth={${depth}} for SSR.`
+      if (depth === null || claim.written === null || claim.rank === depth) {
+        continue
+      }
+      const message = `[Roadie] A Pane was server-rendered at depth ${claim.written} but sits at ${depth}. Render panes in document order, pass \`pending\` on a loading pane, or declare depth={${depth}}.`
       if (warned.current.has(message)) continue
       warned.current.add(message)
       console.warn(message)

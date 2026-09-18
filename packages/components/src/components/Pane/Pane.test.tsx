@@ -2,6 +2,8 @@ import type { ReactNode } from 'react'
 
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { type Root, hydrateRoot } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { Pane } from '.'
@@ -711,7 +713,8 @@ describe('Pane.Header back name', () => {
         position: null,
         depth: 1,
         chrome: { backHref: '/tickets', backLabel: 'Tickets' },
-        isRoot: false
+        isRoot: false,
+        registered: true
       }),
       markPushing: () => {},
       topNow: () => null,
@@ -1020,7 +1023,8 @@ describe('orchestrator chrome', () => {
         position: null,
         depth: 1,
         chrome: { ...PANE_CHROME_NONE, ...chrome },
-        isRoot: false
+        isRoot: false,
+        registered: true
       }),
       markPushing: () => {},
       topNow: () => null,
@@ -1602,7 +1606,89 @@ describe('depth attributes', () => {
     ])
   })
 
-  it('warns when a pane lands deeper than it declared', async () => {
+  const hydrateFromServer = async (ui: ReactNode) => {
+    const host = document.createElement('div')
+    host.innerHTML = renderToString(ui)
+    document.body.append(host)
+    let root: Root | null = null
+    await act(async () => {
+      root = hydrateRoot(host, ui)
+    })
+    await flushViewportMeasurement()
+    return {
+      host,
+      rerender: async (next: ReactNode) => {
+        act(() => root?.render(next))
+        await flushViewportMeasurement()
+      },
+      unmount: () => act(() => root?.unmount())
+    }
+  }
+
+  const serverWarnings = (warn: { mock: { calls: unknown[][] } }) =>
+    warn.mock.calls.filter((c) => String(c[0]).includes('server-rendered'))
+
+  it('warns when the server drew a pane at another depth', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { unmount } = await hydrateFromServer(
+      <Navigator value='/a'>
+        <Navigator.Content>
+          <Pane column='list'>List</Pane>
+          <Pane>Detail</Pane>
+          <Pane depth={1}>Sub</Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    expect(serverWarnings(warn).map((c) => String(c[0]))).toEqual([
+      expect.stringContaining('server-rendered at depth 1 but sits at 2')
+    ])
+    unmount()
+    warn.mockRestore()
+  })
+
+  it('checks a server-rendered pane once, as it registers', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const ui = (listReached: boolean) => (
+      <Navigator value='/a'>
+        <Navigator.Content>
+          <Pane column='list' reached={listReached}>
+            List
+          </Pane>
+          <Pane>Detail</Pane>
+          <Pane depth={1}>Sub</Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    const { rerender, unmount } = await hydrateFromServer(ui(false))
+    await rerender(ui(true))
+    await rerender(ui(false))
+    expect(serverWarnings(warn)).toHaveLength(1)
+    unmount()
+    warn.mockRestore()
+  })
+
+  it('does not warn when undeclared details are drawn by render order', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { host, unmount } = await hydrateFromServer(
+      <Navigator value='/a'>
+        <Navigator.Content>
+          <Pane column='list'>List</Pane>
+          <Pane>Detail</Pane>
+          <Pane>Sub</Pane>
+        </Navigator.Content>
+      </Navigator>
+    )
+    expect(serverWarnings(warn)).toEqual([])
+    expect(
+      Array.from(host.querySelectorAll('[data-slot="pane"]'), (pane) =>
+        pane.getAttribute('data-depth')
+      )
+    ).toEqual(['0', '1', '2'])
+    unmount()
+    warn.mockRestore()
+  })
+
+  it('does not warn for a pane the client mounts', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
       <Navigator value='/a'>
@@ -1614,52 +1700,7 @@ describe('depth attributes', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
-    expect(
-      warn.mock.calls.some((c) => String(c[0]).includes('depth={2}'))
-    ).toBe(true)
-    warn.mockRestore()
-  })
-
-  it('warns once per message as the stack changes', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const ui = (listReached: boolean) => (
-      <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list' reached={listReached}>
-            List
-          </Pane>
-          <Pane>Detail</Pane>
-          <Pane>Sub</Pane>
-        </Navigator.Content>
-      </Navigator>
-    )
-    const { rerender } = render(ui(false))
-    await flushViewportMeasurement()
-    rerender(ui(true))
-    await flushViewportMeasurement()
-    rerender(ui(false))
-    await flushViewportMeasurement()
-    expect(
-      warn.mock.calls.filter((c) => String(c[0]).includes('depth={2}'))
-    ).toHaveLength(1)
-    warn.mockRestore()
-  })
-
-  it('warns when two undeclared details resolve by order', async () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    render(
-      <Navigator value='/a'>
-        <Navigator.Content>
-          <Pane column='list'>List</Pane>
-          <Pane>Detail</Pane>
-          <Pane>Sub</Pane>
-        </Navigator.Content>
-      </Navigator>
-    )
-    await flushViewportMeasurement()
-    expect(warn.mock.calls.some((c) => String(c[0]).includes('depth'))).toBe(
-      true
-    )
+    expect(serverWarnings(warn)).toEqual([])
     warn.mockRestore()
   })
 

@@ -12,7 +12,8 @@ import {
   useLayoutEffect,
   useMemo,
   useRef,
-  useState
+  useState,
+  useSyncExternalStore
 } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
@@ -50,9 +51,9 @@ export type PaneRootProps = ComponentProps<'section'> & {
   /** The route has reached this pane. The deepest reached pane is the top of the stack. Pass `false` only for a pane mounted before it is reached, such as an empty detail column. @default true */
   reached?: boolean
   /**
-   * A hint for the server render only. After hydration Roadie reads the depth
-   * from document order. Declare it only on a pane deeper than its column's
-   * default (`list` 0, `detail` 1), so the server render lays out correctly.
+   * Roadie works depth out from document order, on the server too. Declare it
+   * only on a pane that renders out of order, such as one streamed into a
+   * resumed prerender or behind a sibling Suspense boundary.
    */
   depth?: 0 | 1 | 2 | 3
   /** The surface. `subtler` paints none. @default 'raised' */
@@ -62,6 +63,16 @@ export type PaneRootProps = ComponentProps<'section'> & {
   /** Reports the pane as loading, which draws the frame's pending indicator and holds it. Pass it on a route's loading pane. */
   pending?: boolean
 }
+
+const subscribeNever = () => () => {}
+// True on the server and through this pane's own hydration, even when its
+// Suspense boundary hydrates after the rest of the row.
+const useHydrating = () =>
+  useSyncExternalStore(
+    subscribeNever,
+    () => false,
+    () => true
+  )
 
 // Hysteresis, so a 1px scroll can't oscillate the title. Exported for tests.
 export const COLLAPSE_AT = 64
@@ -88,6 +99,7 @@ export function PaneRoot({
   const stack = surroundingPane === null ? stackFromContext : null
   const kind = use(PaneKindContext)
   const paneId = useId()
+  const hydrating = useHydrating()
   const paneRef = useRef<HTMLElement | null>(null)
   const viewportRef = useRef<HTMLDivElement | null>(null)
   const [collapsed, setCollapsed] = useState(false)
@@ -108,10 +120,12 @@ export function PaneRoot({
     [forwardedRef]
   )
 
-  // Keyed on register/unregister, not the stack object, which changes on every registration.
+  // Keyed on register/unregister, not the stack object, which changes on every
+  // registration. A layout effect, so a pane the client mounts is redrawn at its
+  // place before the browser paints the column default.
   const register = stack?.register
   const unregister = stack?.unregister
-  useEffect(() => {
+  useLayoutEffect(() => {
     const node = paneRef.current
     if (!register || !unregister || !node) return
     register(paneId, node, {
@@ -119,7 +133,8 @@ export function PaneRoot({
       reached,
       tabBar,
       kind,
-      depth: declaredDepth
+      depth: declaredDepth,
+      pending
     })
     return () => unregister(paneId)
   }, [
@@ -130,16 +145,15 @@ export function PaneRoot({
     reached,
     tabBar,
     kind,
-    declaredDepth
+    declaredDepth,
+    pending
   ])
 
-  const place = stack?.placeOf(paneId, {
-    column,
-    reached,
-    tabBar,
-    kind,
-    depth: declaredDepth
-  })
+  const place = stack?.placeOf(
+    paneId,
+    { column, reached, tabBar, kind, depth: declaredDepth, pending },
+    hydrating
+  )
   // An inspector sits off the stack whatever depth it declares, so it never goes up a level.
   const depth =
     column === 'inspector'
@@ -173,9 +187,12 @@ export function PaneRoot({
   const navAt = reportsNav ? scrollPastAt : undefined
 
   // What a pane's scroll is filed under, surviving the re-make a page step
-  // makes of it, which `useId` would not. The declared depth, not the resolved
-  // one, which is its column's default until it registers a commit later.
-  const seat = `${stack?.level ?? 0}:${column}:${declaredDepth ?? 'auto'}`
+  // makes of it, which `useId` would not. None until the pane registers: before
+  // that a pushed pane reads its column's default, the seat of the pane below.
+  const seat =
+    place && !place.registered
+      ? null
+      : `${stack?.level ?? 0}:${column}:${depth}`
 
   // Behind the top is the pane picked from or popped back to; it keeps its place.
   const destination = stack?.destination
@@ -249,7 +266,7 @@ export function PaneRoot({
   useEffect(() => {
     const viewport = viewportRef.current
     // Read here, not while rendering. No entries, nothing to come back to.
-    const entry = historyEntryKey()
+    const entry = seat === null ? null : historyEntryKey()
     if (!viewport || (!wantsDirection && entry === null)) return
     let last = viewport.scrollTop
     let frame: number | null = null
@@ -263,7 +280,8 @@ export function PaneRoot({
         // As it happens, not when the route changes: React replaces the
         // content before any effect runs, and the viewport clamps the scroll
         // the new content has no room for, losing the place to come back to.
-        if (entry !== null) rememberPaneScroll(entry, seat, top)
+        if (entry !== null && seat !== null)
+          rememberPaneScroll(entry, seat, top)
       })
     }
     viewport.addEventListener('scroll', onScroll, { passive: true })
@@ -277,6 +295,7 @@ export function PaneRoot({
   const mounted = useRef(false)
   const settling = useRef<() => void>(() => {})
   useLayoutEffect(() => {
+    if (seat === null) return
     const last = shown.current
     const entry = historyEntryKey()
     shown.current = { destination, position }

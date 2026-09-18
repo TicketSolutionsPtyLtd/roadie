@@ -27,12 +27,16 @@ export type PaneRegistration = {
   tabBar: PaneTabBar
   kind: PaneKind
   depth?: PaneDepth
+  /** A loading pane holds the place of the page that replaces it, so panes rendered after it don't count it. */
+  pending?: boolean
 }
 
 export type PanePlace = {
   position: PaneStackPosition | null
-  /** Resolved from document order once registered; declared or column default before. `null` for an inspector. */
+  /** Resolved from document order once registered; before that, from render order while hydrating, else declared or column default. `null` for an inspector. */
   depth: number | null
+  /** The pane has registered, so `depth` is its place in the row. */
+  registered: boolean
   chrome: PaneChromeContextValue
   /** The base of the stack, where Close never shows. */
   isRoot: boolean
@@ -41,8 +45,16 @@ export type PanePlace = {
 export type PaneStackContextValue = {
   register: (id: string, node: HTMLElement, entry: PaneRegistration) => void
   unregister: (id: string) => void
-  /** Where a pane sits; `entry` places one that has not registered yet, as in the server render. */
-  placeOf: (id: string, entry: PaneRegistration) => PanePlace
+  /**
+   * Where a pane sits; `entry` places one that has not registered yet. While
+   * `hydrating` (the server render and the pane's own hydration) it is placed by
+   * the order panes render in, which is document order.
+   */
+  placeOf: (
+    id: string,
+    entry: PaneRegistration,
+    hydrating?: boolean
+  ) => PanePlace
   /** Lets the stack slide for the change this commit makes. */
   markPushing: () => void
   /**

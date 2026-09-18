@@ -4363,20 +4363,14 @@ describe('a route-driven shell, where one slot holds every pane', () => {
   // inside it, so the router owns the unmount of the deepest one.
   const Segment = ({ deep }: { deep: boolean }) => (
     <>
-      <Pane column='list' depth={0}>
-        List
-      </Pane>
-      <Pane depth={1} reached={!deep} data-testid='event'>
+      <Pane column='list'>List</Pane>
+      <Pane reached={!deep} data-testid='event'>
         <Pane.Header>
           <Pane.Title>Event</Pane.Title>
         </Pane.Header>
         Event
       </Pane>
-      {deep ? (
-        <Pane depth={2} data-testid='ticket'>
-          Ticket
-        </Pane>
-      ) : null}
+      {deep ? <Pane data-testid='ticket'>Ticket</Pane> : null}
     </>
   )
   const shell = (deep: boolean) => (
@@ -4438,20 +4432,14 @@ describe('a route-driven shell, where one slot holds every pane', () => {
   describe('with the pane the push goes over still reached', () => {
     const Both = ({ deep }: { deep: boolean }) => (
       <>
-        <Pane column='list' depth={0}>
-          List
-        </Pane>
-        <Pane depth={1} data-testid='event'>
+        <Pane column='list'>List</Pane>
+        <Pane data-testid='event'>
           <Pane.Header>
             <Pane.Title>Event</Pane.Title>
           </Pane.Header>
           Event
         </Pane>
-        {deep ? (
-          <Pane depth={2} data-testid='ticket'>
-            Ticket
-          </Pane>
-        ) : null}
+        {deep ? <Pane data-testid='ticket'>Ticket</Pane> : null}
       </>
     )
     const both = (deep: boolean) => (
@@ -4496,6 +4484,45 @@ describe('a route-driven shell, where one slot holds every pane', () => {
       history.traverseTo(entry)
       rerender(both(false))
       await flushViewportMeasurement()
+      expect(event().scrollTop).toBe(740)
+    })
+
+    it('files each detail under its own depth, with none declared', async () => {
+      const entry = history.key
+      const { rerender } = render(both(true))
+      await flushViewportMeasurement()
+      const ticket = () =>
+        screen
+          .getByTestId('ticket')
+          .querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
+      await act(async () => scrollViewport(ticket(), 300))
+      await flushScrollFrame()
+      await scroll(740)
+      history.goTo()
+      rerender(both(false))
+      await flushViewportMeasurement()
+      history.traverseTo(entry)
+      rerender(both(true))
+      await flushViewportMeasurement()
+      expect(ticket().scrollTop).toBe(300)
+      expect(event().scrollTop).toBe(740)
+    })
+
+    it('never hands a pushed detail the place of the one below it', async () => {
+      const entry = history.key
+      const { rerender } = render(both(true))
+      await flushViewportMeasurement()
+      await scroll(740)
+      history.goTo()
+      rerender(both(false))
+      await flushViewportMeasurement()
+      history.traverseTo(entry)
+      rerender(both(true))
+      await flushViewportMeasurement()
+      const ticket = screen
+        .getByTestId('ticket')
+        .querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
+      expect(ticket.scrollTop).toBe(0)
       expect(event().scrollTop).toBe(740)
     })
   })
