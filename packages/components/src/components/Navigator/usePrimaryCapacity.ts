@@ -15,10 +15,7 @@ const quantize = (px: number, rem: number) => Math.round(px * 2) / 2 / rem
 const sameMembers = (a: ReadonlySet<string>, b: ReadonlySet<string>) =>
   a.size === b.size && [...a].every((value) => b.has(value))
 
-/**
- * Folds by arithmetic against the resting viewport height, so an expand folds once.
- * Pass `capsules` memoised.
- */
+/** Folds against the resting viewport height, so an expand folds once. Pass `capsules` memoised. */
 export function usePrimaryCapacity(
   viewportRef: RefObject<HTMLElement | null>,
   brandRef: RefObject<HTMLElement | null>,
@@ -70,7 +67,6 @@ export function usePrimaryCapacity(
     }
   }, [viewportRef, brandRef])
 
-  // A hidden viewport measures zero.
   const shown = measured.viewport > 0
   const available = shown
     ? measured.viewport + measured.brandPadding - restingBrandPadding

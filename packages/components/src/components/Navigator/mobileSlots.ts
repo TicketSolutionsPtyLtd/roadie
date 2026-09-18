@@ -27,7 +27,6 @@ export type NavigatorSlotMeta = {
   href?: string
   /** The item's own `href`; `href` falls back to the first sub-page. */
   declaredHref?: string
-  /** The item's menu, when it declares one. A menu item never navigates. */
   menu?: ReactElement<NavigatorMenuProps>
   /** The item's landing value: itself if routed, else its first sub-page. */
   topValue: string
@@ -35,7 +34,6 @@ export type NavigatorSlotMeta = {
   descendants: string[]
   secondary?: NavigatorSecondaryProps
   group?: NavigatorSlotGroup
-  /** The item's `onSelect`, called wherever the item is activated. */
   onSelect?: () => void
   placement: NavigatorPlacement
   priority: NavigatorVisibilityPriority

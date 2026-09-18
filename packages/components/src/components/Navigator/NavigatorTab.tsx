@@ -30,7 +30,6 @@ export type NavigatorTabProps = Omit<
 > & {
   label: ReactNode
   icon?: ReactNode
-  /** Shown as a corner dot in every presentation. */
   badge?: ReactElement<BadgeProps>
   /** Same smart-href contract as `Navigator.Item`. Omit for a `<button>`. */
   href?: string
@@ -39,9 +38,8 @@ export type NavigatorTabProps = Omit<
   current?: boolean
   /** False when active through a sub-page, so it announces the destination, not the page. */
   isPage?: boolean
-  /** The bar is collapsed on scroll — drives the edge-circle presentation. */
   collapsed?: boolean
-  /** When collapsed, the edge this tab floats to; omitted, it shrinks away and leaves the tab order but stays in the AT tree. */
+  /** When collapsed, the edge this tab floats to; omitted, it shrinks away. */
   circleSide?: NavigatorTabCircleSide
   /** The track column, which a collapsed circle travels from. */
   index: number
@@ -113,8 +111,7 @@ export function NavigatorTab({
     circleSide,
     collapsed
   })
-  // Only the page itself claims 'page'; a disclosure or parent destination
-  // claims 'true'.
+  // Only the page claims 'page'; a disclosure or parent destination claims 'true'.
   const isDisclosure = rest['aria-expanded'] !== undefined
   const ariaCurrent = current
     ? isPage && !isDisclosure

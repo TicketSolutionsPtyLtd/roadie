@@ -94,7 +94,6 @@ function flagForTwoFrames(
   })
 }
 
-/** A pane in the row, as the DOM holds it once the commit's mutations have run. */
 type PaneShape = PaneEntry & { node: Element }
 
 // `deep` is past the deepest named rank, and is the one value that isn't a number.
@@ -114,18 +113,12 @@ const shapeOf = (row: HTMLElement, level: number): PaneShape[] =>
     })
   )
 
-// Nodes only, not `reached`: opening More or a secondary list flips `reached` on a
-// pane that was already there, and a disclosure moving is not content arriving.
+// Nodes only: More or a secondary list flips `reached` without content arriving.
 const sameNodes = (was: readonly PaneShape[], now: readonly PaneShape[]) =>
   was.length === now.length &&
   was.every((pane, at) => now[at]?.node === pane.node)
 
-// A sibling swap: the row's shape is unchanged — the same panes in the same
-// document order, so the same depths and the same top — and at least one of
-// them is a different element. That is a route rendering a sibling detail, as a
-// param change does, and it cuts like More and a destination change do. A push
-// adds a pane and a pop drops one, so neither reaches here and both keep their
-// slide.
+// Same shape, different element: a route rendering a sibling detail, which cuts.
 function isSiblingSwap(was: readonly PaneShape[], now: readonly PaneShape[]) {
   if (was.length === 0 || was.length !== now.length) return false
   let swapped = false
@@ -182,10 +175,7 @@ function liftOf(
   )
 }
 
-// The last pane's place among the panes rendered so far. A declared depth
-// wins. A row that opens on a detail is written from 1, as its column default
-// was: the stylesheet reads such a row one shallower, and More can take 0
-// without the detail moving.
+// A declared depth wins; a row opening on a detail is written from 1 so More can take 0.
 function renderOrderDepth(
   panes: readonly PlacedPane[],
   draws: Drawn
@@ -225,9 +215,7 @@ export function NavigatorContent({
   const ref = useMemo(() => mergeRefs(contentRef, forwardedRef), [forwardedRef])
   const rowRef = useRef<HTMLDivElement | null>(null)
   const secondaryValue = activeSecondary?.value ?? null
-  // The top-level destination the route sits under, so this also catches a
-  // switch that lands deep in the incoming destination: the stack changes
-  // shape, but it is still a tab switch.
+  // So a switch landing deep in another destination still reads as a tab switch.
   const tabValue =
     collected.ordered.find((slot) => isDestinationActive(slot, value))?.value ??
     null
@@ -235,14 +223,12 @@ export function NavigatorContent({
   // Panes slide only on a push or pop; a resize cuts.
   const pushFrame = useRef(0)
   const instantFrame = useRef(0)
-  // Panes arriving with the row are the first paint, not a push: a fresh load
-  // of a deep route, or hydration, must not slide.
+  // The row's first paint (fresh load, hydration) must not slide.
   const pushable = useRef(false)
   const markPushing = useCallback(() => {
     if (pushable.current && rowRef.current)
       flagForTwoFrames(rowRef.current, 'data-pushing', pushFrame)
   }, [])
-  // Cancels a push marked this commit and holds every pane still for two frames.
   const cut = useCallback(() => {
     const row = rowRef.current
     if (row) {
@@ -266,9 +252,7 @@ export function NavigatorContent({
 
   // The Map serves effects, which run before the snapshot re-renders.
   const panes = useRef(new Map<string, RegisteredPane>())
-  // Fizz renders a row in document order and hydration walks it the same way,
-  // so the server and the client place each pane alike before any registers.
-  // Keyed by `useId`, so a StrictMode double render claims once.
+  // Fizz and hydration both walk the row in document order; keyed by `useId` so StrictMode claims once.
   const claims = useRef(new Map<string, RenderClaim>())
   const claimRenderedDepth = useCallback(
     (id: string, entry: PaneRegistration, draws: Drawn) => {
@@ -351,16 +335,13 @@ export function NavigatorContent({
     activeSecondary !== null && isActiveValue(activeSecondary.value, value)
   const revealing =
     listPaneShows && !moreOpen && (onDestinationRoute || showList)
-  // A destination with an overview draws every route in one pane, so a step
-  // between them moves no pane: the page as it was stands in, copied before
-  // React replaces it. The only copy left in the row, and only here.
+  // An overview draws every route in one pane, so a step keeps a copy of the page as it was.
   const pageAt: NavigatorPageAt =
     activeSecondary?.overview && !moreOpen && !revealing
       ? onDestinationRoute
         ? 'root'
         : 'child'
       : null
-  // Open More is the root and the top; closed, it is never reached.
   const revealRoot = revealing || moreOpen
   const stack = useMemo(
     () =>
@@ -380,10 +361,7 @@ export function NavigatorContent({
   )
   useInsertionEffect(() => markPushing(), [markPushing, revealing])
 
-  // More and a destination change are tab switches, not pushes. Declared after
-  // every markPushing call, so it cancels a push marked this commit. Keyed on
-  // moreOpen, not overflowOpen: a resize or hydration can add or drop More
-  // without overflowOpen changing.
+  // After every markPushing, so it cancels this commit's push. moreOpen, not overflowOpen: a resize can toggle More.
   const lastTab = useRef({ moreOpen, secondaryValue, tabValue })
   useInsertionEffect(() => {
     const last = lastTab.current
@@ -398,14 +376,10 @@ export function NavigatorContent({
     cut()
   }, [moreOpen, secondaryValue, tabValue, cut])
 
-  // Reads the DOM, not the snapshot, and after the children's own insertion
-  // effects: the row is mutated by now whichever order the panes registered in,
-  // so a pane that arrives before the one it replaces leaves reads the same.
+  // Reads the DOM after insertion effects, so pane registration order doesn't matter.
   const shape = useRef<readonly PaneShape[]>([])
   const arrived = useRef(false)
-  // The top as the DOM holds it, for panes to read in their layout effects: the
-  // snapshot below learns of an arriving pane a commit late and still calls the
-  // pane it arrived over the top.
+  // The snapshot learns of an arriving pane a commit late.
   const topNode = useRef<Element | null>(null)
   const topNow = useCallback(() => topNode.current, [])
   useInsertionEffect(() => {
@@ -416,14 +390,11 @@ export function NavigatorContent({
     topNode.current =
       shape.current[deriveTopIndex(shape.current, revealRoot)]?.node ?? null
     if (isSiblingSwap(was, shape.current)) cut()
-    // A pane added, dropped or replaced is the content a navigation went for,
-    // including a param change that leaves `value` alone. This is the only
-    // signal for it where the engine has no Navigation API.
+    // The only arrival signal where the engine lacks the Navigation API.
     if (!sameNodes(was, shape.current)) arrived.current = true
   })
 
-  // In an effect, not the insertion effect above: settling notifies the panes,
-  // and an insertion effect must not schedule a render.
+  // An insertion effect must not schedule a render.
   const pendingStore = usePendingNavigationStore()
   useEffect(() => {
     if (!arrived.current) return
@@ -450,8 +421,6 @@ export function NavigatorContent({
     }
   }, [listPaneShows, moreOpen, activeSecondary, topChrome])
 
-  // Panes register through `register` and `unregister` alone, which stay
-  // stable, so this lookup can change with the stack without looping.
   const placeOf = useCallback(
     (id: string, entry: PaneRegistration, hydrating = false) => {
       const index = stack.findIndex((pane) => pane.id === id)
@@ -535,9 +504,7 @@ export function NavigatorContent({
     }
   }, [hasChildren, registered])
 
-  // The live Map, not `ordered`: a pane unmounting this commit is still in the
-  // render's snapshot. Each claim is checked once, as its pane first registers;
-  // the row can reshape after that without the server having been wrong.
+  // The live Map: a pane unmounting this commit is still in the render's snapshot.
   const checked = useRef(new Set<string>())
   const warned = useRef(new Set<string>())
   useEffect(() => {
@@ -577,8 +544,7 @@ export function NavigatorContent({
     </PaneKindContext>
   ) : null
 
-  // Keyed so the search resets with the destination; More replaces it while
-  // open.
+  // Keyed so the search resets with the destination.
   const secondaryPane = showsSecondaryPane ? (
     <NavigatorGeneratedSecondaryPane
       key={activeSecondary.value}

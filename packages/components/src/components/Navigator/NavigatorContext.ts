@@ -46,13 +46,11 @@ export type NavigatorActions = {
   setOverflowOpen: (next: boolean) => void
   /** Closes More for a destination that navigates: at once when uncontrolled, by the route when controlled. */
   closeOverflowOnRoute: () => void
-  /** More pane id, for `aria-controls`. */
   overflowPaneId: string
   setOverflowItems: (
     surface: keyof NavigatorOverflowSets,
     next: NavigatorSlotMeta[]
   ) => void
-  /** The More control that opened the pane, for returning focus. */
   overflowOpenerRef: RefObject<HTMLElement | null>
   setOpenMenu: Dispatch<SetStateAction<string | null>>
   declareSecondaryPane: (value: string) => () => void
@@ -61,26 +59,21 @@ export type NavigatorActions = {
   setExpanded: (next: boolean) => void
   /** The vertical navigation also follows `<html data-navigator-expanded>`. */
   expandedFromDocument: boolean
-  /** Id of the vertical navigation, for the toggle's `aria-controls`. */
   primaryId: string
 }
 
-/** What is selected, and the destination it belongs to. */
 export type NavigatorSelection = {
   value: string | undefined
   /** The direct-child Primary's walk; a new identity only when its structure changes. */
   collected: CollectedSlots
-  /** The branch-active destination with a secondary nav. */
   activeSecondary: NavigatorActiveSecondary | null
   /** The active secondary shows a list pane: not an overview on its own route. */
   listPaneShows: boolean
-  /** The app asks for the active secondary's list on top. */
   showList: boolean
   /** Destinations whose generated pane a `Navigator.SecondaryPane` replaces. */
   declaredSecondaryPanes: ReadonlySet<string>
 }
 
-/** More and the menus. */
 export type NavigatorDisclosure = {
   overflowOpen: boolean
   /** `menuId(surface, value)` of the open menu, or null. */
@@ -96,7 +89,6 @@ export type NavigatorExpansion = {
   expandedPending: boolean
 }
 
-/** The phone bar's scroll-driven state. */
 export type NavigatorBar = {
   navCollapsed: boolean
   tabBar: PaneTabBar
@@ -164,8 +156,7 @@ export const isActiveValue = (
   activeValue: string | undefined
 ) => itemValue === activeValue
 
-// Prefix matching keeps a destination lit on sub-routes its tree never
-// declares.
+// Prefix matching keeps a destination lit on sub-routes its tree never declares.
 export const isBranchActive = (
   itemValue: string,
   descendantValues: string[],

@@ -58,21 +58,21 @@ export type NavigatorRootProps = {
   value?: string
   /** Called when a destination is activated; omit when hrefs drive selection. */
   onValueChange?: (next: string) => void
-  /** Shows the active secondary's list over a stacked sub-page. Derive it from the URL, such as `?nav`. */
+  /** Shows the active secondary's list over a stacked sub-page, such as from `?nav`. */
   showList?: boolean
-  /** Called when the active destination's tab asks to show or hide the list. Without it, the tab links to the destination route. */
+  /** Called when the active tab asks to show or hide the list; without it, the tab links to the destination. */
   onShowListChange?: (next: boolean) => void
-  /** Opens the More pane. Derive it from the URL, such as `?more`. Without it, More keeps its own state. */
+  /** Opens the More pane, such as from `?more`; uncontrolled when omitted. */
   showMore?: boolean
-  /** Called when More asks to open or close. A tap that navigates closes it with the route instead. */
+  /** Called when More asks to open or close. */
   onShowMoreChange?: (next: boolean) => void
-  /** Shows labels beside the icons on large screens. Persist it yourself, such as in a cookie. */
+  /** Shows labels beside the icons on large screens. */
   expanded?: boolean
   /** The uncontrolled starting state of `expanded`. @default false */
   defaultExpanded?: boolean
   /** Called when `Navigator.ExpandToggle` asks to expand or collapse. */
   onExpandedChange?: (next: boolean) => void
-  /** Reads the state `getNavigatorExpandedScript` sets on `<html>` before hydration. For static sites. */
+  /** Reads the state `getNavigatorExpandedScript` sets on `<html>`, for static sites. */
   expandedFromDocument?: boolean
   className?: string
   children?: ReactNode
@@ -165,9 +165,8 @@ export function NavigatorRoot({
   useEffect(() => {
     if (moreClosing) handlers.current.onShowMoreChange?.(false)
   }, [moreClosing])
-  // A nested Navigator sits inside a pane, so the frame around it is the one
-  // that answers the tap.
-  const pending = useFramePending(use(PaneStackContext) === null)
+  const isOutermost = use(PaneStackContext) === null
+  const pending = useFramePending(isOutermost)
   const overflowOpenNow = useRef(overflowOpen)
   useIsomorphicLayoutEffect(() => {
     overflowOpenNow.current = overflowOpen
@@ -204,10 +203,7 @@ export function NavigatorRoot({
       })
   }
 
-  // A walk, not a child registration, which raced Primary's "no host" warning on first commit.
-  // Non-Primary children become an implicit `Navigator.Content` unless the
-  // caller wrote one explicitly, which renders verbatim (props, position,
-  // everything) as the escape hatch for `className` and other passthrough.
+  // A walk, not child registration, which raced Primary's "no host" warning on first commit.
   const { hasExplicitContent, primary, rest } = useMemo(() => {
     const elements = Children.toArray(children).filter(isValidElement)
     const primary = elements.find(
@@ -223,10 +219,7 @@ export function NavigatorRoot({
   }, [children])
   const primaryDerived = primary !== undefined
 
-  // Element identities change whenever a caller re-renders JSX, even when
-  // its authored tree is equivalent. Keep the derived tree stable for that
-  // case, but include object and function identities so current props and
-  // handlers always replace their earlier values.
+  // Stable across equivalent re-renders; object and function identities still replace.
   const derivedChildren = primary?.props.children
   const derivedSignature = useMemo(
     () => primarySignature(derivedChildren),
@@ -273,9 +266,7 @@ export function NavigatorRoot({
     activeSecondary !== null &&
     !(activeSecondary.overview && isActiveValue(activeSecondary.value, value))
 
-  // Read at tap time from what the stack published. The first row is this
-  // Navigator's own; its level skips the panes of any Navigator nested in it.
-  // A pane portalled out of the row isn't reached, but the stack can't lay it out either.
+  // The first row is this Navigator's own; its level skips any nested Navigator's panes.
   const scrollActivePaneToTop = () => {
     const row = rootRef.current?.querySelector<HTMLElement>(
       '[data-slot="navigator-panes"]'

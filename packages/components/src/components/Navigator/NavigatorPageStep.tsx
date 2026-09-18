@@ -92,7 +92,6 @@ export function markCurrent(row: Element) {
   row.setAttribute('aria-current', 'page')
 }
 
-// The list pane's row turns current as it slides away; so does the page's.
 function selectPicked(
   ghost: HTMLElement,
   secondary: NavigatorActiveSecondary,
@@ -114,9 +113,7 @@ function selectPicked(
 const viewportOf = (pane: Element) =>
   pane.querySelector<HTMLElement>('[data-slot="pane-viewport"]')
 
-// An overview's route and sub-pages share one pane, so a move between
-// them moves no pane: the page as it was stands in, cloned before React replaces
-// it. A class, as `getSnapshotBeforeUpdate` is the one hook that runs that early.
+// A class: `getSnapshotBeforeUpdate` is the one hook that runs before React replaces the page.
 export class NavigatorPageStep extends Component<NavigatorPageStepProps> {
   static displayName = 'NavigatorPageStep'
 

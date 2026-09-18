@@ -5,12 +5,7 @@ export type NavigatorSecondaryProps = {
   'aria-label': string
   /** Adds a search field to the generated pane that filters rows by label. */
   searchable?: boolean
-  /**
-   * The destination's own route is an overview page: it shows alone, with no
-   * list beside it. The list comes back on its sub-pages. Needs an `href` on
-   * the item; without one the list always shows.
-   * @default false
-   */
+  /** Shows the destination's own route alone, without the list; needs an `href`. @default false */
   overview?: boolean
   className?: string
   children?: ReactNode

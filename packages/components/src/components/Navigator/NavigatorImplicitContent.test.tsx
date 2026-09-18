@@ -7,10 +7,6 @@ import { Navigator } from '.'
 import { Pane } from '../Pane'
 import { flushViewportMeasurement, testBrand } from './testUtils'
 
-// Spike 4.2: Navigator wraps its non-Primary children in Content itself.
-// See docs/plans/navigation-overhaul.md and
-// .superpowers/sdd/navigation-overhaul/spike-4.2-report.md.
-
 describe('implicit Navigator.Content', () => {
   it('wraps loose children in a generated Content without one written', async () => {
     render(
@@ -57,9 +53,6 @@ describe('implicit Navigator.Content', () => {
   })
 
   it('registers panes carried in separate fragments, as parallel-route slots arrive', async () => {
-    // Mirrors the app-shell recipe: `<>{children}</>` and `<>{detail}</>`,
-    // each an opaque node a server layout produced, passed straight to
-    // `Navigator` instead of into an explicit `Navigator.Content`.
     const listSlot = (
       <Fragment>
         <Pane column='list'>List</Pane>
@@ -86,9 +79,6 @@ describe('implicit Navigator.Content', () => {
 
     const panes = Array.from(document.querySelectorAll('[data-slot="pane"]'))
     expect(panes).toHaveLength(2)
-    // Both panes are DOM siblings under one generated navigator-panes row —
-    // the fragments emit no wrapping node, so §1.5 holds through the
-    // implicit Content exactly as it does through an explicit one.
     expect(panes[0]?.parentElement).toBe(panes[1]?.parentElement)
     expect(panes[0]?.parentElement).toHaveAttribute(
       'data-slot',
@@ -141,8 +131,6 @@ describe('implicit Navigator.Content', () => {
     expect(
       document.querySelector('[data-slot="navigator-content"]')
     ).not.toBeNull()
-    // No "has children but no Pane registered" warning either: Content has
-    // no children at all here, not an empty array of them.
     expect(warn).not.toHaveBeenCalled()
     warn.mockRestore()
   })

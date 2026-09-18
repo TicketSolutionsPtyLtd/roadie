@@ -54,7 +54,7 @@ export type NavigatorItemProps = {
   icon?: ReactNode
   /** A `Badge`. Shows as a dot when collapsed and on the phone bar. */
   badge?: ReactElement<BadgeProps>
-  /** Secondary text for `Navigator.SecondaryItems` and `useNavigatorSecondary`. The navigation never shows it. */
+  /** Secondary text for `Navigator.SecondaryItems` and `useNavigatorSecondary`; never shown in the navigation. */
   description?: string
   /** `pinned` puts it at the bottom of the vertical navigation and in the phone bar's circle. @default 'automatic' */
   placement?: NavigatorPlacement
@@ -99,12 +99,10 @@ export function NavigatorItem({
   const declaresMenuWithSecondary = hasSecondary && declaredMenu !== undefined
   const menu = hasSecondary ? undefined : declaredMenu
   const menuOpen = menu !== undefined && openMenu === menuId('vertical', value)
-  // A routeless destination lands on its first sub-page.
   const effectiveHref = href ?? firstHref
   // A menu opens rather than navigates, so no route lights it.
   const isCurrent = !menu && isActiveValue(value, active)
   const isBranch = !menu && isBranchActive(value, descendants, active)
-  // An open menu or More takes the pill.
   const hasPill = menuOpen || (openMenu === null && !overflowOpen && isBranch)
   const targetHref = effectiveHref
 

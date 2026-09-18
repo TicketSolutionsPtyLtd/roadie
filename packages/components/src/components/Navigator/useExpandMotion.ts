@@ -20,12 +20,7 @@ const pixels = (length: string, rem: number) => {
   return length.trim().endsWith('rem') ? value * rem : value
 }
 
-/**
- * Expands and collapses the vertical navigation without laying the content out
- * per frame. The frame animates its width in CSS; the content only translates
- * on the compositor, and the track changes once — at the end of an expand, the
- * start of a collapse.
- */
+/** The frame animates its width in CSS; the content only translates, and the track changes once. */
 export function useExpandMotion(
   rootRef: RefObject<HTMLElement | null>,
   expanded: boolean,

@@ -7,10 +7,7 @@ const LONGEST_HOLD_MS = 1000
 
 type TransitionLike = Event & { propertyName?: string }
 
-/**
- * Defers `apply` while a layout transition runs anywhere inside `scope`, then
- * runs it once when the last one ends. Otherwise it runs at once.
- */
+/** Defers `apply` until the last layout transition inside `scope` ends; otherwise runs it at once. */
 export function holdDuringLayoutTransitions(scope: Element, apply: () => void) {
   const running = new Map<EventTarget, Set<string>>()
   let pending = false

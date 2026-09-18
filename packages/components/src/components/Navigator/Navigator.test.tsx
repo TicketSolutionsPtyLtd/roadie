@@ -163,9 +163,6 @@ describe('pane stack', () => {
     expect(panes()[2]).not.toHaveAttribute('data-stack-position')
   })
 
-  // An inspector cannot hold the top, so a leading one must not consume the
-  // slot — the lone real pane would be marked covered and the screen would go
-  // blank below lg.
   it('keeps a real pane on top when an inspector is declared first', async () => {
     render(
       <Navigator value='/components'>
@@ -180,9 +177,6 @@ describe('pane stack', () => {
     expect(panes()[1]).toHaveAttribute('data-stack-position', 'top')
   })
 
-  // Every pane registers and stays mounted regardless of position — nothing
-  // about a pane's parent element type changes as the stack moves, so there is
-  // no remount to lose scroll position over.
   it('keeps a pane mounted when the top of the stack moves past it', async () => {
     const tree = (reached: boolean) => (
       <Navigator value={reached ? '/components/button' : '/components'}>
@@ -203,10 +197,6 @@ describe('pane stack', () => {
     expect(panes()[0]).toHaveAttribute('data-stack-position', 'behind')
   })
 
-  // `placeOf` already nulls out an inspector via `derivePositions`. Chrome
-  // and `tabBar` must read the same "who is top" answer, not a second,
-  // independent one — a raw `deriveTopIndex` fallback to index 0 would grant
-  // an inspector-only stack live chrome even though no pane there qualifies.
   it('grants no live chrome or tabBar to an inspector-only stack', async () => {
     render(
       <Navigator value='/foundations'>
@@ -226,9 +216,6 @@ describe('pane stack', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
-    // The tab bar reads the top pane's `tabBar` off context; an
-    // inspector's `hidden` declaration must not reach it since no pane there
-    // is eligible to be top.
     expect(document.querySelector('[data-slot="pane"]')).toHaveAttribute(
       'data-tab-bar',
       'hidden'
@@ -240,9 +227,6 @@ describe('pane stack', () => {
     ).toHaveAttribute('data-hidden', 'false')
   })
 
-  // Regression guard: a mixed stack already resolved this correctly before
-  // the fix (`deriveTopIndex` itself has always skipped an inspector) — this
-  // pins that a single shared "who is top" answer keeps it that way.
   it('still never lets an inspector take chrome when real panes are present', async () => {
     const scroll = (viewport: HTMLElement) =>
       act(async () => {
@@ -284,7 +268,6 @@ describe('pane stack', () => {
     expect(bar()).toHaveAttribute('data-collapsed', 'true')
   })
 
-  // jsdom has no layout; this pins the classes the geometry depends on.
   it('is the panes container, clipping at every width so a stacked pane can translate past it', async () => {
     render(
       <Navigator value='/components'>
@@ -330,8 +313,6 @@ describe('pane stack', () => {
 })
 
 describe('tabBar', () => {
-  // Restores the rAF spies even when an expectation throws mid-test — a leaked
-  // mock would silently break every later test in the file.
   afterEach(() => {
     vi.restoreAllMocks()
   })
@@ -416,7 +397,7 @@ describe('tabBar', () => {
     await flushViewportMeasurement()
 
     expect(screen.queryByRole('navigation', { name: 'Main tabs' })).toBeNull()
-    // Still in the DOM, so the return from the pushed screen can animate.
+    // Stays mounted so the pop back can animate.
     const bar = document.querySelector(
       '[data-slot="navigator-primary"][data-orientation="horizontal"]'
     )
@@ -447,8 +428,6 @@ describe('tabBar', () => {
     )
     await flushViewportMeasurement()
 
-    // The *top* pane is the one scrolled — the only pane whose scroll reaches
-    // the bar at all. It declared `visible`, so scrolling it must not collapse.
     const top = document.querySelectorAll<HTMLElement>(
       '[data-slot="pane-viewport"]'
     )[1]!
@@ -1000,7 +979,6 @@ describe('render fan-out', () => {
     counts.tile++
     return <svg />
   }
-  // A list row renders a `List.Item`; counting those counts rows.
   const ListItem = List.Item
   beforeEach(() => {
     List.Item = Object.assign(
@@ -1019,7 +997,7 @@ describe('render fan-out', () => {
     return null
   }
   const reset = () => Object.assign(counts, { tile: 0, row: 0, detail: 0 })
-  // Hoisted, as a compiled or memoised app would: the consumer's own content is not Navigator's to re-render.
+  // Hoisted, as a memoised app would: consumer content is not Navigator's to re-render.
   const detail = <Detail />
   const rows = Array.from({ length: 20 }, (_, index) => `/s/r${index}`)
 
@@ -1205,8 +1183,6 @@ describe('Navigator mobile tab bar', () => {
     await flushViewportMeasurement()
   })
 
-  // The tab is the destination, not the page — the pane's list row is the
-  // page, and two elements announcing "current page" is one too many.
   it('marks a tab active through a sub-page as the current destination', async () => {
     const { container } = render(
       <Navigator value='/foundations/layout'>
@@ -1308,7 +1284,6 @@ describe('Navigator mobile tab bar', () => {
     expect(disclosure).not.toHaveAttribute('aria-current')
     expect(currents()).toHaveLength(1)
 
-    // Opening the pane selects the disclosure so exactly one tab reads active.
     await userEvent.click(disclosure)
     expect(disclosure).toHaveAttribute('aria-current', 'true')
     expect(routeTab).not.toHaveAttribute('aria-current')
@@ -1782,11 +1757,10 @@ describe('NavigatorOverflowPane', () => {
     expect(
       within(overflow as HTMLElement).getByRole('link', { name: '/e' })
     ).toBeInTheDocument()
-    // Declared, so no second generated pane.
     expect(document.querySelectorAll('[data-slot="pane"]')).toHaveLength(2)
   })
 
-  // Stands in for a Next.js parallel-route slot node, which a children scan can't see through.
+  // Stands in for a Next.js parallel-route slot, which a children scan can't see through.
   const Slot = ({ children }: { children: ReactNode }) => <>{children}</>
 
   it('recognises a NavigatorOverflowPane declared behind a wrapper', async () => {
@@ -1804,9 +1778,6 @@ describe('NavigatorOverflowPane', () => {
     await flushViewportMeasurement()
     await userEvent.click(screen.getByRole('button', { name: /More/ }))
 
-    // Settled state: exactly one overflow pane, and it's the wrapped one
-    // (it has the consumer's promo content) — not a second, generated pane
-    // sharing its DOM id.
     expect(document.querySelectorAll('[data-slot="pane"]')).toHaveLength(2)
     const overflow = document.querySelectorAll('[data-slot="pane"]')[1]!
     expect(
@@ -1879,7 +1850,6 @@ describe('NavigatorOverflowPane', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
-    // Just the declared detail pane — no fallback overflow pane generated.
     expect(panes()).toHaveLength(1)
   })
 
@@ -2163,10 +2133,7 @@ describe('NavigatorOverflowPane', () => {
     })
 
     it('switches instantly, never pushing, when a controlled More folds a secondary list in or out of view', async () => {
-      // A destination with a secondary (`/s0`) keeps its own list pane on
-      // screen; padding the tab count past MAX_TABS folds later destinations
-      // into More without touching `/s0` or `showMore` itself — the fold alone
-      // flips `moreOpen`.
+      // Padding past MAX_TABS folds later destinations into More; the fold alone flips `moreOpen`.
       const foldingDestinationsNav = (folded: boolean) => (
         <Navigator value='/s0' showMore>
           <Navigator.Primary aria-label='Main'>
@@ -2293,10 +2260,6 @@ describe('NavigatorOverflowPane', () => {
       )
     })
   })
-
-  // Retired, not restored: the pinned outside-click dismissal assumed a
-  // floating popup with an "outside" to click. A full-screen pane has none —
-  // Escape (above) is the only dismissal left.
 })
 
 describe('Navigator sliding indicator', () => {
@@ -2325,7 +2288,6 @@ describe('Navigator sliding indicator', () => {
     }
   )
 
-  // jsdom reports zero rects, so the indicator can never measure a real box.
   it('stays unready and unsettled while nothing can be measured', async () => {
     const { container } = render(tree('tickets'))
 
@@ -2479,7 +2441,6 @@ describe('Navigator.Secondary', () => {
   it('finds items nested inside a group when collecting descendants', async () => {
     render(groupedTree)
     await flushViewportMeasurement()
-    // The destination is branch-active only if the walk saw the grouped child.
     expect(
       within(primaryOf('vertical')).getByRole('link', { name: 'Components' })
     ).toHaveAttribute('aria-current', 'true')
@@ -2697,8 +2658,6 @@ describe('Navigator.Menu + Navigator.Secondary precedence', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = render(withBoth('/a'))
     await flushViewportMeasurement()
-    // A routeless destination links to its first sub-page, so no menu took over
-    // the row.
     const row = verticalOf(container).getByRole('link', { name: 'A' })
     expect(row).toHaveAttribute('href', '/a/sub')
     expect(row).not.toHaveAttribute('aria-haspopup')
@@ -2791,7 +2750,6 @@ describe('Navigator descendant-aware active matching', () => {
     render(tree('components/settings'))
     await flushViewportMeasurement()
     const secondary = verticalItem('Components')
-    // `data-current` is what the sliding pill measures.
     expect(secondary).toHaveAttribute('data-current')
     expect(secondary).toHaveAttribute('aria-current', 'true')
   })
@@ -2979,11 +2937,9 @@ describe('Navigator collapsed edge circles', () => {
       '[data-slot="navigator-primary"][data-orientation="horizontal"]'
     )
 
-  // The pane's scroll container is ScrollArea's viewport, not the <section>.
   const scrollerOf = (root: Document | HTMLElement) =>
     root.querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
 
-  // A/B/C plus a pinned Account circle.
   const barTree = (active: string, onValueChange = vi.fn()) => (
     <Navigator value={active} onValueChange={onValueChange}>
       <Navigator.Primary aria-label='Primary'>
@@ -3001,7 +2957,6 @@ describe('Navigator collapsed edge circles', () => {
     </Navigator>
   )
 
-  // A/B/C/D plus More, so the end circle is a track tab.
   const moreTree = (active: string, withPinned = false) => (
     <Navigator value={active}>
       <Navigator.Primary aria-label='Primary'>
@@ -3028,8 +2983,6 @@ describe('Navigator collapsed edge circles', () => {
       '[data-slot="navigator-primary-circle"]'
     )!
 
-  // `Pane` coalesces scroll reports through a rAF, so the bar state lands a
-  // frame after the event rather than synchronously.
   const settleFrame = () =>
     act(
       async () =>
@@ -3102,7 +3055,6 @@ describe('Navigator collapsed edge circles', () => {
     await collapse(container)
     const bar = within(horizontalOf(container) as HTMLElement)
 
-    // Every destination is still reachable — no display:none, nothing unmounted.
     expect(bar.getAllByRole('button')).toHaveLength(4)
     expect(bar.getByRole('button', { name: 'B' })).toHaveClass(
       'scale-0',
@@ -3175,9 +3127,6 @@ describe('Navigator collapsed edge circles', () => {
     await collapse(container)
 
     expect(pill).toHaveClass('emphasis-floating', 'opacity-0')
-    // Nothing about the bar's own box responds to collapse — it is
-    // `pointer-events-none` in both states now, so the class string itself
-    // never changes; only the track and the pill react.
     expect(bar.className).toBe(barClasses)
     await flushViewportMeasurement()
   })
@@ -3246,7 +3195,6 @@ describe('Navigator collapsed edge circles', () => {
       'button',
       { name: 'A' }
     )
-    // Neutral round surface with an accent icon — the tinted pill is expanded-only.
     expect(active).toHaveClass(
       'intent-accent',
       'text-subtle',
@@ -3276,10 +3224,6 @@ describe('Navigator collapsed edge circles', () => {
   })
 
   it('never reorders a tab to collapse it', async () => {
-    // `order` can only change discretely, so pinning a circle to an end column
-    // teleported it there before the translate could run. Every circle now
-    // travels from the column it already holds — which is why it carries its
-    // own index rather than being moved to a known one.
     const { container } = render(barTree('b'))
     await collapse(container)
     const bar = horizontalOf(container)!
@@ -3287,7 +3231,6 @@ describe('Navigator collapsed edge circles', () => {
     for (const tab of bar.querySelectorAll('[data-slot="navigator-item"]')) {
       expect(tab.className).not.toMatch(/(^|\s)-?order-/)
     }
-    // The active tab is the second of four, and it stays the second.
     const start = bar.querySelector('[data-circle-side="start"]')!
     expect(start).toHaveAccessibleName('B')
     expect(start.getAttribute('style')).toContain(
@@ -3297,10 +3240,6 @@ describe('Navigator collapsed edge circles', () => {
   })
 
   it('carries each circle to its edge on translate, from its own column', async () => {
-    // The whole collapse geometry, pinned. jsdom has no layout, so the browser
-    // probe owns the measurement — what this can guard is that the translate
-    // that does the carrying is actually emitted. A component that assigned
-    // the sides correctly and dropped these would otherwise pass everything.
     const { container } = render(moreTree('b'))
     await collapse(container)
     const bar = horizontalOf(container)!
@@ -3314,7 +3253,6 @@ describe('Navigator collapsed edge circles', () => {
     expect(end).toHaveClass(
       'translate-x-[calc((var(--navigator-primary-count)_-_1_-_var(--navigator-primary-index))_*_var(--navigator-primary-col)_+_var(--navigator-primary-edge))]'
     )
-    // Both descend to the bar's bottom edge rather than the row shortening.
     expect(start).toHaveClass('translate-y-1', 'self-end')
     expect(end).toHaveClass('translate-y-1', 'self-end')
     await flushViewportMeasurement()
@@ -3343,12 +3281,7 @@ describe('Navigator collapsed edge circles', () => {
   })
 
   it('keeps the track the same height in both states', async () => {
-    // The bar's box has to be invariant on BOTH axes: the pill is `inset-0` of
-    // the track, so a row that shortened on collapse would snap the pill's top
-    // edge while it is still fully opaque. `scale-0` doesn't affect layout, so
-    // the scaled-away tabs are what hold the row — they must keep `expanded`'s
-    // vertical padding. Height itself is measured in the browser probe; jsdom
-    // reports zero for everything.
+    // The pill is `inset-0` of the track, so a row that shortened would snap it.
     const { container } = render(barTree('a'))
     const bar = horizontalOf(container)!
     const track = bar.querySelector('[data-slot="navigator-primary-track"]')!
@@ -3358,7 +3291,6 @@ describe('Navigator collapsed edge circles', () => {
     expect(expandedTab).toHaveClass('py-3.5')
 
     await collapse(container)
-    // The track's own padding never changed, so nothing to transition.
     expect(track).toHaveClass('py-1')
     for (const tab of track.querySelectorAll(
       '[data-slot="navigator-item"]:not([data-circle-side])'
@@ -3369,10 +3301,6 @@ describe('Navigator collapsed edge circles', () => {
   })
 
   it('leaves the collapsed bar transparent to input in the middle', async () => {
-    // The collapsed bar spans the full width but shows only two edge circles.
-    // Everything between them must reach the page beneath — jsdom has no hit
-    // testing, so this pins the mechanism: the bar itself takes no pointer
-    // events and each circle puts them back.
     const { container } = render(moreTree('a'))
     await collapse(container)
 
@@ -3391,8 +3319,6 @@ describe('Navigator collapsed edge circles', () => {
   })
 
   it('leaves the expanded bar transparent to input outside the tabs, below five tabs', async () => {
-    // Below five tabs the bar is wider than the hugging track, so only the
-    // track (and, collapsed, each circle) may take input.
     const { container } = render(barTree('a'))
     await flushViewportMeasurement()
 
@@ -3403,9 +3329,6 @@ describe('Navigator collapsed edge circles', () => {
   })
 
   it('never names a layout property in the bar or tab transitions', async () => {
-    // The branch's non-negotiable, pinned. Guards the exact regression this
-    // task exists to remove, and would fail against the old
-    // transition-[padding,…] and transition-[max-width,…].
     const { container } = render(barTree('a'))
     await collapse(container)
 
@@ -3449,7 +3372,6 @@ describe('Navigator collapsed edge circles', () => {
     const bar = horizontalOf(container) as HTMLElement
     await userEvent.click(within(bar).getByRole('button', { name: 'A' }))
 
-    // A further scroll-sync at the same still-scrolled position keeps it open.
     await scrollTo(pane, 80)
     expect(bar).toHaveAttribute('data-collapsed', 'false')
   })
@@ -3508,13 +3430,9 @@ describe('Navigator active-tab tap: scroll-on-landing vs navigate-up', () => {
       '[data-slot="navigator-primary"][data-orientation="horizontal"]'
     )
 
-  // The pane's scroll container is ScrollArea's viewport, not the <section>.
   const scrollerOf = (root: Document | HTMLElement) =>
     root.querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
 
-  // A destination with its own landing route (`/components`) and one sub-page,
-  // so the active tab can be on the landing or on a sub-page of the same
-  // destination.
   const secondaryTree = (active: string, onValueChange = vi.fn()) =>
     withStubLink(
       <Navigator value={active} onValueChange={onValueChange}>
@@ -3574,8 +3492,6 @@ describe('Navigator active-tab tap: scroll-on-landing vs navigate-up', () => {
       { name: 'Components' }
     )
 
-    // Its href is the destination landing, so tapping it pops up there rather
-    // than scrolling the sub-page's pane.
     expect(components).toHaveAttribute('href', '/components')
     await userEvent.click(components)
 
@@ -3664,7 +3580,6 @@ describe('a click the browser opens elsewhere', () => {
 })
 
 describe('scroll-to-top in a nested Navigator', () => {
-  // The outer pane holding it isn't the outer top, so only the inner level finds it.
   it("scrolls the inner Navigator's own top pane when its active tab is re-tapped", async () => {
     render(
       <Navigator value='/outer'>
@@ -3711,7 +3626,6 @@ describe('scroll-to-top in a nested Navigator', () => {
 })
 
 describe('pane header inside Navigator', () => {
-  // Panes stay mounted, so the header's measurement follows its own visibility.
   it('publishes the header height only while the header draws', async () => {
     const tree = (titled: boolean) => (
       <Navigator value='/'>
@@ -3874,20 +3788,14 @@ describe('Navigator.Content no-panes warning', () => {
   })
 })
 
-// A pane in a wrapper getting a stack position is covered by Pane.test.tsx's
-// 'pane registration through a wrapper'.
 describe('nesting acceptance criteria', () => {
   const positions = () =>
     Array.from(document.querySelectorAll('[data-slot="pane"]')).map((p) =>
       p.getAttribute('data-stack-position')
     )
 
-  // Stands in for a Next.js parallel-route slot node.
   const Slot = ({ children }: { children: ReactNode }) => <>{children}</>
 
-  // Criterion 2: below lg, list -> detail push and detail -> list pop carry
-  // the position flip. Asserts the attribute, not the animation — jsdom
-  // never runs the CSS transition.
   it('flips stack position on push and again on pop', async () => {
     const tree = (reached: boolean) => (
       <Navigator value={reached ? '/a/detail' : '/a'}>
@@ -3910,9 +3818,6 @@ describe('nesting acceptance criteria', () => {
     expect(positions()).toEqual(['top', 'ahead'])
   })
 
-  // Criterion 4: two panes contributed by one slot stack correctly relative
-  // to each other — the prototype's actual failure (an event pane plus a
-  // drill-down pane, both returned from one page component).
   it('orders an event pane and a drill-down pane from the same slot', async () => {
     render(
       <Navigator value='/events/123/allocations/456'>
@@ -3928,8 +3833,6 @@ describe('nesting acceptance criteria', () => {
     expect(positions()).toEqual(['behind', 'top'])
   })
 
-  // Criterion 5: tabBar resolves against the true top pane, even when that
-  // pane is wrapped and the generated secondary pane leads the stack.
   it('resolves tabBar against a wrapped top pane', async () => {
     render(
       <Navigator value='/foundations/colors'>
@@ -4053,10 +3956,6 @@ describe('a new destination starts at the top', () => {
     expect(list().scrollTop).toBe(300)
   })
 
-  // Both panes go by the same rule: the one the navigation goes to starts at
-  // the top, and the one it leaves keeps its place. The list comes forward and
-  // keeps 300; the page goes behind and keeps 900, and starts at the top again
-  // only when a destination actually arrives at it.
   it('keeps the place of a list popped back to, and of the page it covers', async () => {
     const { rerender } = render(nav('/s/a'))
     await flushViewportMeasurement()
@@ -4276,7 +4175,6 @@ describe('going back puts a pane where it was', () => {
     await flushViewportMeasurement()
     expect(page().scrollTop).toBe(640)
 
-    // Forward to the same page on an entry of its own: a new arrival.
     history.goTo()
     rerender(nav('/s/b'))
     await flushViewportMeasurement()
@@ -4291,7 +4189,6 @@ describe('going back puts a pane where it was', () => {
     await flushViewportMeasurement()
     expect(page().scrollTop).toBe(0)
     await scroll(300)
-    // Re-rendering the same destination is not an arrival.
     expect(page().scrollTop).toBe(300)
   })
 
@@ -4312,7 +4209,6 @@ describe('going back puts a pane where it was', () => {
 describe('an overview step back puts the page it returns to where it was', () => {
   const history = withHistoryEntries()
 
-  // One pane draws every page, so a step swaps its content under it.
   const pages = (value: string) => (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Docs'>
@@ -4361,8 +4257,7 @@ describe('an overview step back puts the page it returns to where it was', () =>
 describe('a route-driven shell, where one slot holds every pane', () => {
   const history = withHistoryEntries()
 
-  // What a nested route layout gives Content: a single child, with the panes
-  // inside it, so the router owns the unmount of the deepest one.
+  // A nested route layout: one child wrapping the panes, so the router owns the deepest unmount.
   const Segment = ({ deep }: { deep: boolean }) => (
     <>
       <Pane column='list'>List</Pane>
@@ -4427,10 +4322,6 @@ describe('a route-driven shell, where one slot holds every pane', () => {
     expect(event().scrollTop).toBe(0)
   })
 
-  // The shape a real shell has: the pane a push goes over is still reached, and
-  // the *deepest* reached pane is the top. Reading `reached` alone as "this
-  // pane is the destination" zeroed every pane a push went over, which is what
-  // a prototype reported.
   describe('with the pane the push goes over still reached', () => {
     const Both = ({ deep }: { deep: boolean }) => (
       <>
@@ -4529,7 +4420,6 @@ describe('a route-driven shell, where one slot holds every pane', () => {
     })
   })
 
-  // A pop removes the pane; the one behind sliding back is what covers it.
   it('takes the pane the route dropped straight out of the row', async () => {
     const { rerender } = render(shell(true))
     await flushViewportMeasurement()

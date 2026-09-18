@@ -23,12 +23,7 @@ const typeName = (type: unknown): string => {
   return '?'
 }
 
-/**
- * The authored structure and values of Primary's children. Element identities
- * are ignored so an unchanged JSX tree keeps its derived metadata, but values
- * React cannot compare structurally retain their identity. This keeps rendered
- * props and event handlers current when a caller replaces them.
- */
+/** Primary's authored structure, ignoring element identity but keeping values React can't compare structurally. */
 export function primarySignature(node: unknown): string {
   if (node === null || node === undefined) return ''
   if (typeof node === 'string') return JSON.stringify(node)

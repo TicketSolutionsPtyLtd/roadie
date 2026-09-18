@@ -490,7 +490,6 @@ describe('an overview with its own backHref', () => {
     const drawn = tierRules
       .filter((rule) => pane.matches(rule.selector))
       .map((rule) => rule.body)
-    // Stacked, and columns: a lone pane has no third column to take.
     expect(drawn).toHaveLength(2)
     for (const body of drawn) {
       expect(body).toContain(
@@ -651,8 +650,6 @@ function Nested({ value }: { value: string }) {
   )
 }
 
-// A slide on a first paint is the bug the exit mechanism could reintroduce: the
-// row would hold a pane that never had a place on screen to leave from.
 describe('nothing slides in or out on a server render or its hydration', () => {
   const MOTION = [
     '[data-exiting]',
@@ -692,8 +689,6 @@ describe('nothing slides in or out on a server render or its hydration', () => {
   })
 })
 
-// Restoring reads the Navigation API, which the server has not got, and a store
-// a fresh document starts empty. Neither may reach the render.
 describe('scroll restoration stays out of the server render', () => {
   it('renders a deep route with no history entry to read', () => {
     const was = Object.getOwnPropertyDescriptor(window, 'navigation')

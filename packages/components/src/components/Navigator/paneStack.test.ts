@@ -55,9 +55,6 @@ describe('deriveRootIndex', () => {
     expect(deriveRootIndex([entry({ column: 'inspector' })])).toBe(-1)
   })
 
-  // Root-ness is stack depth, not the `list` column — a `detail → detail →
-  // detail` arrangement (list → detail → detail with a screen removed) still
-  // has exactly one root. A `column === 'list'` shortcut would return -1 here.
   it('finds the root when no entry is column="list"', () => {
     expect(
       deriveRootIndex([

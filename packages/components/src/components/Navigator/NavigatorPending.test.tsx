@@ -20,17 +20,14 @@ withScrollSentinels()
 const glow = () => document.querySelector('[data-slot="navigator-pending"]')
 const frame = () => document.querySelector('[data-slot="navigator"]')!
 
-// Every clock the indicator reads is faked, so these tests can sit on a boundary.
 const tick = (ms: number) => act(() => vi.advanceTimersByTimeAsync(ms))
 
-// The minimum, then the fade: the fade is only scheduled once it leaves.
 const tickOut = async () => {
   await tick(PENDING_MINIMUM)
   await tick(PENDING_FADE)
 }
 
-// The Navigation API, which is how a browser tells Roadie the URL committed.
-// jsdom has none, so the shell stands in for one.
+// jsdom has no Navigation API, so the shell stands in for one.
 const navigation = new EventTarget()
 const routeLands = async () => {
   await act(async () => {
@@ -245,10 +242,7 @@ describe('what ends it', () => {
     expect(glow()).toBeNull()
   })
 
-  // `reached` moving between panes that are all already mounted is a disclosure
-  // opening or closing, not content arriving. More is the costly case: its pane
-  // stays mounted, so a destination tapped from inside More would settle the
-  // wait it just started and never show the indicator.
+  // More's pane stays mounted, so a tap from inside it must not settle the wait it started.
   it('not `reached` moving with every pane still in place', async () => {
     const row = (deep: boolean) => (
       <Shell>
@@ -265,7 +259,6 @@ describe('what ends it', () => {
     await clickBeta()
     rerender(row(false))
     await tick(PENDING_ARM)
-    // The same elements, so nothing arrived.
     expect(screen.getByTestId('detail')).toBe(before)
     expect(glow()).not.toBeNull()
   })
@@ -283,8 +276,6 @@ describe('skeletons', () => {
     </>
   )
 
-  // A skeleton on screen is not a wait: it is as likely to be a placeholder
-  // that never resolves, or a demo of the component itself.
   it('are not a wait of their own', async () => {
     const { rerender } = await renderShell(<Shell>{twoPanes}</Shell>)
     await clickBeta()

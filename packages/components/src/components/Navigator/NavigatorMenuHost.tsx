@@ -53,8 +53,7 @@ export type NavigatorMenuHostProps = {
   trigger: ReactElement
 }
 
-// A menu's elements are as old as the last structural change, so its items
-// call through to the current tree.
+// A menu's elements can be stale, so its items call through to the current tree.
 function withCurrentHandlers(
   children: ReactNode,
   activate: (index: number) => void

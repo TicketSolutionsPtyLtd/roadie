@@ -30,8 +30,7 @@ import {
 type Lib = { Navigator: typeof Navigator; Pane: typeof Pane }
 const client: Lib = { Navigator, Pane }
 
-// Fizz leaves context values behind in the realm it shares with the client, so
-// the server renders from its own copy of Roadie, as a real server would.
+// Fizz leaves context values in the shared realm, so the server renders from its own Roadie copy.
 async function server(): Promise<Lib> {
   vi.resetModules()
   const [{ Navigator: N }, { Pane: P }] = await Promise.all([
@@ -44,7 +43,6 @@ async function server(): Promise<Lib> {
 const rules = paneColumnsRulesOf(renderPaneColumnsCss())
 const WIDTHS = [24, columnTier(2), 60, columnTier(3), 100]
 
-// A layout returns its pane and its children as siblings, as a route does.
 const Layout = ({
   pane,
   children
@@ -113,7 +111,7 @@ async function readAll(stream: ReadableStream<Uint8Array>) {
   }
 }
 
-// `new Function` runs scripts in the shared global scope, not a fresh page, so a stale Fizz `$R*` var can outlive its mount and schedule a negative timeout.
+// `new Function` shares the global scope, so a stale Fizz `$R*` can outlive its mount.
 function resetFizzRuntimeGlobals() {
   for (const key of Object.keys(globalThis)) {
     if (/^\$R/.test(key)) delete (globalThis as Record<string, unknown>)[key]
@@ -359,8 +357,6 @@ describe('depth from render order', () => {
 })
 
 describe('a pane whose body suspends', () => {
-  // The pane is drawn and only its body waits, so it keeps its place: unlike a
-  // loading pane, it is not standing in for another.
   const Waiting = ({ lib, on }: { lib: Lib; on: Thenable }) => (
     <Shell lib={lib}>
       <Layout pane={<lib.Pane column='list'>List</lib.Pane>}>
@@ -420,8 +416,7 @@ describe('a pane whose body suspends', () => {
 })
 
 describe('where render order is not document order', () => {
-  // A fallback and the route it stands in for share a `useId` only when the
-  // trees above their panes fork alike; this loading layout does not.
+  // A fallback shares its route's `useId` only when the trees above fork alike; this one doesn't.
   const Loading = ({ lib, pending }: { lib: Lib; pending?: boolean }) => (
     <>
       <span hidden />
@@ -594,7 +589,6 @@ describe('where render order is not document order', () => {
     const advice = problems.warnings.find((message) =>
       message.includes('server-rendered at depth')
     )
-    // 1, not the compacted rank 0, is Event's written depth here.
     expect(advice).toMatch('server-rendered at depth 2 but sits at 1')
     expect(advice).toMatch('declare depth={1}')
   })
@@ -621,9 +615,7 @@ describe('where render order is not document order', () => {
     </Shell>
   )
 
-  // Partial prerendering: the shell is prerendered, the hole resumed later.
-  // Resuming re-renders Navigator.Content but not the panes already in the
-  // shell, so the hole's pane sees none before it.
+  // Resuming re-renders Navigator.Content but not the shell's panes.
   async function prerendered(hint: boolean) {
     const lib = await server()
     const data = later()
@@ -674,8 +666,7 @@ describe('where render order is not document order', () => {
 })
 
 describe('a pane the client mounts', () => {
-  // Outside act, so React schedules as it does in a browser: the only frames
-  // that can paint are the ones a task leaves behind.
+  // Outside act, so React schedules as a browser does.
   function withoutAct() {
     const scope = globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
     const was = scope.IS_REACT_ACT_ENVIRONMENT
@@ -692,7 +683,6 @@ describe('a pane the client mounts', () => {
     function Probe() {
       const ref = useRef<HTMLSpanElement>(null)
       useLayoutEffect(() => {
-        // Runs once the commit's synchronous work is done, before any paint.
         queueMicrotask(() => {
           const pane = ref.current?.closest<HTMLElement>('[data-slot="pane"]')
           painted.push(pane?.dataset.depth)

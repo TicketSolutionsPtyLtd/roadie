@@ -36,8 +36,7 @@ const sameGeometry = (a: Geometry | null, b: Geometry | null) =>
     a.width === b.width &&
     a.height === b.height)
 
-// Offsets, not rects: rects include the bar's collapse transforms and freeze
-// mid-travel. Null when the offsetParent chain misses the track.
+// Offsets, not rects: rects include collapse transforms. Null when offsetParent misses the track.
 const layoutBoxWithin = (
   active: HTMLElement,
   track: HTMLElement
@@ -116,8 +115,7 @@ export function useSlidingIndicator(
     measuredIntentRef.current = intent
   })
 
-  // No deps: the pill can move without the value changing. The track ref is null on
-  // first run; the ResizeObserver's first callback recovers it.
+  // No deps: the pill can move without the value changing.
   useIsomorphicLayoutEffect(() => measure())
 
   useEffect(() => {
@@ -148,8 +146,7 @@ export function useSlidingIndicator(
       return
     }
     if (settled) return
-    // Flush the first box's styles before enabling the translate transition,
-    // or the pill slides in from the track's origin.
+    // Flush the first box before enabling the transition, or the pill slides in from the origin.
     trackRef.current?.getBoundingClientRect()
     setSettled(true)
   }, [trackRef, ready, settled])

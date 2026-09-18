@@ -1071,7 +1071,6 @@ describe('More open over the root', () => {
 })
 
 describe('depth while panes come and go', () => {
-  // Every value a detail's depth takes, including ones no paint would show.
   const watchDetailDepth = (root: Node) => {
     const seen: (string | null)[] = []
     const observer = new MutationObserver((records) => {

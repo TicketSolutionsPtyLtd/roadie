@@ -1074,7 +1074,6 @@ describe('expanded vertical navigation', () => {
           'grid-cols-[1.5rem_minmax(0,1fr)_auto]'
         ])
       )
-      // A gap beside the empty label column squeezed the icon to half width.
       expect(
         classes.some((name) => /(^|:)(scale-|gap-|size-)/.test(name))
       ).toBe(false)
@@ -1187,7 +1186,6 @@ describe('expanded vertical navigation', () => {
     expect(tiles()).toHaveLength(1)
     expect(more()).not.toBeNull()
 
-    // Mid-collapse the brand's padding is part-way to its resting 3rem.
     region('brand').style.paddingBottom = '24px'
     reportClusterHeight(10.5 * 16)
     expect(tiles()).toHaveLength(1)

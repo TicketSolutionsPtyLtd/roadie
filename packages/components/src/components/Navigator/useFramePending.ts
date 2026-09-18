@@ -7,17 +7,12 @@ import { usePendingNavigationSnapshot } from '../../providers/PendingNavigationC
 /** `visible` draws the indicator, `leaving` fades it out, `idle` draws nothing. */
 export type FramePendingState = 'idle' | 'visible' | 'leaving'
 
-// PENDING_FADE is the sheet's --duration-moderate, and the phone pull-back
-// transitions over the same token so the two end together. The other two are
-// this hook's alone; the sheet has no counterpart for them.
+// PENDING_FADE matches the sheet's --duration-moderate, which the pull-back shares.
 export const PENDING_ARM = 150
 export const PENDING_MINIMUM = 600
 export const PENDING_FADE = 200
 
-/**
- * A wait shorter than {@link PENDING_ARM} draws nothing, and one that does draw
- * stays {@link PENDING_MINIMUM} so it reads as a pulse rather than a flicker.
- */
+/** Draws nothing for a wait under PENDING_ARM; once drawn, holds PENDING_MINIMUM so it pulses, not flickers. */
 export function useFramePending(enabled: boolean): FramePendingState {
   const navigation = usePendingNavigationSnapshot(enabled)
   const waiting = navigation !== null
@@ -29,8 +24,7 @@ export function useFramePending(enabled: boolean): FramePendingState {
   useEffect(() => {
     if (waiting) {
       if (state === 'visible') return
-      // A second click during the fade revives the indicator immediately.
-      // Restart its minimum so the new wait reads as a complete response.
+      // A click during the fade revives it and restarts the minimum.
       if (state === 'leaving') {
         let live = true
         queueMicrotask(() => {
@@ -60,8 +54,7 @@ export function useFramePending(enabled: boolean): FramePendingState {
     return () => clearTimeout(hold)
   }, [waiting, startedAt, state])
 
-  // `waiting`, so a click landing mid-fade cancels the unmount rather than
-  // racing it: the indicator has to come back without leaving first.
+  // Keyed on `waiting`, so a click mid-fade cancels the unmount rather than racing it.
   useEffect(() => {
     if (state !== 'leaving' || waiting) return
     const gone = setTimeout(() => setState('idle'), PENDING_FADE)

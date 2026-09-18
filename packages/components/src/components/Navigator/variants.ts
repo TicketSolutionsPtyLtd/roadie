@@ -1,27 +1,16 @@
 import { cva } from 'class-variance-authority'
 
-// dvh so collapsing browser chrome doesn't crop the bar; an inline-size container
-// so an embedded Navigator measures itself.
+// dvh so collapsing browser chrome doesn't crop the bar.
 export const navigatorRootClass = [
   'group/navigator',
-  // isolate: the pending indicator paints from behind, over this fill.
-  // clip, not hidden: the frame is 100dvh and every pane scrolls itself, so it
-  // has no business being a scrollport, and `hidden` makes one anyway — with no
-  // bar to say so. A hidden phone bar is absolute and translated a full height
-  // past the bottom edge, which is 82px of scrollable overflow sitting there
-  // whenever the top pane sets tabBar='hidden'. The phone pull-back then
-  // insets the pane row by 2% of the frame, so anything revealing the arriving
-  // pane mid-transform scrolled that slack and the offset outlived the scale.
-  // `clip` makes no scrollport at all, as navigator-content already does. See
-  // docs/solutions/pane-motion/a-transform-inside-a-scrollport.md.
+  // isolate: the pending indicator paints behind. clip, not hidden: see docs/solutions/pane-motion/a-transform-inside-a-scrollport.md.
   'relative isolate grid h-[100dvh] w-full overflow-clip bg-sunken',
   '[container-type:inline-size]',
   'grid-rows-1 md:grid-cols-[auto_1fr]',
   'pt-[env(safe-area-inset-top)]'
 ].join(' ')
 
-// The `panes` container the pane columns stylesheet queries. Column padding
-// lives on the row inside, because a container can't query itself.
+// A container can't query itself, so column padding lives on the row inside.
 export const navigatorContentClass = [
   'row-start-1 md:col-start-2',
   // Subtle panes' chrome mixes against this.
@@ -40,9 +29,7 @@ export const navigatorPanesClass = [
   '[--pane-stack-inset:0px] md:[--pane-stack-inset:--spacing(3)]'
 ].join(' ')
 
-// The box is the grid track, so it never animates: it changes once, at the end
-// of an expand (held collapsed by `data-motion`) or the start of a collapse.
-// The frame inside animates and overflows it while the content translates.
+// The box is the grid track and never animates; the frame inside does.
 export const navigatorPrimaryVerticalClass = [
   'group/primary hidden min-h-0 md:col-start-1 md:row-start-1 md:flex',
   '[--navigator-primary-collapsed:5rem] [--navigator-primary-expanded:15rem]',
@@ -58,8 +45,7 @@ export const navigatorPrimaryFrameClass = [
   'motion-safe:[transition:width_var(--navigator-primary-motion)]'
 ].join(' ')
 
-// The toggle is out of flow: collapsed, `pb-12` makes its row under the brand;
-// expanded, `pe-15` keeps the brand clear of it.
+// The toggle is out of flow: `pb-12` gives it a row collapsed, `pe-15` clears it expanded.
 export const navigatorPrimaryBrandVariants = cva(
   [
     'relative grid min-h-10 px-3',
@@ -86,13 +72,11 @@ export const navigatorExpandToggleAnchorClass = [
 export const navigatorExpandToggleClass =
   'is-interactive grid size-10 place-items-center rounded-full text-subtle hover:bg-subtle'
 
-// Takes the height left between brand and pinned, so the cluster centres there.
 export const navigatorPrimaryClusterClass = 'min-h-0 flex-1'
 
 export const navigatorPrimaryClusterViewportClass = 'size-full'
 
-// `min-h-full` + `content-center` centres a short cluster and top-aligns a tall
-// one; py-2 keeps capsule shadows off the clip edge.
+// `py-2` keeps capsule shadows off the clip edge.
 export const navigatorPrimaryClusterContentClass =
   'grid min-h-full content-center px-3 py-2'
 
@@ -100,13 +84,11 @@ export const navigatorPrimaryClusterTrackClass = 'relative grid gap-3'
 
 export const navigatorPrimaryPinnedClass = 'relative grid gap-3 px-3'
 
-// `rounded-4xl` overflows a collapsed capsule's width, so the browser scales it to a pill.
-// Opaque: nothing scrolls beneath it, so a blur would cost the GPU and show nothing.
+// `rounded-4xl` scales to a pill when collapsed. Opaque: nothing scrolls beneath, so a blur costs GPU for nothing.
 export const navigatorCapsuleClass =
   'group/capsule relative grid gap-1 p-1 rounded-4xl emphasis-raised'
 
-// The box never resizes, so collapse is scale/translate/opacity alone.
-// --navigator-primary-col is one bar slot; -edge is a collapsed circle's fixed travel.
+// --navigator-primary-col is one bar slot; -edge is a collapsed circle's travel.
 export const navigatorPrimaryHorizontalVariants = cva(
   [
     'max-md:absolute max-md:inset-x-2 max-md:bottom-[max(1rem,env(safe-area-inset-bottom))] max-md:z-sticky md:hidden',
@@ -133,14 +115,12 @@ export const navigatorPrimaryHorizontalVariants = cva(
   }
 )
 
-// A size container, so the tabs share what the pinned circle and gap leave.
 export const navigatorPrimaryLaneClass = '[container-type:inline-size]'
 
 export const navigatorPrimaryCircleClass =
   'pointer-events-auto grid self-stretch'
 
-// Hugs the tabs, so the indicator and pill resolve against it. Collapsed it
-// can span the full width, so input stays off and each circle restores its own.
+// Collapsed it can span the full width, so input stays off.
 export const navigatorPrimaryTrackVariants = cva(
   [
     'relative mx-auto grid w-fit grid-flow-col auto-cols-[var(--navigator-primary-col)] items-center gap-0 px-2 py-1'
@@ -172,10 +152,7 @@ export const navigatorPrimaryPillVariants = cva(
   }
 )
 
-// Collapsed, the active and final tabs become circles that translate to the
-// edges; the rest scale away and leave the tab order, but stay in the
-// accessibility tree. `translate` has no logical form, so `rtl:` mirrors
-// every horizontal travel.
+// `translate` has no logical form, so `rtl:` mirrors every horizontal travel.
 export const navigatorTabVariants = cva(
   [
     'is-interactive relative z-[1] min-w-0 overflow-hidden rounded-full',
@@ -241,8 +218,6 @@ export const navigatorTabVariants = cva(
   }
 )
 
-// A tile-sized box, so the badge dot sits as on the vertical tile. Scaled
-// against the collapsed pinned circle, so its icon matches the edge circle's.
 export const navigatorTabIconFrameVariants = cva(
   [
     'relative -m-3 grid p-3',
@@ -268,7 +243,6 @@ export const navigatorGroupTitleClass = [
 
 export const navigatorGroupTitleTextClass = 'min-h-0 overflow-hidden'
 
-// The mark stays on the icon column; the rest fades in once expanded.
 export const navigatorBrandClass = [
   'is-interactive rounded-xl',
   'grid grid-flow-col grid-cols-[minmax(3rem,auto)] auto-cols-[minmax(0,1fr)] items-center justify-start justify-items-start gap-2 py-1 ps-1',
@@ -282,8 +256,7 @@ export const navigatorBrandClass = [
   'navigator-expanded:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:grid-cols-[1fr] navigator-expanded:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:opacity-100',
   'motion-safe:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:[transition:grid-template-columns_var(--navigator-primary-motion),opacity_var(--duration-fast)_var(--ease-exit)]',
   'motion-safe:navigator-expanded:[&_:is([data-slot=logo-wordmark],[data-slot=logo-product])]:[transition:grid-template-columns_var(--navigator-primary-motion),opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-fast)]',
-  // The general rules above hide a wordmark while collapsed; a wordmark-only
-  // Logo has nothing else to show, so this overrides them to keep it visible.
+  // Keeps a wordmark-only Logo visible while collapsed.
   '[&>[data-slot=logo]:not(:has([data-slot=logo-mark]))]:mx-0',
   '[&_[data-slot=logo]:not(:has([data-slot=logo-mark]))_[data-slot=logo-wordmark]]:h-[min(1em,calc(3rem*42/128))] [&_[data-slot=logo]:not(:has([data-slot=logo-mark]))_[data-slot=logo-wordmark]]:opacity-100',
   'navigator-expanded:[&_[data-slot=logo]:not(:has([data-slot=logo-mark]))_[data-slot=logo-wordmark]]:h-[1em]',
@@ -293,9 +266,7 @@ export const navigatorBrandClass = [
 export const navigatorItemTrailingClass =
   'col-start-3 ms-3 flex items-center gap-2'
 
-// One geometry in both states; collapsed, the label's column is zero wide.
-// Margins, not `gap`, space the label, so that column can't squeeze the icon.
-// `text-subtle` always: under `intent-accent` it becomes the accent's tone.
+// Margins, not `gap`, so the zero-width label column can't squeeze the icon.
 export const navigatorItemVariants = cva(
   [
     'is-interactive relative z-[1] grid h-12 w-full grid-cols-[1.5rem_minmax(0,1fr)_auto] items-center rounded-full px-3 text-start text-subtle',
@@ -319,16 +290,13 @@ export const navigatorItemIconlessLabelClass = [
   'group-has-[[data-slot=navigator-item-icon]]/capsule:col-span-1 group-has-[[data-slot=navigator-item-icon]]/capsule:col-start-2 group-has-[[data-slot=navigator-item-icon]]/capsule:ms-3'
 ].join(' ')
 
-// Mirrors the label's fade, inverted: visible collapsed, so its fade-in on
-// collapse waits like the label's does on expand, and they never overlap.
 export const navigatorItemInitialClass =
   'col-start-1 row-start-1 grid size-6 place-items-center text-base font-bold navigator-expanded:opacity-0 motion-safe:[transition:opacity_var(--duration-moderate)_var(--ease-enter)_var(--duration-fast)] motion-safe:navigator-expanded:[transition:opacity_var(--duration-fast)_var(--ease-exit)]'
 
 export const navigatorTabInitialClass =
   'grid size-7 place-items-center text-lg font-bold'
 
-// Opacity always fades; translate slides only once settled, so a pill that
-// appears (or moves between vertical tracks) cross-fades in place.
+// Translate only once settled, so a pill that appears cross-fades in place.
 export const navigatorIndicatorVariants = cva(
   [
     'pointer-events-none absolute z-0 rounded-full',
@@ -367,7 +335,6 @@ export const navigatorIndicatorVariants = cva(
 
 export type NavigatorIndicatorSurface = 'horizontal' | 'vertical'
 
-// Same floating surface and motion as Popover.
 export const navigatorMenuPopupClass = [
   'grid min-w-48 max-h-(--available-height) origin-(--transform-origin) gap-0.5 p-1',
   'rounded-xl emphasis-floating is-translucent motion-scale outline-none'

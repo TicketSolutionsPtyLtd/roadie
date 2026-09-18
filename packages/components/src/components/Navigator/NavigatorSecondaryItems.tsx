@@ -29,8 +29,7 @@ type SecondaryItemsRowProps = {
   showDescriptions: boolean
 }
 
-// By hand: rows come out of a `map`, which the compiler caches only as a whole,
-// so a new `value` would otherwise re-render every row.
+// By hand: the compiler caches a `map` only whole, so a new `value` would re-render every row.
 const SecondaryItemsRow = memo(function SecondaryItemsRow({
   row,
   current,

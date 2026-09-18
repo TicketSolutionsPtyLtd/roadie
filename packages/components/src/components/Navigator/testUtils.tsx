@@ -11,8 +11,7 @@ import {
 import { columnTier, renderPaneColumnsCss } from '../Pane/paneColumns'
 import { forgetPaneScroll } from '../Pane/paneScroll'
 
-// A ScrollArea Viewport measures in a microtask scheduled from a layout
-// effect, outside act(); flushing it here keeps synchronous tests quiet.
+// ScrollArea measures in a microtask outside act().
 export async function flushViewportMeasurement() {
   await act(async () => {
     await Promise.resolve()
@@ -72,7 +71,6 @@ type SentinelWatch = {
 }
 const sentinelWatches = new Set<SentinelWatch>()
 
-// Records what it observes and reports only when `scrollViewport` says so.
 class SentinelIntersectionObserver {
   readonly root: Element | Document | null
   readonly rootMargin = ''
@@ -116,7 +114,7 @@ export function withScrollSentinels() {
   })
 }
 
-/** Scrolls a pane viewport to `top`: its sentinels report as a browser's would, then it fires `scroll`. Writing `scrollTop` afterwards does the same. */
+/** Scrolls a pane viewport to `top` as a browser would: sentinels report, then `scroll` fires. */
 export function scrollViewport(viewport: HTMLElement, top: number) {
   let current = top
   Object.defineProperty(viewport, 'scrollTop', {
@@ -273,7 +271,7 @@ const matchFlagsFor = (
   return flags
 }
 
-/** The column rule that wins for a level's stack pane at a content width: pane rules share a specificity, so the last that applies. */
+/** The column rule that wins for a level's stack pane at a content width. */
 export function paneRuleAt(
   rules: PaneColumnsRule[],
   pane: Element,

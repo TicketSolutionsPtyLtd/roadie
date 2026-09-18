@@ -215,7 +215,6 @@ export function NavigatorPrimary({
     ) &&
       !disclosureOpen)
 
-  // An open More scrolls to top on re-tap.
   const selectMore = (event: MouseEvent) => {
     if (event.currentTarget instanceof HTMLElement) {
       overflowOpenerRef.current = event.currentTarget
@@ -256,8 +255,7 @@ export function NavigatorPrimary({
 
   // By hand: the compiler leaves the tab list unmemoised, and tabs are uncompiled.
   const { tabs, pinned } = useMemo(() => {
-    // Without `onShowListChange`, a destination tab's href already leads up to
-    // its route.
+    // Without `onShowListChange`, the tab's href already leads to its route.
     const selectDestination = (
       event: MouseEvent,
       tab: NavigatorSlotMeta,

@@ -1,18 +1,11 @@
 import { type RefObject, createRef } from 'react'
 
-// The hook tracks `data-current` — visual currency — not `aria-current`.
-// The two part on one case: a destination on a sub-route it never declared
-// holds the pill while the exact page keeps the announcement.
-
 import { act, render } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { useSlidingIndicator } from './useSlidingIndicator'
 
-/**
- * jsdom reports every rect as zero, so geometry has to be stubbed. Values are
- * viewport-space, matching what getBoundingClientRect would really return.
- */
+/** jsdom reports zero rects; values are viewport-space. */
 const stubRect = (
   element: HTMLElement,
   rect: { left: number; top: number; width: number; height: number }
@@ -31,12 +24,7 @@ const stubRect = (
     }) as DOMRect
 }
 
-/**
- * jsdom has no layout: `offsetParent` is always null and every offset is 0, so
- * the layout path has to be stubbed as deliberately as the rect one. Stubbing
- * `offsetParent` is what makes the hook treat `track` as the measurement
- * origin instead of falling back to rects.
- */
+/** Stubbing `offsetParent` makes the hook measure from `track` instead of rects. */
 const stubLayout = (
   element: HTMLElement,
   track: HTMLElement,
@@ -95,9 +83,7 @@ const setup = () => {
   return { trackRef, track, first, second }
 }
 
-// Nothing here stubs offsets, so jsdom's null `offsetParent` puts every case
-// below on the hook's rect fallback — which is what these pin. The layout path
-// it normally takes has its own describe at the foot of the file.
+// jsdom's null `offsetParent` puts every case here on the rect fallback.
 describe('useSlidingIndicator rect fallback', () => {
   it('publishes the active element geometry relative to the track', () => {
     const { trackRef, second } = setup()
@@ -431,11 +417,6 @@ describe('useSlidingIndicator layout measurement', () => {
     globalThis.ResizeObserver = originalResizeObserver
   })
 
-  // The tab bar's collapse animates its tabs on `translate`/`scale` alone, so
-  // the active tab's rect reports wherever the transition currently has it
-  // while its layout box never moves. Sampling the rect published the
-  // travelling circle's position — a full column left of the tab — and nothing
-  // corrected it once the bar expanded again.
   it('holds its geometry across a collapse/expand cycle that only moves rects', () => {
     globalThis.ResizeObserver =
       StubResizeObserver as unknown as typeof ResizeObserver
@@ -462,15 +443,12 @@ describe('useSlidingIndicator layout measurement', () => {
       '--active-tab-height': '50px'
     })
 
-    // Collapsed: the tab is a 56px circle translated to the bar's left edge.
     stubRect(second, { left: 104, top: 61, width: 56, height: 56 })
     act(() => {
       StubResizeObserver.instances[0]!.trigger()
     })
     expect(captured.style).toEqual(expanded)
 
-    // Expanded again, sampled before the transition has unwound — the rect
-    // still lags behind the layout box it is animating back to.
     stubRect(second, { left: 150, top: 58, width: 70, height: 52 })
     act(() => {
       StubResizeObserver.instances[0]!.trigger()

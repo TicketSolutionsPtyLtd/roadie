@@ -30,8 +30,7 @@ type Run = {
   slots: NavigatorSlotMeta[]
 }
 
-// Consecutive slots that share a group, so a group folded whole stays one
-// titled group and loose items between groups stay loose.
+// Consecutive slots sharing a group, so a group folded whole stays one titled group.
 function toRuns(slots: NavigatorSlotMeta[]): Run[] {
   const runs: Run[] = []
   for (const slot of slots) {
