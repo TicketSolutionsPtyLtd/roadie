@@ -27,8 +27,6 @@ export type PaneRegistration = {
   tabBar: PaneTabBar
   kind: PaneKind
   depth?: PaneDepth
-  /** A loading pane holds the place of the page that replaces it, so panes rendered after it don't count it. */
-  pending?: boolean
 }
 
 export type PanePlace = {

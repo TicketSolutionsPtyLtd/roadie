@@ -415,35 +415,61 @@ describe('a pane whose body suspends', () => {
   })
 })
 
+describe('a pending pane', () => {
+  it('takes its place in render order like any other pane', async () => {
+    const Row = ({ lib }: { lib: Lib }) => (
+      <Shell lib={lib}>
+        <lib.Pane column='list'>List</lib.Pane>
+        <lib.Pane pending>Saving</lib.Pane>
+        <lib.Pane>Ticket</lib.Pane>
+      </Shell>
+    )
+    const host = await mount(renderToString(<Row lib={await server()} />))
+    expect(depths(host)).toEqual([
+      ['List', '0'],
+      ['Saving', '1'],
+      ['Ticket', '2']
+    ])
+    const { problems, unmount } = await hydrate(host, <Row lib={client} />)
+    expect(problems).toEqual(clean)
+    expect(depths(host)).toEqual([
+      ['List', '0'],
+      ['Saving', '1'],
+      ['Ticket', '2']
+    ])
+    unmount()
+  })
+})
+
 describe('where render order is not document order', () => {
   // A fallback shares its route's `useId` only when the trees above fork alike; this one doesn't.
-  const Loading = ({ lib, pending }: { lib: Lib; pending?: boolean }) => (
+  const Loading = ({ lib }: { lib: Lib }) => (
     <>
       <span hidden />
-      <lib.Pane pending={pending}>Loading</lib.Pane>
+      <lib.Pane pending>Loading</lib.Pane>
     </>
   )
   const WithFallback = ({
     lib,
     on,
-    pending
+    depth
   }: {
     lib: Lib
     on: Thenable
-    pending?: boolean
+    depth?: 2
   }) => (
     <Shell lib={lib}>
       <lib.Pane column='list'>List</lib.Pane>
       <lib.Pane>Event</lib.Pane>
-      <Suspense fallback={<Loading lib={lib} pending={pending} />}>
+      <Suspense fallback={<Loading lib={lib} />}>
         <Wait on={on}>
-          <lib.Pane>Ticket</lib.Pane>
+          <lib.Pane depth={depth}>Ticket</lib.Pane>
         </Wait>
       </Suspense>
     </Shell>
   )
 
-  it('counts a loading pane that does not pass pending, one too deep', async () => {
+  it('counts a loading pane before the page it stands in for, one too deep', async () => {
     const data = later()
     const host = await streamed(
       <WithFallback lib={await server()} on={data.promise} />,
@@ -458,16 +484,16 @@ describe('where render order is not document order', () => {
     unmount()
   })
 
-  it('skips a loading pane that passes pending', async () => {
+  it('keeps the page a loading pane stands in for at its declared depth', async () => {
     const data = later()
     const host = await streamed(
-      <WithFallback lib={await server()} on={data.promise} pending />,
+      <WithFallback lib={await server()} on={data.promise} depth={2} />,
       data.resolve
     )
     expect(depths(host)).toContainEqual(['Ticket', '2'])
     const { problems, unmount } = await hydrate(
       host,
-      <WithFallback lib={client} on={settled()} pending />
+      <WithFallback lib={client} on={settled()} depth={2} />
     )
     expect(problems).toEqual(clean)
     unmount()
@@ -540,7 +566,7 @@ describe('where render order is not document order', () => {
     )
     expect(problems.errors.join('\n')).toMatch(/data-depth/)
     expect(problems.warnings).toContain(
-      '[Roadie] A Pane was server-rendered at depth 2 but sits at 1. Render panes in document order, pass `pending` on a loading pane, or declare depth={1}.'
+      '[Roadie] A Pane was server-rendered at depth 2 but sits at 1. Render panes in document order or declare depth={1}.'
     )
     unmount()
   })

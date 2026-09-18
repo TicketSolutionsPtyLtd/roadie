@@ -266,11 +266,7 @@ function NavigatorStack({
     (id: string, entry: PaneRegistration, draws: Drawn) => {
       const claimed = claims.current.get(id)
       if (claimed) return claimed.written
-      // A loading pane gives its place to the pane it stands in for.
-      const before = Array.from(
-        claims.current.values(),
-        ({ pane }) => pane
-      ).filter((pane) => !pane.pending)
+      const before = Array.from(claims.current.values(), ({ pane }) => pane)
       const pane = { id, ...entry }
       const claim = { pane, ...renderOrderDepth([...before, pane], draws) }
       claims.current.set(id, claim)
@@ -531,7 +527,7 @@ function NavigatorStack({
         continue
       }
       const written = rank + (lift ? 1 : 0)
-      const message = `[Roadie] A Pane was server-rendered at depth ${claim.written} but sits at ${written}. Render panes in document order, pass \`pending\` on a loading pane, or declare depth={${written}}.`
+      const message = `[Roadie] A Pane was server-rendered at depth ${claim.written} but sits at ${written}. Render panes in document order or declare depth={${written}}.`
       if (warned.current.has(message)) continue
       warned.current.add(message)
       console.warn(message)

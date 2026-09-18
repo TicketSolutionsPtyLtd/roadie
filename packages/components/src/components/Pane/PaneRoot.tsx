@@ -130,8 +130,7 @@ export function PaneRoot({
       reached,
       tabBar,
       kind,
-      depth: declaredDepth,
-      pending
+      depth: declaredDepth
     })
     return () => unregister(paneId)
   }, [
@@ -142,13 +141,12 @@ export function PaneRoot({
     reached,
     tabBar,
     kind,
-    declaredDepth,
-    pending
+    declaredDepth
   ])
 
   const place = stack?.placeOf(
     paneId,
-    { column, reached, tabBar, kind, depth: declaredDepth, pending },
+    { column, reached, tabBar, kind, depth: declaredDepth },
     hydrating
   )
   // An inspector sits off the stack whatever depth it declares, so it never goes up a level.
