@@ -19,7 +19,7 @@ import { Carousel } from '@oztix/roadie-components/carousel'
 
 ### Default
 
-The simplest usage — a Title, a centered row of Dots, and Previous/Next nav buttons all inside a single `Carousel.Header`. On mobile the controls hide automatically (touch users swipe instead) and the dots re-pin to the right; from `md` upwards three slides sit in view and the dots sit centered between the title and the buttons.
+The simplest usage: a Title, a centered row of Dots, and Previous/Next nav buttons all inside a single `Carousel.Header`. On mobile the controls hide automatically (touch users swipe instead) and the dots re-pin to the right; from `md` upwards three slides sit in view and the dots sit centered between the title and the buttons.
 
 ```tsx-live
 <Carousel aria-label='Default carousel'>
@@ -90,7 +90,7 @@ The simplest usage — a Title, a centered row of Dots, and Previous/Next nav bu
 
 - **`subtle`** (default): slides bleed past the edges by the gutter width and dissolve into the page background via `::before` / `::after` linear-gradient overlays. Gives a clear scroll hint without half-clipped cards in view.
 - **`hidden`**: slides are hard-clipped exactly at the viewport edge.
-- **`visible`**: slides extend indefinitely past the viewport without clipping — useful on wide screens where you deliberately want peeking content to remain fully rendered in the surrounding margin.
+- **`visible`**: slides extend indefinitely past the viewport without clipping, useful on wide screens where you deliberately want peeking content to remain fully rendered in the surrounding margin.
 
 ```tsx-live
 <div className='grid gap-8'>
@@ -240,11 +240,11 @@ The simplest usage — a Title, a centered row of Dots, and Previous/Next nav bu
 </div>
 ```
 
-`overflow='visible'` is bounded by whatever ancestor has `overflow: clip` / `hidden` / `auto` on it — inside the docs preview the preview itself clips, so it reads similarly to `hidden`. In a real layout with a wider parent it lets slides render into adjacent margin without the gradient fade.
+`overflow='visible'` is bounded by whatever ancestor has `overflow: clip` / `hidden` / `auto` on it. Inside the docs preview the preview itself clips, so it reads similarly to `hidden`. In a real layout with a wider parent it lets slides render into adjacent margin without the gradient fade.
 
 ### With linked cards
 
-Each `Carousel.Item` can wrap a clickable element. The `Card` component renders as an anchor when given an `href`, and Carousel's keyboard handler is smart enough not to advance slides when arrow keys hit a focusable element inside a slide — so `Tab` lands on each card's link in turn.
+Each `Carousel.Item` can wrap a clickable element. The `Card` component renders as an anchor when given an `href`, and Carousel's keyboard handler is smart enough not to advance slides when arrow keys hit a focusable element inside a slide, so `Tab` lands on each card's link in turn.
 
 ```tsx-live
 <Carousel aria-label='Linked event cards'>
@@ -319,7 +319,7 @@ Each `Carousel.Item` can wrap a clickable element. The `Card` component renders 
 
 ### With deferred images
 
-Embla mounts every slide in the DOM, so native `loading='lazy'` still fetches off-screen slides. Give each `Card.Image` a `width` and `defer` so the full image only loads once the slide nears the viewport — the canonical pattern for image-heavy carousels. `placeholder='blur'` keeps the tile from popping in.
+Embla mounts every slide in the DOM, so native `loading='lazy'` still fetches off-screen slides. Give each `Card.Image` a `width` and `defer` so the full image only loads once the slide nears the viewport, the canonical pattern for image-heavy carousels. `placeholder='blur'` keeps the tile from popping in.
 
 ```tsx-live
 <Carousel aria-label='Events with artwork'>
@@ -370,7 +370,7 @@ Embla mounts every slide in the DOM, so native `loading='lazy'` still fetches of
 
 ### Responsive group scrolling
 
-Roadie defaults `slidesToScroll` to `'auto'` in `opts`, so Previous / Next move by a full viewport at a time instead of a single slide. Embla derives the group size from whatever currently fits in the viewport, so the same carousel scrolls two-and-a-bit cards on mobile, three on medium screens, and four on large screens — no breakpoint-specific configuration needed. Because `Carousel.Dots` renders one dot per _snap_, the dot count also collapses from one-per-slide down to one-per-page as the breakpoint changes.
+Roadie defaults `slidesToScroll` to `'auto'` in `opts`, so Previous / Next move by a full viewport at a time instead of a single slide. Embla derives the group size from whatever currently fits in the viewport, so the same carousel scrolls two-and-a-bit cards on mobile, three on medium screens, and four on large screens, with no breakpoint-specific configuration needed. Because `Carousel.Dots` renders one dot per _snap_, the dot count also collapses from one-per-slide down to one-per-page as the breakpoint changes.
 
 ```tsx-live
 <Carousel aria-label='Events by page'>
@@ -499,7 +499,7 @@ Roadie defaults `slidesToScroll` to `'auto'` in `opts`, so Previous / Next move 
 </Carousel>
 ```
 
-If you'd rather step through one slide at a time — handy when each slide has rich content a user needs to dwell on — pass `opts={{ slidesToScroll: 1 }}` to override the `'auto'` default. `Carousel.Dots` then renders one per slide rather than one per page, and Previous / Next advance one snap per click.
+If you'd rather step through one slide at a time (handy when each slide has rich content a user needs to dwell on), pass `opts={{ slidesToScroll: 1 }}` to override the `'auto'` default. `Carousel.Dots` then renders one per slide rather than one per page, and Previous / Next advance one snap per click.
 
 ```tsx-live
 <Carousel
@@ -519,7 +519,7 @@ If you'd rather step through one slide at a time — handy when each slide has r
       <Card emphasis='subtle'>
         <Card.Content>
           <Card.Title>Backstage at The Glasshouse</Card.Title>
-          <Card.Description>Notes from the first night of Velvet Hours — sound checks, setlist changes, and the unexpected encore.</Card.Description>
+          <Card.Description>Notes from the first night of Velvet Hours: sound checks, setlist changes, and the unexpected encore.</Card.Description>
         </Card.Content>
       </Card>
     </Carousel.Item>
@@ -551,7 +551,7 @@ If you'd rather step through one slide at a time — handy when each slide has r
 </Carousel>
 ```
 
-Fixed group sizes also work — `opts={{ slidesToScroll: 3 }}` always advances three at a time regardless of viewport. See the full list of Embla options in the [Embla Carousel options reference](https://www.embla-carousel.com/api/options/).
+Fixed group sizes also work: `opts={{ slidesToScroll: 3 }}` always advances three at a time regardless of viewport. See the full list of Embla options in the [Embla Carousel options reference](https://www.embla-carousel.com/api/options/).
 
 ### Variable-width cards
 
@@ -644,9 +644,9 @@ Set `basis-auto` on each `Carousel.Item` and every card sizes to its own content
 
 ### Featured (autoplay + loop)
 
-Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayPause` button is placed first inside `Carousel.Controls` so it is the first tab stop — required by WCAG 2.2.2. Slides run edge-to-edge with a sliver of the next slide peeking in.
+Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayPause` button is placed first inside `Carousel.Controls` so it is the first tab stop, required by WCAG 2.2.2. Slides run edge-to-edge with a sliver of the next slide peeking in.
 
-`Carousel.TitleLink` accepts `as` so you can pass a framework router link (`Link` here) instead of a plain `<a>` — the trailing arrow icon and link styling come along automatically.
+`Carousel.TitleLink` accepts `as` so you can pass a framework router link (`Link` here) instead of a plain `<a>`. The trailing arrow icon and link styling come along automatically.
 
 ```tsx-live
 <Carousel
@@ -730,7 +730,7 @@ When every slide already fits in the viewport, `Carousel.Previous`, `Carousel.Ne
     <Carousel.Item className='basis-[78%] md:basis-1/3'>
       <Card emphasis='raised' href='/events/eli-bramble'>
         <Card.Content>
-          <Card.Title>Eli Bramble — Punch Lines</Card.Title>
+          <Card.Title>Eli Bramble: Punch Lines</Card.Title>
           <Card.Description>
             <DateTime
               at={new Date('2026-06-29T11:00:00Z')}
@@ -758,7 +758,7 @@ When every slide already fits in the viewport, `Carousel.Previous`, `Carousel.Ne
     <Carousel.Item className='basis-[78%] md:basis-1/3'>
       <Card emphasis='raised' href='/events/casey-vale'>
         <Card.Content>
-          <Card.Title>Casey Vale — Maybe Tomorrow</Card.Title>
+          <Card.Title>Casey Vale: Maybe Tomorrow</Card.Title>
           <Card.Description>
             <DateTime
               at={new Date('2026-07-05T06:45:00Z')}
@@ -775,7 +775,7 @@ When every slide already fits in the viewport, `Carousel.Previous`, `Carousel.Ne
 
 ### With dots only
 
-A simpler hero pattern — drop `Carousel.Controls` and let the dots handle navigation. With only a Title and Dots, the Header collapses to a 2-slot layout (title left, dots right).
+A simpler hero pattern: drop `Carousel.Controls` and let the dots handle navigation. With only a Title and Dots, the Header collapses to a 2-slot layout (title left, dots right).
 
 ```tsx-live
 <Carousel aria-label='With dots'>
@@ -871,7 +871,7 @@ Pass `direction='vertical'` to flip the axis. The Previous/Next icons swap to up
       <Card emphasis='subtle'>
         <Card.Content>
           <Card.Title>First slide</Card.Title>
-          <Card.Description>Previous is disabled — try it.</Card.Description>
+          <Card.Description>Previous is disabled, try it.</Card.Description>
         </Card.Content>
       </Card>
     </Carousel.Item>
@@ -910,28 +910,64 @@ Carousel is a compound component. Available parts:
 | `Carousel.Item`                       | A single slide. Set the width with Tailwind `basis-*` utilities.                                                                                                                                                                   |
 | `Carousel.Previous` / `Carousel.Next` | Nav buttons (compose `IconButton`). Auto-hide when there's nothing to scroll to.                                                                                                                                                   |
 | `Carousel.PlayPause`                  | Play/pause toggle. Renders only when `autoPlay` is set.                                                                                                                                                                            |
-| `Carousel.Dots`                       | One button per scroll snap position (which can be fewer than `slideCount` when multi-visible layouts group slides into viewport-sized pages — the Roadie default). Auto-hides when there's nothing to scroll to.                   |
-| `useCarousel()` hook                  | Read state and call actions from a child component.                                                                                                                                                                                |
-| `useCarouselUnsafeEmbla()` hook       | Escape hatch — returns the raw Embla `api`. Hard-couples your code to a specific `embla-carousel` major version, so prefer `useCarousel()` whenever possible.                                                                      |
+| `Carousel.Dots`                       | One button per scroll snap position (which can be fewer than `slideCount` when multi-visible layouts group slides into viewport-sized pages, the Roadie default). Auto-hides when there's nothing to scroll to.                   |
 
 ## Guidelines
 
 - **Slide sizing is the consumer's job.** Set width on each `Carousel.Item` via Tailwind `basis-*` utilities (e.g. `basis-1/2 md:basis-1/3`). Don't try to size the carousel itself.
 - **Let `Carousel.Content` handle the gutter.** The default `overflow='subtle'` applies `-mx-4 px-4 sm:-mx-6 sm:px-6` plus fade-to-background gradients on the left and right edges, so slides visibly bleed past the viewport and fade into the page without leaving half-clipped cards. Use `overflow='hidden'` for a hard clip or `overflow='visible'` to let overflow extend indefinitely into surrounding margin.
-- **Compose the Header instead of stacking divs.** `<Carousel.Header>` accepts up to three children placed by source order — title, dots, controls. On mobile it collapses to a flex row with the controls hidden, so the dots automatically pin to the right.
+- **Compose the Header instead of stacking divs.** `<Carousel.Header>` accepts up to three children placed by source order: title, dots, controls. On mobile it collapses to a flex row with the controls hidden, so the dots automatically pin to the right.
 - **Nav UI hides when it's not needed.** `Carousel.Controls`, `Carousel.Previous`, `Carousel.Next`, and `Carousel.Dots` all render `null` when every slide already fits in the viewport. No special handling required at the consumer.
 - **Use `Carousel.PlayPause` whenever `autoPlay` is set.** WCAG 2.2.2 requires a persistent pause control for any auto-updating content. Place it first inside `Carousel.Controls` so it is the first tab stop.
-- **Direct children only.** `Carousel.Content` walks its children with `Children.map` to inject per-item context. Fragments and conditionally rendered children are not unwrapped — render an array of `Carousel.Item` directly.
+- **Direct children only.** `Carousel.Content` walks its children with `Children.map` to inject per-item context. Fragments and conditionally rendered children are not unwrapped. Render an array of `Carousel.Item` directly.
 - **`reInit` is automatic.** Adding or removing slides at runtime triggers an Embla re-init.
-- **`opts` is a pass-through to Embla.** Roadie sets opinionated defaults for `align: 'start'` and `slidesToScroll: 'auto'` (Embla's own defaults are `center` and `1`, which read worse for card carousels). Consumers can override either via `opts` — Roadie defaults spread first, consumer `opts` second. The `axis` and `duration` options are managed by the `direction` and `prefers-reduced-motion` hook respectively and can't be overridden. See the full list of Embla options in the [Embla Carousel options reference](https://www.embla-carousel.com/api/options/).
+- **`opts` is a pass-through to Embla.** Roadie sets opinionated defaults for `align: 'start'` and `slidesToScroll: 'auto'` (Embla's own defaults are `center` and `1`, which read worse for card carousels). Consumers can override either via `opts`. Roadie defaults spread first, consumer `opts` second. The `axis` and `duration` options are managed by the `direction` and `prefers-reduced-motion` hook respectively and can't be overridden. See the full list of Embla options in the [Embla Carousel options reference](https://www.embla-carousel.com/api/options/).
 
 ## Accessibility
 
 - **Region role.** The carousel root has `role='region'` and `aria-roledescription='carousel'`. The accessible name comes from `Carousel.Title` / `Carousel.TitleLink` (via `aria-labelledby`) when present, otherwise from the `aria-label` prop on the root.
 - **Slide group role.** Each `Carousel.Item` has `role='group'`, `aria-roledescription='slide'`, and `aria-label='N of M'`. Non-active slides are marked `inert` so their interactive content stays out of the tab order.
-- **Live region.** `Carousel.Content` is `aria-live='off'` while autoplay is running and `aria-live='polite'` otherwise. Transient hover/focus pauses do not flip the live region — only an explicit pause via `Carousel.PlayPause` does.
+- **Live region.** `Carousel.Content` is `aria-live='off'` while autoplay is running and `aria-live='polite'` otherwise. Transient hover/focus pauses do not flip the live region. Only an explicit pause via `Carousel.PlayPause` does.
 - **Keyboard.** When the viewport has focus: `ArrowLeft`/`ArrowRight` (or `ArrowUp`/`ArrowDown` in vertical mode) move between slides; `Home`/`End` jump to the first/last slide. Arrow keys never hijack focus when the user is interacting with a focusable element inside a slide.
-- **Pause behaviour.** Autoplay pauses on hover, focus, and `pointerdown`. Explicit pause (via `Carousel.PlayPause`) is sticky — autoplay does not auto-resume after a user click. WCAG 2.2.2 compliant.
+- **Pause behaviour.** Autoplay pauses on hover, focus, and `pointerdown`. Explicit pause (via `Carousel.PlayPause`) is sticky. Autoplay does not auto-resume after a user click. WCAG 2.2.2 compliant.
 - **Reduced motion.** When `prefers-reduced-motion: reduce` is set, autoplay is disabled entirely (no plugin instantiated) and Embla's `duration` is set to `0` for instant transitions. Live changes to the OS preference take effect via a `matchMedia` change listener.
+
+## Hooks
+
+### useCarousel
+
+```tsx
+function useCarousel(): { state: CarouselState; actions: CarouselActions }
+```
+
+Read state and call actions from a child component. Must be called inside a `<Carousel>` tree.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `state.direction` | `'horizontal' \| 'vertical'` | The carousel's scroll axis. |
+| `state.selectedIndex` | `number` | Selected snap index (0-based). A snap may cover multiple slides. |
+| `state.slideCount` | `number` | Number of `Carousel.Item` children. |
+| `state.snapCount` | `number` | Number of distinct Embla scroll snap positions. |
+| `state.canGoToPrev` | `boolean` | Whether `goToPrev` moves anywhere. |
+| `state.canGoToNext` | `boolean` | Whether `goToNext` moves anywhere. |
+| `state.canScroll` | `boolean` | False when every slide already fits in the viewport. |
+| `state.isPlaying` | `boolean` | Autoplay's current state. |
+| `state.userPaused` | `boolean` | True once the user explicitly pauses. |
+| `state.labelId` | `string \| undefined` | Id of the element supplying the accessible name. |
+| `state.rootAriaLabel` | `string \| undefined` | The root's `aria-label`, when set directly. |
+| `actions.goToPrev` | `() => void` | Move to the previous snap. |
+| `actions.goToNext` | `() => void` | Move to the next snap. |
+| `actions.goTo` | `(index: number) => void` | Move to a specific snap. |
+| `actions.play` | `() => void` | Start or resume autoplay. |
+| `actions.pause` | `() => void` | Pause autoplay. |
+| `actions.toggle` | `() => void` | Toggle autoplay. |
+
+### useCarouselUnsafeEmbla
+
+```tsx
+function useCarouselUnsafeEmbla(): EmblaCarouselType | undefined
+```
+
+Escape hatch: returns the raw Embla `api` instance. Hard-couples your code to a specific `embla-carousel` major version, so prefer `useCarousel()` whenever its state and actions are sufficient. This hook exists so raw-Embla usage stays greppable when planning an upgrade.
 
 <PropsDefinitions componentPath='packages/components/src/components/Carousel' />

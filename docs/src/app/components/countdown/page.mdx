@@ -300,4 +300,29 @@ Every countdown on the page shares one interval, so a list of twenty cards start
 
 That last one is the difference that matters. Subscribing to raw seconds re-renders every second no matter what is displayed.
 
+## Hooks
+
+### useCountdownUrgency
+
+```tsx
+function useCountdownUrgency(
+  until: Instantish,
+  thresholds?: UrgencyThresholds
+): CountdownUrgency
+```
+
+Urgency for a moment, updated as it approaches. Shares the one page-wide
+ticker, so escalating a container's intent costs no extra timer.
+
+| Param | Type | Description |
+| --- | --- | --- |
+| `until` | `Instantish` | The moment being counted to. |
+| `thresholds` | `UrgencyThresholds` | Optional `warnBelowMs` / `dangerBelowMs` overrides. Defaults to five and two minutes. |
+
+Returns `'success' \| 'warning' \| 'danger' \| 'expired'`.
+
+```tsx
+const urgency = useCountdownUrgency(until)
+```
+
 <PropsDefinitions componentPath='packages/components/src/components/Countdown/index.tsx' />

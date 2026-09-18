@@ -102,7 +102,7 @@ Use the `direction` prop to switch between horizontal and vertical layouts.
 
 ### States
 
-Use `linear` to restrict navigation to sequential order. In linear mode, users cannot click ahead — only the next step is reachable.
+Use `linear` to restrict navigation to sequential order. In linear mode, users cannot click ahead: only the next step is reachable.
 
 ```tsx-live
 <div className='grid gap-6'>
@@ -347,5 +347,30 @@ function MyWizard() {
 - **Keyboard**: Arrow keys navigate between step triggers. `Enter` or `Space` activates a trigger.
 - **ARIA**: List renders as `role="tablist"`, triggers as `role="tab"`, content panels as `role="tabpanel"`. `aria-selected` marks the active trigger. `aria-controls` links triggers to panels.
 - **Screen readers**: Announce step state via `aria-selected`. Disabled triggers in linear mode receive `aria-disabled`.
+
+## Hooks
+
+### useSteps
+
+```tsx
+function useSteps(props?: UseStepsProps): UseStepsReturn
+```
+
+Ark UI's stepper state, re-exported so `Steps.RootProvider` can take a value
+you control. `props` takes the same `step` / `defaultStep` / `onStepChange` /
+`linear` / `count` / `orientation` as `Steps` itself. The fields most calls
+reach for:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `value` | `number` | The current step index. |
+| `count` | `number` | The total number of steps. |
+| `hasNextStep` | `boolean` | Whether there is a step after this one. |
+| `hasPrevStep` | `boolean` | Whether there is a step before this one. |
+| `isCompleted` | `boolean` | Whether the stepper has finished. |
+| `setStep` | `(step: number) => void` | Jump to a step. |
+| `goToNextStep` | `() => void` | Advance one step. |
+| `goToPrevStep` | `() => void` | Go back one step. |
+| `resetStep` | `() => void` | Return to the first step. |
 
 <PropsDefinitions componentPath='packages/components/src/components/Steps' />

@@ -492,18 +492,6 @@ const awaitAbove = `export default async function TicketPage({ params }: TicketP
   )
 }`
 
-const pendingCode = `const { start, stop } = usePendingNavigation()
-
-const buy = async () => {
-  start()
-  try {
-    await reserve()
-    router.push('/checkout')
-  } catch {
-    stop()
-  }
-}`
-
 const urlFlags = `'use client'
 
 import { Suspense, useEffect, useState } from 'react'
@@ -1082,16 +1070,10 @@ export default function NavigationPage() {
         <p className='text-subtle'>
           Roadie marks a click on any Roadie link. For a navigation you start
           yourself, such as a <Code>router.push</Code>, report it with{' '}
-          <Code>usePendingNavigation</Code>. The route landing calls{' '}
-          <Code>stop</Code> for you, so call it only when the navigation never
-          happens.
-        </p>
-        <CodePreview>{pendingCode}</CodePreview>
-        <p className='text-subtle'>
-          The hooks&apos; reference lives on{' '}
-          <Link href='/components/navigator#hooks'>Navigator</Link>,{' '}
-          <Link href='/components/pane'>Pane</Link> and{' '}
-          <Link href='/foundations/linking'>Linking</Link>.
+          <Code>usePendingNavigation</Code>, documented on{' '}
+          <Link href='/foundations/linking#hooks'>Linking</Link> alongside{' '}
+          <Code>useRoadieLink</Code>. <Code>useNavigatorSecondary</Code>{' '}
+          lives on <Link href='/components/navigator#hooks'>Navigator</Link>.
         </p>
       </section>
 

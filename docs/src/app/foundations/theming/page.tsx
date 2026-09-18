@@ -7,7 +7,7 @@ import { Code } from '@oztix/roadie-components'
 export const metadata = {
   title: 'Theming',
   description:
-    'ThemeProvider, dynamic accent colour, dark mode, and pre-hydration bootstrap — everything you need to theme a Roadie app at runtime or at build time.',
+    'ThemeProvider, dynamic accent colour, dark mode, and pre-hydration bootstrap: everything you need to theme a Roadie app at runtime or at build time.',
   category: 'Visual'
 }
 
@@ -29,8 +29,8 @@ export default function ThemingPage() {
           <li>
             <p>
               <strong>Accent colour.</strong> A single hex string drives two CSS
-              custom properties — <Code>--accent-hue</Code> and{' '}
-              <Code>--accent-chroma</Code> — which Roadie&apos;s CSS tokens feed
+              custom properties, <Code>--accent-hue</Code> and{' '}
+              <Code>--accent-chroma</Code>, which Roadie&apos;s CSS tokens feed
               into <Code>oklch()</Code> curves. Changing the accent updates
               every component that reads the <Code>accent-*</Code> scale through
               the cascade; there are no component-level theme props.
@@ -42,7 +42,7 @@ export default function ThemingPage() {
               <Code>&lt;html&gt;</Code> swaps a second set of OKLCH values.{' '}
               <Code>ThemeProvider</Code> handles the toggle, localStorage
               persistence, and optional <Code>prefers-color-scheme</Code>{' '}
-              following. Dark mode and accent colour are independent — setting
+              following. Dark mode and accent colour are independent: setting
               one never resets the other.
             </p>
           </li>
@@ -51,7 +51,7 @@ export default function ThemingPage() {
               <strong>Intent cascade.</strong> Intent (neutral, brand, accent,
               danger, etc.) is set via <Code>intent-*</Code> utility classes and
               flows down through CSS custom properties. Child components inherit
-              automatically — no context providers per intent.
+              automatically, with no context providers per intent.
             </p>
           </li>
           <li>
@@ -75,8 +75,8 @@ export default function ThemingPage() {
           For apps with a single brand colour that never changes at runtime,
           wrap the root layout in <Code>ThemeProvider</Code> and pass{' '}
           <Code>defaultAccentColor</Code>. Children can still call{' '}
-          <Code>useTheme().setAccentColor(hex)</Code> imperatively — e.g. an
-          in-app colour picker — and the internal state tracks the change.
+          <Code>useTheme().setAccentColor(hex)</Code> imperatively (e.g. an
+          in-app colour picker) and the internal state tracks the change.
         </p>
         <CodePreview language='tsx'>
           {`// app/layout.tsx
@@ -102,8 +102,8 @@ export default function RootLayout({ children }) {
           Dynamic theming (controlled)
         </h2>
         <p className='text-subtle'>
-          When the accent colour comes from async data — a CMS field, a feature
-          flag, per-tenant config — pass it as the <Code>accentColor</Code>{' '}
+          When the accent colour comes from async data (a CMS field, a feature
+          flag, per-tenant config), pass it as the <Code>accentColor</Code>{' '}
           prop. The provider becomes controlled: the prop wins on every render,
           and imperative <Code>setAccentColor</Code> calls become no-ops with a
           dev warning. Pass <Code>null</Code> to opt into controlled mode while
@@ -127,13 +127,13 @@ export default function CollectionPage({ params }) {
 }`}
         </CodePreview>
         <p className='text-sm text-subtle'>
-          The provider re-renders whenever the prop changes — no{' '}
+          The provider re-renders whenever the prop changes, with no{' '}
           <Code>useEffect</Code>, no manual cleanup, no reset logic. Passing{' '}
           <Code>null</Code> while the query is loading falls back to{' '}
           <Code>defaultAccentColor</Code>, so the theme never renders in a
           broken state during the suspense boundary. The old{' '}
-          <Code>CollectionAccentSync</Code>-style effect helper is unnecessary —
-          consumer apps can delete their bespoke effect-plus-cleanup wiring as
+          <Code>CollectionAccentSync</Code>-style effect helper is unnecessary.
+          Consumer apps can delete their bespoke effect-plus-cleanup wiring as
           soon as they adopt the controlled prop.
         </p>
       </section>
@@ -201,15 +201,15 @@ try {
           React hydration runs after the first paint, so an app that only sets
           the accent inside <Code>ThemeProvider</Code> will flash the default
           blue for ~200–400ms on cold loads. For apps that know the accent
-          colour on the server — per-tenant branding, promoter-branded pages,
-          SSG routes — use the synchronous bootstrap helpers to inject{' '}
+          colour on the server (per-tenant branding, promoter-branded pages,
+          SSG routes), use the synchronous bootstrap helpers to inject{' '}
           <Code>--accent-hue</Code> and <Code>--accent-chroma</Code> before the
           first paint.
         </p>
 
         <div className='grid gap-2'>
           <p className='text-sm text-strong'>
-            Option 1 — React (<Code>&lt;head&gt;</Code> injection)
+            Option 1: React (<Code>&lt;head&gt;</Code> injection)
           </p>
           <p className='text-sm text-subtle'>
             For React frameworks (Next.js, Remix, etc.), inject the theme script
@@ -256,7 +256,7 @@ export default async function RootLayout({ children }) {
 
         <div className='grid gap-2'>
           <p className='text-sm text-strong'>
-            Option 2 — Framework-agnostic (<Code>getBootstrapScript</Code>)
+            Option 2: Framework-agnostic (<Code>getBootstrapScript</Code>)
           </p>
           <p className='text-sm text-subtle'>
             For Astro, Nuxt, or plain HTML, use <Code>getBootstrapScript</Code>.
@@ -303,7 +303,7 @@ const html = getBootstrapScript({
           <li>
             <p>
               In a controlled provider: pass{' '}
-              <Code>accentColor={'{someHex ?? null}'}</Code> — Roadie coerces{' '}
+              <Code>accentColor={'{someHex ?? null}'}</Code>: Roadie coerces{' '}
               <Code>null</Code> back to the default.
             </p>
           </li>
@@ -317,7 +317,7 @@ const html = getBootstrapScript({
           <li>
             <p>
               In the bootstrap helpers: omit <Code>accentColor</Code> or pass{' '}
-              <Code>null</Code> — the default CSS accent applies and the
+              <Code>null</Code>: the default CSS accent applies and the
               bootstrap emits no style tag.
             </p>
           </li>
@@ -346,19 +346,19 @@ const html = getBootstrapScript({
         </CodePreview>
         <ul className='grid list-disc gap-2 pl-5 text-sm text-subtle'>
           <li>
-            <Code>followSystem</Code> — respect{' '}
+            <Code>followSystem</Code>: respect{' '}
             <Code>prefers-color-scheme</Code> until the user explicitly toggles.
           </li>
           <li>
-            <Code>defaultDark</Code> — initial dark state when no preference is
+            <Code>defaultDark</Code>: initial dark state when no preference is
             stored.
           </li>
           <li>
-            <Code>useTheme().setDark(boolean)</Code> — persist an explicit
+            <Code>useTheme().setDark(boolean)</Code>: persist an explicit
             choice to <Code>localStorage</Code>.
           </li>
           <li>
-            <Code>useTheme().isDark</Code> — current state, reactive.
+            <Code>useTheme().isDark</Code>: current state, reactive.
           </li>
         </ul>
       </section>
@@ -395,7 +395,7 @@ const html = getBootstrapScript({
           <p className='text-sm text-subtle'>
             A per-route <Code>layout.tsx</Code> can fetch its own data and wrap
             children in a scoped provider. Nesting overrides the parent provider
-            — no global state to reset on navigation.
+            with no global state to reset on navigation.
           </p>
           <CodePreview language='tsx'>
             {`// app/collections/[slug]/layout.tsx
@@ -451,50 +451,117 @@ export default async function CollectionPage({ params }) {
         </div>
       </section>
 
+      {/* Hooks */}
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>Hooks</h2>
+        <h3 className='text-display-ui-5 text-strong'>useTheme</h3>
+        <CodePreview>{`function useTheme(): {
+  accentColor: string
+  setAccentColor: (color: string) => void
+  isDark: boolean
+  setDark: (dark: boolean) => void
+}`}</CodePreview>
+        <p className='text-subtle'>
+          Reads and updates the theme mounted by the nearest{' '}
+          <Code>ThemeProvider</Code>. Throws outside one.
+        </p>
+        <div className='overflow-x-auto'>
+          <table className='w-full border-collapse text-sm'>
+            <thead>
+              <tr className='border-b border-subtle text-left'>
+                <th className='py-2 pr-4 font-semibold'>Field</th>
+                <th className='py-2 pr-4 font-semibold'>Type</th>
+                <th className='py-2 font-semibold'>Description</th>
+              </tr>
+            </thead>
+            <tbody className='[&_td]:py-2 [&_td]:pr-4'>
+              <tr className='border-b border-subtle'>
+                <td>
+                  <Code>accentColor</Code>
+                </td>
+                <td>
+                  <Code>string</Code>
+                </td>
+                <td>The current accent, as a hex string.</td>
+              </tr>
+              <tr className='border-b border-subtle'>
+                <td>
+                  <Code>setAccentColor</Code>
+                </td>
+                <td>
+                  <Code>(color: string) =&gt; void</Code>
+                </td>
+                <td>
+                  Sets the accent. Throws <Code>InvalidColorError</Code> on a
+                  non-hex value.
+                </td>
+              </tr>
+              <tr className='border-b border-subtle'>
+                <td>
+                  <Code>isDark</Code>
+                </td>
+                <td>
+                  <Code>boolean</Code>
+                </td>
+                <td>Whether dark mode is active.</td>
+              </tr>
+              <tr>
+                <td>
+                  <Code>setDark</Code>
+                </td>
+                <td>
+                  <Code>(dark: boolean) =&gt; void</Code>
+                </td>
+                <td>
+                  Sets dark mode explicitly and persists the choice to{' '}
+                  <Code>localStorage</Code>.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       {/* Reference */}
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Reference</h2>
         <ul className='grid list-disc gap-2 pl-5 text-subtle'>
           <li>
-            <Code>ThemeProvider</Code> — root provider for accent + dark mode.
+            <Code>ThemeProvider</Code>: root provider for accent + dark mode.
             Accepts <Code>accentColor</Code>, <Code>defaultAccentColor</Code>,{' '}
             <Code>defaultDark</Code>, <Code>followSystem</Code>.
           </li>
           <li>
-            <Code>useTheme()</Code> — returns{' '}
-            <Code>{'{ accentColor, setAccentColor, isDark, setDark }'}</Code>.
-          </li>
-          <li>
-            <Code>DEFAULT_ACCENT_COLOR</Code> — exported constant for the Oztix
+            <Code>DEFAULT_ACCENT_COLOR</Code>: exported constant for the Oztix
             blue default.
           </li>
           <li>
-            <Code>isValidHexColor(input)</Code> — sync type-guard for
+            <Code>isValidHexColor(input)</Code>: sync type-guard for
             fetch-boundary validation.
           </li>
           <li>
-            <Code>InvalidColorError</Code> — thrown by{' '}
+            <Code>InvalidColorError</Code>: thrown by{' '}
             <Code>setAccentColor</Code>, <Code>getAccentStyleTagSync</Code>, and{' '}
             <Code>getAccentStyleSync</Code> on invalid input.
           </li>
           <li>
-            <Code>getThemeScript(opts)</Code> — inline script body for dark-mode
+            <Code>getThemeScript(opts)</Code>: inline script body for dark-mode
             flash prevention.
           </li>
           <li>
-            <Code>getAccentStyleSync(hex)</Code> — inner CSS body
+            <Code>getAccentStyleSync(hex)</Code>: inner CSS body
             (React-friendly).
           </li>
           <li>
-            <Code>getAccentStyleTagSync(hex)</Code> — full{' '}
+            <Code>getAccentStyleTagSync(hex)</Code>: full{' '}
             <Code>&lt;style&gt;</Code> tag (framework-agnostic).
           </li>
           <li>
-            <Code>getAccentStyleTag(hex)</Code> — async variant with full hex
+            <Code>getAccentStyleTag(hex)</Code>: async variant with full hex
             fallbacks for non-OKLCH browsers.
           </li>
           <li>
-            <Code>getBootstrapScript(opts)</Code> — unified helper combining
+            <Code>getBootstrapScript(opts)</Code>: unified helper combining
             theme script and accent style tag for a single head injection.
           </li>
         </ul>

@@ -7,7 +7,7 @@ import { Code } from '@oztix/roadie-components'
 export const metadata = {
   title: 'Linking',
   description:
-    'A single href prop, automatic external-link safety, and one-line client routing through next/link via RoadieLinkProvider — across every link-bearing Roadie component.',
+    'A single href prop, automatic external-link safety, and one-line client routing through next/link via RoadieLinkProvider, across every link-bearing Roadie component.',
   category: 'Building apps'
 }
 
@@ -20,8 +20,8 @@ export default function LinkingPage() {
         defaults, and routes through your app&apos;s configured client router
         via <Code>RoadieLinkProvider</Code>. Use <Code>onClick</Code> instead of{' '}
         <Code>href</Code> and you get a real <Code>&lt;button&gt;</Code> back.
-        Everything that&apos;s link-shaped — Button, IconButton, Card,
-        Breadcrumb.Link, Carousel.TitleLink, Tabs.Tab — speaks the same
+        Everything that&apos;s link-shaped (Button, IconButton, Card,
+        Breadcrumb.Link, Carousel.TitleLink, Tabs.Tab) speaks the same
         vocabulary.
       </p>
 
@@ -61,12 +61,109 @@ export function Providers({ children }) {
         </p>
       </section>
 
+      {/* Hooks */}
+      <section className='grid gap-6'>
+        <h2 className='text-display-ui-3 text-strong'>Hooks</h2>
+
+        <div className='grid gap-3'>
+          <h3 className='text-display-ui-5 text-strong'>useRoadieLink</h3>
+          <CodePreview>{`function useRoadieLink(): RoadieLinkComponent | null`}</CodePreview>
+          <p className='text-subtle'>
+            Returns the <Code>Link</Code> passed to the nearest{' '}
+            <Code>RoadieLinkProvider</Code>, or <Code>null</Code> when no
+            provider is mounted (or its <Code>Link</Code> is{' '}
+            <Code>null</Code>). This is how every Roadie component builds its
+            own href handling, and how you build one of your own: route
+            through the configured Link when there is one, render a plain{' '}
+            <Code>&lt;a&gt;</Code> when there isn&apos;t.
+          </p>
+          <CodePreview>{`import { useRoadieLink, type RoadieLinkProps } from '@oztix/roadie-components'
+
+function TrackedLink({ href, children, ...props }: RoadieLinkProps) {
+  const Link = useRoadieLink()
+  const Anchor = Link ?? 'a'
+  return (
+    <Anchor href={href} {...props}>
+      {children}
+    </Anchor>
+  )
+}`}</CodePreview>
+        </div>
+
+        <div className='grid gap-3'>
+          <h3 className='text-display-ui-5 text-strong'>
+            usePendingNavigation
+          </h3>
+          <CodePreview>{`function usePendingNavigation(): { start: () => void; stop: () => void }`}</CodePreview>
+          <p className='text-subtle'>
+            Reports a navigation Roadie can&apos;t see, such as your own{' '}
+            <Code>router.push</Code>. Roadie&apos;s own links already call{' '}
+            <Code>start</Code> for you. Reach for this only when you start
+            the navigation yourself. Call <Code>start</Code> from the event
+            handler that kicks it off; from a layout effect it schedules a
+            render React refuses.
+          </p>
+          <div className='overflow-x-auto'>
+            <table className='w-full border-collapse text-sm'>
+              <thead>
+                <tr className='border-b border-subtle text-left'>
+                  <th className='py-2 pr-4 font-semibold'>Field</th>
+                  <th className='py-2 pr-4 font-semibold'>Type</th>
+                  <th className='py-2 font-semibold'>Description</th>
+                </tr>
+              </thead>
+              <tbody className='[&_td]:py-2 [&_td]:pr-4'>
+                <tr className='border-b border-subtle'>
+                  <td>
+                    <Code>start</Code>
+                  </td>
+                  <td>
+                    <Code>() =&gt; void</Code>
+                  </td>
+                  <td>
+                    Marks a navigation as pending. Draws the pending indicator
+                    on a <Code>Navigator</Code> frame.
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <Code>stop</Code>
+                  </td>
+                  <td>
+                    <Code>() =&gt; void</Code>
+                  </td>
+                  <td>
+                    Ends it early. The route landing calls this for you. Call
+                    it yourself only when the navigation never happens.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p className='text-subtle'>
+            Both are no-ops when no <Code>RoadieLinkProvider</Code> is
+            mounted.
+          </p>
+          <CodePreview>{`const { start, stop } = usePendingNavigation()
+
+const buy = async () => {
+  start()
+  try {
+    await reserve()
+    router.push('/checkout')
+  } catch {
+    stop()
+  }
+}`}</CodePreview>
+        </div>
+      </section>
+
       {/* Decision tree */}
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>How href is resolved</h2>
         <p className='text-subtle'>
           The same rules apply to every link-bearing component. The decision is
-          pure and SSR-safe — no hydration mismatches, no client-only checks.
+          pure and SSR-safe, with no hydration mismatches and no client-only checks.
         </p>
         <div className='overflow-x-auto'>
           <table className='w-full border-collapse text-sm'>
@@ -86,7 +183,7 @@ export function Providers({ children }) {
                   <Code>&lt;button&gt;</Code> (or <Code>&lt;div&gt;</Code> for
                   Card without onClick)
                 </td>
-                <td>—</td>
+                <td>None</td>
               </tr>
               <tr className='border-b border-subtle'>
                 <td>
@@ -97,7 +194,7 @@ export function Providers({ children }) {
                   Configured <Code>Link</Code> (or <Code>&lt;a&gt;</Code> if no
                   provider)
                 </td>
-                <td>—</td>
+                <td>None</td>
               </tr>
               <tr className='border-b border-subtle'>
                 <td>
@@ -120,7 +217,7 @@ export function Providers({ children }) {
                   <Code>&lt;a&gt;</Code>
                 </td>
                 <td>
-                  None — no <Code>target</Code>, no <Code>rel</Code>
+                  None: no <Code>target</Code>, no <Code>rel</Code>
                 </td>
               </tr>
             </tbody>
@@ -253,11 +350,11 @@ export function Providers({ children }) {
 
       {/* Escape hatches */}
       <section className='grid gap-4'>
-        <h2 className='text-display-ui-3 text-strong'>Escape hatch — render</h2>
+        <h2 className='text-display-ui-3 text-strong'>Escape hatch: render</h2>
         <p className='text-subtle'>
           The <Code>href</Code> path covers the happy case. For full control
           over the rendered element, every Roadie component accepts the same{' '}
-          <Code>render</Code> prop — element form, component form, or function
+          <Code>render</Code> prop: element form, component form, or function
           form. The contract mirrors{' '}
           <Link
             href='https://base-ui.com/react/overview/composition'
@@ -274,7 +371,7 @@ export function Providers({ children }) {
   …
 </Card>
 
-{/* Button: \`download\` goes with \`href\` — no render needed */}
+{/* Button: \`download\` goes with \`href\`, no render needed */}
 <Button href='/file.pdf' download='spec.pdf'>
   Download spec
 </Button>
@@ -300,7 +397,7 @@ export function Providers({ children }) {
 
         <p className='text-subtle'>
           When you pass both <Code>href</Code> and <Code>render</Code>,{' '}
-          <Code>render</Code> wins — Roadie&apos;s smart routing is silently
+          <Code>render</Code> wins. Roadie&apos;s smart routing is silently
           disabled for that call. Button logs a one-shot dev warning so the
           conflict can&apos;t ship by accident. Pick one.
         </p>
@@ -312,7 +409,7 @@ export function Providers({ children }) {
           <Code>Card</Code>, <Code>Breadcrumb.Link</Code>, and{' '}
           <Code>Carousel.TitleLink</Code> previously exposed an <Code>as</Code>{' '}
           prop for polymorphism. It continues to work for back-compat but is{' '}
-          <Code>@deprecated</Code> as of v2.6 and will be removed in v3.0.0 —
+          <Code>@deprecated</Code> as of v2.6 and will be removed in v3.0.0,
           migrate to <Code>render</Code>.
         </p>
       </section>
@@ -320,10 +417,10 @@ export function Providers({ children }) {
       {/* Tabs gotcha */}
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>
-          Link tabs — <Code>Tabs.Tab href</Code>
+          Link tabs: <Code>Tabs.Tab href</Code>
         </h2>
         <p className='text-subtle'>
-          Tabs work as link-tabs out of the box — pass <Code>href</Code> on each{' '}
+          Tabs work as link-tabs out of the box. Pass <Code>href</Code> on each{' '}
           <Code>Tabs.Tab</Code> and the rendered anchor participates in the tab
           list&apos;s roving tabindex group. Arrow keys still move focus across
           mixed button + anchor tabs.
@@ -342,7 +439,7 @@ export function Providers({ children }) {
           brief flicker between selection and route change. Recommended pattern:
           derive <Code>value</Code> from the route itself (e.g. via{' '}
           <Code>usePathname()</Code>) so route is the source of truth. Normalise
-          it first — tab matching is exact, so a trailing slash selects nothing.
+          it first, since tab matching is exact, so a trailing slash selects nothing.
         </p>
       </section>
 
@@ -350,14 +447,14 @@ export function Providers({ children }) {
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Tracking actions</h2>
         <p className='text-subtle'>
-          Roadie ships zero analytics code — tracking taxonomy is product-shaped
+          Roadie ships zero analytics code. Tracking taxonomy is product-shaped
           (event names, page sections, vendor choices). The recommended pattern
           is a small consumer-app wrapper that reads{' '}
           <Code>currentTarget.href</Code> / <Code>aria-label</Code> off the
           rendered element, so a single <Code>&lt;Tracked&gt;</Code> works on
           top of every Roadie action.
         </p>
-        <CodePreview>{`// app-level component, lives in your app — not in Roadie
+        <CodePreview>{`// app-level component, lives in your app, not in Roadie
 'use client'
 import { useTracking } from '@/utils/tracking'
 
@@ -375,7 +472,7 @@ export function Tracked({ trackEvent = 'link', pageSection, children }) {
     }
   })
 }`}</CodePreview>
-        <CodePreview>{`{/* Wrap any Roadie action — no tracking knowledge inside Roadie. */}
+        <CodePreview>{`{/* Wrap any Roadie action, no tracking knowledge inside Roadie. */}
 <Tracked pageSection='cart-checkout'>
   <Button href={checkoutUrl} intent='accent' emphasis='strong'>
     Checkout

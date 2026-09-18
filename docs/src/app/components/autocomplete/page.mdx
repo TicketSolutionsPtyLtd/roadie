@@ -126,7 +126,7 @@ function AutocompleteDefault() {
 
 Wrap Autocomplete in [Field](/components/field) for consistent layout, labels,
 and error handling. Field.Label's `htmlFor` wires directly to the Autocomplete
-input — clicking the label focuses the text field.
+input: clicking the label focuses the text field.
 
 ```tsx-live
 function AutocompleteWithField() {
@@ -258,7 +258,7 @@ function AutocompleteWithGroups() {
 
 Use custom markup inside `Autocomplete.Item` to show metadata like venue, date,
 or an avatar alongside the primary label. Use `itemToStringValue` to control
-what text appears in the input when an item is selected — this includes the
+what text appears in the input when an item is selected, which includes the
 metadata so the user sees full context.
 
 ```tsx-live
@@ -276,7 +276,7 @@ function AutocompleteRichItems() {
     <Autocomplete
       items={events}
       itemToStringValue={(event) =>
-        `${event.name} — ${event.venue} · ${event.date}`
+        `${event.name} · ${event.venue} · ${event.date}`
       }
     >
       <Autocomplete.InputGroup>
@@ -312,7 +312,7 @@ function AutocompleteRichItems() {
 ### When to use Autocomplete
 
 Use Autocomplete when the user is typing **free text** and suggestions help
-speed things up — but the typed value is always valid, even if it doesn't match
+speed things up, but the typed value is always valid, even if it doesn't match
 any suggestion.
 
 - Address fields
@@ -329,7 +329,7 @@ If the user **must pick from the list**, use
 | Question | Select | Combobox | Autocomplete |
 |---|---|---|---|
 | User types to filter? | No | Yes | Yes |
-| Must pick from the list? | Yes | Yes | No — typed value is valid |
+| Must pick from the list? | Yes | Yes | No, typed value is valid |
 | Options from an API? | No | Yes | Yes |
 | Custom/free-text value? | No | No | Yes |
 | Primary interaction | Browse and pick | Search and pick | Type with suggestions |
@@ -370,13 +370,13 @@ For server-side search, update the `items` prop as results arrive. Use
 
 The `mode` prop controls how filtering and inline autocompletion behave:
 
-- **`list`** (default) — items are filtered as you type. The input value stays
+- **`list`** (default): items are filtered as you type. The input value stays
   as typed.
-- **`both`** — items are filtered and the input temporarily shows the
+- **`both`**: items are filtered and the input temporarily shows the
   highlighted item's value (inline autocompletion).
-- **`inline`** — items are **not** filtered. The input temporarily shows the
+- **`inline`**: items are **not** filtered. The input temporarily shows the
   highlighted item's value.
-- **`none`** — items are static and the input value doesn't change based on
+- **`none`**: items are static and the input value doesn't change based on
   highlighting.
 
 ### Keyboard behaviour
@@ -388,11 +388,24 @@ The `mode` prop controls how filtering and inline autocompletion behave:
 
 ## Accessibility
 
-- Wrap in `Field` and use `Field.Label` to name the input — this provides automatic `htmlFor` wiring.
+- Wrap in `Field` and use `Field.Label` to name the input, which provides automatic `htmlFor` wiring.
 - `Autocomplete.Empty` announces "no results" to screen readers automatically.
-- `Autocomplete.Status` is a live region — use it for async status like loading
+- `Autocomplete.Status` is a live region, use it for async status like loading
   or result counts.
-- The input value is always valid — screen readers don't need to announce
+- The input value is always valid, so screen readers don't need to announce
   selection errors.
+
+## Hooks
+
+### useFilteredItems
+
+```tsx
+function useFilteredItems<T>(): T[]
+```
+
+Returns the currently filtered `items`, read from inside an `Autocomplete`
+tree. Treat the result as read-only: it's internal state and may be a shared
+frozen array. Reach for it when a custom child needs to know what's actually
+showing, such as a result count outside `Autocomplete.Status`.
 
 <PropsDefinitions componentPath='packages/components/src/components/Autocomplete' />
