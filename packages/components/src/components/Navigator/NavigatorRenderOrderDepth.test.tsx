@@ -113,8 +113,20 @@ async function readAll(stream: ReadableStream<Uint8Array>) {
   }
 }
 
+// `new Function` runs a script in the shared global scope, not a fresh page,
+// so Fizz's own unprefixed `$R*` runtime vars (its reveal timing included)
+// survive from one mount to the next. A stale `$RT` then reads as a moment
+// already long past, and Fizz's reveal script schedules against it with a
+// negative delay. A real navigation never carries these over, so neither should this.
+function resetFizzRuntimeGlobals() {
+  for (const key of Object.keys(globalThis)) {
+    if (/^\$R/.test(key)) delete (globalThis as Record<string, unknown>)[key]
+  }
+}
+
 // Inline scripts set through innerHTML never run; Fizz's reveal scripts must.
 async function mount(html: string) {
+  resetFizzRuntimeGlobals()
   const host = document.createElement('div')
   host.innerHTML = html
   document.body.append(host)
@@ -539,6 +551,58 @@ describe('where render order is not document order', () => {
     unmount()
   })
 
+  it('keeps the declare-depth advice on the written scale in a detail-first row', async () => {
+    const Siblings = ({
+      lib,
+      first,
+      second
+    }: {
+      lib: Lib
+      first: Thenable
+      second: Thenable
+    }) => (
+      <Shell lib={lib}>
+        <Suspense fallback={null}>
+          <Wait on={first}>
+            <lib.Pane>Event</lib.Pane>
+          </Wait>
+        </Suspense>
+        <Suspense fallback={null}>
+          <Wait on={second}>
+            <lib.Pane>Ticket</lib.Pane>
+          </Wait>
+        </Suspense>
+      </Shell>
+    )
+    const host = await mount(
+      renderToString(
+        <Siblings lib={await server()} first={settled()} second={settled()} />
+      )
+    )
+    expect(depths(host).map(([, depth]) => depth)).toEqual(['1', '2'])
+    const first = later()
+    const second = later()
+    const { problems, unmount } = await hydrate(
+      host,
+      <Siblings lib={client} first={first.promise} second={second.promise} />,
+      async () => {
+        await act(async () => second.resolve())
+        await new Promise((done) => setTimeout(done, 50))
+        await act(async () => first.resolve())
+      }
+    )
+    unmount()
+    const advice = problems.warnings.find((message) =>
+      message.includes('server-rendered at depth')
+    )
+    // Event is this row's root: written from 1 (no list pane), so a written
+    // depth of 1 is where it actually sits, and the only depth that doesn't
+    // collide with Ticket's own written depth once declared. A resolved
+    // (compacted) rank of 0 would collide instead.
+    expect(advice).toMatch('server-rendered at depth 2 but sits at 1')
+    expect(advice).toMatch('declare depth={1}')
+  })
+
   const Partial = ({
     lib,
     on,
@@ -654,13 +718,16 @@ describe('a pane the client mounts', () => {
     const host = document.createElement('div')
     document.body.append(host)
     const root = createRoot(host)
-    root.render(<App deep={false} />)
-    await idle()
-    startTransition(() => root.render(<App deep />))
-    await idle()
-    expect(painted.length).toBeGreaterThan(0)
-    expect(new Set(painted)).toEqual(new Set(['2']))
-    root.unmount()
-    restore()
+    try {
+      root.render(<App deep={false} />)
+      await idle()
+      startTransition(() => root.render(<App deep />))
+      await idle()
+      expect(painted.length).toBeGreaterThan(0)
+      expect(new Set(painted)).toEqual(new Set(['2']))
+    } finally {
+      root.unmount()
+      restore()
+    }
   })
 })
