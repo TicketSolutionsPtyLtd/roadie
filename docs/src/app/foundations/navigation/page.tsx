@@ -180,7 +180,7 @@ function TicketsPane({ eventId }) {
 }`
 
 const drillDownExample = `const events = [
-  { id: 'muster-fest-glamping-4821', title: 'Muster Fest glamping', when: 'Mon 5 May · Brindlefield' },
+  { id: 'muster-fest-glamping-4821', title: 'Muster Fest glamping', when: 'Mon 5 May · Rockhampton' },
   { id: 'midnight-frequency-1377', title: 'Midnight Frequency', when: 'Sat 12 Jul · The Longacre' }
 ]
 
@@ -228,7 +228,7 @@ const threePaneExample = `const events = [
   {
     id: 'muster-fest-glamping-4821',
     title: 'Muster Fest glamping',
-    when: 'Mon 5 May · Brindlefield',
+    when: 'Mon 5 May · Rockhampton',
     tickets: [
       { id: 'tk-9f2c1a', title: 'Bell tent for two', detail: 'Site 14 · check in from 2 pm' },
       { id: 'tk-4e81d7', title: 'Breakfast pack', detail: 'Collect from the mess tent' }
@@ -578,7 +578,7 @@ function App() {
 }`
 
 const reachedExample = `const events = [
-  { id: 'muster-fest-glamping-4821', title: 'Muster Fest glamping', when: 'Mon 5 May · Brindlefield' },
+  { id: 'muster-fest-glamping-4821', title: 'Muster Fest glamping', when: 'Mon 5 May · Rockhampton' },
   { id: 'midnight-frequency-1377', title: 'Midnight Frequency', when: 'Sat 12 Jul · The Longacre' }
 ]
 

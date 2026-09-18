@@ -22,16 +22,16 @@ import { Combobox } from '@oztix/roadie-components/combobox'
 ```tsx-live
 function ComboboxDefault() {
   const bands = [
-    'Harbour Static',
-    'Paper Radio',
-    'Salt Cassette',
-    'The Parallax',
-    'Broken Aerial',
-    'Voltage Thieves',
-    'Diamond Field',
-    'The Paper Foxes',
-    'Coastline Choir',
-    'The Canopy Giants',
+    'Powderfinger',
+    'Custard',
+    'Regurgitator',
+    'The Go-Betweens',
+    'Violent Soho',
+    'DZ Deathrays',
+    'Ball Park Music',
+    'The Goon Sax',
+    'Cub Sport',
+    'The Jungle Giants',
   ]
 
   return (
@@ -140,12 +140,12 @@ clicking the label focuses the search field.
 ```tsx-live
 function ComboboxWithField() {
   const bands = [
-    'Harbour Static',
-    'Paper Radio',
-    'Salt Cassette',
-    'Broken Aerial',
-    'Voltage Thieves',
-    'Diamond Field',
+    'Powderfinger',
+    'Custard',
+    'Regurgitator',
+    'Violent Soho',
+    'DZ Deathrays',
+    'Ball Park Music',
   ]
 
   return (
@@ -184,12 +184,12 @@ function ComboboxWithField() {
 function ComboboxWithGroups() {
   const groups = [
     {
-      value: 'Riverside',
-      items: ['Harbour Static', 'Paper Radio', 'Salt Cassette', 'The Parallax', 'The Longshore'],
+      value: 'Brisbane',
+      items: ['Powderfinger', 'Custard', 'Regurgitator', 'The Go-Betweens', 'The Saints'],
     },
     {
-      value: 'Bayshore',
-      items: ['Broken Aerial', 'Voltage Thieves', 'The Paper Foxes', 'Coastline Choir'],
+      value: 'Gold Coast',
+      items: ['Violent Soho', 'DZ Deathrays', 'The Goon Sax', 'Cub Sport'],
     },
   ]
 
@@ -234,14 +234,14 @@ secondary label alongside the primary text.
 ```tsx-live
 function ComboboxRichItems() {
   const venues = [
-    { name: 'The Longacre', location: 'Lantern Quarter, QLD' },
-    { name: 'The Anchorage', location: 'Ironbark Point, QLD' },
-    { name: 'The Burrow', location: 'Lantern Quarter, QLD' },
-    { name: 'The Tusk Room', location: 'Lantern Quarter, QLD' },
-    { name: 'The Palisade Theatre', location: 'Coopers Rise, QLD' },
-    { name: 'Meridian Stage', location: 'Ferry Green, QLD' },
-    { name: 'The Signal Hall', location: 'Lantern Quarter, QLD' },
-    { name: 'The Amber Lodge', location: 'Lantern Quarter, QLD' },
+    { name: 'The Longacre', location: 'Fortitude Valley, QLD' },
+    { name: 'The Anchorage', location: 'Newstead, QLD' },
+    { name: 'The Burrow', location: 'Fortitude Valley, QLD' },
+    { name: 'The Tusk Room', location: 'Fortitude Valley, QLD' },
+    { name: 'The Palisade Theatre', location: 'Woolloongabba, QLD' },
+    { name: 'Meridian Stage', location: 'South Bank, QLD' },
+    { name: 'The Signal Hall', location: 'Fortitude Valley, QLD' },
+    { name: 'The Amber Lodge', location: 'Fortitude Valley, QLD' },
   ]
 
   return (
