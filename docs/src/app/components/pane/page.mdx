@@ -25,12 +25,17 @@ import { Pane } from '@oztix/roadie-components/pane'
 - `Pane.Header` and `Pane.Footer` stay put while the body scrolls between them.
   `Pane.Body` holds the part that waits, so a skeleton stands in for it while
   the header stays.
-- A pane works on its own. Inside [`Navigator.Content`](/components/navigator),
-  panes become columns where there is room and a stack where there isn't. Two
-  panes join one stack even when separate routes render them, which is what
-  [Navigation](/foundations/navigation) builds on.
-- Each pane has a `depth`. The deepest reached pane is the top, and it is
-  always on screen.
+- A pane is a column of an app frame. Inside a
+  [`Navigator`](/components/navigator), panes become columns where there is
+  room and a stack where there isn't.
+- Panes are siblings inside `Navigator.Content`, never nested. Roadie reads
+  each pane's depth from the order they render in, on the server too, even
+  when separate routes render them.
+- Unlike [`Card`](/components/card), a pane is not a general-purpose surface.
+  Don't use one to box content inside a page.
+
+[Navigation](/foundations/navigation) explains depth, `reached` and how panes
+map to routes. This page is the reference for each prop and part.
 
 ## Examples
 
@@ -158,7 +163,7 @@ render(<Composed />)
   doesn't filter anything, so `.filter()` your own rows. Cancel shows while the
   field has focus.
 - This pane shows Back because it has an `onBack` and nothing sits to its left.
-  Inside `Navigator.Content`, the columns decide. See
+  Inside a `Navigator`, the columns decide. See
   [Back and Close](#back-and-close).
 
 ### Titles
@@ -196,8 +201,8 @@ keeps one height throughout.
 
 ### Columns and stacking
 
-Inside `Navigator.Content`, panes sit side by side where there is room and stack
-where there isn't. `Navigator.Content` measures its own width, not the window's.
+Inside a `Navigator`, panes sit side by side where there is room and stack
+where there isn't. Navigator measures its content area, not the window.
 
 | Content width | Columns |
 | --- | --- |
@@ -214,43 +219,28 @@ fills, at least 28rem wide. Each column to its left takes a parent track:
 - a detail takes 25 to 30rem.
 
 The panes behind the top fill the remaining columns nearest first, so the
-left-most pane drops first. In the stack, moving between depths slides, and a
-pane that mounts as the new top slides in with it, so a route-driven detail
-animates like one that was already there.
+left-most pane drops first.
 
-A pop moves the pane behind. It slides back from its parked place as the pane
-above it is removed, and that is what covers the departure. The pane being left
-is not animated out: once a route stops rendering it, its elements are gone, and
-nothing Roadie can hold brings them back. See
-[Route-driven shells](#route-driven-shells) for why.
+In the stack, motion follows depth.
 
-Swapping a sibling cuts: replacing a pane with another at the same depth leaves
-the stack the shape it was, so it is not a push. A first paint never slides, and
-neither does hydration or a fresh load of a deep route. Columns don't animate,
-and nor does anything under `prefers-reduced-motion: reduce`. See
-[Columns](#columns) for each column's default depth.
+- A push slides the arriving pane in over the one going behind.
+- A pop slides the pane behind back into place. The pane being left is not
+  animated out, because once a route stops rendering it, its elements are gone.
+  `docs/solutions/pane-motion/route-driven-shells.md` has the measurements.
+- Replacing a pane with another at the same depth cuts.
+- A first paint, hydration and a fresh load of a deep route never slide.
+- Columns don't animate, and nor does anything under
+  `prefers-reduced-motion: reduce`.
 
-A section whose `Navigator.Secondary` sets `overview` draws every route in
-one pane, so a step between its pages moves no pane of its own. Roadie gives it
-one: the page being left is copied, and the copy slides behind the arriving page
-on the way in and away over it on the way out. Reversing mid-step picks up from
-where the last one reached.
-
-The copy is built in an inert document, so nothing in it loads or upgrades.
-Scripts go, `id`, `name`, `form` and every `on*` are stripped, and anything that
-runs or draws once connected, a custom element, `canvas`, `iframe`, `video`,
-`audio`, `object` or `embed`, is replaced by a sized stand-in. It carries the
-scroll the page had and shows the row you tapped as selected, and it is `inert`
-and hidden from assistive technology, so nothing is announced or focused twice.
-It goes when its animation settles.
-
-This is the only copy in the frame. Columns and reduced motion make none, and
-neither does a push, a pop, a sibling page, a section switch or More.
+A destination whose `Navigator.Secondary` sets `overview` draws all its routes
+in one pane. For a step between them, Roadie slides an inert copy of the page
+being left, hidden from assistive technology and removed when the animation
+settles. Nothing else in the frame is copied.
 
 Select a row, then resize the window. The same code is a side-by-side reveal
 where two columns fit and a push where they don't.
 
-```tsx-live-noinline
+```tsx-live-noinline-expand
 function Stacking() {
   const [selected, setSelected] = useState(null)
   const events = [
@@ -263,35 +253,33 @@ function Stacking() {
   return (
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
       <Navigator className='h-full'>
-        <Navigator.Content>
-          <Pane column='list' aria-label='Events'>
-            <Pane.Header>
-              <Pane.Title>Events</Pane.Title>
-            </Pane.Header>
-            <List>
-              {events.map((e) => (
-                <List.Item
-                  key={e.id}
-                  title={e.title}
-                  description={e.description}
-                  chevron
-                  current={selected === e.id}
-                  onClick={() => setSelected(e.id)}
-                />
-              ))}
-            </List>
-          </Pane>
-          <Pane reached={event != null} aria-label='Event'>
-            <Pane.Header onBack={() => setSelected(null)} backLabel='Events'>
-              <Pane.Title>{event ? event.title : 'Nothing selected'}</Pane.Title>
-            </Pane.Header>
-            <div className='grid gap-3 pb-4'>
-              <p className='text-subtle'>
-                {event ? event.description : 'Pick an event from the list.'}
-              </p>
-            </div>
-          </Pane>
-        </Navigator.Content>
+        <Pane column='list' aria-label='Events'>
+          <Pane.Header>
+            <Pane.Title>Events</Pane.Title>
+          </Pane.Header>
+          <List>
+            {events.map((e) => (
+              <List.Item
+                key={e.id}
+                title={e.title}
+                description={e.description}
+                chevron
+                current={selected === e.id}
+                onClick={() => setSelected(e.id)}
+              />
+            ))}
+          </List>
+        </Pane>
+        <Pane reached={event != null} aria-label='Event'>
+          <Pane.Header onBack={() => setSelected(null)} backLabel='Events'>
+            <Pane.Title>{event ? event.title : 'Nothing selected'}</Pane.Title>
+          </Pane.Header>
+          <div className='grid gap-3 pb-4'>
+            <p className='text-subtle'>
+              {event ? event.description : 'Pick an event from the list.'}
+            </p>
+          </div>
+        </Pane>
       </Navigator>
     </div>
   )
@@ -301,8 +289,9 @@ render(<Stacking />)
 
 ### Columns
 
-`column` sets a pane's default depth and when it gives up its column. It
-defaults to `detail`.
+`column` says which column a pane is: at most one list, any number of details
+and at most one inspector. It also sets the pane's default depth, and when it
+gives up its column. It defaults to `detail`.
 
 | Column | Default depth | Where it sits |
 | --- | --- | --- |
@@ -315,7 +304,7 @@ When the inspector's column is hidden, give people another way in. Put a
 handles dismissal, focus, Escape and the scrim. The `pane-inspector-yielded:`
 variant shows its trigger only while the column is hidden.
 
-```tsx-live-noinline
+```tsx-live-noinline-expand
 function Columns() {
   const [open, setOpen] = useState(false)
   const [showDetail, setShowDetail] = useState(true)
@@ -329,63 +318,61 @@ function Columns() {
   return (
     <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
       <Navigator className='h-full'>
-        <Navigator.Content>
-          <Pane column='list' aria-label='Events'>
-            <Pane.Header>
-              <Pane.Title>Events</Pane.Title>
-            </Pane.Header>
-            <List>
-              <List.Item title='Midnight Frequency' description='60 remaining' current onClick={() => setShowDetail(true)} />
-              <List.Item title='Sunset Sounds' description='180 remaining' />
-              <List.Item title='Neon Dusk' description='460 remaining' />
-              <List.Item title='Harbour Lights' description='sold out' />
-            </List>
-          </Pane>
-          <Pane aria-label='Midnight Frequency' reached={showDetail}>
-            <Pane.Header onBack={() => setShowDetail(false)}>
-              <Pane.Title>Midnight Frequency</Pane.Title>
-              <Pane.Actions>
-                <Drawer open={open} onOpenChange={setOpen} side='bottom'>
-                  <Drawer.Trigger
-                    render={
-                      <IconButton
-                        aria-label='Event details'
-                        emphasis='normal'
-                        className='pane-inspector-yielded:inline-flex hidden'
-                      >
-                        <InfoIcon weight='bold' className='size-5' />
-                      </IconButton>
-                    }
-                  />
-                  <Drawer.Content aria-label='Event details'>
-                    <Drawer.Body className='py-4'>
-                      <List emphasis='subtler'>
-                        <List.Item title='Venue' description='The Tivoli' />
-                        <List.Item title='Doors' description='7:00 pm' />
-                        <List.Item title='Capacity' description='1,300' />
-                      </List>
-                    </Drawer.Body>
-                  </Drawer.Content>
-                </Drawer>
-              </Pane.Actions>
-            </Pane.Header>
-            <List>
-              {tiers.map((tier) => (
-                <List.Item key={tier.title} title={tier.title} description={tier.description} chevron />
-              ))}
-            </List>
-          </Pane>
-          <Pane column='inspector' emphasis='subtler' aria-label='Event details'>
-            <Pane.Header>
-              <Pane.Title>Details</Pane.Title>
-            </Pane.Header>
-            <List emphasis='subtler'>
-              <List.Item title='Venue' description='The Tivoli' />
-              <List.Item title='Doors' description='7:00 pm' />
-              <List.Item title='Capacity' description='1,300' />
-            </List>
-          </Pane>
-        </Navigator.Content>
+        <Pane column='list' aria-label='Events'>
+          <Pane.Header>
+            <Pane.Title>Events</Pane.Title>
+          </Pane.Header>
+          <List>
+            <List.Item title='Midnight Frequency' description='60 remaining' current onClick={() => setShowDetail(true)} />
+            <List.Item title='Sunset Sounds' description='180 remaining' />
+            <List.Item title='Neon Dusk' description='460 remaining' />
+            <List.Item title='Harbour Lights' description='sold out' />
+          </List>
+        </Pane>
+        <Pane aria-label='Midnight Frequency' reached={showDetail}>
+          <Pane.Header onBack={() => setShowDetail(false)}>
+            <Pane.Title>Midnight Frequency</Pane.Title>
+            <Pane.Actions>
+              <Drawer open={open} onOpenChange={setOpen} side='bottom'>
+                <Drawer.Trigger
+                  render={
+                    <IconButton
+                      aria-label='Event details'
+                      emphasis='normal'
+                      className='pane-inspector-yielded:inline-flex hidden'
+                    >
+                      <InfoIcon weight='bold' className='size-5' />
+                    </IconButton>
+                  }
+                />
+                <Drawer.Content aria-label='Event details'>
+                  <Drawer.Body className='py-4'>
+                    <List emphasis='subtler'>
+                      <List.Item title='Venue' description='The Tivoli' />
+                      <List.Item title='Doors' description='7:00 pm' />
+                      <List.Item title='Capacity' description='1,300' />
+                    </List>
+                  </Drawer.Body>
+                </Drawer.Content>
+              </Drawer>
+            </Pane.Actions>
+          </Pane.Header>
+          <List>
+            {tiers.map((tier) => (
+              <List.Item key={tier.title} title={tier.title} description={tier.description} chevron />
+            ))}
+          </List>
+        </Pane>
+        <Pane column='inspector' emphasis='subtler' aria-label='Event details'>
+          <Pane.Header>
+            <Pane.Title>Details</Pane.Title>
+          </Pane.Header>
+          <List emphasis='subtler'>
+            <List.Item title='Venue' description='The Tivoli' />
+            <List.Item title='Doors' description='7:00 pm' />
+            <List.Item title='Capacity' description='1,300' />
+          </List>
+        </Pane>
       </Navigator>
     </div>
   )
@@ -434,34 +421,27 @@ copying the link still use `backHref`.
 
 - Back is always the round caret button. `backLabel` names it for assistive
   tech, as "Back to Glamping", without showing on screen.
-- Under a section's generated list, Navigator gives the depth-1 pane its section
-  route and label, so you declare nothing.
+- Beside a destination's generated list pane, Navigator gives the depth-1 pane
+  the destination's route and label, so you declare nothing.
 - Nothing shows until you give a target, because Roadie can't close a pane it
   doesn't own.
 - The root pane never shows Close, even if you pass the same handler to every
   pane.
 
-### Route-driven shells
+### Reached, depth and tab bar
 
-A pane the router removes is gone on the commit frame, and Roadie cannot keep
-drawing it. Keeping a React subtree alive needs the subtree to be a value
-something still holds, and in a nested route layout nothing does: a layout's
-`children` is not a value but a live view onto the router, the same element for
-every route, drawing whatever the tree currently says. Held and drawn again
-after a pop it draws the route you went **to**, not the one you left.
+- `reached` defaults to `true`. Pass `false` only on a pane mounted before the
+  route reaches it, such as an empty detail column. It fills its column where
+  two fit, but never becomes the top pane.
+- `depth` overrides the depth Roadie reads from render order. Pass it only for
+  a pane that renders out of order, such as one streamed into a resumed
+  prerender.
+- `tabBar` sets what the phone tab bar does while the pane is on top. `auto`,
+  the default, collapses the bar to the active tab as the pane scrolls.
+  `visible` keeps it, and `hidden` removes it for a pushed screen, like iOS's
+  `hidesBottomBarWhenPushed`.
 
-So a pop animates the pane behind and not the pane above. At every width, on a
-push both panes move, and on a pop the pane behind slides back into place.
-
-A page-root step is the exception, and it is one because the case is different:
-there the pane is not being removed, it is being drawn with another page in it,
-so the page it had is still on screen to copy at the moment it is replaced. A
-pop has no such moment. That is the whole of why one keeps a copy and the other
-does not.
-
-This is measured rather than assumed, and the measurements are in
-`docs/solutions/pane-motion/route-driven-shells.md`, along with what would have
-to change for the pane being left to animate out.
+[Navigation](/foundations/navigation) covers when each one comes up.
 
 ### Scroll
 
@@ -534,31 +514,38 @@ render(<Loading />)
 - While the skeleton shows, the
   [frame draws its pending indicator](/components/navigator#waiting-for-a-navigation).
   The pane draws only the skeleton.
-- `pending` is for a wait Roadie cannot see, such as a fetch without Suspense
-  or a mutation. It holds the frame's indicator and sets `aria-busy` on the
-  pane. A route's `loading.tsx` pane passes it too, so the page it stands in
-  for lands at the right depth.
+- `pending` is the manual override for a wait Roadie cannot see, such as a
+  fetch without Suspense or a mutation. It holds the frame's indicator and sets
+  `aria-busy` on the pane.
 
 ## Guidelines
 
-<Guideline title='Declaration order is stack depth'>
-  <Guideline.Do code={`<Navigator.Content>\n  <Pane column='list' />\n  <Pane reached={selected != null} />\n</Navigator.Content>`}>
-    Author panes shallowest first. Document order is depth, on the server too.
-    Declare `depth` only on a pane that renders out of order, such as one
-    streamed into a resumed prerender.
+<Guideline title='Panes are siblings'>
+  <Guideline.Do code={`<>\n  <Pane column='list'>…</Pane>\n  <Pane>…</Pane>\n</>`}>
+    Render panes side by side, shallowest first. A layout returns its pane and
+    its children in a fragment.
   </Guideline.Do>
-  <Guideline.Dont code={`<Navigator.Content>\n  <Pane />\n  <Pane column='list' />\n</Navigator.Content>`}>
-    Author panes out of depth order. The pane parks on the wrong side, so the
-    push slides in from the left and the pop from the right.
+  <Guideline.Dont code={`<Pane column='list'>\n  …\n  <Pane>…</Pane>\n</Pane>`}>
+    Put a pane inside another pane, or wrap panes in a `div`. The columns
+    break.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='A pane is a column, not a box'>
+  <Guideline.Do code={`<Pane>\n  <Pane.Header>\n    <Pane.Title>Midnight Frequency</Pane.Title>\n  </Pane.Header>\n  <Card>…</Card>\n</Pane>`}>
+    Use a `Card` for a surface inside a page.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Pane>\n  <Pane.Header>\n    <Pane.Title>Midnight Frequency</Pane.Title>\n  </Pane.Header>\n  <Pane emphasis='subtle'>…</Pane>\n</Pane>`}>
+    Use a `Pane` as a general-purpose surface.
   </Guideline.Dont>
 </Guideline>
 
 <Guideline title='Give the root route a placeholder detail'>
-  <Guideline.Do code={`<Navigator.Content>\n  <Pane column='list' />\n  <Pane reached={event != null}>\n    {event ? <EventDetail /> : <EmptyState title='No event selected' />}\n  </Pane>\n</Navigator.Content>`}>
+  <Guideline.Do code={`<>\n  <Pane column='list' />\n  <Pane reached={event != null}>\n    {event ? <EventDetail /> : <EmptyState title='No event selected' />}\n  </Pane>\n</>`}>
     Render the detail pane on the root route too, like Mail's "No message
     selected". The row then reads as a list beside an empty detail.
   </Guideline.Do>
-  <Guideline.Dont code={`<Navigator.Content>\n  <Pane column='list' />\n  {event ? <Pane /> : null}\n</Navigator.Content>`}>
+  <Guideline.Dont code={`<>\n  <Pane column='list' />\n  {event ? <Pane /> : null}\n</>`}>
     Mount the detail only once something is selected. The list fills the row
     alone, then jumps to a parent track when the detail appears.
   </Guideline.Dont>
@@ -575,13 +562,9 @@ render(<Loading />)
   </Guideline.Dont>
 </Guideline>
 
-- A pane can sit anywhere under `Navigator.Content`, such as in a route, a
-  parallel-route slot or your own component. With no `Pane` at all,
-  `Navigator.Content` warns in development.
-- `tabBar` sets what the phone tab bar does while the pane is on top. `auto`,
-  the default, collapses the bar to the active tab as the pane scrolls.
-  `visible` keeps it, and `hidden` removes it for a pushed screen, like iOS's
-  `hidesBottomBarWhenPushed`.
+- A pane registers with its `Navigator` from wherever it renders, such as a
+  route layout or your own component. With no `Pane` at all, Navigator warns in
+  development.
 - A pane scrolls natively, and `List` doesn't virtualise. That is fine into the
   hundreds of rows. For thousands, virtualise against the viewport at
   `[data-slot="pane-viewport"]`.
