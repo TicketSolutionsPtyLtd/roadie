@@ -1,5 +1,144 @@
 # @oztix/roadie-components
 
+## 2.13.0
+
+### Minor Changes
+
+- a234c45: `Accordion` now publishes `--content-inset` (16px) and both its trigger and
+  content read it, so content dropped into `Accordion.Content` lines up with the
+  trigger without extra padding. Override the variable on the root to change both
+  at once. In Safari, an open panel whose content changes size, such as a filtered
+  list, now resizes with it instead of clipping.
+- 0c826c5: Add `hideLabel` to `Badge`. It shrinks the badge to a dot, sized by `size` and
+  painted by `intent` and `emphasis`, and keeps the label visually hidden so
+  screen readers still announce it. It implies `indicator`, and `indicatorPulse`
+  pulses the dot.
+- 65ba926: Add `Drawer`, a surface that slides in from any edge and swipes away, built on
+  Base UI's drawer primitive. Core gains the `motion-drawer` utility, which drives
+  a drawer's edge transition and tracks Base UI's live swipe offset.
+- db10921: Add `List`, the vertical row primitive: a title with optional description,
+  leading and trailing slots, a drill-in chevron, grouped sections with titles,
+  and `href` rows that route through `RoadieLinkProvider`. A row's description is
+  announced as its description rather than as part of its name, the leading and
+  trailing slots carry `data-slot`, and `List.GroupTitle` is an `<h2>` whose level
+  `render` changes, such as `render={<h3 />}`.
+- 857ade4: Add `Logo`, the Oztix logo in a fixed brand colour, with `normal`, `mark` and
+  `wordmark` variants. `product` pairs the mark with a product name as live text,
+  such as `<Logo product='Studio' />`, and a `size` prop (`xs`–`xl`, default `md`)
+  scales the whole logo by its height. The lockup is always left to right, so
+  right-to-left pages never mirror it.
+- f3990bd: Add `Navigator` and `Pane`, the application frame.
+
+  `Navigator` is one navigation model at every size: floating capsules down the
+  side from `md`, with a brand (the Oztix `Logo` by default), pinned items and an
+  optional expanded state with labels, and a floating tab bar on phones. An item
+  always links to its declared `href`, so tapping a top-level item goes to that
+  destination's root wherever you were inside it. Items declare `placement` and
+  `visibilityPriority`; whatever doesn't fit folds into a generated More pane. A
+  destination's pages open in a generated list pane declared with
+  `Navigator.Secondary`, optionally searchable, and an item can own a
+  `Navigator.Menu` instead. `Navigator.Primary` must be a direct child of
+  `Navigator`. Every other child of `Navigator`, parallel-route slots included,
+  renders inside the panes row, so a toaster or banner belongs outside
+  `Navigator` or in a `Pane`.
+
+  `Pane` is a scrolling column with sticky chrome, a collapse-on-scroll header
+  and a stack position when panes share a screen. A bare `Pane` is a detail
+  (`column` defaults to `'detail'`), so give a root pane `column='list'`. `tabBar`
+  sets what the phone tab bar does while the pane is top, and `depth` is only for
+  a pane rendered out of document order. Roadie derives depth from render order
+  otherwise, on the server too. `Navigator` lays panes out as columns from its
+  own width (two from 46.25rem, three from 76rem) and stacks them below that. Full
+  columns need container style queries, in Chrome 111, Safari 18 and Firefox 151.
+  Older browsers get the top pane, with the root beside it from 46.25rem. A
+  stacked pane that mounts as the new top slides in like one that was already
+  there, so a route-driven detail pane animates on a push; a first
+  paint, hydration and reduced motion never slide. A pop moves the pane behind,
+  which slides back as the one above it is removed; the pane being left is not
+  animated out. Swapping a sibling cuts. A commit that replaces a pane with
+  another at the same depth, leaving the stack the shape it was, is not a push.
+  Switching top-level item cuts too, whatever stack the incoming route draws. A
+  `Navigator.Secondary` with `overview` draws every one of its routes in one
+  pane, so a step between its pages has no pane of its own to move. The page
+  being left is copied into an inert document and slid away while the arriving
+  one comes over it. That copy is the one in the frame, and only an overview
+  step makes one. `Pane.Search` is a pill search field with a Cancel.
+
+  `Pane` and `Pane.Body` each hold a Suspense boundary, so a suspension inside a
+  pane stops at the pane and its header stays on screen. Either boundary holds the frame's pending indicator
+  automatically while it waits, but a transition into a suspending child of the
+  same pane keeps the old content on screen instead of showing a fallback, so
+  that case reports nothing automatic; `usePendingNavigation`'s `start`/`stop`
+  covers it, and `pending` on `Pane` covers a wait Roadie can't see at all, such
+  as a fetch without Suspense. A route's `loading.tsx` is optional; it only buys
+  Next's partial prefetch. The indicator itself is app-wide, one glow for the
+  whole frame. After 150ms with nothing changed yet, it fills with a slowly
+  turning gradient of three Oztix colours behind the panes and the nav, and on a
+  phone the panes pull back and round their corners to show it. It goes when the
+  destination lands, and a navigation faster than 150ms shows nothing.
+  `RoadieLinkProvider` marks a plain click on the internal href of any Roadie
+  surface that takes one, and takes `pendingIndicator={false}` to turn it off.
+
+  A pane takes its scroll down against the browser's own id for the history entry
+  it is on, so going back or forward through history puts every pane where it was.
+  Going forward, the pane the navigation arrives at starts at the top and the pane
+  it leaves keeps its place. The top of the stack is the deepest reached pane, so
+  the pane a route drilled from keeps its scroll. Scroll restoration reads no URL
+  and writes no history state. It reads `navigation.currentEntry.key`, and where an engine has no Navigation API panes
+  keep starting at the top.
+
+  `Pane.Header` keeps `backHref` as a real routed link, but a plain Back or Close
+  click now traverses browser history when the immediately previous
+  same-document entry matches its origin, path and query. That preserves the
+  parent's mounted state and avoids adding a duplicate parent entry. Direct loads,
+  reloads, unrelated history, modified clicks and browsers without the Navigation
+  API keep following the canonical link normally.
+
+  Also ships `Navigator.ExpandToggle`, `Navigator.SecondaryPane` and
+  `Navigator.SecondaryItems`, with `useNavigatorSecondary` for reading a
+  destination's items outside the generated pane. `showList` and `showMore` put
+  the list and More in the URL; `expandedFromDocument` pairs with
+  `getNavigatorExpandedScript` from `@oztix/roadie-core/navigator`.
+
+- f3990bd: **Peer dependency change: React 19.2 or later is now required.** The `react`
+  and `react-dom` peer ranges move from `^19.0.0` to `^19.2.0` in both packages.
+  Upgrade React to 19.2 before taking this release. Roadie now uses
+  `useEffectEvent`, which first shipped in React 19.2. The widgets' React peer
+  stays optional, so Vue-only installs are unaffected.
+- dc7588b: Add `ScrollArea`, which gives any bounded region a consistent custom scrollbar.
+- 5363c7a: Add `Skeleton`, a placeholder that holds the space content will occupy while it
+  loads. One component with a `shape` variant: `text` is a line at the inherited
+  line height, `block` is a panel, `circle` is an avatar. Width and height come
+  from Tailwind utilities, so a paragraph or a list row is several Skeletons in a
+  grid. The root is `aria-hidden` and carries `data-slot='skeleton'`.
+
+  Core adds the `--duration-ambient` (1800ms) and `--duration-sweep` (2400ms)
+  tokens, the `--sheen-shade` and `--sheen-highlight` colours, the
+  `animate-pulse-subtle` utility, and `animate-shimmer`, which crosses a surface
+  with a highlight over that pulse. The highlight is anchored to the viewport, so
+  every element wearing the class shares one sweep whatever its size, and it is
+  the lighter of the two tones in both themes. Under `prefers-reduced-motion` the
+  highlight is dropped and the pulse resolves to a static tint.
+
+- 6fda90c: Add `Tooltip`, a short label that appears beside a control on hover or keyboard
+  focus, built on Base UI's tooltip primitive. `Tooltip.Content` takes `side`,
+  `align` and `sideOffset` directly, `emphasis` switches between the `strong` chip
+  (the default; give `Tooltip.Content` an intent class to colour it) and the
+  `floating` popover surface, and `Tooltip.Provider` groups tooltips so moving
+  between neighbours is instant.
+
+### Patch Changes
+
+- 4deb856: `Button` and `IconButton` with `href` render a link, not a button: Enter follows it, Space scrolls the page, and `download` is accepted.
+- f3990bd: A horizontal `Tabs.List` that outgrows its container now scrolls sideways, with the scrollbar hidden, instead of overflowing the layout, and keeps the active tab in view. The `subtler` emphasis draws its focus ring inside the tab so the scrolling list doesn't clip it.
+- Updated dependencies [f3990bd]
+- Updated dependencies [f3990bd]
+- Updated dependencies [65ba926]
+- Updated dependencies [4deb856]
+- Updated dependencies [8c2ca73]
+- Updated dependencies [5363c7a]
+  - @oztix/roadie-core@2.8.0
+
 ## 2.12.1
 
 ### Patch Changes
