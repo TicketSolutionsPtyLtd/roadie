@@ -207,10 +207,9 @@ function FilterButton({ href }: { href: string }) {
           page&apos;s snapshot.
         </p>
         <p className='text-sm text-subtle'>
-          Inside a{' '}
-          <Link href='/foundations/navigation'>Navigator shell</Link>,
-          Navigator animates pane-to-pane route changes itself. Don&apos;t
-          wrap a <Code>router.push</Code> that changes the active pane in{' '}
+          Inside a <Link href='/foundations/navigation'>Navigator shell</Link>,
+          Navigator animates pane-to-pane route changes itself. Don&apos;t wrap
+          a <Code>router.push</Code> that changes the active pane in{' '}
           <Code>document.startViewTransition</Code>. Keep this pattern for
           query-string updates within a pane&apos;s content, or for pages
           outside a <Code>{'<Navigator>'}</Code>.
