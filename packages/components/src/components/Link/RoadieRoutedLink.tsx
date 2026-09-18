@@ -105,8 +105,7 @@ export function RoadieRoutedLink({
       ...(target !== undefined && { target }),
       ...(rel !== undefined && { rel }),
       ...rest,
-      // This branch only: a plain `<a>` unloads the document, and the browser
-      // reports that wait itself.
+      // Only here: a plain `<a>` unloads the document, and the browser shows that wait.
       onClick
     }
     // The provider's component, not one made here, so its identity is stable.

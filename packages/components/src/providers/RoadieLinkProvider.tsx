@@ -25,10 +25,7 @@ export type RoadieLinkProviderProps = {
    * to fall back to plain `<a>` for internal hrefs.
    */
   Link: RoadieLinkComponent | null
-  /**
-   * Draws the pending indicator on a `Navigator` frame while an internal link
-   * navigation is in flight. @default true
-   */
+  /** Draws the pending indicator on a `Navigator` frame during an internal link navigation. @default true */
   pendingIndicator?: boolean
   children: ReactNode
 }
@@ -86,12 +83,8 @@ export function RoadieLinkProvider({
 RoadieLinkProvider.displayName = 'RoadieLinkProvider'
 
 /**
- * Reports a navigation Roadie cannot see: one your own code starts with
- * `router.push`, or one from a link that is not a Roadie surface. `stop` is the
- * same signal as the route landing, so it never cuts short a pane's `pending`.
- *
- * Call these from an event handler. Calling `start` from a layout or insertion
- * effect schedules a render from a commit, which React refuses.
+ * Reports a navigation Roadie can't see, such as your own `router.push`.
+ * Call it from an event handler: from a layout effect, `start` schedules a render React refuses.
  */
 export function usePendingNavigation(): {
   start: () => void

@@ -2,8 +2,7 @@ import { useEffect, useRef } from 'react'
 
 import { isDev } from './isDev'
 
-// In an effect, not render: StrictMode double-invokes render. Its replayed
-// mount keeps refs, so the ref stops a second warning. `false` warns nothing.
+// An effect, as StrictMode double-invokes render; the ref survives the replayed mount.
 export function useDevWarning(message: string | false) {
   const warned = useRef('')
   useEffect(() => {

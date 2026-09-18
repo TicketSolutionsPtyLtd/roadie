@@ -6,22 +6,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { intentVariants } from '../../variants'
 
-/**
- * A placeholder that holds the space content will occupy while it loads.
- *
- * One box per shape. `text` is one line tall at the inherited line height, so
- * it tracks the type size around it; `block` is a full-width panel; `circle`
- * is an avatar-sized disc. Width and height come from Tailwind utilities on
- * `className`, so a paragraph or a list row is several Skeletons in a grid.
- *
- * A highlight crosses the surface over a slow tint pulse. The highlight is
- * anchored to the viewport, so every skeleton on screen shares one sweep
- * whatever its size. Reduced motion drops the highlight and holds the tint.
- *
- * The root is `aria-hidden`, so nothing is announced from here. The region
- * that owns the fetch announces the wait, usually with `aria-busy` and a live
- * region carrying the result.
- */
+/** Holds the space loading content will fill; `aria-hidden`, so the region owning the fetch announces the wait. */
 export const skeletonVariants = cva('animate-shimmer block', {
   variants: {
     intent: intentVariants,
@@ -59,8 +44,7 @@ export function Skeleton({
       aria-hidden='true'
       className={cn(skeletonVariants({ intent, emphasis, shape, className }))}
       {...props}
-      // Pinned after the spread: the pending ring reads this to tell a pane is
-      // still loading.
+      // After the spread: the pending ring reads it to tell a pane is still loading.
       data-slot='skeleton'
     />
   )

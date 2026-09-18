@@ -42,8 +42,7 @@ declare global {
   var __setReducedMotion: ((value: boolean) => void) | undefined
 }
 
-// Base UI's ScrollAreaViewport calls getAnimations() from a timer that can fire
-// after the test that mounted it, so a stub must never leave it missing.
+// Base UI calls getAnimations() from a timer that can outlive the test.
 function keepGetAnimations() {
   if (typeof Element.prototype.getAnimations !== 'function') {
     Element.prototype.getAnimations = () => []

@@ -11,8 +11,7 @@ export const PENDING_CEILING = 10_000
 
 export function createPendingNavigationStore(): PendingNavigationStore {
   const listeners = new Set<() => void>()
-  // Tokens, not a count: the ceiling drops every hold at once, and a release
-  // that arrives after that has nothing left to take.
+  // Tokens, not a count: a release after the ceiling has nothing left to take.
   const holds = new Set<symbol>()
   let wait: { startedAt: number; settled: boolean } | null = null
   let shown: PendingNavigation | null = null
@@ -34,8 +33,7 @@ export function createPendingNavigationStore(): PendingNavigationStore {
     for (const listener of [...listeners]) listener()
   }
 
-  // The ceiling belongs to the wait, not to the click: a pane left reporting
-  // `pending` for ever gives up on the same terms a navigation does.
+  // The ceiling belongs to the wait, so a pane stuck `pending` gives up too.
   const open = (startedAt: number, settled: boolean) => {
     wait = { startedAt, settled }
     clearTimeout(ceiling)
@@ -59,15 +57,13 @@ export function createPendingNavigationStore(): PendingNavigationStore {
       return () => listeners.delete(listener)
     },
     get: () => shown,
-    // A second click keeps the first one's clock, so the indicator cannot blink
-    // between two slow hops.
+    // A second click keeps the first's clock, so the indicator can't blink between hops.
     start: () => open(wait?.startedAt ?? Date.now(), false),
     settle: () => {
       if (wait !== null) wait.settled = true
       publish()
     },
-    // With nothing in flight this is a pane reporting a wait of its own, so it
-    // opens one that only the holds keep alive.
+    // Nothing in flight: a pane's own wait, kept alive only by holds.
     hold: () => {
       const token = Symbol('pending hold')
       holds.add(token)
@@ -81,15 +77,7 @@ export function createPendingNavigationStore(): PendingNavigationStore {
   }
 }
 
-/**
- * Watches the window for the things that end a navigation whatever the router
- * does: a traversal, a document leaving, a backgrounded tab. Where the
- * Navigation API exists, a committed URL is the route landing, which covers a
- * navigation that draws the same panes it left.
- *
- * Each of these settles the navigation. A pane still reporting `pending` keeps
- * the wait open, because a Back press does not make its content arrive.
- */
+/** Settles on a traversal, a leaving document, a hidden tab or a committed URL; a pane's `pending` still holds. */
 export function watchNavigation(store: PendingNavigationStore): () => void {
   if (typeof window === 'undefined') return () => {}
   const off: (() => void)[] = []
@@ -108,9 +96,7 @@ export function watchNavigation(store: PendingNavigationStore): () => void {
     if (document.visibilityState === 'hidden') settle()
   })
   const entries = (window as { navigation?: EventTarget }).navigation
-  // A router pushes the URL inside React's commit and this event fires from
-  // there, where telling a subscriber is an update scheduled out of an
-  // insertion effect. A microtask lands after the commit instead.
+  // Deferred a microtask: this fires inside React's commit, where notifying would schedule an update.
   if (typeof entries?.addEventListener === 'function') {
     on(entries, 'currententrychange', () => queueMicrotask(settle))
   }

@@ -22,7 +22,7 @@ const StubLink: RoadieLinkComponent = ({ href, children, ...rest }) => (
 )
 
 describe('RoadieRoutedLink', () => {
-  // Bubble phase, after RoadieRoutedLink's own onClick reads `defaultPrevented` — a capturing listener would read as already cancelled.
+  // Bubble phase: a capturing listener would read as already cancelled.
   const preventNavigation = (event: Event) => event.preventDefault()
   beforeEach(() => document.addEventListener('click', preventNavigation))
   afterEach(() => document.removeEventListener('click', preventNavigation))

@@ -31,11 +31,7 @@ export function usePendingNavigationStore(): PendingNavigationStore | null {
 const NO_STORE = () => () => {}
 const NO_NAVIGATION = (): PendingNavigation | null => null
 
-/**
- * The wait being reported, or `null`. Re-renders the caller when it changes.
- * `watching` false subscribes to nothing, so a frame that never draws the
- * indicator does not re-render for one that does.
- */
+/** The wait being reported, or `null`; `watching` false subscribes to nothing. */
 export function usePendingNavigationSnapshot(
   watching = true
 ): PendingNavigation | null {

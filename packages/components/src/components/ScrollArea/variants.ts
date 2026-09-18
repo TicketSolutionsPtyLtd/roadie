@@ -7,8 +7,7 @@ export const scrollAreaRootVariants = cva(
 
 export type ScrollAreaFade = 'none' | 'y' | 'x' | 'both'
 
-// Static literals only: Tailwind scans the dist as text, so interpolated
-// classes never ship.
+// Static literals only: Tailwind scans the dist as text.
 const fadeYStops = [
   'data-[overflow-y-start]:[--scroll-area-fade-top:var(--scroll-area-fade-size)]',
   'data-[overflow-y-end]:[--scroll-area-fade-bottom:var(--scroll-area-fade-size)]'
@@ -72,8 +71,7 @@ export const scrollAreaScrollbarVariants = cva(
   ],
   {
     variants: {
-      // Longhands so tailwind-merge keeps one side when a consumer overrides
-      // the other. Cross-axis margin plus `p-0.5` makes the 4px thumb inset.
+      // Longhands, so tailwind-merge keeps one side when a consumer overrides the other.
       orientation: {
         vertical: [
           'mt-1 mb-1 me-0.5 w-2.5',

@@ -8,9 +8,7 @@ const FROM_DOCUMENT = `[${NAVIGATOR_EXPANDED_ATTRIBUTE}] ${VERTICAL}[data-from-d
 export const NAVIGATOR_EXPANDED_SCOPE = `${VERTICAL}[data-expanded], ${VERTICAL}[data-expanded] *, ${FROM_DOCUMENT}, ${FROM_DOCUMENT} *`
 
 /**
- * A blocking `<head>` script for static sites that paints a persisted expanded
- * vertical navigation before hydration. Pair with `<Navigator expandedFromDocument>`.
- *
+ * A blocking `<head>` script that paints a persisted expanded navigation before hydration. Pair with `<Navigator expandedFromDocument>`.
  * @example
  * <script dangerouslySetInnerHTML={{ __html: getNavigatorExpandedScript() }} />
  */

@@ -10,8 +10,7 @@ type CompilerEvent = {
 
 const reported = new Set<string>()
 
-// `REACT_COMPILER_REPORT=1 pnpm build` lists every function the compiler
-// skipped. Skipped functions still ship, just without automatic memoisation.
+// `REACT_COMPILER_REPORT=1 pnpm build` lists every function the compiler skipped.
 function logEvent(filename: string | null, event: CompilerEvent) {
   if (!process.env.REACT_COMPILER_REPORT) return
   if (event.kind !== 'CompileError' && event.kind !== 'PipelineError') return
@@ -25,8 +24,7 @@ function logEvent(filename: string | null, event: CompilerEvent) {
   console.warn(message)
 }
 
-// Client modules only. The compiler's cache is a hook, and server components
-// can't call hooks, so a server-safe module (no directive) stays uncompiled.
+// Client modules only: the compiler's cache is a hook, which server components can't call.
 export const reactCompilerPreset = defineRolldownBabelPreset({
   preset: () => ({
     plugins: [

@@ -92,7 +92,6 @@ describe('Drawer content inset', () => {
     )
     await screen.findByRole('dialog')
 
-    // The row's fill bleeds out by its own padding, so its text meets the inset.
     expect(document.querySelector('[data-slot="list-item"]')).toHaveClass(
       'px-3',
       'group-data-[emphasis=subtler]/list:-mx-3'

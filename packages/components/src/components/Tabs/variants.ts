@@ -28,9 +28,7 @@ import { cva } from 'class-variance-authority'
 // Note: the `data-orientation` attribute used by these variants is
 // emitted natively by Base UI Tabs (driven by the wrapper's
 // `direction` prop, which translates to Base UI's `orientation`).
-// A horizontal list that outgrows its container scrolls sideways with the
-// scrollbar hidden, rather than overflowing the layout. Arrow keys still
-// reach every tab, and TabsList keeps the active one in view.
+// A horizontal list that outgrows its container scrolls sideways with the scrollbar hidden.
 export const tabsListVariants = cva(
   [
     'relative inline-flex items-center data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch',

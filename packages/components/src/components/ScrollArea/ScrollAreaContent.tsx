@@ -10,11 +10,7 @@ import { scrollAreaContentVariants } from './variants'
 
 export type ScrollAreaContentProps = ScrollAreaPrimitive.Content.Props &
   RefAttributes<HTMLDivElement> & {
-    /**
-     * Size to the content's natural width; turn off to follow the viewport's.
-     *
-     * @default true
-     */
+    /** Size to the content's natural width; turn off to follow the viewport's. @default true */
     fitWidth?: boolean
   }
 
