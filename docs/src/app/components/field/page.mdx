@@ -129,7 +129,15 @@ border and focus ring automatically switch to danger colours, and
 ### useFieldContext
 
 ```tsx
-function useFieldContext(): FieldContextValue
+function useFieldContext(): {
+  invalid?: boolean
+  required?: boolean
+  disabled?: boolean
+  fieldId: string
+  labelId: string
+  helperTextId: string
+  errorTextId: string
+}
 ```
 
 Reads the nearest `Field`'s state. Use it when building a custom control that

@@ -305,6 +305,8 @@ That last one is the difference that matters. Subscribing to raw seconds re-rend
 ### useCountdownUrgency
 
 ```tsx
+import type { Instantish } from '@oztix/roadie-core/datetime'
+
 function useCountdownUrgency(
   until: Instantish,
   thresholds?: UrgencyThresholds
