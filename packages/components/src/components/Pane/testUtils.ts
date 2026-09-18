@@ -367,8 +367,6 @@ export const reachedSets = (levels: number) =>
     Array.from({ length: levels }, (_, depth) => (bits & (1 << depth)) !== 0)
   )
 
-export type Extra = 'none' | 'inspector' | 'closedMore' | 'openMore'
-
 export function rowShapes(level = 0): { name: string; spec: RowSpec }[] {
   const shapes: { name: string; spec: RowSpec }[] = []
   for (const base of [0, 1]) {
