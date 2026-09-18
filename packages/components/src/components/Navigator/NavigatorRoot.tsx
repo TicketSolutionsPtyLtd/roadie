@@ -64,7 +64,7 @@ export type NavigatorRootProps = {
   onShowListChange?: (next: boolean) => void
   /** Opens the More pane, such as from `?more`; uncontrolled when omitted. */
   showMore?: boolean
-  /** Called when More asks to open or close. */
+  /** Called when More asks to open or close; a tap that navigates closes More with the route instead. */
   onShowMoreChange?: (next: boolean) => void
   /** Shows labels beside the icons on large screens. */
   expanded?: boolean

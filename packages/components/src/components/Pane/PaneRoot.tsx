@@ -50,7 +50,7 @@ const CLIP_HORIZONTAL = { overflowX: 'clip' } as const
 export type PaneRootProps = ComponentProps<'section'> & {
   /** The column it fills; an `inspector` gives up its column first. @default 'detail' */
   column?: 'list' | 'detail' | 'inspector'
-  /** The route has reached this pane; the deepest reached pane is the top. @default true */
+  /** The route has reached this pane; pass `false` only for one mounted early, such as an empty detail column. @default true */
   reached?: boolean
   /** Only for a pane rendered out of document order, such as one streamed into a resumed prerender. */
   depth?: 0 | 1 | 2 | 3
@@ -58,7 +58,7 @@ export type PaneRootProps = ComponentProps<'section'> & {
   emphasis?: PaneEmphasis
   /** What the phone tab bar does while this pane is top; `auto` collapses it on scroll. @default 'auto' */
   tabBar?: 'visible' | 'auto' | 'hidden'
-  /** Holds the frame's pending indicator for a wait Roadie can't see, such as a fetch without Suspense. */
+  /** Holds the pending indicator for a wait Roadie can't see; on a route's loading pane it also yields that pane's depth. */
   pending?: boolean
   /** The body skeleton while the pane's content is suspended. `Pane.Body` shows it too. */
   loading?: ReactNode

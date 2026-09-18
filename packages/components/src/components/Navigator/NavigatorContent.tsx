@@ -342,6 +342,7 @@ export function NavigatorContent({
         ? 'root'
         : 'child'
       : null
+  // Open More is the root and the top; closed, it is never reached.
   const revealRoot = revealing || moreOpen
   const stack = useMemo(
     () =>
@@ -421,6 +422,7 @@ export function NavigatorContent({
     }
   }, [listPaneShows, moreOpen, activeSecondary, topChrome])
 
+  // Only the stable `register`/`unregister` change the stack, so these deps can't loop.
   const placeOf = useCallback(
     (id: string, entry: PaneRegistration, hydrating = false) => {
       const index = stack.findIndex((pane) => pane.id === id)
