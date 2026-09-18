@@ -37,7 +37,7 @@ export type NavigatorTabProps = Omit<
   active?: boolean
   /** Announced through `aria-current`; defaults to `active`, which only drives the pill. */
   current?: boolean
-  /** False when active through a sub-page, so it announces the section, not the page. */
+  /** False when active through a sub-page, so it announces the secondary, not the page. */
   isPage?: boolean
   /** The bar is collapsed on scroll — drives the edge-circle presentation. */
   collapsed?: boolean
@@ -113,7 +113,7 @@ export function NavigatorTab({
     circleSide,
     collapsed
   })
-  // Only the page itself claims 'page'; a disclosure or section claims 'true'.
+  // Only the page itself claims 'page'; a disclosure or secondary claims 'true'.
   const isDisclosure = rest['aria-expanded'] !== undefined
   const ariaCurrent = current
     ? isPage && !isDisclosure

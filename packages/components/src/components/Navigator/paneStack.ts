@@ -3,7 +3,7 @@ import {
   type PaneRegistration,
   type PaneStackPosition,
   isOverflowKind,
-  isSectionKind
+  isSecondaryKind
 } from '../Pane/PaneStackContext'
 import { COLUMN_DEPTH, type PaneDepth } from '../Pane/paneDepth'
 import type { PaneColumn, PaneTabBar } from '../Pane/variants'
@@ -87,13 +87,13 @@ export function derivePositions(
   )
 }
 
-/** Position before registration (SSR, hydration): the section list is root, More last. */
+/** Position before registration (SSR, hydration): the secondary list is root, More last. */
 export function provisionalPosition(
   { column, reached, kind }: PaneRegistration,
   revealRoot: boolean
 ): PaneStackPosition | null {
   if (column === 'inspector') return null
-  if (isSectionKind(kind)) {
+  if (isSecondaryKind(kind)) {
     return revealRoot ? 'top' : 'behind'
   }
   if (isOverflowKind(kind)) {
@@ -130,18 +130,18 @@ export function resolveDepths(
       const depth = provisionalDepth(entry)
       return depth === null ||
         isOverflowKind(entry.kind) ||
-        isSectionKind(entry.kind)
+        isSecondaryKind(entry.kind)
         ? []
         : [{ index, depth }]
     })
     .sort((a, b) => a.depth - b.depth || a.index - b.index)
-  const sectionList = entries.some((entry) => isSectionKind(entry.kind))
+  const secondaryList = entries.some((entry) => isSecondaryKind(entry.kind))
   // Open More fills a vacant root; it never displaces a list.
   const moreFillsRoot =
     entries.some(
       (entry) => isOverflowKind(entry.kind) && entry.reached === true
     ) && (ranked[0]?.depth ?? 0) > 0
-  const offset = sectionList || moreFillsRoot ? 1 : 0
+  const offset = secondaryList || moreFillsRoot ? 1 : 0
   const depths = entries.map((entry): number | null =>
     entry.column === 'inspector' ? null : 0
   )

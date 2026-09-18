@@ -1,7 +1,7 @@
 import { type RefObject, createRef } from 'react'
 
 // The hook tracks `data-current` — visual currency — not `aria-current`.
-// The two part on one case: a section on a sub-route it never declared
+// The two part on one case: a secondary on a sub-route it never declared
 // holds the pill while the exact page keeps the announcement.
 
 import { act, render } from '@testing-library/react'

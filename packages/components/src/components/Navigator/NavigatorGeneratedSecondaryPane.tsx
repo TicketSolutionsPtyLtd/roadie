@@ -9,24 +9,24 @@ import { PaneRoot } from '../Pane/PaneRoot'
 import { PaneSearch } from '../Pane/PaneSearch'
 import { PaneKindContext } from '../Pane/PaneStackContext'
 import { PaneTitle } from '../Pane/PaneTitle'
-import type { NavigatorActiveSection } from './NavigatorContext'
-import { NavigatorSectionItems } from './NavigatorSectionItems'
+import type { NavigatorActiveSecondary } from './NavigatorContext'
+import { NavigatorSecondaryItems } from './NavigatorSecondaryItems'
 import { textOf } from './splitSecondary'
 
-export function NavigatorSectionPane({
-  section
+export function NavigatorGeneratedSecondaryPane({
+  secondary
 }: {
-  section: NavigatorActiveSection
+  secondary: NavigatorActiveSecondary
 }) {
   const [query, setQuery] = useState('')
-  const { label, secondary } = section
+  const { label, props: nav } = secondary
 
   return (
-    <PaneKindContext value='generated-section'>
-      <PaneRoot column='list' data-navigator-section={section.value}>
+    <PaneKindContext value='generated-secondary'>
+      <PaneRoot column='list' data-navigator-secondary={secondary.value}>
         <PaneHeader>
           <PaneTitle>{label}</PaneTitle>
-          {secondary.searchable ? (
+          {nav.searchable ? (
             <PaneSearch
               value={query}
               onValueChange={setQuery}
@@ -35,15 +35,15 @@ export function NavigatorSectionPane({
           ) : null}
         </PaneHeader>
         <nav
-          data-slot='navigator-section-nav'
-          aria-label={secondary['aria-label']}
-          className={cn('pb-4', secondary.className)}
+          data-slot='navigator-secondary-nav'
+          aria-label={nav['aria-label']}
+          className={cn('pb-4', nav.className)}
         >
-          <NavigatorSectionItems showDescriptions={false} query={query} />
+          <NavigatorSecondaryItems showDescriptions={false} query={query} />
         </nav>
       </PaneRoot>
     </PaneKindContext>
   )
 }
 
-NavigatorSectionPane.displayName = 'NavigatorSectionPane'
+NavigatorGeneratedSecondaryPane.displayName = 'NavigatorGeneratedSecondaryPane'

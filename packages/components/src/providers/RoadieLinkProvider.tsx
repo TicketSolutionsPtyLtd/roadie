@@ -93,7 +93,7 @@ RoadieLinkProvider.displayName = 'RoadieLinkProvider'
  * Call these from an event handler. Calling `start` from a layout or insertion
  * effect schedules a render from a commit, which React refuses.
  */
-export function useReportPendingNavigation(): {
+export function usePendingNavigation(): {
   start: () => void
   stop: () => void
 } {

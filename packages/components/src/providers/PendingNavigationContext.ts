@@ -36,7 +36,7 @@ const NO_NAVIGATION = (): PendingNavigation | null => null
  * `watching` false subscribes to nothing, so a frame that never draws the
  * indicator does not re-render for one that does.
  */
-export function usePendingNavigation(
+export function usePendingNavigationSnapshot(
   watching = true
 ): PendingNavigation | null {
   const store = use(PendingNavigationContext)

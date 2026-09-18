@@ -70,7 +70,7 @@ function Docs({
         {override ? (
           <Navigator.SecondaryPane value='/components'>
             <p>Promo</p>
-            <Navigator.SectionItems showDescriptions={false} />
+            <Navigator.SecondaryItems showDescriptions={false} />
           </Navigator.SecondaryPane>
         ) : null}
         <Pane>
@@ -101,7 +101,7 @@ const positions = (container: HTMLElement) =>
   Array.from(
     container.querySelectorAll<HTMLElement>('[data-slot="pane"]'),
     (pane) => [
-      pane.dataset.navigatorSection ?? pane.dataset.column,
+      pane.dataset.navigatorSecondary ?? pane.dataset.column,
       pane.dataset.stackPosition ?? null
     ]
   )
@@ -111,10 +111,10 @@ afterEach(() => {
 })
 
 describe('Navigator server render', () => {
-  it("renders the section's list pane, rows and all, on its own route", () => {
+  it("renders the secondary's list pane, rows and all, on its own route", () => {
     const container = serverRender(<Docs value='/components' />)
     const list = paneOf(container, 'list')!
-    expect(list).toHaveAttribute('data-navigator-section', '/components')
+    expect(list).toHaveAttribute('data-navigator-secondary', '/components')
     expect(
       within(list).getByRole('heading', { name: 'Components' })
     ).toBeInTheDocument()
@@ -171,7 +171,7 @@ describe('Navigator server render', () => {
     ])
   })
 
-  it('renders only the detail on a route with no section', () => {
+  it('renders only the detail on a route with no secondary', () => {
     const container = serverRender(<Docs value='/' />)
     expect(positions(container)).toEqual([
       ['detail', 'top'],
@@ -181,9 +181,9 @@ describe('Navigator server render', () => {
 
   it('renders a SecondaryPane override in place of the generated pane', () => {
     const container = serverRender(<Docs value='/components' override />)
-    expect(container.querySelectorAll('[data-navigator-section]')).toHaveLength(
-      1
-    )
+    expect(
+      container.querySelectorAll('[data-navigator-secondary]')
+    ).toHaveLength(1)
     const list = paneOf(container, 'list')!
     expect(within(list).getByText('Promo')).toBeInTheDocument()
     expect(
@@ -258,7 +258,7 @@ function PageRootDocs({ value }: { value: string }) {
         {testBrand}
         <Navigator.Item value='/' href='/' icon={<FakeIcon />}>
           Home
-          <Navigator.Secondary aria-label='Home pages' root='page'>
+          <Navigator.Secondary aria-label='Home pages' overview>
             <Navigator.Item
               value='/overview/philosophy'
               href='/overview/philosophy'
@@ -278,7 +278,7 @@ function PageRootDocs({ value }: { value: string }) {
   )
 }
 
-describe('Navigator server render of a page root', () => {
+describe('Navigator server render of an overview', () => {
   it('renders no list pane on the root, where the page is top with no Back', () => {
     const container = serverRender(<PageRootDocs value='/' />)
     expect(positions(container)).toEqual([['detail', 'top']])
@@ -328,7 +328,7 @@ describe('Navigator server render of a page root', () => {
 
 const depths = (container: HTMLElement) =>
   Array.from(container.querySelectorAll('[data-slot="pane"]')).map((pane) => [
-    pane.getAttribute('data-navigator-section') ??
+    pane.getAttribute('data-navigator-secondary') ??
       pane.getAttribute('data-column'),
     pane.getAttribute('data-depth'),
     pane.hasAttribute('data-reached')
@@ -379,7 +379,7 @@ describe('Navigator server render of depths', () => {
     ).toHaveAttribute('data-reveal')
   })
 
-  it('gives the depth-1 pane the section route and label, and the deeper pane its own from backHref', () => {
+  it('gives the depth-1 pane the secondary route and label, and the deeper pane its own from backHref', () => {
     const container = serverRender(<ThreeLevels value='/tickets/glamping' />)
     const [glamping, sam] = Array.from(
       container.querySelectorAll<HTMLElement>(
@@ -466,7 +466,7 @@ describe('a declared depth out of document order', () => {
   })
 })
 
-describe('a page-first root with its own backHref', () => {
+describe('an overview with its own backHref', () => {
   const PageFirst = () => (
     <Navigator value='/a'>
       <Navigator.Content>
@@ -665,9 +665,9 @@ describe('nothing slides in or out on a server render or its hydration', () => {
 
   it.each([
     ['a deep route', <Docs key='deep' value='/components/button' />],
-    ['a section root', <Docs key='root' value='/components' />],
+    ['a secondary root', <Docs key='root' value='/components' />],
     [
-      'a page-root sub-page',
+      'an overview sub-page',
       <PageRootDocs key='page' value='/overview/philosophy' />
     ],
     ['a nested Navigator', <Nested key='nested' value='/x/1' />]

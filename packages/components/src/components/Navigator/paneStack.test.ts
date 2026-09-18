@@ -87,11 +87,11 @@ describe('derivePositions', () => {
 })
 
 describe('provisionalPosition', () => {
-  const section = {
+  const secondary = {
     column: 'list',
     reached: false,
     tabBar: 'auto',
-    kind: 'generated-section'
+    kind: 'generated-secondary'
   } as const
   const detail = {
     column: 'detail',
@@ -100,7 +100,7 @@ describe('provisionalPosition', () => {
     kind: 'pane'
   } as const
   const inspector = { ...detail, column: 'inspector', reached: false } as const
-  const stack = [section, detail, inspector]
+  const stack = [secondary, detail, inspector]
 
   it.each([true, false])(
     'agrees with derivePositions once registered (revealed: %s)',
@@ -112,7 +112,7 @@ describe('provisionalPosition', () => {
   )
 
   it('parks More ahead until it opens', () => {
-    const more = { ...section, kind: 'generated-overflow' } as const
+    const more = { ...secondary, kind: 'generated-overflow' } as const
     expect(provisionalPosition(more, false)).toBe('ahead')
     expect(provisionalPosition({ ...more, reached: true }, false)).toBe('top')
   })
@@ -127,9 +127,9 @@ describe('provisionalPosition', () => {
 describe('provisionalDepth', () => {
   it('keeps the generated panes at the root', () => {
     expect(
-      provisionalDepth({ column: 'list', kind: 'generated-section' })
+      provisionalDepth({ column: 'list', kind: 'generated-secondary' })
     ).toBe(0)
-    expect(provisionalDepth({ column: 'list', kind: 'section' })).toBe(0)
+    expect(provisionalDepth({ column: 'list', kind: 'secondary' })).toBe(0)
     expect(
       provisionalDepth({ column: 'list', kind: 'generated-overflow', depth: 2 })
     ).toBe(0)
@@ -140,7 +140,7 @@ describe('resolveDepths', () => {
   it('counts stack panes up in document order, whatever they declared', () => {
     expect(
       resolveDepths([
-        { column: 'list', kind: 'generated-section' },
+        { column: 'list', kind: 'generated-secondary' },
         { column: 'detail', kind: 'pane', depth: 1 },
         { column: 'inspector', kind: 'pane' },
         { column: 'detail', kind: 'pane', depth: 1 }
@@ -160,8 +160,8 @@ describe('resolveDepths', () => {
   it('gives every root list one depth, so a handover pushes nothing deeper', () => {
     expect(
       resolveDepths([
-        { column: 'list', kind: 'generated-section' },
-        { column: 'list', kind: 'section' },
+        { column: 'list', kind: 'generated-secondary' },
+        { column: 'list', kind: 'secondary' },
         { column: 'detail', kind: 'pane' },
         { column: 'list', kind: 'overflow', reached: true }
       ])

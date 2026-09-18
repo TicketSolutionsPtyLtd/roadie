@@ -25,7 +25,7 @@ import {
   NavigatorExpansionContext,
   NavigatorSelectionContext,
   isActiveValue,
-  isSectionActive
+  isSecondaryActive
 } from './NavigatorContext'
 import { NavigatorDestination } from './NavigatorDestination'
 import { NavigatorFoldedContext } from './NavigatorFoldedContext'
@@ -96,7 +96,7 @@ export function NavigatorPrimary({
   } = use(NavigatorActionsContext)
   const {
     value: activeValue,
-    activeSection,
+    activeSecondary,
     collected,
     showList
   } = use(NavigatorSelectionContext)
@@ -131,7 +131,7 @@ export function NavigatorPrimary({
 
   useDevWarning(
     !primaryDerived &&
-      '[Roadie] Navigator.Primary must be a direct child of Navigator; sections and More need it there.'
+      '[Roadie] Navigator.Primary must be a direct child of Navigator; secondary navs and More need it there.'
   )
 
   useDevWarning(
@@ -157,10 +157,10 @@ export function NavigatorPrimary({
   const hasMore = folded.length > 0
   const pinnedTab = slots.pinned
   const foldedIsActive = folded.some((slot) =>
-    isSectionActive(slot, activeValue)
+    isSecondaryActive(slot, activeValue)
   )
   const pinnedIsActive =
-    pinnedTab !== undefined && isSectionActive(pinnedTab, activeValue)
+    pinnedTab !== undefined && isSecondaryActive(pinnedTab, activeValue)
   // An open disclosure takes the pill from every route tab; only More also takes aria-current.
   const disclosureOpen = overflowOpen || openMenu !== null
   // The pinned circle already sits at the trailing edge, so it is the end circle.
@@ -211,7 +211,7 @@ export function NavigatorPrimary({
   }, [overflowOpen, shownFolded, setOverflowOpen])
   const verticalMoreActive =
     overflowOpen ||
-    (verticalFoldedSlots.some((slot) => isSectionActive(slot, activeValue)) &&
+    (verticalFoldedSlots.some((slot) => isSecondaryActive(slot, activeValue)) &&
       !disclosureOpen)
 
   // An open More scrolls to top on re-tap.
@@ -261,7 +261,7 @@ export function NavigatorPrimary({
 
   // By hand: the compiler leaves the tab list unmemoised, and tabs are uncompiled.
   const { tabs, pinned } = useMemo(() => {
-    // Without `onShowListChange`, a section tab's href already leads up to its route.
+    // Without `onShowListChange`, a secondary tab's href already leads up to its route.
     const selectDestination = (
       event: MouseEvent,
       tab: NavigatorSlotMeta,
@@ -289,10 +289,10 @@ export function NavigatorPrimary({
         setPinExpanded(true)
         setNavCollapsed(false)
       }
-      const ownsSection = activeSection?.value === tab.value
-      const onSectionRoute = isActiveValue(tab.value, activeValue)
-      const pageRoot = ownsSection && activeSection?.root === 'page'
-      if (ownsSection && onSectionRoute) {
+      const ownsSecondary = activeSecondary?.value === tab.value
+      const onSecondaryRoute = isActiveValue(tab.value, activeValue)
+      const hasOverview = ownsSecondary && activeSecondary?.overview === true
+      if (ownsSecondary && onSecondaryRoute) {
         stay()
         if (collapsed) expandBar()
         scrollActivePaneToTop()
@@ -303,12 +303,17 @@ export function NavigatorPrimary({
         expandBar()
         return
       }
-      if (ownsSection && !pageRoot && onShowListChange && !onSectionRoute) {
+      if (
+        ownsSecondary &&
+        !hasOverview &&
+        onShowListChange &&
+        !onSecondaryRoute
+      ) {
         stay()
         onShowListChange(!showList)
         return
       }
-      if (pageRoot) {
+      if (hasOverview) {
         go()
         setValue(tab.value)
         return
@@ -352,7 +357,7 @@ export function NavigatorPrimary({
       )
 
     const tabs = slots.tabs.map((tab, tabIndex) => {
-      const active = isSectionActive(tab, activeValue)
+      const active = isSecondaryActive(tab, activeValue)
       const href = tab.href
       // With the end circle taken, the first tab floats to the start so two circles always show.
       const isStartCircle = activeIsEnd
@@ -396,7 +401,7 @@ export function NavigatorPrimary({
     pinnedIsActive,
     activeValue,
     activeIsEnd,
-    activeSection,
+    activeSecondary,
     disclosureOpen,
     overflowOpen,
     openMenu,

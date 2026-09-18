@@ -14,29 +14,29 @@ export type NavigatorSecondaryPaneProps = Omit<
   PaneRootProps,
   'column' | 'reached' | 'depth' | 'tabBar' | 'id'
 > & {
-  /** The section whose generated pane this replaces. */
+  /** The secondary whose generated pane this replaces. */
   value: string
 }
 
-/** Replaces one section's generated list pane. Declare it before your detail pane. */
+/** Replaces one secondary's generated list pane. Declare it before your detail pane. */
 export function NavigatorSecondaryPane({
   value,
   ...props
 }: NavigatorSecondaryPaneProps) {
   const { declareSecondaryPane } = use(NavigatorActionsContext)
-  const { activeSection, listPaneShows } = use(NavigatorSelectionContext)
+  const { activeSecondary, listPaneShows } = use(NavigatorSelectionContext)
   const { overflowOpen } = use(NavigatorDisclosureContext)
   const stack = use(PaneStackContext)
   const moreOpen = stack === null ? overflowOpen : stack.moreOpen
 
   useEffect(() => declareSecondaryPane(value), [value, declareSecondaryPane])
 
-  if (activeSection?.value !== value || moreOpen || !listPaneShows) {
+  if (activeSecondary?.value !== value || moreOpen || !listPaneShows) {
     return null
   }
   return (
-    <PaneKindContext value='section'>
-      <PaneRoot column='list' data-navigator-section={value} {...props} />
+    <PaneKindContext value='secondary'>
+      <PaneRoot column='list' data-navigator-secondary={value} {...props} />
     </PaneKindContext>
   )
 }

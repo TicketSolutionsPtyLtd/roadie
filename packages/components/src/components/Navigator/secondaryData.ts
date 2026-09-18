@@ -1,10 +1,13 @@
 import { type ReactElement, type ReactNode, isValidElement } from 'react'
 
 import type { BadgeProps } from '../Badge'
-import { type NavigatorActiveSection, isActiveValue } from './NavigatorContext'
+import {
+  type NavigatorActiveSecondary,
+  isActiveValue
+} from './NavigatorContext'
 import { secondaryBlocks, splitItemChildren } from './splitSecondary'
 
-export type NavigatorSectionItem = {
+export type NavigatorSecondaryItem = {
   value: string
   label: ReactNode
   href?: string
@@ -15,34 +18,34 @@ export type NavigatorSectionItem = {
   current: boolean
 }
 
-export type NavigatorSectionGroup = {
+export type NavigatorSecondaryGroup = {
   /** The `Navigator.GroupTitle`; absent for loose items and untitled groups. */
   title?: ReactNode
-  items: NavigatorSectionItem[]
+  items: NavigatorSecondaryItem[]
 }
 
-export type NavigatorSectionData = {
+export type NavigatorSecondaryData = {
   value: string
   label: ReactNode
   href?: string
-  groups: NavigatorSectionGroup[]
+  groups: NavigatorSecondaryGroup[]
 }
 
-export type SectionRow = Omit<NavigatorSectionItem, 'icon'> & {
+export type SecondaryRow = Omit<NavigatorSecondaryItem, 'icon'> & {
   icon?: ReactNode
 }
 
-export type SectionRowGroup = {
+export type SecondaryRowGroup = {
   kind: 'group' | 'loose'
   title?: ReactNode
-  rows: SectionRow[]
+  rows: SecondaryRow[]
 }
 
-export function sectionRows(
-  section: NavigatorActiveSection,
+export function secondaryRows(
+  secondary: NavigatorActiveSecondary,
   activeValue: string | undefined
-): SectionRowGroup[] {
-  return secondaryBlocks(section.secondary.children).map((block) => ({
+): SecondaryRowGroup[] {
+  return secondaryBlocks(secondary.props.children).map((block) => ({
     kind: block.kind,
     title: block.title ?? undefined,
     rows: block.items.map(({ props }) => ({
@@ -57,15 +60,15 @@ export function sectionRows(
   }))
 }
 
-export function toSectionData(
-  section: NavigatorActiveSection,
+export function toSecondaryData(
+  secondary: NavigatorActiveSecondary,
   activeValue: string | undefined
-): NavigatorSectionData {
+): NavigatorSecondaryData {
   return {
-    value: section.value,
-    label: section.label,
-    href: section.href,
-    groups: sectionRows(section, activeValue).map((group) => ({
+    value: secondary.value,
+    label: secondary.label,
+    href: secondary.href,
+    groups: secondaryRows(secondary, activeValue).map((group) => ({
       title: group.title,
       items: group.rows.map((row) => ({
         ...row,

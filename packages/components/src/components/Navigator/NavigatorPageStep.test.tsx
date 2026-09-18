@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Navigator } from '.'
 import { List } from '../List'
 import { Pane } from '../Pane'
+import { NavigatorOverflowPane } from './NavigatorOverflowPane'
 import { markCurrent } from './NavigatorPageStep'
 import {
   FakeIcon,
@@ -49,7 +50,7 @@ function Docs({
         {testBrand}
         <Navigator.Item value='/' href='/'>
           Home
-          <Navigator.Secondary aria-label='Home pages' root='page'>
+          <Navigator.Secondary aria-label='Home pages' overview>
             <Navigator.Item
               value='/overview/installation'
               href='/overview/installation'
@@ -93,16 +94,16 @@ function Docs({
               <iframe title='embed' className='aspect-video' />
               <canvas className='chart' />
               {createElement('live-player', { className: 'player' })}
-              <Navigator.SectionItems />
+              <Navigator.SecondaryItems />
             </div>
           ) : (
             <p data-testid='page'>The page at {value}</p>
           )}
         </Pane>
         {showMore === undefined ? null : (
-          <Navigator.OverflowPane aria-label='More'>
+          <NavigatorOverflowPane aria-label='More'>
             <p>More</p>
-          </Navigator.OverflowPane>
+          </NavigatorOverflowPane>
         )}
       </Navigator.Content>
     </Navigator>
@@ -155,7 +156,7 @@ async function navigate(from: string, to: string) {
   return view
 }
 
-describe('a page-root section', () => {
+describe('a secondary with an overview', () => {
   it('pushes a sub-page over a ghost of the page it leaves, from the keyframes', async () => {
     await navigate('/', '/overview/installation')
     expect(row()).toHaveAttribute('data-page-step', 'push')
@@ -273,8 +274,8 @@ describe('a page-root section', () => {
 
   it.each([
     ['a sibling', '/overview/installation', '/overview/philosophy'],
-    ['a section switch', '/', '/components/button'],
-    ['a list root', '/components', '/components/button']
+    ['a secondary switch', '/', '/components/button'],
+    ['no overview', '/components', '/components/button']
   ])('stays instant for %s', async (_, from, to) => {
     await navigate(from, to)
     expect(row()).not.toHaveAttribute('data-page-step')
@@ -323,7 +324,7 @@ describe('a page-root section', () => {
       expect(ghost()).toBeEmptyDOMElement()
     })
 
-    it('when the section changes', async () => {
+    it('when the secondary changes', async () => {
       const view = await navigate('/overview/installation', '/')
       expect(row()).toHaveAttribute('data-page-step', 'pop')
       view.rerender(<Docs value='/components/button' />)
@@ -351,14 +352,14 @@ describe('markCurrent', () => {
   })
 })
 
-describe('nothing but a page-root step gets a copy', () => {
+describe('nothing but an overview step gets a copy', () => {
   const listRoot = (value: string, deep: boolean) => (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Main'>
         {testBrand}
         <Navigator.Item value='/s' href='/s' icon={<FakeIcon />}>
-          Section
-          <Navigator.Secondary aria-label='Section pages'>
+          Secondary
+          <Navigator.Secondary aria-label='Secondary pages'>
             <Navigator.Item value='/s/a' href='/s/a'>
               A
             </Navigator.Item>
@@ -389,7 +390,7 @@ describe('nothing but a page-root step gets a copy', () => {
     expect(row()).not.toHaveAttribute('data-page-step')
   })
 
-  it('leaves a swap between two sub-pages of a page root alone', async () => {
+  it('leaves a swap between two sub-pages of an overview alone', async () => {
     await navigate('/overview/philosophy', '/overview/getting-started')
     expect(ghost()).toBeEmptyDOMElement()
     expect(row()).not.toHaveAttribute('data-page-step')

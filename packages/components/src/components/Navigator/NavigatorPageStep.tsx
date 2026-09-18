@@ -4,14 +4,17 @@ import { Component, createRef } from 'react'
 
 import { prefersReducedMotion } from '../../utils/reducedMotion'
 import { listItemVariants } from '../List/variants'
-import { type NavigatorActiveSection, isActiveValue } from './NavigatorContext'
-import { sectionRows } from './sectionData'
+import {
+  type NavigatorActiveSecondary,
+  isActiveValue
+} from './NavigatorContext'
+import { secondaryRows } from './secondaryData'
 
-/** Where a page-root section stands: its own route, a sub-page on top, or neither. */
+/** Where a secondary with an overview stands: its own route, a sub-page on top, or neither. */
 export type NavigatorPageAt = 'root' | 'child' | null
 
 type NavigatorPageStepProps = {
-  section: NavigatorActiveSection | null
+  secondary: NavigatorActiveSecondary | null
   value: string | undefined
   at: NavigatorPageAt
   level: number
@@ -92,17 +95,17 @@ export function markCurrent(row: Element) {
 // The list pane's row turns current as it slides away; so does the page's.
 function selectPicked(
   ghost: HTMLElement,
-  section: NavigatorActiveSection,
+  secondary: NavigatorActiveSecondary,
   value: string | undefined
 ) {
-  const picked = sectionRows(section, undefined)
+  const picked = secondaryRows(secondary, undefined)
     .flatMap((group) => group.rows)
     .findIndex((row) => isActiveValue(row.value, value))
   if (picked === -1) return
   for (const list of ghost.querySelectorAll(
-    '[data-slot="navigator-section-items"]'
+    '[data-slot="navigator-secondary-items"]'
   )) {
-    if (list.getAttribute('data-navigator-items') !== section.value) continue
+    if (list.getAttribute('data-navigator-items') !== secondary.value) continue
     const row = list.querySelectorAll('[data-slot="list-item"]')[picked]
     if (row) markCurrent(row)
   }
@@ -111,7 +114,7 @@ function selectPicked(
 const viewportOf = (pane: Element) =>
   pane.querySelector<HTMLElement>('[data-slot="pane-viewport"]')
 
-// A page-root section's route and sub-pages share one pane, so a move between
+// An overview's route and sub-pages share one pane, so a move between
 // them moves no pane: the page as it was stands in, cloned before React replaces
 // it. A class, as `getSnapshotBeforeUpdate` is the one hook that runs that early.
 export class NavigatorPageStep extends Component<NavigatorPageStepProps> {
@@ -121,10 +124,10 @@ export class NavigatorPageStep extends Component<NavigatorPageStepProps> {
   private finish: (() => void) | null = null
 
   getSnapshotBeforeUpdate(previous: NavigatorPageStepProps): Snapshot {
-    const { section, value, at, level } = this.props
+    const { secondary, value, at, level } = this.props
     if (
-      section === null ||
-      previous.section?.value !== section.value ||
+      secondary === null ||
+      previous.secondary?.value !== secondary.value ||
       previous.at === null ||
       at === null ||
       previous.at === at ||
@@ -148,7 +151,7 @@ export class NavigatorPageStep extends Component<NavigatorPageStepProps> {
             pane: getComputedStyle(host).translate
           }
     const ghost = ghostOf(top)
-    if (at === 'child') selectPicked(ghost, section, value)
+    if (at === 'child') selectPicked(ghost, secondary, value)
     return {
       step: at === 'child' ? 'push' : 'pop',
       ghost,
@@ -162,8 +165,8 @@ export class NavigatorPageStep extends Component<NavigatorPageStepProps> {
     _state: unknown,
     snapshot: Snapshot
   ) {
-    const { section, at } = this.props
-    if (at === null || previous.section?.value !== section?.value) {
+    const { secondary, at } = this.props
+    if (at === null || previous.secondary?.value !== secondary?.value) {
       this.finish?.()
     }
     const host = this.host.current

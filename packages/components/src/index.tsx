@@ -147,15 +147,14 @@ export {
 
 export {
   Navigator,
-  useNavigatorSection,
+  useNavigatorSecondary,
   type NavigatorProps,
   type NavigatorContentProps,
   type NavigatorPrimaryProps,
   type NavigatorSecondaryProps,
-  type NavigatorSecondaryRoot,
-  type NavigatorSectionData,
-  type NavigatorSectionGroup,
-  type NavigatorSectionItem,
+  type NavigatorSecondaryData,
+  type NavigatorSecondaryGroup,
+  type NavigatorSecondaryItem,
   type NavigatorItemProps,
   type NavigatorGroupProps,
   type NavigatorGroupTitleProps,
@@ -163,10 +162,8 @@ export {
   type NavigatorMenuItemProps,
   type NavigatorBrandProps,
   type NavigatorExpandToggleProps,
-  type NavigatorOverflowPaneProps,
-  type NavigatorOverflowItemsProps,
   type NavigatorSecondaryPaneProps,
-  type NavigatorSectionItemsProps,
+  type NavigatorSecondaryItemsProps,
   type NavigatorPlacement,
   type NavigatorVisibilityPriority
 } from './components/Navigator'
@@ -452,7 +449,7 @@ export {
 export {
   RoadieLinkProvider,
   useRoadieLink,
-  useReportPendingNavigation,
+  usePendingNavigation,
   type RoadieLinkProviderProps,
   type RoadieLinkComponent,
   type RoadieLinkProps

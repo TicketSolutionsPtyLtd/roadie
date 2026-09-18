@@ -12,7 +12,7 @@ import {
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { holdDuringLayoutTransitions } from './transitionHold'
 
-/** `data-current`, not `aria-current`: a section on an undeclared sub-route holds the pill. */
+/** `data-current`, not `aria-current`: a secondary on an undeclared sub-route holds the pill. */
 export const ACTIVE_DESTINATION_SELECTOR =
   '[data-slot="navigator-item"][data-current]'
 

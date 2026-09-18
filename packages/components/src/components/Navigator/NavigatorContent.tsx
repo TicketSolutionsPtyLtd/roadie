@@ -27,7 +27,7 @@ import {
   PaneStackContext,
   type PaneStackContextValue,
   isOverflowKind,
-  isSectionKind
+  isSecondaryKind
 } from '../Pane/PaneStackContext'
 import { PaneTitle } from '../Pane/PaneTitle'
 import { PANE_DEEP, PANE_MAX_DEPTH } from '../Pane/paneDepth'
@@ -37,13 +37,13 @@ import {
   NavigatorDisclosureContext,
   NavigatorSelectionContext,
   isActiveValue,
-  isSectionActive
+  isSecondaryActive
 } from './NavigatorContext'
+import { NavigatorGeneratedSecondaryPane } from './NavigatorGeneratedSecondaryPane'
 import { NavigatorOverflowItems } from './NavigatorOverflowItems'
 import { NavigatorOverflowPane } from './NavigatorOverflowPane'
 import { type NavigatorPageAt, NavigatorPageStep } from './NavigatorPageStep'
 import { NavigatorSecondaryPane } from './NavigatorSecondaryPane'
-import { NavigatorSectionPane } from './NavigatorSectionPane'
 import { OVERFLOW_LABEL } from './mobileSlots'
 import {
   type DepthEntry,
@@ -64,7 +64,10 @@ export type NavigatorContentProps = ComponentProps<'main'>
 
 type RegisteredPane = { id: string; node: HTMLElement } & PaneRegistration
 
-const SECTION_ROOT: DepthEntry = { column: 'list', kind: 'generated-section' }
+const SECONDARY_ROOT: DepthEntry = {
+  column: 'list',
+  kind: 'generated-secondary'
+}
 const OPEN_MORE: DepthEntry = {
   column: 'list',
   kind: 'generated-overflow',
@@ -104,7 +107,7 @@ const shapeOf = (row: HTMLElement, level: number): PaneShape[] =>
     })
   )
 
-// Nodes only, not `reached`: opening More or a section list flips `reached` on a
+// Nodes only, not `reached`: opening More or a secondary list flips `reached` on a
 // pane that was already there, and a disclosure moving is not content arriving.
 const sameNodes = (was: readonly PaneShape[], now: readonly PaneShape[]) =>
   was.length === now.length &&
@@ -113,7 +116,7 @@ const sameNodes = (was: readonly PaneShape[], now: readonly PaneShape[]) =>
 // A sibling swap: the row's shape is unchanged — the same panes in the same
 // document order, so the same depths and the same top — and at least one of
 // them is a different element. That is a route rendering a sibling detail, as a
-// param change does, and it cuts like More and a section change do. A push adds
+// param change does, and it cuts like More and a secondary change do. A push adds
 // a pane and a pop drops one, so neither reaches here and both keep their slide.
 function isSiblingSwap(was: readonly PaneShape[], now: readonly PaneShape[]) {
   if (was.length === 0 || was.length !== now.length) return false
@@ -127,10 +130,10 @@ function isSiblingSwap(was: readonly PaneShape[], now: readonly PaneShape[]) {
 }
 
 type Drawn = {
-  /** The active section has a list, drawn or displaced by More. */
+  /** The active secondary has a list, drawn or displaced by More. */
   rootList: boolean
   rootListDrawn: boolean
-  sectionPane: boolean
+  secondaryPane: boolean
   overflow: boolean
   moreOpen: boolean
 }
@@ -138,17 +141,17 @@ type Drawn = {
 // What this render draws, not the snapshot, which learns of a pane a commit late.
 function depthsOf(panes: readonly RegisteredPane[], draws: Drawn) {
   const drawn = panes.filter((pane) => {
-    if (pane.kind === 'generated-section') return draws.sectionPane
-    if (pane.kind === 'section') return draws.rootListDrawn
+    if (pane.kind === 'generated-secondary') return draws.secondaryPane
+    if (pane.kind === 'secondary') return draws.rootListDrawn
     if (pane.kind === 'generated-overflow') return draws.overflow
     return true
   })
   const rootPending =
-    draws.rootList && !drawn.some((pane) => isSectionKind(pane.kind))
+    draws.rootList && !drawn.some((pane) => isSecondaryKind(pane.kind))
   const morePending =
     draws.moreOpen && !drawn.some((pane) => isOverflowKind(pane.kind))
   const held = [
-    ...(rootPending ? [SECTION_ROOT] : []),
+    ...(rootPending ? [SECONDARY_ROOT] : []),
     ...(morePending ? [OPEN_MORE] : [])
   ]
   const resolved = resolveDepths([...held, ...drawn])
@@ -169,7 +172,7 @@ export function NavigatorContent({
   const {
     value,
     collected,
-    activeSection,
+    activeSecondary,
     listPaneShows,
     declaredSecondaryPanes,
     showList
@@ -181,12 +184,12 @@ export function NavigatorContent({
   const contentRef = useRef<HTMLElement | null>(null)
   const ref = useMemo(() => mergeRefs(contentRef, forwardedRef), [forwardedRef])
   const rowRef = useRef<HTMLDivElement | null>(null)
-  const sectionValue = activeSection?.value ?? null
-  // The top-level item the route sits under. A section is one of these and a
+  const secondaryValue = activeSecondary?.value ?? null
+  // The top-level item the route sits under. A secondary is one of these and a
   // plain item is not, so this also catches a switch that lands deep in the
   // incoming item: the stack changes shape, but it is still a tab switch.
   const tabValue =
-    collected.ordered.find((slot) => isSectionActive(slot, value))?.value ??
+    collected.ordered.find((slot) => isSecondaryActive(slot, value))?.value ??
     null
 
   // Panes slide only on a push or pop; a resize cuts.
@@ -258,9 +261,9 @@ export function NavigatorContent({
       : []
   )
   const overridden =
-    activeSection !== null &&
-    (declaredSecondaryPanes.has(activeSection.value) ||
-      directOverrides.includes(activeSection.value))
+    activeSecondary !== null &&
+    (declaredSecondaryPanes.has(activeSecondary.value) ||
+      directOverrides.includes(activeSecondary.value))
 
   const generatesOverflow =
     !declaredOverflow &&
@@ -268,31 +271,31 @@ export function NavigatorContent({
   // `showMore` with nothing folded has no pane to show; the row stays as if closed.
   const moreOpen = overflowOpen && (declaredOverflow || generatesOverflow)
 
-  const rootList = activeSection !== null && listPaneShows
+  const rootList = activeSecondary !== null && listPaneShows
   const rootListDrawn = rootList && !moreOpen
-  const showsSectionPane = rootListDrawn && !overridden
+  const showsSecondaryPane = rootListDrawn && !overridden
 
   const draws = useMemo<Drawn>(
     () => ({
       rootList,
       rootListDrawn,
-      sectionPane: showsSectionPane,
+      secondaryPane: showsSecondaryPane,
       overflow: generatesOverflow,
       moreOpen
     }),
-    [rootList, rootListDrawn, showsSectionPane, generatesOverflow, moreOpen]
+    [rootList, rootListDrawn, showsSecondaryPane, generatesOverflow, moreOpen]
   )
   const depths = useMemo(() => depthsOf(ordered, draws), [ordered, draws])
 
-  const onSectionRoute =
-    activeSection !== null && isActiveValue(activeSection.value, value)
-  const revealing = listPaneShows && !moreOpen && (onSectionRoute || showList)
-  // A page-root section draws every route in one pane, so a step between them
+  const onSecondaryRoute =
+    activeSecondary !== null && isActiveValue(activeSecondary.value, value)
+  const revealing = listPaneShows && !moreOpen && (onSecondaryRoute || showList)
+  // A secondary with an overview draws every route in one pane, so a step between them
   // moves no pane: the page as it was stands in, copied before React replaces
   // it. The only copy left in the row, and only here.
   const pageAt: NavigatorPageAt =
-    activeSection?.root === 'page' && !moreOpen && !revealing
-      ? onSectionRoute
+    activeSecondary?.overview && !moreOpen && !revealing
+      ? onSecondaryRoute
         ? 'root'
         : 'child'
       : null
@@ -316,22 +319,22 @@ export function NavigatorContent({
   )
   useInsertionEffect(() => markPushing(), [markPushing, revealing])
 
-  // More and a section change are tab switches, not pushes. Declared after every
+  // More and a secondary change are tab switches, not pushes. Declared after every
   // markPushing call, so it cancels a push marked this commit.
   // Keyed on moreOpen, not overflowOpen: a resize or hydration can add or drop More without overflowOpen changing.
-  const lastTab = useRef({ moreOpen, sectionValue, tabValue })
+  const lastTab = useRef({ moreOpen, secondaryValue, tabValue })
   useInsertionEffect(() => {
     const last = lastTab.current
     if (
       last.moreOpen === moreOpen &&
-      last.sectionValue === sectionValue &&
+      last.secondaryValue === secondaryValue &&
       last.tabValue === tabValue
     ) {
       return
     }
-    lastTab.current = { moreOpen, sectionValue, tabValue }
+    lastTab.current = { moreOpen, secondaryValue, tabValue }
     cut()
-  }, [moreOpen, sectionValue, tabValue, cut])
+  }, [moreOpen, secondaryValue, tabValue, cut])
 
   // Reads the DOM, not the snapshot, and after the children's own insertion
   // effects: the row is mutated by now whichever order the panes registered in,
@@ -371,19 +374,19 @@ export function NavigatorContent({
   const rootIndex = useMemo(() => deriveRootIndex(stack), [stack])
 
   const topChrome = useTopPaneChrome()
-  const sectionBack = useMemo(() => {
-    if (!listPaneShows || moreOpen || activeSection?.href === undefined) {
+  const secondaryBack = useMemo(() => {
+    if (!listPaneShows || moreOpen || activeSecondary?.href === undefined) {
       return null
     }
     const back = {
-      backHref: activeSection.href,
-      backLabel: textOf(activeSection.label)
+      backHref: activeSecondary.href,
+      backLabel: textOf(activeSecondary.label)
     }
     return {
       top: { ...topChrome, ...back },
       below: { ...PANE_CHROME_NONE, ...back }
     }
-  }, [listPaneShows, moreOpen, activeSection, topChrome])
+  }, [listPaneShows, moreOpen, activeSecondary, topChrome])
 
   // Panes register through `register` and `unregister` alone, which stay
   // stable, so this lookup can change with the stack without looping.
@@ -406,13 +409,13 @@ export function NavigatorContent({
       const depth = resolved === undefined ? provisionalDepth(entry) : resolved
       const top = position === 'top'
       const chrome =
-        sectionBack === null || position === 'ahead' || depth !== 1
+        secondaryBack === null || position === 'ahead' || depth !== 1
           ? top
             ? topChrome
             : PANE_CHROME_NONE
           : top
-            ? sectionBack.top
-            : sectionBack.below
+            ? secondaryBack.top
+            : secondaryBack.below
       return {
         position,
         depth,
@@ -420,7 +423,7 @@ export function NavigatorContent({
         isRoot: index !== -1 && index === rootIndex
       }
     },
-    [stack, positions, revealRoot, depths, topChrome, sectionBack, rootIndex]
+    [stack, positions, revealRoot, depths, topChrome, secondaryBack, rootIndex]
   )
 
   const stackValue = useMemo<PaneStackContextValue>(
@@ -444,7 +447,7 @@ export function NavigatorContent({
     const declared = Array.from(panes.current.values()).some(
       (pane) =>
         pane.kind === 'pane' ||
-        pane.kind === 'section' ||
+        pane.kind === 'secondary' ||
         pane.kind === 'overflow'
     )
     if (!declared) {
@@ -487,9 +490,12 @@ export function NavigatorContent({
     </PaneKindContext>
   ) : null
 
-  // Keyed so the search resets with the section; More replaces it while open.
-  const sectionPane = showsSectionPane ? (
-    <NavigatorSectionPane key={activeSection.value} section={activeSection} />
+  // Keyed so the search resets with the secondary; More replaces it while open.
+  const secondaryPane = showsSecondaryPane ? (
+    <NavigatorGeneratedSecondaryPane
+      key={activeSecondary.value}
+      secondary={activeSecondary}
+    />
   ) : null
 
   return (
@@ -510,11 +516,11 @@ export function NavigatorContent({
             data-overflow={moreOpen ? '' : undefined}
             className={navigatorPanesClass}
           >
-            {sectionPane}
+            {secondaryPane}
             {children}
             {fallbackOverflow}
             <NavigatorPageStep
-              section={activeSection}
+              secondary={activeSecondary}
               value={value}
               at={pageAt}
               level={level}

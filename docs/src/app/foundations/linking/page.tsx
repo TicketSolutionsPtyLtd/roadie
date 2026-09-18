@@ -56,8 +56,8 @@ export function Providers({ children }) {
           </Link>{' '}
           on a <Code>Navigator</Code> frame that is still waiting. Pass{' '}
           <Code>pendingIndicator={'{false}'}</Code> to turn it off, and use{' '}
-          <Code>useReportPendingNavigation</Code> for a navigation Roadie never
-          sees, such as your own <Code>router.push</Code>.
+          <Code>usePendingNavigation</Code> for a navigation Roadie never sees,
+          such as your own <Code>router.push</Code>.
         </p>
       </section>
 

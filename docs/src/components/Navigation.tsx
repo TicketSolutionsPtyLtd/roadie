@@ -54,7 +54,7 @@ export type NavigationSection = {
   items: NavigationItem[]
   /** When set, the secondary list renders these groups instead of `items`. */
   groups?: CatalogueCategory[]
-  root?: 'page'
+  overview?: boolean
   searchable?: boolean
 }
 
@@ -241,7 +241,7 @@ export function DocsNavigator({
                 {section.groups ? (
                   <Navigator.Secondary
                     aria-label={section.title}
-                    root={section.root}
+                    overview={section.overview}
                     searchable={section.searchable}
                   >
                     {section.groups.map((group) => (
@@ -273,7 +273,7 @@ export function DocsNavigator({
                 ) : subItems.length > 0 ? (
                   <Navigator.Secondary
                     aria-label={`${section.title} pages`}
-                    root={section.root}
+                    overview={section.overview}
                   >
                     {subItems.map((item) => (
                       <Navigator.Item

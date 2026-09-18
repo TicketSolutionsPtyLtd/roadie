@@ -17,7 +17,7 @@ navigation on large screens and a floating tab bar on phones.
 ```tsx
 import {
   Navigator,
-  useNavigatorSection
+  useNavigatorSecondary
 } from '@oztix/roadie-components/navigator'
 ```
 
@@ -84,7 +84,7 @@ The tree has three rules:
 A rail with several variants gets long, so it is tempting to move each variant
 into its own `UserRail` or `OrgRail` component. Doing that hides the `Primary`
 from the walk, and the bar still draws while sections, More rows and
-`useNavigatorSection` do nothing. Write each rail as a function you call, not a
+`useNavigatorSecondary` do nothing. Write each rail as a function you call, not a
 component you render. Call any hook it needs in the component and pass the
 result in as data.
 
@@ -343,15 +343,15 @@ function SectionsNav() {
 render(<SectionsNav />)
 ```
 
-#### Page roots
+#### Overview pages
 
-`root='page'` on `Navigator.Secondary` shows your page alone on the section's
+`overview` on `Navigator.Secondary` shows your page alone on the section's
 route, full width, with no list pane and no Back. Sub-pages work the same as in
 a list section. Use it when the section has an overview worth reading, such as
 Home or a dashboard.
 
 ```tsx-live-noinline
-function PageRootNav() {
+function OverviewNav() {
   const titles = {
     '/': 'Home',
     '/overview/installation': 'Installation',
@@ -367,7 +367,7 @@ function PageRootNav() {
               <Navigator.Brand />
               <Navigator.Item value='/' href='/' icon={<HouseIcon />}>
                 Home
-                <Navigator.Secondary aria-label='Home pages' root='page'>
+                <Navigator.Secondary aria-label='Home pages' overview>
                   <Navigator.Item
                     value='/overview/installation'
                     href='/overview/installation'
@@ -396,10 +396,10 @@ function PageRootNav() {
                 {path === '/' ? (
                   <div className='grid gap-3 pb-4'>
                     <p className='text-subtle'>
-                      The root shows the page alone. Navigator.SectionItems
+                      The root shows the page alone. Navigator.SecondaryItems
                       renders the section's items here.
                     </p>
-                    <Navigator.SectionItems />
+                    <Navigator.SecondaryItems />
                   </div>
                 ) : (
                   <p className='pb-4 text-subtle'>The page at {path}.</p>
@@ -412,11 +412,11 @@ function PageRootNav() {
     </div>
   )
 }
-render(<PageRootNav />)
+render(<OverviewNav />)
 ```
 
-- A page root needs the section's `href`. Without one, Navigator warns and uses
-  a list root.
+- `overview` needs the section's `href`. Without one, Navigator warns and
+  shows the list.
 - On a phone, tapping the section's tab on a sub-page goes to the root. On the
   root, it scrolls the page to the top.
 - `showList` still shows the list over a sub-page. It does nothing on the root.
@@ -427,7 +427,7 @@ render(<PageRootNav />)
 
 #### Section items in a page
 
-`Navigator.SectionItems` renders a section's items as a grouped `List`, the same
+`Navigator.SecondaryItems` renders a section's items as a grouped `List`, the same
 rows as the list pane. Each item's `description` shows under its label.
 
 | Prop | Does |
@@ -437,12 +437,12 @@ rows as the list pane. Each item's `description` shows under its label.
 | `showDescriptions={false}` | Drops the descriptions. |
 | Any `List` prop | Passes through to the `List`. |
 
-For your own layout, `useNavigatorSection(value?)` returns the same data. Loose
+For your own layout, `useNavigatorSecondary(value?)` returns the same data. Loose
 items come back as a group with no title.
 
 ```tsx
 function HomeCards() {
-  const section = useNavigatorSection('/')
+  const section = useNavigatorSecondary('/')
   if (!section) return null
   return (
     <div className='grid grid-cols-2 gap-3'>
@@ -521,7 +521,7 @@ render(<SearchableNav />)
 #### Your own section pane
 
 `Navigator.SecondaryPane` replaces one section's generated pane. Declare it
-before your detail pane. `<Navigator.SectionItems showDescriptions={false} />`
+before your detail pane. `<Navigator.SecondaryItems showDescriptions={false} />`
 renders the same rows, and its `query` prop lets your pane keep search.
 
 ```tsx-live-noinline
@@ -561,7 +561,7 @@ function SectionOverrideNav() {
                       <Card.Description>Labels for icon-only controls.</Card.Description>
                     </Card.Content>
                   </Card>
-                  <Navigator.SectionItems showDescriptions={false} />
+                  <Navigator.SecondaryItems showDescriptions={false} />
                 </div>
               </Navigator.SecondaryPane>
               <Pane>
@@ -655,55 +655,6 @@ leading column where two columns fit.
   router.
 - A row with an `href` keeps More open until `value` changes, so the old page
   never shows while the route loads.
-
-#### Your own More pane
-
-Declare `Navigator.OverflowPane` with `Navigator.OverflowItems` inside to write
-your own header or add content around the rows. Without it,
-`Navigator.Content` generates a pane titled "More".
-
-```tsx-live-noinline
-function OverflowPaneNav() {
-  const [active, setActive] = useState('discover')
-  const items = [
-    ['discover', 'Discover', <MagnifyingGlassIcon />],
-    ['tickets', 'Tickets', <TicketIcon />],
-    ['saved', 'Saved', <HeartIcon />],
-    ['orders', 'Orders', <ShoppingCartIcon />],
-    ['reviews', 'Reviews', <StarIcon />],
-    ['messages', 'Messages', <EnvelopeIcon />],
-    ['downloads', 'Downloads', <DownloadIcon />],
-    ['alerts', 'Alerts', <BellRingingIcon />],
-    ['help', 'Help', <InfoIcon />]
-  ]
-  return (
-    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
-      <Navigator value={active} onValueChange={setActive} className='h-full'>
-        <Navigator.Primary aria-label='Main'>
-          <Navigator.Brand />
-          {items.map(([value, label, icon]) => (
-            <Navigator.Item key={value} value={value} icon={icon}>
-              {label}
-            </Navigator.Item>
-          ))}
-        </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>
-            <h2 className='py-4 text-display-ui-4 text-strong'>{active}</h2>
-          </Pane>
-          <Navigator.OverflowPane>
-            <Pane.Header>
-              <Pane.Title>Everything else</Pane.Title>
-            </Pane.Header>
-            <Navigator.OverflowItems />
-          </Navigator.OverflowPane>
-        </Navigator.Content>
-      </Navigator>
-    </div>
-  )
-}
-render(<OverflowPaneNav />)
-```
 
 ### Menus
 
@@ -1099,7 +1050,7 @@ A navigation Roadie never saw is not marked at all: one you start with
 `next/link`. Report those:
 
 ```tsx
-const { start, stop } = useReportPendingNavigation()
+const { start, stop } = usePendingNavigation()
 
 const buy = async () => {
   start()
@@ -1164,14 +1115,14 @@ Next.js routing that puts a list and a detail under one URL.
   </Guideline.Dont>
 </Guideline>
 
-<Guideline title='Page root or list root'>
-  <Guideline.Do code={`<Navigator.Item value='/' href='/' icon={<HouseIcon />}>\n  Home\n  <Navigator.Secondary aria-label='Home pages' root='page'>…</Navigator.Secondary>\n</Navigator.Item>`}>
-    Use a page root when the section has an overview worth reading, such as
+<Guideline title='Overview or list'>
+  <Guideline.Do code={`<Navigator.Item value='/' href='/' icon={<HouseIcon />}>\n  Home\n  <Navigator.Secondary aria-label='Home pages' overview>…</Navigator.Secondary>\n</Navigator.Item>`}>
+    Use `overview` when the section has a page worth reading, such as
     Home, a dashboard or a gallery.
   </Guideline.Do>
-  <Guideline.Dont code={`<Navigator.Item value='/inbox' href='/inbox' icon={<TrayIcon />}>\n  Inbox\n  <Navigator.Secondary aria-label='Messages' root='page' searchable>…</Navigator.Secondary>\n</Navigator.Item>`}>
-    Give a page root to a section whose route would only say "pick one". An
-    inbox is the list you choose from, so keep the list root.
+  <Guideline.Dont code={`<Navigator.Item value='/inbox' href='/inbox' icon={<TrayIcon />}>\n  Inbox\n  <Navigator.Secondary aria-label='Messages' overview searchable>…</Navigator.Secondary>\n</Navigator.Item>`}>
+    Give `overview` to a section whose route would only say "pick one". An
+    inbox is the list you choose from, so keep the list.
   </Guideline.Dont>
 </Guideline>
 

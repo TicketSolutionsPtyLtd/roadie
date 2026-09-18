@@ -10,12 +10,12 @@ import {
 } from './NavigatorContext'
 import { opensElsewhere } from './opensElsewhere'
 import { presentNavIcon } from './presentNavIcon'
-import { type SectionRow, sectionRows } from './sectionData'
+import { type SecondaryRow, secondaryRows } from './secondaryData'
 import { textOf } from './splitSecondary'
-import { useSection } from './useNavigatorSection'
+import { useSecondary } from './useNavigatorSecondary'
 
-export type NavigatorSectionItemsProps = Omit<ListProps, 'children'> & {
-  /** The section's item value; omit for the active section. */
+export type NavigatorSecondaryItemsProps = Omit<ListProps, 'children'> & {
+  /** The secondary's item value; omit for the active secondary. */
   value?: string
   /** Filters rows by label, ignoring case. Empty groups hide. */
   query?: string
@@ -23,19 +23,19 @@ export type NavigatorSectionItemsProps = Omit<ListProps, 'children'> & {
   showDescriptions?: boolean
 }
 
-type SectionItemsRowProps = {
-  row: SectionRow
+type SecondaryItemsRowProps = {
+  row: SecondaryRow
   current: boolean
   showDescriptions: boolean
 }
 
 // By hand: rows come out of a `map`, which the compiler caches only as a whole,
 // so a new `value` would otherwise re-render every row.
-const SectionItemsRow = memo(function SectionItemsRow({
+const SecondaryItemsRow = memo(function SecondaryItemsRow({
   row,
   current,
   showDescriptions
-}: SectionItemsRowProps) {
+}: SecondaryItemsRowProps) {
   const { setValue, activateItem } = use(NavigatorActionsContext)
   return (
     <List.Item
@@ -55,21 +55,21 @@ const SectionItemsRow = memo(function SectionItemsRow({
   )
 })
 
-/** A section's items as a `List`; renders nothing when the section isn't found. */
-export function NavigatorSectionItems({
-  value: sectionValue,
+/** A secondary's items as a `List`; renders nothing when the secondary isn't found. */
+export function NavigatorSecondaryItems({
+  value: secondaryValue,
   query = '',
   showDescriptions = true,
   ...props
-}: NavigatorSectionItemsProps) {
-  const section = useSection(sectionValue)
+}: NavigatorSecondaryItemsProps) {
+  const secondary = useSecondary(secondaryValue)
   const { value } = use(NavigatorSelectionContext)
-  // Keyed on the section alone, so a new `value` keeps every row's identity.
+  // Keyed on the secondary alone, so a new `value` keeps every row's identity.
   const rows = useMemo(
-    () => (section === null ? [] : sectionRows(section, undefined)),
-    [section]
+    () => (secondary === null ? [] : secondaryRows(secondary, undefined)),
+    [secondary]
   )
-  if (section === null) return null
+  if (secondary === null) return null
 
   const needle = query.trim().toLowerCase()
   const groups = rows
@@ -85,7 +85,7 @@ export function NavigatorSectionItems({
   if (groups.length === 0 && needle !== '') {
     return (
       <p
-        data-slot='navigator-section-empty'
+        data-slot='navigator-secondary-empty'
         className='px-4 py-3 text-sm text-subtle'
       >
         No matches
@@ -93,8 +93,8 @@ export function NavigatorSectionItems({
     )
   }
 
-  const row = (item: SectionRow) => (
-    <SectionItemsRow
+  const row = (item: SecondaryRow) => (
+    <SecondaryItemsRow
       key={item.value}
       row={item}
       current={isActiveValue(item.value, value)}
@@ -104,8 +104,8 @@ export function NavigatorSectionItems({
 
   return (
     <List
-      data-slot='navigator-section-items'
-      data-navigator-items={section.value}
+      data-slot='navigator-secondary-items'
+      data-navigator-items={secondary.value}
       {...props}
     >
       {groups.map((group, index) =>
@@ -124,4 +124,4 @@ export function NavigatorSectionItems({
   )
 }
 
-NavigatorSectionItems.displayName = 'Navigator.SectionItems'
+NavigatorSecondaryItems.displayName = 'Navigator.SecondaryItems'

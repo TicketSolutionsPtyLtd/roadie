@@ -284,7 +284,7 @@ describe('vertical capacity', () => {
     ).toBeNull()
   })
 
-  it('lights More while the current section is folded', async () => {
+  it('lights More while the current secondary is folded', async () => {
     render(<Six value='/f' />)
     await flushViewportMeasurement()
     reportClusterHeight(192)
@@ -533,8 +533,8 @@ describe('choosing a primary item closes More', () => {
     ).toHaveAttribute('data-current')
   })
 
-  it('brings back the chosen section’s own pane', async () => {
-    function Sectioned() {
+  it('brings back the chosen secondary’s own pane', async () => {
+    function WithSecondary() {
       const [value, setValue] = useState('/a')
       return withStubLink(
         <Navigator value={value} onValueChange={setValue}>
@@ -546,8 +546,8 @@ describe('choosing a primary item closes More', () => {
               icon={<FakeIcon />}
               visibilityPriority='high'
             >
-              Section
-              <Navigator.Secondary aria-label='Section pages'>
+              Secondary
+              <Navigator.Secondary aria-label='Secondary pages'>
                 <Navigator.Item value='/s/one' href='/s/one'>
                   One
                 </Navigator.Item>
@@ -564,18 +564,18 @@ describe('choosing a primary item closes More', () => {
       )
     }
     const user = userEvent.setup()
-    render(<Sectioned />)
+    render(<WithSecondary />)
     await flushViewportMeasurement()
     reportClusterHeight(192)
     await user.click(
       within(region('cluster')).getByRole('button', { name: 'More' })
     )
-    expect(document.querySelector('[data-navigator-section]')).toBeNull()
+    expect(document.querySelector('[data-navigator-secondary]')).toBeNull()
     await user.click(
-      within(region('cluster')).getByRole('link', { name: 'Section' })
+      within(region('cluster')).getByRole('link', { name: 'Secondary' })
     )
     expect(
-      document.querySelector('[data-navigator-section="/s"]')
+      document.querySelector('[data-navigator-secondary="/s"]')
     ).toBeInTheDocument()
     expect(
       document.querySelector('[data-slot="navigator-panes"]')
@@ -792,7 +792,7 @@ describe('an item’s onSelect', () => {
   })
 })
 
-function SectionedMore({ expanded = false }: { expanded?: boolean }) {
+function MoreWithSecondary({ expanded = false }: { expanded?: boolean }) {
   return (
     <Navigator value='/s' expanded={expanded}>
       <Navigator.Primary aria-label='Main'>
@@ -803,8 +803,8 @@ function SectionedMore({ expanded = false }: { expanded?: boolean }) {
           icon={<FakeIcon />}
           visibilityPriority='high'
         >
-          Section
-          <Navigator.Secondary aria-label='Section pages'>
+          Secondary
+          <Navigator.Secondary aria-label='Secondary pages'>
             <Navigator.Item value='/s/one' href='/s/one'>
               One
             </Navigator.Item>
@@ -828,7 +828,7 @@ describe('More with nothing left folded', () => {
     await user.click(
       within(region('cluster')).getByRole('button', { name: 'More' })
     )
-    expect(document.querySelector('[data-navigator-section]')).toBeNull()
+    expect(document.querySelector('[data-navigator-secondary]')).toBeNull()
   }
 
   const expectMoreClosed = () => {
@@ -837,20 +837,20 @@ describe('More with nothing left folded', () => {
     ).toBeNull()
     expect(document.querySelector('[aria-expanded="true"]')).toBeNull()
     expect(
-      document.querySelector('[data-navigator-section="/s"]')
+      document.querySelector('[data-navigator-secondary="/s"]')
     ).toHaveAttribute('data-stack-position', 'top')
   }
 
   it('closes when expanding unfolds every item', async () => {
-    const { rerender } = render(<SectionedMore />)
+    const { rerender } = render(<MoreWithSecondary />)
     await flushViewportMeasurement()
     await openVerticalMore()
-    rerender(<SectionedMore expanded />)
+    rerender(<MoreWithSecondary expanded />)
     expectMoreClosed()
   })
 
   it('closes when the window grows until every item fits', async () => {
-    render(<SectionedMore />)
+    render(<MoreWithSecondary />)
     await flushViewportMeasurement()
     await openVerticalMore()
     reportClusterHeight(1000)

@@ -320,7 +320,7 @@ export function panesShownAt(columns: number) {
     .map((pane) =>
       pane.hasAttribute('data-overflow')
         ? 'More'
-        : (pane.dataset.navigatorSection ?? pane.dataset.column)
+        : (pane.dataset.navigatorSecondary ?? pane.dataset.column)
     )
 }
 

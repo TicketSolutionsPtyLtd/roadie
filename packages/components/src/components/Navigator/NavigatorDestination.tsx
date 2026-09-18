@@ -22,7 +22,7 @@ export type NavigatorDestinationProps = Omit<
   style?: CSSProperties
   /** `'page'` for a real destination, `'true'` for the More disclosure. */
   ariaCurrent?: 'page' | 'true'
-  /** What the sliding indicator tracks; separate from `aria-current` so a section on an undeclared sub-route holds the pill without claiming the page. */
+  /** What the sliding indicator tracks; separate from `aria-current` so a secondary on an undeclared sub-route holds the pill without claiming the page. */
   dataCurrent?: boolean
   className?: string
   children: ReactNode

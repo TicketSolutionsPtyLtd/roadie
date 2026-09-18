@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-import { usePendingNavigation } from '../../providers/PendingNavigationContext'
+import { usePendingNavigationSnapshot } from '../../providers/PendingNavigationContext'
 
 /** `visible` draws the indicator, `leaving` fades it out, `idle` draws nothing. */
 export type FramePendingState = 'idle' | 'visible' | 'leaving'
@@ -19,7 +19,7 @@ export const PENDING_FADE = 200
  * stays {@link PENDING_MINIMUM} so it reads as a pulse rather than a flicker.
  */
 export function useFramePending(enabled: boolean): FramePendingState {
-  const navigation = usePendingNavigation(enabled)
+  const navigation = usePendingNavigationSnapshot(enabled)
   const waiting = navigation !== null
 
   const [state, setState] = useState<FramePendingState>('idle')

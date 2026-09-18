@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { Navigator, type NavigatorSectionItemsProps } from '.'
+import { Navigator, type NavigatorSecondaryItemsProps } from '.'
 import { Badge } from '../Badge'
 import { Pane } from '../Pane'
 import { flushViewportMeasurement, primaryOf, testBrand } from './testUtils'
@@ -16,7 +16,7 @@ function Docs({
   value: string
   itemsValue?: string
   withItems?: boolean
-  itemsProps?: Omit<NavigatorSectionItemsProps, 'value'>
+  itemsProps?: Omit<NavigatorSecondaryItemsProps, 'value'>
 }) {
   return (
     <Navigator value={value}>
@@ -24,7 +24,7 @@ function Docs({
         {testBrand}
         <Navigator.Item value='/' href='/'>
           Home
-          <Navigator.Secondary aria-label='Home pages' root='page'>
+          <Navigator.Secondary aria-label='Home pages' overview>
             <Navigator.Item
               value='/overview/installation'
               href='/overview/installation'
@@ -61,7 +61,7 @@ function Docs({
       <Navigator.Content>
         <Pane>
           {withItems ? (
-            <Navigator.SectionItems
+            <Navigator.SecondaryItems
               value={itemsValue}
               className='mt-2'
               {...itemsProps}
@@ -73,14 +73,14 @@ function Docs({
   )
 }
 
-const sectionItems = () =>
-  document.querySelector<HTMLElement>('[data-slot="navigator-section-items"]')
+const secondaryItems = () =>
+  document.querySelector<HTMLElement>('[data-slot="navigator-secondary-items"]')
 
-describe('Navigator.SectionItems', () => {
-  it('renders the active section as grouped rows with descriptions, badges and chevrons', async () => {
+describe('Navigator.SecondaryItems', () => {
+  it('renders the active secondary as grouped rows with descriptions, badges and chevrons', async () => {
     render(<Docs value='/' />)
     await flushViewportMeasurement()
-    const list = sectionItems()!
+    const list = secondaryItems()!
     expect(list).toHaveClass('mt-2')
     expect(within(list).getByText('Reference')).toBeInTheDocument()
     expect(list.querySelectorAll('[data-slot="list-group"]')).toHaveLength(1)
@@ -104,26 +104,26 @@ describe('Navigator.SectionItems', () => {
     render(<Docs value='/migration' />)
     await flushViewportMeasurement()
     expect(
-      within(sectionItems()!).getByRole('link', { name: /Migrating to v2/ })
+      within(secondaryItems()!).getByRole('link', { name: /Migrating to v2/ })
     ).toHaveAttribute('aria-current', 'page')
     expect(
-      within(sectionItems()!).getByRole('link', { name: /Installation/ })
+      within(secondaryItems()!).getByRole('link', { name: /Installation/ })
     ).not.toHaveAttribute('aria-current')
   })
 
-  it('renders any section by value', async () => {
+  it('renders any secondary by value', async () => {
     render(<Docs value='/' itemsValue='/components' />)
     await flushViewportMeasurement()
     expect(
-      within(sectionItems()!).getByRole('link', { name: /Button/ })
+      within(secondaryItems()!).getByRole('link', { name: /Button/ })
     ).toHaveTextContent('Actions and CTAs')
-    expect(within(sectionItems()!).queryByText('Installation')).toBeNull()
+    expect(within(secondaryItems()!).queryByText('Installation')).toBeNull()
   })
 
-  it('renders nothing for an unknown section', async () => {
+  it('renders nothing for an unknown secondary', async () => {
     render(<Docs value='/' itemsValue='/nowhere' />)
     await flushViewportMeasurement()
-    expect(sectionItems()).toBeNull()
+    expect(secondaryItems()).toBeNull()
   })
 
   it('keeps description out of the navigation', async () => {
@@ -133,7 +133,7 @@ describe('Navigator.SectionItems', () => {
     expect(primaryOf('vertical')).not.toHaveTextContent('Set up the packages')
     expect(primaryOf('horizontal')).not.toHaveTextContent('Set up the packages')
     const pane = document.querySelector<HTMLElement>(
-      '[data-navigator-section]'
+      '[data-navigator-secondary]'
     )!
     expect(
       within(pane).getByRole('link', { name: /Installation/ })
@@ -146,16 +146,16 @@ describe('Navigator.SectionItems', () => {
       <Docs value='/' itemsProps={{ emphasis: 'normal' }} />
     )
     await flushViewportMeasurement()
-    expect(sectionItems()).toHaveAttribute('data-emphasis', 'normal')
-    expect(sectionItems()).not.toHaveAttribute('data-contained')
+    expect(secondaryItems()).toHaveAttribute('data-emphasis', 'normal')
+    expect(secondaryItems()).not.toHaveAttribute('data-contained')
     rerender(
       <Docs value='/' itemsProps={{ contained: true, emphasis: 'subtle' }} />
     )
-    expect(sectionItems()).toHaveAttribute('data-contained', 'subtle')
-    expect(sectionItems()).not.toHaveAttribute('data-emphasis')
-    expect(sectionItems()).toHaveAttribute(
+    expect(secondaryItems()).toHaveAttribute('data-contained', 'subtle')
+    expect(secondaryItems()).not.toHaveAttribute('data-emphasis')
+    expect(secondaryItems()).toHaveAttribute(
       'data-slot',
-      'navigator-section-items'
+      'navigator-secondary-items'
     )
   })
 
@@ -201,7 +201,7 @@ function StudioApp({ value }: { value: string }) {
         {testBrand}
         <Navigator.Item value='/studio/events' href='/studio/events'>
           Events
-          <Navigator.Secondary aria-label='Events pages' root='page'>
+          <Navigator.Secondary aria-label='Events pages' overview>
             <Navigator.Item
               value='/studio/events/a'
               href='/studio/events/a'
@@ -221,39 +221,39 @@ function StudioApp({ value }: { value: string }) {
       </Navigator.Primary>
       <Navigator.Content>
         <Pane>
-          <Navigator.SectionItems />
+          <Navigator.SecondaryItems />
         </Pane>
       </Navigator.Content>
     </Navigator>
   )
 }
 
-const generatedSectionPane = () =>
-  document.querySelector<HTMLElement>('[data-navigator-section]')
+const generatedSecondaryPane = () =>
+  document.querySelector<HTMLElement>('[data-navigator-secondary]')
 
 describe('loose rows key warning', () => {
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
-  it('keys loose rows through Navigator.SectionItems and the generated section pane', async () => {
+  it('keys loose rows through Navigator.SecondaryItems and the generated secondary pane', async () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     const { rerender } = render(<StudioApp value='/studio/events' />)
     await flushViewportMeasurement()
     expect(
-      within(sectionItems()!).getByRole('link', { name: 'Alpha' })
+      within(secondaryItems()!).getByRole('link', { name: 'Alpha' })
     ).toBeInTheDocument()
     expect(
-      within(sectionItems()!).getByRole('link', { name: 'Beta' })
+      within(secondaryItems()!).getByRole('link', { name: 'Beta' })
     ).toBeInTheDocument()
 
     rerender(<StudioApp value='/studio/events/a' />)
     await flushViewportMeasurement()
     expect(
-      within(generatedSectionPane()!).getByRole('link', { name: 'Alpha' })
+      within(generatedSecondaryPane()!).getByRole('link', { name: 'Alpha' })
     ).toBeInTheDocument()
     expect(
-      within(generatedSectionPane()!).getByRole('link', { name: 'Beta' })
+      within(generatedSecondaryPane()!).getByRole('link', { name: 'Beta' })
     ).toBeInTheDocument()
 
     expect(error).not.toHaveBeenCalled()

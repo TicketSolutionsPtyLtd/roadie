@@ -1,6 +1,9 @@
 import { Children, type ReactElement, isValidElement } from 'react'
 
-import { type NavigatorActiveSection, isBranchActive } from './NavigatorContext'
+import {
+  type NavigatorActiveSecondary,
+  isBranchActive
+} from './NavigatorContext'
 import type { NavigatorItemProps } from './NavigatorItem'
 import {
   NavigatorMenuItem,
@@ -9,10 +12,10 @@ import {
 import type { NavigatorSlotMeta } from './mobileSlots'
 import { secondaryBlocks } from './splitSecondary'
 
-function sectionWhere(
+function secondaryWhere(
   slots: readonly NavigatorSlotMeta[],
   matches: (slot: NavigatorSlotMeta) => boolean
-): NavigatorActiveSection | null {
+): NavigatorActiveSecondary | null {
   const slot = slots.find(
     (candidate) => candidate.secondary && matches(candidate)
   )
@@ -21,28 +24,26 @@ function sectionWhere(
     value: slot.value,
     href: slot.declaredHref,
     label: slot.label,
-    secondary: slot.secondary,
-    root:
-      slot.declaredHref !== undefined && slot.secondary.root === 'page'
-        ? 'page'
-        : 'list'
+    props: slot.secondary,
+    overview:
+      slot.declaredHref !== undefined && slot.secondary.overview === true
   }
 }
 
 /** The branch-active item with a `Navigator.Secondary`. */
-export const findActiveSection = (
+export const findActiveSecondary = (
   slots: readonly NavigatorSlotMeta[],
   value: string | undefined
 ) =>
-  sectionWhere(slots, (slot) =>
+  secondaryWhere(slots, (slot) =>
     isBranchActive(slot.value, slot.descendants, value)
   )
 
 /** The item with a `Navigator.Secondary` whose `value` is `itemValue`. */
-export const findSectionByValue = (
+export const findSecondaryByValue = (
   slots: readonly NavigatorSlotMeta[],
   itemValue: string
-) => sectionWhere(slots, (slot) => slot.value === itemValue)
+) => secondaryWhere(slots, (slot) => slot.value === itemValue)
 
 /** The `Navigator.Item` whose `value` is `itemValue`, in Primary or any Secondary. */
 export function findItem(

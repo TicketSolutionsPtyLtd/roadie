@@ -15,6 +15,8 @@ import {
   NavigatorDisclosureContext,
   type NavigatorOverflowSets
 } from './NavigatorContext'
+import { NavigatorOverflowItems } from './NavigatorOverflowItems'
+import { NavigatorOverflowPane } from './NavigatorOverflowPane'
 import {
   FakeIcon,
   flushScrollFrame,
@@ -656,7 +658,7 @@ describe('destination visuals', () => {
     expect(within(tab).getByText('A')).toHaveClass('sr-only')
   })
 
-  it('renders section-pane rows duotone at size-5', async () => {
+  it('renders secondary-pane rows duotone at size-5', async () => {
     render(
       <Navigator value='/c'>
         <Navigator.Primary aria-label='Main'>
@@ -677,7 +679,7 @@ describe('destination visuals', () => {
     )
     await flushViewportMeasurement()
     const icon = document.querySelector(
-      '[data-slot="navigator-section-items"] [data-testid="fake-icon"]'
+      '[data-slot="navigator-secondary-items"] [data-testid="fake-icon"]'
     )
     expect(icon).toHaveAttribute('data-weight', 'duotone')
     expect(icon).toHaveClass('size-5', 'text-subtle')
@@ -735,9 +737,9 @@ describe('Navigator routeless primary', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const section = verticalItem('Foundations')
-    expect(section?.tagName).toBe('A')
-    expect(section).toHaveAttribute('href', '/foundations/layout')
+    const secondary = verticalItem('Foundations')
+    expect(secondary?.tagName).toBe('A')
+    expect(secondary).toHaveAttribute('href', '/foundations/layout')
     await flushViewportMeasurement()
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('but no href'))
     warn.mockRestore()
@@ -762,9 +764,9 @@ describe('Navigator routeless primary', () => {
         </Navigator.Primary>
       </Navigator>
     )
-    const section = verticalItem('Components')
-    expect(section?.tagName).toBe('A')
-    expect(section).toHaveAttribute('href', '/components')
+    const secondary = verticalItem('Components')
+    expect(secondary?.tagName).toBe('A')
+    expect(secondary).toHaveAttribute('href', '/components')
     await flushViewportMeasurement()
   })
 
@@ -781,7 +783,7 @@ describe('Navigator routeless primary', () => {
     await flushViewportMeasurement()
   })
 
-  it('lights the routeless section and marks its landing row in the section pane', async () => {
+  it('lights the routeless secondary and marks its landing row in the secondary pane', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
       <Navigator value='/foundations/layout'>
@@ -805,12 +807,12 @@ describe('Navigator routeless primary', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
-    const section = verticalItem('Foundations')
-    expect(section).toHaveClass('intent-accent')
-    expect(section).toHaveAttribute('aria-current', 'true')
+    const secondary = verticalItem('Foundations')
+    expect(secondary).toHaveClass('intent-accent')
+    expect(secondary).toHaveAttribute('aria-current', 'true')
 
     const pane = document.querySelector<HTMLElement>(
-      '[data-navigator-section="foundations"]'
+      '[data-navigator-secondary="foundations"]'
     )!
     expect(within(pane).getByRole('link', { name: 'Layout' })).toHaveAttribute(
       'aria-current',
@@ -1035,8 +1037,8 @@ describe('render fan-out', () => {
         <Navigator.Primary aria-label='Main'>
           {testBrand}
           <Navigator.Item value='/s' href='/s' icon={<TileIcon />}>
-            Section
-            <Navigator.Secondary aria-label='Section'>
+            Secondary
+            <Navigator.Secondary aria-label='Secondary'>
               {rows.map((row) => (
                 <Navigator.Item key={row} value={row} href={row}>
                   {row}
@@ -1203,9 +1205,9 @@ describe('Navigator mobile tab bar', () => {
     await flushViewportMeasurement()
   })
 
-  // The tab is the section, not the page — the pane's list row is the page,
+  // The tab is the secondary, not the page — the pane's list row is the page,
   // and two elements announcing "current page" is one too many.
-  it('marks a tab active through a sub-page as the current section', async () => {
+  it('marks a tab active through a sub-page as the current secondary', async () => {
     const { container } = render(
       <Navigator value='/foundations/layout'>
         <Navigator.Primary aria-label='Primary'>
@@ -1433,7 +1435,14 @@ describe('Navigator mobile tab bar', () => {
   })
 })
 
-describe('Navigator.OverflowPane', () => {
+describe('Navigator compound', () => {
+  it('keeps the More pane parts internal', () => {
+    expect('OverflowPane' in Navigator).toBe(false)
+    expect('OverflowItems' in Navigator).toBe(false)
+  })
+})
+
+describe('NavigatorOverflowPane', () => {
   const overflowNav = (value: string, extra?: ReactNode) => (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Main'>
@@ -1478,7 +1487,7 @@ describe('Navigator.OverflowPane', () => {
     expect(row).toHaveAttribute('data-reveal')
   })
 
-  it('titles the generated pane in its header, like a section pane', async () => {
+  it('titles the generated pane in its header, like a secondary pane', async () => {
     render(overflowNav('/a'))
     await flushViewportMeasurement()
     const more = document.querySelector('[data-slot="pane"][id]') as HTMLElement
@@ -1524,9 +1533,9 @@ describe('Navigator.OverflowPane', () => {
     const { container } = render(
       overflowNav(
         '/a',
-        <Navigator.OverflowPane aria-label='More'>
-          <Navigator.OverflowItems />
-        </Navigator.OverflowPane>
+        <NavigatorOverflowPane aria-label='More'>
+          <NavigatorOverflowItems />
+        </NavigatorOverflowPane>
       )
     )
     await flushViewportMeasurement()
@@ -1611,7 +1620,7 @@ describe('Navigator.OverflowPane', () => {
     </Navigator>
   )
 
-  it('keeps a folded group as a titled section of the overflow', async () => {
+  it('keeps a folded group as a titled secondary of the overflow', async () => {
     render(groupedOverflowNav('/a'))
     await flushViewportMeasurement()
     const overflow = within(panes()[1] as HTMLElement)
@@ -1623,7 +1632,7 @@ describe('Navigator.OverflowPane', () => {
     expect(overflow.queryByRole('link', { name: 'Account' })).toBeNull()
   })
 
-  it('marks an overflow row active through a sub-page as the current section', async () => {
+  it('marks an overflow row active through a sub-page as the current secondary', async () => {
     render(groupedOverflowNav('/e/deep'))
     await flushViewportMeasurement()
     const overflow = within(panes()[1] as HTMLElement)
@@ -1680,9 +1689,9 @@ describe('Navigator.OverflowPane', () => {
           </Navigator.Primary>
           <Navigator.Content>
             <Pane>Detail</Pane>
-            <Navigator.OverflowPane aria-label='Everything else'>
-              <Navigator.OverflowItems />
-            </Navigator.OverflowPane>
+            <NavigatorOverflowPane aria-label='Everything else'>
+              <NavigatorOverflowItems />
+            </NavigatorOverflowPane>
           </Navigator.Content>
         </Navigator>
       )
@@ -1753,13 +1762,13 @@ describe('Navigator.OverflowPane', () => {
     render(
       overflowNav(
         '/a',
-        <Navigator.OverflowPane>
+        <NavigatorOverflowPane>
           <Pane.Header>
             <Pane.Title>Menu</Pane.Title>
           </Pane.Header>
           <p>Promo</p>
-          <Navigator.OverflowItems />
-        </Navigator.OverflowPane>
+          <NavigatorOverflowItems />
+        </NavigatorOverflowPane>
       )
     )
     await flushViewportMeasurement()
@@ -1779,15 +1788,15 @@ describe('Navigator.OverflowPane', () => {
   // Stands in for a Next.js parallel-route slot node, which a children scan can't see through.
   const Slot = ({ children }: { children: ReactNode }) => <>{children}</>
 
-  it('recognises a Navigator.OverflowPane declared behind a wrapper', async () => {
+  it('recognises a NavigatorOverflowPane declared behind a wrapper', async () => {
     render(
       overflowNav(
         '/a',
         <Slot>
-          <Navigator.OverflowPane>
+          <NavigatorOverflowPane>
             <p>Promo</p>
-            <Navigator.OverflowItems />
-          </Navigator.OverflowPane>
+            <NavigatorOverflowItems />
+          </NavigatorOverflowPane>
         </Slot>
       )
     )
@@ -2173,11 +2182,11 @@ describe('Navigator.OverflowPane', () => {
       vi.unstubAllGlobals()
     })
 
-    it('switches instantly, never pushing, when a controlled More folds a section list in or out of view', async () => {
-      // A section (`/s0`) keeps its own list pane on screen; padding the tab
-      // count past MAX_TABS folds later sections into More without touching
+    it('switches instantly, never pushing, when a controlled More folds a secondary list in or out of view', async () => {
+      // A secondary (`/s0`) keeps its own list pane on screen; padding the tab
+      // count past MAX_TABS folds later secondaries into More without touching
       // `/s0` or `showMore` itself — the fold alone flips `moreOpen`.
-      const foldingSectionsNav = (folded: boolean) => (
+      const foldingSecondarysNav = (folded: boolean) => (
         <Navigator value='/s0' showMore>
           <Navigator.Primary aria-label='Main'>
             {testBrand}
@@ -2185,19 +2194,19 @@ describe('Navigator.OverflowPane', () => {
               Home
             </Navigator.Item>
             {Array.from({ length: folded ? 6 : 2 }, (_, i) => `s${i}`).map(
-              (section) => (
+              (secondary) => (
                 <Navigator.Item
-                  key={section}
-                  value={`/${section}`}
-                  href={`/${section}`}
+                  key={secondary}
+                  value={`/${secondary}`}
+                  href={`/${secondary}`}
                 >
-                  {section}
-                  <Navigator.Secondary aria-label={`${section} pages`}>
+                  {secondary}
+                  <Navigator.Secondary aria-label={`${secondary} pages`}>
                     <Navigator.Item
-                      value={`/${section}/1`}
-                      href={`/${section}/1`}
+                      value={`/${secondary}/1`}
+                      href={`/${secondary}/1`}
                     >
-                      {`${section} 1`}
+                      {`${secondary} 1`}
                     </Navigator.Item>
                   </Navigator.Secondary>
                 </Navigator.Item>
@@ -2212,13 +2221,13 @@ describe('Navigator.OverflowPane', () => {
       const more = () =>
         document.querySelector('[data-slot="pane"][data-overflow]')
 
-      const { rerender } = render(foldingSectionsNav(false))
+      const { rerender } = render(foldingSecondarysNav(false))
       await flushViewportMeasurement()
       flushFrame()
       flushFrame()
       expect(more()).toBeNull()
 
-      rerender(foldingSectionsNav(true))
+      rerender(foldingSecondarysNav(true))
       expect(more()).not.toBeNull()
       expect(content()).toHaveAttribute('data-instant')
       expect(row()).not.toHaveAttribute('data-pushing')
@@ -2227,7 +2236,7 @@ describe('Navigator.OverflowPane', () => {
       expect(content()).not.toHaveAttribute('data-instant')
       await flushViewportMeasurement()
 
-      rerender(foldingSectionsNav(false))
+      rerender(foldingSecondarysNav(false))
       expect(more()).toBeNull()
       expect(content()).toHaveAttribute('data-instant')
       expect(row()).not.toHaveAttribute('data-pushing')
@@ -2237,23 +2246,26 @@ describe('Navigator.OverflowPane', () => {
       await flushViewportMeasurement()
     })
 
-    const sectionsNav = (value: string, showMore?: boolean) => (
+    const secondarysNav = (value: string, showMore?: boolean) => (
       <Navigator value={value} showMore={showMore}>
         <Navigator.Primary aria-label='Main'>
           {testBrand}
           <Navigator.Item value='/' href='/'>
             Home
           </Navigator.Item>
-          {['a', 'b'].map((section) => (
+          {['a', 'b'].map((secondary) => (
             <Navigator.Item
-              key={section}
-              value={`/${section}`}
-              href={`/${section}`}
+              key={secondary}
+              value={`/${secondary}`}
+              href={`/${secondary}`}
             >
-              {section}
-              <Navigator.Secondary aria-label={`${section} pages`}>
-                <Navigator.Item value={`/${section}/1`} href={`/${section}/1`}>
-                  {`${section} 1`}
+              {secondary}
+              <Navigator.Secondary aria-label={`${secondary} pages`}>
+                <Navigator.Item
+                  value={`/${secondary}/1`}
+                  href={`/${secondary}/1`}
+                >
+                  {`${secondary} 1`}
                 </Navigator.Item>
               </Navigator.Secondary>
             </Navigator.Item>
@@ -2266,17 +2278,17 @@ describe('Navigator.OverflowPane', () => {
     )
 
     it.each([
-      ['one section to another', '/a/1', '/b'],
-      ['a section to none', '/a', '/'],
-      ['none to a section', '/', '/b/1']
+      ['one secondary to another', '/a/1', '/b'],
+      ['a secondary to none', '/a', '/'],
+      ['none to a secondary', '/', '/b/1']
     ])(
       'holds pane transitions off for two frames from %s',
       async (_, from, to) => {
-        const { rerender } = render(sectionsNav(from))
+        const { rerender } = render(secondarysNav(from))
         await flushViewportMeasurement()
         expect(content()).not.toHaveAttribute('data-instant')
 
-        rerender(sectionsNav(to))
+        rerender(secondarysNav(to))
         expect(content()).toHaveAttribute('data-instant')
         flushFrame()
         flushFrame()
@@ -2288,21 +2300,21 @@ describe('Navigator.OverflowPane', () => {
     it.each([
       ['a push', '/a', '/a/1'],
       ['a pop', '/a/1', '/a']
-    ])('keeps the slide for %s within a section', async (_, from, to) => {
-      const { rerender } = render(sectionsNav(from))
+    ])('keeps the slide for %s within a secondary', async (_, from, to) => {
+      const { rerender } = render(secondarysNav(from))
       await flushViewportMeasurement()
       flushFrame()
-      rerender(sectionsNav(to))
+      rerender(secondarysNav(to))
       expect(content()).not.toHaveAttribute('data-instant')
       expect(row()).toHaveAttribute('data-pushing')
       await flushViewportMeasurement()
     })
 
-    it('still marks a real push within a section while a controlled More stays open', async () => {
-      const { rerender } = render(sectionsNav('/a', true))
+    it('still marks a real push within a secondary while a controlled More stays open', async () => {
+      const { rerender } = render(secondarysNav('/a', true))
       await flushViewportMeasurement()
       flushFrame()
-      rerender(sectionsNav('/a/1', true))
+      rerender(secondarysNav('/a/1', true))
       expect(content()).not.toHaveAttribute('data-instant')
       expect(row()).toHaveAttribute('data-pushing')
       await flushViewportMeasurement()
@@ -2385,7 +2397,7 @@ describe('Navigator.Secondary', () => {
         <Navigator.Item value='events' href='/events'>
           Events
           <Navigator.Secondary
-            aria-label='Events sections'
+            aria-label='Events pages'
             className='custom-secondary'
           >
             <Navigator.Item value='all'>All events</Navigator.Item>
@@ -2400,16 +2412,16 @@ describe('Navigator.Secondary', () => {
     </Navigator>
   )
 
-  const sectionPane = () =>
-    document.querySelector<HTMLElement>('[data-navigator-section]')
+  const secondaryPane = () =>
+    document.querySelector<HTMLElement>('[data-navigator-secondary]')
 
-  it('renders its children in the section pane when its parent item is active', async () => {
+  it('renders its children in the secondary pane when its parent item is active', async () => {
     render(tree('events'))
     await flushViewportMeasurement()
     expect(
       within(
-        within(sectionPane()!).getByRole('navigation', {
-          name: 'Events sections'
+        within(secondaryPane()!).getByRole('navigation', {
+          name: 'Events pages'
         })
       )
         .getAllByRole('button')
@@ -2423,26 +2435,25 @@ describe('Navigator.Secondary', () => {
     expect(screen.queryByText('All events')).toBeNull()
   })
 
-  it('forwards className to the section navigation', async () => {
+  it('forwards className to the secondary navigation', async () => {
     render(tree('events'))
     await flushViewportMeasurement()
     expect(
-      screen.getByRole('navigation', { name: 'Events sections' })
+      screen.getByRole('navigation', { name: 'Events pages' })
     ).toHaveClass('custom-secondary')
   })
 
   it('marks the active secondary destination with aria-current', async () => {
     render(tree('drafts'))
     await flushViewportMeasurement()
-    const sectionNav = within(
-      screen.getByRole('navigation', { name: 'Events sections' })
-    )
-    expect(sectionNav.getByRole('button', { name: 'Drafts' })).toHaveAttribute(
-      'aria-current',
-      'page'
+    const secondaryNav = within(
+      screen.getByRole('navigation', { name: 'Events pages' })
     )
     expect(
-      sectionNav.getByRole('button', { name: 'All events' })
+      secondaryNav.getByRole('button', { name: 'Drafts' })
+    ).toHaveAttribute('aria-current', 'page')
+    expect(
+      secondaryNav.getByRole('button', { name: 'All events' })
     ).not.toHaveAttribute('aria-current')
   })
 
@@ -2455,7 +2466,7 @@ describe('Navigator.Secondary', () => {
           {testBrand}
           <Navigator.Item value='events' href='/events'>
             Events
-            <Navigator.Secondary aria-label='Events sections'>
+            <Navigator.Secondary aria-label='Events pages'>
               <Navigator.Item value='all'>All events</Navigator.Item>
               <Navigator.Item value='drafts'>Drafts</Navigator.Item>
             </Navigator.Secondary>
@@ -2468,7 +2479,7 @@ describe('Navigator.Secondary', () => {
     )
     await flushViewportMeasurement()
     await user.click(
-      within(sectionPane()!).getByRole('button', { name: 'Drafts' })
+      within(secondaryPane()!).getByRole('button', { name: 'Drafts' })
     )
     expect(onValueChange).toHaveBeenCalledWith('drafts')
   })
@@ -2501,19 +2512,19 @@ describe('Navigator.Secondary', () => {
   it('finds items nested inside a group when collecting descendants', async () => {
     render(groupedTree)
     await flushViewportMeasurement()
-    // The section is branch-active only if the walk saw the grouped child.
+    // The secondary is branch-active only if the walk saw the grouped child.
     expect(
       within(primaryOf('vertical')).getByRole('link', { name: 'Components' })
     ).toHaveAttribute('aria-current', 'true')
     expect(
-      within(sectionPane()!).getByRole('link', { name: 'Button' })
+      within(secondaryPane()!).getByRole('link', { name: 'Button' })
     ).toHaveAttribute('aria-current', 'page')
   })
 
-  it('renders a group label in the section pane', async () => {
+  it('renders a group label in the secondary pane', async () => {
     render(groupedTree)
     await flushViewportMeasurement()
-    expect(within(sectionPane()!).getByText('Actions')).toBeVisible()
+    expect(within(secondaryPane()!).getByText('Actions')).toBeVisible()
   })
 })
 
@@ -2555,7 +2566,7 @@ describe('Navigator.Group', () => {
           <Navigator.GroupTitle>{title}</Navigator.GroupTitle>
           <Navigator.Item value='/events' href='/events'>
             Events
-            <Navigator.Secondary aria-label='Events sections'>
+            <Navigator.Secondary aria-label='Events pages'>
               <Navigator.Group>
                 <Navigator.GroupTitle>Live formats</Navigator.GroupTitle>
                 <Navigator.Item value='/events/live' href='/events/live'>
@@ -2631,7 +2642,7 @@ describe('Navigator.Primary group descent', () => {
         <Navigator.Primary aria-label='Main'>
           {testBrand}
           <Navigator.Group>
-            <Navigator.GroupTitle>Section</Navigator.GroupTitle>
+            <Navigator.GroupTitle>Secondary</Navigator.GroupTitle>
             <Navigator.Item value='/a' href='/a'>
               A
             </Navigator.Item>
@@ -2652,10 +2663,10 @@ describe('Navigator.Primary group descent', () => {
         <Navigator.Primary aria-label='Main'>
           {testBrand}
           <Navigator.Group>
-            <Navigator.GroupTitle>Section</Navigator.GroupTitle>
+            <Navigator.GroupTitle>Secondary</Navigator.GroupTitle>
             <Navigator.Item value='/a' href='/a'>
               A
-              <Navigator.Secondary aria-label='A sections'>
+              <Navigator.Secondary aria-label='A pages'>
                 <Navigator.Item value='/a/sub' href='/a/sub'>
                   Sub
                 </Navigator.Item>
@@ -2670,7 +2681,7 @@ describe('Navigator.Primary group descent', () => {
     )
     await flushViewportMeasurement()
     const pane = document.querySelector<HTMLElement>(
-      '[data-navigator-section="/a"]'
+      '[data-navigator-secondary="/a"]'
     )!
     expect(within(pane).getByRole('link', { name: 'Sub' })).toHaveAttribute(
       'aria-current',
@@ -2699,7 +2710,7 @@ describe('Navigator.Menu + Navigator.Secondary precedence', () => {
         {testBrand}
         <Navigator.Item value='/a'>
           A
-          <Navigator.Secondary aria-label='A sections'>
+          <Navigator.Secondary aria-label='A pages'>
             <Navigator.Item value='/a/sub' href='/a/sub'>
               Sub
             </Navigator.Item>
@@ -2715,11 +2726,11 @@ describe('Navigator.Menu + Navigator.Secondary precedence', () => {
     </Navigator>
   )
 
-  it('renders as a section, not a menu, when both are declared', async () => {
+  it('renders as a secondary, not a menu, when both are declared', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = render(withBoth('/a'))
     await flushViewportMeasurement()
-    // A routeless section links to its first sub-page, so no menu took over the row.
+    // A routeless secondary links to its first sub-page, so no menu took over the row.
     const row = verticalOf(container).getByRole('link', { name: 'A' })
     expect(row).toHaveAttribute('href', '/a/sub')
     expect(row).not.toHaveAttribute('aria-haspopup')
@@ -2734,7 +2745,7 @@ describe('Navigator.Menu + Navigator.Secondary precedence', () => {
     await flushViewportMeasurement()
     expect(
       within(
-        document.querySelector<HTMLElement>('[data-navigator-section="/a"]')!
+        document.querySelector<HTMLElement>('[data-navigator-secondary="/a"]')!
       ).getByRole('link', { name: 'Sub' })
     ).toBeInTheDocument()
     expect(
@@ -2786,12 +2797,12 @@ describe('Navigator descendant-aware active matching', () => {
     within(primaryOf('vertical'))
       .getByText(label)
       .closest('[data-slot="navigator-item"]')
-  const sectionRow = (label: string) =>
+  const secondaryRow = (label: string) =>
     within(
-      document.querySelector<HTMLElement>('[data-navigator-section]')!
+      document.querySelector<HTMLElement>('[data-navigator-secondary]')!
     ).getByRole('button', { name: label })
 
-  it('marks a section branch-active when a Secondary descendant is current', async () => {
+  it('marks a secondary branch-active when a Secondary descendant is current', async () => {
     render(tree('button'))
     await flushViewportMeasurement()
     expect(verticalItem('Components')).toHaveClass('intent-accent')
@@ -2808,23 +2819,23 @@ describe('Navigator descendant-aware active matching', () => {
     expect(screen.queryByText('Layout')).toBeNull()
   })
 
-  it('keeps a section reading current on a sub-route no Secondary declares', async () => {
+  it('keeps a secondary reading current on a sub-route no Secondary declares', async () => {
     render(tree('components/settings'))
     await flushViewportMeasurement()
-    const section = verticalItem('Components')
+    const secondary = verticalItem('Components')
     // `data-current` is what the sliding pill measures.
-    expect(section).toHaveAttribute('data-current')
-    expect(section).toHaveAttribute('aria-current', 'true')
+    expect(secondary).toHaveAttribute('data-current')
+    expect(secondary).toHaveAttribute('aria-current', 'true')
   })
 
-  it('gives aria-current=page to the exact descendant, not the branch section', async () => {
+  it('gives aria-current=page to the exact descendant, not the branch secondary', async () => {
     render(tree('button'))
     await flushViewportMeasurement()
-    expect(sectionRow('Button')).toHaveAttribute('aria-current', 'page')
+    expect(secondaryRow('Button')).toHaveAttribute('aria-current', 'page')
     expect(verticalItem('Components')).toHaveAttribute('aria-current', 'true')
   })
 
-  it('marks the section mobile tab active when a descendant is current', async () => {
+  it('marks the secondary mobile tab active when a descendant is current', async () => {
     render(tree('button'))
     await flushViewportMeasurement()
     const bar = within(primaryOf('horizontal'))
@@ -2838,7 +2849,7 @@ describe('Navigator descendant-aware active matching', () => {
 })
 
 describe('Navigator lookups follow document order', () => {
-  it('resolves the section written first, even when it is pinned', async () => {
+  it('resolves the secondary written first, even when it is pinned', async () => {
     render(
       <Navigator value='/settings/team/members'>
         <Navigator.Primary aria-label='Main'>
@@ -2872,10 +2883,9 @@ describe('Navigator lookups follow document order', () => {
       </Navigator>
     )
     await flushViewportMeasurement()
-    expect(document.querySelector('[data-navigator-section]')).toHaveAttribute(
-      'data-navigator-section',
-      '/settings'
-    )
+    expect(
+      document.querySelector('[data-navigator-secondary]')
+    ).toHaveAttribute('data-navigator-secondary', '/settings')
   })
 })
 
@@ -2904,7 +2914,7 @@ describe('a Primary that is not a direct child', () => {
   })
 })
 
-describe('Navigator route-prefix section matching', () => {
+describe('Navigator route-prefix secondary matching', () => {
   const verticalItem = (label: string) =>
     screen
       .getAllByText(label)
@@ -2915,7 +2925,7 @@ describe('Navigator route-prefix section matching', () => {
         )
       )
 
-  const verticalSectionTree = (value: string) => (
+  const verticalSecondaryTree = (value: string) => (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Docs'>
         {testBrand}
@@ -2940,18 +2950,18 @@ describe('Navigator route-prefix section matching', () => {
     </Navigator>
   )
 
-  it('opens the section pane on an undeclared sub-route too', async () => {
-    render(verticalSectionTree('/foundations/undeclared'))
+  it('opens the secondary pane on an undeclared sub-route too', async () => {
+    render(verticalSecondaryTree('/foundations/undeclared'))
     await flushViewportMeasurement()
 
     expect(verticalItem('Foundations')).toHaveClass('intent-accent')
     expect(
-      document.querySelector('[data-navigator-section="/foundations"]')
+      document.querySelector('[data-navigator-secondary="/foundations"]')
     ).not.toBeNull()
   })
 
   it('does not match a sibling whose value is only a string prefix', async () => {
-    render(verticalSectionTree('/tokens-legacy'))
+    render(verticalSecondaryTree('/tokens-legacy'))
     await flushViewportMeasurement()
 
     expect(verticalItem('Tokens')).not.toHaveClass('intent-accent')
@@ -3534,9 +3544,9 @@ describe('Navigator active-tab tap: scroll-on-landing vs navigate-up', () => {
   const scrollerOf = (root: Document | HTMLElement) =>
     root.querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
 
-  // A section with its own landing route (`/components`) and one sub-page, so
-  // the active tab can be on the landing or on a sub-page of the same section.
-  const sectionTree = (active: string, onValueChange = vi.fn()) => (
+  // A secondary with its own landing route (`/components`) and one sub-page, so
+  // the active tab can be on the landing or on a sub-page of the same secondary.
+  const secondaryTree = (active: string, onValueChange = vi.fn()) => (
     <Navigator value={active} onValueChange={onValueChange}>
       <Navigator.Primary aria-label='Primary'>
         {testBrand}
@@ -3571,9 +3581,9 @@ describe('Navigator active-tab tap: scroll-on-landing vs navigate-up', () => {
     return scrollTo
   }
 
-  it('scrolls the pane to top when the active tab is tapped on the section landing', async () => {
+  it('scrolls the pane to top when the active tab is tapped on the secondary landing', async () => {
     const onValueChange = vi.fn()
-    const { container } = render(sectionTree('/components', onValueChange))
+    const { container } = render(secondaryTree('/components', onValueChange))
     const scrollTo = paneScrollSpy(container)
     const bar = within(horizontalOf(container) as HTMLElement)
 
@@ -3586,7 +3596,7 @@ describe('Navigator active-tab tap: scroll-on-landing vs navigate-up', () => {
   it('navigates up to the landing (not scroll) when the active tab is tapped on a sub-page', async () => {
     const onValueChange = vi.fn()
     const { container } = render(
-      sectionTree('/components/button', onValueChange)
+      secondaryTree('/components/button', onValueChange)
     )
     const scrollTo = paneScrollSpy(container)
     const components = within(horizontalOf(container) as HTMLElement).getByRole(
@@ -3594,7 +3604,7 @@ describe('Navigator active-tab tap: scroll-on-landing vs navigate-up', () => {
       { name: 'Components' }
     )
 
-    // Its href is the section landing, so tapping it pops up there rather than
+    // Its href is the secondary landing, so tapping it pops up there rather than
     // scrolling the sub-page's pane.
     expect(components).toHaveAttribute('href', '/components')
     await userEvent.click(components)
@@ -3834,7 +3844,7 @@ describe('Navigator.Content no-panes warning', () => {
     warn.mockRestore()
   })
 
-  it('warns while a section pane is open if no consumer pane registers', async () => {
+  it('warns while a secondary pane is open if no consumer pane registers', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const tree = (children?: ReactNode) => (
       <Navigator value='/a/one'>
@@ -3854,7 +3864,7 @@ describe('Navigator.Content no-panes warning', () => {
     )
     const { rerender } = render(tree())
     await flushViewportMeasurement()
-    expect(document.querySelector('[data-navigator-section]')).not.toBeNull()
+    expect(document.querySelector('[data-navigator-secondary]')).not.toBeNull()
     rerender(tree(<div>Not a pane</div>))
     await flushViewportMeasurement()
     expect(
@@ -3949,7 +3959,7 @@ describe('nesting acceptance criteria', () => {
   })
 
   // Criterion 5: tabBar resolves against the true top pane, even when that
-  // pane is wrapped and the generated section pane leads the stack.
+  // pane is wrapped and the generated secondary pane leads the stack.
   it('resolves tabBar against a wrapped top pane', async () => {
     render(
       <Navigator value='/foundations/colors'>
@@ -4000,8 +4010,8 @@ describe('a new destination starts at the top', () => {
           Home
         </Navigator.Item>
         <Navigator.Item value='/s' href='/s' icon={<FakeIcon />}>
-          Section
-          <Navigator.Secondary aria-label='Section pages'>
+          Secondary
+          <Navigator.Secondary aria-label='Secondary pages'>
             <Navigator.Item value='/s/a' href='/s/a'>
               A
             </Navigator.Item>
@@ -4027,7 +4037,7 @@ describe('a new destination starts at the top', () => {
   const page = () => viewportOf(screen.getByTestId('page'))
   const list = () =>
     viewportOf(
-      document.querySelector<HTMLElement>('[data-navigator-section="/s"]')!
+      document.querySelector<HTMLElement>('[data-navigator-secondary="/s"]')!
     )
   const scroll = (viewport: HTMLElement, top: number) =>
     act(async () => scrollViewport(viewport, top))
@@ -4049,7 +4059,7 @@ describe('a new destination starts at the top', () => {
     expect(header()).toHaveAttribute('data-collapsed', 'false')
   })
 
-  it('scrolls the page up on a section switch', async () => {
+  it('scrolls the page up on a secondary switch', async () => {
     const { rerender } = render(nav('/'))
     await flushViewportMeasurement()
     await scroll(page(), 900)
@@ -4104,7 +4114,7 @@ describe('a new destination starts at the top', () => {
   })
 })
 
-describe('per-section hrefs', () => {
+describe('per-secondary hrefs', () => {
   const nav = (value: string) => (
     <Navigator value={value}>
       <Navigator.Primary aria-label='Main'>
@@ -4134,13 +4144,13 @@ describe('per-section hrefs', () => {
       ) as HTMLElement
     ).getByRole('link', { name })
 
-  it('starts every section on its declared href', async () => {
+  it('starts every secondary on its declared href', async () => {
     render(nav('/components'))
     await flushViewportMeasurement()
     expect(verticalLink('Tokens')).toHaveAttribute('href', '/tokens')
   })
 
-  it('keeps a section you have left on its declared href', async () => {
+  it('keeps a secondary you have left on its declared href', async () => {
     const { rerender } = render(nav('/components'))
     await flushViewportMeasurement()
     rerender(nav('/tokens/color'))
@@ -4150,7 +4160,7 @@ describe('per-section hrefs', () => {
     expect(verticalLink('Tokens')).toHaveAttribute('href', '/tokens')
   })
 
-  it('leaves the section you are in on its declared href', async () => {
+  it('leaves the secondary you are in on its declared href', async () => {
     const { rerender } = render(nav('/tokens/color'))
     await flushViewportMeasurement()
     rerender(nav('/tokens/color'))
@@ -4158,7 +4168,7 @@ describe('per-section hrefs', () => {
     expect(verticalLink('Tokens')).toHaveAttribute('href', '/tokens')
   })
 
-  it('keeps a section that declares a Secondary on its declared href', async () => {
+  it('keeps a secondary that declares a Secondary on its declared href', async () => {
     const { rerender } = render(nav('/components/button'))
     await flushViewportMeasurement()
     rerender(nav('/tokens'))
@@ -4166,7 +4176,7 @@ describe('per-section hrefs', () => {
     expect(verticalLink('Components')).toHaveAttribute('href', '/components')
   })
 
-  it('keeps a folded section’s More row on its declared href, like its tab', async () => {
+  it('keeps a folded secondary’s More row on its declared href, like its tab', async () => {
     const folded = (value: string) => (
       <Navigator value={value}>
         <Navigator.Primary aria-label='Main'>
@@ -4235,8 +4245,8 @@ describe('going back puts a pane where it was', () => {
       <Navigator.Primary aria-label='Main'>
         {testBrand}
         <Navigator.Item value='/s' href='/s' icon={<FakeIcon />}>
-          Section
-          <Navigator.Secondary aria-label='Section pages'>
+          Secondary
+          <Navigator.Secondary aria-label='Secondary pages'>
             <Navigator.Item value='/s/a' href='/s/a'>
               A
             </Navigator.Item>
@@ -4329,7 +4339,7 @@ describe('going back puts a pane where it was', () => {
   })
 })
 
-describe('a page-root step back puts the page it returns to where it was', () => {
+describe('an overview step back puts the page it returns to where it was', () => {
   const history = withHistoryEntries()
 
   // One pane draws every page, so a step swaps its content under it.
@@ -4339,7 +4349,7 @@ describe('a page-root step back puts the page it returns to where it was', () =>
         {testBrand}
         <Navigator.Item value='/' href='/' icon={<FakeIcon />}>
           Home
-          <Navigator.Secondary aria-label='Home pages' root='page'>
+          <Navigator.Secondary aria-label='Home pages' overview>
             <Navigator.Item value='/a' href='/a'>
               A
             </Navigator.Item>

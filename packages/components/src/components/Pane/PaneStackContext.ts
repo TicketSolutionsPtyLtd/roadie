@@ -9,13 +9,17 @@ import type { PaneColumn, PaneTabBar } from './variants'
 export type PaneStackPosition = 'top' | 'ahead' | 'behind'
 
 export type PaneKind =
-  'pane' | 'section' | 'generated-section' | 'overflow' | 'generated-overflow'
+  | 'pane'
+  | 'secondary'
+  | 'generated-secondary'
+  | 'overflow'
+  | 'generated-overflow'
 
 export const isOverflowKind = (kind: PaneKind) =>
   kind === 'overflow' || kind === 'generated-overflow'
 
-export const isSectionKind = (kind: PaneKind) =>
-  kind === 'section' || kind === 'generated-section'
+export const isSecondaryKind = (kind: PaneKind) =>
+  kind === 'secondary' || kind === 'generated-secondary'
 
 export type PaneRegistration = {
   column: PaneColumn

@@ -50,7 +50,7 @@ const flatten = (route: string, groups: CatalogueCategory[]) => [
 async function catalogueSection(
   title: string,
   catalogue: Catalogue,
-  options: Pick<NavigationSection, 'root' | 'searchable'> = {}
+  options: Pick<NavigationSection, 'overview' | 'searchable'> = {}
 ): Promise<NavigationSection> {
   const groups = await getCatalogue(catalogue)
   return {
@@ -67,7 +67,7 @@ async function getNavigationItems(): Promise<NavigationSection[]> {
     {
       title: 'Home',
       href: '/',
-      root: 'page',
+      overview: true,
       items: await Promise.all([
         guide('/overview/getting-started', 'overview/getting-started/page.mdx'),
         guide('/overview/philosophy', 'overview/philosophy/page.mdx'),
@@ -79,10 +79,10 @@ async function getNavigationItems(): Promise<NavigationSection[]> {
         }
       ])
     },
-    await catalogueSection('Foundations', FOUNDATIONS, { root: 'page' }),
-    await catalogueSection('Tokens', TOKENS, { root: 'page' }),
+    await catalogueSection('Foundations', FOUNDATIONS, { overview: true }),
+    await catalogueSection('Tokens', TOKENS, { overview: true }),
     await catalogueSection('Components', COMPONENTS, {
-      root: 'page',
+      overview: true,
       searchable: true
     }),
     {

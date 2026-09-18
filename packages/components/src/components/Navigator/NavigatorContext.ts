@@ -9,21 +9,18 @@ import {
 } from 'react'
 
 import type { PaneTabBar } from '../Pane/variants'
-import type {
-  NavigatorSecondaryProps,
-  NavigatorSecondaryRoot
-} from './NavigatorSecondary'
+import type { NavigatorSecondaryProps } from './NavigatorSecondary'
 import { type CollectedSlots, collectSlots } from './collectSlots'
 import type { NavigatorSlotMeta } from './mobileSlots'
 
-export type NavigatorActiveSection = {
+export type NavigatorActiveSecondary = {
   value: string
-  /** The section route; undefined only for a routeless section. */
+  /** The secondary route; undefined only for a routeless secondary. */
   href?: string
   label: ReactNode
-  secondary: NavigatorSecondaryProps
-  /** `'page'` only with an `href`; a routeless section is `'list'`. */
-  root: NavigatorSecondaryRoot
+  props: NavigatorSecondaryProps
+  /** Only with an `href`; a routeless secondary has no overview. */
+  overview: boolean
 }
 
 export type NavigatorOverflowSets = {
@@ -70,18 +67,18 @@ export type NavigatorActions = {
   primaryId: string
 }
 
-/** What is selected, and the section it belongs to. */
+/** What is selected, and the secondary it belongs to. */
 export type NavigatorSelection = {
   value: string | undefined
   /** The direct-child Primary's walk; a new identity only when its structure changes. */
   collected: CollectedSlots
-  /** The branch-active section. */
-  activeSection: NavigatorActiveSection | null
-  /** The active section shows a list pane: not a page-first section on its own route. */
+  /** The branch-active secondary. */
+  activeSecondary: NavigatorActiveSecondary | null
+  /** The active secondary shows a list pane: not an overview on its own route. */
   listPaneShows: boolean
-  /** The app asks for the active section's list on top. */
+  /** The app asks for the active secondary's list on top. */
   showList: boolean
-  /** Sections whose generated pane a `Navigator.SecondaryPane` replaces. */
+  /** Secondaries whose generated pane a `Navigator.SecondaryPane` replaces. */
   declaredSecondaryPanes: ReadonlySet<string>
 }
 
@@ -138,7 +135,7 @@ export const NavigatorSelectionContext = createContext<NavigatorSelection>({
   value: undefined,
   collected: collectSlots(null),
 
-  activeSection: null,
+  activeSecondary: null,
   listPaneShows: false,
   showList: false,
   declaredSecondaryPanes: new Set()
@@ -170,7 +167,7 @@ export const isActiveValue = (
   activeValue: string | undefined
 ) => itemValue === activeValue
 
-// Prefix matching keeps a section lit on sub-routes its tree never declares.
+// Prefix matching keeps a secondary lit on sub-routes its tree never declares.
 export const isBranchActive = (
   itemValue: string,
   descendantValues: string[],
@@ -181,7 +178,7 @@ export const isBranchActive = (
   (activeValue !== undefined && activeValue.startsWith(`${itemValue}/`))
 
 // A menu item owns a menu, not a destination, so no route may light it.
-export const isSectionActive = (
+export const isSecondaryActive = (
   item: Pick<NavigatorSlotMeta, 'value' | 'descendants' | 'menu'>,
   activeValue: string | undefined
 ) => !item.menu && isBranchActive(item.value, item.descendants, activeValue)

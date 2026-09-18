@@ -18,7 +18,7 @@ export function NavigatorCanary() {
   useEffect(() => {
     const id = setTimeout(() => {
       const missing = [
-        '[data-navigator-section] [data-slot="list-group"]',
+        '[data-navigator-secondary] [data-slot="list-group"]',
         '[data-slot="navigator-primary-brand"] [data-slot="navigator-brand"]',
         '[data-slot="navigator-primary-pinned"] [data-slot="navigator-item"]',
         '[data-slot="navigator-primary-cluster"] [data-slot="navigator-capsule"][aria-labelledby]'

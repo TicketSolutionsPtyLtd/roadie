@@ -41,11 +41,11 @@ import {
   type NavigatorPrimaryProps
 } from './NavigatorPrimary'
 import {
-  findActiveSection,
+  findActiveSecondary,
   findItem,
   findMenuItem,
-  findSectionByValue
-} from './activeSection'
+  findSecondaryByValue
+} from './activeSecondary'
 import { collectSlots } from './collectSlots'
 import type { NavigatorSlotMeta } from './mobileSlots'
 import { primarySignature } from './primarySignature'
@@ -58,9 +58,9 @@ export type NavigatorRootProps = {
   value?: string
   /** Called when a destination is activated; omit when hrefs drive selection. */
   onValueChange?: (next: string) => void
-  /** Shows the active section's list over a stacked sub-page. Derive it from the URL, such as `?nav`. */
+  /** Shows the active secondary's list over a stacked sub-page. Derive it from the URL, such as `?nav`. */
   showList?: boolean
-  /** Called when the active section's tab asks to show or hide the list. Without it, the tab links to the section route. */
+  /** Called when the active secondary's tab asks to show or hide the list. Without it, the tab links to the secondary route. */
   onShowListChange?: (next: boolean) => void
   /** Opens the More pane. Derive it from the URL, such as `?more`. Without it, More keeps its own state. */
   showMore?: boolean
@@ -231,7 +231,7 @@ export function NavigatorRoot({
   if (derived.signature !== derivedSignature) {
     setDerived({ signature: derivedSignature, children: derivedChildren })
   }
-  // During render, not from Primary's effect, so the server renders the section's list pane.
+  // During render, not from Primary's effect, so the server renders the secondary's list pane.
   const primaryChildren =
     derived.signature === derivedSignature ? derived.children : derivedChildren
   const collected = useMemo(
@@ -243,15 +243,15 @@ export function NavigatorRoot({
     latestPrimaryChildren.current = derivedChildren
   }, [derivedChildren])
 
-  // Keyed on which section is active, so moving between its rows keeps its identity.
-  const activeSectionValue =
-    findActiveSection(collected.ordered, value)?.value ?? null
-  const activeSection = useMemo(
+  // Keyed on which secondary is active, so moving between its rows keeps its identity.
+  const activeSecondaryValue =
+    findActiveSecondary(collected.ordered, value)?.value ?? null
+  const activeSecondary = useMemo(
     () =>
-      activeSectionValue === null
+      activeSecondaryValue === null
         ? null
-        : findSectionByValue(collected.ordered, activeSectionValue),
-    [collected, activeSectionValue]
+        : findSecondaryByValue(collected.ordered, activeSecondaryValue),
+    [collected, activeSecondaryValue]
   )
 
   const latestSlots = () => collectSlots(latestPrimaryChildren.current).ordered
@@ -262,10 +262,8 @@ export function NavigatorRoot({
     findMenuItem(latestSlots(), itemValue, index)?.onSelect?.()
   }, [])
   const listPaneShows =
-    activeSection !== null &&
-    !(
-      activeSection.root === 'page' && isActiveValue(activeSection.value, value)
-    )
+    activeSecondary !== null &&
+    !(activeSecondary.overview && isActiveValue(activeSecondary.value, value))
 
   // Read at tap time from what the stack published. The first row is this
   // Navigator's own; its level skips the panes of any Navigator nested in it.
@@ -309,7 +307,7 @@ export function NavigatorRoot({
   const selection: NavigatorSelection = {
     value,
     collected,
-    activeSection,
+    activeSecondary,
     listPaneShows,
     showList: showList ?? false,
     declaredSecondaryPanes

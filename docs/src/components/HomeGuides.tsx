@@ -3,18 +3,18 @@
 import { Card } from '@oztix/roadie-components/card'
 import {
   Navigator,
-  useNavigatorSection
+  useNavigatorSecondary
 } from '@oztix/roadie-components/navigator'
 
 /** The Home section's pages, read from the navigation so they are declared once: rows on a phone, cards once there's room. */
 export function HomeGuides() {
-  const section = useNavigatorSection('/')
-  if (section === null) return null
+  const secondary = useNavigatorSecondary('/')
+  if (secondary === null) return null
   return (
     <>
-      <Navigator.SectionItems value='/' className='@md:hidden' />
+      <Navigator.SecondaryItems value='/' className='@md:hidden' />
       <ul className='hidden gap-4 @md:grid @md:grid-cols-2'>
-        {section.groups
+        {secondary.groups
           .flatMap((group) => group.items)
           .map((item) => (
             <li key={item.value} className='grid'>

@@ -7,9 +7,9 @@ import { describe, expect, it } from 'vitest'
 import { Navigator } from '.'
 import { Badge } from '../Badge'
 import { Pane } from '../Pane'
-import type { NavigatorSectionData } from './sectionData'
+import type { NavigatorSecondaryData } from './secondaryData'
 import { FakeIcon, flushViewportMeasurement, testBrand } from './testUtils'
-import { useNavigatorSection } from './useNavigatorSection'
+import { useNavigatorSecondary } from './useNavigatorSecondary'
 
 const badge = <Badge>New</Badge>
 
@@ -18,9 +18,9 @@ function Probe({
   log
 }: {
   value?: string
-  log: (NavigatorSectionData | null)[]
+  log: (NavigatorSecondaryData | null)[]
 }) {
-  const data = useNavigatorSection(value)
+  const data = useNavigatorSecondary(value)
   log.push(data)
   return (
     <span data-testid='probe'>
@@ -41,14 +41,14 @@ function Docs({
 }: {
   value: string
   probeValue?: string
-  log: (NavigatorSectionData | null)[]
+  log: (NavigatorSecondaryData | null)[]
 }) {
   const primary = (
     <Navigator.Primary aria-label='Docs'>
       {testBrand}
       <Navigator.Item value='/' href='/' icon={<FakeIcon />}>
         Home
-        <Navigator.Secondary aria-label='Home pages' root='page'>
+        <Navigator.Secondary aria-label='Home pages' overview>
           <Navigator.Item
             value='/overview/installation'
             href='/overview/installation'
@@ -98,9 +98,9 @@ function Docs({
   )
 }
 
-describe('useNavigatorSection', () => {
-  it('returns the active section: loose items as an untitled group, the current row marked', async () => {
-    const log: (NavigatorSectionData | null)[] = []
+describe('useNavigatorSecondary', () => {
+  it('returns the active secondary: loose items as an untitled group, the current row marked', async () => {
+    const log: (NavigatorSecondaryData | null)[] = []
     render(<Docs value='/overview/philosophy' log={log} />)
     await flushViewportMeasurement()
     const data = log.at(-1)!
@@ -123,7 +123,7 @@ describe('useNavigatorSection', () => {
   })
 
   it('carries label, href, icon, description and the badge element', async () => {
-    const log: (NavigatorSectionData | null)[] = []
+    const log: (NavigatorSecondaryData | null)[] = []
     render(<Docs value='/' log={log} />)
     await flushViewportMeasurement()
     const installation = log.at(-1)!.groups[0]!.items[0]!
@@ -140,8 +140,8 @@ describe('useNavigatorSection', () => {
     expect(log.at(-1)!.groups[0]!.items[1]!.icon).toBeUndefined()
   })
 
-  it('looks any section up by its item value', async () => {
-    const log: (NavigatorSectionData | null)[] = []
+  it('looks any secondary up by its item value', async () => {
+    const log: (NavigatorSecondaryData | null)[] = []
     render(<Docs value='/' probeValue='/components' log={log} />)
     await flushViewportMeasurement()
     expect(log.at(-1)).toMatchObject({
@@ -151,8 +151,8 @@ describe('useNavigatorSection', () => {
     expect(screen.getByTestId('probe')).toHaveTextContent('/components/button')
   })
 
-  it('returns null for an unknown value, an item without a Secondary, or outside every section', async () => {
-    const log: (NavigatorSectionData | null)[] = []
+  it('returns null for an unknown value, an item without a Secondary, or outside every secondary', async () => {
+    const log: (NavigatorSecondaryData | null)[] = []
     const { rerender } = render(
       <Docs value='/about' probeValue='/nowhere' log={log} />
     )
@@ -165,7 +165,7 @@ describe('useNavigatorSection', () => {
   })
 
   it('is computed in the server render', () => {
-    const log: (NavigatorSectionData | null)[] = []
+    const log: (NavigatorSecondaryData | null)[] = []
     const html = renderToString(<Docs value='/overview/philosophy' log={log} />)
     expect(html).toContain(
       '/overview/installation /overview/philosophy* /migration'
@@ -173,13 +173,13 @@ describe('useNavigatorSection', () => {
   })
 })
 
-describe('useNavigatorSection when the declaration changes', () => {
+describe('useNavigatorSecondary when the declaration changes', () => {
   const App = ({
     badgeText,
     log
   }: {
     badgeText: string
-    log: (NavigatorSectionData | null)[]
+    log: (NavigatorSecondaryData | null)[]
   }) => (
     <StrictMode>
       <Navigator value='/overview/installation'>
@@ -187,7 +187,7 @@ describe('useNavigatorSection when the declaration changes', () => {
           {testBrand}
           <Navigator.Item value='/' href='/' icon={<FakeIcon />}>
             Home
-            <Navigator.Secondary aria-label='Home pages' root='page'>
+            <Navigator.Secondary aria-label='Home pages' overview>
               <Navigator.Item
                 value='/overview/installation'
                 href='/overview/installation'
@@ -208,12 +208,12 @@ describe('useNavigatorSection when the declaration changes', () => {
     </StrictMode>
   )
 
-  const badgeTextOf = (data: NavigatorSectionData | null | undefined) =>
+  const badgeTextOf = (data: NavigatorSecondaryData | null | undefined) =>
     (data?.groups[0]?.items[0]?.badge?.props as { children?: ReactNode })
       ?.children
 
   it('updates when the structure changes, such as a badge text', async () => {
-    const log: (NavigatorSectionData | null)[] = []
+    const log: (NavigatorSecondaryData | null)[] = []
     const { rerender } = render(<App badgeText='New' log={log} />)
     await flushViewportMeasurement()
     expect(badgeTextOf(log.at(-1))).toBe('New')

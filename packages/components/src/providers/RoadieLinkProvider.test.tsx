@@ -1,10 +1,12 @@
 import '@testing-library/jest-dom/vitest'
-import { render, renderHook } from '@testing-library/react'
+import { act, render, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { usePendingNavigationSnapshot } from './PendingNavigationContext'
 import {
   type RoadieLinkComponent,
   RoadieLinkProvider,
+  usePendingNavigation,
   useRoadieLink
 } from './RoadieLinkProvider'
 
@@ -102,5 +104,44 @@ describe('RoadieLinkProvider', () => {
       </RoadieLinkProvider>
     )
     expect(warn).not.toHaveBeenCalled()
+  })
+})
+
+describe('usePendingNavigation', () => {
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <RoadieLinkProvider Link={StubLink}>{children}</RoadieLinkProvider>
+  )
+  const renderPending = () =>
+    renderHook(
+      () => ({
+        controls: usePendingNavigation(),
+        waiting: usePendingNavigationSnapshot() !== null
+      }),
+      { wrapper }
+    )
+
+  it('returns start and stop', () => {
+    const { result } = renderPending()
+    expect(Object.keys(result.current.controls).sort()).toEqual([
+      'start',
+      'stop'
+    ])
+  })
+
+  it('reports a wait from start until stop', () => {
+    const { result } = renderPending()
+    expect(result.current.waiting).toBe(false)
+    act(() => result.current.controls.start())
+    expect(result.current.waiting).toBe(true)
+    act(() => result.current.controls.stop())
+    expect(result.current.waiting).toBe(false)
+  })
+
+  it('does nothing outside a provider', () => {
+    const { result } = renderHook(() => usePendingNavigation())
+    expect(() => {
+      result.current.start()
+      result.current.stop()
+    }).not.toThrow()
   })
 })
