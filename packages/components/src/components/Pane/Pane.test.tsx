@@ -254,6 +254,36 @@ describe('Pane.Header', () => {
     expect(document.querySelector('[data-slot="pane-header"]')).toBeNull()
   })
 
+  it('draws no header for a falsy conditional child', async () => {
+    const showAction = false
+    await renderPane(
+      <Pane>
+        <Pane.Header>{showAction && <Pane.Actions />}</Pane.Header>
+      </Pane>
+    )
+    expect(document.querySelector('[data-slot="pane-header"]')).toBeNull()
+  })
+
+  it('draws no header for an array of falsy and null children', async () => {
+    await renderPane(
+      <Pane>
+        <Pane.Header>{[false, null]}</Pane.Header>
+      </Pane>
+    )
+    expect(document.querySelector('[data-slot="pane-header"]')).toBeNull()
+  })
+
+  it('renders the header for a real child', async () => {
+    await renderPane(
+      <Pane>
+        <Pane.Header>
+          <Pane.Actions />
+        </Pane.Header>
+      </Pane>
+    )
+    expect(document.querySelector('[data-slot="pane-header"]')).not.toBeNull()
+  })
+
   it('insets the scrollbar so it starts below the header', async () => {
     await renderPane(
       <Pane>

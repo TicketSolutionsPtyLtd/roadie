@@ -15,6 +15,7 @@ import { CaretLeftIcon, XIcon } from '@phosphor-icons/react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { isEmptyNode } from '../../utils/isEmptyNode'
 import { mergeRefs } from '../../utils/mergeRefs'
 import { useDevWarning } from '../../utils/useDevWarning'
 import { IconButton } from '../Button/IconButton'
@@ -97,7 +98,7 @@ export function PaneHeader({
       '[Roadie] Pane.Header has a Pane.Title and the pane a Pane.BodyTitle; the Pane.Title wins.'
   )
 
-  const hasOtherContent = children != null || bodyTitle !== null
+  const hasOtherContent = !isEmptyNode(children) || bodyTitle !== null
   const visible = showBack || showClose || hasOtherContent
   const edgeOnly = hasOtherContent
     ? 'none'
