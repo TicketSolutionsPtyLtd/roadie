@@ -692,8 +692,6 @@ describe('a pane the client mounts', () => {
       scope.IS_REACT_ACT_ENVIRONMENT = was
     }
   }
-  const idle = () => new Promise((done) => setTimeout(done, 50))
-
   it('is at its place in the first frame the browser can paint', async () => {
     const restore = withoutAct()
     const painted: (string | undefined)[] = []
@@ -723,10 +721,9 @@ describe('a pane the client mounts', () => {
     const root = createRoot(host)
     try {
       root.render(<App deep={false} />)
-      await idle()
+      await vi.waitFor(() => expect(host).toHaveTextContent('Event'))
       startTransition(() => root.render(<App deep />))
-      await idle()
-      expect(painted.length).toBeGreaterThan(0)
+      await vi.waitFor(() => expect(painted.length).toBeGreaterThan(0))
       expect(new Set(painted)).toEqual(new Set(['2']))
     } finally {
       root.unmount()
