@@ -127,7 +127,6 @@ export function readPane(pane: HTMLElement, content: HTMLElement) {
   } satisfies PaneLayout
 }
 
-/** A rendered row as the model reads it. */
 export function rowSpecOf(row: Element): RowSpec {
   const level = row.getAttribute('data-level')
   const panes = row.querySelectorAll(
@@ -373,7 +372,6 @@ export const reachedSets = (levels: number) =>
 
 export type Extra = 'none' | 'inspector' | 'closedMore' | 'openMore'
 
-/** Every row shape a navigator draws at one level: rooted and detail-first, 1 to 4 levels, every reached set, revealed or not, with an inspector or More. */
 export function rowShapes(level = 0): { name: string; spec: RowSpec }[] {
   const shapes: { name: string; spec: RowSpec }[] = []
   for (const base of [0, 1]) {

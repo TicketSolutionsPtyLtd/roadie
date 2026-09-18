@@ -62,7 +62,6 @@ const drawn = (pane: HTMLElement, slot: 'pane-back' | 'pane-close') => {
   return cell !== null && getComputedStyle(cell).display !== 'none'
 }
 
-/** How far a pane sits from where its row would place it at rest. */
 const offsetOf = (pane: HTMLElement) => {
   const row = pane.closest<HTMLElement>('[data-slot="navigator-panes"]')!
   const start = parseFloat(getComputedStyle(pane).insetInlineStart)
