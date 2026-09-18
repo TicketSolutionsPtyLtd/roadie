@@ -413,11 +413,6 @@ const splitRows: { piece: ReactNode; must: string; why: string }[] = [
     why: 'Navigator finds its parts by element reference. A server component replaces those references, so items, groups and menus silently disappear.'
   },
   {
-    piece: <Code>Navigator.Content</Code>,
-    must: 'Server-safe',
-    why: 'Optional. Navigator wraps its other children in it for you.'
-  },
-  {
     piece: (
       <>
         <Code>Pane</Code> and everything in it

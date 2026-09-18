@@ -54,7 +54,7 @@ leaves it on, and `/debug/stack` keeps toggling it, so both shapes stay covered.
 
 The snapshot can't answer "am I the top" on the commit that matters: a pane
 registers after it renders, so on a push the arriving pane isn't in it yet and
-the pane going behind still reads as `top`. The DOM can. `Navigator.Content`
+the pane going behind still reads as `top`. The DOM can. `NavigatorContent`
 already reads the committed row in an insertion effect, and insertion effects
 all run before any layout effect, so it publishes the top node there and
 `PaneRoot` asks for it in its restore layout effect.

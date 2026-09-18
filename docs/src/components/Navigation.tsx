@@ -298,42 +298,40 @@ export function DocsNavigator({
           <Navigator.ExpandToggle />
         </Navigator.Primary>
 
-        <Navigator.Content>
-          <Pane className='scroll-pt-6'>
-            <Pane.Header>
-              {showInspector ? (
-                <Pane.Actions>
-                  <OnThisPageDrawer {...toc} />
-                </Pane.Actions>
-              ) : null}
-            </Pane.Header>
-            <div
-              id='docs-content'
-              className='mx-auto grid w-full max-w-[50rem] gap-0 py-6 md:py-12 [&_:is(h1,h2,h3,h4)]:scroll-mt-6'
-            >
-              {/* The homepage and debug routes have no metadata.title and keep their own h1. */}
-              {pageTitles[route] ? (
-                <Pane.BodyTitle className='mb-6 text-display-prose-1'>
-                  {pageTitles[route]}
-                </Pane.BodyTitle>
-              ) : null}
-              {related ? (
-                <RelatedLinks {...related} className='-mt-3 mb-6' />
-              ) : null}
-              {children}
-              <FooterNav items={items} />
+        <Pane className='scroll-pt-6'>
+          <Pane.Header>
+            {showInspector ? (
+              <Pane.Actions>
+                <OnThisPageDrawer {...toc} />
+              </Pane.Actions>
+            ) : null}
+          </Pane.Header>
+          <div
+            id='docs-content'
+            className='mx-auto grid w-full max-w-[50rem] gap-0 py-6 md:py-12 [&_:is(h1,h2,h3,h4)]:scroll-mt-6'
+          >
+            {/* The homepage and debug routes have no metadata.title and keep their own h1. */}
+            {pageTitles[route] ? (
+              <Pane.BodyTitle className='mb-6 text-display-prose-1'>
+                {pageTitles[route]}
+              </Pane.BodyTitle>
+            ) : null}
+            {related ? (
+              <RelatedLinks {...related} className='-mt-3 mb-6' />
+            ) : null}
+            {children}
+            <FooterNav items={items} />
+          </div>
+        </Pane>
+
+        {/* A column once it fits; otherwise the drawer in Pane.Actions. */}
+        {showInspector ? (
+          <Pane column='inspector' aria-label='On this page'>
+            <div className='py-6'>
+              <OnThisPage {...toc} />
             </div>
           </Pane>
-
-          {/* A column once it fits; otherwise the drawer in Pane.Actions. */}
-          {showInspector ? (
-            <Pane column='inspector' aria-label='On this page'>
-              <div className='py-6'>
-                <OnThisPage {...toc} />
-              </div>
-            </Pane>
-          ) : null}
-        </Navigator.Content>
+        ) : null}
       </Navigator>
     </>
   )

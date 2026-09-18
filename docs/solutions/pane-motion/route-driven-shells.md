@@ -6,16 +6,16 @@ problem_type: bug
 
 # A route-driven shell is not the shape a docs demo has
 
-`Navigator.Content` keeps drawing a child slot the route has stopped drawing, so
+`Navigator` keeps drawing a child slot the route has stopped drawing, so
 the pane in it slides out instead of vanishing. The slots are
 `Children.toArray(children)` keys.
 
-In a nested Next route layout, Content is in the **outermost** layout and gets
-one child, `{children}`, with every deeper pane nested inside it. That slot never
+In a nested Next route layout, `Navigator` is in the **outermost** layout and
+gets one content child, `{children}`, with every deeper pane nested inside it. That slot never
 empties, so a pane the router removes from inside it is invisible to the slot
 comparison and is not retained. Retention works only where Roadie owns the
-unmount: a pane that is a direct child of Content, or a page-root step, which
-Content re-keys itself.
+unmount: a pane that is a direct child of `Navigator`, or a page-root step,
+which `Navigator` re-keys itself.
 
 The same shape hid a scroll bug. `PaneRoot` reads its place from a stack snapshot
 that lags one commit, because a pane registers after it renders. On a push the

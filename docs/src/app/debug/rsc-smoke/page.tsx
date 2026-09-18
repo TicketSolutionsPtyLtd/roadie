@@ -619,19 +619,18 @@ export default function RscSmokePage() {
           Navigator — server-safe leaves
         </h2>
         <p className='text-sm text-subtle'>
-          The bare root, <code>Navigator.Content</code> and <code>Pane</code>,
-          rendered from the server via the subpath and the barrel. This proves
-          one thing only: those modules carry no stray{' '}
-          <code>&apos;use client&apos;</code> and import server-side.
+          The bare root and <code>Pane</code>, rendered from the server via the
+          subpath and the barrel. This proves one thing only: those modules
+          carry no stray <code>&apos;use client&apos;</code> and import
+          server-side.
         </p>
         <p className='text-sm text-subtle'>
-          It also proves the tree works: <code>Navigator.Content</code> no
-          longer matches panes by element identity — a pane registers with the
-          nearest orchestrator through context wherever it sits, so Flight
-          replacing a server-authored element&apos;s type with a lazy wrapper
-          doesn&apos;t stop either pane below from registering and carrying{' '}
-          <code>data-stack-position</code>. Contrast this with{' '}
-          <code>NavigatorCanary</code> further down:{' '}
+          It also proves the tree works. <code>Navigator</code> wraps a
+          server-authored pane in its own content, and the pane registers with
+          the nearest stack through context wherever it sits. Flight replacing
+          the pane&apos;s type with a lazy wrapper doesn&apos;t stop either pane
+          below from registering and carrying <code>data-stack-position</code>.
+          Contrast this with <code>NavigatorCanary</code> further down:{' '}
           <code>Navigator.Primary</code>, <code>Secondary</code>,{' '}
           <code>Group</code>, <code>Menu</code> and <code>ExpandToggle</code>{' '}
           are still found by element reference, so that tree still has to be
@@ -639,25 +638,21 @@ export default function RscSmokePage() {
         </p>
         <div className='h-64 overflow-hidden rounded-2xl border border-subtle'>
           <Navigator value='overview'>
-            <Navigator.Content>
-              <Pane>
-                <p className='p-3 text-subtle'>
-                  Subpath — bare root, Content and Pane render from a server
-                  component.
-                </p>
-              </Pane>
-            </Navigator.Content>
+            <Pane>
+              <p className='p-3 text-subtle'>
+                The bare root and Pane render from a server component through
+                the subpath.
+              </p>
+            </Pane>
           </Navigator>
         </div>
         <div className='h-64 overflow-hidden rounded-2xl border border-subtle'>
           <NavigatorViaBarrel value='overview'>
-            <NavigatorViaBarrel.Content>
-              <PaneViaBarrel>
-                <p className='p-3 text-subtle'>
-                  Barrel — same leaves reached through the root barrel.
-                </p>
-              </PaneViaBarrel>
-            </NavigatorViaBarrel.Content>
+            <PaneViaBarrel>
+              <p className='p-3 text-subtle'>
+                The same leaves render through the root barrel.
+              </p>
+            </PaneViaBarrel>
           </NavigatorViaBarrel>
         </div>
       </section>

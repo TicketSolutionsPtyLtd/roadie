@@ -9,37 +9,35 @@ export default function OwnPage() {
   const [open, setOpen] = useState(false)
   return (
     <Navigator value={open ? '/own/deep' : '/own'}>
-      <Navigator.Content>
-        <Pane column='list'>
-          <div className='p-4'>List</div>
-        </Pane>
-        <Pane reached={!open} data-testid='one'>
+      <Pane column='list'>
+        <div className='p-4'>List</div>
+      </Pane>
+      <Pane reached={!open} data-testid='one'>
+        <div className='grid gap-2 p-4'>
+          <button
+            type='button'
+            data-testid='open'
+            onClick={() => setOpen(true)}
+          >
+            Open
+          </button>
+          <p>One</p>
+        </div>
+      </Pane>
+      {open ? (
+        <Pane data-testid='two'>
           <div className='grid gap-2 p-4'>
             <button
               type='button'
-              data-testid='open'
-              onClick={() => setOpen(true)}
+              data-testid='close'
+              onClick={() => setOpen(false)}
             >
-              Open
+              Close
             </button>
-            <p>One</p>
+            <p>TWO-CONTENT</p>
           </div>
         </Pane>
-        {open ? (
-          <Pane data-testid='two'>
-            <div className='grid gap-2 p-4'>
-              <button
-                type='button'
-                data-testid='close'
-                onClick={() => setOpen(false)}
-              >
-                Close
-              </button>
-              <p>TWO-CONTENT</p>
-            </div>
-          </Pane>
-        ) : null}
-      </Navigator.Content>
+      ) : null}
     </Navigator>
   )
 }

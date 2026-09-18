@@ -47,9 +47,9 @@ reference for each part.
   direct children of `Primary`, a `Group` or a `Secondary`. A mapped array
   counts as direct. A Fragment or your own component does not, and anything
   inside it is skipped.
-- Everything else you pass to `Navigator` is its content, and Navigator wraps
-  it in `Navigator.Content` for you. Write `Navigator.Content` yourself only to
-  pass props to the `<main>` it renders.
+- Everything else you pass to `Navigator` is its content, and Navigator renders
+  it in a `<main>`. Panes from parallel-route slots are more children like any
+  other.
 
 ### Splitting a big tree
 

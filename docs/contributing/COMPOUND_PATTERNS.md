@@ -111,12 +111,13 @@ hook it needs in the surrounding component and passing the result in.
 
 ### 1.3 Registration
 
-**Example:** `Pane` / `Navigator.Content`.
+**Example:** `Pane` / `NavigatorContent`, the internal stack `Navigator`
+wraps its content in.
 
 The child announces itself to the nearest orchestrator through context and
 receives its position back, instead of the parent finding it by walking
 `children` and matching element identity. `Pane` calls `register(id, node,
-entry)` in an effect and reads back its stack position; `Navigator.Content`
+entry)` in an effect and reads back its stack position; `NavigatorContent`
 owns the registry and provides it. See
 [`PaneStackContext.ts`](../../packages/components/src/components/Pane/PaneStackContext.ts)
 for the context shape, `PaneRoot.tsx`'s registration effect for the child
@@ -129,7 +130,7 @@ identity walk can only see elements the parent's own `children` prop contains
 directly; it cannot see through any of those, and it fails **silently** — no
 error, no warning, just an orchestrator that never finds anything.
 
-This is not a hypothetical. `Navigator.Content` used to find panes the same
+This is not a hypothetical. `NavigatorContent` used to find panes the same
 way `Carousel.Content` finds items: `Children.map` over direct children,
 matching `child.type === PaneRoot`. In a Next.js App Router app shell, panes
 arrive inside parallel-route slot nodes (`@primary`, `@secondary`), whose
@@ -143,7 +144,7 @@ works fine; it was Roadie's former app-shell recipe that prescribed parallel rou
 and a layout receives slots as opaque nodes it can neither reach inside nor
 hoist the return value of. Registration is what makes that shell work: a pane
 inside a slot still runs its own effects, so it still announces itself even
-though `Navigator.Content` never rendered it directly.
+though `NavigatorContent` never rendered it directly.
 
 **What it costs.** Registration happens in an effect, so it runs after the
 first render — the parent does not know its children until they mount and
@@ -155,7 +156,7 @@ two things — a render that tolerates an empty registry, and a warning that
 doesn't fire before mount effects get their turn.
 
 **The seam.** `Pane` defines `PaneStackContext` and fills nothing — it only
-reads from the context if something above it provides one. `Navigator.Content`
+reads from the context if something above it provides one. `NavigatorContent`
 is the one thing that provides it. That one-way direction is what keeps `Pane`
 usable with no `Navigator` anywhere (a bare `<Pane>` outside any orchestrator
 just reads a `null` context and renders standalone) and avoids a module cycle

@@ -16,7 +16,7 @@ export default function BareLayout({ children }: { children: ReactNode }) {
           Events
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>{children}</Navigator.Content>
+      {children}
     </Navigator>
   )
 }

@@ -75,7 +75,7 @@ export function useDocHeadings(): DocHeadings {
       setHeadings([])
       return
     }
-    // Scope to the content wrapper; <main> is Navigator.Content.
+    // Scope to the content wrapper, not the Navigator's <main>.
     const mainEl = document.getElementById('docs-content')
     if (!mainEl) {
       setHeadings([])

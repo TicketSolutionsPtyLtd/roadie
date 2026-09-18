@@ -13,17 +13,16 @@ destination's root wherever you were inside it. Items declare `placement` and
 destination's pages open in a generated list pane declared with
 `Navigator.Secondary`, optionally searchable, and an item can own a
 `Navigator.Menu` instead. `Navigator.Primary` must be a direct child of
-`Navigator`; `Navigator` wraps everything else in `Navigator.Content` itself,
-so `Navigator.Content` is optional. Every other child of `Navigator` renders
-inside the panes row, so a toaster or banner belongs outside `Navigator` or in
-a `Pane`.
+`Navigator`. Every other child of `Navigator`, parallel-route slots included,
+renders inside the panes row, so a toaster or banner belongs outside
+`Navigator` or in a `Pane`.
 
 `Pane` is a scrolling column with sticky chrome, a collapse-on-scroll header
 and a stack position when panes share a screen. A bare `Pane` is a detail
 (`column` defaults to `'detail'`), so give a root pane `column='list'`. `tabBar`
 sets what the phone tab bar does while the pane is top, and `depth` is only for
 a pane rendered out of document order. Roadie derives depth from render order
-otherwise, on the server too. `Navigator.Content` lays panes out as columns
+otherwise, on the server too. `Navigator` lays panes out as columns
 from its own width (two from 46.25rem, three from 76rem) and stacks them below
 that. A stacked pane that mounts as the new top slides in like one that was
 already there, so a route-driven detail pane animates on a push; a first
@@ -39,13 +38,13 @@ one comes over it. That copy is the one in the frame, and only an overview
 step makes one. `Pane.Search` is a pill search field with a Cancel.
 
 `Pane` and `Pane.Body` each hold a Suspense boundary, so a suspension inside a
-pane stops at the pane instead of reaching a route's `loading.tsx`;
-`loading.tsx` is optional. Either boundary holds the frame's pending indicator
+pane stops at the pane and its header stays on screen. Either boundary holds the frame's pending indicator
 automatically while it waits, but a transition into a suspending child of the
 same pane keeps the old content on screen instead of showing a fallback, so
 that case reports nothing automatic; `usePendingNavigation`'s `start`/`stop`
 covers it, and `pending` on `Pane` covers a wait Roadie can't see at all, such
-as a fetch without Suspense. The indicator itself is app-wide, one glow for the
+as a fetch without Suspense. A route's `loading.tsx` is optional; it only buys
+Next's partial prefetch. The indicator itself is app-wide, one glow for the
 whole frame. After 150ms with nothing changed yet, it fills with a slowly
 turning gradient of three Oztix colours behind the panes and the nav, and on a
 phone the panes pull back and round their corners to show it. It goes when the

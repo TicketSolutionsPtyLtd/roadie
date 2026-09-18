@@ -16,7 +16,7 @@ export default function StackLayout({ children }: { children: ReactNode }) {
           Stack
         </Navigator.Item>
       </Navigator.Primary>
-      <Navigator.Content>{children}</Navigator.Content>
+      {children}
     </Navigator>
   )
 }

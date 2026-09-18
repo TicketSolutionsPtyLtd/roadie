@@ -69,11 +69,9 @@ export function NavigatorCanary() {
             Settings
           </Navigator.Item>
         </Navigator.Primary>
-        <Navigator.Content>
-          <Pane>
-            <p className='p-3 text-subtle'>Pane</p>
-          </Pane>
-        </Navigator.Content>
+        <Pane>
+          <p className='p-3 text-subtle'>Pane</p>
+        </Pane>
       </Navigator>
     </div>
   )
