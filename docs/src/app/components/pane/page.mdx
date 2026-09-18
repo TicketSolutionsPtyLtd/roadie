@@ -226,8 +226,7 @@ Swapping a sibling cuts: replacing a pane with another at the same depth leaves
 the stack the shape it was, so it is not a push. A first paint never slides, and
 neither does hydration or a fresh load of a deep route. Columns don't animate,
 and nor does anything under `prefers-reduced-motion: reduce`. See
-[Columns](#columns) for each column's default depth, and declare `depth={2}` on a
-sub-detail.
+[Columns](#columns) for each column's default depth.
 
 A section whose `Navigator.Secondary` sets `overview` draws every route in
 one pane, so a step between its pages moves no pane of its own. Roadie gives it
@@ -410,7 +409,7 @@ On a phone the top pane is also the left-most, so it gets Back. Both buttons go
 one level up. `backHref` is the canonical target and real link for both:
 
 ```tsx
-<Pane depth={2}>
+<Pane>
   <Pane.Header backHref='/tickets/glamping' backLabel='Glamping'>
     <Pane.Title>Sam Okafor</Pane.Title>
   </Pane.Header>
@@ -480,7 +479,7 @@ moment the pane is touched.
 Scroll restoration reads no URL and writes no history state; the router owns
 both. It reads `navigation.currentEntry.key`, so where an engine has no
 Navigation API panes keep starting at the top. A pane is recognised by its seat,
-its level, column and declared `depth`, rather than by its identity, so a pane the
+its level, column and depth, rather than by its identity, so a pane the
 router re-makes still finds its place. Up to 30 history entries are kept, the
 least recently written dropped first, in memory: a document reload starts over.
 
@@ -493,20 +492,21 @@ so a pane outside a `Navigator` shows nothing. Pass it in a route's
 the frame's indicator early.
 
 ```tsx
-<Pane depth={1} pending>
+<Pane pending>
   <Skeleton shape='block' />
 </Pane>
 ```
 
-The pane carries `aria-busy` while `pending` is true.
+The pane carries `aria-busy` while `pending` is true. On the server it takes
+no place in the row, so the page it stands in for lands at the right depth.
 
 ## Guidelines
 
 <Guideline title='Declaration order is stack depth'>
   <Guideline.Do code={`<Navigator.Content>\n  <Pane column='list' />\n  <Pane reached={selected != null} />\n</Navigator.Content>`}>
-    Author panes shallowest first. Once panes mount, document order is depth.
-    The server render uses `depth`, which defaults from `column`, so declare
-    `depth={2}` on a sub-detail.
+    Author panes shallowest first. Document order is depth, on the server too.
+    Declare `depth` only on a pane that renders out of order, such as one
+    streamed into a resumed prerender.
   </Guideline.Do>
   <Guideline.Dont code={`<Navigator.Content>\n  <Pane />\n  <Pane column='list' />\n</Navigator.Content>`}>
     Author panes out of depth order. The pane parks on the wrong side, so the

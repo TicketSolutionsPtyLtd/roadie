@@ -15,7 +15,7 @@ const lines = (count: number, tag: string) =>
 export default function BareEventLayout({ children }: { children: ReactNode }) {
   return (
     <>
-      <Pane column='list' depth={0} data-testid='list-pane'>
+      <Pane column='list' data-testid='list-pane'>
         <Pane.Header>
           <Pane.Title>Events</Pane.Title>
         </Pane.Header>
@@ -25,7 +25,7 @@ export default function BareEventLayout({ children }: { children: ReactNode }) {
           that the deepest reached pane is the top, so there is no reason for
           a layout to know a deeper segment rendered. `/debug/stack` toggles it
           instead, and the two shapes have to keep behaving the same. */}
-      <Pane depth={1} data-testid='event-pane'>
+      <Pane data-testid='event-pane'>
         <Pane.Header>
           <Pane.Title>Event</Pane.Title>
         </Pane.Header>

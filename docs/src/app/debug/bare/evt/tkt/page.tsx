@@ -4,7 +4,7 @@ import { Pane } from '@oztix/roadie-components'
 
 export default function BareTicketPage() {
   return (
-    <Pane depth={2} data-testid='ticket-pane'>
+    <Pane data-testid='ticket-pane'>
       <Pane.Header>
         <Pane.Title>Ticket</Pane.Title>
       </Pane.Header>

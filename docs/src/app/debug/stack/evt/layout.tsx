@@ -19,13 +19,13 @@ export default function EventLayout({ children }: { children: ReactNode }) {
   const onEvent = useRoute() === '/debug/stack/evt'
   return (
     <>
-      <Pane column='list' depth={0}>
+      <Pane column='list'>
         <Pane.Header>
           <Pane.Title>Events</Pane.Title>
         </Pane.Header>
         <div className='grid gap-2 p-4'>{lines(30, 'list')}</div>
       </Pane>
-      <Pane depth={1} reached={onEvent} data-testid='event-pane'>
+      <Pane reached={onEvent} data-testid='event-pane'>
         <Pane.Header>
           <Pane.Title>Event</Pane.Title>
         </Pane.Header>
