@@ -28,7 +28,7 @@ const DEMO_EVENTS: CartEvent[] = [
   {
     eventId: 'e1',
     eventName: 'Sunset Sessions — Opening Night',
-    venueName: 'Riverlight Garden Stage, Bulimba',
+    venueName: 'Riverlight Garden Stage, Rivermist',
     imageUrl: img('sunset-sessions'),
     eventStartAtUtc: '2026-09-18T09:00:00Z',
     eventEndAtUtc: '2026-09-18T13:00:00Z',
@@ -41,7 +41,7 @@ const DEMO_EVENTS: CartEvent[] = [
   {
     eventId: 'e3',
     eventName: 'Riverside Late Show',
-    venueName: 'West End Warehouse, Brisbane',
+    venueName: 'Foundry Row Warehouse, Brisbane',
     imageUrl: img('riverside-late'),
     eventStartAtUtc: '2026-09-18T11:00:00Z',
     eventEndAtUtc: '2026-09-18T13:30:00Z',
@@ -54,8 +54,8 @@ const DEMO_EVENTS: CartEvent[] = [
   {
     eventId: 'e2',
     eventName: 'Twilight River Weekender',
-    venueName: 'Kangaroo Point Lawn, Brisbane',
-    imageUrl: img('riverstage'),
+    venueName: 'Lookout Point Lawn, Brisbane',
+    imageUrl: img('weekender-lawn'),
     eventStartAtUtc: '2026-10-03T08:30:00Z',
     eventEndAtUtc: '2026-10-04T11:00:00Z',
     eventDateKey: '2026-10-03',
@@ -101,7 +101,7 @@ type EventTemplate = {
 const EXTRA_EVENTS: EventTemplate[] = [
   {
     eventName: 'Circus The Show! — The Greatest Spectacular on Earth',
-    venueName: 'Wynnum Pier Marquee (Wynnum, QLD)',
+    venueName: 'Bayline Pier Marquee (Bayline, QLD)',
     seed: 'circus-the-show',
     eventStartAtUtc: '2026-06-25T09:00:00Z',
     eventEndAtUtc: '2026-06-25T13:30:00Z',
@@ -113,8 +113,8 @@ const EXTRA_EVENTS: EventTemplate[] = [
   },
   {
     eventName: 'Moonlight Carnival',
-    venueName: 'Brookfield Showfield, Brisbane',
-    seed: 'lunar-park',
+    venueName: 'Thornfield Showfield, Brisbane',
+    seed: 'carnival-lights',
     eventStartAtUtc: '2026-11-20T08:00:00Z',
     eventEndAtUtc: '2026-11-22T12:00:00Z',
     eventDateKey: '2026-11-20',
@@ -123,7 +123,7 @@ const EXTRA_EVENTS: EventTemplate[] = [
   },
   {
     eventName: 'Harbourside Jazz',
-    venueName: 'Hamilton Wharf Pavilion, Brisbane',
+    venueName: 'Wharfside Pavilion, Brisbane',
     seed: 'harbourside-jazz',
     eventStartAtUtc: '2026-12-05T09:30:00Z',
     eventEndAtUtc: '2026-12-06T13:00:00Z',
@@ -149,7 +149,7 @@ const EXTRA_EVENTS: EventTemplate[] = [
   },
   {
     eventName: 'Sunset Cinema',
-    venueName: 'New Farm Riverwalk Lawn, Brisbane',
+    venueName: 'Foxglove Riverwalk Lawn, Brisbane',
     seed: 'sunset-cinema',
     eventStartAtUtc: '2026-12-19T09:00:00Z',
     eventDateKey: '2026-12-19',
@@ -157,7 +157,7 @@ const EXTRA_EVENTS: EventTemplate[] = [
   },
   {
     eventName: 'Festival of Lights',
-    venueName: 'Southbank Promenade Green, Brisbane',
+    venueName: 'Lanternwick Green, Brisbane',
     seed: 'festival-of-lights',
     eventStartAtUtc: '2027-01-07T09:00:00Z',
     eventEndAtUtc: '2027-01-09T12:30:00Z',

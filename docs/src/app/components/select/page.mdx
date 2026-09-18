@@ -23,17 +23,17 @@ Pass string children to `Select.Item` for automatic `ItemText` + `ItemIndicator`
 wrapping. Use `Select.Content` as a convenience wrapper for Portal + Positioner + Popup.
 
 ```tsx-live
-<Select defaultValue='powderfinger'>
+<Select defaultValue='harbour-static'>
   <Select.Trigger>
     <Select.Value placeholder='Pick a band' />
     <Select.Icon />
   </Select.Trigger>
   <Select.Content>
-    <Select.Item value='powderfinger'>Powderfinger</Select.Item>
-    <Select.Item value='custard'>Custard</Select.Item>
-    <Select.Item value='regurgitator'>Regurgitator</Select.Item>
-    <Select.Item value='violent-soho'>Violent Soho</Select.Item>
-    <Select.Item value='dz-deathrays'>DZ Deathrays</Select.Item>
+    <Select.Item value='harbour-static'>Harbour Static</Select.Item>
+    <Select.Item value='paper-radio'>Paper Radio</Select.Item>
+    <Select.Item value='salt-cassette'>Salt Cassette</Select.Item>
+    <Select.Item value='broken-aerial'>Broken Aerial</Select.Item>
+    <Select.Item value='voltage-thieves'>Voltage Thieves</Select.Item>
   </Select.Content>
 </Select>
 ```
@@ -42,24 +42,24 @@ wrapping. Use `Select.Content` as a convenience wrapper for Portal + Positioner 
 
 ```tsx-live
 <div className='grid gap-2'>
-  <Select defaultValue='go-betweens'>
+  <Select defaultValue='parallax'>
     <Select.Trigger emphasis='normal'>
       <Select.Value />
       <Select.Icon />
     </Select.Trigger>
     <Select.Content>
-      <Select.Item value='go-betweens'>The Go-Betweens</Select.Item>
-      <Select.Item value='saints'>The Saints</Select.Item>
+      <Select.Item value='parallax'>The Parallax</Select.Item>
+      <Select.Item value='longshore'>The Longshore</Select.Item>
     </Select.Content>
   </Select>
-  <Select defaultValue='bee-gees'>
+  <Select defaultValue='faraday-brothers'>
     <Select.Trigger emphasis='subtle'>
       <Select.Value />
       <Select.Icon />
     </Select.Trigger>
     <Select.Content>
-      <Select.Item value='bee-gees'>Bee Gees</Select.Item>
-      <Select.Item value='savage-garden'>Savage Garden</Select.Item>
+      <Select.Item value='faraday-brothers'>The Faraday Brothers</Select.Item>
+      <Select.Item value='wild-meridian'>Wild Meridian</Select.Item>
     </Select.Content>
   </Select>
 </div>
@@ -69,31 +69,31 @@ wrapping. Use `Select.Content` as a convenience wrapper for Portal + Positioner 
 
 ```tsx-live
 <div className='grid gap-2'>
-  <Select defaultValue='ball-park-music'>
+  <Select defaultValue='diamond-field'>
     <Select.Trigger size='sm'>
       <Select.Value />
       <Select.Icon />
     </Select.Trigger>
     <Select.Content>
-      <Select.Item value='ball-park-music'>Ball Park Music</Select.Item>
+      <Select.Item value='diamond-field'>Diamond Field</Select.Item>
     </Select.Content>
   </Select>
-  <Select defaultValue='cub-sport'>
+  <Select defaultValue='coastline-choir'>
     <Select.Trigger size='md'>
       <Select.Value />
       <Select.Icon />
     </Select.Trigger>
     <Select.Content>
-      <Select.Item value='cub-sport'>Cub Sport</Select.Item>
+      <Select.Item value='coastline-choir'>Coastline Choir</Select.Item>
     </Select.Content>
   </Select>
-  <Select defaultValue='jungle-giants'>
+  <Select defaultValue='canopy-giants'>
     <Select.Trigger size='lg'>
       <Select.Value />
       <Select.Icon />
     </Select.Trigger>
     <Select.Content>
-      <Select.Item value='jungle-giants'>The Jungle Giants</Select.Item>
+      <Select.Item value='canopy-giants'>The Canopy Giants</Select.Item>
     </Select.Content>
   </Select>
 </div>
@@ -108,25 +108,25 @@ neutral at rest, accent on focus/open, danger when invalid.
 <div className='grid gap-4'>
   <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Default</p>
-    <Select defaultValue='goon-sax'>
+    <Select defaultValue='paper-foxes'>
       <Select.Trigger>
         <Select.Value />
         <Select.Icon />
       </Select.Trigger>
       <Select.Content>
-        <Select.Item value='goon-sax'>The Goon Sax</Select.Item>
+        <Select.Item value='paper-foxes'>The Paper Foxes</Select.Item>
       </Select.Content>
     </Select>
   </div>
   <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Disabled</p>
-    <Select defaultValue='powderfinger' disabled>
+    <Select defaultValue='harbour-static' disabled>
       <Select.Trigger>
         <Select.Value />
         <Select.Icon />
       </Select.Trigger>
       <Select.Content>
-        <Select.Item value='powderfinger'>Powderfinger</Select.Item>
+        <Select.Item value='harbour-static'>Harbour Static</Select.Item>
       </Select.Content>
     </Select>
   </div>
@@ -144,15 +144,15 @@ automatically.
 ```tsx-live
 <Field required>
   <Field.Label showIndicator>Favourite band</Field.Label>
-  <Select defaultValue='powderfinger'>
+  <Select defaultValue='harbour-static'>
     <Select.Trigger>
       <Select.Value placeholder='Pick a band' />
       <Select.Icon />
     </Select.Trigger>
     <Select.Content>
-      <Select.Item value='powderfinger'>Powderfinger</Select.Item>
-      <Select.Item value='custard'>Custard</Select.Item>
-      <Select.Item value='regurgitator'>Regurgitator</Select.Item>
+      <Select.Item value='harbour-static'>Harbour Static</Select.Item>
+      <Select.Item value='paper-radio'>Paper Radio</Select.Item>
+      <Select.Item value='salt-cassette'>Salt Cassette</Select.Item>
     </Select.Content>
   </Select>
 </Field>
@@ -169,9 +169,9 @@ automatically.
       <Select.Icon />
     </Select.Trigger>
     <Select.Content>
-      <Select.Item value='powderfinger'>Powderfinger</Select.Item>
-      <Select.Item value='custard'>Custard</Select.Item>
-      <Select.Item value='regurgitator'>Regurgitator</Select.Item>
+      <Select.Item value='harbour-static'>Harbour Static</Select.Item>
+      <Select.Item value='paper-radio'>Paper Radio</Select.Item>
+      <Select.Item value='salt-cassette'>Salt Cassette</Select.Item>
     </Select.Content>
   </Select>
   <Field.ErrorText>Please select a band.</Field.ErrorText>
@@ -184,7 +184,7 @@ Select also has its own `Select.Label` for standalone usage without a Field
 wrapper. Use `showIndicator` to show a required or optional indicator.
 
 ```tsx-live
-<Select defaultValue='powderfinger' required>
+<Select defaultValue='harbour-static' required>
   <div className='grid gap-1.5'>
     <Select.Label showIndicator>Favourite band</Select.Label>
     <Select.Trigger>
@@ -193,9 +193,9 @@ wrapper. Use `showIndicator` to show a required or optional indicator.
     </Select.Trigger>
   </div>
   <Select.Content>
-    <Select.Item value='powderfinger'>Powderfinger</Select.Item>
-    <Select.Item value='custard'>Custard</Select.Item>
-    <Select.Item value='regurgitator'>Regurgitator</Select.Item>
+    <Select.Item value='harbour-static'>Harbour Static</Select.Item>
+    <Select.Item value='paper-radio'>Paper Radio</Select.Item>
+    <Select.Item value='salt-cassette'>Salt Cassette</Select.Item>
   </Select.Content>
 </Select>
 ```
@@ -203,24 +203,24 @@ wrapper. Use `showIndicator` to show a required or optional indicator.
 #### With groups
 
 ```tsx-live
-<Select defaultValue='powderfinger'>
+<Select defaultValue='harbour-static'>
   <Select.Trigger>
     <Select.Value placeholder='Pick a band' />
     <Select.Icon />
   </Select.Trigger>
   <Select.Content>
     <Select.Group>
-      <Select.GroupLabel>Brisbane</Select.GroupLabel>
-      <Select.Item value='powderfinger'>Powderfinger</Select.Item>
-      <Select.Item value='custard'>Custard</Select.Item>
-      <Select.Item value='go-betweens'>The Go-Betweens</Select.Item>
-      <Select.Item value='saints'>The Saints</Select.Item>
+      <Select.GroupLabel>Riverside</Select.GroupLabel>
+      <Select.Item value='harbour-static'>Harbour Static</Select.Item>
+      <Select.Item value='paper-radio'>Paper Radio</Select.Item>
+      <Select.Item value='parallax'>The Parallax</Select.Item>
+      <Select.Item value='longshore'>The Longshore</Select.Item>
     </Select.Group>
     <Select.Group>
-      <Select.GroupLabel>Gold Coast</Select.GroupLabel>
-      <Select.Item value='violent-soho'>Violent Soho</Select.Item>
-      <Select.Item value='dz-deathrays'>DZ Deathrays</Select.Item>
-      <Select.Item value='goon-sax'>The Goon Sax</Select.Item>
+      <Select.GroupLabel>Bayshore</Select.GroupLabel>
+      <Select.Item value='broken-aerial'>Broken Aerial</Select.Item>
+      <Select.Item value='voltage-thieves'>Voltage Thieves</Select.Item>
+      <Select.Item value='paper-foxes'>The Paper Foxes</Select.Item>
     </Select.Group>
   </Select.Content>
 </Select>

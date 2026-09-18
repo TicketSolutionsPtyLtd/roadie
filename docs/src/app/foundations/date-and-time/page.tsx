@@ -731,7 +731,7 @@ export default function DateAndTimePage() {
           description='The abbreviation is a confirmation, not an introduction.'
         >
           <Guideline.Do
-            code={`The Lyrebird, Richmond VIC\nDoors 8:00pm AEDT\n\nOn sale 9:00am AEDT, Sydney\n8:00am your time`}
+            code={`The Lyrebird, Foxbridge VIC\nDoors 8:00pm AEDT\n\nOn sale 9:00am AEDT, Sydney\n8:00am your time`}
           >
             The venue answers where, so the abbreviation only has to confirm it.
             The notification has no venue on it, so the place comes with the
