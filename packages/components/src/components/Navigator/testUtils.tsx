@@ -8,7 +8,6 @@ import {
   type RoadieLinkComponent,
   RoadieLinkProvider
 } from '../../providers/RoadieLinkProvider'
-import { columnTier, renderPaneColumnsCss } from '../Pane/paneColumns'
 import { forgetPaneScroll } from '../Pane/paneScroll'
 
 // ScrollArea measures in a microtask outside act().
@@ -163,163 +162,29 @@ export function reportUnrenderedSentinels(viewport: HTMLElement) {
   }
 }
 
-export type PaneColumnsRule = {
-  selector: string
-  body: string
-  conditions: string[]
-}
-
-export function paneColumnsRulesOf(css: string): PaneColumnsRule[] {
-  const text = css.slice(css.indexOf('@layer components {'))
-  const rules: PaneColumnsRule[] = []
-  const conditions: string[] = []
-  const token = /([^{}]*)([{}])/g
-  let match: RegExpExecArray | null
-  while ((match = token.exec(text))) {
-    const [, before = '', brace] = match
-    const prelude = before.trim()
-    if (brace === '}') {
-      conditions.pop()
-    } else if (prelude.startsWith('@')) {
-      conditions.push(prelude)
-    } else {
-      const close = text.indexOf('}', token.lastIndex)
-      rules.push({
-        selector: prelude,
-        body: text.slice(token.lastIndex, close).trim(),
-        conditions: [...conditions]
-      })
-      token.lastIndex = close + 1
-    }
-  }
-  return rules
-}
-
-const compileCondition = (condition: string) => {
-  const query = condition.match(
-    /^@container panes \(width (>=|<) ([\d.]+)rem\)/
+/** What the pane stylesheet lays a level-0 row out from; the browser suite pins the layout of each shape. */
+export function rowShape() {
+  const row = document.querySelector<HTMLElement>(
+    '[data-slot="navigator-panes"][data-level="0"]'
+  )!
+  const panes = row.querySelectorAll<HTMLElement>(
+    '[data-slot="pane"][data-stack][data-level="0"]'
   )
-  if (!query) return () => true
-  const value = Number(query[2])
-  return query[1] === '>='
-    ? (contentRem: number) => contentRem >= value
-    : (contentRem: number) => contentRem < value
-}
-
-type CompiledRule = {
-  rule: PaneColumnsRule
-  holds: (contentRem: number) => boolean
-}
-
-// Cached per sweep: re-parsing and re-matching every 1px step was the slowest test.
-const candidatesByLevel = new WeakMap<
-  PaneColumnsRule[],
-  Map<number, CompiledRule[]>
->()
-const candidateRulesFor = (rules: PaneColumnsRule[], level: number) => {
-  let byLevel = candidatesByLevel.get(rules)
-  if (!byLevel) {
-    byLevel = new Map()
-    candidatesByLevel.set(rules, byLevel)
-  }
-  let candidates = byLevel.get(level)
-  if (!candidates) {
-    const prefix = `[data-slot="navigator-panes"][data-level="${level}"]`
-    candidates = rules
-      .filter(
-        (rule) =>
-          rule.body.includes('--pane-back') && rule.selector.startsWith(prefix)
-      )
-      .map((rule) => {
-        const conditions = rule.conditions.map(compileCondition)
-        return {
-          rule,
-          holds: (contentRem: number) =>
-            conditions.every((holds) => holds(contentRem))
-        }
-      })
-    byLevel.set(level, candidates)
-  }
-  return candidates
-}
-
-const matchesByPane = new WeakMap<
-  Element,
-  WeakMap<PaneColumnsRule[], Map<number, boolean[]>>
->()
-const matchFlagsFor = (
-  rules: PaneColumnsRule[],
-  pane: Element,
-  level: number,
-  candidates: CompiledRule[]
-) => {
-  let byRules = matchesByPane.get(pane)
-  if (!byRules) {
-    byRules = new WeakMap()
-    matchesByPane.set(pane, byRules)
-  }
-  let byLevel = byRules.get(rules)
-  if (!byLevel) {
-    byLevel = new Map()
-    byRules.set(rules, byLevel)
-  }
-  let flags = byLevel.get(level)
-  if (!flags) {
-    flags = candidates.map(({ rule }) => pane.matches(rule.selector))
-    byLevel.set(level, flags)
-  }
-  return flags
-}
-
-/** The column rule that wins for a level's stack pane at a content width. */
-export function paneRuleAt(
-  rules: PaneColumnsRule[],
-  pane: Element,
-  contentRem: number,
-  level = 0
-) {
-  const candidates = candidateRulesFor(rules, level)
-  const flags = matchFlagsFor(rules, pane, level, candidates)
-  let result: PaneColumnsRule | undefined
-  for (const [index, candidate] of candidates.entries()) {
-    if (flags[index] && candidate.holds(contentRem)) result = candidate.rule
-  }
-  return result
-}
-
-/** The level-0 stack panes the generated stylesheet would put on screen where `columns` columns first fit. */
-export function panesShownAt(columns: number) {
-  const rules = paneColumnsRulesOf(renderPaneColumnsCss())
-  const hiding = rules.filter(
-    (rule) =>
-      rule.body === 'display: none !important;' &&
-      !rule.selector.includes('[data-column="inspector"]')
-  )
-  if (
-    hiding.some((rule) => rule.conditions.some((c) => !c.startsWith('@layer')))
-  ) {
-    throw new Error(
-      'panesShownAt reads display: none from unconditional rules only'
+  return {
+    overflow: row.hasAttribute('data-overflow'),
+    reveal: row.hasAttribute('data-reveal'),
+    panes: Array.from(panes, (pane) =>
+      [
+        pane.hasAttribute('data-overflow')
+          ? 'More'
+          : (pane.dataset.navigatorSecondary ?? pane.dataset.column),
+        pane.dataset.depth,
+        pane.hasAttribute('data-reached') ? 'reached' : null
+      ]
+        .filter(Boolean)
+        .join(' ')
     )
   }
-  return Array.from(
-    document.querySelectorAll<HTMLElement>(
-      '[data-slot="pane"][data-stack][data-level="0"]'
-    )
-  )
-    .filter((pane) => {
-      const rule = paneRuleAt(rules, pane, columnTier(columns))
-      return (
-        !hiding.some((hides) => pane.matches(hides.selector)) &&
-        rule !== undefined &&
-        !rule.body.includes('visibility: hidden')
-      )
-    })
-    .map((pane) =>
-      pane.hasAttribute('data-overflow')
-        ? 'More'
-        : (pane.dataset.navigatorSecondary ?? pane.dataset.column)
-    )
 }
 
 /** Puts a Navigation API on `window`, or takes one away, without leaving a hole. */

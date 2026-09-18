@@ -14,13 +14,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Navigator } from '.'
 import { Pane } from '../Pane'
 import { PaneContext } from '../Pane/PaneContext'
-import { renderPaneColumnsCss } from '../Pane/paneColumns'
 import {
   FakeIcon,
   flushViewportMeasurement,
-  paneColumnsRulesOf,
-  panesShownAt,
   restoreNavigation,
+  rowShape,
   setNavigation,
   testBrand
 } from './testUtils'
@@ -467,25 +465,14 @@ describe('an overview with its own backHref', () => {
       </Pane>
     </Navigator>
   )
-  const tierRules = paneColumnsRulesOf(renderPaneColumnsCss()).filter(
-    (rule) =>
-      rule.body.includes('--pane-back') &&
-      rule.selector.startsWith('[data-slot="navigator-panes"][data-level="0"]')
-  )
-
-  it('never draws Back or Close, before or after hydration', async () => {
+  it('serves a detail-first row, and renders neither button once hydrated', async () => {
     const host = serverRender(<PageFirst />)
     const pane = paneOf(host, 'detail')!
-    expect(pane).toHaveAttribute('data-depth', '1')
-    const drawn = tierRules
-      .filter((rule) => pane.matches(rule.selector))
-      .map((rule) => rule.body)
-    expect(drawn).toHaveLength(2)
-    for (const body of drawn) {
-      expect(body).toContain(
-        '--pane-back: none; --pane-close: none; --pane-edge: none;'
-      )
-    }
+    expect(rowShape()).toEqual({
+      overflow: false,
+      reveal: false,
+      panes: ['detail 1 reached']
+    })
     let root: Root | null = null
     await act(async () => {
       root = hydrateRoot(host, <PageFirst />)
@@ -505,35 +492,20 @@ describe('a lone pane that is not reached', () => {
     </Navigator>
   )
 
-  const stackedRules = paneColumnsRulesOf(renderPaneColumnsCss()).filter(
-    (rule) =>
-      rule.body.includes('--pane-back') &&
-      rule.selector.startsWith(
-        '[data-slot="navigator-panes"][data-level="0"]'
-      ) &&
-      !rule.conditions.some((condition) => condition.startsWith('@container'))
-  )
-  const stackedBodyOf = (pane: Element) =>
-    stackedRules
-      .filter((rule) => pane.matches(rule.selector))
-      .map((rule) => rule.body)
-
-  it('is on screen in the server HTML', () => {
-    const host = serverRender(<Lone />)
-    const pane = paneOf(host, 'detail')!
-    expect(pane).toHaveAttribute('data-depth', '1')
-    expect(pane).not.toHaveAttribute('data-reached')
-    expect(panesShownAt(1)).toEqual(['detail'])
-    expect(stackedBodyOf(pane)).toEqual([
-      expect.stringContaining('translate: 0 0;')
-    ])
+  it('serves a detail-first row of one unreached pane', () => {
+    serverRender(<Lone />)
+    expect(rowShape()).toEqual({
+      overflow: false,
+      reveal: false,
+      panes: ['detail 1']
+    })
   })
 
   it('stays put through hydration, so nothing slides in', async () => {
     const host = serverRender(<Lone />)
     const pane = paneOf(host, 'detail')!
-    const seen: string[][] = [stackedBodyOf(pane)]
-    const observer = new MutationObserver(() => seen.push(stackedBodyOf(pane)))
+    const seen = [rowShape()]
+    const observer = new MutationObserver(() => seen.push(rowShape()))
     observer.observe(host, { attributes: true, subtree: true })
     const recoverable = vi.fn()
     let root: Root | null = null
@@ -544,10 +516,12 @@ describe('a lone pane that is not reached', () => {
     observer.disconnect()
     expect(recoverable).not.toHaveBeenCalled()
     expect(pane).toHaveAttribute('data-depth', '0')
-    for (const bodies of seen) {
-      expect(bodies).toEqual([expect.stringContaining('translate: 0 0;')])
+    for (const shape of seen) {
+      expect(shape).toMatchObject({
+        reveal: false,
+        panes: [expect.any(String)]
+      })
     }
-    expect(panesShownAt(1)).toEqual(['detail'])
     act(() => root?.unmount())
   })
 })
@@ -589,7 +563,11 @@ describe('More open from the first render', () => {
     await flushViewportMeasurement()
     expect(log).not.toContain('0')
     expect(log.at(-1)).toBe('1')
-    expect(panesShownAt(2)).toEqual(['detail', 'More'])
+    expect(rowShape()).toEqual({
+      overflow: true,
+      reveal: true,
+      panes: ['detail 1 reached', 'More 0 reached']
+    })
   })
 
   it('keeps it there through hydration', async () => {
@@ -613,7 +591,11 @@ describe('More open from the first render', () => {
     expect(recoverable).not.toHaveBeenCalled()
     expect(log).not.toContain('0')
     expect(log.at(-1)).toBe('1')
-    expect(panesShownAt(2)).toEqual(['detail', 'More'])
+    expect(rowShape()).toEqual({
+      overflow: true,
+      reveal: true,
+      panes: ['detail 1 reached', 'More 0 reached']
+    })
     act(() => root?.unmount())
   })
 })

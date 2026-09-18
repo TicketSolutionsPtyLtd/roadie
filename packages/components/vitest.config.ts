@@ -32,8 +32,8 @@ export default defineConfig({
           setupFiles: ['./vitest.setup.ts'],
           globals: true,
           exclude: [...configDefaults.exclude, BROWSER_TESTS],
-          // Stubbed CSS would make a `?raw` import of these sheets empty.
-          css: { include: [/(pane-columns|navigator-pending)\.css/] }
+          // Stubbed CSS would make a `?raw` import of this sheet empty.
+          css: { include: [/navigator-pending\.css/] }
         }
       },
       {

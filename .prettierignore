@@ -9,7 +9,6 @@ build
 **/build/**
 out
 **/out/**
-packages/components/src/css/pane-columns.css
 packages/core/src/tokens/tokens.json
 
 # Test coverage

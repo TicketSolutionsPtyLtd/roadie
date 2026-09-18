@@ -10,7 +10,6 @@ import { Pane } from '.'
 import { PendingNavigationContext } from '../../providers/PendingNavigationContext'
 import { Navigator } from '../Navigator'
 import {
-  paneColumnsRulesOf,
   reportUnrenderedSentinels,
   restoreNavigation,
   scrollViewport,
@@ -27,7 +26,6 @@ import {
   PaneStackContext,
   type PaneStackContextValue
 } from './PaneStackContext'
-import { renderPaneColumnsCss } from './paneColumns'
 
 // One microtask isn't enough for stack positions to settle under React 19.
 const flushViewportMeasurement = () =>
@@ -1610,20 +1608,6 @@ describe('depth attributes', () => {
       [list, sub, detail].map((p) => p!.getAttribute('data-stack-position'))
     ).toEqual(['behind', 'top', 'behind'])
 
-    const stacked = paneColumnsRulesOf(renderPaneColumnsCss()).filter(
-      (rule) =>
-        rule.body.includes('--pane-back') &&
-        rule.selector.startsWith(
-          '[data-slot="navigator-panes"][data-level="0"]'
-        ) &&
-        !rule.conditions.some((c) => c.startsWith('@container'))
-    )
-    const bodyOf = (element: Element) =>
-      stacked.filter((rule) => element.matches(rule.selector))[0]!.body
-    expect(bodyOf(sub!)).toContain('translate: 0 0;')
-    expect(bodyOf(sub!)).toContain('--pane-back: grid;')
-    expect(bodyOf(detail!)).toContain('translate: calc(-33%')
-
     const scrolled = [sub!, detail!].map((p) => {
       const spy = vi.fn()
       p.querySelector<HTMLElement>('[data-slot="pane-viewport"]')!.scrollTo =
@@ -1683,26 +1667,14 @@ describe('depth attributes', () => {
     warn.mockRestore()
   })
 
-  it('covers the row with a reached fifth pane that offers Back, never Close', async () => {
+  it('draws Back and Close on a reached fifth pane for the stylesheet to choose from', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(fivePanes())
     await flushViewportMeasurement()
     const fifth = stackPanes()[4]!
-    const rules = paneColumnsRulesOf(renderPaneColumnsCss())
-    const bodies = (element: Element) =>
-      rules
-        .filter((rule) => element.matches(rule.selector))
-        .map((rule) => rule.body)
-    const own = bodies(fifth)
-    expect(own.some((body) => body.includes('z-index: 3'))).toBe(true)
-    expect(own).toContain(
-      'translate: 0 0; visibility: visible; pointer-events: auto;'
-    )
-    expect(own).toContain('--pane-back: grid; --pane-edge: grid;')
-    expect(own.some((body) => body.includes('--pane-close: grid'))).toBe(false)
-    const cell = (slot: string) => fifth.querySelector(`[data-slot="${slot}"]`)!
-    expect(bodies(cell('pane-back'))).toEqual(['display: var(--pane-back);'])
-    expect(bodies(cell('pane-close'))).toEqual(['display: var(--pane-close);'])
+    expect(fifth).toHaveAttribute('data-reached')
+    expect(fifth.querySelector('[data-slot="pane-back"]')).not.toBeNull()
+    expect(fifth.querySelector('[data-slot="pane-close"]')).not.toBeNull()
     warn.mockRestore()
   })
 

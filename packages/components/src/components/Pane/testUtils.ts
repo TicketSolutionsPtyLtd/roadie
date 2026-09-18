@@ -101,6 +101,30 @@ export function readPane(pane: HTMLElement, content: HTMLElement) {
   } satisfies PaneLayout
 }
 
+/** A rendered row as the model reads it. */
+export function rowSpecOf(row: Element): RowSpec {
+  const level = row.getAttribute('data-level')
+  const panes = row.querySelectorAll(
+    `[data-slot="pane"][data-stack][data-level="${level}"]`
+  )
+  return {
+    level: Number(level),
+    reveal: row.hasAttribute('data-reveal'),
+    overflow: row.hasAttribute('data-overflow'),
+    inspector:
+      row.querySelector(`[data-column="inspector"][data-level="${level}"]`) !==
+      null,
+    panes: Array.from(panes, (pane) => {
+      const depth = pane.getAttribute('data-depth')!
+      return {
+        depth: depth === 'deep' ? depth : Number(depth),
+        reached: pane.hasAttribute('data-reached'),
+        overflow: pane.hasAttribute('data-overflow')
+      }
+    })
+  }
+}
+
 type RowModel = {
   levels: number
   top: number

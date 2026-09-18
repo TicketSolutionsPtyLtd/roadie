@@ -20,12 +20,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { Navigator } from '.'
 import { Pane } from '../Pane'
-import { columnTier, renderPaneColumnsCss } from '../Pane/paneColumns'
-import {
-  flushViewportMeasurement,
-  paneColumnsRulesOf,
-  paneRuleAt
-} from './testUtils'
+import { expectedRow, onScreen, rowSpecOf } from '../Pane/testUtils'
+import { flushViewportMeasurement } from './testUtils'
 
 type Lib = { Navigator: typeof Navigator; Pane: typeof Pane }
 const client: Lib = { Navigator, Pane }
@@ -39,9 +35,6 @@ async function server(): Promise<Lib> {
   ])
   return { Navigator: N, Pane: P }
 }
-
-const rules = paneColumnsRulesOf(renderPaneColumnsCss())
-const WIDTHS = [24, columnTier(2), 60, columnTier(3), 100]
 
 const Layout = ({
   pane,
@@ -93,10 +86,13 @@ const stackPanes = (host: Element) =>
   )
 const depths = (host: Element) =>
   stackPanes(host).map((pane) => [pane.textContent, pane.dataset.depth])
-const layoutOf = (host: Element) =>
-  WIDTHS.map((width) =>
-    stackPanes(host).map((pane) => paneRuleAt(rules, pane, width)?.body)
-  )
+const WIDTHS = [360, 740, 960, 1216, 1600]
+
+/** The layout the column model gives the row; the browser suite proves the stylesheet draws it. */
+const layoutOf = (host: Element) => {
+  const spec = rowSpecOf(host.querySelector('[data-slot="navigator-panes"]')!)
+  return WIDTHS.map((width) => onScreen(expectedRow(spec, width)))
+}
 
 async function readAll(stream: ReadableStream<Uint8Array>) {
   const reader = stream.getReader()

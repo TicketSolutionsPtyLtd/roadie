@@ -10,7 +10,6 @@ import { NAVIGATOR_EXPANDED_SCOPE } from '@oztix/roadie-core/navigator'
 import { Navigator } from '.'
 import { Badge } from '../Badge'
 import { Logo } from '../Logo'
-import { renderPaneColumnsCss } from '../Pane/paneColumns'
 import {
   FakeIcon,
   flushViewportMeasurement,
@@ -1559,11 +1558,6 @@ describe('right to left', () => {
     )!
     expect(content.className).not.toMatch(physicalInset)
     expect(row.className).not.toMatch(physicalInset)
-    const css = renderPaneColumnsCss()
-    expect(css).toContain('--pane-stack-inset-start: 0px;')
-    expect(css).toContain('inset-inline-start: var(--pane-stack-inset-start')
-    expect(css).toContain('padding-inline-start: 0')
-    expect(css).not.toMatch(/(padding|margin)-(left|right)|[\s;{](left|right):/)
   })
 })
 

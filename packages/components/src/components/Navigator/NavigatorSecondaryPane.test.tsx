@@ -11,8 +11,8 @@ import { NavigatorSelectionContext } from './NavigatorContext'
 import {
   FakeIcon,
   flushViewportMeasurement,
-  panesShownAt,
   primaryOf,
+  rowShape,
   scrollViewport,
   testBrand,
   withScrollSentinels,
@@ -951,7 +951,11 @@ describe('More open over the root', () => {
       ['detail', '1'],
       ['More', '0']
     ])
-    expect(panesShownAt(2)).toEqual(['detail', 'More'])
+    expect(rowShape()).toEqual({
+      overflow: true,
+      reveal: true,
+      panes: ['list 0 reached', 'detail 1 reached', 'More 0 reached']
+    })
     expect(warn).not.toHaveBeenCalled()
   })
 
@@ -963,7 +967,11 @@ describe('More open over the root', () => {
       ['detail', '1'],
       ['More', '0']
     ])
-    expect(panesShownAt(2)).toEqual(['detail', 'More'])
+    expect(rowShape()).toEqual({
+      overflow: true,
+      reveal: true,
+      panes: ['detail 1 reached', 'More 0 reached']
+    })
     expect(warn).not.toHaveBeenCalled()
   })
 
@@ -975,13 +983,21 @@ describe('More open over the root', () => {
       ['detail', '0'],
       ['More', '0']
     ])
-    expect(panesShownAt(2)).toEqual(['detail'])
+    expect(rowShape()).toEqual({
+      overflow: false,
+      reveal: false,
+      panes: ['detail 0 reached', 'More 0']
+    })
     await openMore()
     expect(depths()).toEqual([
       ['detail', '1'],
       ['More', '0']
     ])
-    expect(panesShownAt(2)).toEqual(['detail', 'More'])
+    expect(rowShape()).toEqual({
+      overflow: true,
+      reveal: true,
+      panes: ['detail 1 reached', 'More 0 reached']
+    })
     expect(warn).not.toHaveBeenCalled()
   })
 
@@ -1025,13 +1041,7 @@ describe('More open over the root', () => {
           <Pane>Detail</Pane>
         </Navigator>
       )
-      const row = () => document.querySelector('[data-slot="navigator-panes"]')!
-      const layout = () => ({
-        overflow: row().hasAttribute('data-overflow'),
-        reveal: row().hasAttribute('data-reveal'),
-        depths: depths(),
-        shown: [1, 2, 3].map((columns) => panesShownAt(columns))
-      })
+      const layout = () => rowShape()
 
       const { unmount } = render(fits(false))
       await flushViewportMeasurement()
