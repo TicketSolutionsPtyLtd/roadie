@@ -42,7 +42,7 @@ describe('deriveTopIndex', () => {
 })
 
 describe('deriveRootIndex', () => {
-  it('skips a leading inspector — it never joins the stack', () => {
+  it('skips a leading inspector, which never joins the stack', () => {
     expect(
       deriveRootIndex([
         entry({ column: 'inspector' }),

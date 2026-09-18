@@ -95,7 +95,7 @@ function groupSlots(element: ReactElement<NavigatorGroupProps>, key: string) {
   return { group, slots }
 }
 
-// Matches by element type, one level into Group — see COMPOUND_PATTERNS.md §1.2.
+// Matches by element type, one level into Group; see COMPOUND_PATTERNS.md §1.2.
 export function collectSlots(children: ReactNode): CollectedSlots {
   const result: CollectedSlots = {
     brand: [],

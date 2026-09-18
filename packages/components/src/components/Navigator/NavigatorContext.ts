@@ -85,7 +85,7 @@ export type NavigatorDisclosure = {
 export type NavigatorExpansion = {
   /** Whether the vertical navigation shows labels. Behaviour only; styling reads `data-expanded`. */
   expanded: boolean
-  /** Following the document, which has not been read yet — the server render and hydration. */
+  /** Following the document, which has not been read yet, as in the server render and hydration. */
   expandedPending: boolean
 }
 

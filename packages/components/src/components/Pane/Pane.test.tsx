@@ -1083,12 +1083,12 @@ describe('orchestrator chrome', () => {
       <Pane>
         <Pane.Header />
       </Pane>,
-      { backHref: '/section' }
+      { backHref: '/events' }
     )
     const back = screen.getByLabelText('Back')
     expect(back.tagName).toBe('A')
-    expect(back).toHaveAttribute('href', '/section')
-    expect(screen.getByLabelText('Close')).toHaveAttribute('href', '/section')
+    expect(back).toHaveAttribute('href', '/events')
+    expect(screen.getByLabelText('Close')).toHaveAttribute('href', '/events')
   })
 
   it("lets a consumer's onBack outrank the orchestrator's link", async () => {
@@ -1096,7 +1096,7 @@ describe('orchestrator chrome', () => {
       <Pane>
         <Pane.Header onBack={() => {}} />
       </Pane>,
-      { backHref: '/section' }
+      { backHref: '/events' }
     )
     const back = screen.getByLabelText('Back')
     expect(back.tagName).toBe('BUTTON')

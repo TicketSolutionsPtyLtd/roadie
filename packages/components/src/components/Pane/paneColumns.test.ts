@@ -124,7 +124,7 @@ describe('tiers', () => {
   })
 })
 
-describe('paneCell — the prototype evidence', () => {
+describe('paneCell, the prototype evidence', () => {
   it('Tickets → Glamping → Sam, Sam reached', () => {
     expect(shown(columnsAt(375, 2, 3), 2, 3)).toBe('2[Back]')
     expect(shown(columnsAt(760, 2, 3), 2, 3)).toBe('2[Back]')

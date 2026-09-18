@@ -44,7 +44,6 @@ export function Skeleton({
       aria-hidden='true'
       className={cn(skeletonVariants({ intent, emphasis, shape, className }))}
       {...props}
-      // After the spread: the pending ring reads it to tell a pane is still loading.
       data-slot='skeleton'
     />
   )
