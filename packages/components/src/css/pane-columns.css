@@ -361,6 +361,29 @@
     visibility: visible;
     pointer-events: auto;
   }
+  :where(
+    [data-slot='navigator-panes'][data-level='0']:has(
+        [data-stack][data-level='0'][data-stack-position]
+      )
+      [data-stack][data-level='0']:not([data-stack-position]),
+    [data-slot='navigator-panes'][data-level='1']:has(
+        [data-stack][data-level='1'][data-stack-position]
+      )
+      [data-stack][data-level='1']:not([data-stack-position])
+  ) {
+    visibility: hidden;
+    pointer-events: none;
+  }
+  @container panes (width < 46.25rem) {
+    :where(
+      [data-slot='pane'][data-stack][data-stack-position='top']:has(
+          ~ [data-stack][data-stack-position='top']
+        )
+    ) {
+      visibility: hidden;
+      pointer-events: none;
+    }
+  }
   :where([data-slot='pane'][data-stack][data-depth='deep']) {
     z-index: 3;
   }
@@ -398,8 +421,9 @@
       pointer-events: auto;
     }
     :where(
-      [data-slot='pane'][data-stack][data-depth='0']:not(
-          [data-stack-position='top']
+      [data-slot='pane'][data-stack][data-depth='0']:is(
+          :not([data-stack-position='top']),
+          :has(~ [data-stack][data-stack-position='top'])
         )
     ) {
       flex: 0 0 clamp(16rem, 40cqi, 24rem);

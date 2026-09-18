@@ -162,8 +162,7 @@ export function reportUnrenderedSentinels(viewport: HTMLElement) {
   }
 }
 
-/** What the pane stylesheet lays a level-0 row out from; the browser suite pins the layout of each shape. */
-export function rowShape() {
+export function rowLayoutInputs() {
   const row = document.querySelector<HTMLElement>(
     '[data-slot="navigator-panes"][data-level="0"]'
   )!

@@ -94,11 +94,16 @@ corepack enable          # Enable pnpm via corepack
 pnpm install             # Install dependencies
 pnpm dev                 # Start all packages in dev mode
 pnpm build               # Build all packages
-pnpm test                # Run tests (276 tests across 27 files)
+pnpm test                # Run tests
+pnpm test:browser        # Run layout tests in Chromium, WebKit and Firefox
 pnpm typecheck           # TypeScript type checking
 pnpm lint                # ESLint
 pnpm format              # Prettier
 ```
+
+`pnpm test:browser` runs every engine by default, as CI does. To pick engines,
+set `ROADIE_BROWSERS`, for example `ROADIE_BROWSERS=chromium,webkit
+pnpm test:browser` on a Mac where Playwright's Firefox won't start.
 
 ## Documentation
 

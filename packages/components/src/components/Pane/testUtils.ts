@@ -184,8 +184,7 @@ function modelOf(spec: RowSpec): RowModel {
   return { levels, top, byRelativeDepth, hidden }
 }
 
-/** The positions Navigator writes once registered: the model's top, and the rest behind or ahead of it. */
-export function withPositions(spec: RowSpec): RowSpec {
+export function withRegisteredPositions(spec: RowSpec): RowSpec {
   const { top, byRelativeDepth, hidden } = modelOf(spec)
   const topIndex = byRelativeDepth.get(top)
   return {
@@ -230,8 +229,7 @@ const HIDDEN: PaneLayout = {
   opacity: '1'
 }
 
-/** What the column model says each stack pane, then the inspector, looks like at a content width. */
-export function expectedRow(spec: RowSpec, widthPx: number): PaneLayout[] {
+export function modelLayoutAt(spec: RowSpec, widthPx: number): PaneLayout[] {
   const { levels, top, byRelativeDepth, hidden } = modelOf(spec)
   const columns = columnsFor(widthPx, top, levels)
   const layouts: PaneLayout[] = spec.panes.map(() => ({ ...HIDDEN }))
@@ -346,8 +344,7 @@ export function readRow(content: HTMLElement): PaneLayout[] {
   )
 }
 
-/** What the eye and the keyboard get: a parked pane is only hidden. */
-export function onScreen(layouts: PaneLayout[]) {
+export function hidingParked(layouts: PaneLayout[]) {
   return layouts.map((layout) => (layout.shown ? layout : 'hidden'))
 }
 

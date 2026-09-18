@@ -462,8 +462,9 @@ Field wraps **all** form controls — Input, Textarea, Select, RadioGroup, Combo
 - Behaviour assertions preferred over class snapshots
 - Layout that CSS decides is tested in a real browser. `*.browser.test.ts(x)`
   files run in Chromium, WebKit and Firefox with `pnpm test:browser` (Vitest
-  browser mode, Playwright). jsdom can't evaluate `calc()` or container queries,
-  so don't assert rule text there.
+  browser mode, Playwright). Set `ROADIE_BROWSERS=chromium,webkit` to pick
+  engines. jsdom can't evaluate `calc()` or container queries, so don't assert
+  rule text there.
 - **If CI surfaces a typecheck error and `pnpm typecheck` passes locally, delete every `tsbuildinfo` in the repo and re-run before investigating further.** TypeScript's incremental cache can hide errors in files the current task didn't touch — especially after widening strict flags. `find . -name "*.tsbuildinfo" -not -path "*/node_modules/*" -delete && pnpm typecheck` gives you CI's view. See [`docs/solutions/build-errors/stale-tsbuildinfo-masks-local-errors.md`](docs/solutions/build-errors/stale-tsbuildinfo-masks-local-errors.md).
 
 ## Code Quality

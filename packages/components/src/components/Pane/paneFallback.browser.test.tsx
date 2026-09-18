@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { cleanup, render } from '@testing-library/react'
+import { renderToString } from 'react-dom/server'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
@@ -17,7 +18,7 @@ import {
   rowMarkup,
   rowShapes,
   useStylesheet,
-  withPositions,
+  withRegisteredPositions,
   withoutStyleQueries
 } from './testUtils'
 
@@ -67,7 +68,7 @@ describe('without container style queries', () => {
     (family) => {
       const problems: string[] = []
       for (const { name, spec } of families.get(family)!) {
-        const positioned = withPositions(spec)
+        const positioned = withRegisteredPositions(spec)
         for (const width of TIER_WIDTHS) {
           const content = mount(contentMarkup(rowMarkup(positioned)), width)
           const frame = content.getBoundingClientRect()
@@ -199,5 +200,71 @@ describe('a navigator without container style queries', () => {
     await userEvent.click(getByRole('button', { name: 'Close' }))
     expect(paneOf('detail')).toBeNull()
     await expect.poll(() => onScreen(paneOf('list'))).toBe(true)
+  })
+})
+
+describe('server HTML without container style queries, before hydration', () => {
+  const serve = (ui: React.ReactElement, width: number) => {
+    const host = document.createElement('div')
+    host.style.width = `${width}px`
+    host.innerHTML = renderToString(ui)
+    document.body.append(host)
+    return host
+  }
+  const shownIn = (host: HTMLElement) =>
+    Array.from(
+      host.querySelectorAll<HTMLElement>('[data-slot="pane"][data-stack]')
+    )
+      .filter((pane) => getComputedStyle(pane).visibility === 'visible')
+      .map((pane) => pane.dataset.column)
+
+  const ListAndDetail = ({ reached }: { reached: boolean }) => (
+    <Navigator value='/a'>
+      <Pane column='list'>
+        <button>Gigs</button>
+      </Pane>
+      <Pane reached={reached}>
+        <button>Tiny Ruins</button>
+      </Pane>
+    </Navigator>
+  )
+
+  it.each([400, 1200])(
+    'keeps an unreached detail off the list, at %ipx',
+    (width) => {
+      const host = serve(<ListAndDetail reached={false} />, width)
+      expect(shownIn(host)).toEqual(['list'])
+    }
+  )
+
+  it('shows only the reached detail on a phone, and the list leaves the tab order', () => {
+    const host = serve(<ListAndDetail reached />, 400)
+    expect(shownIn(host)).toEqual(['detail'])
+    const covered = host.querySelector<HTMLButtonElement>(
+      '[data-column="list"] button'
+    )!
+    covered.focus()
+    expect(document.activeElement).not.toBe(covered)
+  })
+
+  it('puts the list on its root track beside a reached detail once two fit', () => {
+    const host = serve(<ListAndDetail reached />, 1200)
+    expect(shownIn(host)).toEqual(['list', 'detail'])
+    const [list, detail] = Array.from(
+      host.querySelectorAll<HTMLElement>('[data-slot="pane"][data-stack]'),
+      (pane) => pane.getBoundingClientRect()
+    )
+    expect(list!.width).toBeLessThanOrEqual(24 * REM)
+    expect(list!.right).toBeLessThanOrEqual(detail!.left)
+  })
+
+  it.each([400, 1200])('shows a lone unreached pane, at %ipx', (width) => {
+    const host = serve(
+      <Navigator value='/a'>
+        <Pane reached={false}>Solo</Pane>
+      </Navigator>,
+      width
+    )
+    expect(shownIn(host)).toEqual(['detail'])
   })
 })

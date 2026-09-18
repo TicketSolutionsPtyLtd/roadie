@@ -9,9 +9,9 @@ import {
   STACK_INSET,
   TIER_WIDTHS,
   contentMarkup,
-  expectedRow,
+  hidingParked,
+  modelLayoutAt,
   mount,
-  onScreen,
   readRow,
   rowMarkup,
   rowShapes,
@@ -63,9 +63,11 @@ function sweep(
   for (const { name, spec } of shapes) {
     for (const width of widths) {
       const content = mount(contentMarkup(rowMarkup(spec)), width, dir)
-      const model = expectedRow(spec, width)
-      const expected = onScreen(dir === 'rtl' ? mirrored(model, width) : model)
-      const actual = onScreen(readRow(content))
+      const model = modelLayoutAt(spec, width)
+      const expected = hidingParked(
+        dir === 'rtl' ? mirrored(model, width) : model
+      )
+      const actual = hidingParked(readRow(content))
       const differs = actual.some(
         (layout, index) => !sameLayout(layout, expected[index]!)
       )
@@ -109,7 +111,7 @@ describe('parked panes in a stacked row', () => {
       ]
     }
     const content = mount(contentMarkup(rowMarkup(spec)), 600)
-    const expected = expectedRow(spec, 600)
+    const expected = modelLayoutAt(spec, 600)
     readRow(content).forEach((pane, index) => {
       expect(near(pane.left, expected[index]!.left)).toBe(true)
       expect(pane.opacity).toBe(expected[index]!.opacity)
@@ -151,8 +153,8 @@ describe('a nested row', () => {
             '[data-slot="pane"] [data-slot="navigator-content"]'
           )!
           const innerWidth = Math.round(nested.getBoundingClientRect().width)
-          const actual = onScreen(readRow(nested))
-          const expected = onScreen(expectedRow(spec, innerWidth))
+          const actual = hidingParked(readRow(nested))
+          const expected = hidingParked(modelLayoutAt(spec, innerWidth))
           if (actual.some((layout, i) => !sameLayout(layout, expected[i]!))) {
             mismatches.push({ shape: name, width, actual, expected })
           }

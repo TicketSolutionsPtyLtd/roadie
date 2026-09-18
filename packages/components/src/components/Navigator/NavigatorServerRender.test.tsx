@@ -18,7 +18,7 @@ import {
   FakeIcon,
   flushViewportMeasurement,
   restoreNavigation,
-  rowShape,
+  rowLayoutInputs,
   setNavigation,
   testBrand
 } from './testUtils'
@@ -468,7 +468,7 @@ describe('an overview with its own backHref', () => {
   it('serves a detail-first row, and renders neither button once hydrated', async () => {
     const host = serverRender(<PageFirst />)
     const pane = paneOf(host, 'detail')!
-    expect(rowShape()).toEqual({
+    expect(rowLayoutInputs()).toEqual({
       overflow: false,
       reveal: false,
       panes: ['detail 1 reached']
@@ -494,7 +494,7 @@ describe('a lone pane that is not reached', () => {
 
   it('serves a detail-first row of one unreached pane', () => {
     serverRender(<Lone />)
-    expect(rowShape()).toEqual({
+    expect(rowLayoutInputs()).toEqual({
       overflow: false,
       reveal: false,
       panes: ['detail 1']
@@ -504,8 +504,8 @@ describe('a lone pane that is not reached', () => {
   it('stays put through hydration, so nothing slides in', async () => {
     const host = serverRender(<Lone />)
     const pane = paneOf(host, 'detail')!
-    const seen = [rowShape()]
-    const observer = new MutationObserver(() => seen.push(rowShape()))
+    const seen = [rowLayoutInputs()]
+    const observer = new MutationObserver(() => seen.push(rowLayoutInputs()))
     observer.observe(host, { attributes: true, subtree: true })
     const recoverable = vi.fn()
     let root: Root | null = null
@@ -563,7 +563,7 @@ describe('More open from the first render', () => {
     await flushViewportMeasurement()
     expect(log).not.toContain('0')
     expect(log.at(-1)).toBe('1')
-    expect(rowShape()).toEqual({
+    expect(rowLayoutInputs()).toEqual({
       overflow: true,
       reveal: true,
       panes: ['detail 1 reached', 'More 0 reached']
@@ -591,7 +591,7 @@ describe('More open from the first render', () => {
     expect(recoverable).not.toHaveBeenCalled()
     expect(log).not.toContain('0')
     expect(log.at(-1)).toBe('1')
-    expect(rowShape()).toEqual({
+    expect(rowLayoutInputs()).toEqual({
       overflow: true,
       reveal: true,
       panes: ['detail 1 reached', 'More 0 reached']

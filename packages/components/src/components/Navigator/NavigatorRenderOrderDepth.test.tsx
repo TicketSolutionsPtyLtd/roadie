@@ -20,7 +20,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { Navigator } from '.'
 import { Pane } from '../Pane'
-import { expectedRow, onScreen, rowSpecOf } from '../Pane/testUtils'
+import { hidingParked, modelLayoutAt, rowSpecOf } from '../Pane/testUtils'
 import { flushViewportMeasurement } from './testUtils'
 
 type Lib = { Navigator: typeof Navigator; Pane: typeof Pane }
@@ -88,10 +88,9 @@ const depths = (host: Element) =>
   stackPanes(host).map((pane) => [pane.textContent, pane.dataset.depth])
 const WIDTHS = [360, 740, 960, 1216, 1600]
 
-/** The layout the column model gives the row; the browser suite proves the stylesheet draws it. */
-const layoutOf = (host: Element) => {
+const modelLayoutsOf = (host: Element) => {
   const spec = rowSpecOf(host.querySelector('[data-slot="navigator-panes"]')!)
-  return WIDTHS.map((width) => onScreen(expectedRow(spec, width)))
+  return WIDTHS.map((width) => hidingParked(modelLayoutAt(spec, width)))
 }
 
 async function readAll(stream: ReadableStream<Uint8Array>) {
@@ -185,7 +184,7 @@ describe('depth from render order', () => {
       ['Ticket', '2']
     ])
     const hinted = await mount(renderToString(<Three lib={lib} hint />))
-    expect(layoutOf(host)).toEqual(layoutOf(hinted))
+    expect(modelLayoutsOf(host)).toEqual(modelLayoutsOf(hinted))
   })
 
   it('hydrates in StrictMode without a mismatch, a warning or a depth change', async () => {
@@ -210,14 +209,14 @@ describe('depth from render order', () => {
       ['Event', '1'],
       ['Ticket', '2']
     ])
-    const served = layoutOf(host)
+    const served = modelLayoutsOf(host)
     const { problems, unmount } = await hydrate(host, <Details lib={client} />)
     expect(problems).toEqual(clean)
     expect(depths(host)).toEqual([
       ['Event', '0'],
       ['Ticket', '1']
     ])
-    expect(layoutOf(host)).toEqual(served)
+    expect(modelLayoutsOf(host)).toEqual(served)
     unmount()
   })
 

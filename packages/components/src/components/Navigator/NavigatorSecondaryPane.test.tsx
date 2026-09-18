@@ -12,7 +12,7 @@ import {
   FakeIcon,
   flushViewportMeasurement,
   primaryOf,
-  rowShape,
+  rowLayoutInputs,
   scrollViewport,
   testBrand,
   withScrollSentinels,
@@ -951,7 +951,7 @@ describe('More open over the root', () => {
       ['detail', '1'],
       ['More', '0']
     ])
-    expect(rowShape()).toEqual({
+    expect(rowLayoutInputs()).toEqual({
       overflow: true,
       reveal: true,
       panes: ['list 0 reached', 'detail 1 reached', 'More 0 reached']
@@ -967,7 +967,7 @@ describe('More open over the root', () => {
       ['detail', '1'],
       ['More', '0']
     ])
-    expect(rowShape()).toEqual({
+    expect(rowLayoutInputs()).toEqual({
       overflow: true,
       reveal: true,
       panes: ['detail 1 reached', 'More 0 reached']
@@ -983,7 +983,7 @@ describe('More open over the root', () => {
       ['detail', '0'],
       ['More', '0']
     ])
-    expect(rowShape()).toEqual({
+    expect(rowLayoutInputs()).toEqual({
       overflow: false,
       reveal: false,
       panes: ['detail 0 reached', 'More 0']
@@ -993,7 +993,7 @@ describe('More open over the root', () => {
       ['detail', '1'],
       ['More', '0']
     ])
-    expect(rowShape()).toEqual({
+    expect(rowLayoutInputs()).toEqual({
       overflow: true,
       reveal: true,
       panes: ['detail 1 reached', 'More 0 reached']
@@ -1041,7 +1041,7 @@ describe('More open over the root', () => {
           <Pane>Detail</Pane>
         </Navigator>
       )
-      const layout = () => rowShape()
+      const layout = () => rowLayoutInputs()
 
       const { unmount } = render(fits(false))
       await flushViewportMeasurement()
