@@ -214,7 +214,7 @@ the brand radius stays consistent across components.
 - **Weight:** `bold` by default. `fill` only for active/selected states, and
   `duotone` only for large decorative icons above 48px, such as inside a big
   `IconTile` or an `EmptyState`. Never Regular, Thin or Light.
-  **Exception:** `Navigator` destinations render `duotone` at `size-6` —
+  **Exception:** `Navigator` destinations render `duotone` at `size-6`.
   Navigator applies it, so pass the bare icon. Everything else stays bold.
 - **Import convention:** Use the `Icon` suffix export — `import { HeartIcon } from '@phosphor-icons/react/ssr'` (bare names like `Heart` are deprecated)
 - **SSR:** Use `@phosphor-icons/react/ssr` in server components, `@phosphor-icons/react` in client components
@@ -359,9 +359,8 @@ Key conventions:
    helper from `packages/components/src/utils/resolveRender.tsx` to deliver
    the same contract.
    `List.Item`, `Navigator.Item`, `Navigator.MenuItem` and `Navigator.Brand`
-   are `href`-only —
-   no `render` prop — so a case `href` can't express means composing your own
-   row rather than escaping into `render`.
+   are `href`-only, with no `render` prop. A case `href` can't express means
+   composing your own row rather than escaping into `render`.
 3. **`render` always wins over `href` smart-routing.** Pass `render`
    when you need a non-anchor or want to bypass provider routing
    entirely. When both `href` and `render` are passed to Button, Button

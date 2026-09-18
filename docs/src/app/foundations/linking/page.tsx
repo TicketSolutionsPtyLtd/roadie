@@ -72,9 +72,9 @@ export function Providers({ children }) {
             Returns the <Code>Link</Code> passed to the nearest{' '}
             <Code>RoadieLinkProvider</Code>, or <Code>null</Code> when no
             provider is mounted (or its <Code>Link</Code> is <Code>null</Code>).
-            This is how every Roadie component builds its own href handling, and
-            how you build one of your own: route through the configured Link
-            when there is one, render a plain <Code>&lt;a&gt;</Code> when there
+            Every Roadie component builds its own href handling on it. Build
+            your own the same way. Route through the configured Link when there
+            is one, and render a plain <Code>&lt;a&gt;</Code> when there
             isn&apos;t.
           </p>
           <CodePreview>{`import { useRoadieLink, type RoadieLinkProps } from '@oztix/roadie-components'
@@ -141,7 +141,8 @@ function TrackedLink({ href, children, ...props }: RoadieLinkProps) {
             </table>
           </div>
           <p className='text-subtle'>
-            Both are no-ops when no <Code>RoadieLinkProvider</Code> is mounted.
+            Both are no-ops when no <Code>RoadieLinkProvider</Code> is mounted,
+            and when it takes <Code>pendingIndicator={'{false}'}</Code>.
           </p>
           <CodePreview>{`const { start, stop } = usePendingNavigation()
 

@@ -8,7 +8,7 @@ problem_type: bug
 
 Two bugs reported from an app adopting the Navigator: a push zeroed the pane it
 left, and after a pending wait the pane row sat 20px above the window. They are
-unrelated, and the first one was reported twice — once as a real bug, and once
+unrelated, and the first one was reported twice, once as a real bug and once
 as a measurement that only looked like it.
 
 ## The rule for measuring a scroll across a navigation
@@ -42,7 +42,7 @@ one trace); the geometry is untouched across it; and an `addInitScript` trap on
 ## `current` is not "this pane is the destination"
 
 The real one. `Pane` documents that **the deepest `current` [now `reached`]
-pane is the top of the stack**, and `deriveTopIndex` implements exactly that — so a route layout
+pane is the top of the stack**, and `deriveTopIndex` implements exactly that, so a route layout
 has no reason to turn `current` off on the pane it drilled from, and a real
 shell doesn't. The restore effect in `PaneRoot` read the raw `current` prop as
 "this pane is the one being navigated to", so a push zeroed **every** `current`
@@ -60,7 +60,7 @@ all run before any layout effect, so it publishes the top node there and
 `PaneRoot` asks for it in its restore layout effect.
 
 The symmetric rule that falls out: **the pane a navigation goes to starts at the
-top; the pane it leaves keeps its place** — whether it is left behind by a push
+top; the pane it leaves keeps its place**, whether it is left behind by a push
 going deeper or by the stack revealing a shallower pane over it.
 
 ## The pull-back only shifts what it sits inside
@@ -78,7 +78,7 @@ The 20px residue needs three things at once:
    offset, not a transform, so dropping `scale` leaves it behind for good.
 
 The frame supplied (3) itself, which is what took so long to see. It was
-`h-[100dvh] overflow-hidden`, and `overflow: hidden` makes a scrollport — one
+`h-[100dvh] overflow-hidden`, and `overflow: hidden` makes a scrollport, one
 with no scrollbar, that nothing on screen says can scroll. Whenever the top pane
 declares `primaryNav='hidden'` [now `tabBar='hidden'`], the phone bar is `position: absolute` with
 `translate: 0 calc(100% + 2rem)`, which puts 82px of its box below the frame's
@@ -90,7 +90,7 @@ bottom edge. That is scrollable overflow. Measured in the reporting app:
 | `clip`           | 82px  | 0                         | row top 0                                 |
 
 `overflow: clip` creates no scrollport at all, so the slack stays clipped and
-unreachable, which is what it always should have been — `navigator-content`
+unreachable, which is what it always should have been. `navigator-content`
 already does this. Nothing is lost: the only thing past the frame's bottom edge
 is a bar that is deliberately `visibility: hidden`.
 

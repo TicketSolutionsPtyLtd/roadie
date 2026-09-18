@@ -42,7 +42,7 @@ export default function ThemingPage() {
               <Code>&lt;html&gt;</Code> swaps a second set of OKLCH values.{' '}
               <Code>ThemeProvider</Code> handles the toggle, localStorage
               persistence, and optional <Code>prefers-color-scheme</Code>{' '}
-              following. Dark mode and accent colour are independent: setting
+              following. Dark mode and accent colour are independent. Setting
               one never resets the other.
             </p>
           </li>
