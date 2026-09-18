@@ -4,6 +4,7 @@ import typescriptParser from '@typescript-eslint/parser'
 import prettierConfig from 'eslint-config-prettier'
 import prettierPlugin from 'eslint-plugin-prettier'
 import reactPlugin from 'eslint-plugin-react'
+import reactHooks from 'eslint-plugin-react-hooks'
 import globals from 'globals'
 
 export default [
@@ -70,6 +71,24 @@ export default [
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-empty-object-type': 'off'
     }
+  },
+
+  {
+    files: ['packages/components/**/*.{ts,tsx}'],
+    ...reactHooks.configs.flat['recommended-latest'],
+    settings: {
+      'react-hooks': { additionalEffectHooks: '^useIsomorphicLayoutEffect$' }
+    }
+  },
+  {
+    // Hydration-time syncs from the DOM, storage or Embla. Each needs a
+    // useSyncExternalStore rework, not a one-line fix.
+    files: [
+      'packages/components/src/components/Carousel/CarouselRoot.tsx',
+      'packages/components/src/components/Image/index.tsx',
+      'packages/components/src/providers/ThemeProvider.tsx'
+    ],
+    rules: { 'react-hooks/set-state-in-effect': 'warn' }
   },
 
   // JavaScript files configuration

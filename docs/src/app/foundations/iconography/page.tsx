@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 
 import {
   CaretDownIcon,
@@ -24,7 +25,8 @@ import {
 export const metadata: Metadata = {
   title: 'Iconography',
   description:
-    'Icon library, weight conventions, sizing scale, and import patterns for Phosphor Bold icons.'
+    'Icon library, weight conventions, sizing scale, and import patterns for Phosphor Bold icons.',
+  category: 'Visual'
 }
 
 const sizingScale = [
@@ -68,22 +70,19 @@ const showcaseIcons = [
 export default function IconographyPage() {
   return (
     <div className='grid gap-12'>
-      <div className='grid gap-3'>
-        <h1 className='text-display-prose-1 text-strong'>Iconography</h1>
-        <p className='text-lg text-subtle'>
-          Roadie uses{' '}
-          <a
-            href='https://phosphoricons.com/'
-            target='_blank'
-            rel='noopener noreferrer'
-            className='underline'
-          >
-            Phosphor Icons
-          </a>{' '}
-          at the Bold weight. The thicker strokes pair with the system&apos;s
-          rounded, approachable visual language and stay legible at small sizes.
-        </p>
-      </div>
+      <p className='text-lg text-subtle'>
+        Roadie uses{' '}
+        <a
+          href='https://phosphoricons.com/'
+          target='_blank'
+          rel='noopener noreferrer'
+          className='underline'
+        >
+          Phosphor Icons
+        </a>{' '}
+        at the Bold weight. The thicker strokes pair with the system&apos;s
+        rounded, approachable visual language and stay legible at small sizes.
+      </p>
 
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Principles</h2>
@@ -151,6 +150,14 @@ export default function IconographyPage() {
           for large, decorative icons — feature surfaces and icons inside an{' '}
           <Code>IconTile</Code> above 48px, where a bold outline alone looks
           hollow.
+        </p>
+        <p className='text-subtle'>
+          <strong className='text-normal'>Exception:</strong>{' '}
+          <Link href='/components/navigator' className='underline'>
+            Navigator
+          </Link>{' '}
+          destinations render duotone at 24px — Navigator applies the weight
+          itself, so pass it a bare icon.
         </p>
 
         <div className='overflow-x-auto'>

@@ -1,357 +1,102 @@
 import type { Metadata } from 'next'
 
-import { readFile, readdir } from 'fs/promises'
 import { join } from 'path'
 
-import { FooterNav } from '@/components/FooterNav'
-import { Navigation } from '@/components/Navigation'
-import { OnThisPage } from '@/components/OnThisPage'
+import {
+  DocsNavigator,
+  type NavigationDestination,
+  type NavigationItem
+} from '@/components/Navigation'
 import { Providers } from '@/components/Providers'
+import { CHANGELOG_URL } from '@/lib/changelog'
+import {
+  COMPONENTS,
+  type Catalogue,
+  type CatalogueCategory,
+  FOUNDATIONS,
+  TOKENS,
+  WIDGETS,
+  getCatalogue,
+  getPageTitles,
+  readPageMetadata
+} from '@/lib/page-manifest'
 import { getAssetPath } from '@/utils/getAssetPath'
 
+import { getNavigatorExpandedScript } from '@oztix/roadie-core/navigator'
 import { getThemeScript } from '@oztix/roadie-core/theme'
 
 import './globals.css'
 
-interface ComponentMetadata {
-  name: string
-  title: string
-  description: string
-  status: string
-  category: string
-  hidden?: boolean
+async function guide(href: string, file: string): Promise<NavigationItem> {
+  const metadata = await readPageMetadata(join(process.cwd(), 'src/app', file))
+  return {
+    title: metadata?.title ?? href,
+    href,
+    description: metadata?.description
+  }
 }
 
-async function getNavigationItems() {
-  const componentsDir = join(process.cwd(), 'src/app/components')
-  const foundationsDir = join(process.cwd(), 'src/app/foundations')
-  const overviewDir = join(process.cwd(), 'src/app/overview')
-  const tokensDir = join(process.cwd(), 'src/app/tokens')
-  const widgetsDir = join(process.cwd(), 'src/app/roadie-widgets')
+/** Flat items, in group order, for `FooterNav`'s previous and next links. */
+const flatten = (route: string, groups: CatalogueCategory[]) => [
+  { title: 'Overview', href: route },
+  ...groups.flatMap((group) => [
+    ...(group.overviewHref
+      ? [{ title: group.name, href: group.overviewHref }]
+      : []),
+    ...group.entries.map(({ title, href }) => ({ title, href }))
+  ])
+]
 
-  async function getMetadataFromFile(
-    filePath: string,
-    defaultTitle: string
-  ): Promise<{ title: string; description: string } | null> {
-    try {
-      const content = await readFile(filePath, 'utf-8')
-      const metadataMatch = content.match(
-        /export const metadata(?:\s*:\s*[A-Za-z_$][\w$]*)?\s*=\s*({[\s\S]*?})/m
-      )
-
-      if (metadataMatch) {
-        try {
-          return eval(`(${metadataMatch[1]})`)
-        } catch {
-          console.error(`Error parsing metadata for ${filePath}`)
-        }
-      }
-      return { title: defaultTitle, description: '' }
-    } catch {
-      return null
-    }
+async function catalogueDestination(
+  title: string,
+  catalogue: Catalogue,
+  options: Pick<NavigationDestination, 'overview' | 'searchable'> = {}
+): Promise<NavigationDestination> {
+  const groups = await getCatalogue(catalogue)
+  return {
+    title,
+    href: catalogue.route,
+    items: flatten(catalogue.route, groups),
+    groups,
+    ...options
   }
+}
 
-  const philosophyMetadata = await getMetadataFromFile(
-    join(overviewDir, 'philosophy/page.mdx'),
-    'Philosophy'
-  )
-
-  const gettingStartedMetadata = await getMetadataFromFile(
-    join(overviewDir, 'getting-started/page.mdx'),
-    'Getting Started'
-  )
-
-  const vueIntegrationMetadata = await getMetadataFromFile(
-    join(overviewDir, 'vue-integration/page.mdx'),
-    'Vue Integration'
-  )
-
-  const foundationEntries = await readdir(foundationsDir, {
-    withFileTypes: true
-  })
-  const foundationPages = (
-    await Promise.all(
-      foundationEntries
-        .filter((entry) => entry.isDirectory())
-        .map(async (dir) => {
-          const metadata = await getMetadataFromFile(
-            join(foundationsDir, dir.name, 'page.mdx'),
-            dir.name
-          )
-          if (!metadata) {
-            const tsxMetadata = await getMetadataFromFile(
-              join(foundationsDir, dir.name, 'page.tsx'),
-              dir.name
-            )
-            if (!tsxMetadata) return null
-            return {
-              title: tsxMetadata.title,
-              href: `/foundations/${dir.name}`
-            }
-          }
-          return {
-            title: metadata.title,
-            href: `/foundations/${dir.name}`
-          }
-        })
-    )
-  ).filter((page): page is { title: string; href: string } => page !== null)
-
-  const entries = await readdir(componentsDir, { withFileTypes: true })
-  const components = await Promise.all(
-    entries
-      .filter((entry) => entry.isDirectory())
-      .map(async (dir) => {
-        try {
-          const mdxPath = join(componentsDir, dir.name, 'page.mdx')
-          const tsxPath = join(componentsDir, dir.name, 'page.tsx')
-
-          let content: string
-          try {
-            content = await readFile(mdxPath, 'utf-8')
-          } catch {
-            try {
-              content = await readFile(tsxPath, 'utf-8')
-            } catch {
-              return null
-            }
-          }
-
-          const metadataMatch = content.match(
-            /export const metadata(?:\s*:\s*[A-Za-z_$][\w$]*)?\s*=\s*({[\s\S]*?})/m
-          )
-          let metadata: ComponentMetadata = {
-            name: dir.name,
-            title: dir.name,
-            description: '',
-            status: 'unknown',
-            category: 'Other'
-          }
-
-          if (metadataMatch) {
-            try {
-              const evalMetadata = eval(`(${metadataMatch[1]})`)
-              metadata = { ...metadata, ...evalMetadata }
-            } catch {
-              console.error(`Error parsing metadata for ${dir.name}`)
-            }
-          }
-
-          return metadata
-        } catch {
-          return null
-        }
-      })
-  )
-
-  const validComponents = components.filter(
-    (comp): comp is ComponentMetadata => comp !== null && !comp.hidden
-  )
-
-  const indexMetadata = await getMetadataFromFile(
-    join(process.cwd(), 'src/app/page.mdx'),
-    'Introduction'
-  )
-
-  const tokensMetadata = await getMetadataFromFile(
-    join(tokensDir, 'page.mdx'),
-    'Design Tokens'
-  )
-  const tokensReferenceMetadata = await getMetadataFromFile(
-    join(tokensDir, 'reference/page.tsx'),
-    'Reference'
-  )
-
-  const navigationItems: {
-    title: string
-    href: string
-    items: { title: string; href?: string; label?: boolean }[]
-  }[] = [
+async function getNavigationItems(): Promise<NavigationDestination[]> {
+  return [
     {
-      title: 'Overview',
+      title: 'Home',
       href: '/',
-      items: [
-        indexMetadata
-          ? { title: indexMetadata.title, href: '/' }
-          : { title: 'Introduction', href: '/' },
-        philosophyMetadata
-          ? {
-              title: philosophyMetadata.title,
-              href: '/overview/philosophy'
-            }
-          : { title: 'Philosophy', href: '/overview/philosophy' },
-        gettingStartedMetadata
-          ? {
-              title: gettingStartedMetadata.title,
-              href: '/overview/getting-started'
-            }
-          : { title: 'Getting Started', href: '/overview/getting-started' },
-        vueIntegrationMetadata
-          ? {
-              title: vueIntegrationMetadata.title,
-              href: '/overview/vue-integration'
-            }
-          : {
-              title: 'Vue Integration',
-              href: '/overview/vue-integration'
-            },
-        {
-          title: 'Migrating to v2',
-          href: '/migration'
-        },
+      overview: true,
+      items: await Promise.all([
+        guide('/overview/getting-started', 'overview/getting-started/page.mdx'),
+        guide('/overview/philosophy', 'overview/philosophy/page.mdx'),
+        guide('/overview/vue-integration', 'overview/vue-integration/page.mdx'),
         {
           title: 'Changelog',
-          href: 'https://github.com/ticketsolutionsptyltd/roadie/blob/main/packages/components/CHANGELOG.md'
+          href: CHANGELOG_URL,
+          description: 'Every release, on GitHub.'
         }
-      ]
+      ])
+    },
+    await catalogueDestination('Foundations', FOUNDATIONS, { overview: true }),
+    await catalogueDestination('Tokens', TOKENS, { overview: true }),
+    await catalogueDestination('Components', COMPONENTS, {
+      overview: true,
+      searchable: true
+    }),
+    {
+      title: 'Widgets',
+      href: WIDGETS.route,
+      items: flatten(WIDGETS.route, await getCatalogue(WIDGETS))
     }
   ]
-
-  if (foundationPages.length > 0) {
-    navigationItems.push({
-      title: 'Foundations',
-      href: '/foundations',
-      items: foundationPages
-    })
-  }
-
-  navigationItems.push({
-    title: 'Tokens',
-    href: '/tokens',
-    items: [
-      {
-        title: tokensMetadata?.title || 'Overview',
-        href: '/tokens'
-      },
-      {
-        title: tokensReferenceMetadata?.title || 'Reference',
-        href: '/tokens/reference'
-      }
-    ]
-  })
-
-  if (validComponents.length > 0) {
-    const categoryOrder = [
-      'Actions',
-      'Forms',
-      'Navigation',
-      'Overlays',
-      'Content',
-      'Typography',
-      'Layout'
-    ]
-
-    const componentsByCategory = validComponents.reduce(
-      (acc, comp) => {
-        const cat = comp.category || 'Other'
-        if (!acc[cat]) acc[cat] = []
-        acc[cat].push(comp)
-        return acc
-      },
-      {} as Record<string, ComponentMetadata[]>
-    )
-
-    const sortedCategories = Object.entries(componentsByCategory).sort(
-      ([a], [b]) => {
-        const aIdx = categoryOrder.indexOf(a)
-        const bIdx = categoryOrder.indexOf(b)
-        return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx)
-      }
-    )
-
-    const componentItems: { title: string; href?: string; label?: boolean }[] =
-      [{ title: 'Overview', href: '/components' }]
-
-    for (const [category, comps] of sortedCategories) {
-      const categorySlug = category.toLowerCase()
-      const overviewPath = join(
-        process.cwd(),
-        `src/app/components/${categorySlug}/page.mdx`
-      )
-      let hasOverview = false
-      try {
-        await readFile(overviewPath)
-        hasOverview = true
-      } catch {
-        // No overview page for this category
-      }
-
-      componentItems.push({
-        title: category,
-        label: true,
-        ...(hasOverview ? { href: `/components/${categorySlug}` } : {})
-      })
-      if (hasOverview) {
-        componentItems.push({
-          title: 'Overview',
-          href: `/components/${categorySlug}`
-        })
-      }
-      for (const comp of comps.sort((a, b) => a.title.localeCompare(b.title))) {
-        componentItems.push({
-          title: comp.title,
-          href: `/components/${comp.name}`
-        })
-      }
-    }
-
-    navigationItems.push({
-      title: 'Components',
-      href: '/components',
-      items: componentItems
-    })
-  }
-
-  let widgetPages: { title: string; href: string }[] = []
-  try {
-    const widgetEntries = await readdir(widgetsDir, { withFileTypes: true })
-    widgetPages = (
-      await Promise.all(
-        widgetEntries
-          .filter((entry) => entry.isDirectory())
-          .map(async (dir) => {
-            const metadata = await getMetadataFromFile(
-              join(widgetsDir, dir.name, 'page.mdx'),
-              dir.name
-            )
-            if (!metadata) return null
-            return {
-              title: metadata.title,
-              href: `/roadie-widgets/${dir.name}`
-            }
-          })
-      )
-    ).filter((page): page is { title: string; href: string } => page !== null)
-  } catch {
-    // No widgets directory yet
-  }
-
-  if (widgetPages.length > 0) {
-    const widgetsOverview = await getMetadataFromFile(
-      join(widgetsDir, 'page.mdx'),
-      'Overview'
-    )
-    navigationItems.push({
-      title: 'Widgets',
-      href: '/roadie-widgets',
-      items: [
-        {
-          title: widgetsOverview?.title || 'Overview',
-          href: '/roadie-widgets'
-        },
-        ...widgetPages.sort((a, b) => a.title.localeCompare(b.title))
-      ]
-    })
-  }
-
-  return navigationItems
 }
 
 export const metadata: Metadata = {
   title: 'Roadie Design System',
   description:
-    'A comprehensive collection of reusable components for building consistent user interfaces across Oztix applications.',
+    'Tokens, foundations, React components and Vue widgets for building consistent, accessible Oztix apps.',
   icons: {
     icon: getAssetPath('/favicon.png'),
     apple: getAssetPath('/favicon.png')
@@ -363,7 +108,10 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const items = await getNavigationItems()
+  const [items, pageTitles] = await Promise.all([
+    getNavigationItems(),
+    getPageTitles()
+  ])
 
   return (
     <html lang='en' suppressHydrationWarning>
@@ -374,23 +122,15 @@ export default async function RootLayout({
             __html: getThemeScript({ followSystem: true })
           }}
         />
+        <script
+          dangerouslySetInnerHTML={{ __html: getNavigatorExpandedScript() }}
+        />
       </head>
-      <body className='relative isolate overflow-x-hidden'>
+      <body className='isolate'>
         <Providers>
-          <div className='flex min-h-screen max-w-[100vw] flex-row'>
-            <Navigation items={items} />
-            <div className='min-w-0 flex-1 overflow-x-clip py-4 md:py-12 lg:py-20'>
-              <div className='mx-auto w-full max-w-[56rem] px-6 md:px-8 lg:max-w-[76rem] lg:px-12'>
-                <div className='lg:grid lg:grid-cols-[minmax(0,56rem)_12rem] lg:gap-8'>
-                  <main className='min-w-0'>
-                    {children}
-                    <FooterNav items={items} />
-                  </main>
-                  <OnThisPage />
-                </div>
-              </div>
-            </div>
-          </div>
+          <DocsNavigator items={items} pageTitles={pageTitles}>
+            {children}
+          </DocsNavigator>
         </Providers>
       </body>
     </html>

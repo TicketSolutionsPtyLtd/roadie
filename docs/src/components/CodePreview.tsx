@@ -1,6 +1,6 @@
 'use client'
 
-import { type CSSProperties, useEffect, useState } from 'react'
+import { type CSSProperties, use, useEffect, useId, useState } from 'react'
 
 import Link from 'next/link'
 
@@ -8,6 +8,7 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
   ArrowSquareOutIcon,
+  ArrowsOutIcon,
   BellRingingIcon,
   CaretDownIcon,
   CaretLeftIcon,
@@ -16,12 +17,14 @@ import {
   CheckCircleIcon,
   CheckIcon,
   CopyIcon,
+  CubeIcon,
   DownloadIcon,
   EnvelopeIcon,
   EyeIcon,
   EyeSlashIcon,
   GearIcon,
   HeartIcon,
+  HouseIcon,
   InfoIcon,
   LinkSimpleIcon,
   MagnifyingGlassIcon,
@@ -48,7 +51,9 @@ import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
 
+import { DemoRouter } from './DemoRouter'
 import { createDemoCart } from './cartDrawerDemo'
+import { useCopy } from './useCopy'
 
 // Bare-name keys so MDX live examples can use `<CheckCircle />` etc.
 const PhosphorIcons = {
@@ -84,7 +89,9 @@ const PhosphorIcons = {
   Envelope: EnvelopeIcon,
   Phone: PhoneIcon,
   ShoppingCart: ShoppingCartIcon,
-  Download: DownloadIcon
+  Download: DownloadIcon,
+  House: HouseIcon,
+  Cube: CubeIcon
 }
 
 // Icon-suffixed keys (`<TicketIcon />`) derived from the bare map.
@@ -103,12 +110,15 @@ const scope = {
   QueryClient,
   QueryClientProvider,
   createDemoCart,
+  DemoRouter,
   Link,
+  use,
   useState,
-  useEffect
+  useEffect,
+  useId
 }
 
-const { Button } = RoadieComponents
+const { Button, Dialog, IconButton } = RoadieComponents
 
 const customDarkTheme = {
   ...themes.nightOwl,
@@ -170,18 +180,12 @@ function ViewCodeShade({
 }
 
 function CopyButton({ code }: { code: string }) {
-  const [copied, setCopied] = useState(false)
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(code)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+  const { copied, copy } = useCopy()
 
   return (
-    <div className='absolute top-2 right-2 z-10'>
+    <div className='absolute top-2 right-2 z-docked'>
       <Button
-        onClick={handleCopy}
+        onClick={() => copy(code)}
         size='sm'
         emphasis='normal'
         aria-label='Copy code to clipboard'
@@ -198,13 +202,48 @@ type CodePreviewProps = {
   language?: string
   showCopy?: boolean
   className?: string
+  /** Adds a button that opens the live example in a full-width dialog. A `-expand` fence suffix does the same. */
+  expandable?: boolean
+}
+
+function FullWidthPreview() {
+  return (
+    <div className='flex justify-end border-b border-subtle bg-normal p-2 max-md:hidden'>
+      <Dialog>
+        <Dialog.Trigger
+          render={
+            <Button size='sm' emphasis='subtler'>
+              <ArrowsOutIcon weight='bold' className='size-4' />
+              Full width
+            </Button>
+          }
+        />
+        <Dialog.Content className='max-w-none gap-4 p-4'>
+          <div className='flex items-center justify-between gap-4'>
+            <Dialog.Title className='text-display-ui-6'>
+              Full-width example
+            </Dialog.Title>
+            <Dialog.Close
+              render={
+                <IconButton aria-label='Close' size='sm' emphasis='subtler'>
+                  <XIcon weight='bold' className='size-4' />
+                </IconButton>
+              }
+            />
+          </div>
+          <LivePreview className='min-w-0 font-sans whitespace-normal' />
+        </Dialog.Content>
+      </Dialog>
+    </div>
+  )
 }
 
 export function CodePreview({
   children,
   language = 'tsx',
   showCopy = true,
-  className
+  className,
+  expandable = false
 }: CodePreviewProps) {
   const [colorMode, setColorMode] = useState<'light' | 'dark'>('light')
 
@@ -233,6 +272,7 @@ export function CodePreview({
   const isLivePrefix =
     children.startsWith('live') && (language === 'tsx' || language === 'jsx')
   const isLive = isLiveLang || isLivePrefix
+  const isExpandable = expandable || /-expand\b/.test(language)
   const trimmedCode = isLivePrefix
     ? children.replace('live', '').trim()
     : children.trim()
@@ -300,8 +340,9 @@ export function CodePreview({
         scope={scope}
         theme={theme}
         noInline={language.includes('noinline')}
-        language={language.replace(/-live(-bleed-x)?(-noinline)?/, '')}
+        language={language.split('-')[0]}
       >
+        {isExpandable && <FullWidthPreview />}
         <LivePreview
           // whitespace-normal resets the `white-space: pre` inherited from the
           // MDX code-fence <pre> wrapper, so rendered examples wrap text like a

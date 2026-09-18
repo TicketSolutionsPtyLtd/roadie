@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react'
+import { act, render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -205,6 +205,95 @@ describe('Tabs', () => {
     expect(list.className).toContain(
       'data-[orientation=vertical]:border-l-subtle'
     )
+  })
+
+  it('a horizontal list scrolls sideways instead of overflowing', () => {
+    const { getByRole } = render(<ThreeTabs />)
+    expect(getByRole('tablist')).toHaveClass(
+      'data-[orientation=horizontal]:overflow-x-auto'
+    )
+  })
+
+  it('scrolls the list to show a newly active tab', async () => {
+    const user = userEvent.setup()
+    const rects: Record<string, Partial<DOMRect>> = {
+      tablist: { left: 0, right: 200 },
+      Overview: { left: 0, right: 100 },
+      Details: { left: 100, right: 200 },
+      History: { left: 200, right: 300 }
+    }
+    const spy = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        const key =
+          this.getAttribute('role') === 'tablist'
+            ? 'tablist'
+            : (this.textContent ?? '')
+        return (rects[key] ?? { left: 0, right: 0 }) as DOMRect
+      })
+    const { getByRole } = render(<ThreeTabs />)
+    const list = getByRole('tablist')
+
+    await user.click(getByRole('tab', { name: 'History' }))
+    await vi.waitFor(() => expect(list.scrollLeft).toBe(100))
+    spy.mockRestore()
+  })
+
+  it('reveals the active tab when its list becomes narrower', async () => {
+    class StubResizeObserver {
+      static instances: StubResizeObserver[] = []
+      readonly observed = new Set<Element>()
+      constructor(
+        readonly callback: ConstructorParameters<typeof ResizeObserver>[0]
+      ) {
+        StubResizeObserver.instances.push(this)
+      }
+      observe(target: Element) {
+        this.observed.add(target)
+      }
+      unobserve(target: Element) {
+        this.observed.delete(target)
+      }
+      disconnect() {
+        this.observed.clear()
+      }
+    }
+    vi.stubGlobal(
+      'ResizeObserver',
+      StubResizeObserver as unknown as typeof ResizeObserver
+    )
+    const rects: Record<string, Partial<DOMRect>> = {
+      tablist: { left: 0, right: 300 },
+      Overview: { left: 0, right: 100 },
+      Details: { left: 100, right: 200 },
+      History: { left: 200, right: 300 }
+    }
+    const spy = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        const key =
+          this.getAttribute('role') === 'tablist'
+            ? 'tablist'
+            : (this.textContent ?? '')
+        return (rects[key] ?? { left: 0, right: 0 }) as DOMRect
+      })
+
+    const user = userEvent.setup()
+    const { getByRole } = render(<ThreeTabs />)
+    const list = getByRole('tablist')
+    const history = getByRole('tab', { name: 'History' })
+    await user.click(history)
+    await vi.waitFor(() => expect(history).toHaveAttribute('data-active'))
+    rects.tablist = { left: 0, right: 200 }
+    act(() => {
+      StubResizeObserver.instances
+        .filter((observer) => observer.observed.has(list))
+        .forEach((observer) => observer.callback([], {} as ResizeObserver))
+    })
+
+    expect(list.scrollLeft).toBe(100)
+    spy.mockRestore()
+    vi.unstubAllGlobals()
   })
 
   it('direction="vertical" applies the column-flow utility to the list', () => {

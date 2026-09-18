@@ -208,6 +208,7 @@
 
 /* ─── Disclosure animation (details/summary) ─── */
 
+/* Put on a `<details>` so its content opens and closes by height. */
 .is-disclosure-animated {
   &::details-content {
     height: 0;

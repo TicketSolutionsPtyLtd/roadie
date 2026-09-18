@@ -2,13 +2,11 @@ export const metadata = {
   title: 'Countdown',
   description: 'Time remaining, rendered as a time element',
   status: 'beta',
-  category: 'Content'
+  category: 'Status'
 }
 
 import { Guideline } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
-
-# Countdown
 
 Time remaining, rendered as a `time` element.
 
@@ -301,5 +299,32 @@ A countdown runs for as long as the page is open, so the cost compounds. Three t
 Every countdown on the page shares one interval, so a list of twenty cards starts one timer rather than twenty. The timer stops entirely while the tab is hidden. And the value React watches is bucketed to what is on screen, so a coarse countdown re-renders once a minute rather than sixty times.
 
 That last one is the difference that matters. Subscribing to raw seconds re-renders every second no matter what is displayed.
+
+## Hooks
+
+### useCountdownUrgency
+
+```tsx
+import type { Instantish } from '@oztix/roadie-core/datetime'
+
+function useCountdownUrgency(
+  until: Instantish,
+  thresholds?: UrgencyThresholds
+): CountdownUrgency
+```
+
+Urgency for a moment, updated as it approaches. Shares the one page-wide
+ticker, so escalating a container's intent costs no extra timer.
+
+| Param | Type | Description |
+| --- | --- | --- |
+| `until` | `Instantish` | The moment being counted to. |
+| `thresholds` | `UrgencyThresholds` | Optional `warnBelowMs` / `dangerBelowMs` overrides. Defaults to five and two minutes. |
+
+Returns `'success' \| 'warning' \| 'danger' \| 'expired'`.
+
+```tsx
+const urgency = useCountdownUrgency(until)
+```
 
 <PropsDefinitions componentPath='packages/components/src/components/Countdown/index.tsx' />

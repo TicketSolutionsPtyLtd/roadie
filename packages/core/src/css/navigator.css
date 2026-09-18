@@ -1,0 +1,2 @@
+/* Navigator: the one variant every expanded style is written with. */
+@custom-variant navigator-expanded (&:where([data-slot=navigator-primary][data-orientation=vertical][data-expanded], [data-slot=navigator-primary][data-orientation=vertical][data-expanded] *, [data-navigator-expanded] [data-slot=navigator-primary][data-orientation=vertical][data-from-document], [data-navigator-expanded] [data-slot=navigator-primary][data-orientation=vertical][data-from-document] *));

@@ -37,11 +37,7 @@ export const buttonVariants = cva('btn is-interactive', {
   }
 })
 
-/**
- * Smart-href props. When `href` is present and the consumer hasn't supplied
- * their own `render`, Button renders a `RoadieRoutedLink` styled as a button,
- * with native link semantics, instead of the Base UI Button.
- */
+/** Smart-href props: with `href` and no `render`, Button renders a `RoadieRoutedLink` styled as a button. */
 export type ButtonHrefProps = {
   /**
    * Pass a URL to render the button as a routed anchor instead of a
@@ -84,11 +80,7 @@ export function Button({
   nativeButton,
   ...props
 }: ButtonProps) {
-  // Consumer `render` always wins — it's the canonical escape hatch for
-  // full element control. When `href` is also passed, the routed link is
-  // bypassed; warn in dev once per mount so the silent
-  // disable doesn't get shipped accidentally. Use a ref so StrictMode's
-  // double-render and ordinary re-renders don't multiply the warn.
+  // `render` wins over `href`; the ref warns once per mount, even under StrictMode.
   const hasWarnedRef = useRef(false)
   useEffect(() => {
     if (props.render && href !== undefined && !hasWarnedRef.current) {

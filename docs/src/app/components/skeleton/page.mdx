@@ -2,7 +2,7 @@ export const metadata = {
   title: 'Skeleton',
   description: 'A placeholder that holds the space content will occupy while it loads',
   status: 'beta',
-  category: 'Content',
+  category: 'Status',
 }
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
@@ -138,6 +138,6 @@ The region that owns the fetch announces the wait. Put `aria-busy='true'` on it 
 
 Keep the live region small and separate from the content it describes. A `role='status'` on the whole section would read the entire result back once it lands.
 
-The motion runs on the `animate-shimmer` utility from the motion tokens. The highlight and the tint pulse under it share one period, `--duration-sweep`, and one pass moves the gradient exactly its own width, so the loop closes on itself with nothing to see at the join. The highlight is lighter than the surface it crosses in both themes, from the `--sheen-shade` and `--sheen-highlight` tokens. Under `prefers-reduced-motion: reduce` the highlight is removed and the global motion reset cuts the pulse to a single pass, so the placeholder holds a static tint and never flickers.
+The motion runs on the `animate-shimmer` utility from the [motion tokens](/tokens/motion). The highlight and the tint pulse under it share one period, `--duration-sweep`, and one pass moves the gradient exactly its own width, so the loop closes on itself with nothing to see at the join. The highlight is lighter than the surface it crosses in both themes, from the `--sheen-shade` and `--sheen-highlight` tokens. Under `prefers-reduced-motion: reduce` the highlight is removed and the global motion reset cuts the pulse to a single pass, so the placeholder holds a static tint and never flickers.
 
 <PropsDefinitions componentPath='packages/components/src/components/Skeleton/index.tsx' />

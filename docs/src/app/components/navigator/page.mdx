@@ -1,0 +1,985 @@
+export const metadata = {
+  title: 'Navigator',
+  description:
+    'A full-height app frame with one set of destinations, drawn as a vertical navigation on large screens and a floating tab bar on phones',
+  status: 'alpha',
+  category: 'Navigation',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+A full-height app frame with one set of destinations, drawn as a vertical
+navigation on large screens and a floating tab bar on phones.
+
+## Import
+
+```tsx
+import {
+  Navigator,
+  useNavigatorSecondary
+} from '@oztix/roadie-components/navigator'
+```
+
+## How it works
+
+[Navigation](/foundations/navigation) covers how Navigator, its destinations
+and your panes fit together, and how they map to routes. This page is the
+reference for each part.
+
+| Part | Large screen | Phone |
+| --- | --- | --- |
+| `Navigator.Brand` | Top of the vertical navigation, linking home | Hidden |
+| A `Navigator.Group`, or loose items side by side | A floating capsule of icon tiles | Tabs in the bar |
+| An item with `placement='pinned'` | Bottom of the vertical navigation | The bar's trailing circle |
+| A `Navigator.Secondary` | A list pane beside the page | A list pane stacked with the page |
+| Items that don't fit | Fold into More when the window is too short | Fold into More past five slots |
+| Your [`Pane`](/components/pane)s | Columns where they fit | One pane at a time |
+
+- Full columns need container style queries, in Chrome 111, Safari 18 and
+  Firefox 151. Older browsers show the top pane, with the root beside it once
+  two columns fit.
+- `value` is controlled and comes from your router. An item is active on an
+  exact match, or on a `value + '/'` prefix for the pages under it. Normalise
+  the pathname first. `/events/` misses the exact match and reads as a page
+  below `/events`.
+- Author the whole tree in a client component. Navigation's
+  [server and client](/foundations/navigation#server-and-client) table says why and what can
+  stay on the server.
+- `Navigator.Primary` must be a direct child of `Navigator`. Items must be
+  direct children of `Primary`, a `Group` or a `Secondary`. A mapped array
+  counts as direct. A Fragment or your own component does not, and anything
+  inside it is skipped.
+- Everything else you pass to `Navigator` is its content, and Navigator renders
+  it in a `<main>`. Panes from parallel-route slots are more children like any
+  other.
+
+### Splitting a big tree
+
+An app with several rails is tempting to split into components, but moving
+each rail into its own `UserRail` component hides `Navigator.Primary`
+from the walk. The bar still draws, but secondary navs, More rows and
+`useNavigatorSecondary` do nothing. Write each rail as a function you call, not
+a component you render, and call any hook it needs in the surrounding
+component.
+
+```tsx
+<Navigator value={pathname}>
+  {kind === 'org' ? orgRail(rail) : userRail(rail)}
+  {children}
+</Navigator>
+```
+
+The same works one level down, such as a function that returns a mapped array
+of `Navigator.MenuItem`s. [Navigation](/foundations/navigation) builds a full
+shell this way.
+
+## Examples
+
+Narrow your viewport to see the tab bar and the stacked panes. Press Full width
+on an example with a secondary nav to see its columns.
+
+### Default
+
+A few destinations and a pinned Account item.
+
+```tsx-live-noinline
+function ConsumerNav() {
+  const [active, setActive] = useState('discover')
+  const labels = {
+    discover: 'Discover',
+    tickets: 'My tickets',
+    saved: 'Saved',
+    account: 'Account'
+  }
+  const upcoming = [
+    { title: 'Midnight Frequency', description: 'Sat 12 Jul · The Longacre' },
+    { title: 'Sunset Sounds', description: 'Fri 18 Jul · Meridian Stage' },
+    { title: 'Neon Dusk', description: 'Sat 26 Jul · The Burrow' },
+    { title: 'Harbour Lights', description: 'Sun 3 Aug · The Signal Hall' },
+    { title: 'Analog Bloom', description: 'Fri 15 Aug · The Anchorage' },
+    { title: 'Coastal Echo', description: 'Sat 23 Aug · The Palisade Theatre' },
+    { title: 'Velvet Static', description: 'Fri 5 Sep · The Lowlight' },
+    { title: 'Golden Hour', description: 'Sat 20 Sep · Beacon Piazza' }
+  ]
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <Navigator value={active} onValueChange={setActive} className='h-full'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Brand />
+          <Navigator.Item value='discover' icon={<MagnifyingGlassIcon />}>
+            Discover
+          </Navigator.Item>
+          <Navigator.Item value='tickets' icon={<TicketIcon />}>
+            My tickets
+          </Navigator.Item>
+          <Navigator.Item value='saved' icon={<HeartIcon />}>
+            Saved
+          </Navigator.Item>
+          <Navigator.Item value='account' icon={<GearIcon />} placement='pinned'>
+            Account
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Pane>
+          <div className='grid gap-3 py-4'>
+            <h2 className='text-display-ui-4 text-strong'>{labels[active]}</h2>
+            <List>
+              {upcoming.map((event) => (
+                <List.Item
+                  key={event.title}
+                  title={event.title}
+                  description={event.description}
+                  leading={
+                    <IconTile intent='accent' emphasis='subtle'>
+                      <TicketIcon weight='bold' />
+                    </IconTile>
+                  }
+                  chevron
+                />
+              ))}
+            </List>
+          </div>
+        </Pane>
+      </Navigator>
+    </div>
+  )
+}
+render(<ConsumerNav />)
+```
+
+### Groups
+
+Each `Navigator.Group` is its own capsule, named by its `GroupTitle`. Loose
+items next to each other share one capsule. Titles show when the vertical
+navigation is expanded, and in More.
+
+```tsx-live-noinline
+function GroupedNav() {
+  const [active, setActive] = useState('overview')
+  const labels = {
+    overview: 'Overview',
+    events: 'Events',
+    orders: 'Orders',
+    reviews: 'Reviews',
+    messages: 'Messages'
+  }
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <Navigator value={active} onValueChange={setActive} className='h-full'>
+        <Navigator.Primary aria-label='Admin'>
+          <Navigator.Brand />
+          <Navigator.Item value='overview' icon={<MagnifyingGlassIcon />}>
+            Overview
+          </Navigator.Item>
+          <Navigator.Group>
+            <Navigator.GroupTitle>Manage</Navigator.GroupTitle>
+            <Navigator.Item value='events' icon={<TicketIcon />}>
+              Events
+            </Navigator.Item>
+            <Navigator.Item value='orders' icon={<ShoppingCartIcon />}>
+              Orders
+            </Navigator.Item>
+          </Navigator.Group>
+          <Navigator.Group>
+            <Navigator.GroupTitle>Insights</Navigator.GroupTitle>
+            <Navigator.Item value='reviews' icon={<StarIcon />}>
+              Reviews
+            </Navigator.Item>
+            <Navigator.Item value='messages' icon={<EnvelopeIcon />}>
+              Messages
+            </Navigator.Item>
+          </Navigator.Group>
+        </Navigator.Primary>
+        <Pane>
+          <div className='grid gap-3 py-4'>
+            <h2 className='text-display-ui-4 text-strong'>{labels[active]}</h2>
+            <p className='text-subtle'>
+              Three capsules: Overview on its own, then Manage and Insights.
+            </p>
+          </div>
+        </Pane>
+      </Navigator>
+    </div>
+  )
+}
+render(<GroupedNav />)
+```
+
+### Secondary nav
+
+Give an item an `href` and a `Navigator.Secondary` to give that destination
+pages of its own. Declaring `Navigator.Secondary` makes Navigator draw the
+destination's list pane for you, titled with the item's label, with its groups
+and the current row marked. You don't render it. Your code renders only the
+page's pane.
+
+- On the destination's own route, the list sits beside your page where two
+  columns fit, and covers it when panes stack.
+- On one of its pages, the list stays beside the page where two columns fit.
+  When panes stack, the page covers the list and shows Back to the
+  destination's route.
+
+```tsx-live-noinline-expand
+function SecondaryNav() {
+  const titles = {
+    '/events': 'Events',
+    '/events/upcoming': 'Upcoming',
+    '/events/past': 'Past',
+    '/events/drafts': 'Drafts',
+    '/marketing': 'Marketing',
+    '/settings': 'Settings'
+  }
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <DemoRouter initialPath='/events/upcoming'>
+        {(path) => (
+          <Navigator value={path} className='h-full'>
+            <Navigator.Primary aria-label='Organiser'>
+              <Navigator.Brand href='/events' />
+              <Navigator.Item value='/events' href='/events' icon={<TicketIcon />}>
+                Events
+                <Navigator.Secondary aria-label='Events pages'>
+                  <Navigator.Item value='/events/upcoming' href='/events/upcoming'>
+                    Upcoming
+                  </Navigator.Item>
+                  <Navigator.Item value='/events/past' href='/events/past'>
+                    Past
+                  </Navigator.Item>
+                  <Navigator.Item value='/events/drafts' href='/events/drafts'>
+                    Drafts
+                  </Navigator.Item>
+                </Navigator.Secondary>
+              </Navigator.Item>
+              <Navigator.Item value='/marketing' href='/marketing' icon={<EnvelopeIcon />}>
+                Marketing
+              </Navigator.Item>
+              <Navigator.Item value='/settings' href='/settings' icon={<GearIcon />} placement='pinned'>
+                Settings
+              </Navigator.Item>
+            </Navigator.Primary>
+            <Pane>
+              <Pane.Header>
+                <Pane.Title>{titles[path]}</Pane.Title>
+              </Pane.Header>
+              <p className='pb-4 text-subtle'>
+                {path === '/events'
+                  ? 'The destination route, beside the list.'
+                  : `The page at ${path}.`}
+              </p>
+            </Pane>
+          </Navigator>
+        )}
+      </DemoRouter>
+    </div>
+  )
+}
+render(<SecondaryNav />)
+```
+
+#### Searchable
+
+`searchable` adds a search field to the list pane. It filters rows by label and
+hides empty groups. Cancel or Escape clears the search and leaves the field.
+
+```tsx-live-noinline-expand
+function SearchableNav() {
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <DemoRouter initialPath='/events'>
+        {(path) => (
+          <Navigator value={path} className='h-full'>
+            <Navigator.Primary aria-label='Organiser'>
+              <Navigator.Brand href='/events' />
+              <Navigator.Item value='/events' href='/events' icon={<TicketIcon />}>
+                Events
+                <Navigator.Secondary aria-label='Events pages' searchable>
+                  <Navigator.Group>
+                    <Navigator.GroupTitle>Selling</Navigator.GroupTitle>
+                    <Navigator.Item value='/events/upcoming' href='/events/upcoming'>
+                      Upcoming
+                    </Navigator.Item>
+                    <Navigator.Item value='/events/on-sale' href='/events/on-sale'>
+                      On sale
+                    </Navigator.Item>
+                    <Navigator.Item value='/events/sold-out' href='/events/sold-out'>
+                      Sold out
+                    </Navigator.Item>
+                  </Navigator.Group>
+                  <Navigator.Group>
+                    <Navigator.GroupTitle>Archive</Navigator.GroupTitle>
+                    <Navigator.Item value='/events/past' href='/events/past'>
+                      Past
+                    </Navigator.Item>
+                    <Navigator.Item value='/events/drafts' href='/events/drafts'>
+                      Drafts
+                    </Navigator.Item>
+                  </Navigator.Group>
+                </Navigator.Secondary>
+              </Navigator.Item>
+              <Navigator.Item value='/marketing' href='/marketing' icon={<EnvelopeIcon />}>
+                Marketing
+              </Navigator.Item>
+            </Navigator.Primary>
+            <Pane>
+              <Pane.Header>
+                <Pane.Title>{path}</Pane.Title>
+              </Pane.Header>
+              <p className='pb-4 text-subtle'>Type in the list's search field.</p>
+            </Pane>
+          </Navigator>
+        )}
+      </DemoRouter>
+    </div>
+  )
+}
+render(<SearchableNav />)
+```
+
+#### Overview page
+
+`overview` on `Navigator.Secondary` shows the destination's own route alone,
+full width, with no list pane and no Back. Its pages work as they do without
+it. Use it when the destination has a page worth reading, such as Home or a
+dashboard.
+
+That page then offers the destination's pages in its body.
+`Navigator.SecondaryItems` renders them as a grouped `List`, the same rows as
+the list pane, with each item's `description` under its label.
+
+```tsx-live-noinline
+function OverviewNav() {
+  const titles = {
+    '/': 'Home',
+    '/overview/installation': 'Installation',
+    '/overview/philosophy': 'Philosophy',
+    '/components': 'Components'
+  }
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <DemoRouter initialPath='/'>
+        {(path) => (
+          <Navigator value={path} className='h-full'>
+            <Navigator.Primary aria-label='Documentation'>
+              <Navigator.Brand />
+              <Navigator.Item value='/' href='/' icon={<HouseIcon />}>
+                Home
+                <Navigator.Secondary aria-label='Home pages' overview>
+                  <Navigator.Item
+                    value='/overview/installation'
+                    href='/overview/installation'
+                    description='Install the packages and wire up the CSS.'
+                  >
+                    Installation
+                  </Navigator.Item>
+                  <Navigator.Item
+                    value='/overview/philosophy'
+                    href='/overview/philosophy'
+                    description='The goals and the mental model.'
+                  >
+                    Philosophy
+                  </Navigator.Item>
+                </Navigator.Secondary>
+              </Navigator.Item>
+              <Navigator.Item value='/components' href='/components' icon={<CubeIcon />}>
+                Components
+              </Navigator.Item>
+            </Navigator.Primary>
+            <Pane>
+              <Pane.Header>
+                <Pane.Title>{titles[path]}</Pane.Title>
+              </Pane.Header>
+              {path === '/' ? (
+                <Navigator.SecondaryItems />
+              ) : (
+                <p className='pb-4 text-subtle'>The page at {path}.</p>
+              )}
+            </Pane>
+          </Navigator>
+        )}
+      </DemoRouter>
+    </div>
+  )
+}
+render(<OverviewNav />)
+```
+
+- `overview` needs the item's `href`. Without one, Navigator warns and shows
+  the list.
+- On a phone, tapping the destination's tab on one of its pages goes to its
+  route. On the route itself, it scrolls the page to the top.
+- `showList` still shows the list over one of its pages. It does nothing on
+  the destination's own route.
+- `value` has to come from the route that renders the page, as the
+  [shell](/foundations/navigation#the-shell) passes it, or the list pane and Back read
+  the wrong route.
+
+For a layout of your own, [`useNavigatorSecondary`](#hooks) returns the same
+data.
+
+#### Your own list pane
+
+`Navigator.SecondaryPane` is the rare escape hatch. It replaces one
+destination's generated list pane with yours, such as to put a card above the
+rows. Declare it before your detail pane.
+`<Navigator.SecondaryItems showDescriptions={false} />` renders the same rows,
+and its `query` prop lets your pane keep search.
+
+```tsx-live-noinline-expand
+function OwnListPaneNav() {
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <DemoRouter initialPath='/components'>
+        {(path) => (
+          <Navigator value={path} className='h-full'>
+            <Navigator.Primary aria-label='Documentation'>
+              <Navigator.Brand />
+              <Navigator.Item value='/' href='/' icon={<HouseIcon />}>Home</Navigator.Item>
+              <Navigator.Item value='/components' href='/components' icon={<StarIcon />}>
+                Components
+                <Navigator.Secondary aria-label='Components'>
+                  <Navigator.Group>
+                    <Navigator.GroupTitle>Actions</Navigator.GroupTitle>
+                    <Navigator.Item value='/components/button' href='/components/button'>
+                      Button
+                    </Navigator.Item>
+                    <Navigator.Item value='/components/icon-button' href='/components/icon-button'>
+                      Icon button
+                    </Navigator.Item>
+                  </Navigator.Group>
+                </Navigator.Secondary>
+              </Navigator.Item>
+            </Navigator.Primary>
+            <Navigator.SecondaryPane value='/components'>
+              <Pane.Header>
+                <Pane.Title>Components</Pane.Title>
+              </Pane.Header>
+              <div className='grid gap-4 pb-4'>
+                <Card intent='accent' emphasis='subtle'>
+                  <Card.Content>
+                    <Card.Title>New: Tooltip</Card.Title>
+                    <Card.Description>Labels for icon-only controls.</Card.Description>
+                  </Card.Content>
+                </Card>
+                <Navigator.SecondaryItems showDescriptions={false} />
+              </div>
+            </Navigator.SecondaryPane>
+            <Pane>
+              <Pane.Header>
+                <Pane.Title>{path}</Pane.Title>
+              </Pane.Header>
+            </Pane>
+          </Navigator>
+        )}
+      </DemoRouter>
+    </div>
+  )
+}
+render(<OwnListPaneNav />)
+```
+
+### More
+
+Items that don't fit fold into a More pane.
+
+| Where | What folds |
+| --- | --- |
+| Phone | Anything past five slots. With too many items, the top four stay beside More, or three beside a pinned circle. Extra pinned items always fold. |
+| Large screen, collapsed | Whatever doesn't fit the window's height. |
+| Large screen, expanded | Nothing. The cluster scrolls instead. |
+
+`visibilityPriority` on an item or a group decides which items stay: `'high'`,
+`'automatic'` or `'low'`. An item's own priority wins over its group's. Ties go
+to source order, and the items that stay keep their source order.
+
+Here Orders and Messages are `'high'`, so they keep their place on the phone
+bar. On a large screen all eight fit, and Help, at `'low'`, would fold first in
+a shorter window.
+
+```tsx-live-noinline
+function PriorityNav() {
+  const [active, setActive] = useState('discover')
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <Navigator value={active} onValueChange={setActive} className='h-full'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Brand />
+          <Navigator.Item value='discover' icon={<MagnifyingGlassIcon />}>
+            Discover
+          </Navigator.Item>
+          <Navigator.Item value='tickets' icon={<TicketIcon />}>
+            Tickets
+          </Navigator.Item>
+          <Navigator.Item value='saved' icon={<HeartIcon />}>
+            Saved
+          </Navigator.Item>
+          <Navigator.Item value='orders' icon={<ShoppingCartIcon />} visibilityPriority='high'>
+            Orders
+          </Navigator.Item>
+          <Navigator.Item value='reviews' icon={<StarIcon />}>
+            Reviews
+          </Navigator.Item>
+          <Navigator.Item value='messages' icon={<EnvelopeIcon />} visibilityPriority='high'>
+            Messages
+          </Navigator.Item>
+          <Navigator.Item value='downloads' icon={<DownloadIcon />}>
+            Downloads
+          </Navigator.Item>
+          <Navigator.Item value='help' icon={<InfoIcon />} visibilityPriority='low'>
+            Help
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Pane>
+          <div className='grid gap-3 py-4'>
+            <h2 className='text-display-ui-4 text-strong'>{active}</h2>
+            <p className='text-subtle'>
+              Eight items. Orders and Messages are high priority, Help is low.
+            </p>
+          </div>
+        </Pane>
+      </Navigator>
+    </div>
+  )
+}
+render(<PriorityNav />)
+```
+
+More opens as a list pane. It covers the stack on a phone, and takes the
+leading column where two columns fit.
+
+- Tapping More again scrolls it to the top, like an active tab.
+- Choosing a destination closes More, and so does a new `value` from your
+  router.
+- A row with an `href` keeps More open until `value` changes, so the old page
+  never shows while the route loads.
+
+### Menus
+
+`Navigator.Menu` gives an item a menu instead of a destination, such as an
+account menu. `Navigator.MenuItem` takes an `href` or an `onSelect`, plus an
+optional `icon` and `description`.
+
+```tsx-live-noinline
+function MenuNav() {
+  const [signedOut, setSignedOut] = useState(false)
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <DemoRouter initialPath='/discover'>
+        {(path) => (
+          <Navigator value={path} className='h-full'>
+            <Navigator.Primary aria-label='Main'>
+              <Navigator.Brand href='/discover' />
+              <Navigator.Item value='/discover' href='/discover' icon={<MagnifyingGlassIcon />}>
+                Discover
+              </Navigator.Item>
+              <Navigator.Item value='/tickets' href='/tickets' icon={<TicketIcon />}>
+                Tickets
+              </Navigator.Item>
+              <Navigator.Item value='account' icon={<GearIcon />} placement='pinned'>
+                Account
+                <Navigator.Menu>
+                  <Navigator.MenuItem href='/profile' icon={<PencilSimpleIcon weight='bold' />} description='luke@example.com'>
+                    Profile
+                  </Navigator.MenuItem>
+                  <Navigator.MenuItem href='/notifications' icon={<BellRingingIcon weight='bold' />}>
+                    Notifications
+                  </Navigator.MenuItem>
+                  <Navigator.MenuItem onSelect={() => setSignedOut(true)} icon={<XIcon weight='bold' />}>
+                    Sign out
+                  </Navigator.MenuItem>
+                </Navigator.Menu>
+              </Navigator.Item>
+            </Navigator.Primary>
+            <Pane>
+              <div className='grid gap-3 py-4'>
+                <h2 className='text-display-ui-4 text-strong'>{path}</h2>
+                <p className='text-subtle'>
+                  {signedOut ? 'Signed out.' : 'Open Account to see its menu.'}
+                </p>
+              </div>
+            </Pane>
+          </Navigator>
+        )}
+      </DemoRouter>
+    </div>
+  )
+}
+render(<MenuNav />)
+```
+
+- The menu opens beside the tile or row on a large screen, above the tab on a
+  phone, and below the row in More.
+- The item never navigates. It reads as active only while its menu is open.
+
+### Badges
+
+Pass a `Badge` as `badge`. It shrinks to a dot while collapsed and on the phone
+bar, and trails the label at `size='sm'` when expanded. More and list pane rows
+show it as declared. Write the full meaning, such as "3 unread", because screen
+readers announce it.
+
+```tsx-live-noinline
+function BadgeNav() {
+  const [active, setActive] = useState('/home')
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <Navigator value={active} onValueChange={setActive} className='h-full'>
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Brand />
+          <Navigator.Item value='/home' icon={<MagnifyingGlassIcon />}>
+            Home
+          </Navigator.Item>
+          <Navigator.Item
+            value='/inbox'
+            icon={<EnvelopeIcon />}
+            badge={<Badge intent='danger' emphasis='strong'>3 unread</Badge>}
+          >
+            Inbox
+          </Navigator.Item>
+          <Navigator.ExpandToggle />
+        </Navigator.Primary>
+        <Pane>
+          <p className='py-4 text-subtle'>Expand the navigation to see the full badge.</p>
+        </Pane>
+      </Navigator>
+    </div>
+  )
+}
+render(<BadgeNav />)
+```
+
+### Expanded
+
+`expanded`, `defaultExpanded` and `onExpandedChange` widen the vertical
+navigation to show labels beside the icons. `Navigator.ExpandToggle` is the
+built-in control, and it sits with the brand wherever you write it. Phones have
+no expanded state.
+
+```tsx-live-noinline
+function ExpandedNav() {
+  const [active, setActive] = useState('discover')
+  const [expanded, setExpanded] = useState(true)
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <Navigator
+        value={active}
+        onValueChange={setActive}
+        expanded={expanded}
+        onExpandedChange={setExpanded}
+        className='h-full'
+      >
+        <Navigator.Primary aria-label='Main'>
+          <Navigator.Brand />
+          <Navigator.Group>
+            <Navigator.GroupTitle>Browse</Navigator.GroupTitle>
+            <Navigator.Item value='discover' icon={<MagnifyingGlassIcon />}>
+              Discover
+            </Navigator.Item>
+            <Navigator.Item value='tickets' icon={<TicketIcon />}>
+              My tickets
+            </Navigator.Item>
+            <Navigator.Item value='saved' icon={<HeartIcon />}>
+              Saved
+            </Navigator.Item>
+          </Navigator.Group>
+          <Navigator.Item value='account' icon={<GearIcon />} placement='pinned'>
+            Account
+          </Navigator.Item>
+          <Navigator.ExpandToggle />
+        </Navigator.Primary>
+        <Pane>
+          <div className='grid gap-3 py-4'>
+            <h2 className='text-display-ui-4 text-strong'>
+              {expanded ? 'Expanded' : 'Collapsed'}
+            </h2>
+            <p className='text-subtle'>Toggle it from beside the brand.</p>
+          </div>
+        </Pane>
+      </Navigator>
+    </div>
+  )
+}
+render(<ExpandedNav />)
+```
+
+#### Remember the expanded state
+
+Navigator never touches storage. Save the choice in a cookie. If you render on
+the server, read the cookie there and pass `defaultExpanded`, so the first paint
+is right with no script.
+
+```tsx
+// app/layout.tsx
+import { cookies } from 'next/headers'
+
+import { NAVIGATOR_EXPANDED_COOKIE } from '@oztix/roadie-core/navigator'
+
+export default async function Layout({ children }) {
+  return (
+    <AppNavigator
+      defaultExpanded={(await cookies()).get(NAVIGATOR_EXPANDED_COOKIE)?.value === '1'}
+    >
+      {children}
+    </AppNavigator>
+  )
+}
+
+// AppNavigator.tsx
+import { serializeNavigatorExpandedCookie } from '@oztix/roadie-core/navigator'
+
+<Navigator
+  defaultExpanded={defaultExpanded}
+  onExpandedChange={(next) => {
+    document.cookie = serializeNavigatorExpandedCookie(next)
+  }}
+>
+```
+
+On a static site, add `getNavigatorExpandedScript()` from
+`@oztix/roadie-core/navigator` to `<head>`, and set `expandedFromDocument`
+instead of `defaultExpanded`.
+
+```tsx
+<head>
+  <script dangerouslySetInnerHTML={{ __html: getNavigatorExpandedScript() }} />
+</head>
+
+<Navigator expandedFromDocument onExpandedChange={saveCookie}>
+```
+
+### Brand
+
+`Navigator.Brand` links home from the top of the vertical navigation. It shows
+on large screens only. With no children it renders the Oztix
+[`Logo`](/components/logo), the mark when collapsed and the wordmark when
+expanded.
+
+Your own brand goes in as children and names the link. The first child stays in
+the icon column, and anything after it fades in once expanded. Add
+`hidden navigator-expanded:inline` to hide a wordmark until then.
+
+```tsx
+<Navigator.Brand />
+
+<Navigator.Brand>
+  <Logo product='Studio' />
+</Navigator.Brand>
+
+<Navigator.Brand>
+  <img src='/mark.svg' alt='Acme' className='size-8' />
+  <span aria-hidden className='hidden navigator-expanded:inline'>Acme</span>
+</Navigator.Brand>
+```
+
+### Keep the list and More in the URL
+
+Roadie never reads the URL. To let a phone user open the destination's list
+over one of its pages, keep a flag such as `?nav` in the query string. Pass it
+as `showList` and turn `onShowListChange` into a URL update. Tapping the active
+destination's tab on one of its pages then shows the list instead of going to
+the destination's route.
+
+Here `useState` stands in for the query string, and navigating clears it as a
+new URL would. Narrow your viewport and tap Events on one of its pages.
+
+```tsx-live-noinline-expand
+function ListFromUrlNav() {
+  const [showList, setShowList] = useState(false)
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <DemoRouter
+        initialPath='/events/upcoming'
+        onNavigate={() => setShowList(false)}
+      >
+        {(path) => (
+          <Navigator
+            value={path}
+            showList={showList}
+            onShowListChange={setShowList}
+            className='h-full'
+          >
+            <Navigator.Primary aria-label='Organiser'>
+              <Navigator.Brand href='/events' />
+              <Navigator.Item value='/events' href='/events' icon={<TicketIcon />}>
+                Events
+                <Navigator.Secondary aria-label='Events pages'>
+                  <Navigator.Item value='/events/upcoming' href='/events/upcoming'>
+                    Upcoming
+                  </Navigator.Item>
+                  <Navigator.Item value='/events/past' href='/events/past'>
+                    Past
+                  </Navigator.Item>
+                </Navigator.Secondary>
+              </Navigator.Item>
+              <Navigator.Item value='/marketing' href='/marketing' icon={<EnvelopeIcon />}>
+                Marketing
+              </Navigator.Item>
+            </Navigator.Primary>
+            <Pane>
+              <Pane.Header>
+                <Pane.Title>{path}</Pane.Title>
+              </Pane.Header>
+              <p className='pb-4 text-subtle'>
+                {showList ? 'The list is showing (?nav).' : 'No ?nav in the URL.'}
+              </p>
+            </Pane>
+          </Navigator>
+        )}
+      </DemoRouter>
+    </div>
+  )
+}
+render(<ListFromUrlNav />)
+```
+
+`showMore` and `onShowMoreChange` do the same for More. Without them, More keeps
+its own state. With them, More asks through `onShowMoreChange` when someone:
+
+- taps More;
+- presses Escape;
+- chooses a row or menu that doesn't navigate.
+
+It also asks when `value` changes while `showMore` is still true. A row or tab
+that navigates doesn't ask, because its route closes More as it commits.
+
+In Next.js,
+[Navigation](/foundations/navigation#keep-the-list-and-more-in-the-url) shows
+how to keep both flags in the query string.
+
+### Waiting for a navigation
+
+After 150ms of a navigation with nothing on screen changed, the frame fills
+with a slowly turning gradient of three Oztix colours, behind the panes and the
+nav's capsules. On a phone the panes also pull back a little and round their
+corners. The gradient fades once the destination arrives. A navigation faster
+than 150ms shows nothing, so a prefetched route stays quiet.
+
+`RoadieLinkProvider` starts it for a plain left click on the internal `href` of
+any Roadie surface, and `pendingIndicator={false}` on the provider turns it
+off. For a navigation you start yourself, such as a `router.push`, use
+`usePendingNavigation`. [Linking](/foundations/linking) documents both.
+
+For a wait Roadie can't see, pass [`pending`](/components/pane#loading) on the
+pane. A mounted `Skeleton` never starts or holds the indicator, because a
+skeleton may be a placeholder that never resolves.
+
+The indicator ends on the first of these:
+
+- the destination landing;
+- a Back or Forward traversal;
+- the tab going to the background;
+- a 10 second ceiling, which also catches a pane left with `pending` and logs it
+  in development.
+
+A pane still reporting `pending` outlasts the first three, because a Back press
+does not make its content arrive. Reduced motion keeps the colour and drops the
+turn and the phone pull-back.
+
+## Guidelines
+
+- Derive `value` from the URL and give each item an `href`, so Back, forward and
+  deep links work, as the [shell](/foundations/navigation#the-shell) does. Use
+  `onValueChange` only when no route owns the state.
+- Write pinned items last. The vertical navigation always tabs through brand,
+  cluster, then pinned items, so source order should match.
+- Pass bare icons to items. Navigator renders them duotone at `size-6`. Give
+  `Navigator.MenuItem` icons `weight='bold'`. An item without an icon shows its
+  label's first letter.
+- An item links to its declared `href`, in More too, so tapping a top-level
+  item goes to that destination's route from any of its pages. A phone has two
+  exceptions. On the destination's own route its tab scrolls the page to the
+  top, and with `onShowListChange` its tab shows the list instead.
+- The top pane's `tabBar` decides what the phone tab bar does while that pane
+  is on top. See [`Pane`](/components/pane).
+
+<Guideline title='Menus'>
+  <Guideline.Do code={`<Navigator.Item value='account' icon={<UserIcon />} placement='pinned'>\n  Account\n  <Navigator.Menu>\n    <Navigator.MenuItem href='/profile'>Profile</Navigator.MenuItem>\n    <Navigator.MenuItem onSelect={signOut}>Sign out</Navigator.MenuItem>\n  </Navigator.Menu>\n</Navigator.Item>`}>
+    Use a menu for a few actions, such as an account's profile and sign out.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Navigator.Menu>\n  <Navigator.MenuItem>Notification settings</Navigator.MenuItem>\n  ... 30 more rows, toggles and a search field ...\n</Navigator.Menu>`}>
+    Put a screen's worth of content in a menu. Make it a destination with its
+    own pane.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Overview or list'>
+  <Guideline.Do code={`<Navigator.Item value='/' href='/' icon={<HouseIcon />}>\n  Home\n  <Navigator.Secondary aria-label='Home pages' overview>…</Navigator.Secondary>\n</Navigator.Item>`}>
+    Use `overview` when the destination has a page worth reading, such as
+    Home, a dashboard or a gallery.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Navigator.Item value='/inbox' href='/inbox' icon={<TrayIcon />}>\n  Inbox\n  <Navigator.Secondary aria-label='Messages' overview searchable>…</Navigator.Secondary>\n</Navigator.Item>`}>
+    Give `overview` to a destination whose route would only say "pick one". An
+    inbox is the list you choose from, so keep the list.
+  </Guideline.Dont>
+</Guideline>
+
+## Accessibility
+
+- `Navigator.Primary` renders one `<nav>` per orientation. The phone bar adds
+  " tabs" to your label, so `aria-label='Main'` gives "Main" and "Main tabs".
+- `aria-label` is required on `Navigator.Primary` and `Navigator.Secondary`.
+- Each capsule is a list named by its `GroupTitle`. The title stays in the
+  accessibility tree while collapsed.
+- Tile names are visually hidden text, not `aria-label`, so they translate with
+  the page. The tooltip is `aria-hidden`, and a badge's label is announced after
+  the name.
+- The current page's item or row has `aria-current='page'`. A destination's
+  tile reads as current on any of its pages.
+- `Navigator.ExpandToggle` is a button with `aria-expanded` and
+  `aria-controls`. Its label is "Expand sidebar" or "Collapse sidebar".
+- `Navigator.Brand` is a link named by its content, such as "Oztix" from the
+  default `Logo`, or your mark's `alt`. Pick a name that reads in both states.
+- Tab order follows the regions: brand and toggle, cluster, then pinned items.
+- While the phone bar is collapsed, only its circles are in the tab order. The
+  tabs that scale away stay in the accessibility tree, so a screen reader still
+  has every destination.
+- Menus are Base UI menus. Arrow keys move between rows, typeahead jumps to
+  one, and Escape closes the menu and returns focus to its trigger. A menu is
+  named by its item, or by its own `aria-label`.
+- The pending indicator is `aria-hidden` and announces nothing. A pane with
+  `pending` carries `aria-busy`, and the arrival is the router's to announce, as
+  Next's own route announcer does.
+
+## Hooks
+
+### useNavigatorSecondary
+
+```tsx
+function useNavigatorSecondary(value?: string): NavigatorSecondaryData | null
+```
+
+Returns a destination's `Navigator.Secondary` items as data, for a layout
+`Navigator.SecondaryItems` doesn't cover. Pass the destination item's `value`,
+or omit it for the active destination. It returns `null` when that destination
+has no secondary nav. Loose items come back as a group with no title.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `value` | `string` | The destination item's `value` |
+| `label` | `ReactNode` | The destination item's label |
+| `href` | `string \| undefined` | The destination item's `href` |
+| `groups` | `NavigatorSecondaryGroup[]` | Its groups, in source order |
+| `groups[].title` | `ReactNode \| undefined` | The group's `Navigator.GroupTitle` |
+| `groups[].items` | `NavigatorSecondaryItem[]` | The group's items |
+
+Each item has the fields of its `Navigator.Item`: `value`, `label`, `href`,
+`icon`, `description` and `badge`, plus `current`, which is true when it is the
+active `value`.
+
+```tsx
+function HomeCards() {
+  const home = useNavigatorSecondary('/')
+  if (!home) return null
+  return (
+    <div className='grid grid-cols-2 gap-3'>
+      {home.groups.flatMap((group) => group.items).map((item) => (
+        <Card key={item.value} href={item.href} className='grid gap-1 p-4'>
+          <h3 className='text-display-ui-6 text-strong'>{item.label}</h3>
+          <p className='text-sm text-subtle'>{item.description}</p>
+        </Card>
+      ))}
+    </div>
+  )
+}
+```
+
+<PropsDefinitions componentPath='packages/components/src/components/Navigator' />

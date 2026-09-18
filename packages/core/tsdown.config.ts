@@ -7,7 +7,8 @@ export default defineConfig(({ watch }) => ({
     'theme/index': './src/theme/index.ts',
     'utils/index': './src/utils/index.ts',
     'image/index': './src/image/index.ts',
-    'datetime/index': './src/datetime/index.ts'
+    'datetime/index': './src/datetime/index.ts',
+    'navigator/index': './src/navigator/index.ts'
   },
   format: ['esm'],
   minify: !watch,

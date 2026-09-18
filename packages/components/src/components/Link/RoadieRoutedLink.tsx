@@ -1,9 +1,16 @@
 'use client'
 
-import { type AnchorHTMLAttributes, type ComponentProps, type Ref } from 'react'
+import {
+  type AnchorHTMLAttributes,
+  type ComponentProps,
+  type MouseEvent,
+  type Ref
+} from 'react'
 
-import { useRoadieLink } from '../../providers/RoadieLinkProvider'
+import { usePendingNavigationStore } from '../../providers/PendingNavigationContext'
+import { useRoadieLink } from '../../providers/RoadieLinkContext'
 import { isDev } from '../../utils/isDev'
+import { isPlainLinkClick } from '../../utils/isPlainLinkClick'
 import { resolveLinkKind } from '../../utils/resolveLinkKind'
 
 /**
@@ -51,8 +58,16 @@ export function RoadieRoutedLink({
   ref,
   ...rest
 }: RoadieRoutedLinkProps) {
+  // Per-branch compiler caches outweigh this small routing adapter.
+  'use no memo'
   const Link = useRoadieLink()
   const kind = resolveLinkKind(href)
+  const store = usePendingNavigationStore()
+  const consumerClick = rest.onClick
+  const onClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    consumerClick?.(event)
+    if (isPlainLinkClick(event) && !href.startsWith('#')) store?.start()
+  }
 
   if (kind === 'unsafe') {
     if (isDev()) {
@@ -89,8 +104,12 @@ export function RoadieRoutedLink({
       ref,
       ...(target !== undefined && { target }),
       ...(rel !== undefined && { rel }),
-      ...rest
+      ...rest,
+      // Only here: a plain `<a>` unloads the document, and the browser shows that wait.
+      onClick
     }
+    // The provider's component, not one made here, so its identity is stable.
+    // eslint-disable-next-line react-hooks/static-components
     return <Link {...linkProps} />
   }
 

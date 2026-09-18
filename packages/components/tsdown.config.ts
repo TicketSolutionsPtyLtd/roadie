@@ -1,4 +1,7 @@
+import babel from '@rolldown/plugin-babel'
 import { defineConfig } from 'tsdown'
+
+import { reactCompilerPreset } from './react-compiler.config.ts'
 
 // Unbundle mode: every source file under `src/` emits as its own output
 // file, preserving the source directory structure 1:1. This is load-bearing
@@ -22,7 +25,13 @@ import { defineConfig } from 'tsdown'
 // `"use client";` at the top. Verify after build with:
 //   head -c 13 dist/components/Fieldset/FieldsetRoot.js   # → "use client";
 export default defineConfig(({ watch }) => ({
-  entry: ['src/**/*.{ts,tsx}', '!**/*.test.{ts,tsx}'],
+  // paneColumns is the model the browser tests measure the stylesheet against, so it isn't shipped.
+  entry: [
+    'src/**/*.{ts,tsx}',
+    '!**/*.test.{ts,tsx}',
+    '!**/testUtils.{ts,tsx}',
+    '!**/paneColumns.ts'
+  ],
   unbundle: true,
   format: ['esm'],
   platform: 'neutral',
@@ -40,6 +49,7 @@ export default defineConfig(({ watch }) => ({
   shims: true,
   outDir: 'dist',
   outExtensions: () => ({ js: '.js' }),
+  plugins: [babel({ presets: [reactCompilerPreset] })],
   deps: {
     neverBundle: [
       'react',

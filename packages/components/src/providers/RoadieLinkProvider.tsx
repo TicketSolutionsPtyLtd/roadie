@@ -1,14 +1,20 @@
 'use client'
 
-import { type ReactNode, use, useEffect, useRef } from 'react'
+import { type ReactNode, use, useEffect, useRef, useState } from 'react'
 
 import { isDev } from '../utils/isDev'
+import { PendingNavigationContext } from './PendingNavigationContext'
 import {
   type RoadieLinkComponent,
   RoadieLinkContext
 } from './RoadieLinkContext'
+import {
+  createPendingNavigationStore,
+  watchNavigation
+} from './pendingNavigationStore'
 
 export type { RoadieLinkComponent, RoadieLinkProps } from './RoadieLinkContext'
+export { useRoadieLink } from './RoadieLinkContext'
 
 export type RoadieLinkProviderProps = {
   /**
@@ -19,6 +25,8 @@ export type RoadieLinkProviderProps = {
    * to fall back to plain `<a>` for internal hrefs.
    */
   Link: RoadieLinkComponent | null
+  /** Draws the pending indicator on a `Navigator` frame during an internal link navigation. @default true */
+  pendingIndicator?: boolean
   children: ReactNode
 }
 
@@ -33,8 +41,16 @@ export type RoadieLinkProviderProps = {
  */
 export function RoadieLinkProvider({
   Link,
+  pendingIndicator = true,
   children
 }: RoadieLinkProviderProps) {
+  const [store] = useState(createPendingNavigationStore)
+  const pending = pendingIndicator ? store : null
+  useEffect(() => {
+    if (pending === null) return
+    return watchNavigation(pending)
+  }, [pending])
+
   // Track the previous Link in a ref updated only after commit
   // (useEffect), not during render. This avoids spurious warnings under
   // React 19 concurrent rendering when a render attempt is discarded.
@@ -57,7 +73,9 @@ export function RoadieLinkProvider({
   // references already; an extra useMemo would just wrap the identity.
   return (
     <RoadieLinkContext.Provider value={Link}>
-      {children}
+      <PendingNavigationContext value={pending}>
+        {children}
+      </PendingNavigationContext>
     </RoadieLinkContext.Provider>
   )
 }
@@ -65,9 +83,16 @@ export function RoadieLinkProvider({
 RoadieLinkProvider.displayName = 'RoadieLinkProvider'
 
 /**
- * Returns the Link component configured by the nearest
- * {@link RoadieLinkProvider}, or `null` when no provider is wired.
+ * Reports a navigation Roadie can't see, such as your own `router.push`.
+ * Call it from an event handler: from a layout effect, `start` schedules a render React refuses.
  */
-export function useRoadieLink(): RoadieLinkComponent | null {
-  return use(RoadieLinkContext)
+export function usePendingNavigation(): {
+  start: () => void
+  stop: () => void
+} {
+  const store = use(PendingNavigationContext)
+  return {
+    start: () => store?.start(),
+    stop: () => store?.settle()
+  }
 }

@@ -7,8 +7,6 @@ export const metadata = {
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
-# Field
-
 A compound wrapper for labelled form fields with helper and error text.
 
 ## Import
@@ -125,5 +123,60 @@ border and focus ring automatically switch to danger colours, and
 - **Context-driven aria**: The `invalid`, `required`, and `disabled` props on Field automatically set `aria-invalid`, `aria-required`, and `disabled` on child inputs via context.
 - **Error announcements**: `Field.ErrorText` renders with `role="alert"` and only appears when `invalid` is true, so screen readers announce errors immediately.
 - **Description linking**: `aria-describedby` is automatically wired to the helper text (or error text when invalid).
+
+## Hooks
+
+### useFieldContext
+
+```tsx
+function useFieldContext(): {
+  invalid?: boolean
+  required?: boolean
+  disabled?: boolean
+  fieldId: string
+  labelId: string
+  helperTextId: string
+  errorTextId: string
+}
+```
+
+Reads the nearest `Field`'s state. Use it when building a custom control that
+needs to react to the same `invalid` / `required` / `disabled` state as
+`Field.Input`, without reimplementing Field's own sub-components. Outside a
+`Field`, every value comes back empty or `undefined`.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `invalid` | `boolean \| undefined` | Whether the field is invalid. |
+| `required` | `boolean \| undefined` | Whether the field is required. |
+| `disabled` | `boolean \| undefined` | Whether the field is disabled. |
+| `fieldId` | `string` | The id wired to the input and its label. |
+| `labelId` | `string` | The label's id. |
+| `helperTextId` | `string` | `Field.HelperText`'s id. |
+| `errorTextId` | `string` | `Field.ErrorText`'s id. |
+
+### useFieldInputProps
+
+```tsx
+function useFieldInputProps(): {
+  id: string | undefined
+  disabled: boolean | undefined
+  'aria-invalid': boolean | undefined
+  'aria-required': boolean | undefined
+  'aria-describedby': string | undefined
+}
+```
+
+Derives the DOM attributes a custom input needs from the nearest `Field`'s
+context: this is what `Field.Input` and `Field.Textarea` spread onto their own
+element. Reach for it when building a control `Field.Input` doesn't cover.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | `string \| undefined` | Matches `Field.Label`'s `htmlFor`. |
+| `disabled` | `boolean \| undefined` | The field's `disabled` state. |
+| `aria-invalid` | `boolean \| undefined` | The field's `invalid` state. |
+| `aria-required` | `boolean \| undefined` | The field's `required` state. |
+| `aria-describedby` | `string \| undefined` | The error text's id when invalid, otherwise the helper text's id. |
 
 <PropsDefinitions componentPath='packages/components/src/components/Field' />

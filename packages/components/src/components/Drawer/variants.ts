@@ -16,8 +16,7 @@ export const DRAWER_SWIPE_DIRECTION = {
   right: 'right'
 } as const satisfies Record<DrawerSide, 'down' | 'up' | 'left' | 'right'>
 
-// `justify-items-*`, not `justify-content-*`, keeps the track full-width so the
-// popup's `max-w-*` resolves against the viewport.
+// `justify-items-*` keeps the track full-width, so `max-w-*` resolves against the viewport.
 export const drawerViewportVariants = cva('fixed inset-0 z-modal grid', {
   variants: {
     side: {
@@ -32,11 +31,9 @@ export const drawerViewportVariants = cva('fixed inset-0 z-modal grid', {
 
 export const drawerPopupVariants = cva(
   [
-    // Flex, not fixed grid rows, so the body fills whatever space is left
-    // whether or not a header or footer is present.
+    // Flex, so the body fills the space whether or not a header or footer is present.
     'flex flex-col min-h-0 emphasis-floating motion-drawer',
-    // Header, body and footer each read this inset; the body scrolls, so the
-    // popup can't pad itself.
+    // Header, body and footer each read this; the body scrolls, so the popup can't pad itself.
     '[--content-inset:--spacing(6)]'
   ],
   {

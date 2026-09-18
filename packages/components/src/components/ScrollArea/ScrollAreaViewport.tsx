@@ -10,11 +10,7 @@ import { type ScrollAreaFade, scrollAreaViewportVariants } from './variants'
 
 export type ScrollAreaViewportProps = ScrollAreaPrimitive.Viewport.Props &
   RefAttributes<HTMLDivElement> & {
-    /**
-     * Fade edges with more to scroll; sticky content fades too.
-     *
-     * @default 'none'
-     */
+    /** Fade edges with more to scroll; sticky content fades too. @default 'none' */
     fade?: ScrollAreaFade
   }
 

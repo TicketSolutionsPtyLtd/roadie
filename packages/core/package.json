@@ -28,6 +28,10 @@
       "types": "./dist/theme/index.d.ts",
       "import": "./dist/theme/index.js"
     },
+    "./navigator": {
+      "types": "./dist/navigator/index.d.ts",
+      "import": "./dist/navigator/index.js"
+    },
     "./utils": {
       "types": "./dist/utils/index.d.ts",
       "import": "./dist/utils/index.js"
@@ -46,16 +50,18 @@
   ],
   "files": [
     "dist",
-    "src/css"
+    "src/css",
+    "!src/css/**/*.test.ts"
   ],
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
     "clean": "rm -rf node_modules dist",
-    "build": "tsdown && pnpm build:css",
+    "build": "pnpm generate:tokens && tsdown && pnpm build:css",
     "build:quiet": "tsdown --log-level warn && pnpm build:css",
     "build:css": "tailwindcss -i src/css/roadie.css -o dist/roadie.compiled.css --content 'src/css/safelist.html'",
+    "generate:tokens": "node scripts/generate-tokens.mjs",
     "dev": "tsdown --watch --log-level warn",
     "format:check": "prettier --ignore-path ../../.prettierignore --check \"**/*.{ts,tsx,js,jsx,cjs,mjs,json,css,md}\"",
     "format": "prettier --ignore-path ../../.prettierignore --write \"**/*.{ts,tsx,js,jsx,cjs,mjs,json,css,md}\"",

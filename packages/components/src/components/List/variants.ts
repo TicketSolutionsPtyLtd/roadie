@@ -1,7 +1,6 @@
 import { cva } from 'class-variance-authority'
 
-// `:focus-visible`, not `:focus-within`, which a click leaves behind.
-// Child combinators stop a nested `List.Group` matching as a loose row.
+// `:focus-visible`, which a click doesn't leave behind; child combinators skip nested groups.
 export const listSectionClass = [
   // Buttons shrink-wrap even as block flex; a width would break the -mx bleed.
   'grid [&>li]:grid',
@@ -112,7 +111,7 @@ export const listItemContentClass = [
 export const listItemBodyClass = 'grid min-w-0 flex-1 gap-0.5'
 export const listItemTitleClass =
   'min-w-0 flex-1 truncate font-semibold text-strong'
-export const listItemSubtitleClass = 'truncate text-sm text-subtle'
+export const listItemDescriptionClass = 'truncate text-sm text-subtle'
 
 export const listItemTrailingClass = 'flex shrink-0 items-center gap-2'
 export const listItemChevronClass = 'size-5 shrink-0 text-subtle'

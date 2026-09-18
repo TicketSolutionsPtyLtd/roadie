@@ -5,14 +5,15 @@ import { Code } from '@oztix/roadie-components'
 export const metadata = {
   title: 'Shape',
   description:
-    'Border-radius scale for consistent, soft corners across all components.'
+    'Border-radius scale for consistent, soft corners across all components.',
+  category: 'Visual'
 }
 
 const radiusScale = [
   {
     tier: 'Inline',
     className: 'rounded-sm',
-    value: '2px',
+    value: '4px',
     useFor: 'Marks, highlights'
   },
   {
@@ -37,7 +38,7 @@ const radiusScale = [
     tier: 'Large',
     className: 'rounded-2xl',
     value: '16px',
-    useFor: 'Modals, dialogs, drawers'
+    useFor: 'Modals, dialogs, drawers, Navigator panes'
   },
   {
     tier: 'Hero',
@@ -95,14 +96,11 @@ const componentMapping = [
 export default function ShapePage() {
   return (
     <div className='grid gap-12'>
-      <div className='grid gap-3'>
-        <h1 className='text-display-prose-1 text-strong'>Shape</h1>
-        <p className='text-lg text-subtle'>
-          Soft corners signal approachability. Roadie uses Tailwind&apos;s
-          built-in border-radius scale to create a consistent, rounded visual
-          language that progresses from inline elements to full containers.
-        </p>
-      </div>
+      <p className='text-lg text-subtle'>
+        Soft corners signal approachability. Roadie uses Tailwind&apos;s
+        built-in border-radius scale to create a consistent, rounded visual
+        language that progresses from inline elements to full containers.
+      </p>
 
       {/* Radius scale */}
       <section className='grid gap-4'>
@@ -348,8 +346,8 @@ export default function ShapePage() {
           <li>
             <p>
               <Code>rounded-2xl</Code> is reserved for{' '}
-              <strong>top-layer UI</strong> (modals, dialogs, drawers). Do not
-              use it on inline components.
+              <strong>top-layer UI</strong> (modals, dialogs, drawers) and the
+              Navigator&apos;s panes. Do not use it on inline components.
             </p>
           </li>
           <li>

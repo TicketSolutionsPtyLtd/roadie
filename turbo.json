@@ -1,6 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": ["**/.env.*local", "pnpm-lock.yaml"],
+  "globalDependencies": ["**/.env.*local", "pnpm-lock.yaml", ".nvmrc"],
   "tasks": {
     "prepare": {
       "dependsOn": ["^build"],
@@ -10,6 +10,9 @@
       "dependsOn": ["^build"],
       "inputs": [
         "src/**/*.{js,jsx,ts,tsx,css,json}",
+        "src/**/*.html",
+        "scripts/**/*.{js,mjs,cjs,ts}",
+        "*.config.{js,mjs,cjs,ts}",
         "package.json",
         "tsconfig.json"
       ],
@@ -18,20 +21,19 @@
         ".next/**",
         "out/**",
         "!.next/cache/**",
-        ".turbo/**"
+        "!.next/dev/**",
+        "!.next/**/*.map"
       ]
     },
     "build:quiet": {
       "dependsOn": ["^build:quiet"],
       "inputs": [
         "src/**/*.{js,jsx,ts,tsx,css,json}",
+        "src/**/*.html",
         "package.json",
         "tsconfig.json"
       ],
-      "outputs": [
-        "dist/**",
-        ".turbo/**"
-      ]
+      "outputs": ["dist/**"]
     },
     "typecheck": {
       "dependsOn": ["^build"],
@@ -46,12 +48,22 @@
     },
     "lint": {
       "dependsOn": ["^build"],
-      "inputs": ["src/**/*.{js,jsx,ts,tsx}", ".eslintrc.*", "package.json"],
-      "outputs": [".turbo/**"]
+      "inputs": [
+        "src/**/*.{js,jsx,ts,tsx}",
+        "eslint.config.js",
+        "$TURBO_ROOT$/eslint.config.js",
+        "package.json"
+      ],
+      "outputs": []
     },
     "lint:fix": {
       "dependsOn": ["^build"],
-      "inputs": ["src/**/*.{js,jsx,ts,tsx}", ".eslintrc.*", "package.json"],
+      "inputs": [
+        "src/**/*.{js,jsx,ts,tsx}",
+        "eslint.config.js",
+        "$TURBO_ROOT$/eslint.config.js",
+        "package.json"
+      ],
       "outputs": ["src/**/*"]
     },
     "test": {
@@ -60,9 +72,20 @@
         "src/**/*.{js,jsx,ts,tsx}",
         "**/*.test.{js,jsx,ts,tsx}",
         "jest.config.*",
+        "*.config.{js,mjs,cjs,ts}",
         "package.json"
       ],
-      "outputs": ["coverage/**", ".turbo/**"]
+      "outputs": []
+    },
+    "test:browser": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**/*.{js,jsx,ts,tsx,css}",
+        "*.config.{js,mjs,cjs,ts}",
+        "*.css",
+        "package.json"
+      ],
+      "outputs": []
     },
     "clean": {
       "cache": false
@@ -73,12 +96,11 @@
       "persistent": true
     },
     "format": {
-      "inputs": ["**/*.{js,jsx,ts,tsx,md,mdx,json,css}"],
-      "outputs": ["**/*.{js,jsx,ts,tsx,md,mdx,json}"]
+      "cache": false
     },
     "format:check": {
       "inputs": ["**/*.{js,jsx,ts,tsx,md,mdx,json,css}"],
-      "outputs": [".turbo/**"]
+      "outputs": []
     }
   }
 }

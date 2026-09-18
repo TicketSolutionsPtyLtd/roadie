@@ -1,0 +1,4293 @@
+import { type ReactNode, use, useLayoutEffect, useRef } from 'react'
+
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { Navigator } from '.'
+import {
+  type RoadieLinkComponent,
+  RoadieLinkProvider
+} from '../../providers/RoadieLinkProvider'
+import { List } from '../List'
+import { Pane } from '../Pane'
+import {
+  NavigatorDisclosureContext,
+  type NavigatorOverflowSets
+} from './NavigatorContext'
+import { NavigatorOverflowItems } from './NavigatorOverflowItems'
+import { NavigatorOverflowPane } from './NavigatorOverflowPane'
+import {
+  FakeIcon,
+  flushScrollFrame,
+  flushViewportMeasurement,
+  primaryOf,
+  restoreNavigation,
+  scrollViewport,
+  testBrand,
+  withHistoryEntries,
+  withScrollSentinels,
+  withStubLink
+} from './testUtils'
+import { NAV_COLLAPSE_THRESHOLD } from './useTopPaneChrome'
+import {
+  navigatorContentClass,
+  navigatorIndicatorVariants,
+  navigatorPrimaryClusterTrackClass,
+  navigatorPrimaryPinnedClass,
+  navigatorPrimaryTrackVariants
+} from './variants'
+
+withScrollSentinels()
+
+describe('Navigator', () => {
+  it('is the same reference as Navigator.Root', () => {
+    expect(Navigator).toBe(Navigator.Root)
+  })
+})
+
+describe('one primary navigation, two orientations', () => {
+  it('renders navigator-primary vertically and horizontally', async () => {
+    const { container } = render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/a' href='/a'>
+            A
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const navs = Array.from(
+      container.querySelectorAll('[data-slot="navigator-primary"]')
+    )
+    expect(navs.map((nav) => nav.getAttribute('data-orientation'))).toEqual([
+      'vertical',
+      'horizontal'
+    ])
+    expect(navs[0]).toHaveAccessibleName('Main')
+    expect(navs[1]).toHaveAccessibleName('Main tabs')
+  })
+})
+
+describe('pane stack', () => {
+  const panes = () =>
+    Array.from(document.querySelectorAll('[data-slot="pane"]'))
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  const positions = () =>
+    panes().map((pane) => pane.getAttribute('data-stack-position'))
+
+  it('tops the deepest pane when no pane declares anything', async () => {
+    render(
+      <Navigator value='/tickets/glamping/sam'>
+        <Pane>Tickets</Pane>
+        <Pane>Glamping</Pane>
+        <Pane>Sam</Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(positions()).toEqual(['behind', 'behind', 'top'])
+  })
+
+  it('keeps an unreached empty state below the top', async () => {
+    render(
+      <Navigator value='/events'>
+        <Pane column='list'>Events</Pane>
+        <Pane reached={false}>Pick an event</Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(positions()).toEqual(['top', 'ahead'])
+    expect(panes()[1]).not.toHaveAttribute('data-reached')
+  })
+
+  it('places a pane by whether it is reached, in the commit that flips it', async () => {
+    const seen: (string | null)[] = []
+    function Probe() {
+      const ref = useRef<HTMLSpanElement>(null)
+      useLayoutEffect(() => {
+        const pane = ref.current?.closest('[data-slot="pane"]')
+        seen.push(
+          `${pane?.hasAttribute('data-reached')} ${pane?.getAttribute('data-stack-position')}`
+        )
+      })
+      return <span ref={ref} />
+    }
+    const tree = (reached: boolean) => (
+      <Navigator value='/components'>
+        <Pane column='list'>List</Pane>
+        <Pane reached={reached}>
+          <Pane.Header backHref='/components'>
+            <Pane.Title>Detail</Pane.Title>
+          </Pane.Header>
+          <Probe />
+        </Pane>
+      </Navigator>
+    )
+    const { rerender } = render(tree(false))
+    await flushViewportMeasurement()
+    seen.length = 0
+    rerender(tree(true))
+    await flushViewportMeasurement()
+    expect(seen[0]).toBe('true top')
+    seen.length = 0
+    rerender(tree(false))
+    await flushViewportMeasurement()
+    expect(seen[0]).toBe('false ahead')
+  })
+
+  it('leaves an inspector out of the stack entirely', async () => {
+    render(
+      <Navigator value='/components/button'>
+        <Pane column='list'>List</Pane>
+        <Pane>Detail</Pane>
+        <Pane column='inspector'>On this page</Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(panes()[0]).toHaveAttribute('data-stack-position', 'behind')
+    expect(panes()[1]).toHaveAttribute('data-stack-position', 'top')
+    expect(panes()[2]).not.toHaveAttribute('data-stack-position')
+  })
+
+  it('keeps a real pane on top when an inspector is declared first', async () => {
+    render(
+      <Navigator value='/components'>
+        <Pane column='inspector'>On this page</Pane>
+        <Pane column='list'>List</Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(panes()[0]).not.toHaveAttribute('data-stack-position')
+    expect(panes()[1]).toHaveAttribute('data-stack-position', 'top')
+  })
+
+  it('keeps a pane mounted when the top of the stack moves past it', async () => {
+    const tree = (reached: boolean) => (
+      <Navigator value={reached ? '/components/button' : '/components'}>
+        <Pane column='list'>List</Pane>
+        <Pane reached={reached}>Detail</Pane>
+      </Navigator>
+    )
+    const { rerender } = render(tree(false))
+    await flushViewportMeasurement()
+    const before = panes()[0]
+
+    rerender(tree(true))
+    await flushViewportMeasurement()
+
+    expect(panes()[0]).toBe(before)
+    expect(panes()[0]).toHaveAttribute('data-stack-position', 'behind')
+  })
+
+  it('grants no live chrome or tabBar to an inspector-only stack', async () => {
+    render(
+      <Navigator value='/foundations'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/foundations' href='/foundations'>
+            Foundations
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Pane column='inspector' tabBar='hidden'>
+          <Pane.Header>
+            <Pane.Title>Inspector</Pane.Title>
+          </Pane.Header>
+        </Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(document.querySelector('[data-slot="pane"]')).toHaveAttribute(
+      'data-tab-bar',
+      'hidden'
+    )
+    expect(
+      document.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      )
+    ).toHaveAttribute('data-hidden', 'false')
+  })
+
+  it('still never lets an inspector take chrome when real panes are present', async () => {
+    const scroll = (viewport: HTMLElement) =>
+      act(async () => {
+        scrollViewport(viewport, 80)
+      })
+    const bar = () =>
+      document.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      )
+    render(
+      <Navigator value='/foundations'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/foundations' href='/foundations'>
+            Foundations
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Pane column='inspector'>
+          <Pane.Header>
+            <Pane.Title>Inspector</Pane.Title>
+          </Pane.Header>
+        </Pane>
+        <Pane column='list'>
+          <Pane.Header>
+            <Pane.Title>List</Pane.Title>
+          </Pane.Header>
+        </Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const [inspector, list] = document.querySelectorAll<HTMLElement>(
+      '[data-slot="pane-viewport"]'
+    )
+    await scroll(inspector!)
+    expect(bar()).toHaveAttribute('data-collapsed', 'false')
+    await scroll(list!)
+    expect(bar()).toHaveAttribute('data-collapsed', 'true')
+  })
+
+  it('is the panes container, clipping at every width so a stacked pane can translate past it', async () => {
+    render(
+      <Navigator value='/components'>
+        <Pane column='list'>List</Pane>
+        <Pane>Detail</Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const content = document.querySelector('[data-slot="navigator-content"]')
+    expect(content).toHaveClass(
+      'overflow-clip',
+      'pointer-events-none',
+      '[container:panes/inline-size]'
+    )
+    // WebKit has no `overflow-clip-margin`; the stylesheet widens the clip instead.
+    expect(content!.className).not.toMatch(/max-lg:|lg:|overflow-clip-margin/)
+    expect(document.querySelector('[data-slot="navigator-panes"]')).toHaveClass(
+      'pointer-events-auto'
+    )
+  })
+
+  it('leaves layering over the edge cover to the stylesheet', async () => {
+    render(
+      <Navigator value='/components'>
+        <Pane column='list'>List</Pane>
+        <Pane>Detail</Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const [list, detail] = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-slot="pane"]')
+    )
+    expect(detail).toHaveAttribute('data-stack-position', 'top')
+    expect(list).toHaveAttribute('data-stack-position', 'behind')
+    for (const pane of [list!, detail!]) {
+      expect(pane.className).not.toMatch(/\bz-\d|step-(end|start)/)
+    }
+  })
+})
+
+describe('tabBar', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('defaults to auto', async () => {
+    render(
+      <Navigator value='/'>
+        <Pane>Detail</Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(document.querySelector('[data-slot="pane"]')).toHaveAttribute(
+      'data-tab-bar',
+      'auto'
+    )
+  })
+
+  it('leaves the bar alone when the hidden pane is not on top', async () => {
+    render(
+      <Navigator value='/'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/' icon={<FakeIcon />}>
+            Home
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Pane column='list'>List</Pane>
+        <Pane reached={false} tabBar='hidden'>
+          Detail
+        </Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(
+      document.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      )
+    ).toHaveAttribute('data-hidden', 'false')
+  })
+
+  it.each([
+    ['drops', 'hidden', false],
+    ['keeps', 'visible', true]
+  ] as const)(
+    '%s the tab-bar clearance padding on a %s pane',
+    async (_, tabBar, padded) => {
+      render(
+        <Navigator value='/'>
+          <Pane tabBar={tabBar}>Detail</Pane>
+        </Navigator>
+      )
+      await flushViewportMeasurement()
+      expect(
+        document
+          .querySelector('[data-slot="pane-viewport"]')
+          ?.className.includes('max-md:pb-24')
+      ).toBe(padded)
+    }
+  )
+
+  it('hides the tab bar and takes it out of the accessibility tree while a hidden pane is on top', async () => {
+    render(
+      <Navigator value='/'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/' icon={<FakeIcon />}>
+            Home
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Pane column='list'>List</Pane>
+        <Pane tabBar='hidden'>Detail</Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+
+    expect(screen.queryByRole('navigation', { name: 'Main tabs' })).toBeNull()
+    // Stays mounted so the pop back can animate.
+    const bar = document.querySelector(
+      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+    )
+    expect(bar).toHaveAttribute('inert')
+    expect(bar).toHaveAttribute('data-hidden', 'true')
+    const rail = document.querySelector(
+      '[data-slot="navigator-primary"][data-orientation="vertical"]'
+    )
+    expect(rail).not.toHaveAttribute('inert')
+    expect(rail).not.toHaveAttribute('aria-hidden')
+    expect(rail).not.toHaveAttribute('data-hidden', 'true')
+  })
+
+  it('keeps the bar expanded while the top pane declares it visible', async () => {
+    const { container } = render(
+      <Navigator value='/'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/' icon={<FakeIcon />}>
+            Home
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Pane column='list'>List</Pane>
+        <Pane tabBar='visible'>Detail</Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+
+    const top = document.querySelectorAll<HTMLElement>(
+      '[data-slot="pane-viewport"]'
+    )[1]!
+    await act(async () => {
+      scrollViewport(top, 80)
+    })
+
+    expect(
+      container.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      )
+    ).toHaveAttribute('data-collapsed', 'false')
+  })
+
+  it('ignores a scroll on a pane the stack has covered', async () => {
+    const { container } = render(
+      <Navigator value='/'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/' icon={<FakeIcon />}>
+            Home
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Pane column='list'>List</Pane>
+        <Pane>Detail</Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+
+    const covered = document.querySelectorAll<HTMLElement>(
+      '[data-slot="pane-viewport"]'
+    )[0]!
+    await act(async () => {
+      scrollViewport(covered, 80)
+    })
+
+    expect(
+      container.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      )
+    ).toHaveAttribute('data-collapsed', 'false')
+  })
+
+  it('collapses as the top pane scrolls past the threshold and reopens back within it', async () => {
+    const { container } = render(
+      <Navigator value='/'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/' icon={<FakeIcon />}>
+            Home
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Pane>Detail</Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const viewport = document.querySelector<HTMLElement>(
+      '[data-slot="pane-viewport"]'
+    )!
+    const bar = container.querySelector(
+      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+    )
+    await act(async () => {
+      scrollViewport(viewport, NAV_COLLAPSE_THRESHOLD)
+    })
+    expect(bar).toHaveAttribute('data-collapsed', 'false')
+    await act(async () => {
+      scrollViewport(viewport, NAV_COLLAPSE_THRESHOLD + 1)
+    })
+    expect(bar).toHaveAttribute('data-collapsed', 'true')
+    await act(async () => {
+      scrollViewport(viewport, 0)
+    })
+    expect(bar).toHaveAttribute('data-collapsed', 'false')
+  })
+})
+
+describe('Navigator vertical form', () => {
+  it('marks the active destination with aria-current', async () => {
+    render(
+      <Navigator value='tickets'>
+        <Navigator.Primary aria-label='Primary'>
+          {testBrand}
+          <Navigator.Item value='discover'>Discover</Navigator.Item>
+          <Navigator.Item value='tickets'>Tickets</Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    const closestItem = (label: string) =>
+      screen.getAllByText(label)[0]?.closest('[data-slot="navigator-item"]')
+
+    expect(closestItem('Tickets')).toHaveAttribute('aria-current', 'page')
+    expect(closestItem('Discover')).not.toHaveAttribute('aria-current')
+    await flushViewportMeasurement()
+  })
+
+  it('routes an item with an href through an anchor in both orientations', async () => {
+    render(
+      <Navigator value='tickets'>
+        <Navigator.Primary aria-label='Primary'>
+          {testBrand}
+          <Navigator.Item value='tickets' href='/tickets'>
+            Tickets
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    for (const orientation of ['vertical', 'horizontal'] as const) {
+      expect(
+        within(primaryOf(orientation)).getByRole('link', { name: 'Tickets' })
+      ).toHaveAttribute('href', '/tickets')
+    }
+  })
+})
+
+describe('destination visuals', () => {
+  const horizontalOf = (container: HTMLElement) =>
+    container.querySelector<HTMLElement>(
+      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+    )
+
+  const tree = (value = '/a') => (
+    <Navigator value={value}>
+      <Navigator.Primary aria-label='Main'>
+        {testBrand}
+        <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
+          A
+        </Navigator.Item>
+        <Navigator.Item value='/b' href='/b' icon={<FakeIcon />}>
+          B
+        </Navigator.Item>
+        <Navigator.Item
+          value='/me'
+          href='/me'
+          icon={<FakeIcon />}
+          placement='pinned'
+        >
+          Me
+        </Navigator.Item>
+      </Navigator.Primary>
+    </Navigator>
+  )
+
+  it('renders every destination icon duotone, size-6 on tiles and size-7 in the bar', async () => {
+    render(tree())
+    await flushViewportMeasurement()
+    for (const [orientation, size] of [
+      ['vertical', 'size-6'],
+      ['horizontal', 'size-7']
+    ] as const) {
+      const icons = primaryOf(orientation).querySelectorAll(
+        '[data-testid="fake-icon"]'
+      )
+      expect(icons).toHaveLength(3)
+      for (const icon of icons) {
+        expect(icon).toHaveAttribute('data-weight', 'duotone')
+        expect(icon).toHaveClass(size)
+      }
+    }
+  })
+
+  it('colours the active destination through intent-accent, never a raw step', async () => {
+    const { container } = render(tree())
+    await flushViewportMeasurement()
+    const active = container.querySelectorAll(
+      '[data-slot="navigator-item"][data-current]'
+    )
+    expect(active.length).toBe(2)
+    for (const item of active) {
+      expect(item).toHaveClass('intent-accent', 'text-subtle')
+      expect(item.className).not.toMatch(/accent-\d+/)
+    }
+  })
+
+  it('bounces the active icon on the tile and the tab, and no idle one', async () => {
+    const { container } = render(tree())
+    await flushViewportMeasurement()
+    const verticalIcon = container.querySelector(
+      '[data-slot="navigator-primary"][data-orientation="vertical"] [data-current] [data-testid="fake-icon"]'
+    )
+    expect(verticalIcon).toHaveClass('animate-pop-tap')
+    const bar = horizontalOf(container)!
+    const tabIcon = (selector: string) =>
+      bar
+        .querySelector(selector)!
+        .querySelector('[data-slot="navigator-tab-icon"]')
+    expect(tabIcon('[data-slot="navigator-item"][aria-current]')).toHaveClass(
+      'animate-pop-tap'
+    )
+    expect(
+      tabIcon('[data-slot="navigator-item"]:not([aria-current])')
+    ).not.toHaveClass('animate-pop-tap')
+  })
+
+  it('keeps the tab bar icon-only, with the name inside the link', async () => {
+    const { container } = render(tree())
+    await flushViewportMeasurement()
+    const tab = within(horizontalOf(container)!).getByRole('link', {
+      name: 'A'
+    })
+    expect(tab).not.toHaveAttribute('aria-label')
+    expect(within(tab).getByText('A')).toHaveClass('sr-only')
+  })
+
+  it('renders secondary-pane rows duotone at size-5', async () => {
+    render(
+      <Navigator value='/c'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/c' href='/c'>
+            C
+            <Navigator.Secondary aria-label='C pages'>
+              <Navigator.Item value='/c/x' href='/c/x' icon={<FakeIcon />}>
+                X
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Pane>Detail</Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const icon = document.querySelector(
+      '[data-slot="navigator-secondary-items"] [data-testid="fake-icon"]'
+    )
+    expect(icon).toHaveAttribute('data-weight', 'duotone')
+    expect(icon).toHaveClass('size-5', 'text-subtle')
+  })
+
+  it('gives idle vertical tiles a hover surface, and the current tile none', async () => {
+    const { container } = render(tree())
+    await flushViewportMeasurement()
+    const tile = (name: string) =>
+      within(
+        container.querySelector<HTMLElement>(
+          '[data-slot="navigator-primary"][data-orientation="vertical"]'
+        )!
+      ).getByRole('link', { name })
+    expect(tile('A')).toHaveAttribute('data-current')
+    expect(tile('A')).not.toHaveClass('hover:bg-subtle')
+    expect(tile('B')).toHaveClass('hover:bg-subtle')
+  })
+})
+
+describe('Navigator routeless primary', () => {
+  const verticalItem = (label: string) =>
+    screen
+      .getAllByText(label)
+      .map((el) => el.closest('[data-slot="navigator-item"]'))
+      .find((el) =>
+        el?.closest(
+          '[data-slot="navigator-primary"][data-orientation="vertical"]'
+        )
+      )
+
+  it('delegates to the first secondary child when it has no href of its own', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Navigator value='/other'>
+        <Navigator.Primary aria-label='Primary'>
+          {testBrand}
+          <Navigator.Item value='foundations'>
+            Foundations
+            <Navigator.Secondary aria-label='Foundations pages'>
+              <Navigator.Item
+                value='/foundations/layout'
+                href='/foundations/layout'
+              >
+                Layout
+              </Navigator.Item>
+              <Navigator.Item
+                value='/foundations/colors'
+                href='/foundations/colors'
+              >
+                Colors
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    const secondary = verticalItem('Foundations')
+    expect(secondary?.tagName).toBe('A')
+    expect(secondary).toHaveAttribute('href', '/foundations/layout')
+    await flushViewportMeasurement()
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('but no href'))
+    warn.mockRestore()
+  })
+
+  it('links to itself when it has its own href', async () => {
+    render(
+      <Navigator value='/other'>
+        <Navigator.Primary aria-label='Primary'>
+          {testBrand}
+          <Navigator.Item value='components' href='/components'>
+            Components
+            <Navigator.Secondary aria-label='Components pages'>
+              <Navigator.Item
+                value='/components/button'
+                href='/components/button'
+              >
+                Button
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    const secondary = verticalItem('Components')
+    expect(secondary?.tagName).toBe('A')
+    expect(secondary).toHaveAttribute('href', '/components')
+    await flushViewportMeasurement()
+  })
+
+  it('renders a button when it has no href and no secondary', async () => {
+    render(
+      <Navigator value='/other'>
+        <Navigator.Primary aria-label='Primary'>
+          {testBrand}
+          <Navigator.Item value='appearance'>Appearance</Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    expect(verticalItem('Appearance')?.tagName).toBe('BUTTON')
+    await flushViewportMeasurement()
+  })
+
+  it('lights the routeless destination and marks its landing row in the secondary pane', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Navigator value='/foundations/layout'>
+        <Navigator.Primary aria-label='Primary'>
+          {testBrand}
+          <Navigator.Item value='foundations'>
+            Foundations
+            <Navigator.Secondary aria-label='Foundations pages'>
+              <Navigator.Item
+                value='/foundations/layout'
+                href='/foundations/layout'
+              >
+                Layout
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Pane>Detail</Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const secondary = verticalItem('Foundations')
+    expect(secondary).toHaveClass('intent-accent')
+    expect(secondary).toHaveAttribute('aria-current', 'true')
+
+    const pane = document.querySelector<HTMLElement>(
+      '[data-navigator-secondary="foundations"]'
+    )!
+    expect(within(pane).getByRole('link', { name: 'Layout' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    )
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('but no href'))
+    warn.mockRestore()
+  })
+})
+
+describe('Navigator.Brand', () => {
+  it('renders in the brand region above the cluster without becoming a destination', async () => {
+    render(
+      <Navigator value='tickets'>
+        <Navigator.Primary aria-label='Primary'>
+          <Navigator.Brand>Roadie</Navigator.Brand>
+          <Navigator.Item value='discover'>Discover</Navigator.Item>
+          <Navigator.Item value='tickets'>Tickets</Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const vertical = primaryOf('vertical')
+    const region = vertical.querySelector(
+      '[data-slot="navigator-primary-brand"]'
+    )
+    const brand = region?.querySelector('[data-slot="navigator-brand"]')
+    expect(brand).toHaveTextContent('Roadie')
+    expect(vertical.firstElementChild?.firstElementChild).toBe(region)
+    expect(
+      vertical.querySelector(
+        '[data-slot="navigator-primary-cluster"] [data-slot="navigator-brand"]'
+      )
+    ).toBeNull()
+  })
+
+  it('leaves item and tab counts unchanged when a Brand is present', async () => {
+    const { container } = render(
+      <Navigator value='tickets'>
+        <Navigator.Primary aria-label='Primary'>
+          <Navigator.Brand>Roadie</Navigator.Brand>
+          <Navigator.Item value='discover'>Discover</Navigator.Item>
+          <Navigator.Item value='tickets'>Tickets</Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    const bar = within(
+      container.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      ) as HTMLElement
+    )
+    expect(bar.getAllByRole('button')).toHaveLength(2)
+    const vertical = container.querySelector(
+      '[data-slot="navigator-primary"][data-orientation="vertical"]'
+    )
+    expect(
+      vertical?.querySelectorAll('[data-slot="navigator-item"]')
+    ).toHaveLength(2)
+    await flushViewportMeasurement()
+  })
+
+  const brandTree = (brand: ReactNode) => (
+    <Navigator value='tickets'>
+      <Navigator.Primary aria-label='Primary'>
+        {testBrand}
+        {brand}
+        <Navigator.Item value='tickets'>Tickets</Navigator.Item>
+      </Navigator.Primary>
+    </Navigator>
+  )
+  const brandLink = (name: string) =>
+    within(primaryOf('vertical')).getByRole('link', { name })
+
+  it('links home by default, named by its text', async () => {
+    render(brandTree(<Navigator.Brand>Roadie</Navigator.Brand>))
+    await flushViewportMeasurement()
+    const link = brandLink('Roadie')
+    expect(link).toHaveAttribute('href', '/')
+    expect(link).toHaveAttribute('data-slot', 'navigator-brand')
+    expect(link).toHaveClass('is-interactive')
+  })
+
+  it('takes its name from a logo’s label', async () => {
+    render(
+      brandTree(
+        <Navigator.Brand>
+          <svg role='img' aria-label='Oztix' data-slot='logo' />
+          <span aria-hidden data-slot='wordmark'>
+            Oztix
+          </span>
+        </Navigator.Brand>
+      )
+    )
+    await flushViewportMeasurement()
+    expect(brandLink('Oztix')).toHaveAttribute('href', '/')
+  })
+
+  it('links wherever href points', async () => {
+    render(brandTree(<Navigator.Brand href='/home'>Roadie</Navigator.Brand>))
+    await flushViewportMeasurement()
+    expect(brandLink('Roadie')).toHaveAttribute('href', '/home')
+  })
+
+  it('routes through RoadieLinkProvider', async () => {
+    const StubLink: RoadieLinkComponent = ({ href, children, ...rest }) => (
+      <a data-testid='stub-link' href={href} {...rest}>
+        {children}
+      </a>
+    )
+    render(
+      <RoadieLinkProvider Link={StubLink}>
+        {brandTree(<Navigator.Brand>Roadie</Navigator.Brand>)}
+      </RoadieLinkProvider>
+    )
+    await flushViewportMeasurement()
+    expect(brandLink('Roadie')).toHaveAttribute('data-testid', 'stub-link')
+  })
+
+  it('uses the Brand click handler from the latest Primary tree', async () => {
+    const blockNavigation = vi.fn()
+    function App({ dirty }: { dirty: boolean }) {
+      return withStubLink(
+        brandTree(
+          <Navigator.Brand
+            onClick={(event) => {
+              if (!dirty) return
+              event.preventDefault()
+              blockNavigation()
+            }}
+          >
+            Roadie
+          </Navigator.Brand>
+        )
+      )
+    }
+
+    const { rerender } = render(<App dirty={false} />)
+    await flushViewportMeasurement()
+    rerender(<App dirty />)
+    await flushViewportMeasurement()
+    await userEvent.click(brandLink('Roadie'))
+
+    expect(blockNavigation).toHaveBeenCalledOnce()
+  })
+
+  it('updates a Brand child that receives a new object prop', async () => {
+    function BrandName({ account }: { account: { name: string } }) {
+      return <>{account.name}</>
+    }
+    function App({ name }: { name: string }) {
+      return brandTree(
+        <Navigator.Brand>
+          <BrandName account={{ name }} />
+        </Navigator.Brand>
+      )
+    }
+
+    const { rerender } = render(<App name='First account' />)
+    await flushViewportMeasurement()
+    rerender(<App name='Second account' />)
+    await flushViewportMeasurement()
+
+    expect(brandLink('Second account')).toBeInTheDocument()
+  })
+
+  it('does not warn about a stray child', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Navigator value='tickets'>
+        <Navigator.Primary aria-label='Primary'>
+          <Navigator.Brand>Roadie</Navigator.Brand>
+          <Navigator.Item value='tickets'>Tickets</Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
+    await flushViewportMeasurement()
+  })
+})
+
+describe('render fan-out', () => {
+  const counts = { tile: 0, row: 0, detail: 0 }
+  const TileIcon = () => {
+    counts.tile++
+    return <svg />
+  }
+  const ListItem = List.Item
+  beforeEach(() => {
+    List.Item = Object.assign(
+      (props: Parameters<typeof ListItem>[0]) => {
+        counts.row++
+        return <ListItem {...props} />
+      },
+      { displayName: ListItem.displayName }
+    )
+  })
+  afterEach(() => {
+    List.Item = ListItem
+  })
+  const Detail = () => {
+    counts.detail++
+    return null
+  }
+  const reset = () => Object.assign(counts, { tile: 0, row: 0, detail: 0 })
+  // Hoisted, as a memoised app would: consumer content is not Navigator's to re-render.
+  const detail = <Detail />
+  const rows = Array.from({ length: 20 }, (_, index) => `/s/r${index}`)
+
+  function App({
+    value,
+    expanded = false,
+    onSelect
+  }: {
+    value: string
+    expanded?: boolean
+    onSelect?: () => void
+  }) {
+    return withStubLink(
+      <Navigator value={value} expanded={expanded}>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/s' href='/s' icon={<TileIcon />}>
+            Secondary
+            <Navigator.Secondary aria-label='Secondary'>
+              {rows.map((row) => (
+                <Navigator.Item key={row} value={row} href={row}>
+                  {row}
+                </Navigator.Item>
+              ))}
+            </Navigator.Secondary>
+          </Navigator.Item>
+          <Navigator.Item
+            value='/t'
+            href='/t'
+            icon={<TileIcon />}
+            onSelect={onSelect}
+          >
+            Other
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Pane>{detail}</Pane>
+      </Navigator>
+    )
+  }
+
+  it('re-renders none of the navigation when its parent re-renders with the same tree', async () => {
+    const { rerender } = render(<App value='/s/r3' />)
+    await flushViewportMeasurement()
+    reset()
+    rerender(<App value='/s/r3' />)
+    await flushViewportMeasurement()
+    expect(counts).toEqual({ tile: 0, row: 0, detail: 0 })
+  })
+
+  it('re-renders only the two rows whose current changes on a new value', async () => {
+    const { rerender } = render(<App value='/s/r3' />)
+    await flushViewportMeasurement()
+    reset()
+    rerender(<App value='/s/r7' />)
+    await flushViewportMeasurement()
+    expect(counts.row).toBe(2)
+    expect(counts.detail).toBe(0)
+  })
+
+  it('re-renders no row when the vertical navigation expands', async () => {
+    const { rerender } = render(<App value='/s/r3' />)
+    await flushViewportMeasurement()
+    reset()
+    rerender(<App value='/s/r3' expanded />)
+    await flushViewportMeasurement()
+    expect(counts.row).toBe(0)
+    expect(counts.detail).toBe(0)
+  })
+
+  it('calls the handler from the latest render, though the tree kept its identity', async () => {
+    const first = vi.fn()
+    const latest = vi.fn()
+    const { rerender } = render(<App value='/s/r3' onSelect={first} />)
+    await flushViewportMeasurement()
+    rerender(<App value='/s/r3' onSelect={latest} />)
+    await flushViewportMeasurement()
+    await userEvent.click(
+      within(primaryOf('vertical')).getByRole('link', { name: 'Other' })
+    )
+    expect(latest).toHaveBeenCalledOnce()
+    expect(first).not.toHaveBeenCalled()
+  })
+})
+
+describe('overflow state', () => {
+  it('republishes folded items only when what a folded row shows changes', async () => {
+    const published: NavigatorOverflowSets[] = []
+    function Probe() {
+      const { overflowItems } = use(NavigatorDisclosureContext)
+      if (published.at(-1) !== overflowItems) published.push(overflowItems)
+      return null
+    }
+    function Six({ label }: { label: string }) {
+      return (
+        <Navigator value='/a'>
+          <Navigator.Primary aria-label='Main'>
+            {testBrand}
+            {['/a', '/b', '/c', '/d', '/e'].map((value) => (
+              <Navigator.Item key={value} value={value} href={value}>
+                {value}
+              </Navigator.Item>
+            ))}
+            <Navigator.Item value='/f' href='/f'>
+              {label}
+            </Navigator.Item>
+          </Navigator.Primary>
+          <Probe />
+        </Navigator>
+      )
+    }
+    const { rerender } = render(<Six label='Foxtrot' />)
+    await flushViewportMeasurement()
+    const settled = published.length
+    rerender(<Six label='Foxtrot' />)
+    await flushViewportMeasurement()
+    expect(published).toHaveLength(settled)
+
+    rerender(<Six label='Golf' />)
+    await flushViewportMeasurement()
+    expect(published).toHaveLength(settled + 1)
+    expect(published.at(-1)!.horizontal.at(-1)!.label).toEqual(['Golf'])
+  })
+})
+
+describe('Navigator mobile tab bar', () => {
+  const horizontalOf = (container: HTMLElement) =>
+    container.querySelector<HTMLElement>(
+      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+    )
+
+  const sixItemsAndPinned = (
+    <Navigator value='events'>
+      <Navigator.Primary aria-label='Primary'>
+        {testBrand}
+        <Navigator.Item value='a'>A</Navigator.Item>
+        <Navigator.Item value='b'>B</Navigator.Item>
+        <Navigator.Item value='c'>C</Navigator.Item>
+        <Navigator.Item value='d'>D</Navigator.Item>
+        <Navigator.Item value='e'>E</Navigator.Item>
+        <Navigator.Item value='f'>F</Navigator.Item>
+        <Navigator.Item value='account' placement='pinned'>
+          Account
+        </Navigator.Item>
+      </Navigator.Primary>
+    </Navigator>
+  )
+
+  it('floats the tab bar over full-height content on mobile only', async () => {
+    const { container } = render(
+      <Navigator value='tickets'>
+        <Navigator.Primary aria-label='Primary'>
+          {testBrand}
+          <Navigator.Item value='tickets'>Tickets</Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    const bar = horizontalOf(container)
+    expect(bar).toHaveClass('max-md:absolute')
+    expect(bar).toHaveClass('md:hidden')
+    await flushViewportMeasurement()
+  })
+
+  it('marks the active tab with aria-current', async () => {
+    const { container } = render(
+      <Navigator value='tickets'>
+        <Navigator.Primary aria-label='Primary'>
+          {testBrand}
+          <Navigator.Item value='discover'>Discover</Navigator.Item>
+          <Navigator.Item value='tickets'>Tickets</Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    const bar = within(horizontalOf(container) as HTMLElement)
+    expect(bar.getByRole('button', { name: 'Tickets' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    )
+    expect(bar.getByRole('button', { name: 'Discover' })).not.toHaveAttribute(
+      'aria-current'
+    )
+    await flushViewportMeasurement()
+  })
+
+  it('marks a tab active through a sub-page as the current destination', async () => {
+    const { container } = render(
+      <Navigator value='/foundations/layout'>
+        <Navigator.Primary aria-label='Primary'>
+          {testBrand}
+          <Navigator.Item value='/discover' href='/discover'>
+            Discover
+          </Navigator.Item>
+          <Navigator.Item value='/foundations' href='/foundations'>
+            Foundations
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    const bar = within(horizontalOf(container) as HTMLElement)
+    expect(bar.getByRole('link', { name: 'Foundations' })).toHaveAttribute(
+      'aria-current',
+      'true'
+    )
+    await flushViewportMeasurement()
+  })
+
+  it('folds the tail into a final More tab', async () => {
+    const { container } = render(sixItemsAndPinned)
+    const track = horizontalOf(container)!.querySelector<HTMLElement>(
+      '[data-slot="navigator-primary-track"]'
+    )!
+    const bar = within(track)
+    expect(bar.getAllByRole('button')).toHaveLength(4)
+    expect(bar.queryByText('D')).toBeNull()
+    expect(
+      bar.getByRole('button', { name: 'More' }).querySelector('svg')
+    ).toBeTruthy()
+    await flushViewportMeasurement()
+  })
+
+  it('omits the final tab when there is nothing to put in it', async () => {
+    const { container } = render(
+      <Navigator value='tickets'>
+        <Navigator.Primary aria-label='Primary'>
+          {testBrand}
+          <Navigator.Item value='discover'>Discover</Navigator.Item>
+          <Navigator.Item value='tickets'>Tickets</Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    const bar = within(horizontalOf(container) as HTMLElement)
+    expect(bar.queryByRole('button', { name: 'More' })).toBeNull()
+    expect(bar.getAllByRole('button')).toHaveLength(2)
+    await flushViewportMeasurement()
+  })
+
+  it('marks the disclosure current without claiming it is the page', async () => {
+    const { container } = render(
+      <Navigator value='e'>
+        <Navigator.Primary aria-label='Primary'>
+          {testBrand}
+          <Navigator.Item value='a'>A</Navigator.Item>
+          <Navigator.Item value='b'>B</Navigator.Item>
+          <Navigator.Item value='c'>C</Navigator.Item>
+          <Navigator.Item value='d'>D</Navigator.Item>
+          <Navigator.Item value='e'>E</Navigator.Item>
+          <Navigator.Item value='f'>F</Navigator.Item>
+          <Navigator.Item value='account' placement='pinned'>
+            Account
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    const bar = within(horizontalOf(container) as HTMLElement)
+    expect(bar.getByRole('button', { name: 'More' })).toHaveAttribute(
+      'aria-current',
+      'true'
+    )
+    await flushViewportMeasurement()
+  })
+
+  it('hands currency to the open disclosure and reclaims it on close', async () => {
+    const { container } = render(
+      <Navigator value='a'>
+        <Navigator.Primary aria-label='Primary'>
+          {testBrand}
+          <Navigator.Item value='a'>A</Navigator.Item>
+          <Navigator.Item value='b'>B</Navigator.Item>
+          <Navigator.Item value='c'>C</Navigator.Item>
+          <Navigator.Item value='d'>D</Navigator.Item>
+          <Navigator.Item value='e'>E</Navigator.Item>
+          <Navigator.Item value='f'>F</Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    const barElement = horizontalOf(container) as HTMLElement
+    const bar = within(barElement)
+    const routeTab = bar.getByRole('button', { name: 'A' })
+    const disclosure = bar.getByRole('button', { name: 'More' })
+    const currents = () => barElement.querySelectorAll('[aria-current]')
+
+    expect(routeTab).toHaveAttribute('aria-current', 'page')
+    expect(disclosure).not.toHaveAttribute('aria-current')
+    expect(currents()).toHaveLength(1)
+
+    await userEvent.click(disclosure)
+    expect(disclosure).toHaveAttribute('aria-current', 'true')
+    expect(routeTab).not.toHaveAttribute('aria-current')
+    expect(currents()).toHaveLength(1)
+
+    await userEvent.click(routeTab)
+    expect(routeTab).toHaveAttribute('aria-current', 'page')
+    expect(disclosure).not.toHaveAttribute('aria-current')
+    expect(currents()).toHaveLength(1)
+  })
+
+  it('floats the first pinned item in a circle outside the tabs', async () => {
+    const { container } = render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          {['/a', '/b', '/c', '/d'].map((v) => (
+            <Navigator.Item key={v} value={v} href={v} icon={<FakeIcon />}>
+              {v}
+            </Navigator.Item>
+          ))}
+          <Navigator.Item
+            value='/me'
+            href='/me'
+            icon={<FakeIcon />}
+            placement='pinned'
+          >
+            Me
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const bar = horizontalOf(container)!
+    const track = bar.querySelector('[data-slot="navigator-primary-track"]')!
+    expect(within(track as HTMLElement).queryByText('Me')).toBeNull()
+    expect(within(track as HTMLElement).queryByText('More')).toBeNull()
+    const circle = bar.querySelector('[data-slot="navigator-primary-circle"]')!
+    expect(
+      within(circle as HTMLElement).getByRole('link', { name: 'Me' })
+    ).toBeInTheDocument()
+  })
+
+  it('sets the pinned circle apart from the tabs by a gap', async () => {
+    const { container } = render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
+            A
+          </Navigator.Item>
+          <Navigator.Item
+            value='/me'
+            href='/me'
+            icon={<FakeIcon />}
+            placement='pinned'
+          >
+            Me
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const bar = horizontalOf(container)!
+    const parts = [...bar.children].map((child) =>
+      child.getAttribute('data-slot')
+    )
+    expect(parts).toEqual([
+      'navigator-primary-lane',
+      'navigator-primary-circle'
+    ])
+    expect(bar).toHaveClass('grid-cols-[minmax(0,1fr)_auto]', 'gap-3')
+    expect(bar.style.getPropertyValue('--navigator-primary-slots')).toBe('4')
+  })
+
+  it('gives the tabs the whole bar, with no gap, without a pinned item', async () => {
+    const { container } = render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
+            A
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const bar = horizontalOf(container)!
+    expect(bar.children).toHaveLength(1)
+    expect(bar.firstElementChild).toHaveAttribute(
+      'data-slot',
+      'navigator-primary-lane'
+    )
+    expect(bar).not.toHaveClass('gap-3')
+    expect(bar.className).not.toMatch(/grid-cols-/)
+    expect(bar.style.getPropertyValue('--navigator-primary-slots')).toBe('5')
+  })
+
+  it('renders pinned items at the bottom of the vertical navigation', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/me' href='/me' placement='pinned'>
+            Me
+          </Navigator.Item>
+          <Navigator.Item value='/a' href='/a'>
+            A
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const vertical = container.querySelector(
+      '[data-slot="navigator-primary"][data-orientation="vertical"]'
+    )!
+    const pinned = vertical.querySelector(
+      '[data-slot="navigator-primary-pinned"]'
+    )!
+    expect(within(pinned as HTMLElement).getByText('Me')).toBeInTheDocument()
+    expect(within(pinned as HTMLElement).queryByText('A')).toBeNull()
+    warn.mockRestore()
+  })
+})
+
+describe('Navigator compound', () => {
+  it('keeps the More pane parts internal', () => {
+    expect('OverflowPane' in Navigator).toBe(false)
+    expect('OverflowItems' in Navigator).toBe(false)
+  })
+})
+
+describe('NavigatorOverflowPane', () => {
+  const overflowNav = (value: string, extra?: ReactNode) =>
+    withStubLink(
+      <Navigator value={value}>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          {['/a', '/b', '/c', '/d', '/e', '/f'].map((v) => (
+            <Navigator.Item key={v} value={v} href={v}>
+              {v}
+            </Navigator.Item>
+          ))}
+        </Navigator.Primary>
+        <Pane>Detail</Pane>
+        {extra}
+      </Navigator>
+    )
+
+  const panes = () =>
+    Array.from(document.querySelectorAll('[data-slot="pane"]'))
+
+  const horizontalOf = (container: HTMLElement) =>
+    container.querySelector<HTMLElement>(
+      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+    )
+
+  it('marks the row and the More pane while More is open', async () => {
+    const user = userEvent.setup()
+    const { container } = render(overflowNav('/a'))
+    await flushViewportMeasurement()
+    const row = document.querySelector('[data-slot="navigator-panes"]')!
+    const more = document.querySelector('[data-slot="pane"][id]')!
+    expect(more).toHaveAttribute('data-overflow')
+    expect(more).toHaveAttribute('data-depth', '0')
+    expect(more).not.toHaveAttribute('data-reached')
+    expect(row).not.toHaveAttribute('data-overflow')
+    expect(row).not.toHaveAttribute('data-reveal')
+    await user.click(
+      within(horizontalOf(container)!).getByRole('button', { name: 'More' })
+    )
+    expect(more).toHaveAttribute('data-reached')
+    expect(row).toHaveAttribute('data-overflow')
+    expect(row).toHaveAttribute('data-reveal')
+  })
+
+  it('titles the generated pane in its header, like a secondary pane', async () => {
+    render(overflowNav('/a'))
+    await flushViewportMeasurement()
+    const more = document.querySelector('[data-slot="pane"][id]') as HTMLElement
+    expect(within(more).getByRole('heading', { name: 'More' })).toHaveAttribute(
+      'data-slot',
+      'pane-title'
+    )
+  })
+
+  it('moves focus to the More pane title on open, and back on Escape', async () => {
+    const user = userEvent.setup()
+    const { container } = render(overflowNav('/a'))
+    await flushViewportMeasurement()
+    const more = within(horizontalOf(container)!).getByRole('button', {
+      name: 'More'
+    })
+    await user.click(more)
+    const pane = document.querySelector('[data-slot="pane"][id]') as HTMLElement
+    const title = within(pane).getByRole('heading', { name: 'More' })
+    expect(title).toHaveFocus()
+    await user.keyboard('{Escape}')
+    expect(more).toHaveFocus()
+    expect(title).not.toHaveAttribute('tabindex')
+  })
+
+  it('focuses the More pane only once it is the top of the stack', async () => {
+    const user = userEvent.setup()
+    const { container } = render(overflowNav('/a'))
+    await flushViewportMeasurement()
+    const pane = document.querySelector('[data-slot="pane"][id]') as HTMLElement
+    const positionsAtFocus: (string | null)[] = []
+    pane.addEventListener('focusin', () =>
+      positionsAtFocus.push(pane.getAttribute('data-stack-position'))
+    )
+    await user.click(
+      within(horizontalOf(container)!).getByRole('button', { name: 'More' })
+    )
+    expect(positionsAtFocus).toEqual(['top'])
+  })
+
+  it('focuses a declared OverflowPane with no title itself', async () => {
+    const user = userEvent.setup()
+    const { container } = render(
+      overflowNav(
+        '/a',
+        <NavigatorOverflowPane aria-label='More'>
+          <NavigatorOverflowItems />
+        </NavigatorOverflowPane>
+      )
+    )
+    await flushViewportMeasurement()
+    await user.click(
+      within(horizontalOf(container)!).getByRole('button', { name: 'More' })
+    )
+    expect(document.querySelector('[data-slot="pane"][id]')).toHaveFocus()
+  })
+
+  it("renders the bar's folded rows below md only", async () => {
+    render(overflowNav('/a'))
+    await flushViewportMeasurement()
+    const lists = document.querySelectorAll(
+      '[data-slot="pane"][id] [data-slot="navigator-overflow-items"]'
+    )
+    expect(lists[0]).toHaveClass('md:hidden')
+  })
+
+  const morePaneViewport = () =>
+    document.querySelector<HTMLElement>(
+      '[data-slot="pane"][id] [data-slot="pane-viewport"]'
+    )!
+
+  it('scrolls an open More to the top when its tab is tapped again, and stays open', async () => {
+    const user = userEvent.setup()
+    const { container } = render(overflowNav('/a'))
+    await flushViewportMeasurement()
+    const more = within(horizontalOf(container)!).getByRole('button', {
+      name: 'More'
+    })
+    await user.click(more)
+    const scrollTo = vi.fn()
+    morePaneViewport().scrollTo = scrollTo
+
+    await user.click(more)
+
+    expect(more).toHaveAttribute('aria-expanded', 'true')
+    expect(panes()[1]).toHaveAttribute('data-stack-position', 'top')
+    expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }))
+  })
+
+  it('takes the root and the top of the stack when opened, the page past it, with the tab bar visible', async () => {
+    render(overflowNav('/a'))
+    await flushViewportMeasurement()
+    expect(panes()).toHaveLength(2)
+    await userEvent.click(screen.getByRole('button', { name: /More/ }))
+    expect(panes()[1]).toHaveAttribute('data-stack-position', 'top')
+    expect(panes()[1]).toHaveAttribute('data-depth', '0')
+    expect(panes()[1]).toHaveAttribute('data-tab-bar', 'visible')
+    expect(panes()[0]).toHaveAttribute('data-stack-position', 'ahead')
+    expect(panes()[0]).toHaveAttribute('data-depth', '1')
+  })
+
+  const groupedOverflowNav = (value: string) => (
+    <Navigator value={value}>
+      <Navigator.Primary aria-label='Main'>
+        {testBrand}
+        {['/a', '/b', '/c', '/d'].map((v) => (
+          <Navigator.Item key={v} value={v} href={v}>
+            {v}
+          </Navigator.Item>
+        ))}
+        <Navigator.Group>
+          <Navigator.GroupTitle>Settings</Navigator.GroupTitle>
+          <Navigator.Item value='/e' href='/e'>
+            /e
+          </Navigator.Item>
+          <Navigator.Item value='/f' href='/f'>
+            /f
+          </Navigator.Item>
+        </Navigator.Group>
+        <Navigator.Item value='/account' placement='pinned' href='/account'>
+          Account
+        </Navigator.Item>
+        <Navigator.Item value='/help' placement='pinned' href='/help'>
+          Help
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Pane>Detail</Pane>
+    </Navigator>
+  )
+
+  it('keeps a folded group as a titled group of the overflow', async () => {
+    render(groupedOverflowNav('/a'))
+    await flushViewportMeasurement()
+    const overflow = within(panes()[1] as HTMLElement)
+    const settings = within(overflow.getByRole('list', { name: 'Settings' }))
+    expect(settings.getByRole('link', { name: '/e' })).toBeTruthy()
+    expect(settings.getByRole('link', { name: '/f' })).toBeTruthy()
+    expect(settings.queryByRole('link', { name: 'Help' })).toBeNull()
+    expect(overflow.getByRole('link', { name: 'Help' })).toBeTruthy()
+    expect(overflow.queryByRole('link', { name: 'Account' })).toBeNull()
+  })
+
+  it('marks an overflow row active through a sub-page as the current destination', async () => {
+    render(groupedOverflowNav('/e/deep'))
+    await flushViewportMeasurement()
+    const overflow = within(panes()[1] as HTMLElement)
+    expect(overflow.getByRole('link', { name: '/e' })).toHaveAttribute(
+      'aria-current',
+      'true'
+    )
+  })
+
+  it('lists the folded items, and a routed row closes it once its route commits', async () => {
+    const onValueChange = vi.fn()
+    const nav = (value: string) =>
+      withStubLink(
+        <Navigator value={value} onValueChange={onValueChange}>
+          <Navigator.Primary aria-label='Main'>
+            {testBrand}
+            {['/a', '/b', '/c', '/d', '/e', '/f'].map((v) => (
+              <Navigator.Item key={v} value={v} href={v}>
+                {v}
+              </Navigator.Item>
+            ))}
+          </Navigator.Primary>
+          <Pane>Detail</Pane>
+        </Navigator>
+      )
+    const { rerender } = render(nav('/a'))
+    await flushViewportMeasurement()
+    await userEvent.click(screen.getByRole('button', { name: /More/ }))
+
+    const more = () => document.querySelectorAll('[data-slot="pane"]')[1]!
+    await userEvent.click(
+      within(more() as HTMLElement).getByRole('link', { name: '/e' })
+    )
+    expect(onValueChange).toHaveBeenCalledWith('/e')
+    expect(more()).toHaveAttribute('data-stack-position', 'top')
+
+    rerender(nav('/e'))
+    expect(more()).toHaveAttribute('data-stack-position', 'ahead')
+  })
+
+  it('defers the same way from a declared More pane', async () => {
+    const nav = (value: string) =>
+      withStubLink(
+        <Navigator value={value}>
+          <Navigator.Primary aria-label='Main'>
+            {testBrand}
+            {['/a', '/b', '/c', '/d', '/e', '/f'].map((v) => (
+              <Navigator.Item key={v} value={v} href={v}>
+                {v}
+              </Navigator.Item>
+            ))}
+          </Navigator.Primary>
+          <Pane>Detail</Pane>
+          <NavigatorOverflowPane aria-label='Everything else'>
+            <NavigatorOverflowItems />
+          </NavigatorOverflowPane>
+        </Navigator>
+      )
+    const { rerender } = render(nav('/a'))
+    await flushViewportMeasurement()
+    await userEvent.click(screen.getByRole('button', { name: /More/ }))
+    const more = () =>
+      screen.getByRole('region', { name: 'Everything else', hidden: true })
+    await userEvent.click(within(more()).getByRole('link', { name: '/f' }))
+    expect(more()).toHaveAttribute('data-stack-position', 'top')
+    rerender(nav('/f'))
+    expect(more()).toHaveAttribute('data-stack-position', 'ahead')
+  })
+
+  it('closes at once for a routeless row, which no route will follow', async () => {
+    render(
+      <Navigator value='a'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          {['a', 'b', 'c', 'd', 'e', 'f'].map((v) => (
+            <Navigator.Item key={v} value={v}>
+              {v}
+            </Navigator.Item>
+          ))}
+        </Navigator.Primary>
+        <Pane>Detail</Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    await userEvent.click(screen.getByRole('button', { name: /More/ }))
+    const more = () => document.querySelectorAll('[data-slot="pane"]')[1]!
+    await userEvent.click(
+      within(more() as HTMLElement).getByRole('button', { name: 'e' })
+    )
+    expect(more()).toHaveAttribute('data-stack-position', 'ahead')
+  })
+
+  it('closes at once when the current route is chosen from More', async () => {
+    render(
+      withStubLink(
+        <Navigator value='/e'>
+          <Navigator.Primary aria-label='Main'>
+            {testBrand}
+            {['/a', '/b', '/c', '/d', '/e', '/f'].map((v) => (
+              <Navigator.Item key={v} value={v} href={v}>
+                {v}
+              </Navigator.Item>
+            ))}
+          </Navigator.Primary>
+          <Pane>Detail</Pane>
+        </Navigator>
+      )
+    )
+    await flushViewportMeasurement()
+    await userEvent.click(screen.getByRole('button', { name: /More/ }))
+    const more = () => document.querySelectorAll('[data-slot="pane"]')[1]!
+    await userEvent.click(
+      within(more() as HTMLElement).getByRole('link', { name: '/e' })
+    )
+    expect(more()).toHaveAttribute('data-stack-position', 'ahead')
+  })
+
+  it('renders consumer content around the generated list', async () => {
+    render(
+      overflowNav(
+        '/a',
+        <NavigatorOverflowPane>
+          <Pane.Header>
+            <Pane.Title>Menu</Pane.Title>
+          </Pane.Header>
+          <p>Promo</p>
+          <NavigatorOverflowItems />
+        </NavigatorOverflowPane>
+      )
+    )
+    await flushViewportMeasurement()
+    await userEvent.click(screen.getByRole('button', { name: /More/ }))
+
+    const overflow = document.querySelectorAll('[data-slot="pane"]')[1]!
+    expect(
+      within(overflow as HTMLElement).getByText('Promo')
+    ).toBeInTheDocument()
+    expect(
+      within(overflow as HTMLElement).getByRole('link', { name: '/e' })
+    ).toBeInTheDocument()
+    expect(document.querySelectorAll('[data-slot="pane"]')).toHaveLength(2)
+  })
+
+  // Stands in for a Next.js parallel-route slot, which a children scan can't see through.
+  const Slot = ({ children }: { children: ReactNode }) => <>{children}</>
+
+  it('recognises a NavigatorOverflowPane declared behind a wrapper', async () => {
+    render(
+      overflowNav(
+        '/a',
+        <Slot>
+          <NavigatorOverflowPane>
+            <p>Promo</p>
+            <NavigatorOverflowItems />
+          </NavigatorOverflowPane>
+        </Slot>
+      )
+    )
+    await flushViewportMeasurement()
+    await userEvent.click(screen.getByRole('button', { name: /More/ }))
+
+    expect(document.querySelectorAll('[data-slot="pane"]')).toHaveLength(2)
+    const overflow = document.querySelectorAll('[data-slot="pane"]')[1]!
+    expect(
+      within(overflow as HTMLElement).getByText('Promo')
+    ).toBeInTheDocument()
+
+    const disclosure = screen.getByRole('button', { name: /More/ })
+    const controlsId = disclosure.getAttribute('aria-controls')
+    expect(controlsId).toBeTruthy()
+    expect(document.querySelectorAll(`[id="${controlsId}"]`)).toHaveLength(1)
+  })
+
+  it('gives a folded destination aria-current=page, matching both orientations', async () => {
+    render(overflowNav('/e'))
+    await flushViewportMeasurement()
+    await userEvent.click(screen.getByRole('button', { name: /More/ }))
+
+    const overflow = document.querySelectorAll('[data-slot="pane"]')[1]!
+    const row = within(overflow as HTMLElement).getByRole('link', {
+      name: '/e'
+    })
+    expect(row).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('lists folded items and extra pinned items together, excluding kept tabs', async () => {
+    render(
+      <Navigator value='a'>
+        <Navigator.Primary aria-label='Primary'>
+          {testBrand}
+          <Navigator.Item value='a'>A</Navigator.Item>
+          <Navigator.Item value='b'>B</Navigator.Item>
+          <Navigator.Item value='c'>C</Navigator.Item>
+          <Navigator.Item value='d'>D</Navigator.Item>
+          <Navigator.Item value='e'>E</Navigator.Item>
+          <Navigator.Item value='f'>F</Navigator.Item>
+          <Navigator.Item value='account' placement='pinned'>
+            Account
+          </Navigator.Item>
+          <Navigator.Item value='help' placement='pinned'>
+            Help
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Pane>Detail</Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    await userEvent.click(screen.getByRole('button', { name: 'More' }))
+
+    const overflow = within(panes()[1] as HTMLElement)
+    expect(overflow.getByText('E')).toBeTruthy()
+    expect(overflow.getByText('F')).toBeTruthy()
+    expect(overflow.getByText('Help')).toBeTruthy()
+    expect(overflow.queryByText('Account')).toBeNull()
+    expect(overflow.queryByText('A')).toBeNull()
+  })
+
+  it('generates no overflow pane when nothing folds', async () => {
+    render(
+      <Navigator value='tickets'>
+        <Navigator.Primary aria-label='Primary'>
+          {testBrand}
+          <Navigator.Item value='discover'>Discover</Navigator.Item>
+          <Navigator.Item value='tickets'>Tickets</Navigator.Item>
+        </Navigator.Primary>
+        <Pane>Detail</Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(panes()).toHaveLength(1)
+  })
+
+  it("points the disclosure's aria-controls at a real, resolvable overflow pane id", async () => {
+    render(overflowNav('/a'))
+    await flushViewportMeasurement()
+    const disclosure = screen.getByRole('button', { name: /More/ })
+
+    expect(disclosure).not.toHaveAttribute('aria-controls')
+    await userEvent.click(disclosure)
+    const controlsId = disclosure.getAttribute('aria-controls')
+    expect(controlsId).toBeTruthy()
+    expect(document.getElementById(controlsId!)).toBe(panes()[1])
+  })
+
+  it('dismisses the open pane when another tab is tapped', async () => {
+    render(overflowNav('/a'))
+    await flushViewportMeasurement()
+    const tabBar = within(screen.getByRole('navigation', { name: 'Main tabs' }))
+    await userEvent.click(tabBar.getByRole('button', { name: /More/ }))
+    expect(panes()[1]).toHaveAttribute('data-stack-position', 'top')
+
+    await userEvent.click(tabBar.getByRole('link', { name: '/b' }))
+    expect(panes()[1]).toHaveAttribute('data-stack-position', 'ahead')
+    expect(tabBar.getByRole('button', { name: /More/ })).not.toHaveAttribute(
+      'aria-current'
+    )
+  })
+
+  describe('switches without sliding', () => {
+    const frames: ((time: number) => void)[] = []
+    const flushFrame = () =>
+      act(() => {
+        for (const callback of frames.splice(0)) callback(0)
+      })
+    const content = () =>
+      document.querySelector<HTMLElement>('[data-slot="navigator-content"]')!
+    const row = () =>
+      document.querySelector<HTMLElement>('[data-slot="navigator-panes"]')!
+
+    beforeEach(() => {
+      frames.length = 0
+      vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) =>
+        frames.push(callback)
+      )
+      vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {})
+    })
+    afterEach(() => {
+      vi.restoreAllMocks()
+    })
+
+    it('holds pane transitions off for two frames as More opens from the bar and closes', async () => {
+      render(overflowNav('/a'))
+      await flushViewportMeasurement()
+      expect(content()).not.toHaveAttribute('data-instant')
+      const tabBar = within(
+        screen.getByRole('navigation', { name: 'Main tabs' })
+      )
+      fireEvent.click(tabBar.getByRole('button', { name: /More/ }))
+      expect(panes()[1]).toHaveAttribute('data-stack-position', 'top')
+      expect(content()).toHaveAttribute('data-instant')
+      flushFrame()
+      expect(content()).toHaveAttribute('data-instant')
+      flushFrame()
+      expect(content()).not.toHaveAttribute('data-instant')
+
+      fireEvent.keyDown(document, { key: 'Escape' })
+      expect(panes()[1]).toHaveAttribute('data-stack-position', 'ahead')
+      expect(content()).toHaveAttribute('data-instant')
+      flushFrame()
+      flushFrame()
+      expect(content()).not.toHaveAttribute('data-instant')
+    })
+
+    it('keeps the slide for a push within the stack', async () => {
+      const tree = (reached: boolean) => (
+        <Navigator value='/a'>
+          <Pane column='list'>List</Pane>
+          <Pane reached={reached}>Detail</Pane>
+        </Navigator>
+      )
+      const { rerender } = render(tree(false))
+      await flushViewportMeasurement()
+      flushFrame()
+      rerender(tree(true))
+      expect(panes()[1]).toHaveAttribute('data-stack-position', 'top')
+      expect(content()).not.toHaveAttribute('data-instant')
+      expect(row()).toHaveAttribute('data-pushing')
+      flushFrame()
+      expect(row()).toHaveAttribute('data-pushing')
+      flushFrame()
+      expect(row()).not.toHaveAttribute('data-pushing')
+
+      rerender(tree(false))
+      expect(panes()[1]).toHaveAttribute('data-stack-position', 'ahead')
+      expect(row()).toHaveAttribute('data-pushing')
+    })
+
+    it('marks a push as a reached pane mounts and a pop as it unmounts', async () => {
+      const tree = (open: boolean) => (
+        <Navigator value='/a'>
+          <Pane column='list'>List</Pane>
+          {open ? <Pane>Detail</Pane> : null}
+        </Navigator>
+      )
+      const { rerender } = render(tree(false))
+      await flushViewportMeasurement()
+      flushFrame()
+      flushFrame()
+      expect(row()).not.toHaveAttribute('data-pushing')
+      rerender(tree(true))
+      expect(row()).toHaveAttribute('data-pushing')
+      flushFrame()
+      flushFrame()
+      await flushViewportMeasurement()
+      flushFrame()
+      flushFrame()
+      expect(row()).not.toHaveAttribute('data-pushing')
+      rerender(tree(false))
+      expect(row()).toHaveAttribute('data-pushing')
+    })
+
+    const swapNav = (id: string, reached = true) => (
+      <Navigator value='/a'>
+        <Pane column='list'>List</Pane>
+        <Pane key={id} reached={reached}>
+          Ticket {id}
+        </Pane>
+      </Navigator>
+    )
+
+    it('cuts a sibling swap: one pane replaced at the same depth', async () => {
+      const { rerender } = render(swapNav('1'))
+      await flushViewportMeasurement()
+      flushFrame()
+      flushFrame()
+      const before = panes()[1]
+
+      rerender(swapNav('2'))
+      expect(panes()[1]).not.toBe(before)
+      expect(panes()[1]).toHaveAttribute('data-stack-position', 'top')
+      expect(row()).not.toHaveAttribute('data-pushing')
+      expect(content()).toHaveAttribute('data-instant')
+      flushFrame()
+      flushFrame()
+      expect(content()).not.toHaveAttribute('data-instant')
+    })
+
+    it('keeps the slide when the swapped-in pane is no longer the top', async () => {
+      const { rerender } = render(swapNav('1'))
+      await flushViewportMeasurement()
+      flushFrame()
+      flushFrame()
+
+      rerender(swapNav('2', false))
+      expect(row()).toHaveAttribute('data-pushing')
+      expect(content()).not.toHaveAttribute('data-instant')
+    })
+
+    it('cuts a tab switch whose route lands on a child pane', async () => {
+      const tabsNav = (value: string) => (
+        <Navigator value={value}>
+          <Navigator.Primary aria-label='Main'>
+            {testBrand}
+            <Navigator.Item value='/a' href='/a'>
+              A
+            </Navigator.Item>
+            <Navigator.Item value='/b' href='/b'>
+              B
+            </Navigator.Item>
+          </Navigator.Primary>
+          <Pane key={value.slice(0, 2)} column='list'>
+            List {value}
+          </Pane>
+          {value.length > 2 ? <Pane key={value}>Detail {value}</Pane> : null}
+        </Navigator>
+      )
+      const { rerender } = render(tabsNav('/a'))
+      await flushViewportMeasurement()
+      flushFrame()
+      flushFrame()
+
+      rerender(tabsNav('/b/1'))
+      expect(row()).not.toHaveAttribute('data-pushing')
+      expect(content()).toHaveAttribute('data-instant')
+    })
+
+    it('never marks a push for panes that mount with their row', async () => {
+      render(
+        <Navigator value='/a/1'>
+          <Pane column='list'>List</Pane>
+          <Pane>Detail</Pane>
+        </Navigator>
+      )
+      expect(row()).not.toHaveAttribute('data-pushing')
+      await flushViewportMeasurement()
+      expect(row()).not.toHaveAttribute('data-pushing')
+    })
+
+    it('never marks a push for a render that keeps the top', async () => {
+      const tree = (
+        <Navigator value='/a'>
+          <Pane column='list'>List</Pane>
+          <Pane>Detail</Pane>
+        </Navigator>
+      )
+      const { rerender } = render(tree)
+      await flushViewportMeasurement()
+      flushFrame()
+      flushFrame()
+      expect(row()).not.toHaveAttribute('data-pushing')
+      rerender(tree)
+      expect(row()).not.toHaveAttribute('data-pushing')
+    })
+
+    it('never marks a push for a resize that folds items into More', async () => {
+      const observed = new Map<
+        Element,
+        ConstructorParameters<typeof ResizeObserver>[0]
+      >()
+      vi.stubGlobal(
+        'ResizeObserver',
+        class {
+          constructor(
+            private callback: ConstructorParameters<typeof ResizeObserver>[0]
+          ) {}
+          observe(target: Element) {
+            observed.set(target, this.callback)
+          }
+          unobserve() {}
+          disconnect() {}
+        }
+      )
+      render(
+        <Navigator value='/a'>
+          <Navigator.Primary aria-label='Main'>
+            {testBrand}
+            {['/a', '/b', '/c', '/d'].map((v) => (
+              <Navigator.Item key={v} value={v} href={v}>
+                {v}
+              </Navigator.Item>
+            ))}
+          </Navigator.Primary>
+          <Pane column='list'>List</Pane>
+          <Pane>Detail</Pane>
+        </Navigator>
+      )
+      await flushViewportMeasurement()
+      flushFrame()
+      flushFrame()
+      const more = () =>
+        document.querySelector('[data-slot="pane"][data-overflow]')
+      expect(more()).toBeNull()
+      const viewport = document.querySelector(
+        '[data-slot="navigator-primary-cluster-viewport"]'
+      )!
+      act(() => {
+        observed.get(viewport)?.(
+          [{ contentRect: { height: 96 } } as ResizeObserverEntry],
+          {} as ResizeObserver
+        )
+      })
+      await flushViewportMeasurement()
+      expect(more()).not.toBeNull()
+      expect(row()).not.toHaveAttribute('data-pushing')
+      vi.unstubAllGlobals()
+    })
+
+    it('switches instantly, never pushing, when a controlled More folds a secondary list in or out of view', async () => {
+      // Padding past MAX_TABS folds later destinations into More; the fold alone flips `moreOpen`.
+      const foldingDestinationsNav = (folded: boolean) => (
+        <Navigator value='/s0' showMore>
+          <Navigator.Primary aria-label='Main'>
+            {testBrand}
+            <Navigator.Item value='/' href='/'>
+              Home
+            </Navigator.Item>
+            {Array.from({ length: folded ? 6 : 2 }, (_, i) => `s${i}`).map(
+              (name) => (
+                <Navigator.Item key={name} value={`/${name}`} href={`/${name}`}>
+                  {name}
+                  <Navigator.Secondary aria-label={`${name} pages`}>
+                    <Navigator.Item value={`/${name}/1`} href={`/${name}/1`}>
+                      {`${name} 1`}
+                    </Navigator.Item>
+                  </Navigator.Secondary>
+                </Navigator.Item>
+              )
+            )}
+          </Navigator.Primary>
+          <Pane>Detail</Pane>
+        </Navigator>
+      )
+      const more = () =>
+        document.querySelector('[data-slot="pane"][data-overflow]')
+
+      const { rerender } = render(foldingDestinationsNav(false))
+      await flushViewportMeasurement()
+      flushFrame()
+      flushFrame()
+      expect(more()).toBeNull()
+
+      rerender(foldingDestinationsNav(true))
+      expect(more()).not.toBeNull()
+      expect(content()).toHaveAttribute('data-instant')
+      expect(row()).not.toHaveAttribute('data-pushing')
+      flushFrame()
+      flushFrame()
+      expect(content()).not.toHaveAttribute('data-instant')
+      await flushViewportMeasurement()
+
+      rerender(foldingDestinationsNav(false))
+      expect(more()).toBeNull()
+      expect(content()).toHaveAttribute('data-instant')
+      expect(row()).not.toHaveAttribute('data-pushing')
+      flushFrame()
+      flushFrame()
+      expect(content()).not.toHaveAttribute('data-instant')
+      await flushViewportMeasurement()
+    })
+
+    const destinationsNav = (value: string, showMore?: boolean) => (
+      <Navigator value={value} showMore={showMore}>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/' href='/'>
+            Home
+          </Navigator.Item>
+          {['a', 'b'].map((name) => (
+            <Navigator.Item key={name} value={`/${name}`} href={`/${name}`}>
+              {name}
+              <Navigator.Secondary aria-label={`${name} pages`}>
+                <Navigator.Item value={`/${name}/1`} href={`/${name}/1`}>
+                  {`${name} 1`}
+                </Navigator.Item>
+              </Navigator.Secondary>
+            </Navigator.Item>
+          ))}
+        </Navigator.Primary>
+        <Pane>Detail</Pane>
+      </Navigator>
+    )
+
+    it.each([
+      ['one destination to another', '/a/1', '/b'],
+      ['a destination to none', '/a', '/'],
+      ['none to a destination', '/', '/b/1']
+    ])(
+      'holds pane transitions off for two frames from %s',
+      async (_, from, to) => {
+        const { rerender } = render(destinationsNav(from))
+        await flushViewportMeasurement()
+        expect(content()).not.toHaveAttribute('data-instant')
+
+        rerender(destinationsNav(to))
+        expect(content()).toHaveAttribute('data-instant')
+        flushFrame()
+        flushFrame()
+        expect(content()).not.toHaveAttribute('data-instant')
+        await flushViewportMeasurement()
+      }
+    )
+
+    it.each([
+      ['a push', '/a', '/a/1'],
+      ['a pop', '/a/1', '/a']
+    ])('keeps the slide for %s within a destination', async (_, from, to) => {
+      const { rerender } = render(destinationsNav(from))
+      await flushViewportMeasurement()
+      flushFrame()
+      rerender(destinationsNav(to))
+      expect(content()).not.toHaveAttribute('data-instant')
+      expect(row()).toHaveAttribute('data-pushing')
+      await flushViewportMeasurement()
+    })
+
+    it('still marks a real push within a destination while a controlled More stays open', async () => {
+      const { rerender } = render(destinationsNav('/a', true))
+      await flushViewportMeasurement()
+      flushFrame()
+      rerender(destinationsNav('/a/1', true))
+      expect(content()).not.toHaveAttribute('data-instant')
+      expect(row()).toHaveAttribute('data-pushing')
+      await flushViewportMeasurement()
+    })
+
+    it('turns off every pane transition while set', () => {
+      expect(navigatorContentClass.split(' ')).toContain(
+        'data-instant:[&_[data-slot=pane]]:transition-none'
+      )
+    })
+  })
+})
+
+describe('Navigator sliding indicator', () => {
+  const tree = (active: string) => (
+    <Navigator value={active}>
+      <Navigator.Primary aria-label='Primary'>
+        {testBrand}
+        <Navigator.Item value='discover'>Discover</Navigator.Item>
+        <Navigator.Item value='tickets'>Tickets</Navigator.Item>
+      </Navigator.Primary>
+    </Navigator>
+  )
+
+  it.each(['vertical', 'horizontal'] as const)(
+    'carries the %s active surface on a decorative indicator, not the item',
+    async (orientation) => {
+      render(tree('tickets'))
+      await flushViewportMeasurement()
+      const indicator = primaryOf(orientation).querySelector(
+        '[data-slot="navigator-indicator"]'
+      )!
+      expect(indicator.tagName).toBe('SPAN')
+      expect(indicator).toHaveAttribute('aria-hidden', 'true')
+      expect(indicator).not.toHaveAttribute('aria-current')
+      expect(indicator.className).toContain('bg-[var(--intent-bg-subtle)]')
+    }
+  )
+
+  it('stays unready and unsettled while nothing can be measured', async () => {
+    const { container } = render(tree('tickets'))
+
+    const indicator = container.querySelector(
+      '[data-slot="navigator-primary"][data-orientation="horizontal"] [data-slot="navigator-indicator"]'
+    )!
+
+    expect(indicator).toHaveAttribute('data-ready', 'false')
+    expect(indicator).toHaveAttribute('data-settled', 'false')
+    expect(indicator.className).toContain('opacity-0')
+    await flushViewportMeasurement()
+  })
+
+  const transitionClasses = (classes: string) =>
+    classes.split(' ').filter((name) => /(^|:)\[?transition/.test(name))
+
+  it.each(['vertical', 'horizontal'] as const)(
+    'transitions the %s pill on translate/opacity only, never left/top/width/height',
+    (surface) => {
+      const classes = navigatorIndicatorVariants({ surface, visible: true })
+      expect(transitionClasses(classes)).toEqual([
+        'motion-safe:transition-opacity',
+        'motion-safe:data-[settled=true]:[transition-property:opacity,translate]',
+        'motion-reduce:transition-none'
+      ])
+      expect(classes).toContain('intent-accent')
+    }
+  )
+})
+
+describe('Navigator.Secondary', () => {
+  const tree = (active: string) => (
+    <Navigator value={active}>
+      <Navigator.Primary aria-label='Primary'>
+        {testBrand}
+        <Navigator.Item value='events' href='/events'>
+          Events
+          <Navigator.Secondary
+            aria-label='Events pages'
+            className='custom-secondary'
+          >
+            <Navigator.Item value='all'>All events</Navigator.Item>
+            <Navigator.Item value='drafts'>Drafts</Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+        <Navigator.Item value='insights'>Insights</Navigator.Item>
+      </Navigator.Primary>
+      <Pane>Detail</Pane>
+    </Navigator>
+  )
+
+  const secondaryPane = () =>
+    document.querySelector<HTMLElement>('[data-navigator-secondary]')
+
+  it('renders its children in the secondary pane when its parent item is active', async () => {
+    render(tree('events'))
+    await flushViewportMeasurement()
+    expect(
+      within(
+        within(secondaryPane()!).getByRole('navigation', {
+          name: 'Events pages'
+        })
+      )
+        .getAllByRole('button')
+        .map((el) => el.textContent)
+    ).toEqual(['All events', 'Drafts'])
+  })
+
+  it('renders nothing when its parent item is not active', async () => {
+    render(tree('insights'))
+    await flushViewportMeasurement()
+    expect(screen.queryByText('All events')).toBeNull()
+  })
+
+  it('forwards className to the secondary navigation', async () => {
+    render(tree('events'))
+    await flushViewportMeasurement()
+    expect(
+      screen.getByRole('navigation', { name: 'Events pages' })
+    ).toHaveClass('custom-secondary')
+  })
+
+  it('marks the active secondary destination with aria-current', async () => {
+    render(tree('drafts'))
+    await flushViewportMeasurement()
+    const secondaryNav = within(
+      screen.getByRole('navigation', { name: 'Events pages' })
+    )
+    expect(
+      secondaryNav.getByRole('button', { name: 'Drafts' })
+    ).toHaveAttribute('aria-current', 'page')
+    expect(
+      secondaryNav.getByRole('button', { name: 'All events' })
+    ).not.toHaveAttribute('aria-current')
+  })
+
+  it('selects a sub-page through onValueChange', async () => {
+    const user = userEvent.setup()
+    const onValueChange = vi.fn()
+    render(
+      <Navigator value='all' onValueChange={onValueChange}>
+        <Navigator.Primary aria-label='Primary'>
+          {testBrand}
+          <Navigator.Item value='events' href='/events'>
+            Events
+            <Navigator.Secondary aria-label='Events pages'>
+              <Navigator.Item value='all'>All events</Navigator.Item>
+              <Navigator.Item value='drafts'>Drafts</Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Pane>Detail</Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    await user.click(
+      within(secondaryPane()!).getByRole('button', { name: 'Drafts' })
+    )
+    expect(onValueChange).toHaveBeenCalledWith('drafts')
+  })
+
+  const groupedTree = (
+    <Navigator value='/components/button'>
+      <Navigator.Primary aria-label='Docs'>
+        {testBrand}
+        <Navigator.Item value='/components' href='/components'>
+          Components
+          <Navigator.Secondary aria-label='Components'>
+            <Navigator.Group>
+              <Navigator.GroupTitle>Actions</Navigator.GroupTitle>
+              <Navigator.Item
+                value='/components/button'
+                href='/components/button'
+              >
+                Button
+              </Navigator.Item>
+            </Navigator.Group>
+          </Navigator.Secondary>
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Pane>Detail</Pane>
+    </Navigator>
+  )
+
+  it('finds items nested inside a group when collecting descendants', async () => {
+    render(groupedTree)
+    await flushViewportMeasurement()
+    expect(
+      within(primaryOf('vertical')).getByRole('link', { name: 'Components' })
+    ).toHaveAttribute('aria-current', 'true')
+    expect(
+      within(secondaryPane()!).getByRole('link', { name: 'Button' })
+    ).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('renders a group label in the secondary pane', async () => {
+    render(groupedTree)
+    await flushViewportMeasurement()
+    expect(within(secondaryPane()!).getByText('Actions')).toBeVisible()
+  })
+})
+
+describe('vertical list semantics', () => {
+  it('wraps loose primary items in a list', async () => {
+    render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/a' href='/a'>
+            A
+          </Navigator.Item>
+          <Navigator.Item value='/b' href='/b'>
+            B
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+
+    const vertical = document.querySelector(
+      '[data-slot="navigator-primary"][data-orientation="vertical"]'
+    )!
+    const list = vertical.querySelector('[data-slot="navigator-capsule"]')!
+    expect(list.tagName).toBe('UL')
+    expect(list.children).toHaveLength(2)
+    expect(Array.from(list.children).every((li) => li.tagName === 'LI')).toBe(
+      true
+    )
+  })
+})
+
+describe('Navigator.Group', () => {
+  const groupTree = (title: ReactNode = 'Formats') => (
+    <Navigator value='/events/live'>
+      <Navigator.Primary aria-label='Main'>
+        {testBrand}
+        <Navigator.Group>
+          <Navigator.GroupTitle>{title}</Navigator.GroupTitle>
+          <Navigator.Item value='/events' href='/events'>
+            Events
+            <Navigator.Secondary aria-label='Events pages'>
+              <Navigator.Group>
+                <Navigator.GroupTitle>Live formats</Navigator.GroupTitle>
+                <Navigator.Item value='/events/live' href='/events/live'>
+                  Live
+                </Navigator.Item>
+              </Navigator.Group>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        </Navigator.Group>
+      </Navigator.Primary>
+      <Pane>Detail</Pane>
+    </Navigator>
+  )
+
+  it('renders a titled group without a key warning', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(groupTree())
+    await flushViewportMeasurement()
+    expect(error).not.toHaveBeenCalled()
+    error.mockRestore()
+  })
+
+  it('associates its list with its title in the vertical navigation', async () => {
+    render(groupTree())
+    await flushViewportMeasurement()
+
+    const title = screen.getByRole('heading', { name: 'Formats', level: 2 })
+    const list = document.querySelector('[data-slot="navigator-capsule"]')
+    expect(list).not.toBeNull()
+    expect(list).toHaveAttribute('aria-labelledby', title.id)
+    expect(title.id).not.toBe('')
+  })
+
+  it('renders the title and the list as siblings, not nested', async () => {
+    render(groupTree())
+    await flushViewportMeasurement()
+
+    const title = screen.getByRole('heading', { name: 'Formats' })
+    const list = document.querySelector('[data-slot="navigator-capsule"]')
+    expect(list?.contains(title)).toBe(false)
+    expect(title.nextElementSibling).toBe(list)
+  })
+
+  it('honours render on the title', async () => {
+    render(
+      <Navigator value='/events'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Group>
+            <Navigator.GroupTitle render={(p) => <h3 {...p} />}>
+              Formats
+            </Navigator.GroupTitle>
+            <Navigator.Item value='/events' href='/events'>
+              Events
+            </Navigator.Item>
+          </Navigator.Group>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(
+      screen.getByRole('heading', { name: 'Formats', level: 3 })
+    ).toBeInTheDocument()
+  })
+})
+
+describe('Navigator.Primary group descent', () => {
+  it('includes an item inside a Navigator.Group in the tab bar', async () => {
+    render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Group>
+            <Navigator.GroupTitle>Secondary</Navigator.GroupTitle>
+            <Navigator.Item value='/a' href='/a'>
+              A
+            </Navigator.Item>
+          </Navigator.Group>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const tabBar = document.querySelector(
+      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+    ) as HTMLElement
+    expect(within(tabBar).getByRole('link', { name: 'A' })).toBeInTheDocument()
+  })
+
+  it('lifts the active secondary of an item inside a Navigator.Group', async () => {
+    render(
+      <Navigator value='/a/sub'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Group>
+            <Navigator.GroupTitle>Secondary</Navigator.GroupTitle>
+            <Navigator.Item value='/a' href='/a'>
+              A
+              <Navigator.Secondary aria-label='A pages'>
+                <Navigator.Item value='/a/sub' href='/a/sub'>
+                  Sub
+                </Navigator.Item>
+              </Navigator.Secondary>
+            </Navigator.Item>
+          </Navigator.Group>
+        </Navigator.Primary>
+        <Pane>Detail</Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const pane = document.querySelector<HTMLElement>(
+      '[data-navigator-secondary="/a"]'
+    )!
+    expect(within(pane).getByRole('link', { name: 'Sub' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    )
+  })
+})
+
+describe('Navigator.Menu + Navigator.Secondary precedence', () => {
+  const verticalOf = (container: HTMLElement) =>
+    within(
+      container.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="vertical"]'
+      ) as HTMLElement
+    )
+  const horizontalOf = (container: HTMLElement) =>
+    within(
+      container.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      ) as HTMLElement
+    )
+
+  const withBoth = (active: string) => (
+    <Navigator value={active}>
+      <Navigator.Primary aria-label='Main'>
+        {testBrand}
+        <Navigator.Item value='/a'>
+          A
+          <Navigator.Secondary aria-label='A pages'>
+            <Navigator.Item value='/a/sub' href='/a/sub'>
+              Sub
+            </Navigator.Item>
+          </Navigator.Secondary>
+          <Navigator.Menu aria-label='Menu'>
+            <Navigator.MenuItem>Menu</Navigator.MenuItem>
+          </Navigator.Menu>
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Pane>Detail</Pane>
+    </Navigator>
+  )
+
+  it('renders as a secondary nav, not a menu, when both are declared', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = render(withBoth('/a'))
+    await flushViewportMeasurement()
+    const row = verticalOf(container).getByRole('link', { name: 'A' })
+    expect(row).toHaveAttribute('href', '/a/sub')
+    expect(row).not.toHaveAttribute('aria-haspopup')
+    expect(verticalOf(container).queryByText('Menu')).toBeNull()
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('but no href'))
+    warn.mockRestore()
+  })
+
+  it('keeps the declared sub-pages reachable', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = render(withBoth('/a/sub'))
+    await flushViewportMeasurement()
+    expect(
+      within(
+        document.querySelector<HTMLElement>('[data-navigator-secondary="/a"]')!
+      ).getByRole('link', { name: 'Sub' })
+    ).toBeInTheDocument()
+    expect(
+      horizontalOf(container).getByRole('link', { name: 'A' })
+    ).toHaveAttribute('href', '/a/sub')
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('but no href'))
+    warn.mockRestore()
+  })
+
+  it('warns once, naming the item, that the Menu is ignored', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(withBoth('/a'))
+    await flushViewportMeasurement()
+    const menuWarnings = warn.mock.calls
+      .map((call) => String(call[0]))
+      .filter((message) => message.includes('the Menu is ignored'))
+    expect(menuWarnings).toHaveLength(1)
+    expect(menuWarnings[0]).toContain("'/a'")
+    warn.mockRestore()
+  })
+})
+
+describe('Navigator descendant-aware active matching', () => {
+  const tree = (active: string) => (
+    <Navigator value={active}>
+      <Navigator.Primary aria-label='Primary'>
+        {testBrand}
+        <Navigator.Item value='components' href='/components'>
+          Components
+          <Navigator.Secondary aria-label='Components pages'>
+            <Navigator.Item value='button'>Button</Navigator.Item>
+            <Navigator.Item value='card'>Card</Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+        <Navigator.Item value='foundations' href='/foundations'>
+          Foundations
+          <Navigator.Secondary aria-label='Foundations pages'>
+            <Navigator.Item value='layout'>Layout</Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Pane>Detail</Pane>
+    </Navigator>
+  )
+
+  const verticalItem = (label: string) =>
+    within(primaryOf('vertical'))
+      .getByText(label)
+      .closest('[data-slot="navigator-item"]')
+  const secondaryRow = (label: string) =>
+    within(
+      document.querySelector<HTMLElement>('[data-navigator-secondary]')!
+    ).getByRole('button', { name: label })
+
+  it('marks a destination branch-active when a Secondary descendant is current', async () => {
+    render(tree('button'))
+    await flushViewportMeasurement()
+    expect(verticalItem('Components')).toHaveClass('intent-accent')
+    expect(verticalItem('Foundations')).not.toHaveClass('intent-accent')
+    expect(verticalItem('Components')).toHaveAttribute('data-current')
+    expect(verticalItem('Foundations')).not.toHaveAttribute('data-current')
+    expect(verticalItem('Foundations')).not.toHaveAttribute('aria-current')
+    expect(
+      screen.getByRole('navigation', { name: 'Components pages' })
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('navigation', { name: 'Foundations pages' })
+    ).toBeNull()
+    expect(screen.queryByText('Layout')).toBeNull()
+  })
+
+  it('keeps a destination reading current on a sub-route no Secondary declares', async () => {
+    render(tree('components/settings'))
+    await flushViewportMeasurement()
+    const secondary = verticalItem('Components')
+    expect(secondary).toHaveAttribute('data-current')
+    expect(secondary).toHaveAttribute('aria-current', 'true')
+  })
+
+  it('gives aria-current=page to the exact descendant, not the branch destination', async () => {
+    render(tree('button'))
+    await flushViewportMeasurement()
+    expect(secondaryRow('Button')).toHaveAttribute('aria-current', 'page')
+    expect(verticalItem('Components')).toHaveAttribute('aria-current', 'true')
+  })
+
+  it("marks the destination's mobile tab active when a descendant is current", async () => {
+    render(tree('button'))
+    await flushViewportMeasurement()
+    const bar = within(primaryOf('horizontal'))
+    expect(bar.getByRole('link', { name: 'Components' })).toHaveClass(
+      'intent-accent'
+    )
+    expect(bar.getByRole('link', { name: 'Foundations' })).not.toHaveClass(
+      'intent-accent'
+    )
+  })
+})
+
+describe('Navigator lookups follow document order', () => {
+  it('resolves the destination written first, even when it is pinned', async () => {
+    render(
+      <Navigator value='/settings/team/members'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/settings' href='/settings' placement='pinned'>
+            Settings
+            <Navigator.Secondary aria-label='Settings pages'>
+              <Navigator.Item
+                value='/settings/profile'
+                href='/settings/profile'
+              >
+                Profile
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+          <Navigator.Item value='/settings/team' href='/settings/team'>
+            Team
+            <Navigator.Secondary aria-label='Team pages'>
+              <Navigator.Item
+                value='/settings/team/roles'
+                href='/settings/team/roles'
+              >
+                Roles
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Pane>Detail</Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(
+      document.querySelector('[data-navigator-secondary]')
+    ).toHaveAttribute('data-navigator-secondary', '/settings')
+  })
+})
+
+describe('a Primary that is not a direct child', () => {
+  it('draws no destinations and warns', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const Wrapper = ({ children }: { children: ReactNode }) => <>{children}</>
+    render(
+      <Navigator value='/a'>
+        <Wrapper>
+          <Navigator.Primary aria-label='Main'>
+            {testBrand}
+            <Navigator.Item value='/a' href='/a'>
+              A
+            </Navigator.Item>
+          </Navigator.Primary>
+        </Wrapper>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(document.querySelector('[data-slot="navigator-item"]')).toBeNull()
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('must be a direct child of Navigator')
+    )
+    warn.mockRestore()
+  })
+})
+
+describe('Navigator route-prefix destination matching', () => {
+  const verticalItem = (label: string) =>
+    screen
+      .getAllByText(label)
+      .map((el) => el.closest('[data-slot="navigator-item"]'))
+      .find((el) =>
+        el?.closest(
+          '[data-slot="navigator-primary"][data-orientation="vertical"]'
+        )
+      )
+
+  const verticalSecondaryTree = (value: string) => (
+    <Navigator value={value}>
+      <Navigator.Primary aria-label='Docs'>
+        {testBrand}
+        <Navigator.Item value='/foundations' href='/foundations'>
+          Foundations
+          <Navigator.Secondary aria-label='Foundations pages'>
+            <Navigator.Item
+              value='/foundations/layout'
+              href='/foundations/layout'
+            >
+              Layout
+            </Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+        <Navigator.Item value='/tokens' href='/tokens'>
+          Tokens
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Pane>Doc</Pane>
+    </Navigator>
+  )
+
+  it('opens the secondary pane on an undeclared sub-route too', async () => {
+    render(verticalSecondaryTree('/foundations/undeclared'))
+    await flushViewportMeasurement()
+
+    expect(verticalItem('Foundations')).toHaveClass('intent-accent')
+    expect(
+      document.querySelector('[data-navigator-secondary="/foundations"]')
+    ).not.toBeNull()
+  })
+
+  it('does not match a sibling whose value is only a string prefix', async () => {
+    render(verticalSecondaryTree('/tokens-legacy'))
+    await flushViewportMeasurement()
+
+    expect(verticalItem('Tokens')).not.toHaveClass('intent-accent')
+  })
+})
+
+describe('Navigator.Primary direct-children warning', () => {
+  it('warns when a non-Item element sits at a direct-child position', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Navigator value='tickets'>
+        <Navigator.Primary aria-label='Primary'>
+          {testBrand}
+          <div>Not an item</div>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('Navigator.Primary skipped a child')
+    )
+    warn.mockRestore()
+    await flushViewportMeasurement()
+  })
+
+  it('stays quiet for Item children with a pinned item last', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Navigator value='tickets'>
+        <Navigator.Primary aria-label='Primary'>
+          {testBrand}
+          <Navigator.Item value='tickets'>Tickets</Navigator.Item>
+          <Navigator.Item value='account' placement='pinned'>
+            Account
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
+    await flushViewportMeasurement()
+  })
+})
+
+describe('Navigator collapsed edge circles', () => {
+  const horizontalOf = (container: HTMLElement) =>
+    container.querySelector<HTMLElement>(
+      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+    )
+
+  const scrollerOf = (root: Document | HTMLElement) =>
+    root.querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
+
+  const barTree = (active: string, onValueChange = vi.fn()) => (
+    <Navigator value={active} onValueChange={onValueChange}>
+      <Navigator.Primary aria-label='Primary'>
+        {testBrand}
+        <Navigator.Item value='a'>A</Navigator.Item>
+        <Navigator.Item value='b'>B</Navigator.Item>
+        <Navigator.Item value='c'>C</Navigator.Item>
+        <Navigator.Item value='account' placement='pinned'>
+          Account
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Pane column='list'>Content</Pane>
+    </Navigator>
+  )
+
+  const moreTree = (active: string, withPinned = false) => (
+    <Navigator value={active}>
+      <Navigator.Primary aria-label='Primary'>
+        {testBrand}
+        {['a', 'b', 'c', 'd', 'e', 'f'].map((v) => (
+          <Navigator.Item key={v} value={v}>
+            {v.toUpperCase()}
+          </Navigator.Item>
+        ))}
+        {withPinned ? (
+          <Navigator.Item value='account' placement='pinned'>
+            Account
+          </Navigator.Item>
+        ) : null}
+      </Navigator.Primary>
+      <Pane column='list'>Content</Pane>
+    </Navigator>
+  )
+
+  const pinnedCircleOf = (container: HTMLElement) =>
+    horizontalOf(container)!.querySelector<HTMLElement>(
+      '[data-slot="navigator-primary-circle"]'
+    )!
+
+  const settleFrame = () =>
+    act(
+      async () =>
+        new Promise<void>((resolve) => {
+          requestAnimationFrame(() => resolve())
+        })
+    )
+
+  const scrollTo = async (pane: HTMLElement, top: number) => {
+    act(() => scrollViewport(pane, top))
+    await settleFrame()
+  }
+
+  const collapse = async (container: HTMLElement) => {
+    const pane = scrollerOf(container)
+    await scrollTo(pane, 80)
+    return pane
+  }
+
+  it('floats the active tab as the start circle and the final tab as the end circle', async () => {
+    const { container } = render(moreTree('a'))
+    await collapse(container)
+    const bar = within(horizontalOf(container) as HTMLElement)
+
+    const active = bar.getByRole('button', { name: 'A' })
+    const final = bar.getByRole('button', { name: 'More' })
+    expect(active).toHaveClass('size-14')
+    expect(active).toHaveAttribute('data-circle-side', 'start')
+    expect(final).toHaveClass('size-14')
+    expect(final).toHaveAttribute('data-circle-side', 'end')
+    await flushViewportMeasurement()
+  })
+
+  it('keeps the pinned circle as the end circle while collapsed', async () => {
+    const { container } = render(barTree('a'))
+    await collapse(container)
+    const bar = horizontalOf(container)!
+
+    expect(
+      within(pinnedCircleOf(container)).getByRole('button', { name: 'Account' })
+    ).not.toHaveClass('scale-0')
+    expect(bar.querySelector('[data-circle-side="end"]')).toBeNull()
+    expect(
+      bar.querySelector('[data-circle-side="start"]')
+    ).toHaveAccessibleName('A')
+    await flushViewportMeasurement()
+  })
+
+  it('shrinks the pinned circle to the edge circle, keeping its icon size', async () => {
+    const { container } = render(barTree('a'))
+    const pinned = within(pinnedCircleOf(container)).getByRole('button', {
+      name: 'Account'
+    })
+    const frame = pinned.querySelector('[data-slot="navigator-tab-icon-frame"]')
+    const shrink = ['-translate-x-2', 'scale-[calc(3.5/4.125)]']
+    expect(pinned).toHaveClass('origin-bottom-right', 'scale-100')
+    for (const cls of shrink) expect(pinned).not.toHaveClass(cls)
+    expect(frame).toHaveClass('scale-100')
+
+    await collapse(container)
+    expect(pinned).toHaveClass('origin-bottom-right', ...shrink)
+    expect(frame).toHaveClass('scale-[calc(4.125/3.5)]')
+    expect(pinned).toHaveClass('motion-reduce:transition-none')
+    expect(frame).toHaveClass('motion-reduce:transition-none')
+    await flushViewportMeasurement()
+  })
+
+  it('scales the non-edge tabs away but keeps them in the AT tree', async () => {
+    const { container } = render(barTree('a'))
+    await collapse(container)
+    const bar = within(horizontalOf(container) as HTMLElement)
+
+    expect(bar.getAllByRole('button')).toHaveLength(4)
+    expect(bar.getByRole('button', { name: 'B' })).toHaveClass(
+      'scale-0',
+      'opacity-0'
+    )
+    expect(bar.getByRole('button', { name: 'C' })).toHaveClass('scale-0')
+    await flushViewportMeasurement()
+  })
+
+  it('takes the tabs it scales away out of the tab order until it expands', async () => {
+    const { container } = render(barTree('a'))
+    const bar = within(horizontalOf(container) as HTMLElement)
+    const tabbable = () =>
+      bar
+        .getAllByRole('button')
+        .filter((tab) => tab.tabIndex >= 0)
+        .map(
+          (tab) =>
+            tab.querySelector('[data-slot="navigator-tab-label"]')?.textContent
+        )
+
+    expect(tabbable()).toEqual(['A', 'B', 'C', 'Account'])
+    const pane = await collapse(container)
+    expect(tabbable()).toEqual(['A', 'Account'])
+    expect(bar.getByRole('button', { name: 'B' })).toHaveAttribute(
+      'tabindex',
+      '-1'
+    )
+
+    await scrollTo(pane, 0)
+    expect(tabbable()).toEqual(['A', 'B', 'C', 'Account'])
+    await flushViewportMeasurement()
+  })
+
+  it('takes a menu tab it scales away out of the tab order too', async () => {
+    const { container } = render(
+      <Navigator value='a'>
+        <Navigator.Primary aria-label='Primary'>
+          {testBrand}
+          <Navigator.Item value='a'>A</Navigator.Item>
+          <Navigator.Item value='b'>
+            B
+            <Navigator.Menu>
+              <Navigator.MenuItem>Menu item</Navigator.MenuItem>
+            </Navigator.Menu>
+          </Navigator.Item>
+          <Navigator.Item value='c'>C</Navigator.Item>
+        </Navigator.Primary>
+        <Pane column='list'>Content</Pane>
+      </Navigator>
+    )
+    await collapse(container)
+    const bar = within(horizontalOf(container) as HTMLElement)
+    expect(bar.getByRole('button', { name: 'B' })).toHaveAttribute(
+      'tabindex',
+      '-1'
+    )
+    await flushViewportMeasurement()
+  })
+
+  it('fades the pill surface out on collapse without moving the bar', async () => {
+    const { container } = render(barTree('a'))
+    const bar = horizontalOf(container) as HTMLElement
+    const pill = bar.querySelector('[data-slot="navigator-primary-pill"]')!
+    const barClasses = bar.className
+
+    expect(pill).toHaveClass('emphasis-floating', 'opacity-100')
+    await collapse(container)
+
+    expect(pill).toHaveClass('emphasis-floating', 'opacity-0')
+    expect(bar.className).toBe(barClasses)
+    await flushViewportMeasurement()
+  })
+
+  it('puts the first tab at the start when the pinned item is active', async () => {
+    const { container } = render(barTree('account'))
+    await collapse(container)
+    const bar = within(horizontalOf(container) as HTMLElement)
+
+    const first = bar.getByRole('button', { name: 'A' })
+    const account = within(pinnedCircleOf(container)).getByRole('button', {
+      name: 'Account'
+    })
+    expect(first).toHaveClass('size-14')
+    expect(first).toHaveAttribute('data-circle-side', 'start')
+    expect(account).toHaveAttribute('aria-current', 'page')
+    expect(first).not.toHaveAttribute('aria-current')
+    await flushViewportMeasurement()
+  })
+
+  it('floats More as the start circle when a folded item is active beside a pinned circle', async () => {
+    const { container } = render(moreTree('e', true))
+    await collapse(container)
+    const bar = within(horizontalOf(container) as HTMLElement)
+
+    expect(bar.getByRole('button', { name: 'More' })).toHaveAttribute(
+      'data-circle-side',
+      'start'
+    )
+    expect(
+      within(pinnedCircleOf(container)).getByRole('button', { name: 'Account' })
+    ).not.toHaveAttribute('aria-current')
+    await flushViewportMeasurement()
+  })
+
+  it('puts the first tab at the start when a folded item is active', async () => {
+    const { container } = render(moreTree('e'))
+    await collapse(container)
+    const bar = within(horizontalOf(container) as HTMLElement)
+
+    expect(bar.getByRole('button', { name: 'A' })).toHaveAttribute(
+      'data-circle-side',
+      'start'
+    )
+    expect(bar.getByRole('button', { name: 'More' })).toHaveAttribute(
+      'data-circle-side',
+      'end'
+    )
+    await flushViewportMeasurement()
+  })
+
+  it('colours the idle pinned circle subtle, like every destination', async () => {
+    const { container } = render(barTree('a'))
+    const circle = pinnedCircleOf(container).querySelector(
+      '[data-slot="navigator-item"]'
+    )
+    expect(circle).toHaveClass('text-subtle')
+    expect(circle).not.toHaveClass('intent-accent')
+    await flushViewportMeasurement()
+  })
+
+  it('gives the collapsed active circle the accent icon but no accent pill', async () => {
+    const { container } = render(barTree('a'))
+    await collapse(container)
+    const active = within(horizontalOf(container) as HTMLElement).getByRole(
+      'button',
+      { name: 'A' }
+    )
+    expect(active).toHaveClass(
+      'intent-accent',
+      'text-subtle',
+      'emphasis-floating'
+    )
+    expect(active.className).not.toContain('bg-[var(--intent-bg-subtle)]')
+    await flushViewportMeasurement()
+  })
+
+  it('lets the page show through every surface of the bar', async () => {
+    const { container } = render(barTree('a'))
+    const bar = horizontalOf(container)!
+    const pill = bar.querySelector('[data-slot="navigator-primary-pill"]')
+    const pinned = within(pinnedCircleOf(container)).getByRole('button', {
+      name: 'Account'
+    })
+    expect(pill).toHaveClass('emphasis-floating', 'is-translucent')
+    expect(pinned).toHaveClass('emphasis-floating', 'is-translucent')
+    expect(within(bar).getByRole('button', { name: 'B' })).not.toHaveClass(
+      'is-translucent'
+    )
+
+    await collapse(container)
+    const start = bar.querySelector('[data-circle-side="start"]')
+    expect(start).toHaveClass('emphasis-floating', 'is-translucent')
+    await flushViewportMeasurement()
+  })
+
+  it('never reorders a tab to collapse it', async () => {
+    const { container } = render(barTree('b'))
+    await collapse(container)
+    const bar = horizontalOf(container)!
+
+    for (const tab of bar.querySelectorAll('[data-slot="navigator-item"]')) {
+      expect(tab.className).not.toMatch(/(^|\s)-?order-/)
+    }
+    const start = bar.querySelector('[data-circle-side="start"]')!
+    expect(start).toHaveAccessibleName('B')
+    expect(start.getAttribute('style')).toContain(
+      '--navigator-primary-index: 1'
+    )
+    await flushViewportMeasurement()
+  })
+
+  it('carries each circle to its edge on translate, from its own column', async () => {
+    const { container } = render(moreTree('b'))
+    await collapse(container)
+    const bar = horizontalOf(container)!
+
+    const start = bar.querySelector('[data-circle-side="start"]')!
+    const end = bar.querySelector('[data-circle-side="end"]')!
+
+    expect(start).toHaveClass(
+      '-translate-x-[calc(var(--navigator-primary-index)_*_var(--navigator-primary-col)_+_var(--navigator-primary-edge))]'
+    )
+    expect(end).toHaveClass(
+      'translate-x-[calc((var(--navigator-primary-count)_-_1_-_var(--navigator-primary-index))_*_var(--navigator-primary-col)_+_var(--navigator-primary-edge))]'
+    )
+    expect(start).toHaveClass('translate-y-1', 'self-end')
+    expect(end).toHaveClass('translate-y-1', 'self-end')
+    await flushViewportMeasurement()
+  })
+
+  it('mirrors each circle’s travel, and the pinned circle’s shrink, under dir=rtl', async () => {
+    const { container } = render(<div dir='rtl'>{moreTree('b')}</div>)
+    await collapse(container)
+    const bar = horizontalOf(container)!
+
+    expect(bar.querySelector('[data-circle-side="start"]')).toHaveClass(
+      'rtl:translate-x-[calc(var(--navigator-primary-index)_*_var(--navigator-primary-col)_+_var(--navigator-primary-edge))]'
+    )
+    expect(bar.querySelector('[data-circle-side="end"]')).toHaveClass(
+      'rtl:-translate-x-[calc((var(--navigator-primary-count)_-_1_-_var(--navigator-primary-index))_*_var(--navigator-primary-col)_+_var(--navigator-primary-edge))]'
+    )
+
+    const pinnedTree = render(<div dir='rtl'>{barTree('a')}</div>).container
+    await collapse(pinnedTree)
+    expect(
+      within(pinnedCircleOf(pinnedTree)).getByRole('button', {
+        name: 'Account'
+      })
+    ).toHaveClass('rtl:translate-x-2', 'rtl:origin-bottom-left')
+    await flushViewportMeasurement()
+  })
+
+  it('keeps the track the same height in both states', async () => {
+    // The pill is `inset-0` of the track, so a row that shortened would snap it.
+    const { container } = render(barTree('a'))
+    const bar = horizontalOf(container)!
+    const track = bar.querySelector('[data-slot="navigator-primary-track"]')!
+    expect(track).toHaveClass('py-1')
+
+    const expandedTab = track.querySelector('[data-slot="navigator-item"]')!
+    expect(expandedTab).toHaveClass('py-3.5')
+
+    await collapse(container)
+    expect(track).toHaveClass('py-1')
+    for (const tab of track.querySelectorAll(
+      '[data-slot="navigator-item"]:not([data-circle-side])'
+    )) {
+      expect(tab).toHaveClass('py-3.5')
+    }
+    await flushViewportMeasurement()
+  })
+
+  it('leaves the collapsed bar transparent to input in the middle', async () => {
+    const { container } = render(moreTree('a'))
+    await collapse(container)
+
+    const bar = horizontalOf(container)!
+    expect(bar).toHaveClass('pointer-events-none')
+    const circles = bar.querySelectorAll('[data-circle-side]')
+    expect(circles).toHaveLength(2)
+    for (const circle of circles) {
+      expect(circle).toHaveClass('pointer-events-auto')
+    }
+
+    const pinned = render(barTree('a')).container
+    await collapse(pinned)
+    expect(pinnedCircleOf(pinned)).toHaveClass('pointer-events-auto')
+    await flushViewportMeasurement()
+  })
+
+  it('leaves the expanded bar transparent to input outside the tabs, below five tabs', async () => {
+    const { container } = render(barTree('a'))
+    await flushViewportMeasurement()
+
+    const bar = horizontalOf(container)!
+    expect(bar).toHaveClass('pointer-events-none')
+    const track = bar.querySelector('[data-slot="navigator-primary-track"]')!
+    expect(track).toHaveClass('pointer-events-auto')
+  })
+
+  it('never names a layout property in the bar or tab transitions', async () => {
+    const { container } = render(barTree('a'))
+    await collapse(container)
+
+    const bar = horizontalOf(container)!
+    const banned = ['padding', 'max-width', 'width', 'height', 'left', 'top']
+    const classes = [
+      bar.className,
+      ...Array.from(bar.querySelectorAll('[data-slot="navigator-item"]')).map(
+        (tab) => tab.className
+      )
+    ].join(' ')
+    const transitions = classes.match(/transition-\[[^\]]+\]/g) ?? []
+    expect(transitions.length).toBeGreaterThan(0)
+    for (const transition of transitions) {
+      for (const property of banned) {
+        expect(transition).not.toContain(property)
+      }
+    }
+    await flushViewportMeasurement()
+  })
+
+  it('reopens the bar without scrolling or navigating when the collapsed active circle is tapped', async () => {
+    const onValueChange = vi.fn()
+    const { container } = render(barTree('a', onValueChange))
+    const pane = await collapse(container)
+    const scrollToSpy = vi.fn()
+    pane.scrollTo = scrollToSpy
+    const bar = horizontalOf(container) as HTMLElement
+    expect(bar).toHaveAttribute('data-collapsed', 'true')
+
+    await userEvent.click(within(bar).getByRole('button', { name: 'A' }))
+
+    expect(bar).toHaveAttribute('data-collapsed', 'false')
+    expect(scrollToSpy).not.toHaveBeenCalled()
+    expect(onValueChange).not.toHaveBeenCalled()
+  })
+
+  it('stays expanded while the pane is still scrolled after reopening', async () => {
+    const { container } = render(barTree('a'))
+    const pane = await collapse(container)
+    const bar = horizontalOf(container) as HTMLElement
+    await userEvent.click(within(bar).getByRole('button', { name: 'A' }))
+
+    await scrollTo(pane, 80)
+    expect(bar).toHaveAttribute('data-collapsed', 'false')
+  })
+
+  it('re-collapses when the user scrolls down again after reopening', async () => {
+    const { container } = render(barTree('a'))
+    const pane = await collapse(container)
+    const bar = horizontalOf(container) as HTMLElement
+    await userEvent.click(within(bar).getByRole('button', { name: 'A' }))
+    expect(bar).toHaveAttribute('data-collapsed', 'false')
+
+    await scrollTo(pane, 200)
+    expect(bar).toHaveAttribute('data-collapsed', 'true')
+  })
+
+  it('scrolls the visible pane to the top when the expanded active tab is tapped', async () => {
+    const onValueChange = vi.fn()
+    const { container } = render(barTree('a', onValueChange))
+    const pane = scrollerOf(container)
+    const scrollToSpy = vi.fn()
+    pane.scrollTo = scrollToSpy
+    const bar = within(horizontalOf(container) as HTMLElement)
+
+    await userEvent.click(bar.getByRole('button', { name: 'A' }))
+
+    expect(scrollToSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ top: 0 })
+    )
+    expect(onValueChange).not.toHaveBeenCalled()
+  })
+
+  it('reopens on the active pinned circle', async () => {
+    const { container } = render(barTree('account'))
+    await collapse(container)
+    const bar = horizontalOf(container) as HTMLElement
+
+    await userEvent.click(within(bar).getByRole('button', { name: 'Account' }))
+    expect(bar).toHaveAttribute('data-collapsed', 'false')
+  })
+
+  it('navigates normally when a non-active tab is tapped while collapsed', async () => {
+    const onValueChange = vi.fn()
+    const { container } = render(barTree('a', onValueChange))
+    await collapse(container)
+
+    const bar = within(horizontalOf(container) as HTMLElement)
+    await userEvent.click(bar.getByRole('button', { name: 'Account' }))
+
+    expect(onValueChange).toHaveBeenCalledWith('account')
+  })
+})
+
+describe('Navigator active-tab tap: scroll-on-landing vs navigate-up', () => {
+  const horizontalOf = (container: HTMLElement) =>
+    container.querySelector<HTMLElement>(
+      '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+    )
+
+  const scrollerOf = (root: Document | HTMLElement) =>
+    root.querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
+
+  const secondaryTree = (active: string, onValueChange = vi.fn()) =>
+    withStubLink(
+      <Navigator value={active} onValueChange={onValueChange}>
+        <Navigator.Primary aria-label='Primary'>
+          {testBrand}
+          <Navigator.Item value='/components' href='/components'>
+            Components
+            <Navigator.Secondary aria-label='Components pages'>
+              <Navigator.Item
+                value='/components/button'
+                href='/components/button'
+              >
+                Button
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+          <Navigator.Item value='/tokens' href='/tokens'>
+            Tokens
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Pane>
+          <Pane.Header />
+          Content
+        </Pane>
+      </Navigator>
+    )
+
+  const paneScrollSpy = (container: HTMLElement) => {
+    const pane = scrollerOf(container)
+    const scrollTo = vi.fn()
+    pane.scrollTo = scrollTo
+    return scrollTo
+  }
+
+  it('scrolls the pane to top when the active tab is tapped on the destination landing', async () => {
+    const onValueChange = vi.fn()
+    const { container } = render(secondaryTree('/components', onValueChange))
+    const scrollTo = paneScrollSpy(container)
+    const bar = within(horizontalOf(container) as HTMLElement)
+
+    await userEvent.click(bar.getByRole('link', { name: 'Components' }))
+
+    expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }))
+    expect(onValueChange).not.toHaveBeenCalled()
+  })
+
+  it('navigates up to the landing (not scroll) when the active tab is tapped on a sub-page', async () => {
+    const onValueChange = vi.fn()
+    const { container } = render(
+      secondaryTree('/components/button', onValueChange)
+    )
+    const scrollTo = paneScrollSpy(container)
+    const components = within(horizontalOf(container) as HTMLElement).getByRole(
+      'link',
+      { name: 'Components' }
+    )
+
+    expect(components).toHaveAttribute('href', '/components')
+    await userEvent.click(components)
+
+    expect(scrollTo).not.toHaveBeenCalled()
+  })
+})
+
+describe('a click the browser opens elsewhere', () => {
+  const tree = (active: string, onValueChange = vi.fn()) => (
+    <Navigator value={active} onValueChange={onValueChange}>
+      <Navigator.Primary aria-label='Primary'>
+        {testBrand}
+        {['/a', '/b', '/c', '/d', '/e', '/f'].map((v) => (
+          <Navigator.Item key={v} value={v} href={v}>
+            {v}
+          </Navigator.Item>
+        ))}
+      </Navigator.Primary>
+      <Pane>
+        <Pane.Header />
+        Content
+      </Pane>
+    </Navigator>
+  )
+
+  const horizontal = () => within(primaryOf('horizontal'))
+
+  type ClickInit = Parameters<typeof fireEvent.click>[1]
+
+  // Records whether Navigator prevented the click, then stops jsdom navigating.
+  const leftToBrowser = (target: HTMLElement, init: ClickInit) => {
+    let prevented = true
+    const record = (event: Event) => {
+      prevented = event.defaultPrevented
+      event.preventDefault()
+    }
+    window.addEventListener('click', record, { once: true })
+    fireEvent.click(target, init)
+    return !prevented
+  }
+
+  const modifiers: ClickInit[] = [
+    { metaKey: true },
+    { ctrlKey: true },
+    { shiftKey: true },
+    { altKey: true },
+    { button: 1 }
+  ]
+
+  it('opens the active tab elsewhere instead of re-tapping it', async () => {
+    const { container } = render(tree('/a'))
+    await flushViewportMeasurement()
+    const scrollTo = vi.fn()
+    container.querySelector<HTMLElement>(
+      '[data-slot="pane-viewport"]'
+    )!.scrollTo = scrollTo
+    const tab = horizontal().getByRole('link', { name: '/a' })
+    for (const init of modifiers) expect(leftToBrowser(tab, init)).toBe(true)
+    expect(scrollTo).not.toHaveBeenCalled()
+  })
+
+  it('leaves the selection alone for a tab, a vertical item or a More row', async () => {
+    const onValueChange = vi.fn()
+    render(tree('/a', onValueChange))
+    await flushViewportMeasurement()
+    await userEvent.click(horizontal().getByRole('button', { name: 'More' }))
+    const more = document.querySelector('[data-slot="pane"][id]')!
+    const row = within(
+      document.querySelector<HTMLElement>(
+        '[data-slot="navigator-overflow-items"].md\\:hidden'
+      )!
+    ).getByRole('link', { name: '/f' })
+
+    for (const target of [
+      horizontal().getByRole('link', { name: '/b' }),
+      within(primaryOf('vertical')).getByRole('link', { name: '/c' }),
+      row
+    ]) {
+      expect(leftToBrowser(target, { metaKey: true })).toBe(true)
+    }
+    expect(onValueChange).not.toHaveBeenCalled()
+    expect(more).toHaveAttribute('data-reached')
+  })
+})
+
+describe('scroll-to-top in a nested Navigator', () => {
+  it("scrolls the inner Navigator's own top pane when its active tab is re-tapped", async () => {
+    render(
+      <Navigator value='/outer'>
+        <Navigator.Primary aria-label='Outer'>
+          {testBrand}
+          <Navigator.Item value='/outer'>Outer</Navigator.Item>
+        </Navigator.Primary>
+        <Pane column='list' data-testid='outer-pane'>
+          <Navigator value='/inner'>
+            <Navigator.Primary aria-label='Inner'>
+              {testBrand}
+              <Navigator.Item value='/inner'>Inner</Navigator.Item>
+            </Navigator.Primary>
+            <Pane data-testid='inner-pane'>Inner detail</Pane>
+          </Navigator>
+        </Pane>
+        <Pane>Outer detail</Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    const viewportOf = (testId: string) =>
+      screen
+        .getByTestId(testId)
+        .querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
+    const inner = vi.fn()
+    const outer = vi.fn()
+    viewportOf('inner-pane').scrollTo = inner
+    viewportOf('outer-pane').scrollTo = outer
+
+    await userEvent.click(
+      within(screen.getByRole('navigation', { name: 'Inner tabs' })).getByRole(
+        'button',
+        { name: 'Inner' }
+      )
+    )
+
+    expect(inner).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }))
+    expect(outer).not.toHaveBeenCalled()
+  })
+})
+
+describe('pane header inside Navigator', () => {
+  it('publishes the header height only while the header draws', async () => {
+    const tree = (titled: boolean) => (
+      <Navigator value='/'>
+        <Pane>
+          <Pane.Header>
+            {titled ? <Pane.Title>Detail</Pane.Title> : null}
+          </Pane.Header>
+        </Pane>
+      </Navigator>
+    )
+    const height = () =>
+      document
+        .querySelector<HTMLElement>('[data-slot="pane"]')!
+        .style.getPropertyValue('--pane-header-height')
+
+    const { rerender } = render(tree(true))
+    await flushViewportMeasurement()
+    // jsdom measures 0; the property's presence is what sticky content reads.
+    expect(height()).toBe('0px')
+
+    rerender(tree(false))
+    await flushViewportMeasurement()
+    expect(height()).toBe('')
+  })
+})
+
+describe('scroll-to-top as the top pane changes', () => {
+  const tree = (panes: ('a' | 'b')[]) => (
+    <Navigator value='/'>
+      <Navigator.Primary aria-label='Main'>
+        {testBrand}
+        <Navigator.Item value='/' icon={<FakeIcon />}>
+          Home
+        </Navigator.Item>
+        <Navigator.Item value='/settings' icon={<FakeIcon />}>
+          Settings
+        </Navigator.Item>
+      </Navigator.Primary>
+      {panes.map((id) => (
+        <Pane key={id} data-testid={id}>
+          {id}
+        </Pane>
+      ))}
+    </Navigator>
+  )
+
+  const viewportOf = (id: string) =>
+    screen
+      .getByTestId(id)
+      .querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
+
+  it.each([
+    ['stays mounted', ['a', 'b'] as ('a' | 'b')[]],
+    ['then unmounts', ['b'] as ('a' | 'b')[]]
+  ])(
+    'scrolls a newly mounted top pane while the old one %s',
+    async (_, final) => {
+      const { container, rerender } = render(tree(['a']))
+      await flushViewportMeasurement()
+      rerender(tree(['a', 'b']))
+      await flushViewportMeasurement()
+      rerender(tree(final))
+      await flushViewportMeasurement()
+      expect(screen.getByTestId('b')).toHaveAttribute(
+        'data-stack-position',
+        'top'
+      )
+      const scrollTo = vi.fn()
+      viewportOf('b').scrollTo = scrollTo
+      await userEvent.click(
+        within(
+          container.querySelector<HTMLElement>(
+            '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+          )!
+        ).getByRole('button', { name: 'Home' })
+      )
+      expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 0 }))
+    }
+  )
+})
+
+describe('Navigator no-panes warning', () => {
+  it('warns when it renders children but no pane registers', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Navigator value='/a'>
+        <div>Not a pane</div>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(
+      warn.mock.calls.some((c) => String(c[0]).includes('no Pane registered'))
+    ).toBe(true)
+    warn.mockRestore()
+  })
+
+  it('warns while a secondary pane is open if no consumer pane registers', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const tree = (children?: ReactNode) => (
+      <Navigator value='/a/one'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/a' href='/a'>
+            A
+            <Navigator.Secondary aria-label='A pages'>
+              <Navigator.Item value='/a/one' href='/a/one'>
+                One
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        </Navigator.Primary>
+        {children}
+      </Navigator>
+    )
+    const { rerender } = render(tree())
+    await flushViewportMeasurement()
+    expect(document.querySelector('[data-navigator-secondary]')).not.toBeNull()
+    rerender(tree(<div>Not a pane</div>))
+    await flushViewportMeasurement()
+    expect(
+      warn.mock.calls.some((c) => String(c[0]).includes('no Pane registered'))
+    ).toBe(true)
+    warn.mockRestore()
+  })
+
+  it('does not warn when it has no children at all', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(<Navigator value='/a'></Navigator>)
+    await flushViewportMeasurement()
+    expect(
+      warn.mock.calls.some((c) => String(c[0]).includes('no Pane registered'))
+    ).toBe(false)
+    warn.mockRestore()
+  })
+
+  it('does not warn once a pane registers', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Navigator value='/a'>
+        <Pane>Detail</Pane>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(
+      warn.mock.calls.some((c) => String(c[0]).includes('no Pane registered'))
+    ).toBe(false)
+    warn.mockRestore()
+  })
+})
+
+describe('nesting acceptance criteria', () => {
+  const positions = () =>
+    Array.from(document.querySelectorAll('[data-slot="pane"]')).map((p) =>
+      p.getAttribute('data-stack-position')
+    )
+
+  const Slot = ({ children }: { children: ReactNode }) => <>{children}</>
+
+  it('flips stack position on push and again on pop', async () => {
+    const tree = (reached: boolean) => (
+      <Navigator value={reached ? '/a/detail' : '/a'}>
+        <Pane column='list'>List</Pane>
+        <Pane reached={reached}>Detail</Pane>
+      </Navigator>
+    )
+    const { rerender } = render(tree(false))
+    await flushViewportMeasurement()
+    expect(positions()).toEqual(['top', 'ahead'])
+
+    rerender(tree(true))
+    await flushViewportMeasurement()
+    expect(positions()).toEqual(['behind', 'top'])
+
+    rerender(tree(false))
+    await flushViewportMeasurement()
+    expect(positions()).toEqual(['top', 'ahead'])
+  })
+
+  it('orders an event pane and a drill-down pane from the same slot', async () => {
+    render(
+      <Navigator value='/events/123/allocations/456'>
+        <Slot>
+          <Pane column='list'>Event allocations</Pane>
+          <Pane>Allocation drill-down</Pane>
+        </Slot>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(positions()).toEqual(['behind', 'top'])
+  })
+
+  it('resolves tabBar against a wrapped top pane', async () => {
+    render(
+      <Navigator value='/foundations/colors'>
+        <Navigator.Primary aria-label='Docs'>
+          {testBrand}
+          <Navigator.Item
+            value='/foundations'
+            href='/foundations'
+            icon={<FakeIcon />}
+          >
+            Foundations
+            <Navigator.Secondary aria-label='Foundations pages'>
+              <Navigator.Item value='/foundations/colors'>
+                Colors
+              </Navigator.Item>
+            </Navigator.Secondary>
+          </Navigator.Item>
+        </Navigator.Primary>
+        <Pane column='list'>List</Pane>
+        <Slot>
+          <Pane tabBar='hidden'>
+            <Pane.Header />
+            Detail
+          </Pane>
+        </Slot>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+    expect(positions()).toEqual(['behind', 'behind', 'top'])
+    const top = document.querySelectorAll('[data-slot="pane"]')[2]
+    expect(top).toHaveAttribute('data-tab-bar', 'hidden')
+    expect(
+      document.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="horizontal"]'
+      )
+    ).toHaveAttribute('data-hidden', 'true')
+  })
+})
+
+describe('a new destination starts at the top', () => {
+  const nav = (value: string, showList = false) => (
+    <Navigator value={value} showList={showList} onShowListChange={() => {}}>
+      <Navigator.Primary aria-label='Main'>
+        {testBrand}
+        <Navigator.Item value='/' href='/' icon={<FakeIcon />}>
+          Home
+        </Navigator.Item>
+        <Navigator.Item value='/s' href='/s' icon={<FakeIcon />}>
+          Secondary
+          <Navigator.Secondary aria-label='Secondary pages'>
+            <Navigator.Item value='/s/a' href='/s/a'>
+              A
+            </Navigator.Item>
+            <Navigator.Item value='/s/b' href='/s/b'>
+              B
+            </Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Pane data-testid='page'>
+        <Pane.Header>
+          <Pane.Title>Page</Pane.Title>
+        </Pane.Header>
+        Page
+      </Pane>
+    </Navigator>
+  )
+
+  const viewportOf = (pane: HTMLElement) =>
+    pane.querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
+  const page = () => viewportOf(screen.getByTestId('page'))
+  const list = () =>
+    viewportOf(
+      document.querySelector<HTMLElement>('[data-navigator-secondary="/s"]')!
+    )
+  const scroll = (viewport: HTMLElement, top: number) =>
+    act(async () => scrollViewport(viewport, top))
+  const header = () =>
+    screen
+      .getByTestId('page')
+      .querySelector<HTMLElement>('[data-slot="pane-header"]')!
+
+  it('scrolls the page up for a sibling, while the list it came from keeps its place', async () => {
+    const { rerender } = render(nav('/s/a'))
+    await flushViewportMeasurement()
+    await scroll(page(), 900)
+    await scroll(list(), 300)
+    expect(header()).toHaveAttribute('data-collapsed', 'true')
+    rerender(nav('/s/b'))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(0)
+    expect(list().scrollTop).toBe(300)
+    expect(header()).toHaveAttribute('data-collapsed', 'false')
+  })
+
+  it('scrolls the page up on a destination switch', async () => {
+    const { rerender } = render(nav('/'))
+    await flushViewportMeasurement()
+    await scroll(page(), 900)
+    rerender(nav('/s/a'))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(0)
+  })
+
+  it('keeps the place of a list that pushed the page', async () => {
+    const { rerender } = render(nav('/s/a', true))
+    await flushViewportMeasurement()
+    expect(list().closest('[data-slot="pane"]')).toHaveAttribute(
+      'data-stack-position',
+      'top'
+    )
+    await scroll(page(), 900)
+    await scroll(list(), 300)
+    rerender(nav('/s/b'))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(0)
+    expect(list().scrollTop).toBe(300)
+  })
+
+  it('keeps the place of a list popped back to, and of the page it covers', async () => {
+    const { rerender } = render(nav('/s/a'))
+    await flushViewportMeasurement()
+    await scroll(page(), 900)
+    await scroll(list(), 300)
+    rerender(nav('/s'))
+    await flushViewportMeasurement()
+    expect(list().closest('[data-slot="pane"]')).toHaveAttribute(
+      'data-stack-position',
+      'top'
+    )
+    expect(list().scrollTop).toBe(300)
+    expect(page().scrollTop).toBe(900)
+  })
+
+  it('leaves every pane alone while the destination holds', async () => {
+    const { rerender } = render(nav('/s/a'))
+    await flushViewportMeasurement()
+    await scroll(page(), 900)
+    rerender(nav('/s/a', true))
+    await flushViewportMeasurement()
+    rerender(nav('/s/a'))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(900)
+  })
+})
+
+describe('per-destination hrefs', () => {
+  const nav = (value: string) => (
+    <Navigator value={value}>
+      <Navigator.Primary aria-label='Main'>
+        {testBrand}
+        <Navigator.Item value='/components' href='/components'>
+          Components
+          <Navigator.Secondary aria-label='Component pages'>
+            <Navigator.Item
+              value='/components/button'
+              href='/components/button'
+            >
+              Button
+            </Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+        <Navigator.Item value='/tokens' href='/tokens'>
+          Tokens
+        </Navigator.Item>
+      </Navigator.Primary>
+    </Navigator>
+  )
+
+  const verticalLink = (name: string) =>
+    within(
+      document.querySelector(
+        '[data-slot="navigator-primary"][data-orientation="vertical"]'
+      ) as HTMLElement
+    ).getByRole('link', { name })
+
+  it('starts every destination on its declared href', async () => {
+    render(nav('/components'))
+    await flushViewportMeasurement()
+    expect(verticalLink('Tokens')).toHaveAttribute('href', '/tokens')
+  })
+
+  it('keeps a destination you have left on its declared href', async () => {
+    const { rerender } = render(nav('/components'))
+    await flushViewportMeasurement()
+    rerender(nav('/tokens/color'))
+    await flushViewportMeasurement()
+    rerender(nav('/components/button'))
+    await flushViewportMeasurement()
+    expect(verticalLink('Tokens')).toHaveAttribute('href', '/tokens')
+  })
+
+  it('leaves the destination you are in on its declared href', async () => {
+    const { rerender } = render(nav('/tokens/color'))
+    await flushViewportMeasurement()
+    rerender(nav('/tokens/color'))
+    await flushViewportMeasurement()
+    expect(verticalLink('Tokens')).toHaveAttribute('href', '/tokens')
+  })
+
+  it('keeps a destination that declares a Secondary on its declared href', async () => {
+    const { rerender } = render(nav('/components/button'))
+    await flushViewportMeasurement()
+    rerender(nav('/tokens'))
+    await flushViewportMeasurement()
+    expect(verticalLink('Components')).toHaveAttribute('href', '/components')
+  })
+
+  it('keeps a folded destination’s More row on its declared href, like its tab', async () => {
+    const folded = (value: string) => (
+      <Navigator value={value}>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          {['/a', '/b', '/c', '/d', '/e', '/f'].map((v) => (
+            <Navigator.Item key={v} value={v} href={v}>
+              {v}
+            </Navigator.Item>
+          ))}
+        </Navigator.Primary>
+        <Pane>Detail</Pane>
+      </Navigator>
+    )
+    const { rerender } = render(folded('/f/deep'))
+    await flushViewportMeasurement()
+    rerender(folded('/a'))
+    await flushViewportMeasurement()
+    const moreRows = document.querySelector<HTMLElement>(
+      '[data-slot="navigator-overflow-items"].md\\:hidden'
+    )!
+    expect(within(moreRows).getByRole('link', { name: '/f' })).toHaveAttribute(
+      'href',
+      '/f'
+    )
+  })
+
+  it('never changes which pane is top', async () => {
+    const withPanes = (value: string) => (
+      <Navigator value={value}>
+        <Pane column='list'>List</Pane>
+        <Pane reached={value.split('/').length > 2}>Detail</Pane>
+      </Navigator>
+    )
+    const { rerender } = render(withPanes('/tokens/color'))
+    await flushViewportMeasurement()
+    rerender(withPanes('/components'))
+    await flushViewportMeasurement()
+    const panes = document.querySelectorAll('[data-slot="pane"]')
+    expect(panes[0]).toHaveAttribute('data-stack-position', 'top')
+    expect(panes[1]).toHaveAttribute('data-stack-position', 'ahead')
+  })
+})
+
+describe('indicator track offsetParent guard', () => {
+  // jsdom has no offsetParent; a track without `relative` falls back to transform-inclusive rects.
+  it('keeps every indicator track position: relative', () => {
+    for (const track of [
+      navigatorPrimaryTrackVariants(),
+      navigatorPrimaryClusterTrackClass,
+      navigatorPrimaryPinnedClass
+    ]) {
+      expect(track.split(' ')).toContain('relative')
+    }
+  })
+})
+
+describe('going back puts a pane where it was', () => {
+  const history = withHistoryEntries()
+
+  const nav = (value: string) => (
+    <Navigator value={value}>
+      <Navigator.Primary aria-label='Main'>
+        {testBrand}
+        <Navigator.Item value='/s' href='/s' icon={<FakeIcon />}>
+          Secondary
+          <Navigator.Secondary aria-label='Secondary pages'>
+            <Navigator.Item value='/s/a' href='/s/a'>
+              A
+            </Navigator.Item>
+            <Navigator.Item value='/s/b' href='/s/b'>
+              B
+            </Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Pane data-testid='page'>
+        <Pane.Header>
+          <Pane.Title>Page</Pane.Title>
+        </Pane.Header>
+        Page
+      </Pane>
+    </Navigator>
+  )
+  const page = () =>
+    screen
+      .getByTestId('page')
+      .querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
+  const scroll = async (top: number) => {
+    await act(async () => scrollViewport(page(), top))
+    await flushScrollFrame()
+  }
+
+  it('restores the scroll of the entry it goes back to', async () => {
+    const first = history.key
+    const { rerender } = render(nav('/s/a'))
+    await flushViewportMeasurement()
+    await scroll(640)
+
+    history.goTo()
+    rerender(nav('/s/b'))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(0)
+
+    history.traverseTo(first)
+    rerender(nav('/s/a'))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(640)
+  })
+
+  it('starts at the top going forward to a destination it has been to', async () => {
+    const first = history.key
+    const { rerender } = render(nav('/s/a'))
+    await flushViewportMeasurement()
+    await scroll(640)
+
+    history.goTo()
+    rerender(nav('/s/b'))
+    await flushViewportMeasurement()
+    history.traverseTo(first)
+    rerender(nav('/s/a'))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(640)
+
+    history.goTo()
+    rerender(nav('/s/b'))
+    await flushViewportMeasurement()
+    history.goTo()
+    rerender(nav('/s/a'))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(0)
+  })
+
+  it('touches nothing on a first render, so a fresh load keeps its place', async () => {
+    render(nav('/s/a'))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(0)
+    await scroll(300)
+    expect(page().scrollTop).toBe(300)
+  })
+
+  it('leaves panes at the top where the engine has no history entries', async () => {
+    restoreNavigation(undefined)
+    const { rerender } = render(nav('/s/a'))
+    await flushViewportMeasurement()
+    await scroll(640)
+    history.goTo()
+    rerender(nav('/s/b'))
+    await flushViewportMeasurement()
+    rerender(nav('/s/a'))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(0)
+  })
+})
+
+describe('an overview step back puts the page it returns to where it was', () => {
+  const history = withHistoryEntries()
+
+  const pages = (value: string) => (
+    <Navigator value={value}>
+      <Navigator.Primary aria-label='Docs'>
+        {testBrand}
+        <Navigator.Item value='/' href='/' icon={<FakeIcon />}>
+          Home
+          <Navigator.Secondary aria-label='Home pages' overview>
+            <Navigator.Item value='/a' href='/a'>
+              A
+            </Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Pane data-testid='page'>
+        <Pane.Header />
+        {value}
+      </Pane>
+    </Navigator>
+  )
+  const page = () =>
+    document
+      .querySelector<HTMLElement>('[data-slot="pane"][data-column="detail"]')!
+      .querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
+
+  it('restores the root page after stepping in and back out', async () => {
+    const root = history.key
+    const { rerender } = render(withStubLink(pages('/')))
+    await flushViewportMeasurement()
+    await act(async () => scrollViewport(page(), 520))
+    await flushScrollFrame()
+
+    history.goTo()
+    rerender(withStubLink(pages('/a')))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(0)
+
+    history.traverseTo(root)
+    rerender(withStubLink(pages('/')))
+    await flushViewportMeasurement()
+    expect(page().scrollTop).toBe(520)
+  })
+})
+
+describe('a route-driven shell, where one slot holds every pane', () => {
+  const history = withHistoryEntries()
+
+  // A nested route layout: one child wrapping the panes, so the router owns the deepest unmount.
+  const Segment = ({ deep }: { deep: boolean }) => (
+    <>
+      <Pane column='list'>List</Pane>
+      <Pane reached={!deep} data-testid='event'>
+        <Pane.Header>
+          <Pane.Title>Event</Pane.Title>
+        </Pane.Header>
+        Event
+      </Pane>
+      {deep ? <Pane data-testid='ticket'>Ticket</Pane> : null}
+    </>
+  )
+  const shell = (deep: boolean) => (
+    <Navigator value={deep ? '/e/t' : '/e'}>
+      <Segment deep={deep} />
+    </Navigator>
+  )
+  const event = () =>
+    screen
+      .getByTestId('event')
+      .querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
+  const scroll = async (top: number) => {
+    await act(async () => scrollViewport(event(), top))
+    await flushScrollFrame()
+  }
+
+  it('keeps the place of the pane a push sends behind', async () => {
+    const { rerender } = render(shell(false))
+    await flushViewportMeasurement()
+    await scroll(740)
+    history.goTo()
+    rerender(shell(true))
+    await flushViewportMeasurement()
+    expect(event().scrollTop).toBe(740)
+  })
+
+  it('puts it back on the way out, whatever the stack says its place was', async () => {
+    const entry = history.key
+    const { rerender } = render(shell(false))
+    await flushViewportMeasurement()
+    await scroll(740)
+    history.goTo()
+    rerender(shell(true))
+    await flushViewportMeasurement()
+    await act(async () => scrollViewport(event(), 0))
+    await flushScrollFrame()
+
+    history.traverseTo(entry)
+    rerender(shell(false))
+    await flushViewportMeasurement()
+    expect(event().scrollTop).toBe(740)
+  })
+
+  it('still starts a forward arrival at the top', async () => {
+    const { rerender } = render(shell(true))
+    await flushViewportMeasurement()
+    history.goTo()
+    rerender(shell(false))
+    await flushViewportMeasurement()
+    expect(event().scrollTop).toBe(0)
+  })
+
+  describe('with the pane the push goes over still reached', () => {
+    const Both = ({ deep }: { deep: boolean }) => (
+      <>
+        <Pane column='list'>List</Pane>
+        <Pane data-testid='event'>
+          <Pane.Header>
+            <Pane.Title>Event</Pane.Title>
+          </Pane.Header>
+          Event
+        </Pane>
+        {deep ? <Pane data-testid='ticket'>Ticket</Pane> : null}
+      </>
+    )
+    const both = (deep: boolean) => (
+      <Navigator value={deep ? '/e/t' : '/e'}>
+        <Both deep={deep} />
+      </Navigator>
+    )
+
+    it('keeps the place of the pane a push sends behind', async () => {
+      const { rerender } = render(both(false))
+      await flushViewportMeasurement()
+      await scroll(740)
+      history.goTo()
+      rerender(both(true))
+      await flushViewportMeasurement()
+      expect(event().scrollTop).toBe(740)
+    })
+
+    it('still starts the pane the push arrives at from the top', async () => {
+      const { rerender } = render(both(false))
+      await flushViewportMeasurement()
+      await scroll(740)
+      history.goTo()
+      rerender(both(true))
+      await flushViewportMeasurement()
+      const ticket = screen
+        .getByTestId('ticket')
+        .querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
+      expect(ticket.scrollTop).toBe(0)
+    })
+
+    it('puts the pane back where it was on the way out', async () => {
+      const entry = history.key
+      const { rerender } = render(both(false))
+      await flushViewportMeasurement()
+      await scroll(740)
+      history.goTo()
+      rerender(both(true))
+      await flushViewportMeasurement()
+      history.traverseTo(entry)
+      rerender(both(false))
+      await flushViewportMeasurement()
+      expect(event().scrollTop).toBe(740)
+    })
+
+    it('files each detail under its own depth, with none declared', async () => {
+      const entry = history.key
+      const { rerender } = render(both(true))
+      await flushViewportMeasurement()
+      const ticket = () =>
+        screen
+          .getByTestId('ticket')
+          .querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
+      await act(async () => scrollViewport(ticket(), 300))
+      await flushScrollFrame()
+      await scroll(740)
+      history.goTo()
+      rerender(both(false))
+      await flushViewportMeasurement()
+      history.traverseTo(entry)
+      rerender(both(true))
+      await flushViewportMeasurement()
+      expect(ticket().scrollTop).toBe(300)
+      expect(event().scrollTop).toBe(740)
+    })
+
+    it('never hands a pushed detail the place of the one below it', async () => {
+      const entry = history.key
+      const { rerender } = render(both(true))
+      await flushViewportMeasurement()
+      await scroll(740)
+      history.goTo()
+      rerender(both(false))
+      await flushViewportMeasurement()
+      history.traverseTo(entry)
+      rerender(both(true))
+      await flushViewportMeasurement()
+      const ticket = screen
+        .getByTestId('ticket')
+        .querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
+      expect(ticket.scrollTop).toBe(0)
+      expect(event().scrollTop).toBe(740)
+    })
+  })
+
+  it('takes the pane the route dropped straight out of the row', async () => {
+    const { rerender } = render(shell(true))
+    await flushViewportMeasurement()
+    const panes = () => document.querySelectorAll('[data-slot="pane"]').length
+    expect(panes()).toBe(3)
+    rerender(shell(false))
+    expect(panes()).toBe(2)
+  })
+})

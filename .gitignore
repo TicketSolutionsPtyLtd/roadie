@@ -21,6 +21,7 @@ coverage
 
 # Build artifacts
 **/trace-output/
+packages/core/src/tokens/tokens.json
 # npm/pnpm pack output (publish-prep tarballs)
 *.tgz
 
@@ -39,3 +40,4 @@ docs/plans/2026-06-17-refactor-vue-cart-drawer-tailwind-migration-plan.md
 # Local agent scratch — task lists, lessons, and superpowers plans/specs
 tasks/
 docs/superpowers/
+.superpowers/

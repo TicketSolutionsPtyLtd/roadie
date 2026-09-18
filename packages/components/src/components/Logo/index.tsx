@@ -17,10 +17,7 @@ export type LogoProps = Omit<ComponentProps<'span'>, 'children' | 'dir'> & {
    * @default 'normal'
    */
   variant?: 'normal' | 'mark' | 'wordmark'
-  /**
-   * Product name set beside the mark as live text in place of the wordmark,
-   * overriding `variant` and naming the logo `Oztix {product}`.
-   */
+  /** Product name set as live text in place of the wordmark, naming the logo `Oztix {product}`. */
   product?: string
   /**
    * The logo's height: `xs` 20px, `sm` 24px, `md` 32px, `lg` 40px, `xl` 48px.
@@ -67,9 +64,7 @@ function LogoWordmark(props: ComponentProps<'svg'>) {
   )
 }
 
-// The part after the mark carries its own gap and clips, so a parent can
-// collapse it to nothing by animating its single column from 1fr to 0fr.
-// The gap is a spacer, not padding: padding would floor the 0fr column.
+// A gap spacer, not padding, so a parent can collapse this column to 0fr.
 function LogoPart({ slot, children }: { slot: string; children: ReactNode }) {
   return (
     <span

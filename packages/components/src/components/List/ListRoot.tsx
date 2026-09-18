@@ -9,11 +9,7 @@ export type ListEmphasis = 'subtler' | 'subtle' | 'normal'
 export type ListRootProps = ComponentProps<'ul'> & {
   /** Surface for each row, or for the card when `contained`. */
   emphasis?: ListEmphasis
-  /**
-   * Draw the rows as one card; each `List.Group` gets its own.
-   *
-   * @default false
-   */
+  /** Draw the rows as one card; each `List.Group` gets its own. @default false */
   contained?: boolean
 }
 

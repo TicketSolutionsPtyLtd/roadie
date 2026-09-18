@@ -131,6 +131,14 @@
       "types": "./dist/components/Marquee/index.d.ts",
       "import": "./dist/components/Marquee/index.js"
     },
+    "./navigator": {
+      "types": "./dist/components/Navigator/index.d.ts",
+      "import": "./dist/components/Navigator/index.js"
+    },
+    "./pane": {
+      "types": "./dist/components/Pane/index.d.ts",
+      "import": "./dist/components/Pane/index.js"
+    },
     "./popover": {
       "types": "./dist/components/Popover/index.d.ts",
       "import": "./dist/components/Popover/index.js"
@@ -197,10 +205,11 @@
     "build:spotillustration": "node scripts/svg-to-spot-illustration.cjs",
     "clean": "rm -rf node_modules dist",
     "dev": "tsdown --watch --log-level warn",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "test:ui": "vitest --ui",
+    "test": "vitest run --project jsdom",
+    "test:browser": "vitest run --project 'browser (*)'",
+    "test:watch": "vitest --project jsdom",
+    "test:coverage": "vitest run --project jsdom --coverage",
+    "test:ui": "vitest --ui --project jsdom",
     "format": "prettier --ignore-path ../../.prettierignore --write \"**/*.{ts,tsx,js,jsx,cjs,mjs,json,css,md}\"",
     "format:check": "prettier --ignore-path ../../.prettierignore --check \"**/*.{ts,tsx,js,jsx,cjs,mjs,json,css,md}\"",
     "lint": "eslint .",
@@ -214,8 +223,8 @@
     "@base-ui/react": "^1.0.0",
     "@phosphor-icons/react": "^2.0.0",
     "class-variance-authority": "^0.7.1",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
   "dependencies": {
     "@number-flow/react": "0.6.2",
@@ -227,9 +236,12 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
     "@ark-ui/react": "5.39.1",
+    "@babel/core": "7.29.7",
     "@base-ui/react": "1.8.0",
     "@phosphor-icons/react": "2.1.10",
+    "@rolldown/plugin-babel": "0.2.4",
     "@size-limit/preset-small-lib": "13.1.1",
+    "@tailwindcss/vite": "4.3.3",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/react": "16.3.3",
@@ -240,6 +252,7 @@
     "@vitejs/plugin-react": "6.1.1",
     "@vitest/coverage-v8": "5.0.0",
     "@vitest/ui": "5.0.0",
+    "babel-plugin-react-compiler": "1.0.0",
     "class-variance-authority": "0.7.1",
     "jsdom": "30.0.1",
     "react": "19.3.0",
@@ -255,22 +268,6 @@
     "email": "mail@lukebrooker.com"
   },
   "license": "ISC",
-  "size-limit": [
-    {
-      "name": "Carousel",
-      "path": "dist/components/Carousel/index.js",
-      "limit": "6 KB",
-      "ignore": [
-        "react",
-        "react-dom",
-        "@oztix/roadie-core",
-        "@phosphor-icons/react",
-        "embla-carousel",
-        "embla-carousel-react",
-        "embla-carousel-autoplay"
-      ]
-    }
-  ],
   "turbo": {
     "build": {
       "dependsOn": [

@@ -259,6 +259,11 @@
   animation: pop var(--duration-slowest) var(--ease-standard);
 }
 
+/* A tap response: `animate-pop` at 600ms reads as a notification. */
+@utility animate-pop-tap {
+  animation: pop var(--duration-moderate) var(--ease-spring);
+}
+
 /* ─── Enter/exit transitions ───
    Reusable, component-agnostic motions for any element that toggles
    `data-[starting-style]` on enter and `data-[ending-style]` on exit

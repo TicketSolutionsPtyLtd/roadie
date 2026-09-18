@@ -47,6 +47,30 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
+  browser:
+    needs: [check]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+
+      - name: Fetch base branch
+        run: git fetch origin main:refs/remotes/origin/main --depth=1
+
+      - name: Setup
+        uses: ./.github/composite-actions/setup
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium webkit firefox
+
+      - name: Browser tests
+        run: pnpm turbo test:browser --affected --framework-inference=false
+        env:
+          TURBO_SCM_BASE: origin/main
+
   build:
     needs: [check]
     runs-on: ubuntu-latest

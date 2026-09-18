@@ -21,12 +21,7 @@ export type ListGroupProps = {
   className?: string
 }
 
-/**
- * A titled section of rows inside a `List`.
- *
- * Author inside a client component: Flight wraps server-authored element types,
- * so the title isn't found by reference.
- */
+/** A titled section of rows inside a `List`. Author it in a client component. */
 export function ListGroup({ children, className }: ListGroupProps) {
   const generatedId = useId()
   let titleId = generatedId

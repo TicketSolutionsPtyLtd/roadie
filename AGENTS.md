@@ -138,6 +138,7 @@ Presets combining bg + text + border + interactive states:
 - `emphasis-floating` — raised bg, rim-light-strong, shadow-xl
 - `emphasis-inverted` — inverted bg + text
 - `emphasis-overlay` — dark overlay with backdrop blur
+- `is-translucent` — add to `emphasis-raised`, `emphasis-floating` or `bg-raised` so content shows through: 85% fill (88% dark) under a 12px backdrop blur, rim light and shadow kept; solid without `backdrop-filter` support or under `prefers-reduced-transparency`; an `is-interactive-field`'s hover, focus and invalid fills still win
 
 ### Interaction states
 
@@ -213,6 +214,8 @@ the brand radius stays consistent across components.
 - **Weight:** `bold` by default. `fill` only for active/selected states, and
   `duotone` only for large decorative icons above 48px, such as inside a big
   `IconTile` or an `EmptyState`. Never Regular, Thin or Light.
+  **Exception:** `Navigator` destinations render `duotone` at `size-6`.
+  Navigator applies it, so pass the bare icon. Everything else stays bold.
 - **Import convention:** Use the `Icon` suffix export — `import { HeartIcon } from '@phosphor-icons/react/ssr'` (bare names like `Heart` are deprecated)
 - **SSR:** Use `@phosphor-icons/react/ssr` in server components, `@phosphor-icons/react` in client components
 - **Sizing:** XS=`size-3` (badges, tags), SM=`size-4` (buttons, inline — default), MD=`size-5` (nav, standalone), LG=`size-6` (headers, cards). Use Tailwind `className`, not the Phosphor `size` prop.
@@ -256,8 +259,9 @@ Use raw HTML elements with utility classes:
 
 > **Building a compound component?** Read
 > [`docs/contributing/COMPOUND_PATTERNS.md`](docs/contributing/COMPOUND_PATTERNS.md)
-> for the two context-wiring idioms (context-only vs index-injection)
-> and the direct-children constraint that comes with the second one.
+> for the three context-wiring idioms (context-only, index-injection, and
+> registration) and the direct-children constraint that comes with
+> index-injection.
 > **All compounds use named exports + property assignment**
 > (`export function Carousel(); Carousel.Header = CarouselHeader`) —
 > the legacy `Object.assign + cast` form is no longer present in the
@@ -318,7 +322,8 @@ export const buttonVariants = cva('base-classes is-interactive', {
 ### Linking
 
 Every link-bearing Roadie component (`Button`, `IconButton`, `Card`,
-`Breadcrumb.Link`, `Carousel.TitleLink`, `Tabs.Tab`, `List.Item`) accepts a single
+`Breadcrumb.Link`, `Carousel.TitleLink`, `Tabs.Tab`, `List.Item`,
+`Navigator.Item`, `Navigator.MenuItem`, `Navigator.Brand`) accepts a single
 `href` prop. Internal hrefs route through the configured
 `RoadieLinkProvider`; external hrefs (`http(s)://`, `//…`) auto-render
 `<a target='_blank' rel='noopener noreferrer'>`; `mailto:` / `tel:` /
@@ -348,14 +353,14 @@ Key conventions:
    pass `null` (or omit the provider) and get plain `<a>` fallbacks.
 2. **Don't reach for `render` first.** It's the escape hatch for the
    rare cases `href` can't express (custom elements, full prop control,
-   state-aware rendering). The same `render` prop works on every Roadie
-   component — Base UI consumers (`Button`, `IconButton`, `Tabs.Tab`)
-   use Base UI's native render; non-Base-UI components (`Card`,
+   state-aware rendering). Base UI consumers (`Button`, `IconButton`,
+   `Tabs.Tab`) use Base UI's native render; non-Base-UI components (`Card`,
    `Breadcrumb.Link`, `Carousel.TitleLink`) compose the `resolveRender`
    helper from `packages/components/src/utils/resolveRender.tsx` to deliver
    the same contract.
-   `List.Item` is `href`-only — no `render` prop — so a case `href` can't
-   express means composing your own row rather than escaping into `render`.
+   `List.Item`, `Navigator.Item`, `Navigator.MenuItem` and `Navigator.Brand`
+   are `href`-only, with no `render` prop. A case `href` can't express means
+   composing your own row rather than escaping into `render`.
 3. **`render` always wins over `href` smart-routing.** Pass `render`
    when you need a non-anchor or want to bypass provider routing
    entirely. When both `href` and `render` are passed to Button, Button
@@ -455,6 +460,11 @@ Field wraps **all** form controls — Input, Textarea, Select, RadioGroup, Combo
 - Tests co-located with components
 - Assert CVA class names (e.g., `intent-brand`, `emphasis-strong`)
 - Behaviour assertions preferred over class snapshots
+- Layout that CSS decides is tested in a real browser. `*.browser.test.ts(x)`
+  files run in Chromium, WebKit and Firefox with `pnpm test:browser` (Vitest
+  browser mode, Playwright). Set `ROADIE_BROWSERS=chromium,webkit` to pick
+  engines. jsdom can't evaluate `calc()` or container queries, so don't assert
+  rule text there.
 - **If CI surfaces a typecheck error and `pnpm typecheck` passes locally, delete every `tsbuildinfo` in the repo and re-run before investigating further.** TypeScript's incremental cache can hide errors in files the current task didn't touch — especially after widening strict flags. `find . -name "*.tsbuildinfo" -not -path "*/node_modules/*" -delete && pnpm typecheck` gives you CI's view. See [`docs/solutions/build-errors/stale-tsbuildinfo-masks-local-errors.md`](docs/solutions/build-errors/stale-tsbuildinfo-masks-local-errors.md).
 
 ## Code Quality

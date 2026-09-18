@@ -28,8 +28,13 @@ import { cva } from 'class-variance-authority'
 // Note: the `data-orientation` attribute used by these variants is
 // emitted natively by Base UI Tabs (driven by the wrapper's
 // `direction` prop, which translates to Base UI's `orientation`).
+// A horizontal list that outgrows its container scrolls sideways with the scrollbar hidden.
 export const tabsListVariants = cva(
-  'relative inline-flex items-center data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch',
+  [
+    'relative inline-flex items-center data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch',
+    'data-[orientation=horizontal]:max-w-full data-[orientation=horizontal]:overflow-x-auto data-[orientation=horizontal]:overscroll-x-contain',
+    '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+  ].join(' '),
   {
     variants: {
       emphasis: {
@@ -66,7 +71,9 @@ export const tabsTabVariants = cva(
         strong: 'rounded-full data-[active]:text-inverted',
         normal: 'rounded-full data-[active]:text-strong',
         subtle: 'rounded-full data-[active]:text-strong',
-        subtler: 'rounded-none data-[active]:text-strong'
+        // Inset, because the scrolling list clips a ring drawn outside it.
+        subtler:
+          'rounded-none data-[active]:text-strong focus-visible:outline-offset-[-4px]'
       },
       size: {
         sm: 'h-8 px-3 text-sm',

@@ -22,12 +22,12 @@ describe('List', () => {
     expect(screen.getByText('Notifications')).toBeInTheDocument()
   })
 
-  it('renders leading, subtitle and trailing when given', () => {
+  it('renders leading, description and trailing when given', () => {
     render(
       <List>
         <List.Item
           title='Valley Live'
-          subtitle='3 organisations'
+          description='3 organisations'
           leading={<span data-testid='leading' />}
           trailing={<span data-testid='trailing' />}
         />
@@ -247,6 +247,34 @@ describe('List', () => {
     })
   })
 
+  it('marks every part of a row with its slot', () => {
+    const { container } = render(
+      <List>
+        <List.Item
+          title='Title'
+          description='Description'
+          leading={<span>L</span>}
+          trailing='3'
+          href='/x'
+        />
+      </List>
+    )
+    const slots = Array.from(
+      container.querySelectorAll('[data-slot^="list-item"]'),
+      (node) => node.getAttribute('data-slot')
+    )
+    expect(slots).toEqual([
+      'list-item',
+      'list-item-leading',
+      'list-item-content',
+      'list-item-body',
+      'list-item-title',
+      'list-item-description',
+      'list-item-trailing',
+      'list-item-chevron'
+    ])
+  })
+
   describe('divider', () => {
     it('renders an inset divider between items but not after the last', () => {
       const { container } = render(
@@ -358,11 +386,11 @@ describe('List', () => {
     expect(link).toHaveAttribute('rel', 'noopener noreferrer')
   })
 
-  describe('subtitle', () => {
+  describe('description', () => {
     it('describes a link row rather than naming it', () => {
       render(
         <List>
-          <List.Item title='Tickets' subtitle='3 upcoming' href='/tickets' />
+          <List.Item title='Tickets' description='3 upcoming' href='/tickets' />
         </List>
       )
       const link = screen.getByRole('link')
@@ -373,7 +401,7 @@ describe('List', () => {
     it('describes a button row rather than naming it', () => {
       render(
         <List>
-          <List.Item title='Account' subtitle='Profile, security, sign-in' />
+          <List.Item title='Account' description='Profile, security, sign-in' />
         </List>
       )
       const button = screen.getByRole('button')
@@ -381,16 +409,16 @@ describe('List', () => {
       expect(button).toHaveAccessibleDescription('Profile, security, sign-in')
     })
 
-    it('keeps the subtitle visible on the row', () => {
+    it('keeps the description visible on the row', () => {
       render(
         <List>
-          <List.Item title='Account' subtitle='Profile' />
+          <List.Item title='Account' description='Profile' />
         </List>
       )
       expect(screen.getByText('Profile')).toBeVisible()
     })
 
-    it('leaves a row without a subtitle undescribed', () => {
+    it('leaves a row without a description undescribed', () => {
       render(
         <List>
           <List.Item title='Account' />

@@ -257,16 +257,18 @@ export function ThemeProvider({
   // Dev warning: switching between controlled/uncontrolled is almost
   // always a bug. Mirrors React's controlled-input convention.
   const wasControlled = React.useRef(isControlled)
-  if (isDev() && wasControlled.current !== isControlled) {
+  React.useEffect(() => {
+    if (wasControlled.current === isControlled) return
+    wasControlled.current = isControlled
+    if (!isDev()) return
     console.warn(
       `[Roadie] ThemeProvider is switching from ${
-        wasControlled.current ? 'controlled' : 'uncontrolled'
+        isControlled ? 'uncontrolled' : 'controlled'
       } to ${
         isControlled ? 'controlled' : 'uncontrolled'
       }. Decide once and stick with it — pass a stable \`accentColor\` prop or omit it entirely.`
     )
-    wasControlled.current = isControlled
-  }
+  }, [isControlled])
 
   const [internalAccent, setInternalAccent] = React.useState(defaultAccentColor)
 

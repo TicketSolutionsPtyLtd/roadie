@@ -10,11 +10,7 @@ import { scrollAreaScrollbarVariants } from './variants'
 
 export type ScrollAreaScrollbarProps = ScrollAreaPrimitive.Scrollbar.Props &
   RefAttributes<HTMLDivElement> & {
-    /**
-     * Sit against the edge instead of inset to clear a rounded corner.
-     *
-     * @default false
-     */
+    /** Sit against the edge instead of inset to clear a rounded corner. @default false */
     flush?: boolean
   }
 

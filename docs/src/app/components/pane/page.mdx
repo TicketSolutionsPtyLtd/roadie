@@ -1,0 +1,581 @@
+export const metadata = {
+  title: 'Pane',
+  description:
+    'A scrolling column in an app frame, with a sticky header and footer and a place in the stack when panes share a screen',
+  status: 'alpha',
+  category: 'Layout',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+A scrolling column in an app frame, with a sticky header and footer and a place
+in the stack when panes share a screen.
+
+## Import
+
+```tsx
+import { Pane } from '@oztix/roadie-components/pane'
+```
+
+## How it works
+
+- A pane is a `<section>` with its own surface and its own scroll. The page
+  never scrolls.
+- `Pane.Header` and `Pane.Footer` stay put while the body scrolls between them.
+  `Pane.Body` holds the part that waits, so a skeleton stands in for it while
+  the header stays.
+- A pane is a column of an app frame. Inside a
+  [`Navigator`](/components/navigator), panes become columns where there is
+  room and a stack where there isn't.
+- Panes are siblings inside a `Navigator`, never nested.
+- Unlike [`Card`](/components/card), a pane is not a general-purpose surface.
+  Don't use one to box content inside a page.
+
+[Navigation](/foundations/navigation) explains depth, `reached` and how panes
+map to routes. This page is the reference for each prop and part.
+
+## Examples
+
+### Default
+
+A pane in a box. Scroll it to see the body move under the sticky header.
+
+```tsx-live
+<div className='h-80 rounded-2xl bg-sunken p-3'>
+  <Pane className='h-full'>
+    <Pane.Header>
+      <Pane.Title>Midnight Frequency</Pane.Title>
+    </Pane.Header>
+    <List>
+      <List.Item title='General admission' description='$68.00 · on sale' chevron />
+      <List.Item title='Early bird' description='$54.00 · sold out' chevron />
+      <List.Item title='VIP booth' description='$180.00 · 6 remaining' chevron />
+      <List.Item title='Group of 6' description='$360.00 · on sale' chevron />
+      <List.Item title='Accessible seating' description='$68.00 · on sale' chevron />
+      <List.Item title='Companion' description='$0.00 · on request' chevron />
+      <List.Item title='Doors' description='7:00 pm' />
+      <List.Item title='Support act' description='The Paper Kites' />
+    </List>
+  </Pane>
+</div>
+```
+
+The `List` declares no padding. The pane pads its content by
+`--content-inset`, and the header, search and footer read the same value, so
+the title and body text line up. A `subtler` `List` pulls its rows back out by
+their own padding, so row backgrounds run wider than the text.
+
+### Emphasis
+
+The names match `Card`, except that a pane's `subtler` has no surface at all.
+It sits straight on the frame behind it.
+
+```tsx-live
+<div className='grid grid-cols-2 gap-3 rounded-2xl bg-sunken p-3 lg:grid-cols-4'>
+  <Pane emphasis='raised' className='h-40'>
+    <Pane.Header>
+      <Pane.Title>Raised</Pane.Title>
+    </Pane.Header>
+    <p className='pb-4 text-sm text-subtle'>The default.</p>
+  </Pane>
+  <Pane emphasis='normal' className='h-40'>
+    <Pane.Header>
+      <Pane.Title>Normal</Pane.Title>
+    </Pane.Header>
+    <p className='pb-4 text-sm text-subtle'>Flat surface, visible border.</p>
+  </Pane>
+  <Pane emphasis='subtle' className='h-40'>
+    <Pane.Header>
+      <Pane.Title>Subtle</Pane.Title>
+    </Pane.Header>
+    <p className='pb-4 text-sm text-subtle'>A tint over what is behind it.</p>
+  </Pane>
+  <Pane emphasis='subtler' className='h-40'>
+    <Pane.Header>
+      <Pane.Title>Subtler</Pane.Title>
+    </Pane.Header>
+    <p className='pb-4 text-sm text-subtle'>No surface at all.</p>
+  </Pane>
+</div>
+```
+
+### Composition
+
+`Pane.Header` has a top row, with Back at the start and `Pane.Actions` at the
+end. The title, a `Pane.Search` and anything else sit beneath it at full width.
+`Pane.Footer` is the same material at the bottom of the pane.
+
+```tsx-live-noinline
+function Composed() {
+  const [query, setQuery] = useState('')
+  const rows = [
+    'General admission',
+    'Early bird',
+    'VIP booth',
+    'Group of 6',
+    'Accessible seating',
+    'Companion'
+  ]
+  const shown = rows.filter((row) =>
+    row.toLowerCase().includes(query.toLowerCase())
+  )
+  return (
+    <div className='h-96 rounded-2xl bg-sunken p-3'>
+      <Pane className='h-full'>
+        <Pane.Header onBack={() => setQuery('')}>
+          <Pane.Title>Ticket types</Pane.Title>
+          <Pane.Actions>
+            <Button intent='accent' emphasis='strong'>
+              Publish
+            </Button>
+          </Pane.Actions>
+          <Pane.Search
+            value={query}
+            onValueChange={setQuery}
+            placeholder='Filter ticket types'
+          />
+        </Pane.Header>
+        <List>
+          {shown.map((row) => (
+            <List.Item key={row} title={row} chevron />
+          ))}
+        </List>
+        {shown.length === 0 ? (
+          <p className='py-3 text-sm text-subtle'>No matches</p>
+        ) : null}
+        <Pane.Footer>
+          <Button size='sm' emphasis='normal'>
+            Add ticket type
+          </Button>
+        </Pane.Footer>
+      </Pane>
+    </div>
+  )
+}
+render(<Composed />)
+```
+
+- Leave controls in `Pane.Actions` at their default size.
+- `Pane.Search` is the search field a searchable `Navigator.Secondary` uses. It
+  doesn't filter anything, so `.filter()` your own rows. Cancel shows while the
+  field has focus.
+- This pane shows Back because it has an `onBack` and nothing sits to its left.
+  Inside a `Navigator`, the columns decide. See
+  [Back and Close](#back-and-close).
+
+### Titles
+
+`Pane.Title` renders a large heading and a compact title. As the pane scrolls,
+the compact title fades in, centred in the header's top row, and the header
+takes a shadow. Tapping the compact title scrolls the pane back to the top.
+`Pane.Title` must be a direct child of `Pane.Header`, because the compact title
+places itself in the header's grid.
+
+#### Body title
+
+`Pane.BodyTitle` puts the heading in the scrolling body instead. Leave
+`Pane.Header` without a title, and it shows the same compact title once the
+body title scrolls away. This is the recommended option, because the header
+keeps one height throughout.
+
+```tsx-live
+<div className='h-80 rounded-2xl bg-sunken p-3'>
+  <Pane className='h-full'>
+    <Pane.Header />
+    <div className='grid gap-3 pb-4'>
+      <Pane.BodyTitle>Midnight Frequency</Pane.BodyTitle>
+      <p className='text-subtle'>Sat 14 Feb · The Longacre · 60 remaining</p>
+    </div>
+  </Pane>
+</div>
+```
+
+- It defaults to `text-display-ui-3`. Pass another `text-display-*` class to
+  resize it.
+- It takes the pane's content inset, like the rest of the body.
+- Don't declare both. If the header has a `Pane.Title`, that title wins and
+  `Pane.Header` warns in development.
+
+### Columns and stacking
+
+Inside a `Navigator`, panes sit side by side where there is room and stack
+where there isn't. Navigator measures its content area, not the window.
+
+| Content width | Columns |
+| --- | --- |
+| Below 46.25rem | One. Only the top pane shows. |
+| From 46.25rem | Two, with the root beside a detail |
+| From 55.25rem | Two, with a detail beside a deeper pane |
+| From 76rem | Three, starting from the root |
+| From 81rem | Three, starting from a detail |
+
+A row never shows more columns than its stack has levels. The right-most column
+fills, at least 28rem wide. Each column to its left takes a parent track:
+
+- the root takes 16 to 24rem, or 20 to 24rem with three columns;
+- a detail takes 25 to 30rem.
+
+The panes behind the top fill the remaining columns nearest first, so the
+left-most pane drops first.
+
+These columns need container style queries, in Chrome 111, Safari 18 and
+Firefox 151. Older browsers get a simpler layout. They show only the top pane
+below 46.25rem, and the root beside it from there.
+
+In the stack, motion follows depth.
+
+- A push slides the arriving pane in over the one going behind.
+- A pop slides the pane behind back into place. The pane being left is not
+  animated out, because once a route stops rendering it, its elements are gone.
+- Replacing a pane with another at the same depth cuts.
+- A first paint, hydration and a fresh load of a deep route never slide.
+- Columns don't animate, and nor does anything under
+  `prefers-reduced-motion: reduce`.
+
+A destination whose `Navigator.Secondary` sets `overview` draws all its routes
+in one pane. For a step between them, Roadie slides an inert copy of the page
+being left, hidden from assistive technology and removed when the animation
+settles. Nothing else in the frame is copied.
+
+Select a row, then resize the window. The same code is a side-by-side reveal
+where two columns fit and a push where they don't.
+
+```tsx-live-noinline-expand
+function Stacking() {
+  const [selected, setSelected] = useState(null)
+  const events = [
+    { id: 'midnight', title: 'Midnight Frequency', description: '1,240 sold · 60 remaining' },
+    { id: 'sunset', title: 'Sunset Sounds', description: '820 sold · 180 remaining' },
+    { id: 'neon', title: 'Neon Dusk', description: '540 sold · 460 remaining' },
+    { id: 'harbour', title: 'Harbour Lights', description: '2,010 sold · sold out' }
+  ]
+  const event = events.find((e) => e.id === selected)
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <Navigator className='h-full'>
+        <Pane column='list' aria-label='Events'>
+          <Pane.Header>
+            <Pane.Title>Events</Pane.Title>
+          </Pane.Header>
+          <List>
+            {events.map((e) => (
+              <List.Item
+                key={e.id}
+                title={e.title}
+                description={e.description}
+                chevron
+                current={selected === e.id}
+                onClick={() => setSelected(e.id)}
+              />
+            ))}
+          </List>
+        </Pane>
+        <Pane reached={event != null} aria-label='Event'>
+          <Pane.Header onBack={() => setSelected(null)} backLabel='Events'>
+            <Pane.Title>{event ? event.title : 'Nothing selected'}</Pane.Title>
+          </Pane.Header>
+          <div className='grid gap-3 pb-4'>
+            <p className='text-subtle'>
+              {event ? event.description : 'Pick an event from the list.'}
+            </p>
+          </div>
+        </Pane>
+      </Navigator>
+    </div>
+  )
+}
+render(<Stacking />)
+```
+
+### Columns
+
+`column` says which column a pane is. A shell has at most one list, any number
+of details and at most one inspector. It defaults to `detail`.
+
+| Column | Where it sits |
+| --- | --- |
+| `list` | The root |
+| `detail` | Under the root |
+| `inspector` | A fixed 14rem column outside the stack. It shows only when every level of the stack fits beside it. |
+
+When the inspector's column is hidden, give people another way in. Put a
+[`Drawer`](/components/drawer) in the detail pane's `Pane.Actions`, and Base UI
+handles dismissal, focus, Escape and the scrim. The `pane-inspector-yielded:`
+variant shows its trigger only while the column is hidden.
+
+```tsx-live-noinline-expand
+function Columns() {
+  const [open, setOpen] = useState(false)
+  const [showDetail, setShowDetail] = useState(true)
+  const tiers = [
+    { title: 'General admission', description: '$68.00 · on sale' },
+    { title: 'Early bird', description: '$54.00 · sold out' },
+    { title: 'VIP booth', description: '$180.00 · 6 remaining' },
+    { title: 'Group of 6', description: '$360.00 · on sale' },
+    { title: 'Accessible seating', description: '$68.00 · on sale' }
+  ]
+  return (
+    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+      <Navigator className='h-full'>
+        <Pane column='list' aria-label='Events'>
+          <Pane.Header>
+            <Pane.Title>Events</Pane.Title>
+          </Pane.Header>
+          <List>
+            <List.Item title='Midnight Frequency' description='60 remaining' current onClick={() => setShowDetail(true)} />
+            <List.Item title='Sunset Sounds' description='180 remaining' />
+            <List.Item title='Neon Dusk' description='460 remaining' />
+            <List.Item title='Harbour Lights' description='sold out' />
+          </List>
+        </Pane>
+        <Pane aria-label='Midnight Frequency' reached={showDetail}>
+          <Pane.Header onBack={() => setShowDetail(false)}>
+            <Pane.Title>Midnight Frequency</Pane.Title>
+            <Pane.Actions>
+              <Drawer open={open} onOpenChange={setOpen} side='bottom'>
+                <Drawer.Trigger
+                  render={
+                    <IconButton
+                      aria-label='Event details'
+                      emphasis='normal'
+                      className='pane-inspector-yielded:inline-flex hidden'
+                    >
+                      <InfoIcon weight='bold' className='size-5' />
+                    </IconButton>
+                  }
+                />
+                <Drawer.Content aria-label='Event details'>
+                  <Drawer.Body className='py-4'>
+                    <List emphasis='subtler'>
+                      <List.Item title='Venue' description='The Longacre' />
+                      <List.Item title='Doors' description='7:00 pm' />
+                      <List.Item title='Capacity' description='1,300' />
+                    </List>
+                  </Drawer.Body>
+                </Drawer.Content>
+              </Drawer>
+            </Pane.Actions>
+          </Pane.Header>
+          <List>
+            {tiers.map((tier) => (
+              <List.Item key={tier.title} title={tier.title} description={tier.description} chevron />
+            ))}
+          </List>
+        </Pane>
+        <Pane column='inspector' emphasis='subtler' aria-label='Event details'>
+          <Pane.Header>
+            <Pane.Title>Details</Pane.Title>
+          </Pane.Header>
+          <List emphasis='subtler'>
+            <List.Item title='Venue' description='The Longacre' />
+            <List.Item title='Doors' description='7:00 pm' />
+            <List.Item title='Capacity' description='1,300' />
+          </List>
+        </Pane>
+      </Navigator>
+    </div>
+  )
+}
+render(<Columns />)
+```
+
+### Back and Close
+
+The header's leading cell shows at most one button, based on where the pane
+sits in the columns.
+
+| The pane is | It shows |
+| --- | --- |
+| The root, at depth 0 | Nothing |
+| The left-most visible pane, with its parent dropped | Back, to that parent |
+| The top pane, with its parent visible beside it | Close |
+| A middle column | Nothing |
+| A placeholder detail not yet reached | Nothing |
+| An inspector | Nothing |
+
+On a phone the top pane is also the left-most, so it gets Back. Both buttons go
+one level up. `backHref` is the canonical target and real link for both:
+
+```tsx
+<Pane>
+  <Pane.Header backHref='/tickets/glamping' backLabel='Glamping'>
+    <Pane.Title>Sam Okafor</Pane.Title>
+  </Pane.Header>
+</Pane>
+```
+
+On an ordinary click, Roadie traverses browser history when the immediately
+previous entry is from the current document and matches `backHref`'s origin,
+path and query. That restores the parent's existing scroll and local state
+without adding a second parent entry. A direct load, reload, unrelated previous
+route or browser without the Navigation API follows the link normally instead.
+Modified clicks also keep normal link behaviour, so opening a new tab and
+copying the link still use `backHref`.
+
+`onBack` does the same as a handler. `onClose` overrides it for Close alone:
+
+```tsx
+<Pane.Header onBack={goUp} onClose={closeDetail}>
+```
+
+- Back is always the round caret button. `backLabel` names it for assistive
+  tech, as "Back to Glamping", without showing on screen.
+- Beside a destination's generated list pane, Navigator gives the depth-1 pane
+  the destination's route and label, so you declare nothing.
+- Nothing shows until you give a target, because Roadie can't close a pane it
+  doesn't own.
+- The root pane never shows Close, even if you pass the same handler to every
+  pane.
+
+### Reached, depth and tab bar
+
+- `reached` defaults to `true`. Pass `false` on a pane mounted before the route
+  reaches it, such as
+  [an empty detail column](/foundations/navigation#an-empty-detail-column).
+  Keep that pane mounted rather than mounting it on selection, or the list
+  jumps to a parent track when it appears.
+- `depth` overrides the depth Roadie reads from render order. Pass it only for
+  a pane that renders out of order, such as one streamed into a resumed
+  prerender.
+- `tabBar` sets what the phone tab bar does while the pane is on top. `auto`,
+  the default, collapses the bar to the active tab as the pane scrolls.
+  `visible` keeps it, and `hidden` removes it for a pushed screen, like iOS's
+  `hidesBottomBarWhenPushed`.
+
+[Navigation](/foundations/navigation) covers when each one comes up.
+
+### Scroll
+
+Each pane has its own scroll, and the page never scrolls, so the browser cannot
+put a pane back where it was. `Pane` does it instead. A pane takes its place
+down as it is scrolled, against the browser's own id for the history entry it is
+on, and a back or a forward traversal puts it there again. Going forward is a
+history entry no pane has been scrolled on, so it starts at the top, as does a
+fresh load.
+
+The place is taken as the scroll happens, not when the route changes: React
+replaces a pane's content before any effect runs, and by then the viewport has
+already clamped a scroll the new content has no room for. Restoring holds the
+pane in place for a few frames while the page grows under it, and gives up the
+moment the pane is touched.
+
+Scroll restoration reads no URL and writes no history state; the router owns
+both. It reads `navigation.currentEntry.key`, so where an engine has no
+Navigation API panes keep starting at the top. A pane is recognised by its seat,
+its level, column and depth, rather than by its identity, so a pane the
+router re-makes still finds its place. Up to 30 history entries are kept, the
+least recently written dropped first, in memory: a document reload starts over.
+
+### Loading
+
+Put the slow part of a pane inside `Pane.Body`. The header paints at once and a
+skeleton stands in for the body until the content lands. Press Reload to wait
+again.
+
+```tsx-live-noinline
+const wait = () => new Promise((done) => setTimeout(done, 2000))
+
+function Tickets({ ready }) {
+  use(ready)
+  return (
+    <List>
+      <List.Item title='General admission' description='$68.00 · on sale' chevron />
+      <List.Item title='Early bird' description='$54.00 · sold out' chevron />
+      <List.Item title='VIP booth' description='$180.00 · 6 remaining' chevron />
+    </List>
+  )
+}
+
+function Loading() {
+  const [ready, setReady] = useState(wait)
+  return (
+    <div className='h-80 rounded-2xl bg-sunken p-3'>
+      <Pane className='h-full'>
+        <Pane.Header>
+          <Pane.Title>Midnight Frequency</Pane.Title>
+          <Pane.Actions>
+            <Button onClick={() => setReady(wait())}>Reload</Button>
+          </Pane.Actions>
+        </Pane.Header>
+        <Pane.Body>
+          <Tickets ready={ready} />
+        </Pane.Body>
+      </Pane>
+    </div>
+  )
+}
+render(<Loading />)
+```
+
+- `Pane.Body` is a Suspense boundary. It renders no element of its own.
+- A pane catches a wait outside `Pane.Body` too. Then a skeleton header stands
+  in for the real one.
+- `loading` on the pane replaces the default skeleton. `loading` on
+  `Pane.Body` wins over it.
+- While the skeleton shows, the
+  [frame draws its pending indicator](/components/navigator#waiting-for-a-navigation).
+  The pane draws only the skeleton.
+- `pending` holds the frame's pending indicator for a wait Roadie can't see,
+  such as a fetch without Suspense or a mutation. It sets `aria-busy` on the
+  pane.
+
+## Guidelines
+
+<Guideline title='Panes are siblings'>
+  <Guideline.Do code={`<>\n  <Pane column='list'>…</Pane>\n  <Pane>…</Pane>\n</>`}>
+    Render panes side by side, shallowest first. A layout returns its pane and
+    its children in a fragment.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Pane column='list'>\n  …\n  <Pane>…</Pane>\n</Pane>`}>
+    Put a pane inside another pane, or wrap panes in a `div`. The columns
+    break.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='A pane is a column, not a box'>
+  <Guideline.Do code={`<div className='grid grid-cols-3 gap-4'>\n  <Card>…</Card>\n  <Card>…</Card>\n  <Card>…</Card>\n</div>`}>
+    Use a `Card` for a surface in a page's content, such as a grid of stats.
+  </Guideline.Do>
+  <Guideline.Dont code={`<div className='grid grid-cols-3 gap-4'>\n  <Pane emphasis='normal'>…</Pane>\n  <Pane emphasis='normal'>…</Pane>\n  <Pane emphasis='normal'>…</Pane>\n</div>`}>
+    Use a `Pane` as a card. It brings its own scroll, header chrome and a
+    place in the frame's stack.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Pane.Actions belongs directly under Pane.Header'>
+  <Guideline.Do code={`<Pane.Header backHref='/events'>\n  <Pane.Title>Midnight Frequency</Pane.Title>\n  <Pane.Actions>\n    <Button>Publish</Button>\n  </Pane.Actions>\n</Pane.Header>`}>
+    Put actions directly in `Pane.Header`, so they take their cell opposite
+    Back.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Pane.Header backHref='/events'>\n  <div className='flex justify-between'>\n    <Pane.Title>Midnight Frequency</Pane.Title>\n    <Pane.Actions>…</Pane.Actions>\n  </div>\n</Pane.Header>`}>
+    Wrap them. Grid placement only reaches direct children, so the actions
+    render below the top row.
+  </Guideline.Dont>
+</Guideline>
+
+- A pane registers with its `Navigator` from wherever it renders, such as a
+  route layout or your own component. With no `Pane` at all, Navigator warns in
+  development.
+- A pane scrolls natively, and `List` doesn't virtualise. That is fine into the
+  hundreds of rows. For thousands, virtualise against the viewport at
+  `[data-slot="pane-viewport"]`.
+
+## Accessibility
+
+- The pane renders a `<section>`. Pass `aria-label` to make it a named region.
+- `Pane.Title` is an `<h2>`, so it never clashes with the page's `<h1>`.
+  `Pane.BodyTitle` is an `<h1>`, because it is the page's own heading. Use at
+  most one per pane, and no other `<h1>` beside it.
+- Back is an `IconButton` labelled "Back", or "Back to Events" with
+  `backLabel='Events'`.
+- Close is an `IconButton` labelled "Close". It uses `onClose`, then `onBack`,
+  then `backHref`.
+- `Pane.Search` is a search field named by its `aria-label` or placeholder. Its
+  Cancel button is labelled "Cancel search", and Escape also clears the field.
+- The skeleton standing in for suspended content sits in an `aria-busy`
+  wrapper. The skeletons themselves are hidden from assistive technology.
+- A pane that doesn't fit, covered in the stack or dropped from the columns, is
+  hidden from taps and assistive technology.
+
+<PropsDefinitions componentPath='packages/components/src/components/Pane' />

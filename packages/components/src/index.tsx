@@ -145,14 +145,58 @@ export {
   type ScrollAreaFade
 } from './components/ScrollArea'
 
+export {
+  Navigator,
+  useNavigatorSecondary,
+  type NavigatorProps,
+  type NavigatorPrimaryProps,
+  type NavigatorSecondaryProps,
+  type NavigatorSecondaryData,
+  type NavigatorSecondaryGroup,
+  type NavigatorSecondaryItem,
+  type NavigatorItemProps,
+  type NavigatorGroupProps,
+  type NavigatorGroupTitleProps,
+  type NavigatorMenuProps,
+  type NavigatorMenuItemProps,
+  type NavigatorBrandProps,
+  type NavigatorExpandToggleProps,
+  type NavigatorSecondaryPaneProps,
+  type NavigatorSecondaryItemsProps,
+  type NavigatorPlacement,
+  type NavigatorVisibilityPriority
+} from './components/Navigator'
+
+export {
+  Pane,
+  type PaneProps,
+  type PaneBodyProps,
+  type PaneHeaderProps,
+  type PaneTitleProps,
+  type PaneBodyTitleProps,
+  type PaneActionsProps,
+  type PaneSearchProps,
+  type PaneFooterProps,
+  type PaneColumn,
+  type PaneEmphasis,
+  type PaneTabBar,
+  type PaneDepth
+} from './components/Pane'
+
 export { Marquee, type MarqueeProps } from './components/Marquee'
 
 export {
   List,
+  listVariants,
+  listItemVariants,
+  listGroupVariants,
+  listGroupTitleVariants,
   type ListProps,
   type ListItemProps,
   type ListItemCurrent,
-  type ListEmphasis
+  type ListEmphasis,
+  type ListGroupProps,
+  type ListGroupTitleProps
 } from './components/List'
 
 export {
@@ -405,6 +449,7 @@ export {
 export {
   RoadieLinkProvider,
   useRoadieLink,
+  usePendingNavigation,
   type RoadieLinkProviderProps,
   type RoadieLinkComponent,
   type RoadieLinkProps

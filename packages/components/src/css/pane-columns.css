@@ -1,0 +1,945 @@
+@property --pane-base {
+  syntax: '<integer>';
+  inherits: true;
+  initial-value: 0;
+}
+@property --pane-top {
+  syntax: '<integer>';
+  inherits: true;
+  initial-value: 0;
+}
+@property --pane-last {
+  syntax: '<integer>';
+  inherits: true;
+  initial-value: 0;
+}
+@property --pane-levels {
+  syntax: '<integer>';
+  inherits: true;
+  initial-value: 0;
+}
+@property --pane-fit {
+  syntax: '<integer>';
+  inherits: true;
+  initial-value: 1;
+}
+@property --pane-fit-deep {
+  syntax: '<integer>';
+  inherits: true;
+  initial-value: 1;
+}
+@property --pane-columns {
+  syntax: '<integer>';
+  inherits: true;
+  initial-value: 1;
+}
+@property --pane-start {
+  syntax: '<integer>';
+  inherits: true;
+  initial-value: 0;
+}
+@property --pane-end {
+  syntax: '<integer>';
+  inherits: true;
+  initial-value: 0;
+}
+@property --pane-back-at {
+  syntax: '<integer>';
+  inherits: true;
+  initial-value: -1;
+}
+@property --pane-close-at {
+  syntax: '<integer>';
+  inherits: true;
+  initial-value: -1;
+}
+@property --pane-parked-0 {
+  syntax: '<integer>';
+  inherits: true;
+  initial-value: 0;
+}
+@property --pane-parked-1 {
+  syntax: '<integer>';
+  inherits: true;
+  initial-value: 0;
+}
+@property --pane-parked-2 {
+  syntax: '<integer>';
+  inherits: true;
+  initial-value: 0;
+}
+@property --pane-parked-3 {
+  syntax: '<integer>';
+  inherits: true;
+  initial-value: 0;
+}
+@property --pane-reveal {
+  syntax: '<integer>';
+  inherits: true;
+  initial-value: 0;
+}
+@property --pane-pushing {
+  syntax: '<integer>';
+  inherits: true;
+  initial-value: 0;
+}
+@property --pane-depth {
+  syntax: '<integer>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@custom-variant pane-inspector-yielded {
+  @container panes (width < 46.25rem) {
+    @slot;
+  }
+  @container panes (width < 69rem) {
+    [data-slot='navigator-panes'][data-level='0']:is(
+        :has(
+          [data-stack][data-level='0']:is([data-depth='2'], [data-depth='3'])
+        ),
+        :is(
+          [data-overflow],
+          :has(
+            [data-stack][data-level='0'][data-depth='0']:not([data-overflow])
+          )
+        ):has([data-stack][data-level='0'][data-depth='1'])
+      )
+      &:not([data-slot='navigator-panes'][data-level='1'] *) {
+      @slot;
+    }
+    [data-slot='navigator-panes'][data-level='1']:is(
+        :has(
+          [data-stack][data-level='1']:is([data-depth='2'], [data-depth='3'])
+        ),
+        :is(
+          [data-overflow],
+          :has(
+            [data-stack][data-level='1'][data-depth='0']:not([data-overflow])
+          )
+        ):has([data-stack][data-level='1'][data-depth='1'])
+      )
+      & {
+      @slot;
+    }
+  }
+  @container panes (width < 99.75rem) {
+    @container style(--pane-levels: 3) {
+      @slot;
+    }
+  }
+  @container panes (width < 105.75rem) {
+    @container style(--pane-levels: 4) {
+      @slot;
+    }
+  }
+}
+
+@layer components {
+  [data-slot='pane'][data-depth]:not([data-stack]) {
+    --pane-back: none;
+    --pane-close: none;
+    --pane-edge: none;
+  }
+  [data-slot='pane'][data-depth]:not([data-stack], [data-depth='0']) {
+    --pane-back: grid;
+    --pane-edge: grid;
+  }
+  [data-slot='pane'][data-depth] [data-slot='pane-back'] {
+    display: var(--pane-back);
+  }
+  [data-slot='pane'][data-depth] [data-slot='pane-close'] {
+    display: var(--pane-close);
+  }
+
+  [data-slot='navigator-panes'] {
+    --pane-base: 0;
+    --pane-last: 0;
+    --pane-top: var(--pane-base);
+    --pane-fit: 1;
+    --pane-fit-deep: 1;
+    --pane-reveal: 0;
+    --pane-pushing: 0;
+    --pane-page-step: none;
+    --pane-style-queries: supported;
+    --pane-levels: calc(var(--pane-last) - var(--pane-base) + 1);
+    --pane-reach: calc(var(--pane-top) - var(--pane-base));
+    --pane-columns: calc(
+      var(--pane-fit-deep) + (var(--pane-fit) - var(--pane-fit-deep)) *
+        clamp(0, var(--pane-fit) - var(--pane-reach), 1)
+    );
+    --pane-start: max(0, var(--pane-reach) - var(--pane-columns) + 1);
+    --pane-end: min(
+      var(--pane-levels) - 1,
+      var(--pane-start) + var(--pane-columns) - 1
+    );
+    --pane-back-at: calc(
+      (var(--pane-start) + var(--pane-base) + 1) *
+        clamp(0, var(--pane-start), 1) - 1
+    );
+    --pane-close-at: calc(
+      (var(--pane-top) + 1) * clamp(0, var(--pane-reach), 1) *
+        clamp(0, var(--pane-reach) - var(--pane-start), 1) - 1
+    );
+    --pane-parked-0: calc(
+      clamp(0, var(--pane-start) + var(--pane-base), 1) +
+        clamp(0, 0 - var(--pane-base) - var(--pane-end), 1)
+    );
+    --pane-parked-1: calc(
+      clamp(0, var(--pane-start) + var(--pane-base) - 1, 1) +
+        clamp(0, 1 - var(--pane-base) - var(--pane-end), 1)
+    );
+    --pane-parked-2: calc(
+      clamp(0, var(--pane-start) + var(--pane-base) - 2, 1) +
+        clamp(0, 2 - var(--pane-base) - var(--pane-end), 1)
+    );
+    --pane-parked-3: calc(
+      clamp(0, var(--pane-start) + var(--pane-base) - 3, 1) +
+        clamp(0, 3 - var(--pane-base) - var(--pane-end), 1)
+    );
+    --pane-stack-inset-start: var(--pane-stack-inset);
+    --page-step-ghost-from: initial;
+    --page-step-pane-from: initial;
+  }
+  [data-slot='navigator-panes'][data-reveal] {
+    --pane-reveal: 1;
+  }
+  [data-slot='navigator-panes'][data-pushing] {
+    --pane-pushing: 1;
+  }
+  [data-slot='navigator-panes'][data-page-step='push'] {
+    --pane-page-step: push;
+  }
+  [data-slot='navigator-panes'][data-page-step='pop'] {
+    --pane-page-step: pop;
+  }
+  [dir='rtl'] [data-slot='navigator-panes'] {
+    --pane-dir: -1;
+  }
+  [dir='rtl'] [dir='ltr'] [data-slot='navigator-panes'] {
+    --pane-dir: 1;
+  }
+
+  @container panes (width >= 46.25rem) {
+    [data-slot='navigator-panes'] {
+      --pane-fit: 2;
+      padding: 0.75rem;
+      gap: 0.75rem;
+    }
+  }
+  @container panes (width >= 55.25rem) {
+    [data-slot='navigator-panes'] {
+      --pane-fit-deep: 2;
+    }
+  }
+  @container panes (width >= 76rem) {
+    [data-slot='navigator-panes'] {
+      --pane-fit: 3;
+    }
+  }
+  @container panes (width >= 81rem) {
+    [data-slot='navigator-panes'] {
+      --pane-fit-deep: 3;
+    }
+  }
+
+  [data-slot='navigator-panes'][data-level='0']:has(
+      [data-stack][data-level='0'][data-depth='1']
+    ) {
+    --pane-last: 1;
+  }
+  [data-slot='navigator-panes'][data-level='0']:has(
+      [data-stack][data-level='0'][data-depth='2']
+    ) {
+    --pane-last: 2;
+  }
+  [data-slot='navigator-panes'][data-level='0']:has(
+      [data-stack][data-level='0'][data-depth='3']
+    ) {
+    --pane-last: 3;
+  }
+  [data-slot='navigator-panes'][data-level='0']:not([data-reveal]):has(
+      [data-stack][data-level='0'][data-depth='1'][data-reached]
+    ) {
+    --pane-top: 1;
+  }
+  [data-slot='navigator-panes'][data-level='0']:not([data-reveal]):has(
+      [data-stack][data-level='0'][data-depth='2'][data-reached]
+    ) {
+    --pane-top: 2;
+  }
+  [data-slot='navigator-panes'][data-level='0']:not([data-reveal]):has(
+      [data-stack][data-level='0'][data-depth='3'][data-reached]
+    ) {
+    --pane-top: 3;
+  }
+  [data-slot='navigator-panes'][data-level='0']:not([data-overflow]):not(
+      :has([data-stack][data-level='0'][data-depth='0']:not([data-overflow]))
+    ) {
+    --pane-base: 1;
+  }
+  [data-slot='navigator-panes'][data-level='0']:not([data-overflow]):not(
+      :has([data-stack][data-level='0']:not([data-overflow]))
+    )
+    [data-column='inspector'][data-level='0'] {
+    display: none !important;
+  }
+  [data-slot='navigator-panes'][data-level='1']:has(
+      [data-stack][data-level='1'][data-depth='1']
+    ) {
+    --pane-last: 1;
+  }
+  [data-slot='navigator-panes'][data-level='1']:has(
+      [data-stack][data-level='1'][data-depth='2']
+    ) {
+    --pane-last: 2;
+  }
+  [data-slot='navigator-panes'][data-level='1']:has(
+      [data-stack][data-level='1'][data-depth='3']
+    ) {
+    --pane-last: 3;
+  }
+  [data-slot='navigator-panes'][data-level='1']:not([data-reveal]):has(
+      [data-stack][data-level='1'][data-depth='1'][data-reached]
+    ) {
+    --pane-top: 1;
+  }
+  [data-slot='navigator-panes'][data-level='1']:not([data-reveal]):has(
+      [data-stack][data-level='1'][data-depth='2'][data-reached]
+    ) {
+    --pane-top: 2;
+  }
+  [data-slot='navigator-panes'][data-level='1']:not([data-reveal]):has(
+      [data-stack][data-level='1'][data-depth='3'][data-reached]
+    ) {
+    --pane-top: 3;
+  }
+  [data-slot='navigator-panes'][data-level='1']:not([data-overflow]):not(
+      :has([data-stack][data-level='1'][data-depth='0']:not([data-overflow]))
+    ) {
+    --pane-base: 1;
+  }
+  [data-slot='navigator-panes'][data-level='1']:not([data-overflow]):not(
+      :has([data-stack][data-level='1']:not([data-overflow]))
+    )
+    [data-column='inspector'][data-level='1'] {
+    display: none !important;
+  }
+
+  [data-slot='pane'][data-stack][data-depth='1'] {
+    --pane-depth: 1;
+  }
+  [data-slot='pane'][data-stack][data-depth='2'] {
+    --pane-depth: 2;
+  }
+  [data-slot='pane'][data-stack][data-depth='3'] {
+    --pane-depth: 3;
+  }
+
+  /* Without container style queries: the top pane, and the root beside it once two fit. */
+  :where([data-slot='pane'][data-stack]) {
+    --pane-back: none;
+    --pane-close: none;
+    --pane-edge: none;
+    position: absolute !important;
+    inset: var(--pane-stack-inset, 0px);
+    inset-inline-start: var(
+      --pane-stack-inset-start,
+      var(--pane-stack-inset, 0px)
+    );
+    order: var(--pane-depth);
+    visibility: hidden;
+    pointer-events: none;
+  }
+  :where(
+    [data-slot='pane'][data-stack]:is(
+        [data-stack-position='top'],
+        :not([data-stack-position])
+      )
+  ) {
+    z-index: 2;
+    visibility: visible;
+    pointer-events: auto;
+  }
+  :where(
+    [data-slot='navigator-panes'][data-level='0']:has(
+        [data-stack][data-level='0'][data-stack-position]
+      )
+      [data-stack][data-level='0']:not([data-stack-position]),
+    [data-slot='navigator-panes'][data-level='1']:has(
+        [data-stack][data-level='1'][data-stack-position]
+      )
+      [data-stack][data-level='1']:not([data-stack-position])
+  ) {
+    visibility: hidden;
+    pointer-events: none;
+  }
+  @container panes (width < 46.25rem) {
+    :where(
+      [data-slot='pane'][data-stack][data-stack-position='top']:has(
+          ~ [data-stack][data-stack-position='top']
+        )
+    ) {
+      visibility: hidden;
+      pointer-events: none;
+    }
+  }
+  :where([data-slot='pane'][data-stack][data-depth='deep']) {
+    z-index: 3;
+  }
+  :where(
+    [data-slot='pane'][data-stack][data-stack-position='top']:not(
+        [data-depth='0'],
+        [data-depth='1']
+      ),
+    [data-slot='navigator-panes'][data-level='0']:is(
+        [data-overflow],
+        :has([data-stack][data-level='0'][data-depth='0']:not([data-overflow]))
+      )
+      [data-stack][data-level='0'][data-stack-position='top'][data-depth='1'],
+    [data-slot='navigator-panes'][data-level='1']:is(
+        [data-overflow],
+        :has([data-stack][data-level='1'][data-depth='0']:not([data-overflow]))
+      )
+      [data-stack][data-level='1'][data-stack-position='top'][data-depth='1']
+  ) {
+    --pane-back: grid;
+    --pane-edge: grid;
+  }
+  @container panes (width >= 46.25rem) {
+    :where(
+      [data-slot='pane'][data-stack]:is(
+          [data-stack-position='top'],
+          [data-depth='0']
+        ):not([data-depth='deep'])
+    ) {
+      position: relative !important;
+      inset: auto;
+      flex: 1 1 0;
+      z-index: 2;
+      visibility: visible;
+      pointer-events: auto;
+    }
+    :where(
+      [data-slot='pane'][data-stack][data-depth='0']:is(
+          :not([data-stack-position='top']),
+          :has(~ [data-stack][data-stack-position='top'])
+        )
+    ) {
+      flex: 0 0 clamp(16rem, 40cqi, 24rem);
+    }
+    :where(
+      [data-slot='navigator-panes'][data-level='0']:is(
+          [data-overflow],
+          :has(
+            [data-stack][data-level='0'][data-depth='0']:not([data-overflow])
+          )
+        )
+        [data-stack][data-level='0'][data-stack-position='top']:not(
+          [data-depth='0']
+        ),
+      [data-slot='navigator-panes'][data-level='1']:is(
+          [data-overflow],
+          :has(
+            [data-stack][data-level='1'][data-depth='0']:not([data-overflow])
+          )
+        )
+        [data-stack][data-level='1'][data-stack-position='top']:not(
+          [data-depth='0']
+        )
+    ) {
+      --pane-back: none;
+      --pane-close: grid;
+    }
+  }
+
+  @container style(--pane-style-queries: supported) {
+    [data-slot='pane'][data-stack]:is(
+        [data-depth='0'],
+        [data-depth='1'],
+        [data-depth='2'],
+        [data-depth='3']
+      ) {
+      --pane-back: none;
+      --pane-close: none;
+      --pane-edge: none;
+      --pane-r: calc(var(--pane-depth) - var(--pane-base));
+      --pane-behind: clamp(0, var(--pane-start) - var(--pane-r), 1);
+      --pane-ahead: clamp(0, var(--pane-r) - var(--pane-end), 1);
+      --pane-fill: calc(
+        1 - clamp(0, var(--pane-end) - var(--pane-r), 1) - var(--pane-ahead)
+      );
+      --pane-is-top: calc(
+        1 - clamp(0, var(--pane-r) - var(--pane-reach), 1) -
+          clamp(0, var(--pane-reach) - var(--pane-r), 1)
+      );
+      --pane-off: max(
+        var(--pane-ahead),
+        var(--pane-arriving, 0) * var(--pane-is-top) *
+          clamp(0, var(--pane-reach), 1)
+      );
+      --pane-shown: clamp(2, min(var(--pane-columns), var(--pane-levels)), 3);
+      --pane-is-root: calc(1 - clamp(0, var(--pane-r), 1));
+      --pane-min: calc(25 - var(--pane-is-root) * (17 - 4 * var(--pane-shown)));
+      --pane-max: calc(30 - 6 * var(--pane-is-root));
+      --pane-share: calc(
+        40 - (var(--pane-shown) - 2) * (8 + 7 * var(--pane-is-root))
+      );
+      --pane-mins: calc(
+        var(--pane-min) + (var(--pane-shown) - 2) *
+          (45 + 5 * clamp(0, var(--pane-start), 1) - var(--pane-min))
+      );
+      --pane-room: calc(100cqi - (28.75rem + 0.75rem * var(--pane-shown)));
+      --pane-track: clamp(
+        var(--pane-min) * 1rem,
+        min(
+          var(--pane-share) * 1cqi,
+          var(--pane-room) * var(--pane-min) / var(--pane-mins)
+        ),
+        var(--pane-max) * 1rem
+      );
+      position: absolute !important;
+      inset: var(--pane-stack-inset, 0px);
+      inset-inline-start: var(
+        --pane-stack-inset-start,
+        var(--pane-stack-inset, 0px)
+      );
+      flex: var(--pane-fill) var(--pane-fill)
+        calc(var(--pane-track) * (1 - var(--pane-fill)));
+      order: var(--pane-depth);
+      translate: calc(
+          (
+              var(--pane-off) * (100% + var(--pane-stack-inset, 0px)) -
+                var(--pane-behind) * 33%
+            ) *
+            var(--pane-dir, 1)
+        )
+        0;
+      opacity: calc(1 - 0.1 * var(--pane-behind));
+      z-index: calc(2 - 2 * (var(--pane-behind) + var(--pane-ahead)));
+      visibility: visible;
+      pointer-events: auto;
+      content-visibility: visible;
+      transition-property: translate, opacity, z-index;
+      transition-timing-function:
+        var(--ease-enter), var(--ease-enter), step-end;
+    }
+
+    [data-slot='pane'][data-stack][data-depth='deep'] {
+      --pane-back: grid;
+      --pane-close: none;
+      --pane-edge: grid;
+      position: absolute !important;
+      inset: var(--pane-stack-inset, 0px);
+      inset-inline-start: var(
+        --pane-stack-inset-start,
+        var(--pane-stack-inset, 0px)
+      );
+      z-index: 3;
+      translate: calc(
+          (100% + var(--pane-stack-inset, 0px)) * var(--pane-dir, 1)
+        )
+        0;
+      visibility: hidden;
+      pointer-events: none;
+      transition-property: translate, visibility;
+      transition-timing-function: var(--ease-enter);
+    }
+  }
+  @container style(--pane-parked-0: 1) {
+    [data-slot='pane'][data-stack][data-depth='0'] {
+      visibility: hidden;
+      pointer-events: none;
+      content-visibility: auto;
+      transition-property: translate, opacity, visibility, z-index;
+      transition-timing-function:
+        var(--ease-enter), var(--ease-enter), var(--ease-enter), step-start;
+    }
+  }
+  @container style(--pane-parked-1: 1) {
+    [data-slot='pane'][data-stack][data-depth='1'] {
+      visibility: hidden;
+      pointer-events: none;
+      content-visibility: auto;
+      transition-property: translate, opacity, visibility, z-index;
+      transition-timing-function:
+        var(--ease-enter), var(--ease-enter), var(--ease-enter), step-start;
+    }
+  }
+  @container style(--pane-parked-2: 1) {
+    [data-slot='pane'][data-stack][data-depth='2'] {
+      visibility: hidden;
+      pointer-events: none;
+      content-visibility: auto;
+      transition-property: translate, opacity, visibility, z-index;
+      transition-timing-function:
+        var(--ease-enter), var(--ease-enter), var(--ease-enter), step-start;
+    }
+  }
+  @container style(--pane-parked-3: 1) {
+    [data-slot='pane'][data-stack][data-depth='3'] {
+      visibility: hidden;
+      pointer-events: none;
+      content-visibility: auto;
+      transition-property: translate, opacity, visibility, z-index;
+      transition-timing-function:
+        var(--ease-enter), var(--ease-enter), var(--ease-enter), step-start;
+    }
+  }
+  @container (not style(--pane-columns: 1)) and style(--pane-parked-0: 0) {
+    [data-slot='pane'][data-stack][data-depth='0'] {
+      position: relative !important;
+      inset: auto;
+    }
+  }
+  @container (not style(--pane-columns: 1)) and style(--pane-parked-1: 0) {
+    [data-slot='pane'][data-stack][data-depth='1'] {
+      position: relative !important;
+      inset: auto;
+    }
+  }
+  @container (not style(--pane-columns: 1)) and style(--pane-parked-2: 0) {
+    [data-slot='pane'][data-stack][data-depth='2'] {
+      position: relative !important;
+      inset: auto;
+    }
+  }
+  @container (not style(--pane-columns: 1)) and style(--pane-parked-3: 0) {
+    [data-slot='pane'][data-stack][data-depth='3'] {
+      position: relative !important;
+      inset: auto;
+    }
+  }
+  @container not style(--pane-columns: 1) {
+    [data-slot='pane'][data-stack]:is(
+        [data-depth='0'],
+        [data-depth='1'],
+        [data-depth='2'],
+        [data-depth='3']
+      ) {
+      transition: none;
+    }
+  }
+  @container style(--pane-back-at: 1) {
+    [data-slot='pane'][data-stack][data-depth='1'] {
+      --pane-back: grid;
+      --pane-edge: grid;
+    }
+  }
+  @container style(--pane-back-at: 2) {
+    [data-slot='pane'][data-stack][data-depth='2'] {
+      --pane-back: grid;
+      --pane-edge: grid;
+    }
+  }
+  @container style(--pane-back-at: 3) {
+    [data-slot='pane'][data-stack][data-depth='3'] {
+      --pane-back: grid;
+      --pane-edge: grid;
+    }
+  }
+  @container style(--pane-close-at: 1) {
+    [data-slot='pane'][data-stack][data-depth='1'] {
+      --pane-close: grid;
+      --pane-edge: grid;
+    }
+  }
+  @container style(--pane-close-at: 2) {
+    [data-slot='pane'][data-stack][data-depth='2'] {
+      --pane-close: grid;
+      --pane-edge: grid;
+    }
+  }
+  @container style(--pane-close-at: 3) {
+    [data-slot='pane'][data-stack][data-depth='3'] {
+      --pane-close: grid;
+      --pane-edge: grid;
+    }
+  }
+
+  @container style(--pane-reveal: 0) {
+    [data-slot='pane'][data-stack][data-depth='deep'][data-reached] {
+      translate: 0 0;
+      visibility: visible;
+      pointer-events: auto;
+    }
+  }
+
+  [data-slot='navigator-panes'][data-level='0']:not([data-overflow])
+    [data-stack][data-level='0'][data-overflow],
+  [data-slot='navigator-panes'][data-level='0'][data-overflow]
+    [data-stack][data-level='0'][data-depth='0']:not([data-overflow]),
+  [data-slot='navigator-panes'][data-level='1']:not([data-overflow])
+    [data-stack][data-level='1'][data-overflow],
+  [data-slot='navigator-panes'][data-level='1'][data-overflow]
+    [data-stack][data-level='1'][data-depth='0']:not([data-overflow]) {
+    display: none !important;
+  }
+
+  [data-slot='navigator-panes']
+    [data-slot='pane'][data-column='inspector'][data-level] {
+    order: 99;
+    flex: 0 0 14rem;
+  }
+  @container panes (width < 46.25rem) {
+    [data-slot='pane'][data-column='inspector'][data-level] {
+      display: none !important;
+    }
+  }
+  @container panes (width < 69rem) {
+    [data-slot='navigator-panes'][data-level='0']:is(
+        :has(
+          [data-stack][data-level='0']:is([data-depth='2'], [data-depth='3'])
+        ),
+        :is(
+          [data-overflow],
+          :has(
+            [data-stack][data-level='0'][data-depth='0']:not([data-overflow])
+          )
+        ):has([data-stack][data-level='0'][data-depth='1'])
+      )
+      [data-column='inspector'][data-level='0'],
+    [data-slot='navigator-panes'][data-level='1']:is(
+        :has(
+          [data-stack][data-level='1']:is([data-depth='2'], [data-depth='3'])
+        ),
+        :is(
+          [data-overflow],
+          :has(
+            [data-stack][data-level='1'][data-depth='0']:not([data-overflow])
+          )
+        ):has([data-stack][data-level='1'][data-depth='1'])
+      )
+      [data-column='inspector'][data-level='1'] {
+      display: none !important;
+    }
+  }
+  @container panes (width < 99.75rem) {
+    @container style(--pane-levels: 3) {
+      [data-slot='pane'][data-column='inspector'][data-level] {
+        display: none !important;
+      }
+    }
+  }
+  @container panes (width < 105.75rem) {
+    @container style(--pane-levels: 4) {
+      [data-slot='pane'][data-column='inspector'][data-level] {
+        display: none !important;
+      }
+    }
+  }
+
+  [data-slot='navigator-panes'] > [data-slot='navigator-page-ghost'] {
+    position: absolute;
+    inset: var(--pane-stack-inset, 0px);
+    inset-inline-start: var(
+      --pane-stack-inset-start,
+      var(--pane-stack-inset, 0px)
+    );
+    z-index: 0;
+  }
+  @keyframes navigator-page-enter {
+    from {
+      translate: var(
+        --page-step-pane-from,
+        calc((100% + var(--pane-stack-inset, 0px)) * var(--pane-dir, 1)) 0
+      );
+    }
+  }
+  @keyframes navigator-page-behind {
+    from {
+      translate: var(--page-step-ghost-from, 0 0);
+    }
+    to {
+      translate: calc(-33% * var(--pane-dir, 1)) 0;
+    }
+  }
+  @keyframes navigator-page-return {
+    from {
+      translate: var(--page-step-pane-from, calc(-33% * var(--pane-dir, 1)) 0);
+      z-index: 0;
+    }
+    to {
+      z-index: 0;
+    }
+  }
+  @keyframes navigator-page-leave {
+    from {
+      translate: var(--page-step-ghost-from, 0 0);
+    }
+    to {
+      translate: calc(
+          (100% + var(--pane-stack-inset, 0px)) * var(--pane-dir, 1)
+        )
+        0;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    @container style(--pane-pushing: 1) {
+      [data-slot='pane'][data-stack]:is(
+          [data-depth='0'],
+          [data-depth='1'],
+          [data-depth='2'],
+          [data-depth='3'],
+          [data-depth='deep']
+        ) {
+        transition-duration: var(--duration-slow);
+      }
+    }
+    @container panes (width < 55.25rem) {
+      @container style(--pane-page-step: push) {
+        [data-slot='pane'][data-stack][data-stack-position='top'] {
+          animation: navigator-page-enter var(--duration-slow) var(--ease-enter);
+        }
+      }
+      @container style(--pane-page-step: pop) {
+        [data-slot='pane'][data-stack][data-stack-position='top'] {
+          animation: navigator-page-return var(--duration-slow)
+            var(--ease-enter);
+        }
+      }
+      [data-slot='navigator-panes'][data-page-step='push']
+        > [data-slot='navigator-page-ghost'] {
+        animation: navigator-page-behind var(--duration-slow) var(--ease-enter)
+          forwards;
+      }
+      [data-slot='navigator-panes'][data-page-step='pop']
+        > [data-slot='navigator-page-ghost'] {
+        z-index: 3;
+        animation: navigator-page-leave var(--duration-slow) var(--ease-enter)
+          forwards;
+      }
+      @container style(--pane-pushing: 1) {
+        @starting-style {
+          [data-slot='pane'][data-stack]:is(
+              [data-depth='0'],
+              [data-depth='1'],
+              [data-depth='2'],
+              [data-depth='3']
+            ) {
+            --pane-arriving: 1;
+          }
+        }
+      }
+      @container style(--pane-pushing: 1) and style(--pane-reveal: 0) {
+        @starting-style {
+          [data-slot='pane'][data-stack][data-depth='deep'][data-reached] {
+            translate: calc(
+                (100% + var(--pane-stack-inset, 0px)) * var(--pane-dir, 1)
+              )
+              0;
+          }
+        }
+      }
+    }
+  }
+
+  [data-slot='navigator']:not(
+      [data-slot='navigator-panes'][data-level='0'] *
+    ):has(
+      [data-slot='navigator-primary'][data-orientation='vertical']:not(
+          [data-slot='navigator-panes'][data-level='0'] *
+        )
+    )
+    [data-slot='navigator-panes'][data-level='0'] {
+    --pane-stack-inset-start: 0px;
+  }
+  [data-slot='navigator']:is(
+      [data-slot='navigator-panes'][data-level='0'] *
+    ):not([data-slot='navigator-panes'][data-level='1'] *):has(
+      [data-slot='navigator-primary'][data-orientation='vertical']:is(
+          [data-slot='navigator-panes'][data-level='0'] *
+        ):not([data-slot='navigator-panes'][data-level='1'] *)
+    )
+    [data-slot='navigator-panes'][data-level='1'] {
+    --pane-stack-inset-start: 0px;
+  }
+  @media (width >= 48rem) {
+    [data-slot='navigator']:not(
+        [data-slot='navigator-panes'][data-level='0'] *
+      ):has(
+        [data-slot='navigator-primary'][data-orientation='vertical']:not(
+            [data-slot='navigator-panes'][data-level='0'] *
+          )
+      )
+      [data-slot='navigator-content']:has(
+        > [data-slot='navigator-panes'][data-level='0']
+      ) {
+      margin-inline-start: -0.5rem;
+      padding-inline-start: 0.5rem;
+    }
+    [data-slot='navigator']:not(
+        [data-slot='navigator-panes'][data-level='0'] *
+      ):has(
+        [data-slot='navigator-primary'][data-orientation='vertical']:not(
+            [data-slot='navigator-panes'][data-level='0'] *
+          )
+      )
+      [data-slot='navigator-content']:has(
+        > [data-slot='navigator-panes'][data-level='0']
+      )::before {
+      content: '';
+      position: absolute;
+      inset-block: 0;
+      inset-inline-start: 0;
+      inline-size: 0.5rem;
+      z-index: 1;
+      background-color: var(--pane-gutter-fill, var(--intent-bg-sunken));
+      pointer-events: none;
+    }
+    [data-slot='navigator']:is(
+        [data-slot='navigator-panes'][data-level='0'] *
+      ):not([data-slot='navigator-panes'][data-level='1'] *):has(
+        [data-slot='navigator-primary'][data-orientation='vertical']:is(
+            [data-slot='navigator-panes'][data-level='0'] *
+          ):not([data-slot='navigator-panes'][data-level='1'] *)
+      )
+      [data-slot='navigator-content']:has(
+        > [data-slot='navigator-panes'][data-level='1']
+      ) {
+      margin-inline-start: -0.5rem;
+      padding-inline-start: 0.5rem;
+    }
+    [data-slot='navigator']:is(
+        [data-slot='navigator-panes'][data-level='0'] *
+      ):not([data-slot='navigator-panes'][data-level='1'] *):has(
+        [data-slot='navigator-primary'][data-orientation='vertical']:is(
+            [data-slot='navigator-panes'][data-level='0'] *
+          ):not([data-slot='navigator-panes'][data-level='1'] *)
+      )
+      [data-slot='navigator-content']:has(
+        > [data-slot='navigator-panes'][data-level='1']
+      )::before {
+      content: '';
+      position: absolute;
+      inset-block: 0;
+      inset-inline-start: 0;
+      inline-size: 0.5rem;
+      z-index: 1;
+      background-color: var(--pane-gutter-fill, var(--intent-bg-sunken));
+      pointer-events: none;
+    }
+    @container panes (width >= 46.25rem) {
+      [data-slot='navigator']:not(
+          [data-slot='navigator-panes'][data-level='0'] *
+        ):has(
+          [data-slot='navigator-primary'][data-orientation='vertical']:not(
+              [data-slot='navigator-panes'][data-level='0'] *
+            )
+        )
+        [data-slot='navigator-panes'][data-level='0'] {
+        padding-inline-start: 0;
+      }
+      [data-slot='navigator']:is(
+          [data-slot='navigator-panes'][data-level='0'] *
+        ):not([data-slot='navigator-panes'][data-level='1'] *):has(
+          [data-slot='navigator-primary'][data-orientation='vertical']:is(
+              [data-slot='navigator-panes'][data-level='0'] *
+            ):not([data-slot='navigator-panes'][data-level='1'] *)
+        )
+        [data-slot='navigator-panes'][data-level='1'] {
+        padding-inline-start: 0;
+      }
+    }
+  }
+}

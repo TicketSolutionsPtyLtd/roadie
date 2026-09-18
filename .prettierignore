@@ -9,6 +9,7 @@ build
 **/build/**
 out
 **/out/**
+packages/core/src/tokens/tokens.json
 
 # Test coverage
 coverage
@@ -53,6 +54,11 @@ pnpm-lock.yaml
 # and on the widget pages emits an empty file. The examples are the content
 # here, so none of these files go through the formatter.
 docs/**/*.mdx
+
+# Plans and brainstorms quote MDX inside fenced blocks; the formatter
+# collapses the nested fences and silently drops their contents.
+docs/plans/**/*.md
+docs/brainstorms/**/*.md
 
 # Misc
 .DS_Store
