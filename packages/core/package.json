@@ -87,7 +87,7 @@
   "devDependencies": {
     "@size-limit/preset-small-lib": "13.1.1",
     "@tailwindcss/cli": "4.3.3",
-    "@types/node": "26.6.2",
+    "@types/node": "24.13.6",
     "@vitejs/plugin-react": "6.1.1",
     "@vitest/coverage-v8": "5.0.1",
     "chokidar-cli": "3.0.0",

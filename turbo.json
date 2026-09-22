@@ -79,6 +79,7 @@
     },
     "test:browser": {
       "dependsOn": ["^build"],
+      "env": ["ROADIE_BROWSERS"],
       "inputs": [
         "src/**/*.{js,jsx,ts,tsx,css}",
         "*.config.{js,mjs,cjs,ts}",

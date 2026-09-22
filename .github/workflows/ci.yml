@@ -51,6 +51,12 @@ jobs:
     needs: [check]
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # One engine per runner: three at once backlog Vitest's Playwright bridge
+    # and actions time out (vitest-dev/vitest#9941).
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit, firefox]
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -64,11 +70,12 @@ jobs:
         uses: ./.github/composite-actions/setup
 
       - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps chromium webkit firefox
+        run: pnpm exec playwright install --with-deps ${{ matrix.browser }}
 
       - name: Browser tests
         run: pnpm turbo test:browser --affected --framework-inference=false
         env:
+          ROADIE_BROWSERS: ${{ matrix.browser }}
           TURBO_SCM_BASE: origin/main
 
   build:
