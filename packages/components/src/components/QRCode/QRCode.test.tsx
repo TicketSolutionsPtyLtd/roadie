@@ -162,14 +162,17 @@ describe('QRCode', () => {
       expect(container.querySelector('svg')).not.toHaveAttribute('data-branded')
     })
 
-    it('warns once per value in development', () => {
+    it('warns once in development, without the value', async () => {
+      vi.resetModules()
+      const { QRCode: FreshQRCode } = await import('.')
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-      const value = `${LONG_VALUE}-warn`
-      render(<QRCode value={value} />)
-      render(<QRCode value={value} />)
+      render(<FreshQRCode value={LONG_VALUE} />)
+      render(<FreshQRCode value={`${LONG_VALUE}-other`} />)
 
       expect(warn).toHaveBeenCalledTimes(1)
-      expect(warn.mock.calls[0]?.[0]).toContain('alignment pattern')
+      const message = String(warn.mock.calls[0]?.[0])
+      expect(message).toContain('alignment pattern')
+      expect(message).not.toContain(LONG_VALUE)
     })
 
     it('keeps the tile for versions without a centre alignment pattern', () => {

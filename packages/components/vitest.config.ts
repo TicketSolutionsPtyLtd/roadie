@@ -46,6 +46,7 @@ export default defineConfig({
         plugins: [tailwindcss()],
         optimizeDeps: {
           include: [
+            'jsqr',
             'react',
             'react/compiler-runtime',
             'react/jsx-dev-runtime',

@@ -1,9 +1,12 @@
-/* Card variant='ticket'. The parts carry the fill so each can be masked with
-   half a notch; the edge and shadow are drop-shadows so they follow the cut. */
+/* Card variant='ticket'. One layer paints the fill so translucent fills never
+   double up at the join: the footer's ::after reaches past both ends of the
+   card (the root clips it), which puts the notches a known distance from its
+   top. The edge and shadow are drop-shadows so they follow the cut. */
 
 @layer components {
   [data-slot='card'][data-variant='ticket'] {
     --card-notch: 0.75rem;
+    --card-reach: 200vh;
     --card-edge: transparent;
     --card-shade: transparent;
 
@@ -16,44 +19,13 @@
       drop-shadow(0 2px 2px var(--card-shade))
       drop-shadow(0 4px 4px var(--card-shade));
 
-    & > * {
+    &:not(:has(> [data-slot='card-footer'])) {
       background-color: var(--card-fill);
-    }
-
-    & > :has(+ [data-slot='card-footer']) {
-      mask:
-        radial-gradient(
-            circle at 0 100%,
-            #0000 var(--card-notch),
-            #000 calc(var(--card-notch) + 0.5px)
-          )
-          left / 51% 100% no-repeat,
-        radial-gradient(
-            circle at 100% 100%,
-            #0000 var(--card-notch),
-            #000 calc(var(--card-notch) + 0.5px)
-          )
-          right / 51% 100% no-repeat;
     }
 
     & > [data-slot='card-footer'] {
       position: relative;
-      /* Overlap the body so no anti-aliased seam shows between the parts. */
-      margin-top: -1px;
-      padding-top: calc(1.5rem + 1px);
-      mask:
-        radial-gradient(
-            circle at 0 0,
-            #0000 var(--card-notch),
-            #000 calc(var(--card-notch) + 0.5px)
-          )
-          left / 51% 100% no-repeat,
-        radial-gradient(
-            circle at 100% 0,
-            #0000 var(--card-notch),
-            #000 calc(var(--card-notch) + 0.5px)
-          )
-          right / 51% 100% no-repeat;
+      padding-top: 1.5rem;
 
       &::before {
         content: '';
@@ -61,6 +33,29 @@
         top: 0;
         inset-inline: calc(var(--card-notch) + 0.75rem);
         border-top: 2px dashed var(--intent-border-subtle);
+      }
+
+      &::after {
+        --notch: radial-gradient(
+          circle closest-side,
+          #000 calc(100% - 0.5px),
+          #0000 100%
+        );
+
+        content: '';
+        position: absolute;
+        inset: calc(-1 * var(--card-reach)) 0;
+        z-index: -1;
+        background-color: var(--card-fill);
+        mask:
+          var(--notch) left calc(-1 * var(--card-notch)) top
+            calc(var(--card-reach) - var(--card-notch)) /
+            calc(2 * var(--card-notch)) calc(2 * var(--card-notch)) no-repeat,
+          var(--notch) right calc(-1 * var(--card-notch)) top
+            calc(var(--card-reach) - var(--card-notch)) /
+            calc(2 * var(--card-notch)) calc(2 * var(--card-notch)) no-repeat,
+          linear-gradient(#000 0 0);
+        mask-composite: exclude;
       }
     }
   }

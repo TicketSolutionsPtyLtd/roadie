@@ -40,13 +40,14 @@ function OztixMark() {
   )
 }
 
-const warnedValues = new Set<string>()
+// A flag, not a set of values, so ticket hashes are never held for the process lifetime.
+let hasWarnedPlainFallback = false
 
-function warnPlainFallback(value: string, reason: string) {
-  if (!isDev() || warnedValues.has(value)) return
-  warnedValues.add(value)
+function warnPlainFallback(reason: string) {
+  if (!isDev() || hasWarnedPlainFallback) return
+  hasWarnedPlainFallback = true
   console.warn(
-    `[Roadie QRCode] Rendering a plain code for "${value}" because ${reason}. Shorten the value to keep the branded tile.`
+    `[Roadie QRCode] Rendering a plain code because ${reason}. Shorten the value to keep the branded tile.`
   )
 }
 
@@ -83,7 +84,7 @@ export function QRCode({
 }: QRCodeProps) {
   const matrix = getQRMatrix(value)
   const { tile, reason } = branded ? getTile(matrix) : { tile: null }
-  if (reason) warnPlainFallback(value, reason)
+  if (reason) warnPlainFallback(reason)
 
   const extent = matrix.size + QUIET_ZONE * 2
   const markOrigin = tile ? tile.start + QUIET_ZONE + MARK_PADDING : 0
