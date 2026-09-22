@@ -1,6 +1,6 @@
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { page } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 
 import { Card } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -122,3 +122,122 @@ describe('Card ticket without a footer', () => {
     expect(distance(sample(left + 8, top + 40), BACKDROP)).toBeGreaterThan(40)
   })
 })
+
+describe('Card ticket taller than two viewports', () => {
+  it('paints the fill all the way to the top', async () => {
+    const { container } = render(
+      <div
+        data-testid='host'
+        style={{ padding: 24, width: 360, background: `rgb(${BACKDROP})` }}
+      >
+        <Card variant='ticket' emphasis='raised'>
+          <Card.Content style={{ height: 2.5 * window.innerHeight }}>
+            <p>General admission</p>
+          </Card.Content>
+          <Card.Footer>
+            <p>Sam Okafor</p>
+          </Card.Footer>
+        </Card>
+      </div>
+    )
+    const host = container.querySelector<HTMLElement>('[data-testid=host]')!
+    const card = host.querySelector<HTMLElement>('[data-slot=card]')!
+    const sample = await capture(host)
+    const { left, top } = card.getBoundingClientRect()
+
+    expect(distance(sample(left + 24, top + 40), BACKDROP)).toBeGreaterThan(40)
+  })
+})
+
+const settle = () => new Promise((resolve) => setTimeout(resolve, 400))
+
+type State = { fill?: string; transform?: 'lift' | 'press' }
+const STATES: Record<
+  'raised' | 'normal' | 'subtle' | 'subtler',
+  { rest: State; hover: State; active: State }
+> = {
+  raised: {
+    rest: { fill: '--intent-bg-raised' },
+    hover: { fill: '--intent-bg-raised', transform: 'lift' },
+    active: { fill: '--intent-bg-raised', transform: 'press' }
+  },
+  normal: {
+    rest: { fill: '--intent-bg-normal' },
+    hover: { fill: '--intent-2', transform: 'lift' },
+    active: { fill: '--intent-3', transform: 'press' }
+  },
+  subtle: {
+    rest: { fill: '--intent-bg-subtle' },
+    hover: { fill: '--intent-4a' },
+    active: { fill: '--intent-5a' }
+  },
+  subtler: {
+    rest: {},
+    hover: { fill: '--intent-3a' },
+    active: { fill: '--intent-4a' }
+  }
+}
+
+describe.each(Object.entries(STATES))(
+  'Card ticket, interactive %s emphasis',
+  (emphasis, states) => {
+    afterEach(async () => {
+      await userEvent.unhover(document.body)
+    })
+
+    function renderLinkedTicket() {
+      const { container } = render(
+        <div style={{ padding: 24, width: 360 }}>
+          <Card
+            variant='ticket'
+            emphasis={emphasis as keyof typeof STATES}
+            href='#ticket'
+          >
+            <Card.Content>
+              <p>General admission</p>
+              <span data-testid='probe' />
+            </Card.Content>
+            <Card.Footer>
+              <p>Sam Okafor</p>
+            </Card.Footer>
+          </Card>
+        </div>
+      )
+      const card = container.querySelector<HTMLElement>('[data-slot=card]')!
+      const footer = card.querySelector<HTMLElement>('[data-slot=card-footer]')!
+      const probe = card.querySelector<HTMLElement>('[data-testid=probe]')!
+      return { card, footer, probe }
+    }
+
+    function expectState(
+      { card, footer, probe }: ReturnType<typeof renderLinkedTicket>,
+      state: State
+    ) {
+      probe.style.backgroundColor = state.fill
+        ? `var(${state.fill})`
+        : 'transparent'
+      expect(getComputedStyle(footer, '::after').backgroundColor).toBe(
+        getComputedStyle(probe).backgroundColor
+      )
+      const matrix = new DOMMatrix(getComputedStyle(card).transform)
+      if (state.transform === 'lift') expect(matrix.f).toBeCloseTo(-1)
+      if (state.transform === 'press') expect(matrix.a).toBeCloseTo(0.99)
+      if (!state.transform) expect(matrix.isIdentity).toBe(true)
+    }
+
+    it('matches the plain emphasis at rest, on hover and when active', async () => {
+      const ticket = renderLinkedTicket()
+      await settle()
+      expectState(ticket, states.rest)
+
+      await userEvent.hover(ticket.card)
+      await settle()
+      expectState(ticket, states.hover)
+
+      await userEvent.unhover(ticket.card)
+      ticket.card.classList.add('is-active')
+      await settle()
+      expectState(ticket, states.active)
+    })
+  }
+)

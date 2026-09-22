@@ -6,9 +6,13 @@
 @layer components {
   [data-slot='card'][data-variant='ticket'] {
     --card-notch: 0.75rem;
-    --card-reach: 200vh;
+    /* A fixed length, not a viewport unit, so no card is ever taller than it. */
+    --card-reach: 1000rem;
+    --card-shadow-color: oklch(0.3 0.05 var(--intent-hue) / 0.06);
     --card-edge: transparent;
-    --card-shade: transparent;
+    --card-shadow-2: transparent;
+    --card-shadow-4: transparent;
+    --card-shadow-8: transparent;
 
     overflow: clip;
     color: var(--intent-text-normal);
@@ -16,8 +20,14 @@
       drop-shadow(-1px 0 0 var(--card-edge))
       drop-shadow(0 1px 0 var(--card-edge))
       drop-shadow(0 -1px 0 var(--card-edge))
-      drop-shadow(0 2px 2px var(--card-shade))
-      drop-shadow(0 4px 4px var(--card-shade));
+      drop-shadow(0 2px 2px var(--card-shadow-2))
+      drop-shadow(0 4px 4px var(--card-shadow-4))
+      drop-shadow(0 8px 8px var(--card-shadow-8));
+    transition: background-color var(--duration-moderate) var(--ease-standard);
+
+    :where(.dark) & {
+      --card-shadow-color: oklch(0.05 0.02 var(--intent-hue) / 0.22);
+    }
 
     &:not(:has(> [data-slot='card-footer'])) {
       background-color: var(--card-fill);
@@ -47,6 +57,8 @@
         inset: calc(-1 * var(--card-reach)) 0;
         z-index: -1;
         background-color: var(--card-fill);
+        transition: background-color var(--duration-moderate)
+          var(--ease-standard);
         mask:
           var(--notch) left calc(-1 * var(--card-notch)) top
             calc(var(--card-reach) - var(--card-notch)) /
@@ -63,21 +75,55 @@
   [data-slot='card'][data-variant='ticket'][data-emphasis='raised'] {
     --card-fill: var(--intent-bg-raised);
     --card-edge: oklch(0.3 0.05 var(--intent-hue) / 0.06);
-    --card-shade: oklch(0.3 0.05 var(--intent-hue) / 0.06);
+    --card-shadow-2: var(--card-shadow-color);
+    --card-shadow-4: var(--card-shadow-color);
 
     :where(.dark) & {
       --card-edge: oklch(0.05 0.02 var(--intent-hue) / 0.35);
-      --card-shade: oklch(0.05 0.02 var(--intent-hue) / 0.22);
+    }
+
+    &.is-interactive:hover,
+    &.is-interactive:focus-visible {
+      --card-shadow-8: var(--card-shadow-color);
+      transform: translateY(-1px);
+    }
+    &.is-interactive:active,
+    &.is-interactive.is-active {
+      --card-shadow-4: transparent;
+      --card-shadow-8: transparent;
+      transform: translateY(0) scale(0.99);
     }
   }
 
   [data-slot='card'][data-variant='ticket'][data-emphasis='normal'] {
     --card-fill: var(--intent-bg-normal);
     --card-edge: var(--intent-border-normal);
+
+    &.is-interactive:hover,
+    &.is-interactive:focus-visible {
+      --card-fill: var(--intent-2);
+      --card-shadow-2: var(--card-shadow-color);
+      transform: translateY(-1px);
+    }
+    &.is-interactive:active,
+    &.is-interactive.is-active {
+      --card-fill: var(--intent-3);
+      --card-shadow-2: transparent;
+      transform: translateY(0) scale(0.99);
+    }
   }
 
   [data-slot='card'][data-variant='ticket'][data-emphasis='subtle'] {
     --card-fill: var(--intent-bg-subtle);
+
+    &.is-interactive:hover,
+    &.is-interactive:focus-visible {
+      --card-fill: var(--intent-4a);
+    }
+    &.is-interactive:active,
+    &.is-interactive.is-active {
+      --card-fill: var(--intent-5a);
+    }
   }
 
   [data-slot='card'][data-variant='ticket'][data-emphasis='subtler'] {
