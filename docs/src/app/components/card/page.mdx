@@ -88,6 +88,30 @@ import { Card } from '@oztix/roadie-components/card'
 </div>
 ```
 
+### Direction
+
+`direction` lays out the card's parts and works on any card. `vertical` stacks them and applies when you leave the prop off. `horizontal` gives `Card.Footer` a column of its own beside the rest of the card. `auto` stacks the card below 30rem wide and splits it into two equal columns at or above that, so the card follows its container. Reach for `auto` on tickets, and pin `horizontal` when the card always has the room and you want the footer sized to its content.
+
+```tsx-live
+<div className='grid rounded-2xl bg-subtle p-4 intent-brand'>
+  <Card variant='ticket' direction='horizontal' emphasis='raised' intent='neutral'>
+    <Card.Content className='grid content-center gap-1 p-6'>
+      <p className='text-display-ui-4 text-strong'>Paperbark Sessions</p>
+      <p className='text-sm text-subtle'>Sat 18 Oct · Tallowwood Shed, Marrickville</p>
+      <p className='text-sm text-subtle'>General admission · Nina Aleksic</p>
+    </Card.Content>
+    <Card.Footer className='grid justify-items-center gap-2'>
+      <QRCode
+        value='B4RQ7NPD'
+        aria-label='Ticket QR code for General admission'
+        className='w-32'
+      />
+      <p className='font-mono text-sm text-subtle'>B4RQ7NPD</p>
+    </Card.Footer>
+  </Card>
+</div>
+```
+
 ### Emphasis
 
 ```tsx-live

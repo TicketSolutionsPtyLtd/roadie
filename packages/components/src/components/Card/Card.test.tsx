@@ -1,3 +1,5 @@
+import { type ReactElement } from 'react'
+
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
@@ -293,6 +295,49 @@ describe('Card', () => {
     expect(desc).toHaveClass('text-sm', 'text-subtle')
   })
 
+  describe('direction', () => {
+    const cardIn = (ui: ReactElement) =>
+      render(ui).container.querySelector('[data-slot=card]')!
+
+    it('defaults to vertical, ticket or not', () => {
+      expect(cardIn(<Card>Body</Card>)).toHaveAttribute(
+        'data-direction',
+        'vertical'
+      )
+      expect(cardIn(<Card variant='ticket'>Body</Card>)).toHaveAttribute(
+        'data-direction',
+        'vertical'
+      )
+    })
+
+    it.each(['horizontal', 'auto'] as const)(
+      'renders %s on a plain card',
+      (direction) => {
+        const card = cardIn(
+          <Card direction={direction}>
+            <Card.Content>Body</Card.Content>
+            <Card.Footer>Actions</Card.Footer>
+          </Card>
+        )
+
+        expect(card).toHaveAttribute('data-direction', direction)
+        expect(card).not.toHaveAttribute('data-variant')
+      }
+    )
+
+    it('renders on a ticket alongside the ticket attributes', () => {
+      const card = cardIn(
+        <Card variant='ticket' direction='horizontal'>
+          <Card.Content>Body</Card.Content>
+          <Card.Footer>Holder</Card.Footer>
+        </Card>
+      )
+
+      expect(card).toHaveAttribute('data-direction', 'horizontal')
+      expect(card).toHaveAttribute('data-variant', 'ticket')
+    })
+  })
+
   describe('ticket variant', () => {
     it('marks the root for the ticket styles and moves emphasis to data', () => {
       const { container } = render(
@@ -363,6 +408,7 @@ describe('Card', () => {
 
       expect(card).not.toHaveAttribute('data-variant')
       expect(card).not.toHaveAttribute('data-emphasis')
+      expect(card).toHaveAttribute('data-direction', 'vertical')
       expect(card).toHaveClass('emphasis-normal')
     })
   })

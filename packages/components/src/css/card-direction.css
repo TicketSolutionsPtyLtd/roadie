@@ -1,0 +1,47 @@
+/* Card `direction`. Horizontal stacks every part in one column and gives
+   Card.Footer a column of its own beside it; auto does the same once the card
+   is wide enough. A card cannot query its own width, so auto switches its
+   columns with auto-fit and lets the parts follow with a container query. */
+
+@layer components {
+  [data-slot='card'][data-direction='horizontal'] {
+    grid-template-columns: minmax(0, 1fr) auto;
+
+    & > * {
+      grid-column: 1;
+    }
+
+    & > [data-slot='card-footer'] {
+      grid-column: 2;
+      grid-row: 1 / -1;
+      padding-top: 1.5rem;
+    }
+  }
+
+  [data-slot='card'][data-direction='auto'] {
+    /* The container query below flips the parts at twice this width. A
+       container condition cannot read a custom property, so 30rem is a
+       literal and the two have to change together. */
+    --card-column: 15rem;
+
+    container-type: inline-size;
+    grid-template-columns: repeat(
+      auto-fit,
+      minmax(min(var(--card-column), 100%), 1fr)
+    );
+  }
+
+  @container (width >= 30rem) {
+    [data-slot='card'][data-direction='auto'] {
+      & > * {
+        grid-column: 1;
+      }
+
+      & > [data-slot='card-footer'] {
+        grid-column: 2;
+        grid-row: 1 / -1;
+        padding-top: 1.5rem;
+      }
+    }
+  }
+}

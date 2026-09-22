@@ -55,6 +55,11 @@ type CardOwnProps<T extends ElementType = 'div'> = {
    * @default 'default'
    */
   variant?: 'default' | 'ticket'
+  /**
+   * Layout flow. `vertical` stacks every part. `horizontal` gives `Card.Footer` a column of its own beside the rest of the card. `auto` stacks below 30rem and splits into two columns at or above it. On a `ticket`, the notches and perforation follow the layout in effect.
+   * @default 'vertical'
+   */
+  direction?: 'vertical' | 'horizontal' | 'auto'
 } & VariantProps<typeof cardVariants>
 
 export type CardRootProps<T extends ElementType = 'div'> = CardOwnProps<T> &
@@ -83,6 +88,7 @@ export function CardRoot<T extends ElementType = 'div'>({
   intent,
   emphasis,
   variant = 'default',
+  direction = 'vertical',
   href,
   external,
   target,
@@ -94,7 +100,11 @@ export function CardRoot<T extends ElementType = 'div'>({
     variant === 'ticket'
       ? { 'data-variant': 'ticket', 'data-emphasis': emphasis ?? 'normal' }
       : undefined
-  const rest = { ...ticketAttributes, ...props } as Record<string, unknown>
+  const rest = {
+    'data-direction': direction,
+    ...ticketAttributes,
+    ...props
+  } as Record<string, unknown>
 
   // Detect interactivity from outer onClick OR from a render element
   // that itself carries onClick (e.g. `render={<button onClick=… />}`).

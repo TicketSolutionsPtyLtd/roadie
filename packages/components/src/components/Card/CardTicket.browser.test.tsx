@@ -251,3 +251,148 @@ describe.each(Object.entries(STATES))(
     })
   }
 )
+
+type Corner = { x: number; y: number }
+
+function expectHoles(
+  sample: (x: number, y: number) => Pixel,
+  a: Corner,
+  b: Corner,
+  fill: Pixel
+) {
+  expect(distance(sample(a.x, a.y), BACKDROP)).toBeLessThanOrEqual(2)
+  expect(distance(sample(b.x, b.y), BACKDROP)).toBeLessThanOrEqual(2)
+  expect(distance(fill, BACKDROP)).toBeGreaterThan(4)
+}
+
+describe.each(['raised', 'normal', 'subtle', 'subtler'] as const)(
+  'Card ticket, horizontal, %s emphasis',
+  (emphasis) => {
+    function renderTicket(direction: 'horizontal' | 'auto', width: number) {
+      const { container } = render(
+        <div
+          data-testid='host'
+          style={{ padding: 24, width, background: `rgb(${BACKDROP})` }}
+        >
+          <Card variant='ticket' emphasis={emphasis} direction={direction}>
+            <Card.Content style={{ height: 160 }}>
+              <p>General admission</p>
+            </Card.Content>
+            <Card.Footer>
+              <p>Sam Okafor</p>
+            </Card.Footer>
+          </Card>
+        </div>
+      )
+      const host = container.querySelector<HTMLElement>('[data-testid=host]')!
+      const card = host.querySelector<HTMLElement>('[data-slot=card]')!
+      const body = card.querySelector<HTMLElement>('[data-slot=card-content]')!
+      const footer = card.querySelector<HTMLElement>('[data-slot=card-footer]')!
+      return { host, card, body, footer }
+    }
+
+    it('seats the footer beside the body', () => {
+      const { body, footer } = renderTicket('horizontal', 560)
+
+      expect(
+        footer.getBoundingClientRect().left - body.getBoundingClientRect().right
+      ).toBeCloseTo(0, 1)
+      expect(
+        footer.getBoundingClientRect().top - body.getBoundingClientRect().top
+      ).toBeCloseTo(0, 1)
+    })
+
+    it('cuts a hole at each end of the join, with no seam along it', async () => {
+      const { host, card, footer } = renderTicket('horizontal', 560)
+      const sample = await capture(host)
+      const { top, bottom } = card.getBoundingClientRect()
+      const join = footer.getBoundingClientRect().left
+      const fill = sample(join - 8, top + NOTCH_RADIUS + 6)
+
+      expectHoles(
+        sample,
+        { x: join, y: top + 4 },
+        { x: join, y: bottom - 2 },
+        fill
+      )
+      expect(
+        distance(sample(join, top + NOTCH_RADIUS + 6), fill)
+      ).toBeLessThanOrEqual(2)
+      expect(
+        distance(sample(join, bottom - NOTCH_RADIUS - 6), fill)
+      ).toBeLessThanOrEqual(2)
+    })
+
+    it('stacks in a narrow container and splits in a wide one on auto', async () => {
+      const narrow = renderTicket('auto', 352)
+      const narrowBody = narrow.body.getBoundingClientRect()
+      const narrowFooter = narrow.footer.getBoundingClientRect()
+
+      expect(narrowFooter.top - narrowBody.bottom).toBeCloseTo(0, 1)
+      expect(narrowFooter.left).toBeCloseTo(narrowBody.left, 1)
+
+      const stacked = await capture(narrow.host)
+      const narrowCard = narrow.card.getBoundingClientRect()
+      const stackedFill = stacked(
+        narrowCard.left + NOTCH_RADIUS + 6,
+        narrowFooter.top - 8
+      )
+      expectHoles(
+        stacked,
+        { x: narrowCard.left + 4, y: narrowFooter.top },
+        { x: narrowCard.right - 4, y: narrowFooter.top },
+        stackedFill
+      )
+
+      cleanup()
+
+      const wide = renderTicket('auto', 640)
+      const wideBody = wide.body.getBoundingClientRect()
+      const wideFooter = wide.footer.getBoundingClientRect()
+
+      expect(wideFooter.left - wideBody.right).toBeCloseTo(0, 1)
+      expect(wideFooter.top - wideBody.top).toBeCloseTo(0, 1)
+
+      const split = await capture(wide.host)
+      const wideCard = wide.card.getBoundingClientRect()
+      const splitFill = split(
+        wideFooter.left - 8,
+        wideCard.top + NOTCH_RADIUS + 6
+      )
+      expectHoles(
+        split,
+        { x: wideFooter.left, y: wideCard.top + 4 },
+        { x: wideFooter.left, y: wideCard.bottom - 2 },
+        splitFill
+      )
+    })
+  }
+)
+
+describe('Card direction on a plain card', () => {
+  it('gives the footer its own column when horizontal', () => {
+    const { container } = render(
+      <div style={{ padding: 24, width: 560 }}>
+        <Card emphasis='raised' direction='horizontal'>
+          <Card.Content style={{ height: 120 }}>
+            <p>Two adult passes</p>
+          </Card.Content>
+          <Card.Footer>
+            <p>Cliffline Pavilion</p>
+          </Card.Footer>
+        </Card>
+      </div>
+    )
+    const card = container.querySelector<HTMLElement>('[data-slot=card]')!
+    const body = card
+      .querySelector<HTMLElement>('[data-slot=card-content]')!
+      .getBoundingClientRect()
+    const footer = card
+      .querySelector<HTMLElement>('[data-slot=card-footer]')!
+      .getBoundingClientRect()
+
+    expect(footer.left - body.right).toBeCloseTo(0, 1)
+    expect(footer.top - body.top).toBeCloseTo(0, 1)
+    expect(footer.height).toBeCloseTo(body.height, 1)
+  })
+})
