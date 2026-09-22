@@ -302,6 +302,30 @@ describe.each(['raised', 'normal', 'subtle', 'subtler'] as const)(
       ).toBeCloseTo(0, 1)
     })
 
+    it('fills the body column when the footer is taller', () => {
+      const { card, body, footer } = renderTicket('horizontal', 560)
+      body.style.height = ''
+      footer.style.minHeight = '320px'
+
+      expect(footer.getBoundingClientRect().height).toBeCloseTo(
+        card.getBoundingClientRect().height,
+        1
+      )
+      expect(body.getBoundingClientRect().bottom).toBeCloseTo(
+        card.getBoundingClientRect().bottom,
+        1
+      )
+    })
+
+    it('runs the footer the full height of the card when horizontal', () => {
+      const { card, footer } = renderTicket('horizontal', 560)
+
+      expect(footer.getBoundingClientRect().height).toBeCloseTo(
+        card.getBoundingClientRect().height,
+        1
+      )
+    })
+
     it('cuts a hole at each end of the join, with no seam along it', async () => {
       const { host, card, footer } = renderTicket('horizontal', 560)
       const sample = await capture(host)
@@ -366,6 +390,19 @@ describe.each(['raised', 'normal', 'subtle', 'subtler'] as const)(
         splitFill
       )
     })
+
+    it('splits on auto exactly as horizontal does', () => {
+      const split = renderTicket('auto', 640)
+      const splitFooter = split.footer.getBoundingClientRect().width
+      cleanup()
+
+      const pinned = renderTicket('horizontal', 640)
+
+      expect(splitFooter).toBeCloseTo(
+        pinned.footer.getBoundingClientRect().width,
+        1
+      )
+    })
   }
 )
 
@@ -394,5 +431,55 @@ describe('Card direction on a plain card', () => {
     expect(footer.left - body.right).toBeCloseTo(0, 1)
     expect(footer.top - body.top).toBeCloseTo(0, 1)
     expect(footer.height).toBeCloseTo(body.height, 1)
+  })
+})
+
+describe('Card ticket, horizontal with a header', () => {
+  it('cuts the ends of the join and leaves the parts between painted', async () => {
+    const { container } = render(
+      <div
+        data-testid='host'
+        style={{ padding: 24, width: 560, background: `rgb(${BACKDROP})` }}
+      >
+        <Card variant='ticket' emphasis='raised' direction='horizontal'>
+          <Card.Header>
+            <Card.Title>Paperbark Sessions</Card.Title>
+          </Card.Header>
+          <Card.Content style={{ height: 120 }}>
+            <p>General admission</p>
+          </Card.Content>
+          <Card.Footer>
+            <p>28 tickets</p>
+          </Card.Footer>
+        </Card>
+      </div>
+    )
+    const host = container.querySelector<HTMLElement>('[data-testid=host]')!
+    const card = host.querySelector<HTMLElement>('[data-slot=card]')!
+    const content = host.querySelector<HTMLElement>('[data-slot=card-content]')!
+    const footer = host.querySelector<HTMLElement>('[data-slot=card-footer]')!
+
+    const header = host.querySelector<HTMLElement>('[data-slot=card-header]')!
+    const sample = await capture(host)
+    const { top, bottom } = card.getBoundingClientRect()
+    const join = footer.getBoundingClientRect().left
+    const seam = content.getBoundingClientRect().top
+
+    expect(seam).toBeCloseTo(header.getBoundingClientRect().bottom, 1)
+    expect(content.getBoundingClientRect().bottom).toBeCloseTo(bottom, 1)
+    const fill = sample(join - 8, top + NOTCH_RADIUS + 6)
+
+    expectHoles(
+      sample,
+      { x: join, y: top + 4 },
+      { x: join, y: bottom - 2 },
+      fill
+    )
+    expect(distance(sample(join - 4, seam - 4), fill)).toBeLessThanOrEqual(2)
+    expect(distance(sample(join - 4, seam + 4), fill)).toBeLessThanOrEqual(2)
+    expect(
+      distance(sample(join + NOTCH_RADIUS + 8, bottom - 8), fill)
+    ).toBeLessThanOrEqual(2)
+    expect(footer.getBoundingClientRect().height).toBeCloseTo(bottom - top, 1)
   })
 })

@@ -90,25 +90,144 @@ import { Card } from '@oztix/roadie-components/card'
 
 ### Direction
 
-`direction` lays out the card's parts and works on any card. `vertical` stacks them and applies when you leave the prop off. `horizontal` gives `Card.Footer` a column of its own beside the rest of the card. `auto` stacks the card below 30rem wide and splits it into two equal columns at or above that, so the card follows its container. Reach for `auto` on tickets, and pin `horizontal` when the card always has the room and you want the footer sized to its content.
+`direction` lays out the card's parts and works on any card. `vertical` stacks them and applies when you leave the prop off. `horizontal` gives `Card.Footer` a column of its own beside the rest of the card, sized to its contents. `auto` picks between the two: the card stacks in a narrow container and splits at 30rem and up, laying out exactly as `horizontal` does once it splits.
+
+Direction moves the footer, it does not change what belongs in each part. Keep the body in `Card.Content` and leave the footer for the stub, such as actions or counts.
 
 ```tsx-live
-<div className='grid rounded-2xl bg-subtle p-4 intent-brand'>
-  <Card variant='ticket' direction='horizontal' emphasis='raised' intent='neutral'>
-    <Card.Content className='grid content-center gap-1 p-6'>
-      <p className='text-display-ui-4 text-strong'>Paperbark Sessions</p>
-      <p className='text-sm text-subtle'>Sat 18 Oct · Tallowwood Shed, Marrickville</p>
-      <p className='text-sm text-subtle'>General admission · Nina Aleksic</p>
-    </Card.Content>
-    <Card.Footer className='grid justify-items-center gap-2'>
-      <QRCode
-        value='B4RQ7NPD'
-        aria-label='Ticket QR code for General admission'
-        className='w-32'
-      />
-      <p className='font-mono text-sm text-subtle'>B4RQ7NPD</p>
-    </Card.Footer>
-  </Card>
+<div className='grid gap-6'>
+  <div className='grid gap-2'>
+    <p className='text-sm text-subtle'>vertical</p>
+    <div className='grid rounded-2xl bg-subtle p-4 intent-brand'>
+      <Card variant='ticket' direction='vertical' emphasis='raised' intent='neutral'>
+        <Card.Header className='flex items-center gap-4'>
+          <Card.Image
+            src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+            alt='Paperbark Sessions'
+            className='aspect-square w-14 object-cover'
+            width={112}
+            height={112}
+          />
+          <div className='grid gap-0.5'>
+            <Card.Title>Paperbark Sessions</Card.Title>
+            <Card.Description>Sat 18 Oct · 7pm · Tallowwood Shed, Marrickville</Card.Description>
+          </div>
+        </Card.Header>
+        <Card.Content>
+          <p>Doors open at 6.30pm.</p>
+        </Card.Content>
+        <Card.Footer className='grid content-center gap-4 text-center'>
+          <div className='grid'>
+            <p className='text-display-ui-4 text-strong'>28</p>
+            <p className='text-sm text-subtle'>tickets</p>
+          </div>
+          <div className='grid'>
+            <p className='text-display-ui-4 text-strong'>7</p>
+            <p className='text-sm text-subtle'>shared</p>
+          </div>
+        </Card.Footer>
+      </Card>
+    </div>
+  </div>
+  <div className='grid gap-2'>
+    <p className='text-sm text-subtle'>horizontal</p>
+    <div className='grid rounded-2xl bg-subtle p-4 intent-brand'>
+      <Card variant='ticket' direction='horizontal' emphasis='raised' intent='neutral'>
+        <Card.Header className='flex items-center gap-4'>
+          <Card.Image
+            src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+            alt='Paperbark Sessions'
+            className='aspect-square w-14 object-cover'
+            width={112}
+            height={112}
+          />
+          <div className='grid gap-0.5'>
+            <Card.Title>Paperbark Sessions</Card.Title>
+            <Card.Description>Sat 18 Oct · 7pm · Tallowwood Shed, Marrickville</Card.Description>
+          </div>
+        </Card.Header>
+        <Card.Content>
+          <p>Doors open at 6.30pm.</p>
+        </Card.Content>
+        <Card.Footer className='grid content-center gap-4 text-center'>
+          <div className='grid'>
+            <p className='text-display-ui-4 text-strong'>28</p>
+            <p className='text-sm text-subtle'>tickets</p>
+          </div>
+          <div className='grid'>
+            <p className='text-display-ui-4 text-strong'>7</p>
+            <p className='text-sm text-subtle'>shared</p>
+          </div>
+        </Card.Footer>
+      </Card>
+    </div>
+  </div>
+  <div className='grid gap-2'>
+    <p className='text-sm text-subtle'>auto, in a narrow container</p>
+    <div className='grid max-w-xs rounded-2xl bg-subtle p-4 intent-brand'>
+      <Card variant='ticket' direction='auto' emphasis='raised' intent='neutral'>
+        <Card.Header className='flex items-center gap-4'>
+          <Card.Image
+            src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+            alt='Paperbark Sessions'
+            className='aspect-square w-14 object-cover'
+            width={112}
+            height={112}
+          />
+          <div className='grid gap-0.5'>
+            <Card.Title>Paperbark Sessions</Card.Title>
+            <Card.Description>Sat 18 Oct · 7pm · Tallowwood Shed, Marrickville</Card.Description>
+          </div>
+        </Card.Header>
+        <Card.Content>
+          <p>Doors open at 6.30pm.</p>
+        </Card.Content>
+        <Card.Footer className='grid content-center gap-4 text-center'>
+          <div className='grid'>
+            <p className='text-display-ui-4 text-strong'>28</p>
+            <p className='text-sm text-subtle'>tickets</p>
+          </div>
+          <div className='grid'>
+            <p className='text-display-ui-4 text-strong'>7</p>
+            <p className='text-sm text-subtle'>shared</p>
+          </div>
+        </Card.Footer>
+      </Card>
+    </div>
+  </div>
+  <div className='grid gap-2'>
+    <p className='text-sm text-subtle'>auto, with room to split</p>
+    <div className='grid rounded-2xl bg-subtle p-4 intent-brand'>
+      <Card variant='ticket' direction='auto' emphasis='raised' intent='neutral'>
+        <Card.Header className='flex items-center gap-4'>
+          <Card.Image
+            src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+            alt='Paperbark Sessions'
+            className='aspect-square w-14 object-cover'
+            width={112}
+            height={112}
+          />
+          <div className='grid gap-0.5'>
+            <Card.Title>Paperbark Sessions</Card.Title>
+            <Card.Description>Sat 18 Oct · 7pm · Tallowwood Shed, Marrickville</Card.Description>
+          </div>
+        </Card.Header>
+        <Card.Content>
+          <p>Doors open at 6.30pm.</p>
+        </Card.Content>
+        <Card.Footer className='grid content-center gap-4 text-center'>
+          <div className='grid'>
+            <p className='text-display-ui-4 text-strong'>28</p>
+            <p className='text-sm text-subtle'>tickets</p>
+          </div>
+          <div className='grid'>
+            <p className='text-display-ui-4 text-strong'>7</p>
+            <p className='text-sm text-subtle'>shared</p>
+          </div>
+        </Card.Footer>
+      </Card>
+    </div>
+  </div>
 </div>
 ```
 
