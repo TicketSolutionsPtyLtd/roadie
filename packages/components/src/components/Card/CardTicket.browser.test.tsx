@@ -149,12 +149,8 @@ describe('Card ticket with a tall body', () => {
   })
 })
 
-// Scoop browsers paint the fill on the parts; the rest on the footer's ::after.
 const paintedFill = (footer: HTMLElement) =>
-  getComputedStyle(
-    footer,
-    CSS.supports('corner-shape: scoop') ? null : '::after'
-  ).backgroundColor
+  getComputedStyle(footer).backgroundColor
 
 const settle = () => new Promise((resolve) => setTimeout(resolve, 400))
 

@@ -1,7 +1,9 @@
-/* Card variant='ticket'. The edge and shadow are drop-shadows on the root so
-   they follow the notches. Where corner-shape is supported, the body and
-   footer each paint the fill with scooped corners at the join. Elsewhere one
-   masked layer paints it, so translucent fills never double up at the join. */
+/* Card variant='ticket'. The body and footer each paint the fill and are cut
+   at the join: with corner-shape: scoop where supported, and with a
+   half-notch mask on each part elsewhere. The edge and shadow are
+   drop-shadows on the root so they follow the notches. Nothing inside the
+   filtered root may be much taller than the card: Safari stops painting the
+   card, and sometimes the whole page, when it is. */
 
 @layer components {
   [data-slot='card'][data-variant='ticket'] {
@@ -31,6 +33,11 @@
       background-color: var(--card-fill);
     }
 
+    &:has(> [data-slot='card-footer']) > * {
+      background-color: var(--card-fill);
+      transition: background-color var(--duration-moderate) var(--ease-standard);
+    }
+
     & > [data-slot='card-footer'] {
       position: relative;
       padding-top: 1.5rem;
@@ -46,13 +53,7 @@
   }
 
   @supports (corner-shape: scoop) {
-    [data-slot='card'][data-variant='ticket']:has(> [data-slot='card-footer']) {
-      & > * {
-        background-color: var(--card-fill);
-        transition: background-color var(--duration-moderate)
-          var(--ease-standard);
-      }
-
+    [data-slot='card'][data-variant='ticket'] {
       & > :has(+ [data-slot='card-footer']) {
         border-bottom-left-radius: var(--card-notch);
         border-bottom-right-radius: var(--card-notch);
@@ -67,37 +68,40 @@
     }
   }
 
-  /* The layer reaches past both ends of the card (the root clips it), which
-     puts the notches a known distance from its top. The reach is capped
-     because browsers rasterise the mask of a very tall layer at a lower
-     resolution, which leaves the notch edge jagged. */
   @supports not (corner-shape: scoop) {
-    [data-slot='card'][data-variant='ticket'] > [data-slot='card-footer'] {
-      --card-reach: 150rem;
+    [data-slot='card'][data-variant='ticket'] {
+      --notch-edge: calc(var(--card-notch) + 0.5px);
 
-      &::after {
-        --notch: radial-gradient(
-          circle closest-side,
-          #000 calc(100% - 0.5px),
-          #0000 100%
-        );
-
-        content: '';
-        position: absolute;
-        inset: calc(-1 * var(--card-reach)) 0;
-        z-index: -1;
-        background-color: var(--card-fill);
-        transition: background-color var(--duration-moderate)
-          var(--ease-standard);
+      & > :has(+ [data-slot='card-footer']) {
         mask:
-          var(--notch) left calc(-1 * var(--card-notch)) top
-            calc(var(--card-reach) - var(--card-notch)) /
-            calc(2 * var(--card-notch)) calc(2 * var(--card-notch)) no-repeat,
-          var(--notch) right calc(-1 * var(--card-notch)) top
-            calc(var(--card-reach) - var(--card-notch)) /
-            calc(2 * var(--card-notch)) calc(2 * var(--card-notch)) no-repeat,
-          linear-gradient(#000 0 0);
-        mask-composite: exclude;
+          radial-gradient(
+              circle at 0 100%,
+              #0000 var(--card-notch),
+              #000 var(--notch-edge)
+            )
+            left / 51% 100% no-repeat,
+          radial-gradient(
+              circle at 100% 100%,
+              #0000 var(--card-notch),
+              #000 var(--notch-edge)
+            )
+            right / 51% 100% no-repeat;
+      }
+
+      & > [data-slot='card-footer'] {
+        mask:
+          radial-gradient(
+              circle at 0 0,
+              #0000 var(--card-notch),
+              #000 var(--notch-edge)
+            )
+            left / 51% 100% no-repeat,
+          radial-gradient(
+              circle at 100% 0,
+              #0000 var(--card-notch),
+              #000 var(--notch-edge)
+            )
+            right / 51% 100% no-repeat;
       }
     }
   }
