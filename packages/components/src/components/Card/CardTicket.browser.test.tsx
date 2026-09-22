@@ -406,6 +406,35 @@ describe.each(['raised', 'normal', 'subtle', 'subtler'] as const)(
   }
 )
 
+describe('Card ticket, split auto with a header', () => {
+  it('runs the footer the full height, with no ancestor container', () => {
+    const { container } = render(
+      <div style={{ padding: 24, width: 640 }}>
+        <Card variant='ticket' emphasis='raised' direction='auto'>
+          <Card.Header>
+            <Card.Title>Paperbark Sessions</Card.Title>
+          </Card.Header>
+          <Card.Content style={{ height: 120 }}>
+            <p>General admission</p>
+          </Card.Content>
+          <Card.Footer>
+            <p>28 tickets</p>
+          </Card.Footer>
+        </Card>
+      </div>
+    )
+    const card = container.querySelector<HTMLElement>('[data-slot=card]')!
+    const footer = container.querySelector<HTMLElement>(
+      '[data-slot=card-footer]'
+    )!
+
+    expect(footer.getBoundingClientRect().height).toBeCloseTo(
+      card.getBoundingClientRect().height,
+      1
+    )
+  })
+})
+
 describe('Card footer items', () => {
   function renderFooter(direction: 'vertical' | 'horizontal') {
     const { container } = render(
