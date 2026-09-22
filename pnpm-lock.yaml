@@ -389,8 +389,8 @@ importers:
         specifier: 0.2.4
         version: 0.2.4(@babel/core@7.29.7(supports-color@9.4.0))(@babel/runtime@7.29.7)(rolldown@1.2.8)(vite@8.3.0(@types/node@24.13.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.9.0))
       '@size-limit/preset-small-lib':
-        specifier: 13.1.1
-        version: 13.1.1(size-limit@14.0.0)
+        specifier: 14.0.0
+        version: 14.0.0(size-limit@14.0.0)
       '@tailwindcss/vite':
         specifier: 4.3.3
         version: 4.3.3(vite@8.3.0(@types/node@24.13.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.9.0))
@@ -447,7 +447,7 @@ importers:
         version: 4.1.0
       tsdown:
         specifier: 0.23.0
-        version: 0.23.0(@arethetypeswrong/core@0.18.5)(@volar/typescript@2.4.28)(tsx@4.21.0)(typescript@6.0.3)(unrun@0.2.34(@emnapi/core@1.10.0)(@emnapi/runtime@1.11.3)(synckit@0.11.13))(vue-tsc@3.3.11(typescript@6.0.3))
+        version: 0.23.0(@arethetypeswrong/core@0.18.5)(@volar/typescript@2.4.28(typescript@6.0.3))(tsx@4.21.0)(typescript@6.0.3)(unrun@0.2.34(@emnapi/core@1.10.0)(@emnapi/runtime@1.11.3)(synckit@0.11.13))(vue-tsc@3.3.11(typescript@6.0.3))
       vite:
         specifier: 8.3.0
         version: 8.3.0(@types/node@24.13.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.9.0)
@@ -468,8 +468,8 @@ importers:
         version: 3.7.0
     devDependencies:
       '@size-limit/preset-small-lib':
-        specifier: 13.1.1
-        version: 13.1.1(size-limit@14.0.0)
+        specifier: 14.0.0
+        version: 14.0.0(size-limit@14.0.0)
       '@tailwindcss/cli':
         specifier: 4.3.3
         version: 4.3.3
@@ -493,7 +493,7 @@ importers:
         version: 4.3.3
       tsdown:
         specifier: 0.23.0
-        version: 0.23.0(@arethetypeswrong/core@0.18.5)(@volar/typescript@2.4.28)(tsx@4.21.0)(typescript@6.0.3)(unrun@0.2.34(@emnapi/core@1.10.0)(@emnapi/runtime@1.11.3)(synckit@0.11.13))(vue-tsc@3.3.11(typescript@6.0.3))
+        version: 0.23.0(@arethetypeswrong/core@0.18.5)(@volar/typescript@2.4.28(typescript@6.0.3))(tsx@4.21.0)(typescript@6.0.3)(unrun@0.2.34(@emnapi/core@1.10.0)(@emnapi/runtime@1.11.3)(synckit@0.11.13))(vue-tsc@3.3.11(typescript@6.0.3))
       vite:
         specifier: 8.3.0
         version: 8.3.0(@types/node@24.13.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.9.0)
@@ -529,8 +529,8 @@ importers:
         specifier: 2.2.1
         version: 2.2.1(vue@3.5.43(typescript@6.0.3))
       '@size-limit/preset-small-lib':
-        specifier: 13.1.1
-        version: 13.1.1(size-limit@14.0.0)
+        specifier: 14.0.0
+        version: 14.0.0(size-limit@14.0.0)
       '@tanstack/react-query':
         specifier: 5.103.1
         version: 5.103.1(react@19.3.0)
@@ -584,7 +584,7 @@ importers:
         version: 14.0.0
       tsdown:
         specifier: 0.23.0
-        version: 0.23.0(@arethetypeswrong/core@0.18.5)(@volar/typescript@2.4.28)(tsx@4.21.0)(typescript@6.0.3)(unrun@0.2.34(@emnapi/core@1.10.0)(@emnapi/runtime@1.11.3)(synckit@0.11.13))(vue-tsc@3.3.11(typescript@6.0.3))
+        version: 0.23.0(@arethetypeswrong/core@0.18.5)(@volar/typescript@2.4.28(typescript@6.0.3))(tsx@4.21.0)(typescript@6.0.3)(unrun@0.2.34(@emnapi/core@1.10.0)(@emnapi/runtime@1.11.3)(synckit@0.11.13))(vue-tsc@3.3.11(typescript@6.0.3))
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -2016,22 +2016,22 @@ packages:
     resolution: {integrity: sha512-t09vSN3MdfsyCHoFcTRCH/iUtG7OJ0CsjzB8cjAmKc/va/kIgeDI/TxsigdncE/4be734m0cvIYwNaV4i2XqAw==}
     engines: {node: '>=10'}
 
-  '@size-limit/esbuild@13.1.1':
-    resolution: {integrity: sha512-+aWz9zUJTtnkc1UejLzrFGBOmM/H6QpYvL39BfgmxUULCeLn6xMb2sQw2w8n1CaF70/DvH9/J9QdNl4kAhdrHA==}
-    engines: {node: ^20.0.0 || ^22.0.0 || >=24.0.0}
+  '@size-limit/file@14.0.0':
+    resolution: {integrity: sha512-CzlXGYuzt+vZM70NxPwi5uFyYHhORrdpDCJtcH+G57oeUPrgnqdUhDoP4jRxa6i2HNBM5Htatw5X5TcDZ8uBWQ==}
+    engines: {node: ^22.19.0 || ^24.5.0 || >=26.0.0}
     peerDependencies:
-      size-limit: 13.1.1
+      size-limit: 14.0.0
 
-  '@size-limit/file@13.1.1':
-    resolution: {integrity: sha512-hWsrLRKBSh1vVFa86e2WcpBWcTYnwRvvZ54o6wzmPduhYUQPgOCr9eWqNMLCxvqLP5EiJeGCwLQFDjdgusGFSw==}
-    engines: {node: ^20.0.0 || ^22.0.0 || >=24.0.0}
+  '@size-limit/preset-small-lib@14.0.0':
+    resolution: {integrity: sha512-Rtq5eNDtCohmWcW9vo/oLQSl8RKX+Fcd2e2JyR7GrxRC/AeJvX6FaL/xYfu1nvi1bBd5M/BF30cJSsmehKjjjA==}
     peerDependencies:
-      size-limit: 13.1.1
+      size-limit: 14.0.0
 
-  '@size-limit/preset-small-lib@13.1.1':
-    resolution: {integrity: sha512-by5zdyqKuIU3umUo3WQFwDyv1/cOJnYR/cE8VEZeW9lPRyfaExiWu1A3jzIn+LA4GGZaYvQ5Z6THHMlGij9Jmw==}
+  '@size-limit/rolldown@14.0.0':
+    resolution: {integrity: sha512-E5TvfZrtnEjzG9esYMi5+BMKda1ZWNKSooZHipuwosoeKWxc9+8uzBT073I2waDObAlHgDkeRJV+/BBF9s1S1A==}
+    engines: {node: ^22.19.0 || ^24.5.0 || >=26.0.0}
     peerDependencies:
-      size-limit: 13.1.1
+      size-limit: 14.0.0
 
   '@swc/helpers@0.5.23':
     resolution: {integrity: sha512-5lSsMOTXURePglDfvuAQUqkGek9Hg2kksOYay2m0+XR++b2NWYL/4sWyuvVBIs8oKnJaxkdi9whaL/sqN13afw==}
@@ -2599,6 +2599,11 @@ packages:
 
   '@volar/typescript@2.4.28':
     resolution: {integrity: sha512-Ja6yvWrbis2QtN4ClAKreeUZPVYMARDYZl9LMEv1iQ1QdepB6wn0jTRxA9MftYmYa4DQ4k/DaSZpFPUfxl8giw==}
+    peerDependencies:
+      typescript: '*'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
 
   '@vue/compiler-core@3.5.43':
     resolution: {integrity: sha512-zdiLhnbe1QQqgDT8xZMpNmyqZ3qlI+/Q/FHQco57Kwl/b05HhCzN6eVGN9QU9rbga4CrS0H5SYY8VGHZCt/1Hg==}
@@ -4969,11 +4974,6 @@ packages:
   nanoid@3.3.18:
     resolution: {integrity: sha512-DTg4MJbGMWkfi6VZFdNt2/caMbQy4Ou+Op/hJQvGEWcnVfoA1QA+xzRKAzw9jD6+GVOOeYr/mIcuDSdug6F6+w==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
-    hasBin: true
-
-  nanoid@6.0.1:
-    resolution: {integrity: sha512-3wVS3i51pE2pi1k5FFL/95BGfVS0kSsvDVuGXHOtxox/TywUmtgq+3qiTOTbs9J7KfHaXPiN171k/A6dBnaXFw==}
-    engines: {node: ^22 || ^24 || >=26}
     hasBin: true
 
   nanospinner@1.2.2:
@@ -7762,20 +7762,19 @@ snapshots:
 
   '@sindresorhus/is@4.6.0': {}
 
-  '@size-limit/esbuild@13.1.1(size-limit@14.0.0)':
-    dependencies:
-      esbuild: 0.28.2
-      nanoid: 6.0.1
-      size-limit: 14.0.0
-
-  '@size-limit/file@13.1.1(size-limit@14.0.0)':
+  '@size-limit/file@14.0.0(size-limit@14.0.0)':
     dependencies:
       size-limit: 14.0.0
 
-  '@size-limit/preset-small-lib@13.1.1(size-limit@14.0.0)':
+  '@size-limit/preset-small-lib@14.0.0(size-limit@14.0.0)':
     dependencies:
-      '@size-limit/esbuild': 13.1.1(size-limit@14.0.0)
-      '@size-limit/file': 13.1.1(size-limit@14.0.0)
+      '@size-limit/file': 14.0.0(size-limit@14.0.0)
+      '@size-limit/rolldown': 14.0.0(size-limit@14.0.0)
+      size-limit: 14.0.0
+
+  '@size-limit/rolldown@14.0.0(size-limit@14.0.0)':
+    dependencies:
+      rolldown: 1.2.8
       size-limit: 14.0.0
 
   '@swc/helpers@0.5.23':
@@ -8390,11 +8389,13 @@ snapshots:
 
   '@volar/source-map@2.4.28': {}
 
-  '@volar/typescript@2.4.28':
+  '@volar/typescript@2.4.28(typescript@6.0.3)':
     dependencies:
       '@volar/language-core': 2.4.28
       path-browserify: 1.0.1
       vscode-uri: 3.1.0
+    optionalDependencies:
+      typescript: 6.0.3
 
   '@vue/compiler-core@3.5.43':
     dependencies:
@@ -9965,6 +9966,7 @@ snapshots:
       '@esbuild/win32-arm64': 0.28.2
       '@esbuild/win32-ia32': 0.28.2
       '@esbuild/win32-x64': 0.28.2
+    optional: true
 
   escalade@3.2.0: {}
 
@@ -11589,8 +11591,6 @@ snapshots:
 
   nanoid@3.3.18: {}
 
-  nanoid@6.0.1: {}
-
   nanospinner@1.2.2:
     dependencies:
       picocolors: 1.1.1
@@ -12164,7 +12164,7 @@ snapshots:
 
   reusify@1.1.0: {}
 
-  rolldown-plugin-dts@0.28.5(@volar/typescript@2.4.28)(rolldown@1.2.7)(typescript@6.0.3)(vue-tsc@3.3.11(typescript@6.0.3)):
+  rolldown-plugin-dts@0.28.5(@volar/typescript@2.4.28(typescript@6.0.3))(rolldown@1.2.7)(typescript@6.0.3)(vue-tsc@3.3.11(typescript@6.0.3)):
     dependencies:
       dts-resolver: 3.0.0
       get-tsconfig: 5.0.0-beta.6
@@ -12174,7 +12174,7 @@ snapshots:
       yuku-codegen: 0.9.4
       yuku-parser: 0.9.4
     optionalDependencies:
-      '@volar/typescript': 2.4.28
+      '@volar/typescript': 2.4.28(typescript@6.0.3)
       typescript: 6.0.3
       vue-tsc: 3.3.11(typescript@6.0.3)
     transitivePeerDependencies:
@@ -12699,7 +12699,7 @@ snapshots:
       minimist: 1.2.8
       strip-bom: 3.0.0
 
-  tsdown@0.23.0(@arethetypeswrong/core@0.18.5)(@volar/typescript@2.4.28)(tsx@4.21.0)(typescript@6.0.3)(unrun@0.2.34(@emnapi/core@1.10.0)(@emnapi/runtime@1.11.3)(synckit@0.11.13))(vue-tsc@3.3.11(typescript@6.0.3)):
+  tsdown@0.23.0(@arethetypeswrong/core@0.18.5)(@volar/typescript@2.4.28(typescript@6.0.3))(tsx@4.21.0)(typescript@6.0.3)(unrun@0.2.34(@emnapi/core@1.10.0)(@emnapi/runtime@1.11.3)(synckit@0.11.13))(vue-tsc@3.3.11(typescript@6.0.3)):
     dependencies:
       cac: 7.0.0
       defu: 6.1.7
@@ -12709,7 +12709,7 @@ snapshots:
       obug: 2.1.4
       picomatch: 4.0.7
       rolldown: 1.2.7
-      rolldown-plugin-dts: 0.28.5(@volar/typescript@2.4.28)(rolldown@1.2.7)(typescript@6.0.3)(vue-tsc@3.3.11(typescript@6.0.3))
+      rolldown-plugin-dts: 0.28.5(@volar/typescript@2.4.28(typescript@6.0.3))(rolldown@1.2.7)(typescript@6.0.3)(vue-tsc@3.3.11(typescript@6.0.3))
       tinyexec: 1.3.1
       tinyglobby: 0.2.17
       tree-kill: 1.2.2
@@ -13127,7 +13127,7 @@ snapshots:
 
   vue-tsc@3.3.11(typescript@6.0.3):
     dependencies:
-      '@volar/typescript': 2.4.28
+      '@volar/typescript': 2.4.28(typescript@6.0.3)
       '@vue/language-core': 3.3.11
       typescript: 6.0.3
 
