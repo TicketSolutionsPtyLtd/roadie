@@ -1,13 +1,11 @@
-/* Card variant='ticket'. One layer paints the fill so translucent fills never
-   double up at the join: the footer's ::after reaches past both ends of the
-   card (the root clips it), which puts the notches a known distance from its
-   top. The edge and shadow are drop-shadows so they follow the cut. */
+/* Card variant='ticket'. The edge and shadow are drop-shadows on the root so
+   they follow the notches. Where corner-shape is supported, the body and
+   footer each paint the fill with scooped corners at the join. Elsewhere one
+   masked layer paints it, so translucent fills never double up at the join. */
 
 @layer components {
   [data-slot='card'][data-variant='ticket'] {
     --card-notch: 0.75rem;
-    /* A fixed length, not a viewport unit, so no card is ever taller than it. */
-    --card-reach: 1000rem;
     --card-shadow-color: oklch(0.3 0.05 var(--intent-hue) / 0.06);
     --card-edge: transparent;
     --card-shadow-2: transparent;
@@ -44,6 +42,38 @@
         inset-inline: calc(var(--card-notch) + 0.75rem);
         border-top: 2px dashed var(--intent-border-subtle);
       }
+    }
+  }
+
+  @supports (corner-shape: scoop) {
+    [data-slot='card'][data-variant='ticket']:has(> [data-slot='card-footer']) {
+      & > * {
+        background-color: var(--card-fill);
+        transition: background-color var(--duration-moderate)
+          var(--ease-standard);
+      }
+
+      & > :has(+ [data-slot='card-footer']) {
+        border-bottom-left-radius: var(--card-notch);
+        border-bottom-right-radius: var(--card-notch);
+        corner-shape: scoop;
+      }
+
+      & > [data-slot='card-footer'] {
+        border-top-left-radius: var(--card-notch);
+        border-top-right-radius: var(--card-notch);
+        corner-shape: scoop;
+      }
+    }
+  }
+
+  /* The layer reaches past both ends of the card (the root clips it), which
+     puts the notches a known distance from its top. The reach is capped
+     because browsers rasterise the mask of a very tall layer at a lower
+     resolution, which leaves the notch edge jagged. */
+  @supports not (corner-shape: scoop) {
+    [data-slot='card'][data-variant='ticket'] > [data-slot='card-footer'] {
+      --card-reach: 150rem;
 
       &::after {
         --notch: radial-gradient(

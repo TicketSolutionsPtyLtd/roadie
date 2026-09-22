@@ -123,7 +123,7 @@ describe('Card ticket without a footer', () => {
   })
 })
 
-describe('Card ticket taller than two viewports', () => {
+describe('Card ticket with a tall body', () => {
   it('paints the fill all the way to the top', async () => {
     const { container } = render(
       <div
@@ -131,7 +131,7 @@ describe('Card ticket taller than two viewports', () => {
         style={{ padding: 24, width: 360, background: `rgb(${BACKDROP})` }}
       >
         <Card variant='ticket' emphasis='raised'>
-          <Card.Content style={{ height: 2.5 * window.innerHeight }}>
+          <Card.Content style={{ height: '140rem' }}>
             <p>General admission</p>
           </Card.Content>
           <Card.Footer>
@@ -148,6 +148,13 @@ describe('Card ticket taller than two viewports', () => {
     expect(distance(sample(left + 24, top + 40), BACKDROP)).toBeGreaterThan(40)
   })
 })
+
+// Scoop browsers paint the fill on the parts; the rest on the footer's ::after.
+const paintedFill = (footer: HTMLElement) =>
+  getComputedStyle(
+    footer,
+    CSS.supports('corner-shape: scoop') ? null : '::after'
+  ).backgroundColor
 
 const settle = () => new Promise((resolve) => setTimeout(resolve, 400))
 
@@ -216,9 +223,7 @@ describe.each(Object.entries(STATES))(
       probe.style.backgroundColor = state.fill
         ? `var(${state.fill})`
         : 'transparent'
-      expect(getComputedStyle(footer, '::after').backgroundColor).toBe(
-        getComputedStyle(probe).backgroundColor
-      )
+      expect(paintedFill(footer)).toBe(getComputedStyle(probe).backgroundColor)
       const matrix = new DOMMatrix(getComputedStyle(card).transform)
       if (state.transform === 'lift') expect(matrix.f).toBeCloseTo(-1)
       if (state.transform === 'press') expect(matrix.a).toBeCloseTo(0.99)
