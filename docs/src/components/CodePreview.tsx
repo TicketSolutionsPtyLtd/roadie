@@ -40,6 +40,7 @@ import {
   TicketIcon,
   TrashIcon,
   UserCircleIcon,
+  UsersIcon,
   WalletIcon,
   WarningIcon,
   XCircleIcon,
@@ -97,6 +98,7 @@ const PhosphorIcons = {
   Cube: CubeIcon,
   Export: ExportIcon,
   UserCircle: UserCircleIcon,
+  Users: UsersIcon,
   Wallet: WalletIcon
 }
 

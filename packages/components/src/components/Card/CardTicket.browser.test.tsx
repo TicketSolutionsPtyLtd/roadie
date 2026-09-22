@@ -406,6 +406,42 @@ describe.each(['raised', 'normal', 'subtle', 'subtler'] as const)(
   }
 )
 
+describe('Card footer items', () => {
+  function renderFooter(direction: 'vertical' | 'horizontal') {
+    const { container } = render(
+      <div style={{ padding: 24, width: 560 }}>
+        <Card variant='ticket' emphasis='raised' direction={direction}>
+          <Card.Content>
+            <p>General admission</p>
+          </Card.Content>
+          <Card.Footer>
+            <button type='button'>28 tickets</button>
+            <button type='button'>7 shared</button>
+          </Card.Footer>
+        </Card>
+      </div>
+    )
+    return [
+      ...container.querySelectorAll('[data-slot=card-footer] button')
+    ].map((button) => button.getBoundingClientRect())
+  }
+
+  it('runs across the card when it is stacked', () => {
+    const [first, second] = renderFooter('vertical')
+
+    expect(second!.top).toBeCloseTo(first!.top, 1)
+    expect(second!.left).toBeGreaterThan(first!.left)
+  })
+
+  it('runs down the footer when it is the side column', () => {
+    const [first, second] = renderFooter('horizontal')
+    const centre = (box: DOMRect) => box.left + box.width / 2
+
+    expect(centre(second!)).toBeCloseTo(centre(first!), 1)
+    expect(second!.top).toBeGreaterThan(first!.bottom - 1)
+  })
+})
+
 describe('Card direction on a plain card', () => {
   it('gives the footer its own column when horizontal', () => {
     const { container } = render(
