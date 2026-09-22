@@ -152,7 +152,11 @@ describe('Card ticket with a tall body', () => {
 const paintedFill = (footer: HTMLElement) =>
   getComputedStyle(footer).backgroundColor
 
-const settle = () => new Promise((resolve) => setTimeout(resolve, 400))
+// The states are the settled ones, so no test waits on a transition to land.
+const STILL = '*, *::before, *::after { transition: none !important }'
+
+const frame = () =>
+  new Promise((resolve) => requestAnimationFrame(() => resolve(null)))
 
 type State = { fill?: string; transform?: 'lift' | 'press' }
 const STATES: Record<
@@ -184,6 +188,11 @@ const STATES: Record<
 describe.each(Object.entries(STATES))(
   'Card ticket, interactive %s emphasis',
   (emphasis, states) => {
+    let removeStill = () => {}
+    beforeAll(() => {
+      removeStill = useStylesheet(STILL)
+    })
+    afterAll(() => removeStill())
     afterEach(async () => {
       await userEvent.unhover(document.body)
     })
@@ -228,16 +237,16 @@ describe.each(Object.entries(STATES))(
 
     it('matches the plain emphasis at rest, on hover and when active', async () => {
       const ticket = renderLinkedTicket()
-      await settle()
+      await frame()
       expectState(ticket, states.rest)
 
       await userEvent.hover(ticket.card)
-      await settle()
+      await frame()
       expectState(ticket, states.hover)
 
       await userEvent.unhover(ticket.card)
       ticket.card.classList.add('is-active')
-      await settle()
+      await frame()
       expectState(ticket, states.active)
     })
   }
