@@ -48,7 +48,6 @@ jobs:
         run: pnpm format:check
 
   browser:
-    needs: [check]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     # One engine per runner: three at once backlog Vitest's Playwright bridge
@@ -69,6 +68,18 @@ jobs:
       - name: Setup
         uses: ./.github/composite-actions/setup
 
+      - name: Read Playwright version
+        id: playwright
+        run: echo "version=$(pnpm exec playwright --version | cut -d' ' -f2)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}-${{ matrix.browser }}
+
+      # The cache holds only the browser binaries; --with-deps still installs
+      # the system libraries from apt, and skips a download already cached.
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps ${{ matrix.browser }}
 
@@ -79,7 +90,6 @@ jobs:
           TURBO_SCM_BASE: origin/main
 
   build:
-    needs: [check]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
