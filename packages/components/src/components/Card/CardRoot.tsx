@@ -50,6 +50,11 @@ type CardOwnProps<T extends ElementType = 'div'> = {
    * full reference.
    */
   render?: RoadieRenderProp
+  /**
+   * The card's shape. `default` is a plain card. `ticket` cuts a notch into each side where the body meets `Card.Footer`, with a perforated line between them; use it with `raised`, `normal` or `subtle` emphasis.
+   * @default 'default'
+   */
+  variant?: 'default' | 'ticket'
 } & VariantProps<typeof cardVariants>
 
 export type CardRootProps<T extends ElementType = 'div'> = CardOwnProps<T> &
@@ -77,6 +82,7 @@ export function CardRoot<T extends ElementType = 'div'>({
   className,
   intent,
   emphasis,
+  variant = 'default',
   href,
   external,
   target,
@@ -84,7 +90,11 @@ export function CardRoot<T extends ElementType = 'div'>({
   render,
   ...props
 }: CardRootProps<T>): ReactElement {
-  const rest = props as Record<string, unknown>
+  const ticketAttributes =
+    variant === 'ticket'
+      ? { 'data-variant': 'ticket', 'data-emphasis': emphasis ?? 'normal' }
+      : undefined
+  const rest = { ...ticketAttributes, ...props } as Record<string, unknown>
 
   // Detect interactivity from outer onClick OR from a render element
   // that itself carries onClick (e.g. `render={<button onClick=… />}`).
@@ -98,7 +108,11 @@ export function CardRoot<T extends ElementType = 'div'>({
     href !== undefined || !!rest.onClick || renderElementOnClick
 
   const finalClassName = cn(
-    cardVariants({ intent, emphasis }),
+    cardVariants({
+      intent,
+      variant,
+      emphasis: ticketAttributes ? null : emphasis
+    }),
     isInteractive && 'is-interactive',
     className
   )
@@ -150,7 +164,7 @@ export function CardRoot<T extends ElementType = 'div'>({
   }
 
   // Default — plain div
-  return <div data-slot='card' className={finalClassName} {...props} />
+  return <div data-slot='card' className={finalClassName} {...rest} />
 }
 
 CardRoot.displayName = 'Card.Root'

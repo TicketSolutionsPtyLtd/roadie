@@ -1,0 +1,87 @@
+/* Card variant='ticket'. The parts carry the fill so each can be masked with
+   half a notch; the edge and shadow are drop-shadows so they follow the cut. */
+
+@layer components {
+  [data-slot='card'][data-variant='ticket'] {
+    --card-notch: 0.75rem;
+    --card-edge: transparent;
+    --card-shade: transparent;
+
+    overflow: clip;
+    color: var(--intent-text-normal);
+    filter: drop-shadow(1px 0 0 var(--card-edge))
+      drop-shadow(-1px 0 0 var(--card-edge))
+      drop-shadow(0 1px 0 var(--card-edge))
+      drop-shadow(0 -1px 0 var(--card-edge))
+      drop-shadow(0 2px 2px var(--card-shade))
+      drop-shadow(0 4px 4px var(--card-shade));
+
+    & > * {
+      background-color: var(--card-fill);
+    }
+
+    & > :has(+ [data-slot='card-footer']) {
+      mask:
+        radial-gradient(
+            circle at 0 100%,
+            #0000 var(--card-notch),
+            #000 calc(var(--card-notch) + 0.5px)
+          )
+          left / 51% 100% no-repeat,
+        radial-gradient(
+            circle at 100% 100%,
+            #0000 var(--card-notch),
+            #000 calc(var(--card-notch) + 0.5px)
+          )
+          right / 51% 100% no-repeat;
+    }
+
+    & > [data-slot='card-footer'] {
+      position: relative;
+      /* Overlap the body so no anti-aliased seam shows between the parts. */
+      margin-top: -1px;
+      padding-top: calc(1.5rem + 1px);
+      mask:
+        radial-gradient(
+            circle at 0 0,
+            #0000 var(--card-notch),
+            #000 calc(var(--card-notch) + 0.5px)
+          )
+          left / 51% 100% no-repeat,
+        radial-gradient(
+            circle at 100% 0,
+            #0000 var(--card-notch),
+            #000 calc(var(--card-notch) + 0.5px)
+          )
+          right / 51% 100% no-repeat;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        inset-inline: calc(var(--card-notch) + 0.75rem);
+        border-top: 2px dashed var(--intent-border-subtle);
+      }
+    }
+  }
+
+  [data-slot='card'][data-variant='ticket'][data-emphasis='raised'] {
+    --card-fill: var(--intent-bg-raised);
+    --card-edge: oklch(0.3 0.05 var(--intent-hue) / 0.06);
+    --card-shade: oklch(0.3 0.05 var(--intent-hue) / 0.06);
+
+    :where(.dark) & {
+      --card-edge: oklch(0.05 0.02 var(--intent-hue) / 0.35);
+      --card-shade: oklch(0.05 0.02 var(--intent-hue) / 0.22);
+    }
+  }
+
+  [data-slot='card'][data-variant='ticket'][data-emphasis='normal'] {
+    --card-fill: var(--intent-bg-normal);
+    --card-edge: var(--intent-border-normal);
+  }
+
+  [data-slot='card'][data-variant='ticket'][data-emphasis='subtle'] {
+    --card-fill: var(--intent-bg-subtle);
+  }
+}

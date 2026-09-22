@@ -1,4 +1,5 @@
 import { Logo } from '@oztix/roadie-components/logo'
+import { QRCode } from '@oztix/roadie-components/qr-code'
 import { Skeleton } from '@oztix/roadie-components/skeleton'
 
 export function Skel({ className, ...props }: React.ComponentProps<'div'>) {
@@ -358,6 +359,8 @@ export function ComponentSkeleton({ name }: { name: string }) {
       )
     case 'logo':
       return <Logo aria-hidden size='lg' />
+    case 'qr-code':
+      return <QRCode value='A7K2MKWX' aria-hidden className='w-16' />
     case 'tabs':
       return (
         <div className='grid w-44 gap-3'>

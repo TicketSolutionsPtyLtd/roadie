@@ -292,4 +292,66 @@ describe('Card', () => {
     expect(desc.tagName.toLowerCase()).toBe('p')
     expect(desc).toHaveClass('text-sm', 'text-subtle')
   })
+
+  describe('ticket variant', () => {
+    it('marks the root for the ticket styles and moves emphasis to data', () => {
+      const { container } = render(
+        <Card variant='ticket' emphasis='raised' intent='brand'>
+          <Card.Content>Body</Card.Content>
+          <Card.Footer>Holder</Card.Footer>
+        </Card>
+      )
+      const card = container.querySelector('[data-slot=card]')!
+
+      expect(card).toHaveAttribute('data-variant', 'ticket')
+      expect(card).toHaveAttribute('data-emphasis', 'raised')
+      expect(card).toHaveClass('intent-brand')
+      expect(card).not.toHaveClass('emphasis-raised')
+    })
+
+    it('rounds the ticket at 4xl, and lets className override it', () => {
+      const { container, rerender } = render(<Card variant='ticket'>Body</Card>)
+      const card = () => container.querySelector('[data-slot=card]')!
+
+      expect(card()).toHaveClass('rounded-4xl')
+      expect(card()).not.toHaveClass('rounded-xl')
+
+      rerender(
+        <Card variant='ticket' className='rounded-2xl'>
+          Body
+        </Card>
+      )
+      expect(card()).toHaveClass('rounded-2xl')
+      expect(card()).not.toHaveClass('rounded-4xl')
+    })
+
+    it('defaults the ticket emphasis to normal', () => {
+      const { container } = render(<Card variant='ticket'>Body</Card>)
+      const card = container.querySelector('[data-slot=card]')!
+
+      expect(card).toHaveAttribute('data-emphasis', 'normal')
+      expect(card).not.toHaveClass('emphasis-normal')
+    })
+
+    it('keeps the ticket attributes on a linked card', () => {
+      const { container } = render(
+        <Card variant='ticket' href='/tickets/1'>
+          Body
+        </Card>
+      )
+      expect(container.querySelector('a')).toHaveAttribute(
+        'data-variant',
+        'ticket'
+      )
+    })
+
+    it('adds nothing by default', () => {
+      const { container } = render(<Card>Body</Card>)
+      const card = container.querySelector('[data-slot=card]')!
+
+      expect(card).not.toHaveAttribute('data-variant')
+      expect(card).not.toHaveAttribute('data-emphasis')
+      expect(card).toHaveClass('emphasis-normal')
+    })
+  })
 })

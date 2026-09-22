@@ -10,6 +10,10 @@ export const cardVariants = cva('grid content-start rounded-xl group/card', {
       subtle: 'emphasis-subtle',
       subtler: 'emphasis-subtler p-2 gap-4 -m-2',
       normal: 'emphasis-normal'
+    },
+    variant: {
+      default: '',
+      ticket: 'rounded-4xl'
     }
   },
   defaultVariants: {

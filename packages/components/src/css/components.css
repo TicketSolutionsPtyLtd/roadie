@@ -4,3 +4,4 @@
 @source '../../dist';
 @import './pane-columns.css';
 @import './navigator-pending.css';
+@import './card-ticket.css';

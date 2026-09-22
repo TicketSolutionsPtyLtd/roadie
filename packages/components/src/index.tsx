@@ -12,6 +12,8 @@ export { Code, codeVariants, type CodeProps } from './components/Code'
 export { Highlight, type HighlightProps } from './components/Highlight'
 export { Mark, markVariants, type MarkProps } from './components/Mark'
 export { Prose, proseVariants, type ProseProps } from './components/Prose'
+
+export { QRCode, type QRCodeProps } from './components/QRCode'
 export {
   Accordion,
   accordionVariants,
