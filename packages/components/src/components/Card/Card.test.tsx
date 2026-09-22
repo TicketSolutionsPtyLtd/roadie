@@ -325,6 +325,18 @@ describe('Card', () => {
       expect(card()).not.toHaveClass('rounded-4xl')
     })
 
+    it('keeps subtler emphasis for the ticket styles', () => {
+      const { container } = render(
+        <Card variant='ticket' emphasis='subtler' href='/tickets/1'>
+          Body
+        </Card>
+      )
+      const card = container.querySelector('[data-slot=card]')!
+
+      expect(card).toHaveAttribute('data-emphasis', 'subtler')
+      expect(card).toHaveClass('is-interactive')
+    })
+
     it('defaults the ticket emphasis to normal', () => {
       const { container } = render(<Card variant='ticket'>Body</Card>)
       const card = container.querySelector('[data-slot=card]')!

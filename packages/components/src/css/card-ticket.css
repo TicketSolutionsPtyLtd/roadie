@@ -84,4 +84,20 @@
   [data-slot='card'][data-variant='ticket'][data-emphasis='subtle'] {
     --card-fill: var(--intent-bg-subtle);
   }
+
+  [data-slot='card'][data-variant='ticket'][data-emphasis='subtler'] {
+    --card-fill: var(--intent-bg-subtler);
+
+    &.is-interactive {
+      --card-fill: transparent;
+    }
+    &.is-interactive:hover,
+    &.is-interactive:focus-visible {
+      --card-fill: var(--intent-3a);
+    }
+    &.is-interactive:active,
+    &.is-interactive.is-active {
+      --card-fill: var(--intent-4a);
+    }
+  }
 }

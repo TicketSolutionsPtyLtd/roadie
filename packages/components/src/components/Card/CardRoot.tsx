@@ -51,7 +51,7 @@ type CardOwnProps<T extends ElementType = 'div'> = {
    */
   render?: RoadieRenderProp
   /**
-   * The card's shape. `default` is a plain card. `ticket` cuts a notch into each side where the body meets `Card.Footer`, with a perforated line between them; use it with `raised`, `normal` or `subtle` emphasis.
+   * The card's shape. `default` is a plain card. `ticket` cuts a notch into each side where the body meets `Card.Footer`, with a perforated line between them; it works with every emphasis.
    * @default 'default'
    */
   variant?: 'default' | 'ticket'
