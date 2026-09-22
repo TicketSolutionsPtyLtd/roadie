@@ -1,5 +1,25 @@
 # @oztix/roadie-widgets
 
+## 3.6.0
+
+### Minor Changes
+
+- f3990bd: **Peer dependency change: React 19.2 or later is now required.** The `react`
+  and `react-dom` peer ranges move from `^19.0.0` to `^19.2.0` in both packages.
+  Upgrade React to 19.2 before taking this release. Roadie now uses
+  `useEffectEvent`, which first shipped in React 19.2. The widgets' React peer
+  stays optional, so Vue-only installs are unaffected.
+
+### Patch Changes
+
+- Updated dependencies [f3990bd]
+- Updated dependencies [f3990bd]
+- Updated dependencies [65ba926]
+- Updated dependencies [4deb856]
+- Updated dependencies [8c2ca73]
+- Updated dependencies [5363c7a]
+  - @oztix/roadie-core@2.8.0
+
 ## 3.5.1
 
 ### Patch Changes
