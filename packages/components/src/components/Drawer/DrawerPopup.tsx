@@ -15,8 +15,7 @@ export type DrawerPopupProps = DrawerPrimitive.Popup.Props &
     /** The colour palette; inherited when unset. */
     intent?: RoadieIntent
     /**
-     * Height for a bottom or top drawer, width for a side one.
-     * @default 'md'
+     * Height for a bottom or top drawer, width for a side one. `sm`, `md` and `lg` are fixed; `fit` follows the content. Defaults to `fit` on the top or bottom, `md` on a side.
      */
     size?: DrawerSize
   }
@@ -28,10 +27,15 @@ export function DrawerPopup({
   ...props
 }: DrawerPopupProps) {
   const side = useDrawerSide()
+  const resolvedSize =
+    size ?? (side === 'left' || side === 'right' ? 'md' : 'fit')
   return (
     <DrawerPrimitive.Popup
       data-slot='drawer-popup'
-      className={cn(drawerPopupVariants({ intent, side, size, className }))}
+      data-size={resolvedSize}
+      className={cn(
+        drawerPopupVariants({ intent, side, size: resolvedSize, className })
+      )}
       {...props}
     />
   )

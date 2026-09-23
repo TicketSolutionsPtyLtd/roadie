@@ -373,12 +373,34 @@ describe('Drawer surface', () => {
     expect(await screen.findByRole('dialog')).toHaveClass('intent-danger')
   })
 
-  it('sizes along its own axis — height when bottom, width when side', async () => {
+  it('fits a bottom drawer to its content, and gives a side one md, by default', async () => {
     const { unmount } = renderOpen({ side: 'bottom' })
-    expect(await screen.findByRole('dialog')).toHaveClass('max-h-[75dvh]')
+    const sheet = await screen.findByRole('dialog')
+    expect(sheet).toHaveAttribute('data-size', 'fit')
+    expect(sheet).toHaveClass('max-h-(--drawer-tall)')
     unmount()
 
     renderOpen({ side: 'right' })
-    expect(await screen.findByRole('dialog')).toHaveClass('max-w-md')
+    const side = await screen.findByRole('dialog')
+    expect(side).toHaveAttribute('data-size', 'md')
+    expect(side).toHaveClass('w-full', 'max-w-md')
   })
+
+  it.each([
+    ['sm', 'h-[50dvh]'],
+    ['md', 'h-[75dvh]'],
+    ['lg', 'h-(--drawer-tall)']
+  ] as const)(
+    'holds a %s bottom drawer at a fixed height',
+    async (size, cls) => {
+      render(
+        <Drawer defaultOpen>
+          <Drawer.Content size={size}>
+            <Drawer.Title>Filters</Drawer.Title>
+          </Drawer.Content>
+        </Drawer>
+      )
+      expect(await screen.findByRole('dialog')).toHaveClass(cls)
+    }
+  )
 })

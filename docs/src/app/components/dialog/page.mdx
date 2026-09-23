@@ -57,7 +57,7 @@ A trigger opens a centred modal over a dimmed backdrop. `Dialog.Content` collaps
       <Dialog.Trigger render={<Button>{emphasis}</Button>} />
       <Dialog.Content size='sm'>
         <Dialog.Header>
-          <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+          <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
           <Dialog.Title>Emphasis {emphasis}</Dialog.Title>
           <Dialog.Description>The page behind stays as visible as this level allows.</Dialog.Description>
         </Dialog.Header>
@@ -77,7 +77,7 @@ Use the `size` prop on `Dialog.Content` to set the maximum width. Defaults to `m
     <Dialog.Trigger render={<Button>Small</Button>} />
     <Dialog.Content size='sm'>
       <Dialog.Header>
-        <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+        <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
         <IconTile size='2xl' shape='circle'>
           <Info weight='duotone' />
         </IconTile>
@@ -90,7 +90,7 @@ Use the `size` prop on `Dialog.Content` to set the maximum width. Defaults to `m
     <Dialog.Trigger render={<Button>Medium</Button>} />
     <Dialog.Content size='md'>
       <Dialog.Header>
-        <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+        <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
         <IconTile size='2xl' shape='circle'>
           <Info weight='duotone' />
         </IconTile>
@@ -103,7 +103,7 @@ Use the `size` prop on `Dialog.Content` to set the maximum width. Defaults to `m
     <Dialog.Trigger render={<Button>Large</Button>} />
     <Dialog.Content size='lg'>
       <Dialog.Header>
-        <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+        <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
         <IconTile size='2xl' shape='circle'>
           <Info weight='duotone' />
         </IconTile>
@@ -126,7 +126,7 @@ Portaled popups sit outside the trigger's CSS cascade, so set the colour context
     <Dialog.Trigger render={<IconButton aria-label='Release notes' emphasis='subtle'><Info weight='bold' /></IconButton>} />
     <Dialog.Content intent='info' size='sm'>
       <Dialog.Header>
-        <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+        <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
         <IconTile size='2xl' shape='circle'>
           <Info weight='duotone' />
         </IconTile>
@@ -141,7 +141,7 @@ Portaled popups sit outside the trigger's CSS cascade, so set the colour context
     <Dialog.Trigger render={<Button>Finish setup</Button>} />
     <Dialog.Content intent='success' size='sm'>
       <Dialog.Header>
-        <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+        <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
         <IconTile size='2xl' shape='circle'>
           <CheckCircle weight='duotone' />
         </IconTile>
@@ -240,7 +240,7 @@ Dialog is a compound component. Use `Dialog.Header`, `Dialog.Body`, and `Dialog.
   <Dialog.Trigger render={<Button>View details</Button>} />
   <Dialog.Content>
     <Dialog.Header>
-      <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+      <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
       <IconTile size='2xl' shape='circle'>
         <Ticket weight='duotone' />
       </IconTile>
@@ -329,7 +329,7 @@ Use a dialog for tasks that need the user's full attention — confirmations, sh
 </Guideline>
 
 <Guideline title='Dismiss with a header close, not a lone Cancel'>
-  <Guideline.Do example={<IconButton aria-label='Close' emphasis='subtle'><XIcon weight='bold' /></IconButton>}>
+  <Guideline.Do example={<IconButton aria-label='Close' emphasis='normal'><XIcon weight='bold' /></IconButton>}>
     When the only action is to close, put a Close icon button in the top-left of the header and skip the footer entirely. The dialog reads as informational, not a decision awaiting a choice.
   </Guideline.Do>
   <Guideline.Dont example={<Button>Cancel</Button>}>

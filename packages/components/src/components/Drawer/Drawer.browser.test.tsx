@@ -101,7 +101,7 @@ describe('a drawer body', () => {
     const popup = await openLong()
 
     expect(popup.getBoundingClientRect().height).toBeLessThanOrEqual(
-      844 * 0.75 + 1
+      844 - 32 + 1
     )
     expect(body().scrollHeight).toBeGreaterThan(body().clientHeight)
     body().scrollTop = 200
@@ -174,7 +174,30 @@ describe('a drawer body', () => {
   )
 })
 
-describe('a drawer footer', () => {
+describe('a fixed-height drawer', () => {
+  it.each([
+    ['sm', 844 * 0.5],
+    ['md', 844 * 0.75],
+    ['lg', 844 - 32]
+  ] as const)('stays %s tall whatever its content', async (size, height) => {
+    await page.viewport(390, 844)
+    render(
+      <Drawer defaultOpen>
+        <Drawer.Content size={size}>
+          <Drawer.Title>Your tickets</Drawer.Title>
+          <Drawer.Body>
+            <p>General admission</p>
+          </Drawer.Body>
+        </Drawer.Content>
+      </Drawer>
+    )
+    const popup = await screen.findByRole('dialog')
+
+    expect(popup.getBoundingClientRect().height).toBeCloseTo(height, 0)
+  })
+})
+
+describe('drawer scroll shadows', () => {
   function open(rows: number) {
     render(
       <Drawer defaultOpen>
@@ -226,6 +249,42 @@ describe('a drawer footer', () => {
     expect(shadow().opacity).toBe('0')
   })
 
+  const headerShadow = () =>
+    getComputedStyle(
+      document.querySelector('[data-slot="drawer-header"]')!,
+      '::after'
+    )
+
+  it('shadows the header only once the body scrolls under it', async () => {
+    await page.viewport(390, 844)
+    render(
+      <Drawer defaultOpen>
+        <Drawer.Content>
+          <Drawer.Header>
+            <Drawer.Title>Your tickets</Drawer.Title>
+          </Drawer.Header>
+          <Drawer.Body>
+            {Array.from({ length: 60 }, (_, index) => (
+              <p key={index}>General admission {index + 1}</p>
+            ))}
+          </Drawer.Body>
+        </Drawer.Content>
+      </Drawer>
+    )
+    await screen.findByRole('dialog')
+    await settle()
+    expect(headerShadow().opacity).toBe('0')
+
+    const body = document.querySelector<HTMLElement>(
+      '[data-slot="drawer-body"]'
+    )!
+    body.scrollTop = 200
+    body.dispatchEvent(new Event('scroll'))
+    await settle()
+
+    expect(headerShadow().opacity).toBe('1')
+  })
+
   it('casts none when the content fits', async () => {
     await page.viewport(390, 844)
     await open(2)
@@ -233,4 +292,40 @@ describe('a drawer footer', () => {
 
     expect(shadow().opacity).toBe('0')
   })
+})
+
+describe('a drawer header', () => {
+  it.each(['bottom', 'right', 'top'] as const)(
+    'sets Close in the top-left corner of a %s drawer, as far from the top as the side',
+    async (side) => {
+      await page.viewport(390, 844)
+      render(
+        <Drawer defaultOpen side={side}>
+          <Drawer.Content>
+            <Drawer.Header>
+              <Drawer.Title>638 tickets</Drawer.Title>
+              <Drawer.Description>Weekly Pass</Drawer.Description>
+              <Drawer.Close aria-label='Close'>×</Drawer.Close>
+            </Drawer.Header>
+          </Drawer.Content>
+        </Drawer>
+      )
+      await screen.findByRole('dialog')
+      const box = (slot: string) =>
+        document
+          .querySelector(`[data-slot="drawer-${slot}"]`)!
+          .getBoundingClientRect()
+      const header = box('header')
+      const title = box('title')
+      const description = box('description')
+      const close = box('close')
+      const popup = box('popup')
+
+      expect(close.left).toBeCloseTo(header.left + 24, 0)
+      expect(close.top - popup.top).toBeCloseTo(close.left - popup.left, 0)
+      expect(close.bottom).toBeLessThanOrEqual(title.top)
+      expect(title.left).toBeCloseTo(header.left + 24, 0)
+      expect(description.top).toBeGreaterThanOrEqual(title.bottom)
+    }
+  )
 })

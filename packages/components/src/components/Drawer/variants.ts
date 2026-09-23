@@ -5,8 +5,8 @@ import { intentVariants } from '../../variants'
 /** The edge the drawer is anchored to. */
 export type DrawerSide = 'bottom' | 'top' | 'left' | 'right'
 
-/** The drawer's extent along its own axis. */
-export type DrawerSize = 'sm' | 'md' | 'lg'
+/** The drawer's extent along its own axis: `fit` follows the content, the rest are fixed. */
+export type DrawerSize = 'fit' | 'sm' | 'md' | 'lg'
 
 // Derived from `side` so the dismiss gesture can never disagree with the edge.
 export const DRAWER_SWIPE_DIRECTION = {
@@ -42,22 +42,26 @@ export const drawerPopupVariants = cva(
       intent: intentVariants,
       side: {
         // The cart drawer's width and float, so every sheet reads as the same object.
+        // Tall stops below the far edge's safe area, leaving a sliver of page, as an iOS large sheet does.
         bottom:
-          'w-full max-w-xl rounded-t-4xl sm:[--drawer-float:max(--spacing(2),env(safe-area-inset-bottom))] sm:mb-(--drawer-float) sm:rounded-4xl',
-        top: 'w-full max-w-xl rounded-b-4xl sm:[--drawer-float:max(--spacing(2),env(safe-area-inset-top))] sm:mt-(--drawer-float) sm:rounded-4xl',
-        left: 'h-full w-full rounded-r-4xl',
-        right: 'h-full w-full rounded-l-4xl'
+          'w-full max-w-xl rounded-t-4xl [--drawer-tall:calc(100dvh_-_max(env(safe-area-inset-top),--spacing(4))_-_--spacing(4))] sm:[--drawer-float:max(--spacing(2),env(safe-area-inset-bottom))] sm:mb-(--drawer-float) sm:rounded-4xl',
+        top: 'w-full max-w-xl rounded-b-4xl [--drawer-tall:calc(100dvh_-_max(env(safe-area-inset-bottom),--spacing(4))_-_--spacing(4))] sm:[--drawer-float:max(--spacing(2),env(safe-area-inset-top))] sm:mt-(--drawer-float) sm:rounded-4xl',
+        left: 'h-full rounded-r-4xl',
+        right: 'h-full rounded-l-4xl'
       },
-      size: { sm: '', md: '', lg: '' }
+      size: { fit: '', sm: '', md: '', lg: '' }
     },
+    // Fixed heights hold still while the content changes under them; `fit` caps at the tallest.
     compoundVariants: [
-      { side: ['bottom', 'top'], size: 'sm', class: 'max-h-[50dvh]' },
-      { side: ['bottom', 'top'], size: 'md', class: 'max-h-[75dvh]' },
-      { side: ['bottom', 'top'], size: 'lg', class: 'max-h-[90dvh]' },
-      { side: ['left', 'right'], size: 'sm', class: 'max-w-sm' },
-      { side: ['left', 'right'], size: 'md', class: 'max-w-md' },
-      { side: ['left', 'right'], size: 'lg', class: 'max-w-lg' }
+      { side: ['bottom', 'top'], size: 'fit', class: 'max-h-(--drawer-tall)' },
+      { side: ['bottom', 'top'], size: 'sm', class: 'h-[50dvh]' },
+      { side: ['bottom', 'top'], size: 'md', class: 'h-[75dvh]' },
+      { side: ['bottom', 'top'], size: 'lg', class: 'h-(--drawer-tall)' },
+      { side: ['left', 'right'], size: 'fit', class: 'w-fit max-w-lg' },
+      { side: ['left', 'right'], size: 'sm', class: 'w-full max-w-sm' },
+      { side: ['left', 'right'], size: 'md', class: 'w-full max-w-md' },
+      { side: ['left', 'right'], size: 'lg', class: 'w-full max-w-lg' }
     ],
-    defaultVariants: { side: 'bottom', size: 'md' }
+    defaultVariants: { side: 'bottom', size: 'fit' }
   }
 )

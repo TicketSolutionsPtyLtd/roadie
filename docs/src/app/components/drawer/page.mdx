@@ -63,22 +63,87 @@ A bottom sheet. `Drawer.Content` collapses the underlying `Portal`, `Backdrop`, 
 
 `side` picks the edge, and with it the dismiss gesture — a `bottom` drawer swipes down, a `right` drawer swipes right. It is a single value, not a breakpoint list: Base UI owns the gesture in JavaScript, so the edge and the swipe have to agree.
 
-```tsx-live
-<div className='flex flex-wrap gap-3'>
-  {['bottom', 'right', 'left', 'top'].map((side) => (
-    <Drawer key={side} side={side}>
-      <Drawer.Trigger render={<Button>{side}</Button>} />
-      <Drawer.Content>
-        <Drawer.Header>
-          <Drawer.Title>From the {side}</Drawer.Title>
-        </Drawer.Header>
-        <Drawer.Body>
-          <p>Swipe towards the {side} edge to dismiss.</p>
-        </Drawer.Body>
-      </Drawer.Content>
-    </Drawer>
-  ))}
-</div>
+```tsx-live-noinline
+const addOns = [
+  { title: 'Parking', description: 'Car park B, all day', price: '$25.00' },
+  { title: 'Camping', description: 'Unpowered site, two nights', price: '$60.00' },
+  { title: 'Festival tee', description: 'Collect at the merch tent', price: '$45.00' }
+]
+
+const sides = {
+  bottom: {
+    label: 'Add ons',
+    title: 'Add ons',
+    description: 'Paperbark Sessions · Sat 14 Nov',
+    body: (
+      <List emphasis='subtler'>
+        {addOns.map((addOn) => (
+          <List.Item key={addOn.title} title={addOn.title} description={addOn.description} chevron={false} trailing={<span className='font-semibold'>{addOn.price}</span>} />
+        ))}
+      </List>
+    ),
+    footer: <Button intent='accent' emphasis='strong' className='w-full'>Continue</Button>
+  },
+  right: {
+    label: 'Order details',
+    title: 'Order 10482',
+    description: 'Placed Tue 3 Sep · 3 items',
+    body: (
+      <List emphasis='subtler'>
+        <List.Item title='General admission' description='2 × $68.00' chevron={false} trailing='$136.00' />
+        <List.Item title='Parking' description='1 × $25.00' chevron={false} trailing='$25.00' />
+        <List.Item title='Booking fee' chevron={false} trailing='$6.50' />
+      </List>
+    ),
+    footer: <Button className='w-full'>Resend tickets</Button>
+  },
+  left: {
+    label: 'Menu',
+    title: 'Menu',
+    body: (
+      <List emphasis='subtler'>
+        <List.Item title='Home' leading={<HouseIcon weight='bold' className='size-5' />} current />
+        <List.Item title='Tickets' leading={<TicketIcon weight='bold' className='size-5' />} />
+        <List.Item title='Account' leading={<UserCircleIcon weight='bold' className='size-5' />} />
+      </List>
+    )
+  },
+  top: {
+    label: 'Search',
+    title: 'Search',
+    body: (
+      <div className='grid gap-4 pb-4'>
+        <Field>
+          <Field.Label>Search events</Field.Label>
+          <Field.Input type='search' placeholder='Artists, venues and events' />
+        </Field>
+        <List emphasis='subtler'>
+          <List.Item title='Paperbark Sessions' description='Recent search' />
+          <List.Item title='The Corner Room' description='Recent search' />
+        </List>
+      </div>
+    )
+  }
+}
+
+render(
+  <div className='flex flex-wrap gap-3'>
+    {Object.entries(sides).map(([side, drawer]) => (
+      <Drawer key={side} side={side}>
+        <Drawer.Trigger render={<Button>{drawer.label}, {side}</Button>} />
+        <Drawer.Content>
+          <Drawer.Header>
+            <Drawer.Close render={<IconButton aria-label='Close' emphasis='normal'><XIcon weight='bold' className='size-5' /></IconButton>} />
+            <Drawer.Title>{drawer.title}</Drawer.Title>
+            {drawer.description ? <Drawer.Description>{drawer.description}</Drawer.Description> : null}
+          </Drawer.Header>
+          <Drawer.Body>{drawer.body}</Drawer.Body>
+          {drawer.footer ? <Drawer.Footer>{drawer.footer}</Drawer.Footer> : null}
+        </Drawer.Content>
+      </Drawer>
+    ))}
+  </div>
+)
 ```
 
 ### Emphasis
@@ -92,11 +157,18 @@ A bottom sheet. `Drawer.Content` collapses the underlying `Portal`, `Backdrop`, 
       <Drawer.Trigger render={<Button>{emphasis}</Button>} />
       <Drawer.Content size='sm'>
         <Drawer.Header>
-          <Drawer.Title>Emphasis {emphasis}</Drawer.Title>
+          <Drawer.Title>Add ons</Drawer.Title>
+          <Drawer.Description>Paperbark Sessions · Sat 14 Nov</Drawer.Description>
         </Drawer.Header>
         <Drawer.Body>
-          <p>The page behind stays as visible as this level allows.</p>
+          <List emphasis='subtler'>
+            <List.Item title='Parking' description='Car park B, all day' chevron={false} trailing='$25.00' />
+            <List.Item title='Camping' description='Unpowered site, two nights' chevron={false} trailing='$60.00' />
+          </List>
         </Drawer.Body>
+        <Drawer.Footer>
+          <Button intent='accent' emphasis='strong' className='w-full'>Continue</Button>
+        </Drawer.Footer>
       </Drawer.Content>
     </Drawer>
   ))}
@@ -105,7 +177,18 @@ A bottom sheet. `Drawer.Content` collapses the underlying `Portal`, `Backdrop`, 
 
 ### Sizes
 
-`size` sets the drawer's extent along its own axis: height for a bottom or top drawer, width for a side one. It defaults to `md`. For a bottom or top drawer it is a maximum, so short content still gives a short sheet, and long content scrolls in `Drawer.Body` between a fixed header and footer. A bottom or top drawer runs edge to edge on a phone. In a wider window it stops at `max-w-xl`, centred, and floats 0.5rem off its edge with every corner rounded, the same shape as the cart drawer.
+`size` sets the drawer's extent along its own axis: height for a bottom or top drawer, width for a side one. `sm`, `md` and `lg` are fixed, so the drawer holds still while its content changes, and `fit` follows the content.
+
+| Size | Bottom or top drawer | Use for |
+| --- | --- | --- |
+| `fit` | The content's height, up to the `lg` height. The default | Short choices that don't change while open, such as a menu, a switcher or a confirmation |
+| `sm` | Half the screen | A peek at something while the page stays in view. Its backdrop is `subtle` by default |
+| `md` | Three quarters of the screen | A longer look that still keeps the page's top in view |
+| `lg` | The whole screen, less the top safe area and a gap, like an iOS large sheet | Tasks: multi-step flows, long lists with filters and forms |
+
+A side drawer takes `md` by default, and `fit` there sizes to the content's width up to the `lg` width.
+
+A bottom or top drawer runs edge to edge on a phone. In a wider window it stops at `max-w-xl`, centred, and floats 0.5rem off its edge with every corner rounded, the same shape as the cart drawer. Long content scrolls in `Drawer.Body` between a fixed header and footer.
 
 ```tsx-live-noinline
 const holders = [
@@ -126,6 +209,7 @@ function Holders({ size }) {
       <Drawer.Trigger render={<Button>{size}</Button>} />
       <Drawer.Content size={size}>
         <Drawer.Header>
+          <Drawer.Close render={<IconButton aria-label='Close' emphasis='normal'><XIcon weight='bold' className='size-5' /></IconButton>} />
           <Drawer.Title>638 tickets</Drawer.Title>
           <Drawer.Description>Weekly Pass · Mon 3 to Fri 7 May</Drawer.Description>
         </Drawer.Header>
@@ -155,8 +239,7 @@ function Holders({ size }) {
           </List>
         </Drawer.Body>
         <Drawer.Footer>
-          <Drawer.Close render={<Button>Close</Button>} />
-          <Button intent='accent' emphasis='strong'>Share tickets</Button>
+          <Button intent='accent' emphasis='strong' className='w-full'>Share tickets</Button>
         </Drawer.Footer>
       </Drawer.Content>
     </Drawer>
@@ -165,6 +248,7 @@ function Holders({ size }) {
 
 render(
   <div className='flex flex-wrap gap-3'>
+    <Holders size='fit' />
     <Holders size='sm' />
     <Holders size='md' />
     <Holders size='lg' />
@@ -178,18 +262,29 @@ The collapsed `Drawer.Content` covers the common case. Compose the parts directl
 
 ```tsx-live
 <Drawer side='right'>
-  <Drawer.Trigger render={<Button>Compose the parts</Button>} />
+  <Drawer.Trigger render={<Button>Filters</Button>} />
   <Drawer.Portal>
     <Drawer.Backdrop />
     <Drawer.Viewport>
-      <Drawer.Popup>
-        <Drawer.Handle />
+      <Drawer.Popup size='sm'>
         <Drawer.Header>
-          <Drawer.Title>Composed</Drawer.Title>
+          <Drawer.Close render={<IconButton aria-label='Close' emphasis='normal'><XIcon weight='bold' className='size-5' /></IconButton>} />
+          <Drawer.Title>Filters</Drawer.Title>
+          <Drawer.Description>638 tickets</Drawer.Description>
         </Drawer.Header>
         <Drawer.Body>
-          <p>Portal, Backdrop, Viewport and Popup, wired by hand.</p>
+          <Field>
+            <Field.Label>Status</Field.Label>
+            <RadioGroup defaultValue='all'>
+              <RadioGroup.Item value='all' label='All tickets' />
+              <RadioGroup.Item value='not-shared' label='Not shared' />
+              <RadioGroup.Item value='shared' label='Shared' />
+            </RadioGroup>
+          </Field>
         </Drawer.Body>
+        <Drawer.Footer>
+          <Button intent='accent' emphasis='strong' className='w-full'>Show tickets</Button>
+        </Drawer.Footer>
       </Drawer.Popup>
     </Drawer.Viewport>
   </Drawer.Portal>
@@ -197,6 +292,58 @@ The collapsed `Drawer.Content` covers the common case. Compose the parts directl
 ```
 
 ## Guidelines
+
+<div className='grid gap-8'>
+
+<Guideline title='Name every drawer'>
+  <Guideline.Do code={`<Drawer.Header>\n  <Drawer.Title>Organisations</Drawer.Title>\n  <Drawer.Description>Switch the organisation you're working in.</Drawer.Description>\n</Drawer.Header>`}>
+    Start with `Drawer.Header` and a `Drawer.Title`. The title names the
+    dialog for assistive tech and tells people what they opened. Add a
+    `Drawer.Description` when the title needs context.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Drawer.Content>\n  <Drawer.Body>\n    <h2>Organisations</h2>\n    …\n  </Drawer.Body>\n</Drawer.Content>`}>
+    A heading inside the body scrolls away and doesn't name the dialog. If the
+    content already has its own heading, pass `aria-label` to
+    `Drawer.Content` instead.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Close sits in the top-left corner'>
+  <Guideline.Do code={`<Drawer.Header>\n  <Drawer.Close\n    render={\n      <IconButton aria-label='Close' emphasis='normal'>\n        <XIcon weight='bold' className='size-5' />\n      </IconButton>\n    }\n  />\n  <Drawer.Title>638 tickets</Drawer.Title>\n</Drawer.Header>`}>
+    Put a `Drawer.Close` inside `Drawer.Header`, rendered as a `normal`
+    `IconButton` named "Close". The header sets it in the top-left corner
+    above the title, where Close sits in a `Pane` and a `Dialog`.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Drawer.Close\n  render={<IconButton className='absolute top-4 right-4' … />}\n/>`}>
+    Don't position it yourself, move it to the other side or put it in the
+    body. Close in the same corner everywhere is one less thing to look for.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Tasks get a Close; quick choices close themselves'>
+  <Guideline.Do>
+    Give a Close to side drawers and to `md` and `lg` sheets: the tasks,
+    forms and long lists people work in. A swipe down isn't obvious to
+    everyone, and it isn't available with a mouse or keyboard.
+  </Guideline.Do>
+  <Guideline.Dont>
+    A `fit` sheet that closes when you pick something, such as a switcher or
+    a menu, doesn't need a Close. Picking, swiping, Escape and a click outside
+    all dismiss it.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title="The footer holds the task's action, not a second Close">
+  <Guideline.Do code={`<Drawer.Footer>\n  <Button intent='accent' emphasis='strong' className='w-full'>\n    Share tickets\n  </Button>\n</Drawer.Footer>`}>
+    Put the action that completes the task in `Drawer.Footer`. It stays in
+    reach while the body scrolls, and on a phone a full-width button is the
+    easiest thing to hit.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Drawer.Footer>\n  <Drawer.Close render={<Button>Close</Button>} />\n  <Button intent='accent' emphasis='strong'>Share tickets</Button>\n</Drawer.Footer>`}>
+    Don't repeat Close or Cancel in the footer when the header has one. Two
+    ways out compete with the one way forward.
+  </Guideline.Dont>
+</Guideline>
 
 <Guideline title='Long content scrolls in the body'>
   <Guideline.Do code={`<Drawer.Content>\n  <Drawer.Header>…</Drawer.Header>\n  <Drawer.Body>\n    {rows}\n  </Drawer.Body>\n</Drawer.Content>`}>
@@ -245,6 +392,8 @@ The collapsed `Drawer.Content` covers the common case. Compose the parts directl
     pass the result.
   </Guideline.Dont>
 </Guideline>
+
+</div>
 
 ## Accessibility
 
