@@ -435,6 +435,29 @@ describe('Card ticket, split auto with a header', () => {
   })
 })
 
+describe('Card auto container', () => {
+  it('answers a query named card from inside a nearer container', () => {
+    const removeProbeStyle = useStylesheet(
+      '@container card (width >= 20rem) { .card-probe { order: 7 } }'
+    )
+    const { container } = render(
+      <div style={{ containerType: 'inline-size', width: 800 }}>
+        <Card direction='auto' style={{ width: 352 }}>
+          <Card.Content>
+            <div style={{ containerType: 'inline-size', width: 200 }}>
+              <div className='card-probe' />
+            </div>
+          </Card.Content>
+        </Card>
+      </div>
+    )
+    const probe = container.querySelector<HTMLElement>('.card-probe')!
+
+    expect(getComputedStyle(probe).order).toBe('7')
+    removeProbeStyle()
+  })
+})
+
 describe('Card footer items', () => {
   function renderFooter(direction: 'vertical' | 'horizontal') {
     const { container } = render(

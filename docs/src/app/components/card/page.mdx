@@ -90,7 +90,7 @@ import { Card } from '@oztix/roadie-components/card'
 
 ### Direction
 
-`direction` lays out the card's parts and works on any card. `vertical` stacks them and applies when you leave the prop off. `horizontal` gives `Card.Footer` a column of its own beside the rest of the card, sized to its contents. `auto` picks between the two: the card stacks in a narrow container and splits at 30rem and up, laying out exactly as `horizontal` does once it splits.
+`direction` lays out the card's parts and works on any card. `vertical` stacks them and applies when you leave the prop off. `horizontal` gives `Card.Footer` a column of its own beside the rest of the card, sized to its contents. `auto` picks between the two: the card stacks in a narrow container and splits at 30rem and up, laying out exactly as `horizontal` does once it splits. An `auto` card is a container named `card`, so its children can use `@min-[30rem]/card:` and resolve against the card rather than a container further up.
 
 Direction moves the footer, it does not change what belongs in each part. Keep the body in `Card.Content` and leave the footer for the stub, such as actions or counts.
 
