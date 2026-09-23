@@ -262,6 +262,12 @@ export {
 export { StatTile, type StatTileProps } from './components/StatTile'
 
 export {
+  Dashboard,
+  type DashboardProps,
+  type DashboardSectionProps
+} from './components/Dashboard'
+
+export {
   DataTable,
   type DataTableColumn,
   type DataTableProps,

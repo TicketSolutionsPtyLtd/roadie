@@ -63,6 +63,10 @@
       "types": "./dist/components/Countdown/index.d.ts",
       "import": "./dist/components/Countdown/index.js"
     },
+    "./dashboard": {
+      "types": "./dist/components/Dashboard/index.d.ts",
+      "import": "./dist/components/Dashboard/index.js"
+    },
     "./data-card": {
       "types": "./dist/components/DataCard/index.d.ts",
       "import": "./dist/components/DataCard/index.js"
