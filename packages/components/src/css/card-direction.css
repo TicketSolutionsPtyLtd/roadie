@@ -47,6 +47,9 @@
       flex-direction: column;
       grid-auto-flow: row;
       justify-content: center;
+      /* A list sets --card-footer-size once so every side column, and the
+         perforation along it, lines up whatever each footer holds. */
+      min-inline-size: var(--card-footer-size, auto);
     }
   }
 
@@ -97,6 +100,7 @@
         flex-direction: column;
         grid-auto-flow: row;
         justify-content: center;
+        min-inline-size: var(--card-footer-size, auto);
       }
     }
   }

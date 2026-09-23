@@ -94,6 +94,16 @@ import { Card } from '@oztix/roadie-components/card'
 
 Direction moves the footer, it does not change what belongs in each part. Keep the body in `Card.Content` and leave the footer for the stub, such as actions or counts.
 
+The footer's column is as wide as its content, so cards in a list can have columns of different widths. Set `--card-footer-size` once on the list to line them up. Every side column is then at least that wide, and a ticket's perforation follows it. A stacked footer ignores it.
+
+```tsx
+<div className='grid gap-4 [--card-footer-size:11rem]'>
+  {events.map((event) => (
+    <Card key={event.id} variant='ticket' direction='auto'>…</Card>
+  ))}
+</div>
+```
+
 ```tsx-live
 <div className='grid gap-6'>
   <div className='grid gap-2'>
