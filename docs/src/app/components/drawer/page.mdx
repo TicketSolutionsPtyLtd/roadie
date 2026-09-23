@@ -65,9 +65,31 @@ A bottom sheet. `Drawer.Content` collapses the underlying `Portal`, `Backdrop`, 
 </div>
 ```
 
+### Emphasis
+
+`emphasis` on the root sets how much the drawer takes over the page behind it. `normal` dims and blurs the page, `subtle` tints it and leaves it readable, and `subtler` leaves it clear. A click outside still closes the drawer at any level. A small bottom or top drawer defaults to `subtle`, because it peeks over its page. Every other drawer defaults to `normal`.
+
+```tsx-live
+<div className='flex flex-wrap gap-3'>
+  {['normal', 'subtle', 'subtler'].map((emphasis) => (
+    <Drawer key={emphasis} emphasis={emphasis}>
+      <Drawer.Trigger render={<Button>{emphasis}</Button>} />
+      <Drawer.Content size='sm'>
+        <Drawer.Header>
+          <Drawer.Title>Emphasis {emphasis}</Drawer.Title>
+        </Drawer.Header>
+        <Drawer.Body>
+          <p>The page behind stays as visible as this level allows.</p>
+        </Drawer.Body>
+      </Drawer.Content>
+    </Drawer>
+  ))}
+</div>
+```
+
 ### Sizes
 
-`size` sets the drawer's extent along its own axis — height for a bottom or top drawer, width for a side one. Defaults to `md`.
+`size` sets the drawer's extent along its own axis — height for a bottom or top drawer, width for a side one. Defaults to `md`. A bottom or top drawer runs edge to edge on a phone. In a wider window it stops at `max-w-xl`, centred, and floats 0.5rem off its edge with every corner rounded, the same shape as the cart drawer.
 
 ```tsx-live
 <div className='flex flex-wrap gap-3'>
@@ -134,6 +156,17 @@ The collapsed `Drawer.Content` covers the common case. Compose the parts directl
   <Guideline.Dont code={`<Drawer side='right'>\n  <Drawer.Content handle>…</Drawer.Content>\n</Drawer>`}>
     A horizontal swipe has no matching affordance in the platform, and a stray
     pill at the top of a side drawer reads as decoration.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Let the page show through only when it matters'>
+  <Guideline.Do code={`<Drawer.Content size='sm'>\n  {/* the event stays readable behind the tickets */}\n</Drawer.Content>`}>
+    Leave `emphasis` to its default. A small sheet over a page the user is
+    still reading keeps that page legible, and a larger one takes their focus.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Drawer.Backdrop className='bg-[oklch(0.1_0.04_250/0.3)]' />`}>
+    Restating the scrim's colour to lighten it drifts from Roadie's the moment
+    it changes. Set `emphasis` on the root instead.
   </Guideline.Dont>
 </Guideline>
 

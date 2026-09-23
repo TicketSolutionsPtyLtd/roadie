@@ -11,7 +11,7 @@ export function DrawerHandle({ className, ...props }: DrawerHandleProps) {
       data-slot='drawer-handle'
       aria-hidden='true'
       className={cn(
-        'mx-auto my-2 h-1 w-9 shrink-0 rounded-full bg-sunken',
+        'mx-auto my-2 h-1 w-9 shrink-0 rounded-full bg-(--intent-border-subtle)',
         className
       )}
       {...props}

@@ -46,6 +46,27 @@ A trigger opens a centred modal over a dimmed backdrop. `Dialog.Content` collaps
 </Dialog>
 ```
 
+### Emphasis
+
+`emphasis` on the root sets how much the dialog takes over the page behind it. It defaults to `normal`, which dims and blurs the page, because a dialog asks for the user's full attention. `subtle` tints the page and leaves it readable, and `subtler` leaves it clear.
+
+```tsx-live
+<div className='flex flex-wrap gap-3'>
+  {['normal', 'subtle', 'subtler'].map((emphasis) => (
+    <Dialog key={emphasis} emphasis={emphasis}>
+      <Dialog.Trigger render={<Button>{emphasis}</Button>} />
+      <Dialog.Content size='sm'>
+        <Dialog.Header>
+          <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+          <Dialog.Title>Emphasis {emphasis}</Dialog.Title>
+          <Dialog.Description>The page behind stays as visible as this level allows.</Dialog.Description>
+        </Dialog.Header>
+      </Dialog.Content>
+    </Dialog>
+  ))}
+</div>
+```
+
 ### Sizes
 
 Use the `size` prop on `Dialog.Content` to set the maximum width. Defaults to `md`.

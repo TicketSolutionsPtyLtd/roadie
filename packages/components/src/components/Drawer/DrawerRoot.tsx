@@ -2,7 +2,8 @@
 
 import { Drawer as DrawerPrimitive } from '@base-ui/react/drawer'
 
-import { DrawerSideContext } from './DrawerContext'
+import type { OverlayEmphasis } from '../../variants'
+import { DrawerEmphasisContext, DrawerSideContext } from './DrawerContext'
 import { DRAWER_SWIPE_DIRECTION, type DrawerSide } from './variants'
 
 export type DrawerRootProps = Omit<
@@ -14,15 +15,27 @@ export type DrawerRootProps = Omit<
    * @default 'bottom'
    */
   side?: DrawerSide
+  /**
+   * How much the drawer takes over the page behind it. A small bottom or top
+   * drawer defaults to `subtle`, because it peeks over its page; every other
+   * drawer defaults to `normal`.
+   */
+  emphasis?: OverlayEmphasis
 }
 
-export function DrawerRoot({ side = 'bottom', ...props }: DrawerRootProps) {
+export function DrawerRoot({
+  side = 'bottom',
+  emphasis,
+  ...props
+}: DrawerRootProps) {
   return (
     <DrawerSideContext value={side}>
-      <DrawerPrimitive.Root
-        swipeDirection={DRAWER_SWIPE_DIRECTION[side]}
-        {...props}
-      />
+      <DrawerEmphasisContext value={emphasis}>
+        <DrawerPrimitive.Root
+          swipeDirection={DRAWER_SWIPE_DIRECTION[side]}
+          {...props}
+        />
+      </DrawerEmphasisContext>
     </DrawerSideContext>
   )
 }

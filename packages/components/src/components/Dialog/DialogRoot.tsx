@@ -2,7 +2,12 @@
 
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog'
 
-import { type DialogRole, DialogRoleContext } from './DialogContext'
+import type { OverlayEmphasis } from '../../variants'
+import {
+  DialogEmphasisContext,
+  type DialogRole,
+  DialogRoleContext
+} from './DialogContext'
 
 export type DialogRootProps = DialogPrimitive.Root.Props & {
   /**
@@ -11,12 +16,23 @@ export type DialogRootProps = DialogPrimitive.Root.Props & {
    * @default 'dialog'
    */
   role?: DialogRole
+  /**
+   * How much the dialog takes over the page behind it.
+   * @default 'normal'
+   */
+  emphasis?: OverlayEmphasis
 }
 
-export function DialogRoot({ role = 'dialog', ...props }: DialogRootProps) {
+export function DialogRoot({
+  role = 'dialog',
+  emphasis = 'normal',
+  ...props
+}: DialogRootProps) {
   return (
     <DialogRoleContext.Provider value={role}>
-      <DialogPrimitive.Root {...props} />
+      <DialogEmphasisContext value={emphasis}>
+        <DialogPrimitive.Root {...props} />
+      </DialogEmphasisContext>
     </DialogRoleContext.Provider>
   )
 }

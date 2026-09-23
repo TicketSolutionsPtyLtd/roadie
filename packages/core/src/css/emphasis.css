@@ -171,11 +171,23 @@
   }
 }
 
+/* Fixed-dark so it stays a scrim in both themes (the intent scale flips
+   light/dark), tinted by the intent hue: neutral near-black, danger a dark red. */
 @utility emphasis-overlay {
-  /* Fixed-dark so it stays a scrim in both themes (the intent scale flips
-     light/dark), tinted by the intent hue — neutral ≈ near-black, danger a
-     dark red, etc. */
   background-color: oklch(0.1 0.04 var(--intent-hue) / 0.55);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
+  color: var(--intent-text-inverted);
+
+  @media (prefers-reduced-transparency: reduce) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Tints without blurring, so what's behind stays readable: a sheet that
+   peeks over its page. */
+@utility emphasis-overlay-subtle {
+  background-color: oklch(0.1 0.04 var(--intent-hue) / 0.25);
   color: var(--intent-text-inverted);
 }

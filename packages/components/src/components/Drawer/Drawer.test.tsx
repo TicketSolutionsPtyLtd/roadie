@@ -64,6 +64,16 @@ describe('Drawer.Content', () => {
     await screen.findByRole('dialog')
     expect(slot('body')).toHaveAttribute('data-drawer-content')
   })
+
+  it("scrolls in Roadie's scroll area, the body itself the viewport", async () => {
+    renderOpen()
+    await screen.findByRole('dialog')
+    expect(slot('body')).toHaveAttribute('data-slot', 'drawer-body')
+    expect(slot('body')!.parentElement).toHaveAttribute(
+      'data-slot',
+      'scroll-area'
+    )
+  })
 })
 
 describe('Drawer content inset', () => {
@@ -72,7 +82,9 @@ describe('Drawer content inset', () => {
     const popup = await screen.findByRole('dialog')
     expect(popup).toHaveClass('[--content-inset:--spacing(6)]')
     expect(slot('header')).toHaveClass('px-(--content-inset)')
-    expect(slot('body')).toHaveClass('px-(--content-inset)')
+    expect(
+      slot('body')!.querySelector('[data-slot="scroll-area-content"]')
+    ).toHaveClass('px-(--content-inset)')
   })
 
   it('lands a List in the body on the same edge as the title', async () => {
@@ -106,6 +118,18 @@ describe('Drawer side', () => {
     expect(popup).toHaveAttribute('data-swipe-direction', 'down')
     expect(slot('viewport')).toHaveClass('items-end')
   })
+
+  it.each(['bottom', 'top'] as const)(
+    'caps a %s drawer and centres it in a wide window',
+    async (side) => {
+      renderOpen({ side })
+      expect(await screen.findByRole('dialog')).toHaveClass(
+        'w-full',
+        'max-w-xl'
+      )
+      expect(slot('viewport')).toHaveClass('justify-items-center')
+    }
+  )
 
   it('side="right" swipes right and anchors to the trailing edge', async () => {
     renderOpen({ side: 'right' })
@@ -160,6 +184,13 @@ describe('Drawer.Handle', () => {
     renderOpen()
     await screen.findByRole('dialog')
     expect(slot('handle')).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  // Sunken sits a step off the raised popup in light mode and reads as missing.
+  it('is painted in the divider colour', async () => {
+    renderOpen()
+    await screen.findByRole('dialog')
+    expect(slot('handle')).toHaveClass('bg-(--intent-border-subtle)')
   })
 })
 
@@ -242,6 +273,87 @@ describe('Drawer surface', () => {
     await screen.findByRole('dialog')
     expect(slot('viewport')).toHaveClass('z-modal')
     expect(slot('backdrop')).toHaveClass('z-overlay')
+  })
+
+  it('hides the page behind a normal scrim by default', async () => {
+    renderOpen()
+    await screen.findByRole('dialog')
+    expect(slot('backdrop')).toHaveClass('emphasis-overlay')
+  })
+
+  it.each(['bottom', 'top'] as const)(
+    'lets the page show through a small %s drawer',
+    async (side) => {
+      render(
+        <Drawer defaultOpen side={side}>
+          <Drawer.Content size='sm'>
+            <Drawer.Title>Filters</Drawer.Title>
+          </Drawer.Content>
+        </Drawer>
+      )
+      await screen.findByRole('dialog')
+      expect(slot('backdrop')).toHaveClass('emphasis-overlay-subtle')
+      expect(slot('backdrop')).not.toHaveClass('emphasis-overlay')
+    }
+  )
+
+  it('keeps the normal scrim on a small side drawer', async () => {
+    render(
+      <Drawer defaultOpen side='right'>
+        <Drawer.Content size='sm'>
+          <Drawer.Title>Filters</Drawer.Title>
+        </Drawer.Content>
+      </Drawer>
+    )
+    await screen.findByRole('dialog')
+    expect(slot('backdrop')).toHaveClass('emphasis-overlay')
+  })
+
+  it.each([
+    ['normal', 'emphasis-overlay'],
+    ['subtle', 'emphasis-overlay-subtle'],
+    ['subtler', 'bg-transparent']
+  ] as const)('takes a %s emphasis from the root', async (emphasis, cls) => {
+    render(
+      <Drawer defaultOpen emphasis={emphasis}>
+        <Drawer.Content size='sm'>
+          <Drawer.Title>Filters</Drawer.Title>
+        </Drawer.Content>
+      </Drawer>
+    )
+    await screen.findByRole('dialog')
+    expect(slot('backdrop')).toHaveClass(cls)
+  })
+
+  it('reaches a hand-composed backdrop', async () => {
+    render(
+      <Drawer defaultOpen emphasis='subtle'>
+        <Drawer.Portal>
+          <Drawer.Backdrop />
+          <Drawer.Viewport>
+            <Drawer.Popup>
+              <Drawer.Title>Filters</Drawer.Title>
+            </Drawer.Popup>
+          </Drawer.Viewport>
+        </Drawer.Portal>
+      </Drawer>
+    )
+    await screen.findByRole('dialog')
+    expect(slot('backdrop')).toHaveClass('emphasis-overlay-subtle')
+  })
+
+  it('still dismisses on a click outside at subtler', async () => {
+    const onOpenChange = vi.fn()
+    render(
+      <Drawer defaultOpen emphasis='subtler' onOpenChange={onOpenChange}>
+        <Drawer.Content>
+          <Drawer.Title>Filters</Drawer.Title>
+        </Drawer.Content>
+      </Drawer>
+    )
+    await screen.findByRole('dialog')
+    await userEvent.click(slot('backdrop')!)
+    expect(onOpenChange).toHaveBeenCalledWith(false, expect.anything())
   })
 
   it('drops the scrim transition mid-swipe so it tracks the drag', async () => {

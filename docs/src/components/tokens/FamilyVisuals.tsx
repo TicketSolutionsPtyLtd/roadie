@@ -172,7 +172,8 @@ const PRESETS = [
   'emphasis-floating',
   'emphasis-sunken',
   'emphasis-field',
-  'emphasis-overlay'
+  'emphasis-overlay',
+  'emphasis-overlay-subtle'
 ]
 
 export function EmphasisGrid() {

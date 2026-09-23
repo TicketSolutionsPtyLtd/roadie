@@ -16,12 +16,13 @@ export const DRAWER_SWIPE_DIRECTION = {
   right: 'right'
 } as const satisfies Record<DrawerSide, 'down' | 'up' | 'left' | 'right'>
 
-// `justify-items-*` keeps the track full-width, so `max-w-*` resolves against the viewport.
+// The track stays full-width, so `max-w-*` resolves against the viewport.
+// Centred, a capped top or bottom drawer sits in the middle of a wide window.
 export const drawerViewportVariants = cva('fixed inset-0 z-modal grid', {
   variants: {
     side: {
-      bottom: 'items-end',
-      top: 'items-start',
+      bottom: 'items-end justify-items-center',
+      top: 'items-start justify-items-center',
       left: 'justify-items-start',
       right: 'justify-items-end'
     }
@@ -40,8 +41,10 @@ export const drawerPopupVariants = cva(
     variants: {
       intent: intentVariants,
       side: {
-        bottom: 'w-full rounded-t-5xl',
-        top: 'w-full rounded-b-5xl',
+        // The cart drawer's width and float, so every sheet reads as the same object.
+        bottom:
+          'w-full max-w-xl rounded-t-5xl sm:[--drawer-float:max(--spacing(2),env(safe-area-inset-bottom))] sm:mb-(--drawer-float) sm:rounded-5xl',
+        top: 'w-full max-w-xl rounded-b-5xl sm:[--drawer-float:max(--spacing(2),env(safe-area-inset-top))] sm:mt-(--drawer-float) sm:rounded-5xl',
         left: 'h-full w-full rounded-r-2xl',
         right: 'h-full w-full rounded-l-2xl'
       },
