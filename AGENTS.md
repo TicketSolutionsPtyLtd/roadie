@@ -222,6 +222,17 @@ the brand radius stays consistent across components.
 - **Sizing:** XS=`size-3` (badges, tags), SM=`size-4` (buttons, inline — default), MD=`size-5` (nav, standalone), LG=`size-6` (headers, cards). Use Tailwind `className`, not the Phosphor `size` prop.
 - **Color:** Icons inherit `currentColor`. Use `text-*` utilities.
 
+### Data visualisation
+
+Read `docs/src/app/foundations/data-visualisation/page.tsx` before building a chart.
+
+- **Colour by job:** categorical `--chart-1` to `--chart-8` (fixed order, max 6 then "Other"; `--chart-pair-*` / `--chart-trio-*` for 2 or 3 series), sequential `--chart-heat-0` to `-8`, diverging `--chart-diverge-neg-4` to `-pos-4` (cool is ahead), status `--chart-status-good|warning|serious|critical` (meaning only).
+- **Emphasis:** story series in `--chart-highlight` (follows `--accent-hue`), context in `--chart-context`.
+- **Theming:** data hues never change. `--chart-highlight` takes the accent hue, and the data greys and diverging midpoint keep Roadie's accent-tinted neutrals. `chartHex(mode, accentHue)` applies the same rule for canvas and PDF.
+- **Utilities:** `fill-chart-*`, `stroke-chart-*`, `bg-chart-*`. For dynamic slots use `chartColorVar(i)`; for canvas/PDF use `chartHex(mode)` from `@oztix/roadie-core/dataviz`.
+- **Never hardcode chart colours.** `palette.ts` generates `dataviz.css`; change the palette, then run `pnpm --filter @oztix/roadie-core test -u`. CI rejects palettes that fail the colour-blind validator.
+- **Copy:** headline titles that state the takeaway, no dashes, Australian spelling, house date and number formats.
+
 ### Typography
 
 Two font families: **Intermission** (sans-serif, `font-sans`) and **IBM Plex Mono** (`font-mono`).

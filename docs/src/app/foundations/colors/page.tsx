@@ -1,3 +1,7 @@
+import Link from 'next/link'
+
+import { DatavizSwatches } from '@/components/dataviz/DatavizSwatches'
+
 import { Code } from '@oztix/roadie-components'
 
 export const metadata = {
@@ -269,6 +273,42 @@ export default function ColorsPage() {
           {intents.map((intent) => (
             <IntentDemo key={intent} intent={intent} />
           ))}
+        </div>
+      </section>
+
+      <section className='grid gap-6'>
+        <div className='grid gap-2'>
+          <h2 className='text-display-ui-3 text-strong'>
+            Data visualisation colours
+          </h2>
+          <p className='text-subtle'>
+            Charts use their own palette, checked for colour-blind separation in
+            CI. Each set has one job. Read{' '}
+            <Link href='/foundations/data-visualisation' className='underline'>
+              Data visualisation
+            </Link>{' '}
+            before you pick one.
+          </p>
+        </div>
+        <div className='grid gap-2'>
+          <p className='text-sm text-strong'>
+            Categorical, for telling series apart
+          </p>
+          <DatavizSwatches kind='categorical' />
+        </div>
+        <div className='grid gap-2'>
+          <p className='text-sm text-strong'>Sequential, for how much</p>
+          <DatavizSwatches kind='heat' />
+        </div>
+        <div className='grid gap-2'>
+          <p className='text-sm text-strong'>
+            Diverging, for ahead of or behind a benchmark
+          </p>
+          <DatavizSwatches kind='diverging' />
+        </div>
+        <div className='grid gap-2'>
+          <p className='text-sm text-strong'>Status, for meaning only</p>
+          <DatavizSwatches kind='status' />
         </div>
       </section>
 

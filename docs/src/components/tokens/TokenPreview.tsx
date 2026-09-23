@@ -312,8 +312,17 @@ function variablePreview(token: TokenEntry) {
       return <Travel duration={literal(token)} easing='ease-in-out' />
     case 'Easings':
       return <Travel duration='600ms' easing={literal(token)} />
+    case 'Chart ink':
+      if (name === '--chart-label' || name === '--chart-value')
+        return <Glyph style={{ color: v(name) }} />
+      break
+    // @theme inline never emits these, so read the token they alias.
+    case 'Tailwind utilities':
+      return <Swatch color={v(name.replace('--color-', '--'))} />
   }
-  return family === 'color-scales' || family === 'intents' ? (
+  return family === 'color-scales' ||
+    family === 'intents' ||
+    family === 'dataviz' ? (
     <Swatch color={v(name)} />
   ) : null
 }
