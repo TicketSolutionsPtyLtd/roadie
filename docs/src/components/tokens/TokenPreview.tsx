@@ -312,8 +312,13 @@ function variablePreview(token: TokenEntry) {
       return <Travel duration={literal(token)} easing='ease-in-out' />
     case 'Easings':
       return <Travel duration='600ms' easing={literal(token)} />
+    case 'Chart ink':
+      if (name === '--chart-label' || name === '--chart-value')
+        return <Glyph style={{ color: v(name) }} />
   }
-  return family === 'color-scales' || family === 'intents' ? (
+  return family === 'color-scales' ||
+    family === 'intents' ||
+    family === 'dataviz' ? (
     <Swatch color={v(name)} />
   ) : null
 }
