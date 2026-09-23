@@ -187,6 +187,10 @@
       "types": "./dist/components/Sparkline/index.d.ts",
       "import": "./dist/components/Sparkline/index.js"
     },
+    "./stat-tile": {
+      "types": "./dist/components/StatTile/index.d.ts",
+      "import": "./dist/components/StatTile/index.js"
+    },
     "./steps": {
       "types": "./dist/components/Steps/index.d.ts",
       "import": "./dist/components/Steps/index.js"

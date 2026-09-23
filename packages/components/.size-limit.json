@@ -86,5 +86,12 @@
     "import": "*",
     "limit": "3 kB",
     "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "StatTile",
+    "path": "dist/components/StatTile/index.js",
+    "import": "*",
+    "limit": "4 kB",
+    "ignore": ["@oztix/roadie-core"]
   }
 ]

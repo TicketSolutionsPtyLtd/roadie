@@ -259,6 +259,8 @@ export {
   type DataCardProps
 } from './components/DataCard'
 
+export { StatTile, type StatTileProps } from './components/StatTile'
+
 export {
   Tabs,
   tabsListVariants,
