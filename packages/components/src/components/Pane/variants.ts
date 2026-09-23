@@ -85,7 +85,7 @@ export const paneHeaderEdgeClass = 'col-start-1 row-start-1 justify-self-start'
 // Opaque, since the handle's band above it is: frosted glass would show a seam where the two meet.
 export const paneHeaderInDrawerClass = [
   'pt-1 bg-(--pane-surface) backdrop-blur-none',
-  '[[data-slot=drawer-popup]:has([data-slot=drawer-body][data-overflow-y-start])_&]:after:opacity-100'
+  '[[data-slot=drawer-popup][data-body-overflow-y-start]_&]:after:opacity-100'
 ]
 
 // grid rows 1fr→0fr close the row; transforms wouldn't release layout.
