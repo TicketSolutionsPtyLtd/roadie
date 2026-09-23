@@ -313,6 +313,9 @@ The collapsed `Drawer.Content` covers the common case. Compose the parts directl
     Put a `Drawer.Close` inside `Drawer.Header`, rendered as a `normal`
     `IconButton` named "Close". The header sets it in the top-left corner
     above the title, where Close sits in a `Pane` and a `Dialog`.
+    If the header holds only a Close, keep it outside any wrapper with a
+    `gap`, such as a steps container. The wrapper's gap adds to the space
+    under the Close.
   </Guideline.Do>
   <Guideline.Dont code={`<Drawer.Close\n  render={<IconButton className='absolute top-4 right-4' … />}\n/>`}>
     Don't position it yourself, move it to the other side or put it in the
