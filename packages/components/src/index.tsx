@@ -230,6 +230,14 @@ export {
 } from './components/Steps'
 
 export {
+  Sparkline,
+  SPARKLINE_MIN_POINTS,
+  sparklineGeometry,
+  type SparklineProps,
+  type SparklineReference
+} from './components/Sparkline'
+
+export {
   Table,
   type TableAlign,
   type TableCellProps,

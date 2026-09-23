@@ -58,5 +58,12 @@
     "import": "*",
     "limit": "5 kB",
     "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "Sparkline",
+    "path": "dist/components/Sparkline/index.js",
+    "import": "*",
+    "limit": "1.5 kB",
+    "ignore": ["@oztix/roadie-core"]
   }
 ]
