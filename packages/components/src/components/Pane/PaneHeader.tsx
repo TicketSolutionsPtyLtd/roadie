@@ -121,7 +121,10 @@ export function PaneHeader({
   // DOM walk: the pane's ref attaches after this effect. Keyed on `visible`, as headers come and go.
   useLayoutEffect(() => {
     const header = headerRef.current
-    const paneEl = header?.closest<HTMLElement>('[data-slot="pane"]')
+    // In the inspector's drawer there's no pane, so the drawer carries it.
+    const paneEl = header?.closest<HTMLElement>(
+      '[data-slot="pane"], [data-slot="drawer-popup"]'
+    )
     if (!header || !paneEl) return
 
     const publish = () =>

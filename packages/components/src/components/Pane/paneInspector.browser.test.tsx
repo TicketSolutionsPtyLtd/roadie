@@ -242,6 +242,18 @@ describe("an inspector drawer's Close", () => {
     expect(column().querySelector('button[aria-label="Close"]')).toBeNull()
   })
 
+  it("publishes the header's height on the drawer, as a pane does", async () => {
+    mount(NARROW, <Shell reveal header />)
+    const drawer = await screen.findByRole('dialog')
+    const header = drawer.querySelector('[data-slot="pane-header"]')!
+
+    await waitFor(() =>
+      expect(drawer.style.getPropertyValue('--pane-header-height')).toBe(
+        `${(header as HTMLElement).offsetHeight}px`
+      )
+    )
+  })
+
   it('gives sticky chrome in the drawer the drawer surface to mix against', async () => {
     mount(NARROW, <Shell reveal header />)
     const drawer = await screen.findByRole('dialog')
