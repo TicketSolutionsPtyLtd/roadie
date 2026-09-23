@@ -315,6 +315,10 @@ function variablePreview(token: TokenEntry) {
     case 'Chart ink':
       if (name === '--chart-label' || name === '--chart-value')
         return <Glyph style={{ color: v(name) }} />
+      break
+    // @theme inline never emits these, so read the token they alias.
+    case 'Tailwind utilities':
+      return <Swatch color={v(name.replace('--color-', '--'))} />
   }
   return family === 'color-scales' ||
     family === 'intents' ||
