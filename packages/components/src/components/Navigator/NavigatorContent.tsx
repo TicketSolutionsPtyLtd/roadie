@@ -235,10 +235,11 @@ export function NavigatorContent({ children }: { children?: ReactNode }) {
     const frame = requestAnimationFrame(() => {
       pushable.current = true
     })
+    // Frame ids, not nodes: unmounting cancels whichever frame is pending then.
+    const pending = [pushFrame, instantFrame]
     return () => {
       cancelAnimationFrame(frame)
-      cancelAnimationFrame(pushFrame.current)
-      cancelAnimationFrame(instantFrame.current)
+      for (const ref of pending) cancelAnimationFrame(ref.current)
     }
   }, [])
 
