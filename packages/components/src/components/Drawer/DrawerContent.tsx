@@ -1,11 +1,7 @@
 'use client'
 
 import { DrawerBackdrop } from './DrawerBackdrop'
-import {
-  DrawerEmphasisContext,
-  useDrawerEmphasis,
-  useDrawerSide
-} from './DrawerContext'
+import { useDrawerSide } from './DrawerContext'
 import { DrawerHandle } from './DrawerHandle'
 import { DrawerPopup, type DrawerPopupProps } from './DrawerPopup'
 import { DrawerPortal } from './DrawerPortal'
@@ -24,13 +20,9 @@ export function DrawerContent({
   const side = useDrawerSide()
   const edgeSheet = side === 'bottom' || side === 'top'
   const showHandle = handle ?? edgeSheet
-  const peeks = edgeSheet && props.size === 'sm'
-  const emphasis = useDrawerEmphasis() ?? (peeks ? 'subtle' : 'normal')
   return (
     <DrawerPortal>
-      <DrawerEmphasisContext value={emphasis}>
-        <DrawerBackdrop />
-      </DrawerEmphasisContext>
+      <DrawerBackdrop />
       <DrawerViewport>
         <DrawerPopup {...props}>
           {/* The handle sits on the swipe edge: the far one for a top drawer. */}

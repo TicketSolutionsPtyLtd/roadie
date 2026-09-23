@@ -174,6 +174,23 @@ describe('a drawer body', () => {
   )
 })
 
+describe('a floating tall drawer', () => {
+  it('leaves room at the top once it floats off the bottom edge', async () => {
+    await page.viewport(1280, 800)
+    render(
+      <Drawer defaultOpen>
+        <Drawer.Content size='lg'>
+          <Drawer.Title>Your tickets</Drawer.Title>
+        </Drawer.Content>
+      </Drawer>
+    )
+    const popup = (await screen.findByRole('dialog')).getBoundingClientRect()
+
+    expect(800 - popup.bottom).toBeCloseTo(8, 0)
+    expect(popup.top).toBeCloseTo(32, 0)
+  })
+})
+
 describe('a fixed-height drawer', () => {
   it.each([
     ['sm', 844 * 0.5],

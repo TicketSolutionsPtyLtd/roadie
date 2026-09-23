@@ -284,6 +284,36 @@ describe("an inspector drawer's Close", () => {
     expect(getComputedStyle(header).backdropFilter).toBe('none')
   })
 
+  it('fills the drawer with a Pane.Body, as it fills a pane', async () => {
+    mount(
+      NARROW,
+      <Navigator className='h-[600px]'>
+        <Pane aria-label='Paperbark Sessions'>
+          <Pane.Header>
+            <Pane.Title>Paperbark Sessions</Pane.Title>
+          </Pane.Header>
+        </Pane>
+        <Pane column='inspector' aria-label='Tickets' reveal>
+          <Pane.Header>
+            <Pane.Title>12 tickets</Pane.Title>
+          </Pane.Header>
+          <Pane.Body>
+            <p>12 tickets</p>
+          </Pane.Body>
+        </Pane>
+      </Navigator>
+    )
+    const drawer = await screen.findByRole('dialog')
+    const body = drawer
+      .querySelector('[data-slot="pane-body"]')!
+      .getBoundingClientRect()
+    const viewport = drawer
+      .querySelector('[data-slot="drawer-body"]')!
+      .getBoundingClientRect()
+
+    expect(body.bottom).toBeCloseTo(viewport.bottom - 8, 0)
+  })
+
   it('gives sticky chrome in the drawer the drawer surface to mix against', async () => {
     mount(NARROW, <Shell reveal header />)
     const drawer = await screen.findByRole('dialog')

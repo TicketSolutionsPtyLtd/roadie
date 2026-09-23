@@ -143,6 +143,39 @@ describe('Card.Link', () => {
     expect(lift(card)).toBeCloseTo(-1)
   })
 
+  it("keeps a control's own position", () => {
+    const { container } = render(
+      <Card>
+        <Card.Content>
+          <Card.Title>
+            <Card.Link href='#weekly-pass'>Weekly Pass</Card.Link>
+          </Card.Title>
+          <button type='button' className='absolute top-2 right-2'>
+            Save
+          </button>
+        </Card.Content>
+      </Card>
+    )
+    const button = container.querySelector('button')!
+
+    expect(getComputedStyle(button).position).toBe('absolute')
+  })
+
+  it("leaves a card's controls alone until it has a main link", () => {
+    const { container } = render(
+      <Card>
+        <Card.Content>
+          <button type='button'>Save</button>
+        </Card.Content>
+      </Card>
+    )
+    const card = container.querySelector<HTMLElement>('[data-slot=card]')!
+    const button = container.querySelector('button')!
+
+    expect(getComputedStyle(button).position).toBe('static')
+    expect(getComputedStyle(card).position).toBe('static')
+  })
+
   it('does nothing to a card without one', async () => {
     const { container } = render(
       <Card emphasis='normal'>

@@ -249,8 +249,8 @@ export default function IconographyPage() {
             }
           >
             Use <Code>weight=&quot;duotone&quot;</Code> for icons 48px and up.
-            Use it on feature surfaces and icons inside an <Code>IconTile</Code>
-            , where the two-tone fill reads as intentional depth.
+            The two-tone fill reads as intentional depth on feature surfaces and
+            on icons inside an <Code>IconTile</Code>.
           </Guideline.Do>
           <Guideline.Dont
             example={

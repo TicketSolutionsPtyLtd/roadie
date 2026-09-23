@@ -342,6 +342,23 @@ describe('Drawer surface', () => {
     expect(slot('backdrop')).toHaveClass('emphasis-overlay-subtle')
   })
 
+  it('lets the page show through a small hand-composed sheet too', async () => {
+    render(
+      <Drawer defaultOpen>
+        <Drawer.Portal>
+          <Drawer.Backdrop />
+          <Drawer.Viewport>
+            <Drawer.Popup size='sm'>
+              <Drawer.Title>Filters</Drawer.Title>
+            </Drawer.Popup>
+          </Drawer.Viewport>
+        </Drawer.Portal>
+      </Drawer>
+    )
+    await screen.findByRole('dialog')
+    expect(slot('backdrop')).toHaveClass('emphasis-overlay-subtle')
+  })
+
   it('still dismisses on a click outside at subtler', async () => {
     const onOpenChange = vi.fn()
     render(

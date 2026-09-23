@@ -1,13 +1,13 @@
 'use client'
 
-import type { RefAttributes } from 'react'
+import { type RefAttributes, use, useLayoutEffect } from 'react'
 
 import { Drawer as DrawerPrimitive } from '@base-ui/react/drawer'
 
 import { cn } from '@oztix/roadie-core/utils'
 
 import type { RoadieIntent } from '../../variants'
-import { useDrawerSide } from './DrawerContext'
+import { DrawerSizeContext, useDrawerSide } from './DrawerContext'
 import { type DrawerSize, drawerPopupVariants } from './variants'
 
 export type DrawerPopupProps = DrawerPrimitive.Popup.Props &
@@ -29,6 +29,8 @@ export function DrawerPopup({
   const side = useDrawerSide()
   const resolvedSize =
     size ?? (side === 'left' || side === 'right' ? 'md' : 'fit')
+  const { setSize } = use(DrawerSizeContext)
+  useLayoutEffect(() => setSize(resolvedSize), [setSize, resolvedSize])
   return (
     <DrawerPrimitive.Popup
       data-slot='drawer-popup'

@@ -45,8 +45,8 @@ export const drawerPopupVariants = cva(
         // The cart drawer's width and float, so every sheet reads as the same object.
         // Tall stops below the far edge's safe area, leaving a sliver of page, as an iOS large sheet does.
         bottom:
-          'w-full max-w-xl rounded-t-4xl [--drawer-tall:calc(100dvh_-_max(env(safe-area-inset-top),--spacing(4))_-_--spacing(4))] sm:[--drawer-float:max(--spacing(2),env(safe-area-inset-bottom))] sm:mb-(--drawer-float) sm:rounded-4xl',
-        top: 'w-full max-w-xl rounded-b-4xl [--drawer-tall:calc(100dvh_-_max(env(safe-area-inset-bottom),--spacing(4))_-_--spacing(4))] sm:[--drawer-float:max(--spacing(2),env(safe-area-inset-top))] sm:mt-(--drawer-float) sm:rounded-4xl',
+          'w-full max-w-xl rounded-t-4xl [--drawer-tall:calc(100dvh_-_max(env(safe-area-inset-top),--spacing(4))_-_--spacing(4)_-_var(--drawer-float,0px))] sm:[--drawer-float:max(--spacing(2),env(safe-area-inset-bottom))] sm:mb-(--drawer-float) sm:rounded-4xl',
+        top: 'w-full max-w-xl rounded-b-4xl [--drawer-tall:calc(100dvh_-_max(env(safe-area-inset-bottom),--spacing(4))_-_--spacing(4)_-_var(--drawer-float,0px))] sm:[--drawer-float:max(--spacing(2),env(safe-area-inset-top))] sm:mt-(--drawer-float) sm:rounded-4xl',
         left: 'h-full rounded-r-4xl',
         right: 'h-full rounded-l-4xl'
       },

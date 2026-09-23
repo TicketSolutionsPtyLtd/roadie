@@ -3,6 +3,7 @@
 import {
   type ReactNode,
   type RefObject,
+  Suspense,
   useLayoutEffect,
   useState
 } from 'react'
@@ -13,6 +14,7 @@ import { XIcon } from '@phosphor-icons/react'
 import { IconButton } from '../Button/IconButton'
 import { Drawer } from '../Drawer'
 import type { DrawerSize } from '../Drawer/variants'
+import { PaneFallback } from './PaneFallback'
 import { PaneInspectorDrawerContext } from './PaneInspectorContext'
 
 // The column's CSS decides the yield from the whole stack, so read the result rather than redo the maths.
@@ -90,9 +92,10 @@ export function PaneInspectorDrawer({
             }
           />
         </Drawer.Header>
-        <Drawer.Body className='has-[>[data-slot=pane-header]]:pt-0'>
+        {/* A Pane.Body fills the drawer as it fills a pane. */}
+        <Drawer.Body className='has-[>[data-slot=pane-body]]:flex has-[>[data-slot=pane-body]]:min-h-full has-[>[data-slot=pane-body]]:flex-col has-[>[data-slot=pane-header]]:pt-0'>
           <PaneInspectorDrawerContext value>
-            {children}
+            <Suspense fallback={<PaneFallback header />}>{children}</Suspense>
           </PaneInspectorDrawerContext>
         </Drawer.Body>
       </Drawer.Content>

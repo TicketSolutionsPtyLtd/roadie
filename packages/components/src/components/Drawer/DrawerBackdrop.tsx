@@ -13,7 +13,7 @@ export type DrawerBackdropProps = DrawerPrimitive.Backdrop.Props &
   RefAttributes<HTMLDivElement>
 
 export function DrawerBackdrop({ className, ...props }: DrawerBackdropProps) {
-  const emphasis = useDrawerEmphasis() ?? 'normal'
+  const emphasis = useDrawerEmphasis()
   return (
     <DrawerPrimitive.Backdrop
       data-slot='drawer-backdrop'

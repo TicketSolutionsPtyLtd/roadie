@@ -10,7 +10,7 @@ export function DrawerHeader({ className, ...props }: DrawerHeaderProps) {
       data-slot='drawer-header'
       className={cn(
         // Leading-aligned, unlike `Dialog.Header`: a drawer is read down.
-        'relative grid shrink-0 gap-1.5 px-(--content-inset) pt-4 pb-2',
+        'relative z-1 grid shrink-0 gap-1.5 px-(--content-inset) pt-4 pb-2',
         // Shadows the body once it scrolls up under the header.
         "after:pointer-events-none after:absolute after:inset-0 after:opacity-0 after:shadow-md after:content-[''] after:[clip-path:inset(0_0_-1rem_0)]",
         '[[data-slot=drawer-popup]:has([data-slot=drawer-body][data-overflow-y-start])_&]:after:opacity-100',

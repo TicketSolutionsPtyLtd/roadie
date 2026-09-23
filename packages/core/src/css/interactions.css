@@ -285,10 +285,13 @@
    covers the surface, other controls sit above it, and the surface takes the
    link's hover, press and focus states. Inert until a target is present. */
 @utility is-interactive-within {
-  position: relative;
   outline: 0 solid transparent;
   transition: var(--interactive-transition);
 
+  /* Positions only once a target is present, and never over the surface's own position. */
+  :where(&:has([data-interactive-target])) {
+    position: relative;
+  }
   & [data-interactive-target] {
     outline: none;
   }
@@ -298,9 +301,10 @@
     inset: 0;
     z-index: 1;
   }
-  &
-    :is(a[href], button, input, select, textarea, summary, [tabindex]):not(
-      [data-interactive-target]
+  /* Zero specificity, so a control's own position or z-index still wins. */
+  :where(&:has([data-interactive-target]))
+    :where(a[href], button, input, select, textarea, summary, [tabindex]):where(
+      :not([data-interactive-target])
     ) {
     position: relative;
     z-index: 2;
