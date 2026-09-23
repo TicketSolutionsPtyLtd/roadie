@@ -18,13 +18,17 @@
   box-shadow: var(--rim-light-subtle);
 
   &.is-interactive:hover,
-  &.is-interactive:focus-visible {
+  &.is-interactive:focus-visible,
+  &.is-interactive-within:has(
+      [data-interactive-target]:is(:hover, :focus-visible)
+    ) {
     background-color: var(--intent-11);
     transform: translateY(-1px);
     box-shadow: var(--rim-light-subtle), var(--shadow-sm);
   }
   &.is-interactive:active,
-  &.is-interactive.is-active {
+  &.is-interactive.is-active,
+  &.is-interactive-within:has([data-interactive-target]:active) {
     background-color: var(--intent-12);
     transform: translateY(0) scale(0.99);
     box-shadow: none;
@@ -37,13 +41,17 @@
   border: 1px solid var(--intent-border-normal);
 
   &.is-interactive:hover,
-  &.is-interactive:focus-visible {
+  &.is-interactive:focus-visible,
+  &.is-interactive-within:has(
+      [data-interactive-target]:is(:hover, :focus-visible)
+    ) {
     background-color: var(--intent-2);
     transform: translateY(-1px);
     box-shadow: var(--shadow-sm);
   }
   &.is-interactive:active,
-  &.is-interactive.is-active {
+  &.is-interactive.is-active,
+  &.is-interactive-within:has([data-interactive-target]:active) {
     background-color: var(--intent-3);
     transform: translateY(0) scale(0.99);
     box-shadow: none;
@@ -58,11 +66,15 @@
   box-shadow: var(--rim-light-subtler);
 
   &.is-interactive:hover,
-  &.is-interactive:focus-visible {
+  &.is-interactive:focus-visible,
+  &.is-interactive-within:has(
+      [data-interactive-target]:is(:hover, :focus-visible)
+    ) {
     background-color: var(--intent-4a);
   }
   &.is-interactive:active,
-  &.is-interactive.is-active {
+  &.is-interactive.is-active,
+  &.is-interactive-within:has([data-interactive-target]:active) {
     background-color: var(--intent-5a);
   }
 }
@@ -73,15 +85,20 @@
   border-width: 1px;
   border-style: solid;
 
-  &.is-interactive {
+  &.is-interactive,
+  &.is-interactive-within:has([data-interactive-target]) {
     background-color: transparent;
   }
   &.is-interactive:hover,
-  &.is-interactive:focus-visible {
+  &.is-interactive:focus-visible,
+  &.is-interactive-within:has(
+      [data-interactive-target]:is(:hover, :focus-visible)
+    ) {
     background-color: var(--intent-3a);
   }
   &.is-interactive:active,
-  &.is-interactive.is-active {
+  &.is-interactive.is-active,
+  &.is-interactive-within:has([data-interactive-target]:active) {
     background-color: var(--intent-4a);
   }
 }
@@ -97,12 +114,16 @@
   color: var(--intent-text-normal);
 
   &.is-interactive:hover,
-  &.is-interactive:focus-visible {
+  &.is-interactive:focus-visible,
+  &.is-interactive-within:has(
+      [data-interactive-target]:is(:hover, :focus-visible)
+    ) {
     transform: translateY(-1px);
     box-shadow: var(--rim-light-strong), var(--shadow-lg);
   }
   &.is-interactive:active,
-  &.is-interactive.is-active {
+  &.is-interactive.is-active,
+  &.is-interactive-within:has([data-interactive-target]:active) {
     transform: translateY(0) scale(0.99);
     box-shadow: var(--rim-light-strong), var(--shadow-sm);
   }

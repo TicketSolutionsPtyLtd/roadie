@@ -233,10 +233,8 @@
   }
 }
 
-@utility is-interactive {
-  cursor: pointer;
-  outline: 0 solid transparent;
-  transition:
+:root {
+  --interactive-transition:
     background-color var(--duration-moderate) var(--ease-standard),
     border-color var(--duration-moderate) var(--ease-standard),
     color var(--duration-moderate) var(--ease-standard),
@@ -244,6 +242,12 @@
     outline-width var(--duration-normal) var(--ease-standard),
     outline-color var(--duration-normal) var(--ease-standard),
     transform var(--duration-normal) var(--ease-spring);
+}
+
+@utility is-interactive {
+  cursor: pointer;
+  outline: 0 solid transparent;
+  transition: var(--interactive-transition);
 
   &:active {
     transform: scale(0.99);
@@ -273,5 +277,54 @@
     opacity: 0.5;
     pointer-events: none;
     filter: grayscale(0.3);
+  }
+}
+
+/* A surface whose main link sits inside it, such as a card that also holds
+   other actions. Mark that link with data-interactive-target: its overlay
+   covers the surface, other controls sit above it, and the surface takes the
+   link's hover, press and focus states. Inert until a target is present. */
+@utility is-interactive-within {
+  position: relative;
+  outline: 0 solid transparent;
+  transition: var(--interactive-transition);
+
+  & [data-interactive-target] {
+    outline: none;
+  }
+  & [data-interactive-target]::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+  &
+    :is(a[href], button, input, select, textarea, summary, [tabindex]):not(
+      [data-interactive-target]
+    ) {
+    position: relative;
+    z-index: 2;
+  }
+
+  &:has([data-interactive-target]:active) {
+    transform: scale(0.99);
+  }
+
+  &:has([data-interactive-target]:focus-visible) {
+    outline: var(--focus-ring-width) solid
+      color-mix(
+        in oklch,
+        var(--intent-9) var(--focus-ring-opacity),
+        transparent
+      );
+    outline-offset: 0;
+  }
+
+  .dark &:has([data-interactive-target]:focus-visible) {
+    outline-color: color-mix(
+      in oklch,
+      var(--intent-9) var(--focus-ring-opacity-dark),
+      transparent
+    );
   }
 }

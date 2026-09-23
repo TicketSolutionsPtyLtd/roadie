@@ -7,6 +7,7 @@ import { CardDescription } from './CardDescription'
 import { CardFooter } from './CardFooter'
 import { CardHeader } from './CardHeader'
 import { CardImage } from './CardImage'
+import { CardLink } from './CardLink'
 import { CardRoot } from './CardRoot'
 import { CardTitle } from './CardTitle'
 
@@ -16,6 +17,7 @@ const Card = CardRoot as typeof CardRoot & {
   Content: typeof CardContent
   Footer: typeof CardFooter
   Image: typeof CardImage
+  Link: typeof CardLink
   Title: typeof CardTitle
   Description: typeof CardDescription
 }
@@ -25,6 +27,7 @@ Card.Header = CardHeader
 Card.Content = CardContent
 Card.Footer = CardFooter
 Card.Image = CardImage
+Card.Link = CardLink
 Card.Title = CardTitle
 Card.Description = CardDescription
 
@@ -34,6 +37,7 @@ export type { CardHeaderProps } from './CardHeader'
 export type { CardContentProps } from './CardContent'
 export type { CardFooterProps } from './CardFooter'
 export type { CardImageProps } from './CardImage'
+export type { CardLinkProps } from './CardLink'
 export type { CardTitleProps } from './CardTitle'
 export type { CardDescriptionProps } from './CardDescription'
 export { cardVariants } from './variants'

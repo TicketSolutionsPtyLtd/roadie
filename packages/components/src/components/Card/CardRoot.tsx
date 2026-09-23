@@ -123,7 +123,8 @@ export function CardRoot<T extends ElementType = 'div'>({
       variant,
       emphasis: ticketAttributes ? null : emphasis
     }),
-    isInteractive && 'is-interactive',
+    // Inert until a Card.Link inside marks the card's main target.
+    isInteractive ? 'is-interactive' : 'is-interactive-within',
     className
   )
 

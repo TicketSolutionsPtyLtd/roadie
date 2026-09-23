@@ -343,7 +343,7 @@ export default function InteractionsPage() {
       <section className='grid gap-6'>
         <h2 className='text-display-ui-3 text-strong'>Interaction utilities</h2>
         <p className='text-subtle'>
-          Roadie provides two CSS utilities that encode many of these principles
+          Roadie provides CSS utilities that encode many of these principles
           automatically. Apply them to elements that respond to user input.
         </p>
 
@@ -467,6 +467,24 @@ export default function InteractionsPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* is-interactive-within */}
+        <div className='grid gap-4'>
+          <h3 className='text-display-ui-5 text-strong'>
+            <Code>is-interactive-within</Code>
+          </h3>
+          <p className='text-subtle'>
+            For a surface whose main link sits inside it, such as a card that
+            also holds other links or buttons. Mark that link with{' '}
+            <Code>data-interactive-target</Code>. Its overlay covers the
+            surface, so a click anywhere follows it. Other controls sit above
+            the overlay and stay clickable. The surface takes the same hover,
+            press and focus states as <Code>is-interactive</Code> while its main
+            link is hovered, pressed or focused. It does nothing until a target
+            is present. <Code>Card</Code> applies it for you when it holds a{' '}
+            <Code>Card.Link</Code>.
+          </p>
         </div>
 
         {/* is-interactive-field */}

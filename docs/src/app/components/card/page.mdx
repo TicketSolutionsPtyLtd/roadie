@@ -382,4 +382,29 @@ Use `Card.Header`, `Card.Content`, and `Card.Footer` to structure content.
 </Card>
 ```
 
+### With a main link
+
+`href` on `Card` makes the whole card one link, so nothing else inside it can be a link or a button. When a card also holds other actions, wrap its title in `Card.Link` instead. The link covers the card, so a click anywhere follows it, and the other links and buttons sit above it and stay clickable. The card takes its hover, press and focus states from the link, and screen readers hear a short link named by the title rather than the whole card.
+
+```tsx-live
+<Card variant='ticket' direction='auto' emphasis='raised' className='max-w-lg'>
+  <Card.Content>
+    <Card.Title>
+      <Card.Link href='#weekly-pass'>Weekly Pass</Card.Link>
+    </Card.Title>
+    <Card.Description>Mon 3 to Fri 7 May · Wattle Grounds, Rockhampton</Card.Description>
+  </Card.Content>
+  <Card.Footer>
+    <Button size='sm' href='#tickets'>
+      <TicketIcon weight='bold' className='size-4' />
+      638 tickets
+    </Button>
+    <Button size='sm' href='#shared'>
+      <UsersIcon weight='bold' className='size-4' />
+      376 shared
+    </Button>
+  </Card.Footer>
+</Card>
+```
+
 <PropsDefinitions componentPath='packages/components/src/components/Card' />
