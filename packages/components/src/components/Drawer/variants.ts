@@ -33,7 +33,8 @@ export const drawerViewportVariants = cva('fixed inset-0 z-modal grid', {
 export const drawerPopupVariants = cva(
   [
     // Flex, so the body fills the space whether or not a header or footer is present.
-    'flex flex-col min-h-0 emphasis-floating motion-drawer',
+    // Clipped, so sticky chrome that bleeds to the edge follows the rounded corners.
+    'flex flex-col min-h-0 overflow-clip emphasis-floating motion-drawer',
     // Header, body and footer each read this; the body scrolls, so the popup can't pad itself.
     '[--content-inset:--spacing(6)]'
   ],

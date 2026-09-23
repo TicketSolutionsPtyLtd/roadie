@@ -295,6 +295,21 @@ describe('drawer scroll shadows', () => {
 })
 
 describe('a drawer header', () => {
+  it('clips edge-to-edge chrome to its rounded corners', async () => {
+    await page.viewport(1280, 800)
+    render(
+      <Drawer defaultOpen>
+        <Drawer.Content>
+          <Drawer.Title>Your tickets</Drawer.Title>
+        </Drawer.Content>
+      </Drawer>
+    )
+    const popup = await screen.findByRole('dialog')
+
+    expect(getComputedStyle(popup).overflow).toBe('clip')
+    expect(getComputedStyle(popup).borderTopLeftRadius).toBe('32px')
+  })
+
   it('keeps Close 24px from the top when a wrapper sits between handle and header', async () => {
     await page.viewport(390, 844)
     render(
