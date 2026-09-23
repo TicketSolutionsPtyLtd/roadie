@@ -8,6 +8,7 @@ export default defineConfig(({ watch }) => ({
     'utils/index': './src/utils/index.ts',
     'image/index': './src/image/index.ts',
     'datetime/index': './src/datetime/index.ts',
+    'dataviz/index': './src/dataviz/index.ts',
     'navigator/index': './src/navigator/index.ts'
   },
   format: ['esm'],

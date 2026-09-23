@@ -43,6 +43,10 @@
     "./datetime": {
       "types": "./dist/datetime/index.d.ts",
       "import": "./dist/datetime/index.js"
+    },
+    "./dataviz": {
+      "types": "./dist/dataviz/index.d.ts",
+      "import": "./dist/dataviz/index.js"
     }
   },
   "sideEffects": [
