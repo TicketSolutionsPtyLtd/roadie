@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { page } from 'vitest/browser'
+import { commands, page } from 'vitest/browser'
 
 import { Drawer } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -172,4 +172,65 @@ describe('a drawer body', () => {
       expect(screen.queryByRole('dialog')).not.toBeNull()
     }
   )
+})
+
+describe('a drawer footer', () => {
+  function open(rows: number) {
+    render(
+      <Drawer defaultOpen>
+        <Drawer.Content>
+          <Drawer.Title>Your tickets</Drawer.Title>
+          <Drawer.Body>
+            {Array.from({ length: rows }, (_, index) => (
+              <p key={index}>General admission {index + 1}</p>
+            ))}
+          </Drawer.Body>
+          <Drawer.Footer>
+            <button type='button'>Share tickets</button>
+          </Drawer.Footer>
+        </Drawer.Content>
+      </Drawer>
+    )
+    return screen.findByRole('dialog')
+  }
+
+  const shadow = () =>
+    getComputedStyle(
+      document.querySelector('[data-slot="drawer-footer"]')!,
+      '::after'
+    )
+  const settle = () => new Promise((done) => setTimeout(done, 100))
+
+  beforeAll(() => commands.reduceMotion(true))
+  afterAll(() => commands.reduceMotion(false))
+
+  it('casts a shadow up over rows still to scroll under it', async () => {
+    await page.viewport(390, 844)
+    await open(60)
+    await settle()
+
+    expect(shadow().opacity).toBe('1')
+    expect(shadow().scale).toBe('1 -1')
+  })
+
+  it('drops the shadow once the list reaches its end', async () => {
+    await page.viewport(390, 844)
+    await open(60)
+    const body = document.querySelector<HTMLElement>(
+      '[data-slot="drawer-body"]'
+    )!
+    body.scrollTop = body.scrollHeight
+    body.dispatchEvent(new Event('scroll'))
+    await settle()
+
+    expect(shadow().opacity).toBe('0')
+  })
+
+  it('casts none when the content fits', async () => {
+    await page.viewport(390, 844)
+    await open(2)
+    await settle()
+
+    expect(shadow().opacity).toBe('0')
+  })
 })
