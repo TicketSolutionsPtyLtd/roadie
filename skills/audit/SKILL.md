@@ -130,6 +130,29 @@ Roadie handles dark mode via CSS custom properties — `dark:` variants are unne
 
 **Fix:** Remove `dark:` variants and use semantic color utilities instead.
 
+#### A5. Chart colours not from chart tokens [Critical]
+
+Charts take every colour from `--chart-*` tokens (`--chart-1` to `--chart-8`,
+`--chart-heat-*`, `--chart-diverge-*`, `--chart-status-*`,
+`--chart-highlight`, data greys and chart ink). Look in files that import a
+chart library or render `<svg>` marks:
+
+```
+(fill|stroke|color|backgroundColor)[=:]\s*['"{]?\s*#[0-9a-fA-F]{3,8}
+(fill|stroke|bg|text)-(brand|accent|info|success|warning|danger|neutral)-\d+
+```
+
+**Fix:** use `fill-chart-N` / `stroke-chart-N` classes. When the slot is
+dynamic, use `style={{ fill: chartColorVar(i) }}` from
+`@oztix/roadie-core/dataviz`, because Tailwind purges `fill-chart-${i}`.
+Canvas and PDF renderers read hex values from `chartHex(mode)`.
+
+#### A6. Status or intent colours used as series [Warning]
+
+A series coloured with `--chart-status-*` or an intent scale reads as good or
+bad. Series use categorical slots. Status colours only mark meaning, with an
+icon or label.
+
 ---
 
 ### Group B: Layout
