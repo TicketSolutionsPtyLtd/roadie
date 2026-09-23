@@ -20,6 +20,7 @@ import {
   CubeIcon,
   DownloadIcon,
   EnvelopeIcon,
+  ExportIcon,
   EyeIcon,
   EyeSlashIcon,
   GearIcon,
@@ -38,6 +39,9 @@ import {
   StarIcon,
   TicketIcon,
   TrashIcon,
+  UserCircleIcon,
+  UsersIcon,
+  WalletIcon,
   WarningIcon,
   XCircleIcon,
   XIcon
@@ -91,7 +95,11 @@ const PhosphorIcons = {
   ShoppingCart: ShoppingCartIcon,
   Download: DownloadIcon,
   House: HouseIcon,
-  Cube: CubeIcon
+  Cube: CubeIcon,
+  Export: ExportIcon,
+  UserCircle: UserCircleIcon,
+  Users: UsersIcon,
+  Wallet: WalletIcon
 }
 
 // Icon-suffixed keys (`<TicketIcon />`) derived from the bare map.

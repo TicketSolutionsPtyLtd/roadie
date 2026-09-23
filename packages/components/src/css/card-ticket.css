@@ -1,0 +1,272 @@
+/* Card variant='ticket'. The body and footer each paint the fill and are cut
+   at the join: with corner-shape: scoop where supported, and with a
+   half-notch mask on each part elsewhere. The edge and shadow are
+   drop-shadows on the root so they follow the notches. Nothing inside the
+   filtered root may be much taller than the card: Safari stops painting the
+   card, and sometimes the whole page, when it is.
+
+   The join follows the card's `direction` (see card-direction.css), so every
+   value it depends on is a custom property the parts set: the defaults are
+   the vertical join, and each direction overrides them in one place. */
+
+@layer components {
+  [data-slot='card'][data-variant='ticket'] {
+    --card-notch: 0.75rem;
+    --card-shadow-color: oklch(0.3 0.05 var(--intent-hue) / 0.06);
+    --card-edge: transparent;
+    --card-shadow-2: transparent;
+    --card-shadow-4: transparent;
+    --card-shadow-8: transparent;
+
+    overflow: clip;
+    color: var(--intent-text-normal);
+    filter: drop-shadow(1px 0 0 var(--card-edge))
+      drop-shadow(-1px 0 0 var(--card-edge))
+      drop-shadow(0 1px 0 var(--card-edge))
+      drop-shadow(0 -1px 0 var(--card-edge))
+      drop-shadow(0 2px 2px var(--card-shadow-2))
+      drop-shadow(0 4px 4px var(--card-shadow-4))
+      drop-shadow(0 8px 8px var(--card-shadow-8));
+    transition: background-color var(--duration-moderate) var(--ease-standard);
+
+    :where(.dark) & {
+      --card-shadow-color: oklch(0.05 0.02 var(--intent-hue) / 0.22);
+    }
+
+    &:not(:has(> [data-slot='card-footer'])) {
+      background-color: var(--card-fill);
+    }
+
+    &:has(> [data-slot='card-footer']) > * {
+      background-color: var(--card-fill);
+      transition: background-color var(--duration-moderate) var(--ease-standard);
+    }
+
+    & > [data-slot='card-footer'] {
+      position: relative;
+      padding-top: 1.5rem;
+
+      &::before {
+        content: '';
+        position: absolute;
+        inset-block: var(--ticket-perforation-block, 0 auto);
+        inset-inline: var(
+          --ticket-perforation-inline,
+          calc(var(--card-notch) + 0.75rem)
+        );
+        border-block-start: var(
+          --ticket-perforation-line-block,
+          2px dashed var(--intent-border-subtle)
+        );
+        border-inline-start: var(--ticket-perforation-line-inline, 0 none);
+      }
+    }
+  }
+
+  /* A part is cut only where a direction below hands it a notch: with the
+     --ticket-notch-* custom properties unset these declarations are invalid
+     and drop out, so an uncut part keeps its own radius and needs no mask.
+     A notch switched off is 0px rather than 0, which the calc() below would
+     reject as a unitless zero, taking the whole mask with it. */
+  @supports (corner-shape: scoop) {
+    [data-slot='card'][data-variant='ticket'] > * {
+      border-radius: var(--ticket-scoop);
+      corner-shape: var(--ticket-scoop-shape, round);
+    }
+  }
+
+  @supports not (corner-shape: scoop) {
+    [data-slot='card'][data-variant='ticket'] > * {
+      mask:
+        radial-gradient(
+            circle at var(--ticket-notch-a),
+            #0000 var(--ticket-notch-a-size),
+            #000 calc(var(--ticket-notch-a-size) + 0.5px)
+          )
+          var(--ticket-notch-a-layer) no-repeat,
+        radial-gradient(
+            circle at var(--ticket-notch-b),
+            #0000 var(--ticket-notch-b-size),
+            #000 calc(var(--ticket-notch-b-size) + 0.5px)
+          )
+          var(--ticket-notch-b-layer) no-repeat;
+    }
+  }
+
+  [data-slot='card'][data-variant='ticket']:not([data-direction='horizontal']) {
+    & > :has(+ [data-slot='card-footer']) {
+      --ticket-scoop-shape: scoop;
+      --ticket-scoop: 0 0 var(--card-notch) var(--card-notch);
+      --ticket-notch-a: 0 100%;
+      --ticket-notch-a-layer: left / 51% 100%;
+      --ticket-notch-a-size: var(--card-notch);
+      --ticket-notch-b: 100% 100%;
+      --ticket-notch-b-layer: right / 51% 100%;
+      --ticket-notch-b-size: var(--card-notch);
+    }
+
+    & > [data-slot='card-footer'] {
+      --ticket-scoop-shape: scoop;
+      --ticket-scoop: var(--card-notch) var(--card-notch) 0 0;
+      --ticket-notch-a: 0 0;
+      --ticket-notch-a-layer: left / 51% 100%;
+      --ticket-notch-a-size: var(--card-notch);
+      --ticket-notch-b: 100% 0;
+      --ticket-notch-b-layer: right / 51% 100%;
+      --ticket-notch-b-size: var(--card-notch);
+    }
+  }
+
+  [data-slot='card'][data-variant='ticket'][data-direction='horizontal'] {
+    & > :not([data-slot='card-footer']) {
+      --ticket-scoop: 0 var(--ticket-notch-a-size) var(--ticket-notch-b-size) 0;
+      --ticket-notch-a: 100% 0;
+      --ticket-notch-a-layer: top / 100% 51%;
+      --ticket-notch-a-size: 0px;
+      --ticket-notch-b: 100% 100%;
+      --ticket-notch-b-layer: bottom / 100% 51%;
+      --ticket-notch-b-size: 0px;
+    }
+
+    /* The join runs the whole height, so its notches belong to the ends of
+       the column, not to whichever part happens to touch the footer. */
+    & > :first-child {
+      --ticket-scoop-shape: scoop;
+      --ticket-notch-a-size: var(--card-notch);
+    }
+
+    & > :has(+ [data-slot='card-footer']) {
+      --ticket-scoop-shape: scoop;
+      --ticket-notch-b-size: var(--card-notch);
+    }
+
+    & > [data-slot='card-footer'] {
+      --ticket-scoop-shape: scoop;
+      --ticket-scoop: var(--card-notch) 0 0 var(--card-notch);
+      --ticket-notch-a: 0 0;
+      --ticket-notch-a-layer: top / 100% 51%;
+      --ticket-notch-a-size: var(--card-notch);
+      --ticket-notch-b: 0 100%;
+      --ticket-notch-b-layer: bottom / 100% 51%;
+      --ticket-notch-b-size: var(--card-notch);
+      --ticket-perforation-block: calc(var(--card-notch) + 0.75rem);
+      --ticket-perforation-inline: 0 auto;
+      --ticket-perforation-line-block: 0 none;
+      --ticket-perforation-line-inline: 2px dashed var(--intent-border-subtle);
+
+      padding-inline-start: 1.5rem;
+    }
+  }
+
+  @container (width >= 30rem) {
+    [data-slot='card'][data-variant='ticket'][data-direction='auto'] {
+      & > :not([data-slot='card-footer']) {
+        --ticket-scoop: 0 var(--ticket-notch-a-size) var(--ticket-notch-b-size)
+          0;
+        --ticket-notch-a: 100% 0;
+        --ticket-notch-a-layer: top / 100% 51%;
+        --ticket-notch-a-size: 0px;
+        --ticket-notch-b: 100% 100%;
+        --ticket-notch-b-layer: bottom / 100% 51%;
+        --ticket-notch-b-size: 0px;
+      }
+
+      & > :first-child {
+        --ticket-scoop-shape: scoop;
+        --ticket-notch-a-size: var(--card-notch);
+      }
+
+      & > :has(+ [data-slot='card-footer']) {
+        --ticket-scoop-shape: scoop;
+        --ticket-notch-b-size: var(--card-notch);
+      }
+
+      & > [data-slot='card-footer'] {
+        --ticket-scoop-shape: scoop;
+        --ticket-scoop: var(--card-notch) 0 0 var(--card-notch);
+        --ticket-notch-a: 0 0;
+        --ticket-notch-a-layer: top / 100% 51%;
+        --ticket-notch-a-size: var(--card-notch);
+        --ticket-notch-b: 0 100%;
+        --ticket-notch-b-layer: bottom / 100% 51%;
+        --ticket-notch-b-size: var(--card-notch);
+        --ticket-perforation-block: calc(var(--card-notch) + 0.75rem);
+        --ticket-perforation-inline: 0 auto;
+        --ticket-perforation-line-block: 0 none;
+        --ticket-perforation-line-inline: 2px dashed var(--intent-border-subtle);
+
+        padding-inline-start: 1.5rem;
+      }
+    }
+  }
+
+  [data-slot='card'][data-variant='ticket'][data-emphasis='raised'] {
+    --card-fill: var(--intent-bg-raised);
+    --card-edge: oklch(0.3 0.05 var(--intent-hue) / 0.06);
+    --card-shadow-2: var(--card-shadow-color);
+    --card-shadow-4: var(--card-shadow-color);
+
+    :where(.dark) & {
+      --card-edge: oklch(0.05 0.02 var(--intent-hue) / 0.35);
+    }
+
+    &.is-interactive:hover,
+    &.is-interactive:focus-visible {
+      --card-shadow-8: var(--card-shadow-color);
+      transform: translateY(-1px);
+    }
+    &.is-interactive:active,
+    &.is-interactive.is-active {
+      --card-shadow-4: transparent;
+      --card-shadow-8: transparent;
+      transform: translateY(0) scale(0.99);
+    }
+  }
+
+  [data-slot='card'][data-variant='ticket'][data-emphasis='normal'] {
+    --card-fill: var(--intent-bg-normal);
+    --card-edge: var(--intent-border-normal);
+
+    &.is-interactive:hover,
+    &.is-interactive:focus-visible {
+      --card-fill: var(--intent-2);
+      --card-shadow-2: var(--card-shadow-color);
+      transform: translateY(-1px);
+    }
+    &.is-interactive:active,
+    &.is-interactive.is-active {
+      --card-fill: var(--intent-3);
+      --card-shadow-2: transparent;
+      transform: translateY(0) scale(0.99);
+    }
+  }
+
+  [data-slot='card'][data-variant='ticket'][data-emphasis='subtle'] {
+    --card-fill: var(--intent-bg-subtle);
+
+    &.is-interactive:hover,
+    &.is-interactive:focus-visible {
+      --card-fill: var(--intent-4a);
+    }
+    &.is-interactive:active,
+    &.is-interactive.is-active {
+      --card-fill: var(--intent-5a);
+    }
+  }
+
+  [data-slot='card'][data-variant='ticket'][data-emphasis='subtler'] {
+    --card-fill: var(--intent-bg-subtler);
+
+    &.is-interactive {
+      --card-fill: transparent;
+    }
+    &.is-interactive:hover,
+    &.is-interactive:focus-visible {
+      --card-fill: var(--intent-3a);
+    }
+    &.is-interactive:active,
+    &.is-interactive.is-active {
+      --card-fill: var(--intent-4a);
+    }
+  }
+}

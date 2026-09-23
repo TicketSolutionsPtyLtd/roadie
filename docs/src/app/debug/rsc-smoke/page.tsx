@@ -38,6 +38,7 @@ import { Logo } from '@oztix/roadie-components/logo'
 import { Navigator } from '@oztix/roadie-components/navigator'
 import { Pane } from '@oztix/roadie-components/pane'
 import { Popover } from '@oztix/roadie-components/popover'
+import { QRCode } from '@oztix/roadie-components/qr-code'
 import { RadioGroup } from '@oztix/roadie-components/radio-group'
 import { ScrollArea } from '@oztix/roadie-components/scroll-area'
 import { Select } from '@oztix/roadie-components/select'
@@ -581,6 +582,14 @@ export default function RscSmokePage() {
           <Logo />
           <Logo variant='mark' />
           <Logo product='Studio' />
+        </div>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>QRCode</h2>
+        <div className='flex flex-wrap items-center gap-6'>
+          <QRCode value='A7K2MKWX' className='w-32' />
+          <QRCode value='A7K2MKWX' branded={false} className='w-32' />
         </div>
       </section>
 

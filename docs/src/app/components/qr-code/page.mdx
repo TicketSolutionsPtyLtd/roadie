@@ -1,0 +1,159 @@
+export const metadata = {
+  title: 'QR code',
+  description: 'A QR code for scanning tickets at the gate',
+  status: 'beta',
+  category: 'Media & brand',
+}
+
+import {
+  ExportIcon,
+  PencilSimpleIcon,
+  StarIcon,
+  UserCircleIcon,
+  WalletIcon
+} from '@phosphor-icons/react/ssr'
+
+import { Button, IconButton } from '@oztix/roadie-components/button'
+import { Card } from '@oztix/roadie-components/card'
+import { IconTile } from '@oztix/roadie-components/icon-tile'
+
+import { QRCode } from '@oztix/roadie-components/qr-code'
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+A QR code for scanning tickets at the gate.
+
+## Import
+
+```tsx
+import { QRCode } from '@oztix/roadie-components/qr-code'
+```
+
+## Examples
+
+### Default
+
+The default code is branded: square modules with the Oztix mark on a dark 5×5-module tile in the centre.
+
+```tsx-live
+<div className='w-48'>
+  <QRCode value='A7K2MKWX' aria-label='Ticket QR code' />
+</div>
+```
+
+### Plain
+
+`branded={false}` renders a standard code with no mark and nothing cleared.
+
+```tsx-live
+<div className='w-48'>
+  <QRCode value='A7K2MKWX' branded={false} aria-label='Ticket QR code' />
+</div>
+```
+
+### Custom mark
+
+`children` swaps the mark on the tile, the same way `Navigator.Brand` takes your own logo. The mark is drawn white in a 3.4-module square, so pass an `<svg>` with a `viewBox`, or an icon at `size='100%'`, filled with `currentColor`. The tile and its size don't change, so a custom mark scans exactly like the Oztix one.
+
+```tsx-live
+<div className='w-48'>
+  <QRCode value='A7K2MKWX' aria-label='Ticket QR code'>
+    <StarIcon weight='fill' size='100%' />
+  </QRCode>
+</div>
+```
+
+### Composition
+
+On the ticket, the code sits at the top at full width, with the ticket type under it and the ticket holder below a perforation. If a scan fails, gate staff look the ticket up by the holder's name.
+
+```tsx-live
+<div className='grid max-w-sm rounded-2xl bg-subtle p-4 intent-brand'>
+  <Card variant='ticket' emphasis='raised' intent='neutral'>
+    <Card.Content className='grid justify-items-center gap-4 p-6 pb-5'>
+      <QRCode
+        value='A7K2MKWX'
+        aria-label='Ticket QR code for General admission'
+      />
+      <p className='text-display-ui-4 text-strong'>General admission</p>
+    </Card.Content>
+    <Card.Footer className='grid gap-4'>
+      <div className='flex items-center gap-3'>
+        <IconTile emphasis='subtler' size='lg'>
+          <UserCircleIcon weight='bold' />
+        </IconTile>
+        <div className='grid min-w-0 flex-1'>
+          <p className='font-semibold text-strong'>Jordan Nguyen</p>
+          <p className='truncate text-sm text-subtle'>jordan.nguyen@example.com</p>
+        </div>
+        <IconButton aria-label='Edit ticket holder' emphasis='subtle'>
+          <PencilSimpleIcon weight='bold' />
+        </IconButton>
+      </div>
+      <div className='grid grid-cols-[1fr_auto] gap-2'>
+        <Button emphasis='subtle' className='w-full'>
+          <WalletIcon weight='bold' />
+          Add to Wallet
+        </Button>
+        <Button emphasis='subtle'>
+          <ExportIcon weight='bold' />
+          Share
+        </Button>
+      </div>
+    </Card.Footer>
+  </Card>
+</div>
+```
+
+## Guidelines
+
+The code's colours, module shape and tile size are fixed on purpose. Every styled option scored worse in scan testing, and the tile is sized in modules so a longer value never grows it into something a scanner mistakes for a finder pattern.
+
+<div className='grid gap-8'>
+
+<Guideline title='Show it large'>
+  <Guideline.Do example={<div className='w-40'><QRCode value='A7K2MKWX' /></div>}>
+    Show the code as large as the layout allows, at least 160px wide on phones. Module size on screen decides how well it scans through blur and distance.
+  </Guideline.Do>
+  <Guideline.Dont example={<div className='flex items-center gap-2'><div className='w-8'><QRCode value='A7K2MKWX' /></div><p className='text-sm'>General admission</p></div>}>
+    Don't shrink it into a list row.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep it on white'>
+  <Guideline.Do code={`<div className='rounded-xl bg-raised p-4'>\n  <QRCode value={ticket.hash} />\n</div>`}>
+    The code carries its own white quiet zone, so it reads on any surface. Frame it on a light tile.
+  </Guideline.Do>
+  <Guideline.Dont code={`<div className='emphasis-strong intent-brand p-1'>\n  <QRCode value={ticket.hash} className='rounded-full' />\n</div>`}>
+    Don't crop the quiet zone, and don't sit it on a dark or brand surface without room around the white.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title="Don't restyle the modules">
+  <Guideline.Do code={`<QRCode value={ticket.hash} />`}>
+    Use the code as it renders. It's dark on white in light mode, dark mode and inside any intent.
+  </Guideline.Do>
+  <Guideline.Dont code={`<QRCode value={ticket.hash} className='[&_path]:fill-brand-11' />`}>
+    Don't recolour, round or space the modules. Rounded modules and mid blues both cost scans, and warm colours fail red-LED scanners.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep a custom mark simple and light'>
+  <Guideline.Do example={<div className='w-40'><QRCode value='A7K2MKWX'><StarIcon weight='fill' size='100%' /></QRCode></div>}>
+    Use a bold, single-colour mark that inherits the white. The tile is already counted as lost, so the mark never affects scanning.
+  </Guideline.Do>
+  <Guideline.Dont code={`<QRCode value={ticket.hash}>\n  <img src='/logo.png' className='size-24' />\n</QRCode>`}>
+    Don't pass a photo, a full-colour logo or anything sized in pixels. It won't fit the tile's square or read against the dark tile.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- The code is one image with `role="img"` and the default name "QR code". Pass a specific `aria-label`, such as "Ticket QR code for General admission".
+- The mark is hidden from assistive technology.
+- A screen reader can't read the code, so keep the event, ticket type and holder's name as visible text on the ticket.
+
+<PropsDefinitions componentPath='packages/components/src/components/QRCode/index.tsx' />

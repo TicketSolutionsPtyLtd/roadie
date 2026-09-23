@@ -44,5 +44,12 @@
     "name": "SpotIllustrations",
     "path": "dist/components/SpotIllustration/index.js",
     "limit": "20 kB"
+  },
+  {
+    "name": "QRCode",
+    "path": "dist/components/QRCode/index.js",
+    "import": "*",
+    "limit": "5 kB",
+    "ignore": ["@oztix/roadie-core"]
   }
 ]

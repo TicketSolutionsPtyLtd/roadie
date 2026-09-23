@@ -32,6 +32,205 @@ import { Card } from '@oztix/roadie-components/card'
 </Card>
 ```
 
+### Variants
+
+`variant` sets the card's shape. `default` is a plain card and applies when you leave the prop off. `ticket` cuts a notch into each side where the body meets `Card.Footer`, with a perforated line between them. The notches are real holes, so whatever sits behind the card shows through. `ticket` works with every emphasis. On `subtler`, the fill clears when the card is interactive, the same as a plain subtler card.
+
+```tsx-live
+<div className='grid max-w-sm gap-6'>
+  <div className='grid gap-2'>
+    <p className='text-sm text-subtle'>default</p>
+    <Card emphasis='raised'>
+      <Card.Header>
+        <Card.Title>Saltwater Social</Card.Title>
+        <Card.Description>Fri 12 Mar · Wharfside Hall, Newcastle</Card.Description>
+      </Card.Header>
+      <Card.Content>
+        <p>Doors open at 7pm. Bring your ticket on your phone.</p>
+      </Card.Content>
+    </Card>
+  </div>
+  <div className='grid gap-2'>
+    <p className='text-sm text-subtle'>ticket</p>
+    <div className='grid rounded-2xl bg-subtle p-4 intent-brand'>
+      <Card variant='ticket' emphasis='raised' intent='neutral'>
+        <Card.Content className='grid justify-items-center gap-4 p-6 pb-5'>
+          <QRCode value='A7K2MKWX' aria-label='Ticket QR code for General admission' />
+          <p className='text-display-ui-4 text-strong'>General admission</p>
+        </Card.Content>
+        <Card.Footer className='grid gap-4'>
+          <div className='flex items-center gap-3'>
+            <IconTile emphasis='subtler' size='lg'>
+              <UserCircleIcon weight='bold' />
+            </IconTile>
+            <div className='grid min-w-0 flex-1'>
+              <p className='font-semibold text-strong'>Sam Okafor</p>
+              <p className='truncate text-sm text-subtle'>sam.okafor@example.com</p>
+            </div>
+            <IconButton aria-label='Edit ticket holder' emphasis='subtle'>
+              <PencilSimpleIcon weight='bold' />
+            </IconButton>
+          </div>
+          <div className='grid grid-cols-[1fr_auto] gap-2'>
+            <Button emphasis='subtle' className='w-full'>
+              <WalletIcon weight='bold' />
+              Add to Wallet
+            </Button>
+            <Button emphasis='subtle'>
+              <ExportIcon weight='bold' />
+              Share
+            </Button>
+          </div>
+        </Card.Footer>
+      </Card>
+    </div>
+  </div>
+</div>
+```
+
+### Direction
+
+`direction` lays out the card's parts and works on any card. `vertical` stacks them and applies when you leave the prop off. `horizontal` gives `Card.Footer` a column of its own beside the rest of the card, sized to its contents. `auto` picks between the two: the card stacks in a narrow container and splits at 30rem and up, laying out exactly as `horizontal` does once it splits.
+
+Direction moves the footer, it does not change what belongs in each part. Keep the body in `Card.Content` and leave the footer for the stub, such as actions or counts.
+
+```tsx-live
+<div className='grid gap-6'>
+  <div className='grid gap-2'>
+    <p className='text-sm text-subtle'>vertical</p>
+    <div className='grid rounded-2xl bg-subtle p-4 intent-brand'>
+      <Card variant='ticket' direction='vertical' emphasis='raised' intent='neutral'>
+        <Card.Header className='flex items-center gap-4'>
+          <Card.Image
+            src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+            alt='Paperbark Sessions'
+            className='aspect-square w-14 object-cover'
+            width={112}
+            height={112}
+          />
+          <div className='grid gap-0.5'>
+            <Card.Title>Paperbark Sessions</Card.Title>
+            <Card.Description>Sat 18 Oct · 7pm · Tallowwood Shed, Marrickville</Card.Description>
+          </div>
+        </Card.Header>
+        <Card.Content>
+          <p>Doors open at 6.30pm.</p>
+        </Card.Content>
+        <Card.Footer>
+          <Button emphasis='subtle' className='w-full'>
+            <TicketIcon weight='bold' />
+            28 tickets
+          </Button>
+          <Button emphasis='subtle' className='w-full'>
+            <UsersIcon weight='bold' />
+            7 shared
+          </Button>
+        </Card.Footer>
+      </Card>
+    </div>
+  </div>
+  <div className='grid gap-2'>
+    <p className='text-sm text-subtle'>horizontal</p>
+    <div className='grid rounded-2xl bg-subtle p-4 intent-brand'>
+      <Card variant='ticket' direction='horizontal' emphasis='raised' intent='neutral'>
+        <Card.Header className='flex items-center gap-4'>
+          <Card.Image
+            src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+            alt='Paperbark Sessions'
+            className='aspect-square w-14 object-cover'
+            width={112}
+            height={112}
+          />
+          <div className='grid gap-0.5'>
+            <Card.Title>Paperbark Sessions</Card.Title>
+            <Card.Description>Sat 18 Oct · 7pm · Tallowwood Shed, Marrickville</Card.Description>
+          </div>
+        </Card.Header>
+        <Card.Content>
+          <p>Doors open at 6.30pm.</p>
+        </Card.Content>
+        <Card.Footer>
+          <Button emphasis='subtle' className='w-full'>
+            <TicketIcon weight='bold' />
+            28 tickets
+          </Button>
+          <Button emphasis='subtle' className='w-full'>
+            <UsersIcon weight='bold' />
+            7 shared
+          </Button>
+        </Card.Footer>
+      </Card>
+    </div>
+  </div>
+  <div className='grid gap-2'>
+    <p className='text-sm text-subtle'>auto, in a narrow container</p>
+    <div className='grid max-w-xs rounded-2xl bg-subtle p-4 intent-brand'>
+      <Card variant='ticket' direction='auto' emphasis='raised' intent='neutral'>
+        <Card.Header className='flex items-center gap-4'>
+          <Card.Image
+            src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+            alt='Paperbark Sessions'
+            className='aspect-square w-14 object-cover'
+            width={112}
+            height={112}
+          />
+          <div className='grid gap-0.5'>
+            <Card.Title>Paperbark Sessions</Card.Title>
+            <Card.Description>Sat 18 Oct · 7pm · Tallowwood Shed, Marrickville</Card.Description>
+          </div>
+        </Card.Header>
+        <Card.Content>
+          <p>Doors open at 6.30pm.</p>
+        </Card.Content>
+        <Card.Footer>
+          <Button emphasis='subtle' className='w-full'>
+            <TicketIcon weight='bold' />
+            28 tickets
+          </Button>
+          <Button emphasis='subtle' className='w-full'>
+            <UsersIcon weight='bold' />
+            7 shared
+          </Button>
+        </Card.Footer>
+      </Card>
+    </div>
+  </div>
+  <div className='grid gap-2'>
+    <p className='text-sm text-subtle'>auto, with room to split</p>
+    <div className='grid rounded-2xl bg-subtle p-4 intent-brand'>
+      <Card variant='ticket' direction='auto' emphasis='raised' intent='neutral'>
+        <Card.Header className='flex items-center gap-4'>
+          <Card.Image
+            src='https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
+            alt='Paperbark Sessions'
+            className='aspect-square w-14 object-cover'
+            width={112}
+            height={112}
+          />
+          <div className='grid gap-0.5'>
+            <Card.Title>Paperbark Sessions</Card.Title>
+            <Card.Description>Sat 18 Oct · 7pm · Tallowwood Shed, Marrickville</Card.Description>
+          </div>
+        </Card.Header>
+        <Card.Content>
+          <p>Doors open at 6.30pm.</p>
+        </Card.Content>
+        <Card.Footer>
+          <Button emphasis='subtle' className='w-full'>
+            <TicketIcon weight='bold' />
+            28 tickets
+          </Button>
+          <Button emphasis='subtle' className='w-full'>
+            <UsersIcon weight='bold' />
+            7 shared
+          </Button>
+        </Card.Footer>
+      </Card>
+    </div>
+  </div>
+</div>
+```
+
 ### Emphasis
 
 ```tsx-live

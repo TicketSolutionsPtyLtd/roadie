@@ -1,3 +1,5 @@
+import { type ReactElement } from 'react'
+
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
@@ -291,5 +293,123 @@ describe('Card', () => {
     expect(desc).toBeInTheDocument()
     expect(desc.tagName.toLowerCase()).toBe('p')
     expect(desc).toHaveClass('text-sm', 'text-subtle')
+  })
+
+  describe('direction', () => {
+    const cardIn = (ui: ReactElement) =>
+      render(ui).container.querySelector('[data-slot=card]')!
+
+    it('defaults to vertical, ticket or not', () => {
+      expect(cardIn(<Card>Body</Card>)).toHaveAttribute(
+        'data-direction',
+        'vertical'
+      )
+      expect(cardIn(<Card variant='ticket'>Body</Card>)).toHaveAttribute(
+        'data-direction',
+        'vertical'
+      )
+    })
+
+    it.each(['horizontal', 'auto'] as const)(
+      'renders %s on a plain card',
+      (direction) => {
+        const card = cardIn(
+          <Card direction={direction}>
+            <Card.Content>Body</Card.Content>
+            <Card.Footer>Actions</Card.Footer>
+          </Card>
+        )
+
+        expect(card).toHaveAttribute('data-direction', direction)
+        expect(card).not.toHaveAttribute('data-variant')
+      }
+    )
+
+    it('renders on a ticket alongside the ticket attributes', () => {
+      const card = cardIn(
+        <Card variant='ticket' direction='horizontal'>
+          <Card.Content>Body</Card.Content>
+          <Card.Footer>Holder</Card.Footer>
+        </Card>
+      )
+
+      expect(card).toHaveAttribute('data-direction', 'horizontal')
+      expect(card).toHaveAttribute('data-variant', 'ticket')
+    })
+  })
+
+  describe('ticket variant', () => {
+    it('marks the root for the ticket styles and moves emphasis to data', () => {
+      const { container } = render(
+        <Card variant='ticket' emphasis='raised' intent='brand'>
+          <Card.Content>Body</Card.Content>
+          <Card.Footer>Holder</Card.Footer>
+        </Card>
+      )
+      const card = container.querySelector('[data-slot=card]')!
+
+      expect(card).toHaveAttribute('data-variant', 'ticket')
+      expect(card).toHaveAttribute('data-emphasis', 'raised')
+      expect(card).toHaveClass('intent-brand')
+      expect(card).not.toHaveClass('emphasis-raised')
+    })
+
+    it('rounds the ticket at 4xl, and lets className override it', () => {
+      const { container, rerender } = render(<Card variant='ticket'>Body</Card>)
+      const card = () => container.querySelector('[data-slot=card]')!
+
+      expect(card()).toHaveClass('rounded-4xl')
+      expect(card()).not.toHaveClass('rounded-xl')
+
+      rerender(
+        <Card variant='ticket' className='rounded-2xl'>
+          Body
+        </Card>
+      )
+      expect(card()).toHaveClass('rounded-2xl')
+      expect(card()).not.toHaveClass('rounded-4xl')
+    })
+
+    it('keeps subtler emphasis for the ticket styles', () => {
+      const { container } = render(
+        <Card variant='ticket' emphasis='subtler' href='/tickets/1'>
+          Body
+        </Card>
+      )
+      const card = container.querySelector('[data-slot=card]')!
+
+      expect(card).toHaveAttribute('data-emphasis', 'subtler')
+      expect(card).toHaveClass('is-interactive')
+    })
+
+    it('defaults the ticket emphasis to normal', () => {
+      const { container } = render(<Card variant='ticket'>Body</Card>)
+      const card = container.querySelector('[data-slot=card]')!
+
+      expect(card).toHaveAttribute('data-emphasis', 'normal')
+      expect(card).not.toHaveClass('emphasis-normal')
+    })
+
+    it('keeps the ticket attributes on a linked card', () => {
+      const { container } = render(
+        <Card variant='ticket' href='/tickets/1'>
+          Body
+        </Card>
+      )
+      expect(container.querySelector('a')).toHaveAttribute(
+        'data-variant',
+        'ticket'
+      )
+    })
+
+    it('adds nothing by default', () => {
+      const { container } = render(<Card>Body</Card>)
+      const card = container.querySelector('[data-slot=card]')!
+
+      expect(card).not.toHaveAttribute('data-variant')
+      expect(card).not.toHaveAttribute('data-emphasis')
+      expect(card).toHaveAttribute('data-direction', 'vertical')
+      expect(card).toHaveClass('emphasis-normal')
+    })
   })
 })
