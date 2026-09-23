@@ -23,8 +23,8 @@ import { Pane } from '@oztix/roadie-components/pane'
 - A pane is a `<section>` with its own surface and its own scroll. The page
   never scrolls.
 - `Pane.Header` and `Pane.Footer` stay put while the body scrolls between them.
-  `Pane.Body` holds the part that waits, so a skeleton stands in for it while
-  the header stays.
+  `Pane.Body` is the body. It fills the height the header leaves and holds the
+  part that waits, so a skeleton stands in for it while the header stays.
 - A pane is a column of an app frame. Inside a
   [`Navigator`](/components/navigator), panes become columns where there is
   room and a stack where there isn't.
@@ -546,7 +546,9 @@ function Loading() {
 render(<Loading />)
 ```
 
-- `Pane.Body` is a Suspense boundary. It renders no element of its own.
+- `Pane.Body` is a Suspense boundary inside a `<div>` that fills the height the
+  header leaves. A band or background on it reaches the pane's bottom edge,
+  and a child with `grow` in a `flex flex-col` body does too.
 - A pane catches a wait outside `Pane.Body` too. Then a skeleton header stands
   in for the real one.
 - `loading` on the pane replaces the default skeleton. `loading` on

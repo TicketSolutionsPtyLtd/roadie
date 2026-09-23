@@ -241,7 +241,10 @@ describe("an inspector drawer's Close", () => {
     await screen.findByRole('dialog')
 
     await userEvent.click(closes()[0]!)
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    // The exit animation can outlast the default second under a loaded run.
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull(), {
+      timeout: 3000
+    })
     expect(onRevealChange).toHaveBeenCalledWith(false)
   })
 

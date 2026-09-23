@@ -372,7 +372,11 @@ export function PaneRoot({
         style={CLIP_HORIZONTAL}
       >
         {/* fitWidth={false} keeps wide children clipped. */}
-        <ScrollArea.Content fitWidth={false} className='px-(--content-inset)'>
+        {/* A Pane.Body fills what the header leaves, so a column at least the pane's height. */}
+        <ScrollArea.Content
+          fitWidth={false}
+          className='px-(--content-inset) has-[>[data-slot=pane-body]]:flex has-[>[data-slot=pane-body]]:min-h-full has-[>[data-slot=pane-body]]:flex-col'
+        >
           <div
             aria-hidden
             data-slot='pane-scroll-sentinels'
