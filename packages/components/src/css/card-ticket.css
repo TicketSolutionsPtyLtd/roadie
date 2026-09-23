@@ -158,7 +158,7 @@
     }
   }
 
-  @container (width >= 30rem) {
+  @container card (width >= 30rem) {
     [data-slot='card'][data-variant='ticket'][data-direction='auto'] {
       & > :not([data-slot='card-footer']) {
         --ticket-scoop: 0 var(--ticket-notch-a-size) var(--ticket-notch-b-size)
@@ -211,12 +211,16 @@
     }
 
     &.is-interactive:hover,
-    &.is-interactive:focus-visible {
+    &.is-interactive:focus-visible,
+    &.is-interactive-within:has(
+        [data-interactive-target]:is(:hover, :focus-visible)
+      ) {
       --card-shadow-8: var(--card-shadow-color);
       transform: translateY(-1px);
     }
     &.is-interactive:active,
-    &.is-interactive.is-active {
+    &.is-interactive.is-active,
+    &.is-interactive-within:has([data-interactive-target]:active) {
       --card-shadow-4: transparent;
       --card-shadow-8: transparent;
       transform: translateY(0) scale(0.99);
@@ -228,13 +232,17 @@
     --card-edge: var(--intent-border-normal);
 
     &.is-interactive:hover,
-    &.is-interactive:focus-visible {
+    &.is-interactive:focus-visible,
+    &.is-interactive-within:has(
+        [data-interactive-target]:is(:hover, :focus-visible)
+      ) {
       --card-fill: var(--intent-2);
       --card-shadow-2: var(--card-shadow-color);
       transform: translateY(-1px);
     }
     &.is-interactive:active,
-    &.is-interactive.is-active {
+    &.is-interactive.is-active,
+    &.is-interactive-within:has([data-interactive-target]:active) {
       --card-fill: var(--intent-3);
       --card-shadow-2: transparent;
       transform: translateY(0) scale(0.99);
@@ -245,11 +253,15 @@
     --card-fill: var(--intent-bg-subtle);
 
     &.is-interactive:hover,
-    &.is-interactive:focus-visible {
+    &.is-interactive:focus-visible,
+    &.is-interactive-within:has(
+        [data-interactive-target]:is(:hover, :focus-visible)
+      ) {
       --card-fill: var(--intent-4a);
     }
     &.is-interactive:active,
-    &.is-interactive.is-active {
+    &.is-interactive.is-active,
+    &.is-interactive-within:has([data-interactive-target]:active) {
       --card-fill: var(--intent-5a);
     }
   }
@@ -257,15 +269,20 @@
   [data-slot='card'][data-variant='ticket'][data-emphasis='subtler'] {
     --card-fill: var(--intent-bg-subtler);
 
-    &.is-interactive {
+    &.is-interactive,
+    &.is-interactive-within:has([data-interactive-target]) {
       --card-fill: transparent;
     }
     &.is-interactive:hover,
-    &.is-interactive:focus-visible {
+    &.is-interactive:focus-visible,
+    &.is-interactive-within:has(
+        [data-interactive-target]:is(:hover, :focus-visible)
+      ) {
       --card-fill: var(--intent-3a);
     }
     &.is-interactive:active,
-    &.is-interactive.is-active {
+    &.is-interactive.is-active,
+    &.is-interactive-within:has([data-interactive-target]:active) {
       --card-fill: var(--intent-4a);
     }
   }

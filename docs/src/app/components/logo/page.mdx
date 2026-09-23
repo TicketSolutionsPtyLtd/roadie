@@ -67,7 +67,7 @@ Logo sizes sit one step below Button and IconTile, whose `md` is 40px, so a `siz
 
 ### Colour
 
-The logo's colour is fixed — always Oztix blue, identical in light and dark mode, and unaffected by a surrounding intent.
+The logo's colour is fixed. It is always Oztix blue, identical in light and dark mode, and unaffected by a surrounding intent.
 
 ```tsx-live
 <div className='flex flex-wrap items-center gap-6'>
@@ -83,6 +83,8 @@ The logo's colour is fixed — always Oztix blue, identical in light and dark mo
 The `logo-wordmark` and `logo-product` slots hold their own gap and clip, so a parent can collapse either to the mark's square by animating its `grid-template-columns` from `1fr` to `0fr`.
 
 ## Guidelines
+
+<div className='grid gap-8'>
 
 <Guideline title='Size the logo with the size prop'>
   <Guideline.Do code={`<Logo size='lg' />`}>
@@ -110,6 +112,8 @@ The `logo-wordmark` and `logo-product` slots hold their own gap and clip, so a p
     Don't hard-code a colour. It won't change with the theme.
   </Guideline.Dont>
 </Guideline>
+
+</div>
 
 ## Accessibility
 

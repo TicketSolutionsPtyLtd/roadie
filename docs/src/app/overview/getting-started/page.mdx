@@ -36,7 +36,7 @@ In your main CSS entry point (e.g. `globals.css` or `index.css`), import Roadie'
 
 ### 3. Enable component class scanning
 
-Tailwind v4 ignores `node_modules` by default, so it won't see the class strings inside Roadie's dist. If you're using `@oztix/roadie-components`, add one import — it ships its own `@source`, so you never write a `node_modules` path:
+Tailwind v4 ignores `node_modules` by default, so it won't see the class strings inside Roadie's dist. If you're using `@oztix/roadie-components`, add one import. It ships its own `@source`, so you never write a `node_modules` path:
 
 ```css
 @import '@oztix/roadie-core/css';

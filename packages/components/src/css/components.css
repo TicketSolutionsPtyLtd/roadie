@@ -3,6 +3,7 @@
    node_modules. */
 @source '../../dist';
 @import './pane-columns.css';
+@import './pane-measure.css';
 @import './navigator-pending.css';
 @import './card-direction.css';
 @import './card-ticket.css';

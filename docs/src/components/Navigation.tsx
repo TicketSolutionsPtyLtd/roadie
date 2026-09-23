@@ -7,8 +7,7 @@ import {
   useCallback,
   useEffect,
   useRef,
-  useState,
-  useSyncExternalStore
+  useState
 } from 'react'
 
 import { useRouter } from 'next/navigation'
@@ -17,7 +16,7 @@ import {
   CompassIcon,
   CubeIcon,
   HouseIcon,
-  ListIcon,
+  ListDashesIcon,
   PaintBrushIcon,
   PaletteIcon,
   SquaresFourIcon
@@ -27,7 +26,7 @@ import type { CatalogueCategory } from '@/lib/page-manifest'
 import { useRoute } from '@/lib/route'
 import { relatedLinks } from '@/lib/token-families'
 
-import { Drawer, IconButton, Navigator, Pane } from '@oztix/roadie-components'
+import { Navigator, Pane } from '@oztix/roadie-components'
 import { serializeNavigatorExpandedCookie } from '@oztix/roadie-core/navigator'
 
 import { FooterNav } from './FooterNav'
@@ -38,7 +37,7 @@ import {
   NavQueryFlags,
   useNavQuery
 } from './NavQueryFlag'
-import { type DocHeadings, OnThisPage, useDocHeadings } from './OnThisPage'
+import { OnThisPage, useDocHeadings } from './OnThisPage'
 import { RelatedLinks } from './RelatedLinks'
 
 export type NavigationItem = {
@@ -85,64 +84,6 @@ function hrefWithFlag(pathname: string, param: string, on: boolean) {
   return search ? `${pathname}?${search}` : pathname
 }
 
-// The nav-form breakpoint, and the natural phone/tablet split for the sheet.
-const TABLET_UP = '(min-width: 48rem)'
-
-let tabletUpQuery: MediaQueryList | null = null
-const getTabletUpQuery = () => (tabletUpQuery ??= window.matchMedia(TABLET_UP))
-
-const subscribeTabletUp = (onChange: () => void) => {
-  const query = getTabletUpQuery()
-  query.addEventListener('change', onChange)
-  return () => query.removeEventListener('change', onChange)
-}
-
-/** Drawer side is a JS value, so the app picks its band here; Roadie knows no bands. */
-function useDrawerSide(): 'bottom' | 'right' {
-  const tabletUp = useSyncExternalStore(
-    subscribeTabletUp,
-    () => getTabletUpQuery().matches,
-    () => false
-  )
-  return tabletUp ? 'right' : 'bottom'
-}
-
-function OnThisPageDrawer({ headings, onSelect }: DocHeadings) {
-  const [open, setOpen] = useState(false)
-  const side = useDrawerSide()
-
-  const selectAndClose = useCallback(
-    (event: MouseEvent<HTMLAnchorElement>, id: string) => {
-      onSelect(event, id)
-      setOpen(false)
-    },
-    [onSelect]
-  )
-
-  return (
-    <Drawer open={open} onOpenChange={setOpen} side={side}>
-      <Drawer.Trigger
-        render={
-          <IconButton
-            aria-label='On this page'
-            emphasis='normal'
-            className='pane-inspector-yielded:inline-flex hidden'
-          >
-            <ListIcon weight='bold' className='size-5' />
-          </IconButton>
-        }
-      />
-      {/* Named on the popup rather than with a `Drawer.Title`: `OnThisPage`
-          already prints its own heading, and two would say it twice. */}
-      <Drawer.Content aria-label='On this page'>
-        <Drawer.Body className='py-4'>
-          <OnThisPage headings={headings} onSelect={selectAndClose} />
-        </Drawer.Body>
-      </Drawer.Content>
-    </Drawer>
-  )
-}
-
 export function DocsNavigator({
   items,
   pageTitles,
@@ -186,6 +127,16 @@ export function DocsNavigator({
   const related = relatedLinks(route)
   const toc = useDocHeadings()
   const showInspector = toc.headings.length >= 2
+  // Held here so picking a heading can close the drawer the column yields into.
+  const [tocRevealed, setTocRevealed] = useState(false)
+  const { onSelect: scrollToHeading } = toc
+  const selectHeading = useCallback(
+    (event: MouseEvent<HTMLAnchorElement>, id: string) => {
+      scrollToHeading(event, id)
+      setTocRevealed(false)
+    },
+    [scrollToHeading]
+  )
 
   // The bare canary owns the whole window; see docs/src/app/debug/bare.
   if (route.startsWith('/debug/bare')) return children
@@ -302,7 +253,9 @@ export function DocsNavigator({
           <Pane.Header>
             {showInspector ? (
               <Pane.Actions>
-                <OnThisPageDrawer {...toc} />
+                <Pane.InspectorTrigger aria-label='On this page'>
+                  <ListDashesIcon weight='bold' className='size-5' />
+                </Pane.InspectorTrigger>
               </Pane.Actions>
             ) : null}
           </Pane.Header>
@@ -324,11 +277,16 @@ export function DocsNavigator({
           </div>
         </Pane>
 
-        {/* A column once it fits; otherwise the drawer in Pane.Actions. */}
+        {/* A column once it fits; otherwise Roadie moves it into a drawer. */}
         {showInspector ? (
-          <Pane column='inspector' aria-label='On this page'>
+          <Pane
+            column='inspector'
+            aria-label='On this page'
+            reveal={tocRevealed}
+            onRevealChange={setTocRevealed}
+          >
             <div className='py-6'>
-              <OnThisPage {...toc} />
+              <OnThisPage {...toc} onSelect={selectHeading} />
             </div>
           </Pane>
         ) : null}

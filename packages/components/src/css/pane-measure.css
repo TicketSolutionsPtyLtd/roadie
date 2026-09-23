@@ -1,0 +1,62 @@
+/* Pane `measure`. The header and footer span the column, with only the title
+   following the measure; everything else in the body keeps it. Registered as a
+   length so `65ch` resolves once, at the pane's body text, rather than at each
+   child's own font size. `full`, the default, caps nothing. */
+
+@property --pane-measure {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
+
+@layer components {
+  [data-slot='pane'][data-measure='narrow'] {
+    --pane-measure: --theme(--container-sm);
+  }
+  [data-slot='pane'][data-measure='readable'] {
+    --pane-measure: 65ch;
+  }
+  [data-slot='pane'][data-measure='wide'] {
+    --pane-measure: --theme(--container-4xl);
+  }
+
+  [data-slot='pane']:is(
+      [data-measure='narrow'],
+      [data-measure='readable'],
+      [data-measure='wide']
+    )
+    > [data-slot='pane-viewport']
+    > [data-slot='scroll-area-content']
+    > :not([data-slot='pane-header'], [data-slot='pane-footer']),
+  [data-slot='pane']:is(
+      [data-measure='narrow'],
+      [data-measure='readable'],
+      [data-measure='wide']
+    )
+    > [data-slot='pane-viewport']
+    > [data-slot='scroll-area-content']
+    > [data-slot='pane-header']
+    > [data-slot='pane-title'] {
+    max-width: var(--pane-measure);
+    margin-inline: auto;
+  }
+  /* A grid item with auto margins shrinks to its text instead of stretching. */
+  [data-slot='pane'][data-measure]:not([data-measure='full'])
+    > [data-slot='pane-viewport']
+    > [data-slot='scroll-area-content']
+    > [data-slot='pane-header']
+    > [data-slot='pane-title'] {
+    width: 100%;
+  }
+  [data-slot='pane'][data-measure-align='start']
+    > [data-slot='pane-viewport']
+    > [data-slot='scroll-area-content']
+    > :not([data-slot='pane-header'], [data-slot='pane-footer']),
+  [data-slot='pane'][data-measure-align='start']
+    > [data-slot='pane-viewport']
+    > [data-slot='scroll-area-content']
+    > [data-slot='pane-header']
+    > [data-slot='pane-title'] {
+    margin-inline: 0 auto;
+  }
+}

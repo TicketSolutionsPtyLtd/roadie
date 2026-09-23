@@ -435,6 +435,29 @@ describe('Card ticket, split auto with a header', () => {
   })
 })
 
+describe('Card auto container', () => {
+  it('answers a query named card from inside a nearer container', () => {
+    const removeProbeStyle = useStylesheet(
+      '@container card (width >= 20rem) { .card-probe { order: 7 } }'
+    )
+    const { container } = render(
+      <div style={{ containerType: 'inline-size', width: 800 }}>
+        <Card direction='auto' style={{ width: 352 }}>
+          <Card.Content>
+            <div style={{ containerType: 'inline-size', width: 200 }}>
+              <div className='card-probe' />
+            </div>
+          </Card.Content>
+        </Card>
+      </div>
+    )
+    const probe = container.querySelector<HTMLElement>('.card-probe')!
+
+    expect(getComputedStyle(probe).order).toBe('7')
+    removeProbeStyle()
+  })
+})
+
 describe('Card footer items', () => {
   function renderFooter(direction: 'vertical' | 'horizontal') {
     const { container } = render(
@@ -546,5 +569,77 @@ describe('Card ticket, horizontal with a header', () => {
       distance(sample(join + NOTCH_RADIUS + 8, bottom - 8), fill)
     ).toBeLessThanOrEqual(2)
     expect(footer.getBoundingClientRect().height).toBeCloseTo(bottom - top, 1)
+  })
+})
+
+describe('Card footer size', () => {
+  function renderList(footerSize?: string) {
+    const { container } = render(
+      <div
+        style={
+          {
+            width: 560,
+            display: 'grid',
+            gap: 16,
+            '--card-footer-size': footerSize
+          } as React.CSSProperties
+        }
+      >
+        {['12 tickets', '638 tickets'].map((count) => (
+          <Card key={count} variant='ticket' emphasis='raised' direction='auto'>
+            <Card.Content>
+              <p>Weekly Pass</p>
+            </Card.Content>
+            <Card.Footer>
+              <p>{count}</p>
+            </Card.Footer>
+          </Card>
+        ))}
+      </div>
+    )
+    return Array.from(
+      container.querySelectorAll<HTMLElement>('[data-slot=card-footer]'),
+      (footer) => footer.getBoundingClientRect()
+    )
+  }
+
+  it('sizes each side column to its own footer by default', () => {
+    const [short, long] = renderList()
+
+    expect(long!.width).toBeGreaterThan(short!.width + 1)
+  })
+
+  // A minimum: a footer wider than the size still grows rather than overflowing.
+  it('lines every side column up at the size a list sets', () => {
+    const [short, long] = renderList('11rem')
+
+    expect(short!.width).toBeCloseTo(176, 0)
+    expect(long!.width).toBeCloseTo(short!.width, 0)
+    expect(long!.left).toBeCloseTo(short!.left, 0)
+  })
+
+  it('leaves a stacked footer the width of the card', () => {
+    const { container } = render(
+      <div
+        style={
+          { width: 320, '--card-footer-size': '11rem' } as React.CSSProperties
+        }
+      >
+        <Card direction='auto'>
+          <Card.Content>
+            <p>Weekly Pass</p>
+          </Card.Content>
+          <Card.Footer>
+            <p>12 tickets</p>
+          </Card.Footer>
+        </Card>
+      </div>
+    )
+    const card = container.querySelector<HTMLElement>('[data-slot=card]')!
+    const footer = container
+      .querySelector('[data-slot=card-footer]')!
+      .getBoundingClientRect()
+
+    expect(footer.width).toBeCloseTo(card.clientWidth, 0)
   })
 })

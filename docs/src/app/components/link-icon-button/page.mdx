@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'LinkIconButton',
-  description: 'An icon-only link styled as a button (deprecated — use IconButton with href instead)',
+  description: 'An icon-only link styled as a button. Deprecated. Use IconButton with href instead.',
   status: 'deprecated',
   category: 'Actions',
   hidden: true
@@ -101,7 +101,7 @@ The default size is `icon-md`. All sizes maintain square proportions.
 
 ### With custom component (legacy)
 
-> **Recommended:** wire [`RoadieLinkProvider`](/foundations/linking) at the app root and use [`<IconButton href={…}>`](/components/icon-button) — it routes through your configured Link automatically. The `as` prop below is preserved for back-compat only and will be removed in v3.0.0.
+> **Recommended:** wire [`RoadieLinkProvider`](/foundations/linking) at the app root and use [`<IconButton href={…}>`](/components/icon-button). It routes through your configured Link automatically. The `as` prop below is preserved for back-compat only and will be removed in v3.0.0.
 
 ```tsx
 import Link from 'next/link'
@@ -113,7 +113,7 @@ import Link from 'next/link'
 
 ## Guidelines
 
-- Use [`<IconButton href={…}>`](/components/icon-button) for new navigation links — `LinkIconButton` is deprecated.
+- Use [`<IconButton href={…}>`](/components/icon-button) for new navigation links. `LinkIconButton` is deprecated.
 - Always provide an `aria-label` to describe the action since there is no visible text.
 - For links with visible text, use [`<Button href={…}>`](/components/button) instead.
 

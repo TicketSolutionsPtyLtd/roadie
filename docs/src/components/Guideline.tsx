@@ -95,7 +95,7 @@ export function Guideline({
   children: ReactNode
 }) {
   return (
-    <div className='grid gap-2'>
+    <div data-slot='guideline' className='grid gap-2'>
       <h4 className='text-display-ui-5 text-strong'>{title}</h4>
       {description && <p className='text-sm text-subtle'>{description}</p>}
       <div className='grid gap-4 sm:grid-cols-2'>{children}</div>

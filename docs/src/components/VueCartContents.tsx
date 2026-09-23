@@ -8,7 +8,7 @@ import type { CartDetails } from '@oztix/roadie-widgets/cart'
 // VueCartDrawer.
 //
 // No 'use client' marker: only imported by CartContentsParityDemo (which has
-// it), so it already lives in the client graph — and skipping it avoids Next's
+// it), so it already lives in the client graph. Skipping it avoids Next's
 // serializable-prop warning on the function props below.
 
 export type VueCartContentsProps = {
@@ -97,7 +97,7 @@ export function VueCartContents(props: VueCartContentsProps) {
   })
 
   // display:contents so the mounted Vue root lays out as a direct child of the
-  // frame — its fillHeight min-h-full resolves against the frame's height, just
+  // frame. Its fillHeight min-h-full resolves against the frame's height, just
   // like the React skin rendered without a wrapper.
   return <div ref={elRef} className='contents' />
 }

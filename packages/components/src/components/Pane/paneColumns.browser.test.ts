@@ -2,6 +2,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands } from 'vitest/browser'
 
 import roadieCss from '../../../vitest.browser.css?inline'
+import { inspectorTier } from './paneColumns'
 import {
   type PaneLayout,
   REM,
@@ -325,6 +326,48 @@ describe('an inspector', () => {
     nested.style.width = `${rem(69) - 1}px`
     expect(yielded()).toBe(true)
     nested.style.width = `${rem(69)}px`
+    expect(yielded()).toBe(false)
+  })
+
+  it.each(['md', 'lg'] as const)(
+    'tells the row a %s inspector yielded, at its own thresholds',
+    (size) => {
+      const trigger =
+        '<button id="trigger" class="pane-inspector-yielded:inline-flex hidden"></button>'
+      const yielded = () =>
+        getComputedStyle(document.getElementById('trigger')!).display !== 'none'
+
+      for (const levels of [1, 2, 3, 4]) {
+        const tier = rem(inspectorTier(levels, size))
+        const content = at(tier - 1, {
+          ...inspectorRow(levels),
+          inspector: size,
+          inner: trigger
+        })
+        expect(yielded(), `${levels} levels, below`).toBe(true)
+        content.style.width = `${tier}px`
+        expect(yielded(), `${levels} levels, at`).toBe(false)
+      }
+    }
+  )
+
+  it("keeps a nested row's inspector to its own size", () => {
+    const trigger =
+      '<button id="trigger" class="pane-inspector-yielded:inline-flex hidden"></button>'
+    const yielded = () =>
+      getComputedStyle(document.getElementById('trigger')!).display !== 'none'
+    const inner = contentMarkup(rowMarkup({ ...inspectorRow(2), level: 1 }))
+    const content = at(rem(140), {
+      ...inspectorRow(3),
+      inspector: 'lg',
+      inner
+    })
+    const nestedRow = content.querySelector('[data-level="1"]')!
+    nestedRow
+      .querySelector('[data-slot="pane"]')!
+      .insertAdjacentHTML('beforeend', trigger)
+    const nested = nestedRow.parentElement!
+    nested.style.width = `${rem(inspectorTier(2, 'lg')) - 1}px`
     expect(yielded()).toBe(false)
   })
 })

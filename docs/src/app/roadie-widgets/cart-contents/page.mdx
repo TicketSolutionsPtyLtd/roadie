@@ -1,14 +1,14 @@
 export const metadata = {
   title: 'CartContents',
   description:
-    'The day-grouped cart event/ticket list — the body of the cart drawer, exported on its own so you can render it on a standalone cart page.',
+    'The day-grouped cart event/ticket list. It is the body of the cart drawer, exported on its own so you can render it on a standalone cart page.',
   status: 'beta'
 }
 
 import { CartContentsParityDemo } from '@/components/CartContentsParityDemo'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
-The day-grouped event and ticket list that powers the cart drawer's body —
+The day-grouped event and ticket list that powers the cart drawer's body. It's
 exported on its own so you can render it on a full `/cart` page.
 
 - Two layouts via `container`: the drawer body, or a full page with a **Cart**
@@ -16,21 +16,23 @@ exported on its own so you can render it on a full `/cart` page.
 - Groups events by day with sticky day headers
 - Reserved seats render as range badges via the shared `formatSeatRange`
 - Per-event remove with an inline confirm, and removals animate out
-- Presentational: you pass it a `CartDetails`; it renders — no overlay, no fetching
+- Presentational. You pass it a `CartDetails` and it renders. It has no overlay
+  and does no fetching
 
 It's the same component `CartDrawer` renders internally, so a `/cart` page and
 the docked drawer stay visually identical over one shared core.
 
 ## Live demo
 
-The way a `/cart` page would use it — in a normal page column, no overlay. The
-frame below is a fixed-height "page area". Use the **React / Vue** tabs to compare
+This is how a `/cart` page would use it: in a normal page column, with no
+overlay. The frame below is a fixed-height "page area". Use the **React / Vue** tabs to compare
 the skins, and the controls to test:
 
-- **`container`** — `page` fills the frame with a Cart header (ticket count + live
-  expiry), a sticky edge-to-edge footer, and a centred empty state; `drawer` is
-  the body-only list (no header/footer) for embedding in your own chrome.
-- **Add event / Empty cart / Reset** — change the cart length, or empty it to see
+- **`container`** switches the layout. `page` fills the frame with a Cart header
+  (ticket count + live expiry), a sticky edge-to-edge footer, and a centred empty
+  state. `drawer` is the body-only list (no header/footer) for embedding in your
+  own chrome.
+- **Add event / Empty cart / Reset** change the cart length. Empty it to see
   the last event animate out and the empty state animate in. Per-event removal
   (the trash icon) animates too. Runs on a canned cart.
 
@@ -42,8 +44,8 @@ the skins, and the controls to test:
 pnpm add @oztix/roadie-widgets
 ```
 
-CartContents is presentational — lighter peers than the full drawer (no
-react-query). Install the peers for the skin you use.
+CartContents is presentational, so it needs lighter peers than the full drawer
+(no react-query). Install the peers for the skin you use.
 
 **React**
 
@@ -61,10 +63,10 @@ pnpm add vue @number-flow/vue @phosphor-icons/vue focus-trap
 ### Tailwind setup
 
 CartContents' classes live in the package's compiled output, so Tailwind needs
-to scan it — otherwise the styles never make it into your CSS. Add the CSS
-imports for the skin you use to your global stylesheet:
+to scan it. Otherwise the styles never make it into your CSS. Add the CSS
+imports for the skin you use to your global stylesheet.
 
-**React** — the React skin renders `@oztix/roadie-components`, so include its CSS
+**React.** The React skin renders `@oztix/roadie-components`, so include its CSS
 as well:
 
 ```css
@@ -74,7 +76,7 @@ as well:
 @import '@oztix/roadie-widgets/css';
 ```
 
-**Vue** — the Vue skin uses core classes only, so no components CSS:
+**Vue.** The Vue skin uses core classes only, so it needs no components CSS:
 
 ```css
 /* app/globals.css */
@@ -98,8 +100,8 @@ import type { CartDetails } from '@oztix/roadie-widgets/cart-contents/react'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/vue'
 ```
 
-Either entry pulls in only the list — none of the drawer's overlay, drag,
-focus-trap, or expiry code. The cart drawer composes this same component, so the
+Either entry pulls in only the list. It brings none of the drawer's overlay,
+drag, focus-trap, or expiry code. The cart drawer composes this same component, so the
 standalone page and the docked drawer stay identical.
 
 ## Usage
@@ -128,16 +130,16 @@ const details = await cart.getDetails(collectionId)
 </div>
 ```
 
-- **`container`** — the layout preset. `drawer` (default) is the body-only list
-  (no header or footer, natural height) for embedding in your own chrome — it's
+- **`container`** is the layout preset. `drawer` (default) is the body-only list
+  (no header or footer, natural height) for embedding in your own chrome. It's
   what `CartDrawer` renders. `page` is the full `/cart` experience: a fill-height
   column with a **Cart** header (ticket count + live expiry), a sticky
   edge-to-edge footer pinned to the bottom, and a centred empty state. Give the
-  parent a height (e.g. `<div className="min-h-full">`) — no external `flex-1`,
-  `mt-auto`, or `justify-center` needed.
-- **`onRemoveEvent` / `busy`** — wire per-event removal; `busy` disables the
+  parent a height (e.g. `<div className="min-h-full">`). You don't need an
+  external `flex-1`, `mt-auto`, or `justify-center`.
+- **`onRemoveEvent` / `busy`** wire per-event removal. `busy` disables the
   trash triggers while a remove is in flight.
-- **`removingEventId`** — set it to the event you're deleting for the duration of
+- **`removingEventId`** takes the event you're deleting for the duration of
   your async remove. CartContents dims the whole list and shows a danger
   **Removing…** overlay on that event until it leaves `cart`. Pair it with your
   remove handler:
@@ -158,7 +160,7 @@ const details = await cart.getDetails(collectionId)
   // <CartContents … onRemoveEvent={remove} removingEventId={removingId} />
   ```
 
-  Vue is identical — bind `:removing-event-id="removingId"` and handle
+  Vue is identical. Bind `:removing-event-id="removingId"` and handle
   `@remove-event`.
 
 When `cart` has no tickets, CartContents renders the empty state with the

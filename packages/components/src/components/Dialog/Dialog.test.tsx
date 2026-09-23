@@ -82,6 +82,30 @@ describe('Dialog role / layering', () => {
   })
 })
 
+describe('Dialog backdrop', () => {
+  const backdropOf = () =>
+    document.body.querySelector('[data-slot="dialog-backdrop"]')!
+
+  it('hides the page behind a normal scrim by default', () => {
+    render(
+      <Dialog open>
+        <Dialog.Content>Body</Dialog.Content>
+      </Dialog>
+    )
+    expect(backdropOf()).toHaveClass('emphasis-overlay')
+  })
+
+  it('takes a subtle emphasis from the root', () => {
+    render(
+      <Dialog open emphasis='subtle'>
+        <Dialog.Content>Body</Dialog.Content>
+      </Dialog>
+    )
+    expect(backdropOf()).toHaveClass('emphasis-overlay-subtle')
+    expect(backdropOf()).not.toHaveClass('emphasis-overlay')
+  })
+})
+
 describe('Dialog presentational leaves', () => {
   it('Header renders a grid container', () => {
     const { container } = render(<DialogHeader>Title</DialogHeader>)

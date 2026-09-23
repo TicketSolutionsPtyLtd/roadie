@@ -205,9 +205,30 @@ export function getAccentStyleTagSync(
 // Dark mode helpers
 // ---------------------------------------------------------------------------
 
+// Roadie's own writes notify at once; the observer catches anyone else's.
+const darkListeners = new Set<() => void>()
+
 function applyDark(dark: boolean) {
   document.documentElement.classList.toggle('dark', dark)
   document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
+  for (const listener of darkListeners) listener()
+}
+
+function readDarkClass() {
+  return document.documentElement.classList.contains('dark')
+}
+
+function subscribeToDarkClass(onChange: () => void) {
+  darkListeners.add(onChange)
+  const observer = new MutationObserver(onChange)
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class']
+  })
+  return () => {
+    darkListeners.delete(onChange)
+    observer.disconnect()
+  }
 }
 
 function getStoredTheme(): string | null {
@@ -306,29 +327,23 @@ export function ThemeProvider({
     [isControlled]
   )
 
-  // Initialise dark mode from prop — inline script may have already set .dark
-  const [isDark, setIsDarkState] = React.useState(defaultDark)
+  // The .dark class on <html> is the source of truth; the inline script may have set it before hydration.
+  const isDark = React.useSyncExternalStore(
+    subscribeToDarkClass,
+    readDarkClass,
+    () => defaultDark
+  )
 
-  // Sync with DOM on mount
   React.useEffect(() => {
     const stored = getStoredTheme()
     if (stored) {
-      setIsDarkState(stored === 'dark')
+      applyDark(stored === 'dark')
       return
     }
-
-    // No stored preference — check OS preference or DOM state
     if (followSystem) {
-      const prefersDark = window.matchMedia(
-        '(prefers-color-scheme: dark)'
-      ).matches
-      setIsDarkState(prefersDark)
-      applyDark(prefersDark)
-    } else {
-      const domDark = document.documentElement.classList.contains('dark')
-      setIsDarkState(domDark)
+      applyDark(window.matchMedia('(prefers-color-scheme: dark)').matches)
     }
-  }, []) // mount-only: followSystem/defaultDark are expected to be static
+  }, [followSystem])
 
   // Listen for OS preference changes when followSystem is true
   React.useEffect(() => {
@@ -338,7 +353,6 @@ export function ThemeProvider({
     const handler = (e: MediaQueryListEvent) => {
       // Only follow system if user hasn't explicitly chosen
       if (getStoredTheme()) return
-      setIsDarkState(e.matches)
       applyDark(e.matches)
     }
     mq.addEventListener('change', handler)
@@ -347,7 +361,6 @@ export function ThemeProvider({
 
   // Explicit toggle — persists to localStorage and applies to DOM
   const setDark = React.useCallback((dark: boolean) => {
-    setIsDarkState(dark)
     applyDark(dark)
     storeTheme(dark)
   }, [])

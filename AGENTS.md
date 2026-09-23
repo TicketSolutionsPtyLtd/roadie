@@ -198,7 +198,8 @@ Consistent radius tiers across all components:
 | Field     | `rounded-lg`   | Inputs, textareas, selects                    |
 | Container | `rounded-xl`   | Cards, popovers, select popups                |
 | Large     | `rounded-2xl`  | Modals, dialogs                               |
-| Hero      | `rounded-5xl`  | Hero cards, collection headers, bottom sheets |
+| Sheet     | `rounded-4xl`  | Drawers, from any side                        |
+| Hero      | `rounded-5xl`  | Hero cards, collection headers                |
 | Feature   | `rounded-6xl`  | Feature banners, spotlight surfaces           |
 | Oversize  | `rounded-7xl`  | Edge-to-edge promotional layouts              |
 | Full      | `rounded-full` | Buttons, badges, pills                        |
@@ -322,7 +323,7 @@ export const buttonVariants = cva('base-classes is-interactive', {
 ### Linking
 
 Every link-bearing Roadie component (`Button`, `IconButton`, `Card`,
-`Breadcrumb.Link`, `Carousel.TitleLink`, `Tabs.Tab`, `List.Item`,
+`Card.Link`, `Breadcrumb.Link`, `Carousel.TitleLink`, `Tabs.Tab`, `List.Item`,
 `Navigator.Item`, `Navigator.MenuItem`, `Navigator.Brand`) accepts a single
 `href` prop. Internal hrefs route through the configured
 `RoadieLinkProvider`; external hrefs (`http(s)://`, `//…`) auto-render
@@ -528,3 +529,4 @@ Follow [`docs/contributing/COMPONENT_DOC_TEMPLATE.md`](docs/contributing/COMPONE
 - `is-interactive` — for buttons, cards, clickable elements. Provides cursor, transitions, active scale, focus ring, disabled state. Pair with emphasis shortcuts.
 - `is-interactive-field` — for form inputs. Provides state-based colour transitions: neutral at rest → accent on focus → danger when invalid.
 - `is-interactive-field-group` — for composite form controls (e.g., Combobox input group). Same transitions as `is-interactive-field` but scoped to the group wrapper.
+- `is-interactive-within` — for a surface whose main link sits inside it (a card that also holds other actions). Mark the link `data-interactive-target`; its overlay covers the surface, other controls sit above it, and the surface takes the emphasis hover/press/focus states from the link. `Card.Link` does this for cards.

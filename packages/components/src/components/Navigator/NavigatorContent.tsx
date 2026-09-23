@@ -13,11 +13,14 @@ import {
   useState
 } from 'react'
 
+import { Drawer as DrawerPrimitive } from '@base-ui/react/drawer'
+
 import { usePendingNavigationStore } from '../../providers/PendingNavigationContext'
 import { isDev } from '../../utils/isDev'
 import { PANE_CHROME_NONE } from '../Pane/PaneChromeContext'
 import { PaneContext } from '../Pane/PaneContext'
 import { PaneHeader } from '../Pane/PaneHeader'
+import { PaneInspectorContext } from '../Pane/PaneInspectorContext'
 import {
   PaneKindContext,
   type PaneRegistration,
@@ -232,10 +235,11 @@ export function NavigatorContent({ children }: { children?: ReactNode }) {
     const frame = requestAnimationFrame(() => {
       pushable.current = true
     })
+    // Frame ids, not nodes: unmounting cancels whichever frame is pending then.
+    const pending = [pushFrame, instantFrame]
     return () => {
       cancelAnimationFrame(frame)
-      cancelAnimationFrame(pushFrame.current)
-      cancelAnimationFrame(instantFrame.current)
+      for (const ref of pending) cancelAnimationFrame(ref.current)
     }
   }, [])
 
@@ -460,6 +464,8 @@ export function NavigatorContent({ children }: { children?: ReactNode }) {
     ]
   )
 
+  const [inspectorHandle] = useState(() => DrawerPrimitive.createHandle())
+
   const stackValue = useMemo<PaneStackContextValue>(
     () => ({
       register,
@@ -544,27 +550,29 @@ export function NavigatorContent({ children }: { children?: ReactNode }) {
       className={navigatorContentClass}
     >
       <PaneStackContext value={stackValue}>
-        {/* Resets to stack level so a nested Navigator registers its own panes. */}
-        <PaneContext value={null}>
-          <div
-            ref={rowRef}
-            data-slot='navigator-panes'
-            data-level={level}
-            data-reveal={revealRoot ? '' : undefined}
-            data-overflow={moreOpen ? '' : undefined}
-            className={navigatorPanesClass}
-          >
-            {secondaryPane}
-            {children}
-            {fallbackOverflow}
-            <NavigatorPageStep
-              secondary={activeSecondary}
-              value={value}
-              at={pageAt}
-              level={level}
-            />
-          </div>
-        </PaneContext>
+        <PaneInspectorContext value={inspectorHandle}>
+          {/* Resets to stack level so a nested Navigator registers its own panes. */}
+          <PaneContext value={null}>
+            <div
+              ref={rowRef}
+              data-slot='navigator-panes'
+              data-level={level}
+              data-reveal={revealRoot ? '' : undefined}
+              data-overflow={moreOpen ? '' : undefined}
+              className={navigatorPanesClass}
+            >
+              {secondaryPane}
+              {children}
+              {fallbackOverflow}
+              <NavigatorPageStep
+                secondary={activeSecondary}
+                value={value}
+                at={pageAt}
+                level={level}
+              />
+            </div>
+          </PaneContext>
+        </PaneInspectorContext>
       </PaneStackContext>
     </main>
   )

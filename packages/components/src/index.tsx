@@ -90,7 +90,8 @@ export {
   type CardFooterProps,
   type CardImageProps,
   type CardTitleProps,
-  type CardDescriptionProps
+  type CardDescriptionProps,
+  type CardLinkProps
 } from './components/Card'
 
 export {
@@ -182,7 +183,11 @@ export {
   type PaneColumn,
   type PaneEmphasis,
   type PaneTabBar,
-  type PaneDepth
+  type PaneDepth,
+  type PaneInspectorSize,
+  type PaneMeasure,
+  type PaneMeasureAlign,
+  type PaneInspectorTriggerProps
 } from './components/Pane'
 
 export { Marquee, type MarqueeProps } from './components/Marquee'
@@ -428,6 +433,7 @@ export {
   type DrawerHeaderProps,
   type DrawerBodyProps,
   type DrawerFooterProps,
+  type OverlayEmphasis,
   type DrawerContentProps,
   type DrawerSide,
   type DrawerSize

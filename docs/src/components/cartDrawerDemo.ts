@@ -6,14 +6,14 @@ import type {
   CartSummary
 } from '@oztix/roadie-widgets/cart'
 
-// Canned cart for the live CartDrawer examples. No network — every method
+// Canned cart for the live CartDrawer examples. No network. Every method
 // resolves instantly from in-memory data. `createDemoCart()` returns a fresh,
 // independently mutable client (plus a demo-only `addEvent`) so each mounted
 // example owns its state.
 
 // Placeholder image: a same-origin SVG in /public, resolved to an absolute
 // http(s) URL at call time (client-side). `isSafeImageUrl` only accepts absolute
-// http(s) URLs — a relative path throws — and an external host (picsum, etc.) is
+// http(s) URLs, and a relative path throws. An external host (picsum, etc.) is
 // unreliable behind strict networks/CSP, so we serve our own asset. `seed` is
 // kept for API compatibility but every event shares the one placeholder.
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || ''
@@ -27,7 +27,7 @@ const img = (_seed: string) => {
 const DEMO_EVENTS: CartEvent[] = [
   {
     eventId: 'e1',
-    eventName: 'Sunset Sessions — Opening Night',
+    eventName: 'Sunset Sessions Opening Night',
     venueName: 'Riverlight Garden Stage, Bulimba',
     imageUrl: img('sunset-sessions'),
     eventStartAtUtc: '2026-09-18T09:00:00Z',
@@ -100,7 +100,7 @@ type EventTemplate = {
 // truncation; later entries cover finish times, multi-day runs, and seating.
 const EXTRA_EVENTS: EventTemplate[] = [
   {
-    eventName: 'Circus The Show! — The Greatest Spectacular on Earth',
+    eventName: 'Midnight Carnival: A Wildly Long Night Under the Big Top',
     venueName: 'Starlight Pier Marquee (Wynnum, QLD)',
     seed: 'circus-the-show',
     eventStartAtUtc: '2026-06-25T09:00:00Z',
@@ -226,7 +226,7 @@ const countTickets = (events: CartEvent[]) =>
   )
 
 /** The demo client plus helpers the examples call (not part of the real
- * `CartClient` contract — adding to cart and the expiry clock are server-side
+ * `CartClient` contract. Adding to cart and the expiry clock are server-side
  * concerns in real apps). */
 export type DemoCartClient = CartClient & {
   /** Append an event with one or more ticket types. */

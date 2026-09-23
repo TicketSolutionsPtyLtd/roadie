@@ -3,6 +3,9 @@ import { cva } from 'class-variance-authority'
 export type PaneColumn = 'list' | 'detail' | 'inspector'
 export type PaneEmphasis = 'raised' | 'normal' | 'subtle' | 'subtler'
 export type PaneTabBar = 'visible' | 'auto' | 'hidden'
+export type PaneInspectorSize = 'sm' | 'md' | 'lg'
+export type PaneMeasure = 'full' | 'narrow' | 'readable' | 'wide'
+export type PaneMeasureAlign = 'center' | 'start'
 
 export const paneVariants = cva(
   [
@@ -77,6 +80,13 @@ export const paneHeaderVariants = cva(
 
 // Back and Close share the leading cell; the stylesheet draws at most one.
 export const paneHeaderEdgeClass = 'col-start-1 row-start-1 justify-self-start'
+
+// In the inspector's drawer: Close sits as far below the handle's band as from the side, and the shadow follows the drawer's scroll.
+// Opaque, since the handle's band above it is: frosted glass would show a seam where the two meet.
+export const paneHeaderInDrawerClass = [
+  'pt-1 bg-(--pane-surface) backdrop-blur-none',
+  '[[data-slot=drawer-popup][data-body-overflow-y-start]_&]:after:opacity-100'
+]
 
 // grid rows 1fr→0fr close the row; transforms wouldn't release layout.
 export const paneTitleVariants = cva(

@@ -47,6 +47,9 @@
       flex-direction: column;
       grid-auto-flow: row;
       justify-content: center;
+      /* A list sets --card-footer-size once so every side column, and the
+         perforation along it, lines up whatever each footer holds. */
+      min-inline-size: var(--card-footer-size, auto);
     }
   }
 
@@ -54,8 +57,10 @@
      second column is empty and therefore zero wide, and the query below moves
      the footer across once the card has the room. That way a split auto card
      and a horizontal one lay out identically. */
+  /* Named so a consumer's `@min-[30rem]/card:` resolves against the card
+     rather than whichever container sits above it. */
   [data-slot='card'][data-direction='auto'] {
-    container-type: inline-size;
+    container: card / inline-size;
     grid-template-columns: minmax(0, 1fr) auto;
     /* The rows sit here, not in the query below: a card cannot be styled by
        its own container query, and the footer needs them to span the card. */
@@ -86,7 +91,7 @@
     }
   }
 
-  @container (width >= 30rem) {
+  @container card (width >= 30rem) {
     [data-slot='card'][data-direction='auto'] {
       & > [data-slot='card-footer'] {
         grid-column: 2;
@@ -95,6 +100,7 @@
         flex-direction: column;
         grid-auto-flow: row;
         justify-content: center;
+        min-inline-size: var(--card-footer-size, auto);
       }
     }
   }

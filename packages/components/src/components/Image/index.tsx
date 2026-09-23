@@ -1,6 +1,12 @@
 'use client'
 
-import { type ComponentProps, useEffect, useRef, useState } from 'react'
+import {
+  type ComponentProps,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore
+} from 'react'
 
 import {
   type OztixImageFormat,
@@ -150,6 +156,8 @@ const LQIP_WIDTH = 24
 const LQIP_QUALITY = 30
 const FADE = 'opacity 400ms ease'
 
+const subscribeNever = () => () => {}
+
 export function Image({
   ref,
   src,
@@ -176,25 +184,24 @@ export function Image({
   ...props
 }: ImageProps) {
   const deferred = defer && !priority
-  const [visible, setVisible] = useState(!deferred)
+  // A browser that can't observe loads at once; the server assumes it can.
+  const canObserve = useSyncExternalStore(
+    subscribeNever,
+    () => typeof IntersectionObserver !== 'undefined',
+    () => true
+  )
+  const [seen, setSeen] = useState(false)
+  const visible = !deferred || !canObserve || seen
   const [loaded, setLoaded] = useState(false)
   const innerRef = useRef<HTMLImageElement | null>(null)
 
   useEffect(() => {
-    if (visible) return
-    if (!deferred) {
-      setVisible(true)
-      return
-    }
     const el = innerRef.current
-    if (!el || typeof IntersectionObserver === 'undefined') {
-      setVisible(true)
-      return
-    }
+    if (visible || !el) return
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) {
-          setVisible(true)
+          setSeen(true)
           observer.disconnect()
         }
       },
@@ -202,7 +209,7 @@ export function Image({
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [visible, deferred])
+  }, [visible])
 
   const opts: OztixImageOptions = { format, quality, autotrim, params }
   const sized = width != null && width > 0

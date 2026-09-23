@@ -146,7 +146,7 @@ export default function TypographyPage() {
               <p className='text-display-ui-6 text-strong'>text-ui</p>
               <p className='text-ui'>
                 App interface text with tighter line height (1.35). Default on
-                body — no class needed for standard UI text.
+                body. Standard UI text needs no class.
               </p>
               <p className='text-xs text-subtler'>
                 Base size, 1.35 line height, -0.01em tracking
@@ -196,16 +196,16 @@ export default function TypographyPage() {
 
         <div className='grid gap-1 rounded-xl border border-subtle bg-subtle p-4'>
           <p className='text-strong'>
-            text-strong — headings, emphasis, high contrast
+            text-strong for headings, emphasis and high contrast
           </p>
           <p className='text-normal'>
-            text-normal — body text (inherited from body reset)
+            text-normal for body text (inherited from body reset)
           </p>
           <p className='text-subtle'>
-            text-subtle — secondary text, descriptions
+            text-subtle for secondary text and descriptions
           </p>
           <p className='text-subtler'>
-            text-subtler — meta text, timestamps, hints
+            text-subtler for meta text, timestamps and hints
           </p>
         </div>
       </section>
@@ -239,7 +239,7 @@ export default function TypographyPage() {
             </p>
             <CodePreview language='tsx-live'>
               {`<div className="grid gap-2">
-  <p>Default body text — no class needed</p>
+  <p>Default body text. No class needed.</p>
   <p className="text-subtle">Secondary text</p>
   <p className="text-sm text-subtler">Meta / hint text</p>
   <p className="text-strong">Emphasised text</p>
@@ -278,7 +278,7 @@ export default function TypographyPage() {
         </h2>
         <p className='text-subtle'>
           Semantic tokens for consistent rhythm. Text style utilities set these
-          automatically — use individual tokens only for custom compositions.
+          automatically. Use individual tokens only for custom compositions.
         </p>
 
         <div className='overflow-x-auto'>
@@ -380,7 +380,7 @@ export default function TypographyPage() {
 <p>Body text inherits defaults</p>
 <p className="text-sm text-subtle">Secondary text</p>`}
           >
-            Use pre-composed utilities — they set all typographic properties at
+            Use pre-composed utilities. They set all typographic properties at
             once.
           </Guideline.Do>
           <Guideline.Dont
@@ -395,7 +395,7 @@ export default function TypographyPage() {
 <p>Body text</p>
 <p className="text-sm text-gray-500">Secondary text</p>`}
           >
-            Don&apos;t use raw size + weight classes — they miss line height and
+            Don&apos;t use raw size + weight classes. They miss line height and
             letter spacing.
           </Guideline.Dont>
         </Guideline>
@@ -440,7 +440,7 @@ export default function TypographyPage() {
 <p className="text-gray-500">Gray 500</p>
 <p className="text-gray-400">Gray 400</p>`}
           >
-            Don&apos;t hardcode color values — they won&apos;t respond to intent
+            Don&apos;t hardcode color values. They won&apos;t respond to intent
             or dark mode.
           </Guideline.Dont>
         </Guideline>
@@ -484,7 +484,7 @@ export default function TypographyPage() {
             code={`<h3 className="text-display-prose-4 text-strong">Recent orders</h3>
 <p className="text-sm text-subtle">3 orders in the last 24 hours</p>`}
           >
-            Don&apos;t use prose display styles in app UI — they&apos;re too
+            Don&apos;t use prose display styles in app UI. They&apos;re too
             large and heavy.
           </Guideline.Dont>
         </Guideline>
@@ -517,7 +517,7 @@ export default function TypographyPage() {
   Description text
 </div>`}
           >
-            Don&apos;t use divs for text content — screen readers can&apos;t
+            Don&apos;t use divs for text content. Screen readers can&apos;t
             identify the structure.
           </Guideline.Dont>
         </Guideline>
@@ -546,7 +546,7 @@ export default function TypographyPage() {
   Dashboard
 </h1>`}
           >
-            Don&apos;t add manual breakpoints for font size — it creates jarring
+            Don&apos;t add manual breakpoints for font size. It creates jarring
             jumps.
           </Guideline.Dont>
         </Guideline>

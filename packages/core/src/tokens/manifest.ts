@@ -99,6 +99,7 @@ const VARIABLE_RULES: Rule[] = [
   [/^--container-/, 'shape', 'Containers'],
   [/^--(transition-)?duration-/, 'motion', 'Durations'],
   [/^--ease-/, 'motion', 'Easings'],
+  [/^--interactive-transition$/, 'motion', 'Transitions'],
   [/^--stagger-/, 'motion', 'Stagger']
 ]
 

@@ -22,10 +22,13 @@ import { cn } from '@oztix/roadie-core/utils'
 import { usePendingNavigationStore } from '../../providers/PendingNavigationContext'
 import { mergeRefs } from '../../utils/mergeRefs'
 import { scrollToTop as scrollToTopOf } from '../../utils/reducedMotion'
+import type { DrawerSize } from '../Drawer/variants'
 import { ScrollArea } from '../ScrollArea'
 import { PANE_CHROME_NONE, PaneChromeContext } from './PaneChromeContext'
 import { PaneContext } from './PaneContext'
 import { PaneFallback } from './PaneFallback'
+import { PaneInspectorContext } from './PaneInspectorContext'
+import { PaneInspectorDrawer, useColumnYielded } from './PaneInspectorDrawer'
 import {
   PaneKindContext,
   PaneStackContext,
@@ -40,6 +43,9 @@ import {
 } from './paneScroll'
 import {
   type PaneEmphasis,
+  type PaneInspectorSize,
+  type PaneMeasure,
+  type PaneMeasureAlign,
   paneVariants,
   paneViewportVariants
 } from './variants'
@@ -56,12 +62,24 @@ export type PaneRootProps = ComponentProps<'section'> & {
   depth?: 0 | 1 | 2 | 3
   /** The surface. `subtler` paints none. @default 'raised' */
   emphasis?: PaneEmphasis
+  /** An inspector's width: 14rem, 20rem or 24rem. A wider one yields its column sooner. @default 'sm' */
+  size?: PaneInspectorSize
+  /** Caps the body and title while the header and footer span the column: `narrow` 24rem for forms, `readable` 65ch for text, `wide` 56rem. @default 'full' */
+  measure?: PaneMeasure
+  /** Where capped content sits in a wider pane. @default 'center' */
+  measureAlign?: PaneMeasureAlign
   /** What the phone tab bar does while this pane is top; `auto` collapses it on scroll. @default 'auto' */
   tabBar?: 'visible' | 'auto' | 'hidden'
   /** Holds the pending indicator for a wait Roadie can't see, such as a fetch without Suspense or a mutation. */
   pending?: boolean
   /** The body skeleton while the pane's content is suspended. `Pane.Body` shows it too. */
   loading?: ReactNode
+  /** The drawer an inspector's content moves into once its column yields. Fixed tall, so filtering the content can't resize it. @default 'lg' */
+  drawerSize?: DrawerSize
+  /** An inspector's content should be seen: already true while its column shows, and opens its drawer once the column has yielded. */
+  reveal?: boolean
+  /** An inspector's drawer opened from `Pane.InspectorTrigger`, or was dismissed. */
+  onRevealChange?: (reveal: boolean) => void
 }
 
 const subscribeNever = () => () => {}
@@ -83,9 +101,15 @@ export function PaneRoot({
   reached = true,
   depth: declaredDepth,
   emphasis = 'raised',
+  size = 'sm',
+  measure = 'full',
+  measureAlign = 'center',
   tabBar = 'auto',
   pending,
   loading,
+  drawerSize = 'lg',
+  reveal,
+  onRevealChange,
   role,
   ref: forwardedRef,
   children,
@@ -169,6 +193,10 @@ export function PaneRoot({
 
   const inStack = stack !== null && column !== 'inspector'
 
+  const inspectorHandle = use(PaneInspectorContext)
+  const yields = column === 'inspector' && inspectorHandle !== null
+  const yielded = useColumnYielded(paneRef, yields)
+
   const store = usePendingNavigationStore()
   useEffect(() => {
     if (pending !== true || store === null) return
@@ -200,6 +228,11 @@ export function PaneRoot({
       loading
     }),
     [depth, collapsed, scrollToTop, isRoot, bodyTitle, setBodyTitle, loading]
+  )
+  // The hidden column's scroll can't collapse the header in the drawer.
+  const drawerContext = useMemo(
+    () => ({ ...context, collapsed: false }),
+    [context]
   )
 
   // Sentinels, not scrollTop reads, which forced a recalc on every scroll event.
@@ -313,11 +346,14 @@ export function PaneRoot({
     viewport.scrollTop = 0
   }, [destination, position, seat, reached, stack])
 
-  return (
+  const pane = (
     <ScrollArea
       render={section}
       data-slot='pane'
       data-column={column}
+      data-size={column === 'inspector' ? size : undefined}
+      data-measure={measure}
+      data-measure-align={measure === 'full' ? undefined : measureAlign}
       data-stack-position={position ?? undefined}
       data-depth={
         depth === null ? undefined : depth > PANE_MAX_DEPTH ? PANE_DEEP : depth
@@ -341,7 +377,11 @@ export function PaneRoot({
         style={CLIP_HORIZONTAL}
       >
         {/* fitWidth={false} keeps wide children clipped. */}
-        <ScrollArea.Content fitWidth={false} className='px-(--content-inset)'>
+        {/* A Pane.Body fills what the header leaves, so a column at least the pane's height. */}
+        <ScrollArea.Content
+          fitWidth={false}
+          className='px-(--content-inset) has-[>[data-slot=pane-body]]:flex has-[>[data-slot=pane-body]]:min-h-full has-[>[data-slot=pane-body]]:flex-col'
+        >
           <div
             aria-hidden
             data-slot='pane-scroll-sentinels'
@@ -363,7 +403,9 @@ export function PaneRoot({
             <PaneContext value={context}>
               {/* Wraps, never reads: a server child still streaming is a lazy
                   element, and reading it suspends the pane itself. */}
-              <Suspense fallback={<PaneFallback header />}>{children}</Suspense>
+              <Suspense fallback={<PaneFallback header />}>
+                {yielded ? null : children}
+              </Suspense>
             </PaneContext>
           </PaneChromeContext>
         </ScrollArea.Content>
@@ -376,6 +418,26 @@ export function PaneRoot({
         <ScrollArea.Thumb />
       </ScrollArea.Scrollbar>
     </ScrollArea>
+  )
+
+  if (!yields) return pane
+  return (
+    <>
+      {pane}
+      <PaneContext value={drawerContext}>
+        <PaneInspectorDrawer
+          size={drawerSize}
+          handle={inspectorHandle}
+          yielded={yielded}
+          reveal={reveal}
+          onRevealChange={onRevealChange}
+          aria-label={props['aria-label']}
+          aria-labelledby={props['aria-labelledby']}
+        >
+          {yielded ? children : null}
+        </PaneInspectorDrawer>
+      </PaneContext>
+    </>
   )
 }
 

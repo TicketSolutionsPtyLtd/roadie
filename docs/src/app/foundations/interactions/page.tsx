@@ -27,7 +27,8 @@ export default function InteractionsPage() {
     <div className='grid gap-12'>
       <p className='text-lg text-subtle'>
         Interaction is a conversation. Details are the vocabulary. We build for
-        the felt experience — not just what works, but what feels right.
+        the felt experience. We care about what feels right, not just what
+        works.
       </p>
 
       {/* ── Design principles ── */}
@@ -95,7 +96,7 @@ export default function InteractionsPage() {
 
           <Guideline
             title='Match visual and hit targets'
-            description="Fitts' Law applies to code. What looks clickable must be clickable — at a comfortable size."
+            description="Fitts' Law applies to code. What looks clickable must be clickable. It must also be a comfortable size."
           >
             <Guideline.Do>
               Expand hit targets to &ge; 24px (desktop) or &ge; 44px (mobile),
@@ -270,9 +271,9 @@ export default function InteractionsPage() {
             description='For fast, reversible operations, skip the loader entirely and use optimistic UI instead.'
           >
             <Guideline.Do>
-              For slow or high-stakes operations, show a loader — but commit to
-              it for at least 300ms. Delay its appearance by 200ms to avoid
-              flash on fast responses.
+              For slow or high-stakes operations, show a loader. Commit to it
+              for at least 300ms. Delay its appearance by 200ms to avoid flash
+              on fast responses.
             </Guideline.Do>
             <Guideline.Dont>
               Show a spinner for 50ms then immediately remove it. Flicker
@@ -304,8 +305,8 @@ export default function InteractionsPage() {
               &ldquo;Saving&hellip;&rdquo; (process in flight).
             </Guideline.Do>
             <Guideline.Dont>
-              Use &ldquo;Rename&rdquo; for a button that opens a modal — the
-              user expects immediate action.
+              Use &ldquo;Rename&rdquo; for a button that opens a modal. The user
+              expects immediate action.
             </Guideline.Dont>
           </Guideline>
 
@@ -342,7 +343,7 @@ export default function InteractionsPage() {
       <section className='grid gap-6'>
         <h2 className='text-display-ui-3 text-strong'>Interaction utilities</h2>
         <p className='text-subtle'>
-          Roadie provides two CSS utilities that encode many of these principles
+          Roadie provides CSS utilities that encode many of these principles
           automatically. Apply them to elements that respond to user input.
         </p>
 
@@ -352,9 +353,10 @@ export default function InteractionsPage() {
             <Code>is-interactive</Code>
           </h3>
           <p className='text-subtle'>
-            For clickable elements — buttons, cards, links, toggles. Provides
-            cursor, transitions, active press, focus ring, and disabled state.
-            Pair with an <Code>emphasis-*</Code> class for visual styling.
+            For clickable elements, such as buttons, cards, links and toggles.
+            Provides cursor, transitions, active press, focus ring, and disabled
+            state. Pair with an <Code>emphasis-*</Code> class for visual
+            styling.
           </p>
 
           <div className='rounded-xl emphasis-subtle p-6'>
@@ -415,8 +417,8 @@ export default function InteractionsPage() {
                 <tr>
                   <td className='py-2 pr-4 text-strong'>Transitions</td>
                   <td className='py-2'>
-                    background, border, color, box-shadow, outline, transform
-                    &mdash; 0.2s ease
+                    background, border, color, box-shadow, outline and
+                    transform, at 0.2s ease
                   </td>
                 </tr>
                 <tr>
@@ -467,16 +469,35 @@ export default function InteractionsPage() {
           </div>
         </div>
 
+        {/* is-interactive-within */}
+        <div className='grid gap-4'>
+          <h3 className='text-display-ui-5 text-strong'>
+            <Code>is-interactive-within</Code>
+          </h3>
+          <p className='text-subtle'>
+            For a surface whose main link sits inside it, such as a card that
+            also holds other links or buttons. Mark that link with{' '}
+            <Code>data-interactive-target</Code>. Its overlay covers the
+            surface, so a click anywhere follows it. Other controls sit above
+            the overlay and stay clickable. The surface takes the same hover,
+            press and focus states as <Code>is-interactive</Code> while its main
+            link is hovered, pressed or focused. It does nothing until a target
+            is present. <Code>Card</Code> applies it for you when it holds a{' '}
+            <Code>Card.Link</Code>.
+          </p>
+        </div>
+
         {/* is-interactive-field */}
         <div className='grid gap-4'>
           <h3 className='text-display-ui-5 text-strong'>
             <Code>is-interactive-field</Code>
           </h3>
           <p className='text-subtle'>
-            For form inputs — text fields, textareas, selects. Provides
-            state-based colour transitions: neutral at rest, accent on focus,
-            danger when invalid. Pair with <Code>emphasis-field</Code> for text
-            fields, or <Code>emphasis-raised</Code> for select triggers.
+            For form inputs, such as text fields, textareas and selects.
+            Provides state-based colour transitions: neutral at rest, accent on
+            focus, danger when invalid. Pair with <Code>emphasis-field</Code>{' '}
+            for text fields, or <Code>emphasis-raised</Code> for select
+            triggers.
           </p>
 
           <div className='rounded-xl emphasis-subtle p-6'>
@@ -535,7 +556,7 @@ export default function InteractionsPage() {
                   <td className='py-2 pr-4 text-strong'>Hover</td>
                   <td className='py-2 pr-4'>neutral-3 (neutral-2 in dark)</td>
                   <td className='py-2 pr-4'>neutral-7</td>
-                  <td className='py-2'>&mdash;</td>
+                  <td className='py-2'>None</td>
                 </tr>
                 <tr>
                   <td className='py-2 pr-4 text-strong'>Focus</td>
@@ -568,7 +589,7 @@ export default function InteractionsPage() {
           </h3>
           <p className='text-subtle'>
             For composite form controls where multiple inputs share a single
-            visual container — like the Combobox input group (text input +
+            visual container, like the Combobox input group (text input +
             trigger button). Provides the same state transitions as{' '}
             <Code>is-interactive-field</Code> but scoped to the group wrapper
             instead of an individual input.
@@ -596,7 +617,7 @@ export default function InteractionsPage() {
 
         <div className='grid gap-2'>
           <p className='text-sm text-strong'>
-            Static vs interactive &mdash; hover to see the difference
+            Hover each to compare static and interactive
           </p>
           <div className='grid gap-4 sm:grid-cols-2'>
             {emphasisLevels.map(({ name, label }) => (
@@ -626,7 +647,7 @@ export default function InteractionsPage() {
           <p className='text-sm text-subtle'>
             <strong className='text-strong'>Note:</strong>{' '}
             <Code>is-interactive-field</Code> provides its own hover, focus, and
-            invalid logic — it does not use emphasis hover states. This is why
+            invalid logic. It does not use emphasis hover states. This is why
             form inputs use <Code>emphasis-field</Code> (which has no
             interactive states) paired with <Code>is-interactive-field</Code>{' '}
             (which provides all of them).
@@ -729,7 +750,7 @@ export default function InteractionsPage() {
                   is-interactive-field
                 </td>
                 <td className='py-2 pr-4 font-mono text-xs'>field</td>
-                <td className='py-2'>&mdash;</td>
+                <td className='py-2'>None</td>
               </tr>
               <tr>
                 <td className='py-2 pr-4 text-strong'>Select</td>
@@ -748,7 +769,7 @@ export default function InteractionsPage() {
                   is-interactive-field
                 </td>
                 <td className='py-2 pr-4 font-mono text-xs'>field</td>
-                <td className='py-2'>&mdash;</td>
+                <td className='py-2'>None</td>
               </tr>
               <tr>
                 <td className='py-2 pr-4 text-strong'>Clickable card</td>
@@ -764,12 +785,12 @@ export default function InteractionsPage() {
                 <td className='py-2 pr-4 font-mono text-xs'>
                   subtler or default
                 </td>
-                <td className='py-2'>&mdash;</td>
+                <td className='py-2'>None</td>
               </tr>
               <tr>
                 <td className='py-2 pr-4 text-strong'>Link</td>
                 <td className='py-2 pr-4 font-mono text-xs'>none (native)</td>
-                <td className='py-2 pr-4 font-mono text-xs'>&mdash;</td>
+                <td className='py-2 pr-4 font-mono text-xs'>None</td>
                 <td className='py-2'>
                   Use <Code>underline underline-offset-2</Code>
                 </td>

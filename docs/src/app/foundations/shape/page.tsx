@@ -38,13 +38,19 @@ const radiusScale = [
     tier: 'Large',
     className: 'rounded-2xl',
     value: '16px',
-    useFor: 'Modals, dialogs, drawers, Navigator panes'
+    useFor: 'Modals, dialogs, Navigator panes'
+  },
+  {
+    tier: 'Sheet',
+    className: 'rounded-4xl',
+    value: '32px',
+    useFor: 'Drawers, from any side'
   },
   {
     tier: 'Hero',
     className: 'rounded-5xl',
     value: '40px',
-    useFor: 'Hero cards, collection headers, bottom sheets'
+    useFor: 'Hero cards, collection headers'
   },
   {
     tier: 'Feature',
@@ -70,6 +76,8 @@ const componentMapping = [
   { component: 'Button', tier: 'Full', className: 'rounded-full' },
   { component: 'Badge', tier: 'Full', className: 'rounded-full' },
   { component: 'Card', tier: 'Container', className: 'rounded-xl' },
+  { component: 'Dialog', tier: 'Large', className: 'rounded-2xl' },
+  { component: 'Drawer', tier: 'Sheet', className: 'rounded-4xl' },
   { component: 'Select trigger', tier: 'Field', className: 'rounded-lg' },
   { component: 'Select popup', tier: 'Container', className: 'rounded-xl' },
   { component: 'Input', tier: 'Field', className: 'rounded-lg' },
@@ -106,12 +114,12 @@ export default function ShapePage() {
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Radius scale</h2>
         <p className='text-subtle'>
-          Nine tiers, from inline marks to edge-to-edge hero surfaces. Roadie
+          Ten tiers, from inline marks to edge-to-edge hero surfaces. Roadie
           uses Tailwind&apos;s built-in radius utilities up to{' '}
           <Code>rounded-4xl</Code> and adds three extended tiers (
           <Code>rounded-5xl</Code>, <Code>rounded-6xl</Code>,{' '}
           <Code>rounded-7xl</Code>) for large promotional layouts. Avoid
-          arbitrary values like <Code>rounded-[2.5rem]</Code> — stick to the
+          arbitrary values like <Code>rounded-[2.5rem]</Code>. Stick to the
           named utilities so the scale stays consistent.
         </p>
 
@@ -172,8 +180,8 @@ export default function ShapePage() {
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Component usage</h2>
         <p className='text-subtle'>
-          Which components use which tier. These are the defaults — override
-          with <Code>className</Code> when a specific context requires it.
+          Which components use which tier. These are the defaults. Override with{' '}
+          <Code>className</Code> when a specific context requires it.
         </p>
 
         <div className='overflow-x-auto'>
@@ -211,11 +219,11 @@ export default function ShapePage() {
               <div className='grid gap-3'>
                 <div className='rounded-xl border border-subtle bg-raised p-4'>
                   <p className='mb-2 text-xs text-subtle'>
-                    Card — <Code>rounded-xl</Code>
+                    Card uses <Code>rounded-xl</Code>
                   </p>
                   <div className='rounded-lg border border-subtle bg-sunken px-3 py-2'>
                     <p className='text-xs text-subtle'>
-                      Input — <Code>rounded-lg</Code>
+                      Input uses <Code>rounded-lg</Code>
                     </p>
                   </div>
                 </div>
@@ -230,11 +238,11 @@ export default function ShapePage() {
               <div className='grid gap-3'>
                 <div className='rounded-md border border-subtle bg-raised p-4'>
                   <p className='mb-2 text-xs text-subtle'>
-                    Card — <Code>rounded-md</Code>
+                    Card uses <Code>rounded-md</Code>
                   </p>
                   <div className='rounded-md border border-subtle bg-sunken px-3 py-2'>
                     <p className='text-xs text-subtle'>
-                      Input — <Code>rounded-md</Code>
+                      Input uses <Code>rounded-md</Code>
                     </p>
                   </div>
                 </div>
@@ -319,7 +327,7 @@ export default function ShapePage() {
               </div>
             }
           >
-            Use a larger radius on a child than its parent — the child&apos;s
+            Use a larger radius on a child than its parent. The child&apos;s
             corners will clip awkwardly against the parent&apos;s straighter
             edges.
           </Guideline.Dont>
@@ -346,7 +354,7 @@ export default function ShapePage() {
           <li>
             <p>
               <Code>rounded-2xl</Code> is reserved for{' '}
-              <strong>top-layer UI</strong> (modals, dialogs, drawers) and the
+              <strong>top-layer UI</strong> (modals and dialogs) and the
               Navigator&apos;s panes. Do not use it on inline components.
             </p>
           </li>
@@ -360,7 +368,7 @@ export default function ShapePage() {
             <p>
               <strong>Focus rings follow automatically.</strong> Roadie&apos;s{' '}
               <Code>is-interactive</Code> and <Code>is-interactive-field</Code>{' '}
-              utilities handle focus ring radius — no separate token needed.
+              utilities handle focus ring radius. No separate token is needed.
             </p>
           </li>
         </ul>

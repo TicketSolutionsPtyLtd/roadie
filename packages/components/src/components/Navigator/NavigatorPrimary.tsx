@@ -526,7 +526,10 @@ export function NavigatorPrimary({
           <div
             ref={tabTrackRef}
             data-slot='navigator-primary-track'
-            className={navigatorPrimaryTrackVariants({ collapsed })}
+            className={navigatorPrimaryTrackVariants({
+              collapsed,
+              pinned: pinnedTab !== undefined
+            })}
           >
             <div
               aria-hidden

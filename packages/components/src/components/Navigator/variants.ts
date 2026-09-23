@@ -88,7 +88,8 @@ export const navigatorPrimaryPinnedClass = 'relative grid gap-3 px-3'
 export const navigatorCapsuleClass =
   'group/capsule relative grid gap-1 p-1 rounded-4xl emphasis-raised'
 
-// --navigator-primary-col is one bar slot; -edge is a collapsed circle's travel.
+// --navigator-primary-col is one bar slot; -edge is a collapsed circle's travel;
+// -lead is how many slots the track sits in from the lane's start; -inset is the bar's own padding.
 export const navigatorPrimaryHorizontalVariants = cva(
   [
     'max-md:absolute max-md:inset-x-2 max-md:bottom-[max(1rem,env(safe-area-inset-bottom))] max-md:z-sticky md:hidden',
@@ -96,7 +97,7 @@ export const navigatorPrimaryHorizontalVariants = cva(
     // The track and circles restore input; the gutters beside them stay inert.
     'pointer-events-none',
     '[--navigator-primary-col:calc((100cqw-1rem)/var(--navigator-primary-slots))]',
-    '[--navigator-primary-edge:calc((var(--navigator-primary-slots)_-_var(--navigator-primary-count))_*_var(--navigator-primary-col)_/_2_+_(var(--navigator-primary-col)_-_3.5rem)_/_2)]',
+    '[--navigator-primary-edge:calc(var(--navigator-primary-lead)_*_var(--navigator-primary-col)_+_(var(--navigator-primary-col)_-_3.5rem)_/_2_+_var(--navigator-primary-inset))]',
     // translate, not transform: Tailwind v4 emits translate-* as the translate property.
     'motion-safe:transition-[translate,opacity,visibility] motion-safe:transition-discrete motion-reduce:transition-none'
   ],
@@ -106,9 +107,11 @@ export const navigatorPrimaryHorizontalVariants = cva(
         true: 'max-md:invisible max-md:translate-y-[calc(100%+2rem)] max-md:opacity-0',
         false: ''
       },
+      // Pinned, the track starts at the lane's edge, and both ends sit at the collapsed circles' 1rem inset.
       pinned: {
-        true: 'grid-cols-[minmax(0,1fr)_auto] gap-3',
-        false: ''
+        true: 'grid-cols-[minmax(0,1fr)_auto] gap-3 px-2 [--navigator-primary-lead:0] [--navigator-primary-inset:--spacing(2)]',
+        false:
+          '[--navigator-primary-lead:calc((var(--navigator-primary-slots)_-_var(--navigator-primary-count))_/_2)] [--navigator-primary-inset:0px]'
       }
     },
     defaultVariants: { hidden: false, pinned: false }
@@ -123,16 +126,20 @@ export const navigatorPrimaryCircleClass =
 // Collapsed it can span the full width, so input stays off.
 export const navigatorPrimaryTrackVariants = cva(
   [
-    'relative mx-auto grid w-fit grid-flow-col auto-cols-[var(--navigator-primary-col)] items-center gap-0 px-2 py-1'
+    'relative grid w-fit grid-flow-col auto-cols-[var(--navigator-primary-col)] items-center gap-0 px-2 py-1'
   ],
   {
     variants: {
       collapsed: {
         true: '',
         false: 'pointer-events-auto'
+      },
+      pinned: {
+        true: 'me-auto',
+        false: 'mx-auto'
       }
     },
-    defaultVariants: { collapsed: false }
+    defaultVariants: { collapsed: false, pinned: false }
   }
 )
 
@@ -187,11 +194,11 @@ export const navigatorTabVariants = cva(
       }
     },
     compoundVariants: [
-      // Down to the edge circle's 3.5rem from its 4.125rem, and in to its 1rem inset.
+      // Down to the edge circle's 3.5rem from its 4.125rem.
       {
         presentation: 'pinned',
         collapsed: true,
-        class: '-translate-x-2 rtl:translate-x-2 scale-[calc(3.5/4.125)]'
+        class: 'scale-[calc(3.5/4.125)]'
       },
       {
         presentation: 'circle',

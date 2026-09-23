@@ -27,7 +27,7 @@ best practices for assembling them into forms.
 ## Context-driven state
 
 Field, Select, and RadioGroup all use React context to flow state to their
-children. Set `invalid`, `required`, and `disabled` on the root — child inputs
+children. Set `invalid`, `required`, and `disabled` on the root. Child inputs
 pick up the corresponding aria attributes automatically.
 
 ```tsx-live
@@ -71,7 +71,7 @@ import and place `RequiredIndicator` or `OptionalIndicator`.
 
 ## Field as universal wrapper
 
-Field wraps any form control — not just Input and Textarea. Use it with Select,
+Field wraps any form control, not just Input and Textarea. Use it with Select,
 RadioGroup, Combobox, and Autocomplete for consistent layout, labels, and error
 handling. Field provides `grid gap-1.5` spacing, label wiring, and
 `invalid`/`required`/`disabled` context that child controls inherit automatically.
@@ -244,18 +244,18 @@ Field.ErrorText auto-hides when invalid is falsy.
 
 ### Do
 
-- Wrap all form controls in `Field` for consistent layout, labels, and error handling
-- Set `invalid`, `required`, and `disabled` on the `Field` root — child controls inherit these automatically
-- Use `Field.Label` with `showIndicator` for all form control labels
-- Use `Field.ErrorText` and `Field.HelperText` for feedback text
-- Use `Select.Content` for standard dropdowns
-- Use `Fieldset` with `Fieldset.Legend` to group related fields
+- Wrap all form controls in `Field` for consistent layout, labels, and error handling.
+- Set `invalid`, `required`, and `disabled` on the `Field` root. Child controls inherit these automatically.
+- Use `Field.Label` with `showIndicator` for all form control labels.
+- Use `Field.ErrorText` and `Field.HelperText` for feedback text.
+- Use `Select.Content` for standard dropdowns.
+- Use `Fieldset` with `Fieldset.Legend` to group related fields.
 
 ### Don't
 
-- Don't pass `aria-invalid` manually — Field context handles it
-- Don't import `RequiredIndicator` or `OptionalIndicator` directly when using `showIndicator`
-- Don't add manual `<div className='grid gap-1.5'>` wrappers — Field provides spacing
-- Don't use `Select.Portal` + `Select.Positioner` + `Select.Popup` when `Select.Content` suffices
-- Don't wrap `Field.ErrorText` in conditional rendering (`{error && ...}`) — the component handles visibility
-- Don't set a default `intent` on form components — intent flows via the CSS cascade
+- Don't pass `aria-invalid` manually. Field context handles it.
+- Don't import `RequiredIndicator` or `OptionalIndicator` directly when using `showIndicator`.
+- Don't add manual `<div className='grid gap-1.5'>` wrappers. Field provides spacing.
+- Don't use `Select.Portal` + `Select.Positioner` + `Select.Popup` when `Select.Content` suffices.
+- Don't wrap `Field.ErrorText` in conditional rendering (`{error && ...}`). The component handles visibility.
+- Don't set a default `intent` on form components. Intent flows via the CSS cascade.

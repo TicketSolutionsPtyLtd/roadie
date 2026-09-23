@@ -275,8 +275,8 @@ export default function PerformancePage() {
               Tree-shakeable components
             </h3>
             <p className='text-sm text-subtle'>
-              Components are built with <Code>tsdown</Code> in unbundle mode —
-              every leaf compiles to its own dist file, so subpath imports only
+              Components are built with <Code>tsdown</Code> in unbundle mode.
+              Every leaf compiles to its own dist file, so subpath imports only
               drag in what you use.
             </p>
           </div>

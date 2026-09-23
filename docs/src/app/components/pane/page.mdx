@@ -23,8 +23,8 @@ import { Pane } from '@oztix/roadie-components/pane'
 - A pane is a `<section>` with its own surface and its own scroll. The page
   never scrolls.
 - `Pane.Header` and `Pane.Footer` stay put while the body scrolls between them.
-  `Pane.Body` holds the part that waits, so a skeleton stands in for it while
-  the header stays.
+  `Pane.Body` is the body. It fills the height the header leaves and holds the
+  part that waits, so a skeleton stands in for it while the header stays.
 - A pane is a column of an app frame. Inside a
   [`Navigator`](/components/navigator), panes become columns where there is
   room and a stack where there isn't.
@@ -96,6 +96,38 @@ It sits straight on the frame behind it.
       <Pane.Title>Subtler</Pane.Title>
     </Pane.Header>
     <p className='pb-4 text-sm text-subtle'>No surface at all.</p>
+  </Pane>
+</div>
+```
+
+### Measure
+
+`measure` caps the pane's content and its title while the header and footer
+still span the column, so the pane's surface fills its space and the content
+keeps a width that reads well.
+
+| Measure | Width | Use for |
+| --- | --- | --- |
+| `full` | The whole column | The default. Dashboards, tables and anything that uses the room |
+| `narrow` | 24rem | Forms, sign in, settings |
+| `readable` | 65ch | Text and details |
+| `wide` | 56rem | Dense layouts that still need a cap |
+
+`readable` is 65 characters of the pane's own text size. If the body text is
+larger than the pane's, set its size on the `Pane` so the measure counts the
+right characters. Content is centred; `measureAlign='start'` holds it to the
+start instead.
+
+```tsx-live
+<div className='h-80 overflow-hidden rounded-2xl border border-subtle'>
+  <Pane measure='narrow' className='h-full'>
+    <Pane.Header>
+      <Pane.Title>Settings</Pane.Title>
+    </Pane.Header>
+    <Field>
+      <Field.Label>Display name</Field.Label>
+      <Field.Input defaultValue='Sam Okafor' />
+    </Field>
   </Pane>
 </div>
 ```
@@ -297,16 +329,41 @@ of details and at most one inspector. It defaults to `detail`.
 | --- | --- |
 | `list` | The root |
 | `detail` | Under the root |
-| `inspector` | A fixed 14rem column outside the stack. It shows only when every level of the stack fits beside it. |
+| `inspector` | A fixed column outside the stack, 14rem unless `size` says otherwise. It shows only when every level of the stack fits beside it. |
 
-When the inspector's column is hidden, give people another way in. Put a
-[`Drawer`](/components/drawer) in the detail pane's `Pane.Actions`, and Base UI
-handles dismissal, focus, Escape and the scrim. The `pane-inspector-yielded:`
-variant shows its trigger only while the column is hidden.
+`size` sets the inspector's width: `sm` is 14rem and the default, `md` is
+20rem and `lg` is 24rem. Each has its own thresholds, so the stack's panes keep
+their minimum widths beside it. A wider inspector needs a wider window, and
+gives its column up sooner:
+
+| Size | Width | Shows beside 1 level | 2 levels | 3 levels | 4 levels |
+| --- | --- | --- | --- | --- | --- |
+| `sm` | 14rem | 46.25rem | 69rem | 99.75rem | 105.75rem |
+| `md` | 20rem | 50.25rem | 75rem | 105.75rem | 111.75rem |
+| `lg` | 24rem | 54.25rem | 79rem | 109.75rem | 115.75rem |
+
+Pick the smallest size its content fits. Don't widen the column with a class:
+the thresholds would still assume the size, and the panes beside it would be
+squeezed below their minimums.
+
+When the inspector's column is hidden, its content moves into a bottom
+[`Drawer`](/components/drawer). Put a `Pane.InspectorTrigger` where people
+should find it, such as the detail pane's `Pane.Actions`. It shows only while
+the column is hidden and opens the drawer. The drawer takes its name from the
+inspector's `aria-label`, and keeps the page readable behind it. The drawer is a fixed `lg` sheet, so filtering its content can't resize it. Pass `drawerSize` to pick another [Drawer size](/components/drawer#sizes), such as `fit` for short content like the example below. In the drawer, the inspector's `Pane.Header` gets a Close in its top-left corner. Content without a `Pane.Header` gets a header holding just the Close.
+
+`reveal` says the inspector's content should be seen. While the column shows,
+it already is. Once the column has yielded, `reveal` opens the drawer, so a
+link that lands on a filter can show the filtered list without asking where it
+is. `onRevealChange` reports the trigger opening the drawer and people
+dismissing it. The content renders in one place at a time, so keep state that
+must survive the move, such as a filter, in the URL.
+
+For anything else that should change while the column is hidden, the
+`pane-inspector-yielded:` variant applies only then. It applies anywhere in the same `Navigator`, including the inspector's own content once it's in the drawer.
 
 ```tsx-live-noinline-expand
 function Columns() {
-  const [open, setOpen] = useState(false)
   const [showDetail, setShowDetail] = useState(true)
   const tiers = [
     { title: 'General admission', description: '$68.00 · on sale' },
@@ -333,28 +390,9 @@ function Columns() {
           <Pane.Header onBack={() => setShowDetail(false)}>
             <Pane.Title>Midnight Frequency</Pane.Title>
             <Pane.Actions>
-              <Drawer open={open} onOpenChange={setOpen} side='bottom'>
-                <Drawer.Trigger
-                  render={
-                    <IconButton
-                      aria-label='Event details'
-                      emphasis='normal'
-                      className='pane-inspector-yielded:inline-flex hidden'
-                    >
-                      <InfoIcon weight='bold' className='size-5' />
-                    </IconButton>
-                  }
-                />
-                <Drawer.Content aria-label='Event details'>
-                  <Drawer.Body className='py-4'>
-                    <List emphasis='subtler'>
-                      <List.Item title='Venue' description='The Longacre' />
-                      <List.Item title='Doors' description='7:00 pm' />
-                      <List.Item title='Capacity' description='1,300' />
-                    </List>
-                  </Drawer.Body>
-                </Drawer.Content>
-              </Drawer>
+              <Pane.InspectorTrigger aria-label='Event details'>
+                <InfoIcon weight='bold' className='size-5' />
+              </Pane.InspectorTrigger>
             </Pane.Actions>
           </Pane.Header>
           <List>
@@ -363,7 +401,7 @@ function Columns() {
             ))}
           </List>
         </Pane>
-        <Pane column='inspector' emphasis='subtler' aria-label='Event details'>
+        <Pane column='inspector' emphasis='subtler' aria-label='Event details' drawerSize='fit'>
           <Pane.Header>
             <Pane.Title>Details</Pane.Title>
           </Pane.Header>
@@ -508,7 +546,9 @@ function Loading() {
 render(<Loading />)
 ```
 
-- `Pane.Body` is a Suspense boundary. It renders no element of its own.
+- `Pane.Body` is a Suspense boundary inside a `<div>` that fills the height the
+  header leaves. A band or background on it reaches the pane's bottom edge,
+  and a child with `grow` in a `flex flex-col` body does too.
 - A pane catches a wait outside `Pane.Body` too. Then a skeleton header stands
   in for the real one.
 - `loading` on the pane replaces the default skeleton. `loading` on
@@ -521,6 +561,8 @@ render(<Loading />)
   pane.
 
 ## Guidelines
+
+<div className='grid gap-8'>
 
 <Guideline title='Panes are siblings'>
   <Guideline.Do code={`<>\n  <Pane column='list'>…</Pane>\n  <Pane>…</Pane>\n</>`}>
@@ -553,6 +595,8 @@ render(<Loading />)
     render below the top row.
   </Guideline.Dont>
 </Guideline>
+
+</div>
 
 - A pane registers with its `Navigator` from wherever it renders, such as a
   route layout or your own component. With no `Pane` at all, Navigator warns in

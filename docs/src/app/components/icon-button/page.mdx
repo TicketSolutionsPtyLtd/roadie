@@ -115,29 +115,29 @@ Pass `href` to render the icon button as a routed anchor. Roadie picks the right
 
 ```tsx-live
 <div className='flex flex-row flex-wrap items-center gap-3'>
-  {/* Internal — routes through RoadieLinkProvider */}
+  {/* Internal routes through RoadieLinkProvider */}
   <IconButton aria-label='View cart' href='/cart' emphasis='strong' intent='accent'>
     <ShoppingCart weight='bold' />
   </IconButton>
 
-  {/* External — auto target='_blank' rel='noopener noreferrer' */}
+  {/* External gets target='_blank' rel='noopener noreferrer' */}
   <IconButton aria-label='Open Oztix in a new tab' href='https://oztix.com.au' emphasis='normal'>
     <ArrowSquareOut weight='bold' />
   </IconButton>
 
-  {/* Protocol — plain <a>, no target/rel */}
+  {/* Protocol renders a plain <a>, no target/rel */}
   <IconButton aria-label='Email support' href='mailto:hello@oztix.com.au' emphasis='subtle'>
     <Envelope weight='bold' />
   </IconButton>
 
-  {/* Protocol — plain <a> */}
+  {/* Protocol renders a plain <a> */}
   <IconButton aria-label='Call support' href='tel:+61400000000' emphasis='subtle'>
     <Phone weight='bold' />
   </IconButton>
 </div>
 ```
 
-Hover each button — the browser status bar shows the resolved `href` exactly as Roadie rendered it (note the `mailto:` / `tel:` URLs vs the routed paths). See [Linking](/foundations/linking) for the full reference, including `external` / `target` / `rel` overrides.
+Hover each button. The browser status bar shows the resolved `href` exactly as Roadie rendered it (note the `mailto:` / `tel:` URLs vs the routed paths). See [Linking](/foundations/linking) for the full reference, including `external` / `target` / `rel` overrides.
 
 ### Download
 
@@ -151,7 +151,7 @@ Add `download` to an `href` icon button to save the file instead of opening it, 
 
 ### Escape hatch
 
-For full element control, or anchor props `href` doesn't cover (`hreflang`, `referrerPolicy`), use Base UI's `render` prop. It keeps Base UI's button semantics — `role='button'` and `Space` activation — so the element you pass is yours to make accessible. Passing both `href` and `render` triggers a one-shot dev warning — `render` wins, provider routing is silently disabled.
+For full element control, or anchor props `href` doesn't cover (`hreflang`, `referrerPolicy`), use Base UI's `render` prop. It keeps Base UI's button semantics, `role='button'` and `Space` activation, so the element you pass is yours to make accessible. Passing both `href` and `render` triggers a one-shot dev warning. `render` wins, and provider routing is silently disabled.
 
 ## Guidelines
 

@@ -300,7 +300,8 @@
 
 /* Drawer surface — slides off its anchored edge and tracks Base UI's live
    swipe offset. `transform`, not `translate`: Base UI writes an inline
-   `transform` mid-swipe, which must override the resting value, not compose. */
+   `transform` mid-swipe, which must override the resting value, not compose.
+   A surface held off its edge sets `--drawer-float` so it travels clear. */
 @utility motion-drawer {
   transition-property: transform, opacity;
   transition-timing-function: var(--ease-enter);
@@ -323,12 +324,12 @@
 
   &[data-starting-style][data-swipe-direction='down'],
   &[data-ending-style][data-swipe-direction='down'] {
-    transform: translateY(100%);
+    transform: translateY(calc(100% + var(--drawer-float, 0px)));
   }
 
   &[data-starting-style][data-swipe-direction='up'],
   &[data-ending-style][data-swipe-direction='up'] {
-    transform: translateY(-100%);
+    transform: translateY(calc(-100% - var(--drawer-float, 0px)));
   }
 
   &[data-starting-style][data-swipe-direction='right'],

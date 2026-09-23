@@ -59,7 +59,7 @@ The default emphasis is `subtle`. Use `strong` for a solid fill, or step down to
 
 ### Sizes
 
-Sizes run `xs` through `3xl`. Each maps to a Tailwind `size-*` box on the tile, with matching internal padding and icon size — the tile dimension is `2 × padding + icon`. The tier names are variant keys, not Tailwind utilities (there is no `size-3xl`).
+Sizes run `xs` through `3xl`. Each maps to a Tailwind `size-*` box on the tile, with matching internal padding and icon size. The tile dimension is `2 × padding + icon`. The tier names are variant keys, not Tailwind utilities (there is no `size-3xl`).
 
 ```tsx-live
 <div className='flex flex-row flex-wrap items-center gap-3'>
@@ -127,12 +127,14 @@ Use `weight='bold'` up to 48px (the `lg` size), then switch to `weight='duotone'
 
 ## Guidelines
 
+<div className='grid gap-8'>
+
 <Guideline title='Frame a single icon'>
   <Guideline.Do example={<IconTile intent='accent'><GearIcon weight='bold' /></IconTile>}>
     Place one Phosphor icon as the only child.
   </Guideline.Do>
   <Guideline.Dont example={<IconTile intent='accent'><GearIcon weight='bold' /><StarIcon weight='bold' /></IconTile>}>
-    Don't cram multiple icons or text into a tile — it's a frame, not a layout container.
+    Don't cram multiple icons or text into a tile. It's a frame, not a layout container.
   </Guideline.Dont>
 </Guideline>
 
@@ -141,7 +143,7 @@ Use `weight='bold'` up to 48px (the `lg` size), then switch to `weight='duotone'
     Use <code>weight='bold'</code> up to 48px (the <code>lg</code> size); switch to <code>weight='duotone'</code> above it. Never go lighter than bold.
   </Guideline.Do>
   <Guideline.Dont example={<IconTile intent='accent' size='3xl'><HeartIcon weight='bold' /></IconTile>}>
-    A bold outline looks hollow and under-filled on a large tile — duotone's tinted fill gives big tiles more presence.
+    A bold outline looks hollow and under-filled on a large tile. Duotone's tinted fill gives big tiles more presence.
   </Guideline.Dont>
 </Guideline>
 
@@ -156,11 +158,13 @@ Use `weight='bold'` up to 48px (the `lg` size), then switch to `weight='duotone'
 
 <Guideline title='Pair a meaningful tile with a label'>
   <Guideline.Do example={<div className='flex items-center gap-3'><IconTile intent='success'><CheckCircleIcon weight='bold' /></IconTile><p className='text-sm'>Payment complete</p></div>}>
-    Add accompanying text — or an <code>aria-label</code> — when the icon carries meaning.
+    Add accompanying text or an <code>aria-label</code> when the icon carries meaning.
   </Guideline.Do>
   <Guideline.Dont example={<IconTile intent='success'><CheckCircleIcon weight='bold' /></IconTile>}>
     A lone tile with no label leaves its meaning to guesswork for screen readers.
   </Guideline.Dont>
 </Guideline>
+
+</div>
 
 <PropsDefinitions componentPath='packages/components/src/components/IconTile/index.tsx' />

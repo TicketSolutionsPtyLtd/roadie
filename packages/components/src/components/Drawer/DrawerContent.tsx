@@ -18,7 +18,8 @@ export function DrawerContent({
   ...props
 }: DrawerContentProps) {
   const side = useDrawerSide()
-  const showHandle = handle ?? (side === 'bottom' || side === 'top')
+  const edgeSheet = side === 'bottom' || side === 'top'
+  const showHandle = handle ?? edgeSheet
   return (
     <DrawerPortal>
       <DrawerBackdrop />

@@ -8,6 +8,7 @@ import { userEvent } from 'vitest/browser'
 import { Pane } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Navigator } from '../Navigator'
+import { inspectorTier } from './paneColumns'
 import {
   REM,
   STACK_INSET,
@@ -130,10 +131,13 @@ describe('without container style queries', () => {
               `${where}: back ${topPane.back}, close ${topPane.close}`
             )
           if (spec.inspector) {
+            const size = spec.inspector === true ? 'sm' : spec.inspector
             const depths = spec.panes.map((pane) => Number(pane.depth))
             const levels = Math.max(...depths) - (rooted ? 0 : 1) + 1
+            // Deeper stacks need style queries, so only the one- and two-level thresholds apply.
             const fits =
-              width >= TWO_COLUMNS && (levels < 2 || width >= 69 * REM)
+              width >= inspectorTier(1, size) * REM &&
+              (levels < 2 || width >= inspectorTier(2, size) * REM)
             if (layouts.at(-1)!.shown !== fits)
               problems.push(`${where}: inspector shown ${!fits}`)
           }

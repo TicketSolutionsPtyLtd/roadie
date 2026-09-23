@@ -100,7 +100,8 @@ const twMerge = extendTailwindMerge<
         'emphasis-field',
         'emphasis-floating',
         'emphasis-inverted',
-        'emphasis-overlay'
+        'emphasis-overlay',
+        'emphasis-overlay-subtle'
       ]
     },
     conflictingClassGroups: {

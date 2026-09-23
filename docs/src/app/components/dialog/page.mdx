@@ -21,7 +21,7 @@ import { Dialog } from '@oztix/roadie-components/dialog'
 
 ## Examples
 
-Each example leads with an [IconTile](/components/icon-tile) (`size='2xl' shape='circle'`, its `intent` inherited from the dialog) centred above the title — `Dialog.Header` handles the centring.
+Each example leads with an [IconTile](/components/icon-tile) (`size='2xl' shape='circle'`, its `intent` inherited from the dialog) centred above the title. `Dialog.Header` handles the centring.
 
 ### Default
 
@@ -46,6 +46,27 @@ A trigger opens a centred modal over a dimmed backdrop. `Dialog.Content` collaps
 </Dialog>
 ```
 
+### Emphasis
+
+`emphasis` on the root sets how much the dialog takes over the page behind it. It defaults to `normal`, which dims and blurs the page, because a dialog asks for the user's full attention. `subtle` tints the page and leaves it readable, and `subtler` leaves it clear.
+
+```tsx-live
+<div className='flex flex-wrap gap-3'>
+  {['normal', 'subtle', 'subtler'].map((emphasis) => (
+    <Dialog key={emphasis} emphasis={emphasis}>
+      <Dialog.Trigger render={<Button>{emphasis}</Button>} />
+      <Dialog.Content size='sm'>
+        <Dialog.Header>
+          <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+          <Dialog.Title>Emphasis {emphasis}</Dialog.Title>
+          <Dialog.Description>The page behind stays as visible as this level allows.</Dialog.Description>
+        </Dialog.Header>
+      </Dialog.Content>
+    </Dialog>
+  ))}
+</div>
+```
+
 ### Sizes
 
 Use the `size` prop on `Dialog.Content` to set the maximum width. Defaults to `md`.
@@ -56,7 +77,7 @@ Use the `size` prop on `Dialog.Content` to set the maximum width. Defaults to `m
     <Dialog.Trigger render={<Button>Small</Button>} />
     <Dialog.Content size='sm'>
       <Dialog.Header>
-        <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+        <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
         <IconTile size='2xl' shape='circle'>
           <Info weight='duotone' />
         </IconTile>
@@ -69,7 +90,7 @@ Use the `size` prop on `Dialog.Content` to set the maximum width. Defaults to `m
     <Dialog.Trigger render={<Button>Medium</Button>} />
     <Dialog.Content size='md'>
       <Dialog.Header>
-        <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+        <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
         <IconTile size='2xl' shape='circle'>
           <Info weight='duotone' />
         </IconTile>
@@ -82,7 +103,7 @@ Use the `size` prop on `Dialog.Content` to set the maximum width. Defaults to `m
     <Dialog.Trigger render={<Button>Large</Button>} />
     <Dialog.Content size='lg'>
       <Dialog.Header>
-        <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+        <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
         <IconTile size='2xl' shape='circle'>
           <Info weight='duotone' />
         </IconTile>
@@ -96,16 +117,20 @@ Use the `size` prop on `Dialog.Content` to set the maximum width. Defaults to `m
 
 ### Intents
 
-Portaled popups sit outside the trigger's CSS cascade, so set the colour context directly on `Dialog.Content` with the `intent` prop. Each intent fits a different moment — `info` and `success` for informational modals (dismiss-only, with a header close), `warning` and `danger` for caution and destructive confirmations, and `accent` to promote an action.
+Portaled popups sit outside the trigger's CSS cascade, so set the colour context directly on `Dialog.Content` with the `intent` prop. Each intent fits a different moment:
+
+- `info` and `success` for informational modals (dismiss-only, with a header close)
+- `warning` and `danger` for caution and destructive confirmations
+- `accent` to promote an action
 
 ```tsx-live
 <div className='flex flex-wrap gap-3'>
-  {/* Info — informational, dismiss-only */}
+  {/* Info for an informational, dismiss-only modal */}
   <Dialog>
     <Dialog.Trigger render={<IconButton aria-label='Release notes' emphasis='subtle'><Info weight='bold' /></IconButton>} />
     <Dialog.Content intent='info' size='sm'>
       <Dialog.Header>
-        <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+        <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
         <IconTile size='2xl' shape='circle'>
           <Info weight='duotone' />
         </IconTile>
@@ -115,12 +140,12 @@ Portaled popups sit outside the trigger's CSS cascade, so set the colour context
     </Dialog.Content>
   </Dialog>
 
-  {/* Success — confirmation, dismiss-only */}
+  {/* Success for a dismiss-only confirmation */}
   <Dialog>
     <Dialog.Trigger render={<Button>Finish setup</Button>} />
     <Dialog.Content intent='success' size='sm'>
       <Dialog.Header>
-        <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+        <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
         <IconTile size='2xl' shape='circle'>
           <CheckCircle weight='duotone' />
         </IconTile>
@@ -130,7 +155,7 @@ Portaled popups sit outside the trigger's CSS cascade, so set the colour context
     </Dialog.Content>
   </Dialog>
 
-  {/* Warning — caution confirm */}
+  {/* Warning for a caution confirm */}
   <Dialog role='alertdialog'>
     <Dialog.Trigger render={<Button>Save and exit</Button>} />
     <Dialog.Content intent='warning' size='sm'>
@@ -148,7 +173,7 @@ Portaled popups sit outside the trigger's CSS cascade, so set the colour context
     </Dialog.Content>
   </Dialog>
 
-  {/* Danger — destructive confirm */}
+  {/* Danger for a destructive confirm */}
   <Dialog role='alertdialog'>
     <Dialog.Trigger render={<Button intent='danger'>Remove member</Button>} />
     <Dialog.Content intent='danger' size='sm'>
@@ -166,7 +191,7 @@ Portaled popups sit outside the trigger's CSS cascade, so set the colour context
     </Dialog.Content>
   </Dialog>
 
-  {/* Accent — promote an upgrade */}
+  {/* Accent to promote an upgrade */}
   <Dialog>
     <Dialog.Trigger render={<Button intent='accent' emphasis='strong'>Upgrade</Button>} />
     <Dialog.Content intent='accent' size='sm'>
@@ -188,8 +213,9 @@ Portaled popups sit outside the trigger's CSS cascade, so set the colour context
 
 ### Alert dialog
 
-For a blocking message that demands a response — a session timeout, a cart-expiry
-warning, an irreversible confirmation — set `role='alertdialog'` on the root. This
+Set `role='alertdialog'` on the root for a blocking message that demands a
+response. Examples are a session timeout, a cart-expiry warning or an
+irreversible confirmation. This
 exposes the surface as `role="alertdialog"` and raises the backdrop and surface to
 the [`z-alert`](/foundations/elevation) tier so the dialog stacks **above** an
 already-open dialog or drawer. The default `role='dialog'` stays on the
@@ -219,7 +245,7 @@ Dialog is a compound component. Use `Dialog.Header`, `Dialog.Body`, and `Dialog.
   <Dialog.Trigger render={<Button>View details</Button>} />
   <Dialog.Content>
     <Dialog.Header>
-      <Dialog.Close render={<IconButton aria-label='Close' emphasis='subtle' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
+      <Dialog.Close render={<IconButton aria-label='Close' emphasis='normal' size='sm' className='absolute left-0 top-0'><X weight='bold' /></IconButton>} />
       <IconTile size='2xl' shape='circle'>
         <Ticket weight='duotone' />
       </IconTile>
@@ -267,22 +293,22 @@ A `Dialog.Footer` holds a centered actions row. Combine it with `intent='danger'
 
 ## Guidelines
 
-Use a dialog for tasks that need the user's full attention — confirmations, short forms, and destructive actions. Keep content concise, and set `intent` on `Dialog.Content`, not the trigger, since portaled popups do not inherit the trigger's CSS cascade.
+Use a dialog for tasks that need the user's full attention, such as confirmations, short forms, and destructive actions. Keep content concise, and set `intent` on `Dialog.Content`, not the trigger, since portaled popups do not inherit the trigger's CSS cascade.
 
 <div className='grid gap-8'>
 
 <Guideline title='Use alertdialog for blocking or destructive confirmations'>
   <Guideline.Do code={`<Dialog role='alertdialog'>\n  <Dialog.Content intent='danger' size='sm'>\n    <Dialog.Title>Delete event?</Dialog.Title>\n    …\n  </Dialog.Content>\n</Dialog>`}>
-    Set `role='alertdialog'` when the user must resolve the dialog before moving on — deleting data, discarding edits, a session or cart expiry. Screen readers announce it assertively, and it stacks above an already-open dialog or drawer on the `z-alert` tier.
+    Set `role='alertdialog'` when the user must resolve the dialog before moving on. Examples are deleting data, discarding edits, or a session or cart expiry. Screen readers announce it assertively, and it stacks above an already-open dialog or drawer on the `z-alert` tier.
   </Guideline.Do>
   <Guideline.Dont code={`<Dialog>\n  <Dialog.Content intent='danger' size='sm'>\n    <Dialog.Title>Delete event?</Dialog.Title>\n    …\n  </Dialog.Content>\n</Dialog>`}>
-    Don't leave a destructive or blocking confirmation as the default `role='dialog'` — it is announced as a plain dialog and can be obscured by an open drawer. Keep `role='dialog'` for informational or optional content.
+    Don't leave a destructive or blocking confirmation as the default `role='dialog'`. It is announced as a plain dialog and can be obscured by an open drawer. Keep `role='dialog'` for informational or optional content.
   </Guideline.Dont>
 </Guideline>
 
 <Guideline title='Name buttons by their action'>
   <Guideline.Do example={<Button intent='accent' emphasis='strong'>Save changes</Button>}>
-    Label the confirming button with the specific verb and object the user is committing to. A clear action like "Save changes" lets people act without rereading the title, and for destructive flows naming the consequence — "Delete event" — leaves no doubt about what happens.
+    Label the confirming button with the specific verb and object the user is committing to. A clear action like "Save changes" lets people act without rereading the title. For destructive flows, naming the consequence, as in "Delete event", leaves no doubt about what happens.
   </Guideline.Do>
   <Guideline.Dont example={<Button>OK</Button>}>
     Vague labels like "OK", "Yes", or "Submit" tell the user nothing on their own. They have to jump back to the title to work out what they are actually agreeing to.
@@ -291,7 +317,7 @@ Use a dialog for tasks that need the user's full attention — confirmations, sh
 
 <Guideline title='Write a title that states the decision'>
   <Guideline.Do example={<p className='text-display-ui-4 text-strong'>Delete event?</p>}>
-    A title that names the affected object and the action — a clear question or noun phrase — tells the user exactly what is at stake before they read another word.
+    Write the title as a clear question or noun phrase that names the affected object and the action. It tells the user exactly what is at stake before they read another word.
   </Guideline.Do>
   <Guideline.Dont example={<p className='text-display-ui-4 text-strong'>Are you sure?</p>}>
     Vague titles that never name the affected object force the user to hunt through the body for context, and make them hesitate before acting.
@@ -300,7 +326,7 @@ Use a dialog for tasks that need the user's full attention — confirmations, sh
 
 <Guideline title='Use one prominent action, the rest normal'>
   <Guideline.Do example={<div className='flex gap-2'><Button>Cancel</Button><Button intent='accent' emphasis='strong'>Save changes</Button></div>}>
-    Give the dialog one prominent button — `emphasis='strong'` with an `accent` intent, or `danger` for a destructive task — and leave the rest as default buttons. The primary path stays obvious at a glance.
+    Give the dialog one prominent button. Use `emphasis='strong'` with an `accent` intent, or `danger` for a destructive task. Leave the rest as default buttons. The primary path stays obvious at a glance.
   </Guideline.Do>
   <Guideline.Dont example={<div className='flex gap-2'><Button emphasis='subtle'>Cancel</Button><Button intent='accent' emphasis='strong'>Save</Button><Button intent='accent' emphasis='strong'>Save and close</Button></div>}>
     Never use `emphasis='subtle'` for footer actions, and never give a dialog more than one accent or strong button. Competing prominent buttons make the user stop and weigh every option instead of following the intended path.
@@ -308,17 +334,17 @@ Use a dialog for tasks that need the user's full attention — confirmations, sh
 </Guideline>
 
 <Guideline title='Dismiss with a header close, not a lone Cancel'>
-  <Guideline.Do example={<IconButton aria-label='Close' emphasis='subtle'><XIcon weight='bold' /></IconButton>}>
+  <Guideline.Do example={<IconButton aria-label='Close' emphasis='normal'><XIcon weight='bold' /></IconButton>}>
     When the only action is to close, put a Close icon button in the top-left of the header and skip the footer entirely. The dialog reads as informational, not a decision awaiting a choice.
   </Guideline.Do>
   <Guideline.Dont example={<Button>Cancel</Button>}>
-    A lone Cancel in the footer wastes the prominent action slot and adds a step. There is nothing to cancel — the user only wants to close.
+    A lone Cancel in the footer wastes the prominent action slot and adds a step. There is nothing to cancel. The user only wants to close.
   </Guideline.Dont>
 </Guideline>
 
 <Guideline title='Lead notable dialogs with a matching icon'>
   <Guideline.Do>
-    For confirmations and notable moments, centre a `size='2xl' shape='circle'` [IconTile](/components/icon-tile) above the title and leave its `intent` unset so it inherits the dialog's — a danger or warning tile for caution, success for completion. It signals the nature of the action before the title is read.
+    For confirmations and notable moments, centre a `size='2xl' shape='circle'` [IconTile](/components/icon-tile) above the title and leave its `intent` unset so it inherits the dialog's. That gives a danger or warning tile for caution, and success for completion. It signals the nature of the action before the title is read.
   </Guideline.Do>
   <Guideline.Dont>
     Don't give the tile an `intent` that clashes with the dialog, shrink it until it reads as decoration, or add one to routine dialogs where it is just noise.
@@ -332,7 +358,7 @@ Use a dialog for tasks that need the user's full attention — confirmations, sh
 - **Keyboard**: `Escape` closes the dialog and returns focus to the trigger. Focus is trapped within the dialog while it is open.
 - **Default action**: `Enter` activates the strong primary action (the `emphasis='strong'` button), like a form's default submit. It is ignored while focus is on another button, a multi-line textarea, or editable content so those keep their own `Enter` behaviour.
 - **Focus**: Focus moves into the dialog on open and is restored to the trigger on close.
-- **ARIA**: The popup is exposed with `role="dialog"` and `aria-modal`, with `Dialog.Title`/`Dialog.Description` providing the accessible name and description. Set `role='alertdialog'` for a blocking message that needs a response — this also raises the dialog to the `z-alert` tier so it stacks above an open dialog or drawer.
-- **Icon-only close**: When the dismiss control shows only an icon, give it an explicit label — e.g. `<Dialog.Close render={<IconButton aria-label='Close'><XIcon weight='bold' /></IconButton>} />` — so screen readers announce its purpose.
+- **ARIA**: The popup is exposed with `role="dialog"` and `aria-modal`, with `Dialog.Title`/`Dialog.Description` providing the accessible name and description. Set `role='alertdialog'` for a blocking message that needs a response. This also raises the dialog to the `z-alert` tier so it stacks above an open dialog or drawer.
+- **Icon-only close**: When the dismiss control shows only an icon, give it an explicit label so screen readers announce its purpose. For example, `<Dialog.Close render={<IconButton aria-label='Close'><XIcon weight='bold' /></IconButton>} />`.
 
 <PropsDefinitions componentPath='packages/components/src/components/Dialog' />

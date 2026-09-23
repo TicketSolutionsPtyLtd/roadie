@@ -6,15 +6,20 @@ import { Drawer as DrawerPrimitive } from '@base-ui/react/drawer'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { overlayBackdropVariants } from '../../variants'
+import { useDrawerEmphasis } from './DrawerContext'
+
 export type DrawerBackdropProps = DrawerPrimitive.Backdrop.Props &
   RefAttributes<HTMLDivElement>
 
 export function DrawerBackdrop({ className, ...props }: DrawerBackdropProps) {
+  const emphasis = useDrawerEmphasis()
   return (
     <DrawerPrimitive.Backdrop
       data-slot='drawer-backdrop'
       className={cn(
-        'fixed inset-0 z-overlay emphasis-overlay',
+        'fixed inset-0 z-overlay',
+        overlayBackdropVariants[emphasis],
         // Fades with the live swipe, not only on release.
         'opacity-[calc(1_-_var(--drawer-swipe-progress,0))]',
         'transition-opacity duration-slow ease-enter data-[swiping]:duration-0',

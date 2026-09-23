@@ -20,7 +20,7 @@ import { ScrollArea } from '@oztix/roadie-components/scroll-area'
 
 ### Default
 
-The viewport is the scroll container. Give the root a height — it never sizes
+The viewport is the scroll container. Give the root a height. It never sizes
 itself.
 
 ```tsx-live
@@ -75,7 +75,7 @@ Render both scrollbars plus a `Corner` so they don't overlap where they meet.
     <ScrollArea.Content>
       <div className='grid w-[48rem] gap-3'>
         {Array.from({ length: 20 }, (_, i) => (
-          <p key={i}>A wide row that overflows both axes — row {i + 1}</p>
+          <p key={i}>Row {i + 1} is wide enough to overflow both axes</p>
         ))}
       </div>
     </ScrollArea.Content>
@@ -100,7 +100,7 @@ it stays transparent, even on hover, until its axis overflows.
 ```tsx-live
 <ScrollArea className='h-48 rounded-xl border border-subtle'>
   <ScrollArea.Viewport className='p-4'>
-    <p>Short content — the bar stays mounted but hidden.</p>
+    <p>Short content. The bar stays mounted but hidden.</p>
   </ScrollArea.Viewport>
   <ScrollArea.Scrollbar keepMounted>
     <ScrollArea.Thumb />
@@ -156,8 +156,8 @@ overflow.
 ### With a header
 
 Base UI pins the scrollbar to the **root**, spanning its full height. Keep
-chrome outside the `ScrollArea` so the bar stays within the content it scrolls
-— a `grid-rows-[auto_1fr]` wrapper gives the header its own row and hands the
+chrome outside the `ScrollArea` so the bar stays within the content it scrolls.
+A `grid-rows-[auto_1fr]` wrapper gives the header its own row and hands the
 rest to the scroll area.
 
 ```tsx-live
@@ -181,10 +181,12 @@ rest to the scroll area.
 ```
 
 A `position: sticky` child inside the viewport also pins, but the scrollbar
-runs over it unless you raise the child above it — which then hides the top of
+runs over it unless you raise the child above it. Raising it hides the top of
 the bar's travel. Prefer the composition above.
 
 ## Guidelines
+
+<div className='grid gap-8'>
 
 <Guideline
   title='Constrain the height'
@@ -242,11 +244,11 @@ the bar's travel. Prefer the composition above.
 
 <Guideline
   title='Wrap content that can change'
-  description="Base UI watches ScrollArea.Content with a ResizeObserver. The viewport is only observed for its own box, which never changes — so without the wrapper, an area whose content grows or shrinks keeps whatever overflow state it started with."
+  description="Base UI watches ScrollArea.Content with a ResizeObserver. The viewport is only observed for its own box, which never changes. Without the wrapper, an area whose content grows or shrinks keeps whatever overflow state it started with."
 >
   <Guideline.Do code={`<ScrollArea.Viewport>\n  <ScrollArea.Content fitWidth={false}>\n    {items}\n  </ScrollArea.Content>\n</ScrollArea.Viewport>`}>
     Wrap content that changes height. `fitWidth={false}` keeps the wrapper at
-    the viewport's width — drop it when the area scrolls sideways and should
+    the viewport's width. Drop it when the area scrolls sideways and should
     measure at its natural width.
   </Guideline.Do>
   <Guideline.Dont code={`<ScrollArea.Viewport>\n  {items}\n</ScrollArea.Viewport>`}>
@@ -255,14 +257,16 @@ the bar's travel. Prefer the composition above.
   </Guideline.Dont>
 </Guideline>
 
+</div>
+
 - **Scrollbars sit inset by default.** The bar is pinned to the root's edges,
   so the inset is what keeps its ends clear of a rounded corner. On a square,
-  untinted area there is no corner to clear — pass `flush` and let it sit
+  untinted area there is no corner to clear. Pass `flush` and let it sit
   against the edge.
 - **Repositioning the root also needs `style`.** Base UI sets
   `position: relative` inline on the root, so an `absolute` or `fixed` class
-  loses to it. Floating the whole area — a popover, a dropdown pane — means
-  passing `style={{ position: 'absolute' }}`.
+  loses to it. To float the whole area, such as a popover or a dropdown pane,
+  pass `style={{ position: 'absolute' }}`.
 - **The scrollbar hides on touch.** Coarse pointers get the platform's own
   transient overlay bar instead. If an area's only scroll hint is the bar, add
   `fade` so touch users get one too.
@@ -277,13 +281,13 @@ the bar's travel. Prefer the composition above.
 - The viewport is a real scroll container, so keyboard scrolling (arrows,
   Page Up/Down, Home/End, Space) works natively once it is focused. Base UI
   makes it focusable when it overflows.
-- The scrollbar and thumb are pointer affordances only — nothing keyboard-only
+- The scrollbar and thumb are pointer affordances only. Nothing keyboard-only
   or screen-reader-only depends on them.
 - Roadie hides the bar at rest and reveals it on hover or while scrolling; the
   fade is wrapped in `motion-safe`, so `prefers-reduced-motion` gets an instant
   swap. On coarse pointers the bar is hidden entirely and the platform's own
   overlay bar takes over.
-- `fade` is decoration only — it masks paint, never content, so nothing is
+- `fade` is decoration only. It masks paint, never content, so nothing is
   removed from the accessibility tree or from find-in-page.
 
 <PropsDefinitions componentPath='packages/components/src/components/ScrollArea' />

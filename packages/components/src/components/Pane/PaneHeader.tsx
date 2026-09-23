@@ -19,12 +19,18 @@ import { isEmptyNode } from '../../utils/isEmptyNode'
 import { mergeRefs } from '../../utils/mergeRefs'
 import { useDevWarning } from '../../utils/useDevWarning'
 import { IconButton } from '../Button/IconButton'
+import { Drawer } from '../Drawer'
 import { PaneChromeContext } from './PaneChromeContext'
 import { PaneContext } from './PaneContext'
+import { PaneInspectorDrawerContext } from './PaneInspectorContext'
 import { PaneTitle } from './PaneTitle'
 import { PaneTitleCompact } from './PaneTitleCompact'
 import { traverseToBackHref } from './paneBack'
-import { paneHeaderEdgeClass, paneHeaderVariants } from './variants'
+import {
+  paneHeaderEdgeClass,
+  paneHeaderInDrawerClass,
+  paneHeaderVariants
+} from './variants'
 
 export type PaneHeaderProps = ComponentProps<'header'> & {
   /** Back's parent route; a plain click traverses to a matching previous entry when it can. Wins over `onBack`. */
@@ -53,6 +59,7 @@ export function PaneHeader({
 }: PaneHeaderProps) {
   const pane = use(PaneContext)
   const chrome = use(PaneChromeContext)
+  const inDrawer = use(PaneInspectorDrawerContext)
   const headerRef = useRef<HTMLElement>(null)
   const setHeaderRef = useMemo(
     () => mergeRefs<HTMLElement>(headerRef, ref),
@@ -80,10 +87,11 @@ export function PaneHeader({
           traverseToBackHref(event)
         }
   const showClose =
-    (closeHandler !== undefined || closeHref !== undefined) &&
-    pane !== null &&
-    pane.depth !== null &&
-    !pane.isRoot
+    inDrawer ||
+    ((closeHandler !== undefined || closeHref !== undefined) &&
+      pane !== null &&
+      pane.depth !== null &&
+      !pane.isRoot)
   const collapsed = pane?.collapsed ?? false
 
   // `Pane.Title` emits its own echo; the header supplies one only for a `Pane.BodyTitle`.
@@ -113,7 +121,10 @@ export function PaneHeader({
   // DOM walk: the pane's ref attaches after this effect. Keyed on `visible`, as headers come and go.
   useLayoutEffect(() => {
     const header = headerRef.current
-    const paneEl = header?.closest<HTMLElement>('[data-slot="pane"]')
+    // In the inspector's drawer there's no pane, so the drawer carries it.
+    const paneEl = header?.closest<HTMLElement>(
+      '[data-slot="pane"], [data-slot="drawer-popup"]'
+    )
     if (!header || !paneEl) return
 
     const publish = () =>
@@ -140,7 +151,11 @@ export function PaneHeader({
       ref={setHeaderRef}
       data-slot='pane-header'
       data-collapsed={String(collapsed)}
-      className={cn(paneHeaderVariants({ edgeOnly, collapsed }), className)}
+      className={cn(
+        paneHeaderVariants({ edgeOnly, collapsed }),
+        inDrawer && paneHeaderInDrawerClass,
+        className
+      )}
       {...props}
     >
       {showBack ? (
@@ -155,7 +170,17 @@ export function PaneHeader({
           </IconButton>
         </div>
       ) : null}
-      {showClose ? (
+      {showClose && inDrawer ? (
+        <div data-slot='pane-close' className={paneHeaderEdgeClass}>
+          <Drawer.Close
+            render={
+              <IconButton aria-label='Close' emphasis='normal'>
+                {closeIcon}
+              </IconButton>
+            }
+          />
+        </div>
+      ) : showClose ? (
         <div data-slot='pane-close' className={paneHeaderEdgeClass}>
           <IconButton
             href={closeHref}

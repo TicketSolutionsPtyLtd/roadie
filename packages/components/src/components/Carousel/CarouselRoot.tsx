@@ -7,7 +7,8 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState
+  useState,
+  useSyncExternalStore
 } from 'react'
 
 import type {
@@ -68,20 +69,22 @@ function safePluginCall(fn: () => void): void {
   }
 }
 
+const REDUCED_MOTION = '(prefers-reduced-motion: reduce)'
+
+function subscribeToReducedMotion(onChange: () => void) {
+  if (typeof window === 'undefined' || !window.matchMedia) return () => {}
+  const mql = window.matchMedia(REDUCED_MOTION)
+  mql.addEventListener('change', onChange)
+  return () => mql.removeEventListener('change', onChange)
+}
+
+// The server and hydration read `false` so the markup matches; Embla re-inits if it flips.
 function usePrefersReducedMotion(): boolean {
-  // SSR + first client render always see `false` so server / client markup
-  // matches. The real value is applied on the first client effect tick;
-  // Embla re-inits if it flips.
-  const [prefers, setPrefers] = useState(false)
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return
-    const mql = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setPrefers(mql.matches)
-    const listener = (e: MediaQueryListEvent) => setPrefers(e.matches)
-    mql.addEventListener('change', listener)
-    return () => mql.removeEventListener('change', listener)
-  }, [])
-  return prefers
+  return useSyncExternalStore(
+    subscribeToReducedMotion,
+    () => window.matchMedia?.(REDUCED_MOTION).matches ?? false,
+    () => false
+  )
 }
 
 export type CarouselRootProps = Omit<ComponentProps<'div'>, 'onBlur'> & {
@@ -179,9 +182,20 @@ export function CarouselRoot({
     setSelectedIndex(emblaApi.selectedSnap())
   }, [])
 
+  // Read the new instance's state as it arrives, during render rather than in an effect.
+  const [syncedApi, setSyncedApi] = useState(api)
+  if (api !== syncedApi) {
+    setSyncedApi(api)
+    if (api) {
+      const inView = api.slidesInView()
+      setSelectedIndex(api.selectedSnap())
+      setSlidesInView(inView.length > 0 ? inView : [api.selectedSnap()])
+      setSnapCount(api.snapList().length)
+    }
+  }
+
   useEffect(() => {
     if (!api) return
-    onSelect(api)
     api.on('reinit', onSelect).on('select', onSelect)
     return () => {
       api.off('reinit', onSelect).off('select', onSelect)
@@ -196,7 +210,6 @@ export function CarouselRoot({
 
   useEffect(() => {
     if (!api) return
-    onSlidesInView(api)
     api
       .on('reinit', onSlidesInView)
       .on('slidesinview', onSlidesInView)
@@ -242,13 +255,17 @@ export function CarouselRoot({
     safePluginCall(plugin.play)
   }, [api, plugins])
 
+  // Autoplay turning on or off resets play state, adjusted during render.
+  const canAutoPlay = hasAutoPlay && !prefersReducedMotion
+  const [autoPlayWas, setAutoPlayWas] = useState(canAutoPlay)
+  if (canAutoPlay !== autoPlayWas) {
+    setAutoPlayWas(canAutoPlay)
+    setIsPlaying(canAutoPlay)
+    if (!canAutoPlay) setUserPaused(false)
+  }
   useEffect(() => {
-    setIsPlaying(hasAutoPlay && !prefersReducedMotion)
-    if (!hasAutoPlay || prefersReducedMotion) {
-      setUserPaused(false)
-      userPausedRef.current = false
-    }
-  }, [hasAutoPlay, prefersReducedMotion])
+    if (!canAutoPlay) userPausedRef.current = false
+  }, [canAutoPlay])
 
   useEffect(() => {
     api?.reInit()

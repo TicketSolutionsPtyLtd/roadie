@@ -26,7 +26,7 @@ const { remaining, expired, showWarning, dismissWarning } = useCartExpiry(() => 
 }
 
 // Standalone state instead of useCartExpiry so each dialog can be triggered on
-// demand — the composable derives showWarning/expired from a live countdown.
+// demand. The composable derives showWarning/expired from a live countdown.
 export function CartExpiryDialogsDemo() {
   const [skin, setSkin] = useState<Skin>('react')
   const [showWarning, setShowWarning] = useState(false)
@@ -34,7 +34,7 @@ export function CartExpiryDialogsDemo() {
   const [endsAt, setEndsAt] = useState<number | null>(null)
   const [remaining, setRemaining] = useState(90)
 
-  // Derive from a fixed end-time each tick — like the real useCartExpiry — so
+  // Derive from a fixed end-time each tick, as the real useCartExpiry does, so
   // NumberFlow animates the digits down and stray ticks can't accelerate it.
   useEffect(() => {
     if (!showWarning || expired || endsAt == null) return

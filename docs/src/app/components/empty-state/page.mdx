@@ -12,8 +12,8 @@ import { MagnifyingGlassIcon, TicketIcon } from '@phosphor-icons/react/ssr'
 import { Guideline } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
-Communicates that a section or page has no content — scaling from a small
-empty section up to a whole-page empty or 404 screen via a single `size` token.
+Communicates that a section or page has no content. A single `size` token
+scales it from a small empty section up to a whole-page empty or 404 screen.
 
 ## Import
 
@@ -25,7 +25,7 @@ import { EmptyState } from '@oztix/roadie-components/empty-state'
 
 ### Default
 
-The standalone `md` empty state — an IconTile, a message, and one action.
+The standalone `md` empty state has an IconTile, a message, and one action.
 
 ```tsx-live
 <EmptyState>
@@ -215,7 +215,7 @@ Title and description only.
       </EmptyState>
     }
   >
-    Don't drop a whole-page `lg` state into a small section — it overwhelms the
+    Don't drop a whole-page `lg` state into a small section. It overwhelms the
     surrounding UI.
   </Guideline.Dont>
 </Guideline>
@@ -270,7 +270,7 @@ Title and description only.
   <Guideline.Dont
     code={`<EmptyState>\n  <EmptyState.IconTile intent='danger'>…</EmptyState.IconTile>\n  <EmptyState.Actions>\n    <Button intent='danger'>Retry</Button>\n  </EmptyState.Actions>\n</EmptyState>`}
   >
-    Don't hard-code the same intent on every child — it drifts out of sync.
+    Don't hard-code the same intent on every child. It drifts out of sync.
   </Guideline.Dont>
 </Guideline>
 
@@ -278,13 +278,13 @@ Title and description only.
   <Guideline.Do
     code={`<Card>\n  <Card.Content>\n    <EmptyState size='sm'>…</EmptyState>\n  </Card.Content>\n</Card>`}
   >
-    Wrap the empty state in a `Card` when you need a background or border —
+    Wrap the empty state in a `Card` when you need a background or border.
     EmptyState has no surface of its own.
   </Guideline.Do>
   <Guideline.Dont
     code={`<EmptyState className='rounded-xl border bg-raised p-6'>…</EmptyState>`}
   >
-    Don't bolt an ad-hoc surface onto the root with utility classes — reach for
+    Don't bolt an ad-hoc surface onto the root with utility classes. Reach for
     the `Card` you already have.
   </Guideline.Dont>
 </Guideline>
@@ -294,12 +294,12 @@ Title and description only.
 ## Accessibility
 
 - `EmptyState.Title` renders an `<h2>` by default. Use `render={<h1 />}` (or
-  another level) so the heading fits the surrounding document outline —
-  especially `h1` for a whole-page state.
+  another level) so the heading fits the surrounding document outline.
+  A whole-page state usually wants `h1`.
 - Decorative media should be hidden from assistive tech: pass `alt=''` on
   `<img>` heroes. `SpotIllustration` sets `aria-hidden` automatically unless
-  you give it an `aria-label`. `IconTile` is not hidden by default — add
-  `aria-hidden` to a purely decorative tile; the title and description carry
+  you give it an `aria-label`. `IconTile` is not hidden by default. Add
+  `aria-hidden` to a purely decorative tile. The title and description carry
   the meaning.
 
 <PropsDefinitions componentPath='packages/components/src/components/EmptyState' />
