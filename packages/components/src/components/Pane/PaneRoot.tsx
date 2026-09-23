@@ -229,6 +229,11 @@ export function PaneRoot({
     }),
     [depth, collapsed, scrollToTop, isRoot, bodyTitle, setBodyTitle, loading]
   )
+  // The hidden column's scroll can't collapse the header in the drawer.
+  const drawerContext = useMemo(
+    () => ({ ...context, collapsed: false }),
+    [context]
+  )
 
   // Sentinels, not scrollTop reads, which forced a recalc on every scroll event.
   const reportPast = useEffectEvent((past: boolean) => onScrollPast?.(past))
@@ -419,17 +424,19 @@ export function PaneRoot({
   return (
     <>
       {pane}
-      <PaneInspectorDrawer
-        size={drawerSize}
-        handle={inspectorHandle}
-        yielded={yielded}
-        reveal={reveal}
-        onRevealChange={onRevealChange}
-        aria-label={props['aria-label']}
-        aria-labelledby={props['aria-labelledby']}
-      >
-        {yielded ? children : null}
-      </PaneInspectorDrawer>
+      <PaneContext value={drawerContext}>
+        <PaneInspectorDrawer
+          size={drawerSize}
+          handle={inspectorHandle}
+          yielded={yielded}
+          reveal={reveal}
+          onRevealChange={onRevealChange}
+          aria-label={props['aria-label']}
+          aria-labelledby={props['aria-labelledby']}
+        >
+          {yielded ? children : null}
+        </PaneInspectorDrawer>
+      </PaneContext>
     </>
   )
 }

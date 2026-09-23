@@ -23,7 +23,7 @@
     "name": "Pane",
     "path": "dist/components/Pane/index.js",
     "import": "*",
-    "limit": "12 kB",
+    "limit": "12.5 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {

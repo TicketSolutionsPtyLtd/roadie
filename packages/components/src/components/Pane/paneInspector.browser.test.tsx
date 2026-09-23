@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { use, useState } from 'react'
 
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import {
@@ -344,5 +344,37 @@ describe("pane-inspector-yielded: on the inspector's own content", () => {
 
     const inside = marker().find((node) => column().contains(node))!
     expect(getComputedStyle(inside).display).toBe('none')
+  })
+})
+
+describe("an inspector's loading in its drawer", () => {
+  const never = new Promise<never>(() => {})
+  function Pending(): null {
+    use(never)
+    return null
+  }
+
+  it("shows the pane's own skeleton while a Pane.Body suspends", async () => {
+    mount(
+      NARROW,
+      <Navigator className='h-[600px]'>
+        <Pane column='list' aria-label='Events'>
+          <p>Events</p>
+        </Pane>
+        <Pane
+          column='inspector'
+          aria-label='Tickets'
+          reveal
+          loading={<p>Loading tickets</p>}
+        >
+          <Pane.Body>
+            <Pending />
+          </Pane.Body>
+        </Pane>
+      </Navigator>
+    )
+    const drawer = await screen.findByRole('dialog')
+
+    await waitFor(() => expect(drawer).toHaveTextContent('Loading tickets'))
   })
 })
