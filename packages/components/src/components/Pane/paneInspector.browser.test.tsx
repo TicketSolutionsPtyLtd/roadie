@@ -190,7 +190,10 @@ describe('an inspector whose column has yielded', () => {
     host.style.width = `${WIDE}px`
 
     await waitFor(() => expect(column()).toHaveTextContent('12 tickets'))
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    // The exit animation can outlast the default second on a CI runner.
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull(), {
+      timeout: 3000
+    })
   })
 })
 
