@@ -262,6 +262,15 @@ export {
 export { StatTile, type StatTileProps } from './components/StatTile'
 
 export {
+  DataTable,
+  type DataTableColumn,
+  type DataTableProps,
+  type DataTableRow,
+  type DataTableSort,
+  type DataTableSortDirection
+} from './components/DataTable'
+
+export {
   Tabs,
   tabsListVariants,
   tabsTabVariants,

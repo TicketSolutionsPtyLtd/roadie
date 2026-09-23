@@ -1,0 +1,40 @@
+/* Priority-based column hiding as the DataTable's container narrows. */
+
+[data-slot='data-table'] {
+  container: data-table / inline-size;
+}
+
+@container data-table (width < 720px) {
+  [data-slot='data-table']:not([data-show-all]) [data-priority='3'] {
+    display: none;
+  }
+}
+
+@container data-table (width < 560px) {
+  [data-slot='data-table']:not([data-show-all]) [data-priority='2'] {
+    display: none;
+  }
+}
+
+@container data-table (width < 400px) {
+  [data-slot='data-table']:not([data-show-all]) [data-priority='1'] {
+    display: none;
+  }
+}
+
+@container data-table (width >= 720px) {
+  [data-slot='data-table-show-all'] {
+    display: none;
+  }
+}
+
+[data-slot='data-table'][data-show-all] [data-slot='data-table-scroller'] {
+  overflow-x: auto;
+}
+
+[data-slot='data-table'][data-show-all] [data-pin] {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--intent-bg-raised);
+}

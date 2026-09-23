@@ -67,6 +67,10 @@
       "types": "./dist/components/DataCard/index.d.ts",
       "import": "./dist/components/DataCard/index.js"
     },
+    "./data-table": {
+      "types": "./dist/components/DataTable/index.d.ts",
+      "import": "./dist/components/DataTable/index.js"
+    },
     "./date-time": {
       "types": "./dist/components/DateTime/index.d.ts",
       "import": "./dist/components/DateTime/index.js"
