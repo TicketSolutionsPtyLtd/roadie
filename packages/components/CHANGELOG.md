@@ -1,5 +1,142 @@
 # @oztix/roadie-components
 
+## 2.14.0
+
+### Minor Changes
+
+- dba660b: `Card.Footer` reads `--card-footer-size` when it's a side column, with
+  `direction='horizontal'` or a split `direction='auto'`. Set it once on a list
+  so every card's side column, and a ticket's perforation along it, lines up
+  whatever each footer holds. It's a minimum, so a wider footer still grows
+  rather than overflowing, and a stacked footer ignores it.
+- dba660b: Add `Card.Link`, the card's main link, for a card that also holds other
+  actions. Wrap the title in it. It covers the card, so a click anywhere follows
+  it, while other links and buttons in the card stay clickable above it. The card
+  takes its hover, press and focus states from the link, for plain and ticket
+  cards and every emphasis, so apps no longer restate them. Screen readers hear a
+  short link named by its own text rather than the whole card. It routes `href`
+  like every other Roadie link.
+
+  On a ticket card in a browser without `corner-shape` (Firefox today), the
+  footer's plain text doesn't follow the link; its own links still work.
+
+- 7b36ba3: Add `variant='ticket'` to `Card`. It cuts a real notch into each side where the
+  body meets `Card.Footer`, with a perforated line between them, and works with
+  every emphasis.
+
+  Add `direction` to `Card`. It lays out any card's parts: `vertical` (the
+  default) stacks them, `horizontal` gives `Card.Footer` a column of its own
+  beside the rest of the card, and `auto` stacks below 30rem and splits into two
+  columns at or above it. On a ticket, the notches and the perforation follow
+  whichever layout is in effect.
+
+- dba660b: A `Drawer.Close` inside `Drawer.Header` now takes the top-left corner above
+  the title, as far from the top edge as from the side, wherever it's written.
+  Render it as a `normal` `IconButton` named "Close". The Drawer docs gain
+  guidelines for naming a drawer, placing Close, when a drawer needs one, and
+  keeping a second Close out of the footer.
+- dba660b: Top and bottom drawers now run edge to edge on a phone and, from `sm` up, stop
+  at `max-w-xl`, centred, floating `--spacing(2)` off their edge with every
+  corner rounded: the same shape as the cart drawer. Remove any width, margin or
+  radius classes an app added to get this.
+
+  Every drawer now rounds at `rounded-4xl`, the new Sheet tier on the Shape
+  foundation, whichever side it comes from. The edge it's attached to stays
+  square.
+
+  `Drawer.Body` now scrolls in `ScrollArea`, so drawers use Roadie's scrollbar.
+  It is still Base UI's drawer content, so a drag in a scrolled body scrolls it
+  rather than dismissing. A `className` on it still styles the content, as
+  before.
+
+  Core's `motion-drawer` reads `--drawer-float`, so a surface held off its edge
+  slides fully clear.
+
+- dba660b: `Drawer` sizes on the top and bottom are now fixed heights, so a sheet holds
+  still while its content changes. Each is a share of the space the drawer can
+  use. That space leaves out the far edge's safe area and a gap, like an iOS
+  large sheet, and in a wider window the float off the near edge. `sm` is half
+  of it, `md` three quarters and `lg` all of it. The new `fit` size follows the
+  content up to all of it, and is the default for top and bottom drawers. Side
+  drawers keep `md` as their default, and `fit` there sizes to the content's
+  width up to the `lg` width. Remove any `h-*` class an app added to hold a
+  drawer's height.
+- dba660b: Add `emphasis` to `Drawer` and `Dialog`: how much the overlay takes over the
+  page behind it. `normal` dims and blurs the page, `subtle` tints it and leaves
+  it readable, and `subtler` leaves it clear while a click outside still
+  dismisses. A small (`size='sm'`) top or bottom drawer defaults to `subtle`,
+  because it peeks over its page; every other drawer and every dialog defaults
+  to `normal`.
+
+  Core adds `emphasis-overlay-subtle`, and `emphasis-overlay` now drops its blur
+  under `prefers-reduced-transparency` and carries the `-webkit-` prefix.
+
+- dba660b: `Pane.Body` now renders a `<div>` that fills the height the header leaves,
+  and takes `className` and the other div props. A band or background on it
+  reaches the pane's bottom edge, and a child with `grow` inside a
+  `flex flex-col` body does too, so apps no longer need to restyle the pane's
+  scroll content. A pane without a `Pane.Body` keeps its content height, as
+  before.
+- dba660b: An inspector `Pane` now moves its content into a bottom drawer when its column
+  yields, so apps no longer write the content twice. Place a
+  `Pane.InspectorTrigger` anywhere in the same `Navigator`: it shows only while
+  the column has yielded and opens the drawer, which takes its name from the
+  inspector's `aria-label` and keeps the page readable behind it.
+
+  `reveal` on the inspector says its content should be seen. While the column
+  shows, it already is; once the column has yielded, `reveal` opens the drawer.
+  `onRevealChange` reports the trigger opening it and people dismissing it.
+
+  The drawer is a fixed `lg` sheet, so filtering the content can't resize it
+  under the user's thumb. `drawerSize` on the inspector picks another Drawer
+  size.
+
+  In the drawer, the inspector's own `Pane.Header` shows a Close in its top-left
+  corner, 24px from the drawer's top and side, and casts the drawer's scroll
+  shadow. Content without a `Pane.Header` gets a header holding just the Close.
+  The drawer sets `--pane-surface` to its raised fill, so sticky chrome inside
+  it mixes against the right colour.
+
+  `pane-inspector-yielded:` also applies to the inspector's own content once it's
+  in the drawer, so content can adapt to where it renders.
+
+- dba660b: Add `size` to an inspector `Pane`: `sm` (14rem, the default), `md` (20rem) or
+  `lg` (24rem). Each size has its own thresholds, so the stack's panes keep
+  their minimum widths beside it and `pane-inspector-yielded:` flips at the
+  right width. Use `size` rather than widening the column with a class, which
+  leaves the thresholds assuming 14rem.
+- dba660b: Add `measure` to `Pane`: `full` (the default), `narrow` (24rem, for forms),
+  `readable` (65ch of the pane's text) or `wide` (56rem). It caps the body and
+  the header's title while the header and footer still span the column.
+  `measureAlign='start'` holds the capped content to the start instead of
+  centring it.
+- 7b36ba3: Add `QRCode` for scanning tickets at the gate, from
+  `@oztix/roadie-components/qr-code`. It encodes `value` at error correction
+  level H and, by default, puts the Oztix mark on a dark 5×5-module tile in the
+  centre. Pass `children` to use your own mark, or `branded={false}` for a plain
+  code. It's always dark on white, whatever the theme or intent, and has no
+  hooks, so it renders in server components.
+
+### Patch Changes
+
+- dba660b: A `Card` with `direction='auto'` is now a container named `card`, so its
+  children can use `@min-[30rem]/card:` and know it resolves against the card
+  rather than a container further up.
+- dba660b: `Drawer.Handle` now uses the divider colour, so it shows on the drawer's
+  floating surface in light and dark mode. It used the sunken fill, which sat a
+  single step off the surface in light mode and read as missing.
+- dba660b: `Drawer.Header` and `Drawer.Footer` cast a shadow over the body while it
+  scrolls beneath them, so a long list reads as passing under the header and
+  footer rather than being cut off. Each shadow fades out when there's nothing
+  left to scroll on its side.
+- dba660b: On the phone tab bar with a pinned item, the tabs now start at the leading
+  edge instead of centring, and both the tabs and the pinned circle sit 1rem in
+  from the edges, where the circles land when the bar collapses on scroll.
+- Updated dependencies [dba660b]
+- Updated dependencies [dba660b]
+- Updated dependencies [dba660b]
+  - @oztix/roadie-core@2.9.0
+
 ## 2.13.0
 
 ### Minor Changes
