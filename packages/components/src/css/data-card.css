@@ -1,0 +1,19 @@
+/* DataCard: container query for value clamp and compact padding. */
+[data-slot='data-card'] {
+  container: data-card / inline-size;
+}
+
+[data-slot='data-card-inner'] {
+  padding: 1rem;
+}
+
+[data-slot='data-card-value'] {
+  font-size: clamp(1.25rem, 11cqi, 1.75rem);
+  line-height: 1.1;
+}
+
+@container data-card (width < 240px) {
+  [data-slot='data-card-inner'] {
+    padding: 0.75rem;
+  }
+}

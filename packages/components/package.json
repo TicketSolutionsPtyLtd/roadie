@@ -63,9 +63,17 @@
       "types": "./dist/components/Countdown/index.d.ts",
       "import": "./dist/components/Countdown/index.js"
     },
+    "./data-card": {
+      "types": "./dist/components/DataCard/index.d.ts",
+      "import": "./dist/components/DataCard/index.js"
+    },
     "./date-time": {
       "types": "./dist/components/DateTime/index.d.ts",
       "import": "./dist/components/DateTime/index.js"
+    },
+    "./delta": {
+      "types": "./dist/components/Delta/index.d.ts",
+      "import": "./dist/components/Delta/index.js"
     },
     "./dialog": {
       "types": "./dist/components/Dialog/index.d.ts",
