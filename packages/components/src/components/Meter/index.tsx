@@ -23,15 +23,18 @@ const TONE_CLASS: Record<MeterTone, string> = {
   other: 'bg-chart-other'
 }
 
+const safeMax = (max: number) => (Number.isFinite(max) && max > 0 ? max : 0)
+
 const percentOf = (value: number, max: number) =>
   max > 0 && Number.isFinite(value)
     ? Math.min(100, Math.max(0, (value / max) * 100))
     : 0
 
 function clampSegments(segments: readonly MeterSegment[], max: number) {
-  let remaining = Math.max(0, max)
+  let remaining = max
   return segments.map((segment) => {
-    const value = Math.min(Math.max(0, segment.value), remaining)
+    const safeValue = Number.isFinite(segment.value) ? segment.value : 0
+    const value = Math.min(Math.max(0, safeValue), remaining)
     remaining -= value
     return { ...segment, value }
   })
@@ -47,7 +50,8 @@ export function Meter({
   className,
   ...props
 }: MeterProps) {
-  const parts = clampSegments(segments ?? [{ value, label }], max)
+  const clampedMax = safeMax(max)
+  const parts = clampSegments(segments ?? [{ value, label }], clampedMax)
   const total = parts.reduce((sum, part) => sum + part.value, 0)
   return (
     <div
@@ -55,10 +59,10 @@ export function Meter({
       role='meter'
       aria-label={label}
       aria-valuemin={0}
-      aria-valuemax={max}
+      aria-valuemax={clampedMax}
       aria-valuenow={total}
       aria-valuetext={
-        valueText ?? `${formatValue(total)} of ${formatValue(max)}`
+        valueText ?? `${formatValue(total)} of ${formatValue(clampedMax)}`
       }
       className={cn(
         'relative h-1.5 w-full rounded-full bg-(--intent-4)',
@@ -73,7 +77,7 @@ export function Meter({
             data-slot='meter-segment'
             data-chart-texture={i + 1}
             className={cn('h-full', TONE_CLASS[part.tone ?? 'highlight'])}
-            style={{ width: `${percentOf(part.value, max)}%` }}
+            style={{ width: `${percentOf(part.value, clampedMax)}%` }}
           />
         ))}
       </div>
@@ -81,7 +85,7 @@ export function Meter({
         <span
           data-slot='meter-target'
           className='absolute -inset-y-1 w-0.5 -translate-x-1/2 rounded-full bg-(--intent-text-strong)'
-          style={{ left: `${percentOf(target, max)}%` }}
+          style={{ left: `${percentOf(target, clampedMax)}%` }}
         />
       )}
     </div>

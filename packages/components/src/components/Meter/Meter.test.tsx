@@ -58,4 +58,25 @@ describe('Meter', () => {
         .width
     ).toBe('0%')
   })
+
+  it('treats a NaN maximum as zero', () => {
+    render(<Meter label='Sold' value={5} max={Number.NaN} />)
+    const meter = screen.getByRole('meter')
+    expect(meter).toHaveAttribute('aria-valuemax', '0')
+    expect(meter).toHaveAttribute('aria-valuenow', '0')
+  })
+
+  it('ignores a NaN segment value without corrupting the total', () => {
+    render(
+      <Meter
+        label='Capacity'
+        max={100}
+        segments={[
+          { value: Number.NaN, label: 'Broken' },
+          { value: 40, label: 'Sold' }
+        ]}
+      />
+    )
+    expect(screen.getByRole('meter')).toHaveAttribute('aria-valuenow', '40')
+  })
 })
