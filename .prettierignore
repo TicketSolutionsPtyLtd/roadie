@@ -21,6 +21,7 @@ node_modules
 pnpm-lock.yaml
 
 # Generated files
+packages/core/src/css/dataviz.css
 **/roadie-core/**
 .tsbuildinfo
 **/.tsbuildinfo

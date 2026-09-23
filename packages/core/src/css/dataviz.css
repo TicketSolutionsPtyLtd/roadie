@@ -1,0 +1,201 @@
+/* Generated from src/dataviz/palette.ts by src/dataviz/css.test.ts.
+   Edit the palette, then run `pnpm --filter @oztix/roadie-core test -u`. */
+
+@theme inline {
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-chart-7: var(--chart-7);
+  --color-chart-8: var(--chart-8);
+  --color-chart-pair-1: var(--chart-pair-1);
+  --color-chart-pair-2: var(--chart-pair-2);
+  --color-chart-trio-1: var(--chart-trio-1);
+  --color-chart-trio-2: var(--chart-trio-2);
+  --color-chart-trio-3: var(--chart-trio-3);
+  --color-chart-heat-0: var(--chart-heat-0);
+  --color-chart-heat-1: var(--chart-heat-1);
+  --color-chart-heat-2: var(--chart-heat-2);
+  --color-chart-heat-3: var(--chart-heat-3);
+  --color-chart-heat-4: var(--chart-heat-4);
+  --color-chart-heat-5: var(--chart-heat-5);
+  --color-chart-heat-6: var(--chart-heat-6);
+  --color-chart-heat-7: var(--chart-heat-7);
+  --color-chart-heat-8: var(--chart-heat-8);
+  --color-chart-diverge-pos-4: var(--chart-diverge-pos-4);
+  --color-chart-diverge-pos-3: var(--chart-diverge-pos-3);
+  --color-chart-diverge-pos-2: var(--chart-diverge-pos-2);
+  --color-chart-diverge-pos-1: var(--chart-diverge-pos-1);
+  --color-chart-diverge-0: var(--chart-diverge-0);
+  --color-chart-diverge-neg-1: var(--chart-diverge-neg-1);
+  --color-chart-diverge-neg-2: var(--chart-diverge-neg-2);
+  --color-chart-diverge-neg-3: var(--chart-diverge-neg-3);
+  --color-chart-diverge-neg-4: var(--chart-diverge-neg-4);
+  --color-chart-status-good: var(--chart-status-good);
+  --color-chart-status-warning: var(--chart-status-warning);
+  --color-chart-status-serious: var(--chart-status-serious);
+  --color-chart-status-critical: var(--chart-status-critical);
+  --color-chart-highlight: var(--chart-highlight);
+  --color-chart-context: var(--chart-context);
+  --color-chart-band: var(--chart-band);
+  --color-chart-median: var(--chart-median);
+  --color-chart-other: var(--chart-other);
+  --color-chart-missing: var(--chart-missing);
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-axis: var(--chart-axis);
+  --color-chart-label: var(--chart-label);
+  --color-chart-value: var(--chart-value);
+  --color-chart-gap: var(--chart-gap);
+}
+
+:root {
+  --chart-1: #4f79ea;
+  --chart-2: #fd71b2;
+  --chart-3: #2d696c;
+  --chart-4: #fab550;
+  --chart-5: #7032a5;
+  --chart-6: #55a74a;
+  --chart-7: #9b204a;
+  --chart-8: #4bbbe5;
+  --chart-heat-0: #fff4de;
+  --chart-heat-1: #ffd293;
+  --chart-heat-2: #ffa660;
+  --chart-heat-3: #ff645b;
+  --chart-heat-4: #e72f73;
+  --chart-heat-5: #bc008c;
+  --chart-heat-6: #7900a5;
+  --chart-heat-7: #480792;
+  --chart-heat-8: #281069;
+  --chart-diverge-pos-4: #1e31b1;
+  --chart-diverge-pos-3: #007bad;
+  --chart-diverge-pos-2: #25b1c8;
+  --chart-diverge-pos-1: #9ad6d9;
+  --chart-diverge-neg-1: #f9c8a1;
+  --chart-diverge-neg-2: #fa9e5f;
+  --chart-diverge-neg-3: #f26f2f;
+  --chart-diverge-neg-4: #de3e2d;
+  --chart-highlight: #4f79ea;
+  --chart-band: #7b90a51a;
+  --chart-diverge-0: var(--color-neutral-3);
+  --chart-status-good: var(--color-success-11);
+  --chart-status-warning: var(--color-warning-11);
+  --chart-status-serious: var(--color-brand-secondary-11);
+  --chart-status-critical: var(--color-danger-11);
+  --chart-context: var(--color-neutral-8);
+  --chart-median: var(--color-neutral-8);
+  --chart-other: var(--color-neutral-9);
+  --chart-missing: var(--color-neutral-5);
+  --chart-pair-1: var(--chart-1);
+  --chart-pair-2: var(--chart-4);
+  --chart-trio-1: var(--chart-1);
+  --chart-trio-2: var(--chart-4);
+  --chart-trio-3: var(--chart-7);
+  --chart-grid: var(--intent-border-subtler);
+  --chart-axis: var(--intent-border-normal);
+  --chart-label: var(--intent-text-subtle);
+  --chart-value: var(--intent-text-strong);
+  --chart-gap: var(--intent-bg-normal);
+}
+
+.dark {
+  --chart-1: #afcbff;
+  --chart-2: #f373c7;
+  --chart-3: #1e8b82;
+  --chart-4: #e0ae53;
+  --chart-5: #8655d3;
+  --chart-6: #87fbac;
+  --chart-7: #bf4470;
+  --chart-8: #69bceb;
+  --chart-heat-0: #222137;
+  --chart-heat-1: #362368;
+  --chart-heat-2: #5c1d90;
+  --chart-heat-3: #95149d;
+  --chart-heat-4: #cb2689;
+  --chart-heat-5: #f44a66;
+  --chart-heat-6: #ff864f;
+  --chart-heat-7: #ffb76c;
+  --chart-heat-8: #ffe1a2;
+  --chart-diverge-pos-4: #86b1ff;
+  --chart-diverge-pos-3: #00a7e1;
+  --chart-diverge-pos-2: #008da2;
+  --chart-diverge-pos-1: #20676e;
+  --chart-diverge-neg-1: #944d3f;
+  --chart-diverge-neg-2: #d0663d;
+  --chart-diverge-neg-3: #f28a33;
+  --chart-diverge-neg-4: #ffb84d;
+  --chart-highlight: #afcbff;
+  --chart-band: #a6b6c517;
+  --chart-diverge-0: var(--color-neutral-6);
+  --chart-status-good: var(--color-success-9);
+  --chart-status-warning: var(--color-warning-9);
+  --chart-status-serious: var(--color-brand-secondary-9);
+  --chart-status-critical: var(--color-danger-9);
+  --chart-context: var(--color-neutral-9);
+  --chart-median: var(--color-neutral-8);
+  --chart-other: var(--color-neutral-10);
+  --chart-missing: var(--color-neutral-5);
+}
+
+@supports (color: oklch(0 0 0)) {
+  :root {
+    --chart-1: oklch(0.604 0.178 266);
+    --chart-2: oklch(0.735 0.184 353.4);
+    --chart-3: oklch(0.484 0.062 199.8);
+    --chart-4: oklch(0.82 0.14 74);
+    --chart-5: oklch(0.46 0.178 305);
+    --chart-6: oklch(0.655 0.153 141.4);
+    --chart-7: oklch(0.46 0.16 6);
+    --chart-8: oklch(0.745 0.117 226.8);
+    --chart-heat-0: oklch(0.97 0.032 85);
+    --chart-heat-1: oklch(0.889 0.095 75.6);
+    --chart-heat-2: oklch(0.8 0.136 57.5);
+    --chart-heat-3: oklch(0.7 0.191 26.3);
+    --chart-heat-4: oklch(0.615 0.22 5);
+    --chart-heat-5: oklch(0.531 0.228 343.8);
+    --chart-heat-6: oklch(0.438 0.219 312.5);
+    --chart-heat-7: oklch(0.355 0.19 294.4);
+    --chart-heat-8: oklch(0.28 0.14 285);
+    --chart-diverge-pos-4: oklch(0.4 0.2 268);
+    --chart-diverge-pos-3: oklch(0.55 0.118 235.8);
+    --chart-diverge-pos-2: oklch(0.7 0.115 212.5);
+    --chart-diverge-pos-1: oklch(0.835 0.061 200);
+    --chart-diverge-neg-1: oklch(0.865 0.076 60);
+    --chart-diverge-neg-2: oklch(0.78 0.135 54);
+    --chart-diverge-neg-3: oklch(0.69 0.178 43.5);
+    --chart-diverge-neg-4: oklch(0.6 0.2 30);
+    --chart-highlight: oklch(0.604 0.178 var(--accent-hue));
+    --chart-band: color-mix(in oklch, var(--color-neutral-9) 10%, transparent);
+  }
+
+  .dark {
+    --chart-1: oklch(0.84 0.079 262);
+    --chart-2: oklch(0.731 0.184 342.3);
+    --chart-3: oklch(0.577 0.094 186);
+    --chart-4: oklch(0.779 0.123 80);
+    --chart-5: oklch(0.566 0.187 298.2);
+    --chart-6: oklch(0.9 0.153 152.7);
+    --chart-7: oklch(0.567 0.162 1.5);
+    --chart-8: oklch(0.761 0.106 235.4);
+    --chart-heat-0: oklch(0.26 0.04 285);
+    --chart-heat-1: oklch(0.323 0.115 291.3);
+    --chart-heat-2: oklch(0.395 0.175 303.8);
+    --chart-heat-3: oklch(0.482 0.212 325.6);
+    --chart-heat-4: oklch(0.57 0.215 350);
+    --chart-heat-5: oklch(0.657 0.205 15.6);
+    --chart-heat-6: oklch(0.745 0.163 43.8);
+    --chart-heat-7: oklch(0.833 0.125 66.3);
+    --chart-heat-8: oklch(0.92 0.086 85);
+    --chart-diverge-pos-4: oklch(0.76 0.123 262);
+    --chart-diverge-pos-3: oklch(0.685 0.14 232);
+    --chart-diverge-pos-2: oklch(0.59 0.104 213.5);
+    --chart-diverge-pos-1: oklch(0.473 0.069 205);
+    --chart-diverge-neg-1: oklch(0.503 0.099 32);
+    --chart-diverge-neg-2: oklch(0.63 0.145 41);
+    --chart-diverge-neg-3: oklch(0.732 0.158 56);
+    --chart-diverge-neg-4: oklch(0.83 0.145 74);
+    --chart-highlight: oklch(0.84 0.079 var(--accent-hue));
+    --chart-band: color-mix(in oklch, var(--color-neutral-11) 9%, transparent);
+  }
+}

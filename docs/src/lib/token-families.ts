@@ -27,6 +27,16 @@ export const TOKEN_FAMILY_PAGES: Record<TokenFamily, TokenFamilyPage> = {
     aliases: 'semantic background text border color role',
     guidance: [foundation('Colors', 'colors')]
   },
+  dataviz: {
+    title: 'Data visualisation',
+    href: '/tokens/dataviz',
+    aliases:
+      'chart graph series categorical sequential diverging heat status highlight',
+    guidance: [
+      foundation('Data visualisation', 'data-visualisation'),
+      foundation('Colors', 'colors')
+    ]
+  },
   emphasis: {
     title: 'Emphasis and states',
     href: '/tokens/emphasis',
