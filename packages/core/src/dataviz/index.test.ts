@@ -26,11 +26,25 @@ describe('@oztix/roadie-core/dataviz', () => {
     expect(light.band.opacity).toBe(0.1)
   })
 
-  it('moves only the highlight when the accent hue changes', () => {
+  it('keeps data hues fixed when the accent hue changes', () => {
     const brand = chartHex('dark')
     const themed = chartHex('dark', 150)
     expect(themed.highlight).not.toBe(brand.highlight)
     expect(themed.categorical).toEqual(brand.categorical)
     expect(themed.heat).toEqual(brand.heat)
+    expect(themed.status).toEqual(brand.status)
+    expect(themed.diverging.filter((_, i) => i !== 4)).toEqual(
+      brand.diverging.filter((_, i) => i !== 4)
+    )
+  })
+
+  it('tints neutrals with the accent hue, as the CSS neutral scale does', () => {
+    const brand = chartHex('light')
+    const themed = chartHex('light', 150)
+    expect(themed.greys.context).not.toBe(brand.greys.context)
+    expect(themed.band.color).not.toBe(brand.band.color)
+    expect(themed.diverging[4]).not.toBe(brand.diverging[4])
+    const [l, c] = palette.neutral.light[8]!
+    expect(themed.greys.context).toBe(toHex([l, c, 150]))
   })
 })

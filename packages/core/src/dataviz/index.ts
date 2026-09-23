@@ -1,6 +1,7 @@
 import { toHex } from './color-math'
 import {
   DEFAULT_ACCENT_HUE,
+  DIVERGE_MID,
   type GreyName,
   type Mode,
   type StatusName,
@@ -29,8 +30,11 @@ export function chartColorVar(slot: number): string {
 
 export function chartHex(mode: Mode, accentHue: number = DEFAULT_ACCENT_HUE) {
   const [l, c] = palette.categorical[mode][0]!
-  const grey = (name: GreyName) =>
-    toHex(palette.neutral[mode][palette.greys[name][mode].step]!)
+  const neutral = (step: number) => {
+    const [nl, nc] = palette.neutral[mode][step]!
+    return toHex([nl, nc, accentHue])
+  }
+  const grey = (name: GreyName) => neutral(palette.greys[name][mode].step)
   const band = palette.greys.band[mode]
   const statuses = Object.keys(palette.status) as StatusName[]
   const greys = (['context', 'median', 'other', 'missing'] as const).map(
@@ -40,7 +44,9 @@ export function chartHex(mode: Mode, accentHue: number = DEFAULT_ACCENT_HUE) {
   return {
     categorical: palette.categorical[mode].map(toHex),
     heat: palette.heat[mode].map(toHex),
-    diverging: palette.diverging[mode].map(toHex),
+    diverging: palette.diverging[mode].map((color, i) =>
+      i === DIVERGE_MID ? neutral(palette.divergeMidStep[mode]) : toHex(color)
+    ),
     highlight: toHex([l, c, accentHue]),
     status: Object.fromEntries(
       statuses.map((s) => [s, toHex(palette.status[s].value[mode])])
@@ -50,7 +56,7 @@ export function chartHex(mode: Mode, accentHue: number = DEFAULT_ACCENT_HUE) {
       string
     >,
     band: {
-      color: toHex(palette.neutral[mode][band.step]!),
+      color: neutral(band.step),
       opacity: (band.alpha ?? 100) / 100
     }
   }
