@@ -29,10 +29,12 @@ const WIDE = 1600
 
 function Shell({
   reveal,
-  onRevealChange
+  onRevealChange,
+  drawerSize
 }: {
   reveal?: boolean
   onRevealChange?: (reveal: boolean) => void
+  drawerSize?: 'fit' | 'sm' | 'md' | 'lg'
 }) {
   return (
     <Navigator className='h-[600px]'>
@@ -55,6 +57,7 @@ function Shell({
         aria-label='Tickets'
         reveal={reveal}
         onRevealChange={onRevealChange}
+        drawerSize={drawerSize}
       >
         <p>12 tickets</p>
       </Pane>
@@ -105,6 +108,20 @@ describe('an inspector whose column has yielded', () => {
     const drawer = await screen.findByRole('dialog', { name: 'Tickets' })
     expect(drawer).toHaveTextContent('12 tickets')
     expect(trigger()).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('opens a fixed tall drawer, so filtering the content cannot resize it', async () => {
+    mount(NARROW)
+    await waitFor(() => expect(shows(trigger())).toBe(true))
+
+    await userEvent.click(trigger())
+    expect(await screen.findByRole('dialog')).toHaveAttribute('data-size', 'lg')
+  })
+
+  it('takes another size from the app', async () => {
+    mount(NARROW, <Shell reveal drawerSize='md' />)
+
+    expect(await screen.findByRole('dialog')).toHaveAttribute('data-size', 'md')
   })
 
   it('keeps the page readable behind the drawer', async () => {

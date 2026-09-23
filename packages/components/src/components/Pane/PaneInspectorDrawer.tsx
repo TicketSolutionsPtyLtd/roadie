@@ -10,6 +10,7 @@ import {
 import type { Drawer as DrawerPrimitive } from '@base-ui/react/drawer'
 
 import { Drawer } from '../Drawer'
+import type { DrawerSize } from '../Drawer/variants'
 
 // The column's CSS decides the yield from the whole stack, so read the result rather than redo the maths.
 export function useColumnYielded(
@@ -32,6 +33,7 @@ export function useColumnYielded(
 type PaneInspectorDrawerProps = {
   handle: DrawerPrimitive.Handle<unknown>
   yielded: boolean
+  size: DrawerSize
   reveal?: boolean
   onRevealChange?: (reveal: boolean) => void
   'aria-label'?: string
@@ -43,6 +45,7 @@ type PaneInspectorDrawerProps = {
 export function PaneInspectorDrawer({
   handle,
   yielded,
+  size,
   reveal,
   onRevealChange,
   children,
@@ -68,7 +71,7 @@ export function PaneInspectorDrawer({
       open={yielded && revealed}
       onOpenChange={setRevealed}
     >
-      <Drawer.Content {...label}>
+      <Drawer.Content size={size} {...label}>
         <Drawer.Body>{children}</Drawer.Body>
       </Drawer.Content>
     </Drawer>

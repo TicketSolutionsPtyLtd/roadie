@@ -22,6 +22,7 @@ import { cn } from '@oztix/roadie-core/utils'
 import { usePendingNavigationStore } from '../../providers/PendingNavigationContext'
 import { mergeRefs } from '../../utils/mergeRefs'
 import { scrollToTop as scrollToTopOf } from '../../utils/reducedMotion'
+import type { DrawerSize } from '../Drawer/variants'
 import { ScrollArea } from '../ScrollArea'
 import { PANE_CHROME_NONE, PaneChromeContext } from './PaneChromeContext'
 import { PaneContext } from './PaneContext'
@@ -73,6 +74,8 @@ export type PaneRootProps = ComponentProps<'section'> & {
   pending?: boolean
   /** The body skeleton while the pane's content is suspended. `Pane.Body` shows it too. */
   loading?: ReactNode
+  /** The drawer an inspector's content moves into once its column yields. Fixed tall, so filtering the content can't resize it. @default 'lg' */
+  drawerSize?: DrawerSize
   /** An inspector's content should be seen: already true while its column shows, and opens its drawer once the column has yielded. */
   reveal?: boolean
   /** An inspector's drawer opened from `Pane.InspectorTrigger`, or was dismissed. */
@@ -104,6 +107,7 @@ export function PaneRoot({
   tabBar = 'auto',
   pending,
   loading,
+  drawerSize = 'lg',
   reveal,
   onRevealChange,
   role,
@@ -412,6 +416,7 @@ export function PaneRoot({
     <>
       {pane}
       <PaneInspectorDrawer
+        size={drawerSize}
         handle={inspectorHandle}
         yielded={yielded}
         reveal={reveal}

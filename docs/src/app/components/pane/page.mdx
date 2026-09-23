@@ -350,7 +350,7 @@ When the inspector's column is hidden, its content moves into a bottom
 [`Drawer`](/components/drawer). Put a `Pane.InspectorTrigger` where people
 should find it, such as the detail pane's `Pane.Actions`. It shows only while
 the column is hidden and opens the drawer. The drawer takes its name from the
-inspector's `aria-label`, and keeps the page readable behind it.
+inspector's `aria-label`, and keeps the page readable behind it. The drawer is a fixed `lg` sheet, so filtering its content can't resize it. Pass `drawerSize` to pick another [Drawer size](/components/drawer#sizes).
 
 `reveal` says the inspector's content should be seen. While the column shows,
 it already is. Once the column has yielded, `reveal` opens the drawer, so a
