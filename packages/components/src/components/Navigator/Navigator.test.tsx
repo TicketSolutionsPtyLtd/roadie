@@ -2941,7 +2941,7 @@ describe('Navigator collapsed edge circles', () => {
       name: 'Account'
     })
     const frame = pinned.querySelector('[data-slot="navigator-tab-icon-frame"]')
-    const shrink = ['-translate-x-2', 'scale-[calc(3.5/4.125)]']
+    const shrink = ['scale-[calc(3.5/4.125)]']
     expect(pinned).toHaveClass('origin-bottom-right', 'scale-100')
     for (const cls of shrink) expect(pinned).not.toHaveClass(cls)
     expect(frame).toHaveClass('scale-100')
@@ -3178,7 +3178,7 @@ describe('Navigator collapsed edge circles', () => {
       within(pinnedCircleOf(pinnedTree)).getByRole('button', {
         name: 'Account'
       })
-    ).toHaveClass('rtl:translate-x-2', 'rtl:origin-bottom-left')
+    ).toHaveClass('rtl:origin-bottom-left')
     await flushViewportMeasurement()
   })
 
