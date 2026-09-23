@@ -19,6 +19,15 @@ export {
   palette
 } from './palette'
 export { paletteScores, validatePalette } from './validate'
+export {
+  type DeltaSentiment,
+  type GoodWhen,
+  type ValueFormat,
+  deltaSentiment,
+  describeDelta,
+  formatDelta,
+  formatValue
+} from './format'
 
 const SLOTS = palette.categorical.light.length
 
