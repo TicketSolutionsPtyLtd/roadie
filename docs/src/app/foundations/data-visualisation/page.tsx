@@ -184,6 +184,28 @@ function Table({ head, rows }: { head: string[]; rows: ReactNode[][] }) {
   )
 }
 
+function PaletteBlock({
+  title,
+  description,
+  children
+}: {
+  title: string
+  description: ReactNode
+  children: ReactNode
+}) {
+  return (
+    <div className='grid gap-4'>
+      <div className='grid gap-1'>
+        <h3 className='text-display-ui-5 text-strong'>{title}</h3>
+        <p className='max-w-prose text-sm text-subtle'>{description}</p>
+      </div>
+      <div className='grid gap-8 rounded-xl border border-subtler p-4 sm:p-6'>
+        {children}
+      </div>
+    </div>
+  )
+}
+
 function List({ items }: { items: ReactNode[] }) {
   return (
     <ul className='grid max-w-prose list-disc gap-2 pl-5 text-subtle'>
@@ -247,46 +269,40 @@ export default function DataVisualisationPage() {
         <p className='max-w-prose text-subtle'>
           Each palette has one job. Mixing jobs is how charts start lying.
         </p>
-        <div className='grid gap-2'>
-          <h3 className='text-display-ui-5 text-strong'>
-            Categorical tells series apart
-          </h3>
-          <p className='max-w-prose text-sm text-subtle'>
-            Use slots in order and never cycle them. A series keeps its colour
-            when you sort or filter. Use 6 at most, then group the rest into
-            Other. For 2 or 3 series, use <Code>--chart-pair-*</Code> or{' '}
-            <Code>--chart-trio-*</Code>.
-          </p>
-          <DatavizSwatches kind='categorical' />
-        </div>
-        <div className='grid gap-2'>
-          <h3 className='text-display-ui-5 text-strong'>
-            Sequential shows how much
-          </h3>
-          <p className='max-w-prose text-sm text-subtle'>
-            Stage heat runs from the surface to the strongest colour. In dark
-            mode the busiest cells glow.
-          </p>
-          <HeatmapExample />
-        </div>
-        <div className='grid gap-2'>
-          <h3 className='text-display-ui-5 text-strong'>
-            Diverging shows ahead of or behind
-          </h3>
-          <p className='max-w-prose text-sm text-subtle'>
-            Cool is ahead, warm is behind, grey is on the benchmark.
-          </p>
-          <DivergingBarsExample />
-        </div>
-        <div className='grid gap-2'>
-          <h3 className='text-display-ui-5 text-strong'>
-            Status carries meaning
-          </h3>
-          <p className='max-w-prose text-sm text-subtle'>
-            Good, warning, serious and critical. Only for meaning, never as a
-            series colour, and always with an icon or label.
-          </p>
-          <DatavizSwatches kind='status' />
+        <div className='grid gap-10'>
+          <PaletteBlock
+            title='Categorical tells series apart'
+            description={
+              <>
+                Use slots in order and never cycle them. A series keeps its
+                colour when you sort or filter. Use 6 at most, then group the
+                rest into Other. For 2 or 3 series, use{' '}
+                <Code>--chart-pair-*</Code> or <Code>--chart-trio-*</Code>.
+              </>
+            }
+          >
+            <DatavizSwatches kind='categorical' />
+          </PaletteBlock>
+          <PaletteBlock
+            title='Sequential shows how much'
+            description='Stage heat runs from the surface to the strongest colour. In dark mode the busiest cells glow.'
+          >
+            <DatavizSwatches kind='heat' />
+            <HeatmapExample />
+          </PaletteBlock>
+          <PaletteBlock
+            title='Diverging shows ahead of or behind'
+            description='Cool is ahead, warm is behind, grey is on the benchmark.'
+          >
+            <DatavizSwatches kind='diverging' />
+            <DivergingBarsExample />
+          </PaletteBlock>
+          <PaletteBlock
+            title='Status carries meaning'
+            description='Good, warning, serious and critical. Only for meaning, never as a series colour, and always with an icon or label.'
+          >
+            <DatavizSwatches kind='status' />
+          </PaletteBlock>
         </div>
         <Guideline title='Emphasis and ink'>
           <Guideline.Do>
