@@ -46,6 +46,13 @@
     "limit": "20 kB"
   },
   {
+    "name": "Table",
+    "path": "dist/components/Table/index.js",
+    "import": "*",
+    "limit": "2 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
     "name": "QRCode",
     "path": "dist/components/QRCode/index.js",
     "import": "*",

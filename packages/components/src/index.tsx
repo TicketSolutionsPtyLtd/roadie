@@ -230,6 +230,14 @@ export {
 } from './components/Steps'
 
 export {
+  Table,
+  type TableAlign,
+  type TableCellProps,
+  type TableHeaderCellProps,
+  type TableProps
+} from './components/Table'
+
+export {
   Tabs,
   tabsListVariants,
   tabsTabVariants,
