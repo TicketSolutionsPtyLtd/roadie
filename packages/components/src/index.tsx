@@ -246,6 +246,13 @@ export {
 } from './components/Table'
 
 export {
+  Meter,
+  type MeterProps,
+  type MeterSegment,
+  type MeterTone
+} from './components/Meter'
+
+export {
   Tabs,
   tabsListVariants,
   tabsTabVariants,

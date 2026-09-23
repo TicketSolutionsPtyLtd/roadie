@@ -131,6 +131,10 @@
       "types": "./dist/components/Marquee/index.d.ts",
       "import": "./dist/components/Marquee/index.js"
     },
+    "./meter": {
+      "types": "./dist/components/Meter/index.d.ts",
+      "import": "./dist/components/Meter/index.js"
+    },
     "./navigator": {
       "types": "./dist/components/Navigator/index.d.ts",
       "import": "./dist/components/Navigator/index.js"
