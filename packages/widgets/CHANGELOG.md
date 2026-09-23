@@ -1,5 +1,14 @@
 # @oztix/roadie-widgets
 
+## 3.6.1
+
+### Patch Changes
+
+- Updated dependencies [dba660b]
+- Updated dependencies [dba660b]
+- Updated dependencies [dba660b]
+  - @oztix/roadie-core@2.9.0
+
 ## 3.6.0
 
 ### Minor Changes

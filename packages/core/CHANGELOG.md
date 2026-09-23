@@ -1,5 +1,50 @@
 # @oztix/roadie-core
 
+## 2.9.0
+
+### Minor Changes
+
+- dba660b: Add `is-interactive-within`, for a surface whose main link sits inside it,
+  such as a card that also holds other actions. Mark the link with
+  `data-interactive-target`. Its overlay covers the surface, so a click anywhere
+  follows it, and other links, buttons and fields sit above it and stay
+  clickable. The surface takes the same hover, press and focus states as
+  `is-interactive` while its main link is hovered, pressed or focused, from the
+  same emphasis rules, so the values live in one place. It does nothing until a
+  target is present.
+
+  `is-interactive` now reads its transition list from `--interactive-transition`,
+  which both utilities share.
+
+- dba660b: Add `emphasis` to `Drawer` and `Dialog`: how much the overlay takes over the
+  page behind it. `normal` dims and blurs the page, `subtle` tints it and leaves
+  it readable, and `subtler` leaves it clear while a click outside still
+  dismisses. A small (`size='sm'`) top or bottom drawer defaults to `subtle`,
+  because it peeks over its page; every other drawer and every dialog defaults
+  to `normal`.
+
+  Core adds `emphasis-overlay-subtle`, and `emphasis-overlay` now drops its blur
+  under `prefers-reduced-transparency` and carries the `-webkit-` prefix.
+
+### Patch Changes
+
+- dba660b: Top and bottom drawers now run edge to edge on a phone and, from `sm` up, stop
+  at `max-w-xl`, centred, floating `--spacing(2)` off their edge with every
+  corner rounded: the same shape as the cart drawer. Remove any width, margin or
+  radius classes an app added to get this.
+
+  Every drawer now rounds at `rounded-4xl`, the new Sheet tier on the Shape
+  foundation, whichever side it comes from. The edge it's attached to stays
+  square.
+
+  `Drawer.Body` now scrolls in `ScrollArea`, so drawers use Roadie's scrollbar.
+  It is still Base UI's drawer content, so a drag in a scrolled body scrolls it
+  rather than dismissing. A `className` on it still styles the content, as
+  before.
+
+  Core's `motion-drawer` reads `--drawer-float`, so a surface held off its edge
+  slides fully clear.
+
 ## 2.8.0
 
 ### Minor Changes
