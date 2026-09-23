@@ -34,14 +34,14 @@ export type ColumnKind = (typeof COLUMN_KINDS)[number]
 const valueFormat = z.enum(VALUE_FORMATS)
 const goodWhen = z.enum(['up', 'down', 'neither'])
 
-const delta = z.object({
+const delta = z.strictObject({
   value: z.number(),
   format: valueFormat.optional(),
   goodWhen: goodWhen.optional(),
   baseline: z.number().optional()
 })
 
-const column = z.object({
+const column = z.strictObject({
   key: z.string().min(1),
   header: z.string().min(1),
   kind: z.enum(COLUMN_KINDS),
@@ -57,7 +57,7 @@ const column = z.object({
 })
 
 const cell = z.union([z.string(), z.number(), z.null(), z.array(z.number())])
-const tableData = z.object({
+const tableData = z.strictObject({
   columns: z.array(column).min(1),
   rows: z.array(z.record(z.string(), cell))
 })
@@ -70,14 +70,14 @@ const safeUrl = z
   .min(1)
   .refine(isSafeImageUrl, { message: 'Use an http(s) or relative image URL' })
 
-const staticPlot = z.object({
+const staticPlot = z.strictObject({
   kind: z.literal('static'),
   src: safeUrl,
   srcDark: safeUrl.optional(),
   alt: z.string().min(1)
 })
 
-const legendItem = z.object({
+const legendItem = z.strictObject({
   label: z.string().min(1),
   shape: z.enum(['line', 'dash', 'dot', 'band', 'swatch']).optional(),
   color: z.string().optional()
@@ -93,7 +93,7 @@ const base = {
   errorMessage: z.string().optional(),
   staleLabel: z.string().optional(),
   data: z
-    .object({
+    .strictObject({
       source: z.string().min(1),
       params: z.record(z.string(), z.unknown()).optional()
     })
@@ -107,7 +107,7 @@ const headline = {
   takeaway: z.string().optional()
 }
 
-const statCard = z.object({
+const statCard = z.strictObject({
   ...base,
   kind: z.literal('stat'),
   value: z.union([z.number(), z.string()]),
@@ -115,12 +115,12 @@ const statCard = z.object({
   delta: delta.optional(),
   trend: z.array(z.number()).optional(),
   reference: z
-    .object({ value: z.number(), label: z.string().min(1) })
+    .strictObject({ value: z.number(), label: z.string().min(1) })
     .optional(),
   source: z.string().optional()
 })
 
-const tableCard = z.object({
+const tableCard = z.strictObject({
   ...base,
   ...headline,
   kind: z.literal('table'),
@@ -129,7 +129,7 @@ const tableCard = z.object({
   source: z.string().min(1)
 })
 
-const chartCard = z.object({
+const chartCard = z.strictObject({
   ...base,
   ...headline,
   kind: z.literal('chart'),
@@ -140,7 +140,7 @@ const chartCard = z.object({
   source: z.string().min(1)
 })
 
-const noteCard = z.object({
+const noteCard = z.strictObject({
   ...base,
   kind: z.literal('note'),
   body: z.string().min(1),
@@ -154,13 +154,13 @@ const card = z.discriminatedUnion('kind', [
   noteCard
 ])
 
-const section = z.object({
+const section = z.strictObject({
   title: z.string().min(1),
   description: z.string().optional(),
   cards: z.array(card)
 })
 
-export const dashboardSchema = z.object({
+export const dashboardSchema = z.strictObject({
   version: z.literal(1),
   title: z.string().min(1),
   sections: z.array(section).min(1)

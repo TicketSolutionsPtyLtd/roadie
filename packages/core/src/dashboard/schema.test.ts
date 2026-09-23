@@ -34,6 +34,14 @@ const spec = (cards: unknown[]) => ({
   sections: [{ title: 'At a glance', cards }]
 })
 
+const withoutKey = <T extends Record<string, unknown>>(
+  object: T,
+  key: keyof T
+) =>
+  Object.fromEntries(
+    Object.entries(object).filter(([k]) => k !== key)
+  ) as Partial<T>
+
 describe('dashboardSchema', () => {
   it('accepts a valid description', () => {
     expect(dashboardSchema.safeParse(spec([stat, chart])).success).toBe(true)
@@ -46,12 +54,12 @@ describe('dashboardSchema', () => {
   })
 
   it('requires a source and table on chart cards', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { source, ...noSource } = chart
-    expect(dashboardSchema.safeParse(spec([noSource])).success).toBe(false)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { table, ...noTable } = chart
-    expect(dashboardSchema.safeParse(spec([noTable])).success).toBe(false)
+    expect(
+      dashboardSchema.safeParse(spec([withoutKey(chart, 'source')])).success
+    ).toBe(false)
+    expect(
+      dashboardSchema.safeParse(spec([withoutKey(chart, 'table')])).success
+    ).toBe(false)
   })
 
   it.each(['javascript:alert(1)', 'data:image/svg+xml,<svg/>', 'vbscript:x'])(
@@ -65,6 +73,18 @@ describe('dashboardSchema', () => {
   it('accepts a reserved data binding', () => {
     const card = { ...stat, data: { source: 'oztix.sales', params: { id: 1 } } }
     expect(dashboardSchema.safeParse(spec([card])).success).toBe(true)
+  })
+
+  it('rejects an unknown key on a card', () => {
+    const result = dashboardSchema.safeParse(
+      spec([{ ...stat, lable: 'Tickets sold' }])
+    )
+    expect(result.success).toBe(false)
+    if (result.success) return
+    const issue = result.error.issues.find((issue) =>
+      issue.message.includes('lable')
+    )
+    expect(issue?.path.join('.')).toMatch(/cards\.0$/)
   })
 
   it('exports JSON Schema for tool inputs', () => {
