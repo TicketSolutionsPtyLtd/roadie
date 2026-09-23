@@ -43,10 +43,10 @@ export const drawerPopupVariants = cva(
       side: {
         // The cart drawer's width and float, so every sheet reads as the same object.
         bottom:
-          'w-full max-w-xl rounded-t-5xl sm:[--drawer-float:max(--spacing(2),env(safe-area-inset-bottom))] sm:mb-(--drawer-float) sm:rounded-5xl',
-        top: 'w-full max-w-xl rounded-b-5xl sm:[--drawer-float:max(--spacing(2),env(safe-area-inset-top))] sm:mt-(--drawer-float) sm:rounded-5xl',
-        left: 'h-full w-full rounded-r-2xl',
-        right: 'h-full w-full rounded-l-2xl'
+          'w-full max-w-xl rounded-t-4xl sm:[--drawer-float:max(--spacing(2),env(safe-area-inset-bottom))] sm:mb-(--drawer-float) sm:rounded-4xl',
+        top: 'w-full max-w-xl rounded-b-4xl sm:[--drawer-float:max(--spacing(2),env(safe-area-inset-top))] sm:mt-(--drawer-float) sm:rounded-4xl',
+        left: 'h-full w-full rounded-r-4xl',
+        right: 'h-full w-full rounded-l-4xl'
       },
       size: { sm: '', md: '', lg: '' }
     },

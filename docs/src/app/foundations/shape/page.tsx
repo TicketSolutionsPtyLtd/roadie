@@ -38,13 +38,19 @@ const radiusScale = [
     tier: 'Large',
     className: 'rounded-2xl',
     value: '16px',
-    useFor: 'Modals, dialogs, drawers, Navigator panes'
+    useFor: 'Modals, dialogs, Navigator panes'
+  },
+  {
+    tier: 'Sheet',
+    className: 'rounded-4xl',
+    value: '32px',
+    useFor: 'Drawers, from any side'
   },
   {
     tier: 'Hero',
     className: 'rounded-5xl',
     value: '40px',
-    useFor: 'Hero cards, collection headers, bottom sheets'
+    useFor: 'Hero cards, collection headers'
   },
   {
     tier: 'Feature',
@@ -70,6 +76,8 @@ const componentMapping = [
   { component: 'Button', tier: 'Full', className: 'rounded-full' },
   { component: 'Badge', tier: 'Full', className: 'rounded-full' },
   { component: 'Card', tier: 'Container', className: 'rounded-xl' },
+  { component: 'Dialog', tier: 'Large', className: 'rounded-2xl' },
+  { component: 'Drawer', tier: 'Sheet', className: 'rounded-4xl' },
   { component: 'Select trigger', tier: 'Field', className: 'rounded-lg' },
   { component: 'Select popup', tier: 'Container', className: 'rounded-xl' },
   { component: 'Input', tier: 'Field', className: 'rounded-lg' },
@@ -106,7 +114,7 @@ export default function ShapePage() {
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Radius scale</h2>
         <p className='text-subtle'>
-          Nine tiers, from inline marks to edge-to-edge hero surfaces. Roadie
+          Ten tiers, from inline marks to edge-to-edge hero surfaces. Roadie
           uses Tailwind&apos;s built-in radius utilities up to{' '}
           <Code>rounded-4xl</Code> and adds three extended tiers (
           <Code>rounded-5xl</Code>, <Code>rounded-6xl</Code>,{' '}
@@ -346,7 +354,7 @@ export default function ShapePage() {
           <li>
             <p>
               <Code>rounded-2xl</Code> is reserved for{' '}
-              <strong>top-layer UI</strong> (modals, dialogs, drawers) and the
+              <strong>top-layer UI</strong> (modals and dialogs) and the
               Navigator&apos;s panes. Do not use it on inline components.
             </p>
           </li>

@@ -24,19 +24,35 @@ A bottom sheet. `Drawer.Content` collapses the underlying `Portal`, `Backdrop`, 
 
 ```tsx-live
 <Drawer>
-  <Drawer.Trigger render={<Button>Open drawer</Button>} />
+  <Drawer.Trigger render={<Button>Switch organisation</Button>} />
   <Drawer.Content>
     <Drawer.Header>
-      <Drawer.Title>Filters</Drawer.Title>
-      <Drawer.Description>Narrow the results.</Drawer.Description>
+      <Drawer.Title>Organisations</Drawer.Title>
+      <Drawer.Description>Switch the organisation you're working in.</Drawer.Description>
     </Drawer.Header>
     <Drawer.Body>
-      <p>Drag the sheet down, press Escape, or tap outside the surface to dismiss it.</p>
+      <List emphasis='subtler'>
+        {[
+          { name: 'Paperbark Presents', members: 12, current: true },
+          { name: 'The Corner Room', members: 4 },
+          { name: 'Saltwater Sessions', members: 1 }
+        ].map((org) => (
+          <List.Item
+            key={org.name}
+            title={org.name}
+            description={`${org.members} ${org.members === 1 ? 'member' : 'members'}`}
+            current={org.current}
+            chevron={false}
+            leading={
+              <IconTile intent='accent'>
+                <BuildingsIcon weight='bold' />
+              </IconTile>
+            }
+            trailing={org.current ? <CheckIcon weight='bold' className='size-5' /> : undefined}
+          />
+        ))}
+      </List>
     </Drawer.Body>
-    <Drawer.Footer>
-      <Drawer.Close render={<Button>Cancel</Button>} />
-      <Button intent='accent' emphasis='strong'>Apply</Button>
-    </Drawer.Footer>
   </Drawer.Content>
 </Drawer>
 ```
@@ -89,24 +105,71 @@ A bottom sheet. `Drawer.Content` collapses the underlying `Portal`, `Backdrop`, 
 
 ### Sizes
 
-`size` sets the drawer's extent along its own axis — height for a bottom or top drawer, width for a side one. Defaults to `md`. A bottom or top drawer runs edge to edge on a phone. In a wider window it stops at `max-w-xl`, centred, and floats 0.5rem off its edge with every corner rounded, the same shape as the cart drawer.
+`size` sets the drawer's extent along its own axis: height for a bottom or top drawer, width for a side one. It defaults to `md`. For a bottom or top drawer it is a maximum, so short content still gives a short sheet, and long content scrolls in `Drawer.Body` between a fixed header and footer. A bottom or top drawer runs edge to edge on a phone. In a wider window it stops at `max-w-xl`, centred, and floats 0.5rem off its edge with every corner rounded, the same shape as the cart drawer.
 
-```tsx-live
-<div className='flex flex-wrap gap-3'>
-  {['sm', 'md', 'lg'].map((size) => (
-    <Drawer key={size} side='right'>
+```tsx-live-noinline
+const holders = [
+  'Alex Reid', 'Sam Okafor', 'Mia Chen', 'Noah Bell', 'Priya Nair',
+  'Amelia Hart', 'Omar Haddad', 'Lily Tran', 'Archie Moss', 'Lucas Ferreira',
+  'Sami Kaur', 'Nora Quinn', 'Xavier Lim', 'Dani Brooks', 'Layla Stone',
+  'Ethan Cole', 'Grace Wu', 'Hamish Grant', 'Isla Murphy', 'Jack Doyle',
+  'Kiara Singh', 'Leo Park', 'Maya Rossi', 'Nate Evans', 'Olive Clarke'
+].map((name, index) => ({
+  name,
+  tickets: (index % 4) + 1,
+  status: index === 0 ? 'Not shared' : index % 3 === 0 ? 'Sent' : 'Accepted'
+}))
+
+function Holders({ size }) {
+  return (
+    <Drawer>
       <Drawer.Trigger render={<Button>{size}</Button>} />
       <Drawer.Content size={size}>
         <Drawer.Header>
-          <Drawer.Title>Size {size}</Drawer.Title>
+          <Drawer.Title>638 tickets</Drawer.Title>
+          <Drawer.Description>Weekly Pass · Mon 3 to Fri 7 May</Drawer.Description>
         </Drawer.Header>
         <Drawer.Body>
-          <p>A side drawer sizes by width.</p>
+          <List emphasis='subtler'>
+            {holders.map((holder) => (
+              <List.Item
+                key={holder.name}
+                title={holder.name}
+                description={`${holder.tickets} ${holder.tickets === 1 ? 'ticket' : 'tickets'}`}
+                chevron={false}
+                leading={
+                  <IconTile>
+                    <UserIcon weight='bold' />
+                  </IconTile>
+                }
+                trailing={
+                  <Badge
+                    size='sm'
+                    intent={holder.status === 'Accepted' ? 'success' : holder.status === 'Sent' ? 'info' : undefined}
+                  >
+                    {holder.status}
+                  </Badge>
+                }
+              />
+            ))}
+          </List>
         </Drawer.Body>
+        <Drawer.Footer>
+          <Drawer.Close render={<Button>Close</Button>} />
+          <Button intent='accent' emphasis='strong'>Share tickets</Button>
+        </Drawer.Footer>
       </Drawer.Content>
     </Drawer>
-  ))}
-</div>
+  )
+}
+
+render(
+  <div className='flex flex-wrap gap-3'>
+    <Holders size='sm' />
+    <Holders size='md' />
+    <Holders size='lg' />
+  </div>
+)
 ```
 
 ### Composition

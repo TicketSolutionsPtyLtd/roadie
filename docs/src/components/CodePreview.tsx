@@ -10,6 +10,7 @@ import {
   ArrowSquareOutIcon,
   ArrowsOutIcon,
   BellRingingIcon,
+  BuildingsIcon,
   CaretDownIcon,
   CaretLeftIcon,
   CaretRightIcon,
@@ -40,6 +41,7 @@ import {
   TicketIcon,
   TrashIcon,
   UserCircleIcon,
+  UserIcon,
   UsersIcon,
   WalletIcon,
   WarningIcon,
@@ -98,6 +100,8 @@ const PhosphorIcons = {
   Cube: CubeIcon,
   Export: ExportIcon,
   UserCircle: UserCircleIcon,
+  User: UserIcon,
+  Buildings: BuildingsIcon,
   Users: UsersIcon,
   Wallet: WalletIcon
 }

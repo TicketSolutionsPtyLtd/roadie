@@ -198,7 +198,8 @@ Consistent radius tiers across all components:
 | Field     | `rounded-lg`   | Inputs, textareas, selects                    |
 | Container | `rounded-xl`   | Cards, popovers, select popups                |
 | Large     | `rounded-2xl`  | Modals, dialogs                               |
-| Hero      | `rounded-5xl`  | Hero cards, collection headers, bottom sheets |
+| Sheet     | `rounded-4xl`  | Drawers, from any side                        |
+| Hero      | `rounded-5xl`  | Hero cards, collection headers                |
 | Feature   | `rounded-6xl`  | Feature banners, spotlight surfaces           |
 | Oversize  | `rounded-7xl`  | Edge-to-edge promotional layouts              |
 | Full      | `rounded-full` | Buttons, badges, pills                        |
