@@ -90,6 +90,10 @@
 }
 
 @custom-variant pane-inspector-yielded {
+  /* Content the inspector has moved into its drawer is yielded by definition. */
+  [data-inspector-yielded] & {
+    @slot;
+  }
   @container panes (width < 46.25rem) {
     @slot;
   }

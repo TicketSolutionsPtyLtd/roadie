@@ -31,12 +31,14 @@ function Shell({
   reveal,
   onRevealChange,
   drawerSize,
-  header = false
+  header = false,
+  marker = false
 }: {
   reveal?: boolean
   onRevealChange?: (reveal: boolean) => void
   drawerSize?: 'fit' | 'sm' | 'md' | 'lg'
   header?: boolean
+  marker?: boolean
 }) {
   return (
     <Navigator className='h-[600px]'>
@@ -61,6 +63,14 @@ function Shell({
         onRevealChange={onRevealChange}
         drawerSize={drawerSize}
       >
+        {marker ? (
+          <span
+            data-testid='yielded-only'
+            className='pane-inspector-yielded:inline hidden'
+          >
+            In the drawer
+          </span>
+        ) : null}
         {header ? (
           <Pane.Header>
             <Pane.Title>12 tickets</Pane.Title>
@@ -254,17 +264,15 @@ describe("an inspector drawer's Close", () => {
     )
   })
 
-  it('paints the header solid in the drawer, matching the band above it', async () => {
+  it('frosts the header like the drawer around it', async () => {
     mount(NARROW, <Shell reveal header />)
     const drawer = await screen.findByRole('dialog')
     const header = drawer.querySelector<HTMLElement>(
       '[data-slot="pane-header"]'
     )!
 
-    expect(getComputedStyle(header).backgroundColor).toBe(
-      getComputedStyle(drawer).backgroundColor
-    )
-    expect(getComputedStyle(header).backdropFilter).toBe('none')
+    expect(drawer).toHaveClass('is-translucent')
+    expect(getComputedStyle(header).backdropFilter).not.toBe('none')
   })
 
   it('gives sticky chrome in the drawer the drawer surface to mix against', async () => {
@@ -274,5 +282,28 @@ describe("an inspector drawer's Close", () => {
     expect(
       getComputedStyle(drawer).getPropertyValue('--pane-surface').trim()
     ).not.toBe('')
+  })
+})
+
+describe("pane-inspector-yielded: on the inspector's own content", () => {
+  const marker = () =>
+    Array.from(
+      document.querySelectorAll<HTMLElement>('[data-testid="yielded-only"]')
+    )
+
+  it('applies inside the drawer the content moved into', async () => {
+    mount(NARROW, <Shell reveal marker />)
+    const drawer = await screen.findByRole('dialog')
+
+    const inside = marker().find((node) => drawer.contains(node))!
+    expect(getComputedStyle(inside).display).not.toBe('none')
+  })
+
+  it('leaves the content alone in the column', async () => {
+    mount(WIDE, <Shell marker />)
+    await waitFor(() => expect(column().textContent).toContain('12 tickets'))
+
+    const inside = marker().find((node) => column().contains(node))!
+    expect(getComputedStyle(inside).display).toBe('none')
   })
 })

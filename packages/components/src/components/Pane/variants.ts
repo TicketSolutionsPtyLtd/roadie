@@ -82,9 +82,8 @@ export const paneHeaderVariants = cva(
 export const paneHeaderEdgeClass = 'col-start-1 row-start-1 justify-self-start'
 
 // In the inspector's drawer: Close sits as far below the handle's band as from the side, and the shadow follows the drawer's scroll.
-// Opaque, since the handle's band above it is: frosted glass would show a seam where the two meet.
 export const paneHeaderInDrawerClass = [
-  'pt-1 bg-(--pane-surface) backdrop-blur-none',
+  'pt-1',
   '[[data-slot=drawer-popup]:has([data-slot=drawer-body][data-overflow-y-start])_&]:after:opacity-100'
 ]
 

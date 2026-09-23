@@ -22,3 +22,6 @@ shadow. Content without a `Pane.Header` gets a header holding just the Close.
 The drawer sets `--pane-surface` to its raised fill, so sticky chrome inside
 it mixes against the right colour.
 
+`pane-inspector-yielded:` also applies to the inspector's own content once it's
+in the drawer, so content can adapt to where it renders.
+

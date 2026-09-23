@@ -360,7 +360,7 @@ dismissing it. The content renders in one place at a time, so keep state that
 must survive the move, such as a filter, in the URL.
 
 For anything else that should change while the column is hidden, the
-`pane-inspector-yielded:` variant applies only then.
+`pane-inspector-yielded:` variant applies only then. It applies anywhere in the same `Navigator`, including the inspector's own content once it's in the drawer.
 
 ```tsx-live-noinline-expand
 function Columns() {

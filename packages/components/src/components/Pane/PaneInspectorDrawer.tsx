@@ -75,6 +75,7 @@ export function PaneInspectorDrawer({
       onOpenChange={setRevealed}
     >
       <Drawer.Content
+        data-inspector-yielded=''
         size={size}
         className='[--pane-surface:var(--intent-bg-raised)]'
         {...label}
