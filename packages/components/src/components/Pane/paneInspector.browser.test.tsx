@@ -30,11 +30,13 @@ const WIDE = 1600
 function Shell({
   reveal,
   onRevealChange,
-  drawerSize
+  drawerSize,
+  header = false
 }: {
   reveal?: boolean
   onRevealChange?: (reveal: boolean) => void
   drawerSize?: 'fit' | 'sm' | 'md' | 'lg'
+  header?: boolean
 }) {
   return (
     <Navigator className='h-[600px]'>
@@ -59,6 +61,11 @@ function Shell({
         onRevealChange={onRevealChange}
         drawerSize={drawerSize}
       >
+        {header ? (
+          <Pane.Header>
+            <Pane.Title>12 tickets</Pane.Title>
+          </Pane.Header>
+        ) : null}
         <p>12 tickets</p>
       </Pane>
     </Navigator>
@@ -174,5 +181,73 @@ describe('an inspector whose column has yielded', () => {
 
     await waitFor(() => expect(column()).toHaveTextContent('12 tickets'))
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  })
+})
+
+describe("an inspector drawer's Close", () => {
+  const closes = () =>
+    Array.from(
+      document.querySelectorAll<HTMLElement>('button[aria-label="Close"]')
+    ).filter((button) => button.checkVisibility())
+
+  it("puts Close in the content's own header, 24px from the corner", async () => {
+    mount(NARROW, <Shell reveal header />)
+    const drawer = await screen.findByRole('dialog', { name: 'Tickets' })
+
+    const [close, ...extra] = closes()
+    expect(extra).toHaveLength(0)
+    expect(close!.closest('[data-slot="pane-header"]')).not.toBeNull()
+    const popup = drawer.getBoundingClientRect()
+    const box = close!.getBoundingClientRect()
+    expect(box.top - popup.top).toBeCloseTo(24, 0)
+    expect(box.left - popup.left).toBeCloseTo(24, 0)
+  })
+
+  it('gives content without a header a Close of its own', async () => {
+    mount(NARROW, <Shell reveal />)
+    await screen.findByRole('dialog', { name: 'Tickets' })
+
+    const [close, ...extra] = closes()
+    expect(extra).toHaveLength(0)
+    expect(close!.closest('[data-slot="drawer-header"]')).not.toBeNull()
+  })
+
+  it('closes the drawer and reports it', async () => {
+    const onRevealChange = vi.fn()
+    function Controlled() {
+      const [reveal, setReveal] = useState(true)
+      return (
+        <Shell
+          header
+          reveal={reveal}
+          onRevealChange={(next) => {
+            onRevealChange(next)
+            setReveal(next)
+          }}
+        />
+      )
+    }
+    mount(NARROW, <Controlled />)
+    await screen.findByRole('dialog')
+
+    await userEvent.click(closes()[0]!)
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(onRevealChange).toHaveBeenCalledWith(false)
+  })
+
+  it('draws no Close in the column', async () => {
+    mount(WIDE, <Shell header />)
+    await waitFor(() => expect(column().textContent).toContain('12 tickets'))
+
+    expect(column().querySelector('button[aria-label="Close"]')).toBeNull()
+  })
+
+  it('gives sticky chrome in the drawer the drawer surface to mix against', async () => {
+    mount(NARROW, <Shell reveal header />)
+    const drawer = await screen.findByRole('dialog')
+
+    expect(
+      getComputedStyle(drawer).getPropertyValue('--pane-surface').trim()
+    ).not.toBe('')
   })
 })

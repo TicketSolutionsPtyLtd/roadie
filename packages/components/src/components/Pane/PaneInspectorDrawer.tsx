@@ -8,9 +8,12 @@ import {
 } from 'react'
 
 import type { Drawer as DrawerPrimitive } from '@base-ui/react/drawer'
+import { XIcon } from '@phosphor-icons/react'
 
+import { IconButton } from '../Button/IconButton'
 import { Drawer } from '../Drawer'
 import type { DrawerSize } from '../Drawer/variants'
+import { PaneInspectorDrawerContext } from './PaneInspectorContext'
 
 // The column's CSS decides the yield from the whole stack, so read the result rather than redo the maths.
 export function useColumnYielded(
@@ -71,8 +74,26 @@ export function PaneInspectorDrawer({
       open={yielded && revealed}
       onOpenChange={setRevealed}
     >
-      <Drawer.Content size={size} {...label}>
-        <Drawer.Body>{children}</Drawer.Body>
+      <Drawer.Content
+        size={size}
+        className='[--pane-surface:var(--intent-bg-raised)]'
+        {...label}
+      >
+        {/* Content with its own Pane.Header closes from there instead. */}
+        <Drawer.Header className='[[data-slot=drawer-popup]:has([data-slot=pane-header])_&]:hidden'>
+          <Drawer.Close
+            render={
+              <IconButton aria-label='Close' emphasis='normal'>
+                <XIcon weight='bold' className='size-5' />
+              </IconButton>
+            }
+          />
+        </Drawer.Header>
+        <Drawer.Body className='has-[>[data-slot=pane-header]]:pt-0'>
+          <PaneInspectorDrawerContext value>
+            {children}
+          </PaneInspectorDrawerContext>
+        </Drawer.Body>
       </Drawer.Content>
     </Drawer>
   )
