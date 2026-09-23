@@ -12,14 +12,22 @@ export type DeltaSentiment = 'good' | 'bad' | 'neutral'
 const LOCALE = 'en-AU'
 const NOT_AVAILABLE = 'Not available'
 
+export function normalizeMinusSign(text: string) {
+  return text.replace(/−/g, '-')
+}
+
 const number = (value: number, maximumFractionDigits = 1) =>
   new Intl.NumberFormat(LOCALE, { maximumFractionDigits }).format(value)
 
+const roundToOneDecimal = (value: number) => Math.round(value * 10) / 10
+
 function compact(value: number) {
-  const abs = Math.abs(value)
   const sign = value < 0 ? '-' : ''
-  if (abs >= 1_000_000) return `${sign}${number(abs / 1_000_000)}m`
-  if (abs >= 1_000) return `${sign}${number(abs / 1_000)}k`
+  const abs = Math.abs(value)
+  const millions = roundToOneDecimal(abs / 1_000_000)
+  if (millions >= 1) return `${sign}${number(millions)}m`
+  const thousands = roundToOneDecimal(abs / 1_000)
+  if (thousands >= 1) return `${sign}${number(thousands)}k`
   return `${sign}${number(abs)}`
 }
 
@@ -31,9 +39,7 @@ function currency(value: number) {
     currencyDisplay: 'narrowSymbol',
     minimumFractionDigits: round ? 0 : 2,
     maximumFractionDigits: round ? 0 : 2
-  })
-    .format(value)
-    .replace('−', '-')
+  }).format(value)
 }
 
 function percent(value: number) {
@@ -41,9 +47,7 @@ function percent(value: number) {
   return new Intl.NumberFormat(LOCALE, {
     style: 'percent',
     maximumFractionDigits: digits
-  })
-    .format(value)
-    .replace('−', '-')
+  }).format(value)
 }
 
 const points = (value: number) =>
@@ -64,7 +68,7 @@ const FORMATTERS: Record<ValueFormat, (value: number) => string> = {
 
 export function formatValue(value: number, format: ValueFormat = 'number') {
   if (!Number.isFinite(value)) return NOT_AVAILABLE
-  return FORMATTERS[format](value)
+  return normalizeMinusSign(FORMATTERS[format](value))
 }
 
 export function formatDelta(value: number, format: ValueFormat = 'number') {

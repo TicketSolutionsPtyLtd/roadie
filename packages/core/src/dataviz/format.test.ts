@@ -4,7 +4,8 @@ import {
   deltaSentiment,
   describeDelta,
   formatDelta,
-  formatValue
+  formatValue,
+  normalizeMinusSign
 } from './format'
 
 describe('formatValue', () => {
@@ -37,6 +38,34 @@ describe('formatValue', () => {
     expect(formatValue(Number.POSITIVE_INFINITY, 'percent')).toBe(
       'Not available'
     )
+  })
+
+  it('rounds to the next unit before choosing a suffix', () => {
+    expect(formatValue(999_950, 'compactCurrency')).toBe('$1m')
+    expect(formatValue(999_950, 'compact')).toBe('1m')
+    expect(formatValue(999.95, 'compact')).toBe('1k')
+    expect(formatValue(1_049_999, 'compactCurrency')).toBe('$1m')
+  })
+
+  it('never renders a Unicode minus for negative values', () => {
+    const formats = [
+      'number',
+      'compact',
+      'percent',
+      'currency',
+      'compactCurrency',
+      'points',
+      'index'
+    ] as const
+    for (const format of formats) {
+      expect(formatValue(-1234.5, format)).not.toContain('−')
+    }
+  })
+})
+
+describe('normalizeMinusSign', () => {
+  it('replaces the Unicode minus with an ASCII hyphen', () => {
+    expect(normalizeMinusSign('−$1,200')).toBe('-$1,200')
   })
 })
 
