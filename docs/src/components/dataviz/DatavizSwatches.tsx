@@ -20,31 +20,30 @@ const STRIPS = {
   ]
 } as const
 
+const label = (token: string) =>
+  token.replace(/^chart-(heat-|diverge-|status-)?/, '')
+
 export function DatavizSwatches({ kind }: { kind: keyof typeof STRIPS }) {
   const tokens = STRIPS[kind]
-  const joined = kind === 'heat' || kind === 'diverging'
   return (
-    <div
-      className={`grid ${joined ? 'gap-0' : 'gap-1'}`}
-      style={{
-        gridTemplateColumns: `repeat(${tokens.length}, minmax(0, 1fr))`
-      }}
-    >
-      {tokens.map((token) => (
-        <div key={token} className='grid gap-1'>
+    <div className='grid gap-1'>
+      <div className='flex gap-0.5'>
+        {tokens.map((token) => (
           <div
-            className={`h-10 ${joined ? 'first:rounded-l-md last:rounded-r-md' : 'rounded-md'}`}
+            key={token}
+            className='h-10 flex-1 rounded-sm first:rounded-l-md last:rounded-r-md'
             style={{ backgroundColor: `var(--${token})` }}
             title={`--${token}`}
           />
-          <p className='truncate text-center font-mono text-xs text-subtler'>
-            {token
-              .replace('chart-', '')
-              .replace('diverge-', '')
-              .replace('status-', '')}
+        ))}
+      </div>
+      <div className='flex gap-0.5'>
+        {tokens.map((token) => (
+          <p key={token} className='flex-1 text-center text-xs text-subtler'>
+            {label(token)}
           </p>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   )
 }
