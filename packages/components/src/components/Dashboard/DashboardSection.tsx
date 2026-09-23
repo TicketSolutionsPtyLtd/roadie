@@ -4,7 +4,7 @@ import {
   CARD_SIZES,
   type CardSize,
   findRowGaps
-} from '@oztix/roadie-core/dashboard'
+} from '@oztix/roadie-core/dashboard-layout'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isDev } from '../../utils/isDev'

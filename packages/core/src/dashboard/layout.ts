@@ -1,4 +1,33 @@
-import type { CardSize } from './schema'
+export const CARD_SIZES = ['stat', 'sm', 'md', 'lg', 'full'] as const
+export const CARD_KINDS = ['stat', 'table', 'chart', 'note'] as const
+export const CARD_STATES = [
+  'ready',
+  'loading',
+  'empty',
+  'error',
+  'stale'
+] as const
+export const COLUMN_KINDS = [
+  'text',
+  'number',
+  'delta',
+  'sparkline',
+  'meter'
+] as const
+
+export type CardSize = (typeof CARD_SIZES)[number]
+export type CardKind = (typeof CARD_KINDS)[number]
+export type CardState = (typeof CARD_STATES)[number]
+export type ColumnKind = (typeof COLUMN_KINDS)[number]
+
+export const COPY_LIMITS: Record<CardSize, { label: number; context: number }> =
+  {
+    stat: { label: 20, context: 26 },
+    sm: { label: 28, context: 36 },
+    md: { label: 40, context: 60 },
+    lg: { label: 48, context: 72 },
+    full: { label: 60, context: 96 }
+  }
 
 export const DASHBOARD_WIDTHS = ['desktop', 'tablet', 'phone'] as const
 export type DashboardWidth = (typeof DASHBOARD_WIDTHS)[number]

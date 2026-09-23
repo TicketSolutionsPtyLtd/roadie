@@ -51,6 +51,10 @@
     "./dashboard": {
       "types": "./dist/dashboard/index.d.ts",
       "import": "./dist/dashboard/index.js"
+    },
+    "./dashboard-layout": {
+      "types": "./dist/dashboard-layout/index.d.ts",
+      "import": "./dist/dashboard-layout/index.js"
     }
   },
   "sideEffects": [

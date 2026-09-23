@@ -1,9 +1,7 @@
 import type { core } from 'zod'
 
-import { findRowGaps } from './pack'
+import { COPY_LIMITS, type CardKind, type CardSize, findRowGaps } from './layout'
 import {
-  type CardKind,
-  type CardSize,
   type DashboardCard,
   type DashboardSpec,
   dashboardSchema
@@ -18,15 +16,6 @@ export type DashboardProblem = {
 export type DashboardValidation =
   | { ok: true; dashboard: DashboardSpec; problems: DashboardProblem[] }
   | { ok: false; problems: DashboardProblem[] }
-
-export const COPY_LIMITS: Record<CardSize, { label: number; context: number }> =
-  {
-    stat: { label: 20, context: 26 },
-    sm: { label: 28, context: 36 },
-    md: { label: 40, context: 60 },
-    lg: { label: 48, context: 72 },
-    full: { label: 60, context: 96 }
-  }
 
 const ALLOWED_SIZES: Record<CardKind, readonly CardSize[]> = {
   stat: ['stat'],

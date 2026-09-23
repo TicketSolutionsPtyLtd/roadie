@@ -2,7 +2,7 @@ import { type ComponentProps, type ReactNode, useId } from 'react'
 
 import { ClockCountdownIcon } from '@phosphor-icons/react/ssr'
 
-import type { CardSize, CardState } from '@oztix/roadie-core/dashboard'
+import type { CardSize, CardState } from '@oztix/roadie-core/dashboard-layout'
 import {
   type GoodWhen,
   type ValueFormat,

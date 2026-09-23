@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { findRowGaps } from './pack'
+import { findRowGaps } from './layout'
 
 const cards = (...sizes: string[]) =>
   sizes.map((size, i) => ({ id: `c${i}`, size })) as Parameters<

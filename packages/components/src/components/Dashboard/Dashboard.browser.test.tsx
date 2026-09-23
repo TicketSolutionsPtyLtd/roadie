@@ -14,7 +14,7 @@ import {
   CARD_SPANS,
   DASHBOARD_TRACKS,
   type DashboardWidth
-} from '@oztix/roadie-core/dashboard'
+} from '@oztix/roadie-core/dashboard-layout'
 
 import { Dashboard } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'

@@ -1,21 +1,7 @@
 import { z } from 'zod'
 
-export const CARD_SIZES = ['stat', 'sm', 'md', 'lg', 'full'] as const
-export const CARD_KINDS = ['stat', 'table', 'chart', 'note'] as const
-export const CARD_STATES = [
-  'ready',
-  'loading',
-  'empty',
-  'error',
-  'stale'
-] as const
-export const COLUMN_KINDS = [
-  'text',
-  'number',
-  'delta',
-  'sparkline',
-  'meter'
-] as const
+import { CARD_SIZES, CARD_STATES, COLUMN_KINDS } from './layout'
+
 const VALUE_FORMATS = [
   'number',
   'compact',
@@ -25,11 +11,6 @@ const VALUE_FORMATS = [
   'points',
   'index'
 ] as const
-
-export type CardSize = (typeof CARD_SIZES)[number]
-export type CardKind = (typeof CARD_KINDS)[number]
-export type CardState = (typeof CARD_STATES)[number]
-export type ColumnKind = (typeof COLUMN_KINDS)[number]
 
 const valueFormat = z.enum(VALUE_FORMATS)
 const goodWhen = z.enum(['up', 'down', 'neither'])
