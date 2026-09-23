@@ -254,6 +254,19 @@ describe("an inspector drawer's Close", () => {
     )
   })
 
+  it('paints the header solid in the drawer, matching the band above it', async () => {
+    mount(NARROW, <Shell reveal header />)
+    const drawer = await screen.findByRole('dialog')
+    const header = drawer.querySelector<HTMLElement>(
+      '[data-slot="pane-header"]'
+    )!
+
+    expect(getComputedStyle(header).backgroundColor).toBe(
+      getComputedStyle(drawer).backgroundColor
+    )
+    expect(getComputedStyle(header).backdropFilter).toBe('none')
+  })
+
   it('gives sticky chrome in the drawer the drawer surface to mix against', async () => {
     mount(NARROW, <Shell reveal header />)
     const drawer = await screen.findByRole('dialog')
