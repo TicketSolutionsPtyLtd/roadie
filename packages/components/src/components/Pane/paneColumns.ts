@@ -1,9 +1,15 @@
 import { PANE_MAX_DEPTH } from './paneDepth'
+import type { PaneInspectorSize } from './variants'
 
 export { PANE_MAX_DEPTH }
 
 const PANE_MIN_FILL = 28
-export const PANE_INSPECTOR = 14
+/** Inspector widths by `size`; `pane-columns.css` hard-codes each with its `inspectorTier`s. */
+export const PANE_INSPECTOR = {
+  sm: 14,
+  md: 20,
+  lg: 24
+} as const satisfies Record<PaneInspectorSize, number>
 export const PANE_GAP = 0.75
 const PANE_ROW_PADDING = 1.5
 export const PANE_MAX_COLUMNS = 3
@@ -86,7 +92,7 @@ export function rowTier(columns: number, top: number, levels: number): number {
   )
 }
 
-const inspectorFits = (levels: number, content: number) => {
+const inspectorFits = (levels: number, content: number, width: number) => {
   const shown = Math.min(levels, PANE_MAX_COLUMNS)
   return Array.from({ length: levels }, (_, top) => top).every((top) => {
     const parents = parentsOf(shown, top, levels)
@@ -95,8 +101,7 @@ const inspectorFits = (levels: number, content: number) => {
       (sum, depth) => sum + parentTrackWidth(shown, depth, parents, content),
       0
     )
-    const fill =
-      content - PANE_ROW_PADDING - tracks - PANE_INSPECTOR - shown * PANE_GAP
+    const fill = content - PANE_ROW_PADDING - tracks - width - shown * PANE_GAP
     return fill >= PANE_MIN_FILL
   })
 }
@@ -105,9 +110,12 @@ const inspectorFits = (levels: number, content: number) => {
 const PX = 1 / 16
 
 /** Content width, in rem, from which the inspector fits beside every level present, at any top, and the fill keeps its minimum. */
-export function inspectorTier(levels: number): number {
+export function inspectorTier(
+  levels: number,
+  size: PaneInspectorSize = 'sm'
+): number {
   let content = columnTier(2)
-  while (!inspectorFits(levels, content)) content += PX
+  while (!inspectorFits(levels, content, PANE_INSPECTOR[size])) content += PX
   return content
 }
 

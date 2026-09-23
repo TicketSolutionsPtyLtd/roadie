@@ -4,6 +4,7 @@ import { PaneBody } from './PaneBody'
 import { PaneBodyTitle } from './PaneBodyTitle'
 import { PaneFooter } from './PaneFooter'
 import { PaneHeader } from './PaneHeader'
+import { PaneInspectorTrigger } from './PaneInspectorTrigger'
 import { PaneRoot } from './PaneRoot'
 import { PaneSearch } from './PaneSearch'
 import { PaneTitle } from './PaneTitle'
@@ -17,6 +18,7 @@ const Pane = PaneRoot as typeof PaneRoot & {
   Actions: typeof PaneActions
   Search: typeof PaneSearch
   Footer: typeof PaneFooter
+  InspectorTrigger: typeof PaneInspectorTrigger
 }
 
 Pane.Root = PaneRoot
@@ -27,9 +29,17 @@ Pane.BodyTitle = PaneBodyTitle
 Pane.Actions = PaneActions
 Pane.Search = PaneSearch
 Pane.Footer = PaneFooter
+Pane.InspectorTrigger = PaneInspectorTrigger
 
 export { Pane }
-export type { PaneColumn, PaneEmphasis, PaneTabBar } from './variants'
+export type {
+  PaneColumn,
+  PaneEmphasis,
+  PaneInspectorSize,
+  PaneMeasure,
+  PaneMeasureAlign,
+  PaneTabBar
+} from './variants'
 export type { PaneDepth } from './paneDepth'
 export type { PaneRootProps as PaneProps } from './PaneRoot'
 export type { PaneBodyProps } from './PaneBody'
@@ -39,3 +49,4 @@ export type { PaneBodyTitleProps } from './PaneBodyTitle'
 export type { PaneActionsProps } from './PaneActions'
 export type { PaneSearchProps } from './PaneSearch'
 export type { PaneFooterProps } from './PaneFooter'
+export type { PaneInspectorTriggerProps } from './PaneInspectorTrigger'

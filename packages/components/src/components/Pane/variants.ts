@@ -3,6 +3,9 @@ import { cva } from 'class-variance-authority'
 export type PaneColumn = 'list' | 'detail' | 'inspector'
 export type PaneEmphasis = 'raised' | 'normal' | 'subtle' | 'subtler'
 export type PaneTabBar = 'visible' | 'auto' | 'hidden'
+export type PaneInspectorSize = 'sm' | 'md' | 'lg'
+export type PaneMeasure = 'full' | 'narrow' | 'readable' | 'wide'
+export type PaneMeasureAlign = 'center' | 'start'
 
 export const paneVariants = cva(
   [

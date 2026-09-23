@@ -15,7 +15,7 @@ import {
   rowTier,
   visibleColumns
 } from './paneColumns'
-import { paneVariants } from './variants'
+import { type PaneInspectorSize, paneVariants } from './variants'
 
 export const REM = 16
 export const STACK_INSET = 12
@@ -30,7 +30,7 @@ export type PaneSpec = {
 export type RowSpec = {
   level?: number
   panes: PaneSpec[]
-  inspector?: boolean
+  inspector?: boolean | PaneInspectorSize
   reveal?: boolean
   overflow?: boolean
   inner?: string
@@ -55,13 +55,17 @@ export function paneMarkup(level: number, pane: PaneSpec, inner = '') {
   return `<section data-slot="pane" data-column="${columnOf(pane)}" data-stack data-level="${level}" data-depth="${pane.depth}"${flag(pane.reached, 'data-reached')}${flag(pane.overflow, 'data-overflow')}${pane.position ? ` data-stack-position="${pane.position}"` : ''} class="${paneVariants()}"><div data-slot="pane-back"><button>Back</button></div><div data-slot="pane-close"><button>Close</button></div>${inner}</section>`
 }
 
+const inspectorSizeOf = (spec: RowSpec): PaneInspectorSize | null =>
+  spec.inspector === true ? 'sm' : spec.inspector || null
+
 export function rowMarkup(spec: RowSpec) {
   const level = spec.level ?? 0
   const panes = spec.panes.map((pane, index) =>
     paneMarkup(level, pane, index === 0 ? (spec.inner ?? '') : '')
   )
-  const inspector = spec.inspector
-    ? `<section data-slot="pane" data-column="inspector" data-level="${level}" class="${paneVariants()}"></section>`
+  const size = inspectorSizeOf(spec)
+  const inspector = size
+    ? `<section data-slot="pane" data-column="inspector" data-level="${level}"${size === 'sm' ? '' : ` data-size="${size}"`} class="${paneVariants()}"></section>`
     : ''
   return `<div data-slot="navigator-panes" data-level="${level}"${flag(spec.reveal, 'data-reveal')}${flag(spec.overflow, 'data-overflow')} class="${navigatorPanesClass}">${panes.join('')}${inspector}</div>`
 }
@@ -136,9 +140,13 @@ export function rowSpecOf(row: Element): RowSpec {
     level: Number(level),
     reveal: row.hasAttribute('data-reveal'),
     overflow: row.hasAttribute('data-overflow'),
-    inspector:
-      row.querySelector(`[data-column="inspector"][data-level="${level}"]`) !==
-      null,
+    inspector: (() => {
+      const inspector = row.querySelector(
+        `[data-column="inspector"][data-level="${level}"]`
+      )
+      if (inspector === null) return false
+      return (inspector.getAttribute('data-size') as PaneInspectorSize) ?? true
+    })(),
     panes: Array.from(panes, (pane) => {
       const depth = pane.getAttribute('data-depth')!
       return {
@@ -257,10 +265,11 @@ export function modelLayoutAt(spec: RowSpec, widthPx: number): PaneLayout[] {
     }
   }
 
+  const inspectorSize = inspectorSizeOf(spec)
   const inspectorShown =
-    spec.inspector === true &&
+    inspectorSize !== null &&
     widthPx >= columnTier(2) * REM &&
-    widthPx >= inspectorTier(levels) * REM
+    widthPx >= inspectorTier(levels, inspectorSize) * REM
 
   if (columns > 1) {
     const shown = visibleColumns(columns, levels)
@@ -282,7 +291,9 @@ export function modelLayoutAt(spec: RowSpec, widthPx: number): PaneLayout[] {
     const parentsWidth = inFlow
       .filter((cell) => cell.slot === 'parent')
       .reduce((sum, cell) => sum + trackOf(cell.relative), 0)
-    const inspectorWidth = inspectorShown ? PANE_INSPECTOR * REM + gap : 0
+    const inspectorWidth = inspectorShown
+      ? PANE_INSPECTOR[inspectorSize] * REM + gap
+      : 0
     const fill =
       widthPx -
       2 * padding -
@@ -315,14 +326,14 @@ export function modelLayoutAt(spec: RowSpec, widthPx: number): PaneLayout[] {
 
   for (const index of hidden) layouts[index] = { ...HIDDEN }
 
-  if (spec.inspector) {
+  if (inspectorSize !== null) {
     const right = widthPx - PANE_GAP * REM
     layouts.push(
       inspectorShown
         ? {
             shown: true,
-            left: Math.round(right - PANE_INSPECTOR * REM),
-            width: PANE_INSPECTOR * REM,
+            left: Math.round(right - PANE_INSPECTOR[inspectorSize] * REM),
+            width: PANE_INSPECTOR[inspectorSize] * REM,
             back: false,
             close: false,
             zIndex: 'auto',
@@ -373,7 +384,14 @@ function cartesianProduct<A, B>(a: readonly A[], b: readonly B[]): [A, B][] {
 
 const ROW_BASES = [0, 1] as const
 const ROW_REVEALS = [false, true] as const
-const ROW_EXTRAS = ['none', 'inspector', 'closedMore', 'openMore'] as const
+const ROW_EXTRAS = [
+  'none',
+  'inspector',
+  'inspector-md',
+  'inspector-lg',
+  'closedMore',
+  'openMore'
+] as const
 
 const levelCountsFor = (base: number) =>
   Array.from({ length: PANE_MAX_DEPTH + 1 - base }, (_, index) => index + 1)
@@ -397,7 +415,14 @@ function rowShape(
     spec: {
       level,
       panes,
-      inspector: extra === 'inspector',
+      inspector:
+        extra === 'inspector'
+          ? true
+          : extra === 'inspector-md'
+            ? 'md'
+            : extra === 'inspector-lg'
+              ? 'lg'
+              : false,
       reveal: reveal || extra === 'openMore',
       overflow: extra === 'openMore'
     }

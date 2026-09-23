@@ -61,6 +61,36 @@ describe('Pane', () => {
     expect(pane()).toHaveAttribute('data-depth', '1')
   })
 
+  it('sizes an inspector, small by default', async () => {
+    const { unmount } = await renderPane(<Pane column='inspector'>Body</Pane>)
+    expect(pane()).toHaveAttribute('data-size', 'sm')
+    unmount()
+
+    await renderPane(
+      <Pane column='inspector' size='lg'>
+        Body
+      </Pane>
+    )
+    expect(pane()).toHaveAttribute('data-size', 'lg')
+  })
+
+  it('marks its measure, centred by default', async () => {
+    await renderPane(<Pane measure='readable'>Body</Pane>)
+    expect(pane()).toHaveAttribute('data-measure', 'readable')
+    expect(pane()).toHaveAttribute('data-measure-align', 'center')
+  })
+
+  it('spans the full column by default, with nothing to align', async () => {
+    await renderPane(<Pane measureAlign='start'>Body</Pane>)
+    expect(pane()).toHaveAttribute('data-measure', 'full')
+    expect(pane()).not.toHaveAttribute('data-measure-align')
+  })
+
+  it('leaves size off a pane in the stack', async () => {
+    await renderPane(<Pane size='lg'>Body</Pane>)
+    expect(pane()).not.toHaveAttribute('data-size')
+  })
+
   it('passes an ARIA role through to the section', async () => {
     await renderPane(<Pane role='navigation'>Body</Pane>)
     expect(pane()).toHaveAttribute('role', 'navigation')

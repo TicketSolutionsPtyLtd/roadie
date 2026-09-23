@@ -133,6 +133,147 @@
       @slot;
     }
   }
+  /* A wider inspector yields sooner; each size's thresholds come from inspectorTier. */
+  @container panes (width < 50.25rem) {
+    [data-slot='navigator-panes'][data-level='0']:has(
+        [data-column='inspector'][data-level='0'][data-size='md']
+      )
+      &:not([data-slot='navigator-panes'][data-level='1'] *),
+    [data-slot='navigator-panes'][data-level='1']:has(
+        [data-column='inspector'][data-level='1'][data-size='md']
+      )
+      & {
+      @slot;
+    }
+  }
+  @container panes (width < 75rem) {
+    [data-slot='navigator-panes'][data-level='0']:is(
+        :has(
+          [data-stack][data-level='0']:is([data-depth='2'], [data-depth='3'])
+        ),
+        :is(
+          [data-overflow],
+          :has(
+            [data-stack][data-level='0'][data-depth='0']:not([data-overflow])
+          )
+        ):has([data-stack][data-level='0'][data-depth='1'])
+      ):has([data-column='inspector'][data-level='0'][data-size='md'])
+      &:not([data-slot='navigator-panes'][data-level='1'] *) {
+      @slot;
+    }
+    [data-slot='navigator-panes'][data-level='1']:is(
+        :has(
+          [data-stack][data-level='1']:is([data-depth='2'], [data-depth='3'])
+        ),
+        :is(
+          [data-overflow],
+          :has(
+            [data-stack][data-level='1'][data-depth='0']:not([data-overflow])
+          )
+        ):has([data-stack][data-level='1'][data-depth='1'])
+      ):has([data-column='inspector'][data-level='1'][data-size='md'])
+      & {
+      @slot;
+    }
+  }
+  @container panes (width < 105.75rem) {
+    @container style(--pane-levels: 3) {
+      [data-slot='navigator-panes'][data-level='0']:has(
+          [data-column='inspector'][data-level='0'][data-size='md']
+        )
+        &:not([data-slot='navigator-panes'][data-level='1'] *),
+      [data-slot='navigator-panes'][data-level='1']:has(
+          [data-column='inspector'][data-level='1'][data-size='md']
+        )
+        & {
+        @slot;
+      }
+    }
+  }
+  @container panes (width < 111.75rem) {
+    @container style(--pane-levels: 4) {
+      [data-slot='navigator-panes'][data-level='0']:has(
+          [data-column='inspector'][data-level='0'][data-size='md']
+        )
+        &:not([data-slot='navigator-panes'][data-level='1'] *),
+      [data-slot='navigator-panes'][data-level='1']:has(
+          [data-column='inspector'][data-level='1'][data-size='md']
+        )
+        & {
+        @slot;
+      }
+    }
+  }
+  @container panes (width < 54.25rem) {
+    [data-slot='navigator-panes'][data-level='0']:has(
+        [data-column='inspector'][data-level='0'][data-size='lg']
+      )
+      &:not([data-slot='navigator-panes'][data-level='1'] *),
+    [data-slot='navigator-panes'][data-level='1']:has(
+        [data-column='inspector'][data-level='1'][data-size='lg']
+      )
+      & {
+      @slot;
+    }
+  }
+  @container panes (width < 79rem) {
+    [data-slot='navigator-panes'][data-level='0']:is(
+        :has(
+          [data-stack][data-level='0']:is([data-depth='2'], [data-depth='3'])
+        ),
+        :is(
+          [data-overflow],
+          :has(
+            [data-stack][data-level='0'][data-depth='0']:not([data-overflow])
+          )
+        ):has([data-stack][data-level='0'][data-depth='1'])
+      ):has([data-column='inspector'][data-level='0'][data-size='lg'])
+      &:not([data-slot='navigator-panes'][data-level='1'] *) {
+      @slot;
+    }
+    [data-slot='navigator-panes'][data-level='1']:is(
+        :has(
+          [data-stack][data-level='1']:is([data-depth='2'], [data-depth='3'])
+        ),
+        :is(
+          [data-overflow],
+          :has(
+            [data-stack][data-level='1'][data-depth='0']:not([data-overflow])
+          )
+        ):has([data-stack][data-level='1'][data-depth='1'])
+      ):has([data-column='inspector'][data-level='1'][data-size='lg'])
+      & {
+      @slot;
+    }
+  }
+  @container panes (width < 109.75rem) {
+    @container style(--pane-levels: 3) {
+      [data-slot='navigator-panes'][data-level='0']:has(
+          [data-column='inspector'][data-level='0'][data-size='lg']
+        )
+        &:not([data-slot='navigator-panes'][data-level='1'] *),
+      [data-slot='navigator-panes'][data-level='1']:has(
+          [data-column='inspector'][data-level='1'][data-size='lg']
+        )
+        & {
+        @slot;
+      }
+    }
+  }
+  @container panes (width < 115.75rem) {
+    @container style(--pane-levels: 4) {
+      [data-slot='navigator-panes'][data-level='0']:has(
+          [data-column='inspector'][data-level='0'][data-size='lg']
+        )
+        &:not([data-slot='navigator-panes'][data-level='1'] *),
+      [data-slot='navigator-panes'][data-level='1']:has(
+          [data-column='inspector'][data-level='1'][data-size='lg']
+        )
+        & {
+        @slot;
+      }
+    }
+  }
 }
 
 @layer components {
@@ -724,6 +865,110 @@
   @container panes (width < 105.75rem) {
     @container style(--pane-levels: 4) {
       [data-slot='pane'][data-column='inspector'][data-level] {
+        display: none !important;
+      }
+    }
+  }
+
+  /* `size` on an inspector: its width, and the thresholds inspectorTier gives it. */
+  [data-slot='navigator-panes']
+    [data-slot='pane'][data-column='inspector'][data-level][data-size='md'] {
+    flex-basis: 20rem;
+  }
+  [data-slot='navigator-panes']
+    [data-slot='pane'][data-column='inspector'][data-level][data-size='lg'] {
+    flex-basis: 24rem;
+  }
+  @container panes (width < 50.25rem) {
+    [data-slot='pane'][data-column='inspector'][data-level][data-size='md'] {
+      display: none !important;
+    }
+  }
+  @container panes (width < 75rem) {
+    [data-slot='navigator-panes'][data-level='0']:is(
+        :has(
+          [data-stack][data-level='0']:is([data-depth='2'], [data-depth='3'])
+        ),
+        :is(
+          [data-overflow],
+          :has(
+            [data-stack][data-level='0'][data-depth='0']:not([data-overflow])
+          )
+        ):has([data-stack][data-level='0'][data-depth='1'])
+      )
+      [data-column='inspector'][data-level='0'][data-size='md'],
+    [data-slot='navigator-panes'][data-level='1']:is(
+        :has(
+          [data-stack][data-level='1']:is([data-depth='2'], [data-depth='3'])
+        ),
+        :is(
+          [data-overflow],
+          :has(
+            [data-stack][data-level='1'][data-depth='0']:not([data-overflow])
+          )
+        ):has([data-stack][data-level='1'][data-depth='1'])
+      )
+      [data-column='inspector'][data-level='1'][data-size='md'] {
+      display: none !important;
+    }
+  }
+  @container panes (width < 105.75rem) {
+    @container style(--pane-levels: 3) {
+      [data-slot='pane'][data-column='inspector'][data-level][data-size='md'] {
+        display: none !important;
+      }
+    }
+  }
+  @container panes (width < 111.75rem) {
+    @container style(--pane-levels: 4) {
+      [data-slot='pane'][data-column='inspector'][data-level][data-size='md'] {
+        display: none !important;
+      }
+    }
+  }
+  @container panes (width < 54.25rem) {
+    [data-slot='pane'][data-column='inspector'][data-level][data-size='lg'] {
+      display: none !important;
+    }
+  }
+  @container panes (width < 79rem) {
+    [data-slot='navigator-panes'][data-level='0']:is(
+        :has(
+          [data-stack][data-level='0']:is([data-depth='2'], [data-depth='3'])
+        ),
+        :is(
+          [data-overflow],
+          :has(
+            [data-stack][data-level='0'][data-depth='0']:not([data-overflow])
+          )
+        ):has([data-stack][data-level='0'][data-depth='1'])
+      )
+      [data-column='inspector'][data-level='0'][data-size='lg'],
+    [data-slot='navigator-panes'][data-level='1']:is(
+        :has(
+          [data-stack][data-level='1']:is([data-depth='2'], [data-depth='3'])
+        ),
+        :is(
+          [data-overflow],
+          :has(
+            [data-stack][data-level='1'][data-depth='0']:not([data-overflow])
+          )
+        ):has([data-stack][data-level='1'][data-depth='1'])
+      )
+      [data-column='inspector'][data-level='1'][data-size='lg'] {
+      display: none !important;
+    }
+  }
+  @container panes (width < 109.75rem) {
+    @container style(--pane-levels: 3) {
+      [data-slot='pane'][data-column='inspector'][data-level][data-size='lg'] {
+        display: none !important;
+      }
+    }
+  }
+  @container panes (width < 115.75rem) {
+    @container style(--pane-levels: 4) {
+      [data-slot='pane'][data-column='inspector'][data-level][data-size='lg'] {
         display: none !important;
       }
     }

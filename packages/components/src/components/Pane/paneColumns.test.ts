@@ -65,6 +65,15 @@ describe('tiers', () => {
     expect(inspectorTier(3)).toBe(99.75)
     expect(inspectorTier(4)).toBe(105.75)
   })
+
+  it('yields a wider inspector sooner, by the width it adds', () => {
+    expect([1, 2, 3, 4].map((levels) => inspectorTier(levels, 'md'))).toEqual([
+      50.25, 75, 105.75, 111.75
+    ])
+    expect([1, 2, 3, 4].map((levels) => inspectorTier(levels, 'lg'))).toEqual([
+      54.25, 79, 109.75, 115.75
+    ])
+  })
 })
 
 describe('paneCell, the prototype evidence', () => {
