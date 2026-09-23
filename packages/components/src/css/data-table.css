@@ -5,19 +5,28 @@
 }
 
 @container data-table (width < 720px) {
-  [data-slot='data-table']:not([data-show-all]) [data-priority='3'] {
+  [data-slot='data-table']:not(
+      :has([data-slot='data-table-show-all'][aria-expanded='true'])
+    )
+    [data-priority='3'] {
     display: none;
   }
 }
 
 @container data-table (width < 560px) {
-  [data-slot='data-table']:not([data-show-all]) [data-priority='2'] {
+  [data-slot='data-table']:not(
+      :has([data-slot='data-table-show-all'][aria-expanded='true'])
+    )
+    [data-priority='2'] {
     display: none;
   }
 }
 
 @container data-table (width < 400px) {
-  [data-slot='data-table']:not([data-show-all]) [data-priority='1'] {
+  [data-slot='data-table']:not(
+      :has([data-slot='data-table-show-all'][aria-expanded='true'])
+    )
+    [data-priority='1'] {
     display: none;
   }
 }
@@ -28,11 +37,17 @@
   }
 }
 
-[data-slot='data-table'][data-show-all] [data-slot='data-table-scroller'] {
+[data-slot='data-table']:has(
+    [data-slot='data-table-show-all'][aria-expanded='true']
+  )
+  [data-slot='data-table-scroller'] {
   overflow-x: auto;
 }
 
-[data-slot='data-table'][data-show-all] [data-pin] {
+[data-slot='data-table']:has(
+    [data-slot='data-table-show-all'][aria-expanded='true']
+  )
+  [data-pin] {
   position: sticky;
   left: 0;
   z-index: 1;
