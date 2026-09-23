@@ -891,6 +891,8 @@ turn and the phone pull-back.
 - The top pane's `tabBar` decides what the phone tab bar does while that pane
   is on top. See [`Pane`](/components/pane).
 
+<div className='grid gap-8'>
+
 <Guideline title='Menus'>
   <Guideline.Do code={`<Navigator.Item value='account' icon={<UserIcon />} placement='pinned'>\n  Account\n  <Navigator.Menu>\n    <Navigator.MenuItem href='/profile'>Profile</Navigator.MenuItem>\n    <Navigator.MenuItem onSelect={signOut}>Sign out</Navigator.MenuItem>\n  </Navigator.Menu>\n</Navigator.Item>`}>
     Use a menu for a few actions, such as an account's profile and sign out.
@@ -911,6 +913,8 @@ turn and the phone pull-back.
     inbox is the list you choose from, so keep the list.
   </Guideline.Dont>
 </Guideline>
+
+</div>
 
 ## Accessibility
 

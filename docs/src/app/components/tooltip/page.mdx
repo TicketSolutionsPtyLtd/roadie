@@ -104,6 +104,8 @@ Wrap related controls in `Tooltip.Provider`. The first tooltip waits for the del
 
 ## Guidelines
 
+<div className='grid gap-8'>
+
 <Guideline title='Keep a tooltip to a label'>
   <Guideline.Do code={`<Tooltip.Trigger render={<IconButton aria-label='Edit'>…</IconButton>} />`}>
     Label icon-only controls. Give the control its own accessible name and let the tooltip repeat it.
@@ -121,6 +123,8 @@ Wrap related controls in `Tooltip.Provider`. The first tooltip waits for the del
     Don't rely on it on touch screens. Touch has no hover, so a tap won't show it. Where a tooltip must never appear on touch, add <code>className='pointer-coarse:hidden'</code> to <code>Tooltip.Content</code>.
   </Guideline.Dont>
 </Guideline>
+
+</div>
 
 ## Accessibility
 

@@ -560,6 +560,8 @@ render(<Loading />)
 
 ## Guidelines
 
+<div className='grid gap-8'>
+
 <Guideline title='Panes are siblings'>
   <Guideline.Do code={`<>\n  <Pane column='list'>…</Pane>\n  <Pane>…</Pane>\n</>`}>
     Render panes side by side, shallowest first. A layout returns its pane and
@@ -591,6 +593,8 @@ render(<Loading />)
     render below the top row.
   </Guideline.Dont>
 </Guideline>
+
+</div>
 
 - A pane registers with its `Navigator` from wherever it renders, such as a
   route layout or your own component. With no `Pane` at all, Navigator warns in
