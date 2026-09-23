@@ -193,8 +193,8 @@ describe('a floating tall drawer', () => {
 
 describe('a fixed-height drawer', () => {
   it.each([
-    ['sm', 844 * 0.5],
-    ['md', 844 * 0.75],
+    ['sm', (844 - 32) * 0.5],
+    ['md', (844 - 32) * 0.75],
     ['lg', 844 - 32]
   ] as const)('stays %s tall whatever its content', async (size, height) => {
     await page.viewport(390, 844)

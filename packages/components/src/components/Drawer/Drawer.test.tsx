@@ -394,7 +394,7 @@ describe('Drawer surface', () => {
     const { unmount } = renderOpen({ side: 'bottom' })
     const sheet = await screen.findByRole('dialog')
     expect(sheet).toHaveAttribute('data-size', 'fit')
-    expect(sheet).toHaveClass('max-h-(--drawer-tall)')
+    expect(sheet).toHaveClass('max-h-full')
     unmount()
 
     renderOpen({ side: 'right' })
@@ -404,9 +404,9 @@ describe('Drawer surface', () => {
   })
 
   it.each([
-    ['sm', 'h-[50dvh]'],
-    ['md', 'h-[75dvh]'],
-    ['lg', 'h-(--drawer-tall)']
+    ['sm', 'h-1/2'],
+    ['md', 'h-3/4'],
+    ['lg', 'h-full']
   ] as const)(
     'holds a %s bottom drawer at a fixed height',
     async (size, cls) => {

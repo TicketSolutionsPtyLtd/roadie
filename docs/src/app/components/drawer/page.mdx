@@ -179,12 +179,14 @@ render(
 
 `size` sets the drawer's extent along its own axis: height for a bottom or top drawer, width for a side one. `sm`, `md` and `lg` are fixed, so the drawer holds still while its content changes, and `fit` follows the content.
 
+A bottom or top drawer measures its height against the space it can use. That space leaves out the far edge's safe area and a gap, so a strip of page always shows, like an iOS large sheet. In a wider window it also leaves out the float off the near edge.
+
 | Size | Bottom or top drawer | Use for |
 | --- | --- | --- |
-| `fit` | The content's height, up to the `lg` height. The default | Short choices that don't change while open, such as a menu, a switcher or a confirmation |
-| `sm` | Half the screen | A peek at something while the page stays in view. Its backdrop is `subtle` by default |
-| `md` | Three quarters of the screen | A longer look that still keeps the page's top in view |
-| `lg` | The whole screen, less the top safe area and a gap, like an iOS large sheet | Tasks: multi-step flows, long lists with filters and forms |
+| `fit` | The content's height, up to all of the space. The default | Short choices that don't change while open, such as a menu, a switcher or a confirmation |
+| `sm` | Half the space | A peek at something while the page stays in view. Its backdrop is `subtle` by default |
+| `md` | Three quarters of the space | A longer look that still keeps the page's top in view |
+| `lg` | All of the space | Tasks: multi-step flows, long lists with filters and forms |
 
 A side drawer takes `md` by default, and `fit` there sizes to the content's width up to the `lg` width.
 
