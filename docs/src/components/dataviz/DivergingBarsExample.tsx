@@ -12,7 +12,7 @@ const W = 300
 const LEFT = 66
 const ROW = 17
 const MID = LEFT + (W - LEFT - 30) / 2
-const SCALE = (W - LEFT - 30) / 2 / 35
+const SCALE = (W - LEFT - 30) / 2 / 42
 
 const fill = (delta: number) => {
   const step = Math.min(4, Math.ceil(Math.abs(delta) / 8))

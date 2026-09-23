@@ -1,6 +1,6 @@
 const W = 490
 const H = 220
-const L = 30
+const L = 38
 const R = 108
 const T = 12
 const B = 22
