@@ -53,7 +53,7 @@ export function PaceChartExample({
     [
       y(forecast(0)),
       `Forecast ${pct(forecast(0))}`,
-      'fill-chart-highlight font-semibold'
+      'fill-chart-value font-semibold'
     ],
     [y(bench(0)), 'Similar shows', 'fill-chart-label']
   ])

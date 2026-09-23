@@ -35,6 +35,19 @@ describe('dataviz.css', () => {
     ])
   })
 
+  it('re-resolves the pair and trio sets inside a nested .dark subtree', () => {
+    const fallbackDark = block('\n.dark {')
+    for (const name of [
+      'chart-pair-1',
+      'chart-pair-2',
+      'chart-trio-1',
+      'chart-trio-2',
+      'chart-trio-3'
+    ]) {
+      expect(fallbackDark).toContain(`--${name}:`)
+    }
+  })
+
   it('flips on any .dark element, not only the root', () => {
     expect(css).toContain('\n.dark {')
     expect(css).toContain('\n  .dark {')

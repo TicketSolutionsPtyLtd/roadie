@@ -136,6 +136,11 @@
   --chart-median: var(--color-neutral-8);
   --chart-other: var(--color-neutral-10);
   --chart-missing: var(--color-neutral-5);
+  --chart-pair-1: var(--chart-1);
+  --chart-pair-2: var(--chart-4);
+  --chart-trio-1: var(--chart-1);
+  --chart-trio-2: var(--chart-4);
+  --chart-trio-3: var(--chart-7);
 }
 
 @supports (color: oklch(0 0 0)) {

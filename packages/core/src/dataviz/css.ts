@@ -82,6 +82,16 @@ function band(p: Palette, mode: Mode, modern: boolean) {
     : `${toHex(p.neutral[mode][step]!)}${alphaHex(alpha)}`
 }
 
+// var() resolves where it is declared, so sets must be re-declared in .dark.
+const sets = (p: Palette) => [
+  ...p.sets.pair.map((slot, i) =>
+    decl(`chart-pair-${i + 1}`, `var(--chart-${slot})`)
+  ),
+  ...p.sets.trio.map((slot, i) =>
+    decl(`chart-trio-${i + 1}`, `var(--chart-${slot})`)
+  )
+]
+
 function modeBlock(p: Palette, mode: Mode, modern: boolean) {
   const lines = direct(p, mode).map(([name, c]) =>
     decl(name, modern ? oklch(c) : toHex(c))
@@ -96,19 +106,12 @@ function modeBlock(p: Palette, mode: Mode, modern: boolean) {
     ),
     decl('chart-band', band(p, mode, modern))
   )
-  if (!modern) lines.push(...aliases(p, mode).map(([n, v]) => decl(n, v)))
+  if (!modern)
+    lines.push(...aliases(p, mode).map(([n, v]) => decl(n, v)), ...sets(p))
   return lines
 }
 
 export function renderDatavizCss(p: Palette = defaultPalette): string {
-  const sets = [
-    ...p.sets.pair.map((slot, i) =>
-      decl(`chart-pair-${i + 1}`, `var(--chart-${slot})`)
-    ),
-    ...p.sets.trio.map((slot, i) =>
-      decl(`chart-trio-${i + 1}`, `var(--chart-${slot})`)
-    )
-  ]
   const ink = Object.entries(INK).map(([k, v]) => decl(`chart-${k}`, v))
   const theme = DATAVIZ_TOKEN_NAMES.map((name) =>
     decl(`color-${name}`, `var(--${name})`)
@@ -125,7 +128,6 @@ export function renderDatavizCss(p: Palette = defaultPalette): string {
     '',
     ':root {',
     ...modeBlock(p, 'light', false),
-    ...sets,
     ...ink,
     '}',
     '',
