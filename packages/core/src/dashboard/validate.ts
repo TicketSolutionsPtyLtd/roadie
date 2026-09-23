@@ -1,6 +1,11 @@
 import type { core } from 'zod'
 
-import { COPY_LIMITS, type CardKind, type CardSize, findRowGaps } from './layout'
+import {
+  COPY_LIMITS,
+  type CardKind,
+  type CardSize,
+  findRowGaps
+} from './layout'
 import {
   type DashboardCard,
   type DashboardSpec,
