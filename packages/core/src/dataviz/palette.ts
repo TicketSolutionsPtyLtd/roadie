@@ -142,7 +142,7 @@ export const palette: Palette = {
     ]
   },
   divergeMidStep,
-  sets: { pair: [1, 4], trio: [1, 4, 7] },
+  sets: { pair: [1, 2], trio: [1, 2, 3] },
   status: {
     good: {
       intent: 'success',

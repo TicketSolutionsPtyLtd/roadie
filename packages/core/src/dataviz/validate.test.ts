@@ -53,6 +53,10 @@ describe('dataviz palette', () => {
     )
   })
 
+  it('uses blue and pink for pairs, adding teal for trios', () => {
+    expect(palette.sets).toEqual({ pair: [1, 2], trio: [1, 2, 3] })
+  })
+
   it('reports the scores the docs publish', () => {
     const scores = paletteScores()
     expect(scores.light.firstFiveCvd).toBeGreaterThanOrEqual(8)

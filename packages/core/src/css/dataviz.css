@@ -88,10 +88,10 @@
   --chart-other: var(--color-neutral-9);
   --chart-missing: var(--color-neutral-5);
   --chart-pair-1: var(--chart-1);
-  --chart-pair-2: var(--chart-4);
+  --chart-pair-2: var(--chart-2);
   --chart-trio-1: var(--chart-1);
-  --chart-trio-2: var(--chart-4);
-  --chart-trio-3: var(--chart-7);
+  --chart-trio-2: var(--chart-2);
+  --chart-trio-3: var(--chart-3);
   --chart-grid: var(--intent-border-subtler);
   --chart-axis: var(--intent-border-normal);
   --chart-label: var(--intent-text-subtle);
@@ -137,10 +137,10 @@
   --chart-other: var(--color-neutral-10);
   --chart-missing: var(--color-neutral-5);
   --chart-pair-1: var(--chart-1);
-  --chart-pair-2: var(--chart-4);
+  --chart-pair-2: var(--chart-2);
   --chart-trio-1: var(--chart-1);
-  --chart-trio-2: var(--chart-4);
-  --chart-trio-3: var(--chart-7);
+  --chart-trio-2: var(--chart-2);
+  --chart-trio-3: var(--chart-3);
 }
 
 @supports (color: oklch(0 0 0)) {

@@ -14,7 +14,7 @@ export const TARGETS = {
   adjacentNormal: 15,
   dangerNormal: 12,
   darkMarkContrast: 3,
-  setCvd: 15,
+  setCvd: 10,
   darkGreyContrast: 3
 } as const
 
