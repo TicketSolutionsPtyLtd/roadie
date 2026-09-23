@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react'
 // Bridges the Vue CartExpiryDialogs skin into the React docs so the expiry demo
 // can render either skin from the same trigger controls. Vue + the widget's Vue
 // dist are dynamically imported inside the effect so they never load during SSR.
-// Mirrors VueCartDrawer — see that file for the no-'use client' rationale.
+// Mirrors VueCartDrawer. See that file for the no-'use client' rationale.
 
 export type VueCartExpiryDialogsProps = {
   showWarning: boolean

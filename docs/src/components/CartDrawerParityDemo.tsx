@@ -60,7 +60,7 @@ export function CartDrawerParityDemo() {
     setRefreshKey((k) => k + 1)
   }
 
-  // Controlled via the `open` prop — toggling it animates open/close. The drawer
+  // Controlled via the `open` prop. Toggling it animates open/close. The drawer
   // echoes tap/drag through onOpenChange, which we sync back into `open`.
   const handleOpenChange = useCallback((isOpen: boolean) => setOpen(isOpen), [])
 

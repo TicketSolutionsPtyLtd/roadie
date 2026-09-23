@@ -147,16 +147,16 @@ export default function IconographyPage() {
         <p className='text-subtle'>
           Three weights are used in the system. Bold is the default for
           everything. Fill is reserved for active or selected states. Duotone is
-          for large, decorative icons — feature surfaces and icons inside an{' '}
-          <Code>IconTile</Code> above 48px, where a bold outline alone looks
-          hollow.
+          for large, decorative icons above 48px. Use it on feature surfaces and
+          icons inside an <Code>IconTile</Code>, where a bold outline alone
+          looks hollow.
         </p>
         <p className='text-subtle'>
           <strong className='text-normal'>Exception:</strong>{' '}
           <Link href='/components/navigator' className='underline'>
             Navigator
           </Link>{' '}
-          destinations render duotone at 24px — Navigator applies the weight
+          destinations render duotone at 24px. Navigator applies the weight
           itself, so pass it a bare icon.
         </p>
 
@@ -248,9 +248,9 @@ export default function IconographyPage() {
               </IconTile>
             }
           >
-            Use <Code>weight=&quot;duotone&quot;</Code> for icons 48px and up —
-            feature surfaces and icons inside an <Code>IconTile</Code> — where
-            the two-tone fill reads as intentional depth.
+            Use <Code>weight=&quot;duotone&quot;</Code> for icons 48px and up.
+            Use it on feature surfaces and icons inside an <Code>IconTile</Code>
+            , where the two-tone fill reads as intentional depth.
           </Guideline.Do>
           <Guideline.Dont
             example={
@@ -260,7 +260,7 @@ export default function IconographyPage() {
               </span>
             }
           >
-            Don&apos;t use duotone for small inline or UI icons — the lighter
+            Don&apos;t use duotone for small inline or UI icons. The lighter
             secondary layer turns muddy at small sizes. Use{' '}
             <Code>weight=&quot;bold&quot;</Code> instead.
           </Guideline.Dont>
@@ -316,10 +316,10 @@ export default function IconographyPage() {
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Icon tiles</h2>
         <p className='text-subtle'>
-          When an icon needs to stand on its own — leading a dialog, a list row,
-          or an empty state — frame it in an <Code>IconTile</Code>. The tile
-          sizes and centres the icon for you, so you pass a bare icon as
-          children with no size class.
+          Frame an icon in an <Code>IconTile</Code> when it needs to stand on
+          its own. Examples include leading a dialog, a list row or an empty
+          state. The tile sizes and centres the icon for you, so you pass a bare
+          icon as children with no size class.
         </p>
 
         <div className='flex flex-wrap items-center gap-3'>
@@ -357,7 +357,7 @@ export default function IconographyPage() {
           description={
             <>
               Phosphor exports each icon with an <Code>Icon</Code> suffix.
-              Always use the suffixed export — the bare name is deprecated.
+              Always use the suffixed export. The bare name is deprecated.
             </>
           }
         >
@@ -470,7 +470,7 @@ export default function IconographyPage() {
           description={
             <>
               All icons should use <Code>weight=&quot;bold&quot;</Code>.
-              Don&apos;t mix weights — it breaks visual harmony.
+              Don&apos;t mix weights. It breaks visual harmony.
             </>
           }
         >
@@ -610,8 +610,9 @@ export default function IconographyPage() {
                 >
                   phosphoricons.com
                 </a>
+                .
               </strong>{' '}
-              — filter by Bold weight to see what&apos;s available.
+              Filter by Bold weight to see what&apos;s available.
             </p>
           </li>
           <li>
@@ -628,8 +629,8 @@ export default function IconographyPage() {
               <strong>
                 Inside Badge, Button, and IconTile, icons auto-size.
               </strong>{' '}
-              No explicit <Code>className</Code> size needed — the component CSS
-              handles it.
+              No explicit <Code>className</Code> size is needed. The component
+              CSS handles it.
             </p>
           </li>
           <li>

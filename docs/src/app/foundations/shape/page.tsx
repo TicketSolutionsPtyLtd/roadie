@@ -119,7 +119,7 @@ export default function ShapePage() {
           <Code>rounded-4xl</Code> and adds three extended tiers (
           <Code>rounded-5xl</Code>, <Code>rounded-6xl</Code>,{' '}
           <Code>rounded-7xl</Code>) for large promotional layouts. Avoid
-          arbitrary values like <Code>rounded-[2.5rem]</Code> — stick to the
+          arbitrary values like <Code>rounded-[2.5rem]</Code>. Stick to the
           named utilities so the scale stays consistent.
         </p>
 
@@ -180,8 +180,8 @@ export default function ShapePage() {
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>Component usage</h2>
         <p className='text-subtle'>
-          Which components use which tier. These are the defaults — override
-          with <Code>className</Code> when a specific context requires it.
+          Which components use which tier. These are the defaults. Override with{' '}
+          <Code>className</Code> when a specific context requires it.
         </p>
 
         <div className='overflow-x-auto'>
@@ -219,11 +219,11 @@ export default function ShapePage() {
               <div className='grid gap-3'>
                 <div className='rounded-xl border border-subtle bg-raised p-4'>
                   <p className='mb-2 text-xs text-subtle'>
-                    Card — <Code>rounded-xl</Code>
+                    Card uses <Code>rounded-xl</Code>
                   </p>
                   <div className='rounded-lg border border-subtle bg-sunken px-3 py-2'>
                     <p className='text-xs text-subtle'>
-                      Input — <Code>rounded-lg</Code>
+                      Input uses <Code>rounded-lg</Code>
                     </p>
                   </div>
                 </div>
@@ -238,11 +238,11 @@ export default function ShapePage() {
               <div className='grid gap-3'>
                 <div className='rounded-md border border-subtle bg-raised p-4'>
                   <p className='mb-2 text-xs text-subtle'>
-                    Card — <Code>rounded-md</Code>
+                    Card uses <Code>rounded-md</Code>
                   </p>
                   <div className='rounded-md border border-subtle bg-sunken px-3 py-2'>
                     <p className='text-xs text-subtle'>
-                      Input — <Code>rounded-md</Code>
+                      Input uses <Code>rounded-md</Code>
                     </p>
                   </div>
                 </div>
@@ -327,7 +327,7 @@ export default function ShapePage() {
               </div>
             }
           >
-            Use a larger radius on a child than its parent — the child&apos;s
+            Use a larger radius on a child than its parent. The child&apos;s
             corners will clip awkwardly against the parent&apos;s straighter
             edges.
           </Guideline.Dont>
@@ -368,7 +368,7 @@ export default function ShapePage() {
             <p>
               <strong>Focus rings follow automatically.</strong> Roadie&apos;s{' '}
               <Code>is-interactive</Code> and <Code>is-interactive-field</Code>{' '}
-              utilities handle focus ring radius — no separate token needed.
+              utilities handle focus ring radius. No separate token is needed.
             </p>
           </li>
         </ul>

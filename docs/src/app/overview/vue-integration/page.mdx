@@ -4,7 +4,7 @@ export const metadata = {
     'Use Roadie design tokens and utility classes in Vue applications without the React component library.'
 }
 
-Roadie's core CSS layer — tokens, intents, emphasis, elevation, typography, and interaction utilities — works with any framework. This guide covers using Roadie in a Vue application where only the CSS foundation is needed.
+Roadie's core CSS layer works with any framework. It covers tokens, intents, emphasis, elevation, typography, and interaction utilities. This guide covers using Roadie in a Vue application where only the CSS foundation is needed.
 
 The React component library (`@oztix/roadie-components`) is not compatible with Vue. Use the token and utility class system directly instead.
 
@@ -214,7 +214,7 @@ Follow the [shape tier system](/foundations/shape) for consistent border-radius:
 
 ### Dark mode
 
-Toggle dark mode by adding the `dark` class to the `<html>` element. All tokens adapt automatically — no `dark:` variants needed.
+Toggle dark mode by adding the `dark` class to the `<html>` element. All tokens adapt automatically, so you need no `dark:` variants.
 
 For SSR-safe dark mode without flash, use the theme script from `@oztix/roadie-core/theme`:
 
@@ -243,7 +243,7 @@ The following require the React component library and are not available in Vue:
 - `ThemeProvider` React context (use the theme script + manual dark class toggling instead)
 - `useTheme()` hook (manage theme state in your Vue app directly)
 
-Everything else — tokens, intents, emphasis, elevation, typography, interactions, motion, and all Tailwind utilities — works identically.
+Everything else works identically. That includes tokens, intents, emphasis, elevation, typography, interactions, motion, and all Tailwind utilities.
 
 ## Next steps
 

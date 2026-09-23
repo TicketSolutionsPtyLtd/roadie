@@ -7,8 +7,8 @@ import type { CartClient } from '@oztix/roadie-widgets/cart'
 // dynamically imported inside the effect so they never load during SSR.
 //
 // No 'use client' marker: this is only imported by CartDrawerParityDemo (which
-// has it), so it already lives in the client graph — and skipping it avoids
-// Next's serializable-prop warning on the function props below.
+// has it), so it already lives in the client graph. Skipping it avoids Next's
+// serializable-prop warning on the function props below.
 
 export type VueCartDrawerProps = {
   cart: CartClient
@@ -22,7 +22,7 @@ export type VueCartDrawerProps = {
   onOpenChange?: (open: boolean) => void
 }
 
-// Minimal shape of the Vue runtime bits we use — the package's published types
+// Minimal shape of the Vue runtime bits we use. The package's published types
 // resolve to the wrong condition under this tsconfig, so type them locally.
 type VueRuntime = {
   createApp: (options: unknown) => {

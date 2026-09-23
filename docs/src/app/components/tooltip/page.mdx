@@ -20,7 +20,7 @@ import { Tooltip } from '@oztix/roadie-components/tooltip'
 
 ### Default
 
-Pass the control to `Tooltip.Trigger` with `render`. The control keeps its own accessible name — here the icon button's `aria-label` — and the tooltip repeats it for pointer users.
+Pass the control to `Tooltip.Trigger` with `render`. The control keeps its own accessible name. Here that is the icon button's `aria-label`. The tooltip repeats it for pointer users.
 
 ```tsx-live
 <Tooltip>
@@ -128,7 +128,7 @@ Wrap related controls in `Tooltip.Provider`. The first tooltip waits for the del
 
 ## Accessibility
 
-- The tooltip isn't announced. The trigger carries its own name — an `aria-label` on an icon-only control, or visible or visually hidden text.
+- The tooltip isn't announced. The trigger carries its own name. That is an `aria-label` on an icon-only control, or visible or visually hidden text.
 - Keyboard focus opens the tooltip; Escape closes it.
 - Hover and focus only. Don't use a tooltip for anything a keyboard, screen reader or touch user needs.
 

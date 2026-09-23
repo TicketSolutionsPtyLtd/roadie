@@ -41,7 +41,7 @@ import { Tabs } from '@oztix/roadie-components/tabs'
 
 ### Emphasis
 
-`emphasis` controls the visual treatment of the list and the indicator. The active indicator animates between tabs in every variant — only the appearance of the indicator changes.
+`emphasis` controls the visual treatment of the list and the indicator. The active indicator animates between tabs in every variant. Only the appearance of the indicator changes.
 
 #### strong
 
@@ -75,7 +75,7 @@ A segmented control with a raised pill that slides between active tabs. Use insi
 
 #### subtle
 
-A ghost segmented control — no track, just a tinted pill that slides behind the active tab. Use when the surrounding surface already provides framing.
+A ghost segmented control. It has no track, just a tinted pill that slides behind the active tab. Use when the surrounding surface already provides framing.
 
 ```tsx-live
 <Tabs defaultValue='week' emphasis='subtle'>
@@ -262,7 +262,7 @@ By default, panels mount only when active. Pass `keepMounted` on `Tabs.Panel` to
 ## Guidelines
 
 - **Use Tabs for related views**, not for top-level page navigation. Reach for `Breadcrumb` or a sidebar instead when tabs would otherwise represent separate pages.
-- **Prefer `emphasis='normal'` inside cards or toolbars** — the segmented track gives the control its own visual frame. Reach for `emphasis='strong'` when tabs need to stand out against a busy or photographic background, `emphasis='subtle'` for a quieter ghost-segmented look, and `emphasis='subtler'` for a flat underline-only row that defers to the surrounding content.
+- **Prefer `emphasis='normal'` inside cards or toolbars.** The segmented track gives the control its own visual frame. Reach for `emphasis='strong'` when tabs need to stand out against a busy or photographic background, `emphasis='subtle'` for a quieter ghost-segmented look, and `emphasis='subtler'` for a flat underline-only row that defers to the surrounding content.
 - **Place the `Tabs.Indicator` inside `Tabs.List`** as a sibling of the tabs themselves, not inside a tab. The indicator is positioned absolutely against the list and reads its geometry from Base UI's `--active-tab-*` CSS variables.
 
 ## Accessibility
@@ -270,6 +270,6 @@ By default, panels mount only when active. Pass `keepMounted` on `Tabs.Panel` to
 - **Keyboard:** `Arrow` keys move focus between tabs (`ArrowLeft`/`ArrowRight` for horizontal, `ArrowUp`/`ArrowDown` for vertical). `Home` and `End` jump to the first and last tab. `Enter` and `Space` activate the focused tab.
 - **Active-on-focus:** Pass `activateOnFocus` on `Tabs.List` to switch panels as focus moves, instead of waiting for `Enter`/`Space`.
 - **ARIA:** Base UI handles `role='tablist'`, `role='tab'`, `role='tabpanel'`, `aria-controls`, `aria-selected`, and `aria-orientation` automatically.
-- **Reduced motion:** The indicator's slide animation is disabled under `prefers-reduced-motion: reduce` — the indicator still updates position, just without the transition.
+- **Reduced motion:** The indicator's slide animation is disabled under `prefers-reduced-motion: reduce`. The indicator still updates position, just without the transition.
 
 <PropsDefinitions componentPath='packages/components/src/components/Tabs' />

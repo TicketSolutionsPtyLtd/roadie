@@ -1,7 +1,7 @@
 export const metadata = {
   title: 'CartDrawer',
   description:
-    'A docked, expandable cart for collection and event pages — fetches its own summary and details, with React and Vue skins over a shared core.',
+    'A docked, expandable cart for collection and event pages. It fetches its own summary and details, with React and Vue skins over a shared core.',
   status: 'beta'
 }
 
@@ -9,8 +9,8 @@ import { PropsDefinitions } from '@/components/PropsDefinitions'
 import { CartDrawerParityDemo } from '@/components/CartDrawerParityDemo'
 import { CartExpiryDialogsDemo } from '@/components/CartExpiryDialogsDemo'
 
-A docked, expandable cart for collection and event pages — matching React and
-Vue skins over one shared core.
+A docked, expandable cart for collection and event pages. It has matching React
+and Vue skins over one shared core.
 
 - Fetches its own summary and details, then groups items by event
 - Locale-aware currency and dates, with a live urgency countdown
@@ -20,14 +20,14 @@ Vue skins over one shared core.
 
 The drawer is `position: fixed` over the whole page, so only the controls
 sit in the example below. Use the **React / Vue** tabs to compare the two
-skins driven by the same controls and the same mock cart — **Show cart**
-docks the summary bar, **Expand cart** opens the full cart. It runs on a
+skins driven by the same controls and the same mock cart. **Show cart**
+docks the summary bar. **Expand cart** opens the full cart. It runs on a
 canned cart (no network), so emptying and reopening starts fresh.
 
 <CartDrawerParityDemo />
 
-In production you render `CartDrawer` once on the page — no buttons — and let
-users tap or drag the docked bar to expand it. `createDemoCart` is a docs-only
+In production you render `CartDrawer` once on the page, with no buttons. Users
+tap or drag the docked bar to expand it. `createDemoCart` is a docs-only
 stub; real apps pass a [cart client](#the-cart-client).
 
 ## Installation
@@ -54,10 +54,10 @@ pnpm add vue motion @number-flow/vue @phosphor-icons/vue focus-trap
 ### Tailwind setup
 
 The drawer's classes live in the package's compiled output, so Tailwind needs to
-scan it — otherwise the styles never make it into your CSS. Add the CSS imports
-for the skin you use to your global stylesheet:
+scan it. Otherwise the styles never make it into your CSS. Add the CSS imports
+for the skin you use to your global stylesheet.
 
-**React** — the React skin renders `@oztix/roadie-components`, so include its CSS
+**React.** The React skin renders `@oztix/roadie-components`, so include its CSS
 as well:
 
 ```css
@@ -67,7 +67,7 @@ as well:
 @import '@oztix/roadie-widgets/css';
 ```
 
-**Vue** — the Vue skin uses core classes only, so no components CSS:
+**Vue.** The Vue skin uses core classes only, so it needs no components CSS:
 
 ```css
 /* app/globals.css */
@@ -98,7 +98,7 @@ import { createCartClient } from '@oztix/roadie-widgets/cart'
 
 ## The cart client
 
-The drawer never talks to the network directly — you inject a `CartClient`. Use
+The drawer never talks to the network directly. You inject a `CartClient`. Use
 `createCartClient` to build one from a host plus an optional `fetch`
 implementation. It owns the cart endpoints and sends `credentials: 'include'`.
 
@@ -107,7 +107,7 @@ import { createCartClient } from '@oztix/roadie-widgets/cart'
 
 const cart = createCartClient({
   host: '', // empty string for same-origin
-  // fetch, // optional — defaults to globalThis.fetch
+  // fetch, // optional, defaults to globalThis.fetch
 })
 ```
 
@@ -125,9 +125,9 @@ interface CartClient {
 
 ## Event schedules
 
-Each `CartEvent` formats its own time row from structured fields — supply UTC
-timestamps and venue-local day keys, and the shared core renders the rest the
-same way in every skin and consumer.
+Each `CartEvent` formats its own time row from structured fields. Supply UTC
+timestamps and venue-local day keys. The shared core renders the rest the same
+way in every skin and consumer.
 
 | Fields supplied                         | Time row                  |
 | --------------------------------------- | ------------------------- |
@@ -136,14 +136,14 @@ same way in every skin and consumer.
 | `+ eventEndDateKey` (different day)     | `6:30pm to Sun 4 Oct, 9pm` |
 
 Pass `eventDateDisplay` to override the computed schedule with a pre-formatted
-string (an escape hatch — prefer the structured fields).
+string. It's an escape hatch, so prefer the structured fields.
 
 ## Reserved seating
 
 Ticket lines carry their seats as **structured data**. The drawer groups them
 by section and row and collapses consecutive seats into a range via the shared
-`formatSeatRange` helper, so React, Vue, and every consumer render seating
-identically — no app-side formatting to drift.
+`formatSeatRange` helper. React, Vue, and every consumer render seating
+identically, with no app-side formatting to drift.
 
 ```ts
 interface CartSeat {
@@ -166,7 +166,7 @@ interface CartSeat {
 | Booth 4 (no row)                     | `Booth 4`                  |
 | Mezzanine M3 + Circle C5             | `Mezzanine M3 · Circle C5` |
 
-Omit `seats` for general-admission tickets — the seat badge only renders when
+Omit `seats` for general-admission tickets. The seat badge only renders when
 seats are present. Add an event in the [live demo](#live-demo) to see the
 reserved-seating examples (Harbourside Jazz, Festival of Lights).
 
@@ -175,7 +175,7 @@ reserved-seating examples (Harbourside Jazz, Festival of Lights).
 ### React
 
 The React skin uses `@tanstack/react-query` internally, so mount it under a
-`QueryClientProvider`. Routing is yours to own — `onNavigate` is required.
+`QueryClientProvider`. Routing is yours to own, so `onNavigate` is required.
 
 ```tsx
 'use client'
@@ -216,7 +216,7 @@ import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/vue'
 const cart = createCartClient({ host: '' })
 
 function onNavigate(href: string): void {
-  // routing is the consumer's job — no silent no-op fallback
+  // routing is the consumer's job. There's no silent no-op fallback.
   window.location.assign(href)
 }
 </script>
@@ -237,7 +237,7 @@ mode onto the drawer (which renders to `<body>`).
 
 ## Controlling open/close
 
-By default the drawer is uncontrolled — users tap or drag the docked bar, and it
+By default the drawer is uncontrolled. Users tap or drag the docked bar, and it
 owns its state (seed it with `initialState`). To open or close it from elsewhere
 in your UI (e.g. an inline "View cart" button), control it with `open` +
 `onOpenChange`: changing `open` animates the drawer with the same spring as a
@@ -261,9 +261,9 @@ const [open, setOpen] = useState(false)
 
 `context` decides what the open-state secondary button ("Browse events") does:
 
-- `'collection'` _(default)_ — the collection page is already behind the drawer,
-  so the button just closes it.
-- `'event'` — navigates to the collection page to browse more events.
+- `'collection'` _(default)_ closes the drawer. The collection page is already
+  behind it.
+- `'event'` navigates to the collection page to browse more events.
 
 The browse target is always built **inside the package** from the
 server-trusted `collectionId` and routed through `onNavigate`. Consumers never
@@ -280,24 +280,25 @@ fresh fetch.
 ## Expiry
 
 The drawer itself only runs the urgency countdown and fires `onExpire` when the
-hold reaches zero — it does **not** render any expiry UI. The full
+hold reaches zero. It does **not** render any expiry UI. The full
 "hold expiring / hold ended" experience is opt-in, shipped as two exports per
 skin that you compose yourself:
 
-- **`useCartExpiry(expiresAtUtc)`** — a headless hook (React) / composable (Vue),
-  no UI of its own. It runs the same one-second countdown as the badge and
+- **`useCartExpiry(expiresAtUtc)`** is a headless hook (React) / composable
+  (Vue), with no UI of its own. It runs the same one-second countdown as the badge and
   returns `{ remaining, expired, showWarning, dismissWarning }`. `showWarning`
   turns on inside the final urgency band (under two minutes) and is a one-shot
   per `expiresAtUtc`: dismissing hides it until the server extends the hold,
   which re-arms it. `expired` becomes `true` once the hold reaches zero.
-- **`CartExpiryDialogs`** — the presentational layer, built on the
+- **`CartExpiryDialogs`** is the presentational layer, built on the
   [Dialog](/components/dialog) compound. Given that state it renders two
-  `alertdialog`s: a dismissible **"Still here?"** warning (warning intent) with a
-  live mm:ss countdown and _Keep browsing_ / _Checkout_ actions (Checkout stays
-  disabled until `checkoutUrl` is ready), and a blocking **"Your hold has ended"**
-  dialog (danger intent, no light-dismiss) whose only exit is _Browse events_.
+  `alertdialog`s. The first is a dismissible **"Still here?"** warning (warning
+  intent) with a live mm:ss countdown and _Keep browsing_ / _Checkout_ actions.
+  Checkout stays disabled until `checkoutUrl` is ready. The second is a blocking
+  **"Your hold has ended"** dialog (danger intent, no light-dismiss) whose only
+  exit is _Browse events_.
 
-Trigger each dialog to see it — switch the **React / Vue** tabs to compare skins.
+Trigger each dialog to see it. Switch the **React / Vue** tabs to compare skins.
 The warning is light-dismissible (close button, backdrop, or `Escape`); the
 expired dialog is blocking, so _Browse events_ is the only way out.
 
@@ -339,8 +340,8 @@ below.
 
 ## Accessibility
 
-- **Focus is trapped** while the drawer is open — React via `react-focus-lock`,
-  Vue via `focus-trap` — and returns to the trigger on close.
+- **Focus is trapped** while the drawer is open and returns to the trigger on
+  close. React uses `react-focus-lock` and Vue uses `focus-trap`.
 - **Body scroll is locked** by default while open (`lockBodyScroll`).
 - **Escape** closes the drawer.
 - Motion **respects `prefers-reduced-motion`**: the open/close and drag

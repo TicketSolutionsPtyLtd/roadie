@@ -1,5 +1,5 @@
-// Permanent RSC canary. This file MUST remain a React Server Component —
-// its entire purpose is to prove that every migrated compound renders from a
+// Permanent RSC canary. This file MUST remain a React Server Component.
+// Its entire purpose is to prove that every migrated compound renders from a
 // server component via both the subpath import and the barrel, using the
 // canonical bare root form (`<Fieldset>`) AND the Base UI-style explicit
 // `<Fieldset.Root>` alias. Both forms reference the same client component.
@@ -63,7 +63,7 @@ export default function RscSmokePage() {
 
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>
-          Fieldset — bare root (canonical)
+          Fieldset as bare root (canonical)
         </h2>
         <p className='text-sm text-subtle'>
           <code>
@@ -87,10 +87,10 @@ export default function RscSmokePage() {
 
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>
-          Fieldset — <code>.Root</code> alias
+          Fieldset with <code>.Root</code> alias
         </h2>
         <p className='text-sm text-subtle'>
-          Explicit <code>&lt;Fieldset.Root&gt;</code> form — same component
+          Explicit <code>&lt;Fieldset.Root&gt;</code> form. Same component
           reference as bare <code>&lt;Fieldset&gt;</code>, supported for
           consumers who prefer Base UI&apos;s explicit root syntax.
         </p>
@@ -98,14 +98,14 @@ export default function RscSmokePage() {
           <Fieldset.Legend>Explicit root</Fieldset.Legend>
           <Fieldset.HelperText>
             <code>&lt;Fieldset.Root&gt;</code> and bare{' '}
-            <code>&lt;Fieldset&gt;</code> are the same function — proves the
+            <code>&lt;Fieldset&gt;</code> are the same function. Proves the
             alias works from a server component.
           </Fieldset.HelperText>
         </Fieldset.Root>
       </section>
 
       <section className='grid gap-4'>
-        <h2 className='text-display-ui-3 text-strong'>Fieldset — barrel</h2>
+        <h2 className='text-display-ui-3 text-strong'>Fieldset via barrel</h2>
         <p className='text-sm text-subtle'>
           <code>
             import &#123; Fieldset &#125; from
@@ -210,7 +210,7 @@ export default function RscSmokePage() {
           </Card.Header>
           <Card.Content>
             <p>
-              Sub-components reached via dot-notation from an RSC —
+              Sub-components reached via dot-notation from an RSC:
               <code>Card.Header</code>, <code>Card.Content</code>, etc.
             </p>
           </Card.Content>
@@ -384,7 +384,7 @@ export default function RscSmokePage() {
       </section>
 
       <section className='grid gap-4'>
-        <h2 className='text-display-ui-3 text-strong'>Tabs — barrel</h2>
+        <h2 className='text-display-ui-3 text-strong'>Tabs via barrel</h2>
         <p className='text-sm text-subtle'>
           <code>
             import &#123; Tabs &#125; from &apos;@oztix/roadie-components&apos;
@@ -398,7 +398,7 @@ export default function RscSmokePage() {
           </TabsViaBarrel.List>
           <TabsViaBarrel.Panel value='one'>
             <p className='py-4 text-subtle'>
-              Imported from the root barrel — proves dot-notation children
+              Imported from the root barrel. Proves dot-notation children
               survive the barrel re-export chain in a server component.
             </p>
           </TabsViaBarrel.Panel>
@@ -410,12 +410,12 @@ export default function RscSmokePage() {
 
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>
-          Tabs — <code>.Root</code> alias
+          Tabs with <code>.Root</code> alias
         </h2>
         <p className='text-sm text-subtle'>
-          Explicit <code>&lt;Tabs.Root&gt;</code> form — same component
-          reference as bare <code>&lt;Tabs&gt;</code>. Also exercises the
-          underline emphasis variant.
+          Explicit <code>&lt;Tabs.Root&gt;</code> form. Same component reference
+          as bare <code>&lt;Tabs&gt;</code>. Also exercises the underline
+          emphasis variant.
         </p>
         <Tabs.Root defaultValue='one' emphasis='subtle'>
           <Tabs.List>
@@ -433,7 +433,7 @@ export default function RscSmokePage() {
       </section>
 
       <section className='grid gap-2'>
-        <h2 className='text-display-ui-3 text-strong'>Popover — subpath</h2>
+        <h2 className='text-display-ui-3 text-strong'>Popover via subpath</h2>
         <Popover>
           <Popover.Trigger>Open popover</Popover.Trigger>
           <Popover.Content>
@@ -446,7 +446,7 @@ export default function RscSmokePage() {
       </section>
 
       <section className='grid gap-2'>
-        <h2 className='text-display-ui-3 text-strong'>Popover — barrel</h2>
+        <h2 className='text-display-ui-3 text-strong'>Popover via barrel</h2>
         <PopoverViaBarrel>
           <PopoverViaBarrel.Trigger>Open popover</PopoverViaBarrel.Trigger>
           <PopoverViaBarrel.Content>
@@ -460,15 +460,15 @@ export default function RscSmokePage() {
 
       <section className='grid gap-2'>
         <h2 className='text-display-ui-3 text-strong'>
-          Popover — <code>.Root</code> alias
+          Popover with <code>.Root</code> alias
         </h2>
         <Popover.Root>
           <Popover.Trigger>Open popover</Popover.Trigger>
           <Popover.Content>
             <Popover.Title>Popover title</Popover.Title>
             <Popover.Description>
-              Explicit <code>&lt;Popover.Root&gt;</code> — same reference as
-              bare <code>&lt;Popover&gt;</code>.
+              Explicit <code>&lt;Popover.Root&gt;</code>. Same reference as bare{' '}
+              <code>&lt;Popover&gt;</code>.
             </Popover.Description>
           </Popover.Content>
         </Popover.Root>
@@ -476,7 +476,7 @@ export default function RscSmokePage() {
 
       <section className='grid gap-2'>
         <h2 className='text-display-ui-3 text-strong'>
-          Tooltip — bare root (canonical)
+          Tooltip as bare root (canonical)
         </h2>
         <Tooltip>
           <Tooltip.Trigger>Hover for a label</Tooltip.Trigger>
@@ -487,7 +487,7 @@ export default function RscSmokePage() {
       </section>
 
       <section className='grid gap-2'>
-        <h2 className='text-display-ui-3 text-strong'>Tooltip — barrel</h2>
+        <h2 className='text-display-ui-3 text-strong'>Tooltip via barrel</h2>
         <TooltipViaBarrel>
           <TooltipViaBarrel.Trigger>Hover for a label</TooltipViaBarrel.Trigger>
           <TooltipViaBarrel.Content>A label</TooltipViaBarrel.Content>
@@ -495,7 +495,7 @@ export default function RscSmokePage() {
       </section>
 
       <section className='grid gap-2'>
-        <h2 className='text-display-ui-3 text-strong'>Dialog — subpath</h2>
+        <h2 className='text-display-ui-3 text-strong'>Dialog via subpath</h2>
         <Dialog>
           <Dialog.Trigger>Open dialog</Dialog.Trigger>
           <Dialog.Content>
@@ -508,7 +508,7 @@ export default function RscSmokePage() {
       </section>
 
       <section className='grid gap-2'>
-        <h2 className='text-display-ui-3 text-strong'>Drawer — subpath</h2>
+        <h2 className='text-display-ui-3 text-strong'>Drawer via subpath</h2>
         <Drawer>
           <Drawer.Trigger>Open drawer</Drawer.Trigger>
           <Drawer.Content>
@@ -524,7 +524,7 @@ export default function RscSmokePage() {
       </section>
 
       <section className='grid gap-2'>
-        <h2 className='text-display-ui-3 text-strong'>Drawer — barrel</h2>
+        <h2 className='text-display-ui-3 text-strong'>Drawer via barrel</h2>
         <DrawerViaBarrel side='right'>
           <DrawerViaBarrel.Trigger>Open drawer</DrawerViaBarrel.Trigger>
           <DrawerViaBarrel.Content>
@@ -539,7 +539,7 @@ export default function RscSmokePage() {
       </section>
 
       <section className='grid gap-2'>
-        <h2 className='text-display-ui-3 text-strong'>Dialog — barrel</h2>
+        <h2 className='text-display-ui-3 text-strong'>Dialog via barrel</h2>
         <DialogViaBarrel>
           <DialogViaBarrel.Trigger>Open dialog</DialogViaBarrel.Trigger>
           <DialogViaBarrel.Content>
@@ -553,14 +553,14 @@ export default function RscSmokePage() {
 
       <section className='grid gap-2'>
         <h2 className='text-display-ui-3 text-strong'>
-          Dialog — <code>.Root</code> alias
+          Dialog with <code>.Root</code> alias
         </h2>
         <Dialog.Root>
           <Dialog.Trigger>Open dialog</Dialog.Trigger>
           <Dialog.Content>
             <Dialog.Title>Dialog title</Dialog.Title>
             <Dialog.Description>
-              Explicit <code>&lt;Dialog.Root&gt;</code> — same reference as bare{' '}
+              Explicit <code>&lt;Dialog.Root&gt;</code>. Same reference as bare{' '}
               <code>&lt;Dialog&gt;</code>.
             </Dialog.Description>
           </Dialog.Content>
@@ -594,7 +594,7 @@ export default function RscSmokePage() {
       </section>
 
       <section className='grid gap-4'>
-        <h2 className='text-display-ui-3 text-strong'>List — subpath</h2>
+        <h2 className='text-display-ui-3 text-strong'>List via subpath</h2>
         <p className='text-sm text-subtle'>
           <code>
             import &#123; List &#125; from
@@ -611,7 +611,7 @@ export default function RscSmokePage() {
       </section>
 
       <section className='grid gap-4'>
-        <h2 className='text-display-ui-3 text-strong'>List — barrel</h2>
+        <h2 className='text-display-ui-3 text-strong'>List via barrel</h2>
         <p className='text-sm text-subtle'>
           <code>
             import &#123; List &#125; from &apos;@oztix/roadie-components&apos;
@@ -625,7 +625,7 @@ export default function RscSmokePage() {
 
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>
-          Navigator — server-safe leaves
+          Navigator server-safe leaves
         </h2>
         <p className='text-sm text-subtle'>
           The bare root and <code>Pane</code>, rendered from the server via the
@@ -667,9 +667,9 @@ export default function RscSmokePage() {
       </section>
 
       <section className='grid gap-4'>
-        <h2 className='text-display-ui-3 text-strong'>Navigator — full tree</h2>
+        <h2 className='text-display-ui-3 text-strong'>Navigator full tree</h2>
         <p className='text-sm text-subtle'>
-          Rendered from a client component on purpose — Navigator finds its own
+          Rendered from a client component on purpose. Navigator finds its own
           children by element reference, which Flight breaks for server-authored
           trees. See <code>NavigatorCanary.tsx</code>.
         </p>
@@ -678,7 +678,7 @@ export default function RscSmokePage() {
 
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>
-          ScrollArea — bare root, <code>.Root</code> alias, and barrel
+          ScrollArea as bare root, <code>.Root</code> alias, and barrel
         </h2>
         <ScrollArea className='h-32 rounded-xl border border-subtle'>
           <ScrollArea.Viewport className='p-3'>

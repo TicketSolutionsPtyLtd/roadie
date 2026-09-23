@@ -22,22 +22,22 @@ const shadowScale = [
   },
   {
     name: 'shadow-md',
-    description: 'Default raised surface — cards, panels',
+    description: 'Default raised surface for cards and panels',
     className: 'shadow-md'
   },
   {
     name: 'shadow-lg',
-    description: 'Prominent depth — hover states, featured cards',
+    description: 'Prominent depth for hover states and featured cards',
     className: 'shadow-lg'
   },
   {
     name: 'shadow-xl',
-    description: 'High emphasis — dropdowns, popovers, floating panels',
+    description: 'High emphasis for dropdowns, popovers and floating panels',
     className: 'shadow-xl'
   },
   {
     name: 'shadow-2xl',
-    description: 'Maximum depth — modals, dialogs, overlays',
+    description: 'Maximum depth for modals, dialogs and overlays',
     className: 'shadow-2xl'
   }
 ]
@@ -50,7 +50,7 @@ const insetScale = [
   },
   {
     name: 'inset-shadow-sm',
-    description: 'Sunken surfaces — input fields, wells',
+    description: 'Sunken surfaces such as input fields and wells',
     className: 'inset-shadow-sm'
   }
 ]
@@ -103,7 +103,7 @@ const zScale = [
     usage: 'Popover, select, combobox, autocomplete, dropdown panels'
   },
   { name: 'z-toast', value: '60', usage: 'Transient notifications' },
-  { name: 'z-tooltip', value: '70', usage: 'Tooltips — always on top' },
+  { name: 'z-tooltip', value: '70', usage: 'Tooltips. Always on top.' },
   {
     name: 'z-alert',
     value: '80',
@@ -184,13 +184,16 @@ export default function ElevationPage() {
           {[
             {
               name: 'rim-light-subtler',
-              desc: 'Barely visible — subtle surfaces'
+              desc: 'Barely visible. For subtle surfaces.'
             },
-            { name: 'rim-light-subtle', desc: 'Gentle — strong buttons' },
-            { name: 'rim-light-normal', desc: 'Standard — rim-light utility' },
+            { name: 'rim-light-subtle', desc: 'Gentle. For strong buttons.' },
+            {
+              name: 'rim-light-normal',
+              desc: 'Standard. Used by the rim-light utility.'
+            },
             {
               name: 'rim-light-strong',
-              desc: 'Prominent — raised/floating surfaces'
+              desc: 'Prominent. For raised and floating surfaces.'
             }
           ].map(({ name, desc }) => (
             <div key={name} className='grid gap-2'>
@@ -255,8 +258,8 @@ export default function ElevationPage() {
               <tr>
                 <td className='py-2 pr-4 font-mono'>emphasis-sunken</td>
                 <td className='py-2 pr-4'>inset-shadow-sm</td>
-                <td className='py-2 pr-4'>—</td>
-                <td className='py-2'>—</td>
+                <td className='py-2 pr-4'>None</td>
+                <td className='py-2'>None</td>
               </tr>
               <tr>
                 <td className='py-2 pr-4 font-mono'>emphasis-field</td>
@@ -264,13 +267,13 @@ export default function ElevationPage() {
                   inset-shadow-xs + translucent border
                 </td>
                 <td className='py-2 pr-4'>is-interactive-field</td>
-                <td className='py-2'>—</td>
+                <td className='py-2'>None</td>
               </tr>
               <tr>
                 <td className='py-2 pr-4 font-mono'>emphasis-floating</td>
                 <td className='py-2 pr-4'>rim-light-strong + shadow-xl</td>
-                <td className='py-2 pr-4'>—</td>
-                <td className='py-2'>—</td>
+                <td className='py-2 pr-4'>None</td>
+                <td className='py-2'>None</td>
               </tr>
               <tr>
                 <td className='py-2 pr-4 font-mono'>emphasis-strong</td>
@@ -324,7 +327,7 @@ export default function ElevationPage() {
               <div className='is-interactive emphasis-raised rounded-xl p-6'>
                 <p className='font-mono text-sm text-strong'>intent-{name}</p>
                 <p className='mt-1 text-xs text-subtle'>
-                  emphasis-raised — hover me
+                  emphasis-raised. Hover me.
                 </p>
               </div>
             </div>
@@ -416,7 +419,7 @@ export default function ElevationPage() {
             <li>
               <p>
                 <strong>Active/pressed states</strong> should decrease or remove
-                shadow — the element feels pushed down.
+                shadow. The element feels pushed down.
               </p>
             </li>
             <li>
@@ -428,8 +431,8 @@ export default function ElevationPage() {
             </li>
             <li>
               <p>
-                Intent tinting is automatic — just ensure the element is inside
-                an <Code>intent-*</Code> container.
+                Intent tinting is automatic. Put the element inside an{' '}
+                <Code>intent-*</Code> container.
               </p>
             </li>
           </ul>
@@ -441,9 +444,9 @@ export default function ElevationPage() {
         <h2 className='text-display-ui-3 text-strong'>Layering</h2>
         <p className='text-subtle'>
           Named stacking tiers so overlay components layer predictably against
-          each other. Each tier is a generated Tailwind utility —{' '}
-          <Code>z-popover</Code> — never a raw <Code>z-50</Code>. A higher tier
-          sits closer to the viewer.
+          each other. Each tier is a generated Tailwind utility, such as{' '}
+          <Code>z-popover</Code>. Never use a raw <Code>z-50</Code>. A higher
+          tier sits closer to the viewer.
         </p>
 
         <div className='overflow-x-auto'>
@@ -471,10 +474,10 @@ export default function ElevationPage() {
           <li>
             <p>
               <strong>
-                Reference via <Code>z-popover</Code>
+                Reference via <Code>z-popover</Code>.
               </strong>{' '}
-              — the generated utility. Never reach for a raw <Code>z-50</Code>,
-              which drifts out of sync with the scale.
+              It is the generated utility. Never reach for a raw{' '}
+              <Code>z-50</Code>, which drifts out of sync with the scale.
             </p>
           </li>
           <li>

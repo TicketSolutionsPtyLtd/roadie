@@ -8,16 +8,16 @@ import { Badge, Code } from '@oztix/roadie-components'
 
 // Compounds that wrap a Base UI primitive, plus the exact set of parts
 // Base UI actually documents for each. Only parts present in the map
-// render a link — Roadie-native sub-components (e.g. `Select.HelperText`,
+// render a link. Roadie-native sub-components (e.g. `Select.HelperText`,
 // `Select.Content`, `Select.ErrorText`, `RadioGroup.Label`) intentionally
 // render without a link because the corresponding anchor doesn't exist
 // upstream.
 //
 // Anchors are whatever Base UI actually uses in its docs markup, which
-// is **single-token lowercase with no separators** — e.g.
+// is **single-token lowercase with no separators**, e.g.
 // `Select.ItemText` → `#itemtext`, `Select.ScrollUpArrow` →
 // `#scrolluparrow`, `Combobox.InputGroup` → `#inputgroup`. Do NOT
-// kebab-case these — Base UI renders `#item-text` as a 404 anchor.
+// kebab-case these. Base UI renders `#item-text` as a 404 anchor.
 //
 // Base UI groups Radio + RadioGroup on a single page at
 // `/react/components/radio`. Roadie's `RadioGroup` root maps to
@@ -329,7 +329,7 @@ function ComponentPropsBody({ groupedProps }: { groupedProps: GroupedProps }) {
   if (onlyForwardedClassName) {
     return (
       <p className='text-sm text-subtle'>
-        No additional props — forwards all standard HTML attributes to the
+        No additional props. It forwards all standard HTML attributes to the
         underlying element.
       </p>
     )
@@ -414,7 +414,7 @@ function resolveParseTargets(componentPath: string): ParseTargets {
   // property-assignment layer that react-docgen-typescript can't drill into.
   //
   // Accept either form. When the path is a directory, enumerate every non-test
-  // `.tsx` leaf inside — `parseComponentProps` also rewrites the parsed leaf
+  // `.tsx` leaf inside. `parseComponentProps` also rewrites the parsed leaf
   // displayNames using the folder basename as the compound prefix.
   const workspaceRoot = path.resolve(process.cwd(), '..')
   const absolutePath = path.join(workspaceRoot, componentPath)
@@ -524,7 +524,7 @@ function parseComponentProps(componentPath: string) {
       })
 
     // Deduplicate compound components: the parser detects each subcomponent
-    // twice — once via `export function CarouselPrevious()` (yields name
+    // twice: once via `export function CarouselPrevious()` (yields name
     // "CarouselPrevious") and once via `Carousel.Previous = CarouselPrevious`
     // (yields name "Carousel.Previous" via the function's displayName).
     // Normalise the names (strip dots, lowercase) to merge them, preferring

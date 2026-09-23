@@ -57,11 +57,11 @@ A bottom sheet. `Drawer.Content` collapses the underlying `Portal`, `Backdrop`, 
 </Drawer>
 ```
 
-`Drawer.Content` publishes `--content-inset`, so its header, body and footer share one horizontal inset — override the variable on `Drawer.Content` to change all three.
+`Drawer.Content` publishes `--content-inset`, so its header, body and footer share one horizontal inset. Override the variable on `Drawer.Content` to change all three.
 
 ### Sides
 
-`side` picks the edge, and with it the dismiss gesture — a `bottom` drawer swipes down, a `right` drawer swipes right. It is a single value, not a breakpoint list: Base UI owns the gesture in JavaScript, so the edge and the swipe have to agree.
+`side` picks the edge, and with it the dismiss gesture. A `bottom` drawer swipes down. A `right` drawer swipes right. It is a single value, not a breakpoint list: Base UI owns the gesture in JavaScript, so the edge and the swipe have to agree.
 
 ```tsx-live-noinline
 const addOns = [
@@ -359,8 +359,8 @@ The collapsed `Drawer.Content` covers the common case. Compose the parts directl
 
 <Guideline title='The handle belongs on the swipe edge'>
   <Guideline.Do code={`<Drawer side='bottom'>\n  <Drawer.Content>…</Drawer.Content>\n</Drawer>`}>
-    `Drawer.Content` places it for you — on a bottom sheet it reads as the grab
-    affordance iOS users reach for, and it is off by default where the swipe
+    `Drawer.Content` places it for you. On a bottom sheet it reads as the grab
+    affordance iOS users reach for. It is off by default where the swipe
     axis is horizontal.
   </Guideline.Do>
   <Guideline.Dont code={`<Drawer side='right'>\n  <Drawer.Content handle>…</Drawer.Content>\n</Drawer>`}>
@@ -387,7 +387,7 @@ The collapsed `Drawer.Content` covers the common case. Compose the parts directl
     never disagree.
   </Guideline.Do>
   <Guideline.Dont code={`const side = isMobile ? 'bottom' : 'right'\n\n<Drawer side={side}>…</Drawer>\n\n// not a breakpoint list:\n<Drawer side={{ base: 'bottom', md: 'right' }} />`}>
-    `side` is a single value, not a breakpoint list — Base UI owns the gesture
+    `side` is a single value, not a breakpoint list. Base UI owns the gesture
     in JavaScript. Pick it from your own media query in application code and
     pass the result.
   </Guideline.Dont>
@@ -399,7 +399,7 @@ The collapsed `Drawer.Content` covers the common case. Compose the parts directl
 
 - Base UI owns the focus trap, the return focus, the `Escape` handling and the `role='dialog'` wiring.
 - `Drawer.Title` and `Drawer.Description` supply the accessible name and description. A drawer without a title has no name.
-- `Drawer.Handle` is `aria-hidden` — the gesture it hints at is not the only way to dismiss, so it carries no semantics of its own.
+- `Drawer.Handle` is `aria-hidden`. The gesture it hints at is not the only way to dismiss, so it carries no semantics of its own.
 - Enter and exit motion is transition-based and disabled under `prefers-reduced-motion: reduce`.
 
 <PropsDefinitions componentPath='packages/components/src/components/Drawer' />

@@ -50,7 +50,7 @@ export default function LayoutPage() {
             <p className='text-sm text-subtle'>
               The container defines tracks and places content inside them.
               Columns are consistent regardless of content variation. Default
-              for most layouts — including vertical stacks.
+              for most layouts, including vertical stacks.
             </p>
             <div className='grid gap-1'>
               <Code>grid gap-4</Code>
@@ -64,8 +64,9 @@ export default function LayoutPage() {
             </h3>
             <p className='text-sm text-subtle'>
               Items negotiate their own sizes based on content. Ideal when
-              layout should follow content — tags, nav items, pill lists,
-              wrapping rows where items should be as wide as they need to be.
+              layout should follow content. Examples include tags, nav items,
+              pill lists and wrapping rows where items should be as wide as they
+              need to be.
             </p>
             <div className='grid gap-1'>
               <Code>flex gap-4 items-center</Code>
@@ -83,7 +84,7 @@ export default function LayoutPage() {
           <div className='grid gap-2'>
             <h3 className='text-display-ui-5 text-strong'>Vertical stack</h3>
             <p className='text-sm text-subtle'>
-              <Code>grid gap-4</Code> — the default vertical layout.
+              <Code>grid gap-4</Code> is the default vertical layout.
             </p>
             <div className='rounded-xl emphasis-subtle p-4'>
               <div className='grid gap-4'>
@@ -97,8 +98,8 @@ export default function LayoutPage() {
           <div className='grid gap-2'>
             <h3 className='text-display-ui-5 text-strong'>Centered content</h3>
             <p className='text-sm text-subtle'>
-              <Code>grid place-content-center</Code> — one class centers both
-              axes.
+              <Code>grid place-content-center</Code> centers both axes with one
+              class.
             </p>
             <div className='rounded-xl emphasis-subtle p-4'>
               <div className='grid min-h-[160px] place-content-center'>
@@ -110,7 +111,7 @@ export default function LayoutPage() {
           <div className='grid gap-2'>
             <h3 className='text-display-ui-5 text-strong'>Horizontal row</h3>
             <p className='text-sm text-subtle'>
-              <Code>flex gap-4 items-center</Code> — content-driven sizing.
+              <Code>flex gap-4 items-center</Code> gives content-driven sizing.
             </p>
             <div className='rounded-xl emphasis-subtle p-4'>
               <div className='flex items-center gap-4'>
@@ -128,7 +129,7 @@ export default function LayoutPage() {
           <div className='grid gap-2'>
             <h3 className='text-display-ui-5 text-strong'>Equal columns</h3>
             <p className='text-sm text-subtle'>
-              <Code>grid grid-cols-3 gap-4</Code> — parent controls column
+              <Code>grid grid-cols-3 gap-4</Code> lets the parent control column
               widths.
             </p>
             <div className='rounded-xl emphasis-subtle p-4'>
@@ -177,8 +178,8 @@ export default function LayoutPage() {
           <div className='grid gap-2'>
             <h3 className='text-display-ui-5 text-strong'>Wrapping row</h3>
             <p className='text-sm text-subtle'>
-              <Code>flex flex-wrap gap-2</Code> — items wrap naturally based on
-              content width. This is where Flexbox shines: children control
+              <Code>flex flex-wrap gap-2</Code> lets items wrap naturally based
+              on content width. This is where Flexbox shines: children control
               their own size.
             </p>
             <div className='rounded-xl emphasis-subtle p-4'>
@@ -337,7 +338,7 @@ export default function LayoutPage() {
         <p className='text-subtle'>
           Components should respond to their parent, not the viewport. A card in
           a narrow sidebar needs different styling than the same card in a wide
-          main column — but the viewport width is the same. Use{' '}
+          main column. The viewport width is the same in both cases. Use{' '}
           <Code>@container</Code> for component-level adaptation.
         </p>
 
@@ -367,20 +368,20 @@ export default function LayoutPage() {
               where it is placed.
             </Guideline.Do>
             <Guideline.Dont
-              code={`{/* Responds to viewport — breaks in narrow columns */}
+              code={`{/* Responds to viewport, breaks in narrow columns */}
 <div className="grid md:grid-cols-[auto_1fr]">
   <img />
   <div>Content</div>
 </div>`}
             >
-              Respond to the viewport — it breaks when the same component is
+              Respond to the viewport. It breaks when the same component is
               placed in a narrow column.
             </Guideline.Dont>
           </Guideline>
 
           <div className='grid gap-2'>
             <h3 className='text-display-ui-6 text-strong'>
-              Live example — same component, different containers
+              The same component in different containers
             </h3>
             <p className='text-sm text-subtle'>
               Both cards use the same <Code>@sm:grid-cols-[80px_1fr]</Code>{' '}
@@ -394,7 +395,7 @@ export default function LayoutPage() {
                   <div className='grid gap-1'>
                     <p className='text-sm text-strong'>Narrow container</p>
                     <p className='text-xs text-subtle'>
-                      Stacks vertically — container is too narrow
+                      Stacks vertically. The container is too narrow.
                     </p>
                   </div>
                 </div>
@@ -405,7 +406,7 @@ export default function LayoutPage() {
                   <div className='grid gap-1'>
                     <p className='text-sm text-strong'>Wider container</p>
                     <p className='text-xs text-subtle'>
-                      Goes side-by-side — same component, more space
+                      Goes side-by-side. Same component, more space.
                     </p>
                   </div>
                 </div>

@@ -12,19 +12,19 @@ you drop into an app.
 They live in the `@oztix/roadie-widgets` package and follow a **core + skins**
 architecture:
 
-- **Core** — framework-agnostic logic: types, the cart client, URL helpers,
-  totals, grouping, urgency, and formatting. No UI.
-- **React skin** — a `'use client'` React component built on
+- The **core** holds the framework-agnostic logic. That covers types, the cart
+  client, URL helpers, totals, grouping, urgency, and formatting. It has no UI.
+- The **React skin** is a `'use client'` React component. It's built on
   `@oztix/roadie-components`, `motion`, and `@tanstack/react-query`.
-- **Vue skin** — a Vue 3 SFC with the same props and behaviour, built on the
-  same core.
+- The **Vue skin** is a Vue 3 SFC with the same props and behaviour. It's built
+  on the same core.
 
 Both skins are pixel- and behaviour-equivalent because they share the core. Pick
-the skin that matches your app — the props are the same.
+the skin that matches your app. The props are the same.
 
 > **Use the React skin for new work.** The Vue skins exist solely for the
 > **TicketSolutions.OnlineOutlet** app. That app is being folded into
-> **TicketSolutions.Oztix.Website** — a React codebase — after which the Vue
+> **TicketSolutions.Oztix.Website**, a React codebase. After that, the Vue
 > skins will be retired. Import the `/vue` entry points only inside OnlineOutlet;
 > everywhere else, use the React skin.
 
@@ -38,18 +38,18 @@ Each skin declares its own peer dependencies (React + react-query + motion, or
 Vue + its NumberFlow/Phosphor packages) so you only install what your framework
 needs. See each widget's page for the exact list.
 
-Then register the package CSS with Tailwind so it scans the compiled classes —
-without it the widgets render unstyled:
+Then register the package CSS with Tailwind so it scans the compiled classes.
+Without it, the widgets render unstyled.
 
 ```css
-/* app/globals.css — React */
+/* app/globals.css (React) */
 @import '@oztix/roadie-core/css';
 @import '@oztix/roadie-components/css';
 @import '@oztix/roadie-widgets/css';
 ```
 
 ```css
-/* app/globals.css — Vue */
+/* app/globals.css (Vue) */
 @import '@oztix/roadie-core/css';
 @import '@oztix/roadie-widgets/css';
 ```
@@ -60,10 +60,10 @@ include its CSS too; the **Vue** skins use core classes only and don't.
 
 ## Available widgets
 
-- [**Cart drawer**](/roadie-widgets/cart-drawer) — the docked, expandable cart
+- [**Cart drawer**](/roadie-widgets/cart-drawer) is the docked, expandable cart
   for collection and event pages.
-- [**Cart contents**](/roadie-widgets/cart-contents) — the day-grouped cart list
-  the drawer renders, exported on its own for a standalone `/cart` page.
+- [**Cart contents**](/roadie-widgets/cart-contents) is the day-grouped cart list
+  the drawer renders. It's exported on its own for a standalone `/cart` page.
 
 More widgets will be added here as they graduate from app code into the shared
 package.

@@ -113,16 +113,16 @@ Pass `href` to render the button as a routed anchor. Roadie picks the right elem
 
 ```tsx-live
 <div className='flex flex-row flex-wrap items-center gap-2'>
-  {/* Internal — routes through RoadieLinkProvider */}
+  {/* Internal routes through RoadieLinkProvider */}
   <Button href='/checkout' emphasis='strong' intent='accent'>Checkout</Button>
 
-  {/* External — auto target='_blank' rel='noopener noreferrer' */}
+  {/* External gets target='_blank' rel='noopener noreferrer' */}
   <Button href='https://oztix.com.au' emphasis='normal'>
     Open Oztix
     <ArrowSquareOut weight='bold' className='size-4' />
   </Button>
 
-  {/* Protocol — plain <a>, no target/rel */}
+  {/* Protocol renders plain <a>, no target/rel */}
   <Button href='mailto:hello@oztix.com.au' emphasis='subtle'>
     <Envelope weight='bold' className='size-4' />
     Email us
@@ -130,7 +130,7 @@ Pass `href` to render the button as a routed anchor. Roadie picks the right elem
 </div>
 ```
 
-Hover each button — the browser status bar shows the resolved `href` exactly as Roadie rendered it. See [Linking](/foundations/linking) for the full reference: provider setup, the external/internal/protocol decision tree, and the `external`/`target`/`rel` overrides.
+Hover each button. The browser status bar shows the resolved `href` exactly as Roadie rendered it. See [Linking](/foundations/linking) for the full reference: provider setup, the external/internal/protocol decision tree, and the `external`/`target`/`rel` overrides.
 
 ### Download
 
@@ -145,7 +145,7 @@ Add `download` to an `href` button to save the file instead of opening it, optio
 
 ### Escape hatch
 
-For full element control, or anchor props `href` doesn't cover (`hreflang`, `referrerPolicy`), use Base UI's `render` prop. It keeps Base UI's button semantics — `role='button'` and `Space` activation — so the element you pass is yours to make accessible. Passing both `href` and `render` triggers a one-shot dev warning — `render` wins, provider routing is silently disabled.
+For full element control, or anchor props `href` doesn't cover (`hreflang`, `referrerPolicy`), use Base UI's `render` prop. It keeps Base UI's button semantics, which are `role='button'` and `Space` activation. The element you pass is yours to make accessible. Passing both `href` and `render` triggers a one-shot dev warning. `render` wins, and provider routing is silently disabled.
 
 ## Accessibility
 

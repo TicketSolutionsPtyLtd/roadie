@@ -84,19 +84,19 @@ const easingTokens = [
   {
     token: '--ease-enter',
     value: 'cubic-bezier(0, 0, 0.2, 1)',
-    use: 'Elements entering — starts fast, settles gently',
+    use: 'Elements entering. Starts fast, settles gently.',
     property: 'Entrances'
   },
   {
     token: '--ease-exit',
     value: 'cubic-bezier(0.4, 0, 1, 1)',
-    use: 'Elements leaving — starts slow, accelerates out',
+    use: 'Elements leaving. Starts slow, accelerates out.',
     property: 'Exits'
   },
   {
     token: '--ease-spring',
     value: 'linear(...)',
-    use: 'Transforms only — slight overshoot for physical feel',
+    use: 'Transforms only. Slight overshoot for physical feel.',
     property: 'Transforms'
   }
 ]
@@ -108,23 +108,23 @@ const playsNowUtilities = [
   },
   {
     name: 'animate-scale-in',
-    description: 'Scale up from 95% with fade — popups, dropdowns'
+    description: 'Scale up from 95% with fade, for popups and dropdowns'
   },
   {
     name: 'animate-pop-in',
-    description: 'Fade + slide-up + scale entrance — pair with origin-*'
+    description: 'Fade + slide-up + scale entrance. Pair with origin-*.'
   },
   {
     name: 'animate-shake',
-    description: 'Horizontal shake — validation error, invalid input'
+    description: 'Horizontal shake for a validation error or invalid input'
   },
   {
     name: 'animate-nudge',
-    description: 'One-shot vertical nudge — attention cue (cart bump)'
+    description: 'One-shot vertical nudge as an attention cue (cart bump)'
   },
   {
     name: 'animate-pop',
-    description: 'One-shot scale pop — attention cue (badge update)'
+    description: 'One-shot scale pop as an attention cue (badge update)'
   },
   {
     name: 'animate-pop-tap',
@@ -169,7 +169,7 @@ const brandValues = [
   {
     name: 'Responsive',
     description:
-      'Motion reacts instantly to input. Like a crew backstage \u2014 things happen when they should.'
+      'Motion reacts instantly to input. Like a crew backstage, things happen when they should.'
   },
   {
     name: 'Grounded',
@@ -179,7 +179,7 @@ const brandValues = [
   {
     name: 'Efficient',
     description:
-      'Every animation earns its place. If it doesn\u2019t orient, direct, or confirm \u2014 cut it.'
+      'Every animation earns its place. If it doesn\u2019t orient, direct, or confirm, cut it.'
   }
 ]
 
@@ -258,9 +258,7 @@ export default function MotionPage() {
 
         {/* Duration demo */}
         <div className='grid gap-2'>
-          <p className='text-sm text-strong'>
-            Duration comparison &mdash; hover each to see the speed
-          </p>
+          <p className='text-sm text-strong'>Hover each to compare durations</p>
           <div className='grid gap-3 rounded-xl emphasis-subtle p-6 sm:grid-cols-4'>
             {[
               { label: 'Fast', className: 'duration-fast' },
@@ -285,8 +283,8 @@ export default function MotionPage() {
         <h2 className='text-display-ui-3 text-strong'>Feel</h2>
         <p className='text-subtle'>
           Easing defines the character of motion. Standard curves for color and
-          opacity. Spring physics for transforms &mdash; the overshoot gives
-          elements physical weight.
+          opacity. Spring physics for transforms. The overshoot gives elements
+          physical weight.
         </p>
 
         <div className='overflow-x-auto'>
@@ -315,32 +313,32 @@ export default function MotionPage() {
         {/* Easing demo */}
         <div className='grid gap-2'>
           <p className='text-sm text-strong'>
-            Easing comparison &mdash; hover to see each curve in action
+            Hover each to see its curve in action
           </p>
           <div className='grid gap-3 rounded-xl emphasis-subtle p-6 sm:grid-cols-2'>
             {[
               {
                 label: 'Standard',
                 token: 'ease-standard',
-                desc: 'Symmetric — color & opacity',
+                desc: 'Symmetric, for color & opacity',
                 className: 'ease-standard'
               },
               {
                 label: 'Enter',
                 token: 'ease-enter',
-                desc: 'Decelerating — elements arriving',
+                desc: 'Decelerating, for elements arriving',
                 className: 'ease-enter'
               },
               {
                 label: 'Exit',
                 token: 'ease-exit',
-                desc: 'Accelerating — elements leaving',
+                desc: 'Accelerating, for elements leaving',
                 className: 'ease-exit'
               },
               {
                 label: 'Spring',
                 token: 'ease-spring',
-                desc: 'Overshoot — transforms only',
+                desc: 'Overshoot, for transforms only',
                 className: 'ease-spring'
               }
             ].map(({ label, token, desc, className }) => (
@@ -363,7 +361,7 @@ export default function MotionPage() {
             (scale, translate, rotate). Use <Code>--ease-standard</Code> for{' '}
             <Code>background-color</Code>, <Code>opacity</Code>, and{' '}
             <Code>box-shadow</Code>. Spring physics on color changes has no
-            physical analogue &mdash; it just looks wrong.
+            physical analogue. It just looks wrong.
           </p>
         </div>
       </section>
@@ -372,9 +370,9 @@ export default function MotionPage() {
       <section className='grid gap-6'>
         <h2 className='text-display-ui-3 text-strong'>The toolkit</h2>
         <p className='text-subtle'>
-          One rule covers both prefixes. <Code>animate-*</Code> plays now, once
-          &mdash; a keyframe animation. <Code>motion-*</Code> plays as something
-          enters or leaves &mdash; a transition on Base UI&apos;s{' '}
+          One rule covers both prefixes. <Code>animate-*</Code> is a keyframe
+          animation that plays now, once. <Code>motion-*</Code> is a transition
+          that plays as something enters or leaves, on Base UI&apos;s{' '}
           <Code>data-starting-style</Code> / <Code>data-ending-style</Code>.
           Both compose with Tailwind&apos;s <Code>motion-safe:</Code> and{' '}
           <Code>motion-reduce:</Code> variants and are automatically neutralised
@@ -383,7 +381,7 @@ export default function MotionPage() {
 
         <div className='grid gap-2'>
           <h3 className='text-display-ui-5 text-strong'>
-            Plays now &mdash; <Code>animate-*</Code>
+            Plays now with <Code>animate-*</Code>
           </h3>
           <div className='overflow-x-auto'>
             <table className='w-full text-sm'>
@@ -409,7 +407,7 @@ export default function MotionPage() {
 
         <div className='grid gap-2'>
           <h3 className='text-display-ui-5 text-strong'>
-            Enters &amp; exits &mdash; <Code>motion-*</Code>
+            Enters &amp; exits with <Code>motion-*</Code>
           </h3>
           <div className='overflow-x-auto'>
             <table className='w-full text-sm'>
@@ -480,8 +478,8 @@ export default function MotionPage() {
           Motion across the system
         </h2>
         <p className='text-subtle'>
-          Motion tokens don&apos;t live in isolation &mdash; they&apos;re wired
-          into every interactive foundation. Here&apos;s where they connect.
+          Motion tokens don&apos;t live in isolation. They&apos;re wired into
+          every interactive foundation. Here&apos;s where they connect.
         </p>
 
         <div className='grid gap-4 sm:grid-cols-2'>
@@ -534,7 +532,7 @@ export default function MotionPage() {
               Motion inherits color context via the intent cascade. A button
               inside <Code>intent-danger</Code> transitions to danger hover
               colors using the same tokens. Focus rings shift to the
-              intent&apos;s accent color &mdash; the timing stays consistent.
+              intent&apos;s accent color. The timing stays consistent.
             </p>
           </Link>
         </div>
@@ -591,7 +589,7 @@ export default function MotionPage() {
 
         <Guideline
           title='Give every animation a job'
-          description='Motion communicates cause and effect. If an animation doesn&rsquo;t orient, direct focus, give feedback, or show a state change &mdash; cut it.'
+          description='Motion communicates cause and effect. If an animation doesn&rsquo;t orient, direct focus, give feedback, or show a state change, cut it.'
         >
           <Guideline.Do
             example={
@@ -605,7 +603,7 @@ export default function MotionPage() {
           >
             A button press scales down to confirm the click landed. A select
             popup scaling in from its trigger shows what opened it. Each
-            transition has a job &mdash; feedback, orientation, or state change.
+            transition has one job: feedback, orientation, or state change.
           </Guideline.Do>
           <Guideline.Dont
             example={
@@ -638,9 +636,9 @@ transition:
             code={`/* Animates everything, including layout */
 transition: all 150ms ease-out;`}
           >
-            Use <Code>transition-all</Code> &mdash; it&apos;ll animate padding,
-            font-size, and anything else that changes, causing layout
-            recalculations on every frame.
+            Use <Code>transition-all</Code>. It animates padding, font-size, and
+            anything else that changes, causing layout recalculations on every
+            frame.
           </Guideline.Dont>
         </Guideline>
 
@@ -649,7 +647,7 @@ transition: all 150ms ease-out;`}
           description='Reduced motion is a health accommodation, not a design preference.'
         >
           <Guideline.Do
-            code={`/* Roadie's global reset — automatic */
+            code={`/* Roadie's global reset, applied automatically */
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0.01ms !important; }
 }`}
@@ -678,7 +676,7 @@ transition: all 150ms ease-out;`}
             code={`transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);`}
           >
             Hardcode <Code>0.2s cubic-bezier(0.4, 0, 0.2, 1)</Code> across 15
-            files &mdash; one typo and things feel off.
+            files. One typo and things feel off.
           </Guideline.Dont>
         </Guideline>
 
@@ -702,15 +700,15 @@ transition: all 150ms ease-out;`}
               </div>
             }
           >
-            Use <Code>ease-spring</Code> for <Code>transform</Code> transitions
-            &mdash; the slight overshoot gives elements physical weight. Use{' '}
+            Use <Code>ease-spring</Code> for <Code>transform</Code> transitions.
+            The slight overshoot gives elements physical weight. Use{' '}
             <Code>ease-standard</Code> for <Code>background-color</Code> and{' '}
             <Code>opacity</Code>.
           </Guideline.Do>
           <Guideline.Dont>
-            Apply spring easing to <Code>opacity</Code> or <Code>color</Code>{' '}
-            &mdash; there&apos;s no physical analogue to spring tension on a
-            colour change. It adds overhead with no perceptual benefit.
+            Apply spring easing to <Code>opacity</Code> or <Code>color</Code>.
+            There&apos;s no physical analogue to spring tension on a colour
+            change. It adds overhead with no perceptual benefit.
           </Guideline.Dont>
         </Guideline>
 
@@ -749,8 +747,8 @@ transition: all 150ms ease-out;`}
           </Guideline.Do>
           <Guideline.Dont>
             Scale a popup from the centre of the screen when it was triggered
-            from a button in the bottom-right corner &mdash; this breaks the
-            spatial illusion.
+            from a button in the bottom-right corner. This breaks the spatial
+            illusion.
           </Guideline.Dont>
         </Guideline>
 
@@ -767,8 +765,8 @@ transition: all 150ms ease-out;`}
             through the sequence rather than overwhelmed.
           </Guideline.Do>
           <Guideline.Dont>
-            Animate all 12 cards in a grid simultaneously &mdash; the result is
-            a flash, not a reveal.
+            Animate all 12 cards in a grid at once. The result is a flash, not a
+            reveal.
           </Guideline.Dont>
         </Guideline>
       </section>
@@ -840,7 +838,7 @@ transition: all 150ms ease-out;`}
                 <td className='py-2 pr-4 font-mono text-xs'>
                   duration-moderate
                 </td>
-                <td className='py-2 pr-4 font-mono text-xs'>&mdash;</td>
+                <td className='py-2 pr-4 font-mono text-xs'>None</td>
                 <td className='py-2'>Select and Combobox trigger icons</td>
               </tr>
               <tr>

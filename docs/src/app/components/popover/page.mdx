@@ -39,7 +39,12 @@ A trigger opens a positioned panel. `Popover.Content` collapses the underlying `
 
 ### Intents
 
-Portaled popups sit outside the trigger's CSS cascade, so set the colour context directly on `Popover.Content` with the `intent` prop. Each intent fits a different message — `info` for inline help, `success` for confirmation, `warning` and `danger` for caution and destructive actions, and `accent` to highlight something new.
+Portaled popups sit outside the trigger's CSS cascade, so set the colour context directly on `Popover.Content` with the `intent` prop. Each intent fits a different message:
+
+- `info` for inline help
+- `success` for confirmation
+- `warning` and `danger` for caution and destructive actions
+- `accent` to highlight something new
 
 ```tsx-live-noinline
 function IntentExamples() {
@@ -55,18 +60,18 @@ function IntentExamples() {
 
   return (
     <div className='flex flex-wrap items-start gap-3'>
-      {/* Info — inline help next to a field */}
+      {/* Info for inline help next to a field */}
       <Popover>
         <Popover.Trigger render={<IconButton aria-label='About API keys' emphasis='subtle' size='sm'><Info weight='bold' /></IconButton>} />
         <Popover.Content intent='info' positionerProps={{ side: 'right' }}>
           <Popover.Arrow />
           <Popover.Body>
-            <p className='text-sm'>Your API key authenticates requests. Keep it secret — anyone with it can act on your behalf.</p>
+            <p className='text-sm'>Your API key authenticates requests. Keep it secret. Anyone with it can act on your behalf.</p>
           </Popover.Body>
         </Popover.Content>
       </Popover>
 
-      {/* Success — copy a link, confirm, then auto-dismiss after 2s */}
+      {/* Success copies a link, confirms, then auto-dismisses after 2s */}
       <Popover open={copied} onOpenChange={copyLink}>
         <Popover.Trigger render={<IconButton aria-label='Copy link'>{copied ? <Check weight='bold' /> : <LinkSimple weight='bold' />}</IconButton>} />
         <Popover.Content intent='success' positionerProps={{ side: 'top' }}>
@@ -77,7 +82,7 @@ function IntentExamples() {
         </Popover.Content>
       </Popover>
 
-      {/* Warning — caution before leaving */}
+      {/* Warning for caution before leaving */}
       <Popover>
         <Popover.Trigger render={<Button>Leave page</Button>} />
         <Popover.Content intent='warning'>
@@ -93,7 +98,7 @@ function IntentExamples() {
         </Popover.Content>
       </Popover>
 
-      {/* Danger — destructive confirm on an icon button */}
+      {/* Danger for a destructive confirm on an icon button */}
       <Popover>
         <Popover.Trigger render={<IconButton aria-label='Delete file' intent='danger'><Trash weight='bold' /></IconButton>} />
         <Popover.Content intent='danger'>
@@ -109,7 +114,7 @@ function IntentExamples() {
         </Popover.Content>
       </Popover>
 
-      {/* Accent — highlight a new feature */}
+      {/* Accent to highlight a new feature */}
       <Popover>
         <Popover.Trigger render={<Button intent='accent' emphasis='strong'>What's new</Button>} />
         <Popover.Content intent='accent'>
@@ -133,7 +138,11 @@ render(<IntentExamples />)
 
 ### Position
 
-A popover opens below its trigger by default and re-flips to stay in view. Set `positionerProps` on `Popover.Content` to control placement — `side` (`top`/`right`/`bottom`/`left`), `align` (`start`/`center`/`end`), and `sideOffset`.
+A popover opens below its trigger by default and re-flips to stay in view. Set `positionerProps` on `Popover.Content` to control placement with these props:
+
+- `side` (`top`/`right`/`bottom`/`left`)
+- `align` (`start`/`center`/`end`)
+- `sideOffset`
 
 ```tsx-live
 <div className='flex flex-wrap gap-3'>
@@ -169,7 +178,7 @@ A popover opens below its trigger by default and re-flips to stay in view. Set `
 
 ### Hover
 
-Set `openOnHover` on `Popover.Trigger` (with an optional `delay`) so the panel opens on hover as well as click — ideal for previews and inline help. It still opens on focus and click, so keyboard users aren't locked out.
+Set `openOnHover` on `Popover.Trigger` (with an optional `delay`) so the panel opens on hover as well as click. Use it for previews and inline help. It still opens on focus and click, so keyboard users aren't locked out.
 
 ```tsx-live
 <Popover>
@@ -210,7 +219,7 @@ Popover is a compound component. Use `Popover.Header`, `Popover.Body`, and `Popo
 
 ### With footer actions
 
-A `Popover.Footer` holds a centered actions row — ideal for a lightweight confirm-deletion flow anchored to the trigger.
+A `Popover.Footer` holds a centered actions row. It suits a lightweight confirm-deletion flow anchored to the trigger.
 
 ```tsx-live
 <Popover>
@@ -231,13 +240,13 @@ A `Popover.Footer` holds a centered actions row — ideal for a lightweight conf
 
 ## Guidelines
 
-Use a popover for contextual content anchored to a control — menus, quick forms, and confirmations. It has no `size` prop, sizing to its content and anchor, and you set `intent` on `Popover.Content`, not the trigger, since portaled popups do not inherit the trigger's CSS cascade.
+Use a popover for contextual content anchored to a control, such as menus, quick forms, and confirmations. It has no `size` prop and sizes to its content and anchor. Set `intent` on `Popover.Content`, not the trigger, since portaled popups do not inherit the trigger's CSS cascade.
 
 <div className='grid gap-8'>
 
 <Guideline title='Name buttons by their action'>
   <Guideline.Do example={<Button intent='accent' emphasis='strong' size='sm'>Save changes</Button>}>
-    Label the confirming button with the specific verb and object the user is committing to. A clear action like "Save changes" lets people act without rereading the title, and for destructive flows naming the consequence — "Delete event" — leaves no doubt about what happens.
+    Label the confirming button with the specific verb and object the user is committing to. A clear action like "Save changes" lets people act without rereading the title. For destructive flows, naming the consequence, as in "Delete event", leaves no doubt about what happens.
   </Guideline.Do>
   <Guideline.Dont example={<Button size='sm'>OK</Button>}>
     Vague labels like "OK", "Yes", or "Submit" tell the user nothing on their own. They have to jump back to the title to work out what they are actually agreeing to.
@@ -246,7 +255,7 @@ Use a popover for contextual content anchored to a control — menus, quick form
 
 <Guideline title='Write a title that states the decision'>
   <Guideline.Do example={<p className='text-display-ui-4 text-strong'>Delete event?</p>}>
-    A title that names the affected object and the action — a clear question or noun phrase — tells the user exactly what is at stake before they read another word.
+    Write the title as a clear question or noun phrase that names the affected object and the action. It tells the user exactly what is at stake before they read another word.
   </Guideline.Do>
   <Guideline.Dont example={<p className='text-display-ui-4 text-strong'>Are you sure?</p>}>
     Vague titles that never name the affected object force the user to hunt through the body for context, and make them hesitate before acting.
@@ -258,22 +267,22 @@ Use a popover for contextual content anchored to a control — menus, quick form
     Keep popover actions `size='sm'`, with one prominent `emphasis='strong'` accent button (or `danger` for a destructive confirm) and the rest normal or default. In a compact, anchored panel the primary path needs to read instantly.
   </Guideline.Do>
   <Guideline.Dont example={<div className='flex gap-2'><Button emphasis='subtle' size='sm'>Cancel</Button><Button intent='accent' emphasis='strong' size='sm'>Save</Button></div>}>
-    Never use `emphasis='subtle'` for footer actions — a barely-there button reads as disabled in a tight panel and the prominent path loses its contrast.
+    Never use `emphasis='subtle'` for footer actions. A barely-there button reads as disabled in a tight panel, and the prominent path loses its contrast.
   </Guideline.Dont>
 </Guideline>
 
 <Guideline title='Reach for a dialog when the task blocks'>
   <Guideline.Do>
-    Use a popover for contextual content anchored to a control — menus, quick confirms, and lightweight panels that sit beside the trigger without taking over the page.
+    Use a popover for contextual content anchored to a control. That covers menus, quick confirms, and lightweight panels that sit beside the trigger without taking over the page.
   </Guideline.Do>
   <Guideline.Dont>
-    Don't use a popover for tasks that demand focus or block the page — those need a backdrop and trapped focus, so use a [Dialog](/components/dialog) instead.
+    Don't use a popover for tasks that demand focus or block the page. Those need a backdrop and trapped focus, so use a [Dialog](/components/dialog) instead.
   </Guideline.Dont>
 </Guideline>
 
 <Guideline title='Anchor to the side that fits the action'>
   <Guideline.Do>
-    Place the panel where it relates to the trigger — inline help to the `right` of a field, a brief confirmation `top` of the button that fired it — and let it re-flip to stay in view.
+    Place the panel where it relates to the trigger. Put inline help to the `right` of a field, and a brief confirmation `top` of the button that fired it. Let it re-flip to stay in view.
   </Guideline.Do>
   <Guideline.Dont>
     Don't force a `side` that covers the trigger or the content the popover refers to, or that pushes the panel off-screen on smaller viewports.
@@ -282,7 +291,7 @@ Use a popover for contextual content anchored to a control — menus, quick form
 
 <Guideline title='Reserve hover for low-stakes content'>
   <Guideline.Do>
-    Use `openOnHover` for previews and inline help that carry no decision — profile cards, definitions, field hints. It still opens on focus and click, so keyboard users aren't excluded.
+    Use `openOnHover` for previews and inline help that carry no decision, such as profile cards, definitions, and field hints. It still opens on focus and click, so keyboard users aren't excluded.
   </Guideline.Do>
   <Guideline.Dont>
     Don't put confirmations or footer actions behind hover. A destructive or committing action needs a deliberate click, not a pointer that happens to pass over the trigger.
@@ -297,6 +306,6 @@ Use a popover for contextual content anchored to a control — menus, quick form
 - **Default action**: while the popover is open, `Enter` activates the strong primary action (the `emphasis='strong'` button), like a form's default submit. It is ignored while focus is on another button, a multi-line textarea, or editable content.
 - **Focus**: Focus moves into the popup when opened and is restored to the trigger on close.
 - **ARIA**: The trigger and popup are wired together via Base UI, and `Popover.Title`/`Popover.Description` are announced as the accessible name and description.
-- **Icon-only close**: When the dismiss control shows only an icon, give it an explicit label — e.g. `<Popover.Close render={<IconButton aria-label='Close'><XIcon weight='bold' /></IconButton>} />` — so screen readers announce its purpose.
+- **Icon-only close**: When the dismiss control shows only an icon, give it an explicit label so screen readers announce its purpose. For example, `<Popover.Close render={<IconButton aria-label='Close'><XIcon weight='bold' /></IconButton>} />`.
 
 <PropsDefinitions componentPath='packages/components/src/components/Popover' />

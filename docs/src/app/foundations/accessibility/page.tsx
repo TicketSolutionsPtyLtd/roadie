@@ -15,7 +15,7 @@ export default function AccessibilityPage() {
   return (
     <div className='grid gap-12'>
       <p className='text-lg text-subtle'>
-        Accessibility is not a feature — it&apos;s a quality bar. HTML is the
+        Accessibility is not a feature. It&apos;s a quality bar. HTML is the
         accessible baseline. Browsers provide accessibility for free if you use
         semantic elements.
       </p>
@@ -65,7 +65,7 @@ export default function AccessibilityPage() {
           <Guideline.Dont>
             Choose heading levels based on visual size. Use{' '}
             <Code>&lt;h4&gt;</Code> after <Code>&lt;h2&gt;</Code> because it
-            looks right — use text utility classes for visual sizing instead.
+            looks right. Use text utility classes for visual sizing instead.
           </Guideline.Dont>
         </Guideline>
       </section>
@@ -74,7 +74,7 @@ export default function AccessibilityPage() {
       <section className='grid gap-6'>
         <h2 className='text-display-ui-3 text-strong'>ARIA as a last resort</h2>
         <p className='text-subtle'>
-          The first rule of ARIA is don&apos;t use ARIA — if a native HTML
+          The first rule of ARIA is don&apos;t use ARIA. If a native HTML
           element with the semantics you need exists, use it. ARIA supplements
           HTML; it doesn&apos;t replace it.
         </p>
@@ -84,7 +84,7 @@ export default function AccessibilityPage() {
           description='ARIA overrides native semantics. Used incorrectly, it makes things worse, not better.'
         >
           <Guideline.Do
-            code={`<!-- Native checkbox — keyboard, focus, state for free -->
+            code={`<!-- Native checkbox gets keyboard, focus and state for free -->
 <input type="checkbox" id="terms" />
 <label htmlFor="terms">I agree to the terms</label>`}
           >
@@ -163,7 +163,7 @@ export default function AccessibilityPage() {
           >
             Interactions
           </Link>{' '}
-          foundation — including keyboard operability, visible focus indicators,
+          foundation. It covers keyboard operability, visible focus indicators,
           focus management, and hit targets.
         </p>
       </section>
@@ -280,7 +280,7 @@ export default function AccessibilityPage() {
           </Guideline.Do>
           <Guideline.Dont>
             Show a red border and error text next to a field without any
-            programmatic association — sighted users see it, screen reader users
+            programmatic association. Sighted users see it. Screen reader users
             don&apos;t.
           </Guideline.Dont>
         </Guideline>
@@ -362,7 +362,7 @@ export default function AccessibilityPage() {
         <h2 className='text-display-ui-3 text-strong'>Testing checklist</h2>
         <p className='text-subtle'>
           Run through this checklist before shipping. Automated tools catch
-          about 30% of issues — the rest requires manual testing.
+          about 30% of issues. The rest requires manual testing.
         </p>
 
         <div className='overflow-x-auto'>

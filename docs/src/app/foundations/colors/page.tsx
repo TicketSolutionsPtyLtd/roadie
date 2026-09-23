@@ -72,7 +72,7 @@ export default function ColorsPage() {
       <p className='text-lg text-subtle'>
         Roadie uses OKLCH color scales with 14 steps (0-13) per intent. Colors
         are applied through three utility types: <Code>bg-*</Code>,{' '}
-        <Code>text-*</Code>, and <Code>border-*</Code> — each scoped to its own
+        <Code>text-*</Code> and <Code>border-*</Code>. Each is scoped to its own
         CSS property.
       </p>
 
@@ -81,8 +81,8 @@ export default function ColorsPage() {
         <h2 className='text-display-ui-3 text-strong'>Color scales</h2>
         <p className='text-subtle'>
           Each intent has a 14-step OKLCH scale. Step 0 is the lightest extreme,
-          step 13 the darkest. Dark mode swaps the values — step numbers stay
-          the same.
+          step 13 the darkest. Dark mode swaps the values. Step numbers stay the
+          same.
         </p>
         <div className='grid gap-6'>
           {intents.map((intent) => (
@@ -149,14 +149,14 @@ export default function ColorsPage() {
               <tr>
                 <td className='py-2 pr-4 text-strong'>raised</td>
                 <td className='py-2 pr-4'>step 1 (dark: 2-3)</td>
-                <td className='py-2 pr-4'>—</td>
-                <td className='py-2'>—</td>
+                <td className='py-2 pr-4'>None</td>
+                <td className='py-2'>None</td>
               </tr>
               <tr>
                 <td className='py-2 pr-4 text-strong'>sunken</td>
                 <td className='py-2 pr-4'>step 2 (dark: 0)</td>
-                <td className='py-2 pr-4'>—</td>
-                <td className='py-2'>—</td>
+                <td className='py-2 pr-4'>None</td>
+                <td className='py-2'>None</td>
               </tr>
             </tbody>
           </table>
@@ -183,9 +183,9 @@ export default function ColorsPage() {
           <h2 className='text-display-ui-3 text-strong'>Surface tokens</h2>
           <p className='text-subtle'>
             Four elevation levels in one picture. Pick the surface that matches
-            the element&apos;s depth in the layout — sunken for recessed areas,
-            normal for the page, raised for elevated cards, floating for
-            popovers and modals.
+            the element&apos;s depth in the layout. Use sunken for recessed
+            areas, normal for the page, raised for elevated cards and floating
+            for popovers and modals.
           </p>
         </div>
 
@@ -211,8 +211,8 @@ export default function ColorsPage() {
             <div className='grid gap-1'>
               <p className='font-mono text-xs text-strong'>bg-normal</p>
               <p className='text-xs text-subtle'>
-                Default page background. The baseline everything else sits on —
-                use it when nothing should feel elevated or recessed.
+                Default page background. The baseline everything else sits on.
+                Use it when nothing should feel elevated or recessed.
               </p>
             </div>
           </div>
@@ -238,8 +238,8 @@ export default function ColorsPage() {
             <div className='grid gap-1'>
               <p className='font-mono text-xs text-strong'>emphasis-floating</p>
               <p className='text-xs text-subtle'>
-                Popovers, modals, dropdowns — anything that floats above the
-                document flow. Uses the top elevation shadow and strong rim
+                Popovers, modals, dropdowns and anything else that floats above
+                the document flow. Uses the top elevation shadow and strong rim
                 light. Add <Code>is-translucent</Code> to let content show
                 through as it scrolls beneath.
               </p>
@@ -279,7 +279,7 @@ export default function ColorsPage() {
           <p className='text-subtle'>
             Automatic. The <Code>.dark</Code> class on <Code>&lt;html&gt;</Code>{' '}
             swaps all OKLCH values. No <Code>dark:</Code> Tailwind variants
-            needed — <Code>bg-normal</Code>, <Code>text-subtle</Code>,{' '}
+            needed. <Code>bg-normal</Code>, <Code>text-subtle</Code> and{' '}
             <Code>border-subtle</Code> all adapt automatically.
           </p>
           <p className='text-subtle'>
@@ -295,8 +295,8 @@ export default function ColorsPage() {
           <p className='text-sm text-subtle'>
             Add a blocking script in <Code>&lt;head&gt;</Code> to prevent flash
             of wrong theme. The <Code>getThemeScript</Code> helper generates
-            this for you — import from <Code>@oztix/roadie-core/theme</Code> (no
-            React dependency).
+            this for you. Import it from <Code>@oztix/roadie-core/theme</Code>{' '}
+            (no React dependency).
           </p>
           <pre className='overflow-x-auto rounded-xl bg-raised p-4 text-xs'>
             <code>{`import { getThemeScript } from '@oztix/roadie-core/theme'
@@ -371,7 +371,7 @@ function ThemeToggle() {
         <h2 className='text-display-ui-3 text-strong'>Dynamic accent</h2>
         <p className='text-subtle'>
           The accent scale is CSS-native. The <Code>ThemeProvider</Code> sets{' '}
-          <Code>--accent-hue</Code> and <Code>--accent-chroma</Code> — CSS{' '}
+          <Code>--accent-hue</Code> and <Code>--accent-chroma</Code>. CSS{' '}
           <Code>oklch()</Code> computes all accent and neutral colors in the
           browser. No JavaScript color generation needed for modern browsers.
         </p>
