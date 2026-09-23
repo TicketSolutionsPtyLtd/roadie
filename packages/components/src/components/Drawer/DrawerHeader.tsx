@@ -18,9 +18,9 @@ export function DrawerHeader({ className, ...props }: DrawerHeaderProps) {
         'motion-reduce:after:transition-none',
         // A Close takes the top-left corner above the title, as it does in a Pane, wherever it's written.
         '[&>[data-slot=drawer-close]]:row-start-1 [&>[data-slot=drawer-close]]:mb-2 [&>[data-slot=drawer-close]]:justify-self-start',
-        // Close sits as far from the top edge as from the side; a handle above takes --spacing(5) of that.
+        // Close sits as far from the top edge as from the side; a leading handle takes --spacing(5) of that, whatever wraps the header.
         'has-[>[data-slot=drawer-close]]:pt-(--content-inset)',
-        '[[data-slot=drawer-handle]+&]:has-[>[data-slot=drawer-close]]:pt-[calc(var(--content-inset)-var(--spacing)*5)]',
+        '[[data-slot=drawer-popup]:has(>[data-slot=drawer-handle]:first-child)_&]:has-[>[data-slot=drawer-close]]:pt-[calc(var(--content-inset)-var(--spacing)*5)]',
         className
       )}
       {...props}

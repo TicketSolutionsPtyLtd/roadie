@@ -295,6 +295,31 @@ describe('drawer scroll shadows', () => {
 })
 
 describe('a drawer header', () => {
+  it('keeps Close 24px from the top when a wrapper sits between handle and header', async () => {
+    await page.viewport(390, 844)
+    render(
+      <Drawer defaultOpen>
+        <Drawer.Content>
+          <form>
+            <Drawer.Header>
+              <Drawer.Close aria-label='Close'>×</Drawer.Close>
+              <Drawer.Title>Edit ticket details</Drawer.Title>
+            </Drawer.Header>
+          </form>
+        </Drawer.Content>
+      </Drawer>
+    )
+    await screen.findByRole('dialog')
+    const close = document
+      .querySelector('[data-slot="drawer-close"]')!
+      .getBoundingClientRect()
+    const popup = document
+      .querySelector('[data-slot="drawer-popup"]')!
+      .getBoundingClientRect()
+
+    expect(close.top - popup.top).toBeCloseTo(24, 0)
+  })
+
   it.each(['bottom', 'right', 'top'] as const)(
     'sets Close in the top-left corner of a %s drawer, as far from the top as the side',
     async (side) => {
