@@ -8,7 +8,7 @@ export const metadata = {
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 import { Guideline } from '@/components/Guideline'
 
-A person's photo, with their initials or an icon when there is no photo. Built on Base UI's avatar primitive.
+A person's photo, with their initials or an icon when there is no photo.
 
 ## Import
 
@@ -27,27 +27,6 @@ Pass `src` and `name`. The initials from `name` show until the photo loads, and 
   src='/roadie-logo.png'
   name='Mia Tran'
 />
-```
-
-### Fallback
-
-Without a photo, the avatar shows initials from the first and last words of `name`. Without a name, it shows a user icon. A photo that fails to load is hidden, so the fallback shows instead of a broken image.
-
-```tsx-live
-<div className='flex flex-wrap items-end gap-6'>
-  <div className='grid justify-items-center gap-2'>
-    <Avatar name='Leo van der Park' />
-    <p className='text-sm text-subtle'>Initials</p>
-  </div>
-  <div className='grid justify-items-center gap-2'>
-    <Avatar />
-    <p className='text-sm text-subtle'>No name</p>
-  </div>
-  <div className='grid justify-items-center gap-2'>
-    <Avatar src='/missing-avatar.png' name='Ada Nguyen' />
-    <p className='text-sm text-subtle'>Photo failed</p>
-  </div>
-</div>
 ```
 
 ### Sizes
@@ -88,6 +67,27 @@ The fallback uses the subtle emphasis of the surrounding intent. Set `intent` to
   <Avatar name='Mia Tran' intent='brand' />
   <Avatar name='Mia Tran' intent='success' />
   <Avatar name='Mia Tran' intent='warning' />
+</div>
+```
+
+### Fallback
+
+Without a photo, the avatar shows initials from the first and last words of `name`. Without a name, it shows a user icon. A photo that fails to load is hidden, so the fallback shows instead of a broken image.
+
+```tsx-live
+<div className='flex flex-wrap items-end gap-6'>
+  <div className='grid justify-items-center gap-2'>
+    <Avatar name='Leo van der Park' />
+    <p className='text-sm text-subtle'>Initials</p>
+  </div>
+  <div className='grid justify-items-center gap-2'>
+    <Avatar />
+    <p className='text-sm text-subtle'>No name</p>
+  </div>
+  <div className='grid justify-items-center gap-2'>
+    <Avatar src='/missing-avatar.png' name='Ada Nguyen' />
+    <p className='text-sm text-subtle'>Photo failed</p>
+  </div>
 </div>
 ```
 
