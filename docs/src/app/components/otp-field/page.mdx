@@ -8,7 +8,7 @@ export const metadata = {
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 import { Guideline } from '@/components/Guideline'
 
-A one-time code input with one slot per character, built on Base UI's OTP field primitive.
+A one-time code input with one slot per character.
 
 ## Import
 
@@ -40,43 +40,6 @@ Set `length` and `OTPField` renders that many slots. Typing moves to the next sl
 </Field>
 ```
 
-### Submit when complete
-
-`onValueComplete` fires once the last slot fills, whether the code was typed, pasted or autofilled. Use it to check the code straight away. `autoSubmit` submits the surrounding form instead.
-
-```tsx-live-noinline
-function LoginCode() {
-  const [status, setStatus] = useState('idle')
-
-  return (
-    <form
-      className='grid max-w-sm gap-4'
-      onSubmit={(event) => event.preventDefault()}
-    >
-      <Field invalid={status === 'expired'}>
-        <Field.Label>Login code</Field.Label>
-        <OTPField
-          length={6}
-          groupSize={3}
-          onValueChange={() => setStatus('idle')}
-          onValueComplete={(code) =>
-            setStatus(code === '123456' ? 'verified' : 'expired')
-          }
-        />
-        <Field.HelperText>
-          {status === 'verified'
-            ? 'Code accepted. Signing you in.'
-            : 'We sent a code to your email. Try 123456.'}
-        </Field.HelperText>
-        <Field.ErrorText>That code has expired</Field.ErrorText>
-      </Field>
-    </form>
-  )
-}
-
-render(<LoginCode />)
-```
-
 ### Emphasis
 
 `normal` is the sunken field surface that `Input` uses. `subtle` swaps the border for a tinted fill.
@@ -90,7 +53,7 @@ render(<LoginCode />)
 
 ### Sizes
 
-`md` slots are 48px square, a comfortable touch target. When the row runs out of room, the slots shrink together rather than wrap.
+Slots match `Input` heights: `sm` is 32px, `md` 40px and `lg` 48px square, so they sit level with an `Input` or `Button` of the same size. Use `lg` for touch, such as checkout on a phone. When the row runs out of room, the slots shrink together rather than wrap.
 
 ```tsx-live
 <div className='grid gap-4'>
@@ -166,6 +129,43 @@ Pass `OTPField.Input` and `OTPField.Separator` as children to lay the slots out 
     <OTPField.Input />
   </OTPField>
 </Field>
+```
+
+### Submit when complete
+
+`onValueComplete` fires once the last slot fills, whether the code was typed, pasted or autofilled. Use it to check the code straight away. `autoSubmit` submits the surrounding form instead.
+
+```tsx-live-noinline
+function LoginCode() {
+  const [status, setStatus] = useState('idle')
+
+  return (
+    <form
+      className='grid max-w-sm gap-4'
+      onSubmit={(event) => event.preventDefault()}
+    >
+      <Field invalid={status === 'expired'}>
+        <Field.Label>Login code</Field.Label>
+        <OTPField
+          length={6}
+          groupSize={3}
+          onValueChange={() => setStatus('idle')}
+          onValueComplete={(code) =>
+            setStatus(code === '123456' ? 'verified' : 'expired')
+          }
+        />
+        <Field.HelperText>
+          {status === 'verified'
+            ? 'Code accepted. Signing you in.'
+            : 'We sent a code to your email. Try 123456.'}
+        </Field.HelperText>
+        <Field.ErrorText>That code has expired</Field.ErrorText>
+      </Field>
+    </form>
+  )
+}
+
+render(<LoginCode />)
 ```
 
 ## Guidelines

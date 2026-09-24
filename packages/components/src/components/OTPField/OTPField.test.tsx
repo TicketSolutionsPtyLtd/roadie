@@ -135,13 +135,13 @@ describe('OTPField', () => {
       <OTPField length={2} aria-label='Code' size='lg' emphasis='subtle' />
     )
     for (const input of slots(container)) {
-      expect(input).toHaveClass('max-w-14', 'bg-subtle')
+      expect(input).toHaveClass('max-w-12', 'bg-subtle')
       expect(input).not.toHaveClass('emphasis-field')
     }
   })
 
   it('exports its slot variants', () => {
-    expect(otpFieldInputVariants({ size: 'sm' })).toContain('max-w-10')
+    expect(otpFieldInputVariants({ size: 'sm' })).toContain('max-w-8')
   })
 
   it('marks every slot invalid', () => {

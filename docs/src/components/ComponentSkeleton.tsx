@@ -86,20 +86,20 @@ export function ComponentSkeleton({ name }: { name: string }) {
       )
     case 'otp-field':
       return (
-        <div className='flex items-center gap-1.5'>
+        <div className='flex items-center gap-1'>
           {[0, 1, 2].map((slot) => (
             <div
               key={slot}
-              className='grid size-7 place-content-center rounded-lg border border-subtle bg-normal'
+              className='grid size-5 place-content-center rounded-md border border-subtle bg-normal'
             >
-              <Skel className='h-2.5 w-1.5' />
+              <Skel className='h-2 w-1' />
             </div>
           ))}
-          <Skel className='h-0.5 w-2' />
+          <Skel className='h-0.5 w-1.5' />
           {[3, 4, 5].map((slot) => (
             <div
               key={slot}
-              className='size-7 rounded-lg border border-subtle bg-normal'
+              className='size-5 rounded-md border border-subtle bg-normal'
             />
           ))}
         </div>

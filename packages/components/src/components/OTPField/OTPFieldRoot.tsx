@@ -14,7 +14,7 @@ import type { OTPFieldEmphasis, OTPFieldSize } from './variants'
 
 export type OTPFieldRootProps = OTPFieldPrimitive.Root.Props &
   RefAttributes<HTMLDivElement> & {
-    /** Slot size. `md` slots are 48px, a comfortable touch target. */
+    /** Slot size, matching `Input` heights: 32, 40 or 48px square. Use `lg` for touch. */
     size?: OTPFieldSize
     /** Slot surface. `subtle` swaps the border for a tinted fill. */
     emphasis?: OTPFieldEmphasis
