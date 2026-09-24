@@ -1,0 +1,54 @@
+export const metadata = {
+  title: 'ChartLegend',
+  description: 'A key whose shapes match the marks',
+  status: 'beta',
+  category: 'Charts'
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+A key whose shapes match the marks.
+
+## Import
+
+```tsx
+import { ChartLegend } from '@oztix/roadie-charts/chart-legend'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<ChartLegend
+  items={[
+    { label: 'This show', shape: 'line' },
+    { label: 'Forecast', shape: 'dot' },
+    { label: 'Similar shows', shape: 'band', color: 'var(--chart-band)' }
+  ]}
+/>
+```
+
+### Categorical
+
+```tsx-live
+<ChartLegend
+  items={[
+    { label: 'GA', color: 'var(--chart-1)' },
+    { label: 'GA early bird', color: 'var(--chart-2)' },
+    { label: 'VIP', color: 'var(--chart-3)' },
+    { label: 'Companion', color: 'var(--chart-4)' }
+  ]}
+/>
+```
+
+## Guidelines
+
+- Label each item with the exact word used on the plot. A legend that renames a series makes readers cross-reference instead of read.
+- Reach for a legend only when a chart's marks need a name the axes and labels don't already give it. A single-series chart with a labelled axis rarely needs one.
+
+## Accessibility
+
+- The legend is plain list text. Each item's shape is decorative; the label alone carries the meaning.
+
+<PropsDefinitions componentPath='packages/charts/src/ChartLegend/index.tsx' />

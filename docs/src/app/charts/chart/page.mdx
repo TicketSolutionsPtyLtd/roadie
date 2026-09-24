@@ -1,0 +1,156 @@
+export const metadata = {
+  title: 'Chart',
+  description: 'A dashboard card for one chart, with its table view and source',
+  status: 'beta',
+  category: 'Charts'
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+A dashboard card for one chart, with its table view and source.
+
+## Import
+
+```tsx
+import { Chart } from '@oztix/roadie-charts/chart'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<div className='w-[560px] max-w-full'>
+  <Chart
+    label='Sales pace'
+    value={0.61}
+    format='percent'
+    delta={{ value: 9, format: 'points' }}
+    context='Ahead of similar shows. Forecast 96%'
+    source='Oztix sales. 38 similar shows, last 3 years.'
+    table={{
+      columns: [
+        { key: 'days', header: 'Days to show', kind: 'number' },
+        { key: 'show', header: 'This show', kind: 'number', format: 'percent' },
+        { key: 'similar', header: 'Similar shows', kind: 'number', format: 'percent' }
+      ],
+      rows: [
+        { days: 90, show: 0.14, similar: 0.14 },
+        { days: 60, show: 0.38, similar: 0.35 },
+        { days: 30, show: 0.61, similar: 0.52 }
+      ]
+    }}
+  >
+    <img src='/charts/pace-ahead-light.svg' alt='This show tracks above the band of 38 similar shows and is forecast to reach 96% by show day' className='size-full object-contain' />
+  </Chart>
+</div>
+```
+
+### Takeaway
+
+```tsx-live
+<div className='w-[560px] max-w-full'>
+  <Chart
+    label='Ticket types'
+    takeaway='VIP is the one to push this month'
+    source='Oztix sales.'
+    table={{
+      columns: [
+        { key: 'type', header: 'Ticket type', kind: 'text' },
+        { key: 'sold', header: 'Sold', kind: 'number' },
+        { key: 'sellThrough', header: 'Sell-through', kind: 'meter', target: 0.85 }
+      ],
+      rows: [
+        { type: 'GA early bird', sold: 400, sellThrough: 1 },
+        { type: 'GA', sold: 1210, sellThrough: 0.76 },
+        { type: 'VIP', sold: 232, sellThrough: 0.58 }
+      ]
+    }}
+  >
+    <img src='/charts/pace-ahead-light.svg' alt='VIP is the ticket type furthest behind target' className='size-full object-contain' />
+  </Chart>
+</div>
+```
+
+### Table first
+
+```tsx-live
+<div className='w-[560px] max-w-full'>
+  <Chart
+    view='table'
+    label='Sales pace'
+    value={0.61}
+    format='percent'
+    delta={{ value: 9, format: 'points' }}
+    context='Ahead of similar shows. Forecast 96%'
+    source='Oztix sales. 38 similar shows, last 3 years.'
+    table={{
+      columns: [
+        { key: 'days', header: 'Days to show', kind: 'number' },
+        { key: 'show', header: 'This show', kind: 'number', format: 'percent' },
+        { key: 'similar', header: 'Similar shows', kind: 'number', format: 'percent' }
+      ],
+      rows: [
+        { days: 90, show: 0.14, similar: 0.14 },
+        { days: 60, show: 0.38, similar: 0.35 },
+        { days: 30, show: 0.61, similar: 0.52 }
+      ]
+    }}
+  >
+    <img src='/charts/pace-ahead-light.svg' alt='This show tracks above the band of 38 similar shows and is forecast to reach 96% by show day' className='size-full object-contain' />
+  </Chart>
+</div>
+```
+
+### With a legend
+
+```tsx-live
+<div className='w-[560px] max-w-full'>
+  <Chart
+    label='Sales pace'
+    value={0.61}
+    format='percent'
+    delta={{ value: 9, format: 'points' }}
+    context='Ahead of similar shows. Forecast 96%'
+    source='Oztix sales. 38 similar shows, last 3 years.'
+    legend={
+      <ChartLegend
+        items={[
+          { label: 'This show', shape: 'line' },
+          { label: 'Forecast', shape: 'dot' },
+          { label: 'Similar shows', shape: 'band', color: 'var(--chart-band)' }
+        ]}
+      />
+    }
+    table={{
+      columns: [
+        { key: 'days', header: 'Days to show', kind: 'number' },
+        { key: 'show', header: 'This show', kind: 'number', format: 'percent' },
+        { key: 'similar', header: 'Similar shows', kind: 'number', format: 'percent' }
+      ],
+      rows: [
+        { days: 90, show: 0.14, similar: 0.14 },
+        { days: 60, show: 0.38, similar: 0.35 },
+        { days: 30, show: 0.61, similar: 0.52 }
+      ]
+    }}
+  >
+    <img src='/charts/pace-ahead-light.svg' alt='This show tracks above the band of 38 similar shows and is forecast to reach 96% by show day' className='size-full object-contain' />
+  </Chart>
+</div>
+```
+
+## Guidelines
+
+- `table` and `source` are required. The table is the full alternative to the plot, and the source belongs to both views.
+- Plot heights come from the card size, not the image. `size='sm'` is 160px, `md` and `full` are 220px, `lg` is 260px.
+- Plots arrive in a later release. Until then, cards render a static image or a placeholder.
+- The Chart and Table switch is icon-only: `ChartLineIcon` and `TableIcon`, bold, `size-4`. Each tab is named by its `aria-label`, not visible text, so it never competes with the label for space.
+- Chart labels follow the tighter `CHART_LABEL_LIMITS` from `@oztix/roadie-core/dashboard-layout`, not `COPY_LIMITS`, because the label's row also holds the view switch: 21 characters at `sm` and `md`, 27 at `lg` and `full`.
+
+## Accessibility
+
+- The Table tab is the full alternative to the plot, reachable by its `aria-label`.
+- The plot needs an accessible name that states the takeaway, not just what it is. "Sales pace" describes nothing; "this show tracks above the band of 38 similar shows" does.
+
+<PropsDefinitions componentPath='packages/charts/src/Chart/index.tsx' />

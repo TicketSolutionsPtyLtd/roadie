@@ -62,6 +62,8 @@ type NavigationProps = {
   items: NavigationDestination[]
   /** Route → page title, rendered as `Pane.BodyTitle`. */
   pageTitles: Record<string, string>
+  /** Routes whose content column drops the standard reading-width cap. */
+  pageWide: Record<string, boolean>
   children: ReactNode
 }
 
@@ -89,6 +91,7 @@ function hrefWithFlag(pathname: string, param: string, on: boolean) {
 export function DocsNavigator({
   items,
   pageTitles,
+  pageWide,
   children
 }: NavigationProps) {
   const route = useRoute()
@@ -127,8 +130,9 @@ export function DocsNavigator({
   )
 
   const related = relatedLinks(route)
+  const isWide = pageWide[route] ?? false
   const toc = useDocHeadings()
-  const showInspector = toc.headings.length >= 2
+  const showInspector = toc.headings.length >= 2 && !isWide
   // Held here so picking a heading can close the drawer the column yields into.
   const [tocRevealed, setTocRevealed] = useState(false)
   const { onSelect: scrollToHeading } = toc
@@ -188,7 +192,7 @@ export function DocsNavigator({
                 }
               >
                 {destination.title}
-                {destination.groups ? (
+                {destination.groups && !isWide ? (
                   <Navigator.Secondary
                     aria-label={destination.title}
                     overview={destination.overview}
@@ -220,7 +224,7 @@ export function DocsNavigator({
                       </Navigator.Group>
                     ))}
                   </Navigator.Secondary>
-                ) : subItems.length > 0 ? (
+                ) : subItems.length > 0 && !isWide ? (
                   <Navigator.Secondary
                     aria-label={`${destination.title} pages`}
                     overview={destination.overview}
@@ -263,7 +267,7 @@ export function DocsNavigator({
           </Pane.Header>
           <div
             id='docs-content'
-            className='mx-auto grid w-full max-w-[50rem] gap-0 py-6 md:py-12 [&_:is(h1,h2,h3,h4)]:scroll-mt-6'
+            className={`mx-auto grid w-full gap-0 py-6 md:py-12 [&_:is(h1,h2,h3,h4)]:scroll-mt-6 ${isWide ? '' : 'max-w-[50rem]'}`}
           >
             {/* The homepage and debug routes have no metadata.title and keep their own h1. */}
             {pageTitles[route] ? (

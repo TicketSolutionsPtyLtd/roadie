@@ -69,6 +69,8 @@ type PageMetadata = Record<string, unknown> & {
   category?: string
   order?: number
   hidden?: boolean
+  /** Widens the content column past the standard reading width. */
+  wide?: boolean
 }
 
 /** A page's `metadata`: undefined when the file is missing, null when it has none. */
@@ -211,4 +213,44 @@ export async function getPageTitles(): Promise<Record<string, string>> {
   const titles: Record<string, string> = {}
   await walkPageTitles(APP_DIR, '/', titles)
   return titles
+}
+
+async function collectPageWide(
+  dir: string,
+  route: string,
+  out: Record<string, boolean>
+): Promise<void> {
+  for (const file of ['page.mdx', 'page.tsx']) {
+    const metadata = await readPageMetadata(join(dir, file))
+    if (metadata === undefined) continue
+    if (metadata?.wide) out[route] = true
+    return
+  }
+}
+
+async function walkPageWide(
+  dir: string,
+  route: string,
+  out: Record<string, boolean>
+): Promise<void> {
+  await collectPageWide(dir, route, out)
+  const entries = await readdir(dir, { withFileTypes: true })
+  await Promise.all(
+    entries
+      .filter((entry) => entry.isDirectory())
+      .map((entry) =>
+        walkPageWide(
+          join(dir, entry.name),
+          `${route === '/' ? '' : route}/${entry.name}`,
+          out
+        )
+      )
+  )
+}
+
+/** Routes whose `metadata.wide` opts out of the standard reading-width column. */
+export async function getPageWide(): Promise<Record<string, boolean>> {
+  const wide: Record<string, boolean> = {}
+  await walkPageWide(APP_DIR, '/', wide)
+  return wide
 }

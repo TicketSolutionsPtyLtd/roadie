@@ -19,6 +19,7 @@ import {
   WIDGETS,
   getCatalogue,
   getPageTitles,
+  getPageWide,
   readPageMetadata
 } from '@/lib/page-manifest'
 import { getAssetPath } from '@/utils/getAssetPath'
@@ -110,9 +111,10 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [items, pageTitles] = await Promise.all([
+  const [items, pageTitles, pageWide] = await Promise.all([
     getNavigationItems(),
-    getPageTitles()
+    getPageTitles(),
+    getPageWide()
   ])
 
   return (
@@ -130,7 +132,11 @@ export default async function RootLayout({
       </head>
       <body className='isolate'>
         <Providers>
-          <DocsNavigator items={items} pageTitles={pageTitles}>
+          <DocsNavigator
+            items={items}
+            pageTitles={pageTitles}
+            pageWide={pageWide}
+          >
             {children}
           </DocsNavigator>
         </Providers>
