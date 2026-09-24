@@ -1,0 +1,135 @@
+export const metadata = {
+  title: 'Toggle',
+  description: 'A button that stays pressed or unpressed, such as favourite or bold',
+  status: 'beta',
+  category: 'Actions',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+A button that stays pressed or unpressed, such as favourite or bold.
+
+## Import
+
+```tsx
+import { Toggle } from '@oztix/roadie-components/toggle'
+```
+
+## Examples
+
+### Default
+
+```tsx-live
+<Toggle>Notify me</Toggle>
+```
+
+### Emphasis
+
+`emphasis` sets the look at rest. Pressed steps one rung up: `normal` and `subtle` become `strong`, `subtler` becomes `subtle`.
+
+```tsx-live
+<div className='grid gap-4'>
+  <div className='flex flex-wrap items-center gap-2'>
+    <Toggle>Normal</Toggle>
+    <Toggle defaultPressed>Normal, pressed</Toggle>
+  </div>
+  <div className='flex flex-wrap items-center gap-2'>
+    <Toggle emphasis='subtle'>Subtle</Toggle>
+    <Toggle emphasis='subtle' defaultPressed>Subtle, pressed</Toggle>
+  </div>
+  <div className='flex flex-wrap items-center gap-2'>
+    <Toggle emphasis='subtler'>Subtler</Toggle>
+    <Toggle emphasis='subtler' defaultPressed>Subtler, pressed</Toggle>
+  </div>
+</div>
+```
+
+### Sizes
+
+The same sizes as `Button`. Use an `icon-*` size for an icon-only toggle.
+
+```tsx-live
+<div className='grid gap-4'>
+  <div className='flex flex-wrap items-center gap-2'>
+    <Toggle size='xs'>Extra small</Toggle>
+    <Toggle size='sm'>Small</Toggle>
+    <Toggle size='md'>Medium</Toggle>
+    <Toggle size='lg'>Large</Toggle>
+  </div>
+  <div className='flex flex-wrap items-center gap-2'>
+    <Toggle size='icon-xs' aria-label='Bold'><TextB weight='bold' /></Toggle>
+    <Toggle size='icon-sm' aria-label='Bold'><TextB weight='bold' /></Toggle>
+    <Toggle size='icon-md' aria-label='Bold'><TextB weight='bold' /></Toggle>
+    <Toggle size='icon-lg' aria-label='Bold'><TextB weight='bold' /></Toggle>
+  </div>
+</div>
+```
+
+### Intents
+
+The intent colours the pressed state most.
+
+```tsx-live
+<div className='flex flex-wrap items-center gap-2'>
+  <Toggle intent='accent' defaultPressed>Accent</Toggle>
+  <Toggle intent='brand' defaultPressed>Brand</Toggle>
+  <Toggle intent='danger' defaultPressed>Danger</Toggle>
+</div>
+```
+
+### States
+
+```tsx-live
+<div className='grid gap-4'>
+  <div className='grid gap-2'>
+    <p className='text-sm text-subtle'>Unpressed</p>
+    <Toggle>Notify me</Toggle>
+  </div>
+  <div className='grid gap-2'>
+    <p className='text-sm text-subtle'>Pressed</p>
+    <Toggle defaultPressed>Notify me</Toggle>
+  </div>
+  <div className='grid gap-2'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <Toggle disabled>Notify me</Toggle>
+  </div>
+</div>
+```
+
+### With a pressed icon
+
+Control `pressed` to swap the icon. Icons take `fill` only when pressed.
+
+```tsx-live-noinline
+function Favourite() {
+  const [pressed, setPressed] = useState(false)
+  return (
+    <Toggle
+      aria-label='Favourite'
+      size='icon-md'
+      emphasis='subtler'
+      intent='danger'
+      pressed={pressed}
+      onPressedChange={setPressed}
+    >
+      <Heart weight={pressed ? 'fill' : 'bold'} />
+    </Toggle>
+  )
+}
+
+render(<Favourite />)
+```
+
+## Guidelines
+
+- **Use a Toggle for a state that stays on**, such as following an artist or muting alerts. For a one-off action, use `Button`.
+- **Keep the label the same when pressed.** The pressed style already says it is on. Changing "Follow" to "Following" as well reads as two different controls to a screen reader.
+- **Choose one option from a set with `ToggleGroup`**, not a row of Toggles.
+
+## Accessibility
+
+- Renders a `<button>` with `aria-pressed`, so screen readers announce it as a toggle button and read its state.
+- `Space` and `Enter` toggle it.
+- Give an icon-only toggle an `aria-label`.
+
+<PropsDefinitions componentPath='packages/components/src/components/Toggle/index.tsx' />

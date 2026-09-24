@@ -398,6 +398,25 @@ export {
 } from './components/Tooltip'
 
 export {
+  Toggle,
+  toggleVariants,
+  type ToggleProps,
+  type ToggleEmphasis,
+  type ToggleSize
+} from './components/Toggle'
+
+export {
+  ToggleGroup,
+  toggleGroupVariants,
+  toggleGroupItemVariants,
+  toggleGroupIndicatorVariants,
+  type ToggleGroupProps,
+  type ToggleGroupItemProps,
+  type ToggleGroupDirection,
+  type ToggleGroupSize
+} from './components/ToggleGroup'
+
+export {
   Dialog,
   dialogPopupVariants,
   type DialogProps,

@@ -29,6 +29,7 @@ import {
   HouseIcon,
   InfoIcon,
   LinkSimpleIcon,
+  ListBulletsIcon,
   MagnifyingGlassIcon,
   MinusIcon,
   PauseIcon,
@@ -37,7 +38,11 @@ import {
   PlayIcon,
   PlusIcon,
   ShoppingCartIcon,
+  SquaresFourIcon,
   StarIcon,
+  TextBIcon,
+  TextItalicIcon,
+  TextUnderlineIcon,
   TicketIcon,
   TrashIcon,
   UserCircleIcon,
@@ -103,7 +108,12 @@ const PhosphorIcons = {
   User: UserIcon,
   Buildings: BuildingsIcon,
   Users: UsersIcon,
-  Wallet: WalletIcon
+  Wallet: WalletIcon,
+  ListBullets: ListBulletsIcon,
+  SquaresFour: SquaresFourIcon,
+  TextB: TextBIcon,
+  TextItalic: TextItalicIcon,
+  TextUnderline: TextUnderlineIcon
 }
 
 // Icon-suffixed keys (`<TicketIcon />`) derived from the bare map.

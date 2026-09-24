@@ -20,6 +20,7 @@ import {
   Popover as PopoverViaBarrel,
   ScrollArea as ScrollAreaViaBarrel,
   Tabs as TabsViaBarrel,
+  ToggleGroup as ToggleGroupViaBarrel,
   Tooltip as TooltipViaBarrel
 } from '@oztix/roadie-components'
 import { Accordion } from '@oztix/roadie-components/accordion'
@@ -44,6 +45,8 @@ import { ScrollArea } from '@oztix/roadie-components/scroll-area'
 import { Select } from '@oztix/roadie-components/select'
 import { Steps } from '@oztix/roadie-components/steps'
 import { Tabs } from '@oztix/roadie-components/tabs'
+import { Toggle } from '@oztix/roadie-components/toggle'
+import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
 import { Tooltip } from '@oztix/roadie-components/tooltip'
 
 import { NavigatorCanary } from './NavigatorCanary'
@@ -492,6 +495,35 @@ export default function RscSmokePage() {
           <TooltipViaBarrel.Trigger>Hover for a label</TooltipViaBarrel.Trigger>
           <TooltipViaBarrel.Content>A label</TooltipViaBarrel.Content>
         </TooltipViaBarrel>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Toggle via subpath</h2>
+        <Toggle defaultPressed>Notify me</Toggle>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          ToggleGroup as bare root (canonical)
+        </h2>
+        <ToggleGroup aria-label='Date range' defaultValue={['30d']}>
+          <ToggleGroup.Item value='7d'>7 days</ToggleGroup.Item>
+          <ToggleGroup.Item value='30d'>30 days</ToggleGroup.Item>
+        </ToggleGroup>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          ToggleGroup via barrel
+        </h2>
+        <ToggleGroupViaBarrel aria-label='View' defaultValue={['list']}>
+          <ToggleGroupViaBarrel.Item value='list'>
+            List
+          </ToggleGroupViaBarrel.Item>
+          <ToggleGroupViaBarrel.Item value='grid'>
+            Grid
+          </ToggleGroupViaBarrel.Item>
+        </ToggleGroupViaBarrel>
       </section>
 
       <section className='grid gap-2'>

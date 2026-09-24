@@ -28,6 +28,31 @@ export function ComponentSkeleton({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'toggle':
+      return (
+        <div className='flex gap-2'>
+          <div className='grid size-8 emphasis-strong place-content-center rounded-full'>
+            <div className='size-3.5 rounded-full bg-normal opacity-50' />
+          </div>
+          <div className='grid size-8 emphasis-normal place-content-center rounded-full'>
+            <Skel className='size-3.5 rounded-full' />
+          </div>
+        </div>
+      )
+    case 'toggle-group':
+      return (
+        <div className='grid w-40 auto-cols-fr grid-flow-col gap-1 rounded-full emphasis-sunken p-1'>
+          <div className='grid h-6 place-content-center'>
+            <Skel className='h-1.5 w-6' />
+          </div>
+          <div className='grid h-6 emphasis-raised place-content-center rounded-full'>
+            <Skel className='h-1.5 w-6' />
+          </div>
+          <div className='grid h-6 place-content-center'>
+            <Skel className='h-1.5 w-6' />
+          </div>
+        </div>
+      )
     case 'card':
       return (
         <div className='grid w-40 gap-2 rounded-lg border border-subtle bg-normal p-3'>
