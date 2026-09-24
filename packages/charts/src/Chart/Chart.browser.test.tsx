@@ -36,13 +36,15 @@ const table = {
   ]
 }
 
-function renderChart(rows = table.rows) {
+function renderChart(rows = table.rows, state: 'ready' | 'loading' = 'ready') {
   return render(
     <div style={{ width: 560 }}>
       <Chart
+        state={state}
         label='Julia Jacklin pace'
         value={0.4}
         format='percent'
+        context='Behind similar shows'
         size='md'
         source='Oztix sales.'
         table={{ ...table, rows }}
@@ -103,5 +105,18 @@ describe('Chart views', () => {
       expect(width).toBeGreaterThanOrEqual(24)
       expect(height).toBeGreaterThanOrEqual(24)
     }
+  })
+
+  it('reserves the plot height while loading', () => {
+    const ready = renderChart()
+    const readyHeight = heightOf(
+      ready.container.querySelector('[data-slot=data-card]')!
+    )
+    ready.unmount()
+    const loading = renderChart(table.rows, 'loading')
+    const loadingHeight = heightOf(
+      loading.container.querySelector('[data-slot=data-card]')!
+    )
+    expect(Math.abs(readyHeight - loadingHeight)).toBeLessThanOrEqual(1)
   })
 })

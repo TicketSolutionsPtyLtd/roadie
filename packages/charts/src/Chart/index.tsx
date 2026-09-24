@@ -12,6 +12,7 @@ import {
   type DataTableRow
 } from '@oztix/roadie-components/data-table'
 import { Tabs } from '@oztix/roadie-components/tabs'
+import type { CardSize } from '@oztix/roadie-core/dashboard-layout'
 import { cn } from '@oztix/roadie-core/utils'
 
 export type ChartTable = {
@@ -20,8 +21,17 @@ export type ChartTable = {
 }
 export type ChartView = 'chart' | 'table'
 
-export type ChartProps = Omit<DataCardProps, 'children' | 'source'> & {
+export type ChartProps = Omit<
+  DataCardProps,
+  'children' | 'source' | 'bodyHeight'
+> & {
   source: string
+  /**
+   * Body height while loading. Defaults to the live plot height for `size`
+   * (160px, 220px or 260px). A static plot sizes to its image, so it may
+   * settle at a different height when it loads.
+   */
+  bodyHeight?: string
   /** Exact numbers behind the chart, shown in the Table view. */
   table: ChartTable
   /** @default 'chart' */
@@ -32,6 +42,14 @@ export type ChartProps = Omit<DataCardProps, 'children' | 'source'> & {
 
 const TAB = 'h-6 px-2'
 
+const LIVE_PLOT_HEIGHT: Record<CardSize, string> = {
+  stat: '220px',
+  sm: '160px',
+  md: '220px',
+  lg: '260px',
+  full: '260px'
+}
+
 export function Chart({
   table,
   view = 'chart',
@@ -40,6 +58,7 @@ export function Chart({
   size,
   className,
   label,
+  bodyHeight = LIVE_PLOT_HEIGHT[size ?? 'md'],
   ...props
 }: ChartProps) {
   return (
@@ -54,6 +73,7 @@ export function Chart({
       <DataCard
         label={label}
         size={size}
+        bodyHeight={bodyHeight}
         actions={
           <Tabs.List aria-label={`${label} view`}>
             <Tabs.Tab

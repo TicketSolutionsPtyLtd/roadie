@@ -119,9 +119,9 @@ function Card({ card, size }: { card: DashboardCard; size: CardSize }) {
 export function DashboardView({ spec, className }: DashboardViewProps) {
   return (
     <Dashboard className={className}>
-      {spec.sections.map((section) => (
+      {spec.sections.map((section, index) => (
         <Dashboard.Section
-          key={section.title}
+          key={`${index}-${section.title}`}
           title={section.title}
           description={section.description}
         >
