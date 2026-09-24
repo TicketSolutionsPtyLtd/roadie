@@ -14,7 +14,7 @@ export type NumberFieldGroupProps = NumberFieldPrimitive.Group.Props &
     /** Overrides the size set on the root. */
     size?: 'sm' | 'md' | 'lg'
     /** Overrides the emphasis set on the root. */
-    emphasis?: 'normal' | 'subtle'
+    emphasis?: 'normal' | 'subtle' | 'subtler'
   }
 
 export function NumberFieldGroup({

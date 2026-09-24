@@ -36,5 +36,6 @@ export type { NumberFieldScrubAreaCursorProps } from './NumberFieldScrubAreaCurs
 export {
   numberFieldGroupVariants,
   type NumberFieldEmphasis,
-  type NumberFieldSize
+  type NumberFieldSize,
+  type NumberFieldStepperEmphasis
 } from './variants'

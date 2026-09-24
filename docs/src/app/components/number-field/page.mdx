@@ -20,20 +20,21 @@ import { NumberField } from '@oztix/roadie-components/number-field'
 
 ### Default
 
-With no children, `NumberField` renders the whole stepper: a decrease button, the input and an increase button. Set `min` and `max` and each button turns off at its end of the range. It fills its container like `Input`, so give it a width where it sits alone.
+With no children, `NumberField` renders the whole stepper: a decrease button, the input and an increase button. Set `min` and `max` and each button turns off at its end of the range. It's only as wide as its widest value, worked out from `min`, `max` and `format` (3 characters when there's no `max`), so the buttons don't move as the number grows. A value people can type into is never narrower than 2.75rem, or 3.5rem on touch screens, so it's easy to tap. Pass `className='w-full'` to stretch it.
 
 ```tsx-live
-<NumberField aria-label='Tickets' defaultValue={1} min={0} max={10} className='w-36' />
+<NumberField aria-label='Tickets' defaultValue={1} min={0} max={10} />
 ```
 
 ### Emphasis
 
-`normal` is the sunken field surface that `Input` uses. `subtle` swaps the border for a tinted fill.
+`normal` is the sunken field surface that `Input` uses. `subtle` swaps the border for a tinted fill. `subtler` drops the field box: two round buttons, sized like `IconButton`, sit either side of the value. The value keeps a small tinted chip that behaves like a `subtle` `Input`, so people can see they can tap it to type.
 
 ```tsx-live
 <div className='grid max-w-40 gap-4'>
   <NumberField aria-label='Normal' defaultValue={1} min={0} />
   <NumberField aria-label='Subtle' defaultValue={1} min={0} emphasis='subtle' />
+  <NumberField aria-label='Subtler' defaultValue={1} min={0} emphasis='subtler' />
 </div>
 ```
 
@@ -71,13 +72,24 @@ The group uses `is-interactive-field-group`: neutral at rest, accent on focus, d
     <p className='text-sm text-subtle'>Invalid</p>
     <NumberField aria-label='Invalid' defaultValue={0} min={0} invalid />
   </div>
+</div>
+```
+
+Three ways to limit a field. `editable={false}` stops typing but the buttons and arrow keys still step. `readOnly` stops typing and stepping, and the value still submits with the form. `disabled` turns the whole field off and leaves it out of the form.
+
+```tsx-live
+<div className='grid max-w-40 gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Not editable</p>
+    <NumberField aria-label='Not editable' defaultValue={4} min={0} max={10} editable={false} />
+  </div>
   <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Read only</p>
     <NumberField aria-label='Read only' defaultValue={4} readOnly />
   </div>
   <div className='grid gap-1'>
     <p className='text-sm text-subtle'>Disabled</p>
-    <NumberField aria-label='Disabled' defaultValue={2} disabled />
+    <NumberField aria-label='Disabled' defaultValue={4} disabled />
   </div>
 </div>
 ```
@@ -110,7 +122,7 @@ Set `invalid` on the `Field`. The group turns danger and the input points at the
 
 #### Custom parts
 
-Pass children to lay the parts out yourself. Here the buttons sit after the input, and `NumberField.ScrubArea` lets people drag the label left or right to change the value. Give the root an `id` so the label can point at the input.
+Pass children to lay the parts out yourself. Keep `NumberField.Decrement`, `NumberField.Input` and `NumberField.Increment` inside `NumberField.Group`, which draws the field or, at `subtler`, spaces the buttons. Here the buttons sit after the input, and `NumberField.ScrubArea` lets people drag the label left or right to change the value. Give the root an `id` so the label can point at the input.
 
 ```tsx-live
 <NumberField id='stage-height' defaultValue={120} min={60} max={240} className='max-w-48'>
@@ -121,7 +133,7 @@ Pass children to lay the parts out yourself. Here the buttons sit after the inpu
     <NumberField.ScrubAreaCursor />
   </NumberField.ScrubArea>
   <NumberField.Group>
-    <NumberField.Input className='text-start' />
+    <NumberField.Input />
     <NumberField.Decrement />
     <NumberField.Increment />
   </NumberField.Group>
@@ -158,7 +170,6 @@ function TicketQuantities() {
             </div>
             <NumberField
               aria-labelledby={`${ticket.id}-label`}
-              className='w-32'
               min={0}
               max={ticket.limit}
               value={quantities[ticket.id]}
@@ -178,6 +189,74 @@ function TicketQuantities() {
 }
 
 render(<TicketQuantities />)
+```
+
+### Stepper
+
+For carts and add-on lists, compose the `subtler` look. `Decrement` and `Increment` take `emphasis` and `intent` like `IconButton`, so the increase button can carry the accent. With `removable`, the decrease button turns into a Remove button with a trash icon when one more step would reach `min`. It still steps down.
+
+```tsx-live-noinline
+function CartItem() {
+  const [quantity, setQuantity] = useState(2)
+  const aud = new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' })
+
+  return (
+    <div className='grid max-w-md grid-cols-[1fr_auto] items-center gap-4 rounded-xl border border-subtle p-4'>
+      <div className='grid gap-0.5'>
+        <p id='cart-ga-label' className='font-medium text-strong'>
+          Paper Lanterns, general admission
+        </p>
+        <p className='text-sm text-subtle tabular-nums'>{aud.format(59.9 * quantity)}</p>
+      </div>
+      <NumberField
+        emphasis='subtler'
+        min={0}
+        max={8}
+        removable
+        value={quantity}
+        onValueChange={(value) => setQuantity(value ?? 0)}
+      >
+        <NumberField.Group>
+          <NumberField.Decrement />
+          <NumberField.Input aria-labelledby='cart-ga-label' />
+          <NumberField.Increment emphasis='strong' intent='accent' />
+        </NumberField.Group>
+      </NumberField>
+    </div>
+  )
+}
+
+render(<CartItem />)
+```
+
+#### Buttons only
+
+Set `editable={false}` when the value should only change with the buttons, such as an add-on limited to a few. The chip goes and the value hugs the number. The arrow keys, Home and End still step, unlike `readOnly`, which stops every change.
+
+```tsx-live
+<NumberField emphasis='subtler' defaultValue={1} min={0} max={4} removable editable={false}>
+  <NumberField.Group>
+    <NumberField.Decrement />
+    <NumberField.Input aria-label='Car parking passes' />
+    <NumberField.Increment emphasis='strong' intent='accent' />
+  </NumberField.Group>
+</NumberField>
+```
+
+### Animated value
+
+The digits roll to each new value with [NumberFlow](https://number-flow.barvian.me), in every emphasis and with the same `format` and `locale` as the input. The animated number is a visual copy hidden from screen readers. Tap into the input or start typing and its own text fades in for editing. The next button press, arrow key or scroll fades back to the animation. People who set their system to reduce motion see the value change without the roll. Scientific and engineering notation don't animate.
+
+```tsx-live
+<NumberField
+  aria-label='Donation'
+  locale='en-AU'
+  format={{ style: 'currency', currency: 'AUD' }}
+  defaultValue={25}
+  min={0}
+  step={5}
+  emphasis='subtler'
+/>
 ```
 
 ### Formatting
@@ -236,5 +315,10 @@ render(<TicketQuantities />)
 - Arrow Up and Arrow Down step by `step`. Shift steps by `largeStep` (10), Alt by `smallStep` (0.1). Home and End jump to `min` and `max`.
 - The buttons are named Increase and Decrease and stay out of the tab order, since the arrow keys do the same job. Touch screen readers can still reach them.
 - Pressing and holding a button keeps stepping.
+- With `removable`, the decrease button is named Remove when the next step reaches `min`, so screen readers announce what it does.
+- The input is the only control for the value. The animated number beside it is `aria-hidden`, and the animation respects `prefers-reduced-motion`.
+- `editable={false}` makes the input read only for typing, so screen readers announce it as read only, but the buttons and arrow keys still step. Use `readOnly` when the value must not change at all.
+- At `subtler` the value chip turns danger when invalid. With `editable={false}` there's no chip, so show `Field.ErrorText` as well.
+- An editable value is at least 2.75rem wide and as tall as the buttons, 3.5rem wide on touch screens.
 
 <PropsDefinitions componentPath='packages/components/src/components/NumberField' />
