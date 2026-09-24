@@ -1,0 +1,222 @@
+export const metadata = {
+  title: 'Callout',
+  description: 'An inline message that sits in the flow of the page',
+  status: 'beta',
+  category: 'Status'
+}
+
+import { Callout } from '@oztix/roadie-components'
+
+import { Guideline } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+An inline message that sits in the flow of the page, next to the content it's about.
+
+## Import
+
+```tsx
+import { Callout } from '@oztix/roadie-components/callout'
+```
+
+## Examples
+
+### Default
+
+Pass the message as children. With no `intent`, the callout takes the palette of whatever it sits in.
+
+```tsx-live
+<Callout>Bring photo ID. Every ticket is checked at the door.</Callout>
+```
+
+### Title only and description only
+
+Leave out either one. A title on its own suits a short status; a description on its own suits a sentence.
+
+```tsx-live
+<div className='grid gap-3'>
+  <Callout intent='success' title='Your event is live' />
+  <Callout intent='info'>Doors open at 7pm.</Callout>
+</div>
+```
+
+### Emphasis
+
+`subtle` is the default. Use `normal` to sit on a tinted surface, `strong` for the one message a page can't miss, and `subtler` for a quiet aside.
+
+```tsx-live
+<div className='grid gap-3'>
+  {['strong', 'normal', 'subtle', 'subtler'].map((emphasis) => (
+    <Callout key={emphasis} intent='warning' emphasis={emphasis} title={emphasis}>
+      Only 20 tickets left at this price.
+    </Callout>
+  ))}
+</div>
+```
+
+### Intents
+
+`info`, `success`, `warning` and `danger` each bring a status icon. Other intents colour the callout without one.
+
+```tsx-live
+<div className='grid gap-3'>
+  <Callout intent='info' title='Doors open at 7pm'>
+    The support act starts at 8pm at The Paperbark Room.
+  </Callout>
+  <Callout intent='success' title='Your event is live'>
+    Tickets for Lantern Festival are on sale now.
+  </Callout>
+  <Callout intent='warning' title='Only 20 tickets left at this price'>
+    The next release is $10 more.
+  </Callout>
+  <Callout intent='danger' title='Payment failed'>
+    Update your card to keep your booking.
+  </Callout>
+</div>
+```
+
+### Composition
+
+Build the callout from parts when it needs actions or a rich body. `Callout.Icon` with no children shows the intent's icon.
+
+```tsx-live
+<Callout intent='danger'>
+  <Callout.Icon />
+  <Callout.Title>Payment failed</Callout.Title>
+  <Callout.Description>
+    Update your card to keep your booking for Saltwater Sessions.
+  </Callout.Description>
+  <Callout.Actions>
+    <Button size='sm' emphasis='strong'>Update card</Button>
+    <Button size='sm' emphasis='subtler'>View booking</Button>
+  </Callout.Actions>
+</Callout>
+```
+
+### With actions
+
+Actions sit below the text in a narrow callout and move beside it once the callout is 32rem wide. The callout measures itself, so it lays out the same in a sidebar as on a phone.
+
+```tsx-live
+<div className='grid gap-3'>
+  <div className='max-w-sm'>
+    <Callout intent='warning'>
+      <Callout.Icon />
+      <Callout.Title>Only 20 tickets left at this price</Callout.Title>
+      <Callout.Description>The next release is $10 more.</Callout.Description>
+      <Callout.Actions>
+        <Button size='sm'>Buy now</Button>
+      </Callout.Actions>
+    </Callout>
+  </div>
+  <Callout intent='warning'>
+    <Callout.Icon />
+    <Callout.Title>Only 20 tickets left at this price</Callout.Title>
+    <Callout.Description>The next release is $10 more.</Callout.Description>
+    <Callout.Actions>
+      <Button size='sm'>Buy now</Button>
+    </Callout.Actions>
+  </Callout>
+</div>
+```
+
+### With dismiss
+
+`onDismiss` adds a dismiss button. You own the visibility, so stop rendering the callout in the handler, and remember the choice if it should stay gone.
+
+```tsx-live-noinline
+function Example() {
+  const [open, setOpen] = useState(true)
+  if (!open) {
+    return <Button onClick={() => setOpen(true)}>Show again</Button>
+  }
+  return (
+    <Callout intent='info' title='Doors open at 7pm' onDismiss={() => setOpen(false)}>
+      Entry to Harbour Lights is through the side gate on Beach Road.
+    </Callout>
+  )
+}
+
+render(<Example />)
+```
+
+### With a custom icon
+
+Pass `icon` to the short form, or children to `Callout.Icon`. Pass `icon={null}` for no icon.
+
+```tsx-live
+<div className='grid gap-3'>
+  <Callout intent='brand' icon={<TicketIcon weight='bold' />} title='Your tickets are in your wallet'>
+    Show them at the gate from your phone.
+  </Callout>
+  <Callout intent='info' icon={null}>
+    Doors open at 7pm.
+  </Callout>
+</div>
+```
+
+## Guidelines
+
+<div className='grid gap-8'>
+
+<Guideline title='Callout or Toast'>
+  <Guideline.Do
+    example={
+      <Callout intent='warning' title='Only 20 tickets left at this price'>
+        The next release is $10 more.
+      </Callout>
+    }
+  >
+    Use a callout for something that stays true while the page is open, next to the content it's about.
+  </Guideline.Do>
+  <Guideline.Dont
+    example={
+      <Callout intent='success' title='Saved'>
+        Your changes were saved.
+      </Callout>
+    }
+  >
+    Don't use a callout to confirm an action that just happened. Use a Toast, which comes and goes on its own.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Say what to do next'>
+  <Guideline.Do
+    example={
+      <Callout intent='danger' title='Payment failed'>
+        Update your card to keep your booking.
+      </Callout>
+    }
+  >
+    Lead with what happened and follow with what to do. Keep it to a sentence or two.
+  </Guideline.Do>
+  <Guideline.Dont
+    example={
+      <Callout intent='danger' title='Error'>
+        Something went wrong.
+      </Callout>
+    }
+  >
+    Don't write a vague title. It tells people something is wrong without telling them what.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep strong callouts rare'>
+  <Guideline.Do>
+    Use one `strong` callout at most on a page, for the message nobody can miss.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't stack several callouts. When everything stands out, nothing does. Fold related messages into one.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- A callout that is on the page when it loads has no live role. Screen readers read it in order, like the rest of the content.
+- For a callout you insert after something happens, add `role='status'` to announce it politely, or `role='alert'` to interrupt, only for errors that block the task. Some screen readers only announce changes inside a live region that was already on the page, so for a message that must be heard, keep an empty `role='status'` wrapper mounted and render the callout into it.
+- The title is a paragraph by default. Make it a heading at the level the page needs with `render`, e.g. `<Callout.Title render={<h3 />}>`.
+- The icon is decorative. The intent is only colour and an icon, so the title or description must say what kind of message it is.
+- The dismiss button is named "Dismiss". Change it with `dismissLabel`. When the callout goes, move focus somewhere sensible so it isn't lost.
+
+<PropsDefinitions componentPath='packages/components/src/components/Callout' />

@@ -43,6 +43,10 @@
       "types": "./dist/components/CalendarTile/index.d.ts",
       "import": "./dist/components/CalendarTile/index.js"
     },
+    "./callout": {
+      "types": "./dist/components/Callout/index.d.ts",
+      "import": "./dist/components/Callout/index.js"
+    },
     "./card": {
       "types": "./dist/components/Card/index.d.ts",
       "import": "./dist/components/Card/index.js"
