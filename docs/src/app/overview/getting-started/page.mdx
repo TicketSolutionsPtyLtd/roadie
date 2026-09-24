@@ -51,6 +51,32 @@ Using widgets too? Add `@oztix/roadie-widgets/css` as well. Each package's CSS r
 @import '@oztix/roadie-widgets/css';
 ```
 
+### 4. Mount the providers
+
+Wrap your app once, at the root. `RoadieLinkProvider` routes every `href` through your router, `ThemeProvider` handles light and dark, and `Toast.Provider` with `Toast.Viewport` shows the [toasts](/components/toast) any component adds.
+
+```tsx
+'use client'
+
+import NextLink from 'next/link'
+
+import { RoadieLinkProvider, ThemeProvider } from '@oztix/roadie-components'
+import { Toast } from '@oztix/roadie-components/toast'
+
+export function Providers({ children }) {
+  return (
+    <RoadieLinkProvider Link={NextLink}>
+      <ThemeProvider>
+        <Toast.Provider>
+          {children}
+          <Toast.Viewport />
+        </Toast.Provider>
+      </ThemeProvider>
+    </RoadieLinkProvider>
+  )
+}
+```
+
 ## Usage
 
 ### Using components

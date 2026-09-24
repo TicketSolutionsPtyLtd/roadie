@@ -350,6 +350,73 @@
   }
 }
 
+/* A toast in a Base UI toast viewport. Collapsed, the stack sits behind the
+   frontmost toast, clamped to its height and peeking out above it; fanned out
+   while the viewport is hovered or focused. Tracks the live swipe offset and
+   leaves the way it was swiped. Pair with `absolute bottom-0 origin-bottom`. */
+@utility motion-toast {
+  --toast-gap: calc(var(--spacing) * 3);
+  --toast-peek: calc(var(--spacing) * 3);
+  --toast-scale: max(0, 1 - var(--toast-index) * 0.05);
+  --toast-collapsed-height: var(--toast-frontmost-height, var(--toast-height));
+  --toast-lift: calc(
+    var(--toast-swipe-movement-y) - var(--toast-offset-y) - var(--toast-index) *
+      var(--toast-gap)
+  );
+  z-index: calc(1000 - var(--toast-index));
+  height: var(--toast-collapsed-height);
+  transform: translateX(var(--toast-swipe-movement-x))
+    translateY(
+      calc(
+        var(--toast-swipe-movement-y) - var(--toast-index) * var(--toast-peek) -
+          (1 - var(--toast-scale)) * var(--toast-collapsed-height)
+      )
+    )
+    scale(var(--toast-scale));
+  transition-property: transform, opacity, height;
+  transition-timing-function: var(--ease-enter);
+  transition-duration:
+    var(--duration-slower), var(--duration-slower), var(--duration-normal);
+
+  &[data-expanded] {
+    height: var(--toast-height);
+    transform: translateX(var(--toast-swipe-movement-x))
+      translateY(var(--toast-lift));
+  }
+
+  &[data-starting-style] {
+    opacity: 0;
+    transform: translateY(150%);
+  }
+
+  &[data-ending-style],
+  &[data-limited] {
+    opacity: 0;
+  }
+
+  &[data-ending-style]:not([data-limited]):not([data-swipe-direction]) {
+    transform: translateY(150%);
+  }
+
+  &[data-ending-style][data-swipe-direction='down'] {
+    transform: translateY(calc(var(--toast-swipe-movement-y) + 150%));
+  }
+
+  &[data-ending-style][data-swipe-direction='up'] {
+    transform: translateY(calc(var(--toast-swipe-movement-y) - 150%));
+  }
+
+  &[data-ending-style][data-swipe-direction='right'] {
+    transform: translateX(calc(var(--toast-swipe-movement-x) + 150%))
+      translateY(var(--toast-lift));
+  }
+
+  &[data-ending-style][data-swipe-direction='left'] {
+    transform: translateX(calc(var(--toast-swipe-movement-x) - 150%))
+      translateY(var(--toast-lift));
+  }
+}
+
 /* ─── Reduced motion ───
    Global reset for users who prefer reduced motion.
    Uses 0.01ms (not 0ms) so JS transition/animation events still fire.

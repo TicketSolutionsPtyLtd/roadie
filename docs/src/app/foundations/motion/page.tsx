@@ -154,6 +154,10 @@ const entersLeavesUtilities = [
   {
     name: 'motion-drawer',
     description: 'Anchored-edge slide, tracks live swipe offset'
+  },
+  {
+    name: 'motion-toast',
+    description: 'Toast stack: collapses, fans out, tracks live swipe offset'
   }
 ]
 

@@ -20,6 +20,7 @@ import {
   Popover as PopoverViaBarrel,
   ScrollArea as ScrollAreaViaBarrel,
   Tabs as TabsViaBarrel,
+  Toast as ToastViaBarrel,
   Tooltip as TooltipViaBarrel
 } from '@oztix/roadie-components'
 import { Accordion } from '@oztix/roadie-components/accordion'
@@ -44,6 +45,7 @@ import { ScrollArea } from '@oztix/roadie-components/scroll-area'
 import { Select } from '@oztix/roadie-components/select'
 import { Steps } from '@oztix/roadie-components/steps'
 import { Tabs } from '@oztix/roadie-components/tabs'
+import { Toast } from '@oztix/roadie-components/toast'
 import { Tooltip } from '@oztix/roadie-components/tooltip'
 
 import { NavigatorCanary } from './NavigatorCanary'
@@ -492,6 +494,22 @@ export default function RscSmokePage() {
           <TooltipViaBarrel.Trigger>Hover for a label</TooltipViaBarrel.Trigger>
           <TooltipViaBarrel.Content>A label</TooltipViaBarrel.Content>
         </TooltipViaBarrel>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Toast.Provider and Toast.Viewport via subpath
+        </h2>
+        <Toast.Provider>
+          <Toast.Viewport />
+        </Toast.Provider>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Toast via barrel</h2>
+        <ToastViaBarrel.Provider timeout={0}>
+          <ToastViaBarrel.Viewport />
+        </ToastViaBarrel.Provider>
       </section>
 
       <section className='grid gap-2'>

@@ -7,6 +7,7 @@ import {
   RoadieLinkProvider,
   ThemeProvider
 } from '@oztix/roadie-components'
+import { Toast } from '@oztix/roadie-components/toast'
 
 // `next/link` accepts a superset of the `RoadieLinkProps` shape (it
 // adds `prefetch`, `replace`, `scroll`, etc.). Cast through a minimal
@@ -17,7 +18,12 @@ const NextLinkAsRoadieLink = NextLink as unknown as RoadieLinkComponent
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <RoadieLinkProvider Link={NextLinkAsRoadieLink}>
-      <ThemeProvider followSystem>{children}</ThemeProvider>
+      <ThemeProvider followSystem>
+        <Toast.Provider>
+          {children}
+          <Toast.Viewport />
+        </Toast.Provider>
+      </ThemeProvider>
     </RoadieLinkProvider>
   )
 }
