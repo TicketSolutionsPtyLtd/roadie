@@ -30,6 +30,8 @@ export type ChartProps = Omit<DataCardProps, 'children' | 'source'> & {
   children: ReactNode
 }
 
+const TAB = 'h-6 px-2'
+
 export function Chart({
   table,
   view = 'chart',
@@ -54,10 +56,20 @@ export function Chart({
         size={size}
         actions={
           <Tabs.List aria-label={`${label} view`}>
-            <Tabs.Tab value='chart' aria-label='Chart' title='Chart'>
+            <Tabs.Tab
+              value='chart'
+              aria-label='Chart'
+              title='Chart'
+              className={TAB}
+            >
               <ChartLineIcon weight='bold' className='size-4' />
             </Tabs.Tab>
-            <Tabs.Tab value='table' aria-label='Table' title='Table'>
+            <Tabs.Tab
+              value='table'
+              aria-label='Table'
+              title='Table'
+              className={TAB}
+            >
               <TableIcon weight='bold' className='size-4' />
             </Tabs.Tab>
             <Tabs.Indicator />
@@ -67,19 +79,32 @@ export function Chart({
       >
         <div className='grid gap-3'>
           {legend}
-          <Tabs.Panel value='chart' keepMounted>
-            <div data-slot='chart-plot' className='w-full'>
-              {children}
-            </div>
-          </Tabs.Panel>
-          <Tabs.Panel value='table' keepMounted>
-            <DataTable
-              columns={table.columns}
-              rows={table.rows}
-              caption={label}
-              plain
-            />
-          </Tabs.Panel>
+          <div data-slot='chart-views'>
+            <Tabs.Panel
+              value='chart'
+              keepMounted
+              hidden={false}
+              data-chart-view='chart'
+            >
+              <div data-slot='chart-plot' className='w-full'>
+                {children}
+              </div>
+            </Tabs.Panel>
+            <Tabs.Panel
+              value='table'
+              keepMounted
+              hidden={false}
+              data-chart-view='table'
+            >
+              <DataTable
+                columns={table.columns}
+                rows={table.rows}
+                caption={label}
+                plain
+                className='max-w-2xl'
+              />
+            </Tabs.Panel>
+          </div>
         </div>
       </DataCard>
     </Tabs.Root>

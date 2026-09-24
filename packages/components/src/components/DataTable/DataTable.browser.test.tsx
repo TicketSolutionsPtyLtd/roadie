@@ -69,3 +69,67 @@ describe('DataTable priorities', () => {
     ).toBe('sticky')
   })
 })
+
+describe('DataTable never clips', () => {
+  const venueColumns: DataTableColumn[] = [
+    {
+      key: 'show',
+      header: 'Show',
+      kind: 'text',
+      pin: true,
+      secondaryKey: 'venue'
+    },
+    { key: 'daily', header: 'Daily', kind: 'sparkline', priority: 3 },
+    { key: 'sellThrough', header: 'Sell-through', kind: 'meter', priority: 2 },
+    { key: 'pace', header: 'Pace index', kind: 'delta', format: 'index' },
+    {
+      key: 'gross',
+      header: 'Gross',
+      kind: 'number',
+      format: 'compactCurrency',
+      priority: 1
+    }
+  ]
+  const venueRows = [
+    {
+      show: 'Ball Park Music',
+      venue: 'The Lantern Room, Fortitude Valley · Sat 14 Nov',
+      daily: [1, 2, 3, 4, 5],
+      sellThrough: 0.77,
+      pace: 112,
+      gross: 118400
+    }
+  ]
+
+  it('wraps a long secondary line to fit a 326px card', () => {
+    const { container } = render(
+      <div style={{ width: 326 }}>
+        <DataTable columns={venueColumns} rows={venueRows} />
+      </div>
+    )
+    const scroller = container.querySelector<HTMLElement>(
+      '[data-slot=data-table-scroller]'
+    )!
+    const table = scroller.querySelector('table')!
+    expect(getComputedStyle(scroller).overflowX).toBe('auto')
+    expect(scroller.scrollWidth).toBeLessThanOrEqual(scroller.clientWidth)
+    expect(table.getBoundingClientRect().right).toBeLessThanOrEqual(
+      scroller.getBoundingClientRect().right + 0.5
+    )
+  })
+
+  it('scrolls rather than clips when the columns cannot fit', () => {
+    const wide = venueColumns.map(({ priority: _, ...column }) => column)
+    const { container } = render(
+      <div style={{ width: 326 }}>
+        <DataTable columns={wide} rows={venueRows} />
+      </div>
+    )
+    const scroller = container.querySelector<HTMLElement>(
+      '[data-slot=data-table-scroller]'
+    )!
+    expect(scroller.scrollWidth).toBeGreaterThan(scroller.clientWidth)
+    scroller.scrollLeft = scroller.scrollWidth
+    expect(scroller.scrollLeft).toBeGreaterThan(0)
+  })
+})

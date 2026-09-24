@@ -51,11 +51,14 @@ const safeUrl = z
   .min(1)
   .refine(isSafeImageUrl, { message: 'Use an http(s) or relative image URL' })
 
+const plotImage = { src: safeUrl, srcDark: safeUrl.optional() }
+
 const staticPlot = z.strictObject({
   kind: z.literal('static'),
-  src: safeUrl,
-  srcDark: safeUrl.optional(),
-  alt: z.string().min(1)
+  ...plotImage,
+  alt: z.string().min(1),
+  narrow: z.strictObject(plotImage).optional(),
+  wide: z.strictObject(plotImage).optional()
 })
 
 const legendItem = z.strictObject({
@@ -153,6 +156,7 @@ export type TableCell = z.infer<typeof cell>
 export type TableRow = Record<string, TableCell>
 export type TableData = z.infer<typeof tableData>
 export type StaticPlot = z.infer<typeof staticPlot>
+export type StaticPlotImage = NonNullable<StaticPlot['narrow']>
 export type LegendItem = z.infer<typeof legendItem>
 export type StatCard = z.infer<typeof statCard>
 export type TableCard = z.infer<typeof tableCard>

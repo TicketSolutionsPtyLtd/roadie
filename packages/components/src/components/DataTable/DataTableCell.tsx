@@ -32,7 +32,9 @@ export function DataTableCellContent({
       <span className='grid'>
         <span className='font-semibold text-strong'>{String(value)}</span>
         {typeof secondary === 'string' && (
-          <span className='text-xs text-subtle'>{secondary}</span>
+          <span className='text-xs whitespace-normal text-subtle'>
+            {secondary}
+          </span>
         )}
       </span>
     )

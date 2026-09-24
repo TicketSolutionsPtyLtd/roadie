@@ -138,7 +138,9 @@ export function DataCard({
               {label}
             </h3>
             {actions && showContent && (
-              <div className='flex items-center gap-1'>{actions}</div>
+              <div className='flex h-0 items-center gap-1 self-center'>
+                {actions}
+              </div>
             )}
           </div>
           {state === 'loading' ? (

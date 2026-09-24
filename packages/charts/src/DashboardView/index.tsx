@@ -6,7 +6,8 @@ import type {
   CardSize,
   DashboardCard,
   DashboardSpec,
-  StaticPlot
+  StaticPlot,
+  StaticPlotImage
 } from '@oztix/roadie-core/dashboard'
 
 import { Chart } from '../Chart'
@@ -14,24 +15,38 @@ import { ChartLegend } from '../ChartLegend'
 
 export type DashboardViewProps = { spec: DashboardSpec; className?: string }
 
-function Plot({ plot }: { plot: StaticPlot }) {
+function ThemedImage({ image, alt }: { image: StaticPlotImage; alt: string }) {
   return (
     <>
       <img
-        data-theme-image={plot.srcDark ? 'light' : undefined}
-        src={plot.src}
-        alt={plot.alt}
-        className='size-full object-contain'
+        data-theme-image={image.srcDark ? 'light' : undefined}
+        src={image.src}
+        alt={alt}
       />
-      {plot.srcDark && (
-        <img
-          data-theme-image='dark'
-          src={plot.srcDark}
-          alt={plot.alt}
-          className='size-full object-contain'
-        />
+      {image.srcDark && (
+        <img data-theme-image='dark' src={image.srcDark} alt={alt} />
       )}
     </>
+  )
+}
+
+function Plot({ plot }: { plot: StaticPlot }) {
+  const bands = [
+    ['narrow', plot.narrow],
+    ['default', plot],
+    ['wide', plot.wide]
+  ] as const
+  return (
+    <div data-slot='chart-static-plot'>
+      {bands.map(
+        ([band, image]) =>
+          image && (
+            <div key={band} data-plot-band={band}>
+              <ThemedImage image={image} alt={plot.alt} />
+            </div>
+          )
+      )}
+    </div>
   )
 }
 

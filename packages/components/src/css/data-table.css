@@ -37,10 +37,7 @@
   }
 }
 
-[data-slot='data-table']:has(
-    [data-slot='data-table-show-all'][aria-expanded='true']
-  )
-  [data-slot='data-table-scroller'] {
+[data-slot='data-table-scroller'] {
   overflow-x: auto;
 }
 

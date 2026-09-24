@@ -70,6 +70,26 @@ describe('dashboardSchema', () => {
     }
   )
 
+  it('rejects an unsafe src on a plot rendition', () => {
+    const card = {
+      ...chart,
+      plot: { ...chart.plot, narrow: { src: 'javascript:alert(1)' } }
+    }
+    expect(dashboardSchema.safeParse(spec([card])).success).toBe(false)
+  })
+
+  it('accepts narrow and wide plot renditions', () => {
+    const card = {
+      ...chart,
+      plot: {
+        ...chart.plot,
+        narrow: { src: '/charts/pace-narrow-light.svg' },
+        wide: { src: '/charts/pace-wide-light.svg', srcDark: '/p-dark.svg' }
+      }
+    }
+    expect(dashboardSchema.safeParse(spec([card])).success).toBe(true)
+  })
+
   it('accepts a reserved data binding', () => {
     const card = { ...stat, data: { source: 'oztix.sales', params: { id: 1 } } }
     expect(dashboardSchema.safeParse(spec([card])).success).toBe(true)
