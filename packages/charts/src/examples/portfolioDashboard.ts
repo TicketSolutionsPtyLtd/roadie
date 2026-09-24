@@ -124,7 +124,7 @@ export function createPortfolioDashboard(assetBase = ''): DashboardSpec {
             label: 'Refund rate',
             value: 0.012,
             format: 'percent',
-            delta: { value: -0.003, format: 'percent', goodWhen: 'down' },
+            delta: { value: -0.3, format: 'points', goodWhen: 'down' },
             context: 'On last month',
             trend: [0.02, 0.018, 0.017, 0.016, 0.015, 0.014, 0.013, 0.012]
           }
@@ -190,8 +190,8 @@ export function createPortfolioDashboard(assetBase = ''): DashboardSpec {
             label: 'Julia Jacklin pace',
             value: 0.4,
             format: 'percent',
-            delta: { value: -0.23, format: 'percent' },
-            context: 'Forecast 74% by show day. Target 85%',
+            delta: { value: -12, format: 'points' },
+            context: 'Behind similar shows. Forecast 74%. Target 85%',
             plot: {
               kind: 'static',
               src: `${assetBase}/charts/pace-behind-light.svg`,

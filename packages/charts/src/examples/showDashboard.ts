@@ -82,7 +82,7 @@ export function createShowDashboard(assetBase = ''): DashboardSpec {
             label: 'Sales pace',
             value: 0.61,
             format: 'percent',
-            delta: { value: 0.12, format: 'percent' },
+            delta: { value: 9, format: 'points' },
             context: 'Ahead of similar shows. Forecast 96% by show day',
             plot: {
               kind: 'static',

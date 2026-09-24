@@ -123,7 +123,7 @@ const FILLING_ROWS: { name: ReactNode; sizes: CardSize[] }[] = [
   {
     name: (
       <>
-        <Code>lg</Code> <Code>sm</Code>, then <Code>sm</Code> <Code>lg</Code>
+        Mirrored <Code>lg</Code> + <Code>sm</Code>
       </>
     ),
     sizes: ['lg', 'sm', 'sm', 'lg']
@@ -180,7 +180,9 @@ function WidthDiagram({
   labelled?: boolean
 }) {
   return (
-    <div className={`grid gap-1 ${TRACK_CLASS[width]}`}>
+    <div
+      className={`grid ${labelled ? 'gap-1' : 'gap-0.5'} ${TRACK_CLASS[width]}`}
+    >
       {packRows(sizes, width).map((slot, i) =>
         'gap' in slot ? (
           <div
@@ -202,9 +204,15 @@ function WidthDiagram({
   )
 }
 
-function RowDiagram({ sizes }: { sizes: CardSize[] }) {
+function RowDiagram({
+  sizes,
+  wide = false
+}: {
+  sizes: CardSize[]
+  wide?: boolean
+}) {
   return (
-    <div className='grid w-56 max-w-full gap-3'>
+    <div className={`grid max-w-full gap-3 ${wide ? 'w-full' : 'w-56'}`}>
       {DASHBOARD_WIDTHS.map((width) => (
         <div key={width} className='grid gap-1'>
           <p className='text-xs text-subtle'>{WIDTH_NAME[width]}</p>
@@ -218,7 +226,7 @@ function RowDiagram({ sizes }: { sizes: CardSize[] }) {
 const FILLING_TABLE_ROWS = FILLING_ROWS.map(({ name, sizes }) => [
   name,
   ...DASHBOARD_WIDTHS.map((width) => (
-    <div key={width} className='min-w-32'>
+    <div key={width} className='min-w-14'>
       <WidthDiagram sizes={sizes} width={width} />
     </div>
   ))
@@ -305,7 +313,7 @@ const STATES: { state: CardState; when: string }[] = [
   },
   {
     state: 'stale',
-    when: 'The numbers are older than the app expects. The app decides when, and passes the time in the footer.'
+    when: 'The app decides when data is stale and passes the time to show in the footer.'
   }
 ]
 
@@ -376,16 +384,44 @@ const PORTFOLIO_ROWS = [
 ]
 
 const STAT_CARD_JSON = `{
-  "id": "sold",
-  "kind": "stat",
-  "size": "stat",
-  "label": "Tickets sold",
-  "value": 1842,
-  "format": "number",
-  "delta": { "value": 214, "goodWhen": "up" },
-  "context": "This week, of 2,400",
-  "trend": [40, 62, 70, 88, 95]
+  "id": "sold", "kind": "stat", "size": "stat",
+  "label": "Tickets sold", "value": 1842,
+  "delta": { "value": 214 }, "context": "This week, of 2,400"
 }`
+
+const SHOW_DASHBOARD_SIZES: CardSize[] = [
+  'stat',
+  'stat',
+  'stat',
+  'stat',
+  'lg',
+  'sm',
+  'sm',
+  'lg'
+]
+
+const DASHBOARD_JSX = `<Dashboard>
+  <Dashboard.Section title='At a glance'>
+    <StatTile label='Tickets sold' value={1842} delta={{ value: 214 }} />
+    <StatTile label='Sell-through' value={0.77} format='percent' />
+    <StatTile label='Pace index' value={112} format='index' />
+    <StatTile label='Gross revenue' value={118400} format='compactCurrency' />
+  </Dashboard.Section>
+  <Dashboard.Section title='Sales'>
+    <Chart size='lg' label='Sales pace' source='Oztix sales.' table={pace}>
+      <img src='/charts/pace-ahead-light.svg' alt='…' />
+    </Chart>
+    <DataCard size='sm' label='What to do next'>
+      <p>GA is carrying the show. Push VIP this month.</p>
+    </DataCard>
+    <DataCard size='sm' label='Where buyers are from'>
+      <DataTable columns={suburbColumns} rows={suburbs} />
+    </DataCard>
+    <DataCard size='lg' label='Ticket types'>
+      <DataTable columns={typeColumns} rows={types} />
+    </DataCard>
+  </Dashboard.Section>
+</Dashboard>`
 
 const VALIDATE_CODE = `import { validateDashboard } from '@oztix/roadie-core/dashboard'
 
@@ -412,10 +448,18 @@ const VALIDATE_PROBLEMS = [
 const GAP_WARNING =
   '[Roadie Dashboard] "Pace" has rows that don\'t fill: desktop row 1 leaves 4 empty; desktop row 2 leaves 6 empty; tablet row 2 leaves 3 empty. See /charts/dashboards.'
 
-function Table({ head, rows }: { head: string[]; rows: ReactNode[][] }) {
+function Table({
+  head,
+  rows,
+  fit = false
+}: {
+  head: string[]
+  rows: ReactNode[][]
+  fit?: boolean
+}) {
   return (
     <div className='overflow-x-auto'>
-      <table className='w-full min-w-xl text-sm'>
+      <table className={fit ? 'w-full text-sm' : 'w-full min-w-xl text-sm'}>
         <thead>
           <tr className='border-b border-subtle text-left text-subtle'>
             {head.map((h) => (
@@ -519,7 +563,9 @@ export default function DashboardsPage() {
           window. It has 12 tracks from 960px, 6 from 600px and 2 below that, so
           it works in a side pane as well as on a phone. Cards flow in source
           order and the grid never moves them, so reading order always matches
-          what people see. Cards in a row stretch to the same height.
+          what people see. Cards in a row stretch to the same height.{' '}
+          <Code>Dashboard.Section</Code> groups cards under an h2, and sections
+          sit 32px apart.
         </p>
         <Table head={SIZE_HEAD} rows={SIZE_ROWS} />
         <p className='max-w-prose text-subtle'>
@@ -537,8 +583,13 @@ export default function DashboardsPage() {
           . It has four stat tiles, an <Code>lg</Code> chart beside an{' '}
           <Code>sm</Code> note, then an <Code>sm</Code> table beside an{' '}
           <Code>lg</Code> table. This column is narrower than 960px, so it shows
-          6 tracks or fewer.
+          6 tracks or fewer. Here is the same layout at each width, and the JSX
+          behind it.
         </p>
+        <Stage>
+          <RowDiagram sizes={SHOW_DASHBOARD_SIZES} wide />
+        </Stage>
+        <CodePreview>{DASHBOARD_JSX}</CodePreview>
       </section>
 
       <section className='grid gap-6'>
@@ -550,11 +601,12 @@ export default function DashboardsPage() {
         <Table
           head={['Row', ...DASHBOARD_WIDTHS.map((width) => WIDTH_NAME[width])]}
           rows={FILLING_TABLE_ROWS}
+          fit
         />
         <p className='max-w-prose text-subtle'>
-          Tablet makes <Code>lg</Code> full width and <Code>sm</Code> half. On
-          its own, <Code>lg</Code> and <Code>sm</Code> leaves half a row empty,
-          so the mirror is what fills it.
+          On tablet, <Code>lg</Code> takes a full row and <Code>sm</Code> takes
+          half. So <Code>lg</Code> then <Code>sm</Code> leaves half a row empty.
+          The mirrored <Code>sm</Code> fills it.
         </p>
         <Guideline title='Mirror a large card'>
           <Guideline.Do
@@ -576,20 +628,21 @@ export default function DashboardsPage() {
           In development, <Code>Dashboard.Section</Code> logs a warning for any
           row that leaves a gap. It uses the same check as{' '}
           <Code>validateDashboard</Code>. It only sees the section’s direct
-          children, so keep cards as direct children rather than wrapping them.
+          children. If you wrap a card, pass <Code>size</Code> to the wrapper so
+          the check still sees it.
         </p>
-        <CodePreview language='text' showCopy={false}>
+        <p className='rounded-lg emphasis-sunken p-4 font-mono text-xs break-words sm:text-sm'>
           {GAP_WARNING}
-        </CodePreview>
+        </p>
       </section>
 
       <section className='grid gap-6'>
         <h2 className='text-display-prose-3 text-strong'>Card anatomy</h2>
         <p className='max-w-prose text-subtle'>
           <Code>DataCard</Code> is the shared card. <Code>StatTile</Code>, table
-          cards and <Code>Chart</Code> are built on it. Its props map one to one
-          to the JSON description, so a card written in JSX and a card written
-          as data come out the same.
+          cards and <Code>Chart</Code> are built on it. Its props match the JSON
+          description field for field, so a card in JSX and a card in JSON come
+          out the same.
         </p>
         <figure className='grid gap-6'>
           <Chart
@@ -631,9 +684,9 @@ export default function DashboardsPage() {
           </figcaption>
         </figure>
         <p className='max-w-prose text-subtle'>
-          The label, headline and context line never wrap. Text that still
-          overflows ends in an ellipsis, with the full text in the tooltip and
-          the accessible name. The legend is the only chart text that wraps.
+          The label, headline and context line never wrap. Text that doesn’t fit
+          ends in an ellipsis. The full text goes in the tooltip and the
+          accessible name. The legend is the only chart text that wraps.
         </p>
       </section>
 
@@ -761,10 +814,10 @@ export default function DashboardsPage() {
               higher numbers hide first. Columns without one always show.
             </>,
             <>
-              Show all columns switches to horizontal scrolling and holds the{' '}
-              <Code>pin</Code> column in place.
+              The “Show all columns” button switches to horizontal scrolling and
+              holds the <Code>pin</Code> column in place.
             </>,
-            'A sparkline cell needs 5 points. With fewer it says so.'
+            'A sparkline cell needs 5 points. With fewer, it shows “Not enough history”.'
           ]}
         />
         <DataCard
@@ -778,6 +831,10 @@ export default function DashboardsPage() {
             caption='Upcoming shows'
           />
         </DataCard>
+        <p className='max-w-prose text-sm text-subtle'>
+          At this width the sparkline column hides first. Show all columns
+          brings it back.
+        </p>
       </section>
 
       <section className='grid gap-6'>
@@ -804,7 +861,7 @@ export default function DashboardsPage() {
           . It returns these problems.
         </p>
         <Table
-          head={['path', 'message', 'severity']}
+          head={['Path', 'Message', 'Severity']}
           rows={VALIDATE_PROBLEMS}
         />
         <p className='max-w-prose text-subtle'>
@@ -813,11 +870,10 @@ export default function DashboardsPage() {
           sentence case.
         </p>
         <p className='max-w-prose text-subtle'>
-          The tables on this page read from <Code>CARD_SPANS</Code> and{' '}
-          <Code>COPY_LIMITS</Code> in{' '}
-          <Code>@oztix/roadie-core/dashboard-layout</Code>. Import them from
-          there when you only need the layout rules, because that entry doesn’t
-          load Zod.
+          <Code>CARD_SPANS</Code> and <Code>COPY_LIMITS</Code> hold the sizes
+          and limits above. Import them from{' '}
+          <Code>@oztix/roadie-core/dashboard-layout</Code> when you only need
+          the layout rules, because that entry doesn’t load Zod.
         </p>
       </section>
 
