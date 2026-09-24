@@ -1,5 +1,6 @@
 /* Registers the charts dist for Tailwind. Consumers also import @oztix/roadie-components/css. */
 @source '../../dist';
+@source './safelist.html';
 
 [data-slot='chart-plot'] {
   height: 220px;

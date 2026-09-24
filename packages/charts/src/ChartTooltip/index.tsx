@@ -1,4 +1,4 @@
-import type { ComponentProps } from 'react'
+import { type ComponentProps, Fragment } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -31,15 +31,17 @@ export function ChartTooltip({
       {...props}
     >
       {title && <p className='font-semibold text-strong'>{title}</p>}
-      <dl className='grid grid-cols-[auto_1fr_auto] items-center gap-x-2 gap-y-1'>
+      <dl className='grid grid-cols-[1fr_auto] items-center gap-x-2 gap-y-1'>
         {rows.map((row) => (
-          <div key={row.label} className='contents'>
-            <LegendKey shape={row.shape ?? 'swatch'} color={row.color} />
-            <dt className='text-subtle'>{row.label}:</dt>
+          <Fragment key={row.label}>
+            <dt className='flex items-center gap-1.5 text-subtle'>
+              <LegendKey shape={row.shape ?? 'swatch'} color={row.color} />
+              {row.label}:
+            </dt>
             <dd className='text-right font-semibold text-strong'>
               {row.value}
             </dd>
-          </div>
+          </Fragment>
         ))}
       </dl>
     </div>
