@@ -400,7 +400,6 @@ export {
 export {
   Slider,
   type SliderProps,
-  type SliderRootProps,
   type SliderLabelProps,
   type SliderValueProps,
   type SliderControlProps,

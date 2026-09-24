@@ -96,6 +96,36 @@ describe('Slider', () => {
     ).toHaveClass('bg-[var(--color-accent-9)]')
   })
 
+  it('keeps the track neutral inside another intent', () => {
+    const { container } = render(
+      <div className='intent-brand'>
+        <Slider aria-label='Radius' />
+      </div>
+    )
+    expect(container.querySelector('[data-slot="slider-track"]')).toHaveClass(
+      'intent-neutral',
+      'emphasis-sunken'
+    )
+  })
+
+  it('scales the thumb and track with size', () => {
+    const { container } = render(<Slider aria-label='Radius' size='lg' />)
+    expect(container.querySelector('[data-slot="slider-thumb"]')).toHaveClass(
+      'size-6'
+    )
+    expect(container.querySelector('[data-slot="slider-track"]')).toHaveClass(
+      'h-2'
+    )
+  })
+
+  it('maps direction to a vertical slider', () => {
+    render(<Slider aria-label='Level' direction='vertical' />)
+    expect(screen.getByRole('slider')).toHaveAttribute(
+      'aria-orientation',
+      'vertical'
+    )
+  })
+
   it('marks the slider invalid', () => {
     const { container } = render(<Slider aria-label='Radius' invalid />)
     expect(container.querySelector('[data-slot="slider"]')).toHaveAttribute(

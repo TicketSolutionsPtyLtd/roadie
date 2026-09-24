@@ -8,6 +8,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { mergeRefs } from '../../utils/mergeRefs'
 import { useSliderContext } from './SliderContext'
+import { sliderThumbVariants } from './variants'
 
 export type SliderThumbProps = SliderPrimitive.Thumb.Props &
   RefAttributes<HTMLDivElement>
@@ -18,7 +19,7 @@ export function SliderThumb({
   'aria-describedby': ariaDescribedBy,
   ...props
 }: SliderThumbProps) {
-  const { invalid, describedBy, fieldId } = useSliderContext()
+  const { size, invalid, describedBy, fieldId } = useSliderContext()
   const isFirstThumb = (props.index ?? 0) === 0
   const [input, setInput] = useState<HTMLInputElement | null>(null)
   const mergedInputRef = useMemo(
@@ -42,16 +43,7 @@ export function SliderThumb({
       data-slot='slider-thumb'
       inputRef={mergedInputRef}
       aria-describedby={ariaDescribedBy ?? describedBy}
-      className={cn(
-        'relative size-5 rounded-full bg-[var(--color-neutral-light-0)] shadow-[var(--rim-light-strong),var(--shadow-md)] select-none',
-        'before:absolute before:-inset-3 before:rounded-full',
-        'transition-[outline-width,outline-color] duration-moderate',
-        'outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] has-focus-visible:outline-[length:var(--focus-ring-width)]',
-        'group-data-invalid/slider:outline-[color-mix(in_oklch,var(--color-danger-9)_var(--focus-ring-opacity),transparent)]',
-        'data-disabled:cursor-not-allowed data-dragging:cursor-grabbing',
-        'forced-colors:border forced-colors:border-[CanvasText]',
-        className
-      )}
+      className={cn(sliderThumbVariants({ size }), className)}
       {...props}
     />
   )

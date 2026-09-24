@@ -26,10 +26,7 @@ Slider.Indicator = SliderIndicator
 Slider.Thumb = SliderThumb
 
 export { Slider }
-export type {
-  SliderRootProps as SliderProps,
-  SliderRootProps
-} from './SliderRoot'
+export type { SliderRootProps as SliderProps } from './SliderRoot'
 export type { SliderLabelProps } from './SliderLabel'
 export type { SliderValueProps } from './SliderValue'
 export type { SliderControlProps } from './SliderControl'

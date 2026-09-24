@@ -8,7 +8,7 @@ export const metadata = {
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 import { Guideline } from '@/components/Guideline'
 
-A track with a thumb to drag for a number or a range, built on Base UI's slider primitive.
+A track with a thumb to drag for a number or a range.
 
 ## Import
 
@@ -103,6 +103,26 @@ Leave out `label` for a bare track, such as a volume control in a player. Give i
 <Slider aria-label='Volume' defaultValue={60} />
 ```
 
+### Vertical
+
+Set `direction='vertical'` for a slider that runs up the page.
+
+```tsx-live
+<Slider aria-label='Stage monitor level' direction='vertical' defaultValue={70} />
+```
+
+### Sizes
+
+`size` scales the thumb and track. Every size keeps a 44px touch target.
+
+```tsx-live
+<div className='grid gap-4'>
+  <Slider label='Small' size='sm' defaultValue={30} />
+  <Slider label='Medium' defaultValue={50} />
+  <Slider label='Large' size='lg' defaultValue={70} />
+</div>
+```
+
 ### States
 
 ```tsx-live
@@ -120,6 +140,31 @@ Leave out `label` for a bare track, such as a volume control in a player. Give i
     <Slider aria-label='Disabled' defaultValue={[20, 60]} disabled />
   </div>
 </div>
+```
+
+
+
+
+### Composition
+
+Compose the parts to name each thumb, such as the lowest and highest price in a range.
+
+```tsx-live
+<Slider
+  defaultValue={[60, 180]}
+  max={250}
+  format={{ style: 'currency', currency: 'AUD', maximumFractionDigits: 0 }}
+>
+  <Slider.Label>Ticket price</Slider.Label>
+  <Slider.Value />
+  <Slider.Control>
+    <Slider.Track>
+      <Slider.Indicator />
+      <Slider.Thumb index={0} aria-label='Lowest price' />
+      <Slider.Thumb index={1} aria-label='Highest price' />
+    </Slider.Track>
+  </Slider.Control>
+</Slider>
 ```
 
 ### With Field
@@ -176,36 +221,6 @@ function PriceFilter() {
 render(<PriceFilter />)
 ```
 
-### Composition
-
-Compose the parts to name each thumb, such as the lowest and highest price in a range.
-
-```tsx-live
-<Slider
-  defaultValue={[60, 180]}
-  max={250}
-  format={{ style: 'currency', currency: 'AUD', maximumFractionDigits: 0 }}
->
-  <Slider.Label>Ticket price</Slider.Label>
-  <Slider.Value />
-  <Slider.Control>
-    <Slider.Track>
-      <Slider.Indicator />
-      <Slider.Thumb index={0} aria-label='Lowest price' />
-      <Slider.Thumb index={1} aria-label='Highest price' />
-    </Slider.Track>
-  </Slider.Control>
-</Slider>
-```
-
-### Vertical
-
-Set `orientation='vertical'` for a slider that runs up the page.
-
-```tsx-live
-<Slider aria-label='Stage monitor level' orientation='vertical' defaultValue={70} />
-```
-
 ## Guidelines
 
 <div className='grid gap-8'>
@@ -236,7 +251,7 @@ Set `orientation='vertical'` for a slider that runs up the page.
 - `label`, `Slider.Label` or `Field.Label` names the thumbs. For a range, pass `aria-label` on each `Slider.Thumb` to tell them apart.
 - `format` flows into `aria-valuetext`, so screen readers hear "$40" rather than "40". A range adds "start range" or "end range".
 - **Keyboard**: `Tab` moves between thumbs. The arrow keys move by `step`. `Page Up`, `Page Down` and `Shift` with an arrow key move by `largeStep`. `Home` and `End` jump to the ends.
-- The thumb looks 20px across but takes presses 44px across, and the whole track takes a press to jump there.
+- The thumb looks 16 to 24px across, by size, but takes presses 44px across, and the whole track takes a press to jump there.
 - A focus ring shows on the thumb when it has keyboard focus.
 - In forced colours mode the fill draws in the system text colour and the track and thumb get outlines.
 

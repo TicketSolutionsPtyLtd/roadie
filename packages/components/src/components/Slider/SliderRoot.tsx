@@ -7,7 +7,7 @@ import { Slider as SliderPrimitive } from '@base-ui/react/slider'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { useFieldContext } from '../Field'
-import { SliderContext } from './SliderContext'
+import { SliderContext, type SliderSize } from './SliderContext'
 import { SliderControl } from './SliderControl'
 import { SliderIndicator } from './SliderIndicator'
 import { SliderLabel } from './SliderLabel'
@@ -17,9 +17,18 @@ import { SliderValue } from './SliderValue'
 
 type SliderValueType = number | readonly number[]
 
+export type SliderDirection = 'horizontal' | 'vertical'
+
 export type SliderRootProps<Value extends SliderValueType = SliderValueType> =
-  SliderPrimitive.Root.Props<Value> &
+  Omit<SliderPrimitive.Root.Props<Value>, 'orientation'> &
     RefAttributes<HTMLDivElement> & {
+      /**
+       * Which way the track runs. `vertical` runs up the page.
+       * @default 'horizontal'
+       */
+      direction?: SliderDirection
+      /** @default 'md' */
+      size?: SliderSize
       /** A visible label, with the value shown beside it. Leave it out inside `Field`. */
       label?: ReactNode
       /** Marks the slider invalid. Inherits from `Field` when unset. */
@@ -34,6 +43,8 @@ export function SliderRoot<Value extends SliderValueType>({
   label,
   invalid,
   disabled,
+  direction = 'horizontal',
+  size = 'md',
   locale = 'en-AU',
   className,
   children,
@@ -49,6 +60,7 @@ export function SliderRoot<Value extends SliderValueType>({
   return (
     <SliderContext
       value={{
+        size,
         invalid: resolvedInvalid,
         describedBy: (inField && fieldTextId) || undefined,
         fieldId: field.fieldId || undefined
@@ -61,6 +73,7 @@ export function SliderRoot<Value extends SliderValueType>({
           ariaLabelledBy ?? (inField && !label ? field.labelId : undefined)
         }
         disabled={disabled ?? field.disabled}
+        orientation={direction}
         locale={locale}
         className={cn(
           'group/slider grid w-full grid-cols-[1fr_auto] items-baseline gap-x-3',
