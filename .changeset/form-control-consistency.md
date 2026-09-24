@@ -11,7 +11,8 @@ Align existing form controls and Popover with the newer components.
 - `RadioGroup.Label` names the group when you use it.
 - `Popover.Content` takes `side`, `align`, `sideOffset` and `alignOffset`
   directly, like `Tooltip.Content`. They win over the same keys in
-  `positionerProps`, which are now deprecated.
+  `positionerProps`, which are now deprecated. `Tooltip.Content` gains
+  `alignOffset`, so Tooltip, Menu and Popover take the same four.
 - The `intent` prop on `Input`, `Textarea` and `Select.Trigger` is deprecated.
   Form controls take their colour from state, and `is-interactive-field`
   handles it. It still works and will be removed in v3.
