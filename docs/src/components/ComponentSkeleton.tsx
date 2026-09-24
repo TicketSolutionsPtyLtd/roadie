@@ -84,6 +84,26 @@ export function ComponentSkeleton({ name }: { name: string }) {
           <Skel className='h-2 w-10 opacity-50' />
         </div>
       )
+    case 'otp-field':
+      return (
+        <div className='flex items-center gap-1.5'>
+          {[0, 1, 2].map((slot) => (
+            <div
+              key={slot}
+              className='grid size-7 place-content-center rounded-lg border border-subtle bg-normal'
+            >
+              <Skel className='h-2.5 w-1.5' />
+            </div>
+          ))}
+          <Skel className='h-0.5 w-2' />
+          {[3, 4, 5].map((slot) => (
+            <div
+              key={slot}
+              className='size-7 rounded-lg border border-subtle bg-normal'
+            />
+          ))}
+        </div>
+      )
     case 'select':
       return (
         <div className='flex w-40 items-center justify-between rounded-lg border border-subtle bg-normal px-3 py-2'>

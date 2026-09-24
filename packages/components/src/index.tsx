@@ -340,6 +340,15 @@ export {
   type AutocompleteStatusProps
 } from './components/Autocomplete'
 export {
+  OTPField,
+  otpFieldInputVariants,
+  type OTPFieldProps,
+  type OTPFieldInputProps,
+  type OTPFieldSeparatorProps,
+  type OTPFieldEmphasis,
+  type OTPFieldSize
+} from './components/OTPField'
+export {
   RadioGroup,
   radioGroupVariants,
   radioGroupItemVariants,

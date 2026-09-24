@@ -135,6 +135,10 @@
       "types": "./dist/components/Navigator/index.d.ts",
       "import": "./dist/components/Navigator/index.js"
     },
+    "./otp-field": {
+      "types": "./dist/components/OTPField/index.d.ts",
+      "import": "./dist/components/OTPField/index.js"
+    },
     "./pane": {
       "types": "./dist/components/Pane/index.d.ts",
       "import": "./dist/components/Pane/index.js"
