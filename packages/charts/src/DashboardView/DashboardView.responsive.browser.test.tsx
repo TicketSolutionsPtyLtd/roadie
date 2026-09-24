@@ -20,6 +20,7 @@ afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
 
 const PHONE_CONTENT_WIDTH = 328
+const TABLET_CONTENT_WIDTH = 600
 
 describe('reference dashboards fit a phone width', () => {
   it.each([
@@ -50,5 +51,23 @@ describe('reference dashboards fit a phone width', () => {
     }
     if (truncated.length > 0)
       console.warn('Non-stat cards truncate at 328px:', truncated)
+  })
+})
+
+describe('reference dashboards fit a tablet width', () => {
+  it.each([
+    ['show', createShowDashboard()],
+    ['portfolio', createPortfolioDashboard()]
+  ])('%s cards do not truncate at 600px', (_, spec) => {
+    const { container } = render(
+      <div style={{ width: TABLET_CONTENT_WIDTH }}>
+        <DashboardView spec={spec} />
+      </div>
+    )
+    for (const el of container.querySelectorAll<HTMLElement>(
+      '[data-slot=data-card-label], [data-slot=data-card-context]'
+    )) {
+      expect(el.scrollWidth).toBeLessThanOrEqual(el.clientWidth)
+    }
   })
 })

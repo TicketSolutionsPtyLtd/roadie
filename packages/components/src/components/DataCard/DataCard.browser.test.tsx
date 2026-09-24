@@ -85,6 +85,36 @@ describe('DataCard copy never wraps', () => {
     }
   })
 
+  it('keeps md-length label and context on one line at 292px tablet width', () => {
+    const cases = [
+      {
+        label: 'Sell-through by ticket type overall',
+        context: 'This show is ahead of 38 similar shows'
+      },
+      {
+        label: 'Sales pace vs similar shows overall',
+        context: 'GA is 1,210 sold, VIP is 232 sold'
+      }
+    ]
+    for (const { label: labelCopy, context: contextCopy } of cases) {
+      const { container, unmount } = render(
+        <div style={{ width: 292 }}>
+          <DataCard
+            size='md'
+            label={labelCopy}
+            value={1842}
+            context={contextCopy}
+          />
+        </div>
+      )
+      const label = container.querySelector('[data-slot=data-card-label]')!
+      const context = container.querySelector('[data-slot=data-card-context]')!
+      expect(label.scrollWidth).toBeLessThanOrEqual(label.clientWidth)
+      expect(context.scrollWidth).toBeLessThanOrEqual(context.clientWidth)
+      unmount()
+    }
+  })
+
   it('keeps the context line full width when actions are present', () => {
     const { container } = render(
       <div style={{ width: 343 }}>

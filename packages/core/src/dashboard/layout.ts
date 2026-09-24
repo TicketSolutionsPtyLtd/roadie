@@ -24,7 +24,7 @@ export const COPY_LIMITS: Record<CardSize, { label: number; context: number }> =
   {
     stat: { label: 22, context: 22 },
     sm: { label: 28, context: 36 },
-    md: { label: 42, context: 44 },
+    md: { label: 35, context: 38 },
     lg: { label: 42, context: 44 },
     full: { label: 42, context: 44 }
   }
