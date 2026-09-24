@@ -20,10 +20,9 @@ describe('NumberField', () => {
     expect(
       container.querySelector('[data-slot="number-field-group"]')
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Decrease' })).toHaveAttribute(
-      'data-slot',
-      'number-field-decrement'
-    )
+    const decrease = screen.getByRole('button', { name: 'Decrease' })
+    expect(decrease).toHaveAttribute('data-slot', 'number-field-decrement')
+    expect(decrease).toHaveClass('is-interactive', 'emphasis-subtler')
     expect(screen.getByRole('button', { name: 'Increase' })).toHaveAttribute(
       'data-slot',
       'number-field-increment'
@@ -110,7 +109,7 @@ describe('NumberField', () => {
     render(<NumberField aria-label='Tickets' defaultValue={2} readOnly />)
     const increase = screen.getByRole('button', { name: 'Increase' })
     expect(increase).toHaveAttribute('aria-disabled', 'true')
-    expect(increase).toHaveClass('aria-disabled:text-subtler')
+    expect(increase).toHaveClass('data-[readonly]:opacity-50')
   })
 
   describe('group variants', () => {

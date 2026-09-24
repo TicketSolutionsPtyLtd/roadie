@@ -8,7 +8,7 @@ export const metadata = {
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 import { Guideline } from '@/components/Guideline'
 
-A number input with buttons to step the value down and up, built on Base UI's number field primitive.
+A number input with buttons to step the value down and up.
 
 ## Import
 
@@ -24,58 +24,6 @@ With no children, `NumberField` renders the whole stepper: a decrease button, th
 
 ```tsx-live
 <NumberField aria-label='Tickets' defaultValue={1} min={0} max={10} className='w-36' />
-```
-
-### Quantity stepper
-
-The checkout pattern. Each ticket type gets a stepper from 0 to its limit, and the order total follows the values. Label each stepper with its ticket name.
-
-```tsx-live-noinline
-function TicketQuantities() {
-  const tickets = [
-    { id: 'ga', name: 'General admission', price: 69.9, limit: 10 },
-    { id: 'concession', name: 'Concession', price: 54.5, limit: 4 },
-    { id: 'vip', name: 'VIP mezzanine', price: 149, limit: 2 }
-  ]
-  const [quantities, setQuantities] = useState({ ga: 2, concession: 0, vip: 0 })
-  const aud = new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' })
-  const total = tickets.reduce(
-    (sum, ticket) => sum + ticket.price * quantities[ticket.id],
-    0
-  )
-
-  return (
-    <div className='grid max-w-md gap-4'>
-      <p className='text-display-ui-6 text-strong'>Midnight Tram, Corner Hotel stage</p>
-      <div className='grid divide-y divide-subtler'>
-        {tickets.map((ticket) => (
-          <div key={ticket.id} className='grid grid-cols-[1fr_auto] items-center gap-4 py-3'>
-            <div className='grid gap-0.5'>
-              <p id={`${ticket.id}-label`} className='font-medium text-strong'>{ticket.name}</p>
-              <p className='text-sm text-subtle'>{aud.format(ticket.price)}, max {ticket.limit}</p>
-            </div>
-            <NumberField
-              aria-labelledby={`${ticket.id}-label`}
-              className='w-32'
-              min={0}
-              max={ticket.limit}
-              value={quantities[ticket.id]}
-              onValueChange={(value) =>
-                setQuantities((current) => ({ ...current, [ticket.id]: value ?? 0 }))
-              }
-            />
-          </div>
-        ))}
-      </div>
-      <p className='flex justify-between font-medium text-strong'>
-        <span>Total</span>
-        <span className='tabular-nums'>{aud.format(total)}</span>
-      </p>
-    </div>
-  )
-}
-
-render(<TicketQuantities />)
 ```
 
 ### Emphasis
@@ -98,32 +46,6 @@ Each button is as tall as the field, and that whole square is the tap area. On t
   <NumberField aria-label='Small' size='sm' defaultValue={1} min={0} />
   <NumberField aria-label='Medium' size='md' defaultValue={1} min={0} />
   <NumberField aria-label='Large' size='lg' defaultValue={1} min={0} />
-</div>
-```
-
-### Formatting
-
-`format` takes `Intl.NumberFormat` options. The input shows the formatted value and parses what people type back to a number, so `onValueChange` always gets a plain number. Set `locale` so the server and browser format the same way.
-
-```tsx-live
-<div className='grid max-w-48 gap-4'>
-  <NumberField
-    aria-label='Donation'
-    locale='en-AU'
-    format={{ style: 'currency', currency: 'AUD' }}
-    defaultValue={25}
-    min={0}
-    step={5}
-  />
-  <NumberField
-    aria-label='Booking fee'
-    locale='en-AU'
-    format={{ style: 'percent', maximumFractionDigits: 1 }}
-    defaultValue={0.045}
-    min={0}
-    max={1}
-    step={0.005}
-  />
 </div>
 ```
 
@@ -204,6 +126,84 @@ Pass children to lay the parts out yourself. Here the buttons sit after the inpu
     <NumberField.Increment />
   </NumberField.Group>
 </NumberField>
+```
+
+### Quantity stepper
+
+The checkout pattern. Each ticket type gets a stepper from 0 to its limit, and the order total follows the values. Label each stepper with its ticket name.
+
+```tsx-live-noinline
+function TicketQuantities() {
+  const tickets = [
+    { id: 'ga', name: 'General admission', price: 69.9, limit: 10 },
+    { id: 'concession', name: 'Concession', price: 54.5, limit: 4 },
+    { id: 'vip', name: 'VIP mezzanine', price: 149, limit: 2 }
+  ]
+  const [quantities, setQuantities] = useState({ ga: 2, concession: 0, vip: 0 })
+  const aud = new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' })
+  const total = tickets.reduce(
+    (sum, ticket) => sum + ticket.price * quantities[ticket.id],
+    0
+  )
+
+  return (
+    <div className='grid max-w-md gap-4'>
+      <p className='text-display-ui-6 text-strong'>Midnight Tram, The Lantern Room</p>
+      <div className='grid divide-y divide-subtler'>
+        {tickets.map((ticket) => (
+          <div key={ticket.id} className='grid grid-cols-[1fr_auto] items-center gap-4 py-3'>
+            <div className='grid gap-0.5'>
+              <p id={`${ticket.id}-label`} className='font-medium text-strong'>{ticket.name}</p>
+              <p className='text-sm text-subtle'>{aud.format(ticket.price)}, max {ticket.limit}</p>
+            </div>
+            <NumberField
+              aria-labelledby={`${ticket.id}-label`}
+              className='w-32'
+              min={0}
+              max={ticket.limit}
+              value={quantities[ticket.id]}
+              onValueChange={(value) =>
+                setQuantities((current) => ({ ...current, [ticket.id]: value ?? 0 }))
+              }
+            />
+          </div>
+        ))}
+      </div>
+      <p className='flex justify-between font-medium text-strong'>
+        <span>Total</span>
+        <span className='tabular-nums'>{aud.format(total)}</span>
+      </p>
+    </div>
+  )
+}
+
+render(<TicketQuantities />)
+```
+
+### Formatting
+
+`format` takes `Intl.NumberFormat` options. The input shows the formatted value and parses what people type back to a number, so `onValueChange` always gets a plain number. Set `locale` so the server and browser format the same way.
+
+```tsx-live
+<div className='grid max-w-48 gap-4'>
+  <NumberField
+    aria-label='Donation'
+    locale='en-AU'
+    format={{ style: 'currency', currency: 'AUD' }}
+    defaultValue={25}
+    min={0}
+    step={5}
+  />
+  <NumberField
+    aria-label='Booking fee'
+    locale='en-AU'
+    format={{ style: 'percent', maximumFractionDigits: 1 }}
+    defaultValue={0.045}
+    min={0}
+    max={1}
+    step={0.005}
+  />
+</div>
 ```
 
 ## Guidelines

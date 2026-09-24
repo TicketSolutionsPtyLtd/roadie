@@ -25,7 +25,8 @@ export const numberFieldGroupVariants = cva(
   }
 )
 
-// The transparent border insets the visible circle while the whole square,
-// the full height of the field, stays the touch target.
+// Padding plus a content-box background insets the visible circle while the
+// whole square, the full height of the field, stays the touch target. Read
+// only buttons are aria-disabled but not :disabled, so they need their own dim.
 export const numberFieldStepperClasses =
-  'grid aspect-square h-full shrink-0 cursor-pointer place-items-center rounded-full border-4 border-transparent bg-clip-padding text-normal transition duration-moderate hover:bg-subtle hover:text-strong active:scale-90 aria-disabled:cursor-default aria-disabled:bg-transparent aria-disabled:text-subtler aria-disabled:active:scale-100'
+  'grid aspect-square h-full shrink-0 place-items-center rounded-full border-transparent bg-clip-content p-1 is-interactive emphasis-subtler data-[readonly]:opacity-50'
