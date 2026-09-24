@@ -5,5 +5,26 @@
     "import": "*",
     "limit": "3 kB",
     "ignore": ["@oztix/roadie-core", "@oztix/roadie-components"]
+  },
+  {
+    "name": "ChartLegend",
+    "path": "dist/ChartLegend/index.js",
+    "import": "*",
+    "limit": "1.5 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "ChartTooltip",
+    "path": "dist/ChartTooltip/index.js",
+    "import": "*",
+    "limit": "1.5 kB",
+    "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "ChartPatterns",
+    "path": "dist/ChartPatterns/index.js",
+    "import": "*",
+    "limit": "1.5 kB",
+    "ignore": ["@oztix/roadie-core"]
   }
 ]

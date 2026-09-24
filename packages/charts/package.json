@@ -36,6 +36,18 @@
     "./chart": {
       "types": "./dist/Chart/index.d.ts",
       "import": "./dist/Chart/index.js"
+    },
+    "./chart-legend": {
+      "types": "./dist/ChartLegend/index.d.ts",
+      "import": "./dist/ChartLegend/index.js"
+    },
+    "./chart-patterns": {
+      "types": "./dist/ChartPatterns/index.d.ts",
+      "import": "./dist/ChartPatterns/index.js"
+    },
+    "./chart-tooltip": {
+      "types": "./dist/ChartTooltip/index.d.ts",
+      "import": "./dist/ChartTooltip/index.js"
     }
   },
   "scripts": {
