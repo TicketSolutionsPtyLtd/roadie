@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 
+import { ChartLineIcon, TableIcon } from '@phosphor-icons/react/ssr'
+
 import {
   DataCard,
   type DataCardProps
@@ -52,8 +54,12 @@ export function Chart({
         size={size}
         actions={
           <Tabs.List aria-label={`${label} view`}>
-            <Tabs.Tab value='chart'>Chart</Tabs.Tab>
-            <Tabs.Tab value='table'>Table</Tabs.Tab>
+            <Tabs.Tab value='chart' aria-label='Chart'>
+              <ChartLineIcon weight='bold' className='size-4' />
+            </Tabs.Tab>
+            <Tabs.Tab value='table' aria-label='Table'>
+              <TableIcon weight='bold' className='size-4' />
+            </Tabs.Tab>
             <Tabs.Indicator />
           </Tabs.List>
         }

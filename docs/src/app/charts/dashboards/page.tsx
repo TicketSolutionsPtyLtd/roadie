@@ -22,6 +22,7 @@ import { StatTile } from '@oztix/roadie-components/stat-tile'
 import {
   CARD_SIZES,
   CARD_SPANS,
+  CHART_LABEL_LIMITS,
   COPY_LIMITS,
   type CardSize,
   type CardState,
@@ -72,6 +73,18 @@ const LIMIT_ROWS = LIMIT_SIZES.map((size) => [
   <Code key='size'>{size}</Code>,
   `${COPY_LIMITS[size].label} characters`,
   `${COPY_LIMITS[size].context} characters`
+])
+
+const CHART_LABEL_SIZES: (keyof typeof CHART_LABEL_LIMITS)[] = [
+  'sm',
+  'md',
+  'lg',
+  'full'
+]
+
+const CHART_LABEL_ROWS = CHART_LABEL_SIZES.map((size) => [
+  <Code key='size'>{size}</Code>,
+  `${CHART_LABEL_LIMITS[size]} characters`
 ])
 
 const QUESTIONS = [
@@ -745,6 +758,11 @@ export default function DashboardsPage() {
           truncates.
         </p>
         <Table head={['Size', 'Label', 'Context']} rows={LIMIT_ROWS} />
+        <p className='max-w-prose text-subtle'>
+          Chart cards carry the Chart/Table switch in the label’s row, so their
+          label budget is tighter than <Code>COPY_LIMITS</Code>.
+        </p>
+        <Table head={['Size', 'Label']} rows={CHART_LABEL_ROWS} />
         <List
           items={[
             'Keep the delta short. It sits next to the value.',

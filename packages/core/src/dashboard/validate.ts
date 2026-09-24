@@ -1,6 +1,7 @@
 import type { core } from 'zod'
 
 import {
+  CHART_LABEL_LIMITS,
   COPY_LIMITS,
   type CardKind,
   type CardSize,
@@ -82,11 +83,15 @@ function cardProblems(card: DashboardCard, path: string) {
     )
 
   const limits = COPY_LIMITS[card.size]
-  if (card.label.length > limits.label)
+  const labelLimit =
+    card.kind === 'chart' && card.size !== 'stat'
+      ? CHART_LABEL_LIMITS[card.size]
+      : limits.label
+  if (card.label.length > labelLimit)
     problems.push(
       warning(
         `${path}.label`,
-        `${card.label.length} characters, will truncate at ${card.size} size (limit ${limits.label})`
+        `${card.label.length} characters, will truncate at ${card.size} size (limit ${labelLimit})`
       )
     )
   if (card.context && card.context.length > limits.context)

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { CHART_LABEL_LIMITS, COPY_LIMITS } from './layout'
 import { validateDashboard } from './validate'
 
 const stat = (id: string, extra: Record<string, unknown> = {}) => ({
@@ -115,6 +116,28 @@ describe('validateDashboard', () => {
         stat('d')
       ])
     )
+    expect(result.problems).toContainEqual(
+      expect.objectContaining({
+        path: 'sections[0].cards[0].label',
+        severity: 'warning'
+      })
+    )
+  })
+
+  it('warns when a chart label exceeds the chart limit but not COPY_LIMITS', () => {
+    const label = 'Sales pace vs similar shows'
+    expect(label.length).toBeLessThanOrEqual(COPY_LIMITS.md.label)
+    expect(label.length).toBeGreaterThan(CHART_LABEL_LIMITS.md)
+    const chart = {
+      id: 'p',
+      kind: 'chart',
+      size: 'md',
+      label,
+      plot: { kind: 'static', src: '/p.svg', alt: 'Pace' },
+      table: { columns: [{ key: 'a', header: 'A', kind: 'number' }], rows: [] },
+      source: 'Oztix sales.'
+    }
+    const result = validateDashboard(spec([chart]))
     expect(result.problems).toContainEqual(
       expect.objectContaining({
         path: 'sections[0].cards[0].label',

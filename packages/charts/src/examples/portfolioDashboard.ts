@@ -187,7 +187,7 @@ export function createPortfolioDashboard(assetBase = ''): DashboardSpec {
             id: 'behind-pace',
             kind: 'chart',
             size: 'md',
-            label: 'Julia Jacklin',
+            label: 'Julia Jacklin pace',
             value: 0.4,
             format: 'percent',
             delta: { value: -12, format: 'points' },
