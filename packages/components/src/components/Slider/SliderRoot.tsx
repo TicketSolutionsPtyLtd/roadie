@@ -50,7 +50,8 @@ export function SliderRoot<Value extends SliderValueType>({
     <SliderContext
       value={{
         invalid: resolvedInvalid,
-        describedBy: (inField && fieldTextId) || undefined
+        describedBy: (inField && fieldTextId) || undefined,
+        fieldId: field.fieldId || undefined
       }}
     >
       <SliderPrimitive.Root<Value>

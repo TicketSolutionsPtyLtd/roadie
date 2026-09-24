@@ -18,19 +18,24 @@ export function SliderThumb({
   'aria-describedby': ariaDescribedBy,
   ...props
 }: SliderThumbProps) {
-  const { invalid, describedBy } = useSliderContext()
+  const { invalid, describedBy, fieldId } = useSliderContext()
+  const isFirstThumb = (props.index ?? 0) === 0
   const [input, setInput] = useState<HTMLInputElement | null>(null)
   const mergedInputRef = useMemo(
     () => mergeRefs(setInput, inputRefProp),
     [inputRefProp]
   )
 
-  // Base UI only sets aria-invalid from its own Field, and the input is
-  // rendered inside the thumb with no prop to reach it.
+  // Base UI only sets aria-invalid and the input id from its own Field, and
+  // the input is rendered inside the thumb with no prop to reach it.
   useLayoutEffect(() => {
     if (invalid) input?.setAttribute('aria-invalid', 'true')
     else input?.removeAttribute('aria-invalid')
   }, [input, invalid])
+
+  useLayoutEffect(() => {
+    if (fieldId && isFirstThumb) input?.setAttribute('id', fieldId)
+  }, [input, fieldId, isFirstThumb])
 
   return (
     <SliderPrimitive.Thumb

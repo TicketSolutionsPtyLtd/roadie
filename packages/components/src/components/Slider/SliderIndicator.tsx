@@ -14,7 +14,7 @@ export function SliderIndicator({ className, ...props }: SliderIndicatorProps) {
     <SliderPrimitive.Indicator
       data-slot='slider-indicator'
       className={cn(
-        'rounded-full bg-strong group-data-invalid/slider:intent-danger',
+        'rounded-full bg-[var(--color-accent-9)] group-data-invalid/slider:bg-[var(--color-danger-9)]',
         'forced-color-adjust-none forced-colors:bg-[CanvasText]',
         className
       )}

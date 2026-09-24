@@ -124,7 +124,7 @@ Leave out `label` for a bare track, such as a volume control in a player. Give i
 
 ### With Field
 
-Inside [Field](/components/field), leave out `label`. The slider takes its name from `Field.Label`, its description from the helper or error text, and `invalid` and `disabled` from the field.
+Inside [Field](/components/field), leave out `label` and compose the parts so `Slider.Value` still shows the value. The slider takes its name from `Field.Label`, its description from the helper or error text, and `invalid` and `disabled` from the field. Clicking the label focuses the first thumb.
 
 ```tsx-live
 <Field>
@@ -135,7 +135,15 @@ Inside [Field](/components/field), leave out `label`. The slider takes its name 
     max={100}
     step={5}
     format={{ style: 'unit', unit: 'kilometer' }}
-  />
+  >
+    <Slider.Value />
+    <Slider.Control>
+      <Slider.Track>
+        <Slider.Indicator />
+        <Slider.Thumb />
+      </Slider.Track>
+    </Slider.Control>
+  </Slider>
   <Field.HelperText>Shows events within this distance of Fitzroy</Field.HelperText>
 </Field>
 ```

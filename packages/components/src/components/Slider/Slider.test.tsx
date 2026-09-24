@@ -85,15 +85,15 @@ describe('Slider', () => {
     )
   })
 
-  it('fills with the inherited intent', () => {
+  it('fills with fixed accent, ignoring the inherited intent', () => {
     const { container } = render(
-      <div className='intent-accent'>
+      <div className='intent-brand'>
         <Slider aria-label='Radius' />
       </div>
     )
     expect(
       container.querySelector('[data-slot="slider-indicator"]')
-    ).toHaveClass('bg-strong')
+    ).toHaveClass('bg-[var(--color-accent-9)]')
   })
 
   it('marks the slider invalid', () => {
@@ -138,6 +138,17 @@ describe('Slider', () => {
 })
 
 describe('Field + Slider integration', () => {
+  it('focuses the first thumb when Field.Label is clicked', async () => {
+    render(
+      <Field>
+        <Field.Label>Price</Field.Label>
+        <Slider defaultValue={[20, 80]} />
+      </Field>
+    )
+    await userEvent.click(screen.getByText('Price'))
+    expect(screen.getAllByRole('slider')[0]).toHaveFocus()
+  })
+
   it('takes its name from Field.Label and its description from helper text', () => {
     render(
       <Field>
