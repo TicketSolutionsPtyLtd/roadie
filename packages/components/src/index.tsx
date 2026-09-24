@@ -340,6 +340,19 @@ export {
   type AutocompleteStatusProps
 } from './components/Autocomplete'
 export {
+  NumberField,
+  numberFieldGroupVariants,
+  type NumberFieldProps,
+  type NumberFieldGroupProps,
+  type NumberFieldInputProps,
+  type NumberFieldDecrementProps,
+  type NumberFieldIncrementProps,
+  type NumberFieldScrubAreaProps,
+  type NumberFieldScrubAreaCursorProps,
+  type NumberFieldEmphasis,
+  type NumberFieldSize
+} from './components/NumberField'
+export {
   RadioGroup,
   radioGroupVariants,
   radioGroupItemVariants,

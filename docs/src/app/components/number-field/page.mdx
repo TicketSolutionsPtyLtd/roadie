@@ -1,0 +1,240 @@
+export const metadata = {
+  title: 'Number field',
+  description: 'A number input with buttons to step the value down and up',
+  status: 'beta',
+  category: 'Forms',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+A number input with buttons to step the value down and up, built on Base UI's number field primitive.
+
+## Import
+
+```tsx
+import { NumberField } from '@oztix/roadie-components/number-field'
+```
+
+## Examples
+
+### Default
+
+With no children, `NumberField` renders the whole stepper: a decrease button, the input and an increase button. Set `min` and `max` and each button turns off at its end of the range. It fills its container like `Input`, so give it a width where it sits alone.
+
+```tsx-live
+<NumberField aria-label='Tickets' defaultValue={1} min={0} max={10} className='w-36' />
+```
+
+### Quantity stepper
+
+The checkout pattern. Each ticket type gets a stepper from 0 to its limit, and the order total follows the values. Label each stepper with its ticket name.
+
+```tsx-live-noinline
+function TicketQuantities() {
+  const tickets = [
+    { id: 'ga', name: 'General admission', price: 69.9, limit: 10 },
+    { id: 'concession', name: 'Concession', price: 54.5, limit: 4 },
+    { id: 'vip', name: 'VIP mezzanine', price: 149, limit: 2 }
+  ]
+  const [quantities, setQuantities] = useState({ ga: 2, concession: 0, vip: 0 })
+  const aud = new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' })
+  const total = tickets.reduce(
+    (sum, ticket) => sum + ticket.price * quantities[ticket.id],
+    0
+  )
+
+  return (
+    <div className='grid max-w-md gap-4'>
+      <p className='text-display-ui-6 text-strong'>Midnight Tram, Corner Hotel stage</p>
+      <div className='grid divide-y divide-subtler'>
+        {tickets.map((ticket) => (
+          <div key={ticket.id} className='grid grid-cols-[1fr_auto] items-center gap-4 py-3'>
+            <div className='grid gap-0.5'>
+              <p id={`${ticket.id}-label`} className='font-medium text-strong'>{ticket.name}</p>
+              <p className='text-sm text-subtle'>{aud.format(ticket.price)}, max {ticket.limit}</p>
+            </div>
+            <NumberField
+              aria-labelledby={`${ticket.id}-label`}
+              className='w-32'
+              min={0}
+              max={ticket.limit}
+              value={quantities[ticket.id]}
+              onValueChange={(value) =>
+                setQuantities((current) => ({ ...current, [ticket.id]: value ?? 0 }))
+              }
+            />
+          </div>
+        ))}
+      </div>
+      <p className='flex justify-between font-medium text-strong'>
+        <span>Total</span>
+        <span className='tabular-nums'>{aud.format(total)}</span>
+      </p>
+    </div>
+  )
+}
+
+render(<TicketQuantities />)
+```
+
+### Emphasis
+
+`normal` is the sunken field surface that `Input` uses. `subtle` swaps the border for a tinted fill.
+
+```tsx-live
+<div className='grid max-w-40 gap-4'>
+  <NumberField aria-label='Normal' defaultValue={1} min={0} />
+  <NumberField aria-label='Subtle' defaultValue={1} min={0} emphasis='subtle' />
+</div>
+```
+
+### Sizes
+
+Each button is as tall as the field, and that whole square is the tap area. On touch checkouts, use `lg` for a 48px target.
+
+```tsx-live
+<div className='grid max-w-40 gap-4'>
+  <NumberField aria-label='Small' size='sm' defaultValue={1} min={0} />
+  <NumberField aria-label='Medium' size='md' defaultValue={1} min={0} />
+  <NumberField aria-label='Large' size='lg' defaultValue={1} min={0} />
+</div>
+```
+
+### Formatting
+
+`format` takes `Intl.NumberFormat` options. The input shows the formatted value and parses what people type back to a number, so `onValueChange` always gets a plain number. Set `locale` so the server and browser format the same way.
+
+```tsx-live
+<div className='grid max-w-48 gap-4'>
+  <NumberField
+    aria-label='Donation'
+    locale='en-AU'
+    format={{ style: 'currency', currency: 'AUD' }}
+    defaultValue={25}
+    min={0}
+    step={5}
+  />
+  <NumberField
+    aria-label='Booking fee'
+    locale='en-AU'
+    format={{ style: 'percent', maximumFractionDigits: 1 }}
+    defaultValue={0.045}
+    min={0}
+    max={1}
+    step={0.005}
+  />
+</div>
+```
+
+### States
+
+The group uses `is-interactive-field-group`: neutral at rest, accent on focus, danger when invalid. A button at `min` or `max` dims and stops responding.
+
+```tsx-live
+<div className='grid max-w-40 gap-4'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Default</p>
+    <NumberField aria-label='Default' defaultValue={2} min={0} max={10} />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>At min</p>
+    <NumberField aria-label='At min' defaultValue={0} min={0} max={10} />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>At max</p>
+    <NumberField aria-label='At max' defaultValue={10} min={0} max={10} />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Invalid</p>
+    <NumberField aria-label='Invalid' defaultValue={0} min={0} invalid />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Read only</p>
+    <NumberField aria-label='Read only' defaultValue={4} readOnly />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <NumberField aria-label='Disabled' defaultValue={2} disabled />
+  </div>
+</div>
+```
+
+### Composition
+
+#### With Field
+
+Wrap it in [Field](/components/field) for the label, helper text and spacing. `Field.Label` points at the input, and the helper text becomes its description.
+
+```tsx-live
+<Field required className='max-w-48'>
+  <Field.Label showIndicator>Parking passes</Field.Label>
+  <NumberField min={0} max={4} defaultValue={1} />
+  <Field.HelperText>Up to 4 per order</Field.HelperText>
+</Field>
+```
+
+#### With Field and error
+
+Set `invalid` on the `Field`. The group turns danger and the input points at the error text.
+
+```tsx-live
+<Field invalid required className='max-w-48'>
+  <Field.Label showIndicator>Tickets</Field.Label>
+  <NumberField min={0} max={10} defaultValue={0} />
+  <Field.ErrorText>Choose at least 1 ticket.</Field.ErrorText>
+</Field>
+```
+
+#### Custom parts
+
+Pass children to lay the parts out yourself. Here the buttons sit after the input, and `NumberField.ScrubArea` lets people drag the label left or right to change the value. Give the root an `id` so the label can point at the input.
+
+```tsx-live
+<NumberField id='stage-height' defaultValue={120} min={60} max={240} className='max-w-48'>
+  <NumberField.ScrubArea>
+    <label htmlFor='stage-height' className='text-sm font-medium text-strong'>
+      Stage height (cm)
+    </label>
+    <NumberField.ScrubAreaCursor />
+  </NumberField.ScrubArea>
+  <NumberField.Group>
+    <NumberField.Input className='text-start' />
+    <NumberField.Decrement />
+    <NumberField.Increment />
+  </NumberField.Group>
+</NumberField>
+```
+
+## Guidelines
+
+<div className='grid gap-8'>
+
+<Guideline title='Use it for small counts'>
+  <Guideline.Do code={`<NumberField min={0} max={10} />`}>
+    Use a stepper for quantities people change by one or two, like tickets and add-ons. Always set `min` and `max` so the buttons show the limits.
+  </Guideline.Do>
+  <Guideline.Dont code={`<NumberField aria-label='Postcode' />`}>
+    Don't use it for numbers that aren't amounts, such as postcodes, phone numbers or card numbers. Use `Input` with `inputMode='numeric'`.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Let format do the symbols'>
+  <Guideline.Do code={`<NumberField format={{ style: 'currency', currency: 'AUD' }} />`}>
+    Pass `Intl` options so the value reads as money or a percentage and still comes back as a number.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't put a dollar sign or unit in the label or beside the input by hand. It won't match the locale and people may type it twice.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- The input is a text box with `aria-roledescription='Number field'`. Name it with `Field.Label`, a `<label>`, `aria-label` or `aria-labelledby`. Without children, `aria-label` and `aria-labelledby` on the root go to the input.
+- Arrow Up and Arrow Down step by `step`. Shift steps by `largeStep` (10), Alt by `smallStep` (0.1). Home and End jump to `min` and `max`.
+- The buttons are named Increase and Decrease and stay out of the tab order, since the arrow keys do the same job. Touch screen readers can still reach them.
+- Pressing and holding a button keeps stepping.
+
+<PropsDefinitions componentPath='packages/components/src/components/NumberField' />

@@ -135,6 +135,10 @@
       "types": "./dist/components/Navigator/index.d.ts",
       "import": "./dist/components/Navigator/index.js"
     },
+    "./number-field": {
+      "types": "./dist/components/NumberField/index.d.ts",
+      "import": "./dist/components/NumberField/index.js"
+    },
     "./pane": {
       "types": "./dist/components/Pane/index.d.ts",
       "import": "./dist/components/Pane/index.js"

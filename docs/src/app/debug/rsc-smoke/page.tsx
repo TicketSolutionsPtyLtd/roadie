@@ -16,6 +16,7 @@ import {
   Fieldset as FieldsetViaBarrel,
   List as ListViaBarrel,
   Navigator as NavigatorViaBarrel,
+  NumberField as NumberFieldViaBarrel,
   Pane as PaneViaBarrel,
   Popover as PopoverViaBarrel,
   ScrollArea as ScrollAreaViaBarrel,
@@ -36,6 +37,7 @@ import { IconTile } from '@oztix/roadie-components/icon-tile'
 import { List } from '@oztix/roadie-components/list'
 import { Logo } from '@oztix/roadie-components/logo'
 import { Navigator } from '@oztix/roadie-components/navigator'
+import { NumberField } from '@oztix/roadie-components/number-field'
 import { Pane } from '@oztix/roadie-components/pane'
 import { Popover } from '@oztix/roadie-components/popover'
 import { QRCode } from '@oztix/roadie-components/qr-code'
@@ -492,6 +494,27 @@ export default function RscSmokePage() {
           <TooltipViaBarrel.Trigger>Hover for a label</TooltipViaBarrel.Trigger>
           <TooltipViaBarrel.Content>A label</TooltipViaBarrel.Content>
         </TooltipViaBarrel>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          NumberField as bare root (canonical)
+        </h2>
+        <NumberField aria-label='Tickets' defaultValue={1} min={0} max={10} />
+        <NumberField.Root defaultValue={2}>
+          <NumberField.Group>
+            <NumberField.Decrement />
+            <NumberField.Input aria-label='Add-ons' />
+            <NumberField.Increment />
+          </NumberField.Group>
+        </NumberField.Root>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          NumberField via barrel
+        </h2>
+        <NumberFieldViaBarrel aria-label='Tickets' defaultValue={1} />
       </section>
 
       <section className='grid gap-2'>

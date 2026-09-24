@@ -76,6 +76,18 @@ export function ComponentSkeleton({ name }: { name: string }) {
           <Skel className='h-2 w-16 opacity-50' />
         </div>
       )
+    case 'number-field':
+      return (
+        <div className='flex w-32 items-center justify-between rounded-lg border border-subtle bg-normal p-1'>
+          <div className='grid size-6 place-content-center rounded-full bg-subtle'>
+            <Skel className='h-0.5 w-2.5' />
+          </div>
+          <Skel className='h-2 w-3' />
+          <div className='grid size-6 place-content-center rounded-full bg-subtle'>
+            <Skel className='size-2.5' />
+          </div>
+        </div>
+      )
     case 'textarea':
       return (
         <div className='grid w-40 gap-1.5 rounded-lg border border-subtle bg-normal px-3 py-2'>

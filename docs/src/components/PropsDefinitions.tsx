@@ -84,6 +84,18 @@ const BASE_UI_COMPOUNDS: Record<string, BaseUiCompound> = {
       GroupLabel: 'grouplabel'
     }
   },
+  NumberField: {
+    slug: 'number-field',
+    parts: {
+      Root: 'root',
+      Group: 'group',
+      Input: 'input',
+      Decrement: 'decrement',
+      Increment: 'increment',
+      ScrubArea: 'scrubarea',
+      ScrubAreaCursor: 'scrubareacursor'
+    }
+  },
   RadioGroup: {
     slug: 'radio',
     parts: {
