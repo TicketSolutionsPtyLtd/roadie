@@ -178,7 +178,7 @@ export default function RscSmokePage() {
 
       <section className='grid gap-4'>
         <h2 className='text-display-ui-3 text-strong'>
-          CheckboxGroup — bare root (canonical)
+          CheckboxGroup, bare root (canonical)
         </h2>
         <CheckboxGroup defaultValue={['rock']}>
           <CheckboxGroup.Label>Genres</CheckboxGroup.Label>
@@ -189,9 +189,7 @@ export default function RscSmokePage() {
       </section>
 
       <section className='grid gap-4'>
-        <h2 className='text-display-ui-3 text-strong'>
-          CheckboxGroup — barrel
-        </h2>
+        <h2 className='text-display-ui-3 text-strong'>CheckboxGroup, barrel</h2>
         <CheckboxGroupViaBarrel>
           <CheckboxGroupViaBarrel.Item value='rock' label='Rock' />
           <CheckboxGroupViaBarrel.Item value='jazz' label='Jazz' />

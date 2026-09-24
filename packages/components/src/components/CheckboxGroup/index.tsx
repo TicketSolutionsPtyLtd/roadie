@@ -1,7 +1,4 @@
-// Subpath entry for `@oztix/roadie-components/checkbox-group`.
-//
-// NO `'use client'` — server-safe property-assignment layer.
-// See docs/contributing/COMPOUND_PATTERNS.md.
+// No 'use client': dot access must work from server components.
 import { CheckboxGroupErrorText } from './CheckboxGroupErrorText'
 import { CheckboxGroupHelperText } from './CheckboxGroupHelperText'
 import { CheckboxGroupItem } from './CheckboxGroupItem'

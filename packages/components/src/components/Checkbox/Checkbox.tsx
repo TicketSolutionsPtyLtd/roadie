@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, type RefAttributes, use } from 'react'
+import { type ReactNode, type RefAttributes, use, useId } from 'react'
 
 import { Checkbox as CheckboxPrimitive } from '@base-ui/react/checkbox'
 import { CheckIcon, MinusIcon } from '@phosphor-icons/react/ssr'
@@ -41,7 +41,13 @@ export function Checkbox({
   const invalid = invalidProp ?? (inField ? field.invalid : undefined)
   const required = requiredProp ?? (inField ? field.required : undefined)
   const disabled = disabledProp ?? (inField ? field.disabled : undefined)
-  const describedBy = invalid ? field.errorTextId : field.helperTextId
+  const fieldTextId = invalid ? field.errorTextId : field.helperTextId
+  const generatedId = useId()
+  const labelId = label ? `${generatedId}-label` : undefined
+  const descriptionId = description ? `${generatedId}-description` : undefined
+  const describedBy =
+    [descriptionId, inField && fieldTextId].filter(Boolean).join(' ') ||
+    undefined
 
   const checkbox = (
     <CheckboxPrimitive.Root
@@ -49,7 +55,8 @@ export function Checkbox({
       required={required}
       disabled={disabled}
       aria-invalid={invalid || undefined}
-      aria-describedby={(inField && describedBy) || undefined}
+      aria-labelledby={labelId}
+      aria-describedby={describedBy}
       className={cn(
         'flex size-6 shrink-0 items-center justify-center rounded-md border border-subtle emphasis-sunken outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] transition-[background-color,border-color,outline-width,outline-color] duration-moderate aria-[invalid=true]:border-[var(--color-danger-9)] aria-[invalid=true]:bg-[var(--color-danger-2)] aria-[invalid=true]:outline-[color-mix(in_oklch,var(--color-danger-9)_var(--focus-ring-opacity),transparent)] data-[checked]:border-[var(--color-accent-9)] data-[checked]:bg-[var(--color-accent-3)] data-[indeterminate]:border-[var(--color-accent-9)] data-[indeterminate]:bg-[var(--color-accent-3)]',
         emphasis !== 'normal' &&
@@ -77,6 +84,7 @@ export function Checkbox({
     <span className='grid gap-0.5'>
       {label && (
         <span
+          id={labelId}
           className={
             emphasis === 'normal'
               ? 'text-base font-medium text-normal'
@@ -87,7 +95,9 @@ export function Checkbox({
         </span>
       )}
       {description && (
-        <span className='text-sm text-subtle'>{description}</span>
+        <span id={descriptionId} className='text-sm text-subtle'>
+          {description}
+        </span>
       )}
     </span>
   )

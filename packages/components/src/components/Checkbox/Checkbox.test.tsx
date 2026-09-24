@@ -51,11 +51,24 @@ describe('Checkbox', () => {
     ).toHaveAttribute('data-indeterminate')
   })
 
-  it('renders a description', () => {
-    const { getByText } = render(
+  it('is named by its label and described by its description', () => {
+    const { getByRole } = render(
       <Checkbox label='Agree' description='You can opt out any time.' />
     )
-    expect(getByText('You can opt out any time.')).toBeInTheDocument()
+    const checkbox = getByRole('checkbox', { name: 'Agree' })
+    expect(checkbox).toHaveAccessibleDescription('You can opt out any time.')
+  })
+
+  it('is described by both its description and the Field text', () => {
+    const { getByRole } = render(
+      <Field>
+        <Checkbox label='Agree' description='You can opt out any time.' />
+        <Field.HelperText>One email a week</Field.HelperText>
+      </Field>
+    )
+    expect(
+      getByRole('checkbox', { name: 'Agree' })
+    ).toHaveAccessibleDescription('You can opt out any time. One email a week')
   })
 
   it('defaults to subtler emphasis', () => {
