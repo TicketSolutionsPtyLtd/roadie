@@ -132,6 +132,27 @@ export function ComponentSkeleton({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'checkbox':
+      return (
+        <div className='grid gap-2'>
+          <div className='flex items-center gap-2'>
+            <div className='grid size-4 emphasis-strong place-content-center rounded-sm intent-accent'>
+              <div className='mb-0.5 h-2 w-1 rotate-45 border-r-2 border-b-2 border-current' />
+            </div>
+            <Skel className='h-2 w-14' />
+          </div>
+          <div className='flex items-center gap-2'>
+            <div className='grid size-4 emphasis-strong place-content-center rounded-sm intent-accent'>
+              <div className='mb-0.5 h-2 w-1 rotate-45 border-r-2 border-b-2 border-current' />
+            </div>
+            <Skel className='h-2 w-16' />
+          </div>
+          <div className='flex items-center gap-2'>
+            <div className='size-4 rounded-sm border-2 border-subtle' />
+            <Skel className='h-2 w-12' />
+          </div>
+        </div>
+      )
     case 'code':
       return (
         <div className='rounded-md emphasis-subtle px-2 py-0.5 font-mono text-xs'>
