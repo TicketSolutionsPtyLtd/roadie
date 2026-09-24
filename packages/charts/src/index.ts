@@ -20,3 +20,4 @@ export {
   ChartPatterns,
   chartTextureId
 } from './ChartPatterns'
+export { DashboardView, type DashboardViewProps } from './DashboardView'

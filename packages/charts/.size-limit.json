@@ -26,5 +26,12 @@
     "import": "*",
     "limit": "1.5 kB",
     "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "DashboardView",
+    "path": "dist/DashboardView/index.js",
+    "import": "*",
+    "limit": "4 kB",
+    "ignore": ["@oztix/roadie-core", "@oztix/roadie-components"]
   }
 ]

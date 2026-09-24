@@ -35,7 +35,8 @@ function listSourceFolders() {
   return readdirSync(srcDir)
     .filter((name) => {
       const entry = join(srcDir, name)
-      if (!statSync(entry).isDirectory() || !/^[A-Z]/.test(name)) return false
+      if (!statSync(entry).isDirectory() || !/^[A-Za-z]/.test(name))
+        return false
       return (
         existsSync(join(entry, 'index.tsx')) ||
         existsSync(join(entry, 'index.ts'))
