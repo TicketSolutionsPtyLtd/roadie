@@ -54,10 +54,10 @@ export function Chart({
         size={size}
         actions={
           <Tabs.List aria-label={`${label} view`}>
-            <Tabs.Tab value='chart' aria-label='Chart'>
+            <Tabs.Tab value='chart' aria-label='Chart' title='Chart'>
               <ChartLineIcon weight='bold' className='size-4' />
             </Tabs.Tab>
-            <Tabs.Tab value='table' aria-label='Table'>
+            <Tabs.Tab value='table' aria-label='Table' title='Table'>
               <TableIcon weight='bold' className='size-4' />
             </Tabs.Tab>
             <Tabs.Indicator />

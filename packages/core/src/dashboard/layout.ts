@@ -29,11 +29,7 @@ export const COPY_LIMITS: Record<CardSize, { label: number; context: number }> =
     full: { label: 40, context: 40 }
   }
 
-// Chart cards carry the Chart/Table icon switch in the label's row, so
-// they need their own, tighter label budget: measured against the switch
-// at each size's narrowest width (292px tablet for sm/md, 328px phone for
-// lg/full) across chromium, webkit and firefox. `stat` never appears here
-// because charts can't be `stat` size (see ALLOWED_SIZES in validate.ts).
+// Tighter than COPY_LIMITS: measured beside the Chart/Table icon switch.
 export const CHART_LABEL_LIMITS: Record<Exclude<CardSize, 'stat'>, number> = {
   sm: 21,
   md: 21,

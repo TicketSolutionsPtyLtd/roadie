@@ -37,6 +37,8 @@ import { Dashboard } from '@oztix/roadie-components/dashboard'
   <Dashboard.Section title='Large and small'>
     <DataCard size='lg' label='lg card' takeaway='Eight tracks of twelve on desktop' />
     <DataCard size='sm' label='sm card' takeaway='Four tracks of twelve on desktop' />
+    <DataCard size='sm' label='sm card' takeaway='Four tracks of twelve on desktop' />
+    <DataCard size='lg' label='lg card' takeaway='Eight tracks of twelve on desktop' />
   </Dashboard.Section>
   <Dashboard.Section title='Medium pair'>
     <DataCard size='md' label='md card' takeaway='Six tracks of twelve on desktop' />
@@ -54,6 +56,8 @@ import { Dashboard } from '@oztix/roadie-components/dashboard'
 <Dashboard>
   <Dashboard.Section title='At a glance' description='This week, against last week'>
     <StatTile label='Tickets sold' value={1842} delta={{ value: 214 }} context='This week, of 2,400' />
+    <StatTile label='Sell-through' value={0.77} format='percent' delta={{ value: 9, format: 'points' }} context='Week target is 85%' />
+    <StatTile label='Pace index' value={112} format='index' context='Vs similar shows' />
     <StatTile label='Gross revenue' value={118400} format='compactCurrency' delta={{ value: -0.04, format: 'percent' }} context='Last wk, before fees' />
   </Dashboard.Section>
   <Dashboard.Section title='Sales' description='How this show is tracking'>
@@ -61,6 +65,8 @@ import { Dashboard } from '@oztix/roadie-components/dashboard'
     <DataCard size='sm' label='What to do next'>
       <p>GA is carrying the show. Push VIP this month.</p>
     </DataCard>
+    <DataCard size='sm' label='Where buyers are from' takeaway='Brisbane and the Gold Coast lead' />
+    <DataCard size='lg' label='Ticket types' takeaway='GA is carrying the show' />
   </Dashboard.Section>
 </Dashboard>
 ```
