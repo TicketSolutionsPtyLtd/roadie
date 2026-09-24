@@ -169,7 +169,10 @@ icon or label.
 - UI code that only needs sizes, kinds or copy limits imports from the
   zod-free `@oztix/roadie-core/dashboard-layout` subpath instead, so it
   doesn't pull in zod.
-- Labels stay within about 22 characters on `stat` cards so they don't truncate; `md` cards are narrowest on tablet (about 35/38 label/context), `sm`/`lg`/`full` per `COPY_LIMITS`.
+- Card labels and context fit the `COPY_LIMITS` for their `size`, and chart
+  labels fit `CHART_LABEL_LIMITS`, both from
+  `@oztix/roadie-core/dashboard-layout`. `validateDashboard` warns when copy
+  will truncate.
 
 ---
 
