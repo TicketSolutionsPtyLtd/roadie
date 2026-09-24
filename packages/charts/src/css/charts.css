@@ -138,3 +138,82 @@
     fill: url(#roadie-texture-8);
   }
 }
+
+.ts-chart [data-ts-key^='label-'] {
+  paint-order: stroke;
+  stroke: var(--chart-gap);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.ts-chart text {
+  font-variant-numeric: tabular-nums;
+}
+
+[data-slot='chart-plot']:has([data-slot='small-multiples']) {
+  height: auto;
+}
+
+[data-slot='chart-plot-host'] .ts-chart:focus-visible {
+  outline: 2px solid var(--intent-border-strong, currentColor);
+  outline-offset: 4px;
+  border-radius: var(--radius-md);
+}
+
+@media (forced-colors: active), print {
+  .ts-chart
+    :is([data-ts-key='series-1'], [data-ts-key^='series-1:'])
+    :is(path, rect):not([fill='none']) {
+    fill: url(#roadie-texture-1);
+  }
+  .ts-chart
+    :is([data-ts-key='series-2'], [data-ts-key^='series-2:'])
+    :is(path, rect):not([fill='none']) {
+    fill: url(#roadie-texture-2);
+  }
+  .ts-chart
+    :is([data-ts-key='series-3'], [data-ts-key^='series-3:'])
+    :is(path, rect):not([fill='none']) {
+    fill: url(#roadie-texture-3);
+  }
+  .ts-chart
+    :is([data-ts-key='series-4'], [data-ts-key^='series-4:'])
+    :is(path, rect):not([fill='none']) {
+    fill: url(#roadie-texture-4);
+  }
+  .ts-chart
+    :is([data-ts-key='series-5'], [data-ts-key^='series-5:'])
+    :is(path, rect):not([fill='none']) {
+    fill: url(#roadie-texture-5);
+  }
+  .ts-chart
+    :is([data-ts-key='series-6'], [data-ts-key^='series-6:'])
+    :is(path, rect):not([fill='none']) {
+    fill: url(#roadie-texture-6);
+  }
+  .ts-chart
+    :is([data-ts-key='series-7'], [data-ts-key^='series-7:'])
+    :is(path, rect):not([fill='none']) {
+    fill: url(#roadie-texture-7);
+  }
+  .ts-chart
+    :is([data-ts-key='series-8'], [data-ts-key^='series-8:'])
+    :is(path, rect):not([fill='none']) {
+    fill: url(#roadie-texture-8);
+  }
+  .ts-chart .ts-chart__line:is([data-ts-key^='series-2']) path {
+    stroke-dasharray: 6 3;
+  }
+  .ts-chart .ts-chart__line:is([data-ts-key^='series-3']) path {
+    stroke-dasharray: 1 3;
+  }
+  .ts-chart .ts-chart__line:is([data-ts-key^='series-4']) path {
+    stroke-dasharray: 8 3 1 3;
+  }
+  .ts-chart .ts-chart__line:is([data-ts-key^='series-5']) path {
+    stroke-dasharray: 3 3;
+  }
+  .ts-chart .ts-chart__line:is([data-ts-key^='series-6']) path {
+    stroke-dasharray: 10 4;
+  }
+}

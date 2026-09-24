@@ -5,7 +5,12 @@ import { reactCompilerPreset } from './react-compiler.config.ts'
 
 // Unbundle mode is load-bearing for RSC safety — see packages/components/tsdown.config.ts.
 export default defineConfig(({ watch }) => ({
-  entry: ['src/**/*.{ts,tsx}', '!**/*.test.{ts,tsx}', '!**/testUtils.ts'],
+  entry: [
+    'src/**/*.{ts,tsx}',
+    '!**/*.test.{ts,tsx}',
+    '!**/testUtils.ts',
+    '!**/testChart.ts'
+  ],
   unbundle: true,
   format: ['esm'],
   platform: 'neutral',
