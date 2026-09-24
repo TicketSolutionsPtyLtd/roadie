@@ -67,6 +67,7 @@ export function useDocHeadings(): DocHeadings {
   // doesn't briefly highlight headings that pass through the active band
   // while smooth-scrolling toward the user's target.
   const programmaticScrollLockRef = useRef<number>(0)
+  const elementsRef = useRef(new Map<string, HTMLHeadingElement>())
 
   useEffect(() => {
     // Clear on every bail-out, or the last page's headings linger.
@@ -86,48 +87,7 @@ export function useDocHeadings(): DocHeadings {
     const selector = ['/components', '/tokens/reference'].includes(route)
       ? 'h2'
       : 'h2, h3'
-    const nodes = mainEl.querySelectorAll<HTMLHeadingElement>(selector)
-
-    // Seed with every id on the page, so an assigned id never collides.
-    const usedIds = new Set<string>(
-      Array.from(document.querySelectorAll<HTMLElement>('[id]')).map(
-        (node) => node.id
-      )
-    )
-    const collected: Heading[] = []
-
-    nodes.forEach((el) => {
-      const text = el.textContent?.trim() ?? ''
-      if (!text) return
-
-      // Skip example headings (Roadie parts carry data-slot) inside the content only.
-      const slot = el.closest('[data-slot]')
-      if (slot && mainEl.contains(slot)) return
-
-      let id = el.id
-      if (!id) {
-        const base = slugify(text)
-        if (!base) return
-        id = base
-        let suffix = 2
-        while (usedIds.has(id)) {
-          id = `${base}-${suffix++}`
-        }
-        el.id = id
-      }
-      usedIds.add(id)
-
-      collected.push({
-        id,
-        text,
-        level: el.tagName === 'H2' ? 2 : 3
-      })
-    })
-
-    setHeadings(collected)
-
-    if (collected.length === 0) return
-
+    const idOf = new Map<Element, string>()
     const observer = new IntersectionObserver(
       (entries) => {
         if (Date.now() < programmaticScrollLockRef.current) return
@@ -138,15 +98,62 @@ export function useDocHeadings(): DocHeadings {
               a.target.getBoundingClientRect().top -
               b.target.getBoundingClientRect().top
           )
-        if (visible[0]) setActiveHeading(visible[0].target.id)
+        const id = visible[0] && idOf.get(visible[0].target)
+        if (id) setActiveHeading(id)
       },
       { rootMargin: `-${SCROLL_OFFSET_PX}px 0px -70% 0px`, threshold: 0 }
     )
 
-    nodes.forEach((node) => {
-      if (node.id) observer.observe(node)
-    })
-    return () => observer.disconnect()
+    const collect = () => {
+      // Seed with every id on the page, so an assigned id never collides.
+      const usedIds = new Set<string>(
+        Array.from(document.querySelectorAll<HTMLElement>('[id]')).map(
+          (node) => node.id
+        )
+      )
+      const collected: Heading[] = []
+      const elements = new Map<string, HTMLHeadingElement>()
+      observer.disconnect()
+      idOf.clear()
+
+      mainEl.querySelectorAll<HTMLHeadingElement>(selector).forEach((el) => {
+        const text = el.textContent?.trim() ?? ''
+        if (!text) return
+
+        // Skip example headings (Roadie parts carry data-slot) inside the content only.
+        const slot = el.closest('[data-slot]')
+        if (slot && mainEl.contains(slot)) return
+
+        // The page may not have hydrated yet, so the id is only written on click.
+        let id = el.id
+        if (!id) {
+          const base = slugify(text)
+          if (!base) return
+          id = base
+          let suffix = 2
+          while (usedIds.has(id)) {
+            id = `${base}-${suffix++}`
+          }
+        }
+        usedIds.add(id)
+        elements.set(id, el)
+        idOf.set(el, id)
+        observer.observe(el)
+        collected.push({ id, text, level: el.tagName === 'H2' ? 2 : 3 })
+      })
+
+      elementsRef.current = elements
+      setHeadings(collected)
+    }
+
+    collect()
+    // The page's content can be swapped for new nodes after this effect runs.
+    const mutations = new MutationObserver(collect)
+    mutations.observe(mainEl, { childList: true, subtree: true })
+    return () => {
+      mutations.disconnect()
+      observer.disconnect()
+    }
   }, [route])
 
   const handleClick = useCallback(
@@ -161,8 +168,9 @@ export function useDocHeadings(): DocHeadings {
       )
         return
 
-      const target = document.getElementById(id)
+      const target = elementsRef.current.get(id)
       if (!target) return
+      target.id = id
 
       event.preventDefault()
       programmaticScrollLockRef.current =
