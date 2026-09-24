@@ -504,7 +504,7 @@ export default function RscSmokePage() {
           <Menu.Trigger>Open menu</Menu.Trigger>
           <Menu.Content>
             <Menu.Item icon={<StarIcon weight='bold' />}>Edit</Menu.Item>
-            <Menu.LinkItem href='/components/menu'>View</Menu.LinkItem>
+            <Menu.Item href='/components/menu'>View</Menu.Item>
             <Menu.Separator />
             <Menu.Group>
               <Menu.GroupLabel>Show</Menu.GroupLabel>

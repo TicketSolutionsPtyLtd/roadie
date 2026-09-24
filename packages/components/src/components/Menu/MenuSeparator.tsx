@@ -13,7 +13,10 @@ export function MenuSeparator({ className, ...props }: MenuSeparatorProps) {
   return (
     <MenuPrimitive.Separator
       data-slot='menu-separator'
-      className={cn('mx-2 my-1 border-t border-subtle', className)}
+      className={cn(
+        'px-2 py-1 before:block before:border-t before:border-subtle',
+        className
+      )}
       {...props}
     />
   )

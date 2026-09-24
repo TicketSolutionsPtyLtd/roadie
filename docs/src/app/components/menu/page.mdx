@@ -8,7 +8,7 @@ export const metadata = {
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 import { Guideline } from '@/components/Guideline'
 
-A dropdown list of actions that opens from a button, built on Base UI's menu primitive.
+A dropdown list of actions that opens from a button.
 
 ## Import
 
@@ -28,40 +28,24 @@ Pass the button to `Menu.Trigger` with `render`. `Menu.Content` wraps the portal
   <Menu.Content>
     <Menu.Item icon={<PencilSimple weight='bold' />} shortcut='⌘E'>Edit</Menu.Item>
     <Menu.Item icon={<Copy weight='bold' />} shortcut='⌘D'>Duplicate</Menu.Item>
-    <Menu.LinkItem href='https://example.com/events/neon-harbour-sessions' icon={<ArrowSquareOut weight='bold' />}>View on site</Menu.LinkItem>
+    <Menu.Item href='https://example.com/events/neon-harbour-sessions' icon={<ArrowSquareOut weight='bold' />}>View on site</Menu.Item>
     <Menu.Separator />
     <Menu.Item intent='danger' icon={<XCircle weight='bold' />}>Cancel event</Menu.Item>
   </Menu.Content>
 </Menu>
 ```
 
-### States
-
-Disable an item that can't run right now. It stays in place, so the menu doesn't change shape, and keyboard focus skips over it.
-
-```tsx-live
-<Menu>
-  <Menu.Trigger render={<Button>Actions</Button>} />
-  <Menu.Content>
-    <Menu.Item icon={<PencilSimple weight='bold' />}>Edit</Menu.Item>
-    <Menu.Item icon={<Download weight='bold' />} disabled>Download tickets</Menu.Item>
-    <Menu.Separator />
-    <Menu.Item intent='danger' icon={<Trash weight='bold' />}>Delete draft</Menu.Item>
-  </Menu.Content>
-</Menu>
-```
-
 ### Links
 
-`Menu.LinkItem` takes an `href`, like every Roadie link. Internal paths route through `RoadieLinkProvider`, and external URLs open in a new tab. The menu closes when a link is followed.
+Give `Menu.Item` an `href`, like every Roadie link, and it renders as a link. Internal paths route through `RoadieLinkProvider`, and external URLs open in a new tab. The menu closes when a link is followed.
 
 ```tsx-live
 <Menu>
   <Menu.Trigger render={<Button>Go to<CaretDown weight='bold' className='size-4' /></Button>} />
   <Menu.Content>
-    <Menu.LinkItem href='/components/menu#links'>Orders</Menu.LinkItem>
-    <Menu.LinkItem href='/components/menu#links'>Attendees</Menu.LinkItem>
-    <Menu.LinkItem href='https://example.com/help'>Help centre</Menu.LinkItem>
+    <Menu.Item href='/components/menu#links'>Orders</Menu.Item>
+    <Menu.Item href='/components/menu#links'>Attendees</Menu.Item>
+    <Menu.Item href='https://example.com/help'>Help centre</Menu.Item>
   </Menu.Content>
 </Menu>
 ```
@@ -177,6 +161,22 @@ Wrap a `Menu.SubmenuTrigger` and its own `Menu.Content` in `Menu.SubmenuRoot`. T
     </Menu.Content>
   </Menu>
 </div>
+```
+
+### States
+
+Disable an item that can't run right now. It stays in place, so the menu doesn't change shape, and keyboard focus skips over it.
+
+```tsx-live
+<Menu>
+  <Menu.Trigger render={<Button>Actions</Button>} />
+  <Menu.Content>
+    <Menu.Item icon={<PencilSimple weight='bold' />}>Edit</Menu.Item>
+    <Menu.Item icon={<Download weight='bold' />} disabled>Download tickets</Menu.Item>
+    <Menu.Separator />
+    <Menu.Item intent='danger' icon={<Trash weight='bold' />}>Delete draft</Menu.Item>
+  </Menu.Content>
+</Menu>
 ```
 
 ## Guidelines

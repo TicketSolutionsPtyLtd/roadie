@@ -392,7 +392,6 @@ export {
   type MenuPopupProps,
   type MenuContentProps,
   type MenuItemProps,
-  type MenuLinkItemProps,
   type MenuSeparatorProps,
   type MenuGroupProps,
   type MenuGroupLabelProps,

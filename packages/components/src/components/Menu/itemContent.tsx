@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
 
 export type MenuItemDecorations = {
-  /** Leading icon. Pass a bold Phosphor icon; it is sized for you. */
+  /** Pass a bold Phosphor icon; it is sized for you. */
   icon?: ReactNode
-  /** Trailing keyboard hint, e.g. `⌘D`. Visual only; bind the keys yourself. */
+  /** e.g. `⌘D`. Visual only; bind the keys yourself. */
   shortcut?: ReactNode
 }
 

@@ -147,10 +147,8 @@ describe('Menu', () => {
         <Menu>
           <Menu.Trigger>Open</Menu.Trigger>
           <Menu.Content>
-            <Menu.LinkItem href='/events/123/edit'>Edit</Menu.LinkItem>
-            <Menu.LinkItem href='https://example.com/e/123'>
-              View on site
-            </Menu.LinkItem>
+            <Menu.Item href='/events/123/edit'>Edit</Menu.Item>
+            <Menu.Item href='https://example.com/e/123'>View on site</Menu.Item>
           </Menu.Content>
         </Menu>
       </RoadieLinkProvider>
@@ -164,6 +162,22 @@ describe('Menu', () => {
     expect(external).toHaveAttribute('rel', 'noopener noreferrer')
     await user.click(edit)
     await waitForMenuToClose()
+  })
+
+  it('drops the link from a disabled href item', async () => {
+    render(
+      <Menu defaultOpen>
+        <Menu.Trigger>Open</Menu.Trigger>
+        <Menu.Content>
+          <Menu.Item href='/events/123' disabled>
+            View
+          </Menu.Item>
+        </Menu.Content>
+      </Menu>
+    )
+    const view = await screen.findByRole('menuitem', { name: 'View' })
+    expect(view).not.toHaveAttribute('href')
+    expect(view).toHaveAttribute('aria-disabled', 'true')
   })
 
   it('toggles a checkbox item and shows its check', async () => {

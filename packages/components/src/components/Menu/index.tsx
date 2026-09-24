@@ -4,7 +4,6 @@ import { MenuContent } from './MenuContent'
 import { MenuGroup } from './MenuGroup'
 import { MenuGroupLabel } from './MenuGroupLabel'
 import { MenuItem } from './MenuItem'
-import { MenuLinkItem } from './MenuLinkItem'
 import { MenuPopup } from './MenuPopup'
 import { MenuPortal } from './MenuPortal'
 import { MenuPositioner } from './MenuPositioner'
@@ -24,7 +23,6 @@ const Menu = MenuRoot as typeof MenuRoot & {
   Popup: typeof MenuPopup
   Content: typeof MenuContent
   Item: typeof MenuItem
-  LinkItem: typeof MenuLinkItem
   Separator: typeof MenuSeparator
   Group: typeof MenuGroup
   GroupLabel: typeof MenuGroupLabel
@@ -42,7 +40,6 @@ Menu.Positioner = MenuPositioner
 Menu.Popup = MenuPopup
 Menu.Content = MenuContent
 Menu.Item = MenuItem
-Menu.LinkItem = MenuLinkItem
 Menu.Separator = MenuSeparator
 Menu.Group = MenuGroup
 Menu.GroupLabel = MenuGroupLabel
@@ -60,7 +57,6 @@ export type { MenuPositionerProps } from './MenuPositioner'
 export type { MenuPopupProps } from './MenuPopup'
 export type { MenuContentProps } from './MenuContent'
 export type { MenuItemProps } from './MenuItem'
-export type { MenuLinkItemProps } from './MenuLinkItem'
 export type { MenuSeparatorProps } from './MenuSeparator'
 export type { MenuGroupProps } from './MenuGroup'
 export type { MenuGroupLabelProps } from './MenuGroupLabel'
