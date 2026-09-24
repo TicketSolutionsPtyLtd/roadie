@@ -445,6 +445,20 @@ export function ComponentSkeleton({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'slider':
+      return (
+        <div className='grid w-40 gap-2.5'>
+          <div className='flex justify-between'>
+            <Skel className='h-2 w-12' />
+            <Skel className='h-2 w-10' />
+          </div>
+          <div className='relative h-1.5 rounded-full bg-strong/15'>
+            <div className='absolute inset-y-0 right-1/4 left-1/5 rounded-full bg-strong' />
+            <div className='absolute top-1/2 left-1/5 size-3.5 -translate-1/2 emphasis-raised rounded-full' />
+            <div className='absolute top-1/2 right-1/4 size-3.5 translate-x-1/2 -translate-y-1/2 emphasis-raised rounded-full' />
+          </div>
+        </div>
+      )
     case 'tooltip':
       return (
         <div className='grid justify-items-center gap-2'>

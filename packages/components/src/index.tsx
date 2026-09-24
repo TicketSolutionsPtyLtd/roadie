@@ -398,6 +398,18 @@ export {
 } from './components/Tooltip'
 
 export {
+  Slider,
+  type SliderProps,
+  type SliderRootProps,
+  type SliderLabelProps,
+  type SliderValueProps,
+  type SliderControlProps,
+  type SliderTrackProps,
+  type SliderIndicatorProps,
+  type SliderThumbProps
+} from './components/Slider'
+
+export {
   Dialog,
   dialogPopupVariants,
   type DialogProps,

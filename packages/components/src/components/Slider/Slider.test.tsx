@@ -1,0 +1,181 @@
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
+
+import { Slider } from '.'
+import { Field } from '../Field'
+
+describe('Slider', () => {
+  it('Slider and Slider.Root are the same component reference', () => {
+    expect(Slider).toBe(Slider.Root)
+  })
+
+  it('renders control, track, indicator and one thumb by default', () => {
+    const { container } = render(<Slider aria-label='Volume' />)
+    expect(container.querySelector('[data-slot="slider"]')).toBeTruthy()
+    expect(container.querySelector('[data-slot="slider-control"]')).toBeTruthy()
+    expect(container.querySelector('[data-slot="slider-track"]')).toBeTruthy()
+    expect(
+      container.querySelector('[data-slot="slider-indicator"]')
+    ).toBeTruthy()
+    expect(screen.getAllByRole('slider')).toHaveLength(1)
+  })
+
+  it('renders one thumb per value', () => {
+    render(<Slider aria-label='Price' defaultValue={[20, 80]} />)
+    const thumbs = screen.getAllByRole('slider')
+    expect(thumbs).toHaveLength(2)
+    expect(thumbs[0]).toHaveValue('20')
+    expect(thumbs[1]).toHaveValue('80')
+  })
+
+  it('names the thumbs from the label prop and shows the value', () => {
+    render(<Slider label='Search radius' defaultValue={25} />)
+    expect(
+      screen.getByRole('slider', { name: 'Search radius' })
+    ).toBeInTheDocument()
+    expect(screen.getByText('25')).toHaveAttribute('data-slot', 'slider-value')
+  })
+
+  it('formats the value in Australian English by default', () => {
+    render(
+      <Slider
+        label='Price'
+        defaultValue={[20, 80]}
+        format={{
+          style: 'currency',
+          currency: 'AUD',
+          maximumFractionDigits: 0
+        }}
+      />
+    )
+    expect(screen.getByText('$20 – $80')).toBeInTheDocument()
+    expect(screen.getAllByRole('slider')[0]).toHaveAttribute(
+      'aria-valuetext',
+      '$20 start range'
+    )
+  })
+
+  it('steps with the arrow keys and reports the value', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Slider
+        aria-label='Radius'
+        defaultValue={10}
+        step={5}
+        onValueChange={onValueChange}
+      />
+    )
+    const thumb = screen.getByRole('slider')
+    await userEvent.tab()
+    expect(thumb).toHaveFocus()
+    await userEvent.keyboard('{ArrowRight}')
+    expect(thumb).toHaveValue('15')
+    expect(onValueChange).toHaveBeenLastCalledWith(15, expect.anything())
+  })
+
+  it('disables the thumbs', async () => {
+    const { container } = render(
+      <Slider aria-label='Radius' defaultValue={10} disabled />
+    )
+    const thumb = screen.getByRole('slider')
+    expect(thumb).toBeDisabled()
+    expect(container.querySelector('[data-slot="slider"]')).toHaveAttribute(
+      'data-disabled'
+    )
+  })
+
+  it('fills with the inherited intent', () => {
+    const { container } = render(
+      <div className='intent-accent'>
+        <Slider aria-label='Radius' />
+      </div>
+    )
+    expect(
+      container.querySelector('[data-slot="slider-indicator"]')
+    ).toHaveClass('bg-strong')
+  })
+
+  it('marks the slider invalid', () => {
+    const { container } = render(<Slider aria-label='Radius' invalid />)
+    expect(container.querySelector('[data-slot="slider"]')).toHaveAttribute(
+      'data-invalid'
+    )
+    expect(screen.getByRole('slider')).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('submits its value with a form', () => {
+    const { container } = render(
+      <form>
+        <Slider aria-label='Radius' name='radius' defaultValue={30} />
+      </form>
+    )
+    const form = container.querySelector('form')!
+    expect(new FormData(form).get('radius')).toBe('30')
+  })
+
+  it('composes from parts', () => {
+    render(
+      <Slider.Root defaultValue={[100, 300]} max={500}>
+        <Slider.Label>Price</Slider.Label>
+        <Slider.Value />
+        <Slider.Control>
+          <Slider.Track>
+            <Slider.Indicator />
+            <Slider.Thumb index={0} aria-label='Minimum price' />
+            <Slider.Thumb index={1} aria-label='Maximum price' />
+          </Slider.Track>
+        </Slider.Control>
+      </Slider.Root>
+    )
+    expect(screen.getByRole('slider', { name: 'Minimum price' })).toHaveValue(
+      '100'
+    )
+    expect(screen.getByRole('slider', { name: 'Maximum price' })).toHaveValue(
+      '300'
+    )
+  })
+})
+
+describe('Field + Slider integration', () => {
+  it('takes its name from Field.Label and its description from helper text', () => {
+    render(
+      <Field>
+        <Field.Label>Search radius</Field.Label>
+        <Slider defaultValue={25} />
+        <Field.HelperText>Events within this distance</Field.HelperText>
+      </Field>
+    )
+    const thumb = screen.getByRole('slider', { name: 'Search radius' })
+    expect(thumb).toHaveAccessibleDescription('Events within this distance')
+  })
+
+  it('inherits invalid and disabled from Field', () => {
+    const { container } = render(
+      <Field invalid disabled>
+        <Field.Label>Price</Field.Label>
+        <Slider defaultValue={[20, 80]} />
+        <Field.ErrorText>Pick a narrower range</Field.ErrorText>
+      </Field>
+    )
+    const thumbs = screen.getAllByRole('slider')
+    for (const thumb of thumbs) {
+      expect(thumb).toHaveAttribute('aria-invalid', 'true')
+      expect(thumb).toBeDisabled()
+      expect(thumb).toHaveAccessibleDescription('Pick a narrower range')
+    }
+    expect(container.querySelector('[data-slot="slider"]')).toHaveAttribute(
+      'data-invalid'
+    )
+  })
+
+  it('props override Field context', () => {
+    render(
+      <Field invalid>
+        <Field.Label>Price</Field.Label>
+        <Slider invalid={false} />
+      </Field>
+    )
+    expect(screen.getByRole('slider')).not.toHaveAttribute('aria-invalid')
+  })
+})

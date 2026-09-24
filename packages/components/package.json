@@ -171,6 +171,10 @@
       "types": "./dist/components/Skeleton/index.d.ts",
       "import": "./dist/components/Skeleton/index.js"
     },
+    "./slider": {
+      "types": "./dist/components/Slider/index.d.ts",
+      "import": "./dist/components/Slider/index.js"
+    },
     "./steps": {
       "types": "./dist/components/Steps/index.d.ts",
       "import": "./dist/components/Steps/index.js"

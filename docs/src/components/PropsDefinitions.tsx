@@ -116,6 +116,18 @@ const BASE_UI_COMPOUNDS: Record<string, BaseUiCompound> = {
       ScrollDownArrow: 'scrolldownarrow',
       Separator: 'separator'
     }
+  },
+  Slider: {
+    slug: 'slider',
+    parts: {
+      Root: 'root',
+      Label: 'label',
+      Value: 'value',
+      Control: 'control',
+      Track: 'track',
+      Indicator: 'indicator',
+      Thumb: 'thumb'
+    }
   }
 }
 

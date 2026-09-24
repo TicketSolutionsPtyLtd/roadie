@@ -1,0 +1,235 @@
+export const metadata = {
+  title: 'Slider',
+  description: 'A track with a thumb to drag for a number or a range',
+  status: 'beta',
+  category: 'Forms',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+A track with a thumb to drag for a number or a range, built on Base UI's slider primitive.
+
+## Import
+
+```tsx
+import { Slider } from '@oztix/roadie-components/slider'
+```
+
+## Examples
+
+### Default
+
+Pass a `label` and a `defaultValue`. The value shows beside the label.
+
+```tsx-live
+<Slider label='Volume' defaultValue={40} />
+```
+
+### Range
+
+Pass an array for a range. Each value gets its own thumb. `format` takes `Intl.NumberFormat` options, so a price reads in dollars. Values format in `en-AU` unless you pass a `locale`.
+
+```tsx-live
+<Slider
+  label='Price'
+  defaultValue={[40, 150]}
+  max={250}
+  step={5}
+  format={{ style: 'currency', currency: 'AUD', maximumFractionDigits: 0 }}
+/>
+```
+
+### Units
+
+Use a unit format for distances, durations and sizes.
+
+```tsx-live
+<Slider
+  label='Search radius'
+  defaultValue={25}
+  min={5}
+  max={100}
+  step={5}
+  format={{ style: 'unit', unit: 'kilometer' }}
+/>
+```
+
+### Steps and marks
+
+`step` snaps the value, and `largeStep` sets the jump for `Page Up`, `Page Down` and `Shift` with an arrow key. For tick marks, compose the parts and place each mark along the track as a percentage.
+
+```tsx-live-noinline
+const marks = [0, 25, 50, 75, 100]
+
+render(
+  <Slider defaultValue={50} step={25} largeStep={50}>
+    <Slider.Label>Refund on cancellation</Slider.Label>
+    <Slider.Value>{(formatted) => `${formatted[0]}%`}</Slider.Value>
+    <Slider.Control>
+      <Slider.Track>
+        <Slider.Indicator />
+        {marks.map((mark) => (
+          <span
+            key={mark}
+            aria-hidden
+            className='absolute top-1/2 size-1 -translate-1/2 rounded-full bg-normal'
+            style={{ left: `${mark}%` }}
+          />
+        ))}
+        <Slider.Thumb />
+      </Slider.Track>
+    </Slider.Control>
+    <div aria-hidden className='relative col-span-full mx-2.5 h-4 text-xs text-subtle'>
+      {marks.map((mark) => (
+        <span
+          key={mark}
+          className='absolute -translate-x-1/2'
+          style={{ left: `${mark}%` }}
+        >
+          {mark}%
+        </span>
+      ))}
+    </div>
+  </Slider>
+)
+```
+
+### Without a label
+
+Leave out `label` for a bare track, such as a volume control in a player. Give it an `aria-label` instead.
+
+```tsx-live
+<Slider aria-label='Volume' defaultValue={60} />
+```
+
+### States
+
+```tsx-live
+<div className='grid gap-6'>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Default</p>
+    <Slider aria-label='Default' defaultValue={40} />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Invalid</p>
+    <Slider aria-label='Invalid' defaultValue={40} invalid />
+  </div>
+  <div className='grid gap-1'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <Slider aria-label='Disabled' defaultValue={[20, 60]} disabled />
+  </div>
+</div>
+```
+
+### With Field
+
+Inside [Field](/components/field), leave out `label`. The slider takes its name from `Field.Label`, its description from the helper or error text, and `invalid` and `disabled` from the field.
+
+```tsx-live
+<Field>
+  <Field.Label>Search radius</Field.Label>
+  <Slider
+    defaultValue={25}
+    min={5}
+    max={100}
+    step={5}
+    format={{ style: 'unit', unit: 'kilometer' }}
+  />
+  <Field.HelperText>Shows events within this distance of Fitzroy</Field.HelperText>
+</Field>
+```
+
+### Filtering results
+
+`onValueChange` fires on every step while someone drags. Use `onValueCommitted` to run a search once they let go.
+
+```tsx-live-noinline
+function PriceFilter() {
+  const [range, setRange] = useState([40, 150])
+
+  return (
+    <div className='grid gap-3'>
+      <Slider
+        label='Price'
+        defaultValue={range}
+        max={250}
+        step={5}
+        format={{ style: 'currency', currency: 'AUD', maximumFractionDigits: 0 }}
+        onValueCommitted={setRange}
+      />
+      <p className='text-sm text-subtle'>
+        Showing events from ${range[0]} to ${range[1]}
+      </p>
+    </div>
+  )
+}
+
+render(<PriceFilter />)
+```
+
+### Composition
+
+Compose the parts to name each thumb, such as the lowest and highest price in a range.
+
+```tsx-live
+<Slider
+  defaultValue={[60, 180]}
+  max={250}
+  format={{ style: 'currency', currency: 'AUD', maximumFractionDigits: 0 }}
+>
+  <Slider.Label>Ticket price</Slider.Label>
+  <Slider.Value />
+  <Slider.Control>
+    <Slider.Track>
+      <Slider.Indicator />
+      <Slider.Thumb index={0} aria-label='Lowest price' />
+      <Slider.Thumb index={1} aria-label='Highest price' />
+    </Slider.Track>
+  </Slider.Control>
+</Slider>
+```
+
+### Vertical
+
+Set `orientation='vertical'` for a slider that runs up the page.
+
+```tsx-live
+<Slider aria-label='Stage monitor level' orientation='vertical' defaultValue={70} />
+```
+
+## Guidelines
+
+<div className='grid gap-8'>
+
+<Guideline title='Slider for a rough value, a field for an exact one'>
+  <Guideline.Do code={`<Slider label='Price' defaultValue={[40, 150]} max={250} />`}>
+    Use a slider when close enough is fine and people want to see the range, such as a price filter or a search radius.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Slider label='Ticket quantity' max={10} />`}>
+    Don't use a slider for an exact number people already know, such as a ticket quantity. Use an input or a select.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Show the value'>
+  <Guideline.Do>
+    Keep the value visible beside the label, formatted the way people read it, such as "$40 – $150" or "25 km".
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't make people drag to find out where the thumb is. A bare track needs its value shown somewhere nearby.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- Each thumb holds a native `input type='range'` with `role='slider'`, so it submits with a form and works with assistive tech.
+- `label`, `Slider.Label` or `Field.Label` names the thumbs. For a range, pass `aria-label` on each `Slider.Thumb` to tell them apart.
+- `format` flows into `aria-valuetext`, so screen readers hear "$40" rather than "40". A range adds "start range" or "end range".
+- **Keyboard**: `Tab` moves between thumbs. The arrow keys move by `step`. `Page Up`, `Page Down` and `Shift` with an arrow key move by `largeStep`. `Home` and `End` jump to the ends.
+- The thumb looks 20px across but takes presses 44px across, and the whole track takes a press to jump there.
+- A focus ring shows on the thumb when it has keyboard focus.
+- In forced colours mode the fill draws in the system text colour and the track and thumb get outlines.
+
+<PropsDefinitions componentPath='packages/components/src/components/Slider' />
