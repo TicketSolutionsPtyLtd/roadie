@@ -30,8 +30,8 @@ const CASES: {
   width: number
   label: string
 }[] = [
-  { size: 'sm', width: 292, label: 'Julia Jacklin, GA pace' },
-  { size: 'md', width: 292, label: 'Julia Jacklin, GA pace' },
+  { size: 'sm', width: 292, label: 'Julia Jacklin GA pace' },
+  { size: 'md', width: 292, label: 'Julia Jacklin GA pace' },
   { size: 'lg', width: 328, label: 'Genesis Owusu, GA sell rate' },
   { size: 'full', width: 328, label: 'Genesis Owusu, GA sell rate' }
 ]

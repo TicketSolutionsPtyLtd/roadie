@@ -1,5 +1,6 @@
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { commands } from 'vitest/browser'
 
 import { DataCard } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -65,9 +66,9 @@ describe('DataCard copy never wraps', () => {
 
   it('keeps house-length label and context on one line at 158px', () => {
     const cases = [
-      { label: 'Gross ticket revenue', context: 'On last week. 20 weeks' },
-      { label: 'GA vs VIP tickets sold', context: 'Ahead of similar shows' },
-      { label: 'VIP tickets sold today', context: 'GA sold 1,210 of 1,610' },
+      { label: 'Gross ticket revenue', context: 'On last week, 20 wks' },
+      { label: 'GA sold vs VIP today', context: 'Ahead, similar shows' },
+      { label: 'VIP sold, GA behind', context: 'GA: 1,210 of 1,610' },
       { label: 'Tickets sold', context: 'Similar shows = 100' },
       { label: 'Sell-through', context: 'VIP is 27 pts short' }
     ]
@@ -194,6 +195,27 @@ describe('DataCard copy never wraps', () => {
       expect(line.getBoundingClientRect().height).toBeLessThanOrEqual(
         Number.parseFloat(getComputedStyle(line).lineHeight) * 1.2
       )
+    }
+  })
+
+  it('keeps a real, visible border under forced-colors', async () => {
+    const { container } = render(
+      <div style={{ width: 280 }}>
+        <DataCard label='Sales pace' value={1842} context='This week' />
+      </div>
+    )
+    const card = container.querySelector<HTMLElement>('[data-slot=data-card]')!
+    const style = getComputedStyle(card)
+    expect(style.borderTopWidth).toBe('1px')
+    expect(style.borderTopStyle).toBe('solid')
+
+    await commands.forcedColors(true)
+    try {
+      const forcedStyle = getComputedStyle(card)
+      expect(forcedStyle.borderTopWidth).toBe('1px')
+      expect(forcedStyle.borderTopStyle).toBe('solid')
+    } finally {
+      await commands.forcedColors(false)
     }
   })
 })

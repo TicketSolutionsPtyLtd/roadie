@@ -49,7 +49,7 @@ import { StatTile } from '@oztix/roadie-components/stat-tile'
     value={0.77}
     format='percent'
     delta={{ value: 9, format: 'points' }}
-    context='This week. Target 85%'
+    context='Week target is 85%'
     trend={[0.31, 0.36, 0.41, 0.46, 0.52, 0.57, 0.62, 0.67, 0.71, 0.77]}
     reference={{ value: 0.85, label: 'Target' }}
   />
@@ -85,7 +85,7 @@ import { StatTile } from '@oztix/roadie-components/stat-tile'
 
 ## Guidelines
 
-- Keep the label to about 22 characters and the context to about 22, so the tile fits at phone width.
+- Keep the label to about 20 characters and the context to about 20, so the tile fits at phone width.
 - Keep the delta short next to the value. Put what it compares against on the context line.
 - Set `goodWhen='down'` for numbers where falling is good, such as refunds.
 - Pass `trend` whenever history exists. The sparkline hides itself below 5 points.

@@ -22,11 +22,11 @@ export type ColumnKind = (typeof COLUMN_KINDS)[number]
 
 export const COPY_LIMITS: Record<CardSize, { label: number; context: number }> =
   {
-    stat: { label: 22, context: 22 },
-    sm: { label: 28, context: 36 },
-    md: { label: 35, context: 38 },
-    lg: { label: 42, context: 44 },
-    full: { label: 42, context: 44 }
+    stat: { label: 20, context: 20 },
+    sm: { label: 35, context: 37 },
+    md: { label: 35, context: 37 },
+    lg: { label: 40, context: 40 },
+    full: { label: 40, context: 40 }
   }
 
 // Chart cards carry the Chart/Table icon switch in the label's row, so
@@ -35,8 +35,8 @@ export const COPY_LIMITS: Record<CardSize, { label: number; context: number }> =
 // lg/full) across chromium, webkit and firefox. `stat` never appears here
 // because charts can't be `stat` size (see ALLOWED_SIZES in validate.ts).
 export const CHART_LABEL_LIMITS: Record<Exclude<CardSize, 'stat'>, number> = {
-  sm: 22,
-  md: 22,
+  sm: 21,
+  md: 21,
   lg: 27,
   full: 27
 }

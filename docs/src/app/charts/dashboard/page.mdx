@@ -23,9 +23,9 @@ import { Dashboard } from '@oztix/roadie-components/dashboard'
 <Dashboard>
   <Dashboard.Section title='At a glance'>
     <StatTile label='Tickets sold' value={1842} delta={{ value: 214 }} context='This week, of 2,400' />
-    <StatTile label='Sell-through' value={0.77} format='percent' delta={{ value: 9, format: 'points' }} context='This week. Target 85%' />
-    <StatTile label='Pace index' value={112} format='index' context='Against similar shows' />
-    <StatTile label='Gross revenue' value={118400} format='compactCurrency' delta={{ value: -0.04, format: 'percent' }} context='Last week, before fees' />
+    <StatTile label='Sell-through' value={0.77} format='percent' delta={{ value: 9, format: 'points' }} context='Week target is 85%' />
+    <StatTile label='Pace index' value={112} format='index' context='Vs similar shows' />
+    <StatTile label='Gross revenue' value={118400} format='compactCurrency' delta={{ value: -0.04, format: 'percent' }} context='Last wk, before fees' />
   </Dashboard.Section>
 </Dashboard>
 ```
@@ -54,7 +54,7 @@ import { Dashboard } from '@oztix/roadie-components/dashboard'
 <Dashboard>
   <Dashboard.Section title='At a glance' description='This week, against last week'>
     <StatTile label='Tickets sold' value={1842} delta={{ value: 214 }} context='This week, of 2,400' />
-    <StatTile label='Gross revenue' value={118400} format='compactCurrency' delta={{ value: -0.04, format: 'percent' }} context='Last week, before fees' />
+    <StatTile label='Gross revenue' value={118400} format='compactCurrency' delta={{ value: -0.04, format: 'percent' }} context='Last wk, before fees' />
   </Dashboard.Section>
   <Dashboard.Section title='Sales' description='How this show is tracking'>
     <DataCard size='lg' label='Sales pace' takeaway='Tracking ahead of similar shows' />

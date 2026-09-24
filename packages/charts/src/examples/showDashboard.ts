@@ -43,7 +43,7 @@ export function createShowDashboard(assetBase = ''): DashboardSpec {
             value: 0.77,
             format: 'percent',
             delta: { value: 9, format: 'points' },
-            context: 'This week. Target 85%',
+            context: 'Week target is 85%',
             trend: SELL_THROUGH,
             reference: { value: 0.85, label: 'Target' }
           },
@@ -67,7 +67,7 @@ export function createShowDashboard(assetBase = ''): DashboardSpec {
             value: 118400,
             format: 'compactCurrency',
             delta: { value: -0.04, format: 'percent' },
-            context: 'On last week. 20 weeks',
+            context: 'On last week, 20 wks',
             trend: REVENUE
           }
         ]
