@@ -2,7 +2,7 @@ import { cva } from 'class-variance-authority'
 
 export const switchVariants = cva(
   [
-    'relative inline-flex shrink-0 cursor-pointer items-center rounded-full border border-normal p-px emphasis-sunken',
+    'relative inline-flex shrink-0 cursor-pointer items-center rounded-full border border-strong bg-subtle p-px inset-shadow-sm',
     'transition-[background-color,border-color,outline-width,outline-color] duration-moderate',
     'outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] focus-visible:outline-[length:var(--focus-ring-width)]',
     'data-checked:border-transparent data-checked:bg-[var(--color-accent-9)]',
