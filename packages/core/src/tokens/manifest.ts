@@ -91,7 +91,7 @@ const VARIABLE_RULES: Rule[] = [
   [/^--chart-heat-/, 'dataviz', 'Sequential'],
   [/^--chart-diverge-/, 'dataviz', 'Diverging'],
   [/^--chart-status-/, 'dataviz', 'Status'],
-  [/^--chart-highlight$/, 'dataviz', 'Highlight'],
+  [/^--chart-highlight(-lc)?$/, 'dataviz', 'Highlight'],
   [/^--chart-(context|band|median|other|missing)$/, 'dataviz', 'Data greys'],
   [/^--chart-(grid|axis|label|value|gap)$/, 'dataviz', 'Chart ink'],
   [/^--color-chart-/, 'dataviz', 'Tailwind utilities'],

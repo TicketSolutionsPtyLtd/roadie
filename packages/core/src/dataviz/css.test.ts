@@ -58,9 +58,27 @@ describe('dataviz.css', () => {
       .split('\n')
       .filter((line) => line.includes('var(--accent-hue)'))
     expect(accentLines.map((line) => line.trim().split(':')[0])).toEqual([
-      '--chart-highlight',
       '--chart-highlight'
     ])
+  })
+
+  it('re-resolves the highlight wherever the mode, intent or accent hue can change', () => {
+    const modern = css.slice(css.indexOf('@supports'))
+    const rule = modern.match(
+      /:root, \.dark, \[class\*='intent-'\], \[style\*='--accent-hue'\] \{([^}]*)\}/
+    )
+    expect(rule).not.toBeNull()
+    expect(rule![1]).toContain(
+      '--chart-highlight: oklch(var(--chart-highlight-lc) var(--accent-hue));'
+    )
+  })
+
+  it('declares the highlight lightness and chroma per mode', () => {
+    const modern = css.slice(css.indexOf('@supports'))
+    const [lightL, lightC] = palette.categorical.light[0]!
+    const [darkL, darkC] = palette.categorical.dark[0]!
+    expect(modern).toContain(`--chart-highlight-lc: ${lightL} ${lightC};`)
+    expect(modern).toContain(`--chart-highlight-lc: ${darkL} ${darkC};`)
   })
 
   it('re-resolves the pair and trio sets inside a nested .dark subtree', () => {
