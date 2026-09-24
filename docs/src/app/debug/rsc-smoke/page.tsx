@@ -15,6 +15,7 @@ import {
   Drawer as DrawerViaBarrel,
   Fieldset as FieldsetViaBarrel,
   List as ListViaBarrel,
+  Menu as MenuViaBarrel,
   Navigator as NavigatorViaBarrel,
   Pane as PaneViaBarrel,
   Popover as PopoverViaBarrel,
@@ -35,6 +36,7 @@ import { Fieldset } from '@oztix/roadie-components/fieldset'
 import { IconTile } from '@oztix/roadie-components/icon-tile'
 import { List } from '@oztix/roadie-components/list'
 import { Logo } from '@oztix/roadie-components/logo'
+import { Menu } from '@oztix/roadie-components/menu'
 import { Navigator } from '@oztix/roadie-components/navigator'
 import { Pane } from '@oztix/roadie-components/pane'
 import { Popover } from '@oztix/roadie-components/popover'
@@ -492,6 +494,44 @@ export default function RscSmokePage() {
           <TooltipViaBarrel.Trigger>Hover for a label</TooltipViaBarrel.Trigger>
           <TooltipViaBarrel.Content>A label</TooltipViaBarrel.Content>
         </TooltipViaBarrel>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>
+          Menu as bare root (canonical)
+        </h2>
+        <Menu>
+          <Menu.Trigger>Open menu</Menu.Trigger>
+          <Menu.Content>
+            <Menu.Item icon={<StarIcon weight='bold' />}>Edit</Menu.Item>
+            <Menu.LinkItem href='/components/menu'>View</Menu.LinkItem>
+            <Menu.Separator />
+            <Menu.Group>
+              <Menu.GroupLabel>Show</Menu.GroupLabel>
+              <Menu.CheckboxItem defaultChecked>Venue</Menu.CheckboxItem>
+            </Menu.Group>
+            <Menu.RadioGroup defaultValue='date'>
+              <Menu.RadioItem value='date'>Date</Menu.RadioItem>
+            </Menu.RadioGroup>
+            <Menu.SubmenuRoot>
+              <Menu.SubmenuTrigger>Share</Menu.SubmenuTrigger>
+              <Menu.Content>
+                <Menu.Item>Copy link</Menu.Item>
+              </Menu.Content>
+            </Menu.SubmenuRoot>
+            <Menu.Item intent='danger'>Cancel event</Menu.Item>
+          </Menu.Content>
+        </Menu>
+      </section>
+
+      <section className='grid gap-2'>
+        <h2 className='text-display-ui-3 text-strong'>Menu via barrel</h2>
+        <MenuViaBarrel>
+          <MenuViaBarrel.Trigger>Open menu</MenuViaBarrel.Trigger>
+          <MenuViaBarrel.Content>
+            <MenuViaBarrel.Item>Edit</MenuViaBarrel.Item>
+          </MenuViaBarrel.Content>
+        </MenuViaBarrel>
       </section>
 
       <section className='grid gap-2'>

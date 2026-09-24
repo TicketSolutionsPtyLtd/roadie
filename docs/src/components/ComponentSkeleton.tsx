@@ -445,6 +445,29 @@ export function ComponentSkeleton({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'menu':
+      return (
+        <div className='grid justify-items-end gap-1.5'>
+          <div className='grid size-7 emphasis-normal place-content-center rounded-full'>
+            <Skel className='h-1 w-3.5' />
+          </div>
+          <div className='grid w-36 emphasis-raised gap-1 rounded-xl p-1'>
+            <div className='flex items-center gap-2 rounded-lg bg-subtle px-2 py-1.5'>
+              <Skel className='size-2.5' />
+              <Skel className='h-1.5 w-14' />
+            </div>
+            <div className='flex items-center gap-2 px-2 py-1.5'>
+              <Skel className='size-2.5' />
+              <Skel className='h-1.5 w-16' />
+            </div>
+            <div className='mx-1 border-t border-subtle' />
+            <div className='flex items-center gap-2 px-2 py-1.5 intent-danger'>
+              <div className='size-2.5 rounded-sm bg-strong/40' />
+              <div className='h-1.5 w-12 rounded-sm bg-strong/40' />
+            </div>
+          </div>
+        </div>
+      )
     case 'tooltip':
       return (
         <div className='grid justify-items-center gap-2'>

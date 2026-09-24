@@ -383,6 +383,27 @@ export {
 } from './components/Popover'
 
 export {
+  Menu,
+  menuItemVariants,
+  type MenuProps,
+  type MenuTriggerProps,
+  type MenuPortalProps,
+  type MenuPositionerProps,
+  type MenuPopupProps,
+  type MenuContentProps,
+  type MenuItemProps,
+  type MenuLinkItemProps,
+  type MenuSeparatorProps,
+  type MenuGroupProps,
+  type MenuGroupLabelProps,
+  type MenuCheckboxItemProps,
+  type MenuRadioGroupProps,
+  type MenuRadioItemProps,
+  type MenuSubmenuRootProps,
+  type MenuSubmenuTriggerProps
+} from './components/Menu'
+
+export {
   Tooltip,
   tooltipPopupVariants,
   type TooltipProps,
