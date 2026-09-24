@@ -57,6 +57,14 @@ const BASE_UI_COMPOUNDS: Record<string, BaseUiCompound> = {
       GroupLabel: 'grouplabel'
     }
   },
+  Avatar: {
+    slug: 'avatar',
+    parts: {
+      Root: 'root',
+      Image: 'image',
+      Fallback: 'fallback'
+    }
+  },
   Button: {
     slug: 'button',
     parts: {}

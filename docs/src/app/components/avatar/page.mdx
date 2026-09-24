@@ -1,0 +1,246 @@
+export const metadata = {
+  title: 'Avatar',
+  description: 'A person’s photo, with their initials or an icon when there is no photo',
+  status: 'beta',
+  category: 'Media & brand',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline } from '@/components/Guideline'
+
+A person's photo, with their initials or an icon when there is no photo. Built on Base UI's avatar primitive.
+
+## Import
+
+```tsx
+import { Avatar } from '@oztix/roadie-components/avatar'
+```
+
+## Examples
+
+### Default
+
+Pass `src` and `name`. The initials from `name` show until the photo loads, and stay if it never does.
+
+```tsx-live
+<Avatar
+  src='https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=112&h=112&fit=crop&q=80'
+  name='Mia Tran'
+/>
+```
+
+### Fallback
+
+Without a photo, the avatar shows initials from the first and last words of `name`. Without a name, it shows a user icon. A photo that fails to load is hidden, so the fallback shows instead of a broken image.
+
+```tsx-live
+<div className='flex flex-wrap items-end gap-6'>
+  <div className='grid justify-items-center gap-2'>
+    <Avatar name='Leo van der Park' />
+    <p className='text-sm text-subtle'>Initials</p>
+  </div>
+  <div className='grid justify-items-center gap-2'>
+    <Avatar />
+    <p className='text-sm text-subtle'>No name</p>
+  </div>
+  <div className='grid justify-items-center gap-2'>
+    <Avatar src='https://example.invalid/missing.jpg' name='Ada Nguyen' />
+    <p className='text-sm text-subtle'>Photo failed</p>
+  </div>
+</div>
+```
+
+### Sizes
+
+Sizes run `xs` to `xl` and match `IconTile`, so the two line up in a row. Initials and the icon scale with the box, so a custom `size-*` class works too.
+
+```tsx-live
+<div className='flex flex-wrap items-center gap-3'>
+  <Avatar size='xs' name='Mia Tran' />
+  <Avatar size='sm' name='Mia Tran' />
+  <Avatar size='md' name='Mia Tran' />
+  <Avatar size='lg' name='Mia Tran' />
+  <Avatar size='xl' name='Mia Tran' />
+</div>
+```
+
+### Shape
+
+Avatars are circles by default. Use `shape='square'` for an organisation or a team rather than a person. The corner radius grows with the size.
+
+```tsx-live
+<div className='flex flex-wrap items-center gap-3'>
+  <Avatar shape='square' size='sm' name='Harbour Sound' />
+  <Avatar shape='square' size='md' name='Harbour Sound' />
+  <Avatar shape='square' size='lg' name='Harbour Sound' />
+  <Avatar shape='square' size='xl' name='Harbour Sound' />
+</div>
+```
+
+### Intents
+
+The fallback uses the subtle emphasis of the surrounding intent. Set `intent` to colour one avatar.
+
+```tsx-live
+<div className='flex flex-wrap items-center gap-3'>
+  <Avatar name='Mia Tran' />
+  <Avatar name='Mia Tran' intent='accent' />
+  <Avatar name='Mia Tran' intent='brand' />
+  <Avatar name='Mia Tran' intent='success' />
+  <Avatar name='Mia Tran' intent='warning' />
+</div>
+```
+
+### Composition
+
+Compose `Avatar.Fallback` and `Avatar.Image` yourself for custom fallback content. Put the fallback first so the photo paints over it. Give the fallback `role='img'` and an `aria-label` so it names the person until the photo loads.
+
+```tsx-live
+<Avatar size='lg'>
+  <Avatar.Fallback role='img' aria-label='Mia Tran'>
+    MT
+  </Avatar.Fallback>
+  <Avatar.Image
+    src='https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=112&h=112&fit=crop&q=80'
+    alt='Mia Tran'
+  />
+</Avatar>
+```
+
+### With Image
+
+`Avatar.Image` stays mounted while it loads, so `loading='lazy'` works and it can render through Roadie's `Image`. Oztix CDN photos then get a resized `srcSet`.
+
+```tsx
+<Avatar>
+  <Avatar.Fallback role='img' aria-label='Mia Tran'>
+    MT
+  </Avatar.Fallback>
+  <Avatar.Image render={<Image src={photoUrl} alt='Mia Tran' width={40} />} />
+</Avatar>
+```
+
+### Group
+
+`Avatar.Group` overlaps its avatars and rings each one in the page colour. It sets the size and shape for every avatar inside it. End the row with `Avatar.GroupCount` for the people you don't show. Give the group an `aria-label`.
+
+```tsx-live
+<div className='flex items-center gap-3'>
+  <Avatar.Group size='sm' aria-label='Going'>
+    <Avatar
+      src='https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=64&h=64&fit=crop&q=80'
+      name='Sam Okafor'
+    />
+    <Avatar
+      src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=64&h=64&fit=crop&q=80'
+      name='Priya Shah'
+    />
+    <Avatar name='Leo Park' />
+    <Avatar.GroupCount count={12} />
+  </Avatar.Group>
+  <p className='text-sm text-subtle'>15 friends are going</p>
+</div>
+```
+
+On a surface other than the page, set `--avatar-ring` to that surface so the rings still read as gaps.
+
+```tsx-live
+<div className='grid emphasis-raised rounded-xl p-4'>
+  <Avatar.Group aria-label='Crew' className='[--avatar-ring:var(--intent-bg-raised)]'>
+    <Avatar name='Sam Okafor' />
+    <Avatar name='Priya Shah' />
+    <Avatar name='Leo Park' />
+    <Avatar.GroupCount count={4} />
+  </Avatar.Group>
+</div>
+```
+
+### User account
+
+Show who is signed in. The name is written beside the avatar, so pass `alt=''` to keep screen readers from reading it twice.
+
+```tsx-live
+<div className='flex items-center gap-3'>
+  <Avatar
+    size='lg'
+    src='https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=112&h=112&fit=crop&q=80'
+    name='Mia Tran'
+    alt=''
+  />
+  <div className='grid flex-1 gap-0.5'>
+    <p className='font-semibold text-strong'>Mia Tran</p>
+    <p className='text-sm text-subtle'>mia.tran@example.com</p>
+  </div>
+  <Button size='sm'>Manage account</Button>
+</div>
+```
+
+### Team members
+
+Avatars fit a `List` row's `leading` slot. The row title names the person, so the avatar is decorative.
+
+```tsx-live
+<List contained emphasis='subtle'>
+  <List.Item
+    title='Mia Tran'
+    description='Owner'
+    leading={
+      <Avatar
+        src='https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&q=80'
+        name='Mia Tran'
+        alt=''
+      />
+    }
+  />
+  <List.Item
+    title='Sam Okafor'
+    description='Box office'
+    leading={
+      <Avatar
+        src='https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&q=80'
+        name='Sam Okafor'
+        alt=''
+      />
+    }
+  />
+  <List.Item
+    title='Leo van der Park'
+    description='Invite sent'
+    leading={<Avatar name='Leo van der Park' alt='' />}
+    trailing={<Badge size='sm'>Pending</Badge>}
+  />
+</List>
+```
+
+## Guidelines
+
+<div className='grid gap-8'>
+
+<Guideline title='Always pass a name'>
+  <Guideline.Do code={`<Avatar src={user.photo} name={user.name} />`}>
+    Pass `name` even with a photo. It gives the fallback its initials and the avatar its accessible name.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Avatar src={user.photo} />`}>
+    Don't rely on the photo alone. If it fails, everyone gets the same icon.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Use Avatar for people, IconTile for things'>
+  <Guideline.Do>
+    Use an avatar for a person, or a square one for an organisation with a logo or initials.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't use an avatar to frame an icon for a setting or a category. Use `IconTile`.
+  </Guideline.Dont>
+</Guideline>
+
+</div>
+
+## Accessibility
+
+- With `name` or `alt`, the avatar is announced as an image with that name, whether it shows the photo or the initials.
+- Pass `alt=''` when the name is already visible beside the avatar. The avatar is then hidden from screen readers.
+- `Avatar.GroupCount` is announced as "12 more". Pass `aria-label` to say more, for example "12 more people going".
+- An avatar isn't interactive. To make one a link or a button, wrap it in one and give that the name.
+
+<PropsDefinitions componentPath='packages/components/src/components/Avatar' />
