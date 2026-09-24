@@ -137,14 +137,14 @@ export function ComponentSkeleton({ name }: { name: string }) {
         <div className='grid w-40 gap-2.5'>
           <div className='flex items-center justify-between gap-3'>
             <Skel className='h-2 w-20' />
-            <div className='flex h-4 w-7 items-center justify-end rounded-full bg-strong p-0.5 intent-accent'>
-              <div className='size-3 rounded-full bg-raised' />
+            <div className='flex h-4 w-7 items-center justify-end rounded-full border border-transparent bg-strong p-px intent-accent'>
+              <div className='size-3 rounded-full bg-(--color-neutral-light-0) shadow-sm' />
             </div>
           </div>
           <div className='flex items-center justify-between gap-3'>
             <Skel className='h-2 w-16' />
-            <div className='flex h-4 w-7 items-center rounded-full border border-subtle bg-sunken p-0.5'>
-              <div className='size-2.5 rounded-full bg-raised shadow-xs' />
+            <div className='flex h-4 w-7 items-center rounded-full border border-normal emphasis-sunken p-px'>
+              <div className='size-3 rounded-full bg-(--color-neutral-light-0) shadow-sm' />
             </div>
           </div>
         </div>
