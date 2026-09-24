@@ -61,10 +61,18 @@ const staticPlot = z.strictObject({
   wide: z.strictObject(plotImage).optional()
 })
 
+const CHART_TOKEN_REFERENCE = /^var\(--chart-[a-z0-9-]+\)$/
+
 const legendItem = z.strictObject({
   label: z.string().min(1),
   shape: z.enum(['line', 'dash', 'dot', 'band', 'swatch']).optional(),
-  color: z.string().optional()
+  color: z
+    .string()
+    .regex(
+      CHART_TOKEN_REFERENCE,
+      'Use a Roadie chart token, like var(--chart-1)'
+    )
+    .optional()
 })
 
 const base = {

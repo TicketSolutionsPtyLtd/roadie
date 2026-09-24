@@ -91,6 +91,13 @@ function LoadingHeadline() {
   )
 }
 
+const startsWithAcronym = (text: string) => /^[A-Z]{2}/.test(text)
+
+const sentenceCaseInline = (label: string) =>
+  startsWithAcronym(label)
+    ? label
+    : label.charAt(0).toLowerCase() + label.slice(1)
+
 export function DataCard({
   label,
   value,
@@ -102,7 +109,7 @@ export function DataCard({
   actions,
   size,
   state = 'ready',
-  emptyMessage = 'Nothing to show yet',
+  emptyMessage = "We don't have data for this yet. You'll see it here once it arrives.",
   errorMessage,
   errorAction,
   staleLabel,
@@ -186,7 +193,7 @@ export function DataCard({
           <div className='grid justify-items-start gap-2'>
             <p className='text-sm text-subtle'>
               {errorMessage ??
-                `We couldn't load ${label.toLowerCase()}. Try again in a minute.`}
+                `We couldn't load ${sentenceCaseInline(label)}. Try again in a minute.`}
             </p>
             {errorAction}
           </div>

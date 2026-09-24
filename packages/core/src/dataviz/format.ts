@@ -90,6 +90,12 @@ const MEANING: Record<DeltaSentiment, string> = {
   neutral: ''
 }
 
+function spokenDelta(change: number, format: ValueFormat) {
+  if (format !== 'points') return formatDelta(change, format)
+  const size = Math.abs(change)
+  return `${number(size)} ${size === 1 ? 'point' : 'points'}`
+}
+
 export function describeDelta(
   change: number,
   format: ValueFormat = 'number',
@@ -97,5 +103,5 @@ export function describeDelta(
 ) {
   if (change === 0 || !Number.isFinite(change)) return 'no change'
   const direction = change > 0 ? 'up' : 'down'
-  return `${direction} ${formatDelta(change, format)}${MEANING[deltaSentiment(change, goodWhen)]}`
+  return `${direction} ${spokenDelta(change, format)}${MEANING[deltaSentiment(change, goodWhen)]}`
 }

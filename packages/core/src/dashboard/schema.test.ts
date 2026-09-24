@@ -43,6 +43,17 @@ const withoutKey = <T extends Record<string, unknown>>(
   ) as Partial<T>
 
 describe('dashboardSchema', () => {
+  it('accepts only chart tokens as legend colours', () => {
+    const withLegendColor = (color: string) =>
+      dashboardSchema.safeParse(
+        spec([{ ...chart, legend: [{ label: 'Similar shows', color }] }])
+      ).success
+    expect(withLegendColor('var(--chart-band)')).toBe(true)
+    expect(withLegendColor('var(--chart-1)')).toBe(true)
+    for (const color of ['url(https://example.com/x.svg)', 'red', '#fff'])
+      expect(withLegendColor(color)).toBe(false)
+  })
+
   it('accepts a valid description', () => {
     expect(dashboardSchema.safeParse(spec([stat, chart])).success).toBe(true)
   })

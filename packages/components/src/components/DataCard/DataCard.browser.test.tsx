@@ -4,7 +4,9 @@ import { commands } from 'vitest/browser'
 
 import { DataCard } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { Meter } from '../Meter'
 import { useStylesheet } from '../Pane/testUtils'
+import { Sparkline } from '../Sparkline'
 
 let removeStylesheet = () => {}
 beforeAll(() => {
@@ -214,6 +216,37 @@ describe('DataCard copy never wraps', () => {
       const forcedStyle = getComputedStyle(card)
       expect(forcedStyle.borderTopWidth).toBe('1px')
       expect(forcedStyle.borderTopStyle).toBe('solid')
+    } finally {
+      await commands.forcedColors(false)
+    }
+  })
+
+  it('keeps the meter track, target and sparkline end under forced-colors', async (context) => {
+    const { container } = render(
+      <div style={{ width: 280 }}>
+        <Meter label='Sold' value={1842} max={2400} target={2000} />
+        <Sparkline values={[1, 3, 2, 5, 4]} />
+        <span data-probe style={{ background: 'Canvas' }} />
+      </div>
+    )
+    const find = (selector: string) =>
+      container.querySelector<HTMLElement>(selector)!
+
+    await commands.forcedColors(true)
+    try {
+      if (!matchMedia('(forced-colors: active)').matches) {
+        context.skip()
+        return
+      }
+      const canvas = getComputedStyle(find('[data-probe]')).backgroundColor
+      const track = getComputedStyle(find('[data-slot=meter]'))
+      expect(track.outlineStyle).toBe('solid')
+      expect(track.outlineWidth).toBe('1px')
+      expect(track.outlineColor).not.toBe(canvas)
+      for (const slot of ['meter-target', 'sparkline-end']) {
+        const fill = getComputedStyle(find(`[data-slot=${slot}]`))
+        expect(fill.backgroundColor).not.toBe(canvas)
+      }
     } finally {
       await commands.forcedColors(false)
     }

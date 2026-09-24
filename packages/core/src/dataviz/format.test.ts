@@ -89,7 +89,8 @@ describe('deltaSentiment', () => {
 
 describe('describeDelta', () => {
   it('speaks direction and meaning', () => {
-    expect(describeDelta(9, 'points', 'up')).toBe('up 9 pts, better')
+    expect(describeDelta(9, 'points', 'up')).toBe('up 9 points, better')
+    expect(describeDelta(-1, 'points', 'up')).toBe('down 1 point, worse')
     expect(describeDelta(-0.04, 'percent', 'up')).toBe('down 4%, worse')
     expect(describeDelta(3, 'number', 'neither')).toBe('up 3')
     expect(describeDelta(0, 'percent')).toBe('no change')

@@ -54,7 +54,10 @@ export function DataTableCellContent({
 
   if (column.kind === 'meter') {
     const max = column.max ?? 1
-    const shown = formatValue(value, column.format ?? 'percent')
+    const shown =
+      max === 1
+        ? formatValue(value, column.format ?? 'percent')
+        : `${formatValue(value, column.format)} of ${formatValue(max, column.format)}`
     if (plain) return <span>{shown}</span>
     return (
       <span className='inline-flex items-center gap-2'>
@@ -66,7 +69,7 @@ export function DataTableCellContent({
           valueText={shown}
           className='w-28'
         />
-        <span>{shown}</span>
+        <span aria-hidden>{shown}</span>
       </span>
     )
   }

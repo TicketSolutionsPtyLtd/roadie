@@ -62,7 +62,11 @@ describe('DataCard', () => {
         <div>plot</div>
       </DataCard>
     )
-    expect(screen.getByText('Nothing to show yet')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        "We don't have data for this yet. You'll see it here once it arrives."
+      )
+    ).toBeInTheDocument()
     expect(screen.queryByText('plot')).toBeNull()
     rerender(
       <DataCard
@@ -101,5 +105,18 @@ describe('DataCard', () => {
     )
     expect(html).toContain('1,842')
     expect(html).toContain('up 214, better')
+  })
+
+  it('lowercases only the first letter of the label in error copy', () => {
+    const { rerender } = render(<DataCard label='Pace for VIP' state='error' />)
+    expect(
+      screen.getByText("We couldn't load pace for VIP. Try again in a minute.")
+    ).toBeInTheDocument()
+    rerender(<DataCard label='GA sell-through' state='error' />)
+    expect(
+      screen.getByText(
+        "We couldn't load GA sell-through. Try again in a minute."
+      )
+    ).toBeInTheDocument()
   })
 })

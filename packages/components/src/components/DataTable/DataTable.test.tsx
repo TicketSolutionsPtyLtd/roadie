@@ -52,7 +52,7 @@ const rows = [
   },
   {
     show: 'Angie McMahon',
-    venue: 'The Moth Club, Brunswick',
+    venue: 'The Paper Moth, Brunswick',
     daily: [95, 85],
     sellThrough: 0.18,
     pace: 'On sale 2 days',
@@ -111,5 +111,36 @@ describe('DataTable', () => {
     const html = renderToString(<DataTable columns={columns} rows={rows} />)
     for (const column of columns) expect(html).toContain(column.header)
     expect(html).toContain('Show all columns')
+  })
+
+  it('shows a meter against a custom max as a count', () => {
+    render(
+      <DataTable
+        columns={[{ key: 'sold', header: 'Sold', kind: 'meter', max: 2400 }]}
+        rows={[{ sold: 1842 }]}
+      />
+    )
+    expect(screen.getByText('1,842 of 2,400')).toBeInTheDocument()
+    expect(screen.getByRole('meter')).toHaveAttribute(
+      'aria-valuetext',
+      '1,842 of 2,400'
+    )
+  })
+
+  it('speaks a meter cell once', () => {
+    const { container } = render(<DataTable columns={columns} rows={rows} />)
+    const meter = screen.getAllByRole('meter')[0]!
+    expect(meter).toHaveAttribute('aria-valuetext', '77%')
+    const shown = container.querySelector('td span[aria-hidden]')!
+    expect(shown).toHaveTextContent('77%')
+  })
+
+  it('makes the scroller a focusable named region', () => {
+    render(<DataTable columns={columns} rows={rows} caption='Upcoming shows' />)
+    const region = screen.getByRole('region', {
+      name: 'Upcoming shows, scrolls sideways'
+    })
+    expect(region).toHaveAttribute('tabindex', '0')
+    expect(region).toHaveAttribute('data-slot', 'data-table-scroller')
   })
 })

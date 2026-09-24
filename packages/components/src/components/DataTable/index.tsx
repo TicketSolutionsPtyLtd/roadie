@@ -82,7 +82,12 @@ export function DataTable({
       className={cn('grid gap-2', className)}
       {...props}
     >
-      <div data-slot='data-table-scroller'>
+      <div
+        data-slot='data-table-scroller'
+        role='region'
+        tabIndex={0}
+        aria-label={`${caption ?? 'Table'}, scrolls sideways`}
+      >
         <Table>
           {caption && <caption className='sr-only'>{caption}</caption>}
           <Table.Head>

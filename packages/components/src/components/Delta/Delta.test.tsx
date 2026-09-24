@@ -45,4 +45,16 @@ describe('Delta', () => {
     expect(delta).toHaveTextContent('112')
     expect(delta).toHaveAttribute('data-direction', 'up')
   })
+
+  it('shows an unavailable change as not available', () => {
+    const { container } = render(<Delta value={Number.NaN} format='points' />)
+    const delta = container.querySelector('[data-slot=delta]')!
+    expect(container.querySelector('svg')).toBeNull()
+    expect(delta).toHaveClass('text-subtle')
+    expect(delta).toHaveAttribute('data-direction', 'none')
+    expect(
+      screen.getByText('Not available', { selector: '.sr-only' })
+    ).toBeInTheDocument()
+    expect(delta).not.toHaveTextContent('No change')
+  })
 })
