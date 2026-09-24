@@ -103,6 +103,8 @@ const chartCard = z
     view: z.enum(['chart', 'table']).optional(),
     source: z.string().min(1)
   })
+  // .check() keeps chartCard a ZodObject (an .refine() wrapper wouldn't),
+  // which the discriminatedUnion above needs.
   .check((payload) => {
     if (payload.value.plot.kind === 'static' && !payload.value.table)
       payload.issues.push({

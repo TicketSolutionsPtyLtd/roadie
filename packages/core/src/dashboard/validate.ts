@@ -7,6 +7,7 @@ import {
   type CardSize,
   findRowGaps
 } from './layout'
+import { type ChartPlot, SERIES_CAP } from './plots'
 import {
   type DashboardCard,
   type DashboardSpec,
@@ -69,6 +70,104 @@ function copyProblems(path: string, field: string, text: string | undefined) {
     )
   if (TITLE_CASE.test(text))
     problems.push(warning(`${path}.${field}`, 'Use sentence case'))
+  return problems
+}
+
+type FieldRef = { key: string; field: string }
+
+export function plotFields(plot: ChartPlot): FieldRef[] {
+  const refs: FieldRef[] = []
+  const add = (key: string, field: string | undefined) => {
+    if (field) refs.push({ key, field })
+  }
+  switch (plot.kind) {
+    case 'line':
+      add('x', plot.x)
+      add('y', plot.y)
+      add('series', plot.series)
+      add('band.low', plot.band?.low)
+      add('band.high', plot.band?.high)
+      add('band.median', plot.band?.median)
+      add('forecast.low', plot.forecast?.low)
+      add('forecast.high', plot.forecast?.high)
+      break
+    case 'bar':
+      add('x', plot.x)
+      add('y', plot.y)
+      add('line.y', plot.line?.y)
+      break
+    case 'ranked-bars':
+      add('x', plot.x)
+      add('y', plot.y)
+      add('reference.field', plot.reference?.field)
+      break
+    case 'stacked-bars':
+      add('x', plot.x)
+      add('y', plot.y)
+      add('series', plot.series)
+      break
+    case 'histogram':
+      add('x', plot.x)
+      break
+    case 'heatmap':
+      add('rows', plot.rows)
+      add('columns', plot.columns)
+      add('value', plot.value)
+      break
+    case 'scatter':
+      add('x', plot.x)
+      add('y', plot.y)
+      add('size', plot.size)
+      add('label', plot.label)
+      break
+    case 'small-multiples':
+      add('by', plot.by)
+      add('chart.x', plot.chart.x)
+      add('chart.y', plot.chart.y)
+      break
+    case 'funnel':
+      break
+  }
+  return refs
+}
+
+function seriesCount(plot: ChartPlot) {
+  if ((plot.kind !== 'line' && plot.kind !== 'stacked-bars') || !plot.series)
+    return 0
+  const field = plot.series
+  return new Set(plot.data.map((row) => row[field])).size
+}
+
+function plotProblems(plot: ChartPlot, path: string) {
+  const problems: DashboardProblem[] = []
+  const plotPath = `${path}.plot`
+  if ('data' in plot && plot.data.length > 0)
+    for (const { key, field } of plotFields(plot))
+      if (!plot.data.some((row) => field in row))
+        problems.push(
+          error(`${plotPath}.${key}`, `No row has a "${field}" field`)
+        )
+  if (plot.kind === 'histogram' && plot.bins && plot.binWidth)
+    problems.push(error(`${plotPath}.bins`, 'Use bins or binWidth, not both'))
+  const count = seriesCount(plot)
+  if (count > SERIES_CAP)
+    problems.push(
+      warning(
+        `${plotPath}.series`,
+        `${count} series. The smallest will roll into Other after ${SERIES_CAP}`
+      )
+    )
+  problems.push(...copyProblems(plotPath, 'takeaway', plot.takeaway))
+  if (plot.kind === 'line' || plot.kind === 'bar')
+    plot.annotations?.forEach((annotation, i) =>
+      problems.push(
+        ...copyProblems(
+          `${plotPath}.annotations[${i}]`,
+          'label',
+          annotation.label
+        )
+      )
+    )
   return problems
 }
 
@@ -137,6 +236,12 @@ function cardProblems(card: DashboardCard, path: string) {
     problems.push(...copyProblems(path, 'takeaway', card.takeaway))
   if (card.kind === 'note')
     problems.push(...copyProblems(path, 'body', card.body))
+  if (card.kind === 'chart') {
+    if (card.plot.kind === 'static') {
+      if (!card.table)
+        problems.push(error(`${path}.table`, 'A static plot needs a table'))
+    } else problems.push(...plotProblems(card.plot, path))
+  }
   return problems
 }
 
