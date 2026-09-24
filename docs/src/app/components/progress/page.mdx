@@ -8,7 +8,7 @@ export const metadata = {
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 import { Guideline } from '@/components/Guideline'
 
-A bar that shows how far a task has got while it runs, built on Base UI's progress primitive.
+A bar that shows how far a task has got while it runs.
 
 ## Import
 
@@ -119,12 +119,12 @@ Compose the parts for a custom layout. `Progress.Value` shows the root's `valueT
 
 <div className='grid gap-8'>
 
-<Guideline title='Progress for a task, Meter for a measure'>
+<Guideline title='Use it for a task, not a measure'>
   <Guideline.Do code={`<Progress value={120} max={400} label='Importing attendees' valueText='120 of 400' />`}>
     Use Progress for work that is underway and will finish, such as an upload, an import or an export.
   </Guideline.Do>
   <Guideline.Dont code={`<Progress value={1842} max={2400} label='Tickets sold' />`}>
-    Don't use Progress for an amount against a limit, such as capacity or tickets sold. Nothing is running, so use <code>Meter</code>.
+    Don't use Progress for an amount against a limit, such as capacity or tickets sold. Nothing is running there, so show it as a measure, not a task.
   </Guideline.Dont>
 </Guideline>
 
