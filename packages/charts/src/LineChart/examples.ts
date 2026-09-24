@@ -23,7 +23,7 @@ export const paceExample: LineChartProps = {
       day: iso(START + i * 2 * DAY),
       sold: round(future ? projected(t) : actual(t)),
       coneLow: future ? round(projected(t) - spread(i)) : null,
-      coneHigh: future ? round(projected(t) + spread(i)) : null,
+      coneHigh: future ? round(Math.min(1, projected(t) + spread(i))) : null,
       low: round(bench(t) - 0.07),
       high: round(bench(t) + 0.08),
       median: round(bench(t))

@@ -1,4 +1,5 @@
 import { type ChartMark, areaY, defineChart, lineY } from '@tanstack/charts'
+import { decorative } from '@tanstack/charts/mark/decorative'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 import { formatValue } from '@oztix/roadie-core/dataviz'
@@ -43,7 +44,9 @@ import {
 } from '../plot/values'
 import { describeValue, spokenPoint, trendSentence } from '../plot/words'
 import {
+  forecastStart,
   hasEnoughPoints,
+  isForecast,
   lineXDomain,
   lineYExtent,
   seriesLabel,
@@ -72,8 +75,9 @@ function styles(
   )
 }
 
-const forecastStart = (props: LineChartProps) =>
-  props.forecast ? parseX(props.forecast.from) : null
+// The cone is one range, so it belongs to the story series, or the first.
+const coneOwner = (series: readonly SeriesStyle[]) =>
+  series.find((s) => s.emphasis === 'highlight') ?? series[0]
 
 function lastValue(points: readonly PlotDatum[], series: string) {
   return points.findLast((p) => p.series === series && p.y !== null)
@@ -92,20 +96,18 @@ function endLabels(
   frame: PlotFrame,
   domain: readonly [number, number]
 ): EndLabel[] {
-  const from = forecastStart(props)
   const labels: EndLabel[] = []
   for (const style of series) {
     const last = lastValue(points, style.name)
     if (!last || last.y === null) continue
     const value = labelFormat(props.format, last.y)
-    const isForecast =
-      from !== null && style === series[0] && Number(last.x) > from
     labels.push({
-      text: isForecast
-        ? `${FORECAST_LABEL} ${value}`
-        : series.length === 1
-          ? value
-          : style.name,
+      text:
+        isForecast(props, last.x) && series.length === 1
+          ? `${FORECAST_LABEL} ${value}`
+          : series.length === 1
+            ? value
+            : style.name,
       y: last.y,
       tone:
         style.emphasis === 'highlight'
@@ -160,38 +162,43 @@ function seriesMarks(
   props: LineChartProps,
   points: readonly PlotDatum[],
   series: readonly SeriesStyle[],
-  paint: ChartPaint,
   yFloor: number
 ): ChartMark[] {
   const from = forecastStart(props)
-  const lead = series[0]
+  const cone = coneOwner(series)
   return series.flatMap((style) => {
     const own = points.filter((p) => p.series === style.name)
-    const forecasts = from !== null && style === lead
-    const solid = forecasts ? own.filter((p) => Number(p.x) <= from) : own
-    const projected = forecasts
-      ? own
-          .filter((p) => Number(p.x) >= from)
-          .map((p) => ({ ...p, x: Number(p.x) }))
-      : []
-    const cone =
-      forecasts && props.forecast?.low && props.forecast.high
+    const solid = own.filter((p) => !isForecast(props, p.x))
+    const projected =
+      from === null
+        ? []
+        : own
+            .filter((p) => Number(p.x) >= from)
+            .map((p) => ({ ...p, x: Number(p.x) }))
+    const coneRange =
+      style === cone &&
+      from !== null &&
+      props.forecast?.low &&
+      props.forecast.high
         ? rangePoints(props, props.forecast.low, props.forecast.high).filter(
             (r) => r.x >= from
           )
         : []
     const quiet = style.emphasis === 'context' || style.emphasis === 'other'
+    const strokeWidth = quiet ? 1.5 : 2
     return [
       ...(props.area && series.length === 1
         ? [
-            areaY(solid, {
-              id: 'area',
-              x: 'x',
-              y: 'y',
-              y1: yFloor,
-              fill: style.color,
-              fillOpacity: 0.12
-            })
+            decorative(
+              areaY(solid, {
+                id: 'area',
+                x: 'x',
+                y: 'y',
+                y1: yFloor,
+                fill: style.color,
+                fillOpacity: 0.12
+              })
+            )
           ]
         : []),
       lineY(solid, {
@@ -200,12 +207,16 @@ function seriesMarks(
         y: 'y',
         z: 'series',
         stroke: style.color,
-        strokeWidth: quiet ? 1.5 : 2,
+        strokeWidth,
         lineCap: 'round',
         lineJoin: 'round'
       }),
       ...(projected.length > 1
-        ? forecastMarks(projected, cone, style.slot, paint)
+        ? forecastMarks(projected, coneRange, {
+            slot: style.slot,
+            color: style.color,
+            strokeWidth
+          })
         : [])
     ]
   })
@@ -252,11 +263,13 @@ function build(props: LineChartProps, paint: ChartPaint, frame: PlotFrame) {
           paint
         )
       : []),
-    ...seriesMarks(props, points, series, paint, yDomain[0]),
+    ...seriesMarks(props, points, series, yDomain[0]),
     ...(props.target === undefined
       ? []
       : [targetMark(props.target, xDomain, paint)]),
-    ...(today ? todayMarks(today, paint, frame) : []),
+    ...(today && series[0]
+      ? todayMarks(today, paint, frame, series[0].color)
+      : []),
     ...annotationMarks(
       (props.annotations ?? []).flatMap((a) => {
         const x = parseX(a.at)
@@ -345,15 +358,23 @@ export const lineChart: ChartDefinition<LineChartProps> = {
   },
   describe(datum, props) {
     const isTime = isTimeField(props.data, props.x)
-    const noun = (
-      props.series ? datum.series : seriesLabel(props)
-    ).toLowerCase()
     const when = spokenPoint(
       datum.x,
       isTime,
       hasTimeOfDay(props.data[0]?.[props.x])
     )
-    return `${when}, ${describeValue(datum.y, props.format, noun)}`
+    const value = describeValue(
+      datum.y,
+      props.format,
+      seriesLabel(props).toLowerCase()
+    )
+    const parts = [
+      when,
+      value,
+      ...(props.series ? [datum.series] : []),
+      ...(isForecast(props, datum.x) ? ['forecast'] : [])
+    ]
+    return parts.join(', ')
   },
   tooltip(data, props, paint) {
     const isTime = isTimeField(props.data, props.x)
@@ -371,7 +392,9 @@ export const lineChart: ChartDefinition<LineChartProps> = {
     return {
       title,
       rows: rows.map((d) => ({
-        label: d.series,
+        label: isForecast(props, d.x)
+          ? `${d.series} ${FORECAST_LABEL.toLowerCase()}`
+          : d.series,
         value:
           d.y === null ? 'No data' : formatValue(d.y, props.format ?? 'number'),
         color: styled.find((s) => s.name === d.series)?.color,

@@ -7,7 +7,7 @@ import { hexPaint } from '../plot/paint'
 import { OTHER } from '../plot/series'
 import { lineChart } from './definition'
 import { paceExample, salesByTypeExample } from './examples'
-import { toLinePoints } from './points'
+import { lineYExtent, toLinePoints } from './points'
 import { lineChartTable } from './table'
 import type { LineChartProps } from './types'
 
@@ -23,6 +23,38 @@ const svgOf = (props: LineChartProps) =>
   )
 
 const keyOf = (id: string) => new RegExp(`data-ts-key="${id}(:[^"]*)?"`)
+
+const strokeOf = (svg: string, id: string) =>
+  new RegExp(`data-ts-key="${id}:[^"]*"[^>]*stroke="([^"]+)"`).exec(svg)?.[1]
+
+const forecastDays = (values: number[]) =>
+  values.map((sold, i) => ({
+    day: `2026-10-${String(i + 1).padStart(2, '0')}`,
+    sold,
+    low: i >= 2 ? sold - 1 : null,
+    high: i >= 2 ? sold + 1 : null
+  }))
+
+const plainForecast: LineChartProps = {
+  data: forecastDays([4, 5, 6, 7, 8]),
+  x: 'day',
+  y: 'sold',
+  forecast: { from: '2026-10-03', low: 'low', high: 'high' },
+  today: '2026-10-03'
+}
+
+const multiForecast: LineChartProps = {
+  data: ['GA', 'VIP'].flatMap((type, s) =>
+    forecastDays([4, 5, 6, 7, 8].map((v) => v * (s + 1))).map((row) => ({
+      ...row,
+      type
+    }))
+  ),
+  x: 'day',
+  y: 'sold',
+  series: 'type',
+  forecast: { from: '2026-10-03', low: 'low', high: 'high' }
+}
 
 const days = (values: (number | null)[]) =>
   values.map((sold, i) => ({
@@ -152,6 +184,78 @@ describe('lineChart', () => {
     ).toEqual(['GA', 'VIP', 'Early bird'])
   })
 
+  it('dots a plain series forecast in its own colour', () => {
+    const svg = svgOf(plainForecast)
+    const stroke = strokeOf(svg, 'series-1')
+    expect(stroke).toBe(paint.categorical[0])
+    expect(strokeOf(svg, 'forecast-1')).toBe(stroke)
+    expect(svg).toMatch(keyOf('cone'))
+    expect(svg).toMatch(
+      new RegExp(`data-ts-key="today:[^"]*"[^>]*fill="${stroke}"`)
+    )
+  })
+
+  it('dots the forecast of every series, with one cone', () => {
+    const svg = svgOf(multiForecast)
+    for (const slot of [1, 2])
+      expect(strokeOf(svg, `forecast-${slot}`)).toBe(
+        strokeOf(svg, `series-${slot}`)
+      )
+    expect(svg.match(/data-ts-key="cone"/g)).toHaveLength(1)
+  })
+
+  it('keeps forecast values out of the solid line', () => {
+    const scene = createChartScene(
+      lineChart.build(multiForecast, paint, frame),
+      { width: 640, height: 260 }
+    )
+    const solidXs = scene.points
+      .filter((p) => p.markId === 'series-2')
+      .map((p) => Number(p.xValue))
+    expect(Math.max(...solidXs)).toBe(Date.UTC(2026, 9, 3))
+  })
+
+  it('makes room for the forecast cone', () => {
+    expect(
+      lineYExtent({ ...plainForecast, data: forecastDays([4, 5, 8]) })
+    ).toEqual([0, 10])
+  })
+
+  it('keeps focus on the line when it is filled', () => {
+    const scene = createChartScene(
+      lineChart.build(
+        { data: days([1, 2, 3]), x: 'day', y: 'sold', area: true },
+        paint,
+        frame
+      ),
+      { width: 640, height: 260 }
+    )
+    expect(new Set(scene.points.map((p) => p.markId))).toEqual(
+      new Set(['series-1'])
+    )
+  })
+
+  it('cues a forecast in the tooltip and in words', () => {
+    const point = { x: Date.UTC(2026, 9, 5), y: 8, series: 'Sold', index: 4 }
+    expect(
+      lineChart.tooltip([point], plainForecast, paint).rows[0]
+    ).toMatchObject({
+      label: 'Sold forecast'
+    })
+    expect(lineChart.describe(point, plainForecast)).toBe(
+      'Monday 5 October, 8 sold, forecast'
+    )
+  })
+
+  it('says the series name as written', () => {
+    expect(
+      lineChart.describe(
+        { x: Date.UTC(2026, 2, 10), y: 92, series: 'GA', index: 0 },
+        salesByTypeExample
+      )
+    ).toBe('Tuesday 10 March, 92 orders, GA')
+  })
+
   it('speaks a point in plain words', () => {
     expect(
       lineChart.describe(
@@ -204,6 +308,22 @@ describe('lineChartTable', () => {
     })
     expect(table.columns[1]).toMatchObject({ key: 'sold', format: 'number' })
     expect(table.rows[0]!.sold).toBe(12_345)
+  })
+
+  it('has a forecast column for every forecasting series', () => {
+    const table = lineChartTable(multiForecast)
+    expect(table.columns.map((c) => c.header)).toEqual([
+      'Day',
+      'GA',
+      'VIP',
+      'GA forecast',
+      'VIP forecast'
+    ])
+    expect(table.rows[4]).toMatchObject({
+      'GA forecast': 8,
+      'VIP forecast': 16
+    })
+    expect(table.rows[4]!.VIP).toBeUndefined()
   })
 
   it('has one column per series', () => {

@@ -46,14 +46,29 @@ export function lineXDomain(points: readonly PlotDatum[]): [number, number] {
   return xs.length ? [Math.min(...xs), Math.max(...xs)] : [0, 1]
 }
 
+export function forecastStart(props: Pick<LineChartProps, 'forecast'>) {
+  return props.forecast ? parseX(props.forecast.from) : null
+}
+
+export function isForecast(
+  props: Pick<LineChartProps, 'forecast'>,
+  x: number | string
+) {
+  const from = forecastStart(props)
+  return from !== null && Number(x) > from
+}
+
 export function lineYExtent(props: LineChartProps): readonly [number, number] {
   const values = toLinePoints(props).map((p) => p.y)
-  const band = props.band
-  const bandValues = band
-    ? props.data.flatMap((row) => [row[band.low], row[band.high]])
-    : []
+  const { band, forecast } = props
+  const rangeFields = [
+    ...(band ? [band.low, band.high] : []),
+    ...(forecast?.low && forecast.high ? [forecast.low, forecast.high] : [])
+  ]
   const extra = [
-    ...bandValues.map(finiteOrNull),
+    ...props.data.flatMap((row) =>
+      rangeFields.map((field) => finiteOrNull(row[field]))
+    ),
     ...(props.target === undefined ? [] : [props.target])
   ]
   return valueDomain([...values, ...extra], { zero: props.format !== 'index' })

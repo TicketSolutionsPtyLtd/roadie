@@ -44,12 +44,13 @@ export function bandMarks(
   ]
 }
 
-/** The forecast line is the series itself, so it shares the series' `z` and stays focusable. */
+export type ForecastStyle = { slot: number; color: string; strokeWidth: number }
+
+/** The forecast continues its series, so it shares the series' `z`, colour and focus. */
 export function forecastMarks(
   line: readonly ForecastPoint[],
   cone: readonly RangePoint[],
-  slot: number,
-  paint: ChartPaint
+  { slot, color, strokeWidth }: ForecastStyle
 ): ChartMark[] {
   return [
     ...(cone.length
@@ -60,7 +61,7 @@ export function forecastMarks(
               x: 'x',
               y1: 'low',
               y2: 'high',
-              fill: paint.highlight,
+              fill: color,
               fillOpacity: 0.1
             })
           )
@@ -71,8 +72,8 @@ export function forecastMarks(
       x: 'x',
       y: 'y',
       z: 'series',
-      stroke: paint.highlight,
-      strokeWidth: 2,
+      stroke: color,
+      strokeWidth,
       strokeDasharray: '0.5 4',
       lineCap: 'round'
     })
@@ -101,7 +102,8 @@ export function targetMark(
 export function todayMarks(
   point: LinePoint & { label: string },
   paint: ChartPaint,
-  frame: PlotFrame
+  frame: PlotFrame,
+  color = paint.highlight
 ): ChartMark[] {
   return [
     decorative(
@@ -110,7 +112,7 @@ export function todayMarks(
         x: 'x',
         y: 'y',
         r: 3.5,
-        fill: paint.highlight,
+        fill: color,
         stroke: paint.surface,
         strokeWidth: 1.5
       })

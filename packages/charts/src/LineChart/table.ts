@@ -3,7 +3,7 @@ import type { TableRow } from '@oztix/roadie-core/dashboard'
 import type { ChartTable } from '../Chart'
 import { valueColumn, xCell, xColumn } from '../plot/table'
 import { isTimeField, parseX } from '../plot/time'
-import { seriesLabel, toLinePoints } from './points'
+import { isForecast, seriesLabel, toLinePoints } from './points'
 import type { LineChartProps } from './types'
 
 const FORECAST = 'Forecast'
@@ -13,14 +13,19 @@ export function lineChartTable(props: LineChartProps): ChartTable {
   const points = toLinePoints(props)
   const series = [...new Set(points.map((p) => p.series))]
   const keyOf = (name: string) => (props.series ? name : props.y)
-  const lead = series[0]
-  const from = props.forecast ? parseX(props.forecast.from) : null
+  const forecastHeader = (name: string) =>
+    props.series ? `${name} forecast` : FORECAST
+  const forecasting = series.filter((name) =>
+    points.some((p) => p.series === name && isForecast(props, p.x))
+  )
   const band = props.band
   const bandLabel = band?.label ?? 'Typical range'
   const columns = [
     xColumn(props.x),
     ...series.map((name) => valueColumn(keyOf(name), name, props.format)),
-    ...(from === null ? [] : [valueColumn(FORECAST, FORECAST, props.format)]),
+    ...forecasting.map((name) =>
+      valueColumn(forecastHeader(name), forecastHeader(name), props.format)
+    ),
     ...(band
       ? [
           valueColumn('bandLow', `${bandLabel} low`, props.format),
@@ -47,8 +52,10 @@ export function lineChartTable(props: LineChartProps): ChartTable {
   for (const p of points) {
     const cells = byX.get(p.x)
     if (!cells) continue
-    const isForecast = from !== null && p.series === lead && Number(p.x) > from
-    cells[isForecast ? FORECAST : keyOf(p.series)] = p.y
+    const key = isForecast(props, p.x)
+      ? forecastHeader(p.series)
+      : keyOf(p.series)
+    cells[key] = p.y
   }
   return {
     columns,

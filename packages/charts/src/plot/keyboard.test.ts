@@ -25,6 +25,16 @@ describe('stepSeries', () => {
     expect(stepSeries([top, bottom], middle, 1)).toBeNull()
   })
 
+  it('stops once for a series whose solid line and forecast share a point', () => {
+    const solid = { xValue: 1, group: 'Sold', y: 20 }
+    const forecast = { xValue: 1, group: 'Sold', y: 20 }
+    const below = { xValue: 1, group: 'VIP', y: 60 }
+    const column = [solid, forecast, below]
+    expect(stepSeries(column, forecast, 1)).toBe(below)
+    expect(stepSeries(column, below, -1)).toBe(solid)
+    expect(stepSeries(column, solid, -1)).toBeNull()
+  })
+
   it('matches dates by time', () => {
     const upper = { xValue: new Date(2026, 10, 14), group: 'A', y: 10 }
     const lower = { xValue: new Date(2026, 10, 14), group: 'B', y: 50 }

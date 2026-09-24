@@ -49,8 +49,7 @@ describe('reading aids', () => {
         { x: 6, low: 0.5, high: 0.5 },
         { x: 10, low: 0.8, high: 1 }
       ],
-      1,
-      paint
+      { slot: 1, color: paint.highlight, strokeWidth: 2 }
     ),
     targetMark(0.85, [0, 10], paint),
     ...todayMarks({ x: 6, y: 0.5, label: 'Today 50%' }, paint, frame),
