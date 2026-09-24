@@ -77,9 +77,13 @@ export function ComponentSkeleton({ name }: { name: string }) {
             <Skel className='h-2 w-full' />
             <Skel className='h-2 w-32' />
           </div>
-          <div className='flex w-fit items-center gap-1.5 rounded-full emphasis-subtle px-3 py-1.5'>
+          <div className='flex w-fit items-center gap-1.5 rounded-full border border-subtle bg-normal px-3 py-1.5'>
             <Skel className='h-2 w-14' />
             <Skel className='size-2' />
+          </div>
+          <div className='grid gap-1.5 rounded-md border border-subtle bg-normal px-3 py-2'>
+            <Skel className='h-1.5 w-full' />
+            <Skel className='h-1.5 w-24' />
           </div>
         </div>
       )

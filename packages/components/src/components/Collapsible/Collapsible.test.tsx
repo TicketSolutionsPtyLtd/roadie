@@ -88,10 +88,10 @@ describe('Collapsible', () => {
     )
   })
 
-  it('hides the caret with showIndicator={false}', () => {
+  it('hides the caret with showCaret={false}', () => {
     render(
       <Collapsible>
-        <Collapsible.Trigger showIndicator={false}>More</Collapsible.Trigger>
+        <Collapsible.Trigger showCaret={false}>More</Collapsible.Trigger>
       </Collapsible>
     )
     expect(caret(screen.getByRole('button'))).toBeNull()
@@ -102,8 +102,10 @@ describe('Collapsible', () => {
     expect(screen.getByRole('button')).toHaveClass(
       'is-interactive',
       'inline-flex',
-      'font-medium'
+      'font-medium',
+      'hover:bg-subtle'
     )
+    expect(caret(screen.getByRole('button'))).toHaveClass('text-subtle')
   })
 
   it('renders onto a Roadie Button without its own trigger styles', async () => {
@@ -121,6 +123,7 @@ describe('Collapsible', () => {
     expect(trigger).toHaveClass('btn', 'emphasis-subtler', 'btn-sm')
     expect(trigger).not.toHaveClass('font-medium')
     expect(caret(trigger)).not.toBeNull()
+    expect(caret(trigger)).not.toHaveClass('text-subtle')
 
     await user.click(trigger)
     expect(trigger).toHaveAttribute('aria-expanded', 'true')

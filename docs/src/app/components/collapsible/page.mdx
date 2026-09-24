@@ -8,7 +8,7 @@ export const metadata = {
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 import { Guideline } from '@/components/Guideline'
 
-A single panel that a trigger shows and hides, built on Base UI's collapsible primitive. It opens with the same height motion and caret turn as Accordion.
+A single panel that a trigger shows and hides.
 
 ## Import
 
@@ -21,6 +21,8 @@ import { Collapsible } from '@oztix/roadie-components/collapsible'
 ### Default
 
 A bare trigger is a text control with a trailing caret. Pad the content inside the panel, not the panel itself, so it closes all the way.
+
+The part is `.Panel`, matching Base UI and `Tabs.Panel`. Roadie keeps `.Content` for popup wrappers such as `Select.Content`.
 
 ```tsx-live
 <div className='grid gap-3'>
@@ -45,6 +47,41 @@ A bare trigger is a text control with a trailing caret. Pad the content inside t
       </ul>
     </Collapsible.Panel>
   </Collapsible>
+</div>
+```
+
+### States
+
+```tsx-live
+<div className='grid gap-6'>
+  <div className='grid justify-items-start gap-1'>
+    <p className='text-sm text-subtle'>Closed</p>
+    <Collapsible>
+      <Collapsible.Trigger>Show all 12 ticket types</Collapsible.Trigger>
+      <Collapsible.Panel><p className='pt-2'>Early bird, student and nine more.</p></Collapsible.Panel>
+    </Collapsible>
+  </div>
+  <div className='grid justify-items-start gap-1'>
+    <p className='text-sm text-subtle'>Open</p>
+    <Collapsible defaultOpen>
+      <Collapsible.Trigger>Show all 12 ticket types</Collapsible.Trigger>
+      <Collapsible.Panel><p className='pt-2'>Early bird, student and nine more.</p></Collapsible.Panel>
+    </Collapsible>
+  </div>
+  <div className='grid justify-items-start gap-1'>
+    <p className='text-sm text-subtle'>Disabled</p>
+    <Collapsible disabled>
+      <Collapsible.Trigger>Show all 12 ticket types</Collapsible.Trigger>
+      <Collapsible.Panel><p className='pt-2'>Early bird, student and nine more.</p></Collapsible.Panel>
+    </Collapsible>
+  </div>
+  <div className='grid justify-items-start gap-1'>
+    <p className='text-sm text-subtle'>Without a caret</p>
+    <Collapsible>
+      <Collapsible.Trigger showCaret={false}>Show all 12 ticket types</Collapsible.Trigger>
+      <Collapsible.Panel><p className='pt-2'>Early bird, student and nine more.</p></Collapsible.Panel>
+    </Collapsible>
+  </div>
 </div>
 ```
 
@@ -86,7 +123,7 @@ Tuck advanced filters behind a button. `keepMounted` keeps the closed panel in t
       <Field.Input placeholder='Search events' />
     </Field>
     <Collapsible.Trigger render={<Button />}>
-      <SlidersHorizontal weight='bold' className='size-4' />
+      <SlidersHorizontalIcon weight='bold' className='size-4' />
       Advanced filters
     </Collapsible.Trigger>
   </div>
@@ -113,41 +150,6 @@ Tuck advanced filters behind a button. `keepMounted` keeps the closed panel in t
     </div>
   </Collapsible.Panel>
 </Collapsible>
-```
-
-### States
-
-```tsx-live
-<div className='grid gap-6'>
-  <div className='grid justify-items-start gap-1'>
-    <p className='text-sm text-subtle'>Closed</p>
-    <Collapsible>
-      <Collapsible.Trigger>Show all 12 ticket types</Collapsible.Trigger>
-      <Collapsible.Panel><p className='pt-2'>Early bird, student and nine more.</p></Collapsible.Panel>
-    </Collapsible>
-  </div>
-  <div className='grid justify-items-start gap-1'>
-    <p className='text-sm text-subtle'>Open</p>
-    <Collapsible defaultOpen>
-      <Collapsible.Trigger>Show all 12 ticket types</Collapsible.Trigger>
-      <Collapsible.Panel><p className='pt-2'>Early bird, student and nine more.</p></Collapsible.Panel>
-    </Collapsible>
-  </div>
-  <div className='grid justify-items-start gap-1'>
-    <p className='text-sm text-subtle'>Disabled</p>
-    <Collapsible disabled>
-      <Collapsible.Trigger>Show all 12 ticket types</Collapsible.Trigger>
-      <Collapsible.Panel><p className='pt-2'>Early bird, student and nine more.</p></Collapsible.Panel>
-    </Collapsible>
-  </div>
-  <div className='grid justify-items-start gap-1'>
-    <p className='text-sm text-subtle'>Without a caret</p>
-    <Collapsible>
-      <Collapsible.Trigger showIndicator={false}>Show all 12 ticket types</Collapsible.Trigger>
-      <Collapsible.Panel><p className='pt-2'>Early bird, student and nine more.</p></Collapsible.Panel>
-    </Collapsible>
-  </div>
-</div>
 ```
 
 ## Guidelines
