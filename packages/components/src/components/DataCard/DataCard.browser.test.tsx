@@ -63,6 +63,86 @@ describe('DataCard copy never wraps', () => {
       expect(line.scrollWidth).toBeLessThanOrEqual(line.clientWidth)
   })
 
+  it('keeps house-length label and context on one line at 166px', () => {
+    const { container } = render(
+      <div style={{ width: 166 }}>
+        <DataCard
+          label='Gross ticket revenue'
+          value={1842}
+          context='On last week, before fees.'
+        />
+      </div>
+    )
+    const label = container.querySelector('[data-slot=data-card-label]')!
+    const context = container.querySelector('[data-slot=data-card-context]')!
+    expect(label.scrollWidth).toBeLessThanOrEqual(label.clientWidth)
+    expect(context.scrollWidth).toBeLessThanOrEqual(context.clientWidth)
+  })
+
+  it('keeps the context line full width when actions are present', () => {
+    const { container } = render(
+      <div style={{ width: 343 }}>
+        <DataCard
+          label='Gross revenue'
+          value={118400}
+          format='compactCurrency'
+          context='On last week, before fees'
+          actions={<button type='button'>Chart</button>}
+        />
+      </div>
+    )
+    const inner = container.querySelector<HTMLElement>(
+      '[data-slot=data-card-inner]'
+    )!
+    const context = container.querySelector<HTMLElement>(
+      '[data-slot=data-card-context]'
+    )!
+    const innerStyle = getComputedStyle(inner)
+    const innerContentWidth =
+      inner.getBoundingClientRect().width -
+      Number.parseFloat(innerStyle.paddingLeft) -
+      Number.parseFloat(innerStyle.paddingRight)
+    expect(
+      Math.abs(context.getBoundingClientRect().width - innerContentWidth)
+    ).toBeLessThan(1)
+  })
+
+  it('matches a ready card height while loading', () => {
+    const ready = render(
+      <div style={{ width: 280 }}>
+        <DataCard
+          label='Sales pace'
+          value={1842}
+          context='This week'
+          source='Oztix sales'
+        >
+          <div style={{ height: '32px' }} />
+        </DataCard>
+      </div>
+    )
+    const readyHeight = ready.container
+      .querySelector('[data-slot=data-card]')!
+      .getBoundingClientRect().height
+    ready.unmount()
+
+    const loading = render(
+      <div style={{ width: 280 }}>
+        <DataCard
+          label='Sales pace'
+          state='loading'
+          bodyHeight='32px'
+          source='Oztix sales'
+        />
+      </div>
+    )
+    const loadingHeight = loading.container
+      .querySelector('[data-slot=data-card]')!
+      .getBoundingClientRect().height
+    loading.unmount()
+
+    expect(Math.abs(readyHeight - loadingHeight)).toBeLessThan(1)
+  })
+
   it('truncates awkward copy on one line', () => {
     const { container } = render(
       <div style={{ width: 166 }}>

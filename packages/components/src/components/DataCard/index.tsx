@@ -82,12 +82,11 @@ function Headline({
   return null
 }
 
-function Loading({ bodyHeight }: { bodyHeight?: string }) {
+function LoadingHeadline() {
   return (
     <>
       <Skeleton className='h-7 w-24' />
       <Skeleton className='w-32' />
-      <Skeleton shape='block' style={{ height: bodyHeight ?? '2rem' }} />
     </>
   )
 }
@@ -128,42 +127,51 @@ export function DataCard({
         data-slot='data-card-inner'
         className='grid h-full content-start gap-3'
       >
-        <header className='grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3'>
-          <div className='grid min-w-0 gap-1'>
+        <header className='grid min-w-0 gap-1'>
+          <div className='grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3'>
             <h3
               id={labelId}
               title={label}
+              data-slot='data-card-label'
               className={cn(LINE, 'text-sm font-semibold text-subtle')}
             >
               {label}
             </h3>
-            {state === 'loading' ? (
-              <Loading bodyHeight={bodyHeight} />
-            ) : (
-              showContent && (
-                <>
-                  <Headline
-                    value={value}
-                    format={format}
-                    delta={delta}
-                    takeaway={takeaway}
-                  />
-                  {context && (
-                    <p
-                      title={context}
-                      className={cn(LINE, 'text-sm text-subtle')}
-                    >
-                      {context}
-                    </p>
-                  )}
-                </>
-              )
+            {actions && showContent && (
+              <div className='flex items-center gap-1'>{actions}</div>
             )}
           </div>
-          {actions && showContent && (
-            <div className='flex items-center gap-1'>{actions}</div>
+          {state === 'loading' ? (
+            <LoadingHeadline />
+          ) : (
+            showContent && (
+              <>
+                <Headline
+                  value={value}
+                  format={format}
+                  delta={delta}
+                  takeaway={takeaway}
+                />
+                {context && (
+                  <p
+                    title={context}
+                    data-slot='data-card-context'
+                    className={cn(LINE, 'text-sm text-subtle')}
+                  >
+                    {context}
+                  </p>
+                )}
+              </>
+            )
           )}
         </header>
+        {state === 'loading' && (
+          <Skeleton
+            shape='block'
+            className='self-end'
+            style={{ height: bodyHeight ?? '2rem' }}
+          />
+        )}
         {showContent && children && (
           <div data-slot='data-card-body' className='self-end'>
             {children}
@@ -181,21 +189,22 @@ export function DataCard({
             {errorAction}
           </div>
         )}
-        {showContent && (source || (state === 'stale' && staleLabel)) && (
-          <footer className='flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-subtler pt-2 text-xs text-subtle'>
-            {source && <span>{source}</span>}
-            {state === 'stale' && staleLabel && (
-              <span className='inline-flex items-center gap-1'>
-                <ClockCountdownIcon
-                  weight='bold'
-                  className='size-3 text-chart-status-warning'
-                  aria-hidden
-                />
-                {staleLabel}
-              </span>
-            )}
-          </footer>
-        )}
+        {(showContent || state === 'loading') &&
+          (source || (state === 'stale' && staleLabel)) && (
+            <footer className='flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-subtler pt-2 text-xs text-subtle'>
+              {source && <span>{source}</span>}
+              {state === 'stale' && staleLabel && (
+                <span className='inline-flex items-center gap-1'>
+                  <ClockCountdownIcon
+                    weight='bold'
+                    className='size-3 text-chart-status-warning'
+                    aria-hidden
+                  />
+                  {staleLabel}
+                </span>
+              )}
+            </footer>
+          )}
       </div>
     </section>
   )
