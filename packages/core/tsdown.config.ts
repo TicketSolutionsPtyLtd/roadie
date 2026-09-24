@@ -9,7 +9,9 @@ export default defineConfig(({ watch }) => ({
     'image/index': './src/image/index.ts',
     'datetime/index': './src/datetime/index.ts',
     'dataviz/index': './src/dataviz/index.ts',
-    'navigator/index': './src/navigator/index.ts'
+    'navigator/index': './src/navigator/index.ts',
+    'dashboard/index': './src/dashboard/index.ts',
+    'dashboard-layout/index': './src/dashboard-layout/index.ts'
   },
   format: ['esm'],
   minify: !watch,

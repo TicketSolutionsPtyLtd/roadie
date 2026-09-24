@@ -21,15 +21,17 @@ export function PreviewCard({
   href,
   title,
   subtitle,
+  className,
   children
 }: {
   href: string
   title: string
   subtitle?: ReactNode
+  className?: string
   children: ReactNode
 }) {
   return (
-    <li className='grid'>
+    <li className={`grid ${className ?? ''}`}>
       <Card href={href} className='overflow-hidden no-underline'>
         <PreviewThumbnail>{children}</PreviewThumbnail>
         <div className='grid gap-0.5 px-3 py-2.5'>

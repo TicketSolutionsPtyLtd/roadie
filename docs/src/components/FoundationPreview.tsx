@@ -51,8 +51,6 @@ const EASE_STEPS = [
 
 const LOAD_TIMES = ['h-12', 'h-9', 'h-7', 'h-5']
 
-const SALES = ['h-4', 'h-6', 'h-5', 'h-8', 'h-10']
-
 /** A foundation's preview art, authored at roughly `w-40` for `PreviewThumbnail`. */
 export function FoundationPreview({ name }: { name: string }) {
   switch (name) {
@@ -148,19 +146,6 @@ export function FoundationPreview({ name }: { name: string }) {
             <p className='text-sm font-semibold text-strong'>Fri 27 Nov</p>
             <p className='text-xs text-subtle'>7:30pm AEDT</p>
           </div>
-        </div>
-      )
-    case 'data-visualisation':
-      return (
-        <div className='relative flex h-16 w-40 items-end gap-1.5'>
-          {SALES.map((height) => (
-            <div
-              key={height}
-              className={`flex-1 rounded-t-sm bg-chart-context ${height}`}
-            />
-          ))}
-          <div className='h-14 flex-1 rounded-t-sm bg-chart-highlight' />
-          <div className='absolute inset-x-0 top-1 border-t-2 border-dashed border-chart-value' />
         </div>
       )
     case 'interactions':

@@ -1,5 +1,6 @@
 import { type Oklch, toHex } from './color-math'
 import {
+  DEFAULT_ACCENT_HUE,
   DIVERGE_MID,
   type GreyName,
   type Mode,
@@ -102,7 +103,7 @@ function modeBlock(p: Palette, mode: Mode, modern: boolean) {
       'chart-highlight',
       modern
         ? `oklch(${l} ${c} var(--accent-hue))`
-        : toHex(p.categorical[mode][0]!)
+        : toHex([l, c, DEFAULT_ACCENT_HUE])
     ),
     decl('chart-band', band(p, mode, modern))
   )
@@ -111,8 +112,13 @@ function modeBlock(p: Palette, mode: Mode, modern: boolean) {
   return lines
 }
 
+const inkBlock = [
+  ":root, .dark, [class*='intent-'] {",
+  ...Object.entries(INK).map(([name, value]) => `  --chart-${name}: ${value};`),
+  '}'
+]
+
 export function renderDatavizCss(p: Palette = defaultPalette): string {
-  const ink = Object.entries(INK).map(([k, v]) => decl(`chart-${k}`, v))
   const theme = DATAVIZ_TOKEN_NAMES.map((name) =>
     decl(`color-${name}`, `var(--${name})`)
   )
@@ -128,12 +134,13 @@ export function renderDatavizCss(p: Palette = defaultPalette): string {
     '',
     ':root {',
     ...modeBlock(p, 'light', false),
-    ...ink,
     '}',
     '',
     '.dark {',
     ...modeBlock(p, 'dark', false),
     '}',
+    '',
+    ...inkBlock,
     '',
     '@supports (color: oklch(0 0 0)) {',
     '  :root {',

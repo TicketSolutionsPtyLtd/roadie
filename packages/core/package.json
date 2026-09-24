@@ -47,6 +47,14 @@
     "./dataviz": {
       "types": "./dist/dataviz/index.d.ts",
       "import": "./dist/dataviz/index.js"
+    },
+    "./dashboard": {
+      "types": "./dist/dashboard/index.d.ts",
+      "import": "./dist/dashboard/index.js"
+    },
+    "./dashboard-layout": {
+      "types": "./dist/dashboard-layout/index.d.ts",
+      "import": "./dist/dashboard-layout/index.js"
     }
   },
   "sideEffects": [
@@ -86,7 +94,8 @@
   "dependencies": {
     "clsx": "2.1.1",
     "colorjs.io": "0.7.1",
-    "tailwind-merge": "3.7.0"
+    "tailwind-merge": "3.7.0",
+    "zod": "4.6.5"
   },
   "devDependencies": {
     "@size-limit/preset-small-lib": "14.0.0",
