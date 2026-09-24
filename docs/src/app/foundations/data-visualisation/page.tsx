@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation'
 export const metadata = {
   title: 'Data visualisation',
   description: 'Moved to Charts',
-  category: 'Content'
+  category: 'Content',
+  hidden: true
 }
 
 export default function DataVisualisationMoved() {

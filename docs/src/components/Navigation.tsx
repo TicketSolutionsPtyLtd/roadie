@@ -23,7 +23,7 @@ import {
   SquaresFourIcon
 } from '@phosphor-icons/react'
 
-import type { CatalogueCategory } from '@/lib/page-manifest'
+import type { CatalogueCategory, CatalogueEntry } from '@/lib/page-manifest'
 import { useRoute } from '@/lib/route'
 import { relatedLinks } from '@/lib/token-families'
 
@@ -75,6 +75,10 @@ const DESTINATION_ICONS: Record<string, ReactNode> = {
   '/charts': <ChartLineIcon />,
   '/roadie-widgets': <SquaresFourIcon />
 }
+
+// A cross listing never matches the route, so the page's own destination stays the lit one.
+const entryValue = (host: string, entry: CatalogueEntry) =>
+  entry.crossListedFrom ? `${host}#${entry.href}` : entry.href
 
 const persistExpanded = (next: boolean) => {
   document.cookie = serializeNavigatorExpandedCookie(next)
@@ -214,7 +218,7 @@ export function DocsNavigator({
                         {group.entries.map((entry) => (
                           <Navigator.Item
                             key={entry.name}
-                            value={entry.href}
+                            value={entryValue(destination.href, entry)}
                             href={entry.href}
                             description={entry.description}
                           >

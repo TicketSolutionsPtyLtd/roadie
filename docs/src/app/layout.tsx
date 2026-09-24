@@ -38,14 +38,16 @@ async function guide(href: string, file: string): Promise<NavigationItem> {
   }
 }
 
-/** Flat items, in group order, for `FooterNav`'s previous and next links. */
+/** Flat items, in group order, for `FooterNav`'s previous and next links; each page once, in its own catalogue. */
 const flatten = (route: string, groups: CatalogueCategory[]) => [
   { title: 'Overview', href: route },
   ...groups.flatMap((group) => [
     ...(group.overviewHref
       ? [{ title: group.name, href: group.overviewHref }]
       : []),
-    ...group.entries.map(({ title, href }) => ({ title, href }))
+    ...group.entries
+      .filter((entry) => !entry.crossListedFrom)
+      .map(({ title, href }) => ({ title, href }))
   ])
 ]
 

@@ -279,7 +279,7 @@ export default function DataVisualisationPage() {
         <p className='max-w-prose text-subtle'>
           In a dashboard, these forms sit inside cards. See{' '}
           <Link href='/charts/dashboards' className='underline'>
-            dashboards
+            dashboard design
           </Link>{' '}
           for sizing and layout.
         </p>

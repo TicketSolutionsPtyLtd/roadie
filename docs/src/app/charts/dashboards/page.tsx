@@ -32,7 +32,7 @@ import {
 } from '@oztix/roadie-core/dashboard-layout'
 
 export const metadata = {
-  title: 'Dashboards',
+  title: 'Dashboard design',
   description:
     'Put cards together into dashboards that read the same everywhere',
   category: 'Guidelines',
