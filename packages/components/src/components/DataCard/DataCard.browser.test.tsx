@@ -12,7 +12,7 @@ beforeAll(() => {
 afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
 
-const WIDTHS = [166, 240, 280, 343, 460]
+const WIDTHS = [158, 240, 280, 343, 460]
 
 function lines(root: HTMLElement) {
   return [
@@ -50,7 +50,7 @@ describe('DataCard copy never wraps', () => {
 
   it('truncates house-length copy only past its limit at phone stat width', () => {
     const { container } = render(
-      <div style={{ width: 166 }}>
+      <div style={{ width: 158 }}>
         <DataCard
           label='Tickets sold'
           value={1842}
@@ -63,20 +63,26 @@ describe('DataCard copy never wraps', () => {
       expect(line.scrollWidth).toBeLessThanOrEqual(line.clientWidth)
   })
 
-  it('keeps house-length label and context on one line at 166px', () => {
-    const { container } = render(
-      <div style={{ width: 166 }}>
-        <DataCard
-          label='Gross ticket revenue'
-          value={1842}
-          context='On last week, before fees.'
-        />
-      </div>
-    )
-    const label = container.querySelector('[data-slot=data-card-label]')!
-    const context = container.querySelector('[data-slot=data-card-context]')!
-    expect(label.scrollWidth).toBeLessThanOrEqual(label.clientWidth)
-    expect(context.scrollWidth).toBeLessThanOrEqual(context.clientWidth)
+  it('keeps house-length label and context on one line at 158px', () => {
+    const cases = [
+      { label: 'Gross ticket revenue', context: 'On last week. 20 weeks' },
+      { label: 'GA vs VIP tickets sold', context: 'Ahead of similar shows' },
+      { label: 'VIP tickets sold today', context: 'GA sold 1,210 of 1,610' },
+      { label: 'Tickets sold', context: 'Similar shows = 100' },
+      { label: 'Sell-through', context: 'VIP is 27 pts short' }
+    ]
+    for (const { label: labelCopy, context: contextCopy } of cases) {
+      const { container, unmount } = render(
+        <div style={{ width: 158 }}>
+          <DataCard label={labelCopy} value={1842} context={contextCopy} />
+        </div>
+      )
+      const label = container.querySelector('[data-slot=data-card-label]')!
+      const context = container.querySelector('[data-slot=data-card-context]')!
+      expect(label.scrollWidth).toBeLessThanOrEqual(label.clientWidth)
+      expect(context.scrollWidth).toBeLessThanOrEqual(context.clientWidth)
+      unmount()
+    }
   })
 
   it('keeps the context line full width when actions are present', () => {
@@ -145,7 +151,7 @@ describe('DataCard copy never wraps', () => {
 
   it('truncates awkward copy on one line', () => {
     const { container } = render(
-      <div style={{ width: 166 }}>
+      <div style={{ width: 158 }}>
         <DataCard
           label='Tickets sold across every venue'
           value='$1,234,567.89'

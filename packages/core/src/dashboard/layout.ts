@@ -22,11 +22,11 @@ export type ColumnKind = (typeof COLUMN_KINDS)[number]
 
 export const COPY_LIMITS: Record<CardSize, { label: number; context: number }> =
   {
-    stat: { label: 20, context: 26 },
+    stat: { label: 22, context: 22 },
     sm: { label: 28, context: 36 },
-    md: { label: 40, context: 60 },
-    lg: { label: 48, context: 72 },
-    full: { label: 60, context: 96 }
+    md: { label: 42, context: 44 },
+    lg: { label: 42, context: 44 },
+    full: { label: 42, context: 44 }
   }
 
 export const DASHBOARD_WIDTHS = ['desktop', 'tablet', 'phone'] as const

@@ -32,7 +32,7 @@ export function createShowDashboard(assetBase = ''): DashboardSpec {
             label: 'Tickets sold',
             value: 1842,
             delta: { value: 214 },
-            context: 'This week. Last 20 days',
+            context: 'This week. 20 days',
             trend: DAILY_SOLD
           },
           {
@@ -55,7 +55,7 @@ export function createShowDashboard(assetBase = ''): DashboardSpec {
             value: 112,
             format: 'index',
             delta: { value: 0.12, format: 'percent' },
-            context: 'Ahead. Similar shows = 100',
+            context: 'Similar shows = 100',
             trend: PACE,
             reference: { value: 100, label: 'Similar shows' }
           },
@@ -83,7 +83,7 @@ export function createShowDashboard(assetBase = ''): DashboardSpec {
             value: 0.61,
             format: 'percent',
             delta: { value: 9, format: 'points' },
-            context: 'Ahead of similar shows. Forecast 96% by show day',
+            context: 'Ahead of similar shows. Forecast 96%',
             plot: {
               kind: 'static',
               src: `${assetBase}/charts/pace-ahead-light.svg`,

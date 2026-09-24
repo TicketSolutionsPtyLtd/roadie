@@ -708,7 +708,7 @@ export default function DashboardsPage() {
                   value={118400}
                   format='compactCurrency'
                   delta={{ value: -0.04, format: 'percent' }}
-                  context='On last week, before fees'
+                  context='Last week, before fees'
                 />
               </Tile>
             }

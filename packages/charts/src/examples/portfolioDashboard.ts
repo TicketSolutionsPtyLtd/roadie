@@ -191,7 +191,7 @@ export function createPortfolioDashboard(assetBase = ''): DashboardSpec {
             value: 0.4,
             format: 'percent',
             delta: { value: -12, format: 'points' },
-            context: 'Behind similar shows. Forecast 74%. Target 85%',
+            context: 'Behind similar shows. 74% vs 85% target',
             plot: {
               kind: 'static',
               src: `${assetBase}/charts/pace-behind-light.svg`,

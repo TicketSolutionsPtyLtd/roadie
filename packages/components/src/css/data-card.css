@@ -14,12 +14,12 @@
 
 @container data-card (width < 240px) {
   [data-slot='data-card-inner'] {
-    padding: 0.75rem;
+    padding: 0.625rem;
   }
 
   [data-slot='data-card-label'],
   [data-slot='data-card-context'] {
-    font-size: 0.7rem;
-    line-height: 0.95rem;
+    font-size: 0.75rem;
+    line-height: 1rem;
   }
 }
