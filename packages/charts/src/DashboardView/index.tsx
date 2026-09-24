@@ -101,10 +101,10 @@ function Card({ card, size }: { card: DashboardCard; size: CardSize }) {
           delta={card.delta}
           takeaway={card.takeaway}
           view={card.view}
-          table={card.table}
+          table={card.table ?? { columns: [], rows: [] }}
           legend={card.legend && <ChartLegend items={card.legend} />}
         >
-          <Plot plot={card.plot} />
+          {card.plot.kind === 'static' && <Plot plot={card.plot} />}
         </Chart>
       )
     case 'note':

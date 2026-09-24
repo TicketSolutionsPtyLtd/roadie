@@ -64,13 +64,33 @@ describe('dashboardSchema', () => {
     ).toBe(false)
   })
 
-  it('requires a source and table on chart cards', () => {
+  it('requires a source on chart cards', () => {
     expect(
       dashboardSchema.safeParse(spec([withoutKey(chart, 'source')])).success
     ).toBe(false)
+  })
+
+  it('still requires a table when the plot is static', () => {
     expect(
       dashboardSchema.safeParse(spec([withoutKey(chart, 'table')])).success
     ).toBe(false)
+  })
+
+  it('lets a chart card leave out its table when the plot is a chart', () => {
+    const lineCard = {
+      ...withoutKey(chart, 'table'),
+      plot: {
+        kind: 'line',
+        data: [
+          { day: '2026-10-01', sold: 0.14 },
+          { day: '2026-10-02', sold: 0.2 }
+        ],
+        x: 'day',
+        y: 'sold',
+        format: 'percent'
+      }
+    }
+    expect(dashboardSchema.safeParse(spec([lineCard])).success).toBe(true)
   })
 
   it.each(['javascript:alert(1)', 'data:image/svg+xml,<svg/>', 'vbscript:x'])(

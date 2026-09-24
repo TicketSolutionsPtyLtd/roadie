@@ -118,7 +118,7 @@ function cardProblems(card: DashboardCard, path: string) {
     card.kind === 'table'
       ? card.columns
       : card.kind === 'chart'
-        ? card.table.columns
+        ? (card.table?.columns ?? [])
         : []
   const visual = columns.filter(
     (column) => column.kind === 'sparkline' || column.kind === 'meter'
