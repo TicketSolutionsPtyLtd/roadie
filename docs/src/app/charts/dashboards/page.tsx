@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 
+import Image from 'next/image'
 import Link from 'next/link'
 
 import { CodePreview } from '@/components/CodePreview'
@@ -269,15 +270,19 @@ const PACE_ALT =
 function PacePlot() {
   return (
     <>
-      <img
+      <Image
         data-theme-image='light'
         src={getAssetPath('/charts/pace-ahead-light.svg')}
+        width={640}
+        height={240}
         alt={PACE_ALT}
         className='size-full object-contain'
       />
-      <img
+      <Image
         data-theme-image='dark'
         src={getAssetPath('/charts/pace-ahead-dark.svg')}
+        width={640}
+        height={240}
         alt={PACE_ALT}
         className='size-full object-contain'
       />

@@ -22,11 +22,11 @@ export type ColumnKind = (typeof COLUMN_KINDS)[number]
 
 export const COPY_LIMITS: Record<CardSize, { label: number; context: number }> =
   {
-    stat: { label: 20, context: 20 },
-    sm: { label: 35, context: 37 },
-    md: { label: 35, context: 37 },
-    lg: { label: 40, context: 40 },
-    full: { label: 40, context: 40 }
+    stat: { label: 19, context: 20 },
+    sm: { label: 32, context: 34 },
+    md: { label: 32, context: 34 },
+    lg: { label: 36, context: 39 },
+    full: { label: 36, context: 39 }
   }
 
 // Tighter than COPY_LIMITS: measured beside the Chart/Table icon switch.

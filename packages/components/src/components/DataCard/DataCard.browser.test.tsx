@@ -2,6 +2,8 @@ import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands } from 'vitest/browser'
 
+import { COPY_LIMITS } from '@oztix/roadie-core/dashboard-layout'
+
 import { DataCard } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Meter } from '../Meter'
@@ -69,12 +71,18 @@ describe('DataCard copy never wraps', () => {
 
   it('keeps house-length label and context on one line at 158px', () => {
     const cases = [
-      { label: 'Gross ticket revenue', context: 'On last week, 20 wks' },
-      { label: 'GA sold vs VIP today', context: 'Ahead, similar shows' },
+      { label: 'Gross ticket income', context: 'On last week, 20 wks' },
+      { label: 'GA sold vs VIP now', context: 'Ahead, similar shows' },
       { label: 'VIP sold, GA behind', context: 'GA: 1,210 of 1,610' },
       { label: 'Tickets sold', context: 'Similar shows = 100' },
       { label: 'Sell-through', context: 'VIP is 27 pts short' }
     ]
+    expect(Math.max(...cases.map((c) => c.label.length))).toBe(
+      COPY_LIMITS.stat.label
+    )
+    expect(Math.max(...cases.map((c) => c.context.length))).toBe(
+      COPY_LIMITS.stat.context
+    )
     for (const { label: labelCopy, context: contextCopy } of cases) {
       const { container, unmount } = render(
         <div style={{ width: 158 }}>
@@ -92,14 +100,20 @@ describe('DataCard copy never wraps', () => {
   it('keeps md-length label and context on one line at 292px tablet width', () => {
     const cases = [
       {
-        label: 'Sell-through by ticket type overall',
-        context: 'This show is ahead of 38 similar shows'
+        label: 'Sell-through by each ticket type',
+        context: 'Ahead of 38 similar shows, 4 weeks'
       },
       {
-        label: 'Sales pace vs similar shows overall',
+        label: 'Sales pace against similar shows',
         context: 'GA is 1,210 sold, VIP is 232 sold'
       }
     ]
+    expect(Math.max(...cases.map((c) => c.label.length))).toBe(
+      COPY_LIMITS.md.label
+    )
+    expect(Math.max(...cases.map((c) => c.context.length))).toBe(
+      COPY_LIMITS.md.context
+    )
     for (const { label: labelCopy, context: contextCopy } of cases) {
       const { container, unmount } = render(
         <div style={{ width: 292 }}>
