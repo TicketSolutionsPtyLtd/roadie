@@ -58,7 +58,7 @@ function Strip({
       </div>
       <div className='flex gap-0.5'>
         {tokens.map((token) => (
-          <p key={token} className='flex-1 text-center text-xs text-subtler'>
+          <p key={token} className='flex-1 text-center text-xs'>
             {label(token)}
           </p>
         ))}
@@ -76,11 +76,13 @@ function ThemePanel({
   mode: Mode
   tokens: readonly string[]
 }) {
+  const { surface, label: labelColor } = chartHex(mode).chrome
   return (
-    <div className='grid gap-2 rounded-xl bg-normal p-3'>
-      <p className='text-xs text-subtler'>
-        {mode === 'light' ? 'Light' : 'Dark'}
-      </p>
+    <div
+      className='grid gap-2 rounded-xl p-3'
+      style={{ backgroundColor: surface, color: labelColor }}
+    >
+      <p className='text-xs'>{mode === 'light' ? 'Light' : 'Dark'}</p>
       <Strip kind={kind} mode={mode} tokens={tokens} />
     </div>
   )

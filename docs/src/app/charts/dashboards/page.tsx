@@ -374,7 +374,7 @@ const PORTFOLIO_ROWS = [
     show: 'Ball Park Music',
     venue: 'The Lantern Room, Fortitude Valley',
     daily: [22, 30, 41, 52, 61, 72, 81, 96, 112, 131, 152, 160],
-    sellThrough: 0.77,
+    sellThrough: 0.61,
     pace: 112,
     gross: 118400
   },
@@ -390,7 +390,7 @@ const PORTFOLIO_ROWS = [
     show: 'Julia Jacklin',
     venue: 'The Gasworks Room, Hobart',
     daily: [18, 16, 15, 14, 12, 11, 10, 9, 8, 7, 6, 6],
-    sellThrough: 0.46,
+    sellThrough: 0.4,
     pace: 78,
     gross: 22900
   }
@@ -398,8 +398,8 @@ const PORTFOLIO_ROWS = [
 
 const STAT_CARD_JSON = `{
   "id": "sold", "kind": "stat", "size": "stat",
-  "label": "Tickets sold", "value": 1842,
-  "delta": { "value": 214 }, "context": "This week, of 2,400"
+  "label": "Tickets sold", "value": 1464,
+  "delta": { "value": 216 }, "context": "This week, of 2,400"
 }`
 
 const SHOW_DASHBOARD_SIZES: CardSize[] = [
@@ -416,10 +416,10 @@ const SHOW_DASHBOARD_SIZES: CardSize[] = [
 const DASHBOARD_JSX = `<Dashboard>
   <Dashboard.Section title='At a glance'>
     <DataCard size='full' label='What to do next'>
-      <p>GA is carrying the show and VIP is 27 points short of target. Push VIP in the final month.</p>
+      <p>GA is carrying the show and VIP is 45 points short of target. Push VIP in the final month.</p>
     </DataCard>
-    <StatTile label='Tickets sold' value={1842} delta={{ value: 214 }} />
-    <StatTile label='Sell-through' value={0.77} format='percent' />
+    <StatTile label='Tickets sold' value={1464} delta={{ value: 216 }} />
+    <StatTile label='Sell-through' value={0.61} format='percent' />
     <StatTile label='Pace index' value={112} format='index' />
     <StatTile label='Gross revenue' value={118400} format='compactCurrency' />
   </Dashboard.Section>
@@ -900,7 +900,7 @@ export default function DashboardsPage() {
         <List
           items={[
             'Each card is a section named by its label. Dashboard sections use h2 headings.',
-            'Values and deltas read as sentences, such as “Sell-through, 77%, up 9 pts, better. This week, target 85%.”',
+            'Values and deltas read as sentences, such as “Sell-through, 61%, up 9 points, better. This week, target 85%.”',
             'A plot is an image with a one-line summary from its headline or takeaway. The Table tab is the full alternative, reachable by keyboard.',
             'Colour is never the only signal. Deltas have arrows and words, table status has text, and textures turn on under forced colours.',
             'Nothing animates.'

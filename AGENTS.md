@@ -28,6 +28,7 @@ Roadie is a design system for Oztix's applications, built as a monorepo using pn
 ```
 /packages/core/         - CSS foundation, color generator, utilities (@oztix/roadie-core)
 /packages/components/   - React component library (@oztix/roadie-components)
+/packages/charts/       - Chart cards, legends and dashboard views (@oztix/roadie-charts)
 /packages/icons/        - Icon package (coming soon)
 /docs/                  - Documentation site (Next.js + MDX)
 ```
@@ -317,6 +318,7 @@ export const buttonVariants = cva('base-classes is-interactive', {
    node_modules path) — import every package you use. */
 @import '@oztix/roadie-components/css';
 @import '@oztix/roadie-widgets/css'; /* React widget skins also need components CSS above; Vue skins don't */
+@import '@oztix/roadie-charts/css';
 ```
 
 ### Key rules

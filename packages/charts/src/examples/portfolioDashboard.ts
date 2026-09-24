@@ -10,7 +10,7 @@ const shows = [
       22, 30, 28, 41, 38, 52, 47, 55, 61, 58, 66, 72, 70, 81, 79, 92, 88, 96,
       104, 99, 112, 118, 109, 125, 131, 128, 140, 152, 147, 160
     ],
-    sellThrough: 0.77,
+    sellThrough: 0.61,
     pace: 112,
     gross: 118400
   },
@@ -54,7 +54,7 @@ const shows = [
       18, 16, 17, 14, 15, 13, 14, 12, 13, 11, 12, 10, 11, 9, 10, 9, 8, 10, 8, 7,
       9, 7, 6, 8, 6, 7, 5, 6, 5, 6
     ],
-    sellThrough: 0.46,
+    sellThrough: 0.4,
     pace: 78,
     gross: 22900
   },
@@ -71,7 +71,7 @@ const shows = [
   },
   {
     show: 'Angie McMahon',
-    venue: 'The Moth Club, Brunswick\u00a0· Fri\u00a030\u00a0Jan',
+    venue: 'The Paper Moth, Brunswick\u00a0· Sat\u00a030\u00a0Jan',
     daily: [95, 85],
     sellThrough: 0.18,
     pace: 'On sale 2 days',

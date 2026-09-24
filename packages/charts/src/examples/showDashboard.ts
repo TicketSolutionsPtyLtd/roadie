@@ -3,12 +3,11 @@ import type { DashboardSpec } from '@oztix/roadie-core/dashboard'
 import { paceImage } from './paceImage'
 
 const DAILY_SOLD = [
-  40, 62, 70, 88, 95, 120, 131, 160, 172, 190, 214, 240, 262, 300, 330, 351,
-  380, 420, 470, 520
+  12, 14, 13, 16, 18, 17, 19, 21, 20, 22, 24, 23, 25, 26, 28, 30, 31, 33, 34, 34
 ]
 const SELL_THROUGH = [
-  0.31, 0.33, 0.36, 0.38, 0.41, 0.44, 0.46, 0.49, 0.52, 0.55, 0.57, 0.6, 0.62,
-  0.64, 0.67, 0.69, 0.71, 0.73, 0.75, 0.77
+  0.45, 0.46, 0.46, 0.47, 0.48, 0.48, 0.49, 0.5, 0.5, 0.51, 0.51, 0.52, 0.52,
+  0.53, 0.54, 0.55, 0.57, 0.58, 0.6, 0.61
 ]
 const PACE = [
   96, 98, 97, 101, 104, 103, 106, 108, 107, 105, 104, 107, 109, 110, 108, 110,
@@ -32,16 +31,16 @@ export function createShowDashboard(assetBase = ''): DashboardSpec {
             kind: 'note',
             size: 'full',
             label: 'What to do next',
-            body: 'GA is carrying the show and VIP is 27 points short of target. Push VIP in the final month.'
+            body: 'GA is carrying the show and VIP is 45 points short of target. Push VIP in the final month.'
           },
           {
             id: 'sold',
             kind: 'stat',
             size: 'stat',
             label: 'Tickets sold',
-            value: 1842,
-            delta: { value: 214 },
-            context: 'This week',
+            value: 1464,
+            delta: { value: 216 },
+            context: 'This week, of 2,400',
             trend: DAILY_SOLD
           },
           {
@@ -49,7 +48,7 @@ export function createShowDashboard(assetBase = ''): DashboardSpec {
             kind: 'stat',
             size: 'stat',
             label: 'Sell-through',
-            value: 0.77,
+            value: 0.61,
             format: 'percent',
             delta: { value: 9, format: 'points' },
             context: 'Target 85%',
@@ -145,9 +144,9 @@ export function createShowDashboard(assetBase = ''): DashboardSpec {
               }
             ],
             rows: [
-              { type: 'GA early bird', sold: '400 sold', sellThrough: 1 },
-              { type: 'GA', sold: '1,210 sold', sellThrough: 0.76 },
-              { type: 'VIP', sold: '232 sold', sellThrough: 0.58 }
+              { type: 'GA early bird', sold: '300 of 300', sellThrough: 1 },
+              { type: 'GA', sold: '1,004 of 1,700', sellThrough: 0.59 },
+              { type: 'VIP', sold: '160 of 400', sellThrough: 0.4 }
             ],
             source: 'Oztix sales.'
           },

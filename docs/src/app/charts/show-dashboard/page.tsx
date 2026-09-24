@@ -15,10 +15,10 @@ const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
 const JSX = `<Dashboard>
   <Dashboard.Section title='At a glance' description='Sat 14 Nov, 30 days to go'>
     <DataCard size='full' label='What to do next'>
-      <p>GA is carrying the show and VIP is 27 points short of target. Push VIP in the final month.</p>
+      <p>GA is carrying the show and VIP is 45 points short of target. Push VIP in the final month.</p>
     </DataCard>
-    <StatTile label='Tickets sold' value={1842} delta={{ value: 214 }} context='This week' trend={dailySold} />
-    <StatTile label='Sell-through' value={0.77} format='percent' delta={{ value: 9, format: 'points' }} context='Target 85%' trend={sellThrough} reference={{ value: 0.85, label: 'Target' }} />
+    <StatTile label='Tickets sold' value={1464} delta={{ value: 216 }} context='This week, of 2,400' trend={dailySold} />
+    <StatTile label='Sell-through' value={0.61} format='percent' delta={{ value: 9, format: 'points' }} context='Target 85%' trend={sellThrough} reference={{ value: 0.85, label: 'Target' }} />
     <StatTile label='Pace index' value={112} format='index' delta={{ value: 0.12, format: 'percent' }} context='Similar shows = 100' trend={pace} reference={{ value: 100, label: 'Similar shows' }} />
     <StatTile label='Gross revenue' value={118400} format='compactCurrency' delta={{ value: -0.04, format: 'percent' }} context='On last week' trend={revenue} />
   </Dashboard.Section>
