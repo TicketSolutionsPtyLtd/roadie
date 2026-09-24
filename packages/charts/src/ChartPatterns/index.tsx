@@ -1,6 +1,9 @@
-import type { ReactElement } from 'react'
+import { type ReactElement, createContext } from 'react'
 
 export const CHART_TEXTURE_COUNT = 8
+
+/** True once an ancestor has already rendered `<ChartPatterns />` for the page. */
+export const ChartPatternsContext = createContext(false)
 
 export const chartTextureId = (slot: number) => `roadie-texture-${slot}`
 
