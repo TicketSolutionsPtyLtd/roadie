@@ -30,7 +30,7 @@
     "@oztix/roadie-widgets": "workspace:*",
     "@phosphor-icons/react": "2.1.10",
     "@phosphor-icons/vue": "2.2.1",
-    "@tanstack/react-query": "5.103.1",
+    "@tanstack/react-query": "5.103.2",
     "@types/mdx": "2.0.14",
     "colorjs.io": "0.7.1",
     "focus-trap": "8.2.2",
