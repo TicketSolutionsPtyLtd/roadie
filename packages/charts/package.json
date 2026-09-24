@@ -1,0 +1,97 @@
+{
+  "name": "@oztix/roadie-charts",
+  "version": "0.0.0",
+  "description": "Roadie chart and dashboard composition for Oztix apps",
+  "type": "module",
+  "license": "ISC",
+  "author": {
+    "name": "Luke Brooker",
+    "email": "mail@lukebrooker.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TicketSolutionsPtyLtd/roadie",
+    "directory": "packages/charts"
+  },
+  "homepage": "https://ticketsolutionsptyltd.github.io/roadie/charts",
+  "files": [
+    "dist",
+    "src/css"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./css": {
+      "style": "./src/css/charts.css",
+      "default": "./src/css/charts.css"
+    },
+    "./chart": {
+      "types": "./dist/Chart/index.d.ts",
+      "import": "./dist/Chart/index.js"
+    }
+  },
+  "scripts": {
+    "build": "pnpm generate:exports && tsdown && pnpm check:dts && pnpm check:exports",
+    "generate:exports": "node scripts/generate-package-exports.mjs",
+    "check:dts": "node scripts/check-dts.mjs",
+    "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css",
+    "dev": "tsdown --watch --log-level warn",
+    "test": "vitest run --project jsdom",
+    "test:browser": "vitest run --project 'browser (*)'",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "format": "prettier --write src",
+    "size": "size-limit",
+    "size:check": "size-limit --limit"
+  },
+  "dependencies": {
+    "@oztix/roadie-core": "workspace:*"
+  },
+  "peerDependencies": {
+    "@oztix/roadie-components": "workspace:^",
+    "@phosphor-icons/react": "^2.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.5",
+    "@oztix/roadie-components": "workspace:*",
+    "@phosphor-icons/react": "2.1.10",
+    "@rolldown/plugin-babel": "0.2.4",
+    "@size-limit/preset-small-lib": "14.0.0",
+    "@tailwindcss/vite": "4.3.3",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.3",
+    "@types/node": "24.13.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "@vitest/browser-playwright": "5.0.1",
+    "babel-plugin-react-compiler": "1.0.0",
+    "jsdom": "30.1.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "size-limit": "14.0.0",
+    "tsdown": "0.23.0",
+    "vite": "8.3.0",
+    "vitest": "5.0.1"
+  },
+  "turbo": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
+    }
+  }
+}

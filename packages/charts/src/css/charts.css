@@ -1,0 +1,23 @@
+/* Registers the charts dist for Tailwind. Consumers also import @oztix/roadie-components/css. */
+@source '../../dist';
+
+[data-slot='chart-plot'] {
+  height: 220px;
+}
+
+[data-size='sm'] [data-slot='chart-plot'] {
+  height: 160px;
+}
+
+:is([data-size='lg'], [data-size='full']) [data-slot='chart-plot'] {
+  height: 260px;
+}
+
+[data-slot='chart-plot'] [data-theme-image='dark'],
+.dark [data-slot='chart-plot'] [data-theme-image='light'] {
+  display: none;
+}
+
+.dark [data-slot='chart-plot'] [data-theme-image='dark'] {
+  display: block;
+}
