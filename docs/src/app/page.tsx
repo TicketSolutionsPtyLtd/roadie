@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 
 import { ArrowRightIcon, ArrowUpRightIcon } from '@phosphor-icons/react/ssr'
 
+import { ChartPreview } from '@/components/ChartPreview'
 import { ComponentSkeleton, Skel } from '@/components/ComponentSkeleton'
 import { FoundationPreview } from '@/components/FoundationPreview'
 import { HomeGuides } from '@/components/HomeGuides'
@@ -71,7 +72,7 @@ export default async function Home() {
       </section>
 
       <HomeSection title='Explore'>
-        <ul className='grid grid-cols-1 gap-3 @2xl:grid-cols-2 @2xl:gap-4 @3xl:grid-cols-5'>
+        <ul className='grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-3 @2xl:gap-4'>
           <PreviewCard
             href='/foundations'
             title='Foundations'
@@ -94,13 +95,12 @@ export default async function Home() {
             title='Charts'
             subtitle={plural(countEntries(charts), 'guide')}
           >
-            <FoundationPreview name='data-visualisation' />
+            <ChartPreview name='data-visualisation' />
           </PreviewCard>
           <PreviewCard
             href='/roadie-widgets'
             title='Widgets'
             subtitle={plural(countEntries(widgets), 'widget')}
-            className='@2xl:col-span-2 @3xl:col-span-1'
           >
             <ComponentSkeleton name='drawer' />
           </PreviewCard>
