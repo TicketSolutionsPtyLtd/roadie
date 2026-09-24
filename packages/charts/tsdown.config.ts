@@ -3,8 +3,7 @@ import { defineConfig } from 'tsdown'
 
 import { reactCompilerPreset } from './react-compiler.config.ts'
 
-// Unbundle mode: every source file under `src/` emits as its own output
-// file. Load-bearing for RSC safety — see packages/components/tsdown.config.ts.
+// Unbundle mode is load-bearing for RSC safety — see packages/components/tsdown.config.ts.
 export default defineConfig(({ watch }) => ({
   entry: ['src/**/*.{ts,tsx}', '!**/*.test.{ts,tsx}'],
   unbundle: true,

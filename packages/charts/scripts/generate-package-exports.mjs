@@ -1,12 +1,5 @@
 #!/usr/bin/env node
-// Regenerates the `exports` block in packages/charts/package.json from the
-// src folder. Run this after adding or removing a top-level chart piece.
-//
-// Source of truth: packages/charts/src/*
-// Targets:         packages/charts/package.json → "exports"
-//
-// Adapted from packages/components/scripts/generate-package-exports.mjs for
-// a flat `src/<Piece>/` layout (charts has no `components/` subfolder).
+// Regenerates package.json's exports from src/*; run after adding/removing a top-level chart piece.
 import {
   existsSync,
   readFileSync,

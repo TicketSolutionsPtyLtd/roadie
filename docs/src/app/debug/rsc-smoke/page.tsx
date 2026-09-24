@@ -45,6 +45,8 @@ import { Select } from '@oztix/roadie-components/select'
 import { Steps } from '@oztix/roadie-components/steps'
 import { Tabs } from '@oztix/roadie-components/tabs'
 import { Tooltip } from '@oztix/roadie-components/tooltip'
+import { DashboardView } from '@oztix/roadie-charts/dashboard-view'
+import { createShowDashboard } from '@oztix/roadie-charts/examples'
 
 import { NavigatorCanary } from './NavigatorCanary'
 
@@ -698,6 +700,19 @@ export default function RscSmokePage() {
             <p>Root barrel import.</p>
           </ScrollAreaViaBarrel.Viewport>
         </ScrollAreaViaBarrel>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>
+          DashboardView (roadie-charts)
+        </h2>
+        <p className='text-sm text-subtle'>
+          <code>
+            import &#123; DashboardView &#125; from
+            &apos;@oztix/roadie-charts/dashboard-view&apos;
+          </code>
+        </p>
+        <DashboardView spec={createShowDashboard()} />
       </section>
 
       {/*

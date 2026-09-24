@@ -1,7 +1,5 @@
 #!/usr/bin/env node
-// Fails the build if any emitted .d.ts leaks `ComponentProps<typeof ...>`.
-// Those inferred prop types don't survive bundler boundaries — components
-// must export named prop types instead.
+// Fails if a .d.ts leaks ComponentProps<typeof ...> — it can't survive bundler boundaries.
 import { readFileSync, readdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
